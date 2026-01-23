@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Askie – Workspace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      color:#0b1220;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 22px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      color:#ff6b4a;
+    }
+
+    .parent{
+      font-size:13px;
+      color:#ff6b4a;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      padding:10px 20px 40px;
+    }
+
+    .hero{
+      background:#fff7f2;
+      border-radius:20px;
+      padding:22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+      box-shadow:0 10px 25px rgba(0,0,0,.06);
+    }
+
+    .hero-left{
+      display:flex;
+      gap:14px;
+      align-items:center;
+    }
+
+    .avatar{
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      background:#ffd9c9;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+    }
+
+    .hero h1{
+      font-size:20px;
+      margin:0 0 4px;
+    }
+
+    .hero p{
+      margin:0;
+      color:#6b7280;
+      font-size:14px;
+    }
+
+    .limits{
+      display:flex;
+      gap:18px;
+      font-size:12px;
+      color:#374151;
+      font-weight:600;
+    }
+
+    .limits span{
+      color:#ff6b4a;
+    }
+
+    .chat{
+      background:#fff;
+      border-radius:22px;
+      padding:18px;
+      min-height:420px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .messages{
+      flex:1;
+    }
+
+    .input{
+      display:flex;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .input input{
+      flex:1;
+      padding:14px 16px;
+      border-radius:999px;
+      border:2px solid #e5e7eb;
+      font-size:15px;
+    }
+
+    .input button{
+      border:none;
+      padding:0 18px;
+      border-radius:999px;
+      background:#ff6b4a;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .ideas{
+      margin-top:20px;
+    }
+
+    .ideas h3{
+      font-size:14px;
+      margin-bottom:10px;
+      color:#6b7280;
+    }
+
+    .idea-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
+    }
+
+    .idea{
+      background:#fff;
+      border-radius:14px;
+      padding:14px;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow:0 6px 16px rgba(0,0,0,.06);
+      transition:.2s;
+    }
+
+    .idea:hover{
+      transform:translateY(-2px);
+    }
+
+    .voice{
+      position:fixed;
+      bottom:22px;
+      right:22px;
+      background:#ff6b4a;
+      color:#fff;
+      border-radius:999px;
+      padding:14px 20px;
+      font-weight:800;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">
+    🤖 Askie
+  </div>
+  <div class="parent">Parent Controls</div>
+</header>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="hero-left">
+      <div class="avatar">🦊</div>
+      <div>
+        <h1>Hi, ss!</h1>
+        <p>What would you like to explore today?</p>
+      </div>
+    </div>
+
+    <div class="limits">
+      <div>Questions <span>68 / 70</span></div>
+      <div>Images <span>4 / 4</span></div>
+      <div>Voice <span>5 min</span></div>
+    </div>
+  </div>
+
+  <div class="chat">
+    <div class="messages">
+      <!-- messages will appear here -->
+    </div>
+
+    <div class="input">
+      <input placeholder="Ask anything…" />
+      <button>Send</button>
+    </div>
+  </div>
+
+  <div class="ideas">
+    <h3>Need an idea?</h3>
+    <div class="idea-grid">
+      <div class="idea">🐱 A cat astronaut</div>
+      <div class="idea">🧩 Let’s solve a riddle about animals</div>
+      <div class="idea">🔬 Teach me a fun science fact</div>
+      <div class="idea">😂 A silly joke about robots</div>
+      <div class="idea">📝 Let’s play a word game</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="voice">🎤 Talk</div>
+
+</body>
+</html>
