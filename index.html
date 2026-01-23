@@ -39,6 +39,7 @@ body{
 }
 
 .nav-inner{
+  position: relative;
   max-width:1200px;
   margin:auto;
   padding:14px 28px;
@@ -46,6 +47,7 @@ body{
   align-items:center;
   justify-content:space-between;
 }
+
 
 /* BRAND */
 .brand{
@@ -134,6 +136,32 @@ body{
 @media (min-width: 960px){
   .nav-links{display:flex}
   .nav-menu{display:none}
+}
+/* MOBILE MENU */
+@media (max-width: 959px){
+  .nav-links{
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    background:#fff9f3;
+    flex-direction:column;
+    gap:0;
+    padding:18px 24px;
+    border-bottom:1px solid rgba(0,0,0,.05);
+    box-shadow:0 20px 40px rgba(0,0,0,.08);
+    display:none;
+  }
+
+  .nav-links a{
+    padding:14px 0;
+    font-size:16px;
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+
+  .nav-links.open{
+    display:flex;
+  }
 }
 
 /* =========================
@@ -2167,22 +2195,32 @@ body{
     </div>
   </div>
 </footer>
+<!-- BACK TO TOP BUTTON -->
+<div class="back-to-top" id="backToTop">↑</div>
+
 <script>
+/* =========================
+   TYPING EFFECT
+========================= */
 const words = ["aprender", "preguntar", "crear"];
-let i = 0, j = 0, deleting = false;
+let i = 0;
+let j = 0;
+let deleting = false;
 const speed = 90;
-const el = document.getElementById("typing");
+const typingEl = document.getElementById("typing");
 
 function type() {
+  if (!typingEl) return;
+
   const word = words[i];
 
   if (!deleting) {
-    el.textContent = word.slice(0, ++j);
+    typingEl.textContent = word.slice(0, ++j);
     if (j === word.length) {
       setTimeout(() => deleting = true, 1200);
     }
   } else {
-    el.textContent = word.slice(0, --j);
+    typingEl.textContent = word.slice(0, --j);
     if (j === 0) {
       deleting = false;
       i = (i + 1) % words.length;
@@ -2193,11 +2231,10 @@ function type() {
 }
 
 type();
-</script>
 
-<script>
+
 /* =========================
-   Smooth section navigation
+   SMOOTH SECTION NAVIGATION
 ========================= */
 document.querySelectorAll('a[href^="#"]').forEach(link => {
   link.addEventListener('click', e => {
@@ -2214,31 +2251,44 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     }
   });
 });
-</script>
-<script>
+
+
 /* =========================
-   Back to top behavior
+   BACK TO TOP BUTTON
 ========================= */
 const backToTop = document.getElementById('backToTop');
 
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 500) {
-    backToTop.classList.add('show');
-  } else {
-    backToTop.classList.remove('show');
-  }
-});
-
-backToTop.addEventListener('click', () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
+if (backToTop) {
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 500) {
+      backToTop.classList.add('show');
+    } else {
+      backToTop.classList.remove('show');
+    }
   });
-});
+
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+    /* =========================
+   MOBILE NAV TOGGLE
+========================= */
+const menuBtn = document.querySelector('.nav-menu');
+const navLinks = document.querySelector('.nav-links');
+
+if (menuBtn && navLinks) {
+  menuBtn.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+    menuBtn.textContent = navLinks.classList.contains('open') ? '✕' : '☰';
+  });
+}
+
 </script>
 
-
-<div class="back-to-top" id="backToTop">↑</div>
 
 
 </body>
