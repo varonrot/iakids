@@ -139,162 +139,182 @@ body{
 /* =========================
    HERO – IA PARA NIÑOS
 ========================= */
-.kids-hero {
-  padding: 90px 20px;
-  background: radial-gradient(circle at top left,#fff3e6,#f4fbf7);
-  font-family: system-ui, sans-serif;
+:root{
+  --bg1:#fff3e6;
+  --bg2:#f3f9ff;
+  --card:#ffffff;
+  --accent:#ff6a2a;
+  --accent-soft:#fff0e8;
+  --text:#1f2937;
+  --muted:#6b7280;
 }
 
-.hero-inner {
-  max-width: 1200px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 60px;
-  align-items: center;
+/* HERO */
+.kids-hero{
+  padding:100px 24px;
+  background:linear-gradient(120deg,var(--bg1),var(--bg2));
+}
+
+.hero-inner{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:80px;
+  align-items:center;
 }
 
 /* LEFT */
-.hero-label {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #e8f7ee;
-  color: #065f46;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-.hero-title {
-  font-size: 52px;
-  font-weight: 800;
-  color: #1f2937;
-  margin: 0 0 12px;
-}
-
-.hero-subtitle {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: #1f2937;
-}
-
-/* Typing – no jumps */
-.typing-box{
+.hero-label{
   display:inline-block;
-  min-width:220px;
-  height:1.2em;
-  line-height:1.2em;
-  vertical-align:bottom;
-  color:#22c55e;
-  white-space:nowrap;
+  padding:6px 14px;
+  border-radius:999px;
+  background:#e6fbf3;
+  color:#065f46;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:18px;
 }
 
-
-.cursor {
-  margin-left: 4px;
-  animation: blink 1s infinite;
+.hero-title{
+  font-size:48px;
+  margin:0 0 12px;
+  line-height:1.1;
 }
 
-@keyframes blink {
-  50% { opacity: 0; }
+.hero-subtitle{
+  font-size:28px;
+  font-weight:600;
+  margin:0 0 20px;
 }
 
-.hero-desc {
-  max-width: 520px;
-  font-size: 18px;
-  color: #475569;
-  margin-bottom: 26px;
+.typing-box{
+  color:var(--accent);
+  font-weight:800;
 }
 
-.hero-actions {
-  display: flex;
-  gap: 14px;
-  margin-bottom: 24px;
+.cursor{
+  color:var(--accent);
+  animation:blink 1s infinite;
 }
 
-.btn-primary {
-  padding: 14px 28px;
-  background: linear-gradient(135deg,#f59e0b,#fb923c);
-  color: #fff;
-  border: none;
-  border-radius: 999px;
-  font-weight: 600;
-  cursor: pointer;
+@keyframes blink{
+  0%,50%,100%{opacity:1}
+  25%,75%{opacity:0}
 }
 
-.btn-secondary {
-  padding: 14px 22px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  cursor: pointer;
+.hero-desc{
+  font-size:18px;
+  color:var(--muted);
+  max-width:520px;
+  margin-bottom:32px;
 }
 
-.hero-icons {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-  font-size: 14px;
-  color: #334155;
+/* ACTIONS */
+.hero-actions{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  margin-bottom:26px;
+}
+
+.btn-primary{
+  padding:14px 26px;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--accent),#ff9f45);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 14px 34px rgba(255,106,42,.35);
+}
+
+.btn-secondary{
+  padding:12px 20px;
+  border-radius:999px;
+  border:2px solid #e5e7eb;
+  color:#4b5563;
+  text-decoration:none;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#fff;
+}
+
+.play{
+  color:#6d28d9;
+  font-size:14px;
+}
+
+/* ICONS */
+.hero-icons{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  font-size:14px;
+  color:#374151;
 }
 
 /* RIGHT */
-.hero-right {
-  display: flex;
-  justify-content: center;
+.hero-right{
+  display:flex;
+  justify-content:center;
 }
 
-.phone {
-  position: relative;
-  width: 260px;
-  border-radius: 32px;
-  background: #000;
-  padding: 10px;
-  box-shadow: 0 30px 80px rgba(0,0,0,.15);
+.phone-mock{
+  position:relative;
+  width:300px;
+  background:#000;
+  padding:10px;
+  border-radius:34px;
+  box-shadow:0 40px 90px rgba(0,0,0,.3);
 }
 
-.phone img {
-  width: 100%;
-  border-radius: 24px;
+.phone-mock img{
+  width:100%;
+  height:380px;
+  object-fit:cover;
+  border-radius:26px;
+  opacity:.9;
 }
 
-.chat-bubble {
-  position: absolute;
-  left: -40px;
-  max-width: 220px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  font-size: 14px;
+/* CHAT */
+.chat{
+  position:absolute;
+  max-width:230px;
+  padding:12px 16px;
+  border-radius:18px;
+  font-size:14px;
+  line-height:1.4;
+  box-shadow:0 10px 26px rgba(0,0,0,.18);
 }
 
-.chat-bubble.question {
-  top: 60px;
-  background: #fff;
-  color: #1f2937;
+.chat-q{
+  top:26px;
+  left:-18px;
+  background:#fff;
+  color:#111827;
+  border-top-left-radius:6px;
 }
 
-.chat-bubble.answer {
-  top: 120px;
-  background: linear-gradient(135deg,#34d399,#60a5fa);
-  color: #fff;
+.chat-a{
+  bottom:26px;
+  right:-18px;
+  background:linear-gradient(135deg,#ff6a2a,#ff9f45);
+  color:#fff;
+  border-bottom-right-radius:6px;
 }
 
-/* Mobile */
-@media (max-width: 900px) {
-  .hero-inner {
-    grid-template-columns: 1fr;
-    text-align: center;
+/* MOBILE */
+@media(max-width:900px){
+  .hero-inner{
+    grid-template-columns:1fr;
+    gap:50px;
+    text-align:center;
   }
-
-  .hero-icons,
-  .hero-actions {
-    justify-content: center;
-  }
-
-  .hero-right {
-    margin-top: 40px;
+  .hero-actions{
+    justify-content:center;
+    flex-wrap:wrap;
   }
 }
 
@@ -1518,16 +1538,16 @@ body{
         con control parental y total tranquilidad para los padres.
       </p>
 
- <div class="hero-actions">
-  <a href="/onboarding" class="btn-primary">
-    Empezar de forma segura
-  </a>
+      <div class="hero-actions">
+        <a href="/onboarding" class="btn-primary">
+          Empezar de forma segura
+        </a>
 
-  <a href="#how-it-works" class="btn-secondary">
-    ▶ Cómo funciona
-  </a>
-</div>
-
+        <a href="#how-it-works" class="btn-secondary">
+          <span class="play">▶</span>
+          Cómo funciona
+        </a>
+      </div>
 
       <div class="hero-icons">
         <span>🛡️ Contenido apropiado</span>
@@ -1539,15 +1559,19 @@ body{
 
     <!-- RIGHT -->
     <div class="hero-right">
-      <div class="phone">
-        <img
-          src="https://images.unsplash.com/photo-1607746882042-944635dfe10e"
-          alt="Kids AI example"
-        />
-        <div class="chat-bubble question">
+      <div class="phone-mock">
+<img
+  src="/assets/iakids.jpeg"
+  alt="Kids AI chat"
+  loading="lazy"
+/>
+
+
+        <div class="chat chat-q">
           ¿Por qué el cielo es azul?
         </div>
-        <div class="chat-bubble answer">
+
+        <div class="chat chat-a">
           ¡Gran pregunta! Vamos a descubrirlo juntos 🌈
         </div>
       </div>
@@ -1555,6 +1579,7 @@ body{
 
   </div>
 </section>
+
 
 <!-- =========================
      NEXT SECTIONS (EMPTY)
