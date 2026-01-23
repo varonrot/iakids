@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create account – Kids AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      color:#0b1220;
+    }
+
+    .wrap{
+      text-align:center;
+      max-width:420px;
+      width:100%;
+      padding:20px;
+    }
+
+    .icon{
+      width:64px;
+      height:64px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#ff7a66,#38bdf8);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      font-size:30px;
+      margin:0 auto 18px;
+    }
+
+    h1{
+      font-size:24px;
+      margin-bottom:6px;
+    }
+
+    .sub{
+      color:#6b7280;
+      font-size:14px;
+      margin-bottom:30px;
+    }
+
+    .btn{
+      width:100%;
+      padding:14px;
+      border-radius:999px;
+      font-size:15px;
+      font-weight:700;
+      border:2px solid transparent;
+      cursor:pointer;
+      margin-bottom:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+
+    .google{
+      background:#fff;
+      border-color:#e5e7eb;
+    }
+
+    .apple{
+      background:#000;
+      color:#fff;
+    }
+
+    .privacy{
+      font-size:12px;
+      color:#9ca3af;
+      margin-top:26px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="icon">👤</div>
+
+    <h1>Create your account</h1>
+    <p class="sub">
+      Sign in to save ss’s profile across devices
+    </p>
+
+    <button class="btn google" onclick="authGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+      Continue with Google
+    </button>
+
+    <button class="btn apple" onclick="authApple()">
+       Continue with Apple
+    </button>
+
+    <div class="privacy">
+      Your privacy is protected.  
+      We never share your data with third parties.
+    </div>
+
+  </div>
+
+  <script>
+    function authGoogle(){
+      // כאן בהמשך:
+      // OAuth Google
+      // שמירת parent_id
+      // חיבור לילד
+      alert("Google sign-in (stub)");
+      window.location.href = "/chat/";
+    }
+
+    function authApple(){
+      // OAuth Apple
+      alert("Apple sign-in (stub)");
+      window.location.href = "/chat/";
+    }
+  </script>
+</body>
+</html>
