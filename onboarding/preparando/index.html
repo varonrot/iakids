@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Preparando – Kids AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      color:#0b1220;
+    }
+
+    .box{
+      text-align:center;
+    }
+
+    .check{
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      background:#4ade80;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 20px;
+      font-size:36px;
+      color:#fff;
+    }
+
+    h1{
+      font-size:22px;
+      margin-bottom:14px;
+    }
+
+    .bar{
+      width:260px;
+      height:6px;
+      background:#e5e7eb;
+      border-radius:999px;
+      overflow:hidden;
+      margin:0 auto 10px;
+    }
+
+    .bar span{
+      display:block;
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,#ff7a66,#38bdf8);
+      animation:load 2.5s ease-in-out forwards;
+    }
+
+    @keyframes load{
+      to{ width:100%; }
+    }
+
+    .sub{
+      font-size:14px;
+      color:#6b7280;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <div class="check">✓</div>
+
+    <h1>Personalizing for ss…</h1>
+
+    <div class="bar">
+      <span></span>
+    </div>
+
+    <div class="sub">Almost ready…</div>
+  </div>
+
+  <script>
+    // כאן בהמשך:
+    // - שליחה ל-API
+    // - יצירת פרופיל ילד
+    // - חיבור AI
+
+    setTimeout(()=>{
+      window.location.href = "/chat/";
+    }, 2800);
+  </script>
+</body>
+</html>
