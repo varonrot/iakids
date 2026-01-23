@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Intereses – Kids AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      color:#0b1220;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:32px 20px 80px;
+      text-align:center;
+    }
+
+    .back{
+      text-align:left;
+      margin-bottom:24px;
+    }
+
+    .back a{
+      text-decoration:none;
+      color:#5b677a;
+      font-weight:600;
+    }
+
+    h1{
+      font-size:28px;
+      margin-bottom:6px;
+    }
+
+    .sub{
+      color:#5b677a;
+      margin-bottom:30px;
+    }
+
+    .chips{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:14px;
+      max-width:620px;
+      margin:0 auto 50px;
+    }
+
+    .chip{
+      padding:14px 16px;
+      border-radius:999px;
+      border:2px solid #e2e6f0;
+      background:#fff;
+      cursor:pointer;
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:center;
+    }
+
+    .chip.active{
+      border-color:#ff8b6a;
+      background:#fff3ee;
+    }
+
+    .btn{
+      width:100%;
+      max-width:420px;
+      margin:0 auto 14px;
+      padding:14px;
+      border:none;
+      border-radius:999px;
+      font-size:16px;
+      font-weight:700;
+      background:linear-gradient(135deg,#ffb089,#ff7a66);
+      cursor:pointer;
+    }
+
+    .skip{
+      display:block;
+      margin-top:6px;
+      font-size:14px;
+      color:#ff7a66;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="back">
+      <a href="javascript:history.back()">← Back</a>
+    </div>
+
+    <h1>What does ss want to learn?</h1>
+    <p class="sub">Select all that interest them (optional)</p>
+
+    <div class="chips" id="topics">
+      <div class="chip">🌍 New Language</div>
+      <div class="chip">➕ Improve Math</div>
+      <div class="chip">🇬🇧 Improve English</div>
+      <div class="chip">🔬 Science</div>
+      <div class="chip">📖 Reading</div>
+      <div class="chip">🎨 Creative Arts</div>
+      <div class="chip">🧩 Logic & Problem Solving</div>
+      <div class="chip">🧠 Critical Thinking</div>
+    </div>
+
+    <button class="btn" onclick="goNext()">Continue</button>
+    <span class="skip" onclick="goNext()">Skip for now</span>
+
+  </div>
+
+  <script>
+    document.querySelectorAll('.chip').forEach(chip=>{
+      chip.onclick = ()=> chip.classList.toggle('active');
+    });
+
+    function goNext(){
+      // כאן בהמשך:
+      // - לאסוף interests
+      // - לשמור ב-localStorage / DB
+      window.location.href = "/onboarding/parent/";
+    }
+  </script>
+</body>
+</html>
