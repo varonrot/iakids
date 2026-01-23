@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Perfil del niño – KidSaí</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      color:#0b1220;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:32px 20px 80px;
+      text-align:center;
+    }
+
+    .back{
+      text-align:left;
+      margin-bottom:20px;
+    }
+
+    .back a{
+      text-decoration:none;
+      color:#5b677a;
+      font-weight:600;
+    }
+
+    h1{
+      font-size:28px;
+      margin-bottom:8px;
+    }
+
+    .sub{
+      color:#5b677a;
+      margin-bottom:28px;
+    }
+
+    /* AGE GRID */
+    .age-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(60px,1fr));
+      gap:12px;
+      max-width:420px;
+      margin:0 auto 40px;
+    }
+
+    .age{
+      padding:14px 0;
+      border-radius:14px;
+      border:2px solid #e2e6f0;
+      background:#fff;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .age.active{
+      border-color:#ff8b6a;
+      background:#fff3ee;
+    }
+
+    /* AVATARS */
+    .avatars{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(70px,1fr));
+      gap:16px;
+      max-width:520px;
+      margin:0 auto 48px;
+    }
+
+    .avatar{
+      width:70px;
+      height:70px;
+      border-radius:50%;
+      border:3px solid transparent;
+      cursor:pointer;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:34px;
+    }
+
+    .avatar.active{
+      border-color:#ff7a66;
+      background:#fff5f0;
+    }
+
+    /* NEXT BUTTON */
+    .next{
+      width:100%;
+      max-width:420px;
+      margin:0 auto;
+      padding:14px;
+      border:none;
+      border-radius:999px;
+      font-size:16px;
+      font-weight:700;
+      background:linear-gradient(135deg,#ffb089,#ff7a66);
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="back">
+      <a href="javascript:history.back()">← Back</a>
+    </div>
+
+    <h1>Sobre el niño</h1>
+    <p class="sub">Selecciona la edad y un avatar</p>
+
+    <h3>¿Cuántos años tiene?</h3>
+
+    <div class="age-grid" id="ages">
+      <div class="age">3</div>
+      <div class="age">4</div>
+      <div class="age">5</div>
+      <div class="age">6</div>
+      <div class="age">7</div>
+      <div class="age">8</div>
+      <div class="age">9</div>
+      <div class="age">10</div>
+      <div class="age">11</div>
+      <div class="age">12</div>
+      <div class="age">13</div>
+      <div class="age">14</div>
+      <div class="age">15</div>
+    </div>
+
+    <h3>Elige un avatar</h3>
+
+    <div class="avatars" id="avatars">
+      <div class="avatar">🦊</div>
+      <div class="avatar">🐻</div>
+      <div class="avatar">🦉</div>
+      <div class="avatar">🐵</div>
+      <div class="avatar">🐼</div>
+      <div class="avatar">🐱</div>
+      <div class="avatar">🐶</div>
+      <div class="avatar">🦁</div>
+      <div class="avatar">🐧</div>
+      <div class="avatar">🦄</div>
+      <div class="avatar">🐨</div>
+      <div class="avatar">🦔</div>
+    </div>
+
+    <button class="next" onclick="goNext()">Siguiente</button>
+  </div>
+
+  <script>
+    function toggleSingle(containerSelector, itemClass){
+      document.querySelectorAll(containerSelector + ' .' + itemClass)
+        .forEach(el => {
+          el.onclick = () => {
+            document.querySelectorAll(containerSelector + ' .' + itemClass)
+              .forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+          };
+        });
+    }
+
+    toggleSingle('#ages','age');
+    toggleSingle('#avatars','avatar');
+
+    function goNext(){
+      // כאן בעתיד:
+      // - לשמור גיל
+      // - לשמור avatar
+      // - לשלוח ל-DB
+      window.location.href = "/chat/";
+    }
+  </script>
+</body>
+</html>
