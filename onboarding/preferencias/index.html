@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Preferencias – KidSaí</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      color:#0b1220;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:48px 20px 80px;
+      text-align:center;
+    }
+    h1{
+      font-size:28px;
+      margin-bottom:6px;
+    }
+    .sub{
+      color:#5b677a;
+      margin-bottom:32px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:14px;
+      margin-bottom:40px;
+    }
+    .option{
+      border:2px solid #e2e6f0;
+      border-radius:18px;
+      padding:16px;
+      cursor:pointer;
+      background:#fff;
+      transition:.15s;
+    }
+    .option.active{
+      border-color:#ff8b6a;
+      background:#fff5f0;
+    }
+    .option span{
+      display:block;
+      font-weight:600;
+      margin-top:6px;
+    }
+    .next{
+      width:100%;
+      max-width:420px;
+      margin:0 auto;
+      padding:14px;
+      border:none;
+      border-radius:999px;
+      font-size:16px;
+      font-weight:700;
+      background:linear-gradient(135deg,#ffb089,#ff7a66);
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>¿Cómo te gustaría usar KidSaí?</h1>
+  <p class="sub">Selecciona todas las opciones que correspondan</p>
+
+  <div class="grid" id="usageOptions">
+    <div class="option">📚 <span>Aprendizaje educativo</span></div>
+    <div class="option">✏️ <span>Ayuda con tareas</span></div>
+    <div class="option">🎨 <span>Exploración creativa</span></div>
+    <div class="option">🤖 <span>Aprender sobre IA</span></div>
+    <div class="option">🌍 <span>Idiomas</span></div>
+    <div class="option">❓ <span>Preguntas por curiosidad</span></div>
+    <div class="option">⏱️ <span>Reducir tiempo de pantalla</span></div>
+    <div class="option">➕ <span>Otro</span></div>
+  </div>
+
+  <h2>¿Cómo nos conociste?</h2>
+  <p class="sub">Opcional</p>
+
+  <div class="grid" id="sourceOptions">
+    <div class="option">🔍 <span>Búsqueda en Google</span></div>
+    <div class="option">📱 <span>App Store</span></div>
+    <div class="option">👨‍👩‍👧 <span>Familia o amigos</span></div>
+    <div class="option">📣 <span>Publicidad</span></div>
+    <div class="option">🌐 <span>Redes sociales</span></div>
+    <div class="option">➕ <span>Otro</span></div>
+  </div>
+
+  <button class="next" onclick="goNext()">Siguiente</button>
+</div>
+
+<script>
+  document.querySelectorAll('.option').forEach(el=>{
+    el.onclick = ()=> el.classList.toggle('active');
+  });
+
+  function goNext(){
+    // בהמשך:
+    // 1. לאסוף בחירות
+    // 2. לשמור (localStorage / DB)
+    window.location.href = "/onboarding/parent/";
+  }
+</script>
+
+</body>
+</html>
