@@ -133,7 +133,7 @@ document.getElementById("googleBtn").addEventListener("click", async () => {
   await sb.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: window.location.origin + "/onboarding/complete"
+      redirectTo: window.location.origin + "/onboarding/complete/"
     }
   });
 });
