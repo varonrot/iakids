@@ -92,7 +92,6 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let redirected = false;
 
-// Safety fallback (only if auth truly fails)
 setTimeout(() => {
   if (!redirected) {
     window.location.replace("/onboarding/cuenta/");
@@ -100,30 +99,47 @@ setTimeout(() => {
 }, 8000);
 
 (async () => {
-  // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
+  // 1️⃣ Finalize OAuth
   const { data, error } = await sb.auth.exchangeCodeForSession(
     window.location.href
   );
 
-  if (error) {
+  if (error || !data?.session?.user) {
     console.error("OAuth exchange failed:", error);
     return;
   }
 
-  if (data?.session) {
-    redirected = true;
-    window.location.replace("/workspace/");
-  }
-})();
+  const user = data.session.user;
 
-// Extra safety listener (optional but good)
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_IN" && session && !redirected) {
-    redirected = true;
-    window.location.replace("/workspace/");
+  // 2️⃣ Collect child data from sessionStorage
+  const payload = {
+    user_id: user.id,
+    child_name: sessionStorage.getItem("child_name"),
+    age: Number(sessionStorage.getItem("age")),
+    avatar_key: sessionStorage.getItem("avatar_key"),
+    usage_goals: JSON.parse(sessionStorage.getItem("usage_goals") || "[]"),
+    learning_interests: JSON.parse(
+      sessionStorage.getItem("learning_interests") || "[]"
+    )
+  };
+
+  // 3️⃣ Insert into DB
+  const { error: insertError } = await sb
+    .from("kids_profiles")
+    .insert([payload]);
+
+  if (insertError) {
+    console.error("Failed to save kid profile:", insertError);
+    return;
   }
-});
+
+  // 4️⃣ Cleanup + redirect
+  sessionStorage.clear();
+  redirected = true;
+  window.location.replace("/workspace/");
+})();
 </script>
+
 
 </body>
 </html>
