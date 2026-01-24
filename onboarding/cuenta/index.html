@@ -5,6 +5,9 @@
   <title>Iniciar sesión – KidSaí</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root{
       --bg1:#f7f4ef;
@@ -14,7 +17,6 @@
 
       --accent1:#ff7a66;
       --accent2:#ffb089;
-      --accent3:#38bdf8;
 
       --card:#ffffffcc;
       --line:rgba(16,24,40,.10);
@@ -63,18 +65,8 @@
       margin:0 auto 18px;
     }
 
-    h1{
-      font-size:26px;
-      margin-bottom:6px;
-      letter-spacing:-.02em;
-    }
-
-    .sub{
-      color:var(--muted);
-      font-size:15px;
-      margin-bottom:28px;
-      line-height:1.5;
-    }
+    h1{font-size:26px;margin-bottom:6px}
+    .sub{color:var(--muted);font-size:15px;margin-bottom:28px;line-height:1.5}
 
     .btn{
       width:100%;
@@ -90,29 +82,15 @@
       justify-content:center;
       gap:12px;
       background:#fff;
-      transition:all .12s ease;
     }
 
-    .btn:hover{
-      transform:translateY(-1px);
-      box-shadow:0 10px 26px rgba(16,24,40,.12);
-    }
-
-    .btn img{
-      width:18px;
-      height:18px;
-    }
+    .btn img{width:18px;height:18px}
 
     .note{
       font-size:12px;
       color:#9ca3af;
       margin-top:22px;
       line-height:1.5;
-    }
-
-    @media (max-width:480px){
-      .wrap{border-radius:22px}
-      h1{font-size:24px}
     }
   </style>
 </head>
@@ -128,8 +106,8 @@
       y continuar desde cualquier dispositivo
     </p>
 
-    <button class="btn" onclick="authGoogle()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+    <button class="btn" id="googleBtn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
       Continuar con Google
     </button>
 
@@ -141,20 +119,35 @@
   </div>
 
 <script>
-async function authGoogle(){
+/* ===== Supabase config ===== */
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+const supabase = supabasejs.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+/* ===== Google Auth ===== */
+document.getElementById("googleBtn").onclick = async () => {
 
   const payload = {
     child_name: sessionStorage.getItem("child_name"),
     child_age: sessionStorage.getItem("child_age"),
     child_avatar: sessionStorage.getItem("child_avatar"),
     kid_usage: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
-    learning_interests: JSON.parse(sessionStorage.getItem("learning_interests") || "[]"),
+    learning_interests: JSON.parse(sessionStorage.getItem("child_interests") || "[]")
   };
 
   sessionStorage.setItem("onboarding_payload", JSON.stringify(payload));
- 
-  window.location.href = "/auth/google/start";
-}
+
+  await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin + "/onboarding/complete"
+    }
+  });
+};
 </script>
 
 </body>
