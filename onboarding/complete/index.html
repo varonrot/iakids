@@ -120,9 +120,9 @@ if (localStorage.getItem("kid_profile_saved")) {
 const payload = {
   user_id: user.id,
   child_name: sessionStorage.getItem("child_name"),
-  age: Number(sessionStorage.getItem("age")),
-  avatar_key: sessionStorage.getItem("avatar_key"),
-  usage_goals: JSON.parse(sessionStorage.getItem("usage_goals") || "[]"),
+  age: Number(sessionStorage.getItem("child_age")),
+  avatar_key: sessionStorage.getItem("child_avatar"),
+  usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
   learning_interests: JSON.parse(
     sessionStorage.getItem("learning_interests") || "[]"
   )
@@ -134,6 +134,7 @@ if (!payload.child_name || !payload.age) {
   window.location.replace("/workspace/");
   return;
 }
+console.log("FINAL PAYLOAD", payload);
 
 const { error: insertError } = await sb
   .from("kids_profiles")
