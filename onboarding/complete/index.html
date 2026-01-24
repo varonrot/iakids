@@ -88,14 +88,11 @@
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
-const sb = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let redirected = false;
 
-// Safety fallback
+// Safety fallback (only if auth truly fails)
 setTimeout(() => {
   if (!redirected) {
     window.location.replace("/onboarding/cuenta/");
@@ -103,8 +100,10 @@ setTimeout(() => {
 }, 8000);
 
 (async () => {
-  // 🔑 CRITICAL: finalize OAuth session
-  const { data, error } = await sb.auth.exchangeCodeForSession(window.location.href);
+  // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
+  const { data, error } = await sb.auth.exchangeCodeForSession(
+    window.location.href
+  );
 
   if (error) {
     console.error("OAuth exchange failed:", error);
@@ -117,7 +116,7 @@ setTimeout(() => {
   }
 })();
 
-// Extra safety: listen for auth event
+// Extra safety listener (optional but good)
 sb.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_IN" && session && !redirected) {
     redirected = true;
