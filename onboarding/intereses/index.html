@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Interests – KidSaí</title>
+  <title>Intereses – KidSaí</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -16,30 +16,34 @@
       --accent1:#ff7a66;
       --accent2:#ffb089;
       --accent3:#ff5d4c;
-      --focus:rgba(255,93,76,.25);
+      --focus:rgba(255,93,76,.22);
+
+      --card:#ffffffcc;
+      --shadow:0 18px 40px rgba(16,24,40,.12);
     }
 
     *{box-sizing:border-box}
+
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       background:
-        radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+        radial-gradient(900px 600px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
         radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
         linear-gradient(90deg,var(--bg1),var(--bg2));
       color:var(--ink);
     }
 
     .wrap{
-      max-width:820px;
+      max-width:860px;
       margin:0 auto;
-      padding:36px 20px 80px;
+      padding:40px 20px 90px;
       text-align:center;
     }
 
     .back{
       text-align:left;
-      margin-bottom:26px;
+      margin-bottom:28px;
     }
 
     .back a{
@@ -49,54 +53,61 @@
     }
 
     h1{
-      font-size:30px;
+      font-size:34px;
       margin-bottom:6px;
       letter-spacing:-.02em;
     }
 
     .sub{
       color:var(--muted);
-      margin-bottom:34px;
-      font-size:15px;
+      margin-bottom:40px;
+      font-size:16px;
+      line-height:1.5;
     }
 
     .chips{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:14px;
-      max-width:640px;
-      margin:0 auto 50px;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:16px;
+      max-width:680px;
+      margin:0 auto 56px;
     }
 
     .chip{
-      padding:16px 18px;
+      padding:18px 20px;
       border-radius:999px;
       border:2px solid var(--line);
-      background:#fff;
+      background:var(--card);
+      backdrop-filter: blur(10px);
       cursor:pointer;
-      font-weight:600;
+      font-weight:700;
       display:flex;
       align-items:center;
-      gap:10px;
+      gap:12px;
       justify-content:center;
-      transition:.15s ease;
+      transition:all .15s ease;
+      box-shadow:0 8px 22px rgba(16,24,40,.08);
     }
 
     .chip:hover{
-      transform:translateY(-1px);
+      transform:translateY(-2px);
     }
 
     .chip.active{
       border-color:var(--accent3);
-      background:rgba(255,93,76,.10);
-      box-shadow:0 0 0 6px var(--focus);
+      background:rgba(255,93,76,.12);
+      box-shadow:0 0 0 6px var(--focus), var(--shadow);
+    }
+
+    .actions{
+      margin-top:10px;
     }
 
     .btn{
       width:100%;
-      max-width:420px;
+      max-width:440px;
       margin:0 auto 14px;
-      padding:15px;
+      padding:16px;
       border:none;
       border-radius:999px;
       font-size:16px;
@@ -104,7 +115,12 @@
       background:linear-gradient(135deg,var(--accent2),var(--accent1));
       color:#3a1b12;
       cursor:pointer;
-      box-shadow:0 14px 30px rgba(255,93,76,.25);
+      box-shadow:0 16px 36px rgba(255,93,76,.28);
+      transition:transform .12s ease;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
     }
 
     .skip{
@@ -113,6 +129,12 @@
       font-size:14px;
       color:var(--accent3);
       cursor:pointer;
+      font-weight:600;
+    }
+
+    @media (max-width:520px){
+      h1{font-size:28px}
+      .sub{font-size:15px}
     }
   </style>
 </head>
@@ -121,46 +143,67 @@
   <div class="wrap">
 
     <div class="back">
-      <a href="https://iakids.onrender.com/onboarding">← Back</a>
+      <a href="https://iakids.onrender.com/onboarding">← Volver</a>
     </div>
 
-    <h1>What does <span id="childName"></span> want to learn?</h1>
-    <p class="sub">Select all that interest them (optional)</p>
+    <h1>¿Qué le gustaría aprender a <span id="childName"></span>?</h1>
+    <p class="sub">
+      Elige uno o varios temas que despierten su curiosidad.  
+      Esto nos ayudará a personalizar la experiencia.
+    </p>
 
     <div class="chips" id="topics">
-      <div class="chip" data-value="New Language">🌍 New Language</div>
-      <div class="chip" data-value="Improve Math">➕ Improve Math</div>
-      <div class="chip" data-value="Improve English">🇬🇧 Improve English</div>
-      <div class="chip" data-value="Science">🔬 Science</div>
-      <div class="chip" data-value="Reading">📖 Reading</div>
-      <div class="chip" data-value="Creative Arts">🎨 Creative Arts</div>
-      <div class="chip" data-value="Logic & Problem Solving">🧩 Logic & Problem Solving</div>
-      <div class="chip" data-value="Critical Thinking">🧠 Critical Thinking</div>
+      <div class="chip" data-value="New Language">🌍 Nuevo idioma</div>
+      <div class="chip" data-value="Improve Math">➕ Mejorar matemáticas</div>
+      <div class="chip" data-value="Improve English">🇬🇧 Mejorar inglés</div>
+      <div class="chip" data-value="Science">🔬 Ciencia</div>
+      <div class="chip" data-value="Reading">📖 Lectura</div>
+      <div class="chip" data-value="Creative Arts">🎨 Artes creativas</div>
+      <div class="chip" data-value="Logic & Problem Solving">🧩 Lógica y resolución de problemas</div>
+      <div class="chip" data-value="Critical Thinking">🧠 Pensamiento crítico</div>
     </div>
 
-    <button class="btn" onclick="goNext()">Continue</button>
-    <span class="skip" onclick="goNext()">Skip for now</span>
+    <div class="actions">
+      <button class="btn" id="continueBtn">Continuar</button>
+      <span class="skip" id="skipBtn">Omitir por ahora</span>
+    </div>
 
   </div>
 
   <script>
-
     const childName = sessionStorage.getItem("child_name") || "";
     document.getElementById("childName").textContent = childName;
 
-    document.querySelectorAll('.chip').forEach(chip=>{
-      chip.onclick = ()=> chip.classList.toggle('active');
+    const chips = document.querySelectorAll(".chip");
+
+    chips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        chip.classList.toggle("active");
+      });
     });
 
-    function goNext(){
-      const selected = Array.from(document.querySelectorAll('.chip.active'))
-        .map(chip => chip.dataset.value);
+    const saved = sessionStorage.getItem("child_interests");
+    if (saved){
+      const selected = JSON.parse(saved);
+      chips.forEach(chip => {
+        if (selected.includes(chip.dataset.value)){
+          chip.classList.add("active");
+        }
+      });
+    }
+
+    function saveAndContinue(){
+      const selected = Array.from(document.querySelectorAll(".chip.active"))
+        .map(c => c.dataset.value);
 
       sessionStorage.setItem("child_interests", JSON.stringify(selected));
       sessionStorage.setItem("onboarding_step", "interests");
 
       window.location.href = "/onboarding/parent/";
     }
+
+    document.getElementById("continueBtn").addEventListener("click", saveAndContinue);
+    document.getElementById("skipBtn").addEventListener("click", saveAndContinue);
   </script>
 </body>
 </html>
