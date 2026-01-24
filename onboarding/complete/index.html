@@ -85,29 +85,27 @@
 
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 const sb = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-(async () => {
-  const { data } = await sb.auth.getSession();
+// Fallback safety timeout
+setTimeout(() => {
+  window.location.replace("/onboarding/cuenta/");
+}, 8000);
 
-  // If a session already exists, clear it
-  if (data?.session) {
-    await sb.auth.signOut();
+// Listen for OAuth completion
+sb.auth.onAuthStateChange((event, session) => {
+  console.log("AUTH EVENT:", event);
+
+  if (event === "SIGNED_IN" && session) {
+    window.location.replace("/workspace/");
   }
-
-  // Small delay to ensure storage is cleared (important on Mac Chrome)
-  setTimeout(() => {
-    window.location.href = "/onboarding/cuenta/";
-  }, 300);
-})();
+});
 </script>
-
-
 
 </body>
 </html>
