@@ -34,22 +34,50 @@
       color:var(--ink);
     }
 
-    .wrap{
-      max-width:860px;
+    /* top bar */
+    .top{
+      max-width:980px;
       margin:0 auto;
-      padding:40px 20px 90px;
-      text-align:center;
-    }
-
-    .back{
-      text-align:left;
-      margin-bottom:28px;
+      padding:18px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
     }
 
     .back a{
       text-decoration:none;
       color:var(--muted);
       font-weight:600;
+    }
+
+    .progress{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .bar{
+      width:120px;
+      height:4px;
+      background:rgba(0,0,0,.08);
+      border-radius:999px;
+      overflow:hidden;
+    }
+
+    .bar span{
+      display:block;
+      width:50%;
+      height:100%;
+      background:linear-gradient(135deg,var(--accent3),var(--accent2));
+    }
+
+    .wrap{
+      max-width:860px;
+      margin:0 auto;
+      padding:20px 20px 90px;
+      text-align:center;
     }
 
     h1{
@@ -89,9 +117,7 @@
       box-shadow:0 8px 22px rgba(16,24,40,.08);
     }
 
-    .chip:hover{
-      transform:translateY(-2px);
-    }
+    .chip:hover{ transform:translateY(-2px); }
 
     .chip.active{
       border-color:var(--accent3);
@@ -99,28 +125,21 @@
       box-shadow:0 0 0 6px var(--focus), var(--shadow);
     }
 
-    .actions{
-      margin-top:10px;
-    }
+    .actions{ margin-top:10px; }
 
+    /* same height as previous page */
     .btn{
       width:100%;
       max-width:440px;
       margin:0 auto 14px;
-      padding:16px;
+      padding:14px;
       border:none;
       border-radius:999px;
-      font-size:16px;
+      font-size:15px;
       font-weight:800;
       background:linear-gradient(135deg,var(--accent2),var(--accent1));
-      color:#3a1b12;
       cursor:pointer;
-      box-shadow:0 16px 36px rgba(255,93,76,.28);
-      transition:transform .12s ease;
-    }
-
-    .btn:hover{
-      transform:translateY(-1px);
+      box-shadow:0 14px 30px rgba(255,93,76,.26);
     }
 
     .skip{
@@ -131,24 +150,26 @@
       cursor:pointer;
       font-weight:600;
     }
-
-    @media (max-width:520px){
-      h1{font-size:28px}
-      .sub{font-size:15px}
-    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
 
+  <!-- TOP -->
+  <div class="top">
     <div class="back">
-      <a href="https://iakids.onrender.com/onboarding">← Volver</a>
+      <a href="/onboarding">← Volver</a>
     </div>
+    <div class="progress">
+      Paso 2 de 4
+      <div class="bar"><span></span></div>
+    </div>
+  </div>
 
+  <div class="wrap">
     <h1>¿Qué le gustaría aprender a <span id="childName"></span>?</h1>
     <p class="sub">
-      Elige uno o varios temas que despierten su curiosidad.  
+      Elige uno o varios temas que despierten su curiosidad.
       Esto nos ayudará a personalizar la experiencia.
     </p>
 
@@ -159,7 +180,7 @@
       <div class="chip" data-value="Science">🔬 Ciencia</div>
       <div class="chip" data-value="Reading">📖 Lectura</div>
       <div class="chip" data-value="Creative Arts">🎨 Artes creativas</div>
-      <div class="chip" data-value="Logic & Problem Solving">🧩 Lógica y resolución de problemas</div>
+      <div class="chip" data-value="Logic & Problem Solving">🧩 Lógica y resolución</div>
       <div class="chip" data-value="Critical Thinking">🧠 Pensamiento crítico</div>
     </div>
 
@@ -167,43 +188,43 @@
       <button class="btn" id="continueBtn">Continuar</button>
       <span class="skip" id="skipBtn">Omitir por ahora</span>
     </div>
-
   </div>
 
   <script>
-    const childName = sessionStorage.getItem("child_name") || "";
-    document.getElementById("childName").textContent = childName;
+    // name
+    document.getElementById("childName").textContent =
+      sessionStorage.getItem("child_name") || "";
 
     const chips = document.querySelectorAll(".chip");
 
-    chips.forEach(chip => {
-      chip.addEventListener("click", () => {
+    chips.forEach(chip=>{
+      chip.addEventListener("click",()=>{
         chip.classList.toggle("active");
       });
     });
 
+    // restore saved interests
     const saved = sessionStorage.getItem("child_interests");
-    if (saved){
-      const selected = JSON.parse(saved);
-      chips.forEach(chip => {
-        if (selected.includes(chip.dataset.value)){
-          chip.classList.add("active");
-        }
+    if(saved){
+      const arr = JSON.parse(saved);
+      chips.forEach(c=>{
+        if(arr.includes(c.dataset.value)) c.classList.add("active");
       });
     }
 
     function saveAndContinue(){
-      const selected = Array.from(document.querySelectorAll(".chip.active"))
-        .map(c => c.dataset.value);
+      const selected = [...document.querySelectorAll(".chip.active")]
+        .map(c=>c.dataset.value);
 
       sessionStorage.setItem("child_interests", JSON.stringify(selected));
-      sessionStorage.setItem("onboarding_step", "interests");
+      sessionStorage.setItem("onboarding_step","2");
 
       window.location.href = "/onboarding/parent/";
     }
 
-    document.getElementById("continueBtn").addEventListener("click", saveAndContinue);
-    document.getElementById("skipBtn").addEventListener("click", saveAndContinue);
+    document.getElementById("continueBtn").onclick = saveAndContinue;
+    document.getElementById("skipBtn").onclick = saveAndContinue;
   </script>
+
 </body>
 </html>
