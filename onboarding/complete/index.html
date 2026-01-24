@@ -101,22 +101,22 @@ setTimeout(() => {
 
 (async () => {
   // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
-  const { data, error } = await sb.auth.exchangeCodeForSession(
-    window.location.href
-  );
-if (error || !data?.session?.user) {
-  console.error("OAuth exchange failed:", error);
+const { data: { session } } = await sb.auth.getSession();
+
+if (!session?.user) {
+  console.error("No active session");
   window.location.replace("/onboarding/cuenta/");
   return;
 }
 
-const user = data.session.user;
+const user = session.user;
 
-if (localStorage.getItem("kid_profile_saved")) {
-  redirected = true;
-  window.location.replace("/workspace/");
-  return;
-}
+
+<!--if (localStorage.getItem("kid_profile_saved")) {-->
+<!--  redirected = true;-->
+<!--  window.location.replace("/workspace/");-->
+<!--  return;-->
+<!--}-->
 const payload = {
   user_id: user.id,
   child_name: sessionStorage.getItem("child_name"),
