@@ -181,7 +181,7 @@ h1{margin:6px 0 0;font-size:34px}
   </div>
 
   <button class="btn" id="nextBtn">Continuar</button>
-  <div class="skip" id="skipBtn">Omitir por ahora</div>
+  <div class="skip" id="skipBtn">Volver al inicio</div>
 
 </section>
 </main>
@@ -215,7 +215,10 @@ function finish(){
 }
 
 document.getElementById("nextBtn").onclick = finish;
-document.getElementById("skipBtn").onclick = finish;
+document.getElementById("skipBtn").onclick = () => {
+  window.location.href = "/";
+};
+
 </script>
 
 </body>
