@@ -83,7 +83,6 @@
     <div class="sub">Almost ready…</div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
@@ -93,29 +92,21 @@ const sb = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-let redirected = false;
-
-// Listen for auth recovery after OAuth
-sb.auth.onAuthStateChange((event, session) => {
-  if (session && !redirected) {
-    redirected = true;
-    setTimeout(() => {
-      window.location.href = "/workspace/";
-    }, 2800);
-  }
-});
-
-// Fallback: check existing session (for fast environments)
 (async () => {
   const { data } = await sb.auth.getSession();
-  if (data?.session && !redirected) {
-    redirected = true;
-    setTimeout(() => {
-      window.location.href = "/workspace/";
-    }, 2800);
+
+  // If a session already exists, clear it
+  if (data?.session) {
+    await sb.auth.signOut();
   }
+
+  // Small delay to ensure storage is cleared (important on Mac Chrome)
+  setTimeout(() => {
+    window.location.href = "/onboarding/cuenta/";
+  }, 300);
 })();
 </script>
+
 
 
 </body>
