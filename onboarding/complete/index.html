@@ -104,16 +104,50 @@ setTimeout(() => {
   const { data, error } = await sb.auth.exchangeCodeForSession(
     window.location.href
   );
+if (error || !data?.session?.user) {
+  console.error("OAuth exchange failed:", error);
+  window.location.replace("/onboarding/cuenta/");
+  return;
+}
 
-  if (error) {
-    console.error("OAuth exchange failed:", error);
-    return;
-  }
+const user = data.session.user;
 
-  if (data?.session) {
-    redirected = true;
-    window.location.replace("/workspace/");
-  }
+if (localStorage.getItem("kid_profile_saved")) {
+  redirected = true;
+  window.location.replace("/workspace/");
+  return;
+}
+const payload = {
+  user_id: user.id,
+  child_name: sessionStorage.getItem("child_name"),
+  age: Number(sessionStorage.getItem("age")),
+  avatar_key: sessionStorage.getItem("avatar_key"),
+  usage_goals: JSON.parse(sessionStorage.getItem("usage_goals") || "[]"),
+  learning_interests: JSON.parse(
+    sessionStorage.getItem("learning_interests") || "[]"
+  )
+};
+
+if (!payload.child_name || !payload.age) {
+  console.warn("No onboarding data found, skipping insert");
+  redirected = true;
+  window.location.replace("/workspace/");
+  return;
+}
+
+const { error: insertError } = await sb
+  .from("kids_profiles")
+  .insert([payload]);
+
+if (insertError) {
+  console.error("Insert failed:", insertError);
+} else {
+  localStorage.setItem("kid_profile_saved", "1");
+  sessionStorage.clear();
+}
+redirected = true;
+window.location.replace("/workspace/");
+
 })();
 
 // Extra safety listener (optional but good)
