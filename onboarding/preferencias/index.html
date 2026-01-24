@@ -1,110 +1,212 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Preferencias – KidSaí</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: linear-gradient(90deg,#f8f4ef,#eaf4ff);
-      color:#0b1220;
-    }
-    .wrap{
-      max-width:900px;
-      margin:0 auto;
-      padding:48px 20px 80px;
-      text-align:center;
-    }
-    h1{
-      font-size:28px;
-      margin-bottom:6px;
-    }
-    .sub{
-      color:#5b677a;
-      margin-bottom:32px;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:14px;
-      margin-bottom:40px;
-    }
-    .option{
-      border:2px solid #e2e6f0;
-      border-radius:18px;
-      padding:16px;
-      cursor:pointer;
-      background:#fff;
-      transition:.15s;
-    }
-    .option.active{
-      border-color:#ff8b6a;
-      background:#fff5f0;
-    }
-    .option span{
-      display:block;
-      font-weight:600;
-      margin-top:6px;
-    }
-    .next{
-      width:100%;
-      max-width:420px;
-      margin:0 auto;
-      padding:14px;
-      border:none;
-      border-radius:999px;
-      font-size:16px;
-      font-weight:700;
-      background:linear-gradient(135deg,#ffb089,#ff7a66);
-      cursor:pointer;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>How to use KidSaí</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root{
+  --bg1:#f7f4ef;
+  --bg2:#eaf4ff;
+  --ink:#0b1220;
+  --muted:#5b677a;
+  --line:rgba(16,24,40,.10);
+
+  --accent1:#ff7a66;
+  --accent2:#ffb089;
+  --accent3:#ff5d4c;
+  --focus:rgba(255,93,76,.22);
+
+  --card:#ffffffcc;
+  --shadow:0 18px 40px rgba(16,24,40,.12);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:
+    radial-gradient(900px 600px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+    linear-gradient(90deg,var(--bg1),var(--bg2));
+  color:var(--ink);
+}
+
+.wrap{
+  max-width:860px;
+  margin:0 auto;
+  padding:36px 20px 90px;
+  text-align:center;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:26px;
+}
+
+.back{
+  color:var(--muted);
+  font-weight:600;
+  text-decoration:none;
+}
+
+.progress{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.progress-bar{
+  width:140px;
+  height:4px;
+  background:#e6ecf3;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:6px;
+}
+
+.progress-bar span{
+  display:block;
+  width:50%;
+  height:100%;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+}
+
+h1{
+  font-size:34px;
+  margin-bottom:6px;
+  letter-spacing:-.02em;
+}
+
+.sub{
+  color:var(--muted);
+  margin-bottom:40px;
+  font-size:16px;
+}
+
+.chips{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:16px;
+  max-width:700px;
+  margin:0 auto 56px;
+}
+
+.chip{
+  padding:18px 20px;
+  border-radius:999px;
+  border:2px solid var(--line);
+  background:var(--card);
+  cursor:pointer;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  transition:.15s;
+  box-shadow:0 8px 22px rgba(16,24,40,.08);
+}
+
+.chip:hover{transform:translateY(-2px)}
+
+.chip.active{
+  border-color:var(--accent3);
+  background:rgba(255,93,76,.14);
+  box-shadow:0 0 0 6px var(--focus), var(--shadow);
+}
+
+.actions{
+  margin-top:10px;
+}
+
+.btn{
+  width:100%;
+  max-width:440px;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  font-size:16px;
+  font-weight:800;
+  background:linear-gradient(135deg,var(--accent2),var(--accent1));
+  cursor:pointer;
+  box-shadow:0 16px 36px rgba(255,93,76,.28);
+}
+
+.skip{
+  display:block;
+  margin-top:10px;
+  font-size:14px;
+  color:var(--accent3);
+  cursor:pointer;
+  font-weight:600;
+}
+</style>
 </head>
+
 <body>
-
 <div class="wrap">
-  <h1>¿Cómo te gustaría usar KidSaí?</h1>
-  <p class="sub">Selecciona todas las opciones que correspondan</p>
 
-  <div class="grid" id="usageOptions">
-    <div class="option">📚 <span>Aprendizaje educativo</span></div>
-    <div class="option">✏️ <span>Ayuda con tareas</span></div>
-    <div class="option">🎨 <span>Exploración creativa</span></div>
-    <div class="option">🤖 <span>Aprender sobre IA</span></div>
-    <div class="option">🌍 <span>Idiomas</span></div>
-    <div class="option">❓ <span>Preguntas por curiosidad</span></div>
-    <div class="option">⏱️ <span>Reducir tiempo de pantalla</span></div>
-    <div class="option">➕ <span>Otro</span></div>
+  <div class="top">
+    <a class="back" href="/onboarding/intereses/">← Volver</a>
+    <div class="progress">
+      Paso 3 de 4
+      <div class="progress-bar"><span></span></div>
+    </div>
   </div>
 
-  <h2>¿Cómo nos conociste?</h2>
-  <p class="sub">Opcional</p>
+  <h1>How would you like to use KidSaí?</h1>
+  <p class="sub">Select all that apply</p>
 
-  <div class="grid" id="sourceOptions">
-    <div class="option">🔍 <span>Búsqueda en Google</span></div>
-    <div class="option">📱 <span>App Store</span></div>
-    <div class="option">👨‍👩‍👧 <span>Familia o amigos</span></div>
-    <div class="option">📣 <span>Publicidad</span></div>
-    <div class="option">🌐 <span>Redes sociales</span></div>
-    <div class="option">➕ <span>Otro</span></div>
+  <div class="chips" id="usage">
+    <div class="chip" data-value="Reduce Screen Time">⏱️ Reduce Screen Time</div>
+    <div class="chip" data-value="Educational Learning">📚 Educational Learning</div>
+    <div class="chip" data-value="Learn About AI">🤖 Learn About AI</div>
+    <div class="chip" data-value="Homework Help">✏️ Homework Help</div>
+    <div class="chip" data-value="Creative Exploration">🎨 Creative Exploration</div>
+    <div class="chip" data-value="Language Learning">🌍 Language Learning</div>
+    <div class="chip" data-value="Curiosity Questions">❓ Curiosity Questions</div>
+    <div class="chip" data-value="Other">… Other</div>
   </div>
 
-  <button class="next" onclick="goNext()">Siguiente</button>
+  <div class="actions">
+    <button class="btn" id="continue">Continue</button>
+    <span class="skip" id="skip">Skip for now</span>
+  </div>
+
 </div>
 
 <script>
-  document.querySelectorAll('.option').forEach(el=>{
-    el.onclick = ()=> el.classList.toggle('active');
-  });
+const key = "kid_usage";
+const chips = document.querySelectorAll(".chip");
 
-  function goNext(){
-    // בהמשך:
-    // 1. לאסוף בחירות
-    // 2. לשמור (localStorage / DB)
-    window.location.href = "/onboarding/parent/";
-  }
+// restore
+const saved = sessionStorage.getItem(key);
+if(saved){
+  const arr = JSON.parse(saved);
+  chips.forEach(c=>{
+    if(arr.includes(c.dataset.value)){
+      c.classList.add("active");
+    }
+  });
+}
+
+chips.forEach(c=>{
+  c.addEventListener("click",()=>c.classList.toggle("active"));
+});
+
+function next(){
+  const selected = [...document.querySelectorAll(".chip.active")]
+    .map(c=>c.dataset.value);
+
+  sessionStorage.setItem(key, JSON.stringify(selected));
+  window.location.href = "/onboarding/profile/";
+}
+
+document.getElementById("continue").onclick = next;
+document.getElementById("skip").onclick = next;
 </script>
 
 </body>
