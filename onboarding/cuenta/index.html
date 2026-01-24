@@ -119,27 +119,16 @@
   </div>
 
 <script>
-/* ===== Supabase config ===== */
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
-const supabase = supabasejs.createClient(
+const supabase = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-/* ===== Google Auth ===== */
 document.getElementById("googleBtn").onclick = async () => {
-
-  const payload = {
-    child_name: sessionStorage.getItem("child_name"),
-    child_age: sessionStorage.getItem("child_age"),
-    child_avatar: sessionStorage.getItem("child_avatar"),
-    kid_usage: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
-    learning_interests: JSON.parse(sessionStorage.getItem("child_interests") || "[]")
-  };
-
-  sessionStorage.setItem("onboarding_payload", JSON.stringify(payload));
+  console.log("CLICK"); // לבדיקה
 
   await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -149,6 +138,7 @@ document.getElementById("googleBtn").onclick = async () => {
   });
 };
 </script>
+
 
 </body>
 </html>
