@@ -122,21 +122,21 @@
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
-const supabase = supabase.createClient(
+const sb = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-document.getElementById("googleBtn").onclick = async () => {
-  console.log("CLICK"); // לבדיקה
+document.getElementById("googleBtn").addEventListener("click", async () => {
+  console.log("CLICK");
 
-  await supabase.auth.signInWithOAuth({
+  await sb.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: window.location.origin + "/onboarding/complete"
     }
   });
-};
+});
 </script>
 
 
