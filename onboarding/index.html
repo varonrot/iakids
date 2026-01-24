@@ -283,28 +283,23 @@
   });
 </script>
 <script>
-  const input = document.getElementById("childName");
   const btn = document.getElementById("nextBtn");
 
   function goNext(){
-    const name = input.value.trim();
+    // לדוגמה: אוסף כפתורים עם class="interest active"
+    const selected = [...document.querySelectorAll(".interest.active")]
+      .map(el => el.dataset.value || el.textContent.trim());
 
-    if (!name) {
-      input.focus();
-      return;
-    }
- 
-    sessionStorage.setItem("child_name", name);
-    sessionStorage.setItem("onboarding_step", "1");
- 
-    window.location.href = "/onboarding/intereses";
+    // שמירה (גם אם ריק – זה optional)
+    sessionStorage.setItem("child_interests", JSON.stringify(selected));
+    sessionStorage.setItem("onboarding_step", "2");
+
+    window.location.href = "/onboarding/preferencias";
   }
 
   btn.addEventListener("click", goNext);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") goNext();
-  });
 </script>
+
 
 </body>
 </html>
