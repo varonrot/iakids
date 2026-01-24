@@ -160,7 +160,7 @@ h1{margin:6px 0 4px;font-size:34px}
 
   <!-- TOP BAR -->
   <div class="top-bar">
-    <a class="back-link" href="/onboarding/intereses">← Volver</a>
+    <a class="back-link" href="/onboarding/">← Volver al inicio</a>
     <div class="progress">
       Paso 2 de 4
       <div class="progress-bar"><div class="progress-fill"></div></div>
@@ -193,31 +193,37 @@ h1{margin:6px 0 4px;font-size:34px}
 const KEY = "kid_usage";
 const chips = document.querySelectorAll(".chip");
 
-/* restore */
+/* restore saved selections */
 const saved = sessionStorage.getItem(KEY);
-if (saved){
+if (saved) {
   const arr = JSON.parse(saved);
-  chips.forEach(c=>{
-    if(arr.includes(c.dataset.value)) c.classList.add("active");
+  chips.forEach(c => {
+    if (arr.includes(c.dataset.value)) {
+      c.classList.add("active");
+    }
   });
 }
 
-/* toggle */
-chips.forEach(c=>{
-  c.addEventListener("click",()=>c.classList.toggle("active"));
+/* toggle selection */
+chips.forEach(c => {
+  c.addEventListener("click", () => {
+    c.classList.toggle("active");
+  });
 });
 
-/* next */
-document.getElementById("nextBtn").onclick = ()=>{
+/* next step */
+document.getElementById("nextBtn").addEventListener("click", () => {
   const selected = [...document.querySelectorAll(".chip.active")]
-    .map(c=>c.dataset.value);
+    .map(c => c.dataset.value);
 
   sessionStorage.setItem(KEY, JSON.stringify(selected));
-  sessionStorage.setItem("onboarding_step","2");
+  sessionStorage.setItem("onboarding_step", "2");
 
-  window.location.href = "/onboarding/profile";
-};
+  // Go to profile step
+  window.location.href = "/onboarding/perfil";
+});
 </script>
+
 
 </body>
 </html>
