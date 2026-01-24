@@ -262,24 +262,28 @@
   renderTestimonials();
 
   /* ===== Next step logic ===== */
-  const input = document.getElementById("childName");
+const input = document.getElementById("childName");
   const btn = document.getElementById("nextBtn");
 
-  btn.addEventListener("click", ()=>{
+  function goNext(){
     const name = input.value.trim();
     if(!name){
       input.focus();
       return;
     }
 
+    // Save data
     sessionStorage.setItem("child_name", name);
     sessionStorage.setItem("onboarding_step", "1");
 
-    window.location.href = "/onboarding/intereses";
-  });
+    // Correct next step
+    window.location.href = "/onboarding/preferencias";
+  }
 
-  input.addEventListener("keydown", e=>{
-    if(e.key === "Enter") btn.click();
+  btn.addEventListener("click", goNext);
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") goNext();
   });
 </script>
 <script>
