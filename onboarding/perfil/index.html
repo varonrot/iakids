@@ -2,14 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Perfil del niño – KidSaí</title>
+  <title>Child Profile – KidSaí</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:
+        radial-gradient(700px 400px at 15% 10%, rgba(255,200,170,.35), transparent 60%),
+        radial-gradient(800px 500px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+        linear-gradient(90deg,#f8f4ef,#eaf4ff);
       color:#0b1220;
     }
 
@@ -22,7 +25,7 @@
 
     .back{
       text-align:left;
-      margin-bottom:20px;
+      margin-bottom:18px;
     }
 
     .back a{
@@ -32,13 +35,19 @@
     }
 
     h1{
-      font-size:28px;
-      margin-bottom:8px;
+      font-size:30px;
+      margin-bottom:6px;
+      letter-spacing:-.02em;
     }
 
     .sub{
       color:#5b677a;
-      margin-bottom:28px;
+      margin-bottom:34px;
+    }
+
+    h3{
+      margin:28px 0 14px;
+      font-size:18px;
     }
 
     /* AGE GRID */
@@ -56,26 +65,32 @@
       border:2px solid #e2e6f0;
       background:#fff;
       cursor:pointer;
-      font-weight:700;
+      font-weight:800;
+      transition:all .15s ease;
+    }
+
+    .age:hover{
+      transform:translateY(-1px);
     }
 
     .age.active{
       border-color:#ff8b6a;
       background:#fff3ee;
+      box-shadow:0 8px 20px rgba(255,122,102,.25);
     }
 
     /* AVATARS */
     .avatars{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(70px,1fr));
+      grid-template-columns:repeat(auto-fit,minmax(72px,1fr));
       gap:16px;
       max-width:520px;
-      margin:0 auto 48px;
+      margin:0 auto 52px;
     }
 
     .avatar{
-      width:70px;
-      height:70px;
+      width:72px;
+      height:72px;
       border-radius:50%;
       border:3px solid transparent;
       cursor:pointer;
@@ -84,11 +99,18 @@
       align-items:center;
       justify-content:center;
       font-size:34px;
+      transition:all .15s ease;
+      box-shadow:0 6px 16px rgba(16,24,40,.08);
+    }
+
+    .avatar:hover{
+      transform:translateY(-2px);
     }
 
     .avatar.active{
       border-color:#ff7a66;
       background:#fff5f0;
+      box-shadow:0 10px 24px rgba(255,122,102,.28);
     }
 
     /* NEXT BUTTON */
@@ -100,9 +122,15 @@
       border:none;
       border-radius:999px;
       font-size:16px;
-      font-weight:700;
+      font-weight:800;
       background:linear-gradient(135deg,#ffb089,#ff7a66);
       cursor:pointer;
+      box-shadow:0 14px 30px rgba(255,122,102,.30);
+    }
+
+    .next:hover{
+      filter:saturate(1.05);
+      transform:translateY(-1px);
     }
   </style>
 </head>
@@ -111,13 +139,13 @@
   <div class="wrap">
 
     <div class="back">
-      <a href="javascript:history.back()">← Back</a>
+      <a href="/onboarding/intereses/">← Back</a>
     </div>
 
-    <h1>Sobre el niño</h1>
-    <p class="sub">Selecciona la edad y un avatar</p>
+    <h1>About the child</h1>
+    <p class="sub">Choose an age and an avatar</p>
 
-    <h3>¿Cuántos años tiene?</h3>
+    <h3>Age</h3>
 
     <div class="age-grid" id="ages">
       <div class="age">3</div>
@@ -135,7 +163,7 @@
       <div class="age">15</div>
     </div>
 
-    <h3>Elige un avatar</h3>
+    <h3>Avatar</h3>
 
     <div class="avatars" id="avatars">
       <div class="avatar">🦊</div>
@@ -152,34 +180,64 @@
       <div class="avatar">🦔</div>
     </div>
 
-    <button class="next" onclick="location.href='/onboarding/intereses/'">
-  Siguiente
-</button>
+    <button class="next" id="nextBtn">Continue</button>
 
   </div>
 
   <script>
-    function toggleSingle(containerSelector, itemClass){
-      document.querySelectorAll(containerSelector + ' .' + itemClass)
-        .forEach(el => {
-          el.onclick = () => {
-            document.querySelectorAll(containerSelector + ' .' + itemClass)
-              .forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-          };
+    const profileKey = "kid_profile";
+
+    function selectSingle(container, className, onSelect){
+      container.querySelectorAll("." + className).forEach(el => {
+        el.addEventListener("click", () => {
+          container.querySelectorAll("." + className)
+            .forEach(i => i.classList.remove("active"));
+          el.classList.add("active");
+          onSelect(el.textContent.trim());
         });
+      });
     }
 
-    toggleSingle('#ages','age');
-    toggleSingle('#avatars','avatar');
+    let selectedAge = null;
+    let selectedAvatar = null;
 
-    function goNext(){
-      // כאן בעתיד:
-      // - לשמור גיל
-      // - לשמור avatar
-      // - לשלוח ל-DB
+    const agesEl = document.getElementById("ages");
+    const avatarsEl = document.getElementById("avatars");
+
+    selectSingle(agesEl, "age", val => selectedAge = val);
+    selectSingle(avatarsEl, "avatar", val => selectedAvatar = val);
+
+    const saved = localStorage.getItem(profileKey);
+    if (saved){
+      const data = JSON.parse(saved);
+
+      if (data.age){
+        const ageEl = [...agesEl.children].find(a => a.textContent === data.age);
+        if (ageEl){
+          ageEl.classList.add("active");
+          selectedAge = data.age;
+        }
+      }
+
+      if (data.avatar){
+        const avEl = [...avatarsEl.children].find(a => a.textContent === data.avatar);
+        if (avEl){
+          avEl.classList.add("active");
+          selectedAvatar = data.avatar;
+        }
+      }
+    }
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (!selectedAge || !selectedAvatar) return;
+
+      localStorage.setItem(profileKey, JSON.stringify({
+        age: selectedAge,
+        avatar: selectedAvatar
+      }));
+
       window.location.href = "/chat/";
-    }
+    });
   </script>
 </body>
 </html>
