@@ -140,21 +140,22 @@
 
   </div>
 
-  <script>
-    function authGoogle(){
-      /*
-        Paso siguiente (backend):
-        - Google OAuth
-        - Crear / obtener parent_id
-        - Asociar kid_profile (localStorage)
-        - Guardar en DB
-      */
+<script>
+async function authGoogle(){
 
-      console.log("Google login – pending OAuth");
+  const payload = {
+    child_name: sessionStorage.getItem("child_name"),
+    child_age: sessionStorage.getItem("child_age"),
+    child_avatar: sessionStorage.getItem("child_avatar"),
+    kid_usage: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
+    learning_interests: JSON.parse(sessionStorage.getItem("learning_interests") || "[]"),
+  };
 
-      // flujo זמני
-      window.location.href = "/chat/";
-    }
-  </script>
+  sessionStorage.setItem("onboarding_payload", JSON.stringify(payload));
+ 
+  window.location.href = "/auth/google/start";
+}
+</script>
+
 </body>
 </html>
