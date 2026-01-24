@@ -1,230 +1,222 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Intereses – KidSaí</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Preferencias – KidSaí</title>
 
-  <style>
-    :root{
-      --bg1:#f7f4ef;
-      --bg2:#eaf4ff;
-      --ink:#0b1220;
-      --muted:#5b677a;
-      --line:rgba(16,24,40,.10);
+<style>
+/* === SAME BASE STYLES (UNCHANGED) === */
+:root{
+  --bg1:#f7f4ef;
+  --bg2:#eaf4ff;
+  --ink:#0b1220;
+  --muted:#5b677a;
+  --card:#ffffffcc;
+  --card2:#ffffff;
+  --line:rgba(16,24,40,.10);
+  --shadow:0 18px 50px rgba(16,24,40,.12);
+  --shadow2:0 10px 26px rgba(16,24,40,.10);
+  --radius:18px;
 
-      --accent1:#ff7a66;
-      --accent2:#ffb089;
-      --accent3:#ff5d4c;
-      --focus:rgba(255,93,76,.22);
+  --accent1:#ff7a66;
+  --accent2:#ffb089;
+  --accent3:#ff5d4c;
+  --focus:rgba(255,93,76,.25);
+}
 
-      --card:#ffffffcc;
-      --shadow:0 18px 40px rgba(16,24,40,.12);
-    }
+*{box-sizing:border-box}
+html,body{height:100%}
 
-    *{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color:var(--ink);
+  background:
+    radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+    linear-gradient(90deg, var(--bg1), var(--bg2));
+}
 
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background:
-        radial-gradient(900px 600px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
-        radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
-        linear-gradient(90deg,var(--bg1),var(--bg2));
-      color:var(--ink);
-    }
+.wrap{
+  min-height:100%;
+  display:flex;
+  justify-content:center;
+  padding:42px 18px 56px;
+}
 
-    /* top bar */
-    .top{
-      max-width:980px;
-      margin:0 auto;
-      padding:18px 20px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
+.container{
+  width:min(980px,100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:26px;
+  text-align:center;
+}
 
-    .back a{
-      text-decoration:none;
-      color:var(--muted);
-      font-weight:600;
-    }
+/* TOP BAR */
+.top-bar{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.back-link{
+  text-decoration:none;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:600;
+}
+.progress{
+  font-size:13px;
+  color:var(--muted);
+}
+.progress-bar{
+  width:140px;height:6px;
+  background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:4px;
+}
+.progress-fill{
+  width:100%; /* Paso 4 de 4 */
+  height:100%;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+}
 
-    .progress{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:13px;
-      color:var(--muted);
-    }
+/* Mascot */
+.mascot{
+  width:84px;height:84px;border-radius:22px;
+  display:grid;place-items:center;
+  background:
+    radial-gradient(26px 26px at 34% 30%, #fff, transparent 60%),
+    linear-gradient(160deg, rgba(38,153,255,.26), rgba(255,125,95,.20));
+  border:1px solid var(--line);
+  box-shadow:var(--shadow2);
+}
+.mascot::before{content:"😊";font-size:40px}
 
-    .bar{
-      width:120px;
-      height:4px;
-      background:rgba(0,0,0,.08);
-      border-radius:999px;
-      overflow:hidden;
-    }
+h1{margin:6px 0 0;font-size:34px}
+.sub{color:var(--muted);font-size:15px;max-width:720px}
 
-    .bar span{
-      display:block;
-      width:50%;
-      height:100%;
-      background:linear-gradient(135deg,var(--accent3),var(--accent2));
-    }
+/* ===== INTERESTS ===== */
+.interests{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  width:min(720px,100%);
+}
 
-    .wrap{
-      max-width:860px;
-      margin:0 auto;
-      padding:20px 20px 90px;
-      text-align:center;
-    }
+.interest{
+  padding:20px;
+  border-radius:999px;
+  background:var(--card2);
+  border:2px solid var(--line);
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:var(--shadow2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
 
-    h1{
-      font-size:34px;
-      margin-bottom:6px;
-      letter-spacing:-.02em;
-    }
+.interest.active{
+  border-color:var(--accent3);
+  background:rgba(255,93,76,.14);
+  box-shadow:0 0 0 6px var(--focus);
+}
 
-    .sub{
-      color:var(--muted);
-      margin-bottom:40px;
-      font-size:16px;
-      line-height:1.5;
-    }
+/* Button */
+.btn{
+  width:min(520px,100%);
+  margin-top:26px;
+  padding:16px;
+  border-radius:999px;
+  border:none;
+  background:linear-gradient(135deg,var(--accent2),var(--accent1));
+  font-weight:800;
+  cursor:pointer;
+}
 
-    .chips{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-      gap:16px;
-      max-width:680px;
-      margin:0 auto 56px;
-    }
-
-    .chip{
-      padding:18px 20px;
-      border-radius:999px;
-      border:2px solid var(--line);
-      background:var(--card);
-      backdrop-filter: blur(10px);
-      cursor:pointer;
-      font-weight:700;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      justify-content:center;
-      transition:all .15s ease;
-      box-shadow:0 8px 22px rgba(16,24,40,.08);
-    }
-
-    .chip:hover{ transform:translateY(-2px); }
-
-    .chip.active{
-      border-color:var(--accent3);
-      background:rgba(255,93,76,.12);
-      box-shadow:0 0 0 6px var(--focus), var(--shadow);
-    }
-
-    .actions{ margin-top:10px; }
-
-    /* same height as previous page */
-    .btn{
-      width:100%;
-      max-width:440px;
-      margin:0 auto 14px;
-      padding:14px;
-      border:none;
-      border-radius:999px;
-      font-size:15px;
-      font-weight:800;
-      background:linear-gradient(135deg,var(--accent2),var(--accent1));
-      cursor:pointer;
-      box-shadow:0 14px 30px rgba(255,93,76,.26);
-    }
-
-    .skip{
-      display:block;
-      margin-top:6px;
-      font-size:14px;
-      color:var(--accent3);
-      cursor:pointer;
-      font-weight:600;
-    }
-  </style>
+.skip{
+  margin-top:12px;
+  font-size:14px;
+  color:var(--accent3);
+  font-weight:600;
+  cursor:pointer;
+}
+</style>
 </head>
 
 <body>
+<main class="wrap">
+<section class="container">
 
-  <!-- TOP -->
-  <div class="top">
-    <div class="back">
-      <a href="/onboarding">← Volver</a>
-    </div>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <a class="back-link" href="/onboarding/profile">← Volver</a>
     <div class="progress">
-      Paso 2 de 4
-      <div class="bar"><span></span></div>
+      Paso 4 de 4
+      <div class="progress-bar"><div class="progress-fill"></div></div>
     </div>
   </div>
 
-  <div class="wrap">
-    <h1>¿Qué le gustaría aprender a <span id="childName"></span>?</h1>
-    <p class="sub">
-      Elige uno o varios temas que despierten su curiosidad.
-      Esto nos ayudará a personalizar la experiencia.
-    </p>
+  <div class="mascot"></div>
 
-    <div class="chips" id="topics">
-      <div class="chip" data-value="New Language">🌍 Nuevo idioma</div>
-      <div class="chip" data-value="Improve Math">➕ Mejorar matemáticas</div>
-      <div class="chip" data-value="Improve English">🇬🇧 Mejorar inglés</div>
-      <div class="chip" data-value="Science">🔬 Ciencia</div>
-      <div class="chip" data-value="Reading">📖 Lectura</div>
-      <div class="chip" data-value="Creative Arts">🎨 Artes creativas</div>
-      <div class="chip" data-value="Logic & Problem Solving">🧩 Lógica y resolución</div>
-      <div class="chip" data-value="Critical Thinking">🧠 Pensamiento crítico</div>
-    </div>
+  <h1>¿Qué le gustaría aprender?</h1>
+  <p class="sub">
+    Elige uno o varios temas que despierten su curiosidad.
+    Esto nos ayudará a personalizar la experiencia.
+  </p>
 
-    <div class="actions">
-      <button class="btn" id="continueBtn">Continuar</button>
-      <span class="skip" id="skipBtn">Omitir por ahora</span>
-    </div>
+  <div class="interests" id="interests">
+    <div class="interest">🌍 Nuevo idioma</div>
+    <div class="interest">➕ Mejorar matemáticas</div>
+    <div class="interest">🇬🇧 Mejorar inglés</div>
+
+    <div class="interest">🔬 Ciencia</div>
+    <div class="interest">📖 Lectura</div>
+    <div class="interest">🎨 Artes creativas</div>
+
+    <div class="interest">🧩 Lógica y resolución</div>
+    <div class="interest">🧠 Pensamiento crítico</div>
   </div>
 
-  <script>
-    // name
-    document.getElementById("childName").textContent =
-      sessionStorage.getItem("child_name") || "";
+  <button class="btn" id="nextBtn">Continuar</button>
+  <div class="skip" id="skipBtn">Omitir por ahora</div>
 
-    const chips = document.querySelectorAll(".chip");
+</section>
+</main>
 
-    chips.forEach(chip=>{
-      chip.addEventListener("click",()=>{
-        chip.classList.toggle("active");
-      });
-    });
+<script>
+const items = document.querySelectorAll(".interest");
+let selected = JSON.parse(sessionStorage.getItem("learning_interests") || "[]");
 
-    // restore saved interests
-    const saved = sessionStorage.getItem("child_interests");
-    if(saved){
-      const arr = JSON.parse(saved);
-      chips.forEach(c=>{
-        if(arr.includes(c.dataset.value)) c.classList.add("active");
-      });
-    }
+/* restore */
+items.forEach(i=>{
+  if(selected.includes(i.textContent.trim())){
+    i.classList.add("active");
+  }
+});
 
-    function saveAndContinue(){
-      const selected = [...document.querySelectorAll(".chip.active")]
-        .map(c=>c.dataset.value);
+/* toggle */
+items.forEach(i=>{
+  i.onclick = ()=>{
+    i.classList.toggle("active");
+    selected = [...items]
+      .filter(x=>x.classList.contains("active"))
+      .map(x=>x.textContent.trim());
+  };
+});
 
-      sessionStorage.setItem("child_interests", JSON.stringify(selected));
-      sessionStorage.setItem("onboarding_step","2");
+/* next */
+function finish(){
+  sessionStorage.setItem("learning_interests", JSON.stringify(selected));
+  sessionStorage.setItem("onboarding_step","4");
+  window.location.href = "/app"; // או /chat
+}
 
-      window.location.href = "/onboarding/parent/";
-    }
-
-    document.getElementById("continueBtn").onclick = saveAndContinue;
-    document.getElementById("skipBtn").onclick = saveAndContinue;
-  </script>
+document.getElementById("nextBtn").onclick = finish;
+document.getElementById("skipBtn").onclick = finish;
+</script>
 
 </body>
 </html>
