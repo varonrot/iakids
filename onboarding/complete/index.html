@@ -86,79 +86,44 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let redirected = false;
 
-// Hard fallback
+// Safety fallback (only if auth truly fails)
 setTimeout(() => {
   if (!redirected) {
-    console.warn("Fallback redirect");
-    window.location.replace("/workspace/");
+    window.location.replace("/onboarding/cuenta/");
   }
-}, 7000);
+}, 8000);
 
 (async () => {
-  let session = null;
+  // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
+  const { data, error } = await sb.auth.exchangeCodeForSession(
+    window.location.href
+  );
 
-  // 1️⃣ Try existing session first
-  const { data: sessionData } = await sb.auth.getSession();
-  session = sessionData?.session;
-
-  // 2️⃣ If no session → finalize OAuth
-  if (!session) {
-    const { data, error } = await sb.auth.exchangeCodeForSession(
-      window.location.href
-    );
-
-    if (error) {
-      console.error("OAuth exchange failed:", error);
-      window.location.replace("/onboarding/cuenta/");
-      return;
-    }
-
-    session = data.session;
-  }
-
-  if (!session?.user) {
-    console.error("No authenticated user");
-    window.location.replace("/onboarding/cuenta/");
+  if (error) {
+    console.error("OAuth exchange failed:", error);
     return;
   }
 
-  const user = session.user;
-
-  // 3️⃣ Build payload
-  const payload = {
-    user_id: user.id,
-    child_name: sessionStorage.getItem("child_name"),
-    age: Number(sessionStorage.getItem("age")),
-    avatar_key: sessionStorage.getItem("avatar_key"),
-    usage_goals: JSON.parse(sessionStorage.getItem("usage_goals") || "[]"),
-    learning_interests: JSON.parse(
-      sessionStorage.getItem("learning_interests") || "[]"
-    )
-  };
-
-  // 4️⃣ Insert (idempotent guard optional)
-  const { error: insertError } = await sb
-    .from("kids_profiles")
-    .insert([payload]);
-
-  if (insertError) {
-    console.error("Insert failed:", insertError);
-    // Even if insert fails, user is logged in → continue
+  if (data?.session) {
+    redirected = true;
+    window.location.replace("/workspace/");
   }
-
-  // 5️⃣ Cleanup + redirect
-  sessionStorage.clear();
-  redirected = true;
-  window.location.replace("/workspace/");
 })();
-</script>
 
+// Extra safety listener (optional but good)
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_IN" && session && !redirected) {
+    redirected = true;
+    window.location.replace("/workspace/");
+  }
+});
+</script>
 
 </body>
 </html>
