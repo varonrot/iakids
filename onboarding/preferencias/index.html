@@ -1,113 +1,135 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>How to use KidSaí</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
+/* === SAME VARIABLES & BASE STYLES === */
 :root{
   --bg1:#f7f4ef;
   --bg2:#eaf4ff;
   --ink:#0b1220;
   --muted:#5b677a;
+  --card:#ffffffcc;
+  --card2:#ffffff;
   --line:rgba(16,24,40,.10);
+  --shadow:0 18px 50px rgba(16,24,40,.12);
+  --shadow2:0 10px 26px rgba(16,24,40,.10);
+  --radius:18px;
 
   --accent1:#ff7a66;
   --accent2:#ffb089;
   --accent3:#ff5d4c;
-  --focus:rgba(255,93,76,.22);
-
-  --card:#ffffffcc;
-  --shadow:0 18px 40px rgba(16,24,40,.12);
+  --focus:rgba(255,93,76,.25);
 }
 
 *{box-sizing:border-box}
+html,body{height:100%}
 
 body{
   margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background:
-    radial-gradient(900px 600px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
-    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
-    linear-gradient(90deg,var(--bg1),var(--bg2));
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   color:var(--ink);
+  background:
+    radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+    linear-gradient(90deg, var(--bg1), var(--bg2));
 }
 
 .wrap{
-  max-width:860px;
-  margin:0 auto;
-  padding:36px 20px 90px;
+  min-height:100%;
+  display:flex;
+  justify-content:center;
+  padding:42px 18px 56px;
+}
+
+.container{
+  width:min(980px,100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:22px;
   text-align:center;
 }
 
-.top{
+/* ===== TOP BAR ===== */
+.top-bar{
+  width:100%;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:26px;
 }
 
-.back{
-  color:var(--muted);
-  font-weight:600;
+.back-link{
   text-decoration:none;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:600;
 }
 
 .progress{
+  text-align:right;
   font-size:13px;
   color:var(--muted);
 }
-
 .progress-bar{
   width:140px;
-  height:4px;
-  background:#e6ecf3;
+  height:6px;
+  background:#e5e7eb;
   border-radius:999px;
   overflow:hidden;
-  margin-top:6px;
+  margin-top:4px;
 }
-
-.progress-bar span{
-  display:block;
-  width:50%;
+.progress-fill{
+  width:50%; /* Paso 2 de 4 */
   height:100%;
   background:linear-gradient(135deg,var(--accent3),var(--accent2));
 }
 
-h1{
-  font-size:34px;
-  margin-bottom:6px;
-  letter-spacing:-.02em;
+/* Mascot */
+.mascot{
+  width:84px;height:84px;
+  border-radius:22px;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(26px 26px at 34% 30%, #fff, transparent 60%),
+    linear-gradient(160deg, rgba(38,153,255,.26), rgba(255,125,95,.20));
+  border:1px solid var(--line);
+  box-shadow:var(--shadow2);
+}
+.mascot::before{
+  content:"😊";
+  font-size:40px;
 }
 
-.sub{
-  color:var(--muted);
-  margin-bottom:40px;
-  font-size:16px;
-}
+h1{margin:6px 0 4px;font-size:34px}
+.sub{max-width:700px;color:var(--muted);font-size:15px}
 
+/* ===== CHIPS ===== */
 .chips{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:16px;
-  max-width:700px;
-  margin:0 auto 56px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:18px;
+  width:min(760px,100%);
+  margin-top:20px;
 }
 
 .chip{
-  padding:18px 20px;
+  padding:20px;
   border-radius:999px;
   border:2px solid var(--line);
-  background:var(--card);
+  background:var(--card2);
   cursor:pointer;
   font-weight:700;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:12px;
+  box-shadow:var(--shadow2);
   transition:.15s;
-  box-shadow:0 8px 22px rgba(16,24,40,.08);
 }
 
 .chip:hover{transform:translateY(-2px)}
@@ -118,48 +140,39 @@ h1{
   box-shadow:0 0 0 6px var(--focus), var(--shadow);
 }
 
-.actions{
-  margin-top:10px;
-}
-
+/* Button */
 .btn{
-  width:100%;
-  max-width:440px;
+  width:min(520px,100%);
+  margin-top:26px;
   padding:16px;
-  border:none;
   border-radius:999px;
-  font-size:16px;
-  font-weight:800;
+  border:none;
   background:linear-gradient(135deg,var(--accent2),var(--accent1));
+  font-weight:800;
   cursor:pointer;
-  box-shadow:0 16px 36px rgba(255,93,76,.28);
-}
-
-.skip{
-  display:block;
-  margin-top:10px;
-  font-size:14px;
-  color:var(--accent3);
-  cursor:pointer;
-  font-weight:600;
 }
 </style>
 </head>
 
 <body>
-<div class="wrap">
+<main class="wrap">
+<section class="container">
 
-  <div class="top">
-    <a class="back" href="/onboarding/intereses/">← Volver</a>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <a class="back-link" href="/onboarding/intereses">← Volver</a>
     <div class="progress">
       Paso 2 de 4
-      <div class="progress-bar"><span></span></div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
     </div>
   </div>
+
+  <div class="mascot"></div>
 
   <h1>How would you like to use KidSaí?</h1>
   <p class="sub">Select all that apply</p>
 
+  <!-- STEP 2 CONTENT -->
   <div class="chips" id="usage">
     <div class="chip" data-value="Reduce Screen Time">⏱️ Reduce Screen Time</div>
     <div class="chip" data-value="Educational Learning">📚 Educational Learning</div>
@@ -171,42 +184,39 @@ h1{
     <div class="chip" data-value="Other">… Other</div>
   </div>
 
-  <div class="actions">
-    <button class="btn" id="continue">Continue</button>
-<!--    <span class="skip" id="skip">Skip for now</span>-->
-  </div>
+  <button class="btn" id="nextBtn">Continue</button>
 
-</div>
+</section>
+</main>
 
 <script>
-const key = "kid_usage";
+const KEY = "kid_usage";
 const chips = document.querySelectorAll(".chip");
 
-// restore
-const saved = sessionStorage.getItem(key);
-if(saved){
+/* restore */
+const saved = sessionStorage.getItem(KEY);
+if (saved){
   const arr = JSON.parse(saved);
   chips.forEach(c=>{
-    if(arr.includes(c.dataset.value)){
-      c.classList.add("active");
-    }
+    if(arr.includes(c.dataset.value)) c.classList.add("active");
   });
 }
 
+/* toggle */
 chips.forEach(c=>{
   c.addEventListener("click",()=>c.classList.toggle("active"));
 });
 
-function next(){
+/* next */
+document.getElementById("nextBtn").onclick = ()=>{
   const selected = [...document.querySelectorAll(".chip.active")]
     .map(c=>c.dataset.value);
 
-  sessionStorage.setItem(key, JSON.stringify(selected));
-  window.location.href = "/onboarding/profile/";
-}
+  sessionStorage.setItem(KEY, JSON.stringify(selected));
+  sessionStorage.setItem("onboarding_step","2");
 
-document.getElementById("continue").onclick = next;
-document.getElementById("skip").onclick = next;
+  window.location.href = "/onboarding/profile";
+};
 </script>
 
 </body>
