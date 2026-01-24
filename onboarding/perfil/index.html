@@ -1,238 +1,252 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Perfil del niño – KidSaí</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sobre el niño – KidSaí</title>
 
-  <style>
-    :root{
-      --bg1:#f7f4ef;
-      --bg2:#eaf4ff;
-      --ink:#0b1220;
-      --muted:#5b677a;
-      --line:rgba(16,24,40,.10);
+<style>
+/* === SAME BASE STYLES (UNCHANGED) === */
+:root{
+  --bg1:#f7f4ef;
+  --bg2:#eaf4ff;
+  --ink:#0b1220;
+  --muted:#5b677a;
+  --card:#ffffffcc;
+  --card2:#ffffff;
+  --line:rgba(16,24,40,.10);
+  --shadow:0 18px 50px rgba(16,24,40,.12);
+  --shadow2:0 10px 26px rgba(16,24,40,.10);
+  --radius:18px;
 
-      --accent1:#ff7a66;
-      --accent2:#ffb089;
-      --accent3:#ff5d4c;
-      --focus:rgba(255,93,76,.22);
+  --accent1:#ff7a66;
+  --accent2:#ffb089;
+  --accent3:#ff5d4c;
+  --focus:rgba(255,93,76,.25);
+}
 
-      --card:#ffffffcc;
-      --shadow:0 18px 40px rgba(16,24,40,.12);
-    }
+*{box-sizing:border-box}
+html,body{height:100%}
 
-    *{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color:var(--ink);
+  background:
+    radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+    linear-gradient(90deg, var(--bg1), var(--bg2));
+}
 
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background:
-        radial-gradient(700px 420px at 15% 10%, rgba(255,200,170,.35), transparent 60%),
-        radial-gradient(820px 520px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
-        linear-gradient(90deg,var(--bg1),var(--bg2));
-      color:var(--ink);
-    }
+.wrap{
+  min-height:100%;
+  display:flex;
+  justify-content:center;
+  padding:42px 18px 56px;
+}
 
-    .wrap{
-      max-width:880px;
-      margin:0 auto;
-      padding:30px 20px 90px;
-      text-align:center;
-    }
+.container{
+  width:min(980px,100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:26px;
+  text-align:center;
+}
 
-    /* TOP BAR */
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:24px;
-      font-size:14px;
-      color:var(--muted);
-    }
+/* TOP BAR */
+.top-bar{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.back-link{
+  text-decoration:none;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:600;
+}
+.progress{
+  font-size:13px;
+  color:var(--muted);
+}
+.progress-bar{
+  width:140px;height:6px;
+  background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:4px;
+}
+.progress-fill{
+  width:75%; /* Paso 3 de 4 */
+  height:100%;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+}
 
-    .top a{
-      text-decoration:none;
-      color:var(--muted);
-      font-weight:600;
-    }
+/* Mascot */
+.mascot{
+  width:84px;height:84px;border-radius:22px;
+  display:grid;place-items:center;
+  background:
+    radial-gradient(26px 26px at 34% 30%, #fff, transparent 60%),
+    linear-gradient(160deg, rgba(38,153,255,.26), rgba(255,125,95,.20));
+  border:1px solid var(--line);
+  box-shadow:var(--shadow2);
+}
+.mascot::before{content:"😊";font-size:40px}
 
-    .progress{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+h1{margin:6px 0 0;font-size:34px}
+.sub{color:var(--muted);font-size:15px}
 
-    .bar{
-      width:120px;
-      height:4px;
-      background:rgba(16,24,40,.12);
-      border-radius:4px;
-      overflow:hidden;
-    }
+/* ===== AGE GRID ===== */
+.age-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:14px;
+  width:min(520px,100%);
+}
 
-    .bar span{
-      display:block;
-      height:100%;
-      width:75%;
-      background:linear-gradient(90deg,var(--accent3),var(--accent2));
-    }
+.age{
+  padding:16px 0;
+  border-radius:14px;
+  background:var(--card2);
+  border:2px solid var(--line);
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:var(--shadow2);
+}
+.age.active{
+  border-color:var(--accent3);
+  background:rgba(255,93,76,.14);
+  box-shadow:0 0 0 6px var(--focus);
+}
 
-    h1{
-      font-size:34px;
-      margin-bottom:6px;
-      letter-spacing:-.02em;
-    }
+/* ===== AVATARS ===== */
+.avatars{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:18px;
+  width:min(520px,100%);
+}
 
-    .sub{
-      color:var(--muted);
-      margin-bottom:36px;
-      font-size:16px;
-    }
+.avatar{
+  width:70px;height:70px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  font-size:30px;
+  cursor:pointer;
+  border:2px solid transparent;
+  box-shadow:var(--shadow2);
+}
+.avatar.active{
+  border-color:var(--accent3);
+  box-shadow:0 0 0 6px var(--focus);
+}
 
-    h3{
-      margin:30px 0 14px;
-      font-size:18px;
-      font-weight:700;
-    }
-
-    /* AGE */
-    .age-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(64px,1fr));
-      gap:14px;
-      max-width:460px;
-      margin:0 auto 44px;
-    }
-
-    .age{
-      padding:16px 0;
-      border-radius:16px;
-      border:2px solid var(--line);
-      background:var(--card);
-      cursor:pointer;
-      font-weight:800;
-      transition:.15s;
-    }
-
-    .age.active{
-      border-color:var(--accent3);
-      background:rgba(255,93,76,.14);
-      box-shadow:0 0 0 6px var(--focus), var(--shadow);
-    }
-
-    /* AVATARS */
-    .avatars{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(74px,1fr));
-      gap:18px;
-      max-width:560px;
-      margin:0 auto 56px;
-    }
-
-    .avatar{
-      width:74px;
-      height:74px;
-      border-radius:50%;
-      border:3px solid transparent;
-      background:#fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:34px;
-      cursor:pointer;
-      transition:.15s;
-    }
-
-    .avatar.active{
-      border-color:var(--accent1);
-      background:#fff5f0;
-      box-shadow:0 0 0 6px var(--focus), var(--shadow);
-    }
-
-    .next{
-      width:100%;
-      max-width:440px;
-      padding:16px;
-      border:none;
-      border-radius:999px;
-      font-size:16px;
-      font-weight:800;
-      background:linear-gradient(135deg,var(--accent2),var(--accent1));
-      color:#3a1b12;
-      cursor:pointer;
-      box-shadow:0 16px 36px rgba(255,93,76,.28);
-    }
-  </style>
+/* Button */
+.btn{
+  width:min(520px,100%);
+  margin-top:22px;
+  padding:16px;
+  border-radius:999px;
+  border:none;
+  background:linear-gradient(135deg,var(--accent2),var(--accent1));
+  font-weight:800;
+  cursor:pointer;
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
+<main class="wrap">
+<section class="container">
 
-    <div class="top">
-      <a href="/onboarding/intereses/">← Volver</a>
-      <div class="progress">
-        <span>Paso 3 de 4</span>
-        <div class="bar"><span></span></div>
-      </div>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <a class="back-link" href="/onboarding/intereses">← Volver</a>
+    <div class="progress">
+      Paso 3 de 4
+      <div class="progress-bar"><div class="progress-fill"></div></div>
     </div>
-
-    <h1>Sobre el niño</h1>
-    <p class="sub">Cuéntanos un poco más para adaptar la experiencia.</p>
-
-    <h3>¿Cuántos años tiene?</h3>
-    <div class="age-grid" id="ages">
-      <div class="age">3</div><div class="age">4</div><div class="age">5</div>
-      <div class="age">6</div><div class="age">7</div><div class="age">8</div>
-      <div class="age">9</div><div class="age">10</div><div class="age">11</div>
-      <div class="age">12</div><div class="age">13</div><div class="age">14</div>
-      <div class="age">15</div>
-    </div>
-
-    <h3>Elige un avatar</h3>
-    <div class="avatars" id="avatars">
-      <div class="avatar">🦊</div><div class="avatar">🐻</div><div class="avatar">🦉</div>
-      <div class="avatar">🐵</div><div class="avatar">🐼</div><div class="avatar">🐱</div>
-      <div class="avatar">🐶</div><div class="avatar">🦁</div><div class="avatar">🐧</div>
-      <div class="avatar">🦄</div><div class="avatar">🐨</div><div class="avatar">🦔</div>
-    </div>
-
-    <button class="next" id="nextBtn">Continuar</button>
-
   </div>
 
-  <script>
-    let selectedAge = sessionStorage.getItem("child_age");
-    let selectedAvatar = sessionStorage.getItem("child_avatar");
+  <div class="mascot"></div>
 
-    const ages = document.querySelectorAll(".age");
-    const avatars = document.querySelectorAll(".avatar");
+  <h1>Sobre el niño</h1>
+  <p class="sub">Cuéntanos un poco más para adaptar la experiencia.</p>
 
-    ages.forEach(a => {
-      if (a.textContent === selectedAge) a.classList.add("active");
-      a.onclick = () => {
-        ages.forEach(x => x.classList.remove("active"));
-        a.classList.add("active");
-        selectedAge = a.textContent;
-        sessionStorage.setItem("child_age", selectedAge);
-      };
-    });
+  <h3>¿Cuántos años tiene?</h3>
 
-    avatars.forEach(a => {
-      if (a.textContent === selectedAvatar) a.classList.add("active");
-      a.onclick = () => {
-        avatars.forEach(x => x.classList.remove("active"));
-        a.classList.add("active");
-        selectedAvatar = a.textContent;
-        sessionStorage.setItem("child_avatar", selectedAvatar);
-      };
-    });
+  <div class="age-grid" id="ages">
+    <div class="age">3</div><div class="age">4</div><div class="age">5</div>
+    <div class="age">6</div><div class="age">7</div><div class="age">8</div>
+    <div class="age">9</div><div class="age">10</div><div class="age">11</div>
+    <div class="age">12</div><div class="age">13</div><div class="age">14</div>
+    <div class="age">15</div>
+  </div>
 
-    document.getElementById("nextBtn").onclick = () => {
-      if (!selectedAge || !selectedAvatar) return;
-      sessionStorage.setItem("onboarding_step", "3");
-      window.location.href = "/onboarding/parent/";
-    };
-  </script>
+  <h3>Elige un avatar</h3>
+
+  <div class="avatars" id="avatars">
+    <div class="avatar">🦊</div><div class="avatar">🐻</div><div class="avatar">🦉</div>
+    <div class="avatar">🐵</div><div class="avatar">🐼</div><div class="avatar">🐱</div>
+    <div class="avatar">🐶</div><div class="avatar">🦁</div><div class="avatar">🐧</div>
+    <div class="avatar">🦄</div><div class="avatar">🐨</div><div class="avatar">🦔</div>
+  </div>
+
+  <button class="btn" id="nextBtn">Continuar</button>
+
+</section>
+</main>
+
+<script>
+/* === AGE === */
+const ageEls = document.querySelectorAll(".age");
+let selectedAge = sessionStorage.getItem("child_age");
+
+if(selectedAge){
+  ageEls.forEach(a=>{
+    if(a.textContent === selectedAge) a.classList.add("active");
+  });
+}
+
+ageEls.forEach(a=>{
+  a.onclick = ()=>{
+    ageEls.forEach(x=>x.classList.remove("active"));
+    a.classList.add("active");
+    selectedAge = a.textContent;
+  };
+});
+
+/* === AVATAR === */
+const avatarEls = document.querySelectorAll(".avatar");
+let selectedAvatar = sessionStorage.getItem("child_avatar");
+
+if(selectedAvatar){
+  avatarEls.forEach(v=>{
+    if(v.textContent === selectedAvatar) v.classList.add("active");
+  });
+}
+
+avatarEls.forEach(v=>{
+  v.onclick = ()=>{
+    avatarEls.forEach(x=>x.classList.remove("active"));
+    v.classList.add("active");
+    selectedAvatar = v.textContent;
+  };
+});
+
+/* === NEXT === */
+document.getElementById("nextBtn").onclick = ()=>{
+  if(!selectedAge || !selectedAvatar) return;
+
+  sessionStorage.setItem("child_age", selectedAge);
+  sessionStorage.setItem("child_avatar", selectedAvatar);
+  sessionStorage.setItem("onboarding_step","3");
+
+  window.location.href = "/onboarding/ready";
+};
+</script>
+
 </body>
 </html>
