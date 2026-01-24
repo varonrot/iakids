@@ -86,32 +86,51 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let redirected = false;
 
+// Hard fallback
 setTimeout(() => {
   if (!redirected) {
-    window.location.replace("/onboarding/cuenta/");
+    console.warn("Fallback redirect");
+    window.location.replace("/workspace/");
   }
-}, 8000);
+}, 7000);
 
 (async () => {
-  // 1️⃣ Finalize OAuth
-  const { data, error } = await sb.auth.exchangeCodeForSession(
-    window.location.href
-  );
+  let session = null;
 
-  if (error || !data?.session?.user) {
-    console.error("OAuth exchange failed:", error);
+  // 1️⃣ Try existing session first
+  const { data: sessionData } = await sb.auth.getSession();
+  session = sessionData?.session;
+
+  // 2️⃣ If no session → finalize OAuth
+  if (!session) {
+    const { data, error } = await sb.auth.exchangeCodeForSession(
+      window.location.href
+    );
+
+    if (error) {
+      console.error("OAuth exchange failed:", error);
+      window.location.replace("/onboarding/cuenta/");
+      return;
+    }
+
+    session = data.session;
+  }
+
+  if (!session?.user) {
+    console.error("No authenticated user");
+    window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  const user = data.session.user;
+  const user = session.user;
 
-  // 2️⃣ Collect child data from sessionStorage
+  // 3️⃣ Build payload
   const payload = {
     user_id: user.id,
     child_name: sessionStorage.getItem("child_name"),
@@ -123,17 +142,17 @@ setTimeout(() => {
     )
   };
 
-  // 3️⃣ Insert into DB
+  // 4️⃣ Insert (idempotent guard optional)
   const { error: insertError } = await sb
     .from("kids_profiles")
     .insert([payload]);
 
   if (insertError) {
-    console.error("Failed to save kid profile:", insertError);
-    return;
+    console.error("Insert failed:", insertError);
+    // Even if insert fails, user is logged in → continue
   }
 
-  // 4️⃣ Cleanup + redirect
+  // 5️⃣ Cleanup + redirect
   sessionStorage.clear();
   redirected = true;
   window.location.replace("/workspace/");
