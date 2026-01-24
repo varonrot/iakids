@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Signing you in…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body{
+      font-family: system-ui, sans-serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+      background:#f7f7f7;
+      color:#333;
+    }
+  </style>
+</head>
+<body>
+
+  <div>Signing you in…</div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY";
+
+const supabase = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+(async () => {
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error || !data.session) {
+    console.error("No session", error);
+    window.location.href = "/onboarding/cuenta";
+    return;
+  }
+
+  // ✅ התחברות הצליחה
+  console.log("Logged in:", data.session.user);
+
+  // 👉 כאן הולכים למוצר
+  window.location.href = "/workspace.html";
+})();
+</script>
+
+</body>
+</html>
