@@ -1,82 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Create account – Kids AI</title>
+  <title>Iniciar sesión – KidSaí</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    :root{
+      --bg1:#f7f4ef;
+      --bg2:#eaf4ff;
+      --ink:#0b1220;
+      --muted:#6b7280;
+
+      --accent1:#ff7a66;
+      --accent2:#ffb089;
+      --accent3:#38bdf8;
+
+      --card:#ffffffcc;
+      --line:rgba(16,24,40,.10);
+      --shadow:0 22px 50px rgba(16,24,40,.14);
+    }
+
+    *{box-sizing:border-box}
+
     body{
       margin:0;
-      height:100vh;
+      min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
-      color:#0b1220;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:
+        radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+        radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+        linear-gradient(90deg,var(--bg1),var(--bg2));
+      color:var(--ink);
     }
 
     .wrap{
-      text-align:center;
-      max-width:420px;
       width:100%;
-      padding:20px;
+      max-width:420px;
+      padding:26px 22px 34px;
+      text-align:center;
+      background:var(--card);
+      border-radius:26px;
+      border:1px solid var(--line);
+      backdrop-filter: blur(12px);
+      box-shadow:var(--shadow);
     }
 
     .icon{
-      width:64px;
-      height:64px;
-      border-radius:50%;
-      background:linear-gradient(135deg,#ff7a66,#38bdf8);
+      width:72px;
+      height:72px;
+      border-radius:22px;
+      background:
+        radial-gradient(24px 24px at 35% 30%, rgba(255,255,255,.95), transparent 60%),
+        linear-gradient(160deg, rgba(56,189,248,.35), rgba(255,122,102,.35));
       display:flex;
       align-items:center;
       justify-content:center;
-      color:#fff;
-      font-size:30px;
+      font-size:34px;
       margin:0 auto 18px;
     }
 
     h1{
-      font-size:24px;
+      font-size:26px;
       margin-bottom:6px;
+      letter-spacing:-.02em;
     }
 
     .sub{
-      color:#6b7280;
-      font-size:14px;
-      margin-bottom:30px;
+      color:var(--muted);
+      font-size:15px;
+      margin-bottom:28px;
+      line-height:1.5;
     }
 
     .btn{
       width:100%;
-      padding:14px;
+      padding:14px 16px;
       border-radius:999px;
       font-size:15px;
-      font-weight:700;
-      border:2px solid transparent;
+      font-weight:800;
+      border:2px solid var(--line);
       cursor:pointer;
-      margin-bottom:14px;
+      margin-bottom:16px;
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:10px;
-    }
-
-    .google{
+      gap:12px;
       background:#fff;
-      border-color:#e5e7eb;
+      transition:all .12s ease;
     }
 
-    .apple{
-      background:#000;
-      color:#fff;
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(16,24,40,.12);
     }
 
-    .privacy{
+    .btn img{
+      width:18px;
+      height:18px;
+    }
+
+    .note{
       font-size:12px;
       color:#9ca3af;
-      margin-top:26px;
+      margin-top:22px;
+      line-height:1.5;
+    }
+
+    @media (max-width:480px){
+      .wrap{border-radius:22px}
+      h1{font-size:24px}
     }
   </style>
 </head>
@@ -86,40 +122,37 @@
 
     <div class="icon">👤</div>
 
-    <h1>Create your account</h1>
+    <h1>Inicia sesión</h1>
     <p class="sub">
-      Sign in to save ss’s profile across devices
+      Accede para guardar el perfil del niño<br>
+      y continuar desde cualquier dispositivo
     </p>
 
-    <button class="btn google" onclick="authGoogle()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-      Continue with Google
+    <button class="btn" onclick="authGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      Continuar con Google
     </button>
 
-    <button class="btn apple" onclick="authApple()">
-       Continue with Apple
-    </button>
-
-    <div class="privacy">
-      Your privacy is protected.  
-      We never share your data with third parties.
+    <div class="note">
+      Protegemos tu privacidad.<br>
+      Nunca compartimos datos con terceros.
     </div>
 
   </div>
 
   <script>
     function authGoogle(){
-      // כאן בהמשך:
-      // OAuth Google
-      // שמירת parent_id
-      // חיבור לילד
-      alert("Google sign-in (stub)");
-      window.location.href = "/chat/";
-    }
+      /*
+        Paso siguiente (backend):
+        - Google OAuth
+        - Crear / obtener parent_id
+        - Asociar kid_profile (localStorage)
+        - Guardar en DB
+      */
 
-    function authApple(){
-      // OAuth Apple
-      alert("Apple sign-in (stub)");
+      console.log("Google login – pending OAuth");
+
+      // flujo זמני
       window.location.href = "/chat/";
     }
   </script>
