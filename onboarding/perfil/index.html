@@ -26,7 +26,7 @@
 
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       background:
         radial-gradient(700px 420px at 15% 10%, rgba(255,200,170,.35), transparent 60%),
         radial-gradient(820px 520px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
@@ -37,19 +37,45 @@
     .wrap{
       max-width:880px;
       margin:0 auto;
-      padding:38px 20px 90px;
+      padding:30px 20px 90px;
       text-align:center;
     }
 
-    .back{
-      text-align:left;
-      margin-bottom:26px;
+    /* TOP BAR */
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:24px;
+      font-size:14px;
+      color:var(--muted);
     }
 
-    .back a{
+    .top a{
       text-decoration:none;
       color:var(--muted);
       font-weight:600;
+    }
+
+    .progress{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .bar{
+      width:120px;
+      height:4px;
+      background:rgba(16,24,40,.12);
+      border-radius:4px;
+      overflow:hidden;
+    }
+
+    .bar span{
+      display:block;
+      height:100%;
+      width:75%;
+      background:linear-gradient(90deg,var(--accent3),var(--accent2));
     }
 
     h1{
@@ -62,7 +88,6 @@
       color:var(--muted);
       margin-bottom:36px;
       font-size:16px;
-      line-height:1.5;
     }
 
     h3{
@@ -71,7 +96,7 @@
       font-weight:700;
     }
 
-    /* AGE GRID */
+    /* AGE */
     .age-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(64px,1fr));
@@ -85,16 +110,9 @@
       border-radius:16px;
       border:2px solid var(--line);
       background:var(--card);
-      backdrop-filter: blur(10px);
       cursor:pointer;
       font-weight:800;
-      font-size:16px;
-      transition:all .15s ease;
-      box-shadow:0 6px 16px rgba(16,24,40,.08);
-    }
-
-    .age:hover{
-      transform:translateY(-2px);
+      transition:.15s;
     }
 
     .age.active{
@@ -117,18 +135,13 @@
       height:74px;
       border-radius:50%;
       border:3px solid transparent;
-      cursor:pointer;
       background:#fff;
       display:flex;
       align-items:center;
       justify-content:center;
       font-size:34px;
-      transition:all .15s ease;
-      box-shadow:0 6px 16px rgba(16,24,40,.08);
-    }
-
-    .avatar:hover{
-      transform:translateY(-3px);
+      cursor:pointer;
+      transition:.15s;
     }
 
     .avatar.active{
@@ -137,11 +150,9 @@
       box-shadow:0 0 0 6px var(--focus), var(--shadow);
     }
 
-    /* NEXT BUTTON */
     .next{
       width:100%;
       max-width:440px;
-      margin:0 auto;
       padding:16px;
       border:none;
       border-radius:999px;
@@ -151,17 +162,6 @@
       color:#3a1b12;
       cursor:pointer;
       box-shadow:0 16px 36px rgba(255,93,76,.28);
-      transition:transform .12s ease;
-    }
-
-    .next:hover{
-      transform:translateY(-1px);
-      filter:saturate(1.05);
-    }
-
-    @media (max-width:520px){
-      h1{font-size:28px}
-      .sub{font-size:15px}
     }
   </style>
 </head>
@@ -169,17 +169,18 @@
 <body>
   <div class="wrap">
 
-    <div class="back">
+    <div class="top">
       <a href="/onboarding/intereses/">← Volver</a>
+      <div class="progress">
+        <span>Paso 3 de 4</span>
+        <div class="bar"><span></span></div>
+      </div>
     </div>
 
     <h1>Sobre el niño</h1>
-    <p class="sub">
-      Cuéntanos un poco más para adaptar la experiencia a su edad y personalidad.
-    </p>
+    <p class="sub">Cuéntanos un poco más para adaptar la experiencia.</p>
 
     <h3>¿Cuántos años tiene?</h3>
-
     <div class="age-grid" id="ages">
       <div class="age">3</div><div class="age">4</div><div class="age">5</div>
       <div class="age">6</div><div class="age">7</div><div class="age">8</div>
@@ -189,7 +190,6 @@
     </div>
 
     <h3>Elige un avatar</h3>
-
     <div class="avatars" id="avatars">
       <div class="avatar">🦊</div><div class="avatar">🐻</div><div class="avatar">🦉</div>
       <div class="avatar">🐵</div><div class="avatar">🐼</div><div class="avatar">🐱</div>
@@ -202,53 +202,37 @@
   </div>
 
   <script>
-    const profileKey = "kid_profile";
+    let selectedAge = sessionStorage.getItem("child_age");
+    let selectedAvatar = sessionStorage.getItem("child_avatar");
 
-    function selectSingle(container, className, onSelect){
-      container.querySelectorAll("." + className).forEach(el => {
-        el.addEventListener("click", () => {
-          container.querySelectorAll("." + className)
-            .forEach(i => i.classList.remove("active"));
-          el.classList.add("active");
-          onSelect(el.textContent.trim());
-        });
-      });
-    }
+    const ages = document.querySelectorAll(".age");
+    const avatars = document.querySelectorAll(".avatar");
 
-    let selectedAge = null;
-    let selectedAvatar = null;
-
-    const agesEl = document.getElementById("ages");
-    const avatarsEl = document.getElementById("avatars");
-
-    selectSingle(agesEl, "age", val => selectedAge = val);
-    selectSingle(avatarsEl, "avatar", val => selectedAvatar = val);
-
-    const saved = localStorage.getItem(profileKey);
-    if (saved){
-      const data = JSON.parse(saved);
-
-      if (data.age){
-        const ageEl = [...agesEl.children].find(a => a.textContent === data.age);
-        if (ageEl){ ageEl.classList.add("active"); selectedAge = data.age; }
-      }
-
-      if (data.avatar){
-        const avEl = [...avatarsEl.children].find(a => a.textContent === data.avatar);
-        if (avEl){ avEl.classList.add("active"); selectedAvatar = data.avatar; }
-      }
-    }
-
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      if (!selectedAge || !selectedAvatar) return;
-
-      localStorage.setItem(profileKey, JSON.stringify({
-        age: selectedAge,
-        avatar: selectedAvatar
-      }));
-
-      window.location.href = "/chat/";
+    ages.forEach(a => {
+      if (a.textContent === selectedAge) a.classList.add("active");
+      a.onclick = () => {
+        ages.forEach(x => x.classList.remove("active"));
+        a.classList.add("active");
+        selectedAge = a.textContent;
+        sessionStorage.setItem("child_age", selectedAge);
+      };
     });
+
+    avatars.forEach(a => {
+      if (a.textContent === selectedAvatar) a.classList.add("active");
+      a.onclick = () => {
+        avatars.forEach(x => x.classList.remove("active"));
+        a.classList.add("active");
+        selectedAvatar = a.textContent;
+        sessionStorage.setItem("child_avatar", selectedAvatar);
+      };
+    });
+
+    document.getElementById("nextBtn").onclick = () => {
+      if (!selectedAge || !selectedAvatar) return;
+      sessionStorage.setItem("onboarding_step", "3");
+      window.location.href = "/onboarding/parent/";
+    };
   </script>
 </body>
 </html>
