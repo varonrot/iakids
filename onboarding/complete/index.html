@@ -48,20 +48,17 @@
     <div class="sub">Almost ready…</div>
   </div>
 
- <script>
+<script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  const { data: sessionData, error: sessionError } = await sb.auth.getSession();
-  console.log("SESSION:", sessionData, sessionError);
+  const { data: { session } } = await sb.auth.getSession();
 
-  if (!sessionData?.session) {
-    console.error("No Supabase session");
+  if (!session) {
     window.location.replace("/onboarding/cuenta/");
     return;
   }
@@ -76,26 +73,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   console.log("PAYLOAD:", payload);
 
-  const { data, error } = await sb
+  const { error } = await sb
     .from("kids_profiles")
-    .insert(payload)   // אין מערך, אין user_id
-    .select()
-    .single();
-
-  console.log("INSERT DATA:", data);
-  console.log("INSERT ERROR:", error);
-
+    .insert(payload);
+ 
   if (error) {
-    console.error("INSERT FAILED:", error);
-    return;
+    console.warn("Insert skipped / already exists:", error.message);
   }
-
+ 
   localStorage.clear();
-  await sleep(1000);
+  await sleep(800);
   window.location.replace("/workspace/");
 })();
 </script>
-
 
 </body>
 </html>
