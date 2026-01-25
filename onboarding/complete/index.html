@@ -112,11 +112,11 @@ if (!session?.user) {
 const user = session.user;
 
 
-if (localStorage.getItem("kid_profile_saved")) {
-  redirected = true;
-  window.location.replace("/workspace/");
-  return;
-}
+<!--if (localStorage.getItem("kid_profile_saved")) {-->
+<!--  redirected = true;-->
+<!--  window.location.replace("/workspace/");-->
+<!--  return;-->
+<!--}-->
 const payload = {
   user_id: user.id,
   child_name: sessionStorage.getItem("child_name"),
