@@ -5,6 +5,7 @@
   <title>Preparing – Kids AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -18,80 +19,146 @@
       background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
       color:#0b1220;
     }
-    .box{text-align:center}
+
+    .box{
+      text-align:center;
+    }
+
     .check{
-      width:72px;height:72px;border-radius:50%;
-      background:#4ade80;display:flex;
-      align-items:center;justify-content:center;
-      margin:0 auto 20px;font-size:36px;color:#fff;
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      background:#4ade80;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 20px;
+      font-size:36px;
+      color:#fff;
     }
-    h1{font-size:22px;margin-bottom:14px}
+
+    h1{
+      font-size:22px;
+      margin-bottom:14px;
+    }
+
     .bar{
-      width:260px;height:6px;background:#e5e7eb;
-      border-radius:999px;overflow:hidden;margin:0 auto 10px;
+      width:260px;
+      height:6px;
+      background:#e5e7eb;
+      border-radius:999px;
+      overflow:hidden;
+      margin:0 auto 10px;
     }
+
     .bar span{
-      display:block;height:100%;width:0%;
+      display:block;
+      height:100%;
+      width:0%;
       background:linear-gradient(90deg,#ff7a66,#38bdf8);
-      animation:load 3s linear forwards;
+      animation:load 2.5s ease-in-out forwards;
     }
-    @keyframes load{to{width:100%}}
-    .sub{font-size:14px;color:#6b7280}
+
+    @keyframes load{
+      to{ width:100%; }
+    }
+
+    .sub{
+      font-size:14px;
+      color:#6b7280;
+    }
   </style>
 </head>
 
 <body>
   <div class="box">
     <div class="check">✓</div>
+
     <h1>Personalizing for you…</h1>
-    <div class="bar"><span></span></div>
+
+    <div class="bar">
+      <span></span>
+    </div>
+
     <div class="sub">Almost ready…</div>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+let redirected = false;
+
+// Safety fallback (only if auth truly fails)
+setTimeout(() => {
+  if (!redirected) {
+    window.location.replace("/onboarding/cuenta/");
+  }
+}, 8000);
 
 (async () => {
-  const { data, error } = await sb.auth.getSession();
+  // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
+const { data: { session } } = await sb.auth.getSession();
 
-  console.log("SESSION:", data, error);
+if (!session?.user) {
+  console.error("No active session");
+  window.location.replace("/onboarding/cuenta/");
+  return;
+}
 
-  if (!data?.session) {
-    window.location.replace("/onboarding/cuenta/");
-    return;
-  }
+const user = session.user;
 
-  const payload = {
-    child_name: localStorage.getItem("child_name"),
-    age: Number(localStorage.getItem("child_age")),
-    avatar_key: localStorage.getItem("child_avatar"),
-    usage_goals: JSON.parse(localStorage.getItem("kid_usage") || "[]"),
-    learning_interests: JSON.parse(localStorage.getItem("learning_interests") || "[]")
-  };
 
-  console.log("PAYLOAD:", payload);
-
-  // ❗ לא חוסם את הזרימה
-  sb.from("kids_profiles")
-    .insert(payload)
-    .then(res => {
-      console.log("INSERT RESULT:", res);
-    })
-    .catch(err => {
-      console.warn("INSERT FAILED:", err);
-    });
-
-  localStorage.clear();
-
-  await sleep(800);
+if (localStorage.getItem("kid_profile_saved")) {
+  redirected = true;
   window.location.replace("/workspace/");
-})();
-</script>
+  return;
+}
+const payload = {
+  user_id: user.id,
+  child_name: sessionStorage.getItem("child_name"),
+  age: Number(sessionStorage.getItem("child_age")),
+  avatar_key: sessionStorage.getItem("child_avatar"),
+  usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
+  learning_interests: JSON.parse(
+    sessionStorage.getItem("learning_interests") || "[]"
+  )
+};
 
+if (!payload.child_name || !payload.age) {
+  console.warn("No onboarding data found, skipping insert");
+  redirected = true;
+  window.location.replace("/workspace/");
+  return;
+}
+console.log("FINAL PAYLOAD", payload);
+
+const { error: insertError } = await sb
+  .from("kids_profiles")
+  .insert([payload]);
+
+if (insertError) {
+  console.error("Insert failed:", insertError);
+} else {
+  localStorage.setItem("kid_profile_saved", "1");
+  sessionStorage.clear();
+}
+redirected = true;
+window.location.replace("/workspace/");
+
+})();
+
+// Extra safety listener (optional but good)
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_IN" && session && !redirected) {
+    redirected = true;
+    window.location.replace("/workspace/");
+  }
+});
+</script>
 
 </body>
 </html>
