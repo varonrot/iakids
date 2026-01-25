@@ -96,9 +96,23 @@ async function waitForSession(maxTries = 20) {
     return;
   }
 
-  const { error } = await sb
-    .from("kids_profiles")
-    .insert([payload]);
+const res = await fetch("/api/create-kid-profile", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(payload)
+});
+
+const result = await res.json();
+
+if (result.ok) {
+  localStorage.removeItem("child_name");
+  localStorage.removeItem("child_age");
+  localStorage.removeItem("child_avatar");
+  localStorage.removeItem("kid_usage");
+  localStorage.removeItem("learning_interests");
+}
 
   if (!error) {
     localStorage.removeItem("child_name");
