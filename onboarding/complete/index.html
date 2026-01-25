@@ -96,23 +96,13 @@ async function waitForSession(maxTries = 20) {
     return;
   }
 
-const res = await fetch("/api/create-kid-profile", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(payload)
-});
+  const { data, error } = await sb
+    .from("kids_profiles")
+    .insert([payload])
+    .select();
 
-const result = await res.json();
-
-if (result.ok) {
-  localStorage.removeItem("child_name");
-  localStorage.removeItem("child_age");
-  localStorage.removeItem("child_avatar");
-  localStorage.removeItem("kid_usage");
-  localStorage.removeItem("learning_interests");
-}
+  console.log("INSERT DATA:", data);
+  console.log("INSERT ERROR:", error);
 
   if (!error) {
     localStorage.removeItem("child_name");
@@ -126,6 +116,7 @@ if (result.ok) {
   window.location.replace("/workspace/");
 })();
 </script>
+
 
 </body>
 </html>
