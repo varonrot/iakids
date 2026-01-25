@@ -5,7 +5,7 @@ from openai import OpenAI
 import os
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
