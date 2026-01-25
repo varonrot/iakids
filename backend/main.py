@@ -1,114 +1,388 @@
-from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel
-from supabase import create_client
-from openai import OpenAI
-import os
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Askie – Workspace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-client = OpenAI()
+  <style>
+    *{ box-sizing:border-box; }
 
-app = FastAPI()
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
+      color:#0b1220;
+    }
 
-# ---------
-# MODELS
-# ---------
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 22px;
+      max-width:1100px;
+      margin:0 auto;
+    }
 
-class ChatRequest(BaseModel):
-    message: str
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      color:#ff6b4a;
+    }
 
-# ---------
-# HELPERS
-# ---------
+    .user{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+    }
 
-def get_user_from_token(access_token: str):
-    res = sb.auth.get_user(access_token)
+    .user img{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+    }
 
-    if res is None or res.user is None:
-        raise HTTPException(status_code=401, detail="Invalid session")
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      padding:10px 20px 40px;
+    }
 
-    return res.user
+    .hero{
+      background:#fff7f2;
+      border-radius:20px;
+      padding:22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+      box-shadow:0 10px 25px rgba(0,0,0,.06);
+    }
 
-def get_child_profile(user_id: str):
-    res = (
-        sb.table("kids_profiles")
-        .select("*")
-        .eq("user_id", user_id)
-        .limit(1)
-        .execute()
-    )
-    if not res.data:
-        raise HTTPException(status_code=404, detail="No child profile found")
-    return res.data[0]
+    .hero-left{
+      display:flex;
+      gap:14px;
+      align-items:center;
+    }
 
-def get_memory(child_id: str):
-    res = (
-        sb.table("kids_memory")
-        .select("*")
-        .eq("child_id", child_id)
-        .execute()
-    )
-    return res.data or []
+    .avatar{
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      background:#ffd9c9;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
 
-# ---------
-# API
-# ---------
+    .avatar img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
 
-@app.post("/api/chat")
-def chat(
-    body: ChatRequest,
-    authorization: str = Header(None)
-):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing auth")
+    .hero h1{
+      font-size:20px;
+      margin:0 0 4px;
+    }
 
-    token = authorization.replace("Bearer ", "")
+    .hero p{
+      margin:0;
+      color:#6b7280;
+      font-size:14px;
+    }
 
-    try:
-        user_res = sb.auth.get_user(token)
-        if user_res is None or user_res.user is None:
-            raise HTTPException(status_code=401, detail="Invalid session")
-        user = user_res.user
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid session")
+    .limits{
+      display:flex;
+      gap:18px;
+      font-size:12px;
+      color:#374151;
+      font-weight:600;
+    }
 
-    child = get_child_profile(user.id)
-    memory = get_memory(child["id"])
+    .limits span{
+      color:#ff6b4a;
+    }
 
-    system_prompt = f"""
-You are iakids, a friendly AI companion for children.
+    .chat{
+      background:#fff;
+      border-radius:22px;
+      padding:18px;
+      min-height:420px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
 
-Child name: {child['child_name']}
-Age: {child['age']}
-Goals: {', '.join(child.get('usage_goals', []))}
+    .messages{
+      flex:1;
+    }
 
-Known memory:
-{memory}
-"""
+    .input{
+      display:flex;
+      gap:12px;
+      margin-top:16px;
+    }
 
-    completion = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": body.message}
-        ]
-    )
+    .input input{
+      flex:1;
+      padding:14px 16px;
+      border-radius:999px;
+      border:2px solid #e5e7eb;
+      font-size:15px;
+    }
 
-    answer = completion.choices[0].message.content
+    .input button{
+      border:none;
+      padding:0 18px;
+      border-radius:999px;
+      background:#ff6b4a;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
 
-    sb.table("kids_chats").insert({
-        "child_id": child["id"],
-        "role": "user",
-        "content": body.message
-    }).execute()
+    .ideas{
+      margin-top:20px;
+    }
 
-    sb.table("kids_chats").insert({
-        "child_id": child["id"],
-        "role": "assistant",
-        "content": answer
-    }).execute()
+    .ideas h3{
+      font-size:14px;
+      margin-bottom:10px;
+      color:#6b7280;
+    }
 
-    return {"reply": answer}
+    .idea-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
+    }
+
+    .idea{
+      background:#fff;
+      border-radius:14px;
+      padding:14px;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow:0 6px 16px rgba(0,0,0,.06);
+      transition:.2s;
+    }
+
+    .idea:hover{
+      transform:translateY(-2px);
+    }
+
+    .voice{
+      position:fixed;
+      bottom:22px;
+      right:22px;
+      background:#ff6b4a;
+      color:#fff;
+      border-radius:999px;
+      padding:14px 20px;
+      font-weight:800;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🤖 Askie</div>
+  <div class="user" id="userBox">
+    <img id="userAvatar" />
+    <span id="userName"></span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="hero-left">
+      <div class="avatar">
+        <img id="heroAvatar" />
+      </div>
+      <div>
+        <h1 id="heroGreeting"></h1>
+        <p>What would you like to explore today?</p>
+      </div>
+    </div>
+
+    <div class="limits">
+      <div>Questions <span>68 / 70</span></div>
+      <div>Images <span>4 / 4</span></div>
+      <div>Voice <span>5 min</span></div>
+    </div>
+  </div>
+
+  <div class="chat">
+    <div class="messages"></div>
+
+    <div class="input">
+      <input placeholder="Ask anything…" />
+      <button>Send</button>
+    </div>
+  </div>
+
+  <div class="ideas">
+    <h3>Need an idea?</h3>
+    <div class="idea-grid">
+      <div class="idea">🐱 A cat astronaut</div>
+      <div class="idea">🧩 Solve an animal riddle</div>
+      <div class="idea">🔬 A fun science fact</div>
+      <div class="idea">😂 A silly robot joke</div>
+      <div class="idea">📝 Play a word game</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="voice">🎤 Talk</div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+(async () => {
+  const { data } = await sb.auth.getSession();
+
+  if (!data.session) {
+    window.location.replace("/onboarding/cuenta/");
+    return;
+  }
+
+  const user = data.session.user;
+  const meta = user.user_metadata || {};
+
+  const name =
+    meta.full_name ||
+    meta.name ||
+    meta.given_name ||
+    user.email;
+
+  const avatar =
+    meta.avatar_url ||
+    meta.picture ||
+    "https://api.dicebear.com/7.x/bottts/svg?seed=askie";
+
+  document.getElementById("userName").textContent = name;
+  document.getElementById("userAvatar").src = avatar;
+  document.getElementById("heroAvatar").src = avatar;
+  document.getElementById("heroGreeting").textContent = `Hi, ${name}!`;
+})();
+</script>
+<script>
+const API_BASE = "https://iakids-backend.onrender.com";
+
+const messagesEl = document.querySelector(".messages");
+const inputEl = document.querySelector(".input input");
+const sendBtn = document.querySelector(".input button");
+
+let kidId = null;
+
+/* ---------- UI HELPERS ---------- */
+function addMessage(role, text) {
+  const div = document.createElement("div");
+  div.style.margin = "10px 0";
+  div.style.padding = "12px 16px";
+  div.style.borderRadius = "16px";
+  div.style.maxWidth = "75%";
+  div.style.whiteSpace = "pre-wrap";
+
+  if (role === "user") {
+    div.style.background = "#ff6b4a";
+    div.style.color = "#fff";
+    div.style.marginLeft = "auto";
+  } else {
+    div.style.background = "#f3f4f6";
+    div.style.color = "#111827";
+    div.style.marginRight = "auto";
+  }
+
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+
+
+/* ---------- SEND MESSAGE ---------- */
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  inputEl.value = "";
+  addMessage("user", text);
+
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+
+  if (!session) {
+    addMessage("assistant", "Please sign in again 🙂");
+    return;
+  }
+
+try {
+  const res = await fetch(`${API_BASE}/api/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({ message: text })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error("API ERROR:", res.status, errText);
+    addMessage("assistant", `❌ API error ${res.status}`);
+    return;
+  }
+
+const data = await res.json();
+console.log("CHAT RESPONSE:", data);
+
+if (!data.reply || !data.reply.trim()) {
+  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
+} else {
+  addMessage("assistant", data.reply);
+}
+
+} catch (e) {
+  console.error("NETWORK ERROR", e);
+  addMessage("assistant", "🌐 Network error – API not reachable");
+}
+
+
+/* ---------- EVENTS ---------- */
+sendBtn.addEventListener("click", sendMessage);
+inputEl.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+/* ---------- IDEA BUTTONS ---------- */
+document.querySelectorAll(".idea").forEach(el => {
+  el.addEventListener("click", () => {
+    inputEl.value = el.textContent;
+    sendMessage();
+  });
+});
+</script>
+
+</body>
+</html>
