@@ -354,14 +354,8 @@ try {
     return;
   }
 
-const data = await res.json();
-console.log("CHAT RESPONSE:", data);
-
-if (!data.reply || !data.reply.trim()) {
-  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-} else {
+  const data = await res.json();
   addMessage("assistant", data.reply);
-}
 
 } catch (e) {
   console.error("NETWORK ERROR", e);
