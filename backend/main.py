@@ -1,122 +1,107 @@
-import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
-from dotenv import load_dotenv
+from supabase import create_client
 from openai import OpenAI
+import os
 
-from db import sb
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-load_dotenv()
+sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = FastAPI()
 
-# ---------- MODELS ----------
+# ---------
+# MODELS
+# ---------
+
 class ChatRequest(BaseModel):
-    kid_id: str
     message: str
 
+# ---------
+# HELPERS
+# ---------
 
-# ---------- HELPERS ----------
-def load_prompt(path: str) -> str:
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
+def get_user_from_token(access_token: str):
+    user = sb.auth.get_user(access_token)
+    if not user or not user.user:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    return user.user
 
-
-CORE_PROMPT = load_prompt("prompts/iakids_core_chat_system_prompt.txt")
-MEMORY_PROMPT = load_prompt("prompts/iakids_memory_extractor_prompt.txt")
-
-
-def get_kid_profile(kid_id: str):
-    res = sb.table("kids_profiles").select("*").eq("id", kid_id).single().execute()
-    return res.data
-
-
-def get_recent_messages(kid_id: str, limit=10):
+def get_child_profile(user_id: str):
     res = (
-        sb.table("kids_chats")
-        .select("role, content")
-        .eq("kid_id", kid_id)
-        .order("created_at", desc=True)
-        .limit(limit)
+        sb.table("kids_profiles")
+        .select("*")
+        .eq("user_id", user_id)
+        .limit(1)
         .execute()
     )
-    return list(reversed(res.data or []))
+    if not res.data:
+        raise HTTPException(status_code=404, detail="No child profile found")
+    return res.data[0]
 
-
-def get_memory(kid_id: str):
+def get_memory(child_id: str):
     res = (
         sb.table("kids_memory")
-        .select("memory_key, memory_value")
-        .eq("kid_id", kid_id)
+        .select("*")
+        .eq("child_id", child_id)
         .execute()
     )
     return res.data or []
 
+# ---------
+# API
+# ---------
 
-def save_message(kid_id, role, content):
-    sb.table("kids_chats").insert({
-        "kid_id": kid_id,
-        "role": role,
-        "content": content
-    }).execute()
+@app.post("/api/chat")
+def chat(
+    body: ChatRequest,
+    authorization: str = Header(None)
+):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing auth")
 
+    token = authorization.replace("Bearer ", "")
+    user = get_user_from_token(token)
 
-def extract_and_save_memory(kid_id, messages):
-    text = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+    child = get_child_profile(user.id)
+    memory = get_memory(child["id"])
+
+    system_prompt = f"""
+You are iakids, a friendly AI companion for children.
+
+Child name: {child['child_name']}
+Age: {child['age']}
+Interests: {', '.join(child.get('learning_interests', []))}
+Goals: {', '.join(child.get('usage_goals', []))}
+
+Known memory:
+{memory}
+"""
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": MEMORY_PROMPT},
-            {"role": "user", "content": text}
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": body.message}
         ]
     )
 
-    try:
-        items = eval(completion.choices[0].message.content)
-    except:
-        return
+    answer = completion.choices[0].message.content
 
-    for item in items:
-        sb.table("kids_memory").upsert({
-            "kid_id": kid_id,
-            "memory_key": item["key"],
-            "memory_value": item["value"]
-        }).execute()
+    # Save chat
+    sb.table("kids_chats").insert({
+        "child_id": child["id"],
+        "role": "user",
+        "content": body.message
+    }).execute()
 
+    sb.table("kids_chats").insert({
+        "child_id": child["id"],
+        "role": "assistant",
+        "content": answer
+    }).execute()
 
-# ---------- ROUTE ----------
-@app.post("/chat")
-def chat(req: ChatRequest):
-    kid = get_kid_profile(req.kid_id)
-    memory = get_memory(req.kid_id)
-    history = get_recent_messages(req.kid_id)
-
-    system_prompt = CORE_PROMPT.format(
-        child_name=kid["child_name"],
-        age=kid["age"],
-        interests=", ".join(kid["learning_interests"] or []),
-        goals=", ".join(kid["usage_goals"] or []),
-        memory="\n".join([f"{m['memory_key']}: {m['memory_value']}" for m in memory])
-    )
-
-    messages = [{"role": "system", "content": system_prompt}]
-    messages += history
-    messages.append({"role": "user", "content": req.message})
-
-    completion = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages
-    )
-
-    reply = completion.choices[0].message.content
-
-    save_message(req.kid_id, "user", req.message)
-    save_message(req.kid_id, "assistant", reply)
-
-    # כל 10 הודעות – עדכון זיכרון
-    if len(history) % 10 == 0:
-        extract_and_save_memory(req.kid_id, history)
-
-    return {"reply": reply}
+    return {"reply": answer}
