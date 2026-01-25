@@ -1,6 +1,6 @@
-flask
-flask-cors
+fastapi
+uvicorn
+gunicorn
 python-dotenv
 supabase
 openai
-gunicorn
