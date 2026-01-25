@@ -2,6 +2,8 @@ from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from supabase import create_client
 from openai import OpenAI
+from fastapi.middleware.cors import CORSMiddleware
+
 import os
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -12,6 +14,17 @@ sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 client = OpenAI()
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://iakids.app",
+        "https://www.iakids.app",
+        "http://localhost:3000",  # אם אתה עובד לוקאלית
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ---------
 # MODELS
