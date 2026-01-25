@@ -55,57 +55,55 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MIN_VISIBLE_TIME = 3000;
 const startTime = Date.now();
-let finalized = false;
 
-function waitMin() {
+function waitMinTime() {
   const elapsed = Date.now() - startTime;
   return new Promise(r => setTimeout(r, Math.max(0, MIN_VISIBLE_TIME - elapsed)));
 }
 
-async function finalize(session) {
-  if (finalized) return;
-  finalized = true;
-
-  const raw = localStorage.getItem("kid_onboarding_payload");
-
-  if (raw) {
-    const payload = JSON.parse(raw);
-    payload.user_id = session.user.id;
-
-    await sb
-      .from("kids_profiles")
-      .upsert([payload], { onConflict: "user_id" });
-
-    localStorage.removeItem("kid_onboarding_payload");
-    localStorage.setItem("kid_profile_saved", "1");
-  }
-
-  await waitMin();
-  window.location.replace("/workspace/");
+function getValue(key) {
+  return sessionStorage.getItem(key) || localStorage.getItem(key);
 }
 
-// 🔑 Main auth listener (Mac-safe)
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_IN" && session?.user) {
-    finalize(session);
-  }
-});
-
-// 🔁 Fallback (Windows usually hits this)
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) {
-    finalize(session);
-  }
-})();
 
-// ⛑️ Absolute safety – never go back to cuenta from here
-setTimeout(() => {
-  if (!finalized) {
-    window.location.replace("/workspace/");
+  if (!session?.user) {
+    window.location.replace("/onboarding/cuenta/");
+    return;
   }
-}, 8000);
+
+  const payload = {
+    user_id: session.user.id,
+    child_name: getValue("child_name"),
+    age: Number(getValue("child_age")),
+    avatar_key: getValue("child_avatar"),
+    usage_goals: JSON.parse(getValue("kid_usage") || "[]"),
+    learning_interests: JSON.parse(getValue("learning_interests") || "[]")
+  };
+
+  if (!payload.child_name || !payload.age) {
+    await waitMinTime();
+    window.location.replace("/workspace/");
+    return;
+  }
+
+  const { error } = await sb.from("kids_profiles").insert([payload]);
+
+  if (!error) {
+    sessionStorage.clear();
+    localStorage.removeItem("child_name");
+    localStorage.removeItem("child_age");
+    localStorage.removeItem("child_avatar");
+    localStorage.removeItem("kid_usage");
+    localStorage.removeItem("learning_interests");
+  }
+
+  await waitMinTime();
+  window.location.replace("/workspace/");
+})();
 </script>
+
 
 
 </body>
