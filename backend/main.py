@@ -19,7 +19,7 @@ app.add_middleware(
     allow_origins=[
         "https://iakids.app",
         "https://www.iakids.app",
-        "http://localhost:3000",  # אם אתה עובד לוקאלית
+        "http://localhost:3000",  
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -32,6 +32,13 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
+class CreateChildProfileRequest(BaseModel):
+    user_id: str
+    child_name: str
+    age: int
+    avatar_key: str | None = None
+    usage_goals: list[str] = []
+    learning_interests: list[str] = []
 
 # ---------
 # HELPERS
@@ -69,6 +76,37 @@ def get_memory(child_id: str):
 # ---------
 # API
 # ---------
+@app.post("/api/create-kid-profile")
+def create_kid_profile(body: CreateChildProfileRequest):
+    # check if profile already exists
+    existing = (
+        sb.table("kids_profiles")
+        .select("id")
+        .eq("user_id", body.user_id)
+        .limit(1)
+        .execute()
+    )
+
+    if existing.data:
+        return {"ok": True, "already_exists": True}
+
+    res = (
+        sb.table("kids_profiles")
+        .insert({
+            "user_id": body.user_id,
+            "child_name": body.child_name,
+            "age": body.age,
+            "avatar_key": body.avatar_key,
+            "usage_goals": body.usage_goals,
+            "learning_interests": body.learning_interests
+        })
+        .execute()
+    )
+
+    if res.data is None:
+        raise HTTPException(status_code=500, detail="Failed to create profile")
+
+    return {"ok": True}
 
 @app.post("/api/chat")
 def chat(
