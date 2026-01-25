@@ -319,57 +319,44 @@ function addMessage(role, text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* ---------- LOAD USER + KID ---------- */
-(async () => {
-  const { data } = await sb.auth.getSession();
-  if (!data.session) return;
 
-  const user = data.session.user;
-
-  // שליפת הילד הראשון של ההורה
-  const { data: kids } = await sb
-    .from("kids_profiles")
-    .select("id, child_name")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  if (!kids || !kids.length) {
-    alert("No child profile found");
-    return;
-  }
-
-  kidId = kids[0].id;
-
-  addMessage(
-    "assistant",
-    `Hi ${kids[0].child_name}! 😊\nYou can ask me anything.`
-  );
-})();
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
   const text = inputEl.value.trim();
-  if (!text || !kidId) return;
+  if (!text) return;
 
   inputEl.value = "";
   addMessage("user", text);
 
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+
+  if (!session) {
+    addMessage("assistant", "Please sign in again 🙂");
+    return;
+  }
+
   try {
-    const res = await fetch(`${API_BASE}/chat`, {
+    const res = await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`
+      },
       body: JSON.stringify({
-        kid_id: kidId,
         message: text
       })
     });
 
     const data = await res.json();
     addMessage("assistant", data.reply);
+
   } catch (e) {
     addMessage("assistant", "😕 Something went wrong. Try again.");
   }
 }
+
 
 /* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
