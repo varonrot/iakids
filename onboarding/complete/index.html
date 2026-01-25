@@ -56,9 +56,11 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  const { data: { session } } = await sb.auth.getSession();
+  const { data, error } = await sb.auth.getSession();
 
-  if (!session) {
+  console.log("SESSION:", data, error);
+
+  if (!data?.session) {
     window.location.replace("/onboarding/cuenta/");
     return;
   }
@@ -73,19 +75,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   console.log("PAYLOAD:", payload);
 
-  const { error } = await sb
-    .from("kids_profiles")
-    .insert(payload);
-
-  if (error) {
-    console.warn("Insert skipped / already exists:", error.message);
-  }
+  // ❗ לא חוסם את הזרימה
+  sb.from("kids_profiles")
+    .insert(payload)
+    .then(res => {
+      console.log("INSERT RESULT:", res);
+    })
+    .catch(err => {
+      console.warn("INSERT FAILED:", err);
+    });
 
   localStorage.clear();
+
   await sleep(800);
   window.location.replace("/workspace/");
 })();
 </script>
+
 
 </body>
 </html>
