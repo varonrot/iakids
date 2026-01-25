@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Supabase -->
- 
+
 
   <style>
     body{
@@ -92,7 +92,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let redirected = false;
 
-// Safety fallback (only if auth truly fails)
+// Safety fallback – רק אם אין auth בכלל
 setTimeout(() => {
   if (!redirected) {
     window.location.replace("/onboarding/cuenta/");
@@ -100,60 +100,57 @@ setTimeout(() => {
 }, 8000);
 
 (async () => {
-  // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
-const { data: { session } } = await sb.auth.getSession();
+  // ✅ הדרך הנכונה: משתמש מחובר בפועל
+  const { data: { user }, error: authError } = await sb.auth.getUser();
 
-if (!session?.user) {
-  console.error("No active session");
-  window.location.replace("/onboarding/cuenta/");
-  return;
-}
+  if (authError || !user) {
+    console.error("Auth not ready", authError);
+    window.location.replace("/onboarding/cuenta/");
+    return;
+  }
 
-const user = session.user;
+  const payload = {
+    user_id: user.id,
+    child_name: sessionStorage.getItem("child_name"),
+    age: Number(sessionStorage.getItem("child_age")),
+    avatar_key: sessionStorage.getItem("child_avatar"),
+    usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
+    learning_interests: JSON.parse(
+      sessionStorage.getItem("learning_interests") || "[]"
+    )
+  };
 
-
-const payload = {
-  user_id: user.id,
-  child_name: sessionStorage.getItem("child_name"),
-  age: Number(sessionStorage.getItem("child_age")),
-  avatar_key: sessionStorage.getItem("child_avatar"),
-  usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
-  learning_interests: JSON.parse(
-    sessionStorage.getItem("learning_interests") || "[]"
-  )
-};
-
-if (!payload.child_name || !payload.age) {
-  console.warn("No onboarding data found, skipping insert");
-  redirected = true;
-  window.location.replace("/workspace/");
-  return;
-}
-console.log("FINAL PAYLOAD", payload);
-
-const { error: insertError } = await sb
-  .from("kids_profiles")
-  .insert([payload]);
-
-if (insertError) {
-  console.error("Insert failed:", insertError);
-} else {
-  localStorage.setItem("kid_profile_saved", "1");
-  sessionStorage.clear();
-}
-redirected = true;
-window.location.replace("/workspace/");
-
-})();
-
-// Extra safety listener (optional but good)
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_IN" && session && !redirected) {
+  if (!payload.child_name || !payload.age) {
+    console.warn("No onboarding data found, skipping insert");
     redirected = true;
     window.location.replace("/workspace/");
+    return;
   }
-});
+
+  console.log("FINAL PAYLOAD", payload);
+
+  // ✅ INSERT עם בדיקה אמיתית
+  const { data, error } = await sb
+    .from("kids_profiles")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("INSERT FAILED:", error);
+    return; // ❗ לא redirect אם נכשל
+  }
+
+  console.log("INSERT OK:", data);
+
+  sessionStorage.clear();
+  localStorage.setItem("kid_profile_saved", "1");
+
+  redirected = true;
+  window.location.replace("/workspace/");
+})();
 </script>
+
 
 </body>
 </html>
