@@ -112,4 +112,3 @@ Known memory:
     }).execute()
 
     return {"reply": answer}
-": answer}
