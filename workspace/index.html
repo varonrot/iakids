@@ -353,9 +353,14 @@ try {
     addMessage("assistant", `❌ API error ${res.status}`);
     return;
   }
+const data = await res.json();
+console.log("CHAT RESPONSE:", data);
 
-  const data = await res.json();
+if (!data.reply || !data.reply.trim()) {
+  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
+} else {
   addMessage("assistant", data.reply);
+}
 
 } catch (e) {
   console.error("NETWORK ERROR", e);
