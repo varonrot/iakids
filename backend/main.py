@@ -1,130 +1,122 @@
-from fastapi import FastAPI, HTTPException
+import os
+from fastapi import FastAPI
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import os
 from openai import OpenAI
 
-from db import supabase
+from db import sb
 
 load_dotenv()
 
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = FastAPI()
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-# ---------- Models ----------
+# ---------- MODELS ----------
 class ChatRequest(BaseModel):
-    child_id: str
+    kid_id: str
     message: str
 
-# ---------- Utils ----------
+
+# ---------- HELPERS ----------
 def load_prompt(path: str) -> str:
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
-CORE_PROMPT = load_prompt("prompts/core_chat_system.txt")
-MEMORY_PROMPT = load_prompt("prompts/memory_extractor.txt")
 
-# ---------- Endpoint ----------
-@app.post("/api/chat")
-def chat(req: ChatRequest):
+CORE_PROMPT = load_prompt("prompts/iakids_core_chat_system_prompt.txt")
+MEMORY_PROMPT = load_prompt("prompts/iakids_memory_extractor_prompt.txt")
 
-    # 1. Save user message
-    supabase.table("kids_chats").insert({
-        "child_id": req.child_id,
-        "role": "user",
-        "content": req.message
+
+def get_kid_profile(kid_id: str):
+    res = sb.table("kids_profiles").select("*").eq("id", kid_id).single().execute()
+    return res.data
+
+
+def get_recent_messages(kid_id: str, limit=10):
+    res = (
+        sb.table("kids_chats")
+        .select("role, content")
+        .eq("kid_id", kid_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return list(reversed(res.data or []))
+
+
+def get_memory(kid_id: str):
+    res = (
+        sb.table("kids_memory")
+        .select("memory_key, memory_value")
+        .eq("kid_id", kid_id)
+        .execute()
+    )
+    return res.data or []
+
+
+def save_message(kid_id, role, content):
+    sb.table("kids_chats").insert({
+        "kid_id": kid_id,
+        "role": role,
+        "content": content
     }).execute()
 
-    # 2. Load profile
-    profile = supabase.table("kids_profiles") \
-        .select("*") \
-        .eq("id", req.child_id) \
-        .single() \
-        .execute().data
 
-    if not profile:
-        raise HTTPException(404, "Child not found")
+def extract_and_save_memory(kid_id, messages):
+    text = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
 
-    # 3. Load memory
-    memory_rows = supabase.table("kids_memory") \
-        .select("key,value") \
-        .eq("child_id", req.child_id) \
-        .execute().data or []
-
-    memory_text = "\n".join(
-        f"- {m['key']}: {m['value']}" for m in memory_rows
-    )
-
-    # 4. Load last messages
-    history = supabase.table("kids_chats") \
-        .select("role,content") \
-        .eq("child_id", req.child_id) \
-        .order("created_at", desc=True) \
-        .limit(8) \
-        .execute().data or []
-
-    history = list(reversed(history))
-
-    # 5. Build messages
-    system_message = CORE_PROMPT.format(
-        name=profile["child_name"],
-        age=profile["age"],
-        interests=", ".join(profile.get("learning_interests", [])),
-        memory=memory_text
-    )
-
-    messages = [{"role": "system", "content": system_message}]
-    messages += history
-    messages.append({"role": "user", "content": req.message})
-
-    # 6. OpenAI call
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages,
-        temperature=0.7
-    )
-
-    reply = response.choices[0].message.content
-
-    # 7. Save assistant message
-    supabase.table("kids_chats").insert({
-        "child_id": req.child_id,
-        "role": "assistant",
-        "content": reply
-    }).execute()
-
-    # 8. Optional: memory extractor trigger
-    if len(history) >= 8:
-        extract_memory(req.child_id, history + [
-            {"role": "user", "content": req.message},
-            {"role": "assistant", "content": reply}
-        ])
-
-    return {"reply": reply}
-
-
-# ---------- Memory Extraction ----------
-def extract_memory(child_id: str, messages: list):
-
-    res = client.chat.completions.create(
+    completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": MEMORY_PROMPT},
-            {"role": "user", "content": str(messages)}
-        ],
-        temperature=0
+            {"role": "user", "content": text}
+        ]
     )
 
     try:
-        data = eval(res.choices[0].message.content)
+        items = eval(completion.choices[0].message.content)
     except:
         return
 
-    for item in data:
-        supabase.table("kids_memory").upsert({
-            "child_id": child_id,
-            "key": item["key"],
-            "value": item["value"],
-            "confidence": item.get("confidence", 0.7),
-            "source": "chat"
+    for item in items:
+        sb.table("kids_memory").upsert({
+            "kid_id": kid_id,
+            "memory_key": item["key"],
+            "memory_value": item["value"]
         }).execute()
+
+
+# ---------- ROUTE ----------
+@app.post("/chat")
+def chat(req: ChatRequest):
+    kid = get_kid_profile(req.kid_id)
+    memory = get_memory(req.kid_id)
+    history = get_recent_messages(req.kid_id)
+
+    system_prompt = CORE_PROMPT.format(
+        child_name=kid["child_name"],
+        age=kid["age"],
+        interests=", ".join(kid["learning_interests"] or []),
+        goals=", ".join(kid["usage_goals"] or []),
+        memory="\n".join([f"{m['memory_key']}: {m['memory_value']}" for m in memory])
+    )
+
+    messages = [{"role": "system", "content": system_prompt}]
+    messages += history
+    messages.append({"role": "user", "content": req.message})
+
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages
+    )
+
+    reply = completion.choices[0].message.content
+
+    save_message(req.kid_id, "user", req.message)
+    save_message(req.kid_id, "assistant", reply)
+
+    # כל 10 הודעות – עדכון זיכרון
+    if len(history) % 10 == 0:
+        extract_and_save_memory(req.kid_id, history)
+
+    return {"reply": reply}
