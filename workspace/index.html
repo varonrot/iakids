@@ -286,6 +286,105 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   document.getElementById("heroGreeting").textContent = `Hi, ${name}!`;
 })();
 </script>
+<script>
+const API_BASE = "https://api.iakids.app"; // שנה לכתובת שלך
+
+const messagesEl = document.querySelector(".messages");
+const inputEl = document.querySelector(".input input");
+const sendBtn = document.querySelector(".input button");
+
+let kidId = null;
+
+/* ---------- UI HELPERS ---------- */
+function addMessage(role, text) {
+  const div = document.createElement("div");
+  div.style.margin = "10px 0";
+  div.style.padding = "12px 16px";
+  div.style.borderRadius = "16px";
+  div.style.maxWidth = "75%";
+  div.style.whiteSpace = "pre-wrap";
+
+  if (role === "user") {
+    div.style.background = "#ff6b4a";
+    div.style.color = "#fff";
+    div.style.marginLeft = "auto";
+  } else {
+    div.style.background = "#f3f4f6";
+    div.style.color = "#111827";
+    div.style.marginRight = "auto";
+  }
+
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/* ---------- LOAD USER + KID ---------- */
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (!data.session) return;
+
+  const user = data.session.user;
+
+  // שליפת הילד הראשון של ההורה
+  const { data: kids } = await sb
+    .from("kids_profiles")
+    .select("id, child_name")
+    .eq("user_id", user.id)
+    .limit(1);
+
+  if (!kids || !kids.length) {
+    alert("No child profile found");
+    return;
+  }
+
+  kidId = kids[0].id;
+
+  addMessage(
+    "assistant",
+    `Hi ${kids[0].child_name}! 😊\nYou can ask me anything.`
+  );
+})();
+
+/* ---------- SEND MESSAGE ---------- */
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text || !kidId) return;
+
+  inputEl.value = "";
+  addMessage("user", text);
+
+  try {
+    const res = await fetch(`${API_BASE}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kid_id: kidId,
+        message: text
+      })
+    });
+
+    const data = await res.json();
+    addMessage("assistant", data.reply);
+  } catch (e) {
+    addMessage("assistant", "😕 Something went wrong. Try again.");
+  }
+}
+
+/* ---------- EVENTS ---------- */
+sendBtn.addEventListener("click", sendMessage);
+inputEl.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+/* ---------- IDEA BUTTONS ---------- */
+document.querySelectorAll(".idea").forEach(el => {
+  el.addEventListener("click", () => {
+    inputEl.value = el.textContent;
+    sendMessage();
+  });
+});
+</script>
 
 </body>
 </html>
