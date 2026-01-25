@@ -77,6 +77,7 @@ async function waitForSession(maxTries = 20) {
   const session = await waitForSession();
 
   if (!session) {
+    console.error("No session found");
     window.location.replace("/onboarding/cuenta/");
     return;
   }
@@ -90,7 +91,10 @@ async function waitForSession(maxTries = 20) {
     learning_interests: JSON.parse(getStored("learning_interests") || "[]")
   };
 
+  console.log("PAYLOAD:", payload);
+
   if (!payload.child_name || !payload.age) {
+    console.warn("Missing child_name or age");
     await sleep(remainingTime());
     window.location.replace("/workspace/");
     return;
@@ -98,8 +102,9 @@ async function waitForSession(maxTries = 20) {
 
   const { data, error } = await sb
     .from("kids_profiles")
-    .insert([payload])
-    .select();
+    .insert(payload)
+    .select()
+    .single();
 
   console.log("INSERT DATA:", data);
   console.log("INSERT ERROR:", error);
@@ -116,6 +121,7 @@ async function waitForSession(maxTries = 20) {
   window.location.replace("/workspace/");
 })();
 </script>
+
 
 
 </body>
