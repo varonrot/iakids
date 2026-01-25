@@ -25,10 +25,12 @@ class ChatRequest(BaseModel):
 # ---------
 
 def get_user_from_token(access_token: str):
-    user = sb.auth.get_user(access_token)
-    if not user or not user.user:
+    res = sb.auth.get_user(access_token)
+
+    if res is None or res.user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
-    return user.user
+
+    return res.user
 
 def get_child_profile(user_id: str):
     res = (
@@ -64,7 +66,14 @@ def chat(
         raise HTTPException(status_code=401, detail="Missing auth")
 
     token = authorization.replace("Bearer ", "")
-    user = get_user_from_token(token)
+
+    try:
+        user_res = sb.auth.get_user(token)
+        if user_res is None or user_res.user is None:
+            raise HTTPException(status_code=401, detail="Invalid session")
+        user = user_res.user
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid session")
 
     child = get_child_profile(user.id)
     memory = get_memory(child["id"])
@@ -74,7 +83,6 @@ You are iakids, a friendly AI companion for children.
 
 Child name: {child['child_name']}
 Age: {child['age']}
-Interests: {', '.join(child.get('learning_interests', []))}
 Goals: {', '.join(child.get('usage_goals', []))}
 
 Known memory:
@@ -91,7 +99,6 @@ Known memory:
 
     answer = completion.choices[0].message.content
 
-    # Save chat
     sb.table("kids_chats").insert({
         "child_id": child["id"],
         "role": "user",
@@ -105,3 +112,4 @@ Known memory:
     }).execute()
 
     return {"reply": answer}
+": answer}
