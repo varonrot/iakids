@@ -48,7 +48,7 @@
     <div class="sub">Almost ready…</div>
   </div>
 
-<script>
+ <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
@@ -57,17 +57,16 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  const { data: sessionData } = await sb.auth.getSession();
-  console.log("SESSION:", sessionData);
+  const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+  console.log("SESSION:", sessionData, sessionError);
 
-  if (!sessionData.session) {
+  if (!sessionData?.session) {
     console.error("No Supabase session");
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 
   const payload = {
-    user_id: sessionData.session.user.id,
     child_name: localStorage.getItem("child_name"),
     age: Number(localStorage.getItem("child_age")),
     avatar_key: localStorage.getItem("child_avatar"),
@@ -79,7 +78,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   const { data, error } = await sb
     .from("kids_profiles")
-    .insert([payload])
+    .insert(payload)   // אין מערך, אין user_id
     .select()
     .single();
 
@@ -87,7 +86,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   console.log("INSERT ERROR:", error);
 
   if (error) {
-    console.error("INSERT FAILED");
+    console.error("INSERT FAILED:", error);
     return;
   }
 
@@ -96,8 +95,6 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   window.location.replace("/workspace/");
 })();
 </script>
-
-
 
 
 </body>
