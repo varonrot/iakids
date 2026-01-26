@@ -4,6 +4,12 @@ from supabase import create_client
 from openai import OpenAI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from pathlib import Path
+
+CORE_PROMPT_TEMPLATE = Path("prompts/iakids_core_chat_system_prompt.txt").read_text()
+print("=== CORE PROMPT LOADED ===")
+print(CORE_PROMPT_TEMPLATE[:300])
+print("=========================")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -82,12 +88,15 @@ def chat(
     user = user_res.user
     child = get_child_profile(user.id)
 
-    system_prompt = f"""
-You are iakids, a friendly AI companion for children.
+    system_prompt = CORE_PROMPT_TEMPLATE.format(
+        child_name=child["child_name"],
+        age=child["age"],
+        avatar_key=child.get("avatar_key", ""),
+        learning_interests=", ".join(child.get("learning_interests", [])),
+        usage_goals=", ".join(child.get("usage_goals", [])),
+        kids_memory=""  # נכניס בהמשך
+    )
 
-Child name: {child['child_name']}
-Age: {child['age']}
-"""
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -100,3 +109,4 @@ Age: {child['age']}
     answer = completion.choices[0].message.content
 
     return {"reply": answer}
+
