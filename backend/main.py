@@ -14,17 +14,26 @@ sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 client = OpenAI()
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://iakids.app",
         "https://www.iakids.app",
-        "http://localhost:3000",  
+        "http://localhost:3000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ✅ קריטי ל־Chrome macOS
+from fastapi import Request, Response
+
+@app.options("/{path:path}")
+async def options_handler(path: str, request: Request):
+    return Response(status_code=200)
+
 
 # ---------
 # MODELS
