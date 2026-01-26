@@ -71,7 +71,10 @@ def chat(
         raise HTTPException(status_code=401, detail="Missing auth")
 
     token = authorization.replace("Bearer ", "")
-    user_res = sb.auth.get_user(token)
+    try:
+        user_res = sb.auth.get_user(token)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid session")
 
     if not user_res or not user_res.user:
         raise HTTPException(status_code=401, detail="Invalid session")
