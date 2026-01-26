@@ -64,6 +64,21 @@ def get_child_profile(user_id: str):
         raise HTTPException(status_code=404, detail="No child profile found")
     return res.data[0]
 
+def save_chat_message(
+    user_id: str,
+    kid_id: str,
+    role: str,
+    content: str,
+    tokens: int | None = None
+):
+    sb.table("kids_chats").insert({
+        "user_id": user_id,
+        "kid_id": kid_id,
+        "role": role,
+        "content": content,
+        "tokens": tokens
+    }).execute()
+
 # ---------
 # CHAT
 # ---------
@@ -87,6 +102,12 @@ def chat(
 
     user = user_res.user
     child = get_child_profile(user.id)
+    save_chat_message(
+        user_id=user.id,
+        kid_id=child["id"],
+        role="user",
+        content=body.message
+    )
 
     system_prompt = CORE_PROMPT_TEMPLATE.format(
         child_name=child["child_name"],
@@ -107,6 +128,12 @@ def chat(
     )
 
     answer = completion.choices[0].message.content
+    save_chat_message(
+        user_id=user.id,
+        kid_id=child["id"],
+        role="assistant",
+        content=answer
+    )
 
     return {"reply": answer}
 
