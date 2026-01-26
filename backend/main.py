@@ -7,10 +7,6 @@ import os
 from pathlib import Path
 
 CORE_PROMPT_TEMPLATE = Path("prompts/iakids_core_chat_system_prompt.txt").read_text()
-MEMORY_EXTRACTOR_PROMPT = Path(
-    "prompts/iakids_memory_extractor_prompt.txt"
-).read_text()
-
 print("=== CORE PROMPT LOADED ===")
 print(CORE_PROMPT_TEMPLATE[:300])
 print("=========================")
@@ -55,30 +51,6 @@ class CreateChildProfileRequest(BaseModel):
 # ---------
 # HELPERS
 # ---------
-def get_existing_kids_memory(kid_id: str):
-    res = (
-        sb.table("kids_memory")
-        .select("content")
-        .eq("kid_id", kid_id)
-        .execute()
-    )
-    if not res.data:
-        return ""
-    return "\n".join([r["content"] for r in res.data])
-
-
-def get_recent_chat_messages(kid_id: str, limit: int = 10):
-    res = (
-        sb.table("kids_chats")
-        .select("role, content")
-        .eq("kid_id", kid_id)
-        .order("created_at", desc=True)
-        .limit(limit)
-        .execute()
-    )
-    return "\n".join(
-        [f"{r['role']}: {r['content']}" for r in reversed(res.data)]
-    )
 
 def get_child_profile(user_id: str):
     res = (
@@ -162,38 +134,6 @@ def chat(
         role="assistant",
         content=answer
     )
-    # =========================
-    # MEMORY EXTRACTION (silent)
-    # =========================
-
-    existing_memory = get_existing_kids_memory(child["id"])
-    recent_chat = get_recent_chat_messages(child["id"])
-
-    memory_prompt = MEMORY_EXTRACTOR_PROMPT.format(
-        child_name=child["child_name"],
-        age=child["age"],
-        existing_kids_memory=existing_memory,
-        recent_chat_messages=recent_chat
-    )
-
-    memory_completion = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": memory_prompt}
-        ]
-    )
-
-    memory_result = memory_completion.choices[0].message.content.strip()
-
-    if memory_result != "NO_UPDATE":
-        import json
-        data = json.loads(memory_result)
-        if data.get("update"):
-            for mem in data.get("memory", []):
-                sb.table("kids_memory").insert({
-                    "kid_id": child["id"],
-                    "content": mem
-                }).execute()
 
     return {"reply": answer}
 
