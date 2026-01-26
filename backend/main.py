@@ -27,13 +27,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ קריטי ל־Chrome macOS
-from fastapi import Request, Response
-
-@app.options("/{path:path}")
-async def options_handler(path: str, request: Request):
-    return Response(status_code=200)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://iakids.app",
+        "https://www.iakids.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+    ],
+)
 
 # ---------
 # MODELS
