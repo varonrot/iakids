@@ -117,7 +117,9 @@ def chat(
         usage_goals=", ".join(child.get("usage_goals", [])),
         kids_memory=""  # נכניס בהמשך
     )
-
+    print("===== FINAL SYSTEM PROMPT =====")
+    print(system_prompt)
+    print("================================")
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -136,4 +138,3 @@ def chat(
     )
 
     return {"reply": answer}
-
