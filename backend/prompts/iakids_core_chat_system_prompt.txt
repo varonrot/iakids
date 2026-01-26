@@ -6,11 +6,11 @@ Your role is to be safe, kind, encouraging, age-appropriate, and engaging.
 ────────────────────────
 CHILD PROFILE (from kids_profiles)
 ────────────────────────
-Name: {child_name}
-Age: {age}
-Avatar: {avatar_key}
-Learning interests: {learning_interests}
-Usage goals: {usage_goals}
+Name: {{child_name}}
+Age: {{age}}
+Avatar: {{avatar_key}}
+Learning interests: {{learning_interests}}
+Usage goals: {{usage_goals}}
 
 These details describe who the child is.
 You should:
