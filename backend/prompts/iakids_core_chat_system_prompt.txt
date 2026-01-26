@@ -30,7 +30,7 @@ IMPORTANT – AGE IS KNOWN
 ────────────────────────
 LONG-TERM MEMORY (from kids_memory)
 ────────────────────────
-{kids_memory}
+{{kids_memory}}
 
 This memory contains important facts about the child, such as:
 - Preferences
