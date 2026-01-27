@@ -144,86 +144,89 @@ def chat(
     body: ChatRequest,
     authorization: str = Header(None)
 ):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing auth")
-
-    token = authorization.replace("Bearer ", "")
     try:
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing auth")
+
+        token = authorization.replace("Bearer ", "")
         user_res = sb.auth.get_user(token)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid session")
 
-    if not user_res or not user_res.user:
-        raise HTTPException(status_code=401, detail="Invalid session")
+        if not user_res or not user_res.user:
+            raise HTTPException(status_code=401, detail="Invalid session")
 
-    user = user_res.user
-    child = get_child_profile(user.id)
-    existing_memory = get_existing_kids_memory(child["id"])
+        user = user_res.user
+        child = get_child_profile(user.id)
+        existing_memory = get_existing_kids_memory(child["id"])
 
-    save_chat_message(
-        user_id=user.id,
-        kid_id=child["id"],
-        role="user",
-        content=body.message
-    )
+        save_chat_message(
+            user_id=user.id,
+            kid_id=child["id"],
+            role="user",
+            content=body.message
+        )
 
-    system_prompt = CORE_PROMPT_TEMPLATE.format(
-        child_name=child["child_name"],
-        age=child["age"],
-        avatar_key=child.get("avatar_key", ""),
-        learning_interests=", ".join(child.get("learning_interests", [])),
-        usage_goals=", ".join(child.get("usage_goals", [])),
-        kids_memory=existing_memory
-
-    )
-    print("===== FINAL SYSTEM PROMPT =====")
-    print(system_prompt)
-    print("================================")
-
-    completion = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": body.message}
-        ]
-    )
-
-    answer = completion.choices[0].message.content
-    save_chat_message(
-        user_id=user.id,
-        kid_id=child["id"],
-        role="assistant",
-        content=answer
-    )
-    if should_run_memory_extraction(child["id"]):
-        extractor_prompt = Path(
-            "prompts/iakids_memory_extractor_prompt.txt"
-        ).read_text()
-
-        recent_chat = get_recent_chat_messages(child["id"])
-        existing_memory_raw = get_existing_kids_memory(child["id"])
-
-        extractor_system = extractor_prompt.format(
+        system_prompt = CORE_PROMPT_TEMPLATE.format(
             child_name=child["child_name"],
             age=child["age"],
-            existing_kids_memory=existing_memory_raw,
-            recent_chat_messages=recent_chat
+            avatar_key=child.get("avatar_key", ""),
+            learning_interests=", ".join(child.get("learning_interests", [])),
+            usage_goals=", ".join(child.get("usage_goals", [])),
+            kids_memory=existing_memory
         )
 
-        extraction = client.chat.completions.create(
+        completion = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "system", "content": extractor_system}]
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": body.message}
+            ]
         )
 
-        result = extraction.choices[0].message.content.strip()
+        answer = completion.choices[0].message.content
 
-        if result != "NO_UPDATE":
-            data = json.loads(result)
-            if data.get("update") and data.get("memory"):
-                save_kids_memory(
-                    user_id=user.id,
-                    kid_id=child["id"],
-                    memory_list=data["memory"]
+        save_chat_message(
+            user_id=user.id,
+            kid_id=child["id"],
+            role="assistant",
+            content=answer
+        )
+
+        if should_run_memory_extraction(child["id"]):
+            try:
+                extractor_prompt = Path(
+                    "prompts/iakids_memory_extractor_prompt.txt"
+                ).read_text()
+
+                recent_chat = get_recent_chat_messages(child["id"])
+                existing_memory_raw = get_existing_kids_memory(child["id"])
+
+                extractor_system = extractor_prompt.format(
+                    child_name=child["child_name"],
+                    age=child["age"],
+                    existing_kids_memory=existing_memory_raw,
+                    recent_chat_messages=recent_chat
                 )
 
-    return {"reply": answer}
+                extraction = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "system", "content": extractor_system}]
+                )
+
+                result = extraction.choices[0].message.content.strip()
+
+                if result != "NO_UPDATE":
+                    data = json.loads(result)
+                    if data.get("update") and data.get("memory"):
+                        save_kids_memory(
+                            user_id=user.id,
+                            kid_id=child["id"],
+                            memory_list=data["memory"]
+                        )
+            except Exception as e:
+                print("Memory extractor error:", e)
+
+        return {"reply": answer}
+
+    except Exception as e:
+        print("CHAT ERROR:", e)
+        raise HTTPException(status_code=500, detail="Chat failed")
