@@ -1494,28 +1494,42 @@ body{
   transform:translateY(-4px);
   box-shadow:0 20px 45px rgba(255,106,42,.45);
 }
-/* ===== HEADER ===== */
-.iakids-header {
+/* ===== NAVBAR ===== */
+.nav-wrap {
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 50;
-  background: linear-gradient(180deg, #0a2342, #081a33);
+  padding: 18px 0;
 }
 
-.header-inner {
+.nav-bar {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 14px 26px;
+  background: linear-gradient(180deg, #2c6dff, #1c4fd8);
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 
-.logo {
-  font-weight: 700;
-  font-size: 20px;
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+}
+
+.logo-text {
   color: #fff;
+  font-weight: 700;
+  font-size: 18px;
 }
 
 .nav-center {
@@ -1524,128 +1538,113 @@ body{
 }
 
 .nav-center a {
-  color: #cfe6ff;
+  color: #e9f1ff;
   text-decoration: none;
   font-weight: 500;
 }
 
 .nav-right {
   display: flex;
+  gap: 14px;
   align-items: center;
-  gap: 16px;
 }
 
-.login {
-  color: #cfe6ff;
+.nav-login {
+  color: #e9f1ff;
   text-decoration: none;
 }
 
-.btn-start {
-  background: #35d0ff;
-  color: #00263a;
-  padding: 10px 16px;
+.nav-cta {
+  background: #4fd1ff;
+  color: #053a55;
+  padding: 8px 18px;
   border-radius: 999px;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 600;
 }
 
 /* ===== HERO ===== */
-.hero {
+.hero-exact {
   min-height: 100vh;
-  padding-top: 96px; /* בשביל ה-header */
-  background:
-    linear-gradient(90deg, rgba(5,20,45,0.9), rgba(5,20,45,0.6)),
-    url("/assets/A_SAFE_AI_FRIEND_FOR_KIDS.png") center / cover no-repeat;
+  background: url("/assets/A_SAFE_AI_FRIEND_FOR_KIDS.png") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  padding-left: 8%;
+  padding-top: 140px;
 }
 
 .hero-content {
   max-width: 520px;
-  margin-left: 120px; /* 🔥 זה הקו עם המניו */
-  padding-top: 140px;
   color: #fff;
 }
 
 .hero-pill {
   display: inline-block;
-  background: #1fb6ff;
-  color: #00263a;
+  background: rgba(255,255,255,.2);
   padding: 6px 14px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  margin-bottom: 20px;
-}
-
-.hero h1 {
-  font-size: 56px;
-  line-height: 1.1;
-  margin: 0 0 16px;
-}
-
-.accent {
-  color: #ffd166;
-}
-
-.typing-line {
-  font-size: 22px;
   margin-bottom: 18px;
 }
 
+.hero-title {
+  font-size: 56px;
+  line-height: 1.1;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.highlight {
+  color: #ffd166;
+}
+
 .hero-text {
-  color: #cfe6ff;
-  max-width: 480px;
-  line-height: 1.6;
+  font-size: 18px;
   margin-bottom: 28px;
 }
 
-.hero-actions {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.btn-primary {
+.hero-main-btn {
+  display: inline-block;
   background: #ffd166;
-  color: #00263a;
-  padding: 14px 22px;
+  color: #053a55;
+  padding: 14px 26px;
   border-radius: 999px;
+  font-weight: 800;
   text-decoration: none;
-  font-weight: 700;
+  margin-bottom: 26px;
 }
 
-.btn-secondary {
-  border: 2px solid #fff;
-  color: #fff;
-  padding: 14px 22px;
-  border-radius: 999px;
-  text-decoration: none;
-}
-
-.hero-tags {
+.hero-bubbles {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 10px;
   font-size: 14px;
-  color: #cfe6ff;
+  color: #eef6ff;
 }
 
 /* ===== TYPING CURSOR ===== */
-.cursor {
+.typing::after {
+  content: "|";
+  margin-left: 4px;
   animation: blink 1s infinite;
 }
 
 @keyframes blink {
-  0%, 50%, 100% { opacity: 1; }
-  25%, 75% { opacity: 0; }
+  0%,100% { opacity: 1 }
+  50% { opacity: 0 }
 }
 
 </style>
 </head>
 
 <body>
-<!-- ===== HEADER ===== -->
-<header class="iakids-header">
-  <div class="header-inner">
-    <div class="logo">iakids</div>
+<header class="nav-wrap">
+  <div class="nav-bar">
+    <div class="nav-left">
+      <img src="/assets/iakids-logo.png" alt="iakids" class="logo-img">
+      <span class="logo-text">iakids</span>
+    </div>
 
     <nav class="nav-center">
       <a href="#features">Features</a>
@@ -1654,45 +1653,37 @@ body{
     </nav>
 
     <div class="nav-right">
-      <a href="/login" class="login">Log in</a>
-      <a href="/onboarding" class="btn-start">Get started</a>
+      <a href="/login" class="nav-login">Log in</a>
+      <a href="/onboarding" class="nav-cta">Get started</a>
     </div>
   </div>
 </header>
 
-<!-- ===== HERO ===== -->
-<section class="hero">
+<section class="hero-exact">
   <div class="hero-content">
-
     <span class="hero-pill">A SAFE AI FRIEND FOR KIDS</span>
 
-    <h1>
-      Learning feels <span class="accent">like magic</span>
+    <h1 class="hero-title">
+      Learning feels like
+      <span class="typing highlight" id="typing-word"></span>
     </h1>
 
-    <h2 class="typing-line">
-      Designed for <span id="typing"></span><span class="cursor">|</span>
-    </h2>
-
     <p class="hero-text">
-      A safe and educational AI designed to help children learn,
-      imagine, and explore — with full peace of mind for parents.
+      A friendly AI companion that helps kids learn,
+      imagine, and explore —
     </p>
 
-    <div class="hero-actions">
-      <a href="/onboarding" class="btn-primary">Start the adventure 🚀</a>
-      <a href="#how-it-works" class="btn-secondary">How it works</a>
-    </div>
+    <a href="/onboarding" class="hero-main-btn">
+      Start the adventure 🚀
+    </a>
 
-    <div class="hero-tags">
-      <span>🧠 Learning</span>
-      <span>🛡️ Safe by design</span>
-      <span>🎨 Creativity</span>
+    <div class="hero-bubbles">
+      <span>🐱 A cat astronaut</span>
+      <span>🧩 Solve animal riddle</span>
+      <span>🧪 A fun science fact</span>
     </div>
-
   </div>
 </section>
-
 
 
 <!-- =========================
@@ -2386,36 +2377,32 @@ if (menuBtn && navLinks) {
     console.log("Supabase connected", data, error);
   });
 </script>
+
 <script>
-const words = ["kids", "curiosity", "learning", "creativity"];
-let wordIndex = 0;
-let charIndex = 0;
-let deleting = false;
+const words = ["magic", "curiosity", "learning"];
+let i = 0, j = 0, deleting = false;
+const el = document.getElementById("typing-word");
 
-const el = document.getElementById("typing");
-
-function typeLoop() {
-  const current = words[wordIndex];
+function type() {
+  const word = words[i];
 
   if (!deleting) {
-    el.textContent = current.slice(0, ++charIndex);
-    if (charIndex === current.length) {
+    el.textContent = word.slice(0, j++);
+    if (j > word.length) {
       setTimeout(() => deleting = true, 1200);
     }
   } else {
-    el.textContent = current.slice(0, --charIndex);
-    if (charIndex === 0) {
+    el.textContent = word.slice(0, j--);
+    if (j === 0) {
       deleting = false;
-      wordIndex = (wordIndex + 1) % words.length;
+      i = (i + 1) % words.length;
     }
   }
-
-  setTimeout(typeLoop, deleting ? 60 : 90);
+  setTimeout(type, deleting ? 60 : 90);
 }
 
-typeLoop();
+type();
 </script>
-
 
 </body>
 </html>
