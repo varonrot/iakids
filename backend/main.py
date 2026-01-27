@@ -244,7 +244,12 @@ def chat(
                     print("❌ JSON parse failed:", e)
                     return {"reply": answer}
 
-                if data.get("update") and data.get("memory"):
+                if (
+                        isinstance(data, dict)
+                        and data.get("update") is True
+                        and isinstance(data.get("memory"), list)
+                        and len(data["memory"]) > 0
+                ):
                     save_kids_memory(
                         user_id=user.id,
                         kid_id=child["id"],
