@@ -287,7 +287,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 })();
 </script>
 <script>
-const API_BASE = "https://api.iakids.app"; // שנה לכתובת שלך
+const API_BASE = "https://iakids-backend.onrender.com";
 
 const messagesEl = document.querySelector(".messages");
 const inputEl = document.querySelector(".input input");
@@ -319,57 +319,56 @@ function addMessage(role, text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* ---------- LOAD USER + KID ---------- */
-(async () => {
-  const { data } = await sb.auth.getSession();
-  if (!data.session) return;
 
-  const user = data.session.user;
-
-  // שליפת הילד הראשון של ההורה
-  const { data: kids } = await sb
-    .from("kids_profiles")
-    .select("id, child_name")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  if (!kids || !kids.length) {
-    alert("No child profile found");
-    return;
-  }
-
-  kidId = kids[0].id;
-
-  addMessage(
-    "assistant",
-    `Hi ${kids[0].child_name}! 😊\nYou can ask me anything.`
-  );
-})();
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
   const text = inputEl.value.trim();
-  if (!text || !kidId) return;
+  if (!text) return;
 
   inputEl.value = "";
   addMessage("user", text);
 
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+
+  if (!session) {
+    addMessage("assistant", "Please sign in again 🙂");
+    return;
+  }
+
   try {
-    const res = await fetch(`${API_BASE}/chat`, {
+    const res = await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        kid_id: kidId,
-        message: text
-      })
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({ message: text })
     });
 
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("API ERROR:", res.status, errText);
+      addMessage("assistant", `❌ API error ${res.status}`);
+      return;
+    }
+
     const data = await res.json();
-    addMessage("assistant", data.reply);
+    console.log("CHAT RESPONSE:", data);
+
+    if (!data.reply || !data.reply.trim()) {
+      addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
+    } else {
+      addMessage("assistant", data.reply);
+    }
+
   } catch (e) {
-    addMessage("assistant", "😕 Something went wrong. Try again.");
+    console.error("NETWORK ERROR", e);
+    addMessage("assistant", "🌐 Network error – API not reachable");
   }
-}
+
+} // ✅ THIS BRACE WAS MISSING
 
 /* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
@@ -377,13 +376,6 @@ inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage();
 });
 
-/* ---------- IDEA BUTTONS ---------- */
-document.querySelectorAll(".idea").forEach(el => {
-  el.addEventListener("click", () => {
-    inputEl.value = el.textContent;
-    sendMessage();
-  });
-});
 </script>
 
 </body>
