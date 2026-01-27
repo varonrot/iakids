@@ -9,249 +9,409 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    *{ box-sizing:border-box; }
+ /* ===== RESET ===== */
+*{
+  box-sizing:border-box;
+}
 
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
-      color:#0b1220;
-    }
+:root{
+  --accent:#ff6b4a;
 
-    header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:16px 22px;
-      max-width:1100px;
-      margin:0 auto;
-    }
+  /* 👉 החלף רק שמות קבצים */
+  --bg-main: url("/assets/bg/main-bg.jpg");
+  --bg-sidebar: url("/assets/bg/sidebar-bg.jpg");
+}
 
-    .logo{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:800;
-      color:#ff6b4a;
-    }
+/* ===== BODY ===== */
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color:#0b1220;
 
-    .user{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:13px;
-      font-weight:600;
-      cursor:pointer;
-    }
+  background:
+    linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)),
+    var(--bg-main) center/cover no-repeat fixed;
+}
 
-    .user img{
-      width:34px;
-      height:34px;
-      border-radius:50%;
-    }
+/* ===== APP LAYOUT ===== */
+.app{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:110px 1fr;
+}
 
-    .container{
-      max-width:1100px;
-      margin:0 auto;
-      padding:10px 20px 40px;
-    }
+/* ===== SIDEBAR ===== */
+.sidebar{
+  padding:18px 14px;
+}
 
-    .hero{
-      background:#fff7f2;
-      border-radius:20px;
-      padding:22px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:18px;
-      box-shadow:0 10px 25px rgba(0,0,0,.06);
-    }
+.sidebar-inner{
+  height:100%;
+  border-radius:28px;
 
-    .hero-left{
-      display:flex;
-      gap:14px;
-      align-items:center;
-    }
+  background:
+    linear-gradient(rgba(10,40,80,.85),rgba(10,40,80,.85)),
+    var(--bg-sidebar) center/cover no-repeat;
 
-    .avatar{
-      width:56px;
-      height:56px;
-      border-radius:50%;
-      background:#ffd9c9;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-    }
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.15),
+    0 20px 60px rgba(0,0,0,.35);
 
-    .avatar img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-    }
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:16px 10px;
+  color:#fff;
+}
 
-    .hero h1{
-      font-size:20px;
-      margin:0 0 4px;
-    }
+/* ROBOT ICON */
+.bot-box{
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  background:rgba(255,255,255,.18);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  margin-bottom:16px;
+}
 
-    .hero p{
-      margin:0;
-      color:#6b7280;
-      font-size:14px;
-    }
+/* USER AVATAR */
+.sidebar-avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  overflow:hidden;
+  margin-bottom:18px;
+  border:2px solid rgba(255,255,255,.4);
+}
 
-    .limits{
-      display:flex;
-      gap:18px;
-      font-size:12px;
-      color:#374151;
-      font-weight:600;
-    }
+.sidebar-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
 
-    .limits span{
-      color:#ff6b4a;
-    }
+/* ACTION BUTTONS */
+.kid-actions{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
 
-    .chat{
-      background:#fff;
-      border-radius:22px;
-      padding:18px;
-      min-height:420px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      box-shadow:0 10px 30px rgba(0,0,0,.08);
-    }
+.kid-actions button{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  border:none;
+  background:rgba(255,255,255,.22);
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+  transition:.2s;
+}
 
-    .messages{
-      flex:1;
-    }
+.kid-actions button:hover{
+  background:rgba(255,255,255,.35);
+  transform:scale(1.06);
+}
 
-    .input{
-      display:flex;
-      gap:12px;
-      margin-top:16px;
-    }
+/* SIDEBAR FOOTER */
+.sidebar-footer{
+  margin-top:auto;
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background:rgba(255,255,255,.22);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
 
-    .input input{
-      flex:1;
-      padding:14px 16px;
-      border-radius:999px;
-      border:2px solid #e5e7eb;
-      font-size:15px;
-    }
+/* ===== MAIN CONTENT ===== */
+.main{
+  display:flex;
+  flex-direction:column;
+}
 
-    .input button{
-      border:none;
-      padding:0 18px;
-      border-radius:999px;
-      background:#ff6b4a;
-      color:#fff;
-      font-weight:700;
-      cursor:pointer;
-    }
+/* HEADER */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 22px;
+  max-width:1100px;
+  margin:0 auto;
+}
 
-    .ideas{
-      margin-top:20px;
-    }
+.logo{
+  font-weight:800;
+  color:var(--accent);
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
 
-    .ideas h3{
-      font-size:14px;
-      margin-bottom:10px;
-      color:#6b7280;
-    }
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:13px;
+  font-weight:600;
+}
 
-    .idea-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:12px;
-    }
+.user img{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+}
 
-    .idea{
-      background:#fff;
-      border-radius:14px;
-      padding:14px;
-      font-size:14px;
-      font-weight:600;
-      cursor:pointer;
-      box-shadow:0 6px 16px rgba(0,0,0,.06);
-      transition:.2s;
-    }
+/* CONTENT CONTAINER */
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:10px 20px 40px;
+}
 
-    .idea:hover{
-      transform:translateY(-2px);
-    }
+/* HERO */
+.hero{
+  background:rgba(255,255,255,.85);
+  border-radius:22px;
+  padding:22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+  backdrop-filter: blur(8px);
+}
 
-    .voice{
-      position:fixed;
-      bottom:22px;
-      right:22px;
-      background:#ff6b4a;
-      color:#fff;
-      border-radius:999px;
-      padding:14px 20px;
-      font-weight:800;
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
-      cursor:pointer;
-    }
+.hero-left{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  overflow:hidden;
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.hero h1{
+  margin:0 0 4px;
+  font-size:20px;
+}
+
+.hero p{
+  margin:0;
+  font-size:14px;
+  color:#6b7280;
+}
+
+.limits{
+  display:flex;
+  gap:18px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.limits span{
+  color:var(--accent);
+}
+
+/* CHAT */
+.chat{
+  background:rgba(255,255,255,.9);
+  border-radius:22px;
+  padding:18px;
+  min-height:420px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+  backdrop-filter: blur(6px);
+}
+
+.messages{
+  flex:1;
+}
+
+/* INPUT */
+.input{
+  display:flex;
+  gap:12px;
+  margin-top:16px;
+}
+
+.input input{
+  flex:1;
+  padding:14px 16px;
+  border-radius:999px;
+  border:2px solid #e5e7eb;
+  font-size:15px;
+}
+
+.input button{
+  border:none;
+  padding:0 18px;
+  border-radius:999px;
+  background:var(--accent);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* IDEAS */
+.ideas{
+  margin-top:20px;
+}
+
+.ideas h3{
+  font-size:14px;
+  margin-bottom:10px;
+  color:#6b7280;
+}
+
+.idea-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.idea{
+  background:rgba(255,255,255,.9);
+  border-radius:14px;
+  padding:14px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,.1);
+  transition:.2s;
+}
+
+.idea:hover{
+  transform:translateY(-2px);
+}
+
+/* VOICE BUTTON */
+.voice{
+  position:fixed;
+  bottom:22px;
+  right:22px;
+  background:var(--accent);
+  color:#fff;
+  border-radius:999px;
+  padding:14px 20px;
+  font-weight:800;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  cursor:pointer;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:900px){
+  .app{
+    grid-template-columns:80px 1fr;
+  }
+}
+
   </style>
 </head>
 
 <body>
 
-<header>
-  <div class="logo">🤖 Askie</div>
-  <div class="user" id="userBox">
-    <img id="userAvatar" />
-    <span id="userName"></span>
-  </div>
-</header>
+<div class="app">
 
-<div class="container">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-inner">
 
-  <div class="hero">
-    <div class="hero-left">
-      <div class="avatar">
-        <img id="heroAvatar" />
+      <div class="bot-box">🤖</div>
+
+      <div class="sidebar-avatar">
+        <img id="userAvatarSidebar" />
       </div>
-      <div>
-        <h1 id="heroGreeting"></h1>
-        <p>What would you like to explore today?</p>
+
+      <div class="kid-actions">
+        <button title="Talk">🎤</button>
+        <button title="Images">🖼️</button>
+        <button title="Homework">📚</button>
+        <button title="Games">🎮</button>
+        <button title="Help">❓</button>
       </div>
+
+      <div class="sidebar-footer">⚙️</div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main">
+
+    <header>
+      <div class="logo">🤖 Askie</div>
+      <div class="user" id="userBox">
+        <img id="userAvatar" />
+        <span id="userName"></span>
+      </div>
+    </header>
+
+    <div class="container">
+
+      <div class="hero">
+        <div class="hero-left">
+          <div class="avatar">
+            <img id="heroAvatar" />
+          </div>
+          <div>
+            <h1 id="heroGreeting"></h1>
+            <p>What would you like to explore today?</p>
+          </div>
+        </div>
+
+        <div class="limits">
+          <div>Questions <span>68 / 70</span></div>
+          <div>Images <span>4 / 4</span></div>
+          <div>Voice <span>5 min</span></div>
+        </div>
+      </div>
+
+      <div class="chat">
+        <div class="messages"></div>
+
+        <div class="input">
+          <input placeholder="Ask anything…" />
+          <button>Send</button>
+        </div>
+      </div>
+
+      <div class="ideas">
+        <h3>Need an idea?</h3>
+        <div class="idea-grid">
+          <div class="idea">🐱 A cat astronaut</div>
+          <div class="idea">🧩 Solve an animal riddle</div>
+          <div class="idea">🔬 A fun science fact</div>
+          <div class="idea">😂 A silly robot joke</div>
+          <div class="idea">📝 Play a word game</div>
+        </div>
+      </div>
+
     </div>
 
-    <div class="limits">
-      <div>Questions <span>68 / 70</span></div>
-      <div>Images <span>4 / 4</span></div>
-      <div>Voice <span>5 min</span></div>
-    </div>
-  </div>
+    <div class="voice">🎤 Talk</div>
 
-  <div class="chat">
-    <div class="messages"></div>
-
-    <div class="input">
-      <input placeholder="Ask anything…" />
-      <button>Send</button>
-    </div>
-  </div>
-
-  <div class="ideas">
-    <h3>Need an idea?</h3>
-    <div class="idea-grid">
-      <div class="idea">🐱 A cat astronaut</div>
-      <div class="idea">🧩 Solve an animal riddle</div>
-      <div class="idea">🔬 A fun science fact</div>
-      <div class="idea">😂 A silly robot joke</div>
-      <div class="idea">📝 Play a word game</div>
-    </div>
-  </div>
+  </main>
 
 </div>
 
-<div class="voice">🎤 Talk</div>
-
+<!-- ===== SCRIPTS – לא שונה ===== -->
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
@@ -283,17 +443,17 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   document.getElementById("userName").textContent = name;
   document.getElementById("userAvatar").src = avatar;
   document.getElementById("heroAvatar").src = avatar;
+  document.getElementById("userAvatarSidebar").src = avatar;
   document.getElementById("heroGreeting").textContent = `Hi, ${name}!`;
 })();
 </script>
+
 <script>
 const API_BASE = "https://iakids-backend.onrender.com";
 
 const messagesEl = document.querySelector(".messages");
 const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".input button");
-
-let kidId = null;
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -318,8 +478,6 @@ function addMessage(role, text) {
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
-
-
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
@@ -348,35 +506,23 @@ async function sendMessage() {
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      console.error("API ERROR:", res.status, errText);
       addMessage("assistant", `❌ API error ${res.status}`);
       return;
     }
 
     const data = await res.json();
-    console.log("CHAT RESPONSE:", data);
-
-    if (!data.reply || !data.reply.trim()) {
-      addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-    } else {
-      addMessage("assistant", data.reply);
-    }
-
-  } catch (e) {
-    console.error("NETWORK ERROR", e);
-    addMessage("assistant", "🌐 Network error – API not reachable");
+    addMessage("assistant", data.reply || "🤖 I’m thinking…");
+  } catch {
+    addMessage("assistant", "🌐 Network error");
   }
+}
 
-} // ✅ THIS BRACE WAS MISSING
-
-/* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
 inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage();
 });
-
 </script>
 
 </body>
+
 </html>
