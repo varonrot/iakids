@@ -105,3 +105,17 @@ CRITICAL OUTPUT RULES (MUST FOLLOW):
 - The response MUST start with { and end with }
 - If you break the format, the system will fail
 
+EXAMPLE OUTPUTS (YOU MUST FOLLOW EXACTLY):
+
+If the child says "I play guitar":
+{
+  "update": true,
+  "memory": [
+    "Toca la guitarra"
+  ]
+}
+
+If there is nothing new to save:
+NO_UPDATE
+
+
