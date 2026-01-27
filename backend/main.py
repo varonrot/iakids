@@ -88,12 +88,16 @@ def save_kids_memory(
 def should_run_memory_extraction(kid_id: str, every_n: int = 5) -> bool:
     res = (
         sb.table("kids_chats")
-        .select("id", count="exact")
+        .select("id")
         .eq("kid_id", kid_id)
         .eq("role", "user")
         .execute()
     )
-    return (res.count or 0) % every_n == 0
+
+    user_messages_count = len(res.data or [])
+    print("USER MESSAGES COUNT:", user_messages_count)
+
+    return user_messages_count > 0 and user_messages_count % every_n == 0
 
 def get_recent_chat_messages(kid_id: str, limit: int = 8) -> str:
     res = (
