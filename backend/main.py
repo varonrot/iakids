@@ -5,6 +5,7 @@ from openai import OpenAI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from pathlib import Path
+import json
 
 CORE_PROMPT_TEMPLATE = Path("prompts/iakids_core_chat_system_prompt.txt").read_text()
 print("=== CORE PROMPT LOADED ===")
