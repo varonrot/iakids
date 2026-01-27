@@ -1,1 +1,2306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IA para niños – Safe AI</title>
 
+<meta name="description"
+      content="IA segura para niños. Ayuda con tareas, cuentos y aprendizaje creativo para niños de 6 a 10 años con control parental.">
+
+<style>
+:root{
+  --orange:#ff6a2a;
+  --orange-soft:#ffefe6;
+  --bg1:#fff7ed;
+  --bg2:#eef7fb;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --white:#ffffff;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family: system-ui,-apple-system,Segoe UI,sans-serif;
+  background:linear-gradient(120deg,var(--bg1),var(--bg2));
+  color:var(--text);
+}
+
+/* =========================
+   STICKY HEADER
+========================= */
+.site-header{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:#fff9f3;
+  border-bottom:1px solid rgba(0,0,0,.05);
+}
+
+.nav-inner{
+  position: relative;
+  max-width:1200px;
+  margin:auto;
+  padding:14px 28px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+
+/* BRAND */
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.brand-icon{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#ff7a3d,#ff5a1f);
+  color:#fff;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+}
+
+.brand-text{
+  font-weight:800;
+  font-size:18px;
+  color:#1f2937;
+}
+
+/* NAV LINKS */
+.nav-links{
+  display:none;
+  gap:26px;
+}
+
+.nav-links a{
+  font-size:15px;
+  font-weight:500;
+  color:#374151;
+  padding:6px 2px;
+  position:relative;
+}
+
+.nav-links a::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-6px;
+  width:0;
+  height:2px;
+  background:#ff6a2a;
+  transition:width .25s ease;
+  border-radius:2px;
+}
+
+.nav-links a:hover::after{
+  width:100%;
+}
+
+/* ACTIONS */
+.nav-actions{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.nav-cta{
+  background:linear-gradient(135deg,#ff7a3d,#ff5a1f);
+  color:#fff;
+  padding:11px 24px;
+  border-radius:16px;
+  font-size:14px;
+  font-weight:700;
+  box-shadow:0 6px 18px rgba(255,106,42,.25);
+}
+
+.nav-menu{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.08);
+  background:#fff;
+  font-size:18px;
+  cursor:pointer;
+}
+
+/* DESKTOP */
+@media (min-width: 960px){
+  .nav-links{display:flex}
+  .nav-menu{display:none}
+}
+/* MOBILE MENU */
+@media (max-width: 959px){
+  .nav-links{
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    background:#fff9f3;
+    flex-direction:column;
+    gap:0;
+    padding:18px 24px;
+    border-bottom:1px solid rgba(0,0,0,.05);
+    box-shadow:0 20px 40px rgba(0,0,0,.08);
+    display:none;
+  }
+
+  .nav-links a{
+    padding:14px 0;
+    font-size:16px;
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+
+  .nav-links.open{
+    display:flex;
+  }
+}
+
+/* =========================
+   HERO – IA PARA NIÑOS
+========================= */
+:root{
+  --bg1:#fff3e6;
+  --bg2:#f3f9ff;
+  --card:#ffffff;
+  --accent:#ff6a2a;
+  --accent-soft:#fff0e8;
+  --text:#1f2937;
+  --muted:#6b7280;
+}
+
+/* HERO */
+.kids-hero{
+  padding:100px 24px;
+  background:linear-gradient(120deg,var(--bg1),var(--bg2));
+}
+
+.hero-inner{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:80px;
+  align-items:center;
+}
+
+/* LEFT */
+.hero-label{
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:999px;
+  background:#e6fbf3;
+  color:#065f46;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:18px;
+}
+
+.hero-title{
+  font-size:48px;
+  margin:0 0 12px;
+  line-height:1.1;
+}
+
+.hero-subtitle{
+  font-size:28px;
+  font-weight:600;
+  margin:0 0 20px;
+}
+
+.typing-box{
+  color:var(--accent);
+  font-weight:800;
+}
+
+.cursor{
+  color:var(--accent);
+  animation:blink 1s infinite;
+}
+
+@keyframes blink{
+  0%,50%,100%{opacity:1}
+  25%,75%{opacity:0}
+}
+
+.hero-desc{
+  font-size:18px;
+  color:var(--muted);
+  max-width:520px;
+  margin-bottom:32px;
+}
+
+/* ACTIONS */
+.hero-actions{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  margin-bottom:26px;
+}
+
+.btn-primary{
+  padding:14px 26px;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--accent),#ff9f45);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 14px 34px rgba(255,106,42,.35);
+}
+
+.btn-secondary{
+  padding:12px 20px;
+  border-radius:999px;
+  border:2px solid #e5e7eb;
+  color:#4b5563;
+  text-decoration:none;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#fff;
+}
+
+.play{
+  color:#6d28d9;
+  font-size:14px;
+}
+
+/* ICONS */
+.hero-icons{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  font-size:14px;
+  color:#374151;
+}
+
+/* RIGHT */
+.hero-right{
+  display:flex;
+  justify-content:center;
+}
+
+.phone-mock{
+  position:relative;
+  width:300px;
+  background:#000;
+  padding:10px;
+  border-radius:34px;
+  box-shadow:0 40px 90px rgba(0,0,0,.3);
+}
+
+.phone-mock img{
+  width:100%;
+  height:380px;
+  object-fit:cover;
+  border-radius:26px;
+  opacity:.9;
+}
+
+/* CHAT */
+.chat{
+  position:absolute;
+  max-width:230px;
+  padding:12px 16px;
+  border-radius:18px;
+  font-size:14px;
+  line-height:1.4;
+  box-shadow:0 10px 26px rgba(0,0,0,.18);
+}
+
+.chat-q{
+  top:26px;
+  left:-18px;
+  background:#fff;
+  color:#111827;
+  border-top-left-radius:6px;
+}
+
+.chat-a{
+  bottom:26px;
+  right:-18px;
+  background:linear-gradient(135deg,#ff6a2a,#ff9f45);
+  color:#fff;
+  border-bottom-right-radius:6px;
+}
+
+/* MOBILE */
+@media(max-width:900px){
+  .hero-inner{
+    grid-template-columns:1fr;
+    gap:50px;
+    text-align:center;
+  }
+  .hero-actions{
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+}
+
+
+/* =========================
+   KIDS FEATURES SECTION
+========================= */
+
+.kids-features{
+  max-width:1200px;
+  margin:0 auto 120px;
+  padding:100px 20px;
+  background:#fff4e8;
+  border-radius:48px;
+}
+
+/* HEADER */
+.features-head{
+  text-align:center;
+  max-width:720px;
+  margin:0 auto 70px;
+}
+
+.features-badge{
+  display:inline-block;
+  background:#e8f7f3;
+  color:#0ea5a4;
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.08em;
+  margin-bottom:18px;
+}
+
+.features-head h2{
+  font-size:36px;
+  line-height:1.2;
+  color:#1f2937;
+  margin-bottom:16px;
+}
+
+.features-head p{
+  font-size:17px;
+  color:#6b7280;
+}
+
+/* GRID */
+.features-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:28px;
+}
+
+/* CARD */
+.feature-card{
+  background:#fff;
+  border-radius:28px;
+  padding:34px 30px;
+  box-shadow:0 20px 40px rgba(0,0,0,.06);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+
+.feature-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 30px 60px rgba(0,0,0,.1);
+}
+
+/* FEATURED */
+.feature-card.featured{
+  border:2px solid #ff7a3d;
+  box-shadow:
+    0 30px 70px rgba(255,122,61,.25);
+}
+
+/* ICON */
+.feature-icon{
+  width:52px;
+  height:52px;
+  border-radius:16px;
+  background:#fff2e6;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  margin-bottom:18px;
+}
+
+/* TEXT */
+.feature-card h3{
+  font-size:18px;
+  margin-bottom:10px;
+  color:#111827;
+}
+
+.feature-card p{
+  font-size:15px;
+  line-height:1.6;
+  color:#6b7280;
+}
+
+/* RESPONSIVE */
+@media (min-width: 720px){
+  .features-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media (min-width: 1024px){
+  .features-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .features-head h2{
+    font-size:40px;
+  }
+}
+/* =========================
+   SAFETY V2 (UNIQUE DESIGN)
+========================= */
+.safety-v2{
+  padding:110px 20px;
+  background:linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.65));
+}
+
+.safety-v2-inner{
+  max-width:1200px;
+  margin:0 auto;
+}
+
+.safety-v2-head{
+  text-align:center;
+  max-width:780px;
+  margin:0 auto 56px;
+}
+
+.safety-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 16px;
+  border-radius:999px;
+  background:rgba(34,197,94,.12);
+  color:#0f766e;
+  font-weight:800;
+  font-size:12px;
+  letter-spacing:.08em;
+}
+
+.safety-v2-head h2{
+  margin:18px 0 12px;
+  font-size:44px;
+  line-height:1.1;
+  color:#1f2937;
+}
+
+.safety-v2-head h2 span{
+  color:#ff6a2a;
+}
+
+.safety-v2-head p{
+  color:#6b7280;
+  font-size:16px;
+  line-height:1.6;
+}
+
+.safety-v2-grid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:22px;
+}
+
+.safety-hero-card{
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:26px;
+  padding:26px;
+  box-shadow:0 26px 70px rgba(0,0,0,.07);
+  position:relative;
+  overflow:hidden;
+}
+
+.safety-hero-card::before{
+  content:"";
+  position:absolute;
+  inset:-40% -20% auto auto;
+  width:380px;
+  height:380px;
+  background:radial-gradient(circle at 30% 30%, rgba(255,106,42,.22), rgba(34,197,94,.10), transparent 60%);
+  filter:blur(0px);
+  pointer-events:none;
+}
+
+.safety-hero-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.safety-hero-badge{
+  background:rgba(59,130,246,.12);
+  color:#1d4ed8;
+  font-weight:800;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:12px;
+}
+
+.safety-hero-title{
+  font-size:18px;
+  color:#111827;
+  text-align:right;
+}
+
+.safety-hero-body{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin:16px 0 18px;
+}
+
+.safety-hero-row{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:14px 14px;
+  border-radius:18px;
+  background:rgba(17,24,39,.03);
+  border:1px solid rgba(0,0,0,.04);
+}
+
+.safety-hero-row h4{
+  margin:0 0 4px;
+  font-size:14px;
+  color:#111827;
+}
+
+.safety-hero-row p{
+  margin:0;
+  font-size:13px;
+  color:#6b7280;
+  line-height:1.45;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  margin-top:6px;
+  flex:0 0 10px;
+}
+.dot-green{background:#22c55e}
+.dot-blue{background:#3b82f6}
+.dot-orange{background:#ff6a2a}
+
+.safety-hero-footer{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.mini-tag{
+  padding:9px 12px;
+  border-radius:999px;
+  background:rgba(255,106,42,.10);
+  color:#9a3412;
+  font-weight:700;
+  font-size:12px;
+}
+
+.safety-side{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.safety-mini-cards{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:14px;
+}
+
+.mini-card{
+  background:rgba(255,255,255,.85);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 18px 45px rgba(0,0,0,.05);
+}
+
+.mini-ico{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:rgba(255,106,42,.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  margin-bottom:10px;
+}
+
+.mini-title{
+  font-weight:900;
+  color:#111827;
+  margin-bottom:6px;
+}
+
+.mini-text{
+  color:#6b7280;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.safety-checklist{
+  background:rgba(255,255,255,.75);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:22px;
+  padding:18px;
+}
+
+.check-row{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:12px 8px;
+}
+
+.check-chip{
+  width:28px;
+  height:28px;
+  border-radius:999px;
+  background:rgba(34,197,94,.15);
+  color:#166534;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  flex:0 0 28px;
+  margin-top:2px;
+}
+
+.safety-checklist b{
+  color:#111827;
+  font-size:14px;
+}
+
+.muted{
+  color:#6b7280;
+  font-size:13px;
+  margin-top:4px;
+  line-height:1.45;
+}
+
+/* DESKTOP */
+@media (min-width: 980px){
+  .safety-v2-grid{
+    grid-template-columns: 1.05fr .95fr;
+    align-items:stretch;
+  }
+  .safety-mini-cards{
+    grid-template-columns: 1fr 1fr;
+  }
+}
+/* =========================
+   TRUST SECTION
+========================= */
+
+.trust-section{
+  max-width:1200px;
+  margin:0 auto 140px;
+  padding:110px 20px;
+  text-align:center;
+  background:linear-gradient(180deg,#f7fbfa,#ffffff);
+}
+
+/* HEADER */
+.trust-head{
+  max-width:760px;
+  margin:0 auto 70px;
+}
+
+.trust-badge{
+  display:inline-block;
+  background:#e6f4f1;
+  color:#0ea5a4;
+  padding:8px 18px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.08em;
+  margin-bottom:18px;
+}
+
+.trust-head h2{
+  font-size:36px;
+  line-height:1.25;
+  margin-bottom:14px;
+  color:#1f2937;
+}
+
+.trust-head p{
+  font-size:17px;
+  color:#6b7280;
+}
+
+/* HIGHLIGHT */
+.trust-highlight{
+  max-width:720px;
+  margin:0 auto 60px;
+  background:#fff;
+  border-radius:28px;
+  padding:42px 36px;
+  box-shadow:0 25px 60px rgba(0,0,0,.08);
+}
+
+.trust-rating .stars{
+  font-size:22px;
+  color:#fbbf24;
+  margin-bottom:16px;
+}
+
+.trust-rating .quote{
+  font-size:16px;
+  line-height:1.6;
+  color:#374151;
+  margin-bottom:18px;
+}
+
+.author{
+  font-size:13px;
+  color:#6b7280;
+}
+
+.author-name{
+  font-weight:600;
+  display:block;
+}
+
+/* POINTS */
+.trust-points{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:26px;
+  max-width:960px;
+  margin:0 auto;
+}
+
+.trust-card{
+  background:#fff;
+  padding:30px 26px;
+  border-radius:22px;
+  box-shadow:0 18px 40px rgba(0,0,0,.06);
+}
+
+.trust-card h4{
+  font-size:17px;
+  margin-bottom:8px;
+  color:#111827;
+}
+
+.trust-card p{
+  font-size:15px;
+  color:#6b7280;
+  line-height:1.55;
+}
+
+/* RESPONSIVE */
+@media (min-width: 900px){
+  .trust-points{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .trust-head h2{
+    font-size:40px;
+  }
+}
+/* =========================
+   OUR STORY SECTION
+========================= */
+
+.our-story{
+  max-width:1200px;
+  margin:0 auto 140px;
+  padding:120px 20px;
+  background:linear-gradient(180deg,#fff3e6,#f2fbff);
+  border-radius:56px;
+}
+
+/* HEADER */
+.story-head{
+  text-align:center;
+  max-width:760px;
+  margin:0 auto 80px;
+}
+
+.story-badge{
+  display:inline-block;
+  background:#ffe7d6;
+  color:#ff6a2a;
+  padding:8px 18px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.08em;
+  margin-bottom:18px;
+}
+
+.story-head h2{
+  font-size:36px;
+  line-height:1.25;
+  color:#1f2937;
+  margin-bottom:14px;
+}
+
+.story-head p{
+  font-size:17px;
+  color:#6b7280;
+}
+
+/* CONTENT */
+.story-content{
+  display:flex;
+  flex-direction:column;
+  gap:50px;
+  align-items:center;
+}
+
+/* TEXT */
+.story-text{
+  max-width:520px;
+  font-size:16px;
+  line-height:1.7;
+  color:#374151;
+}
+
+.story-text p{
+  margin-bottom:18px;
+}
+
+.story-highlight{
+  font-weight:600;
+  color:#ff6a2a;
+}
+
+/* IMAGE */
+.story-image{
+  width:100%;
+  max-width:560px;
+  border-radius:32px;
+  overflow:hidden;
+  box-shadow:0 30px 70px rgba(0,0,0,.18);
+}
+
+.story-image img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+/* RESPONSIVE */
+@media (min-width: 900px){
+  .story-content{
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
+    gap:80px;
+  }
+
+  .story-head h2{
+    font-size:40px;
+  }
+}
+/* =========================
+   TRUST SECTION
+========================= */
+
+.trust-section{
+  max-width:1200px;
+  margin:0 auto 140px;
+  padding:120px 20px;
+  background:#fff7ee;
+  border-radius:56px;
+}
+
+/* HEADER */
+.trust-head{
+  text-align:center;
+  max-width:760px;
+  margin:0 auto 80px;
+}
+
+.trust-badge{
+  display:inline-block;
+  background:#e6fbf7;
+  color:#1fb6aa;
+  padding:8px 18px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.08em;
+  margin-bottom:18px;
+}
+
+.trust-head h2{
+  font-size:38px;
+  line-height:1.25;
+  margin-bottom:14px;
+  color:#1f2937;
+}
+
+.trust-head p{
+  font-size:17px;
+  color:#6b7280;
+}
+
+/* REVIEWS */
+.reviews-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:32px;
+  margin-bottom:80px;
+}
+
+.review-card{
+  background:#fff;
+  padding:32px;
+  border-radius:24px;
+  box-shadow:0 18px 50px rgba(0,0,0,.08);
+}
+
+.stars{
+  color:#fbbf24;
+  font-size:18px;
+  margin-bottom:14px;
+}
+
+.review-text{
+  font-size:15px;
+  line-height:1.7;
+  color:#374151;
+  margin-bottom:20px;
+}
+
+.review-user{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+  background:#e5f4ff;
+  color:#2563eb;
+  font-weight:700;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.review-user small{
+  color:#6b7280;
+  font-size:12px;
+}
+
+/* STATS */
+.stats-bar{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:24px;
+  background:linear-gradient(135deg,#ff6a2a,#ff8f66);
+  padding:46px;
+  border-radius:36px;
+  color:#fff;
+  text-align:center;
+}
+
+.stat strong{
+  font-size:28px;
+  display:block;
+}
+
+.stat span{
+  font-size:14px;
+  opacity:.9;
+}
+
+/* RESPONSIVE */
+@media(min-width:900px){
+  .reviews-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .stats-bar{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .trust-head h2{
+    font-size:42px;
+  }
+}
+/* =========================
+   RESOURCES FOR PARENTS
+========================= */
+
+.parents-resources{
+  max-width:1200px;
+  margin:0 auto 120px;
+  padding:60px 20px;
+}
+
+
+.resources-head{
+  max-width:760px;
+  margin:0 auto 80px;
+}
+
+.resources-head h2{
+  font-size:40px;
+  margin-bottom:14px;
+  color:#1f2937;
+}
+
+.resources-head p{
+  font-size:17px;
+  color:#6b7280;
+}
+
+/* GRID */
+.resources-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:28px;
+  margin-bottom:80px;
+}
+
+/* CARD BASE */
+.resource-card{
+  background:#fff;
+  border-radius:26px;
+  padding:36px 32px;
+  text-align:left;
+  box-shadow:0 18px 45px rgba(0,0,0,.08);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+
+.resource-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 26px 60px rgba(0,0,0,.12);
+}
+
+.resource-icon{
+  font-size:28px;
+  margin-bottom:18px;
+}
+
+.resource-card h3{
+  font-size:20px;
+  margin-bottom:10px;
+}
+
+.resource-card p{
+  font-size:15px;
+  line-height:1.6;
+  color:#4b5563;
+  margin-bottom:18px;
+}
+
+.resource-link{
+  font-weight:600;
+  text-decoration:none;
+}
+
+/* COLOR VARIANTS */
+.resource-card.guide{
+  background:#fff1e9;
+}
+.resource-card.guide h3,
+.resource-card.guide .resource-link{
+  color:#ff6a2a;
+}
+
+.resource-card.activities{
+  background:#f2f9ff;
+}
+.resource-card.activities h3,
+.resource-card.activities .resource-link{
+  color:#2563eb;
+}
+
+.resource-card.safety{
+  background:#f4fbf5;
+}
+.resource-card.safety h3,
+.resource-card.safety .resource-link{
+  color:#16a34a;
+}
+
+/* CTA */
+.resources-cta{
+  background:#fff5ec;
+  padding:56px 24px;
+  border-radius:36px;
+}
+
+.resources-cta h4{
+  font-size:22px;
+  margin-bottom:10px;
+}
+
+.resources-cta p{
+  color:#6b7280;
+  margin-bottom:24px;
+}
+
+.cta-button{
+  display:inline-block;
+  padding:14px 28px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#ff6a2a,#ff8f66);
+  color:#fff;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:0 12px 30px rgba(255,106,42,.35);
+}
+
+/* RESPONSIVE */
+@media(min-width:900px){
+  .resources-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .resources-head h2{
+    font-size:44px;
+  }
+}
+.site-footer{
+  background:#2f4256;
+  color:#dbe6f1;
+  padding:70px 24px 30px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.footer-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns: 1.5fr repeat(4,1fr);
+  gap:40px;
+}
+
+.footer-brand h3{
+  margin:10px 0 8px;
+  font-size:20px;
+  color:#fff;
+}
+
+.footer-brand p{
+  font-size:14px;
+  line-height:1.6;
+  max-width:260px;
+}
+
+.brand-logo{
+  font-size:32px;
+}
+
+.footer-col h4{
+  color:#fff;
+  font-size:15px;
+  margin-bottom:12px;
+}
+
+.footer-col ul{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+
+.footer-col li{
+  margin-bottom:8px;
+}
+
+.footer-col a{
+  color:#c7d6e6;
+  text-decoration:none;
+  font-size:14px;
+  transition:color .2s ease;
+}
+
+.footer-col a:hover{
+  color:#ff7a45;
+}
+
+.footer-bottom{
+  max-width:1200px;
+  margin:40px auto 0;
+  padding-top:20px;
+  border-top:1px solid rgba(255,255,255,.1);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:13px;
+  color:#b6c7d8;
+}
+
+.footer-social a{
+  margin-left:14px;
+  font-size:18px;
+  text-decoration:none;
+  opacity:.8;
+}
+
+.footer-social a:hover{
+  opacity:1;
+}
+
+/* Responsive */
+@media (max-width:900px){
+  .footer-container{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media (max-width:520px){
+  .footer-container{
+    grid-template-columns:1fr;
+  }
+
+  .footer-bottom{
+    flex-direction:column;
+    gap:14px;
+    text-align:center;
+  }
+}
+.pricing-section{
+  padding:100px 20px;
+  background:#fff8f1;
+}
+
+.pricing-head{
+  text-align:center;
+  max-width:700px;
+  margin:0 auto 70px;
+}
+
+.pricing-badge{
+  display:inline-block;
+  background:#e6f7f4;
+  color:#0aa6a6;
+  font-weight:700;
+  font-size:12px;
+  padding:6px 14px;
+  border-radius:999px;
+  margin-bottom:14px;
+}
+
+.pricing-head h2{
+  font-size:38px;
+  margin-bottom:14px;
+  color:#1f2937;
+}
+
+.pricing-head p{
+  color:#6b7280;
+  font-size:16px;
+}
+
+.pricing-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:32px;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+.pricing-card{
+  background:#ffffff;
+  border-radius:24px;
+  padding:36px 28px;
+  box-shadow:0 20px 50px rgba(0,0,0,.06);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
+
+.pricing-card h3{
+  font-size:22px;
+  margin-bottom:10px;
+}
+
+.price{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  margin-bottom:6px;
+}
+
+.amount{
+  font-size:42px;
+  font-weight:800;
+  color:#ff6a2a;
+}
+
+.period{
+  color:#6b7280;
+  font-size:14px;
+}
+
+.price-desc{
+  color:#6b7280;
+  margin-bottom:22px;
+}
+
+.features{
+  list-style:none;
+  padding:0;
+  margin:0 0 28px;
+  color:#374151;
+  font-size:14px;
+}
+
+.features li{
+  margin-bottom:10px;
+}
+
+.btn{
+  margin-top:auto;
+  text-align:center;
+  padding:14px;
+  border-radius:14px;
+  background:#ff6a2a;
+  color:#fff;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:0 10px 25px rgba(255,106,42,.25);
+}
+
+.btn.primary{
+  background:linear-gradient(135deg,#ff8a4c,#ff6a2a);
+}
+
+.pricing-card.featured{
+  border:2px solid #ff6a2a;
+  transform:translateY(-10px);
+}
+
+.popular{
+  position:absolute;
+  top:-14px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#ff6a2a;
+  color:#fff;
+  font-size:12px;
+  padding:6px 14px;
+  border-radius:999px;
+  font-weight:700;
+}
+/* ===== Floating cards effect ===== */
+.pricing-card{
+  transition:
+    transform .35s ease,
+    box-shadow .35s ease;
+  will-change: transform;
+}
+
+/* Hover – all cards */
+.pricing-card:hover{
+  transform: translateY(-12px);
+  box-shadow: 0 30px 70px rgba(0,0,0,.12);
+}
+
+/* Featured card – always floating a bit */
+.pricing-card.featured{
+  transform: translateY(-18px);
+  box-shadow: 0 35px 80px rgba(255,106,42,.18);
+}
+
+/* Featured hover – stronger */
+.pricing-card.featured:hover{
+  transform: translateY(-26px) scale(1.02);
+  box-shadow: 0 45px 100px rgba(255,106,42,.28);
+}
+
+/* Button hover */
+.pricing-card .btn{
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.pricing-card .btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px rgba(255,106,42,.35);
+}
+
+/* Subtle glow on featured border */
+.pricing-card.featured::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:26px;
+  pointer-events:none;
+  background:linear-gradient(
+    120deg,
+    rgba(255,106,42,.25),
+    rgba(255,180,120,.15),
+    rgba(255,106,42,.25)
+  );
+  opacity:.35;
+  z-index:-1;
+}
+/* =========================
+   BACK TO TOP BUTTON
+========================= */
+.back-to-top{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  width:46px;
+  height:46px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#ff8a4c,#ff6a2a);
+  color:#fff;
+  font-size:18px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 14px 35px rgba(255,106,42,.35);
+  opacity:0;
+  transform:translateY(10px);
+  pointer-events:none;
+  transition:all .35s ease;
+  z-index:1200;
+}
+
+.back-to-top.show{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+
+.back-to-top:hover{
+  transform:translateY(-4px);
+  box-shadow:0 20px 45px rgba(255,106,42,.45);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="site-header">
+  <div class="nav-inner">
+
+    <!-- BRAND -->
+    <div class="brand">
+      <div class="brand-icon">IA</div>
+      <span class="brand-text">IA Kids</span>
+    </div>
+
+    <!-- NAV -->
+<nav class="nav-links">
+  <a href="#features">Funciones</a>
+  <a href="#pricing">Precios</a>
+  <a href="#safety">Seguridad</a>
+  <a href="#resources">Recursos</a>
+  <a href="#trust">Opiniones</a>
+  <a href="#story">Nuestra historia</a>
+</nav>
+
+
+    <!-- ACTIONS -->
+    <div class="nav-actions">
+      <a href="#start" class="nav-cta">Prueba gratis</a>
+      <button class="nav-menu" aria-label="Menú">
+        ☰
+      </button>
+    </div>
+
+  </div>
+</header>
+
+
+<!-- =========================
+     HERO
+========================= -->
+
+<section class="kids-hero">
+  <div class="hero-inner">
+
+    <!-- LEFT -->
+    <div class="hero-left">
+
+      <div class="hero-label">
+        AI para niños · Kids AI
+      </div>
+
+      <h1 class="hero-title">
+        IA segura para niños
+      </h1>
+
+      <h2 class="hero-subtitle">
+        Diseñada para
+        <span class="typing-box">
+          <span id="typing"></span><span class="cursor">|</span>
+        </span>
+      </h2>
+
+      <p class="hero-desc">
+        Una inteligencia artificial educativa y segura para niños,
+        con control parental y total tranquilidad para los padres.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/onboarding" class="btn-primary">
+          Empezar de forma segura
+        </a>
+
+        <a href="#how-it-works" class="btn-secondary">
+          <span class="play">▶</span>
+          Cómo funciona
+        </a>
+      </div>
+
+      <div class="hero-icons">
+        <span>🛡️ Contenido apropiado</span>
+        <span>🎓 Aprendizaje guiado</span>
+        <span>👨‍👩‍👧 Control parental</span>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="hero-right">
+      <div class="phone-mock">
+<img
+  src="/assets/iakids.jpeg"
+  alt="Kids AI chat"
+  loading="lazy"
+/>
+
+
+        <div class="chat chat-q">
+          ¿Por qué el cielo es azul?
+        </div>
+
+        <div class="chat chat-a">
+          ¡Gran pregunta! Vamos a descubrirlo juntos 🌈
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- =========================
+     NEXT SECTIONS (EMPTY)
+========================= -->
+<section class="kids-features" id="features">
+
+  <div class="features-head">
+    <span class="features-badge">FUNCIONES PRINCIPALES</span>
+    <h2>Una IA pensada para niños, creada para familias</h2>
+    <p>
+      Una herramienta educativa que acompaña a los niños en su día a día:
+      aprender, crear y preguntar con confianza, siempre en un entorno seguro
+      y adaptado a su edad.
+    </p>
+  </div>
+
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h3>Conversaciones seguras para niños</h3>
+      <p>
+        Un chat amigable que responde con lenguaje claro y apropiado,
+        ideal para aprender, resolver dudas y explorar nuevas ideas.
+      </p>
+    </div>
+
+    <div class="feature-card featured">
+      <div class="feature-icon">⭐</div>
+      <h3>Planes familiares sencillos</h3>
+      <p>
+        Elige un plan que se adapte a tu familia y gestiona fácilmente
+        el uso semanal de texto, imágenes y voz.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📚</div>
+      <h3>Apoyo escolar por edades</h3>
+      <p>
+        Contenido educativo ajustado a cada etapa,
+        ayudando con tareas y aprendizaje diario.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">👨‍👩‍👧</div>
+      <h3>Un espacio para cada niño</h3>
+      <p>
+        Cada niño tiene su propio perfil.
+        Los padres pueden acompañar, supervisar y establecer límites.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>Creatividad e historias personalizadas</h3>
+      <p>
+        Cuentos, ideas y actividades creativas que estimulan
+        la imaginación y la curiosidad natural.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Diseñada pensando en la seguridad</h3>
+      <p>
+        Filtros inteligentes, controles parentales
+        y una experiencia creada especialmente para menores.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+<section class="pricing-section" id="pricing">
+
+  <div class="pricing-head">
+    <span class="pricing-badge">PRECIOS FLEXIBLES</span>
+    <h2>Elige el plan ideal para tu familia</h2>
+    <p>
+      Suscripciones mensuales flexibles que se adaptan
+      a las necesidades de aprendizaje y al presupuesto familiar.
+    </p>
+  </div>
+
+  <div class="pricing-grid">
+
+    <!-- FREE -->
+    <div class="pricing-card">
+      <h3>Gratis</h3>
+      <div class="price">
+        <span class="amount">$0</span>
+        <span class="period">/ 7 días</span>
+      </div>
+      <p class="price-desc">Prueba la experiencia sin compromiso</p>
+
+      <ul class="features">
+        <li>✔ 70 preguntas de texto por semana</li>
+        <li>✔ 4 imágenes por semana</li>
+        <li>✔ 5 minutos de voz por semana</li>
+        <li>✔ Contenido seguro y apropiado por edad</li>
+        <li>✔ Perfiles para varios niños</li>
+      </ul>
+
+      <a href="#" class="btn">Comenzar gratis</a>
+    </div>
+
+    <!-- PREMIUM -->
+    <div class="pricing-card featured">
+      <span class="popular">Más popular</span>
+      <h3>Premium</h3>
+      <div class="price">
+        <span class="amount">$9.99</span>
+        <span class="period">/ mes</span>
+      </div>
+      <p class="price-desc">Aprendizaje ilimitado para tu familia</p>
+
+      <ul class="features">
+        <li>✔ Preguntas de texto ilimitadas</li>
+        <li>✔ 50 imágenes por semana</li>
+        <li>✔ 100 minutos de voz por semana</li>
+        <li>✔ Transcripción de conversaciones de voz</li>
+        <li>✔ Contenido seguro y supervisado</li>
+        <li>✔ Perfiles para varios niños</li>
+        <li>✔ Soporte prioritario</li>
+      </ul>
+
+      <a href="#" class="btn primary">Empezar Premium</a>
+    </div>
+
+    <!-- PREMIUM MAX -->
+    <div class="pricing-card">
+      <h3>Premium Max</h3>
+      <div class="price">
+        <span class="amount">$29.99</span>
+        <span class="period">/ mes</span>
+      </div>
+      <p class="price-desc">Límites máximos para familias activas</p>
+
+      <ul class="features">
+        <li>✔ Preguntas de texto ilimitadas</li>
+        <li>✔ 250 imágenes por semana</li>
+        <li>✔ 500 minutos de voz por semana</li>
+        <li>✔ Transcripción de conversaciones de voz</li>
+        <li>✔ Contenido seguro y apropiado por edad</li>
+        <li>✔ Perfiles para varios niños</li>
+        <li>✔ Soporte prioritario</li>
+        <li>✔ Uso máximo disponible</li>
+      </ul>
+
+      <a href="#" class="btn">Empezar Premium Max</a>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- =========================
+     SAFETY (NEW DESIGN)
+========================= -->
+<section class="safety-v2" id="safety">
+  <div class="safety-v2-inner">
+
+    <header class="safety-v2-head">
+      <span class="safety-pill">SEGURIDAD + CONTROL PARENTAL</span>
+      <h2>Seguridad real para niños,<br><span>tranquilidad para familias</span></h2>
+      <p>
+        Diseñado para aprendizaje: filtros, privacidad y herramientas claras para que
+        los padres decidan cómo se usa la IA en casa.
+      </p>
+    </header>
+
+    <div class="safety-v2-grid">
+
+      <!-- LEFT: BIG CARD -->
+      <div class="safety-hero-card">
+        <div class="safety-hero-top">
+          <div class="safety-hero-badge">Modo infantil</div>
+          <div class="safety-hero-title">
+            <strong>Protección</strong> en cada conversación
+          </div>
+        </div>
+
+        <div class="safety-hero-body">
+          <div class="safety-hero-row">
+            <span class="dot dot-green"></span>
+            <div>
+              <h4>Filtros por edad</h4>
+              <p>Respuestas adaptadas a un tono y contenido apropiados.</p>
+            </div>
+          </div>
+
+          <div class="safety-hero-row">
+            <span class="dot dot-blue"></span>
+            <div>
+              <h4>Privacidad por diseño</h4>
+              <p>Enfoque en minimizar datos y mantener una experiencia segura.</p>
+            </div>
+          </div>
+
+          <div class="safety-hero-row">
+            <span class="dot dot-orange"></span>
+            <div>
+              <h4>Controles parentales</h4>
+              <p>Límites de uso y ajustes protegidos para adultos.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="safety-hero-footer">
+          <span class="mini-tag">Aprendizaje seguro</span>
+          <span class="mini-tag">Sin distracciones</span>
+          <span class="mini-tag">Hecho para niños</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: CARDS + LIST -->
+      <div class="safety-side">
+
+        <div class="safety-mini-cards">
+          <div class="mini-card">
+            <div class="mini-ico">🛡️</div>
+            <div class="mini-title">Filtrado inteligente</div>
+            <div class="mini-text">Múltiples capas para mantener contenido apropiado.</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="mini-ico">🔐</div>
+            <div class="mini-title">Privacidad</div>
+            <div class="mini-text">Experiencia pensada para proteger a menores.</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="mini-ico">👨‍👩‍👧</div>
+            <div class="mini-title">Control parental</div>
+            <div class="mini-text">Ajustes y límites de uso gestionados por adultos.</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="mini-ico">✅</div>
+            <div class="mini-title">Cumplimiento</div>
+            <div class="mini-text">Buenas prácticas alineadas con normativas infantiles.</div>
+          </div>
+        </div>
+
+        <div class="safety-checklist">
+          <div class="check-row">
+            <span class="check-chip">✓</span>
+            <div>
+              <b>Contenido educativo y adecuado</b>
+              <div class="muted">Priorizamos aprendizaje, claridad y lenguaje apto.</div>
+            </div>
+          </div>
+
+          <div class="check-row">
+            <span class="check-chip">✓</span>
+            <div>
+              <b>Sin temas sensibles</b>
+              <div class="muted">Bloqueo de categorías no aptas para menores.</div>
+            </div>
+          </div>
+
+          <div class="check-row">
+            <span class="check-chip">✓</span>
+            <div>
+              <b>Herramientas para familias</b>
+              <div class="muted">Límites, revisiones y control en manos de padres.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+<section class="trust-section" id="trust">
+
+  <div class="trust-head">
+    <span class="trust-badge">CONFIANZA Y CALIDAD</span>
+    <h2>Elegida por familias que valoran la educación</h2>
+    <p>
+      Nuestra IA para niños está diseñada junto a educadores
+      y pensada para acompañar el aprendizaje de forma responsable,
+      clara y segura.
+    </p>
+  </div>
+
+  <div class="trust-highlight">
+
+    <div class="trust-rating">
+      <div class="stars">★★★★★</div>
+      <p class="quote">
+        “Una herramienta educativa muy bien diseñada.
+        Destaca por su facilidad de uso, respuestas rápidas
+        y un enfoque claro en la seguridad infantil.”
+      </p>
+      <div class="author">
+        <span class="author-name">Equipo pedagógico independiente</span>
+        <span class="author-date">Evaluación interna · 2026</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="trust-points">
+
+    <div class="trust-card">
+      <h4>Fácil de usar</h4>
+      <p>
+        Interfaz clara e intuitiva para que los niños
+        puedan usarla sin complicaciones.
+      </p>
+    </div>
+
+    <div class="trust-card">
+      <h4>Seguridad como prioridad</h4>
+      <p>
+        Contenido filtrado y controles parentales
+        integrados desde el primer momento.
+      </p>
+    </div>
+
+    <div class="trust-card">
+      <h4>Enfoque educativo real</h4>
+      <p>
+        Pensada para apoyar el desarrollo,
+        la curiosidad y el aprendizaje responsable.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+<section class="our-story" id="story">
+
+  <div class="story-head">
+    <span class="story-badge">NUESTRA HISTORIA</span>
+    <h2>Todo empezó con una pregunta sencilla</h2>
+    <p>
+      ¿Cómo pueden los niños explorar su curiosidad natural
+      en un entorno digital que sea realmente seguro y educativo?
+    </p>
+  </div>
+
+  <div class="story-content">
+
+    <div class="story-text">
+      <p>
+        Como padres, sabemos que los niños hacen preguntas todo el tiempo.
+        Preguntan antes de dormir, mientras hacen la tarea
+        y cuando descubren algo nuevo.
+      </p>
+
+      <p>
+        Creamos esta IA pensando en ellos:
+        para acompañar su aprendizaje,
+        fomentar la creatividad
+        y dar tranquilidad a las familias.
+      </p>
+
+      <p class="story-highlight">
+        No se trata solo de tecnología,
+        sino de confianza, educación y cuidado.
+      </p>
+    </div>
+
+    <div class="story-image">
+      <img src="story-image.jpg" alt="Niño aprendiendo con IA segura">
+    </div>
+
+  </div>
+
+</section>
+<section class="trust-section" id="trust">
+
+  <div class="trust-head">
+    <span class="trust-badge">CONFIANZA DE LOS PADRES</span>
+    <h2>Una experiencia de IA segura para niños</h2>
+    <p>
+      Diseñada para apoyar el aprendizaje, la curiosidad y la creatividad,
+      con la seguridad y la tranquilidad de los padres como prioridad.
+    </p>
+  </div>
+
+  <div class="reviews-grid">
+
+    <div class="review-card">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">
+        “Mi hijo usa la IA para hacer preguntas y explorar ideas.
+        Me gusta que las respuestas sean tranquilas,
+        respetuosas y adecuadas para su edad.”
+      </p>
+      <div class="review-user">
+        <span class="avatar">A</span>
+        <div>
+          <strong>Ana</strong>
+          <small>Madre</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">
+        “No se siente como un chatbot,
+        sino como un acompañante de aprendizaje.
+        Saber que existen límites de seguridad nos da mucha confianza.”
+      </p>
+      <div class="review-user">
+        <span class="avatar">M</span>
+        <div>
+          <strong>María</strong>
+          <small>Madre de dos</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="stars">★★★★★</div>
+      <p class="review-text">
+        “Encaja muy bien en nuestra rutina diaria:
+        ayuda con tareas, historias creativas
+        y momentos de curiosidad.”
+      </p>
+      <div class="review-user">
+        <span class="avatar">J</span>
+        <div>
+          <strong>Javier</strong>
+          <small>Familia usuaria</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="stats-bar">
+
+    <div class="stat">
+      <strong>Miles</strong>
+      <span>de familias aprendiendo de forma segura</span>
+    </div>
+
+    <div class="stat">
+      <strong>A diario</strong>
+      <span>conversaciones educativas</span>
+    </div>
+
+    <div class="stat">
+      <strong>Varios</strong>
+      <span>idiomas disponibles</span>
+    </div>
+
+    <div class="stat">
+      <strong>Controles</strong>
+      <span>parentales integrados</span>
+    </div>
+
+  </div>
+
+</section>
+
+<section class="parents-resources" id="resources">
+
+  <div class="resources-head">
+    <h2>Recursos para padres</h2>
+    <p>
+      Herramientas prácticas y orientación clara para ayudar a los padres
+      a acompañar la experiencia de aprendizaje de sus hijos con IA.
+    </p>
+  </div>
+
+  <div class="resources-grid">
+
+    <div class="resource-card guide">
+      <div class="resource-icon">📘</div>
+      <h3>Guía para padres</h3>
+      <p>
+        Aprende a establecer límites, comprender las funciones
+        y usar la IA infantil de forma segura y positiva en casa.
+      </p>
+      <a href="#" class="resource-link">Ver la guía →</a>
+    </div>
+
+    <div class="resource-card activities">
+      <div class="resource-icon">🎯</div>
+      <h3>Actividades educativas</h3>
+      <p>
+        Ideas y actividades sencillas diseñadas para fomentar
+        la curiosidad, la creatividad y conversaciones significativas.
+      </p>
+      <a href="#" class="resource-link">Explorar actividades →</a>
+    </div>
+
+    <div class="resource-card safety">
+      <div class="resource-icon">🛡️</div>
+      <h3>Seguridad y privacidad</h3>
+      <p>
+        Explicaciones claras sobre principios de seguridad,
+        diseño centrado en la privacidad y control parental.
+      </p>
+      <a href="#" class="resource-link">Saber más →</a>
+    </div>
+
+  </div>
+
+  <div class="resources-cta">
+    <h4>¿Quieres más consejos?</h4>
+    <p>
+      Visita nuestro blog para conocer novedades, recomendaciones
+      y buenas prácticas sobre crianza en el mundo digital.
+    </p>
+    <a href="#" class="cta-button">Visitar el blog</a>
+  </div>
+
+</section>
+
+<footer class="site-footer">
+  <div class="footer-container">
+
+    <!-- Brand -->
+    <div class="footer-brand">
+      <div class="brand-logo">🤖</div>
+      <h3>KiddyAI</h3>
+      <p>
+        IA segura y educativa para niños.
+        Diseñada para aprender, crear y explorar con tranquilidad.
+      </p>
+    </div>
+
+    <!-- Product -->
+    <div class="footer-col">
+      <h4>Producto</h4>
+      <ul>
+        <li><a href="#features">Funciones</a></li>
+        <li><a href="#safety">Seguridad</a></li>
+        <li><a href="#pricing">Precios</a></li>
+        <li><a href="#reviews">Opiniones</a></li>
+        <li><a href="#schools">Para escuelas</a></li>
+      </ul>
+    </div>
+
+    <!-- Resources -->
+    <div class="footer-col">
+      <h4>Recursos</h4>
+      <ul>
+        <li><a href="/parent-guide">Guía para padres</a></li>
+        <li><a href="/activities">Actividades educativas</a></li>
+        <li><a href="/safety-guide">Guía de seguridad</a></li>
+        <li><a href="/blog">Blog</a></li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-col">
+      <h4>Soporte</h4>
+      <ul>
+        <li><a href="/faq">Preguntas frecuentes</a></li>
+        <li><a href="/contact">Contacto</a></li>
+        <li><a href="/feedback">Enviar comentarios</a></li>
+      </ul>
+    </div>
+
+    <!-- Legal -->
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="/privacy">Política de privacidad</a></li>
+        <li><a href="/terms">Términos de servicio</a></li>
+        <li><a href="/coppa">Cumplimiento COPPA</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 KiddyAI. Todos los derechos reservados.</span>
+
+    <div class="footer-social">
+      <a href="#" aria-label="Facebook">🌐</a>
+      <a href="#" aria-label="Instagram">📸</a>
+      <a href="#" aria-label="Discord">💬</a>
+    </div>
+  </div>
+</footer>
+<!-- BACK TO TOP BUTTON -->
+<div class="back-to-top" id="backToTop">↑</div>
+
+<script>
+/* =========================
+   TYPING EFFECT
+========================= */
+const words = ["aprender", "preguntar", "crear"];
+let i = 0;
+let j = 0;
+let deleting = false;
+const speed = 90;
+const typingEl = document.getElementById("typing");
+
+function type() {
+  if (!typingEl) return;
+
+  const word = words[i];
+
+  if (!deleting) {
+    typingEl.textContent = word.slice(0, ++j);
+    if (j === word.length) {
+      setTimeout(() => deleting = true, 1200);
+    }
+  } else {
+    typingEl.textContent = word.slice(0, --j);
+    if (j === 0) {
+      deleting = false;
+      i = (i + 1) % words.length;
+    }
+  }
+
+  setTimeout(type, deleting ? speed / 2 : speed);
+}
+
+type();
+
+
+/* =========================
+   SMOOTH SECTION NAVIGATION
+========================= */
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    const targetId = link.getAttribute('href');
+    if (targetId.length > 1) {
+      const target = document.querySelector(targetId);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }
+  });
+});
+
+
+/* =========================
+   BACK TO TOP BUTTON
+========================= */
+const backToTop = document.getElementById('backToTop');
+
+if (backToTop) {
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 500) {
+      backToTop.classList.add('show');
+    } else {
+      backToTop.classList.remove('show');
+    }
+  });
+
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+    /* =========================
+   MOBILE NAV TOGGLE
+========================= */
+const menuBtn = document.querySelector('.nav-menu');
+const navLinks = document.querySelector('.nav-links');
+
+if (menuBtn && navLinks) {
+  menuBtn.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+    menuBtn.textContent = navLinks.classList.contains('open') ? '✕' : '☰';
+  });
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseClient = window.supabase.createClient(
+    "https://bxnfzuglfwtyiaguwjj.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
+  );
+
+  supabaseClient.auth.getSession().then(({ data, error }) => {
+    console.log("Supabase connected", data, error);
+  });
+</script>
+
+
+</body>
+</html>
