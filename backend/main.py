@@ -51,6 +51,61 @@ class CreateChildProfileRequest(BaseModel):
 # ---------
 # HELPERS
 # ---------
+def get_existing_kids_memory(kid_id: str) -> str:
+    res = (
+        sb.table("kids_memory")
+        .select("memory")
+        .eq("kid_id", kid_id)
+        .order("updated_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return ""
+
+    memory = res.data[0]["memory"]
+
+    if isinstance(memory, list):
+        return "\n".join(f"- {m}" for m in memory)
+
+    return str(memory)
+
+def save_kids_memory(
+    user_id: str,
+    kid_id: str,
+    memory_list: list[str],
+    updated_by: str = "ai"
+):
+    sb.table("kids_memory").insert({
+        "user_id": user_id,
+        "kid_id": kid_id,
+        "memory": memory_list,
+        "updated_by": updated_by
+    }).execute()
+
+def should_run_memory_extraction(kid_id: str, every_n: int = 5) -> bool:
+    res = (
+        sb.table("kids_chats")
+        .select("id", count="exact")
+        .eq("kid_id", kid_id)
+        .eq("role", "user")
+        .execute()
+    )
+    return (res.count or 0) % every_n == 0
+
+def get_recent_chat_messages(kid_id: str, limit: int = 8) -> str:
+    res = (
+        sb.table("kids_chats")
+        .select("role, content")
+        .eq("kid_id", kid_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    messages = reversed(res.data or [])
+    return "\n".join(f"{m['role']}: {m['content']}" for m in messages)
 
 def get_child_profile(user_id: str):
     res = (
@@ -102,6 +157,8 @@ def chat(
 
     user = user_res.user
     child = get_child_profile(user.id)
+    existing_memory = get_existing_kids_memory(child["id"])
+
     save_chat_message(
         user_id=user.id,
         kid_id=child["id"],
@@ -115,7 +172,8 @@ def chat(
         avatar_key=child.get("avatar_key", ""),
         learning_interests=", ".join(child.get("learning_interests", [])),
         usage_goals=", ".join(child.get("usage_goals", [])),
-        kids_memory=""  # נכניס בהמשך
+        kids_memory=existing_memory
+
     )
     print("===== FINAL SYSTEM PROMPT =====")
     print(system_prompt)
@@ -136,5 +194,35 @@ def chat(
         role="assistant",
         content=answer
     )
+    if should_run_memory_extraction(child["id"]):
+        extractor_prompt = Path(
+            "prompts/iakids_memory_extractor_prompt.txt"
+        ).read_text()
+
+        recent_chat = get_recent_chat_messages(child["id"])
+        existing_memory_raw = get_existing_kids_memory(child["id"])
+
+        extractor_system = extractor_prompt.format(
+            child_name=child["child_name"],
+            age=child["age"],
+            existing_kids_memory=existing_memory_raw,
+            recent_chat_messages=recent_chat
+        )
+
+        extraction = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "system", "content": extractor_system}]
+        )
+
+        result = extraction.choices[0].message.content.strip()
+
+        if result != "NO_UPDATE":
+            data = json.loads(result)
+            if data.get("update") and data.get("memory"):
+                save_kids_memory(
+                    user_id=user.id,
+                    kid_id=child["id"],
+                    memory_list=data["memory"]
+                )
 
     return {"reply": answer}
