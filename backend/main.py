@@ -85,7 +85,7 @@ def save_kids_memory(
         "updated_by": updated_by
     }).execute()
 
-def should_run_memory_extraction(kid_id: str, every_n: int = 5) -> bool:
+def should_run_memory_extraction(kid_id: str, every_n: int = 2) -> bool:
     res = (
         sb.table("kids_chats")
         .select("id")
@@ -203,7 +203,7 @@ def chat(
 
                 recent_chat = get_recent_chat_messages(child["id"])
                 existing_memory_raw = get_existing_kids_memory(child["id"])
- 
+
                 print("===== RECENT CHAT SENT TO MEMORY EXTRACTOR =====")
                 print(recent_chat)
                 print("================================================")
