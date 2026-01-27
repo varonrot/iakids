@@ -1494,197 +1494,238 @@ body{
   transform:translateY(-4px);
   box-shadow:0 20px 45px rgba(255,106,42,.45);
 }
-/* ===== NAVBAR ===== */
-.nav-wrap {
-  position: fixed;
+.site-header {
+  position: sticky;
   top: 0;
-  width: 100%;
-  z-index: 50;
-  padding: 18px 0;
+  z-index: 100;
+  background: linear-gradient(180deg, #0b1f3b, #08162c);
 }
 
-.nav-bar {
+.nav-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 14px 26px;
-  background: linear-gradient(180deg, #2c6dff, #1c4fd8);
-  border-radius: 18px;
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 
-.nav-left {
+.logo {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.logo-img {
-  width: 32px;
-  height: 32px;
-}
-
-.logo-text {
   color: #fff;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 20px;
 }
 
-.nav-center {
+.nav-links {
   display: flex;
-  gap: 28px;
+  align-items: center;
+  gap: 26px;
 }
 
-.nav-center a {
-  color: #e9f1ff;
+.nav-links a {
+  color: #dbe7ff;
   text-decoration: none;
   font-weight: 500;
 }
 
-.nav-right {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-
-.nav-login {
-  color: #e9f1ff;
-  text-decoration: none;
-}
-
 .nav-cta {
-  background: #4fd1ff;
-  color: #053a55;
-  padding: 8px 18px;
+  background: #38d9ff;
+  color: #001b2e !important;
+  padding: 10px 18px;
   border-radius: 999px;
   font-weight: 700;
-  text-decoration: none;
 }
 
-/* ===== HERO ===== */
-.hero-exact {
-  min-height: 100vh;
-  background: url("/assets/A_SAFE_AI_FRIEND_FOR_KIDS.png") center/cover no-repeat;
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: white;
+  margin: 5px 0;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .nav-links {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: #0b1f3b;
+    flex-direction: column;
+    gap: 18px;
+    padding: 24px;
+    display: none;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .hamburger {
+    display: block;
+  }
+}
+.kids-hero {
+  min-height: 90vh;
+  background-image: url("/assets/A_SAFE_AI_FRIEND_FOR_KIDS.png");
+  background-size: cover;
+  background-position: center right;
   display: flex;
   align-items: center;
-  padding-left: 8%;
-  padding-top: 140px;
 }
 
 .hero-content {
   max-width: 520px;
-  color: #fff;
+  margin-left: clamp(40px, 8vw, 120px);
+  color: white;
 }
 
 .hero-pill {
   display: inline-block;
-  background: rgba(255,255,255,.2);
+  background: #38d9ff;
+  color: #001b2e;
   padding: 6px 14px;
   border-radius: 999px;
-  font-size: 12px;
   font-weight: 700;
-  margin-bottom: 18px;
+  font-size: 12px;
+  margin-bottom: 20px;
 }
 
 .hero-title {
-  font-size: 56px;
+  font-size: clamp(42px, 5vw, 56px);
   line-height: 1.1;
-  font-weight: 800;
-  margin-bottom: 18px;
 }
 
 .highlight {
   color: #ffd166;
 }
 
-.hero-text {
-  font-size: 18px;
-  margin-bottom: 28px;
+.hero-subtitle {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 600;
 }
 
-.hero-main-btn {
-  display: inline-block;
-  background: #ffd166;
-  color: #053a55;
-  padding: 14px 26px;
-  border-radius: 999px;
-  font-weight: 800;
-  text-decoration: none;
-  margin-bottom: 26px;
+.hero-desc {
+  margin-top: 18px;
+  max-width: 480px;
+  line-height: 1.6;
+  color: #dbe7ff;
 }
 
-.hero-bubbles {
+.hero-actions {
+  margin-top: 28px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+}
+
+.hero-btn {
+  padding: 14px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.hero-btn.primary {
+  background: #ffd166;
+  color: #001b2e;
+}
+
+.hero-btn.secondary {
+  border: 2px solid #ffffff55;
+  color: white;
+}
+
+.hero-tags {
+  margin-top: 24px;
+  display: flex;
+  gap: 18px;
+  color: #cfe6ff;
   font-size: 14px;
-  color: #eef6ff;
-}
-
-/* ===== TYPING CURSOR ===== */
-.typing::after {
-  content: "|";
-  margin-left: 4px;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%,100% { opacity: 1 }
-  50% { opacity: 0 }
 }
 
 </style>
 </head>
 
 <body>
-<header class="nav-wrap">
-  <div class="nav-bar">
-    <div class="nav-left">
-      <img src="/assets/iakids-logo.png" alt="iakids" class="logo-img">
+<header class="site-header">
+  <div class="nav-inner">
+
+    <div class="logo">
+      <span class="logo-icon">🤖</span>
       <span class="logo-text">iakids</span>
     </div>
 
-    <nav class="nav-center">
+    <nav class="nav-links" id="navLinks">
       <a href="#features">Features</a>
       <a href="#safety">Safety</a>
       <a href="#schools">For Schools</a>
-    </nav>
-
-    <div class="nav-right">
       <a href="/login" class="nav-login">Log in</a>
       <a href="/onboarding" class="nav-cta">Get started</a>
-    </div>
+    </nav>
+
+    <button class="hamburger" id="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
   </div>
 </header>
 
-<section class="hero-exact">
+<section class="kids-hero">
+
   <div class="hero-content">
-    <span class="hero-pill">A SAFE AI FRIEND FOR KIDS</span>
+
+    <div class="hero-pill">
+      A SAFE AI FRIEND FOR KIDS
+    </div>
 
     <h1 class="hero-title">
-      Learning feels like
-      <span class="typing highlight" id="typing-word"></span>
+      Learning feels <span class="highlight">like magic</span>
     </h1>
 
-    <p class="hero-text">
-      A friendly AI companion that helps kids learn,
-      imagine, and explore —
+    <h2 class="hero-subtitle">
+      Designed for
+      <span class="typing-box">
+        <span id="typing"></span><span class="cursor">|</span>
+      </span>
+    </h2>
+
+    <p class="hero-desc">
+      A safe and educational AI designed to help children learn,
+      imagine, and explore — with full peace of mind for parents.
     </p>
 
-    <a href="/onboarding" class="hero-main-btn">
-      Start the adventure 🚀
-    </a>
-
-    <div class="hero-bubbles">
-      <span>🐱 A cat astronaut</span>
-      <span>🧩 Solve animal riddle</span>
-      <span>🧪 A fun science fact</span>
+    <div class="hero-actions">
+      <a href="/onboarding" class="hero-btn primary">
+        Start the adventure 🚀
+      </a>
+      <a href="#how-it-works" class="hero-btn secondary">
+        How it works
+      </a>
     </div>
-  </div>
-</section>
 
+    <div class="hero-tags">
+      <span>🧠 Learning</span>
+      <span>🛡️ Safe by design</span>
+      <span>🎨 Creativity</span>
+    </div>
+
+  </div>
+
+</section>
 
 <!-- =========================
      NEXT SECTIONS (EMPTY)
@@ -2379,29 +2420,41 @@ if (menuBtn && navLinks) {
 </script>
 
 <script>
-const words = ["magic", "curiosity", "learning"];
-let i = 0, j = 0, deleting = false;
-const el = document.getElementById("typing-word");
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.getElementById("navLinks");
 
-function type() {
-  const word = words[i];
+  hamburger.addEventListener("click", () => {
+    navLinks.classList.toggle("open");
+  });
+</script>
+<script>
+  const words = ["learn", "ask", "explore", "create"];
+  const typingEl = document.getElementById("typing");
 
-  if (!deleting) {
-    el.textContent = word.slice(0, j++);
-    if (j > word.length) {
-      setTimeout(() => deleting = true, 1200);
+  let wordIndex = 0;
+  let charIndex = 0;
+  let deleting = false;
+
+  function typeLoop() {
+    const word = words[wordIndex];
+
+    if (!deleting) {
+      typingEl.textContent = word.slice(0, charIndex++);
+      if (charIndex > word.length) {
+        setTimeout(() => deleting = true, 1200);
+      }
+    } else {
+      typingEl.textContent = word.slice(0, charIndex--);
+      if (charIndex === 0) {
+        deleting = false;
+        wordIndex = (wordIndex + 1) % words.length;
+      }
     }
-  } else {
-    el.textContent = word.slice(0, j--);
-    if (j === 0) {
-      deleting = false;
-      i = (i + 1) % words.length;
-    }
+
+    setTimeout(typeLoop, deleting ? 60 : 90);
   }
-  setTimeout(type, deleting ? 60 : 90);
-}
 
-type();
+  typeLoop();
 </script>
 
 </body>
