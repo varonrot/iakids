@@ -203,6 +203,10 @@ def chat(
 
                 recent_chat = get_recent_chat_messages(child["id"])
                 existing_memory_raw = get_existing_kids_memory(child["id"])
+ 
+                print("===== RECENT CHAT SENT TO MEMORY EXTRACTOR =====")
+                print(recent_chat)
+                print("================================================")
 
                 extractor_system = extractor_prompt.format(
                     child_name=child["child_name"],
