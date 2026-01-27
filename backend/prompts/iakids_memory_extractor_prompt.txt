@@ -24,7 +24,8 @@ WHAT TO SAVE IN MEMORY
 IMPORTANT RULE:
 Statements where the child says they ALREADY DO something
 (e.g. "I play guitar", "I know how to read English", "I am good at math")
-should be treated as STABLE PERSONAL FACTS,
+MUST be treated as STABLE PERSONAL FACTS
+and MUST be saved to memory,
 even if mentioned only once.
 
 Only extract information that is:
