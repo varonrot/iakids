@@ -1494,119 +1494,205 @@ body{
   transform:translateY(-4px);
   box-shadow:0 20px 45px rgba(255,106,42,.45);
 }
+/* ===== HEADER ===== */
+.iakids-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+  background: linear-gradient(180deg, #0a2342, #081a33);
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 20px;
+  color: #fff;
+}
+
+.nav-center {
+  display: flex;
+  gap: 28px;
+}
+
+.nav-center a {
+  color: #cfe6ff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.login {
+  color: #cfe6ff;
+  text-decoration: none;
+}
+
+.btn-start {
+  background: #35d0ff;
+  color: #00263a;
+  padding: 10px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ===== HERO ===== */
+.hero {
+  min-height: 100vh;
+  padding-top: 96px; /* בשביל ה-header */
+  background:
+    linear-gradient(90deg, rgba(5,20,45,0.9), rgba(5,20,45,0.6)),
+    url("/assets/A_SAFE_AI_FRIEND_FOR_KIDS.png") center / cover no-repeat;
+}
+
+.hero-content {
+  max-width: 520px;
+  margin-left: 120px; /* 🔥 זה הקו עם המניו */
+  padding-top: 140px;
+  color: #fff;
+}
+
+.hero-pill {
+  display: inline-block;
+  background: #1fb6ff;
+  color: #00263a;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: 56px;
+  line-height: 1.1;
+  margin: 0 0 16px;
+}
+
+.accent {
+  color: #ffd166;
+}
+
+.typing-line {
+  font-size: 22px;
+  margin-bottom: 18px;
+}
+
+.hero-text {
+  color: #cfe6ff;
+  max-width: 480px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.btn-primary {
+  background: #ffd166;
+  color: #00263a;
+  padding: 14px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.btn-secondary {
+  border: 2px solid #fff;
+  color: #fff;
+  padding: 14px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.hero-tags {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #cfe6ff;
+}
+
+/* ===== TYPING CURSOR ===== */
+.cursor {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
 
 </style>
 </head>
 
 <body>
+<!-- ===== HEADER ===== -->
+<header class="iakids-header">
+  <div class="header-inner">
+    <div class="logo">iakids</div>
 
-<!-- =========================
-     HEADER
-========================= -->
+    <nav class="nav-center">
+      <a href="#features">Features</a>
+      <a href="#safety">Safety</a>
+      <a href="#schools">For Schools</a>
+    </nav>
 
-<header class="site-header">
-  <div class="nav-inner">
-
-    <!-- BRAND -->
-    <div class="brand">
-      <div class="brand-icon">IA</div>
-      <span class="brand-text">IA Kids</span>
+    <div class="nav-right">
+      <a href="/login" class="login">Log in</a>
+      <a href="/onboarding" class="btn-start">Get started</a>
     </div>
-
-    <!-- NAV -->
-<nav class="nav-links">
-  <a href="#features">Funciones</a>
-  <a href="#pricing">Precios</a>
-  <a href="#safety">Seguridad</a>
-  <a href="#resources">Recursos</a>
-  <a href="#trust">Opiniones</a>
-  <a href="#story">Nuestra historia</a>
-</nav>
-
-
-    <!-- ACTIONS -->
-    <div class="nav-actions">
-      <a href="#start" class="nav-cta">Prueba gratis</a>
-      <button class="nav-menu" aria-label="Menú">
-        ☰
-      </button>
-    </div>
-
   </div>
 </header>
 
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-content">
 
-<!-- =========================
-     HERO
-========================= -->
+    <span class="hero-pill">A SAFE AI FRIEND FOR KIDS</span>
 
-<section class="kids-hero">
-  <div class="hero-inner">
+    <h1>
+      Learning feels <span class="accent">like magic</span>
+    </h1>
 
-    <!-- LEFT -->
-    <div class="hero-left">
+    <h2 class="typing-line">
+      Designed for <span id="typing"></span><span class="cursor">|</span>
+    </h2>
 
-      <div class="hero-label">
-        AI para niños · Kids AI
-      </div>
+    <p class="hero-text">
+      A safe and educational AI designed to help children learn,
+      imagine, and explore — with full peace of mind for parents.
+    </p>
 
-      <h1 class="hero-title">
-        IA segura para niños
-      </h1>
-
-      <h2 class="hero-subtitle">
-        Diseñada para
-        <span class="typing-box">
-          <span id="typing"></span><span class="cursor">|</span>
-        </span>
-      </h2>
-
-      <p class="hero-desc">
-        Una inteligencia artificial educativa y segura para niños,
-        con control parental y total tranquilidad para los padres.
-      </p>
-
-      <div class="hero-actions">
-        <a href="/onboarding" class="btn-primary">
-          Empezar de forma segura
-        </a>
-
-        <a href="#how-it-works" class="btn-secondary">
-          <span class="play">▶</span>
-          Cómo funciona
-        </a>
-      </div>
-
-      <div class="hero-icons">
-        <span>🛡️ Contenido apropiado</span>
-        <span>🎓 Aprendizaje guiado</span>
-        <span>👨‍👩‍👧 Control parental</span>
-      </div>
-
+    <div class="hero-actions">
+      <a href="/onboarding" class="btn-primary">Start the adventure 🚀</a>
+      <a href="#how-it-works" class="btn-secondary">How it works</a>
     </div>
 
-    <!-- RIGHT -->
-    <div class="hero-right">
-      <div class="phone-mock">
-<img
-  src="/assets/iakids.jpeg"
-  alt="Kids AI chat"
-  loading="lazy"
-/>
-
-
-        <div class="chat chat-q">
-          ¿Por qué el cielo es azul?
-        </div>
-
-        <div class="chat chat-a">
-          ¡Gran pregunta! Vamos a descubrirlo juntos 🌈
-        </div>
-      </div>
+    <div class="hero-tags">
+      <span>🧠 Learning</span>
+      <span>🛡️ Safe by design</span>
+      <span>🎨 Creativity</span>
     </div>
 
   </div>
 </section>
+
 
 
 <!-- =========================
@@ -2299,6 +2385,35 @@ if (menuBtn && navLinks) {
   supabaseClient.auth.getSession().then(({ data, error }) => {
     console.log("Supabase connected", data, error);
   });
+</script>
+<script>
+const words = ["kids", "curiosity", "learning", "creativity"];
+let wordIndex = 0;
+let charIndex = 0;
+let deleting = false;
+
+const el = document.getElementById("typing");
+
+function typeLoop() {
+  const current = words[wordIndex];
+
+  if (!deleting) {
+    el.textContent = current.slice(0, ++charIndex);
+    if (charIndex === current.length) {
+      setTimeout(() => deleting = true, 1200);
+    }
+  } else {
+    el.textContent = current.slice(0, --charIndex);
+    if (charIndex === 0) {
+      deleting = false;
+      wordIndex = (wordIndex + 1) % words.length;
+    }
+  }
+
+  setTimeout(typeLoop, deleting ? 60 : 90);
+}
+
+typeLoop();
 </script>
 
 
