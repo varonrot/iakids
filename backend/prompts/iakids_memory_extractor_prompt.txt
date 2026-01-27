@@ -27,6 +27,14 @@ Statements where the child says they ALREADY DO something
 MUST be treated as STABLE PERSONAL FACTS
 and MUST be saved to memory,
 even if mentioned only once.
+DECISION RULE:
+If the child explicitly states an existing skill, hobby, or ability
+in the present tense (e.g. "I play guitar", "I can swim"),
+you MUST extract it as memory unless it already exists.
+Do not require repetition.
+LANGUAGE NOTE:
+The child's statements may appear in any language.
+Apply the same rules regardless of language or phrasing.
 
 Only extract information that is:
 - Stable over time (not a one-time mood)
@@ -40,6 +48,8 @@ Good examples:
 - Learning style or dislikes (e.g. “doesn’t like math puzzles”)
 - Skills or abilities the child claims to already have
   (e.g. "plays guitar", "can swim", "knows basic coding")
+- Explicit self-statements of ability or activity
+  (e.g. "I play guitar", "I already know how to code", "I practice piano")
 
 Do NOT save:
 - Temporary emotions (“I’m bored today”)
