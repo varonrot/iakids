@@ -220,16 +220,38 @@ def chat(
                     messages=[{"role": "system", "content": extractor_system}]
                 )
 
-                result = extraction.choices[0].message.content.strip()
+                raw = extraction.choices[0].message.content.strip()
 
-                if result != "NO_UPDATE":
-                    data = json.loads(result)
-                    if data.get("update") and data.get("memory"):
-                        save_kids_memory(
-                            user_id=user.id,
-                            kid_id=child["id"],
-                            memory_list=data["memory"]
-                        )
+                print("===== MEMORY EXTRACTOR RAW RESULT =====")
+                print(raw)
+                print("======================================")
+
+                if raw == "NO_UPDATE":
+                    return {"reply": answer}
+
+                import re
+
+                match = re.search(r'\{[\s\S]*\}', raw)
+                if not match:
+                    print("❌ No valid JSON found in memory extractor output")
+                    return {"reply": answer}
+
+                json_text = match.group(0)
+
+                try:
+                    data = json.loads(json_text)
+                except Exception as e:
+                    print("❌ JSON parse failed:", e)
+                    return {"reply": answer}
+
+                if data.get("update") and data.get("memory"):
+                    save_kids_memory(
+                        user_id=user.id,
+                        kid_id=child["id"],
+                        memory_list=data["memory"]
+                    )
+
+
             except Exception as e:
                 print("Memory extractor error:", e)
 
