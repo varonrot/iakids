@@ -4,6 +4,12 @@ from supabase import create_client
 from openai import OpenAI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from pathlib import Path
+
+CORE_PROMPT_TEMPLATE = Path("prompts/iakids_core_chat_system_prompt.txt").read_text()
+print("=== CORE PROMPT LOADED ===")
+print(CORE_PROMPT_TEMPLATE[:300])
+print("=========================")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -58,6 +64,21 @@ def get_child_profile(user_id: str):
         raise HTTPException(status_code=404, detail="No child profile found")
     return res.data[0]
 
+def save_chat_message(
+    user_id: str,
+    kid_id: str,
+    role: str,
+    content: str,
+    tokens: int | None = None
+):
+    sb.table("kids_chats").insert({
+        "user_id": user_id,
+        "kid_id": kid_id,
+        "role": role,
+        "content": content,
+        "tokens": tokens
+    }).execute()
+
 # ---------
 # CHAT
 # ---------
@@ -81,13 +102,24 @@ def chat(
 
     user = user_res.user
     child = get_child_profile(user.id)
+    save_chat_message(
+        user_id=user.id,
+        kid_id=child["id"],
+        role="user",
+        content=body.message
+    )
 
-    system_prompt = f"""
-You are iakids, a friendly AI companion for children.
-
-Child name: {child['child_name']}
-Age: {child['age']}
-"""
+    system_prompt = CORE_PROMPT_TEMPLATE.format(
+        child_name=child["child_name"],
+        age=child["age"],
+        avatar_key=child.get("avatar_key", ""),
+        learning_interests=", ".join(child.get("learning_interests", [])),
+        usage_goals=", ".join(child.get("usage_goals", [])),
+        kids_memory=""  # נכניס בהמשך
+    )
+    print("===== FINAL SYSTEM PROMPT =====")
+    print(system_prompt)
+    print("================================")
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -98,5 +130,11 @@ Age: {child['age']}
     )
 
     answer = completion.choices[0].message.content
+    save_chat_message(
+        user_id=user.id,
+        kid_id=child["id"],
+        role="assistant",
+        content=answer
+    )
 
     return {"reply": answer}
