@@ -73,6 +73,14 @@ RULES
   - Be factual and neutral
   - Assume memory will be merged by the backend
 
+OUTPUT LANGUAGE RULE (CRITICAL):
+All memory statements MUST be written in Spanish ONLY.
+
+- This applies even if the chat language is Hebrew, English, or any other language.
+- Do NOT mix languages.
+- Do NOT transliterate.
+- Use clear, natural Spanish suitable for a child profile.
+
 ────────────────────────
 OUTPUT FORMAT (STRICT)
 ────────────────────────
@@ -87,3 +95,13 @@ If update is needed:
 
 If no update is needed:
 NO_UPDATE
+
+CRITICAL OUTPUT RULES (MUST FOLLOW):
+
+- You must output ONLY valid JSON or the exact string NO_UPDATE
+- Do NOT include explanations, comments, markdown, or extra text
+- Do NOT wrap the JSON in quotes
+- Do NOT output partial JSON
+- The response MUST start with { and end with }
+- If you break the format, the system will fail
+
