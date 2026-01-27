@@ -1494,188 +1494,206 @@ body{
   transform:translateY(-4px);
   box-shadow:0 20px 45px rgba(255,106,42,.45);
 }
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: linear-gradient(180deg, #0b1f3b, #08162c);
+.iakids-header{
+  position: absolute;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:50;
 }
 
-.nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.nav-container{
+  max-width:1200px;
+  margin:0 auto;
+  padding:20px 32px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #fff;
-  font-weight: 700;
-  font-size: 20px;
+.nav-logo{
+  font-weight:800;
+  font-size:20px;
+  color:#ffffff;
 }
 
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 26px;
+.nav-links{
+  display:flex;
+  gap:28px;
 }
 
-.nav-links a {
-  color: #dbe7ff;
-  text-decoration: none;
-  font-weight: 500;
+.nav-links a{
+  color:#e5efff;
+  text-decoration:none;
+  font-weight:500;
 }
 
-.nav-cta {
-  background: #38d9ff;
-  color: #001b2e !important;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-weight: 700;
+.nav-actions{
+  display:flex;
+  gap:14px;
 }
 
-.hamburger {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
+.nav-login{
+  color:#e5efff;
+  text-decoration:none;
+  font-weight:500;
 }
 
-.hamburger span {
-  display: block;
-  width: 24px;
-  height: 2px;
-  background: white;
-  margin: 5px 0;
+.nav-cta{
+  background:#ffd166;
+  color:#0b1f3b;
+  padding:10px 18px;
+  border-radius:999px;
+  font-weight:700;
+  text-decoration:none;
 }
 
-/* MOBILE */
-@media (max-width: 900px) {
-  .nav-links {
-    position: absolute;
-    top: 70px;
-    left: 0;
-    right: 0;
-    background: #0b1f3b;
-    flex-direction: column;
-    gap: 18px;
-    padding: 24px;
-    display: none;
+/* Burger */
+.nav-burger{
+  display:none;
+  flex-direction:column;
+  gap:5px;
+  background:none;
+  border:none;
+  cursor:pointer;
+}
+
+.nav-burger span{
+  width:22px;
+  height:2px;
+  background:#ffffff;
+}
+
+/* Mobile */
+@media(max-width:900px){
+  .nav-links,
+  .nav-actions{
+    display:none;
   }
 
-  .nav-links.open {
-    display: flex;
+  .nav-burger{
+    display:flex;
   }
 
-  .hamburger {
-    display: block;
+  .nav-links.open{
+    position:absolute;
+    top:72px;
+    left:0;
+    right:0;
+    background:#0b1f3b;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    padding:24px;
   }
 }
-.kids-hero {
-  min-height: 90vh;
-  background-image: url("/assets/A_SAFE_AI_FRIEND_FOR_KIDS.png");
-  background-size: cover;
-  background-position: center right;
-  display: flex;
-  align-items: center;
+.iakids-hero{
+  min-height:100vh;
+  background-image:url("/assets/A_SAFE_AI_FRIEND_FOR_KIDS.png");
+  background-size:cover;
+  background-position:center right;
+  display:flex;
+  align-items:center;
 }
 
-.hero-content {
-  max-width: 520px;
-  margin-left: clamp(40px, 8vw, 120px);
-  color: white;
+.hero-content{
+  max-width:560px;
+  margin-left:clamp(48px,8vw,120px);
+  color:#ffffff;
 }
 
-.hero-pill {
-  display: inline-block;
-  background: #38d9ff;
-  color: #001b2e;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 12px;
-  margin-bottom: 20px;
+.hero-pill{
+  display:inline-block;
+  background:#38d9ff;
+  color:#06223d;
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:20px;
 }
 
-.hero-title {
-  font-size: clamp(42px, 5vw, 56px);
-  line-height: 1.1;
+.hero-title{
+  font-size:clamp(40px,5vw,58px);
+  font-weight:800;
+  line-height:1.1;
 }
 
-.highlight {
-  color: #ffd166;
+.typing-wrap{
+  color:#ffd166;
+  margin-left:8px;
+  white-space:nowrap;
 }
 
-.hero-subtitle {
-  margin-top: 12px;
-  font-size: 22px;
-  font-weight: 600;
+.cursor{
+  animation:blink 1s infinite;
 }
 
-.hero-desc {
-  margin-top: 18px;
-  max-width: 480px;
-  line-height: 1.6;
-  color: #dbe7ff;
+@keyframes blink{
+  0%,50%,100%{opacity:1}
+  25%,75%{opacity:0}
 }
 
-.hero-actions {
-  margin-top: 28px;
-  display: flex;
-  gap: 14px;
+.hero-text{
+  margin-top:18px;
+  line-height:1.6;
+  color:#dbe7ff;
 }
 
-.hero-btn {
-  padding: 14px 22px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-weight: 700;
+.hero-buttons{
+  margin-top:28px;
+  display:flex;
+  gap:14px;
 }
 
-.hero-btn.primary {
-  background: #ffd166;
-  color: #001b2e;
+.hero-btn{
+  padding:14px 22px;
+  border-radius:999px;
+  font-weight:700;
+  text-decoration:none;
 }
 
-.hero-btn.secondary {
-  border: 2px solid #ffffff55;
-  color: white;
+.hero-btn.primary{
+  background:#ffd166;
+  color:#0b1f3b;
 }
 
-.hero-tags {
-  margin-top: 24px;
-  display: flex;
-  gap: 18px;
-  color: #cfe6ff;
-  font-size: 14px;
+.hero-btn.secondary{
+  border:2px solid rgba(255,255,255,0.4);
+  color:#ffffff;
+}
+
+.hero-tags{
+  margin-top:22px;
+  display:flex;
+  gap:18px;
+  font-size:14px;
+  color:#cfe6ff;
 }
 
 </style>
 </head>
 
 <body>
-<header class="site-header">
-  <div class="nav-inner">
+<header class="iakids-header">
+  <div class="nav-container">
 
-    <div class="logo">
-      <span class="logo-icon">🤖</span>
-      <span class="logo-text">iakids</span>
+    <div class="nav-logo">
+      iakids
     </div>
 
     <nav class="nav-links" id="navLinks">
-      <a href="#features">Features</a>
-      <a href="#safety">Safety</a>
-      <a href="#schools">For Schools</a>
-      <a href="/login" class="nav-login">Log in</a>
-      <a href="/onboarding" class="nav-cta">Get started</a>
+      <a href="#features">Funciones</a>
+      <a href="#safety">Seguridad</a>
+      <a href="#schools">Para escuelas</a>
     </nav>
 
-    <button class="hamburger" id="hamburger">
+    <div class="nav-actions">
+      <a href="/login" class="nav-login">Iniciar sesión</a>
+      <a href="/onboarding" class="nav-cta">Empezar</a>
+    </div>
+
+    <button class="nav-burger" id="navBurger">
       <span></span>
       <span></span>
       <span></span>
@@ -1684,43 +1702,39 @@ body{
   </div>
 </header>
 
-<section class="kids-hero">
+<section class="iakids-hero">
 
   <div class="hero-content">
 
-    <div class="hero-pill">
-      A SAFE AI FRIEND FOR KIDS
-    </div>
+    <span class="hero-pill">
+      IA SEGURA PARA NIÑOS
+    </span>
 
     <h1 class="hero-title">
-      Learning feels <span class="highlight">like magic</span>
-    </h1>
-
-    <h2 class="hero-subtitle">
-      Designed for
-      <span class="typing-box">
+      Aprender se siente como
+      <span class="typing-wrap">
         <span id="typing"></span><span class="cursor">|</span>
       </span>
-    </h2>
+    </h1>
 
-    <p class="hero-desc">
-      A safe and educational AI designed to help children learn,
-      imagine, and explore — with full peace of mind for parents.
+    <p class="hero-text">
+      Una inteligencia artificial educativa y segura que ayuda a los niños
+      a aprender, imaginar y explorar con tranquilidad.
     </p>
 
-    <div class="hero-actions">
+    <div class="hero-buttons">
       <a href="/onboarding" class="hero-btn primary">
-        Start the adventure 🚀
+        Empezar de forma segura 🚀
       </a>
       <a href="#how-it-works" class="hero-btn secondary">
-        How it works
+        Cómo funciona
       </a>
     </div>
 
     <div class="hero-tags">
-      <span>🧠 Learning</span>
-      <span>🛡️ Safe by design</span>
-      <span>🎨 Creativity</span>
+      <span>🛡️ Contenido apropiado</span>
+      <span>🎓 Aprendizaje guiado</span>
+      <span>👨‍👩‍👧 Control parental</span>
     </div>
 
   </div>
@@ -2420,41 +2434,42 @@ if (menuBtn && navLinks) {
 </script>
 
 <script>
-  const hamburger = document.getElementById("hamburger");
-  const navLinks = document.getElementById("navLinks");
+/* Hamburger */
+const burger = document.getElementById("navBurger");
+const navLinks = document.getElementById("navLinks");
 
-  hamburger.addEventListener("click", () => {
-    navLinks.classList.toggle("open");
-  });
-</script>
-<script>
-  const words = ["learn", "ask", "explore", "create"];
-  const typingEl = document.getElementById("typing");
+burger.addEventListener("click", () => {
+  navLinks.classList.toggle("open");
+});
 
-  let wordIndex = 0;
-  let charIndex = 0;
-  let deleting = false;
+/* Typing */
+const words = ["magia", "juego", "aventura", "exploración"];
+const typingEl = document.getElementById("typing");
 
-  function typeLoop() {
-    const word = words[wordIndex];
+let wordIndex = 0;
+let charIndex = 0;
+let deleting = false;
 
-    if (!deleting) {
-      typingEl.textContent = word.slice(0, charIndex++);
-      if (charIndex > word.length) {
-        setTimeout(() => deleting = true, 1200);
-      }
-    } else {
-      typingEl.textContent = word.slice(0, charIndex--);
-      if (charIndex === 0) {
-        deleting = false;
-        wordIndex = (wordIndex + 1) % words.length;
-      }
+function typeLoop(){
+  const word = words[wordIndex];
+
+  if(!deleting){
+    typingEl.textContent = word.slice(0, charIndex++);
+    if(charIndex > word.length){
+      setTimeout(()=>deleting=true,1200);
     }
-
-    setTimeout(typeLoop, deleting ? 60 : 90);
+  } else {
+    typingEl.textContent = word.slice(0, charIndex--);
+    if(charIndex === 0){
+      deleting=false;
+      wordIndex=(wordIndex+1)%words.length;
+    }
   }
 
-  typeLoop();
+  setTimeout(typeLoop, deleting ? 60 : 90);
+}
+
+typeLoop();
 </script>
 
 </body>
