@@ -1,22 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
+  <!-- ROOT -->
   <url>
     <loc>https://iakids.app/</loc>
     <lastmod>2026-01-28</lastmod>
     <priority>1.0</priority>
   </url>
 
+  <!-- MAIN BLOG HUB -->
   <url>
-    <loc>https://iakids.app/onboarding/</loc>
+    <loc>https://iakids.app/blog/ia-educativa/</loc>
+    <lastmod>2026-01-28</lastmod>
+    <priority>0.9</priority>
   </url>
 
+  <!-- CLUSTER 1: EDUCACIÓN CON IA -->
   <url>
-    <loc>https://iakids.app/guia-para-padres/</loc>
+    <loc>https://iakids.app/blog/ia-educativa/educacion-con-ia/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/educacion-con-ia/que-es-educacion-con-ia/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/educacion-con-ia/beneficios-riesgos/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/educacion-con-ia/en-casa-y-escuela/</loc>
+    <priority>0.7</priority>
   </url>
 
+  <!-- CLUSTER 2: APRENDER CON IA -->
   <url>
-    <loc>https://iakids.app/actividades-educativas/</loc>
+    <loc>https://iakids.app/blog/ia-educativa/aprender-con-ia/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/aprender-con-ia/como-aprender/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/aprender-con-ia/en-casa/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/aprender-con-ia/aprender-jugando/</loc>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- CLUSTER 3: IA SEGURA PARA NIÑOS -->
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/ia-segura-para-ninos/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/ia-segura-para-ninos/que-es-ia-segura/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/ia-segura-para-ninos/control-parental/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/blog/ia-educativa/ia-segura-para-ninos/chatgpt-es-seguro/</loc>
+    <priority>0.7</priority>
   </url>
 
 </urlset>
