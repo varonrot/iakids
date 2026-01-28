@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>IA educativa para niños | Educación con inteligencia artificial</title>
+
+<meta name="description"
+content="IA educativa para niños: guía completa sobre educación con IA, aprender con inteligencia artificial y uso seguro con control parental.">
+
+<link rel="canonical" href="https://iakids.app/blog/ia-educativa/">
+
+<meta name="robots" content="index, follow">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="IA educativa para niños">
+<meta property="og:description" content="Cómo usar la inteligencia artificial en la educación infantil de forma segura y responsable.">
+<meta property="og:image" content="https://iakids.app/assets/alternativas-seguras-ia-ninos.jpg">
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  background:#fff;
+  color:#1f2937;
+}
+a{color:#2563eb;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.wrapper{
+  max-width:1200px;
+  margin:auto;
+  padding:40px 20px 80px;
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:40px;
+}
+
+img{
+  width:100%;
+  border-radius:16px;
+  margin-bottom:24px;
+}
+
+h1{font-size:clamp(30px,4vw,44px)}
+h2{margin-top:48px}
+p{line-height:1.8;margin:18px 0}
+
+strong{color:#0f172a}
+
+.sidebar{
+  position:sticky;
+  top:40px;
+  align-self:start;
+  border-left:1px solid #e5e7eb;
+  padding-left:24px;
+}
+
+.sidebar h3{
+  margin-top:0;
+  font-size:18px;
+}
+
+.sidebar ul{
+  padding-left:18px;
+}
+.sidebar li{
+  margin:10px 0;
+}
+
+.box{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:22px;
+  margin-top:30px;
+}
+
+.cta{
+  margin-top:70px;
+  padding:36px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  text-align:center;
+}
+.cta h2{margin-top:0;color:#fff}
+.cta p{max-width:600px;margin:16px auto}
+.cta a{
+  display:inline-block;
+  margin-top:18px;
+  padding:14px 28px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+}
+    .topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#ffffffcc;
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid #e5e7eb;
+}
+
+.topbar-inner{
+  max-width:1200px;
+  margin:auto;
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.topbar-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:16px;
+  color:#0f172a;
+}
+
+.topbar-brand .tag{
+  font-size:13px;
+  color:#64748b;
+}
+
+.topbar-cta .btn-primary{
+  padding:10px 22px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 6px 18px rgba(37,99,235,.25);
+}
+
+.topbar-cta .btn-primary:hover{
+  opacity:.92;
+}
+.sidebar{
+  position:sticky;
+  top:96px; /* חשוב: שלא ייכנס מתחת לטופ־בר */
+  align-self:start;
+}
+
+.side-box{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:24px;
+}
+
+.side-box h3{
+  margin-top:0;
+  font-size:16px;
+}
+
+.side-nav{
+  list-style:none;
+  padding-left:0;
+  margin:14px 0 0;
+}
+
+.side-nav li{
+  margin:10px 0;
+}
+
+.side-image{
+  width:100%;
+  border-radius:12px;
+  margin-bottom:14px;
+}
+
+.side-note{
+  font-size:14px;
+  line-height:1.6;
+  color:#334155;
+}
+
+.side-cta{
+  text-align:center;
+  padding:22px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+}
+
+.side-cta p{
+  margin:0 0 14px;
+  font-size:15px;
+}
+
+.side-btn{
+  display:inline-block;
+  padding:12px 24px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+  text-decoration:none;
+}
+/* =========================
+   MOBILE OPTIMIZATION – SIDEBAR AT BOTTOM
+========================= */
+
+@media (max-width: 900px){
+
+  .wrapper{
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 24px;
+  }
+
+  /* MAIN stays first */
+  main{
+    order: 1;
+  }
+
+  /* SIDEBAR moves to bottom */
+  aside.sidebar{
+    position: static;
+    border-left: none;
+    padding-left: 0;
+    margin-top: 48px;
+    order: 2;
+  }
+
+  .side-box,
+  .side-cta{
+    margin-bottom: 20px;
+  }
+
+  /* Sidebar becomes footer-like section */
+  aside.sidebar{
+    padding-top: 32px;
+    border-top: 2px solid #e5e7eb;
+  }
+
+  .side-box:first-child{
+    background:#f8fafc;
+  }
+
+  .side-box h3{
+    font-size:17px;
+  }
+
+  main img{
+    border-radius:12px;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+  h2{
+    font-size:22px;
+  }
+
+  .cta{
+    margin-top: 48px;
+    padding: 28px 20px;
+  }
+
+  .cta a{
+    width:100%;
+    text-align:center;
+  }
+}
+/* =========================
+   FIX CTA BUTTON OVERFLOW – MOBILE
+========================= */
+
+@media (max-width: 900px){
+
+  .cta{
+    padding: 28px 18px;      /* פחות padding אופקי */
+    box-sizing: border-box;
+  }
+
+  .cta a{
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 14px 20px;
+    text-align: center;
+  }
+}
+
+</style>
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"CollectionPage",
+  "name":"IA educativa para niños",
+  "description":"Guía central sobre educación con inteligencia artificial para niños.",
+  "url":"https://iakids.app/blog/ia-educativa/"
+}
+</script>
+</head>
+
+
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      🤖 <strong>iakids</strong>
+      <span class="tag">Aprender con IA</span>
+    </div>
+
+    <div class="topbar-cta">
+      <a href="https://iakids.app/" class="btn-primary">
+        Probar iakids
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="wrapper">
+
+<!-- MAIN CONTENT -->
+<main>
+
+<img
+  src="https://iakids.app/assets/alternativas-seguras-ia-ninos.jpg"
+  alt="Aprender jugando con inteligencia artificial"
+>
+
+<nav class="breadcrumb">
+  <a href="/blog/ia-educativa/">IA educativa</a>
+  <span>›</span>
+  <a href="/blog/ia-educativa/aprender-con-ia/">Aprender con IA</a>
+  <span>›</span>
+  <strong>Aprender jugando</strong>
+</nav>
+
+<h1>Aprender jugando con IA</h1>
+
+<p>
+<strong>Aprender jugando con IA</strong> combina dos elementos clave
+en la educación infantil: el juego y la tecnología.
+Cuando se usan juntos de forma correcta,
+el aprendizaje se vuelve más natural, motivador y efectivo.
+</p>
+
+<p>
+La <strong>inteligencia artificial educativa</strong> permite crear
+experiencias lúdicas que explican, proponen retos
+y acompañan al niño mientras aprende.
+</p>
+
+<h2>¿Por qué el juego es tan importante?</h2>
+
+<p>
+El juego es una de las principales formas
+en que los niños aprenden.
+A través del juego desarrollan:
+</p>
+
+<ul>
+  <li>Creatividad e imaginación</li>
+  <li>Pensamiento lógico</li>
+  <li>Capacidad de resolver problemas</li>
+  <li>Motivación por aprender</li>
+</ul>
+
+<div class="box">
+  <h3>IA + juego = aprendizaje activo</h3>
+  <p>
+    Cuando la <strong>IA educativa</strong> se integra en actividades lúdicas,
+    el niño participa activamente,
+    explora ideas y aprende sin sentir presión.
+  </p>
+</div>
+
+<h2>Ejemplos de aprender jugando con IA</h2>
+
+<p>
+Algunas formas en que los niños pueden
+<strong>aprender jugando con IA</strong> son:
+</p>
+
+<ul>
+  <li>Creación de historias interactivas</li>
+  <li>Juegos de preguntas y respuestas</li>
+  <li>Retos adaptados a su nivel</li>
+  <li>Exploración guiada de temas educativos</li>
+</ul>
+
+<h2>Rol del adulto en el aprendizaje lúdico</h2>
+
+<p>
+Aunque el juego sea central,
+el acompañamiento adulto sigue siendo fundamental.
+</p>
+
+<ul>
+  <li>Elegir plataformas adecuadas para niños</li>
+  <li>Observar cómo interactúa el niño</li>
+  <li>Hablar sobre lo aprendido</li>
+  <li>Marcar límites de tiempo</li>
+</ul>
+
+<h2>Aprender jugando de forma segura</h2>
+
+<p>
+Para que el <strong>aprendizaje lúdico con IA</strong> sea seguro,
+es importante:
+</p>
+
+<ul>
+  <li>Usar herramientas diseñadas para niños</li>
+  <li>Evitar plataformas pensadas para adultos</li>
+  <li>Contar con control parental real</li>
+  <li>Priorizar objetivos educativos</li>
+</ul>
+
+<div class="box">
+  <h2>Explora más sobre aprender con IA</h2>
+  <ul>
+    <li>
+      <a href="/blog/ia-educativa/aprender-con-ia/como-aprender/">
+        Cómo aprender con IA
+      </a>
+    </li>
+    <li>
+      <a href="/blog/ia-educativa/aprender-con-ia/en-casa/">
+        Aprender con IA en casa
+      </a>
+    </li>
+    <li>
+      <a href="/blog/ia-educativa/aprender-con-ia/">
+        Volver al mini-hub Aprender con IA
+      </a>
+    </li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h2>Aprender jugando con IA segura</h2>
+  <p>
+    En <strong>iakids</strong> usamos la IA
+    para crear experiencias de aprendizaje lúdicas,
+    seguras y adaptadas a niños.
+  </p>
+  <a href="https://iakids.app/">Probar iakids</a>
+</div>
+
+</main>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+  <div class="side-box">
+    <h3>🧭 Aprender con IA</h3>
+    <ul class="side-nav">
+      <li>
+        <a href="/blog/ia-educativa/aprender-con-ia/">
+          Mini-hub Aprender con IA
+        </a>
+      </li>
+      <li>
+        <a href="/blog/ia-educativa/aprender-con-ia/como-aprender/">
+          Cómo aprender con IA
+        </a>
+      </li>
+      <li>
+        <a href="/blog/ia-educativa/aprender-con-ia/en-casa/">
+          Aprender con IA en casa
+        </a>
+      </li>
+      <li><strong>Aprender jugando</strong></li>
+      <li>
+        <a href="/blog/ia-educativa/">
+          Hub IA educativa
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="side-cta">
+    <p>
+      IA educativa que convierte el aprendizaje en juego.
+    </p>
+    <a href="https://iakids.app/" class="side-btn">
+      Probar iakids
+    </a>
+  </div>
+
+</aside>
+
+</div>
+
+</body>
+
+
+
+</html>
