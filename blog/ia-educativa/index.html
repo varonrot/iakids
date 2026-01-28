@@ -203,6 +203,73 @@ strong{color:#0f172a}
   border-radius:999px;
   text-decoration:none;
 }
+/* =========================
+   MOBILE OPTIMIZATION – SIDEBAR AT BOTTOM
+========================= */
+
+@media (max-width: 900px){
+
+  .wrapper{
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 24px;
+  }
+
+  /* MAIN stays first */
+  main{
+    order: 1;
+  }
+
+  /* SIDEBAR moves to bottom */
+  aside.sidebar{
+    position: static;
+    border-left: none;
+    padding-left: 0;
+    margin-top: 48px;
+    order: 2;
+  }
+
+  .side-box,
+  .side-cta{
+    margin-bottom: 20px;
+  }
+
+  /* Sidebar becomes footer-like section */
+  aside.sidebar{
+    padding-top: 32px;
+    border-top: 2px solid #e5e7eb;
+  }
+
+  .side-box:first-child{
+    background:#f8fafc;
+  }
+
+  .side-box h3{
+    font-size:17px;
+  }
+
+  main img{
+    border-radius:12px;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+  h2{
+    font-size:22px;
+  }
+
+  .cta{
+    margin-top: 48px;
+    padding: 28px 20px;
+  }
+
+  .cta a{
+    width:100%;
+    text-align:center;
+  }
+}
 
 </style>
 
