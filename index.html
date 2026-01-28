@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1697,7 +1698,7 @@ body{
   }
 }
 </script>
-    
+
 </head>
 
 <body>
@@ -2432,18 +2433,7 @@ if (backToTop) {
     });
   });
 }
-    /* =========================
-   MOBILE NAV TOGGLE
-========================= */
-const menuBtn = document.querySelector('.nav-menu');
-const navLinks = document.querySelector('.nav-links');
 
-if (menuBtn && navLinks) {
-  menuBtn.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
-    menuBtn.textContent = navLinks.classList.contains('open') ? '✕' : '☰';
-  });
-}
 
 </script>
 
@@ -2468,34 +2458,7 @@ burger.addEventListener("click", () => {
   navLinks.classList.toggle("open");
 });
 
-/* Typing */
-const words = ["magia", "juego", "aventura", "exploración"];
-const typingEl = document.getElementById("typing");
 
-let wordIndex = 0;
-let charIndex = 0;
-let deleting = false;
-
-function typeLoop(){
-  const word = words[wordIndex];
-
-  if(!deleting){
-    typingEl.textContent = word.slice(0, charIndex++);
-    if(charIndex > word.length){
-      setTimeout(()=>deleting=true,1200);
-    }
-  } else {
-    typingEl.textContent = word.slice(0, charIndex--);
-    if(charIndex === 0){
-      deleting=false;
-      wordIndex=(wordIndex+1)%words.length;
-    }
-  }
-
-  setTimeout(typeLoop, deleting ? 60 : 90);
-}
-
-typeLoop();
 </script>
 
 </body>
