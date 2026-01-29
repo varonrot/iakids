@@ -293,7 +293,7 @@ header{
   font-weight:800;
   cursor:pointer;
 }
- 
+
 .idea:hover img{
   transform:scale(1.05);
   transition:.25s ease;
@@ -318,6 +318,22 @@ header{
 
   cursor:pointer;
   transition:.2s ease;
+}
+/* ⭐ Primary action – Ask */
+.side-item-primary{
+  height:64px;
+  background:rgba(255,255,255,.22);
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
+}
+
+.side-item-primary img{
+  width:34px;
+  height:34px;
+}
+
+.side-item-primary span{
+  font-size:16px;
+  font-weight:700;
 }
 
 .side-item img{
@@ -349,10 +365,10 @@ header{
 
 <div class="kid-actions">
 
-  <button class="side-item" data-action="ask">
-    <img src="/assets/side/ask.png" />
-    <span>Ask</span>
-  </button>
+<button class="side-item side-item-primary" data-action="ask">
+  <img src="/assets/side/ask.png" />
+  <span>Ask</span>
+</button>
 
   <button class="side-item" data-action="solve">
     <img src="/assets/side/solve.png" />
@@ -375,7 +391,7 @@ header{
   </button>
 
 </div>
- 
+
     </div>
   </aside>
 
