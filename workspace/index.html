@@ -42,49 +42,48 @@ body{
 /* ================= APP LAYOUT ================= */
 .app{
   display:grid;
-  grid-template-columns:90px 1fr;
+  grid-template-columns:240px 1fr;
   height:100vh;
 }
 
 /* ================= SIDEBAR ================= */
 .sidebar{
-  padding:14px 10px;
+  padding:16px;
 }
 
-/* 🔹 סרגל עם תמונה כרקע מלא */
+/* הסייד עצמו – התמונה היא כל הרקע */
 .sidebar-inner{
   height:100%;
-  border-radius:26px;
+  border-radius:28px;
 
-  /* 👇 התמונה שלך כרקע */
   background-image: url("/assets/iakids-sidebar.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 
-  box-shadow:0 30px 80px rgba(0,0,0,.45);
+  box-shadow:0 30px 80px rgba(0,0,0,.35);
 
   display:flex;
   flex-direction:column;
-  align-items:center;
-  padding:18px 8px;
+  align-items:flex-start;
 
+  padding:22px 18px;
   color:#fff;
 }
 
-/* ❌ bot-box לא בשימוש יותר – אפשר למחוק מה־HTML */
+/* אין רובוט טקסטואלי */
 .bot-box{
   display:none;
 }
 
-/* 🔹 אווטאר הילד */
+/* אווטאר משתמש */
 .sidebar-avatar{
-  width:52px;
-  height:52px;
+  width:56px;
+  height:56px;
   border-radius:50%;
   overflow:hidden;
-  margin:8px 0 22px;
-  border:2px solid rgba(255,255,255,.45);
+  margin-bottom:28px;
+  border:2px solid rgba(255,255,255,.5);
 }
 .sidebar-avatar img{
   width:100%;
@@ -92,40 +91,59 @@ body{
   object-fit:cover;
 }
 
-/* 🔹 כפתורי פעולה */
+/* פעולות */
 .kid-actions{
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap:16px;
+  width:100%;
 }
 
-/* 🔹 כפתורים “מרחפים” מעל התמונה */
-.kid-actions button,
+/* כפתורים גדולים, “כרטיסים” */
+.kid-actions button{
+  width:100%;
+  height:52px;
+  border-radius:16px;
+  border:none;
+
+  background:rgba(255,255,255,.14);
+  backdrop-filter: blur(6px);
+
+  color:#fff;
+  font-size:16px;
+  font-weight:600;
+  text-align:left;
+  padding:0 16px;
+
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  transition:background .2s ease, transform .2s ease;
+}
+
+.kid-actions button:hover{
+  background:rgba(255,255,255,.25);
+  transform:translateX(2px);
+}
+
+/* כפתור תחתון */
 .sidebar-footer{
-  width:48px;
-  height:48px;
-  border-radius:14px;
+  margin-top:auto;
+  width:100%;
+  height:52px;
+
+  border-radius:16px;
   border:none;
 
   background:rgba(255,255,255,.12);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 
   color:#fff;
-  font-size:22px;
+  font-size:16px;
+  font-weight:600;
   cursor:pointer;
-
-  transition:transform .2s ease, background .2s ease;
-}
-
-.kid-actions button:hover,
-.sidebar-footer:hover{
-  background:rgba(255,255,255,.22);
-  transform:scale(1.05);
-}
-
-/* 🔹 כפתור תחתון (הגדרות / עזרה) */
-.sidebar-footer{
-  margin-top:auto;
 }
 
 
