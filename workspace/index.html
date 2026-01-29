@@ -40,20 +40,31 @@ body{
 /* ================= APP LAYOUT ================= */
 .app{
   display:grid;
-  grid-template-columns:240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   height:100vh;
 }
 
 /* ================= SIDEBAR ================= */
 .sidebar{
-  padding:0;
+  width:240px;
+  min-width:240px;
   background-image:url("/assets/iakids-sidebar.png");
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
 }
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:240px;
+  z-index:10;
+}
+.main{
+  margin-left:240px;
+}
 
-/* container פנימי – רק פריסה, בלי עיצוב */
 .sidebar-inner{
   height:100%;
   width:100%;
@@ -106,7 +117,12 @@ body{
 .main{
   display:flex;
   flex-direction:column;
-  padding:18px 26px 18px 0; /* ❗ בלי padding משמאל */
+  padding:18px 26px;
+
+  background: transparent; /* חובה */
+}
+.app{
+  background: transparent;
 }
 
 /* ================= HEADER ================= */
