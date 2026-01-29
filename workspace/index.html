@@ -225,20 +225,47 @@ header{
 }
 
 /* ================= IDEAS ================= */
-.ideas{
-  margin-top:18px;
-}
-.idea-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;
-}
 .idea{
-  background:#fff;
-  border-radius:16px;
-  padding:14px;
+  background:rgba(255,255,255,0.92);
+  border-radius:18px;
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  gap:14px;
   font-weight:600;
-  cursor:pointer;
+  color:#1f2937; /* אפור-כחול כהה */
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.idea span{
+  font-size:15px;
+  letter-spacing:.2px;
+}
+.idea span{
+  font-size:15px;
+  font-weight:700;
+  color:#24324a;
+}
+.idea:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 40px rgba(0,0,0,.12);
+}
+.idea img{
+  width:56px;
+  height:56px;
+  object-fit:contain;
+  flex-shrink:0;
+  transition:transform .25s ease;
+}
+
+.idea:hover img{
+  transform:scale(1.08);
+}
+.ideas h3{
+  margin:0 0 12px;
+  font-size:16px;
+  font-weight:700;
+  color:#374151;
 }
 
 /* ================= VOICE ================= */
