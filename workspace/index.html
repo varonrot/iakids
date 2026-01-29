@@ -253,6 +253,17 @@ header{
   font-weight:800;
   cursor:pointer;
 }
+      .idea img{
+  width:56px;
+  height:56px;
+  object-fit:contain;
+  flex-shrink:0;
+}
+.idea:hover img{
+  transform:scale(1.05);
+  transition:.25s ease;
+}
+
   </style>
 </head>
 
@@ -322,12 +333,29 @@ header{
       <div class="ideas">
         <h3>Need an idea?</h3>
         <div class="idea-grid">
-          <div class="idea">🐱 A cat astronaut</div>
-          <div class="idea">🧩 Solve an animal riddle</div>
-          <div class="idea">🔬 A fun science fact</div>
-          <div class="idea">😂 A silly robot joke</div>
-          <div class="idea">📝 Play a word game</div>
-        </div>
+
+  <div class="idea">
+    <img src="/assets/icons/homework-help.png" alt="Homework help" />
+    <span>Homework help</span>
+  </div>
+
+  <div class="idea">
+    <img src="/assets/icons/explain-topic.png" alt="Explain a topic" />
+    <span>Explain a topic</span>
+  </div>
+
+  <div class="idea">
+    <img src="/assets/icons/smart-riddle.png" alt="Smart riddle" />
+    <span>Smart riddle</span>
+  </div>
+
+  <div class="idea">
+    <img src="/assets/icons/something-interesting.png" alt="Something interesting" />
+    <span>Something interesting</span>
+  </div>
+
+</div>
+
       </div>
 
     </div>
