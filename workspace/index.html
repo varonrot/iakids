@@ -27,19 +27,19 @@ body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   height:100vh;
+  overflow:hidden;          /* ⭐ זה קריטי */
 
-  background:
-
-    url("/assets/askie-space-bg.jpg");
-
+  background:url("/assets/askie-space-bg.jpg");
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
 }
 
+
 /* ================= APP LAYOUT ================= */
 .app{
   height:100vh;
+  overflow:hidden;          /* ⭐ חשוב */
 }
 
 
@@ -112,11 +112,15 @@ body{
 
 /* ================= MAIN ================= */
 .main{
-  margin-left:240px;   /* ⭐ זה הקסם */
+  margin-left:240px;
+  height:100vh;
+
   display:flex;
   flex-direction:column;
   padding:18px 26px;
-  height:100vh;
+
+  overflow-y:auto;          /* ⭐ כאן הגלילה */
+  overflow-x:hidden;
 }
 
 
