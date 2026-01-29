@@ -326,6 +326,38 @@ header{
   transform:scale(1.05);
   transition:.25s ease;
 }
+.side-item{
+  width:100%;
+  height:54px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:0 14px;
+  border-radius:16px;
+  border:none;
+
+  background:rgba(255,255,255,.14);
+  backdrop-filter: blur(6px);
+
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.side-item img{
+  width:26px;
+  height:26px;
+  object-fit:contain;
+}
+
+.side-item:hover{
+  background:rgba(255,255,255,.25);
+  transform:translateX(2px);
+}
 
   </style>
 </head>
@@ -343,13 +375,35 @@ header{
         <img id="userAvatarSidebar" />
       </div>
 
-      <div class="kid-actions">
-        <button>🎤</button>
-        <button>🖼️</button>
-        <button>📚</button>
-        <button>🎮</button>
-        <button>❓</button>
-      </div>
+<div class="kid-actions">
+
+  <button class="side-item" data-action="ask">
+    <img src="/assets/side/ask.png" />
+    <span>Ask</span>
+  </button>
+
+  <button class="side-item" data-action="solve">
+    <img src="/assets/side/solve.png" />
+    <span>Solve</span>
+  </button>
+
+  <button class="side-item" data-action="learn">
+    <img src="/assets/side/learn.png" />
+    <span>Learn</span>
+  </button>
+
+  <button class="side-item" data-action="play">
+    <img src="/assets/side/play.png" />
+    <span>Play</span>
+  </button>
+
+  <button class="side-item" data-action="surprise">
+    <img src="/assets/side/surprise.png" />
+    <span>Surprise</span>
+  </button>
+
+</div>
+
 
       <div class="sidebar-footer">⚙️</div>
     </div>
