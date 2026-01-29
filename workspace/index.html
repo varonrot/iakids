@@ -47,19 +47,20 @@ body{
 /* ================= SIDEBAR ================= */
 .sidebar{
   padding:0;
-}
-
-.sidebar-inner{
-  height:100%;
-  width:100%;
-  border-radius:26px;
-
   background-image:url("/assets/iakids-sidebar.png");
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
+}
 
-  box-shadow:0 30px 80px rgba(0,0,0,.45);
+/* container פנימי – רק פריסה, בלי עיצוב */
+.sidebar-inner{
+  height:100%;
+  width:100%;
+
+  background:transparent;   /* ❗ חשוב */
+  border-radius:0;          /* ❗ חשוב */
+  box-shadow:none;          /* ❗ חשוב */
 
   display:flex;
   flex-direction:column;
@@ -88,29 +89,24 @@ body{
   object-fit:cover;
 }
 
-/* 🔽 כאן הקסם: דוחף את הכפתורים מתחת לרובוט */
+/* 🔽 דוחף את הכפתורים מתחת לרובוט */
 .kid-actions{
   display:flex;
   flex-direction:column;
   gap:14px;
-
-  /* התאמה לפי גובה הרובוט בתמונה */
-  margin-top:140px; /* אפשר לכוון: 120–170 */
+  margin-top:140px; /* אפשר לכוון */
 }
-
-
 
 .sidebar-footer{
   margin-top:auto;
 }
 
 
-
 /* ================= MAIN ================= */
 .main{
   display:flex;
   flex-direction:column;
-  padding:18px 26px;
+  padding:18px 26px 18px 0; /* ❗ בלי padding משמאל */
 }
 
 /* ================= HEADER ================= */
