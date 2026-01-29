@@ -123,12 +123,12 @@ body{
   overflow:hidden;
 }
 
-/* ===== SIDEBAR ROBOT ===== */
+/* ===== SIDEBAR ROBOT (BIGGER) ===== */
 .sidebar-robot{
-  margin-top:12px;
-  margin-bottom:22px;
+  margin-top:18px;
+  margin-bottom:26px;
 
-  width:88px;
+  width:128px;          /* ⬅️ היה 88px */
   height:auto;
 
   display:flex;
@@ -142,8 +142,8 @@ body{
   object-fit:contain;
 
   filter:
-    drop-shadow(0 0 18px rgba(120,180,255,.65))
-    drop-shadow(0 0 40px rgba(80,140,255,.35));
+    drop-shadow(0 0 22px rgba(120,180,255,.75))
+    drop-shadow(0 0 60px rgba(80,140,255,.45));
 }
 
 /* ================= MAIN ================= */
@@ -361,45 +361,55 @@ header{
   transition:.25s ease;
 }
 .side-item{
-  width:96%;
-  height:60px;
+  width:92%;            /* ⬅️ היה 96% – פחות אוויר בצדדים */
+  height:66px;          /* ⬅️ היה 60px */
+
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
 
-  padding:0 24px;
+  padding:0 26px;       /* ⬅️ יותר בשר */
   margin:0 auto;
 
-  border-radius:18px;
-  border:none;
+  border-radius:22px;   /* ⬅️ יותר רך */
 
-  background:rgba(255,255,255,.14);
-  backdrop-filter: blur(6px);
+  background:rgba(255,255,255,.18);
+  backdrop-filter: blur(8px);
 
   color:#fff;
-  font-size:15px;
+  font-size:16px;       /* ⬅️ טיפה גדול יותר */
   font-weight:600;
 
   cursor:pointer;
-  transition:.2s ease;
+  transition:.25s ease;
 }
 
-/* ⭐ Primary action – Ask */
+
 .side-item-primary{
-  height:64px;
-  background:rgba(255,255,255,.22);
-  box-shadow:0 6px 18px rgba(0,0,0,.25);
-}
+  height:72px;          /* ⬅️ גדול מכולם */
+  background:rgba(255,255,255,.28);
 
-.side-item-primary img{
-  width:34px;
-  height:34px;
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
 }
 
 .side-item-primary span{
-  font-size:16px;
+  font-size:17px;
   font-weight:700;
 }
+
+.side-item-primary i{
+  font-size:30px;
+  color:#ffffff;
+}
+.kid-actions{
+  display:flex;
+  flex-direction:column;
+  gap:16px;     /* ⬅️ היה 14 */
+  margin-top:24px; /* ⬅️ היה 40 – עכשיו מחובר יותר לרובוט */
+}
+
 
 .side-item img{
   width:26px;
