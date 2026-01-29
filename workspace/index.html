@@ -86,13 +86,13 @@ body{
   object-fit:cover;
 }
 
-/* כפתורים */
 .kid-actions{
   display:flex;
   flex-direction:column;
   gap:14px;
-  margin-top:140px;
+  margin-top:40px;
 }
+
  .sidebar{
   position:fixed;
   top:0;
@@ -123,6 +123,28 @@ body{
   overflow:hidden;
 }
 
+/* ===== SIDEBAR ROBOT ===== */
+.sidebar-robot{
+  margin-top:12px;
+  margin-bottom:22px;
+
+  width:88px;
+  height:auto;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.sidebar-robot img{
+  width:100%;
+  height:auto;
+  object-fit:contain;
+
+  filter:
+    drop-shadow(0 0 18px rgba(120,180,255,.65))
+    drop-shadow(0 0 40px rgba(80,140,255,.35));
+}
 
 /* ================= MAIN ================= */
 .main{
@@ -416,9 +438,10 @@ header{
   <!-- תוכן הסייד -->
   <div class="sidebar-inner">
 
-    <div class="sidebar-avatar">
-      <img id="userAvatarSidebar" />
-    </div>
+ <div class="sidebar-robot">
+  <img src="/assets/askie-robot.png" alt="iakids robot" />
+</div>
+
 
     <div class="kid-actions">
 
