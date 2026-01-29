@@ -300,6 +300,42 @@ header{
   transform:scale(1.05);
   transition:.25s ease;
 }
+/* ===== IAKIDS SIDEBAR ===== */
+.iakids-sidebar{
+  padding-top:12px;
+}
+
+.iakids-character{
+  width:100%;
+  max-width:64px;
+  margin-bottom:18px;
+  border-radius:18px;
+}
+
+/* side actions */
+.kid-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+
+.kid-actions button{
+  width:48px;
+  height:48px;
+  border-radius:14px;
+  border:none;
+  background:rgba(255,255,255,.18);
+  color:#fff;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.side-label{
+  font-size:10px;
+  opacity:.75;
+  margin-bottom:8px;
+}
 
   </style>
 </head>
@@ -309,31 +345,45 @@ header{
 <div class="app">
 
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar">
-    <div class="sidebar-inner">
-      <div class="bot-box">🤖</div>
+ <aside class="sidebar">
+  <div class="sidebar-inner iakids-sidebar">
 
-      <div class="sidebar-avatar">
-        <img id="userAvatarSidebar" />
-      </div>
+    <!-- iakids character -->
+    <img
+      src="/assets/iakids-sidebar.png"
+      alt="iakids helper"
+      class="iakids-character"
+    />
 
-      <div class="kid-actions">
-        <button>🎤</button>
-        <button>🖼️</button>
-        <button>📚</button>
-        <button>🎮</button>
-        <button>❓</button>
-      </div>
+    <!-- kid help actions -->
+    <div class="kid-actions">
 
-      <div class="sidebar-footer">⚙️</div>
+      <button title="Help me understand">🧩</button>
+      <span class="side-label">Understand</span>
+
+      <button title="Explain step by step">🪜</button>
+      <span class="side-label">Steps</span>
+
+      <button title="Explore something">🔍</button>
+      <span class="side-label">Explore</span>
+
+      <button title="New idea">💡</button>
+      <span class="side-label">Idea</span>
+
+      <button title="I’m stuck">❓</button>
+      <span class="side-label">Help</span>
+
     </div>
-  </aside>
+
+  </div>
+</aside>
+
 
   <!-- ===== MAIN ===== -->
   <main class="main">
 
     <header>
-      <div class="logo">🤖 Askie</div>
+      <div class="logo">iakids</div>
       <div class="user">
         <img id="userAvatar" />
         <span id="userName"></span>
