@@ -16,6 +16,7 @@
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
 /* ================= RESET ================= */
@@ -346,6 +347,17 @@ header{
   background:rgba(255,255,255,.25);
   transform:translateX(2px);
 }
+.side-item i{
+  font-size:22px;
+  width:26px;
+  text-align:center;
+  color:#cfe6ff;
+  filter: drop-shadow(0 0 6px rgba(120,180,255,.6));
+}
+.side-item-primary i{
+  font-size:28px;
+  color:#ffffff;
+}
 
   </style>
 </head>
@@ -366,29 +378,30 @@ header{
 <div class="kid-actions">
 
 <button class="side-item side-item-primary" data-action="ask">
-  <img src="/assets/side/ask.png" />
+  <i class="fa-solid fa-comment-dots"></i>
   <span>Ask</span>
 </button>
 
-  <button class="side-item" data-action="solve">
-    <img src="/assets/side/solve.png" />
-    <span>Solve</span>
-  </button>
+<button class="side-item" data-action="solve">
+  <i class="fa-solid fa-lightbulb"></i>
+  <span>Solve</span>
+</button>
 
-  <button class="side-item" data-action="learn">
-    <img src="/assets/side/learn.png" />
-    <span>Learn</span>
-  </button>
+<button class="side-item" data-action="learn">
+  <i class="fa-solid fa-book-open"></i>
+  <span>Learn</span>
+</button>
 
-  <button class="side-item" data-action="play">
-    <img src="/assets/side/play.png" />
-    <span>Play</span>
-  </button>
+<button class="side-item" data-action="play">
+  <i class="fa-solid fa-gamepad"></i>
+  <span>Play</span>
+</button>
 
-  <button class="side-item" data-action="surprise">
-    <img src="/assets/side/surprise.png" />
-    <span>Surprise</span>
-  </button>
+<button class="side-item" data-action="surprise">
+  <i class="fa-solid fa-wand-magic-sparkles"></i>
+  <span>Surprise</span>
+</button>
+
 
 </div>
 
