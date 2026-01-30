@@ -293,16 +293,23 @@ header{
   padding:0 20px;
   border-radius:999px;
   border:none;
-  background:transparent;
+  background:#ff6b4a;
   color:#fff;
   font-weight:700;
   cursor:pointer;
 }
  /* ===== INPUT ACTIONS – PURE BLACK ===== */
 
-/* ===== INPUT ACTIONS – PURE BLACK ===== */
+.input{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
 
+/* BASE */
 .send-btn,
+/* ===== MIC BUTTON – SIDEBAR STYLE ===== */
+
 .talk-btn{
   width:46px;
   height:46px;
@@ -310,7 +317,7 @@ header{
   border:none;
   cursor:pointer;
 
-  background:rgba(0,0,0,.65);
+  background:rgba(255,255,255,.18);
   backdrop-filter:blur(8px);
 
   display:flex;
@@ -318,8 +325,8 @@ header{
   justify-content:center;
 
   box-shadow:
-    0 10px 26px rgba(0,0,0,.6),
-    inset 0 0 0 1px rgba(255,255,255,.12);
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
 
   transition:
     transform .2s ease,
@@ -329,18 +336,50 @@ header{
 
 /* ICON */
 .talk-btn i{
-  color:#ffffff;
-  filter:none;
+  color:#cfe6ff;
+  filter:
+    drop-shadow(0 0 6px rgba(120,180,255,.6))
+    drop-shadow(0 0 12px rgba(120,180,255,.35));
+}
+
+/* HOVER */
+.talk-btn:hover{
+  background:rgba(20,30,50,.45);   /* ⬅️ כהה, לא לבן */
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 14px 36px rgba(0,0,0,.55),
+    inset 0 0 0 1px rgba(120,180,255,.25);
+}
+
+
+/* ACTIVE */
+.talk-btn:active{
+  transform:translateY(0);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.3),
+    inset 0 0 0 1px rgba(255,255,255,.2);
+}
+
+
+/* SEND */
+.send-btn{
+  padding:0 26px;
+}
+
+/* MIC */
+.talk-btn{
+  width:46px;
+  padding:0;
+  font-size:18px;
 }
 
 /* HOVER */
 .send-btn:hover,
 .talk-btn:hover{
-  background:rgba(0,0,0,.85);
   transform:translateY(-1px);
-
   box-shadow:
-    0 18px 44px rgba(0,0,0,.85),
+    0 18px 44px rgba(0,0,0,.8),
     inset 0 1px 0 rgba(255,255,255,.12);
 }
 
@@ -666,7 +705,7 @@ header{
   overflow:hidden;
 }
 
-
+ 
 
 .messages{
   flex:1;
