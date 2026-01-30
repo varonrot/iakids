@@ -684,28 +684,18 @@ header{
   flex:1;
   overflow:hidden;
 }
-/* ===== CHAT LAYOUT FIX ===== */
+
 .chat{
+  height:100%;
   display:flex;
   flex-direction:column;
+  overflow:hidden;
 }
 
 .messages{
   flex:1;
-  min-height:0;   /* ⭐ זה הסוד */
+  overflow-y:auto;
 }
-
-<!--.chat{-->
-<!--  height:100%;-->
-<!--  display:flex;-->
-<!--  flex-direction:column;-->
-<!--  overflow:hidden;-->
-<!--}-->
-
-<!--.messages{-->
-<!--  flex:1;-->
-<!--  overflow-y:auto;-->
-<!--}-->
 
   </style>
 </head>
