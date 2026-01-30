@@ -54,7 +54,6 @@ body{
 }
 
 
-/* תוכן הסייד */
 .sidebar-inner{
   position:relative;
   z-index:2;
@@ -66,9 +65,10 @@ body{
   flex-direction:column;
   align-items:center;
 
-  padding:18px 8px;
+  padding:0;          /* ❌ מבטל רווחים */
   background:transparent;
 }
+
 
 /* אווטאר */
 .sidebar-avatar{
@@ -126,29 +126,30 @@ body{
 /* ===== SIDEBAR ROBOT – HERO MODE ===== */
 .sidebar-robot{
   width:100%;
-  height:38vh;              /* ⬅️ זה הסוד: גובה יחסי למסך */
-  min-height:260px;
-  max-height:360px;
+  height:42vh;          /* ⬅️ יותר גדול */
+  min-height:300px;
+  max-height:none;     /* ❌ מבטל חסימה */
 
   display:flex;
-  align-items:center;
+  align-items:flex-end; /* ⬅️ נשען למטה */
   justify-content:center;
 
-  margin:0;                 /* ⬅️ לא margin */
-  padding-top:12px;
+  margin:0;
+  padding:0;
 }
 
 .sidebar-robot img{
-  width:200px;              /* ⬅️ גדול באמת */
-  max-width:80%;
+  width:250px;          /* ⬅️ באמת גדול */
+  max-width:90%;        /* ⬅️ כמעט כל הסייד */
   height:auto;
 
   object-fit:contain;
 
   filter:
-    drop-shadow(0 0 30px rgba(120,180,255,.85))
-    drop-shadow(0 0 80px rgba(80,140,255,.55));
+    drop-shadow(0 0 40px rgba(120,180,255,.9))
+    drop-shadow(0 0 100px rgba(80,140,255,.6));
 }
+
 
 /* ================= MAIN ================= */
 .main{
@@ -365,23 +366,23 @@ header{
   transition:.25s ease;
 }
 .side-item{
-  width:92%;            /* ⬅️ היה 96% – פחות אוויר בצדדים */
+  width:100%;            /* ⬅️ היה 96% – פחות אוויר בצדדים */
   height:66px;          /* ⬅️ היה 60px */
 
   display:flex;
   align-items:center;
   gap:16px;
 
-  padding:0 26px;       /* ⬅️ יותר בשר */
+  padding:0 22px;       /* ⬅️ יותר בשר */
   margin:0 auto;
 
-  border-radius:22px;   /* ⬅️ יותר רך */
+  border-radius:10px;   /* ⬅️ יותר רך */
 
   background:rgba(255,255,255,.18);
   backdrop-filter: blur(8px);
 
   color:#fff;
-  font-size:16px;       /* ⬅️ טיפה גדול יותר */
+  font-size:15px;       /* ⬅️ טיפה גדול יותר */
   font-weight:600;
 
   cursor:pointer;
@@ -390,7 +391,7 @@ header{
 
 
 .side-item-primary{
-  height:72px;          /* ⬅️ גדול מכולם */
+  height:70px;          /* ⬅️ גדול מכולם */
   background:rgba(255,255,255,.28);
 
   box-shadow:
@@ -408,10 +409,13 @@ header{
   color:#ffffff;
 }
 .kid-actions{
+  width:100%;
+  margin-top:8px;      /* ⬅️ כמעט צמוד לרובוט */
+  padding:0 8px;
+
   display:flex;
   flex-direction:column;
-  gap:16px;
-  margin-top:12px;   /* ⬅️ קרוב לרובוט אבל לא צמוד */
+  gap:12px;
 }
 
 .side-item img{
