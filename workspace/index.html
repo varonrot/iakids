@@ -237,7 +237,7 @@ header{
   color:#ff6b4a;
 }
 
-/* ================= CHAT ================= */
+
 /* ================= CHAT ================= */
 .chat{
   flex:1;
@@ -256,11 +256,13 @@ header{
   flex:1;
   overflow-y:auto;
   padding:12px;
+  padding-bottom:88px; /* מקום קבוע לשורת הקלט */
 
   display:flex;
   flex-direction:column;
   gap:10px;
 }
+
 
 /* שורת הקלט – תמיד בתחתית */
 .input{
@@ -935,7 +937,7 @@ function addMessage(role, text) {
 
   if (role === "assistant") {
     const avatar = document.createElement("img");
-    avatar.src = "/assets/askie-robot.png"; // האווטאר שלך
+    avatar.src = "/assets/askie-robot.png";
     avatar.className = "msg-avatar";
     row.appendChild(avatar);
   }
@@ -943,7 +945,10 @@ function addMessage(role, text) {
   row.appendChild(bubble);
   messagesEl.appendChild(row);
 
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+   
+  requestAnimationFrame(() => {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
 }
 
 
