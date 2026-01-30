@@ -387,7 +387,7 @@ header{
   backdrop-filter:blur(14px);           /* ⬅️ זכוכית */
   border-radius:18px;
   padding:16px 18px;
-
+  margin-top:16px;
   display:flex;
   align-items:center;
   gap:14px;
@@ -426,6 +426,7 @@ header{
   object-fit:contain;
   flex-shrink:0;
   transition:transform .25s ease;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));
 }
 
 .idea:hover img{
@@ -693,6 +694,26 @@ header{
   box-shadow:
     0 0 12px rgba(120,180,255,.6),
     0 8px 20px rgba(80,140,255,.45);
+}
+/* ===== BLACK ACTION BUTTONS ===== */
+
+.send-btn{
+  background:#111 !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.35) !important;
+}
+
+.send-btn:hover{
+  box-shadow:0 10px 26px rgba(0,0,0,.45) !important;
+}
+
+.talk-btn{
+  background:#111 !important;
+  color:#fff !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.35) !important;
+}
+
+.talk-btn:hover{
+  background:#000 !important;
 }
 
   </style>
