@@ -126,24 +126,18 @@ body{
 /* ===== SIDEBAR ROBOT – HERO MODE ===== */
 .sidebar-robot{
   width:100%;
-  height:42vh;          /* ⬅️ יותר גדול */
-  min-height:300px;
-  max-height:none;     /* ❌ מבטל חסימה */
-
   display:flex;
-  align-items:flex-end; /* ⬅️ נשען למטה */
   justify-content:center;
+  align-items:center;
 
-  margin:0;
-  padding:0;
+  margin-top:12px;   /* אם אתה רוצה קצת אוויר */
+  margin-bottom:8px;
 }
 
 .sidebar-robot img{
-  width:250px;          /* ⬅️ באמת גדול */
-  max-width:90%;        /* ⬅️ כמעט כל הסייד */
+  width:220px;      /* שולט בגודל האמיתי */
+  max-width:90%;
   height:auto;
-
-  object-fit:contain;
 
   filter:
     drop-shadow(0 0 40px rgba(120,180,255,.9))
@@ -190,8 +184,7 @@ header{
 /* ================= CONTENT ================= */
 .container{
   flex:1;
-  justify-content:flex-start;  /* ⬅️ חשוב */
-  gap:10px;                    /* ⬅️ רווח נשלט בין אזורים */
+
   background:rgba(255,255,255,.16);
   backdrop-filter:blur(28px);
   border-radius:28px;
@@ -248,19 +241,14 @@ header{
 
 /* ================= CHAT ================= */
 .chat{
-  flex:0 0 auto;          /* ❌ לא flex:1 */
-  min-height:260px;       /* ⬅️ גובה מינימלי נעים */
-  max-height:45vh;        /* ⬅️ לא משתלט על המסך */
-
+  flex:1;
   background:rgba(255,255,255,.18);
   backdrop-filter:blur(22px);
   border-radius:22px;
   padding:14px;
-
   display:flex;
   flex-direction:column;
 }
-
 
 .messages{
   flex:1;
@@ -344,7 +332,6 @@ header{
   font-size:16px;
   font-weight:700;
   color:#374151;
-  margin-bottom:6px;
 }
 
 .idea-grid{
