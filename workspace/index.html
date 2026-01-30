@@ -190,7 +190,8 @@ header{
 /* ================= CONTENT ================= */
 .container{
   flex:1;
-
+  justify-content:flex-start;  /* ⬅️ חשוב */
+  gap:10px;                    /* ⬅️ רווח נשלט בין אזורים */
   background:rgba(255,255,255,.16);
   backdrop-filter:blur(28px);
   border-radius:28px;
@@ -247,14 +248,19 @@ header{
 
 /* ================= CHAT ================= */
 .chat{
-  flex:1;
+  flex:0 0 auto;          /* ❌ לא flex:1 */
+  min-height:260px;       /* ⬅️ גובה מינימלי נעים */
+  max-height:45vh;        /* ⬅️ לא משתלט על המסך */
+
   background:rgba(255,255,255,.18);
   backdrop-filter:blur(22px);
   border-radius:22px;
   padding:14px;
+
   display:flex;
   flex-direction:column;
 }
+
 
 .messages{
   flex:1;
@@ -338,6 +344,7 @@ header{
   font-size:16px;
   font-weight:700;
   color:#374151;
+  margin-bottom:6px;
 }
 
 .idea-grid{
