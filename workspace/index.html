@@ -150,14 +150,11 @@ body{
 .main{
   margin-left:240px;
   height:100vh;
-
   display:flex;
   flex-direction:column;
-
-  padding:12px 20px;   /* ⬅️ היה 18px 26px */
-  overflow-y:auto;
+  padding:12px 20px;
+  overflow:hidden; /* ❗ חשוב */
 }
-
 
 /* ================= HEADER ================= */
 header{
@@ -249,6 +246,7 @@ header{
   padding:14px;
   display:flex;
   flex-direction:column;
+  overflow:hidden; /* ❗ */
 }
 
 .messages{
@@ -501,6 +499,62 @@ header{
   opacity:.7;
   margin-top:2px;
 }
+/* ===== CHAT MESSAGES ===== */
+
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* ROW */
+.msg-row{
+  display:flex;
+  align-items:flex-end;
+  max-width:100%;
+}
+
+/* USER */
+.msg-row.user{
+  justify-content:flex-end;
+}
+
+.msg-row.user .msg-bubble{
+  background:linear-gradient(135deg,#4f9cff,#2f6fff);
+  color:#fff;
+  border-bottom-right-radius:6px;
+}
+
+/* ASSISTANT */
+.msg-row.assistant{
+  justify-content:flex-start;
+  gap:8px;
+}
+
+.msg-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+  box-shadow:0 0 10px rgba(120,180,255,.6);
+}
+
+/* BUBBLE */
+.msg-bubble{
+  max-width:65%;
+  padding:12px 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.85);
+  color:#1f2937;
+  font-size:14px;
+  line-height:1.4;
+  backdrop-filter:blur(6px);
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+  white-space:pre-wrap;
+}
 
   </style>
 </head>
@@ -701,28 +755,25 @@ let kidId = null;
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
-  const div = document.createElement("div");
-  div.style.margin = "10px 0";
-  div.style.padding = "12px 16px";
-  div.style.borderRadius = "16px";
-  div.style.maxWidth = "75%";
-  div.style.whiteSpace = "pre-wrap";
+  const row = document.createElement("div");
+  row.className = `msg-row ${role}`;
 
-  if (role === "user") {
-    div.style.background = "#ff6b4a";
-    div.style.color = "#fff";
-    div.style.marginLeft = "auto";
-  } else {
-    div.style.background = "#f3f4f6";
-    div.style.color = "#111827";
-    div.style.marginRight = "auto";
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.textContent = text;
+
+  if (role === "assistant") {
+    const avatar = document.createElement("img");
+    avatar.src = "/assets/askie-robot.png"; // האווטאר שלך
+    avatar.className = "msg-avatar";
+    row.appendChild(avatar);
   }
 
-  div.textContent = text;
-  messagesEl.appendChild(div);
+  row.appendChild(bubble);
+  messagesEl.appendChild(row);
+
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
-
 
 
 /* ---------- SEND MESSAGE ---------- */
