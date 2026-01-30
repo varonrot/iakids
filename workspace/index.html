@@ -240,7 +240,6 @@ header{
 /* ================= CHAT ================= */
 .chat{
   flex:1;
-  min-height:0;              /* ⭐ קריטי */
   display:flex;
   flex-direction:column;
 
@@ -248,15 +247,14 @@ header{
   backdrop-filter:blur(22px);
   border-radius:22px;
 
-  overflow:hidden;
+  overflow-y:auto;   /* ✅ כאן הגלילה */
 }
 
 
 /* ההודעות – רק הן נגללות */
 .messages{
-  flex:1;
-  min-height:0;              /* ⭐ גם כאן */
-  overflow-y:auto;
+  flex:none;         /* ⬅️ לא מתיחה */
+  overflow:visible;  /* ⬅️ אין גלילה כאן */
 
   padding:12px;
   display:flex;
