@@ -251,24 +251,21 @@ header{
   backdrop-filter:blur(22px);
   border-radius:22px;
 
-  overflow:hidden;   /* ✅ כאן הגלילה */
+  overflow:hidden;
 }
 
 .messages{
-  flex:1;                 /* תופס את כל הגובה */
-  overflow-y:auto;        /* הגלילה כאן */
+  flex:1;
+  overflow-y:auto;
   padding:12px;
   display:flex;
   flex-direction:column;
   gap:10px;
 }
 
-
-/* שורת הקלט – תמיד בתחתית */
+/* ================= INPUT BAR ================= */
 .input{
-  flex-shrink:0;             /* כבר יש לך ✔️ */
-  height:auto;
-
+  flex-shrink:0;
   display:flex;
   align-items:center;
   gap:10px;
@@ -280,7 +277,7 @@ header{
   border-top:1px solid rgba(255,255,255,.25);
 }
 
-
+/* TEXT INPUT */
 .input input{
   flex:1;
   padding:14px 18px;
@@ -288,27 +285,16 @@ header{
   border:2px solid #e5e7eb;
   font-size:15px;
 }
+
+/* ❌ מבטל עיצוב כללי שמפריע */
 .input button{
-  padding:0 20px;
-  border-radius:999px;
+  background:none;
+  padding:0;
   border:none;
-  background:none;   /* ❌ אין צבע כאן */
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
- /* ===== INPUT ACTIONS – PURE BLACK ===== */
-
-.input{
-  display:flex;
-  gap:10px;
-  align-items:center;
 }
 
-/* BASE */
+/* ================= ACTION BUTTONS – BLACK ================= */
 .send-btn,
-/* ===== MIC BUTTON – SIDEBAR STYLE ===== */
-
 .talk-btn{
   width:46px;
   height:46px;
@@ -316,68 +302,40 @@ header{
   border:none;
   cursor:pointer;
 
-  background:rgba(255,255,255,.18);
-  backdrop-filter:blur(8px);
+  background:rgba(0,0,0,.85);   /* 🖤 שחור אמיתי */
+  backdrop-filter:blur(6px);
 
   display:flex;
   align-items:center;
   justify-content:center;
 
+  color:#fff;
+  font-weight:700;
+
   box-shadow:
-    0 10px 26px rgba(0,0,0,.35),
-    inset 0 0 0 1px rgba(255,255,255,.25);
+    0 10px 26px rgba(0,0,0,.7),
+    inset 0 0 0 1px rgba(255,255,255,.08);
 
   transition:
+    background .2s ease,
     transform .2s ease,
-    box-shadow .2s ease,
-    background .2s ease;
+    box-shadow .2s ease;
 }
 
-/* ICON */
+/* MICROPHONE ICON */
 .talk-btn i{
   font-size:20px;
-  color:#cfe6ff; /* ⬅️ בדיוק כמו הסיידבר */
-  filter:drop-shadow(0 0 6px rgba(120,180,255,.6));
-}
-
-/* HOVER */
-.talk-btn:hover{
-  background:rgba(20,30,50,.45);   /* ⬅️ כהה, לא לבן */
-  transform:translateY(-1px);
-
-  box-shadow:
-    0 14px 36px rgba(0,0,0,.55),
-    inset 0 0 0 1px rgba(120,180,255,.25);
-}
-
-
-/* ACTIVE */
-.talk-btn:active{
-  transform:translateY(0);
-  box-shadow:
-    0 6px 18px rgba(0,0,0,.3),
-    inset 0 0 0 1px rgba(255,255,255,.2);
-}
-
-
-/* SEND */
-.send-btn{
-  padding:0 26px;
-}
-
-/* MIC */
-.talk-btn{
-  width:46px;
-  padding:0;
-  font-size:18px;
+  color:#ffffff;
 }
 
 /* HOVER */
 .send-btn:hover,
 .talk-btn:hover{
+  background:rgba(0,0,0,.95);
   transform:translateY(-1px);
+
   box-shadow:
-    0 18px 44px rgba(0,0,0,.8),
+    0 18px 44px rgba(0,0,0,.85),
     inset 0 1px 0 rgba(255,255,255,.12);
 }
 
