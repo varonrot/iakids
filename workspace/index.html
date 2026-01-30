@@ -250,12 +250,7 @@ header{
   overflow-y:auto;   /* ✅ כאן הגלילה */
 }
 
-
-/* ההודעות – רק הן נגללות */
 .messages{
-  flex:none;         /* ⬅️ לא מתיחה */
-  overflow:visible;  /* ⬅️ אין גלילה כאן */
-
   padding:12px;
   display:flex;
   flex-direction:column;
@@ -556,14 +551,7 @@ header{
 }
 /* ===== CHAT MESSAGES ===== */
 
-.messages{
-  flex:1;
-  overflow-y:auto;
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
+
 
 /* ROW */
 .msg-row{
