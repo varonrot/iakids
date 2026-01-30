@@ -292,7 +292,7 @@ header{
   padding:0 20px;
   border-radius:999px;
   border:none;
-  background:#ff6b4a;
+  background:none;   /* ❌ אין צבע כאן */
   color:#fff;
   font-weight:700;
   cursor:pointer;
@@ -390,26 +390,24 @@ header{
     inset 0 1px 0 rgba(255,255,255,.06);
 }
 
+
 /* ================= IDEAS ================= */
-
 .idea{
-  background:rgba(255,255,255,.22);     /* זכוכית */
-  backdrop-filter:blur(14px);
-  border-radius:20px;
-
-  padding:22px 24px;                    /* יותר נפח */
-  min-height:110px;                     /* ממלא את הכרטיס */
+  background:rgba(255,255,255,.22);     /* ⬅️ שקיפות אמיתית */
+  backdrop-filter:blur(14px);           /* ⬅️ זכוכית */
+  border-radius:18px;
+  padding:16px 18px;
 
   display:flex;
   align-items:center;
-  gap:18px;                             /* רווח בין אייקון לטקסט */
+  gap:14px;
 
   font-weight:600;
   color:#1f2937;
 
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,.25),
-    0 14px 34px rgba(0,0,0,.14);
+    0 12px 30px rgba(0,0,0,.12);
 
   cursor:pointer;
   transition:
@@ -418,53 +416,59 @@ header{
     background .25s ease;
 }
 
-.idea:hover{
-  background:rgba(255,255,255,.32);
-  transform:translateY(-3px);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.35),
-    0 22px 48px rgba(0,0,0,.22);
+.idea span{
+  font-size:15px;
+  font-weight:700;
+  color:#24324a;
 }
 
-/* ===== ICON ===== */
+.idea:hover{
+  background:rgba(255,255,255,.3);
+  transform:translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.35),
+    0 18px 40px rgba(0,0,0,.18);
+}
+
 .idea img{
-  width:72px;                           /* ⬅️ גדול יותר */
-  height:72px;
+  width:56px;
+  height:56px;
   object-fit:contain;
   flex-shrink:0;
   transition:transform .25s ease;
 }
 
 .idea:hover img{
-  transform:scale(1.12);
+  transform:scale(1.08);
 }
 
-/* ===== TEXT ===== */
+.ideas h3{
+  margin:0 0 12px;
+  font-size:16px;
+  font-weight:700;
+  color:#374151;
+}
+
+.idea-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+/* ===== IDEA TEXT ONLY – NO SIZE CHANGE ===== */
+
 .idea-title{
-  font-size:18px;                       /* ⬅️ כותרת גדולה */
+  font-size:19px;        /* ⬅️ גדול וברור */
   font-weight:800;
+  line-height:1.2;
   color:#1f2937;
 }
 
 .idea-sub{
-  font-size:14px;                       /* ⬅️ טקסט קריא */
+  font-size:14px;        /* ⬅️ קריא, לא משתלט */
+  font-weight:500;
+  line-height:1.3;
   opacity:.8;
   margin-top:4px;
-}
-
-/* ===== SECTION TITLE ===== */
-.ideas h3{
-  margin:0 0 14px;
-  font-size:17px;
-  font-weight:800;
-  color:#374151;
-}
-
-/* ===== GRID ===== */
-.idea-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); /* קצת רחב יותר */
-  gap:14px;
 }
 
 
