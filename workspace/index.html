@@ -297,7 +297,7 @@ header{
   font-weight:700;
   cursor:pointer;
 }
- /* ===== INPUT ACTIONS – PREMIUM BLACK ===== */
+ /* ===== INPUT ACTIONS – PURE BLACK ===== */
 
 .input{
   display:flex;
@@ -305,26 +305,27 @@ header{
   align-items:center;
 }
 
-/* SHARED BUTTON BASE */
+/* BASE */
 .send-btn,
+/* ===== MIC BUTTON – SIDEBAR STYLE ===== */
+
 .talk-btn{
+  width:46px;
   height:46px;
-  border-radius:999px;
+  border-radius:50%;
   border:none;
   cursor:pointer;
 
-  background:linear-gradient(
-    180deg,
-    #0b0b0d,
-    #000000
-  );
+  background:rgba(255,255,255,.18);
+  backdrop-filter:blur(8px);
 
-  color:#ffffff;
-  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
   box-shadow:
-    0 10px 30px rgba(0,0,0,.55),
-    inset 0 1px 0 rgba(255,255,255,.12);
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
 
   transition:
     transform .2s ease,
@@ -332,35 +333,59 @@ header{
     background .2s ease;
 }
 
-/* SEND – מלבן */
-.send-btn{
-  padding:0 26px;
-  letter-spacing:.3px;
+/* ICON */
+.talk-btn i{
+  font-size:20px;
+  color:#cfe6ff; /* ⬅️ בדיוק כמו הסיידבר */
+  filter:drop-shadow(0 0 6px rgba(120,180,255,.6));
 }
 
-/* MIC – עיגול */
+/* HOVER */
+.talk-btn:hover{
+  background:rgba(255,255,255,.26);
+  transform:translateY(-1px);
+  box-shadow:
+    0 14px 36px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(255,255,255,.35);
+}
+
+/* ACTIVE */
+.talk-btn:active{
+  transform:translateY(0);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.3),
+    inset 0 0 0 1px rgba(255,255,255,.2);
+}
+
+
+/* SEND */
+.send-btn{
+  padding:0 26px;
+}
+
+/* MIC */
 .talk-btn{
   width:46px;
   padding:0;
   font-size:18px;
 }
 
-/* HOVER – FLOAT */
+/* HOVER */
 .send-btn:hover,
 .talk-btn:hover{
   transform:translateY(-1px);
   box-shadow:
-    0 14px 40px rgba(0,0,0,.7),
-    inset 0 1px 0 rgba(255,255,255,.18);
+    0 18px 44px rgba(0,0,0,.8),
+    inset 0 1px 0 rgba(255,255,255,.12);
 }
 
-/* ACTIVE – PRESS */
+/* ACTIVE */
 .send-btn:active,
 .talk-btn:active{
   transform:translateY(0);
   box-shadow:
-    0 6px 18px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.1);
+    0 6px 18px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.06);
 }
 
 
@@ -798,7 +823,10 @@ header{
   <input placeholder="Ask anything…" />
 
   <button class="send-btn">Send</button>
-  <button class="talk-btn" title="Talk">🎤</button>
+  <button class="talk-btn" title="Talk">
+  <i class="fa-solid fa-microphone"></i>
+</button>
+
 </div>
 
   </div>
