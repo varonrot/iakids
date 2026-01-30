@@ -285,7 +285,7 @@ header{
   border:2px solid #e5e7eb;
   font-size:15px;
 }
-
+ 
 /* ===== INPUT ACTIONS – PURE BLACK ===== */
 
 .send-btn,
@@ -684,8 +684,29 @@ header{
   flex:1;
   overflow:hidden;
 }
+/* ===== CHAT LAYOUT FIX ===== */
+.chat{
+  display:flex;
+  flex-direction:column;
+}
 
- 
+.messages{
+  flex:1;
+  min-height:0;   /* ⭐ זה הסוד */
+}
+
+<!--.chat{-->
+<!--  height:100%;-->
+<!--  display:flex;-->
+<!--  flex-direction:column;-->
+<!--  overflow:hidden;-->
+<!--}-->
+
+<!--.messages{-->
+<!--  flex:1;-->
+<!--  overflow-y:auto;-->
+<!--}-->
+
   </style>
 </head>
 
