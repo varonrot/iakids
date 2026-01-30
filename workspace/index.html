@@ -359,29 +359,87 @@ header{
   transform:scale(1.05);
   transition:.25s ease;
 }
+/* ===== SIDEBAR BUTTON CONTENT ===== */
+
 .side-item{
-  width:100%;            /* ⬅️ היה 96% – פחות אוויר בצדדים */
-  height:66px;          /* ⬅️ היה 60px */
+  width:100%;
+  height:70px;
 
   display:flex;
   align-items:center;
-  gap:16px;
+  gap:14px;
 
-  padding:0 22px;       /* ⬅️ יותר בשר */
+  padding:0 18px;
   margin:0 auto;
 
-  border-radius:10px;   /* ⬅️ יותר רך */
+  border-radius:12px;
+  border:none;
 
   background:rgba(255,255,255,.18);
-  backdrop-filter: blur(8px);
+  backdrop-filter:blur(8px);
 
   color:#fff;
-  font-size:15px;       /* ⬅️ טיפה גדול יותר */
-  font-weight:600;
-
+  text-align:left;
   cursor:pointer;
-  transition:.25s ease;
+
+  transition:
+    background .25s ease,
+    transform .2s ease,
+    box-shadow .25s ease;
 }
+
+/* Hover */
+.side-item:hover{
+  background:rgba(255,255,255,.26);
+  transform:translateX(2px);
+}
+
+/* Primary (Ask Anything) */
+.side-item-primary{
+  background:rgba(255,255,255,.32);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
+}
+
+/* ICON */
+.side-item i{
+  font-size:24px;
+  width:28px;
+  text-align:center;
+  color:#e8f2ff;
+
+  filter:drop-shadow(0 0 6px rgba(120,180,255,.6));
+}
+
+.side-item-primary i{
+  font-size:28px;
+  color:#ffffff;
+}
+
+/* TEXT WRAPPER */
+.side-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+
+/* TITLE */
+.side-title{
+  font-size:15px;
+  font-weight:700;
+  color:#ffffff;
+}
+
+/* SUBTITLE */
+.side-sub{
+  font-size:12px;
+  font-weight:500;
+  color:rgba(255,255,255,.75);
+  margin-top:3px;
+}
+.side-title{ letter-spacing:.2px; }
+.side-sub{ opacity:.85; }
 
 
 .side-item-primary{
@@ -433,6 +491,16 @@ header{
   font-size:28px;
   color:#ffffff;
 }
+.idea-title{
+  font-size:15px;
+  font-weight:700;
+}
+
+.idea-sub{
+  font-size:12px;
+  opacity:.7;
+  margin-top:2px;
+}
 
   </style>
 </head>
@@ -456,30 +524,46 @@ header{
 
     <div class="kid-actions">
 
-      <button class="side-item side-item-primary">
-        <i class="fa-solid fa-comment-dots"></i>
-        <span>Ask</span>
-      </button>
+<button class="side-item side-item-primary">
+  <i class="fa-solid fa-comment-dots"></i>
+  <div class="side-text">
+    <div class="side-title">Ask Anything</div>
+    <div class="side-sub">Any question you want</div>
+  </div>
+</button>
 
-      <button class="side-item">
-        <i class="fa-solid fa-lightbulb"></i>
-        <span>Solve</span>
-      </button>
+<button class="side-item">
+  <i class="fa-solid fa-lightbulb"></i>
+  <div class="side-text">
+    <div class="side-title">Solve Problems</div>
+    <div class="side-sub">Step by step help</div>
+  </div>
+</button>
 
-      <button class="side-item">
-        <i class="fa-solid fa-book-open"></i>
-        <span>Learn</span>
-      </button>
+<button class="side-item">
+  <i class="fa-solid fa-book-open"></i>
+  <div class="side-text">
+    <div class="side-title">Learn Topics</div>
+    <div class="side-sub">Understand new ideas</div>
+  </div>
+</button>
 
-      <button class="side-item">
-        <i class="fa-solid fa-gamepad"></i>
-        <span>Play</span>
-      </button>
+<button class="side-item">
+  <i class="fa-solid fa-gamepad"></i>
+  <div class="side-text">
+    <div class="side-title">Play Games</div>
+    <div class="side-sub">Fun & smart games</div>
+  </div>
+</button>
 
-      <button class="side-item">
-        <i class="fa-solid fa-wand-magic-sparkles"></i>
-        <span>Surprise</span>
-      </button>
+<button class="side-item">
+  <i class="fa-solid fa-wand-magic-sparkles"></i>
+  <div class="side-text">
+    <div class="side-title">Get Surprise</div>
+    <div class="side-sub">Something cool & new</div>
+  </div>
+</button>
+
 
     </div>
 
@@ -529,25 +613,38 @@ header{
         <h3>Need an idea?</h3>
         <div class="idea-grid">
 
-  <div class="idea">
-    <img src="/assets/icons/homework-help.png" alt="Homework help" />
-    <span>Homework help</span>
+<div class="idea">
+  <img src="/assets/icons/homework-help.png" />
+  <div>
+    <div class="idea-title">Homework Help</div>
+    <div class="idea-sub">Get help with school</div>
   </div>
+</div>
 
-  <div class="idea">
-    <img src="/assets/icons/explain-topic.png" alt="Explain a topic" />
-    <span>Explain a topic</span>
+<div class="idea">
+  <img src="/assets/icons/explain-topic.png" />
+  <div>
+    <div class="idea-title">Explain Topic</div>
+    <div class="idea-sub">Learn something new</div>
   </div>
+</div>
 
-  <div class="idea">
-    <img src="/assets/icons/smart-riddle.png" alt="Smart riddle" />
-    <span>Smart riddle</span>
+<div class="idea">
+  <img src="/assets/icons/smart-riddle.png" />
+  <div>
+    <div class="idea-title">Smart Riddle</div>
+    <div class="idea-sub">Think and have fun</div>
   </div>
+</div>
 
-  <div class="idea">
-    <img src="/assets/icons/something-interesting.png" alt="Something interesting" />
-    <span>Something interesting</span>
+<div class="idea">
+  <img src="/assets/icons/something-interesting.png" />
+  <div>
+    <div class="idea-title">Something Cool</div>
+    <div class="idea-sub">Interesting ideas</div>
   </div>
+</div>
+
 
 </div>
 
