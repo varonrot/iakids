@@ -644,6 +644,29 @@ header{
     0 0 12px rgba(120,180,255,.6),
     0 8px 20px rgba(80,140,255,.45);
 }
+.container{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.chat-wrapper{
+  flex:1;
+  overflow:hidden;
+}
+
+.chat{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.messages{
+  flex:1;
+  overflow-y:auto;
+}
 
   </style>
 </head>
@@ -747,22 +770,20 @@ header{
         </div>
       </div>
 
-      <div class="chat">
-        <div class="messages"><!-- ⬅️ messages go here --></div>
+<div class="chat-wrapper">
+  <div class="chat">
+    <div class="messages"><!-- ⬅️ messages go here --></div>
 
-<div class="input">
-  <input placeholder="Ask anything…" />
-
-  <button class="talk-btn" title="Talk">
-    🎤
-  </button>
-
-  <button class="send-btn">Send</button>
+    <div class="input">
+      <input placeholder="Ask anything…" />
+      <button class="talk-btn" title="Talk">🎤</button>
+      <button class="send-btn">Send</button>
+    </div>
+  </div>
 </div>
 
-      </div>
+<div class="ideas">
 
-      <div class="ideas">
         <h3>Need an idea?</h3>
         <div class="idea-grid">
 
