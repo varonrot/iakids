@@ -247,10 +247,12 @@ header{
   backdrop-filter:blur(22px);
   border-radius:22px;
 
-  overflow-y:auto;   /* ✅ כאן הגלילה */
+  overflow:hidden;   /* ✅ כאן הגלילה */
 }
 
 .messages{
+  flex:1;                 /* תופס את כל הגובה */
+  overflow-y:auto;        /* הגלילה כאן */
   padding:12px;
   display:flex;
   flex-direction:column;
@@ -845,6 +847,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const API_BASE = "https://iakids-backend.onrender.com";
 
 const messagesEl = document.querySelector(".messages");
+const chatEl = document.querySelector(".chat");
 const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".input button");
 
@@ -870,6 +873,7 @@ function addMessage(role, text) {
   messagesEl.appendChild(row);
 
   messagesEl.scrollTop = messagesEl.scrollHeight;
+
 }
 
 
