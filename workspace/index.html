@@ -796,13 +796,56 @@ header{
   }
 }
 @media (max-width: 900px){
+  .logo{
+    margin-left:48px; /* מפנה מקום להמבורגר */
+  }
+
   .logo-text{
     display:none;
   }
+
   .logo-badge{
     width:28px;
     height:28px;
     font-size:13px;
+  }
+}
+
+@media (max-width: 900px){
+  .hero{
+    padding:12px 14px;        /* פחות גובה */
+    border-radius:18px;
+    flex-direction:column;   /* שובר לשורות */
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  .hero h1{
+    font-size:18px;
+  }
+
+  .hero p{
+    font-size:13px;
+  }
+
+  .limits{
+    font-size:12px;
+    align-self:flex-start;
+  }
+}
+@media (max-width: 900px){
+  .avatar{
+    width:44px;
+    height:44px;
+  }
+
+  .hero-left{
+    gap:10px;
+  }
+}
+@media (max-width: 900px){
+  .hamburger{
+    top:8px;      /* במקום 14px */
   }
 }
 
