@@ -708,11 +708,67 @@ header{
   font-size:12px;
   opacity:.6;
 }
+/* דוחף את הכפתורים למעלה */
+.kid-actions{
+  flex:1;
+}
+
+/* אזור תחתון */
+.sidebar-bottom{
+  width:100%;
+  padding:12px 8px 18px;
+}
+
+.side-item-settings{
+  background:rgba(0,0,0,.35);
+}
+
+.side-item-settings:hover{
+  background:rgba(0,0,0,.45);
+}
+
+/* ===== MOBILE ===== */
+.hamburger{
+  display:none;
+  position:fixed;
+  top:14px;
+  left:14px;
+  z-index:300;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:#000;
+  color:#fff;
+  border:none;
+  font-size:20px;
+}
+
+@media (max-width: 900px){
+  .sidebar{
+    transform:translateX(-100%);
+    transition:.3s ease;
+  }
+  .sidebar.open{
+    transform:translateX(0);
+  }
+  .main{
+    margin-left:0;
+    padding:12px;
+  }
+  .hamburger{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+}
 
   </style>
 </head>
 
 <body>
+<button class="hamburger" onclick="toggleSidebar()">
+  <i class="fa-solid fa-bars"></i>
+</button>
 
 <div class="app">
 
@@ -770,9 +826,49 @@ header{
     <div class="side-sub">Something cool & new</div>
   </div>
 </button>
+<button class="side-item">
+  <i class="fa-solid fa-child"></i>
+  <div class="side-text">
+    <div class="side-title">Explain Simply</div>
+    <div class="side-sub">Like I’m 8</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-shapes"></i>
+  <div class="side-text">
+    <div class="side-title">Show Example</div>
+    <div class="side-sub">With examples</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-wand-sparkles"></i>
+  <div class="side-text">
+    <div class="side-title">Make It Fun</div>
+    <div class="side-sub">Story or game</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-question"></i>
+  <div class="side-text">
+    <div class="side-title">Ask Me</div>
+    <div class="side-sub">I’ll ask you</div>
+  </div>
+</button>
 
 
     </div>
+<div class="sidebar-bottom">
+  <button class="side-item side-item-settings">
+    <i class="fa-solid fa-gear"></i>
+    <div class="side-text">
+      <div class="side-title">Settings</div>
+      <div class="side-sub">Preferences</div>
+    </div>
+  </button>
+</div>
 
   </div>
 </aside>
@@ -1000,6 +1096,11 @@ inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage();
 });
 
+</script>
+<script>
+function toggleSidebar(){
+  document.querySelector('.sidebar').classList.toggle('open');
+}
 </script>
 
 </body>
