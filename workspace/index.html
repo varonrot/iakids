@@ -760,61 +760,55 @@ header{
 
   box-shadow:0 8px 22px rgba(0,0,0,.4);
 }
+ @media (max-width: 900px){
 
-@media (max-width: 900px){
-
+  /* ===== בסיס ===== */
   body{
-    overflow-x:hidden;   /* ⭐ חוסם גלילה מימין */
+    overflow-x:hidden;
   }
 
+  /* ===== SIDEBAR ===== */
   .sidebar{
-    left:0;
     transform:translateX(-100%);
-    transition:.3s ease;
+    transition:transform .3s ease;
   }
 
   .sidebar.open{
     transform:translateX(0);
   }
 
+  /* ===== MAIN ===== */
   .main{
     margin-left:0;
-    max-width:100vw;     /* ⭐ מבטל רווח מימין */
     width:100%;
+    max-width:100vw;
     padding:12px;
+    height:100vh;
   }
 
+  /* ===== HAMBURGER ===== */
   .hamburger{
     display:flex;
-    align-items:center;
-    justify-content:center;
     position:fixed;
-    top:14px;
-    left:14px;
+    top:12px;
+    left:12px;
     right:auto;
-    z-index:300;
-  }
-}
-@media (max-width: 900px){
-  .logo{
-    margin-left:48px; /* מפנה מקום להמבורגר */
+    z-index:1000;
   }
 
-  .logo-text{
+  /* ===== HEADER ===== */
+  header{
+    padding-left:48px; /* מקום להמבורגר */
+  }
+
+  header .logo{
     display:none;
   }
 
-  .logo-badge{
-    width:28px;
-    height:28px;
-    font-size:13px;
-  }
-}
-
-@media (max-width: 900px){
+  /* ===== HERO ===== */
   .hero{
     padding:10px 12px;
-    margin-bottom:6px;
+    gap:10px;
   }
 
   .hero h1{
@@ -824,49 +818,23 @@ header{
   .hero p{
     font-size:12px;
   }
-}
 
-
-  .limits{
-    font-size:12px;
-    align-self:flex-start;
-  }
-}
-@media (max-width: 900px){
   .avatar{
     width:44px;
     height:44px;
   }
 
-  .hero-left{
-    gap:10px;
+  .limits{
+    font-size:11px;
+    margin-top:6px;
   }
-}
-@media (max-width: 900px){
-  .hamburger{
-    top:8px;      /* במקום 14px */
-  }
-}
-@media (max-width: 900px){
-  header .logo{
-    display:none;
-  }
-}
-@media (max-width: 900px){
-  .main{
-    margin-left:0;
-    padding:10px;
-    width:100%;
-    max-width:100vw;
-    height:100vh;
-  }
-}
-@media (max-width: 900px){
+
+  /* ===== CONTAINER / CHAT ===== */
   .container{
     padding:12px;
-    flex:1;
     display:flex;
     flex-direction:column;
+    flex:1;
   }
 
   .chat-wrapper{
