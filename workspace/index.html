@@ -813,20 +813,19 @@ header{
 
 @media (max-width: 900px){
   .hero{
-    padding:12px 14px;        /* פחות גובה */
-    border-radius:18px;
-    flex-direction:column;   /* שובר לשורות */
-    align-items:flex-start;
-    gap:10px;
+    padding:10px 12px;
+    margin-bottom:6px;
   }
 
   .hero h1{
-    font-size:18px;
+    font-size:17px;
   }
 
   .hero p{
-    font-size:13px;
+    font-size:12px;
   }
+}
+
 
   .limits{
     font-size:12px;
@@ -846,6 +845,38 @@ header{
 @media (max-width: 900px){
   .hamburger{
     top:8px;      /* במקום 14px */
+  }
+}
+@media (max-width: 900px){
+  header .logo{
+    display:none;
+  }
+}
+@media (max-width: 900px){
+  .main{
+    margin-left:0;
+    padding:10px;
+    width:100%;
+    max-width:100vw;
+    height:100vh;
+  }
+}
+@media (max-width: 900px){
+  .container{
+    padding:12px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .chat-wrapper{
+    flex:1;
+    min-height:0;
+  }
+
+  .chat{
+    flex:1;
+    height:100%;
   }
 }
 
