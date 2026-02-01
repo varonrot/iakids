@@ -118,30 +118,33 @@ body{
   overflow:hidden;
 }
 
-/* ===== SIDEBAR ROBOT – BRAND ALIGN LEFT ===== */
+/* ===== SIDEBAR ROBOT – BRAND ANCHOR ===== */
 .sidebar-robot{
+  width:100%;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:14px;
 
-  padding:10px 14px;
-  margin:8px 10px 6px;
-
-  border-radius:14px;
+  padding:16px 18px 12px;
 }
 
+/* ROBOT IMAGE */
 .sidebar-robot img{
-  width:42px;
-  height:42px;
+  width:112px;              /* ⬅️ כאן הגדילה האמיתית */
+  height:112px;
   object-fit:cover;
-  border-radius:12px;
+
+  border-radius:26px;       /* ריבוע רך */
+  background:transparent;
 
   box-shadow:
-    0 6px 18px rgba(0,0,0,.45),
-    0 0 16px rgba(120,180,255,.45);
+    0 14px 34px rgba(0,0,0,.45),
+    0 0 28px rgba(120,180,255,.55);
+
+  flex-shrink:0;
 }
 
-/* TEXT */
+/* TEXT NEXT TO ROBOT */
 .robot-text{
   display:flex;
   flex-direction:column;
@@ -149,19 +152,18 @@ body{
 }
 
 .robot-title{
-  font-size:14px;
+  font-size:18px;
   font-weight:800;
   color:#ffffff;
-  letter-spacing:.2px;
+  letter-spacing:.3px;
 }
 
 .robot-sub{
-  font-size:11px;
+  font-size:13px;
   font-weight:500;
-  color:rgba(255,255,255,.75);
-  margin-top:3px;
+  color:rgba(255,255,255,.8);
+  margin-top:4px;
 }
-
 
 
 /* ================= MAIN ================= */
@@ -982,12 +984,13 @@ header{
   <div class="sidebar-inner">
 
 <div class="sidebar-robot">
-  <img src="/assets/askie-robot.png" alt="iakids AI helper" />
+  <img src="/assets/askie-robot.png" alt="iakids robot" />
   <div class="robot-text">
     <div class="robot-title">iakids</div>
-    <div class="robot-sub">עוזר בינה לילדים</div>
+    <div class="robot-sub">Asistente de IA para niños</div>
   </div>
 </div>
+
 
     <div class="kid-actions">
 
