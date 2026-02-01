@@ -839,6 +839,15 @@ header{
     height:100%;
   }
 }
+/* USER MESSAGE – avatar on the RIGHT */
+.msg-row.user{
+  flex-direction: row-reverse;
+  gap:8px;
+}
+
+.msg-row.user .msg-avatar{
+  margin-left:6px;
+}
 
 
   </style>
@@ -1081,7 +1090,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
   const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
-
+  window.KID_AVATAR_URL = avatarUrl;
   document.getElementById("userName").textContent = kid.child_name;
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
   document.getElementById("userAvatar").src = avatarUrl;
