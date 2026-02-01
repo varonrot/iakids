@@ -1141,11 +1141,20 @@ let CURRENT_KID = null;
 
   const userId = sessionData.session.user.id;
 
-  const { data: kid, error } = await sb
-    .from("kids_profiles")
-    .select("id, child_name, avatar_key")
-    .eq("user_id", userId)
-    .single();
+const { data: kid, error } = await sb
+  .from("kids_profiles")
+  .select(`
+    id,
+    child_name,
+    age,
+    avatar_key,
+    usage_goals,
+    learning_interests,
+    updated_at
+  `)
+  .eq("user_id", userId)
+  .single();
+
 
   if (error || !kid) {
     console.error("kids_profiles error:", error);
@@ -1382,10 +1391,11 @@ async function saveSettings(){
     })
     .eq("id", CURRENT_KID.id);
 
-  if (error){
-    alert("Error saving settings");
-    return;
-  }
+if (error){
+  console.error("SAVE ERROR:", error);
+  alert(error.message);
+  return;
+}
 
   Object.assign(CURRENT_KID, {
     child_name: name,
