@@ -844,6 +844,52 @@ header{
   flex-direction:row;
   gap:8px;
 }
+/* ===== SETTINGS MODAL ===== */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);
+  display:none;              /* ⬅️ מוסתר כברירת מחדל */
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.modal{
+  width:420px;
+  max-width:90%;
+  background:#fff;
+  border-radius:20px;
+  padding:20px 22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+
+.modal h2{
+  margin:0 0 14px;
+}
+
+.modal label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:12px;
+  font-weight:600;
+}
+
+.modal input,
+.modal select{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+}
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:14px;
+}
 
 
   </style>
@@ -1085,7 +1131,7 @@ let CURRENT_KID = null;
     console.error("kids_profiles error:", error);
     return;
   }
-
+  CURRENT_KID = kid;
   const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
   window.KID_AVATAR_URL = avatarUrl;
 
