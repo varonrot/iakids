@@ -1067,18 +1067,51 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
   const user = data.session.user;
-  const meta = user.user_metadata || {};
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
-  const name =
-    meta.full_name ||
-    meta.name ||
-    meta.given_name ||
-    user.email;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const avatar =
-    meta.avatar_url ||
-    meta.picture ||
-    "https://api.dicebear.com/7.x/bottts/svg?seed=askie";
+(async () => {
+  const { data } = await sb.auth.getSession();
+
+  if (!data.session) {
+    window.location.replace("/onboarding/cuenta/");
+    return;
+  }
+
+  const user = data.session.user;
+
+  // 🔹 שליפת פרופיל הילד
+  const { data: kids, error } = await sb
+    .from("kids_profiles")
+    .select("id, child_name, avatar_key")
+    .eq("user_id", user.id)
+    .limit(1);
+
+  if (error || !kids || !kids.length) {
+    console.error("No kid profile found", error);
+    return;
+  }
+
+  const kid = kids[0];
+
+  // 🔹 בניית URL לאווטאר (אצלך זה emoji / key)
+  const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(kid.avatar_key)}`;
+
+  // 🔹 UI
+  document.getElementById("userName").textContent = kid.child_name;
+  document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
+
+  document.getElementById("userAvatar").src = avatarUrl;
+  document.getElementById("heroAvatar").src = avatarUrl;
+
+  // אופציונלי – לשימוש בצ’אט
+  window.ACTIVE_KID_ID = kid.id;
+})();
+</script>
+
 
   document.getElementById("userName").textContent = name;
   document.getElementById("userAvatar").src = avatar;
