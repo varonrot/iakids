@@ -144,12 +144,13 @@ body{
 /* ================= MAIN ================= */
 .main{
   margin-left:240px;
+  margin-right:260px;
   height:100vh;
   display:flex;
   flex-direction:column;
 
-  max-width:calc(100vw - 360px); /* ⬅️ זה הסוד */
-  padding:12px 48px 12px 20px;
+  max-width:none;
+  padding:12px 20px;
 
   overflow:hidden;
 }
@@ -910,6 +911,34 @@ header{
   color:#fff;
   border-color:#ff6b4a;
 }
+/* ================= RIGHT SIDEBAR ================= */
+.rightbar{
+  position:fixed;
+  top:0;
+  right:0;
+  width:260px;
+  height:100vh;
+  z-index:90;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20,30,60,.35),
+      rgba(10,20,40,.45)
+    );
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow:
+    inset 1px 0 0 rgba(255,255,255,.12),
+    0 0 30px rgba(0,0,0,.25);
+
+  padding:14px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
 
 
   </style>
@@ -924,6 +953,94 @@ header{
 
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar">
+<!-- ===== RIGHT SIDEBAR ===== -->
+<aside class="rightbar">
+
+  <div class="side-section">
+    <h4>👋 Para ti</h4>
+  </div>
+
+  <button class="side-item">
+    <i class="fa-solid fa-heart"></i>
+    <div class="side-text">
+      <div class="side-title">¿Cómo me siento?</div>
+      <div class="side-sub">Hablar de emociones</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-comments"></i>
+    <div class="side-text">
+      <div class="side-title">Hablar libremente</div>
+      <div class="side-sub">Sin tareas ni notas</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-star"></i>
+    <div class="side-text">
+      <div class="side-title">Mis logros</div>
+      <div class="side-sub">Lo que hice bien</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-user-astronaut"></i>
+    <div class="side-text">
+      <div class="side-title">Sobre mí</div>
+      <div class="side-sub">Lo que me gusta</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-lightbulb"></i>
+    <div class="side-text">
+      <div class="side-title">Consejo del día</div>
+      <div class="side-sub">Pequeña ayuda</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-face-smile"></i>
+    <div class="side-text">
+      <div class="side-title">Algo divertido</div>
+      <div class="side-sub">Relajarse un poco</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-moon"></i>
+    <div class="side-text">
+      <div class="side-title">Antes de dormir</div>
+      <div class="side-sub">Historia tranquila</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-compass"></i>
+    <div class="side-text">
+      <div class="side-title">¿Qué hago ahora?</div>
+      <div class="side-sub">Sugerencia</div>
+    </div>
+  </button>
+
+  <button class="side-item">
+    <i class="fa-solid fa-robot"></i>
+    <div class="side-text">
+      <div class="side-title">Pide ayuda a Askie</div>
+      <div class="side-sub">Estoy aquí</div>
+    </div>
+  </button>
+
+  <button class="side-item side-item-settings">
+    <i class="fa-solid fa-gear"></i>
+    <div class="side-text">
+      <div class="side-title">Mi perfil</div>
+      <div class="side-sub">Preferencias</div>
+    </div>
+  </button>
+
+</aside>
 
 
 
