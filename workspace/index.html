@@ -1080,14 +1080,14 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     return;
   }
 
-  const avatarUrl = `/assets/avatars/${kid.avatar_key}.png`;
+  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
 
   document.getElementById("userName").textContent = kid.child_name;
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
   document.getElementById("userAvatar").src = avatarUrl;
   document.getElementById("heroAvatar").src = avatarUrl;
 
-   
+
   window.ACTIVE_KID_ID = kid.id;
 })();
 </script>
