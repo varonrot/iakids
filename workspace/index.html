@@ -735,34 +735,13 @@ header{
 .side-item-settings:hover{
   background:rgba(0,0,0,.45);
 }
-
-/* ===== MOBILE ===== */
+ /* ===== HAMBURGER – DESKTOP (OFF) ===== */
 .hamburger{
-  display:none;
-  position:fixed;
-  top:14px;
-  left:14px;           /* ⬅️ שמאל חד־משמעי */
-  z-index:400;
-
-  width:44px;
-  height:44px;
-  border-radius:50%;
-
-  background:rgba(0,0,0,.85);
-  color:#fff;
-  border:none;
-
-  font-size:20px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  box-shadow:0 8px 22px rgba(0,0,0,.4);
+  display:none;   /* ❌ לא קיים בדסקטופ */
 }
- @media (max-width: 900px){
+@media (max-width: 900px){
 
-  /* ===== בסיס ===== */
+  /* ===== BASE ===== */
   body{
     overflow-x:hidden;
   }
@@ -782,18 +761,31 @@ header{
     margin-left:0;
     width:100%;
     max-width:100vw;
-    padding:12px;
     height:100vh;
+    padding:12px;
   }
 
-  /* ===== HAMBURGER ===== */
+  /* ===== HAMBURGER – MOBILE ONLY ===== */
   .hamburger{
-    display:flex;
+    display:flex;              /* ✅ מופיע רק במובייל */
     position:fixed;
     top:12px;
     left:12px;
-    right:auto;
     z-index:1000;
+
+    width:44px;
+    height:44px;
+    border-radius:50%;
+
+    background:rgba(0,0,0,.85);
+    color:#fff;
+    border:none;
+    font-size:20px;
+
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:0 8px 22px rgba(0,0,0,.4);
   }
 
   /* ===== HEADER ===== */
@@ -832,9 +824,9 @@ header{
   /* ===== CONTAINER / CHAT ===== */
   .container{
     padding:12px;
+    flex:1;
     display:flex;
     flex-direction:column;
-    flex:1;
   }
 
   .chat-wrapper{
