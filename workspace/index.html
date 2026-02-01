@@ -839,6 +839,11 @@ header{
     height:100%;
   }
 }
+.msg-row.user{
+  justify-content:flex-end;
+  flex-direction:row;
+  gap:8px;
+}
 
 
   </style>
@@ -1081,6 +1086,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
   const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+  window.KID_AVATAR_URL = avatarUrl;
 
   document.getElementById("userName").textContent = kid.child_name;
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
@@ -1111,18 +1117,26 @@ function addMessage(role, text) {
   bubble.className = "msg-bubble";
   bubble.textContent = text;
 
+  // 🤖 assistant avatar (שמאל)
   if (role === "assistant") {
     const avatar = document.createElement("img");
-    avatar.src = "/assets/askie-robot.png"; // האווטאר שלך
+    avatar.src = "/assets/askie-robot.png";
     avatar.className = "msg-avatar";
     row.appendChild(avatar);
   }
 
   row.appendChild(bubble);
+
+  // 🧒 user avatar (ימין)
+  if (role === "user") {
+    const avatar = document.createElement("img");
+    avatar.src = window.KID_AVATAR_URL;
+    avatar.className = "msg-avatar";
+    row.appendChild(avatar);
+  }
+
   messagesEl.appendChild(row);
-
   messagesEl.scrollTop = messagesEl.scrollHeight;
-
 }
 
 
