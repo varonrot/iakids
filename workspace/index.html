@@ -1052,6 +1052,7 @@ header{
   </main>
 
 </div>
+
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
@@ -1059,76 +1060,38 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 (async () => {
-  const { data } = await sb.auth.getSession();
+  const { data: sessionData } = await sb.auth.getSession();
 
-  if (!data.session) {
+  if (!sessionData.session) {
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  const user = data.session.user;
-<script>
-const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+  const userId = sessionData.session.user.id;
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data: kid, error } = await sb
+    .from("kids_profiles")
+    .select("id, child_name, avatar_key")
+    .eq("user_id", userId)
+    .single();
 
-(async () => {
-  const { data } = await sb.auth.getSession();
-
-  if (!data.session) {
-    window.location.replace("/onboarding/cuenta/");
+  if (error || !kid) {
+    console.error("kids_profiles error:", error);
     return;
   }
 
-const { data: sessionData } = await sb.auth.getSession();
-if (!sessionData.session) {
-  window.location.replace("/onboarding/cuenta/");
-  return;
-}
+  const avatarUrl = `/assets/avatars/${kid.avatar_key}.png`;
 
-const userId = sessionData.session.user.id;
-
-// ⬅️ שליפה מהטבלה kids_profiles
-const { data: kid, error } = await sb
-  .from("kids_profiles")
-  .select("child_name, avatar_key")
-  .eq("user_id", userId)
-  .single();
-
-if (error || !kid) {
-  console.error("No kid profile", error);
-  return;
-}
-
-// שם הילד
-document.getElementById("userName").textContent = kid.child_name;
-document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
-
-// אווטאר
-const avatarUrl = `/assets/avatars/${kid.avatar_key}.png`; 
-document.getElementById("userAvatar").src = avatarUrl;
-document.getElementById("heroAvatar").src = avatarUrl;
-
-  // 🔹 UI
   document.getElementById("userName").textContent = kid.child_name;
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
-
   document.getElementById("userAvatar").src = avatarUrl;
   document.getElementById("heroAvatar").src = avatarUrl;
 
-  // אופציונלי – לשימוש בצ’אט
+  
   window.ACTIVE_KID_ID = kid.id;
 })();
 </script>
 
-
-  document.getElementById("userName").textContent = name;
-  document.getElementById("userAvatar").src = avatar;
-  document.getElementById("heroAvatar").src = avatar;
-  document.getElementById("heroGreeting").textContent = `Hi, ${name}!`;
-})();
-</script>
 <script>
 const API_BASE = "https://iakids-backend.onrender.com";
 
