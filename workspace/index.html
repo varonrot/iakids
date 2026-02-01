@@ -890,6 +890,26 @@ header{
   gap:10px;
   margin-top:14px;
 }
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.chips button{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid #d1d5db;
+  background:#f9fafb;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.chips button.active{
+  background:#ff6b4a;
+  color:#fff;
+  border-color:#ff6b4a;
+}
 
 
   </style>
@@ -1273,19 +1293,47 @@ function toggleSidebar(){
 
     <label>
       Avatar
-      <select id="modalAvatar">
-        <option value="dog">Dog</option>
-        <option value="cat">Cat</option>
-        <option value="fox">Fox</option>
-        <option value="horse">Horse</option>
-        <option value="owl">Owl</option>
-      </select>
+<select id="modalAvatar">
+  <option value="cat">Cat</option>
+  <option value="dolphin">Dolphin</option>
+  <option value="eagle">Eagle</option>
+  <option value="horse">Horse</option>
+  <option value="owl">Owl</option>
+  <option value="panther">Panther</option>
+</select>
+
     </label>
 
     <label>
       Learning interests (comma separated)
       <input type="text" id="modalInterests" />
     </label>
+<label>
+  ¿Para qué quieres usar KidSaí?
+  <div class="chips" id="modalGoals">
+    <button data-val="daily_questions">Preguntas del día a día</button>
+    <button data-val="school_help">Apoyo escolar</button>
+    <button data-val="thinking">Pensar y razonar</button>
+    <button data-val="creative">Ideas creativas</button>
+    <button data-val="languages">Palabras e idiomas</button>
+    <button data-val="safe_curiosity">Curiosidad segura</button>
+    <button data-val="family">Conversaciones en familia</button>
+  </div>
+</label>
+
+<label>
+  ¿Qué le gustaría aprender?
+  <div class="chips" id="modalLearning">
+    <button data-val="languages">Nuevo idioma</button>
+    <button data-val="math">Mejorar matemáticas</button>
+    <button data-val="english">Mejorar inglés</button>
+    <button data-val="science">Ciencia</button>
+    <button data-val="reading">Lectura</button>
+    <button data-val="arts">Artes creativas</button>
+    <button data-val="logic">Lógica y resolución</button>
+    <button data-val="critical">Pensamiento crítico</button>
+  </div>
+</label>
 
     <div class="modal-actions">
       <button onclick="closeSettings()">Cancel</button>
@@ -1298,13 +1346,14 @@ function toggleSidebar(){
 document.getElementById("openSettings").onclick = () => {
   if (!CURRENT_KID) return;
 
-  document.getElementById("settingsModal").style.display = "flex";
+  settingsModal.style.display = "flex";
 
   modalChildName.value = CURRENT_KID.child_name || "";
   modalChildAge.value = CURRENT_KID.age || "";
   modalAvatar.value = CURRENT_KID.avatar_key || "";
-  modalInterests.value =
-    (CURRENT_KID.learning_interests || []).join(", ");
+
+  setSelected("modalGoals", CURRENT_KID.usage_goals || []);
+  setSelected("modalLearning", CURRENT_KID.learning_interests || []);
 };
 
 function closeSettings(){
@@ -1316,10 +1365,9 @@ async function saveSettings(){
   const name = modalChildName.value.trim();
   const age = parseInt(modalChildAge.value);
   const avatar = modalAvatar.value;
-  const interests = modalInterests.value
-    .split(",")
-    .map(x => x.trim())
-    .filter(Boolean);
+
+  const usage_goals = getSelected("modalGoals");
+  const learning_interests = getSelected("modalLearning");
 
   if (!name || !age) return;
 
@@ -1329,20 +1377,23 @@ async function saveSettings(){
       child_name: name,
       age,
       avatar_key: avatar,
-      learning_interests: interests
+      usage_goals,
+      learning_interests
     })
     .eq("id", CURRENT_KID.id);
 
-  if (error) {
+  if (error){
     alert("Error saving settings");
     return;
   }
 
-  // עדכון מיידי של UI
-  CURRENT_KID.child_name = name;
-  CURRENT_KID.age = age;
-  CURRENT_KID.avatar_key = avatar;
-  CURRENT_KID.learning_interests = interests;
+  Object.assign(CURRENT_KID, {
+    child_name: name,
+    age,
+    avatar_key: avatar,
+    usage_goals,
+    learning_interests
+  });
 
   const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
   userName.textContent = name;
@@ -1352,6 +1403,29 @@ async function saveSettings(){
   window.KID_AVATAR_URL = avatarUrl;
 
   closeSettings();
+}
+
+</script>
+<script>
+/* ===== CHIPS HELPERS ===== */
+function toggleChip(btn){
+  btn.classList.toggle("active");
+}
+
+document.querySelectorAll(".chips button").forEach(btn=>{
+  btn.onclick = () => toggleChip(btn);
+});
+
+function getSelected(containerId){
+  return [...document.querySelectorAll(`#${containerId} button.active`)]
+    .map(b => b.dataset.val);
+}
+
+function setSelected(containerId, values = []){
+  document.querySelectorAll(`#${containerId} button`)
+    .forEach(b=>{
+      b.classList.toggle("active", values.includes(b.dataset.val));
+    });
 }
 </script>
 
