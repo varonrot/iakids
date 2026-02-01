@@ -2,255 +2,1061 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCBGGLL7R"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PDCBGGLL7R');
+</script>
   <title>Askie – Workspace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
-    *{ box-sizing:border-box; }
+/* ================= RESET ================= */
+*{
+  box-sizing:border-box;
+}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  height:100vh;
+  overflow:hidden;          /* ⭐ זה קריטי */
 
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
-      color:#0b1220;
-    }
+  background:url("/assets/askie-space-bg.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
 
-    header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:16px 22px;
-      max-width:1100px;
-      margin:0 auto;
-    }
 
-    .logo{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:800;
-      color:#ff6b4a;
-    }
+/* ================= APP LAYOUT ================= */
+.app{
+  height:100vh;
+  overflow:hidden;          /* ⭐ חשוב */
+}
 
-    .user{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:13px;
-      font-weight:600;
-      cursor:pointer;
-    }
+/* ================= SIDEBAR ================= */
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:240px;
+  height:100vh;
+  z-index:100;
+  overflow:hidden;
+}
 
-    .user img{
-      width:34px;
-      height:34px;
-      border-radius:50%;
-    }
+.sidebar-inner{
+  position:relative;
+  z-index:2;
+  height:100%;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  background:transparent;
+}
 
-    .container{
-      max-width:1100px;
-      margin:0 auto;
-      padding:10px 20px 40px;
-    }
 
-    .hero{
-      background:#fff7f2;
-      border-radius:20px;
-      padding:22px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:18px;
-      box-shadow:0 10px 25px rgba(0,0,0,.06);
-    }
+/* אווטאר */
+.sidebar-avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  overflow:hidden;
+  margin:6px 0 10px;
+  border:2px solid rgba(255,255,255,.45);
+}
 
-    .hero-left{
-      display:flex;
-      gap:14px;
-      align-items:center;
-    }
+.sidebar-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
 
-    .avatar{
-      width:56px;
-      height:56px;
-      border-radius:50%;
-      background:#ffd9c9;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-    }
+.kid-actions{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-top:40px;
+}
 
-    .avatar img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-    }
+ .sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:240px;
+  height:100vh;
+  z-index:100;
 
-    .hero h1{
-      font-size:20px;
-      margin:0 0 4px;
-    }
+  /* סייד צבע עם כוכבים */
+  background:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,.2), transparent 60%),
+    radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,.3), transparent 60%),
+    linear-gradient(
+      180deg,
+      rgba(40,90,160,.35),
+      rgba(15,35,75,.45)
+    );
 
-    .hero p{
-      margin:0;
-      color:#6b7280;
-      font-size:14px;
-    }
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 
-    .limits{
-      display:flex;
-      gap:18px;
-      font-size:12px;
-      color:#374151;
-      font-weight:600;
-    }
+  box-shadow:
+    inset -1px 0 0 rgba(255,255,255,.18),
+    0 0 40px rgba(30,90,160,.25);
 
-    .limits span{
-      color:#ff6b4a;
-    }
+  overflow:hidden;
+}
 
-    .chat{
-      background:#fff;
-      border-radius:22px;
-      padding:18px;
-      min-height:420px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      box-shadow:0 10px 30px rgba(0,0,0,.08);
-    }
+/* ===== SIDEBAR ROBOT – HERO MODE ===== */
+.sidebar-robot{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 
-    .messages{
-      flex:1;
-    }
+  margin-top:12px;   /* אם אתה רוצה קצת אוויר */
+  margin-bottom:8px;
+}
 
-    .input{
-      display:flex;
-      gap:12px;
-      margin-top:16px;
-    }
+.sidebar-robot img{
+  width:160px;        /* ⭐ הגודל האידיאלי לסייד */
+  height:auto;
+  max-width:100%;
 
-    .input input{
-      flex:1;
-      padding:14px 16px;
-      border-radius:999px;
-      border:2px solid #e5e7eb;
-      font-size:15px;
-    }
+  filter:
+    drop-shadow(0 0 24px rgba(120,180,255,.75))
+    drop-shadow(0 0 60px rgba(80,140,255,.45));
+}
 
-    .input button{
-      border:none;
-      padding:0 18px;
-      border-radius:999px;
-      background:#ff6b4a;
-      color:#fff;
-      font-weight:700;
-      cursor:pointer;
-    }
 
-    .ideas{
-      margin-top:20px;
-    }
 
-    .ideas h3{
-      font-size:14px;
-      margin-bottom:10px;
-      color:#6b7280;
-    }
+/* ================= MAIN ================= */
+.main{
+  margin-left:240px;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
 
-    .idea-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:12px;
-    }
+  max-width:calc(100vw - 360px); /* ⬅️ זה הסוד */
+  padding:12px 48px 12px 20px;
 
-    .idea{
-      background:#fff;
-      border-radius:14px;
-      padding:14px;
-      font-size:14px;
-      font-weight:600;
-      cursor:pointer;
-      box-shadow:0 6px 16px rgba(0,0,0,.06);
-      transition:.2s;
-    }
+  overflow:hidden;
+}
 
-    .idea:hover{
-      transform:translateY(-2px);
-    }
+/* ================= HEADER ================= */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+.logo{
+  font-weight:800;
+  color:#ff6b4a;
+}
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:600;
+}
+.user img{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+}
 
-    .voice{
-      position:fixed;
-      bottom:22px;
-      right:22px;
-      background:#ff6b4a;
-      color:#fff;
-      border-radius:999px;
-      padding:14px 20px;
-      font-weight:800;
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
-      cursor:pointer;
-    }
+/* ================= CONTENT ================= */
+.container{
+  flex:1;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+
+  background:rgba(255,255,255,.16);
+  backdrop-filter:blur(28px);
+  border-radius:28px;
+  padding:18px;
+}
+
+
+/* ================= HERO ================= */
+.hero{
+  background:rgba(255,255,255,.22);
+  backdrop-filter:blur(18px);
+  border-radius:24px;
+  padding:18px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.hero-left{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  overflow:hidden;
+}
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.hero h1{
+  margin:0;
+  font-size:20px;
+}
+.hero p{
+  margin:4px 0 0;
+  color:#6b7280;
+}
+.limits{
+  font-size:12px;
+  font-weight:600;
+}
+.limits span{
+  color:#ff6b4a;
+}
+
+/* ================= CHAT ================= */
+.chat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.18);
+  backdrop-filter:blur(22px);
+  border-radius:22px;
+
+  overflow:hidden;
+}
+
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* ================= INPUT BAR ================= */
+.input{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:12px;
+
+  background:rgba(255,255,255,.14);
+  backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.08);
+}
+
+/* TEXT INPUT */
+.input input{
+  flex:1;
+  padding:14px 18px;
+  border-radius:999px;
+  border:2px solid #e5e7eb;
+  font-size:15px;
+}
+
+/* ===== INPUT ACTIONS – PURE BLACK ===== */
+
+.send-btn,
+.talk-btn{
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  border:none;
+  cursor:pointer;
+
+  /* ⬅️ שחור אמיתי */
+  background:rgba(0,0,0,.85);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.55),
+    inset 0 0 0 1px rgba(255,255,255,.08);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+}
+
+/* ICON */
+.send-btn,
+.talk-btn i{
+  color:#ffffff;
+  font-size:18px;
+}
+/* SEND TEXT SIZE FIX */
+.send-btn{
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.4px;
+}
+
+/* HOVER */
+.send-btn:hover,
+.talk-btn:hover{
+  background:rgba(0,0,0,.95);
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 14px 36px rgba(0,0,0,.7),
+    inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+/* ACTIVE */
+.send-btn:active,
+.talk-btn:active{
+  transform:translateY(0);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.5),
+    inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+
+/* ACTIVE */
+.send-btn:active,
+.talk-btn:active{
+  transform:translateY(0);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+
+/* ================= IDEAS ================= */
+.idea{
+  background:rgba(255,255,255,.22);     /* ⬅️ שקיפות אמיתית */
+  backdrop-filter:blur(14px);           /* ⬅️ זכוכית */
+  border-radius:18px;
+  padding:16px 18px;
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  font-weight:600;
+  color:#1f2937;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.25),
+    0 12px 30px rgba(0,0,0,.12);
+
+  cursor:pointer;
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.idea span{
+  font-size:15px;
+  font-weight:700;
+  color:#24324a;
+}
+
+.idea:hover{
+  background:rgba(255,255,255,.3);
+  transform:translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.35),
+    0 18px 40px rgba(0,0,0,.18);
+}
+
+.idea img{
+  width:56px;
+  height:56px;
+  object-fit:contain;
+  flex-shrink:0;
+  transition:transform .25s ease;
+}
+
+.idea:hover img{
+  transform:scale(1.08);
+}
+
+.ideas h3{
+  margin:0 0 12px;
+  font-size:16px;
+  font-weight:700;
+  color:#374151;
+}
+
+.idea-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+/* ===== IDEA TEXT ONLY – NO SIZE CHANGE ===== */
+
+.idea-title{
+  font-size:19px;        /* ⬅️ גדול וברור */
+  font-weight:800;
+  line-height:1.2;
+  color:#1f2937;
+}
+
+.idea-sub{
+  font-size:14px;        /* ⬅️ קריא, לא משתלט */
+  font-weight:500;
+  line-height:1.3;
+  opacity:.8;
+  margin-top:4px;
+}
+
+
+/* ================= VOICE ================= */
+
+.idea:hover img{
+  transform:scale(1.05);
+  transition:.25s ease;
+}
+/* ===== SIDEBAR BUTTON CONTENT ===== */
+
+.side-item{
+  width:100%;
+  height:70px;
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  padding:0 18px;
+  margin:0 auto;
+
+  border-radius:12px;
+  border:none;
+
+  background:rgba(255,255,255,.18);
+  backdrop-filter:blur(8px);
+
+  color:#fff;
+  text-align:left;
+  cursor:pointer;
+
+  transition:
+    background .25s ease,
+    transform .2s ease,
+    box-shadow .25s ease;
+}
+
+/* Hover */
+.side-item:hover{
+  background:rgba(255,255,255,.26);
+  transform:translateX(2px);
+}
+
+/* Primary (Ask Anything) */
+.side-item-primary{
+  background:rgba(255,255,255,.32);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
+}
+
+/* ICON */
+.side-item i{
+  font-size:24px;
+  width:28px;
+  text-align:center;
+  color:#e8f2ff;
+
+  filter:drop-shadow(0 0 6px rgba(120,180,255,.6));
+}
+
+.side-item-primary i{
+  font-size:28px;
+  color:#ffffff;
+}
+
+/* TEXT WRAPPER */
+.side-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+
+/* TITLE */
+.side-title{
+  font-size:15px;
+  font-weight:700;
+  color:#ffffff;
+}
+
+/* SUBTITLE */
+.side-sub{
+  font-size:12px;
+  font-weight:500;
+  color:rgba(255,255,255,.75);
+  margin-top:3px;
+}
+.side-title{ letter-spacing:.2px; }
+.side-sub{ opacity:.85; }
+
+
+.side-item-primary{
+  height:70px;          /* ⬅️ גדול מכולם */
+  background:rgba(255,255,255,.28);
+
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
+}
+
+.side-item-primary span{
+  font-size:17px;
+  font-weight:700;
+}
+
+.side-item-primary i{
+  font-size:30px;
+  color:#ffffff;
+}
+.kid-actions{
+  width:100%;
+  flex:1;                 /* תופס את כל הגובה הפנוי */
+  margin-top:8px;
+  padding:0 8px;
+
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+
+  overflow-y:auto;        /* ⭐ הגלילה עצמה */
+  overscroll-behavior:contain;
+}
+
+/* scrollbar עדין */
+.kid-actions::-webkit-scrollbar{
+  width:6px;
+}
+.kid-actions::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.25);
+  border-radius:6px;
+}
+
+.side-item img{
+  width:26px;
+  height:26px;
+  object-fit:contain;
+}
+
+.side-item:hover{
+  background:rgba(255,255,255,.25);
+  transform:translateX(2px);
+}
+.side-item i{
+  font-size:22px;
+  width:26px;
+  text-align:center;
+  color:#cfe6ff;
+  filter: drop-shadow(0 0 6px rgba(120,180,255,.6));
+}
+.side-item-primary i{
+  font-size:28px;
+  color:#ffffff;
+}
+.idea-title{
+  font-size:15px;
+  font-weight:700;
+}
+
+.idea-sub{
+  font-size:12px;
+  opacity:.7;
+  margin-top:2px;
+}
+/* ===== CHAT MESSAGES ===== */
+
+
+
+/* ROW */
+.msg-row{
+  display:flex;
+  align-items:flex-end;
+  max-width:100%;
+}
+
+/* USER */
+.msg-row.user{
+  justify-content:flex-end;
+}
+
+.msg-row.user .msg-bubble{
+  background:linear-gradient(135deg,#4f9cff,#2f6fff);
+  color:#fff;
+  border-bottom-right-radius:6px;
+}
+
+/* ASSISTANT */
+.msg-row.assistant{
+  justify-content:flex-start;
+  gap:8px;
+}
+
+.msg-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+  box-shadow:0 0 10px rgba(120,180,255,.6);
+}
+
+/* BUBBLE */
+.msg-bubble{
+  max-width:65%;
+  padding:12px 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.85);
+  color:#1f2937;
+  font-size:14px;
+  line-height:1.4;
+  backdrop-filter:blur(6px);
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+  white-space:pre-wrap;
+}
+/* ===== IAKIDS LOGO ===== */
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:800;
+}
+
+/* עיגול כחול IA */
+.logo-badge{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#00040c;
+  color:#fff;
+  font-size:15px;
+  letter-spacing:.5px;
+
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,.35),
+    0 8px 20px rgba(80,140,255,.45);
+}
+
+/* kids */
+.logo-text{
+  font-size:18px;
+  font-weight:800;
+  color:#00040c;
+  letter-spacing:.2px;
+}
+.logo:hover .logo-badge{
+  transform:scale(1.05);
+  transition:.25s ease;
+}
+.logo-badge{
+  box-shadow:
+    0 0 12px rgba(120,180,255,.6),
+    0 8px 20px rgba(80,140,255,.45);
+}
+
+.chat-wrapper{
+  flex:1;
+  overflow:hidden;
+}
+
+.chat{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.messages{
+  flex:1;
+  overflow-y:auto;
+}
+.ideas-hint{
+  display:block;
+  margin:6px 0 10px;
+  font-size:13px;
+  font-weight:600;
+  color:rgba(31,41,55,.55);
+  letter-spacing:.2px;
+}
+.ideas-hint{
+  font-size:12px;
+  opacity:.6;
+}
+/* דוחף את הכפתורים למעלה */
+.kid-actions{
+  flex:1;
+}
+
+.sidebar-bottom{
+  flex-shrink:0;          /* ⭐ חשוב */
+  width:100%;
+  padding:12px 8px 18px;
+}
+
+
+.side-item-settings{
+  background:rgba(0,0,0,.35);
+}
+
+.side-item-settings:hover{
+  background:rgba(0,0,0,.45);
+}
+ /* ===== HAMBURGER – DESKTOP (OFF) ===== */
+.hamburger{
+  display:none;   /* ❌ לא קיים בדסקטופ */
+}
+@media (max-width: 900px){
+
+  /* ===== BASE ===== */
+  body{
+    overflow-x:hidden;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar{
+    transform:translateX(-100%);
+    transition:transform .3s ease;
+  }
+
+  .sidebar.open{
+    transform:translateX(0);
+  }
+
+  /* ===== MAIN ===== */
+  .main{
+    margin-left:0;
+    width:100%;
+    max-width:100vw;
+    height:100vh;
+    padding:12px;
+  }
+
+  /* ===== HAMBURGER – MOBILE ONLY ===== */
+  .hamburger{
+    display:flex;              /* ✅ מופיע רק במובייל */
+    position:fixed;
+    top:12px;
+    left:12px;
+    z-index:1000;
+
+    width:44px;
+    height:44px;
+    border-radius:50%;
+
+    background:rgba(0,0,0,.85);
+    color:#fff;
+    border:none;
+    font-size:20px;
+
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:0 8px 22px rgba(0,0,0,.4);
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    padding-left:48px; /* מקום להמבורגר */
+  }
+
+  header .logo{
+    display:none;
+  }
+
+  /* ===== HERO ===== */
+  .hero{
+    padding:10px 12px;
+    gap:10px;
+  }
+
+  .hero h1{
+    font-size:17px;
+  }
+
+  .hero p{
+    font-size:12px;
+  }
+
+  .avatar{
+    width:44px;
+    height:44px;
+  }
+
+  .limits{
+    font-size:11px;
+    margin-top:6px;
+  }
+
+  /* ===== CONTAINER / CHAT ===== */
+  .container{
+    padding:12px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .chat-wrapper{
+    flex:1;
+    min-height:0;
+  }
+
+  .chat{
+    flex:1;
+    height:100%;
+  }
+}
+.msg-row.user{
+  justify-content:flex-end;
+  flex-direction:row;
+  gap:8px;
+}
+
+
   </style>
 </head>
 
 <body>
+<button class="hamburger" onclick="toggleSidebar()">
+  <i class="fa-solid fa-bars"></i>
+</button>
 
-<header>
-  <div class="logo">🤖 Askie</div>
-  <div class="user" id="userBox">
-    <img id="userAvatar" />
-    <span id="userName"></span>
+<div class="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+
+
+
+  <!-- תוכן הסייד -->
+  <div class="sidebar-inner">
+
+ <div class="sidebar-robot">
+  <img src="/assets/askie-robot.png" alt="iakids robot" />
+</div>
+
+
+    <div class="kid-actions">
+
+<button class="side-item side-item-primary">
+  <i class="fa-solid fa-comment-dots"></i>
+  <div class="side-text">
+    <div class="side-title">Ask Anything</div>
+    <div class="side-sub">Any question you want</div>
   </div>
-</header>
+</button>
 
-<div class="container">
-
-  <div class="hero">
-    <div class="hero-left">
-      <div class="avatar">
-        <img id="heroAvatar" />
-      </div>
-      <div>
-        <h1 id="heroGreeting"></h1>
-        <p>What would you like to explore today?</p>
-      </div>
-    </div>
-
-    <div class="limits">
-      <div>Questions <span>68 / 70</span></div>
-      <div>Images <span>4 / 4</span></div>
-      <div>Voice <span>5 min</span></div>
-    </div>
+<button class="side-item">
+  <i class="fa-solid fa-lightbulb"></i>
+  <div class="side-text">
+    <div class="side-title">Solve Problems</div>
+    <div class="side-sub">Step by step help</div>
   </div>
+</button>
 
+<button class="side-item">
+  <i class="fa-solid fa-book-open"></i>
+  <div class="side-text">
+    <div class="side-title">Learn Topics</div>
+    <div class="side-sub">Understand new ideas</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-gamepad"></i>
+  <div class="side-text">
+    <div class="side-title">Play Games</div>
+    <div class="side-sub">Fun & smart games</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-wand-magic-sparkles"></i>
+  <div class="side-text">
+    <div class="side-title">Get Surprise</div>
+    <div class="side-sub">Something cool & new</div>
+  </div>
+</button>
+<button class="side-item">
+  <i class="fa-solid fa-child"></i>
+  <div class="side-text">
+    <div class="side-title">Explain Simply</div>
+    <div class="side-sub">Like I’m 8</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-shapes"></i>
+  <div class="side-text">
+    <div class="side-title">Show Example</div>
+    <div class="side-sub">With examples</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-wand-sparkles"></i>
+  <div class="side-text">
+    <div class="side-title">Make It Fun</div>
+    <div class="side-sub">Story or game</div>
+  </div>
+</button>
+
+<button class="side-item">
+  <i class="fa-solid fa-question"></i>
+  <div class="side-text">
+    <div class="side-title">Ask Me</div>
+    <div class="side-sub">I’ll ask you</div>
+  </div>
+</button>
+
+
+    </div>
+<div class="sidebar-bottom">
+  <button class="side-item side-item-settings">
+    <i class="fa-solid fa-gear"></i>
+    <div class="side-text">
+      <div class="side-title">Settings</div>
+      <div class="side-sub">Preferences</div>
+    </div>
+  </button>
+</div>
+
+  </div>
+</aside>
+
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <header>
+      <div class="logo">
+  <div class="logo-badge">IA</div>
+  <span class="logo-text">kids</span>
+</div>
+
+      <div class="user">
+        <img id="userAvatar" />
+        <span id="userName"></span>
+      </div>
+    </header>
+
+    <div class="container">
+
+      <div class="hero">
+        <div class="hero-left">
+          <div class="avatar">
+            <img id="heroAvatar" />
+          </div>
+          <div>
+            <h1 id="heroGreeting"></h1>
+            <p>What would you like to explore today?</p>
+          </div>
+        </div>
+
+        <div class="limits">
+          Questions <span>68 / 70</span> &nbsp; Images <span>4 / 4</span> &nbsp; Voice <span>5 min</span>
+        </div>
+      </div>
+
+<div class="chat-wrapper">
   <div class="chat">
-    <div class="messages"></div>
+    <div class="messages"><!-- ⬅️ messages go here --></div>
 
-    <div class="input">
-      <input placeholder="Ask anything…" />
-      <button>Send</button>
-    </div>
-  </div>
+<div class="input">
+  <input placeholder="Ask anything…" />
 
-  <div class="ideas">
-    <h3>Need an idea?</h3>
-    <div class="idea-grid">
-      <div class="idea">🐱 A cat astronaut</div>
-      <div class="idea">🧩 Solve an animal riddle</div>
-      <div class="idea">🔬 A fun science fact</div>
-      <div class="idea">😂 A silly robot joke</div>
-      <div class="idea">📝 Play a word game</div>
-    </div>
-  </div>
+  <button class="send-btn">Send</button>
+  <button class="talk-btn" title="Talk">
+  <i class="fa-solid fa-microphone"></i>
+</button>
 
 </div>
 
-<div class="voice">🎤 Talk</div>
+  </div>
+</div>
+
+<div class="ideas">
+  <span class="ideas-hint">Need an idea?</span>
+
+
+        <div class="idea-grid">
+
+<div class="idea">
+  <img src="/assets/icons/homework-help.png" />
+  <div>
+    <div class="idea-title">Homework Help</div>
+    <div class="idea-sub">Get help with school</div>
+  </div>
+</div>
+
+<div class="idea">
+  <img src="/assets/icons/explain-topic.png" />
+  <div>
+    <div class="idea-title">Explain Topic</div>
+    <div class="idea-sub">Learn something new</div>
+  </div>
+</div>
+
+<div class="idea">
+  <img src="/assets/icons/smart-riddle.png" />
+  <div>
+    <div class="idea-title">Smart Riddle</div>
+    <div class="idea-sub">Think and have fun</div>
+  </div>
+</div>
+
+<div class="idea">
+  <img src="/assets/icons/something-interesting.png" />
+  <div>
+    <div class="idea-title">Something Cool</div>
+    <div class="idea-sub">Interesting ideas</div>
+  </div>
+</div>
+
+
+</div>
+
+      </div>
+
+    </div>
+
+
+  </main>
+
+</div>
 
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
@@ -259,37 +1065,44 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 (async () => {
-  const { data } = await sb.auth.getSession();
+  const { data: sessionData } = await sb.auth.getSession();
 
-  if (!data.session) {
+  if (!sessionData.session) {
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  const user = data.session.user;
-  const meta = user.user_metadata || {};
+  const userId = sessionData.session.user.id;
 
-  const name =
-    meta.full_name ||
-    meta.name ||
-    meta.given_name ||
-    user.email;
+  const { data: kid, error } = await sb
+    .from("kids_profiles")
+    .select("id, child_name, avatar_key")
+    .eq("user_id", userId)
+    .single();
 
-  const avatar =
-    meta.avatar_url ||
-    meta.picture ||
-    "https://api.dicebear.com/7.x/bottts/svg?seed=askie";
+  if (error || !kid) {
+    console.error("kids_profiles error:", error);
+    return;
+  }
 
-  document.getElementById("userName").textContent = name;
-  document.getElementById("userAvatar").src = avatar;
-  document.getElementById("heroAvatar").src = avatar;
-  document.getElementById("heroGreeting").textContent = `Hi, ${name}!`;
+  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+  window.KID_AVATAR_URL = avatarUrl;
+
+  document.getElementById("userName").textContent = kid.child_name;
+  document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
+  document.getElementById("userAvatar").src = avatarUrl;
+  document.getElementById("heroAvatar").src = avatarUrl;
+
+
+  window.ACTIVE_KID_ID = kid.id;
 })();
 </script>
+
 <script>
 const API_BASE = "https://iakids-backend.onrender.com";
 
 const messagesEl = document.querySelector(".messages");
+const chatEl = document.querySelector(".chat");
 const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".input button");
 
@@ -297,28 +1110,34 @@ let kidId = null;
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
-  const div = document.createElement("div");
-  div.style.margin = "10px 0";
-  div.style.padding = "12px 16px";
-  div.style.borderRadius = "16px";
-  div.style.maxWidth = "75%";
-  div.style.whiteSpace = "pre-wrap";
+  const row = document.createElement("div");
+  row.className = `msg-row ${role}`;
 
-  if (role === "user") {
-    div.style.background = "#ff6b4a";
-    div.style.color = "#fff";
-    div.style.marginLeft = "auto";
-  } else {
-    div.style.background = "#f3f4f6";
-    div.style.color = "#111827";
-    div.style.marginRight = "auto";
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.textContent = text;
+
+  // 🤖 assistant avatar (שמאל)
+  if (role === "assistant") {
+    const avatar = document.createElement("img");
+    avatar.src = "/assets/askie-robot.png";
+    avatar.className = "msg-avatar";
+    row.appendChild(avatar);
   }
 
-  div.textContent = text;
-  messagesEl.appendChild(div);
+  row.appendChild(bubble);
+
+  // 🧒 user avatar (ימין)
+  if (role === "user") {
+    const avatar = document.createElement("img");
+    avatar.src = window.KID_AVATAR_URL;
+    avatar.className = "msg-avatar";
+    row.appendChild(avatar);
+  }
+
+  messagesEl.appendChild(row);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
-
 
 
 /* ---------- SEND MESSAGE ---------- */
@@ -376,6 +1195,11 @@ inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage();
 });
 
+</script>
+<script>
+function toggleSidebar(){
+  document.querySelector('.sidebar').classList.toggle('open');
+}
 </script>
 
 </body>
