@@ -964,6 +964,45 @@ header{
   gap:14px;
 }
 
+/* ===== RIGHTBAR HEADER ===== */
+.rightbar-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:8px 6px 14px;
+  margin-bottom:6px;
+
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.rightbar-avatar{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  object-fit:cover;
+
+  border:2px solid rgba(255,255,255,.35);
+  box-shadow:0 0 12px rgba(120,180,255,.5);
+}
+
+.rightbar-user{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+
+.rightbar-name{
+  font-size:14px;
+  font-weight:700;
+  color:#ffffff;
+}
+
+.rightbar-sub{
+  font-size:12px;
+  color:rgba(255,255,255,.7);
+  margin-top:2px;
+}
 
   </style>
 </head>
@@ -1083,6 +1122,14 @@ header{
 
 <!-- ===== RIGHT SIDEBAR ===== -->
 <aside class="rightbar">
+<!-- ===== RIGHTBAR HEADER ===== -->
+<div class="rightbar-header">
+  <img id="rightbarAvatar" class="rightbar-avatar" />
+  <div class="rightbar-user">
+    <div class="rightbar-name" id="rightbarName"></div>
+    <div class="rightbar-sub">Mi perfil</div>
+  </div>
+</div>
 
   <div class="side-section">
     <h4>👋 Para ti</h4>
@@ -1308,6 +1355,9 @@ const { data: kid, error } = await sb
   }
   CURRENT_KID = kid;
   const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+  document.getElementById("rightbarAvatar").src = avatarUrl;
+  document.getElementById("rightbarName").textContent = kid.child_name;
+
   window.KID_AVATAR_URL = avatarUrl;
 
   document.getElementById("userName").textContent = kid.child_name;
