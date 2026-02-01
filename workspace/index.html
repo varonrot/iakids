@@ -1081,24 +1081,34 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     return;
   }
 
-  const user = data.session.user;
+const { data: sessionData } = await sb.auth.getSession();
+if (!sessionData.session) {
+  window.location.replace("/onboarding/cuenta/");
+  return;
+}
 
-  // 🔹 שליפת פרופיל הילד
-  const { data: kids, error } = await sb
-    .from("kids_profiles")
-    .select("id, child_name, avatar_key")
-    .eq("user_id", user.id)
-    .limit(1);
+const userId = sessionData.session.user.id;
 
-  if (error || !kids || !kids.length) {
-    console.error("No kid profile found", error);
-    return;
-  }
+// ⬅️ שליפה מהטבלה kids_profiles
+const { data: kid, error } = await sb
+  .from("kids_profiles")
+  .select("child_name, avatar_key")
+  .eq("user_id", userId)
+  .single();
 
-  const kid = kids[0];
+if (error || !kid) {
+  console.error("No kid profile", error);
+  return;
+}
 
-  // 🔹 בניית URL לאווטאר (אצלך זה emoji / key)
-  const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(kid.avatar_key)}`;
+// שם הילד
+document.getElementById("userName").textContent = kid.child_name;
+document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
+
+// אווטאר
+const avatarUrl = `/assets/avatars/${kid.avatar_key}.png`; 
+document.getElementById("userAvatar").src = avatarUrl;
+document.getElementById("heroAvatar").src = avatarUrl;
 
   // 🔹 UI
   document.getElementById("userName").textContent = kid.child_name;
