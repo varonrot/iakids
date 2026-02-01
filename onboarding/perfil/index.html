@@ -154,6 +154,14 @@ h1{margin:6px 0 0;font-size:34px}
   font-weight:800;
   cursor:pointer;
 }
+    .avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%;
+  pointer-events:none;
+}
+
 </style>
 </head>
 
@@ -187,12 +195,34 @@ h1{margin:6px 0 0;font-size:34px}
 
   <h3>Elige un avatar</h3>
 
-  <div class="avatars" id="avatars">
-    <div class="avatar">🦊</div><div class="avatar">🐻</div><div class="avatar">🦉</div>
-    <div class="avatar">🐵</div><div class="avatar">🐼</div><div class="avatar">🐱</div>
-    <div class="avatar">🐶</div><div class="avatar">🦁</div><div class="avatar">🐧</div>
-    <div class="avatar">🦄</div><div class="avatar">🐨</div><div class="avatar">🦔</div>
+<div class="avatars" id="avatars">
+
+  <div class="avatar" data-key="cat">
+    <img src="/assets/avatars/cat_blue.png" alt="Cat">
   </div>
+
+  <div class="avatar" data-key="dog">
+    <img src="/assets/avatars/dog_blue.png" alt="Dog">
+  </div>
+
+  <div class="avatar" data-key="owl">
+    <img src="/assets/avatars/owl_blue.png" alt="Owl">
+  </div>
+
+  <div class="avatar" data-key="horse">
+    <img src="/assets/avatars/horse_blue.png" alt="Horse">
+  </div>
+
+  <div class="avatar" data-key="eagle">
+    <img src="/assets/avatars/eagle_blue.png" alt="Eagle">
+  </div>
+
+  <div class="avatar" data-key="panther">
+    <img src="/assets/avatars/panther_blue.png" alt="Panther">
+  </div>
+
+</div>
+
 
   <button class="btn" id="nextBtn">Continuar</button>
 
@@ -224,7 +254,9 @@ let selectedAvatar = sessionStorage.getItem("child_avatar");
 
 if(selectedAvatar){
   avatarEls.forEach(v=>{
-    if(v.textContent === selectedAvatar) v.classList.add("active");
+    if(v.dataset.key === selectedAvatar){
+      v.classList.add("active");
+    }
   });
 }
 
@@ -232,9 +264,10 @@ avatarEls.forEach(v=>{
   v.onclick = ()=>{
     avatarEls.forEach(x=>x.classList.remove("active"));
     v.classList.add("active");
-    selectedAvatar = v.textContent;
+    selectedAvatar = v.dataset.key;
   };
 });
+
 
 /* === NEXT === */
 document.getElementById("nextBtn").onclick = ()=>{
