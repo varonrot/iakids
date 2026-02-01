@@ -1037,9 +1037,9 @@ header{
 
 /* TEXT UNDER AVATAR */
 .rightbar-kid-text{
-  margin-top:10px;
-  text-align:right;
   line-height:1.1;
+  text-align:right;
+  margin:0;
 }
 
 .rightbar-kid-name{
@@ -1054,6 +1054,15 @@ header{
   font-weight:500;
   color:rgba(255,255,255,.75);
   margin-top:4px;
+}
+.rightbar-kid{
+  justify-content:flex-end; /* כבר יש – טוב */
+}
+
+.rightbar-kid-text{
+  align-items:flex-end;     /* ⬅️ זה הסוד */
+  display:flex;
+  flex-direction:column;
 }
 
   </style>
