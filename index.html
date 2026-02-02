@@ -1688,7 +1688,220 @@ body{
   font-size:14px;
   color:#cfe6ff;
 }
+/* =========================
+   AUDIENCE SECTION (Warm pastel like your 2nd section)
+========================= */
+.audience{
+  padding:110px 20px;
+  background: linear-gradient(180deg, #fff6ef 0%, #fff 55%, #fff8f1 100%);
+}
 
+.audience-inner{
+  max-width:1200px;
+  margin:0 auto;
+}
+
+.audience-head{
+  text-align:center;
+  max-width:760px;
+  margin:0 auto 70px;
+}
+
+.audience-badge{
+  display:inline-block;
+  background:#eaf7ff;
+  color:#2563eb;
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  margin-bottom:16px;
+}
+
+.audience-head h2{
+  font-size:40px;
+  line-height:1.15;
+  color:#111827;
+  margin:0 0 12px;
+}
+
+.audience-head p{
+  color:#6b7280;
+  font-size:16px;
+  line-height:1.6;
+  margin:0;
+}
+
+.audience-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:22px;
+}
+
+.audience-card{
+  background: rgba(255,255,255,.86);
+  border:1px solid rgba(17,24,39,.06);
+  border-radius:28px;
+  padding:30px 28px;
+  box-shadow:0 20px 55px rgba(0,0,0,.08);
+  transition: transform .25s ease, box-shadow .25s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.audience-card:hover{
+  transform: translateY(-6px);
+  box-shadow:0 28px 70px rgba(0,0,0,.12);
+}
+
+/* subtle gradients per card */
+.audience-card.kids::before,
+.audience-card.parents::before,
+.audience-card.notfree::before{
+  content:"";
+  position:absolute;
+  inset:-40% -30% auto auto;
+  width:420px;
+  height:420px;
+  border-radius:50%;
+  filter: blur(0px);
+  opacity:.9;
+  pointer-events:none;
+}
+
+.audience-card.kids::before{
+  background: radial-gradient(circle at 30% 30%,
+    rgba(59,130,246,.18),
+    rgba(255,106,42,.12),
+    transparent 60%);
+}
+
+.audience-card.parents::before{
+  background: radial-gradient(circle at 30% 30%,
+    rgba(34,197,94,.16),
+    rgba(59,130,246,.10),
+    transparent 60%);
+}
+
+.audience-card.notfree::before{
+  background: radial-gradient(circle at 30% 30%,
+    rgba(255,106,42,.20),
+    rgba(168,85,247,.10),
+    transparent 60%);
+}
+
+.audience-ico{
+  width:54px;
+  height:54px;
+  border-radius:18px;
+  background: rgba(255,106,42,.10);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  margin-bottom:14px;
+}
+
+.audience-card.parents .audience-ico{
+  background: rgba(34,197,94,.12);
+}
+.audience-card.notfree .audience-ico{
+  background: rgba(59,130,246,.12);
+}
+
+.audience-card h3{
+  margin:0 0 6px;
+  font-size:20px;
+  color:#111827;
+}
+
+.audience-sub{
+  margin:0 0 18px;
+  color:#6b7280;
+  font-size:14px;
+  line-height:1.55;
+}
+
+.audience-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.audience-list li{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:14px;
+  color:#374151;
+  line-height:1.5;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  margin-top:6px;
+  flex:0 0 10px;
+}
+.dot-blue{background:#3b82f6}
+.dot-orange{background:#ff6a2a}
+.dot-green{background:#22c55e}
+.dot-purple{background:#a855f7}
+
+.audience-foot{
+  margin-top:18px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.chip{
+  padding:9px 12px;
+  border-radius:999px;
+  background: rgba(17,24,39,.04);
+  border:1px solid rgba(17,24,39,.06);
+  color:#374151;
+  font-size:12px;
+  font-weight:700;
+}
+
+/* callout inside notfree */
+.callout{
+  margin:10px 0 16px;
+  padding:14px 14px;
+  border-radius:18px;
+  background: rgba(17,24,39,.03);
+  border:1px solid rgba(17,24,39,.06);
+}
+
+.callout-title{
+  font-weight:900;
+  color:#111827;
+  font-size:13px;
+  margin-bottom:6px;
+}
+
+.callout-text{
+  margin:0;
+  color:#6b7280;
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* responsive */
+@media (min-width: 900px){
+  .audience-grid{
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .audience-head h2{
+    font-size:44px;
+  }
+}
 </style>
   <script type="application/ld+json">
 {
@@ -1777,7 +1990,85 @@ body{
   </div>
 
 </section>
+<!-- =========================
+     SECTION 2: PARA QUIÉN ES (Kids + Parents + Not Free AI)
+     Drop-in ready (HTML + CSS)
+========================= -->
 
+<section class="audience" id="audience">
+  <div class="audience-inner">
+
+    <header class="audience-head">
+      <span class="audience-badge">PARA QUIÉN ES</span>
+      <h2>Una IA para niños, con tranquilidad para familias</h2>
+      <p>
+        iakids está hecha para que los niños aprendan y creen con seguridad,
+        mientras los padres mantienen el control y los límites.
+      </p>
+    </header>
+
+    <div class="audience-grid">
+
+      <!-- Kids -->
+      <article class="audience-card kids">
+        <div class="audience-ico">🧒</div>
+        <h3>Para niños</h3>
+        <p class="audience-sub">Aprender, preguntar y crear — de forma guiada.</p>
+        <ul class="audience-list">
+          <li><span class="dot dot-blue"></span>Aprender con explicaciones claras</li>
+          <li><span class="dot dot-orange"></span>Preguntar sin miedo ni presión</li>
+          <li><span class="dot dot-green"></span>Crear historias, ideas y juegos</li>
+        </ul>
+        <div class="audience-foot">
+          <span class="chip">Lenguaje por edad</span>
+          <span class="chip">Sin distracciones</span>
+        </div>
+      </article>
+
+      <!-- Parents -->
+      <article class="audience-card parents">
+        <div class="audience-ico">👨‍👩‍👧</div>
+        <h3>Para padres</h3>
+        <p class="audience-sub">Control, límites y paz mental.</p>
+        <ul class="audience-list">
+          <li><span class="dot dot-purple"></span>Límites de uso (texto, imágenes, voz)</li>
+          <li><span class="dot dot-green"></span>Perfiles por niño y configuración fácil</li>
+          <li><span class="dot dot-blue"></span>Entorno seguro y consistente</li>
+        </ul>
+        <div class="audience-foot">
+          <span class="chip">Control parental</span>
+          <span class="chip">Reglas claras</span>
+        </div>
+      </article>
+
+      <!-- Not free AI -->
+      <article class="audience-card notfree">
+        <div class="audience-ico">🛡️</div>
+        <h3>No es una IA “libre”</h3>
+        <p class="audience-sub">Está diseñada específicamente para niños.</p>
+        <div class="callout">
+          <div class="callout-title">¿Qué significa?</div>
+          <p class="callout-text">
+            Respuestas filtradas, tono adecuado y guía educativa.
+            Menos caos, más aprendizaje.
+          </p>
+        </div>
+        <ul class="audience-list">
+          <li><span class="dot dot-orange"></span>Contenido apropiado por edad</li>
+          <li><span class="dot dot-blue"></span>Enfoque educativo (no “cualquier cosa”)</li>
+          <li><span class="dot dot-green"></span>Experiencia estable y segura</li>
+        </ul>
+        <div class="audience-foot">
+          <span class="chip">Seguro</span>
+          <span class="chip">Educativo</span>
+          <span class="chip">Hecho para niños</span>
+        </div>
+      </article>
+
+    </div>
+
+  </div>
+</section>
 <!-- =========================
      NEXT SECTIONS (EMPTY)
 ========================= -->
