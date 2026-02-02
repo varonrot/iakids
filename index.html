@@ -2144,21 +2144,24 @@ body{
 /* =========================
    USE CASES SECTION
 ========================= */
+
 .use-cases{
   padding:120px 20px;
   background:#fffaf5;
+  overflow:hidden;
 }
 
 .use-inner{
   max-width:1200px;
   margin:0 auto;
   display:grid;
-  grid-template-columns:2fr 1fr; /* 2/3 text, 1/3 image */
+  grid-template-columns:2fr 1.2fr; /* טקסט + תמונה גדולה יותר */
   gap:64px;
   align-items:center;
 }
 
-/* LEFT */
+/* ================= LEFT ================= */
+
 .use-pill{
   display:inline-block;
   padding:6px 14px;
@@ -2184,6 +2187,7 @@ body{
 }
 
 /* cards */
+
 .use-cards{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -2209,6 +2213,7 @@ body{
 }
 
 /* icon placeholder */
+
 .icon-placeholder{
   width:42px;
   height:42px;
@@ -2217,25 +2222,26 @@ body{
   margin-bottom:14px;
 }
 
-/* RIGHT – IMAGE AREA */
+/* ================= RIGHT – IMAGE ================= */
+
 .use-right{
-  position: relative;
-  width: 100%;
-  min-height: 520px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: hidden;
+  position:relative;
+  width:100%;
+  min-height:560px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
 }
 
-/* image fills the whole right column */
 .use-right img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center bottom;
-  display: block;
+  width:100%;
+  height:100%;
+  object-fit:contain;              /* ❗ לא חותך */
+  object-position:right bottom;
+  display:block;
 }
+
+/* מיזוג רך לצבע הרקע */
 .use-right::before{
   content:"";
   position:absolute;
@@ -2243,13 +2249,27 @@ body{
   background:linear-gradient(
     90deg,
     #fffaf5 0%,
-    rgba(255,250,245,0.6) 25%,
-    rgba(255,250,245,0.0) 55%
+    rgba(255,250,245,.8) 30%,
+    rgba(255,250,245,.4) 55%,
+    rgba(255,250,245,.0) 75%
   );
   pointer-events:none;
 }
 
-/* TABLET */
+.use-right::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(
+    ellipse at right center,
+    rgba(255,250,245,0) 40%,
+    #fffaf5 75%
+  );
+  pointer-events:none;
+}
+
+/* ================= TABLET ================= */
+
 @media (max-width: 900px){
   .use-inner{
     grid-template-columns:1fr;
@@ -2257,14 +2277,18 @@ body{
 
   .use-right{
     order:-1;
+    min-height:360px;
+    margin-bottom:40px;
   }
 
   .use-right img{
-    max-width:320px;
+    width:80%;
+    height:auto;
   }
 }
 
-/* MOBILE */
+/* ================= MOBILE ================= */
+
 @media (max-width: 520px){
   .use-cards{
     grid-template-columns:1fr;
@@ -2273,19 +2297,16 @@ body{
   .use-left h2{
     font-size:32px;
   }
-}
-@media (max-width: 900px){
+
   .use-right{
-    min-height: 300px;
+    min-height:280px;
+  }
+
+  .use-right img{
+    width:90%;
   }
 }
 
-@media (max-width: 520px){
-  .use-right{
-    order: -1;        /* התמונה מעל הכרטיסים */
-    min-height: 260px;
-  }
-}
 
 </style>
   <script type="application/ld+json">
