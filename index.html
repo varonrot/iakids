@@ -2028,30 +2028,51 @@ body{
     font-size:40px;
   }
 }
-/* SECTION WRAPPER */
-.how-steps-section{
+/* SECTION OUTER */
+.how-section{
   padding:120px 20px;
   background:#fff7ef;
 }
 
-/* CENTERED CONTAINER */
-.how-steps-container{
+/* CENTERED BOX WITH BACKGROUND IMAGE */
+.how-box{
   max-width:1200px;
   margin:0 auto;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:80px;
-  align-items:center;
+  padding:80px 70px;
+  border-radius:36px;
+
+  background-image:url("/assets/iakids-how-it-works-3d-chat.png");
+  background-size:cover;
+  background-position:right center;
+  background-repeat:no-repeat;
+
+  position:relative;
+  overflow:hidden;
 }
 
-/* LEFT */
-.how-steps-left h2{
-  font-size:40px;
-  line-height:1.15;
-  margin-bottom:14px;
-  color:#0f172a;
+/* SOFT OVERLAY FOR READABILITY */
+.how-box::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    90deg,
+    rgba(255,248,240,0.95) 0%,
+    rgba(255,248,240,0.88) 45%,
+    rgba(255,248,240,0.35) 65%,
+    rgba(255,248,240,0) 100%
+  );
+  z-index:1;
 }
 
+/* CONTENT */
+.how-content{
+  position:relative;
+  z-index:2;
+  max-width:520px;
+}
+
+/* TYPO */
 .section-badge{
   display:inline-block;
   background:#e6f0ff;
@@ -2063,41 +2084,47 @@ body{
   margin-bottom:14px;
 }
 
+.how-content h2{
+  font-size:40px;
+  line-height:1.15;
+  margin-bottom:14px;
+  color:#0f172a;
+}
+
 .section-desc{
   font-size:16px;
   color:#475569;
-  max-width:520px;
   margin-bottom:40px;
 }
 
 /* STEPS */
-.steps-list{
+.steps{
   display:flex;
   flex-direction:column;
-  gap:26px;
+  gap:24px;
 }
 
-.step-item{
+.step{
   display:flex;
   gap:18px;
   align-items:flex-start;
 }
 
-.step-item h3{
+.step h3{
   margin:0 0 6px;
   font-size:16px;
   color:#0f172a;
 }
 
-.step-item p{
+.step p{
   margin:0;
   font-size:14px;
   color:#475569;
   line-height:1.6;
 }
 
-/* STEP CIRCLES */
-.step-circle{
+/* NUMBERS */
+.step-num{
   width:38px;
   height:38px;
   border-radius:50%;
@@ -2109,46 +2136,30 @@ body{
   flex-shrink:0;
 }
 
-.step-orange{
-  background:#ff8a4c;
-}
-
-.step-blue{
-  background:#3b82f6;
-}
-
-.step-green{
-  background:#22c55e;
-}
-
-/* RIGHT IMAGE */
-.how-steps-right img{
-  width:100%;
-  max-width:520px;
-  border-radius:28px;
-  box-shadow:0 40px 90px rgba(0,0,0,.25);
-}
+.step-orange{ background:#ff8a4c; }
+.step-blue{ background:#3b82f6; }
+.step-green{ background:#22c55e; }
 
 /* TABLET */
 @media(max-width:1024px){
-  .how-steps-container{
-    grid-template-columns:1fr;
-    gap:60px;
-  }
-
-  .how-steps-right{
-    order:-1;
-    text-align:center;
-  }
-
-  .how-steps-right img{
-    max-width:420px;
+  .how-box{
+    padding:60px 40px;
+    background-position:75% center;
   }
 }
 
 /* MOBILE */
 @media(max-width:640px){
-  .how-steps-left h2{
+  .how-box{
+    padding:50px 26px;
+    background-position:center top;
+  }
+
+  .how-box::before{
+    background:rgba(255,248,240,0.95);
+  }
+
+  .how-content h2{
     font-size:32px;
   }
 }
@@ -2321,11 +2332,10 @@ body{
   </div>
 </section>
 
-<section class="how-steps-section">
-  <div class="how-steps-container">
+<section class="how-section">
+  <div class="how-box">
 
-    <!-- LEFT: TEXT + STEPS -->
-    <div class="how-steps-left">
+    <div class="how-content">
       <span class="section-badge">CÓMO FUNCIONA</span>
 
       <h2>Aprender con IA,<br>paso a paso</h2>
@@ -2335,10 +2345,10 @@ body{
         para niños y controlado por padres.
       </p>
 
-      <div class="steps-list">
+      <div class="steps">
 
-        <div class="step-item">
-          <span class="step-circle step-orange">1</span>
+        <div class="step">
+          <span class="step-num step-orange">1</span>
           <div>
             <h3>Crear el perfil del niño</h3>
             <p>
@@ -2348,8 +2358,8 @@ body{
           </div>
         </div>
 
-        <div class="step-item">
-          <span class="step-circle step-blue">2</span>
+        <div class="step">
+          <span class="step-num step-blue">2</span>
           <div>
             <h3>El niño aprende y crea</h3>
             <p>
@@ -2359,8 +2369,8 @@ body{
           </div>
         </div>
 
-        <div class="step-item">
-          <span class="step-circle step-green">3</span>
+        <div class="step">
+          <span class="step-num step-green">3</span>
           <div>
             <h3>Los padres mantienen el control</h3>
             <p>
@@ -2371,14 +2381,6 @@ body{
         </div>
 
       </div>
-    </div>
-
-    <!-- RIGHT: IMAGE -->
-    <div class="how-steps-right">
-      <img
-        src="/assets/iakids-how-it-works-3d-chat.png"
-        alt="iakids chat interface 3D"
-      />
     </div>
 
   </div>
