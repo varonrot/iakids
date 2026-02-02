@@ -1902,6 +1902,257 @@ body{
     font-size:44px;
   }
 }
+    /* =========================
+   HOW IT WORKS SECTION
+========================= */
+.how-it-works{
+  padding:110px 20px;
+  background:linear-gradient(180deg,#ffffff 0%, #fff6ee 60%, #ffffff 100%);
+}
+
+.how-inner{
+  max-width:1200px;
+  margin:0 auto;
+}
+
+.how-head{
+  text-align:center;
+  max-width:720px;
+  margin:0 auto 70px;
+}
+
+.how-badge{
+  display:inline-block;
+  background:#eaf7ff;
+  color:#2563eb;
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  margin-bottom:16px;
+}
+
+.how-head h2{
+  font-size:36px;
+  line-height:1.15;
+  color:#111827;
+  margin:0 0 12px;
+}
+
+.how-head p{
+  color:#6b7280;
+  font-size:16px;
+  line-height:1.6;
+}
+
+/* GRID */
+.how-steps{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:22px;
+}
+
+/* CARD */
+.how-card{
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(17,24,39,.06);
+  border-radius:26px;
+  padding:36px 28px;
+  box-shadow:0 18px 50px rgba(0,0,0,.08);
+  position:relative;
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+
+.how-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 26px 70px rgba(0,0,0,.12);
+}
+
+/* STEP CIRCLE */
+.how-step{
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  background:#ff6a2a;
+  color:#fff;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:14px;
+  font-size:16px;
+}
+
+/* TEXT */
+.how-card h3{
+  font-size:20px;
+  margin-bottom:10px;
+  color:#111827;
+}
+
+.how-card p{
+  font-size:15px;
+  line-height:1.6;
+  color:#6b7280;
+}
+
+/* FEATURED STEP */
+.how-card.featured{
+  border:2px solid #ff6a2a;
+  box-shadow:0 26px 70px rgba(255,106,42,.22);
+}
+
+/* TABLET */
+@media (min-width: 640px){
+  .how-steps{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .how-card.featured{
+    grid-column:span 2;
+  }
+}
+
+/* DESKTOP */
+@media (min-width: 960px){
+  .how-steps{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .how-card.featured{
+    grid-column:auto;
+  }
+
+  .how-head h2{
+    font-size:40px;
+  }
+}
+/* SECTION WRAPPER */
+.how-steps-section{
+  padding:120px 20px;
+  background:#fff7ef;
+}
+
+/* CENTERED CONTAINER */
+.how-steps-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:80px;
+  align-items:center;
+}
+
+/* LEFT */
+.how-steps-left h2{
+  font-size:40px;
+  line-height:1.15;
+  margin-bottom:14px;
+  color:#0f172a;
+}
+
+.section-badge{
+  display:inline-block;
+  background:#e6f0ff;
+  color:#2563eb;
+  font-size:12px;
+  font-weight:600;
+  padding:6px 12px;
+  border-radius:999px;
+  margin-bottom:14px;
+}
+
+.section-desc{
+  font-size:16px;
+  color:#475569;
+  max-width:520px;
+  margin-bottom:40px;
+}
+
+/* STEPS */
+.steps-list{
+  display:flex;
+  flex-direction:column;
+  gap:26px;
+}
+
+.step-item{
+  display:flex;
+  gap:18px;
+  align-items:flex-start;
+}
+
+.step-item h3{
+  margin:0 0 6px;
+  font-size:16px;
+  color:#0f172a;
+}
+
+.step-item p{
+  margin:0;
+  font-size:14px;
+  color:#475569;
+  line-height:1.6;
+}
+
+/* STEP CIRCLES */
+.step-circle{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  color:#fff;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.step-orange{
+  background:#ff8a4c;
+}
+
+.step-blue{
+  background:#3b82f6;
+}
+
+.step-green{
+  background:#22c55e;
+}
+
+/* RIGHT IMAGE */
+.how-steps-right img{
+  width:100%;
+  max-width:520px;
+  border-radius:28px;
+  box-shadow:0 40px 90px rgba(0,0,0,.25);
+}
+
+/* TABLET */
+@media(max-width:1024px){
+  .how-steps-container{
+    grid-template-columns:1fr;
+    gap:60px;
+  }
+
+  .how-steps-right{
+    order:-1;
+    text-align:center;
+  }
+
+  .how-steps-right img{
+    max-width:420px;
+  }
+}
+
+/* MOBILE */
+@media(max-width:640px){
+  .how-steps-left h2{
+    font-size:32px;
+  }
+}
+
 </style>
   <script type="application/ld+json">
 {
@@ -2069,80 +2320,122 @@ body{
 
   </div>
 </section>
-<!-- =========================
-     NEXT SECTIONS (EMPTY)
-========================= -->
-<section class="kids-features" id="features">
 
-  <div class="features-head">
-    <span class="features-badge">FUNCIONES PRINCIPALES</span>
-    <h2>Una IA pensada para niños, creada para familias</h2>
-    <p>
-      Una herramienta educativa que acompaña a los niños en su día a día:
-      aprender, crear y preguntar con confianza, siempre en un entorno seguro
-      y adaptado a su edad.
-    </p>
-  </div>
+<section class="how-steps-section">
+  <div class="how-steps-container">
 
-  <div class="features-grid">
+    <!-- LEFT: TEXT + STEPS -->
+    <div class="how-steps-left">
+      <span class="section-badge">CÓMO FUNCIONA</span>
 
-    <div class="feature-card">
-      <div class="feature-icon">💬</div>
-      <h3>Conversaciones seguras para niños</h3>
-      <p>
-        Un chat amigable que responde con lenguaje claro y apropiado,
-        ideal para aprender, resolver dudas y explorar nuevas ideas.
+      <h2>Aprender con IA,<br>paso a paso</h2>
+
+      <p class="section-desc">
+        Empezar con iakids es fácil. Todo está diseñado
+        para niños y controlado por padres.
       </p>
+
+      <div class="steps-list">
+
+        <div class="step-item">
+          <span class="step-circle step-orange">1</span>
+          <div>
+            <h3>Crear el perfil del niño</h3>
+            <p>
+              Elige la edad y preferencias.
+              La IA se adapta automáticamente al nivel del niño.
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <span class="step-circle step-blue">2</span>
+          <div>
+            <h3>El niño aprende y crea</h3>
+            <p>
+              Pregunta, aprende, inventa historias
+              y recibe ayuda escolar en un entorno seguro.
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <span class="step-circle step-green">3</span>
+          <div>
+            <h3>Los padres mantienen el control</h3>
+            <p>
+              Límites de uso, supervisión clara
+              y tranquilidad total para la familia.
+            </p>
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <div class="feature-card featured">
-      <div class="feature-icon">⭐</div>
-      <h3>Planes familiares sencillos</h3>
-      <p>
-        Elige un plan que se adapte a tu familia y gestiona fácilmente
-        el uso semanal de texto, imágenes y voz.
-      </p>
-    </div>
-
-    <div class="feature-card">
-      <div class="feature-icon">📚</div>
-      <h3>Apoyo escolar por edades</h3>
-      <p>
-        Contenido educativo ajustado a cada etapa,
-        ayudando con tareas y aprendizaje diario.
-      </p>
-    </div>
-
-    <div class="feature-card">
-      <div class="feature-icon">👨‍👩‍👧</div>
-      <h3>Un espacio para cada niño</h3>
-      <p>
-        Cada niño tiene su propio perfil.
-        Los padres pueden acompañar, supervisar y establecer límites.
-      </p>
-    </div>
-
-    <div class="feature-card">
-      <div class="feature-icon">🎨</div>
-      <h3>Creatividad e historias personalizadas</h3>
-      <p>
-        Cuentos, ideas y actividades creativas que estimulan
-        la imaginación y la curiosidad natural.
-      </p>
-    </div>
-
-    <div class="feature-card">
-      <div class="feature-icon">🛡️</div>
-      <h3>Diseñada pensando en la seguridad</h3>
-      <p>
-        Filtros inteligentes, controles parentales
-        y una experiencia creada especialmente para menores.
-      </p>
+    <!-- RIGHT: IMAGE -->
+    <div class="how-steps-right">
+      <img
+        src="/assets/iakids-how-it-works-3d-chat.png"
+        alt="iakids chat interface 3D"
+      />
     </div>
 
   </div>
-
 </section>
+
+ <!-- =========================
+     SECTION 3: CÓMO FUNCIONA
+========================= -->
+<section class="how-it-works" id="how-it-works">
+  <div class="how-inner">
+
+    <header class="how-head">
+      <span class="how-badge">CÓMO FUNCIONA</span>
+      <h2>Aprender con IA, paso a paso</h2>
+      <p>
+        Empezar con iakids es fácil.
+        Todo está diseñado para niños y controlado por padres.
+      </p>
+    </header>
+
+    <div class="how-steps">
+
+      <!-- Step 1 -->
+      <div class="how-card">
+        <div class="how-step">1</div>
+        <h3>Crear el perfil del niño</h3>
+        <p>
+          Elige la edad y preferencias.
+          La IA se adapta automáticamente al nivel del niño.
+        </p>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="how-card featured">
+        <div class="how-step">2</div>
+        <h3>El niño aprende y crea</h3>
+        <p>
+          Pregunta, aprende, inventa historias
+          y recibe ayuda escolar en un entorno seguro.
+        </p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="how-card">
+        <div class="how-step">3</div>
+        <h3>Los padres mantienen el control</h3>
+        <p>
+          Límites de uso, supervisión clara
+          y tranquilidad total para la familia.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
 <section class="pricing-section" id="pricing">
 
   <div class="pricing-head">
