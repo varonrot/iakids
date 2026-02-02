@@ -2028,139 +2028,148 @@ body{
     font-size:40px;
   }
 }
-/* SECTION OUTER */
-.how-section{
-  padding:120px 20px;
-  background:#fff7ef;
+/* ============ HOW IT WORKS ============ */
+.howItWorks{
+  padding: 72px 16px;
+  background: url("/assets/iakids-how-it-works-3d-chat.png") center / cover no-repeat;
 }
 
-/* CENTERED BOX WITH BACKGROUND IMAGE */
-.how-box{
-  max-width:1200px;
-  margin:0 auto;
-  padding:80px 70px;
-  border-radius:36px;
-
-  background-image:url("/assets/iakids-how-it-works-3d-chat.png");
-  background-size:cover;
-  background-position:right center;
-  background-repeat:no-repeat;
-
-  position:relative;
-  overflow:hidden;
+.howItWorks__wrap{
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(280px, 520px);
+  justify-content: start;
 }
 
-/* SOFT OVERLAY FOR READABILITY */
-.how-box::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(
-    90deg,
-    rgba(255,248,240,0.95) 0%,
-    rgba(255,248,240,0.88) 45%,
-    rgba(255,248,240,0.35) 65%,
-    rgba(255,248,240,0) 100%
-  );
-  z-index:1;
+/* left content block */
+.howItWorks__content{
+  width: 100%;
+  max-width: 520px;
 }
 
-/* CONTENT */
-.how-content{
-  position:relative;
-  z-index:2;
-  max-width:520px;
+/* small pill */
+.howItWorks__pill{
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: #1666ff;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(16,24,40,.10);
+  backdrop-filter: blur(8px);
 }
 
-/* TYPO */
-.section-badge{
-  display:inline-block;
-  background:#e6f0ff;
-  color:#2563eb;
-  font-size:12px;
-  font-weight:600;
-  padding:6px 12px;
-  border-radius:999px;
-  margin-bottom:14px;
+.howItWorks__title{
+  margin: 14px 0 10px;
+  font-size: 44px;
+  line-height: 1.06;
+  font-weight: 800;
+  color: #0b1220;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
 }
 
-.how-content h2{
-  font-size:40px;
-  line-height:1.15;
-  margin-bottom:14px;
-  color:#0f172a;
+.howItWorks__subtitle{
+  margin: 0 0 18px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #4b5563;
+  max-width: 46ch;
+  text-shadow: 0 1px 0 rgba(255,255,255,.25);
 }
 
-.section-desc{
-  font-size:16px;
-  color:#475569;
-  margin-bottom:40px;
+/* steps list */
+.howItWorks__steps{
+  display: grid;
+  gap: 14px;
 }
 
-/* STEPS */
-.steps{
-  display:flex;
-  flex-direction:column;
-  gap:24px;
+/* step card */
+.stepCard{
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  padding: 16px 16px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(16,24,40,.10);
+  box-shadow: 0 16px 45px rgba(16,24,40,.12);
+  backdrop-filter: blur(10px);
 }
 
-.step{
-  display:flex;
-  gap:18px;
-  align-items:flex-start;
+.stepCard__num{
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(0,0,0,.12);
+  flex: 0 0 auto;
 }
 
-.step h3{
-  margin:0 0 6px;
-  font-size:16px;
-  color:#0f172a;
+.stepCard__num--orange{ background: #ff7a3d; }
+.stepCard__num--blue{ background: #2f74ff; }
+.stepCard__num--green{ background: #22c55e; }
+
+.stepCard__title{
+  margin: 2px 0 4px;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #0b1220;
 }
 
-.step p{
-  margin:0;
-  font-size:14px;
-  color:#475569;
-  line-height:1.6;
+.stepCard__text{
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #4b5563;
 }
 
-/* NUMBERS */
-.step-num{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  color:#fff;
-  font-weight:700;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-}
+/* -------- Responsive -------- */
+@media (max-width: 900px){
+  .howItWorks{
+    padding: 56px 14px;
+    background-position: 70% center; /* שומר את המסך "מימין" */
+  }
 
-.step-orange{ background:#ff8a4c; }
-.step-blue{ background:#3b82f6; }
-.step-green{ background:#22c55e; }
+  .howItWorks__title{
+    font-size: 38px;
+  }
 
-/* TABLET */
-@media(max-width:1024px){
-  .how-box{
-    padding:60px 40px;
-    background-position:75% center;
+  .howItWorks__wrap{
+    grid-template-columns: 1fr;
+  }
+
+  .howItWorks__content{
+    max-width: 560px;
   }
 }
 
-/* MOBILE */
-@media(max-width:640px){
-  .how-box{
-    padding:50px 26px;
-    background-position:center top;
+@media (max-width: 520px){
+  .howItWorks{
+    padding: 44px 12px;
+    background-position: 76% center;
   }
 
-  .how-box::before{
-    background:rgba(255,248,240,0.95);
+  .howItWorks__title{
+    font-size: 30px;
   }
 
-  .how-content h2{
-    font-size:32px;
+  .stepCard{
+    grid-template-columns: 40px 1fr;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .stepCard__num{
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -2332,57 +2341,49 @@ body{
   </div>
 </section>
 
-<section class="how-section">
-  <div class="how-box">
+<section class="howItWorks" id="como-funciona">
+  <div class="howItWorks__wrap">
+    <div class="howItWorks__content">
+      <div class="howItWorks__pill">CÓMO FUNCIONA</div>
 
-    <div class="how-content">
-      <span class="section-badge">CÓMO FUNCIONA</span>
+      <h2 class="howItWorks__title">Aprender con IA,<br>paso a paso</h2>
 
-      <h2>Aprender con IA,<br>paso a paso</h2>
-
-      <p class="section-desc">
-        Empezar con iakids es fácil. Todo está diseñado
-        para niños y controlado por padres.
+      <p class="howItWorks__subtitle">
+        Empezar con iakids es fácil. Todo está diseñado para niños y controlado por padres.
       </p>
 
-      <div class="steps">
-
-        <div class="step">
-          <span class="step-num step-orange">1</span>
-          <div>
-            <h3>Crear el perfil del niño</h3>
-            <p>
-              Elige la edad y preferencias.
-              La IA se adapta automáticamente al nivel del niño.
+      <div class="howItWorks__steps">
+        <article class="stepCard">
+          <div class="stepCard__num stepCard__num--orange">1</div>
+          <div class="stepCard__body">
+            <h3 class="stepCard__title">Crear el perfil del niño</h3>
+            <p class="stepCard__text">
+              Elige la edad y preferencias. La IA se adapta automáticamente al nivel del niño.
             </p>
           </div>
-        </div>
+        </article>
 
-        <div class="step">
-          <span class="step-num step-blue">2</span>
-          <div>
-            <h3>El niño aprende y crea</h3>
-            <p>
-              Pregunta, aprende, inventa historias
-              y recibe ayuda escolar en un entorno seguro.
+        <article class="stepCard">
+          <div class="stepCard__num stepCard__num--blue">2</div>
+          <div class="stepCard__body">
+            <h3 class="stepCard__title">El niño aprende y crea</h3>
+            <p class="stepCard__text">
+              Pregunta, aprende, inventa historias y recibe ayuda escolar en un entorno seguro.
             </p>
           </div>
-        </div>
+        </article>
 
-        <div class="step">
-          <span class="step-num step-green">3</span>
-          <div>
-            <h3>Los padres mantienen el control</h3>
-            <p>
-              Límites de uso, supervisión clara
-              y tranquilidad total para la familia.
+        <article class="stepCard">
+          <div class="stepCard__num stepCard__num--green">3</div>
+          <div class="stepCard__body">
+            <h3 class="stepCard__title">Los padres mantienen el control</h3>
+            <p class="stepCard__text">
+              Límites de uso, supervisión clara y tranquilidad total para la familia.
             </p>
           </div>
-        </div>
-
+        </article>
       </div>
     </div>
-
   </div>
 </section>
 
