@@ -2142,120 +2142,118 @@ body{
   }
 }
 /* =========================
-   KIDS USE CASES SECTION
+   USE CASES SECTION
 ========================= */
-.kids-use-cases{
-  padding:110px 20px;
-  background: linear-gradient(180deg, #fff6ef 0%, #ffffff 60%, #fff8f1 100%);
+.use-cases{
+  padding:120px 20px;
+  background:#fffaf5;
 }
 
-.use-cases-inner{
+.use-inner{
   max-width:1200px;
   margin:0 auto;
   display:grid;
-  grid-template-columns: 2fr 1fr;
-  gap:60px;
+  grid-template-columns:2fr 1fr; /* 2/3 text, 1/3 image */
+  gap:64px;
   align-items:center;
 }
 
 /* LEFT */
-.use-cases-badge{
+.use-pill{
   display:inline-block;
+  padding:6px 14px;
+  border-radius:999px;
   background:#eaf7ff;
   color:#2563eb;
-  padding:8px 16px;
-  border-radius:999px;
   font-size:12px;
   font-weight:800;
-  letter-spacing:.08em;
-  margin-bottom:16px;
-}
-
-.use-cases-content h2{
-  font-size:40px;
-  line-height:1.15;
-  margin:0 0 14px;
-  color:#111827;
-}
-
-.use-cases-desc{
-  color:#6b7280;
-  font-size:16px;
-  max-width:560px;
-  margin-bottom:36px;
-}
-
-/* GRID */
-.use-cases-grid{
-  display:grid;
-  grid-template-columns: repeat(2,1fr);
-  gap:22px;
-}
-
-/* CARD */
-.use-card{
-  background:rgba(255,255,255,.9);
-  border:1px solid rgba(17,24,39,.06);
-  border-radius:26px;
-  padding:28px 26px;
-  box-shadow:0 18px 45px rgba(0,0,0,.08);
-  transition:transform .25s ease, box-shadow .25s ease;
-}
-
-.use-card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 26px 70px rgba(0,0,0,.12);
-}
-
-/* ICON PLACEHOLDER */
-.use-icon{
-  width:54px;
-  height:54px;
-  border-radius:18px;
-  background:rgba(255,106,42,.12);
   margin-bottom:14px;
 }
 
-/* TEXT */
-.use-card h3{
-  font-size:18px;
-  margin:0 0 6px;
-  color:#111827;
+.use-left h2{
+  font-size:40px;
+  line-height:1.15;
+  margin-bottom:14px;
+  color:#0f172a;
 }
 
-.use-card p{
+.use-desc{
+  color:#475569;
+  max-width:560px;
+  margin-bottom:40px;
+}
+
+/* cards */
+.use-cards{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:22px;
+}
+
+.use-card{
+  background:#fff;
+  border-radius:22px;
+  padding:26px 24px;
+  box-shadow:0 16px 40px rgba(15,23,42,.08);
+}
+
+.use-card strong{
+  display:block;
+  margin-bottom:6px;
+  color:#0f172a;
+}
+
+.use-card span{
   font-size:14px;
-  color:#6b7280;
-  line-height:1.55;
+  color:#64748b;
 }
 
-/* RIGHT IMAGE */
-.use-cases-image{
+/* icon placeholder */
+.icon-placeholder{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:#fde7db;
+  margin-bottom:14px;
+}
+
+/* RIGHT – IMAGE ONLY */
+.use-right{
   display:flex;
   justify-content:center;
 }
 
-.use-cases-image img{
+.use-right img{
   width:100%;
-  max-width:360px;
-  border-radius:32px;
-  box-shadow:0 30px 80px rgba(0,0,0,.18);
+  max-width:420px;     /* ⬅️ גדול יותר */
+  height:auto;
+  border-radius:0;     /* ⬅️ בלי כרטיס */
+  box-shadow:none;     /* ⬅️ בלי צל */
 }
 
-/* RESPONSIVE */
+/* TABLET */
 @media (max-width: 900px){
-  .use-cases-inner{
-    grid-template-columns:1fr;
-    text-align:center;
-  }
-
-  .use-cases-grid{
+  .use-inner{
     grid-template-columns:1fr;
   }
 
-  .use-cases-desc{
-    margin-left:auto;
-    margin-right:auto;
+  .use-right{
+    order:-1;
+  }
+
+  .use-right img{
+    max-width:320px;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 520px){
+  .use-cards{
+    grid-template-columns:1fr;
+  }
+
+  .use-left h2{
+    font-size:32px;
   }
 }
 
@@ -2470,99 +2468,99 @@ body{
  <!-- =========================
      SECTION 3: CÓMO FUNCIONA
 ========================= -->
-<!--<section class="how-it-works" id="how-it-works">-->
-<!--  <div class="how-inner">-->
+<section class="how-it-works" id="how-it-works">
+  <div class="how-inner">
 
-<!--    <header class="how-head">-->
-<!--      <span class="how-badge">CÓMO FUNCIONA</span>-->
-<!--      <h2>Aprender con IA, paso a paso</h2>-->
-<!--      <p>-->
-<!--        Empezar con iakids es fácil.-->
-<!--        Todo está diseñado para niños y controlado por padres.-->
-<!--      </p>-->
-<!--    </header>-->
+    <header class="how-head">
+      <span class="how-badge">CÓMO FUNCIONA</span>
+      <h2>Aprender con IA, paso a paso</h2>
+      <p>
+        Empezar con iakids es fácil.
+        Todo está diseñado para niños y controlado por padres.
+      </p>
+    </header>
 
-<!--    <div class="how-steps">-->
+    <div class="how-steps">
 
-<!--      &lt;!&ndash; Step 1 &ndash;&gt;-->
-<!--      <div class="how-card">-->
-<!--        <div class="how-step">1</div>-->
-<!--        <h3>Crear el perfil del niño</h3>-->
-<!--        <p>-->
-<!--          Elige la edad y preferencias.-->
-<!--          La IA se adapta automáticamente al nivel del niño.-->
-<!--        </p>-->
-<!--      </div>-->
+      <!-- Step 1 -->
+      <div class="how-card">
+        <div class="how-step">1</div>
+        <h3>Crear el perfil del niño</h3>
+        <p>
+          Elige la edad y preferencias.
+          La IA se adapta automáticamente al nivel del niño.
+        </p>
+      </div>
 
-<!--      &lt;!&ndash; Step 2 &ndash;&gt;-->
-<!--      <div class="how-card featured">-->
-<!--        <div class="how-step">2</div>-->
-<!--        <h3>El niño aprende y crea</h3>-->
-<!--        <p>-->
-<!--          Pregunta, aprende, inventa historias-->
-<!--          y recibe ayuda escolar en un entorno seguro.-->
-<!--        </p>-->
-<!--      </div>-->
+      <!-- Step 2 -->
+      <div class="how-card featured">
+        <div class="how-step">2</div>
+        <h3>El niño aprende y crea</h3>
+        <p>
+          Pregunta, aprende, inventa historias
+          y recibe ayuda escolar en un entorno seguro.
+        </p>
+      </div>
 
-<!--      &lt;!&ndash; Step 3 &ndash;&gt;-->
-<!--      <div class="how-card">-->
-<!--        <div class="how-step">3</div>-->
-<!--        <h3>Los padres mantienen el control</h3>-->
-<!--        <p>-->
-<!--          Límites de uso, supervisión clara-->
-<!--          y tranquilidad total para la familia.-->
-<!--        </p>-->
-<!--      </div>-->
+      <!-- Step 3 -->
+      <div class="how-card">
+        <div class="how-step">3</div>
+        <h3>Los padres mantienen el control</h3>
+        <p>
+          Límites de uso, supervisión clara
+          y tranquilidad total para la familia.
+        </p>
+      </div>
 
-<!--    </div>-->
+    </div>
 
-<!--  </div>-->
-<!--</section>-->
-<section class="kids-use-cases" id="use-cases">
-  <div class="use-cases-inner">
+  </div>
+</section>
+<section class="use-cases">
+  <div class="use-inner">
 
-    <!-- LEFT: CONTENT -->
-    <div class="use-cases-content">
-
-      <span class="use-cases-badge">EJEMPLOS DE USO</span>
+    <!-- LEFT: text + cards -->
+    <div class="use-left">
+      <span class="use-pill">EJEMPLOS DE USO</span>
       <h2>¿Qué puede aprender y crear tu hijo con iakids?</h2>
-      <p class="use-cases-desc">
+      <p class="use-desc">
         Casos reales de uso diario, diseñados para niños de 6 a 10 años,
         con explicaciones claras y un entorno seguro.
       </p>
 
-      <div class="use-cases-grid">
+      <div class="use-cards">
+        <div class="use-card">
+          <div class="icon-placeholder"></div>
+          <strong>Ayuda con la tarea</strong>
+          <span>Explicaciones paso a paso, sin presión ni estrés.</span>
+        </div>
 
-        <article class="use-card">
-          <div class="use-icon"><!-- icon --></div>
-          <h3>Ayuda con la tarea</h3>
-          <p>Explicaciones paso a paso, sin presión ni estrés.</p>
-        </article>
+        <div class="use-card">
+          <div class="icon-placeholder"></div>
+          <strong>Aprender temas nuevos</strong>
+          <span>Ciencia, historia y matemáticas adaptadas a su edad.</span>
+        </div>
 
-        <article class="use-card">
-          <div class="use-icon"><!-- icon --></div>
-          <h3>Aprender temas nuevos</h3>
-          <p>Ciencia, historia y matemáticas adaptadas a su edad.</p>
-        </article>
+        <div class="use-card">
+          <div class="icon-placeholder"></div>
+          <strong>Hacer preguntas libremente</strong>
+          <span>Sin respuestas confusas ni contenido inapropiado.</span>
+        </div>
 
-        <article class="use-card">
-          <div class="use-icon"><!-- icon --></div>
-          <h3>Hacer preguntas libremente</h3>
-          <p>Sin respuestas confusas ni contenido inapropiado.</p>
-        </article>
-
-        <article class="use-card">
-          <div class="use-icon"><!-- icon --></div>
-          <h3>Crear historias y juegos</h3>
-          <p>Fomentando imaginación, creatividad y curiosidad.</p>
-        </article>
-
+        <div class="use-card">
+          <div class="icon-placeholder"></div>
+          <strong>Crear historias y juegos</strong>
+          <span>Fomentando imaginación, creatividad y curiosidad.</span>
+        </div>
       </div>
     </div>
 
-    <!-- RIGHT: IMAGE -->
-    <div class="use-cases-image">
-      <img src="/assets/child-placeholder.png" alt="Niño aprendiendo con iakids">
+    <!-- RIGHT: image only -->
+    <div class="use-right">
+      <img
+        src="/assets/iakids-kid-learning-desk.png"
+        alt="Niño aprendiendo con iakids"
+      />
     </div>
 
   </div>
