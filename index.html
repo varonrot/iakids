@@ -2236,6 +2236,18 @@ body{
   object-position: center bottom;
   display: block;
 }
+.use-right::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    90deg,
+    #fffaf5 0%,
+    rgba(255,250,245,0.6) 25%,
+    rgba(255,250,245,0.0) 55%
+  );
+  pointer-events:none;
+}
 
 /* TABLET */
 @media (max-width: 900px){
