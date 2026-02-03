@@ -1300,130 +1300,165 @@ body{
     text-align:center;
   }
 }
-.pricing-section{
-  padding:100px 20px;
-  background:#fff8f1;
+/* ===== Praicing ===== */
+.blue-inspired{
+  background:#fffaf5;
+  padding:90px 16px;
+  overflow:hidden;
 }
 
-.pricing-head{
-  text-align:center;
-  max-width:700px;
-  margin:0 auto 70px;
-}
-
-.pricing-badge{
-  display:inline-block;
-  background:#e6f7f4;
-  color:#0aa6a6;
-  font-weight:700;
-  font-size:12px;
-  padding:6px 14px;
-  border-radius:999px;
-  margin-bottom:14px;
-}
-
-.pricing-head h2{
-  font-size:38px;
-  margin-bottom:14px;
-  color:#1f2937;
-}
-
-.pricing-head p{
-  color:#6b7280;
-  font-size:16px;
-}
-
-.pricing-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:32px;
-  max-width:1100px;
+.blue-wrap{
+  max-width:1140px;
   margin:0 auto;
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:48px;
+  align-items:center;
 }
 
-.pricing-card{
-  background:#ffffff;
-  border-radius:24px;
-  padding:36px 28px;
-  box-shadow:0 20px 50px rgba(0,0,0,.06);
-  position:relative;
-  display:flex;
-  flex-direction:column;
+/* TEXT SIDE */
+.blue-badge{
+  display:inline-block;
+  background:rgba(56,189,248,.15);
+  color:#0369a1;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:14px;
 }
 
-.pricing-card h3{
-  font-size:22px;
-  margin-bottom:10px;
-}
-
-.price{
-  display:flex;
-  align-items:baseline;
-  gap:6px;
-  margin-bottom:6px;
-}
-
-.amount{
+.blue-content h2{
   font-size:42px;
-  font-weight:800;
-  color:#ff6a2a;
+  line-height:1.15;
+  margin:0 0 18px;
+  color:#0b1220;
 }
 
-.period{
-  color:#6b7280;
-  font-size:14px;
+.blue-content h2 span{
+  color:#2563eb;
 }
 
-.price-desc{
-  color:#6b7280;
+.blue-lead{
+  font-size:17px;
+  line-height:1.7;
+  color:#475569;
+  max-width:520px;
   margin-bottom:22px;
 }
 
-.features{
+.blue-points{
   list-style:none;
   padding:0;
   margin:0 0 28px;
-  color:#374151;
-  font-size:14px;
 }
 
-.features li{
+.blue-points li{
+  position:relative;
+  padding-left:26px;
   margin-bottom:10px;
+  color:#334155;
 }
 
-.btn{
-  margin-top:auto;
-  text-align:center;
-  padding:14px;
+.blue-points li::before{
+  content:"✔";
+  position:absolute;
+  left:0;
+  top:0;
+  color:#22c55e;
+  font-weight:700;
+}
+
+/* BUTTONS */
+.blue-actions{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.blue-btn{
+  height:46px;
+  padding:0 18px;
   border-radius:14px;
-  background:#ff6a2a;
-  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   font-weight:700;
   text-decoration:none;
-  box-shadow:0 10px 25px rgba(255,106,42,.25);
 }
 
-.btn.primary{
-  background:linear-gradient(135deg,#ff8a4c,#ff6a2a);
-}
-
-.pricing-card.featured{
-  border:2px solid #ff6a2a;
-  transform:translateY(-10px);
-}
-
-.popular{
-  position:absolute;
-  top:-14px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#ff6a2a;
+.blue-btn.primary{
+  background:linear-gradient(135deg,#2563eb,#38bdf8);
   color:#fff;
-  font-size:12px;
-  padding:6px 14px;
-  border-radius:999px;
-  font-weight:700;
+  box-shadow:0 16px 36px rgba(37,99,235,.25);
 }
+
+.blue-btn.ghost{
+  border:1px solid rgba(37,99,235,.3);
+  color:#2563eb;
+}
+
+/* VISUAL SIDE */
+.blue-visual{
+  position:relative;
+}
+
+.blue-glow{
+  position:absolute;
+  inset:-80px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(56,189,248,.35), transparent 55%),
+    radial-gradient(circle at 70% 70%, rgba(37,99,235,.25), transparent 60%);
+  z-index:0;
+}
+
+.blue-card{
+  position:relative;
+  z-index:1;
+  background:rgba(255,255,255,.9);
+  backdrop-filter:blur(6px);
+  border-radius:22px;
+  padding:26px;
+  box-shadow:0 30px 70px rgba(16,24,40,.15);
+}
+
+.blue-icon{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#38bdf8,#2563eb);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  margin-bottom:14px;
+}
+
+.blue-card h4{
+  margin:0 0 8px;
+  color:#0b1220;
+}
+
+.blue-card p{
+  margin:0;
+  color:#475569;
+  line-height:1.6;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .blue-wrap{
+    grid-template-columns:1fr;
+  }
+
+  .blue-content h2{
+    font-size:34px;
+  }
+}
+
+
+
 /* ===== Floating cards effect ===== */
 .pricing-card{
   transition:
@@ -2670,88 +2705,49 @@ body{
   </div>
 </section>
 
-<section class="pricing-section" id="pricing">
+<section class="blue-inspired">
+  <div class="blue-wrap">
 
-  <div class="pricing-head">
-    <span class="pricing-badge">PRECIOS FLEXIBLES</span>
-    <h2>Elige el plan ideal para tu familia</h2>
-    <p>
-      Suscripciones mensuales flexibles que se adaptan
-      a las necesidades de aprendizaje y al presupuesto familiar.
-    </p>
-  </div>
+    <div class="blue-content">
+      <span class="blue-badge">IA segura para niños</span>
 
-  <div class="pricing-grid">
+      <h2>
+        Aprender se siente como <span>crear</span>
+      </h2>
 
-    <!-- FREE -->
-    <div class="pricing-card">
-      <h3>Gratis</h3>
-      <div class="price">
-        <span class="amount">$0</span>
-        <span class="period">/ 7 días</span>
-      </div>
-      <p class="price-desc">Prueba la experiencia sin compromiso</p>
+      <p class="blue-lead">
+        iakids combina inteligencia artificial educativa con un entorno seguro y guiado,
+        para que los niños aprendan, exploren y creen con confianza — y las familias
+        tengan tranquilidad real.
+      </p>
 
-      <ul class="features">
-        <li>✔ 70 preguntas de texto por semana</li>
-        <li>✔ 4 imágenes por semana</li>
-        <li>✔ 5 minutos de voz por semana</li>
-        <li>✔ Contenido seguro y apropiado por edad</li>
-        <li>✔ Perfiles para varios niños</li>
+      <ul class="blue-points">
+        <li>Contenido adaptado por edad</li>
+        <li>Aprendizaje guiado y explicaciones claras</li>
+        <li>Control parental integrado</li>
       </ul>
 
-      <a href="#" class="btn">Comenzar gratis</a>
+      <div class="blue-actions">
+        <a href="#pricing" class="blue-btn primary">Empezar de forma segura</a>
+        <a href="#how" class="blue-btn ghost">Cómo funciona</a>
+      </div>
     </div>
 
-    <!-- PREMIUM -->
-    <div class="pricing-card featured">
-      <span class="popular">Más popular</span>
-      <h3>Premium</h3>
-      <div class="price">
-        <span class="amount">$9.99</span>
-        <span class="period">/ mes</span>
+    <div class="blue-visual">
+      <div class="blue-glow"></div>
+      <div class="blue-card">
+        <div class="blue-icon">✨</div>
+        <h4>Explorar con confianza</h4>
+        <p>
+          Un espacio pensado para niños, donde la curiosidad es bienvenida
+          y la seguridad es la base.
+        </p>
       </div>
-      <p class="price-desc">Aprendizaje ilimitado para tu familia</p>
-
-      <ul class="features">
-        <li>✔ Preguntas de texto ilimitadas</li>
-        <li>✔ 50 imágenes por semana</li>
-        <li>✔ 100 minutos de voz por semana</li>
-        <li>✔ Transcripción de conversaciones de voz</li>
-        <li>✔ Contenido seguro y supervisado</li>
-        <li>✔ Perfiles para varios niños</li>
-        <li>✔ Soporte prioritario</li>
-      </ul>
-
-      <a href="#" class="btn primary">Empezar Premium</a>
-    </div>
-
-    <!-- PREMIUM MAX -->
-    <div class="pricing-card">
-      <h3>Premium Max</h3>
-      <div class="price">
-        <span class="amount">$29.99</span>
-        <span class="period">/ mes</span>
-      </div>
-      <p class="price-desc">Límites máximos para familias activas</p>
-
-      <ul class="features">
-        <li>✔ Preguntas de texto ilimitadas</li>
-        <li>✔ 250 imágenes por semana</li>
-        <li>✔ 500 minutos de voz por semana</li>
-        <li>✔ Transcripción de conversaciones de voz</li>
-        <li>✔ Contenido seguro y apropiado por edad</li>
-        <li>✔ Perfiles para varios niños</li>
-        <li>✔ Soporte prioritario</li>
-        <li>✔ Uso máximo disponible</li>
-      </ul>
-
-      <a href="#" class="btn">Empezar Premium Max</a>
     </div>
 
   </div>
-
 </section>
+
 
 <!-- =========================
      SAFETY (NEW DESIGN)
@@ -2849,7 +2845,7 @@ body{
     </div>
 
     <div class="story-image">
-      <img src="story-image.jpg" alt="Niño aprendiendo con IA segura">
+      <img src="/assets/story-image.jpg" alt="Niño aprendiendo con IA segura">
     </div>
 
   </div>
