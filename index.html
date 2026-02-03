@@ -2316,6 +2316,99 @@ body{
     max-width:280px;
   }
 }
+.iakids-showcase{
+  background:#fffaf5;
+  padding:120px 0;
+}
+
+.iakids-inner{
+  max-width:1200px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:1fr 1.2fr;
+  gap:80px;
+  align-items:center;
+}
+
+.iakids-pill{
+  display:inline-block;
+  background:#e6efff;
+  color:#2563eb;
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:18px;
+}
+
+.iakids-left h2{
+  font-size:42px;
+  line-height:1.2;
+  margin-bottom:40px;
+}
+.iakids-left h2 span{
+  color:#2563eb;
+}
+
+.iakids-features{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+.iakids-features li{
+  padding:18px 20px;
+  border-radius:14px;
+  margin-bottom:14px;
+  cursor:pointer;
+  transition:.3s;
+}
+.iakids-features li strong{
+  display:block;
+  font-size:16px;
+}
+.iakids-features li span{
+  font-size:14px;
+  color:#64748b;
+}
+
+.iakids-features li.active{
+  background:#eef4ff;
+}
+
+.iakids-progress{
+  height:4px;
+  background:#e5edff;
+  border-radius:4px;
+  overflow:hidden;
+  margin-top:30px;
+}
+.iakids-progress span{
+  display:block;
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#2563eb,#6366f1);
+}
+
+/* RIGHT */
+.iakids-right{
+  position:relative;
+}
+.iakids-right img{
+  width:100%;
+  border-radius:22px;
+  box-shadow:0 30px 80px rgba(37,99,235,.15);
+  position:absolute;
+  top:0;
+  left:0;
+  opacity:0;
+  transform:translateY(20px);
+  transition:.6s;
+}
+.iakids-right img.active{
+  opacity:1;
+  transform:translateY(0);
+  position:relative;
+}
 
 
 </style>
@@ -2771,6 +2864,51 @@ body{
 <!-- =========================
      SAFETY (NEW DESIGN)
 ========================= -->
+<section class="iakids-showcase">
+  <div class="iakids-inner">
+
+    <!-- LEFT -->
+    <div class="iakids-left">
+      <span class="iakids-pill">TODO EN UN SOLO LUGAR</span>
+      <h2>
+        Diseñado para aprender <br>
+        <span>con seguridad y propósito</span>
+      </h2>
+
+      <ul class="iakids-features">
+        <li class="active" data-image="img-1">
+          <strong>Aprendizaje guiado</strong>
+          <span>Respuestas claras, adaptadas a cada edad.</span>
+        </li>
+        <li data-image="img-2">
+          <strong>Control parental real</strong>
+          <span>Filtros por edad, historial y supervisión.</span>
+        </li>
+        <li data-image="img-3">
+          <strong>Creatividad sin riesgos</strong>
+          <span>Historias, ideas y juegos en entorno seguro.</span>
+        </li>
+        <li data-image="img-4">
+          <strong>Confianza para las familias</strong>
+          <span>Educación digital sin distracciones ni publicidad.</span>
+        </li>
+      </ul>
+
+      <div class="iakids-progress">
+        <span></span>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="iakids-right">
+      <img id="img-1" class="active" src="/assets/showcase-1.jpg" alt="">
+      <img id="img-2" src="/assets/showcase-2.jpg" alt="">
+      <img id="img-3" src="/assets/showcase-3.jpg" alt="">
+      <img id="img-4" src="/assets/showcase-4.jpg" alt="">
+    </div>
+
+  </div>
+</section>
 
 <section class="trust-section" id="trust">
 
@@ -3187,6 +3325,45 @@ burger.addEventListener("click", () => {
 });
 
 
+</script>
+<script>
+const items = document.querySelectorAll('.iakids-features li');
+const images = document.querySelectorAll('.iakids-right img');
+const bar = document.querySelector('.iakids-progress span');
+
+let index = 0;
+let duration = 4000;
+
+function showSlide(i){
+  items.forEach(el => el.classList.remove('active'));
+  images.forEach(img => img.classList.remove('active'));
+
+  items[i].classList.add('active');
+  document.getElementById(items[i].dataset.image).classList.add('active');
+
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+
+  setTimeout(()=>{
+    bar.style.transition = `width ${duration}ms linear`;
+    bar.style.width = '100%';
+  },50);
+}
+
+function next(){
+  index = (index + 1) % items.length;
+  showSlide(index);
+}
+
+showSlide(index);
+setInterval(next, duration);
+
+items.forEach((item,i)=>{
+  item.addEventListener('click',()=>{
+    index = i;
+    showSlide(index);
+  });
+});
 </script>
 
 </body>
