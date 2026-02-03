@@ -2389,50 +2389,60 @@ body{
   background:linear-gradient(90deg,#2563eb,#6366f1);
 }
 
-/* RIGHT */
+/* ============================= */
+/* IAKIDS RIGHT IMAGE ROTATION   */
+/* Desktop + Mobile Safe Version */
+/* ============================= */
+
+/* RIGHT CONTAINER */
 .iakids-right{
-  position:relative;
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  min-height: 520px; /* חובה – מחזיק את התמונות בדסקטופ */
 }
+
+/* IMAGES */
 .iakids-right img{
-  width:100%;
-  border-radius:22px;
-  box-shadow:0 30px 80px rgba(37,99,235,.15);
-  position:absolute;
-  top:0;
-  left:0;
-  opacity:0;
-  transform:translateY(20px);
-  transition:.6s;
+  width: 100%;
+  height: auto;
+  border-radius: 22px;
+  box-shadow: 0 30px 80px rgba(37,99,235,.15);
+
+  position: absolute;
+  inset: 0; /* top:0 left:0 right:0 bottom:0 */
+
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .6s ease, transform .6s ease;
+
+  pointer-events: none;
 }
+
+/* ACTIVE IMAGE */
 .iakids-right img.active{
-  opacity:1;
-  transform:translateY(0);
-  position:relative;
-}
-/* Desktop – limit image size */
-.iakids-right{
-  max-width: 520px; /* שולט על גודל כל האזור */
-  margin-left: auto;
+  opacity: 1;
+  transform: translateY(0);
+  z-index: 2;
 }
 
-.iakids-right img{
-  max-width: 100%;
-  height: auto;
-  max-height: 420px;   /* 👈 זה העיקר */
-  object-fit: contain;
-}
-/* Desktop – limit image size */
-.iakids-right{
-  max-width: 520px; /* שולט על גודל כל האזור */
-  margin-left: auto;
+/* ============================= */
+/* MOBILE FIX                    */
+/* ============================= */
+@media (max-width: 900px){
+  .iakids-right{
+    max-width: 100%;
+    min-height: auto;
+  }
+
+  .iakids-right img{
+    position: relative;
+    opacity: 1;
+    transform: none;
+    margin-bottom: 24px;
+  }
 }
 
-.iakids-right img{
-  max-width: 100%;
-  height: auto;
-  max-height: 420px;   /* 👈 זה העיקר */
-  object-fit: contain;
-}
 
 
 </style>
