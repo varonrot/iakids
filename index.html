@@ -2393,53 +2393,48 @@ body{
 /* IAKIDS RIGHT IMAGE ROTATION   */
 /* Desktop + Mobile Safe Version */
 /* ============================= */
-
-/* RIGHT CONTAINER */
 .iakids-right{
   position: relative;
   width: 100%;
-  max-width: 620px;
-  min-height: 520px; /* חובה – מחזיק את התמונות בדסקטופ */
+  max-width: 520px;
+  height: 640px;
+  margin-left: auto;
 }
 
-/* IMAGES */
 .iakids-right img{
-  width: 100%;
-  height: auto;
-  border-radius: 22px;
-  box-shadow: 0 30px 80px rgba(37,99,235,.15);
-
   position: absolute;
-  inset: 0; /* top:0 left:0 right:0 bottom:0 */
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  border-radius: 28px;
+  box-shadow: 0 40px 90px rgba(37,99,235,.18);
 
   opacity: 0;
-  transform: translateY(20px);
+  transform: scale(.98);
   transition: opacity .6s ease, transform .6s ease;
-
-  pointer-events: none;
 }
 
-/* ACTIVE IMAGE */
 .iakids-right img.active{
   opacity: 1;
-  transform: translateY(0);
+  transform: scale(1);
   z-index: 2;
 }
 
-/* ============================= */
-/* MOBILE FIX                    */
-/* ============================= */
+/* Mobile */
 @media (max-width: 900px){
   .iakids-right{
     max-width: 100%;
-    min-height: auto;
+    height: auto;
+    margin: 40px auto 0;
   }
 
   .iakids-right img{
     position: relative;
     opacity: 1;
     transform: none;
-    margin-bottom: 24px;
+    height: auto;
   }
 }
 
