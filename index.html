@@ -1786,245 +1786,123 @@ body{
     font-size:44px;
   }
 }
-    /* =========================
-   HOW IT WORKS SECTION
-========================= */
-.how-it-works{
-  padding:110px 20px;
-  background: linear-gradient(
-    180deg,
-    #fff6ef 0%,
-    #fff 55%,
-    #fff8f1 100%
-  );
+  /* SECTION – רקע אמיתי */
+.how-clean{
+  background:#fffaf5;
+  padding:120px 20px;
 }
 
-
-.how-inner{
+/* FRAME */
+.how-frame{
   max-width:1200px;
   margin:0 auto;
+
+  background:
+    linear-gradient(
+      to right,
+      rgba(255,250,245,.94) 0%,
+      rgba(255,250,245,.88) 42%,
+      rgba(255,250,245,.15) 65%
+    ),
+    url("/assets/iakids-how-it-works-3d-chat.png") right center / cover no-repeat;
+
+  border-radius:32px;
+  padding:72px;
 }
 
-.how-head{
-  text-align:center;
-  max-width:720px;
-  margin:0 auto 70px;
+/* CONTENT */
+.how-content{
+  max-width:520px;
 }
 
-.how-badge{
+/* PILL */
+.how-pill{
   display:inline-block;
-  background:#eaf7ff;
+  padding:6px 14px;
+  border-radius:999px;
+  background:#e8f0ff;
   color:#2563eb;
-  padding:8px 16px;
-  border-radius:999px;
   font-size:12px;
-  font-weight:800;
-  letter-spacing:.08em;
-  margin-bottom:16px;
-}
-
-.how-head h2{
-  font-size:36px;
-  line-height:1.15;
-  color:#111827;
-  margin:0 0 12px;
-}
-
-.how-head p{
-  color:#6b7280;
-  font-size:16px;
-  line-height:1.6;
-}
-
-/* GRID */
-.how-steps{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:22px;
-}
-
-/* CARD */
-.how-card{
-  background:rgba(255,255,255,.9);
-  border:1px solid rgba(17,24,39,.06);
-  border-radius:26px;
-  padding:36px 28px;
-  box-shadow:0 18px 50px rgba(0,0,0,.08);
-  position:relative;
-  transition:transform .25s ease, box-shadow .25s ease;
-}
-
-.how-card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 26px 70px rgba(0,0,0,.12);
-}
-
-/* STEP CIRCLE */
-.how-step{
-  width:42px;
-  height:42px;
-  border-radius:999px;
-  background:#ff6a2a;
-  color:#fff;
-  font-weight:900;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  font-weight:700;
   margin-bottom:14px;
-  font-size:16px;
 }
 
 /* TEXT */
-.how-card h3{
-  font-size:20px;
-  margin-bottom:10px;
-  color:#111827;
+.how-clean h2{
+  font-size:44px;
+  line-height:1.1;
+  margin:0 0 12px;
+  color:#0f172a;
 }
 
-.how-card p{
-  font-size:15px;
-  line-height:1.6;
-  color:#6b7280;
+.how-sub{
+  color:#475569;
+  margin-bottom:28px;
 }
 
-/* FEATURED STEP */
-.how-card.featured{
-  border:2px solid #ff6a2a;
-  box-shadow:0 26px 70px rgba(255,106,42,.22);
+/* STEPS */
+.how-steps-clean{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
 }
 
-/* TABLET */
-@media (min-width: 640px){
-  .how-steps{
-    grid-template-columns:repeat(2,1fr);
+.how-step-card{
+  display:flex;
+  gap:14px;
+  background:#ffffff;
+  padding:16px 18px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.how-step-card strong{
+  display:block;
+  margin-bottom:4px;
+  color:#0f172a;
+}
+
+.how-step-card p{
+  margin:0;
+  font-size:14px;
+  color:#475569;
+}
+
+/* NUMBERS */
+.n{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  color:#fff;
+  font-weight:800;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+}
+
+.n-orange{ background:#ff7a3d; }
+.n-blue{ background:#3b82f6; }
+.n-green{ background:#22c55e; }
+
+/* RESPONSIVE */
+@media (max-width:900px){
+  .how-frame{
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(255,250,245,.96),
+        rgba(255,250,245,.96)
+      ),
+      url("/assets/iakids-how-it-works-3d-chat.png") center / cover no-repeat;
+
+    padding:48px 32px;
   }
 
-  .how-card.featured{
-    grid-column:span 2;
+  .how-clean h2{
+    font-size:34px;
   }
 }
 
-/* DESKTOP */
-@media (min-width: 960px){
-  .how-steps{
-    grid-template-columns:repeat(3,1fr);
-  }
-
-  .how-card.featured{
-    grid-column:auto;
-  }
-
-  .how-head h2{
-    font-size:40px;
-  }
-}
-.howItWorks{
-  padding: 80px 16px;
-  display: flex;
-  justify-content: center;
-}
-
-.howItWorks__frame{
-  width: 100%;
-  max-width: 1200px;
-  min-height: 520px;
-
-  background: url("/assets/iakids-how-it-works-3d-chat.png") center / cover no-repeat;
-
-  border-radius: 32px;
-  box-shadow: 0 40px 120px rgba(20,30,60,.25);
-
-  position: relative;
-  overflow: hidden;
-
-  display: flex;
-  align-items: center;
-}
-
-.howItWorks__content{
-  max-width: 520px;
-  padding: 56px;
-  z-index: 2;
-}
-
-/* pill */
-.howItWorks__pill{
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #e8f0ff;
-  color: #2563eb;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-/* typography */
-.howItWorks h2{
-  font-size: 44px;
-  line-height: 1.1;
-  margin: 0 0 12px;
-}
-
-.howItWorks p{
-  color: #475569;
-  margin-bottom: 24px;
-}
-
-/* steps */
-.steps{
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.step{
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-
-  background: rgba(255,255,255,.85);
-  padding: 16px 18px;
-  border-radius: 18px;
-
-  box-shadow: 0 10px 30px rgba(0,0,0,.12);
-}
-
-.step span{
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  color: #fff;
-  font-weight: 800;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-
-.step--orange span{ background:#ff7a3d; }
-.step--blue span{ background:#3b82f6; }
-.step--green span{ background:#22c55e; }
-
-.step strong{
-  display: block;
-  margin-bottom: 4px;
-  color: #0f172a;
-}
-
-/* responsive */
-@media (max-width: 900px){
-  .howItWorks__frame{
-    min-height: auto;
-  }
-
-  .howItWorks__content{
-    padding: 40px 28px;
-  }
-
-  .howItWorks h2{
-    font-size: 34px;
-  }
-}
 /* =========================
    USE CASES SECTION
 ========================= */
@@ -2471,45 +2349,49 @@ body{
   </div>
 </section>
 
-<section class="howItWorks">
-  <div class="howItWorks__frame">
-    <div class="howItWorks__content">
-      <span class="howItWorks__pill">CÓMO FUNCIONA</span>
+<section class="how-clean">
+  <div class="how-frame">
+
+    <div class="how-content">
+      <span class="how-pill">CÓMO FUNCIONA</span>
 
       <h2>Aprender con IA,<br>paso a paso</h2>
-      <p>
-        Empezar con iakids es fácil. Todo está diseñado para niños
-        y controlado por padres.
+
+      <p class="how-sub">
+        Empezar con iakids es fácil. Todo está diseñado para niños y
+        controlado por padres.
       </p>
 
-      <div class="steps">
-        <div class="step step--orange">
-          <span>1</span>
+      <div class="how-steps-clean">
+        <div class="how-step-card">
+          <span class="n n-orange">1</span>
           <div>
             <strong>Crear el perfil del niño</strong>
             <p>Elige la edad y preferencias. La IA se adapta automáticamente.</p>
           </div>
         </div>
 
-        <div class="step step--blue">
-          <span>2</span>
+        <div class="how-step-card">
+          <span class="n n-blue">2</span>
           <div>
             <strong>El niño aprende y crea</strong>
             <p>Pregunta, aprende e inventa historias en un entorno seguro.</p>
           </div>
         </div>
 
-        <div class="step step--green">
-          <span>3</span>
+        <div class="how-step-card">
+          <span class="n n-green">3</span>
           <div>
-            <strong>Los padres mantienen comparisons</strong>
+            <strong>Los padres supervisan</strong>
             <p>Supervisión clara y tranquilidad total para la familia.</p>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 </section>
+
 
 <section class="use-cases">
   <div class="use-inner">
