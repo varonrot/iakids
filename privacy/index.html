@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Funciones – iakids</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:#fffaf5;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar{
+      background:#ffffff;
+      border-bottom:1px solid rgba(15,23,42,.06);
+    }
+
+    .topbar-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* LOGO */
+    .logo{
+      font-weight:700;
+      font-size:18px;
+      color:#0f172a;
+      text-decoration:none;
+    }
+
+    /* ACTIONS */
+    .topbar-actions{
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    .nav-link{
+      color:#475569;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+    }
+
+    .nav-link:hover{
+      color:#0f172a;
+    }
+
+    /* BUTTON */
+    .btn-primary{
+      background:#2563eb;
+      color:#ffffff;
+      padding:10px 18px;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:600;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+      white-space:nowrap;
+    }
+
+    .btn-primary:hover{
+      background:#1d4ed8;
+    }
+
+    /* MOBILE */
+    @media (max-width:600px){
+      .topbar-inner{
+        padding:12px 16px;
+      }
+
+      .topbar-actions{
+        gap:12px;
+      }
+
+      .nav-link{
+        font-size:13px;
+      }
+
+      .btn-primary{
+        padding:9px 14px;
+        font-size:13px;
+      }
+    }
+/* =========================
+   PRIVACY POLICY – SECTION
+========================= */
+
+.privacy-policy{
+  background:#fffaf5;
+  padding:120px 20px;
+}
+
+.privacy-inner{
+  max-width:1200px;
+  margin:0 auto;
+}
+
+.privacy-head{
+  max-width:860px;
+  margin:0 auto 46px;
+  text-align:center;
+}
+
+.privacy-pill{
+  display:inline-block;
+  background:rgba(37,99,235,.10);
+  color:#2563eb;
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  margin-bottom:16px;
+}
+
+.privacy-head h1{
+  font-size:44px;
+  line-height:1.15;
+  color:#0f172a;
+  margin-bottom:12px;
+}
+
+.privacy-sub{
+  font-size:17px;
+  line-height:1.7;
+  color:#475569;
+}
+
+.privacy-meta{
+  margin-top:18px;
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.meta-item{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 16px 45px rgba(0,0,0,.06);
+  border-radius:16px;
+  padding:12px 14px;
+  min-width:220px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.meta-k{
+  font-size:12px;
+  font-weight:800;
+  color:#64748b;
+}
+
+.meta-v{
+  font-size:13px;
+  font-weight:700;
+  color:#0f172a;
+}
+
+.link{
+  color:#2563eb;
+  text-decoration:none;
+}
+
+.link:hover{ text-decoration:underline; }
+
+.privacy-grid{
+  display:grid;
+  grid-template-columns: 360px 1fr;
+  gap:28px;
+  align-items:start;
+}
+
+/* Aside */
+.privacy-aside{
+  position:sticky;
+  top:92px;
+  align-self:start;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.toc-card{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
+  border-radius:22px;
+  padding:18px 18px;
+}
+
+.toc-title{
+  font-weight:900;
+  color:#0f172a;
+  margin-bottom:12px;
+}
+
+.toc{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.toc a{
+  text-decoration:none;
+  color:#334155;
+  font-weight:700;
+  font-size:13px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(37,99,235,.06);
+  border:1px solid rgba(37,99,235,.08);
+}
+
+.toc a:hover{
+  background:rgba(37,99,235,.10);
+}
+
+.aside-card{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 18px 55px rgba(0,0,0,.08);
+  border-radius:22px;
+  padding:16px 16px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.aside-ico{
+  width:42px;
+  height:42px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  background:rgba(255,106,42,.10);
+}
+
+.aside-card.note .aside-ico{ background:rgba(34,197,94,.12); }
+.aside-card.tip .aside-ico{ background:rgba(37,99,235,.10); }
+
+.aside-card h4{
+  margin:0 0 6px;
+  color:#0f172a;
+  font-size:15px;
+}
+
+.aside-card p{
+  margin:0;
+  color:#475569;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.aside-link{
+  display:inline-block;
+  margin-top:10px;
+  color:#2563eb;
+  font-weight:800;
+  text-decoration:none;
+  font-size:13px;
+}
+
+/* Main */
+.privacy-main{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.pp-card{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 22px 70px rgba(0,0,0,.08);
+  border-radius:26px;
+  padding:26px 26px;
+}
+
+.pp-card h2{
+  color:#0f172a;
+  font-size:22px;
+  margin-bottom:12px;
+}
+
+.pp-block{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid rgba(15,23,42,.06);
+}
+
+.pp-block h3{
+  margin:0 0 10px;
+  font-size:16px;
+  color:#0f172a;
+}
+
+.pp-text{
+  color:#475569;
+  line-height:1.75;
+  font-size:15px;
+}
+
+.pp-list{
+  margin:10px 0 0;
+  padding-left:18px;
+  color:#475569;
+  line-height:1.75;
+  font-size:15px;
+}
+
+.pp-list li{ margin-bottom:8px; }
+.pp-list strong{ color:#0f172a; }
+
+.pp-keys{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+  margin-top:14px;
+}
+
+.key{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  background:rgba(15,23,42,.02);
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:18px;
+  padding:14px 14px;
+}
+
+.key strong{
+  display:block;
+  color:#0f172a;
+  margin-bottom:4px;
+}
+
+.key p{
+  margin:0;
+  color:#475569;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  margin-top:6px;
+  flex:0 0 10px;
+}
+.dot-blue{ background:#3b82f6; }
+.dot-green{ background:#22c55e; }
+.dot-orange{ background:#ff6a2a; }
+
+.pp-callout{
+  margin-top:12px;
+  background:rgba(255,106,42,.08);
+  border:1px solid rgba(255,106,42,.16);
+  border-radius:18px;
+  padding:12px 12px;
+}
+
+.badge-soft{
+  display:inline-block;
+  background:#ffffff;
+  border:1px solid rgba(255,106,42,.18);
+  color:#9a3412;
+  font-weight:900;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  margin-bottom:8px;
+}
+
+.pp-callout p{
+  margin:0;
+  color:#7c2d12;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.pp-cols{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:12px;
+}
+
+.pp-col{
+  background:rgba(37,99,235,.05);
+  border:1px solid rgba(37,99,235,.10);
+  border-radius:18px;
+  padding:14px 14px;
+}
+
+.pp-col h3{
+  margin:0 0 10px;
+  color:#0f172a;
+  font-size:15px;
+}
+
+.pp-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:12px;
+}
+
+.chip{
+  padding:9px 12px;
+  border-radius:999px;
+  background: rgba(17,24,39,.04);
+  border:1px solid rgba(17,24,39,.06);
+  color:#334155;
+  font-size:12px;
+  font-weight:800;
+}
+
+.pp-mini{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:14px;
+}
+
+.mini{
+  background:rgba(15,23,42,.02);
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:18px;
+  padding:14px 14px;
+}
+
+.mini strong{
+  display:block;
+  color:#0f172a;
+  margin-bottom:4px;
+}
+
+.mini span{
+  color:#475569;
+  font-size:13px;
+  line-height:1.6;
+}
+
+/* CTA */
+.privacy-cta{
+  margin-top:8px;
+  background:linear-gradient(135deg, rgba(37,99,235,.10), rgba(255,106,42,.10));
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 24px 70px rgba(0,0,0,.08);
+  border-radius:28px;
+  padding:22px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+
+.privacy-cta h3{
+  margin:0 0 6px;
+  color:#0f172a;
+  font-size:18px;
+}
+
+.privacy-cta p{
+  margin:0;
+  color:#475569;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.cta-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.cta-btn{
+  display:inline-block;
+  text-decoration:none;
+  font-weight:900;
+  border-radius:999px;
+  padding:12px 18px;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.cta-btn.primary{
+  background:linear-gradient(135deg,#2563eb,#38bdf8);
+  color:#fff;
+  box-shadow:0 14px 35px rgba(37,99,235,.25);
+}
+
+.cta-btn.secondary{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.10);
+  color:#0f172a;
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .privacy-grid{
+    grid-template-columns:1fr;
+  }
+
+  .privacy-aside{
+    position:relative;
+    top:auto;
+  }
+
+  .pp-cols,
+  .pp-mini{
+    grid-template-columns:1fr;
+  }
+
+  .privacy-head h1{
+    font-size:34px;
+  }
+}
+
+@media (max-width: 560px){
+  .privacy-policy{
+    padding:80px 16px;
+  }
+
+  .meta-item{
+    min-width:unset;
+    width:100%;
+  }
+
+  .pp-card{
+    padding:20px 18px;
+  }
+
+  .privacy-cta{
+    flex-direction:column;
+    text-align:center;
+    align-items:stretch;
+  }
+
+  .cta-actions{
+    justify-content:center;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+
+      <a href="/" class="logo">iakids</a>
+
+      <nav class="topbar-actions">
+        <a href="https://iakids.app" class="nav-link">Inicio</a>
+        <a href="/onboarding/cuenta" class="nav-link">Entrar</a>
+        <a href="/onboarding" class="btn-primary">Empezar gratis</a>
+      </nav>
+
+    </div>
+  </header>
+<section class="privacy-policy" id="privacy">
+  <div class="privacy-inner">
+
+    <header class="privacy-head">
+      <span class="privacy-pill">LEGAL</span>
+      <h1>Política de privacidad</h1>
+      <p class="privacy-sub">
+        En iakids, la privacidad y la seguridad son parte del diseño. Esta política explica qué datos se usan,
+        para qué se usan y qué controles tienen las familias.
+      </p>
+
+      <div class="privacy-meta">
+        <div class="meta-item">
+          <span class="meta-k">Última actualización</span>
+          <span class="meta-v">04 Feb 2026</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-k">Contacto</span>
+          <a class="meta-v link" href="/contact">Centro de ayuda</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="privacy-grid">
+
+      <!-- SIDEBAR -->
+      <aside class="privacy-aside">
+        <div class="toc-card">
+          <div class="toc-title">Contenido</div>
+          <nav class="toc">
+            <a href="#pp-intro">1. Resumen</a>
+            <a href="#pp-data">2. Qué datos recopilamos</a>
+            <a href="#pp-use">3. Cómo usamos los datos</a>
+            <a href="#pp-parents">4. Control parental</a>
+            <a href="#pp-ai">5. IA y seguridad</a>
+            <a href="#pp-sharing">6. Compartir datos</a>
+            <a href="#pp-retention">7. Conservación</a>
+            <a href="#pp-rights">8. Derechos y solicitudes</a>
+            <a href="#pp-security">9. Seguridad</a>
+            <a href="#pp-cookies">10. Cookies</a>
+            <a href="#pp-international">11. Transferencias internacionales</a>
+            <a href="#pp-changes">12. Cambios</a>
+          </nav>
+        </div>
+
+        <div class="aside-card note">
+          <div class="aside-ico">🛡️</div>
+          <div>
+            <h4>Enfoque para familias</h4>
+            <p>
+              Diseñamos iakids para menores. Priorizamos filtros por edad, supervisión y límites definidos por adultos.
+            </p>
+          </div>
+        </div>
+
+        <div class="aside-card tip">
+          <div class="aside-ico">👨‍👩‍👧</div>
+          <div>
+            <h4>¿Necesitas ayuda?</h4>
+            <p>
+              Si quieres ejercer un derecho o hacer una consulta, usa el formulario del centro de ayuda.
+            </p>
+            <a class="aside-link" href="/contact">Ir a contacto →</a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="privacy-main">
+
+        <article class="pp-card" id="pp-intro">
+          <h2>1. Resumen (versión clara)</h2>
+          <div class="pp-keys">
+            <div class="key">
+              <span class="dot dot-blue"></span>
+              <div>
+                <strong>Recopilación mínima</strong>
+                <p>Pedimos lo necesario para crear una experiencia segura y adaptada por edad.</p>
+              </div>
+            </div>
+            <div class="key">
+              <span class="dot dot-green"></span>
+              <div>
+                <strong>Control por adultos</strong>
+                <p>Los padres configuran límites, supervisan el uso y gestionan perfiles.</p>
+              </div>
+            </div>
+            <div class="key">
+              <span class="dot dot-orange"></span>
+              <div>
+                <strong>Seguridad por diseño</strong>
+                <p>Aplicamos filtros, moderación y buenas prácticas para proteger a menores.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="pp-card" id="pp-data">
+          <h2>2. Qué datos recopilamos</h2>
+
+          <div class="pp-block">
+            <h3>2.1 Datos de cuenta (adulto)</h3>
+            <ul class="pp-list">
+              <li><strong>Identificadores de cuenta:</strong> email o método de acceso (por ejemplo, inicio de sesión).</li>
+              <li><strong>Datos básicos de servicio:</strong> estado de suscripción/plan, preferencias del producto.</li>
+            </ul>
+          </div>
+
+          <div class="pp-block">
+            <h3>2.2 Datos del perfil infantil (configurados por padres)</h3>
+            <ul class="pp-list">
+              <li><strong>Edad o rango de edad:</strong> para adaptar respuestas y filtros.</li>
+              <li><strong>Preferencias de aprendizaje:</strong> temas que el niño quiere explorar.</li>
+              <li><strong>Avatar/nombre del perfil:</strong> para personalizar la experiencia.</li>
+            </ul>
+            <div class="pp-callout">
+              <span class="badge-soft">Importante</span>
+              <p>
+                Recomendamos no incluir datos sensibles (direcciones, escuela, teléfono o información médica) en las conversaciones.
+              </p>
+            </div>
+          </div>
+
+          <div class="pp-block">
+            <h3>2.3 Datos de uso</h3>
+            <ul class="pp-list">
+              <li><strong>Interacciones:</strong> mensajes, solicitudes de imágenes o voz (si la función está activa).</li>
+              <li><strong>Métricas técnicas:</strong> rendimiento, errores, seguridad, diagnóstico.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="pp-card" id="pp-use">
+          <h2>3. Cómo usamos los datos</h2>
+          <div class="pp-cols">
+            <div class="pp-col">
+              <h3>Para operar el servicio</h3>
+              <ul class="pp-list">
+                <li>Crear y mantener cuentas y perfiles.</li>
+                <li>Aplicar límites de uso (texto, imágenes, voz).</li>
+                <li>Mostrar historial y configuración para familias.</li>
+              </ul>
+            </div>
+            <div class="pp-col">
+              <h3>Para seguridad y calidad</h3>
+              <ul class="pp-list">
+                <li>Prevenir abuso y contenido inapropiado.</li>
+                <li>Mejorar estabilidad, detectar fallos.</li>
+                <li>Auditoría y protección frente a fraude.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pp-card" id="pp-parents">
+          <h2>4. Control parental</h2>
+          <div class="pp-block">
+            <p class="pp-text">
+              iakids está diseñado para que los adultos definan límites y supervisión. Las opciones pueden incluir:
+            </p>
+            <div class="pp-chips">
+              <span class="chip">Límites por día/semana</span>
+              <span class="chip">Perfiles por niño</span>
+              <span class="chip">Historial visible</span>
+              <span class="chip">Filtros por edad</span>
+              <span class="chip">Bloqueo de temas</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="pp-card" id="pp-ai">
+          <h2>5. IA y seguridad</h2>
+          <div class="pp-block">
+            <p class="pp-text">
+              Usamos capas de protección para reducir respuestas inadecuadas y mantener un tono educativo.
+              Aun así, ningún sistema es perfecto.
+            </p>
+            <ul class="pp-list">
+              <li><strong>Moderación y filtros:</strong> para contenido sensible o no apropiado.</li>
+              <li><strong>Adaptación por edad:</strong> lenguaje y complejidad adecuados.</li>
+              <li><strong>Diseño educativo:</strong> prioriza explicaciones claras y seguras.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="pp-card" id="pp-sharing">
+          <h2>6. Compartir datos</h2>
+          <p class="pp-text">
+            No vendemos datos personales. Podemos compartir información limitada con proveedores que nos ayudan a operar
+            (por ejemplo, infraestructura, analítica y seguridad), bajo acuerdos y con medidas de protección.
+          </p>
+          <div class="pp-mini">
+            <div class="mini">
+              <strong>Proveedores</strong>
+              <span>Infraestructura, almacenamiento, monitoreo y soporte.</span>
+            </div>
+            <div class="mini">
+              <strong>Obligaciones legales</strong>
+              <span>Solo si es necesario para cumplir la ley o proteger a usuarios.</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="pp-card" id="pp-retention">
+          <h2>7. Conservación de datos</h2>
+          <p class="pp-text">
+            Conservamos datos el tiempo necesario para operar el servicio, cumplir obligaciones legales y mantener seguridad.
+            Puedes solicitar eliminación según corresponda.
+          </p>
+        </article>
+
+        <article class="pp-card" id="pp-rights">
+          <h2>8. Derechos y solicitudes</h2>
+          <div class="pp-cols">
+            <div class="pp-col">
+              <h3>Podrás solicitar</h3>
+              <ul class="pp-list">
+                <li>Acceso y copia de datos.</li>
+                <li>Corrección de información.</li>
+                <li>Eliminación de cuenta/perfiles (cuando aplique).</li>
+              </ul>
+            </div>
+            <div class="pp-col">
+              <h3>Cómo hacerlo</h3>
+              <ul class="pp-list">
+                <li>Desde el panel (si está disponible).</li>
+                <li>Desde <a class="link" href="/contact">Contacto</a>.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pp-card" id="pp-security">
+          <h2>9. Seguridad</h2>
+          <p class="pp-text">
+            Aplicamos medidas técnicas y organizativas para proteger datos (controles de acceso, monitoreo, cifrado cuando aplique).
+            Recomendamos a las familias usar contraseñas fuertes y no compartir credenciales.
+          </p>
+        </article>
+
+        <article class="pp-card" id="pp-cookies">
+          <h2>10. Cookies</h2>
+          <p class="pp-text">
+            Podemos usar cookies o tecnologías similares para recordar preferencias, mantener sesiones y mejorar rendimiento.
+            Puedes gestionar cookies desde tu navegador.
+          </p>
+        </article>
+
+        <article class="pp-card" id="pp-international">
+          <h2>11. Transferencias internacionales</h2>
+          <p class="pp-text">
+            Si procesamos datos fuera de tu país, aplicamos salvaguardas razonables y prácticas alineadas con la protección de datos.
+          </p>
+        </article>
+
+        <article class="pp-card" id="pp-changes">
+          <h2>12. Cambios a esta política</h2>
+          <p class="pp-text">
+            Podemos actualizar esta política para reflejar mejoras del servicio o cambios legales. Publicaremos la fecha
+            de actualización y, si el cambio es relevante, lo comunicaremos por los canales del producto.
+          </p>
+        </article>
+
+        <!-- CTA -->
+        <div class="privacy-cta">
+          <div>
+            <h3>¿Listo para probar iakids?</h3>
+            <p>Empieza con el plan gratis y configura un perfil infantil en minutos.</p>
+          </div>
+          <div class="cta-actions">
+            <a class="cta-btn primary" href="/onboarding">Empezar gratis</a>
+            <a class="cta-btn secondary" href="/">Volver al inicio</a>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
