@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -628,6 +626,86 @@ body{
 
   .security-head h2{
     font-size:36px;
+  }
+}
+/* =========================
+   SECURITY – MOBILE FIX (REAL)
+========================= */
+@media (max-width: 768px){
+
+  /* safety: prevent side overflow */
+  body{
+    overflow-x: hidden;
+  }
+
+  .iakids-security{
+    padding: 72px 16px;
+  }
+
+  /* HEAD */
+  .security-head{
+    margin-bottom: 36px;
+    text-align: center;
+  }
+
+  .security-head h2{
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  .security-head p{
+    font-size: 16px;
+  }
+
+  /* GRID → vertical, no width tricks */
+  .security-grid{
+    max-width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ===== TOP BLOCK ===== */
+  .security-main{
+    padding: 24px 20px;
+    border-radius: 22px;
+    margin-bottom: 28px;
+  }
+
+  .security-main h3{
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+
+  /* ===== BOTTOM BLOCK ===== */
+  .security-side{
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .side-card{
+    background: transparent;
+    box-shadow: none;
+    padding: 14px 4px;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(15,23,42,.08);
+  }
+
+  .side-card:last-child{
+    border-bottom: none;
+  }
+
+  .side-card h4{
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .side-card p{
+    font-size: 13px;
+    color:#64748b;
   }
 }
 
