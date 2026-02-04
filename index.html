@@ -479,254 +479,157 @@ body{
   }
 }
 /* =========================
-   SAFETY V2 (UNIQUE DESIGN)
+   IAKIDS SECURITY SECTION
 ========================= */
-.safety-v2{
-  padding:110px 20px;
-  background:linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.65));
+
+.iakids-security{
+  background:#fffaf5;
+  padding:140px 20px;
 }
 
-.safety-v2-inner{
-  max-width:1200px;
-  margin:0 auto;
-}
-
-.safety-v2-head{
+.security-head{
+  max-width:820px;
+  margin:0 auto 80px;
   text-align:center;
-  max-width:780px;
-  margin:0 auto 56px;
 }
 
-.safety-pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:10px 16px;
+.security-pill{
+  display:inline-block;
+  background:rgba(16,185,129,.12);
+  color:#059669;
+  padding:8px 18px;
   border-radius:999px;
-  background:rgba(34,197,94,.12);
-  color:#0f766e;
-  font-weight:800;
   font-size:12px;
+  font-weight:700;
   letter-spacing:.08em;
-}
-
-.safety-v2-head h2{
-  margin:18px 0 12px;
-  font-size:44px;
-  line-height:1.1;
-  color:#1f2937;
-}
-
-.safety-v2-head h2 span{
-  color:#ff6a2a;
-}
-
-.safety-v2-head p{
-  color:#6b7280;
-  font-size:16px;
-  line-height:1.6;
-}
-
-.safety-v2-grid{
-  display:grid;
-  grid-template-columns: 1fr;
-  gap:22px;
-}
-
-.safety-hero-card{
-  background:rgba(255,255,255,.9);
-  border:1px solid rgba(0,0,0,.06);
-  border-radius:26px;
-  padding:26px;
-  box-shadow:0 26px 70px rgba(0,0,0,.07);
-  position:relative;
-  overflow:hidden;
-}
-
-.safety-hero-card::before{
-  content:"";
-  position:absolute;
-  inset:-40% -20% auto auto;
-  width:380px;
-  height:380px;
-  background:radial-gradient(circle at 30% 30%, rgba(255,106,42,.22), rgba(34,197,94,.10), transparent 60%);
-  filter:blur(0px);
-  pointer-events:none;
-}
-
-.safety-hero-top{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:14px;
   margin-bottom:18px;
 }
 
-.safety-hero-badge{
-  background:rgba(59,130,246,.12);
-  color:#1d4ed8;
-  font-weight:800;
-  padding:8px 12px;
+.security-head h2{
+  font-size:44px;
+  line-height:1.2;
+  color:#0f172a;
+  margin-bottom:18px;
+}
+
+.security-head h2 span{
+  color:#2563eb;
+}
+
+.security-head p{
+  font-size:18px;
+  color:#475569;
+}
+
+/* GRID */
+.security-grid{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:70px;
+  align-items:start;
+}
+
+/* LEFT */
+.security-main{
+  background:#ffffff;
+  border-radius:32px;
+  padding:48px 44px;
+  box-shadow:0 30px 80px rgba(37,99,235,.12);
+}
+
+.mode-pill{
+  display:inline-block;
+  background:rgba(37,99,235,.08);
+  color:#2563eb;
+  padding:6px 14px;
   border-radius:999px;
   font-size:12px;
+  font-weight:700;
+  margin-bottom:18px;
 }
 
-.safety-hero-title{
-  font-size:18px;
-  color:#111827;
-  text-align:right;
+.security-main h3{
+  font-size:26px;
+  color:#0f172a;
+  margin-bottom:26px;
 }
 
-.safety-hero-body{
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-  margin:16px 0 18px;
+.security-list{
+  list-style:none;
+  padding:0;
+  margin:0 0 32px;
 }
 
-.safety-hero-row{
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-  padding:14px 14px;
-  border-radius:18px;
-  background:rgba(17,24,39,.03);
-  border:1px solid rgba(0,0,0,.04);
+.security-list li{
+  margin-bottom:22px;
 }
 
-.safety-hero-row h4{
-  margin:0 0 4px;
-  font-size:14px;
-  color:#111827;
+.security-list strong{
+  display:block;
+  font-size:16px;
+  color:#0f172a;
+  margin-bottom:4px;
 }
 
-.safety-hero-row p{
-  margin:0;
-  font-size:13px;
-  color:#6b7280;
-  line-height:1.45;
+.security-list span{
+  font-size:15px;
+  color:#475569;
 }
 
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:999px;
-  margin-top:6px;
-  flex:0 0 10px;
-}
-.dot-green{background:#22c55e}
-.dot-blue{background:#3b82f6}
-.dot-orange{background:#ff6a2a}
-
-.safety-hero-footer{
+.security-tags{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
 }
 
-.mini-tag{
-  padding:9px 12px;
+.security-tags span{
+  background:rgba(16,185,129,.10);
+  color:#059669;
+  padding:8px 14px;
   border-radius:999px;
-  background:rgba(255,106,42,.10);
-  color:#9a3412;
-  font-weight:700;
-  font-size:12px;
+  font-size:13px;
+  font-weight:600;
 }
 
-.safety-side{
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-
-.safety-mini-cards{
+/* RIGHT */
+.security-side{
   display:grid;
-  grid-template-columns: 1fr;
-  gap:14px;
+  grid-template-columns:1fr;
+  gap:22px;
 }
 
-.mini-card{
-  background:rgba(255,255,255,.85);
-  border:1px solid rgba(0,0,0,.06);
+.side-card{
+  background:#ffffff;
   border-radius:22px;
-  padding:18px;
-  box-shadow:0 18px 45px rgba(0,0,0,.05);
+  padding:26px 24px;
+  box-shadow:0 18px 50px rgba(37,99,235,.10);
 }
 
-.mini-ico{
-  width:42px;
-  height:42px;
-  border-radius:14px;
-  background:rgba(255,106,42,.12);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  margin-bottom:10px;
-}
-
-.mini-title{
-  font-weight:900;
-  color:#111827;
+.side-card h4{
+  font-size:16px;
+  color:#0f172a;
   margin-bottom:6px;
 }
 
-.mini-text{
-  color:#6b7280;
-  font-size:13px;
-  line-height:1.5;
-}
-
-.safety-checklist{
-  background:rgba(255,255,255,.75);
-  border:1px solid rgba(0,0,0,.06);
-  border-radius:22px;
-  padding:18px;
-}
-
-.check-row{
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-  padding:12px 8px;
-}
-
-.check-chip{
-  width:28px;
-  height:28px;
-  border-radius:999px;
-  background:rgba(34,197,94,.15);
-  color:#166534;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:900;
-  flex:0 0 28px;
-  margin-top:2px;
-}
-
-.safety-checklist b{
-  color:#111827;
+.side-card p{
   font-size:14px;
+  color:#475569;
+  line-height:1.55;
 }
 
-.muted{
-  color:#6b7280;
-  font-size:13px;
-  margin-top:4px;
-  line-height:1.45;
+/* RESPONSIVE */
+@media(max-width:900px){
+  .security-grid{
+    grid-template-columns:1fr;
+  }
+
+  .security-head h2{
+    font-size:36px;
+  }
 }
 
-/* DESKTOP */
-@media (min-width: 980px){
-  .safety-v2-grid{
-    grid-template-columns: 1.05fr .95fr;
-    align-items:stretch;
-  }
-  .safety-mini-cards{
-    grid-template-columns: 1fr 1fr;
-  }
-}
 /* =========================
    TRUST SECTION – CLEAN
 ========================= */
@@ -2664,122 +2567,79 @@ body{
 
   </div>
 </section>
-<section class="safety-v2" id="safety">
-  <div class="safety-v2-inner">
+<section class="iakids-security">
 
-    <header class="safety-v2-head">
-      <span class="safety-pill">SEGURIDAD + CONTROL PARENTAL</span>
-      <h2>Seguridad real para niños,<br><span>tranquilidad para familias</span></h2>
-      <p>
-        Diseñado para aprendizaje: filtros, privacidad y herramientas claras para que
-        los padres decidan cómo se usa la IA en casa.
-      </p>
-    </header>
+  <div class="security-head">
+    <span class="security-pill">SEGURIDAD + CONTROL PARENTAL</span>
+    <h2>
+      Seguridad real para niños,<br>
+      <span>tranquilidad para familias</span>
+    </h2>
+    <p>
+      Diseñado para aprender con calma: filtros, privacidad
+      y herramientas claras para que los padres decidan
+      cómo se usa la IA en casa.
+    </p>
+  </div>
 
-    <div class="safety-v2-grid">
+  <div class="security-grid">
 
-      <!-- LEFT: BIG CARD -->
-      <div class="safety-hero-card">
-        <div class="safety-hero-top">
-          <div class="safety-hero-badge">Modo infantil</div>
-          <div class="safety-hero-title">
-            <strong>Protección</strong> en cada conversación
-          </div>
-        </div>
+    <!-- LEFT -->
+    <div class="security-main">
+      <span class="mode-pill">Modo infantil</span>
+      <h3>Protección en cada conversación</h3>
 
-        <div class="safety-hero-body">
-          <div class="safety-hero-row">
-            <span class="dot dot-green"></span>
-            <div>
-              <h4>Filtros por edad</h4>
-              <p>Respuestas adaptadas a un tono y contenido apropiados.</p>
-            </div>
-          </div>
+      <ul class="security-list">
+        <li>
+          <strong>Filtros por edad</strong>
+          <span>Respuestas adaptadas a un tono y contenido apropiados.</span>
+        </li>
+        <li>
+          <strong>Privacidad por diseño</strong>
+          <span>Minimizamos datos y protegemos la experiencia.</span>
+        </li>
+        <li>
+          <strong>Controles parentales</strong>
+          <span>Límites y ajustes siempre en manos de adultos.</span>
+        </li>
+      </ul>
 
-          <div class="safety-hero-row">
-            <span class="dot dot-blue"></span>
-            <div>
-              <h4>Privacidad por diseño</h4>
-              <p>Enfoque en minimizar datos y mantener una experiencia segura.</p>
-            </div>
-          </div>
-
-          <div class="safety-hero-row">
-            <span class="dot dot-orange"></span>
-            <div>
-              <h4>Controles parentales</h4>
-              <p>Límites de uso y ajustes protegidos para adultos.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="safety-hero-footer">
-          <span class="mini-tag">Aprendizaje seguro</span>
-          <span class="mini-tag">Sin distracciones</span>
-          <span class="mini-tag">Hecho para niños</span>
-        </div>
-      </div>
-
-      <!-- RIGHT: CARDS + LIST -->
-      <div class="safety-side">
-
-        <div class="safety-mini-cards">
-          <div class="mini-card">
-            <div class="mini-ico">🛡️</div>
-            <div class="mini-title">Filtrado inteligente</div>
-            <div class="mini-text">Múltiples capas para mantener contenido apropiado.</div>
-          </div>
-
-          <div class="mini-card">
-            <div class="mini-ico">🔐</div>
-            <div class="mini-title">Privacidad</div>
-            <div class="mini-text">Experiencia pensada para proteger a menores.</div>
-          </div>
-
-          <div class="mini-card">
-            <div class="mini-ico">👨‍👩‍👧</div>
-            <div class="mini-title">Control parental</div>
-            <div class="mini-text">Ajustes y límites de uso gestionados por adultos.</div>
-          </div>
-
-          <div class="mini-card">
-            <div class="mini-ico">✅</div>
-            <div class="mini-title">Cumplimiento</div>
-            <div class="mini-text">Buenas prácticas alineadas con normativas infantiles.</div>
-          </div>
-        </div>
-
-        <div class="safety-checklist">
-          <div class="check-row">
-            <span class="check-chip">✓</span>
-            <div>
-              <b>Contenido educativo y adecuado</b>
-              <div class="muted">Priorizamos aprendizaje, claridad y lenguaje apto.</div>
-            </div>
-          </div>
-
-          <div class="check-row">
-            <span class="check-chip">✓</span>
-            <div>
-              <b>Sin temas sensibles</b>
-              <div class="muted">Bloqueo de categorías no aptas para menores.</div>
-            </div>
-          </div>
-
-          <div class="check-row">
-            <span class="check-chip">✓</span>
-            <div>
-              <b>Herramientas para familias</b>
-              <div class="muted">Límites, revisiones y control en manos de padres.</div>
-            </div>
-          </div>
-        </div>
-
+      <div class="security-tags">
+        <span>Aprendizaje seguro</span>
+        <span>Sin distracciones</span>
+        <span>Hecho para niños</span>
       </div>
     </div>
 
+    <!-- RIGHT -->
+    <div class="security-side">
+
+      <div class="side-card">
+        <h4>Filtrado inteligente</h4>
+        <p>Múltiples capas para mantener contenido adecuado.</p>
+      </div>
+
+      <div class="side-card">
+        <h4>Privacidad</h4>
+        <p>Experiencia pensada para proteger a menores.</p>
+      </div>
+
+      <div class="side-card">
+        <h4>Control parental</h4>
+        <p>Ajustes y límites gestionados por padres.</p>
+      </div>
+
+      <div class="side-card">
+        <h4>Cumplimiento</h4>
+        <p>Buenas prácticas alineadas con normativas infantiles.</p>
+      </div>
+
+    </div>
+
   </div>
+
 </section>
+
 
 
 <section class="pricing-clean" id="pricing">
@@ -2990,7 +2850,7 @@ body{
 
     <!-- RIGHT -->
     <div class="story-right">
-      <img src="YOUR_IMAGE_HERE.jpg" alt="Familia usando iakids">
+      <img src="/assets/story-image.jpg" alt="Familia usando iakids">
     </div>
 
   </div>
