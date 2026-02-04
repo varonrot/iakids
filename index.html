@@ -938,140 +938,132 @@ body{
 }
 
 /* =========================
-   RESOURCES FOR PARENTS
+   PARENTS RESOURCES
 ========================= */
 
 .parents-resources{
-  max-width:1200px;
-  margin:0 auto 120px;
-  padding:60px 20px;
+  background:#fffaf5;
+  padding:140px 20px;
 }
 
-
+/* HEAD */
 .resources-head{
   max-width:760px;
   margin:0 auto 80px;
+  text-align:center;
 }
 
 .resources-head h2{
   font-size:40px;
+  color:#0f172a;
   margin-bottom:14px;
-  color:#1f2937;
 }
 
 .resources-head p{
-  font-size:17px;
-  color:#6b7280;
+  font-size:18px;
+  color:#475569;
 }
 
-/* GRID */
-.resources-grid{
+/* CARDS */
+.resources-cards{
+  max-width:1200px;
+  margin:0 auto 90px;
   display:grid;
-  grid-template-columns:1fr;
-  gap:28px;
-  margin-bottom:80px;
+  grid-template-columns:repeat(3,1fr);
+  gap:32px;
 }
 
-/* CARD BASE */
 .resource-card{
-  background:#fff;
   border-radius:26px;
   padding:36px 32px;
-  text-align:left;
-  box-shadow:0 18px 45px rgba(0,0,0,.08);
-  transition:transform .25s ease, box-shadow .25s ease;
-}
-
-.resource-card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 26px 60px rgba(0,0,0,.12);
-}
-
-.resource-icon{
-  font-size:28px;
-  margin-bottom:18px;
+  box-shadow:0 25px 70px rgba(15,23,42,.08);
 }
 
 .resource-card h3{
   font-size:20px;
   margin-bottom:10px;
+  color:#0f172a;
 }
 
 .resource-card p{
   font-size:15px;
   line-height:1.6;
-  color:#4b5563;
+  color:#475569;
   margin-bottom:18px;
 }
 
-.resource-link{
+.resource-card a{
+  font-size:14px;
   font-weight:600;
   text-decoration:none;
 }
 
 /* COLOR VARIANTS */
-.resource-card.guide{
-  background:#fff1e9;
+.resource-card.blue{
+  background:#f0f5ff;
 }
-.resource-card.guide h3,
-.resource-card.guide .resource-link{
-  color:#ff6a2a;
-}
+.resource-card.blue a{ color:#2563eb; }
 
-.resource-card.activities{
-  background:#f2f9ff;
+.resource-card.sky{
+  background:#f4faff;
 }
-.resource-card.activities h3,
-.resource-card.activities .resource-link{
-  color:#2563eb;
-}
+.resource-card.sky a{ color:#0284c7; }
 
-.resource-card.safety{
-  background:#f4fbf5;
+.resource-card.green{
+  background:#f3faf6;
 }
-.resource-card.safety h3,
-.resource-card.safety .resource-link{
-  color:#16a34a;
-}
+.resource-card.green a{ color:#059669; }
 
 /* CTA */
 .resources-cta{
-  background:#fff5ec;
-  padding:56px 24px;
-  border-radius:36px;
+  max-width:1100px;
+  margin:0 auto;
+  background:#f8fafc;
+  border-radius:34px;
+  padding:56px 60px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:40px;
 }
 
-.resources-cta h4{
-  font-size:22px;
-  margin-bottom:10px;
+.resources-cta h3{
+  font-size:24px;
+  color:#0f172a;
+  margin-bottom:6px;
 }
 
 .resources-cta p{
-  color:#6b7280;
-  margin-bottom:24px;
+  font-size:16px;
+  color:#475569;
+  max-width:520px;
 }
 
-.cta-button{
-  display:inline-block;
+.cta-btn{
+  background:#2563eb;
+  color:#ffffff;
   padding:14px 28px;
   border-radius:999px;
-  background:linear-gradient(135deg,#ff6a2a,#ff8f66);
-  color:#fff;
   font-weight:700;
   text-decoration:none;
-  box-shadow:0 12px 30px rgba(255,106,42,.35);
+  white-space:nowrap;
+  box-shadow:0 10px 30px rgba(37,99,235,.25);
 }
 
 /* RESPONSIVE */
-@media(min-width:900px){
-  .resources-grid{
-    grid-template-columns:repeat(3,1fr);
+@media(max-width:900px){
+  .resources-cards{
+    grid-template-columns:1fr;
   }
 
-  .resources-head h2{
-    font-size:44px;
+  .resources-cta{
+    flex-direction:column;
+    text-align:center;
   }
 }
+/* =========================
+   footer
+========================= */
 .site-footer{
   background:#2f4256;
   color:#dbe6f1;
@@ -2857,62 +2849,58 @@ body{
 
 </section>
 
-
-
-<section class="parents-resources" id="resources">
+<section class="parents-resources">
 
   <div class="resources-head">
     <h2>Recursos para padres</h2>
     <p>
-      Herramientas prácticas y orientación clara para ayudar a los padres
-      a acompañar la experiencia de aprendizaje de sus hijos con IA.
+      Herramientas prácticas y orientación clara para acompañar
+      la experiencia de aprendizaje de sus hijos con IA.
     </p>
   </div>
 
-  <div class="resources-grid">
+  <div class="resources-cards">
 
-    <div class="resource-card guide">
-      <div class="resource-icon">📘</div>
+    <article class="resource-card blue">
       <h3>Guía para padres</h3>
       <p>
         Aprende a establecer límites, comprender las funciones
         y usar la IA infantil de forma segura y positiva en casa.
       </p>
-      <a href="#" class="resource-link">Ver la guía →</a>
-    </div>
+      <a href="#">Ver la guía →</a>
+    </article>
 
-    <div class="resource-card activities">
-      <div class="resource-icon">🎯</div>
+    <article class="resource-card sky">
       <h3>Actividades educativas</h3>
       <p>
         Ideas y actividades sencillas diseñadas para fomentar
         la curiosidad, la creatividad y conversaciones significativas.
       </p>
-      <a href="#" class="resource-link">Explorar actividades →</a>
-    </div>
+      <a href="#">Explorar actividades →</a>
+    </article>
 
-    <div class="resource-card safety">
-      <div class="resource-icon">🛡️</div>
+    <article class="resource-card green">
       <h3>Seguridad y privacidad</h3>
       <p>
         Explicaciones claras sobre principios de seguridad,
-        diseño centrado en la privacidad y control parental.
+        privacidad por diseño y control parental.
       </p>
-      <a href="#" class="resource-link">Saber más →</a>
-    </div>
+      <a href="#">Saber más →</a>
+    </article>
 
   </div>
 
   <div class="resources-cta">
-    <h4>¿Quieres más consejos?</h4>
+    <h3>¿Quieres más consejos?</h3>
     <p>
       Visita nuestro blog para conocer novedades, recomendaciones
       y buenas prácticas sobre crianza en el mundo digital.
     </p>
-    <a href="#" class="cta-button">Visitar el blog</a>
+    <a href="#" class="cta-btn">Visitar el blog</a>
   </div>
 
 </section>
+
 
 <footer class="site-footer">
   <div class="footer-container">
