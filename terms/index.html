@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Funciones – iakids</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:#fffaf5;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar{
+      background:#ffffff;
+      border-bottom:1px solid rgba(15,23,42,.06);
+    }
+
+    .topbar-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* LOGO */
+    .logo{
+      font-weight:700;
+      font-size:18px;
+      color:#0f172a;
+      text-decoration:none;
+    }
+
+    /* ACTIONS */
+    .topbar-actions{
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    .nav-link{
+      color:#475569;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+    }
+
+    .nav-link:hover{
+      color:#0f172a;
+    }
+
+    /* BUTTON */
+    .btn-primary{
+      background:#2563eb;
+      color:#ffffff;
+      padding:10px 18px;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:600;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+      white-space:nowrap;
+    }
+
+    .btn-primary:hover{
+      background:#1d4ed8;
+    }
+
+    /* MOBILE */
+    @media (max-width:600px){
+      .topbar-inner{
+        padding:12px 16px;
+      }
+
+      .topbar-actions{
+        gap:12px;
+      }
+
+      .nav-link{
+        font-size:13px;
+      }
+
+      .btn-primary{
+        padding:9px 14px;
+        font-size:13px;
+      }
+    }
+/* =========================
+   TERMS OF SERVICE SECTION
+========================= */
+
+.terms-section{
+  background:#fffaf5;
+  padding:140px 20px;
+}
+
+.terms-inner{
+  max-width:1000px;
+  margin:0 auto;
+}
+
+/* HEADER */
+.terms-head{
+  text-align:center;
+  max-width:760px;
+  margin:0 auto 80px;
+}
+
+.terms-pill{
+  display:inline-block;
+  background:rgba(37,99,235,.12);
+  color:#2563eb;
+  padding:8px 18px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  margin-bottom:18px;
+}
+
+.terms-head h1{
+  font-size:42px;
+  line-height:1.2;
+  color:#0f172a;
+  margin-bottom:16px;
+}
+
+.terms-head p{
+  font-size:18px;
+  color:#475569;
+  line-height:1.6;
+}
+
+/* CARDS */
+.terms-cards{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:28px;
+}
+
+.terms-card{
+  background:#ffffff;
+  border-radius:28px;
+  padding:36px 34px;
+  box-shadow:0 20px 55px rgba(0,0,0,.08);
+}
+
+.terms-card h3{
+  font-size:20px;
+  margin-bottom:12px;
+  color:#0f172a;
+}
+
+.terms-card p{
+  font-size:15px;
+  line-height:1.7;
+  color:#475569;
+  margin-bottom:10px;
+}
+
+.terms-card a{
+  color:#2563eb;
+  font-weight:600;
+  text-decoration:none;
+}
+
+/* CTA */
+.terms-cta{
+  margin-top:90px;
+  background:#f8fafc;
+  border-radius:36px;
+  padding:56px 60px;
+  text-align:center;
+  box-shadow:0 25px 70px rgba(15,23,42,.08);
+}
+
+.terms-cta h4{
+  font-size:26px;
+  color:#0f172a;
+  margin-bottom:12px;
+}
+
+.terms-cta p{
+  font-size:16px;
+  color:#475569;
+  margin-bottom:26px;
+}
+
+.terms-btn{
+  display:inline-block;
+  background:linear-gradient(135deg,#2563eb,#38bdf8);
+  color:#ffffff;
+  padding:14px 32px;
+  border-radius:999px;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 14px 35px rgba(37,99,235,.3);
+}
+
+/* RESPONSIVE */
+@media (max-width:768px){
+  .terms-section{
+    padding:90px 16px;
+  }
+
+  .terms-head h1{
+    font-size:32px;
+  }
+
+  .terms-head p{
+    font-size:16px;
+  }
+
+  .terms-card{
+    padding:26px 22px;
+  }
+
+  .terms-cta{
+    padding:40px 24px;
+  }
+
+  .terms-cta h4{
+    font-size:22px;
+  }
+}
+
+
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+
+      <a href="/" class="logo">iakids</a>
+
+      <nav class="topbar-actions">
+        <a href="https://iakids.app" class="nav-link">Inicio</a>
+        <a href="/onboarding/cuenta" class="nav-link">Entrar</a>
+        <a href="/onboarding" class="btn-primary">Empezar gratis</a>
+      </nav>
+
+    </div>
+  </header>
+<section class="terms-section" id="terms">
+
+  <div class="terms-inner">
+
+    <!-- HEADER -->
+    <header class="terms-head">
+      <span class="terms-pill">TÉRMINOS LEGALES</span>
+      <h1>Términos de servicio</h1>
+      <p>
+        Estos términos explican cómo funciona iakids, qué pueden esperar
+        las familias y cuáles son las reglas básicas para usar la plataforma
+        de forma segura y responsable.
+      </p>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="terms-cards">
+
+      <article class="terms-card">
+        <h3>1. Uso del servicio</h3>
+        <p>
+          iakids es una plataforma educativa diseñada exclusivamente para niños,
+          bajo la supervisión de padres o tutores legales. El uso del servicio
+          debe ser siempre con fines educativos, creativos y positivos.
+        </p>
+        <p>
+          No está permitido utilizar iakids para actividades ilegales,
+          dañinas, engañosas o que no sean apropiadas para menores.
+        </p>
+      </article>
+
+      <article class="terms-card">
+        <h3>2. Cuentas y responsabilidad parental</h3>
+        <p>
+          Las cuentas deben ser creadas y gestionadas por un adulto responsable.
+          Los padres o tutores son quienes definen los límites de uso, el acceso
+          a funciones y la configuración de cada perfil infantil.
+        </p>
+        <p>
+          iakids no sustituye la supervisión adulta, sino que la apoya
+          con herramientas claras y transparentes.
+        </p>
+      </article>
+
+      <article class="terms-card">
+        <h3>3. Contenido y respuestas de la IA</h3>
+        <p>
+          La inteligencia artificial de iakids está diseñada para ofrecer
+          respuestas filtradas, adaptadas a la edad y con un enfoque educativo.
+        </p>
+        <p>
+          Aun así, el contenido generado puede no ser perfecto en todos los casos.
+          Recomendamos a las familias revisar y acompañar el uso cuando sea necesario.
+        </p>
+      </article>
+
+      <article class="terms-card">
+        <h3>4. Privacidad y protección de datos</h3>
+        <p>
+          La privacidad de los niños es una prioridad. El uso de datos está
+          limitado a lo estrictamente necesario para el funcionamiento del servicio.
+        </p>
+        <p>
+          Para más detalles, consulta nuestra
+          <a href="/privacy">Política de privacidad</a>.
+        </p>
+      </article>
+
+      <article class="terms-card">
+        <h3>5. Suscripciones y pagos</h3>
+        <p>
+          Algunas funciones de iakids requieren una suscripción de pago.
+          Los precios, límites y condiciones se muestran de forma clara
+          antes de confirmar cualquier compra.
+        </p>
+        <p>
+          Las suscripciones pueden cancelarse según las condiciones indicadas
+          en el momento de la contratación.
+        </p>
+      </article>
+
+      <article class="terms-card">
+        <h3>6. Cambios en el servicio</h3>
+        <p>
+          iakids puede actualizar, mejorar o modificar funciones para
+          mantener una experiencia segura y de calidad.
+        </p>
+        <p>
+          En caso de cambios importantes en estos términos, informaremos
+          a las familias de forma clara.
+        </p>
+      </article>
+
+      <article class="terms-card">
+        <h3>7. Contacto</h3>
+        <p>
+          Si tienes dudas sobre estos términos o sobre el uso de la plataforma,
+          puedes contactarnos en cualquier momento.
+        </p>
+      </article>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="terms-cta">
+      <h4>Uso claro, tranquilo y pensado para familias</h4>
+      <p>
+        Nuestro objetivo es ofrecer una experiencia educativa segura,
+        transparente y alineada con las necesidades de padres e hijos.
+      </p>
+      <a href="/onboarding" class="terms-btn">Empezar de forma segura</a>
+    </div>
+
+  </div>
+
+</section>
+
+
+</body>
+</html>
