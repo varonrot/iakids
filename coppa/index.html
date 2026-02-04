@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Funciones – iakids</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:#fffaf5;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar{
+      background:#ffffff;
+      border-bottom:1px solid rgba(15,23,42,.06);
+    }
+
+    .topbar-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* LOGO */
+    .logo{
+      font-weight:700;
+      font-size:18px;
+      color:#0f172a;
+      text-decoration:none;
+    }
+
+    /* ACTIONS */
+    .topbar-actions{
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    .nav-link{
+      color:#475569;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+    }
+
+    .nav-link:hover{
+      color:#0f172a;
+    }
+
+    /* BUTTON */
+    .btn-primary{
+      background:#2563eb;
+      color:#ffffff;
+      padding:10px 18px;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:600;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+      white-space:nowrap;
+    }
+
+    .btn-primary:hover{
+      background:#1d4ed8;
+    }
+
+    /* MOBILE */
+    @media (max-width:600px){
+      .topbar-inner{
+        padding:12px 16px;
+      }
+
+      .topbar-actions{
+        gap:12px;
+      }
+
+      .nav-link{
+        font-size:13px;
+      }
+
+      .btn-primary{
+        padding:9px 14px;
+        font-size:13px;
+      }
+    }
+/* =========================
+   COPPA COMPLIANCE SECTION
+========================= */
+
+.coppa-section{
+  background:#fffaf5;
+  padding:140px 20px;
+}
+
+.coppa-inner{
+  max-width:1000px;
+  margin:0 auto;
+}
+
+/* HEADER */
+.coppa-head{
+  text-align:center;
+  max-width:760px;
+  margin:0 auto 80px;
+}
+
+.coppa-pill{
+  display:inline-block;
+  background:rgba(34,197,94,.14);
+  color:#15803d;
+  padding:8px 18px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  margin-bottom:18px;
+}
+
+.coppa-head h1{
+  font-size:42px;
+  line-height:1.2;
+  color:#0f172a;
+  margin-bottom:16px;
+}
+
+.coppa-head p{
+  font-size:18px;
+  color:#475569;
+  line-height:1.6;
+}
+
+/* CARDS */
+.coppa-cards{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:28px;
+}
+
+.coppa-card{
+  background:#ffffff;
+  border-radius:28px;
+  padding:36px 34px;
+  box-shadow:0 20px 55px rgba(0,0,0,.08);
+}
+
+.coppa-card h3{
+  font-size:20px;
+  margin-bottom:12px;
+  color:#0f172a;
+}
+
+.coppa-card p{
+  font-size:15px;
+  line-height:1.7;
+  color:#475569;
+  margin-bottom:10px;
+}
+
+/* CTA */
+.coppa-cta{
+  margin-top:90px;
+  background:#f3faf6;
+  border-radius:36px;
+  padding:56px 60px;
+  text-align:center;
+  box-shadow:0 25px 70px rgba(15,23,42,.08);
+}
+
+.coppa-cta h4{
+  font-size:26px;
+  color:#0f172a;
+  margin-bottom:12px;
+}
+
+.coppa-cta p{
+  font-size:16px;
+  color:#475569;
+  margin-bottom:26px;
+}
+
+.coppa-btn{
+  display:inline-block;
+  background:linear-gradient(135deg,#22c55e,#4ade80);
+  color:#052e16;
+  padding:14px 32px;
+  border-radius:999px;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 14px 35px rgba(34,197,94,.3);
+}
+
+/* RESPONSIVE */
+@media (max-width:768px){
+  .coppa-section{
+    padding:90px 16px;
+  }
+
+  .coppa-head h1{
+    font-size:32px;
+  }
+
+  .coppa-head p{
+    font-size:16px;
+  }
+
+  .coppa-card{
+    padding:26px 22px;
+  }
+
+  .coppa-cta{
+    padding:40px 24px;
+  }
+
+  .coppa-cta h4{
+    font-size:22px;
+  }
+}
+
+
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+
+      <a href="/" class="logo">iakids</a>
+
+      <nav class="topbar-actions">
+        <a href="https://iakids.app" class="nav-link">Inicio</a>
+        <a href="/onboarding/cuenta" class="nav-link">Entrar</a>
+        <a href="/onboarding" class="btn-primary">Empezar gratis</a>
+      </nav>
+
+    </div>
+  </header>
+<section class="coppa-section" id="coppa">
+
+  <div class="coppa-inner">
+
+    <!-- HEADER -->
+    <header class="coppa-head">
+      <span class="coppa-pill">PROTECCIÓN INFANTIL</span>
+      <h1>Cumplimiento COPPA</h1>
+      <p>
+        En iakids cumplimos con la Ley de Protección de la Privacidad Infantil en Línea (COPPA),
+        diseñada para proteger los datos y la experiencia digital de los niños.
+      </p>
+    </header>
+
+    <!-- CARDS -->
+    <div class="coppa-cards">
+
+      <article class="coppa-card">
+        <h3>¿Qué es COPPA?</h3>
+        <p>
+          COPPA (Children’s Online Privacy Protection Act) es una ley de Estados Unidos
+          que protege la información personal de niños menores de 13 años.
+        </p>
+        <p>
+          Su objetivo es asegurar que los padres tengan control sobre qué datos se recopilan
+          y cómo se utilizan.
+        </p>
+      </article>
+
+      <article class="coppa-card">
+        <h3>Diseñado para niños, controlado por padres</h3>
+        <p>
+          iakids está pensada específicamente para menores y requiere la participación
+          activa de padres o tutores legales.
+        </p>
+        <p>
+          Los adultos crean y gestionan las cuentas, definen límites y supervisan el uso
+          de la plataforma.
+        </p>
+      </article>
+
+      <article class="coppa-card">
+        <h3>Datos mínimos, solo lo necesario</h3>
+        <p>
+          Recopilamos únicamente la información imprescindible para ofrecer
+          una experiencia educativa segura y personalizada.
+        </p>
+        <p>
+          No solicitamos datos sensibles innecesarios ni fomentamos la exposición
+          de información personal.
+        </p>
+      </article>
+
+      <article class="coppa-card">
+        <h3>Sin publicidad dirigida</h3>
+        <p>
+          iakids no muestra publicidad dirigida ni utiliza datos infantiles
+          con fines comerciales externos.
+        </p>
+        <p>
+          La experiencia está libre de distracciones y pensada exclusivamente
+          para el aprendizaje.
+        </p>
+      </article>
+
+      <article class="coppa-card">
+        <h3>Derechos de los padres</h3>
+        <p>
+          Los padres tienen derecho a revisar, modificar o eliminar la información
+          asociada al perfil de su hijo.
+        </p>
+        <p>
+          También pueden solicitar la eliminación completa de los datos en cualquier momento.
+        </p>
+      </article>
+
+      <article class="coppa-card">
+        <h3>Seguridad y buenas prácticas</h3>
+        <p>
+          Aplicamos medidas técnicas y organizativas para proteger los datos,
+          evitar accesos no autorizados y mantener la información segura.
+        </p>
+        <p>
+          La seguridad y la confianza son pilares fundamentales de iakids.
+        </p>
+      </article>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="coppa-cta">
+      <h4>Transparencia y tranquilidad para las familias</h4>
+      <p>
+        Cumplir con COPPA no es solo un requisito legal,
+        es parte de nuestro compromiso con la educación y el bienestar infantil.
+      </p>
+      <a href="/onboarding" class="coppa-btn">Empezar de forma segura</a>
+    </div>
+
+  </div>
+
+</section>
+
+
+</body>
+</html>
