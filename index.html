@@ -2260,6 +2260,63 @@ body{
   background:linear-gradient(90deg,#2563eb,#6366f1);
 }
 
+/* =========================
+   IAKIDS SHOWCASE – MOBILE FIX (FINAL)
+========================= */
+@media (max-width: 768px){
+
+  /* section padding */
+  .iakids-showcase{
+    padding: 72px 16px;
+  }
+
+  /* 🔥 kill desktop grid completely */
+  .iakids-inner{
+    display: block !important;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  /* LEFT → full width */
+  .iakids-left{
+    width: 100%;
+    max-width: none;
+  }
+
+  .iakids-left h2{
+    font-size: 30px;
+    line-height: 1.25;
+    margin-bottom: 28px;
+  }
+
+  /* features list */
+  .iakids-features{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .iakids-features li{
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: 0 14px 40px rgba(37,99,235,.08);
+  }
+
+  .iakids-features li.active{
+    background:#f0f6ff;
+  }
+
+  /* ❌ remove right column entirely */
+  .iakids-right{
+    display: none !important;
+  }
+
+  /* ❌ remove progress bar */
+  .iakids-progress{
+    display: none !important;
+  }
+}
 
 </style>
   <script type="application/ld+json">
