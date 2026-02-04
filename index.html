@@ -1983,60 +1983,68 @@ body{
   height:100%;
   background:linear-gradient(
     180deg,
-    rgba(255,255,255,.85),
-    rgba(255,255,255,.95)
+    #ffffff 0%,
+    #fffaf5 60%
   );
-  border-radius:32px;
-  padding:40px;
+  border-radius:36px;
+  overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.12);
   display:flex;
   flex-direction:column;
-  box-shadow:0 30px 90px rgba(0,0,0,.12);
 }
 
-.parents-card__head h3{
-  font-size:28px;
+.parents-card__content{
+  padding:42px 42px 24px;
+}
+
+.parents-card h3{
+  font-size:30px;
   margin-bottom:8px;
 }
 
-.parents-card__head p{
+.parents-card__subtitle{
   color:#64748b;
   font-size:15px;
-  margin-bottom:28px;
+  margin-bottom:26px;
 }
 
 .parents-card__features{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:14px;
-  margin-bottom:32px;
+  gap:14px 24px;
+  font-size:15px;
 }
 
-.feature{
+.parents-card__features div{
   display:flex;
   gap:10px;
   align-items:flex-start;
-  background:rgba(255,255,255,.9);
-  padding:12px 14px;
-  border-radius:14px;
-  font-size:14px;
 }
 
-.feature span{
+.parents-card__features div::before{
+  content:"✓";
   color:#22c55e;
-  font-weight:900;
+  font-weight:700;
 }
 
-.parents-card__image{
+/* IMAGE PART */
+.parents-card__visual{
+  position:relative;
   margin-top:auto;
-  display:flex;
-  justify-content:flex-end;
+  padding:24px 24px 32px;
 }
 
-.parents-card__image img{
+.parents-card__visual img{
   width:100%;
-  max-width:260px;
-  border-radius:18px;
-  box-shadow:0 20px 50px rgba(0,0,0,.18);
+  max-width:320px;
+  margin-left:auto;
+  display:block;
+  filter:drop-shadow(0 20px 50px rgba(0,0,0,.15));
+  mask-image:linear-gradient(
+    to top,
+    black 70%,
+    transparent 100%
+  );
 }
 
 /* MOBILE */
@@ -2437,39 +2445,28 @@ body{
     <div class="examples__right">
   <div class="parents-card">
 
-    <div class="parents-card__head">
+    <div class="parents-card__content">
       <h3>Diseñado para padres</h3>
-      <p>Tranquilidad, control y una experiencia segura para toda la familia.</p>
-    </div>
+      <p class="parents-card__subtitle">
+        Tranquilidad, control y una experiencia segura para toda la familia.
+      </p>
 
-    <div class="parents-card__features">
-      <div class="feature">
-        <span>✓</span>
-        <p>Contenido filtrado y apropiado</p>
-      </div>
-      <div class="feature">
-        <span>✓</span>
-        <p>Respuestas adaptadas por edad</p>
-      </div>
-      <div class="feature">
-        <span>✓</span>
-        <p>Sin temas sensibles</p>
-      </div>
-      <div class="feature">
-        <span>✓</span>
-        <p>Control parental total</p>
+      <div class="parents-card__features">
+        <div>✓ Contenido filtrado y apropiado</div>
+        <div>✓ Respuestas adaptadas por edad</div>
+        <div>✓ Sin temas sensibles</div>
+        <div>✓ Control parental total</div>
       </div>
     </div>
 
-    <div class="parents-card__image">
-      <img
-        src="/assets/iakids-kid-learning-desk.png"
-        alt="Niño aprendiendo con iakids"
-      >
+    <!-- image is PART of the card -->
+    <div class="parents-card__visual">
+      <img src="/assets/iakids-kid-learning-desk.png" alt="">
     </div>
 
   </div>
 </div>
+
 
   </div>
 </section>
