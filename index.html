@@ -2135,6 +2135,72 @@ body{
     margin-top:40px;
   }
 }
+/* =========================
+   USE CASES – MOBILE FIX
+========================= */
+@media (max-width: 768px){
+
+  /* section padding */
+  .examples{
+    padding: 72px 16px;
+  }
+
+  /* 🔥 kill desktop grid */
+  .examples__inner{
+    display: block;
+  }
+
+  /* LEFT */
+  .examples__left h2{
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  .examples__desc{
+    max-width: 100%;
+    margin-bottom: 28px;
+  }
+
+  /* examples cards → single column */
+  .examples__grid{
+    grid-template-columns: 1fr;
+  }
+
+  .example-card{
+    padding: 16px;
+  }
+
+  /* RIGHT – parents card */
+  .parents-card{
+    margin-top: 48px;
+    border-radius: 28px;
+  }
+
+  .parents-card__content{
+    padding: 28px 24px 20px;
+  }
+
+  .parents-card h3{
+    font-size: 24px;
+  }
+
+  /* features inside card → single column */
+  .parents-card__features{
+    grid-template-columns: 1fr;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  /* image spacing */
+  .parents-card__visual{
+    padding: 20px;
+  }
+
+  .parents-card__visual img{
+    max-width: 260px;
+    margin: 0 auto;
+  }
+}
 
 
 
