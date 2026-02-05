@@ -1085,7 +1085,9 @@ header{
 
     <div class="kid-actions">
 
-<button class="side-item side-item-primary">
+<button class="side-item side-item-primary"
+        onclick="setMode('school_help')">
+
   <i class="fa-solid fa-graduation-cap"></i>
   <div class="side-text">
     <div class="side-title">Ayuda escolar</div>
@@ -1432,6 +1434,7 @@ const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".input button");
 
 let kidId = null;
+let CURRENT_MODE = null; // למשל: "school_help"
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -1464,6 +1467,16 @@ function addMessage(role, text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+function setMode(mode){
+  CURRENT_MODE = mode;
+
+  // UI קטן – אופציונלי אבל מומלץ
+  addMessage(
+    "assistant",
+    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
+  );
+}
+
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
@@ -1488,7 +1501,11 @@ async function sendMessage() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({
+  message: text,
+  mode: CURRENT_MODE
+})
+
     });
 
     if (!res.ok) {
