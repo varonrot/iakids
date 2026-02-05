@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -491,6 +492,23 @@ header{
     background .25s ease,
     transform .2s ease,
     box-shadow .25s ease;
+}
+/* ===== ACTIVE MODE (SELECTED) ===== */
+.side-item.active{
+  background:rgba(255,255,255,.38);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.35),
+    inset 0 0 0 2px rgba(255,255,255,.45);
+  transform:translateX(4px);
+}
+
+.side-item.active i{
+  color:#ffffff;
+  filter:drop-shadow(0 0 8px rgba(180,220,255,.9));
+}
+
+.side-item.active .side-title{
+  font-weight:800;
 }
 
 /* Hover */
@@ -1054,6 +1072,23 @@ header{
   color:rgba(255,255,255,.75);
   margin-top:4px;
 }
+/* ===== IDEAS ACTIVE ===== */
+.idea{
+  cursor:pointer;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+
+.idea.active{
+  background:rgba(255,255,255,.35);
+  box-shadow:
+    0 16px 40px rgba(0,0,0,.35),
+    inset 0 0 0 2px rgba(255,255,255,.45);
+  transform:translateY(-3px);
+}
+
+.idea.active img{
+  filter:drop-shadow(0 0 10px rgba(180,220,255,.9));
+}
 
 
   </style>
@@ -1068,127 +1103,132 @@ header{
 
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar">
-
-
-
-  <!-- תוכן הסייד -->
   <div class="sidebar-inner">
 
-<div class="sidebar-robot">
-  <img src="/assets/askie-robot.png" alt="iakids robot" />
-  <div class="robot-text">
-    <div class="robot-title">iakids</div>
-    <div class="robot-sub">Asistente de IA para niños</div>
-  </div>
-</div>
-
+    <div class="sidebar-robot">
+      <img src="/assets/askie-robot.png" alt="iakids robot" />
+      <div class="robot-text">
+        <div class="robot-title">iakids</div>
+        <div class="robot-sub">Asistente de IA para niños</div>
+      </div>
+    </div>
 
     <div class="kid-actions">
 
-<button class="side-item side-item-primary">
-  <i class="fa-solid fa-graduation-cap"></i>
-  <div class="side-text">
-    <div class="side-title">Ayuda escolar</div>
-    <div class="side-sub">Tareas y estudios</div>
-  </div>
-</button>
+      <button class="side-item side-item-primary"
+              data-mode="school_help"
+              onclick="activateMode('school_help')">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <div class="side-text">
+          <div class="side-title">Ayuda escolar</div>
+          <div class="side-sub">Tareas y estudios</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-pen-to-square"></i>
-  <div class="side-text">
-    <div class="side-title">Resolver ejercicios</div>
-    <div class="side-sub">Paso a paso</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="solve_exercises"
+              onclick="activateMode('solve_exercises')">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <div class="side-text">
+          <div class="side-title">Resolver ejercicios</div>
+          <div class="side-sub">Paso a paso</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-book-open"></i>
-  <div class="side-text">
-    <div class="side-title">Aprender un tema</div>
-    <div class="side-sub">Nuevo conocimiento</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="learn_topic"
+              onclick="activateMode('learn_topic')">
+        <i class="fa-solid fa-book-open"></i>
+        <div class="side-text">
+          <div class="side-title">Aprender un tema</div>
+          <div class="side-sub">Nuevo conocimiento</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-repeat"></i>
-  <div class="side-text">
-    <div class="side-title">Practicar</div>
-    <div class="side-sub">Ejercicios guiados</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="practice"
+              onclick="activateMode('practice')">
+        <i class="fa-solid fa-repeat"></i>
+        <div class="side-text">
+          <div class="side-title">Practicar</div>
+          <div class="side-sub">Ejercicios guiados</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-clipboard-check"></i>
-  <div class="side-text">
-    <div class="side-title">Prepararse para un examen</div>
-    <div class="side-sub">Repaso y preguntas</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="exam_prep"
+              onclick="activateMode('exam_prep')">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <div class="side-text">
+          <div class="side-title">Prepararse para un examen</div>
+          <div class="side-sub">Repaso y preguntas</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-child-reaching"></i>
-  <div class="side-text">
-    <div class="side-title">Explicar fácil</div>
-    <div class="side-sub">Como si tuviera 8</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="explain_easy"
+              onclick="activateMode('explain_easy')">
+        <i class="fa-solid fa-child-reaching"></i>
+        <div class="side-text">
+          <div class="side-title">Explicar fácil</div>
+          <div class="side-sub">Como si tuviera 8</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-shapes"></i>
-  <div class="side-text">
-    <div class="side-title">Ver ejemplos</div>
-    <div class="side-sub">Con ejemplos claros</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="examples"
+              onclick="activateMode('examples')">
+        <i class="fa-solid fa-shapes"></i>
+        <div class="side-text">
+          <div class="side-title">Ver ejemplos</div>
+          <div class="side-sub">Con ejemplos claros</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-brain"></i>
-  <div class="side-text">
-    <div class="side-title">Pensar y razonar</div>
-    <div class="side-sub">Lógica y pensamiento</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="thinking"
+              onclick="activateMode('thinking')">
+        <i class="fa-solid fa-brain"></i>
+        <div class="side-text">
+          <div class="side-title">Pensar y razonar</div>
+          <div class="side-sub">Lógica y pensamiento</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-bullseye"></i>
-  <div class="side-text">
-    <div class="side-title">Reto diario</div>
-    <div class="side-sub">Desafío del día</div>
-  </div>
-</button>
+      <button class="side-item" data-mode="daily_challenge"
+              onclick="activateMode('daily_challenge')">
+        <i class="fa-solid fa-bullseye"></i>
+        <div class="side-text">
+          <div class="side-title">Reto diario</div>
+          <div class="side-sub">Desafío del día</div>
+        </div>
+      </button>
 
+      <div class="sidebar-bottom">
+        <button class="side-item side-item-settings" id="openSettings">
+          <i class="fa-solid fa-gear"></i>
+          <div class="side-text">
+            <div class="side-title">Settings</div>
+            <div class="side-sub">Preferences</div>
+          </div>
+        </button>
+      </div>
 
-        <div class="sidebar-bottom">
-  <button class="side-item side-item-settings" id="openSettings">
-    <i class="fa-solid fa-gear"></i>
-    <div class="side-text">
-      <div class="side-title">Settings</div>
-      <div class="side-sub">Preferences</div>
     </div>
-  </button>
-</div>
-</div>
-
   </div>
 </aside>
 
+
 <!-- ===== RIGHT SIDEBAR ===== -->
 <aside class="rightbar">
-<!-- ===== RIGHTBAR KID ANCHOR ===== -->
-<div class="rightbar-kid">
-  <img id="rightbarAvatar" />
-  <div class="rightbar-kid-text">
-    <div class="rightbar-kid-name" id="rightbarName"></div>
-    <div class="rightbar-kid-sub">Mi perfil</div>
+
+  <!-- ===== RIGHTBAR KID ANCHOR ===== -->
+  <div class="rightbar-kid">
+    <img id="rightbarAvatar" />
+    <div class="rightbar-kid-text">
+      <div class="rightbar-kid-name" id="rightbarName"></div>
+      <div class="rightbar-kid-sub">Mi perfil</div>
+    </div>
   </div>
-</div>
 
+  <!-- ===== EMOTIONAL / FREE MODES ===== -->
 
-<!--  <div class="side-section">-->
-<!--    <h4>👋 Para ti</h4>-->
-<!--  </div>-->
-
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="emotions"
+          onclick="activateMode('emotions')">
     <i class="fa-solid fa-heart"></i>
     <div class="side-text">
       <div class="side-title">¿Cómo me siento?</div>
@@ -1196,7 +1236,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="free_talk"
+          onclick="activateMode('free_talk')">
     <i class="fa-solid fa-comments"></i>
     <div class="side-text">
       <div class="side-title">Hablar libremente</div>
@@ -1204,7 +1246,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="achievements"
+          onclick="activateMode('achievements')">
     <i class="fa-solid fa-star"></i>
     <div class="side-text">
       <div class="side-title">Mis logros</div>
@@ -1212,7 +1256,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="about_me"
+          onclick="activateMode('about_me')">
     <i class="fa-solid fa-user-astronaut"></i>
     <div class="side-text">
       <div class="side-title">Sobre mí</div>
@@ -1220,7 +1266,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="daily_tip"
+          onclick="activateMode('daily_tip')">
     <i class="fa-solid fa-lightbulb"></i>
     <div class="side-text">
       <div class="side-title">Consejo del día</div>
@@ -1228,7 +1276,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="fun"
+          onclick="activateMode('fun')">
     <i class="fa-solid fa-face-smile"></i>
     <div class="side-text">
       <div class="side-title">Algo divertido</div>
@@ -1236,7 +1286,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="bedtime"
+          onclick="activateMode('bedtime')">
     <i class="fa-solid fa-moon"></i>
     <div class="side-text">
       <div class="side-title">Antes de dormir</div>
@@ -1244,7 +1296,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="what_now"
+          onclick="activateMode('what_now')">
     <i class="fa-solid fa-compass"></i>
     <div class="side-text">
       <div class="side-title">¿Qué hago ahora?</div>
@@ -1252,7 +1306,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item"
+          data-mode="ask_askie"
+          onclick="activateMode('ask_askie')">
     <i class="fa-solid fa-robot"></i>
     <div class="side-text">
       <div class="side-title">Pide ayuda a Askie</div>
@@ -1260,7 +1316,9 @@ header{
     </div>
   </button>
 
-  <button class="side-item side-item-settings">
+  <!-- ===== SETTINGS (NO MODE) ===== -->
+  <button class="side-item side-item-settings"
+          id="openSettings">
     <i class="fa-solid fa-gear"></i>
     <div class="side-text">
       <div class="side-title">Mi perfil</div>
@@ -1269,6 +1327,7 @@ header{
   </button>
 
 </aside>
+
 
   <!-- ===== MAIN ===== -->
   <main class="main">
@@ -1326,7 +1385,9 @@ header{
 
         <div class="idea-grid">
 
-<div class="idea">
+<div class="idea"
+     data-mode="homework_card"
+     onclick="activateMode('homework_card')">
   <img src="/assets/icons/homework-help.png" />
   <div>
     <div class="idea-title">Homework Help</div>
@@ -1334,7 +1395,9 @@ header{
   </div>
 </div>
 
-<div class="idea">
+<div class="idea"
+     data-mode="explain_card"
+     onclick="activateMode('explain_card')">
   <img src="/assets/icons/explain-topic.png" />
   <div>
     <div class="idea-title">Explain Topic</div>
@@ -1342,7 +1405,9 @@ header{
   </div>
 </div>
 
-<div class="idea">
+<div class="idea"
+     data-mode="riddle_card"
+     onclick="activateMode('riddle_card')">
   <img src="/assets/icons/smart-riddle.png" />
   <div>
     <div class="idea-title">Smart Riddle</div>
@@ -1350,7 +1415,9 @@ header{
   </div>
 </div>
 
-<div class="idea">
+<div class="idea"
+     data-mode="cool_card"
+     onclick="activateMode('cool_card')">
   <img src="/assets/icons/something-interesting.png" />
   <div>
     <div class="idea-title">Something Cool</div>
@@ -1427,11 +1494,58 @@ const { data: kid, error } = await sb
 const API_BASE = "https://iakids-backend.onrender.com";
 
 const messagesEl = document.querySelector(".messages");
-const chatEl = document.querySelector(".chat");
 const inputEl = document.querySelector(".input input");
-const sendBtn = document.querySelector(".input button");
+const sendBtn = document.querySelector(".send-btn");
 
-let kidId = null;
+let CURRENT_MODE = null;   // ← משתנה גלובלי אחד בלבד
+
+// 🧠 מפת פתיחים לפי MODE
+const MODE_INTROS = {
+  // ===== לימודי (שמאל) =====
+  school_help: "📚 Estoy aquí para ayudarte con la escuela. ¿Qué materia?",
+  solve_exercises: "✏️ Vamos paso a paso. Escribe el ejercicio.",
+  learn_topic: "📖 ¿Qué tema nuevo quieres aprender?",
+  practice: "🔁 Practiquemos juntos.",
+  exam_prep: "📝 Preparación para examen. ¿De qué tema?",
+  explain_easy: "🧒 Te lo explico muy fácil.",
+  examples: "🔍 Veamos ejemplos claros.",
+  thinking: "🧠 Vamos a pensar juntos.",
+  daily_challenge: "🎯 Reto del día. ¿Listo?",
+
+  // ===== רגשי / חופשי (ימין) =====
+  emotions: "💙 ¿Cómo te sientes hoy?",
+  free_talk: "💬 Puedes hablar conmigo de lo que quieras.",
+  achievements: "⭐ Veamos lo que hiciste bien.",
+  about_me: "👤 Cuéntame sobre ti.",
+  daily_tip: "💡 Consejo del día para ti.",
+  fun: "😄 Vamos a divertirnos un poco.",
+  bedtime: "🌙 Te contaré una historia tranquila.",
+  what_now: "🧭 Veamos qué puedes hacer ahora.",
+  ask_askie: "🤖 Estoy aquí para ayudarte.",
+
+  // ===== כרטיסים למטה =====
+  homework_card: "📚 ¿Necesitas ayuda con la tarea?",
+  explain_card: "📖 ¿Qué quieres que te explique?",
+  riddle_card: "🧩 Vamos con un acertijo.",
+  cool_card: "✨ Te mostraré algo interesante."
+};
+
+function activateMode(mode){
+  CURRENT_MODE = mode;
+ 
+  document.querySelectorAll('.side-item, .idea')
+    .forEach(el => el.classList.remove('active'));
+
+  const el =
+    document.querySelector(`.side-item[data-mode="${mode}"]`) ||
+    document.querySelector(`.idea[data-mode="${mode}"]`);
+
+  if (el) el.classList.add('active');
+
+  const intro = MODE_INTROS[mode] || "🙂 ¿En qué te ayudo?";
+  addMessage("assistant", intro);
+}
+
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -1464,6 +1578,16 @@ function addMessage(role, text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+function setMode(mode){
+  CURRENT_MODE = mode;
+
+  // UI קטן – אופציונלי אבל מומלץ
+  addMessage(
+    "assistant",
+    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
+  );
+}
+
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
@@ -1472,6 +1596,8 @@ async function sendMessage() {
 
   inputEl.value = "";
   addMessage("user", text);
+
+  console.log("📤 Sending message with mode:", CURRENT_MODE);
 
   const { data } = await sb.auth.getSession();
   const session = data.session;
@@ -1488,7 +1614,17 @@ async function sendMessage() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({
+        message: text,
+        mode: CURRENT_MODE,
+        kid_context: {
+          name: CURRENT_KID.child_name,
+          age: CURRENT_KID.age,
+          avatar_key: CURRENT_KID.avatar_key,
+          usage_goals: CURRENT_KID.usage_goals,
+          learning_interests: CURRENT_KID.learning_interests
+        }
+      })
     });
 
     if (!res.ok) {
@@ -1511,8 +1647,7 @@ async function sendMessage() {
     console.error("NETWORK ERROR", e);
     addMessage("assistant", "🌐 Network error – API not reachable");
   }
-
-} // ✅ THIS BRACE WAS MISSING
+}
 
 /* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
@@ -1687,6 +1822,7 @@ function setSelected(containerId, values = []){
     });
 }
 </script>
+
 
 </body>
 </html>
