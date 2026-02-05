@@ -1501,20 +1501,17 @@ async function sendMessage() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-body: JSON.stringify({
-  message: text,
-  mode: CURRENT_MODE,
-  kid_context: {
-    name: CURRENT_KID.child_name,
-    age: CURRENT_KID.age,
-    avatar_key: CURRENT_KID.avatar_key,
-    usage_goals: CURRENT_KID.usage_goals,
-    learning_interests: CURRENT_KID.learning_interests
-  }
-})
-
-})
-
+      body: JSON.stringify({
+        message: text,
+        mode: CURRENT_MODE,
+        kid_context: {
+          name: CURRENT_KID.child_name,
+          age: CURRENT_KID.age,
+          avatar_key: CURRENT_KID.avatar_key,
+          usage_goals: CURRENT_KID.usage_goals,
+          learning_interests: CURRENT_KID.learning_interests
+        }
+      })
     });
 
     if (!res.ok) {
@@ -1537,8 +1534,7 @@ body: JSON.stringify({
     console.error("NETWORK ERROR", e);
     addMessage("assistant", "🌐 Network error – API not reachable");
   }
-
-} // ✅ THIS BRACE WAS MISSING
+}
 
 /* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
