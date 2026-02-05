@@ -180,6 +180,11 @@ def chat(
         )
 
         mode_prompt = load_mode_prompt(body.mode)
+        print("===== MODE DEBUG =====")
+        print("MODE:", body.mode)
+        print("MODE PROMPT LOADED:")
+        print(mode_prompt[:300])
+        print("======================")
 
         system_prompt = (
                 CORE_PROMPT_TEMPLATE
