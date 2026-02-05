@@ -1086,7 +1086,7 @@ header{
     <div class="kid-actions">
 
 <button class="side-item side-item-primary"
-        onclick="setMode('school_help')">
+  onclick="activateMode('school_help')">
 
   <i class="fa-solid fa-graduation-cap"></i>
   <div class="side-text">
@@ -1501,9 +1501,18 @@ async function sendMessage() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-      body: JSON.stringify({
+body: JSON.stringify({
   message: text,
-  mode: CURRENT_MODE
+  mode: CURRENT_MODE,
+  kid_context: {
+    name: CURRENT_KID.child_name,
+    age: CURRENT_KID.age,
+    avatar_key: CURRENT_KID.avatar_key,
+    usage_goals: CURRENT_KID.usage_goals,
+    learning_interests: CURRENT_KID.learning_interests
+  }
+})
+
 })
 
     });
@@ -1702,6 +1711,18 @@ function setSelected(containerId, values = []){
     .forEach(b=>{
       b.classList.toggle("active", values.includes(b.dataset.val));
     });
+}
+</script>
+<script>
+let ACTIVE_MODE = null;
+
+function activateMode(mode){
+  ACTIVE_MODE = mode;
+
+  addMessage(
+    "assistant",
+    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
+  );
 }
 </script>
 
