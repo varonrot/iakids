@@ -40,6 +40,7 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
+    mode: str | None = None
 
 class CreateChildProfileRequest(BaseModel):
     user_id: str
@@ -71,6 +72,15 @@ def get_existing_kids_memory(kid_id: str) -> str:
         return "\n".join(f"- {m}" for m in memory)
 
     return str(memory)
+
+def load_mode_prompt(mode: str | None) -> str:
+    if not mode:
+        return ""
+
+    path = Path(f"prompts/iakids_mode_{mode}_prompt.txt")
+    if path.exists():
+        return path.read_text()
+    return ""
 
 def save_kids_memory(
     user_id: str,
@@ -169,7 +179,13 @@ def chat(
             content=body.message
         )
 
-        system_prompt = CORE_PROMPT_TEMPLATE.format(
+        mode_prompt = load_mode_prompt(body.mode)
+
+        system_prompt = (
+                CORE_PROMPT_TEMPLATE
+                + "\n\n"
+                + mode_prompt
+        ).format(
             child_name=child["child_name"],
             age=child["age"],
             avatar_key=child.get("avatar_key", ""),
