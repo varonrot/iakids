@@ -1436,6 +1436,17 @@ const sendBtn = document.querySelector(".input button");
 let kidId = null;
 let CURRENT_MODE = null; // למשל: "school_help"
 
+let CURRENT_MODE = null;
+
+function activateMode(mode){
+  CURRENT_MODE = mode;
+
+  addMessage(
+    "assistant",
+    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
+  );
+}
+
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
   const row = document.createElement("div");
@@ -1709,18 +1720,7 @@ function setSelected(containerId, values = []){
     });
 }
 </script>
-<script>
-let CURRENT_MODE = null;
 
-function activateMode(mode){
-  CURRENT_MODE = mode;
-
-  addMessage(
-    "assistant",
-    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
-  );
-}
-</script>
 
 </body>
 </html>
