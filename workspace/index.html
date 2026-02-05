@@ -1451,36 +1451,15 @@ const messagesEl = document.querySelector(".messages");
 const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".send-btn");
 
-let CURRENT_MODE = null;
-
-const MODE_MESSAGES = {
-  school_help: "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?",
-  solve_exercises: "✏️ Resolveremos ejercicios paso a paso 😊",
-  learn_topic: "📖 Vamos a aprender algo nuevo juntos",
-  practice: "🔁 Practiquemos con ejemplos guiados",
-  exam_prep: "📝 Te ayudo a prepararte para el examen",
-  explain_easy: "🧒 Te lo explicaré de forma muy fácil",
-  examples: "📊 Veamos ejemplos claros",
-  thinking: "🧠 Pensemos juntos paso a paso",
-  daily_challenge: "🎯 ¿Listo para el reto del día?"
-};
+let CURRENT_MODE = null;   // ← פעם אחת בלבד
 
 function activateMode(mode){
   CURRENT_MODE = mode;
 
-  console.log("🧠 Mode activated:", mode);
-
   addMessage(
     "assistant",
-    MODE_MESSAGES[mode] || "🙂 ¿En qué te ayudo?"
+    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
   );
- 
-  document.querySelectorAll(".side-item").forEach(btn=>{
-    btn.classList.toggle(
-      "side-item-primary",
-      btn.dataset.mode === mode
-    );
-  });
 }
 
 
@@ -1515,6 +1494,15 @@ function addMessage(role, text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+function setMode(mode){
+  CURRENT_MODE = mode;
+
+  // UI קטן – אופציונלי אבל מומלץ
+  addMessage(
+    "assistant",
+    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
+  );
+}
 
 
 /* ---------- SEND MESSAGE ---------- */
