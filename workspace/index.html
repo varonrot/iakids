@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1083,11 +1084,11 @@ header{
 </div>
 
 
-    <div class="kid-actions">
+<div class="kid-actions">
 
 <button class="side-item side-item-primary"
-  onclick="activateMode('school_help')">
-
+        data-mode="school_help"
+        onclick="activateMode('school_help')">
   <i class="fa-solid fa-graduation-cap"></i>
   <div class="side-text">
     <div class="side-title">Ayuda escolar</div>
@@ -1095,7 +1096,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="solve_exercises"
+        onclick="activateMode('solve_exercises')">
   <i class="fa-solid fa-pen-to-square"></i>
   <div class="side-text">
     <div class="side-title">Resolver ejercicios</div>
@@ -1103,7 +1106,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="learn_topic"
+        onclick="activateMode('learn_topic')">
   <i class="fa-solid fa-book-open"></i>
   <div class="side-text">
     <div class="side-title">Aprender un tema</div>
@@ -1111,7 +1116,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="practice"
+        onclick="activateMode('practice')">
   <i class="fa-solid fa-repeat"></i>
   <div class="side-text">
     <div class="side-title">Practicar</div>
@@ -1119,7 +1126,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="exam_prep"
+        onclick="activateMode('exam_prep')">
   <i class="fa-solid fa-clipboard-check"></i>
   <div class="side-text">
     <div class="side-title">Prepararse para un examen</div>
@@ -1127,7 +1136,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="explain_easy"
+        onclick="activateMode('explain_easy')">
   <i class="fa-solid fa-child-reaching"></i>
   <div class="side-text">
     <div class="side-title">Explicar fácil</div>
@@ -1135,7 +1146,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="examples"
+        onclick="activateMode('examples')">
   <i class="fa-solid fa-shapes"></i>
   <div class="side-text">
     <div class="side-title">Ver ejemplos</div>
@@ -1143,7 +1156,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="thinking"
+        onclick="activateMode('thinking')">
   <i class="fa-solid fa-brain"></i>
   <div class="side-text">
     <div class="side-title">Pensar y razonar</div>
@@ -1151,7 +1166,9 @@ header{
   </div>
 </button>
 
-<button class="side-item">
+<button class="side-item"
+        data-mode="daily_challenge"
+        onclick="activateMode('daily_challenge')">
   <i class="fa-solid fa-bullseye"></i>
   <div class="side-text">
     <div class="side-title">Reto diario</div>
@@ -1159,8 +1176,7 @@ header{
   </div>
 </button>
 
-
-        <div class="sidebar-bottom">
+<div class="sidebar-bottom">
   <button class="side-item side-item-settings" id="openSettings">
     <i class="fa-solid fa-gear"></i>
     <div class="side-text">
@@ -1169,6 +1185,9 @@ header{
     </div>
   </button>
 </div>
+
+</div>
+
 </div>
 
   </div>
@@ -1432,15 +1451,36 @@ const messagesEl = document.querySelector(".messages");
 const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".send-btn");
 
-let CURRENT_MODE = null;   // ← פעם אחת בלבד
+let CURRENT_MODE = null;
+
+const MODE_MESSAGES = {
+  school_help: "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?",
+  solve_exercises: "✏️ Resolveremos ejercicios paso a paso 😊",
+  learn_topic: "📖 Vamos a aprender algo nuevo juntos",
+  practice: "🔁 Practiquemos con ejemplos guiados",
+  exam_prep: "📝 Te ayudo a prepararte para el examen",
+  explain_easy: "🧒 Te lo explicaré de forma muy fácil",
+  examples: "📊 Veamos ejemplos claros",
+  thinking: "🧠 Pensemos juntos paso a paso",
+  daily_challenge: "🎯 ¿Listo para el reto del día?"
+};
 
 function activateMode(mode){
   CURRENT_MODE = mode;
 
+  console.log("🧠 Mode activated:", mode);
+
   addMessage(
     "assistant",
-    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
+    MODE_MESSAGES[mode] || "🙂 ¿En qué te ayudo?"
   );
+ 
+  document.querySelectorAll(".side-item").forEach(btn=>{
+    btn.classList.toggle(
+      "side-item-primary",
+      btn.dataset.mode === mode
+    );
+  });
 }
 
 
@@ -1475,15 +1515,6 @@ function addMessage(role, text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-function setMode(mode){
-  CURRENT_MODE = mode;
-
-  // UI קטן – אופציונלי אבל מומלץ
-  addMessage(
-    "assistant",
-    "📚 ¡Modo de ayuda escolar activado! ¿En qué te ayudo?"
-  );
-}
 
 
 /* ---------- SEND MESSAGE ---------- */
