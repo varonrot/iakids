@@ -1432,6 +1432,21 @@ if (user) {
 
   const userId = sessionData.session.user.id;
 
+let activeKidId = localStorage.getItem("active_kid_id");
+
+if (!activeKidId) {
+  const { data: kids } = await sb
+    .from("kids_profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (!kids || kids.length === 0) return;
+
+  activeKidId = kids[0].id;
+  localStorage.setItem("active_kid_id", activeKidId);
+}
+
 const { data: kid, error } = await sb
   .from("kids_profiles")
   .select(`
@@ -1440,10 +1455,9 @@ const { data: kid, error } = await sb
     age,
     avatar_key,
     usage_goals,
-    learning_interests,
-    updated_at
+    learning_interests
   `)
-  .eq("user_id", userId)
+  .eq("id", activeKidId)
   .single();
 
 
@@ -1533,7 +1547,11 @@ async function sendMessage() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({
+  message: text,
+  kid_id: CURRENT_KID.id
+})
+
     });
 
     if (!res.ok) {
@@ -1808,8 +1826,8 @@ function switchKid(){
   const newKidId = document.getElementById("parentKidSelect").value;
   if (!newKidId) return;
 
-  // reload app with selected kid
-  window.location.reload(); // או לוגיקה חכמה בהמשך
+  localStorage.setItem("active_kid_id", newKidId);
+  window.location.reload();
 }
 
 function addKid(){
