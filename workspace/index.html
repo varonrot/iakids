@@ -1120,13 +1120,18 @@ header{
     font-size:11px;
   }
 }
+@media (max-width: 900px){
+  .sidebar{
+    display:none;
+  }
+}
 
 
   </style>
 </head>
 
 <body>
-<button class="hamburger" onclick="toggleSidebar()">
+<button class="hamburger" onclick="toggleRightbar()">
   <i class="fa-solid fa-bars"></i>
 </button>
 
@@ -1336,7 +1341,7 @@ header{
   <span class="logo-text">kids</span>
 </div>
 
-      <div class="user" onclick="toggleRightbar()">
+      <div class="user">
         <img id="userAvatar" />
         <span id="userName"></span>
       </div>
@@ -1613,6 +1618,12 @@ document.addEventListener("click", (e) => {
   if (!el) return;
 
   quickAsk(el.dataset.ask);
+});
+ 
+document.querySelectorAll('.rightbar [data-ask]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelector('.rightbar')?.classList.remove('open');
+  });
 });
 
 /* ---------- EVENTS ---------- */
