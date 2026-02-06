@@ -1831,7 +1831,46 @@ function switchKid(){
 }
 
 function addKid(){
-  window.location.href = "/onboarding/profile/"; // או flow אחר
+  document.getElementById("parentModal").style.display = "none";
+  openAddKidModal();
+}
+</script>
+<script>
+function openAddKidModal(){
+  document.getElementById("addKidModal").style.display = "flex";
+}
+</script>
+<script>
+function closeAddKid(){
+  document.getElementById("addKidModal").style.display = "none";
+}
+
+async function createKid(){
+  const name = document.getElementById("newKidName").value.trim();
+  const age = parseInt(document.getElementById("newKidAge").value);
+
+  if (!name || !age) return alert("Completa todos los campos");
+
+  const user = (await sb.auth.getUser()).data.user;
+
+  const { data, error } = await sb
+    .from("kids_profiles")
+    .insert({
+      user_id: user.id,
+      child_name: name,
+      age,
+      avatar_key: "cat"
+    })
+    .select()
+    .single();
+
+  if (error){
+    alert(error.message);
+    return;
+  }
+
+  localStorage.setItem("active_kid_id", data.id);
+  window.location.reload();
 }
 </script>
 
@@ -1860,6 +1899,36 @@ function addKid(){
     <button class="save" onclick="addKid()">
       ➕ Agregar niño
     </button>
+
+  </div>
+</div>
+<!-- ===== ADD KID MODAL ===== -->
+<div class="modal-overlay" id="addKidModal">
+  <div class="modal">
+
+    <h2>Agregar niño</h2>
+
+    <label>
+      Nombre
+      <input type="text" id="newKidName">
+    </label>
+
+    <label>
+      Edad
+      <select id="newKidAge">
+        <option value="">Edad</option>
+        <option>3</option><option>4</option><option>5</option>
+        <option>6</option><option>7</option><option>8</option>
+        <option>9</option><option>10</option><option>11</option>
+        <option>12</option><option>13</option><option>14</option>
+        <option>15</option>
+      </select>
+    </label>
+
+    <div class="modal-actions">
+      <button onclick="closeAddKid()">Cancelar</button>
+      <button class="save" onclick="createKid()">Crear</button>
+    </div>
 
   </div>
 </div>
