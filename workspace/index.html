@@ -1054,21 +1054,6 @@ header{
   color:rgba(255,255,255,.75);
   margin-top:4px;
 }
-/* ===== RIGHTBAR – MOBILE ONLY ===== */
-.rightbar{
-  transform:translateX(100%);
-  transition:transform .3s ease;
-  z-index:200;
-}
-
-.rightbar.open{
-  transform:translateX(0);
-}
-
-.hamburger-right{
-  right:12px;
-  left:auto;
-}
 
 
   </style>
@@ -1077,9 +1062,6 @@ header{
 <body>
 <button class="hamburger" onclick="toggleSidebar()">
   <i class="fa-solid fa-bars"></i>
-</button>
-<button class="hamburger hamburger-right" onclick="toggleRightbar()">
-  <i class="fa-solid fa-user"></i>
 </button>
 
 <div class="app">
@@ -1577,10 +1559,6 @@ inputEl.addEventListener("keydown", e => {
 <script>
 function toggleSidebar(){
   document.querySelector('.sidebar').classList.toggle('open');
-}
-</script>
-<script>function toggleRightbar(){
-  document.querySelector('.rightbar').classList.toggle('open');
 }
 </script>
 <!-- ===== SETTINGS MODAL ===== -->
