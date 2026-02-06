@@ -7,19 +7,40 @@ import os
 from pathlib import Path
 import json
 
-CORE_PROMPT_TEMPLATE = Path("prompts/iakids_core_chat_system_prompt.txt").read_text()
+from pathlib import Path
+import os
+
+# ===== LOAD PROMPTS =====
+
+CORE_PROMPT_TEMPLATE = Path(
+    "prompts/iakids_core_chat_system_prompt.txt"
+).read_text()
+
 print("=== CORE PROMPT LOADED ===")
 print(CORE_PROMPT_TEMPLATE[:300])
 print("=========================")
+
+MODE_PROMPT_TEMPLATE = Path(
+    "prompts/iakids_mode_guidance_prompt.txt"
+).read_text()
+
+print("=== MODE PROMPT LOADED ===")
+print(MODE_PROMPT_TEMPLATE[:300])
+print("==========================")
+
+# ===== ENV =====
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# ===== CLIENTS =====
+
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 app = FastAPI()
+
 
 # ✅ ONE CORS ONLY
 app.add_middleware(
@@ -40,6 +61,8 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
+    kid_id: str
+    mode: str | None = None
 
 class CreateChildProfileRequest(BaseModel):
     user_id: str
@@ -124,6 +147,21 @@ def get_child_profile(user_id: str):
         raise HTTPException(status_code=404, detail="No child profile found")
     return res.data[0]
 
+def get_child_by_id(user_id: str, kid_id: str):
+    res = (
+        sb.table("kids_profiles")
+        .select("*")
+        .eq("id", kid_id)
+        .eq("user_id", user_id)
+        .single()
+        .execute()
+    )
+
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Child not found")
+
+    return res.data
+
 def save_chat_message(
     user_id: str,
     kid_id: str,
@@ -159,7 +197,12 @@ def chat(
             raise HTTPException(status_code=401, detail="Invalid session")
 
         user = user_res.user
-        child = get_child_profile(user.id)
+
+        kid_id = body.kid_id
+        if not kid_id:
+            raise HTTPException(status_code=400, detail="kid_id is required")
+
+        child = get_child_by_id(user.id, kid_id)
         existing_memory = get_existing_kids_memory(child["id"])
 
         save_chat_message(
@@ -169,13 +212,20 @@ def chat(
             content=body.message
         )
 
-        system_prompt = CORE_PROMPT_TEMPLATE.format(
+        mode_value = body.mode or "unknown"
+
+        system_prompt = (
+                CORE_PROMPT_TEMPLATE
+                + "\n\n"
+                + MODE_PROMPT_TEMPLATE.format(
             child_name=child["child_name"],
             age=child["age"],
             avatar_key=child.get("avatar_key", ""),
             learning_interests=", ".join(child.get("learning_interests", [])),
             usage_goals=", ".join(child.get("usage_goals", [])),
-            kids_memory=existing_memory
+            kids_memory=existing_memory,
+            mode=mode_value
+        )
         )
 
         completion = client.chat.completions.create(
