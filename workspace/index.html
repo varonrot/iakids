@@ -1054,84 +1054,13 @@ header{
   color:rgba(255,255,255,.75);
   margin-top:4px;
 }
-/* =====================================================
-   RIGHTBAR – MOBILE FIX (FINAL)
-   ===================================================== */
-@media (max-width: 900px){
-
-  /* ===== BASE ===== */
-  .rightbar{
-    position:fixed;
-    top:0;
-    right:0;
-
-    width:85vw;              /* לא כל המסך */
-    max-width:320px;
-    height:100vh;
-
-    transform:translateX(100%);   /* ❌ מוסתר כברירת מחדל */
-    transition:transform .32s cubic-bezier(.4,0,.2,1);
-
-    z-index:120;             /* מעל main */
-  }
-
-  /* OPEN STATE */
-  .rightbar.open{
-    transform:translateX(0);
-  }
-
-  /* ===== KID HEADER ===== */
-  .rightbar-kid{
-    padding:14px 12px;
-    margin-bottom:10px;
-  }
-
-  .rightbar-kid img{
-    width:52px;
-    height:52px;
-    border-radius:16px;
-  }
-
-  .rightbar-kid-name{
-    font-size:14px;
-  }
-
-  .rightbar-kid-sub{
-    font-size:11px;
-  }
-
-  /* ===== BUTTONS ===== */
-  .rightbar .side-item{
-    height:56px;
-    padding:0 14px;
-    gap:12px;
-    border-radius:14px;
-  }
-
-  .rightbar .side-item i{
-    font-size:20px;
-  }
-
-  .rightbar .side-title{
-    font-size:14px;
-  }
-
-  .rightbar .side-sub{
-    font-size:11px;
-  }
-}
-@media (max-width: 900px){
-  .sidebar{
-    display:none;
-  }
-}
 
 
   </style>
 </head>
 
 <body>
-<button class="hamburger" onclick="toggleRightbar()">
+<button class="hamburger" onclick="toggleSidebar()">
   <i class="fa-solid fa-bars"></i>
 </button>
 
@@ -1619,12 +1548,6 @@ document.addEventListener("click", (e) => {
 
   quickAsk(el.dataset.ask);
 });
- 
-document.querySelectorAll('.rightbar [data-ask]').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelector('.rightbar')?.classList.remove('open');
-  });
-});
 
 /* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
@@ -1797,11 +1720,6 @@ function setSelected(containerId, values = []){
     .forEach(b=>{
       b.classList.toggle("active", values.includes(b.dataset.val));
     });
-}
-</script>
-<script>
-function toggleRightbar(){
-  document.querySelector('.rightbar')?.classList.toggle('open');
 }
 </script>
 
