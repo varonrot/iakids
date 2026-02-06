@@ -969,6 +969,32 @@ header{
   color:#fff;
   border-color:#ff6b4a;
 }
+.parent-btn{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:none;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  background:#f3f4f6;
+}
+
+.parent-btn.primary{
+  background:#2563eb;
+  color:#fff;
+}
+
+.parent-btn.danger{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.parent-btn.logout{
+  background:#000;
+  color:#fff;
+}
+
 /* ================= RIGHT SIDEBAR ================= */
 .rightbar{
   position:fixed;
@@ -1194,8 +1220,9 @@ header{
         <button class="side-item side-item-settings" id="openSettings">
           <i class="fa-solid fa-gear"></i>
           <div class="side-text">
-            <div class="side-title">Settings</div>
-            <div class="side-sub">Preferences</div>
+            <div class="side-title">Panel para padres</div>
+            <div class="side-sub">Gestionar niños</div>
+
           </div>
         </button>
       </div>
@@ -1458,9 +1485,9 @@ const { data: kid, error } = await sb
 
   window.KID_AVATAR_URL = avatarUrl;
 
-  
+
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
-  
+
   document.getElementById("heroAvatar").src = avatarUrl;
 
 
@@ -1690,6 +1717,9 @@ function toggleSidebar(){
 </div>
 <script>
 document.getElementById("openSettings").onclick = () => {
+  document.getElementById("parentModal").style.display = "flex";
+};
+
   if (!CURRENT_KID) return;
 
   settingsModal.style.display = "flex";
@@ -1775,6 +1805,53 @@ function setSelected(containerId, values = []){
     });
 }
 </script>
+<!-- ===== PARENT DASHBOARD MODAL ===== -->
+<div class="modal-overlay" id="parentModal">
+  <div class="modal">
 
+    <h2>Panel para padres</h2>
+    <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
+      Administrar perfiles de niños
+    </p>
+
+    <!-- SWITCH KID (מופיע רק אם יש יותר מילד אחד) -->
+    <label>
+      Cambiar niño
+      <select id="parentSwitchKid"></select>
+    </label>
+
+    <button class="parent-btn primary" id="btnSwitchKid">
+      Cambiar niño
+    </button>
+
+    <hr />
+
+    <button class="parent-btn" id="btnAddKid">
+      Agregar niño
+    </button>
+
+    <button class="parent-btn danger" id="btnDeleteKid">
+      Eliminar niño
+    </button>
+
+    <hr />
+
+    <button class="parent-btn logout" id="btnLogout">
+      Cerrar sesión
+    </button>
+
+  </div>
+</div>
+<script>document.getElementById("parentModal").addEventListener("click", e => {
+  if (e.target.id === "parentModal") {
+    e.target.style.display = "none";
+  }
+});
+</script>
+<script>document.getElementById("btnLogout").onclick = async () => {
+  await sb.auth.signOut();
+  window.location.href = "/";
+};
+</script>
 </body>
 </html>
