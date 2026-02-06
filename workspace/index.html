@@ -1409,6 +1409,21 @@ let CURRENT_KID = null;
 
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
+  const { data: { user } } = await sb.auth.getUser();
+
+if (user) {
+  const displayName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email;
+
+  const avatar =
+    user.user_metadata?.avatar_url ||
+    "/assets/default-parent.png";
+
+  document.getElementById("userName").textContent = displayName;
+  document.getElementById("userAvatar").src = avatar;
+}
 
   if (!sessionData.session) {
     window.location.replace("/onboarding/cuenta/");
@@ -1443,9 +1458,9 @@ const { data: kid, error } = await sb
 
   window.KID_AVATAR_URL = avatarUrl;
 
-  document.getElementById("userName").textContent = kid.child_name;
+  
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
-  document.getElementById("userAvatar").src = avatarUrl;
+  
   document.getElementById("heroAvatar").src = avatarUrl;
 
 
