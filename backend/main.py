@@ -7,40 +7,19 @@ import os
 from pathlib import Path
 import json
 
-from pathlib import Path
-import os
-
-# ===== LOAD PROMPTS =====
-
-CORE_PROMPT_TEMPLATE = Path(
-    "prompts/iakids_core_chat_system_prompt.txt"
-).read_text()
-
+CORE_PROMPT_TEMPLATE = Path("prompts/iakids_core_chat_system_prompt.txt").read_text()
 print("=== CORE PROMPT LOADED ===")
 print(CORE_PROMPT_TEMPLATE[:300])
 print("=========================")
-
-MODE_PROMPT_TEMPLATE = Path(
-    "prompts/iakids_mode_guidance_prompt.txt"
-).read_text()
-
-print("=== MODE PROMPT LOADED ===")
-print(MODE_PROMPT_TEMPLATE[:300])
-print("==========================")
-
-# ===== ENV =====
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# ===== CLIENTS =====
-
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 app = FastAPI()
-
 
 # ✅ ONE CORS ONLY
 app.add_middleware(
@@ -61,7 +40,6 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
-    mode: str | None = None
 
 class CreateChildProfileRequest(BaseModel):
     user_id: str
@@ -191,20 +169,13 @@ def chat(
             content=body.message
         )
 
-        mode_value = body.mode or "unknown"
-
-        system_prompt = (
-                CORE_PROMPT_TEMPLATE
-                + "\n\n"
-                + MODE_PROMPT_TEMPLATE.format(
+        system_prompt = CORE_PROMPT_TEMPLATE.format(
             child_name=child["child_name"],
             age=child["age"],
             avatar_key=child.get("avatar_key", ""),
             learning_interests=", ".join(child.get("learning_interests", [])),
             usage_goals=", ".join(child.get("usage_goals", [])),
-            kids_memory=existing_memory,
-            mode=mode_value
-        )
+            kids_memory=existing_memory
         )
 
         completion = client.chat.completions.create(
