@@ -1288,7 +1288,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item side-item-settings">
+ <button class="side-item side-item-settings" id="openParentModal">
     <i class="fa-solid fa-gear"></i>
     <div class="side-text">
       <div class="side-title">Mi perfil</div>
@@ -1460,7 +1460,7 @@ const { data: kid, error } = await sb
 
 
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
- 
+
   document.getElementById("heroAvatar").src = avatarUrl;
 
 
@@ -1775,6 +1775,76 @@ function setSelected(containerId, values = []){
     });
 }
 </script>
+<script>
+document.getElementById("openParentModal").onclick = async () => {
+  const { data } = await sb
+    .from("kids_profiles")
+    .select("id, child_name")
+    .eq("user_id", (await sb.auth.getUser()).data.user.id);
+
+  const select = document.getElementById("parentKidSelect");
+  select.innerHTML = "";
+
+  data.forEach(kid => {
+    const opt = document.createElement("option");
+    opt.value = kid.id;
+    opt.textContent = kid.child_name;
+    if (kid.id === CURRENT_KID?.id) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  document.getElementById("parentModal").style.display = "flex";
+};
+
+// close on backdrop
+document.getElementById("parentModal").onclick = e => {
+  if (e.target.id === "parentModal") {
+    e.target.style.display = "none";
+  }
+};
+</script>
+<script>
+function switchKid(){
+  const newKidId = document.getElementById("parentKidSelect").value;
+  if (!newKidId) return;
+
+  // reload app with selected kid
+  window.location.reload(); // או לוגיקה חכמה בהמשך
+}
+
+function addKid(){
+  window.location.href = "/onboarding/profile/"; // או flow אחר
+}
+</script>
+
+<!-- ===== PARENT MODAL ===== -->
+<div class="modal-overlay" id="parentModal">
+  <div class="modal">
+
+    <h2>Panel para padres</h2>
+    <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
+      Gestionar perfiles de niños
+    </p>
+
+    <!-- SELECT KID -->
+    <label>
+      Elegir niño
+      <select id="parentKidSelect"></select>
+    </label>
+
+    <div class="modal-actions">
+      <button onclick="switchKid()">Cambiar</button>
+    </div>
+
+    <hr style="margin:16px 0">
+
+    <!-- ADD KID -->
+    <button class="save" onclick="addKid()">
+      ➕ Agregar niño
+    </button>
+
+  </div>
+</div>
 
 </body>
 </html>
