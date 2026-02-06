@@ -796,6 +796,32 @@ header{
   .main{
     margin-right:0;
   }
+@media (max-width: 900px){
+
+  .container{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+
+  .chat-wrapper{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .chat{
+    flex:1;
+    min-height:0;
+  }
+
+  .messages{
+    flex:1;
+    overflow-y:auto;
+  }
+
+}
 
   /* ===== HAMBURGER – MOBILE ONLY ===== */
   .hamburger{
