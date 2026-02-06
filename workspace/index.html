@@ -796,11 +796,9 @@ header{
   .main{
     margin-right:0;
   }
-@media (max-width: 900px){
+  /* ===== FIX CHAT HEIGHT (MOBILE) ===== */
 
   .container{
-    display:flex;
-    flex-direction:column;
     min-height:0;
   }
 
@@ -821,7 +819,11 @@ header{
     overflow-y:auto;
   }
 
-}
+  .ideas{
+    flex-shrink:0;
+    max-height:40vh;
+    overflow-y:auto;
+  }
 
   /* ===== HAMBURGER – MOBILE ONLY ===== */
   .hamburger{
