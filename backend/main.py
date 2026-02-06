@@ -192,6 +192,9 @@ def chat(
         )
 
         mode_value = body.mode or "unknown"
+        print("=== MODE RECEIVED FROM FRONTEND ===")
+        print(mode_value)
+        print("===================================")
 
         system_prompt = (
                 CORE_PROMPT_TEMPLATE
