@@ -1054,6 +1054,72 @@ header{
   color:rgba(255,255,255,.75);
   margin-top:4px;
 }
+/* =====================================================
+   RIGHTBAR – MOBILE FIX (FINAL)
+   ===================================================== */
+@media (max-width: 900px){
+
+  /* ===== BASE ===== */
+  .rightbar{
+    position:fixed;
+    top:0;
+    right:0;
+
+    width:85vw;              /* לא כל המסך */
+    max-width:320px;
+    height:100vh;
+
+    transform:translateX(100%);   /* ❌ מוסתר כברירת מחדל */
+    transition:transform .32s cubic-bezier(.4,0,.2,1);
+
+    z-index:120;             /* מעל main */
+  }
+
+  /* OPEN STATE */
+  .rightbar.open{
+    transform:translateX(0);
+  }
+
+  /* ===== KID HEADER ===== */
+  .rightbar-kid{
+    padding:14px 12px;
+    margin-bottom:10px;
+  }
+
+  .rightbar-kid img{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+  }
+
+  .rightbar-kid-name{
+    font-size:14px;
+  }
+
+  .rightbar-kid-sub{
+    font-size:11px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .rightbar .side-item{
+    height:56px;
+    padding:0 14px;
+    gap:12px;
+    border-radius:14px;
+  }
+
+  .rightbar .side-item i{
+    font-size:20px;
+  }
+
+  .rightbar .side-title{
+    font-size:14px;
+  }
+
+  .rightbar .side-sub{
+    font-size:11px;
+  }
+}
 
 
   </style>
@@ -1270,7 +1336,7 @@ header{
   <span class="logo-text">kids</span>
 </div>
 
-      <div class="user">
+      <div class="user" onclick="toggleRightbar()">
         <img id="userAvatar" />
         <span id="userName"></span>
       </div>
@@ -1720,6 +1786,11 @@ function setSelected(containerId, values = []){
     .forEach(b=>{
       b.classList.toggle("active", values.includes(b.dataset.val));
     });
+}
+</script>
+<script>
+function toggleRightbar(){
+  document.querySelector('.rightbar')?.classList.toggle('open');
 }
 </script>
 
