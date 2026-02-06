@@ -188,24 +188,10 @@ def chat(
             user_id=user.id,
             kid_id=child["id"],
             role="user",
-            content=user_message
-
+            content=body.message
         )
 
         mode_value = body.mode or "unknown"
-        # ===== AUTO-TRIGGER MODES =====
-        AUTO_TRIGGER_MODES = {
-            "daily_advice",
-            "daily_challenge",
-            "bedtime",
-            "what_now"
-        }
-
-        if mode_value in AUTO_TRIGGER_MODES and not body.message.strip():
-            user_message = "__AUTO_TRIGGER__"
-        else:
-            user_message = body.message
-
         print("=== MODE RECEIVED FROM FRONTEND ===")
         print(mode_value)
         print("===================================")
@@ -228,7 +214,7 @@ def chat(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
+                {"role": "user", "content": body.message}
             ]
         )
 
