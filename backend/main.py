@@ -132,7 +132,7 @@ def get_recent_chat_messages(kid_id: str, limit: int = 8) -> str:
         .execute()
     )
 
-    def get_recent_chat_messages_for_llm(kid_id: str, limit: int = 6):
+    def get_recent_chat_messages_for_llm(kid_id: str, limit: int = 7):
         res = (
             sb.table("kids_chats")
             .select("role, content")
@@ -142,8 +142,10 @@ def get_recent_chat_messages(kid_id: str, limit: int = 8) -> str:
             .execute()
         )
 
+        # הופכים לסדר כרונולוגי
         messages = list(reversed(res.data or []))
 
+        # מחזירים בפורמט שמתאים ל-OpenAI
         return [
             {"role": m["role"], "content": m["content"]}
             for m in messages
@@ -252,8 +254,7 @@ def chat(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
-                *recent_messages,
-                {"role": "user", "content": body.message}
+                *recent_messages
             ]
         )
 
