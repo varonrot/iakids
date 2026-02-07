@@ -132,6 +132,24 @@ def get_recent_chat_messages(kid_id: str, limit: int = 8) -> str:
         .execute()
     )
 
+    def get_recent_chat_messages_for_llm(kid_id: str, limit: int = 6):
+        res = (
+            sb.table("kids_chats")
+            .select("role, content")
+            .eq("kid_id", kid_id)
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+
+        messages = list(reversed(res.data or []))
+
+        return [
+            {"role": m["role"], "content": m["content"]}
+            for m in messages
+            if m["role"] in ("user", "assistant")
+        ]
+
     messages = reversed(res.data or [])
     return "\n".join(f"{m['role']}: {m['content']}" for m in messages)
 
@@ -228,10 +246,13 @@ def chat(
         )
         )
 
+        recent_messages = get_recent_chat_messages_for_llm(child["id"], limit=7)
+
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
+                *recent_messages,
                 {"role": "user", "content": body.message}
             ]
         )
