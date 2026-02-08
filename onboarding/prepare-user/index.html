@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prepare User</title>
+</head>
+<body>
+  <h1>Prepare User – Debug</h1>
+  <pre id="log"></pre>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const log = (msg) => {
+  console.log(msg);
+  document.getElementById("log").textContent += msg + "\n";
+};
+
+const sb = supabase.createClient(
+  "https://bxnfzuglfwytiyaguwjj.supabase.co",
+  "YOUR_ANON_KEY"
+);
+
+(async () => {
+  log("🔍 Checking auth user...");
+
+  const { data, error } = await sb.auth.getUser();
+
+  if (error || !data?.user) {
+    log("❌ No auth user");
+    return;
+  }
+
+  const user = data.user;
+  log("✅ Auth user:");
+  log("ID: " + user.id);
+  log("Email: " + user.email);
+
+  log("📝 Inserting subscription...");
+
+  const { data: inserted, error: insertError } = await sb
+    .from("subscriptions")
+    .insert({
+      user_id: user.id,
+      plan: "free",
+      status: "active"
+    })
+    .select();
+
+  if (insertError) {
+    log("❌ INSERT ERROR:");
+    log(insertError.message);
+    return;
+  }
+
+  log("✅ Subscription created:");
+  log(JSON.stringify(inserted, null, 2));
+
+})();
+</script>
+</body>
+</html>
