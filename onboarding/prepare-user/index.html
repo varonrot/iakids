@@ -157,11 +157,16 @@ const setStatus = (t) => statusEl.textContent = t;
     status: "active"
   });
 
-  // 4️⃣ Finish after animation
+// 4️⃣ Finish after animation
+setTimeout(() => {
+  setStatus("Ready!");
+  
+  // small pause so user sees "Ready"
   setTimeout(() => {
-    setStatus("Ready!");
-    // window.location.href = "/onboarding/complete/";
-  }, 2800);
+    window.location.href = "/onboarding/complete/";
+  }, 600);
+
+}, 2800);
 
 })();
 </script>
