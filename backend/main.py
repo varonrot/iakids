@@ -239,10 +239,9 @@ def chat(
         subscription = get_user_subscription(user.id)
 
         if subscription["plan"] == "free":
-            # לדוגמה: חוסמים זיכרון למשתמש חינמי
             existing_memory = ""
-
-        existing_memory = get_existing_kids_memory(child["id"])
+        else:
+            existing_memory = get_existing_kids_memory(child["id"])
 
         save_chat_message(
             user_id=user.id,
