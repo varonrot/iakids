@@ -111,17 +111,19 @@ if (!session?.user) {
 
 const user = session.user;
 
+const draft = JSON.parse(localStorage.getItem("kid_draft"));
+
+if (!draft) {
+  console.warn("No kid draft found");
+  window.location.replace("/workspace/");
+  return;
+}
 
 const payload = {
   user_id: user.id,
-  child_name: sessionStorage.getItem("child_name"),
-  age: Number(sessionStorage.getItem("child_age")),
-  avatar_key: sessionStorage.getItem("child_avatar"),
-  usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
-  learning_interests: JSON.parse(
-    sessionStorage.getItem("learning_interests") || "[]"
-  )
+  ...draft
 };
+
 
 if (!payload.child_name || !payload.age) {
   console.warn("No onboarding data found, skipping insert");
@@ -139,7 +141,8 @@ if (insertError) {
   console.error("Insert failed:", insertError);
 } else {
   localStorage.setItem("kid_profile_saved", "1");
-  sessionStorage.clear();
+  localStorage.removeItem("kid_draft");
+
 }
 redirected = true;
 window.location.replace("/workspace/");
