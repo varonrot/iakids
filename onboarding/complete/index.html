@@ -84,43 +84,76 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-const sb = supabase.createClient(
-  "https://bxnfzuglfwytiyaguwjj.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
-);
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let redirected = false;
+
+// Safety fallback (only if auth truly fails)
+setTimeout(() => {
+  if (!redirected) {
+    window.location.replace("/onboarding/cuenta/");
+  }
+}, 8000);
 
 (async () => {
-  const params = new URLSearchParams(window.location.search);
+  // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
+const { data: { session } } = await sb.auth.getSession();
 
-  // Exchange OAuth code for session (only once)
-  if (params.has("code")) {
-    const { error } = await sb.auth.exchangeCodeForSession(
-      window.location.href
-    );
+if (!session?.user) {
+  console.error("No active session");
+  window.location.replace("/onboarding/cuenta/");
+  return;
+}
 
-    if (error) {
-      console.error("OAuth exchange failed:", error);
-      alert("Login failed. Please try again.");
-      return;
-    }
-  }
+const user = session.user;
 
-  // Wait for session to exist
-  const { data: { session } } = await sb.auth.getSession();
 
-  if (!session) {
-    console.error("Session was not created");
-    alert("Session not created. Please try again.");
-    return;
-  }
+const payload = {
+  user_id: user.id,
+  child_name: sessionStorage.getItem("child_name"),
+  age: Number(sessionStorage.getItem("child_age")),
+  avatar_key: sessionStorage.getItem("child_avatar"),
+  usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
+  learning_interests: JSON.parse(
+    sessionStorage.getItem("learning_interests") || "[]"
+  )
+};
 
-  // Redirect ONLY after session exists
+if (!payload.child_name || !payload.age) {
+  console.warn("No onboarding data found, skipping insert");
+  redirected = true;
   window.location.replace("/workspace/");
-})();
-</script>
+  return;
+}
+console.log("FINAL PAYLOAD", payload);
 
+const { error: insertError } = await sb
+  .from("kids_profiles")
+  .insert([payload]);
+
+if (insertError) {
+  console.error("Insert failed:", insertError);
+} else {
+  localStorage.setItem("kid_profile_saved", "1");
+  sessionStorage.clear();
+}
+redirected = true;
+window.location.replace("/workspace/");
+
+})();
+
+// Extra safety listener (optional but good)
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_IN" && session && !redirected) {
+    redirected = true;
+    window.location.replace("/workspace/");
+  }
+});
+</script>
 
 </body>
 </html>
