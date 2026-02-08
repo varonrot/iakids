@@ -84,26 +84,31 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- 
 <script>
-const sb = supabase.createClient(
-  "https://bxnfzuglfwytiyaguwjj.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
-);
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let redirected = false;
+
+// Safety fallback – רק אם אין auth בכלל
+setTimeout(() => {
+  if (!redirected) {
+    window.location.replace("/onboarding/cuenta/");
+  }
+}, 8000);
 
 (async () => {
+  // ✅ הדרך הנכונה: משתמש מחובר בפועל
+  const { data: { user }, error: authError } = await sb.auth.getUser();
 
-  // 1️⃣ בדיקה פשוטה: יש session?
-  const { data } = await sb.auth.getSession();
-  const user = data.session?.user;
-
-  if (!user) {
-    // אין auth → חזרה להתחברות
+  if (authError || !user) {
+    console.error("Auth not ready", authError);
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  // 2️⃣ payload מה-onboarding
   const payload = {
     user_id: user.id,
     child_name: sessionStorage.getItem("child_name"),
@@ -115,29 +120,36 @@ const sb = supabase.createClient(
     )
   };
 
-  // אין נתוני ילד? → workspace
   if (!payload.child_name || !payload.age) {
+    console.warn("No onboarding data found, skipping insert");
+    redirected = true;
     window.location.replace("/workspace/");
     return;
   }
 
-  // 3️⃣ insert
-  const { error } = await sb
+  console.log("FINAL PAYLOAD", payload);
+
+  // ✅ INSERT עם בדיקה אמיתית
+  const { data, error } = await sb
     .from("kids_profiles")
-    .insert([payload]);
+    .insert([payload])
+    .select()
+    .single();
 
   if (error) {
-    console.error("INSERT FAILED", error);
-    return;
+    console.error("INSERT FAILED:", error);
+    return; // ❗ לא redirect אם נכשל
   }
 
-  // 4️⃣ success
-  sessionStorage.clear();
-  window.location.replace("/workspace/");
+  console.log("INSERT OK:", data);
 
+  sessionStorage.clear();
+  localStorage.setItem("kid_profile_saved", "1");
+
+  redirected = true;
+  window.location.replace("/workspace/");
 })();
 </script>
-
 
 
 </body>
