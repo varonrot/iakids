@@ -85,15 +85,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 let redirected = false;
 
+// fallback
 setTimeout(() => {
   if (!redirected) {
     window.location.replace("/onboarding/cuenta/");
@@ -102,35 +101,22 @@ setTimeout(() => {
 
 (async () => {
 
-// 1️⃣ exchange OAuth code → session (רק אם יש code)
-const hasCode = new URLSearchParams(window.location.search).has("code");
+  const params = new URLSearchParams(window.location.search);
+  const hasCode = params.has("code");
 
-if (hasCode) {
-  const { error: exchangeError } =
-    await sb.auth.exchangeCodeForSession(window.location.href);
-
-if (!user) {
+  // 1️⃣ exchange code → session (רק אם יש code)
   if (hasCode) {
-    // מחכים עוד קצת – Supabase לפעמים מתעכב
-    await new Promise(r => setTimeout(r, 1000));
-    const { data } = await sb.auth.getSession();
-    if (!data.session?.user) {
-      console.error("Session still not ready");
+    const { error } = await sb.auth.exchangeCodeForSession(window.location.href);
+    if (error) {
+      console.error("OAuth exchange failed", error);
       window.location.replace("/onboarding/cuenta/");
       return;
     }
-    user = data.session.user;
-  } else {
-    window.location.replace("/onboarding/cuenta/");
-    return;
   }
-}
-
-
 
   // 2️⃣ wait for session
   let user = null;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 15; i++) {
     const { data } = await sb.auth.getSession();
     if (data.session?.user) {
       user = data.session.user;
@@ -139,13 +125,14 @@ if (!user) {
     await new Promise(r => setTimeout(r, 300));
   }
 
+  // 3️⃣ אם עדיין אין user
   if (!user) {
-    console.error("Session not ready");
+    console.error("No session after exchange");
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  // 3️⃣ build payload
+  // 4️⃣ build payload
   const payload = {
     user_id: user.id,
     child_name: sessionStorage.getItem("child_name"),
@@ -157,29 +144,29 @@ if (!user) {
     )
   };
 
+  // אם אין נתוני ילד → workspace
   if (!payload.child_name || !payload.age) {
     redirected = true;
     window.location.replace("/workspace/");
     return;
   }
 
-  // 4️⃣ insert
-  const { error } = await sb
-    .from("kids_profiles")
-    .insert([payload]);
-
+  // 5️⃣ insert
+  const { error } = await sb.from("kids_profiles").insert([payload]);
   if (error) {
     console.error("INSERT FAILED", error);
     return;
   }
 
-  // 5️⃣ success
+  // 6️⃣ success
   sessionStorage.clear();
   redirected = true;
   window.location.replace("/workspace/");
 
 })();
 </script>
+
+
 
 </body>
 </html>
