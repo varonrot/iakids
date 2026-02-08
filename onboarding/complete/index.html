@@ -84,8 +84,8 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- 
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const sb = supabase.createClient(
   "https://bxnfzuglfwytiyaguwjj.supabase.co",
@@ -93,27 +93,30 @@ const sb = supabase.createClient(
 );
 
 (async () => {
-  // ⬅️ זה החלק שהיה חסר
-  const { data, error } = await sb.auth.exchangeCodeForSession(
-    window.location.href
-  );
+  const params = new URLSearchParams(window.location.search);
 
-  if (error) {
-    console.error("OAuth exchange failed", error);
-    window.location.replace("/onboarding/cuenta/");
-    return;
+  // OAuth return → exchange code to session (ONCE)
+  if (params.has("code")) {
+    const { error } = await sb.auth.exchangeCodeForSession(window.location.href);
+    if (error) {
+      console.error("exchange failed", error);
+      location.replace("/onboarding/cuenta/");
+      return;
+    }
   }
 
-  // עכשיו יש session
-  const user = data.session?.user;
+  // Verify session exists
+  const { data: { user } } = await sb.auth.getUser();
   if (!user) {
-    window.location.replace("/onboarding/cuenta/");
+    location.replace("/onboarding/cuenta/");
     return;
   }
 
-  // מכאן הקוד שלך תקין
+  // SUCCESS → continue app
+  location.replace("/workspace/");
 })();
 </script>
+
 
 </body>
 </html>
