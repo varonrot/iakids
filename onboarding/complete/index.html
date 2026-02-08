@@ -148,14 +148,7 @@ redirected = true;
 window.location.replace("/workspace/");
 
 })();
-
-// Extra safety listener (optional but good)
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_IN" && session && !redirected) {
-    redirected = true;
-    window.location.replace("/workspace/");
-  }
-});
+ 
 </script>
 
 </body>
