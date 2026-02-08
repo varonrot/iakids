@@ -7,7 +7,7 @@
 <body>
   <h1>Prepare User – Debug</h1>
   <pre id="log"></pre>
- 
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
@@ -21,22 +21,32 @@ const log = (msg) => {
 };
 
 (async () => {
-  log("Checking session...");
+  log("Preparing user...");
 
-  // 1️⃣ Get session (OAuth already finished)
+  // 🔑 VERY IMPORTANT: read OAuth session from URL hash
   const { data: sessionData, error: sessionError } =
     await sb.auth.getSession();
 
-  if (sessionError || !sessionData.session) {
-    log("❌ No session found");
-    return;
+  if (!sessionData.session) {
+    log("No session yet, trying to set from URL...");
+
+    const { data, error } = await sb.auth.setSession({
+      access_token: new URLSearchParams(window.location.hash.substring(1)).get("access_token"),
+      refresh_token: new URLSearchParams(window.location.hash.substring(1)).get("refresh_token"),
+    });
+
+    if (error) {
+      log("❌ setSession failed: " + error.message);
+      return;
+    }
+
+    log("✅ Session created from URL");
+  } else {
+    log("✅ Session already exists");
   }
 
-  log("✅ Session found");
-
-  // 2️⃣ Get user
-  const { data: userData, error: userError } =
-    await sb.auth.getUser();
+  // 👤 Get user
+  const { data: userData, error: userError } = await sb.auth.getUser();
 
   if (userError || !userData.user) {
     log("❌ No auth user");
@@ -47,7 +57,7 @@ const log = (msg) => {
   log("✅ User ID: " + user.id);
   log("Email: " + user.email);
 
-  // 3️⃣ Test insert
+  // 🧪 Test insert
   const { error: insertError } = await sb
     .from("subscriptions")
     .insert({
@@ -63,9 +73,9 @@ const log = (msg) => {
 
   log("✅ Subscription row created");
 
-  // window.location.href = "/onboarding/complete/";
 })();
 </script>
+
 
 </body>
 </html>
