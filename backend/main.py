@@ -75,6 +75,20 @@ class CreateChildProfileRequest(BaseModel):
 # ---------
 # HELPERS
 # ---------
+def get_user_subscription(user_id: str):
+    res = (
+        sb.table("subscriptions")
+        .select("plan, status")
+        .eq("user_id", user_id)
+        .single()
+        .execute()
+    )
+
+    if not res.data:
+        return {"plan": "free", "status": "active"}
+
+    return res.data
+
 def get_existing_kids_memory(kid_id: str) -> str:
     res = (
         sb.table("kids_memory")
@@ -144,9 +158,9 @@ def get_recent_chat_messages_for_llm(kid_id: str, limit: int = 7):
         .limit(limit)
         .execute()
     )
- 
+
     messages = list(reversed(res.data or []))
- 
+
     return [
         {"role": m["role"], "content": m["content"]}
         for m in messages
@@ -221,6 +235,13 @@ def chat(
             raise HTTPException(status_code=400, detail="kid_id is required")
 
         child = get_child_by_id(user.id, kid_id)
+        # 🔐 CHECK SUBSCRIPTION
+        subscription = get_user_subscription(user.id)
+
+        if subscription["plan"] == "free":
+            # לדוגמה: חוסמים זיכרון למשתמש חינמי
+            existing_memory = ""
+
         existing_memory = get_existing_kids_memory(child["id"])
 
         save_chat_message(
