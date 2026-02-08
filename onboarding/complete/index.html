@@ -100,25 +100,37 @@ setTimeout(() => {
 }, 8000);
 
 (async () => {
-  
+
+  // ✅ שלב קריטי: המרת OAuth code ל-session
+  const { error: exchangeError } =
+    await sb.auth.exchangeCodeForSession(window.location.href);
+
+  if (exchangeError) {
+    console.error("OAuth exchange failed", exchangeError);
+    window.location.replace("/onboarding/cuenta/");
+    return;
+  }
+
   let user = null;
 
-// נחכה עד 3 שניות ל־session
-for (let i = 0; i < 10; i++) {
-  const { data } = await sb.auth.getSession();
-  if (data.session?.user) {
-    user = data.session.user;
-    break;
+  // נחכה עד 3 שניות ל־session
+  for (let i = 0; i < 10; i++) {
+    const { data } = await sb.auth.getSession();
+    if (data.session?.user) {
+      user = data.session.user;
+      break;
+    }
+    await new Promise(r => setTimeout(r, 300));
   }
-  await new Promise(r => setTimeout(r, 300));
-}
 
-if (!user) {
-  console.error("Session not ready");
-  window.location.replace("/onboarding/cuenta/");
-  return;
-}
+  if (!user) {
+    console.error("Session not ready");
+    window.location.replace("/onboarding/cuenta/");
+    return;
+  }
 
+  // 👇 מכאן ממשיך הקוד שלך (payload / insert / redirect)
+})();
 
   const payload = {
     user_id: user.id,
