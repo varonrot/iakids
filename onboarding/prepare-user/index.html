@@ -7,7 +7,7 @@
 <body>
   <h1>Prepare User – Debug</h1>
   <pre id="log"></pre>
-
+ 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
@@ -15,34 +15,40 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const log = (msg) => {
+  console.log(msg);
+  document.getElementById("log").textContent += msg + "\n";
+};
+
 (async () => {
-  console.log("🔍 Preparing user...");
+  log("Checking session...");
 
-  // 🔑 IMPORTANT: finalize OAuth flow
-  const { data: exchangeData, error: exchangeError } =
-    await sb.auth.exchangeCodeForSession(window.location.href);
+  // 1️⃣ Get session (OAuth already finished)
+  const { data: sessionData, error: sessionError } =
+    await sb.auth.getSession();
 
-  if (exchangeError) {
-    console.error("❌ OAuth exchange failed:", exchangeError);
+  if (sessionError || !sessionData.session) {
+    log("❌ No session found");
     return;
   }
 
-  console.log("✅ OAuth session established");
+  log("✅ Session found");
 
-  // 👤 Get authenticated user
-  const { data: userData, error: userError } = await sb.auth.getUser();
+  // 2️⃣ Get user
+  const { data: userData, error: userError } =
+    await sb.auth.getUser();
 
-  if (userError || !userData?.user) {
-    console.error("❌ No authenticated user:", userError);
+  if (userError || !userData.user) {
+    log("❌ No auth user");
     return;
   }
 
   const user = userData.user;
-  console.log("👤 Auth user ID:", user.id);
-  console.log("📧 Email:", user.email);
+  log("✅ User ID: " + user.id);
+  log("Email: " + user.email);
 
-  // ✅ TEST INSERT (subscriptions example)
-  const { error: subError } = await sb
+  // 3️⃣ Test insert
+  const { error: insertError } = await sb
     .from("subscriptions")
     .insert({
       user_id: user.id,
@@ -50,18 +56,14 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       status: "active"
     });
 
-  if (subError) {
-    console.error("❌ Subscription insert failed:", subError);
+  if (insertError) {
+    log("❌ Insert failed: " + insertError.message);
     return;
   }
 
-  console.log("✅ Subscription row created");
+  log("✅ Subscription row created");
 
-  // ⏳ Optional fake loading
-  setTimeout(() => {
-    console.log("➡️ Ready for next step");
-    // window.location.href = "/onboarding/complete/";
-  }, 2000);
+  // window.location.href = "/onboarding/complete/";
 })();
 </script>
 
