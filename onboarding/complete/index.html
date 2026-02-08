@@ -102,7 +102,10 @@ setTimeout(() => {
 
 (async () => {
 
-  // 1️⃣ exchange OAuth code → session
+// 1️⃣ exchange OAuth code → session (רק אם יש code)
+const hasCode = new URLSearchParams(window.location.search).has("code");
+
+if (hasCode) {
   const { error: exchangeError } =
     await sb.auth.exchangeCodeForSession(window.location.href);
 
@@ -111,6 +114,8 @@ setTimeout(() => {
     window.location.replace("/onboarding/cuenta/");
     return;
   }
+}
+
 
   // 2️⃣ wait for session
   let user = null;
