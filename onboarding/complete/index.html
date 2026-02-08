@@ -101,15 +101,17 @@ setTimeout(() => {
 
 (async () => {
   // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
-const { data: { session } } = await sb.auth.getSession();
+const { data, error } = await sb.auth.getUser();
 
-if (!session?.user) {
-  console.error("No active session");
+if (error || !data?.user) {
+  console.error("AUTH ERROR", error);
   window.location.replace("/onboarding/cuenta/");
   return;
 }
 
-const user = session.user;
+const user = data.user;
+console.log("AUTH USER ID:", user.id);
+
 
 const draft = JSON.parse(localStorage.getItem("kid_draft"));
 
@@ -133,9 +135,19 @@ if (!payload.child_name || !payload.age) {
 }
 console.log("FINAL PAYLOAD", payload);
 
-const { error: insertError } = await sb
+const { data: inserted, error: insertError } = await sb
   .from("kids_profiles")
-  .insert([payload]);
+  .insert([payload])
+  .select();
+
+if (insertError) {
+  console.error("❌ INSERT ERROR:", insertError);
+  alert(insertError.message);
+  return;
+}
+
+console.log("✅ INSERTED ROW:", inserted);
+
 
 if (insertError) {
   console.error("Insert failed:", insertError);
@@ -148,7 +160,7 @@ redirected = true;
 window.location.replace("/workspace/");
 
 })();
- 
+
 </script>
 
 </body>
