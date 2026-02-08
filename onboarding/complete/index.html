@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Preparing – Kids AI</title>
+  <title>Completing setup…</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body{
@@ -13,40 +15,17 @@
       align-items:center;
       justify-content:center;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
-      color:#0b1220;
+      background:#f8fafc;
     }
     .box{text-align:center}
-    .check{
-      width:72px;height:72px;border-radius:50%;
-      background:#4ade80;display:flex;
-      align-items:center;justify-content:center;
-      margin:0 auto 20px;font-size:36px;color:#fff;
-    }
-    h1{font-size:22px;margin-bottom:14px}
-    .bar{
-      width:260px;height:6px;background:#e5e7eb;
-      border-radius:999px;overflow:hidden;margin:0 auto 10px;
-    }
-    .bar span{
-      display:block;height:100%;width:0%;
-      background:linear-gradient(90deg,#ff7a66,#38bdf8);
-      animation:load 2.5s ease-in-out forwards;
-    }
-    @keyframes load{to{width:100%}}
-    .sub{font-size:14px;color:#6b7280}
   </style>
 </head>
 
 <body>
   <div class="box">
-    <div class="check">✓</div>
-    <h1>Personalizing for you…</h1>
-    <div class="bar"><span></span></div>
-    <div class="sub">Almost ready…</div>
+    <h2>Finalizing child profile…</h2>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const sb = supabase.createClient(
   "https://bxnfzuglfwytiyaguwjj.supabase.co",
@@ -54,28 +33,67 @@ const sb = supabase.createClient(
 );
 
 (async () => {
-  // 1️⃣ user already exists
-  const { data: userData } = await sb.auth.getUser();
-  if (!userData?.user) return;
+  console.log("▶ COMPLETE START");
 
-  // 2️⃣ child data already exists in storage
-  const draft = JSON.parse(localStorage.getItem("kid_draft"));
-  if (!draft) {
-    window.location.replace("/workspace/");
+  /* 1️⃣ get authenticated user */
+  const { data: userRes, error: userErr } = await sb.auth.getUser();
+  if (userErr || !userRes?.user) {
+    console.error("❌ no auth user", userErr);
+    alert("No authenticated user");
     return;
   }
 
-  // 3️⃣ create child profile
-  await sb.from("kids_profiles").insert({
-    user_id: userData.user.id,
-    ...draft
-  });
+  const userId = userRes.user.id;
+  console.log("✅ auth user:", userId);
 
-  // 4️⃣ cleanup + finish
-  localStorage.removeItem("kid_draft");
-  localStorage.setItem("kid_profile_saved", "1");
+  /* 2️⃣ read child data from SESSION STORAGE */
+  const child_name = sessionStorage.getItem("child_name");
+  const age = Number(sessionStorage.getItem("child_age"));
+  const avatar_key = sessionStorage.getItem("child_avatar");
 
+  const usage_goals = JSON.parse(
+    sessionStorage.getItem("kid_usage") || "[]"
+  );
+
+  const learning_interests = JSON.parse(
+    sessionStorage.getItem("learning_interests") || "[]"
+  );
+
+  const payload = {
+    user_id: userId,
+    child_name,
+    age,
+    avatar_key,
+    usage_goals,
+    learning_interests
+  };
+
+  console.log("📦 INSERT PAYLOAD:", payload);
+
+  /* 3️⃣ validate */
+  if (!child_name || !age) {
+    alert("Missing child data");
+    return;
+  }
+
+  /* 4️⃣ INSERT */
+  const { data, error } = await sb
+    .from("kids_profiles")
+    .insert(payload)
+    .select();
+
+  if (error) {
+    console.error("❌ INSERT ERROR", error);
+    alert(error.message);
+    return;
+  }
+
+  console.log("✅ INSERTED:", data);
+
+  /* 5️⃣ cleanup + redirect */
+  sessionStorage.setItem("kid_profile_saved", "1");
   window.location.replace("/workspace/");
+
 })();
 </script>
 
