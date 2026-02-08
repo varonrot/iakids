@@ -75,20 +75,6 @@ class CreateChildProfileRequest(BaseModel):
 # ---------
 # HELPERS
 # ---------
-def get_user_subscription(user_id: str):
-    res = (
-        sb.table("subscriptions")
-        .select("plan, status")
-        .eq("user_id", user_id)
-        .single()
-        .execute()
-    )
-
-    if not res.data:
-        return {"plan": "free", "status": "active"}
-
-    return res.data
-
 def get_existing_kids_memory(kid_id: str) -> str:
     res = (
         sb.table("kids_memory")
@@ -235,13 +221,7 @@ def chat(
             raise HTTPException(status_code=400, detail="kid_id is required")
 
         child = get_child_by_id(user.id, kid_id)
-        # 🔐 CHECK SUBSCRIPTION
-        subscription = get_user_subscription(user.id)
-
-        if subscription["plan"] == "free":
-            existing_memory = ""
-        else:
-            existing_memory = get_existing_kids_memory(child["id"])
+        existing_memory = get_existing_kids_memory(child["id"])
 
         save_chat_message(
             user_id=user.id,
