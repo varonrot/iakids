@@ -100,14 +100,25 @@ setTimeout(() => {
 }, 8000);
 
 (async () => {
-  // ✅ הדרך הנכונה: משתמש מחובר בפועל
-  const { data: { user }, error: authError } = await sb.auth.getUser();
+  
+  let user = null;
 
-  if (authError || !user) {
-    console.error("Auth not ready", authError);
-    window.location.replace("/onboarding/cuenta/");
-    return;
+// נחכה עד 3 שניות ל־session
+for (let i = 0; i < 10; i++) {
+  const { data } = await sb.auth.getSession();
+  if (data.session?.user) {
+    user = data.session.user;
+    break;
   }
+  await new Promise(r => setTimeout(r, 300));
+}
+
+if (!user) {
+  console.error("Session not ready");
+  window.location.replace("/onboarding/cuenta/");
+  return;
+}
+
 
   const payload = {
     user_id: user.id,
