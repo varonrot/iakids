@@ -1,81 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Prepare User</title>
-</head>
-<body>
-  <h1>Prepare User – Debug</h1>
-  <pre id="log"></pre>
+<meta charset="UTF-8" />
+<title>Preparing your account</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg1:#f7f4ef;
+  --bg2:#eaf4ff;
+  --ink:#0b1220;
+  --muted:#6b7280;
+  --accent1:#ff7a66;
+  --accent2:#38bdf8;
+  --card:#ffffffcc;
+  --line:rgba(16,24,40,.10);
+  --shadow:0 25px 60px rgba(16,24,40,.15);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:
+    radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+    linear-gradient(90deg,var(--bg1),var(--bg2));
+  color:var(--ink);
+}
+
+.card{
+  width:100%;
+  max-width:420px;
+  padding:34px 28px 38px;
+  text-align:center;
+  background:var(--card);
+  border-radius:26px;
+  border:1px solid var(--line);
+  backdrop-filter: blur(12px);
+  box-shadow:var(--shadow);
+}
+
+.icon{
+  width:72px;
+  height:72px;
+  border-radius:22px;
+  background:
+    radial-gradient(24px 24px at 35% 30%, rgba(255,255,255,.95), transparent 60%),
+    linear-gradient(160deg, rgba(56,189,248,.45), rgba(255,122,102,.45));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:34px;
+  margin:0 auto 18px;
+}
+
+h1{
+  font-size:22px;
+  margin-bottom:6px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:15px;
+  margin-bottom:26px;
+}
+
+.bar{
+  width:100%;
+  height:8px;
+  background:#e5e7eb;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.bar span{
+  display:block;
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--accent1),var(--accent2));
+  border-radius:999px;
+  animation:load 2.8s ease-in-out forwards;
+}
+
+@keyframes load{
+  to{ width:100%; }
+}
+
+.status{
+  margin-top:16px;
+  font-size:14px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <div class="icon">✨</div>
+  <h1>Preparing your account</h1>
+  <p class="sub">This will only take a moment</p>
+
+  <div class="bar"><span></span></div>
+  <div class="status" id="status">Setting things up…</div>
+</div>
+
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const statusEl = document.getElementById("status");
 
-const log = (msg) => {
-  console.log(msg);
-  document.getElementById("log").textContent += msg + "\n";
-};
+const setStatus = (t) => statusEl.textContent = t;
 
 (async () => {
-  log("Preparing user...");
+  console.log("Preparing user…");
+  setStatus("Checking session…");
 
-  // 🔑 VERY IMPORTANT: read OAuth session from URL hash
-  const { data: sessionData, error: sessionError } =
-    await sb.auth.getSession();
+  // 1️⃣ Ensure session exists
+  let { data: sessionData } = await sb.auth.getSession();
 
   if (!sessionData.session) {
-    log("No session yet, trying to set from URL...");
+    setStatus("Finalizing sign-in…");
 
-    const { data, error } = await sb.auth.setSession({
-      access_token: new URLSearchParams(window.location.hash.substring(1)).get("access_token"),
-      refresh_token: new URLSearchParams(window.location.hash.substring(1)).get("refresh_token"),
-    });
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
 
-    if (error) {
-      log("❌ setSession failed: " + error.message);
-      return;
+    if (access_token && refresh_token) {
+      await sb.auth.setSession({ access_token, refresh_token });
     }
-
-    log("✅ Session created from URL");
-  } else {
-    log("✅ Session already exists");
   }
 
-  // 👤 Get user
-  const { data: userData, error: userError } = await sb.auth.getUser();
-
-  if (userError || !userData.user) {
-    log("❌ No auth user");
-    return;
-  }
+  // 2️⃣ Get user
+  setStatus("Loading user profile…");
+  const { data: userData } = await sb.auth.getUser();
+  if (!userData?.user) return;
 
   const user = userData.user;
-  log("✅ User ID: " + user.id);
-  log("Email: " + user.email);
+  console.log("User:", user.id);
 
-  // 🧪 Test insert
-  const { error: insertError } = await sb
-    .from("subscriptions")
-    .insert({
-      user_id: user.id,
-      plan: "free",
-      status: "active"
-    });
+  // 3️⃣ Create subscription (safe even if already exists with RLS / unique constraint)
+  setStatus("Activating free plan…");
+  await sb.from("subscriptions").insert({
+    user_id: user.id,
+    plan: "free",
+    status: "active"
+  });
 
-  if (insertError) {
-    log("❌ Insert failed: " + insertError.message);
-    return;
-  }
-
-  log("✅ Subscription row created");
+  // 4️⃣ Finish after animation
+  setTimeout(() => {
+    setStatus("Ready!");
+    // window.location.href = "/onboarding/complete/";
+  }, 2800);
 
 })();
 </script>
-
 
 </body>
 </html>
