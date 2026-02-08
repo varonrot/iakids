@@ -1,166 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Preparing – Kids AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8" />
+<title>Complete setup</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-  <style>
-    body{
-      margin:0;
-      height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
-      color:#0b1220;
-    }
-
-    .box{
-      text-align:center;
-    }
-
-    .check{
-      width:72px;
-      height:72px;
-      border-radius:50%;
-      background:#4ade80;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin:0 auto 20px;
-      font-size:36px;
-      color:#fff;
-    }
-
-    h1{
-      font-size:22px;
-      margin-bottom:14px;
-    }
-
-    .bar{
-      width:260px;
-      height:6px;
-      background:#e5e7eb;
-      border-radius:999px;
-      overflow:hidden;
-      margin:0 auto 10px;
-    }
-
-    .bar span{
-      display:block;
-      height:100%;
-      width:0%;
-      background:linear-gradient(90deg,#ff7a66,#38bdf8);
-      animation:load 2.5s ease-in-out forwards;
-    }
-
-    @keyframes load{
-      to{ width:100%; }
-    }
-
-    .sub{
-      font-size:14px;
-      color:#6b7280;
-    }
-  </style>
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:#f6f7fb;
+}
+.card{
+  width:100%;
+  max-width:420px;
+  background:white;
+  border-radius:18px;
+  padding:28px;
+  box-shadow:0 20px 50px rgba(0,0,0,.12);
+}
+h1{margin:0 0 16px}
+label{display:block;margin-top:14px;font-size:14px}
+input,select{
+  width:100%;
+  padding:10px 12px;
+  margin-top:6px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+button{
+  margin-top:22px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#4f46e5;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+.status{
+  margin-top:14px;
+  font-size:14px;
+  color:#6b7280;
+}
+</style>
 </head>
 
 <body>
-  <div class="box">
-    <div class="check">✓</div>
 
-    <h1>Personalizing for you…</h1>
+<div class="card">
+  <h1>Tell us about your child</h1>
 
-    <div class="bar">
-      <span></span>
-    </div>
+  <label>
+    Child name
+    <input id="child_name" placeholder="Alex" />
+  </label>
 
-    <div class="sub">Almost ready…</div>
-  </div>
+  <label>
+    Age
+    <input id="age" type="number" min="3" max="16" />
+  </label>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <label>
+    Avatar
+    <select id="avatar_key">
+      <option value="robot">🤖 Robot</option>
+      <option value="cat">🐱 Cat</option>
+      <option value="fox">🦊 Fox</option>
+    </select>
+  </label>
+
+  <button id="save">Complete setup</button>
+  <div class="status" id="status"></div>
+</div>
+
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const statusEl = document.getElementById("status");
 
-let redirected = false;
+const setStatus = (t) => statusEl.textContent = t;
 
-// Safety fallback (only if auth truly fails)
-setTimeout(() => {
-  if (!redirected) {
-    window.location.replace("/onboarding/cuenta/");
+document.getElementById("save").onclick = async () => {
+  setStatus("Saving profile…");
+
+  const { data: userData } = await sb.auth.getUser();
+  if (!userData?.user) {
+    setStatus("Not logged in");
+    return;
   }
-}, 8000);
 
-(async () => {
-  // 🔑 FINALIZE OAUTH FLOW (CRITICAL)
-const { data, error } = await sb.auth.getUser();
+  const child_name = document.getElementById("child_name").value.trim();
+  const age = parseInt(document.getElementById("age").value);
+  const avatar_key = document.getElementById("avatar_key").value;
 
-if (error || !data?.user) {
-  console.error("AUTH ERROR", error);
-  window.location.replace("/onboarding/cuenta/");
-  return;
-}
+  if (!child_name || !age) {
+    setStatus("Please fill all fields");
+    return;
+  }
 
-const user = data.user;
-console.log("AUTH USER ID:", user.id);
+  const { error } = await sb.from("kids_profiles").insert({
+    user_id: userData.user.id,
+    child_name,
+    age,
+    avatar_key,
+    usage_goals: { help: true },
+    learning_interests: { general: true }
+  });
 
+  if (error) {
+    console.error(error);
+    setStatus("Failed to save");
+    return;
+  }
 
-const draft = JSON.parse(localStorage.getItem("kid_draft"));
+  setStatus("All set! Redirecting…");
 
-if (!draft) {
-  console.warn("No kid draft found");
-  window.location.replace("/workspace/");
-  return;
-}
-
-const payload = {
-  user_id: user.id,
-  ...draft
+  setTimeout(() => {
+    window.location.href = "/app/";
+  }, 1200);
 };
-
-
-if (!payload.child_name || !payload.age) {
-  console.warn("No onboarding data found, skipping insert");
-  redirected = true;
-  window.location.replace("/workspace/");
-  return;
-}
-console.log("FINAL PAYLOAD", payload);
-
-const { data: inserted, error: insertError } = await sb
-  .from("kids_profiles")
-  .insert([payload])
-  .select();
-
-if (insertError) {
-  console.error("❌ INSERT ERROR:", insertError);
-  alert(insertError.message);
-  return;
-}
-
-console.log("✅ INSERTED ROW:", inserted);
-
-
-if (insertError) {
-  console.error("Insert failed:", insertError);
-} else {
-  localStorage.setItem("kid_profile_saved", "1");
-  localStorage.removeItem("kid_draft");
-
-}
-redirected = true;
-window.location.replace("/workspace/");
-
-})();
-
 </script>
 
 </body>
