@@ -84,73 +84,36 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ 
+
 <script>
-const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
-
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let redirected = false;
-
-// Safety fallback – רק אם אין auth בכלל
-setTimeout(() => {
-  if (!redirected) {
-    window.location.replace("/onboarding/cuenta/");
-  }
-}, 8000);
+const sb = supabase.createClient(
+  "https://bxnfzuglfwytiyaguwjj.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
+);
 
 (async () => {
-  // ✅ הדרך הנכונה: משתמש מחובר בפועל
-  const { data: { user }, error: authError } = await sb.auth.getUser();
+  // ⬅️ זה החלק שהיה חסר
+  const { data, error } = await sb.auth.exchangeCodeForSession(
+    window.location.href
+  );
 
-  if (authError || !user) {
-    console.error("Auth not ready", authError);
+  if (error) {
+    console.error("OAuth exchange failed", error);
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  const payload = {
-    user_id: user.id,
-    child_name: sessionStorage.getItem("child_name"),
-    age: Number(sessionStorage.getItem("child_age")),
-    avatar_key: sessionStorage.getItem("child_avatar"),
-    usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
-    learning_interests: JSON.parse(
-      sessionStorage.getItem("learning_interests") || "[]"
-    )
-  };
-
-  if (!payload.child_name || !payload.age) {
-    console.warn("No onboarding data found, skipping insert");
-    redirected = true;
-    window.location.replace("/workspace/");
+  // עכשיו יש session
+  const user = data.session?.user;
+  if (!user) {
+    window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  console.log("FINAL PAYLOAD", payload);
-
-  // ✅ INSERT עם בדיקה אמיתית
-  const { data, error } = await sb
-    .from("kids_profiles")
-    .insert([payload])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("INSERT FAILED:", error);
-    return; // ❗ לא redirect אם נכשל
-  }
-
-  console.log("INSERT OK:", data);
-
-  sessionStorage.clear();
-  localStorage.setItem("kid_profile_saved", "1");
-
-  redirected = true;
-  window.location.replace("/workspace/");
+  // מכאן הקוד שלך תקין
 })();
 </script>
-
 
 </body>
 </html>
