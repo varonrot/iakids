@@ -109,12 +109,23 @@ if (hasCode) {
   const { error: exchangeError } =
     await sb.auth.exchangeCodeForSession(window.location.href);
 
-  if (exchangeError) {
-    console.error("OAuth exchange failed", exchangeError);
+if (!user) {
+  if (hasCode) {
+    // מחכים עוד קצת – Supabase לפעמים מתעכב
+    await new Promise(r => setTimeout(r, 1000));
+    const { data } = await sb.auth.getSession();
+    if (!data.session?.user) {
+      console.error("Session still not ready");
+      window.location.replace("/onboarding/cuenta/");
+      return;
+    }
+    user = data.session.user;
+  } else {
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 }
+
 
 
   // 2️⃣ wait for session
