@@ -10,52 +10,60 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const log = (msg) => {
-  console.log(msg);
-  document.getElementById("log").textContent += msg + "\n";
-};
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
-const sb = supabase.createClient(
-  "https://bxnfzuglfwytiyaguwjj.supabase.co",
-  "YOUR_ANON_KEY"
-);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 (async () => {
-  log("🔍 Checking auth user...");
+  console.log("🔍 Preparing user...");
 
-  const { data, error } = await sb.auth.getUser();
+  // 🔑 IMPORTANT: finalize OAuth flow
+  const { data: exchangeData, error: exchangeError } =
+    await sb.auth.exchangeCodeForSession(window.location.href);
 
-  if (error || !data?.user) {
-    log("❌ No auth user");
+  if (exchangeError) {
+    console.error("❌ OAuth exchange failed:", exchangeError);
     return;
   }
 
-  const user = data.user;
-  log("✅ Auth user:");
-  log("ID: " + user.id);
-  log("Email: " + user.email);
+  console.log("✅ OAuth session established");
 
-  log("📝 Inserting subscription...");
+  // 👤 Get authenticated user
+  const { data: userData, error: userError } = await sb.auth.getUser();
 
-  const { data: inserted, error: insertError } = await sb
+  if (userError || !userData?.user) {
+    console.error("❌ No authenticated user:", userError);
+    return;
+  }
+
+  const user = userData.user;
+  console.log("👤 Auth user ID:", user.id);
+  console.log("📧 Email:", user.email);
+
+  // ✅ TEST INSERT (subscriptions example)
+  const { error: subError } = await sb
     .from("subscriptions")
     .insert({
       user_id: user.id,
       plan: "free",
       status: "active"
-    })
-    .select();
+    });
 
-  if (insertError) {
-    log("❌ INSERT ERROR:");
-    log(insertError.message);
+  if (subError) {
+    console.error("❌ Subscription insert failed:", subError);
     return;
   }
 
-  log("✅ Subscription created:");
-  log(JSON.stringify(inserted, null, 2));
+  console.log("✅ Subscription row created");
 
+  // ⏳ Optional fake loading
+  setTimeout(() => {
+    console.log("➡️ Ready for next step");
+    // window.location.href = "/onboarding/complete/";
+  }, 2000);
 })();
 </script>
+
 </body>
 </html>
