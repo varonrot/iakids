@@ -1554,12 +1554,25 @@ async function sendMessage() {
 
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("API ERROR:", res.status, errText);
-      addMessage("assistant", `❌ API error ${res.status}`);
-      return;
+if (!res.ok) {
+
+  // 🔒 חסימת קווטה
+  if (res.status === 403) {
+    const err = await res.json();
+
+    if (err?.error === "quota_exceeded") {
+      openQuotaModal();
+      return; // ⛔ לא מכניסים הודעה לצ'אט
     }
+  }
+
+  // שגיאה אחרת
+  const errText = await res.text();
+  console.error("API ERROR:", res.status, errText);
+  addMessage("assistant", "⚠️ Algo salió mal. Intenta más tarde.");
+  return;
+}
+
 
     const data = await res.json();
     console.log("CHAT RESPONSE:", data);
@@ -1932,6 +1945,34 @@ async function createKid(){
 
   </div>
 </div>
+<!-- ===== QUOTA MODAL ===== -->
+<div class="modal-overlay" id="quotaModal">
+  <div class="modal">
+    <h2>🚫 Se acabaron las preguntas</h2>
 
+    <p style="font-size:15px; color:#374151; margin-bottom:14px;">
+      Ya usaste todas las preguntas gratuitas.<br>
+      Para seguir usando Askie, un adulto debe activar el acceso completo.
+    </p>
+
+    <div class="modal-actions">
+      <button onclick="closeQuotaModal()">Cerrar</button>
+      <button class="save" onclick="goToUpgrade()">🔒 Desbloquear</button>
+    </div>
+  </div>
+</div>
+<script>
+function openQuotaModal(){
+  document.getElementById("quotaModal").style.display = "flex";
+}
+
+function closeQuotaModal(){
+  document.getElementById("quotaModal").style.display = "none";
+}
+
+function goToUpgrade(){
+  alert("Aquí irá la página para padres 🙂");
+}
+</script>
 </body>
 </html>
