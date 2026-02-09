@@ -222,25 +222,26 @@ def chat(
 
         child = get_child_by_id(user.id, kid_id)
         existing_memory = get_existing_kids_memory(child["id"])
-        # 🔐 FREE QUOTA CHECK – TEMP: 2 messages only
-        res = (
-            sb.table("kids_chats")
-            .select("id")
+        sub = (
+            sb.table("subscriptions")
+            .select("messages_used")
             .eq("user_id", user.id)
-            .eq("role", "user")
+            .single()
             .execute()
         )
 
-        used = len(res.data or [])
-        print("FREE MESSAGES USED:", used)
+        used = sub.data["messages_used"] if sub.data else 0
+        LIMIT = 2  # זמני לבדיקה
 
-        if used >= 2:
+        print("SUBSCRIPTION MESSAGES USED:", used)
+
+        if used >= LIMIT:
             raise HTTPException(
                 status_code=403,
                 detail={
                     "error": "quota_exceeded",
                     "used": used,
-                    "limit": 2
+                    "limit": LIMIT
                 }
             )
 
@@ -250,6 +251,9 @@ def chat(
             role="user",
             content=body.message
         )
+        sb.table("subscriptions").update({
+            "messages_used": used + 1
+        }).eq("user_id", user.id).execute()
 
         mode_value = body.mode or "unknown"
 
