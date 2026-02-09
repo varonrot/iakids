@@ -11,7 +11,7 @@
 
   gtag('config', 'G-PDCBGGLL7R');
 </script>
-  <title>Askie – Workspace</title>
+  <title>IAkids – Workspace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Supabase -->
@@ -308,30 +308,28 @@ header{
 
 /* ===== INPUT ACTIONS – PURE BLACK ===== */
 
-.send-btn,
-.talk-btn{
-  width:46px;
-  height:46px;
-  border-radius:50%;
-  border:none;
-  cursor:pointer;
+.send-btn{
+  height:52px;
+  min-width:110px;
+  padding:0 22px;
 
-  /* ⬅️ שחור אמיתי */
-  background:rgba(0,0,0,.85);
+  border-radius:999px;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:.6px;
+
+  background:#000;
+  color:#fff;
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.55),
+    inset 0 0 0 1px rgba(255,255,255,.12);
 
   display:flex;
   align-items:center;
   justify-content:center;
-
-  box-shadow:
-    0 10px 26px rgba(0,0,0,.55),
-    inset 0 0 0 1px rgba(255,255,255,.08);
-
-  transition:
-    transform .2s ease,
-    box-shadow .2s ease,
-    background .2s ease;
 }
+
 
 /* ICON */
 .send-btn,
@@ -789,6 +787,42 @@ header{
     height:100vh;
     padding:12px;
   }
+  .rightbar{
+    display:none !important;
+  }
+
+  .main{
+    margin-right:0;
+  }
+  /* ===== FIX CHAT HEIGHT (MOBILE) ===== */
+
+  .container{
+    min-height:0;
+  }
+
+  .chat-wrapper{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .chat{
+    flex:1;
+    min-height:0;
+  }
+
+  .messages{
+    flex:1;
+    overflow-y:auto;
+  }
+
+.ideas{
+  flex-shrink:0;
+  max-height:25vh;
+  overflow-y:auto;
+}
+
 
   /* ===== HAMBURGER – MOBILE ONLY ===== */
   .hamburger{
@@ -1054,6 +1088,10 @@ header{
   color:rgba(255,255,255,.75);
   margin-top:4px;
 }
+/* ❌ non mic */
+.talk-btn{
+  display:none !important;
+}
 
 
   </style>
@@ -1066,129 +1104,119 @@ header{
 
 <div class="app">
 
-  <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar">
-
-
-
-  <!-- תוכן הסייד -->
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
   <div class="sidebar-inner">
 
-<div class="sidebar-robot">
-  <img src="/assets/askie-robot.png" alt="iakids robot" />
-  <div class="robot-text">
-    <div class="robot-title">iakids</div>
-    <div class="robot-sub">Asistente de IA para niños</div>
-  </div>
-</div>
-
+    <div class="sidebar-robot">
+      <img src="/assets/askie-robot.png" alt="iakids robot" />
+      <div class="robot-text">
+        <div class="robot-title">iakids</div>
+        <div class="robot-sub">Asistente de IA para niños</div>
+      </div>
+    </div>
 
     <div class="kid-actions">
 
-<button class="side-item side-item-primary">
-  <i class="fa-solid fa-graduation-cap"></i>
-  <div class="side-text">
-    <div class="side-title">Ayuda escolar</div>
-    <div class="side-sub">Tareas y estudios</div>
-  </div>
-</button>
+      <button class="side-item side-item-primary" data-ask="homework">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <div class="side-text">
+          <div class="side-title">Ayuda escolar</div>
+          <div class="side-sub">Tareas y estudios</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-pen-to-square"></i>
-  <div class="side-text">
-    <div class="side-title">Resolver ejercicios</div>
-    <div class="side-sub">Paso a paso</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="exercises">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <div class="side-text">
+          <div class="side-title">Resolver ejercicios</div>
+          <div class="side-sub">Paso a paso</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-book-open"></i>
-  <div class="side-text">
-    <div class="side-title">Aprender un tema</div>
-    <div class="side-sub">Nuevo conocimiento</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="learn">
+        <i class="fa-solid fa-book-open"></i>
+        <div class="side-text">
+          <div class="side-title">Aprender un tema</div>
+          <div class="side-sub">Nuevo conocimiento</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-repeat"></i>
-  <div class="side-text">
-    <div class="side-title">Practicar</div>
-    <div class="side-sub">Ejercicios guiados</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="practice">
+        <i class="fa-solid fa-repeat"></i>
+        <div class="side-text">
+          <div class="side-title">Practicar</div>
+          <div class="side-sub">Ejercicios guiados</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-clipboard-check"></i>
-  <div class="side-text">
-    <div class="side-title">Prepararse para un examen</div>
-    <div class="side-sub">Repaso y preguntas</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="exam">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <div class="side-text">
+          <div class="side-title">Prepararse para un examen</div>
+          <div class="side-sub">Repaso y preguntas</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-child-reaching"></i>
-  <div class="side-text">
-    <div class="side-title">Explicar fácil</div>
-    <div class="side-sub">Como si tuviera 8</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="easy">
+        <i class="fa-solid fa-child-reaching"></i>
+        <div class="side-text">
+          <div class="side-title">Explicar fácil</div>
+          <div class="side-sub">Como si tuviera 8</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-shapes"></i>
-  <div class="side-text">
-    <div class="side-title">Ver ejemplos</div>
-    <div class="side-sub">Con ejemplos claros</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="examples">
+        <i class="fa-solid fa-shapes"></i>
+        <div class="side-text">
+          <div class="side-title">Ver ejemplos</div>
+          <div class="side-sub">Con ejemplos claros</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-brain"></i>
-  <div class="side-text">
-    <div class="side-title">Pensar y razonar</div>
-    <div class="side-sub">Lógica y pensamiento</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="logic">
+        <i class="fa-solid fa-brain"></i>
+        <div class="side-text">
+          <div class="side-title">Pensar y razonar</div>
+          <div class="side-sub">Lógica y pensamiento</div>
+        </div>
+      </button>
 
-<button class="side-item">
-  <i class="fa-solid fa-bullseye"></i>
-  <div class="side-text">
-    <div class="side-title">Reto diario</div>
-    <div class="side-sub">Desafío del día</div>
-  </div>
-</button>
+      <button class="side-item" data-ask="challenge">
+        <i class="fa-solid fa-bullseye"></i>
+        <div class="side-text">
+          <div class="side-title">Reto diario</div>
+          <div class="side-sub">Desafío del día</div>
+        </div>
+      </button>
 
+      <div class="sidebar-bottom">
+        <button class="side-item side-item-settings" id="openSettings">
+          <i class="fa-solid fa-gear"></i>
+          <div class="side-text">
+            <div class="side-title">Settings</div>
+            <div class="side-sub">Preferences</div>
+          </div>
+        </button>
+      </div>
 
-        <div class="sidebar-bottom">
-  <button class="side-item side-item-settings" id="openSettings">
-    <i class="fa-solid fa-gear"></i>
-    <div class="side-text">
-      <div class="side-title">Settings</div>
-      <div class="side-sub">Preferences</div>
     </div>
-  </button>
-</div>
-</div>
-
   </div>
 </aside>
 
+
 <!-- ===== RIGHT SIDEBAR ===== -->
 <aside class="rightbar">
-<!-- ===== RIGHTBAR KID ANCHOR ===== -->
-<div class="rightbar-kid">
-  <img id="rightbarAvatar" />
-  <div class="rightbar-kid-text">
-    <div class="rightbar-kid-name" id="rightbarName"></div>
-    <div class="rightbar-kid-sub">Mi perfil</div>
+
+  <div class="rightbar-kid">
+    <img id="rightbarAvatar" />
+    <div class="rightbar-kid-text">
+      <div class="rightbar-kid-name" id="rightbarName"></div>
+      <div class="rightbar-kid-sub">Mi perfil</div>
+    </div>
   </div>
-</div>
 
-
-<!--  <div class="side-section">-->
-<!--    <h4>👋 Para ti</h4>-->
-<!--  </div>-->
-
-  <button class="side-item">
+  <button class="side-item" data-ask="feelings">
     <i class="fa-solid fa-heart"></i>
     <div class="side-text">
       <div class="side-title">¿Cómo me siento?</div>
@@ -1196,7 +1224,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="free">
     <i class="fa-solid fa-comments"></i>
     <div class="side-text">
       <div class="side-title">Hablar libremente</div>
@@ -1204,7 +1232,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="achievements">
     <i class="fa-solid fa-star"></i>
     <div class="side-text">
       <div class="side-title">Mis logros</div>
@@ -1212,7 +1240,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="aboutme">
     <i class="fa-solid fa-user-astronaut"></i>
     <div class="side-text">
       <div class="side-title">Sobre mí</div>
@@ -1220,7 +1248,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="tip">
     <i class="fa-solid fa-lightbulb"></i>
     <div class="side-text">
       <div class="side-title">Consejo del día</div>
@@ -1228,7 +1256,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="fun">
     <i class="fa-solid fa-face-smile"></i>
     <div class="side-text">
       <div class="side-title">Algo divertido</div>
@@ -1236,7 +1264,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="sleep">
     <i class="fa-solid fa-moon"></i>
     <div class="side-text">
       <div class="side-title">Antes de dormir</div>
@@ -1244,7 +1272,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="now">
     <i class="fa-solid fa-compass"></i>
     <div class="side-text">
       <div class="side-title">¿Qué hago ahora?</div>
@@ -1252,7 +1280,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item">
+  <button class="side-item" data-ask="askie">
     <i class="fa-solid fa-robot"></i>
     <div class="side-text">
       <div class="side-title">Pide ayuda a Askie</div>
@@ -1260,7 +1288,7 @@ header{
     </div>
   </button>
 
-  <button class="side-item side-item-settings">
+ <button class="side-item side-item-settings" id="openParentModal">
     <i class="fa-solid fa-gear"></i>
     <div class="side-text">
       <div class="side-title">Mi perfil</div>
@@ -1269,6 +1297,7 @@ header{
   </button>
 
 </aside>
+
 
   <!-- ===== MAIN ===== -->
   <main class="main">
@@ -1326,37 +1355,38 @@ header{
 
         <div class="idea-grid">
 
-<div class="idea">
+<div class="idea" data-ask="idea_homework">
   <img src="/assets/icons/homework-help.png" />
   <div>
-    <div class="idea-title">Homework Help</div>
-    <div class="idea-sub">Get help with school</div>
+    <div class="idea-title">Ayuda escolar</div>
+    <div class="idea-sub">Ayuda con la escuela</div>
   </div>
 </div>
 
-<div class="idea">
+<div class="idea" data-ask="idea_explain">
   <img src="/assets/icons/explain-topic.png" />
   <div>
-    <div class="idea-title">Explain Topic</div>
-    <div class="idea-sub">Learn something new</div>
+    <div class="idea-title">Explicar un tema</div>
+    <div class="idea-sub">Aprender algo nuevo</div>
   </div>
 </div>
 
-<div class="idea">
+<div class="idea" data-ask="idea_riddle">
   <img src="/assets/icons/smart-riddle.png" />
   <div>
-    <div class="idea-title">Smart Riddle</div>
-    <div class="idea-sub">Think and have fun</div>
+    <div class="idea-title">Adivinanza inteligente</div>
+    <div class="idea-sub">Pensar y divertirse</div>
   </div>
 </div>
 
-<div class="idea">
+<div class="idea" data-ask="idea_cool">
   <img src="/assets/icons/something-interesting.png" />
   <div>
-    <div class="idea-title">Something Cool</div>
-    <div class="idea-sub">Interesting ideas</div>
+    <div class="idea-title">Algo interesante</div>
+    <div class="idea-sub">Ideas curiosas y divertidas</div>
   </div>
 </div>
+
 
 
 </div>
@@ -1379,6 +1409,21 @@ let CURRENT_KID = null;
 
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
+  const { data: { user } } = await sb.auth.getUser();
+
+if (user) {
+  const displayName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email;
+
+  const avatar =
+    user.user_metadata?.avatar_url ||
+    "/assets/default-parent.png";
+
+  document.getElementById("userName").textContent = displayName;
+  document.getElementById("userAvatar").src = avatar;
+}
 
   if (!sessionData.session) {
     window.location.replace("/onboarding/cuenta/");
@@ -1386,6 +1431,21 @@ let CURRENT_KID = null;
   }
 
   const userId = sessionData.session.user.id;
+
+let activeKidId = localStorage.getItem("active_kid_id");
+
+if (!activeKidId) {
+  const { data: kids } = await sb
+    .from("kids_profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (!kids || kids.length === 0) return;
+
+  activeKidId = kids[0].id;
+  localStorage.setItem("active_kid_id", activeKidId);
+}
 
 const { data: kid, error } = await sb
   .from("kids_profiles")
@@ -1395,10 +1455,9 @@ const { data: kid, error } = await sb
     age,
     avatar_key,
     usage_goals,
-    learning_interests,
-    updated_at
+    learning_interests
   `)
-  .eq("user_id", userId)
+  .eq("id", activeKidId)
   .single();
 
 
@@ -1413,9 +1472,9 @@ const { data: kid, error } = await sb
 
   window.KID_AVATAR_URL = avatarUrl;
 
-  document.getElementById("userName").textContent = kid.child_name;
+
   document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
-  document.getElementById("userAvatar").src = avatarUrl;
+
   document.getElementById("heroAvatar").src = avatarUrl;
 
 
@@ -1488,7 +1547,11 @@ async function sendMessage() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({
+  message: text,
+  kid_id: CURRENT_KID.id
+})
+
     });
 
     if (!res.ok) {
@@ -1512,7 +1575,50 @@ async function sendMessage() {
     addMessage("assistant", "🌐 Network error – API not reachable");
   }
 
-} // ✅ THIS BRACE WAS MISSING
+}
+/* ---------- QUICK ASK MAP (ES - GENERAL) ---------- */
+const QUICK_ASK_MAP = {
+  // LEFT SIDEBAR
+  homework: "Hola 😊 ¿Me puedes ayudar con una tarea de la escuela?",
+  exercises: "Tengo un ejercicio y no lo entiendo. ¿Lo hacemos paso a paso?",
+  learn: "Quiero aprender algo nuevo. ¿Por dónde empezamos?",
+  practice: "Me gustaría practicar un poco",
+  exam: "Tengo una prueba pronto. ¿Me ayudas a repasar?",
+  easy: "¿Puedes explicarlo de una forma muy fácil?",
+  examples: "¿Puedes mostrarme ejemplos?",
+  logic: "Quiero pensar un poco 🤔",
+  challenge: "¿Cuál es el reto del día?",
+
+  // RIGHT SIDEBAR
+  feelings: "Quiero hablar sobre cómo me siento",
+  free: "Quiero hablar libremente",
+  achievements: "Quiero contarte algo que hice bien",
+  aboutme: "Quiero contarte sobre mí",
+  tip: "¿Tienes un consejo para hoy?",
+  fun: "Quiero algo divertido 😄",
+  sleep: "¿Puedes contarme una historia tranquila?",
+  now: "¿Qué puedo hacer ahora?",
+  askie: "Askie, necesito ayuda",
+
+  // IDEAS
+  idea_homework: "¿Me ayudas con algo de la escuela?",
+  idea_explain: "¿Puedes explicarme un tema?",
+  idea_riddle: "¿Tienes una adivinanza?",
+  idea_cool: "Cuéntame algo interesante 😎"
+};
+function quickAsk(key){
+  const text = QUICK_ASK_MAP[key];
+  if (!text) return;
+
+  inputEl.value = text;
+  sendMessage();
+}
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-ask]");
+  if (!el) return;
+
+  quickAsk(el.dataset.ask);
+});
 
 /* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
@@ -1687,6 +1793,145 @@ function setSelected(containerId, values = []){
     });
 }
 </script>
+<script>
+document.getElementById("openParentModal").onclick = async () => {
+  const { data } = await sb
+    .from("kids_profiles")
+    .select("id, child_name")
+    .eq("user_id", (await sb.auth.getUser()).data.user.id);
+
+  const select = document.getElementById("parentKidSelect");
+  select.innerHTML = "";
+
+  data.forEach(kid => {
+    const opt = document.createElement("option");
+    opt.value = kid.id;
+    opt.textContent = kid.child_name;
+    if (kid.id === CURRENT_KID?.id) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  document.getElementById("parentModal").style.display = "flex";
+};
+
+// close on backdrop
+document.getElementById("parentModal").onclick = e => {
+  if (e.target.id === "parentModal") {
+    e.target.style.display = "none";
+  }
+};
+</script>
+<script>
+function switchKid(){
+  const newKidId = document.getElementById("parentKidSelect").value;
+  if (!newKidId) return;
+
+  localStorage.setItem("active_kid_id", newKidId);
+  window.location.reload();
+}
+
+function addKid(){
+  document.getElementById("parentModal").style.display = "none";
+  openAddKidModal();
+}
+</script>
+<script>
+function openAddKidModal(){
+  document.getElementById("addKidModal").style.display = "flex";
+}
+</script>
+<script>
+function closeAddKid(){
+  document.getElementById("addKidModal").style.display = "none";
+}
+
+async function createKid(){
+  const name = document.getElementById("newKidName").value.trim();
+  const age = parseInt(document.getElementById("newKidAge").value);
+
+  if (!name || !age) return alert("Completa todos los campos");
+
+  const user = (await sb.auth.getUser()).data.user;
+
+  const { data, error } = await sb
+    .from("kids_profiles")
+    .insert({
+      user_id: user.id,
+      child_name: name,
+      age,
+      avatar_key: "cat"
+    })
+    .select()
+    .single();
+
+  if (error){
+    alert(error.message);
+    return;
+  }
+
+  localStorage.setItem("active_kid_id", data.id);
+  window.location.reload();
+}
+</script>
+
+<!-- ===== PARENT MODAL ===== -->
+<div class="modal-overlay" id="parentModal">
+  <div class="modal">
+
+    <h2>Panel para padres</h2>
+    <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
+      Gestionar perfiles de niños
+    </p>
+
+    <!-- SELECT KID -->
+    <label>
+      Elegir niño
+      <select id="parentKidSelect"></select>
+    </label>
+
+    <div class="modal-actions">
+      <button onclick="switchKid()">Cambiar</button>
+    </div>
+
+    <hr style="margin:16px 0">
+
+    <!-- ADD KID -->
+    <button class="save" onclick="addKid()">
+      ➕ Agregar niño
+    </button>
+
+  </div>
+</div>
+<!-- ===== ADD KID MODAL ===== -->
+<div class="modal-overlay" id="addKidModal">
+  <div class="modal">
+
+    <h2>Agregar niño</h2>
+
+    <label>
+      Nombre
+      <input type="text" id="newKidName">
+    </label>
+
+    <label>
+      Edad
+      <select id="newKidAge">
+        <option value="">Edad</option>
+        <option>3</option><option>4</option><option>5</option>
+        <option>6</option><option>7</option><option>8</option>
+        <option>9</option><option>10</option><option>11</option>
+        <option>12</option><option>13</option><option>14</option>
+        <option>15</option>
+      </select>
+    </label>
+
+    <div class="modal-actions">
+      <button onclick="closeAddKid()">Cancelar</button>
+      <button class="save" onclick="createKid()">Crear</button>
+    </div>
+
+  </div>
+</div>
 
 </body>
 </html>
