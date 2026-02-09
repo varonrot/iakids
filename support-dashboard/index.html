@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="he">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support Dashboard</title>
+
+  <!-- Supabase JS v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#f6f7fb;color:#111}
+    header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#fff;border-bottom:1px solid #e6e8ef}
+    header h1{font-size:16px;margin:0}
+    header .right{display:flex;gap:10px;align-items:center}
+    .btn{border:1px solid #d8dbe6;background:#fff;padding:8px 10px;border-radius:10px;cursor:pointer}
+    .btn.primary{background:#111;color:#fff;border-color:#111}
+
+    .wrap{display:grid;grid-template-columns:380px 1fr;gap:12px;padding:12px;max-width:1400px;margin:0 auto}
+    .card{background:#fff;border:1px solid #e6e8ef;border-radius:14px;overflow:hidden}
+    .card .hd{padding:12px 12px;border-bottom:1px solid #eef0f6;display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .card .bd{padding:12px}
+
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    select,input{padding:10px;border-radius:10px;border:1px solid #d8dbe6;outline:none;background:#fff}
+    input{width:100%}
+
+    .list{max-height:74vh;overflow:auto}
+    .ticket{padding:12px;border-bottom:1px solid #f0f2f8;cursor:pointer}
+    .ticket:hover{background:#fafbff}
+    .ticket.active{background:#f3f5ff}
+    .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .subj{font-weight:650}
+    .meta{font-size:12px;color:#666;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #e0e3ee;background:#fff}
+    .pill.open{border-color:#bfe7c6;background:#effbf1}
+    .pill.in_progress{border-color:#ffe1a6;background:#fff7e8}
+    .pill.closed{border-color:#ffc2c2;background:#fff0f0}
+
+    .detailTop{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+    .detailTop h2{margin:0;font-size:18px}
+    .kv{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .kv label{font-size:12px;color:#666}
+
+    .chat{height:58vh;overflow:auto;background:#fafbff;border:1px solid #eef0f6;border-radius:14px;padding:10px}
+    .msg{padding:10px 12px;border-radius:14px;margin:8px 0;max-width:82%}
+    .msg.user{background:#fff;border:1px solid #e6e8ef;margin-right:auto}
+    .msg.admin{background:#111;color:#fff;margin-left:auto}
+    .msg .who{font-size:12px;opacity:.75;margin-bottom:6px}
+    .msg .time{font-size:11px;opacity:.75;margin-top:6px}
+    .composer{display:flex;gap:8px;margin-top:10px}
+    .composer textarea{flex:1;min-height:48px;max-height:120px;resize:vertical;padding:10px;border-radius:12px;border:1px solid #d8dbe6;font-family:inherit}
+    .muted{color:#777;font-size:12px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Customer Support — Admin</h1>
+  <div class="right">
+    <span id="authState" class="muted">Not signed in</span>
+    <button class="btn" id="btnSignOut">Sign out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- LEFT: Tickets -->
+  <div class="card">
+    <div class="hd">
+      <strong>Tickets</strong>
+      <button class="btn" id="btnRefresh">Refresh</button>
+    </div>
+    <div class="bd">
+      <div class="filters">
+        <select id="filterStatus">
+          <option value="">All statuses</option>
+          <option value="open">open</option>
+          <option value="in_progress">in_progress</option>
+          <option value="closed">closed</option>
+        </select>
+
+        <select id="filterCategory">
+          <option value="">All categories</option>
+          <option value="bug">bug</option>
+          <option value="billing">billing</option>
+          <option value="question">question</option>
+          <option value="feature">feature</option>
+        </select>
+
+        <select id="filterPriority">
+          <option value="">All priority</option>
+          <option value="low">low</option>
+          <option value="medium">medium</option>
+          <option value="high">high</option>
+        </select>
+
+        <input id="filterSearch" placeholder="Search subject..." />
+      </div>
+
+      <div class="list" id="ticketsList"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Ticket details -->
+  <div class="card">
+    <div class="hd">
+      <strong>Details</strong>
+      <span id="selectedHint" class="muted">Select a ticket</span>
+    </div>
+
+    <div class="bd">
+      <div class="detailTop">
+        <div>
+          <h2 id="dSubject">—</h2>
+          <div class="meta" id="dMeta"></div>
+        </div>
+
+        <div class="kv">
+          <div>
+            <label>Status</label><br/>
+            <select id="dStatus">
+              <option value="open">open</option>
+              <option value="in_progress">in_progress</option>
+              <option value="closed">closed</option>
+            </select>
+          </div>
+          <div>
+            <label>Category</label><br/>
+            <select id="dCategory">
+              <option value="bug">bug</option>
+              <option value="billing">billing</option>
+              <option value="question">question</option>
+              <option value="feature">feature</option>
+            </select>
+          </div>
+          <div>
+            <label>Priority</label><br/>
+            <select id="dPriority">
+              <option value="low">low</option>
+              <option value="medium">medium</option>
+              <option value="high">high</option>
+            </select>
+          </div>
+          <button class="btn primary" id="btnSaveTicket">Save</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="chat" id="chatBox"></div>
+
+        <div class="composer">
+          <textarea id="replyText" placeholder="Write a reply as admin..."></textarea>
+          <button class="btn primary" id="btnSend">Send</button>
+        </div>
+        <div class="muted">This page uses Supabase Auth session. You must be in <code>app_admins</code> to see all tickets.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========================
+  // 0) CONFIG
+  // =========================
+  const SUPABASE_URL = "PASTE_SUPABASE_URL";
+  const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // =========================
+  // 1) STATE
+  // =========================
+  let tickets = [];
+  let selectedTicket = null;
+
+  const el = (id) => document.getElementById(id);
+
+  function pill(status){
+    return `<span class="pill ${status}">${status}</span>`;
+  }
+
+  function fmtTime(ts){
+    if(!ts) return "";
+    const d = new Date(ts);
+    return d.toLocaleString();
+  }
+
+  // =========================
+  // 2) AUTH
+  // =========================
+  async function refreshAuth(){
+    const { data: { session } } = await sb.auth.getSession();
+    el("authState").textContent = session?.user ? `Signed in: ${session.user.email}` : "Not signed in";
+    return session?.user || null;
+  }
+
+  el("btnSignOut").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    await refreshAuth();
+    tickets = [];
+    renderTickets();
+    clearDetails();
+  });
+
+  // =========================
+  // 3) LOAD TICKETS
+  // =========================
+  async function loadTickets(){
+    const status = el("filterStatus").value || null;
+    const category = el("filterCategory").value || null;
+    const priority = el("filterPriority").value || null;
+    const search = (el("filterSearch").value || "").trim().toLowerCase();
+
+    let q = sb
+      .from("support_tickets")
+      .select("id,ticket_no,user_id,project_id,subject,category,status,priority,last_message_at,created_at,updated_at,closed_at")
+      .order("last_message_at", { ascending: false })
+      .limit(200);
+
+    if(status) q = q.eq("status", status);
+    if(category) q = q.eq("category", category);
+    if(priority) q = q.eq("priority", priority);
+
+    const { data, error } = await q;
+    if(error){
+      console.error(error);
+      alert("Failed to load tickets. Check RLS/admin access + console.");
+      return;
+    }
+
+    tickets = (data || []).filter(t => !search || (t.subject || "").toLowerCase().includes(search));
+    renderTickets();
+
+    // auto-select first ticket if none selected
+    if(!selectedTicket && tickets.length){
+      selectTicket(tickets[0].id);
+    }
+  }
+
+  function renderTickets(){
+    const box = el("ticketsList");
+    if(!tickets.length){
+      box.innerHTML = `<div class="muted" style="padding:12px">No tickets.</div>`;
+      return;
+    }
+    box.innerHTML = tickets.map(t => {
+      const active = selectedTicket?.id === t.id ? "active" : "";
+      return `
+        <div class="ticket ${active}" data-id="${t.id}">
+          <div class="row">
+            <div class="subj">#${t.ticket_no} — ${escapeHtml(t.subject)}</div>
+            ${pill(t.status)}
+          </div>
+          <div class="meta">
+            <span class="pill">${t.category}</span>
+            <span class="pill">${t.priority}</span>
+            <span class="muted">Last: ${fmtTime(t.last_message_at)}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    box.querySelectorAll(".ticket").forEach(node => {
+      node.addEventListener("click", () => selectTicket(node.dataset.id));
+    });
+  }
+
+  // =========================
+  // 4) DETAILS + MESSAGES
+  // =========================
+  function clearDetails(){
+    selectedTicket = null;
+    el("selectedHint").textContent = "Select a ticket";
+    el("dSubject").textContent = "—";
+    el("dMeta").innerHTML = "";
+    el("chatBox").innerHTML = "";
+    el("replyText").value = "";
+  }
+
+  async function selectTicket(ticketId){
+    const t = tickets.find(x => x.id === ticketId);
+    if(!t) return;
+
+    selectedTicket = t;
+    el("selectedHint").textContent = `Ticket #${t.ticket_no}`;
+
+    el("dSubject").textContent = `#${t.ticket_no} — ${t.subject}`;
+    el("dMeta").innerHTML = `
+      <span class="pill">${t.category}</span>
+      <span class="pill">${t.priority}</span>
+      ${pill(t.status)}
+      <span class="muted">Created: ${fmtTime(t.created_at)}</span>
+      <span class="muted">User: ${t.user_id}</span>
+      ${t.project_id ? `<span class="muted">Project: ${escapeHtml(t.project_id)}</span>` : ""}
+    `;
+
+    el("dStatus").value = t.status;
+    el("dCategory").value = t.category;
+    el("dPriority").value = t.priority;
+
+    renderTickets(); // update active highlight
+    await loadMessages(ticketId);
+  }
+
+  async function loadMessages(ticketId){
+    const { data, error } = await sb
+      .from("support_messages")
+      .select("id,ticket_id,sender_type,sender_id,message,is_internal,created_at")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+
+    if(error){
+      console.error(error);
+      alert("Failed to load messages.");
+      return;
+    }
+
+    const chat = el("chatBox");
+    chat.innerHTML = (data || []).map(m => {
+      const cls = m.sender_type === "admin" ? "admin" : "user";
+      const who = m.sender_type === "admin" ? "Admin" : "User";
+      return `
+        <div class="msg ${cls}">
+          <div class="who">${who}</div>
+          <div>${escapeHtml(m.message)}</div>
+          <div class="time">${fmtTime(m.created_at)}</div>
+        </div>
+      `;
+    }).join("");
+
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // =========================
+  // 5) ACTIONS
+  // =========================
+  el("btnSend").addEventListener("click", async () => {
+    if(!selectedTicket) return;
+    const text = (el("replyText").value || "").trim();
+    if(!text) return;
+
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session?.user){
+      alert("You must be signed in.");
+      return;
+    }
+
+    const payload = {
+      ticket_id: selectedTicket.id,
+      sender_type: "admin",
+      sender_id: session.user.id,
+      message: text,
+      is_internal: false
+    };
+
+    const { error } = await sb.from("support_messages").insert(payload);
+    if(error){
+      console.error(error);
+      alert("Failed to send message. Check admin access/RLS.");
+      return;
+    }
+
+    el("replyText").value = "";
+    await loadMessages(selectedTicket.id);
+    await loadTickets(); // refresh ordering (last_message_at)
+  });
+
+  el("btnSaveTicket").addEventListener("click", async () => {
+    if(!selectedTicket) return;
+
+    const updates = {
+      status: el("dStatus").value,
+      category: el("dCategory").value,
+      priority: el("dPriority").value,
+      closed_at: (el("dStatus").value === "closed") ? new Date().toISOString() : null
+    };
+
+    const { error } = await sb
+      .from("support_tickets")
+      .update(updates)
+      .eq("id", selectedTicket.id);
+
+    if(error){
+      console.error(error);
+      alert("Failed to update ticket.");
+      return;
+    }
+
+    await loadTickets();
+  });
+
+  el("btnRefresh").addEventListener("click", loadTickets);
+  ["filterStatus","filterCategory","filterPriority"].forEach(id => el(id).addEventListener("change", loadTickets));
+  el("filterSearch").addEventListener("input", debounce(loadTickets, 250));
+
+  // =========================
+  // 6) HELPERS
+  // =========================
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+  function debounce(fn, ms){
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), ms);
+    };
+  }
+
+  // =========================
+  // 7) BOOT
+  // =========================
+  (async function init(){
+    await refreshAuth();
+    // NOTE: user must already be logged-in in this domain (Supabase auth session cookie/localstorage)
+    await loadTickets();
+  })();
+</script>
+</body>
+</html>
