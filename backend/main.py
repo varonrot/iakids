@@ -251,9 +251,12 @@ def chat(
             role="user",
             content=body.message
         )
-        sb.table("subscriptions").update({
+        sb.table("subscriptions").upsert({
+            "user_id": user.id,
+            "plan": "free",
+            "status": "active",
             "messages_used": used + 1
-        }).eq("user_id", user.id).execute()
+        }, on_conflict=["user_id"]).execute()
 
         mode_value = body.mode or "unknown"
 
