@@ -222,6 +222,27 @@ def chat(
 
         child = get_child_by_id(user.id, kid_id)
         existing_memory = get_existing_kids_memory(child["id"])
+        # 🔐 FREE QUOTA CHECK – TEMP: 2 messages only
+        res = (
+            sb.table("kids_chats")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("role", "user")
+            .execute()
+        )
+
+        used = len(res.data or [])
+        print("FREE MESSAGES USED:", used)
+
+        if used >= 2:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "quota_exceeded",
+                    "used": used,
+                    "limit": 2
+                }
+            )
 
         save_chat_message(
             user_id=user.id,
@@ -332,6 +353,14 @@ def chat(
 
         return {"reply": answer}
 
+
+    except HTTPException:
+
+        raise
+
+
     except Exception as e:
+
         print("CHAT ERROR:", e)
+
         raise HTTPException(status_code=500, detail="Chat failed")
