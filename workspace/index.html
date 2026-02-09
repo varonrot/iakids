@@ -1576,7 +1576,7 @@ if (!res.ok) {
   if (res.status === 403) {
     const err = await res.json();
 
-    if (err?.error === "quota_exceeded") {
+    if (err?.detail?.error === "quota_exceeded") {
       openQuotaModal();
       return; // ⛔ לא מכניסים הודעה לצ'אט
     }
