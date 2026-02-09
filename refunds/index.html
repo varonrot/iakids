@@ -1,1 +1,1079 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Funciones – iakids</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:#fffaf5;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar{
+      background:#ffffff;
+      border-bottom:1px solid rgba(15,23,42,.06);
+    }
+
+    .topbar-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* LOGO */
+    .logo{
+      font-weight:700;
+      font-size:18px;
+      color:#0f172a;
+      text-decoration:none;
+    }
+
+    /* ACTIONS */
+    .topbar-actions{
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    .nav-link{
+      color:#475569;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:500;
+    }
+
+    .nav-link:hover{
+      color:#0f172a;
+    }
+
+    /* BUTTON */
+    .btn-primary{
+      background:#2563eb;
+      color:#ffffff;
+      padding:10px 18px;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:600;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+      white-space:nowrap;
+    }
+
+    .btn-primary:hover{
+      background:#1d4ed8;
+    }
+
+    /* MOBILE */
+    @media (max-width:600px){
+      .topbar-inner{
+        padding:12px 16px;
+      }
+
+      .topbar-actions{
+        gap:12px;
+      }
+
+      .nav-link{
+        font-size:13px;
+      }
+
+      .btn-primary{
+        padding:9px 14px;
+        font-size:13px;
+      }
+    }
+/* =========================
+   PRIVACY POLICY – SECTION
+========================= */
+
+.privacy-policy{
+  background:#fffaf5;
+  padding:120px 20px;
+}
+
+.privacy-inner{
+  max-width:1200px;
+  margin:0 auto;
+}
+
+.privacy-head{
+  max-width:860px;
+  margin:0 auto 46px;
+  text-align:center;
+}
+
+.privacy-pill{
+  display:inline-block;
+  background:rgba(37,99,235,.10);
+  color:#2563eb;
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  margin-bottom:16px;
+}
+
+.privacy-head h1{
+  font-size:44px;
+  line-height:1.15;
+  color:#0f172a;
+  margin-bottom:12px;
+}
+
+.privacy-sub{
+  font-size:17px;
+  line-height:1.7;
+  color:#475569;
+}
+
+.privacy-meta{
+  margin-top:18px;
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.meta-item{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 16px 45px rgba(0,0,0,.06);
+  border-radius:16px;
+  padding:12px 14px;
+  min-width:220px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.meta-k{
+  font-size:12px;
+  font-weight:800;
+  color:#64748b;
+}
+
+.meta-v{
+  font-size:13px;
+  font-weight:700;
+  color:#0f172a;
+}
+
+.link{
+  color:#2563eb;
+  text-decoration:none;
+}
+
+.link:hover{ text-decoration:underline; }
+
+.privacy-grid{
+  display:grid;
+  grid-template-columns: 360px 1fr;
+  gap:28px;
+  align-items:start;
+}
+
+/* Aside */
+.privacy-aside{
+  position:sticky;
+  top:92px;
+  align-self:start;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.toc-card{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
+  border-radius:22px;
+  padding:18px 18px;
+}
+
+.toc-title{
+  font-weight:900;
+  color:#0f172a;
+  margin-bottom:12px;
+}
+
+.toc{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.toc a{
+  text-decoration:none;
+  color:#334155;
+  font-weight:700;
+  font-size:13px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(37,99,235,.06);
+  border:1px solid rgba(37,99,235,.08);
+}
+
+.toc a:hover{
+  background:rgba(37,99,235,.10);
+}
+
+.aside-card{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 18px 55px rgba(0,0,0,.08);
+  border-radius:22px;
+  padding:16px 16px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.aside-ico{
+  width:42px;
+  height:42px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  background:rgba(255,106,42,.10);
+}
+
+.aside-card.note .aside-ico{ background:rgba(34,197,94,.12); }
+.aside-card.tip .aside-ico{ background:rgba(37,99,235,.10); }
+
+.aside-card h4{
+  margin:0 0 6px;
+  color:#0f172a;
+  font-size:15px;
+}
+
+.aside-card p{
+  margin:0;
+  color:#475569;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.aside-link{
+  display:inline-block;
+  margin-top:10px;
+  color:#2563eb;
+  font-weight:800;
+  text-decoration:none;
+  font-size:13px;
+}
+
+/* Main */
+.privacy-main{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.pp-card{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 22px 70px rgba(0,0,0,.08);
+  border-radius:26px;
+  padding:26px 26px;
+}
+
+.pp-card h2{
+  color:#0f172a;
+  font-size:22px;
+  margin-bottom:12px;
+}
+
+.pp-block{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid rgba(15,23,42,.06);
+}
+
+.pp-block h3{
+  margin:0 0 10px;
+  font-size:16px;
+  color:#0f172a;
+}
+
+.pp-text{
+  color:#475569;
+  line-height:1.75;
+  font-size:15px;
+}
+
+.pp-list{
+  margin:10px 0 0;
+  padding-left:18px;
+  color:#475569;
+  line-height:1.75;
+  font-size:15px;
+}
+
+.pp-list li{ margin-bottom:8px; }
+.pp-list strong{ color:#0f172a; }
+
+.pp-keys{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+  margin-top:14px;
+}
+
+.key{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  background:rgba(15,23,42,.02);
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:18px;
+  padding:14px 14px;
+}
+
+.key strong{
+  display:block;
+  color:#0f172a;
+  margin-bottom:4px;
+}
+
+.key p{
+  margin:0;
+  color:#475569;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  margin-top:6px;
+  flex:0 0 10px;
+}
+.dot-blue{ background:#3b82f6; }
+.dot-green{ background:#22c55e; }
+.dot-orange{ background:#ff6a2a; }
+
+.pp-callout{
+  margin-top:12px;
+  background:rgba(255,106,42,.08);
+  border:1px solid rgba(255,106,42,.16);
+  border-radius:18px;
+  padding:12px 12px;
+}
+
+.badge-soft{
+  display:inline-block;
+  background:#ffffff;
+  border:1px solid rgba(255,106,42,.18);
+  color:#9a3412;
+  font-weight:900;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  margin-bottom:8px;
+}
+
+.pp-callout p{
+  margin:0;
+  color:#7c2d12;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.pp-cols{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:12px;
+}
+
+.pp-col{
+  background:rgba(37,99,235,.05);
+  border:1px solid rgba(37,99,235,.10);
+  border-radius:18px;
+  padding:14px 14px;
+}
+
+.pp-col h3{
+  margin:0 0 10px;
+  color:#0f172a;
+  font-size:15px;
+}
+
+.pp-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:12px;
+}
+
+.chip{
+  padding:9px 12px;
+  border-radius:999px;
+  background: rgba(17,24,39,.04);
+  border:1px solid rgba(17,24,39,.06);
+  color:#334155;
+  font-size:12px;
+  font-weight:800;
+}
+
+.pp-mini{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:14px;
+}
+
+.mini{
+  background:rgba(15,23,42,.02);
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:18px;
+  padding:14px 14px;
+}
+
+.mini strong{
+  display:block;
+  color:#0f172a;
+  margin-bottom:4px;
+}
+
+.mini span{
+  color:#475569;
+  font-size:13px;
+  line-height:1.6;
+}
+
+/* CTA */
+.privacy-cta{
+  margin-top:8px;
+  background:linear-gradient(135deg, rgba(37,99,235,.10), rgba(255,106,42,.10));
+  border:1px solid rgba(15,23,42,.06);
+  box-shadow:0 24px 70px rgba(0,0,0,.08);
+  border-radius:28px;
+  padding:22px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+
+.privacy-cta h3{
+  margin:0 0 6px;
+  color:#0f172a;
+  font-size:18px;
+}
+
+.privacy-cta p{
+  margin:0;
+  color:#475569;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.cta-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.cta-btn{
+  display:inline-block;
+  text-decoration:none;
+  font-weight:900;
+  border-radius:999px;
+  padding:12px 18px;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.cta-btn.primary{
+  background:linear-gradient(135deg,#2563eb,#38bdf8);
+  color:#fff;
+  box-shadow:0 14px 35px rgba(37,99,235,.25);
+}
+
+.cta-btn.secondary{
+  background:#ffffff;
+  border:1px solid rgba(15,23,42,.10);
+  color:#0f172a;
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .privacy-grid{
+    grid-template-columns:1fr;
+  }
+
+  .privacy-aside{
+    position:relative;
+    top:auto;
+  }
+
+  .pp-cols,
+  .pp-mini{
+    grid-template-columns:1fr;
+  }
+
+  .privacy-head h1{
+    font-size:34px;
+  }
+}
+
+@media (max-width: 560px){
+  .privacy-policy{
+    padding:80px 16px;
+  }
+
+  .meta-item{
+    min-width:unset;
+    width:100%;
+  }
+
+  .pp-card{
+    padding:20px 18px;
+  }
+
+  .privacy-cta{
+    flex-direction:column;
+    text-align:center;
+    align-items:stretch;
+  }
+
+  .cta-actions{
+    justify-content:center;
+  }
+}
+/* =========================
+   REFUNDS PAGE CSS
+   Paste into your main stylesheet
+========================= */
+
+:root{
+  --rf-bg: #fbf6ef;           /* warm cream */
+  --rf-card: #ffffff;
+  --rf-text: #0f172a;         /* slate-900 */
+  --rf-muted: #475569;        /* slate-600 */
+  --rf-border: rgba(2,6,23,.08);
+  --rf-shadow: 0 22px 60px rgba(2, 6, 23, .10);
+  --rf-blue: #2563eb;
+  --rf-blue-2: #1d4ed8;
+  --rf-green: #16a34a;
+  --rf-soft: rgba(37,99,235,.08);
+}
+
+.refunds-page{
+  background: radial-gradient(1200px 500px at 50% 0%, rgba(37,99,235,.10), transparent 60%),
+              var(--rf-bg);
+  color: var(--rf-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+
+.refunds-container{
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.refunds-hero{
+  padding: 72px 0 28px;
+  text-align: center;
+}
+
+.refunds-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(34,197,94,.12);
+  color: #166534;
+  font-weight: 800;
+  letter-spacing: .12em;
+  font-size: 12px;
+}
+
+.refunds-title{
+  margin: 16px 0 8px;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.refunds-subtitle{
+  margin: 0 auto;
+  max-width: 720px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--rf-muted);
+}
+
+.refunds-meta{
+  margin-top: 18px;
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.refunds-pill{
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.8);
+  border: 1px solid var(--rf-border);
+  box-shadow: 0 10px 30px rgba(2,6,23,.06);
+  font-size: 13px;
+  color: var(--rf-muted);
+}
+
+.refunds-pill strong{ color: var(--rf-text); }
+
+.refunds-pill-link{
+  text-decoration: none;
+  color: var(--rf-blue);
+  font-weight: 700;
+}
+
+.refunds-pill-link:hover{
+  background: rgba(37,99,235,.10);
+  border-color: rgba(37,99,235,.25);
+}
+
+.refunds-content{
+  padding: 26px 0 80px;
+}
+
+.refunds-grid{
+  display:grid;
+  grid-template-columns: 320px 1fr;
+  gap: 22px;
+  align-items:start;
+}
+
+.refunds-nav{
+  position: sticky;
+  top: 18px;
+  display:flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.refunds-nav-card{
+  background: rgba(255,255,255,.82);
+  border: 1px solid var(--rf-border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 18px 50px rgba(2,6,23,.08);
+}
+
+.refunds-nav-title{
+  margin: 4px 0 12px;
+  font-size: 14px;
+  letter-spacing: .02em;
+  color: var(--rf-muted);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.refunds-nav-item{
+  display:block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--rf-text);
+  font-weight: 650;
+  border: 1px solid transparent;
+}
+
+.refunds-nav-item:hover{
+  background: var(--rf-soft);
+  border-color: rgba(37,99,235,.18);
+  color: var(--rf-blue-2);
+}
+
+.refunds-help-card{
+  background: linear-gradient(135deg, rgba(37,99,235,.14), rgba(34,197,94,.12));
+  border: 1px solid rgba(2,6,23,.08);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 18px 50px rgba(2,6,23,.08);
+}
+
+.refunds-help-title{
+  margin: 0 0 6px;
+  font-weight: 900;
+}
+
+.refunds-help-text{
+  margin: 0 0 12px;
+  color: var(--rf-muted);
+  line-height: 1.45;
+}
+
+.refunds-help-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  text-decoration:none;
+  font-weight: 900;
+  color: white;
+  background: linear-gradient(180deg, var(--rf-blue), var(--rf-blue-2));
+  box-shadow: 0 18px 40px rgba(37,99,235,.28);
+}
+
+.refunds-help-btn:hover{
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.refunds-sections{
+  display:flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.refunds-card{
+  background: rgba(255,255,255,.92);
+  border: 1px solid var(--rf-border);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: var(--rf-shadow);
+}
+
+.refunds-h2{
+  margin: 0 0 10px;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+.refunds-p{
+  margin: 0 0 10px;
+  color: var(--rf-muted);
+  line-height: 1.65;
+}
+
+.refunds-list{
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--rf-text);
+}
+
+.refunds-list li{
+  margin: 8px 0;
+  color: var(--rf-muted);
+}
+
+.refunds-callout{
+  display:flex;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(239,68,68,.20);
+  background: rgba(239,68,68,.06);
+  margin: 12px 0 10px;
+}
+
+.refunds-callout-icon{
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(239,68,68,.12);
+  border: 1px solid rgba(239,68,68,.22);
+  font-size: 18px;
+}
+
+.refunds-callout-title{
+  margin: 0 0 4px;
+  font-weight: 950;
+}
+
+.refunds-callout-text{
+  margin: 0;
+  color: var(--rf-muted);
+  line-height: 1.55;
+}
+
+.refunds-note{
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(2,6,23,.04);
+  border: 1px solid var(--rf-border);
+  color: var(--rf-muted);
+}
+
+.refunds-note strong{ color: var(--rf-text); }
+
+.refunds-contact{
+  margin-top: 10px;
+  border-radius: 18px;
+  border: 1px solid var(--rf-border);
+  background: rgba(2,6,23,.03);
+  overflow:hidden;
+}
+
+.refunds-contact-row{
+  display:flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--rf-border);
+}
+
+.refunds-contact-row:first-child{ border-top: 0; }
+
+.refunds-contact-label{
+  color: var(--rf-muted);
+  font-weight: 800;
+}
+
+.refunds-contact-value{
+  color: var(--rf-text);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.refunds-contact-value:hover{
+  color: var(--rf-blue-2);
+  text-decoration: underline;
+}
+
+.refunds-footer-cta{
+  margin-top: 16px;
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.refunds-primary-btn,
+.refunds-secondary-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-weight: 900;
+  text-decoration:none;
+  border: 1px solid transparent;
+}
+
+.refunds-primary-btn{
+  color: #fff;
+  background: linear-gradient(180deg, var(--rf-blue), var(--rf-blue-2));
+  box-shadow: 0 18px 40px rgba(37,99,235,.24);
+}
+
+.refunds-primary-btn:hover{
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.refunds-secondary-btn{
+  color: var(--rf-blue-2);
+  background: rgba(255,255,255,.9);
+  border-color: rgba(37,99,235,.22);
+}
+
+.refunds-secondary-btn:hover{
+  background: rgba(37,99,235,.10);
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .refunds-grid{
+    grid-template-columns: 1fr;
+  }
+  .refunds-nav{
+    position: static;
+  }
+  .refunds-hero{
+    padding-top: 54px;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+
+      <a href="/" class="logo">iakids</a>
+
+      <nav class="topbar-actions">
+        <a href="https://iakids.app" class="nav-link">Inicio</a>
+        <a href="/onboarding/cuenta" class="nav-link">Entrar</a>
+        <a href="/onboarding" class="btn-primary">Empezar gratis</a>
+      </nav>
+
+    </div>
+  </header>
+<!-- =========================
+     REFUNDS PAGE (ES)
+     URL suggested: /refunds
+     Title: Política de reembolsos
+     Paste this inside <body> ... </body>
+========================= -->
+
+<main class="refunds-page">
+
+  <!-- HERO -->
+  <section class="refunds-hero" id="top">
+    <div class="refunds-container">
+      <span class="refunds-badge">LEGAL</span>
+      <h1 class="refunds-title">Política de reembolsos</h1>
+      <p class="refunds-subtitle">
+        Información clara sobre reembolsos y pagos en iakids.
+      </p>
+
+      <div class="refunds-meta">
+        <span class="refunds-pill">
+          <strong>Última actualización:</strong> 09 Feb 2026
+        </span>
+        <a class="refunds-pill refunds-pill-link" href="/terms">Términos</a>
+        <a class="refunds-pill refunds-pill-link" href="/privacy">Privacidad</a>
+        <a class="refunds-pill refunds-pill-link" href="mailto:support@iakids.app">Contacto</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENT GRID -->
+  <section class="refunds-content">
+    <div class="refunds-container refunds-grid">
+
+      <!-- LEFT: NAV -->
+      <aside class="refunds-nav">
+        <div class="refunds-nav-card">
+          <h3 class="refunds-nav-title">Contenido</h3>
+          <a class="refunds-nav-item" href="#servicio">1. Servicio digital</a>
+          <a class="refunds-nav-item" href="#reembolsos">2. Reembolsos</a>
+          <a class="refunds-nav-item" href="#excepciones">3. Excepciones</a>
+          <a class="refunds-nav-item" href="#cancelacion">4. Cancelación</a>
+          <a class="refunds-nav-item" href="#contacto">5. Contacto</a>
+        </div>
+
+        <div class="refunds-help-card">
+          <p class="refunds-help-title">¿Necesitas ayuda con un cobro?</p>
+          <p class="refunds-help-text">
+            Escríbenos y lo revisamos.
+          </p>
+          <a class="refunds-help-btn" href="mailto:support@iakids.app">Contactar soporte</a>
+        </div>
+      </aside>
+
+      <!-- RIGHT: SECTIONS -->
+      <div class="refunds-sections">
+
+        <section class="refunds-card" id="servicio">
+          <h2 class="refunds-h2">1. Servicio digital por suscripción</h2>
+          <p class="refunds-p">
+            iakids es una plataforma educativa digital basada en suscripción.
+            Una vez realizado el pago, el acceso se activa de forma inmediata.
+          </p>
+          <ul class="refunds-list">
+            <li>Acceso a herramientas educativas y apoyo para tareas.</li>
+            <li>Preparación para exámenes y repasos guiados.</li>
+            <li>Entorno seguro y supervisión parental.</li>
+          </ul>
+        </section>
+
+        <section class="refunds-card" id="reembolsos">
+          <h2 class="refunds-h2">2. Reembolsos</h2>
+
+          <div class="refunds-callout">
+            <div class="refunds-callout-icon">⛔</div>
+            <div>
+              <p class="refunds-callout-title">No reembolsos tras activar el acceso</p>
+              <p class="refunds-callout-text">
+                Debido a la naturaleza digital del servicio y al acceso inmediato tras la compra,
+                <strong>no se realizan reembolsos</strong> una vez activada la suscripción.
+                Esto aplica a planes <strong>mensuales</strong> y <strong>anuales</strong>.
+              </p>
+            </div>
+          </div>
+
+          <p class="refunds-p">
+            Recomendamos revisar los detalles del plan antes de finalizar la compra.
+          </p>
+        </section>
+
+        <section class="refunds-card" id="excepciones">
+          <h2 class="refunds-h2">3. Excepciones</h2>
+          <p class="refunds-p">
+            En casos excepcionales evaluaremos la solicitud de forma individual, por ejemplo:
+          </p>
+          <ul class="refunds-list">
+            <li>Cobro duplicado o incorrecto.</li>
+            <li>Problemas técnicos que impidan el acceso tras el pago.</li>
+            <li>Error evidente en el plan facturado (cuando corresponda).</li>
+          </ul>
+
+          <div class="refunds-note">
+            <strong>Importante:</strong> una evaluación excepcional no garantiza un reembolso.
+          </div>
+        </section>
+
+        <section class="refunds-card" id="cancelacion">
+          <h2 class="refunds-h2">4. Cancelación de suscripción</h2>
+          <p class="refunds-p">
+            La suscripción puede cancelarse para evitar renovaciones futuras. La cancelación
+            detiene el próximo cobro, pero no implica reembolso del período ya pagado.
+          </p>
+        </section>
+
+        <section class="refunds-card" id="contacto">
+          <h2 class="refunds-h2">5. Contacto</h2>
+          <p class="refunds-p">
+            Si crees que ocurrió un error en el cobro o tienes dudas, contáctanos:
+          </p>
+
+          <div class="refunds-contact">
+            <div class="refunds-contact-row">
+              <span class="refunds-contact-label">Email</span>
+              <a class="refunds-contact-value" href="mailto:support@iakids.app">support@iakids.app</a>
+            </div>
+            <div class="refunds-contact-row">
+              <span class="refunds-contact-label">Tiempo de respuesta</span>
+              <span class="refunds-contact-value">24–48 horas hábiles</span>
+            </div>
+          </div>
+
+          <div class="refunds-footer-cta">
+            <a class="refunds-primary-btn" href="/planes">Ver planes</a>
+            <a class="refunds-secondary-btn" href="#top">Volver arriba</a>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+
+</body>
+</html>
