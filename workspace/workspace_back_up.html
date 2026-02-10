@@ -1098,6 +1098,22 @@ header{
 </head>
 
 <body>
+<!-- ===== QUOTA MODAL ===== -->
+<div class="modal-overlay" id="quotaModal">
+  <div class="modal">
+    <h2>🚫 Se acabaron las preguntas</h2>
+
+    <p style="font-size:15px; color:#374151; margin-bottom:14px;">
+      Ya usaste todas las preguntas gratuitas.<br>
+      Para seguir usando iakids, un adulto debe activar el acceso completo.
+    </p>
+
+    <div class="modal-actions">
+      <button onclick="closeQuotaModal()">Cerrar</button>
+      <button class="save" onclick="goToUpgrade()">🔒 Desbloquear</button>
+    </div>
+  </div>
+</div>
 <button class="hamburger" onclick="toggleSidebar()">
   <i class="fa-solid fa-bars"></i>
 </button>
@@ -1327,9 +1343,9 @@ header{
           </div>
         </div>
 
-        <div class="limits">
-          Questions <span>70 / 70</span> &nbsp; Images <span>4 / 4</span> &nbsp; Voice <span>5 min</span>
-        </div>
+<!--        <div class="limits">-->
+<!--          Questions <span>70 / 70</span> &nbsp; Images <span>4 / 4</span> &nbsp; Voice <span>5 min</span>-->
+<!--        </div>-->
       </div>
 
 <div class="chat-wrapper">
@@ -1554,12 +1570,25 @@ async function sendMessage() {
 
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("API ERROR:", res.status, errText);
-      addMessage("assistant", `❌ API error ${res.status}`);
-      return;
+if (!res.ok) {
+
+  // 🔒 חסימת קווטה
+  if (res.status === 403) {
+    const err = await res.json();
+
+    if (err?.detail?.error === "quota_exceeded") {
+      openQuotaModal();
+      return; // ⛔ לא מכניסים הודעה לצ'אט
     }
+  }
+
+  // שגיאה אחרת
+  const errText = await res.text();
+  console.error("API ERROR:", res.status, errText);
+  addMessage("assistant", "⚠️ Algo salió mal. Intenta más tarde.");
+  return;
+}
+
 
     const data = await res.json();
     console.log("CHAT RESPONSE:", data);
@@ -1598,7 +1627,7 @@ const QUICK_ASK_MAP = {
   fun: "Quiero algo divertido 😄",
   sleep: "¿Puedes contarme una historia tranquila?",
   now: "¿Qué puedo hacer ahora?",
-  askie: "Askie, necesito ayuda",
+  iakids: "iakids, necesito ayuda",
 
   // IDEAS
   idea_homework: "¿Me ayudas con algo de la escuela?",
@@ -1933,5 +1962,18 @@ async function createKid(){
   </div>
 </div>
 
+<script>
+function openQuotaModal(){
+  document.getElementById("quotaModal").style.display = "flex";
+}
+
+function closeQuotaModal(){
+  document.getElementById("quotaModal").style.display = "none";
+}
+
+function goToUpgrade(){
+  window.location.href = "https://iakids.app/planes/";
+}
+</script>
 </body>
 </html>
