@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Preparing – Kids AI</title>
+  <title>Completing setup…</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Supabase -->
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body{
@@ -16,141 +15,87 @@
       align-items:center;
       justify-content:center;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:linear-gradient(90deg,#f8f4ef,#eaf4ff);
-      color:#0b1220;
+      background:#f8fafc;
     }
-
-    .box{
-      text-align:center;
-    }
-
-    .check{
-      width:72px;
-      height:72px;
-      border-radius:50%;
-      background:#4ade80;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin:0 auto 20px;
-      font-size:36px;
-      color:#fff;
-    }
-
-    h1{
-      font-size:22px;
-      margin-bottom:14px;
-    }
-
-    .bar{
-      width:260px;
-      height:6px;
-      background:#e5e7eb;
-      border-radius:999px;
-      overflow:hidden;
-      margin:0 auto 10px;
-    }
-
-    .bar span{
-      display:block;
-      height:100%;
-      width:0%;
-      background:linear-gradient(90deg,#ff7a66,#38bdf8);
-      animation:load 2.5s ease-in-out forwards;
-    }
-
-    @keyframes load{
-      to{ width:100%; }
-    }
-
-    .sub{
-      font-size:14px;
-      color:#6b7280;
-    }
+    .box{text-align:center}
   </style>
 </head>
 
 <body>
   <div class="box">
-    <div class="check">✓</div>
-
-    <h1>Personalizing for you…</h1>
-
-    <div class="bar">
-      <span></span>
-    </div>
-
-    <div class="sub">Almost ready…</div>
+    <h2>Finalizing child profile…</h2>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
-
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let redirected = false;
-
-// Safety fallback – רק אם אין auth בכלל
-setTimeout(() => {
-  if (!redirected) {
-    window.location.replace("/onboarding/cuenta/");
-  }
-}, 8000);
+const sb = supabase.createClient(
+  "https://bxnfzuglfwytiyaguwjj.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
+);
 
 (async () => {
-  // ✅ הדרך הנכונה: משתמש מחובר בפועל
-  const { data: { user }, error: authError } = await sb.auth.getUser();
+  console.log("▶ COMPLETE START");
 
-  if (authError || !user) {
-    console.error("Auth not ready", authError);
-    window.location.replace("/onboarding/cuenta/");
+  /* 1️⃣ get authenticated user */
+  const { data: userRes, error: userErr } = await sb.auth.getUser();
+  if (userErr || !userRes?.user) {
+    console.error("❌ no auth user", userErr);
+    alert("No authenticated user");
     return;
   }
+
+  const userId = userRes.user.id;
+  console.log("✅ auth user:", userId);
+
+  /* 2️⃣ read child data from SESSION STORAGE */
+  const child_name = sessionStorage.getItem("child_name");
+  const age = Number(sessionStorage.getItem("child_age"));
+  const avatar_key = sessionStorage.getItem("child_avatar");
+
+  const usage_goals = JSON.parse(
+    sessionStorage.getItem("kid_usage") || "[]"
+  );
+
+  const learning_interests = JSON.parse(
+    sessionStorage.getItem("learning_interests") || "[]"
+  );
 
   const payload = {
-    user_id: user.id,
-    child_name: sessionStorage.getItem("child_name"),
-    age: Number(sessionStorage.getItem("child_age")),
-    avatar_key: sessionStorage.getItem("child_avatar"),
-    usage_goals: JSON.parse(sessionStorage.getItem("kid_usage") || "[]"),
-    learning_interests: JSON.parse(
-      sessionStorage.getItem("learning_interests") || "[]"
-    )
+    user_id: userId,
+    child_name,
+    age,
+    avatar_key,
+    usage_goals,
+    learning_interests
   };
 
-  if (!payload.child_name || !payload.age) {
-    console.warn("No onboarding data found, skipping insert");
-    redirected = true;
-    window.location.replace("/workspace/");
+  console.log("📦 INSERT PAYLOAD:", payload);
+
+  /* 3️⃣ validate */
+  if (!child_name || !age) {
+    alert("Missing child data");
     return;
   }
 
-  console.log("FINAL PAYLOAD", payload);
-
-  // ✅ INSERT עם בדיקה אמיתית
+  /* 4️⃣ INSERT */
   const { data, error } = await sb
     .from("kids_profiles")
-    .insert([payload])
-    .select()
-    .single();
+    .insert(payload)
+    .select();
 
   if (error) {
-    console.error("INSERT FAILED:", error);
-    return; // ❗ לא redirect אם נכשל
+    console.error("❌ INSERT ERROR", error);
+    alert(error.message);
+    return;
   }
 
-  console.log("INSERT OK:", data);
+  console.log("✅ INSERTED:", data);
 
-  sessionStorage.clear();
-  localStorage.setItem("kid_profile_saved", "1");
-
-  redirected = true;
+  /* 5️⃣ cleanup + redirect */
+  sessionStorage.setItem("kid_profile_saved", "1");
   window.location.replace("/workspace/");
+
 })();
 </script>
-
 
 </body>
 </html>
