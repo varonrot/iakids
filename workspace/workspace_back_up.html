@@ -1094,6 +1094,70 @@ header{
 }
 
 
+      /* ===== USER MENU (HOVER) ===== */
+.user-menu{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+
+/* trigger (avatar + name) */
+.user-trigger{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+}
+
+.user-trigger img{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+}
+
+/* popover */
+.user-popover{
+  position:absolute;
+  top:100%;
+  right:0;
+  margin-top:8px;
+
+  min-width:200px;
+  padding:8px;
+
+  background:#ffffff;
+  border-radius:14px;
+
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+
+  display:none;
+  flex-direction:column;
+  gap:6px;
+
+  z-index:9999;
+}
+
+/* hover opens */
+.user-menu:hover .user-popover{
+  display:flex;
+}
+
+/* buttons */
+.user-popover button{
+  all:unset;
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  color:#111827;
+}
+
+.user-popover button:hover{
+  background:#f3f4f6;
+}
+
+
   </style>
 </head>
 
@@ -1324,10 +1388,23 @@ header{
   <span class="logo-text">kids</span>
 </div>
 
-      <div class="user">
-        <img id="userAvatar" />
-        <span id="userName"></span>
-      </div>
+<div class="user-menu">
+  <div class="user-trigger">
+    <img id="userAvatar" />
+    <span id="userName"></span>
+  </div>
+
+  <div class="user-popover">
+    <button onclick="window.location.href='/parent/dashboard'">
+      🧑‍💼 Dashboard padres
+    </button>
+
+    <button onclick="sb.auth.signOut().then(()=>location.href='/')">
+      🚪 Logout
+    </button>
+  </div>
+</div>
+
     </header>
 
     <div class="container">
