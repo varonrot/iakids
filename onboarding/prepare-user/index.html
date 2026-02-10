@@ -148,6 +148,29 @@ const setStatus = (t) => statusEl.textContent = t;
 
   const user = userData.user;
   console.log("User:", user.id);
+  
+    // 🔍 CHECK: does this user already have a child?
+  setStatus("Checking existing child profile…");
+
+  const { data: kids, error: kidsErr } = await sb
+    .from("kids_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .limit(1);
+
+  if (kidsErr) {
+    console.error("kids check failed", kidsErr);
+  }
+
+  if (kids && kids.length > 0) {
+    console.log("✅ Child exists → redirect to workspace");
+
+    // ניקוי onboarding ישן (חשוב!)
+    sessionStorage.clear();
+
+    window.location.replace("/workspace/");
+    return; // ⛔ עוצר פה — לא ממשיכים onboarding
+  }
 
   // 3️⃣ Create subscription (safe even if already exists with RLS / unique constraint)
   setStatus("Activating free plan…");
@@ -160,7 +183,7 @@ const setStatus = (t) => statusEl.textContent = t;
 // 4️⃣ Finish after animation
 setTimeout(() => {
   setStatus("Ready!");
-  
+
   // small pause so user sees "Ready"
   setTimeout(() => {
     window.location.href = "/onboarding/complete/";
