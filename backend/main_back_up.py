@@ -7,19 +7,40 @@ import os
 from pathlib import Path
 import json
 
-CORE_PROMPT_TEMPLATE = Path("prompts/iakids_core_chat_system_prompt.txt").read_text()
+from pathlib import Path
+import os
+
+# ===== LOAD PROMPTS =====
+
+CORE_PROMPT_TEMPLATE = Path(
+    "prompts/iakids_core_chat_system_prompt.txt"
+).read_text()
+
 print("=== CORE PROMPT LOADED ===")
 print(CORE_PROMPT_TEMPLATE[:300])
 print("=========================")
+
+MODE_PROMPT_TEMPLATE = Path(
+    "prompts/iakids_mode_guidance_prompt.txt"
+).read_text()
+
+print("=== MODE PROMPT LOADED ===")
+print(MODE_PROMPT_TEMPLATE[:300])
+print("==========================")
+
+# ===== ENV =====
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# ===== CLIENTS =====
+
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 app = FastAPI()
+
 
 # ✅ ONE CORS ONLY
 app.add_middleware(
@@ -40,6 +61,8 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
+    kid_id: str
+    mode: str | None = None
 
 class CreateChildProfileRequest(BaseModel):
     user_id: str
@@ -112,6 +135,24 @@ def get_recent_chat_messages(kid_id: str, limit: int = 8) -> str:
     messages = reversed(res.data or [])
     return "\n".join(f"{m['role']}: {m['content']}" for m in messages)
 
+def get_recent_chat_messages_for_llm(kid_id: str, limit: int = 7):
+    res = (
+        sb.table("kids_chats")
+        .select("role, content")
+        .eq("kid_id", kid_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    messages = list(reversed(res.data or []))
+
+    return [
+        {"role": m["role"], "content": m["content"]}
+        for m in messages
+        if m["role"] in ("user", "assistant")
+    ]
+
 def get_child_profile(user_id: str):
     res = (
         sb.table("kids_profiles")
@@ -123,6 +164,21 @@ def get_child_profile(user_id: str):
     if not res.data:
         raise HTTPException(status_code=404, detail="No child profile found")
     return res.data[0]
+
+def get_child_by_id(user_id: str, kid_id: str):
+    res = (
+        sb.table("kids_profiles")
+        .select("*")
+        .eq("id", kid_id)
+        .eq("user_id", user_id)
+        .single()
+        .execute()
+    )
+
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Child not found")
+
+    return res.data
 
 def save_chat_message(
     user_id: str,
@@ -159,8 +215,35 @@ def chat(
             raise HTTPException(status_code=401, detail="Invalid session")
 
         user = user_res.user
-        child = get_child_profile(user.id)
+
+        kid_id = body.kid_id
+        if not kid_id:
+            raise HTTPException(status_code=400, detail="kid_id is required")
+
+        child = get_child_by_id(user.id, kid_id)
         existing_memory = get_existing_kids_memory(child["id"])
+        sub = (
+            sb.table("subscriptions")
+            .select("messages_used")
+            .eq("user_id", user.id)
+            .single()
+            .execute()
+        )
+
+        used = sub.data["messages_used"] if sub.data else 0
+        LIMIT = 2  # זמני לבדיקה
+
+        print("SUBSCRIPTION MESSAGES USED:", used)
+
+        if used >= LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "quota_exceeded",
+                    "used": used,
+                    "limit": LIMIT
+                }
+            )
 
         save_chat_message(
             user_id=user.id,
@@ -168,21 +251,36 @@ def chat(
             role="user",
             content=body.message
         )
+        sb.table("subscriptions").upsert({
+            "user_id": user.id,
+            "plan": "free",
+            "status": "active",
+            "messages_used": used + 1
+        }, on_conflict=["user_id"]).execute()
 
-        system_prompt = CORE_PROMPT_TEMPLATE.format(
+        mode_value = body.mode or "unknown"
+
+        system_prompt = (
+                CORE_PROMPT_TEMPLATE
+                + "\n\n"
+                + MODE_PROMPT_TEMPLATE.format(
             child_name=child["child_name"],
             age=child["age"],
             avatar_key=child.get("avatar_key", ""),
             learning_interests=", ".join(child.get("learning_interests", [])),
             usage_goals=", ".join(child.get("usage_goals", [])),
-            kids_memory=existing_memory
+            kids_memory=existing_memory,
+            mode=mode_value
         )
+        )
+
+        recent_messages = get_recent_chat_messages_for_llm(child["id"], limit=7)
 
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": body.message}
+                *recent_messages
             ]
         )
 
@@ -262,6 +360,14 @@ def chat(
 
         return {"reply": answer}
 
+
+    except HTTPException:
+
+        raise
+
+
     except Exception as e:
+
         print("CHAT ERROR:", e)
+
         raise HTTPException(status_code=500, detail="Chat failed")
