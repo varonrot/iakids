@@ -1138,17 +1138,25 @@ header{
   background:#f3f4f6;
 }
 
-/* DESKTOP – hover */
-@media (hover:hover){
-  .user-menu:hover .user-popover{
-    display:flex;
-  }
+
 }
 .user-avatar{
   width:34px;
   height:34px;
   border-radius:50%;
   object-fit:cover;
+}
+.user-popover{
+  opacity:0;
+  transform:translateY(-6px);
+  pointer-events:none;
+  transition:.15s ease;
+}
+
+.user-popover[style*="flex"]{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
 }
 
   </style>
@@ -2041,18 +2049,24 @@ function goToUpgrade(){
 }
 </script>
 <script>
+const userMenu = document.querySelector(".user-menu");
 const userTrigger = document.querySelector(".user-trigger");
 const popover = document.querySelector(".user-popover");
 
-userTrigger?.addEventListener("click", (e) => {
+userTrigger.addEventListener("click", (e) => {
   e.stopPropagation();
   popover.style.display =
     popover.style.display === "flex" ? "none" : "flex";
 });
 
-document.addEventListener("click", () => {
-  if (popover) popover.style.display = "none";
+// ⬅️ סוגר רק אם לוחצים מחוץ לאזור
+document.addEventListener("click", (e) => {
+  if (!userMenu.contains(e.target)) {
+    popover.style.display = "none";
+  }
 });
+
+
 </script>
 <script>
 function goToParentDashboard(){
