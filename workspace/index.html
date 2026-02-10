@@ -2054,6 +2054,41 @@ document.getElementById("logoutUser").onclick = async () => {
   window.location.href = "/login/";
 };
 </script>
+<script>
+(function(){
+  const userMenu   = document.querySelector(".user-menu");
+  const userAvatar = document.querySelector(".user-avatar");
+  const popover    = document.querySelector(".user-popover");
+
+  if (!userMenu || !userAvatar || !popover) {
+    console.warn("User menu elements missing");
+    return;
+  }
+
+  // toggle on avatar click
+  userAvatar.addEventListener("click", e => {
+    e.stopPropagation();
+    userMenu.classList.toggle("open");
+  });
+
+  // prevent closing when clicking inside popover
+  popover.addEventListener("click", e => {
+    e.stopPropagation();
+  });
+
+  // click outside closes
+  document.addEventListener("click", () => {
+    userMenu.classList.remove("open");
+  });
+
+  // ESC closes
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+      userMenu.classList.remove("open");
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
