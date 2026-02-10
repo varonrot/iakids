@@ -1144,6 +1144,12 @@ header{
     display:flex;
   }
 }
+.user-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+}
 
   </style>
 </head>
@@ -1377,7 +1383,7 @@ header{
 
         <div class="user-menu">
   <div class="user-trigger">
-    <img id="userAvatar" />
+    <img id="userAvatar" class="user-avatar" />
     <span id="userName"></span>
   </div>
 
@@ -2050,7 +2056,7 @@ document.addEventListener("click", () => {
 </script>
 <script>
 function goToParentDashboard(){
- 
+
   document.getElementById("parentModal").style.display = "flex";
 }
 
