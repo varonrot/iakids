@@ -1614,6 +1614,38 @@ function addMessage(role, text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+/* ---------- ASSISTANT TYPING ---------- */
+function addAssistantTyping(text, speed = 18) {
+  const row = document.createElement("div");
+  row.className = "msg-row assistant";
+
+  // avatar
+  const avatar = document.createElement("img");
+  avatar.src = "/assets/askie-robot.png";
+  avatar.className = "msg-avatar";
+  row.appendChild(avatar);
+
+  // bubble
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.textContent = "";
+  row.appendChild(bubble);
+
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  let i = 0;
+  const interval = setInterval(() => {
+    bubble.textContent += text[i];
+    i++;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    if (i >= text.length) {
+      clearInterval(interval);
+    }
+  }, speed);
+}
+
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
@@ -1668,11 +1700,11 @@ if (!res.ok) {
     const data = await res.json();
     console.log("CHAT RESPONSE:", data);
 
-    if (!data.reply || !data.reply.trim()) {
-      addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-    } else {
-      addMessage("assistant", data.reply);
-    }
+if (!data.reply || !data.reply.trim()) {
+  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
+} else {
+  addAssistantTyping(data.reply);
+}
 
   } catch (e) {
     console.error("NETWORK ERROR", e);
