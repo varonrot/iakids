@@ -77,6 +77,23 @@ if (!child_name || !age) {
   return;
 }
 
+/* 3.5️⃣ check if child already exists for this user */
+const { data: existingKids, error: checkErr } = await sb
+  .from("kids_profiles")
+  .select("id")
+  .eq("user_id", userId)
+  .limit(1);
+
+if (checkErr) {
+  console.error("❌ check error", checkErr);
+}
+
+if (existingKids && existingKids.length > 0) {
+  console.log("ℹ️ child already exists, skipping insert");
+  window.location.replace("/workspace/");
+  return;
+}
+
   /* 4️⃣ INSERT */
   const { data, error } = await sb
     .from("kids_profiles")
