@@ -1093,6 +1093,57 @@ header{
   display:none !important;
 }
 
+/* ===== USER POPOVER ===== */
+.user-menu{
+  position:relative;
+}
+
+.user-trigger{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+}
+
+.user-popover{
+  position:absolute;
+  top:44px;
+  right:0;
+  width:200px;
+
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(10px);
+  border-radius:14px;
+  padding:8px;
+
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+
+  display:none;
+  flex-direction:column;
+  gap:6px;
+
+  z-index:999;
+}
+
+.user-popover button{
+  all:unset;
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.user-popover button:hover{
+  background:#f3f4f6;
+}
+
+/* DESKTOP – hover */
+@media (hover:hover){
+  .user-menu:hover .user-popover{
+    display:flex;
+  }
+}
 
   </style>
 </head>
@@ -1324,10 +1375,18 @@ header{
   <span class="logo-text">kids</span>
 </div>
 
-      <div class="user">
-        <img id="userAvatar" />
-        <span id="userName"></span>
-      </div>
+        <div class="user-menu">
+  <div class="user-trigger">
+    <img id="userAvatar" />
+    <span id="userName"></span>
+  </div>
+
+  <div class="user-popover">
+    <button onclick="goToParentDashboard()">🧑‍💼 Dashboard de padres</button>
+    <button onclick="logout()">🚪 Cerrar sesión</button>
+  </div>
+</div>
+
     </header>
 
     <div class="container">
@@ -1975,5 +2034,31 @@ function goToUpgrade(){
   window.location.href = "https://iakids.app/planes/";
 }
 </script>
+<script>
+const userTrigger = document.querySelector(".user-trigger");
+const popover = document.querySelector(".user-popover");
+
+userTrigger?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  popover.style.display =
+    popover.style.display === "flex" ? "none" : "flex";
+});
+
+document.addEventListener("click", () => {
+  if (popover) popover.style.display = "none";
+});
+</script>
+<script>
+function goToParentDashboard(){
+ 
+  document.getElementById("parentModal").style.display = "flex";
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  window.location.href = "/onboarding/cuenta/";
+}
+</script>
+
 </body>
 </html>
