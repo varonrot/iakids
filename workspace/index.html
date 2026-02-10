@@ -1097,9 +1097,12 @@ header{
   position:relative;
   display:flex;
   align-items:center;
+
+  /* אזור בטוח בין האווטאר לפופובר */
+  padding-bottom:14px;
 }
 
-/* avatar */
+/* ===== AVATAR ===== */
 .user-avatar{
   width:34px;
   height:34px;
@@ -1108,12 +1111,11 @@ header{
   cursor:pointer;
 }
 
-/* popover */
+/* ===== POPOVER ===== */
 .user-popover{
   position:absolute;
-  top:100%;
+  top:calc(100% + 4px);   /* בלי gap מסוכן */
   right:0;
-  margin-top:8px;
 
   min-width:200px;
   padding:8px;
@@ -1128,25 +1130,29 @@ header{
   gap:6px;
 
   z-index:9999;
+
+  /* חשוב ליציבות hover */
+  pointer-events:auto;
 }
 
-/* ===== DESKTOP: hover ===== */
+/* ===== DESKTOP: HOVER (יציב) ===== */
 @media (hover:hover) and (pointer:fine){
   .user-menu:hover .user-popover{
     display:flex;
   }
 }
 
-/* ===== MOBILE: controlled by class ===== */
+/* ===== CLICK MODE (מובייל / JS) ===== */
 .user-menu.open .user-popover{
   display:flex;
 }
 
-/* buttons */
+/* ===== BUTTONS ===== */
 .user-popover button{
   all:unset;
   padding:10px 12px;
   border-radius:10px;
+
   font-size:14px;
   font-weight:600;
   cursor:pointer;
@@ -1159,12 +1165,17 @@ header{
 
 /* ===== MOBILE FIXES ===== */
 @media (max-width:768px){
+  .user-menu{
+    padding-bottom:0;
+  }
+
   .user-popover{
     right:0;
     left:auto;
     min-width:180px;
   }
 }
+ 
 
   </style>
 </head>
