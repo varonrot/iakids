@@ -1093,38 +1093,47 @@ header{
   display:none !important;
 }
 
-/* ===== USER POPOVER ===== */
+/* ===== USER MENU (TOP RIGHT) ===== */
 .user-menu{
   position:relative;
 }
 
-.user-trigger{
-  display:flex;
-  align-items:center;
-  gap:10px;
+/* avatar size – קבוע, לא נשבר */
+.user-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
   cursor:pointer;
 }
 
+/* popover box */
 .user-popover{
   position:absolute;
-  top:44px;
+  top:44px;              /* מתחת לאווטאר */
   right:0;
-  width:200px;
 
-  background:rgba(255,255,255,.95);
-  backdrop-filter:blur(10px);
-  border-radius:14px;
+  min-width:200px;
   padding:8px;
 
-  box-shadow:0 12px 40px rgba(0,0,0,.25);
+  background:#ffffff;
+  border-radius:14px;
+
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
 
   display:none;
   flex-direction:column;
   gap:6px;
 
-  z-index:999;
+  z-index:9999;
 }
 
+/* hover logic – חשוב */
+.user-menu:hover .user-popover{
+  display:flex;
+}
+
+/* buttons */
 .user-popover button{
   all:unset;
   padding:10px 12px;
@@ -1132,32 +1141,11 @@ header{
   font-size:14px;
   font-weight:600;
   cursor:pointer;
+  color:#111827;
 }
 
 .user-popover button:hover{
   background:#f3f4f6;
-}
-
-
-}
-.user-avatar{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  object-fit:cover;
-}
-
-.user-popover{
-  opacity:0;
-  transform:translateY(-6px);
-  pointer-events:none;
-  transition:.15s ease;
-}
-
-.user-popover[style*="flex"]{
-  opacity:1;
-  transform:translateY(0);
-  pointer-events:auto;
 }
 
   </style>
@@ -1390,15 +1378,14 @@ header{
   <span class="logo-text">kids</span>
 </div>
 
-        <div class="user-menu">
-  <div class="user-trigger">
-    <img id="userAvatar" class="user-avatar" />
-    <span id="userName"></span>
-  </div>
+<div class="user user-menu">
+  <img id="userAvatar" class="user-avatar" />
+  <span id="userName"></span>
 
+  <!-- POPOVER -->
   <div class="user-popover">
-    <button onclick="goToParentDashboard()">🧑‍💼 Dashboard de padres</button>
-    <button onclick="logout()">🚪 Cerrar sesión</button>
+    <button id="goParents">👨‍👩‍👧 Dashboard de padres</button>
+    <button id="logoutUser">🚪 Cerrar sesión</button>
   </div>
 </div>
 
@@ -2050,42 +2037,14 @@ function goToUpgrade(){
 }
 </script>
 <script>
-const userMenu = document.querySelector(".user-menu");
-const userTrigger = document.querySelector(".user-trigger");
-const popover = document.querySelector(".user-popover");
+document.getElementById("goParents").onclick = () => {
+  window.location.href = "/parents/dashboard/";
+};
 
-userTrigger.addEventListener("click", (e) => {
-  // בדסקטופ – hover פותח, לא click
-  if (window.matchMedia("(hover: hover)").matches) return;
-
-  e.stopPropagation();
-  popover.style.display =
-    popover.style.display === "flex" ? "none" : "flex";
-});
-
-document.addEventListener("click", (e) => {
-  if (!userMenu.contains(e.target)) {
-    popover.style.display = "none";
-  }
-});
-@media (hover: hover){
-  .user-menu:hover .user-popover{
-    display:flex;
-  }
-}
-
-
-</script>
-<script>
-function goToParentDashboard(){
-
-  document.getElementById("parentModal").style.display = "flex";
-}
-
-async function logout(){
+document.getElementById("logoutUser").onclick = async () => {
   await sb.auth.signOut();
-  window.location.href = "/onboarding/cuenta/";
-}
+  window.location.href = "/login/";
+};
 </script>
 
 </body>
