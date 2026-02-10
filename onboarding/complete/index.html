@@ -70,11 +70,12 @@ const sb = supabase.createClient(
 
   console.log("📦 INSERT PAYLOAD:", payload);
 
-  /* 3️⃣ validate */
-  if (!child_name || !age) {
-    alert("Missing child data");
-    return;
-  }
+/* 3️⃣ validate */
+if (!child_name || !age) {
+  console.log("ℹ️ No onboarding data, redirecting to workspace");
+  window.location.replace("/workspace/");
+  return;
+}
 
   /* 4️⃣ INSERT */
   const { data, error } = await sb
