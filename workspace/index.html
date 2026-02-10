@@ -1092,33 +1092,41 @@ header{
 .talk-btn{
   display:none !important;
 }
-/* ===== USER MENU ===== */
+
+/* ===== USER MENU (HOVER) ===== */
 .user-menu{
   position:relative;
   display:flex;
   align-items:center;
 }
 
-/* avatar */
-.user-avatar{
+/* trigger (avatar + name) */
+.user-trigger{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+}
+
+.user-trigger img{
   width:34px;
   height:34px;
   border-radius:50%;
-  object-fit:cover;
-  cursor:pointer;
 }
 
 /* popover */
 .user-popover{
   position:absolute;
-  top:calc(100% + 6px);
+  top:100%;
   right:0;
+  margin-top:8px;
 
   min-width:200px;
   padding:8px;
 
   background:#ffffff;
   border-radius:14px;
+
   box-shadow:0 12px 30px rgba(0,0,0,.18);
 
   display:none;
@@ -1128,8 +1136,8 @@ header{
   z-index:9999;
 }
 
-/* OPEN STATE – ONLY THIS CONTROLS VISIBILITY */
-.user-menu.open .user-popover{
+/* hover opens */
+.user-menu:hover .user-popover{
   display:flex;
 }
 
@@ -1147,14 +1155,6 @@ header{
 .user-popover button:hover{
   background:#f3f4f6;
 }
-
-/* mobile width tweak */
-@media (max-width:768px){
-  .user-popover{
-    min-width:180px;
-  }
-}
-
 
   </style>
 </head>
@@ -1386,14 +1386,20 @@ header{
   <span class="logo-text">kids</span>
 </div>
 
-<div class="user user-menu">
-  <img id="userAvatar" class="user-avatar" />
-  <span id="userName"></span>
+<div class="user-menu">
+  <div class="user-trigger">
+    <img id="userAvatar" />
+    <span id="userName"></span>
+  </div>
 
-  <!-- POPOVER -->
   <div class="user-popover">
-    <button id="goParents">👨‍👩‍👧 Dashboard de padres</button>
-    <button id="logoutUser">🚪 Cerrar sesión</button>
+    <button onclick="window.location.href='/parent/dashboard'">
+      🧑‍💼 Dashboard padres
+    </button>
+
+    <button onclick="sb.auth.signOut().then(()=>location.href='/')">
+      🚪 Logout
+    </button>
   </div>
 </div>
 
@@ -2044,51 +2050,5 @@ function goToUpgrade(){
   window.location.href = "https://iakids.app/planes/";
 }
 </script>
-<script>
-document.getElementById("goParents").onclick = () => {
-  window.location.href = "/parents/dashboard/";
-};
-
-document.getElementById("logoutUser").onclick = async () => {
-  await sb.auth.signOut();
-  window.location.href = "/login/";
-};
-</script>
-<script>
-(function(){
-  const userMenu   = document.querySelector(".user-menu");
-  const userAvatar = document.querySelector(".user-avatar");
-  const popover    = document.querySelector(".user-popover");
-
-  if (!userMenu || !userAvatar || !popover) {
-    console.warn("User menu elements missing");
-    return;
-  }
-
-  // toggle on avatar click
-  userAvatar.addEventListener("click", e => {
-    e.stopPropagation();
-    userMenu.classList.toggle("open");
-  });
-
-  // prevent closing when clicking inside popover
-  popover.addEventListener("click", e => {
-    e.stopPropagation();
-  });
-
-  // click outside closes
-  document.addEventListener("click", () => {
-    userMenu.classList.remove("open");
-  });
-
-  // ESC closes
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") {
-      userMenu.classList.remove("open");
-    }
-  });
-})();
-</script>
-
 </body>
 </html>
