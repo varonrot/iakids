@@ -1092,17 +1092,14 @@ header{
 .talk-btn{
   display:none !important;
 }
-/* ===== USER MENU (TOP RIGHT) ===== */
+/* ===== USER MENU ===== */
 .user-menu{
   position:relative;
   display:flex;
   align-items:center;
-
-  /* אזור בטוח בין האווטאר לפופובר */
-  padding-bottom:14px;
 }
 
-/* ===== AVATAR ===== */
+/* avatar */
 .user-avatar{
   width:34px;
   height:34px;
@@ -1111,10 +1108,10 @@ header{
   cursor:pointer;
 }
 
-/* ===== POPOVER ===== */
+/* popover */
 .user-popover{
   position:absolute;
-  top:calc(100% + 4px);   /* בלי gap מסוכן */
+  top:calc(100% + 6px);
   right:0;
 
   min-width:200px;
@@ -1122,7 +1119,6 @@ header{
 
   background:#ffffff;
   border-radius:14px;
-
   box-shadow:0 12px 30px rgba(0,0,0,.18);
 
   display:none;
@@ -1130,29 +1126,18 @@ header{
   gap:6px;
 
   z-index:9999;
-
-  /* חשוב ליציבות hover */
-  pointer-events:auto;
 }
 
-/* ===== DESKTOP: HOVER (יציב) ===== */
-@media (hover:hover) and (pointer:fine){
-  .user-menu:hover .user-popover{
-    display:flex;
-  }
-}
-
-/* ===== CLICK MODE (מובייל / JS) ===== */
+/* OPEN STATE – ONLY THIS CONTROLS VISIBILITY */
 .user-menu.open .user-popover{
   display:flex;
 }
 
-/* ===== BUTTONS ===== */
+/* buttons */
 .user-popover button{
   all:unset;
   padding:10px 12px;
   border-radius:10px;
-
   font-size:14px;
   font-weight:600;
   cursor:pointer;
@@ -1163,19 +1148,13 @@ header{
   background:#f3f4f6;
 }
 
-/* ===== MOBILE FIXES ===== */
+/* mobile width tweak */
 @media (max-width:768px){
-  .user-menu{
-    padding-bottom:0;
-  }
-
   .user-popover{
-    right:0;
-    left:auto;
     min-width:180px;
   }
 }
- 
+
 
   </style>
 </head>
