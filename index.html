@@ -2408,6 +2408,36 @@ body{
   cursor:pointer;
   font-weight:600;
 }
+.user-menu{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.user-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.user-avatar-fallback{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#ffffff;
+  color:#111827;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.user-email{
+  font-size:13px;
+  color:#ffffff;
+  opacity:.8;
+}
 
 </style>
   <script type="application/ld+json">
@@ -2781,81 +2811,7 @@ body{
 </section>
 
 
-
-<!--<section class="pricing-clean" id="pricing">-->
-<!--  <div class="pricing-inner">-->
-
-<!--    <span class="pricing-pill">PLANES SIMPLES</span>-->
-<!--    <h2>Planes claros para familias</h2>-->
-<!--    <p class="pricing-sub">-->
-<!--      Elige cómo quieres empezar. Sin compromisos, sin sorpresas.-->
-<!--    </p>-->
-
-<!--    <div class="pricing-grid">-->
-
-<!--      &lt;!&ndash; FREE &ndash;&gt;-->
-<!--      <div class="plan-card">-->
-<!--        <h3>Gratis</h3>-->
-<!--        <div class="plan-price">-->
-<!--          <span class="amount">$0</span>-->
-<!--          <span class="period">/ 7 días</span>-->
-<!--        </div>-->
-
-<!--        <ul>-->
-<!--          <li>70 preguntas de texto</li>-->
-<!--          <li>4 imágenes</li>-->
-<!--          <li>5 minutos de voz</li>-->
-<!--          <li>Contenido seguro por edad</li>-->
-<!--          <li>1 perfil infantil</li>-->
-<!--        </ul>-->
-
-<!--        <a href="#" class="btn secondary">Comenzar gratis</a>-->
-<!--      </div>-->
-
-<!--      &lt;!&ndash; MONTHLY &ndash;&gt;-->
-<!--      <div class="plan-card">-->
-<!--        <h3>Mensual</h3>-->
-<!--        <div class="plan-price">-->
-<!--          <span class="amount">$9.99</span>-->
-<!--          <span class="period">/ mes</span>-->
-<!--        </div>-->
-
-<!--        <ul>-->
-<!--          <li>Preguntas ilimitadas</li>-->
-<!--          <li>50 imágenes por semana</li>-->
-<!--          <li>100 minutos de voz</li>-->
-<!--          <li>Perfiles para varios niños</li>-->
-<!--          <li>Control parental completo</li>-->
-<!--        </ul>-->
-
-<!--        <a href="#" class="btn secondary">Elegir mensual</a>-->
-<!--      </div>-->
-
-<!--      &lt;!&ndash; ANNUAL &ndash;&gt;-->
-<!--      <div class="plan-card featured">-->
-<!--        <span class="badge">Recomendado</span>-->
-<!--        <h3>Anual</h3>-->
-
-<!--        <div class="plan-price">-->
-<!--          <span class="amount">$78</span>-->
-<!--          <span class="period">/ año</span>-->
-<!--        </div>-->
-
-<!--        <p class="saving">Ahorra 35% comparado con el plan mensual</p>-->
-
-<!--        <ul>-->
-<!--          <li>Todo lo del plan mensual</li>-->
-<!--          <li>Un año completo sin renovaciones mensuales</li>-->
-<!--          <li>Mejor relación precio / tranquilidad</li>-->
-<!--        </ul>-->
-
-<!--        <a href="#" class="btn primary">Elegir anual</a>-->
-<!--      </div>-->
-
-<!--    </div>-->
-
-<!--  </div>-->
-<!--</section>-->
+ 
 <section class="pricing-clean" id="pricing">
   <div class="pricing-inner">
 
@@ -3349,14 +3305,25 @@ items.forEach((item,i)=>{
 </script>
 <script>
 async function updateNavbar() {
-  const { data, error } = await supabaseClient.auth.getSession();
-
+  const { data } = await supabaseClient.auth.getSession();
   const navActions = document.getElementById("navActions");
 
   if (data.session) {
+
+    const user = data.session.user;
+    const email = user.email;
+    const avatarUrl = user.user_metadata?.avatar_url || null;
+
     navActions.innerHTML = `
-      <a href="/workspace/" class="nav-cta">Ir al Workspace</a>
-      <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+      <div class="user-menu">
+        ${avatarUrl
+          ? `<img src="${avatarUrl}" class="user-avatar">`
+          : `<div class="user-avatar-fallback">👤</div>`
+        }
+        <span class="user-email">${email}</span>
+        <a href="/workspace/" class="nav-cta">Workspace</a>
+        <button class="logout-btn" id="logoutBtn">Salir</button>
+      </div>
     `;
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -3371,8 +3338,12 @@ async function updateNavbar() {
     `;
   }
 }
- 
+
 document.addEventListener("DOMContentLoaded", updateNavbar);
+
+supabaseClient.auth.onAuthStateChange(() => {
+  updateNavbar();
+});
 </script>
 
 
