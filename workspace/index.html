@@ -1425,6 +1425,10 @@ header{
     👶 Panel para padres
   </button>
 
+  <button onclick="window.location.href='/support/'">
+    📩 Soporte
+  </button>
+
   <hr style="margin:6px 0">
 
   <button onclick="window.location.href='/parent/dashboard'">
@@ -1436,6 +1440,7 @@ header{
   </button>
 
 </div>
+
 
 </div>
 
@@ -1944,7 +1949,7 @@ if (error){
 
   heroGreeting.textContent = `Hi, ${name}!`;
   heroAvatar.src = avatarUrl;
-  
+
   document.getElementById("rightbarAvatar").src = avatarUrl;
   document.getElementById("rightbarName").textContent = name;
 
