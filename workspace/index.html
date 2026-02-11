@@ -1392,7 +1392,7 @@ header{
     <span id="userName"></span>
   </div>
 
-
+ 
 <div class="user-popover">
 
   <button onclick="openParentPanel()">
@@ -1791,17 +1791,8 @@ function toggleSidebar(){
 }
 </script>
 <!-- ===== SETTINGS MODAL ===== -->
-<div class="modal-overlay" id="parentModal">
+<div class="modal-overlay" id="settingsModal">
   <div class="modal">
-
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="margin:0;">Panel para padres</h2>
-      <button onclick="closeParentModal()"
-              style="all:unset; cursor:pointer; font-size:18px; font-weight:700;">
-        ✕
-      </button>
-    </div>
-
 
     <h2>Editar perfil del niño</h2>
 
@@ -2132,11 +2123,6 @@ function openSettingsFromMenu(){
 
   setSelected("modalGoals", CURRENT_KID.usage_goals || []);
   setSelected("modalLearning", CURRENT_KID.learning_interests || []);
-}
-</script>
-<script>
-function closeParentModal(){
-  document.getElementById("parentModal").style.display = "none";
 }
 </script>
 
