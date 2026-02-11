@@ -1941,10 +1941,13 @@ if (error){
   });
 
   const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
-  userName.textContent = name;
+
   heroGreeting.textContent = `Hi, ${name}!`;
-  userAvatar.src = avatarUrl;
   heroAvatar.src = avatarUrl;
+  
+  document.getElementById("rightbarAvatar").src = avatarUrl;
+  document.getElementById("rightbarName").textContent = name;
+
   window.KID_AVATAR_URL = avatarUrl;
 
   closeSettings();
