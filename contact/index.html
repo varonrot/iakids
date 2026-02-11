@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Funciones – iakids</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     *{
@@ -331,21 +332,21 @@
       </div>
 
       <!-- FORM -->
-      <form class="contact-form">
+      <form class="contact-form" id="contactForm">
 
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" placeholder="Tu nombre" required>
+          <input id="contactName" type="text" placeholder="Tu nombre" required>
         </div>
 
         <div class="form-group">
           <label>Email</label>
-          <input type="email" placeholder="tu@email.com" required>
+          <input id="contactEmail" type="email" placeholder="tu@email.com" required>
         </div>
 
         <div class="form-group">
           <label>Mensaje</label>
-          <textarea rows="5" placeholder="Cuéntanos cómo podemos ayudarte…" required></textarea>
+          <textarea id="contactMessage" rows="5" placeholder="Cuéntanos cómo podemos ayudarte…" required></textarea>
         </div>
 
         <button type="submit" class="contact-btn">
@@ -368,12 +369,67 @@
   color:#64748b;
 ">
   iakids es operado por <strong>Blue Horizon Digital</strong>, Israel.<br>
-  Para consultas legales: 
+  Para consultas legales:
   <a href="mailto:support@iakids.app">support@iakids.app</a>
 </p>
 
 </section>
 
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+document.getElementById("contactForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("contactName").value.trim();
+  const email = document.getElementById("contactEmail").value.trim();
+  const message = document.getElementById("contactMessage").value.trim();
+
+  if(!name || !email || !message){
+    alert("Completa todos los campos");
+    return;
+  }
+
+  // 1️⃣ create ticket
+  const { data: ticket, error: ticketError } = await sb
+    .from("support_tickets")
+    .insert({
+      subject: "Contact form message",
+      category: "question",
+      status: "open",
+      priority: "medium",
+      user_id: null
+    })
+    .select()
+    .single();
+
+  if(ticketError){
+    alert("Error creating ticket");
+    console.error(ticketError);
+    return;
+  }
+
+  // 2️⃣ insert message
+  const { error: msgError } = await sb
+    .from("support_messages")
+    .insert({
+      ticket_id: ticket.id,
+      sender_type: "user",
+      message: `Nombre: ${name}\nEmail: ${email}\n\n${message}`
+    });
+
+  if(msgError){
+    alert("Error sending message");
+    console.error(msgError);
+    return;
+  }
+
+  alert("Mensaje enviado correctamente");
+  document.getElementById("contactForm").reset();
+});
+</script>
 
 </body>
 </html>
