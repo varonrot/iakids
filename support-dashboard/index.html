@@ -52,6 +52,59 @@
     .composer{display:flex;gap:8px;margin-top:10px}
     .composer textarea{flex:1;min-height:48px;max-height:120px;resize:vertical;padding:10px;border-radius:12px;border:1px solid #d8dbe6;font-family:inherit}
     .muted{color:#777;font-size:12px}
+
+      /* ================= MOBILE ================= */
+
+@media (max-width: 900px){
+
+  .wrap{
+    grid-template-columns:1fr;
+  }
+
+  .list{
+    max-height:none;
+  }
+
+  .chat{
+    height:45vh;
+  }
+
+  .composer{
+    flex-direction:column;
+  }
+
+  .composer textarea{
+    min-height:80px;
+  }
+
+  .composer button{
+    width:100%;
+  }
+
+  .detailTop{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .kv{
+    width:100%;
+  }
+
+  .kv > div{
+    width:100%;
+  }
+
+  .kv select{
+    width:100%;
+  }
+
+  .kv button{
+    width:100%;
+    margin-top:6px;
+  }
+
+}
+
   </style>
 </head>
 <body>
