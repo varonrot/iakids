@@ -3352,28 +3352,23 @@ async function updateNavbar() {
   const { data: { session } } = await supabaseClient.auth.getSession();
 
   const navActions = document.getElementById("navActions");
-  const loginLink = document.getElementById("loginLink");
-  const startLink = document.getElementById("startLink");
 
   if (session) {
-    const email = session.user.email;
-
     navActions.innerHTML = `
-      <div class="user-menu">
-        <span class="user-email">👤 ${email}</span>
-        <button onclick="logout()" class="logout-btn">Cerrar sesión</button>
-      </div>
+      <a href="/workspace/" class="nav-cta">Ir al Workspace</a>
+      <button onclick="logout()" class="logout-btn">Cerrar sesión</button>
     `;
   }
 }
 
 async function logout() {
   await supabaseClient.auth.signOut();
-  window.location.reload();
+  window.location.href = "/";
 }
-
-updateNavbar();
+ 
+document.addEventListener("DOMContentLoaded", updateNavbar);
 </script>
+
 
 </body>
 </html>
