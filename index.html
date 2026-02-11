@@ -3350,24 +3350,30 @@ items.forEach((item,i)=>{
 <script>
 async function updateNavbar() {
   const { data: { session } } = await supabaseClient.auth.getSession();
-
   const navActions = document.getElementById("navActions");
 
   if (session) {
     navActions.innerHTML = `
       <a href="/workspace/" class="nav-cta">Ir al Workspace</a>
-      <button onclick="logout()" class="logout-btn">Cerrar sesión</button>
+      <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+    `;
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = "/";
+    });
+
+  } else {
+    navActions.innerHTML = `
+      <a href="/onboarding/cuenta" class="nav-login">Iniciar sesión</a>
+      <a href="/onboarding" class="nav-cta">Empezar</a>
     `;
   }
 }
 
-async function logout() {
-  await supabaseClient.auth.signOut();
-  window.location.href = "/";
-}
-
 document.addEventListener("DOMContentLoaded", updateNavbar);
 </script>
+
 
 
 </body>
