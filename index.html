@@ -2385,6 +2385,25 @@ body{
     display: none !important;
   }
 }
+.user-menu{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.user-email{
+  font-size:14px;
+  font-weight:600;
+  color:#ffffff;
+}
+
+.logout-btn{
+  background:none;
+  border:none;
+  color:#ffd166;
+  cursor:pointer;
+  font-weight:600;
+}
 
 </style>
   <script type="application/ld+json">
@@ -2427,10 +2446,10 @@ body{
 
 
 
-    <div class="nav-actions">
-      <a href="/onboarding/cuenta" class="nav-login">Iniciar sesión</a>
-      <a href="/onboarding" class="nav-cta">Empezar</a>
-    </div>
+<div class="nav-actions" id="navActions">
+  <a href="/onboarding/cuenta" class="nav-login" id="loginLink">Iniciar sesión</a>
+  <a href="/onboarding" class="nav-cta" id="startLink">Empezar</a>
+</div>
 
     <button class="nav-burger" id="navBurger" aria-label="Abrir menú">
       <span></span>
@@ -3323,6 +3342,33 @@ items.forEach((item,i)=>{
     showSlide(index);
   });
 });
+</script>
+<script>
+async function updateNavbar() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  const navActions = document.getElementById("navActions");
+  const loginLink = document.getElementById("loginLink");
+  const startLink = document.getElementById("startLink");
+
+  if (session) {
+    const email = session.user.email;
+
+    navActions.innerHTML = `
+      <div class="user-menu">
+        <span class="user-email">👤 ${email}</span>
+        <button onclick="logout()" class="logout-btn">Cerrar sesión</button>
+      </div>
+    `;
+  }
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  window.location.reload();
+}
+
+updateNavbar();
 </script>
 
 </body>
