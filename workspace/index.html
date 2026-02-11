@@ -1155,6 +1155,29 @@ header{
 .user-popover button:hover{
   background:#f3f4f6;
 }
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.modal-close{
+  all:unset;
+  cursor:pointer;
+  font-size:18px;
+  font-weight:700;
+  color:#6b7280;
+  line-height:1;
+  padding:4px 6px;
+  border-radius:8px;
+  transition:.2s ease;
+}
+
+.modal-close:hover{
+  background:#f3f4f6;
+  color:#111827;
+}
 
   </style>
 </head>
@@ -2035,7 +2058,11 @@ async function createKid(){
 <div class="modal-overlay" id="parentModal">
   <div class="modal">
 
-    <h2>Panel para padres</h2>
+    <div class="modal-header">
+      <h2>Panel para padres</h2>
+      <button class="modal-close" onclick="closeParentModal()">✕</button>
+    </div>
+
     <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
       Gestionar perfiles de niños
     </p>
@@ -2103,5 +2130,11 @@ function goToUpgrade(){
   window.location.href = "https://iakids.app/planes/";
 }
 </script>
+<script>
+function closeParentModal(){
+  document.getElementById("parentModal").style.display = "none";
+}
+</script>
+
 </body>
 </html>
