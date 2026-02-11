@@ -2415,8 +2415,8 @@ body{
 }
 
 .user-avatar{
-  width:34px;
-  height:34px;
+  width:36px;
+  height:36px;
   border-radius:50%;
   object-fit:cover;
 }
@@ -2811,7 +2811,7 @@ body{
 </section>
 
 
- 
+
 <section class="pricing-clean" id="pricing">
   <div class="pricing-inner">
 
@@ -3311,7 +3311,6 @@ async function updateNavbar() {
   if (data.session) {
 
     const user = data.session.user;
-    const email = user.email;
     const avatarUrl = user.user_metadata?.avatar_url || null;
 
     navActions.innerHTML = `
@@ -3320,7 +3319,6 @@ async function updateNavbar() {
           ? `<img src="${avatarUrl}" class="user-avatar">`
           : `<div class="user-avatar-fallback">👤</div>`
         }
-        <span class="user-email">${email}</span>
         <a href="/workspace/" class="nav-cta">Workspace</a>
         <button class="logout-btn" id="logoutBtn">Salir</button>
       </div>
@@ -3345,7 +3343,6 @@ supabaseClient.auth.onAuthStateChange(() => {
   updateNavbar();
 });
 </script>
-
 
 </body>
 </html>
