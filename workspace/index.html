@@ -1393,14 +1393,28 @@ header{
   </div>
 
   <div class="user-popover">
-    <button onclick="window.location.href='/parent/dashboard'">
-      🧑‍💼 Dashboard padres
-    </button>
+<div class="user-popover">
 
-    <button onclick="sb.auth.signOut().then(()=>location.href='/')">
-      🚪 Logout
-    </button>
-  </div>
+  <button onclick="openParentPanel()">
+    👶 Gestionar niños
+  </button>
+
+  <button onclick="openSettingsFromMenu()">
+    ✏️ Editar perfil actual
+  </button>
+
+  <hr style="margin:6px 0">
+
+  <button onclick="window.location.href='/parent/dashboard'">
+    🧑‍💼 Dashboard padres
+  </button>
+
+  <button onclick="sb.auth.signOut().then(()=>location.href='/')">
+    🚪 Logout
+  </button>
+
+</div>
+
 </div>
 
     </header>
@@ -1641,9 +1655,9 @@ function addAssistantTyping(text) {
     bubble.textContent += char;
     i++;
     messagesEl.scrollTop = messagesEl.scrollHeight;
- 
+
     let delay = 35 + Math.random() * 40; // 35–75ms
- 
+
     if (char === "." || char === "!" || char === "?") delay += 250;
     if (char === "," ) delay += 120;
     if (char === "\n") delay += 300;
@@ -2090,5 +2104,27 @@ function goToUpgrade(){
   window.location.href = "https://iakids.app/planes/";
 }
 </script>
+<script>
+function openParentPanel(){
+  document.querySelector(".user-popover").style.display = "none";
+  document.getElementById("parentModal").style.display = "flex";
+}
+
+function openSettingsFromMenu(){
+  document.querySelector(".user-popover").style.display = "none";
+
+  if (!CURRENT_KID) return;
+
+  document.getElementById("settingsModal").style.display = "flex";
+
+  modalChildName.value = CURRENT_KID.child_name || "";
+  modalChildAge.value = CURRENT_KID.age || "";
+  modalAvatar.value = CURRENT_KID.avatar_key || "";
+
+  setSelected("modalGoals", CURRENT_KID.usage_goals || []);
+  setSelected("modalLearning", CURRENT_KID.learning_interests || []);
+}
+</script>
+
 </body>
 </html>
