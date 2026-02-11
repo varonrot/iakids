@@ -1392,15 +1392,28 @@ header{
     <span id="userName"></span>
   </div>
 
-  <div class="user-popover">
-    <button onclick="window.location.href='/parent/dashboard'">
-      🧑‍💼 Dashboard padres
-    </button>
+<div class="user-popover">
 
-    <button onclick="sb.auth.signOut().then(()=>location.href='/')">
-      🚪 Logout
-    </button>
-  </div>
+  <button onclick="document.getElementById('settingsModal').style.display='flex'">
+    ⚙️ Editar perfil del niño
+  </button>
+
+  <button onclick="document.getElementById('openParentModal').click()">
+    👶 Panel para padres
+  </button>
+
+  <hr style="margin:6px 0">
+
+  <button onclick="window.location.href='/parent/dashboard'">
+    🧑‍💼 Dashboard padres
+  </button>
+
+  <button onclick="sb.auth.signOut().then(()=>location.href='/')">
+    🚪 Logout
+  </button>
+
+</div>
+
 </div>
 
     </header>
@@ -1641,9 +1654,9 @@ function addAssistantTyping(text) {
     bubble.textContent += char;
     i++;
     messagesEl.scrollTop = messagesEl.scrollHeight;
- 
+
     let delay = 35 + Math.random() * 40; // 35–75ms
- 
+
     if (char === "." || char === "!" || char === "?") delay += 250;
     if (char === "," ) delay += 120;
     if (char === "\n") delay += 300;
