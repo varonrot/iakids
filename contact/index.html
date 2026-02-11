@@ -256,6 +256,46 @@
     padding:30px 24px;
   }
 }
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.modal-box{
+  background:#ffffff;
+  padding:32px 36px;
+  border-radius:24px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,.25);
+  max-width:380px;
+}
+
+.modal-box h3{
+  margin:0 0 10px;
+  font-size:20px;
+}
+
+.modal-box p{
+  font-size:14px;
+  color:#475569;
+  margin-bottom:18px;
+}
+
+.modal-box button{
+  padding:10px 20px;
+  border-radius:999px;
+  border:none;
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
 
 
   </style>
@@ -387,6 +427,10 @@ document.getElementById("contactForm").addEventListener("submit", async (e) => {
   const email = document.getElementById("contactEmail").value.trim();
   const message = document.getElementById("contactMessage").value.trim();
 
+  // 🔹 check if user is logged in
+  const { data:{ session } } = await sb.auth.getSession();
+  const userId = session?.user?.id || null;
+
   if(!name || !email || !message){
     alert("Completa todos los campos");
     return;
@@ -400,7 +444,7 @@ document.getElementById("contactForm").addEventListener("submit", async (e) => {
       category: "question",
       status: "open",
       priority: "medium",
-      user_id: null
+      user_id: userId
     })
     .select()
     .single();
@@ -426,10 +470,25 @@ document.getElementById("contactForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  alert("Mensaje enviado correctamente");
-  document.getElementById("contactForm").reset();
+document.getElementById("contactForm").reset();
+document.getElementById("successModal").style.display = "flex";
+function closeSuccessModal(){
+  document.getElementById("successModal").style.display = "none";
+}
+
 });
 </script>
+<!-- ===== SUCCESS MODAL ===== -->
+<div class="modal-overlay" id="successModal" style="display:none;">
+  <div class="modal-box">
+    <h3>✅ Mensaje enviado</h3>
+    <p>
+      Hemos recibido tu mensaje.<br>
+      Nuestro equipo lo está revisando.
+    </p>
+    <button onclick="closeSuccessModal()">Cerrar</button>
+  </div>
+</div>
 
 </body>
 </html>
