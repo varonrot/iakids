@@ -1,1 +1,190 @@
+<!doctype html>
+<html lang="he">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui;background:#f6f7fb;color:#111}
+    header{padding:14px 18px;background:#fff;border-bottom:1px solid #e6e8ef;display:flex;justify-content:space-between}
+    h1{font-size:16px;margin:0}
+
+    .wrap{max-width:1100px;margin:0 auto;padding:12px;display:grid;grid-template-columns:320px 1fr;gap:12px}
+    .card{background:#fff;border:1px solid #e6e8ef;border-radius:14px;overflow:hidden}
+    .hd{padding:12px;border-bottom:1px solid #eef0f6;display:flex;justify-content:space-between;align-items:center}
+    .bd{padding:12px}
+
+    button{border:1px solid #d8dbe6;background:#fff;padding:8px 10px;border-radius:10px;cursor:pointer}
+    button.primary{background:#111;color:#fff;border-color:#111}
+
+    .ticket{padding:10px;border-bottom:1px solid #f0f2f8;cursor:pointer}
+    .ticket:hover{background:#fafbff}
+    .ticket.active{background:#f3f5ff}
+
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #e0e3ee}
+    .open{background:#effbf1}
+    .in_progress{background:#fff7e8}
+    .closed{background:#fff0f0}
+
+    .chat{height:55vh;overflow:auto;background:#fafbff;border:1px solid #eef0f6;border-radius:14px;padding:10px}
+    .msg{padding:10px 12px;border-radius:14px;margin:8px 0;max-width:80%}
+    .user{background:#111;color:#fff;margin-left:auto}
+    .admin{background:#fff;border:1px solid #e6e8ef;margin-right:auto}
+
+    textarea,input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #d8dbe6}
+    textarea{resize:vertical}
+
+    .composer{display:flex;gap:8px;margin-top:8px}
+    .muted{font-size:12px;color:#777}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Support</h1>
+  <span id="authState" class="muted"></span>
+</header>
+
+<div class="wrap">
+  <!-- LEFT -->
+  <div class="card">
+    <div class="hd">
+      <strong>My tickets</strong>
+      <button id="btnNew">New</button>
+    </div>
+    <div class="bd" id="tickets"></div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="card">
+    <div class="hd">
+      <strong id="title">Select a ticket</strong>
+      <span id="status"></span>
+    </div>
+    <div class="bd">
+      <div class="chat" id="chat"></div>
+
+      <div class="composer">
+        <textarea id="reply" placeholder="Write a message..."></textarea>
+        <button class="primary" id="btnSend">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW TICKET MODAL -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);align-items:center;justify-content:center">
+  <div style="background:#fff;padding:16px;border-radius:14px;width:320px">
+    <h3>New ticket</h3>
+    <input id="newSubject" placeholder="Subject" />
+    <select id="newCategory" style="margin-top:8px">
+      <option value="bug">Bug</option>
+      <option value="billing">Billing</option>
+      <option value="question">Question</option>
+      <option value="feature">Feature</option>
+    </select>
+    <textarea id="newMessage" placeholder="Describe the issue..." style="margin-top:8px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="primary" onclick="createTicket()">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let tickets=[], selected=null;
+
+const el=id=>document.getElementById(id);
+
+async function init(){
+  const {data:{session}} = await sb.auth.getSession();
+  el("authState").textContent = session?.user?.email || "Not signed in";
+  loadTickets();
+}
+
+async function loadTickets(){
+  const {data} = await sb.from("support_tickets")
+    .select("*")
+    .order("last_message_at",{ascending:false});
+  tickets=data||[];
+  renderTickets();
+}
+
+function renderTickets(){
+  el("tickets").innerHTML = tickets.map(t=>`
+    <div class="ticket ${selected?.id===t.id?'active':''}" onclick="openTicket('${t.id}')">
+      <div>${t.subject}</div>
+      <span class="pill ${t.status}">${t.status}</span>
+    </div>
+  `).join("");
+}
+
+async function openTicket(id){
+  selected = tickets.find(t=>t.id===id);
+  el("title").textContent = selected.subject;
+  el("status").innerHTML = `<span class="pill ${selected.status}">${selected.status}</span>`;
+  loadMessages();
+  renderTickets();
+}
+
+async function loadMessages(){
+  const {data} = await sb.from("support_messages")
+    .select("*")
+    .eq("ticket_id", selected.id)
+    .order("created_at");
+  el("chat").innerHTML = data.map(m=>`
+    <div class="msg ${m.sender_type}">
+      ${m.message}
+    </div>
+  `).join("");
+}
+
+el("btnSend").onclick = async ()=>{
+  if(!selected) return;
+  const text=el("reply").value.trim();
+  if(!text) return;
+  await sb.from("support_messages").insert({
+    ticket_id:selected.id,
+    sender_type:"user",
+    message:text
+  });
+  el("reply").value="";
+  loadMessages();
+};
+
+el("btnNew").onclick=()=>el("modal").style.display="flex";
+function closeModal(){el("modal").style.display="none";}
+
+async function createTicket(){
+  const subject=el("newSubject").value.trim();
+  const message=el("newMessage").value.trim();
+  const category=el("newCategory").value;
+  if(!subject||!message) return;
+
+  const {data:{session}} = await sb.auth.getSession();
+  const {data:ticket} = await sb.from("support_tickets")
+    .insert({subject,category,user_id:session.user.id})
+    .select().single();
+
+  await sb.from("support_messages").insert({
+    ticket_id:ticket.id,
+    sender_type:"user",
+    message
+  });
+
+  closeModal();
+  loadTickets();
+}
+
+init();
+</script>
+</body>
+</html>
