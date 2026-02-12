@@ -4,99 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>IA educativa para niños | Educación con inteligencia artificial</title>
-
-<meta name="description"
-content="IA educativa para niños: guía completa sobre educación con IA, aprender con inteligencia artificial y uso seguro con control parental.">
-
-<link rel="canonical" href="https://iakids.app/blog/ia-educativa/">
-
-<meta name="robots" content="index, follow">
-
-<meta property="og:type" content="article">
-<meta property="og:title" content="IA educativa para niños">
-<meta property="og:description" content="Cómo usar la inteligencia artificial en la educación infantil de forma segura y responsable.">
-<meta property="og:image" content="https://iakids.app/assets/alternativas-seguras-ia-ninos.jpg">
+<title>Planes | iakids</title>
 
 <style>
+
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
-  background:#fff;
+  background:#f8fafc;
   color:#1f2937;
 }
-a{color:#2563eb;text-decoration:none}
-a:hover{text-decoration:underline}
 
-.wrapper{
-  max-width:1200px;
-  margin:auto;
-  padding:40px 20px 80px;
-  display:grid;
-  grid-template-columns:1fr 300px;
-  gap:40px;
-}
+/* ===== TOPBAR (כמו שיש לך עכשיו) ===== */
 
-img{
-  width:100%;
-  border-radius:16px;
-  margin-bottom:24px;
-}
-
-h1{font-size:clamp(30px,4vw,44px)}
-h2{margin-top:48px}
-p{line-height:1.8;margin:18px 0}
-
-strong{color:#0f172a}
-
-.sidebar{
-  position:sticky;
-  top:40px;
-  align-self:start;
-  border-left:1px solid #e5e7eb;
-  padding-left:24px;
-}
-
-.sidebar h3{
-  margin-top:0;
-  font-size:18px;
-}
-
-.sidebar ul{
-  padding-left:18px;
-}
-.sidebar li{
-  margin:10px 0;
-}
-
-.box{
-  background:#f8fafc;
-  border:1px solid #e5e7eb;
-  border-radius:14px;
-  padding:22px;
-  margin-top:30px;
-}
-
-.cta{
-  margin-top:70px;
-  padding:36px;
-  border-radius:20px;
-  background:linear-gradient(135deg,#2563eb,#22c55e);
-  color:#fff;
-  text-align:center;
-}
-.cta h2{margin-top:0;color:#fff}
-.cta p{max-width:600px;margin:16px auto}
-.cta a{
-  display:inline-block;
-  margin-top:18px;
-  padding:14px 28px;
-  background:#fff;
-  color:#0f172a;
-  font-weight:800;
-  border-radius:999px;
-}
-    .topbar{
+.topbar{
   position:sticky;
   top:0;
   z-index:100;
@@ -137,309 +58,157 @@ strong{color:#0f172a}
   box-shadow:0 6px 18px rgba(37,99,235,.25);
 }
 
-.topbar-cta .btn-primary:hover{
-  opacity:.92;
-}
-.sidebar{
-  position:sticky;
-  top:96px; /* חשוב: שלא ייכנס מתחת לטופ־בר */
-  align-self:start;
+/* ===== CHECKOUT PAGE ===== */
+
+.checkout-page{
+  padding:80px 20px 120px;
 }
 
-.side-box{
-  background:#f8fafc;
-  border:1px solid #e5e7eb;
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:24px;
+.checkout-container{
+  max-width:1100px;
+  margin:auto;
 }
 
-.side-box h3{
-  margin-top:0;
-  font-size:16px;
-}
-
-.side-nav{
-  list-style:none;
-  padding-left:0;
-  margin:14px 0 0;
-}
-
-.side-nav li{
-  margin:10px 0;
-}
-
-.side-image{
-  width:100%;
-  border-radius:12px;
-  margin-bottom:14px;
-}
-
-.side-note{
-  font-size:14px;
-  line-height:1.6;
-  color:#334155;
-}
-
-.side-cta{
+.center{
   text-align:center;
-  padding:22px;
-  border-radius:16px;
-  background:linear-gradient(135deg,#2563eb,#22c55e);
+  max-width:700px;
+  margin:0 auto 80px;
+}
+
+.center h1{
+  font-size:42px;
+  margin-bottom:18px;
+}
+
+.center p{
+  font-size:18px;
+  color:#4b5563;
+}
+
+.pricing-plans{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:32px;
+  margin-bottom:100px;
+}
+
+.plan-card{
+  background:#fff;
+  border-radius:20px;
+  padding:32px 28px;
+  box-shadow:0 20px 40px rgba(0,0,0,.06);
+  position:relative;
+}
+
+.plan-card.recommended{
+  border:3px solid #2563eb;
+}
+
+.badge{
+  position:absolute;
+  top:-14px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#2563eb;
+  color:#fff;
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+}
+
+.price{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  margin:14px 0 20px;
+}
+
+.amount{
+  font-size:42px;
+  font-weight:800;
+}
+
+.period{
+  color:#6b7280;
+}
+
+.features{
+  list-style:none;
+  padding:0;
+  margin:24px 0;
+}
+
+.features li{
+  margin-bottom:14px;
+  padding-left:24px;
+  position:relative;
+}
+
+.features li::before{
+  content:"✔";
+  position:absolute;
+  left:0;
+  color:#22c55e;
+  font-weight:bold;
+}
+
+.btn{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+}
+
+.btn.primary{
+  background:#2563eb;
   color:#fff;
 }
 
-.side-cta p{
-  margin:0 0 14px;
-  font-size:15px;
+.btn.secondary{
+  background:#eef2f7;
 }
 
-.side-btn{
-  display:inline-block;
-  padding:12px 24px;
+.section-title{
+  text-align:center;
+  font-size:32px;
+  margin-bottom:50px;
+}
+
+.benefits-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:32px;
+  margin-bottom:100px;
+}
+
+.benefit-card{
   background:#fff;
-  color:#0f172a;
-  font-weight:800;
-  border-radius:999px;
-  text-decoration:none;
-}
-/* =========================
-   MOBILE OPTIMIZATION – SIDEBAR AT BOTTOM
-========================= */
-
-@media (max-width: 900px){
-
-  .wrapper{
-    grid-template-columns: 1fr;
-    gap: 0;
-    padding-top: 24px;
-  }
-
-  /* MAIN stays first */
-  main{
-    order: 1;
-  }
-
-  /* SIDEBAR moves to bottom */
-  aside.sidebar{
-    position: static;
-    border-left: none;
-    padding-left: 0;
-    margin-top: 48px;
-    order: 2;
-  }
-
-  .side-box,
-  .side-cta{
-    margin-bottom: 20px;
-  }
-
-  /* Sidebar becomes footer-like section */
-  aside.sidebar{
-    padding-top: 32px;
-    border-top: 2px solid #e5e7eb;
-  }
-
-  .side-box:first-child{
-    background:#f8fafc;
-  }
-
-  .side-box h3{
-    font-size:17px;
-  }
-
-  main img{
-    border-radius:12px;
-  }
-
-  h1{
-    font-size:28px;
-  }
-
-  h2{
-    font-size:22px;
-  }
-
-  .cta{
-    margin-top: 48px;
-    padding: 28px 20px;
-  }
-
-  .cta a{
-    width:100%;
-    text-align:center;
-  }
-}
-/* =========================
-   FIX CTA BUTTON OVERFLOW – MOBILE
-========================= */
-
-@media (max-width: 900px){
-
-  .cta{
-    padding: 28px 18px;      /* פחות padding אופקי */
-    box-sizing: border-box;
-  }
-
-  .cta a{
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 14px 20px;
-    text-align: center;
-  }
-}
-.pricing-page {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f9fafb;
-  padding: 60px 20px;
+  padding:28px;
+  border-radius:18px;
+  box-shadow:0 20px 40px rgba(0,0,0,.05);
 }
 
-.pricing-hero {
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto 60px;
+.faq{
+  max-width:800px;
+  margin:auto;
 }
 
-.pricing-hero h1 {
-  font-size: 40px;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 16px;
-}
-
-.pricing-hero p {
-  font-size: 18px;
-  color: #4b5563;
-}
-
-.pricing-plans {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 32px;
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.plan-card {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 32px 28px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-  position: relative;
-}
-
-.plan-card h2 {
-  font-size: 24px;
-  margin-bottom: 12px;
-  color: #111827;
-}
-
-.price {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 20px;
-}
-
-.price .amount {
-  font-size: 42px;
-  font-weight: 800;
-  color: #111827;
-}
-
-.price .period {
-  font-size: 16px;
-  color: #6b7280;
-}
-
-.features {
-  list-style: none;
-  padding: 0;
-  margin: 24px 0;
-}
-
-.features li {
-  padding-left: 24px;
-  margin-bottom: 14px;
-  position: relative;
-  color: #374151;
-}
-
-.features li::before {
-  content: "✔";
-  position: absolute;
-  left: 0;
-  color: #22c55e;
-  font-weight: bold;
-}
-
-.save {
-  color: #16a34a;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.plan-card.recommended {
-  border: 3px solid #2563eb;
-}
-
-.badge {
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #2563eb;
-  color: white;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.btn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-}
-
-.btn.primary {
-  background: #2563eb;
-  color: white;
-}
-
-.btn.primary:hover {
-  background: #1d4ed8;
-}
-
-.btn.secondary {
-  background: #eef2f7;
-  color: #111827;
-}
-
-.btn.secondary:hover {
-  background: #e5e7eb;
+.faq-item{
+  background:#fff;
+  padding:22px;
+  border-radius:16px;
+  margin-bottom:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
 }
 
 </style>
-
-<script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"CollectionPage",
-  "name":"IA educativa para niños",
-  "description":"Guía central sobre educación con inteligencia artificial para niños.",
-  "url":"https://iakids.app/blog/ia-educativa/"
-}
-</script>
 </head>
 
 <body>
+
 <header class="topbar">
   <div class="topbar-inner">
     <div class="topbar-brand">
@@ -448,126 +217,192 @@ strong{color:#0f172a}
     </div>
 
     <div class="topbar-cta">
-      <a href="https://iakids.app/" class="btn-primary">
-        Probar iakids
-      </a>
+      <a href="#" class="btn-primary">Probar iakids</a>
     </div>
   </div>
 </header>
 
-<div class="wrapper">
+<div class="checkout-page">
+<div class="checkout-container">
 
-<!-- MAIN CONTENT -->
-<main class="pricing-page">
+<section class="center">
+  <h1>Activa el acceso completo para acompañar a tu hijo todo el año</h1>
+  <p>Más confianza en tareas, mejores resultados en exámenes y aprendizaje guiado todos los días.</p>
+</section>
 
-  <!-- Header -->
-  <section class="pricing-hero">
-    <h1>Elige el plan ideal para tu familia</h1>
-    <p>
-      Para seguir usando iakids sin límites, un adulto debe activar el acceso completo.
-    </p>
-  </section>
+<section class="pricing-plans">
 
-  <!-- Plans -->
-  <section class="pricing-plans">
-
-    <!-- Mensual -->
-    <div class="plan-card">
-      <h2>Mensual</h2>
-      <div class="price">
-        <span class="amount">$9.99</span>
-        <span class="period">/ mes</span>
-      </div>
-
-      <ul class="features">
-        <li>Ayuda diaria con tareas escolares</li>
-        <li>Explicaciones claras paso a paso</li>
-        <li>Resolución de problemas y ejercicios</li>
-        <li>Preparación para exámenes y repasos</li>
-        <li>Aprender nuevos temas con confianza</li>
-        <li>Entorno seguro y adaptado a la edad</li>
-        <li>Control parental completo</li>
-      </ul>
-
-      <button class="btn secondary" onclick="goToCheckout('monthly')">
-        Elegir mensual
-      </button>
+  <div class="plan-card">
+    <h2>Prueba gratuita</h2>
+    <div class="price">
+      <span class="amount">$0</span>
     </div>
-
-    <!-- Anual -->
-    <div class="plan-card recommended">
-      <div class="badge">Recomendado</div>
-
-      <h2>Anual</h2>
-      <div class="price">
-        <span class="amount">$78</span>
-        <span class="period">/ año</span>
-      </div>
-
-      <p class="save">
-        Ahorra 35% comparado con el plan mensual
-      </p>
-
-      <ul class="features">
-        <li>Todo lo del plan mensual</li>
-        <li>Acompañamiento durante todo el año escolar</li>
-        <li>Apoyo constante en tareas y exámenes</li>
-        <li>Más tranquilidad para padres</li>
-        <li>Un año completo sin renovaciones mensuales</li>
-      </ul>
-
-      <button class="btn primary" onclick="goToCheckout('annual')">
-        Elegir anual
-      </button>
-    </div>
-
-  </section>
-
-</main>
-
-
-<!-- SIDEBAR -->
-<aside class="sidebar">
-
-  <!-- HUB NAV -->
-  <div class="side-box">
-    <h3>🧭 Contenido del Hub</h3>
-    <ul class="side-nav">
-      <li><strong>IA educativa</strong></li>
-      <li><a href="/blog/educacion-con-ia/">Educación con IA</a></li>
-      <li><a href="/blog/aprender-con-ia/">Aprender con IA</a></li>
-      <li><a href="/blog/ia-segura-para-ninos/">IA segura para niños</a></li>
-      <li><a href="/blog/control-parental-ia/">Control parental</a></li>
+    <ul class="features">
+      <li>Acceso limitado</li>
+      <li>Uso básico de la IA</li>
+      <li>Sin seguimiento completo</li>
     </ul>
   </div>
 
-  <!-- IMAGE + TRUST -->
-  <div class="side-box">
-    <img
-      src="https://iakids.app/assets/alternativas-seguras-ia-ninos.jpg"
-      alt="IA educativa y segura para niños"
-      class="side-image"
-      loading="lazy"
-    >
-    <p class="side-note">
-      Plataforma de <strong>IA educativa para niños</strong>,
-      diseñada con enfoque pedagógico y control parental.
-    </p>
+  <div class="plan-card">
+    <h2>Mensual</h2>
+    <div class="price">
+      <span class="amount">$9.99</span>
+      <span class="period">/ mes</span>
+    </div>
+    <ul class="features">
+      <li>Ayuda diaria con tareas</li>
+      <li>Preparación para exámenes</li>
+      <li>Seguimiento educativo</li>
+      <li>Control parental completo</li>
+    </ul>
+    <button class="btn secondary">Activar mensual</button>
   </div>
 
-  <!-- CTA -->
-  <div class="side-cta">
+  <div class="plan-card recommended">
+    <div class="badge">Mejor opción</div>
+    <h2>Anual</h2>
+    <div class="price">
+      <span class="amount">$78</span>
+      <span class="period">/ año</span>
+    </div>
+    <ul class="features">
+      <li>Todo lo del plan mensual</li>
+      <li>Acompañamiento todo el año escolar</li>
+      <li>Apoyo antes de exámenes</li>
+      <li>Mayor progreso académico</li>
+    </ul>
+    <button class="btn primary">Activar anual</button>
+  </div>
+
+</section>
+
+<h2 class="section-title">¿Cómo mejora el rendimiento escolar?</h2>
+
+<section class="benefits-grid">
+
+  <div class="benefit-card">
+    <h3>📚 Mejores notas</h3>
     <p>
-      ¿Buscas una forma <strong>segura</strong> de usar IA con niños?
+      Explicaciones claras y estructuradas que ayudan a comprender
+      profundamente cada tema y mejorar el rendimiento académico.
     </p>
-    <a href="https://iakids.app/" class="side-btn">
-      Probar iakids
-    </a>
   </div>
 
-</aside>
+  <div class="benefit-card">
+    <h3>🧠 Más confianza</h3>
+    <p>
+      Practica guiada que permite al niño ganar seguridad,
+      participar más en clase y afrontar desafíos con tranquilidad.
+    </p>
+  </div>
+
+  <div class="benefit-card">
+    <h3>✏️ Preparación para exámenes</h3>
+    <p>
+      Repasos organizados y simulaciones que refuerzan contenidos
+      clave antes de pruebas y evaluaciones importantes.
+    </p>
+  </div>
+
+  <div class="benefit-card">
+    <h3>👨‍👩‍👧 Tranquilidad para padres</h3>
+    <p>
+      Entorno seguro con control parental que garantiza
+      aprendizaje adecuado y supervisión constante.
+    </p>
+  </div>
+
+  <div class="benefit-card">
+    <h3>📈 Progreso personalizado</h3>
+    <p>
+      Seguimiento adaptado al ritmo del niño para reforzar
+      puntos débiles y potenciar fortalezas académicas.
+    </p>
+  </div>
+
+  <div class="benefit-card">
+    <h3>🧩 Desarrollo del pensamiento crítico</h3>
+    <p>
+      Fomenta la comprensión, el análisis y la resolución
+      independiente de problemas en diferentes materias.
+    </p>
+  </div>
+
+</section>
 
 
+<h2 class="section-title">Preguntas frecuentes</h2>
+
+ <section class="faq">
+
+  <div class="faq-item">
+    <h4>¿Realmente puede mejorar las notas de mi hijo?</h4>
+    <p>
+      Sí. iakids no solo responde preguntas: explica paso a paso,
+      refuerza conceptos escolares y prepara para exámenes,
+      ayudando a comprender profundamente cada materia.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h4>¿Es mejor que buscar respuestas en internet o en YouTube?</h4>
+    <p>
+      Sí. A diferencia de contenido general, iakids adapta cada explicación
+      al nivel del niño, evita distracciones y mantiene un entorno seguro
+      sin información inapropiada.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h4>¿Mi hijo se volverá dependiente de la IA?</h4>
+    <p>
+      No. La plataforma fomenta el pensamiento crítico,
+      guía el razonamiento y promueve que el niño entienda
+      el proceso en lugar de solo recibir respuestas.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h4>¿Puede ayudar en diferentes materias escolares?</h4>
+    <p>
+      Sí. Matemáticas, ciencias, historia, lengua y más.
+      Las explicaciones están adaptadas a la edad y al ritmo
+      de aprendizaje de cada niño.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h4>¿Qué diferencia al plan anual?</h4>
+    <p>
+      El plan anual acompaña todo el año escolar,
+      ofreciendo apoyo constante en tareas y evaluaciones,
+      con mayor progreso académico sostenido.
+    </p>
+  </div>
+<div class="faq-item">
+  <h4>¿En qué se diferencia iakids de usar ChatGPT directamente?</h4>
+  <p>
+    ChatGPT es una herramienta general diseñada para todo tipo de usuarios.
+    iakids está específicamente diseñado para niños: adapta el lenguaje a su edad,
+    ofrece explicaciones pedagógicas estructuradas y mantiene un entorno
+    seguro con control parental.
+  </p>
+</div>
+
+<div class="faq-item">
+  <h4>¿Por qué no usar simplemente inteligencia artificial gratuita?</h4>
+  <p>
+    Las herramientas generales no están optimizadas para el aprendizaje infantil.
+    iakids guía el proceso educativo, refuerza contenidos escolares
+    y ayuda a desarrollar pensamiento crítico de forma segura y estructurada.
+  </p>
+</div>
+
+</section>
+
+
+</div>
 </div>
 
 </body>
