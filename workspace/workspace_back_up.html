@@ -1155,6 +1155,29 @@ header{
 .user-popover button:hover{
   background:#f3f4f6;
 }
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.modal-close{
+  all:unset;
+  cursor:pointer;
+  font-size:18px;
+  font-weight:700;
+  color:#6b7280;
+  line-height:1;
+  padding:4px 6px;
+  border-radius:8px;
+  transition:.2s ease;
+}
+
+.modal-close:hover{
+  background:#f3f4f6;
+  color:#111827;
+}
 
   </style>
 </head>
@@ -1381,7 +1404,7 @@ header{
   <main class="main">
 
     <header>
-      <div class="logo">
+<div class="logo" onclick="window.location.href='https://iakids.app/'" style="cursor:pointer;">
   <div class="logo-badge">IA</div>
   <span class="logo-text">kids</span>
 </div>
@@ -1392,15 +1415,33 @@ header{
     <span id="userName"></span>
   </div>
 
-  <div class="user-popover">
-    <button onclick="window.location.href='/parent/dashboard'">
-      🧑‍💼 Dashboard padres
-    </button>
+<div class="user-popover">
 
-    <button onclick="sb.auth.signOut().then(()=>location.href='/')">
-      🚪 Logout
-    </button>
-  </div>
+  <button onclick="document.getElementById('openSettings').click()">
+    ⚙️ Editar perfil del niño
+  </button>
+
+  <button onclick="document.getElementById('openParentModal').click()">
+    👶 Panel para padres
+  </button>
+
+  <button onclick="window.location.href='/support/'">
+    📩 Soporte
+  </button>
+
+  <hr style="margin:6px 0">
+
+  <button onclick="window.location.href='/parent/dashboard'">
+    🧑‍💼 Dashboard padres
+  </button>
+
+  <button onclick="sb.auth.signOut().then(()=>location.href='/')">
+    🚪 Logout
+  </button>
+
+</div>
+
+
 </div>
 
     </header>
@@ -1641,9 +1682,9 @@ function addAssistantTyping(text) {
     bubble.textContent += char;
     i++;
     messagesEl.scrollTop = messagesEl.scrollHeight;
- 
+
     let delay = 35 + Math.random() * 40; // 35–75ms
- 
+
     if (char === "." || char === "!" || char === "?") delay += 250;
     if (char === "," ) delay += 120;
     if (char === "\n") delay += 300;
@@ -1905,10 +1946,13 @@ if (error){
   });
 
   const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
-  userName.textContent = name;
+
   heroGreeting.textContent = `Hi, ${name}!`;
-  userAvatar.src = avatarUrl;
   heroAvatar.src = avatarUrl;
+
+  document.getElementById("rightbarAvatar").src = avatarUrl;
+  document.getElementById("rightbarName").textContent = name;
+
   window.KID_AVATAR_URL = avatarUrl;
 
   closeSettings();
@@ -2022,7 +2066,11 @@ async function createKid(){
 <div class="modal-overlay" id="parentModal">
   <div class="modal">
 
-    <h2>Panel para padres</h2>
+    <div class="modal-header">
+      <h2>Panel para padres</h2>
+      <button class="modal-close" onclick="closeParentModal()">✕</button>
+    </div>
+
     <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
       Gestionar perfiles de niños
     </p>
@@ -2090,5 +2138,11 @@ function goToUpgrade(){
   window.location.href = "https://iakids.app/planes/";
 }
 </script>
+<script>
+function closeParentModal(){
+  document.getElementById("parentModal").style.display = "none";
+}
+</script>
+
 </body>
 </html>
