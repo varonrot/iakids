@@ -2646,6 +2646,50 @@ body{
     display: none !important;
   }
 }
+.footer-bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 0;
+  border-top:1px solid rgba(255,255,255,0.08);
+  font-size:14px;
+  color:#cfd6e4;
+  flex-wrap:wrap;
+  gap:15px;
+}
+
+.footer-bottom a{
+  color:#ffffff;
+  text-decoration:none;
+  opacity:0.85;
+  transition:all 0.2s ease;
+}
+
+.footer-bottom a:hover{
+  opacity:1;
+  text-decoration:underline;
+}
+
+.footer-links{
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+
+/* CTA button */
+.footer-cta{
+  background:#4f8cff;
+  padding:8px 14px;
+  border-radius:20px;
+  font-weight:600;
+  color:white !important;
+  opacity:1 !important;
+}
+
+.footer-cta:hover{
+  background:#3b73d9;
+  text-decoration:none !important;
+}
 
 </style>
   <script type="application/ld+json">
@@ -3376,7 +3420,7 @@ body{
   <div class="footer-bottom-left">
     <span>
       © <span id="year"></span> iakids ·
-      Operado por <strong>Blue Horizon Digital</strong>, Israel ·
+      Operado por <strong>Blue Horizon Digital</strong> ·
       <a href="mailto:support@iakids.app">support@iakids.app</a> ·
       Todos los derechos reservados.
     </span>
