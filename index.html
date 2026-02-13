@@ -1980,21 +1980,27 @@ body{
 
 /* RESPONSIVE */
 @media (max-width:900px){
+
   .how-frame{
     background:
       linear-gradient(
         to bottom,
-        rgba(255,250,245,.96),
-        rgba(255,250,245,.96)
+        rgba(255,250,245,.85),
+        rgba(255,250,245,.85)
       ),
-      url("/assets/iakids-how-it-works-3d-chat.png") center / cover no-repeat;
+      url("/assets/iakids-how-it-works-3d-chat.png");
 
-    padding:48px 32px;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+
+    padding:56px 24px;
   }
 
   .how-clean h2{
-    font-size:34px;
+    font-size:32px;
   }
+
 }
 
 /* =========================
@@ -2688,53 +2694,7 @@ body{
   background:#3b73d9;
   text-decoration:none !important;
 }
-/* ================= MOBILE FIX – HOW IT WORKS ================= */
-@media (max-width: 900px){
 
-  .how-frame{
-    padding:60px 20px;
-    border-radius:28px;
-
-    /* הרקע המדהים יופיע */
-    background:
-      linear-gradient(
-        rgba(255,255,255,.75),
-        rgba(255,255,255,.75)
-      ),
-      url("/assets/how-it-works-bg.jpg");
-
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-  }
-
-  .how-content{
-    max-width:100%;
-  }
-
-  .how-content h2{
-    font-size:32px;
-    line-height:1.2;
-  }
-
-  .how-sub{
-    font-size:16px;
-  }
-
-  .how-step-card{
-    padding:18px;
-    border-radius:20px;
-  }
-
-  .how-step-card strong{
-    font-size:16px;
-  }
-
-  .how-step-card p{
-    font-size:14px;
-  }
-
-}
 
 </style>
   <script type="application/ld+json">
