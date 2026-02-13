@@ -200,7 +200,27 @@ strong{color:#0f172a}
   top:96px; /* חשוב: שלא ייכנס מתחת לטופ־בר */
   align-self:start;
 }
+/* ===== MOBILE FIX ===== */
 
+@media (max-width: 768px){
+
+  .topbar-inner{
+    padding:10px 14px;
+  }
+
+  .topbar-brand{
+    font-size:15px;
+  }
+
+  .topbar-brand .tag{
+    display:none;
+  }
+
+  .topbar-cta .btn-primary{
+    padding:8px 16px;
+    font-size:14px;
+  }
+}
 .side-box{
   background:#f8fafc;
   border:1px solid #e5e7eb;
