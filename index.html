@@ -2498,6 +2498,18 @@ body{
   }
 
 }
+/* =========================
+   HERO – MOBILE IMAGE SWAP
+========================= */
+@media (max-width:768px){
+
+  .iakids-hero{
+    background-image:url("/assets/hero-mobile.jpg"); /* ← תמונה חדשה */
+    background-position:center;
+    background-size:cover;
+  }
+
+}
 
 </style>
   <script type="application/ld+json">
@@ -3322,6 +3334,12 @@ burger.addEventListener("click", () => {
   navLinks.classList.toggle("open");
 });
 
+/* Close mobile menu when clicking a link */
+document.querySelectorAll('#navLinks a').forEach(link => {
+  link.addEventListener('click', () => {
+    navLinks.classList.remove('open');
+  });
+});
 
 </script>
 <script>
