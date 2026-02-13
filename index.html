@@ -2637,7 +2637,7 @@ body{
   padding:120px 0;
 }
 
- 
+
 /* ===== DESKTOP: hide mobile actions completely ===== */
 @media (min-width: 901px){
   .mobile-actions{
@@ -2687,6 +2687,53 @@ body{
 .footer-cta:hover{
   background:#3b73d9;
   text-decoration:none !important;
+}
+/* ================= MOBILE FIX – HOW IT WORKS ================= */
+@media (max-width: 900px){
+
+  .how-frame{
+    padding:60px 20px;
+    border-radius:28px;
+
+    /* הרקע המדהים יופיע */
+    background:
+      linear-gradient(
+        rgba(255,255,255,.75),
+        rgba(255,255,255,.75)
+      ),
+      url("/assets/how-it-works-bg.jpg");
+
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+
+  .how-content{
+    max-width:100%;
+  }
+
+  .how-content h2{
+    font-size:32px;
+    line-height:1.2;
+  }
+
+  .how-sub{
+    font-size:16px;
+  }
+
+  .how-step-card{
+    padding:18px;
+    border-radius:20px;
+  }
+
+  .how-step-card strong{
+    font-size:16px;
+  }
+
+  .how-step-card p{
+    font-size:14px;
+  }
+
 }
 
 </style>
