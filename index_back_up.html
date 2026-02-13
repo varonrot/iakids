@@ -1517,10 +1517,14 @@ body{
 }
 
 .nav-login{
-  color:#e5efff;
+  background:#ffffff;
+  color:#0b1f3b;
+  font-weight:600;
   text-decoration:none;
-  font-weight:500;
+  padding:8px 16px;
+  border-radius:999px;
 }
+
 
 .nav-cta{
   background:#ffd166;
@@ -2385,6 +2389,55 @@ body{
     display: none !important;
   }
 }
+.user-menu{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.user-email{
+  font-size:14px;
+  font-weight:600;
+  color:#ffffff;
+}
+
+.logout-btn{
+  background:none;
+  border:none;
+  color:#ffd166;
+  cursor:pointer;
+  font-weight:600;
+}
+.user-menu{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.user-avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.user-avatar-fallback{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#ffffff;
+  color:#111827;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.user-email{
+  font-size:13px;
+  color:#ffffff;
+  opacity:.8;
+}
 
 </style>
   <script type="application/ld+json">
@@ -2427,10 +2480,10 @@ body{
 
 
 
-    <div class="nav-actions">
-      <a href="/onboarding/cuenta" class="nav-login">Iniciar sesión</a>
-      <a href="/onboarding" class="nav-cta">Empezar</a>
-    </div>
+<div class="nav-actions" id="navActions">
+  <a href="/onboarding/cuenta" class="nav-login" id="loginLink">Iniciar sesión</a>
+  <a href="/onboarding" class="nav-cta" id="startLink">Empezar</a>
+</div>
 
     <button class="nav-burger" id="navBurger" aria-label="Abrir menú">
       <span></span>
@@ -2759,80 +2812,6 @@ body{
 
 
 
-<!--<section class="pricing-clean" id="pricing">-->
-<!--  <div class="pricing-inner">-->
-
-<!--    <span class="pricing-pill">PLANES SIMPLES</span>-->
-<!--    <h2>Planes claros para familias</h2>-->
-<!--    <p class="pricing-sub">-->
-<!--      Elige cómo quieres empezar. Sin compromisos, sin sorpresas.-->
-<!--    </p>-->
-
-<!--    <div class="pricing-grid">-->
-
-<!--      &lt;!&ndash; FREE &ndash;&gt;-->
-<!--      <div class="plan-card">-->
-<!--        <h3>Gratis</h3>-->
-<!--        <div class="plan-price">-->
-<!--          <span class="amount">$0</span>-->
-<!--          <span class="period">/ 7 días</span>-->
-<!--        </div>-->
-
-<!--        <ul>-->
-<!--          <li>70 preguntas de texto</li>-->
-<!--          <li>4 imágenes</li>-->
-<!--          <li>5 minutos de voz</li>-->
-<!--          <li>Contenido seguro por edad</li>-->
-<!--          <li>1 perfil infantil</li>-->
-<!--        </ul>-->
-
-<!--        <a href="#" class="btn secondary">Comenzar gratis</a>-->
-<!--      </div>-->
-
-<!--      &lt;!&ndash; MONTHLY &ndash;&gt;-->
-<!--      <div class="plan-card">-->
-<!--        <h3>Mensual</h3>-->
-<!--        <div class="plan-price">-->
-<!--          <span class="amount">$9.99</span>-->
-<!--          <span class="period">/ mes</span>-->
-<!--        </div>-->
-
-<!--        <ul>-->
-<!--          <li>Preguntas ilimitadas</li>-->
-<!--          <li>50 imágenes por semana</li>-->
-<!--          <li>100 minutos de voz</li>-->
-<!--          <li>Perfiles para varios niños</li>-->
-<!--          <li>Control parental completo</li>-->
-<!--        </ul>-->
-
-<!--        <a href="#" class="btn secondary">Elegir mensual</a>-->
-<!--      </div>-->
-
-<!--      &lt;!&ndash; ANNUAL &ndash;&gt;-->
-<!--      <div class="plan-card featured">-->
-<!--        <span class="badge">Recomendado</span>-->
-<!--        <h3>Anual</h3>-->
-
-<!--        <div class="plan-price">-->
-<!--          <span class="amount">$78</span>-->
-<!--          <span class="period">/ año</span>-->
-<!--        </div>-->
-
-<!--        <p class="saving">Ahorra 35% comparado con el plan mensual</p>-->
-
-<!--        <ul>-->
-<!--          <li>Todo lo del plan mensual</li>-->
-<!--          <li>Un año completo sin renovaciones mensuales</li>-->
-<!--          <li>Mejor relación precio / tranquilidad</li>-->
-<!--        </ul>-->
-
-<!--        <a href="#" class="btn primary">Elegir anual</a>-->
-<!--      </div>-->
-
-<!--    </div>-->
-
-<!--  </div>-->
-<!--</section>-->
 <section class="pricing-clean" id="pricing">
   <div class="pricing-inner">
 
@@ -3265,7 +3244,7 @@ if (backToTop) {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const supabaseClient = window.supabase.createClient(
-    "https://bxnfzuglfwtyiaguwjj.supabase.co",
+    "https://bxnfzuglfwytiyaguwjj.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
   );
 
@@ -3322,6 +3301,46 @@ items.forEach((item,i)=>{
     index = i;
     showSlide(index);
   });
+});
+</script>
+<script>
+async function updateNavbar() {
+  const { data } = await supabaseClient.auth.getSession();
+  const navActions = document.getElementById("navActions");
+
+  if (data.session) {
+
+    const user = data.session.user;
+    const avatarUrl = user.user_metadata?.avatar_url || null;
+
+    navActions.innerHTML = `
+      <div class="user-menu">
+        ${avatarUrl
+          ? `<img src="${avatarUrl}" class="user-avatar">`
+          : `<div class="user-avatar-fallback">👤</div>`
+        }
+        <a href="/workspace/" class="nav-cta">Workspace</a>
+        <button class="logout-btn" id="logoutBtn">Salir</button>
+      </div>
+    `;
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+      window.location.reload();
+    });
+
+  } else {
+    navActions.innerHTML = `
+      <a href="/onboarding/cuenta" class="nav-login">Iniciar sesión</a>
+      <a href="/onboarding" class="nav-cta">Empezar</a>
+    `;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", updateNavbar);
+
+supabaseClient.auth.onAuthStateChange(() => {
+  updateNavbar();
 });
 </script>
 
