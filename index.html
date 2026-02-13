@@ -2522,6 +2522,38 @@ body{
   }
 }
 
+/* =========================
+   MOBILE NAV ACTIONS
+========================= */
+@media(max-width:900px){
+
+  .mobile-actions{
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .mobile-login{
+    text-align:center;
+    padding:12px;
+    border-radius:999px;
+    background:#ffffff;
+    color:#0b1f3b;
+    font-weight:600;
+    text-decoration:none;
+  }
+
+  .mobile-cta{
+    text-align:center;
+    padding:12px;
+    border-radius:999px;
+    background:#ffd166;
+    color:#0b1f3b;
+    font-weight:700;
+    text-decoration:none;
+  }
+}
 
 
 </style>
@@ -2561,7 +2593,14 @@ body{
   <a href="#security">Seguridad</a>
   <a href="#pricing">Precios</a>
   <a href="/contact">Contacto</a>
+
+  <!-- MOBILE ACTIONS -->
+  <div class="mobile-actions">
+    <a href="/onboarding/cuenta" class="mobile-login">Iniciar sesión</a>
+    <a href="/onboarding" class="mobile-cta">Empezar</a>
+  </div>
 </nav>
+
 
 
 
