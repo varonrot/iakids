@@ -151,22 +151,25 @@ strong{color:#0f172a}
   font-weight:800;
   border-radius:999px;
 }
+/* ===== TOPBAR ===== */
+
 .topbar{
   position:sticky;
   top:0;
   z-index:100;
-  background:#ffffffcc;
-  backdrop-filter:blur(8px);
+  background:#ffffffee;
+  backdrop-filter:blur(10px);
   border-bottom:1px solid #e5e7eb;
 }
 
 .topbar-inner{
   max-width:1200px;
   margin:auto;
-  padding:14px 20px;
+  padding:12px 20px;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:14px;
 }
 
 .topbar-brand{
@@ -174,7 +177,9 @@ strong{color:#0f172a}
   align-items:center;
   gap:10px;
   font-size:16px;
+  font-weight:700;
   color:#0f172a;
+  white-space:nowrap;
 }
 
 .topbar-brand .tag{
@@ -183,18 +188,43 @@ strong{color:#0f172a}
 }
 
 .topbar-cta .btn-primary{
-  padding:10px 22px;
+  padding:10px 20px;
   border-radius:999px;
   background:linear-gradient(135deg,#2563eb,#22c55e);
   color:#fff;
   font-weight:800;
   text-decoration:none;
   box-shadow:0 6px 18px rgba(37,99,235,.25);
+  white-space:nowrap;
 }
 
 .topbar-cta .btn-primary:hover{
   opacity:.92;
 }
+
+/* ===== MOBILE FIX ===== */
+
+@media (max-width: 768px){
+
+  .topbar-inner{
+    padding:10px 14px;
+  }
+
+  .topbar-brand{
+    font-size:15px;
+  }
+
+  /* מסתיר את הטקסט המשני במובייל */
+  .topbar-brand .tag{
+    display:none;
+  }
+
+  .topbar-cta .btn-primary{
+    padding:8px 16px;
+    font-size:14px;
+  }
+}
+
 .sidebar{
   position:sticky;
   top:96px; /* חשוב: שלא ייכנס מתחת לטופ־בר */
