@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -15,7 +15,7 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IA educativa para niños | Aprender con IA segura</title>
-<link rel="canonical" href="https://iakids.app/">
+<link rel="canonical" href="https://iakids.app/he/">
 <meta property="og:type" content="website">
 <meta property="og:title"content="IA educativa para niños – aprender con IA segura">
 <meta property="og:description"content="Educación con IA para niños: aprender, crear y preguntar de forma segura con control parental.">
@@ -2695,6 +2695,13 @@ body{
   text-decoration:none !important;
 }
 
+body {
+  direction: rtl;
+}
+
+nav {
+  flex-direction: row-reverse;
+}
 
 </style>
   <script type="application/ld+json">
@@ -2726,30 +2733,27 @@ body{
       iakids
     </div>
 
-<nav class="nav-links" id="navLinks">
-  <a href="#hero">Inicio</a>
-  <a href="#how-it-works">Cómo funciona</a>
-  <a href="#features">Funciones</a>
-  <a href="#security">Seguridad</a>
-  <a href="#pricing">Precios</a>
-  <a href="/contact">Contacto</a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#hero">דף הבית</a>
+      <a href="#how-it-works">איך זה עובד</a>
+      <a href="#features">יכולות</a>
+      <a href="#security">בטיחות</a>
+      <a href="#pricing">מחירים</a>
+      <a href="/contact">צור קשר</a>
 
-  <!-- MOBILE ACTIONS -->
-  <div class="mobile-actions">
-    <a href="/onboarding/cuenta" class="mobile-login">Iniciar sesión</a>
-    <a href="/onboarding" class="mobile-cta">Empezar</a>
-  </div>
-</nav>
+      <!-- MOBILE ACTIONS -->
+      <div class="mobile-actions">
+        <a href="/onboarding/cuenta" class="mobile-login">התחברות</a>
+        <a href="/onboarding" class="mobile-cta">להתחיל</a>
+      </div>
+    </nav>
 
+    <div class="nav-actions" id="navActions">
+      <a href="/onboarding/cuenta" class="nav-login" id="loginLink">התחברות</a>
+      <a href="/onboarding" class="nav-cta" id="startLink">להתחיל</a>
+    </div>
 
-
-
-<div class="nav-actions" id="navActions">
-  <a href="/onboarding/cuenta" class="nav-login" id="loginLink">Iniciar sesión</a>
-  <a href="/onboarding" class="nav-cta" id="startLink">Empezar</a>
-</div>
-
-    <button class="nav-burger" id="navBurger" aria-label="Abrir menú">
+    <button class="nav-burger" id="navBurger" aria-label="פתח תפריט">
       <span></span>
       <span></span>
       <span></span>
@@ -2759,45 +2763,46 @@ body{
 </header>
 
 
-<section class="iakids-hero" id="hero">
 
+<section class="iakids-hero" id="hero">
 
   <div class="hero-content">
 
     <span class="hero-pill">
-      IA SEGURA PARA NIÑOS
+      בינה מלאכותית בטוחה לילדים
     </span>
 
     <h1 class="hero-title">
-      Aprender se siente como
+      ללמוד מרגיש כמו
       <span class="typing-wrap">
         <span id="typing"></span><span class="cursor">|</span>
       </span>
     </h1>
 
     <p class="hero-text">
-      Una inteligencia artificial educativa y segura que ayuda a los niños
-      a aprender, imaginar y explorar con tranquilidad.
+      בינה מלאכותית חינוכית ובטוחה שעוזרת לילדים
+      ללמוד, לדמיין ולחקור בביטחון ובשקט נפשי להורים.
     </p>
 
     <div class="hero-buttons">
       <a href="/onboarding" class="hero-btn primary">
-        Empezar de forma segura 🚀
+        להתחיל בצורה בטוחה 🚀
       </a>
       <a href="#how-it-works" class="hero-btn secondary">
-        Cómo funciona
+        איך זה עובד
       </a>
     </div>
 
     <div class="hero-tags">
-      <span>🛡️ Contenido apropiado</span>
-      <span>🎓 Aprendizaje guiado</span>
-      <span>👨‍👩‍👧 Control parental</span>
+      <span>🛡️ תוכן מותאם לגיל</span>
+      <span>🎓 למידה מודרכת</span>
+      <span>👨‍👩‍👧 שליטה ובקרה להורים</span>
     </div>
 
   </div>
 
 </section>
+
 <!-- =========================
      SECTION 2: PARA QUIÉN ES (Kids + Parents + Not Free AI)
      Drop-in ready (HTML + CSS)
@@ -2807,11 +2812,11 @@ body{
   <div class="audience-inner">
 
     <header class="audience-head">
-      <span class="audience-badge">PARA QUIÉN ES</span>
-      <h2>Una IA para niños, con tranquilidad para familias</h2>
+      <span class="audience-badge">למי זה מתאים?</span>
+      <h2>בינה מלאכותית לילדים — עם שקט נפשי להורים</h2>
       <p>
-        iakids está hecha para que los niños aprendan y creen con seguridad,
-        mientras los padres mantienen el control y los límites.
+        iakids נבנתה כדי לאפשר לילדים ללמוד וליצור בביטחון,
+        בזמן שלהורים יש שליטה, גבולות ופיקוח מלא.
       </p>
     </header>
 
@@ -2820,56 +2825,56 @@ body{
       <!-- Kids -->
       <article class="audience-card kids">
         <div class="audience-ico">🧒</div>
-        <h3>Para niños</h3>
-        <p class="audience-sub">Aprender, preguntar y crear — de forma guiada.</p>
+        <h3>לילדים</h3>
+        <p class="audience-sub">ללמוד, לשאול וליצור — בליווי ובהכוונה.</p>
         <ul class="audience-list">
-          <li><span class="dot dot-blue"></span>Aprender con explicaciones claras</li>
-          <li><span class="dot dot-orange"></span>Preguntar sin miedo ni presión</li>
-          <li><span class="dot dot-green"></span>Crear historias, ideas y juegos</li>
+          <li><span class="dot dot-blue"></span>הסברים ברורים ופשוטים להבנה</li>
+          <li><span class="dot dot-orange"></span>לשאול שאלות בלי לחץ או מבוכה</li>
+          <li><span class="dot dot-green"></span>ליצור סיפורים, רעיונות ומשחקים</li>
         </ul>
         <div class="audience-foot">
-          <span class="chip">Lenguaje por edad</span>
-          <span class="chip">Sin distracciones</span>
+          <span class="chip">שפה מותאמת גיל</span>
+          <span class="chip">בלי הסחות דעת</span>
         </div>
       </article>
 
       <!-- Parents -->
       <article class="audience-card parents">
         <div class="audience-ico">👨‍👩‍👧</div>
-        <h3>Para padres</h3>
-        <p class="audience-sub">Control, límites y paz mental.</p>
+        <h3>להורים</h3>
+        <p class="audience-sub">שליטה, גבולות ושקט נפשי.</p>
         <ul class="audience-list">
-          <li><span class="dot dot-purple"></span>Límites de uso (texto, imágenes, voz)</li>
-          <li><span class="dot dot-green"></span>Perfiles por niño y configuración fácil</li>
-          <li><span class="dot dot-blue"></span>Entorno seguro y consistente</li>
+          <li><span class="dot dot-purple"></span>הגבלות שימוש (טקסט, תמונות, קול)</li>
+          <li><span class="dot dot-green"></span>פרופיל נפרד לכל ילד והגדרה פשוטה</li>
+          <li><span class="dot dot-blue"></span>סביבה בטוחה ועקבית</li>
         </ul>
         <div class="audience-foot">
-          <span class="chip">Control parental</span>
-          <span class="chip">Reglas claras</span>
+          <span class="chip">בקרה הורית</span>
+          <span class="chip">חוקים ברורים</span>
         </div>
       </article>
 
       <!-- Not free AI -->
       <article class="audience-card notfree">
         <div class="audience-ico">🛡️</div>
-        <h3>No es una IA “libre”</h3>
-        <p class="audience-sub">Está diseñada específicamente para niños.</p>
+        <h3>זו לא בינה “חופשית”</h3>
+        <p class="audience-sub">המערכת מותאמת במיוחד לילדים.</p>
         <div class="callout">
-          <div class="callout-title">¿Qué significa?</div>
+          <div class="callout-title">מה זה אומר?</div>
           <p class="callout-text">
-            Respuestas filtradas, tono adecuado y guía educativa.
-            Menos caos, más aprendizaje.
+            תשובות מסוננות, טון מתאים לגיל והכוונה חינוכית.
+            פחות רעש, יותר למידה.
           </p>
         </div>
         <ul class="audience-list">
-          <li><span class="dot dot-orange"></span>Contenido apropiado por edad</li>
-          <li><span class="dot dot-blue"></span>Enfoque educativo (no “cualquier cosa”)</li>
-          <li><span class="dot dot-green"></span>Experiencia estable y segura</li>
+          <li><span class="dot dot-orange"></span>תוכן מותאם לגיל הילד</li>
+          <li><span class="dot dot-blue"></span>התמקדות בלמידה (לא “כל דבר”)</li>
+          <li><span class="dot dot-green"></span>חוויה יציבה ובטוחה</li>
         </ul>
         <div class="audience-foot">
-          <span class="chip">Seguro</span>
-          <span class="chip">Educativo</span>
-          <span class="chip">Hecho para niños</span>
+          <span class="chip">בטוחה</span>
+          <span class="chip">חינוכית</span>
+          <span class="chip">נבנתה לילדים</span>
         </div>
       </article>
 
@@ -2878,42 +2883,43 @@ body{
   </div>
 </section>
 
+
 <section class="how-clean" id="how-it-works">
 
   <div class="how-frame">
 
     <div class="how-content">
-      <span class="how-pill">CÓMO FUNCIONA</span>
+      <span class="how-pill">איך זה עובד</span>
 
-      <h2>Aprender con IA,<br>paso a paso</h2>
+      <h2>ללמוד עם בינה מלאכותית,<br>צעד אחר צעד</h2>
 
       <p class="how-sub">
-        Empezar con iakids es fácil. Todo está diseñado para niños y
-        controlado por padres.
+        להתחיל עם iakids זה פשוט. הכל מותאם לילדים
+        ובפיקוח מלא של ההורים.
       </p>
 
       <div class="how-steps-clean">
         <div class="how-step-card">
           <span class="n n-orange">1</span>
           <div>
-            <strong>Crear el perfil del niño</strong>
-            <p>Elige la edad y preferencias. La IA se adapta automáticamente.</p>
+            <strong>יוצרים פרופיל לילד</strong>
+            <p>בוחרים גיל והעדפות. המערכת מתאימה את עצמה אוטומטית.</p>
           </div>
         </div>
 
         <div class="how-step-card">
           <span class="n n-blue">2</span>
           <div>
-            <strong>El niño aprende y crea</strong>
-            <p>Pregunta, aprende e inventa historias en un entorno seguro.</p>
+            <strong>הילד לומד ויוצר</strong>
+            <p>שואל שאלות, לומד וממציא רעיונות בסביבה בטוחה ומכוונת.</p>
           </div>
         </div>
 
         <div class="how-step-card">
           <span class="n n-green">3</span>
           <div>
-            <strong>Los padres supervisan</strong>
-            <p>Supervisión clara y tranquilidad total para la familia.</p>
+            <strong>ההורים נשארים בשליטה</strong>
+            <p>פיקוח ברור ושקט נפשי מלא לכל המשפחה.</p>
           </div>
         </div>
       </div>
@@ -2922,48 +2928,49 @@ body{
   </div>
 </section>
 
+
 <section class="examples">
   <div class="examples__inner">
 
     <!-- LEFT -->
     <div class="examples__left">
-      <span class="examples__badge">EJEMPLOS DE USO</span>
-      <h2>¿Qué puede aprender y crear tu hijo con iakids?</h2>
+      <span class="examples__badge">דוגמאות לשימוש</span>
+      <h2>מה הילד שלך יכול ללמוד וליצור עם iakids?</h2>
       <p class="examples__desc">
-        Casos reales de uso diario, diseñados para niños de 6 a 10 años,
-        con explicaciones claras y un entorno seguro.
+        שימושים יומיומיים אמיתיים, מותאמים לילדים בגילאי 6–10,
+        עם הסברים ברורים וסביבה בטוחה.
       </p>
 
       <div class="examples__grid">
         <div class="example-card">
           <img src="/assets/iakids-usecase-homework-girl.png" alt="">
           <div>
-            <h3>Ayuda con la tarea</h3>
-            <p>Explicaciones paso a paso, sin presión ni estrés.</p>
+            <h3>עזרה בשיעורי בית</h3>
+            <p>הסברים צעד אחר צעד, בלי לחץ ובלי סטרס.</p>
           </div>
         </div>
 
         <div class="example-card">
           <img src="/assets/iakids-usecase-learning-kid.png" alt="">
           <div>
-            <h3>Aprender temas nuevos</h3>
-            <p>Ciencia, historia y matemáticas adaptadas a su edad.</p>
+            <h3>ללמוד נושאים חדשים</h3>
+            <p>מדעים, היסטוריה ומתמטיקה — מותאמים לגיל.</p>
           </div>
         </div>
 
         <div class="example-card">
           <img src="/assets/iakids-usecase-questions-kid.png" alt="">
           <div>
-            <h3>Hacer preguntas libremente</h3>
-            <p>Sin respuestas confusas ni contenido inapropiado.</p>
+            <h3>לשאול כל שאלה</h3>
+            <p>בלי תשובות מבלבלות ובלי תוכן לא מתאים.</p>
           </div>
         </div>
 
         <div class="example-card">
           <img src="/assets/iakids-usecase-creativity-kid.png" alt="">
           <div>
-            <h3>Crear historias y juegos</h3>
-            <p>Fomentando imaginación, creatividad y curiosidad.</p>
+            <h3>ליצור סיפורים ומשחקים</h3>
+            <p>מעודד דמיון, יצירתיות וסקרנות טבעית.</p>
           </div>
         </div>
       </div>
@@ -2971,30 +2978,28 @@ body{
 
     <!-- RIGHT -->
     <div class="examples__right">
-  <div class="parents-card">
+      <div class="parents-card">
 
-    <div class="parents-card__content">
-      <h3>Diseñado para padres</h3>
-      <p class="parents-card__subtitle">
-        Tranquilidad, control y una experiencia segura para toda la familia.
-      </p>
+        <div class="parents-card__content">
+          <h3>נבנה במיוחד עבור הורים</h3>
+          <p class="parents-card__subtitle">
+            שקט נפשי, שליטה מלאה וחוויית למידה בטוחה לכל המשפחה.
+          </p>
 
-      <div class="parents-card__features">
-        <div>✓ Contenido filtrado y apropiado</div>
-        <div>✓ Respuestas adaptadas por edad</div>
-        <div>✓ Sin temas sensibles</div>
-        <div>✓ Control parental total</div>
+          <div class="parents-card__features">
+            <div>✓ תוכן מסונן ומותאם לילדים</div>
+            <div>✓ תשובות לפי גיל הילד</div>
+            <div>✓ בלי נושאים רגישים</div>
+            <div>✓ שליטה הורית מלאה</div>
+          </div>
+        </div>
+
+        <div class="parents-card__visual">
+          <img src="/assets/iakids-kid-learning-desk.png" alt="">
+        </div>
+
       </div>
     </div>
-
-    <!-- image is PART of the card -->
-    <div class="parents-card__visual">
-      <img src="/assets/iakids-kid-learning-desk.png" alt="">
-    </div>
-
-  </div>
-</div>
-
 
   </div>
 </section>
@@ -3002,17 +3007,16 @@ body{
 
 <section class="iakids-security" id="security">
 
-
   <div class="security-head">
-    <span class="security-pill">SEGURIDAD + CONTROL PARENTAL</span>
+    <span class="security-pill">בטיחות + שליטה הורית</span>
     <h2>
-      Seguridad real para niños,<br>
-      <span>tranquilidad para familias</span>
+      בטיחות אמיתית לילדים,<br>
+      <span>שקט נפשי להורים</span>
     </h2>
     <p>
-      Diseñado para aprender con calma: filtros, privacidad
-      y herramientas claras para que los padres decidan
-      cómo se usa la IA en casa.
+      נבנה ללמידה רגועה ובטוחה: סינון תוכן, שמירה על פרטיות
+      וכלים ברורים שמאפשרים להורים לקבוע
+      איך הבינה המלאכותית פועלת בבית.
     </p>
   </div>
 
@@ -3020,28 +3024,28 @@ body{
 
     <!-- LEFT -->
     <div class="security-main">
-      <span class="mode-pill">Modo infantil</span>
-      <h3>Protección en cada conversación</h3>
+      <span class="mode-pill">מצב ילדים</span>
+      <h3>הגנה בכל שיחה</h3>
 
       <ul class="security-list">
         <li>
-          <strong>Filtros por edad</strong>
-          <span>Respuestas adaptadas a un tono y contenido apropiados.</span>
+          <strong>סינון מותאם לגיל</strong>
+          <span>תשובות בשפה מתאימה ועם תוכן מותאם לילדים.</span>
         </li>
         <li>
-          <strong>Privacidad por diseño</strong>
-          <span>Minimizamos datos y protegemos la experiencia.</span>
+          <strong>פרטיות כברירת מחדל</strong>
+          <span>איסוף מידע מינימלי ושמירה על חוויית משתמש בטוחה.</span>
         </li>
         <li>
-          <strong>Controles parentales</strong>
-          <span>Límites y ajustes siempre en manos de adultos.</span>
+          <strong>שליטה הורית מלאה</strong>
+          <span>הגדרות, מגבלות ושימוש – תמיד בידיים של ההורים.</span>
         </li>
       </ul>
 
       <div class="security-tags">
-        <span>Aprendizaje seguro</span>
-        <span>Sin distracciones</span>
-        <span>Hecho para niños</span>
+        <span>למידה בטוחה</span>
+        <span>ללא הסחות דעת</span>
+        <span>מותאם לילדים</span>
       </div>
     </div>
 
@@ -3049,23 +3053,23 @@ body{
     <div class="security-side">
 
       <div class="side-card">
-        <h4>Filtrado inteligente</h4>
-        <p>Múltiples capas para mantener contenido adecuado.</p>
+        <h4>סינון חכם</h4>
+        <p>שכבות הגנה מרובות לשמירה על תוכן מתאים.</p>
       </div>
 
       <div class="side-card">
-        <h4>Privacidad</h4>
-        <p>Experiencia pensada para proteger a menores.</p>
+        <h4>שמירה על פרטיות</h4>
+        <p>מערכת שתוכננה להגן על ילדים ומשפחות.</p>
       </div>
 
       <div class="side-card">
-        <h4>Control parental</h4>
-        <p>Ajustes y límites gestionados por padres.</p>
+        <h4>שליטה הורית</h4>
+        <p>ניהול הגדרות ומגבלות בצורה פשוטה וברורה.</p>
       </div>
 
       <div class="side-card">
-        <h4>Cumplimiento</h4>
-        <p>Buenas prácticas alineadas con normativas infantiles.</p>
+        <h4>עמידה בתקנים</h4>
+        <p>התאמה לעקרונות רגולציה והגנה על קטינים.</p>
       </div>
 
     </div>
@@ -3073,86 +3077,87 @@ body{
   </div>
 
 </section>
+
 
 
 
 <section class="pricing-clean" id="pricing">
   <div class="pricing-inner">
 
-    <span class="pricing-pill">PLANES SIMPLES</span>
-    <h2>Planes claros para familias</h2>
+    <span class="pricing-pill">תוכניות פשוטות וברורות</span>
+    <h2>מתחילים בחינם ומתקדמים כשמרגיש נכון</h2>
     <p class="pricing-sub">
-      Empieza gratis y decide con calma. Sin cargos ocultos, sin presión.
+      ללא התחייבות. ללא חיובים נסתרים. ניסיון חופשי לפני החלטה.
     </p>
 
     <div class="pricing-grid">
 
       <!-- FREE -->
       <div class="plan-card">
-        <h3>Gratis</h3>
+        <h3>חינם</h3>
 
         <div class="plan-price">
-          <span class="amount">$0</span>
+          <span class="amount">₪0</span>
         </div>
 
         <ul>
-          <li>50 mensajes de texto</li>
-          <li>Sin voz ni imágenes</li>
-          <li>Contenido seguro por edad</li>
-          <li>Acceso inicial para probar iakids</li>
-          <li>Sin tarjeta de crédito</li>
+          <li>50 הודעות טקסט</li>
+          <li>ללא קול וללא תמונות</li>
+          <li>תוכן מותאם לגיל הילד</li>
+          <li>התנסות ראשונית מלאה</li>
+          <li>ללא צורך בכרטיס אשראי</li>
         </ul>
 
         <a href="/onboarding" class="btn secondary">
-          Probar gratis
+          לנסות בחינם
         </a>
       </div>
 
       <!-- MONTHLY -->
       <div class="plan-card">
-        <h3>Mensual</h3>
+        <h3>חודשי</h3>
 
         <div class="plan-price">
-          <span class="amount">$9.99</span>
-          <span class="period">/ mes</span>
+          <span class="amount">₪39</span>
+          <span class="period">לחודש</span>
         </div>
 
         <ul>
-          <li>Preguntas ilimitadas</li>
-          <li>Explicaciones paso a paso</li>
-          <li>Ayuda diaria con tareas y estudios</li>
-          <li>Entorno seguro adaptado a la edad</li>
-          <li>Control parental completo</li>
+          <li>שאלות ללא הגבלה</li>
+          <li>הסברים צעד־אחר־צעד</li>
+          <li>עזרה יומית בלימודים</li>
+          <li>סביבה בטוחה ומותאמת לגיל</li>
+          <li>שליטה הורית מלאה</li>
         </ul>
 
         <a href="/planes" class="btn secondary">
-          Elegir mensual
+          לבחור תוכנית חודשית
         </a>
       </div>
 
       <!-- ANNUAL -->
       <div class="plan-card featured">
-        <span class="badge">Recomendado</span>
-        <h3>Anual</h3>
+        <span class="badge">מומלץ</span>
+        <h3>שנתי</h3>
 
         <div class="plan-price">
-          <span class="amount">$78</span>
-          <span class="period">/ año</span>
+          <span class="amount">₪299</span>
+          <span class="period">לשנה</span>
         </div>
 
         <p class="saving">
-          Ahorra 35% comparado con el plan mensual
+          חיסכון משמעותי לעומת תשלום חודשי
         </p>
 
         <ul>
-          <li>Todo lo del plan mensual</li>
-          <li>Acompañamiento durante todo el año escolar</li>
-          <li>Más tranquilidad para las familias</li>
-          <li>Un solo pago, sin renovaciones mensuales</li>
+          <li>כל מה שכלול בתוכנית החודשית</li>
+          <li>ליווי לאורך כל שנת הלימודים</li>
+          <li>תשלום אחד וללא חידוש חודשי</li>
+          <li>שקט נפשי להורים</li>
         </ul>
 
         <a href="/planes" class="btn primary">
-          Elegir anual
+          לבחור תוכנית שנתית
         </a>
       </div>
 
@@ -3160,6 +3165,7 @@ body{
 
   </div>
 </section>
+
 
 
 <!-- =========================
@@ -3171,28 +3177,28 @@ body{
 
     <!-- LEFT -->
     <div class="iakids-left">
-      <span class="iakids-pill">TODO EN UN SOLO LUGAR</span>
+      <span class="iakids-pill">הכול במקום אחד</span>
       <h2>
-        Diseñado para aprender <br>
-        <span>con seguridad y propósito</span>
+        נבנה כדי ללמוד <br>
+        <span>בבטחה ובמטרה ברורה</span>
       </h2>
 
       <ul class="iakids-features">
         <li class="active" data-image="img-1">
-          <strong>Aprendizaje guiado</strong>
-          <span>Respuestas claras, adaptadas a cada edad.</span>
+          <strong>למידה מודרכת</strong>
+          <span>הסברים ברורים ומותאמים לגיל הילד.</span>
         </li>
         <li data-image="img-2">
-          <strong>Control parental real</strong>
-          <span>Filtros por edad, historial y supervisión.</span>
+          <strong>שליטה הורית אמיתית</strong>
+          <span>סינון לפי גיל, היסטוריה וכלי בקרה פשוטים.</span>
         </li>
         <li data-image="img-3">
-          <strong>Creatividad sin riesgos</strong>
-          <span>Historias, ideas y juegos en entorno seguro.</span>
+          <strong>יצירתיות בלי סיכונים</strong>
+          <span>סיפורים, רעיונות ומשחקי חשיבה בסביבה בטוחה.</span>
         </li>
         <li data-image="img-4">
-          <strong>Confianza para las familias</strong>
-          <span>Educación digital sin distracciones ni publicidad.</span>
+          <strong>שקט נפשי למשפחה</strong>
+          <span>למידה דיגיטלית ללא פרסומות וללא הסחות דעת.</span>
         </li>
       </ul>
 
@@ -3211,6 +3217,7 @@ body{
 
   </div>
 </section>
+
 
 <section class="iakids-trust-lms" id="trust">
 
@@ -3262,106 +3269,108 @@ body{
 
     <!-- LEFT -->
     <div class="story-left">
-      <span class="story-pill">NUESTRA HISTORIA</span>
+      <span class="story-pill">הסיפור שלנו</span>
 
       <h2>
-        Todo empezó con una
-        <span>pregunta sencilla</span>
+        הכול התחיל מ
+        <span>שאלה פשוטה</span>
       </h2>
 
       <p class="story-question">
-        ¿Cómo pueden los niños explorar su curiosidad natural
-        en un entorno digital realmente seguro y educativo?
+        איך ילדים יכולים לחקור את הסקרנות הטבעית שלהם
+        בסביבה דיגיטלית שבאמת בטוחה ומחנכת?
       </p>
 
       <div class="story-text">
         <p>
-          Como padres, sabemos que los niños hacen preguntas todo el tiempo.
-          Preguntan antes de dormir, mientras hacen la tarea y cuando
-          descubren algo nuevo.
+          כהורים, אנחנו יודעים שילדים שואלים שאלות בלי הפסקה.
+          לפני השינה, בזמן הכנת שיעורי בית,
+          וברגע שהם מגלים משהו חדש.
         </p>
 
         <p>
-          Creamos esta IA pensando en ellos: para acompañar su aprendizaje,
-          fomentar la creatividad y dar tranquilidad a las familias.
+          בנינו את iakids מתוך מחשבה עליהם —
+          ללוות את הלמידה שלהם, לעודד יצירתיות
+          ולתת שקט נפשי למשפחה.
         </p>
       </div>
 
       <div class="story-highlight">
-        No se trata solo de tecnología,
-        sino de confianza, educación y cuidado.
+        זה לא רק טכנולוגיה —
+        זו אמון, חינוך ואחריות.
       </div>
     </div>
 
     <!-- RIGHT -->
     <div class="story-right">
-      <img src="/assets/story-image.jpg" alt="Familia usando iakids">
+      <img src="/assets/story-image.jpg" alt="משפחה משתמשת ב-iakids">
     </div>
 
   </div>
 
 </section>
 
+
 <section class="parents-resources" id="resources">
 
   <div class="resources-head">
-    <h2>Recursos para padres</h2>
+    <h2>משאבים להורים</h2>
     <p>
-      Herramientas prácticas y orientación clara para acompañar
-      la experiencia de aprendizaje de sus hijos con IA.
+      כלים מעשיים והכוונה ברורה לליווי חוויית הלמידה
+      של הילדים עם בינה מלאכותית.
     </p>
   </div>
 
   <div class="resources-cards">
 
     <article class="resource-card blue">
-      <h3>Guía para padres</h3>
+      <h3>מדריך להורים</h3>
       <p>
-        Aprende a establecer límites, comprender las funciones
-        y usar la IA infantil de forma segura y positiva en casa.
+        איך להגדיר גבולות, להבין את הפונקציות
+        ולהשתמש בבינה מלאכותית לילדים בצורה בטוחה וחיובית בבית.
       </p>
       <a href="/blog/guia-padres-ia-educativa/">
-      Ver la guía →
+        לצפייה במדריך →
       </a>
-
     </article>
 
     <article class="resource-card sky">
-      <h3>Actividades educativas</h3>
+      <h3>פעילויות חינוכיות</h3>
       <p>
-        Ideas y actividades sencillas diseñadas para fomentar
-        la curiosidad, la creatividad y conversaciones significativas.
+        רעיונות ופעילויות פשוטות לעידוד סקרנות,
+        יצירתיות ושיח משמעותי בבית.
       </p>
       <a href="/blog/actividades-educativas-con-ia-para-ninos/">
-        Explorar actividades →
+        לצפייה בפעילויות →
       </a>
-
     </article>
 
     <article class="resource-card green">
-      <h3>Seguridad y privacidad</h3>
+      <h3>בטיחות ופרטיות</h3>
       <p>
-        Explicaciones claras sobre principios de seguridad,
-        privacidad por diseño y control parental.
+        הסברים ברורים על עקרונות בטיחות,
+        פרטיות כברירת מחדל ושליטה הורית.
       </p>
       <a href="/blog/seguridad-y-privacidad-ia-para-ninos/">
-        Saber más →
+        לקריאה נוספת →
       </a>
-
     </article>
 
   </div>
 
   <div class="resources-cta">
-    <h3>¿Quieres más consejos?</h3>
+    <h3>רוצים עוד טיפים?</h3>
     <p>
-      Visita nuestro blog para conocer novedades, recomendaciones
-      y buenas prácticas sobre crianza en el mundo digital.
+      בקרו בבלוג שלנו לקריאת עדכונים, המלצות
+      וטיפים על הורות בעידן הדיגיטלי.
     </p>
-    <a href="/blog/ia-educativa" class="cta-btn">Visitar el blog</a>
+    <a href="/blog/ia-educativa" class="cta-btn">
+      לעמוד הבלוג
+    </a>
   </div>
 
 </section>
+
 
 
 <footer class="site-footer">
@@ -3371,75 +3380,76 @@ body{
     <div class="footer-brand">
       <h3>iakids</h3>
       <p>
-        IA segura y educativa para niños.
-        Diseñada para aprender, crear y explorar con tranquilidad.
+        בינה מלאכותית חינוכית ובטוחה לילדים.
+        נועדה ללמוד, ליצור ולחקור בשקט ובביטחון.
       </p>
     </div>
 
     <!-- Product -->
     <div class="footer-col">
-      <h4>Producto</h4>
+      <h4>המוצר</h4>
       <ul>
-        <li><a href="#features">Funciones</a></li>
-        <li><a href="#how-it-works">Cómo funciona</a></li>
-        <li><a href="#security">Seguridad</a></li>
-        <li><a href="#pricing">Precios</a></li>
+        <li><a href="#features">יכולות</a></li>
+        <li><a href="#how-it-works">איך זה עובד</a></li>
+        <li><a href="#security">בטיחות</a></li>
+        <li><a href="#pricing">תמחור</a></li>
       </ul>
     </div>
 
     <!-- Resources -->
     <div class="footer-col">
-      <h4>Recursos</h4>
+      <h4>משאבים</h4>
       <ul>
-        <li><a href="#resources">Guía para padres</a></li>
-        <li><a href="#how-it-works">Ejemplos de uso</a></li>
-        <li><a href="#audience">Para quién es</a></li>
-        <li><a href="#trust">Confianza</a></li>
+        <li><a href="#resources">מדריך להורים</a></li>
+        <li><a href="#how-it-works">דוגמאות שימוש</a></li>
+        <li><a href="#audience">למי זה מתאים</a></li>
+        <li><a href="#trust">אמון ובטיחות</a></li>
       </ul>
     </div>
 
     <!-- About -->
     <div class="footer-col">
-      <h4>Sobre iakids</h4>
+      <h4>על iakids</h4>
       <ul>
-        <li><a href="#story">Nuestra historia</a></li>
-        <li><a href="#audience">Niños y familias</a></li>
-        <li><a href="#security">Protección infantil</a></li>
+        <li><a href="#story">הסיפור שלנו</a></li>
+        <li><a href="#audience">ילדים ומשפחות</a></li>
+        <li><a href="#security">הגנה לילדים</a></li>
       </ul>
     </div>
 
-    <!-- Legal (future pages) -->
+    <!-- Legal -->
     <div class="footer-col">
-      <h4>Legal</h4>
+      <h4>מידע משפטי</h4>
       <ul>
-        <li><a href="/privacy">Política de privacidad</a></li>
-        <li><a href="/terms">Términos de servicio</a></li>
-        <li><a href="/coppa">Cumplimiento COPPA</a></li>
+        <li><a href="/privacy">מדיניות פרטיות</a></li>
+        <li><a href="/terms">תנאי שימוש</a></li>
+        <li><a href="/coppa">עמידה בתקני בטיחות לילדים</a></li>
       </ul>
     </div>
 
   </div>
 
-<div class="footer-bottom">
+  <div class="footer-bottom">
 
-  <div class="footer-bottom-left">
-    <span>
-      © <span id="year"></span> iakids ·
-      Operado por <strong>Blue Horizon Digital</strong> ·
-      <a href="mailto:support@iakids.app">support@iakids.app</a> ·
-      Todos los derechos reservados.
-    </span>
+    <div class="footer-bottom-left">
+      <span>
+        © <span id="year"></span> iakids ·
+        מופעל על ידי <strong>Blue Horizon Digital</strong> ·
+        <a href="mailto:support@iakids.app">support@iakids.app</a> ·
+        כל הזכויות שמורות.
+      </span>
+    </div>
+
+    <div class="footer-links">
+      <a href="/blog/ia-educativa">בלוג</a>
+      <a href="/contact">יצירת קשר</a>
+      <a href="/onboarding" class="footer-cta">התחילו בחינם</a>
+    </div>
+
   </div>
-
-  <div class="footer-links">
-    <a href="/blog/ia-educativa">Blog</a>
-    <a href="/contact">Contacto</a>
-    <a href="/onboarding" class="footer-cta">Empezar gratis</a>
-  </div>
-
-</div>
 
 </footer>
+
 
 <!-- BACK TO TOP BUTTON -->
 <div class="back-to-top" id="backToTop">↑</div>
