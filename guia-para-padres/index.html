@@ -1,213 +1,261 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Guía para Padres – Askie</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    :root{
-      --orange:#ff6a3d;
-      --soft-orange:#fff3ee;
-      --green:#22c55e;
-      --red:#ef4444;
-      --text:#1f2937;
-      --muted:#6b7280;
-      --card:#ffffff;
-      --radius:18px;
-    }
+<title>Guía para Padres | iakids – IA educativa segura</title>
+<meta name="description"
+content="Guía para padres sobre cómo usar iakids de forma segura, establecer límites saludables y acompañar el aprendizaje con inteligencia artificial.">
 
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(120deg,#fff7ed,#eef9ff);
-      color:var(--text);
-    }
+<style>
+:root{
+  --primary:#2563eb;
+  --accent:#22c55e;
+  --orange:#ff6a3d;
+  --bg:#f8fafc;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --card:#ffffff;
+  --radius:20px;
+}
 
-    .container{
-      max-width:920px;
-      margin:0 auto;
-      padding:64px 20px 100px;
-    }
+*{box-sizing:border-box}
 
-    h1{
-      font-size:42px;
-      margin-bottom:10px;
-    }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:linear-gradient(120deg,#eef9ff,#fff7ed);
+  color:var(--text);
+}
 
-    h2{
-      margin-top:60px;
-      font-size:28px;
-      color:var(--orange);
-    }
+/* =========================
+   TOPBAR
+========================= */
 
-    h3{
-      margin-top:28px;
-      font-size:18px;
-    }
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#ffffffcc;
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid #e5e7eb;
+}
 
-    p{
-      line-height:1.6;
-      color:var(--muted);
-      margin:10px 0;
-    }
+.topbar-inner{
+  max-width:1100px;
+  margin:auto;
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:26px;
-      margin-top:20px;
-      box-shadow:0 20px 40px rgba(0,0,0,.05);
-    }
+.topbar-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:700;
+}
 
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:20px;
-      margin-top:30px;
-    }
+.topbar-brand .tag{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:500;
+}
 
-    @media(max-width:720px){
-      .grid{ grid-template-columns:1fr; }
-      h1{ font-size:32px; }
-    }
+.btn-primary{
+  padding:10px 22px;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:0 6px 18px rgba(37,99,235,.25);
+}
 
-    ul{
-      padding-left:18px;
-      margin:12px 0;
-    }
+/* =========================
+   PAGE
+========================= */
 
-    li{
-      margin-bottom:10px;
-      line-height:1.5;
-    }
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:60px 20px 100px;
+}
 
-    .do h3{ color:var(--green); }
-    .dont h3{ color:var(--red); }
+.badge{
+  display:inline-block;
+  background:#fff3ee;
+  color:var(--orange);
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+}
 
-    .badge{
-      display:inline-block;
-      background:var(--soft-orange);
-      color:var(--orange);
-      padding:6px 12px;
-      border-radius:999px;
-      font-weight:600;
-      font-size:13px;
-    }
+h1{
+  font-size:42px;
+  margin:20px 0 10px;
+}
 
-    .cta{
-      margin-top:60px;
-      background:linear-gradient(135deg,#ff6a3d,#ff8f6b);
-      color:white;
-      border-radius:24px;
-      padding:32px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:20px;
-    }
+h2{
+  margin-top:60px;
+  font-size:28px;
+  color:var(--orange);
+}
 
-    .cta button{
-      background:white;
-      color:#ff6a3d;
-      border:none;
-      padding:14px 22px;
-      font-size:15px;
-      border-radius:999px;
-      cursor:pointer;
-      font-weight:700;
-    }
+p{
+  color:var(--muted);
+  line-height:1.7;
+}
 
-    footer{
-      margin-top:80px;
-      text-align:center;
-      font-size:13px;
-      color:#9ca3af;
-    }
-  </style>
+.card{
+  background:var(--card);
+  padding:28px;
+  border-radius:var(--radius);
+  box-shadow:0 20px 40px rgba(0,0,0,.05);
+  margin-top:20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-top:30px;
+}
+
+ul{
+  padding-left:18px;
+}
+
+li{
+  margin-bottom:10px;
+}
+
+/* CTA */
+
+.cta{
+  margin-top:70px;
+  padding:40px;
+  border-radius:24px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:white;
+  text-align:center;
+}
+
+.cta h2{
+  margin-top:0;
+  color:white;
+}
+
+.cta a{
+  display:inline-block;
+  margin-top:18px;
+  padding:14px 28px;
+  background:white;
+  color:var(--primary);
+  font-weight:800;
+  border-radius:999px;
+  text-decoration:none;
+}
+
+/* MOBILE */
+
+@media(max-width:720px){
+
+  h1{font-size:30px}
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .cta{
+    padding:30px 20px;
+  }
+
+  .cta a{
+    width:100%;
+  }
+}
+</style>
 </head>
 
 <body>
 
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      🤖 <strong>iakids</strong>
+      <span class="tag">IA educativa para niños</span>
+    </div>
+    <a href="https://iakids.app/" class="btn-primary">
+      Probar iakids
+    </a>
+  </div>
+</header>
+
+<!-- CONTENT -->
 <div class="container">
 
   <span class="badge">Guía para Padres</span>
 
-  <h1>Guía para Padres de Askie</h1>
+  <h1>Cómo usar iakids de forma segura en casa</h1>
+
   <p>
-    Descubra cómo Askie ayuda a los niños a aprender de forma segura,
-    responsable y adaptada a su edad, mientras usted mantiene el control.
+    iakids está diseñado para acompañar el aprendizaje infantil con inteligencia artificial
+    adaptada a la edad. Esta guía le ayudará a establecer límites saludables,
+    comprender sus funciones y usar la IA como apoyo educativo positivo.
   </p>
 
-  <!-- Protección -->
-  <h2>Cómo Askie Protege a su Hijo</h2>
+  <h2>🛡 Seguridad diseñada para niños</h2>
 
   <div class="card">
-    <h3>🛡️ Filtrado de Contenido en Múltiples Capas</h3>
-    <p>
-      Cada conversación e imagen pasa por filtros de seguridad avanzados
-      diseñados específicamente para niños.
-    </p>
-
-    <h3>🎯 Contenido Apropiado por Edad</h3>
-    <p>
-      Las respuestas se adaptan automáticamente según la edad del niño,
-      utilizando explicaciones simples y visuales cuando es necesario.
-    </p>
-
-    <h3>⚡ Moderación en Tiempo Real</h3>
-    <p>
-      El contenido inapropiado se bloquea de inmediato y puede ser revisado
-      por los padres desde el panel de control.
-    </p>
-
-    <h3>📜 Cumplimiento COPPA</h3>
-    <p>
-      Askie cumple totalmente con la ley COPPA. No recopilamos datos innecesarios
-      ni compartimos información con terceros.
-    </p>
+    <p><strong>Contenido adaptado por edad:</strong> Las respuestas se ajustan automáticamente al nivel del niño.</p>
+    <p><strong>Filtros de protección:</strong> Sistemas avanzados bloquean contenido inapropiado.</p>
+    <p><strong>Entorno educativo:</strong> Diseñado para aprender, no solo conversar.</p>
   </div>
 
-  <!-- Control Parental -->
-  <h2>Controles Parentales y Supervisión</h2>
+  <h2>👨‍👩‍👧 Control parental real</h2>
 
   <div class="card">
-    <h3>📊 Acceso al Panel</h3>
-    <p>
-      Revise conversaciones, imágenes generadas y el progreso de aprendizaje
-      de su hijo en cualquier momento.
-    </p>
-
-    <h3>⏱️ Límites de Uso</h3>
-    <p>
-      Establezca límites diarios o semanales para preguntas, imágenes y voz.
-    </p>
-
-    <h3>👤 Gestión de Perfiles</h3>
-    <p>
-      Cree perfiles separados para cada niño con configuraciones personalizadas.
-    </p>
+    <p><strong>Panel de supervisión:</strong> Revise actividad y progreso.</p>
+    <p><strong>Límites de uso:</strong> Defina tiempos saludables.</p>
+    <p><strong>Perfiles individuales:</strong> Personalización para cada hijo.</p>
   </div>
 
-  <!-- Do / Don't -->
-  <h2>Buenas Prácticas para el Uso Seguro de IA</h2>
+  <h2>✔ Buenas prácticas</h2>
 
   <div class="grid">
-    <div class="card do">
-      <h3>✔ Recomendado</h3>
+    <div class="card">
       <ul>
-        <li>Configurar la edad correcta del niño</li>
-        <li>Revisar conversaciones periódicamente</li>
-        <li>Hablar con su hijo sobre lo que aprende</li>
-        <li>Usar Askie como complemento educativo</li>
-        <li>Definir límites de uso saludables</li>
+        <li>Configurar la edad correcta</li>
+        <li>Revisar el historial periódicamente</li>
+        <li>Hablar sobre lo aprendido</li>
+        <li>Establecer rutinas cortas (15-20 min)</li>
       </ul>
     </div>
 
-    <div class="card dont">
-      <h3>✖ No Recomendado</h3>
+    <div class="card">
       <ul>
-        <li>Ingresar una edad incorrecta</li>
-        <li>Ignorar alertas de contenido</li>
-        <li>Permitir uso il
+        <li>No usar IA como sustituto escolar</li>
+        <li>No permitir uso ilimitado</li>
+        <li>No ignorar conversaciones importantes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cta">
+    <h2>Una forma segura de introducir IA en la educación</h2>
+    <p>
+      Con iakids, la inteligencia artificial se convierte en un apoyo estructurado,
+      guiado y seguro para el desarrollo académico y creativo de su hijo.
+    </p>
+    <a href="https://iakids.app/">Comenzar con iakids</a>
+  </div>
+
+</div>
+
+</body>
+</html>
