@@ -274,7 +274,7 @@ def chat(
         )
         )
 
-        recent_messages = get_recent_chat_messages_for_llm(child["id"], limit=7)
+        recent_messages = get_recent_chat_messages_for_llm(child["id"], limit=5)
 
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -293,7 +293,7 @@ def chat(
             content=answer
         )
 
-        if should_run_memory_extraction(child["id"]):
+        if False:
             try:
                 extractor_prompt = Path(
                     "prompts/iakids_memory_extractor_prompt.txt"
