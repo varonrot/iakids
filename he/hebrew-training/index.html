@@ -146,20 +146,47 @@ body::before{
 }
 
 .mode-card{
+  position:relative;
+  overflow:hidden;
+
   border-radius:30px;
   padding:35px;
   color:white;
   height:220px;
+
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-  transition:0.3s;
 
+  transition:0.3s;
   box-shadow:0 20px 45px rgba(0,0,0,0.2);
+
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
 }
 
 .mode-card:hover{
   transform:translateY(-6px);
+}
+
+/* שכבת עומק עדינה מעל התמונה */
+.mode-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    to top,
+    rgba(0,0,0,0.35),
+    rgba(0,0,0,0.05)
+  );
+  border-radius:30px;
+}
+
+/* שהתוכן יהיה מעל השכבה */
+.mode-card > *{
+  position:relative;
+  z-index:2;
 }
 
 .mode-card h3{
@@ -179,9 +206,14 @@ body::before{
   cursor:pointer;
 }
 
+
 /* COLORS */
 
-.green{background:linear-gradient(135deg,#38c88a,#1dbb72);}
+.green{
+  background-image:url("/assets/card-green-bg.png");
+}
+
+
 .purple{background:linear-gradient(135deg,#7b6bff,#5a4dff);}
 .orange{background:linear-gradient(135deg,#ff9f50,#ff7a00);}
 .blue{background:linear-gradient(135deg,#4fa8ff,#2f7fff);}
