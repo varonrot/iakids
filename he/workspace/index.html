@@ -905,7 +905,7 @@ header{
     height:100%;
   }
 }
- 
+
 /* ===== SETTINGS MODAL ===== */
 .modal-overlay{
   position:fixed;
@@ -1856,17 +1856,17 @@ function toggleSidebar(){
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
 
-    <h2>Editar perfil del niño</h2>
+    <h2>עריכת פרופיל הילד</h2>
 
     <label>
-      Nombre
+      שם
       <input type="text" id="modalChildName" />
     </label>
 
     <label>
-      Edad
+      גיל
       <select id="modalChildAge">
-        <option value="">Select age</option>
+        <option value="">בחר גיל</option>
         <option>3</option><option>4</option><option>5</option>
         <option>6</option><option>7</option><option>8</option>
         <option>9</option><option>10</option><option>11</option>
@@ -1876,56 +1876,57 @@ function toggleSidebar(){
     </label>
 
     <label>
-      Avatar
-<select id="modalAvatar">
-  <option value="cat">Cat</option>
-  <option value="dolphin">Dolphin</option>
-  <option value="eagle">Eagle</option>
-  <option value="horse">Horse</option>
-  <option value="owl">Owl</option>
-  <option value="panther">Panther</option>
-</select>
-
+      אווטאר
+      <select id="modalAvatar">
+        <option value="cat">חתול</option>
+        <option value="dolphin">דולפין</option>
+        <option value="eagle">נשר</option>
+        <option value="horse">סוס</option>
+        <option value="owl">ינשוף</option>
+        <option value="panther">פנתר</option>
+      </select>
     </label>
 
     <label>
-      Intereses de aprendizaje (separados por comas)
+      תחומי עניין ללמידה (מופרדים בפסיקים)
       <input type="text" id="modalInterests" />
     </label>
-<label>
-  ¿Para qué quieres usar KidSaí?
-  <div class="chips" id="modalGoals">
-    <button data-val="daily_questions">Preguntas del día a día</button>
-    <button data-val="school_help">Apoyo escolar</button>
-    <button data-val="thinking">Pensar y razonar</button>
-    <button data-val="creative">Ideas creativas</button>
-    <button data-val="languages">Palabras e idiomas</button>
-    <button data-val="safe_curiosity">Curiosidad segura</button>
-    <button data-val="family">Conversaciones en familia</button>
-  </div>
-</label>
 
-<label>
-  ¿Qué le gustaría aprender?
-  <div class="chips" id="modalLearning">
-    <button data-val="languages">Nuevo idioma</button>
-    <button data-val="math">Mejorar matemáticas</button>
-    <button data-val="english">Mejorar inglés</button>
-    <button data-val="science">Ciencia</button>
-    <button data-val="reading">Lectura</button>
-    <button data-val="arts">Artes creativas</button>
-    <button data-val="logic">Lógica y resolución</button>
-    <button data-val="critical">Pensamiento crítico</button>
-  </div>
-</label>
+    <label>
+      בשביל מה תרצה להשתמש ב-KidSaí?
+      <div class="chips" id="modalGoals">
+        <button data-val="daily_questions">שאלות יומיומיות</button>
+        <button data-val="school_help">עזרה בלימודים</button>
+        <button data-val="thinking">חשיבה והיגיון</button>
+        <button data-val="creative">רעיונות יצירתיים</button>
+        <button data-val="languages">מילים ושפות</button>
+        <button data-val="safe_curiosity">סקרנות בטוחה</button>
+        <button data-val="family">שיחות משפחתיות</button>
+      </div>
+    </label>
+
+    <label>
+      מה היית רוצה ללמוד?
+      <div class="chips" id="modalLearning">
+        <button data-val="languages">שפה חדשה</button>
+        <button data-val="math">שיפור במתמטיקה</button>
+        <button data-val="english">שיפור באנגלית</button>
+        <button data-val="science">מדעים</button>
+        <button data-val="reading">קריאה</button>
+        <button data-val="arts">אומנויות יצירתיות</button>
+        <button data-val="logic">לוגיקה ופתרון בעיות</button>
+        <button data-val="critical">חשיבה ביקורתית</button>
+      </div>
+    </label>
 
     <div class="modal-actions">
-      <button onclick="closeSettings()">Cancelar</button>
-      <button class="save" onclick="saveSettings()">Guardar</button>
+      <button onclick="closeSettings()">ביטול</button>
+      <button class="save" onclick="saveSettings()">שמירה</button>
     </div>
 
   </div>
 </div>
+
 <script>
 document.getElementById("openSettings").onclick = () => {
   if (!CURRENT_KID) return;
@@ -2102,48 +2103,49 @@ async function createKid(){
   <div class="modal">
 
     <div class="modal-header">
-      <h2>Panel para padres</h2>
+      <h2>לוח הורים</h2>
       <button class="modal-close" onclick="closeParentModal()">✕</button>
     </div>
 
     <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
-      Gestionar perfiles de niños
+      ניהול פרופילי ילדים
     </p>
 
     <!-- SELECT KID -->
     <label>
-      Elegir niño
+      בחירת ילד
       <select id="parentKidSelect"></select>
     </label>
 
     <div class="modal-actions">
-      <button onclick="switchKid()">Cambiar</button>
+      <button onclick="switchKid()">החלף</button>
     </div>
 
     <hr style="margin:16px 0">
 
     <!-- ADD KID -->
     <button class="save" onclick="addKid()">
-      ➕ Agregar niño
+      ➕ הוספת ילד
     </button>
 
   </div>
 </div>
+
 <!-- ===== ADD KID MODAL ===== -->
 <div class="modal-overlay" id="addKidModal">
   <div class="modal">
 
-    <h2>Agregar niño</h2>
+    <h2>הוספת ילד</h2>
 
     <label>
-      Nombre
+      שם
       <input type="text" id="newKidName">
     </label>
 
     <label>
-      Edad
+      גיל
       <select id="newKidAge">
-        <option value="">Edad</option>
+        <option value="">בחר גיל</option>
         <option>3</option><option>4</option><option>5</option>
         <option>6</option><option>7</option><option>8</option>
         <option>9</option><option>10</option><option>11</option>
@@ -2153,12 +2155,13 @@ async function createKid(){
     </label>
 
     <div class="modal-actions">
-      <button onclick="closeAddKid()">Cancelar</button>
-      <button class="save" onclick="createKid()">Crear</button>
+      <button onclick="closeAddKid()">ביטול</button>
+      <button class="save" onclick="createKid()">יצירה</button>
     </div>
 
   </div>
 </div>
+
 
 <script>
 function openQuotaModal(){
