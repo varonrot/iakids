@@ -7,8 +7,13 @@
 
 <style>
 
-/* ===== RESET ===== */
-*{margin:0;padding:0;box-sizing:border-box;}
+/* ================= RESET ================= */
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
@@ -22,33 +27,39 @@ body{
   background-attachment:fixed;
 }
 
-/* שכבת אור עדינה */
+/* שכבת Fog רכה על כל הדף */
 body::before{
   content:"";
   position:fixed;
   inset:0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.7), transparent 50%),
-    radial-gradient(circle at 85% 75%, rgba(255,200,150,0.35), transparent 50%);
+  background:rgba(255,255,255,0.25);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
   z-index:-1;
 }
 
-
-/* ===== LAYOUT ===== */
+/* ================= LAYOUT ================= */
 
 .layout{
   display:flex;
   min-height:100vh;
 }
 
-/* ===== SIDEBAR ===== */
+/* ================= SIDEBAR ================= */
 
 .sidebar{
   width:270px;
-  background:rgba(255,255,255,0.8);
-  backdrop-filter:blur(20px);
+
+  background:rgba(255,255,255,0.25);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+
+  border-left:1px solid rgba(255,255,255,0.4);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+
   padding:30px;
-  box-shadow:15px 0 40px rgba(0,0,0,0.05);
   display:flex;
   flex-direction:column;
   gap:30px;
@@ -62,7 +73,8 @@ body::before{
   width:90px;
   height:90px;
   border-radius:50%;
-  background:#dfe9ff;
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(10px);
   margin:0 auto 15px;
 }
 
@@ -86,10 +98,10 @@ body::before{
 }
 
 .nav-item:hover{
-  background:#eef3ff;
+  background:rgba(255,255,255,0.4);
 }
 
-/* ===== MAIN ===== */
+/* ================= MAIN ================= */
 
 .main{
   flex:1;
@@ -99,14 +111,21 @@ body::before{
   gap:50px;
 }
 
-/* ================== SECTION 1 ================== */
+/* ================= HERO ================= */
 
 .section-hero{
-  background:rgba(255,255,255,0.8);
-  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,0.35);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+
+  border:1px solid rgba(255,255,255,0.4);
+
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+
   border-radius:35px;
   padding:45px;
-  box-shadow:0 25px 50px rgba(0,0,0,0.06);
 }
 
 .section-hero h1{
@@ -115,10 +134,10 @@ body::before{
 }
 
 .section-hero p{
-  color:#6b7a90;
+  color:#4f5e78;
 }
 
-/* ================== SECTION 2 ================== */
+/* ================= MODE CARDS ================= */
 
 .section-modes{
   display:grid;
@@ -135,7 +154,8 @@ body::before{
   flex-direction:column;
   justify-content:space-between;
   transition:0.3s;
-  box-shadow:0 20px 45px rgba(0,0,0,0.15);
+
+  box-shadow:0 20px 45px rgba(0,0,0,0.2);
 }
 
 .mode-card:hover{
@@ -148,7 +168,7 @@ body::before{
 
 .mode-card p{
   font-size:14px;
-  opacity:0.9;
+  opacity:0.95;
 }
 
 .mode-card button{
@@ -171,7 +191,7 @@ body::before{
 .orange button{background:white;color:#ff7a00;}
 .blue button{background:white;color:#2f7fff;}
 
-/* ================== SECTION 3 ================== */
+/* ================= STATS ================= */
 
 .section-stats{
   display:grid;
@@ -180,11 +200,18 @@ body::before{
 }
 
 .panel{
-  background:rgba(255,255,255,0.8);
-  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,0.35);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+
+  border:1px solid rgba(255,255,255,0.4);
+
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+
   border-radius:30px;
   padding:30px;
-  box-shadow:0 20px 45px rgba(0,0,0,0.05);
 }
 
 .panel h4{
@@ -193,11 +220,11 @@ body::before{
 
 .graph{
   height:130px;
-  background:linear-gradient(180deg,#dfe9ff,#ffffff);
+  background:linear-gradient(180deg,rgba(255,255,255,0.7),rgba(255,255,255,0.2));
   border-radius:15px;
 }
 
-/* ===== MOBILE ===== */
+/* ================= RESPONSIVE ================= */
 
 @media(max-width:1200px){
   .section-modes{
@@ -234,8 +261,8 @@ body::before{
   .section-stats{
     grid-template-columns:1fr;
   }
-
 }
+
 
 </style>
 </head>
