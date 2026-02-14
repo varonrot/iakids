@@ -148,7 +148,7 @@ const setStatus = (t) => statusEl.textContent = t;
 
   const user = userData.user;
   console.log("User:", user.id);
-  
+
     // 🔍 CHECK: does this user already have a child?
   setStatus("Checking existing child profile…");
 
@@ -168,7 +168,7 @@ const setStatus = (t) => statusEl.textContent = t;
     // ניקוי onboarding ישן (חשוב!)
     sessionStorage.clear();
 
-    window.location.replace("/workspace/");
+    window.location.replace("/he/workspace/");
     return; // ⛔ עוצר פה — לא ממשיכים onboarding
   }
 
@@ -186,7 +186,7 @@ setTimeout(() => {
 
   // small pause so user sees "Ready"
   setTimeout(() => {
-    window.location.href = "/onboarding/complete/";
+    window.location.href = "/he/onboarding/complete/";
   }, 600);
 
 }, 2800);
