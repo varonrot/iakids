@@ -140,56 +140,38 @@ body::before{
 /* ================= MODE CARDS ================= */
 
 .section-modes{
-  display:flex;
+  display:grid;
+  grid-template-columns:repeat(4, 220px);
   gap:30px;
   justify-content:center;
 }
-
 .mode-card{
-  position:relative;
-  overflow:hidden;
+  border-radius:35px;
+  width:220px;
+  height:320px;
 
-  border-radius:30px;
-  padding:35px;
+  padding:30px 20px;
   color:white;
-  height:220px;
 
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-
-  transition:0.3s;
-  box-shadow:0 20px 45px rgba(0,0,0,0.2);
+  align-items:center;
+  text-align:center;
 
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
+
+  box-shadow:0 20px 40px rgba(0,0,0,0.15);
+  transition:0.3s;
 }
 
 .mode-card:hover{
-  transform:translateY(-8px);
+  transform:translateY(-6px);
 }
 
-/* שכבת כהות עדינה מעל התמונה */
-.mode-card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(
-    to top,
-    rgba(0,0,0,0.55),
-    rgba(0,0,0,0.15)
-  );
-  border-radius:30px;
-}
-
-/* שהתוכן יהיה מעל השכבה */
-.mode-card > *{
-  position:relative;
-  z-index:2;
-}
-
-/* כותרת גדולה יותר */
+/* כותרת */
 .mode-card h3{
   font-size:22px;
   margin-bottom:6px;
@@ -198,19 +180,19 @@ body::before{
 /* טקסט משני */
 .mode-card p{
   font-size:14px;
-  opacity:0.9;
-  margin-bottom:15px;
+  opacity:0.95;
 }
 
-/* כפתור מעוגל יותר כמו בדוגמה */
+/* כפתור */
 .mode-card button{
   border:none;
-  padding:12px 18px;
+  padding:12px 22px;
   border-radius:30px;
   font-weight:600;
   cursor:pointer;
   background:white;
 }
+
 
 /* COLORS */
 
