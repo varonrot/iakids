@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מכון לאימון בעברית</title>
+
+<style>
+
+/* ===== RESET ===== */
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:
+    radial-gradient(circle at 15% 25%, rgba(255,255,255,0.8), transparent 40%),
+    radial-gradient(circle at 80% 75%, rgba(255,200,150,0.25), transparent 40%),
+    linear-gradient(135deg,#eaf2ff,#f7faff);
+  min-height:100vh;
+  color:#1f2d3d;
+}
+
+/* ===== LAYOUT ===== */
+
+.layout{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ===== SIDEBAR ===== */
+
+.sidebar{
+  width:270px;
+  background:rgba(255,255,255,0.8);
+  backdrop-filter:blur(20px);
+  padding:30px;
+  box-shadow:15px 0 40px rgba(0,0,0,0.05);
+  display:flex;
+  flex-direction:column;
+  gap:30px;
+}
+
+.profile{
+  text-align:center;
+}
+
+.avatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:#dfe9ff;
+  margin:0 auto 15px;
+}
+
+.profile-name{
+  font-weight:700;
+  font-size:18px;
+}
+
+.nav{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.nav-item{
+  padding:12px 15px;
+  border-radius:15px;
+  cursor:pointer;
+  transition:0.3s;
+  font-weight:500;
+}
+
+.nav-item:hover{
+  background:#eef3ff;
+}
+
+/* ===== MAIN ===== */
+
+.main{
+  flex:1;
+  padding:50px;
+  display:flex;
+  flex-direction:column;
+  gap:50px;
+}
+
+/* ================== SECTION 1 ================== */
+
+.section-hero{
+  background:rgba(255,255,255,0.8);
+  backdrop-filter:blur(20px);
+  border-radius:35px;
+  padding:45px;
+  box-shadow:0 25px 50px rgba(0,0,0,0.06);
+}
+
+.section-hero h1{
+  font-size:36px;
+  margin-bottom:12px;
+}
+
+.section-hero p{
+  color:#6b7a90;
+}
+
+/* ================== SECTION 2 ================== */
+
+.section-modes{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:25px;
+}
+
+.mode-card{
+  border-radius:30px;
+  padding:35px;
+  color:white;
+  height:220px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  transition:0.3s;
+  box-shadow:0 20px 45px rgba(0,0,0,0.15);
+}
+
+.mode-card:hover{
+  transform:translateY(-6px);
+}
+
+.mode-card h3{
+  font-size:20px;
+}
+
+.mode-card p{
+  font-size:14px;
+  opacity:0.9;
+}
+
+.mode-card button{
+  border:none;
+  padding:10px 16px;
+  border-radius:20px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* COLORS */
+
+.green{background:linear-gradient(135deg,#38c88a,#1dbb72);}
+.purple{background:linear-gradient(135deg,#7b6bff,#5a4dff);}
+.orange{background:linear-gradient(135deg,#ff9f50,#ff7a00);}
+.blue{background:linear-gradient(135deg,#4fa8ff,#2f7fff);}
+
+.green button{background:white;color:#1dbb72;}
+.purple button{background:white;color:#5a4dff;}
+.orange button{background:white;color:#ff7a00;}
+.blue button{background:white;color:#2f7fff;}
+
+/* ================== SECTION 3 ================== */
+
+.section-stats{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:25px;
+}
+
+.panel{
+  background:rgba(255,255,255,0.8);
+  backdrop-filter:blur(20px);
+  border-radius:30px;
+  padding:30px;
+  box-shadow:0 20px 45px rgba(0,0,0,0.05);
+}
+
+.panel h4{
+  margin-bottom:15px;
+}
+
+.graph{
+  height:130px;
+  background:linear-gradient(180deg,#dfe9ff,#ffffff);
+  border-radius:15px;
+}
+
+/* ===== MOBILE ===== */
+
+@media(max-width:1200px){
+  .section-modes{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:900px){
+
+  .layout{
+    flex-direction:column;
+  }
+
+  .sidebar{
+    width:100%;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  .nav{
+    flex-direction:row;
+    flex-wrap:wrap;
+  }
+
+  .main{
+    padding:25px;
+  }
+
+  .section-modes{
+    grid-template-columns:1fr;
+  }
+
+  .section-stats{
+    grid-template-columns:1fr;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="profile">
+      <div class="avatar"></div>
+      <div class="profile-name">אלונה</div>
+      <div>כיתה ה׳</div>
+    </div>
+
+    <div class="nav">
+      <div class="nav-item">מבדק ראשון</div>
+      <div class="nav-item">הבנת הנקרא</div>
+      <div class="nav-item">אימון כתיבה</div>
+      <div class="nav-item">מבחן מלא</div>
+    </div>
+
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SECTION 1 -->
+    <section class="section-hero">
+      <h1>מכון לאימון בעברית</h1>
+      <p>בחרו מסלול והתחילו לשפר ציונים בצורה חכמה</p>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section-modes">
+
+      <div class="mode-card green">
+        <h3>מבדק ראשון</h3>
+        <p>אבחון מלא לזיהוי נקודות חיזוק</p>
+        <button>התחל</button>
+      </div>
+
+      <div class="mode-card purple">
+        <h3>הבנת הנקרא</h3>
+        <p>תרגול עומק בהסקת מסקנות</p>
+        <button>תרגל</button>
+      </div>
+
+      <div class="mode-card orange">
+        <h3>אימון כתיבה</h3>
+        <p>בניית תשובות פתוחות בצורה נכונה</p>
+        <button>התחל כתיבה</button>
+      </div>
+
+      <div class="mode-card blue">
+        <h3>מבחן מלא</h3>
+        <p>סימולציה עם טיימר וציון</p>
+        <button>התחל מבחן</button>
+      </div>
+
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section-stats">
+
+      <div class="panel">
+        <h4>התקדמות</h4>
+        <div class="graph"></div>
+      </div>
+
+      <div class="panel">
+        <h4>המלצה חכמה</h4>
+        <p>מומלץ להתחיל במבדק הראשון לפני מבחן מלא.</p>
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+</body>
+</html>
