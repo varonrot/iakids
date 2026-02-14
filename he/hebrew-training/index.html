@@ -11,15 +11,18 @@
 
 *{margin:0;padding:0;box-sizing:border-box;}
 
-body{
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
   background:
-    radial-gradient(circle at 15% 25%, rgba(255,255,255,0.8), transparent 40%),
-    radial-gradient(circle at 80% 75%, rgba(255,200,150,0.25), transparent 40%),
-    linear-gradient(135deg,#eaf2ff,#f7faff);
-  min-height:100vh;
-  color:#1f2d3d;
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.7), transparent 50%),
+    radial-gradient(circle at 85% 75%, rgba(255,200,150,0.35), transparent 50%);
+  backdrop-filter:blur(4px);
+  z-index:-1;
 }
+
+
 
 /* ===== LAYOUT ===== */
 
