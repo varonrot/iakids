@@ -1201,6 +1201,32 @@ header{
 body {
   direction: rtl;
 }
+/* ===== FIX RTL ALIGNMENT – SIDEBARS ===== */
+
+/* כל כפתור בסייד */
+.side-item{
+  direction: rtl;
+  text-align: right;
+  justify-content: flex-start;   /* שלא ימרכז */
+}
+
+/* הטקסט בתוך הכפתור */
+.side-text{
+  text-align: right;
+  align-items: flex-end;         /* חשוב מאוד */
+}
+
+/* title */
+.side-title{
+  text-align: right;
+  width: 100%;
+}
+
+/* subtitle */
+.side-sub{
+  text-align: right;
+  width: 100%;
+}
 
   </style>
 </head>
