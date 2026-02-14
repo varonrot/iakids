@@ -140,9 +140,9 @@ body::before{
 /* ================= MODE CARDS ================= */
 
 .section-modes{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:25px;
+  display:flex;
+  gap:30px;
+  justify-content:center;
 }
 
 .mode-card{
@@ -167,18 +167,18 @@ body::before{
 }
 
 .mode-card:hover{
-  transform:translateY(-6px);
+  transform:translateY(-8px);
 }
 
-/* שכבת עומק עדינה מעל התמונה */
+/* שכבת כהות עדינה מעל התמונה */
 .mode-card::before{
   content:"";
   position:absolute;
   inset:0;
   background:linear-gradient(
     to top,
-    rgba(0,0,0,0.35),
-    rgba(0,0,0,0.05)
+    rgba(0,0,0,0.55),
+    rgba(0,0,0,0.15)
   );
   border-radius:30px;
 }
@@ -189,23 +189,28 @@ body::before{
   z-index:2;
 }
 
+/* כותרת גדולה יותר */
 .mode-card h3{
-  font-size:20px;
+  font-size:22px;
+  margin-bottom:6px;
 }
 
+/* טקסט משני */
 .mode-card p{
   font-size:14px;
-  opacity:0.95;
+  opacity:0.9;
+  margin-bottom:15px;
 }
 
+/* כפתור מעוגל יותר כמו בדוגמה */
 .mode-card button{
   border:none;
-  padding:10px 16px;
-  border-radius:20px;
+  padding:12px 18px;
+  border-radius:30px;
   font-weight:600;
   cursor:pointer;
+  background:white;
 }
-
 
 /* COLORS */
 
