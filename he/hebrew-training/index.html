@@ -147,48 +147,74 @@ body::before{
 
 /* כרטיס */
 .mode-card{
-  border-radius:35px;
-  min-height:300px;
-  padding:35px 25px;
+  position:relative;
+  overflow:hidden;
 
-  color:white;
+  border-radius:35px;
+  height:360px;                 /* גבוה יותר */
+  padding:40px 28px 30px;
 
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
+  justify-content:flex-end;      /* תוכן בתחתית */
   align-items:center;
   text-align:center;
 
+  color:white;
+
   background-size:cover;
-  background-position:center;
+  background-position:center top;  /* האייקון למעלה */
   background-repeat:no-repeat;
 
-  box-shadow:0 20px 40px rgba(0,0,0,0.15);
+  box-shadow:0 25px 45px rgba(0,0,0,0.18);
   transition:0.3s;
 }
 
 .mode-card:hover{
-  transform:translateY(-6px);
+  transform:translateY(-8px);
 }
 
+/* שכבת כהות עדינה לקריאות */
+.mode-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.05) 30%,
+    rgba(0,0,0,0.55)
+  );
+  border-radius:35px;
+}
+
+.mode-card > *{
+  position:relative;
+  z-index:2;
+}
+
+/* כותרת */
 .mode-card h3{
   font-size:22px;
   margin-bottom:8px;
 }
 
+/* טקסט */
 .mode-card p{
   font-size:14px;
   opacity:0.95;
+  margin-bottom:20px;
 }
 
+/* כפתור */
 .mode-card button{
   border:none;
-  padding:12px 26px;
+  padding:12px 30px;
   border-radius:30px;
   font-weight:600;
   cursor:pointer;
   background:white;
 }
+
 
 
 /* COLORS */
