@@ -141,16 +141,16 @@ body::before{
 
 .section-modes{
   display:grid;
-  grid-template-columns:repeat(4, 220px);
+  grid-template-columns:repeat(4, 1fr);
   gap:30px;
-  justify-content:center;
 }
+
+/* כרטיס */
 .mode-card{
   border-radius:35px;
-  width:220px;
-  height:320px;
+  min-height:300px;
+  padding:35px 25px;
 
-  padding:30px 20px;
   color:white;
 
   display:flex;
@@ -171,22 +171,19 @@ body::before{
   transform:translateY(-6px);
 }
 
-/* כותרת */
 .mode-card h3{
   font-size:22px;
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
 
-/* טקסט משני */
 .mode-card p{
   font-size:14px;
   opacity:0.95;
 }
 
-/* כפתור */
 .mode-card button{
   border:none;
-  padding:12px 22px;
+  padding:12px 26px;
   border-radius:30px;
   font-weight:600;
   cursor:pointer;
