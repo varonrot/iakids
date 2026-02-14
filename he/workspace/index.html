@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <!-- Google tag (gtag.js) -->
@@ -11,7 +11,7 @@
 
   gtag('config', 'G-PDCBGGLL7R');
 </script>
-  <title>IAkids – Workspace</title>
+  <title>IAkids – סביבת עבודה</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Supabase -->
@@ -1187,10 +1187,12 @@ header{
 .modal-actions button{
   cursor:pointer;
 }
-
-/* אם תרצה גם אפקט hover עדין */
+ 
 .modal button:hover{
   opacity:.9;
+}
+body {
+  direction: rtl;
 }
 
   </style>
@@ -1200,16 +1202,17 @@ header{
 <!-- ===== QUOTA MODAL ===== -->
 <div class="modal-overlay" id="quotaModal">
   <div class="modal">
-    <h2>🚫 Se acabaron las preguntas</h2>
+    <h2>🚫 נגמרו השאלות להיום</h2>
 
     <p style="font-size:15px; color:#374151; margin-bottom:14px;">
-      Ya usaste todas las preguntas gratuitas.<br>
-      Para seguir usando iakids, un adulto debe activar el acceso completo.
+כבר השתמשת בכל השאלות החינמיות.<br>
+כדי להמשיך להשתמש ב-iakids, הורה צריך להפעיל גישה מלאה.
+
     </p>
 
     <div class="modal-actions">
-      <button onclick="closeQuotaModal()">Cerrar</button>
-      <button class="save" onclick="goToUpgrade()">🔒 Desbloquear</button>
+      <button onclick="closeQuotaModal()">סגור</button>
+      <button class="save" onclick="goToUpgrade()">🔒 פתיחת גישה</button>
     </div>
   </div>
 </div>
@@ -1227,7 +1230,7 @@ header{
       <img src="/assets/askie-robot.png" alt="iakids robot" />
       <div class="robot-text">
         <div class="robot-title">iakids</div>
-        <div class="robot-sub">Asistente de IA para niños</div>
+        <div class="robot-sub">עוזר בינה מלאכותית לילדים</div>
       </div>
     </div>
 
@@ -1236,72 +1239,72 @@ header{
       <button class="side-item side-item-primary" data-ask="homework">
         <i class="fa-solid fa-graduation-cap"></i>
         <div class="side-text">
-          <div class="side-title">Ayuda escolar</div>
-          <div class="side-sub">Tareas y estudios</div>
+          <div class="side-title">עזרה בלימודים</div>
+          <div class="side-sub">שיעורי בית ולמידה</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="exercises">
         <i class="fa-solid fa-pen-to-square"></i>
         <div class="side-text">
-          <div class="side-title">Resolver ejercicios</div>
-          <div class="side-sub">Paso a paso</div>
+          <div class="side-title">פתרון תרגילים</div>
+          <div class="side-sub">שלב אחר שלב</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="learn">
         <i class="fa-solid fa-book-open"></i>
         <div class="side-text">
-          <div class="side-title">Aprender un tema</div>
-          <div class="side-sub">Nuevo conocimiento</div>
+          <div class="side-title">ללמוד נושא</div>
+          <div class="side-sub">ידע חדש</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="practice">
         <i class="fa-solid fa-repeat"></i>
         <div class="side-text">
-          <div class="side-title">Practicar</div>
-          <div class="side-sub">Ejercicios guiados</div>
+          <div class="side-title">תרגול</div>
+          <div class="side-sub">תרגילים מודרכים</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="exam">
         <i class="fa-solid fa-clipboard-check"></i>
         <div class="side-text">
-          <div class="side-title">Prepararse para un examen</div>
-          <div class="side-sub">Repaso y preguntas</div>
+          <div class="side-title">הכנה למבחן</div>
+          <div class="side-sub">חזרה ושאלות</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="easy">
         <i class="fa-solid fa-child-reaching"></i>
         <div class="side-text">
-          <div class="side-title">Explicar fácil</div>
-          <div class="side-sub">Como si tuviera 8</div>
+          <div class="side-title">להסביר פשוט</div>
+          <div class="side-sub">כמו לילד בן 8</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="examples">
         <i class="fa-solid fa-shapes"></i>
         <div class="side-text">
-          <div class="side-title">Ver ejemplos</div>
-          <div class="side-sub">Con ejemplos claros</div>
+          <div class="side-title">לראות דוגמאות</div>
+          <div class="side-sub">עם דוגמאות ברורות</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="logic">
         <i class="fa-solid fa-brain"></i>
         <div class="side-text">
-          <div class="side-title">Pensar y razonar</div>
-          <div class="side-sub">Lógica y pensamiento</div>
+          <div class="side-title">לחשוב ולהבין</div>
+          <div class="side-sub">לוגיקה וחשיבה</div>
         </div>
       </button>
 
       <button class="side-item" data-ask="challenge">
         <i class="fa-solid fa-bullseye"></i>
         <div class="side-text">
-          <div class="side-title">Reto diario</div>
-          <div class="side-sub">Desafío del día</div>
+          <div class="side-title">אתגר יומי</div>
+          <div class="side-sub">משימת היום</div>
         </div>
       </button>
 
@@ -1309,8 +1312,8 @@ header{
         <button class="side-item side-item-settings" id="openSettings">
           <i class="fa-solid fa-gear"></i>
           <div class="side-text">
-            <div class="side-title">Settings</div>
-            <div class="side-sub">Preferences</div>
+            <div class="side-title">הגדרות</div>
+            <div class="side-sub">העדפות</div>
           </div>
         </button>
       </div>
@@ -1320,6 +1323,7 @@ header{
 </aside>
 
 
+
 <!-- ===== RIGHT SIDEBAR ===== -->
 <aside class="rightbar">
 
@@ -1327,97 +1331,99 @@ header{
     <img id="rightbarAvatar" />
     <div class="rightbar-kid-text">
       <div class="rightbar-kid-name" id="rightbarName"></div>
-      <div class="rightbar-kid-sub">Mi perfil</div>
+      <div class="rightbar-kid-sub">הפרופיל שלי</div>
     </div>
   </div>
 
   <button class="side-item" data-ask="feelings">
     <i class="fa-solid fa-heart"></i>
     <div class="side-text">
-      <div class="side-title">¿Cómo me siento?</div>
-      <div class="side-sub">Hablar de emociones</div>
+      <div class="side-title">איך אני מרגיש?</div>
+      <div class="side-sub">לדבר על רגשות</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="free">
     <i class="fa-solid fa-comments"></i>
     <div class="side-text">
-      <div class="side-title">Hablar libremente</div>
-      <div class="side-sub">Sin tareas ni notas</div>
+      <div class="side-title">לדבר חופשי</div>
+      <div class="side-sub">בלי שיעורים ובלי ציונים</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="achievements">
     <i class="fa-solid fa-star"></i>
     <div class="side-text">
-      <div class="side-title">Mis logros</div>
-      <div class="side-sub">Lo que hice bien</div>
+      <div class="side-title">ההישגים שלי</div>
+      <div class="side-sub">מה עשיתי טוב</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="aboutme">
     <i class="fa-solid fa-user-astronaut"></i>
     <div class="side-text">
-      <div class="side-title">Sobre mí</div>
-      <div class="side-sub">Lo que me gusta</div>
+      <div class="side-title">עליי</div>
+      <div class="side-sub">מה אני אוהב</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="tip">
     <i class="fa-solid fa-lightbulb"></i>
     <div class="side-text">
-      <div class="side-title">Consejo del día</div>
-      <div class="side-sub">Pequeña ayuda</div>
+      <div class="side-title">טיפ יומי</div>
+      <div class="side-sub">עצה קטנה</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="fun">
     <i class="fa-solid fa-face-smile"></i>
     <div class="side-text">
-      <div class="side-title">Algo divertido</div>
-      <div class="side-sub">Relajarse un poco</div>
+      <div class="side-title">משהו כיף</div>
+      <div class="side-sub">להירגע קצת</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="sleep">
     <i class="fa-solid fa-moon"></i>
     <div class="side-text">
-      <div class="side-title">Antes de dormir</div>
-      <div class="side-sub">Historia tranquila</div>
+      <div class="side-title">לפני השינה</div>
+      <div class="side-sub">סיפור רגוע</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="now">
     <i class="fa-solid fa-compass"></i>
     <div class="side-text">
-      <div class="side-title">¿Qué hago ahora?</div>
-      <div class="side-sub">Sugerencia</div>
+      <div class="side-title">מה כדאי לי עכשיו?</div>
+      <div class="side-sub">הצעה</div>
     </div>
   </button>
 
   <button class="side-item" data-ask="askie">
     <i class="fa-solid fa-robot"></i>
     <div class="side-text">
-      <div class="side-title">Pide ayuda a Askie</div>
-      <div class="side-sub">Estoy aquí</div>
+      <div class="side-title">בקש עזרה מאסקי</div>
+      <div class="side-sub">אני כאן בשבילך</div>
     </div>
   </button>
 
- <button class="side-item side-item-settings" id="openParentModal">
+  <button class="side-item side-item-settings" id="openParentModal">
     <i class="fa-solid fa-gear"></i>
     <div class="side-text">
-      <div class="side-title">Mi perfil</div>
-      <div class="side-sub">Preferencias</div>
+      <div class="side-title">ההגדרות שלי</div>
+      <div class="side-sub">העדפות</div>
     </div>
   </button>
 
 </aside>
 
 
-  <!-- ===== MAIN ===== -->
-  <main class="main">
 
-    <header>
+  <!-- ===== MAIN ===== -->
+ <main class="main" dir="rtl">
+
+<header>
+
 <div class="logo" onclick="window.location.href='https://iakids.app/'" style="cursor:pointer;">
   <div class="logo-badge">IA</div>
   <span class="logo-text">kids</span>
@@ -1432,117 +1438,102 @@ header{
 <div class="user-popover">
 
   <button onclick="document.getElementById('openSettings').click()">
-    ⚙️ Editar perfil del niño
+    ⚙️ עריכת פרופיל הילד
   </button>
 
   <button onclick="document.getElementById('openParentModal').click()">
-    👶 Panel para padres
+    👶 לוח הורים
   </button>
 
   <button onclick="window.location.href='/support/'">
-    📩 Soporte
+    📩 תמיכה
   </button>
 
   <hr style="margin:6px 0">
 
-<!--  <button onclick="window.location.href='/parent/dashboard'">-->
-<!--    🧑‍💼 Dashboard padres-->
-<!--  </button>-->
-
   <button onclick="sb.auth.signOut().then(()=>location.href='/')">
-    🚪 Logout
+    🚪 התנתקות
   </button>
 
 </div>
-
-
 </div>
 
-    </header>
+</header>
 
-    <div class="container">
+<div class="container">
 
-      <div class="hero">
-        <div class="hero-left">
-          <div class="avatar">
-            <img id="heroAvatar" />
-          </div>
-          <div>
-            <h1 id="heroGreeting"></h1>
-            <p>¿Qué te gustaría aprender hoy?</p>
-          </div>
+  <div class="hero">
+    <div class="hero-left">
+      <div class="avatar">
+        <img id="heroAvatar" />
+      </div>
+      <div>
+        <h1 id="heroGreeting"></h1>
+        <p>מה תרצה ללמוד היום?</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-wrapper">
+    <div class="chat">
+      <div class="messages"></div>
+
+      <div class="input">
+        <input placeholder="שאל אותי כל דבר…" />
+
+        <button class="send-btn">שלח</button>
+
+        <button class="talk-btn" title="דבר">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ideas">
+    <span class="ideas-hint">צריך רעיון?</span>
+
+    <div class="idea-grid">
+
+      <div class="idea" data-ask="idea_homework">
+        <img src="/assets/icons/homework-help.png" />
+        <div>
+          <div class="idea-title">עזרה בשיעורים</div>
+          <div class="idea-sub">סיוע לבית הספר</div>
         </div>
-
-<!--        <div class="limits">-->
-<!--          Questions <span>70 / 70</span> &nbsp; Images <span>4 / 4</span> &nbsp; Voice <span>5 min</span>-->
-<!--        </div>-->
       </div>
 
-<div class="chat-wrapper">
-  <div class="chat">
-    <div class="messages"><!-- ⬅️ messages go here --></div>
+      <div class="idea" data-ask="idea_explain">
+        <img src="/assets/icons/explain-topic.png" />
+        <div>
+          <div class="idea-title">הסבר על נושא</div>
+          <div class="idea-sub">ללמוד משהו חדש</div>
+        </div>
+      </div>
 
-<div class="input">
-  <input placeholder="Ask anything…" />
+      <div class="idea" data-ask="idea_riddle">
+        <img src="/assets/icons/smart-riddle.png" />
+        <div>
+          <div class="idea-title">חידה חכמה</div>
+          <div class="idea-sub">לחשוב ולהנות</div>
+        </div>
+      </div>
 
-  <button class="send-btn">Send</button>
-  <button class="talk-btn" title="Talk">
-  <i class="fa-solid fa-microphone"></i>
-</button>
-
-</div>
-
-  </div>
-</div>
-
-<div class="ideas">
-  <span class="ideas-hint">Need an idea?</span>
-
-
-        <div class="idea-grid">
-
-<div class="idea" data-ask="idea_homework">
-  <img src="/assets/icons/homework-help.png" />
-  <div>
-    <div class="idea-title">Ayuda escolar</div>
-    <div class="idea-sub">Ayuda con la escuela</div>
-  </div>
-</div>
-
-<div class="idea" data-ask="idea_explain">
-  <img src="/assets/icons/explain-topic.png" />
-  <div>
-    <div class="idea-title">Explicar un tema</div>
-    <div class="idea-sub">Aprender algo nuevo</div>
-  </div>
-</div>
-
-<div class="idea" data-ask="idea_riddle">
-  <img src="/assets/icons/smart-riddle.png" />
-  <div>
-    <div class="idea-title">Adivinanza inteligente</div>
-    <div class="idea-sub">Pensar y divertirse</div>
-  </div>
-</div>
-
-<div class="idea" data-ask="idea_cool">
-  <img src="/assets/icons/something-interesting.png" />
-  <div>
-    <div class="idea-title">Algo interesante</div>
-    <div class="idea-sub">Ideas curiosas y divertidas</div>
-  </div>
-</div>
-
-
-
-</div>
-
+      <div class="idea" data-ask="idea_cool">
+        <img src="/assets/icons/something-interesting.png" />
+        <div>
+          <div class="idea-title">משהו מעניין</div>
+          <div class="idea-sub">רעיונות מסקרנים וכיפיים</div>
+        </div>
       </div>
 
     </div>
+  </div>
 
+</div>
 
-  </main>
+</main>
+
 
 </div>
 
