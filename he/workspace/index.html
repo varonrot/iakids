@@ -1187,7 +1187,7 @@ header{
 .modal-actions button{
   cursor:pointer;
 }
- 
+
 .modal button:hover{
   opacity:.9;
 }
@@ -1768,33 +1768,34 @@ if (!data.reply || !data.reply.trim()) {
 }
 /* ---------- QUICK ASK MAP (ES - GENERAL) ---------- */
 const QUICK_ASK_MAP = {
-  // LEFT SIDEBAR
-  homework: "Hola 😊 ¿Me puedes ayudar con una tarea de la escuela?",
-  exercises: "Tengo un ejercicio y no lo entiendo. ¿Lo hacemos paso a paso?",
-  learn: "Quiero aprender algo nuevo. ¿Por dónde empezamos?",
-  practice: "Me gustaría practicar un poco",
-  exam: "Tengo una prueba pronto. ¿Me ayudas a repasar?",
-  easy: "¿Puedes explicarlo de una forma muy fácil?",
-  examples: "¿Puedes mostrarme ejemplos?",
-  logic: "Quiero pensar un poco 🤔",
-  challenge: "¿Cuál es el reto del día?",
+// LEFT SIDEBAR
+homework: "היי 😊 אתה יכול לעזור לי עם שיעורי הבית?",
+exercises: "יש לי תרגיל ואני לא מבין. נעשה אותו צעד־אחר־צעד?",
+learn: "אני רוצה ללמוד משהו חדש. מאיפה מתחילים?",
+practice: "בא לי קצת לתרגל",
+exam: "יש לי מבחן בקרוב. תעזור לי לחזור על החומר?",
+easy: "אתה יכול להסביר את זה בצורה ממש פשוטה?",
+examples: "אתה יכול להראות לי דוגמאות?",
+logic: "בא לי לחשוב קצת 🤔",
+challenge: "מה האתגר של היום?",
 
-  // RIGHT SIDEBAR
-  feelings: "Quiero hablar sobre cómo me siento",
-  free: "Quiero hablar libremente",
-  achievements: "Quiero contarte algo que hice bien",
-  aboutme: "Quiero contarte sobre mí",
-  tip: "¿Tienes un consejo para hoy?",
-  fun: "Quiero algo divertido 😄",
-  sleep: "¿Puedes contarme una historia tranquila?",
-  now: "¿Qué puedo hacer ahora?",
-  iakids: "iakids, necesito ayuda",
+// RIGHT SIDEBAR
+feelings: "אני רוצה לדבר על איך שאני מרגיש",
+free: "בא לי לדבר חופשי",
+achievements: "אני רוצה לספר לך משהו שעשיתי טוב",
+aboutme: "אני רוצה לספר לך עליי",
+tip: "יש לך טיפ להיום?",
+fun: "בא לי משהו כיפי 😄",
+sleep: "אתה יכול לספר לי סיפור רגוע?",
+now: "מה אני יכול לעשות עכשיו?",
+iakids: "iakids, אני צריך עזרה",
 
-  // IDEAS
-  idea_homework: "¿Me ayudas con algo de la escuela?",
-  idea_explain: "¿Puedes explicarme un tema?",
-  idea_riddle: "¿Tienes una adivinanza?",
-  idea_cool: "Cuéntame algo interesante 😎"
+// IDEAS
+idea_homework: "תעזור לי במשהו מבית הספר?",
+idea_explain: "אתה יכול להסביר לי נושא?",
+idea_riddle: "יש לך חידה בשבילי?",
+idea_cool: "ספר לי משהו מעניין 😎"
+
 };
 function quickAsk(key){
   const text = QUICK_ASK_MAP[key];
