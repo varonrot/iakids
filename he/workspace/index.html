@@ -619,32 +619,26 @@ header{
 }
 /* ===== CHAT MESSAGES ===== */
 
-
-
-/* ROW */
 .msg-row{
   display:flex;
   align-items:flex-end;
-  max-width:100%;
-}
-
-/* USER */
-.msg-row.user{
-  justify-content:flex-end;
-}
-
-.msg-row.user .msg-bubble{
-  background:linear-gradient(135deg,#4f9cff,#2f6fff);
-  color:#fff;
-  border-bottom-right-radius:6px;
-}
-
-/* ASSISTANT */
-.msg-row.assistant{
-  justify-content:flex-start;
   gap:8px;
+  width:100%;
 }
 
+/* 🧒 USER – ימין */
+.msg-row.user{
+  flex-direction:row-reverse;   /* הופך את הסדר */
+  justify-content:flex-start;   /* כי אנחנו ב-RTL */
+}
+
+/* 🤖 ASSISTANT – שמאל */
+.msg-row.assistant{
+  flex-direction:row;           /* רגיל */
+  justify-content:flex-start;
+}
+
+/* AVATAR */
 .msg-avatar{
   width:34px;
   height:34px;
@@ -658,14 +652,27 @@ header{
   max-width:65%;
   padding:12px 16px;
   border-radius:18px;
-  background:rgba(255,255,255,.85);
-  color:#1f2937;
   font-size:14px;
   line-height:1.4;
+  white-space:pre-wrap;
   backdrop-filter:blur(6px);
   box-shadow:0 6px 18px rgba(0,0,0,.12);
-  white-space:pre-wrap;
 }
+
+/* צבע בועה ילד */
+.msg-row.user .msg-bubble{
+  background:linear-gradient(135deg,#4f9cff,#2f6fff);
+  color:#fff;
+  border-bottom-left-radius:6px;
+}
+
+/* צבע בועה אסקי */
+.msg-row.assistant .msg-bubble{
+  background:rgba(255,255,255,.9);
+  color:#1f2937;
+  border-bottom-right-radius:6px;
+}
+
 /* ===== IAKIDS LOGO ===== */
 
 .logo{
