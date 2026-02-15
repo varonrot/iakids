@@ -48,10 +48,13 @@ body{
   top:0;
   left:0;
   width:240px;
-  height:100vh;
+  height:100dvh;          /* ✅ במקום vh */
   z-index:100;
-  overflow:hidden;
+
+  overflow-y:auto;        /* ✅ מאפשר גלילה */
+  -webkit-overflow-scrolling:touch; /* ✅ חשוב ל-iOS */
 }
+
 
 .sidebar-inner{
   position:relative;
@@ -565,7 +568,8 @@ header{
 }
 .kid-actions{
   width:100%;
-  flex:1;                 /* תופס את כל הגובה הפנוי */
+  flex:1;
+  min-height:0;                    /* ⭐ קריטי ל-flex scroll */
   margin-top:8px;
   padding:0 8px;
 
@@ -573,7 +577,8 @@ header{
   flex-direction:column;
   gap:12px;
 
-  overflow-y:auto;        /* ⭐ הגלילה עצמה */
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch; /* ⭐ חובה ל-iOS */
   overscroll-behavior:contain;
 }
 
@@ -1817,7 +1822,12 @@ document.addEventListener("click", (e) => {
   if (!el) return;
 
   quickAsk(el.dataset.ask);
+ 
+  if (window.innerWidth <= 900) {
+    document.querySelector(".sidebar").classList.remove("open");
+  }
 });
+
 
 /* ---------- EVENTS ---------- */
 sendBtn.addEventListener("click", sendMessage);
