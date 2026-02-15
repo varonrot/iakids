@@ -312,6 +312,16 @@ body::before{
     grid-template-columns:1fr;
   }
 }
+.card-icon{
+  width:120px;
+  height:120px;
+  margin-bottom:25px;
+
+  background-image:url("/assets/card-blue-reading.png");
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+}
 
 
 </style>
@@ -369,11 +379,13 @@ body::before{
         <button>התחל כתיבה</button>
       </div>
 
-      <div class="mode-card blue">
-        <h3>מבחן מלא</h3>
-        <p>סימולציה עם טיימר וציון</p>
-        <button>התחל מבחן</button>
-      </div>
+<div class="mode-card blue">
+  <div class="card-icon"></div>
+  <h3>מבחן מלא</h3>
+  <p>סימולציה עם טיימר וציון</p>
+  <button>התחל מבחן</button>
+</div>
+
 
     </section>
 
