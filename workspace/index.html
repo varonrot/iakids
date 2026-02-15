@@ -773,6 +773,11 @@ header{
   /* ===== BASE ===== */
   body{
     overflow-x:hidden;
+    overflow-y:auto;        /* ⭐ זה התיקון */
+  }
+
+  .app{
+    overflow:visible;       /* ⭐ זה התיקון */
   }
 
   /* ===== SIDEBAR ===== */
@@ -784,6 +789,9 @@ header{
   .sidebar.open{
     transform:translateX(0);
   }
+
+}
+
 
   /* ===== MAIN ===== */
   .main{
