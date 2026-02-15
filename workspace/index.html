@@ -931,6 +931,10 @@ header{
 .modal{
   width:420px;
   max-width:90%;
+  max-height:90dvh;                /* ⭐ קריטי */
+  overflow-y:auto;                 /* ⭐ זה מה שמאפשר גלילה */
+  -webkit-overflow-scrolling:touch;/* ⭐ חובה ל-iOS */
+
   background:#fff;
   border-radius:20px;
   padding:20px 22px;
