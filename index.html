@@ -2695,6 +2695,54 @@ body{
   background:#3b73d9;
   text-decoration:none !important;
 }
+.cookie-notice{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#0f172a;
+  color:#ffffff;
+  padding:16px 20px;
+  z-index:9999;
+  font-size:14px;
+  box-shadow:0 -10px 30px rgba(0,0,0,.2);
+}
+
+.cookie-inner{
+  max-width:1100px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.cookie-notice a{
+  color:#38bdf8;
+  text-decoration:underline;
+}
+
+.cookie-close{
+  background:#2563eb;
+  border:none;
+  color:#fff;
+  padding:8px 16px;
+  border-radius:999px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+@media(max-width:768px){
+  .cookie-inner{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .cookie-close{
+    align-self:flex-end;
+  }
+}
 
 
 </style>
@@ -3631,6 +3679,32 @@ document.addEventListener("DOMContentLoaded", updateNavbar);
 
 supabaseClient.auth.onAuthStateChange(() => {
   updateNavbar();
+});
+</script>
+<!-- COOKIE NOTICE -->
+<div id="cookieNotice" class="cookie-notice">
+  <div class="cookie-inner">
+    <p>
+      Usamos cookies para mejorar la experiencia y analizar el uso del sitio.
+      Al continuar navegando, aceptas nuestra
+      <a href="/privacy">Política de privacidad</a>.
+    </p>
+    <button id="closeCookie" class="cookie-close">Aceptar</button>
+  </div>
+</div>
+<script>
+const cookieNotice = document.getElementById("cookieNotice");
+const closeCookie = document.getElementById("closeCookie");
+
+if (!localStorage.getItem("cookieNoticeSeen")) {
+  cookieNotice.style.display = "block";
+} else {
+  cookieNotice.style.display = "none";
+}
+
+closeCookie.addEventListener("click", () => {
+  localStorage.setItem("cookieNoticeSeen", "true");
+  cookieNotice.style.display = "none";
 });
 </script>
 
