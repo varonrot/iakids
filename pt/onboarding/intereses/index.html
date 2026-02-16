@@ -255,7 +255,7 @@ items.forEach(i=>{
 function finish(){
   sessionStorage.setItem("learning_interests", JSON.stringify(selected));
   sessionStorage.setItem("onboarding_step","4");
-  window.location.href = "pt/onboarding/cuenta/";
+  window.location.href = "/pt/onboarding/cuenta/";
 }
 
 document.getElementById("nextBtn").onclick = finish;
