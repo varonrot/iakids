@@ -3649,8 +3649,9 @@ async function updateNavbar() {
           ? `<img src="${avatarUrl}" class="user-avatar">`
           : `<div class="user-avatar-fallback">👤</div>`
         }
-        <a href="/workspace/" class="nav-cta">Workspace</a>
-        <button class="logout-btn" id="logoutBtn">Salir</button>
+<a href="/pt/workspace/" class="nav-cta">Painel</a>
+<button class="logout-btn" id="logoutBtn">Sair</button>
+
       </div>
     `;
 
@@ -3661,8 +3662,9 @@ async function updateNavbar() {
 
   } else {
     navActions.innerHTML = `
-      <a href="/onboarding/cuenta" class="nav-login">Iniciar sesión</a>
-      <a href="/onboarding" class="nav-cta">Empezar</a>
+<a href="/pt/onboarding/conta" class="nav-login">Entrar</a>
+<a href="/pt/onboarding" class="nav-cta">Começar agora</a>
+
     `;
   }
 }
