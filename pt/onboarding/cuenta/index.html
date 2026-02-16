@@ -1,1 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Entrar | iakids</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <meta name="description"
+        content="Faça login no iakids para salvar o perfil da criança e continuar a experiência de aprendizado com IA segura e educativa.">
+
+  <link rel="canonical" href="https://iakids.app/pt/login/" />
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Entrar – iakids">
+  <meta property="og:description" content="Acesse sua conta e continue o aprendizado com IA segura para crianças.">
+  <meta property="og:url" content="https://iakids.app/pt/login/">
+  <meta property="og:image" content="https://iakids.app/assets/og-image.png">
+
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+  <style>
+    :root{
+      --bg1:#f7f4ef;
+      --bg2:#eaf4ff;
+      --ink:#0b1220;
+      --muted:#6b7280;
+
+      --accent1:#ff7a66;
+      --accent2:#ffb089;
+
+      --card:#ffffffcc;
+      --line:rgba(16,24,40,.10);
+      --shadow:0 22px 50px rgba(16,24,40,.14);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:
+        radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+        radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+        linear-gradient(90deg,var(--bg1),var(--bg2));
+      color:var(--ink);
+    }
+
+    .wrap{
+      width:100%;
+      max-width:420px;
+      padding:26px 22px 34px;
+      text-align:center;
+      background:var(--card);
+      border-radius:26px;
+      border:1px solid var(--line);
+      backdrop-filter: blur(12px);
+      box-shadow:var(--shadow);
+    }
+
+    .icon{
+      width:72px;
+      height:72px;
+      border-radius:22px;
+      background:
+        radial-gradient(24px 24px at 35% 30%, rgba(255,255,255,.95), transparent 60%),
+        linear-gradient(160deg, rgba(56,189,248,.35), rgba(255,122,102,.35));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:34px;
+      margin:0 auto 18px;
+    }
+
+    h1{font-size:26px;margin-bottom:6px}
+    .sub{color:var(--muted);font-size:15px;margin-bottom:28px;line-height:1.5}
+
+    .btn{
+      width:100%;
+      padding:14px 16px;
+      border-radius:999px;
+      font-size:15px;
+      font-weight:800;
+      border:2px solid var(--line);
+      cursor:pointer;
+      margin-bottom:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      background:#fff;
+    }
+
+    .btn img{width:18px;height:18px}
+
+    .note{
+      font-size:12px;
+      color:#9ca3af;
+      margin-top:22px;
+      line-height:1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="icon">👤</div>
+
+    <h1>Entrar</h1>
+    <p class="sub">
+      Acesse para salvar o perfil da criança<br>
+      e continuar de qualquer dispositivo
+    </p>
+
+    <button class="btn" id="googleBtn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
+      Continuar com Google
+    </button>
+
+    <div class="note">
+      Protegemos sua privacidade.<br>
+      Nunca compartilhamos dados com terceiros.
+    </div>
+
+  </div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+
+const sb = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+document.getElementById("googleBtn").addEventListener("click", async () => {
+  await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin + "/pt/onboarding/prepare-user/",
+      queryParams: {
+        prompt: "select_account"
+      }
+    }
+  });
+});
+</script>
+</body>
+
+</html>
