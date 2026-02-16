@@ -767,6 +767,18 @@ header{
   display:none;   /* ❌ לא קיים בדסקטופ */
 }
 @media (max-width: 900px){
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  overflow-y:auto;                /* מאפשר גלילה לכל המסך */
+  -webkit-overflow-scrolling:touch;
+}
+
+.modal{
+  max-height:90dvh;               /* שלא יעבור את גובה המסך */
+  overflow-y:auto;                /* גלילה פנימית */
+  -webkit-overflow-scrolling:touch;
+}
 
   /* 🔥 הסתרת תת כותרת בוודאות */
   .sidebar .side-sub{
