@@ -28,7 +28,7 @@ body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   height:100vh;
-  overflow:hidden;          /* ⭐ זה קריטי */
+  overflow:hidden;
 
   background:url("/assets/askie-space-bg.jpg");
   background-size:cover;
@@ -40,7 +40,7 @@ body{
 /* ================= APP LAYOUT ================= */
 .app{
   height:100vh;
-  overflow:hidden;          /* ⭐ חשוב */
+  overflow:hidden;
 }
 
 /* ================= SIDEBAR ================= */
@@ -51,7 +51,7 @@ body{
   width:240px;
   height:100vh;
   z-index:100;
-  overflow:hidden;
+  overflow:visible;
 }
 
 .sidebar-inner{
@@ -66,7 +66,6 @@ body{
 }
 
 
-/* אווטאר */
 .sidebar-avatar{
   width:52px;
   height:52px;
@@ -88,8 +87,8 @@ body{
   gap:14px;
   margin-top:40px;
 
-  flex:1;                 /* תופס גובה פנוי */
-  overflow-y:auto;        /* ⭐ מאפשר גלילה */
+  flex:1;
+  overflow-y:auto;
   overscroll-behavior:contain;
 }
 
@@ -102,7 +101,7 @@ body{
   height:100vh;
   z-index:100;
 
-  /* סייד צבע עם כוכבים */
+
   background:
     radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35), transparent 60%),
     radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,.25), transparent 60%),
@@ -136,11 +135,11 @@ body{
 
 /* ROBOT IMAGE */
 .sidebar-robot img{
-  width:82px;              /* ⬅️ כאן הגדילה האמיתית */
+  width:82px;
   height:82px;
   object-fit:cover;
 
-  border-radius:22px;       /* ריבוע רך */
+  border-radius:22px;
   background:transparent;
 
   box-shadow:
@@ -383,8 +382,8 @@ header{
 
 /* ================= IDEAS ================= */
 .idea{
-  background:rgba(255,255,255,.22);     /* ⬅️ שקיפות אמיתית */
-  backdrop-filter:blur(14px);           /* ⬅️ זכוכית */
+  background:rgba(255,255,255,.22);
+  backdrop-filter:blur(14px);
   border-radius:18px;
   padding:16px 18px;
 
