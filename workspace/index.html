@@ -93,16 +93,14 @@ body{
 }
 
 
-.sidebar{
+ .sidebar{
   position:fixed;
   top:0;
   left:0;
   width:240px;
-  height:100dvh;
+  height:100vh;
   z-index:100;
 
-  overflow-y:auto;                  /* ⭐ זה מה שחסר */
-  -webkit-overflow-scrolling:touch; /* ⭐ חשוב לאייפון */
 
   background:
     radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35), transparent 60%),
@@ -117,8 +115,6 @@ body{
 
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-}
-
 
   box-shadow:
     inset -1px 0 0 rgba(255,255,255,.18),
