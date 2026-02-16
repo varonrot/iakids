@@ -767,6 +767,27 @@ header{
   display:none;   /* ❌ לא קיים בדסקטופ */
 }
 @media (max-width: 900px){
+/* ===== MOBILE HEADER USER FIX ===== */
+
+.user-trigger span{
+  display:none;          /* מסתיר את השם */
+}
+
+header{
+  justify-content:space-between;
+}
+
+/* דוחף את היוזר לימין */
+.user-menu{
+  margin-left:auto;
+}
+
+/* רק האווטאר */
+.user-trigger img{
+  width:34px;
+  height:34px;
+}
+
 /* ===== MOBILE MODAL BUTTONS FIX ===== */
 .modal-actions{
   display:flex !important;
