@@ -767,23 +767,24 @@ header{
   display:none;   /* ❌ לא קיים בדסקטופ */
 }
 @media (max-width: 900px){
-  .kid-actions .action{
-    display:flex;
-    align-items:center;
-    gap:14px;
-  }
-.kid-actions .action span{
-  font-size:14px;     /* מקטין כותרת */
+
+ /* ===== SIDEBAR TEXT FIX – MOBILE ===== */
+
+.side-sub{
+  display:none;        /* ⬅️ זה מסתיר את התת כותרת האמיתית */
+}
+
+.side-title{
+  font-size:14px;      /* מקטין כותרת */
   font-weight:600;
 }
 
-.kid-actions .action{
-  padding:12px 14px;  /* מקטין גובה כרטיס */
-  border-radius:16px;
+.side-item{
+  height:56px;         /* מקטין גובה כרטיס */
+  padding:0 14px;
 }
-  .kid-actions .action small{
-    display:none;
-  }
+
+
   .input{
     flex-direction:column;     /* הופך לאנכי */
     align-items:stretch;
