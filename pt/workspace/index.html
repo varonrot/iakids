@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCBGGLL7R"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PDCBGGLL7R');
+</script>
+  <title>IAkids – Workspace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+/* ================= RESET ================= */
+*{
+  box-sizing:border-box;
+}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  height:100vh;
+  overflow:hidden;
+
+  background:url("/assets/askie-space-bg.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
+
+/* ================= APP LAYOUT ================= */
+.app{
+  height:100vh;
+  overflow:hidden;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:240px;
+  height:100vh;
+  z-index:100;
+  overflow:visible;
+}
+
+.sidebar-inner{
+  position:relative;
+  z-index:2;
+  height:100%;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  background:transparent;
+}
+
+
+.sidebar-avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  overflow:hidden;
+  margin:6px 0 10px;
+  border:2px solid rgba(255,255,255,.45);
+}
+
+.sidebar-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.kid-actions{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-top:40px;
+
+  flex:1;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+
+ .sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:240px;
+  height:100vh;
+  z-index:100;
+
+
+  background:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,.2), transparent 60%),
+    radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,.3), transparent 60%),
+    linear-gradient(
+      180deg,
+      rgba(40,90,160,.35),
+      rgba(15,35,75,.45)
+    );
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  box-shadow:
+    inset -1px 0 0 rgba(255,255,255,.18),
+    0 0 40px rgba(30,90,160,.25);
+
+  overflow:hidden;
+}
+
+/* ===== SIDEBAR ROBOT – BRAND ANCHOR ===== */
+.sidebar-robot{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  padding:16px 18px 12px;
+}
+
+/* ROBOT IMAGE */
+.sidebar-robot img{
+  width:82px;
+  height:82px;
+  object-fit:cover;
+
+  border-radius:22px;
+  background:transparent;
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.45),
+    0 0 28px rgba(120,180,255,.55);
+
+  flex-shrink:0;
+}
+
+/* TEXT NEXT TO ROBOT */
+.robot-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+
+.robot-title{
+  font-size:18px;
+  font-weight:800;
+  color:#ffffff;
+  letter-spacing:.3px;
+}
+
+.robot-sub{
+  font-size:13px;
+  font-weight:500;
+  color:rgba(255,255,255,.8);
+  margin-top:4px;
+}
+
+
+/* ================= MAIN ================= */
+.main{
+  margin-left:240px;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  margin-right:260px;
+  max-width:none;
+  padding:12px 48px 12px 20px;
+
+  overflow:hidden;
+}
+
+/* ================= HEADER ================= */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+.logo{
+  font-weight:800;
+  color:#ff6b4a;
+}
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:600;
+}
+.user img{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+}
+
+/* ================= CONTENT ================= */
+.container{
+  flex:1;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+
+  background:rgba(255,255,255,.16);
+  backdrop-filter:blur(28px);
+  border-radius:28px;
+  padding:18px;
+}
+
+
+/* ================= HERO ================= */
+.hero{
+  background:rgba(255,255,255,.22);
+  backdrop-filter:blur(18px);
+  border-radius:24px;
+  padding:18px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.hero-left{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  overflow:hidden;
+}
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.hero h1{
+  margin:0;
+  font-size:20px;
+}
+.hero p{
+  margin:4px 0 0;
+  color:#6b7280;
+}
+.limits{
+  font-size:12px;
+  font-weight:600;
+}
+.limits span{
+  color:#ff6b4a;
+}
+
+/* ================= CHAT ================= */
+.chat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.18);
+  backdrop-filter:blur(22px);
+  border-radius:22px;
+
+  overflow:hidden;
+}
+
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* ================= INPUT BAR ================= */
+.input{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:12px;
+
+  background:rgba(255,255,255,.14);
+  backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.08);
+}
+
+/* TEXT INPUT */
+.input input{
+  flex:1;
+  padding:14px 18px;
+  border-radius:999px;
+  border:2px solid #e5e7eb;
+  font-size:15px;
+}
+
+/* ===== INPUT ACTIONS – PURE BLACK ===== */
+
+.send-btn{
+  height:52px;
+  min-width:110px;
+  padding:0 22px;
+
+  border-radius:999px;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:.6px;
+
+  background:#000;
+  color:#fff;
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.55),
+    inset 0 0 0 1px rgba(255,255,255,.12);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+
+/* ICON */
+.send-btn,
+.talk-btn i{
+  color:#ffffff;
+  font-size:18px;
+}
+/* SEND TEXT SIZE FIX */
+.send-btn{
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.4px;
+}
+
+/* HOVER */
+.send-btn:hover,
+.talk-btn:hover{
+  background:rgba(0,0,0,.95);
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 14px 36px rgba(0,0,0,.7),
+    inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+/* ACTIVE */
+.send-btn:active,
+.talk-btn:active{
+  transform:translateY(0);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.5),
+    inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+
+/* ACTIVE */
+.send-btn:active,
+.talk-btn:active{
+  transform:translateY(0);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+
+/* ================= IDEAS ================= */
+.idea{
+  background:rgba(255,255,255,.22);
+  backdrop-filter:blur(14px);
+  border-radius:18px;
+  padding:16px 18px;
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  font-weight:600;
+  color:#1f2937;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.25),
+    0 12px 30px rgba(0,0,0,.12);
+
+  cursor:pointer;
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.idea span{
+  font-size:15px;
+  font-weight:700;
+  color:#24324a;
+}
+
+.idea:hover{
+  background:rgba(255,255,255,.3);
+  transform:translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.35),
+    0 18px 40px rgba(0,0,0,.18);
+}
+
+.idea img{
+  width:56px;
+  height:56px;
+  object-fit:contain;
+  flex-shrink:0;
+  transition:transform .25s ease;
+}
+
+.idea:hover img{
+  transform:scale(1.08);
+}
+
+.ideas h3{
+  margin:0 0 12px;
+  font-size:16px;
+  font-weight:700;
+  color:#374151;
+}
+
+.idea-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+/* ===== IDEA TEXT ONLY – NO SIZE CHANGE ===== */
+
+.idea-title{
+  font-size:19px;        /* ⬅️ גדול וברור */
+  font-weight:800;
+  line-height:1.2;
+  color:#1f2937;
+}
+
+.idea-sub{
+  font-size:14px;        /* ⬅️ קריא, לא משתלט */
+  font-weight:500;
+  line-height:1.3;
+  opacity:.8;
+  margin-top:4px;
+}
+
+
+/* ================= VOICE ================= */
+
+.idea:hover img{
+  transform:scale(1.05);
+  transition:.25s ease;
+}
+/* ===== SIDEBAR BUTTON CONTENT ===== */
+
+.side-item{
+  width:100%;
+  height:70px;
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+
+  padding:0 18px;
+  margin:0 auto;
+
+  border-radius:12px;
+  border:none;
+
+  background:rgba(255,255,255,.18);
+  backdrop-filter:blur(8px);
+
+  color:#fff;
+  text-align:left;
+  cursor:pointer;
+
+  transition:
+    background .25s ease,
+    transform .2s ease,
+    box-shadow .25s ease;
+}
+
+/* Hover */
+.side-item:hover{
+  background:rgba(255,255,255,.26);
+  transform:translateX(2px);
+}
+
+/* Primary (Ask Anything) */
+.side-item-primary{
+  background:rgba(255,255,255,.32);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
+}
+
+/* ICON */
+.side-item i{
+  font-size:24px;
+  width:28px;
+  text-align:center;
+  color:#e8f2ff;
+
+  filter:drop-shadow(0 0 6px rgba(120,180,255,.6));
+}
+
+.side-item-primary i{
+  font-size:28px;
+  color:#ffffff;
+}
+
+/* TEXT WRAPPER */
+.side-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+
+/* TITLE */
+.side-title{
+  font-size:15px;
+  font-weight:700;
+  color:#ffffff;
+}
+
+/* SUBTITLE */
+.side-sub{
+  font-size:12px;
+  font-weight:500;
+  color:rgba(255,255,255,.75);
+  margin-top:3px;
+}
+.side-title{ letter-spacing:.2px; }
+.side-sub{ opacity:.85; }
+
+
+.side-item-primary{
+  height:70px;          /* ⬅️ גדול מכולם */
+  background:rgba(255,255,255,.28);
+
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.25);
+}
+
+.side-item-primary span{
+  font-size:17px;
+  font-weight:700;
+}
+
+.side-item-primary i{
+  font-size:30px;
+  color:#ffffff;
+}
+.kid-actions{
+  width:100%;
+  flex:1;                 /* תופס את כל הגובה הפנוי */
+  margin-top:8px;
+  padding:0 8px;
+
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+
+  overflow-y:auto;        /* ⭐ הגלילה עצמה */
+  overscroll-behavior:contain;
+}
+
+/* scrollbar עדין */
+.kid-actions::-webkit-scrollbar{
+  width:6px;
+}
+.kid-actions::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.25);
+  border-radius:6px;
+}
+
+.side-item img{
+  width:26px;
+  height:26px;
+  object-fit:contain;
+}
+
+.side-item:hover{
+  background:rgba(255,255,255,.25);
+  transform:translateX(2px);
+}
+.side-item i{
+  font-size:22px;
+  width:26px;
+  text-align:center;
+  color:#cfe6ff;
+  filter: drop-shadow(0 0 6px rgba(120,180,255,.6));
+}
+.side-item-primary i{
+  font-size:28px;
+  color:#ffffff;
+}
+.idea-title{
+  font-size:15px;
+  font-weight:700;
+}
+
+.idea-sub{
+  font-size:12px;
+  opacity:.7;
+  margin-top:2px;
+}
+/* ===== CHAT MESSAGES ===== */
+
+
+
+/* ROW */
+.msg-row{
+  display:flex;
+  align-items:flex-end;
+  max-width:100%;
+}
+
+/* USER */
+.msg-row.user{
+  justify-content:flex-end;
+}
+
+.msg-row.user .msg-bubble{
+  background:linear-gradient(135deg,#4f9cff,#2f6fff);
+  color:#fff;
+  border-bottom-right-radius:6px;
+}
+
+/* ASSISTANT */
+.msg-row.assistant{
+  justify-content:flex-start;
+  gap:8px;
+}
+
+.msg-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+  box-shadow:0 0 10px rgba(120,180,255,.6);
+}
+
+/* BUBBLE */
+.msg-bubble{
+  max-width:65%;
+  padding:12px 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.85);
+  color:#1f2937;
+  font-size:14px;
+  line-height:1.4;
+  backdrop-filter:blur(6px);
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+  white-space:pre-wrap;
+}
+/* ===== IAKIDS LOGO ===== */
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:800;
+}
+
+/* עיגול כחול IA */
+.logo-badge{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#00040c;
+  color:#fff;
+  font-size:15px;
+  letter-spacing:.5px;
+
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,.35),
+    0 8px 20px rgba(80,140,255,.45);
+}
+
+/* kids */
+.logo-text{
+  font-size:18px;
+  font-weight:800;
+  color:#00040c;
+  letter-spacing:.2px;
+}
+.logo:hover .logo-badge{
+  transform:scale(1.05);
+  transition:.25s ease;
+}
+.logo-badge{
+  box-shadow:
+    0 0 12px rgba(120,180,255,.6),
+    0 8px 20px rgba(80,140,255,.45);
+}
+
+.chat-wrapper{
+  flex:1;
+  overflow:hidden;
+}
+
+.chat{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.messages{
+  flex:1;
+  overflow-y:auto;
+}
+.ideas-hint{
+  display:block;
+  margin:6px 0 10px;
+  font-size:13px;
+  font-weight:600;
+  color:rgba(31,41,55,.55);
+  letter-spacing:.2px;
+}
+.ideas-hint{
+  font-size:12px;
+  opacity:.6;
+}
+/* דוחף את הכפתורים למעלה */
+.kid-actions{
+  flex:1;
+}
+
+.sidebar-bottom{
+  flex-shrink:0;          /* ⭐ חשוב */
+  width:100%;
+  padding:12px 8px 18px;
+}
+
+
+.side-item-settings{
+  background:rgba(0,0,0,.35);
+}
+
+.side-item-settings:hover{
+  background:rgba(0,0,0,.45);
+}
+ /* ===== HAMBURGER – DESKTOP (OFF) ===== */
+.hamburger{
+  display:none;   /* ❌ לא קיים בדסקטופ */
+}
+@media (max-width: 900px){
+/* ===== MOBILE HEADER USER FIX ===== */
+
+.user-trigger span{
+  display:none;          /* מסתיר את השם */
+}
+
+header{
+  justify-content:space-between;
+}
+
+/* דוחף את היוזר לימין */
+.user-menu{
+  margin-left:auto;
+}
+
+/* רק האווטאר */
+.user-trigger img{
+  width:34px;
+  height:34px;
+}
+
+/* ===== MOBILE MODAL BUTTONS FIX ===== */
+.modal-actions{
+  display:flex !important;
+  flex-direction:column !important;   /* אחד מתחת לשני */
+  gap:12px;
+  margin-top:20px;
+}
+
+.modal-actions button{
+  width:100% !important;              /* רוחב מלא */
+  height:48px;
+  font-size:16px;
+  border-radius:12px;
+}
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  overflow-y:auto;                /* מאפשר גלילה לכל המסך */
+  -webkit-overflow-scrolling:touch;
+}
+
+.modal{
+  max-height:90dvh;               /* שלא יעבור את גובה המסך */
+  overflow-y:auto;                /* גלילה פנימית */
+  -webkit-overflow-scrolling:touch;
+}
+
+  /* 🔥 הסתרת תת כותרת בוודאות */
+  .sidebar .side-sub{
+    display:none !important;
+  }
+
+  /* הקטנת כותרת */
+  .sidebar .side-title{
+    font-size:14px !important;
+    font-weight:600;
+  }
+
+  /* הקטנת כרטיס */
+  .sidebar .side-item{
+    height:56px !important;
+    padding:0 14px !important;
+  }
+
+
+
+  .input{
+    flex-direction:column;     /* הופך לאנכי */
+    align-items:stretch;
+    gap:10px;
+  }
+
+  .input input{
+    width:100%;
+  }
+
+  .send-btn{
+    width:100%;
+    height:48px;
+  }
+
+
+  /* ===== BASE ===== */
+  body{
+    overflow-x:hidden;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+    width:240px;
+
+    height:auto;              /* ⭐ חשוב מאוד */
+    transform:translateX(-100%);
+    transition:transform .3s ease;
+
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+
+  .sidebar.open{
+    transform:translateX(0);
+  }
+
+  /* ===== MAIN ===== */
+  .main{
+    margin-left:0;
+    width:100%;
+    max-width:100vw;
+    height:100vh;
+    padding:12px;
+  }
+  .rightbar{
+    display:none !important;
+  }
+
+  .main{
+    margin-right:0;
+  }
+  /* ===== FIX CHAT HEIGHT (MOBILE) ===== */
+
+  .container{
+    min-height:0;
+  }
+
+  .chat-wrapper{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .chat{
+    flex:1;
+    min-height:0;
+  }
+
+  .messages{
+    flex:1;
+    overflow-y:auto;
+  }
+
+.ideas{
+  flex-shrink:0;
+  max-height:25vh;
+  overflow-y:auto;
+}
+
+
+  /* ===== HAMBURGER – MOBILE ONLY ===== */
+  .hamburger{
+    display:flex;              /* ✅ מופיע רק במובייל */
+    position:fixed;
+    top:12px;
+    left:12px;
+    z-index:1000;
+
+    width:44px;
+    height:44px;
+    border-radius:50%;
+
+    background:rgba(0,0,0,.85);
+    color:#fff;
+    border:none;
+    font-size:20px;
+
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:0 8px 22px rgba(0,0,0,.4);
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    padding-left:48px; /* מקום להמבורגר */
+  }
+
+  header .logo{
+    display:none;
+  }
+
+  /* ===== HERO ===== */
+  .hero{
+    padding:10px 12px;
+    gap:10px;
+  }
+
+  .hero h1{
+    font-size:17px;
+  }
+
+  .hero p{
+    font-size:12px;
+  }
+
+  .avatar{
+    width:44px;
+    height:44px;
+  }
+
+  .limits{
+    font-size:11px;
+    margin-top:6px;
+  }
+
+  /* ===== CONTAINER / CHAT ===== */
+  .container{
+    padding:12px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .chat-wrapper{
+    flex:1;
+    min-height:0;
+  }
+
+  .chat{
+    flex:1;
+    height:100%;
+  }
+}
+.msg-row.user{
+  justify-content:flex-end;
+  flex-direction:row;
+  gap:8px;
+}
+/* ===== SETTINGS MODAL ===== */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);
+  display:none;              /* ⬅️ מוסתר כברירת מחדל */
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.modal{
+  width:420px;
+  max-width:90%;
+  background:#fff;
+  border-radius:20px;
+  padding:20px 22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+
+.modal h2{
+  margin:0 0 14px;
+}
+
+.modal label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:12px;
+  font-weight:600;
+}
+
+.modal input,
+.modal select{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+}
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:14px;
+}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.chips button{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid #d1d5db;
+  background:#f9fafb;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.chips button.active{
+  background:#ff6b4a;
+  color:#fff;
+  border-color:#ff6b4a;
+}
+/* ================= RIGHT SIDEBAR ================= */
+.rightbar{
+  position:fixed;
+  top:0;
+  right:0;
+  width:260px;
+  height:100vh;
+  z-index:90;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20,30,60,.35),
+      rgba(10,20,40,.45)
+    );
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow:
+    inset 1px 0 0 rgba(255,255,255,.12),
+    0 0 30px rgba(0,0,0,.25);
+
+  padding:14px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* ===== RIGHTBAR HEADER ===== */
+.rightbar-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:8px 6px 14px;
+  margin-bottom:6px;
+
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.rightbar-avatar{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  object-fit:cover;
+
+  border:2px solid rgba(255,255,255,.35);
+  box-shadow:0 0 12px rgba(120,180,255,.5);
+}
+
+.rightbar-user{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+
+.rightbar-name{
+  font-size:14px;
+  font-weight:700;
+  color:#ffffff;
+}
+
+.rightbar-sub{
+  font-size:12px;
+  color:rgba(255,255,255,.7);
+  margin-top:2px;
+}
+/* ===== RIGHTBAR KID – MIRROR OF ROBOT ===== */
+.rightbar-kid{
+  width:100%;
+  display:flex;
+  align-items:center;
+  flex-direction:row-reverse;
+  gap:12px;
+
+  padding:16px 0 14px 18px;  /* ⬅️ אין padding מימין */
+  margin-bottom:8px;
+
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+
+/* AVATAR IMAGE */
+.rightbar-kid img{
+  width:68px;
+  height:68px;
+  object-fit:cover;
+
+  border-radius:22px;        /* ⬅️ זהה לרובוט */
+  background:transparent;
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.45),
+    0 0 28px rgba(120,180,255,.55);
+
+  flex-shrink:0;
+}
+
+/* TEXT UNDER AVATAR */
+.rightbar-kid-text{
+  line-height:1.1;
+  text-align:right;
+  margin:0;
+}
+
+.rightbar-kid-name{
+  font-size:15px;
+  font-weight:800;
+  color:#ffffff;
+  letter-spacing:.3px;
+}
+
+.rightbar-kid-sub{
+  font-size:12px;
+  font-weight:500;
+  color:rgba(255,255,255,.75);
+  margin-top:4px;
+}
+/* ❌ non mic */
+.talk-btn{
+  display:none !important;
+}
+
+/* ===== USER MENU (HOVER) ===== */
+.user-menu{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+
+/* trigger (avatar + name) */
+.user-trigger{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+}
+
+.user-trigger img{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+}
+
+/* popover */
+.user-popover{
+  position:absolute;
+  top:100%;
+  right:0;
+  margin-top:0;
+
+  min-width:200px;
+  padding:8px;
+
+  background:#ffffff;
+  border-radius:14px;
+
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+
+  display:none;
+  flex-direction:column;
+  gap:6px;
+
+  z-index:9999;
+}
+
+/* hover opens */
+.user-menu:hover .user-popover{
+  display:flex;
+}
+
+/* buttons */
+.user-popover button{
+  all:unset;
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  color:#111827;
+}
+
+.user-popover button:hover{
+  background:#f3f4f6;
+}
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.modal-close{
+  all:unset;
+  cursor:pointer;
+  font-size:18px;
+  font-weight:700;
+  color:#6b7280;
+  line-height:1;
+  padding:4px 6px;
+  border-radius:8px;
+  transition:.2s ease;
+}
+
+.modal-close:hover{
+  background:#f3f4f6;
+  color:#111827;
+}
+/* ===== FIX CURSOR FOR MODAL BUTTONS ===== */
+
+.modal button{
+  cursor:pointer;
+}
+
+.modal-actions button{
+  cursor:pointer;
+}
+
+/* אם תרצה גם אפקט hover עדין */
+.modal button:hover{
+  opacity:.9;
+}
+
+  </style>
+</head>
+
+<body>
+<!-- ===== QUOTA MODAL ===== -->
+<div class="modal-overlay" id="quotaModal">
+  <div class="modal">
+    <h2>🚫 Se acabaron las preguntas</h2>
+
+    <p style="font-size:15px; color:#374151; margin-bottom:14px;">
+      Ya usaste todas las preguntas gratuitas.<br>
+      Para seguir usando iakids, un adulto debe activar el acceso completo.
+    </p>
+
+    <div class="modal-actions">
+      <button onclick="closeQuotaModal()">Cerrar</button>
+      <button class="save" onclick="goToUpgrade()">🔒 Desbloquear</button>
+    </div>
+  </div>
+</div>
+<button class="hamburger" onclick="toggleSidebar()">
+  <i class="fa-solid fa-bars"></i>
+</button>
+
+<div class="app">
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="sidebar-inner">
+
+    <div class="sidebar-robot">
+      <img src="/assets/askie-robot.png" alt="iakids robot" />
+      <div class="robot-text">
+        <div class="robot-title">iakids</div>
+        <div class="robot-sub">Asistente de IA para niños</div>
+      </div>
+    </div>
+
+    <div class="kid-actions">
+
+      <button class="side-item side-item-primary" data-ask="homework">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <div class="side-text">
+          <div class="side-title">Ayuda escolar</div>
+          <div class="side-sub">Tareas y estudios</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="exercises">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <div class="side-text">
+          <div class="side-title">Resolver ejercicios</div>
+          <div class="side-sub">Paso a paso</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="learn">
+        <i class="fa-solid fa-book-open"></i>
+        <div class="side-text">
+          <div class="side-title">Aprender un tema</div>
+          <div class="side-sub">Nuevo conocimiento</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="practice">
+        <i class="fa-solid fa-repeat"></i>
+        <div class="side-text">
+          <div class="side-title">Practicar</div>
+          <div class="side-sub">Ejercicios guiados</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="exam">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <div class="side-text">
+          <div class="side-title">Prepararse para un examen</div>
+          <div class="side-sub">Repaso y preguntas</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="easy">
+        <i class="fa-solid fa-child-reaching"></i>
+        <div class="side-text">
+          <div class="side-title">Explicar fácil</div>
+          <div class="side-sub">Como si tuviera 8</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="examples">
+        <i class="fa-solid fa-shapes"></i>
+        <div class="side-text">
+          <div class="side-title">Ver ejemplos</div>
+          <div class="side-sub">Con ejemplos claros</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="logic">
+        <i class="fa-solid fa-brain"></i>
+        <div class="side-text">
+          <div class="side-title">Pensar y razonar</div>
+          <div class="side-sub">Lógica y pensamiento</div>
+        </div>
+      </button>
+
+      <button class="side-item" data-ask="challenge">
+        <i class="fa-solid fa-bullseye"></i>
+        <div class="side-text">
+          <div class="side-title">Reto diario</div>
+          <div class="side-sub">Desafío del día</div>
+        </div>
+      </button>
+
+      <div class="sidebar-bottom">
+        <button class="side-item side-item-settings" id="openSettings">
+          <i class="fa-solid fa-gear"></i>
+          <div class="side-text">
+            <div class="side-title">Settings</div>
+            <div class="side-sub">Preferences</div>
+          </div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</aside>
+
+
+<!-- ===== RIGHT SIDEBAR ===== -->
+<aside class="rightbar">
+
+  <div class="rightbar-kid">
+    <img id="rightbarAvatar" />
+    <div class="rightbar-kid-text">
+      <div class="rightbar-kid-name" id="rightbarName"></div>
+      <div class="rightbar-kid-sub">Mi perfil</div>
+    </div>
+  </div>
+
+  <button class="side-item" data-ask="feelings">
+    <i class="fa-solid fa-heart"></i>
+    <div class="side-text">
+      <div class="side-title">¿Cómo me siento?</div>
+      <div class="side-sub">Hablar de emociones</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="free">
+    <i class="fa-solid fa-comments"></i>
+    <div class="side-text">
+      <div class="side-title">Hablar libremente</div>
+      <div class="side-sub">Sin tareas ni notas</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="achievements">
+    <i class="fa-solid fa-star"></i>
+    <div class="side-text">
+      <div class="side-title">Mis logros</div>
+      <div class="side-sub">Lo que hice bien</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="aboutme">
+    <i class="fa-solid fa-user-astronaut"></i>
+    <div class="side-text">
+      <div class="side-title">Sobre mí</div>
+      <div class="side-sub">Lo que me gusta</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="tip">
+    <i class="fa-solid fa-lightbulb"></i>
+    <div class="side-text">
+      <div class="side-title">Consejo del día</div>
+      <div class="side-sub">Pequeña ayuda</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="fun">
+    <i class="fa-solid fa-face-smile"></i>
+    <div class="side-text">
+      <div class="side-title">Algo divertido</div>
+      <div class="side-sub">Relajarse un poco</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="sleep">
+    <i class="fa-solid fa-moon"></i>
+    <div class="side-text">
+      <div class="side-title">Antes de dormir</div>
+      <div class="side-sub">Historia tranquila</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="now">
+    <i class="fa-solid fa-compass"></i>
+    <div class="side-text">
+      <div class="side-title">¿Qué hago ahora?</div>
+      <div class="side-sub">Sugerencia</div>
+    </div>
+  </button>
+
+  <button class="side-item" data-ask="askie">
+    <i class="fa-solid fa-robot"></i>
+    <div class="side-text">
+      <div class="side-title">Pide ayuda a Askie</div>
+      <div class="side-sub">Estoy aquí</div>
+    </div>
+  </button>
+
+ <button class="side-item side-item-settings" id="openParentModal">
+    <i class="fa-solid fa-gear"></i>
+    <div class="side-text">
+      <div class="side-title">Mi perfil</div>
+      <div class="side-sub">Preferencias</div>
+    </div>
+  </button>
+
+</aside>
+
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <header>
+<div class="logo" onclick="window.location.href='https://iakids.app/'" style="cursor:pointer;">
+  <div class="logo-badge">IA</div>
+  <span class="logo-text">kids</span>
+</div>
+
+<div class="user-menu">
+  <div class="user-trigger">
+    <img id="userAvatar" />
+    <span id="userName"></span>
+  </div>
+
+<div class="user-popover">
+
+  <button onclick="document.getElementById('openSettings').click()">
+    ⚙️ Editar perfil del niño
+  </button>
+
+  <button onclick="document.getElementById('openParentModal').click()">
+    👶 Panel para padres
+  </button>
+
+  <button onclick="window.location.href='/support/'">
+    📩 Soporte
+  </button>
+
+  <hr style="margin:6px 0">
+
+<!--  <button onclick="window.location.href='/parent/dashboard'">-->
+<!--    🧑‍💼 Dashboard padres-->
+<!--  </button>-->
+
+  <button onclick="sb.auth.signOut().then(()=>location.href='/')">
+    🚪 Logout
+  </button>
+
+</div>
+
+
+</div>
+
+    </header>
+
+    <div class="container">
+
+      <div class="hero">
+        <div class="hero-left">
+          <div class="avatar">
+            <img id="heroAvatar" />
+          </div>
+          <div>
+            <h1 id="heroGreeting"></h1>
+            <p>¿Qué te gustaría aprender hoy?</p>
+          </div>
+        </div>
+
+<!--        <div class="limits">-->
+<!--          Questions <span>70 / 70</span> &nbsp; Images <span>4 / 4</span> &nbsp; Voice <span>5 min</span>-->
+<!--        </div>-->
+      </div>
+
+<div class="chat-wrapper">
+  <div class="chat">
+    <div class="messages"><!-- ⬅️ messages go here --></div>
+
+<div class="input">
+  <input placeholder="Ask anything…" />
+
+  <button class="send-btn">Send</button>
+  <button class="talk-btn" title="Talk">
+  <i class="fa-solid fa-microphone"></i>
+</button>
+
+</div>
+
+  </div>
+</div>
+
+<div class="ideas">
+  <span class="ideas-hint">Need an idea?</span>
+
+
+        <div class="idea-grid">
+
+<div class="idea" data-ask="idea_homework">
+  <img src="/assets/icons/homework-help.png" />
+  <div>
+    <div class="idea-title">Ayuda escolar</div>
+    <div class="idea-sub">Ayuda con la escuela</div>
+  </div>
+</div>
+
+<div class="idea" data-ask="idea_explain">
+  <img src="/assets/icons/explain-topic.png" />
+  <div>
+    <div class="idea-title">Explicar un tema</div>
+    <div class="idea-sub">Aprender algo nuevo</div>
+  </div>
+</div>
+
+<div class="idea" data-ask="idea_riddle">
+  <img src="/assets/icons/smart-riddle.png" />
+  <div>
+    <div class="idea-title">Adivinanza inteligente</div>
+    <div class="idea-sub">Pensar y divertirse</div>
+  </div>
+</div>
+
+<div class="idea" data-ask="idea_cool">
+  <img src="/assets/icons/something-interesting.png" />
+  <div>
+    <div class="idea-title">Algo interesante</div>
+    <div class="idea-sub">Ideas curiosas y divertidas</div>
+  </div>
+</div>
+
+
+
+</div>
+
+      </div>
+
+    </div>
+
+
+  </main>
+
+</div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let CURRENT_KID = null;
+
+(async () => {
+  const { data: sessionData } = await sb.auth.getSession();
+  const { data: { user } } = await sb.auth.getUser();
+
+if (user) {
+  const displayName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email;
+
+  const avatar =
+    user.user_metadata?.avatar_url ||
+    "/assets/default-parent.png";
+
+  document.getElementById("userName").textContent = displayName;
+  document.getElementById("userAvatar").src = avatar;
+}
+
+  if (!sessionData.session) {
+    window.location.replace("/onboarding/cuenta/");
+    return;
+  }
+
+  const userId = sessionData.session.user.id;
+
+let activeKidId = localStorage.getItem("active_kid_id");
+
+if (!activeKidId) {
+  const { data: kids } = await sb
+    .from("kids_profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (!kids || kids.length === 0) return;
+
+  activeKidId = kids[0].id;
+  localStorage.setItem("active_kid_id", activeKidId);
+}
+
+const { data: kid, error } = await sb
+  .from("kids_profiles")
+  .select(`
+    id,
+    child_name,
+    age,
+    avatar_key,
+    usage_goals,
+    learning_interests
+  `)
+  .eq("id", activeKidId)
+  .single();
+
+
+  if (error || !kid) {
+    console.error("kids_profiles error:", error);
+    return;
+  }
+  CURRENT_KID = kid;
+  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+  document.getElementById("rightbarAvatar").src = avatarUrl;
+  document.getElementById("rightbarName").textContent = kid.child_name;
+
+  window.KID_AVATAR_URL = avatarUrl;
+
+
+  document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
+
+  document.getElementById("heroAvatar").src = avatarUrl;
+
+
+  window.ACTIVE_KID_ID = kid.id;
+})();
+</script>
+
+<script>
+const API_BASE = "https://iakids-backend.onrender.com";
+
+const messagesEl = document.querySelector(".messages");
+const chatEl = document.querySelector(".chat");
+const inputEl = document.querySelector(".input input");
+const sendBtn = document.querySelector(".input button");
+
+let kidId = null;
+
+/* ---------- UI HELPERS ---------- */
+function addMessage(role, text) {
+  const row = document.createElement("div");
+  row.className = `msg-row ${role}`;
+
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.textContent = text;
+
+  // 🤖 assistant avatar (שמאל)
+  if (role === "assistant") {
+    const avatar = document.createElement("img");
+    avatar.src = "/assets/askie-robot.png";
+    avatar.className = "msg-avatar";
+    row.appendChild(avatar);
+  }
+
+  row.appendChild(bubble);
+
+  // 🧒 user avatar (ימין)
+  if (role === "user") {
+    const avatar = document.createElement("img");
+    avatar.src = window.KID_AVATAR_URL;
+    avatar.className = "msg-avatar";
+    row.appendChild(avatar);
+  }
+
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/* ---------- ASSISTANT TYPING ---------- */
+function addAssistantTyping(text) {
+  const row = document.createElement("div");
+  row.className = "msg-row assistant";
+
+  const avatar = document.createElement("img");
+  avatar.src = "/assets/askie-robot.png";
+  avatar.className = "msg-avatar";
+  row.appendChild(avatar);
+
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.textContent = "";
+  row.appendChild(bubble);
+
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  let i = 0;
+
+  function typeNext() {
+    if (i >= text.length) return;
+
+    const char = text[i];
+    bubble.textContent += char;
+    i++;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    let delay = 35 + Math.random() * 40; // 35–75ms
+
+    if (char === "." || char === "!" || char === "?") delay += 250;
+    if (char === "," ) delay += 120;
+    if (char === "\n") delay += 300;
+
+    setTimeout(typeNext, delay);
+  }
+
+  typeNext();
+}
+
+
+/* ---------- SEND MESSAGE ---------- */
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  inputEl.value = "";
+  addMessage("user", text);
+
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+
+  if (!session) {
+    addMessage("assistant", "Please sign in again 🙂");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+  message: text,
+  kid_id: CURRENT_KID.id
+})
+
+    });
+
+if (!res.ok) {
+
+  // 🔒 חסימת קווטה
+  if (res.status === 403) {
+    const err = await res.json();
+
+    if (err?.detail?.error === "quota_exceeded") {
+      openQuotaModal();
+      return; // ⛔ לא מכניסים הודעה לצ'אט
+    }
+  }
+
+  // שגיאה אחרת
+  const errText = await res.text();
+  console.error("API ERROR:", res.status, errText);
+  addMessage("assistant", "⚠️ Algo salió mal. Intenta más tarde.");
+  return;
+}
+
+
+    const data = await res.json();
+    console.log("CHAT RESPONSE:", data);
+
+if (!data.reply || !data.reply.trim()) {
+  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
+} else {
+  addAssistantTyping(data.reply);
+}
+
+  } catch (e) {
+    console.error("NETWORK ERROR", e);
+    addMessage("assistant", "🌐 Network error – API not reachable");
+  }
+
+}
+/* ---------- QUICK ASK MAP (ES - GENERAL) ---------- */
+const QUICK_ASK_MAP = {
+  // LEFT SIDEBAR
+  homework: "Hola 😊 ¿Me puedes ayudar con una tarea de la escuela?",
+  exercises: "Tengo un ejercicio y no lo entiendo. ¿Lo hacemos paso a paso?",
+  learn: "Quiero aprender algo nuevo. ¿Por dónde empezamos?",
+  practice: "Me gustaría practicar un poco",
+  exam: "Tengo una prueba pronto. ¿Me ayudas a repasar?",
+  easy: "¿Puedes explicarlo de una forma muy fácil?",
+  examples: "¿Puedes mostrarme ejemplos?",
+  logic: "Quiero pensar un poco 🤔",
+  challenge: "¿Cuál es el reto del día?",
+
+  // RIGHT SIDEBAR
+  feelings: "Quiero hablar sobre cómo me siento",
+  free: "Quiero hablar libremente",
+  achievements: "Quiero contarte algo que hice bien",
+  aboutme: "Quiero contarte sobre mí",
+  tip: "¿Tienes un consejo para hoy?",
+  fun: "Quiero algo divertido 😄",
+  sleep: "¿Puedes contarme una historia tranquila?",
+  now: "¿Qué puedo hacer ahora?",
+  iakids: "iakids, necesito ayuda",
+
+  // IDEAS
+  idea_homework: "¿Me ayudas con algo de la escuela?",
+  idea_explain: "¿Puedes explicarme un tema?",
+  idea_riddle: "¿Tienes una adivinanza?",
+  idea_cool: "Cuéntame algo interesante 😎"
+};
+function quickAsk(key){
+  const text = QUICK_ASK_MAP[key];
+  if (!text) return;
+
+  inputEl.value = text;
+  sendMessage();
+}
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-ask]");
+  if (!el) return;
+
+  quickAsk(el.dataset.ask);
+
+  // 🔽 הוסף את זה:
+  if (window.innerWidth <= 900) {
+    document.querySelector('.sidebar').classList.remove('open');
+  }
+});
+
+/* ---------- EVENTS ---------- */
+sendBtn.addEventListener("click", sendMessage);
+inputEl.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+</script>
+<script>
+function toggleSidebar(){
+  document.querySelector('.sidebar').classList.toggle('open');
+}
+</script>
+<!-- ===== SETTINGS MODAL ===== -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+
+    <h2>Editar perfil del niño</h2>
+
+    <label>
+      Nombre
+      <input type="text" id="modalChildName" />
+    </label>
+
+    <label>
+      Edad
+      <select id="modalChildAge">
+        <option value="">Select age</option>
+        <option>3</option><option>4</option><option>5</option>
+        <option>6</option><option>7</option><option>8</option>
+        <option>9</option><option>10</option><option>11</option>
+        <option>12</option><option>13</option><option>14</option>
+        <option>15</option>
+      </select>
+    </label>
+
+    <label>
+      Avatar
+<select id="modalAvatar">
+  <option value="cat">Cat</option>
+  <option value="dolphin">Dolphin</option>
+  <option value="eagle">Eagle</option>
+  <option value="horse">Horse</option>
+  <option value="owl">Owl</option>
+  <option value="panther">Panther</option>
+</select>
+
+    </label>
+
+    <label>
+      Intereses de aprendizaje (separados por comas)
+      <input type="text" id="modalInterests" />
+    </label>
+<label>
+  ¿Para qué quieres usar KidSaí?
+  <div class="chips" id="modalGoals">
+    <button data-val="daily_questions">Preguntas del día a día</button>
+    <button data-val="school_help">Apoyo escolar</button>
+    <button data-val="thinking">Pensar y razonar</button>
+    <button data-val="creative">Ideas creativas</button>
+    <button data-val="languages">Palabras e idiomas</button>
+    <button data-val="safe_curiosity">Curiosidad segura</button>
+    <button data-val="family">Conversaciones en familia</button>
+  </div>
+</label>
+
+<label>
+  ¿Qué le gustaría aprender?
+  <div class="chips" id="modalLearning">
+    <button data-val="languages">Nuevo idioma</button>
+    <button data-val="math">Mejorar matemáticas</button>
+    <button data-val="english">Mejorar inglés</button>
+    <button data-val="science">Ciencia</button>
+    <button data-val="reading">Lectura</button>
+    <button data-val="arts">Artes creativas</button>
+    <button data-val="logic">Lógica y resolución</button>
+    <button data-val="critical">Pensamiento crítico</button>
+  </div>
+</label>
+
+    <div class="modal-actions">
+      <button onclick="closeSettings()">Cancelar</button>
+      <button class="save" onclick="saveSettings()">Guardar</button>
+    </div>
+
+  </div>
+</div>
+<script>
+document.getElementById("openSettings").onclick = () => {
+  if (!CURRENT_KID) return;
+
+  settingsModal.style.display = "flex";
+
+  modalChildName.value = CURRENT_KID.child_name || "";
+  modalChildAge.value = CURRENT_KID.age || "";
+  modalAvatar.value = CURRENT_KID.avatar_key || "";
+
+  setSelected("modalGoals", CURRENT_KID.usage_goals || []);
+  setSelected("modalLearning", CURRENT_KID.learning_interests || []);
+};
+
+function closeSettings(){
+  document.getElementById("settingsModal").style.display = "none";
+}
+</script>
+<script>
+async function saveSettings(){
+  const name = modalChildName.value.trim();
+  const age = parseInt(modalChildAge.value);
+  const avatar = modalAvatar.value;
+
+  const usage_goals = getSelected("modalGoals");
+  const learning_interests = getSelected("modalLearning");
+
+  if (!name || !age) return;
+
+  const { error } = await sb
+    .from("kids_profiles")
+    .update({
+      child_name: name,
+      age,
+      avatar_key: avatar,
+      usage_goals,
+      learning_interests
+    })
+    .eq("id", CURRENT_KID.id);
+
+if (error){
+  console.error("SAVE ERROR:", error);
+  alert(error.message);
+  return;
+}
+
+  Object.assign(CURRENT_KID, {
+    child_name: name,
+    age,
+    avatar_key: avatar,
+    usage_goals,
+    learning_interests
+  });
+
+  const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
+
+  heroGreeting.textContent = `Hi, ${name}!`;
+  heroAvatar.src = avatarUrl;
+
+  document.getElementById("rightbarAvatar").src = avatarUrl;
+  document.getElementById("rightbarName").textContent = name;
+
+  window.KID_AVATAR_URL = avatarUrl;
+
+  closeSettings();
+}
+
+</script>
+<script>
+/* ===== CHIPS HELPERS ===== */
+function toggleChip(btn){
+  btn.classList.toggle("active");
+}
+
+document.querySelectorAll(".chips button").forEach(btn=>{
+  btn.onclick = () => toggleChip(btn);
+});
+
+function getSelected(containerId){
+  return [...document.querySelectorAll(`#${containerId} button.active`)]
+    .map(b => b.dataset.val);
+}
+
+function setSelected(containerId, values = []){
+  document.querySelectorAll(`#${containerId} button`)
+    .forEach(b=>{
+      b.classList.toggle("active", values.includes(b.dataset.val));
+    });
+}
+</script>
+<script>
+document.getElementById("openParentModal").onclick = async () => {
+  const { data } = await sb
+    .from("kids_profiles")
+    .select("id, child_name")
+    .eq("user_id", (await sb.auth.getUser()).data.user.id);
+
+  const select = document.getElementById("parentKidSelect");
+  select.innerHTML = "";
+
+  data.forEach(kid => {
+    const opt = document.createElement("option");
+    opt.value = kid.id;
+    opt.textContent = kid.child_name;
+    if (kid.id === CURRENT_KID?.id) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  document.getElementById("parentModal").style.display = "flex";
+};
+
+// close on backdrop
+document.getElementById("parentModal").onclick = e => {
+  if (e.target.id === "parentModal") {
+    e.target.style.display = "none";
+  }
+};
+</script>
+<script>
+function switchKid(){
+  const newKidId = document.getElementById("parentKidSelect").value;
+  if (!newKidId) return;
+
+  localStorage.setItem("active_kid_id", newKidId);
+  window.location.reload();
+}
+
+function addKid(){
+  document.getElementById("parentModal").style.display = "none";
+  openAddKidModal();
+}
+</script>
+<script>
+function openAddKidModal(){
+  document.getElementById("addKidModal").style.display = "flex";
+}
+</script>
+<script>
+function closeAddKid(){
+  document.getElementById("addKidModal").style.display = "none";
+}
+
+async function createKid(){
+  const name = document.getElementById("newKidName").value.trim();
+  const age = parseInt(document.getElementById("newKidAge").value);
+
+  if (!name || !age) return alert("Completa todos los campos");
+
+  const user = (await sb.auth.getUser()).data.user;
+
+  const { data, error } = await sb
+    .from("kids_profiles")
+    .insert({
+      user_id: user.id,
+      child_name: name,
+      age,
+      avatar_key: "cat"
+    })
+    .select()
+    .single();
+
+  if (error){
+    alert(error.message);
+    return;
+  }
+
+  localStorage.setItem("active_kid_id", data.id);
+  window.location.reload();
+}
+</script>
+
+<!-- ===== PARENT MODAL ===== -->
+<div class="modal-overlay" id="parentModal">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2>Panel para padres</h2>
+      <button class="modal-close" onclick="closeParentModal()">✕</button>
+    </div>
+
+    <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
+      Gestionar perfiles de niños
+    </p>
+
+    <!-- SELECT KID -->
+    <label>
+      Elegir niño
+      <select id="parentKidSelect"></select>
+    </label>
+
+    <div class="modal-actions">
+      <button onclick="switchKid()">Cambiar</button>
+    </div>
+
+    <hr style="margin:16px 0">
+
+    <!-- ADD KID -->
+    <button class="save" onclick="addKid()">
+      ➕ Agregar niño
+    </button>
+
+  </div>
+</div>
+<!-- ===== ADD KID MODAL ===== -->
+<div class="modal-overlay" id="addKidModal">
+  <div class="modal">
+
+    <h2>Agregar niño</h2>
+
+    <label>
+      Nombre
+      <input type="text" id="newKidName">
+    </label>
+
+    <label>
+      Edad
+      <select id="newKidAge">
+        <option value="">Edad</option>
+        <option>3</option><option>4</option><option>5</option>
+        <option>6</option><option>7</option><option>8</option>
+        <option>9</option><option>10</option><option>11</option>
+        <option>12</option><option>13</option><option>14</option>
+        <option>15</option>
+      </select>
+    </label>
+
+    <div class="modal-actions">
+      <button onclick="closeAddKid()">Cancelar</button>
+      <button class="save" onclick="createKid()">Crear</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function openQuotaModal(){
+  document.getElementById("quotaModal").style.display = "flex";
+}
+
+function closeQuotaModal(){
+  document.getElementById("quotaModal").style.display = "none";
+}
+
+function goToUpgrade(){
+  window.location.href = "https://iakids.app/planes/";
+}
+</script>
+<script>
+function closeParentModal(){
+  document.getElementById("parentModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>
