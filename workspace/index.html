@@ -768,21 +768,23 @@ header{
 }
 @media (max-width: 900px){
 
- /* ===== SIDEBAR TEXT FIX – MOBILE ===== */
+  /* 🔥 הסתרת תת כותרת בוודאות */
+  .sidebar .side-sub{
+    display:none !important;
+  }
 
-.side-sub{
-  display:none;        /* ⬅️ זה מסתיר את התת כותרת האמיתית */
-}
+  /* הקטנת כותרת */
+  .sidebar .side-title{
+    font-size:14px !important;
+    font-weight:600;
+  }
 
-.side-title{
-  font-size:14px;      /* מקטין כותרת */
-  font-weight:600;
-}
+  /* הקטנת כרטיס */
+  .sidebar .side-item{
+    height:56px !important;
+    padding:0 14px !important;
+  }
 
-.side-item{
-  height:56px;         /* מקטין גובה כרטיס */
-  padding:0 14px;
-}
 
 
   .input{
