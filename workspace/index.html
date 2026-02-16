@@ -767,6 +767,21 @@ header{
   display:none;   /* ❌ לא קיים בדסקטופ */
 }
 @media (max-width: 900px){
+/* ===== MOBILE MODAL BUTTONS FIX ===== */
+
+.modal .actions{
+  display:flex;
+  flex-direction:column;   /* אחד מתחת לשני */
+  gap:12px;
+  margin-top:20px;
+}
+
+.modal .actions button{
+  width:100%;              /* רוחב מלא */
+  height:48px;
+  font-size:16px;
+  border-radius:12px;
+}
 .modal-overlay{
   position:fixed;
   inset:0;
