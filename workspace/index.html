@@ -786,10 +786,15 @@ header{
   }
 
   /* ===== SIDEBAR ===== */
-  .sidebar{
-    transform:translateX(-100%);
-    transition:transform .3s ease;
-  }
+.sidebar{
+  transform:translateX(-100%);
+  transition:transform .3s ease;
+
+  height:100dvh;                
+  overflow-y:auto;             
+  -webkit-overflow-scrolling:touch;
+}
+
 
   .sidebar.open{
     transform:translateX(0);
