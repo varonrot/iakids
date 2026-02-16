@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -768,6 +767,15 @@ header{
   display:none;   /* ❌ לא קיים בדסקטופ */
 }
 @media (max-width: 900px){
+  .kid-actions .action{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+
+  .kid-actions .action small{
+    display:none;
+  }
   .input{
     flex-direction:column;     /* הופך לאנכי */
     align-items:stretch;
