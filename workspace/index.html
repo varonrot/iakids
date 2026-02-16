@@ -779,7 +779,7 @@ header{
     height:48px;
   }
 
- 
+
   /* ===== BASE ===== */
   body{
     overflow-x:hidden;
@@ -1833,6 +1833,11 @@ document.addEventListener("click", (e) => {
   if (!el) return;
 
   quickAsk(el.dataset.ask);
+
+  // 🔽 הוסף את זה:
+  if (window.innerWidth <= 900) {
+    document.querySelector('.sidebar').classList.remove('open');
+  }
 });
 
 /* ---------- EVENTS ---------- */
