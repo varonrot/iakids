@@ -1532,31 +1532,31 @@ header{
 <div class="user-popover">
 
   <button onclick="document.getElementById('openSettings').click()">
-    ⚙️ Editar perfil del niño
+    ⚙️ Editar perfil da criança
   </button>
 
   <button onclick="document.getElementById('openParentModal').click()">
-    👶 Panel para padres
+    👶 Painel dos Pais
   </button>
 
-  <button onclick="window.location.href='/support/'">
-    📩 Soporte
+  <button onclick="window.location.href='/pt/support/'">
+    📩 Suporte
   </button>
 
   <hr style="margin:6px 0">
 
-<!--  <button onclick="window.location.href='/parent/dashboard'">-->
-<!--    🧑‍💼 Dashboard padres-->
-<!--  </button>-->
+  <!--
+  <button onclick="window.location.href='/pt/parent/dashboard/'">
+    🧑‍💼 Área dos Pais
+  </button>
+  -->
 
-  <button onclick="sb.auth.signOut().then(()=>location.href='/')">
-    🚪 Logout
+  <button onclick="sb.auth.signOut().then(()=>location.href='/pt/')">
+    🚪 Sair
   </button>
 
 </div>
 
-
-</div>
 
     </header>
 
@@ -1583,13 +1583,13 @@ header{
     <div class="messages"><!-- ⬅️ messages go here --></div>
 
 <div class="input">
-  <input placeholder="Ask anything…" />
+  <input placeholder="Pergunte qualquer coisa…" />
 
-  <button class="send-btn">Send</button>
-  <button class="talk-btn" title="Talk">
-  <i class="fa-solid fa-microphone"></i>
-</button>
+  <button class="send-btn">Enviar</button>
 
+  <button class="talk-btn" title="Falar">
+    <i class="fa-solid fa-microphone"></i>
+  </button>
 </div>
 
   </div>
@@ -1937,17 +1937,17 @@ function toggleSidebar(){
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
 
-    <h2>Editar perfil del niño</h2>
+    <h2>Editar perfil da criança</h2>
 
     <label>
-      Nombre
+      Nome
       <input type="text" id="modalChildName" />
     </label>
 
     <label>
-      Edad
+      Idade
       <select id="modalChildAge">
-        <option value="">Select age</option>
+        <option value="">Selecione a idade</option>
         <option>3</option><option>4</option><option>5</option>
         <option>6</option><option>7</option><option>8</option>
         <option>9</option><option>10</option><option>11</option>
@@ -1958,55 +1958,56 @@ function toggleSidebar(){
 
     <label>
       Avatar
-<select id="modalAvatar">
-  <option value="cat">Cat</option>
-  <option value="dolphin">Dolphin</option>
-  <option value="eagle">Eagle</option>
-  <option value="horse">Horse</option>
-  <option value="owl">Owl</option>
-  <option value="panther">Panther</option>
-</select>
-
+      <select id="modalAvatar">
+        <option value="cat">Gato</option>
+        <option value="dolphin">Golfinho</option>
+        <option value="eagle">Águia</option>
+        <option value="horse">Cavalo</option>
+        <option value="owl">Coruja</option>
+        <option value="panther">Pantera</option>
+      </select>
     </label>
 
     <label>
-      Intereses de aprendizaje (separados por comas)
+      Interesses de aprendizagem (separados por vírgulas)
       <input type="text" id="modalInterests" />
     </label>
-<label>
-  ¿Para qué quieres usar KidSaí?
-  <div class="chips" id="modalGoals">
-    <button data-val="daily_questions">Preguntas del día a día</button>
-    <button data-val="school_help">Apoyo escolar</button>
-    <button data-val="thinking">Pensar y razonar</button>
-    <button data-val="creative">Ideas creativas</button>
-    <button data-val="languages">Palabras e idiomas</button>
-    <button data-val="safe_curiosity">Curiosidad segura</button>
-    <button data-val="family">Conversaciones en familia</button>
-  </div>
-</label>
 
-<label>
-  ¿Qué le gustaría aprender?
-  <div class="chips" id="modalLearning">
-    <button data-val="languages">Nuevo idioma</button>
-    <button data-val="math">Mejorar matemáticas</button>
-    <button data-val="english">Mejorar inglés</button>
-    <button data-val="science">Ciencia</button>
-    <button data-val="reading">Lectura</button>
-    <button data-val="arts">Artes creativas</button>
-    <button data-val="logic">Lógica y resolución</button>
-    <button data-val="critical">Pensamiento crítico</button>
-  </div>
-</label>
+    <label>
+      Para que você quer usar o KidSaí?
+      <div class="chips" id="modalGoals">
+        <button data-val="daily_questions">Perguntas do dia a dia</button>
+        <button data-val="school_help">Ajuda escolar</button>
+        <button data-val="thinking">Pensar e raciocinar</button>
+        <button data-val="creative">Ideias criativas</button>
+        <button data-val="languages">Palavras e idiomas</button>
+        <button data-val="safe_curiosity">Curiosidade segura</button>
+        <button data-val="family">Conversas em família</button>
+      </div>
+    </label>
+
+    <label>
+      O que gostaria de aprender?
+      <div class="chips" id="modalLearning">
+        <button data-val="languages">Novo idioma</button>
+        <button data-val="math">Melhorar matemática</button>
+        <button data-val="english">Melhorar inglês</button>
+        <button data-val="science">Ciência</button>
+        <button data-val="reading">Leitura</button>
+        <button data-val="arts">Artes criativas</button>
+        <button data-val="logic">Lógica e resolução</button>
+        <button data-val="critical">Pensamento crítico</button>
+      </div>
+    </label>
 
     <div class="modal-actions">
       <button onclick="closeSettings()">Cancelar</button>
-      <button class="save" onclick="saveSettings()">Guardar</button>
+      <button class="save" onclick="saveSettings()">Salvar</button>
     </div>
 
   </div>
 </div>
+
 <script>
 document.getElementById("openSettings").onclick = () => {
   if (!CURRENT_KID) return;
@@ -2183,33 +2184,34 @@ async function createKid(){
   <div class="modal">
 
     <div class="modal-header">
-      <h2>Panel para padres</h2>
+      <h2>Painel dos Pais</h2>
       <button class="modal-close" onclick="closeParentModal()">✕</button>
     </div>
 
     <p style="margin:-6px 0 14px; color:#6b7280; font-size:14px;">
-      Gestionar perfiles de niños
+      Gerenciar perfis das crianças
     </p>
 
     <!-- SELECT KID -->
     <label>
-      Elegir niño
+      Escolher criança
       <select id="parentKidSelect"></select>
     </label>
 
     <div class="modal-actions">
-      <button onclick="switchKid()">Cambiar</button>
+      <button onclick="switchKid()">Trocar</button>
     </div>
 
     <hr style="margin:16px 0">
 
     <!-- ADD KID -->
     <button class="save" onclick="addKid()">
-      ➕ Agregar niño
+      ➕ Adicionar criança
     </button>
 
   </div>
 </div>
+
 <!-- ===== ADD KID MODAL ===== -->
 <div class="modal-overlay" id="addKidModal">
   <div class="modal">
