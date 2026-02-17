@@ -1,1 +1,830 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
+<title>IA educativa para niños | Educación con inteligencia artificial</title>
+
+<meta name="description"
+content="IA educativa para niños: guía completa sobre educación con IA, aprender con inteligencia artificial y uso seguro con control parental.">
+
+<link rel="canonical" href="https://iakids.app/blog/ia-educativa/">
+
+<meta name="robots" content="index, follow">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="IA educativa para niños">
+<meta property="og:description" content="Cómo usar la inteligencia artificial en la educación infantil de forma segura y responsable.">
+<meta property="og:image" content="https://iakids.app/assets/alternativas-seguras-ia-ninos.jpg">
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  background:#fff;
+  color:#1f2937;
+}
+a{color:#2563eb;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.wrapper{
+  max-width:1200px;
+  margin:auto;
+  padding:40px 20px 80px;
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:40px;
+}
+
+img{
+  width:100%;
+  border-radius:16px;
+  margin-bottom:24px;
+}
+
+h1{font-size:clamp(30px,4vw,44px)}
+h2{margin-top:48px}
+h3{margin-top:26px}
+p{line-height:1.8;margin:18px 0}
+
+strong{color:#0f172a}
+
+/* small table for SEO comparison */
+.table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  background:#fff;
+}
+.table th,.table td{
+  padding:14px 14px;
+  border-bottom:1px solid #e5e7eb;
+  vertical-align:top;
+  font-size:15px;
+}
+.table th{
+  background:#f8fafc;
+  color:#0f172a;
+  text-align:left;
+  font-weight:800;
+}
+.table tr:last-child td{border-bottom:none}
+
+/* checklist */
+.checklist{
+  list-style:none;
+  padding-left:0;
+  margin:18px 0 0;
+}
+.checklist li{
+  position:relative;
+  padding-left:28px;
+  margin:10px 0;
+}
+.checklist li::before{
+  content:"✓";
+  position:absolute;
+  left:0;
+  top:0;
+  color:#22c55e;
+  font-weight:900;
+}
+
+/* callouts */
+.note{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:18px 18px;
+  margin:18px 0;
+}
+.note strong{color:#0f172a}
+
+.sidebar{
+  position:sticky;
+  top:40px;
+  align-self:start;
+  border-left:1px solid #e5e7eb;
+  padding-left:24px;
+}
+
+.sidebar h3{
+  margin-top:0;
+  font-size:18px;
+}
+
+.sidebar ul{
+  padding-left:18px;
+}
+.sidebar li{
+  margin:10px 0;
+}
+
+.box{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:22px;
+  margin-top:30px;
+}
+
+.cta{
+  margin-top:70px;
+  padding:36px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  text-align:center;
+}
+.cta h2{margin-top:0;color:#fff}
+.cta p{max-width:700px;margin:16px auto}
+.cta a{
+  display:inline-block;
+  margin-top:18px;
+  padding:14px 28px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#ffffffcc;
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid #e5e7eb;
+}
+
+.topbar-inner{
+  max-width:1200px;
+  margin:auto;
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.topbar-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:16px;
+  color:#0f172a;
+}
+
+.topbar-brand .tag{
+  font-size:13px;
+  color:#64748b;
+}
+
+.topbar-cta .btn-primary{
+  padding:10px 22px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 6px 18px rgba(37,99,235,.25);
+}
+
+.topbar-cta .btn-primary:hover{
+  opacity:.92;
+}
+.sidebar{
+  position:sticky;
+  top:96px; /* חשוב: שלא ייכנס מתחת לטופ־בר */
+  align-self:start;
+}
+
+.side-box{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:24px;
+}
+
+.side-box h3{
+  margin-top:0;
+  font-size:16px;
+}
+
+.side-nav{
+  list-style:none;
+  padding-left:0;
+  margin:14px 0 0;
+}
+
+.side-nav li{
+  margin:10px 0;
+}
+
+.side-image{
+  width:100%;
+  border-radius:12px;
+  margin-bottom:14px;
+}
+
+.side-note{
+  font-size:14px;
+  line-height:1.6;
+  color:#334155;
+}
+
+.side-cta{
+  text-align:center;
+  padding:22px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+}
+
+.side-cta p{
+  margin:0 0 14px;
+  font-size:15px;
+}
+
+.side-btn{
+  display:inline-block;
+  padding:12px 24px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+  text-decoration:none;
+}
+
+/* FAQ */
+.faq{
+  margin-top:40px;
+}
+.faq-item{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:18px 18px;
+  margin:14px 0;
+  box-shadow:0 10px 30px rgba(0,0,0,.04);
+}
+.faq-item h3{
+  margin:0 0 10px;
+  font-size:16px;
+}
+.faq-item p{
+  margin:0;
+  color:#374151;
+}
+
+/* =========================
+   MOBILE OPTIMIZATION – SIDEBAR AT BOTTOM
+========================= */
+
+@media (max-width: 900px){
+
+  .wrapper{
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 24px;
+  }
+
+  /* MAIN stays first */
+  main{
+    order: 1;
+  }
+
+  /* SIDEBAR moves to bottom */
+  aside.sidebar{
+    position: static;
+    border-left: none;
+    padding-left: 0;
+    margin-top: 48px;
+    order: 2;
+  }
+
+  .side-box,
+  .side-cta{
+    margin-bottom: 20px;
+  }
+
+  /* Sidebar becomes footer-like section */
+  aside.sidebar{
+    padding-top: 32px;
+    border-top: 2px solid #e5e7eb;
+  }
+
+  .side-box:first-child{
+    background:#f8fafc;
+  }
+
+  .side-box h3{
+    font-size:17px;
+  }
+
+  main img{
+    border-radius:12px;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+  h2{
+    font-size:22px;
+  }
+
+  .cta{
+    margin-top: 48px;
+    padding: 28px 20px;
+  }
+
+  .cta a{
+    width:100%;
+    text-align:center;
+  }
+}
+/* =========================
+   FIX CTA BUTTON OVERFLOW – MOBILE
+========================= */
+
+@media (max-width: 900px){
+
+  .cta{
+    padding: 28px 18px;      /* פחות padding אופקי */
+    box-sizing: border-box;
+  }
+
+  .cta a{
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 14px 20px;
+    text-align: center;
+  }
+}
+</style>
+
+<!-- CollectionPage stays (as you had), but we also add FAQPage -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"CollectionPage",
+  "name":"IA educativa para niños",
+  "description":"Guía central sobre educación con inteligencia artificial para niños.",
+  "url":"https://iakids.app/blog/ia-educativa/"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué diferencia hay entre una IA educativa para niños y un chat de IA genérico?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Una IA educativa para niños está diseñada con objetivos pedagógicos, lenguaje adaptado a la edad y límites de seguridad. Un chat genérico puede dar respuestas correctas, pero no siempre está orientado a aprendizaje, ni optimizado para hábitos escolares, ni para control parental."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿En qué materias ayuda más la IA educativa?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Suele ser especialmente útil en lectura, comprensión, matemáticas paso a paso, ciencias, idiomas y habilidades de estudio como resúmenes, mapas conceptuales y preparación para exámenes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo se usa IA en la escuela sin sustituir a docentes ni padres?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Se usa como apoyo: para explicar conceptos de otra forma, practicar con ejercicios, preparar preguntas para clase y organizar el estudio. El adulto mantiene el marco: objetivos, tiempo de uso y revisión de lo aprendido."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué debe tener una IA segura para niños?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Debe incluir límites de contenido, lenguaje apropiado, enfoque educativo, indicaciones para pedir ayuda a un adulto cuando haga falta y opciones reales de control parental, además de transparencia sobre uso y privacidad."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Por qué un plan anual puede ser mejor para el progreso escolar?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Porque el aprendizaje mejora con continuidad: rutinas, seguimiento, preparación por trimestres y repaso antes de exámenes. Un acompañamiento constante suele dar mejores resultados que usos puntuales."
+      }
+    }
+  ]
+}
+</script>
+</head>
+
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      🤖 <strong>iakids</strong>
+      <span class="tag">IA educativa para niños</span>
+    </div>
+
+    <div class="topbar-cta">
+      <a href="https://iakids.app/" class="btn-primary">
+        Probar iakids
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="wrapper">
+
+<!-- MAIN CONTENT -->
+<main>
+
+<img src="https://iakids.app/assets/alternativas-seguras-ia-ninos.jpg"
+alt="IA educativa para niños y aprendizaje seguro">
+
+<h1>IA educativa para niños</h1>
+
+<p>
+La <strong>IA educativa para niños</strong> está cambiando la forma en que los niños aprenden,
+preguntan y desarrollan habilidades. A diferencia de la IA genérica, la inteligencia artificial aplicada a
+la educación infantil debe ser <strong>segura, guiada y adaptada a la edad</strong>. Cuando se diseña bien,
+la IA no sustituye a padres ni docentes: actúa como un apoyo que explica, refuerza y acompaña el estudio.
+</p>
+
+<p>
+En esta guía encontrarás una visión completa sobre la <strong>educación con IA</strong>, cómo <strong>aprender con inteligencia artificial</strong>
+de manera responsable y qué conviene revisar antes de permitir su uso en casa o en el entorno escolar.
+También veremos por qué muchas familias buscan alternativas más seguras a un chat genérico, y qué elementos
+hacen que una herramienta sea realmente educativa.
+</p>
+
+<h2>¿Qué es la IA educativa?</h2>
+
+<p>
+La <strong>IA educativa</strong> es el uso de inteligencia artificial con objetivos pedagógicos:
+explicar conceptos de forma clara, reforzar el aprendizaje y fomentar la curiosidad, sin sustituir a padres ni docentes.
+Una IA educativa bien diseñada tiene “intención didáctica”: no solo responde, sino que ayuda a comprender.
+</p>
+
+<p>
+En niños, la IA educativa debe cumplir tres principios clave: <strong>seguridad</strong>, <strong>claridad</strong> y <strong>control parental</strong>.
+Esto incluye lenguaje adecuado, pasos cortos, ejemplos cercanos a su nivel escolar y límites cuando una pregunta
+requiere supervisión adulta.
+</p>
+
+<div class="note">
+  <strong>Idea central:</strong> una IA educativa no se mide solo por “si responde bien”, sino por
+  <strong>si enseña mejor</strong> y <strong>si se usa de forma segura</strong>.
+</div>
+
+<h2>¿Por qué la IA educativa puede mejorar el rendimiento escolar?</h2>
+
+<p>
+El rendimiento escolar depende de más que “saber la respuesta”. En la práctica, muchos niños se quedan atrás por
+tres motivos: no entienden la explicación del libro, no saben por dónde empezar, o se frustran y abandonan.
+La IA educativa puede ayudar en esos puntos porque ofrece explicaciones alternativas, divide un problema en pasos
+y crea un entorno de práctica sin presión.
+</p>
+
+<h3>Beneficios típicos cuando se usa bien</h3>
+<ul class="checklist">
+  <li><strong>Comprensión real:</strong> explica de varias formas hasta que el niño encuentre la que le sirve.</li>
+  <li><strong>Práctica guiada:</strong> propone ejercicios similares y corrige con calma, paso a paso.</li>
+  <li><strong>Hábitos de estudio:</strong> ayuda a organizar un plan de repaso y preparar exámenes con estructura.</li>
+  <li><strong>Motivación:</strong> al sentir progreso, el niño gana confianza y participa más en clase.</li>
+</ul>
+
+<h2>IA educativa vs chat de IA genérico (ejemplo práctico)</h2>
+
+<p>
+Muchos padres prueban un chat de IA general y se preguntan si ya es suficiente. La diferencia está en el objetivo:
+un chat genérico busca responder “a cualquier cosa”; una IA educativa busca <strong>aprender mejor</strong> y <strong>con límites</strong>.
+En niños, esos matices importan muchísimo: el tono, el nivel, la forma de guiar y la consistencia.
+</p>
+
+<table class="table" aria-label="Comparación IA educativa vs chat genérico">
+  <tr>
+    <th>IA educativa para niños</th>
+    <th>Chat de IA genérico</th>
+  </tr>
+  <tr>
+    <td>Lenguaje adaptado a edad y curso escolar</td>
+    <td>Lenguaje variable; puede ser demasiado complejo o ambiguo</td>
+  </tr>
+  <tr>
+    <td>Enfoque pedagógico: preguntas guía, pasos cortos, ejemplos</td>
+    <td>Responde rápido; no siempre enseña ni verifica comprensión</td>
+  </tr>
+  <tr>
+    <td>Objetivo escolar: deberes, estudio, preparación de exámenes</td>
+    <td>Objetivo general: conversación amplia y temas variados</td>
+  </tr>
+  <tr>
+    <td>Diseño seguro y control parental como parte del producto</td>
+    <td>Seguridad más general; no siempre está “centrada en infancia”</td>
+  </tr>
+  <tr>
+    <td>Rutinas y seguimiento (cuando existe): progreso y hábitos</td>
+    <td>Uso puntual; depende del usuario y de la constancia familiar</td>
+  </tr>
+</table>
+
+<div class="note">
+  <strong>Conclusión rápida:</strong> un chat genérico puede ayudar a veces, pero una <strong>IA educativa</strong>
+  suele ser mejor cuando buscamos <strong>consistencia</strong>, <strong>aprendizaje guiado</strong> y <strong>seguridad</strong>.
+</div>
+
+<h2>Cómo usar la IA educativa en casa: una guía simple para familias</h2>
+
+<p>
+La clave no es “usar IA” sino <strong>cómo</strong> se usa. Incluso la mejor herramienta puede ser poco útil si se usa sin objetivo.
+Aquí va un marco muy simple, que funciona en la mayoría de hogares:
+</p>
+
+<h3>1) Definimos un objetivo corto</h3>
+<p>
+Antes de empezar, elegimos una meta concreta: entender fracciones, repasar un tema de ciencias, practicar lectura,
+hacer un resumen o preparar un examen. Esto evita sesiones largas sin rumbo.
+</p>
+
+<h3>2) Pedimos explicación + ejemplo + práctica</h3>
+<p>
+El patrón más efectivo es: “explícalo”, “pon un ejemplo”, “ahora dame 3 ejercicios”.
+Así se convierte en aprendizaje real, no solo en consumo de respuestas.
+</p>
+
+<h3>3) Cerramos con un mini-resumen</h3>
+<p>
+Terminamos con “hazme un resumen de 5 líneas” o “pregúntame 5 cosas para comprobar si entendí”.
+Esa parte crea memoria y mejora el rendimiento en exámenes.
+</p>
+
+<h2>¿En qué materias ayuda más la IA educativa?</h2>
+
+<p>
+La IA educativa suele brillar en materias donde el niño necesita explicación, práctica y feedback. Las áreas más comunes:
+</p>
+
+<ul class="checklist">
+  <li><strong>Matemáticas:</strong> pasos cortos, comprobación, ejercicios graduados.</li>
+  <li><strong>Lengua y lectura:</strong> comprensión lectora, vocabulario, escritura guiada.</li>
+  <li><strong>Ciencias:</strong> explicaciones con analogías, preguntas tipo examen, mapas conceptuales.</li>
+  <li><strong>Idiomas:</strong> práctica de frases, correcciones suaves, diálogo por niveles.</li>
+  <li><strong>Habilidades de estudio:</strong> resúmenes, fichas, planificación semanal.</li>
+</ul>
+
+<p>
+Además, es muy útil para transformar “no sé qué hacer” en “ya sé por dónde empezar”.
+Esa barrera inicial es una de las razones más frecuentes del bajo rendimiento escolar.
+</p>
+
+<h2>Riesgos reales (y cómo evitarlos) al usar IA con niños</h2>
+
+<p>
+Hablar de beneficios sin hablar de riesgos no es serio. La IA para niños requiere un marco responsable. Los riesgos
+no significan “no usar IA”, sino usarla con criterio:
+</p>
+
+<h3>Riesgo 1: depender de la IA para hacer tareas</h3>
+<p>
+Si la IA se usa como “máquina de respuestas”, el niño aprende menos. La solución: pedir pasos, practicar, y que la IA
+haga preguntas para comprobar comprensión.
+</p>
+
+<h3>Riesgo 2: recibir información mal explicada o demasiado avanzada</h3>
+<p>
+A veces el contenido es correcto, pero demasiado complejo. Por eso es importante el enfoque de <strong>IA educativa</strong>
+adaptada al nivel. Idealmente, la herramienta debería ajustar tono y dificultad.
+</p>
+
+<h3>Riesgo 3: uso sin supervisión y sin límites</h3>
+<p>
+El entorno importa. La IA infantil necesita límites claros, tiempos razonables y acompañamiento. El <strong>control parental</strong>
+no es un “extra”: es parte del producto si hablamos de niños.
+</p>
+
+<div class="note">
+  <strong>Regla práctica:</strong> si una pregunta o tema requiere criterio adulto, se responde con guía para pedir ayuda
+  a un adulto, no con contenido “a ciegas”.
+</div>
+
+<h2>Qué debe tener una IA segura para niños</h2>
+
+<p>
+La seguridad no es solo bloquear palabras. Una IA segura para niños suele incluir:
+</p>
+
+<ul class="checklist">
+  <li><strong>Lenguaje apropiado:</strong> sin contenido adulto y con explicaciones responsables.</li>
+  <li><strong>Diseño por edad:</strong> respuestas cortas, claras, con ejemplos cercanos al niño.</li>
+  <li><strong>Enfoque educativo:</strong> enseñar a pensar, no solo a copiar.</li>
+  <li><strong>Controles para padres:</strong> límites de uso, visibilidad y orientación.</li>
+  <li><strong>Transparencia:</strong> qué hace la herramienta, qué recomienda y cómo se usa en casa.</li>
+</ul>
+
+<p>
+Por eso, cuando hablamos de <strong>IA segura para niños</strong>, no basta con “es IA y ya”.
+La diferencia está en el diseño y en la intención pedagógica.
+</p>
+
+<h2>Cómo crear rutinas de estudio con IA (sin estrés)</h2>
+
+<p>
+Una de las razones por las que el plan anual suele funcionar mejor es que permite construir una rutina.
+Y la rutina es lo que realmente cambia el rendimiento: estudio regular, repaso antes de exámenes y práctica gradual.
+</p>
+
+<h3>Rutina simple (15–20 minutos)</h3>
+<ul class="checklist">
+  <li>5 min: explicar un concepto con un ejemplo</li>
+  <li>8 min: 3 ejercicios guiados</li>
+  <li>3 min: resumen o 5 preguntas tipo test</li>
+</ul>
+
+<p>
+Con este formato, el niño mejora sin saturarse. Además, el adulto puede revisar si el niño entendió sin necesitar
+ser experto en la materia.
+</p>
+
+<h2>Preguntas que los padres deberían hacer antes de elegir una herramienta</h2>
+
+<p>
+Si estás comparando opciones (incluido un chat genérico), estas preguntas te ayudan a elegir mejor:
+</p>
+
+<ul class="checklist">
+  <li>¿Está pensada para el nivel escolar del niño o es “para todo el mundo”?</li>
+  <li>¿Enseña paso a paso o da respuestas completas que fomentan copiar?</li>
+  <li>¿Tiene enfoque educativo continuo (rutinas, práctica, preparación) o es solo conversación?</li>
+  <li>¿Incluye un marco de seguridad y control parental real?</li>
+  <li>¿Ayuda a crear hábitos de estudio o solo resuelve dudas puntuales?</li>
+</ul>
+
+<h2>Cómo se integra con el aprendizaje escolar (sin sustituir la escuela)</h2>
+
+<p>
+La IA educativa funciona mejor cuando se integra con lo que el niño ya ve en clase. No compite con la escuela;
+la refuerza. Por ejemplo:
+</p>
+
+<ul class="checklist">
+  <li>Si hay examen: crear un plan de repaso por temas y días.</li>
+  <li>Si hay tareas: explicar el concepto y luego practicar con variaciones.</li>
+  <li>Si hay lectura: hacer preguntas de comprensión y vocabulario.</li>
+  <li>Si hay un tema difícil: pedir otra explicación con analogías.</li>
+</ul>
+
+<p>
+En otras palabras, la IA educativa es un “compañero de estudio” que acompaña, no un sustituto del proceso escolar.
+</p>
+
+<!-- KEEP your hub boxes + links (unchanged) -->
+<div class="box">
+<h2>Educación con IA</h2>
+<p>
+La <strong>educación con IA</strong> permite personalizar el aprendizaje según el ritmo del niño,
+ofrecer explicaciones adaptadas y apoyar materias como lectura, matemáticas o creatividad.
+</p>
+<ul>
+<li><a href="/blog/ia-educativa/educacion-con-ia/">¿Qué es la educación con IA?</a></li>
+</ul>
+</div>
+
+<div class="box">
+<h2>Aprender con IA</h2>
+<p>
+<strong>Aprender con IA</strong> no significa dejar que un algoritmo enseñe solo.
+Significa usar la inteligencia artificial como apoyo para explicar,
+practicar y despertar interés.
+</p>
+<ul>
+<li><a href="/blog/ia-educativa/aprender-con-ia/">Cómo aprender con IA</a></li>
+</ul>
+</div>
+
+<div class="box">
+<h2>Seguridad y control parental</h2>
+<p>
+Uno de los mayores retos de la IA infantil es la seguridad.
+Por eso es fundamental hablar de <strong>IA segura para niños</strong>
+y de <strong>control parental</strong>.
+</p>
+<ul>
+<li><a href="/blog/ia-educativa/ia-segura-para-ninos/">IA segura para niños</a></li>
+</ul>
+</div>
+
+<h2>Preguntas frecuentes que ayudan a decidir (FAQ)</h2>
+
+<section class="faq" aria-label="Preguntas frecuentes sobre IA educativa para niños">
+
+  <div class="faq-item">
+    <h3>¿Qué diferencia hay entre una IA educativa para niños y un chat de IA genérico?</h3>
+    <p>
+      Una IA educativa está pensada para aprender: adapta el lenguaje, guía paso a paso y prioriza hábitos escolares.
+      Un chat genérico puede ser útil, pero no siempre mantiene enfoque pedagógico ni está optimizado para infancia.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h3>¿Cómo se evita que el niño copie respuestas en lugar de aprender?</h3>
+    <p>
+      Se usa un método: explicación breve, ejemplo, práctica y comprobación. Pedimos pasos y ejercicios, y cerramos con
+      preguntas para verificar comprensión. Así la IA refuerza el aprendizaje en vez de sustituirlo.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h3>¿Qué hace que una herramienta sea realmente “segura” para niños?</h3>
+    <p>
+      No es solo filtrar contenido. La seguridad también es lenguaje apropiado, límites, guía para pedir ayuda a un adulto
+      cuando corresponde y control parental para acompañar el uso en casa.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h3>¿En qué momento del curso escolar aporta más valor?</h3>
+    <p>
+      Aporta valor todo el año, pero se nota especialmente antes de exámenes y en temas difíciles. La constancia (rutinas
+      cortas y seguimiento) suele traducirse en más confianza y mejores resultados.
+    </p>
+  </div>
+
+  <div class="faq-item">
+    <h3>¿Por qué el acompañamiento continuo suele dar mejores resultados que usos puntuales?</h3>
+    <p>
+      Porque el progreso escolar se construye con práctica regular, repaso y hábitos. Un uso continuo permite reforzar
+      debilidades, consolidar fortalezas y llegar a los exámenes con preparación real.
+    </p>
+  </div>
+
+</section>
+
+<div class="cta">
+<h2>Una forma segura de usar IA con niños</h2>
+<p>
+En <strong>iakids</strong> hemos creado una experiencia de
+<strong>IA educativa para niños</strong>,
+diseñada desde cero con enfoque pedagógico y control parental real.
+</p>
+<a href="https://iakids.app/">Probar iakids</a>
+</div>
+
+</main>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+  <!-- HUB NAV -->
+  <div class="side-box">
+    <h3>🧭 Contenido del Hub</h3>
+    <ul class="side-nav">
+      <li><strong>IA educativa</strong></li>
+      <li><a href="/blog/ia-educativa/educacion-con-ia/">Educación con IA</a></li>
+      <li><a href="/blog/ia-educativa/aprender-con-ia/">Aprender con IA</a></li>
+      <li><a href="/blog/ia-educativa/ia-segura-para-ninos/">IA segura para niños</a></li>
+    </ul>
+  </div>
+
+  <!-- IMAGE + TRUST -->
+  <div class="side-box">
+    <img
+      src="https://iakids.app/assets/alternativas-seguras-ia-ninos.jpg"
+      alt="IA educativa y segura para niños"
+      class="side-image"
+      loading="lazy"
+    >
+    <p class="side-note">
+      Plataforma de <strong>IA educativa para niños</strong>,
+      diseñada con enfoque pedagógico y control parental.
+    </p>
+  </div>
+
+  <!-- CTA -->
+  <div class="side-cta">
+    <p>
+      ¿Buscas una forma <strong>segura</strong> de usar IA con niños?
+    </p>
+    <a href="https://iakids.app/" class="side-btn">
+      Probar iakids
+    </a>
+  </div>
+
+</aside>
+
+</div>
+
+</body>
+</html>
