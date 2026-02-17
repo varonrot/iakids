@@ -1,1 +1,776 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
+  gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<title>IA educativa para crianças | Educação com inteligência artificial</title>
+
+<meta name="description"
+content="IA educativa para crianças: guia completo sobre educação com inteligência artificial, aplicativo educativo com IA, aprendizado seguro e controle parental.">
+
+<link rel="canonical" href="https://iakids.app/pt/blog/">
+
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://iakids.app/pt/blog/">
+<meta property="og:title" content="IA educativa para crianças">
+<meta property="og:description" content="Como usar inteligência artificial na educação infantil de forma segura, pedagógica e com controle parental.">
+<meta property="og:image" content="https://iakids.app/assets/story-image2.png">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="IA educativa para crianças">
+<meta name="twitter:description" content="Educação com inteligência artificial para crianças: aprendizado seguro, aplicativo educativo e controle parental.">
+<meta name="twitter:image" content="https://iakids.app/assets/story-image2.png">
+
+<!-- CollectionPage Schema -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"CollectionPage",
+  "name":"IA educativa para crianças",
+  "description":"Hub principal sobre educação com inteligência artificial para crianças.",
+  "url":"https://iakids.app/pt/blog/"
+}
+</script>
+
+<!-- FAQ Schema PT -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Qual é a diferença entre IA educativa para crianças e um chat de IA genérico?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uma IA educativa para crianças é desenvolvida com foco pedagógico, linguagem adaptada à idade e limites de segurança. Um chat genérico pode responder corretamente, mas não é necessariamente estruturado para aprendizagem escolar nem para controle parental."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Em quais matérias a IA educativa ajuda mais?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "É especialmente útil em matemática passo a passo, leitura e compreensão, ciências, idiomas e organização de estudos, como resumos e preparação para provas."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Como usar IA na educação infantil sem substituir professores ou pais?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A IA deve ser usada como apoio: para explicar conceitos de forma alternativa, propor exercícios e organizar estudos. O adulto mantém a orientação, define limites e acompanha o progresso."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "O que uma IA segura para crianças deve incluir?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Deve ter linguagem apropriada, foco educacional, limites de conteúdo, incentivo a pedir ajuda a um adulto quando necessário e recursos reais de controle parental."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Por que o uso contínuo ao longo do ano escolar traz melhores resultados?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Porque a aprendizagem melhora com prática constante, revisão e rotina. Um acompanhamento regular ajuda a consolidar conteúdos e melhorar o desempenho escolar."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  background:#fff;
+  color:#1f2937;
+}
+a{color:#2563eb;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.wrapper{
+  max-width:1200px;
+  margin:auto;
+  padding:40px 20px 80px;
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:40px;
+}
+
+img{
+  width:100%;
+  border-radius:16px;
+  margin-bottom:24px;
+}
+
+h1{font-size:clamp(30px,4vw,44px)}
+h2{margin-top:48px}
+h3{margin-top:26px}
+p{line-height:1.8;margin:18px 0}
+
+strong{color:#0f172a}
+
+/* small table for SEO comparison */
+.table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  background:#fff;
+}
+.table th,.table td{
+  padding:14px 14px;
+  border-bottom:1px solid #e5e7eb;
+  vertical-align:top;
+  font-size:15px;
+}
+.table th{
+  background:#f8fafc;
+  color:#0f172a;
+  text-align:left;
+  font-weight:800;
+}
+.table tr:last-child td{border-bottom:none}
+
+/* checklist */
+.checklist{
+  list-style:none;
+  padding-left:0;
+  margin:18px 0 0;
+}
+.checklist li{
+  position:relative;
+  padding-left:28px;
+  margin:10px 0;
+}
+.checklist li::before{
+  content:"✓";
+  position:absolute;
+  left:0;
+  top:0;
+  color:#22c55e;
+  font-weight:900;
+}
+
+/* callouts */
+.note{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:18px 18px;
+  margin:18px 0;
+}
+.note strong{color:#0f172a}
+
+.sidebar{
+  position:sticky;
+  top:40px;
+  align-self:start;
+  border-left:1px solid #e5e7eb;
+  padding-left:24px;
+}
+
+.sidebar h3{
+  margin-top:0;
+  font-size:18px;
+}
+
+.sidebar ul{
+  padding-left:18px;
+}
+.sidebar li{
+  margin:10px 0;
+}
+
+.box{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:22px;
+  margin-top:30px;
+}
+
+.cta{
+  margin-top:70px;
+  padding:36px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  text-align:center;
+}
+.cta h2{margin-top:0;color:#fff}
+.cta p{max-width:700px;margin:16px auto}
+.cta a{
+  display:inline-block;
+  margin-top:18px;
+  padding:14px 28px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#ffffffcc;
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid #e5e7eb;
+}
+
+.topbar-inner{
+  max-width:1200px;
+  margin:auto;
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.topbar-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:16px;
+  color:#0f172a;
+}
+
+.topbar-brand .tag{
+  font-size:13px;
+  color:#64748b;
+}
+
+.topbar-cta .btn-primary{
+  padding:10px 22px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 6px 18px rgba(37,99,235,.25);
+}
+
+.topbar-cta .btn-primary:hover{
+  opacity:.92;
+}
+.sidebar{
+  position:sticky;
+  top:96px; /* חשוב: שלא ייכנס מתחת לטופ־בר */
+  align-self:start;
+}
+
+.side-box{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:24px;
+}
+
+.side-box h3{
+  margin-top:0;
+  font-size:16px;
+}
+
+.side-nav{
+  list-style:none;
+  padding-left:0;
+  margin:14px 0 0;
+}
+
+.side-nav li{
+  margin:10px 0;
+}
+
+.side-image{
+  width:100%;
+  border-radius:12px;
+  margin-bottom:14px;
+}
+
+.side-note{
+  font-size:14px;
+  line-height:1.6;
+  color:#334155;
+}
+
+.side-cta{
+  text-align:center;
+  padding:22px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+}
+
+.side-cta p{
+  margin:0 0 14px;
+  font-size:15px;
+}
+
+.side-btn{
+  display:inline-block;
+  padding:12px 24px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+  text-decoration:none;
+}
+
+/* FAQ */
+.faq{
+  margin-top:40px;
+}
+.faq-item{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:18px 18px;
+  margin:14px 0;
+  box-shadow:0 10px 30px rgba(0,0,0,.04);
+}
+.faq-item h3{
+  margin:0 0 10px;
+  font-size:16px;
+}
+.faq-item p{
+  margin:0;
+  color:#374151;
+}
+
+/* =========================
+   MOBILE OPTIMIZATION – SIDEBAR AT BOTTOM
+========================= */
+
+@media (max-width: 900px){
+
+  .wrapper{
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 24px;
+  }
+
+  /* MAIN stays first */
+  main{
+    order: 1;
+  }
+
+  /* SIDEBAR moves to bottom */
+  aside.sidebar{
+    position: static;
+    border-left: none;
+    padding-left: 0;
+    margin-top: 48px;
+    order: 2;
+  }
+
+  .side-box,
+  .side-cta{
+    margin-bottom: 20px;
+  }
+
+  /* Sidebar becomes footer-like section */
+  aside.sidebar{
+    padding-top: 32px;
+    border-top: 2px solid #e5e7eb;
+  }
+
+  .side-box:first-child{
+    background:#f8fafc;
+  }
+
+  .side-box h3{
+    font-size:17px;
+  }
+
+  main img{
+    border-radius:12px;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+  h2{
+    font-size:22px;
+  }
+
+  .cta{
+    margin-top: 48px;
+    padding: 28px 20px;
+  }
+
+  .cta a{
+    width:100%;
+    text-align:center;
+  }
+}
+/* =========================
+   FIX CTA BUTTON OVERFLOW – MOBILE
+========================= */
+
+@media (max-width: 900px){
+
+  .cta{
+    padding: 28px 18px;      /* פחות padding אופקי */
+    box-sizing: border-box;
+  }
+
+  .cta a{
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 14px 20px;
+    text-align: center;
+  }
+}
+</style>
+
+<!-- CollectionPage stays (as you had), but we also add FAQPage -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"CollectionPage",
+  "name":"IA educativa para niños",
+  "description":"Guía central sobre educación con inteligencia artificial para niños.",
+  "url":"https://iakids.app/blog/ia-educativa/"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué diferencia hay entre una IA educativa para niños y un chat de IA genérico?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Una IA educativa para niños está diseñada con objetivos pedagógicos, lenguaje adaptado a la edad y límites de seguridad. Un chat genérico puede dar respuestas correctas, pero no siempre está orientado a aprendizaje, ni optimizado para hábitos escolares, ni para control parental."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿En qué materias ayuda más la IA educativa?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Suele ser especialmente útil en lectura, comprensión, matemáticas paso a paso, ciencias, idiomas y habilidades de estudio como resúmenes, mapas conceptuales y preparación para exámenes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo se usa IA en la escuela sin sustituir a docentes ni padres?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Se usa como apoyo: para explicar conceptos de otra forma, practicar con ejercicios, preparar preguntas para clase y organizar el estudio. El adulto mantiene el marco: objetivos, tiempo de uso y revisión de lo aprendido."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué debe tener una IA segura para niños?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Debe incluir límites de contenido, lenguaje apropiado, enfoque educativo, indicaciones para pedir ayuda a un adulto cuando haga falta y opciones reales de control parental, además de transparencia sobre uso y privacidad."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Por qué un plan anual puede ser mejor para el progreso escolar?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Porque el aprendizaje mejora con continuidad: rutinas, seguimiento, preparación por trimestres y repaso antes de exámenes. Un acompañamiento constante suele dar mejores resultados que usos puntuales."
+      }
+    }
+  ]
+}
+</script>
+</head>
+
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      🤖 <strong>iakids</strong>
+<!--      <span class="tag">IA educativa para crianças</span>-->
+    </div>
+
+    <div class="topbar-cta">
+      <a href="https://iakids.app/pt/" class="btn-primary">
+        Experimentar iakids
+      </a>
+    </div>
+  </div>
+</header>
+
+
+<div class="wrapper">
+
+<!-- MAIN CONTENT -->
+
+<main>
+
+<img src="https://iakids.app/assets/story-image2.png"
+alt="Segurança em inteligência artificial para crianças">
+
+<h1>Segurança em IA para crianças: guia completo para pais</h1>
+
+<p>
+A <strong>segurança em inteligência artificial para crianças</strong>
+é hoje uma das maiores preocupações das famílias.
+Com o crescimento do uso de <strong>chat de IA</strong> e
+<strong>aplicativos com inteligência artificial</strong>,
+é essencial entender como proteger menores no ambiente digital.
+</p>
+
+<p>
+Nem toda IA foi desenvolvida para crianças.
+Por isso, é fundamental analisar critérios como
+<strong>controle parental</strong>, <strong>privacidade de dados</strong>
+e <strong>limites de conteúdo</strong>.
+</p>
+
+<p>
+Neste hub você encontra um guia completo sobre:
+</p>
+
+<ul class="checklist">
+<li>Riscos da inteligência artificial para menores</li>
+<li>Privacidade infantil em apps educativos</li>
+<li>Como monitorar o uso de IA</li>
+<li>Como proteger seu filho ao usar IA</li>
+<li>Controle parental em aplicativos educativos</li>
+</ul>
+
+<!-- ================= RISCOS ================= -->
+
+<h2>Quais são os riscos da inteligência artificial para menores?</h2>
+
+<p>
+Os <strong>riscos da inteligência artificial para crianças</strong>
+incluem exposição a conteúdo inadequado,
+respostas imprecisas e coleta excessiva de dados.
+</p>
+
+<p>
+Entre os principais riscos:
+</p>
+
+<ul class="checklist">
+<li>Conteúdo impróprio</li>
+<li>Dependência excessiva</li>
+<li>Informações incorretas</li>
+<li>Uso sem supervisão</li>
+</ul>
+
+<p>
+Leia o artigo completo:
+</p>
+
+<ul>
+<li><a href="/pt/blog/seguranca-ia/riscos-da-inteligencia-artificial-para-menores/">Riscos da inteligência artificial para menores</a></li>
+<li><a href="/pt/blog/seguranca-ia/ia-pode-expor-criancas-a-conteudo-inadequado/">IA pode expor crianças a conteúdo inadequado?</a></li>
+</ul>
+
+<!-- ================= CHAT SEGURO ================= -->
+
+<h2>Chat de IA é seguro para crianças?</h2>
+
+<p>
+Muitos pais perguntam se um <strong>chat de IA é seguro para crianças</strong>.
+A resposta depende do design da ferramenta.
+</p>
+
+<p>
+Uma IA infantil segura deve incluir:
+</p>
+
+<ul class="checklist">
+<li>Filtros de conteúdo</li>
+<li>Linguagem apropriada</li>
+<li>Limites temáticos</li>
+<li>Orientação para procurar um adulto quando necessário</li>
+</ul>
+
+<ul>
+<li><a href="/pt/blog/seguranca-ia/chat-de-ia-e-seguro-para-criancas/">Chat de IA é seguro para crianças?</a></li>
+<li><a href="/pt/blog/seguranca-ia/ia-segura-para-criancas-o-que-os-pais-precisam-saber/">IA segura para crianças: o que os pais precisam saber</a></li>
+</ul>
+
+<!-- ================= CONTROLE PARENTAL ================= -->
+
+<h2>Controle parental em apps educativos</h2>
+
+<p>
+O <strong>controle parental em aplicativos educativos</strong>
+é um dos pilares da segurança digital infantil.
+</p>
+
+<p>
+Ferramentas adequadas permitem:
+</p>
+
+<ul class="checklist">
+<li>Definir limites de tempo</li>
+<li>Visualizar histórico de uso</li>
+<li>Configurar restrições de conteúdo</li>
+<li>Receber relatórios de atividade</li>
+</ul>
+
+<ul>
+<li><a href="/pt/blog/seguranca-ia/controle-parental-em-apps-educativos/">Controle parental em apps educativos</a></li>
+<li><a href="/pt/blog/seguranca-ia/aplicativos-com-supervisao-parental/">Aplicativos com supervisão parental</a></li>
+</ul>
+
+<!-- ================= PRIVACIDADE ================= -->
+
+<h2>Privacidade de dados em apps infantis</h2>
+
+<p>
+A <strong>privacidade de dados em aplicativos infantis</strong>
+é uma das maiores preocupações atuais.
+Crianças não devem ter seus dados coletados sem transparência.
+</p>
+
+<p>
+É essencial verificar:
+</p>
+
+<ul class="checklist">
+<li>Política de privacidade clara</li>
+<li>Armazenamento seguro</li>
+<li>Ausência de coleta desnecessária</li>
+<li>Conformidade com leis de proteção de dados</li>
+</ul>
+
+<ul>
+<li><a href="/pt/blog/seguranca-ia/privacidade-de-dados-em-apps-infantis/">Privacidade de dados em apps infantis</a></li>
+</ul>
+
+<!-- ================= MONITORAMENTO ================= -->
+
+<h2>Como monitorar o uso de IA pelo seu filho?</h2>
+
+<p>
+Monitorar o uso de IA não significa invadir a privacidade,
+mas sim acompanhar de forma responsável.
+</p>
+
+<p>
+Boas práticas incluem:
+</p>
+
+<ul class="checklist">
+<li>Uso em ambiente comum da casa</li>
+<li>Conversas abertas sobre tecnologia</li>
+<li>Limites de tempo</li>
+<li>Escolha de plataformas seguras</li>
+</ul>
+
+<ul>
+<li><a href="/pt/blog/seguranca-ia/como-monitorar-o-uso-de-ia-pelo-seu-filho/">Como monitorar o uso de IA pelo seu filho</a></li>
+<li><a href="/pt/blog/seguranca-ia/como-proteger-seu-filho-usando-aplicativos-com-ia/">Como proteger seu filho usando aplicativos com IA</a></li>
+<li><a href="/pt/blog/seguranca-ia/guia-para-pais-como-usar-ia-na-educacao-dos-filhos/">Guia para pais: como usar IA na educação dos filhos</a></li>
+</ul>
+
+<!-- ================= CONEXÃO COM OUTRO CLUSTER ================= -->
+
+<h2>IA educativa e segurança caminham juntas</h2>
+
+<p>
+A <strong>segurança em IA</strong> não pode ser separada da
+<strong>IA educativa para crianças</strong>.
+Tecnologia só é positiva quando é segura.
+</p>
+
+<p>
+Explore também:
+</p>
+
+<ul>
+<li><a href="/pt/blog/ia-para-criancas/">IA para crianças</a></li>
+<li><a href="/pt/blog/aplicativo-educativo/">Aplicativo educativo com IA</a></li>
+</ul>
+
+<!-- ================= CTA ================= -->
+
+<div class="cta">
+<h2>Inteligência artificial segura para crianças</h2>
+<p>
+A proposta da <strong>iakids</strong> é oferecer
+IA educativa com foco total em segurança,
+controle parental e privacidade infantil.
+</p>
+<a href="https://iakids.app/pt/">Conhecer iakids</a>
+</div>
+
+</main>
+
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+  <!-- HUB NAV -->
+  <div class="side-box">
+    <h3>🧭 Conteúdo do Hub</h3>
+    <ul class="side-nav">
+      <li><strong>IA educativa</strong></li>
+      <li><a href="/pt/blog/aplicativo-educativo/">Aplicativo educativo com IA</a></li>
+      <li><a href="/pt/blog/ia-para-criancas/">IA para crianças</a></li>
+      <li><a href="/pt/blog/seguranca-ia/">Segurança em IA</a></li>
+    </ul>
+  </div>
+
+  <!-- IMAGE + TRUST -->
+  <div class="side-box">
+    <img
+      src="https://iakids.app/assets/hero-mobile3.jpg"
+      alt="IA educativa segura para crianças"
+      class="side-image"
+      loading="lazy"
+    >
+    <p class="side-note">
+      Plataforma de <strong>IA educativa para crianças</strong>,
+      desenvolvida com foco pedagógico, segurança digital
+      e controle parental real.
+    </p>
+  </div>
+
+  <!-- CTA -->
+  <div class="side-cta">
+    <p>
+      Quer usar <strong>inteligência artificial</strong> de forma segura com seu filho?
+    </p>
+    <a href="https://iakids.app/pt" class="side-btn">
+      Conhecer iakids
+    </a>
+  </div>
+
+</aside>
+
+
+</div>
+
+</body>
+</html>
