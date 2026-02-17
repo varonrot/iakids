@@ -1718,7 +1718,7 @@ const { data: kid, error } = await sb
   window.KID_AVATAR_URL = avatarUrl;
 
 
-  document.getElementById("heroGreeting").textContent = `Hi, ${kid.child_name}!`;
+  document.getElementById("heroGreeting").textContent = `¡Hola, ${kid.child_name}!`;
 
   document.getElementById("heroAvatar").src = avatarUrl;
 
@@ -2065,7 +2065,7 @@ if (error){
 
   const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
 
-  heroGreeting.textContent = `Hi, ${name}!`;
+  heroGreeting.textContent = `¡Hola, ${name}!`;
   heroAvatar.src = avatarUrl;
 
   document.getElementById("rightbarAvatar").src = avatarUrl;
