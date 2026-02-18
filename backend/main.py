@@ -451,15 +451,21 @@ async def lemonsqueezy_webhook(request: Request):
     # PAYMENT SUCCESS (RENEWAL)
     # -------------------------
     if event == "subscription_payment_success":
-        lemon_subscription_id = attributes.get("subscription_id")
+        # 🔥 subscription id מגיע מה relationships
+        lemon_subscription_id = (
+            data.get("relationships", {})
+            .get("subscription", {})
+            .get("data", {})
+            .get("id")
+        )
 
         renews_at = attributes.get("renews_at")
 
+        print("Updating subscription:", lemon_subscription_id)
+
         sb.table("subscriptions").update({
             "status": "active",
-            "plan": "monthly",
             "expires_at": renews_at
         }).eq("lemon_subscription_id", lemon_subscription_id).execute()
 
-        print("Payment success for:", lemon_subscription_id)
 
