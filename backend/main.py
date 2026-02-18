@@ -369,17 +369,16 @@ def chat(
         print("CHAT ERROR:", e)
         raise HTTPException(status_code=500, detail="Chat failed")
 
+    # =====================================================
+    # LEMON SQUEEZY WEBHOOK
+    # =====================================================
 
-# =====================================================
-# LEMON SQUEEZY WEBHOOK
-# =====================================================
 
 from fastapi import Request
-from datetime import datetime, timezone
+
 
 @app.post("/api/lemonsqueezy-webhook")
 async def lemonsqueezy_webhook(request: Request):
-
     # ===== READ RAW BODY =====
     raw_body = await request.body()
 
@@ -408,18 +407,21 @@ async def lemonsqueezy_webhook(request: Request):
 
     print("LEMON EVENT:", event)
 
-    # -------------------------
-    # SUBSCRIPTION CREATED
-    # -------------------------
-    # -------------------------
-    # SUBSCRIPTION CREATED
-    # -------------------------
+    # =====================================================
+    # HANDLE SUBSCRIPTION CREATED
+    # =====================================================
     if event == "subscription_created":
 
-        email = attributes.get("user_email")
+        email = (
+                attributes.get("user_email")
+                or attributes.get("customer_email")
+        )
+
         lemon_subscription_id = data.get("id")
         lemon_customer_id = attributes.get("customer_id")
         renews_at = attributes.get("renews_at")
+
+        print("EMAIL FROM WEBHOOK:", email)
 
         user_res = sb.auth.admin.list_users()
         user = next((u for u in user_res.users if u.email == email), None)
@@ -428,7 +430,7 @@ async def lemonsqueezy_webhook(request: Request):
             print("User not found:", email)
             return {"status": "user_not_found"}
 
-        product_name = attributes.get("product_name", "").lower()
+        product_name = (attributes.get("product_name") or "").lower()
 
         if "anual" in product_name or "annual" in product_name:
             plan = "annual"
@@ -447,11 +449,10 @@ async def lemonsqueezy_webhook(request: Request):
 
         print("Subscription created:", user.id)
 
-    # -------------------------
-    # PAYMENT SUCCESS (RENEWAL)
-    # -------------------------
+    # =====================================================
+    # HANDLE PAYMENT SUCCESS (RENEWAL)
+    # =====================================================
     if event == "subscription_payment_success":
-        # 🔥 subscription id מגיע מה relationships
         lemon_subscription_id = (
             data.get("relationships", {})
             .get("subscription", {})
@@ -461,11 +462,26 @@ async def lemonsqueezy_webhook(request: Request):
 
         renews_at = attributes.get("renews_at")
 
-        print("Updating subscription:", lemon_subscription_id)
+        print("Payment success for subscription:", lemon_subscription_id)
 
-        sb.table("subscriptions").update({
+        result = sb.table("subscriptions").update({
             "status": "active",
             "expires_at": renews_at
         }).eq("lemon_subscription_id", lemon_subscription_id).execute()
 
+        print("Rows updated:", result.data)
 
+    # =====================================================
+    # HANDLE CANCELLATION
+    # =====================================================
+    if event == "subscription_cancelled":
+        lemon_subscription_id = data.get("id")
+
+        sb.table("subscriptions").update({
+            "status": "cancelled",
+            "plan": "free"
+        }).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("Subscription cancelled:", lemon_subscription_id)
+
+    return {"status": "ok"}
