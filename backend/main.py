@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from pathlib import Path
 import json
+import hmac
+import hashlib
 
 from pathlib import Path
 import os
@@ -33,6 +35,7 @@ print("==========================")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+LEMON_WEBHOOK_SECRET = os.getenv("LEMON_WEBHOOK_SECRET")
 
 # ===== CLIENTS =====
 
@@ -251,12 +254,9 @@ def chat(
             role="user",
             content=body.message
         )
-        sb.table("subscriptions").upsert({
-            "user_id": user.id,
-            "plan": "free",
-            "status": "active",
+        sb.table("subscriptions").update({
             "messages_used": used + 1
-        }, on_conflict=["user_id"]).execute()
+        }).eq("user_id", user.id).execute()
 
         mode_value = body.mode or "unknown"
 
@@ -358,16 +358,104 @@ def chat(
             except Exception as e:
                 print("Memory extractor error:", e)
 
+            return {"reply": answer}
+
         return {"reply": answer}
 
-
     except HTTPException:
-
         raise
 
-
     except Exception as e:
-
         print("CHAT ERROR:", e)
-
         raise HTTPException(status_code=500, detail="Chat failed")
+
+
+# =====================================================
+# LEMON SQUEEZY WEBHOOK
+# =====================================================
+
+from fastapi import Request
+from datetime import datetime, timezone
+
+@app.post("/api/lemonsqueezy-webhook")
+async def lemonsqueezy_webhook(request: Request):
+
+    # ===== READ RAW BODY =====
+    raw_body = await request.body()
+
+    # ===== GET SIGNATURE HEADER =====
+    signature = request.headers.get("X-Signature")
+
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing signature")
+
+    # ===== VERIFY SIGNATURE =====
+    expected_signature = hmac.new(
+        LEMON_WEBHOOK_SECRET.encode(),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(signature, expected_signature):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    # ===== PARSE JSON AFTER VERIFY =====
+    payload = await request.json()
+
+    event = payload.get("meta", {}).get("event_name")
+    data = payload.get("data", {})
+    attributes = data.get("attributes", {})
+
+    print("LEMON EVENT:", event)
+
+    # -------------------------
+    # SUBSCRIPTION CREATED
+    # -------------------------
+    if event == "subscription_created":
+
+        email = attributes.get("user_email")
+        lemon_subscription_id = data.get("id")
+        lemon_customer_id = attributes.get("customer_id")
+        renews_at = attributes.get("renews_at")
+
+        user_res = sb.auth.admin.list_users()
+        user = next((u for u in user_res.users if u.email == email), None)
+
+        if not user:
+            print("User not found:", email)
+            return {"status": "user_not_found"}
+
+        product_name = attributes.get("product_name", "").lower()
+
+        if "anual" in product_name or "annual" in product_name:
+            plan = "annual"
+        else:
+            plan = "monthly"
+
+        sb.table("subscriptions").upsert({
+            "user_id": user.id,
+            "plan": plan,
+            "status": "active",
+            "lemon_subscription_id": lemon_subscription_id,
+            "lemon_customer_id": lemon_customer_id,
+            "expires_at": renews_at,
+            "messages_used": 0
+        }, on_conflict=["user_id"]).execute()
+
+        print("Subscription activated:", user.id)
+
+    # -------------------------
+    # SUBSCRIPTION CANCELLED
+    # -------------------------
+    if event == "subscription_cancelled":
+
+        lemon_subscription_id = data.get("id")
+
+        sb.table("subscriptions").update({
+            "status": "cancelled",
+            "plan": "free"
+        }).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("Subscription cancelled:", lemon_subscription_id)
+
+    return {"status": "ok"}
