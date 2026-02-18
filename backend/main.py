@@ -411,9 +411,13 @@ async def lemonsqueezy_webhook(request: Request):
     # -------------------------
     # SUBSCRIPTION CREATED
     # -------------------------
-    if event == "subscription_created":
+    if event in ["subscription_created", "subscription_payment_success"]:
 
-        email = attributes.get("user_email")
+        email = (
+                attributes.get("user_email")
+                or attributes.get("customer_email")
+        )
+
         lemon_subscription_id = data.get("id")
         lemon_customer_id = attributes.get("customer_id")
         renews_at = attributes.get("renews_at")
