@@ -411,13 +411,12 @@ async def lemonsqueezy_webhook(request: Request):
     # -------------------------
     # SUBSCRIPTION CREATED
     # -------------------------
-    if event in ["subscription_created", "subscription_payment_success"]:
+    # -------------------------
+    # SUBSCRIPTION CREATED
+    # -------------------------
+    if event == "subscription_created":
 
-        email = (
-                attributes.get("user_email")
-                or attributes.get("customer_email")
-        )
-
+        email = attributes.get("user_email")
         lemon_subscription_id = data.get("id")
         lemon_customer_id = attributes.get("customer_id")
         renews_at = attributes.get("renews_at")
@@ -446,20 +445,21 @@ async def lemonsqueezy_webhook(request: Request):
             "messages_used": 0
         }, on_conflict=["user_id"]).execute()
 
-        print("Subscription activated:", user.id)
+        print("Subscription created:", user.id)
 
     # -------------------------
-    # SUBSCRIPTION CANCELLED
+    # PAYMENT SUCCESS (RENEWAL)
     # -------------------------
-    if event == "subscription_cancelled":
+    if event == "subscription_payment_success":
+        lemon_subscription_id = attributes.get("subscription_id")
 
-        lemon_subscription_id = data.get("id")
+        renews_at = attributes.get("renews_at")
 
         sb.table("subscriptions").update({
-            "status": "cancelled",
-            "plan": "free"
+            "status": "active",
+            "plan": "monthly",
+            "expires_at": renews_at
         }).eq("lemon_subscription_id", lemon_subscription_id).execute()
 
-        print("Subscription cancelled:", lemon_subscription_id)
+        print("Payment success for:", lemon_subscription_id)
 
-    return {"status": "ok"}
