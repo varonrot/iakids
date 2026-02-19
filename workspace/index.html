@@ -2267,27 +2267,65 @@ function closeParentModal(){
 </script>
 <script>
 async function openSubscriptionPortal(){
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) return;
 
-  const { data, error } = await sb
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-
-  if (error || !data){
-    alert("No hay suscripción activa.");
-    return;
-  }
+  try {
  
-  window.location.href = "https://iakids.app/planes/";
-}
+    const { data: { user }, error: userError } = await sb.auth.getUser();
 
+    if (userError || !user){
+      console.error("No user found:", userError);
+      alert("Debe iniciar sesión nuevamente.");
+      return;
+    }
+ 
+    const { data, error } = await sb
+      .from("subscriptions")
+      .select("plan, status, created_at")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (error){
+      console.error("Subscription query error:", error);
+      alert("Error al verificar la suscripción.");
+      return;
+    }
+
+    if (!data || data.length === 0){
+      alert("No hay suscripción activa.");
+      return;
+    }
+ 
+    console.log("Active subscription found:", data[0]);
+
+    window.location.href = "https://iakids.app/planes/";
+
+  } catch (err){
+    console.error("Unexpected error:", err);
+    alert("Algo salió mal.");
+  }
+
+}
 </script>
+
+<div class="modal-overlay" id="subscriptionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Gestión de suscripción</h2>
+      <button class="modal-close" onclick="closeSubscriptionModal()">✕</button>
+    </div>
+
+    <p style="margin-bottom:16px;">
+      Tu plan actual: <strong id="currentPlan"></strong>
+    </p>
+
+    <div class="modal-actions">
+      <button onclick="cancelSubscription()">Cancelar suscripción</button>
+      <button class="save" onclick="goToUpgrade()">Cambiar plan</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
