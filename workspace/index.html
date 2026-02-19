@@ -2272,19 +2272,21 @@ async function openSubscriptionPortal(){
 
   const { data, error } = await sb
     .from("subscriptions")
-    .select("portal_url")
+    .select("plan, status")
     .eq("user_id", user.id)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
     .single();
 
-  if (error || !data?.portal_url){
+  if (error || !data){
     alert("No hay suscripción activa.");
     return;
   }
-
-  window.location.href = data.portal_url;
+ 
+  window.location.href = "https://iakids.app/planes/";
 }
 
-document.getElementById("manageSubscriptionBtn").onclick = openSubscriptionPortal;
 </script>
 
 </body>
