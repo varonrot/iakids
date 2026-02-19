@@ -2265,108 +2265,52 @@ function closeParentModal(){
   document.getElementById("parentModal").style.display = "none";
 }
 </script>
-<script>
-async function openSubscriptionPortal(){
 
-  try {
 
-    const { data: { user }, error: userError } = await sb.auth.getUser();
 
-    if (userError || !user){
-      console.error("No user found:", userError);
-      alert("Debe iniciar sesión nuevamente.");
-      return;
-    }
-
-    const { data, error } = await sb
-      .from("subscriptions")
-      .select("plan, status, created_at")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    if (error){
-      console.error("Subscription query error:", error);
-      alert("Error al verificar la suscripción.");
-      return;
-    }
-
-    if (!data || data.length === 0){
-      alert("No hay suscripción activa.");
-      return;
-    }
-
-    console.log("Active subscription found:", data[0]);
-
-    window.location.href = "https://iakids.app/planes/";
-
-  } catch (err){
-    console.error("Unexpected error:", err);
-    alert("Algo salió mal.");
-  }
-
-}
-</script>
-
-<div class="modal-overlay" id="subscriptionModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Gestión de suscripción</h2>
-      <button class="modal-close" onclick="closeSubscriptionModal()">✕</button>
-    </div>
-
-    <p style="margin-bottom:16px;">
-      Tu plan actual: <strong id="currentPlan"></strong>
-    </p>
-
-    <div class="modal-actions">
-      <button onclick="cancelSubscription()">Cancelar suscripción</button>
-      <button class="save" onclick="goToUpgrade()">Cambiar plan</button>
-    </div>
-  </div>
-</div>
 <script>
 document.getElementById("manageSubscriptionBtn").onclick = async () => {
 
   try {
-    const { data: { user }, error: userError } = await sb.auth.getUser();
 
-    if (userError || !user){
+    const { data: sessionData } = await sb.auth.getSession();
+    const session = sessionData.session;
+
+    if (!session){
       alert("Debe iniciar sesión nuevamente.");
       return;
     }
 
-    // בדיקה אם יש מנוי פעיל
-    const { data, error } = await sb
-      .from("subscriptions")
-      .select("plan, status")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .limit(1)
-      .single();
+    const res = await fetch(
+      "https://iakids-backend.onrender.com/api/create-portal-session",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`
+        }
+      }
+    );
 
-    if (error || !data){
-      alert("No hay suscripción activa.");
+    const json = await res.json();
+
+    console.log("PORTAL RESPONSE:", json);
+
+    const portalUrl = json?.data?.attributes?.url;
+
+    if (!portalUrl){
+      alert("No se pudo abrir el portal.");
       return;
     }
-
-    // הצגת שם התכנית
-    document.getElementById("currentPlan").textContent = data.plan;
-
-    // פתיחת המודל
-    document.getElementById("subscriptionModal").style.display = "flex";
+ 
+    window.location.href = portalUrl;
 
   } catch (err){
-    console.error(err);
+    console.error("Portal error:", err);
     alert("Algo salió mal.");
   }
 
 };
 
-function closeSubscriptionModal(){
-  document.getElementById("subscriptionModal").style.display = "none";
-}
 </script>
 
 </body>
