@@ -2291,17 +2291,24 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
       }
     );
 
-    const json = await res.json();
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("PORTAL ERROR:", res.status, errorText);
+      alert("Error backend: " + res.status);
+      return;
+    }
 
+    const json = await res.json();
     console.log("PORTAL RESPONSE:", json);
 
     const portalUrl = json?.data?.attributes?.url;
 
     if (!portalUrl){
-      alert("No se pudo abrir el portal.");
+      console.error("Missing portal URL:", json);
+      alert("Portal URL missing");
       return;
     }
- 
+
     window.location.href = portalUrl;
 
   } catch (err){
@@ -2310,6 +2317,7 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
   }
 
 };
+
 
 </script>
 
