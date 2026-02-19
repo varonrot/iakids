@@ -2269,7 +2269,7 @@ function closeParentModal(){
 async function openSubscriptionPortal(){
 
   try {
- 
+
     const { data: { user }, error: userError } = await sb.auth.getUser();
 
     if (userError || !user){
@@ -2277,7 +2277,7 @@ async function openSubscriptionPortal(){
       alert("Debe iniciar sesión nuevamente.");
       return;
     }
- 
+
     const { data, error } = await sb
       .from("subscriptions")
       .select("plan, status, created_at")
@@ -2296,7 +2296,7 @@ async function openSubscriptionPortal(){
       alert("No hay suscripción activa.");
       return;
     }
- 
+
     console.log("Active subscription found:", data[0]);
 
     window.location.href = "https://iakids.app/planes/";
@@ -2326,6 +2326,48 @@ async function openSubscriptionPortal(){
     </div>
   </div>
 </div>
+<script>
+document.getElementById("manageSubscriptionBtn").onclick = async () => {
+
+  try {
+    const { data: { user }, error: userError } = await sb.auth.getUser();
+
+    if (userError || !user){
+      alert("Debe iniciar sesión nuevamente.");
+      return;
+    }
+
+    // בדיקה אם יש מנוי פעיל
+    const { data, error } = await sb
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .limit(1)
+      .single();
+
+    if (error || !data){
+      alert("No hay suscripción activa.");
+      return;
+    }
+
+    // הצגת שם התכנית
+    document.getElementById("currentPlan").textContent = data.plan;
+
+    // פתיחת המודל
+    document.getElementById("subscriptionModal").style.display = "flex";
+
+  } catch (err){
+    console.error(err);
+    alert("Algo salió mal.");
+  }
+
+};
+
+function closeSubscriptionModal(){
+  document.getElementById("subscriptionModal").style.display = "none";
+}
+</script>
 
 </body>
 </html>
