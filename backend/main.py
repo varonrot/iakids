@@ -555,16 +555,21 @@ async def create_portal_session(authorization: str = Header(None)):
 
     lemon_customer_id = sub.data["lemon_customer_id"]
 
-    # יצירת portal session ב-Lemon
+    LEMON_API_KEY = os.getenv("LEMON_API_KEY")
+
+    if not LEMON_API_KEY:
+        raise HTTPException(status_code=500, detail="Missing LEMON_API_KEY")
+
     response = requests.post(
         "https://api.lemonsqueezy.com/v1/customer_portal_sessions",
         headers={
-            "Authorization": f"Bearer {os.getenv('LEMON_API_KEY')}",
+            "Authorization": f"Bearer {LEMON_API_KEY}",
+            "Accept": "application/json",
             "Content-Type": "application/json"
         },
         json={
             "data": {
-                "type": "customer-portal-sessions",
+                "type": "customer_portal_sessions",
                 "attributes": {
                     "customer_id": lemon_customer_id
                 }
@@ -572,4 +577,10 @@ async def create_portal_session(authorization: str = Header(None)):
         }
     )
 
-    return response.json()
+    if response.status_code != 201:
+        print("LEMON ERROR:", response.status_code, response.text)
+        raise HTTPException(status_code=400, detail="Failed to create portal session")
+
+    portal_url = response.json()["data"]["attributes"]["url"]
+
+    return {"url": portal_url}
