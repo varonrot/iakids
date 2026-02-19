@@ -378,7 +378,6 @@ from fastapi import Request, HTTPException
 import hmac
 import hashlib
 
-
 @app.post("/api/lemonsqueezy-webhook")
 async def lemonsqueezy_webhook(request: Request):
 
@@ -410,27 +409,26 @@ async def lemonsqueezy_webhook(request: Request):
     # -----------------------------------
     # COMMON FIELDS
     # -----------------------------------
-    email = attributes.get("user_email")
     lemon_subscription_id = str(data.get("id")) if data.get("id") else None
     lemon_customer_id = attributes.get("customer_id")
     renews_at = attributes.get("renews_at")
 
     # -----------------------------------
-    # GET USER (SAFE WAY)
+    # GET USER ID FROM CHECKOUT CUSTOM DATA
     # -----------------------------------
-    user = None
-    if email:
-        try:
-            user_res = sb.auth.admin.get_user_by_email(email)
-            user = user_res.user if user_res else None
-        except Exception as e:
-            print("ERROR fetching user:", e)
+    checkout_data = attributes.get("checkout_data", {})
+    custom_data = checkout_data.get("custom", {})
 
+    user_id = custom_data.get("user_id")
+
+    if not user_id:
+        print("Missing user_id in checkout custom data")
+        return {"status": "missing_user_id"}
+
+    # -----------------------------------
+    # SUBSCRIPTION CREATED
+    # -----------------------------------
     if event == "subscription_created":
-
-        if not user:
-            print("User not found for email:", email)
-            return {"status": "user_not_found"}
 
         product_name = (attributes.get("product_name") or "").lower()
 
@@ -439,11 +437,11 @@ async def lemonsqueezy_webhook(request: Request):
         else:
             plan = "monthly"
 
-        print("Updating subscription for user:", user.id)
+        print("Updating subscription for user:", user_id)
 
         result = sb.table("subscriptions").upsert(
             {
-                "user_id": user.id,
+                "user_id": user_id,
                 "plan": plan,
                 "status": "active",
                 "lemon_subscription_id": lemon_subscription_id,
@@ -516,3 +514,4 @@ async def lemonsqueezy_webhook(request: Request):
 
     print("Unhandled event:", event)
     return {"status": "ignored"}
+
