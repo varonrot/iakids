@@ -416,13 +416,14 @@ async def lemonsqueezy_webhook(request: Request):
     # -----------------------------------
     # GET USER ID FROM CHECKOUT CUSTOM DATA
     # -----------------------------------
-    checkout_data = attributes.get("checkout_data", {})
-    custom_data = checkout_data.get("custom", {})
+    meta = payload.get("meta", {})
+    custom_data = meta.get("custom_data", {})
 
     user_id = custom_data.get("user_id")
+    plan = custom_data.get("plan")
 
     if not user_id:
-        print("Missing user_id in checkout custom data")
+        print("Missing user_id in meta.custom_data")
         return {"status": "missing_user_id"}
 
     # -----------------------------------
