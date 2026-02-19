@@ -382,6 +382,7 @@ import hashlib
 @app.post("/api/lemonsqueezy-webhook")
 async def lemonsqueezy_webhook(request: Request):
 
+    # -------- VERIFY SIGNATURE --------
     raw_body = await request.body()
     signature = request.headers.get("X-Signature")
 
@@ -403,52 +404,115 @@ async def lemonsqueezy_webhook(request: Request):
     data = payload.get("data", {})
     attributes = data.get("attributes", {})
 
-    print("LEMON EVENT:", event)
+    print("==== LEMON WEBHOOK RECEIVED ====")
+    print("EVENT:", event)
+
+    # -----------------------------------
+    # COMMON FIELDS
+    # -----------------------------------
+    email = attributes.get("user_email")
+    lemon_subscription_id = str(data.get("id")) if data.get("id") else None
+    lemon_customer_id = attributes.get("customer_id")
+    renews_at = attributes.get("renews_at")
+
+    # -----------------------------------
+    # GET USER (SAFE WAY)
+    # -----------------------------------
+    user = None
+    if email:
+        try:
+            user_res = sb.auth.admin.get_user_by_email(email)
+            user = user_res.user if user_res else None
+        except Exception as e:
+            print("ERROR fetching user:", e)
 
     if event == "subscription_created":
 
-        email = attributes.get("user_email")
-        lemon_subscription_id = str(data.get("id"))
-        lemon_customer_id = attributes.get("customer_id")
-        renews_at = attributes.get("renews_at")
-
-        print("EMAIL:", email)
-
-        # 🔥 CORRECT WAY
-        user_res = sb.auth.admin.list_users()
-        users = user_res.data
-
-        user = next((u for u in users if u["email"] == email), None)
-
         if not user:
-            print("User not found:", email)
+            print("User not found for email:", email)
             return {"status": "user_not_found"}
 
         product_name = (attributes.get("product_name") or "").lower()
-        plan = "annual" if "anual" in product_name or "annual" in product_name else "monthly"
 
-        print("UPDATING USER:", user["id"])
+        if "anual" in product_name or "annual" in product_name:
+            plan = "annual"
+        else:
+            plan = "monthly"
 
-        sb.table("subscriptions").upsert({
-            "user_id": user["id"],
-            "plan": plan,
-            "status": "active",
-            "lemon_subscription_id": lemon_subscription_id,
-            "lemon_customer_id": lemon_customer_id,
-            "expires_at": renews_at,
-            "messages_used": 0
-        }, on_conflict="user_id").execute()
+        print("Updating subscription for user:", user.id)
 
-        print("Subscription updated successfully")
+        result = sb.table("subscriptions").upsert(
+            {
+                "user_id": user.id,
+                "plan": plan,
+                "status": "active",
+                "lemon_subscription_id": lemon_subscription_id,
+                "lemon_customer_id": lemon_customer_id,
+                "expires_at": renews_at,
+                "messages_used": 0
+            },
+            on_conflict="user_id"
+        ).execute()
 
+        print("UPSERT DATA:", result.data)
+        print("UPSERT ERROR:", result.error)
+
+        return {"status": "subscription_created_handled"}
+
+    # -----------------------------------
+    # PAYMENT SUCCESS (RENEWAL)
+    # -----------------------------------
     if event == "subscription_payment_success":
 
-        lemon_subscription_id = str(attributes.get("subscription_id"))
-        renews_at = attributes.get("renews_at")
+        print("Payment success for subscription:", lemon_subscription_id)
 
-        sb.table("subscriptions").update({
-            "status": "active",
-            "expires_at": renews_at
-        }).eq("lemon_subscription_id", lemon_subscription_id).execute()
+        result = sb.table("subscriptions").update(
+            {
+                "status": "active",
+                "expires_at": renews_at
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
 
-    return {"status": "ok"}
+        print("UPDATE DATA:", result.data)
+        print("UPDATE ERROR:", result.error)
+
+        return {"status": "payment_success_handled"}
+
+    # -----------------------------------
+    # SUBSCRIPTION CANCELLED
+    # -----------------------------------
+    if event == "subscription_cancelled":
+
+        print("Subscription cancelled:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "cancelled"
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("CANCEL UPDATE:", result.data)
+        print("CANCEL ERROR:", result.error)
+
+        return {"status": "cancelled_handled"}
+
+    # -----------------------------------
+    # SUBSCRIPTION EXPIRED
+    # -----------------------------------
+    if event == "subscription_expired":
+
+        print("Subscription expired:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "expired"
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("EXPIRE UPDATE:", result.data)
+        print("EXPIRE ERROR:", result.error)
+
+        return {"status": "expired_handled"}
+
+    print("Unhandled event:", event)
+    return {"status": "ignored"}
