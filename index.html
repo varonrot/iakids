@@ -3174,10 +3174,10 @@ body{
           <li>Control parental completo</li>
         </ul>
 
-
-<button onclick="startCheckout('monthly')" class="btn secondary">
+<a href="https://iakidsapp.lemonsqueezy.com/checkout/buy/ff022b73-d471-4756-8f22-46169f23d9f6?checkout[custom][plan]=mensual"
+   class="btn secondary">
   Elegir mensual
-</button>
+</a>
 
       </div>
 
@@ -3202,10 +3202,10 @@ body{
           <li>Un solo pago, sin renovaciones mensuales</li>
         </ul>
 
-<button onclick="startCheckout('annual')" class="btn primary">
+<a href="https://iakidsapp.lemonsqueezy.com/checkout/buy/96a88c51-2898-4116-83c3-6c2c34fddd3c?checkout[custom][plan]=anual"
+   class="btn primary">
   Elegir anual
-</button>
-
+</a>
 
       </div>
 
@@ -3710,37 +3710,6 @@ closeCookie.addEventListener("click", () => {
   localStorage.setItem("cookieNoticeSeen", "true");
   cookieNotice.style.display = "none";
 });
-</script>
-<script>
-async function startCheckout(plan) {
-
-  const { data } = await supabaseClient.auth.getSession();
-
-  if (!data.session) {
-    alert("Debes iniciar sesión primero");
-    window.location.href = "/onboarding/cuenta";
-    return;
-  }
-
-  const token = data.session.access_token;
-
-  const response = await fetch("https://iakids-backend.onrender.com/api/create-checkout", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({ plan })
-  });
-
-  const result = await response.json();
-
-  if (result.checkout_url) {
-    window.location.href = result.checkout_url;
-  } else {
-    alert("Error creando checkout");
-  }
-}
 </script>
 
 </body>
