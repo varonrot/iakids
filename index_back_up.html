@@ -2743,6 +2743,10 @@ body{
     align-self:flex-end;
   }
 }
+#monthlyBtn,
+#annualBtn {
+  cursor: pointer;
+}
 
 
 </style>
@@ -3174,10 +3178,10 @@ body{
           <li>Control parental completo</li>
         </ul>
 
-<a href="https://iakidsapp.lemonsqueezy.com/checkout/buy/ff022b73-d471-4756-8f22-46169f23d9f6?checkout[custom][plan]=mensual"
-   class="btn secondary">
+<button id="monthlyBtn" class="btn secondary">
   Elegir mensual
-</a>
+</button>
+
 
       </div>
 
@@ -3202,10 +3206,10 @@ body{
           <li>Un solo pago, sin renovaciones mensuales</li>
         </ul>
 
-<a href="https://iakidsapp.lemonsqueezy.com/checkout/buy/96a88c51-2898-4116-83c3-6c2c34fddd3c?checkout[custom][plan]=anual"
-   class="btn primary">
+<button id="annualBtn" class="btn primary">
   Elegir anual
-</a>
+</button>
+
 
       </div>
 
@@ -3709,6 +3713,36 @@ if (!localStorage.getItem("cookieNoticeSeen")) {
 closeCookie.addEventListener("click", () => {
   localStorage.setItem("cookieNoticeSeen", "true");
   cookieNotice.style.display = "none";
+});
+</script>
+<script>
+async function redirectToCheckout(plan, variantUrl) {
+  const { data } = await supabaseClient.auth.getSession();
+
+  if (!data.session) {
+    window.location.href = "/onboarding/cuenta";
+    return;
+  }
+
+  const userId = data.session.user.id;
+
+  const url = `${variantUrl}?checkout[custom][plan]=${plan}&checkout[custom][user_id]=${userId}`;
+
+  window.location.href = url;
+}
+
+document.getElementById("monthlyBtn").addEventListener("click", () => {
+  redirectToCheckout(
+    "mensual",
+    "https://iakidsapp.lemonsqueezy.com/checkout/buy/ff022b73-d471-4756-8f22-46169f23d9f6"
+  );
+});
+
+document.getElementById("annualBtn").addEventListener("click", () => {
+  redirectToCheckout(
+    "anual",
+    "https://iakidsapp.lemonsqueezy.com/checkout/buy/96a88c51-2898-4116-83c3-6c2c34fddd3c"
+  );
 });
 </script>
 
