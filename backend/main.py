@@ -425,8 +425,13 @@ async def lemonsqueezy_webhook(request: Request):
         print("SUB ID:", lemon_subscription_id)
 
         # חיפוש משתמש לפי מייל
-        user_res = sb.auth.admin.list_users()
-        user = next((u for u in user_res.users if u.email == email), None)
+        user_res = sb.auth.admin.get_user_by_email(email)
+
+        if not user_res or not user_res.user:
+            print("User not found:", email)
+            return {"status": "user_not_found"}
+
+        user = user_res.user
 
         if not user:
             print("User not found:", email)
