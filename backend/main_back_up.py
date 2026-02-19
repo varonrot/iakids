@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from pathlib import Path
 import json
+import hmac
+import hashlib
 
 from pathlib import Path
 import os
@@ -33,6 +35,7 @@ print("==========================")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+LEMON_WEBHOOK_SECRET = os.getenv("LEMON_WEBHOOK_SECRET")
 
 # ===== CLIENTS =====
 
@@ -251,12 +254,9 @@ def chat(
             role="user",
             content=body.message
         )
-        sb.table("subscriptions").upsert({
-            "user_id": user.id,
-            "plan": "free",
-            "status": "active",
+        sb.table("subscriptions").update({
             "messages_used": used + 1
-        }, on_conflict=["user_id"]).execute()
+        }).eq("user_id", user.id).execute()
 
         mode_value = body.mode or "unknown"
 
@@ -358,16 +358,160 @@ def chat(
             except Exception as e:
                 print("Memory extractor error:", e)
 
+            return {"reply": answer}
+
         return {"reply": answer}
 
-
     except HTTPException:
-
         raise
 
-
     except Exception as e:
-
         print("CHAT ERROR:", e)
-
         raise HTTPException(status_code=500, detail="Chat failed")
+
+    # =====================================================
+    # LEMON SQUEEZY WEBHOOK
+    # =====================================================
+
+
+from fastapi import Request, HTTPException
+import hmac
+import hashlib
+
+@app.post("/api/lemonsqueezy-webhook")
+async def lemonsqueezy_webhook(request: Request):
+
+    # -------- VERIFY SIGNATURE --------
+    raw_body = await request.body()
+    signature = request.headers.get("X-Signature")
+
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing signature")
+
+    expected_signature = hmac.new(
+        LEMON_WEBHOOK_SECRET.encode(),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(signature, expected_signature):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    payload = await request.json()
+
+    event = payload.get("meta", {}).get("event_name")
+    data = payload.get("data", {})
+    attributes = data.get("attributes", {})
+
+    print("==== LEMON WEBHOOK RECEIVED ====")
+    print("EVENT:", event)
+
+    # -----------------------------------
+    # COMMON FIELDS
+    # -----------------------------------
+    lemon_subscription_id = str(data.get("id")) if data.get("id") else None
+    lemon_customer_id = attributes.get("customer_id")
+    renews_at = attributes.get("renews_at")
+
+    # -----------------------------------
+    # GET USER ID FROM CHECKOUT CUSTOM DATA
+    # -----------------------------------
+    meta = payload.get("meta", {})
+    custom_data = meta.get("custom_data", {})
+
+    user_id = custom_data.get("user_id")
+    plan = custom_data.get("plan")
+
+    if not user_id:
+        print("Missing user_id in meta.custom_data")
+        return {"status": "missing_user_id"}
+
+    # -----------------------------------
+    # SUBSCRIPTION CREATED
+    # -----------------------------------
+    if event == "subscription_created":
+
+        product_name = (attributes.get("product_name") or "").lower()
+
+        if "anual" in product_name or "annual" in product_name:
+            plan = "annual"
+        else:
+            plan = "monthly"
+
+        print("Updating subscription for user:", user_id)
+
+        result = sb.table("subscriptions").upsert(
+            {
+                "user_id": user_id,
+                "plan": plan,
+                "status": "active",
+                "lemon_subscription_id": lemon_subscription_id,
+                "lemon_customer_id": lemon_customer_id,
+                "expires_at": renews_at,
+                "messages_used": 0
+            },
+            on_conflict="user_id"
+        ).execute()
+
+        print("UPSERT DATA:", result.data)
+        print("UPSERT ERROR:", result.error)
+
+        return {"status": "subscription_created_handled"}
+
+    # -----------------------------------
+    # PAYMENT SUCCESS (RENEWAL)
+    # -----------------------------------
+    if event == "subscription_payment_success":
+
+        print("Payment success for subscription:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "active",
+                "expires_at": renews_at
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("UPDATE DATA:", result.data)
+        print("UPDATE ERROR:", result.error)
+
+        return {"status": "payment_success_handled"}
+
+    # -----------------------------------
+    # SUBSCRIPTION CANCELLED
+    # -----------------------------------
+    if event == "subscription_cancelled":
+
+        print("Subscription cancelled:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "cancelled"
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("CANCEL UPDATE:", result.data)
+        print("CANCEL ERROR:", result.error)
+
+        return {"status": "cancelled_handled"}
+
+    # -----------------------------------
+    # SUBSCRIPTION EXPIRED
+    # -----------------------------------
+    if event == "subscription_expired":
+
+        print("Subscription expired:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "expired"
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("EXPIRE UPDATE:", result.data)
+        print("EXPIRE ERROR:", result.error)
+
+        return {"status": "expired_handled"}
+
+    print("Unhandled event:", event)
+    return {"status": "ignored"}
