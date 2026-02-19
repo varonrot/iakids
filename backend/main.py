@@ -375,6 +375,7 @@ def chat(
 
 
 from fastapi import Request, HTTPException
+from fastapi.responses import JSONResponse
 import hmac
 import hashlib
 
@@ -409,7 +410,14 @@ async def lemonsqueezy_webhook(request: Request):
     # -----------------------------------
     # COMMON FIELDS
     # -----------------------------------
-    lemon_subscription_id = str(data.get("id")) if data.get("id") else None
+
+    # חשוב: באירוע invoice ה-id הוא invoice_id
+    lemon_subscription_id = (
+        str(attributes.get("subscription_id"))
+        if attributes.get("subscription_id")
+        else str(data.get("id")) if data.get("id") else None
+    )
+
     lemon_customer_id = attributes.get("customer_id")
     renews_at = attributes.get("renews_at")
 
@@ -422,21 +430,22 @@ async def lemonsqueezy_webhook(request: Request):
     user_id = custom_data.get("user_id")
     plan = custom_data.get("plan")
 
-    if not user_id:
-        print("Missing user_id in meta.custom_data")
-        return {"status": "missing_user_id"}
-
-    # -----------------------------------
+    # ===================================
     # SUBSCRIPTION CREATED
-    # -----------------------------------
+    # ===================================
     if event == "subscription_created":
 
-        product_name = (attributes.get("product_name") or "").lower()
+        if not user_id:
+            print("Missing user_id in subscription_created")
+            return JSONResponse(status_code=200, content={"success": False})
 
-        if "anual" in product_name or "annual" in product_name:
-            plan = "annual"
-        else:
-            plan = "monthly"
+        # אם לא הגיע plan מה-checkout נזהה מהמוצר
+        if not plan:
+            product_name = (attributes.get("product_name") or "").lower()
+            if "anual" in product_name or "annual" in product_name:
+                plan = "annual"
+            else:
+                plan = "monthly"
 
         print("Updating subscription for user:", user_id)
 
@@ -456,11 +465,11 @@ async def lemonsqueezy_webhook(request: Request):
         print("UPSERT DATA:", result.data)
         print("UPSERT ERROR:", result.error)
 
-        return {"status": "subscription_created_handled"}
+        return JSONResponse(status_code=200, content={"success": True})
 
-    # -----------------------------------
+    # ===================================
     # PAYMENT SUCCESS (RENEWAL)
-    # -----------------------------------
+    # ===================================
     if event == "subscription_payment_success":
 
         print("Payment success for subscription:", lemon_subscription_id)
@@ -475,11 +484,11 @@ async def lemonsqueezy_webhook(request: Request):
         print("UPDATE DATA:", result.data)
         print("UPDATE ERROR:", result.error)
 
-        return {"status": "payment_success_handled"}
+        return JSONResponse(status_code=200, content={"success": True})
 
-    # -----------------------------------
+    # ===================================
     # SUBSCRIPTION CANCELLED
-    # -----------------------------------
+    # ===================================
     if event == "subscription_cancelled":
 
         print("Subscription cancelled:", lemon_subscription_id)
@@ -493,11 +502,11 @@ async def lemonsqueezy_webhook(request: Request):
         print("CANCEL UPDATE:", result.data)
         print("CANCEL ERROR:", result.error)
 
-        return {"status": "cancelled_handled"}
+        return JSONResponse(status_code=200, content={"success": True})
 
-    # -----------------------------------
+    # ===================================
     # SUBSCRIPTION EXPIRED
-    # -----------------------------------
+    # ===================================
     if event == "subscription_expired":
 
         print("Subscription expired:", lemon_subscription_id)
@@ -511,8 +520,7 @@ async def lemonsqueezy_webhook(request: Request):
         print("EXPIRE UPDATE:", result.data)
         print("EXPIRE ERROR:", result.error)
 
-        return {"status": "expired_handled"}
+        return JSONResponse(status_code=200, content={"success": True})
 
     print("Unhandled event:", event)
-    return {"status": "ignored"}
-
+    return JSONResponse(status_code=200, content={"ignored": True})
