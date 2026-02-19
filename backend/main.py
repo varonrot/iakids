@@ -524,3 +524,52 @@ async def lemonsqueezy_webhook(request: Request):
 
     print("Unhandled event:", event)
     return JSONResponse(status_code=200, content={"ignored": True})
+
+import requests
+
+@app.post("/api/create-portal-session")
+async def create_portal_session(authorization: str = Header(None)):
+
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing auth")
+
+    token = authorization.replace("Bearer ", "")
+    user_res = sb.auth.get_user(token)
+
+    if not user_res or not user_res.user:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    user = user_res.user
+
+    # שליפת lemon_customer_id
+    sub = (
+        sb.table("subscriptions")
+        .select("lemon_customer_id")
+        .eq("user_id", user.id)
+        .single()
+        .execute()
+    )
+
+    if not sub.data or not sub.data.get("lemon_customer_id"):
+        raise HTTPException(status_code=404, detail="No Lemon customer")
+
+    lemon_customer_id = sub.data["lemon_customer_id"]
+
+    # יצירת portal session ב-Lemon
+    response = requests.post(
+        "https://api.lemonsqueezy.com/v1/customer_portal_sessions",
+        headers={
+            "Authorization": f"Bearer {os.getenv('LEMON_API_KEY')}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "data": {
+                "type": "customer-portal-sessions",
+                "attributes": {
+                    "customer_id": lemon_customer_id
+                }
+            }
+        }
+    )
+
+    return response.json()
