@@ -382,9 +382,6 @@ import hashlib
 @app.post("/api/lemonsqueezy-webhook")
 async def lemonsqueezy_webhook(request: Request):
 
-    # =============================
-    # VERIFY SIGNATURE
-    # =============================
     raw_body = await request.body()
     signature = request.headers.get("X-Signature")
 
@@ -406,13 +403,11 @@ async def lemonsqueezy_webhook(request: Request):
     data = payload.get("data", {})
     attributes = data.get("attributes", {})
 
-    print("========== LEMON WEBHOOK ==========")
-    print("EVENT:", event)
-    print("===================================")
+    print("LEMON EVENT:", event)
 
-    # =====================================================
+    # =============================
     # SUBSCRIPTION CREATED
-    # =====================================================
+    # =============================
     if event == "subscription_created":
 
         email = (
@@ -420,30 +415,26 @@ async def lemonsqueezy_webhook(request: Request):
             or attributes.get("customer_email")
         )
 
-        # ✅ נכון – ב event הזה ה ID הוא data.id
+        # ✅ זה ה ID האמיתי
         lemon_subscription_id = str(data.get("id"))
 
-        lemon_customer_id = attributes.get("customer_id")
+        lemon_customer_id = str(attributes.get("customer_id"))
         renews_at = attributes.get("renews_at")
 
         print("EMAIL:", email)
-        print("SUBSCRIPTION ID:", lemon_subscription_id)
+        print("SUB ID:", lemon_subscription_id)
 
-        # מציאת המשתמש לפי מייל
+        # חיפוש משתמש לפי מייל
         user_res = sb.auth.admin.list_users()
         user = next((u for u in user_res.users if u.email == email), None)
 
         if not user:
-            print("❌ User not found:", email)
+            print("User not found:", email)
             return {"status": "user_not_found"}
 
+        # בדיקת שם מוצר
         product_name = (attributes.get("product_name") or "").lower()
-
-        plan = (
-            "annual"
-            if "annual" in product_name or "anual" in product_name
-            else "monthly"
-        )
+        plan = "annual" if "annual" in product_name else "monthly"
 
         sb.table("subscriptions").upsert({
             "user_id": user.id,
@@ -455,44 +446,25 @@ async def lemonsqueezy_webhook(request: Request):
             "messages_used": 0
         }, on_conflict=["user_id"]).execute()
 
-        print("✅ Subscription created for:", user.id)
+        print("Subscription created for:", user.id)
 
-    # =====================================================
-    # SUBSCRIPTION PAYMENT SUCCESS
-    # =====================================================
+
+    # =============================
+    # PAYMENT SUCCESS
+    # =============================
     if event == "subscription_payment_success":
 
-        # ✅ כאן ה ID נמצא בתוך attributes
+        # באירוע invoice
         lemon_subscription_id = str(attributes.get("subscription_id"))
         renews_at = attributes.get("renews_at")
 
-        print("PAYMENT SUCCESS FOR:", lemon_subscription_id)
+        print("Payment success for subscription:", lemon_subscription_id)
 
-        result = (
-            sb.table("subscriptions")
-            .update({
-                "status": "active",
-                "expires_at": renews_at
-            })
-            .eq("lemon_subscription_id", lemon_subscription_id)
-            .execute()
-        )
-
-        print("Rows updated:", result.data)
-
-    # =====================================================
-    # OPTIONAL: HANDLE subscription_invoice_paid (יותר בטוח)
-    # =====================================================
-    if event == "subscription_invoice_paid":
-
-        lemon_subscription_id = str(attributes.get("subscription_id"))
-        renews_at = attributes.get("renews_at")
-
-        print("INVOICE PAID FOR:", lemon_subscription_id)
-
-        sb.table("subscriptions").update({
+        result = sb.table("subscriptions").update({
             "status": "active",
             "expires_at": renews_at
         }).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("Rows updated:", result.data)
 
     return {"status": "ok"}
