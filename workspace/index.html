@@ -2301,7 +2301,7 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
     const json = await res.json();
     console.log("PORTAL RESPONSE:", json);
 
-    const portalUrl = json?.data?.attributes?.url;
+    const portalUrl = json?.url;
 
     if (!portalUrl){
       console.error("Missing portal URL:", json);
