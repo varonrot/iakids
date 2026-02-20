@@ -3756,14 +3756,34 @@ async function redirectToCheckout(plan, variantUrl) {
   window.location.href = url;
 }
 
+
+/* ===== MONTHLY ===== */
 document.getElementById("monthlyBtn").addEventListener("click", () => {
+
+  // 🔥 Facebook Event
+  fbq('track', 'InitiateCheckout', {
+    content_name: 'Plan Mensual',
+    value: 9.99,
+    currency: 'USD'
+  });
+
   redirectToCheckout(
     "mensual",
     "https://iakidsapp.lemonsqueezy.com/checkout/buy/241506e4-493f-470c-8bd4-be016e3c8383"
   );
 });
 
+
+/* ===== ANNUAL ===== */
 document.getElementById("annualBtn").addEventListener("click", () => {
+
+  // 🔥 Facebook Event
+  fbq('track', 'InitiateCheckout', {
+    content_name: 'Plan Anual',
+    value: 78,
+    currency: 'USD'
+  });
+
   redirectToCheckout(
     "anual",
     "https://iakidsapp.lemonsqueezy.com/checkout/buy/59997f11-13af-4f1c-8d35-57f83b91f80f"
