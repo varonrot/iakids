@@ -561,19 +561,27 @@ async def create_portal_session(authorization: str = Header(None)):
     if not LEMON_API_KEY:
         raise HTTPException(status_code=500, detail="Missing LEMON_API_KEY")
 
-    response = requests.get(
-        f"https://api.lemonsqueezy.com/v1/subscriptions/{subscription_id}",
+    response = requests.post(
+        "https://api.lemonsqueezy.com/v1/customer_portal_sessions",
         headers={
             "Authorization": f"Bearer {LEMON_API_KEY}",
-            "Accept": "application/vnd.api+json"
+            "Accept": "application/vnd.api+json",
+            "Content-Type": "application/vnd.api+json"
+        },
+        json={
+            "data": {
+                "type": "customer_portal_sessions",
+                "attributes": {
+                    "customer_id": sub.data["lemon_customer_id"]
+                }
+            }
         }
     )
 
-    if response.status_code != 200:
+    if response.status_code != 201:
         print("LEMON ERROR:", response.status_code, response.text)
-        raise HTTPException(status_code=400, detail="Failed to fetch subscription")
+        raise HTTPException(status_code=400, detail="Failed to create portal session")
 
-    data = response.json()
-    portal_url = data["data"]["attributes"]["urls"]["customer_portal"]
+    portal_url = response.json()["data"]["attributes"]["url"]
 
     return {"url": portal_url}
