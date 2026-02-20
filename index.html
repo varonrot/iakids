@@ -2773,6 +2773,575 @@ body{
   cursor: pointer;
 }
 
+/* ===== DIFFERENCE SECTION ===== */
+
+.difference-section {
+  padding: 100px 20px;
+  background: #fffaf5;
+}
+
+.difference-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Badge */
+
+.difference-badge {
+  display: inline-block;
+  padding: 8px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: #eaf2ff;
+  color: #2f6bff;
+  border-radius: 30px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* Title */
+
+.difference-section h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+/* Intro */
+
+.difference-intro {
+  max-width: 750px;
+  margin: 0 auto 60px;
+  font-size: 18px;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+/* Grid */
+
+.difference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 40px;
+}
+
+/* Cards */
+
+.difference-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+  text-align: left;
+  transition: 0.3s ease;
+}
+
+.difference-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+}
+
+.difference-card h3 {
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* List */
+
+.difference-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.difference-card ul li {
+  margin-bottom: 12px;
+  font-size: 15px;
+  position: relative;
+  padding-left: 22px;
+  color: #475569;
+}
+
+.difference-card ul li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  font-size: 20px;
+  top: -2px;
+}
+
+/* Color accents */
+
+.difference-card.negative {
+  border-top: 4px solid #ff6b6b;
+}
+
+.difference-card.positive {
+  border-top: 4px solid #2f6bff;
+}
+
+/* Highlight text */
+
+.difference-highlight {
+  margin-top: 60px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2f6bff;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 1024px) {
+  .difference-section {
+    padding: 80px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .difference-section h2 {
+    font-size: 28px;
+  }
+
+  .difference-intro {
+    font-size: 16px;
+  }
+
+  .difference-card {
+    padding: 30px;
+  }
+
+  .difference-highlight {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .difference-section {
+    padding: 60px 16px;
+  }
+
+  .difference-section h2 {
+    font-size: 24px;
+  }
+
+  .difference-card {
+    padding: 24px;
+  }
+}
+
+/* ===== CONVERSATION SECTION ===== */
+
+.conversation-section {
+  padding: 110px 20px;
+  background: #fffaf5;
+}
+
+.conversation-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.conversation-badge {
+  display: inline-block;
+  padding: 8px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: #eaf2ff;
+  color: #2f6bff;
+  border-radius: 30px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.conversation-section h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+.conversation-intro {
+  max-width: 700px;
+  margin: 0 auto 60px;
+  font-size: 18px;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+/* Grid */
+
+.conversation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  align-items: center;
+}
+
+/* Chat */
+
+.chat-demo {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+  text-align: left;
+}
+
+.chat-bubble {
+  max-width: 85%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  margin-bottom: 15px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.chat-bubble.child {
+  background: #f1f5f9;
+}
+
+.chat-bubble.ai {
+  background: #eaf2ff;
+  margin-left: auto;
+}
+
+/* Video */
+
+.video-demo {
+  text-align: center;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px rgba(47,107,255,0.12);
+  border: 2px solid #2f6bff;
+}
+
+.video-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-caption {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .conversation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-section h2 {
+    font-size: 28px;
+  }
+
+  .chat-demo {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .conversation-section {
+    padding: 80px 16px;
+  }
+
+  .conversation-section h2 {
+    font-size: 24px;
+  }
+}
+    /* ===== SOCIAL PROOF SECTION ===== */
+
+.social-proof-section {
+  padding: 100px 20px;
+  background: #fffaf5;
+}
+
+.social-proof-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.social-proof-badge {
+  display: inline-block;
+  padding: 8px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: #eaf2ff;
+  color: #2f6bff;
+  border-radius: 30px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.social-proof-section h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+.social-proof-intro {
+  max-width: 700px;
+  margin: 0 auto 60px;
+  font-size: 18px;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+/* Grid */
+
+.social-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 40px;
+}
+
+/* Cards */
+
+.social-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+  text-align: left;
+  transition: 0.3s ease;
+}
+
+.social-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+}
+
+.stars {
+  color: #fbbf24;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.quote {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #475569;
+  margin-bottom: 20px;
+}
+
+.author {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .social-proof-section {
+    padding: 80px 20px;
+  }
+
+  .social-proof-section h2 {
+    font-size: 28px;
+  }
+
+  .social-proof-intro {
+    font-size: 16px;
+  }
+
+  .social-card {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .social-proof-section {
+    padding: 60px 16px;
+  }
+
+  .social-proof-section h2 {
+    font-size: 24px;
+  }
+
+  .social-card {
+    padding: 24px;
+  }
+}
+    /* ===== SMART FEAR SECTION ===== */
+
+.smart-fear-section {
+  background: #fffaf5;
+  padding: 110px 20px;
+  text-align: center;
+}
+
+.fear-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.fear-badge {
+  display: inline-block;
+  padding: 8px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: #fdecec;
+  color: #ef4444;
+  border-radius: 30px;
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+
+.smart-fear-section h2 {
+  font-size: 36px;
+  margin-bottom: 25px;
+  color: #1e293b;
+}
+
+.fear-text {
+  font-size: 18px;
+  color: #64748b;
+  line-height: 1.8;
+  margin-bottom: 35px;
+}
+
+.fear-highlight {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ef4444;
+  margin-bottom: 30px;
+}
+
+.fear-solution {
+  font-size: 17px;
+  color: #1e293b;
+  line-height: 1.7;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .smart-fear-section {
+    padding: 80px 20px;
+  }
+
+  .smart-fear-section h2 {
+    font-size: 28px;
+  }
+
+  .fear-text,
+  .fear-solution {
+    font-size: 16px;
+  }
+
+  .fear-highlight {
+    font-size: 18px;
+  }
+}
+    /* ===== CLARIFIER SECTION ===== */
+
+.clarifier-section {
+  background: #fffaf5;
+  padding: 110px 20px;
+  text-align: center;
+}
+
+.clarifier-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.clarifier-badge {
+  display: inline-block;
+  padding: 8px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: #eaf2ff;
+  color: #2f6bff;
+  border-radius: 30px;
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+
+.clarifier-section h2 {
+  font-size: 34px;
+  margin-bottom: 25px;
+  color: #1e293b;
+}
+
+.clarifier-intro {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 60px;
+  line-height: 1.7;
+}
+
+.clarifier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 40px;
+}
+
+.clarifier-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: left;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+}
+
+.clarifier-card h4 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #1e293b;
+}
+
+.clarifier-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.clarifier-card li {
+  margin-bottom: 12px;
+  color: #475569;
+  font-size: 15px;
+}
+
+.clarifier-card.highlight {
+  border: 2px solid #2f6bff;
+  box-shadow: 0 20px 50px rgba(47,107,255,0.08);
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .clarifier-section {
+    padding: 80px 20px;
+  }
+
+  .clarifier-section h2 {
+    font-size: 26px;
+  }
+
+  .clarifier-intro {
+    font-size: 16px;
+  }
+
+  .clarifier-card {
+    padding: 30px;
+  }
+}
+
 
 </style>
   <script type="application/ld+json">
@@ -2956,6 +3525,52 @@ body{
   </div>
 </section>
 
+<section class="difference-section">
+  <div class="difference-container">
+
+    <div class="difference-badge">
+      DIFERENCIA REAL
+    </div>
+
+    <h2>No todas las IAs están hechas para niños</h2>
+
+    <p class="difference-intro">
+      Muchas inteligencias artificiales responden “cualquier cosa”.
+      Sin filtros reales por edad. Sin guía educativa. Sin supervisión para familias.
+    </p>
+
+    <div class="difference-grid">
+
+      <div class="difference-card negative">
+        <h3>IA general</h3>
+        <ul>
+          <li>Respuestas sin adaptación por edad</li>
+          <li>Sin enfoque educativo claro</li>
+          <li>Sin control parental real</li>
+          <li>Contenido impredecible</li>
+        </ul>
+      </div>
+
+      <div class="difference-card positive">
+        <h3>iakids</h3>
+        <ul>
+          <li>Lenguaje adaptado según edad</li>
+          <li>Guía paso a paso para aprender</li>
+          <li>Control parental transparente</li>
+          <li>Entorno seguro y consistente</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="difference-highlight">
+      Los niños no necesitan una IA “libre”.
+      Necesitan una IA diseñada para ellos.
+    </div>
+
+  </div>
+</section>
+
 <section class="how-clean" id="how-it-works">
 
   <div class="how-frame">
@@ -2995,6 +3610,189 @@ body{
           </div>
         </div>
       </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="conversation-section">
+  <div class="conversation-container">
+
+    <div class="conversation-badge">
+      EJEMPLO REAL
+    </div>
+
+    <h2>Así se siente aprender con iakids</h2>
+
+    <p class="conversation-intro">
+      Mira cómo responde iakids cuando un niño necesita ayuda.
+      Lenguaje claro, paso a paso y adaptado a su edad.
+    </p>
+
+    <div class="conversation-grid">
+
+      <!-- Chat Demo -->
+      <div class="chat-demo">
+
+        <div class="chat-bubble child">
+          ¿Me ayudas con fracciones?
+        </div>
+
+        <div class="chat-bubble ai">
+          ¡Claro! 😊 Vamos paso a paso.
+          <br><br>
+          Imagina que tienes una pizza con 8 porciones.
+          Si comes 4, ¿cuántas quedan?
+        </div>
+
+        <div class="chat-bubble child">
+          Quedan 4.
+        </div>
+
+        <div class="chat-bubble ai">
+          ¡Exacto! 🎉 Entonces 4 de 8 es lo mismo que 1/2.
+          ¿Quieres probar otro ejemplo?
+        </div>
+
+      </div>
+
+      <!-- Vimeo Video -->
+      <div class="video-demo">
+        <div class="video-wrapper">
+          <iframe
+            src="https://player.vimeo.com/video/1165908969"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <p class="video-caption">
+          Conversación real grabada dentro de la plataforma.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<section class="social-proof-section" id="social-proof">
+  <div class="social-proof-container">
+
+    <div class="social-proof-badge">
+      CONFIANZA REAL
+    </div>
+
+    <h2>Familias que ya confían en iakids</h2>
+
+    <p class="social-proof-intro">
+      Padres que buscan tranquilidad digital y aprendizaje guiado para sus hijos.
+    </p>
+
+    <div class="social-proof-grid">
+
+      <div class="social-card">
+        <div class="stars">★★★★★</div>
+        <p class="quote">
+          "Mi hijo ahora hace sus tareas sin frustrarse.
+          Me encanta poder ver cómo aprende."
+        </p>
+        <div class="author">
+          — Laura, mamá de Mateo (9)
+        </div>
+      </div>
+
+      <div class="social-card">
+        <div class="stars">★★★★★</div>
+        <p class="quote">
+          "Por fin una IA diseñada para niños.
+          Sin sorpresas y sin contenido extraño."
+        </p>
+        <div class="author">
+          — Diego, papá de Sofía (8)
+        </div>
+      </div>
+
+      <div class="social-card">
+        <div class="stars">★★★★★</div>
+        <p class="quote">
+          "Nos dio tranquilidad. Sabemos qué ve y cómo responde.
+          Eso para nosotros es clave."
+        </p>
+        <div class="author">
+          — Mariana, mamá de Lucas (10)
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<section class="smart-fear-section" id="smart-fear">
+  <div class="fear-container">
+
+    <div class="fear-badge">
+      TRANQUILIDAD DIGITAL
+    </div>
+
+    <h2>Internet no fue diseñado para niños.</h2>
+
+    <p class="fear-text">
+      Muchas herramientas de IA responden sin filtros reales por edad.
+      No siempre explican. No siempre guían.
+      Y no siempre sabes qué están viendo tus hijos.
+    </p>
+
+    <div class="fear-highlight">
+      ¿Dejarías a tu hijo hablar con cualquier adulto desconocido en internet?
+    </div>
+
+    <p class="fear-solution">
+      iakids fue creada específicamente para niños — con límites claros,
+      lenguaje adaptado y control parental real.
+    </p>
+
+  </div>
+</section>
+
+<section class="clarifier-section" id="clarifier">
+  <div class="clarifier-container">
+
+    <div class="clarifier-badge">
+      DIFERENCIA CLAVE
+    </div>
+
+    <h2>No es ChatGPT adaptado. Es una IA creada para niños.</h2>
+
+    <p class="clarifier-intro">
+      No tomamos una IA “general” y le pusimos filtros encima.
+      Diseñamos la experiencia desde cero pensando en niños y familias.
+    </p>
+
+    <div class="clarifier-grid">
+
+      <div class="clarifier-card">
+        <h4>IA general</h4>
+        <ul>
+          <li>Responde cualquier cosa</li>
+          <li>No guía paso a paso</li>
+          <li>No tiene enfoque educativo</li>
+          <li>Sin control parental real</li>
+        </ul>
+      </div>
+
+      <div class="clarifier-card highlight">
+        <h4>iakids</h4>
+        <ul>
+          <li>Lenguaje adaptado por edad</li>
+          <li>Guía educativa estructurada</li>
+          <li>Filtros consistentes</li>
+          <li>Entorno seguro y controlado</li>
+        </ul>
+      </div>
+
     </div>
 
   </div>
