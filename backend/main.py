@@ -237,7 +237,7 @@ def chat(
         )
 
         used = sub.data["messages_used"] if sub.data else 0
-        LIMIT = 150  # זמני לבדיקה
+        LIMIT = 20  # זמני לבדיקה
 
         print("SUBSCRIPTION MESSAGES USED:", used)
 
