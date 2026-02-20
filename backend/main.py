@@ -561,7 +561,7 @@ async def create_portal_session(authorization: str = Header(None)):
         raise HTTPException(status_code=500, detail="Missing LEMON_API_KEY")
 
     response = requests.post(
-        "https://api.lemonsqueezy.com/v1/customer_portal_urls",
+        "https://api.lemonsqueezy.com/v1/customer-portal-urls",
         headers={
             "Authorization": f"Bearer {LEMON_API_KEY}",
             "Accept": "application/json",
@@ -569,7 +569,7 @@ async def create_portal_session(authorization: str = Header(None)):
         },
         json={
             "data": {
-                "type": "customer_portal_urls",
+                "type": "customer-portal-urls",
                 "attributes": {
                     "customer_id": lemon_customer_id
                 }
