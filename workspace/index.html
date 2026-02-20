@@ -2309,7 +2309,7 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
       return;
     }
 
-    window.location.href = portalUrl;
+    window.open(portalUrl, "_blank", "noopener,noreferrer");
 
   } catch (err){
     console.error("Portal error:", err);
