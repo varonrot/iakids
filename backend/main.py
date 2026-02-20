@@ -587,3 +587,20 @@ async def create_portal_session(authorization: str = Header(None)):
     portal_url = response.json()["data"]["attributes"]["url"]
 
     return {"url": portal_url}
+
+@app.get("/api/test-lemon")
+def test_lemon():
+    import requests
+
+    response = requests.get(
+        "https://api.lemonsqueezy.com/v1/stores",
+        headers={
+            "Authorization": f"Bearer {LEMON_API_KEY}",
+            "Accept": "application/vnd.api+json"
+        }
+    )
+
+    return {
+        "status": response.status_code,
+        "body": response.text
+    }
