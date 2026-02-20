@@ -3742,14 +3742,9 @@ closeCookie.addEventListener("click", () => {
 </script>
 <script>
 async function redirectToCheckout(plan, variantUrl) {
+
   const { data } = await supabaseClient.auth.getSession();
-
-  if (!data.session) {
-    window.location.href = "/onboarding/cuenta";
-    return;
-  }
-
-  const userId = data.session.user.id;
+  const userId = data?.session?.user?.id || "";
 
   const url = `${variantUrl}?checkout[custom][plan]=${plan}&checkout[custom][user_id]=${userId}`;
 
@@ -3760,7 +3755,6 @@ async function redirectToCheckout(plan, variantUrl) {
 /* ===== MONTHLY ===== */
 document.getElementById("monthlyBtn").addEventListener("click", () => {
 
-  // 🔥 Facebook Event
   fbq('track', 'InitiateCheckout', {
     content_name: 'Plan Mensual',
     value: 9.99,
@@ -3777,7 +3771,6 @@ document.getElementById("monthlyBtn").addEventListener("click", () => {
 /* ===== ANNUAL ===== */
 document.getElementById("annualBtn").addEventListener("click", () => {
 
-  // 🔥 Facebook Event
   fbq('track', 'InitiateCheckout', {
     content_name: 'Plan Anual',
     value: 78,
