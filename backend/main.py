@@ -544,22 +544,20 @@ async def create_portal_session(authorization: str = Header(None)):
 
     user = user_res.user
 
-    # שליפת lemon_customer_id
     sub = (
         sb.table("subscriptions")
-        .select("lemon_customer_id")
+        .select("lemon_subscription_id")
         .eq("user_id", user.id)
         .single()
         .execute()
     )
 
-    if not sub.data or not sub.data.get("lemon_customer_id"):
-        raise HTTPException(status_code=404, detail="No Lemon customer")
+    if not sub.data or not sub.data.get("lemon_subscription_id"):
+        raise HTTPException(status_code=404, detail="No Lemon subscription")
 
-    lemon_customer_id = sub.data["lemon_customer_id"]
+    subscription_id = sub.data["lemon_subscription_id"]
 
     LEMON_API_KEY = os.getenv("LEMON_API_KEY")
-
     if not LEMON_API_KEY:
         raise HTTPException(status_code=500, detail="Missing LEMON_API_KEY")
 
@@ -579,20 +577,3 @@ async def create_portal_session(authorization: str = Header(None)):
     portal_url = data["data"]["attributes"]["urls"]["customer_portal"]
 
     return {"url": portal_url}
-
-@app.get("/api/test-lemon")
-def test_lemon():
-    import requests
-
-    response = requests.get(
-        "https://api.lemonsqueezy.com/v1/stores",
-        headers={
-            "Authorization": f"Bearer {LEMON_API_KEY}",
-            "Accept": "application/vnd.api+json"
-        }
-    )
-
-    return {
-        "status": response.status_code,
-        "body": response.text
-    }
