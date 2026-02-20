@@ -567,8 +567,8 @@ async def create_portal_session(authorization: str = Header(None)):
         "https://api.lemonsqueezy.com/v1/customer_portal_sessions",
         headers={
             "Authorization": f"Bearer {LEMON_API_KEY}",
-            "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Accept": "application/vnd.api+json",
+            "Content-Type": "application/vnd.api+json"
         },
         json={
             "data": {
