@@ -4907,13 +4907,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  setTimeout(function() {
-    if (typeof fbq !== 'undefined') {
-      fbq('trackCustom', 'TimeOnPage20');
-    }
-  }, 20000); // 20 שניות
-});
+setTimeout(function() {
+  if (window.fbq) {
+    fbq('trackCustom', 'TimeOnPage20');
+    console.log('TimeOnPage20 fired');
+  }
+}, 20000);
 </script>
 </body>
 </html>
