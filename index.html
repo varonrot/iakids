@@ -4629,63 +4629,88 @@ closeCookie.addEventListener("click", () => {
 });
 </script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
 
-async function handlePlanClick(plan, variantUrl) {
-  try {
-    const { data } = await supabaseClient.auth.getSession();
-    const session = data?.session;
-
-    if (!session) {
-      const redirectUrl = encodeURIComponent(`/onboarding?plan=${plan}`);
-      window.location.href = `/onboarding/cuenta?redirect=${redirectUrl}`;
-      return;
-    }
-
-    const userId = session.user.id;
-
-    const { data: kid, error } = await supabaseClient
-      .from("kids_profiles")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Kid profile check error:", error);
-      return;
-    }
-
-    if (!kid) {
-      window.location.href = `/create-profile?plan=${plan}`;
-      return;
-    }
-
-    const checkoutUrl =
-      `${variantUrl}?checkout[custom][plan]=${plan}` +
-      `&checkout[custom][user_id]=${userId}`;
-
-    window.location.href = checkoutUrl;
-
-  } catch (err) {
-    console.error("Checkout error:", err);
+  // ✅ helper: safe redirect with proper encoding
+  function go(url){
+    window.location.href = url;
   }
-}
 
-/* ===== MONTHLY ===== */
-document.getElementById("monthlyBtn")?.addEventListener("click", () => {
-  handlePlanClick(
-    "mensual",
-    "https://iakidsapp.lemonsqueezy.com/checkout/buy/241506e4-493f-470c-8bd4-be016e3c8383"
-  );
-});
+  async function handlePlanClick(plan, variantUrl) {
+    try {
+      // ✅ must exist
+      if (typeof supabaseClient === "undefined") {
+        console.error("supabaseClient is not defined");
+        return;
+      }
 
-/* ===== ANNUAL ===== */
-document.getElementById("annualBtn")?.addEventListener("click", () => {
-  handlePlanClick(
-    "anual",
-    "https://iakidsapp.lemonsqueezy.com/checkout/buy/59997f11-13af-4f1c-8d35-57f83b91f80f"
-  );
-});
+      const { data, error: sessionErr } = await supabaseClient.auth.getSession();
+      if (sessionErr) {
+        console.error("Session error:", sessionErr);
+      }
+
+      const session = data?.session;
+
+      // ✅ if not logged in → go to onboarding + keep plan
+      if (!session) {
+        const redirectUrl = encodeURIComponent(`/onboarding?plan=${plan}`);
+        go(`/onboarding/cuenta?redirect=${redirectUrl}`);
+        return;
+      }
+
+      const userId = session.user.id;
+
+      // ✅ FIX: parent can have multiple kids → do NOT use maybeSingle()
+      const { data: kids, error } = await supabaseClient
+        .from("kids_profiles")
+        .select("id")
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Kid profile check error:", error);
+        return;
+      }
+
+      // ✅ if no kids → create profile
+      if (!kids || kids.length === 0) {
+        go(`/create-profile?plan=${plan}`);
+        return;
+      }
+
+      // ✅ proceed to LemonSqueezy checkout
+      const checkoutUrl =
+        `${variantUrl}?checkout[custom][plan]=${encodeURIComponent(plan)}` +
+        `&checkout[custom][user_id]=${encodeURIComponent(userId)}`;
+
+      go(checkoutUrl);
+
+    } catch (err) {
+      console.error("Checkout error:", err);
+    }
+  }
+
+  // ✅ bind buttons
+  const monthlyBtn = document.getElementById("monthlyBtn");
+  const annualBtn  = document.getElementById("annualBtn");
+
+  if (!monthlyBtn) console.warn("monthlyBtn not found");
+  if (!annualBtn)  console.warn("annualBtn not found");
+
+  monthlyBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    handlePlanClick(
+      "mensual",
+      "https://iakidsapp.lemonsqueezy.com/checkout/buy/241506e4-493f-470c-8bd4-be016e3c8383"
+    );
+  });
+
+  annualBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    handlePlanClick(
+      "anual",
+      "https://iakidsapp.lemonsqueezy.com/checkout/buy/59997f11-13af-4f1c-8d35-57f83b91f80f"
+    );
+  });
 
 });
 </script>
