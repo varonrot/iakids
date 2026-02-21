@@ -4635,10 +4635,14 @@ async function handlePlanClick(plan, variantUrl) {
     const session = data?.session;
 
     // If user is not logged in
-    if (!session) {
-      window.location.href = `/onboarding?plan=${plan}`;
-      return;
-    }
+if (!session) {
+  const redirectUrl = encodeURIComponent(
+    `/onboarding?plan=${plan}`
+  );
+
+  window.location.href = `/onboarding/cuenta?redirect=${redirectUrl}`;
+  return;
+}
 
     const userId = session.user.id;
 
