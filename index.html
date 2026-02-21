@@ -4906,6 +4906,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 </script>
-
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  setTimeout(function() {
+    if (typeof fbq !== 'undefined') {
+      fbq('trackCustom', 'TimeOnPage20');
+    }
+  }, 20000); // 20 שניות
+});
+</script>
 </body>
 </html>
