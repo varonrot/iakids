@@ -3470,7 +3470,137 @@ body{
   font-size: 14px;
   opacity: 0.85;
 }
+/* ===== CONVERSATION SECTION ===== */
 
+.conversation-section {
+  padding: 110px 20px;
+  background: #fffaf5;
+}
+
+.conversation-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.conversation-badge {
+  display: inline-block;
+  padding: 8px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  background: #eaf2ff;
+  color: #2f6bff;
+  border-radius: 30px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.conversation-section h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+.conversation-intro {
+  max-width: 700px;
+  margin: 0 auto 60px;
+  font-size: 18px;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+/* Grid */
+
+.conversation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  align-items: center;
+}
+
+/* Chat */
+
+.chat-demo {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+  text-align: left;
+}
+
+.chat-bubble {
+  max-width: 85%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  margin-bottom: 15px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.chat-bubble.child {
+  background: #f1f5f9;
+}
+
+.chat-bubble.ai {
+  background: #eaf2ff;
+  margin-left: auto;
+}
+
+/* Video */
+
+.video-demo {
+  text-align: center;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px rgba(47,107,255,0.12);
+  border: 2px solid #2f6bff;
+}
+
+.video-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-caption {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .conversation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-section h2 {
+    font-size: 28px;
+  }
+
+  .chat-demo {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .conversation-section {
+    padding: 80px 16px;
+  }
+
+  .conversation-section h2 {
+    font-size: 24px;
+  }
+}
 
 </style>
   <script type="application/ld+json">
@@ -3815,6 +3945,68 @@ body{
           <li>Filtros consistentes</li>
           <li>Entorno seguro y controlado</li>
         </ul>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<section class="conversation-section">
+  <div class="conversation-container">
+
+    <div class="conversation-badge">
+      EJEMPLO REAL
+    </div>
+
+    <h2>Así se siente aprender con iakids</h2>
+
+    <p class="conversation-intro">
+      Mira cómo responde iakids cuando un niño necesita ayuda.
+      Lenguaje claro, paso a paso y adaptado a su edad.
+    </p>
+
+    <div class="conversation-grid">
+
+      <!-- Chat Demo -->
+      <div class="chat-demo">
+
+        <div class="chat-bubble child">
+          ¿Me ayudas con fracciones?
+        </div>
+
+        <div class="chat-bubble ai">
+          ¡Claro! 😊 Vamos paso a paso.
+          <br><br>
+          Imagina que tienes una pizza con 8 porciones.
+          Si comes 4, ¿cuántas quedan?
+        </div>
+
+        <div class="chat-bubble child">
+          Quedan 4.
+        </div>
+
+        <div class="chat-bubble ai">
+          ¡Exacto! 🎉 Entonces 4 de 8 es lo mismo que 1/2.
+          ¿Quieres probar otro ejemplo?
+        </div>
+
+      </div>
+
+      <!-- Vimeo Video -->
+      <div class="video-demo">
+        <div class="video-wrapper">
+          <iframe
+            src="https://player.vimeo.com/video/1165908969"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <p class="video-caption">
+          Conversación real grabada dentro de la plataforma.
+        </p>
       </div>
 
     </div>
