@@ -4629,43 +4629,80 @@ closeCookie.addEventListener("click", () => {
 });
 </script>
 <script>
-async function redirectToCheckout(plan, variantUrl) {
+async function handlePlanClick(plan, variantUrl) {
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const session = data?.session;
 
-  const { data } = await supabaseClient.auth.getSession();
-  const userId = data?.session?.user?.id || "";
+    // If user is not logged in
+    if (!session) {
+      window.location.href = `/onboarding?plan=${plan}`;
+      return;
+    }
 
-  const url = `${variantUrl}?checkout[custom][plan]=${plan}&checkout[custom][user_id]=${userId}`;
+    const userId = session.user.id;
 
-  window.location.href = url;
+    // Check if kid profile exists
+    const { data: kid, error } = await supabaseClient
+      .from("kids_profiles")
+      .select("id")
+      .eq("parent_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Kid profile check error:", error);
+      return;
+    }
+
+    // If no kid profile
+    if (!kid) {
+      window.location.href = `/create-profile?plan=${plan}`;
+      return;
+    }
+
+    // All good → proceed to checkout
+    const checkoutUrl =
+      `${variantUrl}?checkout[custom][plan]=${plan}` +
+      `&checkout[custom][user_id]=${userId}`;
+
+    window.location.href = checkoutUrl;
+
+  } catch (err) {
+    console.error("Checkout error:", err);
+  }
 }
 
 
-/* ===== MONTHLY ===== */
-document.getElementById("monthlyBtn").addEventListener("click", () => {
+/* ===== MONTHLY PLAN ===== */
+document.getElementById("monthlyBtn")?.addEventListener("click", () => {
 
-  fbq('track', 'InitiateCheckout', {
-    content_name: 'Plan Mensual',
-    value: 9.99,
-    currency: 'USD'
-  });
+  if (typeof fbq !== "undefined") {
+    fbq('track', 'InitiateCheckout', {
+      content_name: 'Plan Mensual',
+      value: 9.99,
+      currency: 'USD'
+    });
+  }
 
-  redirectToCheckout(
+  handlePlanClick(
     "mensual",
     "https://iakidsapp.lemonsqueezy.com/checkout/buy/241506e4-493f-470c-8bd4-be016e3c8383"
   );
 });
 
 
-/* ===== ANNUAL ===== */
-document.getElementById("annualBtn").addEventListener("click", () => {
+/* ===== ANNUAL PLAN ===== */
+document.getElementById("annualBtn")?.addEventListener("click", () => {
 
-  fbq('track', 'InitiateCheckout', {
-    content_name: 'Plan Anual',
-    value: 78,
-    currency: 'USD'
-  });
+  if (typeof fbq !== "undefined") {
+    fbq('track', 'InitiateCheckout', {
+      content_name: 'Plan Anual',
+      value: 78,
+      currency: 'USD'
+    });
+  }
 
-  redirectToCheckout(
+  handlePlanClick(
     "anual",
     "https://iakidsapp.lemonsqueezy.com/checkout/buy/59997f11-13af-4f1c-8d35-57f83b91f80f"
   );
