@@ -4647,11 +4647,11 @@ if (!session) {
     const userId = session.user.id;
 
     // Check if kid profile exists
-    const { data: kid, error } = await supabaseClient
-      .from("kids_profiles")
-      .select("id")
-      .eq("parent_id", userId)
-      .maybeSingle();
+const { data: kid, error } = await supabaseClient
+  .from("kids_profiles")
+  .select("id")
+  .eq("user_id", userId)
+  .maybeSingle();
 
     if (error) {
       console.error("Kid profile check error:", error);
