@@ -4629,42 +4629,37 @@ closeCookie.addEventListener("click", () => {
 });
 </script>
 <script>
+document.addEventListener("DOMContentLoaded", function () {
+
 async function handlePlanClick(plan, variantUrl) {
   try {
     const { data } = await supabaseClient.auth.getSession();
     const session = data?.session;
 
-    // If user is not logged in
-if (!session) {
-  const redirectUrl = encodeURIComponent(
-    `/onboarding?plan=${plan}`
-  );
-
-  window.location.href = `/onboarding/cuenta?redirect=${redirectUrl}`;
-  return;
-}
+    if (!session) {
+      const redirectUrl = encodeURIComponent(`/onboarding?plan=${plan}`);
+      window.location.href = `/onboarding/cuenta?redirect=${redirectUrl}`;
+      return;
+    }
 
     const userId = session.user.id;
 
-    // Check if kid profile exists
-const { data: kid, error } = await supabaseClient
-  .from("kids_profiles")
-  .select("id")
-  .eq("user_id", userId)
-  .maybeSingle();
+    const { data: kid, error } = await supabaseClient
+      .from("kids_profiles")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
 
     if (error) {
       console.error("Kid profile check error:", error);
       return;
     }
 
-    // If no kid profile
     if (!kid) {
       window.location.href = `/create-profile?plan=${plan}`;
       return;
     }
 
-    // All good → proceed to checkout
     const checkoutUrl =
       `${variantUrl}?checkout[custom][plan]=${plan}` +
       `&checkout[custom][user_id]=${userId}`;
@@ -4676,40 +4671,22 @@ const { data: kid, error } = await supabaseClient
   }
 }
 
-
-/* ===== MONTHLY PLAN ===== */
+/* ===== MONTHLY ===== */
 document.getElementById("monthlyBtn")?.addEventListener("click", () => {
-
-  if (typeof fbq !== "undefined") {
-    fbq('track', 'InitiateCheckout', {
-      content_name: 'Plan Mensual',
-      value: 9.99,
-      currency: 'USD'
-    });
-  }
-
   handlePlanClick(
     "mensual",
     "https://iakidsapp.lemonsqueezy.com/checkout/buy/241506e4-493f-470c-8bd4-be016e3c8383"
   );
 });
 
-
-/* ===== ANNUAL PLAN ===== */
+/* ===== ANNUAL ===== */
 document.getElementById("annualBtn")?.addEventListener("click", () => {
-
-  if (typeof fbq !== "undefined") {
-    fbq('track', 'InitiateCheckout', {
-      content_name: 'Plan Anual',
-      value: 78,
-      currency: 'USD'
-    });
-  }
-
   handlePlanClick(
     "anual",
     "https://iakidsapp.lemonsqueezy.com/checkout/buy/59997f11-13af-4f1c-8d35-57f83b91f80f"
   );
+});
+
 });
 </script>
 
