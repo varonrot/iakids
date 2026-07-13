@@ -30,7 +30,7 @@
     body{
       background:
         linear-gradient(rgba(234,247,255,.18),rgba(246,240,255,.28)),
-        url("/assets/backgrounds/student-dashboard.webp") center/cover fixed no-repeat;
+        url("/assets/backgrounds/student-dashboard-background.webp") center center / cover fixed no-repeat;
       overflow-x:hidden;
     }
 
@@ -154,7 +154,40 @@
       display:flex;
       flex-direction:column;
       gap:14px;
-      padding-top:160px;
+      padding-top:0;
+    }
+
+    .student-showcase{
+      min-height:300px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      position:relative;
+      overflow:visible;
+      pointer-events:none;
+    }
+
+    .student-showcase img{
+      display:block;
+      width:min(100%,290px);
+      max-height:310px;
+      object-fit:contain;
+      object-position:center bottom;
+      filter:drop-shadow(0 18px 26px rgba(43,60,105,.20));
+    }
+
+    .student-showcase::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      bottom:4px;
+      width:76%;
+      height:24px;
+      transform:translateX(-50%);
+      border-radius:50%;
+      background:rgba(64,82,124,.12);
+      filter:blur(12px);
+      z-index:-1;
     }
 
     .profile-card,
@@ -704,8 +737,13 @@
         grid-template-columns:repeat(3,1fr);
       }
 
-      .sidebar{
-        padding-top:40px;
+      .student-showcase{
+        min-height:240px;
+      }
+
+      .student-showcase img{
+        width:min(100%,235px);
+        max-height:250px;
       }
     }
 
@@ -734,6 +772,15 @@
       .sidebar{
         padding-top:0;
         order:2;
+      }
+
+      .student-showcase{
+        min-height:220px;
+      }
+
+      .student-showcase img{
+        width:min(100%,220px);
+        max-height:230px;
       }
 
       .content{
@@ -804,6 +851,15 @@
         width:100%;
         padding-bottom:130px;
       }
+
+      .student-showcase{
+        min-height:190px;
+      }
+
+      .student-showcase img{
+        width:min(100%,190px);
+        max-height:200px;
+      }
     }
   </style>
 </head>
@@ -838,10 +894,13 @@
 
       <aside class="sidebar">
 
+        <div class="student-showcase" aria-hidden="true">
+          <img src="/assets/characters/student-boy-large.webp" alt="">
+        </div>
+
         <section class="profile-card glass">
           <div class="profile-head">
-            <img class="avatar" src="../../assets/avatars/evyatar.webp" alt="&#1488;&#1489;&#1497;&#1514;&#1512;"
-                 onerror="this.style.visibility='hidden'">
+            <img class="avatar" src="/assets/avatars/evyatar.webp" alt="&#1488;&#1489;&#1497;&#1514;&#1512;">
             <div>
               <div class="profile-name">&#1488;&#1489;&#1497;&#1514;&#1512;</div>
               <div class="profile-class">&#1499;&#1497;&#1514;&#1492; &#1493;&#1523;</div>
@@ -912,35 +971,35 @@
         <div class="action-cards">
 
           <article class="action-card blue">
-            <img class="card-image" src="../../assets/cards/homework-camera.webp" alt="Homework camera">
+            <img class="card-image" src="/assets/cards/homework-camera.webp" alt="Homework camera">
             <h3>&#1513;&#1497;&#1506;&#1493;&#1512;&#1497; &#1489;&#1497;&#1514;</h3>
             <p>&#1510;&#1500;&#1501; &#1488;&#1514; &#1492;&#1491;&#1507; &#1493;&#1488;&#1506;&#1494;&#1493;&#1512; &#1500;&#1498; &#1500;&#1508;&#1514;&#1493;&#1512; &#1513;&#1500;&#1489; &#1488;&#1495;&#1512;&#1497; &#1513;&#1500;&#1489;</p>
             <button>📷 &#1510;&#1500;&#1501; &#1506;&#1499;&#1513;&#1497;&#1493;</button>
           </article>
 
           <article class="action-card green">
-            <img class="card-image" src="../../assets/cards/exam-book.webp" alt="Exam book">
+            <img class="card-image" src="/assets/cards/exam-book.webp" alt="Exam book">
             <h3>&#1492;&#1499;&#1504;&#1492; &#1500;&#1502;&#1489;&#1495;&#1503;</h3>
             <p>&#1505;&#1497;&#1499;&#1493;&#1502;&#1497;&#1501;, &#1513;&#1488;&#1500;&#1493;&#1514; &#1493;&#1499;&#1512;&#1496;&#1497;&#1505;&#1497;&#1493;&#1514; &#1495;&#1499;&#1502;&#1493;&#1514;</p>
             <button>📗 &#1492;&#1514;&#1495;&#1500; &#1492;&#1499;&#1504;&#1492;</button>
           </article>
 
           <article class="action-card purple">
-            <img class="card-image" src="../../assets/cards/practice-pencil.webp" alt="Practice pencil">
+            <img class="card-image" src="/assets/cards/practice-pencil.webp" alt="Practice pencil">
             <h3>&#1514;&#1512;&#1490;&#1493;&#1500;</h3>
             <p>&#1514;&#1512;&#1490;&#1497;&#1500;&#1497;&#1501; &#1502;&#1493;&#1514;&#1488;&#1502;&#1497;&#1501; &#1500;&#1498; &#1500;&#1499;&#1500; &#1504;&#1493;&#1513;&#1488;</p>
             <button>&#1489;&#1495;&#1512; &#1504;&#1493;&#1513;&#1488; ◼</button>
           </article>
 
           <article class="action-card orange">
-            <img class="card-image" src="../../assets/cards/reading-headphones.webp" alt="Reading headphones">
+            <img class="card-image" src="/assets/cards/reading-headphones.webp" alt="Reading headphones">
             <h3>&#1511;&#1512;&#1497;&#1488;&#1492;</h3>
             <p>&#1511;&#1512;&#1488; &#1489;&#1511;&#1493;&#1500; &#1493;&#1488;&#1513;&#1508;&#1512; &#1500;&#1498; &#1488;&#1514; &#1492;&#1513;&#1496;&#1507;</p>
             <button>🎙 &#1492;&#1514;&#1495;&#1500; &#1511;&#1512;&#1497;&#1488;&#1492;</button>
           </article>
 
           <article class="action-card cyan">
-            <img class="card-image" src="../../assets/cards/learning-game.webp" alt="Learning game controller">
+            <img class="card-image" src="/assets/cards/learning-game.webp" alt="Learning game controller">
             <h3>&#1502;&#1513;&#1495;&#1511;&#1497; &#1500;&#1497;&#1502;&#1493;&#1491;</h3>
             <p>&#1500;&#1493;&#1502;&#1491;&#1497;&#1501; &#1502;&#1502;&#1513;&#1495;&#1511;&#1497;&#1501; &#1493;&#1502;&#1512;&#1493;&#1493;&#1497;&#1495;&#1497;&#1501; &#1499;&#1493;&#1499;&#1489;&#1497;&#1501;</p>
             <button>🎮 &#1513;&#1495;&#1511; &#1506;&#1499;&#1513;&#1497;&#1493;</button>
@@ -1008,7 +1067,7 @@
                 <span>&#1500;&#1502;&#1491; 5 &#1502;&#1497;&#1500;&#1497;&#1501; &#1495;&#1491;&#1513;&#1493;&#1514;</span>
               </div>
             </div>
-            <img class="goal-image" src="../../assets/illustrations/goals-target.webp" alt="Goals target">
+            <img class="goal-image" src="/assets/illustrations/goals-target.webp" alt="Goals target">
           </section>
 
         </div>
@@ -1049,7 +1108,7 @@
   </div>
 
   <div class="robot-wrap">
-    <img class="robot-image" src="../../assets/characters/learning-robot.webp" alt="Learning robot">
+    <img class="robot-image" src="/assets/characters/learning-robot.webp" alt="Learning robot">
     <div class="robot-bubble">&#1499;&#1500; &#1497;&#1493;&#1501; &#1500;&#1502;&#1497;&#1491;&#1492; &#1492;&#1493;&#1488; &#1510;&#1506;&#1491; &#1511;&#1491;&#1497;&#1502;&#1492; &#1500;&#1506;&#1489;&#1512; &#1492;&#1510;&#1500;&#1495;&#1492;! ⭐</div>
   </div>
 
