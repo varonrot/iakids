@@ -4,129 +4,1075 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>פלטפורמת למידה לילדים</title>
+
   <style>
     :root{
-      --navy:#183467;
-      --muted:#6175a5;
+      --navy:#203865;
+      --muted:#6176a5;
       --glass:rgba(255,255,255,.72);
-      --line:rgba(35,69,130,.12);
-      --shadow:0 18px 50px rgba(37,81,147,.18);
+      --glass-strong:rgba(255,255,255,.88);
+      --border:rgba(255,255,255,.82);
+      --shadow:0 18px 45px rgba(56,78,126,.18);
+      --radius:28px;
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;font-family:Arial,"Noto Sans Hebrew",sans-serif;color:var(--navy)}
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--navy);
+    }
+
     body{
       background:
-        radial-gradient(circle at 18% 14%,rgba(255,255,255,.95) 0 7%,transparent 20%),
-        radial-gradient(circle at 66% 8%,rgba(255,255,255,.95) 0 8%,transparent 22%),
-        linear-gradient(180deg,#82d5ff 0%,#c6ecff 35%,#f7dcc7 100%);
+        linear-gradient(rgba(234,247,255,.18),rgba(246,240,255,.28)),
+        url("images/background-boy.webp") center/cover fixed no-repeat;
       overflow-x:hidden;
     }
-    body:before,body:after{
-      content:"";position:fixed;inset:auto;z-index:-1;filter:blur(1px);opacity:.55
+
+    button{
+      font:inherit;
     }
-    body:before{width:420px;height:420px;border-radius:50%;background:#fff;top:80px;right:-120px;box-shadow:-560px 30px 0 60px #fff,-980px 110px 0 30px #fff}
-    body:after{width:100%;height:280px;left:0;bottom:0;background:linear-gradient(180deg,transparent,rgba(213,183,156,.45))}
 
-    .app{max-width:1540px;margin:auto;padding:18px 28px 36px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;direction:ltr;margin-bottom:26px}
-    .top-actions{display:flex;gap:14px;align-items:center}
-    .pill{height:54px;padding:0 18px;border-radius:28px;background:var(--glass);backdrop-filter:blur(14px);box-shadow:0 8px 20px rgba(44,88,143,.12);display:flex;align-items:center;gap:10px;font-size:22px;font-weight:800}
-    .circle-pill{width:54px;padding:0;justify-content:center;position:relative}
-    .badge{position:absolute;top:-4px;right:-2px;background:#ff4b4b;color:#fff;border:3px solid #fff;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px}
-    .parents{direction:rtl}
+    .page{
+      width:min(1480px,96vw);
+      margin:auto;
+      padding:16px 0 24px;
+    }
 
-    .hero{display:grid;grid-template-columns:310px 1fr;gap:30px;align-items:start}
-    .side{display:flex;flex-direction:column;gap:16px}
-    .character{height:330px;position:relative;display:flex;justify-content:center;align-items:flex-end}
-    .boy{font-size:188px;line-height:1;filter:drop-shadow(0 16px 18px rgba(34,61,103,.18))}
-    .bubble{position:absolute;top:6px;right:0;background:rgba(255,255,255,.88);padding:18px 20px;border-radius:34px;transform:rotate(-4deg);font-size:22px;font-weight:800;box-shadow:var(--shadow)}
-    .profile-card,.panel{background:var(--glass);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.55);border-radius:26px;box-shadow:var(--shadow)}
-    .profile-card{padding:18px}
-    .profile-top{display:flex;gap:12px;align-items:center}
-    .avatar{width:54px;height:54px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:34px}
-    .profile-top h3{margin:0;font-size:22px}.profile-top p{margin:4px 0 0;color:var(--muted)}
-    .level{margin-top:15px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
-    .level-star{width:54px;height:54px;border-radius:20px;background:linear-gradient(145deg,#ffe081,#ffb300);display:grid;place-items:center;font-size:28px;color:#fff;font-weight:900}
-    .progress{height:9px;border-radius:10px;background:#d7c8ef;overflow:hidden}.progress span{display:block;height:100%;width:64%;background:linear-gradient(90deg,#407cff,#a575ef)}
-    .small-stat{font-size:13px;color:var(--muted);margin-top:6px}
+    .glass{
+      background:var(--glass);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
 
-    .weekly{padding:16px}.weekly h3,.continue h3{margin:0 0 14px;font-size:18px}.weekly-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.week-item{text-align:center;background:rgba(255,255,255,.36);border-radius:20px;padding:12px 5px}.week-item .ico{font-size:26px}.week-item b{display:block;font-size:18px;margin-top:8px}.week-item span{font-size:12px;color:var(--muted)}
-    .continue{padding:18px}.continue-card{display:grid;grid-template-columns:68px 1fr 46px;gap:12px;align-items:center}.book-icon{width:68px;height:86px;border-radius:16px;background:linear-gradient(180deg,#5fd9f1,#1e9de0);display:grid;place-items:center;font-size:37px}.mini-progress{height:8px;background:#dce5ec;border-radius:10px;overflow:hidden;margin-top:12px}.mini-progress span{display:block;width:60%;height:100%;background:#28c286}.arrow{width:46px;height:46px;border-radius:50%;background:white;display:grid;place-items:center;font-size:28px}
+    /* TOP BAR */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      direction:ltr;
+    }
 
-    .main{min-width:0}.headline{text-align:center;margin-bottom:32px}.headline h1{font-size:52px;margin:0 0 10px;font-weight:900;text-shadow:0 3px 0 rgba(255,255,255,.5)}.headline p{margin:0;color:var(--muted);font-size:22px}
-    .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;direction:rtl}
-    .action-card{min-height:355px;border-radius:28px;padding:30px 20px 20px;color:#fff;text-align:center;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 18px 25px rgba(30,70,130,.18),inset 0 1px 0 rgba(255,255,255,.45);position:relative;overflow:hidden}
-    .action-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0,rgba(255,255,255,.45),transparent 42%)}
-    .action-card>*{position:relative}.card-icon{font-size:78px;filter:drop-shadow(0 9px 6px rgba(20,30,80,.18))}.action-card h2{font-size:28px;margin:6px 0 10px}.action-card p{font-size:17px;line-height:1.55;margin:0;min-height:55px}.card-btn{height:54px;border:0;border-radius:27px;background:rgba(255,255,255,.88);font-weight:900;font-size:17px;padding:0 18px;color:inherit;box-shadow:0 10px 18px rgba(45,44,100,.15);cursor:pointer}.blue{background:linear-gradient(180deg,#53a8ff,#4d73e8)}.green{background:linear-gradient(180deg,#9bdc80,#56b77d)}.purple{background:linear-gradient(180deg,#b267f3,#7650e4)}.orange{background:linear-gradient(180deg,#ffc666,#f39a49)}.cyan{background:linear-gradient(180deg,#69d5df,#38aec2)}
+    .topbar-left,
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
 
-    .dashboard{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:20px}.panel{padding:18px}.panel-title{font-size:20px;font-weight:900;margin-bottom:12px}.progress-panel{display:grid;grid-template-columns:1fr 140px;gap:20px;align-items:center}.chart{height:110px;position:relative;border-bottom:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0 27px,var(--line) 28px)}
-    .chart svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.chart-labels{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:12px}.circle-progress{width:116px;height:116px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#2c8ff0 0 87%,#dce9f4 87%);position:relative}.circle-progress:after{content:"";position:absolute;width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,.92)}.circle-progress b{position:relative;z-index:1;font-size:28px}
-    .goals{display:grid;grid-template-columns:1fr 130px;gap:8px}.goal-list{display:flex;flex-direction:column;gap:12px}.goal{display:flex;align-items:center;justify-content:space-between;font-size:14px}.check{color:#19af6f;font-size:20px}.target{font-size:82px;display:grid;place-items:center}.goals-btn{margin-top:8px;border:0;border-radius:18px;padding:10px 18px;background:rgba(255,255,255,.72);color:#3154b8;font-weight:800}
-    .recent{grid-column:1/-1}.recent-list{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.recent-item{background:rgba(255,255,255,.66);border-radius:22px;padding:14px;display:flex;align-items:center;gap:12px}.recent-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:27px;background:#e8f5ff}.recent-item b{display:block}.recent-item span{font-size:12px;color:var(--muted)}
-    .bot{position:fixed;left:30px;bottom:20px;display:flex;align-items:flex-end;z-index:5}.bot-bubble{background:#fff;padding:13px 18px;border-radius:20px;box-shadow:var(--shadow);width:180px;font-size:14px;transform:rotate(-5deg)}.robot{font-size:94px;filter:drop-shadow(0 12px 12px rgba(27,60,100,.2))}
+    .pill{
+      height:56px;
+      padding:0 20px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      font-size:22px;
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(255,255,255,.9);
+      box-shadow:0 10px 25px rgba(65,92,140,.13);
+      backdrop-filter:blur(12px);
+    }
 
-    @media (max-width:1200px){.hero{grid-template-columns:240px 1fr}.cards{grid-template-columns:repeat(3,1fr)}.action-card{min-height:320px}.side{order:2}.main{order:1}.bot{display:none}}
-    @media (max-width:850px){.app{padding:12px}.topbar{gap:8px}.pill{height:44px;font-size:16px;padding:0 12px}.circle-pill{width:44px}.hero{display:block}.side{display:none}.headline h1{font-size:38px}.headline p{font-size:18px}.cards{grid-template-columns:repeat(2,1fr)}.dashboard{grid-template-columns:1fr}.recent{grid-column:auto}.recent-list{grid-template-columns:1fr 1fr}.progress-panel{grid-template-columns:1fr 110px}}
-    @media (max-width:520px){.parents{display:none}.cards{grid-template-columns:1fr}.action-card{min-height:300px}.recent-list{grid-template-columns:1fr}.dashboard{gap:12px}.progress-panel{grid-template-columns:1fr}.circle-progress{margin:auto}.headline{margin-top:10px}}
+    .pill.small{
+      width:56px;
+      padding:0;
+      justify-content:center;
+      position:relative;
+    }
+
+    .notification-badge{
+      position:absolute;
+      top:-4px;
+      right:-4px;
+      background:#f04f4f;
+      color:white;
+      border:3px solid white;
+      border-radius:999px;
+      width:27px;
+      height:27px;
+      display:grid;
+      place-items:center;
+      font-size:14px;
+    }
+
+    .parents-btn{
+      border:0;
+      cursor:pointer;
+    }
+
+    /* HERO */
+    .hero{
+      min-height:175px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      text-align:center;
+      padding-top:35px;
+      position:relative;
+    }
+
+    .hero h1{
+      margin:0;
+      font-size:clamp(40px,4.2vw,70px);
+      line-height:1;
+      letter-spacing:-1px;
+      color:#1f3561;
+      text-shadow:0 3px 0 rgba(255,255,255,.65);
+    }
+
+    .hero p{
+      margin:18px 0 0;
+      font-size:24px;
+      font-weight:700;
+      color:#667bac;
+    }
+
+    /* MAIN LAYOUT */
+    .layout{
+      display:grid;
+      grid-template-columns:300px minmax(0,1fr);
+      gap:28px;
+      direction:ltr;
+    }
+
+    .sidebar,
+    .content{
+      direction:rtl;
+    }
+
+    .sidebar{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      padding-top:160px;
+    }
+
+    .profile-card,
+    .weekly-card,
+    .continue-card,
+    .progress-card,
+    .goals-card,
+    .recent-card{
+      border-radius:var(--radius);
+    }
+
+    .profile-card{
+      padding:18px 18px 16px;
+    }
+
+    .profile-head{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .avatar{
+      width:62px;
+      height:62px;
+      border-radius:50%;
+      object-fit:cover;
+      background:linear-gradient(135deg,#ffdca6,#8ed5ff);
+      border:4px solid rgba(255,255,255,.8);
+    }
+
+    .profile-name{
+      font-size:26px;
+      font-weight:900;
+    }
+
+    .profile-class{
+      font-size:17px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    .level-row{
+      margin-top:15px;
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      gap:10px;
+      align-items:center;
+    }
+
+    .star-level{
+      width:54px;
+      height:54px;
+      display:grid;
+      place-items:center;
+      font-size:23px;
+      font-weight:900;
+      background:linear-gradient(145deg,#ffe16e,#ffad25);
+      clip-path:polygon(50% 0,61% 34%,98% 36%,69% 58%,79% 94%,50% 72%,21% 94%,31% 58%,2% 36%,39% 34%);
+      color:white;
+      filter:drop-shadow(0 5px 8px rgba(255,158,20,.25));
+    }
+
+    .progress-line{
+      height:10px;
+      border-radius:999px;
+      background:#d9d5ff;
+      overflow:hidden;
+    }
+
+    .progress-line span{
+      display:block;
+      width:65%;
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg,#3487ff,#ae70ed);
+    }
+
+    .gift{
+      font-size:35px;
+    }
+
+    .weekly-card,
+    .continue-card{
+      padding:16px;
+    }
+
+    .section-title{
+      margin:0 0 14px;
+      font-size:20px;
+      font-weight:900;
+    }
+
+    .weekly-stats{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+    }
+
+    .mini-stat{
+      text-align:center;
+      border-radius:24px;
+      padding:13px 6px;
+      background:rgba(255,255,255,.47);
+      border:1px solid rgba(255,255,255,.9);
+    }
+
+    .mini-stat .icon{
+      font-size:30px;
+    }
+
+    .mini-stat strong{
+      display:block;
+      font-size:20px;
+      margin-top:5px;
+    }
+
+    .mini-stat small{
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .continue-item{
+      display:grid;
+      grid-template-columns:72px 1fr 44px;
+      align-items:center;
+      gap:12px;
+    }
+
+    .continue-icon{
+      width:72px;
+      height:96px;
+      border-radius:16px;
+      background:linear-gradient(180deg,#57d4f5,#2188d9);
+      display:grid;
+      place-items:center;
+      font-size:38px;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+    }
+
+    .continue-text strong{
+      display:block;
+      font-size:19px;
+      margin-bottom:5px;
+    }
+
+    .continue-text span{
+      color:var(--muted);
+    }
+
+    .continue-progress{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:14px;
+    }
+
+    .continue-progress .bar{
+      height:9px;
+      flex:1;
+      border-radius:999px;
+      background:#d9e2e9;
+      overflow:hidden;
+    }
+
+    .continue-progress .bar span{
+      display:block;
+      width:60%;
+      height:100%;
+      background:#2ab879;
+      border-radius:inherit;
+    }
+
+    .circle-btn{
+      width:44px;
+      height:44px;
+      border:0;
+      border-radius:50%;
+      background:white;
+      color:#4970bc;
+      font-size:28px;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(50,70,120,.13);
+    }
+
+    /* CONTENT */
+    .content{
+      display:flex;
+      flex-direction:column;
+      gap:22px;
+    }
+
+    .action-cards{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(155px,1fr));
+      gap:16px;
+    }
+
+    .action-card{
+      min-height:355px;
+      padding:24px 18px 20px;
+      border-radius:28px;
+      color:white;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.75);
+      box-shadow:0 18px 30px rgba(65,80,140,.2);
+      transition:.25s ease;
+    }
+
+    .action-card:hover{
+      transform:translateY(-6px);
+      box-shadow:0 25px 38px rgba(65,80,140,.24);
+    }
+
+    .action-card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 20% 18%,rgba(255,255,255,.42) 0 2px,transparent 3px),
+        radial-gradient(circle at 75% 27%,rgba(255,255,255,.35) 0 2px,transparent 3px);
+      background-size:72px 72px,95px 95px;
+      pointer-events:none;
+    }
+
+    .blue{background:linear-gradient(180deg,#5cb7ff,#3478e7);}
+    .green{background:linear-gradient(180deg,#a5da7c,#55b578);}
+    .purple{background:linear-gradient(180deg,#b778ee,#7c50df);}
+    .orange{background:linear-gradient(180deg,#ffc767,#f28b42);}
+    .cyan{background:linear-gradient(180deg,#61d7df,#38aac0);}
+
+    .card-image{
+      width:135px;
+      height:135px;
+      object-fit:contain;
+      margin-bottom:8px;
+      filter:drop-shadow(0 12px 12px rgba(42,54,96,.22));
+      position:relative;
+      z-index:1;
+    }
+
+    .image-placeholder{
+      width:135px;
+      height:135px;
+      border-radius:24px;
+      border:2px dashed rgba(255,255,255,.65);
+      background:rgba(255,255,255,.12);
+      display:grid;
+      place-items:center;
+      margin-bottom:8px;
+      font-size:14px;
+      font-weight:800;
+      position:relative;
+      z-index:1;
+    }
+
+    .action-card h3{
+      margin:5px 0 10px;
+      font-size:27px;
+      position:relative;
+      z-index:1;
+    }
+
+    .action-card p{
+      margin:0;
+      min-height:52px;
+      font-size:17px;
+      line-height:1.5;
+      position:relative;
+      z-index:1;
+    }
+
+    .action-card button{
+      margin-top:auto;
+      width:100%;
+      min-height:53px;
+      border:0;
+      border-radius:999px;
+      background:rgba(255,255,255,.85);
+      color:#2a68d5;
+      font-size:19px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 7px 16px rgba(42,59,109,.18);
+      position:relative;
+      z-index:1;
+    }
+
+    .action-card.green button{color:#2b8e5b;}
+    .action-card.purple button{color:#7551d2;}
+    .action-card.orange button{color:#d96f2a;}
+    .action-card.cyan button{color:#228ca1;}
+
+    .middle-row{
+      display:grid;
+      grid-template-columns:1.55fr 1fr;
+      gap:18px;
+    }
+
+    .progress-card,
+    .goals-card,
+    .recent-card{
+      padding:18px 22px;
+    }
+
+    .progress-card{
+      min-height:184px;
+      display:grid;
+      grid-template-columns:1fr 170px;
+      gap:18px;
+      align-items:center;
+    }
+
+    .chart-wrap h3,
+    .goals-card h3,
+    .recent-card h3{
+      margin:0 0 12px;
+      font-size:21px;
+    }
+
+    .chart{
+      height:100px;
+      position:relative;
+      border-bottom:1px solid #cfd8ec;
+      border-right:1px solid #cfd8ec;
+      background:
+        repeating-linear-gradient(to top,transparent 0 24px,rgba(108,128,175,.12) 25px 26px);
+    }
+
+    .chart svg{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      overflow:visible;
+    }
+
+    .days{
+      display:flex;
+      justify-content:space-between;
+      color:var(--muted);
+      font-weight:700;
+      margin-top:8px;
+    }
+
+    .donut{
+      width:112px;
+      height:112px;
+      border-radius:50%;
+      margin:auto;
+      display:grid;
+      place-items:center;
+      background:conic-gradient(#3b8cff 0 87%,#dfe6f3 87% 100%);
+      position:relative;
+    }
+
+    .donut::before{
+      content:"";
+      width:82px;
+      height:82px;
+      background:rgba(255,255,255,.92);
+      border-radius:50%;
+      position:absolute;
+    }
+
+    .donut strong{
+      position:relative;
+      font-size:31px;
+    }
+
+    .donut-label{
+      text-align:center;
+      color:var(--muted);
+      font-weight:800;
+      margin-top:7px;
+    }
+
+    .goals-card{
+      position:relative;
+      min-height:184px;
+      overflow:hidden;
+    }
+
+    .goal-list{
+      width:60%;
+      display:flex;
+      flex-direction:column;
+      gap:11px;
+      font-size:14px;
+      color:#4f6493;
+    }
+
+    .goal-item{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .check{
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:#2fbd7e;
+      color:white;
+      font-size:13px;
+      flex:none;
+    }
+
+    .check.empty{
+      background:transparent;
+      border:2px solid #aebbd6;
+    }
+
+    .goal-image{
+      position:absolute;
+      left:18px;
+      bottom:10px;
+      width:135px;
+      height:120px;
+      object-fit:contain;
+    }
+
+    .goal-placeholder{
+      position:absolute;
+      left:18px;
+      bottom:10px;
+      width:135px;
+      height:120px;
+      border:2px dashed #b9c5db;
+      border-radius:20px;
+      display:grid;
+      place-items:center;
+      color:#7486aa;
+      font-size:13px;
+      text-align:center;
+      background:rgba(255,255,255,.3);
+    }
+
+    .recent-card{
+      min-height:145px;
+    }
+
+    .recent-list{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+    }
+
+    .recent-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      border-radius:22px;
+      padding:12px;
+      background:rgba(255,255,255,.58);
+      border:1px solid rgba(255,255,255,.9);
+      min-width:0;
+    }
+
+    .recent-icon{
+      width:50px;
+      height:50px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      font-size:27px;
+      background:linear-gradient(145deg,#edf5ff,#cbdcff);
+      flex:none;
+    }
+
+    .recent-item strong{
+      display:block;
+      font-size:15px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .recent-item small{
+      color:var(--muted);
+      display:block;
+      margin-top:4px;
+    }
+
+    /* ROBOT */
+    .robot-wrap{
+      position:fixed;
+      left:16px;
+      bottom:10px;
+      z-index:20;
+      width:210px;
+      pointer-events:none;
+    }
+
+    .robot-image{
+      width:100%;
+      display:block;
+      object-fit:contain;
+      filter:drop-shadow(0 18px 20px rgba(62,74,130,.28));
+    }
+
+    .robot-placeholder{
+      width:200px;
+      height:210px;
+      border:2px dashed rgba(57,88,150,.45);
+      border-radius:40px;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      background:rgba(255,255,255,.58);
+      color:#496195;
+      font-weight:900;
+      padding:20px;
+    }
+
+    .robot-bubble{
+      position:absolute;
+      right:140px;
+      top:30px;
+      width:180px;
+      background:rgba(255,255,255,.88);
+      border:1px solid white;
+      border-radius:20px;
+      padding:12px 14px;
+      font-size:15px;
+      line-height:1.45;
+      box-shadow:var(--shadow);
+      transform:rotate(-5deg);
+    }
+
+    @media(max-width:1200px){
+      .layout{
+        grid-template-columns:250px minmax(0,1fr);
+      }
+
+      .action-cards{
+        grid-template-columns:repeat(3,1fr);
+      }
+
+      .recent-list{
+        grid-template-columns:repeat(3,1fr);
+      }
+
+      .sidebar{
+        padding-top:40px;
+      }
+    }
+
+    @media(max-width:850px){
+      body{
+        background-attachment:scroll;
+      }
+
+      .page{
+        width:min(94vw,720px);
+      }
+
+      .topbar{
+        flex-wrap:wrap;
+      }
+
+      .hero{
+        min-height:150px;
+      }
+
+      .layout{
+        display:flex;
+        flex-direction:column;
+      }
+
+      .sidebar{
+        padding-top:0;
+        order:2;
+      }
+
+      .content{
+        order:1;
+      }
+
+      .action-cards{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .middle-row{
+        grid-template-columns:1fr;
+      }
+
+      .recent-list{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .robot-wrap{
+        position:relative;
+        margin-right:auto;
+        left:auto;
+        bottom:auto;
+      }
+    }
+
+    @media(max-width:560px){
+      .pill{
+        height:48px;
+        font-size:17px;
+        padding:0 14px;
+      }
+
+      .pill.small{
+        width:48px;
+      }
+
+      .hero h1{
+        font-size:39px;
+      }
+
+      .hero p{
+        font-size:19px;
+      }
+
+      .action-cards{
+        grid-template-columns:1fr;
+      }
+
+      .action-card{
+        min-height:320px;
+      }
+
+      .middle-row,
+      .progress-card{
+        display:block;
+      }
+
+      .donut-area{
+        margin-top:18px;
+      }
+
+      .recent-list{
+        grid-template-columns:1fr;
+      }
+
+      .goal-list{
+        width:100%;
+        padding-bottom:130px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="app">
+  <div class="page">
+
     <header class="topbar">
-      <div class="top-actions">
-        <div class="pill circle-pill">🔔<span class="badge">3</span></div>
+      <div class="topbar-left">
+        <div class="pill small">
+          🔔
+          <span class="notification-badge">3</span>
+        </div>
+
         <div class="pill">🪙 <span>850</span></div>
         <div class="pill">💎 <span>45</span></div>
       </div>
-      <div class="pill parents">👥 הורים</div>
+
+      <div class="topbar-right">
+        <button class="pill parents-btn">הורים 👥</button>
+      </div>
     </header>
 
-    <div class="hero">
-      <aside class="side">
-        <div class="character"><div class="bubble">בוא נלמד<br>ביחד!</div><div class="boy">🧒🏻</div></div>
-        <section class="profile-card">
-          <div class="profile-top"><div class="avatar">👦🏻</div><div><h3>אביתר</h3><p>כיתה ו׳</p></div></div>
-          <div class="level"><div class="level-star">12</div><div><b>רמה</b><div class="progress"><span></span></div><div class="small-stat">320 / 500</div></div><div style="font-size:30px">🎁</div></div>
+    <section class="hero">
+      <div>
+        <h1>👋 שלום אביתר!</h1>
+        <p>מה נלמד היום?</p>
+      </div>
+    </section>
+
+    <main class="layout">
+
+      <aside class="sidebar">
+
+        <section class="profile-card glass">
+          <div class="profile-head">
+            <img class="avatar" src="images/avatar-boy.png" alt="אביתר"
+                 onerror="this.style.visibility='hidden'">
+            <div>
+              <div class="profile-name">אביתר</div>
+              <div class="profile-class">כיתה ו׳</div>
+            </div>
+          </div>
+
+          <div class="level-row">
+            <div class="star-level">12</div>
+
+            <div>
+              <strong>רמה</strong>
+              <div class="progress-line"><span></span></div>
+              <small>320 / 500</small>
+            </div>
+
+            <div class="gift">🎁</div>
+          </div>
         </section>
-        <section class="panel weekly"><h3>הישגי השבוע</h3><div class="weekly-grid">
-          <div class="week-item"><div class="ico">⭐</div><b>125</b><span>נקודות</span></div>
-          <div class="week-item"><div class="ico">🏆</div><b>7</b><span>גביעים</span></div>
-          <div class="week-item"><div class="ico">⚡</div><b>12</b><span>רצף ימים</span></div>
-        </div></section>
-        <section class="panel continue"><h3>המשך ללמוד</h3><div class="continue-card"><div class="book-icon">📖</div><div><b>שברים</b><span style="display:block;color:var(--muted);margin-top:4px">מתמטיקה</span><div class="mini-progress"><span></span></div></div><div class="arrow">←</div></div></section>
+
+        <section class="weekly-card glass">
+          <h3 class="section-title">ההישגים השבוע</h3>
+
+          <div class="weekly-stats">
+            <div class="mini-stat">
+              <div class="icon">⭐</div>
+              <strong>125</strong>
+              <small>נקודות</small>
+            </div>
+
+            <div class="mini-stat">
+              <div class="icon">🏆</div>
+              <strong>7</strong>
+              <small>גביעים</small>
+            </div>
+
+            <div class="mini-stat">
+              <div class="icon">⚡</div>
+              <strong>12</strong>
+              <small>רצף ימים</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="continue-card glass">
+          <h3 class="section-title">המשך ללמוד</h3>
+
+          <div class="continue-item">
+            <div class="continue-icon">📖</div>
+
+            <div class="continue-text">
+              <strong>שברים</strong>
+              <span>מתמטיקה</span>
+
+              <div class="continue-progress">
+                <div class="bar"><span></span></div>
+                <b>60%</b>
+              </div>
+            </div>
+
+            <button class="circle-btn">←</button>
+          </div>
+        </section>
+
       </aside>
 
-      <main class="main">
-        <div class="headline"><h1>👋 שלום אביתר!</h1><p>מה נלמד היום?</p></div>
-        <section class="cards">
-          <article class="action-card blue"><div><div class="card-icon">📷</div><h2>שיעורי בית</h2><p>צלם את הדף ואעזור לך לפתור שלב אחרי שלב</p></div><button class="card-btn">📸 צלם עכשיו</button></article>
-          <article class="action-card green"><div><div class="card-icon">📖</div><h2>הכנה למבחן</h2><p>סיכומים, שאלות וכרטיסיות חכמות</p></div><button class="card-btn">📗 התחל הכנה</button></article>
-          <article class="action-card purple"><div><div class="card-icon">✏️</div><h2>תרגול</h2><p>תרגילים מותאמים לך לכל נושא</p></div><button class="card-btn">בחר נושא ▦</button></article>
-          <article class="action-card orange"><div><div class="card-icon">🎧</div><h2>קריאה</h2><p>קרא בקול ואעזור לך להשתפר</p></div><button class="card-btn">התחל קריאה 🎙️</button></article>
-          <article class="action-card cyan"><div><div class="card-icon">🎮</div><h2>משחקי לימוד</h2><p>לומדים משחקים ומרוויחים כוכבים</p></div><button class="card-btn">שחק עכשיו 🎮</button></article>
+      <section class="content">
+
+        <div class="action-cards">
+
+          <article class="action-card blue">
+            <!-- לאחר יצירת התמונה החלף את ה-placeholder ב:
+            <img class="card-image" src="images/camera.png" alt="מצלמה">
+            -->
+            <div class="image-placeholder">camera.png</div>
+            <h3>שיעורי בית</h3>
+            <p>צלם את הדף ואעזור לך לפתור שלב אחרי שלב</p>
+            <button>📷 צלם עכשיו</button>
+          </article>
+
+          <article class="action-card green">
+            <!-- <img class="card-image" src="images/open-book.png" alt="ספר פתוח"> -->
+            <div class="image-placeholder">open-book.png</div>
+            <h3>הכנה למבחן</h3>
+            <p>סיכומים, שאלות וכרטיסיות חכמות</p>
+            <button>📗 התחל הכנה</button>
+          </article>
+
+          <article class="action-card purple">
+            <!-- <img class="card-image" src="images/pencil.png" alt="עיפרון"> -->
+            <div class="image-placeholder">pencil.png</div>
+            <h3>תרגול</h3>
+            <p>תרגילים מותאמים לך לכל נושא</p>
+            <button>בחר נושא ◼</button>
+          </article>
+
+          <article class="action-card orange">
+            <!-- <img class="card-image" src="images/headphones.png" alt="אוזניות"> -->
+            <div class="image-placeholder">headphones.png</div>
+            <h3>קריאה</h3>
+            <p>קרא בקול ואשפר לך את השטף</p>
+            <button>🎙 התחל קריאה</button>
+          </article>
+
+          <article class="action-card cyan">
+            <!-- <img class="card-image" src="images/game-controller.png" alt="שלט משחק"> -->
+            <div class="image-placeholder">game-controller.png</div>
+            <h3>משחקי לימוד</h3>
+            <p>לומדים ממשחקים ומרוויחים כוכבים</p>
+            <button>🎮 שחק עכשיו</button>
+          </article>
+
+        </div>
+
+        <div class="middle-row">
+
+          <section class="progress-card glass">
+            <div class="chart-wrap">
+              <h3>ההתקדמות שלי</h3>
+
+              <div class="chart">
+                <svg viewBox="0 0 500 100" preserveAspectRatio="none" aria-hidden="true">
+                  <polyline
+                    points="0,77 55,65 110,65 165,48 220,34 275,57 330,22 385,32 440,12"
+                    fill="none"
+                    stroke="#2f7df4"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"/>
+                  <g fill="#ffffff" stroke="#2f7df4" stroke-width="3">
+                    <circle cx="0" cy="77" r="4"/>
+                    <circle cx="55" cy="65" r="4"/>
+                    <circle cx="110" cy="65" r="4"/>
+                    <circle cx="165" cy="48" r="4"/>
+                    <circle cx="220" cy="34" r="4"/>
+                    <circle cx="275" cy="57" r="4"/>
+                    <circle cx="330" cy="22" r="4"/>
+                    <circle cx="385" cy="32" r="4"/>
+                    <circle cx="440" cy="12" r="4"/>
+                  </g>
+                </svg>
+              </div>
+
+              <div class="days">
+                <span>א׳</span><span>ב׳</span><span>ג׳</span><span>ד׳</span>
+                <span>ה׳</span><span>ו׳</span><span>ש׳</span>
+              </div>
+            </div>
+
+            <div class="donut-area">
+              <div class="donut"><strong>87%</strong></div>
+              <div class="donut-label">התקדמות כללית</div>
+            </div>
+          </section>
+
+          <section class="goals-card glass">
+            <h3>היעדים שלי</h3>
+
+            <div class="goal-list">
+              <div class="goal-item">
+                <span class="check">✓</span>
+                <span>פתר 10 תרגילים במתמטיקה</span>
+              </div>
+
+              <div class="goal-item">
+                <span class="check">✓</span>
+                <span>קרא קטע באנגלית</span>
+              </div>
+
+              <div class="goal-item">
+                <span class="check empty"></span>
+                <span>למד 5 מילים חדשות</span>
+              </div>
+            </div>
+
+            <!-- לאחר יצירת התמונה:
+            <img class="goal-image" src="images/target-graduation.png" alt="מטרה">
+            -->
+            <div class="goal-placeholder">target-graduation.png</div>
+          </section>
+
+        </div>
+
+        <section class="recent-card glass">
+          <h3>נושאים אחרונים שלמדת</h3>
+
+          <div class="recent-list">
+            <div class="recent-item">
+              <div class="recent-icon">📊</div>
+              <div><strong>שברים</strong><small>מתמטיקה</small></div>
+            </div>
+
+            <div class="recent-item">
+              <div class="recent-icon">Aa</div>
+              <div><strong>אנגלית</strong><small>קריאה</small></div>
+            </div>
+
+            <div class="recent-item">
+              <div class="recent-icon">❤️</div>
+              <div><strong>מערכות בגוף</strong><small>מדעים</small></div>
+            </div>
+
+            <div class="recent-item">
+              <div class="recent-icon">➗</div>
+              <div><strong>כפל וחילוק</strong><small>מתמטיקה</small></div>
+            </div>
+
+            <div class="recent-item">
+              <div class="recent-icon">➕</div>
+              <div><strong>חיבור</strong><small>מתמטיקה</small></div>
+            </div>
+          </div>
         </section>
 
-        <section class="dashboard">
-          <div class="panel progress-panel"><div><div class="panel-title">ההתקדמות שלי</div><div class="chart"><svg viewBox="0 0 600 120" preserveAspectRatio="none"><polyline fill="none" stroke="#2f80ed" stroke-width="4" points="0,95 75,82 145,82 220,62 290,42 360,72 440,34 515,50 600,22"/><g fill="#fff" stroke="#2f80ed" stroke-width="3"><circle cx="0" cy="95" r="4"/><circle cx="75" cy="82" r="4"/><circle cx="145" cy="82" r="4"/><circle cx="220" cy="62" r="4"/><circle cx="290" cy="42" r="4"/><circle cx="360" cy="72" r="4"/><circle cx="440" cy="34" r="4"/><circle cx="515" cy="50" r="4"/><circle cx="600" cy="22" r="4"/></g></svg></div><div class="chart-labels"><span>א׳</span><span>ב׳</span><span>ג׳</span><span>ד׳</span><span>ה׳</span><span>ו׳</span><span>ש׳</span></div></div><div style="text-align:center"><div class="circle-progress"><b>87%</b></div><div style="margin-top:8px;color:var(--muted)">התקדמות כללית</div></div></div>
-          <div class="panel"><div class="panel-title">היעדים שלי</div><div class="goals"><div class="goal-list"><div class="goal"><span>פתור 10 תרגילים במתמטיקה</span><span class="check">●</span></div><div class="goal"><span>קרא קטע באנגלית</span><span class="check">●</span></div><div class="goal"><span>למד 5 מילים חדשות</span><span style="color:#aac1d8">○</span></div><button class="goals-btn">צפה בכל היעדים</button></div><div class="target">🎯</div></div></div>
-          <div class="panel recent"><div class="panel-title">נושאים אחרונים שלמדת</div><div class="recent-list">
-            <div class="recent-item"><div class="recent-icon">📊</div><div><b>שברים</b><span>מתמטיקה</span></div></div>
-            <div class="recent-item"><div class="recent-icon">🔤</div><div><b>אנגלית</b><span>קריאה</span></div></div>
-            <div class="recent-item"><div class="recent-icon">❤️</div><div><b>מערכות בגוף</b><span>מדעים</span></div></div>
-            <div class="recent-item"><div class="recent-icon">➗</div><div><b>כפל וחילוק</b><span>מתמטיקה</span></div></div>
-            <div class="recent-item"><div class="recent-icon">➕</div><div><b>חיבור</b><span>מתמטיקה</span></div></div>
-          </div></div>
-        </section>
-      </main>
-    </div>
+      </section>
+    </main>
   </div>
 
-  <div class="bot"><div class="bot-bubble">כל יום למידה הוא צעד קדימה לעבר הצלחה! ⭐</div><div class="robot">🤖</div></div>
+  <div class="robot-wrap">
+    <!-- לאחר יצירת התמונה החלף ב:
+    <img class="robot-image" src="images/robot.png" alt="עוזר לימודי">
+    -->
+    <div class="robot-placeholder">robot.png<br>רקע שקוף</div>
+    <div class="robot-bubble">כל יום למידה הוא צעד קדימה לעבר הצלחה! ⭐</div>
+  </div>
 
   <script>
-    document.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{
-      btn.animate([{transform:'scale(1)'},{transform:'scale(.96)'},{transform:'scale(1)'}],{duration:180});
-    }));
+    document.querySelectorAll("button").forEach(button => {
+      button.addEventListener("click", () => {
+        console.log("נלחץ:", button.textContent.trim());
+      });
+    });
   </script>
 </body>
 </html>
