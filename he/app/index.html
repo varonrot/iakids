@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&#1508;&#1500;&#1496;&#1508;&#1493;&#1512;&#1502;&#1514; &#1500;&#1502;&#1497;&#1491;&#1492; &#1500;&#1497;&#1500;&#1491;&#1497;&#1501;</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>&#1508;&#1500;&#1496;&#1508;&#1493;&#1512;&#1502;&#1514; &#1500;&#1502;&#1497;&#1491;&#1492; &#1500;&#1497;&#1500;&#1497;&#1491;&#1497;&#1501;</title>
 
   <style>
     :root{
       --navy:#203865;
       --muted:#6176a5;
-      --glass:rgba(255,255,255,.72);
-      --glass-strong:rgba(255,255,255,.88);
-      --border:rgba(255,255,255,.82);
+      --glass:rgba(255,255,255,.58);
+      --glass-strong:rgba(255,255,255,.76);
+      --border:rgba(255,255,255,.78);
       --shadow:0 18px 45px rgba(56,78,126,.18);
       --radius:28px;
     }
@@ -20,18 +20,28 @@
       box-sizing:border-box;
     }
 
-    html,body{
+    html,
+    body{
       margin:0;
       min-height:100%;
-      font-family:Arial, Helvetica, sans-serif;
+      font-family:Arial,Helvetica,sans-serif;
       color:var(--navy);
     }
 
     body{
-      background:
-        linear-gradient(rgba(234,247,255,.18),rgba(246,240,255,.28)),
-        url("/assets/backgrounds/student-dashboard.webp") center center / cover fixed no-repeat;
+      position:relative;
+      min-height:100vh;
+      background:#eef8ff url("/assets/backgrounds/student-dashboard-background.webp") center top / cover no-repeat fixed;
       overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background:rgba(255,255,255,.10);
     }
 
     button{
@@ -39,9 +49,11 @@
     }
 
     .page{
-      width:min(1480px,96vw);
-      margin:auto;
-      padding:16px 0 24px;
+      position:relative;
+      z-index:1;
+      width:min(1480px,calc(100% - 28px));
+      margin:0 auto;
+      padding:14px 0 28px;
     }
 
     .glass{
@@ -52,7 +64,6 @@
       -webkit-backdrop-filter:blur(18px);
     }
 
-    /* TOP BAR */
     .topbar{
       display:flex;
       align-items:center;
@@ -71,35 +82,37 @@
     .pill{
       height:56px;
       padding:0 20px;
+      border:1px solid rgba(255,255,255,.88);
       border-radius:999px;
+      background:rgba(255,255,255,.70);
+      box-shadow:0 10px 25px rgba(65,92,140,.13);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
       display:flex;
       align-items:center;
       gap:10px;
-      font-weight:800;
       font-size:22px;
-      background:rgba(255,255,255,.72);
-      border:1px solid rgba(255,255,255,.9);
-      box-shadow:0 10px 25px rgba(65,92,140,.13);
-      backdrop-filter:blur(12px);
+      font-weight:800;
+      color:var(--navy);
     }
 
     .pill.small{
+      position:relative;
       width:56px;
       padding:0;
       justify-content:center;
-      position:relative;
     }
 
     .notification-badge{
       position:absolute;
       top:-4px;
       right:-4px;
-      background:#f04f4f;
-      color:white;
-      border:3px solid white;
-      border-radius:999px;
       width:27px;
       height:27px;
+      border:3px solid #fff;
+      border-radius:50%;
+      background:#f04f4f;
+      color:#fff;
       display:grid;
       place-items:center;
       font-size:14px;
@@ -110,23 +123,21 @@
       cursor:pointer;
     }
 
-    /* HERO */
     .hero{
       min-height:175px;
       display:flex;
       justify-content:center;
       align-items:flex-start;
-      text-align:center;
       padding-top:35px;
-      position:relative;
+      text-align:center;
     }
 
     .hero h1{
       margin:0;
       font-size:clamp(40px,4.2vw,70px);
       line-height:1;
-      letter-spacing:-1px;
       color:#1f3561;
+      letter-spacing:-1px;
       text-shadow:0 3px 0 rgba(255,255,255,.65);
     }
 
@@ -137,7 +148,6 @@
       color:#667bac;
     }
 
-    /* MAIN LAYOUT */
     .layout{
       display:grid;
       grid-template-columns:300px minmax(0,1fr);
@@ -147,6 +157,7 @@
 
     .sidebar,
     .content{
+      min-width:0;
       direction:rtl;
     }
 
@@ -154,53 +165,41 @@
       display:flex;
       flex-direction:column;
       gap:14px;
-      padding-top:0;
     }
 
-    .student-showcase{
-      min-height:300px;
+    .student-stack{
+      position:relative;
+      min-height:435px;
       display:flex;
       align-items:flex-end;
       justify-content:center;
-      position:relative;
-      overflow:visible;
+    }
+
+    .student-showcase{
+      position:absolute;
+      inset:0 0 84px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
       pointer-events:none;
     }
 
     .student-showcase img{
       display:block;
-      width:min(100%,290px);
-      max-height:310px;
+      width:min(100%,300px);
+      max-height:360px;
       object-fit:contain;
       object-position:center bottom;
-      filter:drop-shadow(0 18px 26px rgba(43,60,105,.20));
-    }
-
-    .student-showcase::after{
-      content:"";
-      position:absolute;
-      left:50%;
-      bottom:4px;
-      width:76%;
-      height:24px;
-      transform:translateX(-50%);
-      border-radius:50%;
-      background:rgba(64,82,124,.12);
-      filter:blur(12px);
-      z-index:-1;
-    }
-
-    .profile-card,
-    .weekly-card,
-    .continue-card,
-    .progress-card,
-    .goals-card,
-    .recent-card{
-      border-radius:var(--radius);
+      filter:drop-shadow(0 20px 28px rgba(43,60,105,.22));
     }
 
     .profile-card{
+      position:relative;
+      z-index:2;
+      width:100%;
+      margin-top:auto;
       padding:18px 18px 16px;
+      border-radius:var(--radius);
     }
 
     .profile-head{
@@ -214,8 +213,8 @@
       height:62px;
       border-radius:50%;
       object-fit:cover;
+      border:4px solid rgba(255,255,255,.78);
       background:linear-gradient(135deg,#ffdca6,#8ed5ff);
-      border:4px solid rgba(255,255,255,.8);
     }
 
     .profile-name{
@@ -224,9 +223,9 @@
     }
 
     .profile-class{
-      font-size:17px;
-      color:var(--muted);
       margin-top:4px;
+      color:var(--muted);
+      font-size:17px;
     }
 
     .level-row{
@@ -242,19 +241,19 @@
       height:54px;
       display:grid;
       place-items:center;
+      color:#fff;
       font-size:23px;
       font-weight:900;
       background:linear-gradient(145deg,#ffe16e,#ffad25);
       clip-path:polygon(50% 0,61% 34%,98% 36%,69% 58%,79% 94%,50% 72%,21% 94%,31% 58%,2% 36%,39% 34%);
-      color:white;
       filter:drop-shadow(0 5px 8px rgba(255,158,20,.25));
     }
 
     .progress-line{
       height:10px;
+      overflow:hidden;
       border-radius:999px;
       background:#d9d5ff;
-      overflow:hidden;
     }
 
     .progress-line span{
@@ -267,6 +266,14 @@
 
     .gift{
       font-size:35px;
+    }
+
+    .weekly-card,
+    .continue-card,
+    .progress-card,
+    .goals-card,
+    .recent-card{
+      border-radius:var(--radius);
     }
 
     .weekly-card,
@@ -287,11 +294,11 @@
     }
 
     .mini-stat{
-      text-align:center;
-      border-radius:24px;
       padding:13px 6px;
-      background:rgba(255,255,255,.47);
-      border:1px solid rgba(255,255,255,.9);
+      border:1px solid rgba(255,255,255,.74);
+      border-radius:24px;
+      background:rgba(255,255,255,.34);
+      text-align:center;
     }
 
     .mini-stat .icon{
@@ -300,8 +307,8 @@
 
     .mini-stat strong{
       display:block;
-      font-size:20px;
       margin-top:5px;
+      font-size:20px;
     }
 
     .mini-stat small{
@@ -327,10 +334,14 @@
       box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
     }
 
+    .continue-text{
+      min-width:0;
+    }
+
     .continue-text strong{
       display:block;
-      font-size:19px;
       margin-bottom:5px;
+      font-size:19px;
     }
 
     .continue-text span{
@@ -345,19 +356,19 @@
     }
 
     .continue-progress .bar{
-      height:9px;
       flex:1;
+      height:9px;
+      overflow:hidden;
       border-radius:999px;
       background:#d9e2e9;
-      overflow:hidden;
     }
 
     .continue-progress .bar span{
       display:block;
       width:60%;
       height:100%;
-      background:#2ab879;
       border-radius:inherit;
+      background:#2ab879;
     }
 
     .circle-btn{
@@ -365,14 +376,13 @@
       height:44px;
       border:0;
       border-radius:50%;
-      background:white;
+      background:#fff;
       color:#4970bc;
       font-size:28px;
       cursor:pointer;
       box-shadow:0 8px 18px rgba(50,70,120,.13);
     }
 
-    /* CONTENT */
     .content{
       display:flex;
       flex-direction:column;
@@ -386,19 +396,22 @@
     }
 
     .action-card{
+      position:relative;
+      min-width:0;
       min-height:355px;
+      overflow:hidden;
       padding:24px 18px 20px;
+      border:1px solid rgba(255,255,255,.66);
       border-radius:28px;
-      color:white;
+      box-shadow:0 18px 30px rgba(65,80,140,.20);
+      color:#fff;
       display:flex;
       flex-direction:column;
       align-items:center;
       text-align:center;
-      position:relative;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.75);
-      box-shadow:0 18px 30px rgba(65,80,140,.2);
       transition:.25s ease;
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
     }
 
     .action-card:hover{
@@ -417,67 +430,52 @@
       pointer-events:none;
     }
 
-    .blue{background:linear-gradient(180deg,#5cb7ff,#3478e7);}
-    .green{background:linear-gradient(180deg,#a5da7c,#55b578);}
-    .purple{background:linear-gradient(180deg,#b778ee,#7c50df);}
-    .orange{background:linear-gradient(180deg,#ffc767,#f28b42);}
-    .cyan{background:linear-gradient(180deg,#61d7df,#38aac0);}
+    .blue{background:linear-gradient(180deg,rgba(92,183,255,.88),rgba(52,120,231,.88));}
+    .green{background:linear-gradient(180deg,rgba(165,218,124,.88),rgba(85,181,120,.88));}
+    .purple{background:linear-gradient(180deg,rgba(183,120,238,.88),rgba(124,80,223,.88));}
+    .orange{background:linear-gradient(180deg,rgba(255,199,103,.88),rgba(242,139,66,.88));}
+    .cyan{background:linear-gradient(180deg,rgba(97,215,223,.88),rgba(56,170,192,.88));}
 
     .card-image{
+      position:relative;
+      z-index:1;
       width:135px;
       height:135px;
+      margin-bottom:8px;
       object-fit:contain;
-      margin-bottom:8px;
       filter:drop-shadow(0 12px 12px rgba(42,54,96,.22));
-      position:relative;
-      z-index:1;
-    }
-
-    .image-placeholder{
-      width:135px;
-      height:135px;
-      border-radius:24px;
-      border:2px dashed rgba(255,255,255,.65);
-      background:rgba(255,255,255,.12);
-      display:grid;
-      place-items:center;
-      margin-bottom:8px;
-      font-size:14px;
-      font-weight:800;
-      position:relative;
-      z-index:1;
     }
 
     .action-card h3{
-      margin:5px 0 10px;
-      font-size:27px;
       position:relative;
       z-index:1;
+      margin:5px 0 10px;
+      font-size:27px;
     }
 
     .action-card p{
-      margin:0;
-      min-height:52px;
-      font-size:17px;
-      line-height:1.5;
       position:relative;
       z-index:1;
+      min-height:52px;
+      margin:0;
+      font-size:17px;
+      line-height:1.5;
     }
 
     .action-card button{
-      margin-top:auto;
+      position:relative;
+      z-index:1;
       width:100%;
       min-height:53px;
+      margin-top:auto;
       border:0;
       border-radius:999px;
-      background:rgba(255,255,255,.85);
+      background:rgba(255,255,255,.82);
       color:#2a68d5;
       font-size:19px;
       font-weight:900;
       cursor:pointer;
       box-shadow:0 7px 16px rgba(42,59,109,.18);
-      position:relative;
-      z-index:1;
     }
 
     .action-card.green button{color:#2b8e5b;}
@@ -494,6 +492,7 @@
     .progress-card,
     .goals-card,
     .recent-card{
+      min-width:0;
       padding:18px 22px;
     }
 
@@ -513,12 +512,11 @@
     }
 
     .chart{
-      height:100px;
       position:relative;
+      height:100px;
       border-bottom:1px solid #cfd8ec;
       border-right:1px solid #cfd8ec;
-      background:
-        repeating-linear-gradient(to top,transparent 0 24px,rgba(108,128,175,.12) 25px 26px);
+      background:repeating-linear-gradient(to top,transparent 0 24px,rgba(108,128,175,.12) 25px 26px);
     }
 
     .chart svg{
@@ -532,29 +530,29 @@
     .days{
       display:flex;
       justify-content:space-between;
+      margin-top:8px;
       color:var(--muted);
       font-weight:700;
-      margin-top:8px;
     }
 
     .donut{
+      position:relative;
       width:112px;
       height:112px;
-      border-radius:50%;
       margin:auto;
+      border-radius:50%;
+      background:conic-gradient(#3b8cff 0 87%,#dfe6f3 87% 100%);
       display:grid;
       place-items:center;
-      background:conic-gradient(#3b8cff 0 87%,#dfe6f3 87% 100%);
-      position:relative;
     }
 
     .donut::before{
       content:"";
+      position:absolute;
       width:82px;
       height:82px;
-      background:rgba(255,255,255,.92);
       border-radius:50%;
-      position:absolute;
+      background:rgba(255,255,255,.90);
     }
 
     .donut strong{
@@ -563,10 +561,10 @@
     }
 
     .donut-label{
+      margin-top:7px;
       text-align:center;
       color:var(--muted);
       font-weight:800;
-      margin-top:7px;
     }
 
     .goals-card{
@@ -580,8 +578,8 @@
       display:flex;
       flex-direction:column;
       gap:11px;
-      font-size:14px;
       color:#4f6493;
+      font-size:14px;
     }
 
     .goal-item{
@@ -594,10 +592,10 @@
       width:20px;
       height:20px;
       border-radius:50%;
+      background:#2fbd7e;
+      color:#fff;
       display:grid;
       place-items:center;
-      background:#2fbd7e;
-      color:white;
       font-size:13px;
       flex:none;
     }
@@ -616,22 +614,6 @@
       object-fit:contain;
     }
 
-    .goal-placeholder{
-      position:absolute;
-      left:18px;
-      bottom:10px;
-      width:135px;
-      height:120px;
-      border:2px dashed #b9c5db;
-      border-radius:20px;
-      display:grid;
-      place-items:center;
-      color:#7486aa;
-      font-size:13px;
-      text-align:center;
-      background:rgba(255,255,255,.3);
-    }
-
     .recent-card{
       min-height:145px;
     }
@@ -643,223 +625,180 @@
     }
 
     .recent-item{
+      min-width:0;
       display:flex;
       align-items:center;
       gap:10px;
-      border-radius:22px;
       padding:12px;
-      background:rgba(255,255,255,.58);
-      border:1px solid rgba(255,255,255,.9);
-      min-width:0;
+      border:1px solid rgba(255,255,255,.72);
+      border-radius:22px;
+      background:rgba(255,255,255,.36);
     }
 
     .recent-icon{
       width:50px;
       height:50px;
       border-radius:14px;
+      background:linear-gradient(145deg,rgba(237,245,255,.82),rgba(203,220,255,.82));
       display:grid;
       place-items:center;
       font-size:27px;
-      background:linear-gradient(145deg,#edf5ff,#cbdcff);
       flex:none;
     }
 
     .recent-item strong{
       display:block;
-      font-size:15px;
-      white-space:nowrap;
       overflow:hidden;
+      white-space:nowrap;
       text-overflow:ellipsis;
+      font-size:15px;
     }
 
     .recent-item small{
-      color:var(--muted);
       display:block;
       margin-top:4px;
+      color:var(--muted);
     }
 
-    /* ROBOT */
     .robot-wrap{
       position:fixed;
-      left:16px;
-      bottom:10px;
+      right:18px;
+      bottom:8px;
       z-index:20;
-      width:210px;
+      width:220px;
       pointer-events:none;
     }
 
     .robot-image{
-      width:100%;
       display:block;
+      width:100%;
       object-fit:contain;
       filter:drop-shadow(0 18px 20px rgba(62,74,130,.28));
     }
 
-    .robot-placeholder{
-      width:200px;
-      height:210px;
-      border:2px dashed rgba(57,88,150,.45);
-      border-radius:40px;
-      display:grid;
-      place-items:center;
-      text-align:center;
-      background:rgba(255,255,255,.58);
-      color:#496195;
-      font-weight:900;
-      padding:20px;
-    }
-
     .robot-bubble{
       position:absolute;
-      right:140px;
-      top:30px;
+      left:-165px;
+      top:32px;
       width:180px;
-      background:rgba(255,255,255,.88);
-      border:1px solid white;
-      border-radius:20px;
       padding:12px 14px;
+      border:1px solid #fff;
+      border-radius:20px;
+      background:rgba(255,255,255,.82);
+      box-shadow:var(--shadow);
       font-size:15px;
       line-height:1.45;
-      box-shadow:var(--shadow);
-      transform:rotate(-5deg);
+      transform:rotate(5deg);
     }
 
     @media(max-width:1200px){
-      .layout{
-        grid-template-columns:250px minmax(0,1fr);
-      }
-
-      .action-cards{
-        grid-template-columns:repeat(3,1fr);
-      }
-
-      .recent-list{
-        grid-template-columns:repeat(3,1fr);
-      }
-
-      .student-showcase{
-        min-height:240px;
-      }
-
-      .student-showcase img{
-        width:min(100%,235px);
-        max-height:250px;
-      }
+      .layout{grid-template-columns:250px minmax(0,1fr);gap:20px;}
+      .action-cards{grid-template-columns:repeat(3,minmax(0,1fr));}
+      .recent-list{grid-template-columns:repeat(3,minmax(0,1fr));}
+      .student-stack{min-height:375px;}
+      .student-showcase img{width:min(100%,250px);max-height:300px;}
     }
 
-    @media(max-width:850px){
-      body{
-        background-attachment:scroll;
-      }
-
-      .page{
-        width:min(94vw,720px);
-      }
-
-      .topbar{
-        flex-wrap:wrap;
-      }
-
-      .hero{
-        min-height:150px;
-      }
-
-      .layout{
-        display:flex;
-        flex-direction:column;
-      }
-
-      .sidebar{
-        padding-top:0;
-        order:2;
-      }
-
-      .student-showcase{
-        min-height:220px;
-      }
-
-      .student-showcase img{
-        width:min(100%,220px);
-        max-height:230px;
-      }
-
-      .content{
-        order:1;
-      }
-
-      .action-cards{
-        grid-template-columns:repeat(2,1fr);
-      }
-
-      .middle-row{
-        grid-template-columns:1fr;
-      }
-
-      .recent-list{
-        grid-template-columns:repeat(2,1fr);
-      }
-
+    @media(max-width:900px){
+      body{background-attachment:scroll;}
+      .page{width:min(760px,calc(100% - 20px));}
+      .topbar{flex-wrap:wrap;gap:10px;}
+      .topbar-left{order:2;width:100%;justify-content:center;}
+      .topbar-right{order:1;width:100%;justify-content:flex-start;}
+      .hero{min-height:auto;padding:24px 0 28px;}
+      .hero h1{font-size:clamp(34px,9vw,52px);}
+      .hero p{margin-top:10px;font-size:20px;}
+      .layout{display:flex;flex-direction:column;gap:18px;}
+      .content{order:1;}
+      .sidebar{order:2;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+      .student-stack{grid-column:1/-1;min-height:360px;}
+      .continue-card{grid-column:1/-1;}
+      .action-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+      .action-card{min-height:330px;padding:20px 14px 16px;}
+      .card-image{width:118px;height:118px;}
+      .middle-row{grid-template-columns:1fr;gap:14px;}
+      .progress-card{grid-template-columns:minmax(0,1fr) 135px;}
+      .recent-list{grid-template-columns:repeat(2,minmax(0,1fr));}
       .robot-wrap{
         position:relative;
-        margin-right:auto;
-        left:auto;
+        right:auto;
         bottom:auto;
+        width:min(210px,60vw);
+        margin:12px auto 0;
+      }
+      .robot-bubble{
+        left:-145px;
+        width:160px;
+        font-size:14px;
       }
     }
 
-    @media(max-width:560px){
-      .pill{
-        height:48px;
-        font-size:17px;
-        padding:0 14px;
-      }
-
-      .pill.small{
-        width:48px;
-      }
-
-      .hero h1{
-        font-size:39px;
-      }
-
-      .hero p{
-        font-size:19px;
-      }
-
-      .action-cards{
-        grid-template-columns:1fr;
-      }
-
-      .action-card{
-        min-height:320px;
-      }
-
-      .middle-row,
-      .progress-card{
-        display:block;
-      }
-
-      .donut-area{
-        margin-top:18px;
-      }
-
-      .recent-list{
-        grid-template-columns:1fr;
-      }
-
-      .goal-list{
+    @media(max-width:600px){
+      .page{width:calc(100% - 14px);padding-bottom:18px;}
+      .topbar{direction:rtl;}
+      .topbar-left{gap:7px;justify-content:space-between;}
+      .pill{height:46px;padding:0 13px;font-size:16px;}
+      .pill.small{width:46px;min-width:46px;}
+      .notification-badge{width:23px;height:23px;font-size:12px;}
+      .parents-btn{margin-right:auto;}
+      .hero{padding:18px 0 22px;}
+      .hero h1{font-size:34px;line-height:1.12;}
+      .hero p{font-size:18px;}
+      .action-cards{grid-template-columns:1fr;}
+      .action-card{width:100%;min-height:300px;border-radius:22px;padding:18px 14px 15px;}
+      .card-image{width:108px;height:108px;}
+      .action-card h3{font-size:23px;}
+      .action-card p{min-height:auto;margin-bottom:16px;}
+      .action-card button{min-height:48px;font-size:17px;}
+      .sidebar{display:flex;flex-direction:column;}
+      .student-stack{min-height:330px;}
+      .student-showcase{inset:0 0 70px;}
+      .student-showcase img{width:min(78vw,240px);max-height:275px;}
+      .profile-card,
+      .weekly-card,
+      .continue-card,
+      .progress-card,
+      .goals-card,
+      .recent-card{width:100%;border-radius:22px;}
+      .progress-card{display:flex;flex-direction:column;align-items:stretch;gap:18px;}
+      .donut-area{align-self:center;}
+      .goal-list{width:100%;padding-bottom:120px;}
+      .goal-image{width:115px;height:105px;}
+      .recent-list{grid-template-columns:1fr;}
+      .recent-item{padding:11px;}
+      .continue-item{grid-template-columns:62px minmax(0,1fr) 40px;gap:9px;}
+      .continue-icon{width:62px;height:78px;}
+      .circle-btn{width:40px;height:40px;}
+      .robot-wrap{width:min(190px,58vw);}
+      .robot-bubble{
+        position:relative;
+        left:auto;
+        top:auto;
         width:100%;
-        padding-bottom:130px;
+        margin-top:-8px;
+        transform:none;
+        text-align:center;
       }
+    }
 
-      .student-showcase{
-        min-height:190px;
+    @media(max-width:390px){
+      .page{width:calc(100% - 10px);}
+      .pill{padding:0 10px;font-size:15px;}
+      .hero h1{font-size:30px;}
+      .hero p{font-size:17px;}
+      .action-card h3{font-size:21px;}
+      .profile-name{font-size:22px;}
+      .weekly-stats{grid-template-columns:1fr;}
+      .mini-stat{
+        display:grid;
+        grid-template-columns:34px 1fr auto;
+        align-items:center;
+        gap:8px;
+        text-align:right;
       }
-
-      .student-showcase img{
-        width:min(100%,190px);
-        max-height:200px;
-      }
+      .mini-stat strong{margin:0;}
+      .student-stack{min-height:305px;}
+      .student-showcase img{width:min(82vw,220px);max-height:250px;}
     }
   </style>
 </head>
@@ -873,7 +812,6 @@
           🔔
           <span class="notification-badge">3</span>
         </div>
-
         <div class="pill">🪙 <span>850</span></div>
         <div class="pill">💎 <span>45</span></div>
       </div>
@@ -894,48 +832,45 @@
 
       <aside class="sidebar">
 
-        <div class="student-showcase" aria-hidden="true">
-          <img src="/assets/characters/student-boy-large.png" alt="">
+        <div class="student-stack">
+          <div class="student-showcase" aria-hidden="true">
+            <img src="/assets/characters/student-boy-large.webp" alt="">
+          </div>
+
+          <section class="profile-card glass">
+            <div class="profile-head">
+              <img class="avatar" src="/assets/avatars/evyatar.webp" alt="&#1488;&#1489;&#1497;&#1514;&#1512;">
+              <div>
+                <div class="profile-name">&#1488;&#1489;&#1497;&#1514;&#1512;</div>
+                <div class="profile-class">&#1499;&#1497;&#1514;&#1492; &#1493;&#1523;</div>
+              </div>
+            </div>
+
+            <div class="level-row">
+              <div class="star-level">12</div>
+              <div>
+                <strong>&#1512;&#1502;&#1492;</strong>
+                <div class="progress-line"><span></span></div>
+                <small>320 / 500</small>
+              </div>
+              <div class="gift">🎁</div>
+            </div>
+          </section>
         </div>
-
-        <section class="profile-card glass">
-          <div class="profile-head">
-            <img class="avatar" src="/assets/avatars/evyatar.webp" alt="&#1488;&#1489;&#1497;&#1514;&#1512;">
-            <div>
-              <div class="profile-name">&#1488;&#1489;&#1497;&#1514;&#1512;</div>
-              <div class="profile-class">&#1499;&#1497;&#1514;&#1492; &#1493;&#1523;</div>
-            </div>
-          </div>
-
-          <div class="level-row">
-            <div class="star-level">12</div>
-
-            <div>
-              <strong>&#1512;&#1502;&#1492;</strong>
-              <div class="progress-line"><span></span></div>
-              <small>320 / 500</small>
-            </div>
-
-            <div class="gift">🎁</div>
-          </div>
-        </section>
 
         <section class="weekly-card glass">
           <h3 class="section-title">&#1492;&#1492;&#1497;&#1513;&#1490;&#1497;&#1501; &#1492;&#1513;&#1489;&#1493;&#1506;</h3>
-
           <div class="weekly-stats">
             <div class="mini-stat">
               <div class="icon">⭐</div>
               <strong>125</strong>
               <small>&#1504;&#1511;&#1493;&#1491;&#1493;&#1514;</small>
             </div>
-
             <div class="mini-stat">
               <div class="icon">🏆</div>
               <strong>7</strong>
               <small>&#1490;&#1489;&#1497;&#1506;&#1497;&#1501;</small>
             </div>
-
             <div class="mini-stat">
               <div class="icon">⚡</div>
               <strong>12</strong>
@@ -946,20 +881,16 @@
 
         <section class="continue-card glass">
           <h3 class="section-title">&#1492;&#1502;&#1513;&#1498; &#1500;&#1500;&#1502;&#1493;&#1491;</h3>
-
           <div class="continue-item">
             <div class="continue-icon">📖</div>
-
             <div class="continue-text">
               <strong>&#1513;&#1489;&#1512;&#1497;&#1501;</strong>
               <span>&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</span>
-
               <div class="continue-progress">
                 <div class="bar"><span></span></div>
                 <b>60%</b>
               </div>
             </div>
-
             <button class="circle-btn">←</button>
           </div>
         </section>
@@ -969,7 +900,6 @@
       <section class="content">
 
         <div class="action-cards">
-
           <article class="action-card blue">
             <img class="card-image" src="/assets/cards/homework-camera.webp" alt="Homework camera">
             <h3>&#1513;&#1497;&#1506;&#1493;&#1512;&#1497; &#1489;&#1497;&#1514;</h3>
@@ -1004,41 +934,28 @@
             <p>&#1500;&#1493;&#1502;&#1491;&#1497;&#1501; &#1502;&#1502;&#1513;&#1495;&#1511;&#1497;&#1501; &#1493;&#1502;&#1512;&#1493;&#1493;&#1497;&#1495;&#1497;&#1501; &#1499;&#1493;&#1499;&#1489;&#1497;&#1501;</p>
             <button>🎮 &#1513;&#1495;&#1511; &#1506;&#1499;&#1513;&#1497;&#1493;</button>
           </article>
-
         </div>
 
         <div class="middle-row">
-
           <section class="progress-card glass">
             <div class="chart-wrap">
               <h3>&#1492;&#1492;&#1514;&#1511;&#1491;&#1502;&#1493;&#1514; &#1513;&#1500;&#1497;</h3>
-
               <div class="chart">
                 <svg viewBox="0 0 500 100" preserveAspectRatio="none" aria-hidden="true">
-                  <polyline
-                    points="0,77 55,65 110,65 165,48 220,34 275,57 330,22 385,32 440,12"
-                    fill="none"
-                    stroke="#2f7df4"
-                    stroke-width="3"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"/>
+                  <polyline points="0,77 55,65 110,65 165,48 220,34 275,57 330,22 385,32 440,12"
+                    fill="none" stroke="#2f7df4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                   <g fill="#ffffff" stroke="#2f7df4" stroke-width="3">
-                    <circle cx="0" cy="77" r="4"/>
-                    <circle cx="55" cy="65" r="4"/>
-                    <circle cx="110" cy="65" r="4"/>
-                    <circle cx="165" cy="48" r="4"/>
-                    <circle cx="220" cy="34" r="4"/>
-                    <circle cx="275" cy="57" r="4"/>
-                    <circle cx="330" cy="22" r="4"/>
-                    <circle cx="385" cy="32" r="4"/>
+                    <circle cx="0" cy="77" r="4"/><circle cx="55" cy="65" r="4"/>
+                    <circle cx="110" cy="65" r="4"/><circle cx="165" cy="48" r="4"/>
+                    <circle cx="220" cy="34" r="4"/><circle cx="275" cy="57" r="4"/>
+                    <circle cx="330" cy="22" r="4"/><circle cx="385" cy="32" r="4"/>
                     <circle cx="440" cy="12" r="4"/>
                   </g>
                 </svg>
               </div>
-
               <div class="days">
-                <span>&#1488;&#1523;</span><span>&#1489;&#1523;</span><span>&#1490;&#1523;</span><span>&#1491;&#1523;</span>
-                <span>&#1492;&#1523;</span><span>&#1493;&#1523;</span><span>&#1513;&#1523;</span>
+                <span>&#1488;&#1523;</span><span>&#1489;&#1523;</span><span>&#1490;&#1523;</span>
+                <span>&#1491;&#1523;</span><span>&#1492;&#1523;</span><span>&#1493;&#1523;</span><span>&#1513;&#1523;</span>
               </div>
             </div>
 
@@ -1050,56 +967,23 @@
 
           <section class="goals-card glass">
             <h3>&#1492;&#1497;&#1506;&#1491;&#1497;&#1501; &#1513;&#1500;&#1497;</h3>
-
             <div class="goal-list">
-              <div class="goal-item">
-                <span class="check">✓</span>
-                <span>&#1508;&#1514;&#1512; 10 &#1514;&#1512;&#1490;&#1497;&#1500;&#1497;&#1501; &#1489;&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</span>
-              </div>
-
-              <div class="goal-item">
-                <span class="check">✓</span>
-                <span>&#1511;&#1512;&#1488; &#1511;&#1496;&#1506; &#1489;&#1488;&#1504;&#1490;&#1500;&#1497;&#1514;</span>
-              </div>
-
-              <div class="goal-item">
-                <span class="check empty"></span>
-                <span>&#1500;&#1502;&#1491; 5 &#1502;&#1497;&#1500;&#1497;&#1501; &#1495;&#1491;&#1513;&#1493;&#1514;</span>
-              </div>
+              <div class="goal-item"><span class="check">✓</span><span>&#1508;&#1514;&#1512; 10 &#1514;&#1512;&#1490;&#1497;&#1500;&#1497;&#1501; &#1489;&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</span></div>
+              <div class="goal-item"><span class="check">✓</span><span>&#1511;&#1512;&#1488; &#1511;&#1496;&#1506; &#1489;&#1488;&#1504;&#1490;&#1500;&#1497;&#1514;</span></div>
+              <div class="goal-item"><span class="check empty"></span><span>&#1500;&#1502;&#1491; 5 &#1502;&#1497;&#1500;&#1497;&#1501; &#1495;&#1491;&#1513;&#1493;&#1514;</span></div>
             </div>
             <img class="goal-image" src="/assets/illustrations/goals-target.webp" alt="Goals target">
           </section>
-
         </div>
 
         <section class="recent-card glass">
           <h3>&#1504;&#1493;&#1513;&#1488;&#1497;&#1501; &#1488;&#1495;&#1512;&#1493;&#1504;&#1497;&#1501; &#1513;&#1500;&#1502;&#1491;&#1514;</h3>
-
           <div class="recent-list">
-            <div class="recent-item">
-              <div class="recent-icon">📊</div>
-              <div><strong>&#1513;&#1489;&#1512;&#1497;&#1501;</strong><small>&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</small></div>
-            </div>
-
-            <div class="recent-item">
-              <div class="recent-icon">Aa</div>
-              <div><strong>&#1488;&#1504;&#1490;&#1500;&#1497;&#1514;</strong><small>&#1511;&#1512;&#1497;&#1488;&#1492;</small></div>
-            </div>
-
-            <div class="recent-item">
-              <div class="recent-icon">❤️</div>
-              <div><strong>&#1502;&#1506;&#1512;&#1499;&#1493;&#1514; &#1489;&#1490;&#1493;&#1507;</strong><small>&#1502;&#1491;&#1506;&#1497;&#1501;</small></div>
-            </div>
-
-            <div class="recent-item">
-              <div class="recent-icon">➗</div>
-              <div><strong>&#1499;&#1508;&#1500; &#1493;&#1495;&#1497;&#1500;&#1493;&#1511;</strong><small>&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</small></div>
-            </div>
-
-            <div class="recent-item">
-              <div class="recent-icon">➕</div>
-              <div><strong>&#1495;&#1497;&#1489;&#1493;&#1512;</strong><small>&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</small></div>
-            </div>
+            <div class="recent-item"><div class="recent-icon">📊</div><div><strong>&#1513;&#1489;&#1512;&#1497;&#1501;</strong><small>&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</small></div></div>
+            <div class="recent-item"><div class="recent-icon">Aa</div><div><strong>&#1488;&#1504;&#1490;&#1500;&#1497;&#1514;</strong><small>&#1511;&#1512;&#1497;&#1488;&#1492;</small></div></div>
+            <div class="recent-item"><div class="recent-icon">❤️</div><div><strong>&#1502;&#1506;&#1512;&#1499;&#1493;&#1514; &#1489;&#1490;&#1493;&#1507;</strong><small>&#1502;&#1491;&#1506;&#1497;&#1501;</small></div></div>
+            <div class="recent-item"><div class="recent-icon">➗</div><div><strong>&#1499;&#1508;&#1500; &#1493;&#1495;&#1497;&#1500;&#1493;&#1511;</strong><small>&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</small></div></div>
+            <div class="recent-item"><div class="recent-icon">➕</div><div><strong>&#1495;&#1497;&#1489;&#1493;&#1512;</strong><small>&#1502;&#1514;&#1502;&#1496;&#1497;&#1511;&#1492;</small></div></div>
           </div>
         </section>
 
@@ -1115,7 +999,7 @@
   <script>
     document.querySelectorAll("button").forEach(button => {
       button.addEventListener("click", () => {
-        console.log("&#1504;&#1500;&#1495;&#1509;:", button.textContent.trim());
+        console.log(button.textContent.trim());
       });
     });
   </script>
