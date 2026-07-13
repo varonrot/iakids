@@ -473,15 +473,24 @@
     );
 }
 
-    .card-image{
-      position:relative;
-      z-index:1;
-      width:135px;
-      height:135px;
-      margin-bottom:8px;
-      object-fit:contain;
-      filter:drop-shadow(0 12px 12px rgba(42,54,96,.22));
-    }
+.card-image{
+  position:relative;
+  z-index:1;
+  width:170px;
+  height:170px;
+  margin-bottom:4px;
+  object-fit:contain;
+  transform:scale(1.08);
+  filter:drop-shadow(0 12px 12px rgba(42,54,96,.22));
+}
+
+    @media(max-width:600px){
+  .card-image{
+    width:145px;
+    height:145px;
+    transform:scale(1);
+  }
+}
 
     .action-card h3{
       position:relative;
