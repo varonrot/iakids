@@ -1,1 +1,86 @@
+import os
+import json
+from dotenv import load_dotenv
+from openai import OpenAI
 
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
+
+def classify_news(title, text):
+
+    print("\n==============================")
+    print("TITLE:", title)
+    print("==============================")
+
+    prompt = f"""
+You are a real-time financial news classifier.
+
+Return ONLY valid JSON (no markdown, no explanation):
+{{
+  "sentiment": "Positive|Negative|Neutral",
+  "impact": "High|Medium|Low",
+  "trade_bias": "Long|Short|None",
+  "confidence": 0-100,
+  "reason": "short explanation"
+}}
+
+News:
+{title}
+{text}
+"""
+
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    print("\n--- RAW MODEL OUTPUT ---")
+    print(content)
+
+    if content.startswith("```"):
+        content = content.split("```")[1].strip()
+
+    try:
+        parsed = json.loads(content)
+
+        print("\n--- PARSED RESULT ---")
+        print(json.dumps(parsed, indent=2))
+
+        return parsed
+
+    except Exception:
+        print("\n❌ JSON parsing failed")
+        return {
+            "sentiment": "Neutral",
+            "impact": "Low",
+            "trade_bias": "None",
+            "confidence": 0,
+            "reason": "Parsing error"
+        }
+
+
+if __name__ == "__main__":
+
+    test_news = [
+        (
+            "Tesla raises full-year guidance after strong earnings",
+            "The company reported 25% revenue growth and increased its full-year outlook."
+        ),
+        (
+            "XYZ Corp announces partnership with ABC",
+            "The companies will collaborate on future initiatives."
+        ),
+        (
+            "ABC shares fall after SEC investigation announced",
+            "The SEC has opened a formal investigation into accounting practices."
+        )
+    ]
+
+    for title, text in test_news:
+        classify_news(title, text)
