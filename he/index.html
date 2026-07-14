@@ -3644,6 +3644,75 @@ nav {
   }
 
 }
+   /* =====================================================
+   HERO HEIGHT + IMAGE POSITION FIX
+===================================================== */
+
+.iakids-hero{
+  min-height:680px !important;
+  height:auto !important;
+
+  padding:120px 24px 55px !important;
+
+  background-image:url("/assets/backgrounds/hero-home.webp") !important;
+  background-size:cover !important;
+  background-repeat:no-repeat !important;
+
+  /* מזיז את התמונה מעט למטה כדי שהראש לא ייחתך */
+  background-position:center 42% !important;
+
+  display:flex;
+  align-items:center;
+}
+
+/* במסכים גדולים במיוחד */
+@media (min-width:1400px){
+  .iakids-hero{
+    min-height:700px !important;
+    background-position:center 45% !important;
+  }
+}
+
+/* טאבלט */
+@media (max-width:1100px){
+  .iakids-hero{
+    min-height:650px !important;
+    padding-top:120px !important;
+    background-position:56% 42% !important;
+  }
+}
+
+/* מובייל */
+@media (max-width:768px){
+  .iakids-hero{
+    min-height:auto !important;
+
+    padding:360px 16px 45px !important;
+
+    background-image:url("/assets/backgrounds/hero-home.webp") !important;
+    background-size:cover !important;
+    background-repeat:no-repeat !important;
+
+    /* מציג יותר מהראש והחלק העליון */
+    background-position:61% top !important;
+  }
+}
+
+/* מובייל קטן */
+@media (max-width:480px){
+  .iakids-hero{
+    padding-top:320px !important;
+    background-position:60% top !important;
+  }
+}
+    .iakids-header{
+  position:fixed !important;
+  top:0;
+  right:0;
+  left:0;
+  width:100%;
+  z-index:5000;
+}
 </style>
   <script type="application/ld+json">
 {
@@ -3667,7 +3736,7 @@ nav {
 </head>
 
 <body>
- 
+
 
 <header class="iakids-header">
 
