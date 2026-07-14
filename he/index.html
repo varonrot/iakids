@@ -2705,7 +2705,440 @@ body {
 nav {
   flex-direction: row-reverse;
 }
+/* =====================================================
+   NEW HOME HERO
+   ילד + רובוט כתמונת רקע מלאה
+===================================================== */
 
+.iakids-hero{
+  position:relative;
+  isolation:isolate;
+
+  width:100%;
+  min-height:760px;
+
+  display:flex;
+  align-items:center;
+
+  padding:130px 24px 70px;
+
+  background-image:url("/assets/hero-home.webp") !important;
+  background-size:cover !important;
+  background-repeat:no-repeat !important;
+  background-position:center center !important;
+
+  overflow:hidden;
+}
+
+/* שכבת מעבר עדינה מאחורי הטקסט */
+.iakids-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.97) 0%,
+      rgba(255,255,255,.92) 25%,
+      rgba(255,255,255,.55) 45%,
+      rgba(255,255,255,.05) 67%,
+      rgba(255,255,255,0) 100%
+    );
+}
+
+/* קישוט אור עדין */
+.iakids-hero::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+
+  width:500px;
+  height:500px;
+
+  left:-180px;
+  bottom:-240px;
+
+  border-radius:50%;
+
+  background:rgba(255,209,102,.28);
+  filter:blur(20px);
+}
+
+/* תוכן ההירו */
+.iakids-hero .hero-content{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+  max-width:610px;
+
+  margin-right:auto !important;
+  margin-left:clamp(40px,7vw,120px) !important;
+
+  color:#18345f;
+  text-align:right;
+}
+
+/* תגית עליונה */
+.iakids-hero .hero-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+
+  margin:0 0 22px;
+
+  padding:10px 18px;
+
+  border:1px solid rgba(14,165,233,.18);
+  border-radius:999px;
+
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(10px);
+
+  color:#176b8f;
+
+  font-size:14px;
+  font-weight:800;
+
+  box-shadow:0 10px 30px rgba(30,64,175,.08);
+}
+
+/* כותרת */
+.iakids-hero .hero-title{
+  margin:0;
+
+  color:#18345f;
+
+  font-size:clamp(48px,5vw,74px);
+  font-weight:900;
+  line-height:1.03;
+  letter-spacing:-2px;
+}
+
+/* שורת ההדגשה בכותרת */
+.iakids-hero .hero-title span{
+  display:inline-block;
+  color:#f5a900;
+}
+
+/* תיאור */
+.iakids-hero .hero-text{
+  max-width:570px;
+
+  margin:26px 0 0;
+
+  color:#41587a;
+
+  font-size:20px;
+  font-weight:500;
+  line-height:1.75;
+}
+
+/* אזור הכפתורים */
+.iakids-hero .hero-buttons{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:14px;
+
+  margin-top:34px;
+}
+
+/* כפתור כללי */
+.iakids-hero .hero-btn{
+  min-height:56px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  padding:15px 27px;
+
+  border-radius:999px;
+
+  font-size:16px;
+  font-weight:900;
+  line-height:1;
+
+  text-decoration:none;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+/* כפתור ראשי */
+.iakids-hero .hero-btn.primary{
+  border:1px solid #f4b900;
+
+  background:linear-gradient(135deg,#ffd65a,#ffc52c);
+
+  color:#18345f;
+
+  box-shadow:
+    0 16px 36px rgba(245,169,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+.iakids-hero .hero-btn.primary:hover{
+  transform:translateY(-3px);
+  box-shadow:
+    0 22px 44px rgba(245,169,0,.36),
+    inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+/* כפתור משני */
+.iakids-hero .hero-btn.secondary{
+  border:1px solid rgba(24,52,95,.13);
+
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(8px);
+
+  color:#244a7c;
+
+  box-shadow:0 14px 34px rgba(30,64,175,.10);
+}
+
+.iakids-hero .hero-btn.secondary:hover{
+  transform:translateY(-3px);
+  background:#ffffff;
+  box-shadow:0 20px 42px rgba(30,64,175,.15);
+}
+
+/* אייקון בכפתור */
+.hero-btn-icon{
+  display:inline-block;
+  font-size:17px;
+}
+
+/* יתרונות מתחת לכפתורים */
+.iakids-hero .hero-tags{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+
+  margin-top:27px;
+}
+
+/* כל יתרון */
+.iakids-hero .hero-tags span{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+
+  padding:10px 14px;
+
+  border:1px solid rgba(24,52,95,.08);
+  border-radius:999px;
+
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(8px);
+
+  color:#3d5576;
+
+  font-size:13px;
+  font-weight:750;
+
+  box-shadow:0 8px 25px rgba(30,64,175,.06);
+}
+
+.iakids-hero .hero-tags b{
+  font-size:15px;
+}
+
+/* =====================================================
+   HEADER COLORS OVER THE NEW LIGHT HERO
+===================================================== */
+
+.iakids-header .nav-logo{
+  color:#18345f;
+}
+
+.iakids-header .nav-links a{
+  color:#29486f;
+}
+
+.iakids-header .nav-login{
+  border:1px solid rgba(24,52,95,.10);
+  background:rgba(255,255,255,.88);
+  color:#18345f;
+  box-shadow:0 8px 24px rgba(30,64,175,.08);
+}
+
+.iakids-header .nav-cta{
+  background:linear-gradient(135deg,#ffd65a,#ffc52c);
+  color:#18345f;
+  box-shadow:0 10px 26px rgba(245,169,0,.25);
+}
+
+.iakids-header .nav-burger span{
+  background:#18345f;
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width:1100px){
+
+  .iakids-hero{
+    min-height:720px;
+
+    background-position:56% center !important;
+  }
+
+  .iakids-hero::before{
+    background:
+      linear-gradient(
+        90deg,
+        rgba(255,255,255,.97) 0%,
+        rgba(255,255,255,.92) 35%,
+        rgba(255,255,255,.38) 62%,
+        rgba(255,255,255,0) 100%
+      );
+  }
+
+  .iakids-hero .hero-content{
+    max-width:520px;
+
+    margin-left:36px !important;
+  }
+
+  .iakids-hero .hero-text{
+    font-size:18px;
+  }
+
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width:768px){
+
+  .iakids-hero{
+    min-height:auto;
+
+    display:flex;
+    align-items:flex-end;
+
+    padding:420px 16px 45px;
+
+    background-image:url("/assets/hero-home.webp") !important;
+    background-size:cover !important;
+    background-repeat:no-repeat !important;
+    background-position:62% top !important;
+  }
+
+  /* במובייל התמונה למעלה והטקסט מקבל אזור בהיר למטה */
+  .iakids-hero::before{
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.08) 31%,
+        rgba(255,255,255,.90) 49%,
+        rgba(255,255,255,.98) 64%,
+        #ffffff 100%
+      );
+  }
+
+  .iakids-hero::after{
+    display:none;
+  }
+
+  .iakids-hero .hero-content{
+    max-width:100%;
+
+    margin:0 !important;
+
+    text-align:center;
+  }
+
+  .iakids-hero .hero-pill{
+    margin-bottom:16px;
+
+    font-size:12px;
+
+    background:rgba(255,255,255,.90);
+  }
+
+  .iakids-hero .hero-title{
+    font-size:42px;
+    line-height:1.04;
+    letter-spacing:-1.2px;
+  }
+
+  .iakids-hero .hero-text{
+    max-width:100%;
+
+    margin-top:20px;
+
+    font-size:16px;
+    line-height:1.65;
+  }
+
+  .iakids-hero .hero-buttons{
+    flex-direction:column;
+    align-items:stretch;
+
+    margin-top:26px;
+  }
+
+  .iakids-hero .hero-btn{
+    width:100%;
+    min-height:55px;
+  }
+
+  .iakids-hero .hero-tags{
+    justify-content:center;
+    gap:8px;
+
+    margin-top:22px;
+  }
+
+  .iakids-hero .hero-tags span{
+    padding:8px 11px;
+    font-size:12px;
+  }
+
+}
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width:480px){
+
+  .iakids-hero{
+    padding-top:350px;
+
+    background-position:60% top !important;
+  }
+
+  .iakids-hero .hero-title{
+    font-size:37px;
+  }
+
+  .iakids-hero .hero-text{
+    font-size:15px;
+  }
+
+  .iakids-hero .hero-tags{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .iakids-hero .hero-tags span{
+    justify-content:center;
+  }
+
+}
 </style>
   <script type="application/ld+json">
 {
@@ -2772,34 +3205,49 @@ nav {
   <div class="hero-content">
 
     <span class="hero-pill">
-      בינה מלאכותית בטוחה לילדים
+      🤖 רובוט לימודי חכם ובטוח לילדים
     </span>
 
     <h1 class="hero-title">
-      ללמוד מרגיש כמו
-      <span class="typing-wrap">
-        <span id="typing"></span><span class="cursor">|</span>
-      </span>
+      ללמוד בכיף,<br>
+      <span>להצליח בכל יום!</span>
     </h1>
 
     <p class="hero-text">
-      בינה מלאכותית חינוכית ובטוחה שעוזרת לילדים
-      ללמוד, לדמיין ולחקור בביטחון ובשקט נפשי להורים.
+      רובוט חכם שעוזר לילדי כיתות א׳–ו׳ להבין את החומר,
+      להכין שיעורי בית, להתכונן למבחנים ולתרגל בקצב האישי שלהם.
     </p>
 
     <div class="hero-buttons">
+
       <a href="/onboarding" class="hero-btn primary">
-        להתחיל בצורה בטוחה 🚀
+        מתחילים ללמוד בחינם
+        <span class="hero-btn-icon">🚀</span>
       </a>
+
       <a href="#how-it-works" class="hero-btn secondary">
-        איך זה עובד
+        איך זה עובד?
       </a>
+
     </div>
 
     <div class="hero-tags">
-      <span>🛡️ תוכן מותאם לגיל</span>
-      <span>🎓 למידה מודרכת</span>
-      <span>👨‍👩‍👧 שליטה ובקרה להורים</span>
+
+      <span>
+        <b>📚</b>
+        עזרה בשיעורי בית
+      </span>
+
+      <span>
+        <b>✏️</b>
+        הכנה למבחנים
+      </span>
+
+      <span>
+        <b>🎯</b>
+        תרגול אישי
+      </span>
+
     </div>
 
   </div>
