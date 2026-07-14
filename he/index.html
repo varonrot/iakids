@@ -3667,41 +3667,7 @@ nav {
 </head>
 
 <body>
-<header class="iakids-header">
-  <div class="nav-container">
-
-    <div class="nav-logo">
-      iakids
-    </div>
-
-    <nav class="nav-links" id="navLinks">
-      <a href="#hero">דף הבית</a>
-      <a href="#how-it-works">איך זה עובד</a>
-      <a href="#features">יכולות</a>
-      <a href="#security">בטיחות</a>
-      <a href="#pricing">מחירים</a>
-      <a href="/contact">צור קשר</a>
-
-      <!-- MOBILE ACTIONS -->
-      <div class="mobile-actions">
-        <a href="/onboarding/cuenta" class="mobile-login">התחברות</a>
-        <a href="/onboarding" class="mobile-cta">להתחיל</a>
-      </div>
-    </nav>
-
-    <div class="nav-actions" id="navActions">
-      <a href="/onboarding/cuenta" class="nav-login" id="loginLink">התחברות</a>
-      <a href="/onboarding" class="nav-cta" id="startLink">להתחיל</a>
-    </div>
-
-    <button class="nav-burger" id="navBurger" aria-label="פתח תפריט">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-
-  </div>
-</header>
+ 
 
 <header class="iakids-header">
 
@@ -4602,16 +4568,49 @@ if (backToTop) {
 const burger = document.getElementById("navBurger");
 const navLinks = document.getElementById("navLinks");
 
-burger.addEventListener("click", () => {
-  navLinks.classList.toggle("open");
-});
+if (burger && navLinks) {
 
-/* Close mobile menu when clicking a link */
-document.querySelectorAll('#navLinks a').forEach(link => {
-  link.addEventListener('click', () => {
-    navLinks.classList.remove('open');
+  burger.addEventListener("click", () => {
+
+    navLinks.classList.toggle("open");
+    burger.classList.toggle("active");
+
+    burger.setAttribute(
+      "aria-expanded",
+      navLinks.classList.contains("open")
+    );
+
   });
-});
+
+  document.querySelectorAll("#navLinks a").forEach(link => {
+
+    link.addEventListener("click", () => {
+
+      navLinks.classList.remove("open");
+      burger.classList.remove("active");
+      burger.setAttribute("aria-expanded","false");
+
+    });
+
+  });
+
+  document.addEventListener("click", (event) => {
+
+    const clickedInside =
+      navLinks.contains(event.target) ||
+      burger.contains(event.target);
+
+    if (!clickedInside) {
+
+      navLinks.classList.remove("open");
+      burger.classList.remove("active");
+      burger.setAttribute("aria-expanded","false");
+
+    }
+
+  });
+
+}
 
 </script>
 <script>
