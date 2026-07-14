@@ -4355,70 +4355,79 @@ nav {
   }
 
 }
+
+
+
+
+
+
+
     /* =====================================================
-   LEARNING JOURNEY SECTION
+   SMART LESSON DEMO
 ===================================================== */
 
-.learning-journey{
+.smart-lesson{
   position:relative;
   overflow:hidden;
 
-  padding:120px 24px;
+  padding:115px 24px 125px;
 
   background:
     radial-gradient(
-      circle at 10% 18%,
-      rgba(255,211,77,.20),
-      transparent 24%
+      circle at 5% 7%,
+      rgba(255,208,71,.22),
+      transparent 22%
     ),
     radial-gradient(
-      circle at 92% 78%,
-      rgba(77,184,255,.18),
-      transparent 28%
+      circle at 96% 88%,
+      rgba(92,190,255,.20),
+      transparent 26%
     ),
     linear-gradient(
       180deg,
-      #fffaf5 0%,
-      #f8fcff 52%,
-      #eef9ff 100%
+      #fffaf4 0%,
+      #ffffff 38%,
+      #edf8ff 100%
     );
 }
 
-.learning-journey::before{
+.smart-lesson::before{
   content:"";
   position:absolute;
 
-  top:-180px;
-  left:-160px;
+  top:-175px;
+  right:-160px;
 
-  width:420px;
-  height:420px;
+  width:430px;
+  height:430px;
 
   border-radius:50%;
 
-  background:rgba(255,211,77,.10);
+  background:rgba(255,210,77,.10);
 }
 
-.learning-journey::after{
+.smart-lesson::after{
   content:"";
   position:absolute;
 
-  right:-190px;
-  bottom:-210px;
+  left:-180px;
+  bottom:-230px;
 
   width:500px;
   height:500px;
 
   border-radius:50%;
 
-  background:rgba(80,179,255,.10);
+  background:rgba(68,174,255,.10);
 }
 
-.learning-journey-inner{
+.smart-lesson-inner{
   position:relative;
   z-index:2;
 
-  max-width:1280px;
+  width:100%;
+  max-width:1350px;
+
   margin:0 auto;
 }
 
@@ -4426,14 +4435,15 @@ nav {
    HEADER
 ===================================================== */
 
-.learning-journey-head{
-  max-width:780px;
-  margin:0 auto 75px;
+.smart-lesson-head{
+  max-width:850px;
+
+  margin:0 auto 72px;
 
   text-align:center;
 }
 
-.learning-journey-pill{
+.smart-lesson-pill{
   display:inline-flex;
   align-items:center;
   gap:7px;
@@ -4444,258 +4454,451 @@ nav {
   border:1px solid rgba(37,99,235,.10);
   border-radius:999px;
 
-  background:rgba(255,255,255,.85);
+  background:rgba(255,255,255,.86);
 
-  color:#2470bb;
+  color:#2873bd;
 
   font-size:13px;
   font-weight:900;
 
-  box-shadow:0 10px 30px rgba(37,99,235,.08);
+  box-shadow:0 10px 28px rgba(31,87,145,.08);
 }
 
-.learning-journey-head h2{
+.smart-lesson-head h2{
   margin:0 0 18px;
 
   color:#173965;
 
-  font-size:clamp(40px,4.8vw,62px);
+  font-size:clamp(42px,5vw,66px);
   font-weight:950;
   line-height:1.08;
-  letter-spacing:-1.8px;
+  letter-spacing:-2px;
 }
 
-.learning-journey-head h2 span{
+.smart-lesson-head h2 span{
   color:#f2aa18;
 }
 
-.learning-journey-head p{
-  max-width:660px;
+.smart-lesson-head p{
+  max-width:720px;
+
   margin:0 auto;
 
-  color:#5a6d86;
+  color:#5a6e88;
 
   font-size:18px;
-  line-height:1.7;
+  line-height:1.75;
 }
 
 /* =====================================================
-   LAYOUT
+   MAIN STAGE
 ===================================================== */
 
-.learning-journey-layout{
+.smart-lesson-stage{
   display:grid;
-  grid-template-columns:.95fr 1.05fr;
+  grid-template-columns:.86fr auto 1.14fr;
   align-items:center;
-  gap:90px;
+  gap:34px;
 
   direction:rtl;
 }
 
-/* =====================================================
-   STEPS
-===================================================== */
-
-.learning-steps{
+.question-panel,
+.notebook-panel{
   position:relative;
 }
 
-.learning-step{
-  position:relative;
-
-  display:grid;
-  grid-template-columns:auto auto 1fr;
+.panel-label{
+  display:inline-flex;
   align-items:center;
-  gap:16px;
+  gap:9px;
 
-  padding:20px 22px;
+  margin:0 15px 14px;
+  padding:9px 14px;
 
-  border:1px solid rgba(23,57,101,.07);
-  border-radius:24px;
+  border-radius:999px;
 
-  background:rgba(255,255,255,.86);
+  background:#eaf5ff;
+  color:#276ab3;
 
-  box-shadow:0 18px 45px rgba(23,57,101,.08);
-
-  transition:
-    transform .25s ease,
-    box-shadow .25s ease,
-    background .25s ease;
+  font-size:12px;
+  font-weight:900;
 }
 
-.learning-step:hover{
-  transform:translateX(-6px);
-
-  background:#ffffff;
-
-  box-shadow:0 25px 58px rgba(23,57,101,.13);
-}
-
-.learning-step-number{
-  width:34px;
-  height:34px;
+.panel-label span{
+  width:25px;
+  height:25px;
 
   display:grid;
   place-items:center;
 
   border-radius:50%;
 
+  background:#4d9bf0;
   color:#ffffff;
 
-  font-size:14px;
-  font-weight:950;
+  font-size:11px;
 }
 
-.step-blue .learning-step-number{
-  background:#4c9cf0;
+.panel-label.purple{
+  background:#f0e9ff;
+  color:#7850c9;
 }
 
-.step-purple .learning-step-number{
-  background:#9b6be8;
-}
-
-.step-green .learning-step-number{
-  background:#42bd7d;
-}
-
-.step-yellow .learning-step-number{
-  background:#edae21;
-}
-
-.learning-step-icon{
-  width:62px;
-  height:62px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:20px;
-
-  font-size:28px;
-}
-
-.step-blue .learning-step-icon{
-  background:#e5f3ff;
-}
-
-.step-purple .learning-step-icon{
-  background:#f0e8ff;
-}
-
-.step-green .learning-step-icon{
-  background:#e5f8ed;
-}
-
-.step-yellow .learning-step-icon{
-  background:#fff2c9;
-}
-
-.learning-step-content h3{
-  margin:0 0 5px;
-
-  color:#193c69;
-
-  font-size:18px;
-  font-weight:950;
-}
-
-.learning-step-content p{
-  margin:0;
-
-  color:#64758a;
-
-  font-size:14px;
-  line-height:1.55;
+.panel-label.purple span{
+  background:#9767e6;
 }
 
 /* =====================================================
-   CONNECTORS
+   QUESTION PHOTO
 ===================================================== */
 
-.learning-step-connector{
+.question-photo{
   position:relative;
+  overflow:hidden;
 
-  height:36px;
+  min-height:580px;
+
+  padding:70px 34px 40px;
+
+  border:8px solid rgba(255,255,255,.96);
+  border-radius:32px;
+
+  background:
+    linear-gradient(
+      140deg,
+      #edf7ff,
+      #fff7e8
+    );
+
+  box-shadow:
+    0 35px 85px rgba(29,82,137,.18),
+    0 8px 24px rgba(29,82,137,.08);
+
+  transform:rotate(-1.2deg);
 }
 
-.learning-step-connector::before{
+.question-photo-top{
+  position:absolute;
+
+  top:0;
+  right:0;
+  left:0;
+
+  min-height:52px;
+
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  padding:0 18px;
+
+  border-bottom:1px solid rgba(28,70,116,.08);
+
+  background:rgba(255,255,255,.82);
+
+  color:#47617f;
+
+  font-size:12px;
+  font-weight:800;
+}
+
+.paper-sheet{
+  position:relative;
+
+  min-height:430px;
+
+  padding:58px 45px;
+
+  border-radius:8px;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      #fffefb 0,
+      #fffefb 33px,
+      #dce9f4 34px
+    );
+
+  box-shadow:
+    0 18px 45px rgba(39,72,105,.16);
+
+  transform:rotate(.6deg);
+}
+
+.paper-sheet::before{
   content:"";
 
   position:absolute;
 
   top:0;
-  right:50px;
+  bottom:0;
+  right:38px;
 
-  width:3px;
-  height:100%;
+  width:2px;
 
-  border-radius:999px;
-
-  background:linear-gradient(
-    180deg,
-    rgba(76,156,240,.65),
-    rgba(155,107,232,.25)
-  );
+  background:#f3a7a7;
 }
 
-.learning-step-connector span{
+.paper-hole{
   position:absolute;
 
-  right:42px;
-  bottom:1px;
+  right:12px;
 
-  width:0;
-  height:0;
+  width:13px;
+  height:13px;
 
-  border-right:9px solid transparent;
-  border-left:9px solid transparent;
-  border-top:10px solid rgba(76,156,240,.58);
+  border-radius:50%;
+
+  background:#edf2f7;
+
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.13);
+}
+
+.hole-one{top:55px}
+.hole-two{top:50%}
+.hole-three{bottom:55px}
+
+.paper-title{
+  position:relative;
+
+  margin:0 0 48px;
+
+  color:#364b68;
+
+  font-size:16px;
+  font-weight:900;
+}
+
+.paper-question{
+  position:relative;
+
+  margin-bottom:36px;
+
+  color:#172f55;
+
+  font-family:"Segoe Print","Comic Sans MS",cursive;
+
+  font-size:45px;
+  font-weight:800;
+
+  text-align:center;
+}
+
+.paper-instruction{
+  position:relative;
+
+  color:#52647b;
+
+  font-size:15px;
+  line-height:1.6;
+}
+
+.paper-answer-line{
+  position:relative;
+
+  width:90%;
+  height:34px;
+
+  margin-top:30px;
+
+  border-bottom:2px solid #66768b;
+}
+
+.paper-answer-line.short{
+  width:70%;
+}
+
+.scan-box{
+  position:absolute;
+
+  top:198px;
+  right:77px;
+
+  width:255px;
+  height:112px;
+
+  border-radius:9px;
+
+  background:rgba(54,147,255,.04);
+}
+
+.scan-corner{
+  position:absolute;
+
+  width:23px;
+  height:23px;
+
+  border-color:#348fee;
+  border-style:solid;
+}
+
+.corner-one{
+  top:0;
+  right:0;
+
+  border-width:3px 3px 0 0;
+}
+
+.corner-two{
+  top:0;
+  left:0;
+
+  border-width:3px 0 0 3px;
+}
+
+.corner-three{
+  right:0;
+  bottom:0;
+
+  border-width:0 3px 3px 0;
+}
+
+.corner-four{
+  left:0;
+  bottom:0;
+
+  border-width:0 0 3px 3px;
+}
+
+.scan-line{
+  position:absolute;
+
+  top:10px;
+  right:7px;
+  left:7px;
+
+  height:2px;
+
+  background:linear-gradient(
+    90deg,
+    transparent,
+    #38a0ff,
+    transparent
+  );
+
+  box-shadow:0 0 13px rgba(56,160,255,.75);
+
+  animation:scanQuestion 2.6s ease-in-out infinite;
+}
+
+@keyframes scanQuestion{
+  0%{
+    top:10px;
+    opacity:.25;
+  }
+
+  50%{
+    top:98px;
+    opacity:1;
+  }
+
+  100%{
+    top:10px;
+    opacity:.25;
+  }
+}
+
+.recognition-badge{
+  position:absolute;
+
+  right:18px;
+  bottom:20px;
+
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  padding:10px 14px;
+
+  border:1px solid rgba(49,190,112,.16);
+  border-radius:15px;
+
+  background:rgba(255,255,255,.94);
+
+  color:#258553;
+
+  font-size:12px;
+  font-weight:900;
+
+  box-shadow:0 13px 30px rgba(30,92,145,.12);
+}
+
+.recognition-badge span{
+  width:22px;
+  height:22px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:#36bd72;
+  color:#ffffff;
 }
 
 /* =====================================================
-   CHAT AREA
+   ARROW
 ===================================================== */
 
-.learning-chat-area{
-  position:relative;
+.lesson-arrow{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+
+  color:#579de7;
 }
 
-.learning-chat-card{
-  position:relative;
+.lesson-arrow span{
+  font-size:42px;
+
+  animation:arrowMove 1.6s ease-in-out infinite;
+}
+
+.lesson-arrow small{
+  color:#6c7e93;
+
+  font-size:11px;
+  font-weight:800;
+
+  white-space:nowrap;
+}
+
+@keyframes arrowMove{
+  0%,
+  100%{
+    transform:translateX(0);
+  }
+
+  50%{
+    transform:translateX(-7px);
+  }
+}
+
+/* =====================================================
+   DIGITAL NOTEBOOK
+===================================================== */
+
+.digital-notebook{
   overflow:hidden;
 
-  max-width:590px;
-  margin:0 auto;
+  min-height:650px;
 
   border:8px solid rgba(255,255,255,.96);
-  border-radius:34px;
+  border-radius:33px;
 
   background:#ffffff;
 
   box-shadow:
-    0 38px 90px rgba(26,82,139,.20),
-    0 10px 30px rgba(26,82,139,.09);
+    0 40px 95px rgba(29,82,137,.21),
+    0 10px 28px rgba(29,82,137,.09);
 
-  transform:rotate(1deg);
-
-  transition:
-    transform .35s ease,
-    box-shadow .35s ease;
+  transform:rotate(.8deg);
 }
 
-.learning-chat-card:hover{
-  transform:rotate(0deg) translateY(-5px);
-
-  box-shadow:
-    0 48px 110px rgba(26,82,139,.25),
-    0 12px 32px rgba(26,82,139,.11);
-}
-
-/* =====================================================
-   CHAT TOP
-===================================================== */
-
-.learning-chat-top{
+.notebook-top{
   min-height:72px;
 
   display:grid;
@@ -4703,18 +4906,19 @@ nav {
   align-items:center;
   gap:12px;
 
-  padding:13px 16px;
+  padding:12px 17px;
 
-  border-bottom:1px solid rgba(23,57,101,.08);
+  border-bottom:1px solid rgba(26,63,104,.08);
 
-  background:linear-gradient(
-    90deg,
-    #f8fcff,
-    #fffaf0
-  );
+  background:
+    linear-gradient(
+      90deg,
+      #f6fbff,
+      #fff9ed
+    );
 }
 
-.learning-chat-robot{
+.notebook-robot{
   width:47px;
   height:47px;
 
@@ -4725,29 +4929,29 @@ nav {
 
   background:#e8f5ff;
 
-  font-size:25px;
+  font-size:24px;
 }
 
-.learning-chat-top strong{
+.notebook-top strong{
   display:block;
 
   margin-bottom:3px;
 
-  color:#183b67;
+  color:#173965;
 
   font-size:14px;
   font-weight:950;
 }
 
-.learning-chat-top span{
+.notebook-top small{
   display:block;
 
-  color:#74839a;
+  color:#7a899c;
 
   font-size:11px;
 }
 
-.learning-chat-status{
+.online-dot{
   width:11px;
   height:11px;
 
@@ -4758,220 +4962,366 @@ nav {
   box-shadow:0 0 0 5px rgba(52,201,120,.13);
 }
 
-/* =====================================================
-   CHAT BODY
-===================================================== */
+.notebook-page{
+  position:relative;
 
-.learning-chat-body{
-  min-height:470px;
-
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-
-  padding:26px 22px;
+  min-height:500px;
 
   background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(255,209,77,.12),
-      transparent 27%
-    ),
-    linear-gradient(
-      180deg,
-      #ffffff,
-      #f8fcff
+    repeating-linear-gradient(
+      to bottom,
+      #fffefc 0,
+      #fffefc 37px,
+      #dbe9f5 38px
     );
 }
 
-.chat-message{
+.notebook-margin{
+  position:absolute;
+
+  top:0;
+  bottom:0;
+  right:55px;
+
+  width:2px;
+
+  background:#f0aaa9;
+}
+
+.writing-area{
+  position:relative;
+
+  min-height:500px;
+
+  padding:34px 70px 30px 32px;
+}
+
+.lesson-intro{
+  margin-bottom:24px;
+
+  color:#53657d;
+
+  font-size:14px;
+  font-weight:700;
+}
+
+.animated-writing{
+  position:relative;
+
+  min-height:235px;
+}
+
+.writing-row{
+  position:relative;
+
+  min-height:48px;
+
+  display:flex;
+  align-items:center;
+
+  overflow:hidden;
+}
+
+.handwriting-text{
+  display:inline-block;
+
+  max-width:0;
+
+  overflow:hidden;
+  white-space:nowrap;
+
+  color:#2368be;
+
+  font-family:"Segoe Print","Comic Sans MS",cursive;
+
+  font-size:27px;
+  font-weight:800;
+  line-height:1.4;
+
+  opacity:0;
+}
+
+.smart-lesson.is-animated .row-one .handwriting-text{
+  animation:writeLine 1.2s steps(16,end) .2s forwards;
+}
+
+.smart-lesson.is-animated .row-two .handwriting-text{
+  animation:writeLine 2s steps(28,end) 1.55s forwards;
+}
+
+.smart-lesson.is-animated .row-three .handwriting-text{
+  animation:writeLine 1.7s steps(22,end) 3.8s forwards;
+}
+
+.smart-lesson.is-animated .row-four .handwriting-text{
+  animation:writeLine 1.7s steps(20,end) 5.7s forwards;
+}
+
+@keyframes writeLine{
+  0%{
+    max-width:0;
+    opacity:1;
+  }
+
+  100%{
+    max-width:100%;
+    opacity:1;
+  }
+}
+
+.answer-check{
+  margin-right:17px;
+
+  color:#38b86e;
+
+  font-family:system-ui,sans-serif;
+
+  font-size:36px;
+  font-weight:950;
+
+  opacity:0;
+  transform:scale(.4) rotate(-15deg);
+}
+
+.smart-lesson.is-animated .answer-check{
+  animation:showCheck .45s ease 7.5s forwards;
+}
+
+@keyframes showCheck{
+  to{
+    opacity:1;
+    transform:scale(1) rotate(0deg);
+  }
+}
+
+.moving-pencil{
+  position:absolute;
+
+  top:4px;
+  right:180px;
+
+  font-size:25px;
+
+  opacity:0;
+
+  transform:rotate(-27deg);
+
+  filter:drop-shadow(0 7px 8px rgba(28,70,110,.17));
+}
+
+.smart-lesson.is-animated .moving-pencil{
+  animation:pencilWriting 7.4s linear .15s forwards;
+}
+
+@keyframes pencilWriting{
+  0%{
+    top:4px;
+    right:30px;
+    opacity:1;
+  }
+
+  15%{
+    top:4px;
+    right:280px;
+  }
+
+  20%{
+    top:54px;
+    right:30px;
+  }
+
+  44%{
+    top:54px;
+    right:400px;
+  }
+
+  49%{
+    top:103px;
+    right:30px;
+  }
+
+  68%{
+    top:103px;
+    right:290px;
+  }
+
+  73%{
+    top:152px;
+    right:30px;
+  }
+
+  96%{
+    top:152px;
+    right:290px;
+    opacity:1;
+  }
+
+  100%{
+    top:152px;
+    right:290px;
+    opacity:0;
+  }
+}
+
+.final-answer{
+  padding:1px 8px;
+
+  border:2px solid rgba(52,145,238,.28);
+  border-radius:8px;
+
+  background:rgba(225,241,255,.52);
+}
+
+.lesson-tip{
   display:flex;
   align-items:flex-start;
   gap:10px;
+
+  margin-top:9px;
+  padding:13px 15px;
+
+  border:1px solid rgba(238,174,35,.13);
+  border-radius:17px;
+
+  background:#fff9e8;
+
+  opacity:0;
+  transform:translateY(9px);
 }
 
-.child-message{
-  flex-direction:row-reverse;
+.smart-lesson.is-animated .lesson-tip{
+  animation:showTip .45s ease 7.9s forwards;
 }
 
-.robot-message{
-  flex-direction:row;
+@keyframes showTip{
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
 }
 
-.chat-avatar{
-  width:38px;
-  height:38px;
-
-  display:grid;
-  place-items:center;
-
-  flex:0 0 38px;
-
-  border-radius:13px;
-
-  font-size:20px;
+.lesson-tip span{
+  font-size:19px;
 }
 
-.child-avatar{
-  background:#fff0d8;
+.lesson-tip p{
+  margin:0;
+
+  color:#6d5b31;
+
+  font-size:12px;
+  line-height:1.55;
 }
 
-.robot-avatar{
-  background:#e8f5ff;
-}
+.mini-practice{
+  margin-top:19px;
+  padding:17px;
 
-.chat-bubble{
-  max-width:78%;
+  border:1px solid rgba(28,69,112,.07);
+  border-radius:20px;
 
-  padding:14px 16px;
+  background:rgba(255,255,255,.92);
 
-  border-radius:19px;
+  box-shadow:0 13px 30px rgba(28,69,112,.07);
 
-  color:#3e5068;
-
-  font-size:14px;
-  line-height:1.6;
-}
-
-.child-message .chat-bubble{
-  border-top-left-radius:19px;
-  border-top-right-radius:5px;
-
-  background:#fff2d8;
-}
-
-.robot-message .chat-bubble{
-  border-top-right-radius:19px;
-  border-top-left-radius:5px;
-
-  background:#eaf6ff;
-}
-
-.chat-bubble strong{
-  color:#183b67;
-}
-
-.chat-bubble p{
-  margin:0 0 9px;
-}
-
-.chat-bubble p:last-child{
-  margin-bottom:0;
-}
-
-.chat-math{
-  margin:11px 0;
-  padding:12px;
-
-  border-radius:14px;
-
-  background:#ffffff;
-
-  color:#236bc1;
-
-  font-size:26px;
-  font-weight:950;
   text-align:center;
 
-  box-shadow:0 8px 22px rgba(37,99,235,.08);
+  opacity:0;
+  transform:translateY(12px);
 }
 
-/* =====================================================
-   PRACTICE CARD
-===================================================== */
-
-.chat-practice-card{
-  margin-top:auto;
-  padding:18px;
-
-  border:1px solid rgba(23,57,101,.07);
-  border-radius:21px;
-
-  background:#ffffff;
-
-  box-shadow:0 14px 34px rgba(23,57,101,.08);
-
-  text-align:center;
+.smart-lesson.is-animated .mini-practice{
+  animation:showPractice .5s ease 8.35s forwards;
 }
 
-.chat-practice-label{
+@keyframes showPractice{
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.mini-practice-label{
   display:inline-block;
 
-  margin-bottom:9px;
+  margin-bottom:8px;
   padding:5px 11px;
 
   border-radius:999px;
 
-  background:#e7f7ed;
-  color:#258b57;
+  background:#e4f8ec;
+  color:#268953;
 
-  font-size:11px;
+  font-size:10px;
   font-weight:900;
 }
 
-.chat-practice-card strong{
+.mini-practice strong{
   display:block;
 
   margin-bottom:13px;
 
-  color:#183b67;
+  color:#193c69;
 
-  font-size:16px;
+  font-size:15px;
 }
 
-.chat-practice-options{
+.mini-options{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:9px;
 }
 
-.chat-practice-options button{
-  min-height:42px;
+.mini-options button{
+  min-height:40px;
 
-  border:1px solid rgba(35,85,140,.10);
-  border-radius:13px;
+  border:1px solid rgba(35,87,143,.11);
+  border-radius:12px;
 
   background:#f6faff;
-  color:#284e7d;
+  color:#2c517d;
 
-  font-size:14px;
+  font-size:13px;
   font-weight:900;
 
   cursor:pointer;
 
   transition:
+    transform .2s ease,
     background .2s ease,
-    color .2s ease,
-    transform .2s ease;
+    color .2s ease;
 }
 
-.chat-practice-options button:hover{
+.mini-options button:hover,
+.mini-options button.correct-option:hover{
   transform:translateY(-2px);
 
-  background:#4c9cf0;
+  background:#4a9bec;
   color:#ffffff;
 }
 
-/* =====================================================
-   CHAT BOTTOM
-===================================================== */
+.mini-options button.correct-option{
+  border-color:rgba(50,185,105,.23);
 
-.learning-chat-bottom{
+  background:#ecfaf2;
+  color:#278b55;
+}
+
+.notebook-bottom{
+  min-height:67px;
+
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap:12px;
+  gap:10px;
 
-  min-height:68px;
+  padding:11px 14px;
 
-  padding:12px 15px;
-
-  border-top:1px solid rgba(23,57,101,.08);
+  border-top:1px solid rgba(26,63,104,.08);
 
   background:#ffffff;
 }
 
-.learning-chat-bottom span{
+.notebook-input{
   flex:1;
 
   padding:12px 14px;
@@ -4979,105 +5329,119 @@ nav {
   border-radius:14px;
 
   background:#f4f7fb;
-  color:#909bad;
+  color:#939dae;
 
   font-size:12px;
 }
 
-.learning-chat-bottom button{
+.notebook-bottom button{
   width:43px;
   height:43px;
 
   display:grid;
   place-items:center;
 
-  flex:0 0 43px;
-
   border:0;
   border-radius:14px;
 
-  background:linear-gradient(
-    135deg,
-    #ffdc63,
-    #ffc32a
-  );
+  background:
+    linear-gradient(
+      135deg,
+      #ffdc63,
+      #ffc32a
+    );
 
   font-size:19px;
+
   cursor:pointer;
 }
 
 /* =====================================================
-   DECORATIONS
+   ENGINES
 ===================================================== */
 
-.learning-chat-note{
-  position:absolute;
-  z-index:5;
+.lesson-engines{
+  max-width:1050px;
 
-  right:-32px;
-  bottom:42px;
+  margin:70px auto 0;
 
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:17px;
+}
+
+.lesson-engines article{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:14px;
 
-  padding:11px 15px;
+  padding:20px;
 
-  border:1px solid rgba(255,255,255,.8);
-  border-radius:16px;
+  border:1px solid rgba(27,66,108,.07);
+  border-radius:22px;
 
-  background:rgba(255,255,255,.92);
+  background:rgba(255,255,255,.84);
 
-  color:#28517f;
+  box-shadow:0 16px 40px rgba(30,79,129,.08);
+}
+
+.engine-icon{
+  width:52px;
+  height:52px;
+
+  display:grid;
+  place-items:center;
+
+  flex:0 0 52px;
+
+  border-radius:17px;
+
+  font-size:23px;
+}
+
+.engine-icon.blue{
+  background:#e5f3ff;
+}
+
+.engine-icon.purple{
+  background:#f0e7ff;
+}
+
+.engine-icon.yellow{
+  background:#fff1c4;
+}
+
+.lesson-engines strong{
+  display:block;
+
+  margin-bottom:4px;
+
+  color:#193c69;
+
+  font-size:14px;
+  font-weight:950;
+}
+
+.lesson-engines p{
+  margin:0;
+
+  color:#6b7a8e;
 
   font-size:12px;
-  font-weight:900;
-
-  box-shadow:0 16px 38px rgba(27,80,136,.16);
-
-  transform:rotate(-2deg);
-}
-
-.learning-chat-note span{
-  font-size:17px;
-}
-
-.learning-chat-decoration{
-  position:absolute;
-  z-index:4;
-
-  pointer-events:none;
-
-  font-size:29px;
-
-  filter:drop-shadow(0 10px 14px rgba(40,79,124,.14));
-}
-
-.chat-decoration-one{
-  top:-28px;
-  left:45px;
-
-  transform:rotate(-12deg);
-}
-
-.chat-decoration-two{
-  right:28px;
-  top:48%;
-
-  transform:rotate(14deg);
+  line-height:1.5;
 }
 
 /* =====================================================
    CTA
 ===================================================== */
 
-.learning-journey-cta{
-  margin-top:75px;
+.smart-lesson-cta{
+  margin-top:60px;
 
   text-align:center;
 }
 
-.learning-journey-cta a{
+.smart-lesson-cta a{
   min-height:57px;
 
   display:inline-flex;
@@ -5087,14 +5451,15 @@ nav {
 
   padding:16px 29px;
 
-  border:1px solid #e5ad19;
+  border:1px solid #e4ad1c;
   border-radius:999px;
 
-  background:linear-gradient(
-    135deg,
-    #ffdc63,
-    #ffc32a
-  );
+  background:
+    linear-gradient(
+      135deg,
+      #ffdc63,
+      #ffc32a
+    );
 
   color:#173965;
   text-decoration:none;
@@ -5111,7 +5476,7 @@ nav {
     box-shadow .25s ease;
 }
 
-.learning-journey-cta a:hover{
+.smart-lesson-cta a:hover{
   transform:translateY(-3px);
 
   box-shadow:
@@ -5119,10 +5484,10 @@ nav {
     inset 0 1px 0 rgba(255,255,255,.75);
 }
 
-.learning-journey-cta p{
-  margin:12px 0 0;
+.smart-lesson-cta p{
+  margin:11px 0 0;
 
-  color:#738198;
+  color:#76849a;
 
   font-size:12px;
 }
@@ -5131,26 +5496,32 @@ nav {
    TABLET
 ===================================================== */
 
-@media (max-width:1050px){
+@media (max-width:1080px){
 
-  .learning-journey-layout{
-    grid-template-columns:1fr 1fr;
-    gap:48px;
+  .smart-lesson-stage{
+    grid-template-columns:.9fr 1.1fr;
+    gap:34px;
   }
 
-  .learning-chat-note{
+  .lesson-arrow{
     display:none;
   }
 
-  .learning-step{
-    padding:17px;
+  .question-photo{
+    min-height:520px;
+    padding-inline:25px;
   }
 
-  .learning-step-icon{
-    width:54px;
-    height:54px;
+  .paper-question{
+    font-size:37px;
+  }
 
-    font-size:24px;
+  .digital-notebook{
+    min-height:610px;
+  }
+
+  .handwriting-text{
+    font-size:23px;
   }
 
 }
@@ -5161,83 +5532,36 @@ nav {
 
 @media (max-width:768px){
 
-  .learning-journey{
-    padding:80px 16px;
+  .smart-lesson{
+    padding:78px 16px 88px;
   }
 
-  .learning-journey-head{
-    margin-bottom:48px;
+  .smart-lesson-head{
+    margin-bottom:45px;
   }
 
-  .learning-journey-head h2{
+  .smart-lesson-head h2{
     font-size:38px;
-    letter-spacing:-1px;
+    letter-spacing:-1.1px;
   }
 
-  .learning-journey-head p{
+  .smart-lesson-head p{
     font-size:16px;
   }
 
-  .learning-journey-layout{
+  .smart-lesson-stage{
     display:flex;
     flex-direction:column;
-    gap:55px;
+    gap:48px;
   }
 
-  .learning-steps{
+  .question-panel,
+  .notebook-panel{
     width:100%;
   }
 
-  .learning-step{
-    grid-template-columns:auto auto 1fr;
-    gap:12px;
-
-    padding:16px;
-
-    border-radius:20px;
-  }
-
-  .learning-step:hover{
-    transform:none;
-  }
-
-  .learning-step-number{
-    width:30px;
-    height:30px;
-
-    font-size:12px;
-  }
-
-  .learning-step-icon{
-    width:50px;
-    height:50px;
-
-    border-radius:16px;
-
-    font-size:23px;
-  }
-
-  .learning-step-content h3{
-    font-size:16px;
-  }
-
-  .learning-step-content p{
-    font-size:13px;
-  }
-
-  .learning-step-connector::before{
-    right:42px;
-  }
-
-  .learning-step-connector span{
-    right:34px;
-  }
-
-  .learning-chat-area{
-    width:100%;
-  }
-
-  .learning-chat-card{
+  .question-photo,
+  .digital-notebook{
     width:100%;
 
     border-width:6px;
@@ -5246,28 +5570,46 @@ nav {
     transform:none;
   }
 
-  .learning-chat-card:hover{
-    transform:none;
+  .question-photo{
+    min-height:500px;
   }
 
-  .learning-chat-body{
-    min-height:430px;
-    padding:20px 15px;
+  .paper-sheet{
+    min-height:390px;
+    padding-inline:35px;
   }
 
-  .chat-bubble{
-    max-width:84%;
+  .scan-box{
+    right:58px;
   }
 
-  .learning-chat-decoration{
+  .digital-notebook{
+    min-height:auto;
+  }
+
+  .writing-area{
+    padding:30px 52px 27px 20px;
+  }
+
+  .handwriting-text{
+    font-size:21px;
+  }
+
+  .moving-pencil{
     display:none;
   }
 
-  .learning-journey-cta{
-    margin-top:55px;
+  .lesson-engines{
+    grid-template-columns:1fr;
+
+    margin-top:48px;
   }
 
-  .learning-journey-cta a{
+  .smart-lesson-cta{
+    margin-top:45px;
+  }
+
+  .smart-lesson-cta a{
     width:100%;
   }
 
@@ -5279,44 +5621,54 @@ nav {
 
 @media (max-width:480px){
 
-  .learning-journey-head h2{
+  .smart-lesson-head h2{
     font-size:34px;
   }
 
-  .learning-step{
-    grid-template-columns:auto 1fr;
+  .panel-label{
+    margin-right:4px;
+    margin-left:4px;
   }
 
-  .learning-step-number{
-    display:none;
+  .question-photo{
+    min-height:440px;
+    padding:65px 18px 26px;
   }
 
-  .learning-step-connector::before{
-    right:24px;
+  .paper-sheet{
+    min-height:340px;
+    padding:45px 28px;
   }
 
-  .learning-step-connector span{
-    right:16px;
+  .paper-question{
+    font-size:31px;
   }
 
-  .chat-practice-options{
+  .scan-box{
+    top:174px;
+    right:42px;
+
+    width:220px;
+  }
+
+  .notebook-margin{
+    right:40px;
+  }
+
+  .writing-area{
+    padding-right:52px;
+  }
+
+  .handwriting-text{
+    font-size:18px;
+  }
+
+  .mini-options{
     grid-template-columns:1fr;
   }
 
-  .chat-practice-options button{
-    min-height:40px;
-  }
-
-  .chat-bubble{
-    max-width:88%;
-    font-size:13px;
-  }
-
-  .chat-math{
-    font-size:22px;
-  }
-
 }
+
 </style>
   <script type="application/ld+json">
 {
@@ -5623,224 +5975,206 @@ nav {
      SECTION 3 – כך הלמידה עובדת
 ===================================================== -->
 
-<section class="learning-journey" id="learning-journey">
+<!-- =====================================================
+     SMART LESSON DEMO
+     צילום שאלה + מחברת עם פתרון מונפש
+===================================================== -->
 
-  <div class="learning-journey-inner">
+<section class="smart-lesson" id="learning-journey">
 
-    <div class="learning-journey-head">
+  <div class="smart-lesson-inner">
 
-      <span class="learning-journey-pill">
-        ✨ פשוט ללמוד ולהבין
+    <!-- כותרת -->
+    <header class="smart-lesson-head">
+
+      <span class="smart-lesson-pill">
+        ✨ לא רק תשובה — שיעור שלם
       </span>
 
       <h2>
-        כך הלמידה הופכת
-        <span>לקלה ומהנה</span>
+        מצלמים שאלה,
+        <span>ומתחילים ללמוד באמת</span>
       </h2>
 
       <p>
-        ארבעה שלבים פשוטים שמלווים את הילד משאלה ראשונה
-        ועד להבנה אמיתית וביטחון בלימודים.
+        המערכת מזהה את השאלה, בונה תסריט הוראה אישי ומציגה את
+        הפתרון במחברת דיגיטלית — שלב אחר שלב ובקצב שמתאים לילד.
       </p>
 
-    </div>
+    </header>
 
-    <div class="learning-journey-layout">
+    <div class="smart-lesson-stage">
 
-      <!-- STEPS -->
-      <div class="learning-steps">
+      <!-- צד ימין: התמונה שהילד צילם -->
+      <div class="question-panel">
 
-        <article class="learning-step step-blue">
-
-          <div class="learning-step-number">
-            1
-          </div>
-
-          <div class="learning-step-icon">
-            📷
-          </div>
-
-          <div class="learning-step-content">
-            <h3>מצלמים את השאלה</h3>
-            <p>
-              מצלמים תרגיל, דף עבודה, שאלה מהספר
-              או משימה שהילד צריך להבין.
-            </p>
-          </div>
-
-        </article>
-
-        <div class="learning-step-connector">
-          <span></span>
+        <div class="panel-label">
+          <span>1</span>
+          השאלה שהילד צילם
         </div>
 
-        <article class="learning-step step-purple">
+        <div class="question-photo">
 
-          <div class="learning-step-number">
-            2
+          <div class="question-photo-top">
+            <span>📷</span>
+            תמונה מהמחברת
           </div>
 
-          <div class="learning-step-icon">
-            🤖
-          </div>
+          <div class="paper-sheet">
 
-          <div class="learning-step-content">
-            <h3>הרובוט מסביר</h3>
-            <p>
-              הרובוט מזהה את השאלה ומסביר אותה
-              שלב אחר שלב ובשפה שמתאימה לילד.
+            <div class="paper-hole hole-one"></div>
+            <div class="paper-hole hole-two"></div>
+            <div class="paper-hole hole-three"></div>
+
+            <p class="paper-title">
+              תרגיל בחשבון
             </p>
+
+            <div class="paper-question">
+              7 + 5 = ?
+            </div>
+
+            <p class="paper-instruction">
+              פתרו והסבירו כיצד חישבתם.
+            </p>
+
+            <div class="paper-answer-line"></div>
+            <div class="paper-answer-line short"></div>
+
           </div>
 
-        </article>
+          <div class="scan-box">
+            <span class="scan-corner corner-one"></span>
+            <span class="scan-corner corner-two"></span>
+            <span class="scan-corner corner-three"></span>
+            <span class="scan-corner corner-four"></span>
 
-        <div class="learning-step-connector">
-          <span></span>
+            <div class="scan-line"></div>
+          </div>
+
+          <div class="recognition-badge">
+            <span>✓</span>
+            זיהיתי את התרגיל
+          </div>
+
         </div>
-
-        <article class="learning-step step-green">
-
-          <div class="learning-step-number">
-            3
-          </div>
-
-          <div class="learning-step-icon">
-            🎯
-          </div>
-
-          <div class="learning-step-content">
-            <h3>מתרגלים יחד</h3>
-            <p>
-              הילד מקבל שאלות נוספות, רמזים ומשוב
-              עד שהוא מבין את הנושא באמת.
-            </p>
-          </div>
-
-        </article>
-
-        <div class="learning-step-connector">
-          <span></span>
-        </div>
-
-        <article class="learning-step step-yellow">
-
-          <div class="learning-step-number">
-            4
-          </div>
-
-          <div class="learning-step-icon">
-            🏆
-          </div>
-
-          <div class="learning-step-content">
-            <h3>מצליחים בביטחון</h3>
-            <p>
-              יותר הבנה, יותר עצמאות ויותר ביטחון
-              בשיעורי הבית ובמבחנים.
-            </p>
-          </div>
-
-        </article>
 
       </div>
 
-      <!-- CHAT DEMO -->
-      <div class="learning-chat-area">
+      <!-- חץ מעבר -->
+      <div class="lesson-arrow" aria-hidden="true">
+        <span>➜</span>
+        <small>המערכת מנתחת</small>
+      </div>
 
-        <div class="learning-chat-decoration chat-decoration-one">
-          ⭐
+      <!-- צד שמאל: מחברת הפתרון -->
+      <div class="notebook-panel">
+
+        <div class="panel-label purple">
+          <span>2</span>
+          ההסבר שנבנה במיוחד לילד
         </div>
 
-        <div class="learning-chat-decoration chat-decoration-two">
-          ✏️
-        </div>
+        <div class="digital-notebook">
 
-        <div class="learning-chat-card">
+          <div class="notebook-top">
 
-          <div class="learning-chat-top">
-
-            <div class="learning-chat-robot">
+            <div class="notebook-robot">
               🤖
             </div>
 
             <div>
-              <strong>הרובוט הלימודי שלי</strong>
-              <span>
-                מחובר ומוכן לעזור
-              </span>
+              <strong>בוא נפתור יחד</strong>
+              <small>הרובוט הלימודי מסביר צעד אחר צעד</small>
             </div>
 
-            <div class="learning-chat-status"></div>
+            <div class="online-dot"></div>
 
           </div>
 
-          <div class="learning-chat-body">
+          <div class="notebook-page">
 
-            <div class="chat-message child-message">
+            <div class="notebook-margin"></div>
 
-              <div class="chat-avatar child-avatar">
-                👦
+            <div class="writing-area">
+
+              <div class="lesson-intro">
+                בוא נחשוב איך להגיע מ־7 ל־12 😊
               </div>
 
-              <div class="chat-bubble">
-                אני לא מבין איך פותרים
-                <strong>7 × 8</strong>
-              </div>
+              <div class="animated-writing">
 
-            </div>
-
-            <div class="chat-message robot-message">
-
-              <div class="chat-avatar robot-avatar">
-                🤖
-              </div>
-
-              <div class="chat-bubble">
-
-                <p>
-                  בוא נפתור יחד 😊
-                </p>
-
-                <div class="chat-math">
-                  7 × 8 = 56
+                <div class="writing-row row-one">
+                  <span class="handwriting-text">
+                    7 + 5 = ?
+                  </span>
                 </div>
 
-                <p>
-                  אפשר לחשוב על 8 קבוצות,
-                  ובכל קבוצה יש 7 פריטים.
-                </p>
+                <div class="writing-row row-two">
+                  <span class="handwriting-text">
+                    קודם נחבר 7 + 3 = 10
+                  </span>
+                </div>
+
+                <div class="writing-row row-three">
+                  <span class="handwriting-text">
+                    נשארו לנו עוד 2
+                  </span>
+                </div>
+
+                <div class="writing-row row-four">
+                  <span class="handwriting-text final-answer">
+                    10 + 2 = 12
+                  </span>
+
+                  <span class="answer-check">
+                    ✓
+                  </span>
+                </div>
+
+                <span class="moving-pencil" aria-hidden="true">
+                  ✏️
+                </span>
 
               </div>
 
-            </div>
+              <div class="lesson-tip">
+                <span>💡</span>
 
-            <div class="chat-practice-card">
+                <p>
+                  פירקנו את 5 ל־3 ול־2 כדי להגיע קודם למספר 10.
+                </p>
+              </div>
 
-              <span class="chat-practice-label">
-                תרגול קטן
-              </span>
+              <div class="mini-practice">
 
-              <strong>
-                כמה זה 7 × 6?
-              </strong>
+                <span class="mini-practice-label">
+                  תרגול קצר
+                </span>
 
-              <div class="chat-practice-options">
-                <button type="button">36</button>
-                <button type="button">42</button>
-                <button type="button">48</button>
+                <strong>
+                  עכשיו נסו: כמה זה 8 + 5?
+                </strong>
+
+                <div class="mini-options">
+                  <button type="button">12</button>
+                  <button type="button" class="correct-option">13</button>
+                  <button type="button">14</button>
+                </div>
+
               </div>
 
             </div>
 
           </div>
 
-          <div class="learning-chat-bottom">
+          <div class="notebook-bottom">
 
-            <span>
-              כתבו שאלה או צלמו תרגיל...
-            </span>
+            <div class="notebook-input">
+              כתבו תשובה או צלמו תרגיל נוסף...
+            </div>
 
-            <button type="button" aria-label="צילום תרגיל">
+            <button type="button" aria-label="צילום שאלה">
               📷
             </button>
 
@@ -5848,19 +6182,47 @@ nav {
 
         </div>
 
-        <div class="learning-chat-note">
-          <span>🛡️</span>
-          הסברים מותאמים לגיל הילד
-        </div>
-
       </div>
 
     </div>
 
-    <div class="learning-journey-cta">
+    <!-- שלושת המנועים -->
+    <div class="lesson-engines">
+
+      <article>
+        <span class="engine-icon blue">📷</span>
+
+        <div>
+          <strong>מנוע ניתוח תמונה</strong>
+          <p>מזהה את השאלה ואת החלקים שצריך להסביר.</p>
+        </div>
+      </article>
+
+      <article>
+        <span class="engine-icon purple">🧠</span>
+
+        <div>
+          <strong>מנוע הוראה אישי</strong>
+          <p>בונה דרך הסבר שמתאימה לגיל ולרמת הילד.</p>
+        </div>
+      </article>
+
+      <article>
+        <span class="engine-icon yellow">✏️</span>
+
+        <div>
+          <strong>מנוע המחשה והנפשה</strong>
+          <p>כותב, מסמן ומדגים את הפתרון בזמן אמת.</p>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="smart-lesson-cta">
 
       <a href="/onboarding">
-        גם הילד שלכם יכול להתחיל עכשיו
+        גם הילד שלכם יכול להתחיל ללמוד
         <span>🚀</span>
       </a>
 
@@ -5873,7 +6235,17 @@ nav {
   </div>
 
 </section>
-<!-- ==============================
+
+
+
+
+
+
+
+
+
+
+
 <section class="audience" id="audience">
   <div class="audience-inner">
 
