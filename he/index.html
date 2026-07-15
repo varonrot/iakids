@@ -1583,92 +1583,276 @@ body{
     padding:24px;
   }
 }
-.iakids-hero{
+
+ .iakids-hero{
   min-height:100vh;
+
   background-image:url("/assets/backgrounds/hero-home.webp");
   background-size:cover;
-  background-position:center right;
+  background-repeat:no-repeat;
+
+  /*
+    חשוב:
+    הרקע שלך כרגע בנוי עם הילד והרובוט בצד ימין.
+    לכן כדי להציג אותם בצד שמאל צריך להשתמש בתמונה הפוכה אופקית,
+    או להעלות גרסה הפוכה של hero-home.webp.
+  */
+
+  background-position:center left;
+
   display:flex;
   align-items:center;
+
+  direction:rtl;
 }
+
+
+/* ==============================
+   HERO CONTENT
+============================== */
 
 .hero-content{
+  width:42%;
+  max-width:620px;
 
-    width:42%;
+  margin-right:8%;
+  margin-left:auto;
 
-    margin-right:8%;
+  direction:rtl;
+  text-align:right;
 
-    color:#233a6c;
+  color:#233a6c;
 }
+
+
+/* ==============================
+   PILL
+============================== */
 
 .hero-pill{
   display:inline-block;
-  background:#38d9ff;
-  color:#06223d;
-  padding:6px 14px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
+
   margin-bottom:20px;
+  padding:8px 16px;
+
+  border:1px solid rgba(35,90,150,.12);
+  border-radius:999px;
+
+  background:#ffffff;
+  color:#2765a3;
+
+  font-size:12px;
+  font-weight:800;
+
+  box-shadow:0 8px 22px rgba(35,75,120,.08);
 }
+
+
+/* ==============================
+   TITLE
+============================== */
 
 .hero-title{
+  margin:0;
+
+  color:#173965;
+
   font-size:clamp(40px,5vw,58px);
-  font-weight:800;
-  line-height:1.1;
+  font-weight:900;
+  line-height:1.08;
+  letter-spacing:-1.5px;
 }
 
-.typing-wrap{
-  color:#ffd166;
-  margin-left:8px;
-  white-space:nowrap;
+.hero-title span{
+  color:#f2a900;
 }
 
-.cursor{
-  animation:blink 1s infinite;
-}
 
-@keyframes blink{
-  0%,50%,100%{opacity:1}
-  25%,75%{opacity:0}
-}
+/* ==============================
+   TEXT
+============================== */
 
 .hero-text{
-  margin-top:18px;
-  line-height:1.6;
-  color:#dbe7ff;
+  max-width:600px;
+
+  margin-top:22px;
+
+  color:#536b89;
+
+  font-size:17px;
+  font-weight:600;
+  line-height:1.8;
 }
 
+
+/* ==============================
+   BUTTONS
+============================== */
+
 .hero-buttons{
-  margin-top:28px;
   display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+
   gap:14px;
+
+  margin-top:30px;
 }
 
 .hero-btn{
-  padding:14px 22px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:8px;
+
+  padding:15px 24px;
+
   border-radius:999px;
-  font-weight:700;
+
+  font-weight:800;
+
   text-decoration:none;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+}
+
+.hero-btn:hover{
+  transform:translateY(-3px);
 }
 
 .hero-btn.primary{
-  background:#ffd166;
-  color:#0b1f3b;
+  background:linear-gradient(
+    135deg,
+    #ffdc63,
+    #ffc32d
+  );
+
+  color:#173965;
+
+  box-shadow:
+    0 14px 30px
+    rgba(235,170,20,.25);
+}
+
+.hero-btn.primary:hover{
+  box-shadow:
+    0 18px 38px
+    rgba(235,170,20,.35);
 }
 
 .hero-btn.secondary{
-  border:2px solid rgba(255,255,255,0.4);
-  color:#ffffff;
+  border:1px solid rgba(31,75,120,.12);
+
+  background:rgba(255,255,255,.88);
+
+  color:#234a75;
+
+  box-shadow:
+    0 10px 25px
+    rgba(31,75,120,.08);
 }
 
+
+/* ==============================
+   TAGS
+============================== */
+
 .hero-tags{
-  margin-top:22px;
   display:flex;
-  gap:18px;
-  font-size:14px;
-  color:#cfe6ff;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+
+  flex-wrap:wrap;
+
+  gap:10px;
+
+  margin-top:24px;
+
+  color:#486482;
+
+  font-size:12px;
 }
+
+.hero-tags span{
+  display:inline-flex;
+  align-items:center;
+
+  gap:6px;
+
+  padding:8px 13px;
+
+  border-radius:999px;
+
+  background:rgba(255,255,255,.78);
+
+  box-shadow:
+    0 8px 20px
+    rgba(35,75,120,.06);
+
+  font-weight:700;
+}
+
+.hero-tags b{
+  font-size:14px;
+}
+
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media(max-width:768px){
+
+  .iakids-hero{
+    min-height:auto;
+
+    padding:420px 20px 50px;
+
+    background-position:center top;
+  }
+
+  .hero-content{
+    width:100%;
+    max-width:none;
+
+    margin:0;
+
+    text-align:center;
+  }
+
+  .hero-text{
+    margin-left:auto;
+    margin-right:auto;
+
+    font-size:15px;
+  }
+
+  .hero-buttons{
+    flex-direction:column;
+    justify-content:center;
+  }
+
+  .hero-btn{
+    width:100%;
+    max-width:330px;
+
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .hero-tags{
+    justify-content:center;
+  }
+
+}
+
+
+
 /* =========================
    AUDIENCE SECTION (Warm pastel like your 2nd section)
 ========================= */
@@ -2456,6 +2640,7 @@ body{
   color:#ffffff;
   opacity:.8;
 }
+
 /* =========================
    HERO – MOBILE FIX REAL
 ========================= */
@@ -11041,6 +11226,30 @@ nav {
     gap:12px;
   }
 
+}
+    .iakids-hero{
+  min-height:100vh;
+  background-image:url("/assets/backgrounds/hero-home.webp") !important;
+  background-size:cover !important;
+  background-repeat:no-repeat !important;
+  background-position:center center !important;
+
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+
+  direction:rtl;
+}
+
+.iakids-hero .hero-content{
+  width:42% !important;
+  max-width:620px !important;
+
+  margin-right:8% !important;
+  margin-left:auto !important;
+
+  direction:rtl;
+  text-align:right;
 }
 </style>
   <script type="application/ld+json">
