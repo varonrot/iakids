@@ -11254,6 +11254,163 @@ nav {
 .iakids-hero::after{
   display:none !important;
 }
+
+  /* ==============================
+   FINAL HERO MOBILE FIX
+============================== */
+
+@media (max-width: 768px){
+
+  .iakids-hero{
+    min-height:auto !important;
+
+    display:flex !important;
+    align-items:flex-end !important;
+
+    padding:330px 16px 42px !important;
+
+    background-image:url("/assets/backgrounds/hero-home.webp") !important;
+    background-size:cover !important;
+    background-repeat:no-repeat !important;
+
+    /* keeps child + robot visible */
+    background-position:34% top !important;
+  }
+
+  .iakids-hero::before{
+    display:block !important;
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0) 30%,
+        rgba(255,255,255,.72) 48%,
+        rgba(255,255,255,.96) 62%,
+        #ffffff 100%
+      ) !important;
+  }
+
+  .iakids-hero::after{
+    display:none !important;
+  }
+
+  .iakids-hero .hero-content{
+    width:100% !important;
+    max-width:100% !important;
+
+    margin:0 !important;
+
+    padding:0 !important;
+
+    direction:rtl !important;
+    text-align:center !important;
+  }
+
+  .iakids-hero .hero-pill{
+    margin-bottom:14px !important;
+
+    padding:8px 13px !important;
+
+    font-size:11px !important;
+  }
+
+  .iakids-hero .hero-title{
+    font-size:40px !important;
+    line-height:1.05 !important;
+    letter-spacing:-1px !important;
+  }
+
+  .iakids-hero .hero-title span{
+    display:block !important;
+  }
+
+  .iakids-hero .hero-text{
+    max-width:520px !important;
+
+    margin:18px auto 0 !important;
+
+    font-size:15px !important;
+    line-height:1.65 !important;
+  }
+
+  .iakids-hero .hero-buttons{
+    width:100% !important;
+
+    margin-top:24px !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+
+    gap:11px !important;
+  }
+
+  .iakids-hero .hero-btn{
+    width:100% !important;
+    max-width:360px !important;
+
+    min-height:52px !important;
+
+    font-size:14px !important;
+  }
+
+  .iakids-hero .hero-tags{
+    margin-top:18px !important;
+
+    display:grid !important;
+    grid-template-columns:repeat(3,1fr) !important;
+
+    width:100% !important;
+
+    gap:7px !important;
+  }
+
+  .iakids-hero .hero-tags span{
+    justify-content:center !important;
+
+    padding:8px 5px !important;
+
+    font-size:10px !important;
+
+    white-space:nowrap !important;
+  }
+
+}
+
+
+/* ==============================
+   SMALL MOBILE
+============================== */
+
+@media (max-width: 480px){
+
+  .iakids-hero{
+    padding:280px 14px 36px !important;
+
+    background-position:30% top !important;
+  }
+
+  .iakids-hero .hero-title{
+    font-size:34px !important;
+  }
+
+  .iakids-hero .hero-text{
+    font-size:14px !important;
+  }
+
+  .iakids-hero .hero-tags{
+    grid-template-columns:1fr !important;
+  }
+
+  .iakids-hero .hero-tags span{
+    max-width:260px !important;
+    width:100% !important;
+
+    margin:0 auto !important;
+  }
+
+}
 </style>
   <script type="application/ld+json">
 {
