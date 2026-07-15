@@ -1,506 +1,1190 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>חבר ללימודים AI – סביבת למידה</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>חבר לימודים AI – Workspace</title>
+
 <style>
-*{box-sizing:border-box} :root{--purple:#6c4cff;--purple2:#8a5cff;--ink:#172052;--muted:#70779a;--line:#e9e8f6;--panel:#fff;--soft:#f8f7ff}
-body{margin:0;font-family:Arial,"Segoe UI",sans-serif;background:#f7f8ff;color:var(--ink);height:100vh;overflow:hidden}
-button,input,select{font:inherit}.app{height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr) 300px;grid-template-rows:82px minmax(0,1fr);direction:ltr;background:radial-gradient(circle at 52% 15%,#fff 0,#faf9ff 38%,#f3f5ff 100%)}
-
-/* TOP */
-.topbar{grid-column:1/4;grid-row:1;direction:rtl;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:20}
-.brand{display:flex;align-items:center;gap:12px;direction:rtl}.brand img{width:58px;height:58px;object-fit:contain}.brand-title{font-weight:900;font-size:20px}.brand-sub{font-size:12px;color:#8b91aa;margin-top:4px}.brand-ai{font-size:11px;color:#fff;background:linear-gradient(135deg,var(--purple),#a478ff);padding:3px 7px;border-radius:7px}
-.top-actions{display:flex;align-items:center;gap:10px}.top-pill{height:44px;border:1px solid #ebe9f7;background:#fff;border-radius:14px;padding:0 15px;color:#3c4270;font-weight:700;box-shadow:0 4px 14px rgba(50,45,110,.05);cursor:pointer}.top-pill i{color:var(--purple);margin-left:7px}
-.user-menu{position:relative}.user-trigger{display:flex;align-items:center;gap:9px;cursor:pointer;font-weight:800}.user-trigger img{width:43px;height:43px;border-radius:50%;object-fit:cover;border:2px solid #eee}.user-popover{position:absolute;top:52px;left:0;min-width:235px;background:#fff;padding:9px;border-radius:17px;box-shadow:0 20px 55px rgba(30,35,80,.18);display:none;z-index:100;direction:rtl}.user-menu:hover .user-popover{display:flex;flex-direction:column}.user-popover button{border:0;background:transparent;text-align:right;padding:11px;border-radius:10px;cursor:pointer;font-weight:700}.user-popover button:hover{background:#f6f4ff}
-
-/* LEFT SUBJECTS */
-.sidebar{grid-column:1;grid-row:2;direction:rtl;background:#fff;border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;min-height:0}
-.new-task{height:48px;border:0;border-radius:14px;color:#fff;background:linear-gradient(135deg,#5d3df5,#8d55ff);font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 9px 22px rgba(108,76,255,.22);margin-bottom:16px}
-.kid-actions{overflow:auto;display:flex;flex-direction:column;gap:4px;min-height:0}.side-item{border:0;background:transparent;min-height:46px;border-radius:12px;display:flex;align-items:center;gap:12px;padding:0 13px;color:#303768;cursor:pointer;text-align:right}.side-item:hover,.side-item.active{background:#f2efff;color:#5c3cf0}.side-item i{width:24px;text-align:center;font-size:19px;color:#6b67cf}.side-text{display:flex;flex-direction:column}.side-title{font-weight:800;font-size:14px}.side-sub{font-size:11px;color:#969bb3;margin-top:2px}
-.subject-add{margin:9px 0 4px;border:1px dashed #c9c2ff;background:#faf9ff;color:#6847ef;height:42px;border-radius:12px;font-weight:800;cursor:pointer}
-.sidebar-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;display:grid;gap:7px}.manage-btn{border:0;background:#f8f8fd;border-radius:12px;min-height:43px;display:flex;align-items:center;gap:10px;padding:0 12px;color:#39406f;font-weight:800;cursor:pointer}.manage-btn:hover{background:#f0edff;color:#6544f2}.manage-btn i{color:#7455f4;width:20px}
-
-/* MAIN */
-.main{grid-column:2;grid-row:2;direction:rtl;min-width:0;min-height:0;padding:18px;display:flex;flex-direction:column}
-.workspace{height:100%;min-height:0;background:#fff;border:1px solid #ecebf6;border-radius:22px;box-shadow:0 12px 40px rgba(45,45,95,.05);display:flex;flex-direction:column;overflow:hidden;position:relative}
-.welcome{padding:22px 30px 14px;text-align:center;flex-shrink:0}.welcome h1{font-size:29px;margin:0 0 7px;font-weight:900}.welcome p{margin:0;color:#707796;font-size:15px}
-.messages{flex:1;min-height:0;overflow-y:auto;padding:15px 28px 20px;display:flex;flex-direction:column;gap:13px;direction:ltr}
-.empty-state{margin:auto;max-width:650px;text-align:center;direction:rtl}.upload-zone{border:2px dashed #cfc7ff;background:linear-gradient(180deg,#fcfbff,#f8f7ff);border-radius:24px;padding:30px 20px}.upload-icon{width:76px;height:76px;margin:0 auto 12px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--purple);font-size:31px;box-shadow:0 8px 25px rgba(80,65,160,.09)}.upload-zone h2{margin:5px 0;font-size:20px}.upload-zone p{margin:4px;color:#8589a5;font-size:13px}.photo-btn{margin-top:14px;border:1px solid #ddd9fb;background:#fff;color:#6847ef;border-radius:12px;height:42px;padding:0 18px;font-weight:800;cursor:pointer}
-.msg-row{display:flex;align-items:flex-end;gap:8px;max-width:100%}.msg-row.user{justify-content:flex-end}.msg-row.assistant{justify-content:flex-start}.msg-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover}.msg-bubble{max-width:72%;padding:12px 16px;border-radius:18px;background:#f4f2ff;color:#20264d;line-height:1.5;white-space:pre-wrap;direction:rtl}.msg-row.user .msg-bubble{background:linear-gradient(135deg,#6545f5,#8560ff);color:#fff}
-
-/* COMPOSER */
-.composer-wrap{flex-shrink:0;padding:10px 18px 16px;background:linear-gradient(180deg,rgba(255,255,255,.2),#fff 28%);border-top:1px solid #f0eff8}
-.input{height:58px;border:1px solid #e3e1ef;background:#fff;border-radius:18px;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 10px;box-shadow:0 7px 24px rgba(45,45,90,.08);direction:rtl}.input input{flex:1;border:0;outline:0;padding:0 8px;font-size:15px;min-width:0}.composer-icon{width:42px;height:42px;border:0;border-radius:12px;background:#f6f4ff;color:#6c4cff;font-size:17px;cursor:pointer}.send-btn{width:44px;height:44px;border:0;border-radius:14px;background:linear-gradient(135deg,#6844f5,#8b5cff);color:#fff;cursor:pointer;font-size:0}.send-btn:after{content:"➤";font-size:18px}.talk-btn{display:block!important;width:42px;height:42px;border:0;border-radius:12px;background:#f6f4ff;color:#6c4cff;cursor:pointer}.composer-note{text-align:center;color:#a1a4b7;font-size:10px;margin-top:7px}
-
-/* RIGHT TEACHER */
-.rightbar{grid-column:3;grid-row:2;direction:rtl;background:#fbfbff;border-left:1px solid var(--line);padding:18px 16px;display:flex;flex-direction:column;gap:14px;min-height:0}
-.teacher-head{display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px}.online{width:8px;height:8px;border-radius:50%;background:#22c55e}.teacher-card{background:#fff;border:1px solid #e9e8f4;border-radius:18px;padding:17px;box-shadow:0 7px 22px rgba(40,45,90,.05)}.teacher-card-top{display:flex;align-items:center;gap:10px;margin-bottom:11px}.teacher-card-top img{width:50px;height:50px;object-fit:contain}.teacher-card strong{font-size:15px}.teacher-card p{font-size:13px;line-height:1.65;color:#555d7f;margin:0}
-.quick-list{display:flex;flex-direction:column;gap:9px;overflow:auto}.quick-card{border:1px solid #e8e7f2;background:#fff;border-radius:14px;min-height:54px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#343a67;font-weight:800;font-size:13px;cursor:pointer}.quick-card:hover{border-color:#cfc6ff;background:#faf9ff}.quick-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#f3f0ff;color:#7252f3}.rightbar-kid{display:none}
-
-/* MODALS preserved */
-.modal-overlay{position:fixed;inset:0;background:rgba(25,27,50,.5);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:9999;direction:rtl;overflow:auto;padding:20px}.modal{width:520px;max-width:94%;max-height:90vh;overflow:auto;background:#fff;border-radius:22px;padding:24px;box-shadow:0 25px 70px rgba(0,0,0,.25)}.modal-header{display:flex;justify-content:space-between;align-items:center}.modal h2{margin:0 0 16px}.modal label{display:flex;flex-direction:column;gap:7px;margin-bottom:13px;font-weight:800}.modal input,.modal select{height:44px;border:1px solid #dfe1ea;border-radius:11px;padding:0 12px}.modal-actions{display:flex;justify-content:flex-start;gap:9px;margin-top:16px}.modal-actions button,.modal .save{border:0;border-radius:11px;padding:10px 17px;cursor:pointer;font-weight:800}.modal .save{background:#6c4cff;color:#fff}.modal-close{border:0;background:transparent;font-size:20px;cursor:pointer}.chips{display:flex;flex-wrap:wrap;gap:7px}.chips button{border:1px solid #ddd;background:#fafafa;border-radius:999px;padding:8px 12px;cursor:pointer}.chips button.active{background:#6c4cff;color:#fff;border-color:#6c4cff}
-.hamburger{display:none}.ideas{display:none}.hero{display:none}
-
-@media(max-width:1050px){.app{grid-template-columns:220px minmax(0,1fr);grid-template-rows:72px minmax(0,1fr)}.rightbar{display:none}.topbar{grid-column:1/3}.main{grid-column:2}.sidebar{grid-column:1}}
-@media(max-width:760px){
- body{overflow:hidden}.app{display:block;height:100vh}.topbar{position:fixed;top:0;left:0;right:0;height:66px;padding:0 12px;z-index:50}.brand-sub,.top-actions .top-pill{display:none}.brand img{width:45px;height:45px}.brand-title{font-size:16px}.user-trigger span{display:none}
- .hamburger{display:grid;place-items:center;position:fixed;top:11px;left:12px;z-index:70;width:43px;height:43px;border:0;border-radius:13px;background:#6c4cff;color:#fff}
- .sidebar{position:fixed;top:66px;bottom:0;left:0;width:260px;z-index:60;transform:translateX(-105%);transition:.25s;box-shadow:15px 0 40px rgba(20,20,60,.18)}.sidebar.open{transform:translateX(0)}
- .main{position:fixed;top:66px;left:0;right:0;bottom:0;padding:8px}.workspace{border-radius:16px}.welcome{padding:18px 12px 8px}.welcome h1{font-size:22px}.welcome p{font-size:13px}.messages{padding:10px}.empty-state{width:100%}.upload-zone{padding:22px 12px}.composer-wrap{padding:8px}.input{height:56px}.msg-bubble{max-width:84%}
+:root{
+  --ink:#172554;
+  --ink-2:#334155;
+  --muted:#7c879b;
+  --line:#e8eaf4;
+  --panel:#ffffff;
+  --bg:#f7f8fc;
+  --purple:#6d42f5;
+  --purple-2:#8b5cf6;
+  --purple-soft:#f2edff;
+  --blue:#4b8df8;
+  --cyan:#40c8ef;
+  --green:#30c47c;
+  --yellow:#ffc84b;
+  --pink:#ff4d9d;
+  --danger:#ff5b62;
+  --shadow:0 18px 50px rgba(54,66,118,.10);
+  --soft-shadow:0 8px 24px rgba(54,66,118,.08);
+  --radius-xl:28px;
+  --radius-lg:20px;
+  --radius-md:14px;
+  --header-h:86px;
+  --left-w:258px;
+  --right-w:320px;
 }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Arial,"Noto Sans Hebrew","Segoe UI",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 44% 5%, rgba(108,66,245,.06), transparent 26%),
+    linear-gradient(180deg,#fbfbfe 0%,#f7f8fc 100%);
+  overflow:hidden;
+}
+
+button,input,textarea{font:inherit}
+
+/* ===== APP SHELL ===== */
+.app{
+  height:100vh;
+  display:grid;
+  grid-template-columns:var(--right-w) minmax(0,1fr) var(--left-w);
+  grid-template-rows:var(--header-h) minmax(0,1fr);
+  grid-template-areas:
+    "right header left"
+    "right main left";
+  direction:ltr;
+}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  grid-area:header;
+  direction:rtl;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:15px 24px;
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+  z-index:30;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:230px;
+}
+.brand-logo{
+  width:54px;height:54px;
+  border-radius:18px;
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#eef7ff,#fff);
+  border:1px solid #dcecff;
+  box-shadow:var(--soft-shadow);
+  font-size:29px;
+}
+.brand-copy strong{
+  display:flex;align-items:center;gap:7px;
+  font-size:20px;
+  font-weight:900;
+}
+.ai-badge{
+  font-size:11px;
+  color:#fff;
+  background:linear-gradient(135deg,var(--purple),#9b79ff);
+  padding:4px 7px;border-radius:7px;
+}
+.brand-copy small{display:block;color:var(--muted);margin-top:4px;font-size:11px}
+
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-right:auto;
+  margin-left:auto;
+}
+.top-pill{
+  height:48px;
+  padding:0 18px;
+  display:flex;align-items:center;gap:9px;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:15px;
+  color:var(--ink);
+  font-weight:800;
+  box-shadow:0 4px 14px rgba(54,66,118,.04);
+  cursor:pointer;
+}
+.top-pill:hover{transform:translateY(-1px);box-shadow:var(--soft-shadow)}
+.counter{
+  min-width:66px;height:48px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--line);
+  border-radius:15px;background:#fff;font-weight:900;
+}
+.user-chip{
+  display:flex;align-items:center;gap:10px;
+  min-width:170px;
+  justify-content:flex-start;
+}
+.user-avatar{
+  width:48px;height:48px;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#ffe0bb,#ffd1b1);
+  font-size:27px;border:2px solid #fff;box-shadow:var(--soft-shadow);
+}
+.user-meta strong{display:block;font-size:14px}
+.user-meta small{color:var(--muted);font-size:11px}
+
+/* ===== LEFT SIDEBAR ===== */
+.left-sidebar{
+  grid-area:left;
+  direction:rtl;
+  background:rgba(255,255,255,.94);
+  border-left:1px solid var(--line);
+  padding:14px 14px 18px;
+  overflow:auto;
+  z-index:25;
+}
+.new-task{
+  width:100%;height:50px;border:0;border-radius:15px;
+  color:#fff;font-weight:900;font-size:15px;
+  background:linear-gradient(135deg,#7d48f7,#6235e9);
+  box-shadow:0 12px 26px rgba(109,66,245,.23);
+  cursor:pointer;margin-bottom:18px;
+}
+.menu-title{
+  color:#9aa3b3;
+  font-size:10px;
+  font-weight:900;
+  padding:0 12px 8px;
+}
+.nav-list{display:flex;flex-direction:column;gap:5px}
+.nav-item{
+  width:100%;
+  min-height:45px;
+  border:0;
+  background:transparent;
+  border-radius:13px;
+  display:flex;align-items:center;gap:12px;
+  padding:0 13px;
+  color:#354269;
+  font-weight:800;
+  cursor:pointer;
+  text-align:right;
+}
+.nav-item .ico{
+  width:24px;text-align:center;font-size:18px;
+}
+.nav-item:hover{background:#f7f5ff}
+.nav-item.active{
+  background:linear-gradient(90deg,#f6f2ff,#f2efff);
+  color:#6135e8;
+}
+.subject-divider{
+  height:1px;background:var(--line);margin:12px 8px;
+}
+.add-subject{
+  color:#6d42f5;
+  border:1px dashed #cbbefb;
+  background:#fbfaff;
+}
+.help-card{
+  margin-top:20px;
+  border:1px solid #edf0f7;
+  border-radius:20px;
+  padding:16px;
+  background:linear-gradient(180deg,#fff,#fbfcff);
+  box-shadow:var(--soft-shadow);
+}
+.help-robot{font-size:42px;display:block;margin-bottom:5px}
+.help-card strong{font-size:14px}
+.help-card p{margin:5px 0 12px;color:var(--muted);font-size:12px}
+.help-card button{
+  width:100%;border:0;border-radius:12px;padding:10px;
+  background:linear-gradient(135deg,#7750f3,#5d38dd);
+  color:#fff;font-weight:900;cursor:pointer;
+}
+
+/* ===== RIGHT SIDEBAR ===== */
+.right-sidebar{
+  grid-area:right;
+  direction:rtl;
+  background:rgba(250,251,255,.98);
+  border-right:1px solid var(--line);
+  padding:20px 18px;
+  overflow:auto;
+  z-index:25;
+}
+.teacher-head{
+  display:flex;align-items:center;gap:10px;
+  font-weight:900;font-size:18px;margin-bottom:16px;
+}
+.teacher-dot{
+  width:9px;height:9px;border-radius:50%;background:#27c878;
+  box-shadow:0 0 0 4px rgba(39,200,120,.12);
+}
+.teacher-card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:16px;box-shadow:var(--soft-shadow);
+  line-height:1.75;font-size:14px;color:#34405f;
+}
+.teacher-card strong{color:var(--ink)}
+.quick-stack{
+  display:flex;flex-direction:column;gap:10px;margin-top:20px;
+}
+.quick-btn{
+  min-height:56px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border:1px solid var(--line);background:#fff;border-radius:15px;
+  padding:10px 13px;color:#33405f;font-weight:800;cursor:pointer;
+}
+.quick-btn:hover{border-color:#d7d0ff;transform:translateY(-1px);box-shadow:var(--soft-shadow)}
+.quick-icon{
+  width:34px;height:34px;border-radius:12px;
+  display:grid;place-items:center;background:#f4f0ff;font-size:18px;
+}
+.side-chat{
+  position:sticky;
+  bottom:0;
+  margin-top:26px;
+  padding-top:12px;
+  background:linear-gradient(180deg,rgba(250,251,255,0),#fafbff 20%);
+}
+.side-input{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--line);border-radius:17px;padding:8px;
+  box-shadow:var(--soft-shadow);
+}
+.side-input input{
+  flex:1;border:0;outline:0;padding:8px;background:transparent;min-width:0;
+}
+.round-btn{
+  width:38px;height:38px;border:0;border-radius:12px;
+  display:grid;place-items:center;cursor:pointer;
+}
+.round-btn.send{background:var(--purple);color:#fff}
+.round-btn.mic{background:#f7f8fc;color:#68738a}
+
+/* ===== MAIN ===== */
+.main{
+  grid-area:main;
+  direction:rtl;
+  position:relative;
+  min-width:0;
+  overflow:hidden;
+}
+.workspace{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+/* dynamic conversation canvas */
+.chat-canvas{
+  position:relative;
+  flex:1;
+  overflow-y:auto;
+  padding:30px 36px 185px;
+  scroll-behavior:smooth;
+}
+.chat-inner{
+  max-width:980px;
+  margin:0 auto;
+}
+.welcome{
+  text-align:center;
+  padding:14px 20px 24px;
+}
+.welcome h1{
+  margin:0 0 10px;
+  font-size:clamp(28px,3vw,42px);
+  line-height:1.1;
+}
+.welcome p{margin:0;color:#5f6b85;font-size:16px}
+.doodle{
+  color:#8c63ff;font-size:48px;position:absolute;opacity:.8;
+}
+.doodle.one{right:8%;top:40px;transform:rotate(-15deg)}
+.doodle.two{left:7%;top:55px;color:#ffc33d}
+
+.upload-zone{
+  max-width:680px;
+  min-height:275px;
+  margin:28px auto 18px;
+  border:2px dashed #cbbefb;
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 50% 10%,rgba(119,80,243,.07),transparent 38%),
+    linear-gradient(180deg,#fff,#fcfbff);
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:28px;
+  transition:.2s;
+}
+.upload-zone.dragover{border-color:var(--purple);background:#f8f5ff;transform:scale(1.004)}
+.upload-icon{
+  width:96px;height:96px;border-radius:50%;
+  display:grid;place-items:center;margin:0 auto 16px;
+  background:#fff;color:var(--purple);font-size:46px;
+  box-shadow:0 12px 35px rgba(109,66,245,.12);
+}
+.upload-zone h2{margin:0 0 8px;font-size:21px}
+.upload-zone p{margin:0 0 12px;color:var(--muted);font-size:13px}
+.upload-zone small{color:#8f98a8}
+.photo-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  margin:14px auto 0;border:1px solid #ddd7f7;background:#fff;
+  padding:11px 18px;border-radius:13px;color:#6d42f5;font-weight:900;cursor:pointer;
+}
+.value-row{
+  max-width:760px;margin:20px auto 0;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+}
+.value-card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:15px;display:flex;align-items:flex-start;gap:10px;box-shadow:var(--soft-shadow)
+}
+.value-card span{font-size:25px}
+.value-card strong{display:block;font-size:13px;margin-bottom:4px}
+.value-card small{color:var(--muted);line-height:1.45}
+
+/* message bubbles */
+.messages{
+  display:flex;flex-direction:column;gap:16px;
+  margin-top:22px;
+}
+.message{
+  max-width:82%;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.message.user{margin-right:auto;flex-direction:row-reverse}
+.msg-avatar{
+  width:38px;height:38px;border-radius:13px;
+  display:grid;place-items:center;flex:0 0 38px;
+  background:#eef5ff;
+}
+.message.user .msg-avatar{background:#fff0dc}
+.bubble{
+  padding:14px 16px;border-radius:18px;
+  background:#fff;border:1px solid var(--line);box-shadow:var(--soft-shadow);
+  line-height:1.65;color:#33405f;
+}
+.message.user .bubble{
+  background:linear-gradient(135deg,#6d42f5,#8158f7);
+  color:#fff;border-color:transparent;
+}
+.teacher-board{
+  margin-top:10px;
+  background:
+    repeating-linear-gradient(to bottom,#fff 0,#fff 31px,#e6eef9 32px);
+  border-radius:16px;
+  padding:20px 25px;
+  color:#2368be;
+  font-family:"Segoe Print","Comic Sans MS",cursive;
+  font-weight:800;
+  border-right:2px solid #f2b1b1;
+}
+.typing-dot{animation:pulse 1s infinite alternate}
+@keyframes pulse{to{opacity:.35}}
+
+/* ===== COMPOSER / CHILD CHAT ===== */
+.composer-wrap{
+  position:absolute;
+  right:0;left:0;bottom:0;
+  padding:20px 28px 24px;
+  background:linear-gradient(180deg,rgba(247,248,252,0),rgba(247,248,252,.96) 28%,#f7f8fc 100%);
+  z-index:15;
+}
+.composer{
+  max-width:980px;margin:0 auto;
+  background:#fff;border:1px solid #e1e4ef;border-radius:24px;
+  padding:11px;
+  box-shadow:0 18px 55px rgba(55,66,120,.16);
+}
+.composer-main{
+  display:flex;align-items:center;gap:9px;
+}
+.composer textarea{
+  flex:1;
+  min-height:48px;max-height:130px;
+  resize:none;border:0;outline:0;
+  padding:13px 14px;background:transparent;color:#2e3858;
+}
+.tool-btn{
+  width:46px;height:46px;border:1px solid #eceef5;border-radius:14px;
+  background:#fafbfe;display:grid;place-items:center;cursor:pointer;font-size:20px;
+}
+.tool-btn:hover{background:#f3f0ff;border-color:#dcd3ff}
+.send-main{
+  width:48px;height:48px;border:0;border-radius:15px;
+  background:linear-gradient(135deg,#7548f7,#5e34e5);
+  color:#fff;font-size:20px;cursor:pointer;box-shadow:0 8px 20px rgba(109,66,245,.3);
+}
+.composer-hint{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:7px 8px 0;color:#9aa3b3;font-size:11px;
+}
+.mode-chips{display:flex;gap:6px;flex-wrap:wrap}
+.mode-chip{
+  border:1px solid #eceef5;background:#fff;color:#68738a;
+  border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;cursor:pointer;
+}
+.mode-chip.active{background:#f3efff;color:#6338e6;border-color:#d8cdfd}
+
+/* ===== MOBILE ===== */
+.mobile-top{display:none}
+.overlay{display:none}
+
+@media(max-width:1150px){
+  :root{--right-w:290px;--left-w:225px}
+  .brand-copy small{display:none}
+  .top-actions .top-pill span.label{display:none}
+  .top-pill{padding:0 13px}
+}
+
+@media(max-width:900px){
+  body{overflow:auto}
+  .app{
+    height:100dvh;
+    display:block;
+  }
+  .topbar{
+    position:fixed;top:0;right:0;left:0;height:68px;
+    padding:9px 12px;
+  }
+  .brand{min-width:auto}
+  .brand-logo{width:43px;height:43px;border-radius:14px;font-size:23px}
+  .brand-copy strong{font-size:16px}
+  .brand-copy small,.top-actions,.counter{display:none}
+  .user-chip{min-width:auto}
+  .user-meta{display:none}
+  .user-avatar{width:42px;height:42px;font-size:23px}
+  .mobile-top{
+    display:flex;gap:8px;
+  }
+  .mobile-menu-btn{
+    width:42px;height:42px;border:1px solid var(--line);border-radius:13px;background:#fff;font-size:20px;
+  }
+  .left-sidebar,.right-sidebar{
+    position:fixed;top:68px;bottom:0;width:min(86vw,320px);
+    z-index:60;transition:transform .25s ease;box-shadow:0 20px 60px rgba(30,40,80,.22)
+  }
+  .left-sidebar{right:0;transform:translateX(105%)}
+  .right-sidebar{left:0;transform:translateX(-105%)}
+  .left-sidebar.open,.right-sidebar.open{transform:translateX(0)}
+  .overlay{
+    position:fixed;inset:68px 0 0;background:rgba(20,27,49,.28);z-index:50;
+  }
+  .overlay.show{display:block}
+  .main{
+    position:fixed;top:68px;right:0;left:0;bottom:0;
+  }
+  .chat-canvas{padding:20px 14px 170px}
+  .welcome{padding-top:8px}
+  .welcome h1{font-size:28px}
+  .welcome p{font-size:14px}
+  .doodle{display:none}
+  .upload-zone{
+    min-height:230px;margin-top:20px;padding:22px 16px;border-radius:20px;
+  }
+  .upload-icon{width:76px;height:76px;font-size:36px}
+  .value-row{grid-template-columns:1fr;gap:8px}
+  .value-card{padding:12px}
+  .message{max-width:94%}
+  .composer-wrap{padding:14px 10px 12px}
+  .composer{border-radius:19px;padding:8px}
+  .tool-btn,.send-main{width:42px;height:42px;border-radius:12px;flex:0 0 42px}
+  .composer textarea{min-height:42px;padding:10px 8px}
+  .composer-hint{display:none}
+}
+
+@media(max-width:520px){
+  .brand-copy strong{font-size:14px}
+  .ai-badge{display:none}
+  .upload-zone h2{font-size:18px}
+  .welcome h1{font-size:24px}
+  .photo-btn{width:100%;justify-content:center}
+  .message{max-width:100%}
+  .msg-avatar{width:32px;height:32px;flex-basis:32px;border-radius:10px}
+  .bubble{font-size:14px;padding:12px 13px}
+}
+
+/* ===== V2: kid-friendly visuals, image slots, parent features ===== */
+.brand-logo,.teacher-robot,.help-robot,.teacher-avatar{overflow:hidden}
+.brand-logo img,.teacher-robot img,.help-robot img,.teacher-avatar img{width:100%;height:100%;object-fit:contain;display:block}
+.brand-logo.robot-fallback::before{content:"🤖";font-size:29px}
+.teacher-robot{width:38px;height:38px;border-radius:13px;display:inline-grid;place-items:center;background:linear-gradient(145deg,#edf7ff,#fff6d8);border:1px solid #deebfb;flex:0 0 38px}
+.teacher-robot.robot-fallback::before{content:"🤖";font-size:22px}
+.help-robot{width:78px;height:78px;display:block;margin:-4px auto 4px}
+.help-robot.robot-fallback::before{content:"🤖";font-size:48px;display:block;text-align:center}
+.teacher-avatar img{border-radius:10px}
+body{background:radial-gradient(circle at 12% 20%,rgba(255,213,79,.14),transparent 22%),radial-gradient(circle at 88% 16%,rgba(64,200,239,.12),transparent 24%),linear-gradient(180deg,#fbfcff 0%,#f5f7ff 100%)}
+.topbar{background:rgba(255,255,255,.96);box-shadow:0 8px 28px rgba(62,74,130,.05)}
+.left-sidebar,.right-sidebar{background:rgba(255,255,255,.94)}
+.upload-zone{position:relative;background:radial-gradient(circle at 50% 18%,rgba(119,80,243,.09),transparent 38%),linear-gradient(180deg,#fff,#fbfbff)}
+.value-card:nth-child(1){background:linear-gradient(180deg,#fff7fb,#fff)}
+.value-card:nth-child(2){background:linear-gradient(180deg,#f5fff7,#fff)}
+.value-card:nth-child(3){background:linear-gradient(180deg,#f6f9ff,#fff)}
+.user-chip{cursor:pointer}
+.user-dropdown{position:absolute;top:72px;left:22px;width:245px;display:none;flex-direction:column;padding:12px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 22px 60px rgba(40,50,90,.18);z-index:100}
+.user-dropdown.open{display:flex}
+.user-dropdown button{border:0;background:transparent;border-radius:11px;padding:11px 10px;text-align:right;color:#27324f;font-weight:800;cursor:pointer}
+.user-dropdown button:hover{background:#f7f5ff}
+.dropdown-sep{height:1px;background:var(--line);margin:6px 0}
+.modal-backdrop{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(31,35,50,.48);backdrop-filter:blur(3px)}
+.modal-backdrop.open{display:flex}
+.modal-card{position:relative;width:min(100%,620px);max-height:90vh;overflow:auto;background:#fff;border-radius:28px;padding:30px;box-shadow:0 28px 90px rgba(25,31,58,.28);direction:rtl}
+.parent-modal-card{width:min(100%,520px)}
+.modal-card h2{margin:0 0 7px;font-size:31px}
+.modal-sub{margin:0 0 20px;color:var(--muted);font-size:16px}
+.modal-close{position:absolute;top:17px;left:17px;width:38px;height:38px;border:0;border-radius:12px;background:#f7f8fc;color:#68738a;font-size:27px;cursor:pointer}
+.field-label{display:block;margin:18px 0 7px;font-size:15px;font-weight:900;color:#1f2945}
+.form-control{width:100%;height:48px;border:1px solid #dfe3ec;border-radius:14px;padding:0 14px;background:#fff;outline:0}
+.form-control:focus{border-color:#b8a7fa;box-shadow:0 0 0 4px rgba(109,66,245,.08)}
+.modal-separator{height:1px;background:#e5e7ee;margin:22px 0}
+.modal-actions{display:flex;justify-content:flex-start;gap:10px;margin-top:24px}
+.primary-btn,.soft-btn,.outline-btn{border-radius:12px;padding:10px 18px;font-weight:900;cursor:pointer}
+.primary-btn{border:0;background:linear-gradient(135deg,#7547f5,#6036e7);color:#fff}
+.soft-btn{border:1px solid #dde1ea;background:#f8f9fc;color:#303a57}
+.outline-btn{border:1px solid #cfc5f7;background:#fff;color:#6540dd}
+.chip-picker{display:flex;flex-wrap:wrap;gap:8px}
+.pick-chip{border:1px solid #dfe3ec;background:#fff;border-radius:999px;padding:9px 13px;cursor:pointer;color:#303a57;font-weight:800}
+.pick-chip.active{border-color:transparent;background:linear-gradient(135deg,#ff8266,#ff6248);color:#fff}
+@media(max-width:900px){.user-dropdown{top:62px;left:10px;width:240px}.modal-card{padding:24px 18px;border-radius:22px}.modal-card h2{font-size:25px;padding-left:38px}}
+
 </style>
 </head>
+
 <body>
-<button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
 <div class="app">
-<header class="topbar">
-  <div class="brand">
-    <img src="/assets/robots/brand-robot.png" alt="חבר לימודים">
-    <div><div class="brand-title">חבר לימודים <span class="brand-ai">AI</span></div><div class="brand-sub">לומדים יחד, מצליחים יותר</div></div>
-  </div>
-  <div class="top-actions">
-    <button class="top-pill"><i class="fa-solid fa-microphone"></i>דבר עם AI</button>
-    <button class="top-pill"><i class="fa-solid fa-arrow-up-from-bracket"></i>הקבצים שלי</button>
-    <div class="user-menu">
-      <div class="user-trigger"><img id="userAvatar"><span id="userName"></span></div>
-      <div class="user-popover">
-        <button onclick="document.getElementById('openSettings').click()">⚙️ עריכת פרטי הילד</button>
-        <button onclick="document.getElementById('openParentModal').click()">👨‍👩‍👧 פאנל הורים</button>
-        <button id="manageSubscriptionBtn">💳 ניהול מנוי</button>
-        <button onclick="window.location.href='/support/'">📩 תמיכה</button>
-        <hr><button onclick="sb.auth.signOut().then(()=>location.href='/')">🚪 יציאה</button>
+
+  <!-- HEADER -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo"><img src="/assets/robots/brand-robot.png" alt="חבר לימודים" onerror="this.style.display='none';this.parentElement.classList.add('robot-fallback')"></div>
+      <div class="brand-copy">
+        <strong>חבר לימודים <span class="ai-badge">AI</span></strong>
+        <small>לומדים יחד. מבינים יותר. מצליחים יותר.</small>
       </div>
     </div>
-  </div>
-</header>
 
-<aside class="sidebar">
-  <button class="new-task" data-ask="homework">＋ משימה חדשה</button>
-  <div class="kid-actions">
-    <button class="side-item active" data-ask="homework"><i class="fa-solid fa-house"></i><div class="side-text"><span class="side-title">דף הבית</span></div></button>
-    <button class="side-item" data-ask="learn"><i class="fa-solid fa-list"></i><div class="side-text"><span class="side-title">השיעורים שלי</span></div></button>
-    <button class="side-item" data-ask="practice"><i class="fa-regular fa-calendar-check"></i><div class="side-text"><span class="side-title">משימות</span></div></button>
-    <button class="side-item" data-ask="learn"><i class="fa-solid fa-book-open"></i><div class="side-text"><span class="side-title">ספרות</span></div></button>
-    <button class="side-item" data-ask="english"><i class="fa-solid fa-language"></i><div class="side-text"><span class="side-title">אנגלית</span></div></button>
-    <button class="side-item" data-ask="science"><i class="fa-solid fa-flask"></i><div class="side-text"><span class="side-title">מדעים</span></div></button>
-    <button class="side-item" data-ask="history"><i class="fa-solid fa-earth-americas"></i><div class="side-text"><span class="side-title">היסטוריה</span></div></button>
-    <button class="side-item" data-ask="math"><i class="fa-solid fa-square-root-variable"></i><div class="side-text"><span class="side-title">מתמטיקה</span></div></button>
-    <button class="side-item" data-ask="bible"><i class="fa-solid fa-book"></i><div class="side-text"><span class="side-title">תנ״ך</span></div></button>
-    <button class="subject-add">＋ הוספת מקצוע</button>
-  </div>
-  <div class="sidebar-bottom">
-    <button class="manage-btn" id="openParentModal"><i class="fa-solid fa-children"></i>פאנל הורים</button>
-    <button class="manage-btn" id="openSettings"><i class="fa-solid fa-user-pen"></i>פרטי הילד</button>
-    <button class="manage-btn" id="manageSubscriptionSide"><i class="fa-regular fa-credit-card"></i>ניהול מנוי</button>
-  </div>
-</aside>
+    <div class="top-actions">
+      <button class="top-pill" id="talkTop">🎙️ <span class="label">דבר עם AI</span></button>
+      <button class="top-pill" id="filesTop">⬆️ <span class="label">הקבצים שלי</span></button>
+      <div class="counter">⭐ 850</div>
+      <div class="counter">💎 45</div>
+    </div>
 
-<main class="main">
-  <section class="workspace">
-    <div class="welcome"><h1 id="heroGreeting">בואו נפתור יחד!</h1><p>אפשר לשאול שאלה, להעלות תרגיל או לצלם את המחברת — המורה AI יעזור שלב אחרי שלב.</p></div>
-    <div class="messages">
-      <div class="empty-state" id="emptyState">
-        <div class="upload-zone">
-          <div class="upload-icon"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
-          <h2>גררו וקפלו תמונה לכאן</h2><p>או לחצו לבחירת קובץ</p><p>תמיכה ב־JPG, PNG, PDF</p>
-          <button class="photo-btn"><i class="fa-solid fa-camera"></i> צלמו תמונה עכשיו</button>
+    <div class="user-chip" id="userMenuToggle" role="button" tabindex="0">
+      <div class="user-avatar">🧒🏻</div>
+      <div class="user-meta">
+        <strong>אביתר</strong>
+        <small>כיתה ו׳</small>
+      </div>
+    </div>
+
+    <div class="user-dropdown" id="userDropdown">
+      <button id="editChildBtn">⚙️ עריכת פרופיל הילד</button>
+      <button id="parentPanelBtn">👶 פאנל הורים</button>
+      <button id="subscriptionBtn">💳 ניהול מנוי</button>
+      <button id="supportBtn">📩 תמיכה</button>
+      <div class="dropdown-sep"></div>
+      <button id="logoutBtnTop">🚪 יציאה</button>
+    </div>
+
+    <div class="mobile-top">
+      <button class="mobile-menu-btn" id="openRight" aria-label="פתח מורה AI">🤖</button>
+      <button class="mobile-menu-btn" id="openLeft" aria-label="פתח תפריט">☰</button>
+    </div>
+  </header>
+
+  <!-- LEFT NAV -->
+  <aside class="left-sidebar" id="leftSidebar">
+    <button class="new-task" id="newTask">＋ משימה חדשה</button>
+
+    <div class="menu-title">סביבת הלמידה שלי</div>
+    <nav class="nav-list">
+      <button class="nav-item"><span class="ico">🏠</span> דף הבית</button>
+      <button class="nav-item"><span class="ico">☷</span> השיעורים שלי</button>
+      <button class="nav-item"><span class="ico">🗓️</span> משימות</button>
+      <button class="nav-item"><span class="ico">📖</span> בגרות</button>
+      <button class="nav-item"><span class="ico">🎮</span> אנגלית</button>
+      <button class="nav-item"><span class="ico">🧪</span> מדעים</button>
+      <button class="nav-item"><span class="ico">🌍</span> היסטוריה</button>
+      <button class="nav-item active"><span class="ico">x²</span> מתמטיקה</button>
+      <button class="nav-item"><span class="ico">📝</span> כתיבה</button>
+      <button class="nav-item"><span class="ico">🏆</span> הישגים</button>
+
+      <div class="subject-divider"></div>
+
+      <button class="nav-item add-subject" id="addSubject">
+        <span class="ico">＋</span> הוספת מקצוע
+      </button>
+      <div id="customSubjects"></div>
+    </nav>
+
+    <div class="help-card">
+      <span class="help-robot"><img src="/assets/robots/help-robot.png" alt="רובוט עוזר" onerror="this.style.display='none';this.parentElement.classList.add('robot-fallback')"></span>
+      <strong>צריך עזרה?</strong>
+      <p>אני כאן בשבילך!</p>
+      <button id="askAI">שאל את AI</button>
+    </div>
+  </aside>
+
+  <!-- RIGHT AI PANEL -->
+  <aside class="right-sidebar" id="rightSidebar">
+    <div class="teacher-head"><span class="teacher-robot"><img src="/assets/robots/teacher-robot.png" alt="המורה AI" onerror="this.style.display='none';this.parentElement.classList.add('robot-fallback')"></span> המורה AI <span class="teacher-dot"></span></div>
+
+    <div class="teacher-card">
+      <strong>היי אביתר! 👋</strong><br>
+      אני המורה AI שלך.<br><br>
+      אני כאן כדי לעזור לך <strong>להבין</strong>, לפתור שאלות וללמוד בצורה כיפית וברורה.<br><br>
+      איך אפשר לעזור היום?
+    </div>
+
+    <div class="quick-stack">
+      <button class="quick-btn" data-prompt="איך פותרים שברים?">
+        <span>איך פותרים שברים?</span><span class="quick-icon">✏️</span>
+      </button>
+      <button class="quick-btn" data-prompt="הסבר לי על מערכת השמש">
+        <span>הסבר לי על מערכת השמש</span><span class="quick-icon">🪐</span>
+      </button>
+      <button class="quick-btn" data-prompt="עזור לי במשימה מהשיעור">
+        <span>עזרה במשימה מהשיעור</span><span class="quick-icon">📗</span>
+      </button>
+      <button class="quick-btn" data-prompt="יש לי שאלה באנגלית">
+        <span>שאלה באנגלית</span><span class="quick-icon">A</span>
+      </button>
+    </div>
+
+    <div class="side-chat">
+      <div class="side-input">
+        <button class="round-btn mic" id="sideMic">🎙️</button>
+        <input id="sideText" type="text" placeholder="כתבו הודעה..." />
+        <button class="round-btn send" id="sideSend">➤</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="workspace">
+      <section class="chat-canvas" id="chatCanvas">
+        <div class="chat-inner">
+
+          <div class="doodle one">↝</div>
+          <div class="doodle two">✨</div>
+
+          <div class="welcome" id="welcome">
+            <h1>בואו נפתור יחד!</h1>
+            <p><strong>העלו תמונה של התרגיל או השאלה</strong><br>ואני אעזור לכם להבין ולפתור שלב אחרי שלב.</p>
+          </div>
+
+          <div class="upload-zone" id="uploadZone">
+            <div>
+              <div class="upload-icon">↥</div>
+              <h2>גררו וקפלו תמונה לכאן</h2>
+              <p>או לחצו לבחירת קובץ</p>
+              <small>תמיכה ב־JPG, PNG, PDF</small><br>
+              <button class="photo-btn" id="photoButton">📷 צלמו תמונה עכשיו</button>
+              <input id="fileInput" type="file" accept="image/*,.pdf" hidden />
+            </div>
+          </div>
+
+          <div class="value-row" id="valueRow">
+            <div class="value-card"><span>🧠</span><div><strong>מוסבר בצורה פשוטה</strong><small>שלב אחרי שלב ובהתאמה אליכם</small></div></div>
+            <div class="value-card"><span>🎯</span><div><strong>תשובות מדויקות</strong><small>והסבר ברור כדי שתבינו באמת</small></div></div>
+            <div class="value-card"><span>✨</span><div><strong>לומדים בעצמכם</strong><small>אני מכוון, אתם פותרים ומצליחים</small></div></div>
+          </div>
+
+          <div class="messages" id="messages"></div>
+        </div>
+      </section>
+
+      <!-- BOTTOM CHAT -->
+      <div class="composer-wrap">
+        <div class="composer">
+          <div class="composer-main">
+            <button class="tool-btn" id="mainMic" title="דיבור">🎙️</button>
+            <button class="tool-btn" id="mainCamera" title="צילום">📷</button>
+            <button class="tool-btn" id="mainAttach" title="צרף קובץ">📎</button>
+            <textarea id="mainText" rows="1" placeholder="שאלו אותי משהו, כתבו תרגיל או בקשו הסבר..."></textarea>
+            <button class="send-main" id="mainSend">➤</button>
+          </div>
+          <div class="composer-hint">
+            <div class="mode-chips">
+              <button class="mode-chip active">הסבר שלב־שלב</button>
+              <button class="mode-chip">רק רמז</button>
+              <button class="mode-chip">תרגול נוסף</button>
+              <button class="mode-chip">בדוק את התשובה שלי</button>
+            </div>
+            <span>Enter לשליחה · Shift+Enter לשורה חדשה</span>
+          </div>
         </div>
       </div>
     </div>
-    <div class="composer-wrap">
-      <div class="input">
-        <button class="send-btn" aria-label="שליחה">שליחה</button>
-        <input placeholder="כתבו הודעה למורה AI...">
-        <button class="composer-icon" title="צרף תמונה"><i class="fa-solid fa-paperclip"></i></button>
-        <button class="talk-btn" title="דיבור"><i class="fa-solid fa-microphone"></i></button>
-      </div>
-      <div class="composer-note">המורה AI יכול לטעות. כדאי לבדוק מידע חשוב.</div>
-    </div>
-  </section>
-</main>
+  </main>
 
-<aside class="rightbar">
-  <div class="teacher-head"><span class="online"></span> המורה AI</div>
-  <div class="teacher-card">
-    <div class="teacher-card-top"><img src="/assets/robots/brand-robot.png"><strong id="teacherHello">היי! 👋</strong></div>
-    <p>אני המורה AI שלך. אפשר לשאול אותי שאלות, לפתור תרגילים יחד וללמוד בקצב שמתאים לך. במה נתחיל היום?</p>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="modal-backdrop" id="parentModal">
+    <section class="modal-card parent-modal-card">
+      <button class="modal-close" data-close-modal>×</button>
+      <h2>פאנל הורים</h2>
+      <p class="modal-sub">ניהול פרופילי הילדים</p>
+      <label class="field-label" for="childSelect">בחירת ילד</label>
+      <select id="childSelect" class="form-control">
+        <option value="avitar">אביתר</option>
+        <option value="alona">אלונה</option>
+      </select>
+      <div class="modal-actions"><button class="soft-btn" id="switchChildBtn">החלף ילד</button></div>
+      <div class="modal-separator"></div>
+      <button class="outline-btn" id="addChildBtn">＋ הוספת ילד</button>
+    </section>
   </div>
-  <div class="quick-list">
-    <button class="quick-card" data-ask="examples"><span>איך פותרים שברים?</span><span class="quick-icon">✏️</span></button>
-    <button class="quick-card" data-ask="science"><span>הסבר על מערכת השמש</span><span class="quick-icon">🪐</span></button>
-    <button class="quick-card" data-ask="exam"><span>עזרה במשימה מהשיעור</span><span class="quick-icon">📗</span></button>
-    <button class="quick-card" data-ask="english"><span>שאלה באנגלית</span><span class="quick-icon">A</span></button>
-    <button class="quick-card" data-ask="challenge"><span>תן לי אתגר קצר</span><span class="quick-icon">🎯</span></button>
+
+  <div class="modal-backdrop" id="profileModal">
+    <section class="modal-card">
+      <button class="modal-close" data-close-modal>×</button>
+      <h2>עריכת פרופיל הילד</h2>
+      <label class="field-label">שם</label>
+      <input id="childName" class="form-control" value="אביתר">
+      <label class="field-label">גיל</label>
+      <select id="childAge" class="form-control"><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option selected>11</option><option>12</option></select>
+      <label class="field-label">אווטאר</label>
+      <select id="childAvatar" class="form-control">
+      <option value="cat">חתול</option>
+      <option value="dolphin">דולפין</option>
+      <option value="eagle">נשר</option>
+      <option value="horse">סוס</option>
+      <option value="owl">ינשוף</option>
+      <option value="panther">פנתר</option>
+    </select>
+      <label class="field-label">תחומי עניין בלמידה</label>
+      <input id="childInterests" class="form-control" placeholder="למשל: חלל, בעלי חיים, כדורגל">
+      <label class="field-label">איך תרצו להשתמש במערכת?</label>
+      <div class="chip-picker">
+        <button type="button" class="pick-chip active" data-val="school_help">עזרה בשיעורי בית</button>
+        <button type="button" class="pick-chip" data-val="daily_questions">שאלות מהיום־יום</button>
+        <button type="button" class="pick-chip" data-val="thinking">חשיבה והיגיון</button>
+        <button type="button" class="pick-chip active" data-val="languages">שפות ומילים</button>
+        <button type="button" class="pick-chip" data-val="creative">רעיונות יצירתיים</button>
+        <button type="button" class="pick-chip" data-val="safe_curiosity">סקרנות בטוחה</button>
+      </div>
+      <label class="field-label">מה הייתם רוצים ללמוד?</label>
+      <div class="chip-picker">
+        <button type="button" class="pick-chip" data-val="languages">שפה חדשה</button>
+        <button type="button" class="pick-chip active" data-val="math">מתמטיקה</button>
+        <button type="button" class="pick-chip" data-val="english">אנגלית</button>
+        <button type="button" class="pick-chip active" data-val="science">מדעים</button>
+        <button type="button" class="pick-chip" data-val="reading">קריאה</button>
+        <button type="button" class="pick-chip" data-val="critical">חשיבה ביקורתית</button>
+      </div>
+      <div class="modal-actions">
+        <button class="soft-btn" data-close-modal>ביטול</button>
+        <button class="primary-btn" id="saveProfileBtn">שמירה</button>
+      </div>
+    </section>
   </div>
-  <div class="rightbar-kid"><img id="rightbarAvatar"><div id="rightbarName"></div></div>
-</aside>
 </div>
 
-<!-- Existing functional modals -->
-<div class="modal-overlay" id="quotaModal"><div class="modal"><h2>נגמרה מכסת השאלות</h2><p>כדי להמשיך להשתמש במערכת, יש להפעיל גישה מלאה.</p><div class="modal-actions"><button onclick="closeQuotaModal()">סגירה</button><button class="save" onclick="goToUpgrade()">שדרוג</button></div></div></div>
-
-<div class="modal-overlay" id="settingsModal"><div class="modal">
-<h2>עריכת פרטי הילד</h2>
-<label>שם<input type="text" id="modalChildName"></label>
-<label>גיל<select id="modalChildAge"><option value="">בחרו גיל</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select></label>
-<label>אווטאר<select id="modalAvatar"><option value="cat">חתול</option><option value="dolphin">דולפין</option><option value="eagle">נשר</option><option value="horse">סוס</option><option value="owl">ינשוף</option><option value="panther">פנתר</option></select></label>
-<label>תחומי עניין בלמידה<input type="text" id="modalInterests"></label>
-<label>למה משתמשים במערכת?<div class="chips" id="modalGoals"><button data-val="daily_questions">שאלות יומיומיות</button><button data-val="school_help">עזרה בלימודים</button><button data-val="thinking">חשיבה והיגיון</button><button data-val="creative">יצירתיות</button><button data-val="languages">שפות</button><button data-val="safe_curiosity">סקרנות</button><button data-val="family">משפחה</button></div></label>
-<label>מה רוצים ללמוד?<div class="chips" id="modalLearning"><button data-val="languages">שפה חדשה</button><button data-val="math">מתמטיקה</button><button data-val="english">אנגלית</button><button data-val="science">מדעים</button><button data-val="reading">קריאה</button><button data-val="arts">אמנות</button><button data-val="logic">לוגיקה</button><button data-val="critical">חשיבה ביקורתית</button></div></label>
-<div class="modal-actions"><button onclick="closeSettings()">ביטול</button><button class="save" onclick="saveSettings()">שמירה</button></div>
-</div></div>
-
-<div class="modal-overlay" id="parentModal"><div class="modal">
-<div class="modal-header"><h2>פאנל הורים</h2><button class="modal-close" onclick="closeParentModal()">✕</button></div>
-<p>ניהול והחלפה בין פרופילי הילדים</p><label>בחירת ילד<select id="parentKidSelect"></select></label>
-<div class="modal-actions"><button class="save" onclick="switchKid()">החלפת ילד</button></div><hr>
-<button class="save" onclick="addKid()">＋ הוספת ילד</button>
-</div></div>
-
-<div class="modal-overlay" id="addKidModal"><div class="modal"><h2>הוספת ילד</h2>
-<label>שם<input type="text" id="newKidName"></label><label>גיל<select id="newKidAge"><option value="">בחרו גיל</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select></label>
-<div class="modal-actions"><button onclick="closeAddKid()">ביטול</button><button class="save" onclick="createKid()">יצירה</button></div></div></div>
-
-<script>
-function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');}
-document.addEventListener("DOMContentLoaded",()=>{
- const side=document.getElementById("manageSubscriptionSide");
- const top=document.getElementById("manageSubscriptionBtn");
- if(side&&top) side.onclick=()=>top.click();
-});
-</script>
-
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-PDCBGGLL7R');
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const supabaseClient = window.supabase.createClient(
+  "https://bxnfzuglfwytiyaguwjj.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
+);
+</script>
+<script>
+const mainText = document.getElementById('mainText');
+const messages = document.getElementById('messages');
+const chatCanvas = document.getElementById('chatCanvas');
+const welcome = document.getElementById('welcome');
+const uploadZone = document.getElementById('uploadZone');
+const valueRow = document.getElementById('valueRow');
+const fileInput = document.getElementById('fileInput');
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let CURRENT_KID = null;
-
-(async () => {
-  const { data: sessionData } = await sb.auth.getSession();
-  const { data: { user } } = await sb.auth.getUser();
-
-if (user) {
-  const displayName =
-    user.user_metadata?.full_name ||
-    user.user_metadata?.name ||
-    user.email;
-
-  const avatar =
-    user.user_metadata?.avatar_url ||
-    "/assets/default-parent.png";
-
-  document.getElementById("userName").textContent = displayName;
-  document.getElementById("userAvatar").src = avatar;
+function hideIntro(){
+  welcome.style.display = 'none';
+  uploadZone.style.display = 'none';
+  valueRow.style.display = 'none';
 }
 
-  if (!sessionData.session) {
+function addMessage(role, text, withBoard=false){
+  hideIntro();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'message ' + role;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = role === 'user' ? '🧒🏻' : '🤖';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = text;
+
+  if(withBoard){
+    const board = document.createElement('div');
+    board.className = 'teacher-board';
+    board.innerHTML = 'שלב 1: נבין מה שואלים<br>שלב 2: נבחר דרך פתרון<br>שלב 3: נפתור יחד ✏️';
+    bubble.appendChild(board);
+  }
+
+  wrap.appendChild(avatar);
+  wrap.appendChild(bubble);
+  messages.appendChild(wrap);
+  chatCanvas.scrollTop = chatCanvas.scrollHeight;
+}
+
+function fakeTeacherReply(){
+  const wait = document.createElement('div');
+  wait.className = 'message teacher';
+  wait.innerHTML = '<div class="msg-avatar">🤖</div><div class="bubble">רגע קטן, אני מכין לך הסבר ברור <span class="typing-dot">● ● ●</span></div>';
+  messages.appendChild(wait);
+  chatCanvas.scrollTop = chatCanvas.scrollHeight;
+
+  setTimeout(()=>{
+    wait.remove();
+    addMessage('teacher',
+      '<strong>מצוין, בוא נפתור את זה יחד.</strong><br>אני לא רק אתן את התשובה — נבין קודם מה צריך לעשות ואז נתקדם שלב־שלב.',
+      true
+    );
+  },900);
+}
+
+function sendText(text){
+  const clean = (text || '').trim();
+  if(!clean) return;
+  addMessage('user', clean.replace(/\n/g,'<br>'));
+  mainText.value = '';
+  mainText.style.height = 'auto';
+  fakeTeacherReply();
+}
+
+document.getElementById('mainSend').addEventListener('click',()=>sendText(mainText.value));
+
+mainText.addEventListener('keydown',e=>{
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendText(mainText.value);
+  }
+});
+
+mainText.addEventListener('input',()=>{
+  mainText.style.height = 'auto';
+  mainText.style.height = Math.min(mainText.scrollHeight,130) + 'px';
+});
+
+/* quick prompts */
+document.querySelectorAll('.quick-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>sendText(btn.dataset.prompt));
+});
+
+/* right mini chat */
+document.getElementById('sideSend').addEventListener('click',()=>{
+  const input = document.getElementById('sideText');
+  sendText(input.value);
+  input.value = '';
+});
+document.getElementById('sideText').addEventListener('keydown',e=>{
+  if(e.key === 'Enter'){
+    sendText(e.target.value);
+    e.target.value = '';
+  }
+});
+
+/* upload */
+uploadZone.addEventListener('click',e=>{
+  if(e.target.id !== 'photoButton') fileInput.click();
+});
+document.getElementById('photoButton').addEventListener('click',e=>{
+  e.stopPropagation();
+  fileInput.setAttribute('capture','environment');
+  fileInput.click();
+});
+document.getElementById('mainCamera').addEventListener('click',()=>{
+  fileInput.setAttribute('capture','environment');
+  fileInput.click();
+});
+document.getElementById('mainAttach').addEventListener('click',()=>{
+  fileInput.removeAttribute('capture');
+  fileInput.click();
+});
+
+['dragenter','dragover'].forEach(type=>uploadZone.addEventListener(type,e=>{
+  e.preventDefault();uploadZone.classList.add('dragover');
+}));
+['dragleave','drop'].forEach(type=>uploadZone.addEventListener(type,e=>{
+  e.preventDefault();uploadZone.classList.remove('dragover');
+}));
+uploadZone.addEventListener('drop',e=>{
+  const file = e.dataTransfer.files[0];
+  if(file) handleFile(file);
+});
+fileInput.addEventListener('change',()=>{
+  if(fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+function handleFile(file){
+  addMessage('user','📎 העליתי קובץ: <strong>'+file.name+'</strong>');
+  setTimeout(()=>addMessage('teacher','קיבלתי את הקובץ. אני מזהה עכשיו את השאלה ומכין הסבר שמתאים לרמה שלך.',true),600);
+}
+
+/* voice buttons – hook point for Web Speech / backend STT */
+['mainMic','sideMic','talkTop'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('click',()=>{
+    mainText.focus();
+    mainText.placeholder = '🎙️ מצב דיבור פעיל — אפשר לחבר כאן Speech-to-Text';
+  });
+});
+
+/* mode chips */
+document.querySelectorAll('.mode-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+/* custom subjects */
+document.getElementById('addSubject').addEventListener('click',()=>{
+  const name = prompt('איזה מקצוע תרצו להוסיף?');
+  if(!name) return;
+  const btn = document.createElement('button');
+  btn.className = 'nav-item';
+  btn.innerHTML = '<span class="ico">📘</span> '+name;
+  document.getElementById('customSubjects').appendChild(btn);
+});
+
+/* reset task */
+document.getElementById('newTask').addEventListener('click',()=>{
+  messages.innerHTML='';
+  welcome.style.display='';
+  uploadZone.style.display='';
+  valueRow.style.display='';
+  mainText.value='';
+});
+
+/* mobile drawers */
+const leftSidebar = document.getElementById('leftSidebar');
+const rightSidebar = document.getElementById('rightSidebar');
+const overlay = document.getElementById('overlay');
+
+function closeDrawers(){
+  leftSidebar.classList.remove('open');
+  rightSidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+document.getElementById('openLeft').addEventListener('click',()=>{
+  rightSidebar.classList.remove('open');
+  leftSidebar.classList.toggle('open');
+  overlay.classList.toggle('show',leftSidebar.classList.contains('open'));
+});
+document.getElementById('openRight').addEventListener('click',()=>{
+  leftSidebar.classList.remove('open');
+  rightSidebar.classList.toggle('open');
+  overlay.classList.toggle('show',rightSidebar.classList.contains('open'));
+});
+overlay.addEventListener('click',closeDrawers);
+
+/* helper buttons */
+document.getElementById('askAI').addEventListener('click',()=>mainText.focus());
+document.getElementById('filesTop').addEventListener('click',()=>fileInput.click());
+</script>
+
+
+<script>
+/* =========================================================
+   ORIGINAL WORKING DATA FLOW – PRESERVED & ADAPTED
+   Supabase auth, active child, child profile update,
+   parent panel, switch child, add child, subscription portal.
+========================================================= */
+
+const API_BASE = "https://iakids-backend.onrender.com";
+let CURRENT_KID = null;
+window.ACTIVE_KID_ID = null;
+window.KID_AVATAR_URL = null;
+
+/* ---------- AUTH + ACTIVE CHILD ---------- */
+async function loadWorkspaceData(){
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+
+  if (!sessionData.session){
     window.location.replace("/onboarding/cuenta/");
     return;
   }
 
-  const userId = sessionData.session.user.id;
+  const { data: { user } } = await supabaseClient.auth.getUser();
 
-let activeKidId = localStorage.getItem("active_kid_id");
+  if (user){
+    const displayName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email;
 
-if (!activeKidId) {
-  const { data: kids } = await sb
-    .from("kids_profiles")
-    .select("id")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: true });
+    const avatar =
+      user.user_metadata?.avatar_url ||
+      "/assets/default-parent.png";
 
-  if (!kids || kids.length === 0) return;
+    const userNameEl = document.querySelector(".user-meta strong");
+    const userAvatarEl = document.querySelector(".user-avatar");
 
-  activeKidId = kids[0].id;
-  localStorage.setItem("active_kid_id", activeKidId);
-}
+    if(userNameEl) userNameEl.textContent = displayName || "הורה";
 
-const { data: kid, error } = await sb
-  .from("kids_profiles")
-  .select(`
-    id,
-    child_name,
-    age,
-    avatar_key,
-    usage_goals,
-    learning_interests
-  `)
-  .eq("id", activeKidId)
-  .single();
-
-
-  if (error || !kid) {
-    console.error("kids_profiles error:", error);
-    return;
-  }
-  CURRENT_KID = kid;
-  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
-  document.getElementById("rightbarAvatar").src = avatarUrl;
-  document.getElementById("rightbarName").textContent = kid.child_name;
-
-  window.KID_AVATAR_URL = avatarUrl;
-
-
-  document.getElementById("heroGreeting").textContent = `Olá, ${kid.child_name}!`;
-
-  document.getElementById("heroAvatar").src = avatarUrl;
-
-
-  window.ACTIVE_KID_ID = kid.id;
-})();
-</script>
-<script>
-const API_BASE = "https://iakids-backend.onrender.com";
-
-const messagesEl = document.querySelector(".messages");
-const chatEl = document.querySelector(".chat");
-const inputEl = document.querySelector(".input input");
-const sendBtn = document.querySelector(".input button");
-
-let kidId = null;
-
-/* ---------- UI HELPERS ---------- */
-function addMessage(role, text) {
-  const row = document.createElement("div");
-  row.className = `msg-row ${role}`;
-
-  const bubble = document.createElement("div");
-  bubble.className = "msg-bubble";
-  bubble.textContent = text;
-
-  // 🤖 assistant avatar (שמאל)
-  if (role === "assistant") {
-    const avatar = document.createElement("img");
-    avatar.src = "/assets/askie-robot.png";
-    avatar.className = "msg-avatar";
-    row.appendChild(avatar);
-  }
-
-  row.appendChild(bubble);
-
-  // 🧒 user avatar (ימין)
-  if (role === "user") {
-    const avatar = document.createElement("img");
-    avatar.src = window.KID_AVATAR_URL;
-    avatar.className = "msg-avatar";
-    row.appendChild(avatar);
-  }
-
-  messagesEl.appendChild(row);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-/* ---------- ASSISTANT TYPING ---------- */
-function addAssistantTyping(text) {
-  const row = document.createElement("div");
-  row.className = "msg-row assistant";
-
-  const avatar = document.createElement("img");
-  avatar.src = "/assets/askie-robot.png";
-  avatar.className = "msg-avatar";
-  row.appendChild(avatar);
-
-  const bubble = document.createElement("div");
-  bubble.className = "msg-bubble";
-  bubble.textContent = "";
-  row.appendChild(bubble);
-
-  messagesEl.appendChild(row);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-
-  let i = 0;
-
-  function typeNext() {
-    if (i >= text.length) return;
-
-    const char = text[i];
-    bubble.textContent += char;
-    i++;
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-
-    let delay = 35 + Math.random() * 40; // 35–75ms
-
-    if (char === "." || char === "!" || char === "?") delay += 250;
-    if (char === "," ) delay += 120;
-    if (char === "\n") delay += 300;
-
-    setTimeout(typeNext, delay);
-  }
-
-  typeNext();
-}
-
-
-/* ---------- SEND MESSAGE ---------- */
-async function sendMessage() {
-  const text = inputEl.value.trim();
-  if (!text) return;
-
-  inputEl.value = "";
-  addMessage("user", text);
-
-  const { data } = await sb.auth.getSession();
-  const session = data.session;
-
-  if (!session) {
-    addMessage("assistant", "Please sign in again 🙂");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/api/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.access_token}`
-      },
-      body: JSON.stringify({
-  message: text,
-  kid_id: CURRENT_KID.id
-})
-
-    });
-
-if (!res.ok) {
-
-  // 🔒 חסימת קווטה
-  if (res.status === 403) {
-    const err = await res.json();
-
-    if (err?.detail?.error === "quota_exceeded") {
-      openQuotaModal();
-      return; // ⛔ לא מכניסים הודעה לצ'אט
+    if(userAvatarEl){
+      userAvatarEl.innerHTML = `<img src="${avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     }
   }
 
-  // שגיאה אחרת
-  const errText = await res.text();
-  console.error("API ERROR:", res.status, errText);
-  addMessage("assistant", "⚠️ Algo salió mal. Intenta más tarde.");
-  return;
-}
+  const userId = sessionData.session.user.id;
 
+  let activeKidId = localStorage.getItem("active_kid_id");
 
-    const data = await res.json();
-    console.log("CHAT RESPONSE:", data);
+  if (!activeKidId){
+    const { data: kids, error: kidsError } = await supabaseClient
+      .from("kids_profiles")
+      .select("id")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
 
-if (!data.reply || !data.reply.trim()) {
-  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-} else {
-  addAssistantTyping(data.reply);
-}
+    if (kidsError){
+      console.error("kids_profiles list error:", kidsError);
+      return;
+    }
 
-  } catch (e) {
-    console.error("NETWORK ERROR", e);
-    addMessage("assistant", "🌐 Network error – API not reachable");
+    if (!kids || kids.length === 0){
+      return;
+    }
+
+    activeKidId = kids[0].id;
+    localStorage.setItem("active_kid_id", activeKidId);
   }
 
-}
-/* ---------- QUICK ASK MAP (ES - GENERAL) ---------- */
-const QUICK_ASK_MAP = {
-  // LEFT SIDEBAR
-  homework: "Hola 😊 ¿Me puedes ayudar con una tarea de la escuela?",
-  exercises: "Tengo un ejercicio y no lo entiendo. ¿Lo hacemos paso a paso?",
-  learn: "Quiero aprender algo nuevo. ¿Por dónde empezamos?",
-  practice: "Me gustaría practicar un poco",
-  exam: "Tengo una prueba pronto. ¿Me ayudas a repasar?",
-  easy: "¿Puedes explicarlo de una forma muy fácil?",
-  examples: "¿Puedes mostrarme ejemplos?",
-  logic: "Quiero pensar un poco 🤔",
-  challenge: "¿Cuál es el reto del día?",
+  const { data: kid, error } = await supabaseClient
+    .from("kids_profiles")
+    .select(`
+      id,
+      child_name,
+      age,
+      avatar_key,
+      usage_goals,
+      learning_interests
+    `)
+    .eq("id", activeKidId)
+    .single();
 
-  // RIGHT SIDEBAR
-  feelings: "Quiero hablar sobre cómo me siento",
-  free: "Quiero hablar libremente",
-  achievements: "Quiero contarte algo que hice bien",
-  aboutme: "Quiero contarte sobre mí",
-  tip: "¿Tienes un consejo para hoy?",
-  fun: "Quiero algo divertido 😄",
-  sleep: "¿Puedes contarme una historia tranquila?",
-  now: "¿Qué puedo hacer ahora?",
-  iakids: "iakids, necesito ayuda",
-
-  // IDEAS
-  idea_homework: "¿Me ayudas con algo de la escuela?",
-  idea_explain: "¿Puedes explicarme un tema?",
-  idea_riddle: "¿Tienes una adivinanza?",
-  idea_cool: "Cuéntame algo interesante 😎"
-};
-function quickAsk(key){
-  const text = QUICK_ASK_MAP[key];
-  if (!text) return;
-
-  inputEl.value = text;
-  sendMessage();
-}
-document.addEventListener("click", (e) => {
-  const el = e.target.closest("[data-ask]");
-  if (!el) return;
-
-  quickAsk(el.dataset.ask);
-
-  // 🔽 הוסף את זה:
-  if (window.innerWidth <= 900) {
-    document.querySelector('.sidebar').classList.remove('open');
+  if (error || !kid){
+    console.error("kids_profiles error:", error);
+    return;
   }
+
+  CURRENT_KID = kid;
+  window.ACTIVE_KID_ID = kid.id;
+
+  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+  window.KID_AVATAR_URL = avatarUrl;
+
+  /* Top user chip becomes the active child */
+  const childNameEl = document.querySelector(".user-meta strong");
+  const childAvatarEl = document.querySelector(".user-avatar");
+
+  if(childNameEl) childNameEl.textContent = kid.child_name || "תלמיד";
+
+  if(childAvatarEl){
+    childAvatarEl.innerHTML = `<img src="${avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
+
+  /* Teacher greeting */
+  const teacherCard = document.querySelector(".teacher-card");
+  if(teacherCard){
+    teacherCard.innerHTML = `
+      <strong>היי ${kid.child_name}! 👋</strong><br>
+      אני המורה AI שלך.<br><br>
+      אני כאן כדי לעזור לך <strong>להבין</strong>, לפתור שאלות וללמוד בצורה כיפית וברורה.<br><br>
+      איך אפשר לעזור היום?
+    `;
+  }
+
+  /* Fill edit-profile modal */
+  const childName = document.getElementById("childName");
+  const childAge = document.getElementById("childAge");
+  const childAvatar = document.getElementById("childAvatar");
+
+  if(childName) childName.value = kid.child_name || "";
+  if(childAge) childAge.value = kid.age || "";
+  if(childAvatar) childAvatar.value = kid.avatar_key || "";
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[0],
+    kid.usage_goals || []
+  );
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[1],
+    kid.learning_interests || []
+  );
+}
+
+/* ---------- CHIP HELPERS ---------- */
+function getChipValues(container){
+  if(!container) return [];
+  return [...container.querySelectorAll(".pick-chip.active")]
+    .map(btn => btn.dataset.val || btn.textContent.trim());
+}
+
+function setSelectedChipsByValues(container, values = []){
+  if(!container) return;
+  container.querySelectorAll(".pick-chip").forEach(btn=>{
+    const val = btn.dataset.val || btn.textContent.trim();
+    btn.classList.toggle("active", values.includes(val));
+  });
+}
+
+/* ---------- PROFILE EDIT ---------- */
+document.getElementById("editChildBtn")?.addEventListener("click",()=>{
+  if(!CURRENT_KID) return;
+
+  document.getElementById("childName").value = CURRENT_KID.child_name || "";
+  document.getElementById("childAge").value = CURRENT_KID.age || "";
+  document.getElementById("childAvatar").value = CURRENT_KID.avatar_key || "";
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[0],
+    CURRENT_KID.usage_goals || []
+  );
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[1],
+    CURRENT_KID.learning_interests || []
+  );
+
+  document.getElementById("profileModal")?.classList.add("open");
 });
 
-/* ---------- EVENTS ---------- */
-sendBtn.addEventListener("click", sendMessage);
-inputEl.addEventListener("keydown", e => {
-  if (e.key === "Enter") sendMessage();
-});
+document.getElementById("saveProfileBtn")?.addEventListener("click", async ()=>{
+  if(!CURRENT_KID) return;
 
-</script>
-<script>
-function toggleSidebar(){
-  document.querySelector('.sidebar').classList.toggle('open');
-}
-</script>
-<script>
-document.getElementById("openSettings").onclick = () => {
-  if (!CURRENT_KID) return;
+  const name = document.getElementById("childName").value.trim();
+  const age = parseInt(document.getElementById("childAge").value);
+  const avatar = document.getElementById("childAvatar").value;
 
-  settingsModal.style.display = "flex";
+  const usage_goals = getChipValues(
+    document.querySelectorAll("#profileModal .chip-picker")[0]
+  );
 
-  modalChildName.value = CURRENT_KID.child_name || "";
-  modalChildAge.value = CURRENT_KID.age || "";
-  modalAvatar.value = CURRENT_KID.avatar_key || "";
+  const learning_interests = getChipValues(
+    document.querySelectorAll("#profileModal .chip-picker")[1]
+  );
 
-  setSelected("modalGoals", CURRENT_KID.usage_goals || []);
-  setSelected("modalLearning", CURRENT_KID.learning_interests || []);
-};
+  if(!name || !age) return;
 
-function closeSettings(){
-  document.getElementById("settingsModal").style.display = "none";
-}
-</script>
-<script>
-async function saveSettings(){
-  const name = modalChildName.value.trim();
-  const age = parseInt(modalChildAge.value);
-  const avatar = modalAvatar.value;
-
-  const usage_goals = getSelected("modalGoals");
-  const learning_interests = getSelected("modalLearning");
-
-  if (!name || !age) return;
-
-  const { error } = await sb
+  const { error } = await supabaseClient
     .from("kids_profiles")
     .update({
       child_name: name,
@@ -511,128 +1195,114 @@ async function saveSettings(){
     })
     .eq("id", CURRENT_KID.id);
 
-if (error){
-  console.error("SAVE ERROR:", error);
-  alert(error.message);
-  return;
-}
+  if(error){
+    console.error("SAVE ERROR:", error);
+    alert(error.message);
+    return;
+  }
 
-  Object.assign(CURRENT_KID, {
-    child_name: name,
+  Object.assign(CURRENT_KID,{
+    child_name:name,
     age,
-    avatar_key: avatar,
+    avatar_key:avatar,
     usage_goals,
     learning_interests
   });
 
   const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
-
-  heroGreeting.textContent = `Olá, ${name}!`;
-  heroAvatar.src = avatarUrl;
-
-  document.getElementById("rightbarAvatar").src = avatarUrl;
-  document.getElementById("rightbarName").textContent = name;
-
   window.KID_AVATAR_URL = avatarUrl;
 
-  closeSettings();
-}
+  const nameEl = document.querySelector(".user-meta strong");
+  if(nameEl) nameEl.textContent = name;
 
-</script>
-<script>
-/* ===== CHIPS HELPERS ===== */
-function toggleChip(btn){
-  btn.classList.toggle("active");
-}
+  const avatarEl = document.querySelector(".user-avatar");
+  if(avatarEl){
+    avatarEl.innerHTML = `<img src="${avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
 
-document.querySelectorAll(".chips button").forEach(btn=>{
-  btn.onclick = () => toggleChip(btn);
+  const teacherCard = document.querySelector(".teacher-card");
+  if(teacherCard){
+    teacherCard.innerHTML = `
+      <strong>היי ${name}! 👋</strong><br>
+      אני המורה AI שלך.<br><br>
+      אני כאן כדי לעזור לך <strong>להבין</strong>, לפתור שאלות וללמוד בצורה כיפית וברורה.<br><br>
+      איך אפשר לעזור היום?
+    `;
+  }
+
+  document.getElementById("profileModal")?.classList.remove("open");
 });
 
-function getSelected(containerId){
-  return [...document.querySelectorAll(`#${containerId} button.active`)]
-    .map(b => b.dataset.val);
-}
+/* ---------- PARENT PANEL ---------- */
+document.getElementById("parentPanelBtn")?.addEventListener("click", async ()=>{
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(!user) return;
 
-function setSelected(containerId, values = []){
-  document.querySelectorAll(`#${containerId} button`)
-    .forEach(b=>{
-      b.classList.toggle("active", values.includes(b.dataset.val));
-    });
-}
-</script>
-<script>
-document.getElementById("openParentModal").onclick = async () => {
-  const { data } = await sb
+  const { data, error } = await supabaseClient
     .from("kids_profiles")
     .select("id, child_name")
-    .eq("user_id", (await sb.auth.getUser()).data.user.id);
+    .eq("user_id", user.id)
+    .order("created_at", { ascending:true });
 
-  const select = document.getElementById("parentKidSelect");
+  if(error){
+    console.error("LOAD KIDS ERROR:", error);
+    return;
+  }
+
+  const select = document.getElementById("childSelect");
+  if(!select) return;
+
   select.innerHTML = "";
 
-  data.forEach(kid => {
+  (data || []).forEach(kid=>{
     const opt = document.createElement("option");
     opt.value = kid.id;
     opt.textContent = kid.child_name;
-    if (kid.id === CURRENT_KID?.id) opt.selected = true;
+    if(kid.id === CURRENT_KID?.id) opt.selected = true;
     select.appendChild(opt);
   });
 
-  document.getElementById("parentModal").style.display = "flex";
-};
+  document.getElementById("parentModal")?.classList.add("open");
+});
 
-// close on backdrop
-document.getElementById("parentModal").onclick = e => {
-  if (e.target.id === "parentModal") {
-    e.target.style.display = "none";
-  }
-};
-</script>
-<script>
-function switchKid(){
-  const newKidId = document.getElementById("parentKidSelect").value;
-  if (!newKidId) return;
+document.getElementById("switchChildBtn")?.addEventListener("click",()=>{
+  const newKidId = document.getElementById("childSelect")?.value;
+  if(!newKidId) return;
 
   localStorage.setItem("active_kid_id", newKidId);
   window.location.reload();
-}
+});
 
-function addKid(){
-  document.getElementById("parentModal").style.display = "none";
-  openAddKidModal();
-}
-</script>
-<script>
-function openAddKidModal(){
-  document.getElementById("addKidModal").style.display = "flex";
-}
-</script>
-<script>
-function closeAddKid(){
-  document.getElementById("addKidModal").style.display = "none";
-}
+/* ---------- ADD CHILD ---------- */
+document.getElementById("addChildBtn")?.addEventListener("click",()=>{
+  const name = prompt("מה שם הילד או הילדה?");
+  if(!name) return;
 
-async function createKid(){
-  const name = document.getElementById("newKidName").value.trim();
-  const age = parseInt(document.getElementById("newKidAge").value);
+  const ageText = prompt("מה הגיל?");
+  const age = parseInt(ageText);
 
-  if (!name || !age) return alert("Completa todos los campos");
+  if(!age) return;
 
-  const user = (await sb.auth.getUser()).data.user;
+  createKid(name.trim(), age);
+});
 
-  const { data, error } = await sb
+async function createKid(name, age){
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
     .from("kids_profiles")
     .insert({
-      user_id: user.id,
-      child_name: name,
+      user_id:user.id,
+      child_name:name,
       age,
-      avatar_key: "cat"
+      avatar_key:"cat"
     })
     .select()
     .single();
 
-  if (error){
+  if(error){
+    console.error("CREATE KID ERROR:", error);
     alert(error.message);
     return;
   }
@@ -640,97 +1310,159 @@ async function createKid(){
   localStorage.setItem("active_kid_id", data.id);
   window.location.reload();
 }
-</script>
-<script>
-function openQuotaModal(){
-  document.getElementById("quotaModal").style.display = "flex";
-}
 
-function closeQuotaModal(){
-  document.getElementById("quotaModal").style.display = "none";
-}
-
-function goToUpgrade(){
-  window.location.href = "https://iakids.app/#pricing";
-}
-</script>
-<script>
-function closeParentModal(){
-  document.getElementById("parentModal").style.display = "none";
-}
-</script>
-<script>
-document.getElementById("manageSubscriptionBtn").onclick = async () => {
-
-  try {
-
-    const { data: sessionData } = await sb.auth.getSession();
+/* ---------- SUBSCRIPTION PORTAL ---------- */
+document.getElementById("subscriptionBtn")?.addEventListener("click", async ()=>{
+  try{
+    const { data: sessionData } = await supabaseClient.auth.getSession();
     const session = sessionData.session;
 
-    if (!session){
-      alert("Debe iniciar sesión nuevamente.");
+    if(!session){
+      alert("יש להתחבר מחדש.");
       return;
     }
 
     const res = await fetch(
-      "https://iakids-backend.onrender.com/api/create-portal-session",
+      `${API_BASE}/api/create-portal-session`,
       {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${session.access_token}`
+        method:"POST",
+        headers:{
+          "Authorization":`Bearer ${session.access_token}`
         }
       }
     );
 
-    if (!res.ok) {
+    if(!res.ok){
       const errorText = await res.text();
-      console.error("PORTAL ERROR:", res.status, errorText);
-      alert("Error backend: " + res.status);
+      console.error("PORTAL ERROR:",res.status,errorText);
+      alert("שגיאת שרת: " + res.status);
       return;
     }
 
     const json = await res.json();
-    console.log("PORTAL RESPONSE:", json);
-
     const portalUrl = json?.url;
 
-    if (!portalUrl){
-      console.error("Missing portal URL:", json);
-      alert("Portal URL missing");
+    if(!portalUrl){
+      alert("קישור ניהול המנוי לא התקבל.");
       return;
     }
 
-    window.open(portalUrl, "_blank", "noopener,noreferrer");
+    window.open(portalUrl,"_blank","noopener,noreferrer");
 
-  } catch (err){
-    console.error("Portal error:", err);
-    alert("Algo salió mal.");
+  }catch(err){
+    console.error("Portal error:",err);
+    alert("משהו השתבש.");
+  }
+});
+
+/* ---------- SUPPORT + LOGOUT ---------- */
+document.getElementById("supportBtn")?.addEventListener("click",()=>{
+  window.location.href="/support/";
+});
+
+document.getElementById("logoutBtnTop")?.addEventListener("click",async()=>{
+  await supabaseClient.auth.signOut();
+  window.location.href="/";
+});
+
+/* ---------- REAL CHAT API ---------- */
+async function sendRealMessage(text){
+  if(!text || !CURRENT_KID) return;
+
+  addMessage("user", text);
+
+  const { data } = await supabaseClient.auth.getSession();
+  const session = data.session;
+
+  if(!session){
+    addMessage("teacher","צריך להתחבר מחדש 🙂");
+    return;
   }
 
-};
+  try{
+    const res = await fetch(`${API_BASE}/api/chat`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":`Bearer ${session.access_token}`
+      },
+      body:JSON.stringify({
+        message:text,
+        kid_id:CURRENT_KID.id
+      })
+    });
 
+    if(!res.ok){
+      if(res.status === 403){
+        const err = await res.json().catch(()=>null);
+        if(err?.detail?.error === "quota_exceeded"){
+          addMessage("teacher","נגמרה מכסת השאלות החינמית. בקשו מהורה לשדרג את המנוי.");
+          return;
+        }
+      }
 
-</script>
-<script>
-// New UI compatibility helpers without changing the original backend contract.
-document.addEventListener("DOMContentLoaded",()=>{
-  const messages=document.querySelector(".messages");
-  const observer=new MutationObserver(()=>{
-    const empty=document.getElementById("emptyState");
-    if(empty && messages.querySelector(".msg-row")) empty.remove();
+      const errText = await res.text();
+      console.error("API ERROR:",res.status,errText);
+      addMessage("teacher","⚠️ משהו השתבש. נסו שוב מאוחר יותר.");
+      return;
+    }
+
+    const data = await res.json();
+
+    if(!data.reply || !data.reply.trim()){
+      addMessage("teacher","🤖 אני חושב... נסו לשאול שוב 😊");
+      return;
+    }
+
+    addMessage("teacher",data.reply);
+
+  }catch(e){
+    console.error("NETWORK ERROR",e);
+    addMessage("teacher","🌐 שגיאת רשת – לא ניתן להגיע לשרת.");
+  }
+}
+
+/* Replace demo-send behavior with actual backend */
+const originalMainSend = document.getElementById("mainSend");
+if(originalMainSend){
+  const cloned = originalMainSend.cloneNode(true);
+  originalMainSend.replaceWith(cloned);
+
+  cloned.addEventListener("click",()=>{
+    const text = document.getElementById("mainText").value.trim();
+    if(!text) return;
+    document.getElementById("mainText").value="";
+    sendRealMessage(text);
   });
-  observer.observe(messages,{childList:true});
+}
 
-  // Translate greeting generated by preserved original script.
-  const greeting=document.getElementById("heroGreeting");
-  const obs2=new MutationObserver(()=>{
-    if(window.CURRENT_KID && CURRENT_KID.child_name){
-      greeting.textContent=`היי ${CURRENT_KID.child_name}, מה נלמד היום?`;
-      const th=document.getElementById("teacherHello");
-      if(th) th.textContent=`היי ${CURRENT_KID.child_name}! 👋`;
+const mainTextReal = document.getElementById("mainText");
+if(mainTextReal){
+  const clonedText = mainTextReal.cloneNode(true);
+  mainTextReal.replaceWith(clonedText);
+
+  clonedText.addEventListener("keydown",e=>{
+    if(e.key==="Enter" && !e.shiftKey){
+      e.preventDefault();
+      const text = clonedText.value.trim();
+      if(!text) return;
+      clonedText.value="";
+      sendRealMessage(text);
     }
   });
-  obs2.observe(greeting,{childList:true,subtree:true,characterData:true});
+}
+
+/* Quick buttons now use real API */
+document.querySelectorAll(".quick-btn").forEach(btn=>{
+  const cloned = btn.cloneNode(true);
+  btn.replaceWith(cloned);
+  cloned.addEventListener("click",()=>sendRealMessage(cloned.dataset.prompt));
 });
+
+/* initialize */
+document.addEventListener("DOMContentLoaded",loadWorkspaceData);
+supabaseClient.auth.onAuthStateChange(()=>loadWorkspaceData());
 </script>
-</body></html>
+
+</body>
+</html>
