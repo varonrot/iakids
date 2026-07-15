@@ -758,26 +758,33 @@ body{background:radial-gradient(circle at 12% 20%,rgba(255,213,79,.14),transpare
       <label class="field-label">גיל</label>
       <select id="childAge" class="form-control"><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option selected>11</option><option>12</option></select>
       <label class="field-label">אווטאר</label>
-      <select id="childAvatar" class="form-control"><option>ילד</option><option>ילדה</option><option>סוס</option><option>רובוט</option></select>
+      <select id="childAvatar" class="form-control">
+      <option value="cat">חתול</option>
+      <option value="dolphin">דולפין</option>
+      <option value="eagle">נשר</option>
+      <option value="horse">סוס</option>
+      <option value="owl">ינשוף</option>
+      <option value="panther">פנתר</option>
+    </select>
       <label class="field-label">תחומי עניין בלמידה</label>
       <input id="childInterests" class="form-control" placeholder="למשל: חלל, בעלי חיים, כדורגל">
       <label class="field-label">איך תרצו להשתמש במערכת?</label>
       <div class="chip-picker">
-        <button type="button" class="pick-chip active">עזרה בשיעורי בית</button>
-        <button type="button" class="pick-chip">שאלות מהיום־יום</button>
-        <button type="button" class="pick-chip">חשיבה והיגיון</button>
-        <button type="button" class="pick-chip active">שפות ומילים</button>
-        <button type="button" class="pick-chip">רעיונות יצירתיים</button>
-        <button type="button" class="pick-chip">סקרנות בטוחה</button>
+        <button type="button" class="pick-chip active" data-val="school_help">עזרה בשיעורי בית</button>
+        <button type="button" class="pick-chip" data-val="daily_questions">שאלות מהיום־יום</button>
+        <button type="button" class="pick-chip" data-val="thinking">חשיבה והיגיון</button>
+        <button type="button" class="pick-chip active" data-val="languages">שפות ומילים</button>
+        <button type="button" class="pick-chip" data-val="creative">רעיונות יצירתיים</button>
+        <button type="button" class="pick-chip" data-val="safe_curiosity">סקרנות בטוחה</button>
       </div>
       <label class="field-label">מה הייתם רוצים ללמוד?</label>
       <div class="chip-picker">
-        <button type="button" class="pick-chip">שפה חדשה</button>
-        <button type="button" class="pick-chip active">מתמטיקה</button>
-        <button type="button" class="pick-chip">אנגלית</button>
-        <button type="button" class="pick-chip active">מדעים</button>
-        <button type="button" class="pick-chip">קריאה</button>
-        <button type="button" class="pick-chip">חשיבה ביקורתית</button>
+        <button type="button" class="pick-chip" data-val="languages">שפה חדשה</button>
+        <button type="button" class="pick-chip active" data-val="math">מתמטיקה</button>
+        <button type="button" class="pick-chip" data-val="english">אנגלית</button>
+        <button type="button" class="pick-chip active" data-val="science">מדעים</button>
+        <button type="button" class="pick-chip" data-val="reading">קריאה</button>
+        <button type="button" class="pick-chip" data-val="critical">חשיבה ביקורתית</button>
       </div>
       <div class="modal-actions">
         <button class="soft-btn" data-close-modal>ביטול</button>
@@ -991,78 +998,470 @@ document.getElementById('askAI').addEventListener('click',()=>mainText.focus());
 document.getElementById('filesTop').addEventListener('click',()=>fileInput.click());
 </script>
 
-<script>
-const userMenuToggle = document.getElementById('userMenuToggle');
-const userDropdown = document.getElementById('userDropdown');
-const parentModal = document.getElementById('parentModal');
-const profileModal = document.getElementById('profileModal');
 
-userMenuToggle?.addEventListener('click',()=>userDropdown?.classList.toggle('open'));
-document.addEventListener('click',e=>{
-  if(userDropdown && userMenuToggle && !userDropdown.contains(e.target) && !userMenuToggle.contains(e.target)){
-    userDropdown.classList.remove('open');
+<script>
+/* =========================================================
+   ORIGINAL WORKING DATA FLOW – PRESERVED & ADAPTED
+   Supabase auth, active child, child profile update,
+   parent panel, switch child, add child, subscription portal.
+========================================================= */
+
+const API_BASE = "https://iakids-backend.onrender.com";
+let CURRENT_KID = null;
+window.ACTIVE_KID_ID = null;
+window.KID_AVATAR_URL = null;
+
+/* ---------- AUTH + ACTIVE CHILD ---------- */
+async function loadWorkspaceData(){
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+
+  if (!sessionData.session){
+    window.location.replace("/onboarding/cuenta/");
+    return;
+  }
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  if (user){
+    const displayName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email;
+
+    const avatar =
+      user.user_metadata?.avatar_url ||
+      "/assets/default-parent.png";
+
+    const userNameEl = document.querySelector(".user-meta strong");
+    const userAvatarEl = document.querySelector(".user-avatar");
+
+    if(userNameEl) userNameEl.textContent = displayName || "הורה";
+
+    if(userAvatarEl){
+      userAvatarEl.innerHTML = `<img src="${avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }
+  }
+
+  const userId = sessionData.session.user.id;
+
+  let activeKidId = localStorage.getItem("active_kid_id");
+
+  if (!activeKidId){
+    const { data: kids, error: kidsError } = await supabaseClient
+      .from("kids_profiles")
+      .select("id")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
+
+    if (kidsError){
+      console.error("kids_profiles list error:", kidsError);
+      return;
+    }
+
+    if (!kids || kids.length === 0){
+      return;
+    }
+
+    activeKidId = kids[0].id;
+    localStorage.setItem("active_kid_id", activeKidId);
+  }
+
+  const { data: kid, error } = await supabaseClient
+    .from("kids_profiles")
+    .select(`
+      id,
+      child_name,
+      age,
+      avatar_key,
+      usage_goals,
+      learning_interests
+    `)
+    .eq("id", activeKidId)
+    .single();
+
+  if (error || !kid){
+    console.error("kids_profiles error:", error);
+    return;
+  }
+
+  CURRENT_KID = kid;
+  window.ACTIVE_KID_ID = kid.id;
+
+  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+  window.KID_AVATAR_URL = avatarUrl;
+
+  /* Top user chip becomes the active child */
+  const childNameEl = document.querySelector(".user-meta strong");
+  const childAvatarEl = document.querySelector(".user-avatar");
+
+  if(childNameEl) childNameEl.textContent = kid.child_name || "תלמיד";
+
+  if(childAvatarEl){
+    childAvatarEl.innerHTML = `<img src="${avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
+
+  /* Teacher greeting */
+  const teacherCard = document.querySelector(".teacher-card");
+  if(teacherCard){
+    teacherCard.innerHTML = `
+      <strong>היי ${kid.child_name}! 👋</strong><br>
+      אני המורה AI שלך.<br><br>
+      אני כאן כדי לעזור לך <strong>להבין</strong>, לפתור שאלות וללמוד בצורה כיפית וברורה.<br><br>
+      איך אפשר לעזור היום?
+    `;
+  }
+
+  /* Fill edit-profile modal */
+  const childName = document.getElementById("childName");
+  const childAge = document.getElementById("childAge");
+  const childAvatar = document.getElementById("childAvatar");
+
+  if(childName) childName.value = kid.child_name || "";
+  if(childAge) childAge.value = kid.age || "";
+  if(childAvatar) childAvatar.value = kid.avatar_key || "";
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[0],
+    kid.usage_goals || []
+  );
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[1],
+    kid.learning_interests || []
+  );
+}
+
+/* ---------- CHIP HELPERS ---------- */
+function getChipValues(container){
+  if(!container) return [];
+  return [...container.querySelectorAll(".pick-chip.active")]
+    .map(btn => btn.dataset.val || btn.textContent.trim());
+}
+
+function setSelectedChipsByValues(container, values = []){
+  if(!container) return;
+  container.querySelectorAll(".pick-chip").forEach(btn=>{
+    const val = btn.dataset.val || btn.textContent.trim();
+    btn.classList.toggle("active", values.includes(val));
+  });
+}
+
+/* ---------- PROFILE EDIT ---------- */
+document.getElementById("editChildBtn")?.addEventListener("click",()=>{
+  if(!CURRENT_KID) return;
+
+  document.getElementById("childName").value = CURRENT_KID.child_name || "";
+  document.getElementById("childAge").value = CURRENT_KID.age || "";
+  document.getElementById("childAvatar").value = CURRENT_KID.avatar_key || "";
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[0],
+    CURRENT_KID.usage_goals || []
+  );
+
+  setSelectedChipsByValues(
+    document.querySelectorAll("#profileModal .chip-picker")[1],
+    CURRENT_KID.learning_interests || []
+  );
+
+  document.getElementById("profileModal")?.classList.add("open");
+});
+
+document.getElementById("saveProfileBtn")?.addEventListener("click", async ()=>{
+  if(!CURRENT_KID) return;
+
+  const name = document.getElementById("childName").value.trim();
+  const age = parseInt(document.getElementById("childAge").value);
+  const avatar = document.getElementById("childAvatar").value;
+
+  const usage_goals = getChipValues(
+    document.querySelectorAll("#profileModal .chip-picker")[0]
+  );
+
+  const learning_interests = getChipValues(
+    document.querySelectorAll("#profileModal .chip-picker")[1]
+  );
+
+  if(!name || !age) return;
+
+  const { error } = await supabaseClient
+    .from("kids_profiles")
+    .update({
+      child_name: name,
+      age,
+      avatar_key: avatar,
+      usage_goals,
+      learning_interests
+    })
+    .eq("id", CURRENT_KID.id);
+
+  if(error){
+    console.error("SAVE ERROR:", error);
+    alert(error.message);
+    return;
+  }
+
+  Object.assign(CURRENT_KID,{
+    child_name:name,
+    age,
+    avatar_key:avatar,
+    usage_goals,
+    learning_interests
+  });
+
+  const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
+  window.KID_AVATAR_URL = avatarUrl;
+
+  const nameEl = document.querySelector(".user-meta strong");
+  if(nameEl) nameEl.textContent = name;
+
+  const avatarEl = document.querySelector(".user-avatar");
+  if(avatarEl){
+    avatarEl.innerHTML = `<img src="${avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
+
+  const teacherCard = document.querySelector(".teacher-card");
+  if(teacherCard){
+    teacherCard.innerHTML = `
+      <strong>היי ${name}! 👋</strong><br>
+      אני המורה AI שלך.<br><br>
+      אני כאן כדי לעזור לך <strong>להבין</strong>, לפתור שאלות וללמוד בצורה כיפית וברורה.<br><br>
+      איך אפשר לעזור היום?
+    `;
+  }
+
+  document.getElementById("profileModal")?.classList.remove("open");
+});
+
+/* ---------- PARENT PANEL ---------- */
+document.getElementById("parentPanelBtn")?.addEventListener("click", async ()=>{
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
+    .from("kids_profiles")
+    .select("id, child_name")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending:true });
+
+  if(error){
+    console.error("LOAD KIDS ERROR:", error);
+    return;
+  }
+
+  const select = document.getElementById("childSelect");
+  if(!select) return;
+
+  select.innerHTML = "";
+
+  (data || []).forEach(kid=>{
+    const opt = document.createElement("option");
+    opt.value = kid.id;
+    opt.textContent = kid.child_name;
+    if(kid.id === CURRENT_KID?.id) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  document.getElementById("parentModal")?.classList.add("open");
+});
+
+document.getElementById("switchChildBtn")?.addEventListener("click",()=>{
+  const newKidId = document.getElementById("childSelect")?.value;
+  if(!newKidId) return;
+
+  localStorage.setItem("active_kid_id", newKidId);
+  window.location.reload();
+});
+
+/* ---------- ADD CHILD ---------- */
+document.getElementById("addChildBtn")?.addEventListener("click",()=>{
+  const name = prompt("מה שם הילד או הילדה?");
+  if(!name) return;
+
+  const ageText = prompt("מה הגיל?");
+  const age = parseInt(ageText);
+
+  if(!age) return;
+
+  createKid(name.trim(), age);
+});
+
+async function createKid(name, age){
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
+    .from("kids_profiles")
+    .insert({
+      user_id:user.id,
+      child_name:name,
+      age,
+      avatar_key:"cat"
+    })
+    .select()
+    .single();
+
+  if(error){
+    console.error("CREATE KID ERROR:", error);
+    alert(error.message);
+    return;
+  }
+
+  localStorage.setItem("active_kid_id", data.id);
+  window.location.reload();
+}
+
+/* ---------- SUBSCRIPTION PORTAL ---------- */
+document.getElementById("subscriptionBtn")?.addEventListener("click", async ()=>{
+  try{
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const session = sessionData.session;
+
+    if(!session){
+      alert("יש להתחבר מחדש.");
+      return;
+    }
+
+    const res = await fetch(
+      `${API_BASE}/api/create-portal-session`,
+      {
+        method:"POST",
+        headers:{
+          "Authorization":`Bearer ${session.access_token}`
+        }
+      }
+    );
+
+    if(!res.ok){
+      const errorText = await res.text();
+      console.error("PORTAL ERROR:",res.status,errorText);
+      alert("שגיאת שרת: " + res.status);
+      return;
+    }
+
+    const json = await res.json();
+    const portalUrl = json?.url;
+
+    if(!portalUrl){
+      alert("קישור ניהול המנוי לא התקבל.");
+      return;
+    }
+
+    window.open(portalUrl,"_blank","noopener,noreferrer");
+
+  }catch(err){
+    console.error("Portal error:",err);
+    alert("משהו השתבש.");
   }
 });
 
-function openModal(el){el?.classList.add('open');userDropdown?.classList.remove('open')}
-function closeModal(el){el?.classList.remove('open')}
-
-document.getElementById('parentPanelBtn')?.addEventListener('click',()=>openModal(parentModal));
-document.getElementById('editChildBtn')?.addEventListener('click',()=>openModal(profileModal));
-
-document.querySelectorAll('[data-close-modal]').forEach(btn=>{
-  btn.addEventListener('click',()=>btn.closest('.modal-backdrop')?.classList.remove('open'));
-});
-[parentModal,profileModal].forEach(modal=>{
-  modal?.addEventListener('click',e=>{if(e.target===modal)closeModal(modal)});
+/* ---------- SUPPORT + LOGOUT ---------- */
+document.getElementById("supportBtn")?.addEventListener("click",()=>{
+  window.location.href="/support/";
 });
 
-document.querySelectorAll('.pick-chip').forEach(chip=>{
-  chip.addEventListener('click',()=>chip.classList.toggle('active'));
-});
-
-document.getElementById('switchChildBtn')?.addEventListener('click',()=>{
-  const select=document.getElementById('childSelect');
-  const name=select.options[select.selectedIndex].text;
-  const nameEl=document.querySelector('.user-meta strong');
-  if(nameEl)nameEl.textContent=name;
-  closeModal(parentModal);
-});
-
-document.getElementById('saveProfileBtn')?.addEventListener('click',()=>{
-  const name=document.getElementById('childName').value.trim()||'תלמיד';
-  const nameEl=document.querySelector('.user-meta strong');
-  if(nameEl)nameEl.textContent=name;
-  closeModal(profileModal);
-});
-
-document.getElementById('subscriptionBtn')?.addEventListener('click',()=>window.location.href='/planes');
-document.getElementById('supportBtn')?.addEventListener('click',()=>window.location.href='/contact');
-
-async function loadAuthenticatedUser(){
-  try{
-    const {data,error}=await supabaseClient.auth.getSession();
-    if(error)throw error;
-    if(data.session){
-      const user=data.session.user;
-      const avatarUrl=user.user_metadata?.avatar_url||null;
-      const displayName=user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split('@')[0]||'תלמיד';
-      const nameEl=document.querySelector('.user-meta strong');
-      if(nameEl)nameEl.textContent=displayName;
-      const avatarEl=document.querySelector('.user-avatar');
-      if(avatarEl&&avatarUrl){
-        avatarEl.innerHTML=`<img src="${avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-      }
-    }
-  }catch(err){console.error('Supabase session error:',err)}
-}
-document.addEventListener('DOMContentLoaded',loadAuthenticatedUser);
-supabaseClient.auth.onAuthStateChange(()=>loadAuthenticatedUser());
-
-document.getElementById('logoutBtnTop')?.addEventListener('click',async()=>{
+document.getElementById("logoutBtnTop")?.addEventListener("click",async()=>{
   await supabaseClient.auth.signOut();
-  window.location.href='/';
+  window.location.href="/";
 });
+
+/* ---------- REAL CHAT API ---------- */
+async function sendRealMessage(text){
+  if(!text || !CURRENT_KID) return;
+
+  addMessage("user", text);
+
+  const { data } = await supabaseClient.auth.getSession();
+  const session = data.session;
+
+  if(!session){
+    addMessage("teacher","צריך להתחבר מחדש 🙂");
+    return;
+  }
+
+  try{
+    const res = await fetch(`${API_BASE}/api/chat`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":`Bearer ${session.access_token}`
+      },
+      body:JSON.stringify({
+        message:text,
+        kid_id:CURRENT_KID.id
+      })
+    });
+
+    if(!res.ok){
+      if(res.status === 403){
+        const err = await res.json().catch(()=>null);
+        if(err?.detail?.error === "quota_exceeded"){
+          addMessage("teacher","נגמרה מכסת השאלות החינמית. בקשו מהורה לשדרג את המנוי.");
+          return;
+        }
+      }
+
+      const errText = await res.text();
+      console.error("API ERROR:",res.status,errText);
+      addMessage("teacher","⚠️ משהו השתבש. נסו שוב מאוחר יותר.");
+      return;
+    }
+
+    const data = await res.json();
+
+    if(!data.reply || !data.reply.trim()){
+      addMessage("teacher","🤖 אני חושב... נסו לשאול שוב 😊");
+      return;
+    }
+
+    addMessage("teacher",data.reply);
+
+  }catch(e){
+    console.error("NETWORK ERROR",e);
+    addMessage("teacher","🌐 שגיאת רשת – לא ניתן להגיע לשרת.");
+  }
+}
+
+/* Replace demo-send behavior with actual backend */
+const originalMainSend = document.getElementById("mainSend");
+if(originalMainSend){
+  const cloned = originalMainSend.cloneNode(true);
+  originalMainSend.replaceWith(cloned);
+
+  cloned.addEventListener("click",()=>{
+    const text = document.getElementById("mainText").value.trim();
+    if(!text) return;
+    document.getElementById("mainText").value="";
+    sendRealMessage(text);
+  });
+}
+
+const mainTextReal = document.getElementById("mainText");
+if(mainTextReal){
+  const clonedText = mainTextReal.cloneNode(true);
+  mainTextReal.replaceWith(clonedText);
+
+  clonedText.addEventListener("keydown",e=>{
+    if(e.key==="Enter" && !e.shiftKey){
+      e.preventDefault();
+      const text = clonedText.value.trim();
+      if(!text) return;
+      clonedText.value="";
+      sendRealMessage(text);
+    }
+  });
+}
+
+/* Quick buttons now use real API */
+document.querySelectorAll(".quick-btn").forEach(btn=>{
+  const cloned = btn.cloneNode(true);
+  btn.replaceWith(cloned);
+  cloned.addEventListener("click",()=>sendRealMessage(cloned.dataset.prompt));
+});
+
+/* initialize */
+document.addEventListener("DOMContentLoaded",loadWorkspaceData);
+supabaseClient.auth.onAuthStateChange(()=>loadWorkspaceData());
 </script>
 
 </body>
