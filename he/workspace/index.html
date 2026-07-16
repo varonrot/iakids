@@ -612,7 +612,82 @@ body{
 .welcome p{
   font-size:18px !important;
 }
+/* =====================================================
+   ANIMATED AI TUTOR V2
+   ===================================================== */
 
+.tutor-response{
+  width:100%;
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  direction:ltr;
+  margin:6px 0 24px;
+}
+
+.tutor-avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  object-fit:cover;
+  flex-shrink:0;
+  box-shadow:0 6px 16px rgba(60,60,120,.15);
+}
+
+.tutor-writing-area{
+  direction:rtl;
+  max-width:78%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.tutor-writing{
+  direction:rtl;
+  text-align:right;
+
+  font-family:
+    "Segoe Print",
+    "Comic Sans MS",
+    Arial,
+    sans-serif;
+
+  font-size:26px;
+  font-weight:600;
+  line-height:1.7;
+
+  color:#25315f;
+
+  padding:3px 10px;
+
+  min-height:40px;
+
+  transition:
+    background .35s ease,
+    color .35s ease,
+    transform .35s ease;
+}
+
+.tutor-writing.success-line{
+  color:#248c59;
+  font-weight:700;
+}
+
+.tutor-writing.question-line{
+  font-weight:700;
+
+  background:
+    linear-gradient(
+      transparent 65%,
+      rgba(255,222,80,.5) 65%
+    );
+}
+
+.tutor-writing.math-line{
+  font-size:34px;
+  color:#4167d8;
+  font-weight:800;
+}
 </style>
 </head>
 <body>
@@ -913,94 +988,132 @@ function addAssistantTyping(text) {
 
   typeNext();
 }
-/* ---------- ANIMATED TUTOR ENGINE ---------- */
+ /* ---------- ANIMATED TUTOR ENGINE V2 ---------- */
 
 function animateTutorReply(text) {
-  const sentences = text
-    .split(/(?<=[.!?])\s+/)
-    .filter(Boolean);
-
-  let index = 0;
-
-  function showNextSentence() {
-    if (index >= sentences.length) return;
-
-    const sentence = sentences[index].trim();
-
-    addAnimatedTutorLine(sentence);
-
-    index++;
-
-    setTimeout(showNextSentence, 900);
-  }
-
-  showNextSentence();
-}
-
-
-function addAnimatedTutorLine(text) {
   const row = document.createElement("div");
-  row.className = "tutor-line";
+  row.className = "tutor-response";
 
   const avatar = document.createElement("img");
   avatar.src = "/assets/askie-robot.png";
-  avatar.className = "msg-avatar";
+  avatar.className = "tutor-avatar";
 
-  const writing = document.createElement("div");
-  writing.className = "tutor-writing";
+  const writingArea = document.createElement("div");
+  writingArea.className = "tutor-writing-area";
 
   row.appendChild(avatar);
-  row.appendChild(writing);
+  row.appendChild(writingArea);
 
   messagesEl.appendChild(row);
-
-  typeText(writing, text);
-
   messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  const sentences = text
+    .split(/(?<=[.!?])\s+/)
+    .map(sentence => sentence.trim())
+    .filter(Boolean);
+
+  let sentenceIndex = 0;
+
+  function writeNextSentence() {
+    if (sentenceIndex >= sentences.length) {
+      inputEl.focus();
+      return;
+    }
+
+    const sentence = sentences[sentenceIndex];
+
+    const line = document.createElement("div");
+    line.className = "tutor-writing";
+
+    writingArea.appendChild(line);
+
+    typeTutorText(line, sentence, () => {
+      animateImportantParts(line);
+
+      sentenceIndex++;
+
+      setTimeout(() => {
+        writeNextSentence();
+      }, 450);
+    });
+  }
+
+  writeNextSentence();
 }
 
 
-function typeText(element, text) {
+/* ---------- TYPEWRITER EFFECT ---------- */
+
+function typeTutorText(element, text, onComplete) {
   let i = 0;
 
   function writeNext() {
     if (i >= text.length) {
-      animateImportantParts(element);
+      if (typeof onComplete === "function") {
+        onComplete();
+      }
       return;
     }
 
-    element.textContent += text[i];
+    const char = text[i];
+
+    element.textContent += char;
     i++;
 
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    setTimeout(writeNext, 45);
+    let delay = 35;
+
+    if (
+      char === "." ||
+      char === "!" ||
+      char === "?"
+    ) {
+      delay = 180;
+    }
+
+    if (char === ",") {
+      delay = 90;
+    }
+
+    if (char === "\n") {
+      delay = 150;
+    }
+
+    setTimeout(writeNext, delay);
   }
 
   writeNext();
 }
 
 
-function animateImportantParts(element) {
-  const text = element.textContent;
+/* ---------- AUTOMATIC VISUAL EMPHASIS ---------- */
 
+function animateImportantParts(element) {
+  const text = element.textContent.trim();
+
+  /* הצלחה / חיזוק */
   if (
     text.includes("נכון") ||
     text.includes("מצוין") ||
-    text.includes("יפה")
+    text.includes("יפה") ||
+    text.includes("כל הכבוד")
   ) {
     element.classList.add("success-line");
   }
 
+  /* שאלה לילד */
   if (text.includes("?")) {
     element.classList.add("question-line");
   }
 
-  if (/[0-9]+\s*[÷×+\-=]\s*[0-9]+/.test(text)) {
+  /* ביטוי מתמטי */
+  if (
+    /[0-9]+\s*[÷×+\-=]\s*[0-9]+/.test(text)
+  ) {
     element.classList.add("math-line");
   }
 }
-  
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
