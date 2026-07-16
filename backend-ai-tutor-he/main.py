@@ -280,17 +280,17 @@ def tutor_chat(
             limit=8
         )
 
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt
-                },
-                *recent_messages
-            ]
-        )
-
+completion = client.chat.completions.create(
+    model="gpt-4o-mini",
+    response_format={"type": "json_object"},
+    messages=[
+        {
+            "role": "system",
+            "content": system_prompt
+        },
+        *recent_messages
+    ]
+)
         raw_answer = (
             completion.choices[0].message.content or ""
         ).strip()
