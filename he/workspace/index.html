@@ -638,38 +638,40 @@ body{
 }
 
 .tutor-writing-area{
-  direction: rtl;
-  width: 100%;
-  max-width: 82%;
+  direction:rtl;
+  width:100%;
+  max-width:82%;
 
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
 
-  gap: 8px;
+  gap:8px;
 }
 
 .tutor-writing{
-  direction: rtl !important;
-  text-align: right !important;
+  direction:rtl !important;
+  text-align:right !important;
 
-  width: 100% !important;
-  display: block;
+  width:100% !important;
+  display:block;
 
-  font-family: "Gveret Levin", cursive !important;
-  font-size: 32px !important;
-  font-weight: 400 !important;
-  line-height: 1.7 !important;
-  color: #26314f !important;
+  font-family:"Gveret Levin", cursive !important;
+  font-size:32px !important;
+  font-weight:400 !important;
+  line-height:1.7 !important;
+  color:#26314f !important;
 }
 
+/* תשובה חיובית */
 .tutor-writing.success-line{
-  color:#248c59;
-  font-weight:700;
+  color:#248c59 !important;
+  font-weight:700 !important;
 }
 
+/* שאלה - הדגשה צהובה */
 .tutor-writing.question-line{
-  font-weight:700;
+  font-weight:700 !important;
 
   background:
     linear-gradient(
@@ -678,39 +680,11 @@ body{
     );
 }
 
-.tutor-writing.math-line{
-  font-size:34px;
-  color:#4167d8;
-  font-weight:800;
-}
-  .tutor-writing{
-  direction: rtl;
-  text-align: right;
-  font-family: "Gveret Levin Alef Alef Alef", cursive;
-  font-size: 30px;
-  font-weight: 400;
-  line-height: 1.8;
-  color: #26314f;
-}
-
-.tutor-writing.math-line{
-  font-family: "Kalam", cursive;
-  font-size: 38px;
-  font-weight: 500;
-  color: #3478e5;
-}
-
-  .tutor-writing{
-  font-family:"Gveret Levin", cursive !important;
-  font-size:32px !important;
-  font-weight:400 !important;
-  line-height:1.7 !important;
-  color:#26314f !important;
-}
-
+/* תרגיל / ביטוי מתמטי */
 .tutor-writing.math-line{
   font-family:"Gveret Levin", cursive !important;
   font-size:40px !important;
+  font-weight:500 !important;
   color:#3478e5 !important;
 }
 </style>
