@@ -291,67 +291,63 @@ def tutor_chat(
             ]
         )
 
-raw_answer = (
-    completion.choices[0].message.content or ""
-).strip()
+        raw_answer = (
+            completion.choices[0].message.content or ""
+        ).strip()
 
-print("=== RAW AI TUTOR RESPONSE ===")
-print(raw_answer)
-print("=============================")
+        print("=== RAW AI TUTOR RESPONSE ===")
+        print(raw_answer)
+        print("=============================")
 
-# Parse the structured JSON returned by the tutor
-try:
-    tutor_response = json.loads(raw_answer)
-except json.JSONDecodeError as e:
-    print("JSON PARSE ERROR:", repr(e))
-    print("RAW RESPONSE:", raw_answer)
+        # Parse the structured JSON returned by the tutor
+        try:
+            tutor_response = json.loads(raw_answer)
+        except json.JSONDecodeError as e:
+            print("JSON PARSE ERROR:", repr(e))
+            print("RAW RESPONSE:", raw_answer)
 
-    raise HTTPException(
-        status_code=500,
-        detail="Invalid tutor response format"
-    )
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid tutor response format"
+            )
 
+        # Validate required fields
+        speech = tutor_response.get("speech", "")
+        actions = tutor_response.get("actions", [])
+        wait_for_answer = tutor_response.get(
+            "wait_for_answer",
+            False
+        )
 
-# Validate required fields
-speech = tutor_response.get("speech", "")
-actions = tutor_response.get("actions", [])
-wait_for_answer = tutor_response.get(
-    "wait_for_answer",
-    False
-)
+        if not isinstance(speech, str):
+            speech = str(speech)
 
-if not isinstance(speech, str):
-    speech = str(speech)
+        if not isinstance(actions, list):
+            actions = []
 
-if not isinstance(actions, list):
-    actions = []
+        if not isinstance(wait_for_answer, bool):
+            wait_for_answer = bool(wait_for_answer)
 
-if not isinstance(wait_for_answer, bool):
-    wait_for_answer = bool(wait_for_answer)
+        total_tokens = None
 
+        if completion.usage:
+            total_tokens = completion.usage.total_tokens
 
-total_tokens = None
+        # Save only the natural conversation text in kids_chats
+        save_tutor_chat_message(
+            user_id=user.id,
+            kid_id=child["id"],
+            role="assistant",
+            content=speech,
+            tokens=total_tokens
+        )
 
-if completion.usage:
-    total_tokens = completion.usage.total_tokens
-
-
-# Save only the natural conversation text in kids_chats
-save_tutor_chat_message(
-    user_id=user.id,
-    kid_id=child["id"],
-    role="assistant",
-    content=speech,
-    tokens=total_tokens
-)
-
-
-# Return structured lesson response to frontend
-return {
-    "speech": speech,
-    "actions": actions,
-    "wait_for_answer": wait_for_answer
-}
+        # Return structured lesson response to frontend
+        return {
+            "speech": speech,
+            "actions": actions,
+            "wait_for_answer": wait_for_answer
+        }
 
     except HTTPException:
         raise
