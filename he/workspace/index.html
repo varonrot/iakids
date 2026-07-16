@@ -913,7 +913,94 @@ function addAssistantTyping(text) {
 
   typeNext();
 }
+/* ---------- ANIMATED TUTOR ENGINE ---------- */
 
+function animateTutorReply(text) {
+  const sentences = text
+    .split(/(?<=[.!?])\s+/)
+    .filter(Boolean);
+
+  let index = 0;
+
+  function showNextSentence() {
+    if (index >= sentences.length) return;
+
+    const sentence = sentences[index].trim();
+
+    addAnimatedTutorLine(sentence);
+
+    index++;
+
+    setTimeout(showNextSentence, 900);
+  }
+
+  showNextSentence();
+}
+
+
+function addAnimatedTutorLine(text) {
+  const row = document.createElement("div");
+  row.className = "tutor-line";
+
+  const avatar = document.createElement("img");
+  avatar.src = "/assets/askie-robot.png";
+  avatar.className = "msg-avatar";
+
+  const writing = document.createElement("div");
+  writing.className = "tutor-writing";
+
+  row.appendChild(avatar);
+  row.appendChild(writing);
+
+  messagesEl.appendChild(row);
+
+  typeText(writing, text);
+
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+
+function typeText(element, text) {
+  let i = 0;
+
+  function writeNext() {
+    if (i >= text.length) {
+      animateImportantParts(element);
+      return;
+    }
+
+    element.textContent += text[i];
+    i++;
+
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    setTimeout(writeNext, 45);
+  }
+
+  writeNext();
+}
+
+
+function animateImportantParts(element) {
+  const text = element.textContent;
+
+  if (
+    text.includes("נכון") ||
+    text.includes("מצוין") ||
+    text.includes("יפה")
+  ) {
+    element.classList.add("success-line");
+  }
+
+  if (text.includes("?")) {
+    element.classList.add("question-line");
+  }
+
+  if (/[0-9]+\s*[÷×+\-=]\s*[0-9]+/.test(text)) {
+    element.classList.add("math-line");
+  }
+}
+  
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
@@ -971,7 +1058,7 @@ if (!res.ok) {
 if (!data.reply || !data.reply.trim()) {
   addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
 } else {
-  addAssistantTyping(data.reply);
+  animateTutorReply(data.reply);
 }
 
   } catch (e) {
