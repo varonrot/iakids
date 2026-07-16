@@ -183,19 +183,26 @@ def get_recent_tutor_messages_for_llm(
 
 
 def build_tutor_prompt(child: dict, kids_memory: str) -> str:
-    return TUTOR_PROMPT_TEMPLATE.format(
-        child_name=child.get("child_name", ""),
-        age=child.get("age", ""),
-        grade=child.get("grade", ""),
-        avatar_key=child.get("avatar_key", ""),
-        learning_interests=", ".join(
+    prompt = TUTOR_PROMPT_TEMPLATE
+
+    replacements = {
+        "{child_name}": str(child.get("child_name", "")),
+        "{age}": str(child.get("age", "")),
+        "{grade}": str(child.get("grade", "")),
+        "{avatar_key}": str(child.get("avatar_key", "")),
+        "{learning_interests}": ", ".join(
             child.get("learning_interests") or []
         ),
-        usage_goals=", ".join(
+        "{usage_goals}": ", ".join(
             child.get("usage_goals") or []
         ),
-        kids_memory=kids_memory,
-    )
+        "{kids_memory}": kids_memory or "",
+    }
+
+    for placeholder, value in replacements.items():
+        prompt = prompt.replace(placeholder, value)
+
+    return prompt
 
 
 # =====================================================
