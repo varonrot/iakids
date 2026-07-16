@@ -5,6 +5,7 @@ from supabase import create_client
 from openai import OpenAI
 from pathlib import Path
 import os
+import json
 
 # =====================================================
 # CONFIG
