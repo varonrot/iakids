@@ -543,6 +543,76 @@ body{
   }
 
 }
+/* =========================
+   NOTEBOOK LEARNING AREA
+   ========================= */
+
+.messages{
+  background:
+    linear-gradient(
+      to right,
+      transparent 0,
+      transparent 64px,
+      rgba(255,120,120,.35) 65px,
+      transparent 66px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      #fffefb 0,
+      #fffefb 43px,
+      #dbe7ff 44px,
+      #fffefb 45px
+    ) !important;
+
+  padding:40px 70px 150px !important;
+  gap:26px !important;
+}
+
+/* הודעת הילד נשארת כמו בועה */
+.msg-row.user{
+  justify-content:flex-end;
+}
+
+.msg-row.user .msg-bubble{
+  max-width:55% !important;
+  font-size:22px !important;
+  line-height:1.5 !important;
+  padding:18px 24px !important;
+  border-radius:22px !important;
+}
+
+/* הודעת המורה הופכת לטקסט לימודי גדול */
+.msg-row.assistant{
+  align-items:flex-start !important;
+  gap:14px !important;
+}
+
+.msg-row.assistant .msg-bubble{
+  max-width:78% !important;
+  background:rgba(244,240,255,.9) !important;
+  font-size:24px !important;
+  line-height:1.8 !important;
+  padding:22px 28px !important;
+  border-radius:24px !important;
+  box-shadow:0 8px 24px rgba(90,70,160,.08);
+}
+
+/* אווטארים */
+.msg-avatar{
+  width:52px !important;
+  height:52px !important;
+}
+
+/* כותרת */
+.welcome h1{
+  font-size:40px !important;
+  color:#5f43df !important;
+}
+
+.welcome p{
+  font-size:18px !important;
+}
+
 </style>
 </head>
 <body>
@@ -763,7 +833,7 @@ const { data: kid, error } = await sb
 </script>
 <script>
 const API_BASE = "https://iakids-backend.onrender.com";
-const TUTOR_API_BASE = "https://iakids-ai-tutor-he.onrender.com";  
+const TUTOR_API_BASE = "https://iakids-ai-tutor-he.onrender.com";
 
 const messagesEl = document.querySelector(".messages");
 const chatEl = document.querySelector(".chat");
@@ -779,6 +849,7 @@ function addMessage(role, text) {
 
   const bubble = document.createElement("div");
   bubble.className = "msg-bubble";
+  bubble.style.whiteSpace = "pre-line";
   bubble.textContent = text;
 
   // 🤖 assistant avatar (שמאל)
