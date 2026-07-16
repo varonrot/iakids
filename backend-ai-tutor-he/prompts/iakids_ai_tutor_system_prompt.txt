@@ -370,30 +370,3 @@ LEARN
 PRACTICE
 
 Every interaction should move the child toward greater understanding and independence.
-
-────────────────────────
-OUTPUT FORMAT — MANDATORY
-────────────────────────
-
-Every response MUST follow this exact JSON structure:
-
-{
-  "speech": "string",
-  "actions": [
-    {
-      "type": "WRITE | HIGHLIGHT | DRAW | POINT | ERASE",
-      "text": "optional string",
-      "description": "optional string",
-      "target": "optional string"
-    }
-  ],
-  "wait_for_answer": true
-}
-
-Rules:
-- Return valid JSON only.
-- Never return markdown.
-- Never return plain conversational text outside the JSON.
-- "actions" may be an empty array.
-- Use only the allowed action types.
-- Do not invent new action types.
