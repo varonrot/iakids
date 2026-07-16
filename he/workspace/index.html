@@ -612,7 +612,66 @@ body{
 .welcome p{
   font-size:18px !important;
 }
+/* =====================================================
+   TUTOR RENDERER V1
+   ===================================================== */
 
+.notebook-writing-row{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  direction:rtl;
+  margin:8px 0 18px;
+}
+
+.notebook-writing{
+  font-family:"Segoe Print","Comic Sans MS",cursive;
+  font-size:34px;
+  font-weight:700;
+  line-height:1.6;
+
+  color:#365ecf;
+
+  padding:10px 24px;
+
+  min-width:220px;
+
+  text-align:center;
+
+  transition:
+    background .35s ease,
+    transform .35s ease;
+}
+
+.notebook-highlight{
+  background:
+    linear-gradient(
+      transparent 58%,
+      rgba(255,225,85,.75) 58%
+    );
+
+  transform:scale(1.03);
+}
+
+.notebook-drawing-placeholder{
+  margin:12px auto;
+
+  padding:18px 24px;
+
+  max-width:70%;
+
+  border:2px dashed #b9a9ff;
+
+  border-radius:18px;
+
+  background:rgba(245,242,255,.75);
+
+  color:#5f43df;
+
+  font-size:20px;
+
+  text-align:center;
+}
 </style>
 </head>
 <body>
@@ -965,13 +1024,25 @@ if (!res.ok) {
 }
 
 
-    const data = await res.json();
-    console.log("CHAT RESPONSE:", data);
+const data = await res.json();
+console.log("TUTOR RESPONSE:", data);
 
-if (!data.reply || !data.reply.trim()) {
-  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-} else {
-  addAssistantTyping(data.reply);
+if (!data.speech || !data.speech.trim()) {
+  addMessage("assistant", "🤖 אני חושב... נסו לשאול שוב 😊");
+  return;
+}
+
+/* 1. מציג את מה שהמורה אומר */
+addAssistantTyping(data.speech);
+
+/* 2. מבצע פעולות ויזואליות על המחברת */
+if (Array.isArray(data.actions)) {
+  runTutorActions(data.actions);
+}
+
+/* 3. אם צריך לחכות לתשובת הילד */
+if (data.wait_for_answer === true) {
+  inputEl.focus();
 }
 
   } catch (e) {
@@ -1015,6 +1086,49 @@ function quickAsk(key){
   if (!text) return;
 
   inputEl.value = text;
+  /* =====================================================
+   TUTOR ACTION RENDERER V1
+   ===================================================== */
+
+function runTutorActions(actions) {
+  actions.forEach((action, index) => {
+    setTimeout(() => {
+      if (!action || !action.type) return;
+
+      switch (action.type) {
+
+        case "WRITE":
+          if (action.text) {
+            addNotebookWriting(action.text);
+          }
+          break;
+
+        case "HIGHLIGHT":
+          if (action.text) {
+            highlightNotebookText(action.text);
+          }
+          break;
+
+        case "DRAW":
+          if (action.description) {
+            addNotebookDrawingPlaceholder(action.description);
+          }
+          break;
+
+        case "POINT":
+          console.log("POINT ACTION:", action.target);
+          break;
+
+        case "ERASE":
+          console.log("ERASE ACTION:", action.target);
+          break;
+
+        default:
+          console.warn("Unknown tutor action:", action);
+      }
+    }, index * 700);
+  });
+}
   sendMessage();
 }
 document.addEventListener("click", (e) => {
@@ -1109,6 +1223,60 @@ if (error){
 }
 
 </script>
+
+<script>
+  function addNotebookWriting(text) {
+  const row = document.createElement("div");
+  row.className = "notebook-writing-row";
+
+  const writing = document.createElement("div");
+  writing.className = "notebook-writing";
+  writing.textContent = "";
+
+  row.appendChild(writing);
+  messagesEl.appendChild(row);
+
+  let i = 0;
+
+  function writeNext() {
+    if (i >= text.length) return;
+
+    writing.textContent += text[i];
+    i++;
+
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    setTimeout(writeNext, 70);
+  }
+
+  writeNext();
+}
+</script>
+<script>
+  function highlightNotebookText(text) {
+  const writings = [
+    ...document.querySelectorAll(".notebook-writing")
+  ].reverse();
+
+  for (const el of writings) {
+    if (el.textContent.includes(text)) {
+      el.classList.add("notebook-highlight");
+      break;
+    }
+  }
+}
+</script>
+ <script> 
+function addNotebookDrawingPlaceholder(description) {
+  const box = document.createElement("div");
+
+  box.className = "notebook-drawing-placeholder";
+  box.textContent = "✏️ " + description;
+
+  messagesEl.appendChild(box);
+}
+   </script>
+  
 <script>
 /* ===== CHIPS HELPERS ===== */
 function toggleChip(btn){
