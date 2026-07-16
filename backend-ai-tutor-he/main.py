@@ -149,7 +149,6 @@ def save_tutor_chat_message(
         "kid_id": kid_id,
         "role": role,
         "content": content,
-        "chat_type": "tutor",
     }
 
     if tokens is not None:
@@ -166,7 +165,6 @@ def get_recent_tutor_messages_for_llm(
         sb.table("kids_chats")
         .select("role, content")
         .eq("kid_id", kid_id)
-        .eq("chat_type", "tutor")
         .order("created_at", desc=True)
         .limit(limit)
         .execute()
