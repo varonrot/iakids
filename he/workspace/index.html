@@ -762,7 +762,7 @@ const { data: kid, error } = await sb
 })();
 </script>
 <script>
-const API_BASE = "https://iakids-backend.onrender.com";
+const API_BASE = "https://iakids-ai-tutor-he.onrender.com";
 
 const messagesEl = document.querySelector(".messages");
 const chatEl = document.querySelector(".chat");
@@ -860,7 +860,7 @@ async function sendMessage() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/chat`, {
+    const res = await fetch(`${TUTOR_API_BASE}/api/tutor/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1171,7 +1171,7 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
     }
 
     const res = await fetch(
-      "https://iakids-backend.onrender.com/api/create-portal-session",
+      "https://iakids-ai-tutor-he.onrender.com/api/create-portal-session",
       {
         method: "POST",
         headers: {
