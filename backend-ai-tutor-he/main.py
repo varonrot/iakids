@@ -5,7 +5,6 @@ from supabase import create_client
 from openai import OpenAI
 from pathlib import Path
 import os
-import json
 
 # =====================================================
 # CONFIG
@@ -184,26 +183,19 @@ def get_recent_tutor_messages_for_llm(
 
 
 def build_tutor_prompt(child: dict, kids_memory: str) -> str:
-    prompt = TUTOR_PROMPT_TEMPLATE
-
-    replacements = {
-        "{child_name}": str(child.get("child_name", "")),
-        "{age}": str(child.get("age", "")),
-        "{grade}": str(child.get("grade", "")),
-        "{avatar_key}": str(child.get("avatar_key", "")),
-        "{learning_interests}": ", ".join(
+    return TUTOR_PROMPT_TEMPLATE.format(
+        child_name=child.get("child_name", ""),
+        age=child.get("age", ""),
+        grade=child.get("grade", ""),
+        avatar_key=child.get("avatar_key", ""),
+        learning_interests=", ".join(
             child.get("learning_interests") or []
         ),
-        "{usage_goals}": ", ".join(
+        usage_goals=", ".join(
             child.get("usage_goals") or []
         ),
-        "{kids_memory}": kids_memory or "",
-    }
-
-    for placeholder, value in replacements.items():
-        prompt = prompt.replace(placeholder, value)
-
-    return prompt
+        kids_memory=kids_memory,
+    )
 
 
 # =====================================================
@@ -282,7 +274,6 @@ def tutor_chat(
 
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
-            response_format={"type": "json_object"},
             messages=[
                 {
                     "role": "system",
@@ -291,62 +282,26 @@ def tutor_chat(
                 *recent_messages
             ]
         )
-        raw_answer = (
+
+        answer = (
             completion.choices[0].message.content or ""
         ).strip()
-
-        print("=== RAW AI TUTOR RESPONSE ===")
-        print(raw_answer)
-        print("=============================")
-
-        # Parse the structured JSON returned by the tutor
-        try:
-            tutor_response = json.loads(raw_answer)
-        except json.JSONDecodeError as e:
-            print("JSON PARSE ERROR:", repr(e))
-            print("RAW RESPONSE:", raw_answer)
-
-            raise HTTPException(
-                status_code=500,
-                detail="Invalid tutor response format"
-            )
-
-        # Validate required fields
-        speech = tutor_response.get("speech", "")
-        actions = tutor_response.get("actions", [])
-        wait_for_answer = tutor_response.get(
-            "wait_for_answer",
-            False
-        )
-
-        if not isinstance(speech, str):
-            speech = str(speech)
-
-        if not isinstance(actions, list):
-            actions = []
-
-        if not isinstance(wait_for_answer, bool):
-            wait_for_answer = bool(wait_for_answer)
 
         total_tokens = None
 
         if completion.usage:
             total_tokens = completion.usage.total_tokens
 
-        # Save only the natural conversation text in kids_chats
         save_tutor_chat_message(
             user_id=user.id,
             kid_id=child["id"],
             role="assistant",
-            content=speech,
+            content=answer,
             tokens=total_tokens
         )
 
-        # Return structured lesson response to frontend
         return {
-            "speech": speech,
-            "actions": actions,
-            "wait_for_answer": wait_for_answer
+            "reply": answer
         }
 
     except HTTPException:
