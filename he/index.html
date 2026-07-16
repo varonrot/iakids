@@ -1591,7 +1591,7 @@ body{
   background-size:cover;
   background-repeat:no-repeat;
 
- 
+
 
   background-position:center left;
 
@@ -11411,6 +11411,627 @@ nav {
   }
 
 }
+
+    /* =====================================================
+   NEW HOME HERO
+===================================================== */
+
+.home-hero{
+  position:relative;
+  isolation:isolate;
+
+  width:100%;
+  min-height:760px;
+
+  overflow:hidden;
+
+  display:flex;
+  align-items:center;
+
+  padding:
+    130px 24px
+    40px;
+
+  background-image:
+    url("/assets/backgrounds/hero-home.webp");
+
+  background-size:cover;
+  background-repeat:no-repeat;
+  background-position:center center;
+}
+
+
+/* =====================================================
+   SOFT OVERLAY
+===================================================== */
+
+.home-hero-overlay{
+  position:absolute;
+  inset:0;
+  z-index:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.08) 0%,
+      rgba(255,255,255,.30) 25%,
+      rgba(255,255,255,.70) 45%,
+      rgba(255,255,255,.96) 68%,
+      rgba(255,255,255,.98) 100%
+    );
+}
+
+
+/* =====================================================
+   INNER
+===================================================== */
+
+.home-hero-inner{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+  max-width:1440px;
+
+  min-height:590px;
+
+  margin:0 auto;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.home-hero-content{
+  width:43%;
+  max-width:610px;
+
+  margin-right:auto;
+  margin-left:0;
+
+  direction:rtl;
+  text-align:right;
+}
+
+
+/* PILL */
+
+.home-hero-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+
+  margin-bottom:22px;
+
+  padding:9px 16px;
+
+  border:
+    1px solid
+    rgba(30,90,145,.12);
+
+  border-radius:999px;
+
+  background:
+    rgba(255,255,255,.84);
+
+  color:#236b9d;
+
+  font-size:13px;
+  font-weight:900;
+
+  box-shadow:
+    0 10px 28px
+    rgba(31,87,145,.08);
+
+  backdrop-filter:blur(10px);
+}
+
+
+/* TITLE */
+
+.home-hero-content h1{
+  margin:0;
+
+  color:#173965;
+
+  font-size:
+    clamp(
+      48px,
+      5vw,
+      76px
+    );
+
+  font-weight:950;
+
+  line-height:1.04;
+
+  letter-spacing:-2px;
+}
+
+.home-hero-content h1 span{
+  display:block;
+
+  color:#f3a900;
+}
+
+
+/* DESCRIPTION */
+
+.home-hero-content p{
+  max-width:560px;
+
+  margin:
+    26px 0
+    0;
+
+  color:#48607f;
+
+  font-size:20px;
+
+  font-weight:550;
+
+  line-height:1.75;
+}
+
+
+/* =====================================================
+   ACTIONS
+===================================================== */
+
+.home-hero-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+
+  gap:13px;
+
+  margin-top:30px;
+}
+
+
+/* PRIMARY */
+
+.home-hero-primary{
+  min-height:60px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:10px;
+
+  padding:
+    15px 30px;
+
+  border:
+    1px solid
+    #e6ad12;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffdc63,
+      #ffc32a
+    );
+
+  color:#173965;
+
+  text-decoration:none;
+
+  font-size:17px;
+  font-weight:950;
+
+  box-shadow:
+    0 18px 40px
+    rgba(236,174,17,.30);
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+}
+
+.home-hero-primary:hover{
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 24px 50px
+    rgba(236,174,17,.38);
+}
+
+
+/* SECONDARY */
+
+.home-hero-secondary{
+  display:inline-flex;
+  align-items:center;
+
+  gap:8px;
+
+  padding:
+    7px 14px;
+
+  color:#294b75;
+
+  text-decoration:none;
+
+  font-size:14px;
+
+  font-weight:850;
+}
+
+.home-hero-secondary:hover{
+  color:#1f6bc2;
+}
+
+
+/* =====================================================
+   FEATURE CARDS
+===================================================== */
+
+.home-hero-features{
+  width:100%;
+  max-width:1180px;
+
+  margin:
+    45px auto
+    0;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:15px;
+}
+
+
+/* CARD */
+
+.home-feature-card{
+  min-height:112px;
+
+  display:flex;
+  align-items:center;
+
+  gap:14px;
+
+  padding:
+    17px 20px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.85);
+
+  border-radius:25px;
+
+  background:
+    rgba(255,255,255,.78);
+
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+
+  box-shadow:
+    0 18px 45px
+    rgba(36,81,130,.12);
+
+  transition:
+    transform .25s ease,
+    background .25s ease,
+    box-shadow .25s ease;
+}
+
+.home-feature-card:hover{
+  transform:
+    translateY(-5px);
+
+  background:
+    rgba(255,255,255,.94);
+
+  box-shadow:
+    0 24px 55px
+    rgba(36,81,130,.17);
+}
+
+
+/* ICON */
+
+.home-feature-icon{
+  width:60px;
+  height:60px;
+
+  display:grid;
+  place-items:center;
+
+  flex:0 0 60px;
+
+  border-radius:20px;
+
+  font-size:28px;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.8);
+}
+
+.home-feature-icon.yellow{
+  background:#fff0bf;
+}
+
+.home-feature-icon.blue{
+  background:#e4f3ff;
+}
+
+.home-feature-icon.green{
+  background:#e4f8ec;
+}
+
+.home-feature-icon.orange{
+  background:#fff0df;
+}
+
+
+/* TEXT */
+
+.home-feature-card strong{
+  display:block;
+
+  margin-bottom:4px;
+
+  color:#173965;
+
+  font-size:15px;
+
+  font-weight:950;
+}
+
+.home-feature-card p{
+  margin:0;
+
+  color:#65768c;
+
+  font-size:11px;
+
+  line-height:1.5;
+}
+
+
+/* =====================================================
+   LAPTOP
+===================================================== */
+
+@media (max-width:1300px){
+
+  .home-hero{
+    min-height:700px;
+
+    padding-top:115px;
+
+    background-position:
+      42% center;
+  }
+
+  .home-hero-inner{
+    min-height:540px;
+  }
+
+  .home-hero-content{
+    width:44%;
+
+    max-width:540px;
+  }
+
+  .home-hero-content h1{
+    font-size:
+      clamp(
+        46px,
+        5vw,
+        66px
+      );
+  }
+
+  .home-hero-content p{
+    font-size:17px;
+  }
+
+  .home-hero-features{
+    max-width:1080px;
+  }
+
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width:1000px){
+
+  .home-hero{
+    min-height:auto;
+
+    padding:
+      470px 24px
+      50px;
+
+    background-position:
+      30% top;
+  }
+
+  .home-hero-overlay{
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.05) 32%,
+        rgba(255,255,255,.90) 55%,
+        #ffffff 75%
+      );
+  }
+
+  .home-hero-inner{
+    min-height:auto;
+  }
+
+  .home-hero-content{
+    width:100%;
+    max-width:720px;
+
+    margin:
+      0 auto;
+
+    text-align:center;
+  }
+
+  .home-hero-content p{
+    margin:
+      22px auto
+      0;
+  }
+
+  .home-hero-actions{
+    align-items:center;
+  }
+
+  .home-hero-features{
+    grid-template-columns:
+      repeat(2,1fr);
+
+    max-width:720px;
+
+    margin-top:45px;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width:700px){
+
+  .home-hero{
+    padding:
+      340px 16px
+      40px;
+
+    background-size:auto 390px;
+
+    background-position:
+      24% top;
+
+    background-color:#ffffff;
+  }
+
+  .home-hero-overlay{
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.08) 35%,
+        rgba(255,255,255,.94) 54%,
+        #ffffff 67%
+      );
+  }
+
+  .home-hero-content h1{
+    font-size:41px;
+
+    line-height:1.04;
+
+    letter-spacing:-1.2px;
+  }
+
+  .home-hero-content p{
+    font-size:15px;
+
+    line-height:1.65;
+  }
+
+  .home-hero-pill{
+    margin-bottom:16px;
+
+    font-size:11px;
+  }
+
+  .home-hero-primary{
+    width:100%;
+    max-width:350px;
+
+    min-height:55px;
+
+    font-size:15px;
+  }
+
+  .home-hero-features{
+    grid-template-columns:1fr;
+
+    gap:11px;
+
+    margin-top:35px;
+  }
+
+  .home-feature-card{
+    min-height:85px;
+
+    padding:
+      13px 16px;
+
+    border-radius:20px;
+  }
+
+  .home-feature-icon{
+    width:50px;
+    height:50px;
+
+    flex-basis:50px;
+
+    border-radius:16px;
+
+    font-size:23px;
+  }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width:480px){
+
+  .home-hero{
+    padding-top:290px;
+
+    background-size:auto 340px;
+
+    background-position:
+      23% top;
+  }
+
+  .home-hero-content h1{
+    font-size:35px;
+  }
+
+  .home-hero-content p{
+    font-size:14px;
+  }
+
+  .home-hero-primary{
+    font-size:14px;
+  }
+
+}
 </style>
   <script type="application/ld+json">
 {
@@ -11532,53 +12153,102 @@ nav {
 
 </header>
 
-<section class="iakids-hero" id="hero">
+<section class="home-hero" id="hero">
 
-  <div class="hero-content">
+  <div class="home-hero-overlay"></div>
 
-    <span class="hero-pill">
-      🤖 רובוט לימודי חכם ובטוח לילדים
-    </span>
+  <div class="home-hero-inner">
 
-    <h1 class="hero-title">
-      ללמוד בכיף,<br>
-      <span>להצליח בכל יום!</span>
-    </h1>
+    <div class="home-hero-content">
 
-    <p class="hero-text">
-      רובוט חכם שעוזר לילדי כיתות א׳–ו׳ להבין את החומר,
-      להכין שיעורי בית, להתכונן למבחנים ולתרגל בקצב האישי שלהם.
-    </p>
+      <span class="home-hero-pill">
+        🤖 רובוט לימודי חכם ובטוח לילדים
+      </span>
 
-    <div class="hero-buttons">
+      <h1>
+        ללמוד בכיף,
+        <span>להצליח בכל יום!</span>
+      </h1>
 
-      <a href="/onboarding" class="hero-btn primary">
-        מתחילים ללמוד בחינם
-        <span class="hero-btn-icon">🚀</span>
-      </a>
+      <p>
+        פלטפורמת לימוד חכמה לילדי כיתות א׳–ו׳
+        עם רובוט אישי שמלווה את הילדים להצלחה בלימודים.
+      </p>
 
-      <a href="#how-it-works" class="hero-btn secondary">
-        איך זה עובד?
-      </a>
+      <div class="home-hero-actions">
+
+        <a href="/onboarding" class="home-hero-primary">
+          <span>🎁</span>
+          מתחילים ללמוד בחינם
+        </a>
+
+        <a href="#how-it-works" class="home-hero-secondary">
+          איך זה עובד?
+          <span>←</span>
+        </a>
+
+      </div>
 
     </div>
 
-    <div class="hero-tags">
 
-      <span>
-        <b>📚</b>
-        עזרה בשיעורי בית
-      </span>
+    <!-- FEATURES -->
+    <div class="home-hero-features">
 
-      <span>
-        <b>✏️</b>
-        הכנה למבחנים
-      </span>
+      <div class="home-feature-card">
 
-      <span>
-        <b>🎯</b>
-        תרגול אישי
-      </span>
+        <div class="home-feature-icon yellow">
+          👥
+        </div>
+
+        <div>
+          <strong>לילדי כיתות א׳–ו׳</strong>
+          <p>מותאם לכל גיל ורמה</p>
+        </div>
+
+      </div>
+
+
+      <div class="home-feature-card">
+
+        <div class="home-feature-icon blue">
+          🤖
+        </div>
+
+        <div>
+          <strong>רובוט אישי</strong>
+          <p>עוזר, מסביר ותומך בכל זמן</p>
+        </div>
+
+      </div>
+
+
+      <div class="home-feature-card">
+
+        <div class="home-feature-icon green">
+          📊
+        </div>
+
+        <div>
+          <strong>מעקב התקדמות</strong>
+          <p>רואים הישגים והתקדמות לאורך הדרך</p>
+        </div>
+
+      </div>
+
+
+      <div class="home-feature-card">
+
+        <div class="home-feature-icon orange">
+          ⭐
+        </div>
+
+        <div>
+          <strong>לומדים בכיף</strong>
+          <p>תרגול אינטראקטיבי ומשחקי למידה</p>
+        </div>
+
+      </div>
 
     </div>
 
