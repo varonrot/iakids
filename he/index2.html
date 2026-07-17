@@ -11748,11 +11748,9 @@ nav {
 /* לתמונות שנכין במקום אימוג'י */
 
 .home-feature-icon img{
-  width:58px;
-  height:58px;
-
+  width:82px;
+  height:82px;
   object-fit:contain;
-
   display:block;
 }
 
@@ -12122,6 +12120,181 @@ b{
   object-fit:contain;
   display:block;
 }
+    /* =========================================
+   HOME HERO FEATURES
+========================================= */
+
+.home-hero-features{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:18px;
+
+  width:100%;
+  max-width:1400px;
+
+  margin:30px auto 0;
+}
+
+
+/* כרטיס */
+.home-feature-card{
+  position:relative;
+
+  min-height:145px;
+
+  display:flex;
+  align-items:center;
+  gap:18px;
+
+  padding:18px 22px;
+
+  background:rgba(255,255,255,.62);
+
+  border:1px solid rgba(255,255,255,.8);
+  border-radius:30px;
+
+  box-shadow:
+    0 12px 30px rgba(37,72,120,.12),
+    inset 0 1px 0 rgba(255,255,255,.8);
+
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+
+  overflow:hidden;
+}
+
+
+/* אזור התמונה */
+.home-feature-image{
+  width:105px;
+  height:105px;
+
+  flex:0 0 105px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:rgba(255,255,255,.40);
+
+  border-radius:24px;
+
+  overflow:hidden;
+}
+
+
+/* התמונה עצמה */
+.home-feature-image img{
+  width:115px;
+  height:115px;
+  object-fit:contain;
+  display:block;
+}
+
+
+/* אזור הטקסט */
+.home-feature-content{
+  flex:1;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:6px;
+
+  text-align:right;
+}
+
+
+/* כותרת */
+.home-feature-content strong{
+  display:block;
+  font-size:20px;
+  font-weight:800;
+  line-height:1.2;
+  color:#173b6c;
+  white-space:nowrap;
+}
+
+
+/* תיאור */
+.home-feature-content p{
+  margin:0;
+
+  font-size:17px;
+  font-weight:500;
+
+  line-height:1.45;
+
+  color:#58708f;
+}
+
+
+/* אפקט מעבר עכבר */
+.home-feature-card{
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+}
+
+.home-feature-card:hover{
+  transform:translateY(-5px);
+
+  box-shadow:
+    0 18px 38px rgba(37,72,120,.18),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width:1100px){
+
+  .home-hero-features{
+    grid-template-columns:repeat(2, 1fr);
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width:650px){
+
+  .home-hero-features{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+
+  .home-feature-card{
+    min-height:115px;
+    padding:14px 16px;
+    border-radius:22px;
+  }
+
+  .home-feature-image{
+    width:82px;
+    height:82px;
+    flex-basis:82px;
+  }
+
+  .home-feature-image img{
+    width:74px;
+    height:74px;
+  }
+
+  .home-feature-content strong{
+    font-size:19px;
+  }
+
+  .home-feature-content p{
+    font-size:15px;
+  }
+
+}
 </style>
   <script type="application/ld+json">
 {
@@ -12220,7 +12393,7 @@ b{
         כניסת הורים
       </a>
 
-      <a href="/onboarding" class="nav-cta" id="startLink">
+      <a href="/he/onboarding" class="nav-cta" id="startLink">
         <span>🚀</span>
         מתחילים ללמוד
       </a>
@@ -12286,64 +12459,72 @@ b{
 
 
     <!-- FEATURES -->
-    <div class="home-hero-features">
+     <div class="home-hero-features">
 
-      <div class="home-feature-card">
-
-        <div class="home-feature-icon yellow">
-          👥
-        </div>
-
-        <div>
-          <strong>לילדי כיתות א׳–ו׳</strong>
-          <p>מותאם לכל גיל ורמה</p>
-        </div>
-
-      </div>
-
-
-      <div class="home-feature-card">
-
-<div class="home-feature-icon blue">
-  <img src="/assets/robots/Robot_icon.png" alt="רובוט">
-</div>
-
-        <div>
-          <strong>רובוט אישי</strong>
-          <p>עוזר, מסביר ותומך בכל זמן</p>
-        </div>
-
-      </div>
-
-
-      <div class="home-feature-card">
-
-        <div class="home-feature-icon green">
-          📊
-        </div>
-
-        <div>
-          <strong>מעקב התקדמות</strong>
-          <p>רואים הישגים והתקדמות לאורך הדרך</p>
-        </div>
-
-      </div>
-
-
-      <div class="home-feature-card">
-
-        <div class="home-feature-icon orange">
-          ⭐
-        </div>
-
-        <div>
-          <strong>לומדים בכיף</strong>
-          <p>תרגול אינטראקטיבי ומשחקי למידה</p>
-        </div>
-
-      </div>
-
+  <!-- כרטיס 1: כיתות א׳–ו׳ -->
+  <div class="home-feature-card">
+    <div class="home-feature-image">
+      <img
+        src="/assets/home/feature-kids.png"
+        alt="ילדי כיתות א׳ עד ו׳"
+      >
     </div>
+
+    <div class="home-feature-content">
+      <strong>לילדי כיתות א׳–ו׳</strong>
+      <p>מותאם לכל גיל ורמה</p>
+    </div>
+  </div>
+
+
+  <!-- כרטיס 2: רובוט אישי -->
+  <div class="home-feature-card">
+    <div class="home-feature-image">
+      <img
+        src="/assets/home/feature-robot.png"
+        alt="רובוט אישי"
+      >
+    </div>
+
+    <div class="home-feature-content">
+      <strong>רובוט אישי</strong>
+      <p>עוזר, מסביר ותומך בכל זמן</p>
+    </div>
+  </div>
+
+
+  <!-- כרטיס 3: מעקב התקדמות -->
+  <div class="home-feature-card">
+    <div class="home-feature-image">
+      <img
+        src="/assets/home/feature-progress.png"
+        alt="מעקב התקדמות"
+      >
+    </div>
+
+    <div class="home-feature-content">
+      <strong>מעקב התקדמות</strong>
+      <p>רואים הישגים והתקדמות לאורך הדרך</p>
+    </div>
+  </div>
+
+
+  <!-- כרטיס 4: לומדים בכיף -->
+  <div class="home-feature-card">
+    <div class="home-feature-image">
+      <img
+        src="/assets/home/feature-fun.png"
+        alt="לומדים בכיף"
+      >
+    </div>
+
+    <div class="home-feature-content">
+      <strong>לומדים בכיף</strong>
+      <p>תרגול אינטראקטיבי ומשחקי למידה</p>
+    </div>
+  </div>
+
+</div>
 
   </div>
 
@@ -12411,7 +12592,7 @@ b{
 
       </div>
 
-      <a href="/onboarding" class="iakids-video-cta">
+      <a href="/he/onboarding" class="iakids-video-cta">
         מתחילים ללמוד בחינם
         <span>🚀</span>
       </a>
@@ -13366,7 +13547,7 @@ b{
 
       </div>
 
-      <a href="/onboarding" class="learning-tools-cta">
+      <a href="/he/onboarding" class="learning-tools-cta">
         מתחילים ללמוד
         <span>🚀</span>
       </a>
@@ -15067,7 +15248,7 @@ navActions.innerHTML = `
     כניסת הורים
   </a>
 
-  <a href="/onboarding" class="nav-cta">
+  <a href="/he/onboarding" class="nav-cta">
     <span>🚀</span>
     מתחילים ללמוד
   </a>
