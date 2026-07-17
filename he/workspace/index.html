@@ -1688,11 +1688,15 @@ async function loadSubjects(grade) {
 
   container.innerHTML = "";
 
-  const { data, error } = await sb
-    .from("learning_lessons")
-    .select("subject")
-    .eq("grade", grade)
-    .eq("is_active", true);
+const { data, error } = await sb
+  .from("learning_lessons")
+  .select("subject")
+  .eq("grade", grade)
+  .eq("is_active", true);
+
+console.log("GRADE SENT TO SUPABASE:", grade);
+console.log("SUBJECTS DATA:", data);
+console.log("SUBJECTS ERROR:", error);
 
   if (error) {
     console.error("LOAD SUBJECTS ERROR:", error);
