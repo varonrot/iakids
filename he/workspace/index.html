@@ -1084,6 +1084,30 @@ body::before{
   }
 
 }
+  /* =====================================================
+   FLOATING TUTOR ROBOT
+   ===================================================== */
+
+.floating-tutor-robot{
+  position:fixed;
+
+  right:210px;
+  bottom:-5px;
+
+  width:260px;
+  height:auto;
+
+  z-index:20;
+
+  object-fit:contain;
+
+  pointer-events:none;
+  user-select:none;
+
+  filter:drop-shadow(
+    0 12px 20px rgba(30,60,120,.18)
+  );
+}
 </style>
 </head>
 <body>
@@ -1906,4 +1930,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(kidShortcut){kidShortcut.addEventListener("click",()=>document.getElementById("openParentModal")?.click());}
 });
 </script>
+  <img
+  src="/assets/tutor-robot.png"
+  alt="הרובוט המורה"
+  class="floating-tutor-robot"
+>
 </body></html>
