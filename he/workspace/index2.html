@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gveret+Levin&display=swap" rel="stylesheet">
 <style>
 
 *{box-sizing:border-box}
@@ -612,7 +615,84 @@ body{
 .welcome p{
   font-size:18px !important;
 }
+ /* =====================================================
+   ANIMATED AI TUTOR V2
+   ===================================================== */
 
+.tutor-response{
+  width:100%;
+  display:flex;
+  flex-direction:row !important;
+  align-items:flex-start;
+  justify-content:flex-start;
+  gap:16px;
+
+  direction:rtl !important;
+
+  margin:6px 0 24px;
+}
+
+.tutor-avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  object-fit:cover;
+  flex-shrink:0;
+  box-shadow:0 6px 16px rgba(60,60,120,.15);
+}
+
+.tutor-writing-area{
+  direction:rtl;
+  text-align:right;
+
+  width:100%;
+  max-width:82%;
+
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+
+  gap:8px;
+}
+
+.tutor-writing{
+  direction:rtl !important;
+  text-align:right !important;
+
+  width:100% !important;
+  display:block;
+
+  font-family:"Gveret Levin", cursive !important;
+  font-size:32px !important;
+  font-weight:400 !important;
+  line-height:1.7 !important;
+  color:#26314f !important;
+}
+
+/* תשובה חיובית */
+.tutor-writing.success-line{
+  color:#248c59 !important;
+  font-weight:700 !important;
+}
+
+/* שאלה - הדגשה צהובה */
+.tutor-writing.question-line{
+  font-weight:700 !important;
+
+  background:
+    linear-gradient(
+      transparent 65%,
+      rgba(255,222,80,.5) 65%
+    );
+}
+
+/* תרגיל / ביטוי מתמטי */
+.tutor-writing.math-line{
+  font-family:"Gveret Levin", cursive !important;
+  font-size:40px !important;
+  font-weight:500 !important;
+  color:#3478e5 !important;
+}
 </style>
 </head>
 <body>
@@ -855,7 +935,7 @@ function addMessage(role, text) {
   // 🤖 assistant avatar (שמאל)
   if (role === "assistant") {
     const avatar = document.createElement("img");
-    avatar.src = "/assets/askie-robot.png";
+    avatar.src = "/assets/robots/askie-robot.png";
     avatar.className = "msg-avatar";
     row.appendChild(avatar);
   }
@@ -880,7 +960,7 @@ function addAssistantTyping(text) {
   row.className = "msg-row assistant";
 
   const avatar = document.createElement("img");
-  avatar.src = "/assets/askie-robot.png";
+  avatar.src = "/assets/robots/askie-robot.png";
   avatar.className = "msg-avatar";
   row.appendChild(avatar);
 
@@ -913,7 +993,132 @@ function addAssistantTyping(text) {
 
   typeNext();
 }
+ /* ---------- ANIMATED TUTOR ENGINE V2 ---------- */
 
+function animateTutorReply(text) {
+  const row = document.createElement("div");
+  row.className = "tutor-response";
+
+  const avatar = document.createElement("img");
+  avatar.src = "/assets/robots/askie-robot.png";
+  avatar.className = "tutor-avatar";
+
+  const writingArea = document.createElement("div");
+  writingArea.className = "tutor-writing-area";
+
+  row.appendChild(avatar);
+  row.appendChild(writingArea);
+
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  const sentences = text
+    .split(/(?<=[.!?])\s+/)
+    .map(sentence => sentence.trim())
+    .filter(Boolean);
+
+  let sentenceIndex = 0;
+
+  function writeNextSentence() {
+    if (sentenceIndex >= sentences.length) {
+      inputEl.focus();
+      return;
+    }
+
+    const sentence = sentences[sentenceIndex];
+
+    const line = document.createElement("div");
+    line.className = "tutor-writing";
+
+    writingArea.appendChild(line);
+
+    typeTutorText(line, sentence, () => {
+      animateImportantParts(line);
+
+      sentenceIndex++;
+
+      setTimeout(() => {
+        writeNextSentence();
+      }, 450);
+    });
+  }
+
+  writeNextSentence();
+}
+
+
+/* ---------- TYPEWRITER EFFECT ---------- */
+
+function typeTutorText(element, text, onComplete) {
+  let i = 0;
+
+  function writeNext() {
+    if (i >= text.length) {
+      if (typeof onComplete === "function") {
+        onComplete();
+      }
+      return;
+    }
+
+    const char = text[i];
+
+    element.textContent += char;
+    i++;
+
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    let delay = 35;
+
+    if (
+      char === "." ||
+      char === "!" ||
+      char === "?"
+    ) {
+      delay = 180;
+    }
+
+    if (char === ",") {
+      delay = 90;
+    }
+
+    if (char === "\n") {
+      delay = 150;
+    }
+
+    setTimeout(writeNext, delay);
+  }
+
+  writeNext();
+}
+
+
+/* ---------- AUTOMATIC VISUAL EMPHASIS ---------- */
+
+function animateImportantParts(element) {
+  const text = element.textContent.trim();
+
+  /* הצלחה / חיזוק */
+  if (
+    text.includes("נכון") ||
+    text.includes("מצוין") ||
+    text.includes("יפה") ||
+    text.includes("כל הכבוד")
+  ) {
+    element.classList.add("success-line");
+  }
+
+  /* שאלה לילד */
+  if (text.includes("?")) {
+    element.classList.add("question-line");
+  }
+
+  /* ביטוי מתמטי */
+  if (
+    /[0-9]+\s*[÷×+\-=]\s*[0-9]+/.test(text)
+  ) {
+    element.classList.add("math-line");
+  }
+}
 
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
@@ -971,7 +1176,7 @@ if (!res.ok) {
 if (!data.reply || !data.reply.trim()) {
   addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
 } else {
-  addAssistantTyping(data.reply);
+  animateTutorReply(data.reply);
 }
 
   } catch (e) {
