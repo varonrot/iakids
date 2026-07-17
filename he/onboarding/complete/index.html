@@ -2,85 +2,463 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>מסיים הגדרה…</title>
+  <title>מכינים את סביבת הלמידה – KidsIA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    :root{
+      --bg1:#fff9f1;
+      --bg2:#eaf6ff;
+      --ink:#173b6c;
+      --muted:#667996;
+      --purple:#6b4eff;
+      --purple2:#9478ff;
+      --green:#34b875;
+      --line:rgba(23,59,108,.10);
+      --shadow:0 24px 60px rgba(31,74,126,.14);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
     body{
       margin:0;
-      height:100vh;
+      min-height:100vh;
+
       display:flex;
       align-items:center;
       justify-content:center;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:#f8fafc;
+
+      padding:24px;
+
+      font-family:
+        "Heebo",
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        Arial;
+
+      color:var(--ink);
+
+      background:
+        radial-gradient(
+          800px 520px at 15% 10%,
+          rgba(255,213,154,.30),
+          transparent 60%
+        ),
+        radial-gradient(
+          900px 600px at 85% 8%,
+          rgba(120,190,255,.30),
+          transparent 62%
+        ),
+        linear-gradient(
+          110deg,
+          var(--bg1),
+          var(--bg2)
+        );
     }
-    .box{text-align:center}
+
+    .box{
+      width:min(560px,100%);
+
+      padding:42px 36px;
+
+      text-align:center;
+
+      background:rgba(255,255,255,.80);
+
+      border-radius:32px;
+
+      border:1px solid rgba(255,255,255,.90);
+
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+
+      box-shadow:var(--shadow);
+    }
+
+    .robot-wrap{
+      width:120px;
+      height:120px;
+
+      margin:0 auto 20px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      border-radius:32px;
+
+      background:
+        radial-gradient(
+          circle at 50% 40%,
+          rgba(255,255,255,.98),
+          rgba(255,255,255,.65) 65%,
+          rgba(225,240,255,.72)
+        );
+
+      box-shadow:
+        0 16px 38px rgba(38,88,145,.13);
+    }
+
+    .robot-wrap img{
+      width:98px;
+      height:98px;
+      object-fit:contain;
+    }
+
+    h1{
+      margin:0 0 10px;
+
+      font-size:34px;
+      line-height:1.2;
+
+      font-weight:900;
+
+      color:#173b6c;
+    }
+
+    h1 span{
+      color:#3478e5;
+    }
+
+    .sub{
+      margin:0 auto 26px;
+
+      max-width:430px;
+
+      font-size:16px;
+      line-height:1.7;
+
+      color:var(--muted);
+    }
+
+    .status-list{
+      display:flex;
+      flex-direction:column;
+
+      gap:10px;
+
+      margin-bottom:24px;
+
+      text-align:right;
+    }
+
+    .status-item{
+      display:flex;
+      align-items:center;
+
+      gap:12px;
+
+      padding:13px 16px;
+
+      border-radius:16px;
+
+      background:rgba(247,250,255,.85);
+
+      border:1px solid rgba(23,59,108,.07);
+
+      font-size:14px;
+      font-weight:700;
+
+      color:#29486f;
+    }
+
+    .status-icon{
+      width:28px;
+      height:28px;
+
+      flex:0 0 28px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      border-radius:50%;
+
+      background:#edf4ff;
+    }
+
+    .progress-wrap{
+      margin-top:8px;
+    }
+
+    .progress-bar{
+      width:100%;
+      height:10px;
+
+      overflow:hidden;
+
+      border-radius:999px;
+
+      background:rgba(23,59,108,.10);
+    }
+
+    .progress-fill{
+      width:0%;
+      height:100%;
+
+      border-radius:999px;
+
+      background:
+        linear-gradient(
+          90deg,
+          var(--purple),
+          var(--purple2)
+        );
+
+      animation:loading 4s ease forwards;
+    }
+
+    @keyframes loading{
+      0%{width:8%}
+      30%{width:38%}
+      65%{width:72%}
+      100%{width:100%}
+    }
+
+    .loading-text{
+      margin-top:10px;
+
+      font-size:13px;
+
+      color:var(--muted);
+    }
+
+    .success{
+      color:var(--green);
+    }
+
+    @media(max-width:600px){
+
+      .box{
+        padding:34px 22px;
+      }
+
+      .robot-wrap{
+        width:100px;
+        height:100px;
+      }
+
+      .robot-wrap img{
+        width:82px;
+        height:82px;
+      }
+
+      h1{
+        font-size:29px;
+      }
+
+      .sub{
+        font-size:15px;
+      }
+
+    }
+
   </style>
 </head>
 
 <body>
+
   <div class="box">
-    <h2>מגדיר את פרופיל הילד…</h2>
+
+    <div class="robot-wrap">
+      <img
+        src="/assets/robots/Robot_icon.png"
+        alt="הרובוט הלימודי של KidsIA"
+      >
+    </div>
+
+    <h1>
+      מכינים את
+      <span>סביבת הלמידה</span>
+    </h1>
+
+    <p class="sub">
+      אנחנו שומרים את פרופיל הילד
+      ומתאימים את סביבת הלמידה לפי
+      הכיתה, תחומי העניין והמטרות שבחרתם.
+    </p>
+
+    <div class="status-list">
+
+      <div class="status-item">
+        <span class="status-icon">👤</span>
+        שומרים את פרופיל הילד
+      </div>
+
+      <div class="status-item">
+        <span class="status-icon">🎯</span>
+        מתאימים מטרות לימודיות
+      </div>
+
+      <div class="status-item">
+        <span class="status-icon">📚</span>
+        מכינים את סביבת הלמידה האישית
+      </div>
+
+    </div>
+
+    <div class="progress-wrap">
+
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+
+      <div class="loading-text">
+        עוד רגע מתחילים ללמוד...
+      </div>
+
+    </div>
+
   </div>
 
+
 <script>
+
 const sb = supabase.createClient(
   "https://bxnfzuglfwytiyaguwjj.supabase.co",
   "YOUR_ANON_KEY"
 );
 
+
 (async () => {
 
-  const { data: userRes } = await sb.auth.getUser();
+  const { data: userRes } =
+    await sb.auth.getUser();
+
+
   if (!userRes?.user) {
-    alert("לא נמצא משתמש מחובר");
+
+    alert(
+      "לא נמצא משתמש מחובר"
+    );
+
     return;
+
   }
 
-  const userId = userRes.user.id;
 
-  const child_name = sessionStorage.getItem("child_name");
-  const age = Number(sessionStorage.getItem("child_age"));
-  const avatar_key = sessionStorage.getItem("child_avatar");
+  const userId =
+    userRes.user.id;
 
-  const usage_goals = JSON.parse(
-    sessionStorage.getItem("kid_usage") || "[]"
-  );
 
-  const learning_interests = JSON.parse(
-    sessionStorage.getItem("learning_interests") || "[]"
-  );
+  const child_name =
+    sessionStorage.getItem(
+      "child_name"
+    );
 
-  if (!child_name || !age) {
-    alert("חסר מידע על הילד");
+
+  const age =
+    Number(
+      sessionStorage.getItem(
+        "child_age"
+      )
+    );
+
+
+  const avatar_key =
+    sessionStorage.getItem(
+      "child_avatar"
+    );
+
+
+  const usage_goals =
+    JSON.parse(
+      sessionStorage.getItem(
+        "kid_usage"
+      ) || "[]"
+    );
+
+
+  const learning_interests =
+    JSON.parse(
+      sessionStorage.getItem(
+        "learning_interests"
+      ) || "[]"
+    );
+
+
+  if (
+    !child_name ||
+    !age
+  ) {
+
+    alert(
+      "חסר מידע על הילד"
+    );
+
     return;
+
   }
 
-  const { error } = await sb
-    .from("kids_profiles")
-    .insert({
-      user_id: userId,
-      child_name,
-      age,
-      avatar_key,
-      usage_goals,
-      learning_interests
-    });
+
+  const { error } =
+    await sb
+
+      .from(
+        "kids_profiles"
+      )
+
+      .insert({
+
+        user_id:
+          userId,
+
+        child_name,
+
+        age,
+
+        avatar_key,
+
+        usage_goals,
+
+        learning_interests
+
+      });
+
 
   if (error) {
-    alert(error.message);
+
+    alert(
+      error.message
+    );
+
     return;
+
   }
 
-  sessionStorage.setItem("kid_profile_saved", "1");
 
-  /* חשוב: redirect לעברית */
-  window.location.replace("/he/workspace/");
+  sessionStorage.setItem(
+    "kid_profile_saved",
+    "1"
+  );
+
+
+  /*
+  נותנים לאנימציית המעבר
+  רגע קצר להסתיים
+  */
+
+
+  setTimeout(
+    () => {
+
+      window.location.replace(
+        "/he/workspace/"
+      );
+
+    },
+    1200
+  );
+
 
 })();
+
 </script>
 
 </body>
