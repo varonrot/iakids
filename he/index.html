@@ -12362,6 +12362,154 @@ b{
   }
 
 }
+  /* =====================================================
+   SMART LESSON - WRITING ANIMATION
+   ===================================================== */
+
+.animated-writing{
+  position:relative;
+  min-height:310px;
+}
+
+.writing-row{
+  position:relative;
+  overflow:hidden;
+  width:0;
+  white-space:nowrap;
+  opacity:0;
+
+  font-family:"Gveret Levin", cursive;
+  font-size:30px;
+  line-height:1.8;
+  color:#26314f;
+}
+
+.animated-writing.is-playing .row-one{
+  animation:writeLine 1.8s steps(18,end) forwards;
+}
+
+.animated-writing.is-playing .row-two{
+  animation:writeLine 2.3s steps(28,end) 2s forwards;
+}
+
+.animated-writing.is-playing .row-three{
+  animation:writeLine 1.8s steps(20,end) 4.6s forwards;
+}
+
+.animated-writing.is-playing .row-four{
+  animation:writeLine 2s steps(20,end) 6.7s forwards;
+}
+
+@keyframes writeLine{
+  0%{
+    width:0;
+    opacity:1;
+  }
+
+  100%{
+    width:100%;
+    opacity:1;
+  }
+}
+
+
+/* תשובה סופית */
+.final-answer{
+  color:#3478e5;
+  font-size:34px;
+  font-weight:700;
+}
+
+.answer-check{
+  display:inline-block;
+  opacity:0;
+  transform:scale(.4);
+
+  color:#2fb66d;
+  font-size:38px;
+
+  margin-right:10px;
+}
+
+.animated-writing.is-playing .answer-check{
+  animation:showCheck .5s ease 8.8s forwards;
+}
+
+@keyframes showCheck{
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+
+/* העיפרון שזז בזמן הכתיבה */
+.moving-pencil{
+  position:absolute;
+
+  right:10px;
+  top:5px;
+
+  font-size:34px;
+
+  opacity:0;
+
+  transform:rotate(-18deg);
+
+  pointer-events:none;
+}
+
+.animated-writing.is-playing .moving-pencil{
+  animation:pencilMove 9s linear forwards;
+}
+
+@keyframes pencilMove{
+
+  0%{
+    opacity:1;
+    top:4px;
+    right:5%;
+  }
+
+  18%{
+    top:4px;
+    right:75%;
+  }
+
+  22%{
+    top:70px;
+    right:5%;
+  }
+
+  45%{
+    top:70px;
+    right:75%;
+  }
+
+  50%{
+    top:140px;
+    right:5%;
+  }
+
+  68%{
+    top:140px;
+    right:70%;
+  }
+
+  73%{
+    top:210px;
+    right:5%;
+  }
+
+  95%{
+    top:210px;
+    right:70%;
+  }
+
+  100%{
+    opacity:0;
+  }
+}
 </style>
   <script type="application/ld+json">
 {
@@ -12787,9 +12935,9 @@ b{
               תרגיל בחשבון
             </p>
 
-            <div class="paper-question">
-              7 X 5 = ?
-            </div>
+<div class="paper-question">
+  7 + 5 = ?
+</div>
 
             <p class="paper-instruction">
               פתרו והסבירו כיצד חישבתם.
@@ -15331,6 +15479,36 @@ supabaseClient.auth.onAuthStateChange(() => {
   updateNavbar();
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
+  const animatedWriting =
+    document.querySelector(".animated-writing");
+
+  if (!animatedWriting) return;
+
+
+  function playLessonAnimation(){
+
+    animatedWriting.classList.remove("is-playing");
+
+    // מאלץ את הדפדפן להתחיל את האנימציה מחדש
+    void animatedWriting.offsetWidth;
+
+    animatedWriting.classList.add("is-playing");
+  }
+
+
+  // הפעלה ראשונה
+  playLessonAnimation();
+
+
+  // הפעלה חוזרת כל 11 שניות
+  setInterval(() => {
+    playLessonAnimation();
+  }, 11000);
+
+});
+</script>
 </body>
 </html>
