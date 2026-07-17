@@ -12864,9 +12864,7 @@ b{
                   </span>
                 </div>
 
-                <span class="moving-pencil" aria-hidden="true">
-                  ✏️
-                </span>
+ 
 
               </div>
 
@@ -15237,7 +15235,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  const pencil = writingBox.querySelector(".moving-pencil");
   const check = writingBox.querySelector(".answer-check");
 
   function sleep(ms) {
@@ -15246,14 +15243,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function typeLine(element, text) {
 
+    if (!element) return;
+
     element.textContent = "";
 
     for (let i = 0; i < text.length; i++) {
-
       element.textContent += text[i];
-
-      await sleep(90);
+      await sleep(100);
     }
+
   }
 
   async function playLesson() {
@@ -15267,43 +15265,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (check) {
       check.style.opacity = "0";
+      check.style.transform = "scale(.4)";
     }
 
-    if (pencil) {
-      pencil.style.opacity = "1";
-    }
+    await sleep(700);
+
+    await typeLine(
+      lines[0].element,
+      lines[0].text
+    );
 
     await sleep(500);
 
-    /* שורה 1 */
-    await typeLine(lines[0].element, lines[0].text);
+    await typeLine(
+      lines[1].element,
+      lines[1].text
+    );
 
     await sleep(500);
 
-    /* שורה 2 */
-    await typeLine(lines[1].element, lines[1].text);
+    await typeLine(
+      lines[2].element,
+      lines[2].text
+    );
 
     await sleep(500);
 
-    /* שורה 3 */
-    await typeLine(lines[2].element, lines[2].text);
-
-    await sleep(500);
-
-    /* שורה 4 */
-    await typeLine(lines[3].element, lines[3].text);
-
-    if (pencil) {
-      pencil.style.opacity = "0";
-    }
+    await typeLine(
+      lines[3].element,
+      lines[3].text
+    );
 
     if (check) {
       check.style.opacity = "1";
+      check.style.transform = "scale(1)";
     }
 
-    /* ממתינים לפני התחלה מחדש */
+    /* משאירים את הפתרון מוצג */
     await sleep(4000);
 
+    /* מתחילים מחדש */
     playLesson();
   }
 
