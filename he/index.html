@@ -5251,17 +5251,21 @@ nav {
 
 .moving-pencil{
   position:absolute;
+  top:0;
+  right:10px;
 
-  top:4px;
-  right:180px;
-
-  font-size:25px;
+  font-size:34px;
 
   opacity:0;
 
-  transform:rotate(-27deg);
+  pointer-events:none;
 
-  filter:drop-shadow(0 7px 8px rgba(28,70,110,.17));
+  transform:translateX(0) rotate(-18deg);
+
+  transition:
+    top .35s ease,
+    transform .1s linear,
+    opacity .2s ease;
 }
 
 .smart-lesson.is-animated .moving-pencil{
@@ -15206,101 +15210,6 @@ if (burger && navLinks) {
 
 }
 
-</script>
-<script>
-const items = document.querySelectorAll('.iakids-features li');
-const images = document.querySelectorAll('.iakids-right img');
-const bar = document.querySelector('.iakids-progress span');
-
-let index = 0;
-let duration = 4000;
-
-function showSlide(i){
-  items.forEach(el => el.classList.remove('active'));
-  images.forEach(img => img.classList.remove('active'));
-
-  items[i].classList.add('active');
-  document.getElementById(items[i].dataset.image).classList.add('active');
-
-  bar.style.transition = 'none';
-  bar.style.width = '0%';
-
-  setTimeout(()=>{
-    bar.style.transition = `width ${duration}ms linear`;
-    bar.style.width = '100%';
-  },50);
-}
-
-function next(){
-  index = (index + 1) % items.length;
-  showSlide(index);
-}
-
-showSlide(index);
-setInterval(next, duration);
-
-items.forEach((item,i)=>{
-  item.addEventListener('click',()=>{
-    index = i;
-    showSlide(index);
-  });
-});
-</script>
-<script>
-async function updateNavbar() {
-  const { data } = await supabaseClient.auth.getSession();
-  const navActions = document.getElementById("navActions");
-
-  if (data.session) {
-
-    const user = data.session.user;
-    const avatarUrl = user.user_metadata?.avatar_url || null;
-
-navActions.innerHTML = `
-  <div class="user-menu">
-
-    ${
-      avatarUrl
-        ? `<img src="${avatarUrl}" class="user-avatar" alt="">`
-        : `<div class="user-avatar-fallback">👤</div>`
-    }
-
-<a href="/he/workspace/" class="nav-cta">
-  לאזור הלמידה
-</a>
-
-    <button class="logout-btn" id="logoutBtn">
-      יציאה
-    </button>
-
-  </div>
-`;
-
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await supabaseClient.auth.signOut();
-      window.location.reload();
-    });
-
-  } else {
-navActions.innerHTML = `
-  <a href="/onboarding/cuenta" class="nav-login">
-    <span>👨‍👩‍👧</span>
-    כניסת הורים
-  </a>
-
-  <a href="/he/onboarding" class="nav-cta">
-    <span>🚀</span>
-    מתחילים ללמוד
-  </a>
-`;
-  }
-}
-
-document.addEventListener("DOMContentLoaded", updateNavbar);
-
-supabaseClient.auth.onAuthStateChange(() => {
-  updateNavbar();
-});
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
