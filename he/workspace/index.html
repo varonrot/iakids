@@ -1089,24 +1089,66 @@ body::before{
    ===================================================== */
 
 .floating-tutor-robot{
-  position:fixed;
+  position: fixed;
 
-  right:210px;
-  bottom:-5px;
+  /* מיקום בדסקטופ */
+  right: 220px;
+  bottom: -20px;
 
-  width:260px;
-  height:auto;
+  /* גודל כמו בדוגמה */
+  width: 360px;
+  height: auto;
 
-  z-index:20;
+  z-index: 50;
 
-  object-fit:contain;
+  object-fit: contain;
 
-  pointer-events:none;
-  user-select:none;
+  pointer-events: none;
+  user-select: none;
 
-  filter:drop-shadow(
+  filter: drop-shadow(
     0 12px 20px rgba(30,60,120,.18)
   );
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width: 1200px){
+
+  .floating-tutor-robot{
+    width: 280px;
+    right: 150px;
+    bottom: -10px;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE - HIDE ROBOT
+   ===================================================== */
+
+@media (max-width: 768px){
+  .floating-tutor-robot{
+    display: none !important;
+  }
+}
+
+}
+
+
+/* מובייל קטן */
+@media (max-width: 480px){
+
+  .floating-tutor-robot{
+    width: 145px;
+    right: 5px;
+    bottom: 5px;
+  }
+
 }
 </style>
 </head>
