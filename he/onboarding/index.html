@@ -3,276 +3,802 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ברוכים הבאים ל-KidSaí</title>
+<title>ברוכים הבאים ל-KidsIA</title>
 
 <style>
 :root{
-  --bg1:#f7f4ef;
-  --bg2:#eaf4ff;
-  --ink:#0b1220;
-  --muted:#5b677a;
-  --card:#ffffffcc;
-  --card2:#ffffff;
-  --line:rgba(16,24,40,.10);
-  --shadow:0 18px 50px rgba(16,24,40,.12);
-  --shadow2:0 10px 26px rgba(16,24,40,.10);
-  --radius:18px;
+  --bg1:#fff9f1;
+  --bg2:#eaf6ff;
+  --ink:#173b6c;
+  --muted:#667996;
+  --card:#ffffffd9;
+  --line:rgba(23,59,108,.10);
 
-  --accent1:#ff7a66;
-  --accent2:#ffb089;
-  --accent3:#ff5d4c;
+  --shadow:0 20px 55px rgba(31,74,126,.12);
+  --shadow2:0 12px 30px rgba(31,74,126,.10);
 
-  --pillbg:rgba(255,255,255,.72);
-  --pillline:rgba(16,24,40,.10);
-  --focus:rgba(255,93,76,.25);
+  --accent1:#ffbd35;
+  --accent2:#ff9f1c;
+  --accent3:#ffcc55;
+
+  --blue:#3478e5;
+  --focus:rgba(52,120,229,.18);
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  min-height:100%;
+}
 
 body{
   margin:0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+
+  font-family:
+    "Heebo",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Arial;
+
   color:var(--ink);
+
   background:
-    radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
-    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
-    linear-gradient(90deg, var(--bg1), var(--bg2));
+    radial-gradient(
+      800px 520px at 15% 10%,
+      rgba(255,213,154,.30),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 85% 8%,
+      rgba(120,190,255,.30),
+      transparent 62%
+    ),
+    linear-gradient(
+      110deg,
+      var(--bg1),
+      var(--bg2)
+    );
+
   overflow-x:hidden;
 }
 
+
+/* ==============================
+   WRAPPER
+============================== */
+
 .wrap{
-  min-height:100%;
+  min-height:100vh;
+
   display:flex;
   justify-content:center;
-  padding:42px 18px 56px;
+
+  padding:36px 18px 54px;
 }
 
 .container{
   width:min(980px,100%);
+
   display:flex;
   flex-direction:column;
+
   align-items:center;
-  gap:22px;
+
+  gap:20px;
+
   text-align:center;
 }
 
-/* ===== TOP BAR ===== */
+
+/* ==============================
+   TOP BAR
+============================== */
+
 .top-bar{
   width:100%;
+
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  margin-bottom:10px;
+  align-items:flex-start;
+
+  margin-bottom:6px;
 }
 
 .back-link{
   text-decoration:none;
+
   color:var(--muted);
+
   font-size:14px;
-  font-weight:600;
+  font-weight:700;
 }
-.back-link:hover{ text-decoration:underline; }
+
+.back-link:hover{
+  color:var(--ink);
+}
 
 .progress{
-  text-align:left;
+  text-align:right;
+
   font-size:13px;
+  font-weight:600;
+
   color:var(--muted);
 }
+
 .progress-bar{
-  width:140px;
-  height:6px;
-  background:#e5e7eb;
+  width:160px;
+  height:7px;
+
+  margin-top:7px;
+
+  background:rgba(23,59,108,.10);
+
   border-radius:999px;
+
   overflow:hidden;
-  margin-top:4px;
 }
+
 .progress-fill{
   width:25%;
   height:100%;
-  background:linear-gradient(135deg,var(--accent3),var(--accent2));
-}
 
-/* Mascot */
-.mascot{
-  width:84px;height:84px;
-  border-radius:22px;
-  display:grid;
-  place-items:center;
+  border-radius:999px;
+
   background:
-    radial-gradient(26px 26px at 34% 30%, #fff, transparent 60%),
-    linear-gradient(160deg, rgba(38,153,255,.26), rgba(255,125,95,.20));
-  border:1px solid var(--line);
-  box-shadow:var(--shadow2);
-}
-.mascot::before{
-  content:"😊";
-  font-size:40px;
+    linear-gradient(
+      90deg,
+      #6b4eff,
+      #8d6bff
+    );
 }
 
-h1{margin:6px 0 4px;font-size:34px}
-.sub{max-width:700px;color:var(--muted);font-size:15px}
 
-/* TESTIMONIALS */
-.testi{width:min(760px,100%)}
-.cards{
+/* ==============================
+   MASCOT
+============================== */
+
+.mascot{
+  width:118px;
+  height:118px;
+
   display:flex;
-  gap:14px;
+  align-items:center;
   justify-content:center;
-  flex-wrap:wrap;
+
+  margin-top:4px;
+
+  border-radius:32px;
+
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      rgba(255,255,255,.95),
+      rgba(255,255,255,.62) 65%,
+      rgba(225,240,255,.70)
+    );
+
+  border:1px solid rgba(255,255,255,.85);
+
+  box-shadow:
+    0 16px 38px rgba(38,88,145,.13),
+    inset 0 1px 0 rgba(255,255,255,.9);
 }
+
+.mascot img{
+  width:96px;
+  height:96px;
+
+  object-fit:contain;
+
+  display:block;
+}
+
+
+/* ==============================
+   HERO TEXT
+============================== */
+
+h1{
+  margin:2px 0 0;
+
+  font-size:38px;
+  line-height:1.2;
+
+  color:#173b6c;
+
+  font-weight:900;
+}
+
+h1 span{
+  color:#3478e5;
+}
+
+.sub{
+  max-width:760px;
+
+  margin:0;
+
+  font-size:18px;
+  line-height:1.7;
+
+  color:var(--muted);
+
+  font-weight:500;
+}
+
+
+/* ==============================
+   TESTIMONIALS
+============================== */
+
+.testi{
+  width:min(820px,100%);
+
+  margin-top:6px;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+
+  gap:16px;
+}
+
 .card{
-  width:min(360px,100%);
-  background:var(--card2);
-  border-radius:var(--radius);
-  padding:18px;
-  border:1px solid var(--line);
+  min-height:170px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+
+  background:rgba(255,255,255,.78);
+
+  border-radius:24px;
+
+  padding:24px 26px;
+
+  border:1px solid rgba(255,255,255,.88);
+
   box-shadow:var(--shadow2);
+
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+
   text-align:right;
 }
-.stars{color:#f7b500;font-size:14px}
-.quote{font-size:14px;color:#243047}
-.by{font-size:13px;color:var(--muted)}
 
-.pager{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.p{width:8px;height:8px;border-radius:999px;background:#ccc}
-.p.active{width:22px;background:linear-gradient(135deg,var(--accent3),var(--accent2))}
+.stars{
+  color:#ffb300;
 
-/* FORM */
-.form{width:min(620px,100%);text-align:right;margin-top:10px}
-.label{font-weight:700;margin-bottom:8px}
+  font-size:19px;
+
+  letter-spacing:2px;
+
+  margin-bottom:10px;
+}
+
+.quote{
+  margin:0 0 14px;
+
+  font-size:16px;
+  line-height:1.65;
+
+  color:#263b5d;
+
+  font-weight:600;
+}
+
+.by{
+  margin:0;
+
+  font-size:13px;
+
+  color:var(--muted);
+}
+
+.pager{
+  display:flex;
+  gap:8px;
+
+  justify-content:center;
+
+  margin-top:12px;
+}
+
+.p{
+  width:8px;
+  height:8px;
+
+  border-radius:999px;
+
+  background:#d4d9e1;
+}
+
+.p.active{
+  width:24px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #6b4eff,
+      #9478ff
+    );
+}
+
+
+/* ==============================
+   FORM
+============================== */
+
+.form{
+  width:min(700px,100%);
+
+  margin-top:8px;
+
+  text-align:right;
+}
+
+.label{
+  margin:0 0 10px;
+
+  font-size:18px;
+
+  color:#173b6c;
+
+  font-weight:800;
+}
 
 input{
   width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:2px solid rgba(255,93,76,.35);
-  font-size:15px;
+
+  padding:17px 18px;
+
+  border-radius:16px;
+
+  border:
+    2px solid
+    rgba(52,120,229,.18);
+
+  background:
+    rgba(255,255,255,.88);
+
+  font-size:16px;
+
+  color:#173b6c;
+
+  box-shadow:
+    0 8px 22px
+    rgba(31,74,126,.07);
 }
+
+input::placeholder{
+  color:#9aa6b7;
+}
+
 input:focus{
   outline:none;
-  box-shadow:0 0 0 6px var(--focus);
+
+  border-color:
+    rgba(52,120,229,.55);
+
+  box-shadow:
+    0 0 0 6px
+    var(--focus);
 }
 
 .btn{
   width:100%;
-  margin-top:12px;
-  padding:16px;
-  border-radius:999px;
+
+  margin-top:14px;
+
+  padding:17px;
+
+  border-radius:18px;
+
   border:none;
-  background:linear-gradient(135deg,var(--accent2),var(--accent1));
+
+  background:
+    linear-gradient(
+      135deg,
+      #7a58ff,
+      #5d43e8
+    );
+
   font-weight:800;
-  font-size:17px;
-  color:#ffffff;
+
+  font-size:18px;
+
+  color:#fff;
+
   cursor:pointer;
+
+  box-shadow:
+    0 12px 28px
+    rgba(93,67,232,.24);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+
+  box-shadow:
+    0 16px 34px
+    rgba(93,67,232,.30);
 }
 
 .note{
-  margin-top:8px;
-  font-size:12px;
+  margin-top:10px;
+
+  font-size:13px;
+  line-height:1.5;
+
   color:var(--muted);
+
   text-align:center;
 }
+
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media(max-width:720px){
+
+  .wrap{
+    padding:22px 16px 40px;
+  }
+
+  .container{
+    gap:18px;
+  }
+
+  .top-bar{
+    align-items:center;
+  }
+
+  .progress-bar{
+    width:110px;
+  }
+
+  .mascot{
+    width:96px;
+    height:96px;
+  }
+
+  .mascot img{
+    width:78px;
+    height:78px;
+  }
+
+  h1{
+    font-size:30px;
+  }
+
+  .sub{
+    font-size:16px;
+  }
+
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+  .card:nth-child(2){
+    display:none;
+  }
+
+}
 </style>
+
 </head>
 
 <body>
+
 <main class="wrap">
+
 <section class="container">
 
-<div class="top-bar">
-  <a class="back-link" href="/he/">← חזרה לעמוד הבית</a>
 
-  <div class="progress">
-    שלב 1 מתוך 4
-    <div class="progress-bar">
-      <div class="progress-fill"></div>
+  <!-- TOP -->
+
+  <div class="top-bar">
+
+    <a
+      class="back-link"
+      href="/he/"
+    >
+      ← חזרה לעמוד הבית
+    </a>
+
+
+    <div class="progress">
+
+      שלב 1 מתוך 4
+
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+
     </div>
+
   </div>
-</div>
 
-<div class="mascot"></div>
 
-<h1>ברוכים הבאים ל-KidSaí!</h1>
-<p class="sub">
-  חבר בינה מלאכותית בטוח וחינוכי לילדים סקרנים.
-  נוצר כדי ללמוד, לשאול ולחקור בביטחון.
-</p>
 
-<section class="testi">
-  <div class="cards" id="cards"></div>
-  <div class="pager">
-    <span class="p active"></span>
-    <span class="p"></span>
-    <span class="p"></span>
-    <span class="p"></span>
+  <!-- ROBOT -->
+
+  <div class="mascot">
+
+    <img
+      src="/assets/robots/Robot_icon.png"
+      alt="הרובוט הלימודי של KidsIA"
+    >
+
   </div>
+
+
+
+  <!-- TITLE -->
+
+  <h1>
+    ברוכים הבאים ל־<span>KidsIA</span>!
+  </h1>
+
+
+  <p class="sub">
+    עוזר לימודי אישי לילדי כיתות א׳–ו׳,
+    שמסביר, מתרגל ועוזר עם שיעורי הבית
+    בדרך פשוטה, ברורה ומותאמת לקצב של כל ילד.
+  </p>
+
+
+
+  <!-- TESTIMONIALS -->
+
+  <section class="testi">
+
+    <div
+      class="cards"
+      id="cards"
+    ></div>
+
+
+    <div class="pager">
+
+      <span class="p active"></span>
+      <span class="p"></span>
+      <span class="p"></span>
+      <span class="p"></span>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- FORM -->
+
+  <section class="form">
+
+    <p class="label">
+      איך קוראים לילד או לילדה?
+    </p>
+
+
+    <input
+      id="childName"
+      placeholder="הקלידו את השם"
+      autocomplete="off"
+    >
+
+
+    <button
+      class="btn"
+      id="nextBtn"
+    >
+      בואו נתחיל
+    </button>
+
+
+    <div class="note">
+      נשתמש בשם כדי להפוך את חוויית הלמידה לאישית ונעימה יותר.
+    </div>
+
+  </section>
+
+
 </section>
 
-<section class="form">
-  <p class="label">איך קוראים לילד/ה שלך?</p>
-  <input id="childName" placeholder="הקלד/י את השם">
-  <button class="btn" id="nextBtn">המשך</button>
-  <div class="note">
-    אנו משתמשים בשם זה רק כדי להתאים אישית את החוויה.
-  </div>
-</section>
-
-</section>
 </main>
 
+
+
 <script>
+
 const testimonials = [
-  {text:"מרגיש בטוח וחינוכי. מושלם לשיעורי בית וסקרנות יומיומית.",by:"— דניאל ר."},
-  {text:"התשובות ברורות ומעודדות להמשיך ללמוד.",by:"— סופיה פ."},
-  {text:"הילד שלי שואל ולומד בלי פחד.",by:"— ליאור מ."},
-  {text:"מצוין למדעים והיסטוריה בשפה ברורה.",by:"— מרקוס ג."}
-];
 
-let page = 0;
-const cards = document.getElementById("cards");
+  {
+    text:
+      "ההסברים פשוטים וברורים. הבן שלי סוף סוף מבין את שיעורי הבית ולא מתייאש באמצע.",
+    by:
+      "— אמא לילד בכיתה ד׳"
+  },
 
-function renderTestimonials(){
-  const a = testimonials[page % testimonials.length];
-  const b = testimonials[(page + 1) % testimonials.length];
+  {
+    text:
+      "הילדה שלי מצלמת תרגיל ומקבלת הסבר שלב אחר שלב. זה נותן לה הרבה יותר ביטחון ללמוד לבד.",
+    by:
+      "— אבא לילדה בכיתה ה׳"
+  },
 
-  cards.innerHTML = `
-    <div class="card">
-      <div class="stars">★★★★★</div>
-      <p class="quote">${a.text}</p>
-      <p class="by">${a.by}</p>
-    </div>
-    <div class="card">
-      <div class="stars">★★★★★</div>
-      <p class="quote">${b.text}</p>
-      <p class="by">${b.by}</p>
-    </div>
-  `;
-}
+  {
+    text:
+      "אהבתי שהוא לא רק נותן תשובה, אלא באמת מסביר ועוזר לילד להבין איך להגיע אליה.",
+    by:
+      "— אמא לילד בכיתה ג׳"
+  },
 
-setInterval(()=>{ page++; renderTestimonials(); }, 4200);
-renderTestimonials();
-
-const input = document.getElementById("childName");
-const btn = document.getElementById("nextBtn");
-
-function goNext(){
-  const name = input.value.trim();
-  if(!name){
-    input.focus();
-    return;
+  {
+    text:
+      "השימוש פשוט והילדים נהנים ממנו. הוא הפך את התרגול בבית להרבה פחות מתסכל.",
+    by:
+      "— הורה לתלמידי יסודי"
   }
 
-  sessionStorage.setItem("child_name", name);
-  sessionStorage.setItem("onboarding_step", "1");
+];
 
-  window.location.href = "/he/onboarding/preferencias";
+
+let page = 0;
+
+const cards =
+  document.getElementById("cards");
+
+
+function renderTestimonials(){
+
+  const a =
+    testimonials[
+      page %
+      testimonials.length
+    ];
+
+  const b =
+    testimonials[
+      (page + 1) %
+      testimonials.length
+    ];
+
+
+  cards.innerHTML = `
+
+    <div class="card">
+
+      <div class="stars">
+        ★★★★★
+      </div>
+
+      <p class="quote">
+        ${a.text}
+      </p>
+
+      <p class="by">
+        ${a.by}
+      </p>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="stars">
+        ★★★★★
+      </div>
+
+      <p class="quote">
+        ${b.text}
+      </p>
+
+      <p class="by">
+        ${b.by}
+      </p>
+
+    </div>
+
+  `;
+
 }
 
-btn.addEventListener("click", goNext);
-input.addEventListener("keydown", (e)=>{ if(e.key==="Enter") goNext(); });
+
+setInterval(
+  () => {
+
+    page++;
+
+    renderTestimonials();
+
+  },
+  4200
+);
+
+
+renderTestimonials();
+
+
+
+/* ==============================
+   ONBOARDING LOGIC
+   נשארה בדיוק כמו בקוד המקורי
+============================== */
+
+const input =
+  document.getElementById(
+    "childName"
+  );
+
+const btn =
+  document.getElementById(
+    "nextBtn"
+  );
+
+
+function goNext(){
+
+  const name =
+    input.value.trim();
+
+
+  if(!name){
+
+    input.focus();
+
+    return;
+
+  }
+
+
+  sessionStorage.setItem(
+    "child_name",
+    name
+  );
+
+
+  sessionStorage.setItem(
+    "onboarding_step",
+    "1"
+  );
+
+
+  window.location.href =
+    "/he/onboarding/preferencias";
+
+}
+
+
+btn.addEventListener(
+  "click",
+  goNext
+);
+
+
+input.addEventListener(
+  "keydown",
+  (e) => {
+
+    if(e.key === "Enter"){
+      goNext();
+    }
+
+  }
+);
+
 </script>
 
 </body>
 </html>
-
