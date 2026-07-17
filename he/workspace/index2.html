@@ -235,15 +235,49 @@ body{
 }
 
 .welcome h1{
-  font-size:36px !important;
-  line-height:1.12 !important;
+  font-family:"Gveret Levin", cursive !important;
+  font-size:48px !important;
+  font-weight:400 !important;
+  line-height:1.15 !important;
+
+  color:#5f43df !important;
+
+  margin:0 0 8px !important;
+
+  transform:rotate(-1deg);
 }
 
 .welcome p{
-  font-size:17px !important;
-  line-height:1.6 !important;
-  max-width:720px !important;
+  font-family:"Gveret Levin", cursive !important;
+  font-size:23px !important;
+  font-weight:400 !important;
+  line-height:1.5 !important;
+
+  color:#66708f !important;
+
   margin:0 auto !important;
+  max-width:820px !important;
+}
+  .welcome h1::after{
+  content:"";
+  display:block;
+
+  width:240px;
+  height:5px;
+
+  margin:8px auto 0;
+
+  border-radius:999px;
+
+  background:linear-gradient(
+    90deg,
+    transparent,
+    #8b63ff 15%,
+    #8b63ff 85%,
+    transparent
+  );
+
+  transform:rotate(-1deg);
 }
 
 
@@ -692,6 +726,463 @@ body{
   font-size:40px !important;
   font-weight:500 !important;
   color:#3478e5 !important;
+}
+  /* =====================================================
+   FLOATING GLASS UI - KIDS BACKGROUND
+   הוסף בסוף ה-CSS
+   ===================================================== */
+
+/* רקע מצויר על כל המסך */
+body{
+  position:relative;
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,.20),
+      rgba(255,255,255,.20)
+    ),
+    url("/assets/backgrounds/kids-learning-bg.png") !important;
+
+  background-size:cover !important;
+  background-position:center center !important;
+  background-repeat:no-repeat !important;
+  background-attachment:fixed !important;
+}
+
+/* שכבת לבן עדינה מעל הרקע */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+
+  background:rgba(255,255,255,.10);
+  backdrop-filter:blur(1.5px);
+  -webkit-backdrop-filter:blur(1.5px);
+}
+
+/* כל האפליקציה מעל שכבת הרקע */
+.app{
+  position:relative;
+  z-index:1;
+
+  height:100vh !important;
+
+  grid-template-columns:
+    270px
+    minmax(0,1fr)
+    330px !important;
+
+  grid-template-rows:
+    76px
+    minmax(0,1fr) !important;
+
+  gap:14px !important;
+
+  padding:
+    14px
+    18px
+    18px !important;
+
+  background:transparent !important;
+}
+
+
+/* =====================================================
+   TOP BAR - סרגל עליון צף
+   ===================================================== */
+
+.topbar{
+  grid-column:1/4 !important;
+  grid-row:1 !important;
+
+  margin:0 !important;
+  padding:8px 18px !important;
+
+  border:none !important;
+  border-radius:28px !important;
+
+  background:rgba(255,255,255,.70) !important;
+
+  backdrop-filter:
+    blur(16px)
+    saturate(130%) !important;
+
+  -webkit-backdrop-filter:
+    blur(16px)
+    saturate(130%) !important;
+
+  box-shadow:
+    0 12px 35px rgba(39,69,130,.13),
+    inset 0 1px 0 rgba(255,255,255,.85) !important;
+}
+
+
+/* =====================================================
+   LEFT SIDEBAR - צף ולא דבוק
+   ===================================================== */
+
+.sidebar{
+  grid-column:1 !important;
+  grid-row:2 !important;
+
+  margin:0 !important;
+
+  padding:14px 12px !important;
+
+  border:none !important;
+  border-radius:28px !important;
+
+  background:rgba(255,255,255,.68) !important;
+
+  backdrop-filter:
+    blur(18px)
+    saturate(125%) !important;
+
+  -webkit-backdrop-filter:
+    blur(18px)
+    saturate(125%) !important;
+
+  box-shadow:
+    0 16px 40px rgba(39,69,130,.14),
+    inset 0 1px 0 rgba(255,255,255,.9) !important;
+
+  overflow:hidden !important;
+}
+
+
+/* כפתורים בתוך הסרגל מעט שקופים */
+.side-item{
+  background:rgba(255,255,255,.65) !important;
+
+  border:1px solid rgba(255,255,255,.65) !important;
+
+  box-shadow:
+    0 4px 12px rgba(45,52,110,.05) !important;
+}
+
+.side-item:hover{
+  background:rgba(255,255,255,.88) !important;
+}
+
+.side-item.active{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(244,239,255,.94),
+      rgba(238,232,255,.88)
+    ) !important;
+}
+
+
+/* כפתורים תחתונים */
+.manage-btn{
+  background:rgba(255,255,255,.60) !important;
+}
+
+.subject-add{
+  background:rgba(255,255,255,.52) !important;
+}
+
+
+/* =====================================================
+   MAIN - אזור מרכזי
+   ===================================================== */
+
+.main{
+  grid-column:2 !important;
+  grid-row:2 !important;
+
+  padding:0 !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+}
+
+
+/* המחברת המרכזית */
+.workspace{
+  height:100% !important;
+
+  border:none !important;
+  border-radius:32px !important;
+
+  background:rgba(255,255,255,.84) !important;
+
+  backdrop-filter:
+    blur(10px)
+    saturate(110%) !important;
+
+  -webkit-backdrop-filter:
+    blur(10px)
+    saturate(110%) !important;
+
+  box-shadow:
+    0 20px 55px rgba(39,69,130,.16),
+    inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+
+
+/* אזור הכותרת במחברת */
+.welcome{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.70),
+      rgba(255,255,255,.30)
+    ) !important;
+
+  border-radius:
+    32px
+    32px
+    0
+    0 !important;
+}
+
+
+/* אזור שורות המחברת */
+.messages{
+  background:
+    linear-gradient(
+      to right,
+      transparent 0,
+      transparent 64px,
+      rgba(255,120,120,.30) 65px,
+      transparent 66px
+    ),
+
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.68) 0,
+      rgba(255,255,255,.68) 43px,
+      rgba(190,215,255,.62) 44px,
+      rgba(255,255,255,.68) 45px
+    ) !important;
+}
+
+
+/* =====================================================
+   RIGHT SIDEBAR - צף ולא דבוק
+   ===================================================== */
+
+.rightbar{
+  grid-column:3 !important;
+  grid-row:2 !important;
+
+  align-self:start !important;
+
+  width:100% !important;
+  height:auto !important;
+  max-height:680px !important;
+
+  margin:0 !important;
+  padding:14px !important;
+
+  border:none !important;
+  border-radius:28px !important;
+
+  background:rgba(255,255,255,.66) !important;
+
+  backdrop-filter:
+    blur(18px)
+    saturate(125%) !important;
+
+  -webkit-backdrop-filter:
+    blur(18px)
+    saturate(125%) !important;
+
+  box-shadow:
+    0 16px 40px rgba(39,69,130,.14),
+    inset 0 1px 0 rgba(255,255,255,.90) !important;
+
+  overflow:hidden !important;
+}
+
+
+/* כרטיס הילד */
+.rightbar-kid{
+  background:
+    linear-gradient(
+      145deg,
+      rgba(238,247,255,.82),
+      rgba(255,248,223,.78)
+    ) !important;
+
+  border:1px solid rgba(255,255,255,.75) !important;
+
+  box-shadow:
+    0 8px 22px rgba(45,52,110,.08) !important;
+}
+
+
+/* כרטיס המורה */
+.teacher-card{
+  background:rgba(255,255,255,.72) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.75) !important;
+
+  box-shadow:
+    0 8px 22px
+    rgba(45,52,110,.07) !important;
+}
+
+
+/* שאלות מהירות */
+.quick-card{
+  background:rgba(255,255,255,.64) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.70) !important;
+
+  box-shadow:
+    0 5px 16px
+    rgba(45,52,110,.05) !important;
+}
+
+.quick-card:hover{
+  background:rgba(255,255,255,.90) !important;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =====================================================
+   INPUT - גם הוא מעט צף
+   ===================================================== */
+
+.composer-wrap{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0),
+      rgba(255,255,255,.45) 35%,
+      rgba(255,255,255,.72) 100%
+    ) !important;
+}
+
+.input{
+  background:
+    rgba(255,255,255,.86) !important;
+
+  backdrop-filter:
+    blur(12px) !important;
+
+  -webkit-backdrop-filter:
+    blur(12px) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.90) !important;
+
+  box-shadow:
+    0 12px 32px
+    rgba(39,69,130,.14) !important;
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media(max-width:1100px){
+
+  .app{
+    grid-template-columns:
+      235px
+      minmax(0,1fr) !important;
+
+    padding:10px !important;
+
+    gap:10px !important;
+  }
+
+}
+
+
+@media(max-width:760px){
+
+  .app{
+    padding:0 !important;
+  }
+
+  .topbar{
+    border-radius:0 !important;
+  }
+
+  .workspace{
+    border-radius:22px !important;
+  }
+
+}
+  /* =====================================================
+   FLOATING TUTOR ROBOT
+   ===================================================== */
+
+.floating-tutor-robot{
+  position: fixed;
+
+  /* מיקום בדסקטופ */
+  right: 220px;
+  bottom: -20px;
+
+  /* גודל כמו בדוגמה */
+  width: 360px;
+  height: auto;
+
+  z-index: 50;
+
+  object-fit: contain;
+
+  pointer-events: none;
+  user-select: none;
+
+  filter: drop-shadow(
+    0 12px 20px rgba(30,60,120,.18)
+  );
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width: 1200px){
+
+  .floating-tutor-robot{
+    width: 280px;
+    right: 150px;
+    bottom: -10px;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE - HIDE ROBOT
+   ===================================================== */
+
+@media (max-width: 768px){
+  .floating-tutor-robot{
+    display: none !important;
+  }
+}
+
+}
+
+
+/* מובייל קטן */
+@media (max-width: 480px){
+
+  .floating-tutor-robot{
+    width: 145px;
+    right: 5px;
+    bottom: 5px;
+  }
+
 }
 </style>
 </head>
@@ -1515,4 +2006,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(kidShortcut){kidShortcut.addEventListener("click",()=>document.getElementById("openParentModal")?.click());}
 });
 </script>
+  <img
+  src="/assets/tutor-robot.png"
+  alt="הרובוט המורה"
+  class="floating-tutor-robot"
+>
 </body></html>
