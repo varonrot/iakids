@@ -5202,62 +5202,26 @@ nav {
   min-height:235px;
 }
 
-.writing-row{
-  position:relative;
+ .writing-row{
+  min-height:55px;
 
-  min-height:48px;
+  direction:rtl;
+  text-align:right;
 
-  display:flex;
-  align-items:center;
+  font-family:"Gveret Levin", cursive;
+  font-size:30px;
+  line-height:1.8;
+  color:#26314f;
 
-  overflow:hidden;
+  opacity:1 !important;
+  width:100%;
 }
 
 .handwriting-text{
-  display:inline-block;
-
-  max-width:0;
-
-  overflow:hidden;
-  white-space:nowrap;
-
-  color:#2368be;
-
-  font-family:"Segoe Print","Comic Sans MS",cursive;
-
-  font-size:27px;
-  font-weight:800;
-  line-height:1.4;
-
-  opacity:0;
-}
-
-.smart-lesson.is-animated .row-one .handwriting-text{
-  animation:writeLine 1.2s steps(16,end) .2s forwards;
-}
-
-.smart-lesson.is-animated .row-two .handwriting-text{
-  animation:writeLine 2s steps(28,end) 1.55s forwards;
-}
-
-.smart-lesson.is-animated .row-three .handwriting-text{
-  animation:writeLine 1.7s steps(22,end) 3.8s forwards;
-}
-
-.smart-lesson.is-animated .row-four .handwriting-text{
-  animation:writeLine 1.7s steps(20,end) 5.7s forwards;
-}
-
-@keyframes writeLine{
-  0%{
-    max-width:0;
-    opacity:1;
-  }
-
-  100%{
-    max-width:100%;
-    opacity:1;
-  }
+  display:inline;
+  direction:rtl;
+  color:#26314f !important;
+  opacity:1 !important;
 }
 
 .answer-check{
@@ -12396,28 +12360,7 @@ b{
 }
 
 
-/* שורה 1 */
-.animated-writing.is-playing .row-one{
-  animation:handWrite 1.8s steps(20,end) forwards;
-}
-
-
-/* שורה 2 */
-.animated-writing.is-playing .row-two{
-  animation:handWrite 2.2s steps(28,end) 2s forwards;
-}
-
-
-/* שורה 3 */
-.animated-writing.is-playing .row-three{
-  animation:handWrite 1.8s steps(22,end) 4.5s forwards;
-}
-
-
-/* שורה 4 */
-.animated-writing.is-playing .row-four{
-  animation:handWrite 2s steps(22,end) 6.5s forwards;
-}
+ 
 
 
 /* כתיבה מימין לשמאל */
@@ -15511,31 +15454,100 @@ supabaseClient.auth.onAuthStateChange(() => {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  const animatedWriting =
-    document.querySelector(".animated-writing");
+  const writingBox = document.querySelector(".animated-writing");
 
-  if (!animatedWriting) return;
+  if (!writingBox) return;
 
+  const lines = [
+    {
+      element: writingBox.querySelector(".row-one .handwriting-text"),
+      text: "7 + 5 = ?"
+    },
+    {
+      element: writingBox.querySelector(".row-two .handwriting-text"),
+      text: "קודם נחבר 7 + 3 = 10"
+    },
+    {
+      element: writingBox.querySelector(".row-three .handwriting-text"),
+      text: "נשארו לנו עוד 2"
+    },
+    {
+      element: writingBox.querySelector(".row-four .handwriting-text"),
+      text: "10 + 2 = 12"
+    }
+  ];
 
-  function playLessonAnimation(){
+  const pencil = writingBox.querySelector(".moving-pencil");
+  const check = writingBox.querySelector(".answer-check");
 
-    animatedWriting.classList.remove("is-playing");
-
-    // מאלץ את הדפדפן להתחיל את האנימציה מחדש
-    void animatedWriting.offsetWidth;
-
-    animatedWriting.classList.add("is-playing");
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  async function typeLine(element, text) {
 
-  // הפעלה ראשונה
-  playLessonAnimation();
+    element.textContent = "";
 
+    for (let i = 0; i < text.length; i++) {
 
-  // הפעלה חוזרת כל 11 שניות
-  setInterval(() => {
-    playLessonAnimation();
-  }, 11000);
+      element.textContent += text[i];
+
+      await sleep(90);
+    }
+  }
+
+  async function playLesson() {
+
+    /* איפוס */
+    lines.forEach(line => {
+      if (line.element) {
+        line.element.textContent = "";
+      }
+    });
+
+    if (check) {
+      check.style.opacity = "0";
+    }
+
+    if (pencil) {
+      pencil.style.opacity = "1";
+    }
+
+    await sleep(500);
+
+    /* שורה 1 */
+    await typeLine(lines[0].element, lines[0].text);
+
+    await sleep(500);
+
+    /* שורה 2 */
+    await typeLine(lines[1].element, lines[1].text);
+
+    await sleep(500);
+
+    /* שורה 3 */
+    await typeLine(lines[2].element, lines[2].text);
+
+    await sleep(500);
+
+    /* שורה 4 */
+    await typeLine(lines[3].element, lines[3].text);
+
+    if (pencil) {
+      pencil.style.opacity = "0";
+    }
+
+    if (check) {
+      check.style.opacity = "1";
+    }
+
+    /* ממתינים לפני התחלה מחדש */
+    await sleep(4000);
+
+    playLesson();
+  }
+
+  playLesson();
 
 });
 </script>
