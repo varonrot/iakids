@@ -30,7 +30,61 @@ button,input,select{font:inherit}
 .topbar{grid-column:1/4;grid-row:1;direction:rtl;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 22px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(14px);z-index:20}
 .brand{display:flex;align-items:center;gap:12px;direction:rtl}.brand img{width:58px;height:58px;object-fit:contain;border-radius:18px}.brand-title{font-size:23px;font-weight:900}.brand-sub{font-size:13px;color:var(--muted);margin-top:4px}.brand-ai{font-size:11px;color:#fff;background:linear-gradient(135deg,var(--purple),#a77bff);padding:4px 7px;border-radius:8px}
 .top-actions{display:flex;align-items:center;gap:10px}.top-pill{height:48px;border:1px solid var(--line);background:#fff;border-radius:15px;padding:0 17px;color:#3c4675;font-weight:900;box-shadow:0 4px 14px rgba(45,50,100,.05);cursor:pointer}.top-pill i{color:var(--purple);font-size:18px;margin-left:8px}
-.user-menu{position:relative}.user-trigger{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px;font-weight:900}.user-trigger img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:var(--soft)}.user-popover{position:absolute;top:54px;left:0;width:250px;padding:10px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 22px 60px rgba(35,40,85,.20);display:none;flex-direction:column;gap:4px;z-index:100}.user-menu:hover .user-popover{display:flex}.user-popover button{border:0;background:transparent;text-align:right;padding:11px;border-radius:11px;cursor:pointer;font-weight:800;color:#2f3966}.user-popover button:hover{background:#f7f5ff}
+.user-menu{position:relative}.user-trigger{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px;font-weight:900}.user-trigger img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:var(--soft)}.user-menu{
+  position:relative;
+}
+
+.user-popover{
+  position:absolute;
+  top:calc(100% + 2px);
+  left:0;
+
+  width:250px;
+  padding:10px;
+
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+
+  box-shadow:0 22px 60px rgba(35,40,85,.20);
+
+  display:none;
+  flex-direction:column;
+  gap:4px;
+
+  z-index:100;
+}
+
+/* גשר בלתי נראה בין הכפתור לחלונית */
+.user-menu::after{
+  content:"";
+  position:absolute;
+  top:100%;
+  left:0;
+  width:100%;
+  height:12px;
+}
+
+/* החלונית נשארת פתוחה גם כשעוברים אליה */
+.user-menu:hover .user-popover,
+.user-popover:hover{
+  display:flex;
+}
+
+.user-popover button{
+  border:0;
+  background:transparent;
+  text-align:right;
+  padding:11px;
+  border-radius:11px;
+  cursor:pointer;
+  font-weight:800;
+  color:#2f3966;
+}
+
+.user-popover button:hover{
+  background:#f7f5ff;
+}.user-popover button{border:0;background:transparent;text-align:right;padding:11px;border-radius:11px;cursor:pointer;font-weight:800;color:#2f3966}.user-popover button:hover{background:#f7f5ff}
 
 /* LEFT SIDEBAR */
 .sidebar{grid-column:1;grid-row:2;direction:rtl;background:#fff;border-right:1px solid var(--line);padding:16px 14px;display:flex;flex-direction:column;min-height:0}
@@ -1348,20 +1402,20 @@ body::before{
 
   <div class="topbar-right">
 
-    <div class="brand">
-      <img src="/assets/robots/brand-robot.png" alt="חבר לימודים">
+<div class="brand" onclick="window.location.href='/he/'" style="cursor:pointer;">
+  <img src="/assets/robots/brand-robot.png" alt="חבר לימודים">
 
-      <div>
-        <div class="brand-title">
-          חבר לימודים
-          <span class="brand-ai">AI</span>
-        </div>
-
-        <div class="brand-sub">
-          לומדים יחד, מצליחים יותר
-        </div>
-      </div>
+  <div>
+    <div class="brand-title">
+      חבר לימודים
+      <span class="brand-ai">AI</span>
     </div>
+
+    <div class="brand-sub">
+      לומדים יחד, מצליחים יותר
+    </div>
+  </div>
+</div>
 
     <div class="topbar-stats">
 
@@ -1439,7 +1493,12 @@ body::before{
 <aside class="sidebar">
   <button class="new-task" data-ask="homework">＋ משימה חדשה</button>
   <div class="kid-actions">
-    <button class="side-item active" data-ask="homework"><i class="fa-solid fa-house"></i><div class="side-text"><span class="side-title">דף הבית</span></div></button>
+    <button class="side-item active" onclick="window.location.href='/he/app/'">
+  <i class="fa-solid fa-house"></i>
+  <div class="side-text">
+    <span class="side-title">דף הבית</span>
+  </div>
+</button>
     <button class="side-item" data-ask="learn"><i class="fa-solid fa-list"></i><div class="side-text"><span class="side-title">השיעורים שלי</span></div></button>
     <button class="side-item" data-ask="practice"><i class="fa-regular fa-calendar-check"></i><div class="side-text"><span class="side-title">משימות</span></div></button>
     <button class="side-item" data-ask="learn"><i class="fa-solid fa-book-open"></i><div class="side-text"><span class="side-title">ספרות</span></div></button>
