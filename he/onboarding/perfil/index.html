@@ -3,285 +3,960 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>על הילד – KidSaí</title>
+
+<title>על הילד – KidsIA</title>
 
 <style>
 :root{
-  --bg1:#f7f4ef;
-  --bg2:#eaf4ff;
-  --ink:#0b1220;
-  --muted:#5b677a;
-  --card:#ffffffcc;
-  --card2:#ffffff;
-  --line:rgba(16,24,40,.10);
-  --shadow:0 18px 50px rgba(16,24,40,.12);
-  --shadow2:0 10px 26px rgba(16,24,40,.10);
-  --radius:18px;
+  --bg1:#fff9f1;
+  --bg2:#eaf6ff;
 
-  --accent1:#ff7a66;
-  --accent2:#ffb089;
-  --accent3:#ff5d4c;
-  --focus:rgba(255,93,76,.25);
+  --ink:#173b6c;
+  --muted:#667996;
+
+  --line:rgba(23,59,108,.10);
+
+  --shadow:0 20px 55px rgba(31,74,126,.12);
+  --shadow2:0 12px 30px rgba(31,74,126,.10);
+
+  --purple:#6b4eff;
+  --purple2:#9478ff;
+
+  --focus:rgba(107,78,255,.18);
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
+*{
+  box-sizing:border-box;
+}
+
+html,
+body{
+  min-height:100%;
+}
 
 body{
   margin:0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+
+  font-family:
+    "Heebo",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Arial;
+
   color:var(--ink);
+
   background:
-    radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
-    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
-    linear-gradient(90deg, var(--bg1), var(--bg2));
+    radial-gradient(
+      800px 520px at 15% 10%,
+      rgba(255,213,154,.30),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 85% 8%,
+      rgba(120,190,255,.30),
+      transparent 62%
+    ),
+    linear-gradient(
+      110deg,
+      var(--bg1),
+      var(--bg2)
+    );
+
+  overflow-x:hidden;
 }
 
+/* ==============================
+   WRAPPER
+============================== */
+
 .wrap{
-  min-height:100%;
+  min-height:100vh;
+
   display:flex;
   justify-content:center;
-  padding:42px 18px 56px;
+
+  padding:36px 18px 54px;
 }
 
 .container{
   width:min(980px,100%);
+
   display:flex;
   flex-direction:column;
+
   align-items:center;
-  gap:26px;
+
+  gap:20px;
+
   text-align:center;
 }
 
-/* TOP BAR */
+/* ==============================
+   TOP BAR
+============================== */
+
 .top-bar{
   width:100%;
+
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
+
+  margin-bottom:6px;
 }
+
 .back-link{
   text-decoration:none;
+
   color:var(--muted);
+
   font-size:14px;
-  font-weight:600;
+  font-weight:700;
 }
+
+.back-link:hover{
+  color:var(--ink);
+}
+
 .progress{
+  text-align:right;
+
   font-size:13px;
+  font-weight:600;
+
   color:var(--muted);
-  text-align:left;
 }
+
 .progress-bar{
-  width:140px;height:6px;
-  background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:4px;
+  width:160px;
+  height:7px;
+
+  margin-top:7px;
+
+  background:rgba(23,59,108,.10);
+
+  border-radius:999px;
+
+  overflow:hidden;
 }
+
 .progress-fill{
   width:75%;
   height:100%;
-  background:linear-gradient(135deg,var(--accent3),var(--accent2));
-}
 
-/* Mascot */
-.mascot{
-  width:84px;height:84px;border-radius:22px;
-  display:grid;place-items:center;
+  border-radius:999px;
+
   background:
-    radial-gradient(26px 26px at 34% 30%, #fff, transparent 60%),
-    linear-gradient(160deg, rgba(38,153,255,.26), rgba(255,125,95,.20));
-  border:1px solid var(--line);
-  box-shadow:var(--shadow2);
+    linear-gradient(
+      90deg,
+      var(--purple),
+      var(--purple2)
+    );
 }
-.mascot::before{content:"😊";font-size:40px}
 
-h1{margin:6px 0 0;font-size:34px}
-.sub{color:var(--muted);font-size:15px}
+/* ==============================
+   ROBOT
+============================== */
 
-/* ===== AGE GRID ===== */
-.age-grid{
+.mascot{
+  width:118px;
+  height:118px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin-top:4px;
+
+  border-radius:32px;
+
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      rgba(255,255,255,.95),
+      rgba(255,255,255,.62) 65%,
+      rgba(225,240,255,.70)
+    );
+
+  border:1px solid rgba(255,255,255,.85);
+
+  box-shadow:
+    0 16px 38px rgba(38,88,145,.13),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.mascot img{
+  width:96px;
+  height:96px;
+
+  object-fit:contain;
+
+  display:block;
+}
+
+/* ==============================
+   TITLE
+============================== */
+
+h1{
+  margin:2px 0 0;
+
+  font-size:38px;
+  line-height:1.2;
+
+  font-weight:900;
+
+  color:#173b6c;
+}
+
+h1 span{
+  color:#3478e5;
+}
+
+.sub{
+  max-width:720px;
+
+  margin:0;
+
+  font-size:17px;
+  line-height:1.7;
+
+  color:var(--muted);
+}
+
+/* ==============================
+   GRADE GRID
+============================== */
+
+.grade-title{
+  margin:10px 0 0;
+
+  font-size:21px;
+
+  color:#173b6c;
+}
+
+.grade-grid{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
+
+  grid-template-columns:
+    repeat(3,1fr);
+
   gap:14px;
-  width:min(520px,100%);
+
+  width:min(620px,100%);
 }
 
-.age{
-  padding:16px 0;
-  border-radius:14px;
-  background:var(--card2);
-  border:2px solid var(--line);
+.grade{
+  position:relative;
+
+  min-height:110px;
+
+  padding:18px 12px;
+
+  border-radius:22px;
+
+  background:
+    rgba(255,255,255,.76);
+
+  border:
+    2px solid
+    rgba(23,59,108,.08);
+
   font-weight:800;
+
   cursor:pointer;
-  box-shadow:var(--shadow2);
-}
-.age.active{
-  border-color:var(--accent3);
-  background:rgba(255,93,76,.14);
-  box-shadow:0 0 0 6px var(--focus);
+
+  box-shadow:
+    0 12px 28px
+    rgba(31,74,126,.08);
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:4px;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease,
+    background .2s ease;
 }
 
-/* ===== AVATARS ===== */
+.grade:hover{
+  transform:translateY(-3px);
+}
+
+.grade strong{
+  font-size:21px;
+
+  color:#173b6c;
+}
+
+.grade small{
+  font-size:12px;
+
+  color:var(--muted);
+}
+
+.grade.active{
+  border-color:
+    rgba(107,78,255,.65);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,240,255,.96),
+      rgba(235,247,255,.96)
+    );
+
+  box-shadow:
+    0 0 0 5px var(--focus),
+    0 16px 38px rgba(107,78,255,.13);
+}
+
+.grade.active::after{
+  content:"✓";
+
+  position:absolute;
+
+  top:9px;
+  left:9px;
+
+  width:25px;
+  height:25px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:#34b875;
+
+  color:#fff;
+
+  font-size:14px;
+}
+
+/* ==============================
+   AVATARS
+============================== */
+
+.avatar-title{
+  margin:4px 0 0;
+
+  font-size:21px;
+
+  color:#173b6c;
+}
+
 .avatars{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
+
+  grid-template-columns:
+    repeat(6,1fr);
+
   gap:18px;
+
   width:min(520px,100%);
 }
 
 .avatar{
-  width:70px;height:70px;
+  width:70px;
+  height:70px;
+
   border-radius:50%;
+
   display:grid;
   place-items:center;
+
   background:#fff;
+
   cursor:pointer;
-  border:2px solid transparent;
+
+  border:
+    2px solid transparent;
+
   box-shadow:var(--shadow2);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
 }
+
+.avatar:hover{
+  transform:translateY(-3px);
+}
+
 .avatar.active{
-  border-color:var(--accent3);
-  box-shadow:0 0 0 6px var(--focus);
+  border-color:
+    var(--purple);
+
+  box-shadow:
+    0 0 0 6px
+    var(--focus);
 }
 
 .avatar img{
   width:100%;
   height:100%;
+
   object-fit:cover;
+
   border-radius:50%;
+
   pointer-events:none;
 }
 
-/* Button */
+/* ==============================
+   BUTTON
+============================== */
+
 .btn{
-  width:min(520px,100%);
-  margin-top:22px;
-  padding:16px;
-  border-radius:999px;
+  width:min(620px,100%);
+
+  margin-top:12px;
+
+  padding:17px;
+
+  border-radius:18px;
+
   border:none;
-  background:linear-gradient(135deg,var(--accent2),var(--accent1));
+
+  background:
+    linear-gradient(
+      135deg,
+      #7a58ff,
+      #5d43e8
+    );
+
   font-weight:800;
-  font-size:17px;
-  color:#ffffff;
+  font-size:18px;
+
+  color:#fff;
+
   cursor:pointer;
+
+  box-shadow:
+    0 12px 28px
+    rgba(93,67,232,.24);
 }
 
-/* MOBILE */
-@media (max-width: 768px){
-  .age-grid{ grid-template-columns: repeat(3,1fr); }
-  .avatars{ grid-template-columns: repeat(3,1fr); }
-  .avatar{ width:64px;height:64px; }
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+.note{
+  margin-top:-8px;
+
+  font-size:13px;
+
+  color:var(--muted);
+}
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media(max-width:768px){
+
+  .wrap{
+    padding:22px 16px 40px;
+  }
+
+  .progress-bar{
+    width:110px;
+  }
+
+  .mascot{
+    width:96px;
+    height:96px;
+  }
+
+  .mascot img{
+    width:78px;
+    height:78px;
+  }
+
+  h1{
+    font-size:30px;
+  }
+
+  .sub{
+    font-size:16px;
+  }
+
+  .grade-grid{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  .avatars{
+    grid-template-columns:
+      repeat(3,1fr);
+  }
+
+  .avatar{
+    width:64px;
+    height:64px;
+  }
+
 }
 </style>
+
 </head>
 
 <body>
+
 <main class="wrap">
+
 <section class="container">
 
-<div class="top-bar">
-  <a class="back-link" href="/he/onboarding/preferencias/">← חזרה</a>
-  <div class="progress">
-    שלב 3 מתוך 4
-    <div class="progress-bar"><div class="progress-fill"></div></div>
-  </div>
-</div>
 
-<div class="mascot"></div>
+  <!-- TOP BAR -->
 
-<h1>ספר לנו על הילד</h1>
-<p class="sub">עוד כמה פרטים כדי להתאים את החוויה בצורה מושלמת.</p>
+  <div class="top-bar">
 
-<h3>בן/בת כמה הילד/ה?</h3>
+    <a
+      class="back-link"
+      href="/he/onboarding/preferencias/"
+    >
+      ← חזרה
+    </a>
 
-<div class="age-grid" id="ages">
-  <div class="age">3</div><div class="age">4</div><div class="age">5</div>
-  <div class="age">6</div><div class="age">7</div><div class="age">8</div>
-  <div class="age">9</div><div class="age">10</div><div class="age">11</div>
-  <div class="age">12</div><div class="age">13</div><div class="age">14</div>
-  <div class="age">15</div>
-</div>
+    <div class="progress">
 
-<h3>בחרו אווטאר</h3>
+      שלב 3 מתוך 4
 
-<div class="avatars" id="avatars">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
 
-  <div class="avatar" data-key="cat">
-    <img src="/assets/avatars/cat_blue.png" alt="חתול">
+    </div>
+
   </div>
 
-  <div class="avatar" data-key="dog">
-    <img src="/assets/avatars/dolphin_blue.png" alt="דולפין">
+
+  <!-- ROBOT -->
+
+  <div class="mascot">
+
+    <img
+      src="/assets/robots/Robot_icon.png"
+      alt="הרובוט הלימודי של KidsIA"
+    >
+
   </div>
 
-  <div class="avatar" data-key="owl">
-    <img src="/assets/avatars/owl_blue.png" alt="ינשוף">
+
+  <!-- TITLE -->
+
+  <h1>
+    ספרו לנו קצת על
+    <span>הילד</span>
+  </h1>
+
+  <p class="sub">
+    כך נוכל להתאים את רמת ההסברים,
+    השפה והתרגילים בדיוק לשלב הלימודי שלו.
+  </p>
+
+
+  <!-- GRADE -->
+
+  <h3 class="grade-title">
+    באיזו כיתה הילד לומד?
+  </h3>
+
+
+  <div
+    class="grade-grid"
+    id="grades"
+  >
+
+    <div
+      class="grade"
+      data-age="6"
+    >
+      <strong>כיתה א׳</strong>
+      <small>גיל משוער 6</small>
+    </div>
+
+
+    <div
+      class="grade"
+      data-age="7"
+    >
+      <strong>כיתה ב׳</strong>
+      <small>גיל משוער 7</small>
+    </div>
+
+
+    <div
+      class="grade"
+      data-age="8"
+    >
+      <strong>כיתה ג׳</strong>
+      <small>גיל משוער 8</small>
+    </div>
+
+
+    <div
+      class="grade"
+      data-age="9"
+    >
+      <strong>כיתה ד׳</strong>
+      <small>גיל משוער 9</small>
+    </div>
+
+
+    <div
+      class="grade"
+      data-age="10"
+    >
+      <strong>כיתה ה׳</strong>
+      <small>גיל משוער 10</small>
+    </div>
+
+
+    <div
+      class="grade"
+      data-age="11"
+    >
+      <strong>כיתה ו׳</strong>
+      <small>גיל משוער 11</small>
+    </div>
+
   </div>
 
-  <div class="avatar" data-key="horse">
-    <img src="/assets/avatars/horse_blue.png" alt="סוס">
+
+  <!-- AVATAR -->
+
+  <h3 class="avatar-title">
+    בחרו אווטאר
+  </h3>
+
+
+  <div
+    class="avatars"
+    id="avatars"
+  >
+
+
+    <div
+      class="avatar"
+      data-key="cat"
+    >
+      <img
+        src="/assets/avatars/cat_blue.png"
+        alt="חתול"
+      >
+    </div>
+
+
+    <div
+      class="avatar"
+      data-key="dog"
+    >
+      <img
+        src="/assets/avatars/dolphin_blue.png"
+        alt="דולפין"
+      >
+    </div>
+
+
+    <div
+      class="avatar"
+      data-key="owl"
+    >
+      <img
+        src="/assets/avatars/owl_blue.png"
+        alt="ינשוף"
+      >
+    </div>
+
+
+    <div
+      class="avatar"
+      data-key="horse"
+    >
+      <img
+        src="/assets/avatars/horse_blue.png"
+        alt="סוס"
+      >
+    </div>
+
+
+    <div
+      class="avatar"
+      data-key="eagle"
+    >
+      <img
+        src="/assets/avatars/eagle_blue.png"
+        alt="נשר"
+      >
+    </div>
+
+
+    <div
+      class="avatar"
+      data-key="panther"
+    >
+      <img
+        src="/assets/avatars/panther_blue.png"
+        alt="פנתר"
+      >
+    </div>
+
+
   </div>
 
-  <div class="avatar" data-key="eagle">
-    <img src="/assets/avatars/eagle_blue.png" alt="נשר">
-  </div>
 
-  <div class="avatar" data-key="panther">
-    <img src="/assets/avatars/panther_blue.png" alt="פנתר">
-  </div>
+  <button
+    class="btn"
+    id="nextBtn"
+  >
+    המשך
+  </button>
 
-</div>
 
-<button class="btn" id="nextBtn">המשך</button>
+  <p class="note">
+    תוכלו לשנות את הפרטים מאוחר יותר בפרופיל הילד.
+  </p>
+
 
 </section>
+
 </main>
 
+
 <script>
-const ageEls = document.querySelectorAll(".age");
-let selectedAge = sessionStorage.getItem("child_age");
+
+/*
+========================================
+GRADE -> AGE MAPPING
+כיתה נשמרת כגיל בטבלה הקיימת
+========================================
+*/
+
+
+const gradeEls =
+  document.querySelectorAll(
+    ".grade"
+  );
+
+
+let selectedAge =
+  sessionStorage.getItem(
+    "child_age"
+  );
+
+
+/*
+שחזור בחירה קיימת
+*/
+
 
 if(selectedAge){
-  ageEls.forEach(a=>{
-    if(a.textContent === selectedAge) a.classList.add("active");
-  });
+
+  gradeEls.forEach(
+    grade => {
+
+      if(
+        grade.dataset.age ===
+        selectedAge
+      ){
+
+        grade.classList.add(
+          "active"
+        );
+
+      }
+
+    }
+  );
+
 }
 
-ageEls.forEach(a=>{
-  a.onclick = ()=>{
-    ageEls.forEach(x=>x.classList.remove("active"));
-    a.classList.add("active");
-    selectedAge = a.textContent;
-  };
-});
 
-const avatarEls = document.querySelectorAll(".avatar");
-let selectedAvatar = sessionStorage.getItem("child_avatar");
+/*
+בחירת כיתה
+*/
+
+
+gradeEls.forEach(
+  grade => {
+
+
+    grade.onclick = () => {
+
+
+      gradeEls.forEach(
+        x =>
+          x.classList.remove(
+            "active"
+          )
+      );
+
+
+      grade.classList.add(
+        "active"
+      );
+
+
+      /*
+      כיתה א׳ = 6
+      כיתה ב׳ = 7
+      וכו׳
+      */
+
+
+      selectedAge =
+        grade.dataset.age;
+
+    };
+
+
+  }
+);
+
+
+
+/*
+========================================
+AVATAR
+========================================
+*/
+
+
+const avatarEls =
+  document.querySelectorAll(
+    ".avatar"
+  );
+
+
+let selectedAvatar =
+  sessionStorage.getItem(
+    "child_avatar"
+  );
+
 
 if(selectedAvatar){
-  avatarEls.forEach(v=>{
-    if(v.dataset.key === selectedAvatar){
-      v.classList.add("active");
+
+  avatarEls.forEach(
+    avatar => {
+
+      if(
+        avatar.dataset.key ===
+        selectedAvatar
+      ){
+
+        avatar.classList.add(
+          "active"
+        );
+
+      }
+
     }
-  });
+  );
+
 }
 
-avatarEls.forEach(v=>{
-  v.onclick = ()=>{
-    avatarEls.forEach(x=>x.classList.remove("active"));
-    v.classList.add("active");
-    selectedAvatar = v.dataset.key;
+
+avatarEls.forEach(
+  avatar => {
+
+
+    avatar.onclick = () => {
+
+
+      avatarEls.forEach(
+        x =>
+          x.classList.remove(
+            "active"
+          )
+      );
+
+
+      avatar.classList.add(
+        "active"
+      );
+
+
+      selectedAvatar =
+        avatar.dataset.key;
+
+    };
+
+
+  }
+);
+
+
+
+/*
+========================================
+NEXT
+========================================
+*/
+
+
+document
+  .getElementById(
+    "nextBtn"
+  )
+  .onclick = () => {
+
+
+    if(
+      !selectedAge ||
+      !selectedAvatar
+    ){
+
+      return;
+
+    }
+
+
+    /*
+    חשוב:
+    ממשיכים להשתמש באותו key
+    כדי שהשמירה הקיימת ל-Supabase
+    תישאר ללא שינוי
+    */
+
+
+    sessionStorage.setItem(
+      "child_age",
+      selectedAge
+    );
+
+
+    sessionStorage.setItem(
+      "child_avatar",
+      selectedAvatar
+    );
+
+
+    sessionStorage.setItem(
+      "onboarding_step",
+      "3"
+    );
+
+
+    window.location.href =
+      "/he/onboarding/intereses/";
+
   };
-});
 
-document.getElementById("nextBtn").onclick = ()=>{
-  if(!selectedAge || !selectedAvatar) return;
-
-  sessionStorage.setItem("child_age", selectedAge);
-  sessionStorage.setItem("child_avatar", selectedAvatar);
-  sessionStorage.setItem("onboarding_step","3");
-
-  window.location.href = "/he/onboarding/intereses/";
-};
 </script>
+
 
 </body>
 </html>
