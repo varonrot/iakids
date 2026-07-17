@@ -1,1 +1,218 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>תחומי עניין – KidSaí</title>
 
+<style>
+:root{
+  --bg1:#f7f4ef;
+  --bg2:#eaf4ff;
+  --ink:#0b1220;
+  --muted:#5b677a;
+  --card:#ffffffcc;
+  --card2:#ffffff;
+  --line:rgba(16,24,40,.10);
+  --shadow:0 18px 50px rgba(16,24,40,.12);
+  --shadow2:0 10px 26px rgba(16,24,40,.10);
+  --radius:18px;
+
+  --accent1:#ff7a66;
+  --accent2:#ffb089;
+  --accent3:#ff5d4c;
+  --focus:rgba(255,93,76,.25);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color:var(--ink);
+  background:
+    radial-gradient(800px 500px at 20% 10%, rgba(255,200,170,.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 10%, rgba(120,190,255,.30), transparent 62%),
+    linear-gradient(90deg, var(--bg1), var(--bg2));
+}
+
+.wrap{
+  min-height:100%;
+  display:flex;
+  justify-content:center;
+  padding:42px 18px 56px;
+}
+
+.container{
+  width:min(980px,100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:26px;
+  text-align:center;
+}
+
+/* TOP BAR */
+.top-bar{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.back-link{
+  text-decoration:none;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:600;
+}
+.progress{
+  font-size:13px;
+  color:var(--muted);
+  text-align:left;
+}
+.progress-bar{
+  width:140px;height:6px;
+  background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:4px;
+}
+.progress-fill{
+  width:100%;
+  height:100%;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+}
+
+/* Mascot */
+.mascot{
+  width:84px;height:84px;border-radius:22px;
+  display:grid;place-items:center;
+  background:
+    radial-gradient(26px 26px at 34% 30%, #fff, transparent 60%),
+    linear-gradient(160deg, rgba(38,153,255,.26), rgba(255,125,95,.20));
+  border:1px solid var(--line);
+  box-shadow:var(--shadow2);
+}
+.mascot::before{content:"😊";font-size:40px}
+
+h1{margin:6px 0 0;font-size:34px}
+.sub{color:var(--muted);font-size:15px;max-width:720px}
+
+/* ===== INTERESTS ===== */
+.interests{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  width:min(720px,100%);
+}
+
+.interest{
+  padding:20px;
+  border-radius:999px;
+  background:var(--card2);
+  border:2px solid var(--line);
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:var(--shadow2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.interest.active{
+  border-color:var(--accent3);
+  background:rgba(255,93,76,.14);
+  box-shadow:0 0 0 6px var(--focus);
+}
+
+/* Button */
+.btn{
+  width:min(520px,100%);
+  margin-top:26px;
+  padding:16px;
+  border-radius:999px;
+  border:none;
+  background:linear-gradient(135deg,var(--accent2),var(--accent1));
+  font-weight:800;
+  font-size:17px;
+  color:#ffffff;
+  cursor:pointer;
+}
+
+/* MOBILE */
+@media (max-width:768px){
+  h1{ font-size:26px; }
+  .sub{ font-size:14px;padding:0 6px; }
+  .interests{ grid-template-columns:repeat(1,1fr); gap:14px; }
+  .interest{ padding:16px 18px;font-size:15px; }
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+<section class="container">
+
+<div class="top-bar">
+  <a class="back-link" href="/he/onboarding/perfil/">← חזרה</a>
+  <div class="progress">
+    שלב 4 מתוך 4
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+</div>
+
+<div class="mascot"></div>
+
+<h1>מה הילד/ה ירצה ללמוד?</h1>
+<p class="sub">
+  בחרו נושא אחד או יותר שמעוררים סקרנות.
+  זה יעזור לנו להתאים את החוויה באופן אישי.
+</p>
+
+<div class="interests" id="interests">
+  <div class="interest">🌍 שפה חדשה</div>
+  <div class="interest">➕ שיפור במתמטיקה</div>
+  <div class="interest">🇬🇧 שיפור באנגלית</div>
+
+  <div class="interest">🔬 מדע</div>
+  <div class="interest">📖 קריאה</div>
+  <div class="interest">🎨 יצירה ואומנות</div>
+
+  <div class="interest">🧩 לוגיקה ופתרון בעיות</div>
+  <div class="interest">🧠 חשיבה ביקורתית</div>
+</div>
+
+<button class="btn" id="nextBtn">המשך</button>
+
+</section>
+</main>
+
+<script>
+const items = document.querySelectorAll(".interest");
+let selected = JSON.parse(sessionStorage.getItem("learning_interests") || "[]");
+
+items.forEach(i=>{
+  if(selected.includes(i.textContent.trim())){
+    i.classList.add("active");
+  }
+});
+
+items.forEach(i=>{
+  i.onclick = ()=>{
+    i.classList.toggle("active");
+    selected = [...items]
+      .filter(x=>x.classList.contains("active"))
+      .map(x=>x.textContent.trim());
+  };
+});
+
+function finish(){
+  sessionStorage.setItem("learning_interests", JSON.stringify(selected));
+  sessionStorage.setItem("onboarding_step","4");
+  window.location.href = "/he/onboarding/cuenta/";
+}
+
+document.getElementById("nextBtn").onclick = finish;
+</script>
+
+</body>
+</html>
