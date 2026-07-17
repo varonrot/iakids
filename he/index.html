@@ -12371,45 +12371,68 @@ b{
   min-height:310px;
 }
 
+/* שורות הכתיבה */
 .writing-row{
   position:relative;
-  overflow:hidden;
-  width:0;
+  display:block;
+
+  width:100%;
+  min-height:55px;
+
+  direction:rtl;
+  text-align:right;
+
   white-space:nowrap;
-  opacity:0;
 
   font-family:"Gveret Levin", cursive;
   font-size:30px;
   line-height:1.8;
   color:#26314f;
+
+  opacity:0;
+
+  /* מסתיר את הטקסט מצד שמאל וחושף אותו מימין */
+  clip-path:inset(0 0 0 100%);
 }
 
+
+/* שורה 1 */
 .animated-writing.is-playing .row-one{
-  animation:writeLine 1.8s steps(18,end) forwards;
+  animation:handWrite 1.8s steps(20,end) forwards;
 }
 
+
+/* שורה 2 */
 .animated-writing.is-playing .row-two{
-  animation:writeLine 2.3s steps(28,end) 2s forwards;
+  animation:handWrite 2.2s steps(28,end) 2s forwards;
 }
 
+
+/* שורה 3 */
 .animated-writing.is-playing .row-three{
-  animation:writeLine 1.8s steps(20,end) 4.6s forwards;
+  animation:handWrite 1.8s steps(22,end) 4.5s forwards;
 }
 
+
+/* שורה 4 */
 .animated-writing.is-playing .row-four{
-  animation:writeLine 2s steps(20,end) 6.7s forwards;
+  animation:handWrite 2s steps(22,end) 6.5s forwards;
 }
 
-@keyframes writeLine{
+
+/* כתיבה מימין לשמאל */
+@keyframes handWrite{
+
   0%{
-    width:0;
     opacity:1;
+    clip-path:inset(0 0 0 100%);
   }
 
   100%{
-    width:100%;
     opacity:1;
+    clip-path:inset(0 0 0 0);
   }
+
 }
 
 
@@ -12509,6 +12532,12 @@ b{
   100%{
     opacity:0;
   }
+}
+  .handwriting-text{
+  display:inline-block;
+  direction:rtl;
+  color:#26314f !important;
+  opacity:1 !important;
 }
 </style>
   <script type="application/ld+json">
