@@ -965,7 +965,7 @@ body::before{
    סליל המחברת בצד שמאל
    ======================================== */
 
- 
+
 
 /* ========================================
    כוכב מצויר
@@ -1499,15 +1499,26 @@ body::before{
     <span class="side-title">דף הבית</span>
   </div>
 </button>
-    <button class="side-item" data-ask="learn"><i class="fa-solid fa-list"></i><div class="side-text"><span class="side-title">השיעורים שלי</span></div></button>
-    <button class="side-item" data-ask="practice"><i class="fa-regular fa-calendar-check"></i><div class="side-text"><span class="side-title">משימות</span></div></button>
-    <button class="side-item" data-ask="learn"><i class="fa-solid fa-book-open"></i><div class="side-text"><span class="side-title">ספרות</span></div></button>
-    <button class="side-item" data-ask="english"><i class="fa-solid fa-language"></i><div class="side-text"><span class="side-title">אנגלית</span></div></button>
-    <button class="side-item" data-ask="science"><i class="fa-solid fa-flask"></i><div class="side-text"><span class="side-title">מדעים</span></div></button>
-    <button class="side-item" data-ask="history"><i class="fa-solid fa-earth-americas"></i><div class="side-text"><span class="side-title">היסטוריה</span></div></button>
-    <button class="side-item" data-ask="math"><i class="fa-solid fa-square-root-variable"></i><div class="side-text"><span class="side-title">מתמטיקה</span></div></button>
-    <button class="side-item" data-ask="bible"><i class="fa-solid fa-book"></i><div class="side-text"><span class="side-title">תנ״ך</span></div></button>
-    <button class="subject-add">＋ הוספת מקצוע</button>
+<!-- כפתורים קבועים -->
+<button class="side-item" data-ask="learn">
+  <i class="fa-solid fa-list"></i>
+  <div class="side-text">
+    <span class="side-title">השיעורים שלי</span>
+  </div>
+</button>
+
+<button class="side-item" data-ask="practice">
+  <i class="fa-regular fa-calendar-check"></i>
+  <div class="side-text">
+    <span class="side-title">משימות</span>
+  </div>
+</button>
+
+<!--
+  המקצועות הדינאמיים ייכנסו לכאן אוטומטית.
+  התוכן נקבע לפי גיל הילד -> כיתה -> learning_lessons
+-->
+<div id="subjectsContainer"></div>
   </div>
   <div class="sidebar-bottom">
     <button class="manage-btn" id="openParentModal"><i class="fa-solid fa-children"></i>פאנל הורים</button>
@@ -1614,6 +1625,120 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let CURRENT_KID = null;
 
+const SUBJECT_CONFIG = {
+
+  "מתמטיקה": {
+    icon: "fa-solid fa-square-root-variable",
+    color: "linear-gradient(135deg,#9d70ff,#704be7)"
+  },
+
+  "עברית": {
+    icon: "fa-solid fa-book-open",
+    color: "linear-gradient(135deg,#ff7abb,#ee5aa0)"
+  },
+
+  "אנגלית": {
+    icon: "fa-solid fa-language",
+    color: "linear-gradient(135deg,#57c8ff,#3f9de8)"
+  },
+
+  "מדעים": {
+    icon: "fa-solid fa-flask",
+    color: "linear-gradient(135deg,#49cb88,#34ad70)"
+  },
+
+  "גאוגרפיה": {
+    icon: "fa-solid fa-earth-americas",
+    color: "linear-gradient(135deg,#4fa9ff,#4089ee)"
+  },
+
+  "מולדת וגאוגרפיה": {
+    icon: "fa-solid fa-earth-americas",
+    color: "linear-gradient(135deg,#4fa9ff,#4089ee)"
+  },
+
+  "מולדת וחברה": {
+    icon: "fa-solid fa-people-roof",
+    color: "linear-gradient(135deg,#4acbe9,#2daec9)"
+  },
+
+  "היסטוריה": {
+    icon: "fa-solid fa-landmark",
+    color: "linear-gradient(135deg,#ffd153,#f0ae25)"
+  },
+
+  "תנ\"ך": {
+    icon: "fa-solid fa-book",
+    color: "linear-gradient(135deg,#ff9e5d,#ff7a48)"
+  },
+
+  "ספרות": {
+    icon: "fa-solid fa-book-open",
+    color: "linear-gradient(135deg,#ff75b6,#ee5aa0)"
+  }
+
+};
+async function loadSubjects(grade) {
+  const container = document.getElementById("subjectsContainer");
+
+  if (!container) {
+    console.error("subjectsContainer not found");
+    return;
+  }
+
+  container.innerHTML = "";
+
+  const { data, error } = await sb
+    .from("learning_lessons")
+    .select("subject")
+    .eq("grade", grade)
+    .eq("is_active", true);
+
+  if (error) {
+    console.error("LOAD SUBJECTS ERROR:", error);
+    return;
+  }
+
+  // מסירים כפילויות
+  const subjects = [
+    ...new Set(
+      data.map(row => row.subject)
+    )
+  ];
+
+  subjects.forEach(subject => {
+    const config = SUBJECT_CONFIG[subject] || {
+      icon: "fa-solid fa-book",
+      color: "linear-gradient(135deg,#7b5cff,#5d3ee7)"
+    };
+
+    const button = document.createElement("button");
+
+    button.className = "side-item subject-item";
+
+    button.innerHTML = `
+      <i
+        class="${config.icon}"
+        style="background:${config.color}">
+      </i>
+
+      <div class="side-text">
+        <span class="side-title">${subject}</span>
+      </div>
+    `;
+
+    button.onclick = () => {
+      console.log("נבחר מקצוע:", subject);
+      console.log("כיתה:", grade);
+
+      // בשלב הבא נחבר כאן את תתי-הנושאים
+    };
+
+    container.appendChild(button);
+  });
+}
+
+
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
   const { data: { user } } = await sb.auth.getUser();
@@ -1672,8 +1797,15 @@ const { data: kid, error } = await sb
     console.error("kids_profiles error:", error);
     return;
   }
-  CURRENT_KID = kid;
-  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+CURRENT_KID = kid;
+
+/* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
+CURRENT_KID.grade = Number(kid.age);
+
+/* טעינת המקצועות לפי הכיתה */
+await loadSubjects(CURRENT_KID.grade);
+
+const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
   document.getElementById("rightbarAvatar").src = avatarUrl;
   document.getElementById("rightbarName").textContent = kid.child_name;
 
