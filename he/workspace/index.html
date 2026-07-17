@@ -911,50 +911,61 @@ body::before{
    סליל המחברת בצד שמאל
    ======================================== */
 
-/* סליל מחברת בצד שמאל */
+/* סליל מחברת אמיתי יותר בצד שמאל */
 .workspace::before{
   content:"";
   position:absolute;
 
-  /* צד שמאל של המחברת */
-  left:8px !important;
+  left:-10px !important;
   right:auto !important;
 
-  top:75px;
-  bottom:35px;
-  width:42px;
+  top:95px;
 
-  z-index:10;
+  width:34px;
+  height:18px;
+
+  z-index:20;
   pointer-events:none;
 
-  background:
-    /* החור */
-    radial-gradient(
-      circle at 27px 14px,
-      #70a9c8 0 5px,
-      #d8edf7 6px 8px,
-      transparent 9px
-    ),
+  border:4px solid #6f9fbb;
+  border-right:none;
 
-    /* החיבור האופקי של הסליל */
-    linear-gradient(
-      to right,
-      transparent 0 3px,
-      #7aa5bd 3px 27px,
-      transparent 27px
-    );
+  border-radius:18px 0 0 18px;
 
-  background-size:
-    42px 50px,
-    42px 50px;
+  box-shadow:
+    0 50px 0 -4px #ffffff,
+    0 50px 0 0 #6f9fbb,
 
-  background-repeat:repeat-y;
+    0 100px 0 -4px #ffffff,
+    0 100px 0 0 #6f9fbb,
 
-  background-position:
-    0 0,
-    0 12px;
+    0 150px 0 -4px #ffffff,
+    0 150px 0 0 #6f9fbb,
+
+    0 200px 0 -4px #ffffff,
+    0 200px 0 0 #6f9fbb,
+
+    0 250px 0 -4px #ffffff,
+    0 250px 0 0 #6f9fbb,
+
+    0 300px 0 -4px #ffffff,
+    0 300px 0 0 #6f9fbb,
+
+    0 350px 0 -4px #ffffff,
+    0 350px 0 0 #6f9fbb,
+
+    0 400px 0 -4px #ffffff,
+    0 400px 0 0 #6f9fbb,
+
+    0 450px 0 -4px #ffffff,
+    0 450px 0 0 #6f9fbb,
+
+    0 500px 0 -4px #ffffff,
+    0 500px 0 0 #6f9fbb,
+
+    0 550px 0 -4px #ffffff,
+    0 550px 0 0 #6f9fbb;
 }
-
 
 /* ========================================
    כוכב מצויר
