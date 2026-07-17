@@ -1244,12 +1244,119 @@ body::before{
   }
 
 }
+  .topbar-stats{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  direction:ltr;
+}
+
+.stat-pill{
+  height:48px;
+  min-width:100px;
+  padding:0 18px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:999px;
+
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+
+  box-shadow:0 6px 18px rgba(40,70,130,.08);
+
+  font-size:20px;
+  font-weight:800;
+  color:#172052;
+}
+
+.stat-icon{
+  font-size:26px;
+}
+
+.notification-btn{
+  position:relative;
+
+  width:52px;
+  height:52px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(255,255,255,.9);
+
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+
+  box-shadow:0 6px 18px rgba(40,70,130,.08);
+
+  font-size:24px;
+  color:#172052;
+}
+
+.notification-badge{
+  position:absolute;
+
+  top:-5px;
+  right:-3px;
+
+  min-width:22px;
+  height:22px;
+
+  padding:0 6px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:999px;
+
+  background:#ff4d5f;
+  color:#fff;
+
+  font-size:13px;
+  font-weight:800;
+
+  border:2px solid #fff;
+}
+  @media(max-width:768px){
+  .topbar-stats{
+    display:none;
+  }
+}
 </style>
 </head>
 <body>
 <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
 <div class="app">
 <header class="topbar">
+  <div class="topbar-stats">
+
+  <div class="stat-pill">
+    <span class="stat-icon">⭐</span>
+    <span class="stat-value">890</span>
+  </div>
+
+  <div class="stat-pill">
+    <span class="stat-icon">💎</span>
+    <span class="stat-value">45</span>
+  </div>
+
+  <div class="notification-btn">
+    <i class="fa-regular fa-bell"></i>
+    <span class="notification-badge">3</span>
+  </div>
+
+</div>
   <div class="brand">
     <img src="/assets/robots/brand-robot.png" alt="חבר לימודים">
     <div><div class="brand-title">חבר לימודים <span class="brand-ai">AI</span></div><div class="brand-sub">לומדים יחד, מצליחים יותר</div></div>
