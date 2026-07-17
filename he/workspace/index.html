@@ -1333,48 +1333,107 @@ body::before{
     display:none;
   }
 }
+  .topbar-right{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  direction:rtl;
+}
 </style>
 </head>
 <body>
 <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
 <div class="app">
 <header class="topbar">
-  <div class="topbar-stats">
 
-  <div class="stat-pill">
-    <span class="stat-icon">⭐</span>
-    <span class="stat-value">890</span>
-  </div>
+  <div class="topbar-right">
 
-  <div class="stat-pill">
-    <span class="stat-icon">💎</span>
-    <span class="stat-value">45</span>
-  </div>
+    <div class="brand">
+      <img src="/assets/robots/brand-robot.png" alt="חבר לימודים">
 
-  <div class="notification-btn">
-    <i class="fa-regular fa-bell"></i>
-    <span class="notification-badge">3</span>
-  </div>
+      <div>
+        <div class="brand-title">
+          חבר לימודים
+          <span class="brand-ai">AI</span>
+        </div>
 
-</div>
-  <div class="brand">
-    <img src="/assets/robots/brand-robot.png" alt="חבר לימודים">
-    <div><div class="brand-title">חבר לימודים <span class="brand-ai">AI</span></div><div class="brand-sub">לומדים יחד, מצליחים יותר</div></div>
-  </div>
-  <div class="top-actions">
-    <button class="top-pill"><i class="fa-solid fa-microphone"></i>דבר עם AI</button>
-    <button class="top-pill"><i class="fa-solid fa-arrow-up-from-bracket"></i>הקבצים שלי</button>
-    <div class="user-menu">
-      <div class="user-trigger"><img id="userAvatar"><span id="userName"></span></div>
-      <div class="user-popover">
-        <button onclick="document.getElementById('openSettings').click()">⚙️ עריכת פרטי הילד</button>
-        <button onclick="document.getElementById('openParentModal').click()">👨‍👩‍👧 פאנל הורים</button>
-        <button id="manageSubscriptionBtn">💳 ניהול מנוי</button>
-        <button onclick="window.location.href='/support/'">📩 תמיכה</button>
-        <hr><button onclick="sb.auth.signOut().then(()=>location.href='/')">🚪 יציאה</button>
+        <div class="brand-sub">
+          לומדים יחד, מצליחים יותר
+        </div>
       </div>
     </div>
+
+    <div class="topbar-stats">
+
+      <div class="stat-pill">
+        <span class="stat-icon">⭐</span>
+        <span class="stat-value">890</span>
+      </div>
+
+      <div class="stat-pill">
+        <span class="stat-icon">💎</span>
+        <span class="stat-value">45</span>
+      </div>
+
+      <div class="notification-btn">
+        <i class="fa-regular fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </div>
+
+    </div>
+
   </div>
+
+
+  <div class="top-actions">
+
+    <button class="top-pill">
+      <i class="fa-solid fa-microphone"></i>
+      דבר עם AI
+    </button>
+
+    <button class="top-pill">
+      <i class="fa-solid fa-arrow-up-from-bracket"></i>
+      הקבצים שלי
+    </button>
+
+    <div class="user-menu">
+
+      <div class="user-trigger">
+        <img id="userAvatar">
+        <span id="userName"></span>
+      </div>
+
+      <div class="user-popover">
+
+        <button onclick="document.getElementById('openSettings').click()">
+          ⚙️ עריכת פרטי הילד
+        </button>
+
+        <button onclick="document.getElementById('openParentModal').click()">
+          👨‍👩‍👧 פאנל הורים
+        </button>
+
+        <button id="manageSubscriptionBtn">
+          💳 ניהול מנוי
+        </button>
+
+        <button onclick="window.location.href='/support/'">
+          📩 תמיכה
+        </button>
+
+        <hr>
+
+        <button onclick="sb.auth.signOut().then(()=>location.href='/')">
+          🚪 יציאה
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </header>
 
 <aside class="sidebar">
