@@ -911,26 +911,48 @@ body::before{
    סליל המחברת בצד שמאל
    ======================================== */
 
+/* סליל מחברת בצד שמאל */
 .workspace::before{
   content:"";
   position:absolute;
-  left:48px;
+
+  /* צד שמאל של המחברת */
+  left:8px !important;
+  right:auto !important;
+
   top:75px;
   bottom:35px;
-  width:28px;
-  z-index:5;
+  width:42px;
+
+  z-index:10;
   pointer-events:none;
 
   background:
+    /* החור */
     radial-gradient(
-      circle at center,
-      #78a9c7 0 5px,
-      #d9edf7 6px 8px,
+      circle at 27px 14px,
+      #70a9c8 0 5px,
+      #d8edf7 6px 8px,
       transparent 9px
+    ),
+
+    /* החיבור האופקי של הסליל */
+    linear-gradient(
+      to right,
+      transparent 0 3px,
+      #7aa5bd 3px 27px,
+      transparent 27px
     );
 
-  background-size:28px 50px;
+  background-size:
+    42px 50px,
+    42px 50px;
+
   background-repeat:repeat-y;
+
+  background-position:
+    0 0,
+    0 12px;
 }
 
 
