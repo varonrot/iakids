@@ -1731,17 +1731,86 @@ console.log("SUBJECTS ERROR:", error);
       </div>
     `;
 
-    button.onclick = () => {
-      console.log("נבחר מקצוע:", subject);
-      console.log("כיתה:", grade);
+button.onclick = () => {
+  loadCategories(grade, subject);
+};
 
-      // בשלב הבא נחבר כאן את תתי-הנושאים
+    container.appendChild(button);
+  });
+}
+async function loadCategories(grade, subject) {
+  const container = document.getElementById("subjectsContainer");
+
+  if (!container) return;
+
+  const { data, error } = await sb
+    .from("learning_lessons")
+    .select("category, category_order")
+    .eq("grade", grade)
+    .eq("subject", subject)
+    .eq("is_active", true)
+    .order("category_order", { ascending: true });
+
+  if (error) {
+    console.error("LOAD CATEGORIES ERROR:", error);
+    return;
+  }
+
+  const uniqueCategories = [];
+  const seen = new Set();
+
+  data.forEach(row => {
+    if (!seen.has(row.category)) {
+      seen.add(row.category);
+      uniqueCategories.push(row);
+    }
+  });
+
+  container.innerHTML = "";
+
+  const backButton = document.createElement("button");
+
+  backButton.className = "side-item";
+
+  backButton.innerHTML = `
+    <i class="fa-solid fa-arrow-right"></i>
+    <div class="side-text">
+      <span class="side-title">חזרה למקצועות</span>
+    </div>
+  `;
+
+  backButton.onclick = () => {
+    loadSubjects(grade);
+  };
+
+  container.appendChild(backButton);
+
+  uniqueCategories.forEach(item => {
+    const button = document.createElement("button");
+
+    button.className = "side-item";
+
+    button.innerHTML = `
+      <i class="fa-solid fa-chevron-left"></i>
+      <div class="side-text">
+        <span class="side-title">${item.category}</span>
+      </div>
+    `;
+
+    button.onclick = () => {
+      console.log(
+        "נבחר:",
+        grade,
+        subject,
+        item.category
+      );
+
+      // בשלב הבא נחבר כאן את מסלול השיעורים
     };
 
     container.appendChild(button);
   });
 }
-
 
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
