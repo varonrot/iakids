@@ -1393,6 +1393,1769 @@ body::before{
   gap:18px;
   direction:rtl;
 }
+  /* =====================================================
+   SUBJECT CATEGORIES - SUB MENU
+   ===================================================== */
+
+#subjectsContainer{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  width:100%;
+  min-height:0;
+}
+
+/* כפתורי מקצוע ראשיים */
+#subjectsContainer .subject-item{
+  width:100%;
+}
+
+
+/* כפתור חזרה */
+#subjectsContainer .category-back{
+  min-height:48px !important;
+  border-radius:14px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(112,72,255,.15),
+      rgba(147,104,255,.10)
+    ) !important;
+
+  color:#5f3fe0 !important;
+
+  border:
+    1px solid
+    rgba(112,72,255,.18) !important;
+
+  box-shadow:none !important;
+
+  margin-bottom:4px;
+
+  font-size:14px !important;
+}
+
+
+/* תתי קטגוריות */
+#subjectsContainer .category-item{
+  width:100%;
+
+  min-height:52px !important;
+
+  border-radius:15px !important;
+
+  padding:0 12px !important;
+
+  display:flex;
+  align-items:center;
+
+  background:
+    rgba(255,255,255,.74) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.85) !important;
+
+  box-shadow:
+    0 4px 12px
+    rgba(45,52,110,.06) !important;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+}
+
+
+/* טקסט של תת קטגוריה */
+#subjectsContainer .category-item .side-title{
+  font-size:14px !important;
+  line-height:1.3 !important;
+
+  font-weight:800 !important;
+
+  color:#33406b !important;
+}
+
+
+/* האייקון של תת קטגוריה */
+#subjectsContainer .category-item i{
+  width:32px !important;
+  height:32px !important;
+
+  flex:0 0 32px !important;
+
+  border-radius:10px !important;
+
+  font-size:13px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8b66ff,
+      #7048ff
+    ) !important;
+
+  color:#fff !important;
+
+  box-shadow:
+    0 5px 12px
+    rgba(112,72,255,.18) !important;
+}
+
+
+/* מעבר עכבר */
+#subjectsContainer .category-item:hover{
+  background:
+    rgba(255,255,255,.96) !important;
+
+  transform:
+    translateX(-3px);
+
+  box-shadow:
+    0 7px 18px
+    rgba(45,52,110,.10) !important;
+}
+
+
+/* Scroll נקי */
+#subjectsContainer{
+  overflow-y:auto;
+  padding-left:3px;
+}
+
+#subjectsContainer::-webkit-scrollbar{
+  width:5px;
+}
+
+#subjectsContainer::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+#subjectsContainer::-webkit-scrollbar-thumb{
+  background:
+    rgba(112,72,255,.22);
+
+  border-radius:999px;
+}
+    /* =====================================================
+   INTEGRATED STUDENT DASHBOARD
+   ===================================================== */
+
+.dashboard-view,
+.learning-view{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+}
+
+.dashboard-view{
+  overflow:auto;
+  border-radius:26px;
+
+  background:transparent !important;
+  box-shadow:none !important;
+
+  padding:8px 10px 18px;
+}
+
+.learning-view{
+  position:relative;
+}
+
+
+.dash-wrapper{
+  width:100%;
+  min-height:100%;
+  margin:0 auto;
+}
+
+
+/* GLASS */
+
+.dash-glass{
+  background:rgba(255,255,255,.65);
+
+  border:
+    1px solid
+    rgba(255,255,255,.78);
+
+  box-shadow:
+    0 14px 35px
+    rgba(56,78,126,.14);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+}
+
+
+/* HERO */
+
+.dash-hero{
+  min-height:150px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  padding:20px 0 15px;
+}
+
+.dash-hero h1{
+  margin:0;
+
+  font-size:
+    clamp(
+      40px,
+      4vw,
+      62px
+    );
+
+  line-height:1;
+
+  color:#203865;
+
+  font-weight:900;
+
+  text-shadow:
+    0 3px 0
+    rgba(255,255,255,.6);
+}
+
+.dash-hero p{
+  margin:
+    14px
+    0
+    0;
+
+  font-size:21px;
+
+  font-weight:800;
+
+  color:#667bac;
+}
+
+
+/* MAIN DASH LAYOUT */
+
+.dash-layout{
+  display:grid;
+
+  grid-template-columns:
+    240px
+    minmax(0,1fr);
+
+  gap:20px;
+
+  direction:ltr;
+
+  align-items:start;
+}
+
+.dash-profile-column,
+.dash-content{
+  direction:rtl;
+
+  min-width:0;
+}
+
+
+/* LEFT PROFILE COLUMN */
+
+.dash-profile-column{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:12px;
+}
+
+
+.dash-student-stack{
+  position:relative;
+
+  min-height:350px;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:center;
+}
+
+
+.dash-student-character{
+  position:absolute;
+
+  inset:
+    -30px
+    0
+    65px;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:center;
+
+  pointer-events:none;
+}
+
+
+.dash-student-character img{
+  width:285px;
+
+  max-width:none;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 18px 22px
+      rgba(43,60,105,.20)
+    );
+}
+
+
+.dash-profile-card{
+  position:relative;
+
+  z-index:2;
+
+  width:100%;
+
+  padding:
+    14px
+    15px;
+
+  border-radius:24px;
+}
+
+
+.dash-profile-head{
+  display:flex;
+
+  align-items:center;
+
+  gap:10px;
+}
+
+
+.dash-avatar{
+  width:54px;
+
+  height:54px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:
+    3px solid
+    rgba(255,255,255,.8);
+}
+
+
+.dash-profile-name{
+  font-size:21px;
+
+  font-weight:900;
+}
+
+
+.dash-profile-class{
+  margin-top:3px;
+
+  color:#6176a5;
+
+  font-size:14px;
+}
+
+
+.dash-level-row{
+  margin-top:12px;
+
+  display:grid;
+
+  grid-template-columns:
+    auto
+    1fr
+    auto;
+
+  gap:8px;
+
+  align-items:center;
+}
+
+
+.dash-star-level{
+  width:47px;
+
+  height:47px;
+
+  display:grid;
+
+  place-items:center;
+
+  color:#fff;
+
+  font-size:18px;
+
+  font-weight:900;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe16e,
+      #ffad25
+    );
+
+  clip-path:
+    polygon(
+      50% 0,
+      61% 34%,
+      98% 36%,
+      69% 58%,
+      79% 94%,
+      50% 72%,
+      21% 94%,
+      31% 58%,
+      2% 36%,
+      39% 34%
+    );
+}
+
+
+.dash-level-info strong{
+  display:block;
+
+  font-size:13px;
+}
+
+
+.dash-level-info small{
+  font-size:11px;
+
+  color:#6176a5;
+}
+
+
+.dash-progress-line{
+  height:7px;
+
+  margin:
+    4px
+    0;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#d9d5ff;
+}
+
+
+.dash-progress-line span{
+  display:block;
+
+  width:65%;
+
+  height:100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #3487ff,
+      #ae70ed
+    );
+}
+
+
+.dash-gift{
+  font-size:27px;
+}
+
+
+/* WEEKLY */
+
+.dash-weekly-card,
+.dash-continue-card{
+  padding:14px;
+
+  border-radius:24px;
+}
+
+
+.dash-section-title{
+  margin:
+    0
+    0
+    11px;
+
+  font-size:17px;
+
+  font-weight:900;
+}
+
+
+.dash-weekly-stats{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:6px;
+}
+
+
+.dash-mini-stat{
+  padding:
+    10px
+    4px;
+
+  text-align:center;
+
+  border-radius:18px;
+
+  background:
+    rgba(255,255,255,.38);
+
+  border:
+    1px solid
+    rgba(255,255,255,.7);
+}
+
+
+.dash-mini-icon{
+  font-size:22px;
+}
+
+
+.dash-mini-stat strong{
+  display:block;
+
+  margin-top:3px;
+
+  font-size:16px;
+}
+
+
+.dash-mini-stat small{
+  font-size:10px;
+
+  color:#6176a5;
+
+  font-weight:800;
+}
+
+
+/* CONTINUE */
+
+.dash-continue-item{
+  display:grid;
+
+  grid-template-columns:
+    54px
+    1fr
+    36px;
+
+  align-items:center;
+
+  gap:8px;
+}
+
+
+.dash-continue-icon{
+  width:54px;
+
+  height:72px;
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #57d4f5,
+      #2188d9
+    );
+
+  display:grid;
+
+  place-items:center;
+
+  font-size:27px;
+}
+
+
+.dash-continue-text strong{
+  display:block;
+
+  font-size:16px;
+}
+
+
+.dash-continue-text span{
+  font-size:12px;
+
+  color:#6176a5;
+}
+
+
+.dash-continue-progress{
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+
+  margin-top:9px;
+
+  font-size:11px;
+}
+
+
+.dash-continue-bar{
+  flex:1;
+
+  height:7px;
+
+  background:#d9e2e9;
+
+  border-radius:999px;
+
+  overflow:hidden;
+}
+
+
+.dash-continue-bar span{
+  display:block;
+
+  width:60%;
+
+  height:100%;
+
+  background:#2ab879;
+}
+
+
+.dash-circle-btn{
+  width:36px;
+
+  height:36px;
+
+  border:0;
+
+  border-radius:50%;
+
+  background:#fff;
+
+  color:#4970bc;
+
+  font-size:20px;
+
+  cursor:pointer;
+}
+
+
+/* CONTENT */
+
+.dash-content{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:15px;
+}
+
+
+/* ACTION CARDS */
+
+.dash-action-cards{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(120px,1fr)
+    );
+
+  gap:11px;
+}
+
+
+.dash-action-card{
+  min-width:0;
+
+  min-height:285px;
+
+  padding:
+    17px
+    12px
+    14px;
+
+  border-radius:24px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.65);
+
+  color:#fff;
+
+  text-align:center;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 15px 26px
+    rgba(65,80,140,.18);
+
+  transition:
+    transform
+    .2s ease;
+}
+
+
+.dash-action-card:hover{
+  transform:
+    translateY(-4px);
+}
+
+
+.dash-blue{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(92,183,255,.90),
+      rgba(52,120,231,.90)
+    );
+}
+
+
+.dash-green{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(165,218,124,.90),
+      rgba(85,181,120,.90)
+    );
+}
+
+
+.dash-purple{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(183,120,238,.90),
+      rgba(124,80,223,.90)
+    );
+}
+
+
+.dash-orange{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,199,103,.90),
+      rgba(242,139,66,.90)
+    );
+}
+
+
+.dash-cyan{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(97,215,223,.90),
+      rgba(56,170,192,.90)
+    );
+}
+
+
+.dash-card-image{
+  width:145px;
+
+  height:105px;
+
+  object-fit:contain;
+
+  margin-bottom:4px;
+
+  filter:
+    drop-shadow(
+      0 10px 10px
+      rgba(42,54,96,.22)
+    );
+}
+
+
+.dash-action-card h3{
+  margin:
+    4px
+    0
+    7px;
+
+  font-size:21px;
+}
+
+
+.dash-action-card p{
+  margin:0;
+
+  min-height:45px;
+
+  font-size:13px;
+
+  line-height:1.45;
+}
+
+
+.dash-action-card button{
+  width:100%;
+
+  min-height:42px;
+
+  margin-top:auto;
+
+  border:0;
+
+  border-radius:999px;
+
+  background:
+    rgba(255,255,255,.86);
+
+  color:#2a68d5;
+
+  font-size:14px;
+
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+
+.dash-green button{
+  color:#2b8e5b;
+}
+
+
+.dash-purple button{
+  color:#7551d2;
+}
+
+
+.dash-orange button{
+  color:#d96f2a;
+}
+
+
+.dash-cyan button{
+  color:#228ca1;
+}
+
+
+/* MIDDLE */
+
+.dash-middle-row{
+  display:grid;
+
+  grid-template-columns:
+    1.55fr
+    1fr;
+
+  gap:13px;
+}
+
+
+.dash-progress-card,
+.dash-goals-card,
+.dash-recent-card{
+  border-radius:24px;
+
+  padding:
+    14px
+    17px;
+}
+
+
+.dash-progress-card{
+  min-height:145px;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    125px;
+
+  gap:12px;
+
+  align-items:center;
+}
+
+
+.dash-chart-wrap h3,
+.dash-goals-card h3,
+.dash-recent-card h3{
+  margin:
+    0
+    0
+    9px;
+
+  font-size:16px;
+}
+
+
+.dash-chart{
+  position:relative;
+
+  height:72px;
+
+  border-bottom:
+    1px solid
+    #cfd8ec;
+
+  background:
+    repeating-linear-gradient(
+      to top,
+      transparent
+      0
+      18px,
+      rgba(108,128,175,.12)
+      19px
+      20px
+    );
+}
+
+
+.dash-chart svg{
+  position:absolute;
+
+  inset:0;
+
+  width:100%;
+
+  height:100%;
+}
+
+
+.dash-days{
+  display:flex;
+
+  justify-content:space-between;
+
+  margin-top:5px;
+
+  font-size:11px;
+
+  color:#6176a5;
+}
+
+
+.dash-donut{
+  position:relative;
+
+  width:88px;
+
+  height:88px;
+
+  margin:auto;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #3b8cff
+      0
+      87%,
+      #dfe6f3
+      87%
+      100%
+    );
+
+  display:grid;
+
+  place-items:center;
+}
+
+
+.dash-donut::before{
+  content:"";
+
+  position:absolute;
+
+  width:64px;
+
+  height:64px;
+
+  border-radius:50%;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .92
+    );
+}
+
+
+.dash-donut strong{
+  position:relative;
+
+  font-size:23px;
+}
+
+
+.dash-donut-label{
+  margin-top:5px;
+
+  text-align:center;
+
+  font-size:11px;
+
+  color:#6176a5;
+
+  font-weight:800;
+}
+
+
+/* GOALS */
+
+.dash-goals-card{
+  position:relative;
+
+  overflow:hidden;
+
+  min-height:145px;
+}
+
+
+.dash-goal-list{
+  width:65%;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:8px;
+
+  font-size:11px;
+
+  color:#4f6493;
+}
+
+
+.dash-goal-item{
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+}
+
+
+.dash-check{
+  width:17px;
+
+  height:17px;
+
+  flex:none;
+
+  display:grid;
+
+  place-items:center;
+
+  border-radius:50%;
+
+  background:#2fbd7e;
+
+  color:#fff;
+
+  font-size:10px;
+}
+
+
+.dash-check.dash-empty{
+  background:transparent;
+
+  border:
+    2px solid
+    #aebbd6;
+}
+
+
+.dash-goal-image{
+  position:absolute;
+
+  left:10px;
+
+  bottom:4px;
+
+  width:120px;
+
+  height:110px;
+
+  object-fit:contain;
+}
+
+
+/* RECENT */
+
+.dash-recent-card{
+  min-height:100px;
+}
+
+
+.dash-recent-list{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      5,
+      1fr
+    );
+
+  gap:7px;
+}
+
+
+.dash-recent-item{
+  min-width:0;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  padding:
+    8px;
+
+  border-radius:16px;
+
+  background:
+    rgba(255,255,255,.38);
+
+  border:
+    1px solid
+    rgba(255,255,255,.7);
+}
+
+
+.dash-recent-icon{
+  width:38px;
+
+  height:38px;
+
+  border-radius:11px;
+
+  display:grid;
+
+  place-items:center;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(237,245,255,.85),
+      rgba(203,220,255,.85)
+    );
+
+  font-size:19px;
+
+  flex:none;
+}
+
+
+.dash-recent-item strong{
+  display:block;
+
+  font-size:11px;
+}
+
+
+.dash-recent-item small{
+  display:block;
+
+  margin-top:2px;
+
+  font-size:9px;
+
+  color:#6176a5;
+}
+
+
+/* NOTEBOOK VIEW */
+
+.learning-view .workspace{
+  height:100%;
+}
+
+
+/* TABLET */
+
+@media(max-width:1350px){
+
+  .dash-layout{
+    grid-template-columns:
+      210px
+      minmax(0,1fr);
+  }
+
+  .dash-card-image{
+    width:120px;
+
+    height:95px;
+  }
+
+  .dash-action-card h3{
+    font-size:18px;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media(max-width:900px){
+
+  .dashboard-view{
+    padding:10px;
+  }
+
+  .dash-layout{
+    display:flex;
+
+    flex-direction:column;
+  }
+
+  .dash-profile-column{
+    order:2;
+  }
+
+  .dash-content{
+    order:1;
+  }
+
+  .dash-action-cards{
+    grid-template-columns:
+      repeat(
+        2,
+        1fr
+      );
+  }
+
+  .dash-middle-row{
+    grid-template-columns:
+      1fr;
+  }
+
+  .dash-recent-list{
+    grid-template-columns:
+      repeat(
+        2,
+        1fr
+      );
+  }
+
+}
+
+
+@media(max-width:600px){
+
+  .dash-action-cards{
+    grid-template-columns:
+      1fr;
+  }
+
+  .dash-recent-list{
+    grid-template-columns:
+      1fr;
+  }
+
+}
+/* ===== הגדלת הדשבורד במסך מחשב ===== */
+
+@media (min-width:1351px){
+
+  .dash-layout{
+    grid-template-columns:260px minmax(0,1fr);
+    gap:22px;
+  }
+
+  .dash-action-card{
+    min-height:310px;
+  }
+
+  .dash-card-image{
+    width:165px;
+    height:120px;
+  }
+
+  .dash-action-card h3{
+    font-size:23px;
+  }
+
+  .dash-action-card p{
+    font-size:14px;
+  }
+
+  .dash-hero{
+    min-height:165px;
+  }
+
+  .dash-hero h1{
+    font-size:66px;
+  }
+
+}
+    /* =====================================================
+   DASHBOARD TYPOGRAPHY + RESPONSIVE FIX
+   ===================================================== */
+
+/* ---------- DESKTOP ---------- */
+
+@media (min-width:1351px){
+
+  .dash-hero h1{
+    font-size:70px !important;
+  }
+
+  .dash-hero p{
+    font-size:25px !important;
+  }
+
+  .dash-action-card{
+    min-height:330px !important;
+    padding:22px 16px 18px !important;
+  }
+
+  .dash-card-image{
+    width:180px !important;
+    height:130px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:27px !important;
+    margin:8px 0 10px !important;
+  }
+
+  .dash-action-card p{
+    font-size:17px !important;
+    line-height:1.55 !important;
+    min-height:58px !important;
+  }
+
+  .dash-action-card button{
+    min-height:50px !important;
+    font-size:17px !important;
+  }
+
+  .dash-profile-name{
+    font-size:25px !important;
+  }
+
+  .dash-profile-class{
+    font-size:17px !important;
+  }
+
+  .dash-level-info strong{
+    font-size:15px !important;
+  }
+
+  .dash-level-info small{
+    font-size:13px !important;
+  }
+
+  .dash-section-title{
+    font-size:21px !important;
+  }
+
+  .dash-mini-stat strong{
+    font-size:20px !important;
+  }
+
+  .dash-mini-stat small{
+    font-size:12px !important;
+  }
+
+  .dash-continue-text strong{
+    font-size:19px !important;
+  }
+
+  .dash-continue-text span{
+    font-size:14px !important;
+  }
+
+  .dash-chart-wrap h3,
+  .dash-goals-card h3,
+  .dash-recent-card h3{
+    font-size:20px !important;
+  }
+
+  .dash-goal-list{
+    font-size:14px !important;
+  }
+
+  .dash-recent-item strong{
+    font-size:14px !important;
+  }
+
+  .dash-recent-item small{
+    font-size:11px !important;
+  }
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width:1350px) and (min-width:901px){
+
+  .dashboard-view{
+    padding:10px 12px 20px !important;
+  }
+
+  .dash-hero{
+    min-height:125px !important;
+  }
+
+  .dash-hero h1{
+    font-size:52px !important;
+  }
+
+  .dash-hero p{
+    font-size:20px !important;
+  }
+
+  .dash-layout{
+    grid-template-columns:210px minmax(0,1fr) !important;
+    gap:15px !important;
+  }
+
+  .dash-action-cards{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+
+  .dash-action-card{
+    min-height:285px !important;
+  }
+
+  .dash-card-image{
+    width:145px !important;
+    height:110px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:22px !important;
+  }
+
+  .dash-action-card p{
+    font-size:15px !important;
+  }
+
+  .dash-action-card button{
+    font-size:15px !important;
+  }
+
+  .dash-middle-row{
+    grid-template-columns:1fr !important;
+  }
+
+  .dash-recent-list{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+
+  .dash-profile-name{
+    font-size:21px !important;
+  }
+
+  .dash-section-title{
+    font-size:18px !important;
+  }
+}
+
+/* =====================================================
+   MOBILE DASHBOARD FIX
+   ===================================================== */
+
+@media (max-width:900px){
+
+  .dashboard-view{
+    width:100% !important;
+    height:100% !important;
+    padding:8px 8px 30px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    border-radius:0 !important;
+  }
+
+  .dash-wrapper{
+    width:100% !important;
+    margin:0 !important;
+  }
+
+
+  /* כותרת */
+
+  .dash-hero{
+    min-height:auto !important;
+    padding:22px 8px 18px !important;
+  }
+
+  .dash-hero h1{
+    font-size:38px !important;
+    line-height:1.1 !important;
+  }
+
+  .dash-hero p{
+    margin-top:8px !important;
+    font-size:18px !important;
+  }
+
+
+  /* מבנה */
+
+  .dash-layout{
+    display:flex !important;
+    flex-direction:column !important;
+    width:100% !important;
+    gap:18px !important;
+  }
+
+  .dash-content{
+    order:1 !important;
+    width:100% !important;
+  }
+
+  .dash-profile-column{
+    order:2 !important;
+    width:100% !important;
+  }
+
+
+  /* =====================================
+     הכרטיסים הראשיים
+     2 כרטיסים בכל שורה
+     ===================================== */
+
+  .dash-action-cards{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+
+  .dash-action-card{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:235px !important;
+
+    padding:14px 8px 12px !important;
+
+    border-radius:22px !important;
+  }
+
+  .dash-card-image{
+    width:105px !important;
+    height:80px !important;
+    margin:0 auto 5px !important;
+  }
+
+  .dash-action-card h3{
+    margin:5px 0 6px !important;
+
+    font-size:20px !important;
+    line-height:1.2 !important;
+  }
+
+  .dash-action-card p{
+    min-height:42px !important;
+
+    margin:0 0 10px !important;
+
+    font-size:13px !important;
+    line-height:1.35 !important;
+  }
+
+  .dash-action-card button{
+    min-height:42px !important;
+
+    padding:5px 7px !important;
+
+    font-size:13px !important;
+
+    margin-top:auto !important;
+  }
+
+
+  /* =====================================
+     התקדמות + יעדים
+     ===================================== */
+
+  .dash-middle-row{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px !important;
+  }
+
+  .dash-progress-card{
+    width:100% !important;
+
+    display:grid !important;
+
+    grid-template-columns:
+      minmax(0,1fr)
+      90px !important;
+
+    min-height:150px !important;
+
+    padding:14px !important;
+  }
+
+  .dash-chart{
+    height:70px !important;
+  }
+
+  .dash-donut{
+    width:76px !important;
+    height:76px !important;
+  }
+
+  .dash-donut::before{
+    width:55px !important;
+    height:55px !important;
+  }
+
+  .dash-donut strong{
+    font-size:19px !important;
+  }
+
+  .dash-goals-card{
+    width:100% !important;
+    min-height:150px !important;
+  }
+
+  .dash-goal-list{
+    width:68% !important;
+    font-size:12px !important;
+  }
+
+  .dash-goal-image{
+    width:95px !important;
+    height:90px !important;
+  }
+
+
+  /* =====================================
+     נושאים אחרונים
+     ===================================== */
+
+  .dash-recent-list{
+    grid-template-columns:
+      repeat(2,minmax(0,1fr)) !important;
+
+    gap:7px !important;
+  }
+
+  .dash-recent-item{
+    padding:8px !important;
+  }
+
+  .dash-recent-icon{
+    width:36px !important;
+    height:36px !important;
+  }
+
+  .dash-recent-item strong{
+    font-size:12px !important;
+  }
+
+  .dash-recent-item small{
+    font-size:10px !important;
+  }
+
+
+  /* =====================================
+     אזור הילד
+     ===================================== */
+
+  .dash-student-stack{
+    min-height:280px !important;
+  }
+
+  .dash-student-character{
+    inset:-20px 0 65px !important;
+  }
+
+  .dash-student-character img{
+    width:210px !important;
+  }
+
+  .dash-profile-card{
+    max-width:420px !important;
+    margin:0 auto !important;
+  }
+
+  .dash-weekly-card,
+  .dash-continue-card{
+    width:100% !important;
+    max-width:420px !important;
+    margin:0 auto !important;
+  }
+
+}
+    @media(max-width:600px){
+
+  .dash-action-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  .dash-action-card{
+    min-height:220px !important;
+    padding:12px 7px 10px !important;
+  }
+
+  .dash-card-image{
+    width:90px !important;
+    height:72px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:18px !important;
+  }
+
+  .dash-action-card p{
+    font-size:12px !important;
+    line-height:1.3 !important;
+  }
+
+  .dash-action-card button{
+    min-height:39px !important;
+    font-size:12px !important;
+  }
+
+}
+    /* במובייל מסתירים את כרטיס משחקי הלימוד */
+@media (max-width:900px){
+  .dash-action-card.dash-cyan{
+    display:none !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -1493,7 +3256,11 @@ body::before{
 <aside class="sidebar">
   <button class="new-task" data-ask="homework">＋ משימה חדשה</button>
   <div class="kid-actions">
-    <button class="side-item active" onclick="window.location.href='/he/app/'">
+    <button
+  class="side-item active"
+  id="homeSidebarBtn"
+  onclick="showDashboard()"
+>
   <i class="fa-solid fa-house"></i>
   <div class="side-text">
     <span class="side-title">דף הבית</span>
@@ -1528,35 +3295,624 @@ body::before{
 </aside>
 
 <main class="main">
-  <section class="workspace">
-    <div class="welcome"><img id="heroAvatar" alt="" style="display:none"><h1 id="heroGreeting">בואו נפתור יחד!</h1><p>אפשר לשאול שאלה, להעלות תרגיל או לצלם את המחברת — המורה AI יעזור שלב אחרי שלב.</p></div>
-    <div class="messages">
-      <div class="empty-state" id="emptyState">
-        <div class="upload-zone">
-          <div class="upload-icon"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
-          <h2>העלו תמונה של התרגיל</h2>
-          <p>גררו תמונה לכאן או לחצו לבחירת קובץ</p>
-          <p>תמיכה ב־JPG, PNG, PDF</p>
-          <button class="photo-btn"><i class="fa-solid fa-camera"></i> צלמו תמונה עכשיו</button>
-        </div>
-        <div class="helper-stack">
-          <div class="helper-card"><span class="emo">🧠</span><strong>מסביר בצורה פשוטה</strong><small>שלב אחרי שלב ובקצב שמתאים לכם.</small></div>
-          <div class="helper-card"><span class="emo">🎯</span><strong>עוזר להגיע לתשובה</strong><small>המורה מכוון ולא רק נותן את הפתרון.</small></div>
-          <div class="helper-card"><span class="emo">✨</span><strong>לומדים לעשות לבד</strong><small>מבינים את הדרך כדי להצליח גם בפעם הבאה.</small></div>
-        </div>
+
+  <!-- =====================================================
+       HOME DASHBOARD
+       ===================================================== -->
+  <section id="dashboardView" class="dashboard-view">
+
+    <div class="dash-wrapper">
+
+      <!-- כותרת -->
+      <section class="dash-hero">
+        <h1 id="dashboardGreeting">👋 שלום!</h1>
+        <p>מה נלמד היום?</p>
+      </section>
+
+
+      <div class="dash-layout">
+
+        <!-- צד שמאל בתוך הדשבורד -->
+        <aside class="dash-profile-column">
+
+          <div class="dash-student-stack">
+
+            <div class="dash-student-character">
+              <img
+                src="/assets/characters/student-boy-large.png"
+                alt=""
+              >
+            </div>
+
+            <section class="dash-profile-card dash-glass">
+
+              <div class="dash-profile-head">
+
+                <img
+                  id="dashboardKidAvatar"
+                  class="dash-avatar"
+                  src=""
+                  alt=""
+                >
+
+                <div>
+                  <div
+                    id="dashboardKidName"
+                    class="dash-profile-name"
+                  >
+                    הילד
+                  </div>
+
+                  <div
+                    id="dashboardKidGrade"
+                    class="dash-profile-class"
+                  >
+                    כיתה
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="dash-level-row">
+
+                <div class="dash-star-level">
+                  12
+                </div>
+
+                <div class="dash-level-info">
+
+                  <strong>רמה</strong>
+
+                  <div class="dash-progress-line">
+                    <span></span>
+                  </div>
+
+                  <small>320 / 500</small>
+
+                </div>
+
+                <div class="dash-gift">
+                  🎁
+                </div>
+
+              </div>
+
+            </section>
+
+          </div>
+
+
+          <!-- הישגים -->
+          <section class="dash-weekly-card dash-glass">
+
+            <h3 class="dash-section-title">
+              ההישגים השבוע
+            </h3>
+
+            <div class="dash-weekly-stats">
+
+              <div class="dash-mini-stat">
+                <div class="dash-mini-icon">⭐</div>
+                <strong>125</strong>
+                <small>נקודות</small>
+              </div>
+
+              <div class="dash-mini-stat">
+                <div class="dash-mini-icon">🏆</div>
+                <strong>7</strong>
+                <small>גביעים</small>
+              </div>
+
+              <div class="dash-mini-stat">
+                <div class="dash-mini-icon">⚡</div>
+                <strong>12</strong>
+                <small>רצף ימים</small>
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <!-- המשך ללמוד -->
+          <section class="dash-continue-card dash-glass">
+
+            <h3 class="dash-section-title">
+              המשך ללמוד
+            </h3>
+
+            <div class="dash-continue-item">
+
+              <div class="dash-continue-icon">
+                📖
+              </div>
+
+              <div class="dash-continue-text">
+
+                <strong>שברים</strong>
+                <span>מתמטיקה</span>
+
+                <div class="dash-continue-progress">
+
+                  <div class="dash-continue-bar">
+                    <span></span>
+                  </div>
+
+                  <b>60%</b>
+
+                </div>
+
+              </div>
+
+              <button
+                class="dash-circle-btn"
+                onclick="showLearning('continue')"
+              >
+                ←
+              </button>
+
+            </div>
+
+          </section>
+
+        </aside>
+
+
+        <!-- אזור מרכזי -->
+        <section class="dash-content">
+
+          <!-- 5 כרטיסים -->
+          <div class="dash-action-cards">
+
+            <!-- שיעורי בית -->
+            <article class="dash-action-card dash-blue">
+
+              <img
+                class="dash-card-image"
+                src="/assets/cards/homework-camera.webp"
+                alt=""
+              >
+
+              <h3>שיעורי בית</h3>
+
+              <p>
+                צלם את הדף ואעזור לך לפתור
+                שלב אחרי שלב
+              </p>
+
+              <button onclick="showLearning('homework')">
+                📷 צלם עכשיו
+              </button>
+
+            </article>
+
+
+            <!-- הכנה למבחן -->
+            <article class="dash-action-card dash-green">
+
+              <img
+                class="dash-card-image"
+                src="/assets/cards/exam-book.webp"
+                alt=""
+              >
+
+              <h3>הכנה למבחן</h3>
+
+              <p>
+                סיכומים, שאלות וכרטיסיות
+                חכמות
+              </p>
+
+              <button onclick="showLearning('exam')">
+                📗 התחל הכנה
+              </button>
+
+            </article>
+
+
+            <!-- תרגול -->
+            <article class="dash-action-card dash-purple">
+
+              <img
+                class="dash-card-image"
+                src="/assets/cards/practice-pencil.webp"
+                alt=""
+              >
+
+              <h3>תרגול</h3>
+
+              <p>
+                תרגילים מותאמים לך
+                לכל נושא
+              </p>
+
+              <button onclick="showLearning('practice')">
+                ◼ בחר נושא
+              </button>
+
+            </article>
+
+
+            <!-- קריאה -->
+            <article class="dash-action-card dash-orange">
+
+              <img
+                class="dash-card-image"
+                src="/assets/cards/reading-headphones.webp"
+                alt=""
+              >
+
+              <h3>קריאה</h3>
+
+              <p>
+                קרא בקול ואעזור לך
+                לשפר את השטף
+              </p>
+
+              <button onclick="showLearning('reading')">
+                🎙 התחל קריאה
+              </button>
+
+            </article>
+
+
+            <!-- משחקים -->
+            <article class="dash-action-card dash-cyan">
+
+              <img
+                class="dash-card-image"
+                src="/assets/cards/learning-game.webp"
+                alt=""
+              >
+
+              <h3>משחקי לימוד</h3>
+
+              <p>
+                לומדים ממשחקים
+                ומרוויחים כוכבים
+              </p>
+
+              <button onclick="showLearning('games')">
+                🎮 שחק עכשיו
+              </button>
+
+            </article>
+
+          </div>
+
+
+          <!-- התקדמות + יעדים -->
+          <div class="dash-middle-row">
+
+            <section class="dash-progress-card dash-glass">
+
+              <div class="dash-chart-wrap">
+
+                <h3>ההתקדמות שלי</h3>
+
+                <div class="dash-chart">
+
+                  <svg
+                    viewBox="0 0 500 100"
+                    preserveAspectRatio="none"
+                  >
+
+                    <polyline
+                      points="
+                        0,77
+                        55,65
+                        110,65
+                        165,48
+                        220,34
+                        275,57
+                        330,22
+                        385,32
+                        440,12
+                      "
+                      fill="none"
+                      stroke="#2f7df4"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+
+                    <g
+                      fill="#ffffff"
+                      stroke="#2f7df4"
+                      stroke-width="3"
+                    >
+
+                      <circle cx="0" cy="77" r="4"/>
+                      <circle cx="55" cy="65" r="4"/>
+                      <circle cx="110" cy="65" r="4"/>
+                      <circle cx="165" cy="48" r="4"/>
+                      <circle cx="220" cy="34" r="4"/>
+                      <circle cx="275" cy="57" r="4"/>
+                      <circle cx="330" cy="22" r="4"/>
+                      <circle cx="385" cy="32" r="4"/>
+                      <circle cx="440" cy="12" r="4"/>
+
+                    </g>
+
+                  </svg>
+
+                </div>
+
+                <div class="dash-days">
+                  <span>א׳</span>
+                  <span>ב׳</span>
+                  <span>ג׳</span>
+                  <span>ד׳</span>
+                  <span>ה׳</span>
+                  <span>ו׳</span>
+                  <span>ש׳</span>
+                </div>
+
+              </div>
+
+
+              <div class="dash-donut-area">
+
+                <div class="dash-donut">
+                  <strong>87%</strong>
+                </div>
+
+                <div class="dash-donut-label">
+                  התקדמות כללית
+                </div>
+
+              </div>
+
+            </section>
+
+
+            <!-- יעדים -->
+            <section class="dash-goals-card dash-glass">
+
+              <h3>
+                היעדים שלי
+              </h3>
+
+              <div class="dash-goal-list">
+
+                <div class="dash-goal-item">
+                  <span class="dash-check">✓</span>
+                  <span>
+                    פתור 10 תרגילים במתמטיקה
+                  </span>
+                </div>
+
+                <div class="dash-goal-item">
+                  <span class="dash-check">✓</span>
+                  <span>
+                    קרא קטע באנגלית
+                  </span>
+                </div>
+
+                <div class="dash-goal-item">
+                  <span class="dash-check dash-empty"></span>
+                  <span>
+                    למד 5 מילים חדשות
+                  </span>
+                </div>
+
+              </div>
+
+              <img
+                class="dash-goal-image"
+                src="/assets/illustrations/goals-target.webp"
+                alt=""
+              >
+
+            </section>
+
+          </div>
+
+
+          <!-- נושאים אחרונים -->
+          <section class="dash-recent-card dash-glass">
+
+            <h3>
+              נושאים אחרונים שלמדת
+            </h3>
+
+            <div class="dash-recent-list">
+
+              <div class="dash-recent-item">
+                <div class="dash-recent-icon">📊</div>
+                <div>
+                  <strong>שברים</strong>
+                  <small>מתמטיקה</small>
+                </div>
+              </div>
+
+              <div class="dash-recent-item">
+                <div class="dash-recent-icon">Aa</div>
+                <div>
+                  <strong>אנגלית</strong>
+                  <small>קריאה</small>
+                </div>
+              </div>
+
+              <div class="dash-recent-item">
+                <div class="dash-recent-icon">❤️</div>
+                <div>
+                  <strong>מערכות בגוף</strong>
+                  <small>מדעים</small>
+                </div>
+              </div>
+
+              <div class="dash-recent-item">
+                <div class="dash-recent-icon">➗</div>
+                <div>
+                  <strong>כפל וחילוק</strong>
+                  <small>מתמטיקה</small>
+                </div>
+              </div>
+
+              <div class="dash-recent-item">
+                <div class="dash-recent-icon">➕</div>
+                <div>
+                  <strong>חיבור</strong>
+                  <small>מתמטיקה</small>
+                </div>
+              </div>
+
+            </div>
+
+          </section>
+
+        </section>
+
       </div>
+
     </div>
-    <div class="composer-wrap">
-      <div class="input">
-        <button class="send-btn" aria-label="שליחה">שליחה</button>
-        <input placeholder="כתבו הודעה למורה AI...">
-        <button class="composer-icon" title="צרף תמונה"><i class="fa-solid fa-paperclip"></i></button>
-        <button class="talk-btn" title="דיבור"><i class="fa-solid fa-microphone"></i></button>
-      </div>
-      <div class="composer-note">המורה AI יכול לטעות. כדאי לבדוק מידע חשוב.</div>
-    </div>
-    <div class="notebook-rocket"></div>
+
   </section>
+
+
+  <!-- =====================================================
+       LEARNING / NOTEBOOK VIEW
+       זה ה-Workspace המקורי שלך
+       ===================================================== -->
+
+  <section
+    id="learningView"
+    class="learning-view"
+    style="display:none;"
+  >
+
+    <section class="workspace">
+
+      <div class="welcome">
+
+        <img
+          id="heroAvatar"
+          alt=""
+          style="display:none"
+        >
+
+        <h1 id="heroGreeting">
+          בואו נפתור יחד!
+        </h1>
+
+        <p id="learningSubtitle">
+          אפשר לשאול שאלה, להעלות תרגיל או לצלם את המחברת —
+          המורה AI יעזור שלב אחרי שלב.
+        </p>
+
+      </div>
+
+
+      <div class="messages">
+
+        <div
+          class="empty-state"
+          id="emptyState"
+        >
+
+          <div class="upload-zone">
+
+            <div class="upload-icon">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </div>
+
+            <h2>
+              העלו תמונה של התרגיל
+            </h2>
+
+            <p>
+              גררו תמונה לכאן או לחצו לבחירת קובץ
+            </p>
+
+            <p>
+              תמיכה ב־JPG, PNG, PDF
+            </p>
+
+            <button class="photo-btn">
+              <i class="fa-solid fa-camera"></i>
+              צלמו תמונה עכשיו
+            </button>
+
+          </div>
+
+
+          <div class="helper-stack">
+
+            <div class="helper-card">
+              <span class="emo">🧠</span>
+              <strong>מסביר בצורה פשוטה</strong>
+              <small>
+                שלב אחרי שלב ובקצב שמתאים לכם.
+              </small>
+            </div>
+
+            <div class="helper-card">
+              <span class="emo">🎯</span>
+              <strong>עוזר להגיע לתשובה</strong>
+              <small>
+                המורה מכוון ולא רק נותן את הפתרון.
+              </small>
+            </div>
+
+            <div class="helper-card">
+              <span class="emo">✨</span>
+              <strong>לומדים לעשות לבד</strong>
+              <small>
+                מבינים את הדרך כדי להצליח גם בפעם הבאה.
+              </small>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="composer-wrap">
+
+        <div class="input">
+
+          <button
+            class="send-btn"
+            aria-label="שליחה"
+          >
+            שליחה
+          </button>
+
+          <input
+            placeholder="כתבו הודעה למורה AI..."
+          >
+
+          <button
+            class="composer-icon"
+            title="צרף תמונה"
+          >
+            <i class="fa-solid fa-paperclip"></i>
+          </button>
+
+          <button
+            class="talk-btn"
+            title="דיבור"
+          >
+            <i class="fa-solid fa-microphone"></i>
+          </button>
+
+        </div>
+
+        <div class="composer-note">
+          המורה AI יכול לטעות. כדאי לבדוק מידע חשוב.
+        </div>
+
+      </div>
+
+      <div class="notebook-rocket"></div>
+
+    </section>
+
+  </section>
+
 </main>
 
 <aside class="rightbar">
@@ -1731,17 +4087,86 @@ console.log("SUBJECTS ERROR:", error);
       </div>
     `;
 
-    button.onclick = () => {
-      console.log("נבחר מקצוע:", subject);
-      console.log("כיתה:", grade);
+button.onclick = () => {
+  loadCategories(grade, subject);
+};
 
-      // בשלב הבא נחבר כאן את תתי-הנושאים
+    container.appendChild(button);
+  });
+}
+async function loadCategories(grade, subject) {
+  const container = document.getElementById("subjectsContainer");
+
+  if (!container) return;
+
+  const { data, error } = await sb
+    .from("learning_lessons")
+    .select("category, category_order")
+    .eq("grade", grade)
+    .eq("subject", subject)
+    .eq("is_active", true)
+    .order("category_order", { ascending: true });
+
+  if (error) {
+    console.error("LOAD CATEGORIES ERROR:", error);
+    return;
+  }
+
+  const uniqueCategories = [];
+  const seen = new Set();
+
+  data.forEach(row => {
+    if (!seen.has(row.category)) {
+      seen.add(row.category);
+      uniqueCategories.push(row);
+    }
+  });
+
+  container.innerHTML = "";
+
+  const backButton = document.createElement("button");
+
+  backButton.className = "side-item";
+
+  backButton.innerHTML = `
+    <i class="fa-solid fa-arrow-right"></i>
+    <div class="side-text">
+      <span class="side-title">חזרה למקצועות</span>
+    </div>
+  `;
+
+  backButton.onclick = () => {
+    loadSubjects(grade);
+  };
+
+  container.appendChild(backButton);
+
+  uniqueCategories.forEach(item => {
+    const button = document.createElement("button");
+
+    button.className = "side-item";
+
+    button.innerHTML = `
+      <i class="fa-solid fa-chevron-left"></i>
+      <div class="side-text">
+        <span class="side-title">${item.category}</span>
+      </div>
+    `;
+
+    button.onclick = () => {
+      console.log(
+        "נבחר:",
+        grade,
+        subject,
+        item.category
+      );
+
+      // בשלב הבא נחבר כאן את מסלול השיעורים
     };
 
     container.appendChild(button);
   });
 }
-
 
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
@@ -1810,6 +4235,69 @@ CURRENT_KID.grade = Number(kid.age);
 await loadSubjects(CURRENT_KID.grade);
 
 const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+
+
+/* =====================================
+   UPDATE DASHBOARD CHILD DATA
+   ===================================== */
+
+const dashboardGreeting =
+  document.getElementById("dashboardGreeting");
+
+const dashboardKidName =
+  document.getElementById("dashboardKidName");
+
+const dashboardKidGrade =
+  document.getElementById("dashboardKidGrade");
+
+const dashboardKidAvatar =
+  document.getElementById("dashboardKidAvatar");
+
+
+if (dashboardGreeting) {
+  dashboardGreeting.textContent =
+    `👋 שלום ${kid.child_name}!`;
+}
+
+if (dashboardKidName) {
+  dashboardKidName.textContent =
+    kid.child_name;
+}
+
+if (dashboardKidGrade) {
+
+  const gradeNames = {
+    1: "א׳",
+    2: "ב׳",
+    3: "ג׳",
+    4: "ד׳",
+    5: "ה׳",
+    6: "ו׳"
+  };
+
+  dashboardKidGrade.textContent =
+    `כיתה ${gradeNames[CURRENT_KID.grade] || CURRENT_KID.grade}`;
+}
+
+if (dashboardKidAvatar) {
+  dashboardKidAvatar.src = avatarUrl;
+}
+
+
+/* הקוד הקיים ממשיך מכאן */
+
+document.getElementById("rightbarAvatar").src = avatarUrl;
+document.getElementById("rightbarName").textContent = kid.child_name;
+
+window.KID_AVATAR_URL = avatarUrl;
+
+document.getElementById("heroGreeting").textContent =
+  `היי ${kid.child_name}, מה נלמד היום?`;
+
+document.getElementById("heroAvatar").src = avatarUrl;
+
+window.ACTIVE_KID_ID = kid.id;
+
   document.getElementById("rightbarAvatar").src = avatarUrl;
   document.getElementById("rightbarName").textContent = kid.child_name;
 
@@ -2433,4 +4921,222 @@ document.addEventListener("DOMContentLoaded",()=>{
   alt="הרובוט המורה"
   class="floating-tutor-robot"
 >
+<script>
+
+/* =====================================================
+   WORKSPACE VIEW MANAGER
+   ===================================================== */
+
+function showDashboard(){
+
+  const dashboard =
+    document.getElementById("dashboardView");
+
+  const learning =
+    document.getElementById("learningView");
+
+  if(dashboard){
+    dashboard.style.display = "block";
+  }
+
+  if(learning){
+    learning.style.display = "none";
+  }
+
+
+  /* כפתור דף הבית פעיל */
+
+  document
+    .querySelectorAll(".side-item")
+    .forEach(btn => {
+
+      btn.classList.remove("active");
+
+    });
+
+
+  const homeBtn =
+    document.getElementById(
+      "homeSidebarBtn"
+    );
+
+  if(homeBtn){
+
+    homeBtn.classList.add(
+      "active"
+    );
+
+  }
+
+}
+
+
+function showLearning(mode = "homework"){
+
+  const dashboard =
+    document.getElementById(
+      "dashboardView"
+    );
+
+  const learning =
+    document.getElementById(
+      "learningView"
+    );
+
+
+  if(dashboard){
+
+    dashboard.style.display =
+      "none";
+
+  }
+
+
+  if(learning){
+
+    learning.style.display =
+      "block";
+
+  }
+
+
+  document
+    .querySelectorAll(
+      ".side-item"
+    )
+    .forEach(btn => {
+
+      btn.classList.remove(
+        "active"
+      );
+
+    });
+
+
+  setLearningMode(mode);
+
+}
+
+
+/* =====================================================
+   LEARNING MODE
+   ===================================================== */
+
+function setLearningMode(mode){
+
+  const title =
+    document.getElementById(
+      "heroGreeting"
+    );
+
+  const subtitle =
+    document.getElementById(
+      "learningSubtitle"
+    );
+
+
+  if(!title || !subtitle){
+    return;
+  }
+
+
+  const kidName =
+    window.CURRENT_KID?.child_name
+    || "";
+
+
+  switch(mode){
+
+
+    case "homework":
+
+      title.textContent =
+        `היי ${kidName}, בוא נפתור את שיעורי הבית!`;
+
+      subtitle.textContent =
+        "צלמו או העלו את התרגיל ונפתור אותו יחד שלב אחרי שלב.";
+
+      break;
+
+
+    case "exam":
+
+      title.textContent =
+        `היי ${kidName}, מתכוננים למבחן!`;
+
+      subtitle.textContent =
+        "נלמד את החומר, נתרגל שאלות ונבדוק מה כבר יודעים.";
+
+      break;
+
+
+    case "practice":
+
+      title.textContent =
+        `היי ${kidName}, בוא נתרגל!`;
+
+      subtitle.textContent =
+        "בחרו נושא ונפתור יחד תרגילים שמתאימים בדיוק לרמה שלכם.";
+
+      break;
+
+
+    case "reading":
+
+      title.textContent =
+        `היי ${kidName}, זמן לקריאה!`;
+
+      subtitle.textContent =
+        "בואו נקרא יחד ונשפר את הקריאה וההבנה.";
+
+      break;
+
+
+    case "games":
+
+      title.textContent =
+        `היי ${kidName}, לומדים ומשחקים!`;
+
+      subtitle.textContent =
+        "בחרו משחק לימודי והתחילו לצבור נקודות וכוכבים.";
+
+      break;
+
+
+    case "continue":
+
+      title.textContent =
+        `ממשיכים מאיפה שהפסקנו`;
+
+      subtitle.textContent =
+        "בואו נמשיך את השיעור האחרון שלכם.";
+
+      break;
+
+
+    default:
+
+      title.textContent =
+        `היי ${kidName}, מה נלמד היום?`;
+
+      subtitle.textContent =
+        "המורה AI כאן כדי ללמוד איתכם שלב אחרי שלב.";
+
+  }
+
+}
+
+
+/* ברירת מחדל בכניסה */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    showDashboard();
+
+  }
+);
+
+</script>
 </body></html>
