@@ -1555,18 +1555,10 @@ body::before{
   overflow:auto;
   border-radius:26px;
 
-  background:
-    linear-gradient(
-      rgba(255,255,255,.05),
-      rgba(255,255,255,.05)
-    ),
-    url("/assets/backgrounds/student-dashboard.webp")
-    center center / cover no-repeat;
+  background:transparent !important;
+  box-shadow:none !important;
 
-  box-shadow:
-    0 18px 50px rgba(44,52,110,.10);
-
-  padding:14px 22px 28px;
+  padding:8px 10px 18px;
 }
 
 .learning-view{
@@ -1575,7 +1567,7 @@ body::before{
 
 
 .dash-wrapper{
-  width:min(1280px,100%);
+  width:100%;
   min-height:100%;
   margin:0 auto;
 }
@@ -2691,6 +2683,41 @@ body::before{
   .dash-recent-list{
     grid-template-columns:
       1fr;
+  }
+
+}
+/* ===== הגדלת הדשבורד במסך מחשב ===== */
+
+@media (min-width:1351px){
+
+  .dash-layout{
+    grid-template-columns:260px minmax(0,1fr);
+    gap:22px;
+  }
+
+  .dash-action-card{
+    min-height:310px;
+  }
+
+  .dash-card-image{
+    width:165px;
+    height:120px;
+  }
+
+  .dash-action-card h3{
+    font-size:23px;
+  }
+
+  .dash-action-card p{
+    font-size:14px;
+  }
+
+  .dash-hero{
+    min-height:165px;
+  }
+
+  .dash-hero h1{
+    font-size:66px;
   }
 
 }
