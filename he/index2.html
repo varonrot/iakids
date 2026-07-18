@@ -12334,7 +12334,7 @@ b{
   }
 
 }
- 
+
   .handwriting-text{
   display:inline-block;
   direction:rtl;
@@ -12868,7 +12868,7 @@ b{
                   </span>
                 </div>
 
- 
+
 
               </div>
 
@@ -15162,7 +15162,216 @@ if (backToTop) {
     console.log("Supabase connected", data, error);
   });
 </script>
+<script>
 
+async function updateNavbar() {
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.error("Session error:", error);
+    return;
+  }
+
+  const session = data?.session;
+
+  const navActions = document.getElementById("navActions");
+  const mobileActions = document.querySelector(".mobile-actions");
+
+
+  /* =========================
+     משתמש מחובר
+  ========================= */
+
+  if (session) {
+
+    const user = session.user;
+
+    const avatarUrl =
+      user.user_metadata?.avatar_url ||
+      user.user_metadata?.picture ||
+      null;
+
+    const displayName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email ||
+      "החשבון שלי";
+
+
+    /* מחשב */
+
+    if (navActions) {
+
+      navActions.innerHTML = `
+
+        <div class="user-menu">
+
+          ${
+            avatarUrl
+              ? `
+                <img
+                  src="${avatarUrl}"
+                  class="user-avatar"
+                  alt="תמונת משתמש"
+                >
+              `
+              : `
+                <div class="user-avatar-fallback">
+                  👤
+                </div>
+              `
+          }
+
+          <span class="user-email">
+            ${displayName}
+          </span>
+
+          <a
+            href="/he/workspace/"
+            class="nav-cta"
+          >
+            🚀 המשך ללמידה
+          </a>
+
+          <button
+            type="button"
+            class="logout-btn"
+            id="logoutBtn"
+          >
+            יציאה
+          </button>
+
+        </div>
+
+      `;
+
+
+      document
+        .getElementById("logoutBtn")
+        ?.addEventListener("click", async () => {
+
+          await supabaseClient.auth.signOut();
+
+          window.location.reload();
+
+        });
+
+    }
+
+
+    /* מובייל */
+
+    if (mobileActions) {
+
+      mobileActions.innerHTML = `
+
+        <a
+          href="/he/workspace/"
+          class="mobile-cta"
+        >
+          🚀 המשך ללמידה
+        </a>
+
+        <button
+          type="button"
+          class="mobile-login"
+          id="mobileLogoutBtn"
+        >
+          יציאה
+        </button>
+
+      `;
+
+
+      document
+        .getElementById("mobileLogoutBtn")
+        ?.addEventListener("click", async () => {
+
+          await supabaseClient.auth.signOut();
+
+          window.location.reload();
+
+        });
+
+    }
+
+  }
+
+
+  /* =========================
+     משתמש לא מחובר
+  ========================= */
+
+  else {
+
+    if (navActions) {
+
+      navActions.innerHTML = `
+
+        <a
+          href="/he/onboarding/cuenta/"
+          class="nav-login"
+        >
+          👨‍👩‍👧 כניסת הורים
+        </a>
+
+        <a
+          href="/he/onboarding/"
+          class="nav-cta"
+        >
+          🚀 מתחילים ללמוד
+        </a>
+
+      `;
+
+    }
+
+
+    if (mobileActions) {
+
+      mobileActions.innerHTML = `
+
+        <a
+          href="/he/onboarding/cuenta/"
+          class="mobile-login"
+        >
+          👨‍👩‍👧 כניסת הורים
+        </a>
+
+        <a
+          href="/he/onboarding/"
+          class="mobile-cta"
+        >
+          🚀 מתחילים ללמוד
+        </a>
+
+      `;
+
+    }
+
+  }
+
+}
+
+
+/* בדיקה בטעינת הדף */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  updateNavbar
+);
+
+
+/* עדכון אוטומטי בהתחברות או התנתקות */
+
+supabaseClient.auth.onAuthStateChange(() => {
+
+  updateNavbar();
+
+});
+
+</script>
 <script>
 /* Hamburger */
 const burger = document.getElementById("navBurger");
