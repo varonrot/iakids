@@ -2721,6 +2721,337 @@ body::before{
   }
 
 }
+    /* =====================================================
+   DASHBOARD TYPOGRAPHY + RESPONSIVE FIX
+   ===================================================== */
+
+/* ---------- DESKTOP ---------- */
+
+@media (min-width:1351px){
+
+  .dash-hero h1{
+    font-size:70px !important;
+  }
+
+  .dash-hero p{
+    font-size:25px !important;
+  }
+
+  .dash-action-card{
+    min-height:330px !important;
+    padding:22px 16px 18px !important;
+  }
+
+  .dash-card-image{
+    width:180px !important;
+    height:130px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:27px !important;
+    margin:8px 0 10px !important;
+  }
+
+  .dash-action-card p{
+    font-size:17px !important;
+    line-height:1.55 !important;
+    min-height:58px !important;
+  }
+
+  .dash-action-card button{
+    min-height:50px !important;
+    font-size:17px !important;
+  }
+
+  .dash-profile-name{
+    font-size:25px !important;
+  }
+
+  .dash-profile-class{
+    font-size:17px !important;
+  }
+
+  .dash-level-info strong{
+    font-size:15px !important;
+  }
+
+  .dash-level-info small{
+    font-size:13px !important;
+  }
+
+  .dash-section-title{
+    font-size:21px !important;
+  }
+
+  .dash-mini-stat strong{
+    font-size:20px !important;
+  }
+
+  .dash-mini-stat small{
+    font-size:12px !important;
+  }
+
+  .dash-continue-text strong{
+    font-size:19px !important;
+  }
+
+  .dash-continue-text span{
+    font-size:14px !important;
+  }
+
+  .dash-chart-wrap h3,
+  .dash-goals-card h3,
+  .dash-recent-card h3{
+    font-size:20px !important;
+  }
+
+  .dash-goal-list{
+    font-size:14px !important;
+  }
+
+  .dash-recent-item strong{
+    font-size:14px !important;
+  }
+
+  .dash-recent-item small{
+    font-size:11px !important;
+  }
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width:1350px) and (min-width:901px){
+
+  .dashboard-view{
+    padding:10px 12px 20px !important;
+  }
+
+  .dash-hero{
+    min-height:125px !important;
+  }
+
+  .dash-hero h1{
+    font-size:52px !important;
+  }
+
+  .dash-hero p{
+    font-size:20px !important;
+  }
+
+  .dash-layout{
+    grid-template-columns:210px minmax(0,1fr) !important;
+    gap:15px !important;
+  }
+
+  .dash-action-cards{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+
+  .dash-action-card{
+    min-height:285px !important;
+  }
+
+  .dash-card-image{
+    width:145px !important;
+    height:110px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:22px !important;
+  }
+
+  .dash-action-card p{
+    font-size:15px !important;
+  }
+
+  .dash-action-card button{
+    font-size:15px !important;
+  }
+
+  .dash-middle-row{
+    grid-template-columns:1fr !important;
+  }
+
+  .dash-recent-list{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+
+  .dash-profile-name{
+    font-size:21px !important;
+  }
+
+  .dash-section-title{
+    font-size:18px !important;
+  }
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width:900px){
+
+  .dashboard-view{
+    overflow-y:auto !important;
+    padding:8px !important;
+  }
+
+  .dash-wrapper{
+    width:100% !important;
+  }
+
+  .dash-hero{
+    min-height:100px !important;
+    padding:16px 0 12px !important;
+  }
+
+  .dash-hero h1{
+    font-size:36px !important;
+  }
+
+  .dash-hero p{
+    font-size:18px !important;
+  }
+
+  .dash-layout{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:14px !important;
+  }
+
+  .dash-content{
+    order:1 !important;
+  }
+
+  .dash-profile-column{
+    order:2 !important;
+  }
+
+  .dash-action-cards{
+    grid-template-columns:repeat(2,1fr) !important;
+    gap:10px !important;
+  }
+
+  .dash-action-card{
+    min-height:260px !important;
+    padding:16px 12px 14px !important;
+  }
+
+  .dash-card-image{
+    width:120px !important;
+    height:95px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:20px !important;
+  }
+
+  .dash-action-card p{
+    font-size:14px !important;
+    line-height:1.45 !important;
+  }
+
+  .dash-action-card button{
+    min-height:44px !important;
+    font-size:14px !important;
+  }
+
+  .dash-middle-row{
+    grid-template-columns:1fr !important;
+  }
+
+  .dash-progress-card{
+    grid-template-columns:1fr 110px !important;
+  }
+
+  .dash-recent-list{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+
+  .dash-profile-column{
+    width:100% !important;
+  }
+
+  .dash-student-stack{
+    min-height:320px !important;
+  }
+
+  .dash-student-character img{
+    width:230px !important;
+  }
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+   ===================================================== */
+
+@media (max-width:600px){
+
+  .dash-hero h1{
+    font-size:31px !important;
+  }
+
+  .dash-hero p{
+    font-size:16px !important;
+  }
+
+  .dash-action-cards{
+    grid-template-columns:1fr !important;
+  }
+
+  .dash-action-card{
+    min-height:280px !important;
+  }
+
+  .dash-card-image{
+    width:150px !important;
+    height:115px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:23px !important;
+  }
+
+  .dash-action-card p{
+    font-size:15px !important;
+  }
+
+  .dash-action-card button{
+    font-size:16px !important;
+  }
+
+  .dash-progress-card{
+    display:flex !important;
+    flex-direction:column !important;
+  }
+
+  .dash-goal-list{
+    width:100% !important;
+    padding-bottom:90px !important;
+    font-size:13px !important;
+  }
+
+  .dash-recent-list{
+    grid-template-columns:1fr !important;
+  }
+
+  .dash-recent-item strong{
+    font-size:14px !important;
+  }
+
+  .dash-recent-item small{
+    font-size:11px !important;
+  }
+
+  .dash-weekly-stats{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+}
 </style>
 </head>
 <body>
