@@ -3827,7 +3827,7 @@ body::before{
 }
 
 /* =====================================================
-   תחנת שיעור
+   LEARNING PATH CARDS
 ===================================================== */
 
 .learning-path-node{
@@ -3838,13 +3838,12 @@ body::before{
   min-height:170px;
 
   padding:
-    34px
-    20px
-    24px;
+    36px
+    18px
+    34px;
 
   display:flex;
   flex-direction:column;
-
   align-items:center;
   justify-content:center;
 
@@ -3852,50 +3851,49 @@ body::before{
 
   border:
     4px solid
-    rgba(255,255,255,.95);
+    rgba(255,255,255,.98);
 
   border-radius:
-    42px
-    42px
-    34px
-    34px;
+    40px
+    40px
+    32px
+    32px;
 
   background:
     linear-gradient(
       180deg,
-      rgba(255,255,255,.98),
-      rgba(247,248,244,.96)
+      #fffef9 0%,
+      #f7f8f2 100%
     );
 
   box-shadow:
-    0 14px 28px
-    rgba(60,80,90,.22),
-    inset 0 0 0 2px
-    rgba(214,220,190,.65);
+    0 10px 0 rgba(181,190,162,.45),
+    0 17px 30px rgba(45,65,90,.20),
+    inset 0 0 0 2px rgba(215,220,190,.75);
 
   cursor:pointer;
 
   transition:
     transform .2s ease,
-    box-shadow .2s ease;
+    box-shadow .2s ease,
+    filter .2s ease;
 }
-/* מיקום התחנות על השביל */
 
 
-.learning-path-node:hover{
-  transform:
-    translateY(-5px);
+/* hover */
+
+.learning-path-node:not(.locked):hover{
+  transform:translateY(-7px);
 
   box-shadow:
-    0 20px 34px
-    rgba(60,80,90,.28),
-    inset 0 0 0 2px
-    rgba(214,220,190,.65);
+    0 10px 0 rgba(181,190,162,.45),
+    0 23px 38px rgba(45,65,90,.26),
+    inset 0 0 0 2px rgba(215,220,190,.75);
 }
 
 
 /* =====================================================
-   מספר השיעור
+   LESSON NUMBER
 ===================================================== */
 
 .learning-path-number{
@@ -3904,8 +3902,7 @@ body::before{
   top:-24px;
   left:50%;
 
-  transform:
-    translateX(-50%);
+  transform:translateX(-50%);
 
   width:52px;
   height:52px;
@@ -3918,7 +3915,7 @@ body::before{
   background:
     linear-gradient(
       145deg,
-      #9a72ff,
+      #9c74ff,
       #6643db
     );
 
@@ -3930,26 +3927,26 @@ body::before{
   border:4px solid #fff;
 
   box-shadow:
-    0 6px 16px
-    rgba(92,65,220,.30);
+    0 6px 16px rgba(92,65,220,.34);
 }
 
 
 /* =====================================================
-   טקסט התחנה
+   TEXT
 ===================================================== */
 
 .learning-path-node h3{
   margin:
-    18px
+    16px
     0
-    5px;
+    6px;
 
   font-size:19px;
-
   line-height:1.35;
 
-  color:#28366b;
+  color:#27346b;
+
+  font-weight:900;
 }
 
 
@@ -3961,7 +3958,137 @@ body::before{
 
 
 /* =====================================================
-   CHECKPOINT - תחנת אתגר
+   STATUS ICON
+===================================================== */
+
+.learning-path-status{
+  position:absolute;
+
+  left:50%;
+  bottom:-22px;
+
+  transform:translateX(-50%);
+
+  width:46px;
+  height:46px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  border:4px solid #fff;
+
+  font-size:21px;
+  font-weight:900;
+
+  box-shadow:
+    0 5px 13px rgba(40,60,90,.22);
+}
+
+
+/* =====================================================
+   COMPLETED
+===================================================== */
+
+.learning-path-node.completed{
+  border-color:
+    rgba(255,255,255,.98);
+}
+
+
+.learning-path-node.completed
+.learning-path-status{
+  background:
+    linear-gradient(
+      145deg,
+      #56cc62,
+      #2fa944
+    );
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   CURRENT LESSON
+===================================================== */
+
+.learning-path-node.current{
+  border-color:#9b72ff;
+
+  box-shadow:
+    0 10px 0 rgba(160,120,240,.30),
+    0 18px 38px rgba(108,70,220,.30),
+    inset 0 0 0 2px rgba(187,156,255,.55);
+}
+
+
+.learning-path-node.current
+.learning-path-status{
+  background:
+    linear-gradient(
+      145deg,
+      #9b72ff,
+      #6844dc
+    );
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   LOCKED
+===================================================== */
+
+.learning-path-node.locked{
+  background:
+    linear-gradient(
+      180deg,
+      #f5f6f8,
+      #e8ebf0
+    );
+
+  border-color:
+    rgba(255,255,255,.92);
+
+  box-shadow:
+    0 9px 0 rgba(150,158,172,.35),
+    0 14px 25px rgba(50,60,80,.14),
+    inset 0 0 0 2px rgba(190,195,205,.55);
+
+  cursor:not-allowed;
+
+  filter:saturate(.65);
+}
+
+
+.learning-path-node.locked
+.learning-path-number{
+  background:
+    linear-gradient(
+      145deg,
+      #929aaa,
+      #667080
+    );
+}
+
+
+.learning-path-node.locked
+.learning-path-status{
+  background:
+    linear-gradient(
+      145deg,
+      #808999,
+      #5e6673
+    );
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   CHECKPOINT
 ===================================================== */
 
 .learning-path-node.checkpoint{
@@ -3974,14 +4101,12 @@ body::before{
       #ffc85c
     );
 
-  border-color:
-    rgba(255,255,255,.98);
+  border-color:#fff;
 
   box-shadow:
-    0 16px 34px
-    rgba(190,130,30,.26),
-    inset 0 0 0 2px
-    rgba(255,220,120,.70);
+    0 10px 0 rgba(210,150,35,.38),
+    0 18px 34px rgba(190,130,30,.28),
+    inset 0 0 0 2px rgba(255,220,120,.75);
 }
 
 
@@ -3999,6 +4124,11 @@ body::before{
 .learning-path-node.checkpoint
 .learning-path-number{
   display:none;
+}
+
+
+.learning-path-node.checkpoint.locked::before{
+  opacity:.75;
 }
 
 
@@ -6292,10 +6422,6 @@ document
   );
 
 }
-/* =====================================================
-   RENDER LEARNING PATH
-   ===================================================== */
-
 function renderLearningPath(
   lessons
 ){
@@ -6311,8 +6437,7 @@ function renderLearningPath(
   }
 
 
-  container.innerHTML =
-    "";
+  container.innerHTML = "";
 
 
   if(
@@ -6321,18 +6446,26 @@ function renderLearningPath(
   ){
 
     container.innerHTML = `
-
-      <div
-        class="learning-path-loading"
-      >
+      <div class="learning-path-loading">
         עדיין אין שיעורים במסלול הזה.
       </div>
-
     `;
 
     return;
 
   }
+
+
+  /*
+  זמני בלבד עד שנחבר טבלת progress.
+
+  3 שיעורים ראשונים הושלמו,
+  שיעור 4 הוא השיעור הנוכחי,
+  וכל השאר נעולים.
+  */
+
+  const completedUntil = 3;
+  const currentLessonOrder = 4;
 
 
   lessons.forEach(
@@ -6344,13 +6477,18 @@ function renderLearningPath(
         );
 
 
-      node.type =
-        "button";
-
+      node.type = "button";
 
       node.className =
         "learning-path-node";
 
+
+      let statusIcon = "";
+
+
+      /*
+      CHECKPOINT
+      */
 
       if(
         lesson.is_checkpoint
@@ -6359,6 +6497,67 @@ function renderLearningPath(
         node.classList.add(
           "checkpoint"
         );
+
+        node.classList.add(
+          "locked"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-lock"></i>`;
+
+      }
+
+
+      /*
+      COMPLETED
+      */
+
+      else if(
+        lesson.lesson_order
+        <= completedUntil
+      ){
+
+        node.classList.add(
+          "completed"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-check"></i>`;
+
+      }
+
+
+      /*
+      CURRENT
+      */
+
+      else if(
+        lesson.lesson_order
+        === currentLessonOrder
+      ){
+
+        node.classList.add(
+          "current"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-play"></i>`;
+
+      }
+
+
+      /*
+      LOCKED
+      */
+
+      else{
+
+        node.classList.add(
+          "locked"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-lock"></i>`;
 
       }
 
@@ -6389,17 +6588,37 @@ function renderLearningPath(
 
         </small>
 
+
+        <span
+          class="learning-path-status"
+        >
+          ${statusIcon}
+        </span>
+
       `;
 
 
-      node.onclick =
-        () => {
+      /*
+      רק שיעור פתוח או שהושלם
+      ניתן ללחיצה כרגע
+      */
 
-          startSelectedLesson(
-            lesson
-          );
+      if(
+        !node.classList.contains(
+          "locked"
+        )
+      ){
 
-        };
+        node.onclick =
+          () => {
+
+            startSelectedLesson(
+              lesson
+            );
+
+          };
+
+      }
 
 
       container.appendChild(
