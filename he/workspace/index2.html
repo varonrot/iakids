@@ -3613,6 +3613,516 @@ body::before{
   }
 
 }
+    /* =====================================================
+   DYNAMIC LEARNING PATH
+   ===================================================== */
+
+.learning-path-view{
+  width:100%;
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+  position:relative;
+  border-radius:26px;
+}
+
+
+.learning-path-screen{
+  position:relative;
+
+  width:100%;
+  height:100%;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+
+  padding:24px 28px 50px;
+
+  background-image:
+    url("/assets/backgrounds/learning-path-bg.webp") !important;
+
+  background-size:cover !important;
+  background-position:center center !important;
+  background-repeat:no-repeat !important;
+
+  border-radius:26px;
+}
+
+
+/* כותרת */
+
+.learning-path-header{
+  position:relative;
+  z-index:3;
+
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+
+  text-align:center;
+
+  min-height:130px;
+
+  padding:10px 80px 20px;
+}
+
+
+.learning-path-subject{
+  display:inline-block;
+
+  padding:7px 16px;
+
+  margin-bottom:8px;
+
+  border-radius:999px;
+
+  background:rgba(255,255,255,.78);
+
+  font-size:15px;
+  font-weight:900;
+
+  color:#5f43df;
+
+  backdrop-filter:blur(10px);
+}
+
+
+.learning-path-header h1{
+  margin:0;
+
+  font-size:42px;
+
+  color:#203865;
+
+  font-weight:900;
+
+  text-shadow:
+    0 3px 0 rgba(255,255,255,.65);
+}
+
+
+.learning-path-header p{
+  margin:8px 0 0;
+
+  font-size:17px;
+  font-weight:700;
+
+  color:#5c6f9d;
+}
+
+
+.learning-path-back{
+  position:absolute;
+
+  right:0;
+  top:10px;
+
+  min-height:44px;
+
+  padding:0 16px;
+
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  border:0;
+  border-radius:14px;
+
+  background:rgba(255,255,255,.85);
+
+  color:#5140c9;
+
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 7px 20px
+    rgba(50,70,120,.12);
+}
+
+ /* =====================================================
+   אזור התחנות - מסלול למידה
+===================================================== */
+
+.learning-path-container{
+  position:relative;
+
+  width:min(1100px,100%);
+  min-height:700px;
+
+  margin:0 auto;
+
+  padding:
+    40px
+    35px
+    90px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,minmax(0,1fr));
+
+  gap:
+    70px
+    34px;
+
+  align-items:center;
+  justify-items:center;
+}
+
+/* =====================================================
+   סדר מסלול נחש בדסקטופ
+
+   שורה ראשונה:
+   4  3  2  1
+
+   שורה שנייה:
+   5  6  7  CHECKPOINT
+===================================================== */
+
+/* שורה ראשונה */
+
+.learning-path-node:nth-child(1){
+  grid-row:1;
+  grid-column:1;
+}
+
+.learning-path-node:nth-child(2){
+  grid-row:1;
+  grid-column:2;
+}
+
+.learning-path-node:nth-child(3){
+  grid-row:1;
+  grid-column:3;
+}
+
+.learning-path-node:nth-child(4){
+  grid-row:1;
+  grid-column:4;
+}
+
+
+/* שורה שנייה - הופכים כיוון */
+
+.learning-path-node:nth-child(5){
+  grid-row:2;
+  grid-column:4;
+}
+
+.learning-path-node:nth-child(6){
+  grid-row:2;
+  grid-column:3;
+}
+
+.learning-path-node:nth-child(7){
+  grid-row:2;
+  grid-column:2;
+}
+
+.learning-path-node:nth-child(8){
+  grid-row:2;
+  grid-column:1;
+}
+
+/* =====================================================
+   תחנת שיעור
+===================================================== */
+
+.learning-path-node{
+  position:relative;
+  z-index:2;
+
+  width:210px;
+  min-height:170px;
+
+  padding:
+    34px
+    20px
+    24px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border:
+    4px solid
+    rgba(255,255,255,.95);
+
+  border-radius:
+    42px
+    42px
+    34px
+    34px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.98),
+      rgba(247,248,244,.96)
+    );
+
+  box-shadow:
+    0 14px 28px
+    rgba(60,80,90,.22),
+    inset 0 0 0 2px
+    rgba(214,220,190,.65);
+
+  cursor:pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+/* מיקום התחנות על השביל */
+
+
+.learning-path-node:hover{
+  transform:
+    translateY(-5px);
+
+  box-shadow:
+    0 20px 34px
+    rgba(60,80,90,.28),
+    inset 0 0 0 2px
+    rgba(214,220,190,.65);
+}
+
+
+/* =====================================================
+   מספר השיעור
+===================================================== */
+
+.learning-path-number{
+  position:absolute;
+
+  top:-24px;
+  left:50%;
+
+  transform:
+    translateX(-50%);
+
+  width:52px;
+  height:52px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #9a72ff,
+      #6643db
+    );
+
+  color:#fff;
+
+  font-size:21px;
+  font-weight:900;
+
+  border:4px solid #fff;
+
+  box-shadow:
+    0 6px 16px
+    rgba(92,65,220,.30);
+}
+
+
+/* =====================================================
+   טקסט התחנה
+===================================================== */
+
+.learning-path-node h3{
+  margin:
+    18px
+    0
+    5px;
+
+  font-size:19px;
+
+  line-height:1.35;
+
+  color:#28366b;
+}
+
+
+.learning-path-node small{
+  font-size:12px;
+
+  color:#7180a5;
+}
+
+
+/* =====================================================
+   CHECKPOINT - תחנת אתגר
+===================================================== */
+
+.learning-path-node.checkpoint{
+  min-height:190px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe89a,
+      #ffc85c
+    );
+
+  border-color:
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 16px 34px
+    rgba(190,130,30,.26),
+    inset 0 0 0 2px
+    rgba(255,220,120,.70);
+}
+
+
+.learning-path-node.checkpoint::before{
+  content:"🏆";
+
+  display:block;
+
+  font-size:48px;
+
+  margin-bottom:8px;
+}
+
+
+.learning-path-node.checkpoint
+.learning-path-number{
+  display:none;
+}
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.learning-path-loading{
+  position:relative;
+  z-index:3;
+
+  padding:
+    25px
+    35px;
+
+  border-radius:22px;
+
+  background:
+    rgba(255,255,255,.85);
+
+  font-size:18px;
+  font-weight:900;
+
+  color:#53618b;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:760px){
+
+  .learning-path-screen{
+    padding:
+      18px
+      10px
+      40px;
+
+    border-radius:20px;
+  }
+
+
+  .learning-path-header{
+    min-height:125px;
+
+    padding:
+      55px
+      8px
+      15px;
+  }
+
+
+  .learning-path-header h1{
+    font-size:29px;
+  }
+
+
+  .learning-path-header p{
+    font-size:14px;
+  }
+
+
+  .learning-path-back{
+    top:5px;
+    right:5px;
+  }
+
+
+  .learning-path-container{
+    width:100%;
+
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+
+    gap:
+      55px
+      14px;
+
+    padding:
+      35px
+      10px
+      70px;
+  }
+
+
+  .learning-path-node{
+    width:100%;
+    max-width:190px;
+
+    min-height:150px;
+
+    padding:
+      30px
+      12px
+      20px;
+  }
+
+
+  .learning-path-number{
+    width:44px;
+    height:44px;
+
+    top:-20px;
+
+    font-size:18px;
+  }
+
+
+  .learning-path-node h3{
+    font-size:16px;
+  }
+
+
+  .learning-path-node small{
+    font-size:11px;
+  }
+
+
+  .learning-path-node.checkpoint{
+    min-height:165px;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -4227,7 +4737,60 @@ body::before{
 
   </section>
 
+<!-- =====================================================
+     DYNAMIC LEARNING PATH VIEW
+     ===================================================== -->
 
+<section
+  id="learningPathView"
+  class="learning-path-view"
+  style="display:none;"
+>
+
+  <div class="learning-path-screen">
+
+    <div class="learning-path-header">
+
+      <button
+        type="button"
+        class="learning-path-back"
+        onclick="backFromLearningPath()"
+      >
+        <i class="fa-solid fa-arrow-right"></i>
+        חזרה
+      </button>
+
+      <div>
+
+        <div
+          id="learningPathSubject"
+          class="learning-path-subject"
+        >
+        </div>
+
+        <h1 id="learningPathTitle">
+          מסלול הלמידה
+        </h1>
+
+        <p id="learningPathSubtitle">
+          בואו נתקדם יחד, שיעור אחרי שיעור
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="learningPathContainer"
+      class="learning-path-container"
+    >
+      <!-- השיעורים ייווצרו כאן אוטומטית -->
+    </div>
+
+  </div>
+
+</section>
   <!-- =====================================================
        LEARNING / NOTEBOOK VIEW
        זה ה-Workspace המקורי שלך
@@ -4901,19 +5464,448 @@ async function loadCategories(grade, subject) {
       </div>
     `;
 
-    button.onclick = () => {
-      console.log(
-        "נבחר:",
-        grade,
-        subject,
-        item.category
+button.onclick = () => {
+
+  loadLearningPath(
+    grade,
+    subject,
+    item.category
+  );
+
+  /* במובייל סוגרים את הסרגל */
+
+  if (
+    window.innerWidth <= 760
+  ) {
+
+    document
+      .querySelector(
+        ".sidebar"
+      )
+      ?.classList
+      .remove(
+        "open"
       );
 
-      // בשלב הבא נחבר כאן את מסלול השיעורים
-    };
+  }
+
+};
+
+
 
     container.appendChild(button);
   });
+}
+
+
+/* =====================================================
+   LOAD DYNAMIC LEARNING PATH
+   ===================================================== */
+
+let CURRENT_PATH = null;
+
+
+async function loadLearningPath(
+  grade,
+  subject,
+  category
+){
+
+  const dashboard =
+    document.getElementById(
+      "dashboardView"
+    );
+
+  const learning =
+    document.getElementById(
+      "learningView"
+    );
+
+  const pathView =
+    document.getElementById(
+      "learningPathView"
+    );
+
+  const container =
+    document.getElementById(
+      "learningPathContainer"
+    );
+
+
+  if(dashboard){
+    dashboard.style.display =
+      "none";
+  }
+
+
+  if(learning){
+    learning.style.display =
+      "none";
+  }
+
+
+  if(pathView){
+    pathView.style.display =
+      "block";
+  }
+
+
+  if(container){
+
+    container.innerHTML = `
+
+      <div
+        class="learning-path-loading"
+      >
+        📚 טוענים את מסלול הלמידה...
+      </div>
+
+    `;
+
+  }
+
+
+  /* עדכון כותרות */
+
+  const subjectEl =
+    document.getElementById(
+      "learningPathSubject"
+    );
+
+  const titleEl =
+    document.getElementById(
+      "learningPathTitle"
+    );
+
+
+  if(subjectEl){
+    subjectEl.textContent =
+      subject;
+  }
+
+
+  if(titleEl){
+    titleEl.textContent =
+      `המסע שלי ב${category}`;
+  }
+
+
+  /* שליפה מ-Supabase */
+
+  const {
+    data:
+      lessons,
+
+    error
+
+  } = await sb
+
+    .from(
+      "learning_lessons"
+    )
+
+    .select(`
+      id,
+      grade,
+      subject,
+      category,
+      lesson_order,
+      lesson_name,
+      is_checkpoint
+    `)
+
+    .eq(
+      "grade",
+      grade
+    )
+
+    .eq(
+      "subject",
+      subject
+    )
+
+    .eq(
+      "category",
+      category
+    )
+
+    .eq(
+      "is_active",
+      true
+    )
+
+    .order(
+      "lesson_order",
+      {
+        ascending:true
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "LOAD LEARNING PATH ERROR:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div
+        class="learning-path-loading"
+      >
+        לא הצלחנו לטעון את המסלול 😕
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  CURRENT_PATH = {
+
+    grade,
+
+    subject,
+
+    category,
+
+    lessons:
+      lessons || []
+
+  };
+
+
+  renderLearningPath(
+    lessons || []
+  );
+
+}
+/* =====================================================
+   RENDER LEARNING PATH
+   ===================================================== */
+
+function renderLearningPath(
+  lessons
+){
+
+  const container =
+    document.getElementById(
+      "learningPathContainer"
+    );
+
+
+  if(!container){
+    return;
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  if(
+    !lessons ||
+    lessons.length === 0
+  ){
+
+    container.innerHTML = `
+
+      <div
+        class="learning-path-loading"
+      >
+        עדיין אין שיעורים במסלול הזה.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  lessons.forEach(
+    lesson => {
+
+      const node =
+        document.createElement(
+          "button"
+        );
+
+
+      node.type =
+        "button";
+
+
+      node.className =
+        "learning-path-node";
+
+
+      if(
+        lesson.is_checkpoint
+      ){
+
+        node.classList.add(
+          "checkpoint"
+        );
+
+      }
+
+
+      node.innerHTML = `
+
+        <span
+          class="learning-path-number"
+        >
+          ${lesson.lesson_order}
+        </span>
+
+
+        <h3>
+          ${lesson.lesson_name}
+        </h3>
+
+
+        <small>
+
+          ${
+            lesson.is_checkpoint
+
+              ? "אתגר מסכם"
+
+              : `שיעור ${lesson.lesson_order}`
+          }
+
+        </small>
+
+      `;
+
+
+      node.onclick =
+        () => {
+
+          startSelectedLesson(
+            lesson
+          );
+
+        };
+
+
+      container.appendChild(
+        node
+      );
+
+    }
+  );
+
+}
+
+/* =====================================================
+   START SELECTED LESSON
+   ===================================================== */
+
+function startSelectedLesson(
+  lesson
+){
+
+  console.log(
+    "START LESSON:",
+    lesson
+  );
+
+
+  /*
+  שומרים את השיעור שנבחר.
+  בשלב הבא מנוע ה-AI יוכל להשתמש בו.
+  */
+
+  window.SELECTED_LESSON = {
+
+    lesson_id:
+      lesson.id,
+
+    grade:
+      lesson.grade,
+
+    subject:
+      lesson.subject,
+
+    category:
+      lesson.category,
+
+    lesson_name:
+      lesson.lesson_name,
+
+    lesson_order:
+      lesson.lesson_order,
+
+    is_checkpoint:
+      lesson.is_checkpoint
+
+  };
+
+
+  /*
+  עוברים למסך השיעור הקיים
+  */
+
+  showLearning(
+    "lesson"
+  );
+
+
+  const title =
+    document.getElementById(
+      "heroGreeting"
+    );
+
+
+  const subtitle =
+    document.getElementById(
+      "learningSubtitle"
+    );
+
+
+  if(title){
+
+    title.textContent =
+      lesson.is_checkpoint
+
+        ? `🏆 ${lesson.lesson_name}`
+
+        : lesson.lesson_name;
+
+  }
+
+
+  if(subtitle){
+
+    subtitle.textContent =
+      `${lesson.subject} • ${lesson.category}`;
+
+  }
+
+}
+function backFromLearningPath(){
+
+  if(
+    CURRENT_PATH?.grade &&
+    CURRENT_PATH?.subject
+  ){
+
+    loadCategories(
+      CURRENT_PATH.grade,
+      CURRENT_PATH.subject
+    );
+
+  }
+
+
+  showDashboard();
+
 }
 
 (async () => {
@@ -6075,6 +7067,13 @@ function showDashboard(){
   const learning =
     document.getElementById("learningView");
 
+    const pathView =
+  document.getElementById(
+    "learningPathView"
+  );
+
+
+
   if(dashboard){
     dashboard.style.display = "block";
   }
@@ -6083,6 +7082,9 @@ function showDashboard(){
     learning.style.display = "none";
   }
 
+if(pathView){
+  pathView.style.display = "none";
+}
 
   /* כפתור דף הבית פעיל */
 
@@ -6123,6 +7125,13 @@ function showLearning(mode = "homework"){
       "learningView"
     );
 
+    const pathView =
+  document.getElementById(
+    "learningPathView"
+  );
+
+
+
 
   if(dashboard){
 
@@ -6139,6 +7148,12 @@ function showLearning(mode = "homework"){
 
   }
 
+if(pathView){
+
+  pathView.style.display =
+    "none";
+
+}
 
   document
     .querySelectorAll(
