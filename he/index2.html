@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gveret+Levin&display=swap" rel="stylesheet">
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCBGGLL7R"></script>
 <script>
@@ -5202,62 +5203,29 @@ nav {
   min-height:235px;
 }
 
-.writing-row{
-  position:relative;
+ .writing-row{
+  min-height:55px;
 
-  min-height:48px;
+  direction:rtl;
+  text-align:right;
 
-  display:flex;
-  align-items:center;
+  font-family:"Gveret Levin", cursive;
+  font-size:30px;
+  line-height:1.8;
+  color:#26314f;
 
-  overflow:hidden;
+  opacity:1 !important;
+  width:100%;
 }
 
 .handwriting-text{
-  display:inline-block;
-
-  max-width:0;
-
-  overflow:hidden;
-  white-space:nowrap;
-
-  color:#2368be;
-
-  font-family:"Segoe Print","Comic Sans MS",cursive;
-
-  font-size:27px;
-  font-weight:800;
-  line-height:1.4;
-
-  opacity:0;
-}
-
-.smart-lesson.is-animated .row-one .handwriting-text{
-  animation:writeLine 1.2s steps(16,end) .2s forwards;
-}
-
-.smart-lesson.is-animated .row-two .handwriting-text{
-  animation:writeLine 2s steps(28,end) 1.55s forwards;
-}
-
-.smart-lesson.is-animated .row-three .handwriting-text{
-  animation:writeLine 1.7s steps(22,end) 3.8s forwards;
-}
-
-.smart-lesson.is-animated .row-four .handwriting-text{
-  animation:writeLine 1.7s steps(20,end) 5.7s forwards;
-}
-
-@keyframes writeLine{
-  0%{
-    max-width:0;
-    opacity:1;
-  }
-
-  100%{
-    max-width:100%;
-    opacity:1;
-  }
+  font-family: "Gveret Levin", cursive !important;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: #26314f !important;
+  direction: rtl;
+  text-align: right;
 }
 
 .answer-check{
@@ -5287,17 +5255,21 @@ nav {
 
 .moving-pencil{
   position:absolute;
+  top:0;
+  right:10px;
 
-  top:4px;
-  right:180px;
-
-  font-size:25px;
+  font-size:34px;
 
   opacity:0;
 
-  transform:rotate(-27deg);
+  pointer-events:none;
 
-  filter:drop-shadow(0 7px 8px rgba(28,70,110,.17));
+  transform:translateX(0) rotate(-18deg);
+
+  transition:
+    top .35s ease,
+    transform .1s linear,
+    opacity .2s ease;
 }
 
 .smart-lesson.is-animated .moving-pencil{
@@ -12295,6 +12267,80 @@ b{
   }
 
 }
+  @media (max-width: 768px){
+
+  .home-hero-content{
+    width:100%;
+    max-width:100%;
+    text-align:center;
+    align-items:center;
+    margin:0 auto;
+    padding-left:24px;
+    padding-right:24px;
+  }
+
+  .home-hero-content h1{
+    width:100%;
+    text-align:center;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .home-hero-content > p{
+    width:100%;
+    max-width:600px;
+    text-align:center;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .home-hero-pill{
+    margin-left:auto;
+    margin-right:auto;
+    text-align:center;
+    justify-content:center;
+  }
+
+  .home-hero-actions{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .home-hero-primary,
+  .home-hero-secondary{
+    margin-left:auto;
+    margin-right:auto;
+    text-align:center;
+    justify-content:center;
+  }
+
+}
+  @media (max-width: 768px){
+
+  .home-hero{
+    background-image:
+      linear-gradient(
+        rgba(255,255,255,0.18),
+        rgba(255,255,255,0.18)
+      ),
+      url('/assets/backgrounds/hero-mobile.webp');
+
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+  }
+
+}
+ 
+  .handwriting-text{
+  display:inline-block;
+  direction:rtl;
+  color:#26314f !important;
+  opacity:1 !important;
+}
 </style>
   <script type="application/ld+json">
 {
@@ -12472,7 +12518,7 @@ b{
 
     <div class="home-feature-content">
       <strong>לילדי כיתות א׳–ו׳</strong>
-      <p>מותאם לכל גיל ורמה</p>
+      <p>מותאם לכל גיל ולכל רמת למידה</p>
     </div>
   </div>
 
@@ -12488,7 +12534,7 @@ b{
 
     <div class="home-feature-content">
       <strong>רובוט אישי</strong>
-      <p>עוזר, מסביר ותומך בכל זמן</p>
+      <p>עוזר, מסביר ותומך בילד בכל זמן</p>
     </div>
   </div>
 
@@ -12504,7 +12550,7 @@ b{
 
     <div class="home-feature-content">
       <strong>מעקב התקדמות</strong>
-      <p>רואים הישגים והתקדמות לאורך הדרך</p>
+      <p>רואים הישגים והתקדמות כל הדרך</p>
     </div>
   </div>
 
@@ -12520,7 +12566,7 @@ b{
 
     <div class="home-feature-content">
       <strong>לומדים בכיף</strong>
-      <p>תרגול אינטראקטיבי ומשחקי למידה</p>
+      <p>תרגול אינטראקטיבי עם משחקי למידה מהנים</p>
     </div>
   </div>
 
@@ -12627,21 +12673,23 @@ b{
 
         </div>
 
-        <div class="video-wrapper">
+<div class="video-wrapper">
 
-          <video
-            class="iakids-demo-video"
-            controls
-            playsinline
-            preload="metadata"
-            poster="/assets/backgrounds/video-poster.webp"
-          >
-            <source src="/assets/videos/iakids-demo.mp4" type="video/mp4">
+  <video
+    class="iakids-demo-video"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    poster="/assets/backgrounds/video-poster.webp"
+  >
+    <source src="/assets/videos/iakids-demo.mp4" type="video/mp4">
 
-            הדפדפן שלך אינו תומך בהצגת וידאו.
-          </video>
+    הדפדפן שלך אינו תומך בהצגת וידאו.
+  </video>
 
-        </div>
+</div>
 
       </div>
 
@@ -12718,9 +12766,9 @@ b{
               תרגיל בחשבון
             </p>
 
-            <div class="paper-question">
-              7 + 5 = ?
-            </div>
+<div class="paper-question">
+  7 + 5 = ?
+</div>
 
             <p class="paper-instruction">
               פתרו והסבירו כיצד חישבתם.
@@ -12820,9 +12868,7 @@ b{
                   </span>
                 </div>
 
-                <span class="moving-pencil" aria-hidden="true">
-                  ✏️
-                </span>
+ 
 
               </div>
 
@@ -15168,100 +15214,107 @@ if (burger && navLinks) {
 
 </script>
 <script>
-const items = document.querySelectorAll('.iakids-features li');
-const images = document.querySelectorAll('.iakids-right img');
-const bar = document.querySelector('.iakids-progress span');
+document.addEventListener("DOMContentLoaded", () => {
 
-let index = 0;
-let duration = 4000;
+  const writingBox = document.querySelector(".animated-writing");
 
-function showSlide(i){
-  items.forEach(el => el.classList.remove('active'));
-  images.forEach(img => img.classList.remove('active'));
+  if (!writingBox) return;
 
-  items[i].classList.add('active');
-  document.getElementById(items[i].dataset.image).classList.add('active');
+  const lines = [
+    {
+      element: writingBox.querySelector(".row-one .handwriting-text"),
+      text: "7 + 5 = ?"
+    },
+    {
+      element: writingBox.querySelector(".row-two .handwriting-text"),
+      text: "קודם נחבר 7 + 3 = 10"
+    },
+    {
+      element: writingBox.querySelector(".row-three .handwriting-text"),
+      text: "נשארו לנו עוד 2"
+    },
+    {
+      element: writingBox.querySelector(".row-four .handwriting-text"),
+      text: "10 + 2 = 12"
+    }
+  ];
 
-  bar.style.transition = 'none';
-  bar.style.width = '0%';
+  const check = writingBox.querySelector(".answer-check");
 
-  setTimeout(()=>{
-    bar.style.transition = `width ${duration}ms linear`;
-    bar.style.width = '100%';
-  },50);
-}
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
-function next(){
-  index = (index + 1) % items.length;
-  showSlide(index);
-}
+  async function typeLine(element, text) {
 
-showSlide(index);
-setInterval(next, duration);
+    if (!element) return;
 
-items.forEach((item,i)=>{
-  item.addEventListener('click',()=>{
-    index = i;
-    showSlide(index);
-  });
-});
-</script>
-<script>
-async function updateNavbar() {
-  const { data } = await supabaseClient.auth.getSession();
-  const navActions = document.getElementById("navActions");
+    element.textContent = "";
 
-  if (data.session) {
-
-    const user = data.session.user;
-    const avatarUrl = user.user_metadata?.avatar_url || null;
-
-navActions.innerHTML = `
-  <div class="user-menu">
-
-    ${
-      avatarUrl
-        ? `<img src="${avatarUrl}" class="user-avatar" alt="">`
-        : `<div class="user-avatar-fallback">👤</div>`
+    for (let i = 0; i < text.length; i++) {
+      element.textContent += text[i];
+      await sleep(100);
     }
 
-<a href="/he/workspace/" class="nav-cta">
-  לאזור הלמידה
-</a>
+  }
 
-    <button class="logout-btn" id="logoutBtn">
-      יציאה
-    </button>
+  async function playLesson() {
 
-  </div>
-`;
-
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await supabaseClient.auth.signOut();
-      window.location.reload();
+    /* איפוס */
+    lines.forEach(line => {
+      if (line.element) {
+        line.element.textContent = "";
+      }
     });
 
-  } else {
-navActions.innerHTML = `
-  <a href="/onboarding/cuenta" class="nav-login">
-    <span>👨‍👩‍👧</span>
-    כניסת הורים
-  </a>
+    if (check) {
+      check.style.opacity = "0";
+      check.style.transform = "scale(.4)";
+    }
 
-  <a href="/he/onboarding" class="nav-cta">
-    <span>🚀</span>
-    מתחילים ללמוד
-  </a>
-`;
+    await sleep(700);
+
+    await typeLine(
+      lines[0].element,
+      lines[0].text
+    );
+
+    await sleep(500);
+
+    await typeLine(
+      lines[1].element,
+      lines[1].text
+    );
+
+    await sleep(500);
+
+    await typeLine(
+      lines[2].element,
+      lines[2].text
+    );
+
+    await sleep(500);
+
+    await typeLine(
+      lines[3].element,
+      lines[3].text
+    );
+
+    if (check) {
+      check.style.opacity = "1";
+      check.style.transform = "scale(1)";
+    }
+
+    /* משאירים את הפתרון מוצג */
+    await sleep(4000);
+
+    /* מתחילים מחדש */
+    playLesson();
   }
-}
 
-document.addEventListener("DOMContentLoaded", updateNavbar);
+  playLesson();
 
-supabaseClient.auth.onAuthStateChange(() => {
-  updateNavbar();
 });
 </script>
-
 </body>
 </html>
