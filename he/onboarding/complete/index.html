@@ -397,40 +397,47 @@ const sb = supabase.createClient(
   }
 
 
-  const { error } =
-    await sb
-
-      .from(
-        "kids_profiles"
-      )
-
-      .insert({
-
-        user_id:
-          userId,
-
-        child_name,
-
-        age,
-
-        avatar_key,
-
-        usage_goals,
-
-        learning_interests
-
-      });
+const { data: newKid, error } =
+  await sb
+    .from("kids_profiles")
+    .insert({
+      user_id: userId,
+      child_name,
+      age,
+      avatar_key,
+      usage_goals,
+      learning_interests
+    })
+    .select()
+    .single();
 
 
-  if (error) {
+if (error) {
 
-    alert(
-      error.message
-    );
+  console.error(
+    "CREATE CHILD ERROR:",
+    error
+  );
 
-    return;
+  alert(
+    error.message
+  );
 
-  }
+  return;
+
+}
+
+
+/* שומרים את הילד החדש כילד הפעיל */
+
+if (newKid?.id) {
+
+  localStorage.setItem(
+    "active_kid_id",
+    newKid.id
+  );
+
+}
 
 
   sessionStorage.setItem(
@@ -448,9 +455,9 @@ const sb = supabase.createClient(
   setTimeout(
     () => {
 
-      window.location.replace(
-        "/he/app/"
-      );
+window.location.replace(
+  "/he/workspace/"
+);
 
     },
     1200
