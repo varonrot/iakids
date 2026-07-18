@@ -4643,6 +4643,267 @@ body::before{
   }
 
 }
+    /* =====================================================
+   LEARNING PATH FOOTER
+===================================================== */
+
+.learning-path-footer{
+  width:min(1100px,100%);
+
+  margin:
+    -20px auto
+    20px;
+
+  display:grid;
+
+  grid-template-columns:
+    190px
+    minmax(0,1fr);
+
+  gap:22px;
+
+  align-items:center;
+
+  position:relative;
+
+  z-index:5;
+}
+
+
+/* =====================================================
+   GAMES BUTTON
+===================================================== */
+
+.learning-path-games{
+  min-height:105px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:12px;
+
+  padding:
+    14px
+    18px;
+
+  border:
+    3px solid
+    rgba(255,255,255,.72);
+
+  border-radius:26px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #815ef2,
+      #6040d8
+    );
+
+  color:#fff;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 10px 22px
+    rgba(76,48,180,.30);
+
+  text-align:right;
+}
+
+
+.learning-path-games-icon{
+  font-size:38px;
+}
+
+
+.learning-path-games strong{
+  display:block;
+
+  font-size:18px;
+  font-weight:900;
+}
+
+
+.learning-path-games small{
+  display:block;
+
+  margin-top:3px;
+
+  font-size:14px;
+
+  color:
+    rgba(255,255,255,.82);
+}
+
+
+/* =====================================================
+   REWARD PANEL
+===================================================== */
+
+.learning-path-reward{
+  min-height:105px;
+
+  display:grid;
+
+  grid-template-columns:
+    95px
+    minmax(0,1fr)
+    105px;
+
+  align-items:center;
+
+  padding:
+    8px
+    18px;
+
+  border:
+    3px solid
+    rgba(255,255,255,.72);
+
+  border-radius:28px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(160,118,255,.96),
+      rgba(115,80,230,.96)
+    );
+
+  box-shadow:
+    0 12px 26px
+    rgba(80,55,180,.28);
+
+  overflow:hidden;
+}
+
+
+.learning-path-reward-star{
+  font-size:58px;
+
+  text-align:center;
+
+  filter:
+    drop-shadow(
+      0 6px 8px
+      rgba(120,75,0,.20)
+    );
+}
+
+
+.learning-path-reward-text{
+  min-width:0;
+
+  text-align:center;
+
+  padding:
+    12px
+    25px;
+
+  border-radius:999px;
+
+  background:
+    rgba(255,255,255,.94);
+
+  box-shadow:
+    inset 0 0 0 2px
+    rgba(111,80,210,.10);
+}
+
+
+.learning-path-reward-text strong{
+  display:block;
+
+  margin-bottom:5px;
+
+  font-size:22px;
+
+  color:#352b76;
+
+  font-weight:900;
+}
+
+
+.learning-path-reward-text span{
+  font-size:15px;
+
+  color:#655d87;
+}
+
+
+.learning-path-reward-text b{
+  color:#5f43df;
+
+  font-size:18px;
+}
+
+
+.learning-path-reward-bag{
+  font-size:62px;
+
+  text-align:center;
+
+  transform:
+    rotate(-4deg);
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:760px){
+
+  .learning-path-footer{
+    grid-template-columns:1fr;
+
+    gap:12px;
+
+    margin-top:10px;
+  }
+
+
+  .learning-path-games{
+    min-height:70px;
+  }
+
+
+  .learning-path-reward{
+    grid-template-columns:
+      60px
+      minmax(0,1fr)
+      70px;
+  }
+
+
+  .learning-path-reward-star{
+    font-size:40px;
+  }
+
+
+  .learning-path-reward-bag{
+    font-size:44px;
+  }
+
+
+  .learning-path-reward-text{
+    padding:
+      10px
+      8px;
+  }
+
+
+  .learning-path-reward-text strong{
+    font-size:17px;
+  }
+
+
+  .learning-path-reward-text span{
+    font-size:12px;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -5342,7 +5603,71 @@ body::before{
     >
       <!-- השיעורים ייווצרו כאן אוטומטית -->
     </div>
+<!-- =====================================================
+     FOOTER של מסלול הלמידה
+===================================================== -->
 
+<div class="learning-path-footer">
+
+  <button
+    type="button"
+    class="learning-path-games"
+    id="learningPathGamesBtn"
+  >
+
+    <span class="learning-path-games-icon">
+      🎮
+    </span>
+
+    <span>
+      <strong>משחקים</strong>
+      <small>ותרגול נוסף</small>
+    </span>
+
+  </button>
+
+
+  <div class="learning-path-reward">
+
+    <div class="learning-path-reward-star">
+      ⭐
+    </div>
+
+
+    <div class="learning-path-reward-text">
+
+      <strong id="learningPathRewardTitle">
+        כל הכבוד! המשך כך!
+      </strong>
+
+      <span>
+
+        סיימת
+
+        <b id="learningPathCompletedCount">
+          3
+        </b>
+
+        שיעורים וצברת
+
+        <b id="learningPathScore">
+          80
+        </b>
+
+        ⭐ כוכבים
+
+      </span>
+
+    </div>
+
+
+    <div class="learning-path-reward-bag">
+      🎒
+    </div>
+
+  </div>
+
+</div>
   </div>
  </div>
 </section>
@@ -7999,7 +8324,44 @@ if(pathView){
 
 }
 
+/* =====================================================
+   UPDATE LEARNING PATH FOOTER
+===================================================== */
 
+function updateLearningPathFooter({
+  completedLessons = 0,
+  score = 0
+} = {}){
+
+  const completedEl =
+    document.getElementById(
+      "learningPathCompletedCount"
+    );
+
+  const scoreEl =
+    document.getElementById(
+      "learningPathScore"
+    );
+
+  if(completedEl){
+    completedEl.textContent =
+      completedLessons;
+  }
+
+  if(scoreEl){
+    scoreEl.textContent =
+      score;
+  }
+}
+
+
+/* =====================================================
+   LEARNING MODE
+===================================================== */
+
+function setLearningMode(mode){
+
+  // הקוד הקיים שלך ממשיך כאן
 /* =====================================================
    LEARNING MODE
    ===================================================== */
