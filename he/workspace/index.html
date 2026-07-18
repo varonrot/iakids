@@ -4133,14 +4133,13 @@ body::before{
 
   display:grid;
 
-  /* הסרגל הסגול צר + המסלול תופס את כל השטח */
   grid-template-columns:
-    250px
-    minmax(0,1fr);
+    minmax(0,1fr)
+    250px;
 
   gap:14px;
 
-  direction:ltr;
+  direction:rtl;
 }
 
 /* אזור המסלול */
