@@ -2734,7 +2734,41 @@ body{
     flex-direction:column;
     gap:14px;
   }
+.mobile-user-info{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:12px 10px;
+  color:#173b6c;
+  font-weight:800;
+}
 
+.mobile-user-avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #ffffff;
+  box-shadow:0 3px 10px rgba(0,0,0,.12);
+}
+
+.mobile-user-avatar-fallback{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ffffff;
+  font-size:20px;
+}
+
+.mobile-user-name{
+  font-size:15px;
+  font-weight:800;
+  color:#173b6c;
+}
   .mobile-login{
     text-align:center;
     padding:14px;
@@ -15262,26 +15296,50 @@ async function updateNavbar() {
 
     /* מובייל */
 
-    if (mobileActions) {
+if (mobileActions) {
 
-      mobileActions.innerHTML = `
+  mobileActions.innerHTML = `
 
-        <a
-          href="/he/workspace/"
-          class="mobile-cta"
-        >
-          🚀 המשך ללמידה
-        </a>
+    <div class="mobile-user-info">
 
-        <button
-          type="button"
-          class="mobile-login"
-          id="mobileLogoutBtn"
-        >
-          יציאה
-        </button>
+      ${
+        avatarUrl
+          ? `
+            <img
+              src="${avatarUrl}"
+              class="mobile-user-avatar"
+              alt="תמונת משתמש"
+            >
+          `
+          : `
+            <div class="mobile-user-avatar-fallback">
+              👤
+            </div>
+          `
+      }
 
-      `;
+      <span class="mobile-user-name">
+        ${displayName}
+      </span>
+
+    </div>
+
+    <a
+      href="/he/workspace/"
+      class="mobile-cta"
+    >
+      🚀 המשך ללמידה
+    </a>
+
+    <button
+      type="button"
+      class="mobile-login"
+      id="mobileLogoutBtn"
+    >
+      יציאה
+    </button>
+
+  `;
 
 
       document
