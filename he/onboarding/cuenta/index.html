@@ -694,7 +694,7 @@ const SUPABASE_URL =
 
 
 const SUPABASE_ANON_KEY =
-  "YOUR_ANON_KEY_HERE";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
 
 const sb =
@@ -718,31 +718,26 @@ document
     async () => {
 
 
-      await sb.auth.signInWithOAuth({
+const redirectUrl =
+  "https://iakids.app/he/onboarding/prepare-user/";
 
-        provider:
-          "google",
+const { error } =
+  await sb.auth.signInWithOAuth({
+    provider: "google",
 
+    options: {
+      redirectTo: redirectUrl,
 
-        options: {
+      queryParams: {
+        prompt: "select_account"
+      }
+    }
+  });
 
-          redirectTo:
-
-            window.location.origin +
-
-            "/he/onboarding/prepare-user/",
-
-
-          queryParams: {
-
-            prompt:
-              "select_account"
-
-          }
-
-        }
-
-      });
+if (error) {
+  console.error("Google login error:", error);
+  alert("אירעה שגיאה בהתחברות עם Google");
+}
 
 
     }
