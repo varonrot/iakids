@@ -4123,6 +4123,378 @@ body::before{
   }
 
 }
+    /* =====================================================
+   LEARNING PATH - PURPLE CATEGORY SIDEBAR
+===================================================== */
+
+.learning-path-layout{
+  width:100%;
+  height:100%;
+
+  display:grid;
+
+  /* המסלול + הסרגל */
+  grid-template-columns:
+    minmax(0,1fr)
+    250px;
+
+  gap:14px;
+
+  direction:ltr;
+}
+
+
+/* אזור המסלול */
+
+.learning-path-screen{
+  min-width:0;
+
+  direction:rtl;
+}
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.learning-path-sidebar{
+  direction:rtl;
+
+  position:relative;
+
+  height:100%;
+
+  display:flex;
+  flex-direction:column;
+
+  padding:
+    20px
+    14px
+    16px;
+
+  border-radius:26px;
+
+  overflow:hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      #4f3fbd 0%,
+      #3f3ca8 48%,
+      #343694 100%
+    );
+
+  box-shadow:
+    0 18px 40px
+    rgba(48,45,135,.28),
+    inset 0 1px 0
+    rgba(255,255,255,.18);
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   SUBJECT TITLE
+===================================================== */
+
+.learning-path-sidebar-title{
+  min-height:75px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:12px;
+
+  padding:
+    8px
+    10px
+    18px;
+
+  margin-bottom:8px;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.10);
+
+  font-size:27px;
+  font-weight:900;
+
+  color:#fff;
+}
+
+
+.learning-path-sidebar-title i{
+  width:44px;
+  height:44px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffcc4d,
+      #f39a28
+    );
+
+  color:#fff;
+
+  font-size:22px;
+
+  box-shadow:
+    0 7px 17px
+    rgba(0,0,0,.15);
+}
+
+
+/* =====================================================
+   CATEGORY LIST
+===================================================== */
+
+.learning-path-sidebar-categories{
+  flex:1;
+
+  min-height:0;
+
+  overflow-y:auto;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:4px;
+
+  padding:
+    4px
+    0
+    12px;
+}
+
+
+/* קטגוריה */
+
+.learning-path-sidebar-item{
+  width:100%;
+
+  min-height:68px;
+
+  padding:
+    7px
+    8px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  border:0;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.09);
+
+  border-radius:15px;
+
+  background:
+    transparent;
+
+  color:
+    rgba(255,255,255,.88);
+
+  cursor:pointer;
+
+  text-align:right;
+
+  font-size:17px;
+
+  font-weight:800;
+
+  transition:
+    background .2s ease,
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+
+/* hover */
+
+.learning-path-sidebar-item:hover{
+  background:
+    rgba(255,255,255,.08);
+
+  transform:
+    translateX(-2px);
+}
+
+
+/* קטגוריה פעילה */
+
+.learning-path-sidebar-item.active{
+  background:
+    linear-gradient(
+      135deg,
+      #a477ff,
+      #8b5ff0
+    );
+
+  color:#fff;
+
+  box-shadow:
+    0 8px 22px
+    rgba(25,18,100,.25),
+    inset 0 1px 0
+    rgba(255,255,255,.25);
+
+  border-bottom-color:
+    transparent;
+}
+
+
+/* =====================================================
+   GENERAL CATEGORY ICON
+===================================================== */
+
+.learning-path-sidebar-icon{
+  width:46px;
+  height:46px;
+
+  flex:
+    0
+    0
+    46px;
+
+  display:grid;
+
+  place-items:center;
+
+  border-radius:14px;
+
+  background:
+    rgba(255,255,255,.08);
+
+  border:
+    1px solid
+    rgba(255,255,255,.16);
+
+  color:#fff;
+
+  font-size:19px;
+}
+
+
+.learning-path-sidebar-item.active
+.learning-path-sidebar-icon{
+  background:
+    rgba(255,255,255,.92);
+
+  color:#7652dc;
+
+  box-shadow:
+    0 5px 13px
+    rgba(40,20,110,.15);
+}
+
+
+.learning-path-sidebar-label{
+  flex:1;
+
+  min-width:0;
+
+  line-height:1.35;
+}
+
+
+/* =====================================================
+   HOME BUTTON
+===================================================== */
+
+.learning-path-sidebar-home{
+  width:100%;
+
+  min-height:58px;
+
+  flex-shrink:0;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:10px;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.15);
+
+  border-radius:17px;
+
+  background:
+    rgba(255,255,255,.07);
+
+  color:
+    rgba(255,255,255,.80);
+
+  font-size:16px;
+
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+
+.learning-path-sidebar-home:hover{
+  background:
+    rgba(255,255,255,.13);
+
+  color:#fff;
+}
+
+
+/* Scroll */
+
+.learning-path-sidebar-categories::-webkit-scrollbar{
+  width:4px;
+}
+
+
+.learning-path-sidebar-categories::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+.learning-path-sidebar-categories::-webkit-scrollbar-thumb{
+  background:
+    rgba(255,255,255,.20);
+
+  border-radius:999px;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:900px){
+
+  .learning-path-layout{
+    display:block;
+  }
+
+
+  .learning-path-sidebar{
+    display:none;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -4747,7 +5119,42 @@ body::before{
   style="display:none;"
 >
 
-  <div class="learning-path-screen">
+  <div class="learning-path-layout">
+
+    <!-- סרגל קטגוריות דינמי -->
+    <aside
+      id="learningPathSidebar"
+      class="learning-path-sidebar"
+    >
+
+      <div class="learning-path-sidebar-title">
+        <i class="fa-solid fa-book-open"></i>
+
+        <span id="learningPathSidebarSubject">
+          מקצוע
+        </span>
+      </div>
+
+      <div
+        id="learningPathSidebarCategories"
+        class="learning-path-sidebar-categories"
+      >
+      </div>
+
+      <button
+        type="button"
+        class="learning-path-sidebar-home"
+        onclick="showDashboard()"
+      >
+        <i class="fa-solid fa-house"></i>
+        <span>חזור למסך הבית</span>
+      </button>
+
+    </aside>
+
+
+    <!-- אזור המסלול הקיים -->
+    <div class="learning-path-screen">
 
     <div class="learning-path-header">
 
@@ -4789,7 +5196,7 @@ body::before{
     </div>
 
   </div>
-
+ </div>
 </section>
   <!-- =====================================================
        LEARNING / NOTEBOOK VIEW
@@ -5432,7 +5839,11 @@ async function loadCategories(grade, subject) {
       uniqueCategories.push(row);
     }
   });
-
+renderLearningPathSidebar(
+  grade,
+  subject,
+  uniqueCategories
+);
   container.innerHTML = "";
 
   const backButton = document.createElement("button");
@@ -5497,7 +5908,167 @@ button.onclick = () => {
   });
 }
 
+/* =====================================================
+   RENDER LEARNING PATH SIDEBAR
+===================================================== */
 
+function renderLearningPathSidebar(
+  grade,
+  subject,
+  categories
+){
+
+  const sidebar =
+    document.getElementById(
+      "learningPathSidebarCategories"
+    );
+
+
+  const subjectTitle =
+    document.getElementById(
+      "learningPathSidebarSubject"
+    );
+
+
+  if(
+    !sidebar ||
+    !subjectTitle
+  ){
+    return;
+  }
+
+
+  /* שם המקצוע */
+
+  subjectTitle.textContent =
+    subject;
+
+
+  /* ניקוי הרשימה */
+
+  sidebar.innerHTML =
+    "";
+
+
+  /*
+  אייקונים כלליים.
+
+  אין התאמה לנושא מסוים.
+  האייקונים פשוט מתחלפים
+  לפי מיקום הקטגוריה.
+  */
+
+  const genericIcons = [
+
+    "fa-solid fa-shapes",
+
+    "fa-solid fa-plus-minus",
+
+    "fa-solid fa-chart-pie",
+
+    "fa-solid fa-ruler",
+
+    "fa-solid fa-circle-nodes",
+
+    "fa-solid fa-layer-group",
+
+    "fa-solid fa-comment-dots",
+
+    "fa-solid fa-chart-simple"
+
+  ];
+
+
+  categories.forEach(
+    (
+      item,
+      index
+    ) => {
+
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.type =
+        "button";
+
+
+      button.className =
+        "learning-path-sidebar-item";
+
+
+      /*
+      סימון הקטגוריה הנוכחית
+      */
+
+      if(
+        CURRENT_PATH &&
+        CURRENT_PATH.subject ===
+          subject &&
+        CURRENT_PATH.category ===
+          item.category
+      ){
+
+        button.classList.add(
+          "active"
+        );
+
+      }
+
+
+      const icon =
+        genericIcons[
+          index %
+          genericIcons.length
+        ];
+
+
+      button.innerHTML = `
+
+        <span
+          class="learning-path-sidebar-icon"
+        >
+          <i class="${icon}"></i>
+        </span>
+
+
+        <span
+          class="learning-path-sidebar-label"
+        >
+          ${item.category}
+        </span>
+
+      `;
+
+
+      /*
+      לחיצה על קטגוריה
+      טוענת את המסלול החדש
+      */
+
+      button.onclick =
+        () => {
+
+          loadLearningPath(
+            grade,
+            subject,
+            item.category
+          );
+
+        };
+
+
+      sidebar.appendChild(
+        button
+      );
+
+    }
+  );
+
+}
 /* =====================================================
    LOAD DYNAMIC LEARNING PATH
    ===================================================== */
@@ -5677,7 +6248,26 @@ async function loadLearningPath(
       lessons || []
 
   };
+/* סימון הקטגוריה הפעילה בסרגל */
 
+document
+  .querySelectorAll(
+    ".learning-path-sidebar-item"
+  )
+  .forEach(button => {
+
+    const label =
+      button.querySelector(
+        ".learning-path-sidebar-label"
+      );
+
+    button.classList.toggle(
+      "active",
+      label?.textContent.trim()
+        === category
+    );
+
+  });
 
   renderLearningPath(
     lessons || []
