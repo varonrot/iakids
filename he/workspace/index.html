@@ -4557,56 +4557,55 @@ body::before{
         class="profile-choice-grid"
         id="modalGoals"
       >
+<button type="button" data-val="Homework Help">
+  📚
+  <span>עזרה בשיעורי בית</span>
+</button>
 
-        <button type="button" data-val="homework">
-          📚
-          <span>עזרה בשיעורי בית</span>
-        </button>
+<button type="button" data-val="Test Preparation">
+  📝
+  <span>הכנה למבחנים</span>
+</button>
 
-        <button type="button" data-val="exam">
-          📝
-          <span>הכנה למבחנים</span>
-        </button>
+<button type="button" data-val="Math Practice">
+  ➗
+  <span>תרגול במתמטיקה</span>
+</button>
 
-        <button type="button" data-val="math_practice">
-          ➗
-          <span>תרגול במתמטיקה</span>
-        </button>
+<button type="button" data-val="Reading Comprehension">
+  📖
+  <span>קריאה והבנת הנקרא</span>
+</button>
 
-        <button type="button" data-val="reading">
-          📖
-          <span>קריאה והבנת הנקרא</span>
-        </button>
+<button type="button" data-val="Writing Skills">
+  ✍️
+  <span>כתיבה והבעה</span>
+</button>
 
-        <button type="button" data-val="writing">
-          ✍️
-          <span>כתיבה והבעה</span>
-        </button>
+<button type="button" data-val="English Improvement">
+  🇬🇧
+  <span>שיפור באנגלית</span>
+</button>
 
-        <button type="button" data-val="english">
-          🇬🇧
-          <span>שיפור באנגלית</span>
-        </button>
+<button type="button" data-val="Science Learning">
+  🔬
+  <span>עזרה במדעים</span>
+</button>
 
-        <button type="button" data-val="science">
-          🔬
-          <span>עזרה במדעים</span>
-        </button>
+<button type="button" data-val="Classroom Topics">
+  🧠
+  <span>נושאים שלא הבנתי בכיתה</span>
+</button>
 
-        <button type="button" data-val="class_gaps">
-          🧠
-          <span>נושאים שלא הבנתי בכיתה</span>
-        </button>
+<button type="button" data-val="Close Learning Gaps">
+  🎯
+  <span>תרגול והשלמת פערים</span>
+</button>
 
-        <button type="button" data-val="catch_up">
-          🎯
-          <span>תרגול והשלמת פערים</span>
-        </button>
-
-        <button type="button" data-val="enrichment">
-          ✨
-          <span>העשרה ולמידה חדשה</span>
-        </button>
+<button type="button" data-val="Enrichment Learning">
+  ✨
+  <span>העשרה ולמידה חדשה</span>
+</button>
 
       </div>
 
@@ -4621,52 +4620,52 @@ body::before{
         מה הילד רוצה לחזק בלימודים?
       </div>
 
-      <div
-        class="profile-choice-grid subjects"
-        id="modalLearning"
-      >
+     <div
+  class="profile-choice-grid subjects"
+  id="modalLearning"
+>
 
-        <button type="button" data-val="math">
-          ➗
-          <span>מתמטיקה</span>
-        </button>
+  <button type="button" data-val="🌍 שפה חדשה">
+    🌍
+    <span>שפה חדשה</span>
+  </button>
 
-        <button type="button" data-val="reading">
-          📖
-          <span>קריאה והבנת הנקרא</span>
-        </button>
+  <button type="button" data-val="➕ שיפור במתמטיקה">
+    ➕
+    <span>שיפור במתמטיקה</span>
+  </button>
 
-        <button type="button" data-val="hebrew">
-          ✍️
-          <span>עברית וכתיבה</span>
-        </button>
+  <button type="button" data-val="🇬🇧 שיפור באנגלית">
+    🇬🇧
+    <span>שיפור באנגלית</span>
+  </button>
 
-        <button type="button" data-val="english">
-          🇬🇧
-          <span>אנגלית</span>
-        </button>
+  <button type="button" data-val="🔬 מדע">
+    🔬
+    <span>מדע</span>
+  </button>
 
-        <button type="button" data-val="science">
-          🔬
-          <span>מדעים</span>
-        </button>
+  <button type="button" data-val="📖 קריאה">
+    📖
+    <span>קריאה</span>
+  </button>
 
-        <button type="button" data-val="bible">
-          📜
-          <span>תנ״ך</span>
-        </button>
+  <button type="button" data-val="🎨 יצירה ואומנות">
+    🎨
+    <span>יצירה ואומנות</span>
+  </button>
 
-        <button type="button" data-val="history">
-          🌍
-          <span>היסטוריה</span>
-        </button>
+  <button type="button" data-val="🧩 לוגיקה ופתרון בעיות">
+    🧩
+    <span>לוגיקה ופתרון בעיות</span>
+  </button>
 
-        <button type="button" data-val="logic">
-          🧠
-          <span>חשיבה ולוגיקה</span>
-        </button>
+  <button type="button" data-val="🧠 חשיבה ביקורתית">
+    🧠
+    <span>חשיבה ביקורתית</span>
+  </button>
 
-      </div>
+</div>
 
     </div>
 
@@ -5860,9 +5859,11 @@ function toggleChip(btn){
   btn.classList.toggle("active");
 }
 
-document.querySelectorAll(".chips button").forEach(btn=>{
-  btn.onclick = () => toggleChip(btn);
-});
+document
+  .querySelectorAll(".chips button, .profile-choice-grid button")
+  .forEach(btn => {
+    btn.onclick = () => toggleChip(btn);
+  });
 
 function getSelected(containerId){
   return [...document.querySelectorAll(`#${containerId} button.active`)]
