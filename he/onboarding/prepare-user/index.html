@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>Preparing your account</title>
+<title>מכינים את החשבון – KidsIA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -106,11 +106,11 @@ h1{
 
 <div class="card">
   <div class="icon">✨</div>
-  <h1>Preparing your account</h1>
-  <p class="sub">This will only take a moment</p>
+  <h1>מכינים את החשבון שלך</h1>
+  <p class="sub">זה ייקח רק רגע</p>
 
   <div class="bar"><span></span></div>
-  <div class="status" id="status">Setting things up…</div>
+  <div class="status" id="status">מכינים הכול...</div>
 </div>
 
 <script>
@@ -124,13 +124,13 @@ const setStatus = (t) => statusEl.textContent = t;
 
 (async () => {
   console.log("Preparing user…");
-  setStatus("Checking session…");
+  setStatus("בודקים את החיבור...");
 
   // 1️⃣ Ensure session exists
   let { data: sessionData } = await sb.auth.getSession();
 
   if (!sessionData.session) {
-    setStatus("Finalizing sign-in…");
+    setStatus("משלימים את ההתחברות...");
 
     const params = new URLSearchParams(window.location.hash.substring(1));
     const access_token = params.get("access_token");
@@ -142,7 +142,7 @@ const setStatus = (t) => statusEl.textContent = t;
   }
 
   // 2️⃣ Get user
-  setStatus("Loading user profile…");
+  setStatus("טוענים את פרופיל המשתמש...");
   const { data: userData } = await sb.auth.getUser();
   if (!userData?.user) return;
 
@@ -152,7 +152,7 @@ const setStatus = (t) => statusEl.textContent = t;
 
 
   // 3️⃣ Create subscription (safe even if already exists with RLS / unique constraint)
-  setStatus("Activating free plan…");
+  setStatus("מפעילים את המסלול החינמי...");
   await sb.from("subscriptions").insert({
     user_id: user.id,
     plan: "free",
@@ -161,7 +161,7 @@ const setStatus = (t) => statusEl.textContent = t;
 
 // 4️⃣ Finish after animation
 setTimeout(() => {
-  setStatus("Ready!");
+  setStatus("הכול מוכן!");
 
   // small pause so user sees "Ready"
   setTimeout(() => {
