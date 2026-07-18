@@ -2888,169 +2888,235 @@ body::before{
   }
 }
 
-
 /* =====================================================
-   MOBILE
+   MOBILE DASHBOARD FIX
    ===================================================== */
 
 @media (max-width:900px){
 
   .dashboard-view{
+    width:100% !important;
+    height:100% !important;
+    padding:8px 8px 30px !important;
     overflow-y:auto !important;
-    padding:8px !important;
+    overflow-x:hidden !important;
+    border-radius:0 !important;
   }
 
   .dash-wrapper{
     width:100% !important;
+    margin:0 !important;
   }
 
+
+  /* כותרת */
+
   .dash-hero{
-    min-height:100px !important;
-    padding:16px 0 12px !important;
+    min-height:auto !important;
+    padding:22px 8px 18px !important;
   }
 
   .dash-hero h1{
-    font-size:36px !important;
+    font-size:38px !important;
+    line-height:1.1 !important;
   }
 
   .dash-hero p{
+    margin-top:8px !important;
     font-size:18px !important;
   }
+
+
+  /* מבנה */
 
   .dash-layout{
     display:flex !important;
     flex-direction:column !important;
-    gap:14px !important;
+    width:100% !important;
+    gap:18px !important;
   }
 
   .dash-content{
     order:1 !important;
+    width:100% !important;
   }
 
   .dash-profile-column{
     order:2 !important;
-  }
-
-  .dash-action-cards{
-    grid-template-columns:repeat(2,1fr) !important;
-    gap:10px !important;
-  }
-
-  .dash-action-card{
-    min-height:260px !important;
-    padding:16px 12px 14px !important;
-  }
-
-  .dash-card-image{
-    width:120px !important;
-    height:95px !important;
-  }
-
-  .dash-action-card h3{
-    font-size:20px !important;
-  }
-
-  .dash-action-card p{
-    font-size:14px !important;
-    line-height:1.45 !important;
-  }
-
-  .dash-action-card button{
-    min-height:44px !important;
-    font-size:14px !important;
-  }
-
-  .dash-middle-row{
-    grid-template-columns:1fr !important;
-  }
-
-  .dash-progress-card{
-    grid-template-columns:1fr 110px !important;
-  }
-
-  .dash-recent-list{
-    grid-template-columns:repeat(2,1fr) !important;
-  }
-
-  .dash-profile-column{
     width:100% !important;
   }
 
-  .dash-student-stack{
-    min-height:320px !important;
-  }
 
-  .dash-student-character img{
-    width:230px !important;
-  }
-}
-
-
-/* =====================================================
-   SMALL MOBILE
-   ===================================================== */
-
-@media (max-width:600px){
-
-  .dash-hero h1{
-    font-size:31px !important;
-  }
-
-  .dash-hero p{
-    font-size:16px !important;
-  }
+  /* =====================================
+     הכרטיסים הראשיים
+     2 כרטיסים בכל שורה
+     ===================================== */
 
   .dash-action-cards{
-    grid-template-columns:1fr !important;
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
   }
 
   .dash-action-card{
-    min-height:280px !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:235px !important;
+
+    padding:14px 8px 12px !important;
+
+    border-radius:22px !important;
   }
 
   .dash-card-image{
-    width:150px !important;
-    height:115px !important;
+    width:105px !important;
+    height:80px !important;
+    margin:0 auto 5px !important;
   }
 
   .dash-action-card h3{
-    font-size:23px !important;
+    margin:5px 0 6px !important;
+
+    font-size:20px !important;
+    line-height:1.2 !important;
   }
 
   .dash-action-card p{
-    font-size:15px !important;
+    min-height:42px !important;
+
+    margin:0 0 10px !important;
+
+    font-size:13px !important;
+    line-height:1.35 !important;
   }
 
   .dash-action-card button{
-    font-size:16px !important;
+    min-height:42px !important;
+
+    padding:5px 7px !important;
+
+    font-size:13px !important;
+
+    margin-top:auto !important;
+  }
+
+
+  /* =====================================
+     התקדמות + יעדים
+     ===================================== */
+
+  .dash-middle-row{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px !important;
   }
 
   .dash-progress-card{
-    display:flex !important;
-    flex-direction:column !important;
+    width:100% !important;
+
+    display:grid !important;
+
+    grid-template-columns:
+      minmax(0,1fr)
+      90px !important;
+
+    min-height:150px !important;
+
+    padding:14px !important;
+  }
+
+  .dash-chart{
+    height:70px !important;
+  }
+
+  .dash-donut{
+    width:76px !important;
+    height:76px !important;
+  }
+
+  .dash-donut::before{
+    width:55px !important;
+    height:55px !important;
+  }
+
+  .dash-donut strong{
+    font-size:19px !important;
+  }
+
+  .dash-goals-card{
+    width:100% !important;
+    min-height:150px !important;
   }
 
   .dash-goal-list{
-    width:100% !important;
-    padding-bottom:90px !important;
-    font-size:13px !important;
+    width:68% !important;
+    font-size:12px !important;
   }
 
+  .dash-goal-image{
+    width:95px !important;
+    height:90px !important;
+  }
+
+
+  /* =====================================
+     נושאים אחרונים
+     ===================================== */
+
   .dash-recent-list{
-    grid-template-columns:1fr !important;
+    grid-template-columns:
+      repeat(2,minmax(0,1fr)) !important;
+
+    gap:7px !important;
+  }
+
+  .dash-recent-item{
+    padding:8px !important;
+  }
+
+  .dash-recent-icon{
+    width:36px !important;
+    height:36px !important;
   }
 
   .dash-recent-item strong{
-    font-size:14px !important;
+    font-size:12px !important;
   }
 
   .dash-recent-item small{
-    font-size:11px !important;
+    font-size:10px !important;
   }
 
-  .dash-weekly-stats{
-    grid-template-columns:repeat(3,1fr) !important;
+
+  /* =====================================
+     אזור הילד
+     ===================================== */
+
+  .dash-student-stack{
+    min-height:280px !important;
   }
+
+  .dash-student-character{
+    inset:-20px 0 65px !important;
+  }
+
+  .dash-student-character img{
+    width:210px !important;
+  }
+
+  .dash-profile-card{
+    max-width:420px !important;
+    margin:0 auto !important;
+  }
+
+  .dash-weekly-card,
+  .dash-continue-card{
+    width:100% !important;
+    max-width:420px !important;
+    margin:0 auto !important;
+  }
+
 }
 </style>
 </head>
