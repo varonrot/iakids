@@ -4643,24 +4643,24 @@ body::before{
   }
 
 }
-    /* =====================================================
-   LEARNING PATH FOOTER
+ /* =====================================================
+   LEARNING PATH FOOTER - SOFTER VERSION
 ===================================================== */
 
 .learning-path-footer{
-  width:min(1100px,100%);
+  width:min(900px,92%);
 
   margin:
-    -20px auto
-    20px;
+    -8px auto
+    18px;
 
   display:grid;
 
   grid-template-columns:
-    190px
+    145px
     minmax(0,1fr);
 
-  gap:22px;
+  gap:14px;
 
   align-items:center;
 
@@ -4670,35 +4670,33 @@ body::before{
 }
 
 
-/* =====================================================
-   GAMES BUTTON
-===================================================== */
+/* משחקים */
 
 .learning-path-games{
-  min-height:105px;
+  min-height:74px;
 
   display:flex;
 
   align-items:center;
   justify-content:center;
 
-  gap:12px;
+  gap:9px;
 
   padding:
-    14px
-    18px;
+    10px
+    12px;
 
   border:
-    3px solid
+    2px solid
     rgba(255,255,255,.72);
 
-  border-radius:26px;
+  border-radius:20px;
 
   background:
     linear-gradient(
       145deg,
-      #815ef2,
-      #6040d8
+      rgba(139,105,235,.92),
+      rgba(103,75,205,.90)
     );
 
   color:#fff;
@@ -4706,22 +4704,22 @@ body::before{
   cursor:pointer;
 
   box-shadow:
-    0 10px 22px
-    rgba(76,48,180,.30);
+    0 7px 18px
+    rgba(76,48,180,.20);
 
   text-align:right;
 }
 
 
 .learning-path-games-icon{
-  font-size:38px;
+  font-size:28px;
 }
 
 
 .learning-path-games strong{
   display:block;
 
-  font-size:18px;
+  font-size:15px;
   font-weight:900;
 }
 
@@ -4729,12 +4727,12 @@ body::before{
 .learning-path-games small{
   display:block;
 
-  margin-top:3px;
+  margin-top:2px;
 
-  font-size:14px;
+  font-size:11px;
 
   color:
-    rgba(255,255,255,.82);
+    rgba(255,255,255,.78);
 }
 
 
@@ -4743,51 +4741,54 @@ body::before{
 ===================================================== */
 
 .learning-path-reward{
-  min-height:105px;
+  min-height:76px;
 
   display:grid;
 
   grid-template-columns:
-    95px
+    62px
     minmax(0,1fr)
-    105px;
+    66px;
 
   align-items:center;
 
   padding:
-    8px
-    18px;
+    6px
+    12px;
 
   border:
-    3px solid
-    rgba(255,255,255,.72);
+    2px solid
+    rgba(255,255,255,.68);
 
-  border-radius:28px;
+  border-radius:21px;
 
   background:
     linear-gradient(
       135deg,
-      rgba(160,118,255,.96),
-      rgba(115,80,230,.96)
+      rgba(151,120,235,.84),
+      rgba(118,91,214,.82)
     );
 
   box-shadow:
-    0 12px 26px
-    rgba(80,55,180,.28);
+    0 8px 20px
+    rgba(80,55,180,.18);
+
+  backdrop-filter:
+    blur(8px);
 
   overflow:hidden;
 }
 
 
 .learning-path-reward-star{
-  font-size:58px;
+  font-size:38px;
 
   text-align:center;
 
   filter:
     drop-shadow(
-      0 6px 8px
-      rgba(120,75,0,.20)
+      0 4px 5px
+      rgba(120,75,0,.16)
     );
 }
 
@@ -4798,56 +4799,55 @@ body::before{
   text-align:center;
 
   padding:
-    12px
-    25px;
+    8px
+    15px;
 
-  border-radius:999px;
+  border-radius:18px;
 
   background:
-    rgba(255,255,255,.94);
+    rgba(255,255,255,.90);
 
   box-shadow:
-    inset 0 0 0 2px
-    rgba(111,80,210,.10);
+    inset 0 0 0 1px
+    rgba(111,80,210,.08);
 }
 
 
 .learning-path-reward-text strong{
   display:block;
 
-  margin-bottom:5px;
+  margin-bottom:3px;
 
-  font-size:22px;
+  font-size:17px;
 
-  color:#352b76;
+  color:#3f357c;
 
   font-weight:900;
 }
 
 
 .learning-path-reward-text span{
-  font-size:15px;
+  font-size:12px;
 
-  color:#655d87;
+  color:#6b6488;
 }
 
 
 .learning-path-reward-text b{
-  color:#5f43df;
+  color:#7253d7;
 
-  font-size:18px;
+  font-size:14px;
 }
 
 
 .learning-path-reward-bag{
-  font-size:62px;
+  font-size:40px;
 
   text-align:center;
 
   transform:
-    rotate(-4deg);
+    rotate(-3deg);
 }
-
 
 /* =====================================================
    MOBILE
