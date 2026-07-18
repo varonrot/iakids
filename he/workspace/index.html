@@ -4137,8 +4137,28 @@ body::before{
     minmax(0,1fr)
     250px;
 
+  grid-template-areas:
+    "content sidebar";
+
   gap:14px;
 
+  direction:ltr;
+}
+
+
+/* הסרגל הסגול תמיד בצד ימין */
+
+.learning-path-sidebar{
+  grid-area:sidebar;
+  direction:rtl;
+}
+
+
+/* מסלול הלמידה תמיד בצד שמאל של הסרגל */
+
+.learning-path-screen{
+  grid-area:content;
+  min-width:0;
   direction:rtl;
 }
 
