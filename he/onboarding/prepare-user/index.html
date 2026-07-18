@@ -149,7 +149,61 @@ const setStatus = (t) => statusEl.textContent = t;
   const user = userData.user;
   console.log("User:", user.id);
 
+/* =========================================
+   בדיקה האם יש ילד חדש שממתין לשמירה
+========================================= */
 
+const pendingChildName =
+  sessionStorage.getItem("child_name");
+
+const pendingChildAge =
+  sessionStorage.getItem("child_age");
+
+
+/*
+אם אין כרגע נתוני ילד חדש ב-sessionStorage,
+המשתמש כנראה רק התחבר לחשבון קיים.
+נבדוק אם כבר יש לו ילד.
+*/
+
+if (!pendingChildName || !pendingChildAge) {
+
+  setStatus("בודקים את פרופיל הילד...");
+
+  const { data: existingKids, error: kidsError } = await sb
+    .from("kids_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .limit(1);
+
+  if (kidsError) {
+    console.error(
+      "Error checking kids_profiles:",
+      kidsError
+    );
+  }
+
+  /*
+  אם כבר קיים ילד למשתמש:
+  אין סיבה לעבור שוב דרך complete
+  */
+
+  if (existingKids && existingKids.length > 0) {
+
+    setStatus("מעבירים אותך לסביבת הלמידה...");
+
+    setTimeout(() => {
+
+      window.location.replace(
+        "/he/workspace/"
+      );
+
+    }, 500);
+
+    return;
+  }
+
+}
 
   // 3️⃣ Create subscription (safe even if already exists with RLS / unique constraint)
   setStatus("מפעילים את המסלול החינמי...");
