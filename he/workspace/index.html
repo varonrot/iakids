@@ -5272,220 +5272,414 @@ body::before{
   }
 
 }
-    
-    /* =====================================================
-   FINAL LEARNING PATH TOP OVERRIDE
-   ===================================================== */
+/* =====================================================
+   LEARNING PATH TOP - FINAL DESIGN
+===================================================== */
 
 .learning-path-top{
-  min-height:300px !important;
+  position:relative;
+  z-index:3;
 
-  display:grid !important;
+  width:100%;
+  min-height:300px;
+
+  display:grid;
 
   grid-template-columns:
     190px
     260px
-    minmax(0,1fr) !important;
+    minmax(0,1fr);
 
-  gap:10px !important;
+  grid-template-areas:
+    "kid character content";
 
-  align-items:center !important;
+  align-items:end;
+
+  gap:0;
 
   padding:
-    18px
-    30px
-    10px !important;
+    20px
+    35px
+    0;
 
-  direction:ltr !important;
+  direction:ltr;
 }
 
 
-/* כרטיס הילד */
+/* =====================================================
+   כרטיס הילד - שמאל
+===================================================== */
 
 .learning-path-kid-card{
-  width:175px !important;
-  min-height:200px !important;
+  grid-area:kid;
 
-  align-self:center !important;
+  direction:rtl;
 
-  padding:18px 14px !important;
+  align-self:start;
 
-  border-radius:28px !important;
+  width:185px;
+  min-height:210px;
+
+  margin-top:5px;
+
+  padding:
+    18px
+    15px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border-radius:30px;
 
   background:
-    rgba(255,255,255,.94) !important;
+    rgba(255,255,255,.95);
+
+  border:
+    2px solid
+    rgba(255,255,255,.98);
 
   box-shadow:
     0 14px 30px
-    rgba(42,60,100,.16) !important;
+    rgba(42,65,100,.15);
 }
 
 
 .learning-path-kid-avatar{
-  width:78px !important;
-  height:78px !important;
+  width:82px;
+  height:82px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:4px solid #fff;
+
+  box-shadow:
+    0 6px 16px
+    rgba(45,65,100,.18);
+}
+
+
+.learning-path-kid-info{
+  margin-top:8px;
 }
 
 
 .learning-path-kid-info strong{
-  font-size:21px !important;
+  display:block;
+
+  font-size:22px;
+  font-weight:900;
+
+  color:#27346b;
 }
 
 
 .learning-path-kid-info > span{
-  font-size:15px !important;
+  display:block;
+
+  margin-top:5px;
+
+  font-size:15px;
+
+  color:#7180a5;
 }
 
 
 .learning-path-kid-score{
-  font-size:19px !important;
+  margin-top:8px;
+
+  font-size:20px;
+  font-weight:900;
+
+  color:#34416d;
 }
 
 
 /* =====================================================
-   היצור החמוד
+   היצור החמוד - בין הילד לכותרת
 ===================================================== */
 
 .learning-path-character{
-  width:260px !important;
-  height:250px !important;
+  grid-area:character;
 
-  align-self:end !important;
+  position:relative;
 
-  display:flex !important;
+  width:260px;
+  height:270px;
 
-  align-items:flex-end !important;
-  justify-content:center !important;
+  display:flex;
 
-  overflow:visible !important;
+  align-items:flex-end;
+  justify-content:center;
+
+  align-self:end;
+
+  margin-left:-15px;
+  margin-right:-5px;
+
+  pointer-events:none;
+
+  overflow:visible;
 }
 
 
 .learning-path-character img{
-  display:block !important;
+  display:block;
 
-  width:250px !important;
-  height:250px !important;
+  width:260px;
+  height:270px;
 
-  max-width:none !important;
-  max-height:none !important;
+  max-width:none;
+  max-height:none;
 
-  object-fit:contain !important;
+  object-fit:contain;
+  object-position:center bottom;
 
   filter:
     drop-shadow(
-      0 14px 18px
-      rgba(30,60,100,.20)
-    ) !important;
+      0 15px 18px
+      rgba(35,55,90,.18)
+    );
 }
 
 
 /* =====================================================
-   אזור הכותרת
+   צד ימין - כותרת והתקדמות
 ===================================================== */
 
 .learning-path-top-content{
-  width:100% !important;
+  grid-area:content;
 
-  align-self:center !important;
+  direction:rtl;
+
+  width:100%;
+
+  align-self:center;
+
+  text-align:center;
 
   padding:
     5px
-    10px !important;
+    15px
+    18px;
 }
 
 
 .learning-path-subject{
-  margin-bottom:8px !important;
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  min-height:32px;
 
   padding:
-    5px
-    16px !important;
+    4px
+    16px;
 
-  font-size:14px !important;
+  margin-bottom:8px;
+
+  border-radius:999px;
+
+  background:
+    rgba(255,255,255,.92);
+
+  font-size:14px;
+  font-weight:900;
+
+  color:#6549dd;
 }
 
 
 .learning-path-top-content h1{
-  font-size:48px !important;
-
-  line-height:1.1 !important;
-
   margin:
     0
     0
-    6px !important;
+    7px;
 
-  color:#29316f !important;
+  font-size:
+    clamp(
+      40px,
+      4vw,
+      58px
+    );
+
+  line-height:1.05;
+
+  color:#292875;
+
+  font-weight:900;
+
+  text-shadow:
+    0 3px 0
+    rgba(255,255,255,.55);
 }
 
 
 .learning-path-top-content > p{
-  font-size:17px !important;
-
   margin:
     0
     0
-    18px !important;
+    20px;
+
+  font-size:18px;
+
+  font-weight:700;
+
+  color:#68739a;
 }
 
 
 /* =====================================================
-   פס ההתקדמות
+   פס ההתקדמות הגדול
 ===================================================== */
 
 .learning-path-top-progress{
-  width:min(720px,96%) !important;
+  width:min(760px,96%);
 
-  min-height:92px !important;
+  min-height:100px;
 
-  border-radius:24px !important;
+  margin:
+    0
+    auto;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.15fr;
+
+  align-items:center;
+
+  border-radius:28px;
+
+  overflow:hidden;
+
+  background:
+    rgba(255,255,255,.95);
+
+  border:
+    1px solid
+    rgba(255,255,255,.98);
 
   box-shadow:
-    0 12px 26px
-    rgba(45,65,100,.13) !important;
+    0 12px 28px
+    rgba(45,65,100,.14);
 }
 
 
 .learning-path-progress-reward{
-  min-height:74px !important;
+  min-height:78px;
 
-  font-size:32px !important;
+  padding:
+    10px
+    22px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:14px;
+
+  font-size:36px;
+
+  border-left:
+    1px solid
+    rgba(95,105,145,.15);
 }
 
 
 .learning-path-progress-reward strong{
-  font-size:16px !important;
+  display:block;
+
+  font-size:18px;
+
+  color:#27346b;
 }
 
 
 .learning-path-progress-reward span{
-  font-size:13px !important;
+  display:block;
+
+  margin-top:4px;
+
+  font-size:14px;
+
+  color:#7180a5;
 }
 
 
 .learning-path-progress-info{
   padding:
     12px
-    20px !important;
+    24px;
+
+  text-align:right;
 }
 
 
 .learning-path-progress-info > strong{
-  font-size:16px !important;
+  display:block;
+
+  margin-bottom:9px;
+
+  font-size:18px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-row{
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+}
+
+
+.learning-path-progress-row b{
+  min-width:38px;
+
+  font-size:15px;
+
+  color:#53618b;
 }
 
 
 .learning-path-progress-track{
-  height:11px !important;
+  flex:1;
+
+  height:12px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e4e9f3;
 }
 
 
-/* כפתור חזרה */
+.learning-path-progress-track span{
+  display:block;
 
-.learning-path-back{
-  top:-5px !important;
-  right:5px !important;
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #75d765,
+      #3cbc50
+    );
 }
 </style>
 </head>
