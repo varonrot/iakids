@@ -10681,100 +10681,139 @@ class LessonRendererV1 {
      SPEAK
   ========================= */
 
-  async speak({
-    text
-  }){
+  async speak({ text }) {
 
-    if(
-      !window.speechSynthesis
-    ){
+  try {
 
+    if (!text || !text.trim()) {
       return;
-
     }
 
+    /* מצב דיבור של הרובוט */
+    if (this.avatar) {
+      this.avatar.classList.add(
+        "lesson-renderer-speaking"
+      );
+    }
 
-    return new Promise(
-      resolve => {
+    /* מקבלים את ה-session הקיים שלך מ-Supabase */
+    const { data: sessionData } =
+      await sb.auth.getSession();
 
-        const utterance =
-          new SpeechSynthesisUtterance(
-            text
+    const session =
+      sessionData.session;
+
+    if (!session) {
+      throw new Error(
+        "No active session"
+      );
+    }
+
+    /* שולחים ל-Backend החדש של TTS */
+    const response = await fetch(
+      `${TUTOR_API_BASE}/api/tutor/tts`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "Authorization":
+            `Bearer ${session.access_token}`
+        },
+
+        body: JSON.stringify({
+          text: text
+        })
+      }
+    );
+
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+      console.error(
+        "TTS API ERROR:",
+        response.status,
+        errorText
+      );
+
+      throw new Error(
+        `TTS API error: ${response.status}`
+      );
+    }
+
+    /* מקבלים MP3 מה-Backend */
+    const audioBlob =
+      await response.blob();
+
+    const audioUrl =
+      URL.createObjectURL(
+        audioBlob
+      );
+
+    const audio =
+      new Audio(
+        audioUrl
+      );
+
+    /* מנגנים ומחכים לסיום */
+    await new Promise(
+      (resolve, reject) => {
+
+        audio.onended = () => {
+
+          URL.revokeObjectURL(
+            audioUrl
           );
 
+          resolve();
+        };
 
-        utterance.lang =
-          "he-IL";
+        audio.onerror = () => {
 
-        utterance.rate =
-          0.92;
+          URL.revokeObjectURL(
+            audioUrl
+          );
 
-        utterance.pitch =
-          1.05;
+          reject(
+            new Error(
+              "Audio playback failed"
+            )
+          );
+        };
 
-
-        if(
-          this.avatar
-        ){
-
-          this.avatar
-            .classList
-            .add(
-              "lesson-renderer-speaking"
-            );
-
-        }
-
-
-        utterance.onend =
-          () => {
-
-            if(
-              this.avatar
-            ){
-
-              this.avatar
-                .classList
-                .remove(
-                  "lesson-renderer-speaking"
-                );
-
-            }
-
-            resolve();
-
-          };
-
-
-        utterance.onerror =
-          () => {
-
-            if(
-              this.avatar
-            ){
-
-              this.avatar
-                .classList
-                .remove(
-                  "lesson-renderer-speaking"
-                );
-
-            }
-
-            resolve();
-
-          };
-
-
-        speechSynthesis.speak(
-          utterance
+        audio.play().catch(
+          reject
         );
-
       }
     );
 
   }
 
+  catch(error) {
+
+    console.error(
+      "Natural TTS error:",
+      error
+    );
+
+  }
+
+  finally {
+
+    if (this.avatar) {
+
+      this.avatar.classList.remove(
+        "lesson-renderer-speaking"
+      );
+    }
+
+  }
+
+}
 
   /* =========================
      HIGHLIGHT
