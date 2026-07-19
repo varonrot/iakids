@@ -6184,18 +6184,22 @@ body::before{
   transform-origin:center;
 }
 
+/* ברירת מחדל - Windows ומסכים רחבים */
+
 #learningPathContainer{
   min-height:0 !important;
 
   column-gap:12px !important;
-  row-gap:75px !important;
+  row-gap:25px !important;
 
   align-content:start !important;
   grid-auto-rows:max-content !important;
 }
-    /* מסכים גבוהים יותר - כמו Mac */
 
-@media (min-height:900px){
+
+/* מסכים ברוחב Mac */
+
+@media (max-width:1700px){
 
   #learningPathContainer{
     row-gap:60px !important;
