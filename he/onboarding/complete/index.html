@@ -6,7 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+<link
+  href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap"
+  rel="stylesheet"
+>
   <style>
     :root{
       --bg1:#fff9f1;
@@ -20,9 +26,18 @@
       --shadow:0 24px 60px rgba(31,74,126,.14);
     }
 
-    *{
-      box-sizing:border-box;
-    }
+*{
+  box-sizing:border-box;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select{
+  font-family:"Heebo", Arial, sans-serif !important;
+}
 
     body{
       margin:0;
@@ -34,13 +49,7 @@
 
       padding:24px;
 
-      font-family:
-        "Heebo",
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        "Segoe UI",
-        Arial;
+font-family:"Heebo", Arial, sans-serif;
 
       color:var(--ink);
 
