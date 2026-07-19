@@ -5681,6 +5681,411 @@ body::before{
       #3cbc50
     );
 }
+    /* =====================================================
+   LEARNING PATH TOP - WHITE HEADER FINAL
+===================================================== */
+
+.learning-path-top{
+  position:relative;
+  z-index:3;
+
+  width:100%;
+  min-height:285px;
+
+  display:grid;
+
+  grid-template-columns:
+    185px
+    minmax(0,1fr);
+
+  grid-template-areas:
+    "kid content";
+
+  gap:28px;
+
+  align-items:start;
+
+  padding:
+    22px
+    28px
+    18px;
+
+  direction:ltr;
+}
+
+
+/* =====================================================
+   כרטיס הילד - שמאל
+===================================================== */
+
+.learning-path-kid-card{
+  grid-area:kid;
+
+  direction:rtl;
+
+  width:185px;
+  min-height:210px;
+
+  margin:0;
+
+  padding:
+    18px
+    15px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border-radius:30px;
+
+  background:
+    rgba(255,255,255,.96);
+
+  border:
+    2px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 14px 30px
+    rgba(42,65,100,.15);
+}
+
+
+/* =====================================================
+   היחידה הלבנה הגדולה
+===================================================== */
+
+.learning-path-top-content{
+  grid-area:content;
+
+  position:relative;
+
+  direction:rtl;
+
+  width:100%;
+  min-height:245px;
+
+  padding:
+    28px
+    38px
+    24px;
+
+  text-align:right;
+
+  border-radius:32px;
+
+  background:
+    rgba(255,255,255,.94);
+
+  border:
+    2px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 16px 35px
+    rgba(42,65,100,.14);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+}
+
+
+/* =====================================================
+   מקצוע
+===================================================== */
+
+.learning-path-subject{
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  min-height:30px;
+
+  padding:
+    4px
+    14px;
+
+  margin:
+    0
+    0
+    8px;
+
+  border-radius:999px;
+
+  background:#f1edff;
+
+  color:#6549dd;
+
+  font-size:13px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   כותרת
+===================================================== */
+
+.learning-path-top-content h1{
+  margin:
+    0
+    0
+    8px;
+
+  padding-left:80px;
+
+  font-size:
+    clamp(
+      36px,
+      3.2vw,
+      54px
+    );
+
+  line-height:1.1;
+
+  color:#292875;
+
+  font-weight:900;
+
+  text-align:right;
+
+  direction:rtl;
+
+  text-shadow:none;
+}
+
+
+/* תיאור */
+
+.learning-path-top-content > p{
+  margin:
+    0
+    0
+    22px;
+
+  font-size:17px;
+
+  line-height:1.5;
+
+  font-weight:700;
+
+  color:#68739a;
+
+  text-align:right;
+
+  direction:rtl;
+}
+
+
+/* =====================================================
+   כפתור חזרה
+===================================================== */
+
+.learning-path-back{
+  position:absolute;
+
+  top:24px;
+  left:26px;
+  right:auto;
+
+  min-height:42px;
+
+  padding:
+    0
+    16px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  border:0;
+
+  border-radius:14px;
+
+  background:#f5f2ff;
+
+  color:#5140c9;
+
+  font-size:14px;
+
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:none;
+}
+
+
+/* =====================================================
+   פס ההתקדמות בתוך היחידה הלבנה
+===================================================== */
+
+.learning-path-top-progress{
+  width:100%;
+
+  min-height:92px;
+
+  margin:0;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.25fr;
+
+  align-items:center;
+
+  border-radius:24px;
+
+  overflow:hidden;
+
+  background:
+    rgba(248,249,255,.96);
+
+  border:
+    1px solid
+    #e7e8f1;
+
+  box-shadow:
+    0 7px 18px
+    rgba(45,65,100,.08);
+}
+
+
+/* צד המתנה */
+
+.learning-path-progress-reward{
+  min-height:72px;
+
+  padding:
+    10px
+    20px;
+
+  display:flex;
+
+  flex-direction:row;
+
+  align-items:center;
+
+  justify-content:flex-start;
+
+  gap:13px;
+
+  font-size:32px;
+
+  direction:rtl;
+
+  border-left:
+    1px solid
+    #e3e5ee;
+}
+
+
+.learning-path-progress-reward strong{
+  font-size:17px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-reward span{
+  margin-top:3px;
+
+  font-size:13px;
+
+  color:#7180a5;
+}
+
+
+/* צד ההתקדמות */
+
+.learning-path-progress-info{
+  padding:
+    12px
+    24px;
+
+  text-align:right;
+
+  direction:rtl;
+}
+
+
+.learning-path-progress-info > strong{
+  display:block;
+
+  margin-bottom:9px;
+
+  font-size:17px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-row{
+  display:flex;
+
+  flex-direction:row;
+
+  align-items:center;
+
+  gap:12px;
+}
+
+
+.learning-path-progress-row b{
+  min-width:38px;
+
+  font-size:14px;
+
+  color:#53618b;
+}
+
+
+.learning-path-progress-track{
+  flex:1;
+
+  height:11px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e4e9f3;
+}
+
+
+.learning-path-progress-track span{
+  display:block;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #75d765,
+      #3cbc50
+    );
+}
+
+
+/* =====================================================
+   מסתירים יצור אם במקרה נשאר ב-HTML
+===================================================== */
+
+.learning-path-character{
+  display:none !important;
+}
 </style>
 </head>
 <body>
@@ -6375,15 +6780,7 @@ body::before{
   </div>
 
 
-  <!-- יצור חמוד -->
-  <div class="learning-path-character">
 
-    <img
-      src="/assets/characters/learning-path-character.png"
-      alt=""
-    >
-
-  </div>
 
 
   <!-- אזור הכותרת -->
