@@ -5681,174 +5681,507 @@ body::before{
       #3cbc50
     );
 }
-   /* =========================================
-   TOP HEADER - COMPACT VERSION
-========================================= */
+
+    /* =====================================================
+   TOP HEADER - EXTRA COMPACT FINAL
+===================================================== */
 
 .learning-path-top{
-  min-height:0;
-  height:auto;
+  min-height:0 !important;
+  height:auto !important;
 
-  grid-template-columns:150px minmax(0,1fr);
-  gap:18px;
+  display:grid;
 
-  padding:14px 20px 10px;
+  /* תוכן ראשי + כרטיס ילד */
+  grid-template-columns:
+    minmax(0,1fr)
+    205px;
+
+  grid-template-areas:
+    "content kid";
+
+  gap:14px;
+
+  padding:
+    10px
+    18px
+    8px;
 
   align-items:stretch;
+
+  direction:ltr;
 }
 
 
-/* כרטיס הילד - קטן וקומפקטי */
+/* =====================================================
+   כרטיס הילד - אופקי וצר
+===================================================== */
 
 .learning-path-kid-card{
-  width:150px;
-  min-height:0;
-  height:175px;
+  grid-area:kid;
 
-  padding:10px 12px;
+  width:205px !important;
+  height:120px !important;
+  min-height:0 !important;
 
-  border-radius:24px;
+  padding:
+    12px
+    14px !important;
+
+  display:grid;
+
+  /* הפרטים מימין, האווטאר משמאל */
+  grid-template-columns:
+    1fr
+    64px;
+
+  grid-template-rows:
+    auto
+    auto
+    auto;
+
+  column-gap:10px;
+
+  align-content:center;
+  align-items:center;
+
+  direction:rtl;
+
+  text-align:right;
+
+  border-radius:22px;
+
+  background:
+    rgba(255,255,255,.82);
+
+  border:
+    1px solid
+    rgba(255,255,255,.88);
+
+  box-shadow:
+    0 8px 20px
+    rgba(45,65,100,.10);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
 }
+
+
+/* אווטאר - בצד שמאל */
 
 .learning-path-kid-avatar{
-  width:68px;
-  height:68px;
-  margin-bottom:6px;
+  grid-column:2;
+  grid-row:1 / 4;
+
+  width:60px !important;
+  height:60px !important;
+
+  margin:0 !important;
+
+  border-radius:50%;
+
+  object-fit:cover;
+
+  align-self:center;
 }
+
+
+/* שם הילד */
 
 .learning-path-kid-name{
-  font-size:18px;
+  grid-column:1;
+  grid-row:1;
+
+  margin:0;
+
+  font-size:17px;
+  line-height:1.1;
+
+  font-weight:900;
+
+  color:#28336c;
+
+  text-align:right;
 }
+
+
+/* כיתה */
 
 .learning-path-kid-grade{
-  margin-top:2px;
+  grid-column:1;
+  grid-row:2;
+
+  margin:3px 0 0 !important;
+
   font-size:12px;
+
+  color:#7782a2;
+
+  text-align:right;
 }
+
+
+/* כוכבים */
 
 .learning-path-kid-stars{
-  margin-top:5px;
-  font-size:14px;
+  grid-column:1;
+  grid-row:3;
+
+  margin:4px 0 0 !important;
+
+  font-size:13px;
+
+  font-weight:800;
+
+  color:#34416f;
+
+  text-align:right;
 }
 
 
-/* הכרטיס הלבן הראשי */
+/* =====================================================
+   הכרטיס הראשי - נמוך ושקוף יותר
+===================================================== */
 
 .learning-path-top-content{
-  min-height:0;
-  height:175px;
+  grid-area:content;
 
-  padding:16px 28px;
+  position:relative;
 
-  border-radius:26px;
+  width:100%;
+
+  height:120px !important;
+  min-height:0 !important;
+
+  padding:
+    12px
+    22px !important;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(260px,1fr)
+    minmax(330px,1.35fr);
+
+  grid-template-rows:
+    auto
+    auto;
+
+  grid-template-areas:
+    "progress title"
+    "progress title";
+
+  column-gap:22px;
+
+  align-items:center;
+
+  direction:ltr;
+
+  border-radius:22px;
+
+  background:
+    rgba(255,255,255,.82);
+
+  border:
+    1px solid
+    rgba(255,255,255,.90);
+
+  box-shadow:
+    0 8px 22px
+    rgba(45,65,100,.10);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
 }
 
+
+/* =====================================================
+   אזור הכותרת
+===================================================== */
 
 /* מקצוע */
 
 .learning-path-subject{
-  min-height:24px;
+  position:absolute;
 
-  padding:2px 11px;
+  top:10px;
+  right:20px;
 
-  margin:0 0 3px;
+  min-height:20px;
 
-  font-size:11px;
+  padding:
+    2px
+    10px;
+
+  margin:0;
+
+  border-radius:999px;
+
+  background:
+    rgba(239,235,255,.85);
+
+  color:#6549dd;
+
+  font-size:10px;
+
+  font-weight:900;
 }
 
 
-/* כותרת - קטנה יותר */
+/* כותרת */
 
 .learning-path-top-content h1{
-  margin:0 0 2px;
+  grid-area:title;
 
-  padding-left:70px;
+  margin:4px 0 0 !important;
 
-  font-size:34px;
+  padding:0 !important;
+
+  font-size:
+    clamp(
+      25px,
+      2.2vw,
+      34px
+    ) !important;
+
   line-height:1.05;
+
+  font-weight:900;
+
+  color:#292875;
+
+  text-align:right;
+
+  direction:rtl;
 }
 
 
 /* תיאור */
 
 .learning-path-top-content > p{
-  margin:0 0 10px;
+  position:absolute;
 
-  font-size:14px;
-  line-height:1.3;
+  right:22px;
+
+  top:77px;
+
+  width:45%;
+
+  margin:0 !important;
+
+  font-size:12px !important;
+
+  line-height:1.2;
+
+  font-weight:700;
+
+  color:#6d7899;
+
+  text-align:right;
+
+  direction:rtl;
 }
 
 
-/* כפתור חזרה */
+/* =====================================================
+   כפתור חזרה
+===================================================== */
 
 .learning-path-back{
-  top:16px;
-  left:18px;
+  position:absolute;
 
-  min-height:32px;
+  top:10px;
+  left:12px;
+  right:auto;
 
-  padding:0 11px;
+  min-height:27px;
 
-  font-size:12px;
+  padding:
+    0
+    9px;
 
-  border-radius:10px;
+  display:flex;
+
+  align-items:center;
+
+  gap:5px;
+
+  border:0;
+
+  border-radius:9px;
+
+  background:
+    rgba(244,241,255,.88);
+
+  color:#5744cc;
+
+  font-size:11px;
+
+  font-weight:900;
+
+  box-shadow:none;
 }
 
 
-/* אזור ההתקדמות - נמוך יותר */
+/* =====================================================
+   פס התקדמות - בצד שמאל של הכרטיס
+===================================================== */
 
 .learning-path-top-progress{
-  min-height:0;
-  height:62px;
+  grid-area:progress;
 
-  border-radius:18px;
+  width:100% !important;
+
+  height:70px !important;
+  min-height:0 !important;
+
+  margin:0 !important;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.15fr;
+
+  align-items:center;
+
+  border-radius:16px;
+
+  overflow:hidden;
+
+  background:
+    rgba(248,249,255,.70);
+
+  border:
+    1px solid
+    rgba(225,228,240,.80);
+
+  box-shadow:none;
+
+  direction:rtl;
 }
 
 
-/* מתנה */
+/* =====================================================
+   מתנה
+===================================================== */
 
 .learning-path-progress-reward{
-  min-height:0;
-  height:52px;
+  min-height:0 !important;
+  height:54px !important;
 
-  padding:5px 16px;
+  padding:
+    4px
+    12px !important;
 
-  gap:8px;
+  display:flex;
 
-  font-size:24px;
+  flex-direction:row;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:7px;
+
+  font-size:23px;
+
+  direction:rtl;
+
+  border-left:
+    1px solid
+    rgba(220,223,235,.80);
 }
+
 
 .learning-path-progress-reward strong{
-  font-size:14px;
+  font-size:13px;
 }
 
+
 .learning-path-progress-reward span{
+  margin:2px 0 0;
+
+  font-size:10px;
+
+  color:#74809f;
+}
+
+
+/* =====================================================
+   התקדמות
+===================================================== */
+
+.learning-path-progress-info{
+  padding:
+    5px
+    12px !important;
+
+  text-align:right;
+
+  direction:rtl;
+}
+
+
+.learning-path-progress-info > strong{
+  display:block;
+
+  margin-bottom:4px;
+
+  font-size:13px;
+}
+
+
+.learning-path-progress-row{
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+}
+
+
+.learning-path-progress-row b{
+  min-width:30px;
+
   font-size:11px;
 }
 
 
-/* התקדמות */
-
-.learning-path-progress-info{
-  padding:6px 18px;
-}
-
-.learning-path-progress-info > strong{
-  margin-bottom:5px;
-
-  font-size:14px;
-}
-
-.learning-path-progress-row{
-  gap:8px;
-}
-
-.learning-path-progress-row b{
-  font-size:12px;
-}
-
 .learning-path-progress-track{
-  height:8px;
-} 
+  flex:1;
+
+  height:7px;
+
+  border-radius:999px;
+
+  overflow:hidden;
+
+  background:
+    rgba(220,226,238,.90);
+}
+
+
+.learning-path-progress-track span{
+  display:block;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #77d96a,
+      #42bd54
+    );
+}
 </style>
 </head>
 <body>
