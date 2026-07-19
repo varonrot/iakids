@@ -6348,6 +6348,20 @@ body::before{
 
   border-color:rgba(44,188,196,.32);
 }
+    /* טאבלט ולפטופ צר - מסתירים את הסרגל הימני */
+@media (max-width:1450px){
+
+  .rightbar{
+    display:none !important;
+  }
+
+  .app{
+    grid-template-columns:
+      285px
+      minmax(0,1fr) !important;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -7361,7 +7375,7 @@ body::before{
         הילד
       </strong>
 
- 
+
     </div>
   </div>
 
