@@ -10271,4 +10271,1074 @@ document.addEventListener(
 );
 
 </script>
+<style>
+/* =====================================================
+   LESSON RENDERER V1
+===================================================== */
+
+.lesson-renderer-root{
+  width:100%;
+  direction:rtl;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  padding:10px 0 40px;
+}
+
+.lesson-renderer-row{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  direction:rtl;
+}
+
+.lesson-renderer-avatar{
+  width:58px;
+  height:58px;
+  object-fit:contain;
+  flex:none;
+}
+
+.lesson-renderer-content{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.lesson-renderer-line{
+  position:relative;
+  width:max-content;
+  max-width:90%;
+
+  direction:rtl;
+  text-align:right;
+
+  font-family:"Gveret Levin", cursive !important;
+  font-size:34px;
+  line-height:1.6;
+  color:#26314f;
+
+  padding:3px 8px;
+
+  opacity:1;
+}
+
+.lesson-renderer-line.math{
+  direction:ltr;
+  text-align:right;
+
+  font-family:"Gveret Levin", cursive !important;
+  font-size:42px;
+  font-weight:700;
+  color:#3478e5;
+}
+
+.lesson-renderer-line.question{
+  font-size:36px;
+  font-weight:700;
+
+  background:
+    linear-gradient(
+      transparent 65%,
+      rgba(255,222,80,.55) 65%
+    );
+}
+
+.lesson-renderer-line.highlighted{
+  background:#fff1a8;
+  border-radius:12px;
+  padding:5px 12px;
+  transition:.35s ease;
+}
+
+.lesson-renderer-line.success{
+  color:#248c59;
+}
+
+.lesson-renderer-circle{
+  display:inline-block;
+  position:relative;
+  padding:2px 10px;
+}
+
+.lesson-renderer-circle::after{
+  content:"";
+  position:absolute;
+  inset:-7px -10px;
+
+  border:3px solid #ff6d6d;
+  border-radius:50%;
+
+  transform:rotate(-5deg) scale(.4);
+  opacity:0;
+
+  animation:lessonCircleDraw .55s ease forwards;
+}
+
+@keyframes lessonCircleDraw{
+  to{
+    transform:rotate(-5deg) scale(1);
+    opacity:1;
+  }
+}
+
+.lesson-renderer-arrow{
+  font-size:38px;
+  line-height:1;
+  color:#7b4fff;
+  opacity:0;
+  transform:translateX(25px);
+  animation:lessonArrowIn .45s ease forwards;
+}
+
+@keyframes lessonArrowIn{
+  to{
+    opacity:1;
+    transform:translateX(0);
+  }
+}
+
+.lesson-renderer-speaking{
+  animation:lessonSpeakingPulse .7s ease-in-out infinite alternate;
+}
+
+@keyframes lessonSpeakingPulse{
+  from{
+    transform:scale(1);
+  }
+  to{
+    transform:scale(1.06);
+  }
+}
+
+/* כפתור דמו זמני */
+.lesson-renderer-demo-btn{
+  position:fixed;
+  left:25px;
+  bottom:95px;
+  z-index:9999;
+
+  border:0;
+  border-radius:16px;
+
+  padding:14px 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7048ff,
+      #8b61ff
+    );
+
+  color:white;
+
+  font-size:17px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 10px 28px
+    rgba(112,72,255,.28);
+}
+</style>
+
+
+<script>
+/* =====================================================
+   LESSON RENDERER V1
+===================================================== */
+
+class LessonRendererV1 {
+
+  constructor(messagesElement){
+
+    this.messages =
+      messagesElement;
+
+    this.root =
+      null;
+
+    this.content =
+      null;
+
+    this.avatar =
+      null;
+
+    this.isRunning =
+      false;
+
+  }
+
+
+  /* =========================
+     HELPERS
+  ========================= */
+
+  wait(ms){
+
+    return new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          ms
+        )
+    );
+
+  }
+
+
+  scrollBottom(){
+
+    this.messages.scrollTop =
+      this.messages.scrollHeight;
+
+  }
+
+
+  prepare(){
+
+    const emptyState =
+      document.getElementById(
+        "emptyState"
+      );
+
+    if(emptyState){
+
+      emptyState.remove();
+
+    }
+
+
+    this.root =
+      document.createElement(
+        "div"
+      );
+
+    this.root.className =
+      "lesson-renderer-root";
+
+
+    const row =
+      document.createElement(
+        "div"
+      );
+
+    row.className =
+      "lesson-renderer-row";
+
+
+    this.avatar =
+      document.createElement(
+        "img"
+      );
+
+    this.avatar.src =
+      "/assets/robots/askie-robot.png";
+
+    this.avatar.className =
+      "lesson-renderer-avatar";
+
+
+    this.content =
+      document.createElement(
+        "div"
+      );
+
+    this.content.className =
+      "lesson-renderer-content";
+
+
+    row.appendChild(
+      this.avatar
+    );
+
+    row.appendChild(
+      this.content
+    );
+
+    this.root.appendChild(
+      row
+    );
+
+    this.messages.appendChild(
+      this.root
+    );
+
+
+    this.scrollBottom();
+
+  }
+
+
+  /* =========================
+     WRITE
+  ========================= */
+
+  async write({
+    text,
+    style = "normal",
+    speed = 45
+  }){
+
+    const line =
+      document.createElement(
+        "div"
+      );
+
+    line.className =
+      "lesson-renderer-line";
+
+
+    if(
+      style === "math"
+    ){
+
+      line.classList.add(
+        "math"
+      );
+
+    }
+
+
+    if(
+      style === "question"
+    ){
+
+      line.classList.add(
+        "question"
+      );
+
+    }
+
+
+    if(
+      style === "success"
+    ){
+
+      line.classList.add(
+        "success"
+      );
+
+    }
+
+
+    this.content.appendChild(
+      line
+    );
+
+
+    for(
+      const char of text
+    ){
+
+      line.textContent +=
+        char;
+
+      this.scrollBottom();
+
+      let delay =
+        speed;
+
+
+      if(
+        char === "." ||
+        char === "!" ||
+        char === "?"
+      ){
+
+        delay +=
+          160;
+
+      }
+
+
+      if(
+        char === ","
+      ){
+
+        delay +=
+          80;
+
+      }
+
+
+      await this.wait(
+        delay
+      );
+
+    }
+
+
+    return line;
+
+  }
+
+
+  /* =========================
+     SPEAK
+  ========================= */
+
+  async speak({
+    text
+  }){
+
+    if(
+      !window.speechSynthesis
+    ){
+
+      return;
+
+    }
+
+
+    return new Promise(
+      resolve => {
+
+        const utterance =
+          new SpeechSynthesisUtterance(
+            text
+          );
+
+
+        utterance.lang =
+          "he-IL";
+
+        utterance.rate =
+          0.92;
+
+        utterance.pitch =
+          1.05;
+
+
+        if(
+          this.avatar
+        ){
+
+          this.avatar
+            .classList
+            .add(
+              "lesson-renderer-speaking"
+            );
+
+        }
+
+
+        utterance.onend =
+          () => {
+
+            if(
+              this.avatar
+            ){
+
+              this.avatar
+                .classList
+                .remove(
+                  "lesson-renderer-speaking"
+                );
+
+            }
+
+            resolve();
+
+          };
+
+
+        utterance.onerror =
+          () => {
+
+            if(
+              this.avatar
+            ){
+
+              this.avatar
+                .classList
+                .remove(
+                  "lesson-renderer-speaking"
+                );
+
+            }
+
+            resolve();
+
+          };
+
+
+        speechSynthesis.speak(
+          utterance
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =========================
+     HIGHLIGHT
+  ========================= */
+
+  async highlight({
+    target
+  }){
+
+    const lines =
+      this.content
+        .querySelectorAll(
+          ".lesson-renderer-line"
+        );
+
+
+    for(
+      const line of lines
+    ){
+
+      if(
+        line.textContent
+          .includes(
+            target
+          )
+      ){
+
+        line.classList.add(
+          "highlighted"
+        );
+
+      }
+
+    }
+
+
+    await this.wait(
+      700
+    );
+
+  }
+
+
+  /* =========================
+     CIRCLE
+  ========================= */
+
+  async circle({
+    target
+  }){
+
+    const lines =
+      this.content
+        .querySelectorAll(
+          ".lesson-renderer-line"
+        );
+
+
+    for(
+      const line of lines
+    ){
+
+      const text =
+        line.textContent;
+
+
+      if(
+        !text.includes(
+          target
+        )
+      ){
+
+        continue;
+
+      }
+
+
+      const index =
+        text.indexOf(
+          target
+        );
+
+
+      const before =
+        text.slice(
+          0,
+          index
+        );
+
+
+      const after =
+        text.slice(
+          index +
+          target.length
+        );
+
+
+      line.innerHTML =
+        "";
+
+
+      line.append(
+        document.createTextNode(
+          before
+        )
+      );
+
+
+      const span =
+        document.createElement(
+          "span"
+        );
+
+      span.className =
+        "lesson-renderer-circle";
+
+      span.textContent =
+        target;
+
+
+      line.appendChild(
+        span
+      );
+
+
+      line.append(
+        document.createTextNode(
+          after
+        )
+      );
+
+
+      break;
+
+    }
+
+
+    await this.wait(
+      800
+    );
+
+  }
+
+
+  /* =========================
+     ARROW
+  ========================= */
+
+  async arrow(){
+
+    const arrow =
+      document.createElement(
+        "div"
+      );
+
+    arrow.className =
+      "lesson-renderer-arrow";
+
+    arrow.textContent =
+      "⬅️";
+
+
+    this.content.appendChild(
+      arrow
+    );
+
+
+    this.scrollBottom();
+
+
+    await this.wait(
+      600
+    );
+
+  }
+
+
+  /* =========================
+     ASK
+  ========================= */
+
+  async ask({
+    text
+  }){
+
+    await this.write({
+      text,
+      style:
+        "question",
+      speed:
+        50
+    });
+
+
+    await this.speak({
+      text
+    });
+
+  }
+
+
+  /* =========================
+     RUN
+  ========================= */
+
+  async run(script){
+
+    if(
+      this.isRunning
+    ){
+
+      return;
+
+    }
+
+
+    this.isRunning =
+      true;
+
+
+    this.prepare();
+
+
+    const sequence =
+      script.sequence ||
+      [];
+
+
+    for(
+      const action of sequence
+    ){
+
+      switch(
+        action.type
+      ){
+
+
+        case "speak":
+
+          await this.speak(
+            action
+          );
+
+          break;
+
+
+        case "write":
+
+          await this.write(
+            action
+          );
+
+          break;
+
+
+        case "highlight":
+
+          await this.highlight(
+            action
+          );
+
+          break;
+
+
+        case "circle":
+
+          await this.circle(
+            action
+          );
+
+          break;
+
+
+        case "arrow":
+
+          await this.arrow(
+            action
+          );
+
+          break;
+
+
+        case "wait":
+
+          await this.wait(
+            action.duration ||
+            500
+          );
+
+          break;
+
+
+        case "ask":
+
+          await this.ask(
+            action
+          );
+
+          break;
+
+
+        default:
+
+          console.warn(
+            "Unknown lesson action:",
+            action
+          );
+
+      }
+
+    }
+
+
+    this.isRunning =
+      false;
+
+  }
+
+}
+
+
+/* =====================================================
+   DEMO
+===================================================== */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    const messages =
+      document.querySelector(
+        ".messages"
+      );
+
+
+    if(
+      !messages
+    ){
+
+      console.error(
+        "Lesson Renderer: .messages not found"
+      );
+
+      return;
+
+    }
+
+
+    const renderer =
+      new LessonRendererV1(
+        messages
+      );
+
+
+    window.lessonRenderer =
+      renderer;
+
+
+    const demoButton =
+      document.createElement(
+        "button"
+      );
+
+
+    demoButton.className =
+      "lesson-renderer-demo-btn";
+
+
+    demoButton.textContent =
+      "▶ Renderer V1";
+
+
+    document.body.appendChild(
+      demoButton
+    );
+
+
+    demoButton.onclick =
+      async () => {
+
+
+        demoButton.style.display =
+          "none";
+
+
+        showLearning(
+          "practice"
+        );
+
+
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              400
+            )
+        );
+
+
+        const demoLesson = {
+
+          sequence: [
+
+            {
+              type:
+                "speak",
+
+              text:
+                "היי! בוא נפתור יחד תרגיל. קודם נפריד בין העשרות ליחידות."
+            },
+
+
+            {
+              type:
+                "write",
+
+              text:
+                "24 + 18 = ?",
+
+              style:
+                "math",
+
+              speed:
+                90
+            },
+
+
+            {
+              type:
+                "wait",
+
+              duration:
+                700
+            },
+
+
+            {
+              type:
+                "write",
+
+              text:
+                "שלב ראשון: נחבר את העשרות",
+
+              speed:
+                45
+            },
+
+
+            {
+              type:
+                "write",
+
+              text:
+                "20 + 10 = 30",
+
+              style:
+                "math",
+
+              speed:
+                90
+            },
+
+
+            {
+              type:
+                "highlight",
+
+              target:
+                "30"
+            },
+
+
+            {
+              type:
+                "speak",
+
+              text:
+                "מצוין. עכשיו נעבור ליחידות."
+            },
+
+
+            {
+              type:
+                "write",
+
+              text:
+                "4 + 8 = 12",
+
+              style:
+                "math",
+
+              speed:
+                90
+            },
+
+
+            {
+              type:
+                "circle",
+
+              target:
+                "12"
+            },
+
+
+            {
+              type:
+                "arrow"
+            },
+
+
+            {
+              type:
+                "write",
+
+              text:
+                "30 + 12 = 42",
+
+              style:
+                "math",
+
+              speed:
+                100
+            },
+
+
+            {
+              type:
+                "highlight",
+
+              target:
+                "42"
+            },
+
+
+            {
+              type:
+                "speak",
+
+              text:
+                "יפה מאוד. עכשיו אני רוצה שאתה תנסה."
+            },
+
+
+            {
+              type:
+                "ask",
+
+              text:
+                "⭐ כמה זה 32 ועוד 19?"
+            }
+
+          ]
+
+        };
+
+
+        renderer.run(
+          demoLesson
+        );
+
+      };
+
+  }
+);
+</script>
 </body></html>
