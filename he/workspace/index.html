@@ -11215,161 +11215,146 @@ document.addEventListener(
 
         const demoLesson = {
 
-          sequence: [
+  sequence: [
 
-            {
-              type:
-                "speak",
+    {
+      type: "speak",
 
-              text:
-                "היי! בוא נפתור יחד תרגיל. קודם נפריד בין העשרות ליחידות."
-            },
-
-
-            {
-              type:
-                "write",
-
-              text:
-                "24 + 18 = ?",
-
-              style:
-                "math",
-
-              speed:
-                90
-            },
+      text:
+        "הַי! בּוֹא נִפְתּוֹר יַחַד תַּרְגִּיל. קוֹדֶם נַפְרִיד בֵּין הָעֲשָׂרוֹת לַיְּחִידוֹת."
+    },
 
 
-            {
-              type:
-                "wait",
+    {
+      type: "write",
 
-              duration:
-                700
-            },
+      text:
+        "24 + 18 = ?",
 
+      style:
+        "math",
 
-            {
-              type:
-                "write",
-
-              text:
-                "שלב ראשון: נחבר את העשרות",
-
-              speed:
-                45
-            },
+      speed:
+        90
+    },
 
 
-            {
-              type:
-                "write",
+    {
+      type: "wait",
 
-              text:
-                "20 + 10 = 30",
-
-              style:
-                "math",
-
-              speed:
-                90
-            },
+      duration:
+        700
+    },
 
 
-            {
-              type:
-                "highlight",
+    {
+      type: "write",
 
-              target:
-                "30"
-            },
+      text:
+        "שלב ראשון: נחבר את העשרות",
 
-
-            {
-              type:
-                "speak",
-
-              text:
-                "מצוין. עכשיו נעבור ליחידות."
-            },
+      speed:
+        45
+    },
 
 
-            {
-              type:
-                "write",
+    {
+      type: "write",
 
-              text:
-                "4 + 8 = 12",
+      text:
+        "20 + 10 = 30",
 
-              style:
-                "math",
+      style:
+        "math",
 
-              speed:
-                90
-            },
-
-
-            {
-              type:
-                "circle",
-
-              target:
-                "12"
-            },
+      speed:
+        90
+    },
 
 
-            {
-              type:
-                "arrow"
-            },
+    {
+      type: "highlight",
+
+      target:
+        "30"
+    },
 
 
-            {
-              type:
-                "write",
+    {
+      type: "speak",
 
-              text:
-                "30 + 12 = 42",
-
-              style:
-                "math",
-
-              speed:
-                100
-            },
+      text:
+        "מְצוּיָן. עַכְשָׁו נַעֲבוֹר לַיְּחִידוֹת."
+    },
 
 
-            {
-              type:
-                "highlight",
+    {
+      type: "write",
 
-              target:
-                "42"
-            },
+      text:
+        "4 + 8 = 12",
 
+      style:
+        "math",
 
-            {
-              type:
-                "speak",
-
-              text:
-                "יפה מאוד. עכשיו אני רוצה שאתה תנסה."
-            },
+      speed:
+        90
+    },
 
 
-            {
-              type:
-                "ask",
+    {
+      type: "circle",
 
-              text:
-                "⭐ כמה זה 32 ועוד 19?"
-            }
+      target:
+        "12"
+    },
 
-          ]
 
-        };
+    {
+      type: "arrow"
+    },
 
+
+    {
+      type: "write",
+
+      text:
+        "30 + 12 = 42",
+
+      style:
+        "math",
+
+      speed:
+        100
+    },
+
+
+    {
+      type: "highlight",
+
+      target:
+        "42"
+    },
+
+
+    {
+      type: "speak",
+
+      text:
+        "יָפֶה מְאוֹד. עַכְשָׁו אֲנִי רוֹצֶה שֶׁאַתָּה תְּנַסֶּה."
+    },
+
+
+    {
+      type: "ask",
+
+      text:
+        "כַּמָּה זֶה שְׁלוֹשִׁים וּשְׁתַּיִם וְעוֹד תְּשַׁע עֶשְׂרֵה?"
+    }
+
+  ]
+
+};
 
         renderer.run(
           demoLesson
