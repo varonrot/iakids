@@ -5681,411 +5681,174 @@ body::before{
       #3cbc50
     );
 }
-    /* =====================================================
-   LEARNING PATH TOP - WHITE HEADER FINAL
-===================================================== */
+   /* =========================================
+   TOP HEADER - COMPACT VERSION
+========================================= */
 
 .learning-path-top{
-  position:relative;
-  z-index:3;
+  min-height:0;
+  height:auto;
 
-  width:100%;
-  min-height:285px;
+  grid-template-columns:150px minmax(0,1fr);
+  gap:18px;
 
-  display:grid;
+  padding:14px 20px 10px;
 
-  grid-template-columns:
-    185px
-    minmax(0,1fr);
-
-  grid-template-areas:
-    "kid content";
-
-  gap:28px;
-
-  align-items:start;
-
-  padding:
-    22px
-    28px
-    18px;
-
-  direction:ltr;
+  align-items:stretch;
 }
 
 
-/* =====================================================
-   כרטיס הילד - שמאל
-===================================================== */
+/* כרטיס הילד - קטן וקומפקטי */
 
 .learning-path-kid-card{
-  grid-area:kid;
+  width:150px;
+  min-height:0;
+  height:175px;
 
-  direction:rtl;
+  padding:10px 12px;
 
-  width:185px;
-  min-height:210px;
+  border-radius:24px;
+}
 
-  margin:0;
+.learning-path-kid-avatar{
+  width:68px;
+  height:68px;
+  margin-bottom:6px;
+}
 
-  padding:
-    18px
-    15px;
+.learning-path-kid-name{
+  font-size:18px;
+}
 
-  display:flex;
-  flex-direction:column;
+.learning-path-kid-grade{
+  margin-top:2px;
+  font-size:12px;
+}
 
-  align-items:center;
-  justify-content:center;
-
-  text-align:center;
-
-  border-radius:30px;
-
-  background:
-    rgba(255,255,255,.96);
-
-  border:
-    2px solid
-    rgba(255,255,255,.98);
-
-  box-shadow:
-    0 14px 30px
-    rgba(42,65,100,.15);
+.learning-path-kid-stars{
+  margin-top:5px;
+  font-size:14px;
 }
 
 
-/* =====================================================
-   היחידה הלבנה הגדולה
-===================================================== */
+/* הכרטיס הלבן הראשי */
 
 .learning-path-top-content{
-  grid-area:content;
+  min-height:0;
+  height:175px;
 
-  position:relative;
+  padding:16px 28px;
 
-  direction:rtl;
-
-  width:100%;
-  min-height:245px;
-
-  padding:
-    28px
-    38px
-    24px;
-
-  text-align:right;
-
-  border-radius:32px;
-
-  background:
-    rgba(255,255,255,.94);
-
-  border:
-    2px solid
-    rgba(255,255,255,.98);
-
-  box-shadow:
-    0 16px 35px
-    rgba(42,65,100,.14);
-
-  backdrop-filter:
-    blur(10px);
-
-  -webkit-backdrop-filter:
-    blur(10px);
+  border-radius:26px;
 }
 
 
-/* =====================================================
-   מקצוע
-===================================================== */
+/* מקצוע */
 
 .learning-path-subject{
-  display:inline-flex;
+  min-height:24px;
 
-  align-items:center;
-  justify-content:center;
+  padding:2px 11px;
 
-  min-height:30px;
+  margin:0 0 3px;
 
-  padding:
-    4px
-    14px;
-
-  margin:
-    0
-    0
-    8px;
-
-  border-radius:999px;
-
-  background:#f1edff;
-
-  color:#6549dd;
-
-  font-size:13px;
-  font-weight:900;
+  font-size:11px;
 }
 
 
-/* =====================================================
-   כותרת
-===================================================== */
+/* כותרת - קטנה יותר */
 
 .learning-path-top-content h1{
-  margin:
-    0
-    0
-    8px;
+  margin:0 0 2px;
 
-  padding-left:80px;
+  padding-left:70px;
 
-  font-size:
-    clamp(
-      36px,
-      3.2vw,
-      54px
-    );
-
-  line-height:1.1;
-
-  color:#292875;
-
-  font-weight:900;
-
-  text-align:right;
-
-  direction:rtl;
-
-  text-shadow:none;
+  font-size:34px;
+  line-height:1.05;
 }
 
 
 /* תיאור */
 
 .learning-path-top-content > p{
-  margin:
-    0
-    0
-    22px;
+  margin:0 0 10px;
 
-  font-size:17px;
-
-  line-height:1.5;
-
-  font-weight:700;
-
-  color:#68739a;
-
-  text-align:right;
-
-  direction:rtl;
+  font-size:14px;
+  line-height:1.3;
 }
 
 
-/* =====================================================
-   כפתור חזרה
-===================================================== */
+/* כפתור חזרה */
 
 .learning-path-back{
-  position:absolute;
+  top:16px;
+  left:18px;
 
-  top:24px;
-  left:26px;
-  right:auto;
+  min-height:32px;
 
-  min-height:42px;
+  padding:0 11px;
 
-  padding:
-    0
-    16px;
+  font-size:12px;
 
-  display:flex;
-
-  align-items:center;
-
-  gap:7px;
-
-  border:0;
-
-  border-radius:14px;
-
-  background:#f5f2ff;
-
-  color:#5140c9;
-
-  font-size:14px;
-
-  font-weight:900;
-
-  cursor:pointer;
-
-  box-shadow:none;
+  border-radius:10px;
 }
 
 
-/* =====================================================
-   פס ההתקדמות בתוך היחידה הלבנה
-===================================================== */
+/* אזור ההתקדמות - נמוך יותר */
 
 .learning-path-top-progress{
-  width:100%;
+  min-height:0;
+  height:62px;
 
-  min-height:92px;
-
-  margin:0;
-
-  display:grid;
-
-  grid-template-columns:
-    1fr
-    1.25fr;
-
-  align-items:center;
-
-  border-radius:24px;
-
-  overflow:hidden;
-
-  background:
-    rgba(248,249,255,.96);
-
-  border:
-    1px solid
-    #e7e8f1;
-
-  box-shadow:
-    0 7px 18px
-    rgba(45,65,100,.08);
+  border-radius:18px;
 }
 
 
-/* צד המתנה */
+/* מתנה */
 
 .learning-path-progress-reward{
-  min-height:72px;
+  min-height:0;
+  height:52px;
 
-  padding:
-    10px
-    20px;
+  padding:5px 16px;
 
-  display:flex;
+  gap:8px;
 
-  flex-direction:row;
-
-  align-items:center;
-
-  justify-content:flex-start;
-
-  gap:13px;
-
-  font-size:32px;
-
-  direction:rtl;
-
-  border-left:
-    1px solid
-    #e3e5ee;
+  font-size:24px;
 }
-
 
 .learning-path-progress-reward strong{
-  font-size:17px;
-
-  color:#27346b;
+  font-size:14px;
 }
-
 
 .learning-path-progress-reward span{
-  margin-top:3px;
-
-  font-size:13px;
-
-  color:#7180a5;
+  font-size:11px;
 }
 
 
-/* צד ההתקדמות */
+/* התקדמות */
 
 .learning-path-progress-info{
-  padding:
-    12px
-    24px;
-
-  text-align:right;
-
-  direction:rtl;
+  padding:6px 18px;
 }
-
 
 .learning-path-progress-info > strong{
-  display:block;
-
-  margin-bottom:9px;
-
-  font-size:17px;
-
-  color:#27346b;
-}
-
-
-.learning-path-progress-row{
-  display:flex;
-
-  flex-direction:row;
-
-  align-items:center;
-
-  gap:12px;
-}
-
-
-.learning-path-progress-row b{
-  min-width:38px;
+  margin-bottom:5px;
 
   font-size:14px;
-
-  color:#53618b;
 }
 
+.learning-path-progress-row{
+  gap:8px;
+}
+
+.learning-path-progress-row b{
+  font-size:12px;
+}
 
 .learning-path-progress-track{
-  flex:1;
-
-  height:11px;
-
-  overflow:hidden;
-
-  border-radius:999px;
-
-  background:#e4e9f3;
-}
-
-
-.learning-path-progress-track span{
-  display:block;
-
-  height:100%;
-
-  border-radius:999px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #75d765,
-      #3cbc50
-    );
-}
-
-
-/* =====================================================
-   מסתירים יצור אם במקרה נשאר ב-HTML
-===================================================== */
-
-.learning-path-character{
-  display:none !important;
-}
+  height:8px;
+} 
 </style>
 </head>
 <body>
