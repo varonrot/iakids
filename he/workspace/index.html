@@ -10271,4 +10271,174 @@ document.addEventListener(
 );
 
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // אזור התוכן המרכזי שכבר קיים ב-Workspace
+  const messages = document.querySelector(".messages");
+
+  if (!messages) {
+    console.error("לא נמצא אלמנט .messages");
+    return;
+  }
+
+  // כפתור הדגמה זמני
+  const demoButton = document.createElement("button");
+  demoButton.innerHTML = "▶ הצג הדגמת שיעור";
+  demoButton.style.cssText = `
+    position: fixed;
+    bottom: 100px;
+    left: 30px;
+    z-index: 9999;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 16px;
+    background: #6c63ff;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+  `;
+
+  document.body.appendChild(demoButton);
+
+  // פונקציית המתנה
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // כתיבה הדרגתית
+  async function typeText(element, text, speed = 45) {
+    element.textContent = "";
+
+    for (const char of text) {
+      element.textContent += char;
+      await wait(speed);
+    }
+  }
+
+  // יצירת שורה חדשה במחברת
+  function createLine() {
+    const line = document.createElement("div");
+
+    line.style.cssText = `
+      font-size: 28px;
+      font-weight: 600;
+      color: #2d3559;
+      margin: 14px 0;
+      direction: rtl;
+      text-align: right;
+      line-height: 1.6;
+    `;
+
+    messages.appendChild(line);
+
+    return line;
+  }
+
+  // הפעלת ההדגמה
+  demoButton.addEventListener("click", async () => {
+    demoButton.style.display = "none";
+
+    // מנקה את מסך הפתיחה הקיים
+    messages.innerHTML = "";
+
+    // כותרת
+    const title = createLine();
+    await typeText(title, "בואו נפתור יחד תרגיל 👇", 50);
+
+    await wait(700);
+
+    // התרגיל
+    const exercise = createLine();
+    exercise.style.fontSize = "36px";
+    exercise.style.fontWeight = "800";
+
+    await typeText(exercise, "24 + 18 = ?", 100);
+
+    await wait(1000);
+
+    // שלב ראשון
+    const step1 = createLine();
+    await typeText(
+      step1,
+      "שלב 1: נחבר קודם את העשרות",
+      45
+    );
+
+    await wait(500);
+
+    const calculation1 = createLine();
+    calculation1.style.fontSize = "34px";
+
+    await typeText(
+      calculation1,
+      "20 + 10 = 30",
+      100
+    );
+
+    await wait(1000);
+
+    // שלב שני
+    const step2 = createLine();
+    await typeText(
+      step2,
+      "שלב 2: עכשיו נחבר את היחידות",
+      45
+    );
+
+    await wait(500);
+
+    const calculation2 = createLine();
+    calculation2.style.fontSize = "34px";
+
+    await typeText(
+      calculation2,
+      "4 + 8 = 12",
+      100
+    );
+
+    await wait(1000);
+
+    // שלב שלישי
+    const step3 = createLine();
+    await typeText(
+      step3,
+      "ועכשיו נחבר את שתי התוצאות",
+      45
+    );
+
+    await wait(500);
+
+    const finalCalculation = createLine();
+    finalCalculation.style.fontSize = "38px";
+    finalCalculation.style.fontWeight = "900";
+
+    await typeText(
+      finalCalculation,
+      "30 + 12 = 42",
+      120
+    );
+
+    // הדגשת התוצאה
+    finalCalculation.style.transition = "all 0.5s ease";
+    finalCalculation.style.background = "#fff3a8";
+    finalCalculation.style.padding = "8px 16px";
+    finalCalculation.style.borderRadius = "12px";
+    finalCalculation.style.display = "inline-block";
+
+    await wait(1200);
+
+    // שאלת המשך
+    const question = createLine();
+    question.style.marginTop = "30px";
+
+    await typeText(
+      question,
+      "⭐ עכשיו תורך! כמה זה 32 + 19?",
+      55
+    );
+  });
+});
+</script>
 </body></html>
