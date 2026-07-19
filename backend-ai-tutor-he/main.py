@@ -6,6 +6,8 @@ from openai import OpenAI
 from google import genai
 from google.genai import types
 from pathlib import Path
+import io
+import wave
 import os
 
 # =====================================================
@@ -239,7 +241,7 @@ def tutor_health():
     }
 
 # =====================================================
-# AI TUTOR NATURAL VOICE
+# AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
 
 @app.post("/api/tutor/tts")
@@ -249,7 +251,7 @@ def tutor_tts(
 ):
     try:
 
-        # משתמש באותה התחברות שכבר קיימת אצלך
+        # אימות משתמש
         authenticate_user(authorization)
 
         text = (body.text or "").strip()
@@ -260,50 +262,120 @@ def tutor_tts(
                 detail="text is required"
             )
 
-        # הגבלה בסיסית כדי שלא ישלחו טקסטים עצומים ל-TTS
         if len(text) > 1500:
             raise HTTPException(
                 status_code=400,
                 detail="text is too long"
             )
 
-        speech_response = client.audio.speech.create(
-            model="gpt-4o-mini-tts",
-            voice="coral",
-            input=text,
-            instructions=(
-                "Speak in natural Hebrew. "
-                "Sound like a warm, friendly, patient AI teacher "
-                "speaking to a school-age child. "
-                "Use a natural conversational pace. "
-                "Be expressive and encouraging, but not exaggerated. "
-                "Pronounce numbers and mathematical expressions clearly."
+
+        # Gemini TTS
+        response = gemini_client.models.generate_content(
+            model="gemini-3.1-flash-tts-preview",
+
+            contents=(
+                "Speak in natural, fluent Hebrew. "
+                "Sound like a warm, friendly and patient teacher "
+                "speaking naturally to a school-age child. "
+                "Use clear pronunciation, natural pauses, "
+                "and an encouraging tone. "
+                "Read exactly the following Hebrew text:\n\n"
+                + text
             ),
-            response_format="mp3"
+
+            config=types.GenerateContentConfig(
+
+                response_modalities=[
+                    "AUDIO"
+                ],
+
+                speech_config=types.SpeechConfig(
+
+                    voice_config=
+                        types.VoiceConfig(
+
+                            prebuilt_voice_config=
+                                types.PrebuiltVoiceConfig(
+                                    voice_name="Aoede"
+                                )
+
+                        )
+
+                )
+
+            )
+
         )
 
-        audio_bytes = speech_response.read()
+
+        # קבלת PCM audio
+        audio_data = (
+            response
+            .candidates[0]
+            .content
+            .parts[0]
+            .inline_data
+            .data
+        )
+
+
+        if not audio_data:
+            raise RuntimeError(
+                "Gemini returned no audio data"
+            )
+
+
+        # =================================================
+        # PCM -> WAV
+        # Gemini מחזיר PCM 16-bit, mono, 24kHz
+        # =================================================
+
+        wav_buffer = io.BytesIO()
+
+        with wave.open(
+            wav_buffer,
+            "wb"
+        ) as wav_file:
+
+            wav_file.setnchannels(1)
+
+            # 16-bit audio = 2 bytes
+            wav_file.setsampwidth(2)
+
+            # 24 kHz
+            wav_file.setframerate(24000)
+
+            wav_file.writeframes(
+                audio_data
+            )
+
+        wav_buffer.seek(0)
+
+        wav_bytes = wav_buffer.read()
 
         return Response(
-            content=audio_bytes,
-            media_type="audio/mpeg",
+            content=wav_bytes,
+            media_type="audio/wav",
             headers={
                 "Cache-Control": "no-store"
             }
         )
 
+
     except HTTPException:
         raise
 
+
     except Exception as e:
+
         print(
-            "TUTOR TTS ERROR:",
+            "GEMINI TTS ERROR:",
             repr(e)
         )
 
         raise HTTPException(
             status_code=500,
-            detail="Tutor TTS failed"
+            detail="Gemini TTS failed"
         )
 # =====================================================
 # AI TUTOR CHAT
