@@ -5272,6 +5272,221 @@ body::before{
   }
 
 }
+    
+    /* =====================================================
+   FINAL LEARNING PATH TOP OVERRIDE
+   ===================================================== */
+
+.learning-path-top{
+  min-height:300px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    190px
+    260px
+    minmax(0,1fr) !important;
+
+  gap:10px !important;
+
+  align-items:center !important;
+
+  padding:
+    18px
+    30px
+    10px !important;
+
+  direction:ltr !important;
+}
+
+
+/* כרטיס הילד */
+
+.learning-path-kid-card{
+  width:175px !important;
+  min-height:200px !important;
+
+  align-self:center !important;
+
+  padding:18px 14px !important;
+
+  border-radius:28px !important;
+
+  background:
+    rgba(255,255,255,.94) !important;
+
+  box-shadow:
+    0 14px 30px
+    rgba(42,60,100,.16) !important;
+}
+
+
+.learning-path-kid-avatar{
+  width:78px !important;
+  height:78px !important;
+}
+
+
+.learning-path-kid-info strong{
+  font-size:21px !important;
+}
+
+
+.learning-path-kid-info > span{
+  font-size:15px !important;
+}
+
+
+.learning-path-kid-score{
+  font-size:19px !important;
+}
+
+
+/* =====================================================
+   היצור החמוד
+===================================================== */
+
+.learning-path-character{
+  width:260px !important;
+  height:250px !important;
+
+  align-self:end !important;
+
+  display:flex !important;
+
+  align-items:flex-end !important;
+  justify-content:center !important;
+
+  overflow:visible !important;
+}
+
+
+.learning-path-character img{
+  display:block !important;
+
+  width:250px !important;
+  height:250px !important;
+
+  max-width:none !important;
+  max-height:none !important;
+
+  object-fit:contain !important;
+
+  filter:
+    drop-shadow(
+      0 14px 18px
+      rgba(30,60,100,.20)
+    ) !important;
+}
+
+
+/* =====================================================
+   אזור הכותרת
+===================================================== */
+
+.learning-path-top-content{
+  width:100% !important;
+
+  align-self:center !important;
+
+  padding:
+    5px
+    10px !important;
+}
+
+
+.learning-path-subject{
+  margin-bottom:8px !important;
+
+  padding:
+    5px
+    16px !important;
+
+  font-size:14px !important;
+}
+
+
+.learning-path-top-content h1{
+  font-size:48px !important;
+
+  line-height:1.1 !important;
+
+  margin:
+    0
+    0
+    6px !important;
+
+  color:#29316f !important;
+}
+
+
+.learning-path-top-content > p{
+  font-size:17px !important;
+
+  margin:
+    0
+    0
+    18px !important;
+}
+
+
+/* =====================================================
+   פס ההתקדמות
+===================================================== */
+
+.learning-path-top-progress{
+  width:min(720px,96%) !important;
+
+  min-height:92px !important;
+
+  border-radius:24px !important;
+
+  box-shadow:
+    0 12px 26px
+    rgba(45,65,100,.13) !important;
+}
+
+
+.learning-path-progress-reward{
+  min-height:74px !important;
+
+  font-size:32px !important;
+}
+
+
+.learning-path-progress-reward strong{
+  font-size:16px !important;
+}
+
+
+.learning-path-progress-reward span{
+  font-size:13px !important;
+}
+
+
+.learning-path-progress-info{
+  padding:
+    12px
+    20px !important;
+}
+
+
+.learning-path-progress-info > strong{
+  font-size:16px !important;
+}
+
+
+.learning-path-progress-track{
+  height:11px !important;
+}
+
+
+/* כפתור חזרה */
+
+.learning-path-back{
+  top:-5px !important;
+  right:5px !important;
+}
 </style>
 </head>
 <body>
