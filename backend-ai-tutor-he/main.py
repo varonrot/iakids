@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
@@ -72,7 +72,8 @@ app.add_middleware(
 class TutorChatRequest(BaseModel):
     message: str
     kid_id: str
-
+class TutorTTSRequest(BaseModel):
+    text: str
 
 # =====================================================
 # AUTH
@@ -224,7 +225,73 @@ def tutor_health():
         "service": "ai-tutor-he"
     }
 
+# =====================================================
+# AI TUTOR NATURAL VOICE
+# =====================================================
 
+@app.post("/api/tutor/tts")
+def tutor_tts(
+    body: TutorTTSRequest,
+    authorization: str = Header(None)
+):
+    try:
+
+        # משתמש באותה התחברות שכבר קיימת אצלך
+        authenticate_user(authorization)
+
+        text = (body.text or "").strip()
+
+        if not text:
+            raise HTTPException(
+                status_code=400,
+                detail="text is required"
+            )
+
+        # הגבלה בסיסית כדי שלא ישלחו טקסטים עצומים ל-TTS
+        if len(text) > 1500:
+            raise HTTPException(
+                status_code=400,
+                detail="text is too long"
+            )
+
+        speech_response = client.audio.speech.create(
+            model="gpt-4o-mini-tts",
+            voice="coral",
+            input=text,
+            instructions=(
+                "Speak in natural Hebrew. "
+                "Sound like a warm, friendly, patient AI teacher "
+                "speaking to a school-age child. "
+                "Use a natural conversational pace. "
+                "Be expressive and encouraging, but not exaggerated. "
+                "Pronounce numbers and mathematical expressions clearly."
+            ),
+            response_format="mp3"
+        )
+
+        audio_bytes = speech_response.read()
+
+        return Response(
+            content=audio_bytes,
+            media_type="audio/mpeg",
+            headers={
+                "Cache-Control": "no-store"
+            }
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        print(
+            "TUTOR TTS ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Tutor TTS failed"
+        )
 # =====================================================
 # AI TUTOR CHAT
 # =====================================================
