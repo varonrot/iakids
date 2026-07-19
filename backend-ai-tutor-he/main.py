@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
 from openai import OpenAI
+from google import genai
+from google.genai import types
 from pathlib import Path
 import os
 
@@ -16,6 +18,7 @@ PROMPT_PATH = Path("prompts/iakids_ai_tutor_system_prompt.txt")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not SUPABASE_URL:
     raise RuntimeError("Missing SUPABASE_URL")
@@ -25,6 +28,9 @@ if not SUPABASE_SERVICE_KEY:
 
 if not OPENAI_API_KEY:
     raise RuntimeError("Missing OPENAI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise RuntimeError("Missing GEMINI_API_KEY")
 
 if not PROMPT_PATH.exists():
     raise RuntimeError(f"Missing prompt file: {PROMPT_PATH}")
@@ -40,7 +46,14 @@ print("==============================")
 # =====================================================
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-client = OpenAI(api_key=OPENAI_API_KEY)
+
+client = OpenAI(
+    api_key=OPENAI_API_KEY
+)
+
+gemini_client = genai.Client(
+    api_key=GEMINI_API_KEY
+)
 
 app = FastAPI(
     title=APP_NAME,
