@@ -7339,73 +7339,116 @@ body::before{
 </main>
 
 <!-- תפריט פעילויות לימוד -->
-<nav class="learning-sidebar-menu">
+<!-- =====================================================
+     RIGHT SIDEBAR
+===================================================== -->
 
-  <button
-    class="learning-menu-item homework active"
-    data-mode="homework"
-    onclick="showLearning('homework', this)"
+<aside class="rightbar">
+
+  <!-- כרטיס הילד העליון -->
+  <div
+    class="rightbar-kid"
+    onclick="document.getElementById('openParentModal')?.click()"
   >
-    <span class="learning-menu-icon">📷</span>
-    <span class="learning-menu-text">
-      <strong>שיעורי בית</strong>
-      <small>צלם תרגיל וקבל עזרה</small>
-    </span>
-  </button>
+    <img
+      id="rightbarAvatar"
+      src="/assets/avatars/cat_blue.png"
+      alt="פרופיל הילד"
+    >
+
+    <div>
+      <strong id="rightbarName">
+        הילד
+      </strong>
+
+      <span class="rightbar-kid-hint">
+        לחצו להחלפת ילד או לניהול פרופילים
+      </span>
+    </div>
+  </div>
 
 
-  <button
-    class="learning-menu-item exam"
-    data-mode="exam"
-    onclick="showLearning('exam', this)"
-  >
-    <span class="learning-menu-icon">📗</span>
-    <span class="learning-menu-text">
-      <strong>הכנה למבחן</strong>
-      <small>בוא נתכונן יחד</small>
-    </span>
-  </button>
+  <!-- כותרת -->
+  <div class="learning-sidebar-title">
+    מה בא לך לעשות?
+  </div>
 
 
-  <button
-    class="learning-menu-item practice"
-    data-mode="practice"
-    onclick="showLearning('practice', this)"
-  >
-    <span class="learning-menu-icon">✏️</span>
-    <span class="learning-menu-text">
-      <strong>תרגול</strong>
-      <small>בחר נושא לתרגול</small>
-    </span>
-  </button>
+  <!-- תפריט פעילויות לימוד -->
+  <nav class="learning-sidebar-menu">
+
+    <button
+      class="learning-menu-item homework active"
+      data-mode="homework"
+      onclick="showLearning('homework', this)"
+    >
+      <span class="learning-menu-icon">📷</span>
+
+      <span class="learning-menu-text">
+        <strong>שיעורי בית</strong>
+        <small>צלם תרגיל וקבל עזרה</small>
+      </span>
+    </button>
 
 
-  <button
-    class="learning-menu-item reading"
-    data-mode="reading"
-    onclick="showLearning('reading', this)"
-  >
-    <span class="learning-menu-icon">🎙️</span>
-    <span class="learning-menu-text">
-      <strong>קריאה</strong>
-      <small>קרא בקול ונתרגל</small>
-    </span>
-  </button>
+    <button
+      class="learning-menu-item exam"
+      data-mode="exam"
+      onclick="showLearning('exam', this)"
+    >
+      <span class="learning-menu-icon">📗</span>
+
+      <span class="learning-menu-text">
+        <strong>הכנה למבחן</strong>
+        <small>בוא נתכונן יחד</small>
+      </span>
+    </button>
 
 
-  <button
-    class="learning-menu-item games"
-    data-mode="games"
-    onclick="showLearning('games', this)"
-  >
-    <span class="learning-menu-icon">🎮</span>
-    <span class="learning-menu-text">
-      <strong>משחקי לימוד</strong>
-      <small>ללמוד דרך משחק</small>
-    </span>
-  </button>
+    <button
+      class="learning-menu-item practice"
+      data-mode="practice"
+      onclick="showLearning('practice', this)"
+    >
+      <span class="learning-menu-icon">✏️</span>
 
-</nav>
+      <span class="learning-menu-text">
+        <strong>תרגול</strong>
+        <small>בחר נושא לתרגול</small>
+      </span>
+    </button>
+
+
+    <button
+      class="learning-menu-item reading"
+      data-mode="reading"
+      onclick="showLearning('reading', this)"
+    >
+      <span class="learning-menu-icon">🎙️</span>
+
+      <span class="learning-menu-text">
+        <strong>קריאה</strong>
+        <small>קרא בקול ונתרגל</small>
+      </span>
+    </button>
+
+
+    <button
+      class="learning-menu-item games"
+      data-mode="games"
+      onclick="showLearning('games', this)"
+    >
+      <span class="learning-menu-icon">🎮</span>
+
+      <span class="learning-menu-text">
+        <strong>משחקי לימוד</strong>
+        <small>ללמוד דרך משחק</small>
+      </span>
+    </button>
+
+  </nav>
+
+</aside>
 </div>
 
 <!-- Existing functional modals -->
