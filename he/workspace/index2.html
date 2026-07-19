@@ -3827,7 +3827,7 @@ body::before{
 }
 
 /* =====================================================
-   תחנת שיעור
+   LEARNING PATH CARDS
 ===================================================== */
 
 .learning-path-node{
@@ -3838,13 +3838,12 @@ body::before{
   min-height:170px;
 
   padding:
-    34px
-    20px
-    24px;
+    36px
+    18px
+    34px;
 
   display:flex;
   flex-direction:column;
-
   align-items:center;
   justify-content:center;
 
@@ -3852,50 +3851,49 @@ body::before{
 
   border:
     4px solid
-    rgba(255,255,255,.95);
+    rgba(255,255,255,.98);
 
   border-radius:
-    42px
-    42px
-    34px
-    34px;
+    40px
+    40px
+    32px
+    32px;
 
   background:
     linear-gradient(
       180deg,
-      rgba(255,255,255,.98),
-      rgba(247,248,244,.96)
+      #fffef9 0%,
+      #f7f8f2 100%
     );
 
   box-shadow:
-    0 14px 28px
-    rgba(60,80,90,.22),
-    inset 0 0 0 2px
-    rgba(214,220,190,.65);
+    0 10px 0 rgba(181,190,162,.45),
+    0 17px 30px rgba(45,65,90,.20),
+    inset 0 0 0 2px rgba(215,220,190,.75);
 
   cursor:pointer;
 
   transition:
     transform .2s ease,
-    box-shadow .2s ease;
+    box-shadow .2s ease,
+    filter .2s ease;
 }
-/* מיקום התחנות על השביל */
 
 
-.learning-path-node:hover{
-  transform:
-    translateY(-5px);
+/* hover */
+
+.learning-path-node:not(.locked):hover{
+  transform:translateY(-7px);
 
   box-shadow:
-    0 20px 34px
-    rgba(60,80,90,.28),
-    inset 0 0 0 2px
-    rgba(214,220,190,.65);
+    0 10px 0 rgba(181,190,162,.45),
+    0 23px 38px rgba(45,65,90,.26),
+    inset 0 0 0 2px rgba(215,220,190,.75);
 }
 
 
 /* =====================================================
-   מספר השיעור
+   LESSON NUMBER
 ===================================================== */
 
 .learning-path-number{
@@ -3904,8 +3902,7 @@ body::before{
   top:-24px;
   left:50%;
 
-  transform:
-    translateX(-50%);
+  transform:translateX(-50%);
 
   width:52px;
   height:52px;
@@ -3918,7 +3915,7 @@ body::before{
   background:
     linear-gradient(
       145deg,
-      #9a72ff,
+      #9c74ff,
       #6643db
     );
 
@@ -3930,26 +3927,26 @@ body::before{
   border:4px solid #fff;
 
   box-shadow:
-    0 6px 16px
-    rgba(92,65,220,.30);
+    0 6px 16px rgba(92,65,220,.34);
 }
 
 
 /* =====================================================
-   טקסט התחנה
+   TEXT
 ===================================================== */
 
 .learning-path-node h3{
   margin:
-    18px
+    16px
     0
-    5px;
+    6px;
 
   font-size:19px;
-
   line-height:1.35;
 
-  color:#28366b;
+  color:#27346b;
+
+  font-weight:900;
 }
 
 
@@ -3961,7 +3958,137 @@ body::before{
 
 
 /* =====================================================
-   CHECKPOINT - תחנת אתגר
+   STATUS ICON
+===================================================== */
+
+.learning-path-status{
+  position:absolute;
+
+  left:50%;
+  bottom:-22px;
+
+  transform:translateX(-50%);
+
+  width:46px;
+  height:46px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  border:4px solid #fff;
+
+  font-size:21px;
+  font-weight:900;
+
+  box-shadow:
+    0 5px 13px rgba(40,60,90,.22);
+}
+
+
+/* =====================================================
+   COMPLETED
+===================================================== */
+
+.learning-path-node.completed{
+  border-color:
+    rgba(255,255,255,.98);
+}
+
+
+.learning-path-node.completed
+.learning-path-status{
+  background:
+    linear-gradient(
+      145deg,
+      #56cc62,
+      #2fa944
+    );
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   CURRENT LESSON
+===================================================== */
+
+.learning-path-node.current{
+  border-color:#9b72ff;
+
+  box-shadow:
+    0 10px 0 rgba(160,120,240,.30),
+    0 18px 38px rgba(108,70,220,.30),
+    inset 0 0 0 2px rgba(187,156,255,.55);
+}
+
+
+.learning-path-node.current
+.learning-path-status{
+  background:
+    linear-gradient(
+      145deg,
+      #9b72ff,
+      #6844dc
+    );
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   LOCKED
+===================================================== */
+
+.learning-path-node.locked{
+  background:
+    linear-gradient(
+      180deg,
+      #f5f6f8,
+      #e8ebf0
+    );
+
+  border-color:
+    rgba(255,255,255,.92);
+
+  box-shadow:
+    0 9px 0 rgba(150,158,172,.35),
+    0 14px 25px rgba(50,60,80,.14),
+    inset 0 0 0 2px rgba(190,195,205,.55);
+
+  cursor:not-allowed;
+
+  filter:saturate(.65);
+}
+
+
+.learning-path-node.locked
+.learning-path-number{
+  background:
+    linear-gradient(
+      145deg,
+      #929aaa,
+      #667080
+    );
+}
+
+
+.learning-path-node.locked
+.learning-path-status{
+  background:
+    linear-gradient(
+      145deg,
+      #808999,
+      #5e6673
+    );
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   CHECKPOINT
 ===================================================== */
 
 .learning-path-node.checkpoint{
@@ -3974,14 +4101,12 @@ body::before{
       #ffc85c
     );
 
-  border-color:
-    rgba(255,255,255,.98);
+  border-color:#fff;
 
   box-shadow:
-    0 16px 34px
-    rgba(190,130,30,.26),
-    inset 0 0 0 2px
-    rgba(255,220,120,.70);
+    0 10px 0 rgba(210,150,35,.38),
+    0 18px 34px rgba(190,130,30,.28),
+    inset 0 0 0 2px rgba(255,220,120,.75);
 }
 
 
@@ -3999,6 +4124,11 @@ body::before{
 .learning-path-node.checkpoint
 .learning-path-number{
   display:none;
+}
+
+
+.learning-path-node.checkpoint.locked::before{
+  opacity:.75;
 }
 
 
@@ -4120,6 +4250,657 @@ body::before{
 
   .learning-path-node.checkpoint{
     min-height:165px;
+  }
+
+}
+    /* =====================================================
+   LEARNING PATH - PURPLE CATEGORY SIDEBAR
+===================================================== */
+
+.learning-path-layout{
+  width:100%;
+  height:100%;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    250px;
+
+  grid-template-areas:
+    "content sidebar";
+
+  gap:14px;
+
+  direction:ltr;
+}
+
+
+/* הסרגל הסגול תמיד בצד ימין */
+
+.learning-path-sidebar{
+  grid-area:sidebar;
+  direction:rtl;
+}
+
+
+/* מסלול הלמידה תמיד בצד שמאל של הסרגל */
+
+.learning-path-screen{
+  grid-area:content;
+  min-width:0;
+  direction:rtl;
+}
+
+/* אזור המסלול */
+
+.learning-path-screen{
+  min-width:0;
+
+  direction:rtl;
+}
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.learning-path-sidebar{
+  direction:rtl;
+
+  position:relative;
+
+  height:100%;
+
+  display:flex;
+  flex-direction:column;
+
+  padding:
+    20px
+    14px
+    16px;
+
+  border-radius:26px;
+
+  overflow:hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      #4f3fbd 0%,
+      #3f3ca8 48%,
+      #343694 100%
+    );
+
+  box-shadow:
+    0 18px 40px
+    rgba(48,45,135,.28),
+    inset 0 1px 0
+    rgba(255,255,255,.18);
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   SUBJECT TITLE
+===================================================== */
+
+.learning-path-sidebar-title{
+  min-height:75px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:12px;
+
+  padding:
+    8px
+    10px
+    18px;
+
+  margin-bottom:8px;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.10);
+
+  font-size:27px;
+  font-weight:900;
+
+  color:#fff;
+}
+
+
+.learning-path-sidebar-title i{
+  width:44px;
+  height:44px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffcc4d,
+      #f39a28
+    );
+
+  color:#fff;
+
+  font-size:22px;
+
+  box-shadow:
+    0 7px 17px
+    rgba(0,0,0,.15);
+}
+
+
+/* =====================================================
+   CATEGORY LIST
+===================================================== */
+
+.learning-path-sidebar-categories{
+  flex:1;
+
+  min-height:0;
+
+  overflow-y:auto;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:4px;
+
+  padding:
+    4px
+    0
+    12px;
+}
+
+
+/* קטגוריה */
+
+.learning-path-sidebar-item{
+  width:100%;
+
+  min-height:68px;
+
+  padding:
+    7px
+    8px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  border:0;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.09);
+
+  border-radius:15px;
+
+  background:
+    transparent;
+
+  color:
+    rgba(255,255,255,.88);
+
+  cursor:pointer;
+
+  text-align:right;
+
+  font-size:17px;
+
+  font-weight:800;
+
+  transition:
+    background .2s ease,
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+
+/* hover */
+
+.learning-path-sidebar-item:hover{
+  background:
+    rgba(255,255,255,.08);
+
+  transform:
+    translateX(-2px);
+}
+
+
+/* קטגוריה פעילה */
+
+.learning-path-sidebar-item.active{
+  background:
+    linear-gradient(
+      135deg,
+      #a477ff,
+      #8b5ff0
+    );
+
+  color:#fff;
+
+  box-shadow:
+    0 8px 22px
+    rgba(25,18,100,.25),
+    inset 0 1px 0
+    rgba(255,255,255,.25);
+
+  border-bottom-color:
+    transparent;
+}
+
+
+/* =====================================================
+   GENERAL CATEGORY ICON
+===================================================== */
+
+.learning-path-sidebar-icon{
+  width:46px;
+  height:46px;
+
+  flex:
+    0
+    0
+    46px;
+
+  display:grid;
+
+  place-items:center;
+
+  border-radius:14px;
+
+  background:
+    rgba(255,255,255,.08);
+
+  border:
+    1px solid
+    rgba(255,255,255,.16);
+
+  color:#fff;
+
+  font-size:19px;
+}
+
+
+.learning-path-sidebar-item.active
+.learning-path-sidebar-icon{
+  background:
+    rgba(255,255,255,.92);
+
+  color:#7652dc;
+
+  box-shadow:
+    0 5px 13px
+    rgba(40,20,110,.15);
+}
+
+
+.learning-path-sidebar-label{
+  flex:1;
+
+  min-width:0;
+
+  line-height:1.35;
+}
+
+
+/* =====================================================
+   HOME BUTTON
+===================================================== */
+
+.learning-path-sidebar-home{
+  width:100%;
+
+  min-height:58px;
+
+  flex-shrink:0;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:10px;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.15);
+
+  border-radius:17px;
+
+  background:
+    rgba(255,255,255,.07);
+
+  color:
+    rgba(255,255,255,.80);
+
+  font-size:16px;
+
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+
+.learning-path-sidebar-home:hover{
+  background:
+    rgba(255,255,255,.13);
+
+  color:#fff;
+}
+
+
+/* Scroll */
+
+.learning-path-sidebar-categories::-webkit-scrollbar{
+  width:4px;
+}
+
+
+.learning-path-sidebar-categories::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+.learning-path-sidebar-categories::-webkit-scrollbar-thumb{
+  background:
+    rgba(255,255,255,.20);
+
+  border-radius:999px;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:900px){
+
+  .learning-path-layout{
+    display:block;
+  }
+
+
+  .learning-path-sidebar{
+    display:none;
+  }
+
+}
+ /* =====================================================
+   LEARNING PATH FOOTER - SOFTER VERSION
+===================================================== */
+
+.learning-path-footer{
+  width:min(900px,92%);
+
+  margin:
+    -8px auto
+    18px;
+
+  display:grid;
+
+  grid-template-columns:
+    145px
+    minmax(0,1fr);
+
+  gap:14px;
+
+  align-items:center;
+
+  position:relative;
+
+  z-index:5;
+}
+
+
+/* משחקים */
+
+.learning-path-games{
+  min-height:74px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:9px;
+
+  padding:
+    10px
+    12px;
+
+  border:
+    2px solid
+    rgba(255,255,255,.72);
+
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(139,105,235,.92),
+      rgba(103,75,205,.90)
+    );
+
+  color:#fff;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 7px 18px
+    rgba(76,48,180,.20);
+
+  text-align:right;
+}
+
+
+.learning-path-games-icon{
+  font-size:28px;
+}
+
+
+.learning-path-games strong{
+  display:block;
+
+  font-size:15px;
+  font-weight:900;
+}
+
+
+.learning-path-games small{
+  display:block;
+
+  margin-top:2px;
+
+  font-size:11px;
+
+  color:
+    rgba(255,255,255,.78);
+}
+
+
+/* =====================================================
+   REWARD PANEL
+===================================================== */
+
+.learning-path-reward{
+  min-height:76px;
+
+  display:grid;
+
+  grid-template-columns:
+    62px
+    minmax(0,1fr)
+    66px;
+
+  align-items:center;
+
+  padding:
+    6px
+    12px;
+
+  border:
+    2px solid
+    rgba(255,255,255,.68);
+
+  border-radius:21px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(151,120,235,.84),
+      rgba(118,91,214,.82)
+    );
+
+  box-shadow:
+    0 8px 20px
+    rgba(80,55,180,.18);
+
+  backdrop-filter:
+    blur(8px);
+
+  overflow:hidden;
+}
+
+
+.learning-path-reward-star{
+  font-size:38px;
+
+  text-align:center;
+
+  filter:
+    drop-shadow(
+      0 4px 5px
+      rgba(120,75,0,.16)
+    );
+}
+
+
+.learning-path-reward-text{
+  min-width:0;
+
+  text-align:center;
+
+  padding:
+    8px
+    15px;
+
+  border-radius:18px;
+
+  background:
+    rgba(255,255,255,.90);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(111,80,210,.08);
+}
+
+
+.learning-path-reward-text strong{
+  display:block;
+
+  margin-bottom:3px;
+
+  font-size:17px;
+
+  color:#3f357c;
+
+  font-weight:900;
+}
+
+
+.learning-path-reward-text span{
+  font-size:12px;
+
+  color:#6b6488;
+}
+
+
+.learning-path-reward-text b{
+  color:#7253d7;
+
+  font-size:14px;
+}
+
+
+.learning-path-reward-bag{
+  font-size:40px;
+
+  text-align:center;
+
+  transform:
+    rotate(-3deg);
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:760px){
+
+  .learning-path-footer{
+    grid-template-columns:1fr;
+
+    gap:12px;
+
+    margin-top:10px;
+  }
+
+
+  .learning-path-games{
+    min-height:70px;
+  }
+
+
+  .learning-path-reward{
+    grid-template-columns:
+      60px
+      minmax(0,1fr)
+      70px;
+  }
+
+
+  .learning-path-reward-star{
+    font-size:40px;
+  }
+
+
+  .learning-path-reward-bag{
+    font-size:44px;
+  }
+
+
+  .learning-path-reward-text{
+    padding:
+      10px
+      8px;
+  }
+
+
+  .learning-path-reward-text strong{
+    font-size:17px;
+  }
+
+
+  .learning-path-reward-text span{
+    font-size:12px;
   }
 
 }
@@ -4747,7 +5528,42 @@ body::before{
   style="display:none;"
 >
 
-  <div class="learning-path-screen">
+  <div class="learning-path-layout">
+
+    <!-- סרגל קטגוריות דינמי -->
+    <aside
+      id="learningPathSidebar"
+      class="learning-path-sidebar"
+    >
+
+      <div class="learning-path-sidebar-title">
+        <i class="fa-solid fa-book-open"></i>
+
+        <span id="learningPathSidebarSubject">
+          מקצוע
+        </span>
+      </div>
+
+      <div
+        id="learningPathSidebarCategories"
+        class="learning-path-sidebar-categories"
+      >
+      </div>
+
+      <button
+        type="button"
+        class="learning-path-sidebar-home"
+        onclick="showDashboard()"
+      >
+        <i class="fa-solid fa-house"></i>
+        <span>חזור למסך הבית</span>
+      </button>
+
+    </aside>
+
+
+    <!-- אזור המסלול הקיים -->
+    <div class="learning-path-screen">
 
     <div class="learning-path-header">
 
@@ -4787,9 +5603,73 @@ body::before{
     >
       <!-- השיעורים ייווצרו כאן אוטומטית -->
     </div>
+<!-- =====================================================
+     FOOTER של מסלול הלמידה
+===================================================== -->
+
+<div class="learning-path-footer">
+
+  <button
+    type="button"
+    class="learning-path-games"
+    id="learningPathGamesBtn"
+  >
+
+    <span class="learning-path-games-icon">
+      🎮
+    </span>
+
+    <span>
+      <strong>משחקים</strong>
+      <small>ותרגול נוסף</small>
+    </span>
+
+  </button>
+
+
+  <div class="learning-path-reward">
+
+    <div class="learning-path-reward-star">
+      ⭐
+    </div>
+
+
+    <div class="learning-path-reward-text">
+
+      <strong id="learningPathRewardTitle">
+        כל הכבוד! המשך כך!
+      </strong>
+
+      <span>
+
+        סיימת
+
+        <b id="learningPathCompletedCount">
+          3
+        </b>
+
+        שיעורים וצברת
+
+        <b id="learningPathScore">
+          80
+        </b>
+
+        ⭐ כוכבים
+
+      </span>
+
+    </div>
+
+
+    <div class="learning-path-reward-bag">
+      🎒
+    </div>
 
   </div>
 
+</div>
+  </div>
+ </div>
 </section>
   <!-- =====================================================
        LEARNING / NOTEBOOK VIEW
@@ -5432,7 +6312,11 @@ async function loadCategories(grade, subject) {
       uniqueCategories.push(row);
     }
   });
-
+renderLearningPathSidebar(
+  grade,
+  subject,
+  uniqueCategories
+);
   container.innerHTML = "";
 
   const backButton = document.createElement("button");
@@ -5497,7 +6381,167 @@ button.onclick = () => {
   });
 }
 
+/* =====================================================
+   RENDER LEARNING PATH SIDEBAR
+===================================================== */
 
+function renderLearningPathSidebar(
+  grade,
+  subject,
+  categories
+){
+
+  const sidebar =
+    document.getElementById(
+      "learningPathSidebarCategories"
+    );
+
+
+  const subjectTitle =
+    document.getElementById(
+      "learningPathSidebarSubject"
+    );
+
+
+  if(
+    !sidebar ||
+    !subjectTitle
+  ){
+    return;
+  }
+
+
+  /* שם המקצוע */
+
+  subjectTitle.textContent =
+    subject;
+
+
+  /* ניקוי הרשימה */
+
+  sidebar.innerHTML =
+    "";
+
+
+  /*
+  אייקונים כלליים.
+
+  אין התאמה לנושא מסוים.
+  האייקונים פשוט מתחלפים
+  לפי מיקום הקטגוריה.
+  */
+
+  const genericIcons = [
+
+    "fa-solid fa-shapes",
+
+    "fa-solid fa-plus-minus",
+
+    "fa-solid fa-chart-pie",
+
+    "fa-solid fa-ruler",
+
+    "fa-solid fa-circle-nodes",
+
+    "fa-solid fa-layer-group",
+
+    "fa-solid fa-comment-dots",
+
+    "fa-solid fa-chart-simple"
+
+  ];
+
+
+  categories.forEach(
+    (
+      item,
+      index
+    ) => {
+
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.type =
+        "button";
+
+
+      button.className =
+        "learning-path-sidebar-item";
+
+
+      /*
+      סימון הקטגוריה הנוכחית
+      */
+
+      if(
+        CURRENT_PATH &&
+        CURRENT_PATH.subject ===
+          subject &&
+        CURRENT_PATH.category ===
+          item.category
+      ){
+
+        button.classList.add(
+          "active"
+        );
+
+      }
+
+
+      const icon =
+        genericIcons[
+          index %
+          genericIcons.length
+        ];
+
+
+      button.innerHTML = `
+
+        <span
+          class="learning-path-sidebar-icon"
+        >
+          <i class="${icon}"></i>
+        </span>
+
+
+        <span
+          class="learning-path-sidebar-label"
+        >
+          ${item.category}
+        </span>
+
+      `;
+
+
+      /*
+      לחיצה על קטגוריה
+      טוענת את המסלול החדש
+      */
+
+      button.onclick =
+        () => {
+
+          loadLearningPath(
+            grade,
+            subject,
+            item.category
+          );
+
+        };
+
+
+      sidebar.appendChild(
+        button
+      );
+
+    }
+  );
+
+}
 /* =====================================================
    LOAD DYNAMIC LEARNING PATH
    ===================================================== */
@@ -5677,17 +6721,32 @@ async function loadLearningPath(
       lessons || []
 
   };
+/* סימון הקטגוריה הפעילה בסרגל */
 
+document
+  .querySelectorAll(
+    ".learning-path-sidebar-item"
+  )
+  .forEach(button => {
+
+    const label =
+      button.querySelector(
+        ".learning-path-sidebar-label"
+      );
+
+    button.classList.toggle(
+      "active",
+      label?.textContent.trim()
+        === category
+    );
+
+  });
 
   renderLearningPath(
     lessons || []
   );
 
 }
-/* =====================================================
-   RENDER LEARNING PATH
-   ===================================================== */
-
 function renderLearningPath(
   lessons
 ){
@@ -5703,8 +6762,7 @@ function renderLearningPath(
   }
 
 
-  container.innerHTML =
-    "";
+  container.innerHTML = "";
 
 
   if(
@@ -5713,18 +6771,26 @@ function renderLearningPath(
   ){
 
     container.innerHTML = `
-
-      <div
-        class="learning-path-loading"
-      >
+      <div class="learning-path-loading">
         עדיין אין שיעורים במסלול הזה.
       </div>
-
     `;
 
     return;
 
   }
+
+
+  /*
+  זמני בלבד עד שנחבר טבלת progress.
+
+  3 שיעורים ראשונים הושלמו,
+  שיעור 4 הוא השיעור הנוכחי,
+  וכל השאר נעולים.
+  */
+
+  const completedUntil = 3;
+  const currentLessonOrder = 4;
 
 
   lessons.forEach(
@@ -5736,13 +6802,18 @@ function renderLearningPath(
         );
 
 
-      node.type =
-        "button";
-
+      node.type = "button";
 
       node.className =
         "learning-path-node";
 
+
+      let statusIcon = "";
+
+
+      /*
+      CHECKPOINT
+      */
 
       if(
         lesson.is_checkpoint
@@ -5751,6 +6822,67 @@ function renderLearningPath(
         node.classList.add(
           "checkpoint"
         );
+
+        node.classList.add(
+          "locked"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-lock"></i>`;
+
+      }
+
+
+      /*
+      COMPLETED
+      */
+
+      else if(
+        lesson.lesson_order
+        <= completedUntil
+      ){
+
+        node.classList.add(
+          "completed"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-check"></i>`;
+
+      }
+
+
+      /*
+      CURRENT
+      */
+
+      else if(
+        lesson.lesson_order
+        === currentLessonOrder
+      ){
+
+        node.classList.add(
+          "current"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-play"></i>`;
+
+      }
+
+
+      /*
+      LOCKED
+      */
+
+      else{
+
+        node.classList.add(
+          "locked"
+        );
+
+        statusIcon =
+          `<i class="fa-solid fa-lock"></i>`;
 
       }
 
@@ -5781,17 +6913,37 @@ function renderLearningPath(
 
         </small>
 
+
+        <span
+          class="learning-path-status"
+        >
+          ${statusIcon}
+        </span>
+
       `;
 
 
-      node.onclick =
-        () => {
+      /*
+      רק שיעור פתוח או שהושלם
+      ניתן ללחיצה כרגע
+      */
 
-          startSelectedLesson(
-            lesson
-          );
+      if(
+        !node.classList.contains(
+          "locked"
+        )
+      ){
 
-        };
+        node.onclick =
+          () => {
+
+            startSelectedLesson(
+              lesson
+            );
+
+          };
+
+      }
 
 
       container.appendChild(
@@ -7172,7 +8324,38 @@ if(pathView){
 
 }
 
+/* =====================================================
+   UPDATE LEARNING PATH FOOTER
+===================================================== */
 
+function updateLearningPathFooter({
+  completedLessons = 0,
+  score = 0
+} = {}){
+
+  const completedEl =
+    document.getElementById(
+      "learningPathCompletedCount"
+    );
+
+  const scoreEl =
+    document.getElementById(
+      "learningPathScore"
+    );
+
+  if(completedEl){
+    completedEl.textContent =
+      completedLessons;
+  }
+
+  if(scoreEl){
+    scoreEl.textContent =
+      score;
+  }
+}
+
+
+ 
 /* =====================================================
    LEARNING MODE
    ===================================================== */
