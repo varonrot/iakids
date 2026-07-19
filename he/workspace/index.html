@@ -6362,6 +6362,116 @@ body::before{
   }
 
 }
+    /* =====================================================
+   ROBOT POINT V1.2
+===================================================== */
+
+.lesson-pointer-robot{
+  position:absolute;
+  width:95px;
+  height:auto;
+
+  z-index:50;
+
+  pointer-events:none;
+  user-select:none;
+
+  opacity:0;
+
+  transform:
+    translateY(10px)
+    scale(.95);
+
+  transition:
+    left .55s ease,
+    top .55s ease,
+    opacity .3s ease,
+    transform .3s ease;
+
+  filter:
+    drop-shadow(
+      0 8px 14px
+      rgba(30,60,120,.18)
+    );
+}
+
+.lesson-pointer-robot.visible{
+  opacity:1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+.lesson-pointer-arrow{
+  position:absolute;
+
+  z-index:49;
+
+  font-size:38px;
+
+  pointer-events:none;
+
+  opacity:0;
+
+  transform:scale(.7);
+
+  transition:
+    left .55s ease,
+    top .55s ease,
+    opacity .25s ease,
+    transform .25s ease;
+}
+
+.lesson-pointer-arrow.visible{
+  opacity:1;
+  transform:scale(1);
+}
+
+
+.lesson-point-target{
+  position:relative;
+}
+
+.lesson-point-target::after{
+  content:"";
+
+  position:absolute;
+  inset:-5px -8px;
+
+  border:
+    3px solid
+    #ffb400;
+
+  border-radius:12px;
+
+  opacity:0;
+
+  animation:
+    lessonPointPulse
+    .7s ease
+    forwards;
+}
+
+@keyframes lessonPointPulse{
+
+  0%{
+    opacity:0;
+    transform:scale(.88);
+  }
+
+  60%{
+    opacity:1;
+    transform:scale(1.05);
+  }
+
+  100%{
+    opacity:1;
+    transform:scale(1);
+  }
+
+}
 </style>
 </head>
 <body>
@@ -10455,20 +10565,16 @@ class LessonRendererV1 {
 
   constructor(messagesElement){
 
-    this.messages =
-      messagesElement;
+this.messages = messagesElement;
 
-    this.root =
-      null;
+this.root = null;
+this.content = null;
+this.avatar = null;
 
-    this.content =
-      null;
+this.pointerRobot = null;
+this.pointerArrow = null;
 
-    this.avatar =
-      null;
-
-    this.isRunning =
-      false;
+this.isRunning = false;
 
   }
 
@@ -10572,7 +10678,186 @@ class LessonRendererV1 {
 
   }
 
+createPointerRobot(){
 
+  if(
+    this.pointerRobot &&
+    this.pointerArrow
+  ){
+    return;
+  }
+
+  this.pointerRobot =
+    document.createElement("img");
+
+  this.pointerRobot.src =
+    "/assets/robots/askie-robot.png";
+
+  this.pointerRobot.className =
+    "lesson-pointer-robot";
+
+  this.pointerArrow =
+    document.createElement("div");
+
+  this.pointerArrow.className =
+    "lesson-pointer-arrow";
+
+  this.pointerArrow.textContent =
+    "👉";
+
+  this.messages.appendChild(
+    this.pointerRobot
+  );
+
+  this.messages.appendChild(
+    this.pointerArrow
+  );
+
+}
+async robotPoint({
+  target
+}){
+
+  this.createPointerRobot();
+
+
+  const lines =
+    this.content
+      .querySelectorAll(
+        ".lesson-renderer-line"
+      );
+
+
+  let targetLine =
+    null;
+
+
+  for(
+    const line of lines
+  ){
+
+    if(
+      line.textContent
+        .includes(
+          target
+        )
+    ){
+
+      targetLine =
+        line;
+
+      break;
+
+    }
+
+  }
+
+
+  if(
+    !targetLine
+  ){
+
+    console.warn(
+      "robot_point target not found:",
+      target
+    );
+
+    return;
+
+  }
+
+
+  targetLine.classList.add(
+    "lesson-point-target"
+  );
+
+
+  const messagesRect =
+    this.messages
+      .getBoundingClientRect();
+
+
+  const targetRect =
+    targetLine
+      .getBoundingClientRect();
+
+
+  /*
+    מיקום בתוך אזור messages
+  */
+
+  const targetX =
+    targetRect.left -
+    messagesRect.left +
+    this.messages.scrollLeft;
+
+
+  const targetY =
+    targetRect.top -
+    messagesRect.top +
+    this.messages.scrollTop;
+
+
+  /*
+    הרובוט יופיע משמאל ליעד
+  */
+
+  const robotLeft =
+    Math.max(
+      10,
+      targetX - 125
+    );
+
+
+  const robotTop =
+    targetY - 20;
+
+
+  this.pointerRobot.style.left =
+    robotLeft + "px";
+
+
+  this.pointerRobot.style.top =
+    robotTop + "px";
+
+
+  /*
+    החץ בין הרובוט ליעד
+  */
+
+  this.pointerArrow.style.left =
+    (
+      robotLeft +
+      80
+    ) + "px";
+
+
+  this.pointerArrow.style.top =
+    (
+      robotTop +
+      25
+    ) + "px";
+
+
+  this.pointerRobot
+    .classList
+    .add(
+      "visible"
+    );
+
+
+  this.pointerArrow
+    .classList
+    .add(
+      "visible"
+    );
+
+
+  await this.wait(
+    1600
+  );
+
+}
   /* =========================
      WRITE
   ========================= */
@@ -11068,6 +11353,14 @@ class LessonRendererV1 {
 
           break;
 
+          case "robot_point":
+
+  await this.robotPoint(
+    action
+  );
+
+  break;
+
 
         case "highlight":
 
@@ -11271,6 +11564,10 @@ document.addEventListener(
         90
     },
 
+{
+  type: "robot_point",
+  target: "30"
+},
 
     {
       type: "highlight",
@@ -11328,6 +11625,10 @@ document.addEventListener(
         100
     },
 
+{
+  type: "robot_point",
+  target: "42"
+},
 
     {
       type: "highlight",
