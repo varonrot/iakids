@@ -10557,6 +10557,41 @@ document.addEventListener(
 
 
 <script>
+
+    let AUDIO_UNLOCKED = false;
+
+async function unlockLessonAudio() {
+
+  if (AUDIO_UNLOCKED) {
+    return;
+  }
+
+  try {
+
+    const audioContext =
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+    await audioContext.resume();
+
+    AUDIO_UNLOCKED = true;
+
+    console.log(
+      "🔊 Lesson audio unlocked"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Audio unlock failed:",
+      error
+    );
+
+  }
+
+}
 /* =====================================================
    LESSON RENDERER V1
 ===================================================== */
@@ -11070,9 +11105,24 @@ async robotPoint({
           );
         };
 
-        audio.play().catch(
-          reject
-        );
+audio.play()
+  .then(() => {
+
+    console.log(
+      "🔊 Gemini audio started"
+    );
+
+  })
+  .catch(error => {
+
+    console.error(
+      "AUDIO PLAY ERROR:",
+      error
+    );
+
+    reject(error);
+
+  });
       }
     );
 
@@ -11486,7 +11536,7 @@ document.addEventListener(
 
     demoButton.onclick =
       async () => {
-
+await unlockLessonAudio();
 
         demoButton.style.display =
           "none";
