@@ -11512,34 +11512,50 @@ console.table(
     this.prepare();
 
 
-const sequence =
-  script.sequence ||
-  [];
+ let sequence =
+  [
+    ...(script.sequence || [])
+  ];
 
 
 /* =========================================
-   מתחילים להכין את כל קטעי הקול ברקע
+   REDUCE FIRST RESPONSE DELAY
+   אם הפעולה הראשונה היא speak
+   והפעולה השנייה היא write,
+   מתחילים קודם לכתוב ורק אחר כך מדברים.
+   אין הפעלת שני קולות במקביל.
 ========================================= */
+
+if(
+  sequence.length >= 2 &&
+  sequence[0].type === "speak" &&
+  sequence[1].type === "write"
+){
+
+  const firstSpeak =
+    sequence[0];
+
+  sequence[0] =
+    sequence[1];
+
+  sequence[1] =
+    firstSpeak;
+
+}
+
+
+/* הכנת כל קטעי הקול ברקע */
 
 this.prefetchLessonAudio(
   sequence
 );
 
 
-
-
-/* =========================================
-   רק עכשיו מתחילים את השיעור
-========================================= */
+/* הרצת השיעור כרגיל, פעולה אחרי פעולה */
 
 for(
-  let index = 0;
-  index < sequence.length;
-  index++
+  const action of sequence
 ){
-
-  const action =
-    sequence[index];
 
   /* =========================================
      NORMALIZE VISUAL ACTION TARGET
@@ -11563,28 +11579,6 @@ for(
 
   }
 
-/* הקול הראשון נטען ומתנגן ברקע,
-   כדי לא לעצור את תחילת הכתיבה */
-
-if(
-  index === 0 &&
-  action.type === "speak"
-){
-
-  this.speak(
-    action
-  ).catch(error => {
-
-    console.error(
-      "Parallel first speech error:",
-      error
-    );
-
-  });
-
-  continue;
-
-}
 
   switch(
     action.type
