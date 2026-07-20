@@ -487,9 +487,22 @@ def tutor_chat(
     except HTTPException:
         raise
 
-    except Exception as e:
-        print("TUTOR CHAT ERROR:", repr(e))
-        raise HTTPException(
-            status_code=500,
-            detail="Tutor chat failed"
-        )
+except Exception as e:
+
+print(
+
+    "GEMINI TTS ERROR:",
+
+    type(e).__name__,
+
+    repr(e)
+
+)
+
+raise HTTPException(
+
+    status_code=500,
+
+    detail=f"Gemini TTS failed: {type(e).__name__}: {str(e)}"
+
+)
