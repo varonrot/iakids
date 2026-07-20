@@ -9425,26 +9425,11 @@ if(
       window.lessonRenderer
     ){
 
-      window.lessonRenderer
-        .prefetchLessonAudio(
-          data.sequence
-        );
-
-
-      /* הפעלת השיעור האמיתי */
-
-      await window.lessonRenderer.run(
-        {
-          sequence:
-            data.sequence,
-
-          wait_for_answer:
-            data.wait_for_answer,
-
-          speech:
-            data.speech
-        }
-      );
+await window.lessonRenderer.run({
+  sequence: data.sequence,
+  wait_for_answer: data.wait_for_answer,
+  speech_tts: data.speech_tts
+});
 
     }
     else{
@@ -11457,24 +11442,17 @@ async speak({ text, speech_tts }){
      ASK
   ========================= */
 
-  async ask({
-    text
-  }){
+async ask({
+  text
+}){
 
-    await this.write({
-      text,
-      style:
-        "question",
-      speed:
-        50
-    });
+  await this.write({
+    text,
+    style: "question",
+    speed: 50
+  });
 
-
-    await this.speak({
-      text
-    });
-
-  }
+}
 
 
   /* =========================
@@ -11483,196 +11461,235 @@ async speak({ text, speech_tts }){
 
 async run(script){
 
-console.log(
-  "LIVE LESSON SEQUENCE:",
-  script.sequence
-);
+  console.log(
+    "LIVE LESSON SEQUENCE:",
+    script.sequence
+  );
 
-console.table(
-  script.sequence.map(
-    action => ({
-      type: action.type,
-      text: action.text || "",
-      target: action.target || ""
-    })
-  )
-);
-
-  if(
-    this.isRunning
-  ){
+  if(this.isRunning){
     return;
   }
 
+  this.isRunning = true;
 
-    this.isRunning =
-      true;
+  this.prepare();
 
+  const sequence =
+    script.sequence || [];
 
-    this.prepare();
+  const speechText =
+    script.speech_tts || "";
 
+  /*
+    מתחילים להכין TTS אחד בלבד
+    עבור כל ה-Turn
+  */
 
- let sequence =
-  [
-    ...(script.sequence || [])
-  ];
-
-
-/* =========================================
-   REDUCE FIRST RESPONSE DELAY
-   אם הפעולה הראשונה היא speak
-   והפעולה השנייה היא write,
-   מתחילים קודם לכתוב ורק אחר כך מדברים.
-   אין הפעלת שני קולות במקביל.
-========================================= */
-
-if(
-  sequence.length >= 2 &&
-  sequence[0].type === "speak" &&
-  sequence[1].type === "write"
-){
-
-  const firstSpeak =
-    sequence[0];
-
-  sequence[0] =
-    sequence[1];
-
-  sequence[1] =
-    firstSpeak;
-
-}
-
-
-/* הכנת כל קטעי הקול ברקע */
-
-this.prefetchLessonAudio(
-  sequence
-);
-
-
-/* הרצת השיעור כרגיל, פעולה אחרי פעולה */
-
-for(
-  const action of sequence
-){
-
-  /* =========================================
-     NORMALIZE VISUAL ACTION TARGET
-  ========================================= */
+  let speechPromise = null;
 
   if(
-    action.type === "highlight" ||
-    action.type === "circle" ||
-    action.type === "robot_point"
+    speechText &&
+    speechText.trim()
   ){
 
-    if(
-      !action.target &&
-      action.text
-    ){
+    speechPromise =
+      this.preloadAudio(
+        speechText
+      ).catch(error => {
 
-      action.target =
-        action.text;
+        console.error(
+          "Speech preload error:",
+          error
+        );
 
-    }
+        return null;
+
+      });
 
   }
 
 
-  switch(
-    action.type
+  /*
+    מתחילים מיד להריץ את הפעולות הוויזואליות
+  */
+
+  for(
+    const action of sequence
   ){
 
+    if(
+      action.type === "highlight" ||
+      action.type === "circle" ||
+      action.type === "robot_point"
+    ){
 
-        case "speak":
+      if(
+        !action.target &&
+        action.text
+      ){
 
-          await this.speak(
-            action
-          );
-
-          break;
-
-
-        case "write":
-
-          await this.write(
-            action
-          );
-
-          break;
-
-          case "robot_point":
-
-  await this.robotPoint(
-    action
-  );
-
-  break;
-
-
-        case "highlight":
-
-          await this.highlight(
-            action
-          );
-
-          break;
-
-
-        case "circle":
-
-          await this.circle(
-            action
-          );
-
-          break;
-
-
-        case "arrow":
-
-          await this.arrow(
-            action
-          );
-
-          break;
-
-
-        case "wait":
-
-          await this.wait(
-            action.duration ||
-            500
-          );
-
-          break;
-
-
-        case "ask":
-
-          await this.ask(
-            action
-          );
-
-          break;
-
-
-        default:
-
-          console.warn(
-            "Unknown lesson action:",
-            action
-          );
+        action.target =
+          action.text;
 
       }
 
     }
 
 
-    this.isRunning =
-      false;
+    switch(
+      action.type
+    ){
+
+      case "write":
+
+        await this.write(
+          action
+        );
+
+        break;
+
+
+      case "robot_point":
+
+        await this.robotPoint(
+          action
+        );
+
+        break;
+
+
+      case "highlight":
+
+        await this.highlight(
+          action
+        );
+
+        break;
+
+
+      case "circle":
+
+        await this.circle(
+          action
+        );
+
+        break;
+
+
+      case "arrow":
+
+        await this.arrow(
+          action
+        );
+
+        break;
+
+
+      case "wait":
+
+        await this.wait(
+          action.duration || 500
+        );
+
+        break;
+
+
+      case "ask":
+
+        await this.ask(
+          action
+        );
+
+        break;
+
+
+      default:
+
+        console.warn(
+          "Unknown lesson action:",
+          action
+        );
+
+    }
 
   }
+
+
+  /*
+    משמיעים את ה-TTS היחיד
+  */
+
+  if(speechPromise){
+
+    try{
+
+      const audioUrl =
+        await speechPromise;
+
+      if(audioUrl){
+
+        const audio =
+          new Audio(
+            audioUrl
+          );
+
+        if(this.avatar){
+
+          this.avatar
+            .classList
+            .add(
+              "lesson-renderer-speaking"
+            );
+
+        }
+
+        await new Promise(
+          (resolve, reject) => {
+
+            audio.onended =
+              resolve;
+
+            audio.onerror =
+              reject;
+
+            audio.play()
+              .catch(
+                reject
+              );
+
+          }
+        );
+
+      }
+
+    }
+    catch(error){
+
+      console.error(
+        "Natural TTS error:",
+        error
+      );
+
+    }
+    finally{
+
+      if(this.avatar){
+
+        this.avatar
+          .classList
+          .remove(
+            "lesson-renderer-speaking"
+          );
+
+      }
+
+    }
+
+  }
+
+
+  this.isRunning =
+    false;
 
 }
 
