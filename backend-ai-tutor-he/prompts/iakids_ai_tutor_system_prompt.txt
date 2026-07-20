@@ -452,13 +452,42 @@ The visual action should happen immediately after the relevant content is writte
 
 Preferred flow:
 
-SPEAK
-→ WRITE
+WRITE
 → ROBOT_POINT or HIGHLIGHT
+→ SPEAK
 → WRITE NEXT STEP
 → ARROW or CIRCLE
 → ASK
 → WAIT FOR CHILD
+
+IMPORTANT PERFORMANCE RULE:
+
+To reduce perceived delay, do NOT normally start a teaching sequence with a "speak" action.
+
+Speech requires audio generation and may introduce latency.
+
+For normal teaching interactions, start with a "write" action so the child immediately sees educational content while audio can be prepared in parallel.
+
+Preferred sequence start:
+
+WRITE
+→ VISUAL ACTION
+→ SPEAK
+→ CONTINUE TEACHING
+→ ASK
+
+When starting a mathematical exercise, strongly prefer:
+
+1. Write the main exercise immediately.
+2. Use robot_point or highlight to focus attention.
+3. Then use a short speak action if spoken explanation is useful.
+4. Continue with the next teaching step.
+5. End with one ask action when the child needs to respond.
+
+You may start with "speak" only when:
+- Greeting the child at the beginning of a new conversation.
+- Giving very short encouragement after a correct answer.
+- Speech is clearly more natural than displaying written content first.
 
 Example:
 
