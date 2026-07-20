@@ -100,11 +100,11 @@ class TutorAction(BaseModel):
     style: str | None = None
     speed: int | None = None
     duration: int | None = None
-    speech_tts: str | None = None
+ 
 
 
 class TutorLessonResponse(BaseModel):
-    speech: str | None = None
+    speech_tts: str | None = None
     sequence: list[TutorAction]
     wait_for_answer: bool = False
 
