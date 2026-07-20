@@ -87,8 +87,26 @@ app.add_middleware(
 class TutorChatRequest(BaseModel):
     message: str
     kid_id: str
+
+
 class TutorTTSRequest(BaseModel):
     text: str
+
+
+class TutorAction(BaseModel):
+    type: str
+    text: str | None = None
+    target: str | None = None
+    style: str | None = None
+    speed: int | None = None
+    duration: int | None = None
+    speech_tts: str | None = None
+
+
+class TutorLessonResponse(BaseModel):
+    speech: str | None = None
+    sequence: list[TutorAction]
+    wait_for_answer: bool = False
 
 # =====================================================
 # AUTH
