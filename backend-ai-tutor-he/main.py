@@ -449,7 +449,7 @@ def tutor_chat(
             limit=8
         )
 
-        completion = client.chat.completions.create(
+        completion = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
                 {
@@ -457,12 +457,17 @@ def tutor_chat(
                     "content": system_prompt
                 },
                 *recent_messages
-            ]
+            ],
+            response_format=TutorLessonResponse
         )
 
-        answer = (
-            completion.choices[0].message.content or ""
-        ).strip()
+        lesson_data = completion.choices[0].message.parsed
+
+        if not lesson_data:
+            raise HTTPException(
+                status_code=500,
+                detail="Tutor returned no structured lesson"
+            )
 
         total_tokens = None
 
@@ -473,13 +478,11 @@ def tutor_chat(
             user_id=user.id,
             kid_id=child["id"],
             role="assistant",
-            content=answer,
+            content=lesson_data.model_dump_json(),
             tokens=total_tokens
         )
 
-        return {
-            "reply": answer
-        }
+        return lesson_data.model_dump()
 
     except HTTPException:
         raise
