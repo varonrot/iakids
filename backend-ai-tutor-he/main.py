@@ -100,11 +100,11 @@ class TutorAction(BaseModel):
     style: str | None = None
     speed: int | None = None
     duration: int | None = None
-
+    speech_tts: str | None = None
 
 
 class TutorLessonResponse(BaseModel):
-    speech_tts: str | None = None
+    speech: str | None = None
     sequence: list[TutorAction]
     wait_for_answer: bool = False
 
@@ -289,7 +289,7 @@ def tutor_tts(
 
         # Gemini TTS
         response = gemini_client.models.generate_content(
-            model="gemini-3.1-flash-preview-tts",
+            model="gemini-2.5-flash-preview-tts",
 
             contents=(
                 "Speak in natural, fluent Hebrew. "
@@ -484,28 +484,12 @@ def tutor_chat(
 
         return lesson_data.model_dump()
 
-
     except HTTPException:
-
         raise
 
-
     except Exception as e:
-
-        print(
-
-            "GEMINI TTS ERROR:",
-
-            type(e).__name__,
-
-            repr(e)
-
-        )
-
+        print("TUTOR CHAT ERROR:", repr(e))
         raise HTTPException(
-
             status_code=500,
-
-            detail=f"Gemini TTS failed: {type(e).__name__}: {str(e)}"
-
+            detail="Tutor chat failed"
         )
