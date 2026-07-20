@@ -9414,7 +9414,9 @@ if(
 
   try{
 
-  
+    /* פתיחת הרשאת אודיו בדפדפן */
+
+    await unlockLessonAudio();
 
 
     /* הכנת קטעי הקול מראש */
@@ -9423,11 +9425,26 @@ if(
       window.lessonRenderer
     ){
 
-await window.lessonRenderer.run({
-  sequence: data.sequence,
-  wait_for_answer: data.wait_for_answer,
-  speech_tts: data.speech_tts
-});
+      window.lessonRenderer
+        .prefetchLessonAudio(
+          data.sequence
+        );
+
+
+      /* הפעלת השיעור האמיתי */
+
+      await window.lessonRenderer.run(
+        {
+          sequence:
+            data.sequence,
+
+          wait_for_answer:
+            data.wait_for_answer,
+
+          speech:
+            data.speech
+        }
+      );
 
     }
     else{
@@ -11440,17 +11457,24 @@ async speak({ text, speech_tts }){
      ASK
   ========================= */
 
-async ask({
-  text
-}){
+  async ask({
+    text
+  }){
 
-  await this.write({
-    text,
-    style: "question",
-    speed: 50
-  });
+    await this.write({
+      text,
+      style:
+        "question",
+      speed:
+        50
+    });
 
-}
+
+    await this.speak({
+      text
+    });
+
+  }
 
 
   /* =========================
@@ -11459,235 +11483,175 @@ async ask({
 
 async run(script){
 
-  console.log(
-    "LIVE LESSON SEQUENCE:",
-    script.sequence
-  );
+console.log(
+  "LIVE LESSON SEQUENCE:",
+  script.sequence
+);
 
-  if(this.isRunning){
+console.table(
+  script.sequence.map(
+    action => ({
+      type: action.type,
+      text: action.text || "",
+      target: action.target || ""
+    })
+  )
+);
+
+  if(
+    this.isRunning
+  ){
     return;
   }
 
-  this.isRunning = true;
 
-  this.prepare();
+    this.isRunning =
+      true;
 
-  const sequence =
-    script.sequence || [];
 
-  const speechText =
-    script.speech_tts || "";
+    this.prepare();
 
-  /*
-    מתחילים להכין TTS אחד בלבד
-    עבור כל ה-Turn
-  */
 
-  let speechPromise = null;
+const sequence =
+  script.sequence ||
+  [];
+
+
+/* =========================================
+   מתחילים להכין את כל קטעי הקול ברקע
+========================================= */
+
+this.prefetchLessonAudio(
+  sequence
+);
+
+
+ 
+
+/* =========================================
+   רק עכשיו מתחילים את השיעור
+========================================= */
+
+for(
+  const action of sequence
+){
+
+  /* =========================================
+     NORMALIZE VISUAL ACTION TARGET
+  ========================================= */
 
   if(
-    speechText &&
-    speechText.trim()
-  ){
-
-    speechPromise =
-      this.preloadAudio(
-        speechText
-      ).catch(error => {
-
-        console.error(
-          "Speech preload error:",
-          error
-        );
-
-        return null;
-
-      });
-
-  }
-
-
-  /*
-    מתחילים מיד להריץ את הפעולות הוויזואליות
-  */
-
-  for(
-    const action of sequence
+    action.type === "highlight" ||
+    action.type === "circle" ||
+    action.type === "robot_point"
   ){
 
     if(
-      action.type === "highlight" ||
-      action.type === "circle" ||
-      action.type === "robot_point"
+      !action.target &&
+      action.text
     ){
 
-      if(
-        !action.target &&
-        action.text
-      ){
-
-        action.target =
-          action.text;
-
-      }
-
-    }
-
-
-    switch(
-      action.type
-    ){
-
-      case "write":
-
-        await this.write(
-          action
-        );
-
-        break;
-
-
-      case "robot_point":
-
-        await this.robotPoint(
-          action
-        );
-
-        break;
-
-
-      case "highlight":
-
-        await this.highlight(
-          action
-        );
-
-        break;
-
-
-      case "circle":
-
-        await this.circle(
-          action
-        );
-
-        break;
-
-
-      case "arrow":
-
-        await this.arrow(
-          action
-        );
-
-        break;
-
-
-      case "wait":
-
-        await this.wait(
-          action.duration || 500
-        );
-
-        break;
-
-
-      case "ask":
-
-        await this.ask(
-          action
-        );
-
-        break;
-
-
-      default:
-
-        console.warn(
-          "Unknown lesson action:",
-          action
-        );
+      action.target =
+        action.text;
 
     }
 
   }
 
 
-  /*
-    משמיעים את ה-TTS היחיד
-  */
+  switch(
+    action.type
+  ){
 
-  if(speechPromise){
 
-    try{
+        case "speak":
 
-      const audioUrl =
-        await speechPromise;
-
-      if(audioUrl){
-
-        const audio =
-          new Audio(
-            audioUrl
+          await this.speak(
+            action
           );
 
-        if(this.avatar){
+          break;
 
-          this.avatar
-            .classList
-            .add(
-              "lesson-renderer-speaking"
-            );
 
-        }
+        case "write":
 
-        await new Promise(
-          (resolve, reject) => {
+          await this.write(
+            action
+          );
 
-            audio.onended =
-              resolve;
+          break;
 
-            audio.onerror =
-              reject;
+          case "robot_point":
 
-            audio.play()
-              .catch(
-                reject
-              );
+  await this.robotPoint(
+    action
+  );
 
-          }
-        );
+  break;
+
+
+        case "highlight":
+
+          await this.highlight(
+            action
+          );
+
+          break;
+
+
+        case "circle":
+
+          await this.circle(
+            action
+          );
+
+          break;
+
+
+        case "arrow":
+
+          await this.arrow(
+            action
+          );
+
+          break;
+
+
+        case "wait":
+
+          await this.wait(
+            action.duration ||
+            500
+          );
+
+          break;
+
+
+        case "ask":
+
+          await this.ask(
+            action
+          );
+
+          break;
+
+
+        default:
+
+          console.warn(
+            "Unknown lesson action:",
+            action
+          );
 
       }
 
     }
-    catch(error){
 
-      console.error(
-        "Natural TTS error:",
-        error
-      );
 
-    }
-    finally{
-
-      if(this.avatar){
-
-        this.avatar
-          .classList
-          .remove(
-            "lesson-renderer-speaking"
-          );
-
-      }
-
-    }
+    this.isRunning =
+      false;
 
   }
-
-
-  this.isRunning =
-    false;
 
 }
 
