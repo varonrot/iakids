@@ -11005,34 +11005,7 @@ prefetchLessonAudio(sequence){
 
 }
 
-prefetchLessonAudio(sequence){
 
-  for(const action of sequence){
-
-    if(
-      action.type === "speak" ||
-      action.type === "ask"
-    ){
-
-      const text =
-        action.speech_tts ||
-        action.text;
-
-      if(text){
-        this.preloadAudio(text)
-          .catch(error => {
-            console.error(
-              "Audio prefetch error:",
-              error
-            );
-          });
-      }
-
-    }
-
-  }
-
-}
 
   /* =========================
      WRITE
