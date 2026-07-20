@@ -11526,47 +11526,7 @@ this.prefetchLessonAudio(
 );
 
 
-/* =========================================
-   מחכים רק לקול הראשון שיהיה מוכן
-========================================= */
-
-const firstSpeechAction =
-  sequence.find(
-    action =>
-      action.type === "speak" ||
-      action.type === "ask"
-  );
-
-
-if(firstSpeechAction){
-
-  const firstSpeechText =
-    firstSpeechAction.speech_tts ||
-    firstSpeechAction.text;
-
-
-  if(firstSpeechText){
-
-    try{
-
-      await this.preloadAudio(
-        firstSpeechText
-      );
-
-    }
-    catch(error){
-
-      console.error(
-        "First audio preload error:",
-        error
-      );
-
-    }
-
-  }
-
-}
-
+ 
 
 /* =========================================
    רק עכשיו מתחילים את השיעור
