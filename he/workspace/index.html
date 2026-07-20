@@ -11481,15 +11481,18 @@ async speak({ text, speech_tts }){
      RUN
   ========================= */
 
-  async run(script){
+async run(script){
 
-    if(
-      this.isRunning
-    ){
+  console.log(
+    "LIVE LESSON SEQUENCE:",
+    script.sequence
+  );
 
-      return;
-
-    }
+  if(
+    this.isRunning
+  ){
+    return;
+  }
 
 
     this.isRunning =
