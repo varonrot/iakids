@@ -9416,7 +9416,7 @@ if(
 
     /* פתיחת הרשאת אודיו בדפדפן */
 
-     
+    await unlockLessonAudio();
 
 
     /* הכנת קטעי הקול מראש */
@@ -11525,90 +11525,16 @@ this.prefetchLessonAudio(
   sequence
 );
 
-/* =========================================
-   FIRST SPEECH IN PARALLEL
-========================================= */
 
-let firstSpeechPromise = null;
-
-const firstAction =
-  sequence[0];
-
-if(
-  firstAction &&
-  firstAction.type === "speak"
-){
-
-  firstSpeechPromise =
-    this.speak(
-      firstAction
-    )
-    .catch(
-      error => {
-
-        console.error(
-          "First parallel speech error:",
-          error
-        );
-
-      }
-    );
-
-}
-
+ 
 
 /* =========================================
    רק עכשיו מתחילים את השיעור
 ========================================= */
-/* =========================================
-   FIRST SPEECH IN PARALLEL
-========================================= */
-
-const firstAction =
-  sequence[0];
-
-if(
-  firstAction &&
-  firstAction.type === "speak"
-){
-
-  this.speak(
-    firstAction
-  )
-  .catch(error => {
-
-    console.error(
-      "First parallel speech error:",
-      error
-    );
-
-  });
-
-}
 
 for(
-  let index = 0;
-  index < sequence.length;
-  index++
+  const action of sequence
 ){
-
-  const action =
-    sequence[index];
-
-
-  /* =========================================
-     FIRST SPEECH ALREADY RUNNING IN BACKGROUND
-  ========================================= */
-
-  if(
-    index === 0 &&
-    action.type === "speak"
-  ){
-
-    continue;
-
-  }
-
 
   /* =========================================
      NORMALIZE VISUAL ACTION TARGET
