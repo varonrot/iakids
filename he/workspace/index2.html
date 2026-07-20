@@ -9,6 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gveret+Levin&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 
 *{box-sizing:border-box}
@@ -23,7 +27,14 @@ radial-gradient(circle at 16% 9%,rgba(255,211,87,.20),transparent 24%),
 radial-gradient(circle at 84% 8%,rgba(84,168,255,.18),transparent 24%),
 linear-gradient(180deg,#fbfcff,#f4f7ff)}
 button,input,select{font:inherit}
-
+html,
+body,
+button,
+input,
+textarea,
+select{
+  font-family:"Heebo", Arial, sans-serif !important;
+}
 .app{height:100vh;display:grid;grid-template-columns:285px minmax(0,1fr) 355px;grid-template-rows:86px minmax(0,1fr);direction:ltr}
 
 /* TOP */
@@ -1232,44 +1243,51 @@ body::before{
   }
 
 }
-  /* =====================================================
-   FLOATING TUTOR ROBOT
-   ===================================================== */
+/* =====================================================
+   FLOATING TUTOR ROBOT - SMALLER
+===================================================== */
 
 .floating-tutor-robot{
-  position: fixed;
+  position:fixed;
 
-  /* מיקום בדסקטופ */
-  right: 220px;
-  bottom: -20px;
+  right:215px;
+  bottom:-5px;
 
-  /* גודל כמו בדוגמה */
-  width: 360px;
-  height: auto;
+  width:220px;
+  height:auto;
 
-  z-index: 50;
+  z-index:50;
 
-  object-fit: contain;
+  object-fit:contain;
 
-  pointer-events: none;
-  user-select: none;
+  pointer-events:none;
+  user-select:none;
 
-  filter: drop-shadow(
-    0 12px 20px rgba(30,60,120,.18)
-  );
+  filter:
+    drop-shadow(
+      0 10px 16px
+      rgba(30,60,120,.16)
+    );
 }
 
 
-/* =====================================================
-   TABLET
-   ===================================================== */
-
-@media (max-width: 1200px){
+@media(max-width:1200px){
 
   .floating-tutor-robot{
-    width: 280px;
-    right: 150px;
-    bottom: -10px;
+    width:180px;
+
+    right:160px;
+
+    bottom:0;
+  }
+
+}
+
+
+@media(max-width:768px){
+
+  .floating-tutor-robot{
+    display:none !important;
   }
 
 }
@@ -3648,99 +3666,449 @@ body::before{
   border-radius:26px;
 }
 
+/* =====================================================
+   LEARNING PATH TOP AREA - IMPROVED
+===================================================== */
 
-/* כותרת */
-
-.learning-path-header{
+.learning-path-top{
   position:relative;
   z-index:3;
 
+  min-height:260px;
+
+  display:grid;
+
+  grid-template-columns:
+    175px
+    185px
+    minmax(0,1fr);
+
+  gap:18px;
+
+  align-items:end;
+
+  padding:
+    20px
+    28px
+    8px;
+
+  direction:ltr;
+}
+
+
+/* =====================================================
+   KID CARD
+===================================================== */
+
+.learning-path-kid-card{
+  direction:rtl;
+
+  align-self:start;
+
+  min-height:175px;
+
+  padding:
+    16px
+    12px;
+
   display:flex;
-  align-items:flex-start;
+  flex-direction:column;
+
+  align-items:center;
   justify-content:center;
 
   text-align:center;
 
-  min-height:130px;
+  border-radius:26px;
 
-  padding:10px 80px 20px;
+  background:
+    rgba(255,255,255,.92);
+
+  border:
+    2px solid
+    rgba(255,255,255,.96);
+
+  box-shadow:
+    0 12px 26px
+    rgba(45,65,100,.14);
+
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+
+.learning-path-kid-avatar{
+  width:70px;
+  height:70px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:
+    4px solid #fff;
+
+  box-shadow:
+    0 6px 16px
+    rgba(45,65,100,.16);
+}
+
+
+.learning-path-kid-info{
+  margin-top:7px;
+}
+
+
+.learning-path-kid-info strong{
+  display:block;
+
+  font-size:19px;
+  font-weight:900;
+
+  color:#27346b;
+}
+
+
+.learning-path-kid-info > span{
+  display:block;
+
+  margin-top:3px;
+
+  font-size:13px;
+
+  color:#7180a5;
+}
+
+
+.learning-path-kid-score{
+  margin-top:5px;
+
+  font-size:17px;
+  font-weight:900;
+
+  color:#34416d;
+}
+
+
+/* =====================================================
+   CUTE CHARACTER
+===================================================== */
+
+.learning-path-character{
+  align-self:end;
+
+  height:210px;
+
+  display:flex;
+
+  align-items:flex-end;
+  justify-content:center;
+
+  pointer-events:none;
+}
+
+
+.learning-path-character img{
+  width:185px;
+  height:auto;
+
+  max-height:205px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 12px 18px
+      rgba(40,60,100,.18)
+    );
+}
+
+
+/* =====================================================
+   TITLE AREA
+===================================================== */
+
+.learning-path-top-content{
+  position:relative;
+
+  direction:rtl;
+
+  text-align:center;
+
+  min-width:0;
+
+  align-self:center;
+
+  padding:
+    4px
+    8px
+    0;
 }
 
 
 .learning-path-subject{
-  display:inline-block;
+  display:inline-flex;
 
-  padding:7px 16px;
+  align-items:center;
+  justify-content:center;
 
-  margin-bottom:8px;
+  min-height:30px;
+
+  padding:
+    4px
+    14px;
+
+  margin-bottom:5px;
 
   border-radius:999px;
 
-  background:rgba(255,255,255,.78);
+  background:
+    rgba(255,255,255,.88);
 
-  font-size:15px;
+  font-size:13px;
+
   font-weight:900;
 
-  color:#5f43df;
+  color:#6549dd;
 
-  backdrop-filter:blur(10px);
+  box-shadow:
+    0 4px 12px
+    rgba(50,70,120,.06);
 }
 
 
-.learning-path-header h1{
+.learning-path-top-content h1{
   margin:0;
 
-  font-size:42px;
+  font-size:
+    clamp(
+      32px,
+      3vw,
+      46px
+    );
 
-  color:#203865;
+  line-height:1.15;
+
+  color:#29326f;
 
   font-weight:900;
 
   text-shadow:
-    0 3px 0 rgba(255,255,255,.65);
+    0 3px 0
+    rgba(255,255,255,.60);
 }
 
 
-.learning-path-header p{
-  margin:8px 0 0;
+.learning-path-top-content > p{
+  margin:
+    5px
+    0
+    14px;
 
-  font-size:17px;
+  font-size:15px;
+
   font-weight:700;
 
-  color:#5c6f9d;
+  color:#6675a1;
 }
 
+
+/* =====================================================
+   BACK BUTTON
+===================================================== */
 
 .learning-path-back{
   position:absolute;
 
+  top:-4px;
   right:0;
-  top:10px;
 
-  min-height:44px;
+  min-height:40px;
 
-  padding:0 16px;
+  padding:
+    0
+    14px;
 
   display:flex;
+
   align-items:center;
-  gap:8px;
+
+  gap:6px;
 
   border:0;
-  border-radius:14px;
 
-  background:rgba(255,255,255,.85);
+  border-radius:13px;
+
+  background:
+    rgba(255,255,255,.90);
 
   color:#5140c9;
+
+  font-size:14px;
 
   font-weight:900;
 
   cursor:pointer;
 
   box-shadow:
-    0 7px 20px
-    rgba(50,70,120,.12);
+    0 6px 16px
+    rgba(50,70,120,.10);
 }
 
+
+/* =====================================================
+   PROGRESS CARD
+===================================================== */
+
+.learning-path-top-progress{
+  width:min(650px,94%);
+
+  margin:
+    0
+    auto;
+
+  min-height:78px;
+
+  display:grid;
+
+  grid-template-columns:
+    .9fr
+    1.1fr;
+
+  align-items:center;
+
+  overflow:hidden;
+
+  border-radius:22px;
+
+  background:
+    rgba(255,255,255,.93);
+
+  border:
+    1px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 9px 22px
+    rgba(45,65,100,.11);
+
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+
+.learning-path-progress-reward{
+  min-height:60px;
+
+  padding:
+    8px
+    14px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:10px;
+
+  font-size:27px;
+
+  border-left:
+    1px solid
+    rgba(95,105,145,.13);
+}
+
+
+.learning-path-progress-reward strong{
+  display:block;
+
+  font-size:14px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-reward span{
+  display:block;
+
+  margin-top:2px;
+
+  font-size:11px;
+
+  color:#7180a5;
+}
+
+
+.learning-path-progress-info{
+  padding:
+    8px
+    16px;
+
+  text-align:right;
+}
+
+
+.learning-path-progress-info > strong{
+  display:block;
+
+  margin-bottom:6px;
+
+  font-size:14px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-row{
+  display:flex;
+
+  align-items:center;
+
+  gap:9px;
+}
+
+
+.learning-path-progress-row b{
+  min-width:32px;
+
+  font-size:12px;
+
+  color:#53618b;
+}
+
+
+.learning-path-progress-track{
+  flex:1;
+
+  height:9px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e4e9f3;
+}
+
+
+.learning-path-progress-track span{
+  display:block;
+
+  width:0%;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #75d765,
+      #3cbc50
+    );
+
+  transition:
+    width .4s ease;
+}
  /* =====================================================
    אזור התחנות - מסלול למידה
 ===================================================== */
@@ -4904,6 +5272,1206 @@ body::before{
   }
 
 }
+/* =====================================================
+   LEARNING PATH TOP - FINAL DESIGN
+===================================================== */
+
+.learning-path-top{
+  position:relative;
+  z-index:3;
+
+  width:100%;
+  min-height:300px;
+
+  display:grid;
+
+  grid-template-columns:
+    190px
+    260px
+    minmax(0,1fr);
+
+  grid-template-areas:
+    "kid character content";
+
+  align-items:end;
+
+  gap:0;
+
+  padding:
+    20px
+    35px
+    0;
+
+  direction:ltr;
+}
+
+
+/* =====================================================
+   כרטיס הילד - שמאל
+===================================================== */
+
+.learning-path-kid-card{
+  grid-area:kid;
+
+  direction:rtl;
+
+  align-self:start;
+
+  width:185px;
+  min-height:210px;
+
+  margin-top:5px;
+
+  padding:
+    18px
+    15px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border-radius:30px;
+
+  background:
+    rgba(255,255,255,.95);
+
+  border:
+    2px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 14px 30px
+    rgba(42,65,100,.15);
+}
+
+
+.learning-path-kid-avatar{
+  width:82px;
+  height:82px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:4px solid #fff;
+
+  box-shadow:
+    0 6px 16px
+    rgba(45,65,100,.18);
+}
+
+
+.learning-path-kid-info{
+  margin-top:8px;
+}
+
+
+.learning-path-kid-info strong{
+  display:block;
+
+  font-size:22px;
+  font-weight:900;
+
+  color:#27346b;
+}
+
+
+.learning-path-kid-info > span{
+  display:block;
+
+  margin-top:5px;
+
+  font-size:15px;
+
+  color:#7180a5;
+}
+
+
+.learning-path-kid-score{
+  margin-top:8px;
+
+  font-size:20px;
+  font-weight:900;
+
+  color:#34416d;
+}
+
+
+/* =====================================================
+   היצור החמוד - בין הילד לכותרת
+===================================================== */
+
+.learning-path-character{
+  grid-area:character;
+
+  position:relative;
+
+  width:260px;
+  height:270px;
+
+  display:flex;
+
+  align-items:flex-end;
+  justify-content:center;
+
+  align-self:end;
+
+  margin-left:-15px;
+  margin-right:-5px;
+
+  pointer-events:none;
+
+  overflow:visible;
+}
+
+
+.learning-path-character img{
+  display:block;
+
+  width:260px;
+  height:270px;
+
+  max-width:none;
+  max-height:none;
+
+  object-fit:contain;
+  object-position:center bottom;
+
+  filter:
+    drop-shadow(
+      0 15px 18px
+      rgba(35,55,90,.18)
+    );
+}
+
+
+/* =====================================================
+   צד ימין - כותרת והתקדמות
+===================================================== */
+
+.learning-path-top-content{
+  grid-area:content;
+
+  direction:rtl;
+
+  width:100%;
+
+  align-self:center;
+
+  text-align:center;
+
+  padding:
+    5px
+    15px
+    18px;
+}
+
+
+.learning-path-subject{
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  min-height:32px;
+
+  padding:
+    4px
+    16px;
+
+  margin-bottom:8px;
+
+  border-radius:999px;
+
+  background:
+    rgba(255,255,255,.92);
+
+  font-size:14px;
+  font-weight:900;
+
+  color:#6549dd;
+}
+
+
+.learning-path-top-content h1{
+  margin:
+    0
+    0
+    7px;
+
+  font-size:
+    clamp(
+      40px,
+      4vw,
+      58px
+    );
+
+  line-height:1.05;
+
+  color:#292875;
+
+  font-weight:900;
+
+  text-shadow:
+    0 3px 0
+    rgba(255,255,255,.55);
+}
+
+
+.learning-path-top-content > p{
+  margin:
+    0
+    0
+    20px;
+
+  font-size:18px;
+
+  font-weight:700;
+
+  color:#68739a;
+}
+
+
+/* =====================================================
+   פס ההתקדמות הגדול
+===================================================== */
+
+.learning-path-top-progress{
+  width:min(760px,96%);
+
+  min-height:100px;
+
+  margin:
+    0
+    auto;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.15fr;
+
+  align-items:center;
+
+  border-radius:28px;
+
+  overflow:hidden;
+
+  background:
+    rgba(255,255,255,.95);
+
+  border:
+    1px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 12px 28px
+    rgba(45,65,100,.14);
+}
+
+
+.learning-path-progress-reward{
+  min-height:78px;
+
+  padding:
+    10px
+    22px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:14px;
+
+  font-size:36px;
+
+  border-left:
+    1px solid
+    rgba(95,105,145,.15);
+}
+
+
+.learning-path-progress-reward strong{
+  display:block;
+
+  font-size:18px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-reward span{
+  display:block;
+
+  margin-top:4px;
+
+  font-size:14px;
+
+  color:#7180a5;
+}
+
+
+.learning-path-progress-info{
+  padding:
+    12px
+    24px;
+
+  text-align:right;
+}
+
+
+.learning-path-progress-info > strong{
+  display:block;
+
+  margin-bottom:9px;
+
+  font-size:18px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-row{
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+}
+
+
+.learning-path-progress-row b{
+  min-width:38px;
+
+  font-size:15px;
+
+  color:#53618b;
+}
+
+
+.learning-path-progress-track{
+  flex:1;
+
+  height:12px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e4e9f3;
+}
+
+
+.learning-path-progress-track span{
+  display:block;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #75d765,
+      #3cbc50
+    );
+}
+
+    /* =====================================================
+   LEARNING PATH TOP - COMPACT WINDOWS SAFE
+===================================================== */
+
+.learning-path-top{
+  position:relative;
+  z-index:3;
+
+  width:100%;
+  min-height:0;
+  height:auto;
+
+  display:grid;
+
+  grid-template-columns:
+    150px
+    minmax(0,1fr);
+
+  grid-template-areas:
+    "kid content";
+
+  gap:14px;
+
+  align-items:start;
+
+  padding:
+    10px
+    14px
+    8px;
+
+  direction:ltr;
+}
+
+
+/* =====================================================
+   KID CARD
+===================================================== */
+
+.learning-path-kid-card{
+  grid-area:kid;
+
+  direction:rtl;
+
+  width:145px;
+  min-height:145px;
+
+  padding:
+    10px
+    10px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border-radius:22px;
+
+  background:#fff;
+
+  border:
+    1px solid
+    rgba(255,255,255,.95);
+
+  box-shadow:
+    0 8px 20px
+    rgba(42,65,100,.12);
+}
+
+
+.learning-path-kid-avatar{
+  width:58px;
+  height:58px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:3px solid #fff;
+}
+
+
+.learning-path-kid-info{
+  margin-top:4px;
+}
+
+
+.learning-path-kid-info strong{
+  display:block;
+
+  font-size:17px;
+  font-weight:900;
+
+  color:#27346b;
+}
+
+
+.learning-path-kid-info > span{
+  display:block;
+
+  margin-top:2px;
+
+  font-size:12px;
+
+  color:#7180a5;
+}
+
+
+.learning-path-kid-score{
+  margin-top:4px;
+
+  font-size:15px;
+  font-weight:900;
+
+  color:#34416d;
+}
+
+
+/* =====================================================
+   WHITE HEADER CARD
+===================================================== */
+
+.learning-path-top-content{
+  grid-area:content;
+
+  position:relative;
+
+  direction:rtl;
+
+  width:100%;
+  min-height:145px;
+
+  padding:
+    16px
+    22px
+    12px;
+
+  box-sizing:border-box;
+
+  text-align:right;
+
+  border-radius:22px;
+
+  background:#fff !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 8px 20px
+    rgba(42,65,100,.12);
+
+  overflow:visible;
+}
+
+
+/* =====================================================
+   SUBJECT TAG
+===================================================== */
+
+.learning-path-subject{
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  min-height:22px;
+
+  padding:
+    2px
+    9px;
+
+  margin:
+    0
+    0
+    3px;
+
+  border-radius:999px;
+
+  background:#f1edff;
+
+  color:#6549dd;
+
+  font-size:10px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.learning-path-top-content h1{
+  margin:
+    0
+    0
+    2px;
+
+  padding:0;
+
+  max-width:calc(100% - 80px);
+
+  font-size:26px !important;
+  line-height:1.08;
+
+  color:#292875;
+
+  font-weight:900;
+
+  text-align:right;
+
+  direction:rtl;
+
+  text-shadow:none;
+}
+
+
+/* =====================================================
+   SUBTITLE
+===================================================== */
+
+.learning-path-top-content > p{
+  margin:
+    0
+    0
+    8px;
+
+  font-size:12px;
+  line-height:1.25;
+
+  font-weight:700;
+
+  color:#68739a;
+
+  text-align:right;
+
+  direction:rtl;
+}
+
+
+/* =====================================================
+   BACK BUTTON
+===================================================== */
+
+.learning-path-back{
+  position:absolute;
+
+  top:12px;
+  left:12px;
+  right:auto;
+
+  min-height:30px;
+
+  padding:
+    0
+    10px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:5px;
+
+  border:0;
+
+  border-radius:9px;
+
+  background:#f4f1ff;
+
+  color:#5140c9;
+
+  font-size:11px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  z-index:10;
+
+  box-shadow:none;
+}
+
+
+/* =====================================================
+   PROGRESS CARD
+===================================================== */
+
+.learning-path-top-progress{
+  width:100%;
+  min-height:0;
+  height:54px;
+
+  margin:0;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.15fr;
+
+  align-items:center;
+
+  border-radius:14px;
+
+  overflow:hidden;
+
+  background:#f8f9ff;
+
+  border:
+    1px solid
+    #e7e8f1;
+
+  box-shadow:none;
+}
+
+
+/* =====================================================
+   REWARD SIDE
+===================================================== */
+
+.learning-path-progress-reward{
+  min-height:0;
+  height:46px;
+
+  padding:
+    4px
+    12px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:flex-start;
+
+  gap:7px;
+
+  font-size:21px;
+
+  direction:rtl;
+
+  border-left:
+    1px solid
+    #e3e5ee;
+}
+
+
+.learning-path-progress-reward strong{
+  display:block;
+
+  font-size:12px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-reward span{
+  display:block;
+
+  margin-top:1px;
+
+  font-size:9px;
+
+  color:#7180a5;
+}
+
+
+/* =====================================================
+   PROGRESS SIDE
+===================================================== */
+
+.learning-path-progress-info{
+  padding:
+    4px
+    12px;
+
+  text-align:right;
+
+  direction:rtl;
+}
+
+
+.learning-path-progress-info > strong{
+  display:block;
+
+  margin-bottom:3px;
+
+  font-size:12px;
+
+  color:#27346b;
+}
+
+
+.learning-path-progress-row{
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+}
+
+
+.learning-path-progress-row b{
+  min-width:28px;
+
+  font-size:10px;
+
+  color:#53618b;
+}
+
+
+.learning-path-progress-track{
+  flex:1;
+
+  height:6px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e4e9f3;
+}
+
+
+.learning-path-progress-track span{
+  display:block;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #75d765,
+      #3cbc50
+    );
+}
+
+
+/* =====================================================
+   REMOVE CHARACTER
+===================================================== */
+
+.learning-path-character{
+  display:none !important;
+}
+/* =====================================================
+   SMALLER LEARNING PATH CARDS
+===================================================== */
+
+.learning-path-node{
+  width:170px !important;
+  height:140px !important;
+  min-height:140px !important;
+
+  padding:24px 14px 14px !important;
+
+  border-radius:24px !important;
+}
+
+
+/* מספר השיעור */
+
+.learning-path-number{
+  width:42px !important;
+  height:42px !important;
+
+  font-size:20px !important;
+
+  top:-21px !important;
+}
+
+
+/* כותרת בתוך הכרטיס */
+
+.learning-path-node h3{
+  font-size:16px !important;
+  line-height:1.25 !important;
+
+  margin:4px 0 5px !important;
+}
+
+
+/* שיעור 1, שיעור 2 וכו' */
+
+.learning-path-node small{
+  font-size:10px !important;
+}
+
+
+/* אייקון סטטוס למטה */
+
+.learning-path-node-status,
+.learning-path-node::after{
+  transform:scale(.85);
+  transform-origin:center;
+}
+
+/* ברירת מחדל - Windows ומסכים רחבים */
+
+#learningPathContainer{
+  min-height:0 !important;
+  column-gap:12px !important;
+  row-gap:75px !important;
+  align-content:start !important;
+  grid-auto-rows:max-content !important;
+}
+
+/* Mac / מסכים צרים יותר */
+@media (max-width:1700px){
+  #learningPathContainer{
+    row-gap:110px !important;
+  }
+}
+
+    /* =========================================
+   LEARNING SIDEBAR MENU
+========================================= */
+
+.learning-sidebar-menu{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  width:100%;
+  margin-top:18px;
+}
+
+.learning-menu-item{
+  width:100%;
+  min-height:72px;
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:10px 12px;
+
+  border:none;
+  border-radius:18px;
+
+  background:rgba(255,255,255,.58);
+  border:1px solid rgba(255,255,255,.85);
+
+  box-shadow:
+    0 7px 18px rgba(47,73,130,.07);
+
+  cursor:pointer;
+  text-align:right;
+  direction:rtl;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+}
+
+.learning-menu-item:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 10px 24px rgba(47,73,130,.12);
+}
+
+.learning-menu-icon{
+  width:48px;
+  height:48px;
+
+  display:grid;
+  place-items:center;
+
+  flex:none;
+
+  border-radius:15px;
+
+  font-size:25px;
+
+  background:rgba(255,255,255,.8);
+}
+
+.learning-menu-text{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:0;
+}
+
+.learning-menu-text strong{
+  font-size:16px;
+  font-weight:900;
+  color:#263c69;
+}
+
+.learning-menu-text small{
+  font-size:12px;
+  font-weight:700;
+  color:#7483a3;
+  line-height:1.3;
+}
+
+
+/* שיעורי בית */
+
+.learning-menu-item.homework.active{
+  background:linear-gradient(
+    135deg,
+    rgba(86,170,255,.24),
+    rgba(117,199,255,.13)
+  );
+
+  border-color:rgba(64,148,255,.32);
+}
+
+
+/* הכנה למבחן */
+
+.learning-menu-item.exam.active{
+  background:linear-gradient(
+    135deg,
+    rgba(87,211,156,.24),
+    rgba(128,230,183,.13)
+  );
+
+  border-color:rgba(58,190,132,.32);
+}
+
+
+/* תרגול */
+
+.learning-menu-item.practice.active{
+  background:linear-gradient(
+    135deg,
+    rgba(170,118,239,.24),
+    rgba(197,154,245,.13)
+  );
+
+  border-color:rgba(157,99,224,.32);
+}
+
+
+/* קריאה */
+
+.learning-menu-item.reading.active{
+  background:linear-gradient(
+    135deg,
+    rgba(255,175,77,.25),
+    rgba(255,202,121,.13)
+  );
+
+  border-color:rgba(245,155,50,.32);
+}
+
+
+/* משחקים */
+
+.learning-menu-item.games.active{
+  background:linear-gradient(
+    135deg,
+    rgba(64,207,213,.24),
+    rgba(111,224,229,.13)
+  );
+
+  border-color:rgba(44,188,196,.32);
+}
+    /* טאבלט ולפטופ צר - מסתירים את הסרגל הימני */
+@media (max-width:1450px){
+
+  .rightbar{
+    display:none !important;
+  }
+
+  .app{
+    grid-template-columns:
+      285px
+      minmax(0,1fr) !important;
+  }
+
+}
+    /* =====================================================
+   ROBOT POINT V1.2
+===================================================== */
+
+.lesson-pointer-robot{
+  position:absolute;
+  width:95px;
+  height:auto;
+
+  z-index:50;
+
+  pointer-events:none;
+  user-select:none;
+
+  opacity:0;
+
+  transform:
+    translateY(10px)
+    scale(.95);
+
+  transition:
+    left .55s ease,
+    top .55s ease,
+    opacity .3s ease,
+    transform .3s ease;
+
+  filter:
+    drop-shadow(
+      0 8px 14px
+      rgba(30,60,120,.18)
+    );
+}
+
+.lesson-pointer-robot.visible{
+  opacity:1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+.lesson-pointer-arrow{
+  position:absolute;
+
+  z-index:49;
+
+  font-size:38px;
+
+  pointer-events:none;
+
+  opacity:0;
+
+  transform:scale(.7);
+
+  transition:
+    left .55s ease,
+    top .55s ease,
+    opacity .25s ease,
+    transform .25s ease;
+}
+
+.lesson-pointer-arrow.visible{
+  opacity:1;
+  transform:scale(1);
+}
+
+
+.lesson-point-target{
+  position:relative;
+}
+
+.lesson-point-target::after{
+  content:"";
+
+  position:absolute;
+  inset:-5px -8px;
+
+  border:
+    3px solid
+    #ffb400;
+
+  border-radius:12px;
+
+  opacity:0;
+
+  animation:
+    lessonPointPulse
+    .7s ease
+    forwards;
+}
+
+@keyframes lessonPointPulse{
+
+  0%{
+    opacity:0;
+    transform:scale(.88);
+  }
+
+  60%{
+    opacity:1;
+    transform:scale(1.05);
+  }
+
+  100%{
+    opacity:1;
+    transform:scale(1);
+  }
+
+}
 </style>
 </head>
 <body>
@@ -4975,9 +6543,9 @@ body::before{
           ⚙️ עריכת פרטי הילד
         </button>
 
-        <button onclick="document.getElementById('openParentModal').click()">
-          👨‍👩‍👧 פאנל הורים
-        </button>
+<button onclick="window.location.href='/he/parent-panel/'">
+  👨‍👩‍👧 פאנל הורים
+</button>
 
         <button id="manageSubscriptionBtn">
           💳 ניהול מנוי
@@ -4989,9 +6557,9 @@ body::before{
 
         <hr>
 
-        <button onclick="sb.auth.signOut().then(()=>location.href='/')">
-          🚪 יציאה
-        </button>
+<button onclick="sb.auth.signOut().then(()=>location.href='/he/')">
+  🚪 יציאה
+</button>
 
       </div>
 
@@ -5036,7 +6604,7 @@ body::before{
 <div id="subjectsContainer"></div>
   </div>
   <div class="sidebar-bottom">
-    <button class="manage-btn" id="openParentModal"><i class="fa-solid fa-children"></i>פאנל הורים</button>
+    <button class="manage-btn" id="openParentModal"><i class="fa-solid fa-children"></i>החלפת ילד</button>
     <button class="manage-btn" id="openSettings"><i class="fa-solid fa-user-pen"></i>פרטי הילד</button>
     <button class="manage-btn" id="manageSubscriptionSide"><i class="fa-regular fa-credit-card"></i>ניהול מנוי</button>
   </div>
@@ -5564,37 +7132,116 @@ body::before{
 
     <!-- אזור המסלול הקיים -->
     <div class="learning-path-screen">
+ <div class="learning-path-top">
 
-    <div class="learning-path-header">
+  <!-- כרטיס הילד -->
+  <div class="learning-path-kid-card">
 
-      <button
-        type="button"
-        class="learning-path-back"
-        onclick="backFromLearningPath()"
-      >
-        <i class="fa-solid fa-arrow-right"></i>
-        חזרה
-      </button>
+    <img
+      id="learningPathKidAvatar"
+      class="learning-path-kid-avatar"
+      src=""
+      alt=""
+    >
 
-      <div>
+    <div class="learning-path-kid-info">
 
-        <div
-          id="learningPathSubject"
-          class="learning-path-subject"
-        >
+      <strong id="learningPathKidName">
+        הילד
+      </strong>
+
+      <span id="learningPathKidGrade">
+        כיתה
+      </span>
+
+      <div class="learning-path-kid-score">
+        ⭐
+        <b id="learningPathKidScore">
+          0
+        </b>
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+  <!-- אזור הכותרת -->
+  <div class="learning-path-top-content">
+
+    <button
+      type="button"
+      class="learning-path-back"
+      onclick="backFromLearningPath()"
+    >
+      <i class="fa-solid fa-arrow-right"></i>
+      חזרה
+    </button>
+
+
+    <div
+      id="learningPathSubject"
+      class="learning-path-subject"
+    >
+    </div>
+
+
+    <h1 id="learningPathTitle">
+      המסע שלי
+    </h1>
+
+
+    <p id="learningPathSubtitle">
+      בואו נתקדם יחד, שיעור אחרי שיעור
+    </p>
+
+
+    <div class="learning-path-top-progress">
+
+      <div class="learning-path-progress-reward">
+        🎁
+
+        <div>
+          <strong id="learningPathRemainingLessons">
+            עוד כמה שיעורים
+          </strong>
+
+          <span>
+            ומגיעים לאתגר!
+          </span>
         </div>
 
-        <h1 id="learningPathTitle">
-          מסלול הלמידה
-        </h1>
+      </div>
 
-        <p id="learningPathSubtitle">
-          בואו נתקדם יחד, שיעור אחרי שיעור
-        </p>
+
+      <div class="learning-path-progress-info">
+
+        <strong>
+          🏆 ההתקדמות שלי
+        </strong>
+
+        <div class="learning-path-progress-row">
+
+          <b id="learningPathProgressText">
+            0/0
+          </b>
+
+          <div class="learning-path-progress-track">
+            <span id="learningPathProgressFill"></span>
+          </div>
+
+        </div>
 
       </div>
 
     </div>
+
+  </div>
+
+</div>
 
 
     <div
@@ -5815,20 +7462,114 @@ body::before{
 
 </main>
 
+<!-- תפריט פעילויות לימוד -->
+<!-- =====================================================
+     RIGHT SIDEBAR
+===================================================== -->
+
 <aside class="rightbar">
-  <div class="teacher-head"><span class="online"></span> המורה AI</div>
-  <div class="teacher-card">
-    <div class="teacher-card-top"><img src="/assets/robots/brand-robot.png"><strong id="teacherHello">היי! 👋</strong></div>
-    <p>אני המורה AI שלך. אפשר לשאול אותי שאלות, לפתור תרגילים יחד וללמוד בקצב שמתאים לך. במה נתחיל היום?</p>
+
+  <!-- כרטיס הילד העליון -->
+  <div
+    class="rightbar-kid"
+    onclick="document.getElementById('openParentModal')?.click()"
+  >
+    <img
+      id="rightbarAvatar"
+      src="/assets/avatars/cat_blue.png"
+      alt="פרופיל הילד"
+    >
+
+    <div>
+      <strong id="rightbarName">
+        הילד
+      </strong>
+
+
+    </div>
   </div>
-  <div class="quick-list">
-    <button class="quick-card" data-ask="examples"><span>איך פותרים שברים?</span><span class="quick-icon">✏️</span></button>
-    <button class="quick-card" data-ask="science"><span>הסבר על מערכת השמש</span><span class="quick-icon">🪐</span></button>
-    <button class="quick-card" data-ask="exam"><span>עזרה במשימה מהשיעור</span><span class="quick-icon">📗</span></button>
-    <button class="quick-card" data-ask="english"><span>שאלה באנגלית</span><span class="quick-icon">A</span></button>
-    <button class="quick-card" data-ask="challenge"><span>תן לי אתגר קצר</span><span class="quick-icon">🎯</span></button>
+
+
+  <!-- כותרת -->
+  <div class="learning-sidebar-title">
+    מה בא לך לעשות?
   </div>
-  <div class="rightbar-kid" onclick="document.getElementById('openParentModal').click()"><img id="rightbarAvatar"><div id="rightbarName"></div></div>
+
+
+  <!-- תפריט פעילויות לימוד -->
+  <nav class="learning-sidebar-menu">
+
+    <button
+      class="learning-menu-item homework active"
+      data-mode="homework"
+      onclick="showLearning('homework', this)"
+    >
+      <span class="learning-menu-icon">📷</span>
+
+      <span class="learning-menu-text">
+        <strong>שיעורי בית</strong>
+        <small>צלם תרגיל וקבל עזרה</small>
+      </span>
+    </button>
+
+
+    <button
+      class="learning-menu-item exam"
+      data-mode="exam"
+      onclick="showLearning('exam', this)"
+    >
+      <span class="learning-menu-icon">📗</span>
+
+      <span class="learning-menu-text">
+        <strong>הכנה למבחן</strong>
+        <small>בוא נתכונן יחד</small>
+      </span>
+    </button>
+
+
+    <button
+      class="learning-menu-item practice"
+      data-mode="practice"
+      onclick="showLearning('practice', this)"
+    >
+      <span class="learning-menu-icon">✏️</span>
+
+      <span class="learning-menu-text">
+        <strong>תרגול</strong>
+        <small>בחר נושא לתרגול</small>
+      </span>
+    </button>
+
+
+    <button
+      class="learning-menu-item reading"
+      data-mode="reading"
+      onclick="showLearning('reading', this)"
+    >
+      <span class="learning-menu-icon">🎙️</span>
+
+      <span class="learning-menu-text">
+        <strong>קריאה</strong>
+        <small>קרא בקול ונתרגל</small>
+      </span>
+    </button>
+
+
+    <button
+      class="learning-menu-item games"
+      data-mode="games"
+      onclick="showLearning('games', this)"
+    >
+      <span class="learning-menu-icon">🎮</span>
+
+      <span class="learning-menu-text">
+        <strong>משחקי לימוד</strong>
+        <small>ללמוד דרך משחק</small>
+      </span>
+    </button>
+
+  </nav>
+
 </aside>
 </div>
 
@@ -6632,7 +8373,15 @@ async function loadLearningPath(
     titleEl.textContent =
       `המסע שלי ב${category}`;
   }
+const subtitleEl =
+  document.getElementById(
+    "learningPathSubtitle"
+  );
 
+if(subtitleEl){
+  subtitleEl.textContent =
+    `לומדים ${category} שלב אחרי שלב`;
+}
 
   /* שליפה מ-Supabase */
 
@@ -6721,6 +8470,10 @@ async function loadLearningPath(
       lessons || []
 
   };
+
+  updateLearningPathTop(
+  lessons || []
+);
 /* סימון הקטגוריה הפעילה בסרגל */
 
 document
@@ -6747,6 +8500,183 @@ document
   );
 
 }
+
+
+function updateLearningPathTop(
+  lessons
+){
+
+  const avatarEl =
+    document.getElementById(
+      "learningPathKidAvatar"
+    );
+
+  const nameEl =
+    document.getElementById(
+      "learningPathKidName"
+    );
+
+  const gradeEl =
+    document.getElementById(
+      "learningPathKidGrade"
+    );
+
+  const scoreEl =
+    document.getElementById(
+      "learningPathKidScore"
+    );
+
+
+  if(
+    avatarEl &&
+    window.KID_AVATAR_URL
+  ){
+    avatarEl.src =
+      window.KID_AVATAR_URL;
+  }
+
+
+  if(
+    nameEl &&
+    CURRENT_KID
+  ){
+    nameEl.textContent =
+      CURRENT_KID.child_name;
+  }
+
+
+  if(
+    gradeEl &&
+    CURRENT_KID
+  ){
+
+    const gradeNames = {
+      1:"א׳",
+      2:"ב׳",
+      3:"ג׳",
+      4:"ד׳",
+      5:"ה׳",
+      6:"ו׳"
+    };
+
+    gradeEl.textContent =
+      `כיתה ${
+        gradeNames[
+          CURRENT_KID.grade
+        ] ||
+        CURRENT_KID.grade
+      }`;
+
+  }
+
+
+  /*
+  נתונים זמניים בלבד.
+
+  בהמשך הערכים האלה יגיעו
+  מטבלת ההתקדמות.
+  */
+
+  const normalLessons =
+    lessons.filter(
+      lesson =>
+        !lesson.is_checkpoint
+    );
+
+
+  const totalLessons =
+    normalLessons.length;
+
+
+  const completedLessons =
+    Math.min(
+      3,
+      totalLessons
+    );
+
+
+  const remainingLessons =
+    Math.max(
+      totalLessons -
+      completedLessons,
+      0
+    );
+
+
+  const progress =
+    totalLessons > 0
+
+      ? Math.round(
+          completedLessons /
+          totalLessons *
+          100
+        )
+
+      : 0;
+
+
+  const progressText =
+    document.getElementById(
+      "learningPathProgressText"
+    );
+
+
+  const progressFill =
+    document.getElementById(
+      "learningPathProgressFill"
+    );
+
+
+  const remainingEl =
+    document.getElementById(
+      "learningPathRemainingLessons"
+    );
+
+
+  if(progressText){
+
+    progressText.textContent =
+      `${completedLessons}/${totalLessons}`;
+
+  }
+
+
+  if(progressFill){
+
+    progressFill.style.width =
+      `${progress}%`;
+
+  }
+
+
+  if(remainingEl){
+
+    remainingEl.textContent =
+
+      remainingLessons === 1
+
+        ? "עוד שיעור אחד"
+
+        : `עוד ${remainingLessons} שיעורים`;
+
+  }
+
+
+  /*
+  ניקוד זמני.
+
+  בהמשך יגיע מטבלת points/progress.
+  */
+
+  if(scoreEl){
+
+    scoreEl.textContent =
+      "0";
+
+  }
+
+}
+
 function renderLearningPath(
   lessons
 ){
@@ -7463,13 +9393,96 @@ if (!res.ok) {
 }
 
 
-    const data = await res.json();
-    console.log("CHAT RESPONSE:", data);
+const data = await res.json();
 
-if (!data.reply || !data.reply.trim()) {
-  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-} else {
-  animateTutorReply(data.reply);
+console.log(
+  "CHAT RESPONSE:",
+  data
+);
+
+
+/* =========================================
+   תשובת Lesson Renderer חדשה
+========================================= */
+
+if(
+  data.sequence &&
+  Array.isArray(
+    data.sequence
+  )
+){
+
+  try{
+
+    /* פתיחת הרשאת אודיו בדפדפן */
+
+    await unlockLessonAudio();
+
+
+    /* הכנת קטעי הקול מראש */
+
+    if(
+      window.lessonRenderer
+    ){
+
+      window.lessonRenderer
+        .prefetchLessonAudio(
+          data.sequence
+        );
+
+
+      /* הפעלת השיעור האמיתי */
+
+      await window.lessonRenderer.run(
+        {
+          sequence:
+            data.sequence,
+
+          wait_for_answer:
+            data.wait_for_answer,
+
+          speech:
+            data.speech
+        }
+      );
+
+    }
+    else{
+
+      console.error(
+        "lessonRenderer not initialized"
+      );
+
+      addMessage(
+        "assistant",
+        "לא הצלחתי להפעיל את השיעור."
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      "LESSON RENDERER ERROR:",
+      error
+    );
+
+  }
+
+}
+else{
+
+  console.error(
+    "Invalid tutor response:",
+    data
+  );
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי להכין את השיעור. נסו שוב."
+  );
+
 }
 
   } catch (e) {
@@ -8265,61 +10278,35 @@ if(pathView){
 }
 
 
-function showLearning(mode = "homework"){
+function showLearning(mode = "homework") {
 
-  const dashboard =
-    document.getElementById(
-      "dashboardView"
-    );
+  const dashboard = document.getElementById("dashboardView");
+  const learning = document.getElementById("learningView");
+  const pathView = document.getElementById("learningPathView");
 
-  const learning =
-    document.getElementById(
-      "learningView"
-    );
-
-    const pathView =
-  document.getElementById(
-    "learningPathView"
-  );
-
-
-
-
-  if(dashboard){
-
-    dashboard.style.display =
-      "none";
-
+  // מסתיר את מסך הבית
+  if (dashboard) {
+    dashboard.style.display = "none";
   }
 
-
-  if(learning){
-
-    learning.style.display =
-      "block";
-
+  // מציג את אזור הלמידה
+  if (learning) {
+    learning.style.display = "block";
   }
 
-if(pathView){
+  // מסתיר את מסלול הלמידה
+  if (pathView) {
+    pathView.style.display = "none";
+  }
 
-  pathView.style.display =
-    "none";
-
-}
-
+  // מסיר active מכל כפתורי הפעילות בסרגל
   document
-    .querySelectorAll(
-      ".side-item"
-    )
+    .querySelectorAll(".quick-card")
     .forEach(btn => {
-
-      btn.classList.remove(
-        "active"
-      );
-
+      btn.classList.remove("active");
     });
 
-
+  // מפעיל את מצב הלמידה שנבחר
   setLearningMode(mode);
 
 }
@@ -8355,7 +10342,7 @@ function updateLearningPathFooter({
 }
 
 
- 
+
 /* =====================================================
    LEARNING MODE
    ===================================================== */
@@ -8476,5 +10463,1435 @@ document.addEventListener(
   }
 );
 
+</script>
+<style>
+/* =====================================================
+   LESSON RENDERER V1
+===================================================== */
+
+.lesson-renderer-root{
+  width:100%;
+  direction:rtl;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  padding:10px 0 40px;
+}
+
+.lesson-renderer-row{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  direction:rtl;
+}
+
+.lesson-renderer-avatar{
+  width:58px;
+  height:58px;
+  object-fit:contain;
+  flex:none;
+}
+
+.lesson-renderer-content{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.lesson-renderer-line{
+  position:relative;
+  width:max-content;
+  max-width:90%;
+
+  direction:rtl;
+  text-align:right;
+
+  font-family:"Gveret Levin", cursive !important;
+  font-size:34px;
+  line-height:1.6;
+  color:#26314f;
+
+  padding:3px 8px;
+
+  opacity:1;
+}
+
+.lesson-renderer-line.math{
+  direction:ltr;
+  text-align:right;
+
+  font-family:"Gveret Levin", cursive !important;
+  font-size:42px;
+  font-weight:700;
+  color:#3478e5;
+}
+
+.lesson-renderer-line.question{
+  font-size:36px;
+  font-weight:700;
+
+  background:
+    linear-gradient(
+      transparent 65%,
+      rgba(255,222,80,.55) 65%
+    );
+}
+
+.lesson-renderer-line.highlighted{
+  background:#fff1a8;
+  border-radius:12px;
+  padding:5px 12px;
+  transition:.35s ease;
+}
+
+.lesson-renderer-line.success{
+  color:#248c59;
+}
+
+.lesson-renderer-circle{
+  display:inline-block;
+  position:relative;
+  padding:2px 10px;
+}
+
+.lesson-renderer-circle::after{
+  content:"";
+  position:absolute;
+  inset:-7px -10px;
+
+  border:3px solid #ff6d6d;
+  border-radius:50%;
+
+  transform:rotate(-5deg) scale(.4);
+  opacity:0;
+
+  animation:lessonCircleDraw .55s ease forwards;
+}
+
+@keyframes lessonCircleDraw{
+  to{
+    transform:rotate(-5deg) scale(1);
+    opacity:1;
+  }
+}
+
+.lesson-renderer-arrow{
+  font-size:38px;
+  line-height:1;
+  color:#7b4fff;
+  opacity:0;
+  transform:translateX(25px);
+  animation:lessonArrowIn .45s ease forwards;
+}
+
+@keyframes lessonArrowIn{
+  to{
+    opacity:1;
+    transform:translateX(0);
+  }
+}
+
+.lesson-renderer-speaking{
+  animation:lessonSpeakingPulse .7s ease-in-out infinite alternate;
+}
+
+@keyframes lessonSpeakingPulse{
+  from{
+    transform:scale(1);
+  }
+  to{
+    transform:scale(1.06);
+  }
+}
+
+/* כפתור דמו זמני */
+.lesson-renderer-demo-btn{
+  position:fixed;
+  left:25px;
+  bottom:95px;
+  z-index:9999;
+
+  border:0;
+  border-radius:16px;
+
+  padding:14px 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7048ff,
+      #8b61ff
+    );
+
+  color:white;
+
+  font-size:17px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 10px 28px
+    rgba(112,72,255,.28);
+}
+</style>
+
+
+<script>
+
+    let AUDIO_UNLOCKED = false;
+
+async function unlockLessonAudio() {
+
+  if (AUDIO_UNLOCKED) {
+    return;
+  }
+
+  try {
+
+    const audioContext =
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+    await audioContext.resume();
+
+    AUDIO_UNLOCKED = true;
+
+    console.log(
+      "🔊 Lesson audio unlocked"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Audio unlock failed:",
+      error
+    );
+
+  }
+
+}
+/* =====================================================
+   LESSON RENDERER V1
+===================================================== */
+
+class LessonRendererV1 {
+
+  constructor(messagesElement){
+
+this.messages = messagesElement;
+
+this.root = null;
+this.content = null;
+this.avatar = null;
+
+this.pointerRobot = null;
+this.pointerArrow = null;
+this.audioCache = new Map();
+this.isRunning = false;
+
+  }
+
+
+  /* =========================
+     HELPERS
+  ========================= */
+
+  wait(ms){
+
+    return new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          ms
+        )
+    );
+
+  }
+
+
+  scrollBottom(){
+
+    this.messages.scrollTop =
+      this.messages.scrollHeight;
+
+  }
+
+
+  prepare(){
+
+    const emptyState =
+      document.getElementById(
+        "emptyState"
+      );
+
+    if(emptyState){
+
+      emptyState.remove();
+
+    }
+
+
+    this.root =
+      document.createElement(
+        "div"
+      );
+
+    this.root.className =
+      "lesson-renderer-root";
+
+
+    const row =
+      document.createElement(
+        "div"
+      );
+
+    row.className =
+      "lesson-renderer-row";
+
+
+    this.avatar =
+      document.createElement(
+        "img"
+      );
+
+    this.avatar.src =
+      "/assets/robots/askie-robot.png";
+
+    this.avatar.className =
+      "lesson-renderer-avatar";
+
+
+    this.content =
+      document.createElement(
+        "div"
+      );
+
+    this.content.className =
+      "lesson-renderer-content";
+
+
+    row.appendChild(
+      this.avatar
+    );
+
+    row.appendChild(
+      this.content
+    );
+
+    this.root.appendChild(
+      row
+    );
+
+    this.messages.appendChild(
+      this.root
+    );
+
+
+    this.scrollBottom();
+
+  }
+
+createPointerRobot(){
+
+  if(
+    this.pointerRobot &&
+    this.pointerArrow
+  ){
+    return;
+  }
+
+  this.pointerRobot =
+    document.createElement("img");
+
+  this.pointerRobot.src =
+    "/assets/robots/askie-robot.png";
+
+  this.pointerRobot.className =
+    "lesson-pointer-robot";
+
+  this.pointerArrow =
+    document.createElement("div");
+
+  this.pointerArrow.className =
+    "lesson-pointer-arrow";
+
+  this.pointerArrow.textContent =
+    "👉";
+
+  this.messages.appendChild(
+    this.pointerRobot
+  );
+
+  this.messages.appendChild(
+    this.pointerArrow
+  );
+
+}
+async robotPoint({
+  target
+}){
+
+  this.createPointerRobot();
+
+
+  const lines =
+    this.content
+      .querySelectorAll(
+        ".lesson-renderer-line"
+      );
+
+
+  let targetLine =
+    null;
+
+
+  for(
+    const line of lines
+  ){
+
+    if(
+      line.textContent
+        .includes(
+          target
+        )
+    ){
+
+      targetLine =
+        line;
+
+      break;
+
+    }
+
+  }
+
+
+  if(
+    !targetLine
+  ){
+
+    console.warn(
+      "robot_point target not found:",
+      target
+    );
+
+    return;
+
+  }
+
+
+  targetLine.classList.add(
+    "lesson-point-target"
+  );
+
+
+  const messagesRect =
+    this.messages
+      .getBoundingClientRect();
+
+
+  const targetRect =
+    targetLine
+      .getBoundingClientRect();
+
+
+  /*
+    מיקום בתוך אזור messages
+  */
+
+  const targetX =
+    targetRect.left -
+    messagesRect.left +
+    this.messages.scrollLeft;
+
+
+  const targetY =
+    targetRect.top -
+    messagesRect.top +
+    this.messages.scrollTop;
+
+
+  /*
+    הרובוט יופיע משמאל ליעד
+  */
+
+  const robotLeft =
+    Math.max(
+      10,
+      targetX - 125
+    );
+
+
+  const robotTop =
+    targetY - 20;
+
+
+  this.pointerRobot.style.left =
+    robotLeft + "px";
+
+
+  this.pointerRobot.style.top =
+    robotTop + "px";
+
+
+  /*
+    החץ בין הרובוט ליעד
+  */
+
+  this.pointerArrow.style.left =
+    (
+      robotLeft +
+      80
+    ) + "px";
+
+
+  this.pointerArrow.style.top =
+    (
+      robotTop +
+      25
+    ) + "px";
+
+
+  this.pointerRobot
+    .classList
+    .add(
+      "visible"
+    );
+
+
+  this.pointerArrow
+    .classList
+    .add(
+      "visible"
+    );
+
+
+  await this.wait(
+    1600
+  );
+
+}
+
+/* =========================
+   AUDIO PREFETCH
+========================= */
+
+async preloadAudio(text){
+
+  if(!text || !text.trim()){
+    return null;
+  }
+
+  if(this.audioCache.has(text)){
+    return this.audioCache.get(text);
+  }
+
+  const audioPromise = (async () => {
+
+    const { data: sessionData } =
+      await sb.auth.getSession();
+
+    const session =
+      sessionData.session;
+
+    if(!session){
+      throw new Error(
+        "No active session"
+      );
+    }
+
+    const response = await fetch(
+      `${TUTOR_API_BASE}/api/tutor/tts`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "Authorization":
+            `Bearer ${session.access_token}`
+        },
+
+        body: JSON.stringify({
+          text
+        })
+      }
+    );
+
+    if(!response.ok){
+
+      const errorText =
+        await response.text();
+
+      throw new Error(
+        `TTS API ${response.status}: ${errorText}`
+      );
+    }
+
+    const audioBlob =
+      await response.blob();
+
+    const audioUrl =
+      URL.createObjectURL(
+        audioBlob
+      );
+
+    return audioUrl;
+
+  })();
+
+  this.audioCache.set(
+    text,
+    audioPromise
+  );
+
+  return audioPromise;
+}
+
+
+prefetchLessonAudio(sequence){
+
+  for(const action of sequence){
+
+    if(
+      action.type === "speak" ||
+      action.type === "ask"
+    ){
+
+      const text =
+        action.speech_tts ||
+        action.text;
+
+      if(text){
+
+        this.preloadAudio(text)
+          .catch(error => {
+
+            console.error(
+              "Audio prefetch error:",
+              error
+            );
+
+          });
+
+      }
+
+    }
+
+  }
+
+}
+
+
+
+  /* =========================
+     WRITE
+  ========================= */
+
+  async write({
+    text,
+    style = "normal",
+    speed = 45
+  }){
+
+    const line =
+      document.createElement(
+        "div"
+      );
+
+    line.className =
+      "lesson-renderer-line";
+
+
+    if(
+      style === "math"
+    ){
+
+      line.classList.add(
+        "math"
+      );
+
+    }
+
+
+    if(
+      style === "question"
+    ){
+
+      line.classList.add(
+        "question"
+      );
+
+    }
+
+
+    if(
+      style === "success"
+    ){
+
+      line.classList.add(
+        "success"
+      );
+
+    }
+
+
+    this.content.appendChild(
+      line
+    );
+
+
+    for(
+      const char of text
+    ){
+
+      line.textContent +=
+        char;
+
+      this.scrollBottom();
+
+      let delay =
+        speed;
+
+
+      if(
+        char === "." ||
+        char === "!" ||
+        char === "?"
+      ){
+
+        delay +=
+          160;
+
+      }
+
+
+      if(
+        char === ","
+      ){
+
+        delay +=
+          80;
+
+      }
+
+
+      await this.wait(
+        delay
+      );
+
+    }
+
+
+    return line;
+
+  }
+
+
+  /* =========================
+     SPEAK
+  ========================= */
+
+async speak({ text, speech_tts }){
+
+  const audioText =
+    speech_tts ||
+    text;
+
+  if(
+    !audioText ||
+    !audioText.trim()
+  ){
+    return;
+  }
+
+  try{
+
+    if(this.avatar){
+      this.avatar
+        .classList
+        .add(
+          "lesson-renderer-speaking"
+        );
+    }
+
+    const audioUrl =
+      await this.preloadAudio(
+        audioText
+      );
+
+    if(!audioUrl){
+      return;
+    }
+
+    const audio =
+      new Audio(
+        audioUrl
+      );
+
+    await new Promise(
+      (resolve, reject) => {
+
+        audio.onended =
+          resolve;
+
+        audio.onerror =
+          reject;
+
+        audio.play()
+          .catch(
+            reject
+          );
+
+      }
+    );
+
+  }
+  catch(error){
+
+    console.error(
+      "Natural TTS error:",
+      error
+    );
+
+  }
+  finally{
+
+    if(this.avatar){
+
+      this.avatar
+        .classList
+        .remove(
+          "lesson-renderer-speaking"
+        );
+
+    }
+
+  }
+
+}
+
+  /* =========================
+     HIGHLIGHT
+  ========================= */
+
+  async highlight({
+    target
+  }){
+
+    const lines =
+      this.content
+        .querySelectorAll(
+          ".lesson-renderer-line"
+        );
+
+
+    for(
+      const line of lines
+    ){
+
+      if(
+        line.textContent
+          .includes(
+            target
+          )
+      ){
+
+        line.classList.add(
+          "highlighted"
+        );
+
+      }
+
+    }
+
+
+    await this.wait(
+      700
+    );
+
+  }
+
+
+  /* =========================
+     CIRCLE
+  ========================= */
+
+  async circle({
+    target
+  }){
+
+    const lines =
+      this.content
+        .querySelectorAll(
+          ".lesson-renderer-line"
+        );
+
+
+    for(
+      const line of lines
+    ){
+
+      const text =
+        line.textContent;
+
+
+      if(
+        !text.includes(
+          target
+        )
+      ){
+
+        continue;
+
+      }
+
+
+      const index =
+        text.indexOf(
+          target
+        );
+
+
+      const before =
+        text.slice(
+          0,
+          index
+        );
+
+
+      const after =
+        text.slice(
+          index +
+          target.length
+        );
+
+
+      line.innerHTML =
+        "";
+
+
+      line.append(
+        document.createTextNode(
+          before
+        )
+      );
+
+
+      const span =
+        document.createElement(
+          "span"
+        );
+
+      span.className =
+        "lesson-renderer-circle";
+
+      span.textContent =
+        target;
+
+
+      line.appendChild(
+        span
+      );
+
+
+      line.append(
+        document.createTextNode(
+          after
+        )
+      );
+
+
+      break;
+
+    }
+
+
+    await this.wait(
+      800
+    );
+
+  }
+
+
+  /* =========================
+     ARROW
+  ========================= */
+
+  async arrow(){
+
+    const arrow =
+      document.createElement(
+        "div"
+      );
+
+    arrow.className =
+      "lesson-renderer-arrow";
+
+    arrow.textContent =
+      "⬅️";
+
+
+    this.content.appendChild(
+      arrow
+    );
+
+
+    this.scrollBottom();
+
+
+    await this.wait(
+      600
+    );
+
+  }
+
+
+  /* =========================
+     ASK
+  ========================= */
+
+  async ask({
+    text
+  }){
+
+    await this.write({
+      text,
+      style:
+        "question",
+      speed:
+        50
+    });
+
+
+    await this.speak({
+      text
+    });
+
+  }
+
+
+  /* =========================
+     RUN
+  ========================= */
+
+async run(script){
+
+console.log(
+  "LIVE LESSON SEQUENCE:",
+  script.sequence
+);
+
+console.table(
+  script.sequence.map(
+    action => ({
+      type: action.type,
+      text: action.text || "",
+      target: action.target || ""
+    })
+  )
+);
+
+  if(
+    this.isRunning
+  ){
+    return;
+  }
+
+
+    this.isRunning =
+      true;
+
+
+    this.prepare();
+
+
+const sequence =
+  script.sequence ||
+  [];
+
+
+/* =========================================
+   מתחילים להכין את כל קטעי הקול ברקע
+========================================= */
+
+this.prefetchLessonAudio(
+  sequence
+);
+
+
+ 
+
+/* =========================================
+   רק עכשיו מתחילים את השיעור
+========================================= */
+
+for(
+  const action of sequence
+){
+
+  /* =========================================
+     NORMALIZE VISUAL ACTION TARGET
+  ========================================= */
+
+  if(
+    action.type === "highlight" ||
+    action.type === "circle" ||
+    action.type === "robot_point"
+  ){
+
+    if(
+      !action.target &&
+      action.text
+    ){
+
+      action.target =
+        action.text;
+
+    }
+
+  }
+
+
+  switch(
+    action.type
+  ){
+
+
+        case "speak":
+
+          await this.speak(
+            action
+          );
+
+          break;
+
+
+        case "write":
+
+          await this.write(
+            action
+          );
+
+          break;
+
+          case "robot_point":
+
+  await this.robotPoint(
+    action
+  );
+
+  break;
+
+
+        case "highlight":
+
+          await this.highlight(
+            action
+          );
+
+          break;
+
+
+        case "circle":
+
+          await this.circle(
+            action
+          );
+
+          break;
+
+
+        case "arrow":
+
+          await this.arrow(
+            action
+          );
+
+          break;
+
+
+        case "wait":
+
+          await this.wait(
+            action.duration ||
+            500
+          );
+
+          break;
+
+
+        case "ask":
+
+          await this.ask(
+            action
+          );
+
+          break;
+
+
+        default:
+
+          console.warn(
+            "Unknown lesson action:",
+            action
+          );
+
+      }
+
+    }
+
+
+    this.isRunning =
+      false;
+
+  }
+
+}
+
+
+/* =====================================================
+   DEMO
+===================================================== */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    const messages =
+      document.querySelector(
+        ".messages"
+      );
+
+
+    if(
+      !messages
+    ){
+
+      console.error(
+        "Lesson Renderer: .messages not found"
+      );
+
+      return;
+
+    }
+
+
+    const renderer =
+      new LessonRendererV1(
+        messages
+      );
+
+
+    window.lessonRenderer =
+      renderer;
+
+
+    const demoButton =
+      document.createElement(
+        "button"
+      );
+
+
+    demoButton.className =
+      "lesson-renderer-demo-btn";
+
+
+    demoButton.textContent =
+      "▶ Renderer V1";
+
+
+    document.body.appendChild(
+      demoButton
+    );
+
+
+    demoButton.onclick =
+      async () => {
+await unlockLessonAudio();
+
+        demoButton.style.display =
+          "none";
+
+
+        showLearning(
+          "practice"
+        );
+
+
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              400
+            )
+        );
+
+
+        const demoLesson = {
+
+  sequence: [
+
+    {
+      type: "speak",
+
+      text:
+        "הַי! בּוֹא נִפְתּוֹר יַחַד תַּרְגִּיל. קוֹדֶם נַפְרִיד בֵּין הָעֲשָׂרוֹת לַיְּחִידוֹת."
+    },
+
+
+    {
+      type: "write",
+
+      text:
+        "24 + 18 = ?",
+
+      style:
+        "math",
+
+      speed:
+        90
+    },
+
+
+    {
+      type: "wait",
+
+      duration:
+        700
+    },
+
+
+    {
+      type: "write",
+
+      text:
+        "שלב ראשון: נחבר את העשרות",
+
+      speed:
+        45
+    },
+
+
+    {
+      type: "write",
+
+      text:
+        "20 + 10 = 30",
+
+      style:
+        "math",
+
+      speed:
+        90
+    },
+
+{
+  type: "robot_point",
+  target: "30"
+},
+
+    {
+      type: "highlight",
+
+      target:
+        "30"
+    },
+
+
+    {
+      type: "speak",
+
+      text:
+        "מְצוּיָן. עַכְשָׁו נַעֲבוֹר לַיְּחִידוֹת."
+    },
+
+
+    {
+      type: "write",
+
+      text:
+        "4 + 8 = 12",
+
+      style:
+        "math",
+
+      speed:
+        90
+    },
+
+
+    {
+      type: "circle",
+
+      target:
+        "12"
+    },
+
+
+    {
+      type: "arrow"
+    },
+
+
+    {
+      type: "write",
+
+      text:
+        "30 + 12 = 42",
+
+      style:
+        "math",
+
+      speed:
+        100
+    },
+
+{
+  type: "robot_point",
+  target: "42"
+},
+
+    {
+      type: "highlight",
+
+      target:
+        "42"
+    },
+
+
+    {
+      type: "speak",
+
+      text:
+        "יָפֶה מְאוֹד. עַכְשָׁו אֲנִי רוֹצֶה שֶׁאַתָּה תְּנַסֶּה."
+    },
+
+
+    {
+      type: "ask",
+
+      text:
+        "כַּמָּה זֶה שְׁלוֹשִׁים וּשְׁתַּיִם וְעוֹד תְּשַׁע עֶשְׂרֵה?"
+    }
+
+  ]
+
+};
+
+        renderer.run(
+          demoLesson
+        );
+
+      };
+
+  }
+);
 </script>
 </body></html>
