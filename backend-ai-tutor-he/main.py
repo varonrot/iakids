@@ -484,25 +484,28 @@ def tutor_chat(
 
         return lesson_data.model_dump()
 
+
     except HTTPException:
+
         raise
 
-except Exception as e:
 
-print(
+    except Exception as e:
 
-    "GEMINI TTS ERROR:",
+        print(
 
-    type(e).__name__,
+            "GEMINI TTS ERROR:",
 
-    repr(e)
+            type(e).__name__,
 
-)
+            repr(e)
 
-raise HTTPException(
+        )
 
-    status_code=500,
+        raise HTTPException(
 
-    detail=f"Gemini TTS failed: {type(e).__name__}: {str(e)}"
+            status_code=500,
 
-)
+            detail=f"Gemini TTS failed: {type(e).__name__}: {str(e)}"
+
+        )
