@@ -11416,16 +11416,69 @@ async speak({ text, speech_tts }){
     this.prepare();
 
 
-    const sequence =
-      script.sequence ||
-      [];
+const sequence =
+  script.sequence ||
+  [];
+
+
+/* =========================================
+   מתחילים להכין את כל קטעי הקול ברקע
+========================================= */
+
 this.prefetchLessonAudio(
   sequence
 );
 
-    for(
-      const action of sequence
-    ){
+
+/* =========================================
+   מחכים רק לקול הראשון שיהיה מוכן
+========================================= */
+
+const firstSpeechAction =
+  sequence.find(
+    action =>
+      action.type === "speak" ||
+      action.type === "ask"
+  );
+
+
+if(firstSpeechAction){
+
+  const firstSpeechText =
+    firstSpeechAction.speech_tts ||
+    firstSpeechAction.text;
+
+
+  if(firstSpeechText){
+
+    try{
+
+      await this.preloadAudio(
+        firstSpeechText
+      );
+
+    }
+    catch(error){
+
+      console.error(
+        "First audio preload error:",
+        error
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================
+   רק עכשיו מתחילים את השיעור
+========================================= */
+
+for(
+  const action of sequence
+){
 
       switch(
         action.type
