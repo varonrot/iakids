@@ -11576,9 +11576,32 @@ for(
   const action of sequence
 ){
 
-      switch(
-        action.type
-      ){
+  /* =========================================
+     NORMALIZE VISUAL ACTION TARGET
+  ========================================= */
+
+  if(
+    action.type === "highlight" ||
+    action.type === "circle" ||
+    action.type === "robot_point"
+  ){
+
+    if(
+      !action.target &&
+      action.text
+    ){
+
+      action.target =
+        action.text;
+
+    }
+
+  }
+
+
+  switch(
+    action.type
+  ){
 
 
         case "speak":
