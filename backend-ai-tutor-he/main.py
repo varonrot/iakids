@@ -289,7 +289,7 @@ def tutor_tts(
 
         # Gemini TTS
         response = gemini_client.models.generate_content(
-            model="gemini-3.1-flash-preview-tts",
+            model="gemini-3.1-flash-tts-preview",
 
             contents=(
                 "Speak in natural, fluent Hebrew. "
