@@ -9393,13 +9393,96 @@ if (!res.ok) {
 }
 
 
-    const data = await res.json();
-    console.log("CHAT RESPONSE:", data);
+const data = await res.json();
 
-if (!data.reply || !data.reply.trim()) {
-  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-} else {
-  animateTutorReply(data.reply);
+console.log(
+  "CHAT RESPONSE:",
+  data
+);
+
+
+/* =========================================
+   תשובת Lesson Renderer חדשה
+========================================= */
+
+if(
+  data.sequence &&
+  Array.isArray(
+    data.sequence
+  )
+){
+
+  try{
+
+    /* פתיחת הרשאת אודיו בדפדפן */
+
+    await unlockLessonAudio();
+
+
+    /* הכנת קטעי הקול מראש */
+
+    if(
+      window.lessonRenderer
+    ){
+
+      window.lessonRenderer
+        .prefetchLessonAudio(
+          data.sequence
+        );
+
+
+      /* הפעלת השיעור האמיתי */
+
+      await window.lessonRenderer.run(
+        {
+          sequence:
+            data.sequence,
+
+          wait_for_answer:
+            data.wait_for_answer,
+
+          speech:
+            data.speech
+        }
+      );
+
+    }
+    else{
+
+      console.error(
+        "lessonRenderer not initialized"
+      );
+
+      addMessage(
+        "assistant",
+        "לא הצלחתי להפעיל את השיעור."
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      "LESSON RENDERER ERROR:",
+      error
+    );
+
+  }
+
+}
+else{
+
+  console.error(
+    "Invalid tutor response:",
+    data
+  );
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי להכין את השיעור. נסו שוב."
+  );
+
 }
 
   } catch (e) {
