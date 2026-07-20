@@ -11608,7 +11608,9 @@ document.addEventListener(
       new LessonRendererV1(
         messages
       );
-
+renderer.prefetchLessonAudio(
+  demoLesson.sequence
+);
 
     window.lessonRenderer =
       renderer;
