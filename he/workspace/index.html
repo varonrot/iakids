@@ -11483,10 +11483,20 @@ async speak({ text, speech_tts }){
 
 async run(script){
 
-  console.log(
-    "LIVE LESSON SEQUENCE:",
-    script.sequence
-  );
+console.log(
+  "LIVE LESSON SEQUENCE:",
+  script.sequence
+);
+
+console.table(
+  script.sequence.map(
+    action => ({
+      type: action.type,
+      text: action.text || "",
+      target: action.target || ""
+    })
+  )
+);
 
   if(
     this.isRunning
