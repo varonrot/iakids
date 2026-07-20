@@ -11526,15 +11526,20 @@ this.prefetchLessonAudio(
 );
 
 
- 
+
 
 /* =========================================
    רק עכשיו מתחילים את השיעור
 ========================================= */
 
 for(
-  const action of sequence
+  let index = 0;
+  index < sequence.length;
+  index++
 ){
+
+  const action =
+    sequence[index];
 
   /* =========================================
      NORMALIZE VISUAL ACTION TARGET
@@ -11558,6 +11563,28 @@ for(
 
   }
 
+/* הקול הראשון נטען ומתנגן ברקע,
+   כדי לא לעצור את תחילת הכתיבה */
+
+if(
+  index === 0 &&
+  action.type === "speak"
+){
+
+  this.speak(
+    action
+  ).catch(error => {
+
+    console.error(
+      "Parallel first speech error:",
+      error
+    );
+
+  });
+
+  continue;
+
+}
 
   switch(
     action.type
