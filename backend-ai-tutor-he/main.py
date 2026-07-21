@@ -313,6 +313,11 @@ def get_or_create_tutor_session(
             session["id"]
         ).execute()
 
+        # מוסיפים את זמן השיחה לסיכום החודשי
+        increment_usage_summary(
+            user_id=user_id,
+            usage_seconds=duration_seconds
+        )
     # =================================================
     # פתיחת Session חדש
     # =================================================
