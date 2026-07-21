@@ -9423,34 +9423,27 @@ if(
     await unlockLessonAudio();
 
 
-    /* הכנת קטעי הקול מראש */
+if(
+  window.lessonRenderer
+){
 
-    if(
-      window.lessonRenderer
-    ){
+  /* הפעלת השיעור האמיתי בלבד.
+     כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
 
-      window.lessonRenderer
-        .prefetchLessonAudio(
-          data.sequence
-        );
+  await window.lessonRenderer.run(
+    {
+      sequence:
+        data.sequence,
 
+      wait_for_answer:
+        data.wait_for_answer,
 
-      /* הפעלת השיעור האמיתי */
-
-      await window.lessonRenderer.run(
-        {
-          sequence:
-            data.sequence,
-
-          wait_for_answer:
-            data.wait_for_answer,
-
-          speech:
-            data.speech
-        }
-      );
-
+      speech:
+        data.speech
     }
+  );
+
+}
     else{
 
       console.error(
