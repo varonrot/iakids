@@ -6,6 +6,7 @@ from openai import OpenAI
 from google import genai
 from google.genai import types
 from pathlib import Path
+from datetime import datetime, timezone, timedelta
 import io
 import wave
 import os
@@ -21,6 +22,17 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# =====================================================
+# MODEL PRICING - USD
+# =====================================================
+
+# GPT-4o mini
+OPENAI_INPUT_COST_PER_1M = 0.15
+OPENAI_OUTPUT_COST_PER_1M = 0.60
+
+# Gemini TTS
+GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 10.00
+GEMINI_AUDIO_TOKENS_PER_SECOND = 32
 
 if not SUPABASE_URL:
     raise RuntimeError("Missing SUPABASE_URL")
@@ -80,6 +92,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # =====================================================
 # MODELS
 # =====================================================
@@ -91,6 +104,7 @@ class TutorChatRequest(BaseModel):
 
 class TutorTTSRequest(BaseModel):
     text: str
+    session_id: str | None = None
 
 
 class TutorAction(BaseModel):
@@ -107,6 +121,7 @@ class TutorLessonResponse(BaseModel):
     speech: str | None = None
     sequence: list[TutorAction]
     wait_for_answer: bool = False
+
 
 # =====================================================
 # AUTH
@@ -128,6 +143,28 @@ def authenticate_user(authorization: str):
         raise HTTPException(status_code=401, detail="Invalid session")
 
     return user_res.user
+
+
+def update_tutor_session_after_tts(
+        session_id: str,
+        audio_duration_seconds: float = 0,
+        cost_usd: float = 0
+):
+    """
+    עדכון אטומי של Session לאחר קריאת TTS אחת.
+    """
+
+    if not session_id:
+        return
+
+    sb.rpc(
+        "increment_tutor_session_tts",
+        {
+            "p_session_id": session_id,
+            "p_audio_duration_seconds": audio_duration_seconds,
+            "p_cost_usd": cost_usd
+        }
+    ).execute()
 
 
 # =====================================================
@@ -171,29 +208,326 @@ def get_existing_kids_memory(kid_id: str) -> str:
     return str(memory or "")
 
 
-def save_tutor_chat_message(
-    user_id: str,
-    kid_id: str,
-    role: str,
-    content: str,
-    tokens: int | None = None
+# =====================================================
+# TUTOR SESSION HELPERS
+# =====================================================
+
+SESSION_TIMEOUT_MINUTES = 30
+
+
+def parse_supabase_datetime(value: str):
+    if not value:
+        return None
+
+    return datetime.fromisoformat(
+        value.replace("Z", "+00:00")
+    )
+
+
+def get_or_create_tutor_session(
+        user_id: str,
+        kid_id: str
 ):
-    payload = {
+    """
+    מחפש את ה-Session האחרון של הילד.
+
+    אם ה-Session עדיין פעיל ולא עברו 30 דקות
+    מהפעילות האחרונה -> משתמשים בו.
+
+    אחרת -> סוגרים את הקודם ופותחים Session חדש.
+    """
+
+    now = datetime.now(timezone.utc)
+
+    res = (
+        sb.table("tutor_sessions")
+        .select(
+            "id, started_at, last_activity_at, status, "
+            "message_count, user_message_count, "
+            "assistant_message_count, ai_call_count, "
+            "input_tokens, output_tokens, total_tokens, "
+            "estimated_cost_usd"
+        )
+        .eq("user_id", user_id)
+        .eq("kid_id", kid_id)
+        .eq("status", "active")
+        .order("last_activity_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+
+    # =================================================
+    # אם קיים Session פעיל
+    # =================================================
+
+    if res.data:
+
+        session = res.data[0]
+
+        last_activity = parse_supabase_datetime(
+            session.get("last_activity_at")
+        )
+
+        if last_activity:
+
+            inactive_time = now - last_activity
+
+            # עדיין בתוך חלון 30 הדקות
+            if inactive_time < timedelta(
+                    minutes=SESSION_TIMEOUT_MINUTES
+            ):
+                session["_is_new"] = False
+
+                return session
+
+        # =================================================
+        # ה-Session ישן יותר מ-30 דקות
+        # סוגרים אותו
+        # =================================================
+
+        started_at = parse_supabase_datetime(
+            session.get("started_at")
+        )
+
+        duration_seconds = 0
+
+        if started_at and last_activity:
+            duration_seconds = max(
+                0,
+                int(
+                    (
+                            last_activity - started_at
+                    ).total_seconds()
+                )
+            )
+
+        sb.table("tutor_sessions").update({
+            "status": "completed",
+            "ended_at": (
+                    last_activity or now
+            ).isoformat(),
+            "duration_seconds": duration_seconds,
+            "updated_at": now.isoformat()
+        }).eq(
+            "id",
+            session["id"]
+        ).execute()
+
+    # =================================================
+    # פתיחת Session חדש
+    # =================================================
+
+    new_session_res = (
+        sb.table("tutor_sessions")
+        .insert({
+            "user_id": user_id,
+            "kid_id": kid_id,
+            "started_at": now.isoformat(),
+            "last_activity_at": now.isoformat(),
+            "status": "active",
+            "ai_model": "gpt-4o-mini",
+            "tts_model": "gemini-3.1-flash-tts-preview"
+        })
+        .execute()
+    )
+
+    if not new_session_res.data:
+        raise RuntimeError(
+            "Failed to create tutor session"
+        )
+
+    new_session = new_session_res.data[0]
+
+    new_session["_is_new"] = True
+
+    return new_session
+
+
+def save_tutor_chat_messages(
+        user_id: str,
+        kid_id: str,
+        user_content: str,
+        assistant_content: str,
+        assistant_tokens: int | None = None,
+        session_id: str | None = None
+):
+    user_payload = {
         "user_id": user_id,
         "kid_id": kid_id,
-        "role": role,
-        "content": content,
+        "role": "user",
+        "content": user_content,
     }
 
-    if tokens is not None:
-        payload["tokens"] = tokens
+    assistant_payload = {
+        "user_id": user_id,
+        "kid_id": kid_id,
+        "role": "assistant",
+        "content": assistant_content,
+    }
 
-    sb.table("kids_chats").insert(payload).execute()
+    if assistant_tokens is not None:
+        assistant_payload["tokens"] = assistant_tokens
+
+    if session_id:
+        user_payload["session_id"] = session_id
+        assistant_payload["session_id"] = session_id
+
+    # שתי ההודעות נשמרות בקריאת Supabase אחת
+    sb.table("kids_chats").insert([
+        user_payload,
+        assistant_payload
+    ]).execute()
+
+
+def increment_usage_summary(
+        user_id: str,
+        sessions: int = 0,
+        usage_seconds: int = 0,
+        ai_calls: int = 0,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        total_tokens: int = 0,
+        tts_calls: int = 0,
+        tts_seconds: float = 0,
+        voice_output_seconds: float = 0,
+        image_uploads: int = 0,
+        vision_calls: int = 0,
+        file_uploads: int = 0,
+        file_analysis_calls: int = 0,
+        errors: int = 0,
+        openai_cost_usd: float = 0,
+        gemini_cost_usd: float = 0,
+        vision_cost_usd: float = 0,
+        realtime_cost_usd: float = 0,
+        other_cost_usd: float = 0
+):
+    """
+    עדכון מצטבר של usage_summary.
+    מתבצע באמצעות RPC אחד בלבד.
+    """
+
+    sb.rpc(
+        "increment_usage_summary",
+        {
+            "p_user_id": user_id,
+
+            "p_sessions": sessions,
+            "p_usage_seconds": usage_seconds,
+
+            "p_ai_calls": ai_calls,
+            "p_input_tokens": input_tokens,
+            "p_output_tokens": output_tokens,
+            "p_total_tokens": total_tokens,
+
+            "p_tts_calls": tts_calls,
+            "p_tts_seconds": tts_seconds,
+            "p_voice_output_seconds": voice_output_seconds,
+
+            "p_image_uploads": image_uploads,
+            "p_vision_calls": vision_calls,
+
+            "p_file_uploads": file_uploads,
+            "p_file_analysis_calls": file_analysis_calls,
+
+            "p_errors": errors,
+
+            "p_openai_cost_usd": openai_cost_usd,
+            "p_gemini_cost_usd": gemini_cost_usd,
+            "p_vision_cost_usd": vision_cost_usd,
+            "p_realtime_cost_usd": realtime_cost_usd,
+            "p_other_cost_usd": other_cost_usd
+        }
+    ).execute()
+
+
+def update_tutor_session_after_chat(
+        session: dict,
+        total_tokens: int | None = None,
+        input_tokens: int | None = None,
+        output_tokens: int | None = None,
+        cost_usd: float = 0
+):
+    """
+    עדכון מצטבר של Session לאחר אינטראקציית צ'אט אחת.
+    """
+
+    now = datetime.now(timezone.utc)
+
+    started_at = parse_supabase_datetime(
+        session.get("started_at")
+    )
+
+    duration_seconds = 0
+
+    if started_at:
+        duration_seconds = max(
+            0,
+            int(
+                (
+                        now - started_at
+                ).total_seconds()
+            )
+        )
+
+    new_input_tokens = (
+            int(session.get("input_tokens") or 0)
+            + int(input_tokens or 0)
+    )
+
+    new_output_tokens = (
+            int(session.get("output_tokens") or 0)
+            + int(output_tokens or 0)
+    )
+
+    new_total_tokens = (
+            int(session.get("total_tokens") or 0)
+            + int(total_tokens or 0)
+    )
+    new_estimated_cost_usd = (
+            float(session.get("estimated_cost_usd") or 0)
+            + float(cost_usd or 0)
+    )
+
+    sb.table("tutor_sessions").update({
+
+        "last_activity_at": now.isoformat(),
+
+        "duration_seconds": duration_seconds,
+
+        # בכל אינטראקציה נשמרות 2 הודעות:
+        # ילד + AI
+        "message_count":
+            int(session.get("message_count") or 0) + 2,
+
+        "user_message_count":
+            int(session.get("user_message_count") or 0) + 1,
+
+        "assistant_message_count":
+            int(session.get("assistant_message_count") or 0) + 1,
+
+        # קריאת OpenAI אחת
+        "ai_call_count":
+            int(session.get("ai_call_count") or 0) + 1,
+
+        "input_tokens": new_input_tokens,
+
+        "output_tokens": new_output_tokens,
+
+        "total_tokens": new_total_tokens,
+
+        "estimated_cost_usd": new_estimated_cost_usd,
+
+        "updated_at": now.isoformat()
+
+    }).eq(
+        "id",
+        session["id"]
+    ).execute()
 
 
 def get_recent_tutor_messages_for_llm(
-    kid_id: str,
-    limit: int = 8
+        kid_id: str,
+        limit: int = 8
 ):
     res = (
         sb.table("kids_chats")
@@ -258,19 +592,20 @@ def tutor_health():
         "service": "ai-tutor-he"
     }
 
+
 # =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
 
 @app.post("/api/tutor/tts")
 def tutor_tts(
-    body: TutorTTSRequest,
-    authorization: str = Header(None)
+        body: TutorTTSRequest,
+        authorization: str = Header(None)
 ):
     try:
 
         # אימות משתמש
-        authenticate_user(authorization)
+        user = authenticate_user(authorization)
 
         text = (body.text or "").strip()
 
@@ -286,19 +621,18 @@ def tutor_tts(
                 detail="text is too long"
             )
 
-
         # Gemini TTS
         response = gemini_client.models.generate_content(
-            model="gemini-2.5-flash-preview-tts",
+            model="gemini-3.1-flash-tts-preview",
 
             contents=(
-                "Speak in natural, fluent Hebrew. "
-                "Sound like a warm, friendly and patient teacher "
-                "speaking naturally to a school-age child. "
-                "Use clear pronunciation, natural pauses, "
-                "and an encouraging tone. "
-                "Read exactly the following Hebrew text:\n\n"
-                + text
+                    "Speak in natural, fluent Hebrew. "
+                    "Sound like a warm, friendly and patient teacher "
+                    "speaking naturally to a school-age child. "
+                    "Use clear pronunciation, natural pauses, "
+                    "and an encouraging tone. "
+                    "Read exactly the following Hebrew text:\n\n"
+                    + text
             ),
 
             config=types.GenerateContentConfig(
@@ -310,21 +644,20 @@ def tutor_tts(
                 speech_config=types.SpeechConfig(
 
                     voice_config=
-                        types.VoiceConfig(
+                    types.VoiceConfig(
 
-                            prebuilt_voice_config=
-                                types.PrebuiltVoiceConfig(
-                                    voice_name="Aoede"
-                                )
-
+                        prebuilt_voice_config=
+                        types.PrebuiltVoiceConfig(
+                            voice_name="Aoede"
                         )
+
+                    )
 
                 )
 
             )
 
         )
-
 
         # קבלת PCM audio
         audio_data = (
@@ -336,13 +669,31 @@ def tutor_tts(
             .data
         )
 
-
         if not audio_data:
             raise RuntimeError(
                 "Gemini returned no audio data"
             )
 
+        # =================================================
+        # AUDIO DURATION
+        # PCM 16-bit mono at 24kHz
+        # 2 bytes per sample
+        # =================================================
 
+        audio_duration_seconds = (
+                len(audio_data)
+                / (24000 * 2)
+        )
+        audio_output_tokens = (
+                audio_duration_seconds
+                * GEMINI_AUDIO_TOKENS_PER_SECOND
+        )
+
+        gemini_audio_cost_usd = (
+                audio_output_tokens
+                / 1_000_000
+                * GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M
+        )
         # =================================================
         # PCM -> WAV
         # Gemini מחזיר PCM 16-bit, mono, 24kHz
@@ -351,8 +702,8 @@ def tutor_tts(
         wav_buffer = io.BytesIO()
 
         with wave.open(
-            wav_buffer,
-            "wb"
+                wav_buffer,
+                "wb"
         ) as wav_file:
 
             wav_file.setnchannels(1)
@@ -370,6 +721,28 @@ def tutor_tts(
         wav_buffer.seek(0)
 
         wav_bytes = wav_buffer.read()
+
+        # עדכון Session - קריאת TTS אחת
+        if body.session_id:
+            update_tutor_session_after_tts(
+                session_id=body.session_id,
+                audio_duration_seconds=audio_duration_seconds,
+                cost_usd=gemini_audio_cost_usd
+            )
+
+            increment_usage_summary(
+                user_id=user.id,
+
+                tts_calls=1,
+
+                tts_seconds=
+                audio_duration_seconds,
+
+                voice_output_seconds=
+                audio_duration_seconds,
+
+                gemini_cost_usd=gemini_audio_cost_usd
+            )
 
         return Response(
             content=wav_bytes,
@@ -395,16 +768,19 @@ def tutor_tts(
             status_code=500,
             detail="Gemini TTS failed"
         )
+
+
 # =====================================================
 # AI TUTOR CHAT
 # =====================================================
 
 @app.post("/api/tutor/chat")
 def tutor_chat(
-    body: TutorChatRequest,
-    authorization: str = Header(None)
+        body: TutorChatRequest,
+        authorization: str = Header(None)
 ):
     try:
+        # אימות משתמש
         user = authenticate_user(authorization)
 
         if not body.kid_id:
@@ -426,17 +802,19 @@ def tutor_chat(
             kid_id=body.kid_id
         )
 
-        existing_memory = get_existing_kids_memory(
-            child["id"]
+        # =================================================
+        # GET OR CREATE TUTOR SESSION
+        # =================================================
+
+        tutor_session = get_or_create_tutor_session(
+            user_id=user.id,
+            kid_id=child["id"]
         )
 
-        # Save the child's current message first,
-        # so it is included in the conversation history sent to the model.
-        save_tutor_chat_message(
-            user_id=user.id,
-            kid_id=child["id"],
-            role="user",
-            content=message
+        session_id = tutor_session["id"]
+
+        existing_memory = get_existing_kids_memory(
+            child["id"]
         )
 
         system_prompt = build_tutor_prompt(
@@ -444,10 +822,17 @@ def tutor_chat(
             kids_memory=existing_memory
         )
 
+        # מביאים רק את ההיסטוריה הקודמת.
+        # את ההודעה הנוכחית נוסיף מקומית ולא נשמור לפני קריאת ה-AI.
         recent_messages = get_recent_tutor_messages_for_llm(
             kid_id=child["id"],
-            limit=8
+            limit=7
         )
+
+        recent_messages.append({
+            "role": "user",
+            "content": message
+        })
 
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
@@ -469,20 +854,75 @@ def tutor_chat(
                 detail="Tutor returned no structured lesson"
             )
 
-        total_tokens = None
+        total_tokens = 0
+        input_tokens = 0
+        output_tokens = 0
 
         if completion.usage:
-            total_tokens = completion.usage.total_tokens
+            total_tokens = (
+                    completion.usage.total_tokens or 0
+            )
 
-        save_tutor_chat_message(
-            user_id=user.id,
-            kid_id=child["id"],
-            role="assistant",
-            content=lesson_data.model_dump_json(),
-            tokens=total_tokens
+            input_tokens = (
+                    completion.usage.prompt_tokens or 0
+            )
+
+            output_tokens = (
+                    completion.usage.completion_tokens or 0
+            )
+
+        openai_cost_usd = (
+                (input_tokens / 1_000_000)
+                * OPENAI_INPUT_COST_PER_1M
+                +
+                (output_tokens / 1_000_000)
+                * OPENAI_OUTPUT_COST_PER_1M
         )
 
-        return lesson_data.model_dump()
+        # שומרים את הודעת הילד ותשובת ה-AI יחד
+        # בקריאת Supabase אחת
+        save_tutor_chat_messages(
+            user_id=user.id,
+            kid_id=child["id"],
+            user_content=message,
+            assistant_content=lesson_data.model_dump_json(),
+            assistant_tokens=total_tokens,
+            session_id=session_id
+        )
+
+        update_tutor_session_after_chat(
+            session=tutor_session,
+            total_tokens=total_tokens,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cost_usd=openai_cost_usd
+        )
+
+        increment_usage_summary(
+            user_id=user.id,
+
+            # מוסיפים Session רק אם באמת נפתח חדש
+            sessions=(
+                1
+                if tutor_session.get("_is_new")
+                else 0
+            ),
+
+            # קריאת AI אחת
+            ai_calls=1,
+
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens,
+
+            openai_cost_usd=openai_cost_usd
+        )
+
+        response_data = lesson_data.model_dump()
+
+        response_data["session_id"] = session_id
+
+        return response_data
 
     except HTTPException:
         raise
