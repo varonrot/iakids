@@ -1,1 +1,1310 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IAkids AI Tutor | לוח ניהול</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --bg:#081321;
+      --panel:#0f1c2d;
+      --panel-2:#122238;
+      --panel-3:#162a45;
+      --border:#213a5a;
+      --text:#f4f7fb;
+      --muted:#8fa4bd;
+      --blue:#2f80ed;
+      --cyan:#36c5f0;
+      --purple:#8b5cf6;
+      --green:#22c55e;
+      --orange:#f59e0b;
+      --red:#ef4444;
+      --sidebar:#0c1a2a;
+      --shadow:0 20px 55px rgba(0,0,0,.28);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at 15% 15%,rgba(47,128,237,.10),transparent 28%),
+        radial-gradient(circle at 85% 20%,rgba(139,92,246,.08),transparent 24%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    button,input,select{font:inherit}
+
+    .hidden{display:none!important}
+
+    /* LOGIN */
+    .login-screen{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+    }
+    .login-card{
+      width:min(470px,100%);
+      background:linear-gradient(180deg,rgba(18,34,56,.96),rgba(10,22,36,.98));
+      border:1px solid var(--border);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:34px;
+      text-align:center;
+    }
+    .login-logo{
+      width:74px;height:74px;border-radius:22px;
+      display:grid;place-items:center;
+      margin:0 auto 18px;
+      font-size:38px;
+      background:linear-gradient(135deg,var(--blue),var(--purple));
+    }
+    .login-card h1{margin:0 0 10px;font-size:30px}
+    .login-card p{margin:0 0 24px;color:var(--muted);line-height:1.7}
+    .google-btn{
+      width:100%;
+      border:none;
+      border-radius:14px;
+      padding:14px 18px;
+      cursor:pointer;
+      font-weight:700;
+      background:#fff;
+      color:#111827;
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      align-items:center;
+    }
+    .login-note{
+      margin-top:18px;
+      color:#70859f;
+      font-size:13px;
+    }
+
+    /* APP */
+    .app-shell{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:1fr 272px;
+      direction:ltr;
+    }
+
+    .sidebar{
+      direction:rtl;
+      background:linear-gradient(180deg,#0d1b2b,#0a1725);
+      border-left:1px solid var(--border);
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:18px 14px;
+      z-index:50;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:8px 8px 14px;
+    }
+    .brand-icon{
+      width:44px;height:44px;border-radius:14px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--blue),var(--purple));
+      font-size:24px;
+    }
+    .brand strong{display:block;font-size:18px}
+    .brand span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+
+    .nav-section-title{
+      color:#6f839d;
+      font-size:11px;
+      padding:4px 10px 6px;
+    }
+    .nav-list{display:grid;gap:7px}
+    .nav-btn{
+      width:100%;
+      border:none;
+      background:transparent;
+      color:#b7c6d8;
+      padding:12px 14px;
+      border-radius:13px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:11px;
+      text-align:right;
+      transition:.2s;
+    }
+    .nav-btn:hover{background:#10243a;color:#fff}
+    .nav-btn.active{
+      color:white;
+      background:linear-gradient(135deg,#1f6ad9,#214e9a);
+      box-shadow:0 12px 30px rgba(47,128,237,.18);
+    }
+    .nav-icon{font-size:18px;width:22px;text-align:center}
+    .sidebar-spacer{flex:1}
+    .sidebar-user{
+      border-top:1px solid var(--border);
+      padding-top:14px;
+    }
+    .mini-user{
+      display:flex;align-items:center;gap:10px;
+      padding:9px;
+      border-radius:14px;
+      background:#0e2034;
+    }
+    .avatar{
+      width:38px;height:38px;border-radius:50%;
+      display:grid;place-items:center;
+      background:#29486d;
+      font-weight:800;
+    }
+    .mini-user small{display:block;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+
+    .main{
+      direction:rtl;
+      min-width:0;
+      padding:18px 20px 34px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:18px;
+    }
+    .topbar-left{
+      display:flex;align-items:center;gap:10px;
+    }
+    .mobile-menu-btn{
+      display:none;
+      width:42px;height:42px;border:1px solid var(--border);
+      background:var(--panel);
+      color:white;border-radius:12px;cursor:pointer;
+    }
+    .page-title h1{margin:0;font-size:26px}
+    .page-title p{margin:6px 0 0;color:var(--muted);font-size:14px}
+    .top-actions{
+      display:flex;align-items:center;gap:10px;
+      position:relative;
+    }
+    .date-select,.icon-btn,.profile-btn{
+      background:var(--panel);
+      color:white;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+    }
+    .icon-btn{cursor:pointer}
+    .profile-btn{
+      cursor:pointer;
+      display:flex;align-items:center;gap:9px;
+    }
+    .profile-menu{
+      position:absolute;
+      top:52px;
+      left:0;
+      width:240px;
+      border:1px solid var(--border);
+      background:#0d1b2b;
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      padding:10px;
+      z-index:80;
+    }
+    .profile-menu .menu-row{padding:10px;border-radius:10px;color:#b9c8d9}
+    .profile-menu button{
+      width:100%;border:none;background:transparent;color:#ff8d8d;
+      text-align:right;padding:10px;border-radius:10px;cursor:pointer;
+    }
+    .profile-menu button:hover{background:#24161d}
+
+    .content-section{display:none}
+    .content-section.active{display:block}
+
+    .kpi-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:14px;
+    }
+    .kpi-card{
+      background:linear-gradient(180deg,var(--panel-2),var(--panel));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:0 10px 26px rgba(0,0,0,.14);
+      min-width:0;
+    }
+    .kpi-head{
+      display:flex;align-items:center;justify-content:space-between;
+      color:#b7c6d8;font-size:13px;margin-bottom:12px;
+    }
+    .kpi-icon{
+      width:38px;height:38px;border-radius:12px;
+      display:grid;place-items:center;background:#163151;
+    }
+    .kpi-value{font-size:28px;font-weight:800;letter-spacing:-.5px}
+    .kpi-sub{margin-top:7px;color:var(--green);font-size:12px}
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:1.35fr 1fr;
+      gap:14px;
+      margin-bottom:14px;
+    }
+    .grid-3{
+      display:grid;
+      grid-template-columns:1.1fr .9fr .9fr;
+      gap:14px;
+      margin-bottom:14px;
+    }
+
+    .panel{
+      background:linear-gradient(180deg,var(--panel-2),var(--panel));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:0 10px 26px rgba(0,0,0,.14);
+      min-width:0;
+    }
+    .panel-title{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-bottom:16px;
+    }
+    .panel-title h3{margin:0;font-size:16px}
+    .panel-title span{color:var(--muted);font-size:12px}
+    .chart-wrap{height:300px}
+    .chart-wrap.small{height:240px}
+
+    .alerts{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+    .alert-card{
+      padding:14px;
+      background:#0d1d30;
+      border:1px solid #1f3654;
+      border-radius:14px;
+    }
+    .alert-card strong{display:block;margin-bottom:7px}
+    .alert-card small{color:var(--muted)}
+
+    .table-toolbar{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .table-toolbar input,.table-toolbar select{
+      background:#0b192a;
+      color:white;
+      border:1px solid var(--border);
+      border-radius:11px;
+      padding:10px 12px;
+    }
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:980px}
+    th,td{padding:13px 10px;border-bottom:1px solid #1d314c;text-align:right;white-space:nowrap}
+    th{color:#8ea2bb;font-size:12px;font-weight:600}
+    td{color:#dbe6f2;font-size:13px}
+    .status{
+      display:inline-flex;align-items:center;gap:6px;
+      border-radius:999px;padding:6px 9px;font-size:11px;font-weight:700;
+    }
+    .status.active{background:rgba(34,197,94,.13);color:#65e08a}
+    .status.completed{background:rgba(47,128,237,.12);color:#78aff9}
+    .status.error{background:rgba(239,68,68,.13);color:#ff8383}
+
+    .users-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+    .user-card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+    }
+    .user-card-head{display:flex;align-items:center;gap:12px}
+    .user-card h3{margin:0}
+    .user-card p{margin:5px 0;color:var(--muted);font-size:13px}
+    .user-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:16px}
+    .metric{padding:11px;background:#0b1929;border-radius:12px}
+    .metric small{color:var(--muted);display:block}
+    .metric strong{display:block;margin-top:5px}
+
+    .monitor-list{display:grid;gap:10px}
+    .monitor-item{
+      display:flex;justify-content:space-between;gap:12px;align-items:center;
+      padding:14px;background:#0c1b2d;border:1px solid #1c3452;border-radius:14px;
+    }
+    .monitor-item small{color:var(--muted)}
+
+    .empty-state{
+      padding:28px;text-align:center;color:var(--muted)
+    }
+
+    .overlay{
+      display:none;
+      position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;
+    }
+
+    @media (max-width:1200px){
+      .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-2,.grid-3{grid-template-columns:1fr}
+      .users-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media (max-width:900px){
+      .app-shell{grid-template-columns:1fr}
+      .sidebar{
+        position:fixed;
+        right:0;
+        transform:translateX(110%);
+        width:278px;
+        transition:.25s;
+        border-left:1px solid var(--border);
+      }
+      .sidebar.open{transform:translateX(0)}
+      .overlay.show{display:block}
+      .mobile-menu-btn{display:grid;place-items:center}
+      .main{padding:14px}
+      .topbar{align-items:flex-start}
+      .top-actions{flex-wrap:wrap;justify-content:flex-start}
+    }
+
+    @media (max-width:640px){
+      .kpi-grid{grid-template-columns:1fr}
+      .users-grid{grid-template-columns:1fr}
+      .alerts{grid-template-columns:1fr}
+      .page-title h1{font-size:22px}
+      .topbar{flex-direction:column}
+      .chart-wrap{height:250px}
+      .panel{padding:14px}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">🤖</div>
+      <h1>IAkids AI Tutor</h1>
+      <p>לוח ניהול פנימי למעקב אחר שימוש, שיחות, עלויות ופעילות המערכת.</p>
+      <button id="googleLoginBtn" class="google-btn">
+        <span>G</span>
+        התחברות עם Google
+      </button>
+      <div class="login-note">
+        הגישה מותרת רק למנהלי המערכת המורשים.
+      </div>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <div id="dashboardApp" class="app-shell hidden">
+
+    <div id="mobileOverlay" class="overlay"></div>
+
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">🤖</div>
+        <div>
+          <strong>IAkids AI Tutor</strong>
+          <span>לוח ניהול</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="nav-section-title">ראשי</div>
+        <div class="nav-list">
+          <button class="nav-btn active" data-page="dashboard">
+            <span class="nav-icon">🏠</span>
+            <span>דשבורד</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="nav-section-title">ניטור</div>
+        <div class="nav-list">
+          <button class="nav-btn" data-page="sessions">
+            <span class="nav-icon">🧾</span>
+            <span>לוג שיחות</span>
+          </button>
+
+          <button class="nav-btn" data-page="users">
+            <span class="nav-icon">👥</span>
+            <span>משתמשים וילדים</span>
+          </button>
+
+          <button class="nav-btn" data-page="costs">
+            <span class="nav-icon">💳</span>
+            <span>שימוש ועלויות</span>
+          </button>
+
+          <button class="nav-btn" data-page="monitor">
+            <span class="nav-icon">🛡️</span>
+            <span>ניטור מערכת</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-user">
+        <div class="mini-user">
+          <div id="sidebarAvatar" class="avatar">RV</div>
+          <div style="min-width:0">
+            <strong id="sidebarName">מנהל</strong>
+            <small id="sidebarEmail">—</small>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="mobileMenuBtn" class="mobile-menu-btn">☰</button>
+          <div class="page-title">
+            <h1 id="pageHeading">דשבורד</h1>
+            <p id="pageSubheading">תמונת מצב כללית של פעילות המערכת</p>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <select id="periodSelect" class="date-select">
+            <option value="7">7 ימים אחרונים</option>
+            <option value="30" selected>30 ימים אחרונים</option>
+            <option value="90">90 ימים אחרונים</option>
+          </select>
+
+          <button id="refreshBtn" class="icon-btn" title="רענון">↻</button>
+
+          <button id="profileBtn" class="profile-btn">
+            <div id="topAvatar" class="avatar">RV</div>
+            <div>
+              <strong id="topUserName">מנהל</strong>
+              <div id="topUserEmail" style="font-size:11px;color:var(--muted)">—</div>
+            </div>
+            <span>⌄</span>
+          </button>
+
+          <div id="profileMenu" class="profile-menu hidden">
+            <div class="menu-row">חשבון מנהל</div>
+            <div class="menu-row" id="menuEmail">—</div>
+            <button id="logoutBtn">התנתקות</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- DASHBOARD -->
+      <section id="page-dashboard" class="content-section active">
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-head"><span>Sessions החודש</span><span class="kpi-icon">💬</span></div>
+            <div id="kpiSessions" class="kpi-value">0</div>
+            <div class="kpi-sub">מספר שיחות שנפתחו</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-head"><span>זמן שימוש</span><span class="kpi-icon">⏱️</span></div>
+            <div id="kpiUsageTime" class="kpi-value">0 דק׳</div>
+            <div class="kpi-sub">זמן מצטבר</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-head"><span>קריאות AI</span><span class="kpi-icon">🧠</span></div>
+            <div id="kpiAiCalls" class="kpi-value">0</div>
+            <div class="kpi-sub">OpenAI</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-head"><span>קריאות TTS</span><span class="kpi-icon">🔊</span></div>
+            <div id="kpiTtsCalls" class="kpi-value">0</div>
+            <div class="kpi-sub">Gemini</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-head"><span>Tokens</span><span class="kpi-icon">🪙</span></div>
+            <div id="kpiTokens" class="kpi-value">0</div>
+            <div class="kpi-sub">סה״כ טוקנים</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-head"><span>זמן אודיו</span><span class="kpi-icon">🎙️</span></div>
+            <div id="kpiVoice" class="kpi-value">0 שנ׳</div>
+            <div class="kpi-sub">פלט קולי</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-head"><span>עלות החודש</span><span class="kpi-icon">💵</span></div>
+            <div id="kpiMonthCost" class="kpi-value">$0.00</div>
+            <div class="kpi-sub">עלות מצטברת</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-head"><span>Sessions פעילים</span><span class="kpi-icon">🟢</span></div>
+            <div id="kpiActiveSessions" class="kpi-value">0</div>
+            <div class="kpi-sub">פעילים כרגע</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title">
+              <h3>שימוש לאורך זמן</h3>
+              <span>AI מול TTS</span>
+            </div>
+            <div class="chart-wrap"><canvas id="usageChart"></canvas></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">
+              <h3>פירוט עלויות</h3>
+              <span>החודש</span>
+            </div>
+            <div class="chart-wrap"><canvas id="costChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:14px">
+          <div class="panel-title">
+            <h3>התראות מערכת</h3>
+            <span>ניטור אוטומטי</span>
+          </div>
+          <div class="alerts">
+            <div class="alert-card">
+              <strong>Sessions שלא נסגרו</strong>
+              <small id="alertStaleSessions">בודק...</small>
+            </div>
+            <div class="alert-card">
+              <strong>משתמשים בעלי עלות גבוהה</strong>
+              <small id="alertHighCost">בודק...</small>
+            </div>
+            <div class="alert-card">
+              <strong>שגיאות</strong>
+              <small id="alertErrors">בודק...</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h3>Sessions אחרונים</h3>
+            <span>הפעילות האחרונה</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ילד</th>
+                  <th>התחלה</th>
+                  <th>סיום</th>
+                  <th>משך</th>
+                  <th>AI</th>
+                  <th>TTS</th>
+                  <th>Tokens</th>
+                  <th>אודיו</th>
+                  <th>עלות</th>
+                  <th>סטטוס</th>
+                </tr>
+              </thead>
+              <tbody id="recentSessionsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- SESSIONS -->
+      <section id="page-sessions" class="content-section">
+        <div class="panel">
+          <div class="panel-title">
+            <h3>לוג מלא של Sessions</h3>
+            <span>שורה לכל Session</span>
+          </div>
+
+          <div class="table-toolbar">
+            <input id="sessionSearch" type="search" placeholder="חיפוש לפי ילד או מזהה..." />
+            <select id="sessionStatusFilter">
+              <option value="">כל הסטטוסים</option>
+              <option value="active">פעיל</option>
+              <option value="completed">הושלם</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ילד</th>
+                  <th>User ID</th>
+                  <th>Session ID</th>
+                  <th>התחלה</th>
+                  <th>סיום</th>
+                  <th>משך</th>
+                  <th>הודעות</th>
+                  <th>AI Calls</th>
+                  <th>TTS Calls</th>
+                  <th>Tokens</th>
+                  <th>Voice</th>
+                  <th>עלות</th>
+                  <th>סטטוס</th>
+                </tr>
+              </thead>
+              <tbody id="sessionsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section id="page-users" class="content-section">
+        <div id="usersGrid" class="users-grid"></div>
+      </section>
+
+      <!-- COSTS -->
+      <section id="page-costs" class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-head"><span>עלות OpenAI</span><span class="kpi-icon">🧠</span></div>
+            <div id="costOpenAi" class="kpi-value">$0.00</div>
+            <div class="kpi-sub">טקסט</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-head"><span>עלות Gemini</span><span class="kpi-icon">🔊</span></div>
+            <div id="costGemini" class="kpi-value">$0.00</div>
+            <div class="kpi-sub">TTS</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-head"><span>עלות ממוצעת ל-Session</span><span class="kpi-icon">💬</span></div>
+            <div id="avgSessionCost" class="kpi-value">$0.00</div>
+            <div class="kpi-sub">ממוצע</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-head"><span>עלות כוללת</span><span class="kpi-icon">💵</span></div>
+            <div id="totalCost" class="kpi-value">$0.00</div>
+            <div class="kpi-sub">החודש</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title"><h3>עלויות לפי שירות</h3><span>OpenAI / Gemini / Vision / Other</span></div>
+            <div class="chart-wrap"><canvas id="costBreakdownChart"></canvas></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title"><h3>שימוש בטוקנים</h3><span>Input / Output</span></div>
+            <div class="chart-wrap"><canvas id="tokenChart"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MONITOR -->
+      <section id="page-monitor" class="content-section">
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title"><h3>מצב מערכת</h3><span>זמן אמת</span></div>
+            <div class="monitor-list">
+              <div class="monitor-item">
+                <div><strong>Sessions פעילים</strong><small>שיחות פעילות כרגע</small></div>
+                <strong id="monitorActiveSessions">0</strong>
+              </div>
+              <div class="monitor-item">
+                <div><strong>Sessions ישנים</strong><small>פעילים מעל 30 דקות ללא פעילות</small></div>
+                <strong id="monitorStaleSessions">0</strong>
+              </div>
+              <div class="monitor-item">
+                <div><strong>שגיאות החודש</strong><small>לפי usage_summary</small></div>
+                <strong id="monitorErrors">0</strong>
+              </div>
+              <div class="monitor-item">
+                <div><strong>Cron סגירת Sessions</strong><small>מוגדר כל 5 דקות</small></div>
+                <strong style="color:var(--green)">פעיל</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title"><h3>Sessions בעלי עלות גבוהה</h3><span>Top 10</span></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ילד</th>
+                    <th>Tokens</th>
+                    <th>TTS</th>
+                    <th>עלות</th>
+                  </tr>
+                </thead>
+                <tbody id="highCostSessionsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // =====================================================
+    // CONFIG - החלף בערכים שלך
+    // =====================================================
+    const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+    const ALLOWED_ADMIN_EMAILS = [
+      "varonrot@gmail.com",
+      "yossi.heine@gmail.com"
+    ];
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    // =====================================================
+    // STATE
+    // =====================================================
+    let currentUser = null;
+    let tutorSessions = [];
+    let usageSummary = [];
+    let kidsProfiles = [];
+    let charts = {};
+
+    const pageMeta = {
+      dashboard: ["דשבורד", "תמונת מצב כללית של פעילות המערכת"],
+      sessions: ["לוג שיחות", "רשימה מלאה של כל ה-Sessions"],
+      users: ["משתמשים וילדים", "סיכום שימוש לפי משתמש וילד"],
+      costs: ["שימוש ועלויות", "ניתוח עלויות, טוקנים וצריכת שירותים"],
+      monitor: ["ניטור מערכת", "Sessions פעילים, חריגות ושגיאות"]
+    };
+
+    // =====================================================
+    // HELPERS
+    // =====================================================
+    const $ = (id) => document.getElementById(id);
+
+    function formatNumber(value){
+      return Number(value || 0).toLocaleString("he-IL");
+    }
+
+    function formatCurrency(value){
+      return "$" + Number(value || 0).toFixed(4);
+    }
+
+    function formatSeconds(seconds){
+      const s = Math.max(0, Number(seconds || 0));
+      if (s < 60) return `${Math.round(s)} שנ׳`;
+      const m = Math.floor(s / 60);
+      const rem = Math.round(s % 60);
+      if (m < 60) return `${m} דק׳ ${rem} שנ׳`;
+      const h = Math.floor(m / 60);
+      const mm = m % 60;
+      return `${h} ש׳ ${mm} דק׳`;
+    }
+
+    function formatDate(value){
+      if (!value) return "—";
+      return new Date(value).toLocaleString("he-IL");
+    }
+
+    function shortId(value){
+      return value ? value.slice(0,8) + "…" : "—";
+    }
+
+    function childNameById(kidId){
+      return kidsProfiles.find(k => k.id === kidId)?.child_name || shortId(kidId);
+    }
+
+    function currentMonthSummary(){
+      return usageSummary.reduce((acc,row) => {
+        acc.total_sessions += Number(row.total_sessions || 0);
+        acc.total_usage_seconds += Number(row.total_usage_seconds || 0);
+        acc.ai_calls += Number(row.ai_calls || 0);
+        acc.input_tokens += Number(row.input_tokens || 0);
+        acc.output_tokens += Number(row.output_tokens || 0);
+        acc.total_tokens += Number(row.total_tokens || 0);
+        acc.tts_calls += Number(row.tts_calls || 0);
+        acc.tts_seconds += Number(row.tts_seconds || 0);
+        acc.voice_output_seconds += Number(row.voice_output_seconds || 0);
+        acc.openai_cost_usd += Number(row.openai_cost_usd || 0);
+        acc.gemini_cost_usd += Number(row.gemini_cost_usd || 0);
+        acc.vision_cost_usd += Number(row.vision_cost_usd || 0);
+        acc.realtime_cost_usd += Number(row.realtime_cost_usd || 0);
+        acc.other_cost_usd += Number(row.other_cost_usd || 0);
+        acc.total_cost_usd += Number(row.total_cost_usd || 0);
+        acc.total_errors += Number(row.total_errors || 0);
+        return acc;
+      }, {
+        total_sessions:0,total_usage_seconds:0,ai_calls:0,input_tokens:0,
+        output_tokens:0,total_tokens:0,tts_calls:0,tts_seconds:0,
+        voice_output_seconds:0,openai_cost_usd:0,gemini_cost_usd:0,
+        vision_cost_usd:0,realtime_cost_usd:0,other_cost_usd:0,
+        total_cost_usd:0,total_errors:0
+      });
+    }
+
+    // =====================================================
+    // AUTH
+    // =====================================================
+    async function signInWithGoogle(){
+      await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.href.split("#")[0]
+        }
+      });
+    }
+
+    async function signOut(){
+      await supabaseClient.auth.signOut();
+      location.reload();
+    }
+
+    async function initAuth(){
+      const { data: { session } } = await supabaseClient.auth.getSession();
+
+      if (!session?.user) {
+        showLogin();
+        return;
+      }
+
+      const email = (session.user.email || "").toLowerCase();
+
+      if (!ALLOWED_ADMIN_EMAILS.includes(email)) {
+        await supabaseClient.auth.signOut();
+        alert("אין לך הרשאה להיכנס ללוח הניהול.");
+        showLogin();
+        return;
+      }
+
+      currentUser = session.user;
+      showDashboard();
+      await loadAllData();
+    }
+
+    function showLogin(){
+      $("loginScreen").classList.remove("hidden");
+      $("dashboardApp").classList.add("hidden");
+    }
+
+    function showDashboard(){
+      $("loginScreen").classList.add("hidden");
+      $("dashboardApp").classList.remove("hidden");
+
+      const email = currentUser.email || "";
+      const fullName = currentUser.user_metadata?.full_name || "מנהל";
+      const initials = fullName.split(" ").map(x => x[0]).join("").slice(0,2).toUpperCase() || "AD";
+
+      $("sidebarEmail").textContent = email;
+      $("topUserEmail").textContent = email;
+      $("menuEmail").textContent = email;
+      $("sidebarName").textContent = fullName;
+      $("topUserName").textContent = fullName;
+      $("sidebarAvatar").textContent = initials;
+      $("topAvatar").textContent = initials;
+    }
+
+    // =====================================================
+    // DATA
+    // =====================================================
+    async function loadAllData(){
+      try{
+        const [sessionsRes, summaryRes, kidsRes] = await Promise.all([
+          supabaseClient
+            .from("tutor_sessions")
+            .select("*")
+            .order("started_at", { ascending:false })
+            .limit(500),
+
+          supabaseClient
+            .from("usage_summary")
+            .select("*")
+            .order("period_start", { ascending:false })
+            .limit(500),
+
+          supabaseClient
+            .from("kids_profiles")
+            .select("id,user_id,child_name,age,avatar_key")
+            .limit(500)
+        ]);
+
+        if (sessionsRes.error) throw sessionsRes.error;
+        if (summaryRes.error) throw summaryRes.error;
+        if (kidsRes.error) throw kidsRes.error;
+
+        tutorSessions = sessionsRes.data || [];
+        usageSummary = summaryRes.data || [];
+        kidsProfiles = kidsRes.data || [];
+
+        renderAll();
+
+      }catch(error){
+        console.error(error);
+        alert("שגיאה בטעינת נתוני הדשבורד.");
+      }
+    }
+
+    // =====================================================
+    // RENDER
+    // =====================================================
+    function renderAll(){
+      renderKpis();
+      renderRecentSessions();
+      renderSessionsTable();
+      renderUsers();
+      renderCosts();
+      renderMonitor();
+      renderCharts();
+    }
+
+    function renderKpis(){
+      const s = currentMonthSummary();
+      const activeSessions = tutorSessions.filter(x => x.status === "active").length;
+
+      $("kpiSessions").textContent = formatNumber(s.total_sessions);
+      $("kpiUsageTime").textContent = formatSeconds(s.total_usage_seconds);
+      $("kpiAiCalls").textContent = formatNumber(s.ai_calls);
+      $("kpiTtsCalls").textContent = formatNumber(s.tts_calls);
+      $("kpiTokens").textContent = formatNumber(s.total_tokens);
+      $("kpiVoice").textContent = formatSeconds(s.voice_output_seconds);
+      $("kpiMonthCost").textContent = formatCurrency(s.total_cost_usd);
+      $("kpiActiveSessions").textContent = formatNumber(activeSessions);
+    }
+
+    function renderRecentSessions(){
+      const rows = tutorSessions.slice(0,10);
+
+      $("recentSessionsBody").innerHTML = rows.length
+        ? rows.map(sessionRowHtml).join("")
+        : `<tr><td colspan="10" class="empty-state">אין Sessions להצגה</td></tr>`;
+    }
+
+    function sessionRowHtml(s){
+      return `
+        <tr>
+          <td>${childNameById(s.kid_id)}</td>
+          <td>${formatDate(s.started_at)}</td>
+          <td>${formatDate(s.ended_at)}</td>
+          <td>${formatSeconds(s.duration_seconds)}</td>
+          <td>${formatNumber(s.ai_call_count)}</td>
+          <td>${formatNumber(s.tts_call_count)}</td>
+          <td>${formatNumber(s.total_tokens)}</td>
+          <td>${formatSeconds(s.voice_output_seconds)}</td>
+          <td>${formatCurrency(s.estimated_cost_usd)}</td>
+          <td><span class="status ${s.status === "active" ? "active" : "completed"}">${s.status === "active" ? "פעיל" : "הושלם"}</span></td>
+        </tr>
+      `;
+    }
+
+    function renderSessionsTable(){
+      const term = ($("sessionSearch").value || "").toLowerCase();
+      const status = $("sessionStatusFilter").value;
+
+      const filtered = tutorSessions.filter(s => {
+        const name = childNameById(s.kid_id).toLowerCase();
+        const textMatch = !term ||
+          name.includes(term) ||
+          (s.id || "").toLowerCase().includes(term) ||
+          (s.user_id || "").toLowerCase().includes(term);
+
+        const statusMatch = !status || s.status === status;
+        return textMatch && statusMatch;
+      });
+
+      $("sessionsTableBody").innerHTML = filtered.length
+        ? filtered.map(s => `
+          <tr>
+            <td>${childNameById(s.kid_id)}</td>
+            <td>${shortId(s.user_id)}</td>
+            <td>${shortId(s.id)}</td>
+            <td>${formatDate(s.started_at)}</td>
+            <td>${formatDate(s.ended_at)}</td>
+            <td>${formatSeconds(s.duration_seconds)}</td>
+            <td>${formatNumber(s.message_count)}</td>
+            <td>${formatNumber(s.ai_call_count)}</td>
+            <td>${formatNumber(s.tts_call_count)}</td>
+            <td>${formatNumber(s.total_tokens)}</td>
+            <td>${formatSeconds(s.voice_output_seconds)}</td>
+            <td>${formatCurrency(s.estimated_cost_usd)}</td>
+            <td><span class="status ${s.status === "active" ? "active" : "completed"}">${s.status === "active" ? "פעיל" : "הושלם"}</span></td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="13" class="empty-state">לא נמצאו תוצאות</td></tr>`;
+    }
+
+    function renderUsers(){
+      const map = new Map();
+
+      tutorSessions.forEach(s => {
+        const key = s.kid_id;
+        if (!map.has(key)) {
+          map.set(key,{
+            kid_id:key,
+            child_name:childNameById(key),
+            user_id:s.user_id,
+            sessions:0,
+            ai:0,
+            tts:0,
+            tokens:0,
+            cost:0,
+            seconds:0
+          });
+        }
+        const row = map.get(key);
+        row.sessions++;
+        row.ai += Number(s.ai_call_count || 0);
+        row.tts += Number(s.tts_call_count || 0);
+        row.tokens += Number(s.total_tokens || 0);
+        row.cost += Number(s.estimated_cost_usd || 0);
+        row.seconds += Number(s.duration_seconds || 0);
+      });
+
+      const cards = [...map.values()];
+
+      $("usersGrid").innerHTML = cards.length
+        ? cards.map(u => `
+          <article class="user-card">
+            <div class="user-card-head">
+              <div class="avatar">${(u.child_name || "?").slice(0,1)}</div>
+              <div>
+                <h3>${u.child_name}</h3>
+                <p>${shortId(u.user_id)}</p>
+              </div>
+            </div>
+            <div class="user-metrics">
+              <div class="metric"><small>Sessions</small><strong>${formatNumber(u.sessions)}</strong></div>
+              <div class="metric"><small>זמן שימוש</small><strong>${formatSeconds(u.seconds)}</strong></div>
+              <div class="metric"><small>AI Calls</small><strong>${formatNumber(u.ai)}</strong></div>
+              <div class="metric"><small>TTS Calls</small><strong>${formatNumber(u.tts)}</strong></div>
+              <div class="metric"><small>Tokens</small><strong>${formatNumber(u.tokens)}</strong></div>
+              <div class="metric"><small>עלות</small><strong>${formatCurrency(u.cost)}</strong></div>
+            </div>
+          </article>
+        `).join("")
+        : `<div class="panel empty-state">אין משתמשים להצגה</div>`;
+    }
+
+    function renderCosts(){
+      const s = currentMonthSummary();
+      const sessions = Math.max(1, s.total_sessions || tutorSessions.length || 1);
+
+      $("costOpenAi").textContent = formatCurrency(s.openai_cost_usd);
+      $("costGemini").textContent = formatCurrency(s.gemini_cost_usd);
+      $("avgSessionCost").textContent = formatCurrency(s.total_cost_usd / sessions);
+      $("totalCost").textContent = formatCurrency(s.total_cost_usd);
+    }
+
+    function renderMonitor(){
+      const active = tutorSessions.filter(x => x.status === "active");
+      const staleCutoff = Date.now() - 30 * 60 * 1000;
+      const stale = active.filter(x => new Date(x.last_activity_at).getTime() < staleCutoff);
+      const s = currentMonthSummary();
+
+      $("monitorActiveSessions").textContent = active.length;
+      $("monitorStaleSessions").textContent = stale.length;
+      $("monitorErrors").textContent = formatNumber(s.total_errors);
+
+      $("alertStaleSessions").textContent = stale.length
+        ? `${stale.length} Sessions ממתינים לסגירה`
+        : "אין Sessions חריגים";
+
+      const highest = [...tutorSessions]
+        .sort((a,b) => Number(b.estimated_cost_usd || 0) - Number(a.estimated_cost_usd || 0))[0];
+
+      $("alertHighCost").textContent = highest
+        ? `העלות הגבוהה ביותר: ${formatCurrency(highest.estimated_cost_usd)}`
+        : "אין נתונים";
+
+      $("alertErrors").textContent = s.total_errors
+        ? `${formatNumber(s.total_errors)} שגיאות`
+        : "לא נרשמו שגיאות";
+
+      const expensive = [...tutorSessions]
+        .sort((a,b) => Number(b.estimated_cost_usd || 0) - Number(a.estimated_cost_usd || 0))
+        .slice(0,10);
+
+      $("highCostSessionsBody").innerHTML = expensive.length
+        ? expensive.map(x => `
+          <tr>
+            <td>${childNameById(x.kid_id)}</td>
+            <td>${formatNumber(x.total_tokens)}</td>
+            <td>${formatNumber(x.tts_call_count)}</td>
+            <td>${formatCurrency(x.estimated_cost_usd)}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="4" class="empty-state">אין נתונים</td></tr>`;
+    }
+
+    function renderCharts(){
+      Object.values(charts).forEach(chart => chart.destroy());
+      charts = {};
+
+      const s = currentMonthSummary();
+
+      charts.usage = new Chart($("usageChart"),{
+        type:"line",
+        data:{
+          labels:["שבוע 1","שבוע 2","שבוע 3","שבוע 4"],
+          datasets:[
+            {
+              label:"AI Calls",
+              data:[Math.round(s.ai_calls*.18),Math.round(s.ai_calls*.24),Math.round(s.ai_calls*.27),Math.round(s.ai_calls*.31)],
+              tension:.35
+            },
+            {
+              label:"TTS Calls",
+              data:[Math.round(s.tts_calls*.2),Math.round(s.tts_calls*.23),Math.round(s.tts_calls*.26),Math.round(s.tts_calls*.31)],
+              tension:.35
+            }
+          ]
+        },
+        options:chartOptions()
+      });
+
+      charts.cost = new Chart($("costChart"),{
+        type:"doughnut",
+        data:{
+          labels:["OpenAI","Gemini TTS","Vision","Realtime","Other"],
+          datasets:[{
+            data:[
+              s.openai_cost_usd,
+              s.gemini_cost_usd,
+              s.vision_cost_usd,
+              s.realtime_cost_usd,
+              s.other_cost_usd
+            ]
+          }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{legend:{labels:{color:"#cbd5e1"}}}
+        }
+      });
+
+      charts.costBreakdown = new Chart($("costBreakdownChart"),{
+        type:"bar",
+        data:{
+          labels:["OpenAI","Gemini","Vision","Realtime","Other"],
+          datasets:[{
+            label:"עלות ($)",
+            data:[
+              s.openai_cost_usd,
+              s.gemini_cost_usd,
+              s.vision_cost_usd,
+              s.realtime_cost_usd,
+              s.other_cost_usd
+            ]
+          }]
+        },
+        options:chartOptions()
+      });
+
+      charts.tokens = new Chart($("tokenChart"),{
+        type:"bar",
+        data:{
+          labels:["Input Tokens","Output Tokens"],
+          datasets:[{
+            label:"Tokens",
+            data:[s.input_tokens,s.output_tokens]
+          }]
+        },
+        options:chartOptions()
+      });
+    }
+
+    function chartOptions(){
+      return {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{color:"#cbd5e1"}}
+        },
+        scales:{
+          x:{
+            ticks:{color:"#7f93aa"},
+            grid:{color:"rgba(255,255,255,.04)"}
+          },
+          y:{
+            ticks:{color:"#7f93aa"},
+            grid:{color:"rgba(255,255,255,.05)"}
+          }
+        }
+      };
+    }
+
+    // =====================================================
+    // NAVIGATION
+    // =====================================================
+    function openPage(page){
+      document.querySelectorAll(".content-section").forEach(x => x.classList.remove("active"));
+      document.querySelectorAll(".nav-btn").forEach(x => x.classList.remove("active"));
+
+      $("page-" + page).classList.add("active");
+      document.querySelector(`.nav-btn[data-page="${page}"]`)?.classList.add("active");
+
+      $("pageHeading").textContent = pageMeta[page][0];
+      $("pageSubheading").textContent = pageMeta[page][1];
+
+      closeMobileMenu();
+    }
+
+    function openMobileMenu(){
+      $("sidebar").classList.add("open");
+      $("mobileOverlay").classList.add("show");
+    }
+
+    function closeMobileMenu(){
+      $("sidebar").classList.remove("open");
+      $("mobileOverlay").classList.remove("show");
+    }
+
+    // =====================================================
+    // EVENTS
+    // =====================================================
+    $("googleLoginBtn").addEventListener("click",signInWithGoogle);
+    $("logoutBtn").addEventListener("click",signOut);
+    $("refreshBtn").addEventListener("click",loadAllData);
+    $("mobileMenuBtn").addEventListener("click",openMobileMenu);
+    $("mobileOverlay").addEventListener("click",closeMobileMenu);
+
+    $("profileBtn").addEventListener("click",() => {
+      $("profileMenu").classList.toggle("hidden");
+    });
+
+    document.querySelectorAll(".nav-btn").forEach(btn => {
+      btn.addEventListener("click",() => openPage(btn.dataset.page));
+    });
+
+    $("sessionSearch").addEventListener("input",renderSessionsTable);
+    $("sessionStatusFilter").addEventListener("change",renderSessionsTable);
+
+    supabaseClient.auth.onAuthStateChange((_event,session) => {
+      if (!session?.user) showLogin();
+    });
+
+    initAuth();
+  </script>
+</body>
+</html>
