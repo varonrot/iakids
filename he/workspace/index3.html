@@ -9144,6 +9144,7 @@ const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".input button");
 
 let kidId = null;
+let currentSessionId = null;
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -9393,13 +9394,99 @@ if (!res.ok) {
 }
 
 
-    const data = await res.json();
-    console.log("CHAT RESPONSE:", data);
+const data = await res.json();
 
-if (!data.reply || !data.reply.trim()) {
-  addMessage("assistant", "🤖 I’m thinking… try asking again 😊");
-} else {
-  animateTutorReply(data.reply);
+if (data.session_id) {
+  currentSessionId = data.session_id;
+}
+
+console.log(
+  "CHAT RESPONSE:",
+  data
+);
+
+/* =========================================
+   תשובת Lesson Renderer חדשה
+========================================= */
+
+if(
+  data.sequence &&
+  Array.isArray(
+    data.sequence
+  )
+){
+
+  try{
+
+    /* פתיחת הרשאת אודיו בדפדפן */
+
+    await unlockLessonAudio();
+
+
+    /* הכנת קטעי הקול מראש */
+
+    if(
+      window.lessonRenderer
+    ){
+
+      window.lessonRenderer
+        .prefetchLessonAudio(
+          data.sequence
+        );
+
+
+      /* הפעלת השיעור האמיתי */
+
+      await window.lessonRenderer.run(
+        {
+          sequence:
+            data.sequence,
+
+          wait_for_answer:
+            data.wait_for_answer,
+
+          speech:
+            data.speech
+        }
+      );
+
+    }
+    else{
+
+      console.error(
+        "lessonRenderer not initialized"
+      );
+
+      addMessage(
+        "assistant",
+        "לא הצלחתי להפעיל את השיעור."
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      "LESSON RENDERER ERROR:",
+      error
+    );
+
+  }
+
+}
+else{
+
+  console.error(
+    "Invalid tutor response:",
+    data
+  );
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי להכין את השיעור. נסו שוב."
+  );
+
 }
 
   } catch (e) {
@@ -10608,7 +10695,7 @@ this.avatar = null;
 
 this.pointerRobot = null;
 this.pointerArrow = null;
-
+this.audioCache = new Map();
 this.isRunning = false;
 
   }
@@ -10893,6 +10980,121 @@ async robotPoint({
   );
 
 }
+
+/* =========================
+   AUDIO PREFETCH
+========================= */
+
+async preloadAudio(text){
+
+  if(!text || !text.trim()){
+    return null;
+  }
+
+  if(this.audioCache.has(text)){
+    return this.audioCache.get(text);
+  }
+
+  const audioPromise = (async () => {
+
+    const { data: sessionData } =
+      await sb.auth.getSession();
+
+    const session =
+      sessionData.session;
+
+    if(!session){
+      throw new Error(
+        "No active session"
+      );
+    }
+
+    const response = await fetch(
+      `${TUTOR_API_BASE}/api/tutor/tts`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "Authorization":
+            `Bearer ${session.access_token}`
+        },
+
+body: JSON.stringify({
+  text: text,
+  session_id: currentSessionId
+})
+      }
+    );
+
+    if(!response.ok){
+
+      const errorText =
+        await response.text();
+
+      throw new Error(
+        `TTS API ${response.status}: ${errorText}`
+      );
+    }
+
+    const audioBlob =
+      await response.blob();
+
+    const audioUrl =
+      URL.createObjectURL(
+        audioBlob
+      );
+
+    return audioUrl;
+
+  })();
+
+  this.audioCache.set(
+    text,
+    audioPromise
+  );
+
+  return audioPromise;
+}
+
+
+prefetchLessonAudio(sequence){
+
+  for(const action of sequence){
+
+    if(
+      action.type === "speak" ||
+      action.type === "ask"
+    ){
+
+      const text =
+        action.speech_tts ||
+        action.text;
+
+      if(text){
+
+        this.preloadAudio(text)
+          .catch(error => {
+
+            console.error(
+              "Audio prefetch error:",
+              error
+            );
+
+          });
+
+      }
+
+    }
+
+  }
+
+}
+
+
+
   /* =========================
      WRITE
   ========================= */
@@ -11001,134 +11203,62 @@ async robotPoint({
      SPEAK
   ========================= */
 
-  async speak({ text }) {
+async speak({ text, speech_tts }){
 
-  try {
+  const audioText =
+    speech_tts ||
+    text;
 
-    if (!text || !text.trim()) {
-      return;
+  if(
+    !audioText ||
+    !audioText.trim()
+  ){
+    return;
+  }
+
+  try{
+
+    if(this.avatar){
+      this.avatar
+        .classList
+        .add(
+          "lesson-renderer-speaking"
+        );
     }
-
-    /* מצב דיבור של הרובוט */
-    if (this.avatar) {
-      this.avatar.classList.add(
-        "lesson-renderer-speaking"
-      );
-    }
-
-    /* מקבלים את ה-session הקיים שלך מ-Supabase */
-    const { data: sessionData } =
-      await sb.auth.getSession();
-
-    const session =
-      sessionData.session;
-
-    if (!session) {
-      throw new Error(
-        "No active session"
-      );
-    }
-
-    /* שולחים ל-Backend החדש של TTS */
-    const response = await fetch(
-      `${TUTOR_API_BASE}/api/tutor/tts`,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          "Authorization":
-            `Bearer ${session.access_token}`
-        },
-
-        body: JSON.stringify({
-          text: text
-        })
-      }
-    );
-
-    if (!response.ok) {
-
-      const errorText =
-        await response.text();
-
-      console.error(
-        "TTS API ERROR:",
-        response.status,
-        errorText
-      );
-
-      throw new Error(
-        `TTS API error: ${response.status}`
-      );
-    }
-
-    /* מקבלים MP3 מה-Backend */
-    const audioBlob =
-      await response.blob();
 
     const audioUrl =
-      URL.createObjectURL(
-        audioBlob
+      await this.preloadAudio(
+        audioText
       );
+
+    if(!audioUrl){
+      return;
+    }
 
     const audio =
       new Audio(
         audioUrl
       );
 
-    /* מנגנים ומחכים לסיום */
     await new Promise(
       (resolve, reject) => {
 
-        audio.onended = () => {
+        audio.onended =
+          resolve;
 
-          URL.revokeObjectURL(
-            audioUrl
+        audio.onerror =
+          reject;
+
+        audio.play()
+          .catch(
+            reject
           );
 
-          resolve();
-        };
-
-        audio.onerror = () => {
-
-          URL.revokeObjectURL(
-            audioUrl
-          );
-
-          reject(
-            new Error(
-              "Audio playback failed"
-            )
-          );
-        };
-
-audio.play()
-  .then(() => {
-
-    console.log(
-      "🔊 Gemini audio started"
-    );
-
-  })
-  .catch(error => {
-
-    console.error(
-      "AUDIO PLAY ERROR:",
-      error
-    );
-
-    reject(error);
-
-  });
       }
     );
 
   }
-
-  catch(error) {
+  catch(error){
 
     console.error(
       "Natural TTS error:",
@@ -11136,14 +11266,16 @@ audio.play()
     );
 
   }
+  finally{
 
-  finally {
+    if(this.avatar){
 
-    if (this.avatar) {
+      this.avatar
+        .classList
+        .remove(
+          "lesson-renderer-speaking"
+        );
 
-      this.avatar.classList.remove(
-        "lesson-renderer-speaking"
-      );
     }
 
   }
@@ -11354,15 +11486,28 @@ audio.play()
      RUN
   ========================= */
 
-  async run(script){
+async run(script){
 
-    if(
-      this.isRunning
-    ){
+console.log(
+  "LIVE LESSON SEQUENCE:",
+  script.sequence
+);
 
-      return;
+console.table(
+  script.sequence.map(
+    action => ({
+      type: action.type,
+      text: action.text || "",
+      target: action.target || ""
+    })
+  )
+);
 
-    }
+  if(
+    this.isRunning
+  ){
+    return;
+  }
 
 
     this.isRunning =
@@ -11372,18 +11517,56 @@ audio.play()
     this.prepare();
 
 
-    const sequence =
-      script.sequence ||
-      [];
+const sequence =
+  script.sequence ||
+  [];
 
 
-    for(
-      const action of sequence
+/* =========================================
+   מתחילים להכין את כל קטעי הקול ברקע
+========================================= */
+
+this.prefetchLessonAudio(
+  sequence
+);
+
+
+
+
+/* =========================================
+   רק עכשיו מתחילים את השיעור
+========================================= */
+
+for(
+  const action of sequence
+){
+
+  /* =========================================
+     NORMALIZE VISUAL ACTION TARGET
+  ========================================= */
+
+  if(
+    action.type === "highlight" ||
+    action.type === "circle" ||
+    action.type === "robot_point"
+  ){
+
+    if(
+      !action.target &&
+      action.text
     ){
 
-      switch(
-        action.type
-      ){
+      action.target =
+        action.text;
+
+    }
+
+  }
+
+
+  switch(
+    action.type
+  ){
 
 
         case "speak":
