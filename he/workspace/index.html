@@ -11057,10 +11057,9 @@ prefetchLessonAudio(sequence){
 
   for(const action of sequence){
 
-    if(
-      action.type === "speak" ||
-      action.type === "ask"
-    ){
+if(
+  action.type === "speak"
+){
 
       const text =
         action.speech_tts ||
@@ -11455,24 +11454,17 @@ async speak({ text, speech_tts }){
      ASK
   ========================= */
 
-  async ask({
-    text
-  }){
+async ask({
+  text
+}){
 
-    await this.write({
-      text,
-      style:
-        "question",
-      speed:
-        50
-    });
+  await this.write({
+    text,
+    style: "question",
+    speed: 50
+  });
 
-
-    await this.speak({
-      text
-    });
-
-  }
+}
 
 
   /* =========================
