@@ -1,1 +1,567 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
 
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>מדיניות שימוש הוגן | IAKids</title>
+
+  <meta
+    name="description"
+    content="מדיניות השימוש ההוגן של IAKids – מידע על שימוש אישי, משפחתי ולימודי בשירות."
+  >
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:"Heebo",Arial,sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(102,126,234,.10), transparent 35%),
+        radial-gradient(circle at bottom left, rgba(118,75,162,.08), transparent 35%),
+        #f7f9fc;
+      color:#25324b;
+      direction:rtl;
+      min-height:100vh;
+    }
+
+    a{
+      color:inherit;
+    }
+
+    /* HEADER */
+
+    .fair-header{
+      background:rgba(255,255,255,.92);
+      border-bottom:1px solid #e7ebf3;
+      backdrop-filter:blur(12px);
+    }
+
+    .fair-header-inner{
+      max-width:1100px;
+      margin:auto;
+      min-height:76px;
+      padding:0 24px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
+
+    .fair-logo{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      text-decoration:none;
+      font-size:24px;
+      font-weight:900;
+      color:#334a8b;
+    }
+
+    .fair-logo-icon{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(135deg,#667eea,#764ba2);
+      color:#fff;
+      font-size:22px;
+      box-shadow:0 8px 20px rgba(102,126,234,.22);
+    }
+
+    .back-home{
+      text-decoration:none;
+      color:#52627c;
+      font-size:14px;
+      font-weight:700;
+      padding:9px 15px;
+      border:1px solid #dde3ed;
+      border-radius:12px;
+      background:#fff;
+      transition:.2s ease;
+    }
+
+    .back-home:hover{
+      border-color:#aebbe0;
+      color:#334a8b;
+      transform:translateY(-1px);
+    }
+
+    /* MAIN */
+
+    .fair-main{
+      max-width:900px;
+      margin:0 auto;
+      padding:60px 24px 80px;
+    }
+
+    .fair-hero{
+      text-align:center;
+      margin-bottom:38px;
+    }
+
+    .fair-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+
+      padding:8px 15px;
+      margin-bottom:18px;
+
+      border-radius:999px;
+      background:#eef1ff;
+      color:#5367c7;
+
+      font-size:14px;
+      font-weight:800;
+    }
+
+    .fair-hero h1{
+      margin:0 0 14px;
+      font-size:clamp(32px,5vw,48px);
+      line-height:1.15;
+      font-weight:900;
+      color:#26375f;
+    }
+
+    .fair-hero p{
+      max-width:680px;
+      margin:0 auto;
+      font-size:17px;
+      line-height:1.8;
+      color:#69778e;
+    }
+
+    /* CONTENT CARD */
+
+    .fair-card{
+      background:#fff;
+      border:1px solid #e6eaf1;
+      border-radius:24px;
+      padding:42px;
+
+      box-shadow:
+        0 18px 45px rgba(45,58,95,.07);
+    }
+
+    .fair-intro{
+      padding:20px 22px;
+      margin-bottom:34px;
+
+      border-radius:16px;
+      background:#f6f8ff;
+      border:1px solid #e4e9ff;
+
+      font-size:16px;
+      line-height:1.9;
+      color:#52627c;
+    }
+
+    .fair-section{
+      padding:0 0 30px;
+      margin-bottom:30px;
+      border-bottom:1px solid #edf0f5;
+    }
+
+    .fair-section:last-of-type{
+      border-bottom:0;
+      margin-bottom:0;
+    }
+
+    .fair-section h2{
+      display:flex;
+      align-items:center;
+      gap:10px;
+
+      margin:0 0 13px;
+
+      font-size:21px;
+      font-weight:900;
+      color:#2e416f;
+    }
+
+    .section-number{
+      width:34px;
+      height:34px;
+      flex:0 0 34px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      border-radius:10px;
+      background:#eef1ff;
+      color:#5d70d4;
+
+      font-size:14px;
+      font-weight:900;
+    }
+
+    .fair-section p{
+      margin:0;
+      color:#65738a;
+      font-size:15.5px;
+      line-height:1.9;
+    }
+
+    .fair-section ul{
+      margin:14px 0 0;
+      padding:0;
+      list-style:none;
+    }
+
+    .fair-section li{
+      position:relative;
+      padding-right:25px;
+      margin-bottom:10px;
+
+      color:#65738a;
+      font-size:15.5px;
+      line-height:1.8;
+    }
+
+    .fair-section li::before{
+      content:"✓";
+      position:absolute;
+      right:0;
+      top:0;
+
+      color:#5d70d4;
+      font-weight:900;
+    }
+
+    /* IMPORTANT NOTE */
+
+    .fair-note{
+      margin-top:34px;
+      padding:22px;
+
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+
+      border-radius:18px;
+      background:#fffaf0;
+      border:1px solid #f4dfae;
+    }
+
+    .fair-note-icon{
+      font-size:24px;
+      line-height:1;
+    }
+
+    .fair-note strong{
+      display:block;
+      margin-bottom:5px;
+      color:#7d6224;
+      font-size:16px;
+    }
+
+    .fair-note p{
+      margin:0;
+      color:#806f4a;
+      font-size:14.5px;
+      line-height:1.8;
+    }
+
+    /* FOOTER */
+
+    .fair-footer{
+      margin-top:30px;
+      text-align:center;
+      color:#8792a5;
+      font-size:13px;
+      line-height:1.8;
+    }
+
+    .fair-footer a{
+      color:#5d70d4;
+      font-weight:700;
+      text-decoration:none;
+    }
+
+    /* MOBILE */
+
+    @media(max-width:600px){
+
+      .fair-header-inner{
+        min-height:66px;
+        padding:0 16px;
+      }
+
+      .fair-logo{
+        font-size:20px;
+      }
+
+      .fair-logo-icon{
+        width:38px;
+        height:38px;
+      }
+
+      .back-home{
+        font-size:13px;
+        padding:8px 11px;
+      }
+
+      .fair-main{
+        padding:40px 16px 60px;
+      }
+
+      .fair-hero{
+        margin-bottom:28px;
+      }
+
+      .fair-hero p{
+        font-size:15.5px;
+      }
+
+      .fair-card{
+        padding:26px 20px;
+        border-radius:20px;
+      }
+
+      .fair-intro{
+        padding:17px;
+        font-size:15px;
+      }
+
+      .fair-section h2{
+        font-size:19px;
+      }
+
+      .fair-section p,
+      .fair-section li{
+        font-size:15px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="fair-header">
+
+    <div class="fair-header-inner">
+
+      <a href="/he/" class="fair-logo">
+        <span class="fair-logo-icon">🤖</span>
+        <span>IAKids</span>
+      </a>
+
+      <a href="/he/" class="back-home">
+        חזרה לאתר ←
+      </a>
+
+    </div>
+
+  </header>
+
+
+  <!-- MAIN -->
+  <main class="fair-main">
+
+    <div class="fair-hero">
+
+      <span class="fair-pill">
+        💙 שימוש אחראי והוגן
+      </span>
+
+      <h1>
+        מדיניות שימוש הוגן
+      </h1>
+
+      <p>
+        אנחנו רוצים לאפשר לילדים ולמשפחות ליהנות מחוויית למידה אישית,
+        זמינה ואיכותית. מדיניות זו נועדה לשמור על שירות יציב והוגן עבור כולם.
+      </p>
+
+    </div>
+
+
+    <article class="fair-card">
+
+      <div class="fair-intro">
+        מסלולי IAKids מיועדים לשימוש אישי, משפחתי ולימודי רגיל.
+        השימוש בשירות כפוף למדיניות שימוש הוגן זו ולתנאי השימוש של IAKids.
+      </div>
+
+
+      <!-- 1 -->
+      <section class="fair-section">
+
+        <h2>
+          <span class="section-number">1</span>
+          שימוש אישי ולימודי
+        </h2>
+
+        <p>
+          השירות נועד לסייע לילדים בלמידה, בהבנת חומר לימודי,
+          בתרגול, בהכנה למבחנים ובעזרה בשיעורי הבית.
+        </p>
+
+        <ul>
+          <li>השימוש במסלול האישי מיועד לילד הרשום בחשבון.</li>
+          <li>המסלול המשפחתי מיועד לילדים הכלולים באותו חשבון משפחתי.</li>
+          <li>כל ילד מקבל פרופיל למידה אישי ונפרד.</li>
+        </ul>
+
+      </section>
+
+
+      <!-- 2 -->
+      <section class="fair-section">
+
+        <h2>
+          <span class="section-number">2</span>
+          שימוש רגיל בשירות
+        </h2>
+
+        <p>
+          IAKids נועד לאפשר שימוש שוטף במסגרת פעילות לימודית רגילה.
+          מטרת המדיניות אינה להגביל ילדים שלומדים ומשתמשים בשירות באופן סביר,
+          אלא להגן על המערכת מפני שימוש חריג או בלתי סביר.
+        </p>
+
+      </section>
+
+
+      <!-- 3 -->
+      <section class="fair-section">
+
+        <h2>
+          <span class="section-number">3</span>
+          מה נחשב שימוש חריג?
+        </h2>
+
+        <p>
+          במקרים מסוימים שימוש עשוי להיחשב חריג אם הוא חורג באופן משמעותי
+          מדפוס שימוש אישי ולימודי רגיל.
+        </p>
+
+        <ul>
+          <li>שימוש אוטומטי או הפעלת השירות באמצעות מערכות אוטומטיות.</li>
+          <li>שימוש מסחרי בשירות ללא אישור מראש.</li>
+          <li>שיתוף חשבון עם משתמשים שאינם כלולים במסלול שנרכש.</li>
+          <li>פעילות חריגה במיוחד שעלולה לפגוע בזמינות או ביציבות השירות.</li>
+          <li>ניסיון לנצל את השירות באופן שאינו תואם את מטרתו הלימודית.</li>
+        </ul>
+
+      </section>
+
+
+      <!-- 4 -->
+      <section class="fair-section">
+
+        <h2>
+          <span class="section-number">4</span>
+          מה קורה במקרה של שימוש חריג?
+        </h2>
+
+        <p>
+          אם נזהה שימוש חריג במיוחד, אנו עשויים ליצור קשר עם בעל החשבון
+          כדי להבין את אופי השימוש ולמצוא פתרון מתאים.
+        </p>
+
+        <p style="margin-top:12px;">
+          במידת הצורך, IAKids עשויה להגביל זמנית חלק מהשימוש בשירות,
+          לבקש התאמה של אופן השימוש או להציע מסלול מתאים יותר.
+        </p>
+
+      </section>
+
+
+      <!-- 5 -->
+      <section class="fair-section">
+
+        <h2>
+          <span class="section-number">5</span>
+          שקיפות מול המשתמש
+        </h2>
+
+        <p>
+          ככל שניתן, לפני הטלת הגבלה משמעותית בעקבות שימוש חריג,
+          נשתדל ליידע את בעל החשבון ולאפשר לו להבין את הסיבה
+          ולבחון אפשרויות להמשך השימוש בשירות.
+        </p>
+
+      </section>
+
+
+      <!-- 6 -->
+      <section class="fair-section">
+
+        <h2>
+          <span class="section-number">6</span>
+          שינויים במדיניות
+        </h2>
+
+        <p>
+          אנו עשויים לעדכן מדיניות זו מעת לעת בהתאם להתפתחות השירות,
+          הטכנולוגיה ודפוסי השימוש. במקרה של שינוי מהותי, נפעל לעדכן
+          את המשתמשים בהתאם לצורך.
+        </p>
+
+      </section>
+
+
+      <div class="fair-note">
+
+        <span class="fair-note-icon">💡</span>
+
+        <div>
+
+          <strong>
+            המטרה שלנו היא לאפשר לילדים ללמוד בחופשיות
+          </strong>
+
+          <p>
+            מדיניות השימוש ההוגן נועדה בעיקר למנוע שימוש חריג,
+            אוטומטי או ניצול לרעה של השירות — ולא להפריע לשימוש
+            לימודי רגיל של ילדים ומשפחות.
+          </p>
+
+        </div>
+
+      </div>
+
+    </article>
+
+
+    <div class="fair-footer">
+
+      <p>
+        מדיניות שימוש הוגן זו מהווה חלק מתנאי השימוש של IAKids.
+      </p>
+
+      <p>
+        © IAKids
+      </p>
+
+    </div>
+
+  </main>
+
+</body>
+
+</html>
