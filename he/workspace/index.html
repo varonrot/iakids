@@ -11053,28 +11053,27 @@ body: JSON.stringify({
 }
 
 
-prefetchLessonAudio(sequence){
+prefetchLessonAudio(sequence) {
 
-  for(const action of sequence){
+  for (const action of sequence) {
 
-if(
-  action.type === "speak"
-){
+    if (
+      action.type === "speak" ||
+      action.type === "ask"
+    ) {
 
       const text =
         action.speech_tts ||
         action.text;
 
-      if(text){
+      if (text) {
 
         this.preloadAudio(text)
           .catch(error => {
-
             console.error(
               "Audio prefetch error:",
               error
             );
-
           });
 
       }
@@ -11454,14 +11453,16 @@ async speak({ text, speech_tts }){
      ASK
   ========================= */
 
-async ask({
-  text
-}){
+async ask({ text }) {
 
   await this.write({
     text,
     style: "question",
     speed: 50
+  });
+
+  await this.speak({
+    text
   });
 
 }
