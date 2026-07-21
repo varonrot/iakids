@@ -33,10 +33,11 @@ OPENAI_OUTPUT_COST_PER_1M = 0.60
 
 # Gemini 3.1 Flash TTS Preview
 GEMINI_TTS_TEXT_INPUT_COST_PER_1M = 1.00
-GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 20.00
+# Gemini 2.5 Flash Preview TTS
+GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 10.00
 
-# Gemini audio = 25 audio tokens per second
-GEMINI_AUDIO_TOKENS_PER_SECOND = 25
+# Gemini 2.5 TTS = 32 audio tokens per second
+GEMINI_AUDIO_TOKENS_PER_SECOND = 32
 
 if not SUPABASE_URL:
     raise RuntimeError("Missing SUPABASE_URL")
