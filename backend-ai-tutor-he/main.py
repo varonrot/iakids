@@ -131,10 +131,15 @@ def authenticate_user(authorization: str):
     return user_res.user
 
 def update_tutor_session_after_tts(
-    session_id: str
+    session_id: str,
+    audio_duration_seconds: float = 0
 ):
     """
     עדכון Session לאחר קריאת TTS אחת.
+
+    צובר:
+    - מספר קריאות TTS
+    - משך האודיו שנוצר
     """
 
     if not session_id:
@@ -144,7 +149,9 @@ def update_tutor_session_after_tts(
 
     res = (
         sb.table("tutor_sessions")
-        .select("id, tts_call_count")
+        .select(
+            "id, tts_call_count, voice_output_seconds"
+        )
         .eq("id", session_id)
         .single()
         .execute()
@@ -157,13 +164,31 @@ def update_tutor_session_after_tts(
         res.data.get("tts_call_count") or 0
     )
 
+    current_voice_output_seconds = float(
+        res.data.get("voice_output_seconds") or 0
+    )
+
+    new_voice_output_seconds = (
+        current_voice_output_seconds
+        + float(audio_duration_seconds or 0)
+    )
+
     sb.table("tutor_sessions").update({
 
-        "tts_call_count": current_tts_calls + 1,
+        "tts_call_count":
+            current_tts_calls + 1,
 
-        "last_activity_at": now.isoformat(),
+        "voice_output_seconds":
+            round(
+                new_voice_output_seconds,
+                3
+            ),
 
-        "updated_at": now.isoformat()
+        "last_activity_at":
+            now.isoformat(),
+
+        "updated_at":
+            now.isoformat()
 
     }).eq(
         "id",
@@ -600,6 +625,16 @@ def tutor_tts(
                 "Gemini returned no audio data"
             )
 
+        # =================================================
+        # AUDIO DURATION
+        # PCM 16-bit mono at 24kHz
+        # 2 bytes per sample
+        # =================================================
+
+        audio_duration_seconds = (
+            len(audio_data)
+            / (24000 * 2)
+        )
 
         # =================================================
         # PCM -> WAV
@@ -632,7 +667,8 @@ def tutor_tts(
         # עדכון Session - קריאת TTS אחת
         if body.session_id:
             update_tutor_session_after_tts(
-                session_id=body.session_id
+                session_id=body.session_id,
+                audio_duration_seconds=audio_duration_seconds
             )
 
         return Response(
