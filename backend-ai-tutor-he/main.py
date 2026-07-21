@@ -151,6 +151,21 @@ def update_tutor_session_after_tts(
     audio_duration_seconds: float = 0
 ):
     """
+    עדכון אטומי של Session לאחר קריאת TTS אחת.
+    """
+
+    if not session_id:
+        return
+
+    sb.rpc(
+        "increment_tutor_session_tts",
+        {
+            "p_session_id": session_id,
+            "p_audio_duration_seconds":
+                audio_duration_seconds
+        }
+    ).execute()
+    """
     עדכון Session לאחר קריאת TTS אחת.
 
     צובר:
