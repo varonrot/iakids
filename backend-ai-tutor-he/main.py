@@ -148,8 +148,24 @@ def authenticate_user(authorization: str):
 
 def update_tutor_session_after_tts(
     session_id: str,
-    audio_duration_seconds: float = 0
+    audio_duration_seconds: float = 0,
+    cost_usd: float = 0
 ):
+    """
+    עדכון אטומי של Session לאחר קריאת TTS אחת.
+    """
+
+    if not session_id:
+        return
+
+    sb.rpc(
+        "increment_tutor_session_tts",
+        {
+            "p_session_id": session_id,
+            "p_audio_duration_seconds": audio_duration_seconds,
+            "p_cost_usd": cost_usd
+        }
+    ).execute()
     """
     עדכון אטומי של Session לאחר קריאת TTS אחת.
     """
@@ -242,7 +258,8 @@ def get_or_create_tutor_session(
             "id, started_at, last_activity_at, status, "
             "message_count, user_message_count, "
             "assistant_message_count, ai_call_count, "
-            "input_tokens, output_tokens, total_tokens"
+            "input_tokens, output_tokens, total_tokens, "
+            "estimated_cost_usd"
         )
         .eq("user_id", user_id)
         .eq("kid_id", kid_id)
@@ -438,7 +455,8 @@ def update_tutor_session_after_chat(
     session: dict,
     total_tokens: int | None = None,
     input_tokens: int | None = None,
-    output_tokens: int | None = None
+    output_tokens: int | None = None,
+    cost_usd: float = 0
 ):
     """
     עדכון מצטבר של Session לאחר אינטראקציית צ'אט אחת.
@@ -477,6 +495,11 @@ def update_tutor_session_after_chat(
         + int(total_tokens or 0)
     )
 
+    new_estimated_cost_usd = (
+        float(session.get("estimated_cost_usd") or 0)
+        + float(cost_usd or 0)
+    )
+
     sb.table("tutor_sessions").update({
 
         "last_activity_at": now.isoformat(),
@@ -503,6 +526,8 @@ def update_tutor_session_after_chat(
         "output_tokens": new_output_tokens,
 
         "total_tokens": new_total_tokens,
+
+        "estimated_cost_usd": new_estimated_cost_usd,
 
         "updated_at": now.isoformat()
 
@@ -716,7 +741,8 @@ def tutor_tts(
         if body.session_id:
             update_tutor_session_after_tts(
                 session_id=body.session_id,
-                audio_duration_seconds=audio_duration_seconds
+                audio_duration_seconds=audio_duration_seconds,
+                cost_usd=gemini_audio_cost_usd
             )
 
             increment_usage_summary(
@@ -880,7 +906,8 @@ def tutor_chat(
             session=tutor_session,
             total_tokens=total_tokens,
             input_tokens=input_tokens,
-            output_tokens=output_tokens
+            output_tokens=output_tokens,
+            cost_usd=openai_cost_usd
         )
 
         increment_usage_summary(
