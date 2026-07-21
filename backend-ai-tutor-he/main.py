@@ -852,7 +852,23 @@ def tutor_chat(
         )
 
         lesson_data = completion.choices[0].message.parsed
+        
+        if lesson_data and lesson_data.sequence:
 
+            has_write = any(
+                action.type == "write"
+                for action in lesson_data.sequence
+            )
+
+            if not has_write and lesson_data.speech:
+                lesson_data.sequence.append(
+                    TutorAction(
+                        type="write",
+                        text=lesson_data.speech,
+                        style="normal",
+                        speed=45
+                    )
+                )
         if not lesson_data:
             raise HTTPException(
                 status_code=500,
