@@ -171,25 +171,40 @@ def get_existing_kids_memory(kid_id: str) -> str:
     return str(memory or "")
 
 
-def save_tutor_chat_message(
+def save_tutor_chat_messages(
     user_id: str,
     kid_id: str,
-    role: str,
-    content: str,
-    tokens: int | None = None
+    user_content: str,
+    assistant_content: str,
+    assistant_tokens: int | None = None,
+    session_id: str | None = None
 ):
-    payload = {
+    user_payload = {
         "user_id": user_id,
         "kid_id": kid_id,
-        "role": role,
-        "content": content,
+        "role": "user",
+        "content": user_content,
     }
 
-    if tokens is not None:
-        payload["tokens"] = tokens
+    assistant_payload = {
+        "user_id": user_id,
+        "kid_id": kid_id,
+        "role": "assistant",
+        "content": assistant_content,
+    }
 
-    sb.table("kids_chats").insert(payload).execute()
+    if assistant_tokens is not None:
+        assistant_payload["tokens"] = assistant_tokens
 
+    if session_id:
+        user_payload["session_id"] = session_id
+        assistant_payload["session_id"] = session_id
+
+    # שתי ההודעות נשמרות בקריאת Supabase אחת
+    sb.table("kids_chats").insert([
+        user_payload,
+        assistant_payload
+    ]).execute()
 
 def get_recent_tutor_messages_for_llm(
     kid_id: str,
@@ -430,24 +445,22 @@ def tutor_chat(
             child["id"]
         )
 
-        # Save the child's current message first,
-        # so it is included in the conversation history sent to the model.
-        save_tutor_chat_message(
-            user_id=user.id,
-            kid_id=child["id"],
-            role="user",
-            content=message
-        )
-
         system_prompt = build_tutor_prompt(
             child=child,
             kids_memory=existing_memory
         )
 
+        # מביאים רק את ההיסטוריה הקודמת.
+        # את ההודעה הנוכחית נוסיף מקומית ולא נשמור לפני קריאת ה-AI.
         recent_messages = get_recent_tutor_messages_for_llm(
             kid_id=child["id"],
-            limit=8
+            limit=7
         )
+
+        recent_messages.append({
+            "role": "user",
+            "content": message
+        })
 
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
@@ -474,12 +487,14 @@ def tutor_chat(
         if completion.usage:
             total_tokens = completion.usage.total_tokens
 
-        save_tutor_chat_message(
+        # שומרים את הודעת הילד ותשובת ה-AI יחד
+        # בקריאת Supabase אחת
+        save_tutor_chat_messages(
             user_id=user.id,
             kid_id=child["id"],
-            role="assistant",
-            content=lesson_data.model_dump_json(),
-            tokens=total_tokens
+            user_content=message,
+            assistant_content=lesson_data.model_dump_json(),
+            assistant_tokens=total_tokens
         )
 
         return lesson_data.model_dump()
