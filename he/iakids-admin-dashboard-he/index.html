@@ -94,11 +94,13 @@
     .app-shell{
       min-height:100vh;
       display:grid;
-      grid-template-columns:1fr 272px;
+      grid-template-columns:minmax(0,1fr) 272px;
+      grid-template-areas:"main sidebar";
       direction:ltr;
     }
 
     .sidebar{
+      grid-area:sidebar;
       direction:rtl;
       background:linear-gradient(180deg,#0d1b2b,#0a1725);
       border-left:1px solid var(--border);
@@ -173,6 +175,7 @@
     .mini-user small{display:block;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis}
 
     .main{
+      grid-area:main;
       direction:rtl;
       min-width:0;
       padding:18px 20px 34px;
@@ -368,7 +371,10 @@
     }
 
     @media (max-width:900px){
-      .app-shell{grid-template-columns:1fr}
+      .app-shell{
+        grid-template-columns:1fr;
+        grid-template-areas:"main";
+      }
       .sidebar{
         position:fixed;
         right:0;
@@ -771,6 +777,7 @@
     // =====================================================
     const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
 
     const ALLOWED_ADMIN_EMAILS = [
       "varonrot@gmail.com",
