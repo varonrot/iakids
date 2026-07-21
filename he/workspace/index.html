@@ -11474,175 +11474,231 @@ async ask({ text }) {
 
 async run(script){
 
-console.log(
-  "LIVE LESSON SEQUENCE:",
-  script.sequence
-);
+  console.log(
+    "LIVE LESSON SEQUENCE:",
+    script.sequence
+  );
 
-console.table(
-  script.sequence.map(
-    action => ({
-      type: action.type,
-      text: action.text || "",
-      target: action.target || ""
-    })
-  )
-);
+  console.table(
+    script.sequence.map(
+      action => ({
+        type: action.type,
+        text: action.text || "",
+        target: action.target || ""
+      })
+    )
+  );
 
-  if(
-    this.isRunning
-  ){
+  if(this.isRunning){
     return;
   }
 
+  this.isRunning = true;
 
-    this.isRunning =
-      true;
+  this.prepare();
 
+  const sequence =
+    script.sequence || [];
 
-    this.prepare();
-
-
-const sequence =
-  script.sequence ||
-  [];
-
-
-/* =========================================
-   מתחילים להכין את כל קטעי הקול ברקע
-========================================= */
-
-this.prefetchLessonAudio(
-  sequence
-);
-
-
-
-
-/* =========================================
-   רק עכשיו מתחילים את השיעור
-========================================= */
-
-for(
-  const action of sequence
-){
 
   /* =========================================
-     NORMALIZE VISUAL ACTION TARGET
+     מכינים את כל קטעי הקול מראש ברקע
   ========================================= */
 
-  if(
-    action.type === "highlight" ||
-    action.type === "circle" ||
-    action.type === "robot_point"
-  ){
-
-    if(
-      !action.target &&
-      action.text
-    ){
-
-      action.target =
-        action.text;
-
-    }
-
-  }
-
-
-  switch(
-    action.type
-  ){
-
-
-        case "speak":
-
-          await this.speak(
-            action
-          );
-
-          break;
-
-
-        case "write":
-
-          await this.write(
-            action
-          );
-
-          break;
-
-          case "robot_point":
-
-  await this.robotPoint(
-    action
+  this.prefetchLessonAudio(
+    sequence
   );
 
-  break;
+
+  /* =========================================
+     מריצים את השיעור
+  ========================================= */
+
+  for(
+    let i = 0;
+    i < sequence.length;
+    i++
+  ){
+
+    const action =
+      sequence[i];
+
+    const nextAction =
+      sequence[i + 1];
 
 
-        case "highlight":
+    /* =========================================
+       NORMALIZE VISUAL ACTION TARGET
+    ========================================= */
 
-          await this.highlight(
-            action
-          );
+    if(
+      action.type === "highlight" ||
+      action.type === "circle" ||
+      action.type === "robot_point"
+    ){
 
-          break;
+      if(
+        !action.target &&
+        action.text
+      ){
 
-
-        case "circle":
-
-          await this.circle(
-            action
-          );
-
-          break;
-
-
-        case "arrow":
-
-          await this.arrow(
-            action
-          );
-
-          break;
-
-
-        case "wait":
-
-          await this.wait(
-            action.duration ||
-            500
-          );
-
-          break;
-
-
-        case "ask":
-
-          await this.ask(
-            action
-          );
-
-          break;
-
-
-        default:
-
-          console.warn(
-            "Unknown lesson action:",
-            action
-          );
+        action.target =
+          action.text;
 
       }
 
     }
 
 
-    this.isRunning =
-      false;
+    /* =========================================
+       SPEAK + WRITE ביחד
+    ========================================= */
+
+    const isSpeakWritePair =
+      nextAction &&
+      (
+        (
+          action.type === "speak" &&
+          nextAction.type === "write"
+        )
+        ||
+        (
+          action.type === "write" &&
+          nextAction.type === "speak"
+        )
+      );
+
+
+    if(
+      isSpeakWritePair
+    ){
+
+      const speakAction =
+        action.type === "speak"
+          ? action
+          : nextAction;
+
+
+      const writeAction =
+        action.type === "write"
+          ? action
+          : nextAction;
+
+
+      await Promise.all([
+        this.speak(
+          speakAction
+        ),
+
+        this.write(
+          writeAction
+        )
+      ]);
+
+
+      /* הפעולה הבאה כבר בוצעה */
+      i++;
+
+      continue;
+
+    }
+
+
+    /* =========================================
+       פעולות רגילות
+    ========================================= */
+
+    switch(
+      action.type
+    ){
+
+      case "speak":
+
+        await this.speak(
+          action
+        );
+
+        break;
+
+
+      case "write":
+
+        await this.write(
+          action
+        );
+
+        break;
+
+
+      case "robot_point":
+
+        await this.robotPoint(
+          action
+        );
+
+        break;
+
+
+      case "highlight":
+
+        await this.highlight(
+          action
+        );
+
+        break;
+
+
+      case "circle":
+
+        await this.circle(
+          action
+        );
+
+        break;
+
+
+      case "arrow":
+
+        await this.arrow(
+          action
+        );
+
+        break;
+
+
+      case "wait":
+
+        await this.wait(
+          action.duration ||
+          500
+        );
+
+        break;
+
+
+      case "ask":
+
+        await this.ask(
+          action
+        );
+
+        break;
+
+
+      default:
+
+        console.warn(
+          "Unknown lesson action:",
+          action
+        );
+
+    }
 
   }
+
+
+  this.isRunning =
+    false;
 
 }
 
