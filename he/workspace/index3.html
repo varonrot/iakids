@@ -9423,34 +9423,27 @@ if(
     await unlockLessonAudio();
 
 
-    /* הכנת קטעי הקול מראש */
+if(
+  window.lessonRenderer
+){
 
-    if(
-      window.lessonRenderer
-    ){
+  /* הפעלת השיעור האמיתי בלבד.
+     כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
 
-      window.lessonRenderer
-        .prefetchLessonAudio(
-          data.sequence
-        );
+  await window.lessonRenderer.run(
+    {
+      sequence:
+        data.sequence,
 
+      wait_for_answer:
+        data.wait_for_answer,
 
-      /* הפעלת השיעור האמיתי */
-
-      await window.lessonRenderer.run(
-        {
-          sequence:
-            data.sequence,
-
-          wait_for_answer:
-            data.wait_for_answer,
-
-          speech:
-            data.speech
-        }
-      );
-
+      speech:
+        data.speech
     }
+  );
+
+}
     else{
 
       console.error(
@@ -11060,29 +11053,27 @@ body: JSON.stringify({
 }
 
 
-prefetchLessonAudio(sequence){
+prefetchLessonAudio(sequence) {
 
-  for(const action of sequence){
+  for (const action of sequence) {
 
-    if(
+    if (
       action.type === "speak" ||
       action.type === "ask"
-    ){
+    ) {
 
       const text =
         action.speech_tts ||
         action.text;
 
-      if(text){
+      if (text) {
 
         this.preloadAudio(text)
           .catch(error => {
-
             console.error(
               "Audio prefetch error:",
               error
             );
-
           });
 
       }
@@ -11462,24 +11453,19 @@ async speak({ text, speech_tts }){
      ASK
   ========================= */
 
-  async ask({
+async ask({ text }) {
+
+  await this.write({
+    text,
+    style: "question",
+    speed: 50
+  });
+
+  await this.speak({
     text
-  }){
+  });
 
-    await this.write({
-      text,
-      style:
-        "question",
-      speed:
-        50
-    });
-
-
-    await this.speak({
-      text
-    });
-
-  }
+}
 
 
   /* =========================
