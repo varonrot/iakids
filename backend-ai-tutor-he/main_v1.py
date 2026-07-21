@@ -852,7 +852,7 @@ def tutor_chat(
         )
 
         lesson_data = completion.choices[0].message.parsed
-        
+
         if lesson_data and lesson_data.sequence:
 
             has_write = any(
@@ -861,7 +861,8 @@ def tutor_chat(
             )
 
             if not has_write and lesson_data.speech:
-                lesson_data.sequence.append(
+                lesson_data.sequence.insert(
+                    0,
                     TutorAction(
                         type="write",
                         text=lesson_data.speech,
