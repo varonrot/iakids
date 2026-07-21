@@ -11651,43 +11651,38 @@ for(
    DEMO
 ===================================================== */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
+function initLessonRenderer() {
 
-    const messages =
-      document.querySelector(
-        ".messages"
-      );
+  const messages =
+    document.querySelector(
+      ".messages"
+    );
 
+  if (!messages) {
+    console.error(
+      "Lesson Renderer: .messages not found"
+    );
+    return;
+  }
 
-    if(
-      !messages
-    ){
-
-      console.error(
-        "Lesson Renderer: .messages not found"
-      );
-
-      return;
-
-    }
-
-
-    const renderer =
+  if (!window.lessonRenderer) {
+    window.lessonRenderer =
       new LessonRendererV1(
         messages
       );
 
+    console.log(
+      "Lesson Renderer initialized"
+    );
+  }
 
-    window.lessonRenderer =
-      renderer;
+  const renderer =
+    window.lessonRenderer;
 
-
-    const demoButton =
-      document.createElement(
-        "button"
-      );
+  const demoButton =
+    document.createElement(
+      "button"
+    );
 
 
     demoButton.className =
@@ -11882,7 +11877,19 @@ await unlockLessonAudio();
 
       };
 
-  }
-);
+}
+
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initLessonRenderer
+  );
+
+} else {
+
+  initLessonRenderer();
+
+}
 </script>
 </body></html>
