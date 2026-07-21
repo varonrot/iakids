@@ -302,6 +302,8 @@ def get_or_create_tutor_session(
             if inactive_time < timedelta(
                 minutes=SESSION_TIMEOUT_MINUTES
             ):
+                session["_is_new"] = False
+
                 return session
 
         # =================================================
@@ -360,7 +362,11 @@ def get_or_create_tutor_session(
             "Failed to create tutor session"
         )
 
-    return new_session_res.data[0]
+    new_session = new_session_res.data[0]
+
+    new_session["_is_new"] = True
+
+    return new_session
 
 def save_tutor_chat_messages(
     user_id: str,
@@ -396,6 +402,55 @@ def save_tutor_chat_messages(
         user_payload,
         assistant_payload
     ]).execute()
+
+def increment_usage_summary(
+    user_id: str,
+    sessions: int = 0,
+    usage_seconds: int = 0,
+    ai_calls: int = 0,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    total_tokens: int = 0,
+    tts_calls: int = 0,
+    tts_seconds: float = 0,
+    voice_output_seconds: float = 0,
+    image_uploads: int = 0,
+    vision_calls: int = 0,
+    file_uploads: int = 0,
+    file_analysis_calls: int = 0,
+    errors: int = 0
+):
+    """
+    עדכון מצטבר של usage_summary.
+    מתבצע באמצעות RPC אחד בלבד.
+    """
+
+    sb.rpc(
+        "increment_usage_summary",
+        {
+            "p_user_id": user_id,
+
+            "p_sessions": sessions,
+            "p_usage_seconds": usage_seconds,
+
+            "p_ai_calls": ai_calls,
+            "p_input_tokens": input_tokens,
+            "p_output_tokens": output_tokens,
+            "p_total_tokens": total_tokens,
+
+            "p_tts_calls": tts_calls,
+            "p_tts_seconds": tts_seconds,
+            "p_voice_output_seconds": voice_output_seconds,
+
+            "p_image_uploads": image_uploads,
+            "p_vision_calls": vision_calls,
+
+            "p_file_uploads": file_uploads,
+            "p_file_analysis_calls": file_analysis_calls,
+
+            "p_errors": errors
+        }
+    ).execute()
 
 def update_tutor_session_after_chat(
     session: dict,
@@ -671,6 +726,18 @@ def tutor_tts(
                 audio_duration_seconds=audio_duration_seconds
             )
 
+            increment_usage_summary(
+                user_id=user.id,
+
+                tts_calls=1,
+
+                tts_seconds=
+                    audio_duration_seconds,
+
+                voice_output_seconds=
+                    audio_duration_seconds
+            )
+
         return Response(
             content=wav_bytes,
             media_type="audio/wav",
@@ -813,6 +880,24 @@ def tutor_chat(
             total_tokens=total_tokens,
             input_tokens=input_tokens,
             output_tokens=output_tokens
+        )
+
+        increment_usage_summary(
+            user_id=user.id,
+
+            # מוסיפים Session רק אם באמת נפתח חדש
+            sessions=(
+                1
+                if tutor_session.get("_is_new")
+                else 0
+            ),
+
+            # קריאת AI אחת
+            ai_calls=1,
+
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens
         )
 
         response_data = lesson_data.model_dump()
