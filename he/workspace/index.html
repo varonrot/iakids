@@ -9144,6 +9144,7 @@ const inputEl = document.querySelector(".input input");
 const sendBtn = document.querySelector(".input button");
 
 let kidId = null;
+let currentSessionId = null;
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -9395,11 +9396,14 @@ if (!res.ok) {
 
 const data = await res.json();
 
+if (data.session_id) {
+  currentSessionId = data.session_id;
+}
+
 console.log(
   "CHAT RESPONSE:",
   data
 );
-
 
 /* =========================================
    תשובת Lesson Renderer חדשה
@@ -11018,9 +11022,10 @@ async preloadAudio(text){
             `Bearer ${session.access_token}`
         },
 
-        body: JSON.stringify({
-          text
-        })
+body: JSON.stringify({
+  text: text,
+  session_id: currentSessionId
+})
       }
     );
 
@@ -11526,7 +11531,7 @@ this.prefetchLessonAudio(
 );
 
 
- 
+
 
 /* =========================================
    רק עכשיו מתחילים את השיעור
