@@ -73,19 +73,21 @@
       color:#334a8b;
     }
 
-    .fair-logo-icon{
-      width:42px;
-      height:42px;
-      border-radius:14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg,#667eea,#764ba2);
-      color:#fff;
-      font-size:22px;
-      box-shadow:0 8px 20px rgba(102,126,234,.22);
-    }
+.fair-logo-icon{
+  width:46px;
+  height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
 
+.fair-logo-icon img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
     .back-home{
       text-decoration:none;
       color:#52627c;
@@ -365,7 +367,9 @@
     <div class="fair-header-inner">
 
       <a href="/he/" class="fair-logo">
-        <span class="fair-logo-icon">🤖</span>
+        <span class="fair-logo-icon">
+  <img src="/assets/robots/Robot_icon.png" alt="IAKids">
+</span>
         <span>IAKids</span>
       </a>
 
