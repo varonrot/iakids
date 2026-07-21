@@ -92,7 +92,7 @@ class TutorChatRequest(BaseModel):
 
 class TutorTTSRequest(BaseModel):
     text: str
-
+    session_id: str | None = None
 
 class TutorAction(BaseModel):
     type: str
@@ -130,6 +130,45 @@ def authenticate_user(authorization: str):
 
     return user_res.user
 
+def update_tutor_session_after_tts(
+    session_id: str
+):
+    """
+    עדכון Session לאחר קריאת TTS אחת.
+    """
+
+    if not session_id:
+        return
+
+    now = datetime.now(timezone.utc)
+
+    res = (
+        sb.table("tutor_sessions")
+        .select("id, tts_call_count")
+        .eq("id", session_id)
+        .single()
+        .execute()
+    )
+
+    if not res.data:
+        return
+
+    current_tts_calls = int(
+        res.data.get("tts_call_count") or 0
+    )
+
+    sb.table("tutor_sessions").update({
+
+        "tts_call_count": current_tts_calls + 1,
+
+        "last_activity_at": now.isoformat(),
+
+        "updated_at": now.isoformat()
+
+    }).eq(
+        "id",
+        session_id
+    ).execute()
 
 # =====================================================
 # DATA HELPERS
@@ -590,6 +629,12 @@ def tutor_tts(
 
         wav_bytes = wav_buffer.read()
 
+        # עדכון Session - קריאת TTS אחת
+        if body.session_id:
+            update_tutor_session_after_tts(
+                session_id=body.session_id
+            )
+
         return Response(
             content=wav_bytes,
             media_type="audio/wav",
@@ -624,6 +669,7 @@ def tutor_chat(
     authorization: str = Header(None)
 ):
     try:
+        # אימות משתמש
         user = authenticate_user(authorization)
 
         if not body.kid_id:
@@ -733,7 +779,11 @@ def tutor_chat(
             output_tokens=output_tokens
         )
 
-        return lesson_data.model_dump()
+        response_data = lesson_data.model_dump()
+
+        response_data["session_id"] = session_id
+
+        return response_data
 
     except HTTPException:
         raise
