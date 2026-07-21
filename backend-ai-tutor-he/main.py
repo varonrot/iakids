@@ -6,6 +6,7 @@ from openai import OpenAI
 from google import genai
 from google.genai import types
 from pathlib import Path
+from datetime import datetime, timezone, timedelta
 import io
 import wave
 import os
@@ -170,6 +171,132 @@ def get_existing_kids_memory(kid_id: str) -> str:
 
     return str(memory or "")
 
+# =====================================================
+# TUTOR SESSION HELPERS
+# =====================================================
+
+SESSION_TIMEOUT_MINUTES = 30
+
+
+def parse_supabase_datetime(value: str):
+    if not value:
+        return None
+
+    return datetime.fromisoformat(
+        value.replace("Z", "+00:00")
+    )
+
+
+def get_or_create_tutor_session(
+    user_id: str,
+    kid_id: str
+):
+    """
+    מחפש את ה-Session האחרון של הילד.
+
+    אם ה-Session עדיין פעיל ולא עברו 30 דקות
+    מהפעילות האחרונה -> משתמשים בו.
+
+    אחרת -> סוגרים את הקודם ופותחים Session חדש.
+    """
+
+    now = datetime.now(timezone.utc)
+
+    res = (
+        sb.table("tutor_sessions")
+        .select(
+            "id, started_at, last_activity_at, status, "
+            "message_count, user_message_count, "
+            "assistant_message_count, ai_call_count, "
+            "input_tokens, output_tokens, total_tokens"
+        )
+        .eq("user_id", user_id)
+        .eq("kid_id", kid_id)
+        .eq("status", "active")
+        .order("last_activity_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+
+    # =================================================
+    # אם קיים Session פעיל
+    # =================================================
+
+    if res.data:
+
+        session = res.data[0]
+
+        last_activity = parse_supabase_datetime(
+            session.get("last_activity_at")
+        )
+
+        if last_activity:
+
+            inactive_time = now - last_activity
+
+            # עדיין בתוך חלון 30 הדקות
+            if inactive_time < timedelta(
+                minutes=SESSION_TIMEOUT_MINUTES
+            ):
+                return session
+
+        # =================================================
+        # ה-Session ישן יותר מ-30 דקות
+        # סוגרים אותו
+        # =================================================
+
+        started_at = parse_supabase_datetime(
+            session.get("started_at")
+        )
+
+        duration_seconds = 0
+
+        if started_at and last_activity:
+            duration_seconds = max(
+                0,
+                int(
+                    (
+                        last_activity - started_at
+                    ).total_seconds()
+                )
+            )
+
+        sb.table("tutor_sessions").update({
+            "status": "completed",
+            "ended_at": (
+                last_activity or now
+            ).isoformat(),
+            "duration_seconds": duration_seconds,
+            "updated_at": now.isoformat()
+        }).eq(
+            "id",
+            session["id"]
+        ).execute()
+
+    # =================================================
+    # פתיחת Session חדש
+    # =================================================
+
+    new_session_res = (
+        sb.table("tutor_sessions")
+        .insert({
+            "user_id": user_id,
+            "kid_id": kid_id,
+            "started_at": now.isoformat(),
+            "last_activity_at": now.isoformat(),
+            "status": "active",
+            "ai_model": "gpt-4o-mini",
+            "tts_model": "gemini-3.1-flash-tts-preview"
+        })
+        .execute()
+    )
+
+    if not new_session_res.data:
+        raise RuntimeError(
+            "Failed to create tutor session"
+        )
+
+    return new_session_res.data[0]
 
 def save_tutor_chat_messages(
     user_id: str,
@@ -205,6 +332,83 @@ def save_tutor_chat_messages(
         user_payload,
         assistant_payload
     ]).execute()
+
+def update_tutor_session_after_chat(
+    session: dict,
+    total_tokens: int | None = None,
+    input_tokens: int | None = None,
+    output_tokens: int | None = None
+):
+    """
+    עדכון מצטבר של Session לאחר אינטראקציית צ'אט אחת.
+    """
+
+    now = datetime.now(timezone.utc)
+
+    started_at = parse_supabase_datetime(
+        session.get("started_at")
+    )
+
+    duration_seconds = 0
+
+    if started_at:
+        duration_seconds = max(
+            0,
+            int(
+                (
+                    now - started_at
+                ).total_seconds()
+            )
+        )
+
+    new_input_tokens = (
+        int(session.get("input_tokens") or 0)
+        + int(input_tokens or 0)
+    )
+
+    new_output_tokens = (
+        int(session.get("output_tokens") or 0)
+        + int(output_tokens or 0)
+    )
+
+    new_total_tokens = (
+        int(session.get("total_tokens") or 0)
+        + int(total_tokens or 0)
+    )
+
+    sb.table("tutor_sessions").update({
+
+        "last_activity_at": now.isoformat(),
+
+        "duration_seconds": duration_seconds,
+
+        # בכל אינטראקציה נשמרות 2 הודעות:
+        # ילד + AI
+        "message_count":
+            int(session.get("message_count") or 0) + 2,
+
+        "user_message_count":
+            int(session.get("user_message_count") or 0) + 1,
+
+        "assistant_message_count":
+            int(session.get("assistant_message_count") or 0) + 1,
+
+        # קריאת OpenAI אחת
+        "ai_call_count":
+            int(session.get("ai_call_count") or 0) + 1,
+
+        "input_tokens": new_input_tokens,
+
+        "output_tokens": new_output_tokens,
+
+        "total_tokens": new_total_tokens,
+
+        "updated_at": now.isoformat()
+
+    }).eq(
+        "id",
+        session["id"]
+    ).execute()
 
 def get_recent_tutor_messages_for_llm(
     kid_id: str,
@@ -441,6 +645,17 @@ def tutor_chat(
             kid_id=body.kid_id
         )
 
+        # =================================================
+        # GET OR CREATE TUTOR SESSION
+        # =================================================
+
+        tutor_session = get_or_create_tutor_session(
+            user_id=user.id,
+            kid_id=child["id"]
+        )
+
+        session_id = tutor_session["id"]
+
         existing_memory = get_existing_kids_memory(
             child["id"]
         )
@@ -482,10 +697,23 @@ def tutor_chat(
                 detail="Tutor returned no structured lesson"
             )
 
-        total_tokens = None
+        total_tokens = 0
+        input_tokens = 0
+        output_tokens = 0
 
         if completion.usage:
-            total_tokens = completion.usage.total_tokens
+
+            total_tokens = (
+                completion.usage.total_tokens or 0
+            )
+
+            input_tokens = (
+                completion.usage.prompt_tokens or 0
+            )
+
+            output_tokens = (
+                completion.usage.completion_tokens or 0
+            )
 
         # שומרים את הודעת הילד ותשובת ה-AI יחד
         # בקריאת Supabase אחת
@@ -494,7 +722,15 @@ def tutor_chat(
             kid_id=child["id"],
             user_content=message,
             assistant_content=lesson_data.model_dump_json(),
-            assistant_tokens=total_tokens
+            assistant_tokens=total_tokens,
+            session_id=session_id
+        )
+
+        update_tutor_session_after_chat(
+            session=tutor_session,
+            total_tokens=total_tokens,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
         )
 
         return lesson_data.model_dump()
