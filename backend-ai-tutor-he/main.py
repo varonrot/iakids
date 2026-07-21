@@ -23,6 +23,21 @@ SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+# =====================================================
+# MODEL PRICING - USD
+# =====================================================
+
+# GPT-4o mini
+OPENAI_INPUT_COST_PER_1M = 0.15
+OPENAI_OUTPUT_COST_PER_1M = 0.60
+
+# Gemini 3.1 Flash TTS Preview
+GEMINI_TTS_TEXT_INPUT_COST_PER_1M = 1.00
+GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 20.00
+
+# Gemini audio = 25 audio tokens per second
+GEMINI_AUDIO_TOKENS_PER_SECOND = 25
+
 if not SUPABASE_URL:
     raise RuntimeError("Missing SUPABASE_URL")
 
@@ -418,7 +433,13 @@ def increment_usage_summary(
     vision_calls: int = 0,
     file_uploads: int = 0,
     file_analysis_calls: int = 0,
-    errors: int = 0
+        errors: int = 0,
+        openai_cost_usd: float = 0,
+        gemini_cost_usd: float = 0,
+        vision_cost_usd: float = 0,
+        realtime_cost_usd: float = 0,
+        other_cost_usd: float = 0
+
 ):
     """
     עדכון מצטבר של usage_summary.
@@ -448,7 +469,13 @@ def increment_usage_summary(
             "p_file_uploads": file_uploads,
             "p_file_analysis_calls": file_analysis_calls,
 
-            "p_errors": errors
+            "p_errors": errors,
+
+            "p_openai_cost_usd": openai_cost_usd,
+            "p_gemini_cost_usd": gemini_cost_usd,
+            "p_vision_cost_usd": vision_cost_usd,
+            "p_realtime_cost_usd": realtime_cost_usd,
+            "p_other_cost_usd": other_cost_usd
         }
     ).execute()
 
@@ -691,6 +718,17 @@ def tutor_tts(
             / (24000 * 2)
         )
 
+        audio_output_tokens = (
+            audio_duration_seconds
+            * GEMINI_AUDIO_TOKENS_PER_SECOND
+        )
+
+        gemini_audio_cost_usd = (
+            audio_output_tokens
+            / 1_000_000
+            * GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M
+        )
+
         # =================================================
         # PCM -> WAV
         # Gemini מחזיר PCM 16-bit, mono, 24kHz
@@ -731,11 +769,11 @@ def tutor_tts(
 
                 tts_calls=1,
 
-                tts_seconds=
-                    audio_duration_seconds,
+                tts_seconds=audio_duration_seconds,
 
-                voice_output_seconds=
-                    audio_duration_seconds
+                voice_output_seconds=audio_duration_seconds,
+
+                gemini_cost_usd=gemini_audio_cost_usd
             )
 
         return Response(
@@ -864,6 +902,14 @@ def tutor_chat(
                 completion.usage.completion_tokens or 0
             )
 
+            openai_cost_usd = (
+                    (input_tokens / 1_000_000)
+                    * OPENAI_INPUT_COST_PER_1M
+                    +
+                    (output_tokens / 1_000_000)
+                    * OPENAI_OUTPUT_COST_PER_1M
+            )
+
         # שומרים את הודעת הילד ותשובת ה-AI יחד
         # בקריאת Supabase אחת
         save_tutor_chat_messages(
@@ -897,7 +943,9 @@ def tutor_chat(
 
             input_tokens=input_tokens,
             output_tokens=output_tokens,
-            total_tokens=total_tokens
+            total_tokens=total_tokens,
+
+            openai_cost_usd=openai_cost_usd
         )
 
         response_data = lesson_data.model_dump()
