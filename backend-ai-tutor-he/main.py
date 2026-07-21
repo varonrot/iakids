@@ -608,7 +608,7 @@ def tutor_tts(
     try:
 
         # אימות משתמש
-        authenticate_user(authorization)
+        user = authenticate_user(authorization)
 
         text = (body.text or "").strip()
 
