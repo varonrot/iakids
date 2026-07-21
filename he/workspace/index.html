@@ -9344,6 +9344,30 @@ function animateImportantParts(element) {
   }
 }
 
+function showThinkingIndicator() {
+  const el = document.createElement("div");
+
+  el.className = "tutor-thinking";
+
+  el.innerHTML = `
+    <img src="/assets/robots/Robot_icon.png" alt="רובוט">
+    <span>רגע, אני חושב</span>
+    <span class="thinking-dots">...</span>
+  `;
+
+  const container =
+    document.querySelector(".messages") ||
+    document.querySelector("#messages") ||
+    document.querySelector(".notebook-page");
+
+  if (container) {
+    container.appendChild(el);
+  }
+
+  return el;
+}
+
+
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
   const text = inputEl.value.trim();
@@ -9383,21 +9407,26 @@ if (!res.ok) {
   if (res.status === 403) {
     const err = await res.json();
 
-    if (err?.detail?.error === "quota_exceeded") {
-      openQuotaModal();
-      return; // ⛔ לא מכניסים הודעה לצ'אט
-    }
+if (err?.detail?.error === "quota_exceeded") {
+  thinkingEl?.remove();
+  openQuotaModal();
+  return;
+}
   }
 
   // שגיאה אחרת
-  const errText = await res.text();
-  console.error("API ERROR:", res.status, errText);
-  addMessage("assistant", "⚠️ Algo salió mal. Intenta más tarde.");
-  return;
+const errText = await res.text();
+console.error("API ERROR:", res.status, errText);
+
+thinkingEl?.remove();
+
+addMessage("assistant", "⚠️ Algo salió mal. Intenta más tarde.");
+return;
 }
 
 
 const data = await res.json();
+thinkingEl?.remove();
 
 if (data.session_id) {
   currentSessionId = data.session_id;
@@ -9485,10 +9514,12 @@ else{
 
 }
 
-  } catch (e) {
-    console.error("NETWORK ERROR", e);
-    addMessage("assistant", "🌐 Network error – API not reachable");
-  }
+} catch (e) {
+  thinkingEl?.remove();
+
+  console.error("NETWORK ERROR", e);
+  addMessage("assistant", "🌐 Network error – API not reachable");
+}
 
 }
 /* ---------- QUICK ASK MAP (ES - GENERAL) ---------- */
