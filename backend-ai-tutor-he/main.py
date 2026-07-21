@@ -161,69 +161,8 @@ def update_tutor_session_after_tts(
         "increment_tutor_session_tts",
         {
             "p_session_id": session_id,
-            "p_audio_duration_seconds":
-                audio_duration_seconds
+            "p_audio_duration_seconds": audio_duration_seconds
         }
-    ).execute()
-    """
-    עדכון Session לאחר קריאת TTS אחת.
-
-    צובר:
-    - מספר קריאות TTS
-    - משך האודיו שנוצר
-    """
-
-    if not session_id:
-        return
-
-    now = datetime.now(timezone.utc)
-
-    res = (
-        sb.table("tutor_sessions")
-        .select(
-            "id, tts_call_count, voice_output_seconds"
-        )
-        .eq("id", session_id)
-        .single()
-        .execute()
-    )
-
-    if not res.data:
-        return
-
-    current_tts_calls = int(
-        res.data.get("tts_call_count") or 0
-    )
-
-    current_voice_output_seconds = float(
-        res.data.get("voice_output_seconds") or 0
-    )
-
-    new_voice_output_seconds = (
-        current_voice_output_seconds
-        + float(audio_duration_seconds or 0)
-    )
-
-    sb.table("tutor_sessions").update({
-
-        "tts_call_count":
-            current_tts_calls + 1,
-
-        "voice_output_seconds":
-            round(
-                new_voice_output_seconds,
-                3
-            ),
-
-        "last_activity_at":
-            now.isoformat(),
-
-        "updated_at":
-            now.isoformat()
-
-    }).eq(
-        "id",
-        session_id
     ).execute()
 
 # =====================================================
