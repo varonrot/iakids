@@ -6484,6 +6484,50 @@ body::before{
   }
 
 }
+    @media (max-width:760px){
+
+  .lesson-renderer-row{
+    position:relative !important;
+    display:block !important;
+    width:100% !important;
+  }
+
+  .lesson-renderer-avatar{
+    position:absolute !important;
+    top:0 !important;
+    right:4px !important;
+
+    width:48px !important;
+    height:48px !important;
+
+    z-index:5;
+  }
+
+  .lesson-renderer-content{
+    width:100% !important;
+    padding-top:58px !important;
+  }
+
+  .lesson-renderer-line{
+    width:100% !important;
+    max-width:100% !important;
+
+    font-size:28px !important;
+    line-height:1.55 !important;
+
+    padding-right:4px !important;
+    padding-left:4px !important;
+  }
+
+  .lesson-renderer-line.math{
+    font-size:34px !important;
+  }
+
+  .lesson-renderer-line.question{
+    font-size:30px !important;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -13600,218 +13644,7 @@ function initLessonRenderer() {
   const renderer =
     window.lessonRenderer;
 
-  const demoButton =
-    document.createElement(
-      "button"
-    );
-
-
-    demoButton.className =
-      "lesson-renderer-demo-btn";
-
-
-    demoButton.textContent =
-      "▶ Renderer V1";
-
-
-    document.body.appendChild(
-      demoButton
-    );
-
-
-    demoButton.onclick =
-      async () => {
-await unlockLessonAudio();
-
-        demoButton.style.display =
-          "none";
-
-
-        showLearning(
-          "practice"
-        );
-
-
-        await new Promise(
-          resolve =>
-            setTimeout(
-              resolve,
-              400
-            )
-        );
-
-
-        const demoLesson = {
-
-  sequence: [
-
-    {
-      type: "speak",
-
-      text:
-        "הַי! בּוֹא נִפְתּוֹר יַחַד תַּרְגִּיל. קוֹדֶם נַפְרִיד בֵּין הָעֲשָׂרוֹת לַיְּחִידוֹת."
-    },
-
-
-    {
-      type: "write",
-
-      text:
-        "24 + 18 = ?",
-
-      style:
-        "math",
-
-      speed:
-        90
-    },
-
-
-    {
-      type: "wait",
-
-      duration:
-        700
-    },
-
-
-    {
-      type: "write",
-
-      text:
-        "שלב ראשון: נחבר את העשרות",
-
-      speed:
-        45
-    },
-
-
-    {
-      type: "write",
-
-      text:
-        "20 + 10 = 30",
-
-      style:
-        "math",
-
-      speed:
-        90
-    },
-
-{
-  type: "robot_point",
-  target: "30"
-},
-
-    {
-      type: "highlight",
-
-      target:
-        "30"
-    },
-
-
-    {
-      type: "speak",
-
-      text:
-        "מְצוּיָן. עַכְשָׁו נַעֲבוֹר לַיְּחִידוֹת."
-    },
-
-
-    {
-      type: "write",
-
-      text:
-        "4 + 8 = 12",
-
-      style:
-        "math",
-
-      speed:
-        90
-    },
-
-
-    {
-      type: "circle",
-
-      target:
-        "12"
-    },
-
-
-    {
-      type: "arrow"
-    },
-
-
-    {
-      type: "write",
-
-      text:
-        "30 + 12 = 42",
-
-      style:
-        "math",
-
-      speed:
-        100
-    },
-
-{
-  type: "robot_point",
-  target: "42"
-},
-
-    {
-      type: "highlight",
-
-      target:
-        "42"
-    },
-
-
-    {
-      type: "speak",
-
-      text:
-        "יָפֶה מְאוֹד. עַכְשָׁו אֲנִי רוֹצֶה שֶׁאַתָּה תְּנַסֶּה."
-    },
-
-
-    {
-      type: "ask",
-
-      text:
-        "כַּמָּה זֶה שְׁלוֹשִׁים וּשְׁתַּיִם וְעוֹד תְּשַׁע עֶשְׂרֵה?"
-    }
-
-  ]
-
-};
-
-        renderer.run(
-          demoLesson
-        );
-
-      };
-
-}
-
-if (document.readyState === "loading") {
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    initLessonRenderer
-  );
-
-} else {
-
-  initLessonRenderer();
-
-}
+ 
 </script>
 <!-- =====================================================
      HOMEWORK FILE INPUTS
