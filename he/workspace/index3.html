@@ -2101,11 +2101,11 @@ body::before{
 
   grid-template-columns:
     repeat(
-      5,
-      minmax(120px,1fr)
+      4,
+      minmax(150px,1fr)
     );
 
-  gap:11px;
+  gap:14px;
 }
 
 
@@ -2192,6 +2192,18 @@ body::before{
     );
 }
 
+.dash-chat{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,126,190,.94),
+      rgba(128,82,235,.94)
+    );
+}
+
+.dash-chat button{
+  color:#7b49d8;
+}
 
 .dash-cyan{
   background:
@@ -6777,124 +6789,101 @@ body::before{
         <!-- אזור מרכזי -->
         <section class="dash-content">
 
-          <!-- 5 כרטיסים -->
-          <div class="dash-action-cards">
+<!-- 4 כרטיסים ראשיים -->
+<div class="dash-action-cards">
 
-            <!-- שיעורי בית -->
-            <article class="dash-action-card dash-blue">
+  <!-- למד אותי משהו -->
+  <article class="dash-action-card dash-chat">
 
-              <img
-                class="dash-card-image"
-                src="/assets/cards/homework-camera.webp"
-                alt=""
-              >
+    <img
+      class="dash-card-image"
+      src="/assets/robots/askie-robot.png"
+      alt=""
+    >
 
-              <h3>שיעורי בית</h3>
+    <h3>למד אותי משהו</h3>
 
-              <p>
-                צלם את הדף ואעזור לך לפתור
-                שלב אחרי שלב
-              </p>
+    <p>
+      יש משהו שמסקרן אותך?
+      בקש מחבר הלימודים ללמד אותך
+    </p>
 
-              <button onclick="showLearning('homework')">
-                📷 צלם עכשיו
-              </button>
+<button onclick="startLearnChat()">
+  🤖 בוא נלמד
+</button>
 
-            </article>
-
-
-            <!-- הכנה למבחן -->
-            <article class="dash-action-card dash-green">
-
-              <img
-                class="dash-card-image"
-                src="/assets/cards/exam-book.webp"
-                alt=""
-              >
-
-              <h3>הכנה למבחן</h3>
-
-              <p>
-                סיכומים, שאלות וכרטיסיות
-                חכמות
-              </p>
-
-              <button onclick="showLearning('exam')">
-                📗 התחל הכנה
-              </button>
-
-            </article>
+  </article>
 
 
-            <!-- תרגול -->
-            <article class="dash-action-card dash-purple">
+  <!-- שיעורי בית -->
+  <article class="dash-action-card dash-blue">
 
-              <img
-                class="dash-card-image"
-                src="/assets/cards/practice-pencil.webp"
-                alt=""
-              >
+    <img
+      class="dash-card-image"
+      src="/assets/cards/homework-camera.webp"
+      alt=""
+    >
 
-              <h3>תרגול</h3>
+    <h3>שיעורי בית</h3>
 
-              <p>
-                תרגילים מותאמים לך
-                לכל נושא
-              </p>
+    <p>
+      צלם את הדף ואעזור לך לפתור
+      שלב אחרי שלב
+    </p>
 
-              <button onclick="showLearning('practice')">
-                ◼ בחר נושא
-              </button>
+    <button onclick="showLearning('homework')">
+      📷 צלם עכשיו
+    </button>
 
-            </article>
-
-
-            <!-- קריאה -->
-            <article class="dash-action-card dash-orange">
-
-              <img
-                class="dash-card-image"
-                src="/assets/cards/reading-headphones.webp"
-                alt=""
-              >
-
-              <h3>קריאה</h3>
-
-              <p>
-                קרא בקול ואעזור לך
-                לשפר את השטף
-              </p>
-
-              <button onclick="showLearning('reading')">
-                🎙 התחל קריאה
-              </button>
-
-            </article>
+  </article>
 
 
-            <!-- משחקים -->
-            <article class="dash-action-card dash-cyan">
+  <!-- תרגול -->
+  <article class="dash-action-card dash-purple">
 
-              <img
-                class="dash-card-image"
-                src="/assets/cards/learning-game.webp"
-                alt=""
-              >
+    <img
+      class="dash-card-image"
+      src="/assets/cards/practice-pencil.webp"
+      alt=""
+    >
 
-              <h3>משחקי לימוד</h3>
+    <h3>תרגול</h3>
 
-              <p>
-                לומדים ממשחקים
-                ומרוויחים כוכבים
-              </p>
+    <p>
+      תרגילים מותאמים לך
+      לפי הנושא והרמה שלך
+    </p>
 
-              <button onclick="showLearning('games')">
-                🎮 שחק עכשיו
-              </button>
+    <button onclick="showLearning('practice')">
+      ✏️ בחר נושא
+    </button>
 
-            </article>
+  </article>
 
-          </div>
+
+  <!-- משחקים -->
+  <article class="dash-action-card dash-cyan">
+
+    <img
+      class="dash-card-image"
+      src="/assets/cards/learning-game.webp"
+      alt=""
+    >
+
+    <h3>משחקי לימוד</h3>
+
+    <p>
+      לומדים דרך משחקים
+      ומרוויחים כוכבים
+    </p>
+
+    <button onclick="showLearning('games')">
+      🎮 שחק עכשיו
+    </button>
+
+  </article>
+
+</div>
 
 
           <!-- התקדמות + יעדים -->
@@ -10274,6 +10263,32 @@ if(pathView){
 
 }
 
+async function startLearnChat(){
+
+  // מעבר למסך הצ'אט
+  showLearning("learn");
+
+  // מחכים רגע שהמסך יוצג
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        150
+      )
+  );
+
+  // מכניסים "היי" לשדה ההודעה
+  if(inputEl){
+
+    inputEl.value =
+      "היי";
+
+  }
+
+  // שולחים אוטומטית לצ'אט
+  await sendMessage();
+
+}
 
 function showLearning(mode = "homework") {
 
@@ -10369,6 +10384,15 @@ function setLearningMode(mode){
 
   switch(mode){
 
+case "learn":
+
+  title.textContent =
+    `היי ${kidName}, מה בא לך ללמוד?`;
+
+  subtitle.textContent =
+    "אפשר לשאול אותי על כל נושא שמעניין אותך, ואני אלמד אותך שלב אחרי שלב.";
+
+  break;
 
     case "homework":
 
@@ -11189,16 +11213,207 @@ prefetchLessonAudio(sequence) {
 
   }
 
+/* =========================
+   SPLIT SPEECH TO MAX 2 PARTS
+========================= */
+
+splitSpeechIntoTwo(text){
+
+  const cleanText =
+    (text || "").trim();
+
+  if(!cleanText){
+    return [];
+  }
+
+  /*
+    טקסט קצר:
+    אין טעם לפצל לקריאה נוספת
+  */
+
+  if(cleanText.length <= 70){
+    return [cleanText];
+  }
+
+
+  /*
+    קודם מנסים לפצל לפי סוף משפט
+  */
+
+  const sentences =
+    cleanText
+      .split(/(?<=[.!?])\s+/)
+      .map(part => part.trim())
+      .filter(Boolean);
+
+
+  if(sentences.length >= 2){
+
+    const totalLength =
+      cleanText.length;
+
+    let firstPart = "";
+    let secondPart = "";
+
+    let currentLength = 0;
+
+    for(
+      let i = 0;
+      i < sentences.length;
+      i++
+    ){
+
+      if(
+        currentLength <
+        totalLength / 2
+      ){
+
+        firstPart +=
+          (firstPart ? " " : "") +
+          sentences[i];
+
+        currentLength +=
+          sentences[i].length;
+
+      }
+      else{
+
+        secondPart +=
+          (secondPart ? " " : "") +
+          sentences[i];
+
+      }
+
+    }
+
+
+    if(
+      firstPart &&
+      secondPart
+    ){
+
+      return [
+        firstPart,
+        secondPart
+      ];
+
+    }
+
+  }
+
+
+  /*
+    אם אין נקודה באמצע,
+    מפצלים באזור אמצע הטקסט
+    לפי רווח
+  */
+
+  const middle =
+    Math.floor(
+      cleanText.length / 2
+    );
+
+
+  let splitIndex =
+    cleanText.indexOf(
+      " ",
+      middle
+    );
+
+
+  if(splitIndex === -1){
+
+    splitIndex =
+      cleanText.lastIndexOf(
+        " ",
+        middle
+      );
+
+  }
+
+
+  if(splitIndex === -1){
+
+    return [
+      cleanText
+    ];
+
+  }
+
+
+  return [
+
+    cleanText
+      .slice(
+        0,
+        splitIndex
+      )
+      .trim(),
+
+    cleanText
+      .slice(
+        splitIndex
+      )
+      .trim()
+
+  ];
+
+}
+
+
+/* =========================
+   PLAY AUDIO URL
+========================= */
+
+async playAudioUrl(
+  audioUrl
+){
+
+  if(!audioUrl){
+    return;
+  }
+
+
+  const audio =
+    new Audio(
+      audioUrl
+    );
+
+
+  await new Promise(
+    (resolve, reject) => {
+
+      audio.onended =
+        resolve;
+
+      audio.onerror =
+        reject;
+
+
+      audio
+        .play()
+        .catch(
+          reject
+        );
+
+    }
+  );
+
+}
 
   /* =========================
      SPEAK
   ========================= */
 
-async speak({ text, speech_tts }){
+async speak({
+  text,
+  speech_tts
+}){
 
   const audioText =
     speech_tts ||
     text;
+
 
   if(
     !audioText ||
@@ -11207,46 +11422,137 @@ async speak({ text, speech_tts }){
     return;
   }
 
+
   try{
 
     if(this.avatar){
+
       this.avatar
         .classList
         .add(
           "lesson-renderer-speaking"
         );
+
     }
 
-    const audioUrl =
-      await this.preloadAudio(
+
+    /*
+      מחלקים את הדיבור
+      לעד 2 חלקים
+    */
+
+    const parts =
+      this.splitSpeechIntoTwo(
         audioText
       );
 
-    if(!audioUrl){
+
+    if(
+      parts.length === 0
+    ){
       return;
     }
 
-    const audio =
-      new Audio(
-        audioUrl
+
+    /* =========================================
+       TTS 1
+       מייצרים קודם רק את החלק הראשון
+    ========================================= */
+
+    const firstAudioUrl =
+      await this.preloadAudio(
+        parts[0]
       );
 
-    await new Promise(
-      (resolve, reject) => {
 
-        audio.onended =
-          resolve;
+    if(!firstAudioUrl){
+      return;
+    }
 
-        audio.onerror =
-          reject;
 
-        audio.play()
-          .catch(
-            reject
-          );
+    /*
+      אם יש רק חלק אחד
+    */
 
-      }
-    );
+    if(
+      parts.length === 1
+    ){
+
+      await this.playAudioUrl(
+        firstAudioUrl
+      );
+
+      return;
+
+    }
+
+
+    /* =========================================
+       מתחילים לנגן TTS 1
+
+       וברגע שהנגינה מתחילה,
+       מתחילים להכין TTS 2 ברקע
+    ========================================= */
+
+    const firstAudio =
+      new Audio(
+        firstAudioUrl
+      );
+
+
+    const firstFinished =
+      new Promise(
+        (resolve, reject) => {
+
+          firstAudio.onended =
+            resolve;
+
+          firstAudio.onerror =
+            reject;
+
+        }
+      );
+
+
+    await firstAudio
+      .play();
+
+
+    /*
+      בזמן שהחלק הראשון מתנגן
+      Gemini כבר מייצר את החלק השני
+    */
+
+    const secondAudioPromise =
+      this.preloadAudio(
+        parts[1]
+      );
+
+
+    /*
+      מחכים רק לסיום
+      החלק הראשון
+    */
+
+    await firstFinished;
+
+
+    /*
+      ברוב המקרים החלק השני
+      כבר יהיה מוכן בשלב הזה
+    */
+
+    const secondAudioUrl =
+      await secondAudioPromise;
+
+
+    if(secondAudioUrl){
+
+      await this.playAudioUrl(
+        secondAudioUrl
+      );
+
+    }
 
   }
   catch(error){
@@ -11453,20 +11759,25 @@ async speak({ text, speech_tts }){
      ASK
   ========================= */
 
-async ask({ text }) {
+async ask({
+  text
+}){
 
-  await this.write({
-    text,
-    style: "question",
-    speed: 50
-  });
+  await Promise.all([
 
-  await this.speak({
-    text
-  });
+    this.write({
+      text,
+      style: "question",
+      speed: 50
+    }),
+
+    this.speak({
+      text
+    })
+
+  ]);
 
 }
-
 
   /* =========================
      RUN
@@ -11474,220 +11785,265 @@ async ask({ text }) {
 
 async run(script){
 
-console.log(
-  "LIVE LESSON SEQUENCE:",
-  script.sequence
-);
+  console.log(
+    "LIVE LESSON SEQUENCE:",
+    script.sequence
+  );
 
-console.table(
-  script.sequence.map(
-    action => ({
-      type: action.type,
-      text: action.text || "",
-      target: action.target || ""
-    })
-  )
-);
+  console.table(
+    script.sequence.map(
+      action => ({
+        type: action.type,
+        text: action.text || "",
+        target: action.target || ""
+      })
+    )
+  );
 
-  if(
-    this.isRunning
-  ){
+  if(this.isRunning){
     return;
   }
 
+  this.isRunning = true;
 
-    this.isRunning =
-      true;
+  this.prepare();
 
-
-    this.prepare();
-
-
-const sequence =
-  script.sequence ||
-  [];
-
-
-/* =========================================
-   מתחילים להכין את כל קטעי הקול ברקע
-========================================= */
-
-this.prefetchLessonAudio(
-  sequence
-);
+  const sequence =
+    script.sequence || [];
 
 
 
-
-/* =========================================
-   רק עכשיו מתחילים את השיעור
-========================================= */
-
-for(
-  const action of sequence
-){
 
   /* =========================================
-     NORMALIZE VISUAL ACTION TARGET
+     מריצים את השיעור
   ========================================= */
 
-  if(
-    action.type === "highlight" ||
-    action.type === "circle" ||
-    action.type === "robot_point"
+  for(
+    let i = 0;
+    i < sequence.length;
+    i++
   ){
+
+    const action =
+      sequence[i];
+
+    const nextAction =
+      sequence[i + 1];
+
+
+    /* =========================================
+       NORMALIZE VISUAL ACTION TARGET
+    ========================================= */
 
     if(
-      !action.target &&
-      action.text
+      action.type === "highlight" ||
+      action.type === "circle" ||
+      action.type === "robot_point"
     ){
 
-      action.target =
-        action.text;
+      if(
+        !action.target &&
+        action.text
+      ){
 
-    }
-
-  }
-
-
-  switch(
-    action.type
-  ){
-
-
-        case "speak":
-
-          await this.speak(
-            action
-          );
-
-          break;
-
-
-        case "write":
-
-          await this.write(
-            action
-          );
-
-          break;
-
-          case "robot_point":
-
-  await this.robotPoint(
-    action
-  );
-
-  break;
-
-
-        case "highlight":
-
-          await this.highlight(
-            action
-          );
-
-          break;
-
-
-        case "circle":
-
-          await this.circle(
-            action
-          );
-
-          break;
-
-
-        case "arrow":
-
-          await this.arrow(
-            action
-          );
-
-          break;
-
-
-        case "wait":
-
-          await this.wait(
-            action.duration ||
-            500
-          );
-
-          break;
-
-
-        case "ask":
-
-          await this.ask(
-            action
-          );
-
-          break;
-
-
-        default:
-
-          console.warn(
-            "Unknown lesson action:",
-            action
-          );
+        action.target =
+          action.text;
 
       }
 
     }
 
 
-    this.isRunning =
-      false;
+    /* =========================================
+       SPEAK + WRITE ביחד
+    ========================================= */
+
+    const isSpeakWritePair =
+      nextAction &&
+      (
+        (
+          action.type === "speak" &&
+          nextAction.type === "write"
+        )
+        ||
+        (
+          action.type === "write" &&
+          nextAction.type === "speak"
+        )
+      );
+
+
+    if(
+      isSpeakWritePair
+    ){
+
+      const speakAction =
+        action.type === "speak"
+          ? action
+          : nextAction;
+
+
+      const writeAction =
+        action.type === "write"
+          ? action
+          : nextAction;
+
+
+      await Promise.all([
+        this.speak(
+          speakAction
+        ),
+
+        this.write(
+          writeAction
+        )
+      ]);
+
+
+      /* הפעולה הבאה כבר בוצעה */
+      i++;
+
+      continue;
+
+    }
+
+
+    /* =========================================
+       פעולות רגילות
+    ========================================= */
+
+    switch(
+      action.type
+    ){
+
+      case "speak":
+
+        await this.speak(
+          action
+        );
+
+        break;
+
+
+      case "write":
+
+        await this.write(
+          action
+        );
+
+        break;
+
+
+      case "robot_point":
+
+        await this.robotPoint(
+          action
+        );
+
+        break;
+
+
+      case "highlight":
+
+        await this.highlight(
+          action
+        );
+
+        break;
+
+
+      case "circle":
+
+        await this.circle(
+          action
+        );
+
+        break;
+
+
+      case "arrow":
+
+        await this.arrow(
+          action
+        );
+
+        break;
+
+
+      case "wait":
+
+        await this.wait(
+          action.duration ||
+          500
+        );
+
+        break;
+
+
+      case "ask":
+
+        await this.ask(
+          action
+        );
+
+        break;
+
+
+      default:
+
+        console.warn(
+          "Unknown lesson action:",
+          action
+        );
+
+    }
 
   }
 
+
+  this.isRunning =
+    false;
+
 }
 
+}
 
 /* =====================================================
    DEMO
 ===================================================== */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
+function initLessonRenderer() {
 
-    const messages =
-      document.querySelector(
-        ".messages"
-      );
+  const messages =
+    document.querySelector(
+      ".messages"
+    );
 
+  if (!messages) {
+    console.error(
+      "Lesson Renderer: .messages not found"
+    );
+    return;
+  }
 
-    if(
-      !messages
-    ){
-
-      console.error(
-        "Lesson Renderer: .messages not found"
-      );
-
-      return;
-
-    }
-
-
-    const renderer =
+  if (!window.lessonRenderer) {
+    window.lessonRenderer =
       new LessonRendererV1(
         messages
       );
 
+    console.log(
+      "Lesson Renderer initialized"
+    );
+  }
 
-    window.lessonRenderer =
-      renderer;
+  const renderer =
+    window.lessonRenderer;
 
-
-    const demoButton =
-      document.createElement(
-        "button"
-      );
+  const demoButton =
+    document.createElement(
+      "button"
+    );
 
 
     demoButton.className =
@@ -11882,7 +12238,19 @@ await unlockLessonAudio();
 
       };
 
-  }
-);
+}
+
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initLessonRenderer
+  );
+
+} else {
+
+  initLessonRenderer();
+
+}
 </script>
 </body></html>
