@@ -9477,10 +9477,29 @@ else{
 
 }
 
-  } catch (e) {
-    console.error("NETWORK ERROR", e);
-    addMessage("assistant", "🌐 Network error – API not reachable");
-  }
+} catch (e) {
+
+  console.error(
+    "SEND MESSAGE ERROR:",
+    e
+  );
+
+  console.error(
+    "ERROR NAME:",
+    e?.name
+  );
+
+  console.error(
+    "ERROR MESSAGE:",
+    e?.message
+  );
+
+  addMessage(
+    "assistant",
+    `⚠️ שגיאה במערכת: ${e?.message || "Unknown error"}`
+  );
+
+}
 
 }
 
