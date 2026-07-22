@@ -903,11 +903,45 @@ def tutor_chat(
 
         # שומרים את הודעת הילד ותשובת ה-AI יחד
         # בקריאת Supabase אחת
+        # =================================================
+        # יצירת טקסט נקי של תשובת המורה לשמירה בהיסטוריה
+        # =================================================
+
+        assistant_history_parts = []
+
+        # מוסיפים את speech הראשי
+        if lesson_data.speech:
+            assistant_history_parts.append(
+                lesson_data.speech.strip()
+            )
+
+        # מוסיפים את הטקסטים הרלוונטיים מה-sequence
+        for action in lesson_data.sequence or []:
+
+            if (
+                    action.type in ("write", "ask")
+                    and action.text
+                    and action.text.strip()
+            ):
+
+                clean_text = action.text.strip()
+
+                # מונע שמירת אותו טקסט פעמיים
+                if clean_text not in assistant_history_parts:
+                    assistant_history_parts.append(
+                        clean_text
+                    )
+
+        assistant_history_text = "\n".join(
+            assistant_history_parts
+        )
+
+        # שומרים את הודעת הילד ואת תשובת המורה הנקייה
         save_tutor_chat_messages(
             user_id=user.id,
             kid_id=child["id"],
             user_content=message,
-            assistant_content=lesson_data.model_dump_json(),
+            assistant_content=assistant_history_text,
             assistant_tokens=total_tokens,
             session_id=session_id
         )
