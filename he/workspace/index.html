@@ -12399,6 +12399,77 @@ document.addEventListener(
 
   transform:scale(1.01);
 }
+    /* =====================================================
+   MOBILE - COMPACT CHAT HEADER
+===================================================== */
+
+@media (max-width:760px){
+
+  .welcome{
+    flex:0 0 auto !important;
+
+    padding:
+      12px
+      14px
+      8px !important;
+
+    min-height:105px !important;
+    max-height:120px !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+
+    overflow:hidden !important;
+  }
+
+
+  .welcome h1{
+    font-size:28px !important;
+    line-height:1.15 !important;
+
+    margin:
+      0
+      0
+      4px !important;
+
+    transform:none !important;
+  }
+
+
+  /* מבטלים את הקו הארוך במובייל */
+
+  .welcome h1::after{
+    width:120px !important;
+    height:3px !important;
+
+    margin:
+      4px
+      auto
+      0 !important;
+  }
+
+
+  .welcome p{
+    font-size:14px !important;
+    line-height:1.35 !important;
+
+    margin:
+      3px
+      auto
+      0 !important;
+
+    max-width:95% !important;
+  }
+
+
+  /* השיחה מתחילה מיד אחרי הכותרת */
+
+  .messages{
+    padding-top:12px !important;
+  }
+
+}
 </style>
 
 
