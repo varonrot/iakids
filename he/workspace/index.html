@@ -12584,12 +12584,45 @@ this.isRunning = false;
   }
 
 
-  scrollBottom(){
+scrollBottom(){
 
-    this.messages.scrollTop =
-      this.messages.scrollHeight;
+  if(
+    window.innerWidth <= 760
+  ){
+
+    if(
+      this.root
+    ){
+
+      const targetTop =
+        this.root.offsetTop -
+        (
+          this.messages.clientHeight / 2
+        ) +
+        120;
+
+      this.messages.scrollTo({
+        top:
+          Math.max(
+            0,
+            targetTop
+          ),
+
+        behavior:
+          "smooth"
+      });
+
+    }
+
+    return;
 
   }
+
+
+  this.messages.scrollTop =
+    this.messages.scrollHeight;
+
+}
 
 
   prepare(){
