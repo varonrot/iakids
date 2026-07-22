@@ -9390,6 +9390,12 @@ if (!res.ok) {
 
 
 const data = await res.json();
+console.log("MOBILE CHAT DATA:", data);
+
+alert(
+  "CHAT OK: " +
+  JSON.stringify(data).slice(0, 300)
+);
 
 if (data.session_id) {
   currentSessionId = data.session_id;
