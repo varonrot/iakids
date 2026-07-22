@@ -10,6 +10,8 @@ from datetime import datetime, timezone, timedelta
 import io
 import wave
 import os
+import json
+import base64
 
 # =====================================================
 # CONFIG
@@ -17,7 +19,9 @@ import os
 
 APP_NAME = "iakids AI Tutor Hebrew"
 PROMPT_PATH = Path("prompts/iakids_ai_tutor_system_prompt.txt")
-
+HOMEWORK_VISION_PROMPT_PATH = Path(
+    "prompts/iakids_homework_vision_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -48,8 +52,19 @@ if not GEMINI_API_KEY:
 
 if not PROMPT_PATH.exists():
     raise RuntimeError(f"Missing prompt file: {PROMPT_PATH}")
+if not HOMEWORK_VISION_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing homework vision prompt file: "
+        f"{HOMEWORK_VISION_PROMPT_PATH}"
+    )
 
 TUTOR_PROMPT_TEMPLATE = PROMPT_PATH.read_text(encoding="utf-8")
+HOMEWORK_VISION_PROMPT = (
+    HOMEWORK_VISION_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
 
 print("=== AI TUTOR PROMPT LOADED ===")
 print(TUTOR_PROMPT_TEMPLATE[:300])
@@ -105,6 +120,30 @@ class TutorChatRequest(BaseModel):
 class TutorTTSRequest(BaseModel):
     text: str
     session_id: str | None = None
+
+class HomeworkAnalyzeRequest(BaseModel):
+
+    kid_id: str
+
+    storage_path: str
+
+    session_id: str | None = None
+
+    file_name: str | None = None
+
+    file_type: str | None = None
+
+    file_size_bytes: int | None = None
+
+    original_width: int | None = None
+
+    original_height: int | None = None
+
+    processed_width: int | None = None
+
+    processed_height: int | None = None
+
+    compression_quality: float | None = None
 
 
 class TutorAction(BaseModel):
@@ -166,6 +205,70 @@ def update_tutor_session_after_tts(
         }
     ).execute()
 
+def update_tutor_session_after_vision(
+        session_id: str,
+        image_uploads: int = 1,
+        vision_calls: int = 1
+):
+
+    if not session_id:
+        return
+
+    res = (
+        sb.table("tutor_sessions")
+        .select(
+            "image_upload_count, "
+            "vision_call_count"
+        )
+        .eq(
+            "id",
+            session_id
+        )
+        .single()
+        .execute()
+    )
+
+    if not res.data:
+        return
+
+    current_image_uploads = int(
+        res.data.get(
+            "image_upload_count"
+        ) or 0
+    )
+
+    current_vision_calls = int(
+        res.data.get(
+            "vision_call_count"
+        ) or 0
+    )
+
+    sb.table(
+        "tutor_sessions"
+    ).update({
+
+        "image_upload_count":
+            current_image_uploads
+            + image_uploads,
+
+        "vision_call_count":
+            current_vision_calls
+            + vision_calls,
+
+        "last_activity_at":
+            datetime
+            .now(timezone.utc)
+            .isoformat(),
+
+        "updated_at":
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+
+    }).eq(
+        "id",
+        session_id
+    ).execute()
 
 # =====================================================
 # DATA HELPERS
@@ -774,6 +877,624 @@ def tutor_tts(
             detail="Gemini TTS failed"
         )
 
+# =====================================================
+# HOMEWORK IMAGE / PDF ANALYSIS
+# =====================================================
+
+@app.post(
+    "/api/tutor/homework-analyze"
+)
+def homework_analyze(
+        body: HomeworkAnalyzeRequest,
+        authorization: str = Header(None)
+):
+
+    upload_row_id = None
+
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+
+        if not body.storage_path:
+
+            raise HTTPException(
+                status_code=400,
+                detail="storage_path is required"
+            )
+
+
+        # =============================================
+        # מוודאים שהילד שייך למשתמש
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+
+        # =============================================
+        # SECURITY
+        #
+        # הנתיב חייב להתחיל ב-user_id
+        #
+        # user_id/kid_id/file.jpg
+        # =============================================
+
+        expected_prefix = (
+            f"{user.id}/"
+        )
+
+        if not body.storage_path.startswith(
+            expected_prefix
+        ):
+
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Invalid storage path"
+                )
+            )
+
+
+        # =============================================
+        # SESSION
+        # =============================================
+
+        if body.session_id:
+
+            session_id = (
+                body.session_id
+            )
+
+        else:
+
+            tutor_session = (
+                get_or_create_tutor_session(
+                    user_id=user.id,
+                    kid_id=child["id"]
+                )
+            )
+
+            session_id = (
+                tutor_session["id"]
+            )
+
+
+        # =============================================
+        # CREATE homework_uploads ROW
+        # =============================================
+
+        upload_res = (
+
+            sb.table(
+                "homework_uploads"
+            )
+
+            .insert({
+
+                "user_id":
+                    user.id,
+
+                "kid_id":
+                    child["id"],
+
+                "session_id":
+                    session_id,
+
+                "file_name":
+                    body.file_name,
+
+                "file_type":
+                    body.file_type,
+
+                "storage_path":
+                    body.storage_path,
+
+                "file_size_bytes":
+                    body.file_size_bytes,
+
+                "original_width":
+                    body.original_width,
+
+                "original_height":
+                    body.original_height,
+
+                "processed_width":
+                    body.processed_width,
+
+                "processed_height":
+                    body.processed_height,
+
+                "compression_quality":
+                    body.compression_quality,
+
+                "vision_status":
+                    "processing",
+
+                "vision_model":
+                    "gpt-4o-mini",
+
+                "vision_call_count":
+                    0
+
+            })
+
+            .execute()
+
+        )
+
+
+        if not upload_res.data:
+
+            raise RuntimeError(
+                "Failed to create "
+                "homework_uploads row"
+            )
+
+
+        upload_row_id = (
+            upload_res.data[0]["id"]
+        )
+
+
+        # =============================================
+        # DOWNLOAD FILE FROM PRIVATE STORAGE
+        # =============================================
+
+        file_bytes = (
+
+            sb.storage
+
+            .from_(
+                "homework-uploads"
+            )
+
+            .download(
+                body.storage_path
+            )
+
+        )
+
+
+        if not file_bytes:
+
+            raise RuntimeError(
+                "Failed to download "
+                "homework file"
+            )
+
+
+        # =============================================
+        # MIME TYPE
+        # =============================================
+
+        mime_type = (
+            body.file_type
+            or "image/jpeg"
+        )
+
+
+        allowed_mime_types = {
+
+            "image/jpeg",
+
+            "image/png",
+
+            "image/webp",
+
+            "application/pdf"
+
+        }
+
+
+        if mime_type not in (
+            allowed_mime_types
+        ):
+
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Unsupported file type"
+                )
+            )
+
+        # =============================================
+        # SEND TO OPENAI GPT-4o MINI VISION
+        # =============================================
+
+        base64_file = base64.b64encode(
+            file_bytes
+        ).decode("utf-8")
+
+        if mime_type == "application/pdf":
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "PDF analysis is not supported "
+                    "yet in GPT-4o-mini image mode"
+                )
+            )
+
+        data_url = (
+            f"data:{mime_type};base64,"
+            f"{base64_file}"
+        )
+
+        response = client.chat.completions.create(
+
+            model="gpt-4o-mini",
+
+            messages=[
+
+                {
+                    "role": "system",
+                    "content":
+                        HOMEWORK_VISION_PROMPT
+                },
+
+                {
+                    "role": "user",
+                    "content": [
+
+                        {
+                            "type": "text",
+                            "text":
+                                "Analyze this homework image "
+                                "and return only the requested JSON."
+                        },
+
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url":
+                                    data_url,
+
+                                "detail":
+                                    "high"
+                            }
+                        }
+
+                    ]
+                }
+
+            ],
+
+            response_format={
+                "type":
+                    "json_object"
+            },
+
+            temperature=0.1
+
+        )
+
+        # =============================================
+        # PARSE RESPONSE
+        # =============================================
+
+        raw_response = (
+                response.choices[0].message.content or ""
+        ).strip()
+
+
+        if not raw_response:
+
+            raise RuntimeError(
+                "Gemini Vision "
+                "returned empty response"
+            )
+
+
+        try:
+
+            analysis = json.loads(
+                raw_response
+            )
+
+        except json.JSONDecodeError:
+
+            print(
+                "VISION INVALID JSON:",
+                raw_response
+            )
+
+            raise RuntimeError(
+                "Gemini Vision "
+                "returned invalid JSON"
+            )
+
+
+        # =============================================
+        # EXTRACT VALUES
+        # =============================================
+
+        extracted_text = (
+            analysis.get(
+                "extracted_text"
+            )
+            or ""
+        )
+
+
+        detected_subject = (
+            analysis.get(
+                "subject"
+            )
+        )
+
+
+        detected_topic = (
+            analysis.get(
+                "topic"
+            )
+        )
+
+
+        detected_language = (
+            analysis.get(
+                "language"
+            )
+        )
+
+
+        needs_high_resolution = bool(
+
+            analysis.get(
+                "needs_high_resolution",
+                False
+            )
+
+        )
+
+
+        confidence = float(
+
+            analysis.get(
+                "confidence",
+                0
+            )
+
+            or 0
+
+        )
+
+
+        # =============================================
+        # TOKEN USAGE
+        # =============================================
+
+        input_tokens = 0
+
+        output_tokens = 0
+
+        total_tokens = 0
+
+        if response.usage:
+            input_tokens = response.usage.prompt_tokens or 0
+            output_tokens = response.usage.completion_tokens or 0
+            total_tokens = response.usage.total_tokens or 0
+
+        # =============================================
+        # STATUS
+        # =============================================
+
+        if needs_high_resolution:
+
+            vision_status = (
+                "needs_high_resolution"
+            )
+
+        else:
+
+            vision_status = (
+                "completed"
+            )
+
+
+        # =============================================
+        # UPDATE homework_uploads
+        # =============================================
+
+        sb.table(
+            "homework_uploads"
+        ).update({
+
+            "vision_status":
+                vision_status,
+
+            "vision_model":
+                "gpt-4o-mini",
+
+            "vision_call_count":
+                1,
+
+            "extracted_text":
+                extracted_text,
+
+            "detected_subject":
+                detected_subject,
+
+            "detected_topic":
+                detected_topic,
+
+            "detected_language":
+                detected_language,
+
+            "analysis_json":
+                analysis,
+
+            "input_tokens":
+                input_tokens,
+
+            "output_tokens":
+                output_tokens,
+
+            "total_tokens":
+                total_tokens,
+
+            "used_high_resolution":
+                False,
+
+            "updated_at":
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+
+        }).eq(
+
+            "id",
+            upload_row_id
+
+        ).execute()
+
+
+        # =============================================
+        # SESSION USAGE
+        # =============================================
+
+        update_tutor_session_after_vision(
+
+            session_id=session_id,
+
+            image_uploads=1,
+
+            vision_calls=1
+
+        )
+
+
+        # =============================================
+        # MONTHLY USAGE
+        # =============================================
+
+        increment_usage_summary(
+
+            user_id=user.id,
+
+            image_uploads=1,
+
+            vision_calls=1
+
+        )
+
+
+        # =============================================
+        # RESPONSE TO FRONTEND
+        # =============================================
+
+        return {
+
+            "success":
+                True,
+
+            "upload_id":
+                upload_row_id,
+
+            "session_id":
+                session_id,
+
+            "vision_status":
+                vision_status,
+
+            "needs_high_resolution":
+                needs_high_resolution,
+
+            "confidence":
+                confidence,
+
+            "subject":
+                detected_subject,
+
+            "topic":
+                detected_topic,
+
+            "language":
+                detected_language,
+
+            "extracted_text":
+                extracted_text,
+
+            "analysis":
+                analysis
+
+        }
+
+
+    except HTTPException:
+
+        raise
+
+
+    except Exception as e:
+
+        print(
+            "HOMEWORK ANALYZE ERROR:",
+            repr(e)
+        )
+
+
+        # =============================================
+        # UPDATE FAILED ROW
+        # =============================================
+
+        if upload_row_id:
+
+            try:
+
+                sb.table(
+                    "homework_uploads"
+                ).update({
+
+                    "vision_status":
+                        "failed",
+
+                    "vision_error":
+                        str(e)[:1000],
+
+                    "updated_at":
+                        datetime
+                        .now(timezone.utc)
+                        .isoformat()
+
+                }).eq(
+
+                    "id",
+                    upload_row_id
+
+                ).execute()
+
+            except Exception as update_error:
+
+                print(
+                    "HOMEWORK ERROR UPDATE FAILED:",
+                    repr(update_error)
+                )
+
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=(
+                "Homework analysis failed"
+            )
+
+        )
 
 # =====================================================
 # AI TUTOR CHAT
