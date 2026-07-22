@@ -9417,22 +9417,27 @@ if(
   )
 ){
 
-  try{
+try {
 
-    /* פתיחת הרשאת אודיו בדפדפן */
+  console.log(
+    "STEP 1 - BEFORE AUDIO UNLOCK"
+  );
 
-    await unlockLessonAudio();
+  await unlockLessonAudio();
 
+  console.log(
+    "STEP 2 - AUDIO UNLOCKED"
+  );
 
-if(
-  window.lessonRenderer
-){
+  if (
+    window.lessonRenderer
+  ) {
 
-  /* הפעלת השיעור האמיתי בלבד.
-     כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
+    console.log(
+      "STEP 3 - RENDERER EXISTS"
+    );
 
-  await window.lessonRenderer.run(
-    {
+    await window.lessonRenderer.run({
       sequence:
         data.sequence,
 
@@ -9441,44 +9446,35 @@ if(
 
       speech:
         data.speech
-    }
-  );
+    });
 
-}
-    else{
+    console.log(
+      "STEP 4 - RENDERER FINISHED"
+    );
 
-      console.error(
-        "lessonRenderer not initialized"
-      );
+  } else {
 
-      addMessage(
-        "assistant",
-        "לא הצלחתי להפעיל את השיעור."
-      );
-
-    }
-
-  }
-  catch(error){
-
-    console.error(
-      "LESSON RENDERER ERROR:",
-      error
+    alert(
+      "ERROR: lessonRenderer not initialized"
     );
 
   }
 
 }
-else{
+catch(error) {
 
-  console.error(
-    "Invalid tutor response:",
-    data
+  alert(
+    "RENDERER ERROR: " +
+    (
+      error?.message
+      ||
+      error
+    )
   );
 
-  addMessage(
-    "assistant",
-    "לא הצלחתי להכין את השיעור. נסו שוב."
+  console.error(
+    "LESSON RENDERER ERROR:",
+    error
   );
 
 }
