@@ -10707,6 +10707,107 @@ document.addEventListener(
 
   }
 );
+/* =====================================================
+   DRAG & DROP HOMEWORK FILES
+===================================================== */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    const uploadZone =
+      document.querySelector(
+        ".upload-zone"
+      );
+
+    if(
+      !uploadZone
+    ){
+      return;
+    }
+
+
+    /* לחיצה על האזור פותחת בחירת קובץ */
+
+    uploadZone.addEventListener(
+      "click",
+      event => {
+
+        /* לא לפתוח פעמיים אם לחצו על כפתור המצלמה */
+
+        if(
+          event.target.closest(
+            ".photo-btn"
+          )
+        ){
+          return;
+        }
+
+        openHomeworkFilePicker();
+
+      }
+    );
+
+
+    /* מאפשר Drop */
+
+    uploadZone.addEventListener(
+      "dragover",
+      event => {
+
+        event.preventDefault();
+
+        uploadZone.classList.add(
+          "drag-active"
+        );
+
+      }
+    );
+
+
+    uploadZone.addEventListener(
+      "dragleave",
+      () => {
+
+        uploadZone.classList.remove(
+          "drag-active"
+        );
+
+      }
+    );
+
+
+    uploadZone.addEventListener(
+      "drop",
+      event => {
+
+        event.preventDefault();
+
+        uploadZone.classList.remove(
+          "drag-active"
+        );
+
+
+        const file =
+          event.dataTransfer
+            ?.files?.[0];
+
+
+        if(
+          file
+        ){
+
+          handleHomeworkFile(
+            file
+          );
+
+        }
+
+      }
+    );
+
+  }
+);
 
 /* ---------- QUICK ASK MAP (ES - GENERAL) ---------- */
 const QUICK_ASK_MAP = {
@@ -12105,7 +12206,17 @@ document.addEventListener(
   }
 
 }
+.upload-zone.drag-active{
+  border-color:#7048ff !important;
+  background:
+    linear-gradient(
+      180deg,
+      #f5f1ff,
+      #ffffff
+    ) !important;
 
+  transform:scale(1.01);
+}
 </style>
 
 
