@@ -6528,6 +6528,141 @@ body::before{
   }
 
 }
+    /* =====================================================
+   MOBILE CHAT LAYOUT FIX
+   ===================================================== */
+
+@media (max-width:760px){
+
+  /* ---------- הודעת הילד ---------- */
+
+  .msg-row.user{
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+
+    padding-top:55px !important;
+
+    margin:12px 0 20px !important;
+  }
+
+
+  /* אווטאר הילד למעלה מימין */
+
+  .msg-row.user .msg-avatar{
+    position:absolute !important;
+
+    top:0 !important;
+    right:8px !important;
+
+    width:48px !important;
+    height:48px !important;
+
+    margin:0 !important;
+
+    z-index:5;
+  }
+
+
+  /* הבועה של הילד */
+
+  .msg-row.user .msg-bubble{
+    width:auto !important;
+
+    max-width:72% !important;
+
+    margin:
+      0
+      auto !important;
+
+    font-size:18px !important;
+
+    padding:
+      13px
+      20px !important;
+
+    text-align:center !important;
+  }
+
+
+  /* ---------- תשובת המורה ---------- */
+
+  .tutor-response{
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+
+    padding-top:58px !important;
+
+    margin:
+      10px
+      0
+      30px !important;
+  }
+
+
+  /* הרובוט למעלה מימין */
+
+  .tutor-avatar{
+    position:absolute !important;
+
+    top:0 !important;
+    right:8px !important;
+
+    width:48px !important;
+    height:48px !important;
+
+    margin:0 !important;
+
+    z-index:5;
+  }
+
+
+  /* אזור הכתיבה מקבל את כל הרוחב */
+
+  .tutor-writing-area{
+    width:100% !important;
+    max-width:100% !important;
+
+    padding:0 12px !important;
+
+    align-items:center !important;
+  }
+
+
+  /* טקסט המורה במרכז המחברת */
+
+  .tutor-writing{
+    width:100% !important;
+
+    max-width:100% !important;
+
+    text-align:center !important;
+
+    font-size:28px !important;
+
+    line-height:1.55 !important;
+  }
+
+
+  /* אזור ההודעות */
+
+  .messages{
+    padding:
+      20px
+      12px
+      125px !important;
+
+    scroll-padding-top:100px !important;
+
+    scroll-padding-bottom:140px !important;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -9328,7 +9463,10 @@ function typeTutorText(element, text, onComplete) {
     element.textContent += char;
     i++;
 
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+element.scrollIntoView({
+  behavior: "smooth",
+  block: "center"
+});
 
     let delay = 35;
 
@@ -13644,7 +13782,7 @@ function initLessonRenderer() {
   const renderer =
     window.lessonRenderer;
 
- 
+
 
     demoButton.onclick =
       async () => {
