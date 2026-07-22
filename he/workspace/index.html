@@ -6808,9 +6808,9 @@ body::before{
       בקש מחבר הלימודים להסביר וללמד אותך
     </p>
 
-    <button onclick="showLearning('learn')">
-      🤖 בוא נלמד
-    </button>
+<button onclick="startLearnChat()">
+  🤖 בוא נלמד
+</button>
 
   </article>
 
@@ -10263,6 +10263,32 @@ if(pathView){
 
 }
 
+async function startLearnChat(){
+
+  // מעבר למסך הצ'אט
+  showLearning("learn");
+
+  // מחכים רגע שהמסך יוצג
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        150
+      )
+  );
+
+  // מכניסים "היי" לשדה ההודעה
+  if(inputEl){
+
+    inputEl.value =
+      "היי";
+
+  }
+
+  // שולחים אוטומטית לצ'אט
+  await sendMessage();
+
+}
 
 function showLearning(mode = "homework") {
 
