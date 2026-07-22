@@ -9390,9 +9390,6 @@ if (!res.ok) {
 
 
 const data = await res.json();
-console.log("MOBILE CHAT DATA:", data);
-
- 
 
 if (data.session_id) {
   currentSessionId = data.session_id;
@@ -9414,27 +9411,22 @@ if(
   )
 ){
 
-try {
+  try{
 
-  console.log(
-    "STEP 1 - BEFORE AUDIO UNLOCK"
-  );
+    /* פתיחת הרשאת אודיו בדפדפן */
 
-  await unlockLessonAudio();
+    await unlockLessonAudio();
 
-  console.log(
-    "STEP 2 - AUDIO UNLOCKED"
-  );
 
-  if (
-    window.lessonRenderer
-  ) {
+if(
+  window.lessonRenderer
+){
 
-    console.log(
-      "STEP 3 - RENDERER EXISTS"
-    );
+  /* הפעלת השיעור האמיתי בלבד.
+     כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
 
-    await window.lessonRenderer.run({
+  await window.lessonRenderer.run(
+    {
       sequence:
         data.sequence,
 
@@ -9443,62 +9435,52 @@ try {
 
       speech:
         data.speech
-    });
+    }
+  );
 
-    console.log(
-      "STEP 4 - RENDERER FINISHED"
-    );
+}
+    else{
 
-  } else {
+      console.error(
+        "lessonRenderer not initialized"
+      );
 
-    alert(
-      "ERROR: lessonRenderer not initialized"
+      addMessage(
+        "assistant",
+        "לא הצלחתי להפעיל את השיעור."
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      "LESSON RENDERER ERROR:",
+      error
     );
 
   }
 
 }
-catch(error) {
-
-  alert(
-    "RENDERER ERROR: " +
-    (
-      error?.message
-      ||
-      error
-    )
-  );
+else{
 
   console.error(
-    "LESSON RENDERER ERROR:",
-    error
-  );
-
-}
-
-} catch (e) {
-
-  console.error(
-    "SEND MESSAGE ERROR:",
-    e
-  );
-
-  console.error(
-    "ERROR NAME:",
-    e?.name
-  );
-
-  console.error(
-    "ERROR MESSAGE:",
-    e?.message
+    "Invalid tutor response:",
+    data
   );
 
   addMessage(
     "assistant",
-    `⚠️ שגיאה במערכת: ${e?.message || "Unknown error"}`
+    "לא הצלחתי להכין את השיעור. נסו שוב."
   );
 
 }
+
+  } catch (e) {
+    console.error("NETWORK ERROR", e);
+    addMessage("assistant", "🌐 Network error – API not reachable");
+  }
 
 }
 
