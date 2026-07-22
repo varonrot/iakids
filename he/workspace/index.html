@@ -9367,18 +9367,31 @@ function addAssistantTyping(text) {
   bubble.textContent = "";
   row.appendChild(bubble);
 
-  messagesEl.appendChild(row);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+messagesEl.appendChild(row);
 
-  let i = 0;
+if (window.innerWidth <= 760) {
+  row.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+} else {
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+}
+
+let i = 0;
 
   function typeNext() {
     if (i >= text.length) return;
 
-    const char = text[i];
-    bubble.textContent += char;
-    i++;
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+const char = text[i];
+bubble.textContent += char;
+i++;
+
+if (window.innerWidth > 760) {
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+}
 
     let delay = 35 + Math.random() * 40; // 35–75ms
 
@@ -9407,8 +9420,17 @@ function animateTutorReply(text) {
   row.appendChild(avatar);
   row.appendChild(writingArea);
 
-  messagesEl.appendChild(row);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+messagesEl.appendChild(row);
+
+if (window.innerWidth <= 760) {
+  row.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+} else {
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+}
 
   const sentences = text
     .split(/(?<=[.!?])\s+/)
@@ -9460,13 +9482,18 @@ function typeTutorText(element, text, onComplete) {
 
     const char = text[i];
 
-    element.textContent += char;
-    i++;
+element.textContent += char;
+i++;
 
-element.scrollIntoView({
-  behavior: "smooth",
-  block: "center"
-});
+if (
+  window.innerWidth <= 760 &&
+  i === 1
+) {
+  element.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
 
     let delay = 35;
 
