@@ -9348,8 +9348,17 @@ function addMessage(role, text) {
     row.appendChild(avatar);
   }
 
-  messagesEl.appendChild(row);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+messagesEl.appendChild(row);
+
+if (window.innerWidth <= 760) {
+  row.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+} else {
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+}
 }
 
 /* ---------- ASSISTANT TYPING ---------- */
