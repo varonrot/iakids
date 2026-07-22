@@ -6831,9 +6831,9 @@ body::before{
       שלב אחרי שלב
     </p>
 
-    <button onclick="showLearning('homework')">
-      📷 צלם עכשיו
-    </button>
+<button onclick="startHomeworkCamera()">
+  📷 צלם עכשיו
+</button>
 
   </article>
 
@@ -7365,10 +7365,14 @@ body::before{
               תמיכה ב־JPG, PNG, PDF
             </p>
 
-            <button class="photo-btn">
-              <i class="fa-solid fa-camera"></i>
-              צלמו תמונה עכשיו
-            </button>
+<button
+  class="photo-btn"
+  type="button"
+  onclick="openHomeworkCamera()"
+>
+  <i class="fa-solid fa-camera"></i>
+  צלמו תמונה עכשיו
+</button>
 
           </div>
 
@@ -7421,12 +7425,14 @@ body::before{
             placeholder="כתבו הודעה למורה AI..."
           >
 
-          <button
-            class="composer-icon"
-            title="צרף תמונה"
-          >
-            <i class="fa-solid fa-paperclip"></i>
-          </button>
+<button
+  class="composer-icon"
+  type="button"
+  title="צרף תמונה או PDF"
+  onclick="openHomeworkFilePicker()"
+>
+  <i class="fa-solid fa-paperclip"></i>
+</button>
 
           <button
             class="talk-btn"
@@ -9477,6 +9483,1231 @@ else{
   }
 
 }
+
+/* =====================================================
+   HOMEWORK IMAGE / PDF UPLOAD
+===================================================== */
+
+let homeworkUploadInProgress = false;
+
+
+/* =====================================================
+   פתיחת מצלמה מהדשבורד
+===================================================== */
+
+async function startHomeworkCamera(){
+
+  /* קודם עוברים למסך שיעורי הבית */
+
+  showLearning(
+    "homework"
+  );
+
+
+  /* נותנים למסך רגע להיפתח */
+
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        100
+      )
+  );
+
+
+  /* פותחים מצלמה */
+
+  document
+    .getElementById(
+      "homeworkCameraInput"
+    )
+    ?.click();
+
+}
+
+
+/* =====================================================
+   בחירת קובץ
+===================================================== */
+
+function openHomeworkFilePicker(){
+
+  document
+    .getElementById(
+      "homeworkFileInput"
+    )
+    ?.click();
+
+}
+
+
+/* =====================================================
+   פתיחת מצלמה מתוך מסך שיעורי הבית
+===================================================== */
+
+function openHomeworkCamera(){
+
+  document
+    .getElementById(
+      "homeworkCameraInput"
+    )
+    ?.click();
+
+}
+
+
+/* =====================================================
+   קבלת מידות תמונה מקורית
+===================================================== */
+
+function getImageDimensions(file){
+
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+
+      const image =
+        new Image();
+
+
+      const url =
+        URL.createObjectURL(
+          file
+        );
+
+
+      image.onload =
+        () => {
+
+          const dimensions = {
+
+            width:
+              image.naturalWidth,
+
+            height:
+              image.naturalHeight
+
+          };
+
+
+          URL.revokeObjectURL(
+            url
+          );
+
+
+          resolve(
+            dimensions
+          );
+
+        };
+
+
+      image.onerror =
+        error => {
+
+          URL.revokeObjectURL(
+            url
+          );
+
+          reject(
+            error
+          );
+
+        };
+
+
+      image.src =
+        url;
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   הקטנת ודחיסת תמונה
+
+   מקסימום צד ארוך:
+   1600px
+
+   JPEG:
+   quality 0.82
+===================================================== */
+
+async function compressHomeworkImage(
+  file
+){
+
+  const dimensions =
+    await getImageDimensions(
+      file
+    );
+
+
+  const image =
+    await new Promise(
+      (
+        resolve,
+        reject
+      ) => {
+
+        const img =
+          new Image();
+
+
+        const url =
+          URL.createObjectURL(
+            file
+          );
+
+
+        img.onload =
+          () => {
+
+            URL.revokeObjectURL(
+              url
+            );
+
+            resolve(
+              img
+            );
+
+          };
+
+
+        img.onerror =
+          error => {
+
+            URL.revokeObjectURL(
+              url
+            );
+
+            reject(
+              error
+            );
+
+          };
+
+
+        img.src =
+          url;
+
+      }
+    );
+
+
+  const MAX_DIMENSION =
+    1600;
+
+
+  let width =
+    dimensions.width;
+
+
+  let height =
+    dimensions.height;
+
+
+  /* רק אם התמונה גדולה מדי */
+
+  if(
+    width >
+      MAX_DIMENSION ||
+    height >
+      MAX_DIMENSION
+  ){
+
+    const scale =
+      Math.min(
+
+        MAX_DIMENSION /
+          width,
+
+        MAX_DIMENSION /
+          height
+
+      );
+
+
+    width =
+      Math.round(
+        width *
+        scale
+      );
+
+
+    height =
+      Math.round(
+        height *
+        scale
+      );
+
+  }
+
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+
+  canvas.width =
+    width;
+
+
+  canvas.height =
+    height;
+
+
+  const ctx =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  /* רקע לבן חשוב לדפי שיעורי בית */
+
+  ctx.fillStyle =
+    "#ffffff";
+
+
+  ctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  ctx.drawImage(
+    image,
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  const blob =
+    await new Promise(
+      (
+        resolve,
+        reject
+      ) => {
+
+        canvas.toBlob(
+
+          result => {
+
+            if(
+              !result
+            ){
+
+              reject(
+                new Error(
+                  "Image compression failed"
+                )
+              );
+
+              return;
+
+            }
+
+
+            resolve(
+              result
+            );
+
+          },
+
+          "image/jpeg",
+
+          0.82
+
+        );
+
+      }
+    );
+
+
+  const compressedFile =
+    new File(
+
+      [
+        blob
+      ],
+
+      `homework-${Date.now()}.jpg`,
+
+      {
+        type:
+          "image/jpeg"
+      }
+
+    );
+
+
+  return {
+
+    file:
+      compressedFile,
+
+    originalWidth:
+      dimensions.width,
+
+    originalHeight:
+      dimensions.height,
+
+    processedWidth:
+      width,
+
+    processedHeight:
+      height,
+
+    compressionQuality:
+      0.82
+
+  };
+
+}
+
+
+/* =====================================================
+   סטטוס העלאה למשתמש
+===================================================== */
+
+function showHomeworkStatus(
+  text
+){
+
+  const emptyState =
+    document.getElementById(
+      "emptyState"
+    );
+
+
+  if(
+    emptyState
+  ){
+
+    emptyState.style.display =
+      "none";
+
+  }
+
+
+  addMessage(
+    "assistant",
+    text
+  );
+
+}
+
+
+/* =====================================================
+   פונקציה ראשית
+   טיפול בתמונה / PDF
+===================================================== */
+
+async function handleHomeworkFile(
+  originalFile
+){
+
+  if(
+    !originalFile ||
+    homeworkUploadInProgress
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    !CURRENT_KID?.id
+  ){
+
+    alert(
+      "לא נמצא פרופיל ילד פעיל"
+    );
+
+    return;
+
+  }
+
+
+  homeworkUploadInProgress =
+    true;
+
+
+  try{
+
+
+    /* =============================================
+       SESSION
+    ============================================= */
+
+    const {
+      data:
+        sessionData
+
+    } =
+      await sb.auth.getSession();
+
+
+    const session =
+      sessionData.session;
+
+
+    if(
+      !session
+    ){
+
+      throw new Error(
+        "No active session"
+      );
+
+    }
+
+
+    /* =============================================
+       מעבר למסך שיעורי הבית
+    ============================================= */
+
+    showLearning(
+      "homework"
+    );
+
+
+    showHomeworkStatus(
+      "📷 קיבלתי את התרגיל. אני קורא אותו עכשיו..."
+    );
+
+
+    /* =============================================
+       ברירת מחדל - PDF לא נדחס
+    ============================================= */
+
+    let uploadFile =
+      originalFile;
+
+
+    let originalWidth =
+      null;
+
+
+    let originalHeight =
+      null;
+
+
+    let processedWidth =
+      null;
+
+
+    let processedHeight =
+      null;
+
+
+    let compressionQuality =
+      null;
+
+
+    /* =============================================
+       תמונה - דחיסה לפני העלאה
+    ============================================= */
+
+    if(
+      originalFile.type
+        .startsWith(
+          "image/"
+        )
+    ){
+
+      const compressed =
+        await compressHomeworkImage(
+          originalFile
+        );
+
+
+      uploadFile =
+        compressed.file;
+
+
+      originalWidth =
+        compressed.originalWidth;
+
+
+      originalHeight =
+        compressed.originalHeight;
+
+
+      processedWidth =
+        compressed.processedWidth;
+
+
+      processedHeight =
+        compressed.processedHeight;
+
+
+      compressionQuality =
+        compressed.compressionQuality;
+
+    }
+
+
+    /* =============================================
+       בניית נתיב בטוח לפי Policy
+
+       USER_ID / KID_ID / filename
+    ============================================= */
+
+    const safeFileName =
+
+      `${Date.now()}-${
+
+        uploadFile.name
+
+          .replace(
+            /[^a-zA-Z0-9._-]/g,
+            "_"
+          )
+
+      }`;
+
+
+    const storagePath =
+
+      `${session.user.id}/${CURRENT_KID.id}/${safeFileName}`;
+
+
+    console.log(
+
+      "HOMEWORK STORAGE PATH:",
+
+      storagePath
+
+    );
+
+
+    /* =============================================
+       UPLOAD TO SUPABASE STORAGE
+    ============================================= */
+
+    const {
+
+      data:
+        uploadData,
+
+      error:
+        uploadError
+
+    } =
+
+      await sb
+
+        .storage
+
+        .from(
+          "homework-uploads"
+        )
+
+        .upload(
+
+          storagePath,
+
+          uploadFile,
+
+          {
+
+            cacheControl:
+              "3600",
+
+            upsert:
+              false,
+
+            contentType:
+              uploadFile.type
+
+          }
+
+        );
+
+
+    if(
+      uploadError
+    ){
+
+      console.error(
+
+        "STORAGE UPLOAD ERROR:",
+
+        uploadError
+
+      );
+
+
+      throw new Error(
+        uploadError.message
+      );
+
+    }
+
+
+    console.log(
+
+      "HOMEWORK UPLOADED:",
+
+      uploadData
+
+    );
+
+
+    /* =============================================
+       CALL VISION BACKEND
+    ============================================= */
+
+    const response =
+
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/homework-analyze`,
+
+        {
+
+          method:
+            "POST",
+
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+
+          },
+
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              session_id:
+                currentSessionId,
+
+              storage_path:
+                storagePath,
+
+              file_name:
+                originalFile.name,
+
+              file_type:
+                uploadFile.type,
+
+              file_size_bytes:
+                uploadFile.size,
+
+              original_width:
+                originalWidth,
+
+              original_height:
+                originalHeight,
+
+              processed_width:
+                processedWidth,
+
+              processed_height:
+                processedHeight,
+
+              compression_quality:
+                compressionQuality
+
+            })
+
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+
+        "HOMEWORK ANALYZE ERROR:",
+
+        response.status,
+
+        errorText
+
+      );
+
+
+      throw new Error(
+
+        `Homework analyze failed: ${response.status}`
+
+      );
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    console.log(
+
+      "HOMEWORK ANALYSIS:",
+
+      result
+
+    );
+
+
+    /* =============================================
+       עדכון session ID
+    ============================================= */
+
+    if(
+      result.session_id
+    ){
+
+      currentSessionId =
+        result.session_id;
+
+    }
+
+
+    /* =============================================
+       איכות לא מספיקה
+    ============================================= */
+
+    if(
+      result.needs_high_resolution
+    ){
+
+      addMessage(
+
+        "assistant",
+
+        "🔍 התמונה קצת לא ברורה. כדאי לצלם שוב מקרוב ובתאורה טובה."
+
+      );
+
+
+      return;
+
+    }
+
+
+    /* =============================================
+       אין טקסט מפוענח
+    ============================================= */
+
+    if(
+      !result.extracted_text
+    ){
+
+      addMessage(
+
+        "assistant",
+
+        "לא הצלחתי לקרוא את התרגיל מהתמונה. נסו לצלם שוב בצורה ברורה יותר."
+
+      );
+
+
+      return;
+
+    }
+
+
+    /* =============================================
+       מעבירים את הפענוח למורה AI
+    ============================================= */
+
+    await sendHomeworkAnalysisToTutor(
+
+      result
+
+    );
+
+
+  }
+  catch(
+    error
+  ){
+
+    console.error(
+
+      "HOMEWORK UPLOAD ERROR:",
+
+      error
+
+    );
+
+
+    addMessage(
+
+      "assistant",
+
+      "⚠️ לא הצלחתי לנתח את התמונה. נסו שוב בעוד רגע."
+
+    );
+
+  }
+  finally{
+
+    homeworkUploadInProgress =
+      false;
+
+
+    /*
+    מאפשר לבחור שוב את אותו הקובץ
+    */
+
+    const cameraInput =
+      document.getElementById(
+        "homeworkCameraInput"
+      );
+
+
+    const fileInput =
+      document.getElementById(
+        "homeworkFileInput"
+      );
+
+
+    if(
+      cameraInput
+    ){
+
+      cameraInput.value =
+        "";
+
+    }
+
+
+    if(
+      fileInput
+    ){
+
+      fileInput.value =
+        "";
+
+    }
+
+  }
+
+}
+
+
+/* =====================================================
+   שליחת הפענוח למורה AI
+
+   הילד לא רואה את כל הטקסט הטכני
+===================================================== */
+
+async function sendHomeworkAnalysisToTutor(
+  analysis
+){
+
+  const {
+    data:
+      sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData.session;
+
+
+  if(
+    !session
+  ){
+
+    throw new Error(
+      "No active session"
+    );
+
+  }
+
+
+  /* הודעה קצרה שרואים על המסך */
+
+  addMessage(
+
+    "user",
+
+    "📷 העליתי צילום של שיעורי הבית"
+
+  );
+
+
+  /*
+  הטקסט המלא נשלח למורה.
+
+  הוא לא מוצג כבועה נוספת לילד.
+  */
+
+  const tutorMessage = `
+
+הילד העלה צילום של שיעורי הבית.
+
+מקצוע שזוהה:
+${analysis.subject || "לא ידוע"}
+
+נושא שזוהה:
+${analysis.topic || "לא ידוע"}
+
+תוכן התרגיל שפוענח:
+${analysis.extracted_text}
+
+עזור לילד לפתור את התרגיל שלב אחרי שלב.
+אל תיתן מיד את התשובה הסופית.
+התחל מהשאלה או הצעד הראשון המתאים.
+
+`.trim();
+
+
+  const response =
+
+    await fetch(
+
+      `${TUTOR_API_BASE}/api/tutor/chat`,
+
+      {
+
+        method:
+          "POST",
+
+
+        headers: {
+
+          "Content-Type":
+            "application/json",
+
+          "Authorization":
+            `Bearer ${session.access_token}`
+
+        },
+
+
+        body:
+          JSON.stringify({
+
+            message:
+              tutorMessage,
+
+            kid_id:
+              CURRENT_KID.id
+
+          })
+
+      }
+
+    );
+
+
+  if(
+    !response.ok
+  ){
+
+    const errorText =
+      await response.text();
+
+
+    console.error(
+
+      "HOMEWORK TUTOR ERROR:",
+
+      response.status,
+
+      errorText
+
+    );
+
+
+    throw new Error(
+      "Tutor request failed"
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if(
+    data.session_id
+  ){
+
+    currentSessionId =
+      data.session_id;
+
+  }
+
+
+  console.log(
+
+    "HOMEWORK TUTOR RESPONSE:",
+
+    data
+
+  );
+
+
+  /* =============================================
+     מריצים את ה-Renderer הקיים
+  ============================================= */
+
+  if(
+    data.sequence &&
+    Array.isArray(
+      data.sequence
+    ) &&
+    window.lessonRenderer
+  ){
+
+    await unlockLessonAudio();
+
+
+    await window.lessonRenderer.run({
+
+      sequence:
+        data.sequence,
+
+      wait_for_answer:
+        data.wait_for_answer,
+
+      speech:
+        data.speech
+
+    });
+
+  }
+  else{
+
+    console.error(
+
+      "Invalid homework tutor response:",
+
+      data
+
+    );
+
+
+    addMessage(
+
+      "assistant",
+
+      "קראתי את התרגיל, אבל לא הצלחתי להתחיל את השיעור."
+
+    );
+
+  }
+
+}
+/* =====================================================
+   HOMEWORK FILE INPUT EVENTS
+===================================================== */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    const cameraInput =
+      document.getElementById(
+        "homeworkCameraInput"
+      );
+
+
+    const fileInput =
+      document.getElementById(
+        "homeworkFileInput"
+      );
+
+
+    if(
+      cameraInput
+    ){
+
+      cameraInput.addEventListener(
+
+        "change",
+
+        event => {
+
+          const file =
+            event.target
+              .files?.[0];
+
+
+          if(
+            file
+          ){
+
+            handleHomeworkFile(
+              file
+            );
+
+          }
+
+        }
+
+      );
+
+    }
+
+
+    if(
+      fileInput
+    ){
+
+      fileInput.addEventListener(
+
+        "change",
+
+        event => {
+
+          const file =
+            event.target
+              .files?.[0];
+
+
+          if(
+            file
+          ){
+
+            handleHomeworkFile(
+              file
+            );
+
+          }
+
+        }
+
+      );
+
+    }
+
+  }
+);
+
 /* ---------- QUICK ASK MAP (ES - GENERAL) ---------- */
 const QUICK_ASK_MAP = {
   // LEFT SIDEBAR
@@ -10657,7 +11888,7 @@ document.addEventListener(
     0 10px 28px
     rgba(112,72,255,.28);
 }
-    
+
     /* =====================================================
    TABLET DASHBOARD - FINAL FIX
    iPad / Tablets
@@ -10874,7 +12105,7 @@ document.addEventListener(
   }
 
 }
-    
+
 </style>
 
 
@@ -12471,4 +13702,25 @@ if (document.readyState === "loading") {
 
 }
 </script>
+<!-- =====================================================
+     HOMEWORK FILE INPUTS
+===================================================== -->
+
+<!-- צילום ישירות מהמצלמה -->
+<input
+  type="file"
+  id="homeworkCameraInput"
+  accept="image/*"
+  capture="environment"
+  style="display:none;"
+>
+
+<!-- בחירת תמונה או PDF -->
+<input
+  type="file"
+  id="homeworkFileInput"
+  accept="image/jpeg,image/png,image/webp,application/pdf"
+  style="display:none;"
+>
+
 </body></html>
