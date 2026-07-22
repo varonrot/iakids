@@ -95,6 +95,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
+
     allow_origins=[
         "https://iakids.app",
         "https://www.iakids.app",
@@ -102,9 +103,26 @@ app.add_middleware(
         "http://localhost:5500",
         "http://127.0.0.1:5500",
     ],
+
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+
+    allow_methods=[
+        "GET",
+        "POST",
+        "OPTIONS"
+    ],
+
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept"
+    ],
+
+    expose_headers=[
+        "Content-Type"
+    ],
+
+    max_age=86400
 )
 
 
