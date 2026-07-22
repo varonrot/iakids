@@ -11189,16 +11189,207 @@ prefetchLessonAudio(sequence) {
 
   }
 
+/* =========================
+   SPLIT SPEECH TO MAX 2 PARTS
+========================= */
+
+splitSpeechIntoTwo(text){
+
+  const cleanText =
+    (text || "").trim();
+
+  if(!cleanText){
+    return [];
+  }
+
+  /*
+    טקסט קצר:
+    אין טעם לפצל לקריאה נוספת
+  */
+
+  if(cleanText.length <= 70){
+    return [cleanText];
+  }
+
+
+  /*
+    קודם מנסים לפצל לפי סוף משפט
+  */
+
+  const sentences =
+    cleanText
+      .split(/(?<=[.!?])\s+/)
+      .map(part => part.trim())
+      .filter(Boolean);
+
+
+  if(sentences.length >= 2){
+
+    const totalLength =
+      cleanText.length;
+
+    let firstPart = "";
+    let secondPart = "";
+
+    let currentLength = 0;
+
+    for(
+      let i = 0;
+      i < sentences.length;
+      i++
+    ){
+
+      if(
+        currentLength <
+        totalLength / 2
+      ){
+
+        firstPart +=
+          (firstPart ? " " : "") +
+          sentences[i];
+
+        currentLength +=
+          sentences[i].length;
+
+      }
+      else{
+
+        secondPart +=
+          (secondPart ? " " : "") +
+          sentences[i];
+
+      }
+
+    }
+
+
+    if(
+      firstPart &&
+      secondPart
+    ){
+
+      return [
+        firstPart,
+        secondPart
+      ];
+
+    }
+
+  }
+
+
+  /*
+    אם אין נקודה באמצע,
+    מפצלים באזור אמצע הטקסט
+    לפי רווח
+  */
+
+  const middle =
+    Math.floor(
+      cleanText.length / 2
+    );
+
+
+  let splitIndex =
+    cleanText.indexOf(
+      " ",
+      middle
+    );
+
+
+  if(splitIndex === -1){
+
+    splitIndex =
+      cleanText.lastIndexOf(
+        " ",
+        middle
+      );
+
+  }
+
+
+  if(splitIndex === -1){
+
+    return [
+      cleanText
+    ];
+
+  }
+
+
+  return [
+
+    cleanText
+      .slice(
+        0,
+        splitIndex
+      )
+      .trim(),
+
+    cleanText
+      .slice(
+        splitIndex
+      )
+      .trim()
+
+  ];
+
+}
+
+
+/* =========================
+   PLAY AUDIO URL
+========================= */
+
+async playAudioUrl(
+  audioUrl
+){
+
+  if(!audioUrl){
+    return;
+  }
+
+
+  const audio =
+    new Audio(
+      audioUrl
+    );
+
+
+  await new Promise(
+    (resolve, reject) => {
+
+      audio.onended =
+        resolve;
+
+      audio.onerror =
+        reject;
+
+
+      audio
+        .play()
+        .catch(
+          reject
+        );
+
+    }
+  );
+
+}
 
   /* =========================
      SPEAK
   ========================= */
 
-async speak({ text, speech_tts }){
+async speak({
+  text,
+  speech_tts
+}){
 
   const audioText =
     speech_tts ||
     text;
+
 
   if(
     !audioText ||
@@ -11207,46 +11398,137 @@ async speak({ text, speech_tts }){
     return;
   }
 
+
   try{
 
     if(this.avatar){
+
       this.avatar
         .classList
         .add(
           "lesson-renderer-speaking"
         );
+
     }
 
-    const audioUrl =
-      await this.preloadAudio(
+
+    /*
+      מחלקים את הדיבור
+      לעד 2 חלקים
+    */
+
+    const parts =
+      this.splitSpeechIntoTwo(
         audioText
       );
 
-    if(!audioUrl){
+
+    if(
+      parts.length === 0
+    ){
       return;
     }
 
-    const audio =
-      new Audio(
-        audioUrl
+
+    /* =========================================
+       TTS 1
+       מייצרים קודם רק את החלק הראשון
+    ========================================= */
+
+    const firstAudioUrl =
+      await this.preloadAudio(
+        parts[0]
       );
 
-    await new Promise(
-      (resolve, reject) => {
 
-        audio.onended =
-          resolve;
+    if(!firstAudioUrl){
+      return;
+    }
 
-        audio.onerror =
-          reject;
 
-        audio.play()
-          .catch(
-            reject
-          );
+    /*
+      אם יש רק חלק אחד
+    */
 
-      }
-    );
+    if(
+      parts.length === 1
+    ){
+
+      await this.playAudioUrl(
+        firstAudioUrl
+      );
+
+      return;
+
+    }
+
+
+    /* =========================================
+       מתחילים לנגן TTS 1
+
+       וברגע שהנגינה מתחילה,
+       מתחילים להכין TTS 2 ברקע
+    ========================================= */
+
+    const firstAudio =
+      new Audio(
+        firstAudioUrl
+      );
+
+
+    const firstFinished =
+      new Promise(
+        (resolve, reject) => {
+
+          firstAudio.onended =
+            resolve;
+
+          firstAudio.onerror =
+            reject;
+
+        }
+      );
+
+
+    await firstAudio
+      .play();
+
+
+    /*
+      בזמן שהחלק הראשון מתנגן
+      Gemini כבר מייצר את החלק השני
+    */
+
+    const secondAudioPromise =
+      this.preloadAudio(
+        parts[1]
+      );
+
+
+    /*
+      מחכים רק לסיום
+      החלק הראשון
+    */
+
+    await firstFinished;
+
+
+    /*
+      ברוב המקרים החלק השני
+      כבר יהיה מוכן בשלב הזה
+    */
+
+    const secondAudioUrl =
+      await secondAudioPromise;
+
+
+    if(secondAudioUrl){
+
+      await this.playAudioUrl(
+        secondAudioUrl
+      );
+
+    }
 
   }
   catch(error){
@@ -11453,20 +11735,25 @@ async speak({ text, speech_tts }){
      ASK
   ========================= */
 
-async ask({ text }) {
+async ask({
+  text
+}){
 
-  await this.write({
-    text,
-    style: "question",
-    speed: 50
-  });
+  await Promise.all([
 
-  await this.speak({
-    text
-  });
+    this.write({
+      text,
+      style: "question",
+      speed: 50
+    }),
+
+    this.speak({
+      text
+    })
+
+  ]);
 
 }
-
 
   /* =========================
      RUN
@@ -11474,178 +11761,228 @@ async ask({ text }) {
 
 async run(script){
 
-console.log(
-  "LIVE LESSON SEQUENCE:",
-  script.sequence
-);
+  console.log(
+    "LIVE LESSON SEQUENCE:",
+    script.sequence
+  );
 
-console.table(
-  script.sequence.map(
-    action => ({
-      type: action.type,
-      text: action.text || "",
-      target: action.target || ""
-    })
-  )
-);
+  console.table(
+    script.sequence.map(
+      action => ({
+        type: action.type,
+        text: action.text || "",
+        target: action.target || ""
+      })
+    )
+  );
 
-  if(
-    this.isRunning
-  ){
+  if(this.isRunning){
     return;
   }
 
+  this.isRunning = true;
 
-    this.isRunning =
-      true;
+  this.prepare();
 
-
-    this.prepare();
-
-
-const sequence =
-  script.sequence ||
-  [];
-
-
-/* =========================================
-   מתחילים להכין את כל קטעי הקול ברקע
-========================================= */
-
-this.prefetchLessonAudio(
-  sequence
-);
+  const sequence =
+    script.sequence || [];
 
 
 
-
-/* =========================================
-   רק עכשיו מתחילים את השיעור
-========================================= */
-
-for(
-  const action of sequence
-){
 
   /* =========================================
-     NORMALIZE VISUAL ACTION TARGET
+     מריצים את השיעור
   ========================================= */
 
-  if(
-    action.type === "highlight" ||
-    action.type === "circle" ||
-    action.type === "robot_point"
+  for(
+    let i = 0;
+    i < sequence.length;
+    i++
   ){
+
+    const action =
+      sequence[i];
+
+    const nextAction =
+      sequence[i + 1];
+
+
+    /* =========================================
+       NORMALIZE VISUAL ACTION TARGET
+    ========================================= */
 
     if(
-      !action.target &&
-      action.text
+      action.type === "highlight" ||
+      action.type === "circle" ||
+      action.type === "robot_point"
     ){
 
-      action.target =
-        action.text;
+      if(
+        !action.target &&
+        action.text
+      ){
 
-    }
-
-  }
-
-
-  switch(
-    action.type
-  ){
-
-
-        case "speak":
-
-          await this.speak(
-            action
-          );
-
-          break;
-
-
-        case "write":
-
-          await this.write(
-            action
-          );
-
-          break;
-
-          case "robot_point":
-
-  await this.robotPoint(
-    action
-  );
-
-  break;
-
-
-        case "highlight":
-
-          await this.highlight(
-            action
-          );
-
-          break;
-
-
-        case "circle":
-
-          await this.circle(
-            action
-          );
-
-          break;
-
-
-        case "arrow":
-
-          await this.arrow(
-            action
-          );
-
-          break;
-
-
-        case "wait":
-
-          await this.wait(
-            action.duration ||
-            500
-          );
-
-          break;
-
-
-        case "ask":
-
-          await this.ask(
-            action
-          );
-
-          break;
-
-
-        default:
-
-          console.warn(
-            "Unknown lesson action:",
-            action
-          );
+        action.target =
+          action.text;
 
       }
 
     }
 
 
-    this.isRunning =
-      false;
+    /* =========================================
+       SPEAK + WRITE ביחד
+    ========================================= */
+
+    const isSpeakWritePair =
+      nextAction &&
+      (
+        (
+          action.type === "speak" &&
+          nextAction.type === "write"
+        )
+        ||
+        (
+          action.type === "write" &&
+          nextAction.type === "speak"
+        )
+      );
+
+
+    if(
+      isSpeakWritePair
+    ){
+
+      const speakAction =
+        action.type === "speak"
+          ? action
+          : nextAction;
+
+
+      const writeAction =
+        action.type === "write"
+          ? action
+          : nextAction;
+
+
+      await Promise.all([
+        this.speak(
+          speakAction
+        ),
+
+        this.write(
+          writeAction
+        )
+      ]);
+
+
+      /* הפעולה הבאה כבר בוצעה */
+      i++;
+
+      continue;
+
+    }
+
+
+    /* =========================================
+       פעולות רגילות
+    ========================================= */
+
+    switch(
+      action.type
+    ){
+
+      case "speak":
+
+        await this.speak(
+          action
+        );
+
+        break;
+
+
+      case "write":
+
+        await this.write(
+          action
+        );
+
+        break;
+
+
+      case "robot_point":
+
+        await this.robotPoint(
+          action
+        );
+
+        break;
+
+
+      case "highlight":
+
+        await this.highlight(
+          action
+        );
+
+        break;
+
+
+      case "circle":
+
+        await this.circle(
+          action
+        );
+
+        break;
+
+
+      case "arrow":
+
+        await this.arrow(
+          action
+        );
+
+        break;
+
+
+      case "wait":
+
+        await this.wait(
+          action.duration ||
+          500
+        );
+
+        break;
+
+
+      case "ask":
+
+        await this.ask(
+          action
+        );
+
+        break;
+
+
+      default:
+
+        console.warn(
+          "Unknown lesson action:",
+          action
+        );
+
+    }
 
   }
 
+
+  this.isRunning =
+    false;
+
 }
 
+}
 
 /* =====================================================
    DEMO
