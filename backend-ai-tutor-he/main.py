@@ -11,6 +11,7 @@ import io
 import wave
 import os
 import json
+import base64
 
 # =====================================================
 # CONFIG
@@ -1026,7 +1027,7 @@ def homework_analyze(
                     "processing",
 
                 "vision_model":
-                    "gemini-2.5-flash",
+                    "gpt-4o-mini",
 
                 "vision_call_count":
                     0
@@ -1112,59 +1113,82 @@ def homework_analyze(
                 )
             )
 
-
         # =============================================
-        # SEND TO GEMINI VISION
+        # SEND TO OPENAI GPT-4o MINI VISION
         # =============================================
 
-        media_part = (
-            types.Part.from_bytes(
+        base64_file = base64.b64encode(
+            file_bytes
+        ).decode("utf-8")
 
-                data=file_bytes,
-
-                mime_type=mime_type
-
-            )
-        )
-
-
-        response = (
-
-            gemini_client.models
-            .generate_content(
-
-                model=
-                    "gemini-2.5-flash",
-
-                contents=[
-
-                    HOMEWORK_VISION_PROMPT,
-
-                    media_part
-
-                ],
-
-                config=
-                    types.GenerateContentConfig(
-
-                        response_mime_type=
-                            "application/json",
-
-                        temperature=0.1
-
-                    )
-
+        if mime_type == "application/pdf":
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "PDF analysis is not supported "
+                    "yet in GPT-4o-mini image mode"
+                )
             )
 
+        data_url = (
+            f"data:{mime_type};base64,"
+            f"{base64_file}"
         )
 
+        response = client.chat.completions.create(
+
+            model="gpt-4o-mini",
+
+            messages=[
+
+                {
+                    "role": "system",
+                    "content":
+                        HOMEWORK_VISION_PROMPT
+                },
+
+                {
+                    "role": "user",
+                    "content": [
+
+                        {
+                            "type": "text",
+                            "text":
+                                "Analyze this homework image "
+                                "and return only the requested JSON."
+                        },
+
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url":
+                                    data_url,
+
+                                "detail":
+                                    "high"
+                            }
+                        }
+
+                    ]
+                }
+
+            ],
+
+            response_format={
+                "type":
+                    "json_object"
+            },
+
+            temperature=0.1
+
+        )
 
         # =============================================
         # PARSE RESPONSE
         # =============================================
 
         raw_response = (
-            response.text or ""
+                response.choices[0].message.content or ""
         ).strip()
 
 
@@ -1260,57 +1284,10 @@ def homework_analyze(
 
         total_tokens = 0
 
-
-        usage_metadata = getattr(
-            response,
-            "usage_metadata",
-            None
-        )
-
-
-        if usage_metadata:
-
-            input_tokens = int(
-
-                getattr(
-                    usage_metadata,
-                    "prompt_token_count",
-                    0
-                )
-
-                or 0
-
-            )
-
-
-            output_tokens = int(
-
-                getattr(
-                    usage_metadata,
-                    "candidates_token_count",
-                    0
-                )
-
-                or 0
-
-            )
-
-
-            total_tokens = int(
-
-                getattr(
-                    usage_metadata,
-                    "total_token_count",
-                    0
-                )
-
-                or (
-                    input_tokens
-                    + output_tokens
-                )
-
-            )
-
+        if response.usage:
+            input_tokens = response.usage.prompt_tokens or 0
+            output_tokens = response.usage.completion_tokens or 0
+            total_tokens = response.usage.total_tokens or 0
 
         # =============================================
         # STATUS
@@ -1341,7 +1318,7 @@ def homework_analyze(
                 vision_status,
 
             "vision_model":
-                "gemini-2.5-flash",
+                "gpt-4o-mini",
 
             "vision_call_count":
                 1,
