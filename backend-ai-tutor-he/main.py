@@ -22,6 +22,9 @@ PROMPT_PATH = Path("prompts/iakids_ai_tutor_system_prompt.txt")
 HOMEWORK_VISION_PROMPT_PATH = Path(
     "prompts/iakids_homework_vision_prompt.txt"
 )
+LESSON_PROMPT_PATH = Path(
+    "prompts/iakids_structured_lesson_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -37,6 +40,53 @@ OPENAI_OUTPUT_COST_PER_1M = 0.60
 # Gemini TTS
 GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 10.00
 GEMINI_AUDIO_TOKENS_PER_SECOND = 32
+# =====================================================
+# STRUCTURED LESSON PEDAGOGICAL ENGINE
+# =====================================================
+
+OBJECTIVE_MASTERY_THRESHOLD = 90
+
+
+RESPONSE_QUALITY_POINTS = {
+
+    "correct":
+        10,
+
+    "partial":
+        5,
+
+    "incorrect":
+        0
+
+}
+
+
+INDEPENDENCE_POINTS = {
+
+    "independent":
+        5,
+
+    "with_hint":
+        2,
+
+    "guided":
+        0
+
+}
+
+
+UNDERSTANDING_POINTS = {
+
+    "strong":
+        5,
+
+    "partial":
+        2,
+
+    "weak":
+        0
+
+}
 
 if not SUPABASE_URL:
     raise RuntimeError("Missing SUPABASE_URL")
@@ -52,6 +102,11 @@ if not GEMINI_API_KEY:
 
 if not PROMPT_PATH.exists():
     raise RuntimeError(f"Missing prompt file: {PROMPT_PATH}")
+if not LESSON_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing lesson prompt file: "
+        f"{LESSON_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -59,6 +114,12 @@ if not HOMEWORK_VISION_PROMPT_PATH.exists():
     )
 
 TUTOR_PROMPT_TEMPLATE = PROMPT_PATH.read_text(encoding="utf-8")
+LESSON_PROMPT_TEMPLATE = (
+    LESSON_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
 HOMEWORK_VISION_PROMPT = (
     HOMEWORK_VISION_PROMPT_PATH
     .read_text(
@@ -161,7 +222,62 @@ class TutorLessonResponse(BaseModel):
     sequence: list[TutorAction]
     wait_for_answer: bool = False
 
+# =====================================================
+# STRUCTURED LESSON MODELS
+# =====================================================
 
+
+class StructuredLessonRequest(
+    BaseModel
+):
+
+    kid_id: str
+
+    lesson_id: int
+
+    # ריק = פתיחת שיעור
+    # עם טקסט = תשובת הילד
+    message: str | None = None
+
+
+class LessonEvaluation(
+    BaseModel
+):
+
+    objective_index: int | None = None
+
+    response_quality: str | None = None
+
+    independence_level: str | None = None
+
+    understanding_level: str | None = None
+
+    hint_used: bool = False
+
+    repeated_mistake: bool = False
+
+    identified_difficulty: str | None = None
+
+    evaluation_summary: str | None = None
+
+    lesson_summary: str | None = None
+
+
+class StructuredLessonResponse(
+    BaseModel
+):
+
+    speech: str | None = None
+
+    sequence: list[TutorAction]
+
+    wait_for_answer: bool = False
+
+    # בפתיחת שיעור אין עדיין מה להעריך
+    evaluation: (
+        LessonEvaluation |
+        None
+    ) = None
 # =====================================================
 # AUTH
 # =====================================================
@@ -309,6 +425,957 @@ def get_existing_kids_memory(kid_id: str) -> str:
         return "\n".join(f"- {item}" for item in memory)
 
     return str(memory or "")
+
+# =====================================================
+# STRUCTURED LESSON DATA HELPERS
+# =====================================================
+
+
+def get_learning_lesson(
+        lesson_id: int
+):
+
+    res = (
+
+        sb.table(
+            "learning_lessons"
+        )
+
+        .select(
+            "id, "
+            "grade, "
+            "subject, "
+            "category, "
+            "lesson_order, "
+            "lesson_name, "
+            "lesson_goal, "
+            "lesson_content, "
+            "teaching_method, "
+            "learning_objectives, "
+            "xp_reward, "
+            "stars_reward, "
+            "is_checkpoint, "
+            "is_active"
+        )
+
+        .eq(
+            "id",
+            lesson_id
+        )
+
+        .eq(
+            "is_active",
+            True
+        )
+
+        .limit(1)
+
+        .execute()
+
+    )
+
+
+    if not res.data:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Lesson not found"
+        )
+
+
+    return res.data[0]
+
+def get_or_create_lesson_progress(
+        kid_id: str,
+        lesson: dict,
+        session_id: str | None = None,
+        is_lesson_start: bool = False
+):
+
+    lesson_id = lesson["id"]
+
+
+    res = (
+
+        sb.table(
+            "kid_lesson_progress"
+        )
+
+        .select("*")
+
+        .eq(
+            "kid_id",
+            kid_id
+        )
+
+        .eq(
+            "lesson_id",
+            lesson_id
+        )
+
+        .limit(1)
+
+        .execute()
+
+    )
+
+
+    now = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+
+    # =============================================
+    # כבר קיימת התקדמות
+    # =============================================
+
+    if res.data:
+
+        progress = res.data[0]
+
+
+        update_data = {
+
+            "last_session_id":
+                session_id,
+
+            "last_activity_at":
+                now,
+
+            "updated_at":
+                now
+
+        }
+
+
+        # כל כניסה חדשה לשיעור
+        # נחשבת ניסיון/חזרה לשיעור
+
+        if is_lesson_start:
+
+            update_data[
+                "attempts_count"
+            ] = (
+
+                int(
+                    progress.get(
+                        "attempts_count"
+                    ) or 0
+                )
+
+                + 1
+
+            )
+
+
+        updated = (
+
+            sb.table(
+                "kid_lesson_progress"
+            )
+
+            .update(
+                update_data
+            )
+
+            .eq(
+                "id",
+                progress["id"]
+            )
+
+            .execute()
+
+        )
+
+
+        if updated.data:
+
+            return updated.data[0]
+
+
+        return progress
+
+
+    # =============================================
+    # שיעור חדש לילד
+    # =============================================
+
+    objectives = (
+
+        lesson.get(
+            "learning_objectives"
+        )
+
+        or []
+
+    )
+
+
+    objectives_progress = []
+
+
+    for index, _ in enumerate(
+        objectives,
+        start=1
+    ):
+
+        objectives_progress.append({
+
+            "objective_index":
+                index,
+
+            "score":
+                0
+
+        })
+
+
+    insert_res = (
+
+        sb.table(
+            "kid_lesson_progress"
+        )
+
+        .insert({
+
+            "kid_id":
+                kid_id,
+
+            "lesson_id":
+                lesson_id,
+
+            "status":
+                "in_progress",
+
+            "progress_percent":
+                0,
+
+            "mastery_score":
+                0,
+
+            "current_objective_index":
+                1,
+
+            "objectives_progress":
+                objectives_progress,
+
+            "attempts_count":
+                1,
+
+            "total_interactions":
+                0,
+
+            "hints_used":
+                0,
+
+            "consecutive_successes":
+                0,
+
+            "consecutive_failures":
+                0,
+
+            "last_session_id":
+                session_id,
+
+            "started_at":
+                now,
+
+            "last_activity_at":
+                now,
+
+            "created_at":
+                now,
+
+            "updated_at":
+                now
+
+        })
+
+        .execute()
+
+    )
+
+
+    if not insert_res.data:
+
+        raise RuntimeError(
+            "Failed to create "
+            "lesson progress"
+        )
+
+
+    return insert_res.data[0]
+
+def get_recent_lesson_history_for_llm(
+        kid_id: str,
+        lesson_id: int,
+        limit: int = 8
+):
+
+    res = (
+
+        sb.table(
+            "kid_lesson_history"
+        )
+
+        .select(
+            "role, content"
+        )
+
+        .eq(
+            "kid_id",
+            kid_id
+        )
+
+        .eq(
+            "lesson_id",
+            lesson_id
+        )
+
+        .order(
+            "created_at",
+            desc=True
+        )
+
+        .limit(
+            limit
+        )
+
+        .execute()
+
+    )
+
+
+    messages = list(
+        reversed(
+            res.data or []
+        )
+    )
+
+
+    return [
+
+        {
+
+            "role":
+                message["role"],
+
+            "content":
+                message["content"]
+
+        }
+
+        for message
+        in messages
+
+        if message.get(
+            "role"
+        ) in (
+            "user",
+            "assistant"
+        )
+
+    ]
+
+def save_lesson_history(
+        kid_id: str,
+        lesson_id: int,
+        session_id: str,
+        objective_index: int | None,
+        user_content: str | None,
+        assistant_content: str,
+        evaluation: dict | None,
+        sequence_json: list | None
+):
+
+    rows = []
+
+
+    # =============================================
+    # תשובת הילד
+    # =============================================
+
+    if (
+        user_content
+        and user_content.strip()
+    ):
+
+        rows.append({
+
+            "kid_id":
+                kid_id,
+
+            "lesson_id":
+                lesson_id,
+
+            "session_id":
+                session_id,
+
+            "objective_index":
+                objective_index,
+
+            "role":
+                "user",
+
+            "content":
+                user_content.strip(),
+
+            "evaluation":
+                None,
+
+            "sequence_json":
+                None
+
+        })
+
+
+    # =============================================
+    # תשובת המורה
+    # =============================================
+
+    rows.append({
+
+        "kid_id":
+            kid_id,
+
+        "lesson_id":
+            lesson_id,
+
+        "session_id":
+            session_id,
+
+        "objective_index":
+            objective_index,
+
+        "role":
+            "assistant",
+
+        "content":
+            assistant_content,
+
+        "evaluation":
+            evaluation,
+
+        "sequence_json":
+            sequence_json
+
+    })
+
+
+    sb.table(
+        "kid_lesson_history"
+    ).insert(
+        rows
+    ).execute()
+
+    def calculate_objective_delta(
+            evaluation: dict
+    ):
+
+        delta = 0
+
+        response_quality = (
+            evaluation.get(
+                "response_quality"
+            )
+        )
+
+        independence_level = (
+            evaluation.get(
+                "independence_level"
+            )
+        )
+
+        understanding_level = (
+            evaluation.get(
+                "understanding_level"
+            )
+        )
+
+        delta += (
+            RESPONSE_QUALITY_POINTS
+            .get(
+                response_quality,
+                0
+            )
+        )
+
+        delta += (
+            INDEPENDENCE_POINTS
+            .get(
+                independence_level,
+                0
+            )
+        )
+
+        delta += (
+            UNDERSTANDING_POINTS
+            .get(
+                understanding_level,
+                0
+            )
+        )
+
+        # טעות חוזרת מורידה מעט
+        # את רמת השליטה הנוכחית
+
+        if evaluation.get(
+                "repeated_mistake"
+        ):
+            delta -= 2
+
+        return delta
+
+    def apply_lesson_evaluation(
+            progress: dict,
+            lesson: dict,
+            evaluation: dict,
+            session_id: str
+    ):
+
+        now = datetime.now(
+            timezone.utc
+        )
+
+        objectives_progress = (
+
+                progress.get(
+                    "objectives_progress"
+                )
+
+                or []
+
+        )
+
+        objective_index = (
+
+                evaluation.get(
+                    "objective_index"
+                )
+
+                or progress.get(
+            "current_objective_index"
+        )
+
+                or 1
+
+        )
+
+        delta = (
+            calculate_objective_delta(
+                evaluation
+            )
+        )
+
+        # =============================================
+        # עדכון ציון היעד הנוכחי
+        # =============================================
+
+        for objective in (
+                objectives_progress
+        ):
+
+            if (
+
+                    int(
+                        objective.get(
+                            "objective_index",
+                            0
+                        )
+                    )
+
+                    == int(
+                objective_index
+            )
+
+            ):
+                old_score = int(
+
+                    objective.get(
+                        "score"
+                    )
+
+                    or 0
+
+                )
+
+                new_score = max(
+
+                    0,
+
+                    min(
+
+                        100,
+
+                        old_score
+                        + delta
+
+                    )
+
+                )
+
+                objective[
+                    "score"
+                ] = new_score
+
+                break
+
+        # =============================================
+        # ציוני כל היעדים
+        # =============================================
+
+        scores = [
+
+            int(
+                objective.get(
+                    "score"
+                )
+
+                or 0
+            )
+
+            for objective
+            in objectives_progress
+
+        ]
+
+        # =============================================
+        # התקדמות כוללת בשיעור
+        #
+        # ממוצע של כל היעדים
+        # =============================================
+
+        if scores:
+
+            progress_percent = round(
+
+                sum(scores)
+                /
+                len(scores)
+
+            )
+
+        else:
+
+            progress_percent = 0
+
+        # =============================================
+        # Mastery
+        #
+        # ממוצע היעדים שכבר התחילו
+        # =============================================
+
+        started_scores = [
+
+            score
+
+            for score
+            in scores
+
+            if score > 0
+
+        ]
+
+        if started_scores:
+
+            mastery_score = round(
+
+                sum(
+                    started_scores
+                )
+
+                /
+                len(
+                    started_scores
+                )
+
+            )
+
+        else:
+
+            mastery_score = 0
+
+        # =============================================
+        # מציאת היעד הבא שעדיין
+        # לא הגיע לסף שליטה
+        # =============================================
+
+        next_objective_index = None
+
+        for objective in (
+                objectives_progress
+        ):
+
+            if (
+
+                    int(
+                        objective.get(
+                            "score"
+                        )
+
+                        or 0
+                    )
+
+                    <
+                    OBJECTIVE_MASTERY_THRESHOLD
+
+            ):
+                next_objective_index = (
+
+                    objective[
+                        "objective_index"
+                    ]
+
+                )
+
+                break
+
+        # =============================================
+        # האם השיעור הסתיים
+        # =============================================
+
+        lesson_completed = (
+
+                bool(
+                    objectives_progress
+                )
+
+                and
+
+                all(
+
+                    int(
+                        objective.get(
+                            "score"
+                        )
+
+                        or 0
+                    )
+
+                    >=
+                    OBJECTIVE_MASTERY_THRESHOLD
+
+                    for objective
+                    in objectives_progress
+
+                )
+
+        )
+
+        if lesson_completed:
+
+            status = (
+                "completed"
+            )
+
+            progress_percent = 100
+
+            next_objective_index = None
+
+
+        else:
+
+            status = (
+                "in_progress"
+            )
+
+        # =============================================
+        # רצף הצלחות / קשיים
+        # =============================================
+
+        response_quality = (
+
+            evaluation.get(
+                "response_quality"
+            )
+
+        )
+
+        current_successes = int(
+
+            progress.get(
+                "consecutive_successes"
+            )
+
+            or 0
+
+        )
+
+        current_failures = int(
+
+            progress.get(
+                "consecutive_failures"
+            )
+
+            or 0
+
+        )
+
+        if response_quality == "correct":
+
+            consecutive_successes = (
+
+                    current_successes
+                    + 1
+
+            )
+
+            consecutive_failures = 0
+
+
+        elif response_quality == "incorrect":
+
+            consecutive_successes = 0
+
+            consecutive_failures = (
+
+                    current_failures
+                    + 1
+
+            )
+
+
+        else:
+
+            consecutive_successes = 0
+
+            consecutive_failures = 0
+
+        hints_used = int(
+
+            progress.get(
+                "hints_used"
+            )
+
+            or 0
+
+        )
+
+        if evaluation.get(
+                "hint_used"
+        ):
+            hints_used += 1
+
+        update_data = {
+
+            "status":
+                status,
+
+            "progress_percent":
+                progress_percent,
+
+            "mastery_score":
+                mastery_score,
+
+            "current_objective_index":
+                next_objective_index,
+
+            "objectives_progress":
+                objectives_progress,
+
+            "total_interactions":
+
+                int(
+                    progress.get(
+                        "total_interactions"
+                    )
+
+                    or 0
+                )
+
+                + 1,
+
+            "hints_used":
+                hints_used,
+
+            "consecutive_successes":
+                consecutive_successes,
+
+            "consecutive_failures":
+                consecutive_failures,
+
+            "last_evaluation":
+                evaluation,
+
+            "last_error_type":
+                evaluation.get(
+                    "identified_difficulty"
+                ),
+
+            "last_session_id":
+                session_id,
+
+            "last_activity_at":
+                now.isoformat(),
+
+            "updated_at":
+                now.isoformat()
+
+        }
+
+        # =============================================
+        # השלמת שיעור
+        # =============================================
+
+        if lesson_completed:
+            update_data[
+                "completed_at"
+            ] = (
+                now.isoformat()
+            )
+
+            update_data[
+                "xp_earned"
+            ] = int(
+
+                lesson.get(
+                    "xp_reward"
+                )
+
+                or 0
+
+            )
+
+            update_data[
+                "stars_earned"
+            ] = int(
+
+                lesson.get(
+                    "stars_reward"
+                )
+
+                or 0
+
+            )
+
+        updated = (
+
+            sb.table(
+                "kid_lesson_progress"
+            )
+
+            .update(
+                update_data
+            )
+
+            .eq(
+                "id",
+                progress["id"]
+            )
+
+            .execute()
+
+        )
+
+        if updated.data:
+            return updated.data[0]
+
+        return {
+            **progress,
+            **update_data
+        }
 
 
 # =====================================================
@@ -680,6 +1747,178 @@ def build_tutor_prompt(child: dict, kids_memory: str) -> str:
 
     return prompt
 
+def build_structured_lesson_prompt(
+        child: dict,
+        lesson: dict,
+        progress: dict,
+        turn_type: str
+):
+
+    runtime_context = {
+
+        "turn_type":
+            turn_type,
+
+
+        "child": {
+
+            "name":
+                child.get(
+                    "child_name"
+                ),
+
+            # אצלך age מכיל כרגע
+            # את מספר הכיתה 1-6
+
+            "grade":
+                child.get(
+                    "age"
+                ),
+
+            "avatar_key":
+                child.get(
+                    "avatar_key"
+                ),
+
+            "learning_interests":
+                child.get(
+                    "learning_interests"
+                )
+
+                or [],
+
+            "usage_goals":
+                child.get(
+                    "usage_goals"
+                )
+
+                or []
+
+        },
+
+
+        "lesson": {
+
+            "lesson_id":
+                lesson.get(
+                    "id"
+                ),
+
+            "subject":
+                lesson.get(
+                    "subject"
+                ),
+
+            "category":
+                lesson.get(
+                    "category"
+                ),
+
+            "lesson_name":
+                lesson.get(
+                    "lesson_name"
+                ),
+
+            "lesson_goal":
+                lesson.get(
+                    "lesson_goal"
+                ),
+
+            "lesson_content":
+                lesson.get(
+                    "lesson_content"
+                ),
+
+            "teaching_method":
+                lesson.get(
+                    "teaching_method"
+                ),
+
+            "learning_objectives":
+                lesson.get(
+                    "learning_objectives"
+                )
+
+                or []
+
+        },
+
+
+        "progress": {
+
+            "status":
+                progress.get(
+                    "status"
+                ),
+
+            "progress_percent":
+                progress.get(
+                    "progress_percent"
+                ),
+
+            "mastery_score":
+                progress.get(
+                    "mastery_score"
+                ),
+
+            "current_objective_index":
+                progress.get(
+                    "current_objective_index"
+                ),
+
+            "objectives_progress":
+                progress.get(
+                    "objectives_progress"
+                )
+
+                or [],
+
+            "hints_used":
+                progress.get(
+                    "hints_used"
+                ),
+
+            "consecutive_successes":
+                progress.get(
+                    "consecutive_successes"
+                ),
+
+            "consecutive_failures":
+                progress.get(
+                    "consecutive_failures"
+                ),
+
+            "last_error_type":
+                progress.get(
+                    "last_error_type"
+                )
+
+        }
+
+    }
+
+
+    return (
+
+        LESSON_PROMPT_TEMPLATE
+
+        +
+
+        "\n\n"
+        "RUNTIME_CONTEXT:\n"
+
+        +
+
+        json.dumps(
+
+            runtime_context,
+
+            ensure_ascii=False
+
+        )
+
+    )
+
 
 # =====================================================
 # HEALTH
@@ -877,6 +2116,705 @@ def tutor_tts(
             detail="Gemini TTS failed"
         )
 
+
+# =====================================================
+# STRUCTURED AI LESSON
+# =====================================================
+
+@app.post(
+    "/api/tutor/lesson"
+)
+def structured_lesson(
+        body: StructuredLessonRequest,
+        authorization: str = Header(None)
+):
+
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+
+        if not body.kid_id:
+
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+
+        # =============================================
+        # CHILD
+        # =============================================
+
+        child = get_child_by_id(
+
+            user_id=user.id,
+
+            kid_id=body.kid_id
+
+        )
+
+
+        # =============================================
+        # LESSON
+        # =============================================
+
+        lesson = get_learning_lesson(
+            body.lesson_id
+        )
+
+
+        # =============================================
+        # SECURITY
+        #
+        # מוודאים שהשיעור מתאים לכיתה
+        # של הילד
+        # =============================================
+
+        child_grade = int(
+
+            child.get(
+                "age"
+            )
+
+            or 0
+
+        )
+
+
+        lesson_grade = int(
+
+            lesson.get(
+                "grade"
+            )
+
+            or 0
+
+        )
+
+
+        if (
+
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
+
+        ):
+
+            raise HTTPException(
+
+                status_code=403,
+
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+
+            )
+
+
+        # =============================================
+        # SESSION
+        # =============================================
+
+        tutor_session = (
+
+            get_or_create_tutor_session(
+
+                user_id=user.id,
+
+                kid_id=child["id"]
+
+            )
+
+        )
+
+
+        session_id = (
+            tutor_session["id"]
+        )
+
+
+        # =============================================
+        # האם זו פתיחת שיעור
+        # =============================================
+
+        message = (
+
+            body.message
+            or ""
+
+        ).strip()
+
+
+        is_lesson_start = (
+
+            not bool(
+                message
+            )
+
+        )
+
+
+        turn_type = (
+
+            "start"
+
+            if is_lesson_start
+
+            else "student_response"
+
+        )
+
+
+        # =============================================
+        # PROGRESS
+        # =============================================
+
+        progress = (
+
+            get_or_create_lesson_progress(
+
+                kid_id=child["id"],
+
+                lesson=lesson,
+
+                session_id=session_id,
+
+                is_lesson_start=
+                    is_lesson_start
+
+            )
+
+        )
+
+
+        # =============================================
+        # PROMPT
+        # =============================================
+
+        system_prompt = (
+
+            build_structured_lesson_prompt(
+
+                child=child,
+
+                lesson=lesson,
+
+                progress=progress,
+
+                turn_type=turn_type
+
+            )
+
+        )
+
+
+        # =============================================
+        # HISTORY
+        # =============================================
+
+        recent_messages = (
+
+            get_recent_lesson_history_for_llm(
+
+                kid_id=
+                    child["id"],
+
+                lesson_id=
+                    lesson["id"],
+
+                limit=8
+
+            )
+
+        )
+
+
+        # =============================================
+        # CURRENT TURN
+        # =============================================
+
+        if is_lesson_start:
+
+            current_message = (
+
+                "התחל את השיעור המובנה "
+                "מהיעד הנוכחי. "
+                "זהו תור פתיחת שיעור ולכן "
+                "אין להעריך עדיין תשובת תלמיד."
+
+            )
+
+
+        else:
+
+            current_message = (
+                message
+            )
+
+
+        recent_messages.append({
+
+            "role":
+                "user",
+
+            "content":
+                current_message
+
+        })
+
+
+        # =============================================
+        # OPENAI
+        # =============================================
+
+        completion = (
+
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    "gpt-4o-mini",
+
+                messages=[
+
+                    {
+
+                        "role":
+                            "system",
+
+                        "content":
+                            system_prompt
+
+                    },
+
+                    *recent_messages
+
+                ],
+
+                response_format=
+                    StructuredLessonResponse
+
+            )
+
+        )
+
+
+        lesson_data = (
+
+            completion
+            .choices[0]
+            .message
+            .parsed
+
+        )
+
+
+        if not lesson_data:
+
+            raise HTTPException(
+
+                status_code=500,
+
+                detail=(
+                    "Structured lesson "
+                    "returned no response"
+                )
+
+            )
+
+
+        # =============================================
+        # EVALUATION
+        #
+        # רק אחרי תשובה אמיתית של הילד
+        # =============================================
+
+        evaluation_dict = None
+
+
+        if (
+
+            not is_lesson_start
+
+            and
+
+            lesson_data.evaluation
+
+        ):
+
+            evaluation_dict = (
+
+                lesson_data
+                .evaluation
+                .model_dump()
+
+            )
+
+
+            progress = (
+
+                apply_lesson_evaluation(
+
+                    progress=progress,
+
+                    lesson=lesson,
+
+                    evaluation=
+                        evaluation_dict,
+
+                    session_id=
+                        session_id
+
+                )
+
+            )
+
+
+        # =============================================
+        # CLEAN ASSISTANT HISTORY
+        # =============================================
+
+        assistant_history_parts = []
+
+
+        if lesson_data.speech:
+
+            assistant_history_parts.append(
+
+                lesson_data
+                .speech
+                .strip()
+
+            )
+
+
+        for action in (
+
+            lesson_data.sequence
+            or []
+
+        ):
+
+            if (
+
+                action.type
+                in (
+                    "write",
+                    "ask"
+                )
+
+                and action.text
+
+                and action.text.strip()
+
+            ):
+
+                clean_text = (
+
+                    action.text
+                    .strip()
+
+                )
+
+
+                if (
+
+                    clean_text
+
+                    not in
+                    assistant_history_parts
+
+                ):
+
+                    assistant_history_parts.append(
+
+                        clean_text
+
+                    )
+
+
+        assistant_history_text = (
+
+            "\n".join(
+
+                assistant_history_parts
+
+            )
+
+        )
+
+
+        # =============================================
+        # SAVE LESSON HISTORY
+        # =============================================
+
+        save_lesson_history(
+
+            kid_id=
+                child["id"],
+
+            lesson_id=
+                lesson["id"],
+
+            session_id=
+                session_id,
+
+            objective_index=
+                progress.get(
+                    "current_objective_index"
+                ),
+
+            user_content=(
+
+                None
+
+                if is_lesson_start
+
+                else message
+
+            ),
+
+            assistant_content=
+                assistant_history_text,
+
+            evaluation=
+                evaluation_dict,
+
+            sequence_json=[
+
+                action.model_dump()
+
+                for action
+                in lesson_data.sequence
+
+            ]
+
+        )
+
+
+        # =============================================
+        # TOKEN USAGE
+        # =============================================
+
+        total_tokens = 0
+
+        input_tokens = 0
+
+        output_tokens = 0
+
+
+        if completion.usage:
+
+            total_tokens = (
+
+                completion
+                .usage
+                .total_tokens
+
+                or 0
+
+            )
+
+
+            input_tokens = (
+
+                completion
+                .usage
+                .prompt_tokens
+
+                or 0
+
+            )
+
+
+            output_tokens = (
+
+                completion
+                .usage
+                .completion_tokens
+
+                or 0
+
+            )
+
+
+        openai_cost_usd = (
+
+            (
+                input_tokens
+                / 1_000_000
+            )
+
+            *
+            OPENAI_INPUT_COST_PER_1M
+
+            +
+
+            (
+                output_tokens
+                / 1_000_000
+            )
+
+            *
+            OPENAI_OUTPUT_COST_PER_1M
+
+        )
+
+
+        # =============================================
+        # SESSION USAGE
+        # =============================================
+
+        update_tutor_session_after_chat(
+
+            session=
+                tutor_session,
+
+            total_tokens=
+                total_tokens,
+
+            input_tokens=
+                input_tokens,
+
+            output_tokens=
+                output_tokens,
+
+            cost_usd=
+                openai_cost_usd
+
+        )
+
+
+        increment_usage_summary(
+
+            user_id=
+                user.id,
+
+            sessions=(
+
+                1
+
+                if tutor_session.get(
+                    "_is_new"
+                )
+
+                else 0
+
+            ),
+
+            ai_calls=
+                1,
+
+            input_tokens=
+                input_tokens,
+
+            output_tokens=
+                output_tokens,
+
+            total_tokens=
+                total_tokens,
+
+            openai_cost_usd=
+                openai_cost_usd
+
+        )
+
+
+        # =============================================
+        # RESPONSE TO FRONTEND
+        # =============================================
+
+        response_data = (
+
+            lesson_data
+            .model_dump()
+
+        )
+
+
+        response_data[
+            "session_id"
+        ] = session_id
+
+
+        response_data[
+            "lesson_id"
+        ] = lesson["id"]
+
+
+        response_data[
+            "progress"
+        ] = {
+
+            "status":
+                progress.get(
+                    "status"
+                ),
+
+            "progress_percent":
+                progress.get(
+                    "progress_percent"
+                ),
+
+            "mastery_score":
+                progress.get(
+                    "mastery_score"
+                ),
+
+            "current_objective_index":
+                progress.get(
+                    "current_objective_index"
+                ),
+
+            "objectives_progress":
+                progress.get(
+                    "objectives_progress"
+                )
+
+        }
+
+
+        return response_data
+
+
+    except HTTPException:
+
+        raise
+
+
+    except Exception as e:
+
+        print(
+
+            "STRUCTURED LESSON ERROR:",
+
+            repr(e)
+
+        )
+
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=(
+                "Structured lesson failed"
+            )
+
+        )
+    
+    
 # =====================================================
 # HOMEWORK IMAGE / PDF ANALYSIS
 # =====================================================
