@@ -894,36 +894,6 @@ def get_recent_lesson_history_for_llm(
 
     ]
 
-def should_show_answering_hint(
-        kid_id: str,
-        max_lessons: int = 3
-):
-
-    res = (
-        sb.table(
-            "kid_lesson_progress"
-        )
-        .select(
-            "lesson_id"
-        )
-        .eq(
-            "kid_id",
-            kid_id
-        )
-        .limit(
-            max_lessons + 1
-        )
-        .execute()
-    )
-
-    lessons_started = len(
-        res.data or []
-    )
-
-    return (
-        lessons_started <= max_lessons
-    )
-
 def save_lesson_history(
         kid_id: str,
         lesson_id: int,
@@ -2317,9 +2287,9 @@ def build_structured_lesson_prompt(
         lesson: dict,
         progress: dict,
         turn_type: str,
-        review_mode: bool = False,
-        show_answering_hint: bool = False
+        review_mode: bool = False
 ):
+
     runtime_context = {
 
         "lesson_mode":
@@ -2334,9 +2304,6 @@ def build_structured_lesson_prompt(
 
         "turn_type":
             turn_type,
-
-        "show_answering_hint":
-            show_answering_hint,
 
 
         "child": {
@@ -2832,26 +2799,6 @@ def structured_lesson(
         ).strip()
 
 
-        # =============================================
-        # SPECIAL LESSON EVENTS
-        #
-        # __NO_RESPONSE__ נשלח מה-Frontend
-        # כאשר הילד לא ענה במשך זמן מסוים.
-        #
-        # זה אינו נחשב תשובת תלמיד ולכן:
-        # - לא מבצעים Evaluation
-        # - לא מעדכנים Progress
-        # - לא שומרים אותו כתשובת ילד
-        # =============================================
-
-        is_no_response = (
-
-            message
-            == "__NO_RESPONSE__"
-
-        )
-
-
         is_lesson_start = (
 
             not bool(
@@ -2859,6 +2806,8 @@ def structured_lesson(
             )
 
         )
+
+
 
 
         # =============================================
@@ -2910,65 +2859,34 @@ def structured_lesson(
 
         if review_mode:
 
-            if is_lesson_start:
+            turn_type = (
 
-                turn_type = (
-                    "review_start"
-                )
+                "review_start"
 
-            elif is_no_response:
+                if is_lesson_start
 
-                turn_type = (
-                    "review_no_response"
-                )
+                else "review_response"
 
-            else:
-
-                turn_type = (
-                    "review_response"
-                )
-
+            )
 
         else:
 
-            if is_lesson_start:
+            turn_type = (
 
-                turn_type = (
-                    "start"
-                )
+                "start"
 
-            elif is_no_response:
+                if is_lesson_start
 
-                turn_type = (
-                    "no_response"
-                )
+                else "student_response"
 
-            else:
+            )
 
-                turn_type = (
-                    "student_response"
-                )
+
 
 
         # =============================================
         # PROMPT
         # =============================================
-
-        show_answering_hint = False
-
-        if (
-                is_lesson_start
-                and
-                not review_mode
-                and
-                child_grade in (1, 2)
-        ):
-            show_answering_hint = (
-                should_show_answering_hint(
-                    kid_id=child["id"],
-                    max_lessons=3
-                )
-            )
 
         system_prompt = (
 
@@ -2982,10 +2900,7 @@ def structured_lesson(
 
                 turn_type=turn_type,
 
-                review_mode=review_mode,
-
-                show_answering_hint=
-                show_answering_hint
+                review_mode=review_mode
 
             )
 
@@ -3037,33 +2952,19 @@ def structured_lesson(
 
                 current_message = (
 
-                    "התחל את השיעור המובנה. "
+                    "התחל את השיעור המובנה "
+                    "מהיעד הנוכחי. "
                     "זהו תור פתיחת שיעור ולכן "
                     "אין להעריך עדיין תשובת תלמיד."
 
                 )
-
-
-        elif is_no_response:
-
-            current_message = (
-
-                "התלמיד עדיין לא ענה לשאלה האחרונה. "
-                "אל תתייחס לכך כתשובת תלמיד ואל תבצע הערכה. "
-                "דובב את הילד בצורה קצרה, חמה וטבעית. "
-                "אפשר לעודד אותו לחשוב, להציע רמז קטן "
-                "או לנסח את השאלה בצורה פשוטה יותר. "
-                "אל תיתן מיד את התשובה. "
-                "המשך להמתין לתשובת הילד."
-
-            )
-
 
         else:
 
             current_message = (
                 message
             )
+
 
         # =============================================
         # ADD CURRENT TURN TO LLM MESSAGES
@@ -3083,8 +2984,8 @@ def structured_lesson(
                 current_message
 
         })
-
-
+        
+        
 
         # =============================================
         # OPENAI
@@ -3148,63 +3049,6 @@ def structured_lesson(
 
             )
 
-        # =============================================
-        # NORMALIZE WAIT FOR ANSWER
-        #
-        # מחכים לילד אך ורק כאשר הפעולה האחרונה
-        # ב-sequence היא ASK אמיתית עם טקסט.
-        #
-        # אם המודל כתב wait_for_answer=true
-        # אבל לא שאל שאלה בפועל,
-        # ה-Backend מתקן זאת אוטומטית.
-        # =============================================
-
-        sequence = (
-
-            lesson_data.sequence
-            or []
-
-        )
-
-
-        last_action = (
-
-            sequence[-1]
-
-            if sequence
-
-            else None
-
-        )
-
-
-        has_real_final_ask = (
-
-            last_action is not None
-
-            and
-
-            last_action.type == "ask"
-
-            and
-
-            bool(
-
-                (
-                    last_action.text
-                    or ""
-                ).strip()
-
-            )
-
-        )
-
-
-        lesson_data.wait_for_answer = (
-
-            has_real_final_ask
-
-        )
 
         # =============================================
         # EVALUATION
@@ -3224,10 +3068,6 @@ def structured_lesson(
         if (
 
             not is_lesson_start
-
-            and
-
-            not is_no_response
 
             and
 
@@ -3383,11 +3223,7 @@ def structured_lesson(
 
                 None
 
-                if (
-                    is_lesson_start
-                    or
-                    is_no_response
-                )
+                if is_lesson_start
 
                 else message
 
