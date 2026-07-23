@@ -653,6 +653,33 @@ Example:
 }
 
 =====================================================
+HEBREW TTS PRONUNCIATION
+=====================================================
+
+For all speak and ask actions, consider whether the Hebrew text may be mispronounced by TTS.
+
+The "text" field is the normal Hebrew text shown to the child.
+
+Use the optional "speech_tts" field when a pronunciation-friendly version is needed for audio.
+
+Rules:
+- Keep "text" as natural Hebrew without unnecessary niqqud.
+- Use "speech_tts" only when it helps the TTS pronounce the Hebrew correctly.
+- You may add Hebrew niqqud in "speech_tts".
+- "speech_tts" must preserve exactly the same meaning as "text".
+- Do not add explanations or additional information to "speech_tts".
+- Pay special attention to Hebrew words with ambiguous pronunciation.
+- This applies to both "speak" and "ask" actions.
+
+Example:
+
+{
+  "type": "ask",
+  "text": "איזה מספר אתה מכיר?",
+  "speech_tts": "אֵיזֶה מִסְפָּר אַתָּה מַכִּיר?"
+}
+
+=====================================================
 ASK
 =====================================================
 
@@ -1023,14 +1050,15 @@ The response structure is:
   "speech": "optional short speech text or null",
 
   "sequence": [
-    {
-      "type": "write | speak | wait | highlight | circle | robot_point | arrow | ask",
-      "text": "optional",
-      "style": "optional",
-      "speed": 35,
-      "target": "optional",
-      "duration": 500
-    }
+{
+  "type": "write | speak | wait | highlight | circle | robot_point | arrow | ask",
+  "text": "optional",
+  "speech_tts": "optional pronunciation-friendly Hebrew for speak or ask actions",
+  "style": "optional",
+  "speed": 35,
+  "target": "optional",
+  "duration": 500
+}
   ],
 
   "wait_for_answer": true,
