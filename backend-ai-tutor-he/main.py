@@ -2286,10 +2286,21 @@ def build_structured_lesson_prompt(
         child: dict,
         lesson: dict,
         progress: dict,
-        turn_type: str
+        turn_type: str,
+        review_mode: bool = False
 ):
 
     runtime_context = {
+
+        "lesson_mode":
+            (
+                "review"
+                if review_mode
+                else "learning"
+            ),
+
+        "review_mode":
+            review_mode,
 
         "turn_type":
             turn_type,
@@ -2797,15 +2808,6 @@ def structured_lesson(
         )
 
 
-        turn_type = (
-
-            "start"
-
-            if is_lesson_start
-
-            else "student_response"
-
-        )
 
 
         # =============================================
@@ -2829,6 +2831,58 @@ def structured_lesson(
 
         )
 
+        # =============================================
+        # LESSON MODE
+        #
+        # אם השיעור כבר הושלם,
+        # כניסה חוזרת אליו היא Review Mode.
+        #
+        # במצב Review:
+        # - לא מאפסים התקדמות
+        # - לא משנים ציוני יעדים
+        # - לא נותנים שוב XP / Stars
+        # =============================================
+
+        review_mode = (
+
+            progress.get(
+                "status"
+            )
+
+            == "completed"
+
+        )
+
+        # =============================================
+        # TURN TYPE
+        # =============================================
+
+        if review_mode:
+
+            turn_type = (
+
+                "review_start"
+
+                if is_lesson_start
+
+                else "review_response"
+
+            )
+
+        else:
+
+            turn_type = (
+
+                "start"
+
+                if is_lesson_start
+
+                else "student_response"
+
+            )
+
+
+
 
         # =============================================
         # PROMPT
@@ -2844,7 +2898,9 @@ def structured_lesson(
 
                 progress=progress,
 
-                turn_type=turn_type
+                turn_type=turn_type,
+
+                review_mode=review_mode
 
             )
 
@@ -2878,15 +2934,30 @@ def structured_lesson(
 
         if is_lesson_start:
 
-            current_message = (
+            if review_mode:
 
-                "התחל את השיעור המובנה "
-                "מהיעד הנוכחי. "
-                "זהו תור פתיחת שיעור ולכן "
-                "אין להעריך עדיין תשובת תלמיד."
+                current_message = (
 
-            )
+                    "התחל חזרה על שיעור שכבר הושלם. "
+                    "אל תלמד את השיעור מחדש מההתחלה. "
+                    "בצע חזרה קצרה ובדיקת שימור ידע "
+                    "על יעדי הלמידה, תוך העדפה למשימות "
+                    "ברמות בינוניות עד גבוהות. "
+                    "זהו תור פתיחת Review ולכן "
+                    "אין להעריך עדיין תשובת תלמיד."
 
+                )
+
+            else:
+
+                current_message = (
+
+                    "התחל את השיעור המובנה "
+                    "מהיעד הנוכחי. "
+                    "זהו תור פתיחת שיעור ולכן "
+                    "אין להעריך עדיין תשובת תלמיד."
+
+                )
 
         else:
 
@@ -2894,16 +2965,15 @@ def structured_lesson(
                 message
             )
 
+            recent_messages.append({
 
-        recent_messages.append({
+                "role":
+                    "user",
 
-            "role":
-                "user",
+                "content":
+                    current_message
 
-            "content":
-                current_message
-
-        })
+            })
 
 
         # =============================================
@@ -3002,35 +3072,48 @@ def structured_lesson(
 
             )
 
+
             evaluated_objective_index = (
 
-                    evaluation_dict.get(
-                        "objective_index"
-                    )
+                evaluation_dict.get(
+                    "objective_index"
+                )
 
-                    or progress.get(
-                "current_objective_index"
-            )
-
-            )
-
-            progress = (
-
-                apply_lesson_evaluation(
-
-                    progress=progress,
-
-                    lesson=lesson,
-
-                    evaluation=
-                        evaluation_dict,
-
-                    session_id=
-                        session_id
-
+                or progress.get(
+                    "current_objective_index"
                 )
 
             )
+
+
+            # =========================================
+            # NORMAL LEARNING MODE
+            #
+            # רק במהלך לימוד רגיל
+            # ההערכה משנה את ההתקדמות הרשמית.
+            # =========================================
+
+            if not review_mode:
+
+                progress = (
+
+                    apply_lesson_evaluation(
+
+                        progress=progress,
+
+                        lesson=lesson,
+
+                        evaluation=
+                            evaluation_dict,
+
+                        session_id=
+                            session_id
+
+                    )
+
+                )
+
+
 
 
         # =============================================
@@ -3334,6 +3417,22 @@ def structured_lesson(
 
         }
 
+        response_data[
+            "review_mode"
+        ] = review_mode
+
+
+        response_data[
+            "lesson_mode"
+        ] = (
+
+            "review"
+
+            if review_mode
+
+            else "learning"
+
+        )
 
         return response_data
 
