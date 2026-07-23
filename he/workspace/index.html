@@ -8884,20 +8884,32 @@ function renderLearningPath(
    START SELECTED LESSON
    ===================================================== */
 
-function startSelectedLesson(
+async function startSelectedLesson(
   lesson
 ){
 
   console.log(
-    "START LESSON:",
+    "START STRUCTURED LESSON:",
     lesson
   );
 
 
-  /*
-  שומרים את השיעור שנבחר.
-  בשלב הבא מנוע ה-AI יוכל להשתמש בו.
-  */
+  if(
+    !CURRENT_KID?.id
+  ){
+
+    console.error(
+      "No active kid"
+    );
+
+    return;
+
+  }
+
+
+  /* =============================================
+     שמירת מצב השיעור הפעיל
+  ============================================= */
 
   window.SELECTED_LESSON = {
 
@@ -8925,9 +8937,17 @@ function startSelectedLesson(
   };
 
 
-  /*
-  עוברים למסך השיעור הקיים
-  */
+  currentLearningMode =
+    "lesson";
+
+
+  currentLessonId =
+    lesson.id;
+
+
+  /* =============================================
+     מעבר למסך המחברת
+  ============================================= */
 
   showLearning(
     "lesson"
@@ -8965,7 +8985,194 @@ function startSelectedLesson(
 
   }
 
+
+  /* =============================================
+     ניקוי מצב קודם מהמחברת
+     אם קיים Empty State
+  ============================================= */
+
+  const emptyState =
+    document.getElementById(
+      "emptyState"
+    );
+
+
+  if(emptyState){
+
+    emptyState.style.display =
+      "none";
+
+  }
+
+
+  /* =============================================
+     SESSION / AUTH
+  ============================================= */
+
+  const {
+    data:
+      sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData.session;
+
+
+  if(
+    !session
+  ){
+
+    addMessage(
+      "assistant",
+      "יש להתחבר מחדש."
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+
+    /* =============================================
+       פתיחת השיעור
+
+       message = null אומר ל-Backend:
+       זהו START / REVIEW_START
+    ============================================= */
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/lesson`,
+
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              lesson_id:
+                lesson.id,
+
+              message:
+                null
+
+            })
+
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+
+        "START LESSON API ERROR:",
+
+        response.status,
+
+        errorText
+
+      );
+
+
+      addMessage(
+
+        "assistant",
+
+        "לא הצלחתי לפתוח את השיעור. נסו שוב."
+
+      );
+
+
+      return;
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "STRUCTURED LESSON START:",
+      data
+    );
+
+
+    /* =============================================
+       Backend מחזיר גם:
+       review_mode
+       lesson_mode
+       progress
+    ============================================= */
+
+    if(
+      data.review_mode
+    ){
+
+      console.log(
+        "LESSON OPENED IN REVIEW MODE"
+      );
+
+    }
+
+
+    await runTutorResponse(
+      data
+    );
+
+
+  }
+  catch(error){
+
+    console.error(
+
+      "START LESSON NETWORK ERROR:",
+
+      error
+
+    );
+
+
+    addMessage(
+
+      "assistant",
+
+      "לא הצלחתי להתחבר למורה כרגע."
+
+    );
+
+  }
+
 }
+
 function backFromLearningPath(){
 
   if(
@@ -9140,6 +9347,8 @@ const sendBtn = document.querySelector(".input button");
 
 let kidId = null;
 let currentSessionId = null;
+let currentLearningMode = "chat";
+let currentLessonId = null;
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -9339,6 +9548,93 @@ function animateImportantParts(element) {
   }
 }
 
+async function runTutorResponse(data){
+
+  if(
+    data.session_id
+  ){
+    currentSessionId =
+      data.session_id;
+  }
+
+
+  console.log(
+    "TUTOR RESPONSE:",
+    data
+  );
+
+
+  if(
+    !data.sequence ||
+    !Array.isArray(
+      data.sequence
+    )
+  ){
+
+    console.error(
+      "Invalid tutor response:",
+      data
+    );
+
+    addMessage(
+      "assistant",
+      "לא הצלחתי להכין את השיעור. נסו שוב."
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    await unlockLessonAudio();
+
+
+    if(
+      !window.lessonRenderer
+    ){
+
+      console.error(
+        "lessonRenderer not initialized"
+      );
+
+      addMessage(
+        "assistant",
+        "לא הצלחתי להפעיל את השיעור."
+      );
+
+      return;
+
+    }
+
+
+    await window.lessonRenderer.run({
+
+      sequence:
+        data.sequence,
+
+      wait_for_answer:
+        data.wait_for_answer,
+
+      speech:
+        data.speech
+
+    });
+
+
+  }
+  catch(error){
+
+    console.error(
+      "LESSON RENDERER ERROR:",
+      error
+    );
+
+  }
+
+}
+
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
   const text = inputEl.value.trim();
@@ -9356,18 +9652,95 @@ async function sendMessage() {
   }
 
   try {
-    const res = await fetch(`${TUTOR_API_BASE}/api/tutor/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.access_token}`
-      },
-      body: JSON.stringify({
-  message: text,
-  kid_id: CURRENT_KID.id
-})
+let endpoint;
 
-    });
+let requestBody;
+
+
+/* =============================================
+   STRUCTURED LESSON
+============================================= */
+
+if(
+  currentLearningMode ===
+    "lesson"
+
+  &&
+
+  currentLessonId
+){
+
+  endpoint =
+    `${TUTOR_API_BASE}/api/tutor/lesson`;
+
+
+  requestBody = {
+
+    message:
+      text,
+
+    kid_id:
+      CURRENT_KID.id,
+
+    lesson_id:
+      currentLessonId
+
+  };
+
+}
+
+
+/* =============================================
+   FREE CHAT
+============================================= */
+
+else{
+
+  endpoint =
+    `${TUTOR_API_BASE}/api/tutor/chat`;
+
+
+  requestBody = {
+
+    message:
+      text,
+
+    kid_id:
+      CURRENT_KID.id
+
+  };
+
+}
+
+
+const res =
+  await fetch(
+
+    endpoint,
+
+    {
+
+      method:
+        "POST",
+
+      headers: {
+
+        "Content-Type":
+          "application/json",
+
+        "Authorization":
+          `Bearer ${session.access_token}`
+
+      },
+
+      body:
+        JSON.stringify(
+          requestBody
+        )
+
+    }
+
+  );
 
 if (!res.ok) {
 
