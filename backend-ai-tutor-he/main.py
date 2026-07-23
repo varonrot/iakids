@@ -2066,7 +2066,7 @@ def get_or_create_tutor_session(
             "last_activity_at": now.isoformat(),
             "status": "active",
             "ai_model": "gpt-4o-mini",
-            "tts_model": "gemini-3.1-flash-tts-preview"
+            "tts_model": "gemini-2.5-flash-preview-tts"
         })
         .execute()
     )
@@ -2549,7 +2549,7 @@ def tutor_tts(
 
         # Gemini TTS
         response = gemini_client.models.generate_content(
-            model="gemini-3.1-flash-tts-preview",
+            model="gemini-2.5-flash-preview-tts",
 
             contents=(
                     "Speak in natural, fluent Hebrew. "
