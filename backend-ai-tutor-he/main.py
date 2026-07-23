@@ -2685,14 +2685,16 @@ def tutor_tts(
 
     except Exception as e:
 
+        error_message = repr(e)
+
         print(
             "GEMINI TTS ERROR:",
-            repr(e)
+            error_message
         )
 
         raise HTTPException(
             status_code=500,
-            detail="Gemini TTS failed"
+            detail=f"Gemini TTS failed: {error_message}"
         )
 
 
@@ -3166,6 +3168,36 @@ def structured_lesson(
 
         )
 
+        # =============================================
+        # GUARANTEE LESSON OPENING GREETING
+        # =============================================
+
+        if is_lesson_start and not review_mode:
+            child_name = (
+                    child.get("child_name")
+                    or ""
+            ).strip()
+
+            subject = (
+                    lesson.get("subject")
+                    or ""
+            ).strip()
+
+            greeting_text = (
+                f"שלום {child_name}! "
+                f"כיף שבחרת ללמוד איתי היום {subject}."
+            )
+
+            # מוסיפים פתיח קולי קבוע בתחילת השיעור
+            sequence.insert(
+                0,
+                TutorAction(
+                    type="speak",
+                    text=greeting_text
+                )
+            )
+
+            lesson_data.sequence = sequence
 
         last_action = (
 
