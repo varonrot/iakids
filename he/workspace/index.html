@@ -9968,9 +9968,18 @@ const optimizedSequence =
   );
 
 
-await runTutorResponse(
-  data
-);
+await window.lessonRenderer.run({
+
+  sequence:
+    optimizedSequence,
+
+  wait_for_answer:
+    data.wait_for_answer,
+
+  speech:
+    data.speech
+
+});
 
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
