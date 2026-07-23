@@ -2799,6 +2799,26 @@ def structured_lesson(
         ).strip()
 
 
+        # =============================================
+        # SPECIAL LESSON EVENTS
+        #
+        # __NO_RESPONSE__ נשלח מה-Frontend
+        # כאשר הילד לא ענה במשך זמן מסוים.
+        #
+        # זה אינו נחשב תשובת תלמיד ולכן:
+        # - לא מבצעים Evaluation
+        # - לא מעדכנים Progress
+        # - לא שומרים אותו כתשובת ילד
+        # =============================================
+
+        is_no_response = (
+
+            message
+            == "__NO_RESPONSE__"
+
+        )
+
+
         is_lesson_start = (
 
             not bool(
@@ -2806,8 +2826,6 @@ def structured_lesson(
             )
 
         )
-
-
 
 
         # =============================================
@@ -2859,29 +2877,44 @@ def structured_lesson(
 
         if review_mode:
 
-            turn_type = (
+            if is_lesson_start:
 
-                "review_start"
+                turn_type = (
+                    "review_start"
+                )
 
-                if is_lesson_start
+            elif is_no_response:
 
-                else "review_response"
+                turn_type = (
+                    "review_no_response"
+                )
 
-            )
+            else:
+
+                turn_type = (
+                    "review_response"
+                )
+
 
         else:
 
-            turn_type = (
+            if is_lesson_start:
 
-                "start"
+                turn_type = (
+                    "start"
+                )
 
-                if is_lesson_start
+            elif is_no_response:
 
-                else "student_response"
+                turn_type = (
+                    "no_response"
+                )
 
-            )
+            else:
 
-
+                turn_type = (
+                    "student_response"
+                )
 
 
         # =============================================
@@ -2952,19 +2985,33 @@ def structured_lesson(
 
                 current_message = (
 
-                    "התחל את השיעור המובנה "
-                    "מהיעד הנוכחי. "
+                    "התחל את השיעור המובנה. "
                     "זהו תור פתיחת שיעור ולכן "
                     "אין להעריך עדיין תשובת תלמיד."
 
                 )
+
+
+        elif is_no_response:
+
+            current_message = (
+
+                "התלמיד עדיין לא ענה לשאלה האחרונה. "
+                "אל תתייחס לכך כתשובת תלמיד ואל תבצע הערכה. "
+                "דובב את הילד בצורה קצרה, חמה וטבעית. "
+                "אפשר לעודד אותו לחשוב, להציע רמז קטן "
+                "או לנסח את השאלה בצורה פשוטה יותר. "
+                "אל תיתן מיד את התשובה. "
+                "המשך להמתין לתשובת הילד."
+
+            )
+
 
         else:
 
             current_message = (
                 message
             )
-
 
         # =============================================
         # ADD CURRENT TURN TO LLM MESSAGES
@@ -2984,8 +3031,8 @@ def structured_lesson(
                 current_message
 
         })
-        
-        
+
+
 
         # =============================================
         # OPENAI
@@ -3049,6 +3096,63 @@ def structured_lesson(
 
             )
 
+        # =============================================
+        # NORMALIZE WAIT FOR ANSWER
+        #
+        # מחכים לילד אך ורק כאשר הפעולה האחרונה
+        # ב-sequence היא ASK אמיתית עם טקסט.
+        #
+        # אם המודל כתב wait_for_answer=true
+        # אבל לא שאל שאלה בפועל,
+        # ה-Backend מתקן זאת אוטומטית.
+        # =============================================
+
+        sequence = (
+
+            lesson_data.sequence
+            or []
+
+        )
+
+
+        last_action = (
+
+            sequence[-1]
+
+            if sequence
+
+            else None
+
+        )
+
+
+        has_real_final_ask = (
+
+            last_action is not None
+
+            and
+
+            last_action.type == "ask"
+
+            and
+
+            bool(
+
+                (
+                    last_action.text
+                    or ""
+                ).strip()
+
+            )
+
+        )
+
+
+        lesson_data.wait_for_answer = (
+
+            has_real_final_ask
+
+        )
 
         # =============================================
         # EVALUATION
@@ -3068,6 +3172,10 @@ def structured_lesson(
         if (
 
             not is_lesson_start
+
+            and
+
+            not is_no_response
 
             and
 
@@ -3223,7 +3331,11 @@ def structured_lesson(
 
                 None
 
-                if is_lesson_start
+                if (
+                    is_lesson_start
+                    or
+                    is_no_response
+                )
 
                 else message
 
