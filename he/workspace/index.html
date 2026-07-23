@@ -14144,6 +14144,148 @@ async run(script){
   const sequence =
     script.sequence || [];
 
+    /* =========================================
+   MERGE CONSECUTIVE SPEAK ACTIONS
+
+   כמה פעולות speak רצופות
+   הופכות לפעולת speak אחת.
+
+   לאחר מכן speak() הקיים
+   יחלק את הדיבור לכל היותר ל-2 חלקים.
+========================================= */
+
+const optimizedSequence = [];
+
+for(
+  let i = 0;
+  i < sequence.length;
+  i++
+){
+
+  const action =
+    sequence[i];
+
+
+  if(
+    !action
+  ){
+    continue;
+  }
+
+
+  /* פעולה שאינה SPEAK נשארת כרגיל */
+
+  if(
+    action.type !== "speak"
+  ){
+
+    optimizedSequence.push(
+      action
+    );
+
+    continue;
+
+  }
+
+
+  /* מתחילים לאסוף SPEAK רצופים */
+
+  const textParts = [];
+
+  const ttsParts = [];
+
+
+  let j = i;
+
+
+  while(
+    j < sequence.length
+    &&
+    sequence[j]?.type === "speak"
+  ){
+
+    const current =
+      sequence[j];
+
+
+    const visibleText =
+      (
+        current.text ||
+        ""
+      ).trim();
+
+
+    const ttsText =
+      (
+        current.speech_tts ||
+        current.text ||
+        ""
+      ).trim();
+
+
+    if(
+      visibleText
+    ){
+
+      textParts.push(
+        visibleText
+      );
+
+    }
+
+
+    if(
+      ttsText
+    ){
+
+      ttsParts.push(
+        ttsText
+      );
+
+    }
+
+
+    j++;
+
+  }
+
+
+  optimizedSequence.push({
+
+    ...action,
+
+    text:
+      textParts.join(
+        " "
+      ),
+
+    speech_tts:
+      ttsParts.join(
+        " "
+      )
+
+  });
+
+
+  /* מדלגים על ה-SPEAK שכבר איחדנו */
+
+  i =
+    j - 1;
+
+}
+
+
+console.log(
+  "ORIGINAL SEQUENCE:",
+  sequence
+);
+
+
+console.log(
+  "OPTIMIZED SEQUENCE:",
+  optimizedSequence
+);
+
 const optimizedSequence = [];
 
 for(
