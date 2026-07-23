@@ -13552,9 +13552,9 @@ splitSpeechIntoTwo(text){
     אין טעם לפצל לקריאה נוספת
   */
 
-  if(cleanText.length <= 70){
-    return [cleanText];
-  }
+if(cleanText.length <= 300){
+  return [cleanText];
+}
 
 
   /*
@@ -14144,24 +14144,116 @@ async run(script){
   const sequence =
     script.sequence || [];
 
+const optimizedSequence = [];
 
+for(
+  let i = 0;
+  i < sequence.length;
+  i++
+){
+
+  const action =
+    sequence[i];
+
+
+  if(
+    action.type !== "speak"
+  ){
+
+    optimizedSequence.push(
+      action
+    );
+
+    continue;
+
+  }
+
+
+  const speakGroup = [
+    action
+  ];
+
+
+  let j =
+    i + 1;
+
+
+  while(
+    j < sequence.length
+    &&
+    sequence[j].type === "speak"
+  ){
+
+    speakGroup.push(
+      sequence[j]
+    );
+
+    j++;
+
+  }
+
+
+  if(
+    speakGroup.length === 1
+  ){
+
+    optimizedSequence.push(
+      action
+    );
+
+  }
+  else{
+
+    optimizedSequence.push({
+
+      ...action,
+
+      text:
+        speakGroup
+          .map(
+            item =>
+              item.text || ""
+          )
+          .filter(Boolean)
+          .join(" "),
+
+      speech_tts:
+        speakGroup
+          .map(
+            item =>
+              item.speech_tts ||
+              item.text ||
+              ""
+          )
+          .filter(Boolean)
+          .join(" ")
+
+    });
+
+  }
+
+
+  i =
+    j - 1;
+
+}
 
 
   /* =========================================
      מריצים את השיעור
   ========================================= */
 
-  for(
-    let i = 0;
-    i < sequence.length;
-    i++
-  ){
+for(
+  let i = 0;
+  i < optimizedSequence.length;
+  i++
+){
 
-    const action =
-      sequence[i];
+  const action =
+    optimizedSequence[i];
 
-    const nextAction =
-      sequence[i + 1];
+  const nextAction =
+    optimizedSequence[i + 1];
 
 
     /* =========================================
