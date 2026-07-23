@@ -44,16 +44,56 @@ GEMINI_AUDIO_TOKENS_PER_SECOND = 32
 # STRUCTURED LESSON PEDAGOGICAL ENGINE
 # =====================================================
 
+# =====================================================
+# STRUCTURED LESSON PEDAGOGICAL ENGINE
+# =====================================================
+
+# יעד נחשב נשלט כאשר הילד מגיע לפחות לציון הזה
 OBJECTIVE_MASTERY_THRESHOLD = 90
 
+
+# =====================================================
+# DIFFICULTY LEVEL CAPS
+#
+# ילד לא יכול להגיע לשליטה מלאה
+# רק מחזרה על משימות קלות.
+#
+# רמה 1 = היכרות / זיהוי
+# רמה 2 = הבנה בסיסית
+# רמה 3 = יישום
+# רמה 4 = יישום עצמאי
+# רמה 5 = העברה / מצב חדש / אתגר מסכם
+# =====================================================
+
+DIFFICULTY_SCORE_CAPS = {
+
+    1: 30,
+
+    2: 50,
+
+    3: 70,
+
+    4: 90,
+
+    5: 100
+
+}
+
+
+# =====================================================
+# BASE EVIDENCE POINTS
+#
+# אלו נקודות "הוכחת שליטה".
+# הן עדיין כפופות לתקרת רמת הקושי.
+# =====================================================
 
 RESPONSE_QUALITY_POINTS = {
 
     "correct":
-        10,
+        8,
 
     "partial":
-        5,
+        3,
 
     "incorrect":
         0
@@ -64,7 +104,7 @@ RESPONSE_QUALITY_POINTS = {
 INDEPENDENCE_POINTS = {
 
     "independent":
-        5,
+        4,
 
     "with_hint":
         2,
@@ -78,7 +118,7 @@ INDEPENDENCE_POINTS = {
 UNDERSTANDING_POINTS = {
 
     "strong":
-        5,
+        4,
 
     "partial":
         2,
@@ -87,6 +127,22 @@ UNDERSTANDING_POINTS = {
         0
 
 }
+
+
+EVIDENCE_STRENGTH_POINTS = {
+
+    "strong":
+        4,
+
+    "moderate":
+        2,
+
+    "weak":
+        0
+
+}
+
+
 
 if not SUPABASE_URL:
     raise RuntimeError("Missing SUPABASE_URL")
@@ -244,21 +300,55 @@ class LessonEvaluation(
     BaseModel
 ):
 
+    # היעד הלימודי שנבדק בתור הזה
     objective_index: int | None = None
 
+
+    # correct / partial / incorrect
     response_quality: str | None = None
 
+
+    # independent / with_hint / guided
     independence_level: str | None = None
 
+
+    # strong / partial / weak
     understanding_level: str | None = None
+
+
+    # 1-5
+    #
+    # 1 = היכרות / זיהוי
+    # 2 = הבנה בסיסית
+    # 3 = יישום
+    # 4 = יישום עצמאי
+    # 5 = העברה למצב חדש / אתגר
+    difficulty_level: int | None = None
+
+
+    # strong / moderate / weak
+    #
+    # עד כמה האינטראקציה הזאת באמת
+    # מספקת הוכחה לשליטה
+    evidence_strength: str | None = None
+
+
+    # האם מדובר בחזרה על אותו סוג
+    # משימה שכבר נבדק מספר פעמים
+    is_repetition: bool = False
+
 
     hint_used: bool = False
 
+
     repeated_mistake: bool = False
+
 
     identified_difficulty: str | None = None
 
+
     evaluation_summary: str | None = None
+
 
     lesson_summary: str | None = None
 
@@ -620,14 +710,39 @@ def get_or_create_lesson_progress(
         objectives,
         start=1
     ):
-
         objectives_progress.append({
 
             "objective_index":
                 index,
 
             "score":
-                0
+                0,
+
+            # רמת הקושי הגבוהה ביותר
+            # שבה הילד הראה הצלחה
+            "highest_difficulty_reached":
+                0,
+
+            # מספר אינטראקציות שהיוו
+            # הוכחה אמיתית ללמידה
+            "evidence_count":
+                0,
+
+            # כמה פעמים נצפתה הצלחה
+            # בכל רמת קושי
+            "evidence_by_level": {
+
+                "1": 0,
+
+                "2": 0,
+
+                "3": 0,
+
+                "4": 0,
+
+                "5": 0
+
+            }
 
         })
 
@@ -870,512 +985,932 @@ def save_lesson_history(
         rows
     ).execute()
 
-    def calculate_objective_delta(
-            evaluation: dict
+# =====================================================
+# CALCULATE PEDAGOGICAL EVIDENCE
+# =====================================================
+
+def calculate_objective_evidence(
+        evaluation: dict
+):
+
+    response_quality = (
+        evaluation.get(
+            "response_quality"
+        )
+    )
+
+
+    independence_level = (
+        evaluation.get(
+            "independence_level"
+        )
+    )
+
+
+    understanding_level = (
+        evaluation.get(
+            "understanding_level"
+        )
+    )
+
+
+    evidence_strength = (
+        evaluation.get(
+            "evidence_strength"
+        )
+    )
+
+
+    difficulty_level = int(
+
+        evaluation.get(
+            "difficulty_level"
+        )
+
+        or 1
+
+    )
+
+
+    # מגבילים תמיד לטווח 1-5
+
+    difficulty_level = max(
+
+        1,
+
+        min(
+            difficulty_level,
+            5
+        )
+
+    )
+
+
+    evidence_points = 0
+
+
+    evidence_points += (
+
+        RESPONSE_QUALITY_POINTS
+        .get(
+            response_quality,
+            0
+        )
+
+    )
+
+
+    evidence_points += (
+
+        INDEPENDENCE_POINTS
+        .get(
+            independence_level,
+            0
+        )
+
+    )
+
+
+    evidence_points += (
+
+        UNDERSTANDING_POINTS
+        .get(
+            understanding_level,
+            0
+        )
+
+    )
+
+
+    evidence_points += (
+
+        EVIDENCE_STRENGTH_POINTS
+        .get(
+            evidence_strength,
+            0
+        )
+
+    )
+
+
+    # =================================================
+    # חזרה על אותו סוג משימה
+    #
+    # עדיין נותנת מעט חיזוק,
+    # אבל לא ניקוד מלא שוב ושוב
+    # =================================================
+
+    if evaluation.get(
+        "is_repetition"
     ):
 
-        delta = 0
+        evidence_points = round(
 
-        response_quality = (
-            evaluation.get(
-                "response_quality"
-            )
+            evidence_points
+            * 0.35
+
         )
 
-        independence_level = (
-            evaluation.get(
-                "independence_level"
-            )
-        )
 
-        understanding_level = (
-            evaluation.get(
-                "understanding_level"
-            )
-        )
+    # =================================================
+    # טעות חוזרת
+    # =================================================
 
-        delta += (
-            RESPONSE_QUALITY_POINTS
-            .get(
-                response_quality,
-                0
-            )
-        )
-
-        delta += (
-            INDEPENDENCE_POINTS
-            .get(
-                independence_level,
-                0
-            )
-        )
-
-        delta += (
-            UNDERSTANDING_POINTS
-            .get(
-                understanding_level,
-                0
-            )
-        )
-
-        # טעות חוזרת מורידה מעט
-        # את רמת השליטה הנוכחית
-
-        if evaluation.get(
-                "repeated_mistake"
-        ):
-            delta -= 2
-
-        return delta
-
-    def apply_lesson_evaluation(
-            progress: dict,
-            lesson: dict,
-            evaluation: dict,
-            session_id: str
+    if evaluation.get(
+        "repeated_mistake"
     ):
 
-        now = datetime.now(
-            timezone.utc
+        evidence_points -= 3
+
+
+    # =================================================
+    # תשובה שגויה לא יכולה
+    # לייצר evidence חיובי
+    # =================================================
+
+    if response_quality == "incorrect":
+
+        evidence_points = min(
+
+            evidence_points,
+
+            0
+
         )
 
-        objectives_progress = (
 
-                progress.get(
-                    "objectives_progress"
-                )
+    return {
 
-                or []
+        "evidence_points":
+            evidence_points,
 
+        "difficulty_level":
+            difficulty_level,
+
+        "difficulty_cap":
+
+            DIFFICULTY_SCORE_CAPS[
+                difficulty_level
+            ]
+
+    }
+
+# =====================================================
+# APPLY LESSON EVALUATION
+# =====================================================
+
+def apply_lesson_evaluation(
+        progress: dict,
+        lesson: dict,
+        evaluation: dict,
+        session_id: str
+):
+
+    now = datetime.now(
+        timezone.utc
+    )
+
+
+    objectives_progress = (
+
+        progress.get(
+            "objectives_progress"
         )
 
-        objective_index = (
+        or []
 
-                evaluation.get(
-                    "objective_index"
-                )
+    )
 
-                or progress.get(
+
+    objective_index = (
+
+        evaluation.get(
+            "objective_index"
+        )
+
+        or progress.get(
             "current_objective_index"
         )
 
-                or 1
+        or 1
 
+    )
+
+
+    evidence_result = (
+
+        calculate_objective_evidence(
+            evaluation
         )
 
-        delta = (
-            calculate_objective_delta(
-                evaluation
+    )
+
+
+    evidence_points = (
+
+        evidence_result[
+            "evidence_points"
+        ]
+
+    )
+
+
+    difficulty_level = (
+
+        evidence_result[
+            "difficulty_level"
+        ]
+
+    )
+
+
+    difficulty_cap = (
+
+        evidence_result[
+            "difficulty_cap"
+        ]
+
+    )
+
+
+    # =================================================
+    # UPDATE CURRENT OBJECTIVE
+    # =================================================
+
+    for objective in (
+        objectives_progress
+    ):
+
+
+        if (
+
+            int(
+                objective.get(
+                    "objective_index",
+                    0
+                )
             )
-        )
 
-        # =============================================
-        # עדכון ציון היעד הנוכחי
-        # =============================================
+            !=
 
-        for objective in (
-                objectives_progress
-        ):
-
-            if (
-
-                    int(
-                        objective.get(
-                            "objective_index",
-                            0
-                        )
-                    )
-
-                    == int(
+            int(
                 objective_index
             )
 
-            ):
-                old_score = int(
+        ):
 
+            continue
+
+
+        old_score = int(
+
+            objective.get(
+                "score"
+            )
+
+            or 0
+
+        )
+
+
+        highest_difficulty_reached = int(
+
+            objective.get(
+                "highest_difficulty_reached"
+            )
+
+            or 0
+
+        )
+
+
+        evidence_count = int(
+
+            objective.get(
+                "evidence_count"
+            )
+
+            or 0
+
+        )
+
+
+        evidence_by_level = (
+
+            objective.get(
+                "evidence_by_level"
+            )
+
+            or {
+
+                "1": 0,
+
+                "2": 0,
+
+                "3": 0,
+
+                "4": 0,
+
+                "5": 0
+
+            }
+
+        )
+
+
+        # =============================================
+        # עדכון מספר ראיות ברמת הקושי
+        # =============================================
+
+        level_key = str(
+            difficulty_level
+        )
+
+
+        if (
+
+            evaluation.get(
+                "response_quality"
+            )
+
+            in (
+                "correct",
+                "partial"
+            )
+
+        ):
+
+            evidence_by_level[
+                level_key
+            ] = (
+
+                int(
+                    evidence_by_level.get(
+                        level_key,
+                        0
+                    )
+                )
+
+                + 1
+
+            )
+
+
+        # =============================================
+        # רק הצלחה אמיתית נחשבת
+        # כהגעה לרמת קושי
+        # =============================================
+
+        if (
+
+            evaluation.get(
+                "response_quality"
+            )
+
+            == "correct"
+
+        ):
+
+            highest_difficulty_reached = max(
+
+                highest_difficulty_reached,
+
+                difficulty_level
+
+            )
+
+
+        # =============================================
+        # SCORE UPDATE
+        #
+        # קודם מחשבים שינוי רגיל
+        # =============================================
+
+        proposed_score = (
+
+            old_score
+            + evidence_points
+
+        )
+
+
+        # =============================================
+        # CAP
+        #
+        # לא מאפשרים לעבור את התקרה
+        # של רמת הקושי הגבוהה ביותר
+        # שהילד באמת הצליח בה.
+        # =============================================
+
+        highest_cap = (
+
+            DIFFICULTY_SCORE_CAPS.get(
+
+                highest_difficulty_reached,
+
+                0
+
+            )
+
+        )
+
+
+        # אם עדיין אין הצלחה מלאה,
+        # משתמשים לפחות בתקרת השאלה
+        # הנוכחית אבל לא מאפשרים
+        # לפרוץ אותה
+
+        effective_cap = max(
+
+            highest_cap,
+
+            difficulty_cap
+            if (
+                evaluation.get(
+                    "response_quality"
+                )
+                == "correct"
+            )
+            else old_score
+
+        )
+
+
+        new_score = max(
+
+            0,
+
+            min(
+
+                100,
+
+                proposed_score,
+
+                effective_cap
+
+            )
+
+        )
+
+
+        # =============================================
+        # ראיה חדשה
+        # =============================================
+
+        if (
+
+            evidence_points > 0
+
+            and
+
+            not evaluation.get(
+                "is_repetition"
+            )
+
+        ):
+
+            evidence_count += 1
+
+
+        objective[
+            "score"
+        ] = new_score
+
+
+        objective[
+            "highest_difficulty_reached"
+        ] = highest_difficulty_reached
+
+
+        objective[
+            "evidence_count"
+        ] = evidence_count
+
+
+        objective[
+            "evidence_by_level"
+        ] = evidence_by_level
+
+
+        break
+
+
+    # =================================================
+    # ALL OBJECTIVE SCORES
+    # =================================================
+
+    scores = [
+
+        int(
+            objective.get(
+                "score"
+            )
+
+            or 0
+        )
+
+        for objective
+        in objectives_progress
+
+    ]
+
+
+    # =================================================
+    # LESSON PROGRESS
+    #
+    # ממוצע ציוני כל היעדים
+    # =================================================
+
+    if scores:
+
+        progress_percent = round(
+
+            sum(scores)
+            /
+            len(scores)
+
+        )
+
+    else:
+
+        progress_percent = 0
+
+
+    # =================================================
+    # MASTERY
+    #
+    # ממוצע של יעדים שכבר התחילו
+    # =================================================
+
+    started_scores = [
+
+        score
+
+        for score
+        in scores
+
+        if score > 0
+
+    ]
+
+
+    if started_scores:
+
+        mastery_score = round(
+
+            sum(
+                started_scores
+            )
+
+            /
+
+            len(
+                started_scores
+            )
+
+        )
+
+    else:
+
+        mastery_score = 0
+
+
+    # =================================================
+    # NEXT OBJECTIVE
+    # =================================================
+
+    next_objective_index = None
+
+    for objective in (
+            objectives_progress
+    ):
+
+        objective_score = int(
+
+            objective.get(
+                "score"
+            )
+
+            or 0
+
+        )
+
+        highest_difficulty = int(
+
+            objective.get(
+                "highest_difficulty_reached"
+            )
+
+            or 0
+
+        )
+
+        if (
+
+                objective_score
+                < OBJECTIVE_MASTERY_THRESHOLD
+
+                or
+
+                highest_difficulty
+                < 5
+
+        ):
+            next_objective_index = (
+
+                objective[
+                    "objective_index"
+                ]
+
+            )
+
+            break
+
+
+
+
+    # =================================================
+    # LESSON COMPLETION
+    # =================================================
+
+    lesson_completed = (
+
+            bool(
+                objectives_progress
+            )
+
+            and
+
+            all(
+
+                int(
                     objective.get(
                         "score"
                     )
 
                     or 0
-
                 )
 
-                new_score = max(
+                >=
 
-                    0,
-
-                    min(
-
-                        100,
-
-                        old_score
-                        + delta
-
-                    )
-
-                )
-
-                objective[
-                    "score"
-                ] = new_score
-
-                break
-
-        # =============================================
-        # ציוני כל היעדים
-        # =============================================
-
-        scores = [
-
-            int(
-                objective.get(
-                    "score"
-                )
-
-                or 0
-            )
-
-            for objective
-            in objectives_progress
-
-        ]
-
-        # =============================================
-        # התקדמות כוללת בשיעור
-        #
-        # ממוצע של כל היעדים
-        # =============================================
-
-        if scores:
-
-            progress_percent = round(
-
-                sum(scores)
-                /
-                len(scores)
-
-            )
-
-        else:
-
-            progress_percent = 0
-
-        # =============================================
-        # Mastery
-        #
-        # ממוצע היעדים שכבר התחילו
-        # =============================================
-
-        started_scores = [
-
-            score
-
-            for score
-            in scores
-
-            if score > 0
-
-        ]
-
-        if started_scores:
-
-            mastery_score = round(
-
-                sum(
-                    started_scores
-                )
-
-                /
-                len(
-                    started_scores
-                )
-
-            )
-
-        else:
-
-            mastery_score = 0
-
-        # =============================================
-        # מציאת היעד הבא שעדיין
-        # לא הגיע לסף שליטה
-        # =============================================
-
-        next_objective_index = None
-
-        for objective in (
-                objectives_progress
-        ):
-
-            if (
-
-                    int(
-                        objective.get(
-                            "score"
-                        )
-
-                        or 0
-                    )
-
-                    <
-                    OBJECTIVE_MASTERY_THRESHOLD
-
-            ):
-                next_objective_index = (
-
-                    objective[
-                        "objective_index"
-                    ]
-
-                )
-
-                break
-
-        # =============================================
-        # האם השיעור הסתיים
-        # =============================================
-
-        lesson_completed = (
-
-                bool(
-                    objectives_progress
-                )
+                OBJECTIVE_MASTERY_THRESHOLD
 
                 and
 
-                all(
-
-                    int(
-                        objective.get(
-                            "score"
-                        )
-
-                        or 0
-                    )
-
-                    >=
-                    OBJECTIVE_MASTERY_THRESHOLD
-
-                    for objective
-                    in objectives_progress
-
-                )
-
-        )
-
-        if lesson_completed:
-
-            status = (
-                "completed"
-            )
-
-            progress_percent = 100
-
-            next_objective_index = None
-
-
-        else:
-
-            status = (
-                "in_progress"
-            )
-
-        # =============================================
-        # רצף הצלחות / קשיים
-        # =============================================
-
-        response_quality = (
-
-            evaluation.get(
-                "response_quality"
-            )
-
-        )
-
-        current_successes = int(
-
-            progress.get(
-                "consecutive_successes"
-            )
-
-            or 0
-
-        )
-
-        current_failures = int(
-
-            progress.get(
-                "consecutive_failures"
-            )
-
-            or 0
-
-        )
-
-        if response_quality == "correct":
-
-            consecutive_successes = (
-
-                    current_successes
-                    + 1
-
-            )
-
-            consecutive_failures = 0
-
-
-        elif response_quality == "incorrect":
-
-            consecutive_successes = 0
-
-            consecutive_failures = (
-
-                    current_failures
-                    + 1
-
-            )
-
-
-        else:
-
-            consecutive_successes = 0
-
-            consecutive_failures = 0
-
-        hints_used = int(
-
-            progress.get(
-                "hints_used"
-            )
-
-            or 0
-
-        )
-
-        if evaluation.get(
-                "hint_used"
-        ):
-            hints_used += 1
-
-        update_data = {
-
-            "status":
-                status,
-
-            "progress_percent":
-                progress_percent,
-
-            "mastery_score":
-                mastery_score,
-
-            "current_objective_index":
-                next_objective_index,
-
-            "objectives_progress":
-                objectives_progress,
-
-            "total_interactions":
-
                 int(
-                    progress.get(
-                        "total_interactions"
+                    objective.get(
+                        "highest_difficulty_reached"
                     )
 
                     or 0
                 )
 
-                + 1,
+                >= 5
 
-            "hints_used":
-                hints_used,
-
-            "consecutive_successes":
-                consecutive_successes,
-
-            "consecutive_failures":
-                consecutive_failures,
-
-            "last_evaluation":
-                evaluation,
-
-            "last_error_type":
-                evaluation.get(
-                    "identified_difficulty"
-                ),
-
-            "last_session_id":
-                session_id,
-
-            "last_activity_at":
-                now.isoformat(),
-
-            "updated_at":
-                now.isoformat()
-
-        }
-
-        # =============================================
-        # השלמת שיעור
-        # =============================================
-
-        if lesson_completed:
-            update_data[
-                "completed_at"
-            ] = (
-                now.isoformat()
-            )
-
-            update_data[
-                "xp_earned"
-            ] = int(
-
-                lesson.get(
-                    "xp_reward"
-                )
-
-                or 0
+                for objective
+                in objectives_progress
 
             )
 
-            update_data[
-                "stars_earned"
-            ] = int(
+    )
 
-                lesson.get(
-                    "stars_reward"
-                )
 
-                or 0
 
-            )
 
-        updated = (
+    if lesson_completed:
 
-            sb.table(
-                "kid_lesson_progress"
-            )
+        status = "completed"
 
-            .update(
-                update_data
-            )
+        progress_percent = 100
 
-            .eq(
-                "id",
-                progress["id"]
-            )
+        next_objective_index = None
 
-            .execute()
+
+    else:
+
+        status = "in_progress"
+
+
+    # =================================================
+    # SUCCESS / FAILURE STREAKS
+    # =================================================
+
+    response_quality = (
+
+        evaluation.get(
+            "response_quality"
+        )
+
+    )
+
+
+    current_successes = int(
+
+        progress.get(
+            "consecutive_successes"
+        )
+
+        or 0
+
+    )
+
+
+    current_failures = int(
+
+        progress.get(
+            "consecutive_failures"
+        )
+
+        or 0
+
+    )
+
+
+    if response_quality == "correct":
+
+        consecutive_successes = (
+
+            current_successes
+            + 1
 
         )
 
-        if updated.data:
-            return updated.data[0]
+        consecutive_failures = 0
 
-        return {
-            **progress,
-            **update_data
-        }
+
+    elif response_quality == "incorrect":
+
+        consecutive_successes = 0
+
+        consecutive_failures = (
+
+            current_failures
+            + 1
+
+        )
+
+
+    else:
+
+        consecutive_successes = 0
+
+        consecutive_failures = 0
+
+
+    # =================================================
+    # HINTS
+    # =================================================
+
+    hints_used = int(
+
+        progress.get(
+            "hints_used"
+        )
+
+        or 0
+
+    )
+
+
+    if evaluation.get(
+        "hint_used"
+    ):
+
+        hints_used += 1
+
+
+    # =================================================
+    # DATABASE UPDATE
+    # =================================================
+
+    update_data = {
+
+        "status":
+            status,
+
+        "progress_percent":
+            progress_percent,
+
+        "mastery_score":
+            mastery_score,
+
+        "current_objective_index":
+            next_objective_index,
+
+        "objectives_progress":
+            objectives_progress,
+
+        "total_interactions":
+
+            int(
+                progress.get(
+                    "total_interactions"
+                )
+
+                or 0
+            )
+
+            + 1,
+
+        "hints_used":
+            hints_used,
+
+        "consecutive_successes":
+            consecutive_successes,
+
+        "consecutive_failures":
+            consecutive_failures,
+
+        "last_evaluation":
+            evaluation,
+
+        "last_error_type":
+            evaluation.get(
+                "identified_difficulty"
+            ),
+
+        "last_session_id":
+            session_id,
+
+        "last_activity_at":
+            now.isoformat(),
+
+        "updated_at":
+            now.isoformat()
+
+    }
+
+
+    # =================================================
+    # COMPLETED
+    # =================================================
+
+    if lesson_completed:
+
+        update_data[
+            "completed_at"
+        ] = now.isoformat()
+
+
+        update_data[
+            "xp_earned"
+        ] = int(
+
+            lesson.get(
+                "xp_reward"
+            )
+
+            or 0
+
+        )
+
+
+        update_data[
+            "stars_earned"
+        ] = int(
+
+            lesson.get(
+                "stars_reward"
+            )
+
+            or 0
+
+        )
+
+
+    updated = (
+
+        sb.table(
+            "kid_lesson_progress"
+        )
+
+        .update(
+            update_data
+        )
+
+        .eq(
+            "id",
+            progress["id"]
+        )
+
+        .execute()
+
+    )
+
+
+    if updated.data:
+
+        return updated.data[0]
+
+
+    return {
+
+        **progress,
+
+        **update_data
+
+    }
+
 
 
 # =====================================================
@@ -2442,6 +2977,12 @@ def structured_lesson(
 
         evaluation_dict = None
 
+        evaluated_objective_index = (
+            progress.get(
+                "current_objective_index"
+            )
+        )
+
 
         if (
 
@@ -2461,6 +3002,17 @@ def structured_lesson(
 
             )
 
+            evaluated_objective_index = (
+
+                    evaluation_dict.get(
+                        "objective_index"
+                    )
+
+                    or progress.get(
+                "current_objective_index"
+            )
+
+            )
 
             progress = (
 
@@ -2571,9 +3123,7 @@ def structured_lesson(
                 session_id,
 
             objective_index=
-                progress.get(
-                    "current_objective_index"
-                ),
+            evaluated_objective_index,
 
             user_content=(
 
@@ -2813,8 +3363,8 @@ def structured_lesson(
             )
 
         )
-    
-    
+
+
 # =====================================================
 # HOMEWORK IMAGE / PDF ANALYSIS
 # =====================================================
