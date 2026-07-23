@@ -3151,6 +3151,141 @@ def structured_lesson(
             )
 
         # =============================================
+        # VALIDATE LESSON START SEQUENCE
+        #
+        # בפתיחת שיעור רגילה:
+        # - חייב להיות לפחות write אחד
+        # - חייב להיות ask בסוף
+        #
+        # אם GPT החזיר פתיח חלקי,
+        # מבצעים Retry אחד עם הוראה מפורשת.
+        # =============================================
+
+        if is_lesson_start and not review_mode:
+
+            sequence = (
+                    lesson_data.sequence
+                    or []
+            )
+
+            has_write = any(
+                action.type == "write"
+                for action in sequence
+            )
+
+            has_ask = any(
+                action.type == "ask"
+                and bool(
+                    (
+                            action.text
+                            or ""
+                    ).strip()
+                )
+                for action in sequence
+            )
+
+            final_action_is_ask = (
+                    bool(sequence)
+                    and sequence[-1].type == "ask"
+                    and bool(
+                (
+                        sequence[-1].text
+                        or ""
+                ).strip()
+            )
+            )
+
+            if (
+                    not has_write
+                    or
+                    not has_ask
+                    or
+                    not final_action_is_ask
+            ):
+
+                retry_message = (
+
+                        current_message
+
+                        +
+
+                        "\n\n"
+                        "IMPORTANT RETRY: "
+                        "The previous lesson-start response was incomplete. "
+                        "Return a COMPLETE lesson-start sequence. "
+                        "Do not return only speak actions. "
+                        "The sequence must include actual teaching, "
+                        "at least one write action, "
+                        "and must end with one real ask action "
+                        "that requires the child's response. "
+                        "Begin teaching the current objective now, "
+                        "not only introducing the lesson."
+                )
+
+                retry_messages = [
+
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            system_prompt
+
+                    },
+
+                    *recent_messages[:-1],
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            retry_message
+
+                    }
+
+                ]
+
+                retry_completion = (
+
+                    client
+                    .beta
+                    .chat
+                    .completions
+                    .parse(
+
+                        model=
+                        "gpt-4o-mini",
+
+                        messages=
+                        retry_messages,
+
+                        response_format=
+                        StructuredLessonResponse
+
+                    )
+
+                )
+
+                retry_lesson_data = (
+
+                    retry_completion
+                    .choices[0]
+                    .message
+                    .parsed
+
+                )
+
+                if retry_lesson_data:
+                    lesson_data = (
+                        retry_lesson_data
+                    )
+
+                    completion = (
+                        retry_completion
+                    )
+                    
+        # =============================================
         # NORMALIZE WAIT FOR ANSWER
         #
         # מחכים לילד אך ורק כאשר הפעולה האחרונה
