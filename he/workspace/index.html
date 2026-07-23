@@ -8888,6 +8888,10 @@ async function startSelectedLesson(
   lesson
 ){
 
+clearNoResponseTimer();
+
+noResponseCount = 0;
+
   console.log(
     "START STRUCTURED LESSON:",
     lesson
@@ -9350,6 +9354,15 @@ let currentSessionId = null;
 let currentLearningMode = "chat";
 let currentLessonId = null;
 let noResponseTimer = null;
+let noResponseCount = 0;
+
+const MAX_NO_RESPONSE_PROMPTS = 3;
+
+const NO_RESPONSE_DELAYS = [
+  10000, // דיבוב ראשון אחרי 10 שניות
+  15000, // דיבוב שני אחרי 15 שניות נוספות
+  20000  // דיבוב שלישי אחרי 20 שניות נוספות
+];
 
 
 function clearNoResponseTimer(){
@@ -9375,6 +9388,49 @@ function startNoResponseTimer(){
   clearNoResponseTimer();
 
 
+  /* =============================================
+     מקסימום 3 דיבובים לכל שאלה
+  ============================================= */
+
+  if(
+    noResponseCount >=
+      MAX_NO_RESPONSE_PROMPTS
+  ){
+
+    console.log(
+      "NO RESPONSE LIMIT REACHED"
+    );
+
+    return;
+
+  }
+
+
+  const delay =
+
+    NO_RESPONSE_DELAYS[
+      noResponseCount
+    ]
+
+    ||
+
+    20000;
+
+
+  console.log(
+
+    "START NO RESPONSE TIMER:",
+
+    {
+      promptNumber:
+        noResponseCount + 1,
+
+      delay
+    }
+
+  );
+
+
   noResponseTimer =
     setTimeout(
 
@@ -9383,8 +9439,6 @@ function startNoResponseTimer(){
         noResponseTimer =
           null;
 
-
-        /* רק בתוך שיעור מובנה */
 
         if(
           currentLearningMode !==
@@ -9404,23 +9458,46 @@ function startNoResponseTimer(){
         }
 
 
-        /* אם הילד כבר התחיל להקליד,
-           לא מדובבים אותו */
+        /* הילד התחיל לכתוב */
 
         if(
           inputEl.value.trim()
         ){
+
+          console.log(
+            "NO RESPONSE CANCELLED - CHILD IS TYPING"
+          );
 
           return;
 
         }
 
 
+        /*
+        מעלים את המונה לפני הקריאה.
+
+        דיבוב 1 → count = 1
+        דיבוב 2 → count = 2
+        דיבוב 3 → count = 3
+        */
+
+        noResponseCount++;
+
+
+        console.log(
+
+          "SEND NO RESPONSE:",
+
+          noResponseCount
+
+        );
+
+
         await sendLessonNoResponse();
 
       },
 
-      10000
+      delay
 
     );
 
@@ -9685,18 +9762,44 @@ async function runTutorResponse(data){
     }
 
 
-    await window.lessonRenderer.run({
+await window.lessonRenderer.run({
 
-      sequence:
-        data.sequence,
+  sequence:
+    data.sequence,
 
-      wait_for_answer:
-        data.wait_for_answer,
+  wait_for_answer:
+    data.wait_for_answer,
 
-      speech:
-        data.speech
+  speech:
+    data.speech
 
-    });
+});
+
+
+/* =============================================
+   הפעלת דיבוב רק כאשר באמת מחכים לילד
+============================================= */
+
+clearNoResponseTimer();
+
+
+if(
+  data.wait_for_answer ===
+    true
+
+  &&
+
+  currentLearningMode ===
+    "lesson"
+
+  &&
+
+  currentLessonId
+){
+
+  startNoResponseTimer();
+
+}
 
 
   }
@@ -9858,6 +9961,12 @@ async function sendLessonNoResponse(){
 async function sendMessage() {
 
   clearNoResponseTimer();
+
+  /* הילד ענה:
+     מתחילים מחדש ספירת דיבובים
+     עבור השאלה הבאה */
+
+  noResponseCount = 0;
 
   const text =
     inputEl.value.trim();
