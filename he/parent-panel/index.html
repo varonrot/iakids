@@ -776,54 +776,87 @@ async function selectKid(kidId){
 
 async function loadParentDashboardData(kidId){
 
-  const progressQuery = await sb
+  console.log("PARENT DASHBOARD KID ID:", kidId);
+
+  const { data: progress, error: progressError } = await sb
     .from("kid_lesson_progress")
     .select("*")
-    .eq("kid_id",kidId)
-    .order("updated_at",{ascending:false});
+    .eq("kid_id", kidId)
+    .order("last_activity_at", { ascending: false });
 
-  if(progressQuery.error){
-    console.error("LOAD PROGRESS ERROR:",progressQuery.error);
+  console.log("PARENT PROGRESS DATA:", progress);
+  console.log("PARENT PROGRESS ERROR:", progressError);
+
+  if (progressError) {
+    console.error("LOAD PROGRESS ERROR:", progressError);
+
+    els.subjectsProgress.innerHTML = `
+      <div class="empty">
+        לא הצלחנו לקרוא את נתוני ההתקדמות.
+        בדקו את הרשאות הגישה לטבלת kid_lesson_progress.
+      </div>
+    `;
+
+    return;
   }
 
-  const progress=progressQuery.data||[];
+  const progressRows = progress || [];
 
-  const lessonIds=[...new Set(progress.map(r=>r.lesson_id).filter(Boolean))];
-  let lessons=[];
+  const lessonIds = [
+    ...new Set(
+      progressRows
+        .map(row => row.lesson_id)
+        .filter(Boolean)
+    )
+  ];
 
-  if(lessonIds.length){
-    const lessonsQuery=await sb
+  let lessons = [];
+
+  if (lessonIds.length) {
+
+    const { data: lessonRows, error: lessonsError } = await sb
       .from("learning_lessons")
-      .select("id,grade,subject,category,lesson_order,lesson_name,is_checkpoint")
-      .in("id",lessonIds);
+      .select(`
+        id,
+        grade,
+        subject,
+        category,
+        lesson_order,
+        lesson_name,
+        is_checkpoint
+      `)
+      .in("id", lessonIds);
 
-    if(lessonsQuery.error){
-      console.error("LOAD LESSONS ERROR:",lessonsQuery.error);
+    console.log("PARENT LESSONS DATA:", lessonRows);
+    console.log("PARENT LESSONS ERROR:", lessonsError);
+
+    if (!lessonsError) {
+      lessons = lessonRows || [];
     }
-
-    lessons=lessonsQuery.data||[];
   }
 
-  const lessonMap=new Map(lessons.map(l=>[l.id,l]));
+  const lessonMap = new Map(
+    lessons.map(lesson => [
+      lesson.id,
+      lesson
+    ])
+  );
 
-  const historyQuery=await sb
+  const { data: history, error: historyError } = await sb
     .from("kid_lesson_history")
     .select("*")
-    .eq("kid_id",kidId)
-    .order("created_at",{ascending:false})
+    .eq("kid_id", kidId)
+    .order("created_at", { ascending: false })
     .limit(50);
 
-  if(historyQuery.error){
-    console.error("LOAD HISTORY ERROR:",historyQuery.error);
-  }
+  console.log("PARENT HISTORY DATA:", history);
+  console.log("PARENT HISTORY ERROR:", historyError);
 
-  const history=historyQuery.data||[];
-
-  renderSummary(progress);
-  renderSubjects(progress,lessonMap);
-  renderActivity(progress,lessonMap,history);
-  renderInsights(progress,lessonMap);
-  renderHomework(history);
+  renderSummary(progressRows);
+  renderSubjects(progressRows, lessonMap);
+  renderActivity(progressRows, lessonMap, history || []);
+  renderInsights(progressRows, lessonMap);
+  renderHomework(history || []);
 }
 
 function renderSummary(progress){
