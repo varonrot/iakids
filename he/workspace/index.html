@@ -9701,206 +9701,6 @@ function animateImportantParts(element) {
   }
 }
 
-function optimizeSequenceForTTS(sequence){
-
-  if(
-    !Array.isArray(sequence)
-  ){
-    return [];
-  }
-
-
-  const optimized = [];
-
-
-  for(
-    let i = 0;
-    i < sequence.length;
-    i++
-  ){
-
-    const action =
-      sequence[i];
-
-
-    if(
-      !action
-    ){
-      continue;
-    }
-
-
-    /* =============================================
-       איחוד SPEAK רצופים
-
-       speak: שלום איתן
-       speak: כיף שבחרת...
-       speak: היום נלמד...
-
-       הופך ל-SPEAK אחד
-    ============================================= */
-
-    if(
-      action.type ===
-        "speak"
-    ){
-
-      const speechParts = [];
-
-      const ttsParts = [];
-
-
-      let j = i;
-
-
-      while(
-        j < sequence.length
-        &&
-        sequence[j]?.type ===
-          "speak"
-      ){
-
-        const current =
-          sequence[j];
-
-
-        const visibleText =
-          (
-            current.text
-            ||
-            ""
-          ).trim();
-
-
-        const ttsText =
-          (
-            current.speech_tts
-            ||
-            current.text
-            ||
-            ""
-          ).trim();
-
-
-        if(
-          visibleText
-        ){
-
-          speechParts.push(
-            visibleText
-          );
-
-        }
-
-
-        if(
-          ttsText
-        ){
-
-          ttsParts.push(
-            ttsText
-          );
-
-        }
-
-
-        j++;
-
-      }
-
-
-      optimized.push({
-
-        ...action,
-
-        type:
-          "speak",
-
-        text:
-          speechParts.join(
-            " "
-          ),
-
-        speech_tts:
-          ttsParts.join(
-            " "
-          )
-
-      });
-
-
-      i =
-        j - 1;
-
-
-      continue;
-
-    }
-
-
-    /* =============================================
-       ASK
-
-       אם הפעולה הקודמת היא SPEAK,
-       השאלה כבר הוקראה.
-
-       ASK נשאר לצורך:
-       - כתיבה במחברת
-       - wait_for_answer
-
-       אבל מסמנים שלא צריך TTS נוסף.
-    ============================================= */
-
-    if(
-      action.type ===
-        "ask"
-    ){
-
-      const previous =
-        optimized[
-          optimized.length - 1
-        ];
-
-
-      optimized.push({
-
-        ...action,
-
-        skip_tts:
-          previous?.type ===
-            "speak"
-
-      });
-
-
-      continue;
-
-    }
-
-
-    optimized.push(
-      action
-    );
-
-  }
-
-
-  console.log(
-    "🎧 ORIGINAL SEQUENCE:",
-    sequence
-  );
-
-
-  console.log(
-    "🎧 TTS OPTIMIZED SEQUENCE:",
-    optimized
-  );
-
-
-  return optimized;
-
-}
-
 async function runTutorResponse(data){
 
   if(
@@ -9962,16 +9762,10 @@ async function runTutorResponse(data){
     }
 
 
-const optimizedSequence =
-  optimizeSequenceForTTS(
-    data.sequence
-  );
-
-
 await window.lessonRenderer.run({
 
   sequence:
-    optimizedSequence,
+    data.sequence,
 
   wait_for_answer:
     data.wait_for_answer,
@@ -9980,6 +9774,7 @@ await window.lessonRenderer.run({
     data.speech
 
 });
+
 
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
@@ -14298,53 +14093,24 @@ console.log(
   ========================= */
 
 async ask({
-  text,
-  speech_tts,
-  skip_tts = false
+  text
 }){
 
-  /* =============================================
-     תמיד כותבים את השאלה במחברת
-  ============================================= */
+  await Promise.all([
 
-  await this.write({
-
-    text:
+    this.write({
       text,
+      style: "question",
+      speed: 50
+    }),
 
-    style:
-      "question",
+    this.speak({
+      text
+    })
 
-    speed:
-      50
-
-  });
-
-
-  /* =============================================
-     מקריאים רק אם השאלה לא הוקראה
-     ב-SPEAK שקדם לה
-  ============================================= */
-
-  if(
-    !skip_tts
-  ){
-
-    await this.speak({
-
-      text:
-        text,
-
-      speech_tts:
-        speech_tts
-
-    });
-
-  }
+  ]);
 
 }
-
-
 
   /* =========================
      RUN
