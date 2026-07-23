@@ -9968,19 +9968,9 @@ const optimizedSequence =
   );
 
 
-await window.lessonRenderer.run({
-
-  sequence:
-    optimizedSequence,
-
-  wait_for_answer:
-    data.wait_for_answer,
-
-  speech:
-    data.speech
-
-});
-
+await runTutorResponse(
+  data
+);
 
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
@@ -14345,21 +14335,7 @@ async ask({
 
 }
 
-  await Promise.all([
 
-    this.write({
-      text,
-      style: "question",
-      speed: 50
-    }),
-
-    this.speak({
-      text
-    })
-
-  ]);
-
-}
 
   /* =========================
      RUN
