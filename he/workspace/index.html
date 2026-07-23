@@ -13361,15 +13361,21 @@ console.log(
   response.ok
 );
 
-    if(!response.ok){
+if(!response.ok){
 
-      const errorText =
-        await response.text();
+  const errorText =
+    await response.text();
 
-      throw new Error(
-        `TTS API ${response.status}: ${errorText}`
-      );
-    }
+  console.error(
+    "🔴 TTS SERVER ERROR:",
+    response.status,
+    errorText
+  );
+
+  throw new Error(
+    `TTS failed: ${response.status} ${errorText}`
+  );
+}
 
     const audioBlob =
       await response.blob();
