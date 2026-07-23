@@ -9349,6 +9349,82 @@ let kidId = null;
 let currentSessionId = null;
 let currentLearningMode = "chat";
 let currentLessonId = null;
+let noResponseTimer = null;
+
+
+function clearNoResponseTimer(){
+
+  if(
+    noResponseTimer
+  ){
+
+    clearTimeout(
+      noResponseTimer
+    );
+
+    noResponseTimer =
+      null;
+
+  }
+
+}
+
+
+function startNoResponseTimer(){
+
+  clearNoResponseTimer();
+
+
+  noResponseTimer =
+    setTimeout(
+
+      async () => {
+
+        noResponseTimer =
+          null;
+
+
+        /* רק בתוך שיעור מובנה */
+
+        if(
+          currentLearningMode !==
+            "lesson"
+
+          ||
+
+          !currentLessonId
+
+          ||
+
+          !CURRENT_KID?.id
+        ){
+
+          return;
+
+        }
+
+
+        /* אם הילד כבר התחיל להקליד,
+           לא מדובבים אותו */
+
+        if(
+          inputEl.value.trim()
+        ){
+
+          return;
+
+        }
+
+
+        await sendLessonNoResponse();
+
+      },
+
+      10000
+
+    );
+
+}
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -9635,10 +9711,162 @@ async function runTutorResponse(data){
 
 }
 
+/* =====================================================
+   LESSON NO RESPONSE
+   הילד לא ענה במשך 10 שניות
+===================================================== */
+
+async function sendLessonNoResponse(){
+
+  if(
+    currentLearningMode !==
+      "lesson"
+
+    ||
+
+    !currentLessonId
+
+    ||
+
+    !CURRENT_KID?.id
+  ){
+
+    return;
+
+  }
+
+
+  const {
+    data
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    data.session;
+
+
+  if(
+    !session
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+
+    const res =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/lesson`,
+
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              lesson_id:
+                currentLessonId,
+
+              message:
+                "__NO_RESPONSE__"
+
+            })
+
+        }
+
+      );
+
+
+    if(
+      !res.ok
+    ){
+
+      const errorText =
+        await res.text();
+
+
+      console.error(
+
+        "NO RESPONSE API ERROR:",
+
+        res.status,
+
+        errorText
+
+      );
+
+
+      return;
+
+    }
+
+
+    const responseData =
+      await res.json();
+
+
+    console.log(
+
+      "NO RESPONSE TUTOR:",
+
+      responseData
+
+    );
+
+
+    await runTutorResponse(
+      responseData
+    );
+
+
+  }
+  catch(error){
+
+    console.error(
+
+      "NO RESPONSE NETWORK ERROR:",
+
+      error
+
+    );
+
+  }
+
+}
+
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
-  const text = inputEl.value.trim();
-  if (!text) return;
+
+  clearNoResponseTimer();
+
+  const text =
+    inputEl.value.trim();
+
+  if(
+    !text
+  ){
+    return;
+  }
 
   inputEl.value = "";
   addMessage("user", text);
@@ -9810,6 +10038,27 @@ if(
         data.speech
     }
   );
+
+  clearNoResponseTimer();
+
+
+if(
+  data.wait_for_answer ===
+    true
+
+  &&
+
+  currentLearningMode ===
+    "lesson"
+
+  &&
+
+  currentLessonId
+){
+
+  startNoResponseTimer();
+
+}
 
 }
     else{
