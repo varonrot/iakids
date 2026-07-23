@@ -894,6 +894,36 @@ def get_recent_lesson_history_for_llm(
 
     ]
 
+def should_show_answering_hint(
+        kid_id: str,
+        max_lessons: int = 3
+):
+
+    res = (
+        sb.table(
+            "kid_lesson_progress"
+        )
+        .select(
+            "lesson_id"
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .limit(
+            max_lessons + 1
+        )
+        .execute()
+    )
+
+    lessons_started = len(
+        res.data or []
+    )
+
+    return (
+        lessons_started <= max_lessons
+    )
+
 def save_lesson_history(
         kid_id: str,
         lesson_id: int,
@@ -2287,9 +2317,9 @@ def build_structured_lesson_prompt(
         lesson: dict,
         progress: dict,
         turn_type: str,
-        review_mode: bool = False
+        review_mode: bool = False,
+        show_answering_hint: bool = False
 ):
-
     runtime_context = {
 
         "lesson_mode":
@@ -2304,6 +2334,9 @@ def build_structured_lesson_prompt(
 
         "turn_type":
             turn_type,
+
+        "show_answering_hint":
+            show_answering_hint,
 
 
         "child": {
@@ -2921,6 +2954,22 @@ def structured_lesson(
         # PROMPT
         # =============================================
 
+        show_answering_hint = False
+
+        if (
+                is_lesson_start
+                and
+                not review_mode
+                and
+                child_grade in (1, 2)
+        ):
+            show_answering_hint = (
+                should_show_answering_hint(
+                    kid_id=child["id"],
+                    max_lessons=3
+                )
+            )
+
         system_prompt = (
 
             build_structured_lesson_prompt(
@@ -2933,7 +2982,10 @@ def structured_lesson(
 
                 turn_type=turn_type,
 
-                review_mode=review_mode
+                review_mode=review_mode,
+
+                show_answering_hint=
+                show_answering_hint
 
             )
 
