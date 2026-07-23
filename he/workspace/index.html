@@ -13299,6 +13299,11 @@ async preloadAudio(text){
     return null;
   }
 
+  console.log(
+  "🔊 TTS PRELOAD START:",
+  text
+);
+
   if(this.audioCache.has(text)){
     return this.audioCache.get(text);
   }
@@ -13316,6 +13321,20 @@ async preloadAudio(text){
         "No active session"
       );
     }
+
+console.log(
+  "🔊 TTS REQUEST:",
+  {
+    text: text,
+    session_id: currentSessionId
+  }
+);
+
+console.log(
+  "🔊 TTS RESPONSE:",
+  response.status,
+  response.ok
+);
 
     const response = await fetch(
       `${TUTOR_API_BASE}/api/tutor/tts`,
@@ -13664,6 +13683,10 @@ async playAudioUrl(
     return;
   }
 
+console.log(
+  "🔊 PLAY AUDIO URL:",
+  audioUrl
+);
 
   const audio =
     new Audio(
@@ -13705,6 +13728,14 @@ async speak({
     speech_tts ||
     text;
 
+console.log(
+  "🔊 SPEAK ACTION:",
+  {
+    text,
+    speech_tts,
+    audioText
+  }
+);
 
   if(
     !audioText ||
