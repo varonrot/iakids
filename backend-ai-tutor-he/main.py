@@ -2965,16 +2965,27 @@ def structured_lesson(
                 message
             )
 
-            recent_messages.append({
 
-                "role":
-                    "user",
+        # =============================================
+        # ADD CURRENT TURN TO LLM MESSAGES
+        #
+        # מתבצע תמיד:
+        # - פתיחת שיעור רגיל
+        # - פתיחת Review
+        # - תשובת תלמיד
+        # =============================================
 
-                "content":
-                    current_message
+        recent_messages.append({
 
-            })
+            "role":
+                "user",
 
+            "content":
+                current_message
+
+        })
+        
+        
 
         # =============================================
         # OPENAI
