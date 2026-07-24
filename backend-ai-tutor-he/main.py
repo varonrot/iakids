@@ -481,6 +481,33 @@ def get_child_by_id(user_id: str, kid_id: str):
 
     return res.data
 
+def get_gender_placeholders(
+        child: dict
+) -> dict:
+
+    gender = str(
+        child.get("gender")
+        or "male"
+    ).strip().lower()
+
+    if gender == "female":
+        return {
+            "{you}": "את",
+            "{ready}": "מוכנה",
+            "{try}": "נסי",
+            "{think}": "חושבת",
+            "{know}": "יודעת",
+            "{succeed}": "מצליחה"
+        }
+
+    return {
+        "{you}": "אתה",
+        "{ready}": "מוכן",
+        "{try}": "נסה",
+        "{think}": "חושב",
+        "{know}": "יודע",
+        "{succeed}": "מצליח"
+    }
 
 def get_existing_kids_memory(kid_id: str) -> str:
     res = (
@@ -2926,6 +2953,12 @@ def lesson_intro(
                 or ""
         }
 
+        replacements.update(
+            get_gender_placeholders(
+                child
+            )
+        )
+
         rendered_intro = (
             replace_intro_variables(
                 intro_json,
@@ -3038,7 +3071,7 @@ def lesson_intro(
             status_code=500,
             detail="Lesson intro failed"
         )
-    
+
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
