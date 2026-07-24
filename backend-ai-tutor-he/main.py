@@ -2849,7 +2849,8 @@ def lesson_intro(
         elif isinstance(intro_json, dict):
 
             raw_sequence = (
-                    intro_json.get("sequence")
+                    intro_json.get("intro_sequence")
+                    or intro_json.get("sequence")
                     or intro_json.get("actions")
                     or []
             )
