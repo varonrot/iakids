@@ -232,11 +232,6 @@ class TutorTTSRequest(BaseModel):
     session_id: str | None = None
 
 
-class LessonIntroRequest(BaseModel):
-    kid_id: str
-    unit_lesson_id: int
-
-
 class HomeworkAnalyzeRequest(BaseModel):
     kid_id: str
 
@@ -281,6 +276,9 @@ class TutorLessonResponse(BaseModel):
 # STRUCTURED LESSON MODELS
 # =====================================================
 
+class LessonIntroRequest(BaseModel):
+    kid_id: str
+    unit_lesson_id: int
 
 class StructuredLessonRequest(
     BaseModel
@@ -484,38 +482,6 @@ def get_child_by_id(user_id: str, kid_id: str):
     return res.data
 
 
-def get_gender_placeholders(
-        child: dict
-) -> dict:
-    gender = str(
-        child.get("gender")
-        or "male"
-    ).strip().lower()
-
-    if gender == "female":
-        return {
-            "{you}": "את",
-            "{ready}": "מוכנה",
-            "{try}": "נסי",
-            "{think}": "חושבת",
-            "{know}": "יודעת",
-            "{succeed}": "מצליחה",
-            "{chose}": "בחרת",
-            "{understood}": "הבנת"
-        }
-
-    return {
-        "{you}": "אתה",
-        "{ready}": "מוכן",
-        "{try}": "נסה",
-        "{think}": "חושב",
-        "{know}": "יודע",
-        "{succeed}": "מצליח",
-        "{chose}": "בחרת",
-        "{understood}": "הבנת"
-    }
-
-
 def get_existing_kids_memory(kid_id: str) -> str:
     res = (
         sb.table("kids_memory")
@@ -537,11 +503,17 @@ def get_existing_kids_memory(kid_id: str) -> str:
     return str(memory or "")
 
 
+# =====================================================
+# STRUCTURED LESSON DATA HELPERS
+# =====================================================
+
 def get_lesson_units_and_lessons(
         learning_lesson_id: int
 ):
     res = (
-        sb.table("lesson_units_content")
+        sb.table(
+            "lesson_units_content"
+        )
         .select(
             "id, "
             "learning_lesson_id, "
@@ -552,14 +524,25 @@ def get_lesson_units_and_lessons(
             "status, "
             "is_active"
         )
-        .eq("learning_lesson_id", learning_lesson_id)
-        .eq("is_active", True)
-        .order("unit_order")
-        .order("lesson_order")
+        .eq(
+            "learning_lesson_id",
+            learning_lesson_id
+        )
+        .eq(
+            "is_active",
+            True
+        )
+        .order(
+            "unit_order"
+        )
+        .order(
+            "lesson_order"
+        )
         .execute()
     )
 
     rows = res.data or []
+
     units_map = {}
 
     for row in rows:
@@ -581,14 +564,17 @@ def get_lesson_units_and_lessons(
             "status": row.get("status")
         })
 
-    return list(units_map.values())
+    return list(
+        units_map.values()
+    )
 
-
-def get_unit_lesson_by_id(
+def get_unit_lesson(
         unit_lesson_id: int
 ):
     res = (
-        sb.table("lesson_units_content")
+        sb.table(
+            "lesson_units_content"
+        )
         .select(
             "id, "
             "learning_lesson_id, "
@@ -597,10 +583,17 @@ def get_unit_lesson_by_id(
             "lesson_order, "
             "lesson_name, "
             "intro_template_id, "
+            "status, "
             "is_active"
         )
-        .eq("id", unit_lesson_id)
-        .eq("is_active", True)
+        .eq(
+            "id",
+            unit_lesson_id
+        )
+        .eq(
+            "is_active",
+            True
+        )
         .limit(1)
         .execute()
     )
@@ -613,12 +606,13 @@ def get_unit_lesson_by_id(
 
     return res.data[0]
 
-
 def get_intro_template(
         template_id: int
 ):
     res = (
-        sb.table("lesson_intro_templates")
+        sb.table(
+            "lesson_intro_templates"
+        )
         .select(
             "id, "
             "template_name, "
@@ -628,7 +622,14 @@ def get_intro_template(
             "tts_voice, "
             "intro_json"
         )
-        .eq("id", template_id)
+        .eq(
+            "id",
+            template_id
+        )
+        .eq(
+            "is_active",
+            True
+        )
         .limit(1)
         .execute()
     )
@@ -641,10 +642,42 @@ def get_intro_template(
 
     return res.data[0]
 
+def replace_intro_variables(
+        value,
+        replacements: dict
+):
+    if isinstance(value, str):
 
-# =====================================================
-# STRUCTURED LESSON DATA HELPERS
-# =====================================================
+        result = value
+
+        for placeholder, replacement in replacements.items():
+            result = result.replace(
+                placeholder,
+                str(replacement or "")
+            )
+
+        return result
+
+    if isinstance(value, list):
+        return [
+            replace_intro_variables(
+                item,
+                replacements
+            )
+            for item in value
+        ]
+
+    if isinstance(value, dict):
+        return {
+            key: replace_intro_variables(
+                item,
+                replacements
+            )
+            for key, item in value.items()
+        }
+
+    return value
+
 
 
 def get_learning_lesson(
@@ -2315,17 +2348,13 @@ def get_recent_tutor_messages_for_llm(
     ]
 
 
-def build_tutor_prompt(
-        child: dict,
-        kids_memory: str
-) -> str:
+def build_tutor_prompt(child: dict, kids_memory: str) -> str:
     prompt = TUTOR_PROMPT_TEMPLATE
 
     replacements = {
         "{child_name}": str(child.get("child_name", "")),
         "{age}": str(child.get("age", "")),
-        "{grade}": str(child.get("age", "")),
-        "{gender}": str(child.get("gender", "")),
+        "{grade}": str(child.get("grade", "")),
         "{avatar_key}": str(child.get("avatar_key", "")),
         "{learning_interests}": ", ".join(
             child.get("learning_interests") or []
@@ -2336,15 +2365,8 @@ def build_tutor_prompt(
         "{kids_memory}": kids_memory or "",
     }
 
-    replacements.update(
-        get_gender_placeholders(child)
-    )
-
     for placeholder, value in replacements.items():
-        prompt = prompt.replace(
-            placeholder,
-            value
-        )
+        prompt = prompt.replace(placeholder, value)
 
     return prompt
 
@@ -2730,7 +2752,6 @@ def tutor_tts(
             detail=f"Gemini TTS failed: {error_message}"
         )
 
-
 @app.get(
     "/api/learning-lessons/{learning_lesson_id}/units"
 )
@@ -2739,8 +2760,11 @@ def get_learning_lesson_units(
         authorization: str = Header(None)
 ):
     try:
-        authenticate_user(authorization)
+        authenticate_user(
+            authorization
+        )
 
+        # מוודאים שהרשומה הראשית קיימת
         parent_lesson = get_learning_lesson(
             learning_lesson_id
         )
@@ -2750,11 +2774,20 @@ def get_learning_lesson_units(
         )
 
         return {
-            "learning_lesson_id": parent_lesson["id"],
-            "subject": parent_lesson.get("subject"),
-            "category": parent_lesson.get("category"),
-            "parent_lesson_name": parent_lesson.get("lesson_name"),
-            "units": units
+            "learning_lesson_id":
+                parent_lesson["id"],
+
+            "subject":
+                parent_lesson.get("subject"),
+
+            "category":
+                parent_lesson.get("category"),
+
+            "parent_lesson_name":
+                parent_lesson.get("lesson_name"),
+
+            "units":
+                units
         }
 
     except HTTPException:
@@ -2771,38 +2804,73 @@ def get_learning_lesson_units(
             detail="Failed to load lesson units"
         )
 
-
-@app.post("/api/tutor/lesson-intro")
+@app.post(
+    "/api/tutor/lesson-intro"
+)
 def lesson_intro(
         body: LessonIntroRequest,
         authorization: str = Header(None)
 ):
     try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
         user = authenticate_user(
             authorization
         )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # =============================================
+        # CHILD
+        # =============================================
 
         child = get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
         )
 
-        unit_lesson = get_unit_lesson_by_id(
+        # =============================================
+        # SELECTED UNIT LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
             body.unit_lesson_id
         )
 
+        # =============================================
+        # PARENT LESSON
+        # =============================================
+
         parent_lesson = get_learning_lesson(
-            unit_lesson["learning_lesson_id"]
+            unit_lesson[
+                "learning_lesson_id"
+            ]
         )
 
-        intro_template_id = unit_lesson.get(
-            "intro_template_id"
+        # =============================================
+        # INTRO TEMPLATE
+        # =============================================
+
+        intro_template_id = (
+            unit_lesson.get(
+                "intro_template_id"
+            )
         )
 
         if not intro_template_id:
             raise HTTPException(
-                status_code=404,
-                detail="Intro template is missing"
+                status_code=400,
+                detail=(
+                    "No intro template assigned "
+                    "to this lesson"
+                )
             )
 
         intro_template = get_intro_template(
@@ -2810,104 +2878,157 @@ def lesson_intro(
         )
 
         intro_json = (
-                intro_template.get("intro_json")
-                or {}
+            intro_template.get(
+                "intro_json"
+            )
+            or {}
         )
+
+        # =============================================
+        # REPLACE VARIABLES
+        # =============================================
 
         replacements = {
-            "{child_name}": str(
-                child.get("child_name") or ""
-            ),
-            "{parent_lesson}": str(
-                parent_lesson.get("lesson_name") or ""
-            ),
-            "{unit_name}": str(
-                unit_lesson.get("unit_name") or ""
-            ),
-            "{lesson_name}": str(
-                unit_lesson.get("lesson_name") or ""
-            ),
-            "{subject}": str(
-                parent_lesson.get("subject") or ""
-            ),
-            "{grade}": str(
-                child.get("age") or ""
-            ),
-            "{gender}": str(
-                child.get("gender") or ""
-            )
+            "{child_name}":
+                child.get(
+                    "child_name"
+                )
+                or "",
+
+            "{parent_lesson}":
+                parent_lesson.get(
+                    "lesson_name"
+                )
+                or "",
+
+            "{unit_name}":
+                unit_lesson.get(
+                    "unit_name"
+                )
+                or "",
+
+            "{lesson_name}":
+                unit_lesson.get(
+                    "lesson_name"
+                )
+                or "",
+
+            "{subject}":
+                parent_lesson.get(
+                    "subject"
+                )
+                or "",
+
+            "{grade}":
+                child.get(
+                    "age"
+                )
+                or ""
         }
 
-        replacements.update(
-            get_gender_placeholders(child)
+        rendered_intro = (
+            replace_intro_variables(
+                intro_json,
+                replacements
+            )
         )
 
-        if isinstance(intro_json, list):
-
-            raw_sequence = intro_json
-
-        elif isinstance(intro_json, dict):
-
-            raw_sequence = (
-                    intro_json.get("intro_sequence")
-                    or intro_json.get("sequence")
-                    or intro_json.get("actions")
-                    or []
+        raw_steps = (
+            rendered_intro.get(
+                "steps"
             )
-
-        else:
-
-            raw_sequence = []
+            or []
+        )
 
         sequence = []
 
-        for raw_action in raw_sequence:
-            action_data = dict(raw_action)
-
-            text_value = action_data.get("text")
-
-            if text_value is not None:
-                text_value = str(text_value)
-
-                for placeholder, value in replacements.items():
-                    text_value = text_value.replace(
-                        placeholder,
-                        value
-                    )
-
-                action_data["text"] = text_value
+        for step in raw_steps:
 
             sequence.append(
-                TutorAction(**action_data)
+                TutorAction(
+                    type=step.get(
+                        "type",
+                        "write"
+                    ),
+
+                    text=step.get(
+                        "text"
+                    ),
+
+                    target=step.get(
+                        "target"
+                    ),
+
+                    style=step.get(
+                        "style"
+                    ),
+
+                    speed=step.get(
+                        "speed"
+                    ),
+
+                    duration=(
+                        step.get(
+                            "duration"
+                        )
+                        or step.get(
+                            "duration_ms"
+                        )
+                    ),
+
+                    speech_tts=step.get(
+                        "speech_tts"
+                    )
+                )
             )
 
         return {
-            "speech": None,
+            "success": True,
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "learning_lesson_id":
+                parent_lesson["id"],
+
+            "intro_template_id":
+                intro_template["id"],
+
+            "intro_template_name":
+                intro_template.get(
+                    "template_name"
+                ),
+
+            "tts": {
+                "provider":
+                    intro_template.get(
+                        "tts_provider"
+                    ),
+
+                "model":
+                    intro_template.get(
+                        "tts_model"
+                    ),
+
+                "voice":
+                    intro_template.get(
+                        "tts_voice"
+                    )
+            },
+
             "sequence": [
                 action.model_dump()
                 for action in sequence
             ],
-            "wait_for_answer": (
-                bool(
-                    intro_json.get(
-                        "wait_for_answer",
-                        False
-                    )
-                )
-                if isinstance(intro_json, dict)
-                else False
-            ),
-            "intro_template_id": intro_template_id,
-            "unit_lesson_id": unit_lesson["id"],
-            "tts_provider": intro_template.get("tts_provider"),
-            "tts_model": intro_template.get("tts_model"),
-            "tts_voice": intro_template.get("tts_voice")
+
+            "wait_for_answer": False
         }
 
     except HTTPException:
         raise
 
     except Exception as e:
+
         print(
             "LESSON INTRO ERROR:",
             repr(e)
@@ -2917,8 +3038,7 @@ def lesson_intro(
             status_code=500,
             detail="Lesson intro failed"
         )
-
-
+    
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
