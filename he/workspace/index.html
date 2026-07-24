@@ -8283,6 +8283,9 @@ function renderLearningPathSidebar(
    ===================================================== */
 
 let CURRENT_PATH = null;
+let CURRENT_PARENT_LESSON = null;
+let CURRENT_UNIT = null;
+let CURRENT_UNITS_DATA = [];
 
 
 async function loadLearningPath(
@@ -8859,14 +8862,9 @@ function renderLearningPath(
         )
       ){
 
-        node.onclick =
-          () => {
-
-            startSelectedLesson(
-              lesson
-            );
-
-          };
+node.onclick = () => {
+  loadLessonUnits(lesson);
+};
 
       }
 
@@ -8878,6 +8876,241 @@ function renderLearningPath(
     }
   );
 
+}
+async function loadLessonUnits(parentLesson) {
+
+  CURRENT_PARENT_LESSON = parentLesson;
+  CURRENT_UNIT = null;
+
+  const container =
+    document.getElementById("learningPathContainer");
+
+  container.innerHTML = `
+    <div class="learning-path-loading">
+      📚 טוענים יחידות לימוד...
+    </div>
+  `;
+
+  const {
+    data: sessionData
+  } = await sb.auth.getSession();
+
+  const session = sessionData.session;
+
+  if (!session) {
+    container.innerHTML = `
+      <div class="learning-path-loading">
+        יש להתחבר מחדש
+      </div>
+    `;
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      `${TUTOR_API_BASE}/api/learning-lessons/${parentLesson.id}/units`,
+      {
+        headers: {
+          "Authorization":
+            `Bearer ${session.access_token}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      console.error(
+        "LOAD LESSON UNITS ERROR:",
+        response.status,
+        errorText
+      );
+
+      container.innerHTML = `
+        <div class="learning-path-loading">
+          לא הצלחנו לטעון את יחידות הלימוד
+        </div>
+      `;
+
+      return;
+    }
+
+    const data = await response.json();
+
+    CURRENT_UNITS_DATA =
+      data.units || [];
+
+    const title =
+      document.getElementById("learningPathTitle");
+
+    const subtitle =
+      document.getElementById("learningPathSubtitle");
+
+    if (title) {
+      title.textContent =
+        parentLesson.lesson_name;
+    }
+
+    if (subtitle) {
+      subtitle.textContent =
+        "בחרו יחידת לימוד";
+    }
+
+    renderLessonUnits(
+      CURRENT_UNITS_DATA
+    );
+
+  } catch (error) {
+
+    console.error(
+      "LOAD LESSON UNITS NETWORK ERROR:",
+      error
+    );
+
+    container.innerHTML = `
+      <div class="learning-path-loading">
+        לא הצלחנו להתחבר למערכת
+      </div>
+    `;
+
+  }
+}
+function renderLessonUnits(units) {
+
+  const container =
+    document.getElementById("learningPathContainer");
+
+  container.innerHTML = "";
+
+  if (!units.length) {
+    container.innerHTML = `
+      <div class="learning-path-loading">
+        עדיין אין יחידות לימוד בנושא הזה.
+      </div>
+    `;
+    return;
+  }
+
+  units.forEach(unit => {
+
+    const node =
+      document.createElement("button");
+
+    node.type = "button";
+    node.className =
+      "learning-path-node current";
+
+    node.innerHTML = `
+      <span class="learning-path-number">
+        ${unit.unit_order}
+      </span>
+
+      <h3>
+        ${unit.unit_name}
+      </h3>
+
+      <small>
+        ${unit.lessons?.length || 0} שיעורים
+      </small>
+
+      <span class="learning-path-status">
+        <i class="fa-solid fa-chevron-left"></i>
+      </span>
+    `;
+
+    node.onclick = () => {
+      renderUnitLessons(unit);
+    };
+
+    container.appendChild(node);
+  });
+}
+function renderUnitLessons(unit) {
+
+  CURRENT_UNIT = unit;
+
+  const container =
+    document.getElementById("learningPathContainer");
+
+  const title =
+    document.getElementById("learningPathTitle");
+
+  const subtitle =
+    document.getElementById("learningPathSubtitle");
+
+  if (title) {
+    title.textContent =
+      unit.unit_name;
+  }
+
+  if (subtitle) {
+    subtitle.textContent =
+      "בחרו שיעור";
+  }
+
+  container.innerHTML = "";
+
+  const lessons =
+    unit.lessons || [];
+
+  lessons.forEach(lesson => {
+
+    const node =
+      document.createElement("button");
+
+    node.type = "button";
+    node.className =
+      "learning-path-node current";
+
+    node.innerHTML = `
+      <span class="learning-path-number">
+        ${lesson.lesson_order}
+      </span>
+
+      <h3>
+        ${lesson.lesson_name}
+      </h3>
+
+      <small>
+        שיעור ${lesson.lesson_order}
+      </small>
+
+      <span class="learning-path-status">
+        <i class="fa-solid fa-play"></i>
+      </span>
+    `;
+
+    node.onclick = () => {
+      startSelectedUnitLesson(lesson);
+    };
+
+    container.appendChild(node);
+  });
+}
+function startSelectedUnitLesson(lesson) {
+
+  console.log(
+    "SELECTED UNIT LESSON:",
+    {
+      parentLesson:
+        CURRENT_PARENT_LESSON,
+
+      unit:
+        CURRENT_UNIT,
+
+      lesson
+    }
+  );
+
+  /*
+  כאן ייפתח השיעור לאחר שה-Backend
+  יתמוך ב-id מתוך lesson_units_content.
+  */
+
+  alert(
+    `נבחר השיעור: ${lesson.lesson_name}`
+  );
 }
 
 /* =====================================================
