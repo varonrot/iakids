@@ -9088,10 +9088,13 @@ function renderUnitLessons(unit) {
     container.appendChild(node);
   });
 }
-function startSelectedUnitLesson(lesson) {
+
+async function startSelectedUnitLesson(
+  lesson
+){
 
   console.log(
-    "SELECTED UNIT LESSON:",
+    "START UNIT LESSON INTRO:",
     {
       parentLesson:
         CURRENT_PARENT_LESSON,
@@ -9103,14 +9106,255 @@ function startSelectedUnitLesson(lesson) {
     }
   );
 
-  /*
-  כאן ייפתח השיעור לאחר שה-Backend
-  יתמוך ב-id מתוך lesson_units_content.
-  */
 
-  alert(
-    `נבחר השיעור: ${lesson.lesson_name}`
+  if(
+    !CURRENT_KID?.id
+  ){
+
+    console.error(
+      "No active kid"
+    );
+
+    return;
+
+  }
+
+
+  /* =============================================
+     שמירת השיעור שנבחר
+  ============================================= */
+
+  window.SELECTED_UNIT_LESSON = {
+
+    unit_lesson_id:
+      lesson.id,
+
+    learning_lesson_id:
+      CURRENT_PARENT_LESSON?.id,
+
+    parent_lesson_name:
+      CURRENT_PARENT_LESSON?.lesson_name,
+
+    unit_order:
+      CURRENT_UNIT?.unit_order,
+
+    unit_name:
+      CURRENT_UNIT?.unit_name,
+
+    lesson_order:
+      lesson.lesson_order,
+
+    lesson_name:
+      lesson.lesson_name
+
+  };
+
+
+  currentLearningMode =
+    "lesson_intro";
+
+
+  /* =============================================
+     מעבר למסך המחברת
+  ============================================= */
+
+  showLearning(
+    "lesson"
   );
+
+
+  const title =
+    document.getElementById(
+      "heroGreeting"
+    );
+
+
+  const subtitle =
+    document.getElementById(
+      "learningSubtitle"
+    );
+
+
+  if(title){
+
+    title.textContent =
+      lesson.lesson_name;
+
+  }
+
+
+  if(subtitle){
+
+    subtitle.textContent =
+
+      `${CURRENT_PARENT_LESSON?.subject || ""}`
+
+      +
+
+      ` • ${CURRENT_UNIT?.unit_name || ""}`;
+
+  }
+
+
+  const emptyState =
+    document.getElementById(
+      "emptyState"
+    );
+
+
+  if(emptyState){
+
+    emptyState.style.display =
+      "none";
+
+  }
+
+
+  /* =============================================
+     AUTH
+  ============================================= */
+
+  const {
+    data:
+      sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData.session;
+
+
+  if(
+    !session
+  ){
+
+    addMessage(
+      "assistant",
+      "יש להתחבר מחדש."
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    /* =============================================
+       קריאת הפתיח בלבד
+    ============================================= */
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
+
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                lesson.id
+
+            })
+
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+
+        "LESSON INTRO API ERROR:",
+
+        response.status,
+
+        errorText
+
+      );
+
+
+      addMessage(
+
+        "assistant",
+
+        "לא הצלחתי לפתוח את הפתיח. נסו שוב."
+
+      );
+
+
+      return;
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "LESSON INTRO RESPONSE:",
+      data
+    );
+
+
+    /* =============================================
+       הפעלת הפתיח דרך ה-Renderer הקיים
+    ============================================= */
+
+    await runTutorResponse(
+      data
+    );
+
+
+  }
+  catch(error){
+
+    console.error(
+
+      "LESSON INTRO NETWORK ERROR:",
+
+      error
+
+    );
+
+
+    addMessage(
+
+      "assistant",
+
+      "לא הצלחתי להתחבר למורה כרגע."
+
+    );
+
+  }
+
 }
 
 /* =====================================================
