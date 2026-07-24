@@ -2645,6 +2645,8 @@ def tutor_tts(
 
             config=types.GenerateContentConfig(
 
+                temperature=1.5,
+
                 response_modalities=[
                     "AUDIO"
                 ],
