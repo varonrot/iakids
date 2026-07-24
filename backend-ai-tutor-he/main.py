@@ -583,6 +583,58 @@ def get_lesson_plan(
 
     return res.data[0]
 
+def get_current_teaching_step(
+        lesson_plan: dict | None,
+        progress: dict
+):
+
+    if not lesson_plan:
+        return None
+
+    lesson_flow = (
+        lesson_plan.get(
+            "lesson_flow"
+        )
+        or []
+    )
+
+    if not isinstance(
+        lesson_flow,
+        list
+    ):
+        return None
+
+    current_flow_step = int(
+        progress.get(
+            "current_flow_step"
+        )
+        or 1
+    )
+
+    for item in lesson_flow:
+
+        try:
+            item_step = int(
+                item.get(
+                    "step"
+                )
+                or 0
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+            continue
+
+        if (
+            item_step
+            == current_flow_step
+        ):
+            return item
+
+    return None
+
 def get_or_create_lesson_progress(
         kid_id: str,
         lesson: dict,
@@ -753,6 +805,12 @@ def get_or_create_lesson_progress(
 
             "lesson_id":
                 lesson_id,
+
+            "current_flow_step":
+                1,
+
+            "flow_state":
+                {},
 
             "status":
                 "in_progress",
@@ -1152,7 +1210,182 @@ def calculate_objective_evidence(
 
     }
 
+def apply_flow_evaluation(
+        progress: dict,
+        current_teaching_step: dict | None,
+        evaluation: dict
+):
 
+    if not current_teaching_step:
+        return {
+
+            "current_flow_step":
+                int(
+                    progress.get(
+                        "current_flow_step"
+                    )
+                    or 1
+                ),
+
+            "flow_state":
+                progress.get(
+                    "flow_state"
+                )
+                or {}
+
+        }
+
+    current_flow_step = int(
+        progress.get(
+            "current_flow_step"
+        )
+        or 1
+    )
+
+    flow_state = dict(
+        progress.get(
+            "flow_state"
+        )
+        or {}
+    )
+
+    item_id = str(
+        current_teaching_step.get(
+            "item_id"
+        )
+        or (
+            f"step_"
+            f"{current_flow_step}"
+        )
+    )
+
+    item_state = dict(
+        flow_state.get(
+            item_id
+        )
+        or {}
+    )
+
+    item_state["taught"] = True
+
+    item_state[
+        "attempts"
+    ] = (
+        int(
+            item_state.get(
+                "attempts"
+            )
+            or 0
+        )
+        + 1
+    )
+
+    response_quality = (
+        evaluation.get(
+            "response_quality"
+        )
+    )
+
+    independence_level = (
+        evaluation.get(
+            "independence_level"
+        )
+    )
+
+    if (
+        response_quality
+        == "correct"
+        and independence_level
+        == "independent"
+    ):
+
+        item_state[
+            "independent_successes"
+        ] = (
+            int(
+                item_state.get(
+                    "independent_successes"
+                )
+                or 0
+            )
+            + 1
+        )
+
+    elif (
+        response_quality
+        in (
+            "correct",
+            "partial"
+        )
+    ):
+
+        item_state[
+            "supported_successes"
+        ] = (
+            int(
+                item_state.get(
+                    "supported_successes"
+                )
+                or 0
+            )
+            + 1
+        )
+
+    else:
+
+        item_state[
+            "failures"
+        ] = (
+            int(
+                item_state.get(
+                    "failures"
+                )
+                or 0
+            )
+            + 1
+        )
+
+    flow_state[
+        item_id
+    ] = item_state
+
+    required_successes = int(
+        current_teaching_step.get(
+            "minimum_independent_successes"
+        )
+        or 1
+    )
+
+    independent_successes = int(
+        item_state.get(
+            "independent_successes"
+        )
+        or 0
+    )
+
+    next_flow_step = (
+        current_flow_step
+    )
+
+    if (
+        independent_successes
+        >= required_successes
+    ):
+
+        next_flow_step = (
+            current_flow_step
+            + 1
+        )
+
+    return {
+
+        "current_flow_step":
+            next_flow_step,
+
+        "flow_state":
+            flow_state
+
+    }
 # =====================================================
 # APPLY LESSON EVALUATION
 # =====================================================
@@ -1161,7 +1394,8 @@ def apply_lesson_evaluation(
         progress: dict,
         lesson: dict,
         evaluation: dict,
-        session_id: str
+        session_id: str,
+        current_teaching_step: dict | None = None
 ):
     now = datetime.now(
         timezone.utc
@@ -2227,6 +2461,7 @@ def build_structured_lesson_prompt(
         child: dict,
         lesson: dict,
         lesson_plan: dict | None,
+        current_teaching_step: dict | None,
         progress: dict,
         turn_type: str,
         review_mode: bool = False,
@@ -2335,12 +2570,27 @@ def build_structured_lesson_prompt(
         "lesson_plan":
             lesson_plan or {},
 
+        "current_teaching_step":
+            current_teaching_step or {},
+
         "progress": {
 
             "status":
                 progress.get(
                     "status"
                 ),
+
+            "current_flow_step":
+                progress.get(
+                    "current_flow_step"
+                )
+                or 1,
+
+            "flow_state":
+                progress.get(
+                    "flow_state"
+                )
+                or {},
 
             "progress_percent":
                 progress.get(
@@ -2785,6 +3035,24 @@ def structured_lesson(
         )
 
         # =============================================
+        # CURRENT TEACHING STEP
+        # =============================================
+
+        current_teaching_step = (
+
+            get_current_teaching_step(
+
+                lesson_plan=
+                    lesson_plan,
+
+                progress=
+                    progress
+
+            )
+
+        )
+
+        # =============================================
         # LESSON MODE
         #
         # אם השיעור כבר הושלם,
@@ -2881,6 +3149,9 @@ def structured_lesson(
 
                 lesson_plan=lesson_plan,
 
+                current_teaching_step=
+                    current_teaching_step,
+
                 progress=progress,
 
                 turn_type=turn_type,
@@ -2888,10 +3159,9 @@ def structured_lesson(
                 review_mode=review_mode,
 
                 show_answering_hint=
-                show_answering_hint
+                    show_answering_hint
 
             )
-
         )
 
         # =============================================
@@ -3320,24 +3590,45 @@ def structured_lesson(
             # ההערכה משנה את ההתקדמות הרשמית.
             # =========================================
 
-            if not review_mode:
-                progress = (
+        if not review_mode:
+            progress = apply_lesson_evaluation(
+                progress=progress,
+                lesson=lesson,
+                evaluation=evaluation_dict,
+                session_id=session_id,
+                current_teaching_step=current_teaching_step
+            )
 
-                    apply_lesson_evaluation(
+            flow_result = apply_flow_evaluation(
 
-                        progress=progress,
+                progress=progress,
 
-                        lesson=lesson,
+                current_teaching_step=current_teaching_step,
 
-                        evaluation=
-                        evaluation_dict,
+                evaluation=evaluation_dict
 
-                        session_id=
-                        session_id
+            )
 
-                    )
+            update_data = {
 
-                )
+                "current_flow_step":
+                    flow_result["current_flow_step"],
+
+                "flow_state":
+                    flow_result["flow_state"]
+
+            }
+
+            sb.table(
+                "kid_lesson_progress"
+            ).update(
+                update_data
+            ).eq(
+                "id",
+                progress["id"]
+            ).execute()
+
+            progress.update(update_data)
 
         # =============================================
         # CLEAN ASSISTANT HISTORY
@@ -3365,9 +3656,10 @@ def structured_lesson(
 
                     action.type
                     in (
-                    "write",
-                    "ask"
-            )
+                        "speak",
+                        "write",
+                        "ask"
+                    )
 
                     and action.text
 
@@ -4399,7 +4691,11 @@ def tutor_chat(
         for action in lesson_data.sequence or []:
 
             if (
-                    action.type in ("write", "ask")
+                    action.type in (
+                    "speak",
+                    "write",
+                    "ask"
+            )
                     and action.text
                     and action.text.strip()
             ):
