@@ -38,7 +38,7 @@ OPENAI_INPUT_COST_PER_1M = 0.15
 OPENAI_OUTPUT_COST_PER_1M = 0.60
 
 # Gemini TTS
-GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 10.00
+GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 20.00
 GEMINI_AUDIO_TOKENS_PER_SECOND = 32
 # =====================================================
 # STRUCTURED LESSON PEDAGOGICAL ENGINE
@@ -2151,7 +2151,7 @@ def get_or_create_tutor_session(
             "last_activity_at": now.isoformat(),
             "status": "active",
             "ai_model": "gpt-4o-mini",
-            "tts_model": "gemini-2.5-flash-preview-tts"
+            "tts_model": "gemini-3.1-flash-tts-preview"
         })
         .execute()
     )
@@ -2631,7 +2631,7 @@ def tutor_tts(
 
         # Gemini TTS
         response = gemini_client.models.generate_content(
-            model="gemini-2.5-flash-preview-tts",
+            model="gemini-3.1-flash-tts-preview",
 
             contents=(
                     "Speak in natural, fluent Hebrew. "
@@ -2645,7 +2645,7 @@ def tutor_tts(
 
             config=types.GenerateContentConfig(
 
-                temperature=1.5,
+                temperature=2.0,
 
                 response_modalities=[
                     "AUDIO"
