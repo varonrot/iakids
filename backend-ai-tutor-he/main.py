@@ -51,6 +51,7 @@ GEMINI_AUDIO_TOKENS_PER_SECOND = 32
 # יעד נחשב נשלט כאשר הילד מגיע לפחות לציון הזה
 OBJECTIVE_MASTERY_THRESHOLD = 90
 
+
 # =====================================================
 # DIFFICULTY LEVEL CAPS
 #
@@ -78,6 +79,7 @@ DIFFICULTY_SCORE_CAPS = {
 
 }
 
+
 # =====================================================
 # BASE EVIDENCE POINTS
 #
@@ -98,6 +100,7 @@ RESPONSE_QUALITY_POINTS = {
 
 }
 
+
 INDEPENDENCE_POINTS = {
 
     "independent":
@@ -110,6 +113,7 @@ INDEPENDENCE_POINTS = {
         0
 
 }
+
 
 UNDERSTANDING_POINTS = {
 
@@ -124,6 +128,7 @@ UNDERSTANDING_POINTS = {
 
 }
 
+
 EVIDENCE_STRENGTH_POINTS = {
 
     "strong":
@@ -136,6 +141,8 @@ EVIDENCE_STRENGTH_POINTS = {
         0
 
 }
+
+
 
 if not SUPABASE_URL:
     raise RuntimeError("Missing SUPABASE_URL")
@@ -232,7 +239,12 @@ class TutorTTSRequest(BaseModel):
     session_id: str | None = None
 
 
+class LessonIntroRequest(BaseModel):
+    kid_id: str
+    unit_lesson_id: int
+
 class HomeworkAnalyzeRequest(BaseModel):
+
     kid_id: str
 
     storage_path: str
@@ -271,7 +283,6 @@ class TutorLessonResponse(BaseModel):
     sequence: list[TutorAction]
     wait_for_answer: bool = False
 
-
 # =====================================================
 # STRUCTURED LESSON MODELS
 # =====================================================
@@ -280,6 +291,7 @@ class TutorLessonResponse(BaseModel):
 class StructuredLessonRequest(
     BaseModel
 ):
+
     kid_id: str
 
     lesson_id: int
@@ -292,17 +304,22 @@ class StructuredLessonRequest(
 class LessonEvaluation(
     BaseModel
 ):
+
     # היעד הלימודי שנבדק בתור הזה
     objective_index: int | None = None
+
 
     # correct / partial / incorrect
     response_quality: str | None = None
 
+
     # independent / with_hint / guided
     independence_level: str | None = None
 
+
     # strong / partial / weak
     understanding_level: str | None = None
+
 
     # 1-5
     #
@@ -313,23 +330,30 @@ class LessonEvaluation(
     # 5 = העברה למצב חדש / אתגר
     difficulty_level: int | None = None
 
+
     # strong / moderate / weak
     #
     # עד כמה האינטראקציה הזאת באמת
     # מספקת הוכחה לשליטה
     evidence_strength: str | None = None
 
+
     # האם מדובר בחזרה על אותו סוג
     # משימה שכבר נבדק מספר פעמים
     is_repetition: bool = False
 
+
     hint_used: bool = False
+
 
     repeated_mistake: bool = False
 
+
     identified_difficulty: str | None = None
 
+
     evaluation_summary: str | None = None
+
 
     lesson_summary: str | None = None
 
@@ -337,6 +361,7 @@ class LessonEvaluation(
 class StructuredLessonResponse(
     BaseModel
 ):
+
     speech: str | None = None
 
     sequence: list[TutorAction]
@@ -345,11 +370,9 @@ class StructuredLessonResponse(
 
     # בפתיחת שיעור אין עדיין מה להעריך
     evaluation: (
-            LessonEvaluation |
-            None
+        LessonEvaluation |
+        None
     ) = None
-
-
 # =====================================================
 # AUTH
 # =====================================================
@@ -393,12 +416,12 @@ def update_tutor_session_after_tts(
         }
     ).execute()
 
-
 def update_tutor_session_after_vision(
         session_id: str,
         image_uploads: int = 1,
         vision_calls: int = 1
 ):
+
     if not session_id:
         return
 
@@ -458,7 +481,6 @@ def update_tutor_session_after_vision(
         session_id
     ).execute()
 
-
 # =====================================================
 # DATA HELPERS
 # =====================================================
@@ -478,6 +500,7 @@ def get_child_by_id(user_id: str, kid_id: str):
 
     return res.data
 
+
 def get_gender_placeholders(
         child: dict
 ) -> dict:
@@ -488,7 +511,6 @@ def get_gender_placeholders(
     ).strip().lower()
 
     if gender == "female":
-
         return {
             "{you}": "את",
             "{ready}": "מוכנה",
@@ -510,6 +532,7 @@ def get_gender_placeholders(
         "{chose}": "בחרת",
         "{understood}": "הבנת"
     }
+
 
 def get_existing_kids_memory(kid_id: str) -> str:
     res = (
@@ -535,9 +558,7 @@ def get_lesson_units_and_lessons(
         learning_lesson_id: int
 ):
     res = (
-        sb.table(
-            "lesson_units_content"
-        )
+        sb.table("lesson_units_content")
         .select(
             "id, "
             "learning_lesson_id, "
@@ -548,25 +569,14 @@ def get_lesson_units_and_lessons(
             "status, "
             "is_active"
         )
-        .eq(
-            "learning_lesson_id",
-            learning_lesson_id
-        )
-        .eq(
-            "is_active",
-            True
-        )
-        .order(
-            "unit_order"
-        )
-        .order(
-            "lesson_order"
-        )
+        .eq("learning_lesson_id", learning_lesson_id)
+        .eq("is_active", True)
+        .order("unit_order")
+        .order("lesson_order")
         .execute()
     )
 
     rows = res.data or []
-
     units_map = {}
 
     for row in rows:
@@ -588,9 +598,67 @@ def get_lesson_units_and_lessons(
             "status": row.get("status")
         })
 
-    return list(
-        units_map.values()
+    return list(units_map.values())
+
+
+def get_unit_lesson_by_id(
+        unit_lesson_id: int
+):
+    res = (
+        sb.table("lesson_units_content")
+        .select(
+            "id, "
+            "learning_lesson_id, "
+            "unit_order, "
+            "unit_name, "
+            "lesson_order, "
+            "lesson_name, "
+            "intro_template_id, "
+            "is_active"
+        )
+        .eq("id", unit_lesson_id)
+        .eq("is_active", True)
+        .limit(1)
+        .execute()
     )
+
+    if not res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Unit lesson not found"
+        )
+
+    return res.data[0]
+
+
+def get_intro_template(
+        template_id: int
+):
+    res = (
+        sb.table("lesson_intro_templates")
+        .select(
+            "id, "
+            "template_name, "
+            "lesson_type, "
+            "tts_provider, "
+            "tts_model, "
+            "tts_voice, "
+            "intro_json"
+        )
+        .eq("id", template_id)
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Intro template not found"
+        )
+
+    return res.data[0]
+
+
 # =====================================================
 # STRUCTURED LESSON DATA HELPERS
 # =====================================================
@@ -599,6 +667,7 @@ def get_lesson_units_and_lessons(
 def get_learning_lesson(
         lesson_id: int
 ):
+
     res = (
 
         sb.table(
@@ -638,93 +707,16 @@ def get_learning_lesson(
 
     )
 
+
     if not res.data:
+
         raise HTTPException(
             status_code=404,
             detail="Lesson not found"
         )
 
-    return res.data[0]
-
-def get_lesson_plan(
-        lesson_id: int
-):
-
-    res = (
-
-        sb.table(
-            "lesson_plans"
-        )
-
-        .select("*")
-
-        .eq(
-            "lesson_id",
-            lesson_id
-        )
-
-        .limit(1)
-
-        .execute()
-
-    )
-
-    if not res.data:
-        return None
 
     return res.data[0]
-
-def get_current_teaching_step(
-        lesson_plan: dict | None,
-        progress: dict
-):
-
-    if not lesson_plan:
-        return None
-
-    lesson_flow = (
-        lesson_plan.get(
-            "lesson_flow"
-        )
-        or []
-    )
-
-    if not isinstance(
-        lesson_flow,
-        list
-    ):
-        return None
-
-    current_flow_step = int(
-        progress.get(
-            "current_flow_step"
-        )
-        or 1
-    )
-
-    for item in lesson_flow:
-
-        try:
-            item_step = int(
-                item.get(
-                    "step"
-                )
-                or 0
-            )
-
-        except (
-            TypeError,
-            ValueError
-        ):
-            continue
-
-        if (
-            item_step
-            == current_flow_step
-        ):
-            return item
-
-    return None
 
 def get_or_create_lesson_progress(
         kid_id: str,
@@ -732,7 +724,9 @@ def get_or_create_lesson_progress(
         session_id: str | None = None,
         is_lesson_start: bool = False
 ):
+
     lesson_id = lesson["id"]
+
 
     res = (
 
@@ -758,11 +752,13 @@ def get_or_create_lesson_progress(
 
     )
 
+
     now = (
         datetime
         .now(timezone.utc)
         .isoformat()
     )
+
 
     # =============================================
     # כבר קיימת התקדמות
@@ -771,6 +767,7 @@ def get_or_create_lesson_progress(
     if res.data:
 
         progress = res.data[0]
+
 
         update_data = {
 
@@ -785,23 +782,26 @@ def get_or_create_lesson_progress(
 
         }
 
+
         # כל כניסה חדשה לשיעור
         # נחשבת ניסיון/חזרה לשיעור
 
         if is_lesson_start:
+
             update_data[
                 "attempts_count"
             ] = (
 
-                    int(
-                        progress.get(
-                            "attempts_count"
-                        ) or 0
-                    )
+                int(
+                    progress.get(
+                        "attempts_count"
+                    ) or 0
+                )
 
-                    + 1
+                + 1
 
             )
+
 
         updated = (
 
@@ -822,10 +822,14 @@ def get_or_create_lesson_progress(
 
         )
 
+
         if updated.data:
+
             return updated.data[0]
 
+
         return progress
+
 
     # =============================================
     # שיעור חדש לילד
@@ -833,19 +837,21 @@ def get_or_create_lesson_progress(
 
     objectives = (
 
-            lesson.get(
-                "learning_objectives"
-            )
+        lesson.get(
+            "learning_objectives"
+        )
 
-            or []
+        or []
 
     )
 
+
     objectives_progress = []
 
+
     for index, _ in enumerate(
-            objectives,
-            start=1
+        objectives,
+        start=1
     ):
         objectives_progress.append({
 
@@ -883,6 +889,7 @@ def get_or_create_lesson_progress(
 
         })
 
+
     insert_res = (
 
         sb.table(
@@ -896,12 +903,6 @@ def get_or_create_lesson_progress(
 
             "lesson_id":
                 lesson_id,
-
-            "current_flow_step":
-                1,
-
-            "flow_state":
-                {},
 
             "status":
                 "in_progress",
@@ -954,20 +955,23 @@ def get_or_create_lesson_progress(
 
     )
 
+
     if not insert_res.data:
+
         raise RuntimeError(
             "Failed to create "
             "lesson progress"
         )
 
-    return insert_res.data[0]
 
+    return insert_res.data[0]
 
 def get_recent_lesson_history_for_llm(
         kid_id: str,
         lesson_id: int,
         limit: int = 8
 ):
+
     res = (
 
         sb.table(
@@ -1001,11 +1005,13 @@ def get_recent_lesson_history_for_llm(
 
     )
 
+
     messages = list(
         reversed(
             res.data or []
         )
     )
+
 
     return [
 
@@ -1025,17 +1031,17 @@ def get_recent_lesson_history_for_llm(
         if message.get(
             "role"
         ) in (
-               "user",
-               "assistant"
-           )
+            "user",
+            "assistant"
+        )
 
     ]
-
 
 def should_show_answering_hint(
         kid_id: str,
         max_lessons: int = 3
 ):
+
     res = (
         sb.table(
             "kid_lesson_progress"
@@ -1058,9 +1064,8 @@ def should_show_answering_hint(
     )
 
     return (
-            lessons_started <= max_lessons
+        lessons_started <= max_lessons
     )
-
 
 def save_lesson_history(
         kid_id: str,
@@ -1072,16 +1077,19 @@ def save_lesson_history(
         evaluation: dict | None,
         sequence_json: list | None
 ):
+
     rows = []
+
 
     # =============================================
     # תשובת הילד
     # =============================================
 
     if (
-            user_content
-            and user_content.strip()
+        user_content
+        and user_content.strip()
     ):
+
         rows.append({
 
             "kid_id":
@@ -1109,6 +1117,7 @@ def save_lesson_history(
                 None
 
         })
+
 
     # =============================================
     # תשובת המורה
@@ -1142,12 +1151,12 @@ def save_lesson_history(
 
     })
 
+
     sb.table(
         "kid_lesson_history"
     ).insert(
         rows
     ).execute()
-
 
 # =====================================================
 # CALCULATE PEDAGOGICAL EVIDENCE
@@ -1156,11 +1165,13 @@ def save_lesson_history(
 def calculate_objective_evidence(
         evaluation: dict
 ):
+
     response_quality = (
         evaluation.get(
             "response_quality"
         )
     )
+
 
     independence_level = (
         evaluation.get(
@@ -1168,17 +1179,20 @@ def calculate_objective_evidence(
         )
     )
 
+
     understanding_level = (
         evaluation.get(
             "understanding_level"
         )
     )
 
+
     evidence_strength = (
         evaluation.get(
             "evidence_strength"
         )
     )
+
 
     difficulty_level = int(
 
@@ -1189,6 +1203,7 @@ def calculate_objective_evidence(
         or 1
 
     )
+
 
     # מגבילים תמיד לטווח 1-5
 
@@ -1203,7 +1218,9 @@ def calculate_objective_evidence(
 
     )
 
+
     evidence_points = 0
+
 
     evidence_points += (
 
@@ -1215,6 +1232,7 @@ def calculate_objective_evidence(
 
     )
 
+
     evidence_points += (
 
         INDEPENDENCE_POINTS
@@ -1224,6 +1242,7 @@ def calculate_objective_evidence(
         )
 
     )
+
 
     evidence_points += (
 
@@ -1235,6 +1254,7 @@ def calculate_objective_evidence(
 
     )
 
+
     evidence_points += (
 
         EVIDENCE_STRENGTH_POINTS
@@ -1245,6 +1265,7 @@ def calculate_objective_evidence(
 
     )
 
+
     # =================================================
     # חזרה על אותו סוג משימה
     #
@@ -1253,8 +1274,9 @@ def calculate_objective_evidence(
     # =================================================
 
     if evaluation.get(
-            "is_repetition"
+        "is_repetition"
     ):
+
         evidence_points = round(
 
             evidence_points
@@ -1262,14 +1284,17 @@ def calculate_objective_evidence(
 
         )
 
+
     # =================================================
     # טעות חוזרת
     # =================================================
 
     if evaluation.get(
-            "repeated_mistake"
+        "repeated_mistake"
     ):
+
         evidence_points -= 3
+
 
     # =================================================
     # תשובה שגויה לא יכולה
@@ -1277,6 +1302,7 @@ def calculate_objective_evidence(
     # =================================================
 
     if response_quality == "incorrect":
+
         evidence_points = min(
 
             evidence_points,
@@ -1284,6 +1310,7 @@ def calculate_objective_evidence(
             0
 
         )
+
 
     return {
 
@@ -1301,182 +1328,6 @@ def calculate_objective_evidence(
 
     }
 
-def apply_flow_evaluation(
-        progress: dict,
-        current_teaching_step: dict | None,
-        evaluation: dict
-):
-
-    if not current_teaching_step:
-        return {
-
-            "current_flow_step":
-                int(
-                    progress.get(
-                        "current_flow_step"
-                    )
-                    or 1
-                ),
-
-            "flow_state":
-                progress.get(
-                    "flow_state"
-                )
-                or {}
-
-        }
-
-    current_flow_step = int(
-        progress.get(
-            "current_flow_step"
-        )
-        or 1
-    )
-
-    flow_state = dict(
-        progress.get(
-            "flow_state"
-        )
-        or {}
-    )
-
-    item_id = str(
-        current_teaching_step.get(
-            "item_id"
-        )
-        or (
-            f"step_"
-            f"{current_flow_step}"
-        )
-    )
-
-    item_state = dict(
-        flow_state.get(
-            item_id
-        )
-        or {}
-    )
-
-    item_state["taught"] = True
-
-    item_state[
-        "attempts"
-    ] = (
-        int(
-            item_state.get(
-                "attempts"
-            )
-            or 0
-        )
-        + 1
-    )
-
-    response_quality = (
-        evaluation.get(
-            "response_quality"
-        )
-    )
-
-    independence_level = (
-        evaluation.get(
-            "independence_level"
-        )
-    )
-
-    if (
-        response_quality
-        == "correct"
-        and independence_level
-        == "independent"
-    ):
-
-        item_state[
-            "independent_successes"
-        ] = (
-            int(
-                item_state.get(
-                    "independent_successes"
-                )
-                or 0
-            )
-            + 1
-        )
-
-    elif (
-        response_quality
-        in (
-            "correct",
-            "partial"
-        )
-    ):
-
-        item_state[
-            "supported_successes"
-        ] = (
-            int(
-                item_state.get(
-                    "supported_successes"
-                )
-                or 0
-            )
-            + 1
-        )
-
-    else:
-
-        item_state[
-            "failures"
-        ] = (
-            int(
-                item_state.get(
-                    "failures"
-                )
-                or 0
-            )
-            + 1
-        )
-
-    flow_state[
-        item_id
-    ] = item_state
-
-    required_successes = int(
-        current_teaching_step.get(
-            "minimum_independent_successes"
-        )
-        or 1
-    )
-
-    independent_successes = int(
-        item_state.get(
-            "independent_successes"
-        )
-        or 0
-    )
-
-    next_flow_step = (
-        current_flow_step
-    )
-
-    if (
-        independent_successes
-        >= required_successes
-    ):
-
-        next_flow_step = (
-            current_flow_step
-            + 1
-        )
-
-    return {
-
-        "current_flow_step":
-            next_flow_step,
-
-        "flow_state":
-            flow_state
-
-    }
 # =====================================================
 # APPLY LESSON EVALUATION
 # =====================================================
@@ -1485,36 +1336,39 @@ def apply_lesson_evaluation(
         progress: dict,
         lesson: dict,
         evaluation: dict,
-        session_id: str,
-        current_teaching_step: dict | None = None
+        session_id: str
 ):
+
     now = datetime.now(
         timezone.utc
     )
 
+
     objectives_progress = (
 
-            progress.get(
-                "objectives_progress"
-            )
+        progress.get(
+            "objectives_progress"
+        )
 
-            or []
+        or []
 
     )
+
 
     objective_index = (
 
-            evaluation.get(
-                "objective_index"
-            )
+        evaluation.get(
+            "objective_index"
+        )
 
-            or progress.get(
-        "current_objective_index"
+        or progress.get(
+            "current_objective_index"
+        )
+
+        or 1
+
     )
 
-            or 1
-
-    )
 
     evidence_result = (
 
@@ -1524,6 +1378,7 @@ def apply_lesson_evaluation(
 
     )
 
+
     evidence_points = (
 
         evidence_result[
@@ -1531,6 +1386,7 @@ def apply_lesson_evaluation(
         ]
 
     )
+
 
     difficulty_level = (
 
@@ -1540,6 +1396,7 @@ def apply_lesson_evaluation(
 
     )
 
+
     difficulty_cap = (
 
         evidence_result[
@@ -1548,31 +1405,35 @@ def apply_lesson_evaluation(
 
     )
 
+
     # =================================================
     # UPDATE CURRENT OBJECTIVE
     # =================================================
 
     for objective in (
-            objectives_progress
+        objectives_progress
     ):
+
 
         if (
 
-                int(
-                    objective.get(
-                        "objective_index",
-                        0
-                    )
+            int(
+                objective.get(
+                    "objective_index",
+                    0
                 )
+            )
 
-                !=
+            !=
 
-                int(
-                    objective_index
-                )
+            int(
+                objective_index
+            )
 
         ):
+
             continue
+
 
         old_score = int(
 
@@ -1584,6 +1445,7 @@ def apply_lesson_evaluation(
 
         )
 
+
         highest_difficulty_reached = int(
 
             objective.get(
@@ -1593,6 +1455,7 @@ def apply_lesson_evaluation(
             or 0
 
         )
+
 
         evidence_count = int(
 
@@ -1604,27 +1467,29 @@ def apply_lesson_evaluation(
 
         )
 
+
         evidence_by_level = (
 
-                objective.get(
-                    "evidence_by_level"
-                )
+            objective.get(
+                "evidence_by_level"
+            )
 
-                or {
+            or {
 
-                    "1": 0,
+                "1": 0,
 
-                    "2": 0,
+                "2": 0,
 
-                    "3": 0,
+                "3": 0,
 
-                    "4": 0,
+                "4": 0,
 
-                    "5": 0
+                "5": 0
 
-                }
+            }
 
         )
+
 
         # =============================================
         # עדכון מספר ראיות ברמת הקושי
@@ -1634,32 +1499,35 @@ def apply_lesson_evaluation(
             difficulty_level
         )
 
+
         if (
 
-                evaluation.get(
-                    "response_quality"
-                )
+            evaluation.get(
+                "response_quality"
+            )
 
-                in (
+            in (
                 "correct",
                 "partial"
-        )
+            )
 
         ):
+
             evidence_by_level[
                 level_key
             ] = (
 
-                    int(
-                        evidence_by_level.get(
-                            level_key,
-                            0
-                        )
+                int(
+                    evidence_by_level.get(
+                        level_key,
+                        0
                     )
+                )
 
-                    + 1
+                + 1
 
             )
+
 
         # =============================================
         # רק הצלחה אמיתית נחשבת
@@ -1668,13 +1536,14 @@ def apply_lesson_evaluation(
 
         if (
 
-                evaluation.get(
-                    "response_quality"
-                )
+            evaluation.get(
+                "response_quality"
+            )
 
-                == "correct"
+            == "correct"
 
         ):
+
             highest_difficulty_reached = max(
 
                 highest_difficulty_reached,
@@ -1682,6 +1551,7 @@ def apply_lesson_evaluation(
                 difficulty_level
 
             )
+
 
         # =============================================
         # SCORE UPDATE
@@ -1691,10 +1561,11 @@ def apply_lesson_evaluation(
 
         proposed_score = (
 
-                old_score
-                + evidence_points
+            old_score
+            + evidence_points
 
         )
+
 
         # =============================================
         # CAP
@@ -1716,6 +1587,7 @@ def apply_lesson_evaluation(
 
         )
 
+
         # אם עדיין אין הצלחה מלאה,
         # משתמשים לפחות בתקרת השאלה
         # הנוכחית אבל לא מאפשרים
@@ -1727,14 +1599,15 @@ def apply_lesson_evaluation(
 
             difficulty_cap
             if (
-                    evaluation.get(
-                        "response_quality"
-                    )
-                    == "correct"
+                evaluation.get(
+                    "response_quality"
+                )
+                == "correct"
             )
             else old_score
 
         )
+
 
         new_score = max(
 
@@ -1752,40 +1625,48 @@ def apply_lesson_evaluation(
 
         )
 
+
         # =============================================
         # ראיה חדשה
         # =============================================
 
         if (
 
-                evidence_points > 0
+            evidence_points > 0
 
-                and
+            and
 
-                not evaluation.get(
-                    "is_repetition"
-                )
+            not evaluation.get(
+                "is_repetition"
+            )
 
         ):
+
             evidence_count += 1
+
 
         objective[
             "score"
         ] = new_score
 
+
         objective[
             "highest_difficulty_reached"
         ] = highest_difficulty_reached
+
 
         objective[
             "evidence_count"
         ] = evidence_count
 
+
         objective[
             "evidence_by_level"
         ] = evidence_by_level
 
+
         break
+
 
     # =================================================
     # ALL OBJECTIVE SCORES
@@ -1805,6 +1686,7 @@ def apply_lesson_evaluation(
         in objectives_progress
 
     ]
+
 
     # =================================================
     # LESSON PROGRESS
@@ -1826,6 +1708,7 @@ def apply_lesson_evaluation(
 
         progress_percent = 0
 
+
     # =================================================
     # MASTERY
     #
@@ -1842,6 +1725,7 @@ def apply_lesson_evaluation(
         if score > 0
 
     ]
+
 
     if started_scores:
 
@@ -1862,6 +1746,7 @@ def apply_lesson_evaluation(
     else:
 
         mastery_score = 0
+
 
     # =================================================
     # NEXT OBJECTIVE
@@ -1914,6 +1799,9 @@ def apply_lesson_evaluation(
 
             break
 
+
+
+
     # =================================================
     # LESSON COMPLETION
     # =================================================
@@ -1959,6 +1847,9 @@ def apply_lesson_evaluation(
 
     )
 
+
+
+
     if lesson_completed:
 
         status = "completed"
@@ -1972,6 +1863,7 @@ def apply_lesson_evaluation(
 
         status = "in_progress"
 
+
     # =================================================
     # SUCCESS / FAILURE STREAKS
     # =================================================
@@ -1984,6 +1876,7 @@ def apply_lesson_evaluation(
 
     )
 
+
     current_successes = int(
 
         progress.get(
@@ -1993,6 +1886,7 @@ def apply_lesson_evaluation(
         or 0
 
     )
+
 
     current_failures = int(
 
@@ -2004,12 +1898,13 @@ def apply_lesson_evaluation(
 
     )
 
+
     if response_quality == "correct":
 
         consecutive_successes = (
 
-                current_successes
-                + 1
+            current_successes
+            + 1
 
         )
 
@@ -2022,8 +1917,8 @@ def apply_lesson_evaluation(
 
         consecutive_failures = (
 
-                current_failures
-                + 1
+            current_failures
+            + 1
 
         )
 
@@ -2033,6 +1928,7 @@ def apply_lesson_evaluation(
         consecutive_successes = 0
 
         consecutive_failures = 0
+
 
     # =================================================
     # HINTS
@@ -2048,10 +1944,13 @@ def apply_lesson_evaluation(
 
     )
 
+
     if evaluation.get(
-            "hint_used"
+        "hint_used"
     ):
+
         hints_used += 1
+
 
     # =================================================
     # DATABASE UPDATE
@@ -2114,14 +2013,17 @@ def apply_lesson_evaluation(
 
     }
 
+
     # =================================================
     # COMPLETED
     # =================================================
 
     if lesson_completed:
+
         update_data[
             "completed_at"
         ] = now.isoformat()
+
 
         update_data[
             "xp_earned"
@@ -2135,6 +2037,7 @@ def apply_lesson_evaluation(
 
         )
 
+
         update_data[
             "stars_earned"
         ] = int(
@@ -2146,6 +2049,7 @@ def apply_lesson_evaluation(
             or 0
 
         )
+
 
     updated = (
 
@@ -2166,8 +2070,11 @@ def apply_lesson_evaluation(
 
     )
 
+
     if updated.data:
+
         return updated.data[0]
+
 
     return {
 
@@ -2176,6 +2083,7 @@ def apply_lesson_evaluation(
         **update_data
 
     }
+
 
 
 # =====================================================
@@ -2529,79 +2437,28 @@ def build_tutor_prompt(
         child: dict,
         kids_memory: str
 ) -> str:
-
     prompt = TUTOR_PROMPT_TEMPLATE
 
     replacements = {
-        "{child_name}":
-            str(
-                child.get(
-                    "child_name",
-                    ""
-                )
-            ),
-
-        "{age}":
-            str(
-                child.get(
-                    "age",
-                    ""
-                )
-            ),
-
-        "{grade}":
-            str(
-                child.get(
-                    "age",
-                    ""
-                )
-            ),
-
-        "{gender}":
-            str(
-                child.get(
-                    "gender",
-                    ""
-                )
-            ),
-
-        "{avatar_key}":
-            str(
-                child.get(
-                    "avatar_key",
-                    ""
-                )
-            ),
-
-        "{learning_interests}":
-            ", ".join(
-                child.get(
-                    "learning_interests"
-                )
-                or []
-            ),
-
-        "{usage_goals}":
-            ", ".join(
-                child.get(
-                    "usage_goals"
-                )
-                or []
-            ),
-
-        "{kids_memory}":
-            kids_memory
-            or ""
+        "{child_name}": str(child.get("child_name", "")),
+        "{age}": str(child.get("age", "")),
+        "{grade}": str(child.get("age", "")),
+        "{gender}": str(child.get("gender", "")),
+        "{avatar_key}": str(child.get("avatar_key", "")),
+        "{learning_interests}": ", ".join(
+            child.get("learning_interests") or []
+        ),
+        "{usage_goals}": ", ".join(
+            child.get("usage_goals") or []
+        ),
+        "{kids_memory}": kids_memory or "",
     }
 
     replacements.update(
-        get_gender_placeholders(
-            child
-        )
+        get_gender_placeholders(child)
     )
 
     for placeholder, value in replacements.items():
-
         prompt = prompt.replace(
             placeholder,
             value
@@ -2613,8 +2470,6 @@ def build_tutor_prompt(
 def build_structured_lesson_prompt(
         child: dict,
         lesson: dict,
-        lesson_plan: dict | None,
-        current_teaching_step: dict | None,
         progress: dict,
         turn_type: str,
         review_mode: bool = False,
@@ -2637,6 +2492,7 @@ def build_structured_lesson_prompt(
 
         "show_answering_hint":
             show_answering_hint,
+
 
         "child": {
 
@@ -2673,6 +2529,7 @@ def build_structured_lesson_prompt(
                 or []
 
         },
+
 
         "lesson": {
 
@@ -2720,11 +2577,6 @@ def build_structured_lesson_prompt(
 
         },
 
-        "lesson_plan":
-            lesson_plan or {},
-
-        "current_teaching_step":
-            current_teaching_step or {},
 
         "progress": {
 
@@ -2732,18 +2584,6 @@ def build_structured_lesson_prompt(
                 progress.get(
                     "status"
                 ),
-
-            "current_flow_step":
-                progress.get(
-                    "current_flow_step"
-                )
-                or 1,
-
-            "flow_state":
-                progress.get(
-                    "flow_state"
-                )
-                or {},
 
             "progress_percent":
                 progress.get(
@@ -2791,24 +2631,25 @@ def build_structured_lesson_prompt(
 
     }
 
+
     return (
 
-            LESSON_PROMPT_TEMPLATE
+        LESSON_PROMPT_TEMPLATE
 
-            +
+        +
 
-            "\n\n"
-            "RUNTIME_CONTEXT:\n"
+        "\n\n"
+        "RUNTIME_CONTEXT:\n"
 
-            +
+        +
 
-            json.dumps(
+        json.dumps(
 
-                runtime_context,
+            runtime_context,
 
-                ensure_ascii=False
+            ensure_ascii=False
 
-            )
+        )
 
     )
 
@@ -3011,6 +2852,7 @@ def tutor_tts(
             detail=f"Gemini TTS failed: {error_message}"
         )
 
+
 @app.get(
     "/api/learning-lessons/{learning_lesson_id}/units"
 )
@@ -3019,11 +2861,8 @@ def get_learning_lesson_units(
         authorization: str = Header(None)
 ):
     try:
-        authenticate_user(
-            authorization
-        )
+        authenticate_user(authorization)
 
-        # מוודאים שהרשומה הראשית קיימת
         parent_lesson = get_learning_lesson(
             learning_lesson_id
         )
@@ -3033,20 +2872,11 @@ def get_learning_lesson_units(
         )
 
         return {
-            "learning_lesson_id":
-                parent_lesson["id"],
-
-            "subject":
-                parent_lesson.get("subject"),
-
-            "category":
-                parent_lesson.get("category"),
-
-            "parent_lesson_name":
-                parent_lesson.get("lesson_name"),
-
-            "units":
-                units
+            "learning_lesson_id": parent_lesson["id"],
+            "subject": parent_lesson.get("subject"),
+            "category": parent_lesson.get("category"),
+            "parent_lesson_name": parent_lesson.get("lesson_name"),
+            "units": units
         }
 
     except HTTPException:
@@ -3063,6 +2893,138 @@ def get_learning_lesson_units(
             detail="Failed to load lesson units"
         )
 
+
+@app.post("/api/tutor/lesson-intro")
+def lesson_intro(
+        body: LessonIntroRequest,
+        authorization: str = Header(None)
+):
+    try:
+        user = authenticate_user(
+            authorization
+        )
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        unit_lesson = get_unit_lesson_by_id(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson["learning_lesson_id"]
+        )
+
+        intro_template_id = unit_lesson.get(
+            "intro_template_id"
+        )
+
+        if not intro_template_id:
+            raise HTTPException(
+                status_code=404,
+                detail="Intro template is missing"
+            )
+
+        intro_template = get_intro_template(
+            intro_template_id
+        )
+
+        intro_json = (
+            intro_template.get("intro_json")
+            or {}
+        )
+
+        replacements = {
+            "{child_name}": str(
+                child.get("child_name") or ""
+            ),
+            "{parent_lesson}": str(
+                parent_lesson.get("lesson_name") or ""
+            ),
+            "{unit_name}": str(
+                unit_lesson.get("unit_name") or ""
+            ),
+            "{lesson_name}": str(
+                unit_lesson.get("lesson_name") or ""
+            ),
+            "{subject}": str(
+                parent_lesson.get("subject") or ""
+            ),
+            "{grade}": str(
+                child.get("age") or ""
+            ),
+            "{gender}": str(
+                child.get("gender") or ""
+            )
+        }
+
+        replacements.update(
+            get_gender_placeholders(child)
+        )
+
+        raw_sequence = (
+            intro_json.get("sequence")
+            or []
+        )
+
+        sequence = []
+
+        for raw_action in raw_sequence:
+            action_data = dict(raw_action)
+
+            text_value = action_data.get("text")
+
+            if text_value is not None:
+                text_value = str(text_value)
+
+                for placeholder, value in replacements.items():
+                    text_value = text_value.replace(
+                        placeholder,
+                        value
+                    )
+
+                action_data["text"] = text_value
+
+            sequence.append(
+                TutorAction(**action_data)
+            )
+
+        return {
+            "speech": None,
+            "sequence": [
+                action.model_dump()
+                for action in sequence
+            ],
+            "wait_for_answer": bool(
+                intro_json.get(
+                    "wait_for_answer",
+                    False
+                )
+            ),
+            "intro_template_id": intro_template_id,
+            "unit_lesson_id": unit_lesson["id"],
+            "tts_provider": intro_template.get("tts_provider"),
+            "tts_model": intro_template.get("tts_model"),
+            "tts_voice": intro_template.get("tts_voice")
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        print(
+            "LESSON INTRO ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Lesson intro failed"
+        )
+
+
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
@@ -3074,6 +3036,7 @@ def structured_lesson(
         body: StructuredLessonRequest,
         authorization: str = Header(None)
 ):
+
     try:
 
         # =============================================
@@ -3084,11 +3047,14 @@ def structured_lesson(
             authorization
         )
 
+
         if not body.kid_id:
+
             raise HTTPException(
                 status_code=400,
                 detail="kid_id is required"
             )
+
 
         # =============================================
         # CHILD
@@ -3102,6 +3068,7 @@ def structured_lesson(
 
         )
 
+
         # =============================================
         # LESSON
         # =============================================
@@ -3110,9 +3077,6 @@ def structured_lesson(
             body.lesson_id
         )
 
-        lesson_plan = get_lesson_plan(
-            body.lesson_id
-        )
 
         # =============================================
         # SECURITY
@@ -3131,6 +3095,7 @@ def structured_lesson(
 
         )
 
+
         lesson_grade = int(
 
             lesson.get(
@@ -3141,13 +3106,15 @@ def structured_lesson(
 
         )
 
+
         if (
 
-                child_grade
-                and lesson_grade
-                and child_grade != lesson_grade
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
 
         ):
+
             raise HTTPException(
 
                 status_code=403,
@@ -3158,6 +3125,7 @@ def structured_lesson(
                 )
 
             )
+
 
         # =============================================
         # SESSION
@@ -3175,9 +3143,11 @@ def structured_lesson(
 
         )
 
+
         session_id = (
             tutor_session["id"]
         )
+
 
         # =============================================
         # האם זו פתיחת שיעור
@@ -3185,10 +3155,11 @@ def structured_lesson(
 
         message = (
 
-                body.message
-                or ""
+            body.message
+            or ""
 
         ).strip()
+
 
         # =============================================
         # SPECIAL LESSON EVENTS
@@ -3204,10 +3175,11 @@ def structured_lesson(
 
         is_no_response = (
 
-                message
-                == "__NO_RESPONSE__"
+            message
+            == "__NO_RESPONSE__"
 
         )
+
 
         is_lesson_start = (
 
@@ -3216,6 +3188,7 @@ def structured_lesson(
             )
 
         )
+
 
         # =============================================
         # PROGRESS
@@ -3232,25 +3205,7 @@ def structured_lesson(
                 session_id=session_id,
 
                 is_lesson_start=
-                is_lesson_start
-
-            )
-
-        )
-
-        # =============================================
-        # CURRENT TEACHING STEP
-        # =============================================
-
-        current_teaching_step = (
-
-            get_current_teaching_step(
-
-                lesson_plan=
-                    lesson_plan,
-
-                progress=
-                    progress
+                    is_lesson_start
 
             )
 
@@ -3270,11 +3225,11 @@ def structured_lesson(
 
         review_mode = (
 
-                progress.get(
-                    "status"
-                )
+            progress.get(
+                "status"
+            )
 
-                == "completed"
+            == "completed"
 
         )
 
@@ -3323,6 +3278,7 @@ def structured_lesson(
                     "student_response"
                 )
 
+
         # =============================================
         # PROMPT
         # =============================================
@@ -3351,11 +3307,6 @@ def structured_lesson(
 
                 lesson=lesson,
 
-                lesson_plan=lesson_plan,
-
-                current_teaching_step=
-                    current_teaching_step,
-
                 progress=progress,
 
                 turn_type=turn_type,
@@ -3363,10 +3314,12 @@ def structured_lesson(
                 review_mode=review_mode,
 
                 show_answering_hint=
-                    show_answering_hint
+                show_answering_hint
 
             )
+
         )
+
 
         # =============================================
         # HISTORY
@@ -3377,16 +3330,17 @@ def structured_lesson(
             get_recent_lesson_history_for_llm(
 
                 kid_id=
-                child["id"],
+                    child["id"],
 
                 lesson_id=
-                lesson["id"],
+                    lesson["id"],
 
                 limit=8
 
             )
 
         )
+
 
         # =============================================
         # CURRENT TURN
@@ -3459,6 +3413,8 @@ def structured_lesson(
 
         })
 
+
+
         # =============================================
         # OPENAI
         # =============================================
@@ -3472,7 +3428,7 @@ def structured_lesson(
             .parse(
 
                 model=
-                "gpt-4o-mini",
+                    "gpt-4o-mini",
 
                 messages=[
 
@@ -3491,11 +3447,12 @@ def structured_lesson(
                 ],
 
                 response_format=
-                StructuredLessonResponse
+                    StructuredLessonResponse
 
             )
 
         )
+
 
         lesson_data = (
 
@@ -3506,7 +3463,9 @@ def structured_lesson(
 
         )
 
+
         if not lesson_data:
+
             raise HTTPException(
 
                 status_code=500,
@@ -3652,7 +3611,7 @@ def structured_lesson(
                     completion = (
                         retry_completion
                     )
-
+                    
         # =============================================
         # NORMALIZE WAIT FOR ANSWER
         #
@@ -3666,8 +3625,8 @@ def structured_lesson(
 
         sequence = (
 
-                lesson_data.sequence
-                or []
+            lesson_data.sequence
+            or []
 
         )
 
@@ -3686,14 +3645,12 @@ def structured_lesson(
                     or ""
             ).strip()
 
-            gender_words = get_gender_placeholders(child)
-
             greeting_text = (
                 f"שלום {child_name}! "
-                f"כיף ש{gender_words['{chose}']} ללמוד איתי היום {subject}. "
-                f"{gender_words['{ready}']}? בואו נתחיל!"
+                f"כיף שבחרת ללמוד איתי היום {subject}."
             )
 
+            # מוסיפים פתיח קולי קבוע בתחילת השיעור
             sequence.insert(
                 0,
                 TutorAction(
@@ -3714,26 +3671,28 @@ def structured_lesson(
 
         )
 
+
         has_real_final_ask = (
 
-                last_action is not None
+            last_action is not None
 
-                and
+            and
 
-                last_action.type == "ask"
+            last_action.type == "ask"
 
-                and
+            and
 
-                bool(
+            bool(
 
-                    (
-                            last_action.text
-                            or ""
-                    ).strip()
+                (
+                    last_action.text
+                    or ""
+                ).strip()
 
-                )
+            )
 
         )
+
 
         lesson_data.wait_for_answer = (
 
@@ -3755,17 +3714,18 @@ def structured_lesson(
             )
         )
 
+
         if (
 
-                not is_lesson_start
+            not is_lesson_start
 
-                and
+            and
 
-                not is_no_response
+            not is_no_response
 
-                and
+            and
 
-                lesson_data.evaluation
+            lesson_data.evaluation
 
         ):
 
@@ -3777,17 +3737,19 @@ def structured_lesson(
 
             )
 
+
             evaluated_objective_index = (
 
-                    evaluation_dict.get(
-                        "objective_index"
-                    )
+                evaluation_dict.get(
+                    "objective_index"
+                )
 
-                    or progress.get(
-                "current_objective_index"
+                or progress.get(
+                    "current_objective_index"
+                )
+
             )
 
-            )
 
             # =========================================
             # NORMAL LEARNING MODE
@@ -3796,42 +3758,28 @@ def structured_lesson(
             # ההערכה משנה את ההתקדמות הרשמית.
             # =========================================
 
-        if (
-                not review_mode
-                and evaluation_dict is not None
-        ):
-            progress = apply_lesson_evaluation(
-                progress=progress,
-                lesson=lesson,
-                evaluation=evaluation_dict,
-                session_id=session_id,
-                current_teaching_step=current_teaching_step
-            )
+            if not review_mode:
 
-            flow_result = apply_flow_evaluation(
-                progress=progress,
-                current_teaching_step=current_teaching_step,
-                evaluation=evaluation_dict
-            )
+                progress = (
 
-            update_data = {
-                "current_flow_step":
-                    flow_result["current_flow_step"],
+                    apply_lesson_evaluation(
 
-                "flow_state":
-                    flow_result["flow_state"]
-            }
+                        progress=progress,
 
-            sb.table(
-                "kid_lesson_progress"
-            ).update(
-                update_data
-            ).eq(
-                "id",
-                progress["id"]
-            ).execute()
+                        lesson=lesson,
 
-            progress.update(update_data)
+                        evaluation=
+                            evaluation_dict,
+
+                        session_id=
+                            session_id
+
+                    )
+
+                )
+
+
+
 
         # =============================================
         # CLEAN ASSISTANT HISTORY
@@ -3839,7 +3787,9 @@ def structured_lesson(
 
         assistant_history_parts = []
 
+
         if lesson_data.speech:
+
             assistant_history_parts.append(
 
                 lesson_data
@@ -3848,25 +3798,25 @@ def structured_lesson(
 
             )
 
+
         for action in (
 
-                lesson_data.sequence
-                or []
+            lesson_data.sequence
+            or []
 
         ):
 
             if (
 
-                    action.type
-                    in (
-                        "speak",
-                        "write",
-                        "ask"
-                    )
+                action.type
+                in (
+                    "write",
+                    "ask"
+                )
 
-                    and action.text
+                and action.text
 
-                    and action.text.strip()
+                and action.text.strip()
 
             ):
 
@@ -3877,19 +3827,22 @@ def structured_lesson(
 
                 )
 
+
                 if (
 
-                        clean_text
+                    clean_text
 
-                        not in
-                        assistant_history_parts
+                    not in
+                    assistant_history_parts
 
                 ):
+
                     assistant_history_parts.append(
 
                         clean_text
 
                     )
+
 
         assistant_history_text = (
 
@@ -3901,6 +3854,7 @@ def structured_lesson(
 
         )
 
+
         # =============================================
         # SAVE LESSON HISTORY
         # =============================================
@@ -3908,13 +3862,13 @@ def structured_lesson(
         save_lesson_history(
 
             kid_id=
-            child["id"],
+                child["id"],
 
             lesson_id=
-            lesson["id"],
+                lesson["id"],
 
             session_id=
-            session_id,
+                session_id,
 
             objective_index=
             evaluated_objective_index,
@@ -3924,9 +3878,9 @@ def structured_lesson(
                 None
 
                 if (
-                        is_lesson_start
-                        or
-                        is_no_response
+                    is_lesson_start
+                    or
+                    is_no_response
                 )
 
                 else message
@@ -3934,10 +3888,10 @@ def structured_lesson(
             ),
 
             assistant_content=
-            assistant_history_text,
+                assistant_history_text,
 
             evaluation=
-            evaluation_dict,
+                evaluation_dict,
 
             sequence_json=[
 
@@ -3950,6 +3904,7 @@ def structured_lesson(
 
         )
 
+
         # =============================================
         # TOKEN USAGE
         # =============================================
@@ -3960,58 +3915,64 @@ def structured_lesson(
 
         output_tokens = 0
 
+
         if completion.usage:
+
             total_tokens = (
 
-                    completion
-                    .usage
-                    .total_tokens
+                completion
+                .usage
+                .total_tokens
 
-                    or 0
+                or 0
 
             )
+
 
             input_tokens = (
 
-                    completion
-                    .usage
-                    .prompt_tokens
+                completion
+                .usage
+                .prompt_tokens
 
-                    or 0
+                or 0
 
             )
+
 
             output_tokens = (
 
-                    completion
-                    .usage
-                    .completion_tokens
+                completion
+                .usage
+                .completion_tokens
 
-                    or 0
+                or 0
 
             )
 
+
         openai_cost_usd = (
 
-                (
-                        input_tokens
-                        / 1_000_000
-                )
+            (
+                input_tokens
+                / 1_000_000
+            )
 
-                *
-                OPENAI_INPUT_COST_PER_1M
+            *
+            OPENAI_INPUT_COST_PER_1M
 
-                +
+            +
 
-                (
-                        output_tokens
-                        / 1_000_000
-                )
+            (
+                output_tokens
+                / 1_000_000
+            )
 
-                *
-                OPENAI_OUTPUT_COST_PER_1M
+            *
+            OPENAI_OUTPUT_COST_PER_1M
 
         )
+
 
         # =============================================
         # SESSION USAGE
@@ -4020,26 +3981,27 @@ def structured_lesson(
         update_tutor_session_after_chat(
 
             session=
-            tutor_session,
+                tutor_session,
 
             total_tokens=
-            total_tokens,
+                total_tokens,
 
             input_tokens=
-            input_tokens,
+                input_tokens,
 
             output_tokens=
-            output_tokens,
+                output_tokens,
 
             cost_usd=
-            openai_cost_usd
+                openai_cost_usd
 
         )
+
 
         increment_usage_summary(
 
             user_id=
-            user.id,
+                user.id,
 
             sessions=(
 
@@ -4054,21 +4016,22 @@ def structured_lesson(
             ),
 
             ai_calls=
-            1,
+                1,
 
             input_tokens=
-            input_tokens,
+                input_tokens,
 
             output_tokens=
-            output_tokens,
+                output_tokens,
 
             total_tokens=
-            total_tokens,
+                total_tokens,
 
             openai_cost_usd=
-            openai_cost_usd
+                openai_cost_usd
 
         )
+
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -4081,13 +4044,16 @@ def structured_lesson(
 
         )
 
+
         response_data[
             "session_id"
         ] = session_id
 
+
         response_data[
             "lesson_id"
         ] = lesson["id"]
+
 
         response_data[
             "progress"
@@ -4124,6 +4090,7 @@ def structured_lesson(
             "review_mode"
         ] = review_mode
 
+
         response_data[
             "lesson_mode"
         ] = (
@@ -4154,6 +4121,7 @@ def structured_lesson(
 
         )
 
+
         raise HTTPException(
 
             status_code=500,
@@ -4176,6 +4144,7 @@ def homework_analyze(
         body: HomeworkAnalyzeRequest,
         authorization: str = Header(None)
 ):
+
     upload_row_id = None
 
     try:
@@ -4189,16 +4158,20 @@ def homework_analyze(
         )
 
         if not body.kid_id:
+
             raise HTTPException(
                 status_code=400,
                 detail="kid_id is required"
             )
 
+
         if not body.storage_path:
+
             raise HTTPException(
                 status_code=400,
                 detail="storage_path is required"
             )
+
 
         # =============================================
         # מוודאים שהילד שייך למשתמש
@@ -4208,6 +4181,7 @@ def homework_analyze(
             user_id=user.id,
             kid_id=body.kid_id
         )
+
 
         # =============================================
         # SECURITY
@@ -4222,14 +4196,16 @@ def homework_analyze(
         )
 
         if not body.storage_path.startswith(
-                expected_prefix
+            expected_prefix
         ):
+
             raise HTTPException(
                 status_code=403,
                 detail=(
                     "Invalid storage path"
                 )
             )
+
 
         # =============================================
         # SESSION
@@ -4253,6 +4229,7 @@ def homework_analyze(
             session_id = (
                 tutor_session["id"]
             )
+
 
         # =============================================
         # CREATE homework_uploads ROW
@@ -4317,15 +4294,19 @@ def homework_analyze(
 
         )
 
+
         if not upload_res.data:
+
             raise RuntimeError(
                 "Failed to create "
                 "homework_uploads row"
             )
 
+
         upload_row_id = (
             upload_res.data[0]["id"]
         )
+
 
         # =============================================
         # DOWNLOAD FILE FROM PRIVATE STORAGE
@@ -4345,20 +4326,24 @@ def homework_analyze(
 
         )
 
+
         if not file_bytes:
+
             raise RuntimeError(
                 "Failed to download "
                 "homework file"
             )
+
 
         # =============================================
         # MIME TYPE
         # =============================================
 
         mime_type = (
-                body.file_type
-                or "image/jpeg"
+            body.file_type
+            or "image/jpeg"
         )
+
 
         allowed_mime_types = {
 
@@ -4372,9 +4357,11 @@ def homework_analyze(
 
         }
 
+
         if mime_type not in (
-                allowed_mime_types
+            allowed_mime_types
         ):
+
             raise HTTPException(
                 status_code=400,
                 detail=(
@@ -4460,11 +4447,14 @@ def homework_analyze(
                 response.choices[0].message.content or ""
         ).strip()
 
+
         if not raw_response:
+
             raise RuntimeError(
                 "Gemini Vision "
                 "returned empty response"
             )
+
 
         try:
 
@@ -4484,16 +4474,18 @@ def homework_analyze(
                 "returned invalid JSON"
             )
 
+
         # =============================================
         # EXTRACT VALUES
         # =============================================
 
         extracted_text = (
-                analysis.get(
-                    "extracted_text"
-                )
-                or ""
+            analysis.get(
+                "extracted_text"
+            )
+            or ""
         )
+
 
         detected_subject = (
             analysis.get(
@@ -4501,17 +4493,20 @@ def homework_analyze(
             )
         )
 
+
         detected_topic = (
             analysis.get(
                 "topic"
             )
         )
 
+
         detected_language = (
             analysis.get(
                 "language"
             )
         )
+
 
         needs_high_resolution = bool(
 
@@ -4521,6 +4516,7 @@ def homework_analyze(
             )
 
         )
+
 
         confidence = float(
 
@@ -4532,6 +4528,7 @@ def homework_analyze(
             or 0
 
         )
+
 
         # =============================================
         # TOKEN USAGE
@@ -4563,6 +4560,7 @@ def homework_analyze(
             vision_status = (
                 "completed"
             )
+
 
         # =============================================
         # UPDATE homework_uploads
@@ -4620,6 +4618,7 @@ def homework_analyze(
 
         ).execute()
 
+
         # =============================================
         # SESSION USAGE
         # =============================================
@@ -4634,6 +4633,7 @@ def homework_analyze(
 
         )
 
+
         # =============================================
         # MONTHLY USAGE
         # =============================================
@@ -4647,6 +4647,7 @@ def homework_analyze(
             vision_calls=1
 
         )
+
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -4702,6 +4703,7 @@ def homework_analyze(
             repr(e)
         )
 
+
         # =============================================
         # UPDATE FAILED ROW
         # =============================================
@@ -4739,6 +4741,7 @@ def homework_analyze(
                     repr(update_error)
                 )
 
+
         raise HTTPException(
 
             status_code=500,
@@ -4748,7 +4751,6 @@ def homework_analyze(
             )
 
         )
-
 
 # =====================================================
 # AI TUTOR CHAT
@@ -4894,11 +4896,7 @@ def tutor_chat(
         for action in lesson_data.sequence or []:
 
             if (
-                    action.type in (
-                    "speak",
-                    "write",
-                    "ask"
-            )
+                    action.type in ("write", "ask")
                     and action.text
                     and action.text.strip()
             ):
