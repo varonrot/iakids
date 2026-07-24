@@ -3590,7 +3590,10 @@ def structured_lesson(
             # ההערכה משנה את ההתקדמות הרשמית.
             # =========================================
 
-        if not review_mode:
+        if (
+                not review_mode
+                and evaluation_dict is not None
+        ):
             progress = apply_lesson_evaluation(
                 progress=progress,
                 lesson=lesson,
@@ -3600,23 +3603,17 @@ def structured_lesson(
             )
 
             flow_result = apply_flow_evaluation(
-
                 progress=progress,
-
                 current_teaching_step=current_teaching_step,
-
                 evaluation=evaluation_dict
-
             )
 
             update_data = {
-
                 "current_flow_step":
                     flow_result["current_flow_step"],
 
                 "flow_state":
                     flow_result["flow_state"]
-
             }
 
             sb.table(
