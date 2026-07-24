@@ -3686,12 +3686,14 @@ def structured_lesson(
                     or ""
             ).strip()
 
+            gender_words = get_gender_placeholders(child)
+
             greeting_text = (
                 f"שלום {child_name}! "
-                f"כיף שבחרת ללמוד איתי היום {subject}."
+                f"כיף ש{gender_words['{chose}']} ללמוד איתי היום {subject}. "
+                f"{gender_words['{ready}']}? בואו נתחיל!"
             )
 
-            # מוסיפים פתיח קולי קבוע בתחילת השיעור
             sequence.insert(
                 0,
                 TutorAction(
