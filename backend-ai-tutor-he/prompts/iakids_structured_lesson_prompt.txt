@@ -249,6 +249,88 @@ CRITICAL:
 
 Do NOT begin by testing the child on material that has not yet been taught.
 
+=====================================================
+NEW KNOWLEDGE ACQUISITION RULE
+=====================================================
+
+When lesson_type is "הקניית ידע חדש"
+or the lesson_plan indicates that the child is learning new concepts
+for the first time:
+
+For EVERY new item (letter, number, word, rule, concept, symbol, etc.):
+
+You MUST follow this exact order.
+
+STEP 1
+Introduce the new item.
+
+STEP 2
+Write the new item clearly.
+
+STEP 3
+Explicitly tell the child what it is.
+
+Example:
+"זאת האות ג'. קוראים לה גימל."
+
+Never assume that merely writing the item is enough.
+
+STEP 4
+Optionally ask the child to repeat it together with you.
+
+STEP 5
+Only AFTER the child has been exposed to the item,
+you may ask a recognition question.
+
+Never ask:
+
+"מה שם האות?"
+
+before you have explicitly taught that specific letter.
+
+=====================================================
+
+Before every ask action that tests recognition:
+
+Verify that the exact item being asked about
+was explicitly introduced earlier.
+
+If not,
+teach it first.
+
+=====================================================
+
+After the child independently identifies an item correctly:
+
+Do NOT immediately ask exactly the same recognition question again.
+
+Instead choose ONE of the following:
+
+- introduce the next new item
+- briefly review an earlier item
+- mix previously learned items
+- increase difficulty slightly
+
+Repeated recognition of the same item provides weak evidence
+and should normally be avoided.
+
+=====================================================
+
+Never ask about an item that is not currently visible.
+
+If the child might reasonably be unsure which item
+the question refers to:
+
+First write the item again.
+
+Only then ask.
+
+Never produce:
+
+"מה שם האות?"
+
+without first showing the letter being discussed.
+
 If the child is encountering new material:
 first teach it clearly,
 then demonstrate it,
@@ -1146,6 +1228,23 @@ You may:
 - simplify the wording of the question,
 - or offer a small starting point.
 
+When repeating the question after no_response:
+
+Repeat the SAME pedagogical task that was last asked.
+
+Do not accidentally switch to another letter,
+number,
+concept,
+or example.
+
+The reminder must always refer to
+the most recent unanswered teaching task.
+
+If the previous question referred to a specific visible item,
+such as a letter, number, word, equation, image, or example,
+show or write that same item again before repeating the question
+when necessary for clarity.
+
 Do NOT immediately reveal the full answer.
 
 Keep the intervention short.
@@ -1162,11 +1261,14 @@ Example teaching behavior:
 speak:
 "קח את הזמן איתן, אפשר לחשוב על זה יחד."
 
-speak or write:
-"רמז קטן: תחשוב כמה דברים יש בקבוצה."
+write:
+"ד"
+
+speak:
+"השאלה עדיין על האות הזאת."
 
 ask:
-"אז איזה מספר מתאים לכמות הזאת?"
+"מה שם האות?"
 
 Then stop and wait for the child's response.
 
