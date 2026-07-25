@@ -25,6 +25,9 @@ HOMEWORK_VISION_PROMPT_PATH = Path(
 LESSON_PROMPT_PATH = Path(
     "prompts/iakids_structured_lesson_prompt.txt"
 )
+UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
+    "prompts/iakids_universal_unit_lesson_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -156,6 +159,11 @@ if not LESSON_PROMPT_PATH.exists():
         f"Missing lesson prompt file: "
         f"{LESSON_PROMPT_PATH}"
     )
+if not UNIVERSAL_UNIT_LESSON_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing universal unit lesson prompt file: "
+        f"{UNIVERSAL_UNIT_LESSON_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -165,6 +173,12 @@ if not HOMEWORK_VISION_PROMPT_PATH.exists():
 TUTOR_PROMPT_TEMPLATE = PROMPT_PATH.read_text(encoding="utf-8")
 LESSON_PROMPT_TEMPLATE = (
     LESSON_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE = (
+    UNIVERSAL_UNIT_LESSON_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -2596,119 +2610,70 @@ def build_universal_unit_lesson_prompt(
         parent_lesson: dict
 ) -> str:
 
-    duration_seconds = int(
-        unit_lesson.get(
-            "estimated_duration_seconds"
-        )
-        or 60
+    prompt = (
+        UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE
     )
 
-    grade = int(
-        parent_lesson.get(
-            "grade"
-        )
-        or 0
-    )
+    replacements = {
 
-    subject = (
-        parent_lesson.get(
-            "subject"
-        )
-        or ""
-    )
+        "{grade}":
+            str(
+                parent_lesson.get(
+                    "grade"
+                )
+                or ""
+            ),
 
-    category = (
-        parent_lesson.get(
-            "category"
-        )
-        or ""
-    )
+        "{subject}":
+            str(
+                parent_lesson.get(
+                    "subject"
+                )
+                or ""
+            ),
 
-    parent_lesson_name = (
-        parent_lesson.get(
-            "lesson_name"
-        )
-        or ""
-    )
+        "{parent_lesson}":
+            str(
+                parent_lesson.get(
+                    "lesson_name"
+                )
+                or ""
+            ),
 
-    unit_name = (
-        unit_lesson.get(
-            "unit_name"
-        )
-        or ""
-    )
+        "{unit_name}":
+            str(
+                unit_lesson.get(
+                    "unit_name"
+                )
+                or ""
+            ),
 
-    lesson_name = (
-        unit_lesson.get(
-            "lesson_name"
-        )
-        or ""
-    )
+        "{lesson_name}":
+            str(
+                unit_lesson.get(
+                    "lesson_name"
+                )
+                or ""
+            ),
 
-    return f"""
-אתם מורים אנושיים ומנוסים המלמדים תלמידי בית ספר יסודי בישראל.
+        "{estimated_duration_seconds}":
+            str(
+                unit_lesson.get(
+                    "estimated_duration_seconds"
+                )
+                or 60
+            )
 
-צרו הסבר לימודי מובנה בעברית עבור תלמידי כיתה {grade}.
-
-מקצוע:
-{subject}
-
-נושא ראשי:
-{parent_lesson_name}
-
-קטגוריה:
-{category}
-
-יחידת לימוד:
-{unit_name}
-
-מטרת השיעור:
-{lesson_name}
-
-משך ההסבר המבוקש:
-כ-{duration_seconds} שניות.
-
-הנחיות פדגוגיות:
-
-- למדו רק את מטרת השיעור הנוכחית.
-- אל תניחו ידע מוקדם.
-- התחילו מיד בהסבר, ללא ברכה וללא הצגה עצמית.
-- אל תשתמשו בשם של ילד.
-- אל תפנו בלשון זכר או נקבה.
-- השתמשו בלשון רבים או בניסוח ניטרלי.
-- השתמשו בשפה פשוטה המתאימה לכיתה {grade}.
-- הסבירו בהדרגה ובאמצעות דוגמאות מחיי היום־יום.
-- אל תעמיסו פרטים שאינם נחוצים למטרת השיעור.
-- אל תחזרו על פתיח השיעור.
-- כתבו תוכן שמתאים לכל תלמיד ולא לתלמיד מסוים.
-- סיימו בשאלה אחת פשוטה בלבד לבדיקת הבנה.
-- פעולת ask חייבת להיות הפעולה האחרונה.
-- אל תוסיפו שום פעולה אחרי ask.
-- החזירו רצף פעולות שמתאים ל-TutorAction.
-- השתמשו בעיקר ב-write וב-speak.
-- אפשר להשתמש ב-wait קצר בין חלקים.
-- wait_for_answer חייב להיות true.
-"""
-
-# =====================================================
-# HEALTH
-# =====================================================
-
-@app.get("/")
-def root():
-    return {
-        "service": APP_NAME,
-        "status": "ok"
     }
 
+    for placeholder, value in replacements.items():
 
-@app.get("/api/tutor/health")
-def tutor_health():
-    return {
-        "status": "ok",
-        "service": "ai-tutor-he"
-    }
+        prompt = prompt.replace(
+            placeholder,
+            value
+        )
 
+    return prompt
 
 # =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
@@ -3717,7 +3682,7 @@ def get_or_generate_unit_lesson(
             status_code=500,
             detail="Unit lesson generation failed"
         )
-    
+
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
