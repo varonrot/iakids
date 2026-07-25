@@ -361,6 +361,8 @@ class TutorLessonResponse(BaseModel):
     sequence: list[TutorAction]
     wait_for_answer: bool = False
 
+class UniversalLessonResponse(BaseModel):
+    lesson: str
 
 # =====================================================
 # STRUCTURED LESSON MODELS
@@ -3445,14 +3447,15 @@ def get_or_generate_unit_lesson(
         if (
                 generation_status == "ready"
                 and isinstance(
-                    cached_json,
-                    dict
-                )
+            cached_json,
+            dict
+        )
                 and cached_json.get(
-                    "sequence"
-                )
+            "lesson"
+        )
         ):
             return {
+
                 "success": True,
 
                 "source": "cache",
@@ -3472,24 +3475,11 @@ def get_or_generate_unit_lesson(
                     )
                     or 1,
 
-                "speech":
+                "lesson":
                     cached_json.get(
-                        "speech"
-                    ),
-
-                "sequence":
-                    cached_json.get(
-                        "sequence"
+                        "lesson"
                     )
-                    or [],
 
-                "wait_for_answer":
-                    bool(
-                        cached_json.get(
-                            "wait_for_answer",
-                            True
-                        )
-                    )
             }
 
         # =============================================
@@ -3602,7 +3592,7 @@ def get_or_generate_unit_lesson(
                 ],
 
                 response_format=
-                TutorLessonResponse
+                UniversalLessonResponse
 
             )
         )
@@ -3614,11 +3604,15 @@ def get_or_generate_unit_lesson(
             .parsed
         )
 
+
         if not lesson_data:
             raise RuntimeError(
                 "Universal unit lesson "
                 "returned no response"
             )
+
+        lesson_text = lesson_data.lesson.strip()
+
 
         sequence = (
             lesson_data.sequence
@@ -3752,30 +3746,17 @@ def get_or_generate_unit_lesson(
                 UNIVERSAL_LESSON_MODEL,
 
             "learning_objective":
-                unit_lesson.get(
-                    "learning_objective"
-                ),
+                unit_lesson.get("learning_objective"),
 
             "lesson_complexity":
-                unit_lesson.get(
-                    "lesson_complexity"
-                ),
+                unit_lesson.get("lesson_complexity"),
 
             "max_duration_seconds":
-                unit_lesson.get(
-                    "max_duration_seconds"
-                ),
+                unit_lesson.get("max_duration_seconds"),
 
-            "speech":
-                lesson_data.speech,
+            "lesson":
+                lesson_text
 
-            "sequence": [
-                action.model_dump()
-                for action in sequence
-            ],
-
-            "wait_for_answer":
-                True
         }
 
         # =============================================
@@ -3909,19 +3890,8 @@ def get_or_generate_unit_lesson(
             "content_version":
                 content_version,
 
-            "speech":
-                lesson_json.get(
-                    "speech"
-                ),
-
-            "sequence":
-                lesson_json.get(
-                    "sequence"
-                )
-                or [],
-
-            "wait_for_answer":
-                True
+            "lesson":
+                lesson_json.get("lesson")
         }
 
     except HTTPException:
@@ -5691,7 +5661,8 @@ def tutor_chat(
                 },
                 *recent_messages
             ],
-            response_format=TutorLessonResponse
+            response_format=
+            UniversalLessonResponse
         )
 
         lesson_data = completion.choices[0].message.parsed
