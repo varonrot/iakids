@@ -9200,9 +9200,9 @@ async function loadUniversalUnitLesson(
       );
 
 
-      throw new Error(
-        `Unit lesson failed: ${response.status}`
-      );
+throw new Error(
+  `Unit lesson failed ${response.status}: ${errorText}`
+);
 
     }
 
@@ -9555,59 +9555,45 @@ async function startSelectedUnitLesson(
     }
 
 
-    const introData =
-      await introResponse.json();
+const introData =
+  await introResponse.json();
 
 
-    console.log(
-      "LESSON INTRO RESPONSE:",
-      introData
-    );
+console.log(
+  "LESSON INTRO RESPONSE:",
+  introData
+);
 
 
-    /* =============================================
-       2. הפעלת הפתיח
-    ============================================= */
+/*
+  טעינת תוכן השיעור מתחילה עכשיו,
+  במקביל להפעלת הפתיח.
+*/
 
-    await runTutorResponse(
-      introData
-    );
-
-
-    /* =============================================
-       3. מציגים שוב טעינה בין הפתיח לתוכן
-
-       ייתכן שהטעינה כבר נסגרה כשהאודיו
-       הראשון התחיל.
-    ============================================= */
-
-    showLessonLoading();
+const universalLessonPromise =
+  loadUniversalUnitLesson(
+    lesson,
+    session
+  );
 
 
-    const loadingStatus =
-      document.getElementById(
-        "lessonLoadingStatus"
-      );
+/*
+  הפעלת הפתיח
+*/
+
+await runTutorResponse(
+  introData
+);
 
 
-    if(loadingStatus){
-
-      loadingStatus.textContent =
-        "📚 טוענים את תוכן השיעור";
-
-    }
 
 
     /* =============================================
        4. טעינת תוכן השיעור האוניברסלי
     ============================================= */
 
-    const lessonData =
-      await loadUniversalUnitLesson(
-        lesson,
-        session
-      );
-
+const lessonData =
+  await universalLessonPromise;
 
     console.log(
       "UNIVERSAL LESSON READY:",
