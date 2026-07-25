@@ -3559,7 +3559,7 @@ def get_or_generate_unit_lesson(
             .completions
             .parse(
 
-                model=DEFAULT_OPENAI_MODEL,
+                model=UNIVERSAL_LESSON_MODEL,
 
                 messages=[
 
@@ -3710,16 +3710,9 @@ def get_or_generate_unit_lesson(
             )
 
         openai_cost_usd = calculate_openai_cost(
-
-            model=
-            UNIVERSAL_LESSON_MODEL,
-
-            input_tokens=
-            input_tokens,
-
-            output_tokens=
-            output_tokens
-
+            model=UNIVERSAL_LESSON_MODEL,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
         )
 
         increment_usage_summary(
@@ -4204,7 +4197,7 @@ def structured_lesson(
             .parse(
 
                 model=
-                UNIVERSAL_LESSON_MODEL,
+                DEFAULT_OPENAI_MODEL,
 
                 messages=[
 
@@ -5529,7 +5522,7 @@ def tutor_chat(
 
         completion = client.beta.chat.completions.parse(
 
-            model=UNIVERSAL_LESSON_MODEL,
+            model=DEFAULT_OPENAI_MODEL,
             messages=[
                 {
                     "role": "system",
@@ -5538,7 +5531,7 @@ def tutor_chat(
                 *recent_messages
             ],
             response_format=
-            UniversalLessonResponse
+            TutorLessonResponse
         )
 
         lesson_data = completion.choices[0].message.parsed
