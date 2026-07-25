@@ -4696,26 +4696,10 @@ def structured_lesson(
 
             )
 
-        openai_cost_usd = (
-
-                (
-                        input_tokens
-                        / 1_000_000
-                )
-
-                *
-                OPENAI_INPUT_COST_PER_1M
-
-                +
-
-                (
-                        output_tokens
-                        / 1_000_000
-                )
-
-                *
-                OPENAI_OUTPUT_COST_PER_1M
-
+        openai_cost_usd = calculate_openai_cost(
+            model=DEFAULT_OPENAI_MODEL,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
         )
 
         # =============================================
