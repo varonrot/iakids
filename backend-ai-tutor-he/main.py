@@ -271,13 +271,30 @@ class HomeworkAnalyzeRequest(BaseModel):
 
 
 class TutorAction(BaseModel):
+
     type: str
+
     text: str | None = None
+
     target: str | None = None
+
     style: str | None = None
+
     speed: int | None = None
+
     duration: int | None = None
+
     speech_tts: str | None = None
+
+    # =============================================
+    # VISUAL CARD
+    # =============================================
+
+    title: str | None = None
+
+    items: list[str] | None = None
+
+    icon: str | None = None
 
 
 class TutorLessonResponse(BaseModel):
@@ -2675,6 +2692,93 @@ def build_universal_unit_lesson_prompt(
 
     return prompt
 
+def normalize_universal_lesson_visuals(
+        sequence: list[TutorAction]
+) -> list[TutorAction]:
+
+    normalized_sequence = []
+
+    visual_count = 0
+
+    max_visual_cards = 2
+
+    for action in sequence:
+
+        # כל פעולה רגילה נשמרת
+        if action.type != "visual_card":
+
+            normalized_sequence.append(
+                action
+            )
+
+            continue
+
+
+        # מגבילים לשתי המחשות בשיעור
+        if visual_count >= max_visual_cards:
+            continue
+
+
+        title = (
+            action.title
+            or ""
+        ).strip()
+
+
+        raw_items = (
+            action.items
+            or []
+        )
+
+
+        clean_items = []
+
+        for item in raw_items:
+
+            clean_item = str(
+                item
+                or ""
+            ).strip()
+
+            if not clean_item:
+                continue
+
+            if clean_item in clean_items:
+                continue
+
+            clean_items.append(
+                clean_item
+            )
+
+
+        # כרטיס לא תקין לא נכנס לרצף
+        if not title:
+            continue
+
+        if len(clean_items) < 2:
+            continue
+
+
+        # לא יותר מחמישה פריטים
+        clean_items = clean_items[:5]
+
+
+        normalized_sequence.append(
+
+            TutorAction(
+                type="visual_card",
+                title=title,
+                items=clean_items,
+                icon=action.icon
+            )
+
+        )
+
+        visual_count += 1
+
+
+    return normalized_sequence
+
 # =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
@@ -3087,6 +3191,18 @@ def lesson_intro(
 
                     speech_tts=step.get(
                         "speech_tts"
+                    ),
+
+                    title=step.get(
+                        "title"
+                    ),
+
+                    items=step.get(
+                        "items"
+                    ),
+
+                    icon=step.get(
+                        "icon"
                     )
                 )
             )
@@ -3452,87 +3568,95 @@ def get_or_generate_unit_lesson(
             )
         )
 
+        # =============================================
+        # VALIDATE REQUIRED LESSON CONTENT
+        # =============================================
+
         if not has_write:
             raise RuntimeError(
                 "Generated lesson has no write action"
             )
 
+        # =============================================
+        # GUARANTEE FINAL ASK
+        # =============================================
+
         if not has_final_ask:
             sequence.append(
 
                 TutorAction(
-
                     type="ask",
-
-                    text="אפשר להסביר במילים שלכם מה למדתם עכשיו?"
-
+                    text=(
+                        "אפשר להסביר במילים שלכם "
+                        "מה למדתם עכשיו?"
+                    )
                 )
 
             )
 
-            # =============================================
-            # GUARANTEE AUDIO FOR THE LESSON
-            #
-            # אם המודל החזיר כתיבה ללא speak,
-            # מוסיפים הקראה אחרי כל קטע כתוב.
-            # כך כל ההסבר יישמע ולא רק שאלת הסיום.
-            # =============================================
+        # =============================================
+        # GUARANTEE AUDIO FOR WRITTEN EXPLANATION
+        #
+        # חשוב:
+        # הקטע הזה אינו נמצא בתוך
+        # if not has_final_ask
+        # =============================================
 
-            has_explanation_speak = any(
+        has_explanation_speak = any(
 
-                action.type == "speak"
+            action.type == "speak"
 
-                and bool(
+            and bool(
+                (
+                        action.text
+                        or action.speech_tts
+                        or ""
+                ).strip()
+            )
+
+            for action in sequence
+
+        )
+
+        if not has_explanation_speak:
+
+            sequence_with_audio = []
+
+            for action in sequence:
+
+                sequence_with_audio.append(
+                    action
+                )
+
+                if (
+                        action.type == "write"
+
+                        and bool(
                     (
                             action.text
-                            or action.speech_tts
                             or ""
                     ).strip()
                 )
-
-                for action in sequence
-
-            )
-
-            if not has_explanation_speak:
-
-                sequence_with_audio = []
-
-                for action in sequence:
-
+                ):
                     sequence_with_audio.append(
-                        action
-                    )
 
-                    # מוסיפים הקראה רק אחרי פעולת כתיבה
-                    # שיש בה טקסט אמיתי
-                    if (
-                            action.type == "write"
-
-                            and bool(
-                        (
-                                action.text
-                                or ""
-                        ).strip()
-                    )
-                    ):
-                        sequence_with_audio.append(
-
-                            TutorAction(
-                                type="speak",
-                                text=action.text
-                            )
-
+                        TutorAction(
+                            type="speak",
+                            text=action.text
                         )
 
-                sequence = sequence_with_audio
-                
-            lesson_data.sequence = sequence
-            lesson_data.wait_for_answer = True
+                    )
 
-        # ה-Backend קובע זאת בעצמו
+            sequence = sequence_with_audio
+
+        # פועל תמיד, גם כאשר GPT כבר החזיר speak
+        sequence = normalize_universal_lesson_visuals(
+            sequence
+        )
+
+        lesson_data.sequence = sequence
         lesson_data.wait_for_answer = True
-
+        
         lesson_json = {
             "speech":
                 lesson_data.speech,
@@ -4361,6 +4485,7 @@ def structured_lesson(
                     text=greeting_text
                 )
             )
+
 
             lesson_data.sequence = sequence
 
