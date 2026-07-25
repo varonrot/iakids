@@ -3458,9 +3458,20 @@ def get_or_generate_unit_lesson(
             )
 
         if not has_final_ask:
-            raise RuntimeError(
-                "Generated lesson must end with ask"
+            sequence.append(
+
+                TutorAction(
+
+                    type="ask",
+
+                    text="אפשר להסביר במילים שלכם מה למדתם עכשיו?"
+
+                )
+
             )
+
+            lesson_data.sequence = sequence
+            lesson_data.wait_for_answer = True
 
         # ה-Backend קובע זאת בעצמו
         lesson_data.wait_for_answer = True
