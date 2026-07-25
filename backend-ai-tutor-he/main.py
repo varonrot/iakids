@@ -3470,6 +3470,63 @@ def get_or_generate_unit_lesson(
 
             )
 
+            # =============================================
+            # GUARANTEE AUDIO FOR THE LESSON
+            #
+            # אם המודל החזיר כתיבה ללא speak,
+            # מוסיפים הקראה אחרי כל קטע כתוב.
+            # כך כל ההסבר יישמע ולא רק שאלת הסיום.
+            # =============================================
+
+            has_explanation_speak = any(
+
+                action.type == "speak"
+
+                and bool(
+                    (
+                            action.text
+                            or action.speech_tts
+                            or ""
+                    ).strip()
+                )
+
+                for action in sequence
+
+            )
+
+            if not has_explanation_speak:
+
+                sequence_with_audio = []
+
+                for action in sequence:
+
+                    sequence_with_audio.append(
+                        action
+                    )
+
+                    # מוסיפים הקראה רק אחרי פעולת כתיבה
+                    # שיש בה טקסט אמיתי
+                    if (
+                            action.type == "write"
+
+                            and bool(
+                        (
+                                action.text
+                                or ""
+                        ).strip()
+                    )
+                    ):
+                        sequence_with_audio.append(
+
+                            TutorAction(
+                                type="speak",
+                                text=action.text
+                            )
+
+                        )
+
+                sequence = sequence_with_audio
+                
             lesson_data.sequence = sequence
             lesson_data.wait_for_answer = True
 
