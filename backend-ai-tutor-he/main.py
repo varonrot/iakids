@@ -3614,131 +3614,6 @@ def get_or_generate_unit_lesson(
         lesson_text = lesson_data.lesson.strip()
 
 
-        sequence = (
-            lesson_data.sequence
-            or []
-        )
-
-        # =============================================
-        # VALIDATION
-        # =============================================
-
-        has_write = any(
-            action.type == "write"
-            and bool(
-                (
-                    action.text
-                    or ""
-                ).strip()
-            )
-            for action in sequence
-        )
-
-        final_action = (
-            sequence[-1]
-            if sequence
-            else None
-        )
-
-        has_final_ask = (
-            final_action is not None
-            and final_action.type == "ask"
-            and bool(
-                (
-                    final_action.text
-                    or ""
-                ).strip()
-            )
-        )
-
-        # =============================================
-        # VALIDATE REQUIRED LESSON CONTENT
-        # =============================================
-
-        if not has_write:
-            raise RuntimeError(
-                "Generated lesson has no write action"
-            )
-
-        # =============================================
-        # GUARANTEE FINAL ASK
-        # =============================================
-
-        if not has_final_ask:
-            sequence.append(
-
-                TutorAction(
-                    type="ask",
-                    text=(
-                        "אפשר להסביר במילים שלכם "
-                        "מה למדתם עכשיו?"
-                    )
-                )
-
-            )
-
-        # =============================================
-        # GUARANTEE AUDIO FOR WRITTEN EXPLANATION
-        #
-        # חשוב:
-        # הקטע הזה אינו נמצא בתוך
-        # if not has_final_ask
-        # =============================================
-
-        has_explanation_speak = any(
-
-            action.type == "speak"
-
-            and bool(
-                (
-                        action.text
-                        or action.speech_tts
-                        or ""
-                ).strip()
-            )
-
-            for action in sequence
-
-        )
-
-        if not has_explanation_speak:
-
-            sequence_with_audio = []
-
-            for action in sequence:
-
-                sequence_with_audio.append(
-                    action
-                )
-
-                if (
-                        action.type == "write"
-
-                        and bool(
-                    (
-                            action.text
-                            or ""
-                    ).strip()
-                )
-                ):
-                    sequence_with_audio.append(
-
-                        TutorAction(
-                            type="speak",
-                            text=action.text
-                        )
-
-                    )
-
-            sequence = sequence_with_audio
-
-        # פועל תמיד, גם כאשר GPT כבר החזיר speak
-        sequence = normalize_universal_lesson_visuals(
-            sequence
-        )
-
-        lesson_data.sequence = sequence
-        lesson_data.wait_for_answer = True
 
         lesson_json = {
 
@@ -5653,7 +5528,8 @@ def tutor_chat(
         })
 
         completion = client.beta.chat.completions.parse(
-            model=DEFAULT_OPENAI_MODEL,
+
+            model=UNIVERSAL_LESSON_MODEL,
             messages=[
                 {
                     "role": "system",
