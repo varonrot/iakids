@@ -8283,6 +8283,9 @@ function renderLearningPathSidebar(
    ===================================================== */
 
 let CURRENT_PATH = null;
+let CURRENT_PARENT_LESSON = null;
+let CURRENT_UNIT = null;
+let CURRENT_UNITS_DATA = [];
 
 
 async function loadLearningPath(
@@ -8859,14 +8862,9 @@ function renderLearningPath(
         )
       ){
 
-        node.onclick =
-          () => {
-
-            startSelectedLesson(
-              lesson
-            );
-
-          };
+node.onclick = () => {
+  loadLessonUnits(lesson);
+};
 
       }
 
@@ -8879,25 +8877,520 @@ function renderLearningPath(
   );
 
 }
+async function loadLessonUnits(parentLesson) {
+
+  CURRENT_PARENT_LESSON = parentLesson;
+  CURRENT_UNIT = null;
+
+  const container =
+    document.getElementById("learningPathContainer");
+
+  container.innerHTML = `
+    <div class="learning-path-loading">
+      📚 טוענים יחידות לימוד...
+    </div>
+  `;
+
+  const {
+    data: sessionData
+  } = await sb.auth.getSession();
+
+  const session = sessionData.session;
+
+  if (!session) {
+    container.innerHTML = `
+      <div class="learning-path-loading">
+        יש להתחבר מחדש
+      </div>
+    `;
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      `${TUTOR_API_BASE}/api/learning-lessons/${parentLesson.id}/units`,
+      {
+        headers: {
+          "Authorization":
+            `Bearer ${session.access_token}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      console.error(
+        "LOAD LESSON UNITS ERROR:",
+        response.status,
+        errorText
+      );
+
+      container.innerHTML = `
+        <div class="learning-path-loading">
+          לא הצלחנו לטעון את יחידות הלימוד
+        </div>
+      `;
+
+      return;
+    }
+
+    const data = await response.json();
+
+    CURRENT_UNITS_DATA =
+      data.units || [];
+
+    const title =
+      document.getElementById("learningPathTitle");
+
+    const subtitle =
+      document.getElementById("learningPathSubtitle");
+
+    if (title) {
+      title.textContent =
+        parentLesson.lesson_name;
+    }
+
+    if (subtitle) {
+      subtitle.textContent =
+        "בחרו יחידת לימוד";
+    }
+
+    renderLessonUnits(
+      CURRENT_UNITS_DATA
+    );
+
+  } catch (error) {
+
+    console.error(
+      "LOAD LESSON UNITS NETWORK ERROR:",
+      error
+    );
+
+    container.innerHTML = `
+      <div class="learning-path-loading">
+        לא הצלחנו להתחבר למערכת
+      </div>
+    `;
+
+  }
+}
+function renderLessonUnits(units) {
+
+  const container =
+    document.getElementById("learningPathContainer");
+
+  container.innerHTML = "";
+
+  if (!units.length) {
+    container.innerHTML = `
+      <div class="learning-path-loading">
+        עדיין אין יחידות לימוד בנושא הזה.
+      </div>
+    `;
+    return;
+  }
+
+  units.forEach(unit => {
+
+    const node =
+      document.createElement("button");
+
+    node.type = "button";
+    node.className =
+      "learning-path-node current";
+
+    node.innerHTML = `
+      <span class="learning-path-number">
+        ${unit.unit_order}
+      </span>
+
+      <h3>
+        ${unit.unit_name}
+      </h3>
+
+      <small>
+        ${unit.lessons?.length || 0} שיעורים
+      </small>
+
+      <span class="learning-path-status">
+        <i class="fa-solid fa-chevron-left"></i>
+      </span>
+    `;
+
+    node.onclick = () => {
+      renderUnitLessons(unit);
+    };
+
+    container.appendChild(node);
+  });
+}
+function renderUnitLessons(unit) {
+
+  CURRENT_UNIT = unit;
+
+  const container =
+    document.getElementById("learningPathContainer");
+
+  const title =
+    document.getElementById("learningPathTitle");
+
+  const subtitle =
+    document.getElementById("learningPathSubtitle");
+
+  if (title) {
+    title.textContent =
+      unit.unit_name;
+  }
+
+  if (subtitle) {
+    subtitle.textContent =
+      "בחרו שיעור";
+  }
+
+  container.innerHTML = "";
+
+  const lessons =
+    unit.lessons || [];
+
+  lessons.forEach(lesson => {
+
+    const node =
+      document.createElement("button");
+
+    node.type = "button";
+    node.className =
+      "learning-path-node current";
+
+    node.innerHTML = `
+      <span class="learning-path-number">
+        ${lesson.lesson_order}
+      </span>
+
+      <h3>
+        ${lesson.lesson_name}
+      </h3>
+
+      <small>
+        שיעור ${lesson.lesson_order}
+      </small>
+
+      <span class="learning-path-status">
+        <i class="fa-solid fa-play"></i>
+      </span>
+    `;
+
+    node.onclick = () => {
+      startSelectedUnitLesson(lesson);
+    };
+
+    container.appendChild(node);
+  });
+}
+
+async function startSelectedUnitLesson(
+  lesson
+){
+
+  console.log(
+    "START UNIT LESSON INTRO:",
+    {
+      parentLesson:
+        CURRENT_PARENT_LESSON,
+
+      unit:
+        CURRENT_UNIT,
+
+      lesson
+    }
+  );
+
+
+  if(
+    !CURRENT_KID?.id
+  ){
+
+    console.error(
+      "No active kid"
+    );
+
+    return;
+
+  }
+
+
+  /* =============================================
+     שמירת השיעור שנבחר
+  ============================================= */
+
+  window.SELECTED_UNIT_LESSON = {
+
+    unit_lesson_id:
+      lesson.id,
+
+    learning_lesson_id:
+      CURRENT_PARENT_LESSON?.id,
+
+    parent_lesson_name:
+      CURRENT_PARENT_LESSON?.lesson_name,
+
+    unit_order:
+      CURRENT_UNIT?.unit_order,
+
+    unit_name:
+      CURRENT_UNIT?.unit_name,
+
+    lesson_order:
+      lesson.lesson_order,
+
+    lesson_name:
+      lesson.lesson_name
+
+  };
+
+
+  currentLearningMode =
+    "lesson_intro";
+
+
+  /* =============================================
+     מעבר למסך המחברת
+  ============================================= */
+
+  showLearning(
+    "lesson"
+  );
+
+
+  const title =
+    document.getElementById(
+      "heroGreeting"
+    );
+
+
+  const subtitle =
+    document.getElementById(
+      "learningSubtitle"
+    );
+
+
+  if(title){
+
+    title.textContent =
+      lesson.lesson_name;
+
+  }
+
+
+  if(subtitle){
+
+    subtitle.textContent =
+
+      `${CURRENT_PARENT_LESSON?.subject || ""}`
+
+      +
+
+      ` • ${CURRENT_UNIT?.unit_name || ""}`;
+
+  }
+
+
+  const emptyState =
+    document.getElementById(
+      "emptyState"
+    );
+
+
+  if(emptyState){
+
+    emptyState.style.display =
+      "none";
+
+  }
+
+
+  /* =============================================
+     AUTH
+  ============================================= */
+
+  const {
+    data:
+      sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData.session;
+
+
+  if(
+    !session
+  ){
+
+    addMessage(
+      "assistant",
+      "יש להתחבר מחדש."
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    /* =============================================
+       קריאת הפתיח בלבד
+    ============================================= */
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
+
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                lesson.id
+
+            })
+
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+
+        "LESSON INTRO API ERROR:",
+
+        response.status,
+
+        errorText
+
+      );
+
+
+      addMessage(
+
+        "assistant",
+
+        "לא הצלחתי לפתוח את הפתיח. נסו שוב."
+
+      );
+
+
+      return;
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "LESSON INTRO RESPONSE:",
+      data
+    );
+
+
+    /* =============================================
+       הפעלת הפתיח דרך ה-Renderer הקיים
+    ============================================= */
+
+    await runTutorResponse(
+      data
+    );
+
+
+  }
+  catch(error){
+
+    console.error(
+
+      "LESSON INTRO NETWORK ERROR:",
+
+      error
+
+    );
+
+
+    addMessage(
+
+      "assistant",
+
+      "לא הצלחתי להתחבר למורה כרגע."
+
+    );
+
+  }
+
+}
 
 /* =====================================================
    START SELECTED LESSON
    ===================================================== */
 
-function startSelectedLesson(
+async function startSelectedLesson(
   lesson
 ){
 
+clearNoResponseTimer();
+
+noResponseCount = 0;
+
   console.log(
-    "START LESSON:",
+    "START STRUCTURED LESSON:",
     lesson
   );
 
 
-  /*
-  שומרים את השיעור שנבחר.
-  בשלב הבא מנוע ה-AI יוכל להשתמש בו.
-  */
+  if(
+    !CURRENT_KID?.id
+  ){
+
+    console.error(
+      "No active kid"
+    );
+
+    return;
+
+  }
+
+
+  /* =============================================
+     שמירת מצב השיעור הפעיל
+  ============================================= */
 
   window.SELECTED_LESSON = {
 
@@ -8925,9 +9418,17 @@ function startSelectedLesson(
   };
 
 
-  /*
-  עוברים למסך השיעור הקיים
-  */
+  currentLearningMode =
+    "lesson";
+
+
+  currentLessonId =
+    lesson.id;
+
+
+  /* =============================================
+     מעבר למסך המחברת
+  ============================================= */
 
   showLearning(
     "lesson"
@@ -8965,7 +9466,194 @@ function startSelectedLesson(
 
   }
 
+
+  /* =============================================
+     ניקוי מצב קודם מהמחברת
+     אם קיים Empty State
+  ============================================= */
+
+  const emptyState =
+    document.getElementById(
+      "emptyState"
+    );
+
+
+  if(emptyState){
+
+    emptyState.style.display =
+      "none";
+
+  }
+
+
+  /* =============================================
+     SESSION / AUTH
+  ============================================= */
+
+  const {
+    data:
+      sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData.session;
+
+
+  if(
+    !session
+  ){
+
+    addMessage(
+      "assistant",
+      "יש להתחבר מחדש."
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+
+    /* =============================================
+       פתיחת השיעור
+
+       message = null אומר ל-Backend:
+       זהו START / REVIEW_START
+    ============================================= */
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/lesson`,
+
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              lesson_id:
+                lesson.id,
+
+              message:
+                null
+
+            })
+
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+
+        "START LESSON API ERROR:",
+
+        response.status,
+
+        errorText
+
+      );
+
+
+      addMessage(
+
+        "assistant",
+
+        "לא הצלחתי לפתוח את השיעור. נסו שוב."
+
+      );
+
+
+      return;
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "STRUCTURED LESSON START:",
+      data
+    );
+
+
+    /* =============================================
+       Backend מחזיר גם:
+       review_mode
+       lesson_mode
+       progress
+    ============================================= */
+
+    if(
+      data.review_mode
+    ){
+
+      console.log(
+        "LESSON OPENED IN REVIEW MODE"
+      );
+
+    }
+
+
+    await runTutorResponse(
+      data
+    );
+
+
+  }
+  catch(error){
+
+    console.error(
+
+      "START LESSON NETWORK ERROR:",
+
+      error
+
+    );
+
+
+    addMessage(
+
+      "assistant",
+
+      "לא הצלחתי להתחבר למורה כרגע."
+
+    );
+
+  }
+
 }
+
 function backFromLearningPath(){
 
   if(
@@ -9140,6 +9828,157 @@ const sendBtn = document.querySelector(".input button");
 
 let kidId = null;
 let currentSessionId = null;
+let currentLearningMode = "chat";
+let currentLessonId = null;
+let noResponseTimer = null;
+let noResponseCount = 0;
+
+const MAX_NO_RESPONSE_PROMPTS = 3;
+
+const NO_RESPONSE_DELAYS = [
+  10000, // דיבוב ראשון אחרי 10 שניות
+  15000, // דיבוב שני אחרי 15 שניות נוספות
+  20000  // דיבוב שלישי אחרי 20 שניות נוספות
+];
+
+
+function clearNoResponseTimer(){
+
+  if(
+    noResponseTimer
+  ){
+
+    clearTimeout(
+      noResponseTimer
+    );
+
+    noResponseTimer =
+      null;
+
+  }
+
+}
+
+
+function startNoResponseTimer(){
+
+  clearNoResponseTimer();
+
+
+  /* =============================================
+     מקסימום 3 דיבובים לכל שאלה
+  ============================================= */
+
+  if(
+    noResponseCount >=
+      MAX_NO_RESPONSE_PROMPTS
+  ){
+
+    console.log(
+      "NO RESPONSE LIMIT REACHED"
+    );
+
+    return;
+
+  }
+
+
+  const delay =
+
+    NO_RESPONSE_DELAYS[
+      noResponseCount
+    ]
+
+    ||
+
+    20000;
+
+
+  console.log(
+
+    "START NO RESPONSE TIMER:",
+
+    {
+      promptNumber:
+        noResponseCount + 1,
+
+      delay
+    }
+
+  );
+
+
+  noResponseTimer =
+    setTimeout(
+
+      async () => {
+
+        noResponseTimer =
+          null;
+
+
+        if(
+          currentLearningMode !==
+            "lesson"
+
+          ||
+
+          !currentLessonId
+
+          ||
+
+          !CURRENT_KID?.id
+        ){
+
+          return;
+
+        }
+
+
+        /* הילד התחיל לכתוב */
+
+        if(
+          inputEl.value.trim()
+        ){
+
+          console.log(
+            "NO RESPONSE CANCELLED - CHILD IS TYPING"
+          );
+
+          return;
+
+        }
+
+
+        /*
+        מעלים את המונה לפני הקריאה.
+
+        דיבוב 1 → count = 1
+        דיבוב 2 → count = 2
+        דיבוב 3 → count = 3
+        */
+
+        noResponseCount++;
+
+
+        console.log(
+
+          "SEND NO RESPONSE:",
+
+          noResponseCount
+
+        );
+
+
+        await sendLessonNoResponse();
+
+      },
+
+      delay
+
+    );
+
+}
 
 /* ---------- UI HELPERS ---------- */
 function addMessage(role, text) {
@@ -9339,10 +10178,281 @@ function animateImportantParts(element) {
   }
 }
 
+async function runTutorResponse(data){
+
+  if(
+    data.session_id
+  ){
+    currentSessionId =
+      data.session_id;
+  }
+
+
+  console.log(
+    "TUTOR RESPONSE:",
+    data
+  );
+
+
+  if(
+    !data.sequence ||
+    !Array.isArray(
+      data.sequence
+    )
+  ){
+
+    console.error(
+      "Invalid tutor response:",
+      data
+    );
+
+    addMessage(
+      "assistant",
+      "לא הצלחתי להכין את השיעור. נסו שוב."
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    await unlockLessonAudio();
+
+
+    if(
+      !window.lessonRenderer
+    ){
+
+      console.error(
+        "lessonRenderer not initialized"
+      );
+
+      addMessage(
+        "assistant",
+        "לא הצלחתי להפעיל את השיעור."
+      );
+
+      return;
+
+    }
+
+
+await window.lessonRenderer.run({
+
+  sequence:
+    data.sequence,
+
+  wait_for_answer:
+    data.wait_for_answer,
+
+  speech:
+    data.speech
+
+});
+
+
+/* =============================================
+   הפעלת דיבוב רק כאשר באמת מחכים לילד
+============================================= */
+
+clearNoResponseTimer();
+
+
+if(
+  data.wait_for_answer ===
+    true
+
+  &&
+
+  currentLearningMode ===
+    "lesson"
+
+  &&
+
+  currentLessonId
+){
+
+  startNoResponseTimer();
+
+}
+
+
+  }
+  catch(error){
+
+    console.error(
+      "LESSON RENDERER ERROR:",
+      error
+    );
+
+  }
+
+}
+
+/* =====================================================
+   LESSON NO RESPONSE
+   הילד לא ענה במשך 10 שניות
+===================================================== */
+
+async function sendLessonNoResponse(){
+
+  if(
+    currentLearningMode !==
+      "lesson"
+
+    ||
+
+    !currentLessonId
+
+    ||
+
+    !CURRENT_KID?.id
+  ){
+
+    return;
+
+  }
+
+
+  const {
+    data
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    data.session;
+
+
+  if(
+    !session
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+
+    const res =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/lesson`,
+
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              lesson_id:
+                currentLessonId,
+
+              message:
+                "__NO_RESPONSE__"
+
+            })
+
+        }
+
+      );
+
+
+    if(
+      !res.ok
+    ){
+
+      const errorText =
+        await res.text();
+
+
+      console.error(
+
+        "NO RESPONSE API ERROR:",
+
+        res.status,
+
+        errorText
+
+      );
+
+
+      return;
+
+    }
+
+
+    const responseData =
+      await res.json();
+
+
+    console.log(
+
+      "NO RESPONSE TUTOR:",
+
+      responseData
+
+    );
+
+
+    await runTutorResponse(
+      responseData
+    );
+
+
+  }
+  catch(error){
+
+    console.error(
+
+      "NO RESPONSE NETWORK ERROR:",
+
+      error
+
+    );
+
+  }
+
+}
+
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
-  const text = inputEl.value.trim();
-  if (!text) return;
+
+  clearNoResponseTimer();
+
+  /* הילד ענה:
+     מתחילים מחדש ספירת דיבובים
+     עבור השאלה הבאה */
+
+  noResponseCount = 0;
+
+  const text =
+    inputEl.value.trim();
+
+  if(
+    !text
+  ){
+    return;
+  }
 
   inputEl.value = "";
   addMessage("user", text);
@@ -9356,18 +10466,95 @@ async function sendMessage() {
   }
 
   try {
-    const res = await fetch(`${TUTOR_API_BASE}/api/tutor/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.access_token}`
-      },
-      body: JSON.stringify({
-  message: text,
-  kid_id: CURRENT_KID.id
-})
+let endpoint;
 
-    });
+let requestBody;
+
+
+/* =============================================
+   STRUCTURED LESSON
+============================================= */
+
+if(
+  currentLearningMode ===
+    "lesson"
+
+  &&
+
+  currentLessonId
+){
+
+  endpoint =
+    `${TUTOR_API_BASE}/api/tutor/lesson`;
+
+
+  requestBody = {
+
+    message:
+      text,
+
+    kid_id:
+      CURRENT_KID.id,
+
+    lesson_id:
+      currentLessonId
+
+  };
+
+}
+
+
+/* =============================================
+   FREE CHAT
+============================================= */
+
+else{
+
+  endpoint =
+    `${TUTOR_API_BASE}/api/tutor/chat`;
+
+
+  requestBody = {
+
+    message:
+      text,
+
+    kid_id:
+      CURRENT_KID.id
+
+  };
+
+}
+
+
+const res =
+  await fetch(
+
+    endpoint,
+
+    {
+
+      method:
+        "POST",
+
+      headers: {
+
+        "Content-Type":
+          "application/json",
+
+        "Authorization":
+          `Bearer ${session.access_token}`
+
+      },
+
+      body:
+        JSON.stringify(
+          requestBody
+        )
+
+    }
+
+  );
 
 if (!res.ok) {
 
@@ -9437,6 +10624,27 @@ if(
         data.speech
     }
   );
+
+  clearNoResponseTimer();
+
+
+if(
+  data.wait_for_answer ===
+    true
+
+  &&
+
+  currentLearningMode ===
+    "lesson"
+
+  &&
+
+  currentLessonId
+){
+
+  startNoResponseTimer();
+
+}
 
 }
     else{
@@ -12568,6 +13776,11 @@ async preloadAudio(text){
     return null;
   }
 
+  console.log(
+  "🔊 TTS PRELOAD START:",
+  text
+);
+
   if(this.audioCache.has(text)){
     return this.audioCache.get(text);
   }
@@ -12586,35 +13799,60 @@ async preloadAudio(text){
       );
     }
 
-    const response = await fetch(
-      `${TUTOR_API_BASE}/api/tutor/tts`,
-      {
-        method: "POST",
+console.log(
+  "🔊 TTS REQUEST:",
+  {
+    text: text,
+    session_id: currentSessionId
+  }
+);
 
-        headers: {
-          "Content-Type":
-            "application/json",
+console.log(
+  "🔊 TTS FULL URL:",
+  `${TUTOR_API_BASE}/api/tutor/tts`
+);
 
-          "Authorization":
-            `Bearer ${session.access_token}`
-        },
+const response = await fetch(
+  `${TUTOR_API_BASE}/api/tutor/tts`,
+  {
+    method: "POST",
 
-body: JSON.stringify({
-  text: text,
-  session_id: currentSessionId
-})
-      }
-    );
+    headers: {
+      "Content-Type":
+        "application/json",
 
-    if(!response.ok){
+      "Authorization":
+        `Bearer ${session.access_token}`
+    },
 
-      const errorText =
-        await response.text();
+    body: JSON.stringify({
+      text: text,
+      session_id: currentSessionId
+    })
+  }
+);
 
-      throw new Error(
-        `TTS API ${response.status}: ${errorText}`
-      );
-    }
+console.log(
+  "🔊 TTS RESPONSE:",
+  response.status,
+  response.ok
+);
+
+if(!response.ok){
+
+  const errorText =
+    await response.text();
+
+  console.error(
+    "🔴 TTS SERVER ERROR:",
+    response.status,
+    errorText
+  );
+
+  throw new Error(
+    `TTS failed: ${response.status} ${errorText}`
+  );
+}
 
     const audioBlob =
       await response.blob();
@@ -12933,6 +14171,10 @@ async playAudioUrl(
     return;
   }
 
+console.log(
+  "🔊 PLAY AUDIO URL:",
+  audioUrl
+);
 
   const audio =
     new Audio(
@@ -12974,6 +14216,14 @@ async speak({
     speech_tts ||
     text;
 
+console.log(
+  "🔊 SPEAK ACTION:",
+  {
+    text,
+    speech_tts,
+    audioText
+  }
+);
 
   if(
     !audioText ||
