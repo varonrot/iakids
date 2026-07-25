@@ -64,6 +64,17 @@ MODEL_PRICING_USD = {
 
 }
 
+# =====================================================
+# GEMINI TTS PRICING
+# =====================================================
+
+# כמות משוערת של Audio Tokens לשנייה
+GEMINI_AUDIO_TOKENS_PER_SECOND = 25
+
+# מחיר פלט אודיו (USD לכל מיליון Audio Tokens)
+GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 10.0
+
+
 def calculate_openai_cost(
         model: str,
         input_tokens: int = 0,
@@ -3558,8 +3569,7 @@ def get_or_generate_unit_lesson(
             .completions
             .parse(
 
-                model=
-                UNIVERSAL_LESSON_MODEL,
+                model=DEFAULT_OPENAI_MODEL,
 
                 messages=[
 
