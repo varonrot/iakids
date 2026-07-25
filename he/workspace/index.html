@@ -14166,6 +14166,192 @@ document.addEventListener(
   }
 
 }
+/* =====================================================
+   LESSON VISUAL CARD
+===================================================== */
+
+.lesson-visual-card{
+  width:min(620px,92%);
+  margin:18px auto 24px;
+
+  padding:20px 22px;
+
+  direction:rtl;
+  text-align:right;
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(244,241,255,.94)
+    );
+
+  border:
+    2px solid
+    rgba(123,82,244,.18);
+
+  box-shadow:
+    0 12px 30px
+    rgba(60,55,125,.12);
+
+  opacity:0;
+
+  transform:
+    translateY(14px)
+    scale(.97);
+
+  transition:
+    opacity .35s ease,
+    transform .35s ease;
+}
+
+
+.lesson-visual-card.visible{
+  opacity:1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+.lesson-visual-card-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  margin-bottom:15px;
+
+  font-family:
+    "Gveret Levin",
+    cursive;
+
+  font-size:28px;
+  line-height:1.3;
+
+  color:#4c3db6;
+}
+
+
+.lesson-visual-card-icon{
+  width:46px;
+  height:46px;
+
+  flex:0 0 46px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eee7ff,
+      #ddd2ff
+    );
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size:26px;
+
+  box-shadow:
+    0 6px 14px
+    rgba(90,65,180,.12);
+}
+
+
+.lesson-visual-card-title{
+  font-weight:700;
+}
+
+
+.lesson-visual-card-items{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0,1fr)
+    );
+
+  gap:11px;
+}
+
+
+.lesson-visual-card-item{
+  min-height:58px;
+
+  display:flex;
+  align-items:center;
+
+  padding:
+    10px
+    14px;
+
+  border-radius:16px;
+
+  background:
+    rgba(255,255,255,.90);
+
+  border:
+    1px solid
+    rgba(118,90,210,.12);
+
+  font-family:
+    "Gveret Levin",
+    cursive;
+
+  font-size:24px;
+  line-height:1.3;
+
+  color:#2c3658;
+
+  opacity:0;
+
+  transform:
+    translateX(12px);
+
+  transition:
+    opacity .28s ease,
+    transform .28s ease;
+}
+
+
+.lesson-visual-card-item.visible{
+  opacity:1;
+
+  transform:
+    translateX(0);
+}
+
+
+@media(max-width:760px){
+
+  .lesson-visual-card{
+    width:96%;
+    padding:16px;
+  }
+
+  .lesson-visual-card-header{
+    font-size:23px;
+  }
+
+  .lesson-visual-card-items{
+    grid-template-columns:1fr;
+  }
+
+  .lesson-visual-card-item{
+    min-height:50px;
+    font-size:21px;
+  }
+
+}
+
 </style>
 
 
@@ -15393,6 +15579,212 @@ firstAudio.onplaying =
 
   }
 
+/* =========================
+   VISUAL CARD
+========================= */
+
+async visualCard(
+  action
+){
+
+  const title =
+    String(
+      action.title || ""
+    ).trim();
+
+
+  const items =
+    Array.isArray(
+      action.items
+    )
+
+      ? action.items
+          .map(
+            item =>
+              String(
+                item || ""
+              ).trim()
+          )
+          .filter(Boolean)
+
+      : [];
+
+
+  if(
+    !title ||
+    items.length < 2
+  ){
+
+    console.warn(
+      "Invalid visual_card action:",
+      action
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !this.content
+  ){
+
+    console.error(
+      "Lesson renderer content not initialized"
+    );
+
+    return;
+
+  }
+
+
+  const card =
+    document.createElement(
+      "div"
+    );
+
+
+  card.className =
+    "lesson-visual-card";
+
+
+  const header =
+    document.createElement(
+      "div"
+    );
+
+
+  header.className =
+    "lesson-visual-card-header";
+
+
+  const icon =
+    document.createElement(
+      "div"
+    );
+
+
+  icon.className =
+    "lesson-visual-card-icon";
+
+
+  icon.textContent =
+    action.icon || "✨";
+
+
+  const titleElement =
+    document.createElement(
+      "div"
+    );
+
+
+  titleElement.className =
+    "lesson-visual-card-title";
+
+
+  titleElement.textContent =
+    title;
+
+
+  header.appendChild(
+    icon
+  );
+
+
+  header.appendChild(
+    titleElement
+  );
+
+
+  const itemsContainer =
+    document.createElement(
+      "div"
+    );
+
+
+  itemsContainer.className =
+    "lesson-visual-card-items";
+
+
+  card.appendChild(
+    header
+  );
+
+
+  card.appendChild(
+    itemsContainer
+  );
+
+
+  this.content.appendChild(
+    card
+  );
+
+
+  /*
+    נותנים לדפדפן לצייר את מצב ההתחלה,
+    ורק אחר כך מפעילים את האנימציה.
+  */
+
+  await this.wait(
+    30
+  );
+
+
+  card.classList.add(
+    "visible"
+  );
+
+
+  for(
+    let index = 0;
+    index < items.length;
+    index++
+  ){
+
+    const itemElement =
+      document.createElement(
+        "div"
+      );
+
+
+    itemElement.className =
+      "lesson-visual-card-item";
+
+
+    itemElement.textContent =
+      items[index];
+
+
+    itemsContainer.appendChild(
+      itemElement
+    );
+
+
+    await this.wait(
+      110
+    );
+
+
+    itemElement.classList.add(
+      "visible"
+    );
+
+
+    this.scrollBottom();
+
+  }
+
+
+  this.scrollBottom();
+
+
+  await this.wait(
+    action.duration ||
+    650
+  );
+
+}
 
   /* =========================
      ASK
@@ -15429,15 +15821,30 @@ async run(script){
     script.sequence
   );
 
-  console.table(
-    script.sequence.map(
-      action => ({
-        type: action.type,
-        text: action.text || "",
-        target: action.target || ""
-      })
-    )
-  );
+console.table(
+  script.sequence.map(
+    action => ({
+      type:
+        action.type,
+
+      text:
+        action.text || "",
+
+      target:
+        action.target || "",
+
+      title:
+        action.title || "",
+
+      items:
+        Array.isArray(
+          action.items
+        )
+          ? action.items.join(" | ")
+          : ""
+    })
+  )
+);
 
   if(this.isRunning){
     return;
@@ -15600,13 +16007,32 @@ async run(script){
         break;
 
 
-      case "arrow":
+case "arrow":
 
-        await this.arrow(
-          action
-        );
+  await this.arrow(
+    action
+  );
 
-        break;
+  break;
+
+
+case "visual_card":
+
+  await this.visualCard(
+    action
+  );
+
+  break;
+
+
+case "wait":
+
+  await this.wait(
+    action.duration ||
+    500
+  );
+
+  break;
 
 
       case "wait":
