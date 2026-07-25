@@ -7319,7 +7319,39 @@ body::before{
   >
 
     <section class="workspace">
+<div
+  id="lessonLoadingOverlay"
+  class="lesson-loading-overlay"
+  aria-hidden="true"
+>
+  <div class="lesson-loading-card">
 
+    <img
+      class="lesson-loading-robot"
+      src="/assets/robots/askie-robot.png"
+      alt=""
+    >
+
+    <div class="lesson-loading-title">
+      מכינים את השיעור
+      <span
+        id="lessonLoadingDots"
+        class="lesson-loading-dots"
+      >...</span>
+    </div>
+
+    <div
+      id="lessonLoadingStatus"
+      class="lesson-loading-status"
+      aria-live="polite"
+    >
+      📚 טוענים את תוכן השיעור
+    </div>
+
+    <div class="lesson-loading-track"></div>
+
+  </div>
+</div>
       <div class="welcome">
 
         <img
@@ -9162,6 +9194,7 @@ async function startSelectedUnitLesson(
     "lesson"
   );
 
+showLessonLoading();
 
   const title =
     document.getElementById(
@@ -9224,19 +9257,20 @@ async function startSelectedUnitLesson(
   const session =
     sessionData.session;
 
+if(
+  !session
+){
 
-  if(
-    !session
-  ){
+  hideLessonLoading();
 
-    addMessage(
-      "assistant",
-      "יש להתחבר מחדש."
-    );
+  addMessage(
+    "assistant",
+    "יש להתחבר מחדש."
+  );
 
-    return;
+  return;
 
-  }
+}
 
 
   try{
@@ -9281,37 +9315,33 @@ async function startSelectedUnitLesson(
       );
 
 
-    if(
-      !response.ok
-    ){
+if(
+  !response.ok
+){
 
-      const errorText =
-        await response.text();
-
-
-      console.error(
-
-        "LESSON INTRO API ERROR:",
-
-        response.status,
-
-        errorText
-
-      );
+  const errorText =
+    await response.text();
 
 
-      addMessage(
-
-        "assistant",
-
-        "לא הצלחתי לפתוח את הפתיח. נסו שוב."
-
-      );
+  console.error(
+    "LESSON INTRO API ERROR:",
+    response.status,
+    errorText
+  );
 
 
-      return;
+  hideLessonLoading();
 
-    }
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי לפתוח את הפתיח. נסו שוב."
+  );
+
+
+  return;
+
+}
 
 
     const data =
@@ -9334,26 +9364,23 @@ async function startSelectedUnitLesson(
 
 
   }
-  catch(error){
+catch(error){
 
-    console.error(
-
-      "LESSON INTRO NETWORK ERROR:",
-
-      error
-
-    );
+  console.error(
+    "LESSON INTRO NETWORK ERROR:",
+    error
+  );
 
 
-    addMessage(
+  hideLessonLoading();
 
-      "assistant",
 
-      "לא הצלחתי להתחבר למורה כרגע."
+  addMessage(
+    "assistant",
+    "לא הצלחתי להתחבר למורה כרגע."
+  );
 
-    );
-
-  }
+}
 
 }
 
@@ -9977,6 +10004,228 @@ function startNoResponseTimer(){
       delay
 
     );
+
+}
+
+
+/* =====================================================
+   INTERACTIVE LESSON LOADING
+===================================================== */
+
+let lessonLoadingStatusTimer = null;
+let lessonLoadingDotsTimer = null;
+let lessonLoadingStatusIndex = 0;
+let lessonLoadingStartedAt = 0;
+
+const LESSON_LOADING_STATUSES = [
+  "📚 טוענים את תוכן השיעור",
+  "🧠 מסדרים את ההסבר",
+  "✨ בוחרים דוגמאות מתאימות",
+  "🎤 מכינים את ההקראה",
+  "🚀 כמעט מוכנים"
+];
+
+
+function showLessonLoading(){
+
+  const overlay =
+    document.getElementById(
+      "lessonLoadingOverlay"
+    );
+
+  const status =
+    document.getElementById(
+      "lessonLoadingStatus"
+    );
+
+  const dots =
+    document.getElementById(
+      "lessonLoadingDots"
+    );
+
+
+  if(!overlay){
+    return;
+  }
+
+
+  clearLessonLoadingTimers();
+
+
+  lessonLoadingStartedAt =
+    Date.now();
+
+
+  lessonLoadingStatusIndex =
+    0;
+
+
+  if(status){
+
+    status.textContent =
+      LESSON_LOADING_STATUSES[0];
+
+  }
+
+
+  if(dots){
+
+    dots.textContent =
+      "...";
+
+  }
+
+
+  overlay.classList.add(
+    "visible"
+  );
+
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  /*
+    החלפת הודעת מצב כל 850ms
+  */
+
+  lessonLoadingStatusTimer =
+    setInterval(
+      () => {
+
+        lessonLoadingStatusIndex =
+          (
+            lessonLoadingStatusIndex + 1
+          )
+          %
+          LESSON_LOADING_STATUSES.length;
+
+
+        if(!status){
+          return;
+        }
+
+
+        status.classList.add(
+          "changing"
+        );
+
+
+        setTimeout(
+          () => {
+
+            status.textContent =
+              LESSON_LOADING_STATUSES[
+                lessonLoadingStatusIndex
+              ];
+
+
+            status.classList.remove(
+              "changing"
+            );
+
+          },
+          170
+        );
+
+      },
+      850
+    );
+
+
+  /*
+    אנימציית נקודות:
+    .  ..  ...
+  */
+
+  let dotsCount = 1;
+
+
+  lessonLoadingDotsTimer =
+    setInterval(
+      () => {
+
+        dotsCount =
+          dotsCount >= 3
+            ? 1
+            : dotsCount + 1;
+
+
+        if(dots){
+
+          dots.textContent =
+            ".".repeat(
+              dotsCount
+            );
+
+        }
+
+      },
+      350
+    );
+
+}
+
+
+function hideLessonLoading(){
+
+  const overlay =
+    document.getElementById(
+      "lessonLoadingOverlay"
+    );
+
+
+  if(!overlay){
+    return;
+  }
+
+
+  clearLessonLoadingTimers();
+
+
+  overlay.classList.remove(
+    "visible"
+  );
+
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+}
+
+
+function clearLessonLoadingTimers(){
+
+  if(
+    lessonLoadingStatusTimer
+  ){
+
+    clearInterval(
+      lessonLoadingStatusTimer
+    );
+
+    lessonLoadingStatusTimer =
+      null;
+
+  }
+
+
+  if(
+    lessonLoadingDotsTimer
+  ){
+
+    clearInterval(
+      lessonLoadingDotsTimer
+    );
+
+    lessonLoadingDotsTimer =
+      null;
+
+  }
 
 }
 
@@ -13425,6 +13674,224 @@ document.addEventListener(
 
   transform:scale(1.01);
 }
+    /* =====================================================
+   INTERACTIVE LESSON LOADING
+===================================================== */
+
+.lesson-loading-overlay{
+  position:absolute;
+  inset:0;
+
+  z-index:45;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:25px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  backdrop-filter:
+    blur(8px)
+    saturate(120%);
+
+  -webkit-backdrop-filter:
+    blur(8px)
+    saturate(120%);
+
+  opacity:0;
+  visibility:hidden;
+
+  transition:
+    opacity .25s ease,
+    visibility .25s ease;
+}
+
+
+.lesson-loading-overlay.visible{
+  opacity:1;
+  visibility:visible;
+}
+
+
+.lesson-loading-card{
+  width:min(430px,92%);
+
+  padding:
+    26px
+    28px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  text-align:center;
+  direction:rtl;
+
+  border-radius:28px;
+
+  background:
+    rgba(255,255,255,.94);
+
+  border:
+    1px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 20px 55px
+    rgba(54,68,125,.18);
+}
+
+
+.lesson-loading-robot{
+  width:105px;
+  height:105px;
+
+  object-fit:contain;
+
+  animation:
+    lessonLoadingRobotFloat
+    1.5s ease-in-out
+    infinite;
+
+  filter:
+    drop-shadow(
+      0 10px 15px
+      rgba(60,75,150,.15)
+    );
+}
+
+
+.lesson-loading-title{
+  margin-top:9px;
+
+  font-size:23px;
+  font-weight:900;
+
+  color:#353577;
+}
+
+
+.lesson-loading-status{
+  min-height:28px;
+
+  margin-top:7px;
+
+  font-size:16px;
+  font-weight:800;
+
+  color:#67719a;
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+}
+
+
+.lesson-loading-status.changing{
+  opacity:0;
+  transform:translateY(4px);
+}
+
+
+.lesson-loading-track{
+  position:relative;
+
+  width:100%;
+  height:10px;
+
+  margin-top:20px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e8e9f4;
+}
+
+
+.lesson-loading-track::after{
+  content:"";
+
+  position:absolute;
+  top:0;
+  bottom:0;
+
+  width:38%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #7753f4,
+      #a177ff
+    );
+
+  animation:
+    lessonLoadingBar
+    1.25s ease-in-out
+    infinite;
+}
+
+
+.lesson-loading-dots{
+  display:inline-block;
+  min-width:22px;
+  text-align:right;
+}
+
+
+@keyframes lessonLoadingRobotFloat{
+
+  0%,
+  100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-8px);
+  }
+
+}
+
+
+@keyframes lessonLoadingBar{
+
+  0%{
+    right:-40%;
+  }
+
+  100%{
+    right:105%;
+  }
+
+}
+
+
+@media(max-width:760px){
+
+  .lesson-loading-card{
+    width:min(360px,94%);
+    padding:22px 18px;
+  }
+
+  .lesson-loading-robot{
+    width:88px;
+    height:88px;
+  }
+
+  .lesson-loading-title{
+    font-size:20px;
+  }
+
+  .lesson-loading-status{
+    font-size:14px;
+  }
+
+}
 </style>
 
 
@@ -14171,10 +14638,12 @@ async playAudioUrl(
     return;
   }
 
-console.log(
-  "🔊 PLAY AUDIO URL:",
-  audioUrl
-);
+
+  console.log(
+    "🔊 PLAY AUDIO URL:",
+    audioUrl
+  );
+
 
   const audio =
     new Audio(
@@ -14185,17 +14654,75 @@ console.log(
   await new Promise(
     (resolve, reject) => {
 
+      let loadingHidden =
+        false;
+
+
+      const hideLoadingOnce =
+        () => {
+
+          if(
+            loadingHidden
+          ){
+            return;
+          }
+
+
+          loadingHidden =
+            true;
+
+
+          hideLessonLoading();
+
+        };
+
+
+      /*
+        loadeddata:
+        קובץ האודיו מוכן מספיק לנגינה
+      */
+
+      audio.onloadeddata =
+        hideLoadingOnce;
+
+
+      /*
+        playing:
+        האודיו התחיל להישמע בפועל
+      */
+
+      audio.onplaying =
+        hideLoadingOnce;
+
+
       audio.onended =
         resolve;
 
+
       audio.onerror =
-        reject;
+        error => {
+
+          hideLoadingOnce();
+
+          reject(
+            error
+          );
+
+        };
 
 
       audio
         .play()
         .catch(
-          reject
+          error => {
+
+            hideLoadingOnce();
+
+            reject(
+              error
+            );
+
+          }
         );
 
     }
@@ -14309,6 +14836,34 @@ console.log(
         firstAudioUrl
       );
 
+let firstAudioLoadingHidden =
+  false;
+
+
+const hideFirstAudioLoading =
+  () => {
+
+    if(
+      firstAudioLoadingHidden
+    ){
+      return;
+    }
+
+
+    firstAudioLoadingHidden =
+      true;
+
+    hideLessonLoading();
+
+  };
+
+
+firstAudio.onloadeddata =
+  hideFirstAudioLoading;
+
+
+firstAudio.onplaying =
+  hideFirstAudioLoading;
 
     const firstFinished =
       new Promise(
