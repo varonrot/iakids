@@ -32,20 +32,68 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 # =====================================================
-# MODEL PRICING - USD
+# OPENAI MODELS
 # =====================================================
 
-# GPT-4o mini
-OPENAI_INPUT_COST_PER_1M = 0.15
-OPENAI_OUTPUT_COST_PER_1M = 0.60
+# מודל זול לפעולות שוטפות:
+# צ'אט, המשך שיעור, הערכה וניתוח שיעורי בית
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 
-# Gemini TTS
-GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 20.00
-GEMINI_AUDIO_TOKENS_PER_SECOND = 32
+# המודל החזק ביותר משמש אך ורק ליצירת
+# תוכן שיעור אוניברסלי חדש שנשמר במטמון
+UNIVERSAL_LESSON_MODEL = "gpt-5.6-sol"
+
+
 # =====================================================
-# STRUCTURED LESSON PEDAGOGICAL ENGINE
+# MODEL PRICING - USD PER 1M TOKENS
 # =====================================================
+
+MODEL_PRICING_USD = {
+
+    "gpt-4o-mini": {
+        "input": 0.15,
+        "output": 0.60
+    },
+
+    "gpt-5.6-sol": {
+        "input": 5.00,
+        "output": 30.00
+    }
+
+}
+
+def calculate_openai_cost(
+        model: str,
+        input_tokens: int = 0,
+        output_tokens: int = 0
+) -> float:
+
+    pricing = MODEL_PRICING_USD.get(
+        model
+    )
+
+    if not pricing:
+        print(
+            "WARNING: Missing pricing for model:",
+            model
+        )
+        return 0.0
+
+    input_cost = (
+        int(input_tokens or 0)
+        / 1_000_000
+        * pricing["input"]
+    )
+
+    output_cost = (
+        int(output_tokens or 0)
+        / 1_000_000
+        * pricing["output"]
+    )
+
+    return input_cost + output_cost
 
 # =====================================================
 # STRUCTURED LESSON PEDAGOGICAL ENGINE
@@ -645,7 +693,9 @@ def get_unit_lesson(
             "lesson_order, "
             "lesson_name, "
             "intro_template_id, "
-            "estimated_duration_seconds, "
+            "learning_objective, "
+            "lesson_complexity, "
+            "max_duration_seconds, "
             "generation_status, "
             "content_version, "
             "generated_lesson_json, "
@@ -2631,6 +2681,20 @@ def build_universal_unit_lesson_prompt(
         UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE
     )
 
+    lesson_complexity = int(
+        unit_lesson.get(
+            "lesson_complexity"
+        )
+        or 2
+    )
+
+    max_duration_seconds = int(
+        unit_lesson.get(
+            "max_duration_seconds"
+        )
+        or 120
+    )
+
     replacements = {
 
         "{grade}":
@@ -2673,12 +2737,22 @@ def build_universal_unit_lesson_prompt(
                 or ""
             ),
 
-        "{estimated_duration_seconds}":
+        "{learning_objective}":
             str(
                 unit_lesson.get(
-                    "estimated_duration_seconds"
+                    "learning_objective"
                 )
-                or 60
+                or ""
+            ),
+
+        "{lesson_complexity}":
+            str(
+                lesson_complexity
+            ),
+
+        "{max_duration_seconds}":
+            str(
+                max_duration_seconds
             )
 
     }
@@ -3485,7 +3559,7 @@ def get_or_generate_unit_lesson(
             .parse(
 
                 model=
-                    "gpt-4o-mini",
+                UNIVERSAL_LESSON_MODEL,
 
                 messages=[
 
@@ -3505,6 +3579,11 @@ def get_or_generate_unit_lesson(
                             (
                                 "צרו עכשיו את השיעור "
                                 "המובנה והאוניברסלי. "
+                                "השיגו במדויק את מטרת הלמידה. "
+                                "התאימו את עומק ההסבר "
+                                "לרמת המורכבות שהוגדרה. "
+                                "אין חובה להשתמש בכל הזמן המקסימלי. "
+                                "סיימו כאשר ההסבר ברור ושלם. "
                                 "החזירו את רצף הפעולות בלבד "
                                 "לפי מבנה התגובה."
                             )
@@ -3513,7 +3592,7 @@ def get_or_generate_unit_lesson(
                 ],
 
                 response_format=
-                    TutorLessonResponse
+                TutorLessonResponse
 
             )
         )
@@ -3656,8 +3735,27 @@ def get_or_generate_unit_lesson(
 
         lesson_data.sequence = sequence
         lesson_data.wait_for_answer = True
-        
+
         lesson_json = {
+
+            "generation_model":
+                UNIVERSAL_LESSON_MODEL,
+
+            "learning_objective":
+                unit_lesson.get(
+                    "learning_objective"
+                ),
+
+            "lesson_complexity":
+                unit_lesson.get(
+                    "lesson_complexity"
+                ),
+
+            "max_duration_seconds":
+                unit_lesson.get(
+                    "max_duration_seconds"
+                ),
+
             "speech":
                 lesson_data.speech,
 
@@ -3745,23 +3843,16 @@ def get_or_generate_unit_lesson(
                 or 0
             )
 
-        openai_cost_usd = (
+        openai_cost_usd = calculate_openai_cost(
 
-            (
-                input_tokens
-                / 1_000_000
-            )
-            *
-            OPENAI_INPUT_COST_PER_1M
+            model=
+            UNIVERSAL_LESSON_MODEL,
 
-            +
+            input_tokens=
+            input_tokens,
 
-            (
-                output_tokens
-                / 1_000_000
-            )
-            *
-            OPENAI_OUTPUT_COST_PER_1M
+            output_tokens=
+            output_tokens
 
         )
 
@@ -4258,7 +4349,7 @@ def structured_lesson(
             .parse(
 
                 model=
-                "gpt-4o-mini",
+                UNIVERSAL_LESSON_MODEL,
 
                 messages=[
 
@@ -4409,7 +4500,7 @@ def structured_lesson(
                     .parse(
 
                         model=
-                        "gpt-4o-mini",
+                        DEFAULT_OPENAI_MODEL,
 
                         messages=
                         retry_messages,
@@ -5072,7 +5163,7 @@ def homework_analyze(
                     "processing",
 
                 "vision_model":
-                    "gpt-4o-mini",
+                    DEFAULT_OPENAI_MODEL,
 
                 "vision_call_count":
                     0
@@ -5172,7 +5263,8 @@ def homework_analyze(
 
         response = client.chat.completions.create(
 
-            model="gpt-4o-mini",
+            model=
+            DEFAULT_OPENAI_MODEL,
 
             messages=[
 
@@ -5342,7 +5434,7 @@ def homework_analyze(
                 vision_status,
 
             "vision_model":
-                "gpt-4o-mini",
+                DEFAULT_OPENAI_MODEL,
 
             "vision_call_count":
                 1,
@@ -5581,7 +5673,7 @@ def tutor_chat(
         })
 
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+            model=DEFAULT_OPENAI_MODEL,
             messages=[
                 {
                     "role": "system",
@@ -5634,12 +5726,17 @@ def tutor_chat(
                     completion.usage.completion_tokens or 0
             )
 
-        openai_cost_usd = (
-                (input_tokens / 1_000_000)
-                * OPENAI_INPUT_COST_PER_1M
-                +
-                (output_tokens / 1_000_000)
-                * OPENAI_OUTPUT_COST_PER_1M
+        openai_cost_usd = calculate_openai_cost(
+
+            model=
+            DEFAULT_OPENAI_MODEL,
+
+            input_tokens=
+            input_tokens,
+
+            output_tokens=
+            output_tokens
+
         )
 
         # שומרים את הודעת הילד ותשובת ה-AI יחד
