@@ -280,6 +280,10 @@ class LessonIntroRequest(BaseModel):
     kid_id: str
     unit_lesson_id: int
 
+class UnitLessonRequest(BaseModel):
+    kid_id: str
+    unit_lesson_id: int
+
 class StructuredLessonRequest(
     BaseModel
 ):
@@ -610,6 +614,13 @@ def get_unit_lesson(
             "lesson_order, "
             "lesson_name, "
             "intro_template_id, "
+            "estimated_duration_seconds, "
+            "generation_status, "
+            "content_version, "
+            "generated_lesson_json, "
+            "generation_error, "
+            "generated_at, "
+            "tts_generated_at, "
             "status, "
             "is_active"
         )
@@ -2580,6 +2591,104 @@ def build_structured_lesson_prompt(
 
     )
 
+def build_universal_unit_lesson_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> str:
+
+    duration_seconds = int(
+        unit_lesson.get(
+            "estimated_duration_seconds"
+        )
+        or 60
+    )
+
+    grade = int(
+        parent_lesson.get(
+            "grade"
+        )
+        or 0
+    )
+
+    subject = (
+        parent_lesson.get(
+            "subject"
+        )
+        or ""
+    )
+
+    category = (
+        parent_lesson.get(
+            "category"
+        )
+        or ""
+    )
+
+    parent_lesson_name = (
+        parent_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    )
+
+    unit_name = (
+        unit_lesson.get(
+            "unit_name"
+        )
+        or ""
+    )
+
+    lesson_name = (
+        unit_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    )
+
+    return f"""
+אתם מורים אנושיים ומנוסים המלמדים תלמידי בית ספר יסודי בישראל.
+
+צרו הסבר לימודי מובנה בעברית עבור תלמידי כיתה {grade}.
+
+מקצוע:
+{subject}
+
+נושא ראשי:
+{parent_lesson_name}
+
+קטגוריה:
+{category}
+
+יחידת לימוד:
+{unit_name}
+
+מטרת השיעור:
+{lesson_name}
+
+משך ההסבר המבוקש:
+כ-{duration_seconds} שניות.
+
+הנחיות פדגוגיות:
+
+- למדו רק את מטרת השיעור הנוכחית.
+- אל תניחו ידע מוקדם.
+- התחילו מיד בהסבר, ללא ברכה וללא הצגה עצמית.
+- אל תשתמשו בשם של ילד.
+- אל תפנו בלשון זכר או נקבה.
+- השתמשו בלשון רבים או בניסוח ניטרלי.
+- השתמשו בשפה פשוטה המתאימה לכיתה {grade}.
+- הסבירו בהדרגה ובאמצעות דוגמאות מחיי היום־יום.
+- אל תעמיסו פרטים שאינם נחוצים למטרת השיעור.
+- אל תחזרו על פתיח השיעור.
+- כתבו תוכן שמתאים לכל תלמיד ולא לתלמיד מסוים.
+- סיימו בשאלה אחת פשוטה בלבד לבדיקת הבנה.
+- פעולת ask חייבת להיות הפעולה האחרונה.
+- אל תוסיפו שום פעולה אחרי ask.
+- החזירו רצף פעולות שמתאים ל-TutorAction.
+- השתמשו בעיקר ב-write וב-speak.
+- אפשר להשתמש ב-wait קצר בין חלקים.
+- wait_for_answer חייב להיות true.
+"""
 
 # =====================================================
 # HEALTH
@@ -3074,6 +3183,541 @@ def lesson_intro(
             detail="Lesson intro failed"
         )
 
+@app.post(
+    "/api/tutor/unit-lesson"
+)
+def get_or_generate_unit_lesson(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    unit_lesson = None
+
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # מוודאים שהילד שייך למשתמש
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # UNIT LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get(
+                "age"
+            )
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get(
+                "grade"
+            )
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        generation_status = (
+            unit_lesson.get(
+                "generation_status"
+            )
+            or "empty"
+        )
+
+        cached_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+        )
+
+        # =============================================
+        # CACHE HIT
+        # =============================================
+
+        if (
+                generation_status == "ready"
+                and isinstance(
+                    cached_json,
+                    dict
+                )
+                and cached_json.get(
+                    "sequence"
+                )
+        ):
+            return {
+                "success": True,
+
+                "source": "cache",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "learning_lesson_id":
+                    parent_lesson["id"],
+
+                "generation_status":
+                    "ready",
+
+                "content_version":
+                    unit_lesson.get(
+                        "content_version"
+                    )
+                    or 1,
+
+                "speech":
+                    cached_json.get(
+                        "speech"
+                    ),
+
+                "sequence":
+                    cached_json.get(
+                        "sequence"
+                    )
+                    or [],
+
+                "wait_for_answer":
+                    bool(
+                        cached_json.get(
+                            "wait_for_answer",
+                            True
+                        )
+                    )
+            }
+
+        # =============================================
+        # ALREADY GENERATING
+        # =============================================
+
+        if generation_status == "generating":
+            return {
+                "success": False,
+
+                "source": "generating",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "learning_lesson_id":
+                    parent_lesson["id"],
+
+                "generation_status":
+                    "generating",
+
+                "sequence": [],
+
+                "wait_for_answer": False
+            }
+
+        # =============================================
+        # MARK AS GENERATING
+        # =============================================
+
+        now = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generation_status":
+                "generating",
+
+            "generation_error":
+                None,
+
+            "updated_at":
+                now
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # BUILD UNIVERSAL PROMPT
+        # =============================================
+
+        system_prompt = (
+            build_universal_unit_lesson_prompt(
+                unit_lesson=
+                    unit_lesson,
+
+                parent_lesson=
+                    parent_lesson
+            )
+        )
+
+        # =============================================
+        # OPENAI
+        # =============================================
+
+        completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    "gpt-4o-mini",
+
+                messages=[
+
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            system_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "צרו עכשיו את השיעור "
+                                "המובנה והאוניברסלי. "
+                                "החזירו את רצף הפעולות בלבד "
+                                "לפי מבנה התגובה."
+                            )
+                    }
+
+                ],
+
+                response_format=
+                    TutorLessonResponse
+
+            )
+        )
+
+        lesson_data = (
+            completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not lesson_data:
+            raise RuntimeError(
+                "Universal unit lesson "
+                "returned no response"
+            )
+
+        sequence = (
+            lesson_data.sequence
+            or []
+        )
+
+        # =============================================
+        # VALIDATION
+        # =============================================
+
+        has_write = any(
+            action.type == "write"
+            and bool(
+                (
+                    action.text
+                    or ""
+                ).strip()
+            )
+            for action in sequence
+        )
+
+        final_action = (
+            sequence[-1]
+            if sequence
+            else None
+        )
+
+        has_final_ask = (
+            final_action is not None
+            and final_action.type == "ask"
+            and bool(
+                (
+                    final_action.text
+                    or ""
+                ).strip()
+            )
+        )
+
+        if not has_write:
+            raise RuntimeError(
+                "Generated lesson has no write action"
+            )
+
+        if not has_final_ask:
+            raise RuntimeError(
+                "Generated lesson must end with ask"
+            )
+
+        # ה-Backend קובע זאת בעצמו
+        lesson_data.wait_for_answer = True
+
+        lesson_json = {
+            "speech":
+                lesson_data.speech,
+
+            "sequence": [
+                action.model_dump()
+                for action in sequence
+            ],
+
+            "wait_for_answer":
+                True
+        }
+
+        # =============================================
+        # SAVE CACHE
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        generated_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                lesson_json,
+
+            "generation_status":
+                "ready",
+
+            "generation_error":
+                None,
+
+            "content_version":
+                content_version,
+
+            "generated_at":
+                generated_at,
+
+            "updated_at":
+                generated_at
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # USAGE
+        # =============================================
+
+        input_tokens = 0
+        output_tokens = 0
+        total_tokens = 0
+
+        if completion.usage:
+
+            input_tokens = (
+                completion
+                .usage
+                .prompt_tokens
+                or 0
+            )
+
+            output_tokens = (
+                completion
+                .usage
+                .completion_tokens
+                or 0
+            )
+
+            total_tokens = (
+                completion
+                .usage
+                .total_tokens
+                or 0
+            )
+
+        openai_cost_usd = (
+
+            (
+                input_tokens
+                / 1_000_000
+            )
+            *
+            OPENAI_INPUT_COST_PER_1M
+
+            +
+
+            (
+                output_tokens
+                / 1_000_000
+            )
+            *
+            OPENAI_OUTPUT_COST_PER_1M
+
+        )
+
+        increment_usage_summary(
+
+            user_id=
+                user.id,
+
+            ai_calls=
+                1,
+
+            input_tokens=
+                input_tokens,
+
+            output_tokens=
+                output_tokens,
+
+            total_tokens=
+                total_tokens,
+
+            openai_cost_usd=
+                openai_cost_usd
+
+        )
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        return {
+            "success": True,
+
+            "source": "generated",
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "learning_lesson_id":
+                parent_lesson["id"],
+
+            "generation_status":
+                "ready",
+
+            "content_version":
+                content_version,
+
+            "speech":
+                lesson_json.get(
+                    "speech"
+                ),
+
+            "sequence":
+                lesson_json.get(
+                    "sequence"
+                )
+                or [],
+
+            "wait_for_answer":
+                True
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        error_message = repr(e)
+
+        print(
+            "UNIT LESSON GENERATION ERROR:",
+            error_message
+        )
+
+        # =============================================
+        # MARK AS FAILED
+        # =============================================
+
+        if unit_lesson:
+
+            try:
+
+                sb.table(
+                    "lesson_units_content"
+                ).update({
+
+                    "generation_status":
+                        "failed",
+
+                    "generation_error":
+                        str(e)[:1500],
+
+                    "updated_at":
+                        datetime
+                        .now(timezone.utc)
+                        .isoformat()
+
+                }).eq(
+                    "id",
+                    unit_lesson["id"]
+                ).execute()
+
+            except Exception as update_error:
+
+                print(
+                    "UNIT LESSON FAILURE UPDATE ERROR:",
+                    repr(update_error)
+                )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unit lesson generation failed"
+        )
+    
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
