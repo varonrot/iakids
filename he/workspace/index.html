@@ -9875,56 +9875,56 @@ const universalLessonPromise =
     session
   );
 
-
 /*
-  הפעלת הפתיח
+  הפעלת הפתיח האישי.
+
+  lesson-intro עדיין מחזיר sequence,
+  לכן הוא מופעל באמצעות runTutorResponse.
 */
 
-await runSimpleUniversalLesson(
-  lessonData
+await runTutorResponse(
+  introData
 );
 
 
-
-
-    /* =============================================
-       4. טעינת תוכן השיעור האוניברסלי
-    ============================================= */
+/* =============================================
+   טעינת תוכן השיעור האוניברסלי
+============================================= */
 
 const lessonData =
   await universalLessonPromise;
 
-    console.log(
-      "UNIVERSAL LESSON READY:",
-      lessonData
-    );
+
+console.log(
+  "UNIVERSAL LESSON READY:",
+  lessonData
+);
 
 
-    /* =============================================
-       5. מעבר למצב שיעור פעיל
+/* =============================================
+   מעבר למצב שיעור פעיל
+============================================= */
 
-       currentLessonId נשאר כרגע מזהה
-       learning_lessons הראשי, כי endpoint
-       התשובות הקיים /api/tutor/lesson
-       עובד מול הטבלה הזאת.
-    ============================================= */
-
-    currentLearningMode =
-      "lesson";
+currentLearningMode =
+  "lesson";
 
 
-    currentLessonId =
-      CURRENT_PARENT_LESSON.id;
+currentLessonId =
+  CURRENT_PARENT_LESSON.id;
 
 
-    /* =============================================
-       6. הפעלת תוכן השיעור
-    ============================================= */
+/* =============================================
+   הפעלת השיעור האוניברסלי הפשוט
 
-    await runTutorResponse(
-      lessonData
-    );
+   lessonData מכיל:
+   {
+     lesson: "..."
+   }
+============================================= */
 
+await runSimpleUniversalLesson(
+  lessonData
+);
 
     /*
       מסך הטעינה אמור להיסגר אוטומטית
