@@ -9222,24 +9222,15 @@ throw new Error(
       בין אם נוצר עכשיו ובין אם הגיע מה-Cache
     */
 
-    if(
-      data.generation_status ===
-        "ready"
-
-      &&
-
-      Array.isArray(
-        data.sequence
-      )
-
-      &&
-
-      data.sequence.length > 0
-    ){
-
-      return data;
-
-    }
+if(
+  data.generation_status === "ready"
+  &&
+  typeof data.lesson === "string"
+  &&
+  data.lesson.trim().length > 0
+){
+  return data;
+}
 
 
     /*
@@ -9290,6 +9281,314 @@ throw new Error(
   throw new Error(
     "Universal lesson generation timed out"
   );
+
+}
+
+/* =====================================================
+   SIMPLE UNIVERSAL LESSON
+
+   מציג את טקסט השיעור,
+   מחלק אותו לפסקאות,
+   שולח את כל הטקסט ל-Gemini TTS,
+   ומנגן את האודיו.
+===================================================== */
+
+async function runSimpleUniversalLesson(
+  data
+){
+
+  const lessonText =
+    (
+      data?.lesson
+      ||
+      ""
+    ).trim();
+
+
+  if(
+    !lessonText
+  ){
+
+    throw new Error(
+      "Universal lesson has no lesson text"
+    );
+
+  }
+
+
+  console.log(
+    "SIMPLE UNIVERSAL LESSON:",
+    lessonText
+  );
+
+
+  /* =============================================
+     פתיחת הרשאת אודיו
+  ============================================= */
+
+  await unlockLessonAudio();
+
+
+  if(
+    !window.lessonRenderer
+  ){
+
+    throw new Error(
+      "lessonRenderer not initialized"
+    );
+
+  }
+
+
+  /* =============================================
+     חלוקה לפסקאות
+  ============================================= */
+
+  const paragraphs =
+    lessonText
+
+      .split(
+        /\n\s*\n/
+      )
+
+      .map(
+        paragraph =>
+          paragraph.trim()
+      )
+
+      .filter(
+        Boolean
+      );
+
+
+  /* אם המודל לא החזיר שורות ריקות,
+     נחלק לפי שורות רגילות */
+
+  const lessonParts =
+    paragraphs.length > 1
+
+      ? paragraphs
+
+      : lessonText
+
+          .split(
+            /\n+/
+          )
+
+          .map(
+            paragraph =>
+              paragraph.trim()
+          )
+
+          .filter(
+            Boolean
+          );
+
+
+  /* =============================================
+     יצירת אזור השיעור במחברת
+  ============================================= */
+
+  const row =
+    document.createElement(
+      "div"
+    );
+
+
+  row.className =
+    "tutor-response";
+
+
+  const avatar =
+    document.createElement(
+      "img"
+    );
+
+
+  avatar.src =
+    "/assets/robots/askie-robot.png";
+
+
+  avatar.className =
+    "tutor-avatar";
+
+
+  const writingArea =
+    document.createElement(
+      "div"
+    );
+
+
+  writingArea.className =
+    "tutor-writing-area";
+
+
+  row.appendChild(
+    avatar
+  );
+
+
+  row.appendChild(
+    writingArea
+  );
+
+
+  messagesEl.appendChild(
+    row
+  );
+
+
+  /* =============================================
+     הצגת הפסקאות
+  ============================================= */
+
+  lessonParts.forEach(
+    (
+      paragraph,
+      index
+    ) => {
+
+      const line =
+        document.createElement(
+          "div"
+        );
+
+
+      line.className =
+        "tutor-writing";
+
+
+      line.textContent =
+        paragraph;
+
+
+      /*
+        הפסקה האחרונה אמורה להיות
+        שאלת ההבנה.
+      */
+
+      if(
+        index ===
+          lessonParts.length - 1
+
+        &&
+
+        paragraph.includes(
+          "?"
+        )
+      ){
+
+        line.classList.add(
+          "question-line"
+        );
+
+      }
+
+
+      writingArea.appendChild(
+        line
+      );
+
+    }
+  );
+
+
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+
+
+  /* =============================================
+     יצירת אודיו לכל השיעור
+
+     משתמשים בפונקציית ה-TTS
+     שכבר קיימת ב-Renderer.
+  ============================================= */
+
+  const audioUrl =
+    await window.lessonRenderer
+      .preloadAudio(
+        lessonText
+      );
+
+
+  if(
+    !audioUrl
+  ){
+
+    throw new Error(
+      "Lesson TTS returned no audio"
+    );
+
+  }
+
+
+  const audio =
+    new Audio(
+      audioUrl
+    );
+
+
+  /*
+    האודיו מוכן — אפשר לסגור
+    את חלון "מכינים את השיעור".
+  */
+
+  hideLessonLoading();
+
+
+  await new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+
+      audio.onended =
+        resolve;
+
+
+      audio.onerror =
+        () => {
+
+          reject(
+            new Error(
+              "Lesson audio playback failed"
+            )
+          );
+
+        };
+
+
+      audio.play()
+        .catch(
+          reject
+        );
+
+    }
+  );
+
+
+  /* =============================================
+     השיעור הסתיים ומחכים לתשובת הילד
+  ============================================= */
+
+  clearNoResponseTimer();
+
+
+  if(
+    currentLearningMode ===
+      "lesson"
+
+    &&
+
+    currentLessonId
+  ){
+
+    startNoResponseTimer();
+
+  }
+
+
+  inputEl.focus();
 
 }
 
@@ -9581,8 +9880,8 @@ const universalLessonPromise =
   הפעלת הפתיח
 */
 
-await runTutorResponse(
-  introData
+await runSimpleUniversalLesson(
+  lessonData
 );
 
 
