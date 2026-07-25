@@ -9121,12 +9121,184 @@ function renderUnitLessons(unit) {
   });
 }
 
+/* =====================================================
+   LOAD UNIVERSAL UNIT LESSON
+===================================================== */
+
+async function loadUniversalUnitLesson(
+  lesson,
+  session
+){
+
+  const MAX_GENERATION_CHECKS =
+    20;
+
+  const CHECK_DELAY_MS =
+    1500;
+
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_GENERATION_CHECKS;
+    attempt++
+  ){
+
+    console.log(
+      "LOAD UNIVERSAL UNIT LESSON:",
+      {
+        attempt,
+        unitLessonId:
+          lesson.id
+      }
+    );
+
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/unit-lesson`,
+
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                lesson.id
+
+            })
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+        "UNIT LESSON API ERROR:",
+        response.status,
+        errorText
+      );
+
+
+      throw new Error(
+        `Unit lesson failed: ${response.status}`
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "UNIT LESSON RESPONSE:",
+      data
+    );
+
+
+    /*
+      השיעור מוכן:
+      בין אם נוצר עכשיו ובין אם הגיע מה-Cache
+    */
+
+    if(
+      data.generation_status ===
+        "ready"
+
+      &&
+
+      Array.isArray(
+        data.sequence
+      )
+
+      &&
+
+      data.sequence.length > 0
+    ){
+
+      return data;
+
+    }
+
+
+    /*
+      משתמש אחר כבר מייצר את אותו שיעור.
+      ממתינים ובודקים שוב.
+    */
+
+    if(
+      data.generation_status ===
+        "generating"
+    ){
+
+      const status =
+        document.getElementById(
+          "lessonLoadingStatus"
+        );
+
+
+      if(status){
+
+        status.textContent =
+          "🧠 מכינים את השיעור בפעם הראשונה";
+
+      }
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            CHECK_DELAY_MS
+          )
+      );
+
+
+      continue;
+
+    }
+
+
+    throw new Error(
+      "Universal lesson returned invalid data"
+    );
+
+  }
+
+
+  throw new Error(
+    "Universal lesson generation timed out"
+  );
+
+}
+
 async function startSelectedUnitLesson(
   lesson
 ){
 
   console.log(
-    "START UNIT LESSON INTRO:",
+    "START UNIT LESSON:",
     {
       parentLesson:
         CURRENT_PARENT_LESSON,
@@ -9152,6 +9324,29 @@ async function startSelectedUnitLesson(
   }
 
 
+  if(
+    !CURRENT_PARENT_LESSON?.id
+  ){
+
+    console.error(
+      "No active parent lesson"
+    );
+
+    return;
+
+  }
+
+
+  /* =============================================
+     איפוס מצב השיעור הקודם
+  ============================================= */
+
+  clearNoResponseTimer();
+
+  noResponseCount =
+    0;
+
+
   /* =============================================
      שמירת השיעור שנבחר
   ============================================= */
@@ -9162,10 +9357,16 @@ async function startSelectedUnitLesson(
       lesson.id,
 
     learning_lesson_id:
-      CURRENT_PARENT_LESSON?.id,
+      CURRENT_PARENT_LESSON.id,
 
     parent_lesson_name:
-      CURRENT_PARENT_LESSON?.lesson_name,
+      CURRENT_PARENT_LESSON.lesson_name,
+
+    subject:
+      CURRENT_PARENT_LESSON.subject,
+
+    category:
+      CURRENT_PARENT_LESSON.category,
 
     unit_order:
       CURRENT_UNIT?.unit_order,
@@ -9182,8 +9383,17 @@ async function startSelectedUnitLesson(
   };
 
 
+  /*
+    בזמן הפתיח עדיין לא מפעילים
+    את מנגנון תשובות הילד.
+  */
+
   currentLearningMode =
     "lesson_intro";
+
+
+  currentLessonId =
+    null;
 
 
   /* =============================================
@@ -9194,7 +9404,9 @@ async function startSelectedUnitLesson(
     "lesson"
   );
 
-showLessonLoading();
+
+  showLessonLoading();
+
 
   const title =
     document.getElementById(
@@ -9220,7 +9432,7 @@ showLessonLoading();
 
     subtitle.textContent =
 
-      `${CURRENT_PARENT_LESSON?.subject || ""}`
+      `${CURRENT_PARENT_LESSON.subject || ""}`
 
       +
 
@@ -9257,46 +9469,46 @@ showLessonLoading();
   const session =
     sessionData.session;
 
-if(
-  !session
-){
 
-  hideLessonLoading();
+  if(
+    !session
+  ){
 
-  addMessage(
-    "assistant",
-    "יש להתחבר מחדש."
-  );
+    hideLessonLoading();
 
-  return;
 
-}
+    addMessage(
+      "assistant",
+      "יש להתחבר מחדש."
+    );
+
+
+    return;
+
+  }
 
 
   try{
 
     /* =============================================
-       קריאת הפתיח בלבד
+       1. טעינת הפתיח האישי
     ============================================= */
 
-    const response =
+    const introResponse =
       await fetch(
 
         `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
 
         {
-
           method:
             "POST",
 
           headers: {
-
             "Content-Type":
               "application/json",
 
             "Authorization":
               `Bearer ${session.access_token}`
-
           },
 
           body:
@@ -9309,78 +9521,154 @@ if(
                 lesson.id
 
             })
-
         }
 
       );
 
 
-if(
-  !response.ok
-){
+    if(
+      !introResponse.ok
+    ){
 
-  const errorText =
-    await response.text();
-
-
-  console.error(
-    "LESSON INTRO API ERROR:",
-    response.status,
-    errorText
-  );
+      const errorText =
+        await introResponse.text();
 
 
-  hideLessonLoading();
+      console.error(
+        "LESSON INTRO API ERROR:",
+        introResponse.status,
+        errorText
+      );
 
 
-  addMessage(
-    "assistant",
-    "לא הצלחתי לפתוח את הפתיח. נסו שוב."
-  );
+      hideLessonLoading();
 
 
-  return;
+      addMessage(
+        "assistant",
+        "לא הצלחתי לפתוח את השיעור. נסו שוב."
+      );
 
-}
+
+      return;
+
+    }
 
 
-    const data =
-      await response.json();
+    const introData =
+      await introResponse.json();
 
 
     console.log(
       "LESSON INTRO RESPONSE:",
-      data
+      introData
     );
 
 
     /* =============================================
-       הפעלת הפתיח דרך ה-Renderer הקיים
+       2. הפעלת הפתיח
     ============================================= */
 
     await runTutorResponse(
-      data
+      introData
     );
 
 
+    /* =============================================
+       3. מציגים שוב טעינה בין הפתיח לתוכן
+
+       ייתכן שהטעינה כבר נסגרה כשהאודיו
+       הראשון התחיל.
+    ============================================= */
+
+    showLessonLoading();
+
+
+    const loadingStatus =
+      document.getElementById(
+        "lessonLoadingStatus"
+      );
+
+
+    if(loadingStatus){
+
+      loadingStatus.textContent =
+        "📚 טוענים את תוכן השיעור";
+
+    }
+
+
+    /* =============================================
+       4. טעינת תוכן השיעור האוניברסלי
+    ============================================= */
+
+    const lessonData =
+      await loadUniversalUnitLesson(
+        lesson,
+        session
+      );
+
+
+    console.log(
+      "UNIVERSAL LESSON READY:",
+      lessonData
+    );
+
+
+    /* =============================================
+       5. מעבר למצב שיעור פעיל
+
+       currentLessonId נשאר כרגע מזהה
+       learning_lessons הראשי, כי endpoint
+       התשובות הקיים /api/tutor/lesson
+       עובד מול הטבלה הזאת.
+    ============================================= */
+
+    currentLearningMode =
+      "lesson";
+
+
+    currentLessonId =
+      CURRENT_PARENT_LESSON.id;
+
+
+    /* =============================================
+       6. הפעלת תוכן השיעור
+    ============================================= */
+
+    await runTutorResponse(
+      lessonData
+    );
+
+
+    /*
+      מסך הטעינה אמור להיסגר אוטומטית
+      בתחילת האודיו.
+
+      בכל זאת סוגרים כאן כגיבוי,
+      למשל אם השיעור לא כלל speak.
+    */
+
+    hideLessonLoading();
+
   }
-catch(error){
+  catch(error){
 
-  console.error(
-    "LESSON INTRO NETWORK ERROR:",
-    error
-  );
-
-
-  hideLessonLoading();
+    console.error(
+      "START UNIT LESSON ERROR:",
+      error
+    );
 
 
-  addMessage(
-    "assistant",
-    "לא הצלחתי להתחבר למורה כרגע."
-  );
+    hideLessonLoading();
 
-}
+
+    addMessage(
+      "assistant",
+      "לא הצלחנו להכין את השיעור כרגע. נסו שוב."
+    );
+
+  }
 
 }
 
