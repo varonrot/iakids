@@ -32,20 +32,79 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 # =====================================================
-# MODEL PRICING - USD
+# OPENAI MODELS
 # =====================================================
 
-# GPT-4o mini
-OPENAI_INPUT_COST_PER_1M = 0.15
-OPENAI_OUTPUT_COST_PER_1M = 0.60
+# מודל זול לפעולות שוטפות:
+# צ'אט, המשך שיעור, הערכה וניתוח שיעורי בית
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 
-# Gemini TTS
-GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 20.00
-GEMINI_AUDIO_TOKENS_PER_SECOND = 32
+# המודל החזק ביותר משמש אך ורק ליצירת
+# תוכן שיעור אוניברסלי חדש שנשמר במטמון
+UNIVERSAL_LESSON_MODEL = "gpt-5.6-sol"
+
+
 # =====================================================
-# STRUCTURED LESSON PEDAGOGICAL ENGINE
+# MODEL PRICING - USD PER 1M TOKENS
 # =====================================================
+
+MODEL_PRICING_USD = {
+
+    "gpt-4o-mini": {
+        "input": 0.15,
+        "output": 0.60
+    },
+
+    "gpt-5.6-sol": {
+        "input": 5.00,
+        "output": 30.00
+    }
+
+}
+
+# =====================================================
+# GEMINI TTS PRICING
+# =====================================================
+
+# כמות משוערת של Audio Tokens לשנייה
+GEMINI_AUDIO_TOKENS_PER_SECOND = 25
+
+# מחיר פלט אודיו (USD לכל מיליון Audio Tokens)
+GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 10.0
+
+
+def calculate_openai_cost(
+        model: str,
+        input_tokens: int = 0,
+        output_tokens: int = 0
+) -> float:
+
+    pricing = MODEL_PRICING_USD.get(
+        model
+    )
+
+    if not pricing:
+        print(
+            "WARNING: Missing pricing for model:",
+            model
+        )
+        return 0.0
+
+    input_cost = (
+        int(input_tokens or 0)
+        / 1_000_000
+        * pricing["input"]
+    )
+
+    output_cost = (
+        int(output_tokens or 0)
+        / 1_000_000
+        * pricing["output"]
+    )
+
+    return input_cost + output_cost
 
 # =====================================================
 # STRUCTURED LESSON PEDAGOGICAL ENGINE
@@ -271,13 +330,30 @@ class HomeworkAnalyzeRequest(BaseModel):
 
 
 class TutorAction(BaseModel):
+
     type: str
+
     text: str | None = None
+
     target: str | None = None
+
     style: str | None = None
+
     speed: int | None = None
+
     duration: int | None = None
+
     speech_tts: str | None = None
+
+    # =============================================
+    # VISUAL CARD
+    # =============================================
+
+    title: str | None = None
+
+    items: list[str] | None = None
+
+    icon: str | None = None
 
 
 class TutorLessonResponse(BaseModel):
@@ -285,6 +361,8 @@ class TutorLessonResponse(BaseModel):
     sequence: list[TutorAction]
     wait_for_answer: bool = False
 
+class UniversalLessonResponse(BaseModel):
+    lesson: str
 
 # =====================================================
 # STRUCTURED LESSON MODELS
@@ -628,7 +706,9 @@ def get_unit_lesson(
             "lesson_order, "
             "lesson_name, "
             "intro_template_id, "
-            "estimated_duration_seconds, "
+            "learning_objective, "
+            "lesson_complexity, "
+            "max_duration_seconds, "
             "generation_status, "
             "content_version, "
             "generated_lesson_json, "
@@ -2614,6 +2694,20 @@ def build_universal_unit_lesson_prompt(
         UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE
     )
 
+    lesson_complexity = int(
+        unit_lesson.get(
+            "lesson_complexity"
+        )
+        or 2
+    )
+
+    max_duration_seconds = int(
+        unit_lesson.get(
+            "max_duration_seconds"
+        )
+        or 120
+    )
+
     replacements = {
 
         "{grade}":
@@ -2656,12 +2750,22 @@ def build_universal_unit_lesson_prompt(
                 or ""
             ),
 
-        "{estimated_duration_seconds}":
+        "{learning_objective}":
             str(
                 unit_lesson.get(
-                    "estimated_duration_seconds"
+                    "learning_objective"
                 )
-                or 60
+                or ""
+            ),
+
+        "{lesson_complexity}":
+            str(
+                lesson_complexity
+            ),
+
+        "{max_duration_seconds}":
+            str(
+                max_duration_seconds
             )
 
     }
@@ -2674,6 +2778,93 @@ def build_universal_unit_lesson_prompt(
         )
 
     return prompt
+
+def normalize_universal_lesson_visuals(
+        sequence: list[TutorAction]
+) -> list[TutorAction]:
+
+    normalized_sequence = []
+
+    visual_count = 0
+
+    max_visual_cards = 2
+
+    for action in sequence:
+
+        # כל פעולה רגילה נשמרת
+        if action.type != "visual_card":
+
+            normalized_sequence.append(
+                action
+            )
+
+            continue
+
+
+        # מגבילים לשתי המחשות בשיעור
+        if visual_count >= max_visual_cards:
+            continue
+
+
+        title = (
+            action.title
+            or ""
+        ).strip()
+
+
+        raw_items = (
+            action.items
+            or []
+        )
+
+
+        clean_items = []
+
+        for item in raw_items:
+
+            clean_item = str(
+                item
+                or ""
+            ).strip()
+
+            if not clean_item:
+                continue
+
+            if clean_item in clean_items:
+                continue
+
+            clean_items.append(
+                clean_item
+            )
+
+
+        # כרטיס לא תקין לא נכנס לרצף
+        if not title:
+            continue
+
+        if len(clean_items) < 2:
+            continue
+
+
+        # לא יותר מחמישה פריטים
+        clean_items = clean_items[:5]
+
+
+        normalized_sequence.append(
+
+            TutorAction(
+                type="visual_card",
+                title=title,
+                items=clean_items,
+                icon=action.icon
+            )
+
+        )
+
+        visual_count += 1
+
+
+    return normalized_sequence
 
 # =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
@@ -3087,6 +3278,18 @@ def lesson_intro(
 
                     speech_tts=step.get(
                         "speech_tts"
+                    ),
+
+                    title=step.get(
+                        "title"
+                    ),
+
+                    items=step.get(
+                        "items"
+                    ),
+
+                    icon=step.get(
+                        "icon"
                     )
                 )
             )
@@ -3244,14 +3447,15 @@ def get_or_generate_unit_lesson(
         if (
                 generation_status == "ready"
                 and isinstance(
-                    cached_json,
-                    dict
-                )
+            cached_json,
+            dict
+        )
                 and cached_json.get(
-                    "sequence"
-                )
+            "lesson"
+        )
         ):
             return {
+
                 "success": True,
 
                 "source": "cache",
@@ -3271,24 +3475,11 @@ def get_or_generate_unit_lesson(
                     )
                     or 1,
 
-                "speech":
+                "lesson":
                     cached_json.get(
-                        "speech"
-                    ),
-
-                "sequence":
-                    cached_json.get(
-                        "sequence"
+                        "lesson"
                     )
-                    or [],
 
-                "wait_for_answer":
-                    bool(
-                        cached_json.get(
-                            "wait_for_answer",
-                            True
-                        )
-                    )
             }
 
         # =============================================
@@ -3368,8 +3559,7 @@ def get_or_generate_unit_lesson(
             .completions
             .parse(
 
-                model=
-                    "gpt-4o-mini",
+                model=UNIVERSAL_LESSON_MODEL,
 
                 messages=[
 
@@ -3389,6 +3579,11 @@ def get_or_generate_unit_lesson(
                             (
                                 "צרו עכשיו את השיעור "
                                 "המובנה והאוניברסלי. "
+                                "השיגו במדויק את מטרת הלמידה. "
+                                "התאימו את עומק ההסבר "
+                                "לרמת המורכבות שהוגדרה. "
+                                "אין חובה להשתמש בכל הזמן המקסימלי. "
+                                "סיימו כאשר ההסבר ברור ושלם. "
                                 "החזירו את רצף הפעולות בלבד "
                                 "לפי מבנה התגובה."
                             )
@@ -3397,7 +3592,7 @@ def get_or_generate_unit_lesson(
                 ],
 
                 response_format=
-                    TutorLessonResponse
+                UniversalLessonResponse
 
             )
         )
@@ -3409,141 +3604,34 @@ def get_or_generate_unit_lesson(
             .parsed
         )
 
+
         if not lesson_data:
             raise RuntimeError(
                 "Universal unit lesson "
                 "returned no response"
             )
 
-        sequence = (
-            lesson_data.sequence
-            or []
-        )
+        lesson_text = lesson_data.lesson.strip()
 
-        # =============================================
-        # VALIDATION
-        # =============================================
 
-        has_write = any(
-            action.type == "write"
-            and bool(
-                (
-                    action.text
-                    or ""
-                ).strip()
-            )
-            for action in sequence
-        )
-
-        final_action = (
-            sequence[-1]
-            if sequence
-            else None
-        )
-
-        has_final_ask = (
-            final_action is not None
-            and final_action.type == "ask"
-            and bool(
-                (
-                    final_action.text
-                    or ""
-                ).strip()
-            )
-        )
-
-        if not has_write:
-            raise RuntimeError(
-                "Generated lesson has no write action"
-            )
-
-        if not has_final_ask:
-            sequence.append(
-
-                TutorAction(
-
-                    type="ask",
-
-                    text="אפשר להסביר במילים שלכם מה למדתם עכשיו?"
-
-                )
-
-            )
-
-            # =============================================
-            # GUARANTEE AUDIO FOR THE LESSON
-            #
-            # אם המודל החזיר כתיבה ללא speak,
-            # מוסיפים הקראה אחרי כל קטע כתוב.
-            # כך כל ההסבר יישמע ולא רק שאלת הסיום.
-            # =============================================
-
-            has_explanation_speak = any(
-
-                action.type == "speak"
-
-                and bool(
-                    (
-                            action.text
-                            or action.speech_tts
-                            or ""
-                    ).strip()
-                )
-
-                for action in sequence
-
-            )
-
-            if not has_explanation_speak:
-
-                sequence_with_audio = []
-
-                for action in sequence:
-
-                    sequence_with_audio.append(
-                        action
-                    )
-
-                    # מוסיפים הקראה רק אחרי פעולת כתיבה
-                    # שיש בה טקסט אמיתי
-                    if (
-                            action.type == "write"
-
-                            and bool(
-                        (
-                                action.text
-                                or ""
-                        ).strip()
-                    )
-                    ):
-                        sequence_with_audio.append(
-
-                            TutorAction(
-                                type="speak",
-                                text=action.text
-                            )
-
-                        )
-
-                sequence = sequence_with_audio
-                
-            lesson_data.sequence = sequence
-            lesson_data.wait_for_answer = True
-
-        # ה-Backend קובע זאת בעצמו
-        lesson_data.wait_for_answer = True
 
         lesson_json = {
-            "speech":
-                lesson_data.speech,
 
-            "sequence": [
-                action.model_dump()
-                for action in sequence
-            ],
+            "generation_model":
+                UNIVERSAL_LESSON_MODEL,
 
-            "wait_for_answer":
-                True
+            "learning_objective":
+                unit_lesson.get("learning_objective"),
+
+            "lesson_complexity":
+                unit_lesson.get("lesson_complexity"),
+
+            "max_duration_seconds":
+                unit_lesson.get("max_duration_seconds"),
+
+            "lesson":
+                lesson_text
+
         }
 
         # =============================================
@@ -3621,24 +3709,10 @@ def get_or_generate_unit_lesson(
                 or 0
             )
 
-        openai_cost_usd = (
-
-            (
-                input_tokens
-                / 1_000_000
-            )
-            *
-            OPENAI_INPUT_COST_PER_1M
-
-            +
-
-            (
-                output_tokens
-                / 1_000_000
-            )
-            *
-            OPENAI_OUTPUT_COST_PER_1M
-
+        openai_cost_usd = calculate_openai_cost(
+            model=UNIVERSAL_LESSON_MODEL,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
         )
 
         increment_usage_summary(
@@ -3684,19 +3758,8 @@ def get_or_generate_unit_lesson(
             "content_version":
                 content_version,
 
-            "speech":
-                lesson_json.get(
-                    "speech"
-                ),
-
-            "sequence":
-                lesson_json.get(
-                    "sequence"
-                )
-                or [],
-
-            "wait_for_answer":
-                True
+            "lesson":
+                lesson_json.get("lesson")
         }
 
     except HTTPException:
@@ -4134,7 +4197,7 @@ def structured_lesson(
             .parse(
 
                 model=
-                "gpt-4o-mini",
+                DEFAULT_OPENAI_MODEL,
 
                 messages=[
 
@@ -4285,7 +4348,7 @@ def structured_lesson(
                     .parse(
 
                         model=
-                        "gpt-4o-mini",
+                        DEFAULT_OPENAI_MODEL,
 
                         messages=
                         retry_messages,
@@ -4361,6 +4424,7 @@ def structured_lesson(
                     text=greeting_text
                 )
             )
+
 
             lesson_data.sequence = sequence
 
@@ -4632,26 +4696,10 @@ def structured_lesson(
 
             )
 
-        openai_cost_usd = (
-
-                (
-                        input_tokens
-                        / 1_000_000
-                )
-
-                *
-                OPENAI_INPUT_COST_PER_1M
-
-                +
-
-                (
-                        output_tokens
-                        / 1_000_000
-                )
-
-                *
-                OPENAI_OUTPUT_COST_PER_1M
-
+        openai_cost_usd = calculate_openai_cost(
+            model=DEFAULT_OPENAI_MODEL,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
         )
 
         # =============================================
@@ -4947,7 +4995,7 @@ def homework_analyze(
                     "processing",
 
                 "vision_model":
-                    "gpt-4o-mini",
+                    DEFAULT_OPENAI_MODEL,
 
                 "vision_call_count":
                     0
@@ -5047,7 +5095,8 @@ def homework_analyze(
 
         response = client.chat.completions.create(
 
-            model="gpt-4o-mini",
+            model=
+            DEFAULT_OPENAI_MODEL,
 
             messages=[
 
@@ -5217,7 +5266,7 @@ def homework_analyze(
                 vision_status,
 
             "vision_model":
-                "gpt-4o-mini",
+                DEFAULT_OPENAI_MODEL,
 
             "vision_call_count":
                 1,
@@ -5456,7 +5505,8 @@ def tutor_chat(
         })
 
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+
+            model=DEFAULT_OPENAI_MODEL,
             messages=[
                 {
                     "role": "system",
@@ -5464,7 +5514,8 @@ def tutor_chat(
                 },
                 *recent_messages
             ],
-            response_format=TutorLessonResponse
+            response_format=
+            TutorLessonResponse
         )
 
         lesson_data = completion.choices[0].message.parsed
@@ -5509,12 +5560,17 @@ def tutor_chat(
                     completion.usage.completion_tokens or 0
             )
 
-        openai_cost_usd = (
-                (input_tokens / 1_000_000)
-                * OPENAI_INPUT_COST_PER_1M
-                +
-                (output_tokens / 1_000_000)
-                * OPENAI_OUTPUT_COST_PER_1M
+        openai_cost_usd = calculate_openai_cost(
+
+            model=
+            DEFAULT_OPENAI_MODEL,
+
+            input_tokens=
+            input_tokens,
+
+            output_tokens=
+            output_tokens
+
         )
 
         # שומרים את הודעת הילד ותשובת ה-AI יחד
