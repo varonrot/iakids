@@ -740,6 +740,10 @@ def get_unit_lesson(
             "generation_error, "
             "generated_at, "
             "tts_generated_at, "
+            "lesson_audio_json, "
+            "audio_generation_status, "
+            "audio_generation_error, "
+            "audio_generated_at, "
             "status, "
             "is_active"
         )
@@ -2906,7 +2910,244 @@ def normalize_universal_lesson_visuals(
 # =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
+LESSON_AUDIO_BUCKET = "lesson-audio"
 
+
+def generate_tts_wav_bytes(
+        text: str
+) -> tuple[bytes, float]:
+
+    clean_text = str(
+        text or ""
+    ).strip()
+
+    if not clean_text:
+        raise RuntimeError(
+            "Cannot generate audio for empty text"
+        )
+
+    response = gemini_client.models.generate_content(
+        model="gemini-3.1-flash-tts-preview",
+
+        contents=(
+            "Speak in natural, fluent Hebrew. "
+            "Sound like a warm, friendly and patient teacher "
+            "speaking naturally to a school-age child. "
+            "Use clear pronunciation and natural pauses. "
+            "Read exactly the following Hebrew text:\n\n"
+            + clean_text
+        ),
+
+        config=types.GenerateContentConfig(
+            temperature=2.0,
+
+            response_modalities=[
+                "AUDIO"
+            ],
+
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=
+                    types.PrebuiltVoiceConfig(
+                        voice_name="Aoede"
+                    )
+                )
+            )
+        )
+    )
+
+    audio_data = (
+        response
+        .candidates[0]
+        .content
+        .parts[0]
+        .inline_data
+        .data
+    )
+
+    if not audio_data:
+        raise RuntimeError(
+            "Gemini returned no audio data"
+        )
+
+    duration_seconds = (
+        len(audio_data)
+        / (24000 * 2)
+    )
+
+    wav_buffer = io.BytesIO()
+
+    with wave.open(
+            wav_buffer,
+            "wb"
+    ) as wav_file:
+
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(24000)
+        wav_file.writeframes(audio_data)
+
+    return (
+        wav_buffer.getvalue(),
+        duration_seconds
+    )
+
+
+def generate_and_store_lesson_audio(
+        unit_lesson_id: int,
+        structured_lesson: dict,
+        content_version: int
+) -> dict:
+
+    lesson_segments = (
+        structured_lesson.get("lesson")
+        or []
+    )
+
+    question_data = (
+        structured_lesson.get("question")
+        or {}
+    )
+
+    stored_segments = []
+
+    total_duration_seconds = 0.0
+
+    # =============================================
+    # LESSON SEGMENTS
+    # =============================================
+
+    for index, segment in enumerate(
+            lesson_segments,
+            start=1
+    ):
+
+        segment_text = str(
+            segment.get("text")
+            or ""
+        ).strip()
+
+        if not segment_text:
+            continue
+
+        wav_bytes, duration_seconds = (
+            generate_tts_wav_bytes(
+                segment_text
+            )
+        )
+
+        storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"segment_{index}.wav"
+        )
+
+        sb.storage.from_(
+            LESSON_AUDIO_BUCKET
+        ).upload(
+            path=storage_path,
+            file=wav_bytes,
+            file_options={
+                "content-type": "audio/wav",
+                "upsert": "true"
+            }
+        )
+
+        stored_segments.append({
+            "index":
+                index,
+
+            "path":
+                storage_path,
+
+            "duration_seconds":
+                round(
+                    duration_seconds,
+                    2
+                )
+        })
+
+        total_duration_seconds += (
+            duration_seconds
+        )
+
+    # =============================================
+    # FINAL QUESTION
+    # =============================================
+
+    stored_question = None
+
+    question_text = str(
+        question_data.get("text")
+        or ""
+    ).strip()
+
+    if question_text:
+
+        wav_bytes, duration_seconds = (
+            generate_tts_wav_bytes(
+                question_text
+            )
+        )
+
+        question_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"question.wav"
+        )
+
+        sb.storage.from_(
+            LESSON_AUDIO_BUCKET
+        ).upload(
+            path=question_path,
+            file=wav_bytes,
+            file_options={
+                "content-type": "audio/wav",
+                "upsert": "true"
+            }
+        )
+
+        stored_question = {
+            "path":
+                question_path,
+
+            "duration_seconds":
+                round(
+                    duration_seconds,
+                    2
+                )
+        }
+
+        total_duration_seconds += (
+            duration_seconds
+        )
+
+    if not stored_segments:
+        raise RuntimeError(
+            "No lesson audio segments were generated"
+        )
+
+    return {
+        "version":
+            content_version,
+
+        "bucket":
+            LESSON_AUDIO_BUCKET,
+
+        "segments":
+            stored_segments,
+
+        "question":
+            stored_question,
+
+        "total_duration_seconds":
+            round(
+                total_duration_seconds,
+                2
+            )
+    }
 @app.post("/api/tutor/tts")
 def tutor_tts(
         body: TutorTTSRequest,
@@ -3476,7 +3717,18 @@ def get_or_generate_unit_lesson(
                 "generated_lesson_json"
             )
         )
+        audio_generation_status = (
+                unit_lesson.get(
+                    "audio_generation_status"
+                )
+                or "pending"
+        )
 
+        cached_audio = (
+            unit_lesson.get(
+                "lesson_audio_json"
+            )
+        )
         # =============================================
         # CACHE HIT
         # =============================================
@@ -3484,12 +3736,21 @@ def get_or_generate_unit_lesson(
         if (
                 generation_status == "ready"
                 and isinstance(
-            cached_json,
-            dict
-        )
+                    cached_json,
+                    dict
+                )
+                and isinstance(
+                    cached_json.get(
+                        "structured_lesson"
+                    ),
+                    dict
+                )
                 and cached_json.get(
-            "lesson"
-        )
+                    "structured_lesson",
+                    {}
+                ).get(
+                    "lesson"
+                )
         ):
             return {
 
@@ -3520,7 +3781,13 @@ def get_or_generate_unit_lesson(
                 "structured_lesson":
                     cached_json.get(
                         "structured_lesson"
-                    )
+                    ),
+
+                "audio_generation_status":
+                    audio_generation_status,
+
+                "lesson_audio":
+                    cached_audio
 
             }
 
@@ -3770,6 +4037,12 @@ def get_or_generate_unit_lesson(
             "generation_status":
                 "ready",
 
+            "audio_generation_status":
+                "pending",
+
+            "audio_generation_error":
+                None,
+
             "generation_error":
                 None,
 
@@ -3916,7 +4189,13 @@ def get_or_generate_unit_lesson(
             "structured_lesson":
                 lesson_json.get(
                     "structured_lesson"
-                )
+                ),
+
+            "audio_generation_status":
+                "pending",
+
+            "lesson_audio":
+                None
         }
 
     except HTTPException:
@@ -3970,7 +4249,350 @@ def get_or_generate_unit_lesson(
             status_code=500,
             detail="Unit lesson generation failed"
         )
+@app.post(
+    "/api/tutor/unit-lesson/audio"
+)
+def generate_unit_lesson_audio(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    unit_lesson = None
 
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # מוודאים שהילד שייך למשתמש
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD UNIT LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        generation_status = (
+            unit_lesson.get(
+                "generation_status"
+            )
+            or "empty"
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+        )
+
+        audio_generation_status = (
+            unit_lesson.get(
+                "audio_generation_status"
+            )
+            or "pending"
+        )
+
+        cached_audio = (
+            unit_lesson.get(
+                "lesson_audio_json"
+            )
+        )
+
+        # =============================================
+        # LESSON CONTENT MUST EXIST
+        # =============================================
+
+        if (
+                generation_status != "ready"
+                or not isinstance(
+                    generated_lesson_json,
+                    dict
+                )
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Lesson content is not ready"
+                )
+            )
+
+        structured_lesson = (
+            generated_lesson_json.get(
+                "structured_lesson"
+            )
+        )
+
+        if not isinstance(
+                structured_lesson,
+                dict
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Structured lesson is missing"
+                )
+            )
+
+        # =============================================
+        # AUDIO ALREADY READY
+        # =============================================
+
+        if (
+                audio_generation_status == "ready"
+                and isinstance(
+                    cached_audio,
+                    dict
+                )
+                and cached_audio.get(
+                    "segments"
+                )
+        ):
+            return {
+                "success": True,
+
+                "source":
+                    "cache",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "audio_generation_status":
+                    "ready",
+
+                "lesson_audio":
+                    cached_audio
+            }
+
+        # =============================================
+        # AUDIO ALREADY GENERATING
+        # =============================================
+
+        if (
+                audio_generation_status
+                == "generating"
+        ):
+            return {
+                "success": False,
+
+                "source":
+                    "generating",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "audio_generation_status":
+                    "generating",
+
+                "lesson_audio":
+                    None
+            }
+
+        # =============================================
+        # MARK AUDIO AS GENERATING
+        # =============================================
+
+        audio_started_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "audio_generation_status":
+                "generating",
+
+            "audio_generation_error":
+                None,
+
+            "updated_at":
+                audio_started_at
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # GENERATE AND STORE AUDIO
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        lesson_audio_json = (
+            generate_and_store_lesson_audio(
+
+                unit_lesson_id=
+                    unit_lesson["id"],
+
+                structured_lesson=
+                    structured_lesson,
+
+                content_version=
+                    content_version
+            )
+        )
+
+        audio_generated_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # SAVE AUDIO CACHE
+        # =============================================
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "lesson_audio_json":
+                lesson_audio_json,
+
+            "audio_generation_status":
+                "ready",
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                audio_generated_at,
+
+            "tts_generated_at":
+                audio_generated_at,
+
+            "updated_at":
+                audio_generated_at
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        return {
+            "success": True,
+
+            "source":
+                "generated",
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "audio_generation_status":
+                "ready",
+
+            "lesson_audio":
+                lesson_audio_json
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        error_message = repr(e)
+
+        print(
+            "UNIT LESSON AUDIO ERROR:",
+            error_message
+        )
+
+        if unit_lesson:
+
+            try:
+
+                sb.table(
+                    "lesson_units_content"
+                ).update({
+
+                    "audio_generation_status":
+                        "failed",
+
+                    "audio_generation_error":
+                        str(e)[:1500],
+
+                    "updated_at":
+                        datetime
+                        .now(timezone.utc)
+                        .isoformat()
+
+                }).eq(
+                    "id",
+                    unit_lesson["id"]
+                ).execute()
+
+            except Exception as update_error:
+
+                print(
+                    "UNIT LESSON AUDIO "
+                    "FAILURE UPDATE ERROR:",
+                    repr(update_error)
+                )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Unit lesson audio "
+                "generation failed"
+            )
+        )
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
