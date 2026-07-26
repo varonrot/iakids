@@ -9329,21 +9329,77 @@ async function runSimpleUniversalLesson(
   }
 
 
-  const lessonParts =
-    structuredLesson.lesson
+const lessonParts =
+  structuredLesson.lesson
 
-      .map(
-        part =>
-          (
-            part?.text
-            ||
-            ""
-          ).trim()
-      )
+    .map(
+      part => {
 
-      .filter(
-        Boolean
-      );
+        /*
+          תמיכה זמנית גם בקטעים ישנים
+          שנשמרו כמחרוזת בלבד.
+        */
+
+        if(
+          typeof part ===
+            "string"
+        ){
+
+          return {
+            text:
+              part.trim(),
+
+            animations:
+              [],
+
+            icons:
+              [],
+
+            pause_after:
+              false
+          };
+
+        }
+
+
+        return {
+
+          ...part,
+
+          text:
+            (
+              part?.text
+              ||
+              ""
+            ).trim(),
+
+          animations:
+            normalizeLessonAnimations(
+              part
+            ),
+
+          icons:
+            Array.isArray(
+              part?.icons
+            )
+              ? part.icons
+              : [],
+
+          pause_after:
+            part?.pause_after ===
+              true
+
+        };
+
+      }
+    )
+
+    .filter(
+      part =>
+        Boolean(
+          part.text
+        )
+    );
 
 
   const questionText =
@@ -9459,14 +9515,14 @@ async function runSimpleUniversalLesson(
      ליצור את האודיו של הקטע הבא.
   ============================================= */
 
-  const lessonAudioPromises =
-    lessonParts.map(
-      text =>
-        window.lessonRenderer
-          .preloadAudio(
-            text
-          )
-    );
+const lessonAudioPromises =
+  lessonParts.map(
+    segment =>
+      window.lessonRenderer
+        .preloadAudio(
+          segment.text
+        )
+  );
 
 
   const questionAudioPromise =
@@ -9490,8 +9546,12 @@ async function runSimpleUniversalLesson(
     index++
   ){
 
-    const paragraph =
-      lessonParts[index];
+const segment =
+  lessonParts[index];
+
+
+const paragraph =
+  segment.text;
 
 
     /*
@@ -9572,7 +9632,29 @@ async function runSimpleUniversalLesson(
       .playAudioUrl(
         audioUrl
       );
+/* =============================================
+   אנימציה קצרה אחרי סיום האודיו של הקטע
+============================================= */
 
+await playLessonSegmentAnimations(
+  line,
+  segment
+);
+
+
+/* =============================================
+   עצירה נוספת רק כאשר הבמאי ביקש אותה
+============================================= */
+
+if(
+  segment.pause_after
+){
+
+  await lessonSleep(
+    400
+  );
+
+}
   }
 
 
@@ -11056,6 +11138,574 @@ function animateImportantParts(element) {
   ) {
     element.classList.add("math-line");
   }
+}
+
+/* =====================================================
+   SIMPLE UNIVERSAL LESSON ANIMATION PLAYER
+===================================================== */
+
+function lessonSleep(
+  milliseconds
+){
+
+  return new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        milliseconds
+      )
+  );
+
+}
+
+
+/*
+  מנרמל את מבנה האנימציות.
+
+  תומך ב:
+  animations: ["highlight"]
+
+  animations: [
+    { type: "highlight" }
+  ]
+
+  animation: {
+    type: "highlight"
+  }
+*/
+
+function normalizeLessonAnimations(
+  segment
+){
+
+  if(
+    !segment
+    ||
+    typeof segment !==
+      "object"
+  ){
+
+    return [];
+
+  }
+
+
+  let rawAnimations =
+    segment.animations;
+
+
+  if(
+    !rawAnimations
+    &&
+    segment.animation
+  ){
+
+    rawAnimations = [
+      segment.animation
+    ];
+
+  }
+
+
+  if(
+    !Array.isArray(
+      rawAnimations
+    )
+  ){
+
+    return [];
+
+  }
+
+
+  return rawAnimations
+
+    .map(
+      animation => {
+
+        if(
+          typeof animation ===
+            "string"
+        ){
+
+          return {
+            type:
+              animation
+          };
+
+        }
+
+
+        if(
+          animation
+          &&
+          typeof animation ===
+            "object"
+        ){
+
+          return animation;
+
+        }
+
+
+        return null;
+
+      }
+    )
+
+    .filter(
+      Boolean
+    );
+
+}
+
+
+/*
+  מציג אייקונים שהגיעו מה-Director.
+
+  לדוגמה:
+  "icons": ["🚲", "⚙️"]
+*/
+
+async function showLessonSegmentIcons(
+  line,
+  icons
+){
+
+  if(
+    !Array.isArray(
+      icons
+    )
+    ||
+    icons.length === 0
+  ){
+
+    return;
+
+  }
+
+
+  const iconsWrap =
+    document.createElement(
+      "span"
+    );
+
+
+  iconsWrap.className =
+    "lesson-segment-icons";
+
+
+  icons
+    .slice(
+      0,
+      2
+    )
+    .forEach(
+      (
+        icon,
+        index
+      ) => {
+
+        if(
+          !icon
+        ){
+          return;
+        }
+
+
+        const iconElement =
+          document.createElement(
+            "span"
+          );
+
+
+        iconElement.className =
+          "lesson-segment-icon";
+
+
+        iconElement.textContent =
+          String(
+            icon
+          );
+
+
+        iconElement.style.animationDelay =
+          `${index * 90}ms`;
+
+
+        iconsWrap.appendChild(
+          iconElement
+        );
+
+      }
+    );
+
+
+  line.appendChild(
+    iconsWrap
+  );
+
+
+  await lessonSleep(
+    450
+  );
+
+}
+
+
+/*
+  מפעיל אנימציה יחידה.
+
+  כרגע האנימציות מופעלות על שורת הטקסט,
+  ולכן אין צורך בתמונות או Assets מיוחדים.
+*/
+
+async function playSingleLessonAnimation(
+  line,
+  animation
+){
+
+  const type =
+    String(
+      animation?.type
+      ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if(
+    !type
+    ||
+    type === "none"
+  ){
+
+    return;
+
+  }
+
+
+  switch(
+    type
+  ){
+
+    case "highlight": {
+
+      line.classList.add(
+        "lesson-animation-highlight"
+      );
+
+
+      await lessonSleep(
+        650
+      );
+
+
+      line.classList.remove(
+        "lesson-animation-highlight"
+      );
+
+
+      break;
+
+    }
+
+
+    case "pop":
+    case "pulse": {
+
+      line.classList.add(
+        "lesson-animation-pop"
+      );
+
+
+      await lessonSleep(
+        550
+      );
+
+
+      line.classList.remove(
+        "lesson-animation-pop"
+      );
+
+
+      break;
+
+    }
+
+
+    case "shake": {
+
+      line.classList.add(
+        "lesson-animation-shake"
+      );
+
+
+      await lessonSleep(
+        500
+      );
+
+
+      line.classList.remove(
+        "lesson-animation-shake"
+      );
+
+
+      break;
+
+    }
+
+
+    case "fade":
+    case "fade_in": {
+
+      line.classList.add(
+        "lesson-animation-fade"
+      );
+
+
+      await lessonSleep(
+        550
+      );
+
+
+      line.classList.remove(
+        "lesson-animation-fade"
+      );
+
+
+      break;
+
+    }
+
+
+    case "zoom":
+    case "zoom_in": {
+
+      line.classList.add(
+        "lesson-animation-zoom"
+      );
+
+
+      await lessonSleep(
+        550
+      );
+
+
+      line.classList.remove(
+        "lesson-animation-zoom"
+      );
+
+
+      break;
+
+    }
+
+
+    case "circle": {
+
+      line.classList.add(
+        "lesson-animation-circle"
+      );
+
+
+      await lessonSleep(
+        700
+      );
+
+
+      line.classList.remove(
+        "lesson-animation-circle"
+      );
+
+
+      break;
+
+    }
+
+
+    case "arrow": {
+
+      const arrow =
+        document.createElement(
+          "span"
+        );
+
+
+      arrow.className =
+        "lesson-segment-arrow";
+
+
+      arrow.textContent =
+        "➜";
+
+
+      line.appendChild(
+        arrow
+      );
+
+
+      await lessonSleep(
+        750
+      );
+
+
+      arrow.remove();
+
+
+      break;
+
+    }
+
+
+    case "sparkle":
+    case "sparkles": {
+
+      const sparkle =
+        document.createElement(
+          "span"
+        );
+
+
+      sparkle.className =
+        "lesson-segment-sparkle";
+
+
+      sparkle.textContent =
+        "✨";
+
+
+      line.appendChild(
+        sparkle
+      );
+
+
+      await lessonSleep(
+        750
+      );
+
+
+      sparkle.remove();
+
+
+      break;
+
+    }
+
+
+    case "check":
+    case "success": {
+
+      const check =
+        document.createElement(
+          "span"
+        );
+
+
+      check.className =
+        "lesson-segment-sparkle";
+
+
+      check.textContent =
+        "✅";
+
+
+      line.appendChild(
+        check
+      );
+
+
+      await lessonSleep(
+        750
+      );
+
+
+      check.remove();
+
+
+      break;
+
+    }
+
+
+    default: {
+
+      /*
+        סוג אנימציה שהפרונט עדיין לא מכיר.
+
+        לא עוצרים את השיעור ולא זורקים שגיאה.
+        משתמשים ב-pop עדין כברירת מחדל.
+      */
+
+      console.warn(
+        "UNKNOWN LESSON ANIMATION:",
+        animation
+      );
+
+
+      line.classList.add(
+        "lesson-animation-pop"
+      );
+
+
+      await lessonSleep(
+        450
+      );
+
+
+      line.classList.remove(
+        "lesson-animation-pop"
+      );
+
+    }
+
+  }
+
+}
+
+
+/*
+  מפעיל את האנימציות של הקטע לפי הסדר.
+*/
+
+async function playLessonSegmentAnimations(
+  line,
+  segment
+){
+
+  const animations =
+    normalizeLessonAnimations(
+      segment
+    );
+
+
+  /*
+    כדי לא ליצור מופע ארוך ורועש,
+    מפעילים לכל היותר שתי אנימציות לקטע.
+  */
+
+  for(
+    const animation
+    of animations.slice(
+      0,
+      2
+    )
+  ){
+
+    await playSingleLessonAnimation(
+      line,
+      animation
+    );
+
+  }
+
+
+  await showLessonSegmentIcons(
+    line,
+    segment?.icons
+  );
+
 }
 
 async function runTutorResponse(data){
@@ -14707,6 +15357,298 @@ document.addEventListener(
     font-size:21px;
   }
 
+}
+
+    /* =====================================================
+   SIMPLE LESSON SEGMENT ANIMATIONS
+===================================================== */
+
+.tutor-writing{
+  position:relative;
+  transform-origin:center right;
+}
+
+/* הדגשה צבעונית קצרה */
+.tutor-writing.lesson-animation-highlight{
+  animation:lessonHighlight .65s ease;
+}
+
+@keyframes lessonHighlight{
+  0%{
+    background:transparent;
+  }
+
+  35%{
+    background:
+      linear-gradient(
+        transparent 58%,
+        rgba(255,221,71,.72) 58%
+      );
+  }
+
+  100%{
+    background:transparent;
+  }
+}
+
+
+/* קפיצה קטנה */
+.tutor-writing.lesson-animation-pop{
+  animation:lessonPop .55s ease;
+}
+
+@keyframes lessonPop{
+  0%{
+    transform:scale(1);
+  }
+
+  45%{
+    transform:scale(1.045);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+}
+
+
+/* רעד עדין */
+.tutor-writing.lesson-animation-shake{
+  animation:lessonShake .5s ease;
+}
+
+@keyframes lessonShake{
+  0%,
+  100%{
+    transform:translateX(0);
+  }
+
+  20%{
+    transform:translateX(-5px);
+  }
+
+  40%{
+    transform:translateX(5px);
+  }
+
+  60%{
+    transform:translateX(-3px);
+  }
+
+  80%{
+    transform:translateX(3px);
+  }
+}
+
+
+/* כניסה עדינה */
+.tutor-writing.lesson-animation-fade{
+  animation:lessonFade .55s ease;
+}
+
+@keyframes lessonFade{
+  0%{
+    opacity:.3;
+    transform:translateY(7px);
+  }
+
+  100%{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+
+/* הגדלה קצרה */
+.tutor-writing.lesson-animation-zoom{
+  animation:lessonZoom .55s ease;
+}
+
+@keyframes lessonZoom{
+  0%{
+    transform:scale(.94);
+    opacity:.65;
+  }
+
+  100%{
+    transform:scale(1);
+    opacity:1;
+  }
+}
+
+
+/* מסגרת עגולה סביב כל הקטע */
+.tutor-writing.lesson-animation-circle::after{
+  content:"";
+
+  position:absolute;
+  inset:-5px -10px;
+
+  border:3px solid #ffb400;
+  border-radius:18px;
+
+  pointer-events:none;
+
+  animation:lessonCircle .7s ease forwards;
+}
+
+@keyframes lessonCircle{
+  0%{
+    opacity:0;
+    transform:scale(.92);
+  }
+
+  50%{
+    opacity:1;
+    transform:scale(1.025);
+  }
+
+  100%{
+    opacity:0;
+    transform:scale(1);
+  }
+}
+
+
+/* חץ קטן שמצביע על הקטע */
+.lesson-segment-arrow{
+  position:absolute;
+
+  right:-43px;
+  top:50%;
+
+  transform:
+    translateY(-50%)
+    translateX(8px);
+
+  font-family:Arial, sans-serif;
+  font-size:32px;
+  color:#7048ff;
+
+  opacity:0;
+  pointer-events:none;
+
+  animation:lessonArrow .75s ease forwards;
+}
+
+@keyframes lessonArrow{
+  0%{
+    opacity:0;
+    transform:
+      translateY(-50%)
+      translateX(12px);
+  }
+
+  35%{
+    opacity:1;
+    transform:
+      translateY(-50%)
+      translateX(0);
+  }
+
+  75%{
+    opacity:1;
+  }
+
+  100%{
+    opacity:0;
+    transform:
+      translateY(-50%)
+      translateX(-4px);
+  }
+}
+
+
+/* נצנוץ קצר */
+.lesson-segment-sparkle{
+  position:absolute;
+
+  left:8px;
+  top:-22px;
+
+  font-family:Arial, sans-serif;
+  font-size:29px;
+
+  opacity:0;
+  pointer-events:none;
+
+  animation:lessonSparkle .75s ease forwards;
+}
+
+@keyframes lessonSparkle{
+  0%{
+    opacity:0;
+    transform:
+      scale(.5)
+      rotate(-18deg);
+  }
+
+  45%{
+    opacity:1;
+    transform:
+      scale(1.15)
+      rotate(8deg);
+  }
+
+  100%{
+    opacity:0;
+    transform:
+      scale(.85)
+      rotate(18deg);
+  }
+}
+
+
+/* אייקון שהבמאי מחזיר */
+.lesson-segment-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  min-width:45px;
+  height:45px;
+
+  margin-top:4px;
+  margin-left:8px;
+  padding:0 9px;
+
+  border-radius:15px;
+
+  background:rgba(255,255,255,.92);
+
+  box-shadow:
+    0 7px 18px
+    rgba(60,70,130,.14);
+
+  font-family:Arial, sans-serif;
+  font-size:27px;
+
+  opacity:0;
+
+  animation:lessonIconPop .7s ease forwards;
+}
+
+@keyframes lessonIconPop{
+  0%{
+    opacity:0;
+    transform:
+      translateY(8px)
+      scale(.65);
+  }
+
+  55%{
+    opacity:1;
+    transform:
+      translateY(-2px)
+      scale(1.12);
+  }
+
+  100%{
+    opacity:1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
 }
 
 </style>
