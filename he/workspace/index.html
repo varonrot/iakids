@@ -9225,9 +9225,13 @@ throw new Error(
 if(
   data.generation_status === "ready"
   &&
-  typeof data.lesson === "string"
+  data.structured_lesson
   &&
-  data.lesson.trim().length > 0
+  Array.isArray(
+    data.structured_lesson.lesson
+  )
+  &&
+  data.structured_lesson.lesson.length > 0
 ){
   return data;
 }
@@ -9293,37 +9297,87 @@ if(
    ומנגן את האודיו.
 ===================================================== */
 
+/* =====================================================
+   STRUCTURED UNIVERSAL LESSON WITH SEGMENT AUDIO
+
+   - מקבל קטעים שכבר חולקו ב-Backend
+   - מתחיל ליצור את כל קובצי האודיו במקביל
+   - מציג ומשמיע כל קטע לפי הסדר
+   - מציג ומשמיע את שאלת הסיום בנפרד
+===================================================== */
+
 async function runSimpleUniversalLesson(
   data
 ){
 
-  const lessonText =
+  const structuredLesson =
+    data?.structured_lesson;
+
+
+  if(
+    !structuredLesson
+    ||
+    !Array.isArray(
+      structuredLesson.lesson
+    )
+  ){
+
+    throw new Error(
+      "Universal lesson has no structured lesson"
+    );
+
+  }
+
+
+  const lessonParts =
+    structuredLesson.lesson
+
+      .map(
+        part =>
+          (
+            part?.text
+            ||
+            ""
+          ).trim()
+      )
+
+      .filter(
+        Boolean
+      );
+
+
+  const questionText =
     (
-      data?.lesson
+      structuredLesson
+        ?.question
+        ?.text
       ||
       ""
     ).trim();
 
 
   if(
-    !lessonText
+    lessonParts.length === 0
   ){
 
     throw new Error(
-      "Universal lesson has no lesson text"
+      "Structured lesson has no lesson parts"
     );
 
   }
 
 
   console.log(
-    "SIMPLE UNIVERSAL LESSON:",
-    lessonText
+    "STRUCTURED UNIVERSAL LESSON:",
+    {
+      lessonParts,
+      questionText
+    }
   );
 
 
   /* =============================================
-     פתיחת הרשאת אודיו
+     פתיחת הרשאת שמע בדפדפן
   ============================================= */
 
   await unlockLessonAudio();
@@ -9338,51 +9392,6 @@ async function runSimpleUniversalLesson(
     );
 
   }
-
-
-  /* =============================================
-     חלוקה לפסקאות
-  ============================================= */
-
-  const paragraphs =
-    lessonText
-
-      .split(
-        /\n\s*\n/
-      )
-
-      .map(
-        paragraph =>
-          paragraph.trim()
-      )
-
-      .filter(
-        Boolean
-      );
-
-
-  /* אם המודל לא החזיר שורות ריקות,
-     נחלק לפי שורות רגילות */
-
-  const lessonParts =
-    paragraphs.length > 1
-
-      ? paragraphs
-
-      : lessonText
-
-          .split(
-            /\n+/
-          )
-
-          .map(
-            paragraph =>
-              paragraph.trim()
-          )
-
-          .filter(
-            Boolean
-          );
 
 
   /* =============================================
@@ -9438,133 +9447,182 @@ async function runSimpleUniversalLesson(
   );
 
 
-  /* =============================================
-     הצגת הפסקאות
-  ============================================= */
-
-  lessonParts.forEach(
-    (
-      paragraph,
-      index
-    ) => {
-
-      const line =
-        document.createElement(
-          "div"
-        );
-
-
-      line.className =
-        "tutor-writing";
-
-
-      line.textContent =
-        paragraph;
-
-
-      /*
-        הפסקה האחרונה אמורה להיות
-        שאלת ההבנה.
-      */
-
-      if(
-        index ===
-          lessonParts.length - 1
-
-        &&
-
-        paragraph.includes(
-          "?"
-        )
-      ){
-
-        line.classList.add(
-          "question-line"
-        );
-
-      }
-
-
-      writingArea.appendChild(
-        line
-      );
-
-    }
-  );
-
-
   messagesEl.scrollTop =
     messagesEl.scrollHeight;
 
 
   /* =============================================
-     יצירת אודיו לכל השיעור
+     יצירת כל האודיו במקביל
 
-     משתמשים בפונקציית ה-TTS
-     שכבר קיימת ב-Renderer.
+     כל Promise מתחיל מיד.
+     לא מחכים לסיום קטע אחד כדי להתחיל
+     ליצור את האודיו של הקטע הבא.
   ============================================= */
 
-  const audioUrl =
-    await window.lessonRenderer
-      .preloadAudio(
-        lessonText
+  const lessonAudioPromises =
+    lessonParts.map(
+      text =>
+        window.lessonRenderer
+          .preloadAudio(
+            text
+          )
+    );
+
+
+  const questionAudioPromise =
+    questionText
+
+      ? window.lessonRenderer
+          .preloadAudio(
+            questionText
+          )
+
+      : null;
+
+
+  /* =============================================
+     הצגה והשמעה לפי הסדר
+  ============================================= */
+
+  for(
+    let index = 0;
+    index < lessonParts.length;
+    index++
+  ){
+
+    const paragraph =
+      lessonParts[index];
+
+
+    /*
+      מחכים רק לאודיו של הקטע הנוכחי.
+
+      בזמן הזה שאר קובצי האודיו
+      ממשיכים להיווצר במקביל.
+    */
+
+    const audioUrl =
+      await lessonAudioPromises[
+        index
+      ];
+
+
+    if(
+      !audioUrl
+    ){
+
+      throw new Error(
+        `Lesson TTS returned no audio for part ${index + 1}`
+      );
+
+    }
+
+
+    /* =============================================
+       הצגת הקטע הנוכחי
+    ============================================= */
+
+    const line =
+      document.createElement(
+        "div"
       );
 
 
-  if(
-    !audioUrl
-  ){
+    line.className =
+      "tutor-writing";
 
-    throw new Error(
-      "Lesson TTS returned no audio"
+
+    line.textContent =
+      paragraph;
+
+
+    writingArea.appendChild(
+      line
     );
+
+
+    animateImportantParts(
+      line
+    );
+
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
+
+    /*
+      ברגע שהקטע הראשון מוכן,
+      סוגרים את חלון הטעינה.
+    */
+
+    if(
+      index === 0
+    ){
+
+      hideLessonLoading();
+
+    }
+
+
+    /* =============================================
+       השמעת אודיו הקטע
+    ============================================= */
+
+    await window.lessonRenderer
+      .playAudioUrl(
+        audioUrl
+      );
 
   }
 
 
-  const audio =
-    new Audio(
-      audioUrl
+  /* =============================================
+     שאלת הסיום
+  ============================================= */
+
+  if(
+    questionText
+  ){
+
+    const questionAudioUrl =
+      await questionAudioPromise;
+
+
+    const questionLine =
+      document.createElement(
+        "div"
+      );
+
+
+    questionLine.className =
+      "tutor-writing question-line";
+
+
+    questionLine.textContent =
+      questionText;
+
+
+    writingArea.appendChild(
+      questionLine
     );
 
 
-  /*
-    האודיו מוכן — אפשר לסגור
-    את חלון "מכינים את השיעור".
-  */
-
-  hideLessonLoading();
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
 
 
-  await new Promise(
-    (
-      resolve,
-      reject
-    ) => {
+    if(
+      questionAudioUrl
+    ){
 
-      audio.onended =
-        resolve;
-
-
-      audio.onerror =
-        () => {
-
-          reject(
-            new Error(
-              "Lesson audio playback failed"
-            )
-          );
-
-        };
-
-
-      audio.play()
-        .catch(
-          reject
+      await window.lessonRenderer
+        .playAudioUrl(
+          questionAudioUrl
         );
 
     }
-  );
+
+  }
 
 
   /* =============================================
