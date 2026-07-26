@@ -1,4 +1,10 @@
-from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi import (
+    FastAPI,
+    Header,
+    HTTPException,
+    Response,
+    BackgroundTasks
+)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
@@ -3148,6 +3154,265 @@ def generate_and_store_lesson_audio(
                 2
             )
     }
+def generate_unit_lesson_audio_background(
+        unit_lesson_id: int
+):
+    """
+    יצירת אודיו לשיעור ברקע.
+
+    הפונקציה אינה תלויה ב-request של המשתמש.
+    היא שולפת את השיעור מהמסד,
+    יוצרת קבצי WAV,
+    מעלה אותם ל-Storage
+    ומעדכנת את סטטוס האודיו.
+    """
+
+    try:
+
+        # =============================================
+        # LOAD LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generation_status = (
+            unit_lesson.get(
+                "generation_status"
+            )
+            or "empty"
+        )
+
+        audio_generation_status = (
+            unit_lesson.get(
+                "audio_generation_status"
+            )
+            or "pending"
+        )
+
+        cached_audio = (
+            unit_lesson.get(
+                "lesson_audio_json"
+            )
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+        )
+
+        # =============================================
+        # CONTENT MUST BE READY
+        # =============================================
+
+        if generation_status != "ready":
+            print(
+                "BACKGROUND AUDIO SKIPPED: "
+                "lesson content is not ready:",
+                unit_lesson_id
+            )
+            return
+
+        if not isinstance(
+                generated_lesson_json,
+                dict
+        ):
+            print(
+                "BACKGROUND AUDIO SKIPPED: "
+                "generated lesson JSON is missing:",
+                unit_lesson_id
+            )
+            return
+
+        structured_lesson = (
+            generated_lesson_json.get(
+                "structured_lesson"
+            )
+        )
+
+        if not isinstance(
+                structured_lesson,
+                dict
+        ):
+            print(
+                "BACKGROUND AUDIO SKIPPED: "
+                "structured lesson is missing:",
+                unit_lesson_id
+            )
+            return
+
+        # =============================================
+        # ALREADY READY
+        # =============================================
+
+        if (
+                audio_generation_status == "ready"
+                and isinstance(
+                    cached_audio,
+                    dict
+                )
+                and cached_audio.get(
+                    "segments"
+                )
+        ):
+            print(
+                "BACKGROUND AUDIO ALREADY READY:",
+                unit_lesson_id
+            )
+            return
+
+        # =============================================
+        # ALREADY GENERATING
+        # =============================================
+
+        if audio_generation_status == "generating":
+            print(
+                "BACKGROUND AUDIO ALREADY GENERATING:",
+                unit_lesson_id
+            )
+            return
+
+        # =============================================
+        # MARK AS GENERATING
+        # =============================================
+
+        audio_started_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "audio_generation_status":
+                "generating",
+
+            "audio_generation_error":
+                None,
+
+            "updated_at":
+                audio_started_at
+
+        }).eq(
+            "id",
+            unit_lesson_id
+        ).execute()
+
+        print(
+            "BACKGROUND AUDIO STARTED:",
+            unit_lesson_id
+        )
+
+        # =============================================
+        # GENERATE AUDIO
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        lesson_audio_json = (
+            generate_and_store_lesson_audio(
+
+                unit_lesson_id=
+                    unit_lesson_id,
+
+                structured_lesson=
+                    structured_lesson,
+
+                content_version=
+                    content_version
+            )
+        )
+
+        audio_generated_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # SAVE RESULT
+        # =============================================
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "lesson_audio_json":
+                lesson_audio_json,
+
+            "audio_generation_status":
+                "ready",
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                audio_generated_at,
+
+            "tts_generated_at":
+                audio_generated_at,
+
+            "updated_at":
+                audio_generated_at
+
+        }).eq(
+            "id",
+            unit_lesson_id
+        ).execute()
+
+        print(
+            "BACKGROUND AUDIO READY:",
+            unit_lesson_id
+        )
+
+    except Exception as e:
+
+        error_message = repr(e)
+
+        print(
+            "BACKGROUND AUDIO ERROR:",
+            unit_lesson_id,
+            error_message
+        )
+
+        try:
+
+            sb.table(
+                "lesson_units_content"
+            ).update({
+
+                "audio_generation_status":
+                    "failed",
+
+                "audio_generation_error":
+                    str(e)[:1500],
+
+                "updated_at":
+                    datetime
+                    .now(timezone.utc)
+                    .isoformat()
+
+            }).eq(
+                "id",
+                unit_lesson_id
+            ).execute()
+
+        except Exception as update_error:
+
+            print(
+                "BACKGROUND AUDIO FAILURE "
+                "UPDATE ERROR:",
+                repr(update_error)
+            )
 @app.post("/api/tutor/tts")
 def tutor_tts(
         body: TutorTTSRequest,
@@ -3634,6 +3899,7 @@ def lesson_intro(
 )
 def get_or_generate_unit_lesson(
         body: UnitLessonRequest,
+        background_tasks: BackgroundTasks,
         authorization: str = Header(None)
 ):
     unit_lesson = None
@@ -3752,6 +4018,16 @@ def get_or_generate_unit_lesson(
                     "lesson"
                 )
         ):
+
+            if audio_generation_status in (
+                    "pending",
+                    "failed"
+            ):
+                background_tasks.add_task(
+                    generate_unit_lesson_audio_background,
+                    unit_lesson["id"]
+                )
+
             return {
 
                 "success": True,
@@ -4159,7 +4435,14 @@ def get_or_generate_unit_lesson(
             )
 
         )
+        # =============================================
+        # START AUDIO GENERATION IN BACKGROUND
+        # =============================================
 
+        background_tasks.add_task(
+            generate_unit_lesson_audio_background,
+            unit_lesson["id"]
+        )
         # =============================================
         # RESPONSE
         # =============================================
