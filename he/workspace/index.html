@@ -9419,7 +9419,40 @@ async function runSimpleUniversalLesson(
       ||
       ""
     ).trim();
+const normalizeUniversalText =
+  text =>
+    String(
+      text || ""
+    )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim();
 
+
+const questionAlreadyIncluded =
+  Boolean(
+    questionText
+    &&
+    lessonParts.length > 0
+    &&
+    normalizeUniversalText(
+      lessonParts[
+        lessonParts.length - 1
+      ]
+    )
+    ===
+    normalizeUniversalText(
+      questionText
+    )
+  );
+
+
+console.log(
+  "QUESTION ALREADY INCLUDED:",
+  questionAlreadyIncluded
+);
 
   if(
     lessonParts.length === 0
@@ -9804,6 +9837,8 @@ animateImportantParts(
 
   if(
     questionText
+    &&
+    !questionAlreadyIncluded
   ){
 
     const questionAudioUrl =
