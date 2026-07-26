@@ -9421,33 +9421,59 @@ async function runSimpleUniversalLesson(
     ).trim();
 const normalizeUniversalText =
   text =>
-    String(
-      text || ""
-    )
-      .replace(
-        /\s+/g,
-        " "
-      )
+    String(text || "")
+      .replace(/[?!.,:;״"'׳]/g, "")
+      .replace(/\s+/g, " ")
       .trim();
+
+
+const normalizedQuestion =
+  normalizeUniversalText(
+    questionText
+  );
+
+
+const normalizedLastPart =
+  normalizeUniversalText(
+    lessonParts[
+      lessonParts.length - 1
+    ]
+  );
 
 
 const questionAlreadyIncluded =
   Boolean(
-    questionText
+    normalizedQuestion
     &&
-    lessonParts.length > 0
+    normalizedLastPart
     &&
-    normalizeUniversalText(
-      lessonParts[
-        lessonParts.length - 1
-      ]
-    )
-    ===
-    normalizeUniversalText(
-      questionText
+    (
+      normalizedLastPart ===
+        normalizedQuestion
+
+      ||
+
+      normalizedLastPart.includes(
+        normalizedQuestion
+      )
+
+      ||
+
+      normalizedQuestion.includes(
+        normalizedLastPart
+      )
     )
   );
 
+
+console.log(
+  "QUESTION DUPLICATE CHECK:",
+  {
+    normalizedLastPart,
+    normalizedQuestion,
+    questionAlreadyIncluded
+  }
+);
 
 console.log(
   "QUESTION ALREADY INCLUDED:",
