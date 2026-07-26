@@ -9306,7 +9306,71 @@ if(
    - מציג ומשמיע כל קטע לפי הסדר
    - מציג ומשמיע את שאלת הסיום בנפרד
 ===================================================== */
+async function typeLessonText(
+  element,
+  text,
+  durationSeconds = null
+){
 
+  element.textContent = "";
+
+  /*
+    כאשר יש משך אודיו שמור,
+    מהירות הכתיבה מותאמת לאורך האודיו.
+  */
+
+  const calculatedDelay =
+    durationSeconds && text.length > 0
+
+      ? (
+          durationSeconds *
+          1000 /
+          text.length
+        )
+
+      : 35;
+
+
+  /*
+    מגבילים למהירות סבירה:
+    לא מהיר מדי ולא איטי מדי.
+  */
+
+  const delayMs =
+    Math.max(
+      18,
+      Math.min(
+        calculatedDelay,
+        75
+      )
+    );
+
+
+  for(
+    let index = 0;
+    index < text.length;
+    index++
+  ){
+
+    element.textContent +=
+      text[index];
+
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          delayMs
+        )
+    );
+
+  }
+
+}
 async function runSimpleUniversalLesson(
   data
 ){
@@ -9665,46 +9729,71 @@ console.log(
       "tutor-writing";
 
 
-    line.textContent =
-      paragraph;
+line.textContent = "";
 
 
-    writingArea.appendChild(
-      line
+writingArea.appendChild(
+  line
+);
+
+
+messagesEl.scrollTop =
+  messagesEl.scrollHeight;
+
+
+if(
+  index === 0
+){
+
+  hideLessonLoading();
+
+}
+
+
+/*
+  מתחילים את האודיו ואת הכתיבה יחד.
+*/
+
+const audioPromise =
+  window.lessonRenderer
+    .playAudioUrl(
+      audioUrl
     );
 
 
-    animateImportantParts(
-      line
-    );
+const segmentDuration =
+  useStoredAudio
+
+    ? Number(
+        storedSegments[
+          index
+        ]?.duration_seconds
+      )
+
+    : null;
 
 
-    messagesEl.scrollTop =
-      messagesEl.scrollHeight;
+const typingPromise =
+  typeLessonText(
+    line,
+    paragraph,
+    segmentDuration
+  );
 
 
-    /*
-      ברגע שהקטע הראשון מוכן,
-      סוגרים את חלון הטעינה.
-    */
+/*
+  מחכים שגם האודיו וגם הכתיבה יסתיימו.
+*/
 
-    if(
-      index === 0
-    ){
-
-      hideLessonLoading();
-
-    }
+await Promise.all([
+  audioPromise,
+  typingPromise
+]);
 
 
-    /* =============================================
-       השמעת אודיו הקטע
-    ============================================= */
-
-    await window.lessonRenderer
-      .playAudioUrl(
-        audioUrl
-      );
+animateImportantParts(
+  line
+);
 
   }
 
@@ -9742,29 +9831,63 @@ console.log(
       "tutor-writing question-line";
 
 
-    questionLine.textContent =
-      questionText;
+questionLine.textContent = "";
 
 
-    writingArea.appendChild(
-      questionLine
+writingArea.appendChild(
+  questionLine
+);
+
+
+messagesEl.scrollTop =
+  messagesEl.scrollHeight;
+
+
+if(
+  questionAudioUrl
+){
+
+  const questionAudioPlayback =
+    window.lessonRenderer
+      .playAudioUrl(
+        questionAudioUrl
+      );
+
+
+  const questionDuration =
+    useStoredAudio
+
+      ? Number(
+          lessonAudio
+            ?.question
+            ?.duration_seconds
+        )
+
+      : null;
+
+
+  const questionTyping =
+    typeLessonText(
+      questionLine,
+      questionText,
+      questionDuration
     );
 
 
-    messagesEl.scrollTop =
-      messagesEl.scrollHeight;
+  await Promise.all([
+    questionAudioPlayback,
+    questionTyping
+  ]);
 
+}
+else{
 
-    if(
-      questionAudioUrl
-    ){
+  await typeLessonText(
+    questionLine,
+    questionText
+  );
 
-      await window.lessonRenderer
-        .playAudioUrl(
-          questionAudioUrl
-        );
-
-    }
+}
 
   }
 
