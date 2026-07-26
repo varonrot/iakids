@@ -2917,7 +2917,163 @@ def normalize_universal_lesson_visuals(
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
 LESSON_AUDIO_BUCKET = "lesson-audio"
+LESSON_AUDIO_URL_EXPIRY_SECONDS = 3600
 
+
+def add_signed_urls_to_lesson_audio(
+        lesson_audio_json: dict | None
+) -> dict | None:
+
+    if not isinstance(
+            lesson_audio_json,
+            dict
+    ):
+        return None
+
+    bucket = (
+        lesson_audio_json.get(
+            "bucket"
+        )
+        or LESSON_AUDIO_BUCKET
+    )
+
+    raw_segments = (
+        lesson_audio_json.get(
+            "segments"
+        )
+        or []
+    )
+
+    signed_segments = []
+
+    for segment in raw_segments:
+
+        if not isinstance(
+                segment,
+                dict
+        ):
+            continue
+
+        path = str(
+            segment.get(
+                "path"
+            )
+            or ""
+        ).strip()
+
+        if not path:
+            continue
+
+        signed_response = (
+            sb.storage
+            .from_(
+                bucket
+            )
+            .create_signed_url(
+                path,
+                LESSON_AUDIO_URL_EXPIRY_SECONDS
+            )
+        )
+
+        signed_url = None
+
+        if isinstance(
+                signed_response,
+                dict
+        ):
+            signed_url = (
+                signed_response.get(
+                    "signedURL"
+                )
+                or signed_response.get(
+                    "signedUrl"
+                )
+                or signed_response.get(
+                    "signed_url"
+                )
+            )
+
+        if not signed_url:
+            raise RuntimeError(
+                f"Failed to create signed URL for {path}"
+            )
+
+        signed_segments.append({
+            **segment,
+            "url": signed_url
+        })
+
+    raw_question = (
+        lesson_audio_json.get(
+            "question"
+        )
+    )
+
+    signed_question = None
+
+    if isinstance(
+            raw_question,
+            dict
+    ):
+
+        question_path = str(
+            raw_question.get(
+                "path"
+            )
+            or ""
+        ).strip()
+
+        if question_path:
+
+            signed_response = (
+                sb.storage
+                .from_(
+                    bucket
+                )
+                .create_signed_url(
+                    question_path,
+                    LESSON_AUDIO_URL_EXPIRY_SECONDS
+                )
+            )
+
+            signed_url = None
+
+            if isinstance(
+                    signed_response,
+                    dict
+            ):
+                signed_url = (
+                    signed_response.get(
+                        "signedURL"
+                    )
+                    or signed_response.get(
+                        "signedUrl"
+                    )
+                    or signed_response.get(
+                        "signed_url"
+                    )
+                )
+
+            if not signed_url:
+                raise RuntimeError(
+                    "Failed to create signed URL "
+                    "for lesson question"
+                )
+
+            signed_question = {
+                **raw_question,
+                "url": signed_url
+            }
+
+    return {
+        **lesson_audio_json,
+        "segments":
+            signed_segments,
+        "question":
+            signed_question,
+        "url_expires_in_seconds":
+            LESSON_AUDIO_URL_EXPIRY_SECONDS
+    }
 
 def generate_tts_wav_bytes(
         text: str
@@ -4028,6 +4184,21 @@ def get_or_generate_unit_lesson(
                     unit_lesson["id"]
                 )
 
+            response_audio = None
+
+            if (
+                    audio_generation_status == "ready"
+                    and isinstance(
+                        cached_audio,
+                        dict
+                    )
+            ):
+                response_audio = (
+                    add_signed_urls_to_lesson_audio(
+                        cached_audio
+                    )
+                )
+
             return {
 
                 "success": True,
@@ -4063,7 +4234,7 @@ def get_or_generate_unit_lesson(
                     audio_generation_status,
 
                 "lesson_audio":
-                    cached_audio
+                    response_audio
 
             }
 
@@ -4692,7 +4863,9 @@ def generate_unit_lesson_audio(
                     "ready",
 
                 "lesson_audio":
-                    cached_audio
+                    add_signed_urls_to_lesson_audio(
+                        cached_audio
+                    )
             }
 
         # =============================================
@@ -4822,7 +4995,9 @@ def generate_unit_lesson_audio(
                 "ready",
 
             "lesson_audio":
-                lesson_audio_json
+                add_signed_urls_to_lesson_audio(
+                    lesson_audio_json
+                )
         }
 
     except HTTPException:
