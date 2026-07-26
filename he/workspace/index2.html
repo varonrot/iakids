@@ -9222,24 +9222,19 @@ throw new Error(
       בין אם נוצר עכשיו ובין אם הגיע מה-Cache
     */
 
-    if(
-      data.generation_status ===
-        "ready"
-
-      &&
-
-      Array.isArray(
-        data.sequence
-      )
-
-      &&
-
-      data.sequence.length > 0
-    ){
-
-      return data;
-
-    }
+if(
+  data.generation_status === "ready"
+  &&
+  data.structured_lesson
+  &&
+  Array.isArray(
+    data.structured_lesson.lesson
+  )
+  &&
+  data.structured_lesson.lesson.length > 0
+){
+  return data;
+}
 
 
     /*
@@ -9290,6 +9285,368 @@ throw new Error(
   throw new Error(
     "Universal lesson generation timed out"
   );
+
+}
+
+/* =====================================================
+   SIMPLE UNIVERSAL LESSON
+
+   מציג את טקסט השיעור,
+   מחלק אותו לפסקאות,
+   שולח את כל הטקסט ל-Gemini TTS,
+   ומנגן את האודיו.
+===================================================== */
+
+/* =====================================================
+   STRUCTURED UNIVERSAL LESSON WITH SEGMENT AUDIO
+
+   - מקבל קטעים שכבר חולקו ב-Backend
+   - מתחיל ליצור את כל קובצי האודיו במקביל
+   - מציג ומשמיע כל קטע לפי הסדר
+   - מציג ומשמיע את שאלת הסיום בנפרד
+===================================================== */
+
+async function runSimpleUniversalLesson(
+  data
+){
+
+  const structuredLesson =
+    data?.structured_lesson;
+
+
+  if(
+    !structuredLesson
+    ||
+    !Array.isArray(
+      structuredLesson.lesson
+    )
+  ){
+
+    throw new Error(
+      "Universal lesson has no structured lesson"
+    );
+
+  }
+
+
+  const lessonParts =
+    structuredLesson.lesson
+
+      .map(
+        part =>
+          (
+            part?.text
+            ||
+            ""
+          ).trim()
+      )
+
+      .filter(
+        Boolean
+      );
+
+
+  const questionText =
+    (
+      structuredLesson
+        ?.question
+        ?.text
+      ||
+      ""
+    ).trim();
+
+
+  if(
+    lessonParts.length === 0
+  ){
+
+    throw new Error(
+      "Structured lesson has no lesson parts"
+    );
+
+  }
+
+
+  console.log(
+    "STRUCTURED UNIVERSAL LESSON:",
+    {
+      lessonParts,
+      questionText
+    }
+  );
+
+
+  /* =============================================
+     פתיחת הרשאת שמע בדפדפן
+  ============================================= */
+
+  await unlockLessonAudio();
+
+
+  if(
+    !window.lessonRenderer
+  ){
+
+    throw new Error(
+      "lessonRenderer not initialized"
+    );
+
+  }
+
+
+  /* =============================================
+     יצירת אזור השיעור במחברת
+  ============================================= */
+
+  const row =
+    document.createElement(
+      "div"
+    );
+
+
+  row.className =
+    "tutor-response";
+
+
+  const avatar =
+    document.createElement(
+      "img"
+    );
+
+
+  avatar.src =
+    "/assets/robots/askie-robot.png";
+
+
+  avatar.className =
+    "tutor-avatar";
+
+
+  const writingArea =
+    document.createElement(
+      "div"
+    );
+
+
+  writingArea.className =
+    "tutor-writing-area";
+
+
+  row.appendChild(
+    avatar
+  );
+
+
+  row.appendChild(
+    writingArea
+  );
+
+
+  messagesEl.appendChild(
+    row
+  );
+
+
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+
+
+  /* =============================================
+     יצירת כל האודיו במקביל
+
+     כל Promise מתחיל מיד.
+     לא מחכים לסיום קטע אחד כדי להתחיל
+     ליצור את האודיו של הקטע הבא.
+  ============================================= */
+
+  const lessonAudioPromises =
+    lessonParts.map(
+      text =>
+        window.lessonRenderer
+          .preloadAudio(
+            text
+          )
+    );
+
+
+  const questionAudioPromise =
+    questionText
+
+      ? window.lessonRenderer
+          .preloadAudio(
+            questionText
+          )
+
+      : null;
+
+
+  /* =============================================
+     הצגה והשמעה לפי הסדר
+  ============================================= */
+
+  for(
+    let index = 0;
+    index < lessonParts.length;
+    index++
+  ){
+
+    const paragraph =
+      lessonParts[index];
+
+
+    /*
+      מחכים רק לאודיו של הקטע הנוכחי.
+
+      בזמן הזה שאר קובצי האודיו
+      ממשיכים להיווצר במקביל.
+    */
+
+    const audioUrl =
+      await lessonAudioPromises[
+        index
+      ];
+
+
+    if(
+      !audioUrl
+    ){
+
+      throw new Error(
+        `Lesson TTS returned no audio for part ${index + 1}`
+      );
+
+    }
+
+
+    /* =============================================
+       הצגת הקטע הנוכחי
+    ============================================= */
+
+    const line =
+      document.createElement(
+        "div"
+      );
+
+
+    line.className =
+      "tutor-writing";
+
+
+    line.textContent =
+      paragraph;
+
+
+    writingArea.appendChild(
+      line
+    );
+
+
+    animateImportantParts(
+      line
+    );
+
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
+
+    /*
+      ברגע שהקטע הראשון מוכן,
+      סוגרים את חלון הטעינה.
+    */
+
+    if(
+      index === 0
+    ){
+
+      hideLessonLoading();
+
+    }
+
+
+    /* =============================================
+       השמעת אודיו הקטע
+    ============================================= */
+
+    await window.lessonRenderer
+      .playAudioUrl(
+        audioUrl
+      );
+
+  }
+
+
+  /* =============================================
+     שאלת הסיום
+  ============================================= */
+
+  if(
+    questionText
+  ){
+
+    const questionAudioUrl =
+      await questionAudioPromise;
+
+
+    const questionLine =
+      document.createElement(
+        "div"
+      );
+
+
+    questionLine.className =
+      "tutor-writing question-line";
+
+
+    questionLine.textContent =
+      questionText;
+
+
+    writingArea.appendChild(
+      questionLine
+    );
+
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
+
+    if(
+      questionAudioUrl
+    ){
+
+      await window.lessonRenderer
+        .playAudioUrl(
+          questionAudioUrl
+        );
+
+    }
+
+  }
+
+
+  /* =============================================
+     השיעור הסתיים ומחכים לתשובת הילד
+  ============================================= */
+
+  clearNoResponseTimer();
+
+
+  if(
+    currentLearningMode ===
+      "lesson"
+
+    &&
+
+    currentLessonId
+  ){
+
+    startNoResponseTimer();
+
+  }
+
+
+  inputEl.focus();
 
 }
 
@@ -9576,9 +9933,11 @@ const universalLessonPromise =
     session
   );
 
-
 /*
-  הפעלת הפתיח
+  הפעלת הפתיח האישי.
+
+  lesson-intro עדיין מחזיר sequence,
+  לכן הוא מופעל באמצעות runTutorResponse.
 */
 
 await runTutorResponse(
@@ -9586,46 +9945,44 @@ await runTutorResponse(
 );
 
 
-
-
-    /* =============================================
-       4. טעינת תוכן השיעור האוניברסלי
-    ============================================= */
+/* =============================================
+   טעינת תוכן השיעור האוניברסלי
+============================================= */
 
 const lessonData =
   await universalLessonPromise;
 
-    console.log(
-      "UNIVERSAL LESSON READY:",
-      lessonData
-    );
+
+console.log(
+  "UNIVERSAL LESSON READY:",
+  lessonData
+);
 
 
-    /* =============================================
-       5. מעבר למצב שיעור פעיל
+/* =============================================
+   מעבר למצב שיעור פעיל
+============================================= */
 
-       currentLessonId נשאר כרגע מזהה
-       learning_lessons הראשי, כי endpoint
-       התשובות הקיים /api/tutor/lesson
-       עובד מול הטבלה הזאת.
-    ============================================= */
-
-    currentLearningMode =
-      "lesson";
+currentLearningMode =
+  "lesson";
 
 
-    currentLessonId =
-      CURRENT_PARENT_LESSON.id;
+currentLessonId =
+  CURRENT_PARENT_LESSON.id;
 
 
-    /* =============================================
-       6. הפעלת תוכן השיעור
-    ============================================= */
+/* =============================================
+   הפעלת השיעור האוניברסלי הפשוט
 
-    await runTutorResponse(
-      lessonData
-    );
+   lessonData מכיל:
+   {
+     lesson: "..."
+   }
+============================================= */
 
+await runSimpleUniversalLesson(
+  lessonData
+);
 
     /*
       מסך הטעינה אמור להיסגר אוטומטית
