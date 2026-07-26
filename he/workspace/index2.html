@@ -9288,6 +9288,7 @@ if(
 
 }
 
+
 /* =====================================================
    SIMPLE UNIVERSAL LESSON
 
@@ -9305,7 +9306,71 @@ if(
    - מציג ומשמיע כל קטע לפי הסדר
    - מציג ומשמיע את שאלת הסיום בנפרד
 ===================================================== */
+async function typeLessonText(
+  element,
+  text,
+  durationSeconds = null
+){
 
+  element.textContent = "";
+
+  /*
+    כאשר יש משך אודיו שמור,
+    מהירות הכתיבה מותאמת לאורך האודיו.
+  */
+
+  const calculatedDelay =
+    durationSeconds && text.length > 0
+
+      ? (
+          durationSeconds *
+          1000 /
+          text.length
+        )
+
+      : 35;
+
+
+  /*
+    מגבילים למהירות סבירה:
+    לא מהיר מדי ולא איטי מדי.
+  */
+
+  const delayMs =
+    Math.max(
+      18,
+      Math.min(
+        calculatedDelay,
+        75
+      )
+    );
+
+
+  for(
+    let index = 0;
+    index < text.length;
+    index++
+  ){
+
+    element.textContent +=
+      text[index];
+
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          delayMs
+        )
+    );
+
+  }
+
+}
 async function runSimpleUniversalLesson(
   data
 ){
@@ -9459,26 +9524,158 @@ async function runSimpleUniversalLesson(
      ליצור את האודיו של הקטע הבא.
   ============================================= */
 
-  const lessonAudioPromises =
-    lessonParts.map(
-      text =>
-        window.lessonRenderer
-          .preloadAudio(
-            text
+  /* =============================================
+     AUDIO SOURCE
+
+     עדיפות ראשונה:
+     קבצים שמורים ב-Supabase Storage.
+
+     fallback:
+     TTS חי רק אם האודיו עדיין לא מוכן.
+  ============================================= */
+
+   /* =============================================
+     AUDIO SOURCE FROM BACKEND
+  ============================================= */
+
+  const lessonAudio =
+    data?.lesson_audio;
+console.log(
+  "UNIVERSAL LESSON AUDIO DEBUG:",
+  {
+    status:
+      data.audio_generation_status,
+
+    lessonPartsCount:
+      lessonParts.length,
+
+    storedSegmentsCount:
+      lessonAudio?.segments?.length,
+
+    segmentUrls:
+      lessonAudio?.segments?.map(
+        segment => segment.url
+      ),
+
+    questionUrl:
+      lessonAudio?.question?.url
+  }
+);
+
+  const storedSegments =
+    Array.isArray(
+      lessonAudio?.segments
+    )
+      ? [...lessonAudio.segments]
+          .sort(
+            (a, b) =>
+              Number(a.index) -
+              Number(b.index)
           )
+      : [];
+
+
+  const useStoredAudio =
+    (
+      data.audio_generation_status ===
+        "ready"
+
+      &&
+
+      storedSegments.length ===
+        lessonParts.length
+
+      &&
+
+      storedSegments.every(
+        segment =>
+          Boolean(
+            segment?.url
+          )
+      )
     );
+
+
+  console.log(
+    "UNIVERSAL LESSON AUDIO SOURCE:",
+    useStoredAudio
+      ? "backend-signed-urls"
+      : "live-tts"
+  );
+
+
+  /*
+    שיעור עם audio ready חייב להשתמש
+    בקבצים השמורים.
+
+    אם חסרים URLs, לא שולחים 9 קריאות TTS.
+  */
+
+  if(
+    data.audio_generation_status ===
+      "ready"
+
+    &&
+
+    !useStoredAudio
+  ){
+
+    console.error(
+      "STORED LESSON AUDIO INVALID:",
+      lessonAudio
+    );
+
+    throw new Error(
+      "Stored lesson audio is ready but URLs are missing"
+    );
+
+  }
+
+
+  const lessonAudioPromises =
+    useStoredAudio
+
+      ? storedSegments.map(
+          segment =>
+            Promise.resolve(
+              segment.url
+            )
+        )
+
+      : lessonParts.map(
+          text =>
+            window.lessonRenderer
+              .preloadAudio(
+                text
+              )
+        );
+
+
+  const questionStoredUrl =
+    lessonAudio
+      ?.question
+      ?.url
+    ||
+    null;
 
 
   const questionAudioPromise =
     questionText
 
-      ? window.lessonRenderer
-          .preloadAudio(
-            questionText
-          )
+      ? (
+          useStoredAudio
+
+            ? Promise.resolve(
+                questionStoredUrl
+              )
+
+            : window.lessonRenderer
+                .preloadAudio(
+                  questionText
+                )
+        )
 
       : null;
-
 
   /* =============================================
      הצגה והשמעה לפי הסדר
@@ -9532,46 +9729,71 @@ async function runSimpleUniversalLesson(
       "tutor-writing";
 
 
-    line.textContent =
-      paragraph;
+line.textContent = "";
 
 
-    writingArea.appendChild(
-      line
+writingArea.appendChild(
+  line
+);
+
+
+messagesEl.scrollTop =
+  messagesEl.scrollHeight;
+
+
+if(
+  index === 0
+){
+
+  hideLessonLoading();
+
+}
+
+
+/*
+  מתחילים את האודיו ואת הכתיבה יחד.
+*/
+
+const audioPromise =
+  window.lessonRenderer
+    .playAudioUrl(
+      audioUrl
     );
 
 
-    animateImportantParts(
-      line
-    );
+const segmentDuration =
+  useStoredAudio
+
+    ? Number(
+        storedSegments[
+          index
+        ]?.duration_seconds
+      )
+
+    : null;
 
 
-    messagesEl.scrollTop =
-      messagesEl.scrollHeight;
+const typingPromise =
+  typeLessonText(
+    line,
+    paragraph,
+    segmentDuration
+  );
 
 
-    /*
-      ברגע שהקטע הראשון מוכן,
-      סוגרים את חלון הטעינה.
-    */
+/*
+  מחכים שגם האודיו וגם הכתיבה יסתיימו.
+*/
 
-    if(
-      index === 0
-    ){
-
-      hideLessonLoading();
-
-    }
+await Promise.all([
+  audioPromise,
+  typingPromise
+]);
 
 
-    /* =============================================
-       השמעת אודיו הקטע
-    ============================================= */
-
-    await window.lessonRenderer
-      .playAudioUrl(
-        audioUrl
-      );
+animateImportantParts(
+  line
+);
 
   }
 
@@ -9587,6 +9809,17 @@ async function runSimpleUniversalLesson(
     const questionAudioUrl =
       await questionAudioPromise;
 
+    if(
+      useStoredAudio
+      &&
+      !questionAudioUrl
+    ){
+
+      throw new Error(
+        "Stored question audio URL is missing"
+      );
+
+    }
 
     const questionLine =
       document.createElement(
@@ -9598,29 +9831,63 @@ async function runSimpleUniversalLesson(
       "tutor-writing question-line";
 
 
-    questionLine.textContent =
-      questionText;
+questionLine.textContent = "";
 
 
-    writingArea.appendChild(
-      questionLine
+writingArea.appendChild(
+  questionLine
+);
+
+
+messagesEl.scrollTop =
+  messagesEl.scrollHeight;
+
+
+if(
+  questionAudioUrl
+){
+
+  const questionAudioPlayback =
+    window.lessonRenderer
+      .playAudioUrl(
+        questionAudioUrl
+      );
+
+
+  const questionDuration =
+    useStoredAudio
+
+      ? Number(
+          lessonAudio
+            ?.question
+            ?.duration_seconds
+        )
+
+      : null;
+
+
+  const questionTyping =
+    typeLessonText(
+      questionLine,
+      questionText,
+      questionDuration
     );
 
 
-    messagesEl.scrollTop =
-      messagesEl.scrollHeight;
+  await Promise.all([
+    questionAudioPlayback,
+    questionTyping
+  ]);
 
+}
+else{
 
-    if(
-      questionAudioUrl
-    ){
+  await typeLessonText(
+    questionLine,
+    questionText
+  );
 
-      await window.lessonRenderer
-        .playAudioUrl(
-          questionAudioUrl
-        );
-
-    }
+}
 
   }
 
