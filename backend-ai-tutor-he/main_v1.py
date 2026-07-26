@@ -1,4 +1,10 @@
-from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi import (
+    FastAPI,
+    Header,
+    HTTPException,
+    Response,
+    BackgroundTasks
+)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
@@ -25,24 +31,89 @@ HOMEWORK_VISION_PROMPT_PATH = Path(
 LESSON_PROMPT_PATH = Path(
     "prompts/iakids_structured_lesson_prompt.txt"
 )
+UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
+    "prompts/iakids_universal_unit_lesson_prompt.txt"
+)
+LESSON_DIRECTOR_PROMPT_PATH = Path(
+    "prompts/lesson_director_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 # =====================================================
-# MODEL PRICING - USD
+# OPENAI MODELS
 # =====================================================
 
-# GPT-4o mini
-OPENAI_INPUT_COST_PER_1M = 0.15
-OPENAI_OUTPUT_COST_PER_1M = 0.60
+# מודל זול לפעולות שוטפות:
+# צ'אט, המשך שיעור, הערכה וניתוח שיעורי בית
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 
-# Gemini TTS
-GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 20.00
-GEMINI_AUDIO_TOKENS_PER_SECOND = 32
+# המודל החזק ביותר משמש אך ורק ליצירת
+# תוכן שיעור אוניברסלי חדש שנשמר במטמון
+UNIVERSAL_LESSON_MODEL = "gpt-5.6-sol"
+
+
 # =====================================================
-# STRUCTURED LESSON PEDAGOGICAL ENGINE
+# MODEL PRICING - USD PER 1M TOKENS
 # =====================================================
+
+MODEL_PRICING_USD = {
+
+    "gpt-4o-mini": {
+        "input": 0.15,
+        "output": 0.60
+    },
+
+    "gpt-5.6-sol": {
+        "input": 5.00,
+        "output": 30.00
+    }
+
+}
+
+# =====================================================
+# GEMINI TTS PRICING
+# =====================================================
+
+# כמות משוערת של Audio Tokens לשנייה
+GEMINI_AUDIO_TOKENS_PER_SECOND = 25
+
+# מחיר פלט אודיו (USD לכל מיליון Audio Tokens)
+GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M = 10.0
+
+
+def calculate_openai_cost(
+        model: str,
+        input_tokens: int = 0,
+        output_tokens: int = 0
+) -> float:
+
+    pricing = MODEL_PRICING_USD.get(
+        model
+    )
+
+    if not pricing:
+        print(
+            "WARNING: Missing pricing for model:",
+            model
+        )
+        return 0.0
+
+    input_cost = (
+        int(input_tokens or 0)
+        / 1_000_000
+        * pricing["input"]
+    )
+
+    output_cost = (
+        int(output_tokens or 0)
+        / 1_000_000
+        * pricing["output"]
+    )
+
+    return input_cost + output_cost
 
 # =====================================================
 # STRUCTURED LESSON PEDAGOGICAL ENGINE
@@ -156,6 +227,16 @@ if not LESSON_PROMPT_PATH.exists():
         f"Missing lesson prompt file: "
         f"{LESSON_PROMPT_PATH}"
     )
+if not UNIVERSAL_UNIT_LESSON_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing universal unit lesson prompt file: "
+        f"{UNIVERSAL_UNIT_LESSON_PROMPT_PATH}"
+    )
+if not LESSON_DIRECTOR_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing lesson director prompt file: "
+        f"{LESSON_DIRECTOR_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -165,6 +246,18 @@ if not HOMEWORK_VISION_PROMPT_PATH.exists():
 TUTOR_PROMPT_TEMPLATE = PROMPT_PATH.read_text(encoding="utf-8")
 LESSON_PROMPT_TEMPLATE = (
     LESSON_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE = (
+    UNIVERSAL_UNIT_LESSON_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+LESSON_DIRECTOR_PROMPT_TEMPLATE = (
+    LESSON_DIRECTOR_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -257,13 +350,30 @@ class HomeworkAnalyzeRequest(BaseModel):
 
 
 class TutorAction(BaseModel):
+
     type: str
+
     text: str | None = None
+
     target: str | None = None
+
     style: str | None = None
+
     speed: int | None = None
+
     duration: int | None = None
+
     speech_tts: str | None = None
+
+    # =============================================
+    # VISUAL CARD
+    # =============================================
+
+    title: str | None = None
+
+    items: list[str] | None = None
+
+    icon: str | None = None
 
 
 class TutorLessonResponse(BaseModel):
@@ -271,12 +381,29 @@ class TutorLessonResponse(BaseModel):
     sequence: list[TutorAction]
     wait_for_answer: bool = False
 
+class UniversalLessonResponse(BaseModel):
+    lesson: str
+class DirectedLessonSegment(BaseModel):
+    text: str
+
+
+class DirectedLessonQuestion(BaseModel):
+    text: str
+
+
+class DirectedLessonResponse(BaseModel):
+    lesson: list[DirectedLessonSegment]
+    question: DirectedLessonQuestion
 
 # =====================================================
 # STRUCTURED LESSON MODELS
 # =====================================================
 
 class LessonIntroRequest(BaseModel):
+    kid_id: str
+    unit_lesson_id: int
+
+class UnitLessonRequest(BaseModel):
     kid_id: str
     unit_lesson_id: int
 
@@ -610,6 +737,19 @@ def get_unit_lesson(
             "lesson_order, "
             "lesson_name, "
             "intro_template_id, "
+            "learning_objective, "
+            "lesson_complexity, "
+            "max_duration_seconds, "
+            "generation_status, "
+            "content_version, "
+            "generated_lesson_json, "
+            "generation_error, "
+            "generated_at, "
+            "tts_generated_at, "
+            "lesson_audio_json, "
+            "audio_generation_status, "
+            "audio_generation_error, "
+            "audio_generated_at, "
             "status, "
             "is_active"
         )
@@ -2580,31 +2720,855 @@ def build_structured_lesson_prompt(
 
     )
 
+def build_universal_unit_lesson_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> str:
 
-# =====================================================
-# HEALTH
-# =====================================================
+    prompt = (
+        UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE
+    )
 
-@app.get("/")
-def root():
-    return {
-        "service": APP_NAME,
-        "status": "ok"
+    lesson_complexity = int(
+        unit_lesson.get(
+            "lesson_complexity"
+        )
+        or 2
+    )
+
+    max_duration_seconds = int(
+        unit_lesson.get(
+            "max_duration_seconds"
+        )
+        or 120
+    )
+
+    replacements = {
+
+        "{grade}":
+            str(
+                parent_lesson.get(
+                    "grade"
+                )
+                or ""
+            ),
+
+        "{subject}":
+            str(
+                parent_lesson.get(
+                    "subject"
+                )
+                or ""
+            ),
+
+        "{parent_lesson}":
+            str(
+                parent_lesson.get(
+                    "lesson_name"
+                )
+                or ""
+            ),
+
+        "{unit_name}":
+            str(
+                unit_lesson.get(
+                    "unit_name"
+                )
+                or ""
+            ),
+
+        "{lesson_name}":
+            str(
+                unit_lesson.get(
+                    "lesson_name"
+                )
+                or ""
+            ),
+
+        "{learning_objective}":
+            str(
+                unit_lesson.get(
+                    "learning_objective"
+                )
+                or ""
+            ),
+
+        "{lesson_complexity}":
+            str(
+                lesson_complexity
+            ),
+
+        "{max_duration_seconds}":
+            str(
+                max_duration_seconds
+            )
+
     }
 
+    for placeholder, value in replacements.items():
 
-@app.get("/api/tutor/health")
-def tutor_health():
-    return {
-        "status": "ok",
-        "service": "ai-tutor-he"
-    }
+        prompt = prompt.replace(
+            placeholder,
+            value
+        )
 
+    return prompt
+
+def build_lesson_director_prompt(
+        lesson_text: str
+) -> str:
+
+    return (
+        LESSON_DIRECTOR_PROMPT_TEMPLATE
+        .replace(
+            "{lesson_text}",
+            lesson_text
+        )
+    )
+
+def normalize_universal_lesson_visuals(
+        sequence: list[TutorAction]
+) -> list[TutorAction]:
+
+    normalized_sequence = []
+
+    visual_count = 0
+
+    max_visual_cards = 2
+
+    for action in sequence:
+
+        # כל פעולה רגילה נשמרת
+        if action.type != "visual_card":
+
+            normalized_sequence.append(
+                action
+            )
+
+            continue
+
+
+        # מגבילים לשתי המחשות בשיעור
+        if visual_count >= max_visual_cards:
+            continue
+
+
+        title = (
+            action.title
+            or ""
+        ).strip()
+
+
+        raw_items = (
+            action.items
+            or []
+        )
+
+
+        clean_items = []
+
+        for item in raw_items:
+
+            clean_item = str(
+                item
+                or ""
+            ).strip()
+
+            if not clean_item:
+                continue
+
+            if clean_item in clean_items:
+                continue
+
+            clean_items.append(
+                clean_item
+            )
+
+
+        # כרטיס לא תקין לא נכנס לרצף
+        if not title:
+            continue
+
+        if len(clean_items) < 2:
+            continue
+
+
+        # לא יותר מחמישה פריטים
+        clean_items = clean_items[:5]
+
+
+        normalized_sequence.append(
+
+            TutorAction(
+                type="visual_card",
+                title=title,
+                items=clean_items,
+                icon=action.icon
+            )
+
+        )
+
+        visual_count += 1
+
+
+    return normalized_sequence
 
 # =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
+LESSON_AUDIO_BUCKET = "lesson-audio"
+LESSON_AUDIO_URL_EXPIRY_SECONDS = 3600
 
+
+def add_signed_urls_to_lesson_audio(
+        lesson_audio_json: dict | None
+) -> dict | None:
+
+    if not isinstance(
+            lesson_audio_json,
+            dict
+    ):
+        return None
+
+    bucket = (
+        lesson_audio_json.get(
+            "bucket"
+        )
+        or LESSON_AUDIO_BUCKET
+    )
+
+    raw_segments = (
+        lesson_audio_json.get(
+            "segments"
+        )
+        or []
+    )
+
+    signed_segments = []
+
+    for segment in raw_segments:
+
+        if not isinstance(
+                segment,
+                dict
+        ):
+            continue
+
+        path = str(
+            segment.get(
+                "path"
+            )
+            or ""
+        ).strip()
+
+        if not path:
+            continue
+
+        signed_response = (
+            sb.storage
+            .from_(
+                bucket
+            )
+            .create_signed_url(
+                path,
+                LESSON_AUDIO_URL_EXPIRY_SECONDS
+            )
+        )
+
+        signed_url = None
+
+        if isinstance(
+                signed_response,
+                dict
+        ):
+            signed_url = (
+                signed_response.get(
+                    "signedURL"
+                )
+                or signed_response.get(
+                    "signedUrl"
+                )
+                or signed_response.get(
+                    "signed_url"
+                )
+            )
+
+        if not signed_url:
+            raise RuntimeError(
+                f"Failed to create signed URL for {path}"
+            )
+
+        signed_segments.append({
+            **segment,
+            "url": signed_url
+        })
+
+    raw_question = (
+        lesson_audio_json.get(
+            "question"
+        )
+    )
+
+    signed_question = None
+
+    if isinstance(
+            raw_question,
+            dict
+    ):
+
+        question_path = str(
+            raw_question.get(
+                "path"
+            )
+            or ""
+        ).strip()
+
+        if question_path:
+
+            signed_response = (
+                sb.storage
+                .from_(
+                    bucket
+                )
+                .create_signed_url(
+                    question_path,
+                    LESSON_AUDIO_URL_EXPIRY_SECONDS
+                )
+            )
+
+            signed_url = None
+
+            if isinstance(
+                    signed_response,
+                    dict
+            ):
+                signed_url = (
+                    signed_response.get(
+                        "signedURL"
+                    )
+                    or signed_response.get(
+                        "signedUrl"
+                    )
+                    or signed_response.get(
+                        "signed_url"
+                    )
+                )
+
+            if not signed_url:
+                raise RuntimeError(
+                    "Failed to create signed URL "
+                    "for lesson question"
+                )
+
+            signed_question = {
+                **raw_question,
+                "url": signed_url
+            }
+
+    return {
+        **lesson_audio_json,
+        "segments":
+            signed_segments,
+        "question":
+            signed_question,
+        "url_expires_in_seconds":
+            LESSON_AUDIO_URL_EXPIRY_SECONDS
+    }
+
+def generate_tts_wav_bytes(
+        text: str
+) -> tuple[bytes, float]:
+
+    clean_text = str(
+        text or ""
+    ).strip()
+
+    if not clean_text:
+        raise RuntimeError(
+            "Cannot generate audio for empty text"
+        )
+
+    response = gemini_client.models.generate_content(
+        model="gemini-3.1-flash-tts-preview",
+
+        contents=(
+            "Speak in natural, fluent Hebrew. "
+            "Sound like a warm, friendly and patient teacher "
+            "speaking naturally to a school-age child. "
+            "Use clear pronunciation and natural pauses. "
+            "Read exactly the following Hebrew text:\n\n"
+            + clean_text
+        ),
+
+        config=types.GenerateContentConfig(
+            temperature=2.0,
+
+            response_modalities=[
+                "AUDIO"
+            ],
+
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=
+                    types.PrebuiltVoiceConfig(
+                        voice_name="Aoede"
+                    )
+                )
+            )
+        )
+    )
+
+    audio_data = (
+        response
+        .candidates[0]
+        .content
+        .parts[0]
+        .inline_data
+        .data
+    )
+
+    if not audio_data:
+        raise RuntimeError(
+            "Gemini returned no audio data"
+        )
+
+    duration_seconds = (
+        len(audio_data)
+        / (24000 * 2)
+    )
+
+    wav_buffer = io.BytesIO()
+
+    with wave.open(
+            wav_buffer,
+            "wb"
+    ) as wav_file:
+
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(24000)
+        wav_file.writeframes(audio_data)
+
+    return (
+        wav_buffer.getvalue(),
+        duration_seconds
+    )
+
+
+def generate_and_store_lesson_audio(
+        unit_lesson_id: int,
+        structured_lesson: dict,
+        content_version: int
+) -> dict:
+
+    lesson_segments = (
+        structured_lesson.get("lesson")
+        or []
+    )
+
+    question_data = (
+        structured_lesson.get("question")
+        or {}
+    )
+
+    stored_segments = []
+
+    total_duration_seconds = 0.0
+
+    # =============================================
+    # LESSON SEGMENTS
+    # =============================================
+
+    for index, segment in enumerate(
+            lesson_segments,
+            start=1
+    ):
+
+        segment_text = str(
+            segment.get("text")
+            or ""
+        ).strip()
+
+        if not segment_text:
+            continue
+
+        wav_bytes, duration_seconds = (
+            generate_tts_wav_bytes(
+                segment_text
+            )
+        )
+
+        storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"segment_{index}.wav"
+        )
+
+        sb.storage.from_(
+            LESSON_AUDIO_BUCKET
+        ).upload(
+            path=storage_path,
+            file=wav_bytes,
+            file_options={
+                "content-type": "audio/wav",
+                "upsert": "true"
+            }
+        )
+
+        stored_segments.append({
+            "index":
+                index,
+
+            "path":
+                storage_path,
+
+            "duration_seconds":
+                round(
+                    duration_seconds,
+                    2
+                )
+        })
+
+        total_duration_seconds += (
+            duration_seconds
+        )
+
+    # =============================================
+    # FINAL QUESTION
+    # =============================================
+
+    stored_question = None
+
+    question_text = str(
+        question_data.get("text")
+        or ""
+    ).strip()
+
+    if question_text:
+
+        wav_bytes, duration_seconds = (
+            generate_tts_wav_bytes(
+                question_text
+            )
+        )
+
+        question_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"question.wav"
+        )
+
+        sb.storage.from_(
+            LESSON_AUDIO_BUCKET
+        ).upload(
+            path=question_path,
+            file=wav_bytes,
+            file_options={
+                "content-type": "audio/wav",
+                "upsert": "true"
+            }
+        )
+
+        stored_question = {
+            "path":
+                question_path,
+
+            "duration_seconds":
+                round(
+                    duration_seconds,
+                    2
+                )
+        }
+
+        total_duration_seconds += (
+            duration_seconds
+        )
+
+    if not stored_segments:
+        raise RuntimeError(
+            "No lesson audio segments were generated"
+        )
+
+    return {
+        "version":
+            content_version,
+
+        "bucket":
+            LESSON_AUDIO_BUCKET,
+
+        "segments":
+            stored_segments,
+
+        "question":
+            stored_question,
+
+        "total_duration_seconds":
+            round(
+                total_duration_seconds,
+                2
+            )
+    }
+def generate_unit_lesson_audio_background(
+        unit_lesson_id: int
+):
+    """
+    יצירת אודיו לשיעור ברקע.
+
+    הפונקציה אינה תלויה ב-request של המשתמש.
+    היא שולפת את השיעור מהמסד,
+    יוצרת קבצי WAV,
+    מעלה אותם ל-Storage
+    ומעדכנת את סטטוס האודיו.
+    """
+
+    try:
+
+        # =============================================
+        # LOAD LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generation_status = (
+            unit_lesson.get(
+                "generation_status"
+            )
+            or "empty"
+        )
+
+        audio_generation_status = (
+            unit_lesson.get(
+                "audio_generation_status"
+            )
+            or "pending"
+        )
+
+        cached_audio = (
+            unit_lesson.get(
+                "lesson_audio_json"
+            )
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+        )
+
+        # =============================================
+        # CONTENT MUST BE READY
+        # =============================================
+
+        if generation_status != "ready":
+            print(
+                "BACKGROUND AUDIO SKIPPED: "
+                "lesson content is not ready:",
+                unit_lesson_id
+            )
+            return
+
+        if not isinstance(
+                generated_lesson_json,
+                dict
+        ):
+            print(
+                "BACKGROUND AUDIO SKIPPED: "
+                "generated lesson JSON is missing:",
+                unit_lesson_id
+            )
+            return
+
+        structured_lesson = (
+            generated_lesson_json.get(
+                "structured_lesson"
+            )
+        )
+
+        if not isinstance(
+                structured_lesson,
+                dict
+        ):
+            print(
+                "BACKGROUND AUDIO SKIPPED: "
+                "structured lesson is missing:",
+                unit_lesson_id
+            )
+            return
+
+        # =============================================
+        # ALREADY READY
+        # =============================================
+
+        if (
+                audio_generation_status == "ready"
+                and isinstance(
+                    cached_audio,
+                    dict
+                )
+                and cached_audio.get(
+                    "segments"
+                )
+        ):
+            print(
+                "BACKGROUND AUDIO ALREADY READY:",
+                unit_lesson_id
+            )
+            return
+
+        # =============================================
+        # ALREADY GENERATING
+        # =============================================
+
+        if audio_generation_status == "generating":
+            print(
+                "BACKGROUND AUDIO ALREADY GENERATING:",
+                unit_lesson_id
+            )
+            return
+
+        # =============================================
+        # MARK AS GENERATING
+        # =============================================
+
+        audio_started_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "audio_generation_status":
+                "generating",
+
+            "audio_generation_error":
+                None,
+
+            "updated_at":
+                audio_started_at
+
+        }).eq(
+            "id",
+            unit_lesson_id
+        ).execute()
+
+        print(
+            "BACKGROUND AUDIO STARTED:",
+            unit_lesson_id
+        )
+
+        # =============================================
+        # GENERATE AUDIO
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        lesson_audio_json = (
+            generate_and_store_lesson_audio(
+
+                unit_lesson_id=
+                    unit_lesson_id,
+
+                structured_lesson=
+                    structured_lesson,
+
+                content_version=
+                    content_version
+            )
+        )
+
+        audio_generated_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # SAVE RESULT
+        # =============================================
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "lesson_audio_json":
+                lesson_audio_json,
+
+            "audio_generation_status":
+                "ready",
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                audio_generated_at,
+
+            "tts_generated_at":
+                audio_generated_at,
+
+            "updated_at":
+                audio_generated_at
+
+        }).eq(
+            "id",
+            unit_lesson_id
+        ).execute()
+
+        print(
+            "BACKGROUND AUDIO READY:",
+            unit_lesson_id
+        )
+
+    except Exception as e:
+
+        error_message = repr(e)
+
+        print(
+            "BACKGROUND AUDIO ERROR:",
+            unit_lesson_id,
+            error_message
+        )
+
+        try:
+
+            sb.table(
+                "lesson_units_content"
+            ).update({
+
+                "audio_generation_status":
+                    "failed",
+
+                "audio_generation_error":
+                    str(e)[:1500],
+
+                "updated_at":
+                    datetime
+                    .now(timezone.utc)
+                    .isoformat()
+
+            }).eq(
+                "id",
+                unit_lesson_id
+            ).execute()
+
+        except Exception as update_error:
+
+            print(
+                "BACKGROUND AUDIO FAILURE "
+                "UPDATE ERROR:",
+                repr(update_error)
+            )
 @app.post("/api/tutor/tts")
 def tutor_tts(
         body: TutorTTSRequest,
@@ -3013,6 +3977,18 @@ def lesson_intro(
 
                     speech_tts=step.get(
                         "speech_tts"
+                    ),
+
+                    title=step.get(
+                        "title"
+                    ),
+
+                    items=step.get(
+                        "items"
+                    ),
+
+                    icon=step.get(
+                        "icon"
                     )
                 )
             )
@@ -3074,6 +4050,1007 @@ def lesson_intro(
             detail="Lesson intro failed"
         )
 
+@app.post(
+    "/api/tutor/unit-lesson"
+)
+def get_or_generate_unit_lesson(
+        body: UnitLessonRequest,
+        background_tasks: BackgroundTasks,
+        authorization: str = Header(None)
+):
+    unit_lesson = None
+
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # מוודאים שהילד שייך למשתמש
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # UNIT LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get(
+                "age"
+            )
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get(
+                "grade"
+            )
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        generation_status = (
+            unit_lesson.get(
+                "generation_status"
+            )
+            or "empty"
+        )
+
+        cached_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+        )
+        audio_generation_status = (
+                unit_lesson.get(
+                    "audio_generation_status"
+                )
+                or "pending"
+        )
+
+        cached_audio = (
+            unit_lesson.get(
+                "lesson_audio_json"
+            )
+        )
+        # =============================================
+        # CACHE HIT
+        # =============================================
+
+        if (
+                generation_status == "ready"
+                and isinstance(
+                    cached_json,
+                    dict
+                )
+                and isinstance(
+                    cached_json.get(
+                        "structured_lesson"
+                    ),
+                    dict
+                )
+                and cached_json.get(
+                    "structured_lesson",
+                    {}
+                ).get(
+                    "lesson"
+                )
+        ):
+
+            if audio_generation_status in (
+                    "pending",
+                    "failed"
+            ):
+                background_tasks.add_task(
+                    generate_unit_lesson_audio_background,
+                    unit_lesson["id"]
+                )
+
+            response_audio = None
+
+            if (
+                    audio_generation_status == "ready"
+                    and isinstance(
+                        cached_audio,
+                        dict
+                    )
+            ):
+                response_audio = (
+                    add_signed_urls_to_lesson_audio(
+                        cached_audio
+                    )
+                )
+
+            return {
+
+                "success": True,
+
+                "source": "cache",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "learning_lesson_id":
+                    parent_lesson["id"],
+
+                "generation_status":
+                    "ready",
+
+                "content_version":
+                    unit_lesson.get(
+                        "content_version"
+                    )
+                    or 1,
+
+                "lesson":
+                    cached_json.get(
+                        "lesson"
+                    ),
+
+                "structured_lesson":
+                    cached_json.get(
+                        "structured_lesson"
+                    ),
+
+                "audio_generation_status":
+                    audio_generation_status,
+
+                "lesson_audio":
+                    response_audio
+
+            }
+
+        # =============================================
+        # ALREADY GENERATING
+        # =============================================
+
+        if generation_status == "generating":
+            return {
+                "success": False,
+
+                "source": "generating",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "learning_lesson_id":
+                    parent_lesson["id"],
+
+                "generation_status":
+                    "generating",
+
+                "sequence": [],
+
+                "wait_for_answer": False
+            }
+
+        # =============================================
+        # MARK AS GENERATING
+        # =============================================
+
+        now = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generation_status":
+                "generating",
+
+            "generation_error":
+                None,
+
+            "updated_at":
+                now
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # BUILD UNIVERSAL PROMPT
+        # =============================================
+
+        system_prompt = (
+            build_universal_unit_lesson_prompt(
+                unit_lesson=
+                    unit_lesson,
+
+                parent_lesson=
+                    parent_lesson
+            )
+        )
+
+        # =============================================
+        # OPENAI
+        # =============================================
+
+        completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=UNIVERSAL_LESSON_MODEL,
+
+                messages=[
+
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            system_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "צרו עכשיו את השיעור "
+                                "המובנה והאוניברסלי. "
+                                "השיגו במדויק את מטרת הלמידה. "
+                                "התאימו את עומק ההסבר "
+                                "לרמת המורכבות שהוגדרה. "
+                                "אין חובה להשתמש בכל הזמן המקסימלי. "
+                                "סיימו כאשר ההסבר ברור ושלם. "
+                                "החזירו את רצף הפעולות בלבד "
+                                "לפי מבנה התגובה."
+                            )
+                    }
+
+                ],
+
+                response_format=
+                UniversalLessonResponse
+
+            )
+        )
+
+        lesson_data = (
+            completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+
+        if not lesson_data:
+            raise RuntimeError(
+                "Universal unit lesson "
+                "returned no response"
+            )
+
+        lesson_text = lesson_data.lesson.strip()
+
+        # =============================================
+        # LESSON DIRECTOR
+        # חלוקת השיעור לקטעים והפרדת שאלת הסיום
+        # =============================================
+
+        director_prompt = (
+            build_lesson_director_prompt(
+                lesson_text=lesson_text
+            )
+        )
+
+        director_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role": "system",
+                        "content": director_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "ארגן את השיעור לפי ההנחיות "
+                            "והחזר JSON בלבד."
+                        )
+                    }
+                ],
+
+                response_format=
+                DirectedLessonResponse
+            )
+        )
+
+        directed_lesson_data = (
+            director_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not directed_lesson_data:
+            raise RuntimeError(
+                "Lesson director returned no response"
+            )
+
+        structured_lesson = (
+            directed_lesson_data.model_dump()
+        )
+
+        lesson_json = {
+
+            "generation_model":
+                UNIVERSAL_LESSON_MODEL,
+
+            "director_model":
+                DEFAULT_OPENAI_MODEL,
+
+            "learning_objective":
+                unit_lesson.get(
+                    "learning_objective"
+                ),
+
+            "lesson_complexity":
+                unit_lesson.get(
+                    "lesson_complexity"
+                ),
+
+            "max_duration_seconds":
+                unit_lesson.get(
+                    "max_duration_seconds"
+                ),
+
+            # נשאר זמנית כדי לא לשבור את הפרונט
+            "lesson":
+                lesson_text,
+
+            # המבנה החדש
+            "structured_lesson":
+                structured_lesson
+
+        }
+
+        # =============================================
+        # SAVE CACHE
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        generated_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                lesson_json,
+
+            "generation_status":
+                "ready",
+
+            "audio_generation_status":
+                "pending",
+
+            "audio_generation_error":
+                None,
+
+            "generation_error":
+                None,
+
+            "content_version":
+                content_version,
+
+            "generated_at":
+                generated_at,
+
+            "updated_at":
+                generated_at
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # USAGE
+        # =============================================
+
+        input_tokens = 0
+        output_tokens = 0
+        total_tokens = 0
+
+        director_input_tokens = 0
+        director_output_tokens = 0
+        director_total_tokens = 0
+
+        if completion.usage:
+
+            input_tokens = (
+                completion
+                .usage
+                .prompt_tokens
+                or 0
+            )
+
+            output_tokens = (
+                completion
+                .usage
+                .completion_tokens
+                or 0
+            )
+
+            total_tokens = (
+                completion
+                .usage
+                .total_tokens
+                or 0
+            )
+
+        if director_completion.usage:
+
+            director_input_tokens = (
+                director_completion
+                .usage
+                .prompt_tokens
+                or 0
+            )
+
+            director_output_tokens = (
+                director_completion
+                .usage
+                .completion_tokens
+                or 0
+            )
+
+            director_total_tokens = (
+                director_completion
+                .usage
+                .total_tokens
+                or 0
+            )
+
+        openai_cost_usd = calculate_openai_cost(
+            model=UNIVERSAL_LESSON_MODEL,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
+        )
+
+        director_cost_usd = calculate_openai_cost(
+            model=DEFAULT_OPENAI_MODEL,
+            input_tokens=director_input_tokens,
+            output_tokens=director_output_tokens
+        )
+
+        increment_usage_summary(
+
+            user_id=
+                user.id,
+
+            ai_calls=
+                2,
+
+            input_tokens=(
+                input_tokens
+                + director_input_tokens
+            ),
+
+            output_tokens=(
+                output_tokens
+                + director_output_tokens
+            ),
+
+            total_tokens=(
+                total_tokens
+                + director_total_tokens
+            ),
+
+            openai_cost_usd=(
+                openai_cost_usd
+                + director_cost_usd
+            )
+
+        )
+        # =============================================
+        # START AUDIO GENERATION IN BACKGROUND
+        # =============================================
+
+        background_tasks.add_task(
+            generate_unit_lesson_audio_background,
+            unit_lesson["id"]
+        )
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        return {
+            "success": True,
+
+            "source": "generated",
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "learning_lesson_id":
+                parent_lesson["id"],
+
+            "generation_status":
+                "ready",
+
+            "content_version":
+                content_version,
+
+            "lesson":
+                lesson_json.get(
+                    "lesson"
+                ),
+
+            "structured_lesson":
+                lesson_json.get(
+                    "structured_lesson"
+                ),
+
+            "audio_generation_status":
+                "pending",
+
+            "lesson_audio":
+                None
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        error_message = repr(e)
+
+        print(
+            "UNIT LESSON GENERATION ERROR:",
+            error_message
+        )
+
+        # =============================================
+        # MARK AS FAILED
+        # =============================================
+
+        if unit_lesson:
+
+            try:
+
+                sb.table(
+                    "lesson_units_content"
+                ).update({
+
+                    "generation_status":
+                        "failed",
+
+                    "generation_error":
+                        str(e)[:1500],
+
+                    "updated_at":
+                        datetime
+                        .now(timezone.utc)
+                        .isoformat()
+
+                }).eq(
+                    "id",
+                    unit_lesson["id"]
+                ).execute()
+
+            except Exception as update_error:
+
+                print(
+                    "UNIT LESSON FAILURE UPDATE ERROR:",
+                    repr(update_error)
+                )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unit lesson generation failed"
+        )
+@app.post(
+    "/api/tutor/unit-lesson/audio"
+)
+def generate_unit_lesson_audio(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    unit_lesson = None
+
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # מוודאים שהילד שייך למשתמש
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD UNIT LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        generation_status = (
+            unit_lesson.get(
+                "generation_status"
+            )
+            or "empty"
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+        )
+
+        audio_generation_status = (
+            unit_lesson.get(
+                "audio_generation_status"
+            )
+            or "pending"
+        )
+
+        cached_audio = (
+            unit_lesson.get(
+                "lesson_audio_json"
+            )
+        )
+
+        # =============================================
+        # LESSON CONTENT MUST EXIST
+        # =============================================
+
+        if (
+                generation_status != "ready"
+                or not isinstance(
+                    generated_lesson_json,
+                    dict
+                )
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Lesson content is not ready"
+                )
+            )
+
+        structured_lesson = (
+            generated_lesson_json.get(
+                "structured_lesson"
+            )
+        )
+
+        if not isinstance(
+                structured_lesson,
+                dict
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Structured lesson is missing"
+                )
+            )
+
+        # =============================================
+        # AUDIO ALREADY READY
+        # =============================================
+
+        if (
+                audio_generation_status == "ready"
+                and isinstance(
+                    cached_audio,
+                    dict
+                )
+                and cached_audio.get(
+                    "segments"
+                )
+        ):
+            return {
+                "success": True,
+
+                "source":
+                    "cache",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "audio_generation_status":
+                    "ready",
+
+                "lesson_audio":
+                    add_signed_urls_to_lesson_audio(
+                        cached_audio
+                    )
+            }
+
+        # =============================================
+        # AUDIO ALREADY GENERATING
+        # =============================================
+
+        if (
+                audio_generation_status
+                == "generating"
+        ):
+            return {
+                "success": False,
+
+                "source":
+                    "generating",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "audio_generation_status":
+                    "generating",
+
+                "lesson_audio":
+                    None
+            }
+
+        # =============================================
+        # MARK AUDIO AS GENERATING
+        # =============================================
+
+        audio_started_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "audio_generation_status":
+                "generating",
+
+            "audio_generation_error":
+                None,
+
+            "updated_at":
+                audio_started_at
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # GENERATE AND STORE AUDIO
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        lesson_audio_json = (
+            generate_and_store_lesson_audio(
+
+                unit_lesson_id=
+                    unit_lesson["id"],
+
+                structured_lesson=
+                    structured_lesson,
+
+                content_version=
+                    content_version
+            )
+        )
+
+        audio_generated_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # SAVE AUDIO CACHE
+        # =============================================
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "lesson_audio_json":
+                lesson_audio_json,
+
+            "audio_generation_status":
+                "ready",
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                audio_generated_at,
+
+            "tts_generated_at":
+                audio_generated_at,
+
+            "updated_at":
+                audio_generated_at
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        return {
+            "success": True,
+
+            "source":
+                "generated",
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "audio_generation_status":
+                "ready",
+
+            "lesson_audio":
+                add_signed_urls_to_lesson_audio(
+                    lesson_audio_json
+                )
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        error_message = repr(e)
+
+        print(
+            "UNIT LESSON AUDIO ERROR:",
+            error_message
+        )
+
+        if unit_lesson:
+
+            try:
+
+                sb.table(
+                    "lesson_units_content"
+                ).update({
+
+                    "audio_generation_status":
+                        "failed",
+
+                    "audio_generation_error":
+                        str(e)[:1500],
+
+                    "updated_at":
+                        datetime
+                        .now(timezone.utc)
+                        .isoformat()
+
+                }).eq(
+                    "id",
+                    unit_lesson["id"]
+                ).execute()
+
+            except Exception as update_error:
+
+                print(
+                    "UNIT LESSON AUDIO "
+                    "FAILURE UPDATE ERROR:",
+                    repr(update_error)
+                )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Unit lesson audio "
+                "generation failed"
+            )
+        )
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
@@ -3457,7 +5434,7 @@ def structured_lesson(
             .parse(
 
                 model=
-                "gpt-4o-mini",
+                DEFAULT_OPENAI_MODEL,
 
                 messages=[
 
@@ -3608,7 +5585,7 @@ def structured_lesson(
                     .parse(
 
                         model=
-                        "gpt-4o-mini",
+                        DEFAULT_OPENAI_MODEL,
 
                         messages=
                         retry_messages,
@@ -3684,6 +5661,7 @@ def structured_lesson(
                     text=greeting_text
                 )
             )
+
 
             lesson_data.sequence = sequence
 
@@ -3955,26 +5933,10 @@ def structured_lesson(
 
             )
 
-        openai_cost_usd = (
-
-                (
-                        input_tokens
-                        / 1_000_000
-                )
-
-                *
-                OPENAI_INPUT_COST_PER_1M
-
-                +
-
-                (
-                        output_tokens
-                        / 1_000_000
-                )
-
-                *
-                OPENAI_OUTPUT_COST_PER_1M
-
+        openai_cost_usd = calculate_openai_cost(
+            model=DEFAULT_OPENAI_MODEL,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
         )
 
         # =============================================
@@ -4270,7 +6232,7 @@ def homework_analyze(
                     "processing",
 
                 "vision_model":
-                    "gpt-4o-mini",
+                    DEFAULT_OPENAI_MODEL,
 
                 "vision_call_count":
                     0
@@ -4370,7 +6332,8 @@ def homework_analyze(
 
         response = client.chat.completions.create(
 
-            model="gpt-4o-mini",
+            model=
+            DEFAULT_OPENAI_MODEL,
 
             messages=[
 
@@ -4540,7 +6503,7 @@ def homework_analyze(
                 vision_status,
 
             "vision_model":
-                "gpt-4o-mini",
+                DEFAULT_OPENAI_MODEL,
 
             "vision_call_count":
                 1,
@@ -4779,7 +6742,8 @@ def tutor_chat(
         })
 
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+
+            model=DEFAULT_OPENAI_MODEL,
             messages=[
                 {
                     "role": "system",
@@ -4787,7 +6751,8 @@ def tutor_chat(
                 },
                 *recent_messages
             ],
-            response_format=TutorLessonResponse
+            response_format=
+            TutorLessonResponse
         )
 
         lesson_data = completion.choices[0].message.parsed
@@ -4832,12 +6797,17 @@ def tutor_chat(
                     completion.usage.completion_tokens or 0
             )
 
-        openai_cost_usd = (
-                (input_tokens / 1_000_000)
-                * OPENAI_INPUT_COST_PER_1M
-                +
-                (output_tokens / 1_000_000)
-                * OPENAI_OUTPUT_COST_PER_1M
+        openai_cost_usd = calculate_openai_cost(
+
+            model=
+            DEFAULT_OPENAI_MODEL,
+
+            input_tokens=
+            input_tokens,
+
+            output_tokens=
+            output_tokens
+
         )
 
         # שומרים את הודעת הילד ותשובת ה-AI יחד
@@ -4894,24 +6864,26 @@ def tutor_chat(
         )
 
         increment_usage_summary(
+
             user_id=user.id,
 
-            # מוסיפים Session רק אם באמת נפתח חדש
             sessions=(
                 1
                 if tutor_session.get("_is_new")
                 else 0
             ),
 
-            # קריאת AI אחת
             ai_calls=1,
 
             input_tokens=input_tokens,
+
             output_tokens=output_tokens,
+
             total_tokens=total_tokens,
 
             openai_cost_usd=openai_cost_usd
         )
+
 
         response_data = lesson_data.model_dump()
 
