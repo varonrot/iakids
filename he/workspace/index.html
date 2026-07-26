@@ -9476,7 +9476,27 @@ async function runSimpleUniversalLesson(
 
   const lessonAudio =
     data?.lesson_audio;
+console.log(
+  "UNIVERSAL LESSON AUDIO DEBUG:",
+  {
+    status:
+      data.audio_generation_status,
 
+    lessonPartsCount:
+      lessonParts.length,
+
+    storedSegmentsCount:
+      lessonAudio?.segments?.length,
+
+    segmentUrls:
+      lessonAudio?.segments?.map(
+        segment => segment.url
+      ),
+
+    questionUrl:
+      lessonAudio?.question?.url
+  }
+);
 
   const storedSegments =
     Array.isArray(
@@ -9711,7 +9731,7 @@ async function runSimpleUniversalLesson(
       );
 
     }
-    
+
     const questionLine =
       document.createElement(
         "div"
