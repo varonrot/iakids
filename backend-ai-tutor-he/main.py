@@ -28,6 +28,9 @@ LESSON_PROMPT_PATH = Path(
 UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
     "prompts/iakids_universal_unit_lesson_prompt.txt"
 )
+LESSON_DIRECTOR_PROMPT_PATH = Path(
+    "prompts/lesson_director_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -223,6 +226,11 @@ if not UNIVERSAL_UNIT_LESSON_PROMPT_PATH.exists():
         f"Missing universal unit lesson prompt file: "
         f"{UNIVERSAL_UNIT_LESSON_PROMPT_PATH}"
     )
+if not LESSON_DIRECTOR_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing lesson director prompt file: "
+        f"{LESSON_DIRECTOR_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -238,6 +246,12 @@ LESSON_PROMPT_TEMPLATE = (
 )
 UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE = (
     UNIVERSAL_UNIT_LESSON_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+LESSON_DIRECTOR_PROMPT_TEMPLATE = (
+    LESSON_DIRECTOR_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -363,6 +377,17 @@ class TutorLessonResponse(BaseModel):
 
 class UniversalLessonResponse(BaseModel):
     lesson: str
+class DirectedLessonSegment(BaseModel):
+    text: str
+
+
+class DirectedLessonQuestion(BaseModel):
+    text: str
+
+
+class DirectedLessonResponse(BaseModel):
+    lesson: list[DirectedLessonSegment]
+    question: DirectedLessonQuestion
 
 # =====================================================
 # STRUCTURED LESSON MODELS
@@ -2779,6 +2804,18 @@ def build_universal_unit_lesson_prompt(
 
     return prompt
 
+def build_lesson_director_prompt(
+        lesson_text: str
+) -> str:
+
+    return (
+        LESSON_DIRECTOR_PROMPT_TEMPLATE
+        .replace(
+            "{lesson_text}",
+            lesson_text
+        )
+    )
+
 def normalize_universal_lesson_visuals(
         sequence: list[TutorAction]
 ) -> list[TutorAction]:
@@ -3447,12 +3484,21 @@ def get_or_generate_unit_lesson(
         if (
                 generation_status == "ready"
                 and isinstance(
-            cached_json,
-            dict
-        )
+                    cached_json,
+                    dict
+                )
+                and isinstance(
+                    cached_json.get(
+                        "structured_lesson"
+                    ),
+                    dict
+                )
                 and cached_json.get(
-            "lesson"
-        )
+                    "structured_lesson",
+                    {}
+                ).get(
+                    "lesson"
+                )
         ):
             return {
 
@@ -3478,6 +3524,11 @@ def get_or_generate_unit_lesson(
                 "lesson":
                     cached_json.get(
                         "lesson"
+                    ),
+
+                "structured_lesson":
+                    cached_json.get(
+                        "structured_lesson"
                     )
 
             }
@@ -3613,24 +3664,91 @@ def get_or_generate_unit_lesson(
 
         lesson_text = lesson_data.lesson.strip()
 
+        # =============================================
+        # LESSON DIRECTOR
+        # חלוקת השיעור לקטעים והפרדת שאלת הסיום
+        # =============================================
 
+        director_prompt = (
+            build_lesson_director_prompt(
+                lesson_text=lesson_text
+            )
+        )
+
+        director_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role": "system",
+                        "content": director_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "ארגן את השיעור לפי ההנחיות "
+                            "והחזר JSON בלבד."
+                        )
+                    }
+                ],
+
+                response_format=
+                DirectedLessonResponse
+            )
+        )
+
+        directed_lesson_data = (
+            director_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not directed_lesson_data:
+            raise RuntimeError(
+                "Lesson director returned no response"
+            )
+
+        structured_lesson = (
+            directed_lesson_data.model_dump()
+        )
 
         lesson_json = {
 
             "generation_model":
                 UNIVERSAL_LESSON_MODEL,
 
+            "director_model":
+                DEFAULT_OPENAI_MODEL,
+
             "learning_objective":
-                unit_lesson.get("learning_objective"),
+                unit_lesson.get(
+                    "learning_objective"
+                ),
 
             "lesson_complexity":
-                unit_lesson.get("lesson_complexity"),
+                unit_lesson.get(
+                    "lesson_complexity"
+                ),
 
             "max_duration_seconds":
-                unit_lesson.get("max_duration_seconds"),
+                unit_lesson.get(
+                    "max_duration_seconds"
+                ),
 
+            # נשאר זמנית כדי לא לשבור את הפרונט
             "lesson":
-                lesson_text
+                lesson_text,
+
+            # המבנה החדש
+            "structured_lesson":
+                structured_lesson
 
         }
 
@@ -3686,6 +3804,10 @@ def get_or_generate_unit_lesson(
         output_tokens = 0
         total_tokens = 0
 
+        director_input_tokens = 0
+        director_output_tokens = 0
+        director_total_tokens = 0
+
         if completion.usage:
 
             input_tokens = (
@@ -3709,10 +3831,39 @@ def get_or_generate_unit_lesson(
                 or 0
             )
 
+        if director_completion.usage:
+
+            director_input_tokens = (
+                director_completion
+                .usage
+                .prompt_tokens
+                or 0
+            )
+
+            director_output_tokens = (
+                director_completion
+                .usage
+                .completion_tokens
+                or 0
+            )
+
+            director_total_tokens = (
+                director_completion
+                .usage
+                .total_tokens
+                or 0
+            )
+
         openai_cost_usd = calculate_openai_cost(
             model=UNIVERSAL_LESSON_MODEL,
             input_tokens=input_tokens,
             output_tokens=output_tokens
+        )
+
+        director_cost_usd = calculate_openai_cost(
+            model=DEFAULT_OPENAI_MODEL,
+            input_tokens=director_input_tokens,
+            output_tokens=director_output_tokens
         )
 
         increment_usage_summary(
@@ -3721,19 +3872,27 @@ def get_or_generate_unit_lesson(
                 user.id,
 
             ai_calls=
-                1,
+                2,
 
-            input_tokens=
-                input_tokens,
+            input_tokens=(
+                input_tokens
+                + director_input_tokens
+            ),
 
-            output_tokens=
-                output_tokens,
+            output_tokens=(
+                output_tokens
+                + director_output_tokens
+            ),
 
-            total_tokens=
-                total_tokens,
+            total_tokens=(
+                total_tokens
+                + director_total_tokens
+            ),
 
-            openai_cost_usd=
+            openai_cost_usd=(
                 openai_cost_usd
+                + director_cost_usd
+            )
 
         )
 
@@ -3759,7 +3918,14 @@ def get_or_generate_unit_lesson(
                 content_version,
 
             "lesson":
-                lesson_json.get("lesson")
+                lesson_json.get(
+                    "lesson"
+                ),
+
+            "structured_lesson":
+                lesson_json.get(
+                    "structured_lesson"
+                )
         }
 
     except HTTPException:
@@ -5627,24 +5793,26 @@ def tutor_chat(
         )
 
         increment_usage_summary(
+
             user_id=user.id,
 
-            # מוסיפים Session רק אם באמת נפתח חדש
             sessions=(
                 1
                 if tutor_session.get("_is_new")
                 else 0
             ),
 
-            # קריאת AI אחת
             ai_calls=1,
 
             input_tokens=input_tokens,
+
             output_tokens=output_tokens,
+
             total_tokens=total_tokens,
 
             openai_cost_usd=openai_cost_usd
         )
+
 
         response_data = lesson_data.model_dump()
 
