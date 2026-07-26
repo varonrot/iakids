@@ -9288,220 +9288,7 @@ if(
 
 }
 
-/* =====================================================
-   LOAD STORED UNIVERSAL LESSON AUDIO
 
-   מקבל את lesson_audio_json מהבקאנד,
-   ויוצר קישורים זמניים לקבצים ב-Bucket הפרטי.
-===================================================== */
-
-async function getStoredLessonAudioUrls(
-  lessonAudio
-){
-
-  if(
-    !lessonAudio
-    ||
-    !Array.isArray(
-      lessonAudio.segments
-    )
-    ||
-    lessonAudio.segments.length === 0
-  ){
-    return null;
-  }
-
-
-  const bucket =
-    lessonAudio.bucket
-    ||
-    "lesson-audio";
-
-
-  /*
-    מסדרים לפי index כדי לוודא
-    שהאודיו תואם לסדר הפסקאות.
-  */
-
-  const sortedSegments =
-    [...lessonAudio.segments]
-      .sort(
-        (a, b) =>
-          Number(a.index) -
-          Number(b.index)
-      );
-
-
-  const segmentPaths =
-    sortedSegments
-      .map(
-        segment =>
-          segment.path
-      )
-      .filter(
-        Boolean
-      );
-
-
-  const questionPath =
-    lessonAudio
-      ?.question
-      ?.path
-    ||
-    null;
-
-
-  const allPaths = [
-    ...segmentPaths,
-
-    ...(
-      questionPath
-        ? [questionPath]
-        : []
-    )
-  ];
-
-
-  if(
-    allPaths.length === 0
-  ){
-    return null;
-  }
-
-
-  console.log(
-    "LOAD STORED LESSON AUDIO:",
-    {
-      bucket,
-      paths:
-        allPaths
-    }
-  );
-
-
-  /*
-    ה-Bucket פרטי, לכן יוצרים
-    Signed URLs לזמן מוגבל.
-
-    3600 = שעה אחת.
-  */
-
-  const {
-    data,
-    error
-  } =
-    await sb.storage
-      .from(
-        bucket
-      )
-      .createSignedUrls(
-        allPaths,
-        3600
-      );
-
-
-  if(error){
-
-    console.error(
-      "CREATE LESSON AUDIO SIGNED URLS ERROR:",
-      error
-    );
-
-    return null;
-
-  }
-
-
-  if(
-    !Array.isArray(data)
-    ||
-    data.length === 0
-  ){
-    return null;
-  }
-
-
-  /*
-    בניית מפה:
-    path -> signedUrl
-  */
-
-  const signedUrlByPath =
-    new Map();
-
-
-  data.forEach(
-    item => {
-
-      if(
-        item?.path
-        &&
-        item?.signedUrl
-      ){
-        signedUrlByPath.set(
-          item.path,
-          item.signedUrl
-        );
-      }
-
-    }
-  );
-
-
-  const segmentUrls =
-    sortedSegments.map(
-      segment =>
-        signedUrlByPath.get(
-          segment.path
-        )
-        ||
-        null
-    );
-
-
-  const questionUrl =
-    questionPath
-
-      ? (
-          signedUrlByPath.get(
-            questionPath
-          )
-          ||
-          null
-        )
-
-      : null;
-
-
-  /*
-    אם חסר אפילו קטע אחד,
-    לא משתמשים במטמון חלקי.
-  */
-
-  if(
-    segmentUrls.some(
-      url => !url
-    )
-  ){
-
-    console.warn(
-      "Some stored lesson audio URLs are missing"
-    );
-
-    return null;
-
-  }
-
-
-  return {
-
-    segmentUrls,
-
-    questionUrl
-
-  };
-
-}
 /* =====================================================
    SIMPLE UNIVERSAL LESSON
 
@@ -9683,9 +9470,62 @@ async function runSimpleUniversalLesson(
      TTS חי רק אם האודיו עדיין לא מוכן.
   ============================================= */
 
-  let storedAudio =
-    null;
+   /* =============================================
+     AUDIO SOURCE FROM BACKEND
+  ============================================= */
 
+  const lessonAudio =
+    data?.lesson_audio;
+
+
+  const storedSegments =
+    Array.isArray(
+      lessonAudio?.segments
+    )
+      ? [...lessonAudio.segments]
+          .sort(
+            (a, b) =>
+              Number(a.index) -
+              Number(b.index)
+          )
+      : [];
+
+
+  const useStoredAudio =
+    (
+      data.audio_generation_status ===
+        "ready"
+
+      &&
+
+      storedSegments.length ===
+        lessonParts.length
+
+      &&
+
+      storedSegments.every(
+        segment =>
+          Boolean(
+            segment?.url
+          )
+      )
+    );
+
+
+  console.log(
+    "UNIVERSAL LESSON AUDIO SOURCE:",
+    useStoredAudio
+      ? "backend-signed-urls"
+      : "live-tts"
+  );
+
+
+  /*
+    שיעור עם audio ready חייב להשתמש
+    בקבצים השמורים.
+
+    אם חסרים URLs, לא שולחים 9 קריאות TTS.
+  */
 
   if(
     data.audio_generation_status ===
@@ -9693,53 +9533,28 @@ async function runSimpleUniversalLesson(
 
     &&
 
-    data.lesson_audio
+    !useStoredAudio
   ){
 
-    storedAudio =
-      await getStoredLessonAudioUrls(
-        data.lesson_audio
-      );
+    console.error(
+      "STORED LESSON AUDIO INVALID:",
+      lessonAudio
+    );
+
+    throw new Error(
+      "Stored lesson audio is ready but URLs are missing"
+    );
 
   }
 
 
-  const useStoredAudio =
-    Boolean(
-      storedAudio
-      &&
-      Array.isArray(
-        storedAudio.segmentUrls
-      )
-      &&
-      storedAudio.segmentUrls.length
-        === lessonParts.length
-    );
-
-
-  console.log(
-    "UNIVERSAL LESSON AUDIO SOURCE:",
-    useStoredAudio
-      ? "supabase-storage"
-      : "live-tts"
-  );
-
-
-  /*
-    אם האודיו שמור:
-    כל Promise מחזיר מיד Signed URL.
-
-    אם אינו שמור:
-    משתמשים זמנית ב-TTS החי הקיים.
-  */
-
   const lessonAudioPromises =
     useStoredAudio
 
-      ? storedAudio.segmentUrls.map(
-          url =>
+      ? storedSegments.map(
+          segment =>
             Promise.resolve(
-              url
+              segment.url
             )
         )
 
@@ -9752,16 +9567,22 @@ async function runSimpleUniversalLesson(
         );
 
 
+  const questionStoredUrl =
+    lessonAudio
+      ?.question
+      ?.url
+    ||
+    null;
+
+
   const questionAudioPromise =
     questionText
 
       ? (
           useStoredAudio
-          &&
-          storedAudio.questionUrl
 
             ? Promise.resolve(
-                storedAudio.questionUrl
+                questionStoredUrl
               )
 
             : window.lessonRenderer
@@ -9771,7 +9592,6 @@ async function runSimpleUniversalLesson(
         )
 
       : null;
-
 
   /* =============================================
      הצגה והשמעה לפי הסדר
@@ -9880,7 +9700,18 @@ async function runSimpleUniversalLesson(
     const questionAudioUrl =
       await questionAudioPromise;
 
+    if(
+      useStoredAudio
+      &&
+      !questionAudioUrl
+    ){
 
+      throw new Error(
+        "Stored question audio URL is missing"
+      );
+
+    }
+    
     const questionLine =
       document.createElement(
         "div"
