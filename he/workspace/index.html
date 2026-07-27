@@ -10952,6 +10952,15 @@ const lastAssistantMessage =
   state.last_assistant_message;
 
 
+/*
+  השיעור כבר נמצא והמידע כבר התקבל.
+  אין סיבה להשאיר את מסך הטעינה בזמן
+  שהטקסט נכתב והאודיו מתנגן.
+*/
+
+hideLessonLoading();
+
+
 if(
   Array.isArray(
     lastAssistantMessage?.sequence
@@ -10968,7 +10977,10 @@ if(
       true,
 
     restored:
-      true
+      true,
+
+    lesson_mode:
+      "learning_coach"
   });
 
 }
@@ -11795,6 +11807,180 @@ function animateImportantParts(element) {
   }
 }
 
+/* =====================================================
+   REMOVE DUPLICATE WRITE / ASK ACTIONS
+
+   כאשר ה-Backend החזיר write וגם ask
+   עם אותו טקסט, משאירים רק את ask.
+
+   אם הטקסטים שונים:
+   שומרים את שתי הפעולות.
+===================================================== */
+
+function cleanDuplicateTutorActions(
+  sequence
+){
+
+  if(
+    !Array.isArray(
+      sequence
+    )
+  ){
+    return [];
+  }
+
+
+  const normalizeText =
+    value =>
+      String(
+        value || ""
+      )
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim();
+
+
+  const cleaned = [];
+
+
+  for(
+    const action
+    of sequence
+  ){
+
+    if(
+      !action
+      ||
+      typeof action !==
+        "object"
+    ){
+      continue;
+    }
+
+
+    const currentText =
+      normalizeText(
+        action.text
+      );
+
+
+    /*
+      פעולות בלי טקסט אינן כפילות טקסטואלית.
+    */
+
+    if(
+      !currentText
+    ){
+
+      cleaned.push(
+        action
+      );
+
+      continue;
+
+    }
+
+
+    const duplicateIndex =
+      cleaned.findIndex(
+        existingAction => {
+
+          const existingText =
+            normalizeText(
+              existingAction?.text
+            );
+
+
+          if(
+            existingText !==
+              currentText
+          ){
+            return false;
+          }
+
+
+          const currentType =
+            action.type;
+
+
+          const existingType =
+            existingAction?.type;
+
+
+          return (
+            (
+              currentType === "ask"
+              &&
+              existingType === "write"
+            )
+            ||
+            (
+              currentType === "write"
+              &&
+              existingType === "ask"
+            )
+            ||
+            currentType ===
+              existingType
+          );
+
+        }
+      );
+
+
+    if(
+      duplicateIndex === -1
+    ){
+
+      cleaned.push(
+        action
+      );
+
+      continue;
+
+    }
+
+
+    /*
+      אם קיימים write ו-ask זהים,
+      מעדיפים ask כי היא מסמנת שאלה לילד.
+    */
+
+    if(
+      action.type === "ask"
+    ){
+
+      cleaned[
+        duplicateIndex
+      ] = action;
+
+    }
+
+  }
+
+
+  console.log(
+    "TUTOR SEQUENCE CLEANUP:",
+    {
+      before:
+        sequence.length,
+
+      after:
+        cleaned.length,
+
+      removed:
+        sequence.length -
+        cleaned.length
+    }
+  );
+
+
+  return cleaned;
+
+}
+
 async function runTutorResponse(data){
 
   if(
@@ -11856,10 +12042,36 @@ async function runTutorResponse(data){
     }
 
 
+const cleanedSequence =
+  cleanDuplicateTutorActions(
+    data.sequence
+  );
+
+
+if(
+  cleanedSequence.length === 0
+){
+
+  console.error(
+    "Tutor sequence is empty after cleanup:",
+    data.sequence
+  );
+
+  return;
+
+}
+
+
+console.log(
+  "LIVE LESSON SEQUENCE AFTER CLEANUP:",
+  cleanedSequence
+);
+
+
 await window.lessonRenderer.run({
 
   sequence:
-    data.sequence,
+    cleanedSequence,
 
   wait_for_answer:
     data.wait_for_answer,
@@ -11868,7 +12080,6 @@ await window.lessonRenderer.run({
     data.speech
 
 });
-
 
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
