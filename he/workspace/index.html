@@ -10250,10 +10250,37 @@ console.log(
 );
 
 
-/*
-  טעינת תוכן השיעור מתחילה עכשיו,
-  במקביל להפעלת הפתיח.
-*/
+if (introData.session_id) {
+
+  currentSessionId =
+    introData.session_id;
+
+}
+else {
+
+  console.warn(
+    "LESSON INTRO RETURNED NO SESSION ID - SKIPPING INTRO AUDIO"
+  );
+
+  introData.sequence =
+    Array.isArray(introData.sequence)
+
+      ? introData.sequence.filter(
+          action =>
+            action.type !== "speak" &&
+            action.type !== "ask"
+        )
+
+      : [];
+
+}
+
+
+console.log(
+  "LESSON SESSION ID AFTER INTRO:",
+  currentSessionId
+);
+
 
 const universalLessonPromise =
   loadUniversalUnitLesson(
@@ -10261,12 +10288,6 @@ const universalLessonPromise =
     session
   );
 
-/*
-  הפעלת הפתיח האישי.
-
-  lesson-intro עדיין מחזיר sequence,
-  לכן הוא מופעל באמצעות runTutorResponse.
-*/
 
 await runTutorResponse(
   introData
