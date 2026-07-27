@@ -424,6 +424,9 @@ class UnitLessonRequest(BaseModel):
     kid_id: str
     unit_lesson_id: int
 
+class ActiveLessonStateRequest(BaseModel):
+    kid_id: str
+
 class StructuredLessonRequest(
     BaseModel
 ):
@@ -4390,6 +4393,273 @@ def get_learning_lesson_units(
         raise HTTPException(
             status_code=500,
             detail="Failed to load lesson units"
+        )
+
+@app.post(
+    "/api/tutor/active-lesson-state"
+)
+def get_active_lesson_state(
+        body: ActiveLessonStateRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # =============================================
+        # CHILD
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # ACTIVE LEARNING COACH SESSION
+        #
+        # קודם מחפשים Coach פעיל.
+        # כך לא משחזרים בטעות שיעור ישן אחר.
+        # =============================================
+
+        coach_res = (
+            sb.table(
+                "learning_coach_sessions"
+            )
+            .select(
+                "id, "
+                "kid_id, "
+                "lesson_id, "
+                "unit_lesson_id, "
+                "coach_index, "
+                "status, "
+                "total_rounds, "
+                "final_understanding_score, "
+                "started_at"
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "status",
+                "active"
+            )
+            .order(
+                "started_at",
+                desc=True
+            )
+            .limit(1)
+            .execute()
+        )
+
+        if not coach_res.data:
+            return {
+                "has_active_lesson": False
+            }
+
+        coach_session = (
+            coach_res.data[0]
+        )
+
+        # =============================================
+        # LESSON PROGRESS
+        # =============================================
+
+        progress_res = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .select(
+                "id, "
+                "kid_id, "
+                "lesson_id, "
+                "current_stage, "
+                "status, "
+                "progress_percent, "
+                "mastery_score, "
+                "last_activity_at"
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                coach_session["lesson_id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        if not progress_res.data:
+            return {
+                "has_active_lesson": False
+            }
+
+        progress = (
+            progress_res.data[0]
+        )
+
+        # =============================================
+        # UNIT LESSON DETAILS
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            coach_session[
+                "unit_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # PARENT LESSON DETAILS
+        # =============================================
+
+        parent_lesson = get_learning_lesson(
+            coach_session[
+                "lesson_id"
+            ]
+        )
+
+        return {
+            "has_active_lesson": True,
+
+            "progress_id":
+                progress["id"],
+
+            "lesson_id":
+                progress["lesson_id"],
+
+            "unit_lesson_id":
+                coach_session[
+                    "unit_lesson_id"
+                ],
+
+            "current_stage":
+                progress.get(
+                    "current_stage"
+                ),
+
+            "lesson_status":
+                progress.get(
+                    "status"
+                ),
+
+            "progress_percent":
+                progress.get(
+                    "progress_percent"
+                ),
+
+            "mastery_score":
+                progress.get(
+                    "mastery_score"
+                ),
+
+            "parent_lesson": {
+                "id":
+                    parent_lesson.get(
+                        "id"
+                    ),
+
+                "lesson_name":
+                    parent_lesson.get(
+                        "lesson_name"
+                    ),
+
+                "subject":
+                    parent_lesson.get(
+                        "subject"
+                    ),
+
+                "category":
+                    parent_lesson.get(
+                        "category"
+                    )
+            },
+
+            "unit_lesson": {
+                "id":
+                    unit_lesson.get(
+                        "id"
+                    ),
+
+                "unit_order":
+                    unit_lesson.get(
+                        "unit_order"
+                    ),
+
+                "unit_name":
+                    unit_lesson.get(
+                        "unit_name"
+                    ),
+
+                "lesson_order":
+                    unit_lesson.get(
+                        "lesson_order"
+                    ),
+
+                "lesson_name":
+                    unit_lesson.get(
+                        "lesson_name"
+                    )
+            },
+
+            "learning_coach": {
+                "session_id":
+                    coach_session.get(
+                        "id"
+                    ),
+
+                "coach_index":
+                    coach_session.get(
+                        "coach_index"
+                    ),
+
+                "status":
+                    coach_session.get(
+                        "status"
+                    ),
+
+                "total_rounds":
+                    coach_session.get(
+                        "total_rounds"
+                    ),
+
+                "understanding_score":
+                    coach_session.get(
+                        "final_understanding_score"
+                    )
+            }
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "ACTIVE LESSON STATE ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Failed to load "
+                "active lesson state"
+            )
         )
 
 @app.post(
