@@ -4334,7 +4334,16 @@ def lesson_intro(
                 "learning_lesson_id"
             ]
         )
+        # =============================================
+        # TUTOR SESSION
+        # =============================================
 
+        tutor_session = get_or_create_tutor_session(
+            user_id=user.id,
+            kid_id=child["id"]
+        )
+
+        session_id = tutor_session["id"]
         # =============================================
         # INTRO TEMPLATE
         # =============================================
@@ -4483,6 +4492,9 @@ def lesson_intro(
 
         return {
             "success": True,
+
+            "session_id":
+                session_id,
 
             "unit_lesson_id":
                 unit_lesson["id"],
