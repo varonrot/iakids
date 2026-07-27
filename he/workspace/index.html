@@ -10708,35 +10708,6 @@ async function restoreActiveUnitLesson(
 
   }
 
-/* =============================================
-   RESTORE ONLY THE LESSON THE CHILD CLICKED
-============================================= */
-
-if(
-  selectedUnitLessonId
-  &&
-  Number(
-    state.unit_lesson_id
-  )
-  !==
-  Number(
-    selectedUnitLessonId
-  )
-){
-
-  console.log(
-    "ACTIVE LESSON DOES NOT MATCH SELECTED LESSON:",
-    {
-      activeUnitLessonId:
-        state.unit_lesson_id,
-
-      selectedUnitLessonId
-    }
-  );
-
-  return false;
-
-}
 
   try{
 
@@ -10814,6 +10785,35 @@ if(
 
     }
 
+/* =============================================
+   RESTORE ONLY THE LESSON THE CHILD CLICKED
+============================================= */
+
+if(
+  selectedUnitLessonId
+  &&
+  Number(
+    state.unit_lesson_id
+  )
+  !==
+  Number(
+    selectedUnitLessonId
+  )
+){
+
+  console.log(
+    "ACTIVE LESSON DOES NOT MATCH SELECTED LESSON:",
+    {
+      activeUnitLessonId:
+        state.unit_lesson_id,
+
+      selectedUnitLessonId
+    }
+  );
+
+  return false;
+
+}
 
     /* =============================================
        RESTORE GLOBAL LESSON VARIABLES
