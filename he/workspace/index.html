@@ -10169,6 +10169,34 @@ async function startSelectedUnitLesson(
 
   }
 
+/* =============================================
+   CHECK WHETHER THIS LESSON IS ALREADY ACTIVE
+============================================= */
+
+const activeLessonRestored =
+  await restoreActiveUnitLesson(
+    session,
+    lesson.id
+  );
+
+
+if(
+  activeLessonRestored
+){
+
+  console.log(
+    "SELECTED ACTIVE LESSON RESTORED:",
+    {
+      unitLessonId:
+        lesson.id
+    }
+  );
+
+  hideLessonLoading();
+
+  return;
+
+}
 
   try{
 
@@ -10662,7 +10690,8 @@ function backFromLearningPath(){
 ===================================================== */
 
 async function restoreActiveUnitLesson(
-  session
+  session,
+  selectedUnitLessonId = null
 ){
 
   if(
@@ -10679,6 +10708,35 @@ async function restoreActiveUnitLesson(
 
   }
 
+/* =============================================
+   RESTORE ONLY THE LESSON THE CHILD CLICKED
+============================================= */
+
+if(
+  selectedUnitLessonId
+  &&
+  Number(
+    state.unit_lesson_id
+  )
+  !==
+  Number(
+    selectedUnitLessonId
+  )
+){
+
+  console.log(
+    "ACTIVE LESSON DOES NOT MATCH SELECTED LESSON:",
+    {
+      activeUnitLessonId:
+        state.unit_lesson_id,
+
+      selectedUnitLessonId
+    }
+  );
+
+  return false;
+
+}
 
   try{
 
@@ -11108,30 +11166,12 @@ window.ACTIVE_KID_ID = kid.id;
 
   window.ACTIVE_KID_ID = kid.id;
 
-
-  /* =============================================
-     RESTORE ACTIVE LESSON AFTER REFRESH
-  ============================================= */
-
-const activeLessonRestored =
-  await restoreActiveUnitLesson(
-    sessionData.session
-  );
-
-if(
-  activeLessonRestored
-){
-
-  console.log(
-    "ACTIVE LESSON RESTORED - STOP NORMAL INITIALIZATION"
-  );
-
-  return;
-
-}
+/* =============================================
+   WORKSPACE ALWAYS OPENS ON DASHBOARD
+============================================= */
 
 console.log(
-  "NO ACTIVE LESSON RESTORED - SHOW DASHBOARD"
+  "WORKSPACE INITIALIZED - SHOW DASHBOARD"
 );
 
 showDashboard();
