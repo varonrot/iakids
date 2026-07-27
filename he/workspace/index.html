@@ -9957,21 +9957,18 @@ else{
      השיעור הסתיים ומחכים לתשובת הילד
   ============================================= */
 
-  clearNoResponseTimer();
+clearNoResponseTimer();
 
+/*
+  בשיעורי היחידה החדשים לא מפעילים
+  את מנגנון ה-NO RESPONSE הישן.
+  ההמשך ינוהל רק לאחר תשובת הילד
+  באמצעות Learning Coach.
+*/
 
-  if(
-    currentLearningMode ===
-      "lesson"
-
-    &&
-
-    currentLessonId
-  ){
-
-    startNoResponseTimer();
-
-  }
+console.log(
+  "NO RESPONSE TIMER DISABLED FOR UNIT LESSON"
+);
 
 
   inputEl.focus();
