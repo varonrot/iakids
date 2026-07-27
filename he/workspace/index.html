@@ -11113,23 +11113,28 @@ window.ACTIVE_KID_ID = kid.id;
      RESTORE ACTIVE LESSON AFTER REFRESH
   ============================================= */
 
-  const activeLessonRestored =
-    await restoreActiveUnitLesson(
-      sessionData.session
-    );
+const activeLessonRestored =
+  await restoreActiveUnitLesson(
+    sessionData.session
+  );
 
+if(
+  activeLessonRestored
+){
 
-  if(
-    !activeLessonRestored
-  ){
+  console.log(
+    "ACTIVE LESSON RESTORED - STOP NORMAL INITIALIZATION"
+  );
 
-    console.log(
-      "NO ACTIVE LESSON RESTORED - SHOW DASHBOARD"
-    );
+  return;
 
-    showDashboard();
+}
 
-  }
+console.log(
+  "NO ACTIVE LESSON RESTORED - SHOW DASHBOARD"
+);
+
+showDashboard();
 
 })();
 </script>
