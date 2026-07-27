@@ -10848,6 +10848,22 @@ function startNoResponseTimer(){
 
   clearNoResponseTimer();
 
+  /*
+    מנגנון NO RESPONSE הישן אינו שייך
+    לשיעורי היחידה ול-Learning Coach.
+  */
+
+  if(
+    window.SELECTED_UNIT_LESSON
+  ){
+
+    console.log(
+      "NO RESPONSE BLOCKED - UNIT LESSON ACTIVE"
+    );
+
+    return;
+
+  }
 
   /* =============================================
      מקסימום 3 דיבובים לכל שאלה
@@ -10901,22 +10917,30 @@ function startNoResponseTimer(){
           null;
 
 
-        if(
-          currentLearningMode !==
-            "lesson"
+if(
+  currentLearningMode !==
+    "lesson"
 
-          ||
+  ||
 
-          !currentLessonId
+  !currentLessonId
 
-          ||
+  ||
 
-          !CURRENT_KID?.id
-        ){
+  !CURRENT_KID?.id
 
-          return;
+  ||
 
-        }
+  window.SELECTED_UNIT_LESSON
+){
+
+  console.log(
+    "NO RESPONSE CANCELLED - UNIT LESSON ACTIVE"
+  );
+
+  return;
+
+}
 
 
         /* הילד התחיל לכתוב */
@@ -11516,7 +11540,17 @@ async function sendLessonNoResponse(){
     ||
 
     !CURRENT_KID?.id
+
+    ||
+
+    window.SELECTED_UNIT_LESSON
   ){
+
+    console.log(
+      "NO RESPONSE REQUEST BLOCKED - UNIT LESSON ACTIVE"
+    );
+
+    clearNoResponseTimer();
 
     return;
 
