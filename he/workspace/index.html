@@ -10657,6 +10657,322 @@ function backFromLearningPath(){
 
 }
 
+/* =====================================================
+   RESTORE ACTIVE UNIT LESSON AFTER REFRESH
+===================================================== */
+
+async function restoreActiveUnitLesson(
+  session
+){
+
+  if(
+    !CURRENT_KID?.id
+    ||
+    !session?.access_token
+  ){
+
+    console.log(
+      "ACTIVE LESSON RESTORE SKIPPED"
+    );
+
+    return false;
+
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/active-lesson-state`,
+
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              kid_id:
+                CURRENT_KID.id
+            })
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+        "RESTORE ACTIVE LESSON ERROR:",
+        response.status,
+        errorText
+      );
+
+
+      return false;
+
+    }
+
+
+    const state =
+      await response.json();
+
+
+    console.log(
+      "ACTIVE LESSON STATE:",
+      state
+    );
+
+
+    if(
+      !state.has_active_lesson
+      ||
+      !state.lesson_id
+      ||
+      !state.unit_lesson_id
+    ){
+
+      console.log(
+        "NO ACTIVE UNIT LESSON TO RESTORE"
+      );
+
+
+      return false;
+
+    }
+
+
+    /* =============================================
+       RESTORE GLOBAL LESSON VARIABLES
+    ============================================= */
+
+    currentLessonId =
+      state.lesson_id;
+
+
+    currentLearningMode =
+      state.current_stage
+        ?.startsWith(
+          "learning_coach"
+        )
+
+        ? "learning_coach"
+
+        : "lesson";
+
+
+    currentSessionId =
+      state.learning_coach
+        ?.session_id
+      ||
+      currentSessionId;
+
+
+    window.SELECTED_UNIT_LESSON = {
+
+      unit_lesson_id:
+        state.unit_lesson_id,
+
+      learning_lesson_id:
+        state.lesson_id,
+
+      parent_lesson_name:
+        state.parent_lesson
+          ?.lesson_name
+        ||
+        "",
+
+      subject:
+        state.parent_lesson
+          ?.subject
+        ||
+        "",
+
+      category:
+        state.parent_lesson
+          ?.category
+        ||
+        "",
+
+      unit_order:
+        state.unit_lesson
+          ?.unit_order
+        ||
+        null,
+
+      unit_name:
+        state.unit_lesson
+          ?.unit_name
+        ||
+        "",
+
+      lesson_order:
+        state.unit_lesson
+          ?.lesson_order
+        ||
+        null,
+
+      lesson_name:
+        state.unit_lesson
+          ?.lesson_name
+        ||
+        ""
+
+    };
+
+
+    /* =============================================
+       RESTORE VIEW
+    ============================================= */
+
+    showLearning(
+      "lesson"
+    );
+
+
+    const emptyState =
+      document.getElementById(
+        "emptyState"
+      );
+
+
+    if(emptyState){
+
+      emptyState.style.display =
+        "none";
+
+    }
+
+
+    const title =
+      document.getElementById(
+        "heroGreeting"
+      );
+
+
+    if(title){
+
+      title.textContent =
+        state.unit_lesson
+          ?.lesson_name
+        ||
+        "ממשיכים את השיעור";
+
+    }
+
+
+    const subtitle =
+      document.getElementById(
+        "learningSubtitle"
+      );
+
+
+    if(subtitle){
+
+      subtitle.textContent =
+
+        `${state.parent_lesson?.subject || ""}`
+
+        +
+
+        ` • ${state.unit_lesson?.unit_name || ""}`;
+
+    }
+
+
+    /* =============================================
+       SHOW RESTORE MESSAGE
+    ============================================= */
+
+    if(
+      state.current_stage ===
+        "learning_coach_1"
+    ){
+
+      addMessage(
+        "assistant",
+        "חזרנו למקום שבו עצרנו בבדיקת ההבנה הראשונה. אפשר להמשיך לענות על השאלה האחרונה."
+      );
+
+    }
+
+    else if(
+      state.current_stage ===
+        "learning_coach_2"
+    ){
+
+      addMessage(
+        "assistant",
+        "חזרנו למקום שבו עצרנו בבדיקת ההבנה השנייה. אפשר להמשיך לענות על השאלה האחרונה."
+      );
+
+    }
+
+    else{
+
+      addMessage(
+        "assistant",
+        "חזרנו למקום שבו עצרנו בשיעור."
+      );
+
+    }
+
+
+    console.log(
+      "ACTIVE UNIT LESSON RESTORED:",
+      {
+        currentStage:
+          state.current_stage,
+
+        lessonId:
+          state.lesson_id,
+
+        unitLessonId:
+          state.unit_lesson_id,
+
+        coachIndex:
+          state.learning_coach
+            ?.coach_index,
+
+        totalRounds:
+          state.learning_coach
+            ?.total_rounds
+      }
+    );
+
+
+    return true;
+
+  }
+  catch(error){
+
+    console.error(
+      "RESTORE ACTIVE LESSON NETWORK ERROR:",
+      error
+    );
+
+
+    return false;
+
+  }
+
+}
+
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
   const { data: { user } } = await sb.auth.getUser();
@@ -10799,6 +11115,30 @@ window.ACTIVE_KID_ID = kid.id;
 
 
   window.ACTIVE_KID_ID = kid.id;
+
+
+  /* =============================================
+     RESTORE ACTIVE LESSON AFTER REFRESH
+  ============================================= */
+
+  const activeLessonRestored =
+    await restoreActiveUnitLesson(
+      sessionData.session
+    );
+
+
+  if(
+    !activeLessonRestored
+  ){
+
+    console.log(
+      "NO ACTIVE LESSON RESTORED - SHOW DASHBOARD"
+    );
+
+    showDashboard();
+
+  }
+
 })();
 </script>
 <script>
