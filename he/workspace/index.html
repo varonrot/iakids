@@ -10251,28 +10251,8 @@ console.log(
 
 
 if (introData.session_id) {
-
   currentSessionId =
     introData.session_id;
-
-}
-else {
-
-  console.warn(
-    "LESSON INTRO RETURNED NO SESSION ID - SKIPPING INTRO AUDIO"
-  );
-
-  introData.sequence =
-    Array.isArray(introData.sequence)
-
-      ? introData.sequence.filter(
-          action =>
-            action.type !== "speak" &&
-            action.type !== "ask"
-        )
-
-      : [];
-
 }
 
 
