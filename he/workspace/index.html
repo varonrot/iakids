@@ -11575,6 +11575,10 @@ async function sendLessonNoResponse(){
               lesson_id:
                 currentLessonId,
 
+              unit_lesson_id:
+               window.SELECTED_UNIT_LESSON
+                 ?.unit_lesson_id,
+
               message:
                 "__NO_RESPONSE__"
 
@@ -11696,18 +11700,18 @@ if(
     `${TUTOR_API_BASE}/api/tutor/lesson`;
 
 
-  requestBody = {
+requestBody = {
+  message: text,
 
-    message:
-      text,
+  kid_id:
+    CURRENT_KID.id,
 
-    kid_id:
-      CURRENT_KID.id,
+  lesson_id:
+    currentLessonId,
 
-    lesson_id:
-      currentLessonId
-
-  };
+  unit_lesson_id:
+    window.SELECTED_UNIT_LESSON?.unit_lesson_id
+};
 
 }
 
@@ -11734,6 +11738,10 @@ else{
 
 }
 
+console.log(
+  "LEARNING COACH REQUEST:",
+  requestBody
+);
 
 const res =
   await fetch(
