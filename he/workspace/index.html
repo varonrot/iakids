@@ -12195,11 +12195,106 @@ async function runTutorResponse(data){
     }
 
 
-const cleanedSequence =
+let cleanedSequence =
   cleanDuplicateTutorActions(
     data.sequence
   );
 
+/* =====================================================
+   ENSURE THE LAST LEARNING COACH QUESTION IS AN ASK
+
+   לפעמים הבקאנד מחזיר תשובה שמחכה לילד
+   כפעולת write בלבד.
+
+   במקרה כזה הפעולה האחרונה חייבת להפוך ל-ask,
+   כדי שהשאלה גם תודגש וגם תושמע.
+===================================================== */
+
+if(
+  data.wait_for_answer === true
+){
+
+  const hasAsk =
+    cleanedSequence.some(
+      action =>
+        action?.type === "ask"
+    );
+
+
+  if(
+    !hasAsk
+  ){
+
+    let lastTextActionIndex =
+      -1;
+
+
+    for(
+      let index =
+        cleanedSequence.length - 1;
+
+      index >= 0;
+
+      index--
+    ){
+
+      const action =
+        cleanedSequence[index];
+
+
+      if(
+        action?.text
+        &&
+        (
+          action.type === "write"
+          ||
+          action.type === "speak"
+        )
+      ){
+
+        lastTextActionIndex =
+          index;
+
+        break;
+
+      }
+
+    }
+
+
+    if(
+      lastTextActionIndex !== -1
+    ){
+
+      cleanedSequence[
+        lastTextActionIndex
+      ] = {
+
+        ...cleanedSequence[
+          lastTextActionIndex
+        ],
+
+        type:
+          "ask",
+
+        style:
+          "question"
+
+      };
+
+
+      console.log(
+        "LAST WAITING ACTION CONVERTED TO ASK:",
+        cleanedSequence[
+          lastTextActionIndex
+        ]
+      );
+
+    }
+
+  }
+
+}
 
 if(
   cleanedSequence.length === 0
