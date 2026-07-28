@@ -11804,13 +11804,24 @@ function animateImportantParts(element) {
 }
 
 /* =====================================================
-   REMOVE DUPLICATE WRITE / ASK ACTIONS
+   CLEAN DUPLICATE WRITE / ASK
 
-   כאשר ה-Backend החזיר write וגם ask
-   עם אותו טקסט, משאירים רק את ask.
+   אם write כולל משוב + שאלה,
+   ו-ask כולל שוב את אותה שאלה:
 
-   אם הטקסטים שונים:
-   שומרים את שתי הפעולות.
+   write:
+   "יפה מאוד. מה יקרה אם נוציא את השרשרת?"
+
+   ask:
+   "מה יקרה אם נוציא את השרשרת?"
+
+   התוצאה תהיה:
+
+   write:
+   "יפה מאוד."
+
+   ask:
+   "מה יקרה אם נוציא את השרשרת?"
 ===================================================== */
 
 function cleanDuplicateTutorActions(
@@ -11818,9 +11829,7 @@ function cleanDuplicateTutorActions(
 ){
 
   if(
-    !Array.isArray(
-      sequence
-    )
+    !Array.isArray(sequence)
   ){
     return [];
   }
@@ -11828,98 +11837,233 @@ function cleanDuplicateTutorActions(
 
   const normalizeText =
     value =>
-      String(
-        value || ""
-      )
-        .replace(
-          /\s+/g,
-          " "
-        )
+      String(value || "")
+        .replace(/\s+/g, " ")
         .trim();
 
 
-  const cleaned = [];
+  const normalizeForComparison =
+    value =>
+      normalizeText(value)
+        .replace(/[״"'“”‘’]/g, "")
+        .replace(/\s*([,.!?;:])\s*/g, "$1")
+        .trim();
+
+
+  const result = [];
 
 
   for(
-    const action
-    of sequence
+    let index = 0;
+    index < sequence.length;
+    index++
   ){
 
+    const current =
+      sequence[index];
+
+    const next =
+      sequence[index + 1];
+
+
     if(
-      !action
+      !current
       ||
-      typeof action !==
-        "object"
+      typeof current !== "object"
     ){
       continue;
     }
-
-
-    const currentText =
-      normalizeText(
-        action.text
-      );
 
 
     /*
-      פעולות בלי טקסט אינן כפילות טקסטואלית.
+      מטפלים בזוג עוקב:
+      write ולאחריו ask
     */
 
     if(
-      !currentText
+      current.type === "write"
+      &&
+      next?.type === "ask"
     ){
 
-      cleaned.push(
-        action
-      );
+      const originalWriteText =
+        normalizeText(
+          current.text
+        );
 
-      continue;
+      const originalAskText =
+        normalizeText(
+          next.text
+        );
+
+      const comparableWriteText =
+        normalizeForComparison(
+          originalWriteText
+        );
+
+      const comparableAskText =
+        normalizeForComparison(
+          originalAskText
+        );
+
+
+      /*
+        אותו טקסט בדיוק:
+        משאירים רק ask
+      */
+
+      if(
+        comparableWriteText
+        &&
+        comparableAskText
+        &&
+        comparableWriteText ===
+          comparableAskText
+      ){
+
+        result.push({
+          ...next,
+          text:
+            originalAskText
+        });
+
+        index++;
+
+        continue;
+
+      }
+
+
+      /*
+        השאלה נמצאת בתוך ה-write.
+
+        מסירים אותה מה-write
+        ומשאירים אותה רק ב-ask.
+      */
+
+      if(
+        comparableWriteText
+        &&
+        comparableAskText
+        &&
+        comparableWriteText.includes(
+          comparableAskText
+        )
+      ){
+
+        /*
+          קודם מנסים חיפוש ישיר בטקסט המקורי.
+        */
+
+        let questionStart =
+          originalWriteText.lastIndexOf(
+            originalAskText
+          );
+
+
+        /*
+          fallback:
+          כאשר יש הבדל קטן ברווחים או במרכאות,
+          מחפשים לפי תחילת השאלה.
+        */
+
+        if(
+          questionStart === -1
+        ){
+
+          const askStart =
+            originalAskText
+              .slice(0, 24)
+              .trim();
+
+          if(askStart){
+
+            questionStart =
+              originalWriteText
+                .lastIndexOf(
+                  askStart
+                );
+
+          }
+
+        }
+
+
+        if(
+          questionStart >= 0
+        ){
+
+          const feedbackText =
+            originalWriteText
+              .slice(
+                0,
+                questionStart
+              )
+              .replace(
+                /[\s\-–—:;,]+$/g,
+                ""
+              )
+              .trim();
+
+
+          if(
+            feedbackText
+          ){
+
+            result.push({
+              ...current,
+              text:
+                feedbackText
+            });
+
+          }
+
+
+          result.push({
+            ...next,
+            text:
+              originalAskText
+          });
+
+
+          index++;
+
+          continue;
+
+        }
+
+      }
 
     }
 
 
-    const duplicateIndex =
-      cleaned.findIndex(
-        existingAction => {
+    /*
+      מניעת כפילות מלאה רגילה
+      מול פעולות שכבר נוספו.
+    */
 
-          const existingText =
-            normalizeText(
-              existingAction?.text
+    const currentComparable =
+      normalizeForComparison(
+        current.text
+      );
+
+
+    const duplicateIndex =
+      result.findIndex(
+        existing => {
+
+          const existingComparable =
+            normalizeForComparison(
+              existing?.text
             );
 
-
-          if(
-            existingText !==
-              currentText
-          ){
-            return false;
-          }
-
-
-          const currentType =
-            action.type;
-
-
-          const existingType =
-            existingAction?.type;
-
-
           return (
-            (
-              currentType === "ask"
-              &&
-              existingType === "write"
-            )
-            ||
-            (
-              currentType === "write"
-              &&
-              existingType === "ask"
-            )
-            ||
-            currentType ===
-              existingType
+            currentComparable
+            &&
+            existingComparable
+            &&
+            currentComparable ===
+              existingComparable
           );
 
         }
@@ -11930,27 +12074,25 @@ function cleanDuplicateTutorActions(
       duplicateIndex === -1
     ){
 
-      cleaned.push(
-        action
-      );
-
-      continue;
+      result.push({
+        ...current
+      });
 
     }
-
-
-    /*
-      אם קיימים write ו-ask זהים,
-      מעדיפים ask כי היא מסמנת שאלה לילד.
-    */
-
-    if(
-      action.type === "ask"
+    else if(
+      current.type === "ask"
     ){
 
-      cleaned[
+      /*
+        אם קיימים write ו-ask זהים,
+        מעדיפים את ask.
+      */
+
+      result[
         duplicateIndex
-      ] = action;
+      ] = {
+        ...current
+      };
 
     }
 
@@ -11964,16 +12106,18 @@ function cleanDuplicateTutorActions(
         sequence.length,
 
       after:
-        cleaned.length,
+        result.length,
 
-      removed:
-        sequence.length -
-        cleaned.length
+      original:
+        sequence,
+
+      cleaned:
+        result
     }
   );
 
 
-  return cleaned;
+  return result;
 
 }
 
@@ -12064,18 +12208,9 @@ console.log(
 );
 
 
-await window.lessonRenderer.run({
-
-  sequence:
-    cleanedSequence,
-
-  wait_for_answer:
-    data.wait_for_answer,
-
-  speech:
-    data.speech
-
-});
+await runTutorResponse(
+  data
+);
 
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
