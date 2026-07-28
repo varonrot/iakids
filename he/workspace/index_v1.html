@@ -7319,7 +7319,39 @@ body::before{
   >
 
     <section class="workspace">
+<div
+  id="lessonLoadingOverlay"
+  class="lesson-loading-overlay"
+  aria-hidden="true"
+>
+  <div class="lesson-loading-card">
 
+    <img
+      class="lesson-loading-robot"
+      src="/assets/robots/askie-robot.png"
+      alt=""
+    >
+
+    <div class="lesson-loading-title">
+      מכינים את השיעור
+      <span
+        id="lessonLoadingDots"
+        class="lesson-loading-dots"
+      >...</span>
+    </div>
+
+    <div
+      id="lessonLoadingStatus"
+      class="lesson-loading-status"
+      aria-live="polite"
+    >
+      📚 טוענים את תוכן השיעור
+    </div>
+
+    <div class="lesson-loading-track"></div>
+
+  </div>
+</div>
       <div class="welcome">
 
         <img
@@ -9089,12 +9121,866 @@ function renderUnitLessons(unit) {
   });
 }
 
+/* =====================================================
+   LOAD UNIVERSAL UNIT LESSON
+===================================================== */
+
+async function loadUniversalUnitLesson(
+  lesson,
+  session
+){
+
+  const MAX_GENERATION_CHECKS =
+    20;
+
+  const CHECK_DELAY_MS =
+    1500;
+
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_GENERATION_CHECKS;
+    attempt++
+  ){
+
+    console.log(
+      "LOAD UNIVERSAL UNIT LESSON:",
+      {
+        attempt,
+        unitLessonId:
+          lesson.id
+      }
+    );
+
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/unit-lesson`,
+
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                lesson.id
+
+            })
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+        "UNIT LESSON API ERROR:",
+        response.status,
+        errorText
+      );
+
+
+throw new Error(
+  `Unit lesson failed ${response.status}: ${errorText}`
+);
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "UNIT LESSON RESPONSE:",
+      data
+    );
+
+
+    /*
+      השיעור מוכן:
+      בין אם נוצר עכשיו ובין אם הגיע מה-Cache
+    */
+
+if(
+  data.generation_status === "ready"
+  &&
+  data.structured_lesson
+  &&
+  Array.isArray(
+    data.structured_lesson.lesson
+  )
+  &&
+  data.structured_lesson.lesson.length > 0
+){
+  return data;
+}
+
+
+    /*
+      משתמש אחר כבר מייצר את אותו שיעור.
+      ממתינים ובודקים שוב.
+    */
+
+    if(
+      data.generation_status ===
+        "generating"
+    ){
+
+      const status =
+        document.getElementById(
+          "lessonLoadingStatus"
+        );
+
+
+      if(status){
+
+        status.textContent =
+          "🧠 מכינים את השיעור בפעם הראשונה";
+
+      }
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            CHECK_DELAY_MS
+          )
+      );
+
+
+      continue;
+
+    }
+
+
+    throw new Error(
+      "Universal lesson returned invalid data"
+    );
+
+  }
+
+
+  throw new Error(
+    "Universal lesson generation timed out"
+  );
+
+}
+
+
+/* =====================================================
+   SIMPLE UNIVERSAL LESSON
+
+   מציג את טקסט השיעור,
+   מחלק אותו לפסקאות,
+   שולח את כל הטקסט ל-Gemini TTS,
+   ומנגן את האודיו.
+===================================================== */
+
+/* =====================================================
+   STRUCTURED UNIVERSAL LESSON WITH SEGMENT AUDIO
+
+   - מקבל קטעים שכבר חולקו ב-Backend
+   - מתחיל ליצור את כל קובצי האודיו במקביל
+   - מציג ומשמיע כל קטע לפי הסדר
+   - מציג ומשמיע את שאלת הסיום בנפרד
+===================================================== */
+async function typeLessonText(
+  element,
+  text,
+  durationSeconds = null
+){
+
+  element.textContent = "";
+
+  /*
+    כאשר יש משך אודיו שמור,
+    מהירות הכתיבה מותאמת לאורך האודיו.
+  */
+
+  const calculatedDelay =
+    durationSeconds && text.length > 0
+
+      ? (
+          durationSeconds *
+          1000 /
+          text.length
+        )
+
+      : 35;
+
+
+  /*
+    מגבילים למהירות סבירה:
+    לא מהיר מדי ולא איטי מדי.
+  */
+
+  const delayMs =
+    Math.max(
+      18,
+      Math.min(
+        calculatedDelay,
+        75
+      )
+    );
+
+
+  for(
+    let index = 0;
+    index < text.length;
+    index++
+  ){
+
+    element.textContent +=
+      text[index];
+
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          delayMs
+        )
+    );
+
+  }
+
+}
+async function runSimpleUniversalLesson(
+  data
+){
+
+  const structuredLesson =
+    data?.structured_lesson;
+
+
+  if(
+    !structuredLesson
+    ||
+    !Array.isArray(
+      structuredLesson.lesson
+    )
+  ){
+
+    throw new Error(
+      "Universal lesson has no structured lesson"
+    );
+
+  }
+
+
+  const lessonParts =
+    structuredLesson.lesson
+
+      .map(
+        part =>
+          (
+            part?.text
+            ||
+            ""
+          ).trim()
+      )
+
+      .filter(
+        Boolean
+      );
+
+
+  const questionText =
+    (
+      structuredLesson
+        ?.question
+        ?.text
+      ||
+      ""
+    ).trim();
+const normalizeUniversalText =
+  text =>
+    String(text || "")
+      .replace(/[?!.,:;״"'׳]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+
+const normalizedQuestion =
+  normalizeUniversalText(
+    questionText
+  );
+
+
+const normalizedLastPart =
+  normalizeUniversalText(
+    lessonParts[
+      lessonParts.length - 1
+    ]
+  );
+
+
+const questionAlreadyIncluded =
+  Boolean(
+    normalizedQuestion
+    &&
+    normalizedLastPart
+    &&
+    (
+      normalizedLastPart ===
+        normalizedQuestion
+
+      ||
+
+      normalizedLastPart.includes(
+        normalizedQuestion
+      )
+
+      ||
+
+      normalizedQuestion.includes(
+        normalizedLastPart
+      )
+    )
+  );
+
+
+console.log(
+  "QUESTION DUPLICATE CHECK:",
+  {
+    normalizedLastPart,
+    normalizedQuestion,
+    questionAlreadyIncluded
+  }
+);
+
+console.log(
+  "QUESTION ALREADY INCLUDED:",
+  questionAlreadyIncluded
+);
+
+  if(
+    lessonParts.length === 0
+  ){
+
+    throw new Error(
+      "Structured lesson has no lesson parts"
+    );
+
+  }
+
+
+  console.log(
+    "STRUCTURED UNIVERSAL LESSON:",
+    {
+      lessonParts,
+      questionText
+    }
+  );
+
+
+  /* =============================================
+     פתיחת הרשאת שמע בדפדפן
+  ============================================= */
+
+  await unlockLessonAudio();
+
+
+  if(
+    !window.lessonRenderer
+  ){
+
+    throw new Error(
+      "lessonRenderer not initialized"
+    );
+
+  }
+
+
+  /* =============================================
+     יצירת אזור השיעור במחברת
+  ============================================= */
+
+  const row =
+    document.createElement(
+      "div"
+    );
+
+
+  row.className =
+    "tutor-response";
+
+
+  const avatar =
+    document.createElement(
+      "img"
+    );
+
+
+  avatar.src =
+    "/assets/robots/askie-robot.png";
+
+
+  avatar.className =
+    "tutor-avatar";
+
+
+  const writingArea =
+    document.createElement(
+      "div"
+    );
+
+
+  writingArea.className =
+    "tutor-writing-area";
+
+
+  row.appendChild(
+    avatar
+  );
+
+
+  row.appendChild(
+    writingArea
+  );
+
+
+  messagesEl.appendChild(
+    row
+  );
+
+
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+
+
+  /* =============================================
+     יצירת כל האודיו במקביל
+
+     כל Promise מתחיל מיד.
+     לא מחכים לסיום קטע אחד כדי להתחיל
+     ליצור את האודיו של הקטע הבא.
+  ============================================= */
+
+  /* =============================================
+     AUDIO SOURCE
+
+     עדיפות ראשונה:
+     קבצים שמורים ב-Supabase Storage.
+
+     fallback:
+     TTS חי רק אם האודיו עדיין לא מוכן.
+  ============================================= */
+
+   /* =============================================
+     AUDIO SOURCE FROM BACKEND
+  ============================================= */
+
+  const lessonAudio =
+    data?.lesson_audio;
+console.log(
+  "UNIVERSAL LESSON AUDIO DEBUG:",
+  {
+    status:
+      data.audio_generation_status,
+
+    lessonPartsCount:
+      lessonParts.length,
+
+    storedSegmentsCount:
+      lessonAudio?.segments?.length,
+
+    segmentUrls:
+      lessonAudio?.segments?.map(
+        segment => segment.url
+      ),
+
+    questionUrl:
+      lessonAudio?.question?.url
+  }
+);
+
+  const storedSegments =
+    Array.isArray(
+      lessonAudio?.segments
+    )
+      ? [...lessonAudio.segments]
+          .sort(
+            (a, b) =>
+              Number(a.index) -
+              Number(b.index)
+          )
+      : [];
+
+
+  const useStoredAudio =
+    (
+      data.audio_generation_status ===
+        "ready"
+
+      &&
+
+      storedSegments.length ===
+        lessonParts.length
+
+      &&
+
+      storedSegments.every(
+        segment =>
+          Boolean(
+            segment?.url
+          )
+      )
+    );
+
+
+  console.log(
+    "UNIVERSAL LESSON AUDIO SOURCE:",
+    useStoredAudio
+      ? "backend-signed-urls"
+      : "live-tts"
+  );
+
+
+  /*
+    שיעור עם audio ready חייב להשתמש
+    בקבצים השמורים.
+
+    אם חסרים URLs, לא שולחים 9 קריאות TTS.
+  */
+
+  if(
+    data.audio_generation_status ===
+      "ready"
+
+    &&
+
+    !useStoredAudio
+  ){
+
+    console.error(
+      "STORED LESSON AUDIO INVALID:",
+      lessonAudio
+    );
+
+    throw new Error(
+      "Stored lesson audio is ready but URLs are missing"
+    );
+
+  }
+
+
+  const lessonAudioPromises =
+    useStoredAudio
+
+      ? storedSegments.map(
+          segment =>
+            Promise.resolve(
+              segment.url
+            )
+        )
+
+      : lessonParts.map(
+          text =>
+            window.lessonRenderer
+              .preloadAudio(
+                text
+              )
+        );
+
+
+  const questionStoredUrl =
+    lessonAudio
+      ?.question
+      ?.url
+    ||
+    null;
+
+
+  const questionAudioPromise =
+    questionText
+
+      ? (
+          useStoredAudio
+
+            ? Promise.resolve(
+                questionStoredUrl
+              )
+
+            : window.lessonRenderer
+                .preloadAudio(
+                  questionText
+                )
+        )
+
+      : null;
+
+  /* =============================================
+     הצגה והשמעה לפי הסדר
+  ============================================= */
+
+  for(
+    let index = 0;
+    index < lessonParts.length;
+    index++
+  ){
+
+    const paragraph =
+      lessonParts[index];
+
+
+    /*
+      מחכים רק לאודיו של הקטע הנוכחי.
+
+      בזמן הזה שאר קובצי האודיו
+      ממשיכים להיווצר במקביל.
+    */
+
+    const audioUrl =
+      await lessonAudioPromises[
+        index
+      ];
+
+
+    if(
+      !audioUrl
+    ){
+
+      throw new Error(
+        `Lesson TTS returned no audio for part ${index + 1}`
+      );
+
+    }
+
+
+    /* =============================================
+       הצגת הקטע הנוכחי
+    ============================================= */
+
+    const line =
+      document.createElement(
+        "div"
+      );
+
+
+    line.className =
+      "tutor-writing";
+
+
+line.textContent = "";
+
+
+writingArea.appendChild(
+  line
+);
+
+
+messagesEl.scrollTop =
+  messagesEl.scrollHeight;
+
+
+if(
+  index === 0
+){
+
+  hideLessonLoading();
+
+}
+
+
+/*
+  מתחילים את האודיו ואת הכתיבה יחד.
+*/
+
+const audioPromise =
+  window.lessonRenderer
+    .playAudioUrl(
+      audioUrl
+    );
+
+
+const segmentDuration =
+  useStoredAudio
+
+    ? Number(
+        storedSegments[
+          index
+        ]?.duration_seconds
+      )
+
+    : null;
+
+
+const typingPromise =
+  typeLessonText(
+    line,
+    paragraph,
+    segmentDuration
+  );
+
+
+/*
+  מחכים שגם האודיו וגם הכתיבה יסתיימו.
+*/
+
+await Promise.all([
+  audioPromise,
+  typingPromise
+]);
+
+
+animateImportantParts(
+  line
+);
+
+  }
+
+
+  /* =============================================
+     שאלת הסיום
+  ============================================= */
+
+  if(
+    questionText
+    &&
+    !questionAlreadyIncluded
+  ){
+
+    const questionAudioUrl =
+      await questionAudioPromise;
+
+    if(
+      useStoredAudio
+      &&
+      !questionAudioUrl
+    ){
+
+      throw new Error(
+        "Stored question audio URL is missing"
+      );
+
+    }
+
+    const questionLine =
+      document.createElement(
+        "div"
+      );
+
+
+    questionLine.className =
+      "tutor-writing question-line";
+
+
+questionLine.textContent = "";
+
+
+writingArea.appendChild(
+  questionLine
+);
+
+
+messagesEl.scrollTop =
+  messagesEl.scrollHeight;
+
+
+if(
+  questionAudioUrl
+){
+
+  const questionAudioPlayback =
+    window.lessonRenderer
+      .playAudioUrl(
+        questionAudioUrl
+      );
+
+
+  const questionDuration =
+    useStoredAudio
+
+      ? Number(
+          lessonAudio
+            ?.question
+            ?.duration_seconds
+        )
+
+      : null;
+
+
+  const questionTyping =
+    typeLessonText(
+      questionLine,
+      questionText,
+      questionDuration
+    );
+
+
+  await Promise.all([
+    questionAudioPlayback,
+    questionTyping
+  ]);
+
+}
+else{
+
+  await typeLessonText(
+    questionLine,
+    questionText
+  );
+
+}
+
+  }
+
+
+  /* =============================================
+     השיעור הסתיים ומחכים לתשובת הילד
+  ============================================= */
+
+clearNoResponseTimer();
+
+/*
+  בשיעורי היחידה החדשים לא מפעילים
+  את מנגנון ה-NO RESPONSE הישן.
+  ההמשך ינוהל רק לאחר תשובת הילד
+  באמצעות Learning Coach.
+*/
+
+console.log(
+  "NO RESPONSE TIMER DISABLED FOR UNIT LESSON"
+);
+
+
+  inputEl.focus();
+
+}
+
 async function startSelectedUnitLesson(
   lesson
 ){
 
   console.log(
-    "START UNIT LESSON INTRO:",
+    "START UNIT LESSON:",
     {
       parentLesson:
         CURRENT_PARENT_LESSON,
@@ -9120,6 +10006,29 @@ async function startSelectedUnitLesson(
   }
 
 
+  if(
+    !CURRENT_PARENT_LESSON?.id
+  ){
+
+    console.error(
+      "No active parent lesson"
+    );
+
+    return;
+
+  }
+
+
+  /* =============================================
+     איפוס מצב השיעור הקודם
+  ============================================= */
+
+  clearNoResponseTimer();
+
+  noResponseCount =
+    0;
+
+
   /* =============================================
      שמירת השיעור שנבחר
   ============================================= */
@@ -9130,10 +10039,16 @@ async function startSelectedUnitLesson(
       lesson.id,
 
     learning_lesson_id:
-      CURRENT_PARENT_LESSON?.id,
+      CURRENT_PARENT_LESSON.id,
 
     parent_lesson_name:
-      CURRENT_PARENT_LESSON?.lesson_name,
+      CURRENT_PARENT_LESSON.lesson_name,
+
+    subject:
+      CURRENT_PARENT_LESSON.subject,
+
+    category:
+      CURRENT_PARENT_LESSON.category,
 
     unit_order:
       CURRENT_UNIT?.unit_order,
@@ -9150,8 +10065,17 @@ async function startSelectedUnitLesson(
   };
 
 
+  /*
+    בזמן הפתיח עדיין לא מפעילים
+    את מנגנון תשובות הילד.
+  */
+
   currentLearningMode =
     "lesson_intro";
+
+
+  currentLessonId =
+    null;
 
 
   /* =============================================
@@ -9161,6 +10085,9 @@ async function startSelectedUnitLesson(
   showLearning(
     "lesson"
   );
+
+
+  showLessonLoading();
 
 
   const title =
@@ -9187,7 +10114,7 @@ async function startSelectedUnitLesson(
 
     subtitle.textContent =
 
-      `${CURRENT_PARENT_LESSON?.subject || ""}`
+      `${CURRENT_PARENT_LESSON.subject || ""}`
 
       +
 
@@ -9229,40 +10156,69 @@ async function startSelectedUnitLesson(
     !session
   ){
 
+    hideLessonLoading();
+
+
     addMessage(
       "assistant",
       "יש להתחבר מחדש."
     );
 
+
     return;
 
   }
 
+/* =============================================
+   CHECK WHETHER THIS LESSON IS ALREADY ACTIVE
+============================================= */
+
+const activeLessonRestored =
+  await restoreActiveUnitLesson(
+    session,
+    lesson.id
+  );
+
+
+if(
+  activeLessonRestored
+){
+
+  console.log(
+    "SELECTED ACTIVE LESSON RESTORED:",
+    {
+      unitLessonId:
+        lesson.id
+    }
+  );
+
+  hideLessonLoading();
+
+  return;
+
+}
 
   try{
 
     /* =============================================
-       קריאת הפתיח בלבד
+       1. טעינת הפתיח האישי
     ============================================= */
 
-    const response =
+    const introResponse =
       await fetch(
 
         `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
 
         {
-
           method:
             "POST",
 
           headers: {
-
             "Content-Type":
               "application/json",
 
             "Authorization":
               `Bearer ${session.access_token}`
-
           },
 
           body:
@@ -9275,37 +10231,32 @@ async function startSelectedUnitLesson(
                 lesson.id
 
             })
-
         }
 
       );
 
 
     if(
-      !response.ok
+      !introResponse.ok
     ){
 
       const errorText =
-        await response.text();
+        await introResponse.text();
 
 
       console.error(
-
         "LESSON INTRO API ERROR:",
-
-        response.status,
-
+        introResponse.status,
         errorText
-
       );
 
 
+      hideLessonLoading();
+
+
       addMessage(
-
         "assistant",
-
-        "לא הצלחתי לפתוח את הפתיח. נסו שוב."
-
+        "לא הצלחתי לפתוח את השיעור. נסו שוב."
       );
 
 
@@ -9314,43 +10265,104 @@ async function startSelectedUnitLesson(
     }
 
 
-    const data =
-      await response.json();
+const introData =
+  await introResponse.json();
 
 
-    console.log(
-      "LESSON INTRO RESPONSE:",
-      data
-    );
+console.log(
+  "LESSON INTRO RESPONSE:",
+  introData
+);
 
 
-    /* =============================================
-       הפעלת הפתיח דרך ה-Renderer הקיים
-    ============================================= */
+if (introData.session_id) {
+  currentSessionId =
+    introData.session_id;
+}
 
-    await runTutorResponse(
-      data
-    );
 
+console.log(
+  "LESSON SESSION ID AFTER INTRO:",
+  currentSessionId
+);
+
+
+const universalLessonPromise =
+  loadUniversalUnitLesson(
+    lesson,
+    session
+  );
+
+
+await runTutorResponse(
+  introData
+);
+
+
+/* =============================================
+   טעינת תוכן השיעור האוניברסלי
+============================================= */
+
+const lessonData =
+  await universalLessonPromise;
+
+
+console.log(
+  "UNIVERSAL LESSON READY:",
+  lessonData
+);
+
+
+/* =============================================
+   מעבר למצב שיעור פעיל
+============================================= */
+
+currentLearningMode =
+  "lesson";
+
+
+currentLessonId =
+  CURRENT_PARENT_LESSON.id;
+
+
+/* =============================================
+   הפעלת השיעור האוניברסלי הפשוט
+
+   lessonData מכיל:
+   {
+     lesson: "..."
+   }
+============================================= */
+
+await runSimpleUniversalLesson(
+  lessonData
+);
+
+    /*
+      מסך הטעינה אמור להיסגר אוטומטית
+      בתחילת האודיו.
+
+      בכל זאת סוגרים כאן כגיבוי,
+      למשל אם השיעור לא כלל speak.
+    */
+
+    hideLessonLoading();
 
   }
   catch(error){
 
     console.error(
-
-      "LESSON INTRO NETWORK ERROR:",
-
+      "START UNIT LESSON ERROR:",
       error
-
     );
 
 
+    hideLessonLoading();
+
+
     addMessage(
-
       "assistant",
-
-      "לא הצלחתי להתחבר למורה כרגע."
-
+      "לא הצלחנו להכין את השיעור כרגע. נסו שוב."
     );
 
   }
@@ -9673,6 +10685,366 @@ function backFromLearningPath(){
 
 }
 
+/* =====================================================
+   RESTORE ACTIVE UNIT LESSON AFTER REFRESH
+===================================================== */
+
+async function restoreActiveUnitLesson(
+  session,
+  selectedUnitLessonId = null
+){
+
+  if(
+    !CURRENT_KID?.id
+    ||
+    !session?.access_token
+  ){
+
+    console.log(
+      "ACTIVE LESSON RESTORE SKIPPED"
+    );
+
+    return false;
+
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/active-lesson-state`,
+
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              kid_id:
+                CURRENT_KID.id
+            })
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+        "RESTORE ACTIVE LESSON ERROR:",
+        response.status,
+        errorText
+      );
+
+
+      return false;
+
+    }
+
+
+    const state =
+      await response.json();
+
+
+    console.log(
+      "ACTIVE LESSON STATE:",
+      state
+    );
+
+
+    if(
+      !state.has_active_lesson
+      ||
+      !state.lesson_id
+      ||
+      !state.unit_lesson_id
+    ){
+
+      console.log(
+        "NO ACTIVE UNIT LESSON TO RESTORE"
+      );
+
+
+      return false;
+
+    }
+
+/* =============================================
+   RESTORE ONLY THE LESSON THE CHILD CLICKED
+============================================= */
+
+if(
+  selectedUnitLessonId
+  &&
+  Number(
+    state.unit_lesson_id
+  )
+  !==
+  Number(
+    selectedUnitLessonId
+  )
+){
+
+  console.log(
+    "ACTIVE LESSON DOES NOT MATCH SELECTED LESSON:",
+    {
+      activeUnitLessonId:
+        state.unit_lesson_id,
+
+      selectedUnitLessonId
+    }
+  );
+
+  return false;
+
+}
+
+    /* =============================================
+       RESTORE GLOBAL LESSON VARIABLES
+    ============================================= */
+
+    currentLessonId =
+      state.lesson_id;
+
+
+    currentLearningMode =
+      state.current_stage
+        ?.startsWith(
+          "learning_coach"
+        )
+
+        ? "learning_coach"
+
+        : "lesson";
+
+    window.SELECTED_UNIT_LESSON = {
+
+      unit_lesson_id:
+        state.unit_lesson_id,
+
+      learning_lesson_id:
+        state.lesson_id,
+
+      parent_lesson_name:
+        state.parent_lesson
+          ?.lesson_name
+        ||
+        "",
+
+      subject:
+        state.parent_lesson
+          ?.subject
+        ||
+        "",
+
+      category:
+        state.parent_lesson
+          ?.category
+        ||
+        "",
+
+      unit_order:
+        state.unit_lesson
+          ?.unit_order
+        ||
+        null,
+
+      unit_name:
+        state.unit_lesson
+          ?.unit_name
+        ||
+        "",
+
+      lesson_order:
+        state.unit_lesson
+          ?.lesson_order
+        ||
+        null,
+
+      lesson_name:
+        state.unit_lesson
+          ?.lesson_name
+        ||
+        ""
+
+    };
+
+
+    /* =============================================
+       RESTORE VIEW
+    ============================================= */
+
+    showLearning(
+      "lesson"
+    );
+
+
+    const emptyState =
+      document.getElementById(
+        "emptyState"
+      );
+
+
+    if(emptyState){
+
+      emptyState.style.display =
+        "none";
+
+    }
+
+
+    const title =
+      document.getElementById(
+        "heroGreeting"
+      );
+
+
+    if(title){
+
+      title.textContent =
+        state.unit_lesson
+          ?.lesson_name
+        ||
+        "ממשיכים את השיעור";
+
+    }
+
+
+    const subtitle =
+      document.getElementById(
+        "learningSubtitle"
+      );
+
+
+    if(subtitle){
+
+      subtitle.textContent =
+
+        `${state.parent_lesson?.subject || ""}`
+
+        +
+
+        ` • ${state.unit_lesson?.unit_name || ""}`;
+
+    }
+
+/* =============================================
+   RESTORE LAST TEACHER MESSAGE
+============================================= */
+
+const lastAssistantMessage =
+  state.last_assistant_message;
+
+
+/*
+  השיעור כבר נמצא והמידע כבר התקבל.
+  אין סיבה להשאיר את מסך הטעינה בזמן
+  שהטקסט נכתב והאודיו מתנגן.
+*/
+
+hideLessonLoading();
+
+
+if(
+  Array.isArray(
+    lastAssistantMessage?.sequence
+  )
+  &&
+  lastAssistantMessage.sequence.length > 0
+){
+
+  await runTutorResponse({
+    sequence:
+      lastAssistantMessage.sequence,
+
+    wait_for_answer:
+      true,
+
+    restored:
+      true,
+
+    lesson_mode:
+      "learning_coach"
+  });
+
+}
+
+else if(
+  lastAssistantMessage?.content
+){
+
+  addMessage(
+    "assistant",
+    lastAssistantMessage.content
+  );
+
+}
+
+else{
+
+  console.warn(
+    "ACTIVE LESSON HAS NO LAST ASSISTANT MESSAGE"
+  );
+
+}
+
+
+    console.log(
+      "ACTIVE UNIT LESSON RESTORED:",
+      {
+        currentStage:
+          state.current_stage,
+
+        lessonId:
+          state.lesson_id,
+
+        unitLessonId:
+          state.unit_lesson_id,
+
+        coachIndex:
+          state.learning_coach
+            ?.coach_index,
+
+        totalRounds:
+          state.learning_coach
+            ?.total_rounds
+      }
+    );
+
+
+    return true;
+
+  }
+  catch(error){
+
+    console.error(
+      "RESTORE ACTIVE LESSON NETWORK ERROR:",
+      error
+    );
+
+
+    return false;
+
+  }
+
+}
+
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
   const { data: { user } } = await sb.auth.getUser();
@@ -9815,6 +11187,17 @@ window.ACTIVE_KID_ID = kid.id;
 
 
   window.ACTIVE_KID_ID = kid.id;
+
+/* =============================================
+   WORKSPACE ALWAYS OPENS ON DASHBOARD
+============================================= */
+
+console.log(
+  "WORKSPACE INITIALIZED - SHOW DASHBOARD"
+);
+
+showDashboard();
+
 })();
 </script>
 <script>
@@ -9864,6 +11247,22 @@ function startNoResponseTimer(){
 
   clearNoResponseTimer();
 
+  /*
+    מנגנון NO RESPONSE הישן אינו שייך
+    לשיעורי היחידה ול-Learning Coach.
+  */
+
+  if(
+    window.SELECTED_UNIT_LESSON
+  ){
+
+    console.log(
+      "NO RESPONSE BLOCKED - UNIT LESSON ACTIVE"
+    );
+
+    return;
+
+  }
 
   /* =============================================
      מקסימום 3 דיבובים לכל שאלה
@@ -9917,22 +11316,30 @@ function startNoResponseTimer(){
           null;
 
 
-        if(
-          currentLearningMode !==
-            "lesson"
+if(
+  currentLearningMode !==
+    "lesson"
 
-          ||
+  ||
 
-          !currentLessonId
+  !currentLessonId
 
-          ||
+  ||
 
-          !CURRENT_KID?.id
-        ){
+  !CURRENT_KID?.id
 
-          return;
+  ||
 
-        }
+  window.SELECTED_UNIT_LESSON
+){
+
+  console.log(
+    "NO RESPONSE CANCELLED - UNIT LESSON ACTIVE"
+  );
+
+  return;
+
+}
 
 
         /* הילד התחיל לכתוב */
@@ -9977,6 +11384,228 @@ function startNoResponseTimer(){
       delay
 
     );
+
+}
+
+
+/* =====================================================
+   INTERACTIVE LESSON LOADING
+===================================================== */
+
+let lessonLoadingStatusTimer = null;
+let lessonLoadingDotsTimer = null;
+let lessonLoadingStatusIndex = 0;
+let lessonLoadingStartedAt = 0;
+
+const LESSON_LOADING_STATUSES = [
+  "📚 טוענים את תוכן השיעור",
+  "🧠 מסדרים את ההסבר",
+  "✨ בוחרים דוגמאות מתאימות",
+  "🎤 מכינים את ההקראה",
+  "🚀 כמעט מוכנים"
+];
+
+
+function showLessonLoading(){
+
+  const overlay =
+    document.getElementById(
+      "lessonLoadingOverlay"
+    );
+
+  const status =
+    document.getElementById(
+      "lessonLoadingStatus"
+    );
+
+  const dots =
+    document.getElementById(
+      "lessonLoadingDots"
+    );
+
+
+  if(!overlay){
+    return;
+  }
+
+
+  clearLessonLoadingTimers();
+
+
+  lessonLoadingStartedAt =
+    Date.now();
+
+
+  lessonLoadingStatusIndex =
+    0;
+
+
+  if(status){
+
+    status.textContent =
+      LESSON_LOADING_STATUSES[0];
+
+  }
+
+
+  if(dots){
+
+    dots.textContent =
+      "...";
+
+  }
+
+
+  overlay.classList.add(
+    "visible"
+  );
+
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  /*
+    החלפת הודעת מצב כל 850ms
+  */
+
+  lessonLoadingStatusTimer =
+    setInterval(
+      () => {
+
+        lessonLoadingStatusIndex =
+          (
+            lessonLoadingStatusIndex + 1
+          )
+          %
+          LESSON_LOADING_STATUSES.length;
+
+
+        if(!status){
+          return;
+        }
+
+
+        status.classList.add(
+          "changing"
+        );
+
+
+        setTimeout(
+          () => {
+
+            status.textContent =
+              LESSON_LOADING_STATUSES[
+                lessonLoadingStatusIndex
+              ];
+
+
+            status.classList.remove(
+              "changing"
+            );
+
+          },
+          170
+        );
+
+      },
+      850
+    );
+
+
+  /*
+    אנימציית נקודות:
+    .  ..  ...
+  */
+
+  let dotsCount = 1;
+
+
+  lessonLoadingDotsTimer =
+    setInterval(
+      () => {
+
+        dotsCount =
+          dotsCount >= 3
+            ? 1
+            : dotsCount + 1;
+
+
+        if(dots){
+
+          dots.textContent =
+            ".".repeat(
+              dotsCount
+            );
+
+        }
+
+      },
+      350
+    );
+
+}
+
+
+function hideLessonLoading(){
+
+  const overlay =
+    document.getElementById(
+      "lessonLoadingOverlay"
+    );
+
+
+  if(!overlay){
+    return;
+  }
+
+
+  clearLessonLoadingTimers();
+
+
+  overlay.classList.remove(
+    "visible"
+  );
+
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+}
+
+
+function clearLessonLoadingTimers(){
+
+  if(
+    lessonLoadingStatusTimer
+  ){
+
+    clearInterval(
+      lessonLoadingStatusTimer
+    );
+
+    lessonLoadingStatusTimer =
+      null;
+
+  }
+
+
+  if(
+    lessonLoadingDotsTimer
+  ){
+
+    clearInterval(
+      lessonLoadingDotsTimer
+    );
+
+    lessonLoadingDotsTimer =
+      null;
+
+  }
 
 }
 
@@ -10178,6 +11807,180 @@ function animateImportantParts(element) {
   }
 }
 
+/* =====================================================
+   REMOVE DUPLICATE WRITE / ASK ACTIONS
+
+   כאשר ה-Backend החזיר write וגם ask
+   עם אותו טקסט, משאירים רק את ask.
+
+   אם הטקסטים שונים:
+   שומרים את שתי הפעולות.
+===================================================== */
+
+function cleanDuplicateTutorActions(
+  sequence
+){
+
+  if(
+    !Array.isArray(
+      sequence
+    )
+  ){
+    return [];
+  }
+
+
+  const normalizeText =
+    value =>
+      String(
+        value || ""
+      )
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim();
+
+
+  const cleaned = [];
+
+
+  for(
+    const action
+    of sequence
+  ){
+
+    if(
+      !action
+      ||
+      typeof action !==
+        "object"
+    ){
+      continue;
+    }
+
+
+    const currentText =
+      normalizeText(
+        action.text
+      );
+
+
+    /*
+      פעולות בלי טקסט אינן כפילות טקסטואלית.
+    */
+
+    if(
+      !currentText
+    ){
+
+      cleaned.push(
+        action
+      );
+
+      continue;
+
+    }
+
+
+    const duplicateIndex =
+      cleaned.findIndex(
+        existingAction => {
+
+          const existingText =
+            normalizeText(
+              existingAction?.text
+            );
+
+
+          if(
+            existingText !==
+              currentText
+          ){
+            return false;
+          }
+
+
+          const currentType =
+            action.type;
+
+
+          const existingType =
+            existingAction?.type;
+
+
+          return (
+            (
+              currentType === "ask"
+              &&
+              existingType === "write"
+            )
+            ||
+            (
+              currentType === "write"
+              &&
+              existingType === "ask"
+            )
+            ||
+            currentType ===
+              existingType
+          );
+
+        }
+      );
+
+
+    if(
+      duplicateIndex === -1
+    ){
+
+      cleaned.push(
+        action
+      );
+
+      continue;
+
+    }
+
+
+    /*
+      אם קיימים write ו-ask זהים,
+      מעדיפים ask כי היא מסמנת שאלה לילד.
+    */
+
+    if(
+      action.type === "ask"
+    ){
+
+      cleaned[
+        duplicateIndex
+      ] = action;
+
+    }
+
+  }
+
+
+  console.log(
+    "TUTOR SEQUENCE CLEANUP:",
+    {
+      before:
+        sequence.length,
+
+      after:
+        cleaned.length,
+
+      removed:
+        sequence.length -
+        cleaned.length
+    }
+  );
+
+
+  return cleaned;
+
+}
+
 async function runTutorResponse(data){
 
   if(
@@ -10239,10 +12042,36 @@ async function runTutorResponse(data){
     }
 
 
+const cleanedSequence =
+  cleanDuplicateTutorActions(
+    data.sequence
+  );
+
+
+if(
+  cleanedSequence.length === 0
+){
+
+  console.error(
+    "Tutor sequence is empty after cleanup:",
+    data.sequence
+  );
+
+  return;
+
+}
+
+
+console.log(
+  "LIVE LESSON SEQUENCE AFTER CLEANUP:",
+  cleanedSequence
+);
+
+
 await window.lessonRenderer.run({
 
   sequence:
-    data.sequence,
+    cleanedSequence,
 
   wait_for_answer:
     data.wait_for_answer,
@@ -10252,7 +12081,6 @@ await window.lessonRenderer.run({
 
 });
 
-
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
 ============================================= */
@@ -10261,21 +12089,22 @@ clearNoResponseTimer();
 
 
 if(
-  data.wait_for_answer ===
-    true
-
+  data.wait_for_answer === true
   &&
-
-  currentLearningMode ===
-    "lesson"
-
+  currentLearningMode === "lesson"
   &&
-
   currentLessonId
+  &&
+  data.lesson_mode !== "learning_coach"
+  &&
+  !window.SELECTED_UNIT_LESSON
 ){
-
   startNoResponseTimer();
-
+}
+else{
+  console.log(
+    "NO RESPONSE TIMER DISABLED FOR LEARNING COACH"
+  );
 }
 
 
@@ -10309,7 +12138,17 @@ async function sendLessonNoResponse(){
     ||
 
     !CURRENT_KID?.id
+
+    ||
+
+    window.SELECTED_UNIT_LESSON
   ){
+
+    console.log(
+      "NO RESPONSE REQUEST BLOCKED - UNIT LESSON ACTIVE"
+    );
+
+    clearNoResponseTimer();
 
     return;
 
@@ -10366,6 +12205,10 @@ async function sendLessonNoResponse(){
 
               lesson_id:
                 currentLessonId,
+
+              unit_lesson_id:
+               window.SELECTED_UNIT_LESSON
+                 ?.unit_lesson_id,
 
               message:
                 "__NO_RESPONSE__"
@@ -10488,18 +12331,18 @@ if(
     `${TUTOR_API_BASE}/api/tutor/lesson`;
 
 
-  requestBody = {
+requestBody = {
+  message: text,
 
-    message:
-      text,
+  kid_id:
+    CURRENT_KID.id,
 
-    kid_id:
-      CURRENT_KID.id,
+  lesson_id:
+    currentLessonId,
 
-    lesson_id:
-      currentLessonId
-
-  };
+  unit_lesson_id:
+    window.SELECTED_UNIT_LESSON?.unit_lesson_id
+};
 
 }
 
@@ -10526,6 +12369,10 @@ else{
 
 }
 
+console.log(
+  "LEARNING COACH REQUEST:",
+  requestBody
+);
 
 const res =
   await fetch(
@@ -13425,6 +15272,410 @@ document.addEventListener(
 
   transform:scale(1.01);
 }
+    /* =====================================================
+   INTERACTIVE LESSON LOADING
+===================================================== */
+
+.lesson-loading-overlay{
+  position:absolute;
+  inset:0;
+
+  z-index:45;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:25px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  backdrop-filter:
+    blur(8px)
+    saturate(120%);
+
+  -webkit-backdrop-filter:
+    blur(8px)
+    saturate(120%);
+
+  opacity:0;
+  visibility:hidden;
+
+  transition:
+    opacity .25s ease,
+    visibility .25s ease;
+}
+
+
+.lesson-loading-overlay.visible{
+  opacity:1;
+  visibility:visible;
+}
+
+
+.lesson-loading-card{
+  width:min(430px,92%);
+
+  padding:
+    26px
+    28px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  text-align:center;
+  direction:rtl;
+
+  border-radius:28px;
+
+  background:
+    rgba(255,255,255,.94);
+
+  border:
+    1px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 20px 55px
+    rgba(54,68,125,.18);
+}
+
+
+.lesson-loading-robot{
+  width:105px;
+  height:105px;
+
+  object-fit:contain;
+
+  animation:
+    lessonLoadingRobotFloat
+    1.5s ease-in-out
+    infinite;
+
+  filter:
+    drop-shadow(
+      0 10px 15px
+      rgba(60,75,150,.15)
+    );
+}
+
+
+.lesson-loading-title{
+  margin-top:9px;
+
+  font-size:23px;
+  font-weight:900;
+
+  color:#353577;
+}
+
+
+.lesson-loading-status{
+  min-height:28px;
+
+  margin-top:7px;
+
+  font-size:16px;
+  font-weight:800;
+
+  color:#67719a;
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+}
+
+
+.lesson-loading-status.changing{
+  opacity:0;
+  transform:translateY(4px);
+}
+
+
+.lesson-loading-track{
+  position:relative;
+
+  width:100%;
+  height:10px;
+
+  margin-top:20px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e8e9f4;
+}
+
+
+.lesson-loading-track::after{
+  content:"";
+
+  position:absolute;
+  top:0;
+  bottom:0;
+
+  width:38%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #7753f4,
+      #a177ff
+    );
+
+  animation:
+    lessonLoadingBar
+    1.25s ease-in-out
+    infinite;
+}
+
+
+.lesson-loading-dots{
+  display:inline-block;
+  min-width:22px;
+  text-align:right;
+}
+
+
+@keyframes lessonLoadingRobotFloat{
+
+  0%,
+  100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-8px);
+  }
+
+}
+
+
+@keyframes lessonLoadingBar{
+
+  0%{
+    right:-40%;
+  }
+
+  100%{
+    right:105%;
+  }
+
+}
+
+
+@media(max-width:760px){
+
+  .lesson-loading-card{
+    width:min(360px,94%);
+    padding:22px 18px;
+  }
+
+  .lesson-loading-robot{
+    width:88px;
+    height:88px;
+  }
+
+  .lesson-loading-title{
+    font-size:20px;
+  }
+
+  .lesson-loading-status{
+    font-size:14px;
+  }
+
+}
+/* =====================================================
+   LESSON VISUAL CARD
+===================================================== */
+
+.lesson-visual-card{
+  width:min(620px,92%);
+  margin:18px auto 24px;
+
+  padding:20px 22px;
+
+  direction:rtl;
+  text-align:right;
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(244,241,255,.94)
+    );
+
+  border:
+    2px solid
+    rgba(123,82,244,.18);
+
+  box-shadow:
+    0 12px 30px
+    rgba(60,55,125,.12);
+
+  opacity:0;
+
+  transform:
+    translateY(14px)
+    scale(.97);
+
+  transition:
+    opacity .35s ease,
+    transform .35s ease;
+}
+
+
+.lesson-visual-card.visible{
+  opacity:1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+.lesson-visual-card-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  margin-bottom:15px;
+
+  font-family:
+    "Gveret Levin",
+    cursive;
+
+  font-size:28px;
+  line-height:1.3;
+
+  color:#4c3db6;
+}
+
+
+.lesson-visual-card-icon{
+  width:46px;
+  height:46px;
+
+  flex:0 0 46px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eee7ff,
+      #ddd2ff
+    );
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size:26px;
+
+  box-shadow:
+    0 6px 14px
+    rgba(90,65,180,.12);
+}
+
+
+.lesson-visual-card-title{
+  font-weight:700;
+}
+
+
+.lesson-visual-card-items{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0,1fr)
+    );
+
+  gap:11px;
+}
+
+
+.lesson-visual-card-item{
+  min-height:58px;
+
+  display:flex;
+  align-items:center;
+
+  padding:
+    10px
+    14px;
+
+  border-radius:16px;
+
+  background:
+    rgba(255,255,255,.90);
+
+  border:
+    1px solid
+    rgba(118,90,210,.12);
+
+  font-family:
+    "Gveret Levin",
+    cursive;
+
+  font-size:24px;
+  line-height:1.3;
+
+  color:#2c3658;
+
+  opacity:0;
+
+  transform:
+    translateX(12px);
+
+  transition:
+    opacity .28s ease,
+    transform .28s ease;
+}
+
+
+.lesson-visual-card-item.visible{
+  opacity:1;
+
+  transform:
+    translateX(0);
+}
+
+
+@media(max-width:760px){
+
+  .lesson-visual-card{
+    width:96%;
+    padding:16px;
+  }
+
+  .lesson-visual-card-header{
+    font-size:23px;
+  }
+
+  .lesson-visual-card-items{
+    grid-template-columns:1fr;
+  }
+
+  .lesson-visual-card-item{
+    min-height:50px;
+    font-size:21px;
+  }
+
+}
+
 </style>
 
 
@@ -14171,10 +16422,12 @@ async playAudioUrl(
     return;
   }
 
-console.log(
-  "🔊 PLAY AUDIO URL:",
-  audioUrl
-);
+
+  console.log(
+    "🔊 PLAY AUDIO URL:",
+    audioUrl
+  );
+
 
   const audio =
     new Audio(
@@ -14185,17 +16438,75 @@ console.log(
   await new Promise(
     (resolve, reject) => {
 
+      let loadingHidden =
+        false;
+
+
+      const hideLoadingOnce =
+        () => {
+
+          if(
+            loadingHidden
+          ){
+            return;
+          }
+
+
+          loadingHidden =
+            true;
+
+
+          hideLessonLoading();
+
+        };
+
+
+      /*
+        loadeddata:
+        קובץ האודיו מוכן מספיק לנגינה
+      */
+
+      audio.onloadeddata =
+        hideLoadingOnce;
+
+
+      /*
+        playing:
+        האודיו התחיל להישמע בפועל
+      */
+
+      audio.onplaying =
+        hideLoadingOnce;
+
+
       audio.onended =
         resolve;
 
+
       audio.onerror =
-        reject;
+        error => {
+
+          hideLoadingOnce();
+
+          reject(
+            error
+          );
+
+        };
 
 
       audio
         .play()
         .catch(
-          reject
+          error => {
+
+            hideLoadingOnce();
+
+            reject(
+              error
+            );
+
+          }
         );
 
     }
@@ -14309,6 +16620,34 @@ console.log(
         firstAudioUrl
       );
 
+let firstAudioLoadingHidden =
+  false;
+
+
+const hideFirstAudioLoading =
+  () => {
+
+    if(
+      firstAudioLoadingHidden
+    ){
+      return;
+    }
+
+
+    firstAudioLoadingHidden =
+      true;
+
+    hideLessonLoading();
+
+  };
+
+
+firstAudio.onloadeddata =
+  hideFirstAudioLoading;
+
+
+firstAudio.onplaying =
+  hideFirstAudioLoading;
 
     const firstFinished =
       new Promise(
@@ -14564,6 +16903,212 @@ console.log(
 
   }
 
+/* =========================
+   VISUAL CARD
+========================= */
+
+async visualCard(
+  action
+){
+
+  const title =
+    String(
+      action.title || ""
+    ).trim();
+
+
+  const items =
+    Array.isArray(
+      action.items
+    )
+
+      ? action.items
+          .map(
+            item =>
+              String(
+                item || ""
+              ).trim()
+          )
+          .filter(Boolean)
+
+      : [];
+
+
+  if(
+    !title ||
+    items.length < 2
+  ){
+
+    console.warn(
+      "Invalid visual_card action:",
+      action
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !this.content
+  ){
+
+    console.error(
+      "Lesson renderer content not initialized"
+    );
+
+    return;
+
+  }
+
+
+  const card =
+    document.createElement(
+      "div"
+    );
+
+
+  card.className =
+    "lesson-visual-card";
+
+
+  const header =
+    document.createElement(
+      "div"
+    );
+
+
+  header.className =
+    "lesson-visual-card-header";
+
+
+  const icon =
+    document.createElement(
+      "div"
+    );
+
+
+  icon.className =
+    "lesson-visual-card-icon";
+
+
+  icon.textContent =
+    action.icon || "✨";
+
+
+  const titleElement =
+    document.createElement(
+      "div"
+    );
+
+
+  titleElement.className =
+    "lesson-visual-card-title";
+
+
+  titleElement.textContent =
+    title;
+
+
+  header.appendChild(
+    icon
+  );
+
+
+  header.appendChild(
+    titleElement
+  );
+
+
+  const itemsContainer =
+    document.createElement(
+      "div"
+    );
+
+
+  itemsContainer.className =
+    "lesson-visual-card-items";
+
+
+  card.appendChild(
+    header
+  );
+
+
+  card.appendChild(
+    itemsContainer
+  );
+
+
+  this.content.appendChild(
+    card
+  );
+
+
+  /*
+    נותנים לדפדפן לצייר את מצב ההתחלה,
+    ורק אחר כך מפעילים את האנימציה.
+  */
+
+  await this.wait(
+    30
+  );
+
+
+  card.classList.add(
+    "visible"
+  );
+
+
+  for(
+    let index = 0;
+    index < items.length;
+    index++
+  ){
+
+    const itemElement =
+      document.createElement(
+        "div"
+      );
+
+
+    itemElement.className =
+      "lesson-visual-card-item";
+
+
+    itemElement.textContent =
+      items[index];
+
+
+    itemsContainer.appendChild(
+      itemElement
+    );
+
+
+    await this.wait(
+      110
+    );
+
+
+    itemElement.classList.add(
+      "visible"
+    );
+
+
+    this.scrollBottom();
+
+  }
+
+
+  this.scrollBottom();
+
+
+  await this.wait(
+    action.duration ||
+    650
+  );
+
+}
 
   /* =========================
      ASK
@@ -14600,15 +17145,30 @@ async run(script){
     script.sequence
   );
 
-  console.table(
-    script.sequence.map(
-      action => ({
-        type: action.type,
-        text: action.text || "",
-        target: action.target || ""
-      })
-    )
-  );
+console.table(
+  script.sequence.map(
+    action => ({
+      type:
+        action.type,
+
+      text:
+        action.text || "",
+
+      target:
+        action.target || "",
+
+      title:
+        action.title || "",
+
+      items:
+        Array.isArray(
+          action.items
+        )
+          ? action.items.join(" | ")
+          : ""
+    })
+  )
+);
 
   if(this.isRunning){
     return;
@@ -14771,13 +17331,32 @@ async run(script){
         break;
 
 
-      case "arrow":
+case "arrow":
 
-        await this.arrow(
-          action
-        );
+  await this.arrow(
+    action
+  );
 
-        break;
+  break;
+
+
+case "visual_card":
+
+  await this.visualCard(
+    action
+  );
+
+  break;
+
+
+case "wait":
+
+  await this.wait(
+    action.duration ||
+    500
+  );
+
+  break;
 
 
       case "wait":
