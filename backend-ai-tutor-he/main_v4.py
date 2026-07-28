@@ -4514,6 +4514,46 @@ def get_active_lesson_state(
         )
 
         # =============================================
+        # LAST ASSISTANT MESSAGE
+        # =============================================
+
+        last_message_res = (
+            sb.table(
+                "kid_lesson_history"
+            )
+            .select(
+                "id, "
+                "content, "
+                "sequence_json, "
+                "created_at"
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                coach_session["lesson_id"]
+            )
+            .eq(
+                "role",
+                "assistant"
+            )
+            .order(
+                "created_at",
+                desc=True
+            )
+            .limit(1)
+            .execute()
+        )
+
+        last_assistant_message = (
+            last_message_res.data[0]
+            if last_message_res.data
+            else None
+        )
+
+        # =============================================
         # UNIT LESSON DETAILS
         # =============================================
 
@@ -4640,6 +4680,26 @@ def get_active_lesson_state(
                 "understanding_score":
                     coach_session.get(
                         "final_understanding_score"
+                    )
+            },
+
+            "last_assistant_message": {
+                "content":
+                    (
+                        last_assistant_message.get(
+                            "content"
+                        )
+                        if last_assistant_message
+                        else None
+                    ),
+
+                "sequence":
+                    (
+                        last_assistant_message.get(
+                            "sequence_json"
+                        )
+                        if last_assistant_message
+                        else None
                     )
             }
         }
@@ -6194,24 +6254,34 @@ def run_learning_coach(
 
     # =============================================
     # FRONTEND SEQUENCE
+    #
+    # teacher_response כבר כולל את תגובת המורה
+    # ואת השאלה הבאה.
+    #
+    # לכן אסור לשלוח אותו גם כ-write וגם כ-ask.
     # =============================================
 
-    sequence = [
-        TutorAction(
-            type="write",
-            text=teacher_response,
-            style="normal",
-            speed=45
-        )
-    ]
+    if coach_finished:
 
-    if not coach_finished:
-        sequence.append(
+        sequence = [
+            TutorAction(
+                type="write",
+                text=teacher_response,
+                style="normal",
+                speed=45
+            )
+        ]
+
+    else:
+
+        sequence = [
             TutorAction(
                 type="ask",
-                text=teacher_response
+                text=teacher_response,
+                style="question",
+                speed=45
             )
-        )
+        ]
 
     # =============================================
     # SAVE HISTORY
