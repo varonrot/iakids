@@ -18,8 +18,7 @@ import wave
 import os
 import json
 import base64
-import time
-import threading
+
 # =====================================================
 # CONFIG
 # =====================================================
@@ -304,7 +303,7 @@ client = OpenAI(
 gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
-api_key=GEMINI_API_KEY
+
 app = FastAPI(
     title=APP_NAME,
     version="0.1.0"
@@ -3691,49 +3690,35 @@ def generate_tts_wav_bytes(
             "Cannot generate audio for empty text"
         )
 
-    with gemini_tts_lock:
+    response = gemini_client.models.generate_content(
+        model="gemini-3.1-flash-tts-preview",
 
-        response = (
-            gemini_client
-            .models
-            .generate_content(
+        contents=(
+            "Speak in natural, fluent Hebrew. "
+            "Sound like a warm, friendly and patient teacher "
+            "speaking naturally to a school-age child. "
+            "Use clear pronunciation and natural pauses. "
+            "Read exactly the following Hebrew text:\n\n"
+            + clean_text
+        ),
 
-                model=
-                    "gemini-3.1-flash-tts-preview",
+        config=types.GenerateContentConfig(
+            temperature=2.0,
 
-                contents=(
-                    "Speak in natural, fluent Hebrew. "
-                    "Sound like a warm, friendly and patient teacher "
-                    "speaking naturally to a school-age child. "
-                    "Use clear pronunciation and natural pauses. "
-                    "Read exactly the following Hebrew text:\n\n"
-                    + clean_text
-                ),
+            response_modalities=[
+                "AUDIO"
+            ],
 
-                config=
-                    types.GenerateContentConfig(
-
-                        temperature=2.0,
-
-                        response_modalities=[
-                            "AUDIO"
-                        ],
-
-                        speech_config=
-                            types.SpeechConfig(
-
-                                voice_config=
-                                    types.VoiceConfig(
-
-                                        prebuilt_voice_config=
-                                            types.PrebuiltVoiceConfig(
-                                                voice_name="Aoede"
-                                            )
-                                    )
-                            )
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=
+                    types.PrebuiltVoiceConfig(
+                        voice_name="Aoede"
                     )
+                )
             )
         )
+    )
 
     audio_data = (
         response
@@ -4191,32 +4176,12 @@ def tutor_tts(
         body: TutorTTSRequest,
         authorization: str = Header(None)
 ):
-    request_start = time.perf_counter()
-
     try:
 
-        # =================================================
-        # AUTH
-        # =================================================
+        # אימות משתמש
+        user = authenticate_user(authorization)
 
-        auth_start = time.perf_counter()
-
-        user = authenticate_user(
-            authorization
-        )
-
-        auth_ms = round(
-            (
-                time.perf_counter()
-                - auth_start
-            )
-            * 1000
-        )
-
-        text = (
-            body.text
-            or ""
-        ).strip()
+        text = (body.text or "").strip()
 
         if not text:
             raise HTTPException(
@@ -4230,74 +4195,47 @@ def tutor_tts(
                 detail="text is too long"
             )
 
+        # Gemini TTS
+        response = gemini_client.models.generate_content(
+            model="gemini-3.1-flash-tts-preview",
 
-        # =================================================
-        # GEMINI TTS
-        # =================================================
+            contents=(
+                    "Speak in natural, fluent Hebrew. "
+                    "Sound like a warm, friendly and patient teacher "
+                    "speaking naturally to a school-age child. "
+                    "Use clear pronunciation, natural pauses, "
+                    "and an encouraging tone. "
+                    "Read exactly the following Hebrew text:\n\n"
+                    + text
+            ),
 
-        gemini_start = time.perf_counter()
+            config=types.GenerateContentConfig(
 
-        with gemini_tts_lock:
+                temperature=2.0,
 
-            response = (
-                gemini_client
-                .models
-                .generate_content(
+                response_modalities=[
+                    "AUDIO"
+                ],
 
-                    model=
-                        "gemini-3.1-flash-tts-preview",
+                speech_config=types.SpeechConfig(
 
-                    contents=(
-                        "Speak in natural, fluent Hebrew. "
-                        "Sound like a warm, friendly and patient teacher "
-                        "speaking naturally to a school-age child. "
-                        "Use clear pronunciation, natural pauses, "
-                        "and an encouraging tone. "
-                        "Read exactly the following Hebrew text:\n\n"
-                        + text
-                    ),
+                    voice_config=
+                    types.VoiceConfig(
 
-                    config=
-                        types.GenerateContentConfig(
-
-                            temperature=2.0,
-
-                            response_modalities=[
-                                "AUDIO"
-                            ],
-
-                            speech_config=
-                                types.SpeechConfig(
-
-                                    voice_config=
-                                        types.VoiceConfig(
-
-                                            prebuilt_voice_config=
-                                                types.PrebuiltVoiceConfig(
-                                                    voice_name="Aoede"
-                                                )
-                                        )
-                                )
+                        prebuilt_voice_config=
+                        types.PrebuiltVoiceConfig(
+                            voice_name="Aoede"
                         )
-                )
-            )
-       
 
-        gemini_ms = round(
-            (
-                time.perf_counter()
-                - gemini_start
+                    )
+
+                )
+
             )
-            * 1000
+
         )
 
-
-        # =================================================
-        # EXTRACT AUDIO
-        # =================================================
-
-        extract_start = time.perf_counter()
-
+        # קבלת PCM audio
         audio_data = (
             response
             .candidates[0]
@@ -4312,36 +4250,30 @@ def tutor_tts(
                 "Gemini returned no audio data"
             )
 
-        audio_duration_seconds = (
-            len(audio_data)
-            / (24000 * 2)
-        )
+        # =================================================
+        # AUDIO DURATION
+        # PCM 16-bit mono at 24kHz
+        # 2 bytes per sample
+        # =================================================
 
+        audio_duration_seconds = (
+                len(audio_data)
+                / (24000 * 2)
+        )
         audio_output_tokens = (
-            audio_duration_seconds
-            * GEMINI_AUDIO_TOKENS_PER_SECOND
+                audio_duration_seconds
+                * GEMINI_AUDIO_TOKENS_PER_SECOND
         )
 
         gemini_audio_cost_usd = (
-            audio_output_tokens
-            / 1_000_000
-            * GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M
+                audio_output_tokens
+                / 1_000_000
+                * GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M
         )
-
-        extract_ms = round(
-            (
-                time.perf_counter()
-                - extract_start
-            )
-            * 1000
-        )
-
-
         # =================================================
         # PCM -> WAV
+        # Gemini מחזיר PCM 16-bit, mono, 24kHz
         # =================================================
-
-        wav_start = time.perf_counter()
 
         wav_buffer = io.BytesIO()
 
@@ -4351,157 +4283,48 @@ def tutor_tts(
         ) as wav_file:
 
             wav_file.setnchannels(1)
+
+            # 16-bit audio = 2 bytes
             wav_file.setsampwidth(2)
+
+            # 24 kHz
             wav_file.setframerate(24000)
+
             wav_file.writeframes(
                 audio_data
             )
 
         wav_buffer.seek(0)
 
-        wav_bytes = (
-            wav_buffer.read()
-        )
+        wav_bytes = wav_buffer.read()
 
-        wav_ms = round(
-            (
-                time.perf_counter()
-                - wav_start
-            )
-            * 1000
-        )
-
-
-        # =================================================
-        # DATABASE USAGE UPDATES
-        # =================================================
-
-        database_start = time.perf_counter()
-
+        # עדכון Session - קריאת TTS אחת
         if body.session_id:
-
             update_tutor_session_after_tts(
-                session_id=
-                    body.session_id,
-
-                audio_duration_seconds=
-                    audio_duration_seconds,
-
-                cost_usd=
-                    gemini_audio_cost_usd
+                session_id=body.session_id,
+                audio_duration_seconds=audio_duration_seconds,
+                cost_usd=gemini_audio_cost_usd
             )
 
             increment_usage_summary(
-                user_id=
-                    user.id,
+                user_id=user.id,
 
-                tts_calls=
-                    1,
+                tts_calls=1,
 
                 tts_seconds=
-                    audio_duration_seconds,
+                audio_duration_seconds,
 
                 voice_output_seconds=
-                    audio_duration_seconds,
+                audio_duration_seconds,
 
-                gemini_cost_usd=
-                    gemini_audio_cost_usd
+                gemini_cost_usd=gemini_audio_cost_usd
             )
-
-        database_ms = round(
-            (
-                time.perf_counter()
-                - database_start
-            )
-            * 1000
-        )
-
-
-        # =================================================
-        # TOTAL
-        # =================================================
-
-        total_ms = round(
-            (
-                time.perf_counter()
-                - request_start
-            )
-            * 1000
-        )
-
-        print(
-            "TTS BACKEND TIMING:",
-            json.dumps(
-                {
-                    "text_length":
-                        len(text),
-
-                    "audio_duration_seconds":
-                        round(
-                            audio_duration_seconds,
-                            2
-                        ),
-
-                    "auth_ms":
-                        auth_ms,
-
-                    "gemini_ms":
-                        gemini_ms,
-
-                    "extract_ms":
-                        extract_ms,
-
-                    "wav_ms":
-                        wav_ms,
-
-                    "database_ms":
-                        database_ms,
-
-                    "total_ms":
-                        total_ms,
-
-                    "wav_bytes":
-                        len(wav_bytes)
-                },
-                ensure_ascii=False
-            )
-        )
-
 
         return Response(
-            content=
-                wav_bytes,
-
-            media_type=
-                "audio/wav",
-
+            content=wav_bytes,
+            media_type="audio/wav",
             headers={
-                "Cache-Control":
-                    "no-store",
-
-                "Server-Timing": (
-                    f"auth;dur={auth_ms}, "
-                    f"gemini;dur={gemini_ms}, "
-                    f"extract;dur={extract_ms}, "
-                    f"wav;dur={wav_ms}, "
-                    f"database;dur={database_ms}, "
-                    f"total;dur={total_ms}"
-                ),
-
-                "X-TTS-Auth-MS":
-                    str(auth_ms),
-
-                "X-TTS-Gemini-MS":
-                    str(gemini_ms),
-
-                "X-TTS-Wav-MS":
-                    str(wav_ms),
-
-                "X-TTS-Database-MS":
-                    str(database_ms),
-
-                "X-TTS-Total-MS":
-                    str(total_ms)
+                "Cache-Control": "no-store"
             }
         )
 
@@ -4512,27 +4335,16 @@ def tutor_tts(
 
     except Exception as e:
 
-        total_ms = round(
-            (
-                time.perf_counter()
-                - request_start
-            )
-            * 1000
-        )
+        error_message = repr(e)
 
         print(
             "GEMINI TTS ERROR:",
-            repr(e),
-            "TOTAL MS:",
-            total_ms
+            error_message
         )
 
         raise HTTPException(
             status_code=500,
-            detail=(
-                f"Gemini TTS failed: "
-                f"{repr(e)}"
-            )
+            detail=f"Gemini TTS failed: {error_message}"
         )
 
 @app.get(
