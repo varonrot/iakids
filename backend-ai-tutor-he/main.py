@@ -19,7 +19,7 @@ import os
 import json
 import base64
 import time
-
+import threading
 # =====================================================
 # CONFIG
 # =====================================================
@@ -304,7 +304,7 @@ client = OpenAI(
 gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
-
+api_key=GEMINI_API_KEY
 app = FastAPI(
     title=APP_NAME,
     version="0.1.0"
@@ -3691,35 +3691,49 @@ def generate_tts_wav_bytes(
             "Cannot generate audio for empty text"
         )
 
-    response = gemini_client.models.generate_content(
-        model="gemini-3.1-flash-tts-preview",
+    with gemini_tts_lock:
 
-        contents=(
-            "Speak in natural, fluent Hebrew. "
-            "Sound like a warm, friendly and patient teacher "
-            "speaking naturally to a school-age child. "
-            "Use clear pronunciation and natural pauses. "
-            "Read exactly the following Hebrew text:\n\n"
-            + clean_text
-        ),
+        response = (
+            gemini_client
+            .models
+            .generate_content(
 
-        config=types.GenerateContentConfig(
-            temperature=2.0,
+                model=
+                    "gemini-3.1-flash-tts-preview",
 
-            response_modalities=[
-                "AUDIO"
-            ],
+                contents=(
+                    "Speak in natural, fluent Hebrew. "
+                    "Sound like a warm, friendly and patient teacher "
+                    "speaking naturally to a school-age child. "
+                    "Use clear pronunciation and natural pauses. "
+                    "Read exactly the following Hebrew text:\n\n"
+                    + clean_text
+                ),
 
-            speech_config=types.SpeechConfig(
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=
-                    types.PrebuiltVoiceConfig(
-                        voice_name="Aoede"
+                config=
+                    types.GenerateContentConfig(
+
+                        temperature=2.0,
+
+                        response_modalities=[
+                            "AUDIO"
+                        ],
+
+                        speech_config=
+                            types.SpeechConfig(
+
+                                voice_config=
+                                    types.VoiceConfig(
+
+                                        prebuilt_voice_config=
+                                            types.PrebuiltVoiceConfig(
+                                                voice_name="Aoede"
+                                            )
+                                    )
+                            )
                     )
-                )
             )
         )
-    )
 
     audio_data = (
         response
@@ -4223,48 +4237,51 @@ def tutor_tts(
 
         gemini_start = time.perf_counter()
 
-        response = (
-            gemini_client
-            .models
-            .generate_content(
+        with gemini_tts_lock:
 
-                model=
-                    "gemini-3.1-flash-tts-preview",
+            response = (
+                gemini_client
+                .models
+                .generate_content(
 
-                contents=(
-                    "Speak in natural, fluent Hebrew. "
-                    "Sound like a warm, friendly and patient teacher "
-                    "speaking naturally to a school-age child. "
-                    "Use clear pronunciation, natural pauses, "
-                    "and an encouraging tone. "
-                    "Read exactly the following Hebrew text:\n\n"
-                    + text
-                ),
+                    model=
+                        "gemini-3.1-flash-tts-preview",
 
-                config=
-                    types.GenerateContentConfig(
+                    contents=(
+                        "Speak in natural, fluent Hebrew. "
+                        "Sound like a warm, friendly and patient teacher "
+                        "speaking naturally to a school-age child. "
+                        "Use clear pronunciation, natural pauses, "
+                        "and an encouraging tone. "
+                        "Read exactly the following Hebrew text:\n\n"
+                        + text
+                    ),
 
-                        temperature=2.0,
+                    config=
+                        types.GenerateContentConfig(
 
-                        response_modalities=[
-                            "AUDIO"
-                        ],
+                            temperature=2.0,
 
-                        speech_config=
-                            types.SpeechConfig(
+                            response_modalities=[
+                                "AUDIO"
+                            ],
 
-                                voice_config=
-                                    types.VoiceConfig(
+                            speech_config=
+                                types.SpeechConfig(
 
-                                        prebuilt_voice_config=
-                                            types.PrebuiltVoiceConfig(
-                                                voice_name="Aoede"
-                                            )
-                                    )
-                            )
-                    )
+                                    voice_config=
+                                        types.VoiceConfig(
+
+                                            prebuilt_voice_config=
+                                                types.PrebuiltVoiceConfig(
+                                                    voice_name="Aoede"
+                                                )
+                                        )
+                                )
+                        )
+                )
             )
-        )
+       
 
         gemini_ms = round(
             (
@@ -4517,7 +4534,7 @@ def tutor_tts(
                 f"{repr(e)}"
             )
         )
-    
+
 @app.get(
     "/api/learning-lessons/{learning_lesson_id}/units"
 )
