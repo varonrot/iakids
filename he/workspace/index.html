@@ -17195,15 +17195,20 @@ console.log(
     }
 
 
-    /*
-      מחלקים את הדיבור
-      לעד 2 חלקים
-    */
+ /*
+  מחלקים את הדיבור
+  לקטעים קצרים לפי סימני פיסוק
+*/
 
-    const parts =
-      this.splitSpeechIntoTwo(
-        audioText
-      );
+const parts =
+  this.splitSpeechIntoParts(
+    audioText,
+    {
+      targetLength: 55,
+      maxLength: 85,
+      maxParts: 4
+    }
+  );
 
 
     if(
