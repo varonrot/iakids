@@ -9419,7 +9419,66 @@ async function runSimpleUniversalLesson(
       ||
       ""
     ).trim();
+const normalizeUniversalText =
+  text =>
+    String(text || "")
+      .replace(/[?!.,:;״"'׳]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
+
+const normalizedQuestion =
+  normalizeUniversalText(
+    questionText
+  );
+
+
+const normalizedLastPart =
+  normalizeUniversalText(
+    lessonParts[
+      lessonParts.length - 1
+    ]
+  );
+
+
+const questionAlreadyIncluded =
+  Boolean(
+    normalizedQuestion
+    &&
+    normalizedLastPart
+    &&
+    (
+      normalizedLastPart ===
+        normalizedQuestion
+
+      ||
+
+      normalizedLastPart.includes(
+        normalizedQuestion
+      )
+
+      ||
+
+      normalizedQuestion.includes(
+        normalizedLastPart
+      )
+    )
+  );
+
+
+console.log(
+  "QUESTION DUPLICATE CHECK:",
+  {
+    normalizedLastPart,
+    normalizedQuestion,
+    questionAlreadyIncluded
+  }
+);
+
+console.log(
+  "QUESTION ALREADY INCLUDED:",
+  questionAlreadyIncluded
+);
 
   if(
     lessonParts.length === 0
@@ -9804,6 +9863,8 @@ animateImportantParts(
 
   if(
     questionText
+    &&
+    !questionAlreadyIncluded
   ){
 
     const questionAudioUrl =
@@ -9896,21 +9957,18 @@ else{
      השיעור הסתיים ומחכים לתשובת הילד
   ============================================= */
 
-  clearNoResponseTimer();
+clearNoResponseTimer();
 
+/*
+  בשיעורי היחידה החדשים לא מפעילים
+  את מנגנון ה-NO RESPONSE הישן.
+  ההמשך ינוהל רק לאחר תשובת הילד
+  באמצעות Learning Coach.
+*/
 
-  if(
-    currentLearningMode ===
-      "lesson"
-
-    &&
-
-    currentLessonId
-  ){
-
-    startNoResponseTimer();
-
-  }
+console.log(
+  "NO RESPONSE TIMER DISABLED FOR UNIT LESSON"
+);
 
 
   inputEl.focus();
@@ -10111,6 +10169,32 @@ async function startSelectedUnitLesson(
 
   }
 
+/* =============================================
+   CHECK WHETHER THIS LESSON IS ALREADY ACTIVE
+============================================= */
+
+const activeLessonRestored =
+  await restoreActiveUnitLesson(
+    session,
+    lesson.id
+  );
+
+
+if(
+  activeLessonRestored
+){
+
+  console.log(
+    "SELECTED ACTIVE LESSON RESTORED:",
+    {
+      unitLessonId:
+        lesson.id
+    }
+  );
+
+  return;
+
+}
 
   try{
 
@@ -10189,10 +10273,17 @@ console.log(
 );
 
 
-/*
-  טעינת תוכן השיעור מתחילה עכשיו,
-  במקביל להפעלת הפתיח.
-*/
+if (introData.session_id) {
+  currentSessionId =
+    introData.session_id;
+}
+
+
+console.log(
+  "LESSON SESSION ID AFTER INTRO:",
+  currentSessionId
+);
+
 
 const universalLessonPromise =
   loadUniversalUnitLesson(
@@ -10200,12 +10291,6 @@ const universalLessonPromise =
     session
   );
 
-/*
-  הפעלת הפתיח האישי.
-
-  lesson-intro עדיין מחזיר sequence,
-  לכן הוא מופעל באמצעות runTutorResponse.
-*/
 
 await runTutorResponse(
   introData
@@ -10598,6 +10683,364 @@ function backFromLearningPath(){
 
 }
 
+/* =====================================================
+   RESTORE ACTIVE UNIT LESSON AFTER REFRESH
+===================================================== */
+
+async function restoreActiveUnitLesson(
+  session,
+  selectedUnitLessonId = null
+){
+
+  if(
+    !CURRENT_KID?.id
+    ||
+    !session?.access_token
+  ){
+
+    console.log(
+      "ACTIVE LESSON RESTORE SKIPPED"
+    );
+
+    return false;
+
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+
+        `${TUTOR_API_BASE}/api/tutor/active-lesson-state`,
+
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              kid_id:
+                CURRENT_KID.id
+            })
+        }
+
+      );
+
+
+    if(
+      !response.ok
+    ){
+
+      const errorText =
+        await response.text();
+
+
+      console.error(
+        "RESTORE ACTIVE LESSON ERROR:",
+        response.status,
+        errorText
+      );
+
+
+      return false;
+
+    }
+
+
+    const state =
+      await response.json();
+
+
+    console.log(
+      "ACTIVE LESSON STATE:",
+      state
+    );
+
+
+    if(
+      !state.has_active_lesson
+      ||
+      !state.lesson_id
+      ||
+      !state.unit_lesson_id
+    ){
+
+      console.log(
+        "NO ACTIVE UNIT LESSON TO RESTORE"
+      );
+
+
+      return false;
+
+    }
+
+/* =============================================
+   RESTORE ONLY THE LESSON THE CHILD CLICKED
+============================================= */
+
+if(
+  selectedUnitLessonId
+  &&
+  Number(
+    state.unit_lesson_id
+  )
+  !==
+  Number(
+    selectedUnitLessonId
+  )
+){
+
+  console.log(
+    "ACTIVE LESSON DOES NOT MATCH SELECTED LESSON:",
+    {
+      activeUnitLessonId:
+        state.unit_lesson_id,
+
+      selectedUnitLessonId
+    }
+  );
+
+  return false;
+
+}
+
+    /* =============================================
+       RESTORE GLOBAL LESSON VARIABLES
+    ============================================= */
+
+    currentLessonId =
+      state.lesson_id;
+
+
+    currentLearningMode =
+      state.current_stage
+        ?.startsWith(
+          "learning_coach"
+        )
+
+        ? "learning_coach"
+
+        : "lesson";
+
+    window.SELECTED_UNIT_LESSON = {
+
+      unit_lesson_id:
+        state.unit_lesson_id,
+
+      learning_lesson_id:
+        state.lesson_id,
+
+      parent_lesson_name:
+        state.parent_lesson
+          ?.lesson_name
+        ||
+        "",
+
+      subject:
+        state.parent_lesson
+          ?.subject
+        ||
+        "",
+
+      category:
+        state.parent_lesson
+          ?.category
+        ||
+        "",
+
+      unit_order:
+        state.unit_lesson
+          ?.unit_order
+        ||
+        null,
+
+      unit_name:
+        state.unit_lesson
+          ?.unit_name
+        ||
+        "",
+
+      lesson_order:
+        state.unit_lesson
+          ?.lesson_order
+        ||
+        null,
+
+      lesson_name:
+        state.unit_lesson
+          ?.lesson_name
+        ||
+        ""
+
+    };
+
+
+    /* =============================================
+       RESTORE VIEW
+    ============================================= */
+
+    showLearning(
+      "lesson"
+    );
+
+
+    const emptyState =
+      document.getElementById(
+        "emptyState"
+      );
+
+
+    if(emptyState){
+
+      emptyState.style.display =
+        "none";
+
+    }
+
+
+    const title =
+      document.getElementById(
+        "heroGreeting"
+      );
+
+
+    if(title){
+
+      title.textContent =
+        state.unit_lesson
+          ?.lesson_name
+        ||
+        "ממשיכים את השיעור";
+
+    }
+
+
+    const subtitle =
+      document.getElementById(
+        "learningSubtitle"
+      );
+
+
+    if(subtitle){
+
+      subtitle.textContent =
+
+        `${state.parent_lesson?.subject || ""}`
+
+        +
+
+        ` • ${state.unit_lesson?.unit_name || ""}`;
+
+    }
+
+/* =============================================
+   RESTORE LAST TEACHER MESSAGE
+============================================= */
+
+const lastAssistantMessage =
+  state.last_assistant_message;
+
+
+/*
+  השיעור כבר נמצא והמידע כבר התקבל.
+  אין סיבה להשאיר את מסך הטעינה בזמן
+  שהטקסט נכתב והאודיו מתנגן.
+*/
+
+
+if(
+  Array.isArray(
+    lastAssistantMessage?.sequence
+  )
+  &&
+  lastAssistantMessage.sequence.length > 0
+){
+
+  await runTutorResponse({
+    sequence:
+      lastAssistantMessage.sequence,
+
+    wait_for_answer:
+      true,
+
+    restored:
+      true,
+
+    lesson_mode:
+      "learning_coach"
+  });
+
+}
+
+else if(
+  lastAssistantMessage?.content
+){
+
+  addMessage(
+    "assistant",
+    lastAssistantMessage.content
+  );
+
+}
+
+else{
+
+  console.warn(
+    "ACTIVE LESSON HAS NO LAST ASSISTANT MESSAGE"
+  );
+
+}
+
+
+    console.log(
+      "ACTIVE UNIT LESSON RESTORED:",
+      {
+        currentStage:
+          state.current_stage,
+
+        lessonId:
+          state.lesson_id,
+
+        unitLessonId:
+          state.unit_lesson_id,
+
+        coachIndex:
+          state.learning_coach
+            ?.coach_index,
+
+        totalRounds:
+          state.learning_coach
+            ?.total_rounds
+      }
+    );
+
+
+    return true;
+
+  }
+  catch(error){
+
+    console.error(
+      "RESTORE ACTIVE LESSON NETWORK ERROR:",
+      error
+    );
+
+
+    return false;
+
+  }
+
+}
+
 (async () => {
   const { data: sessionData } = await sb.auth.getSession();
   const { data: { user } } = await sb.auth.getUser();
@@ -10740,6 +11183,17 @@ window.ACTIVE_KID_ID = kid.id;
 
 
   window.ACTIVE_KID_ID = kid.id;
+
+/* =============================================
+   WORKSPACE ALWAYS OPENS ON DASHBOARD
+============================================= */
+
+console.log(
+  "WORKSPACE INITIALIZED - SHOW DASHBOARD"
+);
+
+showDashboard();
+
 })();
 </script>
 <script>
@@ -10789,6 +11243,22 @@ function startNoResponseTimer(){
 
   clearNoResponseTimer();
 
+  /*
+    מנגנון NO RESPONSE הישן אינו שייך
+    לשיעורי היחידה ול-Learning Coach.
+  */
+
+  if(
+    window.SELECTED_UNIT_LESSON
+  ){
+
+    console.log(
+      "NO RESPONSE BLOCKED - UNIT LESSON ACTIVE"
+    );
+
+    return;
+
+  }
 
   /* =============================================
      מקסימום 3 דיבובים לכל שאלה
@@ -10842,22 +11312,30 @@ function startNoResponseTimer(){
           null;
 
 
-        if(
-          currentLearningMode !==
-            "lesson"
+if(
+  currentLearningMode !==
+    "lesson"
 
-          ||
+  ||
 
-          !currentLessonId
+  !currentLessonId
 
-          ||
+  ||
 
-          !CURRENT_KID?.id
-        ){
+  !CURRENT_KID?.id
 
-          return;
+  ||
 
-        }
+  window.SELECTED_UNIT_LESSON
+){
+
+  console.log(
+    "NO RESPONSE CANCELLED - UNIT LESSON ACTIVE"
+  );
+
+  return;
+
+}
 
 
         /* הילד התחיל לכתוב */
@@ -11325,6 +11803,322 @@ function animateImportantParts(element) {
   }
 }
 
+/* =====================================================
+   CLEAN DUPLICATE WRITE / ASK ACTIONS
+
+   מטפל בשני מצבים:
+
+   1. write ו-ask זהים:
+      משאירים רק ask.
+
+   2. write כולל משוב + השאלה,
+      ו-ask כולל שוב את השאלה:
+      מסירים את השאלה מה-write
+      ומשאירים אותה רק ב-ask.
+===================================================== */
+
+function cleanDuplicateTutorActions(
+  sequence
+){
+
+  if(
+    !Array.isArray(sequence)
+  ){
+    return [];
+  }
+
+
+  const normalizeText =
+    value =>
+      String(value || "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+
+  const normalizeForComparison =
+    value =>
+      normalizeText(value)
+        .replace(/[״"'“”‘’]/g, "")
+        .replace(/[?!.,:;׳]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+
+  const cleaned = [];
+
+
+  for(
+    let index = 0;
+    index < sequence.length;
+    index++
+  ){
+
+    const current =
+      sequence[index];
+
+    const next =
+      sequence[index + 1];
+
+
+    if(
+      !current
+      ||
+      typeof current !== "object"
+    ){
+      continue;
+    }
+
+
+    /* =============================================
+       זוג עוקב: write ולאחריו ask
+    ============================================= */
+
+    if(
+      current.type === "write"
+      &&
+      next?.type === "ask"
+    ){
+
+      const writeText =
+        normalizeText(
+          current.text
+        );
+
+      const askText =
+        normalizeText(
+          next.text
+        );
+
+      const comparableWrite =
+        normalizeForComparison(
+          writeText
+        );
+
+      const comparableAsk =
+        normalizeForComparison(
+          askText
+        );
+
+
+      /* ===========================================
+         אותו טקסט בדיוק:
+         משאירים רק ask
+      =========================================== */
+
+      if(
+        comparableWrite
+        &&
+        comparableAsk
+        &&
+        comparableWrite === comparableAsk
+      ){
+
+        cleaned.push({
+          ...next,
+          text:
+            askText
+        });
+
+        index++;
+
+        continue;
+
+      }
+
+
+      /* ===========================================
+         ה-write מכיל משוב וגם את השאלה.
+
+         לדוגמה:
+
+         write:
+         "יפה מאוד. מה יקרה אם נוציא את השרשרת?"
+
+         ask:
+         "מה יקרה אם נוציא את השרשרת?"
+      =========================================== */
+
+      if(
+        comparableWrite
+        &&
+        comparableAsk
+        &&
+        comparableWrite.includes(
+          comparableAsk
+        )
+      ){
+
+        let questionStart =
+          writeText.lastIndexOf(
+            askText
+          );
+
+
+        /*
+          אם החיפוש הישיר לא הצליח בגלל
+          רווחים או סימני פיסוק שונים,
+          מחפשים את תחילת השאלה.
+        */
+
+        if(
+          questionStart === -1
+        ){
+
+          const askStart =
+            askText
+              .slice(0, 30)
+              .trim();
+
+
+          if(askStart){
+
+            questionStart =
+              writeText.lastIndexOf(
+                askStart
+              );
+
+          }
+
+        }
+
+
+        if(
+          questionStart >= 0
+        ){
+
+          const feedbackText =
+            writeText
+              .slice(
+                0,
+                questionStart
+              )
+              .replace(
+                /[\s\-–—:;,]+$/g,
+                ""
+              )
+              .trim();
+
+
+          /*
+            משאירים את המשוב רק אם נשאר
+            טקסט אמיתי לפני השאלה.
+          */
+
+          if(feedbackText){
+
+            cleaned.push({
+              ...current,
+              text:
+                feedbackText
+            });
+
+          }
+
+
+          cleaned.push({
+            ...next,
+            text:
+              askText
+          });
+
+
+          index++;
+
+          continue;
+
+        }
+
+      }
+
+    }
+
+
+    /* =============================================
+       מניעת כפילות מלאה כללית
+    ============================================= */
+
+    const currentComparable =
+      normalizeForComparison(
+        current.text
+      );
+
+
+    const duplicateIndex =
+      cleaned.findIndex(
+        existing => {
+
+          const existingComparable =
+            normalizeForComparison(
+              existing?.text
+            );
+
+          return (
+            currentComparable
+            &&
+            existingComparable
+            &&
+            currentComparable ===
+              existingComparable
+          );
+
+        }
+      );
+
+
+    if(
+      duplicateIndex === -1
+    ){
+
+      cleaned.push({
+        ...current
+      });
+
+    }
+    else if(
+      current.type === "ask"
+    ){
+
+      /*
+        אם אותו טקסט קיים כ-write,
+        מעדיפים ask.
+      */
+
+      cleaned[
+        duplicateIndex
+      ] = {
+        ...current
+      };
+
+    }
+
+  }
+
+
+  console.log(
+    "TUTOR SEQUENCE CLEANUP:",
+    {
+      before:
+        sequence.length,
+
+      after:
+        cleaned.length,
+
+      removed:
+        sequence.length -
+        cleaned.length,
+
+      original:
+        sequence,
+
+      cleaned
+    }
+  );
+
+
+  return cleaned;
+
+}
+
 async function runTutorResponse(data){
 
   if(
@@ -11386,10 +12180,36 @@ async function runTutorResponse(data){
     }
 
 
+const cleanedSequence =
+  cleanDuplicateTutorActions(
+    data.sequence
+  );
+
+
+if(
+  cleanedSequence.length === 0
+){
+
+  console.error(
+    "Tutor sequence is empty after cleanup:",
+    data.sequence
+  );
+
+  return;
+
+}
+
+
+console.log(
+  "LIVE LESSON SEQUENCE AFTER CLEANUP:",
+  cleanedSequence
+);
+
+
 await window.lessonRenderer.run({
 
   sequence:
-    data.sequence,
+    cleanedSequence,
 
   wait_for_answer:
     data.wait_for_answer,
@@ -11399,7 +12219,6 @@ await window.lessonRenderer.run({
 
 });
 
-
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
 ============================================= */
@@ -11408,21 +12227,22 @@ clearNoResponseTimer();
 
 
 if(
-  data.wait_for_answer ===
-    true
-
+  data.wait_for_answer === true
   &&
-
-  currentLearningMode ===
-    "lesson"
-
+  currentLearningMode === "lesson"
   &&
-
   currentLessonId
+  &&
+  data.lesson_mode !== "learning_coach"
+  &&
+  !window.SELECTED_UNIT_LESSON
 ){
-
   startNoResponseTimer();
-
+}
+else{
+  console.log(
+    "NO RESPONSE TIMER DISABLED FOR LEARNING COACH"
+  );
 }
 
 
@@ -11456,7 +12276,17 @@ async function sendLessonNoResponse(){
     ||
 
     !CURRENT_KID?.id
+
+    ||
+
+    window.SELECTED_UNIT_LESSON
   ){
+
+    console.log(
+      "NO RESPONSE REQUEST BLOCKED - UNIT LESSON ACTIVE"
+    );
+
+    clearNoResponseTimer();
 
     return;
 
@@ -11513,6 +12343,10 @@ async function sendLessonNoResponse(){
 
               lesson_id:
                 currentLessonId,
+
+              unit_lesson_id:
+               window.SELECTED_UNIT_LESSON
+                 ?.unit_lesson_id,
 
               message:
                 "__NO_RESPONSE__"
@@ -11592,17 +12426,38 @@ async function sendMessage() {
 
   noResponseCount = 0;
 
-  const text =
-    inputEl.value.trim();
+const text =
+  inputEl.value.trim();
 
-  if(
-    !text
-  ){
-    return;
+if(
+  !text
+){
+  return;
+}
+
+
+/* =============================================
+   PERFORMANCE TEST — START
+   מתחילים למדוד ברגע שהתשובה נשלחת
+============================================= */
+
+window.__learningCoachSendStart =
+  performance.now();
+
+console.log(
+  "🚀 LEARNING COACH SEND START:",
+  {
+    time:
+      window.__learningCoachSendStart,
+
+    message:
+      text
   }
+);
 
-  inputEl.value = "";
-  addMessage("user", text);
+
+inputEl.value = "";
+addMessage("user", text);
 
   const { data } = await sb.auth.getSession();
   const session = data.session;
@@ -11635,18 +12490,18 @@ if(
     `${TUTOR_API_BASE}/api/tutor/lesson`;
 
 
-  requestBody = {
+requestBody = {
+  message: text,
 
-    message:
-      text,
+  kid_id:
+    CURRENT_KID.id,
 
-    kid_id:
-      CURRENT_KID.id,
+  lesson_id:
+    currentLessonId,
 
-    lesson_id:
-      currentLessonId
-
-  };
+  unit_lesson_id:
+    window.SELECTED_UNIT_LESSON?.unit_lesson_id
+};
 
 }
 
@@ -11672,6 +12527,26 @@ else{
   };
 
 }
+
+console.log(
+  "LEARNING COACH REQUEST:",
+  requestBody
+);
+
+
+/* =============================================
+   PERFORMANCE TEST — FETCH START
+============================================= */
+
+console.log(
+  "🌐 LEARNING COACH FETCH START:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms"
+);
 
 
 const res =
@@ -11703,6 +12578,23 @@ const res =
 
   );
 
+console.log(
+  "📥 LEARNING COACH HTTP RESPONSE:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms",
+  {
+    status:
+      res.status,
+
+    ok:
+      res.ok
+  }
+);
+
 if (!res.ok) {
 
   // 🔒 חסימת קווטה
@@ -11722,12 +12614,25 @@ if (!res.ok) {
   return;
 }
 
+const data =
+  await res.json();
 
-const data = await res.json();
+
+console.log(
+  "✅ LEARNING COACH DATA READY:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms"
+);
+
 
 if (data.session_id) {
   currentSessionId = data.session_id;
 }
+
 
 console.log(
   "CHAT RESPONSE:",
@@ -11759,18 +12664,29 @@ if(
   /* הפעלת השיעור האמיתי בלבד.
      כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
 
-  await window.lessonRenderer.run(
-    {
-      sequence:
-        data.sequence,
+console.log(
+  "🎬 LESSON RENDERER START:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms"
+);
 
-      wait_for_answer:
-        data.wait_for_answer,
 
-      speech:
-        data.speech
-    }
-  );
+await window.lessonRenderer.run(
+  {
+    sequence:
+      data.sequence,
+
+    wait_for_answer:
+      data.wait_for_answer,
+
+    speech:
+      data.speech
+  }
+);
 
   clearNoResponseTimer();
 
@@ -15323,106 +16239,354 @@ async robotPoint({
 
 async preloadAudio(text){
 
-  if(!text || !text.trim()){
+  const cleanText =
+    String(
+      text || ""
+    ).trim();
+
+
+  if(
+    !cleanText
+  ){
     return null;
   }
 
+
+  /*
+    אם הקובץ כבר בתהליך יצירה או מוכן,
+    מחזירים את אותו Promise מהמטמון.
+  */
+
+  if(
+    this.audioCache.has(
+      cleanText
+    )
+  ){
+
+    console.log(
+      "♻️ TTS CACHE HIT:",
+      cleanText
+    );
+
+
+    return this.audioCache.get(
+      cleanText
+    );
+
+  }
+
+
+  const preloadStart =
+    performance.now();
+
+
   console.log(
-  "🔊 TTS PRELOAD START:",
-  text
-);
+    "🔊 TTS PRELOAD START:",
+    {
+      text:
+        cleanText,
 
-  if(this.audioCache.has(text)){
-    return this.audioCache.get(text);
-  }
-
-  const audioPromise = (async () => {
-
-    const { data: sessionData } =
-      await sb.auth.getSession();
-
-    const session =
-      sessionData.session;
-
-    if(!session){
-      throw new Error(
-        "No active session"
-      );
+      textLength:
+        cleanText.length
     }
-
-console.log(
-  "🔊 TTS REQUEST:",
-  {
-    text: text,
-    session_id: currentSessionId
-  }
-);
-
-console.log(
-  "🔊 TTS FULL URL:",
-  `${TUTOR_API_BASE}/api/tutor/tts`
-);
-
-const response = await fetch(
-  `${TUTOR_API_BASE}/api/tutor/tts`,
-  {
-    method: "POST",
-
-    headers: {
-      "Content-Type":
-        "application/json",
-
-      "Authorization":
-        `Bearer ${session.access_token}`
-    },
-
-    body: JSON.stringify({
-      text: text,
-      session_id: currentSessionId
-    })
-  }
-);
-
-console.log(
-  "🔊 TTS RESPONSE:",
-  response.status,
-  response.ok
-);
-
-if(!response.ok){
-
-  const errorText =
-    await response.text();
-
-  console.error(
-    "🔴 TTS SERVER ERROR:",
-    response.status,
-    errorText
   );
 
-  throw new Error(
-    `TTS failed: ${response.status} ${errorText}`
-  );
-}
 
-    const audioBlob =
-      await response.blob();
+  const audioPromise =
+    (async () => {
 
-    const audioUrl =
-      URL.createObjectURL(
-        audioBlob
+      /*
+        שלב 1:
+        קבלת Session
+      */
+
+      const authStart =
+        performance.now();
+
+
+      const {
+        data:
+          sessionData
+      } =
+        await sb.auth.getSession();
+
+
+      console.log(
+        "⏱️ TTS AUTH READY:",
+        Math.round(
+          performance.now()
+          -
+          authStart
+        ),
+        "ms"
       );
 
-    return audioUrl;
 
-  })();
+      const session =
+        sessionData.session;
+
+
+      if(
+        !session
+      ){
+
+        throw new Error(
+          "No active session"
+        );
+
+      }
+
+
+      /*
+        שלב 2:
+        שליחת בקשת TTS
+      */
+
+      const fetchStart =
+        performance.now();
+
+
+      console.log(
+        "🌐 TTS FETCH START:",
+        {
+          text:
+            cleanText,
+
+          session_id:
+            currentSessionId
+        }
+      );
+
+
+      const response =
+        await fetch(
+
+          `${TUTOR_API_BASE}/api/tutor/tts`,
+
+          {
+            method:
+              "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+            },
+
+            body:
+              JSON.stringify({
+                text:
+                  cleanText,
+
+                session_id:
+                  currentSessionId
+              })
+          }
+
+        );
+
+
+      /*
+        כאן התקבלו רק ה-Headers.
+
+        עדיין ייתכן שהאודיו עצמו
+        לא ירד במלואו.
+      */
+
+      const headersReady =
+        performance.now();
+
+
+      console.log(
+        "📥 TTS HEADERS READY:",
+        Math.round(
+          headersReady
+          -
+          fetchStart
+        ),
+        "ms",
+        {
+          status:
+            response.status,
+
+          ok:
+            response.ok,
+
+          contentType:
+            response.headers.get(
+              "content-type"
+            ),
+
+          contentLength:
+            response.headers.get(
+              "content-length"
+            )
+        }
+      );
+
+
+      if(
+        !response.ok
+      ){
+
+        const errorText =
+          await response.text();
+
+
+        console.error(
+          "🔴 TTS SERVER ERROR:",
+          response.status,
+          errorText
+        );
+
+
+        throw new Error(
+          `TTS failed: ${response.status} ${errorText}`
+        );
+
+      }
+
+
+      /*
+        שלב 3:
+        הורדת גוף קובץ האודיו.
+
+        זה השלב שבו preloadAudio
+        באמת ממתינה לקובץ המלא.
+      */
+
+      const blobStart =
+        performance.now();
+
+
+      const audioBlob =
+        await response.blob();
+
+
+      const blobReady =
+        performance.now();
+
+
+      console.log(
+        "📦 TTS BLOB READY:",
+        Math.round(
+          blobReady
+          -
+          blobStart
+        ),
+        "ms",
+        {
+          blobSizeBytes:
+            audioBlob.size,
+
+          blobType:
+            audioBlob.type
+        }
+      );
+
+
+      /*
+        שלב 4:
+        יצירת URL מקומי לקובץ.
+      */
+
+      const objectUrlStart =
+        performance.now();
+
+
+      const audioUrl =
+        URL.createObjectURL(
+          audioBlob
+        );
+
+
+      console.log(
+        "🔗 TTS OBJECT URL READY:",
+        Math.round(
+          performance.now()
+          -
+          objectUrlStart
+        ),
+        "ms"
+      );
+
+
+      console.log(
+        "✅ TTS PRELOAD COMPLETE:",
+        Math.round(
+          performance.now()
+          -
+          preloadStart
+        ),
+        "ms",
+        {
+          textLength:
+            cleanText.length,
+
+          headersTimeMs:
+            Math.round(
+              headersReady
+              -
+              fetchStart
+            ),
+
+          blobTimeMs:
+            Math.round(
+              blobReady
+              -
+              blobStart
+            )
+        }
+      );
+
+
+      return audioUrl;
+
+    })();
+
+
+  /*
+    שומרים את ה-Promise מיד,
+    כדי שלא תישלח בקשת TTS כפולה
+    לאותו טקסט.
+  */
 
   this.audioCache.set(
-    text,
+    cleanText,
     audioPromise
   );
 
+
+  /*
+    אם הבקשה נכשלה,
+    מוחקים אותה מהמטמון כדי לאפשר ניסיון חוזר.
+  */
+
+  audioPromise.catch(
+    () => {
+
+      if(
+        this.audioCache.get(
+          cleanText
+        )
+        ===
+        audioPromise
+      ){
+
+        this.audioCache.delete(
+          cleanText
+        );
+
+      }
+
+    }
+  );
+
+
   return audioPromise;
+
 }
 
 
@@ -15709,6 +16873,96 @@ splitSpeechIntoTwo(text){
 
 }
 
+/* =========================
+   GET AUDIO DURATION
+========================= */
+
+async getAudioDuration(
+  audioUrl
+){
+
+  if(
+    !audioUrl
+  ){
+    return null;
+  }
+
+
+  return await new Promise(
+    resolve => {
+
+      const audio =
+        new Audio(
+          audioUrl
+        );
+
+
+      const cleanup =
+        () => {
+
+          audio.removeAttribute(
+            "src"
+          );
+
+          audio.load();
+
+        };
+
+
+      audio.onloadedmetadata =
+        () => {
+
+          const duration =
+            Number(
+              audio.duration
+            );
+
+
+          cleanup();
+
+
+          if(
+            Number.isFinite(
+              duration
+            )
+            &&
+            duration > 0
+          ){
+
+            resolve(
+              duration
+            );
+
+          }
+          else{
+
+            resolve(
+              null
+            );
+
+          }
+
+        };
+
+
+      audio.onerror =
+        () => {
+
+          cleanup();
+
+          resolve(
+            null
+          );
+
+        };
+
+
+      audio.load();
+
+    }
+  );
+
+}
 
 /* =========================
    PLAY AUDIO URL
@@ -16410,27 +17664,400 @@ async visualCard(
 
 }
 
-  /* =========================
-     ASK
-  ========================= */
+/* =========================
+   ASK
+========================= */
 
 async ask({
   text
 }){
 
-  await Promise.all([
+  const cleanText =
+    String(
+      text || ""
+    ).trim();
 
-    this.write({
-      text,
-      style: "question",
-      speed: 50
-    }),
 
-    this.speak({
-      text
-    })
+  if(
+    !cleanText
+  ){
+    return;
+  }
 
-  ]);
+
+  /*
+    מחלקים את תגובת ה-Learning Coach
+    לעד שני חלקים קצרים.
+
+    טקסט קצר יישאר חלק אחד.
+  */
+
+  const parts =
+    this.splitSpeechIntoTwo(
+      cleanText
+    );
+const askStartTime =
+  performance.now();
+
+console.log(
+  "⏱️ ASK PIPELINE START:",
+  {
+    time:
+      askStartTime,
+
+    parts:
+      parts.map(
+        (
+          part,
+          index
+        ) => ({
+          index:
+            index + 1,
+
+          length:
+            part.length,
+
+          text:
+            part
+        })
+      )
+  }
+);
+
+  if(
+    parts.length === 0
+  ){
+    return;
+  }
+
+
+  console.log(
+    "LEARNING COACH TTS PARTS:",
+    parts
+  );
+
+
+  /*
+    מתחילים מיד ליצור את כל קובצי
+    האודיו במקביל.
+
+    אין כאן await בתוך map,
+    ולכן שתי בקשות ה-TTS יוצאות
+    כמעט באותו הזמן.
+  */
+
+const audioPromises =
+  parts.map(
+    (
+      part,
+      index
+    ) => {
+
+      console.log(
+        `⏱️ TTS ${index + 1} SENT:`,
+        Math.round(
+          performance.now()
+          -
+          askStartTime
+        ),
+        "ms"
+      );
+
+
+      return this
+        .preloadAudio(
+          part
+        )
+        .then(
+          audioUrl => {
+
+            console.log(
+              `⏱️ TTS ${index + 1} READY:`,
+              Math.round(
+                performance.now()
+                -
+                askStartTime
+              ),
+              "ms"
+            );
+
+
+            return audioUrl;
+
+          }
+        );
+
+    }
+  );
+  /*
+    מציגים ומשמיעים את החלקים לפי הסדר.
+
+    מחכים רק לאודיו של החלק הנוכחי.
+    בזמן הזה האודיו של החלק הבא
+    כבר ממשיך להיווצר ברקע.
+  */
+
+  for(
+    let index = 0;
+    index < parts.length;
+    index++
+  ){
+
+    const part =
+      parts[index];
+
+
+    let audioUrl =
+      null;
+
+
+    try{
+
+      audioUrl =
+        await audioPromises[
+          index
+        ];
+
+    }
+    catch(error){
+
+      console.error(
+        "LEARNING COACH PART TTS ERROR:",
+        {
+          index,
+          part,
+          error
+        }
+      );
+
+    }
+
+
+    /*
+      אם יצירת האודיו נכשלה,
+      עדיין מציגים את הטקסט
+      ולא עוצרים את הדיאלוג.
+    */
+
+    if(
+      !audioUrl
+    ){
+
+      hideLessonLoading();
+
+
+      await this.write({
+        text:
+          part,
+
+        style:
+          part.includes("?")
+            ? "question"
+            : "normal",
+
+        speed:
+          45
+      });
+
+
+      continue;
+
+    }
+
+
+    /*
+      מודדים את משך האודיו של
+      הקטע הנוכחי בלבד.
+  */
+
+    const audioDurationSeconds =
+      await this.getAudioDuration(
+        audioUrl
+      );
+
+
+    /*
+      חישוב ההשהיות שמוסיפה write()
+      בסימני פיסוק.
+    */
+
+    const punctuationDelayMs =
+      Array.from(
+        part
+      ).reduce(
+        (
+          total,
+          char
+        ) => {
+
+          if(
+            char === "."
+            ||
+            char === "!"
+            ||
+            char === "?"
+          ){
+
+            return total + 160;
+
+          }
+
+
+          if(
+            char === ","
+          ){
+
+            return total + 80;
+
+          }
+
+
+          return total;
+
+        },
+        0
+      );
+
+
+    const audioDurationMs =
+      audioDurationSeconds
+
+        ? audioDurationSeconds *
+          1000
+
+        : null;
+
+
+    /*
+      משאירים מרווח קטן כדי שהטקסט
+      יסתיים מעט לפני סוף הקול.
+    */
+
+    const availableTypingTimeMs =
+      audioDurationMs
+
+        ? Math.max(
+            700,
+            audioDurationMs
+            -
+            punctuationDelayMs
+            -
+            200
+          )
+
+        : null;
+
+
+    /*
+      התאמת מהירות ההקלדה לאורך
+      קטע האודיו הנוכחי.
+    */
+
+    const dynamicSpeed =
+      availableTypingTimeMs
+      &&
+      part.length > 0
+
+        ? Math.max(
+            22,
+            Math.min(
+              90,
+              availableTypingTimeMs
+              /
+              part.length
+            )
+          )
+
+        : 45;
+
+
+    console.log(
+      "LEARNING COACH PART AUDIO/TEXT SYNC:",
+      {
+        index:
+          index + 1,
+
+        totalParts:
+          parts.length,
+
+        textLength:
+          part.length,
+
+        audioDurationSeconds,
+
+        punctuationDelayMs,
+
+        dynamicSpeed
+      }
+    );
+
+
+    /*
+      סוגרים את מסך הטעינה רק כאשר
+      האודיו הראשון מוכן ואפשר להתחיל.
+
+      כך הטקסט והקול עדיין מתחילים יחד.
+    */
+
+    if(
+      index === 0
+    ){
+
+      hideLessonLoading();
+
+    }
+
+
+    /*
+      רק הקטע שמכיל שאלה יקבל
+      עיצוב צהוב של question.
+
+      קטע המשוב הראשון יוצג כטקסט רגיל.
+    */
+
+    const lineStyle =
+      part.includes("?")
+        ? "question"
+        : "normal";
+
+
+    /*
+      מתחילים את הכתיבה ואת הקול יחד.
+    */
+console.log(
+  `⏱️ PART ${index + 1} PLAY START:`,
+  Math.round(
+    performance.now()
+    -
+    askStartTime
+  ),
+  "ms"
+);
+    const writePromise =
+      this.write({
+        text:
+          part,
+
+        style:
+          lineStyle,
+
+        speed:
+          dynamicSpeed
+      });
+
+
+    const audioPromise =
+      this.playAudioUrl(
+        audioUrl
+      );
+
+
+    await Promise.all([
+      writePromise,
+      audioPromise
+    ]);
+
+  }
 
 }
 
