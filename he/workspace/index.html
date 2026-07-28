@@ -17110,26 +17110,46 @@ async visualCard(
 
 }
 
-  /* =========================
-     ASK
-  ========================= */
+/* =========================
+   ASK
+========================= */
 
 async ask({
   text
 }){
 
-  await Promise.all([
+  /*
+    מתחילים קודם את הכתיבה,
+    כדי שהטקסט לא יפגר אחרי הקול.
+  */
 
+  const writePromise =
     this.write({
       text,
       style: "question",
-      speed: 50
-    }),
+      speed: 32
+    });
 
+
+  /*
+    נותנים לכתיבה יתרון קטן
+    לפני תחילת האודיו.
+  */
+
+  await this.wait(
+    280
+  );
+
+
+  const speakPromise =
     this.speak({
       text
-    })
+    });
 
+
+  await Promise.all([
+    writePromise,
+    speakPromise
   ]);
 
 }
