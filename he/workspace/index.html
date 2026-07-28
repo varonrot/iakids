@@ -11804,13 +11804,19 @@ function animateImportantParts(element) {
 }
 
 /* =====================================================
-   REMOVE DUPLICATE WRITE / ASK ACTIONS
+   CLEAN DUPLICATE WRITE / ASK ACTIONS
 
-   כאשר ה-Backend החזיר write וגם ask
-   עם אותו טקסט, משאירים רק את ask.
+   מטפל בשלושה מצבים:
 
-   אם הטקסטים שונים:
-   שומרים את שתי הפעולות.
+   1. write ו-ask זהים לחלוטין
+      → משאירים רק ask.
+
+   2. השאלה של ask מופיעה בסוף write
+      → מסירים אותה מתוך write,
+        ומשאירים את המשוב ואת ask בנפרד.
+
+   3. הטקסטים שונים
+      → משאירים את שניהם.
 ===================================================== */
 
 function cleanDuplicateTutorActions(
@@ -11842,9 +11848,14 @@ function cleanDuplicateTutorActions(
 
 
   for(
-    const action
-    of sequence
+    let index = 0;
+    index < sequence.length;
+    index++
   ){
+
+    const action =
+      sequence[index];
+
 
     if(
       !action
@@ -11856,27 +11867,158 @@ function cleanDuplicateTutorActions(
     }
 
 
+    /*
+      בודקים במיוחד זוג עוקב:
+      write ואז ask
+    */
+
+    const nextAction =
+      sequence[
+        index + 1
+      ];
+
+
+    if(
+      action.type === "write"
+      &&
+      nextAction?.type === "ask"
+    ){
+
+      const writeText =
+        normalizeText(
+          action.text
+        );
+
+
+      const askText =
+        normalizeText(
+          nextAction.text
+        );
+
+
+      /*
+        מצב 1:
+        write ו-ask זהים לחלוטין.
+
+        אין צורך ב-write.
+        ask כבר תציג ותשמיע את השאלה.
+      */
+
+      if(
+        writeText
+        &&
+        askText
+        &&
+        writeText === askText
+      ){
+
+        cleaned.push({
+          ...nextAction,
+          text:
+            askText
+        });
+
+
+        index++;
+
+        continue;
+
+      }
+
+
+      /*
+        מצב 2:
+        טקסט השאלה מופיע בסוף ה-write.
+
+        לדוגמה:
+
+        write:
+        "יפה מאוד. מה יקרה אם נוציא גלגל?"
+
+        ask:
+        "מה יקרה אם נוציא גלגל?"
+
+        נשאיר:
+
+        write:
+        "יפה מאוד."
+
+        ask:
+        "מה יקרה אם נוציא גלגל?"
+      */
+
+      if(
+        writeText
+        &&
+        askText
+        &&
+        writeText.endsWith(
+          askText
+        )
+      ){
+
+        const feedbackText =
+          writeText
+            .slice(
+              0,
+              writeText.length -
+              askText.length
+            )
+            .trim();
+
+
+        /*
+          מנקים סימני חיבור מיותרים
+          שנשארו לפני השאלה.
+        */
+
+        const cleanedFeedback =
+          feedbackText
+            .replace(
+              /[\s–—-]+$/g,
+              ""
+            )
+            .trim();
+
+
+        if(
+          cleanedFeedback
+        ){
+
+          cleaned.push({
+            ...action,
+            text:
+              cleanedFeedback
+          });
+
+        }
+
+
+        cleaned.push({
+          ...nextAction,
+          text:
+            askText
+        });
+
+
+        index++;
+
+        continue;
+
+      }
+
+    }
+
+
+    /*
+      מניעת כפילויות רגילות לחלוטין
+      בין פעולות שכבר נוספו.
+    */
+
     const currentText =
       normalizeText(
         action.text
       );
-
-
-    /*
-      פעולות בלי טקסט אינן כפילות טקסטואלית.
-    */
-
-    if(
-      !currentText
-    ){
-
-      cleaned.push(
-        action
-      );
-
-      continue;
-
-    }
 
 
     const duplicateIndex =
@@ -11890,8 +12032,12 @@ function cleanDuplicateTutorActions(
 
 
           if(
-            existingText !==
-              currentText
+            !currentText
+            ||
+            !existingText
+            ||
+            currentText !==
+              existingText
           ){
             return false;
           }
@@ -11906,20 +12052,24 @@ function cleanDuplicateTutorActions(
 
 
           return (
+            currentType ===
+              existingType
+
+            ||
+
             (
               currentType === "ask"
               &&
               existingType === "write"
             )
+
             ||
+
             (
               currentType === "write"
               &&
               existingType === "ask"
             )
-            ||
-            currentType ===
-              existingType
           );
 
         }
@@ -11930,9 +12080,9 @@ function cleanDuplicateTutorActions(
       duplicateIndex === -1
     ){
 
-      cleaned.push(
-        action
-      );
+      cleaned.push({
+        ...action
+      });
 
       continue;
 
@@ -11940,8 +12090,8 @@ function cleanDuplicateTutorActions(
 
 
     /*
-      אם קיימים write ו-ask זהים,
-      מעדיפים ask כי היא מסמנת שאלה לילד.
+      אם ask ו-write זהים,
+      מעדיפים ask.
     */
 
     if(
@@ -11950,7 +12100,9 @@ function cleanDuplicateTutorActions(
 
       cleaned[
         duplicateIndex
-      ] = action;
+      ] = {
+        ...action
+      };
 
     }
 
@@ -11968,7 +12120,12 @@ function cleanDuplicateTutorActions(
 
       removed:
         sequence.length -
-        cleaned.length
+        cleaned.length,
+
+      original:
+        sequence,
+
+      cleaned
     }
   );
 
