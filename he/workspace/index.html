@@ -16730,146 +16730,230 @@ prefetchLessonAudio(sequence) {
    SPLIT SPEECH TO MAX 2 PARTS
 ========================= */
 
-splitSpeechIntoTwo(text){
+splitSpeechIntoParts(
+  text,
+  {
+    targetLength = 55,
+    maxLength = 85,
+    maxParts = 4
+  } = {}
+){
 
   const cleanText =
-    (text || "").trim();
+    String(
+      text || ""
+    )
+      .replace(/\s+/g, " ")
+      .trim();
 
-  if(!cleanText){
+
+  if(
+    !cleanText
+  ){
     return [];
   }
 
-  /*
-    טקסט קצר:
-    אין טעם לפצל לקריאה נוספת
-  */
-
-  if(cleanText.length <= 70){
-    return [cleanText];
-  }
-
 
   /*
-    קודם מנסים לפצל לפי סוף משפט
+    מפרידים למשפטים לפי:
+    נקודה, סימן שאלה וסימן קריאה.
+
+    סימן הפיסוק נשאר בסוף המשפט.
   */
 
   const sentences =
     cleanText
-      .split(/(?<=[.!?])\s+/)
-      .map(part => part.trim())
-      .filter(Boolean);
+      .match(
+        /[^.!?！？]+[.!?！？]?/g
+      )
+      ?.map(
+        sentence =>
+          sentence.trim()
+      )
+      .filter(
+        Boolean
+      )
+    ||
+    [];
 
 
-  if(sentences.length >= 2){
+  if(
+    sentences.length === 0
+  ){
+    return [
+      cleanText
+    ];
+  }
 
-    const totalLength =
-      cleanText.length;
 
-    let firstPart = "";
-    let secondPart = "";
+  const parts = [];
 
-    let currentLength = 0;
+  let currentPart = "";
 
-    for(
-      let i = 0;
-      i < sentences.length;
-      i++
-    ){
+
+  const pushCurrentPart =
+    () => {
+
+      const readyPart =
+        currentPart.trim();
+
 
       if(
-        currentLength <
-        totalLength / 2
+        readyPart
+      ){
+        parts.push(
+          readyPart
+        );
+      }
+
+
+      currentPart = "";
+
+    };
+
+
+  for(
+    const sentence
+    of sentences
+  ){
+
+    /*
+      אם משפט בודד ארוך מאוד,
+      מנסים לחלק אותו גם בפסיק.
+    */
+
+    const sentencePieces =
+      sentence.length >
+        maxLength
+
+        ? sentence
+            .split(
+              /(?<=[,;:،])\s+/
+            )
+            .map(
+              piece =>
+                piece.trim()
+            )
+            .filter(
+              Boolean
+            )
+
+        : [
+            sentence
+          ];
+
+
+    for(
+      const piece
+      of sentencePieces
+    ){
+
+      const candidate =
+        currentPart
+
+          ? `${currentPart} ${piece}`
+
+          : piece;
+
+
+      /*
+        אם הוספת הקטע תיצור חלק ארוך מדי,
+        סוגרים קודם את החלק הקיים.
+      */
+
+      if(
+        currentPart
+        &&
+        candidate.length >
+          maxLength
       ){
 
-        firstPart +=
-          (firstPart ? " " : "") +
-          sentences[i];
+        pushCurrentPart();
 
-        currentLength +=
-          sentences[i].length;
+        currentPart =
+          piece;
 
       }
       else{
 
-        secondPart +=
-          (secondPart ? " " : "") +
-          sentences[i];
+        currentPart =
+          candidate;
+
+      }
+
+
+      /*
+        ברגע שהגענו לאורך היעד,
+        אפשר לסגור את החלק.
+
+        לא סוגרים אם כבר הגענו למספר
+        החלקים המרבי, כדי ששאר הטקסט
+        יישאר בחלק האחרון.
+      */
+
+      if(
+        currentPart.length >=
+          targetLength
+
+        &&
+
+        parts.length <
+          maxParts - 1
+      ){
+
+        pushCurrentPart();
 
       }
 
     }
 
-
-    if(
-      firstPart &&
-      secondPart
-    ){
-
-      return [
-        firstPart,
-        secondPart
-      ];
-
-    }
-
   }
+
+
+  pushCurrentPart();
 
 
   /*
-    אם אין נקודה באמצע,
-    מפצלים באזור אמצע הטקסט
-    לפי רווח
+    הגנה: לא מחזירים יותר ממספר
+    החלקים המרבי.
+
+    אם נוצרו יותר חלקים, מאחדים
+    את העודפים לחלק האחרון.
   */
 
-  const middle =
-    Math.floor(
-      cleanText.length / 2
-    );
+  if(
+    parts.length >
+      maxParts
+  ){
 
-
-  let splitIndex =
-    cleanText.indexOf(
-      " ",
-      middle
-    );
-
-
-  if(splitIndex === -1){
-
-    splitIndex =
-      cleanText.lastIndexOf(
-        " ",
-        middle
+    const allowedParts =
+      parts.slice(
+        0,
+        maxParts - 1
       );
 
+
+    const remainingText =
+      parts
+        .slice(
+          maxParts - 1
+        )
+        .join(
+          " "
+        );
+
+
+    allowedParts.push(
+      remainingText
+    );
+
+
+    return allowedParts;
+
   }
 
 
-  if(splitIndex === -1){
-
-    return [
-      cleanText
-    ];
-
-  }
-
-
-  return [
-
-    cleanText
-      .slice(
-        0,
-        splitIndex
-      )
-      .trim(),
-
-    cleanText
-      .slice(
-        splitIndex
-      )
-      .trim()
-
-  ];
+  return parts;
 
 }
 
@@ -17692,10 +17776,15 @@ async ask({
     טקסט קצר יישאר חלק אחד.
   */
 
-  const parts =
-    this.splitSpeechIntoTwo(
-      cleanText
-    );
+const parts =
+  this.splitSpeechIntoParts(
+    cleanText,
+    {
+      targetLength: 55,
+      maxLength: 85,
+      maxParts: 4
+    }
+  );
 const askStartTime =
   performance.now();
 
