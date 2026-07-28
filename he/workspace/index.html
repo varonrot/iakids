@@ -17119,9 +17119,53 @@ async ask({
 }){
 
   /*
-    מתחילים קודם את הכתיבה,
-    כדי שהטקסט לא יפגר אחרי הקול.
+    קודם מייצרים ומורידים את האודיו.
+
+    בשלב הזה אפשר להשאיר את מסך
+    "מכינים את השיעור" פתוח.
   */
+
+  const audioUrl =
+    await this.preloadAudio(
+      text
+    );
+
+
+  if(
+    !audioUrl
+  ){
+
+    console.error(
+      "ASK AUDIO PRELOAD FAILED"
+    );
+
+
+    /*
+      fallback:
+      אם האודיו נכשל, מציגים לפחות טקסט.
+    */
+
+    await this.write({
+      text,
+      style: "question",
+      speed: 32
+    });
+
+
+    return;
+
+  }
+
+
+  /*
+    האודיו כבר מוכן.
+
+    עכשיו סוגרים את מסך הטעינה
+    ומתחילים כתיבה וקול יחד.
+  */
+
+  hideLessonLoading();
+
 
   const writePromise =
     this.write({
@@ -17131,25 +17175,15 @@ async ask({
     });
 
 
-  /*
-    נותנים לכתיבה יתרון קטן
-    לפני תחילת האודיו.
-  */
-
-  await this.wait(
-    280
-  );
-
-
-  const speakPromise =
-    this.speak({
-      text
-    });
+  const audioPromise =
+    this.playAudioUrl(
+      audioUrl
+    );
 
 
   await Promise.all([
     writePromise,
-    speakPromise
+    audioPromise
   ]);
 
 }
