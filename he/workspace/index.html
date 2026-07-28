@@ -16239,106 +16239,354 @@ async robotPoint({
 
 async preloadAudio(text){
 
-  if(!text || !text.trim()){
+  const cleanText =
+    String(
+      text || ""
+    ).trim();
+
+
+  if(
+    !cleanText
+  ){
     return null;
   }
 
+
+  /*
+    אם הקובץ כבר בתהליך יצירה או מוכן,
+    מחזירים את אותו Promise מהמטמון.
+  */
+
+  if(
+    this.audioCache.has(
+      cleanText
+    )
+  ){
+
+    console.log(
+      "♻️ TTS CACHE HIT:",
+      cleanText
+    );
+
+
+    return this.audioCache.get(
+      cleanText
+    );
+
+  }
+
+
+  const preloadStart =
+    performance.now();
+
+
   console.log(
-  "🔊 TTS PRELOAD START:",
-  text
-);
+    "🔊 TTS PRELOAD START:",
+    {
+      text:
+        cleanText,
 
-  if(this.audioCache.has(text)){
-    return this.audioCache.get(text);
-  }
-
-  const audioPromise = (async () => {
-
-    const { data: sessionData } =
-      await sb.auth.getSession();
-
-    const session =
-      sessionData.session;
-
-    if(!session){
-      throw new Error(
-        "No active session"
-      );
+      textLength:
+        cleanText.length
     }
-
-console.log(
-  "🔊 TTS REQUEST:",
-  {
-    text: text,
-    session_id: currentSessionId
-  }
-);
-
-console.log(
-  "🔊 TTS FULL URL:",
-  `${TUTOR_API_BASE}/api/tutor/tts`
-);
-
-const response = await fetch(
-  `${TUTOR_API_BASE}/api/tutor/tts`,
-  {
-    method: "POST",
-
-    headers: {
-      "Content-Type":
-        "application/json",
-
-      "Authorization":
-        `Bearer ${session.access_token}`
-    },
-
-    body: JSON.stringify({
-      text: text,
-      session_id: currentSessionId
-    })
-  }
-);
-
-console.log(
-  "🔊 TTS RESPONSE:",
-  response.status,
-  response.ok
-);
-
-if(!response.ok){
-
-  const errorText =
-    await response.text();
-
-  console.error(
-    "🔴 TTS SERVER ERROR:",
-    response.status,
-    errorText
   );
 
-  throw new Error(
-    `TTS failed: ${response.status} ${errorText}`
-  );
-}
 
-    const audioBlob =
-      await response.blob();
+  const audioPromise =
+    (async () => {
 
-    const audioUrl =
-      URL.createObjectURL(
-        audioBlob
+      /*
+        שלב 1:
+        קבלת Session
+      */
+
+      const authStart =
+        performance.now();
+
+
+      const {
+        data:
+          sessionData
+      } =
+        await sb.auth.getSession();
+
+
+      console.log(
+        "⏱️ TTS AUTH READY:",
+        Math.round(
+          performance.now()
+          -
+          authStart
+        ),
+        "ms"
       );
 
-    return audioUrl;
 
-  })();
+      const session =
+        sessionData.session;
+
+
+      if(
+        !session
+      ){
+
+        throw new Error(
+          "No active session"
+        );
+
+      }
+
+
+      /*
+        שלב 2:
+        שליחת בקשת TTS
+      */
+
+      const fetchStart =
+        performance.now();
+
+
+      console.log(
+        "🌐 TTS FETCH START:",
+        {
+          text:
+            cleanText,
+
+          session_id:
+            currentSessionId
+        }
+      );
+
+
+      const response =
+        await fetch(
+
+          `${TUTOR_API_BASE}/api/tutor/tts`,
+
+          {
+            method:
+              "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+            },
+
+            body:
+              JSON.stringify({
+                text:
+                  cleanText,
+
+                session_id:
+                  currentSessionId
+              })
+          }
+
+        );
+
+
+      /*
+        כאן התקבלו רק ה-Headers.
+
+        עדיין ייתכן שהאודיו עצמו
+        לא ירד במלואו.
+      */
+
+      const headersReady =
+        performance.now();
+
+
+      console.log(
+        "📥 TTS HEADERS READY:",
+        Math.round(
+          headersReady
+          -
+          fetchStart
+        ),
+        "ms",
+        {
+          status:
+            response.status,
+
+          ok:
+            response.ok,
+
+          contentType:
+            response.headers.get(
+              "content-type"
+            ),
+
+          contentLength:
+            response.headers.get(
+              "content-length"
+            )
+        }
+      );
+
+
+      if(
+        !response.ok
+      ){
+
+        const errorText =
+          await response.text();
+
+
+        console.error(
+          "🔴 TTS SERVER ERROR:",
+          response.status,
+          errorText
+        );
+
+
+        throw new Error(
+          `TTS failed: ${response.status} ${errorText}`
+        );
+
+      }
+
+
+      /*
+        שלב 3:
+        הורדת גוף קובץ האודיו.
+
+        זה השלב שבו preloadAudio
+        באמת ממתינה לקובץ המלא.
+      */
+
+      const blobStart =
+        performance.now();
+
+
+      const audioBlob =
+        await response.blob();
+
+
+      const blobReady =
+        performance.now();
+
+
+      console.log(
+        "📦 TTS BLOB READY:",
+        Math.round(
+          blobReady
+          -
+          blobStart
+        ),
+        "ms",
+        {
+          blobSizeBytes:
+            audioBlob.size,
+
+          blobType:
+            audioBlob.type
+        }
+      );
+
+
+      /*
+        שלב 4:
+        יצירת URL מקומי לקובץ.
+      */
+
+      const objectUrlStart =
+        performance.now();
+
+
+      const audioUrl =
+        URL.createObjectURL(
+          audioBlob
+        );
+
+
+      console.log(
+        "🔗 TTS OBJECT URL READY:",
+        Math.round(
+          performance.now()
+          -
+          objectUrlStart
+        ),
+        "ms"
+      );
+
+
+      console.log(
+        "✅ TTS PRELOAD COMPLETE:",
+        Math.round(
+          performance.now()
+          -
+          preloadStart
+        ),
+        "ms",
+        {
+          textLength:
+            cleanText.length,
+
+          headersTimeMs:
+            Math.round(
+              headersReady
+              -
+              fetchStart
+            ),
+
+          blobTimeMs:
+            Math.round(
+              blobReady
+              -
+              blobStart
+            )
+        }
+      );
+
+
+      return audioUrl;
+
+    })();
+
+
+  /*
+    שומרים את ה-Promise מיד,
+    כדי שלא תישלח בקשת TTS כפולה
+    לאותו טקסט.
+  */
 
   this.audioCache.set(
-    text,
+    cleanText,
     audioPromise
   );
 
+
+  /*
+    אם הבקשה נכשלה,
+    מוחקים אותה מהמטמון כדי לאפשר ניסיון חוזר.
+  */
+
+  audioPromise.catch(
+    () => {
+
+      if(
+        this.audioCache.get(
+          cleanText
+        )
+        ===
+        audioPromise
+      ){
+
+        this.audioCache.delete(
+          cleanText
+        );
+
+      }
+
+    }
+  );
+
+
   return audioPromise;
+
 }
 
 
