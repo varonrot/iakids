@@ -10192,8 +10192,6 @@ if(
     }
   );
 
-  hideLessonLoading();
-
   return;
 
 }
@@ -10944,43 +10942,63 @@ if(
 
     }
 
+/* =============================================
+   RESTORE LAST TEACHER MESSAGE
+============================================= */
 
-    /* =============================================
-       SHOW RESTORE MESSAGE
-    ============================================= */
+const lastAssistantMessage =
+  state.last_assistant_message;
 
-    if(
-      state.current_stage ===
-        "learning_coach_1"
-    ){
 
-      addMessage(
-        "assistant",
-        "חזרנו למקום שבו עצרנו בבדיקת ההבנה הראשונה. אפשר להמשיך לענות על השאלה האחרונה."
-      );
+/*
+  השיעור כבר נמצא והמידע כבר התקבל.
+  אין סיבה להשאיר את מסך הטעינה בזמן
+  שהטקסט נכתב והאודיו מתנגן.
+*/
 
-    }
 
-    else if(
-      state.current_stage ===
-        "learning_coach_2"
-    ){
+if(
+  Array.isArray(
+    lastAssistantMessage?.sequence
+  )
+  &&
+  lastAssistantMessage.sequence.length > 0
+){
 
-      addMessage(
-        "assistant",
-        "חזרנו למקום שבו עצרנו בבדיקת ההבנה השנייה. אפשר להמשיך לענות על השאלה האחרונה."
-      );
+  await runTutorResponse({
+    sequence:
+      lastAssistantMessage.sequence,
 
-    }
+    wait_for_answer:
+      true,
 
-    else{
+    restored:
+      true,
 
-      addMessage(
-        "assistant",
-        "חזרנו למקום שבו עצרנו בשיעור."
-      );
+    lesson_mode:
+      "learning_coach"
+  });
 
-    }
+}
+
+else if(
+  lastAssistantMessage?.content
+){
+
+  addMessage(
+    "assistant",
+    lastAssistantMessage.content
+  );
+
+}
+
+else{
+
+  console.warn(
+    "ACTIVE LESSON HAS NO LAST ASSISTANT MESSAGE"
+  );
+
+}
 
 
     console.log(
@@ -11785,6 +11803,322 @@ function animateImportantParts(element) {
   }
 }
 
+/* =====================================================
+   CLEAN DUPLICATE WRITE / ASK ACTIONS
+
+   מטפל בשני מצבים:
+
+   1. write ו-ask זהים:
+      משאירים רק ask.
+
+   2. write כולל משוב + השאלה,
+      ו-ask כולל שוב את השאלה:
+      מסירים את השאלה מה-write
+      ומשאירים אותה רק ב-ask.
+===================================================== */
+
+function cleanDuplicateTutorActions(
+  sequence
+){
+
+  if(
+    !Array.isArray(sequence)
+  ){
+    return [];
+  }
+
+
+  const normalizeText =
+    value =>
+      String(value || "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+
+  const normalizeForComparison =
+    value =>
+      normalizeText(value)
+        .replace(/[״"'“”‘’]/g, "")
+        .replace(/[?!.,:;׳]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+
+  const cleaned = [];
+
+
+  for(
+    let index = 0;
+    index < sequence.length;
+    index++
+  ){
+
+    const current =
+      sequence[index];
+
+    const next =
+      sequence[index + 1];
+
+
+    if(
+      !current
+      ||
+      typeof current !== "object"
+    ){
+      continue;
+    }
+
+
+    /* =============================================
+       זוג עוקב: write ולאחריו ask
+    ============================================= */
+
+    if(
+      current.type === "write"
+      &&
+      next?.type === "ask"
+    ){
+
+      const writeText =
+        normalizeText(
+          current.text
+        );
+
+      const askText =
+        normalizeText(
+          next.text
+        );
+
+      const comparableWrite =
+        normalizeForComparison(
+          writeText
+        );
+
+      const comparableAsk =
+        normalizeForComparison(
+          askText
+        );
+
+
+      /* ===========================================
+         אותו טקסט בדיוק:
+         משאירים רק ask
+      =========================================== */
+
+      if(
+        comparableWrite
+        &&
+        comparableAsk
+        &&
+        comparableWrite === comparableAsk
+      ){
+
+        cleaned.push({
+          ...next,
+          text:
+            askText
+        });
+
+        index++;
+
+        continue;
+
+      }
+
+
+      /* ===========================================
+         ה-write מכיל משוב וגם את השאלה.
+
+         לדוגמה:
+
+         write:
+         "יפה מאוד. מה יקרה אם נוציא את השרשרת?"
+
+         ask:
+         "מה יקרה אם נוציא את השרשרת?"
+      =========================================== */
+
+      if(
+        comparableWrite
+        &&
+        comparableAsk
+        &&
+        comparableWrite.includes(
+          comparableAsk
+        )
+      ){
+
+        let questionStart =
+          writeText.lastIndexOf(
+            askText
+          );
+
+
+        /*
+          אם החיפוש הישיר לא הצליח בגלל
+          רווחים או סימני פיסוק שונים,
+          מחפשים את תחילת השאלה.
+        */
+
+        if(
+          questionStart === -1
+        ){
+
+          const askStart =
+            askText
+              .slice(0, 30)
+              .trim();
+
+
+          if(askStart){
+
+            questionStart =
+              writeText.lastIndexOf(
+                askStart
+              );
+
+          }
+
+        }
+
+
+        if(
+          questionStart >= 0
+        ){
+
+          const feedbackText =
+            writeText
+              .slice(
+                0,
+                questionStart
+              )
+              .replace(
+                /[\s\-–—:;,]+$/g,
+                ""
+              )
+              .trim();
+
+
+          /*
+            משאירים את המשוב רק אם נשאר
+            טקסט אמיתי לפני השאלה.
+          */
+
+          if(feedbackText){
+
+            cleaned.push({
+              ...current,
+              text:
+                feedbackText
+            });
+
+          }
+
+
+          cleaned.push({
+            ...next,
+            text:
+              askText
+          });
+
+
+          index++;
+
+          continue;
+
+        }
+
+      }
+
+    }
+
+
+    /* =============================================
+       מניעת כפילות מלאה כללית
+    ============================================= */
+
+    const currentComparable =
+      normalizeForComparison(
+        current.text
+      );
+
+
+    const duplicateIndex =
+      cleaned.findIndex(
+        existing => {
+
+          const existingComparable =
+            normalizeForComparison(
+              existing?.text
+            );
+
+          return (
+            currentComparable
+            &&
+            existingComparable
+            &&
+            currentComparable ===
+              existingComparable
+          );
+
+        }
+      );
+
+
+    if(
+      duplicateIndex === -1
+    ){
+
+      cleaned.push({
+        ...current
+      });
+
+    }
+    else if(
+      current.type === "ask"
+    ){
+
+      /*
+        אם אותו טקסט קיים כ-write,
+        מעדיפים ask.
+      */
+
+      cleaned[
+        duplicateIndex
+      ] = {
+        ...current
+      };
+
+    }
+
+  }
+
+
+  console.log(
+    "TUTOR SEQUENCE CLEANUP:",
+    {
+      before:
+        sequence.length,
+
+      after:
+        cleaned.length,
+
+      removed:
+        sequence.length -
+        cleaned.length,
+
+      original:
+        sequence,
+
+      cleaned
+    }
+  );
+
+
+  return cleaned;
+
+}
+
 async function runTutorResponse(data){
 
   if(
@@ -11846,10 +12180,36 @@ async function runTutorResponse(data){
     }
 
 
+const cleanedSequence =
+  cleanDuplicateTutorActions(
+    data.sequence
+  );
+
+
+if(
+  cleanedSequence.length === 0
+){
+
+  console.error(
+    "Tutor sequence is empty after cleanup:",
+    data.sequence
+  );
+
+  return;
+
+}
+
+
+console.log(
+  "LIVE LESSON SEQUENCE AFTER CLEANUP:",
+  cleanedSequence
+);
+
+
 await window.lessonRenderer.run({
 
   sequence:
-    data.sequence,
+    cleanedSequence,
 
   wait_for_answer:
     data.wait_for_answer,
@@ -11858,7 +12218,6 @@ await window.lessonRenderer.run({
     data.speech
 
 });
-
 
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
@@ -16188,6 +16547,96 @@ splitSpeechIntoTwo(text){
 
 }
 
+/* =========================
+   GET AUDIO DURATION
+========================= */
+
+async getAudioDuration(
+  audioUrl
+){
+
+  if(
+    !audioUrl
+  ){
+    return null;
+  }
+
+
+  return await new Promise(
+    resolve => {
+
+      const audio =
+        new Audio(
+          audioUrl
+        );
+
+
+      const cleanup =
+        () => {
+
+          audio.removeAttribute(
+            "src"
+          );
+
+          audio.load();
+
+        };
+
+
+      audio.onloadedmetadata =
+        () => {
+
+          const duration =
+            Number(
+              audio.duration
+            );
+
+
+          cleanup();
+
+
+          if(
+            Number.isFinite(
+              duration
+            )
+            &&
+            duration > 0
+          ){
+
+            resolve(
+              duration
+            );
+
+          }
+          else{
+
+            resolve(
+              null
+            );
+
+          }
+
+        };
+
+
+      audio.onerror =
+        () => {
+
+          cleanup();
+
+          resolve(
+            null
+          );
+
+        };
+
+
+      audio.load();
+
+    }
+  );
+
+}
 
 /* =========================
    PLAY AUDIO URL
@@ -16889,26 +17338,208 @@ async visualCard(
 
 }
 
-  /* =========================
-     ASK
-  ========================= */
+/* =========================
+   ASK
+========================= */
 
 async ask({
   text
 }){
 
-  await Promise.all([
+  /*
+    Gemini מייצר את האודיו בזמן שמסך
+    "מכינים את השיעור" נשאר פתוח.
+  */
 
+  const audioUrl =
+    await this.preloadAudio(
+      text
+    );
+
+
+  if(
+    !audioUrl
+  ){
+
+    console.error(
+      "ASK AUDIO PRELOAD FAILED"
+    );
+
+
+    hideLessonLoading();
+
+
+    await this.write({
+      text,
+      style:
+        "question",
+      speed:
+        50
+    });
+
+
+    return;
+
+  }
+
+
+  /*
+    מודדים את משך האודיו לפני
+    שמתחילים להציג את הטקסט.
+  */
+
+  const audioDurationSeconds =
+    await this.getAudioDuration(
+      audioUrl
+    );
+
+
+  /*
+    write() מוסיפה השהיות נוספות:
+    160ms אחרי . ! ?
+    80ms אחרי פסיק.
+
+    לכן מפחיתים אותן ממשך האודיו
+    לפני חישוב הזמן לכל תו.
+  */
+
+  const punctuationDelayMs =
+    Array.from(
+      text
+    ).reduce(
+      (
+        total,
+        char
+      ) => {
+
+        if(
+          char === "."
+          ||
+          char === "!"
+          ||
+          char === "?"
+        ){
+
+          return total + 160;
+
+        }
+
+
+        if(
+          char === ","
+        ){
+
+          return total + 80;
+
+        }
+
+
+        return total;
+
+      },
+      0
+    );
+
+
+  const audioDurationMs =
+    audioDurationSeconds
+
+      ? audioDurationSeconds *
+        1000
+
+      : null;
+
+
+  /*
+    משאירים מרווח קטן של 250ms,
+    כדי שהטקסט יסתיים מעט לפני
+    סוף הקול ולא אחריו.
+  */
+
+  const availableTypingTimeMs =
+    audioDurationMs
+
+      ? Math.max(
+          1000,
+          audioDurationMs
+          -
+          punctuationDelayMs
+          -
+          250
+        )
+
+      : null;
+
+
+  /*
+    חישוב אוטומטי של זמן לכל תו.
+
+    מינימום 25ms:
+    לא להבהב מהר מדי.
+
+    מקסימום 90ms:
+    לא לגרום לכתיבה איטית מאוד.
+  */
+
+  const dynamicSpeed =
+    availableTypingTimeMs
+    &&
+    text.length > 0
+
+      ? Math.max(
+          25,
+          Math.min(
+            90,
+            availableTypingTimeMs
+            /
+            text.length
+          )
+        )
+
+      : 50;
+
+
+  console.log(
+    "ASK AUDIO/TEXT SYNC:",
+    {
+      textLength:
+        text.length,
+
+      audioDurationSeconds,
+
+      punctuationDelayMs,
+
+      dynamicSpeed
+    }
+  );
+
+
+  /*
+    רק עכשיו האודיו מוכן והמהירות ידועה.
+  */
+
+  hideLessonLoading();
+
+
+  const writePromise =
     this.write({
       text,
-      style: "question",
-      speed: 50
-    }),
+      style:
+        "question",
+      speed:
+        dynamicSpeed
+    });
 
-    this.speak({
-      text
-    })
 
+  const audioPromise =
+    this.playAudioUrl(
+      audioUrl
+    );
+
+
+  await Promise.all([
+    writePromise,
+    audioPromise
   ]);
 
 }
