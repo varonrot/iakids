@@ -17840,6 +17840,17 @@ console.log(
     כמעט באותו הזמן.
   */
 
+const delay =
+  ms =>
+    new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          ms
+        )
+    );
+
+
 const audioPromises =
   parts.map(
     (
@@ -17847,39 +17858,59 @@ const audioPromises =
       index
     ) => {
 
-      console.log(
-        `⏱️ TTS ${index + 1} SENT:`,
-        Math.round(
-          performance.now()
-          -
-          askStartTime
-        ),
-        "ms"
-      );
+      return (
+        async () => {
+
+          /*
+            חלק ראשון נשלח מיד.
+
+            כל חלק נוסף מתחיל
+            300ms אחרי הקודם.
+          */
+
+          if(
+            index > 0
+          ){
+
+            await delay(
+              index * 300
+            );
+
+          }
 
 
-      return this
-        .preloadAudio(
-          part
-        )
-        .then(
-          audioUrl => {
+          console.log(
+            `⏱️ TTS ${index + 1} SENT:`,
+            Math.round(
+              performance.now()
+              -
+              askStartTime
+            ),
+            "ms"
+          );
 
-            console.log(
-              `⏱️ TTS ${index + 1} READY:`,
-              Math.round(
-                performance.now()
-                -
-                askStartTime
-              ),
-              "ms"
+
+          const audioUrl =
+            await this.preloadAudio(
+              part
             );
 
 
-            return audioUrl;
+          console.log(
+            `⏱️ TTS ${index + 1} READY:`,
+            Math.round(
+              performance.now()
+              -
+              askStartTime
+            ),
+            "ms"
+          );
 
-          }
-        );
+
+          return audioUrl;
+
+        }
+      )();
 
     }
   );
