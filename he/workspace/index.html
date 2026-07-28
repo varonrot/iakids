@@ -12426,17 +12426,38 @@ async function sendMessage() {
 
   noResponseCount = 0;
 
-  const text =
-    inputEl.value.trim();
+const text =
+  inputEl.value.trim();
 
-  if(
-    !text
-  ){
-    return;
+if(
+  !text
+){
+  return;
+}
+
+
+/* =============================================
+   PERFORMANCE TEST — START
+   מתחילים למדוד ברגע שהתשובה נשלחת
+============================================= */
+
+window.__learningCoachSendStart =
+  performance.now();
+
+console.log(
+  "🚀 LEARNING COACH SEND START:",
+  {
+    time:
+      window.__learningCoachSendStart,
+
+    message:
+      text
   }
+);
 
-  inputEl.value = "";
-  addMessage("user", text);
+
+inputEl.value = "";
+addMessage("user", text);
 
   const { data } = await sb.auth.getSession();
   const session = data.session;
@@ -12512,6 +12533,22 @@ console.log(
   requestBody
 );
 
+
+/* =============================================
+   PERFORMANCE TEST — FETCH START
+============================================= */
+
+console.log(
+  "🌐 LEARNING COACH FETCH START:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms"
+);
+
+
 const res =
   await fetch(
 
@@ -12541,6 +12578,23 @@ const res =
 
   );
 
+console.log(
+  "📥 LEARNING COACH HTTP RESPONSE:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms",
+  {
+    status:
+      res.status,
+
+    ok:
+      res.ok
+  }
+);
+
 if (!res.ok) {
 
   // 🔒 חסימת קווטה
@@ -12560,12 +12614,25 @@ if (!res.ok) {
   return;
 }
 
+const data =
+  await res.json();
 
-const data = await res.json();
+
+console.log(
+  "✅ LEARNING COACH DATA READY:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms"
+);
+
 
 if (data.session_id) {
   currentSessionId = data.session_id;
 }
+
 
 console.log(
   "CHAT RESPONSE:",
@@ -12597,18 +12664,29 @@ if(
   /* הפעלת השיעור האמיתי בלבד.
      כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
 
-  await window.lessonRenderer.run(
-    {
-      sequence:
-        data.sequence,
+console.log(
+  "🎬 LESSON RENDERER START:",
+  Math.round(
+    performance.now()
+    -
+    window.__learningCoachSendStart
+  ),
+  "ms"
+);
 
-      wait_for_answer:
-        data.wait_for_answer,
 
-      speech:
-        data.speech
-    }
-  );
+await window.lessonRenderer.run(
+  {
+    sequence:
+      data.sequence,
+
+    wait_for_answer:
+      data.wait_for_answer,
+
+    speech:
+      data.speech
+  }
+);
 
   clearNoResponseTimer();
 
