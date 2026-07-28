@@ -18707,44 +18707,39 @@ console.log(
     כמעט באותו הזמן.
   */
 
-const delay =
-  ms =>
-    new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          ms
-        )
-    );
+const audioPromises = [];
+
+let previousTtsPromise =
+  Promise.resolve();
 
 
-const audioPromises =
-  parts.map(
-    (
-      part,
-      index
-    ) => {
+for(
+  let index = 0;
+  index < parts.length;
+  index++
+){
 
-      return (
+  const part =
+    parts[index];
+
+
+  /*
+    כל קריאת TTS מתחילה רק לאחר
+    שקריאת ה-TTS הקודמת הסתיימה.
+
+    אם הקריאה הקודמת נכשלה,
+    עדיין ממשיכים לחלק הבא.
+  */
+
+  const currentTtsPromise =
+    previousTtsPromise
+
+      .catch(
+        () => null
+      )
+
+      .then(
         async () => {
-
-          /*
-            חלק ראשון נשלח מיד.
-
-            כל חלק נוסף מתחיל
-            300ms אחרי הקודם.
-          */
-
-          if(
-            index > 0
-          ){
-
-            await delay(
-              index * 300
-            );
-
-          }
-
 
           console.log(
             `⏱️ TTS ${index + 1} SENT:`,
@@ -18777,10 +18772,18 @@ const audioPromises =
           return audioUrl;
 
         }
-      )();
+      );
 
-    }
+
+  audioPromises.push(
+    currentTtsPromise
   );
+
+
+  previousTtsPromise =
+    currentTtsPromise;
+
+}
   /*
     מציגים ומשמיעים את החלקים לפי הסדר.
 
