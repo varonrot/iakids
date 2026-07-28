@@ -12609,56 +12609,51 @@ if(
   window.lessonRenderer
 ){
 
-  /* הפעלת השיעור האמיתי בלבד.
-     כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
+  /*
+    מעבירים את התשובה דרך runTutorResponse,
+    כדי להפעיל את cleanDuplicateTutorActions
+    לפני שה-Renderer מקבל את ה-sequence.
+  */
 
-  await window.lessonRenderer.run(
-    {
-      sequence:
-        data.sequence,
-
-      wait_for_answer:
-        data.wait_for_answer,
-
-      speech:
-        data.speech
-    }
+  await runTutorResponse(
+    data
   );
+
 
   clearNoResponseTimer();
 
 
-if(
-  data.wait_for_answer ===
-    true
+  if(
+    data.wait_for_answer ===
+      true
 
-  &&
+    &&
 
-  currentLearningMode ===
-    "lesson"
+    currentLearningMode ===
+      "lesson"
 
-  &&
+    &&
 
-  currentLessonId
-){
+    currentLessonId
+  ){
 
-  startNoResponseTimer();
+    startNoResponseTimer();
+
+  }
 
 }
+else{
+
+  console.error(
+    "lessonRenderer not initialized"
+  );
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי להפעיל את השיעור."
+  );
 
 }
-    else{
-
-      console.error(
-        "lessonRenderer not initialized"
-      );
-
-      addMessage(
-        "assistant",
-        "לא הצלחתי להפעיל את השיעור."
-      );
-
-    }
 
   }
   catch(error){
