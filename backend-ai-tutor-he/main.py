@@ -1111,7 +1111,11 @@ def build_learning_coach_prompt(
                 child.get("child_name"),
 
             "grade":
-                child.get("age")
+                child.get("age"),
+
+            "gender":
+                child.get("gender")
+                or "male"
         },
 
         "lesson": {
@@ -6265,7 +6269,7 @@ def run_learning_coach(
 
         sequence = [
             TutorAction(
-                type="write",
+                type="ask",
                 text=teacher_response,
                 style="normal",
                 speed=45
