@@ -17346,201 +17346,324 @@ async ask({
   text
 }){
 
-  /*
-    Gemini מייצר את האודיו בזמן שמסך
-    "מכינים את השיעור" נשאר פתוח.
-  */
-
-  const audioUrl =
-    await this.preloadAudio(
-      text
-    );
+  const cleanText =
+    String(
+      text || ""
+    ).trim();
 
 
   if(
-    !audioUrl
+    !cleanText
   ){
-
-    console.error(
-      "ASK AUDIO PRELOAD FAILED"
-    );
-
-
-    hideLessonLoading();
-
-
-    await this.write({
-      text,
-      style:
-        "question",
-      speed:
-        50
-    });
-
-
     return;
-
   }
 
 
   /*
-    מודדים את משך האודיו לפני
-    שמתחילים להציג את הטקסט.
+    מחלקים את תגובת ה-Learning Coach
+    לעד שני חלקים קצרים.
+
+    טקסט קצר יישאר חלק אחד.
   */
 
-  const audioDurationSeconds =
-    await this.getAudioDuration(
-      audioUrl
+  const parts =
+    this.splitSpeechIntoTwo(
+      cleanText
     );
 
 
-  /*
-    write() מוסיפה השהיות נוספות:
-    160ms אחרי . ! ?
-    80ms אחרי פסיק.
-
-    לכן מפחיתים אותן ממשך האודיו
-    לפני חישוב הזמן לכל תו.
-  */
-
-  const punctuationDelayMs =
-    Array.from(
-      text
-    ).reduce(
-      (
-        total,
-        char
-      ) => {
-
-        if(
-          char === "."
-          ||
-          char === "!"
-          ||
-          char === "?"
-        ){
-
-          return total + 160;
-
-        }
-
-
-        if(
-          char === ","
-        ){
-
-          return total + 80;
-
-        }
-
-
-        return total;
-
-      },
-      0
-    );
-
-
-  const audioDurationMs =
-    audioDurationSeconds
-
-      ? audioDurationSeconds *
-        1000
-
-      : null;
-
-
-  /*
-    משאירים מרווח קטן של 250ms,
-    כדי שהטקסט יסתיים מעט לפני
-    סוף הקול ולא אחריו.
-  */
-
-  const availableTypingTimeMs =
-    audioDurationMs
-
-      ? Math.max(
-          1000,
-          audioDurationMs
-          -
-          punctuationDelayMs
-          -
-          250
-        )
-
-      : null;
-
-
-  /*
-    חישוב אוטומטי של זמן לכל תו.
-
-    מינימום 25ms:
-    לא להבהב מהר מדי.
-
-    מקסימום 90ms:
-    לא לגרום לכתיבה איטית מאוד.
-  */
-
-  const dynamicSpeed =
-    availableTypingTimeMs
-    &&
-    text.length > 0
-
-      ? Math.max(
-          25,
-          Math.min(
-            90,
-            availableTypingTimeMs
-            /
-            text.length
-          )
-        )
-
-      : 50;
+  if(
+    parts.length === 0
+  ){
+    return;
+  }
 
 
   console.log(
-    "ASK AUDIO/TEXT SYNC:",
-    {
-      textLength:
-        text.length,
-
-      audioDurationSeconds,
-
-      punctuationDelayMs,
-
-      dynamicSpeed
-    }
+    "LEARNING COACH TTS PARTS:",
+    parts
   );
 
 
   /*
-    רק עכשיו האודיו מוכן והמהירות ידועה.
+    מתחילים מיד ליצור את כל קובצי
+    האודיו במקביל.
+
+    אין כאן await בתוך map,
+    ולכן שתי בקשות ה-TTS יוצאות
+    כמעט באותו הזמן.
   */
 
-  hideLessonLoading();
-
-
-  const writePromise =
-    this.write({
-      text,
-      style:
-        "question",
-      speed:
-        dynamicSpeed
-    });
-
-
-  const audioPromise =
-    this.playAudioUrl(
-      audioUrl
+  const audioPromises =
+    parts.map(
+      part =>
+        this.preloadAudio(
+          part
+        )
     );
 
 
-  await Promise.all([
-    writePromise,
-    audioPromise
-  ]);
+  /*
+    מציגים ומשמיעים את החלקים לפי הסדר.
+
+    מחכים רק לאודיו של החלק הנוכחי.
+    בזמן הזה האודיו של החלק הבא
+    כבר ממשיך להיווצר ברקע.
+  */
+
+  for(
+    let index = 0;
+    index < parts.length;
+    index++
+  ){
+
+    const part =
+      parts[index];
+
+
+    let audioUrl =
+      null;
+
+
+    try{
+
+      audioUrl =
+        await audioPromises[
+          index
+        ];
+
+    }
+    catch(error){
+
+      console.error(
+        "LEARNING COACH PART TTS ERROR:",
+        {
+          index,
+          part,
+          error
+        }
+      );
+
+    }
+
+
+    /*
+      אם יצירת האודיו נכשלה,
+      עדיין מציגים את הטקסט
+      ולא עוצרים את הדיאלוג.
+    */
+
+    if(
+      !audioUrl
+    ){
+
+      hideLessonLoading();
+
+
+      await this.write({
+        text:
+          part,
+
+        style:
+          part.includes("?")
+            ? "question"
+            : "normal",
+
+        speed:
+          45
+      });
+
+
+      continue;
+
+    }
+
+
+    /*
+      מודדים את משך האודיו של
+      הקטע הנוכחי בלבד.
+  */
+
+    const audioDurationSeconds =
+      await this.getAudioDuration(
+        audioUrl
+      );
+
+
+    /*
+      חישוב ההשהיות שמוסיפה write()
+      בסימני פיסוק.
+    */
+
+    const punctuationDelayMs =
+      Array.from(
+        part
+      ).reduce(
+        (
+          total,
+          char
+        ) => {
+
+          if(
+            char === "."
+            ||
+            char === "!"
+            ||
+            char === "?"
+          ){
+
+            return total + 160;
+
+          }
+
+
+          if(
+            char === ","
+          ){
+
+            return total + 80;
+
+          }
+
+
+          return total;
+
+        },
+        0
+      );
+
+
+    const audioDurationMs =
+      audioDurationSeconds
+
+        ? audioDurationSeconds *
+          1000
+
+        : null;
+
+
+    /*
+      משאירים מרווח קטן כדי שהטקסט
+      יסתיים מעט לפני סוף הקול.
+    */
+
+    const availableTypingTimeMs =
+      audioDurationMs
+
+        ? Math.max(
+            700,
+            audioDurationMs
+            -
+            punctuationDelayMs
+            -
+            200
+          )
+
+        : null;
+
+
+    /*
+      התאמת מהירות ההקלדה לאורך
+      קטע האודיו הנוכחי.
+    */
+
+    const dynamicSpeed =
+      availableTypingTimeMs
+      &&
+      part.length > 0
+
+        ? Math.max(
+            22,
+            Math.min(
+              90,
+              availableTypingTimeMs
+              /
+              part.length
+            )
+          )
+
+        : 45;
+
+
+    console.log(
+      "LEARNING COACH PART AUDIO/TEXT SYNC:",
+      {
+        index:
+          index + 1,
+
+        totalParts:
+          parts.length,
+
+        textLength:
+          part.length,
+
+        audioDurationSeconds,
+
+        punctuationDelayMs,
+
+        dynamicSpeed
+      }
+    );
+
+
+    /*
+      סוגרים את מסך הטעינה רק כאשר
+      האודיו הראשון מוכן ואפשר להתחיל.
+
+      כך הטקסט והקול עדיין מתחילים יחד.
+    */
+
+    if(
+      index === 0
+    ){
+
+      hideLessonLoading();
+
+    }
+
+
+    /*
+      רק הקטע שמכיל שאלה יקבל
+      עיצוב צהוב של question.
+
+      קטע המשוב הראשון יוצג כטקסט רגיל.
+    */
+
+    const lineStyle =
+      part.includes("?")
+        ? "question"
+        : "normal";
+
+
+    /*
+      מתחילים את הכתיבה ואת הקול יחד.
+    */
+
+    const writePromise =
+      this.write({
+        text:
+          part,
+
+        style:
+          lineStyle,
+
+        speed:
+          dynamicSpeed
+      });
+
+
+    const audioPromise =
+      this.playAudioUrl(
+        audioUrl
+      );
+
+
+    await Promise.all([
+      writePromise,
+      audioPromise
+    ]);
+
+  }
 
 }
 
