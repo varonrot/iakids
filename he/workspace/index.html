@@ -11804,13 +11804,17 @@ function animateImportantParts(element) {
 }
 
 /* =====================================================
-   REMOVE DUPLICATE WRITE / ASK ACTIONS
+   CLEAN DUPLICATE WRITE / ASK ACTIONS
 
-   כאשר ה-Backend החזיר write וגם ask
-   עם אותו טקסט, משאירים רק את ask.
+   מטפל בשני מצבים:
 
-   אם הטקסטים שונים:
-   שומרים את שתי הפעולות.
+   1. write ו-ask זהים:
+      משאירים רק ask.
+
+   2. write כולל משוב + השאלה,
+      ו-ask כולל שוב את השאלה:
+      מסירים את השאלה מה-write
+      ומשאירים אותה רק ב-ask.
 ===================================================== */
 
 function cleanDuplicateTutorActions(
@@ -11818,9 +11822,7 @@ function cleanDuplicateTutorActions(
 ){
 
   if(
-    !Array.isArray(
-      sequence
-    )
+    !Array.isArray(sequence)
   ){
     return [];
   }
@@ -11828,13 +11830,17 @@ function cleanDuplicateTutorActions(
 
   const normalizeText =
     value =>
-      String(
-        value || ""
-      )
-        .replace(
-          /\s+/g,
-          " "
-        )
+      String(value || "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+
+  const normalizeForComparison =
+    value =>
+      normalizeText(value)
+        .replace(/[״"'“”‘’]/g, "")
+        .replace(/[?!.,:;׳]/g, "")
+        .replace(/\s+/g, " ")
         .trim();
 
 
@@ -11842,84 +11848,217 @@ function cleanDuplicateTutorActions(
 
 
   for(
-    const action
-    of sequence
+    let index = 0;
+    index < sequence.length;
+    index++
   ){
 
+    const current =
+      sequence[index];
+
+    const next =
+      sequence[index + 1];
+
+
     if(
-      !action
+      !current
       ||
-      typeof action !==
-        "object"
+      typeof current !== "object"
     ){
       continue;
     }
 
 
-    const currentText =
-      normalizeText(
-        action.text
-      );
-
-
-    /*
-      פעולות בלי טקסט אינן כפילות טקסטואלית.
-    */
+    /* =============================================
+       זוג עוקב: write ולאחריו ask
+    ============================================= */
 
     if(
-      !currentText
+      current.type === "write"
+      &&
+      next?.type === "ask"
     ){
 
-      cleaned.push(
-        action
-      );
+      const writeText =
+        normalizeText(
+          current.text
+        );
 
-      continue;
+      const askText =
+        normalizeText(
+          next.text
+        );
+
+      const comparableWrite =
+        normalizeForComparison(
+          writeText
+        );
+
+      const comparableAsk =
+        normalizeForComparison(
+          askText
+        );
+
+
+      /* ===========================================
+         אותו טקסט בדיוק:
+         משאירים רק ask
+      =========================================== */
+
+      if(
+        comparableWrite
+        &&
+        comparableAsk
+        &&
+        comparableWrite === comparableAsk
+      ){
+
+        cleaned.push({
+          ...next,
+          text:
+            askText
+        });
+
+        index++;
+
+        continue;
+
+      }
+
+
+      /* ===========================================
+         ה-write מכיל משוב וגם את השאלה.
+
+         לדוגמה:
+
+         write:
+         "יפה מאוד. מה יקרה אם נוציא את השרשרת?"
+
+         ask:
+         "מה יקרה אם נוציא את השרשרת?"
+      =========================================== */
+
+      if(
+        comparableWrite
+        &&
+        comparableAsk
+        &&
+        comparableWrite.includes(
+          comparableAsk
+        )
+      ){
+
+        let questionStart =
+          writeText.lastIndexOf(
+            askText
+          );
+
+
+        /*
+          אם החיפוש הישיר לא הצליח בגלל
+          רווחים או סימני פיסוק שונים,
+          מחפשים את תחילת השאלה.
+        */
+
+        if(
+          questionStart === -1
+        ){
+
+          const askStart =
+            askText
+              .slice(0, 30)
+              .trim();
+
+
+          if(askStart){
+
+            questionStart =
+              writeText.lastIndexOf(
+                askStart
+              );
+
+          }
+
+        }
+
+
+        if(
+          questionStart >= 0
+        ){
+
+          const feedbackText =
+            writeText
+              .slice(
+                0,
+                questionStart
+              )
+              .replace(
+                /[\s\-–—:;,]+$/g,
+                ""
+              )
+              .trim();
+
+
+          /*
+            משאירים את המשוב רק אם נשאר
+            טקסט אמיתי לפני השאלה.
+          */
+
+          if(feedbackText){
+
+            cleaned.push({
+              ...current,
+              text:
+                feedbackText
+            });
+
+          }
+
+
+          cleaned.push({
+            ...next,
+            text:
+              askText
+          });
+
+
+          index++;
+
+          continue;
+
+        }
+
+      }
 
     }
+
+
+    /* =============================================
+       מניעת כפילות מלאה כללית
+    ============================================= */
+
+    const currentComparable =
+      normalizeForComparison(
+        current.text
+      );
 
 
     const duplicateIndex =
       cleaned.findIndex(
-        existingAction => {
+        existing => {
 
-          const existingText =
-            normalizeText(
-              existingAction?.text
+          const existingComparable =
+            normalizeForComparison(
+              existing?.text
             );
 
-
-          if(
-            existingText !==
-              currentText
-          ){
-            return false;
-          }
-
-
-          const currentType =
-            action.type;
-
-
-          const existingType =
-            existingAction?.type;
-
-
           return (
-            (
-              currentType === "ask"
-              &&
-              existingType === "write"
-            )
-            ||
-            (
-              currentType === "write"
-              &&
-              existingType === "ask"
-            )
-            ||
-            currentType ===
-              existingType
+            currentComparable
+            &&
+            existingComparable
+            &&
+            currentComparable ===
+              existingComparable
           );
 
         }
@@ -11930,27 +12069,25 @@ function cleanDuplicateTutorActions(
       duplicateIndex === -1
     ){
 
-      cleaned.push(
-        action
-      );
-
-      continue;
+      cleaned.push({
+        ...current
+      });
 
     }
-
-
-    /*
-      אם קיימים write ו-ask זהים,
-      מעדיפים ask כי היא מסמנת שאלה לילד.
-    */
-
-    if(
-      action.type === "ask"
+    else if(
+      current.type === "ask"
     ){
+
+      /*
+        אם אותו טקסט קיים כ-write,
+        מעדיפים ask.
+      */
 
       cleaned[
         duplicateIndex
-      ] = action;
+      ] = {
+        ...current
+      };
 
     }
 
@@ -11968,7 +12105,12 @@ function cleanDuplicateTutorActions(
 
       removed:
         sequence.length -
-        cleaned.length
+        cleaned.length,
+
+      original:
+        sequence,
+
+      cleaned
     }
   );
 
