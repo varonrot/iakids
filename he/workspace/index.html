@@ -17370,7 +17370,33 @@ async ask({
     this.splitSpeechIntoTwo(
       cleanText
     );
+const askStartTime =
+  performance.now();
 
+console.log(
+  "⏱️ ASK PIPELINE START:",
+  {
+    time:
+      askStartTime,
+
+    parts:
+      parts.map(
+        (
+          part,
+          index
+        ) => ({
+          index:
+            index + 1,
+
+          length:
+            part.length,
+
+          text:
+            part
+        })
+      )
+  }
+);
 
   if(
     parts.length === 0
@@ -17394,15 +17420,49 @@ async ask({
     כמעט באותו הזמן.
   */
 
-  const audioPromises =
-    parts.map(
-      part =>
-        this.preloadAudio(
+const audioPromises =
+  parts.map(
+    (
+      part,
+      index
+    ) => {
+
+      console.log(
+        `⏱️ TTS ${index + 1} SENT:`,
+        Math.round(
+          performance.now()
+          -
+          askStartTime
+        ),
+        "ms"
+      );
+
+
+      return this
+        .preloadAudio(
           part
         )
-    );
+        .then(
+          audioUrl => {
+
+            console.log(
+              `⏱️ TTS ${index + 1} READY:`,
+              Math.round(
+                performance.now()
+                -
+                askStartTime
+              ),
+              "ms"
+            );
 
 
+            return audioUrl;
+
+          }
+        );
+
+    }
+  );
   /*
     מציגים ומשמיעים את החלקים לפי הסדר.
 
@@ -17638,7 +17698,15 @@ async ask({
     /*
       מתחילים את הכתיבה ואת הקול יחד.
     */
-
+console.log(
+  `⏱️ PART ${index + 1} PLAY START:`,
+  Math.round(
+    performance.now()
+    -
+    askStartTime
+  ),
+  "ms"
+);
     const writePromise =
       this.write({
         text:
