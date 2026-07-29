@@ -6836,6 +6836,205 @@ body::before{
   }
 
 }
+    /* =====================================================
+   HOME RIGHT SIDEBAR — COMPACT VERSION
+===================================================== */
+
+/* הסרגל הימני צר יותר */
+.app{
+  grid-template-columns:
+    270px
+    minmax(0,1fr)
+    285px !important;
+}
+
+
+/* רווחים קטנים יותר בין הכרטיסים */
+.home-rightbar{
+  gap:8px !important;
+  overflow:hidden !important;
+}
+
+
+/* כל הכרטיסים מעט פחות עגולים */
+.home-right-welcome,
+.home-right-actions,
+.home-right-stats,
+.home-right-progress{
+  border-radius:20px !important;
+
+  box-shadow:
+    0 8px 20px
+    rgba(35,64,115,.12),
+    inset 0 1px 0
+    rgba(255,255,255,.88) !important;
+}
+
+
+/* =====================================================
+   כרטיס הברכה
+===================================================== */
+
+.home-right-welcome{
+  min-height:142px !important;
+  height:142px !important;
+
+  padding:
+    15px
+    105px
+    14px
+    13px !important;
+}
+
+
+.home-right-welcome h2{
+  margin:0 0 6px !important;
+
+  font-size:21px !important;
+  line-height:1.15 !important;
+}
+
+
+.home-right-welcome p{
+  font-size:13px !important;
+  line-height:1.45 !important;
+}
+
+
+.home-right-student{
+  right:-6px !important;
+  bottom:-20px !important;
+
+  width:120px !important;
+  height:155px !important;
+}
+
+
+/* =====================================================
+   ארבעת כרטיסי הפעולה
+===================================================== */
+
+.home-right-actions{
+  padding:8px !important;
+  gap:8px !important;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr)) !important;
+}
+
+
+.home-right-action{
+  min-height:100px !important;
+  height:100px !important;
+
+  padding:
+    8px
+    5px
+    8px !important;
+
+  gap:4px !important;
+
+  border-radius:15px !important;
+}
+
+
+.home-right-action img{
+  width:42px !important;
+  height:42px !important;
+
+  object-fit:contain !important;
+}
+
+
+.home-right-action strong{
+  font-size:13px !important;
+  line-height:1.15 !important;
+}
+
+
+/* =====================================================
+   נקודות / גביעים / רצף
+===================================================== */
+
+.home-right-stats{
+  min-height:88px !important;
+  height:88px !important;
+
+  padding:7px 5px !important;
+}
+
+
+.home-right-stat{
+  padding:4px 2px !important;
+}
+
+
+.home-right-stat-icon{
+  font-size:24px !important;
+}
+
+
+.home-right-stat strong{
+  font-size:17px !important;
+  line-height:1 !important;
+}
+
+
+.home-right-stat small{
+  font-size:9px !important;
+  line-height:1.2 !important;
+}
+
+
+/* =====================================================
+   התקדמות כללית
+===================================================== */
+
+.home-right-progress{
+  min-height:122px !important;
+  height:122px !important;
+
+  padding:
+    9px
+    12px
+    8px !important;
+}
+
+
+.home-right-progress h3{
+  margin:0 0 5px !important;
+
+  font-size:15px !important;
+}
+
+
+.home-right-progress-content{
+  min-height:78px !important;
+}
+
+
+.home-right-chart{
+  height:66px !important;
+}
+
+
+.home-right-donut{
+  width:58px !important;
+  height:58px !important;
+}
+
+
+.home-right-donut-inner{
+  width:43px !important;
+  height:43px !important;
+
+  font-size:14px !important;
+}
+
+
+.home-right-chart-days{
+  font-size:8px !important;
+}
 </style>
 </head>
 <body>
