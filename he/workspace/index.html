@@ -804,11 +804,11 @@ body{
     background-image:
         url("/assets/backgrounds/world-map.png") !important;
 
-    background-size:calc(100vw - 540px) auto !important;
+    background-size:100vw 100vh !important;
     background-position:center center !important;
     background-repeat:no-repeat !important;
     background-attachment:fixed !important;
-    background-color:#07558a !important;
+
 }
 
 body::before{
@@ -6836,9 +6836,262 @@ body::before{
   }
 
 }
+    /* =====================================================
+   HOME RIGHT SIDEBAR — COMPACT VERSION
+===================================================== */
+
+/* הסרגל הימני צר יותר */
+.app{
+  grid-template-columns:
+    270px
+    minmax(0,1fr)
+    285px !important;
+}
+
+
+/* רווחים קטנים יותר בין הכרטיסים */
+.home-rightbar{
+  gap:8px !important;
+  overflow:hidden !important;
+}
+
+
+/* כל הכרטיסים מעט פחות עגולים */
+.home-right-welcome,
+.home-right-actions,
+.home-right-stats,
+.home-right-progress{
+  border-radius:20px !important;
+
+  box-shadow:
+    0 8px 20px
+    rgba(35,64,115,.12),
+    inset 0 1px 0
+    rgba(255,255,255,.88) !important;
+}
+
+
+/* =====================================================
+   כרטיס הברכה
+===================================================== */
+
+.home-right-welcome{
+  min-height:142px !important;
+  height:142px !important;
+
+  padding:
+    15px
+    105px
+    14px
+    13px !important;
+}
+
+
+.home-right-welcome h2{
+  margin:0 0 6px !important;
+
+  font-size:21px !important;
+  line-height:1.15 !important;
+}
+
+
+.home-right-welcome p{
+  font-size:13px !important;
+  line-height:1.45 !important;
+}
+
+
+.home-right-student{
+  right:-6px !important;
+  bottom:-20px !important;
+
+  width:120px !important;
+  height:155px !important;
+}
+
+
+/* =====================================================
+   ארבעת כרטיסי הפעולה
+===================================================== */
+
+.home-right-actions{
+  padding:8px !important;
+  gap:8px !important;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr)) !important;
+}
+
+
+.home-right-action{
+  min-height:100px !important;
+  height:100px !important;
+
+  padding:
+    8px
+    5px
+    8px !important;
+
+  gap:4px !important;
+
+  border-radius:15px !important;
+}
+
+
+.home-right-action img{
+  width:42px !important;
+  height:42px !important;
+
+  object-fit:contain !important;
+}
+
+
+.home-right-action strong{
+  font-size:13px !important;
+  line-height:1.15 !important;
+}
+
+
+/* =====================================================
+   נקודות / גביעים / רצף
+===================================================== */
+
+.home-right-stats{
+  min-height:88px !important;
+  height:88px !important;
+
+  padding:7px 5px !important;
+}
+
+
+.home-right-stat{
+  padding:4px 2px !important;
+}
+
+
+.home-right-stat-icon{
+  font-size:24px !important;
+}
+
+
+.home-right-stat strong{
+  font-size:17px !important;
+  line-height:1 !important;
+}
+
+
+.home-right-stat small{
+  font-size:9px !important;
+  line-height:1.2 !important;
+}
+
+
+/* =====================================================
+   התקדמות כללית
+===================================================== */
+
+.home-right-progress{
+  min-height:122px !important;
+  height:122px !important;
+
+  padding:
+    9px
+    12px
+    8px !important;
+}
+
+
+.home-right-progress h3{
+  margin:0 0 5px !important;
+
+  font-size:15px !important;
+}
+
+
+.home-right-progress-content{
+  min-height:78px !important;
+}
+
+
+.home-right-chart{
+  height:66px !important;
+}
+
+
+.home-right-donut{
+  width:58px !important;
+  height:58px !important;
+}
+
+
+.home-right-donut-inner{
+  width:43px !important;
+  height:43px !important;
+
+  font-size:14px !important;
+}
+
+
+.home-right-chart-days{
+  font-size:8px !important;
+}
+    /* =====================================================
+   KINGDOM DASHBOARD — FIT ENTIRE SCREEN
+===================================================== */
+
+.dashboard-view{
+  height:100% !important;
+  min-height:0 !important;
+
+  overflow:hidden !important;
+
+  padding:0 !important;
+}
+
+
+.dashboard-view .dash-wrapper{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+}
+
+
+.dashboard-view .dash-layout{
+  flex:1 !important;
+  min-height:0 !important;
+
+  display:block !important;
+}
+
+
+.dashboard-view .dash-content{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:8px !important;
+}
+
+
+/* המפה מקבלת את כל השטח שנשאר */
+.kingdom-map-area{
+  flex:1 1 auto !important;
+
+  height:auto !important;
+  min-height:0 !important;
+
+  width:100% !important;
+}
+
+
 </style>
 </head>
 <body>
+
 <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
 <div class="app">
 <header class="topbar">
@@ -7437,275 +7690,53 @@ body::before{
      KINGDOM HOME BOTTOM BAR
      ===================================================== -->
 
-<section class="kingdom-bottom-bar">
-
-  <!-- ==================================================
-       המשימות שלי
-       ================================================== -->
-
-  <article class="kingdom-bottom-card kingdom-missions-card">
-
-    <h2>המשימות שלי</h2>
-
-    <div class="kingdom-mission-list">
-
-      <button
-        type="button"
-        class="kingdom-mission-item"
-        onclick="showLearning('practice')"
-      >
-
-        <span class="kingdom-mission-icon">
-          ✏️
-        </span>
-
-        <span class="kingdom-mission-content">
-
-          <strong>
-            פתרו 10 תרגילים במתמטיקה
-          </strong>
-
-          <small>
-            ממלכת השלג
-          </small>
-
-        </span>
-
-        <span class="kingdom-mission-reward">
-          <b>+20</b>
-          ⭐
-        </span>
-
-      </button>
-
-
-      <button
-        type="button"
-        class="kingdom-mission-item"
-        onclick="showLearning('lesson')"
-      >
-
-        <span class="kingdom-mission-icon">
-          🧪
-        </span>
-
-        <span class="kingdom-mission-content">
-
-          <strong>
-            צפו בשיעור: שרשרת המזון
-          </strong>
-
-          <small>
-            ממלכת הג׳ונגל
-          </small>
-
-        </span>
-
-        <span class="kingdom-mission-reward">
-          <b>+15</b>
-          ⭐
-        </span>
-
-      </button>
-
-
-      <button
-        type="button"
-        class="kingdom-mission-item"
-        onclick="showLearning('practice')"
-      >
-
-        <span class="kingdom-mission-icon">
-          💬
-        </span>
-
-        <span class="kingdom-mission-content">
-
-          <strong>
-            תרגלו 15 מילים באנגלית
-          </strong>
-
-          <small>
-            ממלכת קנדילנד
-          </small>
-
-        </span>
-
-        <span class="kingdom-mission-reward">
-          <b>+10</b>
-          ⭐
-        </span>
-
-      </button>
-
-    </div>
-
-
-    <button
-      type="button"
-      class="kingdom-bottom-button"
-      onclick="showLearning('practice')"
-    >
-      הצגת כל המשימות
-    </button>
-
-  </article>
-
-
-  <!-- ==================================================
-       הישגים אחרונים
-       ================================================== -->
-
-  <article class="kingdom-bottom-card kingdom-achievements-card">
-
-    <h2>הישגים אחרונים</h2>
-
-    <div class="kingdom-achievements-list">
-
-      <div class="kingdom-achievement">
-
-        <div class="kingdom-achievement-icon">
-          🛡️
-        </div>
-
-        <strong>
-          חוקר ג׳ונגל
-        </strong>
-
-        <small>
-          סיימתם אזור אחד<br>
-          בממלכת הג׳ונגל
-        </small>
-
-      </div>
-
-
-      <div class="kingdom-achievement">
-
-        <div class="kingdom-achievement-icon">
-          🥇
-        </div>
-
-        <strong>
-          שותף לדרך
-        </strong>
-
-        <small>
-          השלמתם 5 משימות<br>
-          בכל ממלכה
-        </small>
-
-      </div>
-
-
-      <div class="kingdom-achievement">
-
-        <div class="kingdom-achievement-icon">
-          🎖️
-        </div>
-
-        <strong>
-          תלמיד מסור
-        </strong>
-
-        <small>
-          10 ימים<br>
-          ברצף!
-        </small>
-
-      </div>
-
-    </div>
-
-  </article>
-
-
-  <!-- ==================================================
-       חברים מובילים
-       ================================================== -->
-
-  <article class="kingdom-bottom-card kingdom-leaderboard-card">
-
-    <h2>חברים מובילים</h2>
-
-    <div class="kingdom-leaderboard-list">
-
-      <div class="kingdom-leaderboard-item">
-
-        <span class="kingdom-rank first">
-          1
-        </span>
-
-        <span class="kingdom-friend-avatar">
-          👦🏻
-        </span>
-
-        <strong>
-          אורי
-        </strong>
-
-        <span class="kingdom-friend-score">
-          ⭐ 250
-        </span>
-
-      </div>
-
-
-      <div class="kingdom-leaderboard-item">
-
-        <span class="kingdom-rank second">
-          2
-        </span>
-
-        <span class="kingdom-friend-avatar">
-          👧🏻
-        </span>
-
-        <strong>
-          נועה
-        </strong>
-
-        <span class="kingdom-friend-score">
-          ⭐ 220
-        </span>
-
-      </div>
-
-
-      <div class="kingdom-leaderboard-item">
-
-        <span class="kingdom-rank third">
-          3
-        </span>
-
-        <span class="kingdom-friend-avatar">
-          👦🏽
-        </span>
-
-        <strong>
-          דניאל
-        </strong>
-
-        <span class="kingdom-friend-score">
-          ⭐ 180
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <button
-      type="button"
-      class="kingdom-bottom-button"
-    >
-      לוח תוצאות מלא
-    </button>
-
-  </article>
+<section class="kingdom-compact-bar">
+
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🪙</span>
+    <span>
+      <strong>1,245</strong>
+      <small>המטבעות שלך</small>
+    </span>
+  </button>
+
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🎯</span>
+    <span>
+      <strong>המשימה</strong>
+      <small>השלימו 10 תרגילים</small>
+    </span>
+  </button>
+
+  <button class="kingdom-compact-item kingdom-compact-progress">
+    <span>
+      <strong>בונים את הממלכה</strong>
+
+      <span class="kingdom-compact-track">
+        <span></span>
+      </span>
+
+      <small>32% הושלמו</small>
+    </span>
+  </button>
+
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🛡️</span>
+    <span>
+      <strong>הגנה נוכחית</strong>
+      <small>חזקה</small>
+    </span>
+  </button>
+
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🎁</span>
+    <span>
+      <strong>פרסים</strong>
+      <small>3 מחכים לאיסוף</small>
+    </span>
+  </button>
 
 </section>
-  </section>
 
 <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW
@@ -17756,20 +17787,18 @@ document.addEventListener(
     1.05fr
     1fr;
 
-  gap:14px;
+  gap:10px;
 
   direction:rtl;
 
-  margin-top:14px;
-
-  padding:
-    0
-    0
-    4px;
+  margin-top:8px;
+  padding:0;
 
   position:relative;
-
   z-index:10;
+
+  flex:0 0 178px;
+  height:178px;
 }
 
 
@@ -17779,12 +17808,9 @@ document.addEventListener(
 
 .kingdom-bottom-card{
   min-width:0;
-  height:255px;
+  height:178px;
 
-  padding:
-    13px
-    16px
-    12px;
+  padding:8px 11px 8px;
 
   display:flex;
   flex-direction:column;
@@ -17793,7 +17819,7 @@ document.addEventListener(
     1px solid
     rgba(255,255,255,.92);
 
-  border-radius:25px;
+  border-radius:20px;
 
   background:
     linear-gradient(
@@ -17803,33 +17829,23 @@ document.addEventListener(
     );
 
   box-shadow:
-    0 13px 30px
-    rgba(28,58,105,.18),
-    inset 0 1px 0
-    rgba(255,255,255,.95);
+    0 9px 22px rgba(28,58,105,.16),
+    inset 0 1px 0 rgba(255,255,255,.95);
 
-  backdrop-filter:
-    blur(17px)
-    saturate(125%);
-
-  -webkit-backdrop-filter:
-    blur(17px)
-    saturate(125%);
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
 
   overflow:hidden;
 }
 
 
 .kingdom-bottom-card h2{
-  margin:
-    0
-    0
-    10px;
+  margin:0 0 5px;
 
   color:#20376d;
 
-  font-size:20px;
-  line-height:1.2;
+  font-size:16px;
+  line-height:1.1;
   font-weight:900;
 
   text-align:center;
@@ -17844,56 +17860,47 @@ document.addEventListener(
   display:flex;
   flex-direction:column;
 
-  gap:5px;
+  gap:3px;
 
   flex:1;
+  min-height:0;
 }
 
 
 .kingdom-mission-item{
   width:100%;
-  min-height:50px;
+  min-height:36px;
+  height:36px;
 
-  padding:
-    5px
-    8px;
+  padding:3px 6px;
 
   display:grid;
 
   grid-template-columns:
-    38px
+    29px
     minmax(0,1fr)
-    61px;
+    48px;
 
   align-items:center;
 
-  gap:8px;
-
+  gap:5px;
   direction:rtl;
 
   border:
     1px solid
     rgba(220,229,241,.84);
 
-  border-radius:13px;
+  border-radius:10px;
 
-  background:
-    rgba(255,255,255,.72);
+  background:rgba(255,255,255,.72);
 
   color:#243c6c;
-
   text-align:right;
-
   cursor:pointer;
 
   box-shadow:
-    0 3px 9px
-    rgba(41,65,105,.06);
-
-  transition:
-    transform .18s ease,
-    background .18s ease,
-    box-shadow .18s ease;
+    0 2px 7px
+    rgba(41,65,105,.05);
 }
 
 
@@ -17911,13 +17918,13 @@ document.addEventListener(
 
 
 .kingdom-mission-icon{
-  width:36px;
-  height:36px;
+  width:27px;
+  height:27px;
 
   display:grid;
   place-items:center;
 
-  border-radius:11px;
+  border-radius:8px;
 
   background:
     linear-gradient(
@@ -17926,7 +17933,7 @@ document.addEventListener(
       #d9e8fb
     );
 
-  font-size:20px;
+  font-size:15px;
 }
 
 
@@ -17945,40 +17952,36 @@ document.addEventListener(
 
   color:#29406e;
 
-  font-size:13px;
-  line-height:1.25;
+  font-size:10px;
+  line-height:1.15;
   font-weight:900;
 
   white-space:nowrap;
   text-overflow:ellipsis;
 }
 
-
 .kingdom-mission-content small{
   color:#6180b2;
 
-  font-size:10px;
-  line-height:1.2;
+  font-size:8px;
+  line-height:1.1;
   font-weight:700;
 }
 
-
 .kingdom-mission-reward{
   display:flex;
-
   align-items:center;
   justify-content:flex-end;
 
-  gap:4px;
+  gap:2px;
 
   color:#243d72;
 
-  font-size:18px;
+  font-size:13px;
 }
 
-
 .kingdom-mission-reward b{
-  font-size:13px;
+  font-size:10px;
   font-weight:900;
 }
 
@@ -17995,16 +17998,16 @@ document.addEventListener(
   grid-template-columns:
     repeat(3,minmax(0,1fr));
 
-  gap:9px;
+  gap:6px;
+
+  min-height:0;
 }
 
 
 .kingdom-achievement{
   min-width:0;
 
-  padding:
-    10px
-    6px;
+  padding:5px 4px;
 
   display:flex;
   flex-direction:column;
@@ -18014,7 +18017,7 @@ document.addEventListener(
 
   text-align:center;
 
-  border-radius:17px;
+  border-radius:13px;
 
   background:
     linear-gradient(
@@ -18030,42 +18033,40 @@ document.addEventListener(
 
 
 .kingdom-achievement-icon{
-  height:72px;
+  height:42px;
 
   display:flex;
   align-items:center;
   justify-content:center;
 
-  font-size:55px;
-
+  font-size:34px;
   line-height:1;
 
   filter:
     drop-shadow(
-      0 7px 7px
-      rgba(40,55,90,.16)
+      0 5px 5px
+      rgba(40,55,90,.14)
     );
 }
 
 
 .kingdom-achievement strong{
-  margin-top:4px;
+  margin-top:2px;
 
   color:#294171;
 
-  font-size:14px;
-  line-height:1.2;
+  font-size:10px;
+  line-height:1.1;
   font-weight:900;
 }
 
-
 .kingdom-achievement small{
-  margin-top:4px;
+  margin-top:2px;
 
   color:#4f6690;
 
-  font-size:10px;
-  line-height:1.35;
+  font-size:8px;
+  line-height:1.2;
   font-weight:700;
 }
 
@@ -18078,45 +18079,44 @@ document.addEventListener(
   display:flex;
   flex-direction:column;
 
-  gap:5px;
+  gap:3px;
 
   flex:1;
+  min-height:0;
 }
 
 
 .kingdom-leaderboard-item{
-  min-height:48px;
+  min-height:35px;
+  height:35px;
 
-  padding:
-    4px
-    10px;
+  padding:2px 7px;
 
   display:grid;
 
   grid-template-columns:
-    30px
-    36px
+    23px
+    27px
     minmax(0,1fr)
     auto;
 
   align-items:center;
 
-  gap:7px;
-
+  gap:5px;
   direction:rtl;
 
   border:
     1px solid
     rgba(220,229,241,.84);
 
-  border-radius:13px;
+  border-radius:10px;
 
   background:
     rgba(255,255,255,.74);
 
   box-shadow:
-    0 3px 9px
-    rgba(41,65,105,.06);
+    0 2px 7px
+    rgba(41,65,105,.05);
 }
 
 
@@ -18128,24 +18128,15 @@ document.addEventListener(
 }
 
 
-.kingdom-rank.first{
-  color:#f2a300;
+.kingdom-rank{
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
 }
-
-
-.kingdom-rank.second{
-  color:#7a8190;
-}
-
-
-.kingdom-rank.third{
-  color:#e47723;
-}
-
 
 .kingdom-friend-avatar{
-  width:34px;
-  height:34px;
+  width:25px;
+  height:25px;
 
   display:grid;
   place-items:center;
@@ -18159,26 +18150,24 @@ document.addEventListener(
       #e4edf8
     );
 
-  font-size:23px;
+  font-size:17px;
 
   border:
-    2px solid
+    1px solid
     rgba(255,255,255,.9);
 }
-
 
 .kingdom-leaderboard-item strong{
   color:#2a4272;
 
-  font-size:13px;
+  font-size:10px;
   font-weight:900;
 }
-
 
 .kingdom-friend-score{
   color:#2b4271;
 
-  font-size:13px;
+  font-size:10px;
   font-weight:900;
 
   white-space:nowrap;
@@ -18191,19 +18180,13 @@ document.addEventListener(
 
 .kingdom-bottom-button{
   width:58%;
-  min-height:32px;
+  min-height:24px;
+  height:24px;
 
-  margin:
-    8px
-    auto
-    0;
-
-  padding:
-    0
-    13px;
+  margin:4px auto 0;
+  padding:0 9px;
 
   border:0;
-
   border-radius:999px;
 
   background:
@@ -18215,18 +18198,14 @@ document.addEventListener(
 
   color:#fff;
 
-  font-size:12px;
+  font-size:9px;
   font-weight:900;
 
   cursor:pointer;
 
   box-shadow:
-    0 6px 13px
-    rgba(100,63,220,.22);
-
-  transition:
-    transform .18s ease,
-    box-shadow .18s ease;
+    0 4px 9px
+    rgba(100,63,220,.20);
 }
 
 
@@ -18251,13 +18230,26 @@ document.addEventListener(
   }
 
 
-  .kingdom-bottom-card{
-    height:235px;
+.kingdom-bottom-bar{
+  height:165px;
+  flex-basis:165px;
+  gap:8px;
+}
 
-    padding:
-      11px
-      12px;
-  }
+.kingdom-bottom-card{
+  height:165px;
+  padding:7px 9px;
+}
+
+.kingdom-bottom-card h2{
+  font-size:14px;
+  margin-bottom:4px;
+}
+
+.kingdom-achievement-icon{
+  height:36px;
+  font-size:29px;
+}
 
 
   .kingdom-bottom-card h2{
@@ -18398,20 +18390,6 @@ document.addEventListener(
 }
 
 
-/* =====================================================
-   הדשבורד צריך לגלול רק אם אין מספיק גובה
-===================================================== */
-
-.dashboard-view{
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-
-  padding:
-    0
-    0
-    18px !important;
-}
-
 
 /* =====================================================
    התאמת הסרגל התחתון
@@ -18421,24 +18399,13 @@ document.addEventListener(
   margin-top:0 !important;
 }
 
-.kingdom-map-area{
-  width:100%;
-  height:620px;
-  min-height:620px;
-  background:transparent;
-  border:none;
-  box-shadow:none;
-}
+
 /* =====================================================
    מסכים מעט נמוכים
 ===================================================== */
 
 @media(max-height:900px){
 
-  .kingdom-map-area{
-    height:520px;
-    min-height:520px;
-  }
 
 
   .kingdom-bottom-card{
@@ -18459,6 +18426,162 @@ document.addEventListener(
     min-height:500px;
   }
 
+}
+/* =====================================================
+   KINGDOM COMPACT BOTTOM BAR
+===================================================== */
+
+.dashboard-view{
+  position:relative !important;
+}
+
+.kingdom-compact-bar{
+  position:absolute;
+
+  right:12px;
+  left:12px;
+  bottom:10px;
+
+  height:92px;
+
+  display:grid;
+  grid-template-columns:
+    .85fr
+    1fr
+    1.45fr
+    1fr
+    1fr;
+
+  gap:9px;
+
+  padding:8px;
+
+  direction:rtl;
+
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:22px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10,35,61,.94),
+      rgba(5,24,45,.96)
+    );
+
+  box-shadow:
+    0 12px 30px rgba(0,20,50,.35),
+    inset 0 1px 0 rgba(255,255,255,.13);
+
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+
+  z-index:30;
+}
+
+.kingdom-compact-item{
+  min-width:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:9px;
+
+  padding:7px 10px;
+
+  border:
+    1px solid
+    rgba(255,210,95,.32);
+
+  border-radius:16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(17,48,72,.95),
+      rgba(8,29,49,.96)
+    );
+
+  color:#fff;
+
+  cursor:pointer;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.08);
+}
+
+.kingdom-compact-item strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:15px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+.kingdom-compact-item small{
+  display:block;
+
+  margin-top:3px;
+
+  color:#c8d7e7;
+
+  font-size:10px;
+  line-height:1.2;
+  font-weight:700;
+}
+
+.kingdom-compact-icon{
+  flex:none;
+
+  font-size:34px;
+
+  filter:
+    drop-shadow(
+      0 5px 5px
+      rgba(0,0,0,.28)
+    );
+}
+
+.kingdom-compact-progress > span{
+  width:100%;
+}
+
+.kingdom-compact-track{
+  width:100%;
+  height:9px;
+
+  display:block;
+
+  margin-top:6px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#071927;
+}
+
+.kingdom-compact-track > span{
+  display:block;
+
+  width:32%;
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #65d834,
+      #a9ed38
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(122,232,51,.55);
 }
 </style>
 
