@@ -799,31 +799,20 @@ body{
 
 /* רקע מצויר על כל המסך */
 body{
-  position:relative;
-  background-image:
-    linear-gradient(
-      rgba(255,255,255,.20),
-      rgba(255,255,255,.20)
-    ),
-    url("/assets/backgrounds/kids-learning-bg.png") !important;
+    position:relative;
 
-  background-size:cover !important;
-  background-position:center center !important;
-  background-repeat:no-repeat !important;
-  background-attachment:fixed !important;
+    background-image:
+        url("/assets/backgrounds/world-map.png") !important;
+
+    background-size:calc(100vw - 540px) auto !important;
+    background-position:center center !important;
+    background-repeat:no-repeat !important;
+    background-attachment:fixed !important;
+    background-color:#07558a !important;
 }
 
-/* שכבת לבן עדינה מעל הרקע */
 body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-
-  background:rgba(255,255,255,.10);
-  backdrop-filter:blur(1.5px);
-  -webkit-backdrop-filter:blur(1.5px);
+  display:none !important;
 }
 
 /* כל האפליקציה מעל שכבת הרקע */
@@ -6361,7 +6350,7 @@ body::before{
   border-color:rgba(44,188,196,.32);
 }
     /* טאבלט ולפטופ צר - מסתירים את הסרגל הימני */
-@media (max-width:1450px){
+@media (max-width:1180px){
 
   .rightbar{
     display:none !important;
@@ -6369,7 +6358,7 @@ body::before{
 
   .app{
     grid-template-columns:
-      285px
+      235px
       minmax(0,1fr) !important;
   }
 
@@ -6481,6 +6470,369 @@ body::before{
   100%{
     opacity:1;
     transform:scale(1);
+  }
+
+}
+    /* =====================================================
+   LEARNING COACH THINKING INDICATOR
+   מופיע רק בזמן המתנה לתשובת Learning Coach
+===================================================== */
+
+.learning-coach-thinking-row{
+  width:100%;
+
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+
+  gap:14px;
+
+  margin:
+    6px
+    0
+    18px;
+
+  direction:rtl;
+
+  opacity:0;
+
+  transform:
+    translateY(8px);
+
+  transition:
+    opacity .25s ease,
+    transform .25s ease;
+}
+
+
+.learning-coach-thinking-row.visible{
+  opacity:1;
+
+  transform:
+    translateY(0);
+}
+
+
+/* העיגול שמחליף זמנית את אייקון המורה */
+
+.learning-coach-thinking-orb{
+  position:relative;
+
+  width:58px;
+  height:58px;
+
+  flex:
+    0
+    0
+    58px;
+
+  overflow:hidden;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 34% 28%,
+      rgba(255,255,255,.95),
+      rgba(185,166,255,.88) 32%,
+      rgba(110,72,247,.96) 72%
+    );
+
+  border:
+    3px solid
+    rgba(255,255,255,.92);
+
+  box-shadow:
+    0 8px 22px
+    rgba(100,70,220,.25),
+    inset 0 0 16px
+    rgba(255,255,255,.35);
+
+  animation:
+    learningCoachOrbPulse
+    1.8s ease-in-out
+    infinite;
+}
+
+
+/* זוהר סביב העיגול */
+
+.learning-coach-thinking-orb::before{
+  content:"";
+
+  position:absolute;
+
+  inset:-8px;
+
+  border-radius:50%;
+
+  border:
+    2px solid
+    rgba(132,94,255,.22);
+
+  animation:
+    learningCoachGlow
+    1.8s ease-out
+    infinite;
+}
+
+
+/* נקודת אור בתוך העיגול */
+
+.learning-coach-thinking-orb::after{
+  content:"";
+
+  position:absolute;
+
+  top:10px;
+  right:12px;
+
+  width:12px;
+  height:12px;
+
+  border-radius:50%;
+
+  background:
+    rgba(255,255,255,.78);
+
+  filter:
+    blur(1px);
+}
+
+
+/* עננים/בועות בתוך העיגול */
+
+.learning-coach-cloud{
+  position:absolute;
+
+  display:block;
+
+  border-radius:999px;
+
+  background:
+    rgba(255,255,255,.78);
+
+  filter:
+    blur(.2px);
+
+  box-shadow:
+    0 2px 6px
+    rgba(70,50,160,.12);
+}
+
+
+.learning-coach-cloud::before,
+.learning-coach-cloud::after{
+  content:"";
+
+  position:absolute;
+
+  bottom:0;
+
+  border-radius:50%;
+
+  background:inherit;
+}
+
+
+.learning-coach-cloud-one{
+  width:29px;
+  height:10px;
+
+  top:18px;
+  left:8px;
+
+  animation:
+    learningCoachCloudOne
+    2.4s ease-in-out
+    infinite;
+}
+
+
+.learning-coach-cloud-one::before{
+  width:15px;
+  height:15px;
+
+  left:4px;
+}
+
+
+.learning-coach-cloud-one::after{
+  width:12px;
+  height:12px;
+
+  right:3px;
+}
+
+
+.learning-coach-cloud-two{
+  width:25px;
+  height:9px;
+
+  top:35px;
+  right:7px;
+
+  opacity:.72;
+
+  animation:
+    learningCoachCloudTwo
+    2.1s ease-in-out
+    infinite;
+}
+
+
+.learning-coach-cloud-two::before{
+  width:13px;
+  height:13px;
+
+  left:3px;
+}
+
+
+.learning-coach-cloud-two::after{
+  width:11px;
+  height:11px;
+
+  right:2px;
+}
+
+
+/* הטקסט ליד האנימציה */
+
+.learning-coach-thinking-content{
+  display:flex;
+  flex-direction:column;
+
+  align-items:flex-start;
+
+  gap:3px;
+
+  direction:rtl;
+}
+
+
+.learning-coach-thinking-title{
+  font-family:
+    "Gveret Levin",
+    cursive !important;
+
+  font-size:25px;
+  line-height:1.3;
+
+  color:#5540c8;
+
+  white-space:nowrap;
+}
+
+
+.learning-coach-thinking-dots{
+  display:inline-block;
+
+  min-width:30px;
+
+  letter-spacing:2px;
+}
+
+
+.learning-coach-thinking-subtitle{
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:12px;
+  font-weight:700;
+
+  color:#8290ab;
+}
+
+
+/* אנימציות */
+
+@keyframes learningCoachOrbPulse{
+
+  0%,
+  100%{
+    transform:scale(1);
+  }
+
+  50%{
+    transform:scale(1.06);
+  }
+
+}
+
+
+@keyframes learningCoachGlow{
+
+  0%{
+    opacity:.55;
+    transform:scale(.86);
+  }
+
+  100%{
+    opacity:0;
+    transform:scale(1.28);
+  }
+
+}
+
+
+@keyframes learningCoachCloudOne{
+
+  0%,
+  100%{
+    transform:
+      translateX(0)
+      translateY(0);
+  }
+
+  50%{
+    transform:
+      translateX(8px)
+      translateY(-2px);
+  }
+
+}
+
+
+@keyframes learningCoachCloudTwo{
+
+  0%,
+  100%{
+    transform:
+      translateX(0)
+      translateY(0);
+  }
+
+  50%{
+    transform:
+      translateX(-7px)
+      translateY(2px);
+  }
+
+}
+
+
+/* מובייל */
+
+@media(max-width:760px){
+
+  .learning-coach-thinking-orb{
+    width:50px;
+    height:50px;
+
+    flex-basis:50px;
+  }
+
+
+  .learning-coach-thinking-title{
+    font-size:21px;
+  }
+
+
+  .learning-coach-thinking-subtitle{
+    font-size:11px;
   }
 
 }
@@ -6788,7 +7140,15 @@ body::before{
 
         <!-- אזור מרכזי -->
         <section class="dash-content">
+<!-- =====================================================
+     KINGDOM MAP AREA
+===================================================== -->
 
+<section class="kingdom-map-area">
+
+  <!-- בהמשך נכניס כאן כפתורים וכותרות מעל הממלכות -->
+
+</section>
 <!-- 4 כרטיסים ראשיים -->
 <div class="dash-action-cards">
 
@@ -7073,6 +7433,278 @@ body::before{
 
     </div>
 
+      <!-- =====================================================
+     KINGDOM HOME BOTTOM BAR
+     ===================================================== -->
+
+<section class="kingdom-bottom-bar">
+
+  <!-- ==================================================
+       המשימות שלי
+       ================================================== -->
+
+  <article class="kingdom-bottom-card kingdom-missions-card">
+
+    <h2>המשימות שלי</h2>
+
+    <div class="kingdom-mission-list">
+
+      <button
+        type="button"
+        class="kingdom-mission-item"
+        onclick="showLearning('practice')"
+      >
+
+        <span class="kingdom-mission-icon">
+          ✏️
+        </span>
+
+        <span class="kingdom-mission-content">
+
+          <strong>
+            פתרו 10 תרגילים במתמטיקה
+          </strong>
+
+          <small>
+            ממלכת השלג
+          </small>
+
+        </span>
+
+        <span class="kingdom-mission-reward">
+          <b>+20</b>
+          ⭐
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="kingdom-mission-item"
+        onclick="showLearning('lesson')"
+      >
+
+        <span class="kingdom-mission-icon">
+          🧪
+        </span>
+
+        <span class="kingdom-mission-content">
+
+          <strong>
+            צפו בשיעור: שרשרת המזון
+          </strong>
+
+          <small>
+            ממלכת הג׳ונגל
+          </small>
+
+        </span>
+
+        <span class="kingdom-mission-reward">
+          <b>+15</b>
+          ⭐
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="kingdom-mission-item"
+        onclick="showLearning('practice')"
+      >
+
+        <span class="kingdom-mission-icon">
+          💬
+        </span>
+
+        <span class="kingdom-mission-content">
+
+          <strong>
+            תרגלו 15 מילים באנגלית
+          </strong>
+
+          <small>
+            ממלכת קנדילנד
+          </small>
+
+        </span>
+
+        <span class="kingdom-mission-reward">
+          <b>+10</b>
+          ⭐
+        </span>
+
+      </button>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="kingdom-bottom-button"
+      onclick="showLearning('practice')"
+    >
+      הצגת כל המשימות
+    </button>
+
+  </article>
+
+
+  <!-- ==================================================
+       הישגים אחרונים
+       ================================================== -->
+
+  <article class="kingdom-bottom-card kingdom-achievements-card">
+
+    <h2>הישגים אחרונים</h2>
+
+    <div class="kingdom-achievements-list">
+
+      <div class="kingdom-achievement">
+
+        <div class="kingdom-achievement-icon">
+          🛡️
+        </div>
+
+        <strong>
+          חוקר ג׳ונגל
+        </strong>
+
+        <small>
+          סיימתם אזור אחד<br>
+          בממלכת הג׳ונגל
+        </small>
+
+      </div>
+
+
+      <div class="kingdom-achievement">
+
+        <div class="kingdom-achievement-icon">
+          🥇
+        </div>
+
+        <strong>
+          שותף לדרך
+        </strong>
+
+        <small>
+          השלמתם 5 משימות<br>
+          בכל ממלכה
+        </small>
+
+      </div>
+
+
+      <div class="kingdom-achievement">
+
+        <div class="kingdom-achievement-icon">
+          🎖️
+        </div>
+
+        <strong>
+          תלמיד מסור
+        </strong>
+
+        <small>
+          10 ימים<br>
+          ברצף!
+        </small>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- ==================================================
+       חברים מובילים
+       ================================================== -->
+
+  <article class="kingdom-bottom-card kingdom-leaderboard-card">
+
+    <h2>חברים מובילים</h2>
+
+    <div class="kingdom-leaderboard-list">
+
+      <div class="kingdom-leaderboard-item">
+
+        <span class="kingdom-rank first">
+          1
+        </span>
+
+        <span class="kingdom-friend-avatar">
+          👦🏻
+        </span>
+
+        <strong>
+          אורי
+        </strong>
+
+        <span class="kingdom-friend-score">
+          ⭐ 250
+        </span>
+
+      </div>
+
+
+      <div class="kingdom-leaderboard-item">
+
+        <span class="kingdom-rank second">
+          2
+        </span>
+
+        <span class="kingdom-friend-avatar">
+          👧🏻
+        </span>
+
+        <strong>
+          נועה
+        </strong>
+
+        <span class="kingdom-friend-score">
+          ⭐ 220
+        </span>
+
+      </div>
+
+
+      <div class="kingdom-leaderboard-item">
+
+        <span class="kingdom-rank third">
+          3
+        </span>
+
+        <span class="kingdom-friend-avatar">
+          👦🏽
+        </span>
+
+        <strong>
+          דניאל
+        </strong>
+
+        <span class="kingdom-friend-score">
+          ⭐ 180
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="kingdom-bottom-button"
+    >
+      לוח תוצאות מלא
+    </button>
+
+  </article>
+
+</section>
   </section>
 
 <!-- =====================================================
@@ -7494,108 +8126,212 @@ body::before{
      RIGHT SIDEBAR
 ===================================================== -->
 
-<aside class="rightbar">
+<aside class="rightbar home-rightbar">
 
-  <!-- כרטיס הילד העליון -->
-  <div
-    class="rightbar-kid"
-    onclick="document.getElementById('openParentModal')?.click()"
-  >
-    <img
-      id="rightbarAvatar"
-      src="/assets/avatars/cat_blue.png"
-      alt="פרופיל הילד"
-    >
+  <!-- ==================================================
+       ברכה לילד
+       ================================================== -->
+  <section class="home-right-welcome">
 
-    <div>
-      <strong id="rightbarName">
-        הילד
-      </strong>
+    <div class="home-right-welcome-text">
 
+      <h2>
+        שלום
+        <span id="rightbarName">ילד</span>!
+      </h2>
+
+      <p>
+        מוכנים להרפתקה חדשה?<br>
+        בחרו ממלכה והתחילו ללמוד<br>
+        ולהציל את הממלכה!
+      </p>
 
     </div>
-  </div>
 
-
-  <!-- כותרת -->
-  <div class="learning-sidebar-title">
-    מה בא לך לעשות?
-  </div>
-
-
-  <!-- תפריט פעילויות לימוד -->
-  <nav class="learning-sidebar-menu">
-
-    <button
-      class="learning-menu-item homework active"
-      data-mode="homework"
-      onclick="showLearning('homework', this)"
+    <img
+      class="home-right-student"
+      src="/assets/characters/student-boy-large.png"
+      alt=""
     >
-      <span class="learning-menu-icon">📷</span>
 
-      <span class="learning-menu-text">
-        <strong>שיעורי בית</strong>
-        <small>צלם תרגיל וקבל עזרה</small>
-      </span>
-    </button>
-
-
-    <button
-      class="learning-menu-item exam"
-      data-mode="exam"
-      onclick="showLearning('exam', this)"
+    <!-- נשמר לצורך הלוגיקה הקיימת -->
+    <img
+      id="rightbarAvatar"
+      class="home-right-hidden-avatar"
+      src="/assets/avatars/cat_blue.png"
+      alt=""
     >
-      <span class="learning-menu-icon">📗</span>
 
-      <span class="learning-menu-text">
-        <strong>הכנה למבחן</strong>
-        <small>בוא נתכונן יחד</small>
-      </span>
-    </button>
+  </section>
 
 
+  <!-- ==================================================
+       ארבע פעולות מרכזיות
+       ================================================== -->
+  <section class="home-right-actions">
+
+    <!-- משחקי למידה -->
     <button
-      class="learning-menu-item practice"
-      data-mode="practice"
-      onclick="showLearning('practice', this)"
-    >
-      <span class="learning-menu-icon">✏️</span>
-
-      <span class="learning-menu-text">
-        <strong>תרגול</strong>
-        <small>בחר נושא לתרגול</small>
-      </span>
-    </button>
-
-
-    <button
-      class="learning-menu-item reading"
-      data-mode="reading"
-      onclick="showLearning('reading', this)"
-    >
-      <span class="learning-menu-icon">🎙️</span>
-
-      <span class="learning-menu-text">
-        <strong>קריאה</strong>
-        <small>קרא בקול ונתרגל</small>
-      </span>
-    </button>
-
-
-    <button
-      class="learning-menu-item games"
-      data-mode="games"
+      type="button"
+      class="home-right-action home-right-games"
       onclick="showLearning('games', this)"
     >
-      <span class="learning-menu-icon">🎮</span>
+      <img
+        src="/assets/cards/learning-game.webp"
+        alt=""
+      >
 
-      <span class="learning-menu-text">
-        <strong>משחקי לימוד</strong>
-        <small>ללמוד דרך משחק</small>
-      </span>
+      <strong>משחקי למידה</strong>
     </button>
 
-  </nav>
+
+    <!-- תרגול -->
+    <button
+      type="button"
+      class="home-right-action home-right-practice"
+      onclick="showLearning('practice', this)"
+    >
+      <img
+        src="/assets/cards/practice-pencil.webp"
+        alt=""
+      >
+
+      <strong>תרגול</strong>
+    </button>
+
+
+    <!-- שיעורי בית -->
+    <button
+      type="button"
+      class="home-right-action home-right-homework"
+      onclick="startHomeworkCamera()"
+    >
+      <img
+        src="/assets/cards/homework-camera.webp"
+        alt=""
+      >
+
+      <strong>שיעורי בית</strong>
+    </button>
+
+
+    <!-- למד אותי משהו -->
+    <button
+      type="button"
+      class="home-right-action home-right-learn"
+      onclick="startLearnChat()"
+    >
+      <img
+        src="/assets/robots/askie-robot.png"
+        alt=""
+      >
+
+      <strong>למד אותי משהו</strong>
+    </button>
+
+  </section>
+
+
+  <!-- ==================================================
+       נקודות / הישגים / רצף
+       ================================================== -->
+  <section class="home-right-stats">
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">⭐</span>
+      <strong>125</strong>
+      <small>סה״כ נקודות</small>
+    </div>
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">🏆</span>
+      <strong>7</strong>
+      <small>הושגו</small>
+    </div>
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">🔥</span>
+      <strong>12</strong>
+      <small>ימים ברצף</small>
+    </div>
+
+  </section>
+
+
+  <!-- ==================================================
+       התקדמות כללית
+       ================================================== -->
+  <section class="home-right-progress">
+
+    <h3>התקדמות כללית</h3>
+
+    <div class="home-right-progress-content">
+
+      <div class="home-right-chart">
+
+        <svg
+          viewBox="0 0 300 95"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+
+          <polyline
+            points="
+              8,76
+              48,66
+              88,56
+              128,45
+              168,61
+              208,50
+              248,25
+              292,27
+            "
+            fill="none"
+            stroke="#3187f5"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <g
+            fill="#ffffff"
+            stroke="#3187f5"
+            stroke-width="3"
+          >
+            <circle cx="8" cy="76" r="4"/>
+            <circle cx="48" cy="66" r="4"/>
+            <circle cx="88" cy="56" r="4"/>
+            <circle cx="128" cy="45" r="4"/>
+            <circle cx="168" cy="61" r="4"/>
+            <circle cx="208" cy="50" r="4"/>
+            <circle cx="248" cy="25" r="4"/>
+            <circle cx="292" cy="27" r="4"/>
+          </g>
+
+        </svg>
+
+        <div class="home-right-chart-days">
+          <span>א׳</span>
+          <span>ב׳</span>
+          <span>ג׳</span>
+          <span>ד׳</span>
+          <span>ה׳</span>
+          <span>ו׳</span>
+          <span>ש׳</span>
+        </div>
+
+      </div>
+
+
+      <div class="home-right-donut">
+        <div class="home-right-donut-inner">
+          35%
+        </div>
+      </div>
+
+    </div>
+
+  </section>
 
 </aside>
 </div>
@@ -10642,7 +11378,7 @@ noResponseCount = 0;
 
   }
   catch(error){
-
+hideLearningCoachThinking();
     console.error(
 
       "START LESSON NETWORK ERROR:",
@@ -12414,7 +13150,431 @@ async function sendLessonNoResponse(){
   }
 
 }
+/* =====================================================
+   LEARNING COACH THINKING INDICATOR
 
+   מופעל רק כאשר הילד שולח תשובה
+   במהלך שיעור פעיל וממתינים ל-Learning Coach.
+===================================================== */
+
+let learningCoachThinkingElement =
+  null;
+
+
+let learningCoachThinkingDotsTimer =
+  null;
+
+
+let learningCoachThinkingSoundTimer =
+  null;
+
+
+let learningCoachThinkingAudioContext =
+  null;
+
+
+/* =====================================================
+   יצירת צליל חשיבה עדין באמצעות Web Audio
+
+   אין צורך בקובץ MP3 חיצוני.
+===================================================== */
+
+function playLearningCoachThinkingSound(){
+
+  try{
+
+    const AudioContextClass =
+      window.AudioContext
+      ||
+      window.webkitAudioContext;
+
+
+    if(
+      !AudioContextClass
+    ){
+      return;
+    }
+
+
+    if(
+      !learningCoachThinkingAudioContext
+    ){
+
+      learningCoachThinkingAudioContext =
+        new AudioContextClass();
+
+    }
+
+
+    const audioContext =
+      learningCoachThinkingAudioContext;
+
+
+    if(
+      audioContext.state ===
+        "suspended"
+    ){
+
+      audioContext.resume();
+
+    }
+
+
+    const oscillator =
+      audioContext.createOscillator();
+
+
+    const gain =
+      audioContext.createGain();
+
+
+    oscillator.type =
+      "sine";
+
+
+    oscillator.frequency.setValueAtTime(
+      520,
+      audioContext.currentTime
+    );
+
+
+    oscillator.frequency.exponentialRampToValueAtTime(
+      660,
+      audioContext.currentTime + .16
+    );
+
+
+    /*
+      עוצמה חלשה מאוד כדי שהצליל
+      לא יהיה מציק לילד.
+    */
+
+    gain.gain.setValueAtTime(
+      0.0001,
+      audioContext.currentTime
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.035,
+      audioContext.currentTime + .025
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      audioContext.currentTime + .32
+    );
+
+
+    oscillator.connect(
+      gain
+    );
+
+
+    gain.connect(
+      audioContext.destination
+    );
+
+
+    oscillator.start(
+      audioContext.currentTime
+    );
+
+
+    oscillator.stop(
+      audioContext.currentTime + .34
+    );
+
+  }
+  catch(error){
+
+    /*
+      כשל בצליל לא אמור להפריע
+      לשליחת התשובה או לשיעור.
+    */
+
+    console.warn(
+      "LEARNING COACH THINKING SOUND ERROR:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   הצגת מצב החשיבה
+===================================================== */
+
+function showLearningCoachThinking(){
+
+  /*
+    מונעים יצירת אנימציה כפולה
+    במקרה של לחיצה נוספת.
+  */
+
+  hideLearningCoachThinking(
+    true
+  );
+
+
+  if(
+    !messagesEl
+  ){
+    return;
+  }
+
+
+  const row =
+    document.createElement(
+      "div"
+    );
+
+
+  row.className =
+    "learning-coach-thinking-row";
+
+
+  row.setAttribute(
+    "role",
+    "status"
+  );
+
+
+  row.setAttribute(
+    "aria-live",
+    "polite"
+  );
+
+
+  row.innerHTML = `
+
+    <div
+      class="learning-coach-thinking-orb"
+      aria-hidden="true"
+    >
+
+      <span
+        class="
+          learning-coach-cloud
+          learning-coach-cloud-one
+        "
+      ></span>
+
+      <span
+        class="
+          learning-coach-cloud
+          learning-coach-cloud-two
+        "
+      ></span>
+
+    </div>
+
+
+    <div
+      class="learning-coach-thinking-content"
+    >
+
+      <div
+        class="learning-coach-thinking-title"
+      >
+        חושבת
+        <span
+          class="learning-coach-thinking-dots"
+        >.</span>
+      </div>
+
+      <div
+        class="learning-coach-thinking-subtitle"
+      >
+        בודקת את התשובה ומכינה את ההמשך
+      </div>
+
+    </div>
+
+  `;
+
+
+  messagesEl.appendChild(
+    row
+  );
+
+
+  learningCoachThinkingElement =
+    row;
+
+
+  /*
+    מאפשר לדפדפן ליצור את האלמנט,
+    ורק אחר כך מפעיל Fade In.
+  */
+
+  requestAnimationFrame(
+    () => {
+
+      row.classList.add(
+        "visible"
+      );
+
+    }
+  );
+
+
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+
+
+  /* =============================================
+     הנפשת הנקודות
+  ============================================= */
+
+  const dots =
+    row.querySelector(
+      ".learning-coach-thinking-dots"
+    );
+
+
+  let dotsCount =
+    1;
+
+
+  learningCoachThinkingDotsTimer =
+    window.setInterval(
+      () => {
+
+        dotsCount =
+          dotsCount >= 3
+            ? 1
+            : dotsCount + 1;
+
+
+        if(
+          dots
+        ){
+
+          dots.textContent =
+            ".".repeat(
+              dotsCount
+            );
+
+        }
+
+      },
+      450
+    );
+
+
+  /* =============================================
+     צליל ראשון ולאחר מכן צליל כל 2.8 שניות
+  ============================================= */
+
+  playLearningCoachThinkingSound();
+
+
+  learningCoachThinkingSoundTimer =
+    window.setInterval(
+      () => {
+
+        playLearningCoachThinkingSound();
+
+      },
+      2800
+    );
+
+
+  console.log(
+    "🧠 LEARNING COACH THINKING SHOWN"
+  );
+
+}
+
+
+/* =====================================================
+   הסתרת מצב החשיבה
+===================================================== */
+
+function hideLearningCoachThinking(
+  removeImmediately = false
+){
+
+  if(
+    learningCoachThinkingDotsTimer
+  ){
+
+    window.clearInterval(
+      learningCoachThinkingDotsTimer
+    );
+
+
+    learningCoachThinkingDotsTimer =
+      null;
+
+  }
+
+
+  if(
+    learningCoachThinkingSoundTimer
+  ){
+
+    window.clearInterval(
+      learningCoachThinkingSoundTimer
+    );
+
+
+    learningCoachThinkingSoundTimer =
+      null;
+
+  }
+
+
+  const row =
+    learningCoachThinkingElement;
+
+
+  learningCoachThinkingElement =
+    null;
+
+
+  if(
+    !row
+  ){
+    return;
+  }
+
+
+  if(
+    removeImmediately
+  ){
+
+    row.remove();
+
+    return;
+
+  }
+
+
+  row.classList.remove(
+    "visible"
+  );
+
+
+  window.setTimeout(
+    () => {
+
+      row.remove();
+
+    },
+    260
+  );
+
+
+  console.log(
+    "✅ LEARNING COACH THINKING HIDDEN"
+  );
+
+}
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
 
@@ -12455,17 +13615,72 @@ console.log(
   }
 );
 
-
 inputEl.value = "";
-addMessage("user", text);
 
-  const { data } = await sb.auth.getSession();
+addMessage(
+  "user",
+  text
+);
+
+
+/*
+  מצב החשיבה מופעל רק כאשר:
+
+  1. אנחנו בתוך שיעור פעיל.
+  2. קיים lesson ID.
+  3. קיים unit lesson ID.
+
+  כלומר זו תשובה שנשלחת ל-Learning Coach,
+  ולא הודעה בצ'אט החופשי.
+*/
+
+const isLearningCoachRequest =
+  Boolean(
+
+    currentLearningMode ===
+      "lesson"
+
+    &&
+
+    currentLessonId
+
+    &&
+
+    window.SELECTED_UNIT_LESSON
+      ?.unit_lesson_id
+
+  );
+
+
+if(
+  isLearningCoachRequest
+){
+
+  showLearningCoachThinking();
+
+}
+
+
+const { data } =
+  await sb.auth.getSession();
   const session = data.session;
 
-  if (!session) {
-    addMessage("assistant", "Please sign in again 🙂");
-    return;
-  }
+if(
+  !session
+){
+
+  hideLearningCoachThinking();
+
+
+  addMessage(
+    "assistant",
+    "יש להתחבר מחדש."
+  );
+
+
+  return;
+
+}
 
   try {
 let endpoint;
@@ -12595,10 +13810,22 @@ console.log(
   }
 );
 
-if (!res.ok) {
+if(
+  !res.ok
+){
+
+  /*
+    אין תשובת Coach תקינה,
+    ולכן חייבים להסיר את מצב החשיבה.
+  */
+
+  hideLearningCoachThinking();
+
 
   // 🔒 חסימת קווטה
-  if (res.status === 403) {
+  if(
+    res.status === 403
+  ){
     const err = await res.json();
 
     if (err?.detail?.error === "quota_exceeded") {
@@ -12616,7 +13843,20 @@ if (!res.ok) {
 
 const data =
   await res.json();
+/*
+  תשובת ה-Learning Coach כבר התקבלה.
 
+  מכאן ההמתנה היא ל-Renderer ול-TTS,
+  ולכן מצב "חושבת" צריך להיעלם עכשיו.
+*/
+
+if(
+  isLearningCoachRequest
+){
+
+  hideLearningCoachThinking();
+
+}
 
 console.log(
   "✅ LEARNING COACH DATA READY:",
@@ -15891,7 +17131,1335 @@ document.addEventListener(
   }
 
 }
+/* =====================================================
+   HOME RIGHT SIDEBAR - KINGDOM DASHBOARD
+   ===================================================== */
 
+.home-rightbar{
+  grid-column:3 !important;
+  grid-row:2 !important;
+
+  width:100% !important;
+  height:100% !important;
+  max-height:none !important;
+
+  align-self:stretch !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  gap:12px !important;
+
+  padding:0 !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  background:transparent !important;
+
+  box-shadow:none !important;
+
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  direction:rtl;
+}
+
+
+/* =====================================================
+   משטח זכוכית משותף
+   ===================================================== */
+
+.home-right-welcome,
+.home-right-actions,
+.home-right-stats,
+.home-right-progress{
+  flex-shrink:0;
+
+  border:
+    1px solid
+    rgba(255,255,255,.88);
+
+  background:
+    rgba(255,255,255,.78);
+
+  backdrop-filter:
+    blur(18px)
+    saturate(125%);
+
+  -webkit-backdrop-filter:
+    blur(18px)
+    saturate(125%);
+
+  box-shadow:
+    0 12px 30px
+    rgba(35,64,115,.15),
+    inset 0 1px 0
+    rgba(255,255,255,.90);
+}
+
+
+/* =====================================================
+   כרטיס הברכה
+   ===================================================== */
+
+.home-right-welcome{
+  position:relative;
+
+  min-height:190px;
+
+  padding:
+    24px
+    145px
+    22px
+    20px;
+
+  display:flex;
+  align-items:center;
+
+  overflow:hidden;
+
+  border-radius:28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(237,250,255,.89),
+      rgba(255,250,230,.84)
+    );
+}
+
+
+.home-right-welcome-text{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  text-align:center;
+}
+
+
+.home-right-welcome h2{
+  margin:
+    0
+    0
+    12px;
+
+  color:#20366e;
+
+  font-size:27px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+
+.home-right-welcome p{
+  margin:0;
+
+  color:#354a7d;
+
+  font-size:16px;
+  line-height:1.65;
+  font-weight:800;
+}
+
+
+.home-right-student{
+  position:absolute;
+
+  right:-12px;
+  bottom:-30px;
+
+  width:165px;
+  height:205px;
+
+  object-fit:contain;
+  object-position:center bottom;
+
+  z-index:1;
+
+  pointer-events:none;
+
+  filter:
+    drop-shadow(
+      0 10px 14px
+      rgba(35,55,95,.18)
+    );
+}
+
+
+.home-right-hidden-avatar{
+  position:absolute;
+
+  width:1px;
+  height:1px;
+
+  opacity:0;
+  pointer-events:none;
+}
+
+
+/* =====================================================
+   ארבעת כרטיסי הפעולה
+   ===================================================== */
+
+.home-right-actions{
+  padding:12px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+
+  gap:11px;
+
+  border-radius:28px;
+}
+
+
+.home-right-action{
+  position:relative;
+
+  min-width:0;
+  min-height:145px;
+
+  padding:
+    14px
+    8px
+    13px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:8px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.62);
+
+  border-radius:21px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 8px 18px
+    rgba(47,63,115,.15),
+    inset 0 1px 0
+    rgba(255,255,255,.30);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    filter .2s ease;
+}
+
+
+.home-right-action:hover{
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 12px 24px
+    rgba(47,63,115,.22),
+    inset 0 1px 0
+    rgba(255,255,255,.38);
+
+  filter:
+    saturate(1.08);
+}
+
+
+.home-right-action img{
+  width:72px;
+  height:67px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 7px 8px
+      rgba(30,40,85,.20)
+    );
+}
+
+
+.home-right-action strong{
+  display:block;
+
+  font-size:17px;
+  line-height:1.2;
+  font-weight:900;
+
+  text-shadow:
+    0 2px 3px
+    rgba(25,30,75,.20);
+}
+
+
+/* משחקים */
+
+.home-right-games{
+  background:
+    linear-gradient(
+      145deg,
+      #b978f1,
+      #8450df
+    );
+}
+
+
+/* תרגול */
+
+.home-right-practice{
+  background:
+    linear-gradient(
+      145deg,
+      #ffc46b,
+      #eb8739
+    );
+}
+
+
+/* שיעורי בית */
+
+.home-right-homework{
+  background:
+    linear-gradient(
+      145deg,
+      #68c5ff,
+      #337ce8
+    );
+}
+
+
+/* למד אותי משהו */
+
+.home-right-learn{
+  background:
+    linear-gradient(
+      145deg,
+      #f178bd,
+      #df3f9a
+    );
+}
+
+
+/* =====================================================
+   סטטיסטיקות
+   ===================================================== */
+
+.home-right-stats{
+  min-height:145px;
+
+  padding:9px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
+
+  border-radius:28px;
+}
+
+
+.home-right-stat{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:
+    9px
+    4px;
+
+  text-align:center;
+
+  border-left:
+    1px solid
+    rgba(94,112,155,.12);
+}
+
+
+.home-right-stat:first-child{
+  border-left:0;
+}
+
+
+.home-right-stat-icon{
+  font-size:38px;
+  line-height:1;
+}
+
+
+.home-right-stat strong{
+  margin-top:5px;
+
+  color:#20366e;
+
+  font-size:25px;
+  line-height:1;
+  font-weight:900;
+}
+
+
+.home-right-stat small{
+  margin-top:5px;
+
+  color:#7180a5;
+
+  font-size:11px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+
+/* =====================================================
+   התקדמות כללית
+   ===================================================== */
+
+.home-right-progress{
+  min-height:180px;
+
+  padding:
+    14px
+    17px
+    15px;
+
+  border-radius:28px;
+}
+
+
+.home-right-progress h3{
+  margin:
+    0
+    0
+    8px;
+
+  color:#20366e;
+
+  font-size:20px;
+  font-weight:900;
+  text-align:right;
+}
+
+
+.home-right-progress-content{
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    94px;
+
+  gap:10px;
+
+  align-items:center;
+}
+
+
+.home-right-chart{
+  min-width:0;
+}
+
+
+.home-right-chart svg{
+  display:block;
+
+  width:100%;
+  height:85px;
+}
+
+
+.home-right-chart-days{
+  display:flex;
+
+  justify-content:space-between;
+
+  padding:
+    0
+    5px;
+
+  color:#7180a5;
+
+  font-size:10px;
+  font-weight:800;
+}
+
+
+.home-right-donut{
+  position:relative;
+
+  width:88px;
+  height:88px;
+
+  margin:auto;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #3689f5
+      0
+      35%,
+      #dce7f7
+      35%
+      100%
+    );
+}
+
+
+.home-right-donut::before{
+  content:"";
+
+  position:absolute;
+
+  width:62px;
+  height:62px;
+
+  border-radius:50%;
+
+  background:
+    rgba(255,255,255,.94);
+}
+
+
+.home-right-donut-inner{
+  position:relative;
+  z-index:1;
+
+  color:#20366e;
+
+  font-size:21px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   גלילה נקייה
+   ===================================================== */
+
+.home-rightbar::-webkit-scrollbar{
+  width:5px;
+}
+
+
+.home-rightbar::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+.home-rightbar::-webkit-scrollbar-thumb{
+  border-radius:999px;
+
+  background:
+    rgba(71,102,160,.22);
+}
+
+
+/* =====================================================
+   מסך בגובה נמוך
+   ===================================================== */
+
+@media(max-height:900px){
+
+  .home-right-welcome{
+    min-height:155px;
+
+    padding:
+      18px
+      120px
+      18px
+      14px;
+  }
+
+
+  .home-right-welcome h2{
+    font-size:23px;
+    margin-bottom:7px;
+  }
+
+
+  .home-right-welcome p{
+    font-size:13px;
+    line-height:1.5;
+  }
+
+
+  .home-right-student{
+    width:140px;
+    height:170px;
+  }
+
+
+  .home-right-action{
+    min-height:118px;
+  }
+
+
+  .home-right-action img{
+    width:58px;
+    height:53px;
+  }
+
+
+  .home-right-action strong{
+    font-size:15px;
+  }
+
+
+  .home-right-stats{
+    min-height:115px;
+  }
+
+
+  .home-right-stat-icon{
+    font-size:30px;
+  }
+
+
+  .home-right-stat strong{
+    font-size:21px;
+  }
+
+
+  .home-right-progress{
+    min-height:150px;
+  }
+
+}
+    /* =====================================================
+   KINGDOM DASHBOARD BOTTOM BAR
+   ===================================================== */
+
+.kingdom-bottom-bar{
+  width:100%;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.05fr
+    1fr;
+
+  gap:14px;
+
+  direction:rtl;
+
+  margin-top:14px;
+
+  padding:
+    0
+    0
+    4px;
+
+  position:relative;
+
+  z-index:10;
+}
+
+
+/* =====================================================
+   כרטיס בסיס
+   ===================================================== */
+
+.kingdom-bottom-card{
+  min-width:0;
+  height:255px;
+
+  padding:
+    13px
+    16px
+    12px;
+
+  display:flex;
+  flex-direction:column;
+
+  border:
+    1px solid
+    rgba(255,255,255,.92);
+
+  border-radius:25px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.93),
+      rgba(242,248,255,.88)
+    );
+
+  box-shadow:
+    0 13px 30px
+    rgba(28,58,105,.18),
+    inset 0 1px 0
+    rgba(255,255,255,.95);
+
+  backdrop-filter:
+    blur(17px)
+    saturate(125%);
+
+  -webkit-backdrop-filter:
+    blur(17px)
+    saturate(125%);
+
+  overflow:hidden;
+}
+
+
+.kingdom-bottom-card h2{
+  margin:
+    0
+    0
+    10px;
+
+  color:#20376d;
+
+  font-size:20px;
+  line-height:1.2;
+  font-weight:900;
+
+  text-align:center;
+}
+
+
+/* =====================================================
+   משימות
+   ===================================================== */
+
+.kingdom-mission-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:5px;
+
+  flex:1;
+}
+
+
+.kingdom-mission-item{
+  width:100%;
+  min-height:50px;
+
+  padding:
+    5px
+    8px;
+
+  display:grid;
+
+  grid-template-columns:
+    38px
+    minmax(0,1fr)
+    61px;
+
+  align-items:center;
+
+  gap:8px;
+
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(220,229,241,.84);
+
+  border-radius:13px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  color:#243c6c;
+
+  text-align:right;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 3px 9px
+    rgba(41,65,105,.06);
+
+  transition:
+    transform .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+
+.kingdom-mission-item:hover{
+  transform:
+    translateY(-1px);
+
+  background:
+    rgba(255,255,255,.96);
+
+  box-shadow:
+    0 6px 14px
+    rgba(41,65,105,.11);
+}
+
+
+.kingdom-mission-icon{
+  width:36px;
+  height:36px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:11px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eaf4ff,
+      #d9e8fb
+    );
+
+  font-size:20px;
+}
+
+
+.kingdom-mission-content{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:1px;
+}
+
+
+.kingdom-mission-content strong{
+  overflow:hidden;
+
+  color:#29406e;
+
+  font-size:13px;
+  line-height:1.25;
+  font-weight:900;
+
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+
+.kingdom-mission-content small{
+  color:#6180b2;
+
+  font-size:10px;
+  line-height:1.2;
+  font-weight:700;
+}
+
+
+.kingdom-mission-reward{
+  display:flex;
+
+  align-items:center;
+  justify-content:flex-end;
+
+  gap:4px;
+
+  color:#243d72;
+
+  font-size:18px;
+}
+
+
+.kingdom-mission-reward b{
+  font-size:13px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   הישגים
+   ===================================================== */
+
+.kingdom-achievements-list{
+  flex:1;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
+
+  gap:9px;
+}
+
+
+.kingdom-achievement{
+  min-width:0;
+
+  padding:
+    10px
+    6px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(226,237,248,.82),
+      rgba(243,247,252,.74)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.86);
+}
+
+
+.kingdom-achievement-icon{
+  height:72px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:55px;
+
+  line-height:1;
+
+  filter:
+    drop-shadow(
+      0 7px 7px
+      rgba(40,55,90,.16)
+    );
+}
+
+
+.kingdom-achievement strong{
+  margin-top:4px;
+
+  color:#294171;
+
+  font-size:14px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+
+.kingdom-achievement small{
+  margin-top:4px;
+
+  color:#4f6690;
+
+  font-size:10px;
+  line-height:1.35;
+  font-weight:700;
+}
+
+
+/* =====================================================
+   לוח מובילים
+   ===================================================== */
+
+.kingdom-leaderboard-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:5px;
+
+  flex:1;
+}
+
+
+.kingdom-leaderboard-item{
+  min-height:48px;
+
+  padding:
+    4px
+    10px;
+
+  display:grid;
+
+  grid-template-columns:
+    30px
+    36px
+    minmax(0,1fr)
+    auto;
+
+  align-items:center;
+
+  gap:7px;
+
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(220,229,241,.84);
+
+  border-radius:13px;
+
+  background:
+    rgba(255,255,255,.74);
+
+  box-shadow:
+    0 3px 9px
+    rgba(41,65,105,.06);
+}
+
+
+.kingdom-rank{
+  font-size:19px;
+  font-weight:900;
+
+  text-align:center;
+}
+
+
+.kingdom-rank.first{
+  color:#f2a300;
+}
+
+
+.kingdom-rank.second{
+  color:#7a8190;
+}
+
+
+.kingdom-rank.third{
+  color:#e47723;
+}
+
+
+.kingdom-friend-avatar{
+  width:34px;
+  height:34px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e4edf8
+    );
+
+  font-size:23px;
+
+  border:
+    2px solid
+    rgba(255,255,255,.9);
+}
+
+
+.kingdom-leaderboard-item strong{
+  color:#2a4272;
+
+  font-size:13px;
+  font-weight:900;
+}
+
+
+.kingdom-friend-score{
+  color:#2b4271;
+
+  font-size:13px;
+  font-weight:900;
+
+  white-space:nowrap;
+}
+
+
+/* =====================================================
+   כפתורים תחתונים
+   ===================================================== */
+
+.kingdom-bottom-button{
+  width:58%;
+  min-height:32px;
+
+  margin:
+    8px
+    auto
+    0;
+
+  padding:
+    0
+    13px;
+
+  border:0;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8d5df6,
+      #7044e4
+    );
+
+  color:#fff;
+
+  font-size:12px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 6px 13px
+    rgba(100,63,220,.22);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+
+.kingdom-bottom-button:hover{
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 9px 17px
+    rgba(100,63,220,.28);
+}
+
+
+/* =====================================================
+   מסך בינוני
+   ===================================================== */
+
+@media(max-width:1500px){
+
+  .kingdom-bottom-bar{
+    gap:10px;
+  }
+
+
+  .kingdom-bottom-card{
+    height:235px;
+
+    padding:
+      11px
+      12px;
+  }
+
+
+  .kingdom-bottom-card h2{
+    font-size:17px;
+  }
+
+
+  .kingdom-achievement-icon{
+    height:60px;
+    font-size:45px;
+  }
+
+
+  .kingdom-achievement strong{
+    font-size:12px;
+  }
+
+
+  .kingdom-achievement small{
+    font-size:9px;
+  }
+
+
+  .kingdom-mission-content strong{
+    font-size:11px;
+  }
+
+}
+
+
+/* =====================================================
+   מובייל וטאבלט
+   ===================================================== */
+
+@media(max-width:1000px){
+
+  .kingdom-bottom-bar{
+    grid-template-columns:1fr;
+
+    padding-bottom:25px;
+  }
+
+
+  .kingdom-bottom-card{
+    width:100%;
+    height:auto;
+    min-height:230px;
+  }
+
+}
+    /* =====================================================
+   KINGDOM DASHBOARD — MAP STRUCTURE
+===================================================== */
+
+
+/* הכותרת הישנה "שלום..." */
+
+.dashboard-view .dash-hero{
+  display:none !important;
+}
+
+
+/* עמודת הילד הישנה */
+
+.dashboard-view .dash-profile-column{
+  display:none !important;
+}
+
+
+/* מבטלים את חלוקת שתי העמודות הישנה */
+
+.dashboard-view .dash-layout{
+  display:block !important;
+
+  width:100% !important;
+
+  direction:rtl !important;
+}
+
+
+/* אזור המרכז החדש */
+
+.dashboard-view .dash-content{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:14px !important;
+}
+
+
+/* ארבעת הכרטיסים הישנים כבר נמצאים בסרגל הימני */
+
+.dashboard-view .dash-action-cards{
+  display:none !important;
+}
+
+
+/* התקדמות ויעדים עברו לסרגל הימני */
+
+.dashboard-view .dash-middle-row{
+  display:none !important;
+}
+
+
+/* הנושאים האחרונים לא מופיעים במבנה החדש */
+
+.dashboard-view .dash-recent-card{
+  display:none !important;
+}
+
+
+/* =====================================================
+   אזור המפה
+===================================================== */
+
+
+
+.kingdom-map-placeholder-icon{
+  font-size:55px;
+
+  line-height:1;
+}
+
+
+.kingdom-map-placeholder strong{
+  font-size:24px;
+  font-weight:900;
+}
+
+
+.kingdom-map-placeholder small{
+  font-size:13px;
+  font-weight:700;
+
+  color:#8391af;
+}
+
+
+/* =====================================================
+   הדשבורד צריך לגלול רק אם אין מספיק גובה
+===================================================== */
+
+.dashboard-view{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  padding:
+    0
+    0
+    18px !important;
+}
+
+
+/* =====================================================
+   התאמת הסרגל התחתון
+===================================================== */
+
+.kingdom-bottom-bar{
+  margin-top:0 !important;
+}
+
+.kingdom-map-area{
+  width:100%;
+  height:620px;
+  min-height:620px;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+}
+/* =====================================================
+   מסכים מעט נמוכים
+===================================================== */
+
+@media(max-height:900px){
+
+  .kingdom-map-area{
+    height:520px;
+    min-height:520px;
+  }
+
+
+  .kingdom-bottom-card{
+    height:220px;
+  }
+
+}
+
+
+/* =====================================================
+   מסכים צרים
+===================================================== */
+
+@media(max-width:1180px){
+
+  .kingdom-map-area{
+    height:500px;
+    min-height:500px;
+  }
+
+}
 </style>
 
 
@@ -16730,146 +19298,230 @@ prefetchLessonAudio(sequence) {
    SPLIT SPEECH TO MAX 2 PARTS
 ========================= */
 
-splitSpeechIntoTwo(text){
+splitSpeechIntoParts(
+  text,
+  {
+    targetLength = 55,
+    maxLength = 85,
+    maxParts = 4
+  } = {}
+){
 
   const cleanText =
-    (text || "").trim();
+    String(
+      text || ""
+    )
+      .replace(/\s+/g, " ")
+      .trim();
 
-  if(!cleanText){
+
+  if(
+    !cleanText
+  ){
     return [];
   }
 
-  /*
-    טקסט קצר:
-    אין טעם לפצל לקריאה נוספת
-  */
-
-  if(cleanText.length <= 70){
-    return [cleanText];
-  }
-
 
   /*
-    קודם מנסים לפצל לפי סוף משפט
+    מפרידים למשפטים לפי:
+    נקודה, סימן שאלה וסימן קריאה.
+
+    סימן הפיסוק נשאר בסוף המשפט.
   */
 
   const sentences =
     cleanText
-      .split(/(?<=[.!?])\s+/)
-      .map(part => part.trim())
-      .filter(Boolean);
+      .match(
+        /[^.!?！？]+[.!?！？]?/g
+      )
+      ?.map(
+        sentence =>
+          sentence.trim()
+      )
+      .filter(
+        Boolean
+      )
+    ||
+    [];
 
 
-  if(sentences.length >= 2){
+  if(
+    sentences.length === 0
+  ){
+    return [
+      cleanText
+    ];
+  }
 
-    const totalLength =
-      cleanText.length;
 
-    let firstPart = "";
-    let secondPart = "";
+  const parts = [];
 
-    let currentLength = 0;
+  let currentPart = "";
 
-    for(
-      let i = 0;
-      i < sentences.length;
-      i++
-    ){
+
+  const pushCurrentPart =
+    () => {
+
+      const readyPart =
+        currentPart.trim();
+
 
       if(
-        currentLength <
-        totalLength / 2
+        readyPart
+      ){
+        parts.push(
+          readyPart
+        );
+      }
+
+
+      currentPart = "";
+
+    };
+
+
+  for(
+    const sentence
+    of sentences
+  ){
+
+    /*
+      אם משפט בודד ארוך מאוד,
+      מנסים לחלק אותו גם בפסיק.
+    */
+
+    const sentencePieces =
+      sentence.length >
+        maxLength
+
+        ? sentence
+            .split(
+              /(?<=[,;:،])\s+/
+            )
+            .map(
+              piece =>
+                piece.trim()
+            )
+            .filter(
+              Boolean
+            )
+
+        : [
+            sentence
+          ];
+
+
+    for(
+      const piece
+      of sentencePieces
+    ){
+
+      const candidate =
+        currentPart
+
+          ? `${currentPart} ${piece}`
+
+          : piece;
+
+
+      /*
+        אם הוספת הקטע תיצור חלק ארוך מדי,
+        סוגרים קודם את החלק הקיים.
+      */
+
+      if(
+        currentPart
+        &&
+        candidate.length >
+          maxLength
       ){
 
-        firstPart +=
-          (firstPart ? " " : "") +
-          sentences[i];
+        pushCurrentPart();
 
-        currentLength +=
-          sentences[i].length;
+        currentPart =
+          piece;
 
       }
       else{
 
-        secondPart +=
-          (secondPart ? " " : "") +
-          sentences[i];
+        currentPart =
+          candidate;
+
+      }
+
+
+      /*
+        ברגע שהגענו לאורך היעד,
+        אפשר לסגור את החלק.
+
+        לא סוגרים אם כבר הגענו למספר
+        החלקים המרבי, כדי ששאר הטקסט
+        יישאר בחלק האחרון.
+      */
+
+      if(
+        currentPart.length >=
+          targetLength
+
+        &&
+
+        parts.length <
+          maxParts - 1
+      ){
+
+        pushCurrentPart();
 
       }
 
     }
 
-
-    if(
-      firstPart &&
-      secondPart
-    ){
-
-      return [
-        firstPart,
-        secondPart
-      ];
-
-    }
-
   }
+
+
+  pushCurrentPart();
 
 
   /*
-    אם אין נקודה באמצע,
-    מפצלים באזור אמצע הטקסט
-    לפי רווח
+    הגנה: לא מחזירים יותר ממספר
+    החלקים המרבי.
+
+    אם נוצרו יותר חלקים, מאחדים
+    את העודפים לחלק האחרון.
   */
 
-  const middle =
-    Math.floor(
-      cleanText.length / 2
-    );
+  if(
+    parts.length >
+      maxParts
+  ){
 
-
-  let splitIndex =
-    cleanText.indexOf(
-      " ",
-      middle
-    );
-
-
-  if(splitIndex === -1){
-
-    splitIndex =
-      cleanText.lastIndexOf(
-        " ",
-        middle
+    const allowedParts =
+      parts.slice(
+        0,
+        maxParts - 1
       );
 
+
+    const remainingText =
+      parts
+        .slice(
+          maxParts - 1
+        )
+        .join(
+          " "
+        );
+
+
+    allowedParts.push(
+      remainingText
+    );
+
+
+    return allowedParts;
+
   }
 
 
-  if(splitIndex === -1){
-
-    return [
-      cleanText
-    ];
-
-  }
-
-
-  return [
-
-    cleanText
-      .slice(
-        0,
-        splitIndex
-      )
-      .trim(),
-
-    cleanText
-      .slice(
-        splitIndex
-      )
-      .trim()
-
-  ];
+  return parts;
 
 }
 
@@ -17111,15 +19763,20 @@ console.log(
     }
 
 
-    /*
-      מחלקים את הדיבור
-      לעד 2 חלקים
-    */
+ /*
+  מחלקים את הדיבור
+  לקטעים קצרים לפי סימני פיסוק
+*/
 
-    const parts =
-      this.splitSpeechIntoTwo(
-        audioText
-      );
+const parts =
+  this.splitSpeechIntoParts(
+    audioText,
+    {
+      targetLength: 55,
+      maxLength: 85,
+      maxParts: 4
+    }
+  );
 
 
     if(
@@ -17692,10 +20349,15 @@ async ask({
     טקסט קצר יישאר חלק אחד.
   */
 
-  const parts =
-    this.splitSpeechIntoTwo(
-      cleanText
-    );
+const parts =
+  this.splitSpeechIntoParts(
+    cleanText,
+    {
+      targetLength: 55,
+      maxLength: 85,
+      maxParts: 4
+    }
+  );
 const askStartTime =
   performance.now();
 
@@ -17746,49 +20408,83 @@ console.log(
     כמעט באותו הזמן.
   */
 
-const audioPromises =
-  parts.map(
-    (
-      part,
-      index
-    ) => {
+const audioPromises = [];
 
-      console.log(
-        `⏱️ TTS ${index + 1} SENT:`,
-        Math.round(
-          performance.now()
-          -
-          askStartTime
-        ),
-        "ms"
-      );
+let previousTtsPromise =
+  Promise.resolve();
 
 
-      return this
-        .preloadAudio(
-          part
-        )
-        .then(
-          audioUrl => {
+for(
+  let index = 0;
+  index < parts.length;
+  index++
+){
 
-            console.log(
-              `⏱️ TTS ${index + 1} READY:`,
-              Math.round(
-                performance.now()
-                -
-                askStartTime
-              ),
-              "ms"
+  const part =
+    parts[index];
+
+
+  /*
+    כל קריאת TTS מתחילה רק לאחר
+    שקריאת ה-TTS הקודמת הסתיימה.
+
+    אם הקריאה הקודמת נכשלה,
+    עדיין ממשיכים לחלק הבא.
+  */
+
+  const currentTtsPromise =
+    previousTtsPromise
+
+      .catch(
+        () => null
+      )
+
+      .then(
+        async () => {
+
+          console.log(
+            `⏱️ TTS ${index + 1} SENT:`,
+            Math.round(
+              performance.now()
+              -
+              askStartTime
+            ),
+            "ms"
+          );
+
+
+          const audioUrl =
+            await this.preloadAudio(
+              part
             );
 
 
-            return audioUrl;
+          console.log(
+            `⏱️ TTS ${index + 1} READY:`,
+            Math.round(
+              performance.now()
+              -
+              askStartTime
+            ),
+            "ms"
+          );
 
-          }
-        );
 
-    }
+          return audioUrl;
+
+        }
+      );
+
+
+  audioPromises.push(
+    currentTtsPromise
   );
+
+
+  previousTtsPromise =
+    currentTtsPromise;
+
+}
   /*
     מציגים ומשמיעים את החלקים לפי הסדר.
 
