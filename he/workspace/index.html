@@ -7087,2622 +7087,11 @@ body::before{
   width:100% !important;
 }
 
-</style>
 
-<script>
-
-/* =====================================================
-   WORKSPACE VIEW MANAGER
-   ===================================================== */
-function setLessonBackgroundForSubject(
-  subject
-){
-
-  const normalizedSubject =
-    String(
-      subject || ""
-    ).trim();
-
-
-  document.body.classList.remove(
-    "lesson-theme-science"
-  );
-
-
-  if(
-    normalizedSubject === "מדעים"
-  ){
-
-    document.body.classList.add(
-      "lesson-theme-science"
-    );
-
-  }
-
-}
-
-
-function restoreDefaultWorkspaceBackground(){
-
-  document.body.classList.remove(
-    "lesson-theme-science"
-  );
-
-}
-function showDashboard(){
-  restoreDefaultWorkspaceBackground();
-  const dashboard =
-    document.getElementById("dashboardView");
-
-  const learning =
-    document.getElementById("learningView");
-
-    const pathView =
-  document.getElementById(
-    "learningPathView"
-  );
-
-
-
-  if(dashboard){
-    dashboard.style.display = "block";
-  }
-
-  if(learning){
-    learning.style.display = "none";
-  }
-
-if(pathView){
-  pathView.style.display = "none";
-}
-
-  /* כפתור דף הבית פעיל */
-
-  document
-    .querySelectorAll(".side-item")
-    .forEach(btn => {
-
-      btn.classList.remove("active");
-
-    });
-
-
-  const homeBtn =
-    document.getElementById(
-      "homeSidebarBtn"
-    );
-
-  if(homeBtn){
-
-    homeBtn.classList.add(
-      "active"
-    );
-
-  }
-
-}
-
-async function startLearnChat(){
-
-  // מעבר למסך הצ'אט
-  showLearning("learn");
-
-  // מחכים רגע שהמסך יוצג
-  await new Promise(
-    resolve =>
-      setTimeout(
-        resolve,
-        150
-      )
-  );
-
-  // מכניסים "היי" לשדה ההודעה
-  if(inputEl){
-
-    inputEl.value =
-      "היי";
-
-  }
-
-  // שולחים אוטומטית לצ'אט
-  await sendMessage();
-
-}
-
-function showLearning(mode = "homework") {
-  if(
-    mode !== "lesson"
-  ){
-    restoreDefaultWorkspaceBackground();
-  }
-  const dashboard = document.getElementById("dashboardView");
-  const learning = document.getElementById("learningView");
-  const pathView = document.getElementById("learningPathView");
-
-  // מסתיר את מסך הבית
-  if (dashboard) {
-    dashboard.style.display = "none";
-  }
-
-  // מציג את אזור הלמידה
-  if (learning) {
-    learning.style.display = "block";
-  }
-
-  // מסתיר את מסלול הלמידה
-  if (pathView) {
-    pathView.style.display = "none";
-  }
-
-  // מסיר active מכל כפתורי הפעילות בסרגל
-  document
-    .querySelectorAll(".quick-card")
-    .forEach(btn => {
-      btn.classList.remove("active");
-    });
-
-  // מפעיל את מצב הלמידה שנבחר
-  setLearningMode(mode);
-
-}
-
-/* =====================================================
-   UPDATE LEARNING PATH FOOTER
-===================================================== */
-
-function updateLearningPathFooter({
-  completedLessons = 0,
-  score = 0
-} = {}){
-
-  const completedEl =
-    document.getElementById(
-      "learningPathCompletedCount"
-    );
-
-  const scoreEl =
-    document.getElementById(
-      "learningPathScore"
-    );
-
-  if(completedEl){
-    completedEl.textContent =
-      completedLessons;
-  }
-
-  if(scoreEl){
-    scoreEl.textContent =
-      score;
-  }
-}
-
-
-
-/* =====================================================
-   LEARNING MODE
-   ===================================================== */
-
-function setLearningMode(mode){
-
-  const title =
-    document.getElementById(
-      "heroGreeting"
-    );
-
-  const subtitle =
-    document.getElementById(
-      "learningSubtitle"
-    );
-
-
-  if(!title || !subtitle){
-    return;
-  }
-
-
-  const kidName =
-    window.CURRENT_KID?.child_name
-    || "";
-
-
-  switch(mode){
-
-case "learn":
-
-  title.textContent =
-    `היי ${kidName}, מה בא לך ללמוד?`;
-
-  subtitle.textContent =
-    "אפשר לשאול אותי על כל נושא שמעניין אותך, ואני אלמד אותך שלב אחרי שלב.";
-
-  break;
-
-    case "homework":
-
-      title.textContent =
-        `היי ${kidName}, בוא נפתור את שיעורי הבית!`;
-
-      subtitle.textContent =
-        "צלמו או העלו את התרגיל ונפתור אותו יחד שלב אחרי שלב.";
-
-      break;
-
-
-    case "exam":
-
-      title.textContent =
-        `היי ${kidName}, מתכוננים למבחן!`;
-
-      subtitle.textContent =
-        "נלמד את החומר, נתרגל שאלות ונבדוק מה כבר יודעים.";
-
-      break;
-
-
-    case "practice":
-
-      title.textContent =
-        `היי ${kidName}, בוא נתרגל!`;
-
-      subtitle.textContent =
-        "בחרו נושא ונפתור יחד תרגילים שמתאימים בדיוק לרמה שלכם.";
-
-      break;
-
-
-    case "reading":
-
-      title.textContent =
-        `היי ${kidName}, זמן לקריאה!`;
-
-      subtitle.textContent =
-        "בואו נקרא יחד ונשפר את הקריאה וההבנה.";
-
-      break;
-
-
-    case "games":
-
-      title.textContent =
-        `היי ${kidName}, לומדים ומשחקים!`;
-
-      subtitle.textContent =
-        "בחרו משחק לימודי והתחילו לצבור נקודות וכוכבים.";
-
-      break;
-
-
-    case "continue":
-
-      title.textContent =
-        `ממשיכים מאיפה שהפסקנו`;
-
-      subtitle.textContent =
-        "בואו נמשיך את השיעור האחרון שלכם.";
-
-      break;
-
-
-    default:
-
-      title.textContent =
-        `היי ${kidName}, מה נלמד היום?`;
-
-      subtitle.textContent =
-        "המורה AI כאן כדי ללמוד איתכם שלב אחרי שלב.";
-
-  }
-
-}
-
-
-/* ברירת מחדל בכניסה */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    showDashboard();
-
-  }
-);
-
-</script>
-<style>
-/* =====================================================
-   LESSON RENDERER V1
-===================================================== */
-
-.lesson-renderer-root{
-  width:100%;
-  direction:rtl;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-  padding:10px 0 40px;
-}
-
-.lesson-renderer-row{
-  display:flex;
-  align-items:flex-start;
-  gap:16px;
-  direction:rtl;
-}
-
-.lesson-renderer-avatar{
-  width:58px;
-  height:58px;
-  object-fit:contain;
-  flex:none;
-}
-
-.lesson-renderer-content{
-  flex:1;
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-.lesson-renderer-line{
-  position:relative;
-  width:max-content;
-  max-width:90%;
-
-  direction:rtl;
-  text-align:right;
-
-  font-family:"Gveret Levin", cursive !important;
-  font-size:34px;
-  line-height:1.6;
-  color:#26314f;
-
-  padding:3px 8px;
-
-  opacity:1;
-}
-
-.lesson-renderer-line.math{
-  direction:ltr;
-  text-align:right;
-
-  font-family:"Gveret Levin", cursive !important;
-  font-size:42px;
-  font-weight:700;
-  color:#3478e5;
-}
-
-.lesson-renderer-line.question{
-  font-size:36px;
-  font-weight:700;
-
-  background:
-    linear-gradient(
-      transparent 65%,
-      rgba(255,222,80,.55) 65%
-    );
-}
-
-.lesson-renderer-line.highlighted{
-  background:#fff1a8;
-  border-radius:12px;
-  padding:5px 12px;
-  transition:.35s ease;
-}
-
-.lesson-renderer-line.success{
-  color:#248c59;
-}
-
-.lesson-renderer-circle{
-  display:inline-block;
-  position:relative;
-  padding:2px 10px;
-}
-
-.lesson-renderer-circle::after{
-  content:"";
-  position:absolute;
-  inset:-7px -10px;
-
-  border:3px solid #ff6d6d;
-  border-radius:50%;
-
-  transform:rotate(-5deg) scale(.4);
-  opacity:0;
-
-  animation:lessonCircleDraw .55s ease forwards;
-}
-
-@keyframes lessonCircleDraw{
-  to{
-    transform:rotate(-5deg) scale(1);
-    opacity:1;
-  }
-}
-
-.lesson-renderer-arrow{
-  font-size:38px;
-  line-height:1;
-  color:#7b4fff;
-  opacity:0;
-  transform:translateX(25px);
-  animation:lessonArrowIn .45s ease forwards;
-}
-
-@keyframes lessonArrowIn{
-  to{
-    opacity:1;
-    transform:translateX(0);
-  }
-}
-
-.lesson-renderer-speaking{
-  animation:lessonSpeakingPulse .7s ease-in-out infinite alternate;
-}
-
-@keyframes lessonSpeakingPulse{
-  from{
-    transform:scale(1);
-  }
-  to{
-    transform:scale(1.06);
-  }
-}
-
-/* כפתור דמו זמני */
-.lesson-renderer-demo-btn{
-  position:fixed;
-  left:25px;
-  bottom:95px;
-  z-index:9999;
-
-  border:0;
-  border-radius:16px;
-
-  padding:14px 22px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #7048ff,
-      #8b61ff
-    );
-
-  color:white;
-
-  font-size:17px;
-  font-weight:900;
-
-  cursor:pointer;
-
-  box-shadow:
-    0 10px 28px
-    rgba(112,72,255,.28);
-}
-
-    /* =====================================================
-   TABLET DASHBOARD - FINAL FIX
-   iPad / Tablets
-===================================================== */
-
-@media (min-width: 761px) and (max-width: 1450px){
-
-  /* מבנה האפליקציה */
-  .app{
-    grid-template-columns:
-      215px
-      minmax(0,1fr) !important;
-
-    gap:10px !important;
-
-    padding:
-      10px
-      10px
-      14px !important;
-  }
-
-
-  /* הסרגל הימני מוסתר בטאבלט */
-  .rightbar{
-    display:none !important;
-  }
-
-
-  /* סרגל שמאל צר יותר */
-  .sidebar{
-    width:215px !important;
-
-    padding:
-      12px
-      9px !important;
-  }
-
-  .side-item{
-    min-height:51px !important;
-    padding:0 9px !important;
-  }
-
-  .side-title{
-    font-size:14px !important;
-  }
-
-  .new-task{
-    height:52px !important;
-    font-size:15px !important;
-  }
-
-
-  /* אזור ראשי */
-  .main{
-    min-width:0 !important;
-  }
-
-  .dashboard-view{
-    padding:
-      4px
-      6px
-      20px !important;
-
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-  }
-
-
-  /* כותרת */
-  .dash-hero{
-    min-height:115px !important;
-
-    padding:
-      14px
-      5px
-      12px !important;
-  }
-
-  .dash-hero h1{
-    font-size:50px !important;
-  }
-
-  .dash-hero p{
-    margin-top:7px !important;
-    font-size:20px !important;
-  }
-
-
-  /* עמודת ילד + תוכן */
-  .dash-layout{
-    grid-template-columns:
-      180px
-      minmax(0,1fr) !important;
-
-    gap:12px !important;
-  }
-
-
-  /* אזור הילד */
-  .dash-profile-column{
-    gap:9px !important;
-  }
-
-  .dash-student-stack{
-    min-height:285px !important;
-  }
-
-  .dash-student-character{
-    inset:
-      -10px
-      0
-      62px !important;
-  }
-
-  .dash-student-character img{
-    width:210px !important;
-  }
-
-  .dash-profile-card{
-    padding:
-      11px
-      10px !important;
-  }
-
-  .dash-profile-name{
-    font-size:19px !important;
-  }
-
-  .dash-profile-class{
-    font-size:13px !important;
-  }
-
-
-  /* =====================================
-     4 הכרטיסים - 2 בכל שורה
-  ===================================== */
-
-  .dash-action-cards{
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0,1fr)
-      ) !important;
-
-    gap:12px !important;
-  }
-
-  .dash-action-card{
-    min-height:265px !important;
-
-    padding:
-      14px
-      12px
-      13px !important;
-
-    border-radius:22px !important;
-  }
-
-  .dash-card-image{
-    width:125px !important;
-    height:90px !important;
-
-    margin-bottom:2px !important;
-  }
-
-  .dash-action-card h3{
-    font-size:22px !important;
-
-    margin:
-      5px
-      0
-      6px !important;
-  }
-
-  .dash-action-card p{
-    font-size:14px !important;
-    line-height:1.4 !important;
-
-    min-height:42px !important;
-  }
-
-  .dash-action-card button{
-    min-height:43px !important;
-
-    font-size:14px !important;
-  }
-
-
-  /* התקדמות ויעדים */
-  .dash-middle-row{
-    grid-template-columns:
-      1fr !important;
-
-    gap:10px !important;
-  }
-
-
-  /* נושאים אחרונים */
-  .dash-recent-list{
-    grid-template-columns:
-      repeat(
-        3,
-        1fr
-      ) !important;
-  }
-
-
-  /* רובוט תחתון קטן יותר */
-  .floating-tutor-robot{
-    width:150px !important;
-
-    right:15px !important;
-    bottom:0 !important;
-  }
-
-}
-.upload-zone.drag-active{
-  border-color:#7048ff !important;
-  background:
-    linear-gradient(
-      180deg,
-      #f5f1ff,
-      #ffffff
-    ) !important;
-
-  transform:scale(1.01);
-}
-    /* =====================================================
-   INTERACTIVE LESSON LOADING
-===================================================== */
-
-.lesson-loading-overlay{
-  position:absolute;
-  inset:0;
-
-  z-index:45;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  padding:25px;
-
-  background:
-    rgba(255,255,255,.72);
-
-  backdrop-filter:
-    blur(8px)
-    saturate(120%);
-
-  -webkit-backdrop-filter:
-    blur(8px)
-    saturate(120%);
-
-  opacity:0;
-  visibility:hidden;
-
-  transition:
-    opacity .25s ease,
-    visibility .25s ease;
-}
-
-
-.lesson-loading-overlay.visible{
-  opacity:1;
-  visibility:visible;
-}
-
-
-.lesson-loading-card{
-  width:min(430px,92%);
-
-  padding:
-    26px
-    28px;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-
-  text-align:center;
-  direction:rtl;
-
-  border-radius:28px;
-
-  background:
-    rgba(255,255,255,.94);
-
-  border:
-    1px solid
-    rgba(255,255,255,.98);
-
-  box-shadow:
-    0 20px 55px
-    rgba(54,68,125,.18);
-}
-
-
-.lesson-loading-robot{
-  width:105px;
-  height:105px;
-
-  object-fit:contain;
-
-  animation:
-    lessonLoadingRobotFloat
-    1.5s ease-in-out
-    infinite;
-
-  filter:
-    drop-shadow(
-      0 10px 15px
-      rgba(60,75,150,.15)
-    );
-}
-
-
-.lesson-loading-title{
-  margin-top:9px;
-
-  font-size:23px;
-  font-weight:900;
-
-  color:#353577;
-}
-
-
-.lesson-loading-status{
-  min-height:28px;
-
-  margin-top:7px;
-
-  font-size:16px;
-  font-weight:800;
-
-  color:#67719a;
-
-  transition:
-    opacity .18s ease,
-    transform .18s ease;
-}
-
-
-.lesson-loading-status.changing{
-  opacity:0;
-  transform:translateY(4px);
-}
-
-
-.lesson-loading-track{
-  position:relative;
-
-  width:100%;
-  height:10px;
-
-  margin-top:20px;
-
-  overflow:hidden;
-
-  border-radius:999px;
-
-  background:#e8e9f4;
-}
-
-
-.lesson-loading-track::after{
-  content:"";
-
-  position:absolute;
-  top:0;
-  bottom:0;
-
-  width:38%;
-
-  border-radius:999px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #7753f4,
-      #a177ff
-    );
-
-  animation:
-    lessonLoadingBar
-    1.25s ease-in-out
-    infinite;
-}
-
-
-.lesson-loading-dots{
-  display:inline-block;
-  min-width:22px;
-  text-align:right;
-}
-
-
-@keyframes lessonLoadingRobotFloat{
-
-  0%,
-  100%{
-    transform:translateY(0);
-  }
-
-  50%{
-    transform:translateY(-8px);
-  }
-
-}
-
-
-@keyframes lessonLoadingBar{
-
-  0%{
-    right:-40%;
-  }
-
-  100%{
-    right:105%;
-  }
-
-}
-
-
-@media(max-width:760px){
-
-  .lesson-loading-card{
-    width:min(360px,94%);
-    padding:22px 18px;
-  }
-
-  .lesson-loading-robot{
-    width:88px;
-    height:88px;
-  }
-
-  .lesson-loading-title{
-    font-size:20px;
-  }
-
-  .lesson-loading-status{
-    font-size:14px;
-  }
-
-}
-/* =====================================================
-   LESSON VISUAL CARD
-===================================================== */
-
-.lesson-visual-card{
-  width:min(620px,92%);
-  margin:18px auto 24px;
-
-  padding:20px 22px;
-
-  direction:rtl;
-  text-align:right;
-
-  border-radius:24px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.96),
-      rgba(244,241,255,.94)
-    );
-
-  border:
-    2px solid
-    rgba(123,82,244,.18);
-
-  box-shadow:
-    0 12px 30px
-    rgba(60,55,125,.12);
-
-  opacity:0;
-
-  transform:
-    translateY(14px)
-    scale(.97);
-
-  transition:
-    opacity .35s ease,
-    transform .35s ease;
-}
-
-
-.lesson-visual-card.visible{
-  opacity:1;
-
-  transform:
-    translateY(0)
-    scale(1);
-}
-
-
-.lesson-visual-card-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-
-  margin-bottom:15px;
-
-  font-family:
-    "Gveret Levin",
-    cursive;
-
-  font-size:28px;
-  line-height:1.3;
-
-  color:#4c3db6;
-}
-
-
-.lesson-visual-card-icon{
-  width:46px;
-  height:46px;
-
-  flex:0 0 46px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:15px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #eee7ff,
-      #ddd2ff
-    );
-
-  font-family:
-    Arial,
-    sans-serif;
-
-  font-size:26px;
-
-  box-shadow:
-    0 6px 14px
-    rgba(90,65,180,.12);
-}
-
-
-.lesson-visual-card-title{
-  font-weight:700;
-}
-
-
-.lesson-visual-card-items{
-  display:grid;
-
-  grid-template-columns:
-    repeat(
-      2,
-      minmax(0,1fr)
-    );
-
-  gap:11px;
-}
-
-
-.lesson-visual-card-item{
-  min-height:58px;
-
-  display:flex;
-  align-items:center;
-
-  padding:
-    10px
-    14px;
-
-  border-radius:16px;
-
-  background:
-    rgba(255,255,255,.90);
-
-  border:
-    1px solid
-    rgba(118,90,210,.12);
-
-  font-family:
-    "Gveret Levin",
-    cursive;
-
-  font-size:24px;
-  line-height:1.3;
-
-  color:#2c3658;
-
-  opacity:0;
-
-  transform:
-    translateX(12px);
-
-  transition:
-    opacity .28s ease,
-    transform .28s ease;
-}
-
-
-.lesson-visual-card-item.visible{
-  opacity:1;
-
-  transform:
-    translateX(0);
-}
-
-
-@media(max-width:760px){
-
-  .lesson-visual-card{
-    width:96%;
-    padding:16px;
-  }
-
-  .lesson-visual-card-header{
-    font-size:23px;
-  }
-
-  .lesson-visual-card-items{
-    grid-template-columns:1fr;
-  }
-
-  .lesson-visual-card-item{
-    min-height:50px;
-    font-size:21px;
-  }
-
-}
-/* =====================================================
-   HOME RIGHT SIDEBAR - KINGDOM DASHBOARD
-   ===================================================== */
-
-.home-rightbar{
-  grid-column:3 !important;
-  grid-row:2 !important;
-
-  width:100% !important;
-  height:100% !important;
-  max-height:none !important;
-
-  align-self:stretch !important;
-
-  display:flex !important;
-  flex-direction:column !important;
-  gap:12px !important;
-
-  padding:0 !important;
-
-  border:0 !important;
-  border-radius:0 !important;
-
-  background:transparent !important;
-
-  box-shadow:none !important;
-
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
-
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-
-  direction:rtl;
-}
-
-
-/* =====================================================
-   משטח זכוכית משותף
-   ===================================================== */
-
-.home-right-welcome,
-.home-right-actions,
-.home-right-stats,
-.home-right-progress{
-  flex-shrink:0;
-
-  border:
-    1px solid
-    rgba(255,255,255,.88);
-
-  background:
-    rgba(255,255,255,.78);
-
-  backdrop-filter:
-    blur(18px)
-    saturate(125%);
-
-  -webkit-backdrop-filter:
-    blur(18px)
-    saturate(125%);
-
-  box-shadow:
-    0 12px 30px
-    rgba(35,64,115,.15),
-    inset 0 1px 0
-    rgba(255,255,255,.90);
-}
-
-
-/* =====================================================
-   כרטיס הברכה
-   ===================================================== */
-
-.home-right-welcome{
-  position:relative;
-
-  min-height:190px;
-
-  padding:
-    24px
-    145px
-    22px
-    20px;
-
-  display:flex;
-  align-items:center;
-
-  overflow:hidden;
-
-  border-radius:28px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(237,250,255,.89),
-      rgba(255,250,230,.84)
-    );
-}
-
-
-.home-right-welcome-text{
-  position:relative;
-  z-index:2;
-
-  width:100%;
-
-  text-align:center;
-}
-
-
-.home-right-welcome h2{
-  margin:
-    0
-    0
-    12px;
-
-  color:#20366e;
-
-  font-size:27px;
-  line-height:1.2;
-  font-weight:900;
-}
-
-
-.home-right-welcome p{
-  margin:0;
-
-  color:#354a7d;
-
-  font-size:16px;
-  line-height:1.65;
-  font-weight:800;
-}
-
-
-.home-right-student{
-  position:absolute;
-
-  right:-12px;
-  bottom:-30px;
-
-  width:165px;
-  height:205px;
-
-  object-fit:contain;
-  object-position:center bottom;
-
-  z-index:1;
-
-  pointer-events:none;
-
-  filter:
-    drop-shadow(
-      0 10px 14px
-      rgba(35,55,95,.18)
-    );
-}
-
-
-.home-right-hidden-avatar{
-  position:absolute;
-
-  width:1px;
-  height:1px;
-
-  opacity:0;
-  pointer-events:none;
-}
-
-
-/* =====================================================
-   ארבעת כרטיסי הפעולה
-   ===================================================== */
-
-.home-right-actions{
-  padding:12px;
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(2,minmax(0,1fr));
-
-  gap:11px;
-
-  border-radius:28px;
-}
-
-
-.home-right-action{
-  position:relative;
-
-  min-width:0;
-  min-height:145px;
-
-  padding:
-    14px
-    8px
-    13px;
-
-  display:flex;
-  flex-direction:column;
-
-  align-items:center;
-  justify-content:center;
-
-  gap:8px;
-
-  border:
-    1px solid
-    rgba(255,255,255,.62);
-
-  border-radius:21px;
-
-  color:#fff;
-
-  cursor:pointer;
-
-  overflow:hidden;
-
-  box-shadow:
-    0 8px 18px
-    rgba(47,63,115,.15),
-    inset 0 1px 0
-    rgba(255,255,255,.30);
-
-  transition:
-    transform .2s ease,
-    box-shadow .2s ease,
-    filter .2s ease;
-}
-
-
-.home-right-action:hover{
-  transform:
-    translateY(-3px);
-
-  box-shadow:
-    0 12px 24px
-    rgba(47,63,115,.22),
-    inset 0 1px 0
-    rgba(255,255,255,.38);
-
-  filter:
-    saturate(1.08);
-}
-
-
-.home-right-action img{
-  width:72px;
-  height:67px;
-
-  object-fit:contain;
-
-  filter:
-    drop-shadow(
-      0 7px 8px
-      rgba(30,40,85,.20)
-    );
-}
-
-
-.home-right-action strong{
-  display:block;
-
-  font-size:17px;
-  line-height:1.2;
-  font-weight:900;
-
-  text-shadow:
-    0 2px 3px
-    rgba(25,30,75,.20);
-}
-
-
-/* משחקים */
-
-.home-right-games{
-  background:
-    linear-gradient(
-      145deg,
-      #b978f1,
-      #8450df
-    );
-}
-
-
-/* תרגול */
-
-.home-right-practice{
-  background:
-    linear-gradient(
-      145deg,
-      #ffc46b,
-      #eb8739
-    );
-}
-
-
-/* שיעורי בית */
-
-.home-right-homework{
-  background:
-    linear-gradient(
-      145deg,
-      #68c5ff,
-      #337ce8
-    );
-}
-
-
-/* למד אותי משהו */
-
-.home-right-learn{
-  background:
-    linear-gradient(
-      145deg,
-      #f178bd,
-      #df3f9a
-    );
-}
-
-
-/* =====================================================
-   סטטיסטיקות
-   ===================================================== */
-
-.home-right-stats{
-  min-height:145px;
-
-  padding:9px;
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(3,minmax(0,1fr));
-
-  border-radius:28px;
-}
-
-
-.home-right-stat{
-  min-width:0;
-
-  display:flex;
-  flex-direction:column;
-
-  align-items:center;
-  justify-content:center;
-
-  padding:
-    9px
-    4px;
-
-  text-align:center;
-
-  border-left:
-    1px solid
-    rgba(94,112,155,.12);
-}
-
-
-.home-right-stat:first-child{
-  border-left:0;
-}
-
-
-.home-right-stat-icon{
-  font-size:38px;
-  line-height:1;
-}
-
-
-.home-right-stat strong{
-  margin-top:5px;
-
-  color:#20366e;
-
-  font-size:25px;
-  line-height:1;
-  font-weight:900;
-}
-
-
-.home-right-stat small{
-  margin-top:5px;
-
-  color:#7180a5;
-
-  font-size:11px;
-  line-height:1.2;
-  font-weight:800;
-}
-
-
-/* =====================================================
-   התקדמות כללית
-   ===================================================== */
-
-.home-right-progress{
-  min-height:180px;
-
-  padding:
-    14px
-    17px
-    15px;
-
-  border-radius:28px;
-}
-
-
-.home-right-progress h3{
-  margin:
-    0
-    0
-    8px;
-
-  color:#20366e;
-
-  font-size:20px;
-  font-weight:900;
-  text-align:right;
-}
-
-
-.home-right-progress-content{
-  display:grid;
-
-  grid-template-columns:
-    minmax(0,1fr)
-    94px;
-
-  gap:10px;
-
-  align-items:center;
-}
-
-
-.home-right-chart{
-  min-width:0;
-}
-
-
-.home-right-chart svg{
-  display:block;
-
-  width:100%;
-  height:85px;
-}
-
-
-.home-right-chart-days{
-  display:flex;
-
-  justify-content:space-between;
-
-  padding:
-    0
-    5px;
-
-  color:#7180a5;
-
-  font-size:10px;
-  font-weight:800;
-}
-
-
-.home-right-donut{
-  position:relative;
-
-  width:88px;
-  height:88px;
-
-  margin:auto;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:50%;
-
-  background:
-    conic-gradient(
-      #3689f5
-      0
-      35%,
-      #dce7f7
-      35%
-      100%
-    );
-}
-
-
-.home-right-donut::before{
-  content:"";
-
-  position:absolute;
-
-  width:62px;
-  height:62px;
-
-  border-radius:50%;
-
-  background:
-    rgba(255,255,255,.94);
-}
-
-
-.home-right-donut-inner{
-  position:relative;
-  z-index:1;
-
-  color:#20366e;
-
-  font-size:21px;
-  font-weight:900;
-}
-
-
-/* =====================================================
-   גלילה נקייה
-   ===================================================== */
-
-.home-rightbar::-webkit-scrollbar{
-  width:5px;
-}
-
-
-.home-rightbar::-webkit-scrollbar-track{
-  background:transparent;
-}
-
-
-.home-rightbar::-webkit-scrollbar-thumb{
-  border-radius:999px;
-
-  background:
-    rgba(71,102,160,.22);
-}
-
-
-/* =====================================================
-   מסך בגובה נמוך
-   ===================================================== */
-
-@media(max-height:900px){
-
-  .home-right-welcome{
-    min-height:155px;
-
-    padding:
-      18px
-      120px
-      18px
-      14px;
-  }
-
-
-  .home-right-welcome h2{
-    font-size:23px;
-    margin-bottom:7px;
-  }
-
-
-  .home-right-welcome p{
-    font-size:13px;
-    line-height:1.5;
-  }
-
-
-  .home-right-student{
-    width:140px;
-    height:170px;
-  }
-
-
-  .home-right-action{
-    min-height:118px;
-  }
-
-
-  .home-right-action img{
-    width:58px;
-    height:53px;
-  }
-
-
-  .home-right-action strong{
-    font-size:15px;
-  }
-
-
-  .home-right-stats{
-    min-height:115px;
-  }
-
-
-  .home-right-stat-icon{
-    font-size:30px;
-  }
-
-
-  .home-right-stat strong{
-    font-size:21px;
-  }
-
-
-  .home-right-progress{
-    min-height:150px;
-  }
-
-}
-    /* =====================================================
-   KINGDOM DASHBOARD BOTTOM BAR
-   ===================================================== */
-
-.kingdom-bottom-bar{
-  width:100%;
-
-  display:grid;
-
-  grid-template-columns:
-    1fr
-    1.05fr
-    1fr;
-
-  gap:10px;
-
-  direction:rtl;
-
-  margin-top:8px;
-  padding:0;
-
-  position:relative;
-  z-index:10;
-
-  flex:0 0 178px;
-  height:178px;
-}
-
-
-/* =====================================================
-   כרטיס בסיס
-   ===================================================== */
-
-.kingdom-bottom-card{
-  min-width:0;
-  height:178px;
-
-  padding:8px 11px 8px;
-
-  display:flex;
-  flex-direction:column;
-
-  border:
-    1px solid
-    rgba(255,255,255,.92);
-
-  border-radius:20px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.93),
-      rgba(242,248,255,.88)
-    );
-
-  box-shadow:
-    0 9px 22px rgba(28,58,105,.16),
-    inset 0 1px 0 rgba(255,255,255,.95);
-
-  backdrop-filter:blur(15px) saturate(125%);
-  -webkit-backdrop-filter:blur(15px) saturate(125%);
-
-  overflow:hidden;
-}
-
-
-.kingdom-bottom-card h2{
-  margin:0 0 5px;
-
-  color:#20376d;
-
-  font-size:16px;
-  line-height:1.1;
-  font-weight:900;
-
-  text-align:center;
-}
-
-
-/* =====================================================
-   משימות
-   ===================================================== */
-
-.kingdom-mission-list{
-  display:flex;
-  flex-direction:column;
-
-  gap:3px;
-
-  flex:1;
-  min-height:0;
-}
-
-
-.kingdom-mission-item{
-  width:100%;
-  min-height:36px;
-  height:36px;
-
-  padding:3px 6px;
-
-  display:grid;
-
-  grid-template-columns:
-    29px
-    minmax(0,1fr)
-    48px;
-
-  align-items:center;
-
-  gap:5px;
-  direction:rtl;
-
-  border:
-    1px solid
-    rgba(220,229,241,.84);
-
-  border-radius:10px;
-
-  background:rgba(255,255,255,.72);
-
-  color:#243c6c;
-  text-align:right;
-  cursor:pointer;
-
-  box-shadow:
-    0 2px 7px
-    rgba(41,65,105,.05);
-}
-
-
-.kingdom-mission-item:hover{
-  transform:
-    translateY(-1px);
-
-  background:
-    rgba(255,255,255,.96);
-
-  box-shadow:
-    0 6px 14px
-    rgba(41,65,105,.11);
-}
-
-
-.kingdom-mission-icon{
-  width:27px;
-  height:27px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:8px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #eaf4ff,
-      #d9e8fb
-    );
-
-  font-size:15px;
-}
-
-
-.kingdom-mission-content{
-  min-width:0;
-
-  display:flex;
-  flex-direction:column;
-
-  gap:1px;
-}
-
-
-.kingdom-mission-content strong{
-  overflow:hidden;
-
-  color:#29406e;
-
-  font-size:10px;
-  line-height:1.15;
-  font-weight:900;
-
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-
-.kingdom-mission-content small{
-  color:#6180b2;
-
-  font-size:8px;
-  line-height:1.1;
-  font-weight:700;
-}
-
-.kingdom-mission-reward{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-
-  gap:2px;
-
-  color:#243d72;
-
-  font-size:13px;
-}
-
-.kingdom-mission-reward b{
-  font-size:10px;
-  font-weight:900;
-}
-
-
-/* =====================================================
-   הישגים
-   ===================================================== */
-
-.kingdom-achievements-list{
-  flex:1;
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(3,minmax(0,1fr));
-
-  gap:6px;
-
-  min-height:0;
-}
-
-
-.kingdom-achievement{
-  min-width:0;
-
-  padding:5px 4px;
-
-  display:flex;
-  flex-direction:column;
-
-  align-items:center;
-  justify-content:center;
-
-  text-align:center;
-
-  border-radius:13px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(226,237,248,.82),
-      rgba(243,247,252,.74)
-    );
-
-  border:
-    1px solid
-    rgba(255,255,255,.86);
-}
-
-
-.kingdom-achievement-icon{
-  height:42px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  font-size:34px;
-  line-height:1;
-
-  filter:
-    drop-shadow(
-      0 5px 5px
-      rgba(40,55,90,.14)
-    );
-}
-
-
-.kingdom-achievement strong{
-  margin-top:2px;
-
-  color:#294171;
-
-  font-size:10px;
-  line-height:1.1;
-  font-weight:900;
-}
-
-.kingdom-achievement small{
-  margin-top:2px;
-
-  color:#4f6690;
-
-  font-size:8px;
-  line-height:1.2;
-  font-weight:700;
-}
-
-
-/* =====================================================
-   לוח מובילים
-   ===================================================== */
-
-.kingdom-leaderboard-list{
-  display:flex;
-  flex-direction:column;
-
-  gap:3px;
-
-  flex:1;
-  min-height:0;
-}
-
-
-.kingdom-leaderboard-item{
-  min-height:35px;
-  height:35px;
-
-  padding:2px 7px;
-
-  display:grid;
-
-  grid-template-columns:
-    23px
-    27px
-    minmax(0,1fr)
-    auto;
-
-  align-items:center;
-
-  gap:5px;
-  direction:rtl;
-
-  border:
-    1px solid
-    rgba(220,229,241,.84);
-
-  border-radius:10px;
-
-  background:
-    rgba(255,255,255,.74);
-
-  box-shadow:
-    0 2px 7px
-    rgba(41,65,105,.05);
-}
-
-
-.kingdom-rank{
-  font-size:19px;
-  font-weight:900;
-
-  text-align:center;
-}
-
-
-.kingdom-rank{
-  font-size:14px;
-  font-weight:900;
-  text-align:center;
-}
-
-.kingdom-friend-avatar{
-  width:25px;
-  height:25px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:50%;
-
-  background:
-    linear-gradient(
-      145deg,
-      #fff,
-      #e4edf8
-    );
-
-  font-size:17px;
-
-  border:
-    1px solid
-    rgba(255,255,255,.9);
-}
-
-.kingdom-leaderboard-item strong{
-  color:#2a4272;
-
-  font-size:10px;
-  font-weight:900;
-}
-
-.kingdom-friend-score{
-  color:#2b4271;
-
-  font-size:10px;
-  font-weight:900;
-
-  white-space:nowrap;
-}
-
-
-/* =====================================================
-   כפתורים תחתונים
-   ===================================================== */
-
-.kingdom-bottom-button{
-  width:58%;
-  min-height:24px;
-  height:24px;
-
-  margin:4px auto 0;
-  padding:0 9px;
-
-  border:0;
-  border-radius:999px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #8d5df6,
-      #7044e4
-    );
-
-  color:#fff;
-
-  font-size:9px;
-  font-weight:900;
-
-  cursor:pointer;
-
-  box-shadow:
-    0 4px 9px
-    rgba(100,63,220,.20);
-}
-
-
-.kingdom-bottom-button:hover{
-  transform:
-    translateY(-1px);
-
-  box-shadow:
-    0 9px 17px
-    rgba(100,63,220,.28);
-}
-
-
-/* =====================================================
-   מסך בינוני
-   ===================================================== */
-
-@media(max-width:1500px){
-
-  .kingdom-bottom-bar{
-    gap:10px;
-  }
-
-
-.kingdom-bottom-bar{
-  height:165px;
-  flex-basis:165px;
-  gap:8px;
-}
-
-.kingdom-bottom-card{
-  height:165px;
-  padding:7px 9px;
-}
-
-.kingdom-bottom-card h2{
-  font-size:14px;
-  margin-bottom:4px;
-}
-
-.kingdom-achievement-icon{
-  height:36px;
-  font-size:29px;
-}
-
-
-  .kingdom-bottom-card h2{
-    font-size:17px;
-  }
-
-
-  .kingdom-achievement-icon{
-    height:60px;
-    font-size:45px;
-  }
-
-
-  .kingdom-achievement strong{
-    font-size:12px;
-  }
-
-
-  .kingdom-achievement small{
-    font-size:9px;
-  }
-
-
-  .kingdom-mission-content strong{
-    font-size:11px;
-  }
-
-}
-
-
-/* =====================================================
-   מובייל וטאבלט
-   ===================================================== */
-
-@media(max-width:1000px){
-
-  .kingdom-bottom-bar{
-    grid-template-columns:1fr;
-
-    padding-bottom:25px;
-  }
-
-
-  .kingdom-bottom-card{
-    width:100%;
-    height:auto;
-    min-height:230px;
-  }
-
-}
-    /* =====================================================
-   KINGDOM DASHBOARD — MAP STRUCTURE
-===================================================== */
-
-
-/* הכותרת הישנה "שלום..." */
-
-.dashboard-view .dash-hero{
-  display:none !important;
-}
-
-
-/* עמודת הילד הישנה */
-
-.dashboard-view .dash-profile-column{
-  display:none !important;
-}
-
-
-/* מבטלים את חלוקת שתי העמודות הישנה */
-
-.dashboard-view .dash-layout{
-  display:block !important;
-
-  width:100% !important;
-
-  direction:rtl !important;
-}
-
-
-/* אזור המרכז החדש */
-
-.dashboard-view .dash-content{
-  width:100% !important;
-
-  display:flex !important;
-  flex-direction:column !important;
-
-  gap:14px !important;
-}
-
-
-/* ארבעת הכרטיסים הישנים כבר נמצאים בסרגל הימני */
-
-.dashboard-view .dash-action-cards{
-  display:none !important;
-}
-
-
-/* התקדמות ויעדים עברו לסרגל הימני */
-
-.dashboard-view .dash-middle-row{
-  display:none !important;
-}
-
-
-/* הנושאים האחרונים לא מופיעים במבנה החדש */
-
-.dashboard-view .dash-recent-card{
-  display:none !important;
-}
-
-
-/* =====================================================
-   אזור המפה
-===================================================== */
-
-
-
-.kingdom-map-placeholder-icon{
-  font-size:55px;
-
-  line-height:1;
-}
-
-
-.kingdom-map-placeholder strong{
-  font-size:24px;
-  font-weight:900;
-}
-
-
-.kingdom-map-placeholder small{
-  font-size:13px;
-  font-weight:700;
-
-  color:#8391af;
-}
-
-
-
-/* =====================================================
-   התאמת הסרגל התחתון
-===================================================== */
-
-.kingdom-bottom-bar{
-  margin-top:0 !important;
-}
-
-
-/* =====================================================
-   מסכים מעט נמוכים
-===================================================== */
-
-@media(max-height:900px){
-
-
-
-  .kingdom-bottom-card{
-    height:220px;
-  }
-
-}
-
-
-/* =====================================================
-   מסכים צרים
-===================================================== */
-
-@media(max-width:1180px){
-
-  .kingdom-map-area{
-    height:500px;
-    min-height:500px;
-  }
-
-}
-/* =====================================================
-   KINGDOM COMPACT BOTTOM BAR
-===================================================== */
-
-.dashboard-view{
-  position:relative !important;
-}
-
-.kingdom-compact-bar{
-  position:absolute;
-
-  right:12px;
-  left:12px;
-  bottom:10px;
-
-  height:92px;
-
-  display:grid;
-  grid-template-columns:
-    .85fr
-    1fr
-    1.45fr
-    1fr
-    1fr;
-
-  gap:9px;
-
-  padding:8px;
-
-  direction:rtl;
-
-  border:1px solid rgba(255,255,255,.22);
-  border-radius:22px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(10,35,61,.94),
-      rgba(5,24,45,.96)
-    );
-
-  box-shadow:
-    0 12px 30px rgba(0,20,50,.35),
-    inset 0 1px 0 rgba(255,255,255,.13);
-
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-
-  z-index:30;
-}
-
-.kingdom-compact-item{
-  min-width:0;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  gap:9px;
-
-  padding:7px 10px;
-
-  border:
-    1px solid
-    rgba(255,210,95,.32);
-
-  border-radius:16px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(17,48,72,.95),
-      rgba(8,29,49,.96)
-    );
-
-  color:#fff;
-
-  cursor:pointer;
-
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.08);
-}
-
-.kingdom-compact-item strong{
-  display:block;
-
-  color:#fff;
-
-  font-size:15px;
-  line-height:1.2;
-  font-weight:900;
-}
-
-.kingdom-compact-item small{
-  display:block;
-
-  margin-top:3px;
-
-  color:#c8d7e7;
-
-  font-size:10px;
-  line-height:1.2;
-  font-weight:700;
-}
-
-.kingdom-compact-icon{
-  flex:none;
-
-  font-size:34px;
-
-  filter:
-    drop-shadow(
-      0 5px 5px
-      rgba(0,0,0,.28)
-    );
-}
-
-.kingdom-compact-progress > span{
-  width:100%;
-}
-
-.kingdom-compact-track{
-  width:100%;
-  height:9px;
-
-  display:block;
-
-  margin-top:6px;
-
-  overflow:hidden;
-
-  border-radius:999px;
-
-  background:#071927;
-}
-
-.kingdom-compact-track > span{
-  display:block;
-
-  width:32%;
-  height:100%;
-
-  border-radius:999px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #65d834,
-      #a9ed38
-    );
-
-  box-shadow:
-    0 0 9px
-    rgba(122,232,51,.55);
-}
-    /* =====================================================
-   LESSON BACKGROUND
-===================================================== */
-
-#lesson-background-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-
-  opacity: 0;
-
-  transition:
-    opacity 700ms ease,
-    filter 700ms ease;
-
-  pointer-events: none;
-}
-
-
-/* שכבת כהות קלה כדי שהממשק יישאר קריא */
-
-#lesson-background-layer::after {
-  content: "";
-
-  position: absolute;
-  inset: 0;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(10, 18, 45, 0.14),
-      rgba(6, 12, 32, 0.28)
-    );
-
-  pointer-events: none;
-}
-
-
-/* רקע שיעור מדעים */
-
-body.lesson-theme-science
-#lesson-background-layer {
-
-  background-image:
-    url("/assets/backgrounds/science-lesson-dusk.png");
-
-  opacity: 1;
-
-  filter:
-    saturate(0.92)
-    brightness(0.82);
-}
-
-
-/* דואגים שהממשק יהיה מעל הרקע */
-
-body > *:not(#lesson-background-layer) {
-  position: relative;
-  z-index: 1;
-}
 </style>
 </head>
 <body>
-<div
-  id="lesson-background-layer"
-  aria-hidden="true"
-></div>
+
 <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
 <div class="app">
 <header class="topbar">
@@ -13442,9 +10831,6 @@ async function startSelectedUnitLesson(
 
   };
 
-  setLessonBackgroundForSubject(
-    CURRENT_PARENT_LESSON.subject
-  );
 
   /*
     בזמן הפתיח עדיין לא מפעילים
@@ -14264,9 +11650,7 @@ if(
 
     };
 
-setLessonBackgroundForSubject(
-  state.parent_lesson?.subject
-);
+
     /* =============================================
        RESTORE VIEW
     ============================================= */
@@ -18696,6 +16080,2510 @@ document.addEventListener("DOMContentLoaded",()=>{
 >
 <script>
 
+/* =====================================================
+   WORKSPACE VIEW MANAGER
+   ===================================================== */
+
+function showDashboard(){
+
+  const dashboard =
+    document.getElementById("dashboardView");
+
+  const learning =
+    document.getElementById("learningView");
+
+    const pathView =
+  document.getElementById(
+    "learningPathView"
+  );
+
+
+
+  if(dashboard){
+    dashboard.style.display = "block";
+  }
+
+  if(learning){
+    learning.style.display = "none";
+  }
+
+if(pathView){
+  pathView.style.display = "none";
+}
+
+  /* כפתור דף הבית פעיל */
+
+  document
+    .querySelectorAll(".side-item")
+    .forEach(btn => {
+
+      btn.classList.remove("active");
+
+    });
+
+
+  const homeBtn =
+    document.getElementById(
+      "homeSidebarBtn"
+    );
+
+  if(homeBtn){
+
+    homeBtn.classList.add(
+      "active"
+    );
+
+  }
+
+}
+
+async function startLearnChat(){
+
+  // מעבר למסך הצ'אט
+  showLearning("learn");
+
+  // מחכים רגע שהמסך יוצג
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        150
+      )
+  );
+
+  // מכניסים "היי" לשדה ההודעה
+  if(inputEl){
+
+    inputEl.value =
+      "היי";
+
+  }
+
+  // שולחים אוטומטית לצ'אט
+  await sendMessage();
+
+}
+
+function showLearning(mode = "homework") {
+
+  const dashboard = document.getElementById("dashboardView");
+  const learning = document.getElementById("learningView");
+  const pathView = document.getElementById("learningPathView");
+
+  // מסתיר את מסך הבית
+  if (dashboard) {
+    dashboard.style.display = "none";
+  }
+
+  // מציג את אזור הלמידה
+  if (learning) {
+    learning.style.display = "block";
+  }
+
+  // מסתיר את מסלול הלמידה
+  if (pathView) {
+    pathView.style.display = "none";
+  }
+
+  // מסיר active מכל כפתורי הפעילות בסרגל
+  document
+    .querySelectorAll(".quick-card")
+    .forEach(btn => {
+      btn.classList.remove("active");
+    });
+
+  // מפעיל את מצב הלמידה שנבחר
+  setLearningMode(mode);
+
+}
+
+/* =====================================================
+   UPDATE LEARNING PATH FOOTER
+===================================================== */
+
+function updateLearningPathFooter({
+  completedLessons = 0,
+  score = 0
+} = {}){
+
+  const completedEl =
+    document.getElementById(
+      "learningPathCompletedCount"
+    );
+
+  const scoreEl =
+    document.getElementById(
+      "learningPathScore"
+    );
+
+  if(completedEl){
+    completedEl.textContent =
+      completedLessons;
+  }
+
+  if(scoreEl){
+    scoreEl.textContent =
+      score;
+  }
+}
+
+
+
+/* =====================================================
+   LEARNING MODE
+   ===================================================== */
+
+function setLearningMode(mode){
+
+  const title =
+    document.getElementById(
+      "heroGreeting"
+    );
+
+  const subtitle =
+    document.getElementById(
+      "learningSubtitle"
+    );
+
+
+  if(!title || !subtitle){
+    return;
+  }
+
+
+  const kidName =
+    window.CURRENT_KID?.child_name
+    || "";
+
+
+  switch(mode){
+
+case "learn":
+
+  title.textContent =
+    `היי ${kidName}, מה בא לך ללמוד?`;
+
+  subtitle.textContent =
+    "אפשר לשאול אותי על כל נושא שמעניין אותך, ואני אלמד אותך שלב אחרי שלב.";
+
+  break;
+
+    case "homework":
+
+      title.textContent =
+        `היי ${kidName}, בוא נפתור את שיעורי הבית!`;
+
+      subtitle.textContent =
+        "צלמו או העלו את התרגיל ונפתור אותו יחד שלב אחרי שלב.";
+
+      break;
+
+
+    case "exam":
+
+      title.textContent =
+        `היי ${kidName}, מתכוננים למבחן!`;
+
+      subtitle.textContent =
+        "נלמד את החומר, נתרגל שאלות ונבדוק מה כבר יודעים.";
+
+      break;
+
+
+    case "practice":
+
+      title.textContent =
+        `היי ${kidName}, בוא נתרגל!`;
+
+      subtitle.textContent =
+        "בחרו נושא ונפתור יחד תרגילים שמתאימים בדיוק לרמה שלכם.";
+
+      break;
+
+
+    case "reading":
+
+      title.textContent =
+        `היי ${kidName}, זמן לקריאה!`;
+
+      subtitle.textContent =
+        "בואו נקרא יחד ונשפר את הקריאה וההבנה.";
+
+      break;
+
+
+    case "games":
+
+      title.textContent =
+        `היי ${kidName}, לומדים ומשחקים!`;
+
+      subtitle.textContent =
+        "בחרו משחק לימודי והתחילו לצבור נקודות וכוכבים.";
+
+      break;
+
+
+    case "continue":
+
+      title.textContent =
+        `ממשיכים מאיפה שהפסקנו`;
+
+      subtitle.textContent =
+        "בואו נמשיך את השיעור האחרון שלכם.";
+
+      break;
+
+
+    default:
+
+      title.textContent =
+        `היי ${kidName}, מה נלמד היום?`;
+
+      subtitle.textContent =
+        "המורה AI כאן כדי ללמוד איתכם שלב אחרי שלב.";
+
+  }
+
+}
+
+
+/* ברירת מחדל בכניסה */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    showDashboard();
+
+  }
+);
+
+</script>
+<style>
+/* =====================================================
+   LESSON RENDERER V1
+===================================================== */
+
+.lesson-renderer-root{
+  width:100%;
+  direction:rtl;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  padding:10px 0 40px;
+}
+
+.lesson-renderer-row{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  direction:rtl;
+}
+
+.lesson-renderer-avatar{
+  width:58px;
+  height:58px;
+  object-fit:contain;
+  flex:none;
+}
+
+.lesson-renderer-content{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.lesson-renderer-line{
+  position:relative;
+  width:max-content;
+  max-width:90%;
+
+  direction:rtl;
+  text-align:right;
+
+  font-family:"Gveret Levin", cursive !important;
+  font-size:34px;
+  line-height:1.6;
+  color:#26314f;
+
+  padding:3px 8px;
+
+  opacity:1;
+}
+
+.lesson-renderer-line.math{
+  direction:ltr;
+  text-align:right;
+
+  font-family:"Gveret Levin", cursive !important;
+  font-size:42px;
+  font-weight:700;
+  color:#3478e5;
+}
+
+.lesson-renderer-line.question{
+  font-size:36px;
+  font-weight:700;
+
+  background:
+    linear-gradient(
+      transparent 65%,
+      rgba(255,222,80,.55) 65%
+    );
+}
+
+.lesson-renderer-line.highlighted{
+  background:#fff1a8;
+  border-radius:12px;
+  padding:5px 12px;
+  transition:.35s ease;
+}
+
+.lesson-renderer-line.success{
+  color:#248c59;
+}
+
+.lesson-renderer-circle{
+  display:inline-block;
+  position:relative;
+  padding:2px 10px;
+}
+
+.lesson-renderer-circle::after{
+  content:"";
+  position:absolute;
+  inset:-7px -10px;
+
+  border:3px solid #ff6d6d;
+  border-radius:50%;
+
+  transform:rotate(-5deg) scale(.4);
+  opacity:0;
+
+  animation:lessonCircleDraw .55s ease forwards;
+}
+
+@keyframes lessonCircleDraw{
+  to{
+    transform:rotate(-5deg) scale(1);
+    opacity:1;
+  }
+}
+
+.lesson-renderer-arrow{
+  font-size:38px;
+  line-height:1;
+  color:#7b4fff;
+  opacity:0;
+  transform:translateX(25px);
+  animation:lessonArrowIn .45s ease forwards;
+}
+
+@keyframes lessonArrowIn{
+  to{
+    opacity:1;
+    transform:translateX(0);
+  }
+}
+
+.lesson-renderer-speaking{
+  animation:lessonSpeakingPulse .7s ease-in-out infinite alternate;
+}
+
+@keyframes lessonSpeakingPulse{
+  from{
+    transform:scale(1);
+  }
+  to{
+    transform:scale(1.06);
+  }
+}
+
+/* כפתור דמו זמני */
+.lesson-renderer-demo-btn{
+  position:fixed;
+  left:25px;
+  bottom:95px;
+  z-index:9999;
+
+  border:0;
+  border-radius:16px;
+
+  padding:14px 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7048ff,
+      #8b61ff
+    );
+
+  color:white;
+
+  font-size:17px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 10px 28px
+    rgba(112,72,255,.28);
+}
+
+    /* =====================================================
+   TABLET DASHBOARD - FINAL FIX
+   iPad / Tablets
+===================================================== */
+
+@media (min-width: 761px) and (max-width: 1450px){
+
+  /* מבנה האפליקציה */
+  .app{
+    grid-template-columns:
+      215px
+      minmax(0,1fr) !important;
+
+    gap:10px !important;
+
+    padding:
+      10px
+      10px
+      14px !important;
+  }
+
+
+  /* הסרגל הימני מוסתר בטאבלט */
+  .rightbar{
+    display:none !important;
+  }
+
+
+  /* סרגל שמאל צר יותר */
+  .sidebar{
+    width:215px !important;
+
+    padding:
+      12px
+      9px !important;
+  }
+
+  .side-item{
+    min-height:51px !important;
+    padding:0 9px !important;
+  }
+
+  .side-title{
+    font-size:14px !important;
+  }
+
+  .new-task{
+    height:52px !important;
+    font-size:15px !important;
+  }
+
+
+  /* אזור ראשי */
+  .main{
+    min-width:0 !important;
+  }
+
+  .dashboard-view{
+    padding:
+      4px
+      6px
+      20px !important;
+
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+  }
+
+
+  /* כותרת */
+  .dash-hero{
+    min-height:115px !important;
+
+    padding:
+      14px
+      5px
+      12px !important;
+  }
+
+  .dash-hero h1{
+    font-size:50px !important;
+  }
+
+  .dash-hero p{
+    margin-top:7px !important;
+    font-size:20px !important;
+  }
+
+
+  /* עמודת ילד + תוכן */
+  .dash-layout{
+    grid-template-columns:
+      180px
+      minmax(0,1fr) !important;
+
+    gap:12px !important;
+  }
+
+
+  /* אזור הילד */
+  .dash-profile-column{
+    gap:9px !important;
+  }
+
+  .dash-student-stack{
+    min-height:285px !important;
+  }
+
+  .dash-student-character{
+    inset:
+      -10px
+      0
+      62px !important;
+  }
+
+  .dash-student-character img{
+    width:210px !important;
+  }
+
+  .dash-profile-card{
+    padding:
+      11px
+      10px !important;
+  }
+
+  .dash-profile-name{
+    font-size:19px !important;
+  }
+
+  .dash-profile-class{
+    font-size:13px !important;
+  }
+
+
+  /* =====================================
+     4 הכרטיסים - 2 בכל שורה
+  ===================================== */
+
+  .dash-action-cards{
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0,1fr)
+      ) !important;
+
+    gap:12px !important;
+  }
+
+  .dash-action-card{
+    min-height:265px !important;
+
+    padding:
+      14px
+      12px
+      13px !important;
+
+    border-radius:22px !important;
+  }
+
+  .dash-card-image{
+    width:125px !important;
+    height:90px !important;
+
+    margin-bottom:2px !important;
+  }
+
+  .dash-action-card h3{
+    font-size:22px !important;
+
+    margin:
+      5px
+      0
+      6px !important;
+  }
+
+  .dash-action-card p{
+    font-size:14px !important;
+    line-height:1.4 !important;
+
+    min-height:42px !important;
+  }
+
+  .dash-action-card button{
+    min-height:43px !important;
+
+    font-size:14px !important;
+  }
+
+
+  /* התקדמות ויעדים */
+  .dash-middle-row{
+    grid-template-columns:
+      1fr !important;
+
+    gap:10px !important;
+  }
+
+
+  /* נושאים אחרונים */
+  .dash-recent-list{
+    grid-template-columns:
+      repeat(
+        3,
+        1fr
+      ) !important;
+  }
+
+
+  /* רובוט תחתון קטן יותר */
+  .floating-tutor-robot{
+    width:150px !important;
+
+    right:15px !important;
+    bottom:0 !important;
+  }
+
+}
+.upload-zone.drag-active{
+  border-color:#7048ff !important;
+  background:
+    linear-gradient(
+      180deg,
+      #f5f1ff,
+      #ffffff
+    ) !important;
+
+  transform:scale(1.01);
+}
+    /* =====================================================
+   INTERACTIVE LESSON LOADING
+===================================================== */
+
+.lesson-loading-overlay{
+  position:absolute;
+  inset:0;
+
+  z-index:45;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:25px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  backdrop-filter:
+    blur(8px)
+    saturate(120%);
+
+  -webkit-backdrop-filter:
+    blur(8px)
+    saturate(120%);
+
+  opacity:0;
+  visibility:hidden;
+
+  transition:
+    opacity .25s ease,
+    visibility .25s ease;
+}
+
+
+.lesson-loading-overlay.visible{
+  opacity:1;
+  visibility:visible;
+}
+
+
+.lesson-loading-card{
+  width:min(430px,92%);
+
+  padding:
+    26px
+    28px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  text-align:center;
+  direction:rtl;
+
+  border-radius:28px;
+
+  background:
+    rgba(255,255,255,.94);
+
+  border:
+    1px solid
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 20px 55px
+    rgba(54,68,125,.18);
+}
+
+
+.lesson-loading-robot{
+  width:105px;
+  height:105px;
+
+  object-fit:contain;
+
+  animation:
+    lessonLoadingRobotFloat
+    1.5s ease-in-out
+    infinite;
+
+  filter:
+    drop-shadow(
+      0 10px 15px
+      rgba(60,75,150,.15)
+    );
+}
+
+
+.lesson-loading-title{
+  margin-top:9px;
+
+  font-size:23px;
+  font-weight:900;
+
+  color:#353577;
+}
+
+
+.lesson-loading-status{
+  min-height:28px;
+
+  margin-top:7px;
+
+  font-size:16px;
+  font-weight:800;
+
+  color:#67719a;
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+}
+
+
+.lesson-loading-status.changing{
+  opacity:0;
+  transform:translateY(4px);
+}
+
+
+.lesson-loading-track{
+  position:relative;
+
+  width:100%;
+  height:10px;
+
+  margin-top:20px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#e8e9f4;
+}
+
+
+.lesson-loading-track::after{
+  content:"";
+
+  position:absolute;
+  top:0;
+  bottom:0;
+
+  width:38%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #7753f4,
+      #a177ff
+    );
+
+  animation:
+    lessonLoadingBar
+    1.25s ease-in-out
+    infinite;
+}
+
+
+.lesson-loading-dots{
+  display:inline-block;
+  min-width:22px;
+  text-align:right;
+}
+
+
+@keyframes lessonLoadingRobotFloat{
+
+  0%,
+  100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-8px);
+  }
+
+}
+
+
+@keyframes lessonLoadingBar{
+
+  0%{
+    right:-40%;
+  }
+
+  100%{
+    right:105%;
+  }
+
+}
+
+
+@media(max-width:760px){
+
+  .lesson-loading-card{
+    width:min(360px,94%);
+    padding:22px 18px;
+  }
+
+  .lesson-loading-robot{
+    width:88px;
+    height:88px;
+  }
+
+  .lesson-loading-title{
+    font-size:20px;
+  }
+
+  .lesson-loading-status{
+    font-size:14px;
+  }
+
+}
+/* =====================================================
+   LESSON VISUAL CARD
+===================================================== */
+
+.lesson-visual-card{
+  width:min(620px,92%);
+  margin:18px auto 24px;
+
+  padding:20px 22px;
+
+  direction:rtl;
+  text-align:right;
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(244,241,255,.94)
+    );
+
+  border:
+    2px solid
+    rgba(123,82,244,.18);
+
+  box-shadow:
+    0 12px 30px
+    rgba(60,55,125,.12);
+
+  opacity:0;
+
+  transform:
+    translateY(14px)
+    scale(.97);
+
+  transition:
+    opacity .35s ease,
+    transform .35s ease;
+}
+
+
+.lesson-visual-card.visible{
+  opacity:1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+.lesson-visual-card-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  margin-bottom:15px;
+
+  font-family:
+    "Gveret Levin",
+    cursive;
+
+  font-size:28px;
+  line-height:1.3;
+
+  color:#4c3db6;
+}
+
+
+.lesson-visual-card-icon{
+  width:46px;
+  height:46px;
+
+  flex:0 0 46px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eee7ff,
+      #ddd2ff
+    );
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size:26px;
+
+  box-shadow:
+    0 6px 14px
+    rgba(90,65,180,.12);
+}
+
+
+.lesson-visual-card-title{
+  font-weight:700;
+}
+
+
+.lesson-visual-card-items{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0,1fr)
+    );
+
+  gap:11px;
+}
+
+
+.lesson-visual-card-item{
+  min-height:58px;
+
+  display:flex;
+  align-items:center;
+
+  padding:
+    10px
+    14px;
+
+  border-radius:16px;
+
+  background:
+    rgba(255,255,255,.90);
+
+  border:
+    1px solid
+    rgba(118,90,210,.12);
+
+  font-family:
+    "Gveret Levin",
+    cursive;
+
+  font-size:24px;
+  line-height:1.3;
+
+  color:#2c3658;
+
+  opacity:0;
+
+  transform:
+    translateX(12px);
+
+  transition:
+    opacity .28s ease,
+    transform .28s ease;
+}
+
+
+.lesson-visual-card-item.visible{
+  opacity:1;
+
+  transform:
+    translateX(0);
+}
+
+
+@media(max-width:760px){
+
+  .lesson-visual-card{
+    width:96%;
+    padding:16px;
+  }
+
+  .lesson-visual-card-header{
+    font-size:23px;
+  }
+
+  .lesson-visual-card-items{
+    grid-template-columns:1fr;
+  }
+
+  .lesson-visual-card-item{
+    min-height:50px;
+    font-size:21px;
+  }
+
+}
+/* =====================================================
+   HOME RIGHT SIDEBAR - KINGDOM DASHBOARD
+   ===================================================== */
+
+.home-rightbar{
+  grid-column:3 !important;
+  grid-row:2 !important;
+
+  width:100% !important;
+  height:100% !important;
+  max-height:none !important;
+
+  align-self:stretch !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  gap:12px !important;
+
+  padding:0 !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  background:transparent !important;
+
+  box-shadow:none !important;
+
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  direction:rtl;
+}
+
+
+/* =====================================================
+   משטח זכוכית משותף
+   ===================================================== */
+
+.home-right-welcome,
+.home-right-actions,
+.home-right-stats,
+.home-right-progress{
+  flex-shrink:0;
+
+  border:
+    1px solid
+    rgba(255,255,255,.88);
+
+  background:
+    rgba(255,255,255,.78);
+
+  backdrop-filter:
+    blur(18px)
+    saturate(125%);
+
+  -webkit-backdrop-filter:
+    blur(18px)
+    saturate(125%);
+
+  box-shadow:
+    0 12px 30px
+    rgba(35,64,115,.15),
+    inset 0 1px 0
+    rgba(255,255,255,.90);
+}
+
+
+/* =====================================================
+   כרטיס הברכה
+   ===================================================== */
+
+.home-right-welcome{
+  position:relative;
+
+  min-height:190px;
+
+  padding:
+    24px
+    145px
+    22px
+    20px;
+
+  display:flex;
+  align-items:center;
+
+  overflow:hidden;
+
+  border-radius:28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(237,250,255,.89),
+      rgba(255,250,230,.84)
+    );
+}
+
+
+.home-right-welcome-text{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  text-align:center;
+}
+
+
+.home-right-welcome h2{
+  margin:
+    0
+    0
+    12px;
+
+  color:#20366e;
+
+  font-size:27px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+
+.home-right-welcome p{
+  margin:0;
+
+  color:#354a7d;
+
+  font-size:16px;
+  line-height:1.65;
+  font-weight:800;
+}
+
+
+.home-right-student{
+  position:absolute;
+
+  right:-12px;
+  bottom:-30px;
+
+  width:165px;
+  height:205px;
+
+  object-fit:contain;
+  object-position:center bottom;
+
+  z-index:1;
+
+  pointer-events:none;
+
+  filter:
+    drop-shadow(
+      0 10px 14px
+      rgba(35,55,95,.18)
+    );
+}
+
+
+.home-right-hidden-avatar{
+  position:absolute;
+
+  width:1px;
+  height:1px;
+
+  opacity:0;
+  pointer-events:none;
+}
+
+
+/* =====================================================
+   ארבעת כרטיסי הפעולה
+   ===================================================== */
+
+.home-right-actions{
+  padding:12px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+
+  gap:11px;
+
+  border-radius:28px;
+}
+
+
+.home-right-action{
+  position:relative;
+
+  min-width:0;
+  min-height:145px;
+
+  padding:
+    14px
+    8px
+    13px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:8px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.62);
+
+  border-radius:21px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 8px 18px
+    rgba(47,63,115,.15),
+    inset 0 1px 0
+    rgba(255,255,255,.30);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    filter .2s ease;
+}
+
+
+.home-right-action:hover{
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 12px 24px
+    rgba(47,63,115,.22),
+    inset 0 1px 0
+    rgba(255,255,255,.38);
+
+  filter:
+    saturate(1.08);
+}
+
+
+.home-right-action img{
+  width:72px;
+  height:67px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 7px 8px
+      rgba(30,40,85,.20)
+    );
+}
+
+
+.home-right-action strong{
+  display:block;
+
+  font-size:17px;
+  line-height:1.2;
+  font-weight:900;
+
+  text-shadow:
+    0 2px 3px
+    rgba(25,30,75,.20);
+}
+
+
+/* משחקים */
+
+.home-right-games{
+  background:
+    linear-gradient(
+      145deg,
+      #b978f1,
+      #8450df
+    );
+}
+
+
+/* תרגול */
+
+.home-right-practice{
+  background:
+    linear-gradient(
+      145deg,
+      #ffc46b,
+      #eb8739
+    );
+}
+
+
+/* שיעורי בית */
+
+.home-right-homework{
+  background:
+    linear-gradient(
+      145deg,
+      #68c5ff,
+      #337ce8
+    );
+}
+
+
+/* למד אותי משהו */
+
+.home-right-learn{
+  background:
+    linear-gradient(
+      145deg,
+      #f178bd,
+      #df3f9a
+    );
+}
+
+
+/* =====================================================
+   סטטיסטיקות
+   ===================================================== */
+
+.home-right-stats{
+  min-height:145px;
+
+  padding:9px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
+
+  border-radius:28px;
+}
+
+
+.home-right-stat{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:
+    9px
+    4px;
+
+  text-align:center;
+
+  border-left:
+    1px solid
+    rgba(94,112,155,.12);
+}
+
+
+.home-right-stat:first-child{
+  border-left:0;
+}
+
+
+.home-right-stat-icon{
+  font-size:38px;
+  line-height:1;
+}
+
+
+.home-right-stat strong{
+  margin-top:5px;
+
+  color:#20366e;
+
+  font-size:25px;
+  line-height:1;
+  font-weight:900;
+}
+
+
+.home-right-stat small{
+  margin-top:5px;
+
+  color:#7180a5;
+
+  font-size:11px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+
+/* =====================================================
+   התקדמות כללית
+   ===================================================== */
+
+.home-right-progress{
+  min-height:180px;
+
+  padding:
+    14px
+    17px
+    15px;
+
+  border-radius:28px;
+}
+
+
+.home-right-progress h3{
+  margin:
+    0
+    0
+    8px;
+
+  color:#20366e;
+
+  font-size:20px;
+  font-weight:900;
+  text-align:right;
+}
+
+
+.home-right-progress-content{
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    94px;
+
+  gap:10px;
+
+  align-items:center;
+}
+
+
+.home-right-chart{
+  min-width:0;
+}
+
+
+.home-right-chart svg{
+  display:block;
+
+  width:100%;
+  height:85px;
+}
+
+
+.home-right-chart-days{
+  display:flex;
+
+  justify-content:space-between;
+
+  padding:
+    0
+    5px;
+
+  color:#7180a5;
+
+  font-size:10px;
+  font-weight:800;
+}
+
+
+.home-right-donut{
+  position:relative;
+
+  width:88px;
+  height:88px;
+
+  margin:auto;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #3689f5
+      0
+      35%,
+      #dce7f7
+      35%
+      100%
+    );
+}
+
+
+.home-right-donut::before{
+  content:"";
+
+  position:absolute;
+
+  width:62px;
+  height:62px;
+
+  border-radius:50%;
+
+  background:
+    rgba(255,255,255,.94);
+}
+
+
+.home-right-donut-inner{
+  position:relative;
+  z-index:1;
+
+  color:#20366e;
+
+  font-size:21px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   גלילה נקייה
+   ===================================================== */
+
+.home-rightbar::-webkit-scrollbar{
+  width:5px;
+}
+
+
+.home-rightbar::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+.home-rightbar::-webkit-scrollbar-thumb{
+  border-radius:999px;
+
+  background:
+    rgba(71,102,160,.22);
+}
+
+
+/* =====================================================
+   מסך בגובה נמוך
+   ===================================================== */
+
+@media(max-height:900px){
+
+  .home-right-welcome{
+    min-height:155px;
+
+    padding:
+      18px
+      120px
+      18px
+      14px;
+  }
+
+
+  .home-right-welcome h2{
+    font-size:23px;
+    margin-bottom:7px;
+  }
+
+
+  .home-right-welcome p{
+    font-size:13px;
+    line-height:1.5;
+  }
+
+
+  .home-right-student{
+    width:140px;
+    height:170px;
+  }
+
+
+  .home-right-action{
+    min-height:118px;
+  }
+
+
+  .home-right-action img{
+    width:58px;
+    height:53px;
+  }
+
+
+  .home-right-action strong{
+    font-size:15px;
+  }
+
+
+  .home-right-stats{
+    min-height:115px;
+  }
+
+
+  .home-right-stat-icon{
+    font-size:30px;
+  }
+
+
+  .home-right-stat strong{
+    font-size:21px;
+  }
+
+
+  .home-right-progress{
+    min-height:150px;
+  }
+
+}
+    /* =====================================================
+   KINGDOM DASHBOARD BOTTOM BAR
+   ===================================================== */
+
+.kingdom-bottom-bar{
+  width:100%;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.05fr
+    1fr;
+
+  gap:10px;
+
+  direction:rtl;
+
+  margin-top:8px;
+  padding:0;
+
+  position:relative;
+  z-index:10;
+
+  flex:0 0 178px;
+  height:178px;
+}
+
+
+/* =====================================================
+   כרטיס בסיס
+   ===================================================== */
+
+.kingdom-bottom-card{
+  min-width:0;
+  height:178px;
+
+  padding:8px 11px 8px;
+
+  display:flex;
+  flex-direction:column;
+
+  border:
+    1px solid
+    rgba(255,255,255,.92);
+
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.93),
+      rgba(242,248,255,.88)
+    );
+
+  box-shadow:
+    0 9px 22px rgba(28,58,105,.16),
+    inset 0 1px 0 rgba(255,255,255,.95);
+
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
+
+  overflow:hidden;
+}
+
+
+.kingdom-bottom-card h2{
+  margin:0 0 5px;
+
+  color:#20376d;
+
+  font-size:16px;
+  line-height:1.1;
+  font-weight:900;
+
+  text-align:center;
+}
+
+
+/* =====================================================
+   משימות
+   ===================================================== */
+
+.kingdom-mission-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:3px;
+
+  flex:1;
+  min-height:0;
+}
+
+
+.kingdom-mission-item{
+  width:100%;
+  min-height:36px;
+  height:36px;
+
+  padding:3px 6px;
+
+  display:grid;
+
+  grid-template-columns:
+    29px
+    minmax(0,1fr)
+    48px;
+
+  align-items:center;
+
+  gap:5px;
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(220,229,241,.84);
+
+  border-radius:10px;
+
+  background:rgba(255,255,255,.72);
+
+  color:#243c6c;
+  text-align:right;
+  cursor:pointer;
+
+  box-shadow:
+    0 2px 7px
+    rgba(41,65,105,.05);
+}
+
+
+.kingdom-mission-item:hover{
+  transform:
+    translateY(-1px);
+
+  background:
+    rgba(255,255,255,.96);
+
+  box-shadow:
+    0 6px 14px
+    rgba(41,65,105,.11);
+}
+
+
+.kingdom-mission-icon{
+  width:27px;
+  height:27px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:8px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eaf4ff,
+      #d9e8fb
+    );
+
+  font-size:15px;
+}
+
+
+.kingdom-mission-content{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:1px;
+}
+
+
+.kingdom-mission-content strong{
+  overflow:hidden;
+
+  color:#29406e;
+
+  font-size:10px;
+  line-height:1.15;
+  font-weight:900;
+
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.kingdom-mission-content small{
+  color:#6180b2;
+
+  font-size:8px;
+  line-height:1.1;
+  font-weight:700;
+}
+
+.kingdom-mission-reward{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+
+  gap:2px;
+
+  color:#243d72;
+
+  font-size:13px;
+}
+
+.kingdom-mission-reward b{
+  font-size:10px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   הישגים
+   ===================================================== */
+
+.kingdom-achievements-list{
+  flex:1;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
+
+  gap:6px;
+
+  min-height:0;
+}
+
+
+.kingdom-achievement{
+  min-width:0;
+
+  padding:5px 4px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(226,237,248,.82),
+      rgba(243,247,252,.74)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.86);
+}
+
+
+.kingdom-achievement-icon{
+  height:42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:34px;
+  line-height:1;
+
+  filter:
+    drop-shadow(
+      0 5px 5px
+      rgba(40,55,90,.14)
+    );
+}
+
+
+.kingdom-achievement strong{
+  margin-top:2px;
+
+  color:#294171;
+
+  font-size:10px;
+  line-height:1.1;
+  font-weight:900;
+}
+
+.kingdom-achievement small{
+  margin-top:2px;
+
+  color:#4f6690;
+
+  font-size:8px;
+  line-height:1.2;
+  font-weight:700;
+}
+
+
+/* =====================================================
+   לוח מובילים
+   ===================================================== */
+
+.kingdom-leaderboard-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:3px;
+
+  flex:1;
+  min-height:0;
+}
+
+
+.kingdom-leaderboard-item{
+  min-height:35px;
+  height:35px;
+
+  padding:2px 7px;
+
+  display:grid;
+
+  grid-template-columns:
+    23px
+    27px
+    minmax(0,1fr)
+    auto;
+
+  align-items:center;
+
+  gap:5px;
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(220,229,241,.84);
+
+  border-radius:10px;
+
+  background:
+    rgba(255,255,255,.74);
+
+  box-shadow:
+    0 2px 7px
+    rgba(41,65,105,.05);
+}
+
+
+.kingdom-rank{
+  font-size:19px;
+  font-weight:900;
+
+  text-align:center;
+}
+
+
+.kingdom-rank{
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+}
+
+.kingdom-friend-avatar{
+  width:25px;
+  height:25px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e4edf8
+    );
+
+  font-size:17px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.9);
+}
+
+.kingdom-leaderboard-item strong{
+  color:#2a4272;
+
+  font-size:10px;
+  font-weight:900;
+}
+
+.kingdom-friend-score{
+  color:#2b4271;
+
+  font-size:10px;
+  font-weight:900;
+
+  white-space:nowrap;
+}
+
+
+/* =====================================================
+   כפתורים תחתונים
+   ===================================================== */
+
+.kingdom-bottom-button{
+  width:58%;
+  min-height:24px;
+  height:24px;
+
+  margin:4px auto 0;
+  padding:0 9px;
+
+  border:0;
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8d5df6,
+      #7044e4
+    );
+
+  color:#fff;
+
+  font-size:9px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 4px 9px
+    rgba(100,63,220,.20);
+}
+
+
+.kingdom-bottom-button:hover{
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 9px 17px
+    rgba(100,63,220,.28);
+}
+
+
+/* =====================================================
+   מסך בינוני
+   ===================================================== */
+
+@media(max-width:1500px){
+
+  .kingdom-bottom-bar{
+    gap:10px;
+  }
+
+
+.kingdom-bottom-bar{
+  height:165px;
+  flex-basis:165px;
+  gap:8px;
+}
+
+.kingdom-bottom-card{
+  height:165px;
+  padding:7px 9px;
+}
+
+.kingdom-bottom-card h2{
+  font-size:14px;
+  margin-bottom:4px;
+}
+
+.kingdom-achievement-icon{
+  height:36px;
+  font-size:29px;
+}
+
+
+  .kingdom-bottom-card h2{
+    font-size:17px;
+  }
+
+
+  .kingdom-achievement-icon{
+    height:60px;
+    font-size:45px;
+  }
+
+
+  .kingdom-achievement strong{
+    font-size:12px;
+  }
+
+
+  .kingdom-achievement small{
+    font-size:9px;
+  }
+
+
+  .kingdom-mission-content strong{
+    font-size:11px;
+  }
+
+}
+
+
+/* =====================================================
+   מובייל וטאבלט
+   ===================================================== */
+
+@media(max-width:1000px){
+
+  .kingdom-bottom-bar{
+    grid-template-columns:1fr;
+
+    padding-bottom:25px;
+  }
+
+
+  .kingdom-bottom-card{
+    width:100%;
+    height:auto;
+    min-height:230px;
+  }
+
+}
+    /* =====================================================
+   KINGDOM DASHBOARD — MAP STRUCTURE
+===================================================== */
+
+
+/* הכותרת הישנה "שלום..." */
+
+.dashboard-view .dash-hero{
+  display:none !important;
+}
+
+
+/* עמודת הילד הישנה */
+
+.dashboard-view .dash-profile-column{
+  display:none !important;
+}
+
+
+/* מבטלים את חלוקת שתי העמודות הישנה */
+
+.dashboard-view .dash-layout{
+  display:block !important;
+
+  width:100% !important;
+
+  direction:rtl !important;
+}
+
+
+/* אזור המרכז החדש */
+
+.dashboard-view .dash-content{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:14px !important;
+}
+
+
+/* ארבעת הכרטיסים הישנים כבר נמצאים בסרגל הימני */
+
+.dashboard-view .dash-action-cards{
+  display:none !important;
+}
+
+
+/* התקדמות ויעדים עברו לסרגל הימני */
+
+.dashboard-view .dash-middle-row{
+  display:none !important;
+}
+
+
+/* הנושאים האחרונים לא מופיעים במבנה החדש */
+
+.dashboard-view .dash-recent-card{
+  display:none !important;
+}
+
+
+/* =====================================================
+   אזור המפה
+===================================================== */
+
+
+
+.kingdom-map-placeholder-icon{
+  font-size:55px;
+
+  line-height:1;
+}
+
+
+.kingdom-map-placeholder strong{
+  font-size:24px;
+  font-weight:900;
+}
+
+
+.kingdom-map-placeholder small{
+  font-size:13px;
+  font-weight:700;
+
+  color:#8391af;
+}
+
+
+
+/* =====================================================
+   התאמת הסרגל התחתון
+===================================================== */
+
+.kingdom-bottom-bar{
+  margin-top:0 !important;
+}
+
+
+/* =====================================================
+   מסכים מעט נמוכים
+===================================================== */
+
+@media(max-height:900px){
+
+
+
+  .kingdom-bottom-card{
+    height:220px;
+  }
+
+}
+
+
+/* =====================================================
+   מסכים צרים
+===================================================== */
+
+@media(max-width:1180px){
+
+  .kingdom-map-area{
+    height:500px;
+    min-height:500px;
+  }
+
+}
+/* =====================================================
+   KINGDOM COMPACT BOTTOM BAR
+===================================================== */
+
+.dashboard-view{
+  position:relative !important;
+}
+
+.kingdom-compact-bar{
+  position:absolute;
+
+  right:12px;
+  left:12px;
+  bottom:10px;
+
+  height:92px;
+
+  display:grid;
+  grid-template-columns:
+    .85fr
+    1fr
+    1.45fr
+    1fr
+    1fr;
+
+  gap:9px;
+
+  padding:8px;
+
+  direction:rtl;
+
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:22px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10,35,61,.94),
+      rgba(5,24,45,.96)
+    );
+
+  box-shadow:
+    0 12px 30px rgba(0,20,50,.35),
+    inset 0 1px 0 rgba(255,255,255,.13);
+
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+
+  z-index:30;
+}
+
+.kingdom-compact-item{
+  min-width:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:9px;
+
+  padding:7px 10px;
+
+  border:
+    1px solid
+    rgba(255,210,95,.32);
+
+  border-radius:16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(17,48,72,.95),
+      rgba(8,29,49,.96)
+    );
+
+  color:#fff;
+
+  cursor:pointer;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.08);
+}
+
+.kingdom-compact-item strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:15px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+.kingdom-compact-item small{
+  display:block;
+
+  margin-top:3px;
+
+  color:#c8d7e7;
+
+  font-size:10px;
+  line-height:1.2;
+  font-weight:700;
+}
+
+.kingdom-compact-icon{
+  flex:none;
+
+  font-size:34px;
+
+  filter:
+    drop-shadow(
+      0 5px 5px
+      rgba(0,0,0,.28)
+    );
+}
+
+.kingdom-compact-progress > span{
+  width:100%;
+}
+
+.kingdom-compact-track{
+  width:100%;
+  height:9px;
+
+  display:block;
+
+  margin-top:6px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#071927;
+}
+
+.kingdom-compact-track > span{
+  display:block;
+
+  width:32%;
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #65d834,
+      #a9ed38
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(122,232,51,.55);
+}
+</style>
 
 
 <script>
