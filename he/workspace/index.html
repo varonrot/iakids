@@ -7035,6 +7035,68 @@ body::before{
 .home-right-chart-days{
   font-size:8px !important;
 }
+    /* =====================================================
+   KINGDOM DASHBOARD — FIT ENTIRE SCREEN
+===================================================== */
+
+.dashboard-view{
+  height:100% !important;
+  min-height:0 !important;
+
+  overflow:hidden !important;
+
+  padding:0 !important;
+}
+
+
+.dashboard-view .dash-wrapper{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+}
+
+
+.dashboard-view .dash-layout{
+  flex:1 !important;
+  min-height:0 !important;
+
+  display:block !important;
+}
+
+
+.dashboard-view .dash-content{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:8px !important;
+}
+
+
+/* המפה מקבלת את כל השטח שנשאר */
+.kingdom-map-area{
+  flex:1 1 auto !important;
+
+  height:auto !important;
+  min-height:0 !important;
+
+  width:100% !important;
+}
+
+
+/* הכרטיסים נשארים בגובה קבוע בתחתית */
+.kingdom-bottom-bar{
+  flex:0 0 165px !important;
+
+  height:165px !important;
+
+  margin:0 !important;
+  padding:0 !important;
+}
 </style>
 </head>
 <body>
@@ -18559,20 +18621,6 @@ document.addEventListener(
 }
 
 
-/* =====================================================
-   הדשבורד צריך לגלול רק אם אין מספיק גובה
-===================================================== */
-
-.dashboard-view{
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-
-  padding:
-    0
-    0
-    18px !important;
-}
-
 
 /* =====================================================
    התאמת הסרגל התחתון
@@ -18582,25 +18630,14 @@ document.addEventListener(
   margin-top:0 !important;
 }
 
-.kingdom-map-area{
-  width:100%;
-  height:620px;
-  min-height:620px;
-  background:transparent;
-  border:none;
-  box-shadow:none;
-}
+
 /* =====================================================
    מסכים מעט נמוכים
 ===================================================== */
 
 @media(max-height:900px){
 
-  .kingdom-map-area{
-    height:520px;
-    min-height:520px;
-  }
-
+ 
 
   .kingdom-bottom-card{
     height:220px;
