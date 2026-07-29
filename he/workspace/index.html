@@ -801,30 +801,17 @@ body{
 body{
     position:relative;
 
-    background-image:
-        linear-gradient(
-            rgba(255,255,255,.08),
-            rgba(255,255,255,.08)
-        ),
-        url("/assets/backgrounds/world-map.png") !important;
+background-image:
+    url("/assets/backgrounds/world-map.png") !important;
 
-    background-size:cover !important;
-    background-position:center center !important;
+    background-size:100% auto !important;
+    background-position:center top !important;
     background-repeat:no-repeat !important;
     background-attachment:fixed !important;
 }
 
-/* שכבת לבן עדינה מעל הרקע */
 body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-
-  background:rgba(255,255,255,.10);
-  backdrop-filter:blur(1.5px);
-  -webkit-backdrop-filter:blur(1.5px);
+  display:none !important;
 }
 
 /* כל האפליקציה מעל שכבת הרקע */
@@ -18433,7 +18420,14 @@ document.addEventListener(
   margin-top:0 !important;
 }
 
-
+.kingdom-map-area{
+  width:100%;
+  height:620px;
+  min-height:620px;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+}
 /* =====================================================
    מסכים מעט נמוכים
 ===================================================== */
