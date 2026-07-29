@@ -6361,7 +6361,7 @@ body::before{
   border-color:rgba(44,188,196,.32);
 }
     /* טאבלט ולפטופ צר - מסתירים את הסרגל הימני */
-@media (max-width:1450px){
+@media (max-width:1180px){
 
   .rightbar{
     display:none !important;
@@ -6369,7 +6369,7 @@ body::before{
 
   .app{
     grid-template-columns:
-      285px
+      235px
       minmax(0,1fr) !important;
   }
 
@@ -7149,20 +7149,11 @@ body::before{
         </aside>
 
 
-<!-- אזור מרכזי -->
-<section class="dash-content">
+        <!-- אזור מרכזי -->
+        <section class="dash-content">
 
-  <!-- שטח המפה הראשית -->
-  <section class="dash-map-stage">
-
-    <div class="dash-map-placeholder">
-      <span>כאן תופיע מפת הממלכות</span>
-    </div>
-
-  </section>
-
-  <!-- 4 כרטיסים ראשיים -->
-  <div class="dash-action-cards">
+<!-- 4 כרטיסים ראשיים -->
+<div class="dash-action-cards">
 
   <!-- למד אותי משהו -->
   <article class="dash-action-card dash-chat">
@@ -7866,108 +7857,212 @@ body::before{
      RIGHT SIDEBAR
 ===================================================== -->
 
-<aside class="rightbar">
+<aside class="rightbar home-rightbar">
 
-  <!-- כרטיס הילד העליון -->
-  <div
-    class="rightbar-kid"
-    onclick="document.getElementById('openParentModal')?.click()"
-  >
-    <img
-      id="rightbarAvatar"
-      src="/assets/avatars/cat_blue.png"
-      alt="פרופיל הילד"
-    >
+  <!-- ==================================================
+       ברכה לילד
+       ================================================== -->
+  <section class="home-right-welcome">
 
-    <div>
-      <strong id="rightbarName">
-        הילד
-      </strong>
+    <div class="home-right-welcome-text">
 
+      <h2>
+        שלום
+        <span id="rightbarName">ילד</span>!
+      </h2>
+
+      <p>
+        מוכנים להרפתקה חדשה?<br>
+        בחרו ממלכה והתחילו ללמוד<br>
+        ולהציל את הממלכה!
+      </p>
 
     </div>
-  </div>
 
-
-  <!-- כותרת -->
-  <div class="learning-sidebar-title">
-    מה בא לך לעשות?
-  </div>
-
-
-  <!-- תפריט פעילויות לימוד -->
-  <nav class="learning-sidebar-menu">
-
-    <button
-      class="learning-menu-item homework active"
-      data-mode="homework"
-      onclick="showLearning('homework', this)"
+    <img
+      class="home-right-student"
+      src="/assets/characters/student-boy-large.png"
+      alt=""
     >
-      <span class="learning-menu-icon">📷</span>
 
-      <span class="learning-menu-text">
-        <strong>שיעורי בית</strong>
-        <small>צלם תרגיל וקבל עזרה</small>
-      </span>
-    </button>
-
-
-    <button
-      class="learning-menu-item exam"
-      data-mode="exam"
-      onclick="showLearning('exam', this)"
+    <!-- נשמר לצורך הלוגיקה הקיימת -->
+    <img
+      id="rightbarAvatar"
+      class="home-right-hidden-avatar"
+      src="/assets/avatars/cat_blue.png"
+      alt=""
     >
-      <span class="learning-menu-icon">📗</span>
 
-      <span class="learning-menu-text">
-        <strong>הכנה למבחן</strong>
-        <small>בוא נתכונן יחד</small>
-      </span>
-    </button>
+  </section>
 
 
+  <!-- ==================================================
+       ארבע פעולות מרכזיות
+       ================================================== -->
+  <section class="home-right-actions">
+
+    <!-- משחקי למידה -->
     <button
-      class="learning-menu-item practice"
-      data-mode="practice"
-      onclick="showLearning('practice', this)"
-    >
-      <span class="learning-menu-icon">✏️</span>
-
-      <span class="learning-menu-text">
-        <strong>תרגול</strong>
-        <small>בחר נושא לתרגול</small>
-      </span>
-    </button>
-
-
-    <button
-      class="learning-menu-item reading"
-      data-mode="reading"
-      onclick="showLearning('reading', this)"
-    >
-      <span class="learning-menu-icon">🎙️</span>
-
-      <span class="learning-menu-text">
-        <strong>קריאה</strong>
-        <small>קרא בקול ונתרגל</small>
-      </span>
-    </button>
-
-
-    <button
-      class="learning-menu-item games"
-      data-mode="games"
+      type="button"
+      class="home-right-action home-right-games"
       onclick="showLearning('games', this)"
     >
-      <span class="learning-menu-icon">🎮</span>
+      <img
+        src="/assets/cards/learning-game.webp"
+        alt=""
+      >
 
-      <span class="learning-menu-text">
-        <strong>משחקי לימוד</strong>
-        <small>ללמוד דרך משחק</small>
-      </span>
+      <strong>משחקי למידה</strong>
     </button>
 
-  </nav>
+
+    <!-- תרגול -->
+    <button
+      type="button"
+      class="home-right-action home-right-practice"
+      onclick="showLearning('practice', this)"
+    >
+      <img
+        src="/assets/cards/practice-pencil.webp"
+        alt=""
+      >
+
+      <strong>תרגול</strong>
+    </button>
+
+
+    <!-- שיעורי בית -->
+    <button
+      type="button"
+      class="home-right-action home-right-homework"
+      onclick="startHomeworkCamera()"
+    >
+      <img
+        src="/assets/cards/homework-camera.webp"
+        alt=""
+      >
+
+      <strong>שיעורי בית</strong>
+    </button>
+
+
+    <!-- למד אותי משהו -->
+    <button
+      type="button"
+      class="home-right-action home-right-learn"
+      onclick="startLearnChat()"
+    >
+      <img
+        src="/assets/robots/askie-robot.png"
+        alt=""
+      >
+
+      <strong>למד אותי משהו</strong>
+    </button>
+
+  </section>
+
+
+  <!-- ==================================================
+       נקודות / הישגים / רצף
+       ================================================== -->
+  <section class="home-right-stats">
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">⭐</span>
+      <strong>125</strong>
+      <small>סה״כ נקודות</small>
+    </div>
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">🏆</span>
+      <strong>7</strong>
+      <small>הושגו</small>
+    </div>
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">🔥</span>
+      <strong>12</strong>
+      <small>ימים ברצף</small>
+    </div>
+
+  </section>
+
+
+  <!-- ==================================================
+       התקדמות כללית
+       ================================================== -->
+  <section class="home-right-progress">
+
+    <h3>התקדמות כללית</h3>
+
+    <div class="home-right-progress-content">
+
+      <div class="home-right-chart">
+
+        <svg
+          viewBox="0 0 300 95"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+
+          <polyline
+            points="
+              8,76
+              48,66
+              88,56
+              128,45
+              168,61
+              208,50
+              248,25
+              292,27
+            "
+            fill="none"
+            stroke="#3187f5"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <g
+            fill="#ffffff"
+            stroke="#3187f5"
+            stroke-width="3"
+          >
+            <circle cx="8" cy="76" r="4"/>
+            <circle cx="48" cy="66" r="4"/>
+            <circle cx="88" cy="56" r="4"/>
+            <circle cx="128" cy="45" r="4"/>
+            <circle cx="168" cy="61" r="4"/>
+            <circle cx="208" cy="50" r="4"/>
+            <circle cx="248" cy="25" r="4"/>
+            <circle cx="292" cy="27" r="4"/>
+          </g>
+
+        </svg>
+
+        <div class="home-right-chart-days">
+          <span>א׳</span>
+          <span>ב׳</span>
+          <span>ג׳</span>
+          <span>ד׳</span>
+          <span>ה׳</span>
+          <span>ו׳</span>
+          <span>ש׳</span>
+        </div>
+
+      </div>
+
+
+      <div class="home-right-donut">
+        <div class="home-right-donut-inner">
+          35%
+        </div>
+      </div>
+
+    </div>
+
+  </section>
 
 </aside>
 </div>
@@ -16768,131 +16863,92 @@ document.addEventListener(
 
 }
 /* =====================================================
-   DASHBOARD MAP LAYOUT — STEP 1
-   שינוי מיקום בלבד, ללא שינוי לוגיקה
-===================================================== */
+   HOME RIGHT SIDEBAR - KINGDOM DASHBOARD
+   ===================================================== */
 
-/*
-  מבטלים את מבנה:
-  כרטיס ילד משמאל + תוכן מימין
+.home-rightbar{
+  grid-column:3 !important;
+  grid-row:2 !important;
 
-  והופכים את אזור הדשבורד למבנה רחב יותר.
-*/
-.dashboard-view .dash-layout{
-  display:block !important;
-  width:100% !important;
-}
-
-
-/*
-  כרגע מעבירים את עמודת הילד למטה.
-  היא לא נמחקת ולא משתנה.
-*/
-.dashboard-view .dash-profile-column{
-  width:100% !important;
-
-  display:grid !important;
-
-  grid-template-columns:
-    1.15fr
-    .9fr
-    .9fr !important;
-
-  gap:12px !important;
-
-  margin-top:14px !important;
-}
-
-
-/*
-  מבטלים את הגובה הגדול שהיה מיועד
-  לדמות שעומדת מעל כרטיס הילד.
-*/
-.dashboard-view .dash-student-stack{
-  min-height:0 !important;
-  height:auto !important;
-
-  display:block !important;
-}
-
-
-/*
-  בשלב הראשון מסתירים רק את דמות הילד הגדולה.
-  כרטיס הפרופיל עצמו נשאר.
-*/
-.dashboard-view .dash-student-character{
-  display:none !important;
-}
-
-
-/*
-  כרטיס הילד ממלא עכשיו את התא שלו למטה.
-*/
-.dashboard-view .dash-profile-card{
   width:100% !important;
   height:100% !important;
+  max-height:none !important;
 
-  min-height:125px !important;
+  align-self:stretch !important;
 
   display:flex !important;
   flex-direction:column !important;
-  justify-content:center !important;
-}
+  gap:12px !important;
 
+  padding:0 !important;
 
-/*
-  הישגים והמשך ללמוד באותה שורה.
-*/
-.dashboard-view .dash-weekly-card,
-.dashboard-view .dash-continue-card{
-  width:100% !important;
-  height:100% !important;
+  border:0 !important;
+  border-radius:0 !important;
 
-  min-height:125px !important;
-}
+  background:transparent !important;
 
+  box-shadow:none !important;
 
-/* =====================================================
-   אזור התוכן העליון:
-   מפה גדולה משמאל וכרטיסים מימין
-===================================================== */
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
 
-.dashboard-view .dash-content{
-  display:grid !important;
-
-  grid-template-columns:
-    minmax(0,1fr)
-    300px !important;
-
-  grid-template-areas:
-    "map actions"
-    "middle middle"
-    "recent recent" !important;
-
-  gap:14px !important;
-
-  width:100% !important;
-
-  direction:ltr !important;
-
-  align-items:stretch !important;
-}
-
-
-/* =====================================================
-   שטח המפה
-===================================================== */
-
-.dashboard-view .dash-map-stage{
-  grid-area:map;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
 
   direction:rtl;
+}
 
+
+/* =====================================================
+   משטח זכוכית משותף
+   ===================================================== */
+
+.home-right-welcome,
+.home-right-actions,
+.home-right-stats,
+.home-right-progress{
+  flex-shrink:0;
+
+  border:
+    1px solid
+    rgba(255,255,255,.88);
+
+  background:
+    rgba(255,255,255,.78);
+
+  backdrop-filter:
+    blur(18px)
+    saturate(125%);
+
+  -webkit-backdrop-filter:
+    blur(18px)
+    saturate(125%);
+
+  box-shadow:
+    0 12px 30px
+    rgba(35,64,115,.15),
+    inset 0 1px 0
+    rgba(255,255,255,.90);
+}
+
+
+/* =====================================================
+   כרטיס הברכה
+   ===================================================== */
+
+.home-right-welcome{
   position:relative;
 
-  width:100%;
+  min-height:190px;
 
-  min-height:535px;
+  padding:
+    24px
+    145px
+    22px
+    20px;
+
+  display:flex;
+  align-items:center;
 
   overflow:hidden;
 
@@ -16901,233 +16957,519 @@ document.addEventListener(
   background:
     linear-gradient(
       145deg,
-      rgba(224,242,255,.78),
-      rgba(238,248,255,.66)
+      rgba(237,250,255,.89),
+      rgba(255,250,230,.84)
     );
-
-  border:
-    1px solid
-    rgba(255,255,255,.88);
-
-  box-shadow:
-    0 16px 38px
-    rgba(39,69,130,.15);
-
-  backdrop-filter:
-    blur(12px);
-
-  -webkit-backdrop-filter:
-    blur(12px);
 }
 
 
-/*
-  כרגע זה רק placeholder.
-  בשלב הבא נחליף אותו בתמונה.
-*/
-.dashboard-view .dash-map-placeholder{
+.home-right-welcome-text{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  text-align:center;
+}
+
+
+.home-right-welcome h2{
+  margin:
+    0
+    0
+    12px;
+
+  color:#20366e;
+
+  font-size:27px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+
+.home-right-welcome p{
+  margin:0;
+
+  color:#354a7d;
+
+  font-size:16px;
+  line-height:1.65;
+  font-weight:800;
+}
+
+
+.home-right-student{
   position:absolute;
 
-  inset:0;
+  right:-12px;
+  bottom:-30px;
+
+  width:165px;
+  height:205px;
+
+  object-fit:contain;
+  object-position:center bottom;
+
+  z-index:1;
+
+  pointer-events:none;
+
+  filter:
+    drop-shadow(
+      0 10px 14px
+      rgba(35,55,95,.18)
+    );
+}
+
+
+.home-right-hidden-avatar{
+  position:absolute;
+
+  width:1px;
+  height:1px;
+
+  opacity:0;
+  pointer-events:none;
+}
+
+
+/* =====================================================
+   ארבעת כרטיסי הפעולה
+   ===================================================== */
+
+.home-right-actions{
+  padding:12px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+
+  gap:11px;
+
+  border-radius:28px;
+}
+
+
+.home-right-action{
+  position:relative;
+
+  min-width:0;
+  min-height:145px;
+
+  padding:
+    14px
+    8px
+    13px;
 
   display:flex;
+  flex-direction:column;
 
   align-items:center;
   justify-content:center;
 
+  gap:8px;
+
   border:
-    2px dashed
-    rgba(63,117,184,.25);
+    1px solid
+    rgba(255,255,255,.62);
+
+  border-radius:21px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 8px 18px
+    rgba(47,63,115,.15),
+    inset 0 1px 0
+    rgba(255,255,255,.30);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    filter .2s ease;
+}
+
+
+.home-right-action:hover{
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 12px 24px
+    rgba(47,63,115,.22),
+    inset 0 1px 0
+    rgba(255,255,255,.38);
+
+  filter:
+    saturate(1.08);
+}
+
+
+.home-right-action img{
+  width:72px;
+  height:67px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 7px 8px
+      rgba(30,40,85,.20)
+    );
+}
+
+
+.home-right-action strong{
+  display:block;
+
+  font-size:17px;
+  line-height:1.2;
+  font-weight:900;
+
+  text-shadow:
+    0 2px 3px
+    rgba(25,30,75,.20);
+}
+
+
+/* משחקים */
+
+.home-right-games{
+  background:
+    linear-gradient(
+      145deg,
+      #b978f1,
+      #8450df
+    );
+}
+
+
+/* תרגול */
+
+.home-right-practice{
+  background:
+    linear-gradient(
+      145deg,
+      #ffc46b,
+      #eb8739
+    );
+}
+
+
+/* שיעורי בית */
+
+.home-right-homework{
+  background:
+    linear-gradient(
+      145deg,
+      #68c5ff,
+      #337ce8
+    );
+}
+
+
+/* למד אותי משהו */
+
+.home-right-learn{
+  background:
+    linear-gradient(
+      145deg,
+      #f178bd,
+      #df3f9a
+    );
+}
+
+
+/* =====================================================
+   סטטיסטיקות
+   ===================================================== */
+
+.home-right-stats{
+  min-height:145px;
+
+  padding:9px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
 
   border-radius:28px;
+}
 
-  color:#6980a9;
 
-  font-size:22px;
+.home-right-stat{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:
+    9px
+    4px;
+
+  text-align:center;
+
+  border-left:
+    1px solid
+    rgba(94,112,155,.12);
+}
+
+
+.home-right-stat:first-child{
+  border-left:0;
+}
+
+
+.home-right-stat-icon{
+  font-size:38px;
+  line-height:1;
+}
+
+
+.home-right-stat strong{
+  margin-top:5px;
+
+  color:#20366e;
+
+  font-size:25px;
+  line-height:1;
+  font-weight:900;
+}
+
+
+.home-right-stat small{
+  margin-top:5px;
+
+  color:#7180a5;
+
+  font-size:11px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+
+/* =====================================================
+   התקדמות כללית
+   ===================================================== */
+
+.home-right-progress{
+  min-height:180px;
+
+  padding:
+    14px
+    17px
+    15px;
+
+  border-radius:28px;
+}
+
+
+.home-right-progress h3{
+  margin:
+    0
+    0
+    8px;
+
+  color:#20366e;
+
+  font-size:20px;
+  font-weight:900;
+  text-align:right;
+}
+
+
+.home-right-progress-content{
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    94px;
+
+  gap:10px;
+
+  align-items:center;
+}
+
+
+.home-right-chart{
+  min-width:0;
+}
+
+
+.home-right-chart svg{
+  display:block;
+
+  width:100%;
+  height:85px;
+}
+
+
+.home-right-chart-days{
+  display:flex;
+
+  justify-content:space-between;
+
+  padding:
+    0
+    5px;
+
+  color:#7180a5;
+
+  font-size:10px;
+  font-weight:800;
+}
+
+
+.home-right-donut{
+  position:relative;
+
+  width:88px;
+  height:88px;
+
+  margin:auto;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #3689f5
+      0
+      35%,
+      #dce7f7
+      35%
+      100%
+    );
+}
+
+
+.home-right-donut::before{
+  content:"";
+
+  position:absolute;
+
+  width:62px;
+  height:62px;
+
+  border-radius:50%;
+
+  background:
+    rgba(255,255,255,.94);
+}
+
+
+.home-right-donut-inner{
+  position:relative;
+  z-index:1;
+
+  color:#20366e;
+
+  font-size:21px;
   font-weight:900;
 }
 
 
 /* =====================================================
-   ארבעת כרטיסי הפעולה בצד ימין
-===================================================== */
+   גלילה נקייה
+   ===================================================== */
 
-.dashboard-view .dash-action-cards{
-  grid-area:actions;
-
-  direction:rtl;
-
-  display:grid !important;
-
-  grid-template-columns:
-    repeat(2,minmax(0,1fr)) !important;
-
-  grid-template-rows:
-    repeat(2,minmax(0,1fr)) !important;
-
-  gap:10px !important;
-
-  width:300px !important;
-
-  align-self:stretch !important;
+.home-rightbar::-webkit-scrollbar{
+  width:5px;
 }
 
 
-/*
-  הופכים את הכרטיסים מקלפים גבוהים
-  לכרטיסים קטנים שמתאימים לצד המפה.
-*/
-.dashboard-view .dash-action-card{
-  width:100% !important;
-
-  min-width:0 !important;
-  min-height:0 !important;
-  height:auto !important;
-
-  padding:
-    13px
-    9px
-    11px !important;
-
-  border-radius:20px !important;
-
-  justify-content:center !important;
+.home-rightbar::-webkit-scrollbar-track{
+  background:transparent;
 }
 
 
-/*
-  תמונות קטנות יותר.
-*/
-.dashboard-view .dash-card-image{
-  width:74px !important;
-  height:62px !important;
+.home-rightbar::-webkit-scrollbar-thumb{
+  border-radius:999px;
 
-  margin:
-    0
-    auto
-    4px !important;
-}
-
-
-/*
-  כותרות קטנות יותר.
-*/
-.dashboard-view .dash-action-card h3{
-  margin:
-    3px
-    0
-    5px !important;
-
-  font-size:17px !important;
-  line-height:1.2 !important;
-}
-
-
-/*
-  בתצוגת המפה אין צורך בתיאור הארוך.
-  הטקסט נשאר ב־HTML ולכן לא פגענו בלוגיקה.
-*/
-.dashboard-view .dash-action-card p{
-  display:none !important;
-}
-
-
-/*
-  כפתורי הפעולה נשארים עם אותם onclick.
-*/
-.dashboard-view .dash-action-card button{
-  min-height:35px !important;
-
-  margin-top:6px !important;
-
-  padding:
-    4px
-    6px !important;
-
-  font-size:12px !important;
+  background:
+    rgba(71,102,160,.22);
 }
 
 
 /* =====================================================
-   הכרטיסים התחתונים
-===================================================== */
+   מסך בגובה נמוך
+   ===================================================== */
 
-.dashboard-view .dash-middle-row{
-  grid-area:middle;
+@media(max-height:900px){
 
-  direction:rtl;
+  .home-right-welcome{
+    min-height:155px;
 
-  margin-top:0 !important;
-}
-
-
-.dashboard-view .dash-recent-card{
-  grid-area:recent;
-
-  direction:rtl;
-}
-
-
-/* =====================================================
-   הכותרת הישנה
-===================================================== */
-
-/*
-  במפה החדשה לא צריך את:
-  "שלום אלונה — מה נלמד היום?"
-
-  כרגע רק מסתירים אותה.
-  לא מוחקים מה־HTML ולא נוגעים בעדכון השם.
-*/
-.dashboard-view .dash-hero{
-  display:none !important;
-}
-
-
-/* =====================================================
-   מסכים צרים
-===================================================== */
-
-@media(max-width:1350px){
-
-  .dashboard-view .dash-content{
-    grid-template-columns:
-      minmax(0,1fr)
-      260px !important;
+    padding:
+      18px
+      120px
+      18px
+      14px;
   }
 
-  .dashboard-view .dash-action-cards{
-    width:260px !important;
+
+  .home-right-welcome h2{
+    font-size:23px;
+    margin-bottom:7px;
   }
 
-  .dashboard-view .dash-map-stage{
-    min-height:480px;
+
+  .home-right-welcome p{
+    font-size:13px;
+    line-height:1.5;
   }
 
-}
 
-
-@media(max-width:900px){
-
-  .dashboard-view .dash-content{
-    display:flex !important;
-    flex-direction:column !important;
+  .home-right-student{
+    width:140px;
+    height:170px;
   }
 
-  .dashboard-view .dash-map-stage{
-    width:100% !important;
-    min-height:420px !important;
+
+  .home-right-action{
+    min-height:118px;
   }
 
-  .dashboard-view .dash-action-cards{
-    width:100% !important;
 
-    grid-template-columns:
-      repeat(2,minmax(0,1fr)) !important;
+  .home-right-action img{
+    width:58px;
+    height:53px;
   }
 
-  .dashboard-view .dash-profile-column{
-    grid-template-columns:1fr !important;
+
+  .home-right-action strong{
+    font-size:15px;
+  }
+
+
+  .home-right-stats{
+    min-height:115px;
+  }
+
+
+  .home-right-stat-icon{
+    font-size:30px;
+  }
+
+
+  .home-right-stat strong{
+    font-size:21px;
+  }
+
+
+  .home-right-progress{
+    min-height:150px;
   }
 
 }
