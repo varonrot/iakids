@@ -7149,11 +7149,20 @@ body::before{
         </aside>
 
 
-        <!-- אזור מרכזי -->
-        <section class="dash-content">
+<!-- אזור מרכזי -->
+<section class="dash-content">
 
-<!-- 4 כרטיסים ראשיים -->
-<div class="dash-action-cards">
+  <!-- שטח המפה הראשית -->
+  <section class="dash-map-stage">
+
+    <div class="dash-map-placeholder">
+      <span>כאן תופיע מפת הממלכות</span>
+    </div>
+
+  </section>
+
+  <!-- 4 כרטיסים ראשיים -->
+  <div class="dash-action-cards">
 
   <!-- למד אותי משהו -->
   <article class="dash-action-card dash-chat">
@@ -16758,7 +16767,370 @@ document.addEventListener(
   }
 
 }
+/* =====================================================
+   DASHBOARD MAP LAYOUT — STEP 1
+   שינוי מיקום בלבד, ללא שינוי לוגיקה
+===================================================== */
 
+/*
+  מבטלים את מבנה:
+  כרטיס ילד משמאל + תוכן מימין
+
+  והופכים את אזור הדשבורד למבנה רחב יותר.
+*/
+.dashboard-view .dash-layout{
+  display:block !important;
+  width:100% !important;
+}
+
+
+/*
+  כרגע מעבירים את עמודת הילד למטה.
+  היא לא נמחקת ולא משתנה.
+*/
+.dashboard-view .dash-profile-column{
+  width:100% !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    1.15fr
+    .9fr
+    .9fr !important;
+
+  gap:12px !important;
+
+  margin-top:14px !important;
+}
+
+
+/*
+  מבטלים את הגובה הגדול שהיה מיועד
+  לדמות שעומדת מעל כרטיס הילד.
+*/
+.dashboard-view .dash-student-stack{
+  min-height:0 !important;
+  height:auto !important;
+
+  display:block !important;
+}
+
+
+/*
+  בשלב הראשון מסתירים רק את דמות הילד הגדולה.
+  כרטיס הפרופיל עצמו נשאר.
+*/
+.dashboard-view .dash-student-character{
+  display:none !important;
+}
+
+
+/*
+  כרטיס הילד ממלא עכשיו את התא שלו למטה.
+*/
+.dashboard-view .dash-profile-card{
+  width:100% !important;
+  height:100% !important;
+
+  min-height:125px !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+}
+
+
+/*
+  הישגים והמשך ללמוד באותה שורה.
+*/
+.dashboard-view .dash-weekly-card,
+.dashboard-view .dash-continue-card{
+  width:100% !important;
+  height:100% !important;
+
+  min-height:125px !important;
+}
+
+
+/* =====================================================
+   אזור התוכן העליון:
+   מפה גדולה משמאל וכרטיסים מימין
+===================================================== */
+
+.dashboard-view .dash-content{
+  display:grid !important;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    300px !important;
+
+  grid-template-areas:
+    "map actions"
+    "middle middle"
+    "recent recent" !important;
+
+  gap:14px !important;
+
+  width:100% !important;
+
+  direction:ltr !important;
+
+  align-items:stretch !important;
+}
+
+
+/* =====================================================
+   שטח המפה
+===================================================== */
+
+.dashboard-view .dash-map-stage{
+  grid-area:map;
+
+  direction:rtl;
+
+  position:relative;
+
+  width:100%;
+
+  min-height:535px;
+
+  overflow:hidden;
+
+  border-radius:28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(224,242,255,.78),
+      rgba(238,248,255,.66)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.88);
+
+  box-shadow:
+    0 16px 38px
+    rgba(39,69,130,.15);
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+}
+
+
+/*
+  כרגע זה רק placeholder.
+  בשלב הבא נחליף אותו בתמונה.
+*/
+.dashboard-view .dash-map-placeholder{
+  position:absolute;
+
+  inset:0;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  border:
+    2px dashed
+    rgba(63,117,184,.25);
+
+  border-radius:28px;
+
+  color:#6980a9;
+
+  font-size:22px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   ארבעת כרטיסי הפעולה בצד ימין
+===================================================== */
+
+.dashboard-view .dash-action-cards{
+  grid-area:actions;
+
+  direction:rtl;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr)) !important;
+
+  grid-template-rows:
+    repeat(2,minmax(0,1fr)) !important;
+
+  gap:10px !important;
+
+  width:300px !important;
+
+  align-self:stretch !important;
+}
+
+
+/*
+  הופכים את הכרטיסים מקלפים גבוהים
+  לכרטיסים קטנים שמתאימים לצד המפה.
+*/
+.dashboard-view .dash-action-card{
+  width:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+  height:auto !important;
+
+  padding:
+    13px
+    9px
+    11px !important;
+
+  border-radius:20px !important;
+
+  justify-content:center !important;
+}
+
+
+/*
+  תמונות קטנות יותר.
+*/
+.dashboard-view .dash-card-image{
+  width:74px !important;
+  height:62px !important;
+
+  margin:
+    0
+    auto
+    4px !important;
+}
+
+
+/*
+  כותרות קטנות יותר.
+*/
+.dashboard-view .dash-action-card h3{
+  margin:
+    3px
+    0
+    5px !important;
+
+  font-size:17px !important;
+  line-height:1.2 !important;
+}
+
+
+/*
+  בתצוגת המפה אין צורך בתיאור הארוך.
+  הטקסט נשאר ב־HTML ולכן לא פגענו בלוגיקה.
+*/
+.dashboard-view .dash-action-card p{
+  display:none !important;
+}
+
+
+/*
+  כפתורי הפעולה נשארים עם אותם onclick.
+*/
+.dashboard-view .dash-action-card button{
+  min-height:35px !important;
+
+  margin-top:6px !important;
+
+  padding:
+    4px
+    6px !important;
+
+  font-size:12px !important;
+}
+
+
+/* =====================================================
+   הכרטיסים התחתונים
+===================================================== */
+
+.dashboard-view .dash-middle-row{
+  grid-area:middle;
+
+  direction:rtl;
+
+  margin-top:0 !important;
+}
+
+
+.dashboard-view .dash-recent-card{
+  grid-area:recent;
+
+  direction:rtl;
+}
+
+
+/* =====================================================
+   הכותרת הישנה
+===================================================== */
+
+/*
+  במפה החדשה לא צריך את:
+  "שלום אלונה — מה נלמד היום?"
+
+  כרגע רק מסתירים אותה.
+  לא מוחקים מה־HTML ולא נוגעים בעדכון השם.
+*/
+.dashboard-view .dash-hero{
+  display:none !important;
+}
+
+
+/* =====================================================
+   מסכים צרים
+===================================================== */
+
+@media(max-width:1350px){
+
+  .dashboard-view .dash-content{
+    grid-template-columns:
+      minmax(0,1fr)
+      260px !important;
+  }
+
+  .dashboard-view .dash-action-cards{
+    width:260px !important;
+  }
+
+  .dashboard-view .dash-map-stage{
+    min-height:480px;
+  }
+
+}
+
+
+@media(max-width:900px){
+
+  .dashboard-view .dash-content{
+    display:flex !important;
+    flex-direction:column !important;
+  }
+
+  .dashboard-view .dash-map-stage{
+    width:100% !important;
+    min-height:420px !important;
+  }
+
+  .dashboard-view .dash-action-cards{
+    width:100% !important;
+
+    grid-template-columns:
+      repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .dashboard-view .dash-profile-column{
+    grid-template-columns:1fr !important;
+  }
+
+}
 </style>
 
 
@@ -18707,44 +19079,39 @@ console.log(
     כמעט באותו הזמן.
   */
 
-const delay =
-  ms =>
-    new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          ms
-        )
-    );
+const audioPromises = [];
+
+let previousTtsPromise =
+  Promise.resolve();
 
 
-const audioPromises =
-  parts.map(
-    (
-      part,
-      index
-    ) => {
+for(
+  let index = 0;
+  index < parts.length;
+  index++
+){
 
-      return (
+  const part =
+    parts[index];
+
+
+  /*
+    כל קריאת TTS מתחילה רק לאחר
+    שקריאת ה-TTS הקודמת הסתיימה.
+
+    אם הקריאה הקודמת נכשלה,
+    עדיין ממשיכים לחלק הבא.
+  */
+
+  const currentTtsPromise =
+    previousTtsPromise
+
+      .catch(
+        () => null
+      )
+
+      .then(
         async () => {
-
-          /*
-            חלק ראשון נשלח מיד.
-
-            כל חלק נוסף מתחיל
-            300ms אחרי הקודם.
-          */
-
-          if(
-            index > 0
-          ){
-
-            await delay(
-              index * 300
-            );
-
-          }
-
 
           console.log(
             `⏱️ TTS ${index + 1} SENT:`,
@@ -18777,10 +19144,18 @@ const audioPromises =
           return audioUrl;
 
         }
-      )();
+      );
 
-    }
+
+  audioPromises.push(
+    currentTtsPromise
   );
+
+
+  previousTtsPromise =
+    currentTtsPromise;
+
+}
   /*
     מציגים ומשמיעים את החלקים לפי הסדר.
 
