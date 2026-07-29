@@ -7151,7 +7151,29 @@ body::before{
 
         <!-- אזור מרכזי -->
         <section class="dash-content">
+<!-- =====================================================
+     KINGDOM MAP AREA
+===================================================== -->
 
+<section class="kingdom-map-area">
+
+  <div class="kingdom-map-placeholder">
+
+    <span class="kingdom-map-placeholder-icon">
+      🗺️
+    </span>
+
+    <strong>
+      כאן תופיע מפת הממלכות
+    </strong>
+
+    <small>
+      בשלב הבא נכניס את תמונת המפה
+    </small>
+
+  </div>
+
+</section>
 <!-- 4 כרטיסים ראשיים -->
 <div class="dash-action-cards">
 
@@ -18308,6 +18330,217 @@ document.addEventListener(
     width:100%;
     height:auto;
     min-height:230px;
+  }
+
+}
+    /* =====================================================
+   KINGDOM DASHBOARD — MAP STRUCTURE
+===================================================== */
+
+
+/* הכותרת הישנה "שלום..." */
+
+.dashboard-view .dash-hero{
+  display:none !important;
+}
+
+
+/* עמודת הילד הישנה */
+
+.dashboard-view .dash-profile-column{
+  display:none !important;
+}
+
+
+/* מבטלים את חלוקת שתי העמודות הישנה */
+
+.dashboard-view .dash-layout{
+  display:block !important;
+
+  width:100% !important;
+
+  direction:rtl !important;
+}
+
+
+/* אזור המרכז החדש */
+
+.dashboard-view .dash-content{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:14px !important;
+}
+
+
+/* ארבעת הכרטיסים הישנים כבר נמצאים בסרגל הימני */
+
+.dashboard-view .dash-action-cards{
+  display:none !important;
+}
+
+
+/* התקדמות ויעדים עברו לסרגל הימני */
+
+.dashboard-view .dash-middle-row{
+  display:none !important;
+}
+
+
+/* הנושאים האחרונים לא מופיעים במבנה החדש */
+
+.dashboard-view .dash-recent-card{
+  display:none !important;
+}
+
+
+/* =====================================================
+   אזור המפה
+===================================================== */
+
+.kingdom-map-area{
+  position:relative;
+
+  width:100%;
+
+  height:
+    clamp(
+      480px,
+      57vh,
+      660px
+    );
+
+  min-height:480px;
+
+  overflow:hidden;
+
+  border-radius:26px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(225,244,255,.75),
+      rgba(238,248,255,.63)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.88);
+
+  box-shadow:
+    0 16px 38px
+    rgba(39,69,130,.15);
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+}
+
+
+/* Placeholder זמני */
+
+.kingdom-map-placeholder{
+  position:absolute;
+
+  inset:0;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:9px;
+
+  border:
+    2px dashed
+    rgba(61,112,181,.27);
+
+  border-radius:26px;
+
+  color:#637aa6;
+
+  text-align:center;
+}
+
+
+.kingdom-map-placeholder-icon{
+  font-size:55px;
+
+  line-height:1;
+}
+
+
+.kingdom-map-placeholder strong{
+  font-size:24px;
+  font-weight:900;
+}
+
+
+.kingdom-map-placeholder small{
+  font-size:13px;
+  font-weight:700;
+
+  color:#8391af;
+}
+
+
+/* =====================================================
+   הדשבורד צריך לגלול רק אם אין מספיק גובה
+===================================================== */
+
+.dashboard-view{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  padding:
+    0
+    0
+    18px !important;
+}
+
+
+/* =====================================================
+   התאמת הסרגל התחתון
+===================================================== */
+
+.kingdom-bottom-bar{
+  margin-top:0 !important;
+}
+
+
+/* =====================================================
+   מסכים מעט נמוכים
+===================================================== */
+
+@media(max-height:900px){
+
+  .kingdom-map-area{
+    height:470px;
+    min-height:470px;
+  }
+
+
+  .kingdom-bottom-card{
+    height:220px;
+  }
+
+}
+
+
+/* =====================================================
+   מסכים צרים
+===================================================== */
+
+@media(max-width:1180px){
+
+  .kingdom-map-area{
+    height:500px;
+    min-height:500px;
   }
 
 }
