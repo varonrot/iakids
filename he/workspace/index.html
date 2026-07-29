@@ -17956,20 +17956,18 @@ document.addEventListener(
     1.05fr
     1fr;
 
-  gap:14px;
+  gap:10px;
 
   direction:rtl;
 
-  margin-top:14px;
-
-  padding:
-    0
-    0
-    4px;
+  margin-top:8px;
+  padding:0;
 
   position:relative;
-
   z-index:10;
+
+  flex:0 0 178px;
+  height:178px;
 }
 
 
@@ -17979,12 +17977,9 @@ document.addEventListener(
 
 .kingdom-bottom-card{
   min-width:0;
-  height:255px;
+  height:178px;
 
-  padding:
-    13px
-    16px
-    12px;
+  padding:8px 11px 8px;
 
   display:flex;
   flex-direction:column;
@@ -17993,7 +17988,7 @@ document.addEventListener(
     1px solid
     rgba(255,255,255,.92);
 
-  border-radius:25px;
+  border-radius:20px;
 
   background:
     linear-gradient(
@@ -18003,33 +17998,23 @@ document.addEventListener(
     );
 
   box-shadow:
-    0 13px 30px
-    rgba(28,58,105,.18),
-    inset 0 1px 0
-    rgba(255,255,255,.95);
+    0 9px 22px rgba(28,58,105,.16),
+    inset 0 1px 0 rgba(255,255,255,.95);
 
-  backdrop-filter:
-    blur(17px)
-    saturate(125%);
-
-  -webkit-backdrop-filter:
-    blur(17px)
-    saturate(125%);
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
 
   overflow:hidden;
 }
 
 
 .kingdom-bottom-card h2{
-  margin:
-    0
-    0
-    10px;
+  margin:0 0 5px;
 
   color:#20376d;
 
-  font-size:20px;
-  line-height:1.2;
+  font-size:16px;
+  line-height:1.1;
   font-weight:900;
 
   text-align:center;
@@ -18044,56 +18029,47 @@ document.addEventListener(
   display:flex;
   flex-direction:column;
 
-  gap:5px;
+  gap:3px;
 
   flex:1;
+  min-height:0;
 }
 
 
 .kingdom-mission-item{
   width:100%;
-  min-height:50px;
+  min-height:36px;
+  height:36px;
 
-  padding:
-    5px
-    8px;
+  padding:3px 6px;
 
   display:grid;
 
   grid-template-columns:
-    38px
+    29px
     minmax(0,1fr)
-    61px;
+    48px;
 
   align-items:center;
 
-  gap:8px;
-
+  gap:5px;
   direction:rtl;
 
   border:
     1px solid
     rgba(220,229,241,.84);
 
-  border-radius:13px;
+  border-radius:10px;
 
-  background:
-    rgba(255,255,255,.72);
+  background:rgba(255,255,255,.72);
 
   color:#243c6c;
-
   text-align:right;
-
   cursor:pointer;
 
   box-shadow:
-    0 3px 9px
-    rgba(41,65,105,.06);
-
-  transition:
-    transform .18s ease,
-    background .18s ease,
-    box-shadow .18s ease;
+    0 2px 7px
+    rgba(41,65,105,.05);
 }
 
 
@@ -18111,13 +18087,13 @@ document.addEventListener(
 
 
 .kingdom-mission-icon{
-  width:36px;
-  height:36px;
+  width:27px;
+  height:27px;
 
   display:grid;
   place-items:center;
 
-  border-radius:11px;
+  border-radius:8px;
 
   background:
     linear-gradient(
@@ -18126,7 +18102,7 @@ document.addEventListener(
       #d9e8fb
     );
 
-  font-size:20px;
+  font-size:15px;
 }
 
 
@@ -18145,40 +18121,36 @@ document.addEventListener(
 
   color:#29406e;
 
-  font-size:13px;
-  line-height:1.25;
+  font-size:10px;
+  line-height:1.15;
   font-weight:900;
 
   white-space:nowrap;
   text-overflow:ellipsis;
 }
 
-
 .kingdom-mission-content small{
   color:#6180b2;
 
-  font-size:10px;
-  line-height:1.2;
+  font-size:8px;
+  line-height:1.1;
   font-weight:700;
 }
 
-
 .kingdom-mission-reward{
   display:flex;
-
   align-items:center;
   justify-content:flex-end;
 
-  gap:4px;
+  gap:2px;
 
   color:#243d72;
 
-  font-size:18px;
+  font-size:13px;
 }
 
-
 .kingdom-mission-reward b{
-  font-size:13px;
+  font-size:10px;
   font-weight:900;
 }
 
@@ -18195,16 +18167,16 @@ document.addEventListener(
   grid-template-columns:
     repeat(3,minmax(0,1fr));
 
-  gap:9px;
+  gap:6px;
+
+  min-height:0;
 }
 
 
 .kingdom-achievement{
   min-width:0;
 
-  padding:
-    10px
-    6px;
+  padding:5px 4px;
 
   display:flex;
   flex-direction:column;
@@ -18214,7 +18186,7 @@ document.addEventListener(
 
   text-align:center;
 
-  border-radius:17px;
+  border-radius:13px;
 
   background:
     linear-gradient(
@@ -18230,42 +18202,40 @@ document.addEventListener(
 
 
 .kingdom-achievement-icon{
-  height:72px;
+  height:42px;
 
   display:flex;
   align-items:center;
   justify-content:center;
 
-  font-size:55px;
-
+  font-size:34px;
   line-height:1;
 
   filter:
     drop-shadow(
-      0 7px 7px
-      rgba(40,55,90,.16)
+      0 5px 5px
+      rgba(40,55,90,.14)
     );
 }
 
 
 .kingdom-achievement strong{
-  margin-top:4px;
+  margin-top:2px;
 
   color:#294171;
 
-  font-size:14px;
-  line-height:1.2;
+  font-size:10px;
+  line-height:1.1;
   font-weight:900;
 }
 
-
 .kingdom-achievement small{
-  margin-top:4px;
+  margin-top:2px;
 
   color:#4f6690;
 
-  font-size:10px;
-  line-height:1.35;
+  font-size:8px;
+  line-height:1.2;
   font-weight:700;
 }
 
@@ -18278,45 +18248,44 @@ document.addEventListener(
   display:flex;
   flex-direction:column;
 
-  gap:5px;
+  gap:3px;
 
   flex:1;
+  min-height:0;
 }
 
 
 .kingdom-leaderboard-item{
-  min-height:48px;
+  min-height:35px;
+  height:35px;
 
-  padding:
-    4px
-    10px;
+  padding:2px 7px;
 
   display:grid;
 
   grid-template-columns:
-    30px
-    36px
+    23px
+    27px
     minmax(0,1fr)
     auto;
 
   align-items:center;
 
-  gap:7px;
-
+  gap:5px;
   direction:rtl;
 
   border:
     1px solid
     rgba(220,229,241,.84);
 
-  border-radius:13px;
+  border-radius:10px;
 
   background:
     rgba(255,255,255,.74);
 
   box-shadow:
-    0 3px 9px
-    rgba(41,65,105,.06);
+    0 2px 7px
+    rgba(41,65,105,.05);
 }
 
 
@@ -18328,24 +18297,15 @@ document.addEventListener(
 }
 
 
-.kingdom-rank.first{
-  color:#f2a300;
+.kingdom-rank{
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
 }
-
-
-.kingdom-rank.second{
-  color:#7a8190;
-}
-
-
-.kingdom-rank.third{
-  color:#e47723;
-}
-
 
 .kingdom-friend-avatar{
-  width:34px;
-  height:34px;
+  width:25px;
+  height:25px;
 
   display:grid;
   place-items:center;
@@ -18359,26 +18319,24 @@ document.addEventListener(
       #e4edf8
     );
 
-  font-size:23px;
+  font-size:17px;
 
   border:
-    2px solid
+    1px solid
     rgba(255,255,255,.9);
 }
-
 
 .kingdom-leaderboard-item strong{
   color:#2a4272;
 
-  font-size:13px;
+  font-size:10px;
   font-weight:900;
 }
-
 
 .kingdom-friend-score{
   color:#2b4271;
 
-  font-size:13px;
+  font-size:10px;
   font-weight:900;
 
   white-space:nowrap;
@@ -18391,19 +18349,13 @@ document.addEventListener(
 
 .kingdom-bottom-button{
   width:58%;
-  min-height:32px;
+  min-height:24px;
+  height:24px;
 
-  margin:
-    8px
-    auto
-    0;
-
-  padding:
-    0
-    13px;
+  margin:4px auto 0;
+  padding:0 9px;
 
   border:0;
-
   border-radius:999px;
 
   background:
@@ -18415,18 +18367,14 @@ document.addEventListener(
 
   color:#fff;
 
-  font-size:12px;
+  font-size:9px;
   font-weight:900;
 
   cursor:pointer;
 
   box-shadow:
-    0 6px 13px
-    rgba(100,63,220,.22);
-
-  transition:
-    transform .18s ease,
-    box-shadow .18s ease;
+    0 4px 9px
+    rgba(100,63,220,.20);
 }
 
 
@@ -18451,13 +18399,26 @@ document.addEventListener(
   }
 
 
-  .kingdom-bottom-card{
-    height:235px;
+.kingdom-bottom-bar{
+  height:165px;
+  flex-basis:165px;
+  gap:8px;
+}
 
-    padding:
-      11px
-      12px;
-  }
+.kingdom-bottom-card{
+  height:165px;
+  padding:7px 9px;
+}
+
+.kingdom-bottom-card h2{
+  font-size:14px;
+  margin-bottom:4px;
+}
+
+.kingdom-achievement-icon{
+  height:36px;
+  font-size:29px;
+}
 
 
   .kingdom-bottom-card h2{
