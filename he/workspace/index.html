@@ -799,18 +799,19 @@ body{
 
 /* רקע מצויר על כל המסך */
 body{
-  position:relative;
-  background-image:
-    linear-gradient(
-      rgba(255,255,255,.20),
-      rgba(255,255,255,.20)
-    ),
-    url("/assets/backgrounds/kids-learning-bg.png") !important;
+    position:relative;
 
-  background-size:cover !important;
-  background-position:center center !important;
-  background-repeat:no-repeat !important;
-  background-attachment:fixed !important;
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,.08),
+            rgba(255,255,255,.08)
+        ),
+        url("/assets/backgrounds/world-map.png") !important;
+
+    background-size:cover !important;
+    background-position:center center !important;
+    background-repeat:no-repeat !important;
+    background-attachment:fixed !important;
 }
 
 /* שכבת לבן עדינה מעל הרקע */
@@ -18386,69 +18387,6 @@ document.addEventListener(
    אזור המפה
 ===================================================== */
 
-.kingdom-map-area{
-  position:relative;
-
-  width:100%;
-
-  height:
-    clamp(
-      480px,
-      57vh,
-      660px
-    );
-
-  min-height:480px;
-
-  overflow:hidden;
-
-  border-radius:26px;
-
-background:
-  url("/assets/backgrounds/world-map.png")
-  center center / contain no-repeat;
-
-  border:
-    1px solid
-    rgba(255,255,255,.88);
-
-  box-shadow:
-    0 16px 38px
-    rgba(39,69,130,.15);
-
-  backdrop-filter:
-    blur(12px);
-
-  -webkit-backdrop-filter:
-    blur(12px);
-}
-
-
-/* Placeholder זמני */
-
-.kingdom-map-placeholder{
-  position:absolute;
-
-  inset:0;
-
-  display:flex;
-  flex-direction:column;
-
-  align-items:center;
-  justify-content:center;
-
-  gap:9px;
-
-  border:
-    2px dashed
-    rgba(61,112,181,.27);
-
-  border-radius:26px;
-
-  color:#637aa6;
-
-  text-align:center;
-}
 
 
 .kingdom-map-placeholder-icon{
@@ -18503,8 +18441,8 @@ background:
 @media(max-height:900px){
 
   .kingdom-map-area{
-    height:470px;
-    min-height:470px;
+    height:520px;
+    min-height:520px;
   }
 
 
