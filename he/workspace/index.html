@@ -7436,6 +7436,278 @@ body::before{
 
     </div>
 
+      <!-- =====================================================
+     KINGDOM HOME BOTTOM BAR
+     ===================================================== -->
+
+<section class="kingdom-bottom-bar">
+
+  <!-- ==================================================
+       המשימות שלי
+       ================================================== -->
+
+  <article class="kingdom-bottom-card kingdom-missions-card">
+
+    <h2>המשימות שלי</h2>
+
+    <div class="kingdom-mission-list">
+
+      <button
+        type="button"
+        class="kingdom-mission-item"
+        onclick="showLearning('practice')"
+      >
+
+        <span class="kingdom-mission-icon">
+          ✏️
+        </span>
+
+        <span class="kingdom-mission-content">
+
+          <strong>
+            פתרו 10 תרגילים במתמטיקה
+          </strong>
+
+          <small>
+            ממלכת השלג
+          </small>
+
+        </span>
+
+        <span class="kingdom-mission-reward">
+          <b>+20</b>
+          ⭐
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="kingdom-mission-item"
+        onclick="showLearning('lesson')"
+      >
+
+        <span class="kingdom-mission-icon">
+          🧪
+        </span>
+
+        <span class="kingdom-mission-content">
+
+          <strong>
+            צפו בשיעור: שרשרת המזון
+          </strong>
+
+          <small>
+            ממלכת הג׳ונגל
+          </small>
+
+        </span>
+
+        <span class="kingdom-mission-reward">
+          <b>+15</b>
+          ⭐
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="kingdom-mission-item"
+        onclick="showLearning('practice')"
+      >
+
+        <span class="kingdom-mission-icon">
+          💬
+        </span>
+
+        <span class="kingdom-mission-content">
+
+          <strong>
+            תרגלו 15 מילים באנגלית
+          </strong>
+
+          <small>
+            ממלכת קנדילנד
+          </small>
+
+        </span>
+
+        <span class="kingdom-mission-reward">
+          <b>+10</b>
+          ⭐
+        </span>
+
+      </button>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="kingdom-bottom-button"
+      onclick="showLearning('practice')"
+    >
+      הצגת כל המשימות
+    </button>
+
+  </article>
+
+
+  <!-- ==================================================
+       הישגים אחרונים
+       ================================================== -->
+
+  <article class="kingdom-bottom-card kingdom-achievements-card">
+
+    <h2>הישגים אחרונים</h2>
+
+    <div class="kingdom-achievements-list">
+
+      <div class="kingdom-achievement">
+
+        <div class="kingdom-achievement-icon">
+          🛡️
+        </div>
+
+        <strong>
+          חוקר ג׳ונגל
+        </strong>
+
+        <small>
+          סיימתם אזור אחד<br>
+          בממלכת הג׳ונגל
+        </small>
+
+      </div>
+
+
+      <div class="kingdom-achievement">
+
+        <div class="kingdom-achievement-icon">
+          🥇
+        </div>
+
+        <strong>
+          שותף לדרך
+        </strong>
+
+        <small>
+          השלמתם 5 משימות<br>
+          בכל ממלכה
+        </small>
+
+      </div>
+
+
+      <div class="kingdom-achievement">
+
+        <div class="kingdom-achievement-icon">
+          🎖️
+        </div>
+
+        <strong>
+          תלמיד מסור
+        </strong>
+
+        <small>
+          10 ימים<br>
+          ברצף!
+        </small>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- ==================================================
+       חברים מובילים
+       ================================================== -->
+
+  <article class="kingdom-bottom-card kingdom-leaderboard-card">
+
+    <h2>חברים מובילים</h2>
+
+    <div class="kingdom-leaderboard-list">
+
+      <div class="kingdom-leaderboard-item">
+
+        <span class="kingdom-rank first">
+          1
+        </span>
+
+        <span class="kingdom-friend-avatar">
+          👦🏻
+        </span>
+
+        <strong>
+          אורי
+        </strong>
+
+        <span class="kingdom-friend-score">
+          ⭐ 250
+        </span>
+
+      </div>
+
+
+      <div class="kingdom-leaderboard-item">
+
+        <span class="kingdom-rank second">
+          2
+        </span>
+
+        <span class="kingdom-friend-avatar">
+          👧🏻
+        </span>
+
+        <strong>
+          נועה
+        </strong>
+
+        <span class="kingdom-friend-score">
+          ⭐ 220
+        </span>
+
+      </div>
+
+
+      <div class="kingdom-leaderboard-item">
+
+        <span class="kingdom-rank third">
+          3
+        </span>
+
+        <span class="kingdom-friend-avatar">
+          👦🏽
+        </span>
+
+        <strong>
+          דניאל
+        </strong>
+
+        <span class="kingdom-friend-score">
+          ⭐ 180
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="kingdom-bottom-button"
+    >
+      לוח תוצאות מלא
+    </button>
+
+  </article>
+
+</section>
   </section>
 
 <!-- =====================================================
@@ -17470,6 +17742,572 @@ document.addEventListener(
 
   .home-right-progress{
     min-height:150px;
+  }
+
+}
+    /* =====================================================
+   KINGDOM DASHBOARD BOTTOM BAR
+   ===================================================== */
+
+.kingdom-bottom-bar{
+  width:100%;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1.05fr
+    1fr;
+
+  gap:14px;
+
+  direction:rtl;
+
+  margin-top:14px;
+
+  padding:
+    0
+    0
+    4px;
+
+  position:relative;
+
+  z-index:10;
+}
+
+
+/* =====================================================
+   כרטיס בסיס
+   ===================================================== */
+
+.kingdom-bottom-card{
+  min-width:0;
+  height:255px;
+
+  padding:
+    13px
+    16px
+    12px;
+
+  display:flex;
+  flex-direction:column;
+
+  border:
+    1px solid
+    rgba(255,255,255,.92);
+
+  border-radius:25px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.93),
+      rgba(242,248,255,.88)
+    );
+
+  box-shadow:
+    0 13px 30px
+    rgba(28,58,105,.18),
+    inset 0 1px 0
+    rgba(255,255,255,.95);
+
+  backdrop-filter:
+    blur(17px)
+    saturate(125%);
+
+  -webkit-backdrop-filter:
+    blur(17px)
+    saturate(125%);
+
+  overflow:hidden;
+}
+
+
+.kingdom-bottom-card h2{
+  margin:
+    0
+    0
+    10px;
+
+  color:#20376d;
+
+  font-size:20px;
+  line-height:1.2;
+  font-weight:900;
+
+  text-align:center;
+}
+
+
+/* =====================================================
+   משימות
+   ===================================================== */
+
+.kingdom-mission-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:5px;
+
+  flex:1;
+}
+
+
+.kingdom-mission-item{
+  width:100%;
+  min-height:50px;
+
+  padding:
+    5px
+    8px;
+
+  display:grid;
+
+  grid-template-columns:
+    38px
+    minmax(0,1fr)
+    61px;
+
+  align-items:center;
+
+  gap:8px;
+
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(220,229,241,.84);
+
+  border-radius:13px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  color:#243c6c;
+
+  text-align:right;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 3px 9px
+    rgba(41,65,105,.06);
+
+  transition:
+    transform .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+
+.kingdom-mission-item:hover{
+  transform:
+    translateY(-1px);
+
+  background:
+    rgba(255,255,255,.96);
+
+  box-shadow:
+    0 6px 14px
+    rgba(41,65,105,.11);
+}
+
+
+.kingdom-mission-icon{
+  width:36px;
+  height:36px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:11px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eaf4ff,
+      #d9e8fb
+    );
+
+  font-size:20px;
+}
+
+
+.kingdom-mission-content{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:1px;
+}
+
+
+.kingdom-mission-content strong{
+  overflow:hidden;
+
+  color:#29406e;
+
+  font-size:13px;
+  line-height:1.25;
+  font-weight:900;
+
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+
+.kingdom-mission-content small{
+  color:#6180b2;
+
+  font-size:10px;
+  line-height:1.2;
+  font-weight:700;
+}
+
+
+.kingdom-mission-reward{
+  display:flex;
+
+  align-items:center;
+  justify-content:flex-end;
+
+  gap:4px;
+
+  color:#243d72;
+
+  font-size:18px;
+}
+
+
+.kingdom-mission-reward b{
+  font-size:13px;
+  font-weight:900;
+}
+
+
+/* =====================================================
+   הישגים
+   ===================================================== */
+
+.kingdom-achievements-list{
+  flex:1;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
+
+  gap:9px;
+}
+
+
+.kingdom-achievement{
+  min-width:0;
+
+  padding:
+    10px
+    6px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(226,237,248,.82),
+      rgba(243,247,252,.74)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.86);
+}
+
+
+.kingdom-achievement-icon{
+  height:72px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:55px;
+
+  line-height:1;
+
+  filter:
+    drop-shadow(
+      0 7px 7px
+      rgba(40,55,90,.16)
+    );
+}
+
+
+.kingdom-achievement strong{
+  margin-top:4px;
+
+  color:#294171;
+
+  font-size:14px;
+  line-height:1.2;
+  font-weight:900;
+}
+
+
+.kingdom-achievement small{
+  margin-top:4px;
+
+  color:#4f6690;
+
+  font-size:10px;
+  line-height:1.35;
+  font-weight:700;
+}
+
+
+/* =====================================================
+   לוח מובילים
+   ===================================================== */
+
+.kingdom-leaderboard-list{
+  display:flex;
+  flex-direction:column;
+
+  gap:5px;
+
+  flex:1;
+}
+
+
+.kingdom-leaderboard-item{
+  min-height:48px;
+
+  padding:
+    4px
+    10px;
+
+  display:grid;
+
+  grid-template-columns:
+    30px
+    36px
+    minmax(0,1fr)
+    auto;
+
+  align-items:center;
+
+  gap:7px;
+
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(220,229,241,.84);
+
+  border-radius:13px;
+
+  background:
+    rgba(255,255,255,.74);
+
+  box-shadow:
+    0 3px 9px
+    rgba(41,65,105,.06);
+}
+
+
+.kingdom-rank{
+  font-size:19px;
+  font-weight:900;
+
+  text-align:center;
+}
+
+
+.kingdom-rank.first{
+  color:#f2a300;
+}
+
+
+.kingdom-rank.second{
+  color:#7a8190;
+}
+
+
+.kingdom-rank.third{
+  color:#e47723;
+}
+
+
+.kingdom-friend-avatar{
+  width:34px;
+  height:34px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e4edf8
+    );
+
+  font-size:23px;
+
+  border:
+    2px solid
+    rgba(255,255,255,.9);
+}
+
+
+.kingdom-leaderboard-item strong{
+  color:#2a4272;
+
+  font-size:13px;
+  font-weight:900;
+}
+
+
+.kingdom-friend-score{
+  color:#2b4271;
+
+  font-size:13px;
+  font-weight:900;
+
+  white-space:nowrap;
+}
+
+
+/* =====================================================
+   כפתורים תחתונים
+   ===================================================== */
+
+.kingdom-bottom-button{
+  width:58%;
+  min-height:32px;
+
+  margin:
+    8px
+    auto
+    0;
+
+  padding:
+    0
+    13px;
+
+  border:0;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8d5df6,
+      #7044e4
+    );
+
+  color:#fff;
+
+  font-size:12px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 6px 13px
+    rgba(100,63,220,.22);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+
+.kingdom-bottom-button:hover{
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 9px 17px
+    rgba(100,63,220,.28);
+}
+
+
+/* =====================================================
+   מסך בינוני
+   ===================================================== */
+
+@media(max-width:1500px){
+
+  .kingdom-bottom-bar{
+    gap:10px;
+  }
+
+
+  .kingdom-bottom-card{
+    height:235px;
+
+    padding:
+      11px
+      12px;
+  }
+
+
+  .kingdom-bottom-card h2{
+    font-size:17px;
+  }
+
+
+  .kingdom-achievement-icon{
+    height:60px;
+    font-size:45px;
+  }
+
+
+  .kingdom-achievement strong{
+    font-size:12px;
+  }
+
+
+  .kingdom-achievement small{
+    font-size:9px;
+  }
+
+
+  .kingdom-mission-content strong{
+    font-size:11px;
+  }
+
+}
+
+
+/* =====================================================
+   מובייל וטאבלט
+   ===================================================== */
+
+@media(max-width:1000px){
+
+  .kingdom-bottom-bar{
+    grid-template-columns:1fr;
+
+    padding-bottom:25px;
+  }
+
+
+  .kingdom-bottom-card{
+    width:100%;
+    height:auto;
+    min-height:230px;
   }
 
 }
