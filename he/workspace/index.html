@@ -9498,14 +9498,13 @@ body.lesson-theme-science
 
   color:#fff !important;
 }
-    /* =====================================================
-   SCIENCE FANTASY NOTEBOOK
-   מחברת תמונה רק בשיעורי מדעים
+/* =====================================================
+   SCIENCE FANTASY NOTEBOOK — FIXED
 ===================================================== */
 
 
 /* =====================================================
-   1. תמונת המחברת והמסגרת
+   1. מיכל המחברת
 ===================================================== */
 
 body.lesson-theme-science
@@ -9513,44 +9512,65 @@ body.lesson-theme-science
 .workspace{
   position:relative !important;
 
+  flex:
+    1
+    1
+    auto !important;
+
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+
   overflow:hidden !important;
 
-  border:none !important;
+  border:0 !important;
+  border-radius:22px !important;
 
-  border-radius:24px !important;
+  /*
+    רקע כהה במקום לבן.
+    גם אם נשאר פיקסל מסביב לתמונה,
+    לא יופיע פס לבן.
+  */
+  background-color:
+    #090f22 !important;
 
-  background-color:transparent !important;
-
+  /*
+    מגדילים מעט את התמונה מעבר לגבולות
+    כדי להסתיר את השוליים הלבנים שבתוך ה-PNG.
+  */
   background-image:
     url("/assets/backgrounds/science-notebook-frame.png") !important;
 
-  background-repeat:no-repeat !important;
+  background-repeat:
+    no-repeat !important;
 
   background-position:
     center center !important;
 
   background-size:
-    100% 100% !important;
+    calc(100% + 42px)
+    calc(100% + 30px) !important;
 
   box-shadow:
     0 14px 34px
-    rgba(0,4,20,.34) !important;
+    rgba(0,4,20,.38) !important;
 }
 
 
-/* מבטל את שכבת האור הלבנה הישנה של המחברת */
+/*
+  מבטלים שכבת אור ישנה של workspace.
+*/
 
 body.lesson-theme-science
 .learning-view
 .workspace::before{
   content:none !important;
-
   display:none !important;
 }
 
 
 /* =====================================================
-   2. כותרת המחברת
+   2. כותרת בתוך הקלף
 ===================================================== */
 
 body.lesson-theme-science
@@ -9559,28 +9579,86 @@ body.lesson-theme-science
 .welcome{
   position:relative !important;
 
-  z-index:3 !important;
+  z-index:8 !important;
 
   flex:
     0
     0
-    auto !important;
+    116px !important;
 
+  width:auto !important;
+
+  /*
+    הכותרת יורדת מתחת למסגרת העליונה.
+    שמאל גדול יותר בגלל טבעות המחברת.
+  */
   padding:
-    30px
-    70px
-    8px
-    155px !important;
+    31px
+    105px
+    4px
+    165px !important;
 
+  margin:0 !important;
+
+  border:0 !important;
   border-radius:0 !important;
 
   background:
     transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome h1{
+  margin:
+    0
+    auto
+    5px !important;
+
+  font-size:
+    39px !important;
+
+  line-height:
+    1.05 !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome h1::after{
+  width:
+    210px !important;
+
+  height:
+    4px !important;
+
+  margin-top:
+    5px !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome p{
+  margin:0 auto !important;
+
+  font-size:
+    17px !important;
+
+  line-height:
+    1.25 !important;
 }
 
 
 /* =====================================================
-   3. אזור תוכן השיעור
+   3. אזור תוכן השיעור בתוך הקלף
 ===================================================== */
 
 body.lesson-theme-science
@@ -9589,24 +9667,32 @@ body.lesson-theme-science
 .messages{
   position:relative !important;
 
-  z-index:3 !important;
+  z-index:5 !important;
 
   flex:
     1
     1
     auto !important;
 
+  width:auto !important;
   min-height:0 !important;
 
   overflow-y:auto !important;
+  overflow-x:hidden !important;
 
+  /*
+    ימין: שומר מרחק מהמסגרת ומהיהלום.
+    שמאל: שומר מרחק מהטבעות.
+    למטה: שומר מקום לסרגל הצ'אט.
+  */
   padding:
-    18px
-    72px
-    145px
-    155px !important;
+    12px
+    118px
+    120px
+    170px !important;
 
-  gap:14px !important;
+  gap:
+    14px !important;
 
   background:
     transparent !important;
@@ -9615,12 +9701,6 @@ body.lesson-theme-science
     stable;
 }
 
-
-/*
-  חשוב:
-  התמונה כבר מכילה את שורות המחברת,
-  לכן מבטלים את הגרדיאנטים שיצרו שורות בקוד.
-*/
 
 body.lesson-theme-science
 .learning-view
@@ -9632,13 +9712,124 @@ body.lesson-theme-science
 .workspace
 .messages::after{
   content:none !important;
-
   display:none !important;
 }
 
 
 /* =====================================================
-   4. אזור כתיבת ההודעה
+   4. מניעת יציאה של תוכן לצד ימין
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.tutor-response{
+  position:relative !important;
+
+  z-index:6 !important;
+
+  width:100% !important;
+  max-width:100% !important;
+
+  padding:
+    0
+    4px !important;
+
+  margin:
+    4px
+    0
+    18px !important;
+
+  box-sizing:
+    border-box !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.tutor-writing-area{
+  position:relative !important;
+
+  z-index:6 !important;
+
+  width:
+    calc(100% - 82px) !important;
+
+  max-width:
+    calc(100% - 82px) !important;
+
+  min-width:0 !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.tutor-writing{
+  max-width:100% !important;
+
+  overflow-wrap:
+    anywhere !important;
+}
+
+
+/*
+  רובוטים ואווטארים שנוצרים בתוך השיחה
+  נשארים באזור הקלף.
+*/
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.tutor-avatar,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.msg-avatar{
+  position:relative !important;
+
+  z-index:7 !important;
+
+  flex:
+    0
+    0
+    52px !important;
+
+  width:
+    52px !important;
+
+  height:
+    52px !important;
+
+  max-width:
+    52px !important;
+}
+
+
+/*
+  הרובוט שמצביע על טקסט.
+  מגבילים אותו ביחס למחברת.
+*/
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.lesson-pointer-robot{
+  width:
+    78px !important;
+
+  max-width:
+    78px !important;
+
+  z-index:
+    20 !important;
+}
+
+
+/* =====================================================
+   5. שורת הצ'אט בתוך המחברת
 ===================================================== */
 
 body.lesson-theme-science
@@ -9647,45 +9838,63 @@ body.lesson-theme-science
 .composer-wrap{
   position:absolute !important;
 
-  right:70px !important;
-  left:155px !important;
-  bottom:28px !important;
+  /*
+    ממוקם בתוך אזור הקלף ולא על המסגרת.
+  */
+  right:
+    112px !important;
 
-  z-index:12 !important;
+  left:
+    168px !important;
+
+  bottom:
+    37px !important;
+
+  z-index:
+    30 !important;
 
   width:auto !important;
 
-  padding:
-    0 !important;
+  margin:0 !important;
+  padding:0 !important;
 
   background:
     transparent !important;
+
+  box-shadow:
+    none !important;
 }
 
-
-/* השדה עצמו */
 
 body.lesson-theme-science
 .learning-view
 .workspace
 .input{
-  width:100% !important;
+  width:
+    100% !important;
 
-  max-width:none !important;
+  max-width:
+    none !important;
 
-  min-height:64px !important;
+  min-height:
+    62px !important;
 
-  margin:0 !important;
+  margin:
+    0 !important;
+
+  padding:
+    6px
+    7px !important;
 
   border:
     1px solid
-    rgba(126,86,37,.28) !important;
+    rgba(119,79,31,.34) !important;
 
   border-radius:
-    19px !important;
+    18px !important;
 
   background:
-    rgba(255,248,229,.93) !important;
+    rgba(255,246,220,.94) !important;
 
   backdrop-filter:
     blur(10px) !important;
@@ -9694,45 +9903,76 @@ body.lesson-theme-science
     blur(10px) !important;
 
   box-shadow:
-    0 9px 24px
-    rgba(49,28,11,.18),
+    0 8px 20px
+    rgba(45,25,8,.20),
 
     inset 0 1px 0
-    rgba(255,255,255,.90) !important;
+    rgba(255,255,255,.92) !important;
 }
 
-
-/* ההערה מתחת לשדה */
 
 body.lesson-theme-science
 .learning-view
 .workspace
 .composer-note{
-  margin-top:4px !important;
+  margin-top:
+    3px !important;
 
   color:
-    rgba(66,51,39,.55) !important;
+    rgba(72,54,38,.55) !important;
+
+  font-size:
+    10px !important;
 }
 
 
 /* =====================================================
-   5. הכוכב הקיים
+   6. מיקרופון
 ===================================================== */
 
-/*
-  משאירים את הכוכב שכבר נוצר דרך workspace::after,
-  אבל מזיזים אותו לתוך אזור הקלף ולא על המסגרת.
-*/
+body.lesson-theme-science
+.learning-view
+.workspace
+.talk-btn{
+  position:relative !important;
+
+  width:
+    52px !important;
+
+  height:
+    52px !important;
+
+  flex:
+    0
+    0
+    52px !important;
+
+  z-index:
+    3 !important;
+}
+
+
+/* =====================================================
+   7. הכוכב
+===================================================== */
 
 body.lesson-theme-science
 .learning-view
 .workspace::after{
-  left:128px !important;
-  top:92px !important;
+  left:
+    118px !important;
 
-  z-index:5 !important;
+  top:
+    84px !important;
 
-  color:#f6b514 !important;
+  z-index:
+    12 !important;
+
+  font-size:
+    50px !important;
+
+  color:
+    #f6b514 !important;
 
   text-shadow:
     0 2px 4px
@@ -9740,14 +9980,7 @@ body.lesson-theme-science
 }
 
 
-/* =====================================================
-   6. החללית הישנה
-===================================================== */
-
-/*
-  מסתירים אותה כי היא יושבת כעת על טבעות המחברת
-  ועל המסגרת החדשה.
-*/
+/* החללית הישנה מוסתרת */
 
 body.lesson-theme-science
 .learning-view
@@ -9758,41 +9991,50 @@ body.lesson-theme-science
 
 
 /* =====================================================
-   7. הודעות המורה והילד מעל הקלף
-===================================================== */
-
-body.lesson-theme-science
-.learning-view
-.tutor-response,
-
-body.lesson-theme-science
-.learning-view
-.msg-row,
-
-body.lesson-theme-science
-.learning-view
-.tutor-writing-area{
-  position:relative !important;
-
-  z-index:4 !important;
-}
-
-
-/* =====================================================
-   8. התאמה למסכים מעט צרים
+   8. מסכים עד 1500px
 ===================================================== */
 
 @media(max-width:1500px){
 
   body.lesson-theme-science
   .learning-view
+  .workspace{
+    background-size:
+      calc(100% + 36px)
+      calc(100% + 26px) !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
   .workspace
   .welcome{
+    flex-basis:
+      104px !important;
+
     padding:
       25px
-      55px
-      7px
-      125px !important;
+      88px
+      2px
+      142px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .welcome h1{
+    font-size:
+      34px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .welcome p{
+    font-size:
+      15px !important;
   }
 
 
@@ -9801,10 +10043,10 @@ body.lesson-theme-science
   .workspace
   .messages{
     padding:
-      15px
-      58px
-      135px
-      125px !important;
+      9px
+      98px
+      108px
+      146px !important;
   }
 
 
@@ -9812,17 +10054,25 @@ body.lesson-theme-science
   .learning-view
   .workspace
   .composer-wrap{
-    right:58px !important;
-    left:125px !important;
-    bottom:25px !important;
+    right:
+      94px !important;
+
+    left:
+      144px !important;
+
+    bottom:
+      32px !important;
   }
 
 
   body.lesson-theme-science
   .learning-view
   .workspace::after{
-    left:105px !important;
-    top:82px !important;
+    left:
+      100px !important;
+
+    top:
+      74px !important;
   }
 
 }
@@ -9837,7 +10087,8 @@ body.lesson-theme-science
   body.lesson-theme-science
   .learning-view
   .workspace{
-    background-image:none !important;
+    background-image:
+      none !important;
 
     background:
       #fffef7 !important;
@@ -9851,6 +10102,9 @@ body.lesson-theme-science
   .learning-view
   .workspace
   .welcome{
+    flex-basis:
+      auto !important;
+
     padding:
       18px
       14px
@@ -9882,9 +10136,21 @@ body.lesson-theme-science
   .learning-view
   .workspace
   .composer-wrap{
-    right:9px !important;
-    left:9px !important;
-    bottom:10px !important;
+    right:
+      9px !important;
+
+    left:
+      9px !important;
+
+    bottom:
+      10px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace::after{
+    display:none !important;
   }
 
 }
