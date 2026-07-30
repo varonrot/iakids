@@ -9498,6 +9498,396 @@ body.lesson-theme-science
 
   color:#fff !important;
 }
+    /* =====================================================
+   SCIENCE FANTASY NOTEBOOK
+   מחברת תמונה רק בשיעורי מדעים
+===================================================== */
+
+
+/* =====================================================
+   1. תמונת המחברת והמסגרת
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace{
+  position:relative !important;
+
+  overflow:hidden !important;
+
+  border:none !important;
+
+  border-radius:24px !important;
+
+  background-color:transparent !important;
+
+  background-image:
+    url("/assets/backgrounds/science-notebook-frame.png") !important;
+
+  background-repeat:no-repeat !important;
+
+  background-position:
+    center center !important;
+
+  background-size:
+    100% 100% !important;
+
+  box-shadow:
+    0 14px 34px
+    rgba(0,4,20,.34) !important;
+}
+
+
+/* מבטל את שכבת האור הלבנה הישנה של המחברת */
+
+body.lesson-theme-science
+.learning-view
+.workspace::before{
+  content:none !important;
+
+  display:none !important;
+}
+
+
+/* =====================================================
+   2. כותרת המחברת
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome{
+  position:relative !important;
+
+  z-index:3 !important;
+
+  flex:
+    0
+    0
+    auto !important;
+
+  padding:
+    30px
+    70px
+    8px
+    155px !important;
+
+  border-radius:0 !important;
+
+  background:
+    transparent !important;
+}
+
+
+/* =====================================================
+   3. אזור תוכן השיעור
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.messages{
+  position:relative !important;
+
+  z-index:3 !important;
+
+  flex:
+    1
+    1
+    auto !important;
+
+  min-height:0 !important;
+
+  overflow-y:auto !important;
+
+  padding:
+    18px
+    72px
+    145px
+    155px !important;
+
+  gap:14px !important;
+
+  background:
+    transparent !important;
+
+  scrollbar-gutter:
+    stable;
+}
+
+
+/*
+  חשוב:
+  התמונה כבר מכילה את שורות המחברת,
+  לכן מבטלים את הגרדיאנטים שיצרו שורות בקוד.
+*/
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.messages::before,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.messages::after{
+  content:none !important;
+
+  display:none !important;
+}
+
+
+/* =====================================================
+   4. אזור כתיבת ההודעה
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-wrap{
+  position:absolute !important;
+
+  right:70px !important;
+  left:155px !important;
+  bottom:28px !important;
+
+  z-index:12 !important;
+
+  width:auto !important;
+
+  padding:
+    0 !important;
+
+  background:
+    transparent !important;
+}
+
+
+/* השדה עצמו */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.input{
+  width:100% !important;
+
+  max-width:none !important;
+
+  min-height:64px !important;
+
+  margin:0 !important;
+
+  border:
+    1px solid
+    rgba(126,86,37,.28) !important;
+
+  border-radius:
+    19px !important;
+
+  background:
+    rgba(255,248,229,.93) !important;
+
+  backdrop-filter:
+    blur(10px) !important;
+
+  -webkit-backdrop-filter:
+    blur(10px) !important;
+
+  box-shadow:
+    0 9px 24px
+    rgba(49,28,11,.18),
+
+    inset 0 1px 0
+    rgba(255,255,255,.90) !important;
+}
+
+
+/* ההערה מתחת לשדה */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-note{
+  margin-top:4px !important;
+
+  color:
+    rgba(66,51,39,.55) !important;
+}
+
+
+/* =====================================================
+   5. הכוכב הקיים
+===================================================== */
+
+/*
+  משאירים את הכוכב שכבר נוצר דרך workspace::after,
+  אבל מזיזים אותו לתוך אזור הקלף ולא על המסגרת.
+*/
+
+body.lesson-theme-science
+.learning-view
+.workspace::after{
+  left:128px !important;
+  top:92px !important;
+
+  z-index:5 !important;
+
+  color:#f6b514 !important;
+
+  text-shadow:
+    0 2px 4px
+    rgba(81,44,5,.16);
+}
+
+
+/* =====================================================
+   6. החללית הישנה
+===================================================== */
+
+/*
+  מסתירים אותה כי היא יושבת כעת על טבעות המחברת
+  ועל המסגרת החדשה.
+*/
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.notebook-rocket{
+  display:none !important;
+}
+
+
+/* =====================================================
+   7. הודעות המורה והילד מעל הקלף
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.tutor-response,
+
+body.lesson-theme-science
+.learning-view
+.msg-row,
+
+body.lesson-theme-science
+.learning-view
+.tutor-writing-area{
+  position:relative !important;
+
+  z-index:4 !important;
+}
+
+
+/* =====================================================
+   8. התאמה למסכים מעט צרים
+===================================================== */
+
+@media(max-width:1500px){
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .welcome{
+    padding:
+      25px
+      55px
+      7px
+      125px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .messages{
+    padding:
+      15px
+      58px
+      135px
+      125px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .composer-wrap{
+    right:58px !important;
+    left:125px !important;
+    bottom:25px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace::after{
+    left:105px !important;
+    top:82px !important;
+  }
+
+}
+
+
+/* =====================================================
+   9. מובייל
+===================================================== */
+
+@media(max-width:760px){
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace{
+    background-image:none !important;
+
+    background:
+      #fffef7 !important;
+
+    border-radius:
+      20px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .welcome{
+    padding:
+      18px
+      14px
+      8px !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .messages{
+    padding:
+      10px
+      12px
+      125px !important;
+
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        #fffef8 0,
+        #fffef8 42px,
+        rgba(181,202,228,.55) 43px,
+        #fffef8 44px
+      ) !important;
+  }
+
+
+  body.lesson-theme-science
+  .learning-view
+  .workspace
+  .composer-wrap{
+    right:9px !important;
+    left:9px !important;
+    bottom:10px !important;
+  }
+
+}
 </style>
 </head>
 <body>
