@@ -7167,11 +7167,19 @@ body.lesson-theme-science
 }
 
 
-/* כל הממשק מעל שכבת הרקע */
+/* כל מעטפת האפליקציה מעל רקע השיעור */
 
-body > *:not(#lesson-background-layer){
+.app,
+.hamburger{
   position:relative;
   z-index:1;
+}
+/* חלונות קופצים תמיד מעל כל הממשק */
+
+.modal-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:99999 !important;
 }
     /* =====================================================
    LESSON MASTERY DASHBOARD
