@@ -7087,77 +7087,11 @@ body::before{
   width:100% !important;
 }
 
-/* =====================================================
-   LESSON SUBJECT BACKGROUND
-===================================================== */
 
-#lesson-background-layer{
-  position:fixed;
-  inset:0;
-
-  z-index:0;
-
-  background-position:center center;
-  background-size:cover;
-  background-repeat:no-repeat;
-
-  opacity:0;
-
-  pointer-events:none;
-
-  transition:
-    opacity 700ms ease,
-    filter 700ms ease;
-}
-
-
-/* שכבת הצללה עדינה */
-
-#lesson-background-layer::after{
-  content:"";
-
-  position:absolute;
-  inset:0;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(9,15,40,.08),
-      rgba(5,10,28,.22)
-    );
-
-  pointer-events:none;
-}
-
-
-/* רקע של שיעורי מדעים */
-
-body.lesson-theme-science
-#lesson-background-layer{
-  background-image:
-    url("/assets/backgrounds/science-lesson-dusk.png");
-
-  opacity:1;
-
-  filter:
-    brightness(.86)
-    saturate(.95);
-}
-
-
-/* כל הממשק מעל שכבת הרקע */
-
-body > *:not(#lesson-background-layer){
-  position:relative;
-  z-index:1;
-}
 </style>
 </head>
 <body>
-<div
-  id="lesson-background-layer"
-  aria-hidden="true"
-></div>
+
 <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
 <div class="app">
 <header class="topbar">
@@ -10897,9 +10831,7 @@ async function startSelectedUnitLesson(
 
   };
 
-  setLessonBackgroundForSubject(
-    CURRENT_PARENT_LESSON.subject
-  );
+
   /*
     בזמן הפתיח עדיין לא מפעילים
     את מנגנון תשובות הילד.
@@ -11718,9 +11650,7 @@ if(
 
     };
 
-    setLessonBackgroundForSubject(
-      state.parent_lesson?.subject
-    );
+
     /* =============================================
        RESTORE VIEW
     ============================================= */
@@ -16153,43 +16083,9 @@ document.addEventListener("DOMContentLoaded",()=>{
 /* =====================================================
    WORKSPACE VIEW MANAGER
    ===================================================== */
-function setLessonBackgroundForSubject(
-  subject
-){
 
-  const normalizedSubject =
-    String(
-      subject || ""
-    ).trim();
-
-
-  document.body.classList.remove(
-    "lesson-theme-science"
-  );
-
-
-  if(
-    normalizedSubject === "מדעים"
-  ){
-
-    document.body.classList.add(
-      "lesson-theme-science"
-    );
-
-  }
-
-}
-
-
-function restoreDefaultWorkspaceBackground(){
-
-  document.body.classList.remove(
-    "lesson-theme-science"
-  );
-
-}
 function showDashboard(){
-  restoreDefaultWorkspaceBackground();
+
   const dashboard =
     document.getElementById("dashboardView");
 
@@ -16269,13 +16165,7 @@ async function startLearnChat(){
 }
 
 function showLearning(mode = "homework") {
-  if(
-    mode !== "lesson"
-  ){
 
-    restoreDefaultWorkspaceBackground();
-
-  }
   const dashboard = document.getElementById("dashboardView");
   const learning = document.getElementById("learningView");
   const pathView = document.getElementById("learningPathView");
