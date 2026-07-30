@@ -8794,6 +8794,710 @@ body.lesson-theme-science
 
   color:#fff !important;
 }
+    /* =====================================================
+   PERMANENT WORKSPACE SHELL
+   סרגלים קבועים בכל מסכי המערכת
+===================================================== */
+
+
+/* =====================================================
+   מבנה עליון קבוע
+===================================================== */
+
+.app{
+  grid-template-rows:
+    64px
+    minmax(0,1fr) !important;
+}
+
+
+/* =====================================================
+   TOPBAR קבוע בכל המערכת
+===================================================== */
+
+.topbar{
+  height:60px !important;
+  min-height:60px !important;
+
+  align-self:start !important;
+
+  padding:
+    6px
+    16px !important;
+
+  border:
+    1px solid
+    rgba(116,151,221,.22) !important;
+
+  border-radius:
+    20px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25,31,58,.94),
+      rgba(14,19,39,.95)
+    ) !important;
+
+  backdrop-filter:
+    blur(18px)
+    saturate(120%) !important;
+
+  -webkit-backdrop-filter:
+    blur(18px)
+    saturate(120%) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.07),
+
+    0 8px 22px
+    rgba(0,5,20,.24) !important;
+}
+
+
+.topbar::before,
+.topbar::after{
+  content:none !important;
+  display:none !important;
+}
+
+
+/* לוגו וטקסט */
+
+.brand-title{
+  color:#f4f6ff !important;
+}
+
+
+.brand-sub{
+  color:
+    rgba(205,215,239,.68) !important;
+}
+
+
+.user-trigger{
+  color:#f5f7ff !important;
+}
+
+
+/* כפתורי סרגל עליון */
+
+.top-pill{
+  height:44px !important;
+
+  border:
+    1px solid
+    rgba(139,165,228,.22) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(41,48,83,.93),
+      rgba(25,30,58,.95)
+    ) !important;
+
+  color:#f6f7ff !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.08),
+
+    0 7px 18px
+    rgba(0,5,20,.20) !important;
+}
+
+
+.top-pill:hover{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(55,65,110,.96),
+      rgba(31,38,73,.96)
+    ) !important;
+}
+
+
+.top-pill i{
+  color:#91a9ff !important;
+}
+
+
+/* סטטיסטיקות למעלה */
+
+.stat-pill,
+.notification-btn{
+  border:
+    1px solid
+    rgba(131,164,232,.20) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(39,47,84,.92),
+      rgba(23,29,57,.94)
+    ) !important;
+
+  color:#fff !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.07),
+
+    0 7px 18px
+    rgba(0,5,20,.24) !important;
+}
+
+
+.stat-pill{
+  height:44px !important;
+  min-width:88px !important;
+
+  padding:
+    0
+    15px !important;
+}
+
+
+.notification-btn{
+  width:46px !important;
+  height:46px !important;
+}
+
+
+/* =====================================================
+   LEFT SIDEBAR קבוע בכל המערכת
+===================================================== */
+
+.sidebar{
+  border:
+    1px solid
+    rgba(109,145,218,.22) !important;
+
+  border-radius:
+    22px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(24,31,60,.95),
+      rgba(12,17,35,.94)
+    ) !important;
+
+  backdrop-filter:
+    blur(17px)
+    saturate(115%) !important;
+
+  -webkit-backdrop-filter:
+    blur(17px)
+    saturate(115%) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.07),
+
+    0 12px 28px
+    rgba(0,5,22,.30) !important;
+}
+
+
+/* משימה חדשה */
+
+.new-task{
+  border:
+    1px solid
+    rgba(156,126,255,.45) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #7450ef,
+      #4e31b8
+    ) !important;
+
+  box-shadow:
+    0 8px 20px
+    rgba(83,48,190,.30),
+
+    inset 0 1px 0
+    rgba(255,255,255,.16) !important;
+}
+
+
+/* כל כפתורי הסרגל */
+
+.side-item{
+  border:
+    1px solid
+    rgba(128,153,211,.16) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(39,46,80,.91),
+      rgba(22,27,53,.93)
+    ) !important;
+
+  color:
+    rgba(238,242,255,.90) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.045),
+
+    0 4px 12px
+    rgba(0,4,18,.16) !important;
+}
+
+
+.side-item:hover{
+  background:
+    linear-gradient(
+      145deg,
+      rgba(51,61,104,.96),
+      rgba(27,34,67,.96)
+    ) !important;
+
+  border-color:
+    rgba(143,171,235,.34) !important;
+}
+
+
+.side-item.active{
+  color:#fff !important;
+
+  border-color:
+    rgba(148,113,255,.56) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(105,68,210,.78),
+      rgba(57,42,126,.84)
+    ) !important;
+
+  box-shadow:
+    inset 4px 0 0
+    #a785ff,
+
+    0 5px 16px
+    rgba(65,38,150,.25) !important;
+}
+
+
+.side-title{
+  color:inherit !important;
+}
+
+
+/* הכפתורים התחתונים */
+
+.sidebar-bottom{
+  border-top:
+    1px solid
+    rgba(131,154,207,.18) !important;
+}
+
+
+.manage-btn{
+  border:
+    1px solid
+    rgba(126,151,210,.16) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(38,45,78,.91),
+      rgba(21,26,51,.94)
+    ) !important;
+
+  color:
+    rgba(237,241,253,.88) !important;
+}
+
+
+.manage-btn:hover{
+  color:#fff !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(51,61,104,.96),
+      rgba(27,34,67,.96)
+    ) !important;
+}
+
+
+/* scrollbar בסרגל */
+
+.kid-actions::-webkit-scrollbar{
+  width:5px;
+}
+
+
+.kid-actions::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+.kid-actions::-webkit-scrollbar-thumb{
+  border-radius:999px;
+
+  background:
+    rgba(134,160,222,.27);
+}
+
+
+/* =====================================================
+   RIGHT SIDEBAR קבוע בכל המערכת
+===================================================== */
+
+.rightbar{
+  padding:0 !important;
+
+  gap:10px !important;
+
+  border:none !important;
+
+  border-radius:0 !important;
+
+  background:
+    transparent !important;
+
+  backdrop-filter:none !important;
+
+  -webkit-backdrop-filter:none !important;
+
+  box-shadow:none !important;
+
+  overflow:visible !important;
+}
+
+
+/* בסיס לכל הכרטיסים */
+
+.home-right-welcome,
+.home-right-actions,
+.home-right-stats,
+.home-right-progress{
+  position:relative;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(107,145,221,.25) !important;
+
+  border-radius:
+    18px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(24,31,62,.94),
+      rgba(12,17,37,.93)
+    ) !important;
+
+  backdrop-filter:
+    blur(15px)
+    saturate(115%) !important;
+
+  -webkit-backdrop-filter:
+    blur(15px)
+    saturate(115%) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.07),
+
+    inset 0 0 0 1px
+    rgba(75,109,183,.07),
+
+    0 10px 26px
+    rgba(0,5,22,.32) !important;
+}
+
+
+/* הילה פנימית */
+
+.home-right-welcome::before,
+.home-right-actions::before,
+.home-right-stats::before,
+.home-right-progress::before{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(75,123,234,.16),
+      transparent 58%
+    );
+}
+
+
+/* ברכה */
+
+.home-right-welcome h2{
+  position:relative;
+  z-index:2;
+
+  color:#f5f7ff !important;
+}
+
+
+.home-right-welcome p{
+  position:relative;
+  z-index:2;
+
+  color:
+    rgba(214,221,242,.80) !important;
+}
+
+
+.home-right-student{
+  filter:
+    drop-shadow(
+      0 8px 14px
+      rgba(45,143,255,.24)
+    );
+}
+
+
+/* =====================================================
+   כפתורי הפעולה הימניים
+===================================================== */
+
+.home-right-actions{
+  padding:8px !important;
+  gap:8px !important;
+}
+
+
+.home-right-action{
+  position:relative;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(130,157,218,.18) !important;
+
+  border-radius:
+    15px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(39,46,82,.94),
+      rgba(21,26,53,.96)
+    ) !important;
+
+  color:#fff !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.06),
+
+    0 6px 15px
+    rgba(0,4,18,.22) !important;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease !important;
+}
+
+
+.home-right-action:hover{
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(142,174,246,.46) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.08),
+
+    0 10px 22px
+    rgba(0,4,18,.30),
+
+    0 0 15px
+    rgba(77,114,224,.12) !important;
+}
+
+
+.home-right-action strong{
+  position:relative;
+  z-index:2;
+
+  color:#f5f6ff !important;
+}
+
+
+.home-right-action img{
+  position:relative;
+  z-index:2;
+
+  filter:
+    drop-shadow(
+      0 6px 8px
+      rgba(38,125,255,.22)
+    );
+}
+
+
+/* Accent שונה לכל פעולה */
+
+.home-right-practice{
+  box-shadow:
+    inset 0 0 24px
+    rgba(255,153,47,.09),
+
+    0 6px 15px
+    rgba(0,4,18,.22) !important;
+}
+
+
+.home-right-games{
+  box-shadow:
+    inset 0 0 24px
+    rgba(147,82,255,.11),
+
+    0 6px 15px
+    rgba(0,4,18,.22) !important;
+}
+
+
+.home-right-homework{
+  box-shadow:
+    inset 0 0 24px
+    rgba(61,151,255,.11),
+
+    0 6px 15px
+    rgba(0,4,18,.22) !important;
+}
+
+
+.home-right-learn{
+  box-shadow:
+    inset 0 0 24px
+    rgba(232,75,177,.10),
+
+    0 6px 15px
+    rgba(0,4,18,.22) !important;
+}
+
+
+/* =====================================================
+   סטטיסטיקות ימין
+===================================================== */
+
+.home-right-stat{
+  position:relative;
+  z-index:2;
+
+  color:#fff;
+}
+
+
+.home-right-stat strong{
+  color:#fff !important;
+}
+
+
+.home-right-stat small{
+  color:
+    rgba(196,207,235,.68) !important;
+}
+
+
+.home-right-stat + .home-right-stat{
+  border-right:
+    1px solid
+    rgba(126,153,214,.16);
+}
+
+
+/* =====================================================
+   גרף ימין
+===================================================== */
+
+.home-right-progress h3{
+  position:relative;
+  z-index:2;
+
+  color:#f5f7ff !important;
+}
+
+
+.home-right-chart{
+  position:relative;
+  z-index:2;
+
+  border-bottom-color:
+    rgba(132,157,216,.18) !important;
+
+  background:
+    repeating-linear-gradient(
+      to top,
+      transparent 0 17px,
+      rgba(94,124,190,.10) 18px 19px
+    ) !important;
+}
+
+
+.home-right-chart-days{
+  color:
+    rgba(190,203,232,.64) !important;
+}
+
+
+.home-right-chart polyline{
+  stroke:#48a1ff !important;
+
+  filter:
+    drop-shadow(
+      0 0 4px
+      rgba(57,145,255,.55)
+    );
+}
+
+
+.home-right-chart circle{
+  fill:#18213f !important;
+  stroke:#55a8ff !important;
+}
+
+
+.home-right-donut{
+  background:
+    conic-gradient(
+      #526bff 0 35%,
+      rgba(70,83,126,.32) 35% 100%
+    ) !important;
+
+  box-shadow:
+    0 0 18px
+    rgba(79,98,255,.19);
+}
+
+
+.home-right-donut-inner{
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #28345f,
+      #11182f
+    ) !important;
+
+  color:#fff !important;
+}
 </style>
 </head>
 <body>
