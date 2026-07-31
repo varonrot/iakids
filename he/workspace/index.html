@@ -23968,7 +23968,17 @@ backdrop-filter:blur(8px);
   transform:
     translate(-50%,-50%);
 }
+html.windows .kingdom-label-snow{
+  transform:
+    translate(-50%,-50%)
+    scale(.90);
+}
 
+html.windows .kingdom-label-snow:hover{
+  transform:
+    translate(-50%,-54%)
+    scale(.93);
+}
 
 .kingdom-label-snow:hover{
   transform:
@@ -23979,6 +23989,9 @@ backdrop-filter:blur(8px);
 
 
 <script>
+if (navigator.userAgent.includes("Windows")) {
+  document.documentElement.classList.add("windows");
+}
 
     let AUDIO_UNLOCKED = false;
 
