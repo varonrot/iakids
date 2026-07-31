@@ -10911,7 +10911,41 @@ body.lesson-theme-science
 
 <section class="kingdom-map-area">
 
-  <!-- בהמשך נכניס כאן כפתורים וכותרות מעל הממלכות -->
+  <!-- בדיקה ראשונה: ממלכת השלג בלבד -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-snow"
+    id="snowKingdomLabel"
+  >
+
+    <strong class="kingdom-label-title">
+      ממלכת השלג
+    </strong>
+
+    <span
+      class="kingdom-label-subject"
+      id="snowKingdomSubject"
+    >
+      מתמטיקה
+    </span>
+
+    <span class="kingdom-label-progress">
+
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          id="snowKingdomProgressFill"
+          style="width:75%"
+        ></span>
+      </span>
+
+      <b id="snowKingdomProgressText">
+        75%
+      </b>
+
+    </span>
+
+  </button>
 
 </section>
 <!-- 4 כרטיסים ראשיים -->
@@ -23677,6 +23711,266 @@ document.addEventListener(
     transform:scale(1.02);
   }
 
+}
+    /* =====================================================
+   KINGDOM LABEL — SNOW TEST
+===================================================== */
+
+.kingdom-map-area{
+  position:relative !important;
+}
+
+
+/* התווית עצמה */
+
+.kingdom-label{
+  position:absolute;
+
+  width:190px;
+  min-height:104px;
+
+  padding:
+    11px
+    16px
+    12px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  direction:rtl;
+
+  border:
+    2px solid
+    rgba(145,211,255,.82);
+
+  border-radius:
+    18px
+    18px
+    23px
+    23px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(24,107,178,.98) 0%,
+      rgba(9,64,121,.98) 48%,
+      rgba(4,39,80,.98) 100%
+    );
+
+  box-shadow:
+    inset 0 2px 0
+    rgba(255,255,255,.25),
+
+    inset 0 -10px 18px
+    rgba(0,16,45,.30),
+
+    0 8px 0
+    rgba(2,35,74,.85),
+
+    0 13px 24px
+    rgba(0,12,35,.45);
+
+  text-shadow:
+    0 2px 3px
+    rgba(0,0,0,.72);
+
+  z-index:20;
+
+  transition:
+    transform .2s ease,
+    filter .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.kingdom-label:hover{
+  transform:
+    translateY(-4px)
+    scale(1.025);
+
+  filter:
+    brightness(1.08)
+    saturate(1.08);
+
+  box-shadow:
+    inset 0 2px 0
+    rgba(255,255,255,.30),
+
+    inset 0 -10px 18px
+    rgba(0,16,45,.25),
+
+    0 9px 0
+    rgba(2,35,74,.85),
+
+    0 18px 28px
+    rgba(0,12,35,.52);
+}
+
+
+/* הכותרת העליונה */
+
+.kingdom-label-title{
+  width:calc(100% + 18px);
+
+  margin:
+    -8px
+    0
+    4px;
+
+  padding:
+    6px
+    8px;
+
+  border-radius:
+    15px
+    15px
+    9px
+    9px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #247fc3,
+      #10528f
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.28),
+
+    0 3px 7px
+    rgba(0,15,45,.38);
+
+  font-size:21px;
+  line-height:1.05;
+  font-weight:900;
+
+  white-space:nowrap;
+}
+
+
+/* שם המקצוע */
+
+.kingdom-label-subject{
+  margin-top:1px;
+
+  color:
+    rgba(255,255,255,.94);
+
+  font-size:15px;
+  line-height:1.1;
+  font-weight:800;
+}
+
+
+/* אזור פס ההתקדמות */
+
+.kingdom-label-progress{
+  width:100%;
+
+  display:grid;
+  grid-template-columns:
+    minmax(0,1fr)
+    39px;
+
+  align-items:center;
+
+  gap:7px;
+
+  margin-top:9px;
+
+  direction:ltr;
+}
+
+
+.kingdom-label-track{
+  width:100%;
+  height:13px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:
+    rgba(3,23,50,.82);
+
+  border:
+    1px solid
+    rgba(255,255,255,.15);
+
+  box-shadow:
+    inset 0 2px 5px
+    rgba(0,0,0,.65);
+}
+
+
+.kingdom-label-fill{
+  display:block;
+
+  width:0;
+  height:100%;
+
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #16b7ff,
+      #2be4ff
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(32,201,255,.72),
+
+    inset 0 1px 0
+    rgba(255,255,255,.48);
+
+  transition:
+    width .8s
+    cubic-bezier(.2,.8,.2,1);
+}
+
+
+.kingdom-label-progress b{
+  color:#fff;
+
+  font-size:14px;
+  line-height:1;
+  font-weight:900;
+
+  text-align:center;
+}
+
+
+/* =====================================================
+   מיקום ממלכת השלג במפה
+===================================================== */
+
+.kingdom-label-snow{
+  /*
+    לפי המפה שלך:
+    אי השלג נמצא בחלק העליון-שמאלי.
+  */
+
+  top:15%;
+  left:14%;
+
+  transform:
+    translate(-50%,-50%);
+}
+
+
+.kingdom-label-snow:hover{
+  transform:
+    translate(-50%,-54%)
+    scale(1.025);
 }
 </style>
 
