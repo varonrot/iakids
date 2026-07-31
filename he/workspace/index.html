@@ -17384,7 +17384,15 @@ function hideLearningCoachThinking(
    עדכון הדרגתי של final_understanding_score
 ===================================================== */
 
+/*
+  currentDisplayedLessonScore הוא המד הכולל,
+  לא הציון הגולמי של ה-Coach.
+*/
+
 let currentDisplayedLessonScore = 0;
+
+let currentLessonPartOneScore = 0;
+let currentLessonPartTwoScore = 0;
 
 let lessonScoreAnimationFrame = null;
 
@@ -17718,7 +17726,102 @@ function getLessonUnderstandingStatus(
 
 
 /* =====================================================
-   עדכון מיידי של כל רכיבי המד
+   הצגת ציוני חלק 1 וחלק 2
+===================================================== */
+
+function renderLessonPartScores(){
+
+  const partOneSummary =
+    document.getElementById(
+      "lessonPartOneSummary"
+    );
+
+  const partTwoSummary =
+    document.getElementById(
+      "lessonPartTwoSummary"
+    );
+
+  const stageOneScore =
+    document.getElementById(
+      "lessonStageOneScore"
+    );
+
+  const stageTwoScore =
+    document.getElementById(
+      "lessonStageTwoScore"
+    );
+
+  const stageOneCard =
+    document.getElementById(
+      "lessonStageOneCard"
+    );
+
+  const stageTwoCard =
+    document.getElementById(
+      "lessonStageTwoCard"
+    );
+
+
+  if(partOneSummary){
+
+    partOneSummary.textContent =
+      `${currentLessonPartOneScore}%`;
+
+  }
+
+
+  if(partTwoSummary){
+
+    partTwoSummary.textContent =
+      `${currentLessonPartTwoScore}%`;
+
+  }
+
+
+  if(stageOneScore){
+
+    stageOneScore.textContent =
+      `${currentLessonPartOneScore}%`;
+
+  }
+
+
+  if(stageTwoScore){
+
+    stageTwoScore.textContent =
+      `${currentLessonPartTwoScore}%`;
+
+  }
+
+
+  /*
+    אחרי שהגענו לחלק 2,
+    פותחים את הכרטיס שלו ומסירים נעילה.
+  */
+
+  if(
+    currentLessonPartTwoScore > 0
+  ){
+
+    stageTwoCard?.classList.remove(
+      "locked"
+    );
+
+    stageTwoCard?.classList.add(
+      "active"
+    );
+
+    stageOneCard?.classList.remove(
+      "active"
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   עדכון המד הכולל בלבד
 ===================================================== */
 
 function renderLessonScore(
@@ -17752,12 +17855,6 @@ function renderLessonScore(
     );
 
 
-  const partOneSummary =
-    document.getElementById(
-      "lessonPartOneSummary"
-    );
-
-
   const meterScore =
     document.getElementById(
       "lessonMeterScore"
@@ -17773,12 +17870,6 @@ function renderLessonScore(
   const meterNeedle =
     document.getElementById(
       "lessonMeterNeedle"
-    );
-
-
-  const stageOneScore =
-    document.getElementById(
-      "lessonStageOneScore"
     );
 
 
@@ -17812,14 +17903,6 @@ function renderLessonScore(
   }
 
 
-  if(partOneSummary){
-
-    partOneSummary.textContent =
-      `${safeScore}%`;
-
-  }
-
-
   if(meterScore){
 
     meterScore.textContent =
@@ -17839,14 +17922,6 @@ function renderLessonScore(
   if(meterNeedle){
 
     meterNeedle.style.left =
-      `${safeScore}%`;
-
-  }
-
-
-  if(stageOneScore){
-
-    stageOneScore.textContent =
       `${safeScore}%`;
 
   }
@@ -17878,7 +17953,6 @@ function renderLessonScore(
     safeScore;
 
 }
-
 
 /* =====================================================
    אנימציה הדרגתית לציון החדש
@@ -18235,10 +18309,10 @@ function animateLessonScore(
 
 
 /* =====================================================
-   שליפת ציון Coach אחרון מהטבלה
+   שליפת ציוני שני חלקי ה-Coach
 ===================================================== */
 
-async function fetchLatestLearningCoachScore(){
+async function fetchLearningCoachScores(){
 
   const kidId =
     CURRENT_KID?.id;
@@ -18257,16 +18331,6 @@ async function fetchLatestLearningCoachScore(){
     );
 
 
-  console.log(
-    "🔎 FETCHING COACH SCORE:",
-    {
-      kidId,
-      lessonId,
-      unitLessonId
-    }
-  );
-
-
   if(
     !kidId
     ||
@@ -18276,13 +18340,11 @@ async function fetchLatestLearningCoachScore(){
   ){
 
     console.warn(
-      "LESSON SCORE FETCH SKIPPED — MISSING VALUES",
+      "LESSON SCORES FETCH SKIPPED:",
       {
         kidId,
         lessonId,
-        unitLessonId,
-        selectedUnitLesson:
-          window.SELECTED_UNIT_LESSON
+        unitLessonId
       }
     );
 
@@ -18304,12 +18366,8 @@ async function fetchLatestLearningCoachScore(){
 
       .select(`
         id,
-        kid_id,
-        lesson_id,
-        unit_lesson_id,
         coach_index,
         status,
-        total_rounds,
         final_understanding_score
       `)
 
@@ -18333,17 +18391,13 @@ async function fetchLatestLearningCoachScore(){
         {
           ascending:false
         }
-      )
-
-      .limit(
-        1
       );
 
 
   if(error){
 
     console.error(
-      "❌ LEARNING COACH SCORE FETCH ERROR:",
+      "LEARNING COACH SCORES FETCH ERROR:",
       error
     );
 
@@ -18353,22 +18407,76 @@ async function fetchLatestLearningCoachScore(){
   }
 
 
-  const latestSession =
-    Array.isArray(data)
-      ? data[0]
-      : null;
+  /*
+    מכיוון שהסדר הוא מהחדש לישן,
+    find מחזיר את הרשומה העדכנית
+    ביותר של כל Coach.
+  */
+
+  const coachOneSession =
+    data?.find(
+      session =>
+        Number(
+          session.coach_index
+        ) === 1
+    );
+
+
+  const coachTwoSession =
+    data?.find(
+      session =>
+        Number(
+          session.coach_index
+        ) === 2
+    );
+
+
+  const partOneScore =
+    normalizeLessonScore(
+      coachOneSession
+        ?.final_understanding_score
+    )
+    ??
+    0;
+
+
+  const partTwoScore =
+    normalizeLessonScore(
+      coachTwoSession
+        ?.final_understanding_score
+    )
+    ??
+    0;
+
+
+  const overallScore =
+    Math.round(
+      (
+        partOneScore
+        +
+        partTwoScore
+      )
+      /
+      2
+    );
+
+
+  const result = {
+    partOneScore,
+    partTwoScore,
+    overallScore,
+    coachOneSession,
+    coachTwoSession
+  };
 
 
   console.log(
-    "✅ LATEST LEARNING COACH SESSION:",
-    latestSession
+    "LEARNING COACH PART SCORES:",
+    result
   );
 
 
-  return normalizeLessonScore(
-    latestSession
-      ?.final_understanding_score
-  );
+  return result;
 
 }
 
@@ -18376,82 +18484,28 @@ async function fetchLatestLearningCoachScore(){
    עדכון המד אחרי תשובת Coach
 ===================================================== */
 console.log("=== refreshLessonScoreFromCoachResponse START ===");
+/* =====================================================
+   עדכון ציוני החלקים והמד הכולל
+===================================================== */
+
 async function refreshLessonScoreFromCoachResponse(
   responseData = null
 ){
 
   console.log(
-    "📊 SCORE RESPONSE DATA:",
+    "SCORE RESPONSE DATA:",
     responseData
   );
 
 
-  /*
-    ננסה קודם לקרוא שמות אפשריים
-    מתשובת השרת.
-  */
-
-  const possibleDirectScore =
-
-    responseData
-      ?.final_understanding_score
-
-    ??
-
-    responseData
-      ?.learning_coach
-      ?.final_understanding_score
-
-    ??
-
-    responseData
-      ?.learning_coach
-      ?.score
-
-    ??
-
-    responseData
-      ?.evaluation
-      ?.final_understanding_score
-
-    ??
-
-    responseData
-      ?.evaluation
-      ?.score
-
-    ??
-
-    responseData
-      ?.mastery_score;
-
-
-  const directScore =
-    normalizeLessonScore(
-      possibleDirectScore
-    );
-
-
-  console.log(
-    "📊 DIRECT SCORE FROM API:",
-    {
-      possibleDirectScore,
-      directScore
-    }
-  );
-
-
-  /*
-    גם אם נמצא ערך בתשובה,
-    הציון הקובע הוא זה שנשמר בטבלה.
-
-    נותנים ל-DB רגע קצר להשלים את העדכון
-    ומנסים עד שלוש פעמים.
-  */
-
-  let databaseScore =
+  let scores =
     null;
 
+
+  /*
+    נותנים לשרת זמן קצר לסיים את כתיבת
+    הרשומה בטבלה ומנסים עד שלוש פעמים.
+  */
 
   for(
     let attempt = 1;
@@ -18470,19 +18524,11 @@ async function refreshLessonScoreFromCoachResponse(
     );
 
 
-    databaseScore =
-      await fetchLatestLearningCoachScore();
+    scores =
+      await fetchLearningCoachScores();
 
 
-    console.log(
-      `📊 DATABASE SCORE ATTEMPT ${attempt}:`,
-      databaseScore
-    );
-
-
-    if(
-      databaseScore !== null
-    ){
+    if(scores){
 
       break;
 
@@ -18491,23 +18537,10 @@ async function refreshLessonScoreFromCoachResponse(
   }
 
 
-  const finalScore =
-    databaseScore
-    ??
-    directScore;
-console.log("FINAL SCORE =", finalScore);
-
-  if(
-    finalScore === null
-  ){
+  if(!scores){
 
     console.error(
-      "❌ NO COACH SCORE AVAILABLE",
-      {
-        responseData,
-        possibleDirectScore,
-        databaseScore
-      }
+      "NO LEARNING COACH SCORES FOUND"
     );
 
 
@@ -18516,20 +18549,38 @@ console.log("FINAL SCORE =", finalScore);
   }
 
 
-  console.log(
-    "🎯 ANIMATING LESSON SCORE:",
-    {
-      from:
-        currentDisplayedLessonScore,
+  /*
+    הציונים הגולמיים:
+    חלק 1 יכול להיות 90,
+    חלק 2 יכול להיות עדיין 0.
+  */
 
-      to:
-        finalScore
-    }
-  );
+  currentLessonPartOneScore =
+    scores.partOneScore;
 
-console.log("CALLING animateLessonScore");
+
+  currentLessonPartTwoScore =
+    scores.partTwoScore;
+
+
+  /*
+    מציגים את ציוני החלקים כפי שהם.
+  */
+
+  renderLessonPartScores();
+
+
+  /*
+    המד הגדול מציג ממוצע מתוך שני החלקים.
+
+    לדוגמה:
+    חלק 1 = 90
+    חלק 2 = 0
+    כולל = 45
+  */
+
   await animateLessonScore(
-    finalScore,
+    scores.overallScore,
     {
       duration:1450,
       sound:true
