@@ -10911,40 +10911,219 @@ body.lesson-theme-science
 
 <section class="kingdom-map-area">
 
-  <!-- בדיקה ראשונה: ממלכת השלג בלבד -->
+  <!-- ממלכת השלג -->
   <button
     type="button"
     class="kingdom-label kingdom-label-snow"
-    id="snowKingdomLabel"
+    data-kingdom="snow"
   >
-
     <strong class="kingdom-label-title">
       ממלכת השלג
     </strong>
 
-    <span
-      class="kingdom-label-subject"
-      id="snowKingdomSubject"
-    >
+    <span class="kingdom-label-subject">
       מתמטיקה
     </span>
 
     <span class="kingdom-label-progress">
-
       <span class="kingdom-label-track">
         <span
           class="kingdom-label-fill"
-          id="snowKingdomProgressFill"
           style="width:75%"
         ></span>
       </span>
 
-      <b id="snowKingdomProgressText">
-        75%
-      </b>
+      <b>75%</b>
+    </span>
+  </button>
 
+
+  <!-- ממלכת האש -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-fire"
+    data-kingdom="fire"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת האש
+    </strong>
+
+    <span class="kingdom-label-subject">
+      מדעים
     </span>
 
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:42%"
+        ></span>
+      </span>
+
+      <b>42%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הג׳ונגל -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-jungle"
+    data-kingdom="jungle"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הג׳ונגל
+    </strong>
+
+    <span class="kingdom-label-subject">
+      גאוגרפיה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:58%"
+        ></span>
+      </span>
+
+      <b>58%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת המדבר -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-desert"
+    data-kingdom="desert"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת המדבר
+    </strong>
+
+    <span class="kingdom-label-subject">
+      היסטוריה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:36%"
+        ></span>
+      </span>
+
+      <b>36%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הלב -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-candy"
+    data-kingdom="candy"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הלב
+    </strong>
+
+    <span class="kingdom-label-subject">
+      עברית
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:68%"
+        ></span>
+      </span>
+
+      <b>68%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הים -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-ocean"
+    data-kingdom="ocean"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הים
+    </strong>
+
+    <span class="kingdom-label-subject">
+      אנגלית
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:51%"
+        ></span>
+      </span>
+
+      <b>51%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הצללים -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-shadow"
+    data-kingdom="shadow"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הצללים
+    </strong>
+
+    <span class="kingdom-label-subject">
+      תנ״ך
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:27%"
+        ></span>
+      </span>
+
+      <b>27%</b>
+    </span>
+  </button>
+
+
+  <!-- הממלכה המרכזית -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-center"
+    data-kingdom="center"
+  >
+    <strong class="kingdom-label-title">
+      הממלכה שלנו
+    </strong>
+
+    <span class="kingdom-label-subject">
+      מסע הלמידה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:32%"
+        ></span>
+      </span>
+
+      <b>32%</b>
+    </span>
   </button>
 
 </section>
@@ -23984,6 +24163,70 @@ html.windows .kingdom-label-snow:hover{
   transform:
     translate(-50%,-54%)
     scale(1.025);
+}
+    /* =====================================================
+   KINGDOM LABEL POSITIONS
+===================================================== */
+
+.kingdom-label-snow{
+  top:29%;
+  left:20%;
+}
+
+
+/* הר הגעש */
+
+.kingdom-label-fire{
+  top:25%;
+  left:49%;
+}
+
+
+/* ג׳ונגל */
+
+.kingdom-label-jungle{
+  top:29%;
+  left:78%;
+}
+
+
+/* מדבר */
+
+.kingdom-label-desert{
+  top:55%;
+  left:20%;
+}
+
+
+/* ממלכה ורודה */
+
+.kingdom-label-candy{
+  top:56%;
+  left:77%;
+}
+
+
+/* ממלכה תת-ימית */
+
+.kingdom-label-ocean{
+  top:78%;
+  left:29%;
+}
+
+
+/* ממלכה כהה */
+
+.kingdom-label-shadow{
+  top:78%;
+  left:64%;
+}
+
+
+/* האי המרכזי */
+
+.kingdom-label-center{
+  top:56%;
+  left:49%;
 }
 </style>
 
