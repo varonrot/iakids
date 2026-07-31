@@ -11693,13 +11693,13 @@ body.lesson-theme-science
       <div
         id="lessonOverallGauge"
         class="lesson-overall-gauge"
-        style="--mastery:45"
+        style="--mastery:0"
       >
 
         <div class="lesson-gauge-inner">
 
           <strong id="lessonOverallScore">
-            45%
+            0%
           </strong>
 
           <span>
@@ -11721,7 +11721,7 @@ body.lesson-theme-science
           </span>
 
           <strong id="lessonPartOneSummary">
-            45%
+            0%
           </strong>
 
         </div>
@@ -11760,13 +11760,13 @@ body.lesson-theme-science
     <div class="lesson-meter-value">
 
       <strong id="lessonMeterScore">
-        45%
+        0%
       </strong>
 
       <span
         id="lessonMeterMarker"
         class="lesson-meter-marker"
-        style="left:45%"
+        style="left:0%"
       ></span>
 
     </div>
@@ -11784,7 +11784,7 @@ body.lesson-theme-science
       <span
         id="lessonMeterNeedle"
         class="lesson-meter-needle"
-        style="left:45%"
+        style="left:0%"
       ></span>
 
     </div>
@@ -11826,7 +11826,7 @@ body.lesson-theme-science
         </div>
 
         <b id="lessonStageOneScore">
-          45%
+          0%
         </b>
 
       </div>
@@ -15517,7 +15517,29 @@ else{
   );
 
 }
+const restoredCoachScore =
+  normalizeLessonScore(
 
+    state.learning_coach
+      ?.final_understanding_score
+
+  );
+
+
+if(
+  restoredCoachScore !== null
+){
+
+  /*
+    בשחזור מסך לא צריך אנימציה וצליל.
+    מציגים מיד את המצב שנשמר.
+  */
+
+  renderLessonScore(
+    restoredCoachScore
+  );
+
+}
 
     console.log(
       "ACTIVE UNIT LESSON RESTORED:",
@@ -17357,6 +17379,1057 @@ function hideLearningCoachThinking(
   );
 
 }
+/* =====================================================
+   LIVE LESSON SCORE
+   עדכון הדרגתי של final_understanding_score
+===================================================== */
+
+let currentDisplayedLessonScore = 0;
+
+let lessonScoreAnimationFrame = null;
+
+let lessonScoreAudioContext = null;
+
+
+/* =====================================================
+   מספר בטוח בין 0 ל-100
+===================================================== */
+
+function normalizeLessonScore(
+  value
+){
+
+  const numericValue =
+    Number(
+      value
+    );
+
+
+  if(
+    !Number.isFinite(
+      numericValue
+    )
+  ){
+
+    return null;
+
+  }
+
+
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(
+        numericValue
+      )
+    )
+  );
+
+}
+
+
+/* =====================================================
+   הפעלת AudioContext
+===================================================== */
+
+function getLessonScoreAudioContext(){
+
+  if(
+    lessonScoreAudioContext
+  ){
+
+    return lessonScoreAudioContext;
+
+  }
+
+
+  const AudioContextClass =
+    window.AudioContext
+    ||
+    window.webkitAudioContext;
+
+
+  if(
+    !AudioContextClass
+  ){
+
+    return null;
+
+  }
+
+
+  lessonScoreAudioContext =
+    new AudioContextClass();
+
+
+  return lessonScoreAudioContext;
+
+}
+
+
+/* =====================================================
+   צליל קצר ועדין
+===================================================== */
+
+function playLessonScoreTone({
+  direction = "up",
+  progress = 0,
+  final = false
+} = {}){
+
+  try{
+
+    const audioContext =
+      getLessonScoreAudioContext();
+
+
+    if(
+      !audioContext
+    ){
+
+      return;
+
+    }
+
+
+    if(
+      audioContext.state ===
+        "suspended"
+    ){
+
+      audioContext.resume();
+    }
+
+
+    const now =
+      audioContext.currentTime;
+
+
+    const oscillator =
+      audioContext.createOscillator();
+
+
+    const gain =
+      audioContext.createGain();
+
+
+    const safeProgress =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          Number(
+            progress
+          )
+          ||
+          0
+        )
+      );
+
+
+    const baseFrequency =
+      direction === "down"
+        ? 430
+        : 520;
+
+
+    const targetFrequency =
+      direction === "down"
+
+        ? baseFrequency -
+          (
+            safeProgress *
+            130
+          )
+
+        : baseFrequency +
+          (
+            safeProgress *
+            220
+          );
+
+
+    oscillator.type =
+      final
+        ? "sine"
+        : "triangle";
+
+
+    oscillator.frequency.setValueAtTime(
+      targetFrequency,
+      now
+    );
+
+
+    if(final){
+
+      oscillator.frequency.exponentialRampToValueAtTime(
+        direction === "down"
+          ? 270
+          : 880,
+
+        now + .16
+      );
+
+    }
+
+
+    gain.gain.setValueAtTime(
+      0.0001,
+      now
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+      final
+        ? 0.055
+        : 0.025,
+
+      now + .015
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now +
+      (
+        final
+          ? .20
+          : .075
+      )
+    );
+
+
+    oscillator.connect(
+      gain
+    );
+
+
+    gain.connect(
+      audioContext.destination
+    );
+
+
+    oscillator.start(
+      now
+    );
+
+
+    oscillator.stop(
+      now +
+      (
+        final
+          ? .22
+          : .085
+      )
+    );
+
+  }
+  catch(error){
+
+    console.warn(
+      "LESSON SCORE SOUND ERROR:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   טקסט מצב ההבנה
+===================================================== */
+
+function getLessonUnderstandingStatus(
+  score
+){
+
+  if(
+    score >= 90
+  ){
+
+    return {
+      title:
+        "שליטה מצוינת בנושא!",
+
+      description:
+        "הבנתם היטב את הרעיון ואפשר להתקדם לשלב הבא."
+    };
+
+  }
+
+
+  if(
+    score >= 75
+  ){
+
+    return {
+      title:
+        "כמעט שולטים בנושא!",
+
+      description:
+        "עוד חיזוק קטן ותגיעו להבנה מלאה."
+    };
+
+  }
+
+
+  if(
+    score >= 50
+  ){
+
+    return {
+      title:
+        "אתם בדרך הנכונה!",
+
+      description:
+        "כבר יש בסיס טוב. ממשיכים לחזק את הנקודות החשובות."
+    };
+
+  }
+
+
+  if(
+    score >= 25
+  ){
+
+    return {
+      title:
+        "מתחילים להבין!",
+
+      description:
+        "יש התקדמות, והמורה תעזור לחבר את החלקים יחד."
+    };
+
+  }
+
+
+  return {
+    title:
+      "בונים את ההבנה",
+
+    description:
+      "זה בסדר להיות בתחילת הדרך. מתקדמים יחד צעד אחר צעד."
+  };
+
+}
+
+
+/* =====================================================
+   עדכון מיידי של כל רכיבי המד
+===================================================== */
+
+function renderLessonScore(
+  score
+){
+
+  const safeScore =
+    normalizeLessonScore(
+      score
+    );
+
+
+  if(
+    safeScore === null
+  ){
+
+    return;
+
+  }
+
+
+  const overallGauge =
+    document.getElementById(
+      "lessonOverallGauge"
+    );
+
+
+  const overallScore =
+    document.getElementById(
+      "lessonOverallScore"
+    );
+
+
+  const partOneSummary =
+    document.getElementById(
+      "lessonPartOneSummary"
+    );
+
+
+  const meterScore =
+    document.getElementById(
+      "lessonMeterScore"
+    );
+
+
+  const meterMarker =
+    document.getElementById(
+      "lessonMeterMarker"
+    );
+
+
+  const meterNeedle =
+    document.getElementById(
+      "lessonMeterNeedle"
+    );
+
+
+  const stageOneScore =
+    document.getElementById(
+      "lessonStageOneScore"
+    );
+
+
+  const statusText =
+    document.getElementById(
+      "lessonStatusText"
+    );
+
+
+  const statusDescription =
+    document.getElementById(
+      "lessonStatusDescription"
+    );
+
+
+  if(overallGauge){
+
+    overallGauge.style.setProperty(
+      "--mastery",
+      safeScore
+    );
+
+  }
+
+
+  if(overallScore){
+
+    overallScore.textContent =
+      `${safeScore}%`;
+
+  }
+
+
+  if(partOneSummary){
+
+    partOneSummary.textContent =
+      `${safeScore}%`;
+
+  }
+
+
+  if(meterScore){
+
+    meterScore.textContent =
+      `${safeScore}%`;
+
+  }
+
+
+  if(meterMarker){
+
+    meterMarker.style.left =
+      `${safeScore}%`;
+
+  }
+
+
+  if(meterNeedle){
+
+    meterNeedle.style.left =
+      `${safeScore}%`;
+
+  }
+
+
+  if(stageOneScore){
+
+    stageOneScore.textContent =
+      `${safeScore}%`;
+
+  }
+
+
+  const status =
+    getLessonUnderstandingStatus(
+      safeScore
+    );
+
+
+  if(statusText){
+
+    statusText.textContent =
+      status.title;
+
+  }
+
+
+  if(statusDescription){
+
+    statusDescription.textContent =
+      status.description;
+
+  }
+
+
+  currentDisplayedLessonScore =
+    safeScore;
+
+}
+
+
+/* =====================================================
+   אנימציה הדרגתית לציון החדש
+===================================================== */
+
+function animateLessonScore(
+  targetScore,
+  {
+    duration = 1450,
+    sound = true
+  } = {}
+){
+
+  const safeTarget =
+    normalizeLessonScore(
+      targetScore
+    );
+
+
+  if(
+    safeTarget === null
+  ){
+
+    return Promise.resolve(
+      false
+    );
+
+  }
+
+
+  if(
+    lessonScoreAnimationFrame
+  ){
+
+    cancelAnimationFrame(
+      lessonScoreAnimationFrame
+    );
+
+
+    lessonScoreAnimationFrame =
+      null;
+
+  }
+
+
+  const startScore =
+    normalizeLessonScore(
+      currentDisplayedLessonScore
+    )
+    ??
+    0;
+
+
+  if(
+    startScore === safeTarget
+  ){
+
+    renderLessonScore(
+      safeTarget
+    );
+
+
+    return Promise.resolve(
+      true
+    );
+
+  }
+
+
+  const direction =
+    safeTarget > startScore
+      ? "up"
+      : "down";
+
+
+  const meterCard =
+    document.querySelector(
+      ".lesson-meter-card"
+    );
+
+
+  const overallCard =
+    document.querySelector(
+      ".lesson-overall-card"
+    );
+
+
+  const overallGauge =
+    document.getElementById(
+      "lessonOverallGauge"
+    );
+
+
+  const masteryDock =
+    document.getElementById(
+      "lessonMasteryDock"
+    );
+
+
+  meterCard?.classList.add(
+    "score-updating"
+  );
+
+
+  meterCard?.classList.toggle(
+    "score-increasing",
+    direction === "up"
+  );
+
+
+  meterCard?.classList.toggle(
+    "score-decreasing",
+    direction === "down"
+  );
+
+
+  overallCard?.classList.add(
+    "score-updating"
+  );
+
+
+  masteryDock?.classList.remove(
+    "score-flash"
+  );
+
+
+  void masteryDock?.offsetWidth;
+
+
+  masteryDock?.classList.add(
+    "score-flash"
+  );
+
+
+  const startTime =
+    performance.now();
+
+
+  let lastRenderedScore =
+    startScore;
+
+
+  let lastSoundScore =
+    startScore;
+
+
+  return new Promise(
+    resolve => {
+
+
+      function frame(
+        now
+      ){
+
+        const elapsed =
+          now -
+          startTime;
+
+
+        const progress =
+          Math.min(
+            1,
+            elapsed /
+            duration
+          );
+
+
+        /*
+          easeOutCubic:
+          מתחיל מורגש ומסיים ברכות.
+        */
+
+        const easedProgress =
+          1 -
+          Math.pow(
+            1 -
+            progress,
+            3
+          );
+
+
+        const animatedScore =
+          Math.round(
+
+            startScore
+
+            +
+
+            (
+              safeTarget -
+              startScore
+            )
+
+            *
+
+            easedProgress
+
+          );
+
+
+        if(
+          animatedScore !==
+          lastRenderedScore
+        ){
+
+          renderLessonScore(
+            animatedScore
+          );
+
+
+          lastRenderedScore =
+            animatedScore;
+
+
+          /*
+            לא משמיעים צליל בכל אחוז,
+            כדי שלא ייווצר רעש מוגזם.
+          */
+
+          if(
+            sound
+
+            &&
+
+            Math.abs(
+              animatedScore -
+              lastSoundScore
+            )
+            >= 5
+
+            &&
+
+            progress < .92
+          ){
+
+            playLessonScoreTone({
+              direction,
+              progress,
+              final:
+                false
+            });
+
+
+            lastSoundScore =
+              animatedScore;
+
+          }
+
+        }
+
+
+        if(
+          progress < 1
+        ){
+
+          lessonScoreAnimationFrame =
+            requestAnimationFrame(
+              frame
+            );
+
+
+            return;
+
+        }
+
+
+        lessonScoreAnimationFrame =
+          null;
+
+
+        renderLessonScore(
+          safeTarget
+        );
+
+
+        meterCard?.classList.remove(
+          "score-updating",
+          "score-increasing",
+          "score-decreasing"
+        );
+
+
+        overallCard?.classList.remove(
+          "score-updating"
+        );
+
+
+        overallGauge?.classList.remove(
+          "score-pulse"
+        );
+
+
+        void overallGauge?.offsetWidth;
+
+
+        overallGauge?.classList.add(
+          "score-pulse"
+        );
+
+
+        if(sound){
+
+          playLessonScoreTone({
+            direction,
+            progress:
+              1,
+            final:
+              true
+          });
+
+        }
+
+
+        window.setTimeout(
+          () => {
+
+            overallGauge?.classList.remove(
+              "score-pulse"
+            );
+
+
+            masteryDock?.classList.remove(
+              "score-flash"
+            );
+
+          },
+          800
+        );
+
+
+        resolve(
+          true
+        );
+
+      }
+
+
+      lessonScoreAnimationFrame =
+        requestAnimationFrame(
+          frame
+        );
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   שליפת ציון Coach אחרון מהטבלה
+===================================================== */
+
+async function fetchLatestLearningCoachScore(){
+
+  if(
+    !CURRENT_KID?.id
+
+    ||
+
+    !currentLessonId
+
+    ||
+
+    !window.SELECTED_UNIT_LESSON
+      ?.unit_lesson_id
+  ){
+
+    console.warn(
+      "LESSON SCORE FETCH SKIPPED:",
+      {
+        kidId:
+          CURRENT_KID?.id,
+
+        lessonId:
+          currentLessonId,
+
+        unitLessonId:
+          window.SELECTED_UNIT_LESSON
+            ?.unit_lesson_id
+      }
+    );
+
+
+    return null;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await sb
+
+      .from(
+        "learning_coach_sessions"
+      )
+
+      .select(`
+        id,
+        coach_index,
+        status,
+        total_rounds,
+        final_understanding_score
+      `)
+
+      .eq(
+        "kid_id",
+        CURRENT_KID.id
+      )
+
+      .eq(
+        "lesson_id",
+        currentLessonId
+      )
+
+      .eq(
+        "unit_lesson_id",
+        window.SELECTED_UNIT_LESSON
+          .unit_lesson_id
+      )
+
+      .order(
+        "id",
+        {
+          ascending:
+            false
+        }
+      )
+
+      .limit(
+        1
+      )
+
+      .maybeSingle();
+
+
+  if(error){
+
+    console.error(
+      "LEARNING COACH SCORE FETCH ERROR:",
+      error
+    );
+
+
+    return null;
+
+  }
+
+
+  console.log(
+    "LATEST LEARNING COACH SCORE:",
+    data
+  );
+
+
+  return normalizeLessonScore(
+    data
+      ?.final_understanding_score
+  );
+
+}
+
+
+/* =====================================================
+   עדכון המד אחרי תשובת Coach
+===================================================== */
+
+async function refreshLessonScoreFromCoachResponse(
+  responseData = null
+){
+
+  /*
+    קודם מנסים לקחת את הציון ישירות
+    מתשובת השרת, אם נוסיף אותו ל-API.
+  */
+
+  const directScore =
+    normalizeLessonScore(
+
+      responseData
+        ?.final_understanding_score
+
+      ??
+
+      responseData
+        ?.learning_coach
+        ?.final_understanding_score
+
+      ??
+
+      responseData
+        ?.evaluation
+        ?.score
+
+      ??
+
+      responseData
+        ?.score
+
+    );
+
+
+  let finalScore =
+    directScore;
+
+
+  /*
+    אם השרת לא מחזיר את הציון,
+    שולפים את הרשומה שזה עתה עודכנה.
+  */
+
+  if(
+    finalScore === null
+  ){
+
+    finalScore =
+      await fetchLatestLearningCoachScore();
+
+  }
+
+
+  if(
+    finalScore === null
+  ){
+
+    console.warn(
+      "NO UPDATED LEARNING COACH SCORE FOUND"
+    );
+
+
+    return false;
+
+  }
+
+
+  await animateLessonScore(
+    finalScore,
+    {
+      duration:
+        1450,
+
+      sound:
+        true
+    }
+  );
+
+
+  return true;
+
+}
 /* ---------- SEND MESSAGE ---------- */
 async function sendMessage() {
 
@@ -17625,11 +18698,12 @@ if(
 
 const data =
   await res.json();
-/*
-  תשובת ה-Learning Coach כבר התקבלה.
 
-  מכאן ההמתנה היא ל-Renderer ול-TTS,
-  ולכן מצב "חושבת" צריך להיעלם עכשיו.
+
+/*
+  תשובת ה-Learning Coach התקבלה.
+  מסתירים את מצב החשיבה ומתחילים מיד
+  לעדכן את מד ההבנה.
 */
 
 if(
@@ -17637,6 +18711,28 @@ if(
 ){
 
   hideLearningCoachThinking();
+
+
+  /*
+    לא עושים await כאן.
+
+    האנימציה של המד מתחילה מיד,
+    ובמקביל ה-Renderer יכול להתחיל
+    להציג ולהקריא את תשובת המורה.
+  */
+
+  refreshLessonScoreFromCoachResponse(
+    data
+  ).catch(
+    error => {
+
+      console.error(
+        "LESSON SCORE REFRESH ERROR:",
+        error
+      );
+
+    }
+  );
 
 }
 
@@ -22324,6 +23420,150 @@ document.addEventListener(
   box-shadow:
     0 0 9px
     rgba(122,232,51,.55);
+}
+    /* =====================================================
+   LESSON SCORE LIVE UPDATE
+===================================================== */
+
+.lesson-meter-card.score-updating,
+.lesson-overall-card.score-updating{
+  border-color:
+    rgba(74,210,255,.92) !important;
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(94,220,255,.16),
+
+    0 0 22px
+    rgba(44,190,255,.26),
+
+    0 15px 34px
+    rgba(0,7,23,.35) !important;
+}
+
+
+.lesson-meter-card.score-increasing
+.lesson-meter-value strong{
+  color:#39e3ff !important;
+
+  text-shadow:
+    0 0 8px
+    rgba(57,227,255,.75),
+
+    0 0 20px
+    rgba(57,227,255,.42) !important;
+}
+
+
+.lesson-meter-card.score-decreasing
+.lesson-meter-value strong{
+  color:#ff9b69 !important;
+
+  text-shadow:
+    0 0 8px
+    rgba(255,126,85,.70),
+
+    0 0 18px
+    rgba(255,100,65,.36) !important;
+}
+
+
+.lesson-meter-card.score-updating
+.lesson-meter-marker{
+  transform:
+    translateX(-50%)
+    scale(1.45);
+
+  box-shadow:
+    0 0 8px
+    rgba(53,215,255,1),
+
+    0 0 22px
+    rgba(53,215,255,.90);
+}
+
+
+.lesson-meter-card.score-updating
+.lesson-meter-needle{
+  box-shadow:
+    0 0 10px
+    rgba(255,225,82,1),
+
+    0 0 24px
+    rgba(255,225,82,.72);
+}
+
+
+.lesson-overall-gauge.score-pulse{
+  animation:
+    lessonGaugeScorePulse
+    .55s
+    ease;
+}
+
+
+.lesson-mastery-dock.score-flash::after{
+  content:"";
+
+  position:absolute;
+  inset:-4px;
+
+  z-index:-1;
+
+  pointer-events:none;
+
+  border-radius:22px;
+
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(57,211,255,.17),
+      transparent 68%
+    );
+
+  animation:
+    lessonDockScoreFlash
+    .75s
+    ease-out;
+}
+
+
+@keyframes lessonGaugeScorePulse{
+
+  0%{
+    transform:scale(1);
+  }
+
+  45%{
+    transform:scale(1.09);
+
+    filter:
+      brightness(1.25);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+
+}
+
+
+@keyframes lessonDockScoreFlash{
+
+  0%{
+    opacity:0;
+    transform:scale(.96);
+  }
+
+  40%{
+    opacity:1;
+  }
+
+  100%{
+    opacity:0;
+    transform:scale(1.02);
+  }
+
 }
 </style>
 
