@@ -17729,7 +17729,15 @@ function renderLessonScore(
     normalizeLessonScore(
       score
     );
+/*
+  כרגע Learning Coach 1 הוא חצי מהשיעור,
+  ולכן רק ההבנה הכוללת מקבלת חצי מהציון.
+*/
 
+const overallTopicScore =
+  Math.round(
+    safeScore / 2
+  );
 
   if(
     safeScore === null
@@ -17794,22 +17802,22 @@ function renderLessonScore(
     );
 
 
-  if(overallGauge){
+if(overallGauge){
 
-    overallGauge.style.setProperty(
-      "--mastery",
-      safeScore
-    );
+  overallGauge.style.setProperty(
+    "--mastery",
+    overallTopicScore
+  );
 
-  }
+}
 
 
-  if(overallScore){
+if(overallScore){
 
-    overallScore.textContent =
-      `${safeScore}%`;
+  overallScore.textContent =
+    `${overallTopicScore}%`;
 
-  }
+}
 
 
   if(partOneSummary){
