@@ -18233,31 +18233,49 @@ function animateLessonScore(
 
 async function fetchLatestLearningCoachScore(){
 
+  const kidId =
+    CURRENT_KID?.id;
+
+
+  const lessonId =
+    Number(
+      currentLessonId
+    );
+
+
+  const unitLessonId =
+    Number(
+      window.SELECTED_UNIT_LESSON
+        ?.unit_lesson_id
+    );
+
+
+  console.log(
+    "🔎 FETCHING COACH SCORE:",
+    {
+      kidId,
+      lessonId,
+      unitLessonId
+    }
+  );
+
+
   if(
-    !CURRENT_KID?.id
-
+    !kidId
     ||
-
-    !currentLessonId
-
+    !lessonId
     ||
-
-    !window.SELECTED_UNIT_LESSON
-      ?.unit_lesson_id
+    !unitLessonId
   ){
 
     console.warn(
-      "LESSON SCORE FETCH SKIPPED:",
+      "LESSON SCORE FETCH SKIPPED — MISSING VALUES",
       {
-        kidId:
-          CURRENT_KID?.id,
-
-        lessonId:
-          currentLessonId,
-
-        unitLessonId:
+        kidId,
+        lessonId,
+        unitLessonId,
+        selectedUnitLesson:
           window.SELECTED_UNIT_LESSON
-            ?.unit_lesson_id
       }
     );
 
@@ -18279,6 +18297,9 @@ async function fetchLatestLearningCoachScore(){
 
       .select(`
         id,
+        kid_id,
+        lesson_id,
+        unit_lesson_id,
         coach_index,
         status,
         total_rounds,
@@ -18287,39 +18308,35 @@ async function fetchLatestLearningCoachScore(){
 
       .eq(
         "kid_id",
-        CURRENT_KID.id
+        kidId
       )
 
       .eq(
         "lesson_id",
-        currentLessonId
+        lessonId
       )
 
       .eq(
         "unit_lesson_id",
-        window.SELECTED_UNIT_LESSON
-          .unit_lesson_id
+        unitLessonId
       )
 
       .order(
         "id",
         {
-          ascending:
-            false
+          ascending:false
         }
       )
 
       .limit(
         1
-      )
-
-      .maybeSingle();
+      );
 
 
   if(error){
 
     console.error(
-      "LEARNING COACH SCORE FETCH ERROR:",
+      "❌ LEARNING COACH SCORE FETCH ERROR:",
       error
     );
 
@@ -18329,19 +18346,24 @@ async function fetchLatestLearningCoachScore(){
   }
 
 
+  const latestSession =
+    Array.isArray(data)
+      ? data[0]
+      : null;
+
+
   console.log(
-    "LATEST LEARNING COACH SCORE:",
-    data
+    "✅ LATEST LEARNING COACH SESSION:",
+    latestSession
   );
 
 
   return normalizeLessonScore(
-    data
+    latestSession
       ?.final_understanding_score
   );
 
 }
-
 
 /* =====================================================
    עדכון המד אחרי תשובת Coach
@@ -18351,62 +18373,134 @@ async function refreshLessonScoreFromCoachResponse(
   responseData = null
 ){
 
+  console.log(
+    "📊 SCORE RESPONSE DATA:",
+    responseData
+  );
+
+
   /*
-    קודם מנסים לקחת את הציון ישירות
-    מתשובת השרת, אם נוסיף אותו ל-API.
+    ננסה קודם לקרוא שמות אפשריים
+    מתשובת השרת.
   */
+
+  const possibleDirectScore =
+
+    responseData
+      ?.final_understanding_score
+
+    ??
+
+    responseData
+      ?.learning_coach
+      ?.final_understanding_score
+
+    ??
+
+    responseData
+      ?.learning_coach
+      ?.score
+
+    ??
+
+    responseData
+      ?.evaluation
+      ?.final_understanding_score
+
+    ??
+
+    responseData
+      ?.evaluation
+      ?.score
+
+    ??
+
+    responseData
+      ?.mastery_score;
+
 
   const directScore =
     normalizeLessonScore(
-
-      responseData
-        ?.final_understanding_score
-
-      ??
-
-      responseData
-        ?.learning_coach
-        ?.final_understanding_score
-
-      ??
-
-      responseData
-        ?.evaluation
-        ?.score
-
-      ??
-
-      responseData
-        ?.score
-
+      possibleDirectScore
     );
 
 
-  let finalScore =
-    directScore;
+  console.log(
+    "📊 DIRECT SCORE FROM API:",
+    {
+      possibleDirectScore,
+      directScore
+    }
+  );
 
 
   /*
-    אם השרת לא מחזיר את הציון,
-    שולפים את הרשומה שזה עתה עודכנה.
+    גם אם נמצא ערך בתשובה,
+    הציון הקובע הוא זה שנשמר בטבלה.
+
+    נותנים ל-DB רגע קצר להשלים את העדכון
+    ומנסים עד שלוש פעמים.
   */
 
-  if(
-    finalScore === null
+  let databaseScore =
+    null;
+
+
+  for(
+    let attempt = 1;
+    attempt <= 3;
+    attempt++
   ){
 
-    finalScore =
+    await new Promise(
+      resolve =>
+        window.setTimeout(
+          resolve,
+          attempt === 1
+            ? 120
+            : 280
+        )
+    );
+
+
+    databaseScore =
       await fetchLatestLearningCoachScore();
+
+
+    console.log(
+      `📊 DATABASE SCORE ATTEMPT ${attempt}:`,
+      databaseScore
+    );
+
+
+    if(
+      databaseScore !== null
+    ){
+
+      break;
+
+    }
 
   }
 
 
+  const finalScore =
+    databaseScore
+    ??
+    directScore;
+
+
   if(
     finalScore === null
   ){
 
-    console.warn(
-      "NO UPDATED LEARNING COACH SCORE FOUND"
+    console.error(
+      "❌ NO COACH SCORE AVAILABLE",
+      {
+        responseData,
+        possibleDirectScore,
+        databaseScore
+      }
     );
 
 
@@ -18415,14 +18509,23 @@ async function refreshLessonScoreFromCoachResponse(
   }
 
 
+  console.log(
+    "🎯 ANIMATING LESSON SCORE:",
+    {
+      from:
+        currentDisplayedLessonScore,
+
+      to:
+        finalScore
+    }
+  );
+
+
   await animateLessonScore(
     finalScore,
     {
-      duration:
-        1450,
-
-      sound:
-        true
+      duration:1450,
+      sound:true
     }
   );
 
