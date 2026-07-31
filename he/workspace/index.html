@@ -17892,6 +17892,13 @@ function animateLessonScore(
   } = {}
 ){
 
+  console.log(
+    "ANIMATE:",
+    currentDisplayedLessonScore,
+    "->",
+    targetScore
+  );
+
   const safeTarget =
     normalizeLessonScore(
       targetScore
@@ -18368,7 +18375,7 @@ async function fetchLatestLearningCoachScore(){
 /* =====================================================
    עדכון המד אחרי תשובת Coach
 ===================================================== */
-
+console.log("=== refreshLessonScoreFromCoachResponse START ===");
 async function refreshLessonScoreFromCoachResponse(
   responseData = null
 ){
@@ -18488,7 +18495,7 @@ async function refreshLessonScoreFromCoachResponse(
     databaseScore
     ??
     directScore;
-
+console.log("FINAL SCORE =", finalScore);
 
   if(
     finalScore === null
@@ -18520,7 +18527,7 @@ async function refreshLessonScoreFromCoachResponse(
     }
   );
 
-
+console.log("CALLING animateLessonScore");
   await animateLessonScore(
     finalScore,
     {
