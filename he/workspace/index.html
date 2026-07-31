@@ -18809,7 +18809,22 @@ if(
 const data =
   await res.json();
 
+console.log(
+  "📊 AUTOMATIC SCORE CHECK:",
+  {
+    isLearningCoachRequest,
+    currentStage:
+      window.ACTIVE_UNIT_LESSON_STATE
+        ?.currentStage,
 
+    interactionMode:
+      window.ACTIVE_UNIT_LESSON_STATE
+        ?.interactionMode,
+
+    responseData:
+      data
+  }
+);
 /*
   תשובת ה-Learning Coach התקבלה.
   מסתירים את מצב החשיבה ומתחילים מיד
