@@ -1239,7 +1239,7 @@ box-shadow:
 .floating-tutor-robot{
   position:fixed;
 
-  right:215px;
+  right:90px;      /* היה 215px */
   bottom:-5px;
 
   width:220px;
@@ -8547,12 +8547,7 @@ body.lesson-theme-science
   border-radius:
     15px !important;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(39,46,82,.94),
-      rgba(21,26,53,.96)
-    ) !important;
+
 
   color:#fff !important;
 
@@ -10916,7 +10911,220 @@ body.lesson-theme-science
 
 <section class="kingdom-map-area">
 
-  <!-- בהמשך נכניס כאן כפתורים וכותרות מעל הממלכות -->
+  <!-- ממלכת השלג -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-snow"
+    data-kingdom="snow"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת השלג
+    </strong>
+
+    <span class="kingdom-label-subject">
+      מתמטיקה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:75%"
+        ></span>
+      </span>
+
+      <b>75%</b>
+    </span>
+  </button>
+
+
+<!--  &lt;!&ndash; ממלכת האש &ndash;&gt;-->
+<!--  <button-->
+<!--    type="button"-->
+<!--    class="kingdom-label kingdom-label-fire"-->
+<!--    data-kingdom="fire"-->
+<!--  >-->
+<!--    <strong class="kingdom-label-title">-->
+<!--      ממלכת האש-->
+<!--    </strong>-->
+
+<!--    <span class="kingdom-label-subject">-->
+<!--      מדעים-->
+<!--    </span>-->
+
+<!--    <span class="kingdom-label-progress">-->
+<!--      <span class="kingdom-label-track">-->
+<!--        <span-->
+<!--          class="kingdom-label-fill"-->
+<!--          style="width:42%"-->
+<!--        ></span>-->
+<!--      </span>-->
+
+<!--      <b>42%</b>-->
+<!--    </span>-->
+<!--  </button>-->
+
+
+  <!-- ממלכת הג׳ונגל -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-jungle"
+    data-kingdom="jungle"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הג׳ונגל
+    </strong>
+
+    <span class="kingdom-label-subject">
+      גאוגרפיה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:58%"
+        ></span>
+      </span>
+
+      <b>58%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת המדבר -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-desert"
+    data-kingdom="desert"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת המדבר
+    </strong>
+
+    <span class="kingdom-label-subject">
+      היסטוריה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:36%"
+        ></span>
+      </span>
+
+      <b>36%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הלב -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-candy"
+    data-kingdom="candy"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הלב
+    </strong>
+
+    <span class="kingdom-label-subject">
+      עברית
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:68%"
+        ></span>
+      </span>
+
+      <b>68%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הים -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-ocean"
+    data-kingdom="ocean"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הים
+    </strong>
+
+    <span class="kingdom-label-subject">
+      אנגלית
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:51%"
+        ></span>
+      </span>
+
+      <b>51%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הצללים -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-shadow"
+    data-kingdom="shadow"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הצללים
+    </strong>
+
+    <span class="kingdom-label-subject">
+      תנ״ך
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:27%"
+        ></span>
+      </span>
+
+      <b>27%</b>
+    </span>
+  </button>
+
+
+  <!-- הממלכה המרכזית -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-center"
+    data-kingdom="center"
+  >
+    <strong class="kingdom-label-title">
+      הממלכה שלנו
+    </strong>
+
+    <span class="kingdom-label-subject">
+      מסע הלמידה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:32%"
+        ></span>
+      </span>
+
+      <b>32%</b>
+    </span>
+  </button>
 
 </section>
 <!-- 4 כרטיסים ראשיים -->
@@ -17729,7 +17937,15 @@ function renderLessonScore(
     normalizeLessonScore(
       score
     );
+/*
+  כרגע Learning Coach 1 הוא חצי מהשיעור,
+  ולכן רק ההבנה הכוללת מקבלת חצי מהציון.
+*/
 
+const overallTopicScore =
+  Math.round(
+    safeScore / 2
+  );
 
   if(
     safeScore === null
@@ -17794,22 +18010,22 @@ function renderLessonScore(
     );
 
 
-  if(overallGauge){
+if(overallGauge){
 
-    overallGauge.style.setProperty(
-      "--mastery",
-      safeScore
-    );
+  overallGauge.style.setProperty(
+    "--mastery",
+    overallTopicScore
+  );
 
-  }
+}
 
 
-  if(overallScore){
+if(overallScore){
 
-    overallScore.textContent =
-      `${safeScore}%`;
+  overallScore.textContent =
+    `${overallTopicScore}%`;
 
-  }
+}
 
 
   if(partOneSummary){
@@ -23675,10 +23891,401 @@ document.addEventListener(
   }
 
 }
+    /* =====================================================
+   KINGDOM LABEL — SNOW TEST
+===================================================== */
+
+.kingdom-map-area{
+  position:relative !important;
+}
+
+
+/* התווית עצמה */
+
+.kingdom-label{
+  position:absolute;
+
+  width:clamp(118px, 7.2vw, 138px);
+  min-height:clamp(68px, 4.4vw, 80px);
+
+  padding:
+    8px
+    11px
+    9px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(255,255,255,.48);
+
+  border-radius:
+    15px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20,91,155,.86),
+      rgba(8,54,103,.88) 55%,
+      rgba(4,32,67,.92)
+    );
+
+  backdrop-filter:
+    blur(7px)
+    saturate(115%);
+
+  -webkit-backdrop-filter:
+    blur(7px)
+    saturate(115%);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.18),
+
+    inset 0 -8px 14px
+    rgba(0,0,0,.16),
+
+    0 5px 12px
+    rgba(0,15,45,.26);
+
+  transform:
+    translate(-50%,-50%);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+
+  z-index:10;
+}
+
+
+.kingdom-label:hover{
+  transform:
+    translate(-50%,-53%)
+    scale(1.03);
+
+  filter:
+    brightness(1.05);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.24),
+
+    0 8px 18px
+    rgba(0,15,45,.32);
+}
+
+
+/* הכותרת העליונה */
+
+.kingdom-label-title{
+  width:calc(100% + 12px);
+
+  margin:
+    -6px
+    0
+    3px;
+
+  padding:
+    4px
+    6px;
+
+  border-radius:
+    11px
+    11px
+    8px
+    8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(54,143,205,.90),
+      rgba(19,92,151,.90)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.22),
+
+    0 2px 5px
+    rgba(0,15,45,.24);
+
+  font-size:
+    clamp(14px, .82vw, 16px);
+
+  line-height:1.05;
+  font-weight:900;
+
+  white-space:nowrap;
+}
+
+
+/* שם המקצוע */
+
+.kingdom-label-subject{
+  margin-top:1px;
+
+  font-size:
+    clamp(10px, .62vw, 12px);
+
+  line-height:1.2;
+  font-weight:800;
+
+  color:
+    rgba(255,255,255,.88);
+}
+
+
+/* אזור פס ההתקדמות */
+
+.kingdom-label-progress{
+  width:100%;
+
+  margin-top:5px;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    auto;
+
+  gap:6px;
+
+  align-items:center;
+}
+
+
+.kingdom-label-track{
+  height:7px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:
+    rgba(0,18,46,.54);
+
+  box-shadow:
+    inset 0 1px 3px
+    rgba(0,0,0,.38);
+}
+
+
+.kingdom-label-fill{
+  display:block;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2fd8ff,
+      #70edff
+    );
+
+  box-shadow:
+    0 0 6px
+    rgba(47,216,255,.48);
+}
+
+
+.kingdom-label-progress b{
+  min-width:25px;
+
+  font-size:10px;
+  line-height:1;
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   מיקום ממלכת השלג במפה
+===================================================== */
+
+.kingdom-label-snow{
+  /*
+    לפי המפה שלך:
+    אי השלג נמצא בחלק העליון-שמאלי.
+  */
+
+  top:29%;
+  left:20%;
+
+  transform:
+    translate(-50%,-50%);
+}
+html.windows .kingdom-label-snow{
+  transform:
+    translate(-50%,-50%)
+    scale(.90);
+}
+
+html.windows .kingdom-label-snow:hover{
+  transform:
+    translate(-50%,-54%)
+    scale(.93);
+}
+
+.kingdom-label-snow:hover{
+  transform:
+    translate(-50%,-54%)
+    scale(1.025);
+}
+    /* =====================================================
+   KINGDOM LABEL POSITIONS
+===================================================== */
+
+
+
+/* הר הגעש */
+
+.kingdom-label-fire{
+  top:25%;
+  left:49%;
+}
+
+
+/* ג׳ונגל */
+
+.kingdom-label-jungle{
+  top:29%;
+  left:78%;
+}
+
+
+/* מדבר */
+
+.kingdom-label-desert{
+  top:55%;
+  left:20%;
+}
+
+
+/* ממלכה ורודה */
+
+.kingdom-label-candy{
+  top:56%;
+  left:77%;
+}
+
+
+/* ממלכה תת-ימית */
+
+.kingdom-label-ocean{
+  top:78%;
+  left:29%;
+}
+
+
+/* ממלכה כהה */
+
+.kingdom-label-shadow{
+  top:78%;
+  left:64%;
+}
+
+
+/* האי המרכזי */
+
+.kingdom-label-center{
+  top:56%;
+  left:49%;
+}
+    /* =====================================================
+   KINGDOM LABEL COLORS
+===================================================== */
+
+.kingdom-label-snow{
+  background:linear-gradient(
+    180deg,
+    #4da3ff,
+    #2a6dc4 55%,
+    #18488d
+  );
+}
+
+.kingdom-label-fire{
+  background:linear-gradient(
+    180deg,
+    #ff8248,
+    #d34b1d 55%,
+    #8b240e
+  );
+}
+
+.kingdom-label-jungle{
+  background:linear-gradient(
+    180deg,
+    #57b85a,
+    #2f7a37 55%,
+    #1d4c23
+  );
+}
+
+.kingdom-label-desert{
+  background:linear-gradient(
+    180deg,
+    #e0b15a,
+    #b97a2b 55%,
+    #7c4c19
+  );
+}
+
+.kingdom-label-candy{
+  background:linear-gradient(
+    180deg,
+    #ff8bc7,
+    #d95ca2 55%,
+    #9f3d73
+  );
+}
+
+.kingdom-label-ocean{
+  background:linear-gradient(
+    180deg,
+    #38c7d9,
+    #2286b4 55%,
+    #165b7d
+  );
+}
+
+.kingdom-label-shadow{
+  background:linear-gradient(
+    180deg,
+    #8b86a3,
+    #615d77 55%,
+    #3a3748
+  );
+}
+
+.kingdom-label-center{
+  background:linear-gradient(
+    180deg,
+    #66b4ff,
+    #3f7ed2 55%,
+    #27539b
+  );
+}
 </style>
 
 
 <script>
+if (navigator.userAgent.includes("Windows")) {
+  document.documentElement.classList.add("windows");
+}
 
     let AUDIO_UNLOCKED = false;
 
