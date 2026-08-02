@@ -3794,44 +3794,11 @@ def generate_and_store_lesson_audio(
         if not segment_text:
             continue
 
-        print(
-            "BACKGROUND TTS SEGMENT START:",
-            {
-                "unit_lesson_id": unit_lesson_id,
-                "segment_index": index,
-                "text_length": len(segment_text),
-                "text": repr(segment_text)
-            }
+        wav_bytes, duration_seconds = (
+            generate_tts_wav_bytes(
+                segment_text
+            )
         )
-
-        try:
-            wav_bytes, duration_seconds = (
-                generate_tts_wav_bytes(
-                    segment_text
-                )
-            )
-
-            print(
-                "BACKGROUND TTS SEGMENT SUCCESS:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "segment_index": index,
-                    "duration_seconds": duration_seconds
-                }
-            )
-
-        except Exception as e:
-            print(
-                "BACKGROUND TTS SEGMENT FAILED:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "segment_index": index,
-                    "text_length": len(segment_text),
-                    "text": repr(segment_text),
-                    "error": repr(e)
-                }
-            )
-            raise
 
         storage_path = (
             f"unit_lessons/"
@@ -3882,41 +3849,11 @@ def generate_and_store_lesson_audio(
 
     if question_text:
 
-        print(
-            "BACKGROUND TTS QUESTION START:",
-            {
-                "unit_lesson_id": unit_lesson_id,
-                "text_length": len(question_text),
-                "text": repr(question_text)
-            }
+        wav_bytes, duration_seconds = (
+            generate_tts_wav_bytes(
+                question_text
+            )
         )
-
-        try:
-            wav_bytes, duration_seconds = (
-                generate_tts_wav_bytes(
-                    question_text
-                )
-            )
-
-            print(
-                "BACKGROUND TTS QUESTION SUCCESS:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "duration_seconds": duration_seconds
-                }
-            )
-
-        except Exception as e:
-            print(
-                "BACKGROUND TTS QUESTION FAILED:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "text_length": len(question_text),
-                    "text": repr(question_text),
-                    "error": repr(e)
-                }
-            )
-            raise
 
         question_path = (
             f"unit_lessons/"
@@ -4257,14 +4194,7 @@ def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
-        print(
-            "LIVE TTS REQUEST:",
-            {
-                "session_id": body.session_id,
-                "text_length": len(text),
-                "text": repr(text)
-            }
-        )
+
         # Gemini TTS
         response = gemini_client.models.generate_content(
             model="gemini-3.1-flash-tts-preview",
@@ -5190,17 +5120,6 @@ def get_or_generate_unit_lesson(
                     "pending",
                     "failed"
             ):
-                print(
-                    "QUEUE BACKGROUND AUDIO FROM CACHE:",
-                    {
-                        "unit_lesson_id": unit_lesson["id"],
-                        "audio_generation_status":
-                            audio_generation_status,
-                        "has_cached_audio":
-                            isinstance(cached_audio, dict)
-                    }
-                )
-
                 background_tasks.add_task(
                     generate_unit_lesson_audio_background,
                     unit_lesson["id"]
@@ -5254,12 +5173,6 @@ def get_or_generate_unit_lesson(
 
                 "audio_generation_status":
                     audio_generation_status,
-
-                "audio_mode": (
-                    "stored"
-                    if response_audio
-                    else "background_generating"
-                ),
 
                 "lesson_audio":
                     response_audio
@@ -5512,6 +5425,12 @@ def get_or_generate_unit_lesson(
             "generation_status":
                 "ready",
 
+            "audio_generation_status":
+                "pending",
+
+            "audio_generation_error":
+                None,
+
             "generation_error":
                 None,
 
@@ -5520,22 +5439,6 @@ def get_or_generate_unit_lesson(
 
             "generated_at":
                 generated_at,
-
-            # האודיו החדש עדיין לא מוכן
-            "audio_generation_status":
-                "pending",
-
-            "lesson_audio_json":
-                None,
-
-            "audio_generation_error":
-                None,
-
-            "audio_generated_at":
-                None,
-
-            "tts_generated_at":
-                None,
 
             "updated_at":
                 generated_at
@@ -5647,23 +5550,7 @@ def get_or_generate_unit_lesson(
         # =============================================
         # START AUDIO GENERATION IN BACKGROUND
         # =============================================
-        print(
-            "QUEUE BACKGROUND AUDIO AFTER LESSON GENERATION:",
-            {
-                "unit_lesson_id": unit_lesson["id"],
-                "content_version": content_version,
-                "segments_count": len(
-                    structured_lesson.get("lesson")
-                    or []
-                ),
-                "has_question": bool(
-                    (
-                            structured_lesson.get("question")
-                            or {}
-                    ).get("text")
-                )
-            }
-        )
+
         background_tasks.add_task(
             generate_unit_lesson_audio_background,
             unit_lesson["id"]
@@ -6320,65 +6207,24 @@ def run_learning_coach(
     )
 
     # =============================================
-    # FINISH LEARNING COACH AND LESSON
+    # MOVE TO NEXT UNIVERSAL LESSON STAGE
     # =============================================
 
     if coach_finished:
 
-        now_iso = (
-            datetime
-            .now(timezone.utc)
-            .isoformat()
-        )
-
-        next_stage = (
-            LESSON_STAGE_COMPLETED
-        )
-
-        progress_update = (
-            sb.table(
-                "kid_lesson_progress"
-            )
-            .update({
-                "current_stage":
-                    next_stage,
-
-                "status":
-                    "completed",
-
-                "progress_percent":
-                    100,
-
-                "mastery_score":
-                    understanding_score,
-
-                "completed_at":
-                    now_iso,
-
-                "last_activity_at":
-                    now_iso,
-
-                "updated_at":
-                    now_iso
-            })
-            .eq(
-                "id",
-                progress["id"]
-            )
-            .execute()
-        )
-
-        if progress_update.data:
-            progress = (
-                progress_update.data[0]
+        if coach_index == 1:
+            next_stage = (
+                LESSON_STAGE_CLARIFICATION
             )
 
-    else:
-
-        next_stage = (
-            progress.get(
-                "current_stage"
+        else:
+            next_stage = (
+                LESSON_STAGE_FINAL_ASSESSMENT
             )
+
+        progress = update_lesson_stage(
+            progress=progress,
+            current_stage=next_stage
         )
 
     print("-" * 70)
@@ -6526,11 +6372,7 @@ def run_learning_coach(
 
         "wait_for_answer":
             not coach_finished,
-        "coach_finished":
-            coach_finished,
 
-        "lesson_completed":
-            coach_finished,
         "session_id":
             session_id,
 
@@ -6839,14 +6681,6 @@ def structured_lesson(
         )
 
         if is_real_student_answer:
-            if (
-                    current_stage
-                    == LESSON_STAGE_COMPLETED
-            ):
-                raise HTTPException(
-                    status_code=409,
-                    detail="Lesson is already completed"
-                )
 
             if not body.unit_lesson_id:
                 raise HTTPException(
