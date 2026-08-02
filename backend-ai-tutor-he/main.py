@@ -6872,14 +6872,53 @@ def structured_lesson(
                     "kid_lesson_progress"
                 )
                 .update({
+                    # תת־השיעור החדש
                     "current_unit_lesson_id":
                         requested_unit_lesson_id,
 
+                    # מתחילים זרימה חדשה
                     "current_stage":
                         LESSON_STAGE_INTRO,
 
+                    "current_flow_step":
+                        0,
+
+                    "flow_state":
+                        {},
+
                     "status":
                         "in_progress",
+
+                    # מאפסים את תוצאת תת־השיעור הקודם
+                    "progress_percent":
+                        0,
+
+                    "mastery_score":
+                        0,
+
+                    "current_objective_index":
+                        1,
+
+                    "total_interactions":
+                        0,
+
+                    "hints_used":
+                        0,
+
+                    "consecutive_successes":
+                        0,
+
+                    "consecutive_failures":
+                        0,
+
+                    "last_evaluation":
+                        None,
+
+                    "last_error_type":
+                        None,
+
+                    "completed_at":
+                        None,
 
                     "last_activity_at":
                         now_iso,
