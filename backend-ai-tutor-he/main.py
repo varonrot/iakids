@@ -18,7 +18,8 @@ import wave
 import os
 import json
 import base64
-
+import traceback
+import time
 # =====================================================
 # CONFIG
 # =====================================================
@@ -4265,11 +4266,27 @@ def tutor_tts(
                 "text": repr(text)
             }
         )
-        # Gemini TTS
-        response = gemini_client.models.generate_content(
-            model="gemini-3.1-flash-tts-preview",
+        # =============================================
+        # GEMINI TTS DEBUG
+        # =============================================
 
-            contents=(
+        tts_started_at = time.perf_counter()
+
+        print(
+            "========== LIVE TTS GEMINI START ==========",
+            {
+                "session_id": body.session_id,
+                "text_length": len(text),
+                "text": repr(text)
+            }
+        )
+
+        try:
+
+            response = gemini_client.models.generate_content(
+                model="gemini-3.1-flash-tts-preview",
+
+                contents=(
                     "Speak in natural, fluent Hebrew. "
                     "Sound like a warm, friendly and patient teacher "
                     "speaking naturally to a school-age child. "
@@ -4277,33 +4294,65 @@ def tutor_tts(
                     "and an encouraging tone. "
                     "Read exactly the following Hebrew text:\n\n"
                     + text
-            ),
+                ),
 
-            config=types.GenerateContentConfig(
+                config=types.GenerateContentConfig(
+                    temperature=2.0,
 
-                temperature=2.0,
+                    response_modalities=[
+                        "AUDIO"
+                    ],
 
-                response_modalities=[
-                    "AUDIO"
-                ],
-
-                speech_config=types.SpeechConfig(
-
-                    voice_config=
-                    types.VoiceConfig(
-
-                        prebuilt_voice_config=
-                        types.PrebuiltVoiceConfig(
-                            voice_name="Aoede"
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=
+                            types.PrebuiltVoiceConfig(
+                                voice_name="Aoede"
+                            )
                         )
-
                     )
-
                 )
-
             )
 
-        )
+            print(
+                "========== LIVE TTS GEMINI SUCCESS ==========",
+                {
+                    "session_id": body.session_id,
+                    "elapsed_ms": round(
+                        (
+                            time.perf_counter()
+                            - tts_started_at
+                        )
+                        * 1000
+                    )
+                }
+            )
+
+        except Exception as gemini_error:
+
+            print(
+                "========== LIVE TTS GEMINI FAILED ==========",
+                {
+                    "session_id": body.session_id,
+                    "text_length": len(text),
+                    "text": repr(text),
+                    "elapsed_ms": round(
+                        (
+                            time.perf_counter()
+                            - tts_started_at
+                        )
+                        * 1000
+                    ),
+                    "error_type":
+                        type(gemini_error).__name__,
+                    "error":
+                        repr(gemini_error)
+                }
+            )
+
+            traceback.print_exc()
+
+            raise
 
         # קבלת PCM audio
         audio_data = (
@@ -4408,15 +4457,35 @@ def tutor_tts(
         error_message = repr(e)
 
         print(
-            "GEMINI TTS ERROR:",
-            error_message
+            "GEMINI TTS ENDPOINT ERROR:",
+            {
+                "error_type":
+                    type(e).__name__,
+
+                "error":
+                    error_message,
+
+                "session_id":
+                    body.session_id,
+
+                "text_length":
+                    len(
+                        (
+                            body.text
+                            or ""
+                        ).strip()
+                    )
+            }
         )
+        traceback.print_exc()
 
         raise HTTPException(
             status_code=500,
-            detail=f"Gemini TTS failed: {error_message}"
+            detail=(
+                "Gemini TTS failed: "
+                f"{error_message}"
+            )
         )
-
 @app.get(
     "/api/learning-lessons/{learning_lesson_id}/units"
 )
