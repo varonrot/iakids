@@ -25449,6 +25449,98 @@ async preloadAudio(text){
 
 }
 
+async preloadAudioWithRetry(
+  text,
+  attempts = 3
+){
+
+  let lastError =
+    null;
+
+
+  for(
+    let attempt = 1;
+    attempt <= attempts;
+    attempt++
+  ){
+
+    try{
+
+      console.log(
+        "LEARNING COACH TTS ATTEMPT:",
+        {
+          attempt,
+          text
+        }
+      );
+
+
+      const audioUrl =
+        await this.preloadAudio(
+          text
+        );
+
+
+      if(
+        audioUrl
+      ){
+
+        return audioUrl;
+
+      }
+
+
+      throw new Error(
+        "TTS returned no audio URL"
+      );
+
+    }
+    catch(error){
+
+      lastError =
+        error;
+
+
+      console.error(
+        "LEARNING COACH TTS ATTEMPT FAILED:",
+        {
+          attempt,
+          text,
+          error
+        }
+      );
+
+
+      /*
+        preloadAudio מוחקת בקשה שנכשלה
+        מה-audioCache, ולכן ניסיון נוסף
+        ישלח בקשה חדשה.
+      */
+
+      if(
+        attempt < attempts
+      ){
+
+        await this.wait(
+          700 * attempt
+        );
+
+      }
+
+    }
+
+  }
+
+
+  throw (
+    lastError
+    ||
+    new Error(
+      "TTS failed after retries"
+    )
+  );
+
+}
 
 prefetchLessonAudio(sequence) {
 
@@ -26745,10 +26837,10 @@ for(
           );
 
 
-          const audioUrl =
-            await this.preloadAudio(
-              part
-            );
+const audioUrl =
+  await this.preloadAudioWithRetry(
+    part
+  );
 
 
           console.log(
