@@ -1502,7 +1502,8 @@ def get_or_create_lesson_progress(
         kid_id: str,
         lesson: dict,
         session_id: str | None = None,
-        is_lesson_start: bool = False
+        is_lesson_start: bool = False,
+        unit_lesson_id: int | None = None
 ):
     lesson_id = lesson["id"]
 
@@ -1668,6 +1669,9 @@ def get_or_create_lesson_progress(
 
             "lesson_id":
                 lesson_id,
+
+            "current_unit_lesson_id":
+                unit_lesson_id,
 
             "status":
                 "in_progress",
@@ -6818,12 +6822,111 @@ def structured_lesson(
                 session_id=session_id,
 
                 is_lesson_start=
-                is_lesson_start
+                is_lesson_start,
+
+                unit_lesson_id=
+                body.unit_lesson_id
 
             )
 
         )
+        # =============================================
+        # UNIT LESSON SWITCH
+        #
+        # kid_lesson_progress הוא ברמת הנושא הראשי,
+        # ולכן חייבים לזהות מעבר לשיעור פנימי חדש.
+        # =============================================
 
+        requested_unit_lesson_id = (
+            int(body.unit_lesson_id)
+            if body.unit_lesson_id
+            else None
+        )
+
+        stored_unit_lesson_id = (
+            int(
+                progress.get(
+                    "current_unit_lesson_id"
+                )
+                or 0
+            )
+            or None
+        )
+
+        is_new_unit_lesson = (
+            requested_unit_lesson_id is not None
+            and requested_unit_lesson_id
+            != stored_unit_lesson_id
+        )
+
+        if is_new_unit_lesson:
+
+            now_iso = (
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+            )
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    "current_stage":
+                        LESSON_STAGE_INTRO,
+
+                    "status":
+                        "in_progress",
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
+
+            if not progress_update.data:
+                raise RuntimeError(
+                    "Failed to switch unit lesson"
+                )
+
+            progress = progress_update.data[0]
+
+            print(
+                "UNIT LESSON PROGRESS SWITCHED:",
+                {
+                    "kid_id":
+                        child["id"],
+
+                    "lesson_id":
+                        lesson["id"],
+
+                    "previous_unit_lesson_id":
+                        stored_unit_lesson_id,
+
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    "current_stage":
+                        progress.get(
+                            "current_stage"
+                        ),
+
+                    "status":
+                        progress.get(
+                            "status"
+                        )
+                }
+            )
         # =============================================
         # LESSON MODE
         #
@@ -6837,13 +6940,14 @@ def structured_lesson(
         # =============================================
 
         review_mode = (
+            progress.get(
+                "status"
+            )
+            == "completed"
 
-                progress.get(
-                    "status"
-                )
+            and
 
-                == "completed"
-
+            not is_new_unit_lesson
         )
 
         # =============================================
