@@ -37,6 +37,9 @@ UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
 LESSON_DIRECTOR_PROMPT_PATH = Path(
     "prompts/lesson_director_prompt.txt"
 )
+LEARNING_COACH_PROMPT_PATH = Path(
+    "prompts/learning_coach_system_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -237,6 +240,11 @@ if not LESSON_DIRECTOR_PROMPT_PATH.exists():
         f"Missing lesson director prompt file: "
         f"{LESSON_DIRECTOR_PROMPT_PATH}"
     )
+if not LEARNING_COACH_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Learning Coach prompt file: "
+        f"{LEARNING_COACH_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -262,13 +270,22 @@ LESSON_DIRECTOR_PROMPT_TEMPLATE = (
         encoding="utf-8"
     )
 )
+LEARNING_COACH_PROMPT_TEMPLATE = (
+    LEARNING_COACH_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+print("=== LEARNING COACH PROMPT LOADED ===")
+print(LEARNING_COACH_PROMPT_TEMPLATE[:300])
+print("====================================")
+
 HOMEWORK_VISION_PROMPT = (
     HOMEWORK_VISION_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
 )
-
 print("=== AI TUTOR PROMPT LOADED ===")
 print(TUTOR_PROMPT_TEMPLATE[:300])
 print("==============================")
@@ -407,12 +424,18 @@ class UnitLessonRequest(BaseModel):
     kid_id: str
     unit_lesson_id: int
 
+class ActiveLessonStateRequest(BaseModel):
+    kid_id: str
+
 class StructuredLessonRequest(
     BaseModel
 ):
     kid_id: str
 
     lesson_id: int
+
+    # תת־השיעור שהילד ראה בפועל
+    unit_lesson_id: int | None = None
 
     # ריק = פתיחת שיעור
     # עם טקסט = תשובת הילד
@@ -479,6 +502,18 @@ class StructuredLessonResponse(
             None
     ) = None
 
+# =====================================================
+# LEARNING COACH MODELS
+# =====================================================
+
+class LearningCoachAIResponse(
+    BaseModel
+):
+    understanding_score: int
+
+    lesson_goal_achieved: bool
+
+    teacher_response: str
 
 # =====================================================
 # AUTH
@@ -655,6 +690,570 @@ def get_existing_kids_memory(kid_id: str) -> str:
         return "\n".join(f"- {item}" for item in memory)
 
     return str(memory or "")
+
+# =====================================================
+# LEARNING COACH SESSION HELPERS
+# =====================================================
+
+LEARNING_COACH_MAX_ROUNDS = 5
+
+# =====================================================
+# UNIVERSAL LESSON STAGES
+# =====================================================
+
+LESSON_STAGE_INTRO = "lesson_intro"
+LESSON_STAGE_FIRST_EXPLANATION = "first_explanation"
+LESSON_STAGE_FIRST_QUESTION = "first_question"
+LESSON_STAGE_LEARNING_COACH_1 = "learning_coach_1"
+LESSON_STAGE_CLARIFICATION = "clarification"
+LESSON_STAGE_SECOND_QUESTION = "second_question"
+LESSON_STAGE_LEARNING_COACH_2 = "learning_coach_2"
+LESSON_STAGE_FINAL_ASSESSMENT = "final_assessment"
+LESSON_STAGE_COMPLETED = "lesson_completed"
+LESSON_STAGE_NEXT_LESSON = "next_lesson"
+
+VALID_LESSON_STAGES = {
+    LESSON_STAGE_INTRO,
+    LESSON_STAGE_FIRST_EXPLANATION,
+    LESSON_STAGE_FIRST_QUESTION,
+    LESSON_STAGE_LEARNING_COACH_1,
+    LESSON_STAGE_CLARIFICATION,
+    LESSON_STAGE_SECOND_QUESTION,
+    LESSON_STAGE_LEARNING_COACH_2,
+    LESSON_STAGE_FINAL_ASSESSMENT,
+    LESSON_STAGE_COMPLETED,
+    LESSON_STAGE_NEXT_LESSON,
+}
+
+def update_lesson_stage(
+        progress: dict,
+        current_stage: str
+):
+    if current_stage not in VALID_LESSON_STAGES:
+        raise ValueError(
+            f"Invalid lesson stage: {current_stage}"
+        )
+
+    now = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    res = (
+        sb.table(
+            "kid_lesson_progress"
+        )
+        .update({
+            "current_stage":
+                current_stage,
+
+            "last_activity_at":
+                now,
+
+            "updated_at":
+                now
+        })
+        .eq(
+            "id",
+            progress["id"]
+        )
+        .execute()
+    )
+
+    if not res.data:
+        raise RuntimeError(
+            "Failed to update lesson stage"
+        )
+
+    return res.data[0]
+
+def get_active_learning_coach_session(
+        kid_id: str,
+        lesson_id: int,
+        unit_lesson_id: int,
+        coach_index: int
+):
+    res = (
+        sb.table(
+            "learning_coach_sessions"
+        )
+        .select("*")
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "lesson_id",
+            lesson_id
+        )
+        .eq(
+            "unit_lesson_id",
+            unit_lesson_id
+        )
+        .eq(
+            "coach_index",
+            coach_index
+        )
+        .eq(
+            "status",
+            "active"
+        )
+        .order(
+            "created_at",
+            desc=True
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return None
+
+    return res.data[0]
+
+def create_learning_coach_session(
+        kid_id: str,
+        lesson_id: int,
+        unit_lesson_id: int,
+        coach_index: int,
+        lesson_history_id: int | None = None
+):
+    if coach_index not in (1, 2):
+        raise ValueError(
+            f"Invalid coach_index: {coach_index}"
+        )
+
+    now = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    insert_data = {
+        "kid_id":
+            kid_id,
+
+        "lesson_id":
+            lesson_id,
+
+        "unit_lesson_id":
+            unit_lesson_id,
+
+        "coach_index":
+            coach_index,
+
+        "started_at":
+            now,
+
+        "initial_understanding_score":
+            0,
+
+        "final_understanding_score":
+            0,
+
+        "total_rounds":
+            0,
+
+        "status":
+            "active",
+
+        "created_at":
+            now
+    }
+
+    if lesson_history_id is not None:
+        insert_data[
+            "lesson_history_id"
+        ] = lesson_history_id
+
+    res = (
+        sb.table(
+            "learning_coach_sessions"
+        )
+        .insert(
+            insert_data
+        )
+        .execute()
+    )
+
+    if not res.data:
+        raise RuntimeError(
+            "Failed to create "
+            "Learning Coach session"
+        )
+
+    return res.data[0]
+
+def get_or_create_learning_coach_session(
+        kid_id: str,
+        lesson_id: int,
+        unit_lesson_id: int,
+        coach_index: int
+):
+    existing_session = (
+        get_active_learning_coach_session(
+            kid_id=kid_id,
+            lesson_id=lesson_id,
+            unit_lesson_id=unit_lesson_id,
+            coach_index=coach_index
+        )
+    )
+
+    if existing_session:
+
+        print(
+            "LEARNING COACH SESSION FOUND:",
+            json.dumps(
+                {
+                    "id":
+                        existing_session.get("id"),
+
+                    "coach_index":
+                        existing_session.get(
+                            "coach_index"
+                        ),
+
+                    "status":
+                        existing_session.get("status"),
+
+                    "total_rounds":
+                        existing_session.get(
+                            "total_rounds"
+                        ),
+
+                    "final_understanding_score":
+                        existing_session.get(
+                            "final_understanding_score"
+                        )
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        return existing_session
+
+    new_session = (
+        create_learning_coach_session(
+            kid_id=kid_id,
+            lesson_id=lesson_id,
+            unit_lesson_id=unit_lesson_id,
+            coach_index=coach_index
+        )
+    )
+
+    print(
+        "LEARNING COACH SESSION CREATED:",
+        json.dumps(
+            {
+                "id":
+                    new_session.get("id"),
+
+                "kid_id":
+                    kid_id,
+
+                "lesson_id":
+                    lesson_id,
+
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "coach_index":
+                    coach_index
+            },
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+    return new_session
+
+def extract_unit_lesson_coach_content(
+        unit_lesson: dict
+):
+    generated_json = (
+        unit_lesson.get(
+            "generated_lesson_json"
+        )
+        or {}
+    )
+
+    structured_lesson = (
+        generated_json.get(
+            "structured_lesson"
+        )
+        or {}
+    )
+
+    lesson_segments = (
+        structured_lesson.get(
+            "lesson"
+        )
+        or []
+    )
+
+    explanation_parts = []
+
+    for segment in lesson_segments:
+
+        if not isinstance(
+                segment,
+                dict
+        ):
+            continue
+
+        text = str(
+            segment.get(
+                "text"
+            )
+            or ""
+        ).strip()
+
+        if text:
+            explanation_parts.append(
+                text
+            )
+
+    lesson_explanation = "\n\n".join(
+        explanation_parts
+    )
+
+    first_question = str(
+        (
+            structured_lesson.get(
+                "question"
+            )
+            or {}
+        ).get(
+            "text"
+        )
+        or ""
+    ).strip()
+
+    return {
+        "lesson_explanation":
+            lesson_explanation,
+
+        "first_question":
+            first_question
+    }
+
+def build_learning_coach_prompt(
+        child: dict,
+        parent_lesson: dict,
+        unit_lesson: dict,
+        coach_session: dict,
+        conversation_history: list[dict],
+        child_answer: str
+):
+    coach_content = (
+        extract_unit_lesson_coach_content(
+            unit_lesson
+        )
+    )
+
+    current_round = (
+        int(
+            coach_session.get(
+                "total_rounds"
+            )
+            or 0
+        )
+        + 1
+    )
+
+    previous_score = int(
+        coach_session.get(
+            "final_understanding_score"
+        )
+        or coach_session.get(
+            "initial_understanding_score"
+        )
+        or 0
+    )
+
+    conversation_text_parts = []
+
+    for item in conversation_history:
+
+        role = item.get("role")
+
+        content = str(
+            item.get("content")
+            or ""
+        ).strip()
+
+        if not content:
+            continue
+
+        role_name = (
+            "Child"
+            if role == "user"
+            else "Teacher"
+        )
+
+        conversation_text_parts.append(
+            f"{role_name}: {content}"
+        )
+
+    conversation_text_parts.append(
+        f"Child: {child_answer}"
+    )
+
+    conversation_text = "\n".join(
+        conversation_text_parts
+    )
+
+    runtime_data = {
+        "child": {
+            "child_name":
+                child.get("child_name"),
+
+            "grade":
+                child.get("age"),
+
+            "gender":
+                child.get("gender")
+                or "male"
+        },
+
+        "lesson": {
+            "subject":
+                parent_lesson.get("subject"),
+
+            "lesson_name":
+                unit_lesson.get("lesson_name"),
+
+            "lesson_goal":
+                (
+                    unit_lesson.get(
+                        "learning_objective"
+                    )
+                    or parent_lesson.get(
+                        "lesson_goal"
+                    )
+                ),
+
+            "lesson_explanation":
+                coach_content[
+                    "lesson_explanation"
+                ],
+
+            "first_question":
+                coach_content[
+                    "first_question"
+                ],
+
+            # כרגע אין עמודה נפרדת של תשובה נכונה.
+            # ההסבר ומטרת השיעור משמשים כמקור האמת.
+            "correct_answer":
+                "Derive from the lesson explanation and lesson goal."
+        },
+
+        "conversation": {
+            "conversation_history":
+                conversation_text
+        },
+
+        "coach_state": {
+            "coach_index":
+                int(
+                    coach_session.get(
+                        "coach_index"
+                    )
+                    or 1
+                ),
+
+            "current_round":
+                current_round,
+
+            "maximum_rounds":
+                LEARNING_COACH_MAX_ROUNDS,
+
+            "previous_understanding_score":
+                previous_score
+        }
+    }
+
+    final_prompt = (
+        LEARNING_COACH_PROMPT_TEMPLATE
+        + "\n\n"
+        + "RUNTIME_DATA:\n"
+        + json.dumps(
+            runtime_data,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+    return (
+        final_prompt,
+        runtime_data,
+        current_round
+    )
+
+def update_learning_coach_session(
+        coach_session: dict,
+        understanding_score: int,
+        goal_achieved: bool,
+        current_round: int
+):
+    now = datetime.now(
+        timezone.utc
+    )
+
+    max_rounds_reached = (
+        current_round
+        >= LEARNING_COACH_MAX_ROUNDS
+    )
+
+    if goal_achieved:
+        status = "completed"
+
+    elif max_rounds_reached:
+        status = "max_rounds"
+
+    else:
+        status = "active"
+
+    update_data = {
+        "final_understanding_score":
+            understanding_score,
+
+        "total_rounds":
+            current_round,
+
+        "status":
+            status
+    }
+
+    if status != "active":
+        update_data[
+            "ended_at"
+        ] = now.isoformat()
+
+    res = (
+        sb.table(
+            "learning_coach_sessions"
+        )
+        .update(
+            update_data
+        )
+        .eq(
+            "id",
+            coach_session["id"]
+        )
+        .execute()
+    )
+
+    if res.data:
+        return res.data[0]
+
+    return {
+        **coach_session,
+        **update_data
+    }
 
 
 # =====================================================
@@ -1071,6 +1670,9 @@ def get_or_create_lesson_progress(
 
             "status":
                 "in_progress",
+
+            "current_stage":
+                LESSON_STAGE_INTRO,
 
             "progress_percent":
                 0,
@@ -3192,11 +3794,44 @@ def generate_and_store_lesson_audio(
         if not segment_text:
             continue
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                segment_text
-            )
+        print(
+            "BACKGROUND TTS SEGMENT START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "segment_index": index,
+                "text_length": len(segment_text),
+                "text": repr(segment_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    segment_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS SEGMENT SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS SEGMENT FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "text_length": len(segment_text),
+                    "text": repr(segment_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         storage_path = (
             f"unit_lessons/"
@@ -3247,11 +3882,41 @@ def generate_and_store_lesson_audio(
 
     if question_text:
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                question_text
-            )
+        print(
+            "BACKGROUND TTS QUESTION START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "text_length": len(question_text),
+                "text": repr(question_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    question_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS QUESTION SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS QUESTION FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "text_length": len(question_text),
+                    "text": repr(question_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         question_path = (
             f"unit_lessons/"
@@ -3592,7 +4257,14 @@ def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
-
+        print(
+            "LIVE TTS REQUEST:",
+            {
+                "session_id": body.session_id,
+                "text_length": len(text),
+                "text": repr(text)
+            }
+        )
         # Gemini TTS
         response = gemini_client.models.generate_content(
             model="gemini-3.1-flash-tts-preview",
@@ -3798,6 +4470,333 @@ def get_learning_lesson_units(
         )
 
 @app.post(
+    "/api/tutor/active-lesson-state"
+)
+def get_active_lesson_state(
+        body: ActiveLessonStateRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # =============================================
+        # CHILD
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # ACTIVE LEARNING COACH SESSION
+        #
+        # קודם מחפשים Coach פעיל.
+        # כך לא משחזרים בטעות שיעור ישן אחר.
+        # =============================================
+
+        coach_res = (
+            sb.table(
+                "learning_coach_sessions"
+            )
+            .select(
+                "id, "
+                "kid_id, "
+                "lesson_id, "
+                "unit_lesson_id, "
+                "coach_index, "
+                "status, "
+                "total_rounds, "
+                "final_understanding_score, "
+                "started_at"
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "status",
+                "active"
+            )
+            .order(
+                "started_at",
+                desc=True
+            )
+            .limit(1)
+            .execute()
+        )
+
+        if not coach_res.data:
+            return {
+                "has_active_lesson": False
+            }
+
+        coach_session = (
+            coach_res.data[0]
+        )
+
+        # =============================================
+        # LESSON PROGRESS
+        # =============================================
+
+        progress_res = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .select(
+                "id, "
+                "kid_id, "
+                "lesson_id, "
+                "current_stage, "
+                "status, "
+                "progress_percent, "
+                "mastery_score, "
+                "last_activity_at"
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                coach_session["lesson_id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        if not progress_res.data:
+            return {
+                "has_active_lesson": False
+            }
+
+        progress = (
+            progress_res.data[0]
+        )
+
+        # =============================================
+        # LAST ASSISTANT MESSAGE
+        # =============================================
+
+        last_message_res = (
+            sb.table(
+                "kid_lesson_history"
+            )
+            .select(
+                "id, "
+                "content, "
+                "sequence_json, "
+                "created_at"
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                coach_session["lesson_id"]
+            )
+            .eq(
+                "role",
+                "assistant"
+            )
+            .order(
+                "created_at",
+                desc=True
+            )
+            .limit(1)
+            .execute()
+        )
+
+        last_assistant_message = (
+            last_message_res.data[0]
+            if last_message_res.data
+            else None
+        )
+
+        # =============================================
+        # UNIT LESSON DETAILS
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            coach_session[
+                "unit_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # PARENT LESSON DETAILS
+        # =============================================
+
+        parent_lesson = get_learning_lesson(
+            coach_session[
+                "lesson_id"
+            ]
+        )
+
+        return {
+            "has_active_lesson": True,
+
+            "progress_id":
+                progress["id"],
+
+            "lesson_id":
+                progress["lesson_id"],
+
+            "unit_lesson_id":
+                coach_session[
+                    "unit_lesson_id"
+                ],
+
+            "current_stage":
+                progress.get(
+                    "current_stage"
+                ),
+
+            "lesson_status":
+                progress.get(
+                    "status"
+                ),
+
+            "progress_percent":
+                progress.get(
+                    "progress_percent"
+                ),
+
+            "mastery_score":
+                progress.get(
+                    "mastery_score"
+                ),
+
+            "parent_lesson": {
+                "id":
+                    parent_lesson.get(
+                        "id"
+                    ),
+
+                "lesson_name":
+                    parent_lesson.get(
+                        "lesson_name"
+                    ),
+
+                "subject":
+                    parent_lesson.get(
+                        "subject"
+                    ),
+
+                "category":
+                    parent_lesson.get(
+                        "category"
+                    )
+            },
+
+            "unit_lesson": {
+                "id":
+                    unit_lesson.get(
+                        "id"
+                    ),
+
+                "unit_order":
+                    unit_lesson.get(
+                        "unit_order"
+                    ),
+
+                "unit_name":
+                    unit_lesson.get(
+                        "unit_name"
+                    ),
+
+                "lesson_order":
+                    unit_lesson.get(
+                        "lesson_order"
+                    ),
+
+                "lesson_name":
+                    unit_lesson.get(
+                        "lesson_name"
+                    )
+            },
+
+            "learning_coach": {
+                "session_id":
+                    coach_session.get(
+                        "id"
+                    ),
+
+                "coach_index":
+                    coach_session.get(
+                        "coach_index"
+                    ),
+
+                "status":
+                    coach_session.get(
+                        "status"
+                    ),
+
+                "total_rounds":
+                    coach_session.get(
+                        "total_rounds"
+                    ),
+
+                "understanding_score":
+                    coach_session.get(
+                        "final_understanding_score"
+                    )
+            },
+
+            "last_assistant_message": {
+                "content":
+                    (
+                        last_assistant_message.get(
+                            "content"
+                        )
+                        if last_assistant_message
+                        else None
+                    ),
+
+                "sequence":
+                    (
+                        last_assistant_message.get(
+                            "sequence_json"
+                        )
+                        if last_assistant_message
+                        else None
+                    )
+            }
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "ACTIVE LESSON STATE ERROR:",
+            repr(e)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Failed to load "
+                "active lesson state"
+            )
+        )
+
+@app.post(
     "/api/tutor/lesson-intro"
 )
 def lesson_intro(
@@ -3846,7 +4845,16 @@ def lesson_intro(
                 "learning_lesson_id"
             ]
         )
+        # =============================================
+        # TUTOR SESSION
+        # =============================================
 
+        tutor_session = get_or_create_tutor_session(
+            user_id=user.id,
+            kid_id=child["id"]
+        )
+
+        session_id = tutor_session["id"]
         # =============================================
         # INTRO TEMPLATE
         # =============================================
@@ -3995,6 +5003,9 @@ def lesson_intro(
 
         return {
             "success": True,
+
+            "session_id":
+                session_id,
 
             "unit_lesson_id":
                 unit_lesson["id"],
@@ -4179,6 +5190,17 @@ def get_or_generate_unit_lesson(
                     "pending",
                     "failed"
             ):
+                print(
+                    "QUEUE BACKGROUND AUDIO FROM CACHE:",
+                    {
+                        "unit_lesson_id": unit_lesson["id"],
+                        "audio_generation_status":
+                            audio_generation_status,
+                        "has_cached_audio":
+                            isinstance(cached_audio, dict)
+                    }
+                )
+
                 background_tasks.add_task(
                     generate_unit_lesson_audio_background,
                     unit_lesson["id"]
@@ -4232,6 +5254,12 @@ def get_or_generate_unit_lesson(
 
                 "audio_generation_status":
                     audio_generation_status,
+
+                "audio_mode": (
+                    "stored"
+                    if response_audio
+                    else "background_generating"
+                ),
 
                 "lesson_audio":
                     response_audio
@@ -4484,12 +5512,6 @@ def get_or_generate_unit_lesson(
             "generation_status":
                 "ready",
 
-            "audio_generation_status":
-                "pending",
-
-            "audio_generation_error":
-                None,
-
             "generation_error":
                 None,
 
@@ -4498,6 +5520,22 @@ def get_or_generate_unit_lesson(
 
             "generated_at":
                 generated_at,
+
+            # האודיו החדש עדיין לא מוכן
+            "audio_generation_status":
+                "pending",
+
+            "lesson_audio_json":
+                None,
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                None,
+
+            "tts_generated_at":
+                None,
 
             "updated_at":
                 generated_at
@@ -4609,7 +5647,23 @@ def get_or_generate_unit_lesson(
         # =============================================
         # START AUDIO GENERATION IN BACKGROUND
         # =============================================
-
+        print(
+            "QUEUE BACKGROUND AUDIO AFTER LESSON GENERATION:",
+            {
+                "unit_lesson_id": unit_lesson["id"],
+                "content_version": content_version,
+                "segments_count": len(
+                    structured_lesson.get("lesson")
+                    or []
+                ),
+                "has_question": bool(
+                    (
+                            structured_lesson.get("question")
+                            or {}
+                    ).get("text")
+                )
+            }
+        )
         background_tasks.add_task(
             generate_unit_lesson_audio_background,
             unit_lesson["id"]
@@ -5051,6 +6105,485 @@ def generate_unit_lesson_audio(
                 "generation failed"
             )
         )
+
+# =====================================================
+# LEARNING COACH EXECUTION
+# =====================================================
+
+def run_learning_coach(
+        user,
+        child: dict,
+        lesson: dict,
+        unit_lesson: dict,
+        message: str,
+        tutor_session: dict,
+        session_id: str,
+        progress: dict,
+        coach_index: int
+):
+    # =============================================
+    # SESSION
+    # =============================================
+
+    coach_session = (
+        get_or_create_learning_coach_session(
+            kid_id=child["id"],
+            lesson_id=lesson["id"],
+            unit_lesson_id=unit_lesson["id"],
+            coach_index=coach_index
+        )
+    )
+
+    # =============================================
+    # HISTORY
+    # =============================================
+
+    conversation_history = (
+        get_recent_lesson_history_for_llm(
+            kid_id=child["id"],
+            lesson_id=lesson["id"],
+            limit=12
+        )
+    )
+
+    # =============================================
+    # BUILD PROMPT
+    # =============================================
+
+    (
+        system_prompt,
+        runtime_data,
+        current_round
+    ) = build_learning_coach_prompt(
+        child=child,
+        parent_lesson=lesson,
+        unit_lesson=unit_lesson,
+        coach_session=coach_session,
+        conversation_history=conversation_history,
+        child_answer=message
+    )
+
+    # =============================================
+    # CONSOLE DEBUG
+    # =============================================
+
+    print("\n")
+    print("=" * 70)
+    print("LEARNING COACH TRIGGERED")
+    print("=" * 70)
+
+    print(
+        "ROUTING DATA:",
+        json.dumps(
+            {
+                "kid_id":
+                    child.get("id"),
+
+                "child_name":
+                    child.get("child_name"),
+
+                "grade":
+                    child.get("age"),
+
+                "lesson_id":
+                    lesson.get("id"),
+
+                "unit_lesson_id":
+                    unit_lesson.get("id"),
+
+                "coach_session_id":
+                    coach_session.get("id"),
+
+                "coach_index":
+                    coach_index,
+
+                "current_round":
+                    current_round,
+
+                "maximum_rounds":
+                    LEARNING_COACH_MAX_ROUNDS,
+
+                "previous_score":
+                    coach_session.get(
+                        "final_understanding_score"
+                    ),
+
+                "child_answer":
+                    message
+            },
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+    print("-" * 70)
+    print("LEARNING COACH RUNTIME DATA:")
+    print(
+        json.dumps(
+            runtime_data,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+    print("-" * 70)
+    print("FINAL LEARNING COACH PROMPT:")
+    print(system_prompt)
+    print("=" * 70)
+
+    # =============================================
+    # OPENAI
+    # =============================================
+
+    completion = (
+        client
+        .beta
+        .chat
+        .completions
+        .parse(
+            model=DEFAULT_OPENAI_MODEL,
+
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": message
+                }
+            ],
+
+            response_format=
+                LearningCoachAIResponse
+        )
+    )
+
+    coach_data = (
+        completion
+        .choices[0]
+        .message
+        .parsed
+    )
+
+    if not coach_data:
+        raise RuntimeError(
+            "Learning Coach returned no response"
+        )
+
+    understanding_score = max(
+        0,
+        min(
+            100,
+            int(
+                coach_data
+                .understanding_score
+            )
+        )
+    )
+
+    goal_achieved = bool(
+        coach_data
+        .lesson_goal_achieved
+    )
+
+    teacher_response = str(
+        coach_data
+        .teacher_response
+        or ""
+    ).strip()
+
+    max_rounds_reached = (
+        current_round
+        >= LEARNING_COACH_MAX_ROUNDS
+    )
+
+    coach_finished = (
+        goal_achieved
+        or max_rounds_reached
+    )
+
+    # =============================================
+    # UPDATE COACH SESSION
+    # =============================================
+
+    updated_coach_session = (
+        update_learning_coach_session(
+            coach_session=coach_session,
+            understanding_score=
+                understanding_score,
+            goal_achieved=
+                goal_achieved,
+            current_round=
+                current_round
+        )
+    )
+
+    # =============================================
+    # FINISH LEARNING COACH AND LESSON
+    # =============================================
+
+    if coach_finished:
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        next_stage = (
+            LESSON_STAGE_COMPLETED
+        )
+
+        progress_update = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .update({
+                "current_stage":
+                    next_stage,
+
+                "status":
+                    "completed",
+
+                "progress_percent":
+                    100,
+
+                "mastery_score":
+                    understanding_score,
+
+                "completed_at":
+                    now_iso,
+
+                "last_activity_at":
+                    now_iso,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                progress["id"]
+            )
+            .execute()
+        )
+
+        if progress_update.data:
+            progress = (
+                progress_update.data[0]
+            )
+
+    else:
+
+        next_stage = (
+            progress.get(
+                "current_stage"
+            )
+        )
+
+    print("-" * 70)
+    print(
+        "LEARNING COACH RESPONSE:",
+        json.dumps(
+            {
+                "understanding_score":
+                    understanding_score,
+
+                "lesson_goal_achieved":
+                    goal_achieved,
+
+                "teacher_response":
+                    teacher_response,
+
+                "coach_finished":
+                    coach_finished,
+
+                "status":
+                    updated_coach_session.get(
+                        "status"
+                    )
+            },
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+    print("=" * 70)
+    print("\n")
+
+    # =============================================
+    # FRONTEND SEQUENCE
+    #
+    # teacher_response כבר כולל את תגובת המורה
+    # ואת השאלה הבאה.
+    #
+    # לכן אסור לשלוח אותו גם כ-write וגם כ-ask.
+    # =============================================
+
+    if coach_finished:
+
+        sequence = [
+            TutorAction(
+                type="ask",
+                text=teacher_response,
+                style="normal",
+                speed=45
+            )
+        ]
+
+    else:
+
+        sequence = [
+            TutorAction(
+                type="ask",
+                text=teacher_response,
+                style="question",
+                speed=45
+            )
+        ]
+
+    # =============================================
+    # SAVE HISTORY
+    # =============================================
+
+    save_lesson_history(
+        kid_id=child["id"],
+        lesson_id=lesson["id"],
+        session_id=session_id,
+        objective_index=None,
+        user_content=message,
+        assistant_content=teacher_response,
+        evaluation=None,
+        sequence_json=[
+            action.model_dump()
+            for action in sequence
+        ]
+    )
+
+    # =============================================
+    # TOKENS AND COST
+    # =============================================
+
+    input_tokens = 0
+    output_tokens = 0
+    total_tokens = 0
+
+    if completion.usage:
+        input_tokens = (
+            completion.usage.prompt_tokens
+            or 0
+        )
+
+        output_tokens = (
+            completion.usage.completion_tokens
+            or 0
+        )
+
+        total_tokens = (
+            completion.usage.total_tokens
+            or 0
+        )
+
+    openai_cost_usd = (
+        calculate_openai_cost(
+            model=DEFAULT_OPENAI_MODEL,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
+        )
+    )
+
+    update_tutor_session_after_chat(
+        session=tutor_session,
+        total_tokens=total_tokens,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        cost_usd=openai_cost_usd
+    )
+
+    increment_usage_summary(
+        user_id=user.id,
+
+        sessions=(
+            1
+            if tutor_session.get("_is_new")
+            else 0
+        ),
+
+        ai_calls=1,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        total_tokens=total_tokens,
+        openai_cost_usd=openai_cost_usd
+    )
+
+    return {
+        "speech":
+            teacher_response,
+
+        "sequence": [
+            action.model_dump()
+            for action in sequence
+        ],
+
+        "wait_for_answer":
+            not coach_finished,
+        "coach_finished":
+            coach_finished,
+
+        "lesson_completed":
+            coach_finished,
+        "session_id":
+            session_id,
+
+        "lesson_id":
+            lesson["id"],
+
+        "unit_lesson_id":
+            unit_lesson["id"],
+
+        "lesson_mode":
+            "learning_coach",
+
+        "current_stage":
+            progress.get(
+                "current_stage"
+            ),
+
+        "coach_index":
+            coach_index,
+
+        "review_mode":
+            False,
+
+        "learning_coach": {
+            "session_id":
+                updated_coach_session.get(
+                    "id"
+                ),
+
+            "coach_index":
+                coach_index,
+
+            "current_round":
+                current_round,
+
+            "maximum_rounds":
+                LEARNING_COACH_MAX_ROUNDS,
+
+            "understanding_score":
+                understanding_score,
+
+            "lesson_goal_achieved":
+                goal_achieved,
+
+            "status":
+                updated_coach_session.get(
+                    "status"
+                ),
+
+            "finished":
+                coach_finished
+        }
+    }
 # =====================================================
 # STRUCTURED AI LESSON
 # =====================================================
@@ -5288,7 +6821,169 @@ def structured_lesson(
                 turn_type = (
                     "student_response"
                 )
+        # =============================================
+        # UNIVERSAL LESSON STAGE ROUTER
+        # =============================================
 
+        is_real_student_answer = (
+                not is_lesson_start
+                and not is_no_response
+                and not review_mode
+        )
+
+        current_stage = (
+                progress.get(
+                    "current_stage"
+                )
+                or LESSON_STAGE_INTRO
+        )
+
+        if is_real_student_answer:
+            if (
+                    current_stage
+                    == LESSON_STAGE_COMPLETED
+            ):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Lesson is already completed"
+                )
+
+            if not body.unit_lesson_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "unit_lesson_id is required "
+                        "for Universal Lesson"
+                    )
+                )
+
+            unit_lesson = get_unit_lesson(
+                body.unit_lesson_id
+            )
+
+            if (
+                    int(
+                        unit_lesson.get(
+                            "learning_lesson_id"
+                        )
+                        or 0
+                    )
+                    !=
+                    int(
+                        lesson.get("id")
+                        or 0
+                    )
+            ):
+                raise HTTPException(
+                    status_code=403,
+                    detail=(
+                        "Unit lesson does not belong "
+                        "to the selected lesson"
+                    )
+                )
+
+            # =========================================
+            # FIRST QUESTION -> LEARNING COACH 1
+            # =========================================
+
+            if current_stage in (
+                    LESSON_STAGE_INTRO,
+                    LESSON_STAGE_FIRST_EXPLANATION,
+                    LESSON_STAGE_FIRST_QUESTION
+            ):
+                progress = update_lesson_stage(
+                    progress=progress,
+                    current_stage=
+                    LESSON_STAGE_LEARNING_COACH_1
+                )
+
+                return run_learning_coach(
+                    user=user,
+                    child=child,
+                    lesson=lesson,
+                    unit_lesson=unit_lesson,
+                    message=message,
+                    tutor_session=tutor_session,
+                    session_id=session_id,
+                    progress=progress,
+                    coach_index=1
+                )
+
+            # =========================================
+            # CONTINUE LEARNING COACH 1
+            # =========================================
+
+            if (
+                    current_stage
+                    == LESSON_STAGE_LEARNING_COACH_1
+            ):
+                return run_learning_coach(
+                    user=user,
+                    child=child,
+                    lesson=lesson,
+                    unit_lesson=unit_lesson,
+                    message=message,
+                    tutor_session=tutor_session,
+                    session_id=session_id,
+                    progress=progress,
+                    coach_index=1
+                )
+
+            # =========================================
+            # SECOND QUESTION -> LEARNING COACH 2
+            # =========================================
+
+            if (
+                    current_stage
+                    == LESSON_STAGE_SECOND_QUESTION
+            ):
+                progress = update_lesson_stage(
+                    progress=progress,
+                    current_stage=
+                    LESSON_STAGE_LEARNING_COACH_2
+                )
+
+                return run_learning_coach(
+                    user=user,
+                    child=child,
+                    lesson=lesson,
+                    unit_lesson=unit_lesson,
+                    message=message,
+                    tutor_session=tutor_session,
+                    session_id=session_id,
+                    progress=progress,
+                    coach_index=2
+                )
+
+            # =========================================
+            # CONTINUE LEARNING COACH 2
+            # =========================================
+
+            if (
+                    current_stage
+                    == LESSON_STAGE_LEARNING_COACH_2
+            ):
+                return run_learning_coach(
+                    user=user,
+                    child=child,
+                    lesson=lesson,
+                    unit_lesson=unit_lesson,
+                    message=message,
+                    tutor_session=tutor_session,
+                    session_id=session_id,
+                    progress=progress,
+                    coach_index=2
+                )
+
+            # בשלבי clarification ו-final_assessment
+            # עדיין אין מנוע ייעודי בקוד הנוכחי.
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Student answer is not expected "
+                    f"during stage: {current_stage}"
+                )
+            )
         # =============================================
         # PROMPT
         # =============================================
@@ -6022,6 +7717,11 @@ def structured_lesson(
             "status":
                 progress.get(
                     "status"
+                ),
+
+            "current_stage":
+                progress.get(
+                    "current_stage"
                 ),
 
             "progress_percent":
