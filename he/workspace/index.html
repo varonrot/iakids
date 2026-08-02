@@ -26737,9 +26737,9 @@ const parts =
   this.splitSpeechIntoParts(
     cleanText,
     {
-      targetLength: 55,
-      maxLength: 85,
-      maxParts: 4
+      targetLength: 75,
+      maxLength: 120,
+      maxParts: 2
     }
   );
 const askStartTime =
@@ -26792,83 +26792,63 @@ console.log(
     כמעט באותו הזמן.
   */
 
-const audioPromises = [];
+const audioPromises =
+  parts.map(
+    (
+      part,
+      index
+    ) => {
 
-let previousTtsPromise =
-  Promise.resolve();
-
-
-for(
-  let index = 0;
-  index < parts.length;
-  index++
-){
-
-  const part =
-    parts[index];
-
-
-  /*
-    כל קריאת TTS מתחילה רק לאחר
-    שקריאת ה-TTS הקודמת הסתיימה.
-
-    אם הקריאה הקודמת נכשלה,
-    עדיין ממשיכים לחלק הבא.
-  */
-
-  const currentTtsPromise =
-    previousTtsPromise
-
-      .catch(
-        () => null
-      )
-
-      .then(
-        async () => {
-
-          console.log(
-            `⏱️ TTS ${index + 1} SENT:`,
-            Math.round(
-              performance.now()
-              -
-              askStartTime
-            ),
-            "ms"
-          );
-
-
-const audioUrl =
-  await this.preloadAudioWithRetry(
-    part
-  );
-
-
-          console.log(
-            `⏱️ TTS ${index + 1} READY:`,
-            Math.round(
-              performance.now()
-              -
-              askStartTime
-            ),
-            "ms"
-          );
-
-
-          return audioUrl;
-
-        }
+      console.log(
+        `⏱️ TTS ${index + 1} SENT:`,
+        Math.round(
+          performance.now()
+          -
+          askStartTime
+        ),
+        "ms"
       );
 
+      return this
+        .preloadAudio(
+          part
+        )
+        .then(
+          audioUrl => {
 
-  audioPromises.push(
-    currentTtsPromise
+            console.log(
+              `⏱️ TTS ${index + 1} READY:`,
+              Math.round(
+                performance.now()
+                -
+                askStartTime
+              ),
+              "ms"
+            );
+
+            return audioUrl;
+
+          }
+        )
+        .catch(
+          error => {
+
+            console.error(
+              "LEARNING COACH PART TTS ERROR:",
+              {
+                index,
+                part,
+                error
+              }
+            );
+
+            return null;
+
+          }
+        );
+
+    }
   );
-
-
-  previousTtsPromise =
-    currentTtsPromise;
-
-}
   /*
     מציגים ומשמיעים את החלקים לפי הסדר.
 
