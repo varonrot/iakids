@@ -3794,11 +3794,44 @@ def generate_and_store_lesson_audio(
         if not segment_text:
             continue
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                segment_text
-            )
+        print(
+            "BACKGROUND TTS SEGMENT START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "segment_index": index,
+                "text_length": len(segment_text),
+                "text": repr(segment_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    segment_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS SEGMENT SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS SEGMENT FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "text_length": len(segment_text),
+                    "text": repr(segment_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         storage_path = (
             f"unit_lessons/"
@@ -3849,11 +3882,41 @@ def generate_and_store_lesson_audio(
 
     if question_text:
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                question_text
-            )
+        print(
+            "BACKGROUND TTS QUESTION START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "text_length": len(question_text),
+                "text": repr(question_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    question_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS QUESTION SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS QUESTION FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "text_length": len(question_text),
+                    "text": repr(question_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         question_path = (
             f"unit_lessons/"
@@ -4194,7 +4257,14 @@ def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
-
+        print(
+            "LIVE TTS REQUEST:",
+            {
+                "session_id": body.session_id,
+                "text_length": len(text),
+                "text": repr(text)
+            }
+        )
         # Gemini TTS
         response = gemini_client.models.generate_content(
             model="gemini-3.1-flash-tts-preview",
@@ -5120,6 +5190,17 @@ def get_or_generate_unit_lesson(
                     "pending",
                     "failed"
             ):
+                print(
+                    "QUEUE BACKGROUND AUDIO FROM CACHE:",
+                    {
+                        "unit_lesson_id": unit_lesson["id"],
+                        "audio_generation_status":
+                            audio_generation_status,
+                        "has_cached_audio":
+                            isinstance(cached_audio, dict)
+                    }
+                )
+
                 background_tasks.add_task(
                     generate_unit_lesson_audio_background,
                     unit_lesson["id"]
@@ -5173,6 +5254,12 @@ def get_or_generate_unit_lesson(
 
                 "audio_generation_status":
                     audio_generation_status,
+
+                "audio_mode": (
+                    "stored"
+                    if response_audio
+                    else "background_generating"
+                ),
 
                 "lesson_audio":
                     response_audio
@@ -5428,7 +5515,10 @@ def get_or_generate_unit_lesson(
             "audio_generation_status":
                 "pending",
 
-            "audio_generation_error":
+            "audio_mode":
+                "background_generating",
+
+            "lesson_audio":
                 None,
 
             "generation_error":
@@ -5550,7 +5640,23 @@ def get_or_generate_unit_lesson(
         # =============================================
         # START AUDIO GENERATION IN BACKGROUND
         # =============================================
-
+        print(
+            "QUEUE BACKGROUND AUDIO AFTER LESSON GENERATION:",
+            {
+                "unit_lesson_id": unit_lesson["id"],
+                "content_version": content_version,
+                "segments_count": len(
+                    structured_lesson.get("lesson")
+                    or []
+                ),
+                "has_question": bool(
+                    (
+                            structured_lesson.get("question")
+                            or {}
+                    ).get("text")
+                )
+            }
+        )
         background_tasks.add_task(
             generate_unit_lesson_audio_background,
             unit_lesson["id"]
