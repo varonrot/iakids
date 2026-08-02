@@ -14540,53 +14540,22 @@ console.log(
   ============================================= */
 
 /* =============================================
-   AUDIO SOURCE FROM BACKEND ONLY
+   AUDIO SOURCE
+
+   אם קיים אודיו שמור:
+   משתמשים בו.
+
+   אם האודיו השמור עדיין לא מוכן:
+   מתחילים מיד TTS חי לכל הקטעים,
+   בלי להמתין ל-Storage.
 ============================================= */
 
-let lessonAudio =
+const lessonAudio =
   data?.lesson_audio || null;
 
-let audioStatus =
+const audioStatus =
   data?.audio_generation_status || "pending";
 
-
-/*
-  אם האודיו עדיין נוצר,
-  מחכים לבקאנד ולא מפעילים TTS חי.
-*/
-
-if(
-  audioStatus !== "ready"
-  ||
-  !lessonAudio
-){
-
-  console.log(
-    "WAITING FOR STORED LESSON AUDIO:",
-    {
-      unitLessonId:
-        data.unit_lesson_id,
-
-      audioStatus
-    }
-  );
-
-
-  lessonAudio =
-    await waitForUnitLessonAudio(
-      data.unit_lesson_id
-    );
-
-
-  audioStatus =
-    "ready";
-
-}
-
-
-/*
-  מיון הקטעים לפי index
-*/
 
 const storedSegments =
   Array.isArray(
@@ -14601,11 +14570,7 @@ const storedSegments =
     : [];
 
 
-/*
-  בדיקה שהמטמון שהתקבל תקין
-*/
-
-const useStoredAudio =
+const canUseStoredAudio =
   (
     audioStatus === "ready"
 
@@ -14626,10 +14591,12 @@ const useStoredAudio =
 
 
 console.log(
-  "UNIVERSAL LESSON AUDIO DEBUG:",
+  "UNIVERSAL LESSON AUDIO MODE:",
   {
-    status:
-      audioStatus,
+    unitLessonId:
+      data.unit_lesson_id,
+
+    audioStatus,
 
     lessonPartsCount:
       lessonParts.length,
@@ -14637,45 +14604,54 @@ console.log(
     storedSegmentsCount:
       storedSegments.length,
 
-    segmentUrls:
-      storedSegments.map(
-        segment => segment.url
-      ),
-
-    questionUrl:
-      lessonAudio?.question?.url
+    mode:
+      canUseStoredAudio
+        ? "stored"
+        : "live_tts"
   }
 );
 
 
-if(
-  !useStoredAudio
-){
-
-  console.error(
-    "STORED LESSON AUDIO INVALID:",
-    lessonAudio
-  );
-
-  throw new Error(
-    "Stored lesson audio is incomplete"
-  );
-
-}
-
-
 /*
-  משתמשים רק בקבצים שהגיעו מה-Storage.
-  אין יותר fallback ל-TTS חי.
+  מתחילים את כל בקשות ה-TTS החי מיד ובמקביל.
+
+  preloadAudio() כבר שומר Promise במטמון,
+  ולכן אין יצירת אודיו כפולה לאותו טקסט.
 */
 
 const lessonAudioPromises =
-  storedSegments.map(
-    segment =>
-      Promise.resolve(
-        segment.url
+  canUseStoredAudio
+
+    ? storedSegments.map(
+        segment =>
+          Promise.resolve(
+            segment.url
+          )
       )
-  );
+
+    : lessonParts.map(
+        paragraph =>
+          window.lessonRenderer
+            .preloadAudioWithRetry(
+              paragraph,
+              3
+            )
+            .catch(
+              error => {
+
+                console.error(
+                  "LIVE LESSON TTS FAILED:",
+                  {
+                    paragraph,
+                    error
+                  }
+                );
+
+                return null;
+
+              }
+            )
+      );
 
 
 const questionStoredUrl =
@@ -14689,11 +14665,84 @@ const questionStoredUrl =
 const questionAudioPromise =
   questionText
 
-    ? Promise.resolve(
+    ? (
+        canUseStoredAudio
+          &&
         questionStoredUrl
+
+          ? Promise.resolve(
+              questionStoredUrl
+            )
+
+          : window.lessonRenderer
+              .preloadAudioWithRetry(
+                questionText,
+                3
+              )
+              .catch(
+                error => {
+
+                  console.error(
+                    "LIVE QUESTION TTS FAILED:",
+                    error
+                  );
+
+                  return null;
+
+                }
+              )
       )
 
     : null;
+
+
+/*
+  האודיו המשותף עדיין ממשיך להיווצר בבקאנד.
+
+  הבדיקה מתבצעת ברקע בלבד,
+  בלי await ובלי לעכב את הילד.
+*/
+
+if(
+  !canUseStoredAudio
+  &&
+  data?.unit_lesson_id
+){
+
+  waitForUnitLessonAudio(
+    data.unit_lesson_id
+  )
+    .then(
+      storedAudio => {
+
+        console.log(
+          "STORED LESSON AUDIO READY IN BACKGROUND:",
+          {
+            unitLessonId:
+              data.unit_lesson_id,
+
+            segmentCount:
+              storedAudio
+                ?.segments
+                ?.length
+              || 0
+          }
+        );
+
+      }
+    )
+    .catch(
+      error => {
+
+        console.warn(
+          "STORED LESSON AUDIO BACKGROUND CHECK FAILED:",
+          error
+        );
+
+      }
+    );
+
+}
 
   /* =============================================
      הצגה והשמעה לפי הסדר
@@ -14722,15 +14771,21 @@ const questionAudioPromise =
       ];
 
 
-    if(
-      !audioUrl
-    ){
+if(
+  !audioUrl
+){
 
-      throw new Error(
-        `Lesson TTS returned no audio for part ${index + 1}`
-      );
+  console.warn(
+    "LESSON AUDIO MISSING, WRITING TEXT ONLY:",
+    {
+      index:
+        index + 1,
 
+      paragraph
     }
+  );
+
+}
 
 
     /* =============================================
@@ -14773,22 +14828,44 @@ if(
 */
 
 const audioPromise =
-  window.lessonRenderer
-    .playAudioUrl(
-      audioUrl
-    );
+  audioUrl
+
+    ? window.lessonRenderer
+        .playAudioUrl(
+          audioUrl
+        )
+
+    : Promise.resolve();
+
+let segmentDuration =
+  null;
 
 
-const segmentDuration =
-  useStoredAudio
+if(
+  canUseStoredAudio
+){
 
-    ? Number(
-        storedSegments[
-          index
-        ]?.duration_seconds
-      )
+  segmentDuration =
+    Number(
+      storedSegments[
+        index
+      ]?.duration_seconds
+    )
+    ||
+    null;
 
-    : null;
+}
+else if(
+  audioUrl
+){
+
+  segmentDuration =
+    await window.lessonRenderer
+      .getAudioDuration(
+        audioUrl
+      );
+
+}
 
 
 const typingPromise =
@@ -14829,17 +14906,7 @@ animateImportantParts(
     const questionAudioUrl =
       await questionAudioPromise;
 
-    if(
-      useStoredAudio
-      &&
-      !questionAudioUrl
-    ){
 
-      throw new Error(
-        "Stored question audio URL is missing"
-      );
-
-    }
 
     const questionLine =
       document.createElement(
@@ -14874,16 +14941,35 @@ if(
       );
 
 
-  const questionDuration =
-    useStoredAudio
+let questionDuration =
+  null;
 
-      ? Number(
-          lessonAudio
-            ?.question
-            ?.duration_seconds
-        )
 
-      : null;
+if(
+  canUseStoredAudio
+){
+
+  questionDuration =
+    Number(
+      lessonAudio
+        ?.question
+        ?.duration_seconds
+    )
+    ||
+    null;
+
+}
+else if(
+  questionAudioUrl
+){
+
+  questionDuration =
+    await window.lessonRenderer
+      .getAudioDuration(
+        questionAudioUrl
+      );
+
+}
 
 
   const questionTyping =
