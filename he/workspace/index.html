@@ -13863,6 +13863,213 @@ function renderUnitLessons(unit) {
 /* =====================================================
    LOAD UNIVERSAL UNIT LESSON
 ===================================================== */
+/* =====================================================
+   WAIT FOR STORED UNIT LESSON AUDIO
+===================================================== */
+
+async function waitForUnitLessonAudio(
+  unitLessonId
+){
+
+  const MAX_AUDIO_CHECKS =
+    40;
+
+  const AUDIO_CHECK_DELAY_MS =
+    1500;
+
+
+  const {
+    data: {
+      session
+    }
+  } =
+    await sb.auth.getSession();
+
+
+  if(
+    !session?.access_token
+  ){
+
+    throw new Error(
+      "No authenticated session for lesson audio"
+    );
+
+  }
+
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_AUDIO_CHECKS;
+    attempt++
+  ){
+
+    console.log(
+      "UNIT LESSON AUDIO CHECK:",
+      {
+        attempt,
+        unitLessonId
+      }
+    );
+
+
+    const response =
+      await fetch(
+        `${TUTOR_API_BASE}/api/tutor/unit-lesson/audio`,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                unitLessonId
+            })
+        }
+      );
+
+
+    const responseText =
+      await response.text();
+
+
+    let audioData = null;
+
+
+    try{
+
+      audioData =
+        responseText
+          ? JSON.parse(
+              responseText
+            )
+          : null;
+
+    }
+    catch(parseError){
+
+      console.error(
+        "UNIT LESSON AUDIO JSON ERROR:",
+        responseText
+      );
+
+    }
+
+
+    /*
+      האודיו מוכן
+    */
+
+    if(
+      response.ok
+      &&
+      audioData
+        ?.audio_generation_status ===
+          "ready"
+      &&
+      audioData
+        ?.lesson_audio
+    ){
+
+      console.log(
+        "UNIT LESSON AUDIO READY:",
+        audioData
+      );
+
+
+      return (
+        audioData.lesson_audio
+      );
+
+    }
+
+
+    /*
+      האודיו עדיין נוצר.
+      לא מפעילים TTS חי.
+    */
+
+    if(
+      audioData
+        ?.audio_generation_status ===
+          "generating"
+
+      ||
+
+      audioData
+        ?.source ===
+          "generating"
+    ){
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            AUDIO_CHECK_DELAY_MS
+          )
+      );
+
+
+      continue;
+
+    }
+
+
+    /*
+      שגיאת זמינות זמנית
+    */
+
+    if(
+      response.status === 409
+      ||
+      response.status === 429
+      ||
+      response.status >= 500
+    ){
+
+      console.warn(
+        "UNIT LESSON AUDIO TEMPORARY ERROR:",
+        response.status,
+        audioData || responseText
+      );
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            AUDIO_CHECK_DELAY_MS
+          )
+      );
+
+
+      continue;
+
+    }
+
+
+    throw new Error(
+      `Unit lesson audio failed ${response.status}: ${responseText}`
+    );
+
+  }
+
+
+  throw new Error(
+    "Timed out waiting for stored lesson audio"
+  );
+
+}
 
 async function loadUniversalUnitLesson(
   lesson,
@@ -14332,26 +14539,106 @@ console.log(
      TTS חי רק אם האודיו עדיין לא מוכן.
   ============================================= */
 
-   /* =============================================
-     AUDIO SOURCE FROM BACKEND
-  ============================================= */
+/* =============================================
+   AUDIO SOURCE FROM BACKEND ONLY
+============================================= */
 
-  const lessonAudio =
-    data?.lesson_audio;
+let lessonAudio =
+  data?.lesson_audio || null;
+
+let audioStatus =
+  data?.audio_generation_status || "pending";
+
+
+/*
+  אם האודיו עדיין נוצר,
+  מחכים לבקאנד ולא מפעילים TTS חי.
+*/
+
+if(
+  audioStatus !== "ready"
+  ||
+  !lessonAudio
+){
+
+  console.log(
+    "WAITING FOR STORED LESSON AUDIO:",
+    {
+      unitLessonId:
+        data.unit_lesson_id,
+
+      audioStatus
+    }
+  );
+
+
+  lessonAudio =
+    await waitForUnitLessonAudio(
+      data.unit_lesson_id
+    );
+
+
+  audioStatus =
+    "ready";
+
+}
+
+
+/*
+  מיון הקטעים לפי index
+*/
+
+const storedSegments =
+  Array.isArray(
+    lessonAudio?.segments
+  )
+    ? [...lessonAudio.segments]
+        .sort(
+          (a, b) =>
+            Number(a.index) -
+            Number(b.index)
+        )
+    : [];
+
+
+/*
+  בדיקה שהמטמון שהתקבל תקין
+*/
+
+const useStoredAudio =
+  (
+    audioStatus === "ready"
+
+    &&
+
+    storedSegments.length ===
+      lessonParts.length
+
+    &&
+
+    storedSegments.every(
+      segment =>
+        Boolean(
+          segment?.url
+        )
+    )
+  );
+
+
 console.log(
   "UNIVERSAL LESSON AUDIO DEBUG:",
   {
     status:
-      data.audio_generation_status,
+      audioStatus,
 
     lessonPartsCount:
       lessonParts.length,
 
     storedSegmentsCount:
-      lessonAudio?.segments?.length,
+      storedSegments.length,
 
     segmentUrls:
-      lessonAudio?.segments?.map(
+      storedSegments.map(
         segment => segment.url
       ),
 
@@ -14360,120 +14647,53 @@ console.log(
   }
 );
 
-  const storedSegments =
-    Array.isArray(
-      lessonAudio?.segments
-    )
-      ? [...lessonAudio.segments]
-          .sort(
-            (a, b) =>
-              Number(a.index) -
-              Number(b.index)
-          )
-      : [];
+
+if(
+  !useStoredAudio
+){
+
+  console.error(
+    "STORED LESSON AUDIO INVALID:",
+    lessonAudio
+  );
+
+  throw new Error(
+    "Stored lesson audio is incomplete"
+  );
+
+}
 
 
-  const useStoredAudio =
-    (
-      data.audio_generation_status ===
-        "ready"
+/*
+  משתמשים רק בקבצים שהגיעו מה-Storage.
+  אין יותר fallback ל-TTS חי.
+*/
 
-      &&
-
-      storedSegments.length ===
-        lessonParts.length
-
-      &&
-
-      storedSegments.every(
-        segment =>
-          Boolean(
-            segment?.url
-          )
+const lessonAudioPromises =
+  storedSegments.map(
+    segment =>
+      Promise.resolve(
+        segment.url
       )
-    );
-
-
-  console.log(
-    "UNIVERSAL LESSON AUDIO SOURCE:",
-    useStoredAudio
-      ? "backend-signed-urls"
-      : "live-tts"
   );
 
 
-  /*
-    שיעור עם audio ready חייב להשתמש
-    בקבצים השמורים.
-
-    אם חסרים URLs, לא שולחים 9 קריאות TTS.
-  */
-
-  if(
-    data.audio_generation_status ===
-      "ready"
-
-    &&
-
-    !useStoredAudio
-  ){
-
-    console.error(
-      "STORED LESSON AUDIO INVALID:",
-      lessonAudio
-    );
-
-    throw new Error(
-      "Stored lesson audio is ready but URLs are missing"
-    );
-
-  }
+const questionStoredUrl =
+  lessonAudio
+    ?.question
+    ?.url
+  ||
+  null;
 
 
-  const lessonAudioPromises =
-    useStoredAudio
+const questionAudioPromise =
+  questionText
 
-      ? storedSegments.map(
-          segment =>
-            Promise.resolve(
-              segment.url
-            )
-        )
+    ? Promise.resolve(
+        questionStoredUrl
+      )
 
-      : lessonParts.map(
-          text =>
-            window.lessonRenderer
-              .preloadAudio(
-                text
-              )
-        );
-
-
-  const questionStoredUrl =
-    lessonAudio
-      ?.question
-      ?.url
-    ||
-    null;
-
-
-  const questionAudioPromise =
-    questionText
-
-      ? (
-          useStoredAudio
-
-            ? Promise.resolve(
-                questionStoredUrl
-              )
-
-            : window.lessonRenderer
-                .preloadAudio(
-                  questionText
-                )
-        )
-
-      : null;
+    : null;
 
   /* =============================================
      הצגה והשמעה לפי הסדר
@@ -25229,6 +25449,98 @@ async preloadAudio(text){
 
 }
 
+async preloadAudioWithRetry(
+  text,
+  attempts = 3
+){
+
+  let lastError =
+    null;
+
+
+  for(
+    let attempt = 1;
+    attempt <= attempts;
+    attempt++
+  ){
+
+    try{
+
+      console.log(
+        "LEARNING COACH TTS ATTEMPT:",
+        {
+          attempt,
+          text
+        }
+      );
+
+
+      const audioUrl =
+        await this.preloadAudio(
+          text
+        );
+
+
+      if(
+        audioUrl
+      ){
+
+        return audioUrl;
+
+      }
+
+
+      throw new Error(
+        "TTS returned no audio URL"
+      );
+
+    }
+    catch(error){
+
+      lastError =
+        error;
+
+
+      console.error(
+        "LEARNING COACH TTS ATTEMPT FAILED:",
+        {
+          attempt,
+          text,
+          error
+        }
+      );
+
+
+      /*
+        preloadAudio מוחקת בקשה שנכשלה
+        מה-audioCache, ולכן ניסיון נוסף
+        ישלח בקשה חדשה.
+      */
+
+      if(
+        attempt < attempts
+      ){
+
+        await this.wait(
+          700 * attempt
+        );
+
+      }
+
+    }
+
+  }
+
+
+  throw (
+    lastError
+    ||
+    new Error(
+      "TTS failed after retries"
+    )
+  );
+
+}
 
 prefetchLessonAudio(sequence) {
 
@@ -26425,9 +26737,9 @@ const parts =
   this.splitSpeechIntoParts(
     cleanText,
     {
-      targetLength: 55,
-      maxLength: 85,
-      maxParts: 4
+      targetLength: 75,
+      maxLength: 120,
+      maxParts: 2
     }
   );
 const askStartTime =
@@ -26480,83 +26792,63 @@ console.log(
     כמעט באותו הזמן.
   */
 
-const audioPromises = [];
+const audioPromises =
+  parts.map(
+    (
+      part,
+      index
+    ) => {
 
-let previousTtsPromise =
-  Promise.resolve();
-
-
-for(
-  let index = 0;
-  index < parts.length;
-  index++
-){
-
-  const part =
-    parts[index];
-
-
-  /*
-    כל קריאת TTS מתחילה רק לאחר
-    שקריאת ה-TTS הקודמת הסתיימה.
-
-    אם הקריאה הקודמת נכשלה,
-    עדיין ממשיכים לחלק הבא.
-  */
-
-  const currentTtsPromise =
-    previousTtsPromise
-
-      .catch(
-        () => null
-      )
-
-      .then(
-        async () => {
-
-          console.log(
-            `⏱️ TTS ${index + 1} SENT:`,
-            Math.round(
-              performance.now()
-              -
-              askStartTime
-            ),
-            "ms"
-          );
-
-
-          const audioUrl =
-            await this.preloadAudio(
-              part
-            );
-
-
-          console.log(
-            `⏱️ TTS ${index + 1} READY:`,
-            Math.round(
-              performance.now()
-              -
-              askStartTime
-            ),
-            "ms"
-          );
-
-
-          return audioUrl;
-
-        }
+      console.log(
+        `⏱️ TTS ${index + 1} SENT:`,
+        Math.round(
+          performance.now()
+          -
+          askStartTime
+        ),
+        "ms"
       );
 
+      return this
+        .preloadAudio(
+          part
+        )
+        .then(
+          audioUrl => {
 
-  audioPromises.push(
-    currentTtsPromise
+            console.log(
+              `⏱️ TTS ${index + 1} READY:`,
+              Math.round(
+                performance.now()
+                -
+                askStartTime
+              ),
+              "ms"
+            );
+
+            return audioUrl;
+
+          }
+        )
+        .catch(
+          error => {
+
+            console.error(
+              "LEARNING COACH PART TTS ERROR:",
+              {
+                index,
+                part,
+                error
+              }
+            );
+
+            return null;
+
+          }
+        );
+
+    }
   );
-
-
-  previousTtsPromise =
-    currentTtsPromise;
-
-}
   /*
     מציגים ומשמיעים את החלקים לפי הסדר.
 
