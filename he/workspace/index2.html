@@ -10910,8 +10910,238 @@ body.lesson-theme-science
 ===================================================== -->
 
 <section class="kingdom-map-area">
+<div
+  id="jungleWorldView"
+  class="jungle-world-view"
+  aria-hidden="true"
+>
+  <button
+    type="button"
+    class="jungle-back-button"
+    onclick="closeJungleWorld()"
+  >
+    <i class="fa-solid fa-arrow-right"></i>
+    חזרה למפת הממלכות
+  </button>
 
-  <!-- בהמשך נכניס כאן כפתורים וכותרות מעל הממלכות -->
+  <div class="jungle-world-content">
+    <!-- בהמשך נוסיף כאן את 8 האזורים כלחצנים -->
+  </div>
+</div>
+  <!-- ממלכת השלג -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-snow"
+    data-kingdom="snow"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת השלג
+    </strong>
+
+    <span class="kingdom-label-subject">
+      מתמטיקה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:75%"
+        ></span>
+      </span>
+
+      <b>75%</b>
+    </span>
+  </button>
+
+
+<!--  &lt;!&ndash; ממלכת האש &ndash;&gt;-->
+<!--  <button-->
+<!--    type="button"-->
+<!--    class="kingdom-label kingdom-label-fire"-->
+<!--    data-kingdom="fire"-->
+<!--  >-->
+<!--    <strong class="kingdom-label-title">-->
+<!--      ממלכת האש-->
+<!--    </strong>-->
+
+<!--    <span class="kingdom-label-subject">-->
+<!--      מדעים-->
+<!--    </span>-->
+
+<!--    <span class="kingdom-label-progress">-->
+<!--      <span class="kingdom-label-track">-->
+<!--        <span-->
+<!--          class="kingdom-label-fill"-->
+<!--          style="width:42%"-->
+<!--        ></span>-->
+<!--      </span>-->
+
+<!--      <b>42%</b>-->
+<!--    </span>-->
+<!--  </button>-->
+
+
+  <!-- ממלכת הג׳ונגל -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-jungle"
+    data-kingdom="jungle"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הג׳ונגל
+    </strong>
+
+    <span class="kingdom-label-subject">
+      גאוגרפיה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:58%"
+        ></span>
+      </span>
+
+      <b>58%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת המדבר -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-desert"
+    data-kingdom="desert"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת המדבר
+    </strong>
+
+    <span class="kingdom-label-subject">
+      היסטוריה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:36%"
+        ></span>
+      </span>
+
+      <b>36%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הלב -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-candy"
+    data-kingdom="candy"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הלב
+    </strong>
+
+    <span class="kingdom-label-subject">
+      עברית
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:68%"
+        ></span>
+      </span>
+
+      <b>68%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הים -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-ocean"
+    data-kingdom="ocean"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הים
+    </strong>
+
+    <span class="kingdom-label-subject">
+      אנגלית
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:51%"
+        ></span>
+      </span>
+
+      <b>51%</b>
+    </span>
+  </button>
+
+
+  <!-- ממלכת הצללים -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-shadow"
+    data-kingdom="shadow"
+  >
+    <strong class="kingdom-label-title">
+      ממלכת הצללים
+    </strong>
+
+    <span class="kingdom-label-subject">
+      תנ״ך
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:27%"
+        ></span>
+      </span>
+
+      <b>27%</b>
+    </span>
+  </button>
+
+
+  <!-- הממלכה המרכזית -->
+  <button
+    type="button"
+    class="kingdom-label kingdom-label-center"
+    data-kingdom="center"
+  >
+    <strong class="kingdom-label-title">
+      הממלכה שלנו
+    </strong>
+
+    <span class="kingdom-label-subject">
+      מסע הלמידה
+    </span>
+
+    <span class="kingdom-label-progress">
+      <span class="kingdom-label-track">
+        <span
+          class="kingdom-label-fill"
+          style="width:32%"
+        ></span>
+      </span>
+
+      <b>32%</b>
+    </span>
+  </button>
 
 </section>
 <!-- 4 כרטיסים ראשיים -->
@@ -23678,10 +23908,634 @@ document.addEventListener(
   }
 
 }
+    /* =====================================================
+   KINGDOM LABEL — SNOW TEST
+===================================================== */
+
+.kingdom-map-area{
+  position:relative !important;
+}
+
+
+/* התווית עצמה */
+
+.kingdom-label{
+  position:absolute;
+
+  width:clamp(118px, 7.2vw, 138px);
+  min-height:clamp(68px, 4.4vw, 80px);
+
+  padding:
+    8px
+    11px
+    9px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(255,255,255,.48);
+
+  border-radius:
+    15px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20,91,155,.86),
+      rgba(8,54,103,.88) 55%,
+      rgba(4,32,67,.92)
+    );
+
+  backdrop-filter:
+    blur(7px)
+    saturate(115%);
+
+  -webkit-backdrop-filter:
+    blur(7px)
+    saturate(115%);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.18),
+
+    inset 0 -8px 14px
+    rgba(0,0,0,.16),
+
+    0 5px 12px
+    rgba(0,15,45,.26);
+
+  transform:
+    translate(-50%,-50%);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+
+  z-index:10;
+}
+
+
+.kingdom-label:hover{
+  transform:
+    translate(-50%,-53%)
+    scale(1.03);
+
+  filter:
+    brightness(1.05);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.24),
+
+    0 8px 18px
+    rgba(0,15,45,.32);
+}
+
+
+/* הכותרת העליונה */
+
+.kingdom-label-title{
+  width:calc(100% + 12px);
+
+  margin:
+    -6px
+    0
+    3px;
+
+  padding:
+    4px
+    6px;
+
+  border-radius:
+    11px
+    11px
+    8px
+    8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(54,143,205,.90),
+      rgba(19,92,151,.90)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.22),
+
+    0 2px 5px
+    rgba(0,15,45,.24);
+
+  font-size:
+    clamp(14px, .82vw, 16px);
+
+  line-height:1.05;
+  font-weight:900;
+
+  white-space:nowrap;
+}
+
+
+/* שם המקצוע */
+
+.kingdom-label-subject{
+  margin-top:1px;
+
+  font-size:
+    clamp(10px, .62vw, 12px);
+
+  line-height:1.2;
+  font-weight:800;
+
+  color:
+    rgba(255,255,255,.88);
+}
+
+
+/* אזור פס ההתקדמות */
+
+.kingdom-label-progress{
+  width:100%;
+
+  margin-top:5px;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    auto;
+
+  gap:6px;
+
+  align-items:center;
+}
+
+
+.kingdom-label-track{
+  height:7px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:
+    rgba(0,18,46,.54);
+
+  box-shadow:
+    inset 0 1px 3px
+    rgba(0,0,0,.38);
+}
+
+
+.kingdom-label-fill{
+  display:block;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2fd8ff,
+      #70edff
+    );
+
+  box-shadow:
+    0 0 6px
+    rgba(47,216,255,.48);
+}
+
+
+.kingdom-label-progress b{
+  min-width:25px;
+
+  font-size:10px;
+  line-height:1;
+
+  color:#fff;
+}
+
+
+/* =====================================================
+   מיקום ממלכת השלג במפה
+===================================================== */
+
+.kingdom-label-snow{
+  /*
+    לפי המפה שלך:
+    אי השלג נמצא בחלק העליון-שמאלי.
+  */
+
+  top:29%;
+  left:20%;
+
+  transform:
+    translate(-50%,-50%);
+}
+html.windows .kingdom-label-snow{
+  transform:
+    translate(-50%,-50%)
+    scale(.90);
+}
+
+html.windows .kingdom-label-snow:hover{
+  transform:
+    translate(-50%,-54%)
+    scale(.93);
+}
+
+.kingdom-label-snow:hover{
+  transform:
+    translate(-50%,-54%)
+    scale(1.025);
+}
+    /* =====================================================
+   KINGDOM LABEL POSITIONS
+===================================================== */
+
+
+
+/* הר הגעש */
+
+.kingdom-label-fire{
+  top:25%;
+  left:49%;
+}
+
+
+/* ג׳ונגל */
+
+.kingdom-label-jungle{
+  top:25%;
+  left:55%;
+}
+
+
+/* מדבר */
+
+.kingdom-label-desert{
+  top:55%;
+  left:20%;
+}
+
+
+/* ממלכה ורודה */
+
+.kingdom-label-candy{
+  top:56%;
+  left:77%;
+}
+
+
+/* ממלכה תת-ימית */
+
+.kingdom-label-ocean{
+  top:78%;
+  left:29%;
+}
+
+
+/* ממלכה כהה */
+
+.kingdom-label-shadow{
+  top:78%;
+  left:64%;
+}
+
+
+/* האי המרכזי */
+
+.kingdom-label-center{
+  top:56%;
+  left:49%;
+}
+    /* =====================================================
+   KINGDOM LABEL COLORS
+===================================================== */
+
+.kingdom-label-snow{
+  background:linear-gradient(
+    180deg,
+    #4da3ff,
+    #2a6dc4 55%,
+    #18488d
+  );
+}
+
+.kingdom-label-fire{
+  background:linear-gradient(
+    180deg,
+    #ff8248,
+    #d34b1d 55%,
+    #8b240e
+  );
+}
+
+.kingdom-label-jungle{
+  background:linear-gradient(
+    180deg,
+    #57b85a,
+    #2f7a37 55%,
+    #1d4c23
+  );
+}
+
+.kingdom-label-desert{
+  background:linear-gradient(
+    180deg,
+    #e0b15a,
+    #b97a2b 55%,
+    #7c4c19
+  );
+}
+
+.kingdom-label-candy{
+  background:linear-gradient(
+    180deg,
+    #ff8bc7,
+    #d95ca2 55%,
+    #9f3d73
+  );
+}
+
+.kingdom-label-ocean{
+  background:linear-gradient(
+    180deg,
+    #38c7d9,
+    #2286b4 55%,
+    #165b7d
+  );
+}
+
+.kingdom-label-shadow{
+  background:linear-gradient(
+    180deg,
+    #8b86a3,
+    #615d77 55%,
+    #3a3748
+  );
+}
+
+.kingdom-label-center{
+  background:linear-gradient(
+    180deg,
+    #66b4ff,
+    #3f7ed2 55%,
+    #27539b
+  );
+}
+    /* =====================================================
+   JUNGLE WORLD DRILL DOWN
+===================================================== */
+
+.kingdom-map-area{
+  position:relative !important;
+  overflow:hidden !important;
+
+  /*
+    מאפשר לתמונת העולם הראשית לבצע זום
+    בלי להזיז את הסרגלים שמסביב.
+  */
+  isolation:isolate;
+}
+
+
+/* שכבת הקלוז-אפ של הג׳ונגל */
+
+.jungle-world-view{
+  position:absolute;
+  inset:0;
+
+  z-index:40;
+
+  overflow:hidden;
+
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+
+  border-radius:inherit;
+
+  background-image:
+    url("/assets/backgrounds/jungle-world-closeup.webp");
+
+  background-size:cover;
+  background-position:center center;
+  background-repeat:no-repeat;
+
+  /*
+    מתחיל מעט מוקטן כדי שהכניסה תרגיש
+    כמו תנועה פנימה לתוך הג׳ונגל.
+  */
+  transform:scale(1.12);
+
+  filter:
+    brightness(.78)
+    blur(2px);
+
+  transition:
+    opacity .55s ease,
+    transform 1.05s cubic-bezier(.2,.8,.2,1),
+    filter .8s ease,
+    visibility 0s linear .8s;
+}
+
+
+/* מצב פתוח */
+
+.kingdom-map-area.jungle-open
+.jungle-world-view{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+
+  transform:scale(1);
+
+  filter:
+    brightness(1)
+    blur(0);
+
+  transition:
+    opacity .5s ease,
+    transform 1.05s cubic-bezier(.2,.8,.2,1),
+    filter .8s ease,
+    visibility 0s;
+}
+
+
+/* הכרטיסים של הממלכות נעלמים בזמן הכניסה */
+
+.kingdom-map-area.jungle-opening
+.kingdom-label,
+.kingdom-map-area.jungle-open
+.kingdom-label{
+  opacity:0;
+  pointer-events:none;
+}
+
+
+/* אנימציית זום של המפה לכיוון הג׳ונגל */
+
+.kingdom-map-area.jungle-opening{
+  animation:
+    kingdomZoomIntoJungle
+    .72s
+    cubic-bezier(.3,.75,.25,1)
+    forwards;
+}
+
+
+@keyframes kingdomZoomIntoJungle{
+
+  0%{
+    background-size:cover;
+    background-position:center center;
+    filter:brightness(1);
+  }
+
+  55%{
+    background-size:145%;
+    background-position:76% 26%;
+    filter:brightness(.95);
+  }
+
+  100%{
+    background-size:180%;
+    background-position:76% 26%;
+    filter:brightness(.72);
+  }
+
+}
+
+
+/* בזמן חזרה */
+
+.kingdom-map-area.jungle-closing{
+  animation:
+    kingdomZoomOutFromJungle
+    .65s
+    cubic-bezier(.3,.75,.25,1)
+    forwards;
+}
+
+
+@keyframes kingdomZoomOutFromJungle{
+
+  0%{
+    background-size:180%;
+    background-position:76% 26%;
+    filter:brightness(.72);
+  }
+
+  100%{
+    background-size:cover;
+    background-position:center center;
+    filter:brightness(1);
+  }
+
+}
+
+
+/* כפתור חזרה */
+
+.jungle-back-button{
+  position:absolute;
+
+  top:18px;
+  right:18px;
+
+  z-index:50;
+
+  min-height:46px;
+
+  display:flex;
+  align-items:center;
+  gap:9px;
+
+  padding:0 17px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.48);
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(31,103,61,.94),
+      rgba(12,65,37,.96)
+    );
+
+  color:#fff;
+
+  font-size:14px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.18),
+
+    0 8px 20px
+    rgba(0,32,17,.32);
+
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+
+  transition:
+    transform .2s ease,
+    filter .2s ease;
+}
+
+
+.jungle-back-button:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.08);
+}
+
+
+.jungle-world-content{
+  position:absolute;
+  inset:0;
+
+  z-index:45;
+
+  pointer-events:none;
+}
+
+
+/* מניעת אנימציות למשתמש שמעדיף פחות תנועה */
+
+@media (prefers-reduced-motion:reduce){
+
+  .jungle-world-view,
+  .kingdom-map-area{
+    animation:none !important;
+    transition:opacity .2s ease !important;
+  }
+
+}
 </style>
 
 
 <script>
+if (navigator.userAgent.includes("Windows")) {
+  document.documentElement.classList.add("windows");
+}
 
     let AUDIO_UNLOCKED = false;
 
@@ -26482,6 +27336,180 @@ if (document.readyState === "loading") {
   initLessonRenderer();
 
 }
+    /* =====================================================
+   JUNGLE WORLD DRILL DOWN
+===================================================== */
+
+const kingdomMapArea =
+  document.querySelector(
+    ".kingdom-map-area"
+  );
+
+const jungleKingdomButton =
+  document.querySelector(
+    '[data-kingdom="jungle"]'
+  );
+
+const jungleWorldView =
+  document.getElementById(
+    "jungleWorldView"
+  );
+
+
+function openJungleWorld(){
+
+  if(
+    !kingdomMapArea ||
+    !jungleWorldView
+  ){
+    return;
+  }
+
+  /*
+    מונע לחיצה כפולה בזמן האנימציה.
+  */
+  if(
+    kingdomMapArea.classList.contains(
+      "jungle-opening"
+    ) ||
+    kingdomMapArea.classList.contains(
+      "jungle-open"
+    )
+  ){
+    return;
+  }
+
+
+  kingdomMapArea.classList.add(
+    "jungle-opening"
+  );
+
+
+  /*
+    אחרי שהזום התחיל,
+    מציגים את תמונת הג׳ונגל מעליו.
+  */
+  window.setTimeout(
+    () => {
+
+      kingdomMapArea.classList.add(
+        "jungle-open"
+      );
+
+      jungleWorldView.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+    },
+    430
+  );
+
+
+  /*
+    מנקים את מחלקת האנימציה,
+    אבל משאירים את מצב jungle-open.
+  */
+  window.setTimeout(
+    () => {
+
+      kingdomMapArea.classList.remove(
+        "jungle-opening"
+      );
+
+    },
+    1100
+  );
+
+}
+
+
+function closeJungleWorld(){
+
+  if(
+    !kingdomMapArea ||
+    !jungleWorldView
+  ){
+    return;
+  }
+
+
+  kingdomMapArea.classList.remove(
+    "jungle-open"
+  );
+
+  kingdomMapArea.classList.add(
+    "jungle-closing"
+  );
+
+  jungleWorldView.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  window.setTimeout(
+    () => {
+
+      kingdomMapArea.classList.remove(
+        "jungle-closing"
+      );
+
+      /*
+        מחזיר את המפה להגדרות המקוריות.
+      */
+      kingdomMapArea.style.backgroundSize =
+        "";
+
+      kingdomMapArea.style.backgroundPosition =
+        "";
+
+      kingdomMapArea.style.filter =
+        "";
+
+    },
+    700
+  );
+
+}
+
+
+if(jungleKingdomButton){
+
+  jungleKingdomButton.addEventListener(
+    "click",
+    event => {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      openJungleWorld();
+
+    }
+  );
+
+}
+
+
+/*
+  חזרה באמצעות מקש Escape.
+*/
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(
+      event.key === "Escape" &&
+      kingdomMapArea?.classList.contains(
+        "jungle-open"
+      )
+    ){
+      closeJungleWorld();
+    }
+
+  }
+);
 </script>
 <!-- =====================================================
      HOMEWORK FILE INPUTS
