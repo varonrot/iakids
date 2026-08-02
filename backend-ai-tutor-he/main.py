@@ -6423,6 +6423,12 @@ def run_learning_coach(
 
         sequence = [
             TutorAction(
+                type="write",
+                text=teacher_response,
+                style="normal",
+                speed=45
+            ),
+            TutorAction(
                 type="speak",
                 text=teacher_response,
                 style="normal",
@@ -6847,7 +6853,7 @@ def structured_lesson(
                     status_code=409,
                     detail="Lesson is already completed"
                 )
-            
+
             if not body.unit_lesson_id:
                 raise HTTPException(
                     status_code=400,
