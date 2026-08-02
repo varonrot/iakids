@@ -6320,24 +6320,65 @@ def run_learning_coach(
     )
 
     # =============================================
-    # MOVE TO NEXT UNIVERSAL LESSON STAGE
+    # FINISH LEARNING COACH AND LESSON
     # =============================================
 
     if coach_finished:
 
-        if coach_index == 1:
-            next_stage = (
-                LESSON_STAGE_CLARIFICATION
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        next_stage = (
+            LESSON_STAGE_COMPLETED
+        )
+
+        progress_update = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .update({
+                "current_stage":
+                    next_stage,
+
+                "status":
+                    "completed",
+
+                "progress_percent":
+                    100,
+
+                "mastery_score":
+                    understanding_score,
+
+                "completed_at":
+                    now_iso,
+
+                "last_activity_at":
+                    now_iso,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                progress["id"]
+            )
+            .execute()
+        )
+
+        if progress_update.data:
+            progress = (
+                progress_update.data[0]
             )
 
-        else:
-            next_stage = (
-                LESSON_STAGE_FINAL_ASSESSMENT
-            )
+    else:
 
-        progress = update_lesson_stage(
-            progress=progress,
-            current_stage=next_stage
+        next_stage = (
+            progress.get(
+                "current_stage"
+            )
         )
 
     print("-" * 70)
@@ -6382,7 +6423,7 @@ def run_learning_coach(
 
         sequence = [
             TutorAction(
-                type="ask",
+                type="speak",
                 text=teacher_response,
                 style="normal",
                 speed=45
@@ -6485,7 +6526,11 @@ def run_learning_coach(
 
         "wait_for_answer":
             not coach_finished,
+        "coach_finished":
+            coach_finished,
 
+        "lesson_completed":
+            coach_finished,
         "session_id":
             session_id,
 
@@ -6794,7 +6839,15 @@ def structured_lesson(
         )
 
         if is_real_student_answer:
-
+            if (
+                    current_stage
+                    == LESSON_STAGE_COMPLETED
+            ):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Lesson is already completed"
+                )
+            
             if not body.unit_lesson_id:
                 raise HTTPException(
                     status_code=400,
