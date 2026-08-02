@@ -6423,13 +6423,7 @@ def run_learning_coach(
 
         sequence = [
             TutorAction(
-                type="write",
-                text=teacher_response,
-                style="normal",
-                speed=45
-            ),
-            TutorAction(
-                type="speak",
+                type="ask",
                 text=teacher_response,
                 style="normal",
                 speed=45
