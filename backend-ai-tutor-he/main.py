@@ -5512,15 +5512,6 @@ def get_or_generate_unit_lesson(
             "generation_status":
                 "ready",
 
-            "audio_generation_status":
-                "pending",
-
-            "audio_mode":
-                "background_generating",
-
-            "lesson_audio":
-                None,
-
             "generation_error":
                 None,
 
@@ -5529,6 +5520,22 @@ def get_or_generate_unit_lesson(
 
             "generated_at":
                 generated_at,
+
+            # האודיו החדש עדיין לא מוכן
+            "audio_generation_status":
+                "pending",
+
+            "lesson_audio_json":
+                None,
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                None,
+
+            "tts_generated_at":
+                None,
 
             "updated_at":
                 generated_at
