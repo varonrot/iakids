@@ -12405,6 +12405,815 @@ b{
   color:#194fae;
   border-bottom-color:#194fae;
 }
+    /* =====================================================
+   GAMES LANDING HERO — FINAL OVERRIDE
+===================================================== */
+
+.games-landing-hero{
+  position:relative;
+  isolation:isolate;
+
+  width:100%;
+  min-height:820px;
+
+  display:flex;
+  align-items:center;
+
+  padding:
+    125px
+    clamp(28px,7vw,115px)
+    150px;
+
+  overflow:hidden;
+
+  direction:rtl;
+
+  background-image:
+    url("/assets/backgrounds/games-hero.webp") !important;
+
+  background-size:cover !important;
+  background-repeat:no-repeat !important;
+  background-position:center center !important;
+}
+
+/* הצללה עדינה רק מאחורי אזור הטקסט */
+.games-landing-hero::before{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  z-index:-1;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(3,18,55,.83) 0%,
+      rgba(3,20,60,.68) 26%,
+      rgba(5,22,65,.18) 50%,
+      rgba(5,22,65,0) 72%
+    );
+}
+
+/* =====================================================
+   HERO CONTENT
+===================================================== */
+
+.games-hero-content{
+  position:relative;
+  z-index:2;
+
+  width:min(560px,42vw);
+
+  margin-left:auto;
+  margin-right:0;
+
+  direction:rtl;
+  text-align:center;
+
+  color:#ffffff;
+}
+
+/* pill */
+.games-hero-pill{
+  width:max-content;
+  max-width:100%;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  margin:0 auto 22px;
+  padding:9px 17px;
+
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;
+
+  background:rgba(7,25,66,.52);
+
+  color:#ffffff;
+
+  font-size:13px;
+  font-weight:800;
+
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.15);
+
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+/* title */
+.games-hero-title{
+  margin:0;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  font-weight:950;
+  line-height:.98;
+
+  text-shadow:
+    0 5px 22px rgba(0,0,0,.30);
+}
+
+.games-hero-number{
+  display:block;
+
+  margin-bottom:8px;
+
+  color:#ffd13c;
+
+  font-size:clamp(74px,7vw,118px);
+  line-height:.85;
+
+  letter-spacing:-5px;
+
+  text-shadow:
+    0 5px 25px rgba(255,190,20,.22);
+}
+
+.games-hero-heading{
+  display:block;
+
+  color:#ffffff;
+
+  font-size:clamp(42px,4.3vw,68px);
+  line-height:1.04;
+
+  letter-spacing:-2.5px;
+}
+
+/* description */
+.games-hero-description{
+  max-width:530px;
+
+  margin:27px auto 0;
+
+  color:rgba(255,255,255,.88);
+
+  font-size:18px;
+  font-weight:600;
+  line-height:1.75;
+
+  text-shadow:0 3px 15px rgba(0,0,0,.22);
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.games-hero-buttons{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+
+  gap:14px;
+
+  margin-top:30px;
+}
+
+.games-hero-button{
+  min-height:56px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+
+  padding:15px 25px;
+
+  border-radius:999px;
+
+  text-decoration:none;
+
+  font-size:15px;
+  font-weight:900;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.games-hero-button:hover{
+  transform:translateY(-3px);
+}
+
+.games-hero-button.primary{
+  border:1px solid #f3b915;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe26b,
+      #ffc426
+    );
+
+  color:#102b58;
+
+  box-shadow:
+    0 17px 38px rgba(255,190,30,.30),
+    inset 0 1px 0 rgba(255,255,255,.75);
+}
+
+.games-hero-button.primary:hover{
+  box-shadow:
+    0 23px 48px rgba(255,190,30,.40),
+    inset 0 1px 0 rgba(255,255,255,.75);
+}
+
+.games-hero-button.secondary{
+  border:1px solid rgba(255,255,255,.40);
+
+  background:rgba(8,29,73,.48);
+
+  color:#ffffff;
+
+  box-shadow:0 14px 34px rgba(0,0,0,.16);
+
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+.games-hero-button.secondary:hover{
+  background:rgba(255,255,255,.14);
+}
+
+/* =====================================================
+   SOCIAL PROOF
+===================================================== */
+
+.games-hero-social-proof{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+
+  margin-top:27px;
+}
+
+.games-parent-avatars{
+  display:flex;
+  direction:ltr;
+}
+
+.games-parent-avatars span{
+  width:35px;
+  height:35px;
+
+  display:grid;
+  place-items:center;
+
+  margin-left:-8px;
+
+  border:3px solid rgba(255,255,255,.88);
+  border-radius:50%;
+
+  background:#f6d5bf;
+
+  font-size:18px;
+
+  box-shadow:0 5px 15px rgba(0,0,0,.20);
+}
+
+.games-parent-rating{
+  text-align:right;
+}
+
+.games-stars{
+  color:#ffc82f;
+
+  font-size:17px;
+  letter-spacing:2px;
+}
+
+.games-parent-rating span{
+  color:rgba(255,255,255,.82);
+
+  font-size:11px;
+  font-weight:700;
+}
+
+/* =====================================================
+   STATISTICS BAR
+===================================================== */
+
+.games-hero-stats{
+  position:absolute;
+
+  right:50%;
+  bottom:28px;
+
+  z-index:4;
+
+  width:min(1280px,calc(100% - 70px));
+
+  transform:translateX(50%);
+
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+
+  padding:21px 18px;
+
+  border:1px solid rgba(255,255,255,.20);
+  border-radius:25px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(10,37,82,.88),
+      rgba(10,29,67,.82)
+    );
+
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.12);
+
+  backdrop-filter:blur(17px);
+  -webkit-backdrop-filter:blur(17px);
+}
+
+.games-stat{
+  position:relative;
+
+  min-height:66px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:15px;
+
+  padding:7px 22px;
+
+  direction:rtl;
+}
+
+.games-stat:not(:last-child)::after{
+  content:"";
+
+  position:absolute;
+
+  top:10%;
+  left:0;
+
+  width:1px;
+  height:80%;
+
+  background:rgba(255,255,255,.14);
+}
+
+.games-stat-icon{
+  width:50px;
+  height:50px;
+
+  display:grid;
+  place-items:center;
+
+  flex:0 0 50px;
+
+  border-radius:16px;
+
+  font-size:25px;
+}
+
+.games-stat-icon.purple{
+  background:rgba(158,92,255,.22);
+}
+
+.games-stat-icon.green{
+  background:rgba(91,218,133,.20);
+}
+
+.games-stat-icon.yellow{
+  background:rgba(255,204,51,.19);
+}
+
+.games-stat-icon.blue{
+  background:rgba(64,153,255,.20);
+}
+
+.games-stat strong{
+  display:block;
+
+  margin-bottom:3px;
+
+  color:#ffffff;
+
+  font-size:20px;
+  font-weight:950;
+  line-height:1.15;
+
+  white-space:nowrap;
+}
+
+.games-stat span{
+  display:block;
+
+  color:rgba(255,255,255,.72);
+
+  font-size:11px;
+  font-weight:700;
+
+  white-space:nowrap;
+}
+
+/* =====================================================
+   WHITE BENEFITS SECTION
+===================================================== */
+
+.games-benefits-section{
+  position:relative;
+  z-index:5;
+
+  margin-top:-1px;
+  padding:42px 35px 55px;
+
+  border-radius:42px 42px 0 0;
+
+  background:#ffffff;
+
+  box-shadow:0 -8px 40px rgba(10,31,71,.06);
+}
+
+.games-benefits-grid{
+  width:min(1320px,100%);
+
+  margin:0 auto;
+
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+
+  gap:18px;
+}
+
+.games-benefit-card{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  padding:12px 12px 5px;
+
+  text-align:center;
+
+  background:transparent;
+}
+
+.games-benefit-icon{
+  width:78px;
+  height:78px;
+
+  display:grid;
+  place-items:center;
+
+  margin-bottom:17px;
+
+  border-radius:50%;
+
+  font-size:37px;
+
+  box-shadow:
+    0 12px 28px rgba(27,66,108,.08),
+    inset 0 1px 0 rgba(255,255,255,.85);
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+}
+
+.games-benefit-card:hover .games-benefit-icon{
+  transform:translateY(-6px) rotate(-3deg);
+
+  box-shadow:
+    0 19px 36px rgba(27,66,108,.13),
+    inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+.games-benefit-icon.pink{
+  background:linear-gradient(145deg,#ffe3f0,#ffd6ec);
+}
+
+.games-benefit-icon.sky{
+  background:linear-gradient(145deg,#e5f6ff,#d9efff);
+}
+
+.games-benefit-icon.mint{
+  background:linear-gradient(145deg,#e8f9e6,#daf4d8);
+}
+
+.games-benefit-icon.cream{
+  background:linear-gradient(145deg,#fff4d8,#ffecc2);
+}
+
+.games-benefit-icon.lavender{
+  background:linear-gradient(145deg,#eee6ff,#e5dcff);
+}
+
+.games-benefit-icon.rose{
+  background:linear-gradient(145deg,#ffe4f3,#ffd9ed);
+}
+
+.games-benefit-card h3{
+  margin:0 0 8px;
+
+  color:#18345f;
+
+  font-size:17px;
+  font-weight:950;
+  line-height:1.3;
+}
+
+.games-benefit-card p{
+  max-width:175px;
+
+  margin:0;
+
+  color:#64748b;
+
+  font-size:13px;
+  font-weight:500;
+  line-height:1.65;
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width:1100px){
+
+  .games-landing-hero{
+    min-height:760px;
+
+    padding-inline:35px;
+
+    background-position:54% center !important;
+  }
+
+  .games-hero-content{
+    width:46vw;
+  }
+
+  .games-hero-number{
+    font-size:82px;
+  }
+
+  .games-hero-heading{
+    font-size:45px;
+  }
+
+  .games-hero-description{
+    font-size:16px;
+  }
+
+  .games-hero-stats{
+    width:calc(100% - 40px);
+  }
+
+  .games-stat{
+    padding-inline:9px;
+    gap:9px;
+  }
+
+  .games-stat-icon{
+    width:43px;
+    height:43px;
+    flex-basis:43px;
+
+    font-size:21px;
+  }
+
+  .games-stat strong{
+    font-size:16px;
+  }
+
+  .games-benefits-grid{
+    grid-template-columns:repeat(3,1fr);
+    row-gap:36px;
+  }
+
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width:768px){
+
+  .games-landing-hero{
+    min-height:auto;
+
+    display:block;
+
+    padding:
+      390px
+      16px
+      35px;
+
+    background-size:auto 500px !important;
+    background-position:center top !important;
+    background-color:#071b48;
+  }
+
+  .games-landing-hero::before{
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5,19,52,0) 0%,
+        rgba(5,19,52,.08) 34%,
+        rgba(5,19,52,.90) 52%,
+        #071b48 67%,
+        #071b48 100%
+      );
+  }
+
+  .games-hero-content{
+    width:100%;
+    max-width:560px;
+
+    margin:0 auto;
+
+    text-align:center;
+  }
+
+  .games-hero-pill{
+    font-size:11px;
+  }
+
+  .games-hero-number{
+    font-size:69px;
+    letter-spacing:-3px;
+  }
+
+  .games-hero-heading{
+    font-size:39px;
+    letter-spacing:-1.5px;
+  }
+
+  .games-hero-description{
+    margin-top:20px;
+
+    font-size:15px;
+    line-height:1.65;
+  }
+
+  .games-hero-buttons{
+    flex-direction:column;
+    align-items:stretch;
+
+    margin-top:24px;
+  }
+
+  .games-hero-button{
+    width:100%;
+  }
+
+  .games-hero-social-proof{
+    margin-top:22px;
+  }
+
+  .games-hero-stats{
+    position:relative;
+
+    right:auto;
+    bottom:auto;
+
+    width:100%;
+
+    margin:31px auto 0;
+
+    transform:none;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:0;
+
+    padding:11px;
+
+    border-radius:21px;
+  }
+
+  .games-stat{
+    min-height:78px;
+
+    justify-content:flex-start;
+
+    padding:12px 8px;
+  }
+
+  .games-stat:nth-child(2)::after{
+    display:none;
+  }
+
+  .games-stat:nth-child(1),
+  .games-stat:nth-child(2){
+    border-bottom:1px solid rgba(255,255,255,.11);
+  }
+
+  .games-stat strong{
+    font-size:14px;
+  }
+
+  .games-stat span{
+    font-size:9px;
+  }
+
+  .games-benefits-section{
+    padding:52px 17px 60px;
+
+    border-radius:30px 30px 0 0;
+  }
+
+  .games-benefits-grid{
+    grid-template-columns:repeat(2,1fr);
+
+    gap:35px 14px;
+  }
+
+  .games-benefit-icon{
+    width:69px;
+    height:69px;
+
+    font-size:32px;
+  }
+
+  .games-benefit-card h3{
+    font-size:15px;
+  }
+
+  .games-benefit-card p{
+    font-size:12px;
+  }
+
+}
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width:480px){
+
+  .games-landing-hero{
+    padding-top:330px;
+
+    background-size:auto 430px !important;
+  }
+
+  .games-hero-title{
+    line-height:1;
+  }
+
+  .games-hero-number{
+    font-size:61px;
+  }
+
+  .games-hero-heading{
+    font-size:34px;
+  }
+
+  .games-hero-social-proof{
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .games-parent-rating{
+    text-align:center;
+  }
+
+  .games-hero-stats{
+    grid-template-columns:1fr;
+  }
+
+  .games-stat{
+    justify-content:center;
+
+    border-bottom:1px solid rgba(255,255,255,.11);
+  }
+
+  .games-stat:last-child{
+    border-bottom:0;
+  }
+
+  .games-stat::after{
+    display:none;
+  }
+
+  .games-benefits-grid{
+    grid-template-columns:1fr;
+  }
+
+  .games-benefit-card{
+    max-width:330px;
+
+    margin:0 auto;
+  }
+
+}
 </style>
   <script type="application/ld+json">
 {
