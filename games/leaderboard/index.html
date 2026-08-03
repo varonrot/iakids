@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מדרג הישגים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+body { max-width: 640px; margin: 0 auto; align-items: stretch; }
+.callout {
+  background: linear-gradient(135deg, var(--accent), #ff8a4c); color: #fff; border-radius: var(--radius);
+  padding: 20px; text-align: center; box-shadow: var(--shadow); margin-bottom: 18px;
+}
+.callout .big { font-size: 2.4rem; margin: 4px 0; }
+.callout .sub { opacity: 0.9; font-size: 0.95rem; }
+.totals-line { text-align: center; font-size: 1.15rem; font-weight: 800; margin-bottom: 14px; }
+.filter-row { display: flex; justify-content: center; margin-bottom: 12px; }
+.filter-row select {
+  font: inherit; font-size: 1rem; padding: 8px 14px; border-radius: 12px;
+  border: 2px solid var(--accent); background: var(--card); color: var(--text);
+}
+</style>
+</head>
+<body>
+
+<h1 class="game-title" style="text-align:center;font-size:1.8rem">🏆 מדרג הישגים</h1>
+
+<div class="callout" id="callout" hidden>
+  <div>🏅 המשחק החזק שלי</div>
+  <div class="big" id="callout-game"></div>
+  <div class="sub" id="callout-detail"></div>
+</div>
+
+<div class="totals-line" id="totals"></div>
+
+<div class="filter-row">
+  <select id="cat-filter" onchange="renderTable()">
+    <option value="">כל המשחקים</option>
+  </select>
+</div>
+
+<table class="champ-table" id="rows-table">
+  <tr><th>משחק</th><th>שחקן</th><th>שיא</th><th>תאריך ושעה</th></tr>
+</table>
+<p id="empty" style="text-align:center;color:var(--muted)" hidden>עוד אין תוצאות — לכו לשחק! 🎮</p>
+
+<script src="../game-sdk.js"></script>
+<script>
+const fmt = ts => new Date(ts).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
+let rows = []; // [{slug, name, emoji, cat, best:{score,player,ts}}]
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'leaderboard',
+  how: 'כאן רואים את השיא הכי טוב שלכם בכל משחק, ואת המשחק הכי חזק שלכם. אפשר לסנן לפי קטגוריה, ולראות כמה מטבעות 🪙 יש לכם בסך הכל.',
+  example: 'שיחקתם ב"אמת או שקר" והגעתם ל-90 נקודות? זה יופיע בטבלה עם השם והתאריך שלכם.',
+});
+
+// scan every iakids_game_* DB for its best score — same approach as games/champions/index.html
+async function scanScores() {
+  if (!indexedDB.databases) return [];
+  const names = (await indexedDB.databases()).map(d => d.name).filter(n => n && n.startsWith('iakids_game_'));
+  const out = [];
+  for (const dbName of names) {
+    const slug = dbName.replace('iakids_game_', '');
+    const scores = await new Promise(res => {
+      const req = indexedDB.open(dbName);
+      req.onsuccess = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains('scores')) { db.close(); return res([]); }
+        const r = db.transaction('scores').objectStore('scores').getAll();
+        r.onsuccess = () => { db.close(); res(r.result || []); };
+        r.onerror = () => { db.close(); res([]); };
+      };
+      req.onerror = () => res([]);
+    });
+    if (!scores.length) continue;
+    out.push({ slug, best: scores.reduce((a, b) => (b.score > a.score ? b : a)) });
+  }
+  return out;
+}
+
+// game names + category come from the hub's own catalog (single source of truth) —
+// adapted from games/champions/index.html's GAME_NAMES fetch, extended to also
+// capture each category header so rows can be filtered without duplicating the catalog here.
+async function loadCatalog() {
+  const html = await fetch('../index.html').then(r => r.text());
+  const cats = [...html.matchAll(/\['([^']*)',\s*\[/g)].map(m => ({ i: m.index, cat: m[1] }));
+  const games = [...html.matchAll(/\['([a-z0-9-]+)','([^']*)','([^']*)'\]/g)]
+    .map(m => ({ i: m.index, slug: m[1], name: m[2], emoji: m[3] }));
+  const map = {};
+  for (const g of games) {
+    let cat = '';
+    for (const c of cats) { if (c.i < g.i) cat = c.cat; else break; }
+    map[g.slug] = { name: g.name, emoji: g.emoji, cat };
+  }
+  return map;
+}
+
+function renderFilterOptions() {
+  const cats = [...new Set(rows.map(r => r.cat).filter(Boolean))];
+  const sel = document.getElementById('cat-filter');
+  for (const c of cats) {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  }
+}
+
+function renderTable() {
+  const filter = document.getElementById('cat-filter').value;
+  const shown = rows.filter(r => !filter || r.cat === filter).sort((a, b) => b.best.score - a.best.score);
+  const table = document.getElementById('rows-table');
+  table.querySelectorAll('tr:not(:first-child)').forEach(tr => tr.remove());
+  for (const r of shown) {
+    const tr = table.insertRow();
+    tr.innerHTML = `<td>${r.emoji} ${r.name}</td><td>${r.best.player || 'אורח'}</td>
+      <td><b>${r.best.score}</b></td><td>${fmt(r.best.ts)}</td>`;
+  }
+  document.getElementById('empty').hidden = shown.length > 0;
+}
+
+async function run() {
+  const game = await IAKidsGame.init('leaderboard');
+  const [scanned, catalog] = await Promise.all([scanScores(), loadCatalog()]);
+
+  rows = scanned.map(s => {
+    const info = catalog[s.slug] || { name: s.slug, emoji: '🎮', cat: '' };
+    return { slug: s.slug, name: info.name, emoji: info.emoji, cat: info.cat, best: s.best };
+  });
+
+  renderFilterOptions();
+  renderTable();
+
+  const coins = await IAKidsCoins.get();
+  document.getElementById('totals').textContent = `🪙 סה"כ מטבעות: ${coins}`;
+
+  // 🏅 strongest game — simplest fair pick: single highest raw score across all games
+  if (rows.length) {
+    const top = rows.reduce((a, b) => (b.best.score > a.best.score ? b : a));
+    document.getElementById('callout').hidden = false;
+    document.getElementById('callout-game').textContent = `${top.emoji} ${top.name}`;
+    document.getElementById('callout-detail').textContent = `${top.best.score} נקודות · ${top.best.player || 'אורח'} · ${fmt(top.best.ts)}`;
+
+    // record this game's own "high score" only when the strongest game actually improves —
+    // avoids inflating this tool's own score history on every plain visit
+    const ownBest = (await game.getHighScores(1))[0];
+    if (!ownBest || top.best.score > ownBest.score) {
+      await game.saveScore(top.best.score, { slug: top.slug });
+      IAKidsFX.celebrate();
+      game.complete(top.best.score);
+    }
+  }
+
+  // small daily check-in bonus for using the tool, once per calendar day
+  const p = (await game.loadProgress()) || {};
+  const today = new Date().toDateString();
+  if (p.lastVisit !== today) {
+    await IAKidsCoins.add(10);
+    await game.saveProgress({ ...p, lastVisit: today });
+  }
+}
+run();
+</script>
+</body>
+</html>

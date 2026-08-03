@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ראשי תיבות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔡</div>
+    <h1 class="game-title">ראשי תיבות</h1>
+    <p>מה הפירוש הנכון של ראשי התיבות?</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question" dir="rtl"></div>
+    <div class="answer-grid" id="answers" style="grid-template-columns:1fr"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// ---- content bank: real, verified Hebrew acronyms ----
+const BANK = [
+  { acr: 'צה"ל', full: 'צבא הגנה לישראל', lvl: 1 },
+  { acr: 'ת"א', full: 'תל אביב', lvl: 1 },
+  { acr: 'ביה"ס', full: 'בית הספר', lvl: 1 },
+  { acr: 'ביה"ח', full: 'בית החולים', lvl: 1 },
+  { acr: 'מד"א', full: 'מגן דוד אדום', lvl: 1 },
+  { acr: "רח'", full: 'רחוב', lvl: 1 },
+  { acr: 'ד"ר', full: 'דוקטור', lvl: 1 },
+  { acr: "גב'", full: 'גברת', lvl: 1 },
+  { acr: 'או"ם', full: 'האומות המאוחדות', lvl: 1 },
+  { acr: 'ארה"ב', full: 'ארצות הברית', lvl: 1 },
+  { acr: "וכו'", full: 'וכולי', lvl: 1 },
+  { acr: 'מנכ"ל', full: 'מנהל כללי', lvl: 2 },
+  { acr: 'רה"מ', full: 'ראש הממשלה', lvl: 2 },
+  { acr: 'יו"ר', full: 'יושב ראש', lvl: 2 },
+  { acr: 'עו"ד', full: 'עורך דין', lvl: 2 },
+  { acr: 'חו"ל', full: 'חוץ לארץ', lvl: 2 },
+  { acr: 'תנ"ך', full: 'תורה נביאים כתובים', lvl: 2 },
+  { acr: 'סה"כ', full: 'סך הכל', lvl: 2 },
+  { acr: 'ע"י', full: 'על ידי', lvl: 2 },
+  { acr: 'עפ"י', full: 'על פי', lvl: 2 },
+  { acr: 'בע"מ', full: 'בערבון מוגבל', lvl: 2 },
+  { acr: 'ת"ד', full: 'תא דואר', lvl: 2 },
+  { acr: "שד'", full: 'שדרות', lvl: 2 },
+  { acr: 'אח"כ', full: 'אחר כך', lvl: 2 },
+  { acr: 'כנ"ל', full: 'כנזכר לעיל', lvl: 2 },
+  { acr: 'בד"כ', full: 'בדרך כלל', lvl: 2 },
+  { acr: 'עו"ס', full: 'עובד סוציאלי', lvl: 2 },
+];
+
+const rnd = n => Math.floor(Math.random() * n);
+const pick = arr => arr[rnd(arr.length)];
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+const HEB = 'אבגדהוזחטיכלמנסעפצקרשת'.split('');
+const stripPunct = s => s.replace(/["'׳״]/g, '').split('');
+const fmt = letters => letters.length === 1 ? letters[0] + "'" : letters.slice(0, -1).join('') + '"' + letters[letters.length - 1];
+function swapDecoy(letters) {
+  if (letters.length < 2) return substDecoy(letters);
+  const a = letters.slice(), i = rnd(a.length), j = (i + 1) % a.length;
+  [a[i], a[j]] = [a[j], a[i]];
+  return a;
+}
+function substDecoy(letters) {
+  const a = letters.slice(), i = rnd(a.length);
+  let r; do { r = pick(HEB); } while (r === a[i]);
+  a[i] = r;
+  return a;
+}
+
+// direction=0: show acr -> pick full meaning. direction=1 (hard/build): show full -> pick acronym.
+function makeQuestion(lvl) {
+  const buildMode = lvl === 3;
+  if (!buildMode) {
+    const pool = BANK.filter(b => b.lvl === (lvl === 2 ? 2 : 1));
+    const item = pick(pool);
+    const distractors = shuffle(BANK.filter(b => b !== item)).slice(0, 2).map(b => b.full);
+    const options = shuffle([item.full, ...distractors]);
+    return { mode: 'acr2full', acr: item.acr, correct: item.full, options };
+  }
+  const item = pick(BANK);
+  const letters = stripPunct(item.acr);
+  const correctFmt = item.acr;
+  let d1, d2, tries = 0;
+  do {
+    d1 = fmt(swapDecoy(letters));
+    d2 = fmt(substDecoy(letters));
+    tries++;
+  } while ((d1 === correctFmt || d2 === correctFmt || d1 === d2) && tries < 15);
+  const options = shuffle([correctFmt, d1, d2]);
+  return { mode: 'full2acr', full: item.full, correct: correctFmt, options };
+}
+
+let game, score = 0, qnum = 0, current, level = 1, TOTAL = 10, diff, timer;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'acronyms',
+  how: 'ראשי תיבות זה קיצור של כמה מילים לאות אחת מכל מילה. למשל "צבא הגנה לישראל" מתקצר ל"צה"ל". תבחרו את הפירוש הנכון לפני שהפצצה מתפוצצת! 💣',
+  example: '<b>צה"ל</b> ← צבא הגנה לישראל',
+});
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('acronyms');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.mode + '|' + (x.acr || x.full));
+  current = q;
+  const qEl = document.getElementById('question');
+  qEl.innerHTML = q.mode === 'acr2full'
+    ? `<span dir="rtl">${q.acr}</span><div style="font-size:1rem;color:var(--muted);margin-top:8px">מה הפירוש?</div>`
+    : `<span style="font-size:1.5rem">${q.full}</span><div style="font-size:1rem;color:var(--muted);margin-top:8px">מה ראשי התיבות?</div>`;
+  const answers = document.getElementById('answers');
+  answers.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline';
+    btn.dir = 'rtl';
+    btn.textContent = opt;
+    btn.onclick = () => answer(opt, btn);
+    answers.appendChild(btn);
+  });
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(said, btn) {
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (said === current.correct) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    if (btn) IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

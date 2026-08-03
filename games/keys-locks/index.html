@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מפתחות ומנעולים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #board { display: grid; gap: 10px; margin: 14px 0 4px; }
+  .kl-card {
+    background: var(--card);
+    border: 3px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 4px;
+    min-height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .15s, border-color .15s, opacity .3s, box-shadow .15s;
+  }
+  .kl-card:active { transform: scale(0.94); }
+  .kl-card.selected { border-color: var(--yellow); box-shadow: 0 0 0 3px var(--yellow) inset; }
+  .kl-card.matched { border-color: var(--green); opacity: .35; cursor: default; pointer-events: none; }
+  .kl-svg { width: 100%; height: 100%; max-width: 84px; max-height: 84px; display: block; }
+  #level-row { margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span data-ui="score">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="round-label">סיבוב</span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔑</div>
+    <h1 class="game-title" id="t-title">מפתחות ומנעולים</h1>
+    <p id="t-desc">מצא לכל מפתח את המנעול עם אותה צורת חור!</p>
+    <p id="t-rounds">כמה סיבובים?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="t-hint" style="color:var(--muted);font-size:0.95rem;margin:0 0 4px">לחץ על מפתח ואז על המנעול המתאים לו</p>
+    <div id="board"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" data-ui="play_again" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'keys-locks';
+let game, diff, score = 0, qnum = 0, level = 1, TOTAL = 10;
+let wrongTaps = 0, totalPairs = 0;
+let selectedIdx = null, locked = false, matchedCount = 0;
+const state = { board: [] };
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+IAKidsCoins.mount();
+
+/* ---- shape pool: each shape = a small polygon used BOTH as the hole cut
+   into a lock's body AND as the key's tooth silhouette, so matching is by
+   silhouette identity, not by color. ---- */
+function poly(n, r, rot = 0) {
+  const pts = [];
+  for (let i = 0; i < n; i++) { const a = rot + i * 2 * Math.PI / n; pts.push([r * Math.sin(a), -r * Math.cos(a)]); }
+  return pts;
+}
+function star(n, rO, rI, rot = 0) {
+  const pts = [];
+  for (let i = 0; i < n * 2; i++) { const a = rot + i * Math.PI / n; const r = i % 2 === 0 ? rO : rI; pts.push([r * Math.sin(a), -r * Math.cos(a)]); }
+  return pts;
+}
+function crossPts(L, w) {
+  return [[-w, -L], [w, -L], [w, -w], [L, -w], [L, w], [w, w], [w, L], [-w, L], [-w, w], [-L, w], [-L, -w], [-w, -w]];
+}
+function arrowPts(s) {
+  return [[0, -s], [s * 0.62, -s * 0.05], [s * 0.28, -s * 0.05], [s * 0.28, s], [-s * 0.28, s], [-s * 0.28, -s * 0.05], [-s * 0.62, -s * 0.05]];
+}
+function zigzagPts(s) {
+  return [[-s, -s], [s, -s], [s, s * 0.15], [s * 0.66, -s * 0.45], [s * 0.33, s * 0.15], [0, -s * 0.45], [-s * 0.33, s * 0.15], [-s * 0.66, -s * 0.45], [-s, s * 0.15]];
+}
+function circleTabPts() {
+  const pts = poly(14, 6.2, 0);
+  pts[0] = [pts[0][0] * 1.7, pts[0][1] * 1.7];
+  pts[13] = [pts[13][0] * 1.35, pts[13][1] * 1.35];
+  return pts;
+}
+const SHAPE_FN = {
+  triangle: () => poly(3, 8, 0),
+  hexagon: () => poly(6, 7.4, Math.PI / 6),
+  star: () => star(5, 8, 3.2, 0),
+  diamond: () => poly(4, 8, 0),
+  cross: () => crossPts(7.5, 2.6),
+  arrow: () => arrowPts(8),
+  zigzag: () => zigzagPts(8),
+  circle: () => circleTabPts(),
+};
+const ALL_SHAPES = Object.keys(SHAPE_FN);
+const EASY_SHAPES = ['triangle', 'star', 'hexagon', 'zigzag'];
+
+const ptsToStr = (pts, scale, cx, cy) => pts.map(([x, y]) => `${(cx + x * scale).toFixed(1)},${(cy + y * scale).toFixed(1)}`).join(' ');
+
+function lockSvgHTML(shapeId) {
+  const holePts = ptsToStr(SHAPE_FN[shapeId](), 2.3, 50, 64);
+  return `<svg viewBox="0 0 100 100" class="kl-svg" aria-hidden="true">
+    <path d="M34,38 v-8 a16,16 0 0 1 32,0 v8" fill="none" stroke="#475569" stroke-width="7" stroke-linecap="round"/>
+    <rect x="18" y="36" width="64" height="52" rx="12" fill="#64748b" stroke="#334155" stroke-width="2"/>
+    <polygon points="${holePts}" fill="var(--card)" stroke="#334155" stroke-width="1.4"/>
+  </svg>`;
+}
+function keySvgHTML(shapeId, rotateDeg) {
+  const toothPts = ptsToStr(SHAPE_FN[shapeId](), 2.0, 0, 0);
+  return `<svg viewBox="0 0 100 100" class="kl-svg" aria-hidden="true">
+    <g transform="rotate(${rotateDeg || 0} 50 50)">
+      <circle cx="28" cy="28" r="15" fill="none" stroke="#a855f7" stroke-width="8"/>
+      <rect x="42" y="25" width="11" height="50" fill="#a855f7"/>
+      <g transform="translate(47,80)"><polygon points="${toothPts}" fill="#a855f7" stroke="#6b21a8" stroke-width="1.4"/></g>
+    </g>
+  </svg>`;
+}
+
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'לוחצים על מפתח, ואז לוחצים על המנעול עם אותה צורת חור — אם הם מתאימים הם נעלמים בצבע ירוק! אם לא, מנסים שוב.',
+  example: `<div style="display:flex;align-items:center;justify-content:center;gap:8px">
+    <div style="width:70px;height:70px">${keySvgHTML('triangle', 0)}</div>
+    <span style="font-size:1.6rem">➜</span>
+    <div style="width:70px;height:70px">${lockSvgHTML('triangle')}</div>
+  </div>`,
+});
+
+const T = {
+  title: { he: 'מפתחות ומנעולים', en: 'Keys and Locks', es: 'Llaves y candados', de: 'Schlüssel und Schlösser', pt: 'Chaves e cadeados' },
+  desc: { he: 'מצא לכל מפתח את המנעול עם אותה צורת חור!', en: 'Match every key to the lock with the same keyhole shape!', es: '¡Empareja cada llave con el candado de la misma forma!', de: 'Finde zu jedem Schlüssel das passende Schloss!', pt: 'Combine cada chave com o cadeado da mesma forma!' },
+  rounds: { he: 'כמה סיבובים?', en: 'How many rounds?', es: '¿Cuántas rondas?', de: 'Wie viele Runden?', pt: 'Quantas rodadas?' },
+  hint: { he: 'לחץ על מפתח ואז על המנעול המתאים לו', en: 'Tap a key, then tap its matching lock', es: 'Toca una llave y luego su candado', de: 'Tippe einen Schlüssel an, dann sein Schloss', pt: 'Toque numa chave e depois no cadeado dela' },
+  round: { he: 'סיבוב', en: 'Round', es: 'Ronda', de: 'Runde', pt: 'Rodada' },
+};
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+$('t-title').textContent = IAKidsLang.t(T.title);
+document.title = IAKidsLang.t(T.title) + ' | iakids';
+$('t-desc').textContent = IAKidsLang.t(T.desc);
+$('t-rounds').textContent = IAKidsLang.t(T.rounds);
+$('t-hint').textContent = IAKidsLang.t(T.hint);
+$('round-label').textContent = IAKidsLang.t(T.round);
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [data-r="${p.rounds}"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = game || await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  if (!document.querySelector('#rounds-row .success')) setRounds(TOTAL, $('rounds-row').children[1]);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+/* level 1: 4 fixed distinct shapes, no rotation · level 2: 5-6 shapes from the
+   full pool · level 3: same as 2 but keys are rendered rotated */
+function makeRound(lvl) {
+  const shapes = lvl === 1 ? EASY_SHAPES.slice() : shuffle(ALL_SHAPES.slice()).slice(0, 5 + rnd(2));
+  const rotate = lvl === 3;
+  const key = lvl + '|' + shapes.slice().sort().join(',');
+  return { shapes, lvl, rotate, key };
+}
+
+function buildBoard(round) {
+  const cards = [];
+  round.shapes.forEach(shape => {
+    cards.push({ type: 'lock', shape, matched: false });
+    cards.push({ type: 'key', shape, matched: false, rot: round.rotate ? 25 + rnd(310) : 0 });
+  });
+  return shuffle(cards);
+}
+
+function renderBoard() {
+  const board = state.board;
+  // ponytail: fixed 4 columns at every board size — keeps each tile >=60px on
+  // narrow phones (a 5-col grid drops tiles to ~48px, below the touch minimum)
+  $('board').style.gridTemplateColumns = 'repeat(4, 1fr)';
+  $('board').innerHTML = board.map((c, i) =>
+    `<div class="kl-card" data-i="${i}" onclick="tapCard(${i})">${c.type === 'lock' ? lockSvgHTML(c.shape) : keySvgHTML(c.shape, c.rot)}</div>`
+  ).join('');
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  selectedIdx = null; locked = false; matchedCount = 0;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const round = await game.newQuestion(() => makeRound(lvl), r => r.key);
+  totalPairs += round.shapes.length;
+  state.board = buildBoard(round);
+  renderBoard();
+}
+
+function tapCard(i) {
+  if (locked) return;
+  const board = state.board;
+  const c = board[i];
+  if (c.matched) return;
+  const el = $('board').children[i];
+  if (selectedIdx === null) {
+    selectedIdx = i;
+    el.classList.add('selected');
+    return;
+  }
+  if (i === selectedIdx) return; // re-tap of same card: no-op
+  const first = board[selectedIdx];
+  const firstEl = $('board').children[selectedIdx];
+  locked = true; // lock input while this pair resolves
+  const isMatch = first.type !== c.type && first.shape === c.shape;
+
+  if (isMatch) {
+    first.matched = c.matched = true;
+    matchedCount++;
+    score += 10;
+    diff.right();
+    $('score').textContent = score;
+    el.classList.add('selected');
+    IAKidsFX.correct(el);
+    IAKidsCoins.right(el);
+    setTimeout(() => {
+      [firstEl, el].forEach(e => { e.classList.remove('selected'); e.classList.add('matched'); });
+      selectedIdx = null; locked = false;
+      if (matchedCount === board.length / 2) setTimeout(next, 500);
+    }, 450);
+  } else {
+    diff.wrong();
+    wrongTaps++;
+    IAKidsCoins.wrong();
+    el.classList.add('selected');
+    IAKidsFX.wrong(firstEl);
+    IAKidsFX.wrong(el);
+    setTimeout(() => {
+      firstEl.classList.remove('selected');
+      el.classList.remove('selected');
+      selectedIdx = null; locked = false;
+    }, 600);
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = totalPairs ? totalPairs / (totalPairs + wrongTaps) : 1;
+  const starsN = acc >= 0.9 ? 3 : acc >= 0.65 ? 2 : 1;
+  $('stars').textContent = '⭐'.repeat(starsN);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

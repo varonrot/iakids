@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>יחיד או רבים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🐱</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="prompt-label" style="opacity:.7;margin-bottom:4px"></p>
+    <div class="game-question" id="question"></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+const T = {
+  title: { he: 'יחיד או רבים', en: 'Singular vs Plural' },
+  howto: { he: 'מופיעה מילה באנגלית ביחיד — בחר את צורת הרבים הנכונה שלה מבין 4 אפשרויות!', en: 'A singular English word appears — pick its correct plural form from 4 options!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?' },
+  prompt: { he: 'מה הרבים של המילה?', en: 'What is the plural of the word?' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'plural-en',
+  how: 'רואים מילה באנגלית ביחיד, למשל <span dir="ltr"><b>Cat</b></span>, ובוחרים את צורת הרבים הנכונה שלה מתוך 4 אפשרויות.',
+  example: '<span dir="ltr"><b>Cat</b></span> ← <span dir="ltr"><b>Cats</b></span> ✓<br><span dir="ltr"><b>Mouse</b></span> ← <span dir="ltr"><b>Mice</b></span> ✓ (לא Mouses!)',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('prompt-label').textContent = IAKidsLang.t(T.prompt);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+// ---- content bank ----
+// easy: regular +s
+const EASY = ['Cat','Dog','Book','Chair','Table','Ball','Toy','Girl','Boy','Bird',
+  'Pen','Car','Bag','Cup','Hat','Star','Tree','Shoe','Bike','Kite'];
+// medium: +es / consonant+y -> +ies
+const MEDIUM_ES = ['Box','Bus','Dish','Watch','Glass','Fox','Brush','Class','Dress','Bench'];
+const MEDIUM_IES = ['Baby','City','Lady','Party','Story','Family','Puppy','Country','Fly','Candy'];
+// hard: real irregulars (verified correct)
+const HARD = [
+  ['Mouse','Mice'], ['Child','Children'], ['Foot','Feet'], ['Man','Men'], ['Woman','Women'],
+  ['Tooth','Teeth'], ['Goose','Geese'], ['Person','People'], ['Sheep','Sheep'], ['Fish','Fish'],
+];
+
+function pluralOf(word, kind) {
+  if (kind === 'es') return word + 'es';
+  if (kind === 'ies') return word.slice(0, -1) + 'ies';
+  return word + 's';
+}
+
+// build a distractor list of plausible-but-wrong plurals
+function distractorsFor(base, correct, kind) {
+  const pool = new Set();
+  if (kind === 'irregular') {
+    pool.add(base + 's');       // naive regular mistake
+    pool.add(base + 'es');
+    pool.add(base.slice(0, -1) + (base.endsWith('e') ? 's' : 'es'));
+  } else if (kind === 'ies') {
+    pool.add(base + 's');        // forgot y->i rule
+    pool.add(base + 'es');
+    pool.add(base.slice(0, -1) + 's');
+  } else if (kind === 'es') {
+    pool.add(base + 's');        // forgot -es rule
+    pool.add(base.slice(0, -1) + 'ies');
+    pool.add(base + 'ses');
+  } else {
+    pool.add(base + 'es');
+    pool.add(base.slice(0, -1) + 'ies');
+    pool.add(base + base.slice(-1));
+  }
+  pool.delete(correct);
+  return [...pool];
+}
+
+function makeQuestion(lvl) {
+  let base, correct, kind;
+  if (lvl === 1) {
+    base = EASY[rnd(EASY.length)];
+    kind = 'reg';
+    correct = pluralOf(base, 'reg');
+  } else if (lvl === 2) {
+    if (Math.random() < 0.5) { base = MEDIUM_ES[rnd(MEDIUM_ES.length)]; kind = 'es'; }
+    else { base = MEDIUM_IES[rnd(MEDIUM_IES.length)]; kind = 'ies'; }
+    correct = pluralOf(base, kind);
+  } else {
+    const pair = HARD[rnd(HARD.length)];
+    base = pair[0]; correct = pair[1]; kind = 'irregular';
+  }
+  let opts = distractorsFor(base, correct, kind);
+  // pad with random easy-pool distractors if not enough unique ones
+  while (opts.length < 3) {
+    const extra = pluralOf(EASY[rnd(EASY.length)], 'reg');
+    if (extra !== correct && !opts.includes(extra)) opts.push(extra);
+  }
+  opts = opts.slice(0, 3);
+  const options = [correct, ...opts];
+  for (let i = options.length - 1; i > 0; i--) { const j = rnd(i + 1); [options[i], options[j]] = [options[j], options[i]]; }
+  return { base, correct, options };
+}
+
+let game, diff, timer, level = 1, TOTAL = 10, qnum = 0, score = 0;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('plural-en').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+let current;
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.base + '|' + lvl);
+  current = q;
+  $('question').innerHTML = `<span dir="ltr">${q.base}</span>`;
+  const box = $('answers');
+  box.innerHTML = '';
+  for (const opt of q.options) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.innerHTML = `<span dir="ltr">${opt}</span>`;
+    b.onclick = () => answer(opt, b);
+    box.appendChild(b);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(picked, btn) {
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  const right = picked === current.correct;
+  if (right) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    if (btn) IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    // reveal correct answer
+    document.querySelectorAll('#answers .game-btn').forEach(b => {
+      if (b.textContent.trim() === current.correct) b.classList.add('correct');
+    });
+  }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

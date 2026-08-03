@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חלק את המילה להברות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">👏</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question"></div>
+    <button class="game-btn outline" id="speak-btn" onclick="speak()" style="font-size:1.4rem">🔊</button>
+    <p style="color:var(--muted);font-weight:700" id="ask"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(4,1fr)" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'syllables';
+const T = {
+  title: { he: 'חלק את המילה להברות', en: 'Count the Syllables', es: 'Cuenta las sílabas', de: 'Silben zählen', pt: 'Conte as sílabas' },
+  instr: { he: 'כמה הברות יש במילה? מחאו כפיים בראש ובחרו את המספר הנכון', en: 'How many syllables does the word have? Clap it out and pick the number', es: '¿Cuántas sílabas tiene la palabra? Aplaude y elige el número', de: 'Wie viele Silben hat das Wort? Klatsche und wähle die Zahl', pt: 'Quantas sílabas tem a palavra? Bata palmas e escolha o número' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  ask: { he: 'כמה הברות?', en: 'How many syllables?', es: '¿Cuántas sílabas?', de: 'Wie viele Silben?', pt: 'Quantas sílabas?' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('ask').textContent = IAKidsLang.t(T.ask);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false, diff;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'כל מילה מתחלקת ל"הברות" — חלקי צליל. אפשר למחוא כף לכל הברה כדי לספור. בוחרים את המספר הנכון מתוך 4 הכפתורים.',
+  example: '<b>כלב</b> ← כְּ-לֶב = 2 הברות 👏👏',
+});
+
+// syllable count is exact and verified: level 1 pool = 1-2 syllables, level 2 = 3 syllables, level 3 = 4 syllables
+const POOL = [
+  { level: 1, w: 'דג', n: 1 }, { level: 1, w: 'לב', n: 1 }, { level: 1, w: 'יד', n: 1 },
+  { level: 1, w: 'עץ', n: 1 }, { level: 1, w: 'שן', n: 1 }, { level: 1, w: 'ים', n: 1 },
+  { level: 1, w: 'שיר', n: 1 }, { level: 1, w: 'סוס', n: 1 },
+  { level: 1, w: 'כלב', n: 2 }, { level: 1, w: 'ילד', n: 2 }, { level: 1, w: 'שמש', n: 2 },
+  { level: 1, w: 'ספר', n: 2 }, { level: 1, w: 'בית', n: 2 }, { level: 1, w: 'כיסא', n: 2 },
+  { level: 1, w: 'חתול', n: 2 }, { level: 1, w: 'פרח', n: 2 }, { level: 1, w: 'כוכב', n: 2 },
+  { level: 2, w: 'תפוח', n: 3 }, { level: 2, w: 'מפתח', n: 3 }, { level: 2, w: 'מכונית', n: 3 },
+  { level: 2, w: 'ירקות', n: 3 }, { level: 2, w: 'תפוזים', n: 3 }, { level: 2, w: 'עוגייה', n: 3 },
+  { level: 2, w: 'מדרגות', n: 3 }, { level: 2, w: 'בננה', n: 3 }, { level: 2, w: 'שוקולד', n: 3 },
+  { level: 3, w: 'כדורגל', n: 4 }, { level: 3, w: 'מספריים', n: 4 }, { level: 3, w: 'עגבנייה', n: 4 },
+  { level: 3, w: 'נעליים', n: 4 }, { level: 3, w: 'אופניים', n: 4 }, { level: 3, w: 'משקפיים', n: 4 },
+  { level: 3, w: 'מכנסיים', n: 4 },
+];
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+let currentWord = '';
+
+function speak() {
+  if (!('speechSynthesis' in window) || !currentWord) return;
+  const u = new SpeechSynthesisUtterance(currentWord);
+  u.lang = 'he-IL';
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+function makeQuestion(lvl) {
+  const pool = POOL.filter(x => x.level === lvl);
+  return pool[rnd(pool.length)];
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.w);
+  currentWord = q.w;
+  document.getElementById('question').textContent = q.w;
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (let n = 1; n <= 4; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.textContent = n;
+    btn.onclick = () => answer(n === q.n, btn, q.n);
+    grid.appendChild(btn);
+  }
+}
+
+function answer(ok, btn, n) {
+  if (locked) return;
+  locked = true;
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn, '👏'.repeat(n));
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

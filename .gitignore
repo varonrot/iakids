@@ -1,0 +1,10 @@
+backend/.env
+backend-ai-tutor-he/.env
+*.env
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.pyc
+.venv/
+node_modules/

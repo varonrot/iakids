@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Action Verbs Match | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+@keyframes action-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-14px) scale(1.08); }
+}
+#cue.animated { display: inline-block; animation: action-bounce 0.9s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🏃</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div style="font-size:5rem" id="cue" class="animated"></div>
+    <div class="game-question" id="sentence-wrap" hidden><span dir="ltr" id="sentence"></span></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'action-verbs';
+const T = {
+  title: { he: 'פעלי פעולה באנגלית', en: 'Action Verbs Match', es: 'Verbos de acción', de: 'Aktionsverben', pt: 'Verbos de ação' },
+  instr: { he: 'איזו פעולה עושה הדמות? בחר את הפועל הנכון באנגלית!', en: 'What action is happening? Pick the right English verb!', es: '¿Qué acción está pasando? ¡Elige el verbo correcto!', de: 'Welche Aktion passiert? Wähle das richtige Verb!', pt: 'Que ação está acontecendo? Escolha o verbo certo!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false;
+let diff, timer;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'מופיע אימוג\'י מונפש של פעולה — צריך לבחור מתוך 4 פעלים באנגלית את הפועל שמתאר את הפעולה, לפני שהפצצה מתפוצצת! 💣',
+  example: '🏊 ← <span dir="ltr"><b>Swim</b></span>',
+});
+
+// verb bank: emoji ↔ base verb, by level
+const VERBS_EASY = [
+  { v: 'Run', emoji: '🏃' }, { v: 'Walk', emoji: '🚶' }, { v: 'Jump', emoji: '🤸' },
+  { v: 'Swim', emoji: '🏊' }, { v: 'Sing', emoji: '🎤' }, { v: 'Dance', emoji: '💃' },
+];
+const VERBS_MED = [
+  { v: 'Eat', emoji: '🍴' }, { v: 'Drink', emoji: '🥤' }, { v: 'Sleep', emoji: '😴' },
+  { v: 'Read', emoji: '📖' }, { v: 'Write', emoji: '✍️' }, { v: 'Draw', emoji: '🎨' },
+  { v: 'Cook', emoji: '🍳' }, { v: 'Climb', emoji: '🧗' },
+];
+const VERBS_HARD = [
+  { v: 'Ride', emoji: '🚴' }, { v: 'Laugh', emoji: '😂' }, { v: 'Cry', emoji: '😢' },
+  { v: 'Clap', emoji: '👏' }, { v: 'Wave', emoji: '👋' }, { v: 'Cut', emoji: '✂️' },
+  { v: 'Kick', emoji: '🦵' }, { v: 'Throw', emoji: '🤾' },
+];
+const ALL_VERBS = VERBS_EASY.concat(VERBS_MED, VERBS_HARD);
+const ING = {
+  Run: 'running', Walk: 'walking', Jump: 'jumping', Swim: 'swimming', Sing: 'singing', Dance: 'dancing',
+  Eat: 'eating', Drink: 'drinking', Sleep: 'sleeping', Read: 'reading', Write: 'writing', Draw: 'drawing',
+  Cook: 'cooking', Climb: 'climbing', Ride: 'riding', Laugh: 'laughing', Cry: 'crying', Clap: 'clapping',
+  Wave: 'waving', Cut: 'cutting', Kick: 'kicking', Throw: 'throwing',
+};
+const SUBJECTS = ['He', 'She', 'The boy', 'The girl'];
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(false, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.sort(() => Math.random() - 0.5);
+const pick = a => a[rnd(a.length)];
+function speak(text) {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    speechSynthesis.speak(u);
+  } catch (e) { /* TTS optional */ }
+}
+
+// level 1: run/jump-type basics · level 2: +eat/drink/sleep-type · level 3: full sentence w/ -ing verb
+function makeQuestion(lvl) {
+  const pool = lvl === 1 ? VERBS_EASY : lvl === 2 ? VERBS_EASY.concat(VERBS_MED) : ALL_VERBS;
+  if (lvl >= 3 && rnd(2) === 0) {
+    const item = pick(pool);
+    const subj = pick(SUBJECTS);
+    const sentence = `${subj} is ___.`;
+    const answer = ING[item.v];
+    const others = pool.filter(w => w.v !== item.v);
+    shuffle(others);
+    const options = shuffle([answer, ...others.slice(0, 3).map(w => ING[w.v])]);
+    const full = sentence.replace('___', answer);
+    return { cue: item.emoji, sentence, answer, options, full, mode: 'sentence' };
+  }
+  const item = pick(pool);
+  const others = pool.filter(w => w.v !== item.v);
+  shuffle(others);
+  const options = shuffle([item.v, ...others.slice(0, 3).map(w => w.v)]);
+  return { cue: item.emoji, sentence: '', answer: item.v, options, full: item.v, mode: 'picture' };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.mode + '|' + x.cue + '|' + x.sentence + '|' + x.answer);
+  document.getElementById('cue').textContent = q.cue;
+  const wrap = document.getElementById('sentence-wrap');
+  if (q.mode === 'sentence') {
+    document.getElementById('sentence').textContent = q.sentence;
+    wrap.hidden = false;
+  } else {
+    wrap.hidden = true;
+  }
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of q.options) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.innerHTML = `<span dir="ltr">${o}</span>`;
+    btn.onclick = () => answer(o === q.answer, btn, q.full);
+    grid.appendChild(btn);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(ok, btn, spokenText) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+    if (spokenText) speak(spokenText);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

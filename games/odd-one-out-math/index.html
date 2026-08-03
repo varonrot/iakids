@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מי יוצא דופן? | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span data-ui="score"></span>: <span id="score">0</span></span>
+  <span><span data-ui="question"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🕵️</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="tagline"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5)">5</button>
+      <button class="game-btn success" onclick="setRounds(10)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question"></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+    <p id="rule-line" style="min-height:1.5em;font-weight:700"></p>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+/*GEN*/
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ltr = s => `<span dir="ltr">${s}</span>`;
+const T = d => IAKidsLang.t(d);
+
+const STR = {
+  title:    { he: 'מי יוצא דופן?', en: 'Odd One Out', es: 'El intruso', de: 'Was passt nicht?', pt: 'Qual não combina?' },
+  tagline:  { he: 'שלושה מספרים מקיימים כלל אחד — מצאו את הרביעי שלא!', en: 'Three numbers follow a rule — find the one that does not!', es: 'Tres números siguen una regla: ¡encuentra el intruso!', de: 'Drei Zahlen folgen einer Regel — finde den Ausreißer!', pt: 'Três números seguem uma regra — ache o intruso!' },
+  rounds:   { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  q:        { he: 'איזה מספר יוצא דופן?', en: 'Which number is the odd one out?', es: '¿Qué número no encaja?', de: 'Welche Zahl passt nicht?', pt: 'Qual número está fora?' },
+  ruleEven: { he: 'הכלל: מספרים זוגיים', en: 'Rule: even numbers', es: 'Regla: números pares', de: 'Regel: gerade Zahlen', pt: 'Regra: números pares' },
+  ruleOdd:  { he: 'הכלל: מספרים אי-זוגיים', en: 'Rule: odd numbers', es: 'Regla: números impares', de: 'Regel: ungerade Zahlen', pt: 'Regra: números ímpares' },
+  ruleMult: { he: 'הכלל: כפולות של {k}', en: 'Rule: multiples of {k}', es: 'Regla: múltiplos de {k}', de: 'Regel: Vielfache von {k}', pt: 'Regra: múltiplos de {k}' },
+  ruleCombo:{ he: 'הכלל: כפולות של {k} שגדולות מ-{y}', en: 'Rule: multiples of {k} greater than {y}', es: 'Regla: múltiplos de {k} mayores que {y}', de: 'Regel: Vielfache von {k} größer als {y}', pt: 'Regra: múltiplos de {k} maiores que {y}' },
+};
+
+function distinct(genFn, count, taken = []) {
+  const out = [];
+  let guard = 0;
+  while (out.length < count && guard++ < 300) {
+    const v = genFn();
+    if (!out.includes(v) && !taken.includes(v)) out.push(v);
+  }
+  return out.length === count ? out : null;
+}
+
+// המספר האחרון (אינדקס 3) הוא תמיד החריג המיועד — הערבוב קורה רק בהצגה
+function tryMake(lvl) {
+  if (lvl === 1) { // זוגי / אי-זוגי
+    const par = rnd(2);
+    const three = distinct(() => 2 * (1 + rnd(14)) + par, 3);
+    const out = three && distinct(() => 2 * (1 + rnd(14)) + (1 - par), 1, three);
+    return three && out ? { nums: [...three, out[0]], rule: T(par ? STR.ruleOdd : STR.ruleEven) } : null;
+  }
+  if (lvl === 2) { // כפולות של k, החריג קרוב לכפולה אך אינו כזה
+    const k = [3, 4, 5, 10][rnd(4)];
+    const three = distinct(() => k * (2 + rnd(9)), 3);
+    const out = three && distinct(() => k * (2 + rnd(9)) + 1 + rnd(k - 1), 1, three);
+    return three && out ? { nums: [...three, out[0]], rule: T(STR.ruleMult).replace('{k}', k) } : null;
+  }
+  // קשה: שני כללים משולבים — כפולות של k שגם גדולות מ-y; החריג מפר בדיוק כלל אחד
+  const k = [2, 5, 10][rnd(3)];
+  const y = [20, 50][rnd(2)]; // y כפולה של כל ה-k — לכן y + k·i תמיד מקיים את שני הכללים
+  const three = distinct(() => y + k * (1 + rnd(12)), 3);
+  const out = three && (rnd(2)
+    ? distinct(() => k * (1 + rnd(Math.floor(y / k))), 1, three)              // כפולה של k אבל לא גדולה מ-y
+    : distinct(() => y + k * (1 + rnd(12)) + 1 + rnd(k - 1), 1, three));      // גדול מ-y אבל לא כפולה של k
+  return three && out ? { nums: [...three, out[0]], rule: T(STR.ruleCombo).replace('{k}', k).replace('{y}', y) } : null;
+}
+
+// אין "יוצא דופן שני" בטעות: לכל כלל בולט, אם בדיוק מספר אחד שונה מהשאר — הוא חייב להיות החריג המיועד
+function isUniqueOutlier(nums, outIdx) {
+  const rules = [v => v % 2 === 0, ...[3, 4, 5, 6, 10].map(k => v => v % k === 0)];
+  for (const r of rules) {
+    const hits = nums.map(r);
+    const c = hits.filter(Boolean).length;
+    const alt = c === 3 ? hits.indexOf(false) : c === 1 ? hits.indexOf(true) : -1;
+    if (alt !== -1 && alt !== outIdx) return false;
+  }
+  return true;
+}
+
+function makeQuestion(lvl) {
+  let t = null;
+  for (let i = 0; i < 500; i++) {
+    const c = tryMake(lvl);
+    if (!c) continue;
+    t = c;
+    if (isUniqueOutlier(c.nums, 3)) break; // ponytail: 500 כשלונות רצופים — כמעט בלתי אפשרי סטטיסטית
+  }
+  const options = shuffle(t.nums.map((v, i) => ({ html: ltr(String(v)), ok: i === 3, v })));
+  return { html: T(STR.q), options, rule: t.rule, answer: t.nums[3], nums: t.nums,
+           key: lvl + ':' + [...t.nums].sort((a, b) => a - b).join(',') };
+}
+/*END GEN*/
+
+const SLUG = 'odd-one-out-math';
+let game, score = 0, qnum = 0, current, level = 1, locked = false, started = false;
+let TOTAL = 10, roundsPicked = false, diff, timer;
+
+document.getElementById('title').textContent = T(STR.title);
+document.getElementById('tagline').textContent = T(STR.tagline);
+document.getElementById('rounds-label').textContent = T(STR.rounds);
+document.getElementById('again').textContent = IAKidsLang.ui('play_again');
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`[data-lvl="${l}"]`).textContent = IAKidsLang.ui(k);
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'odd-one-out-math',
+  how: 'מתוך 4 מספרים, שלושה מקיימים את הכלל ואחד לא — לוחצים על המספר יוצא הדופן לפני שהפצצה מתפוצצת! 💣',
+  example: 'הכלל: מספרים זוגיים · <span dir="ltr"><b>2, 4, 7, 8</b></span> ← בוחרים 7',
+});
+(async () => { // ברירות מחדל שמורות: סיבובים + רמז לרמה האחרונה
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (started) return;
+  if (p?.rounds && !roundsPicked) setRoundsUI(p.rounds);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+})();
+
+function setRoundsUI(n) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => { // outline מנצח את success ב-CSS — מחליפים ביניהם
+    const on = +b.textContent === n;
+    b.classList.toggle('success', on);
+    b.classList.toggle('outline', !on);
+  });
+}
+function setRounds(n) { roundsPicked = true; setRoundsUI(n); }
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) document.getElementById(s).hidden = s !== id; };
+
+async function start(lvl) {
+  started = true;
+  game ||= await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(-1, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  document.getElementById('rule-line').textContent = '';
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  current = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
+  document.getElementById('question').innerHTML = current.html;
+  const box = document.getElementById('answers');
+  box.innerHTML = '';
+  current.options.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'game-btn';
+    b.innerHTML = o.html;
+    b.onclick = () => answer(i, b);
+    box.appendChild(b);
+  });
+  locked = false;
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(i, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  const ok = !!current.options[i]?.ok;
+  document.getElementById('rule-line').textContent = '💡 ' + current.rule; // חושפים את הכלל
+  if (ok) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    const okIdx = current.options.findIndex(o => o.ok);
+    document.getElementById('answers').children[okIdx]?.classList.add('correct'); // מראים את הנכונה
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, ok ? 900 : 1500);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

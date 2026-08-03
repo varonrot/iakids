@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סודוקו מופשט 4×4 | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:340px;margin:16px auto}
+.cell{aspect-ratio:1;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;cursor:pointer;border:3px solid transparent}
+.cell svg{width:60%;height:60%}
+.cell.given{background:var(--card);cursor:default;color:var(--muted)}
+.cell.selected{border-color:var(--blue)}
+.cell.conflict{background:#fecaca;border-color:var(--red)}
+/* thicker lines between the four 2x2 boxes */
+.cell:nth-child(4n+3){border-inline-start-width:3px;border-inline-start-color:#9ca3af}
+.cell:nth-child(n+9):nth-child(-n+12){border-block-start-width:3px;border-block-start-color:#9ca3af}
+#palette{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:340px;margin:10px auto}
+#palette button{aspect-ratio:1;padding:6px}
+#palette svg{width:60%;height:60%}
+#confirm-btn{margin-top:10px}
+#confirm-btn:disabled{opacity:.4}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="board-label">לוח</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔢</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="board"></div>
+    <div id="palette"></div>
+    <button class="game-btn" id="confirm-btn" disabled onclick="confirm_()"></button>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+const T = {
+  title:  { he: 'סודוקו מופשט 4×4', en: '4x4 Sudoku' },
+  howto:  { he: 'מלאו את הלוח כך שבכל שורה, עמודה וריבוע 2×2 יופיעו כל 4 הערכים בלי חזרות.', en: 'Fill the board so every row, column and 2x2 box has all 4 values, no repeats.' },
+  rounds: { he: 'כמה לוחות?', en: 'How many boards?' },
+  board:  { he: 'לוח', en: 'Board' },
+  check:  { he: 'בדוק ✓', en: 'Check ✓' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'sudoku-4x4',
+  how: 'בכל שורה, כל עמודה וכל ריבוע קטן של 2×2 חייבים להופיע כל 4 הערכים פעם אחת בלבד. לוחצים על תא ריק ואז על ערך מהפלטה למטה כדי למלא אותו. תא שמסומן באדום — יש התנגשות!',
+  example: 'אם בשורה כבר יש 🔴🔵🟢 — התא הריק בשורה הזו חייב להיות 🟣, כי כל ערך מופיע פעם אחת בכל שורה.',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('board-label').textContent = IAKidsLang.t(T.board);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+$('confirm-btn').textContent = IAKidsLang.t(T.check);
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+// ---- value rendering: shapes (easy/medium) or digits (hard) ----
+const SHAPES = [
+  { shape: 'circle',   color: '#ef4444' },
+  { shape: 'square',   color: '#3b82f6' },
+  { shape: 'triangle', color: '#22c55e' },
+  { shape: 'diamond',  color: '#a855f7' },
+];
+function shapeMarkup(shape, color) {
+  switch (shape) {
+    case 'circle':   return `<circle cx="24" cy="24" r="20" fill="${color}"/>`;
+    case 'square':   return `<rect x="4" y="4" width="40" height="40" rx="8" fill="${color}"/>`;
+    case 'triangle': return `<polygon points="24,4 44,42 4,42" fill="${color}"/>`;
+    case 'diamond':  return `<polygon points="24,2 46,24 24,46 2,24" fill="${color}"/>`;
+  }
+}
+function valueMarkup(mode, v) {
+  if (mode === 'numbers') return v;
+  const s = SHAPES[v - 1];
+  return `<svg viewBox="0 0 48 48">${shapeMarkup(s.shape, s.color)}</svg>`;
+}
+
+// ---- valid 4x4 Latin-square-with-boxes generator ----
+// Start from a known-valid base grid (rows/cols/2x2-boxes all unique 1-4),
+// then apply symmetry-preserving transforms: relabel values, swap rows
+// within a band, swap the two bands, swap cols within a stack, swap the
+// two stacks, transpose. Every transform keeps row/col/box uniqueness
+// intact, so the result is always a fully valid solved grid.
+const BASE = [[1,2,3,4],[3,4,1,2],[2,1,4,3],[4,3,2,1]];
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function genSolution() {
+  const relabel = shuffle([1, 2, 3, 4]);
+  let g = BASE.map(row => row.map(v => relabel[v - 1]));
+  if (Math.random() < 0.5) [g[0], g[1]] = [g[1], g[0]];
+  if (Math.random() < 0.5) [g[2], g[3]] = [g[3], g[2]];
+  if (Math.random() < 0.5) [g[0], g[1], g[2], g[3]] = [g[2], g[3], g[0], g[1]];
+  const swapCols = (c1, c2) => g.forEach(row => { [row[c1], row[c2]] = [row[c2], row[c1]]; });
+  if (Math.random() < 0.5) swapCols(0, 1);
+  if (Math.random() < 0.5) swapCols(2, 3);
+  if (Math.random() < 0.5) g.forEach(row => { const [a, b, c, d] = row; row[0] = c; row[1] = d; row[2] = a; row[3] = b; });
+  if (Math.random() < 0.5) g = g[0].map((_, c) => g.map(row => row[c])); // transpose
+  return g;
+}
+
+function makeBoard(lvl) {
+  const blanks = lvl === 1 ? 6 : lvl === 2 ? 8 : 10;
+  const mode = lvl === 3 ? 'numbers' : 'shapes';
+  const solution = genSolution();
+  const cells = shuffle(Array.from({ length: 16 }, (_, i) => i)).slice(0, blanks);
+  const given = Array.from({ length: 16 }, (_, i) => !cells.includes(i));
+  return { solution, given, mode, key: solution.flat().join('') + '_' + cells.sort((a, b) => a - b).join(',') };
+}
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+let game, diff, level = 1, TOTAL = 10;
+let score = 0, boardsDone = 0;
+let solution, given, mode, fill, selected;
+
+const ready = IAKidsGame.init('sudoku-4x4').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  await deal();
+}
+
+async function deal() {
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const b = await game.newQuestion(() => makeBoard(lvl), x => x.key);
+  solution = b.solution; given = b.given; mode = b.mode;
+  fill = Array.from({ length: 16 }, (_, i) => given[i] ? solution[Math.floor(i / 4)][i % 4] : null);
+  selected = null;
+  renderBoard();
+  renderPalette();
+  updateConfirm();
+}
+
+function renderBoard() {
+  const el = $('board');
+  el.innerHTML = '';
+  for (let i = 0; i < 16; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (given[i] ? ' given' : '');
+    cell.dataset.i = i;
+    if (fill[i] != null) cell.innerHTML = valueMarkup(mode, fill[i]);
+    if (!given[i]) cell.onclick = () => selectCell(i);
+    el.appendChild(cell);
+  }
+  markConflicts();
+}
+
+function renderPalette() {
+  const el = $('palette');
+  el.innerHTML = '';
+  for (let v = 1; v <= 4; v++) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline';
+    btn.innerHTML = valueMarkup(mode, v);
+    btn.onclick = () => placeValue(v);
+    el.appendChild(btn);
+  }
+}
+
+function selectCell(i) {
+  selected = i;
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`.cell[data-i="${i}"]`).classList.add('selected');
+}
+
+function placeValue(v) {
+  if (selected == null) return;
+  fill[selected] = v;
+  renderBoard();
+  if (selected != null) document.querySelector(`.cell[data-i="${selected}"]`)?.classList.add('selected');
+  updateConfirm();
+}
+
+// live conflict highlighting: any filled cell sharing a value with another
+// filled cell in the same row / column / 2x2 box turns red.
+function markConflicts() {
+  const r = i => Math.floor(i / 4), c = i => i % 4, box = i => Math.floor(r(i) / 2) * 2 + Math.floor(c(i) / 2);
+  for (let i = 0; i < 16; i++) {
+    if (fill[i] == null) continue;
+    const bad = [...Array(16).keys()].some(j => j !== i && fill[j] === fill[i] &&
+      (r(j) === r(i) || c(j) === c(i) || box(j) === box(i)));
+    if (bad) document.querySelector(`.cell[data-i="${i}"]`)?.classList.add('conflict');
+  }
+}
+
+function updateConfirm() {
+  $('confirm-btn').disabled = fill.some(v => v == null);
+}
+
+function confirm_() {
+  const btn = $('confirm-btn');
+  const ok = fill.every((v, i) => v === solution[Math.floor(i / 4)][i % 4]);
+  if (ok) {
+    score += 10;
+    boardsDone++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+    $('score').textContent = score;
+    $('qnum').textContent = boardsDone;
+    if (boardsDone >= TOTAL) return setTimeout(end, 500);
+    setTimeout(deal, 700);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, boards: boardsDone });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(3); // completing all boards always earns full stars — solving is the challenge
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

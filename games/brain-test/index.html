@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מבחן כישורי חשיבה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  body { align-items: stretch; max-width: 640px; margin: 0 auto; }
+  .progress-bar { width: 100%; max-width: 520px; margin: 0 auto 10px; height: 8px; background: var(--accent-soft); border-radius: 4px; overflow: hidden; align-self: center; }
+  .progress-bar > div { height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s; }
+  .stage-label { text-align: center; color: var(--muted); font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; }
+  .prompt { font-size: 1.3rem; font-weight: 800; text-align: center; margin: 6px 0 18px; }
+  .stim { font-size: 4rem; text-align: center; margin: 20px 0; min-height: 90px; display: flex; align-items: center; justify-content: center; }
+  .pool-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
+  .pool-grid button { font-size: 2rem; padding: 14px 0; border: 3px solid var(--accent-soft); border-radius: 16px; background: var(--card); cursor: pointer; }
+  .pool-grid button.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .seq-trail { text-align: center; font-size: 1.6rem; min-height: 40px; letter-spacing: 6px; }
+  .big-tap-btn { width: 100%; padding: 26px; font-size: 1.4rem; font-weight: 800; border: none; border-radius: var(--radius); background: var(--blue); color: #fff; cursor: pointer; }
+  .reaction-zone { position: relative; height: 220px; background: var(--accent-soft); border-radius: var(--radius); overflow: hidden; }
+  .reaction-target { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: var(--green); border: none; font-size: 2rem; cursor: pointer; }
+  .flex-number { font-size: 3.5rem; font-weight: 900; text-align: center; margin: 10px 0; }
+  .rule-badge { text-align: center; font-weight: 800; color: var(--accent); font-size: 1.1rem; margin-bottom: 8px; }
+  .radar-wrap { max-width: 300px; margin: 10px auto; }
+  .rec-card { display: flex; align-items: center; gap: 12px; background: var(--accent-soft); border-radius: 14px; padding: 10px 14px; margin: 8px 0; text-decoration: none; color: var(--text); }
+  .rec-card .emoji { font-size: 1.8rem; }
+  .rec-card .txt { flex: 1; }
+  .rec-card .why { font-size: 0.78rem; color: var(--muted); }
+  .weak-skill-title { font-weight: 800; margin: 18px 0 6px; }
+  svg text { font-family: inherit; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div id="progressFill" style="width:0%"></div></div>
+<div class="stage-label" id="stageLabel"></div>
+
+<div class="game-card" id="card"></div>
+
+<script src="../game-sdk.js"></script>
+<script>
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'brain-test',
+  how: 'מבחן קצר של כ-4 דקות עם 8 אתגרים קטנים — כל אחד בודק כישור חשיבה אחר (זיכרון, קשב, היגיון ועוד). בסוף תקבלו רדאר אישי והמלצות למשחקים שיעזרו הכי הרבה.',
+  example: '🧠 זכרו רצף אימוג׳ים, 🎯 הגיבו מהר לפריט הנכון, 🧩 השלימו תבנית — פשוט, כיפי, בלי לחץ.',
+});
+
+let game;
+let results = {};
+let stageIndex = -1; // -1 = intro
+const $card = document.getElementById('card');
+const $fill = document.getElementById('progressFill');
+const $label = document.getElementById('stageLabel');
+
+function setProgress() {
+  $fill.style.width = Math.max(0, stageIndex) / STAGES.length * 100 + '%';
+  $label.textContent = stageIndex < 0 ? '' : stageIndex >= STAGES.length ? 'סיום' : `שלב ${stageIndex + 1} מתוך ${STAGES.length}`;
+}
+
+function nextStage(skillKey, rawScore0to5) {
+  if (skillKey) results[skillKey] = Math.max(0, Math.min(5, Math.round(rawScore0to5 * 2) / 2));
+  stageIndex++;
+  setProgress();
+  if (stageIndex >= STAGES.length) return showResults();
+  STAGES[stageIndex].run($card);
+}
+
+function startTest() {
+  stageIndex = -1;
+  results = {};
+  nextStage();
+}
+
+// ---------- intro ----------
+function renderIntro() {
+  setProgress();
+  $card.innerHTML = `
+    <div style="font-size:3.5rem;text-align:center">🧠</div>
+    <h1 class="game-title">מבחן כישורי חשיבה</h1>
+    <p style="text-align:center;color:var(--muted)">
+      8 אתגרים קצרים, כ-4 דקות. אין תשובות "טובות" או "רעות" — זה כדי להבין<br>
+      אילו משחקים הכי מתאימים לכם עכשיו.
+    </p>
+    <button class="game-btn" onclick="startTest()">בואו נתחיל! 🚀</button>
+  `;
+}
+
+// ---------- stage 1: memory (span recall) ----------
+const MEM_POOL = ['🐶','🐱','🐰','🐻','🦊','🐸','🐵','🦁','🐷','🐮'];
+function stageMemory(root) {
+  let len = 3, best = 0;
+  const round = () => {
+    const seq = [];
+    const pool = [...MEM_POOL];
+    while (seq.length < len) seq.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    root.innerHTML = `<p class="prompt">🧠 זכרו את הסדר!</p><div class="stim" id="stim"></div>`;
+    const stimEl = document.getElementById('stim');
+    let i = 0;
+    const show = () => {
+      if (i >= seq.length) return setTimeout(() => recall(seq), 400);
+      stimEl.textContent = seq[i];
+      stimEl.style.opacity = 1;
+      setTimeout(() => { stimEl.style.opacity = 0.15; i++; setTimeout(show, 250); }, 700);
+    };
+    setTimeout(show, 500);
+  };
+  const recall = seq => {
+    let picked = [];
+    const gridPool = [...MEM_POOL].sort(() => Math.random() - 0.5);
+    root.innerHTML = `
+      <p class="prompt">באיזה סדר הופיעו?</p>
+      <div class="seq-trail" id="trail"></div>
+      <div class="pool-grid" id="pool"></div>
+      <button class="game-btn" id="checkBtn" disabled>בדוק ✓</button>`;
+    const trail = document.getElementById('trail');
+    const poolEl = document.getElementById('pool');
+    gridPool.forEach(e => {
+      const b = document.createElement('button');
+      b.textContent = e;
+      b.onclick = () => {
+        if (picked.length >= seq.length || b.classList.contains('picked')) return;
+        picked.push(e); b.classList.add('picked');
+        trail.textContent = picked.join(' ');
+        if (picked.length === seq.length) document.getElementById('checkBtn').disabled = false;
+      };
+      poolEl.appendChild(b);
+    });
+    document.getElementById('checkBtn').onclick = () => {
+      const ok = picked.every((e, idx) => e === seq[idx]);
+      if (ok) {
+        best = len;
+        IAKidsFX.correct(document.getElementById('checkBtn'));
+        len++;
+        if (len > 8) return finish();
+        setTimeout(round, 700);
+      } else {
+        IAKidsFX.wrong(document.getElementById('checkBtn'));
+        setTimeout(finish, 700);
+      }
+    };
+  };
+  const finish = () => {
+    const map = { 0: 0, 1: 0, 2: 0.5, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 5 };
+    nextStage('mem', map[best] ?? 0);
+  };
+  round();
+}
+
+// ---------- stage 2: attention (go/no-go) ----------
+function stageAttention(root) {
+  const TARGET = '🍓';
+  const DISTRACT = ['🍌','🍇','🍊','🍉','🍍'];
+  const ROUNDS = 14, TARGETS = 5;
+  const seq = [];
+  for (let i = 0; i < TARGETS; i++) seq.push(TARGET);
+  while (seq.length < ROUNDS) seq.push(DISTRACT[Math.floor(Math.random() * DISTRACT.length)]);
+  seq.sort(() => Math.random() - 0.5);
+
+  root.innerHTML = `
+    <p class="prompt">🍓 לחצו רק כשמופיע תות!</p>
+    <div class="stim" id="stim">⏳</div>
+    <button class="big-tap-btn" id="goBtn">עכשיו!</button>`;
+  const stimEl = document.getElementById('stim');
+  const goBtn = document.getElementById('goBtn');
+  let idx = 0, active = false, hits = 0, falseAlarms = 0;
+
+  goBtn.onclick = () => {
+    if (active) { hits++; active = false; IAKidsFX.correct(goBtn); }
+    else { falseAlarms++; IAKidsFX.wrong(goBtn); }
+  };
+
+  const tick = () => {
+    if (idx >= seq.length) {
+      const score = Math.max(0, Math.min(5, hits - falseAlarms));
+      return nextStage('att', score);
+    }
+    const item = seq[idx++];
+    active = item === TARGET;
+    stimEl.textContent = item;
+    setTimeout(() => { stimEl.textContent = '·'; active = false; setTimeout(tick, 220); }, 650);
+  };
+  setTimeout(tick, 500);
+}
+
+// ---------- stage 3: logic (pattern completion) ----------
+const SHAPES = ['🔴','🔵','🔺','🟨'];
+function makePattern() {
+  const type = ['ABAB', 'AABB', 'ABC'][Math.floor(Math.random() * 3)];
+  const [a, b, c] = SHAPES.sort(() => Math.random() - 0.5);
+  let seq, answer;
+  if (type === 'ABAB') { seq = [a, b, a, b, a]; answer = b; }
+  else if (type === 'AABB') { seq = [a, a, b, b, a]; answer = a; }
+  else { seq = [a, b, c, a, b]; answer = c; }
+  const opts = new Set([answer]);
+  while (opts.size < 4) opts.add(SHAPES[Math.floor(Math.random() * SHAPES.length)]);
+  return { seq, answer, opts: [...opts].sort(() => Math.random() - 0.5) };
+}
+function mcqStage(root, skillKey, makeQ, promptText, n = 3) {
+  let correct = 0, q = 0;
+  const ask = () => {
+    if (q >= n) {
+      const score = Math.round(correct / n * 5 * 2) / 2;
+      return nextStage(skillKey, score);
+    }
+    q++;
+    const data = makeQ();
+    root.innerHTML = `
+      <p class="prompt">${promptText}</p>
+      <div class="stim" style="font-size:2.4rem;letter-spacing:8px">${data.display}</div>
+      <div class="answer-grid" id="opts"></div>`;
+    const optsEl = document.getElementById('opts');
+    data.opts.forEach(opt => {
+      const b = document.createElement('button');
+      b.className = 'game-btn secondary';
+      b.textContent = opt.label;
+      b.onclick = () => {
+        if (opt.value === data.answer) { correct++; IAKidsFX.correct(b); } else IAKidsFX.wrong(b);
+        setTimeout(ask, 500);
+      };
+      optsEl.appendChild(b);
+    });
+  };
+  ask();
+}
+function stageLogic(root) {
+  mcqStage(root, 'log', () => {
+    const p = makePattern();
+    return { display: p.seq.join(' ') + ' ?', opts: p.opts.map(o => ({ label: o, value: o })), answer: p.answer };
+  }, '🧩 מה הצורה הבאה?');
+}
+
+// ---------- stage 4: language (opposites) ----------
+const OPPOSITES = [['חם','קר'],['גדול','קטן'],['מהיר','איטי'],['שמח','עצוב'],['גבוה','נמוך'],['יבש','רטוב'],['חזק','חלש'],['ישן','חדש']];
+function stageLanguage(root) {
+  mcqStage(root, 'lang', () => {
+    const [w, correct] = OPPOSITES[Math.floor(Math.random() * OPPOSITES.length)];
+    const distractors = OPPOSITES.flat().filter(x => x !== w && x !== correct);
+    const opts = new Set([correct]);
+    while (opts.size < 4) opts.add(distractors[Math.floor(Math.random() * distractors.length)]);
+    return { display: w, opts: [...opts].sort(() => Math.random() - 0.5).map(o => ({ label: o, value: o })), answer: correct };
+  }, '💬 מה ההפך?');
+}
+
+// ---------- stage 5: numeracy ----------
+function stageNumeracy(root) {
+  mcqStage(root, 'num', () => {
+    const a = 2 + Math.floor(Math.random() * 8), b = 2 + Math.floor(Math.random() * 8);
+    const answer = a + b;
+    const opts = new Set([answer]);
+    while (opts.size < 4) opts.add(answer + (Math.floor(Math.random() * 7) - 3 || 1));
+    return { display: `${a} + ${b} = ?`, opts: [...opts].sort(() => Math.random() - 0.5).map(o => ({ label: o, value: o })), answer };
+  }, '🔢 כמה זה יוצא?');
+}
+
+// ---------- stage 6: processing speed (reaction) ----------
+function stageSpeed(root) {
+  const TRIALS = 5;
+  const times = [];
+  let trial = 0;
+  const run = () => {
+    if (trial >= TRIALS) {
+      const avg = times.reduce((a, b) => a + b, 0) / times.length;
+      const score = avg < 400 ? 5 : avg < 600 ? 4 : avg < 800 ? 3 : avg < 1100 ? 2 : avg < 1500 ? 1 : 0;
+      return nextStage('spd', score);
+    }
+    trial++;
+    root.innerHTML = `<p class="prompt">⚡ לחצו על העיגול הירוק ברגע שהוא מופיע!</p><div class="reaction-zone" id="zone"></div>`;
+    const zone = document.getElementById('zone');
+    const delay = 700 + Math.random() * 1600;
+    let shownAt = 0;
+    setTimeout(() => {
+      const btn = document.createElement('button');
+      btn.className = 'reaction-target';
+      btn.textContent = '👆';
+      btn.style.left = Math.random() * (zone.clientWidth - 90) + 'px';
+      btn.style.top = Math.random() * (zone.clientHeight - 90) + 'px';
+      shownAt = performance.now();
+      btn.onclick = () => { times.push(performance.now() - shownAt); setTimeout(run, 300); };
+      zone.appendChild(btn);
+    }, delay);
+  };
+  run();
+}
+
+// ---------- stage 7: visual-spatial ----------
+const SPATIAL_ICONS = ['🔺','⭐','🔷','⬢'];
+function stageSpatial(root) {
+  mcqStage(root, 'spa', () => {
+    const target = SPATIAL_ICONS[Math.floor(Math.random() * SPATIAL_ICONS.length)];
+    const others = SPATIAL_ICONS.filter(x => x !== target);
+    const opts = [target, ...others].sort(() => Math.random() - 0.5);
+    return { display: target + ' &nbsp; מי תואם?', opts: opts.map(o => ({ label: o, value: o })), answer: target };
+  }, '🔷 איזו צורה זהה לזו שלמעלה?');
+}
+
+// ---------- stage 8: cognitive flexibility (task switching) ----------
+function stageFlex(root) {
+  const ROUNDS = 8;
+  let round = 0, correct = 0;
+  const ruleFor = r => Math.floor(r / 2) % 2 === 0 ? 'even' : 'big';
+  const ask = () => {
+    if (round >= ROUNDS) return nextStage('flex', Math.round(correct / ROUNDS * 5 * 2) / 2);
+    const n = 1 + Math.floor(Math.random() * 9);
+    const rule = ruleFor(round);
+    const isYes = rule === 'even' ? n % 2 === 0 : n > 5;
+    round++;
+    root.innerHTML = `
+      <div class="rule-badge">${rule === 'even' ? '🔵 האם המספר זוגי?' : '📏 האם המספר גדול מ-5?'}</div>
+      <div class="flex-number">${n}</div>
+      <div class="answer-grid" id="opts"></div>`;
+    const optsEl = document.getElementById('opts');
+    [['כן', true], ['לא', false]].forEach(([label, val]) => {
+      const b = document.createElement('button');
+      b.className = 'game-btn secondary';
+      b.textContent = label;
+      b.onclick = () => {
+        if (val === isYes) { correct++; IAKidsFX.correct(b); } else IAKidsFX.wrong(b);
+        setTimeout(ask, 450);
+      };
+      optsEl.appendChild(b);
+    });
+  };
+  ask();
+}
+
+const STAGES = [
+  { run: stageMemory },
+  { run: stageAttention },
+  { run: stageLogic },
+  { run: stageLanguage },
+  { run: stageNumeracy },
+  { run: stageSpeed },
+  { run: stageSpatial },
+  { run: stageFlex },
+];
+
+// ---------- results ----------
+async function showResults() {
+  await game.saveProgress({ lastResult: results, ts: Date.now() });
+  await IAKidsCoins.add(30);
+
+  const weakest = [...IAKidsSkills.SKILLS].sort((a, b) => (results[a.key] ?? 0) - (results[b.key] ?? 0)).slice(0, 2);
+  const weakSlugs = [];
+  const recSections = weakest.map(skill => {
+    const games = IAKidsSkills.topGamesFor(skill.key, 3, weakSlugs);
+    games.forEach(g => weakSlugs.push(g.slug));
+    return `
+      <div class="weak-skill-title">💪 לחיזוק ${IAKidsLang.t(skill.label)}:</div>
+      ${games.map(g => `
+        <a class="rec-card" href="../${g.slug}/">
+          <span class="emoji">${g.emoji}</span>
+          <span class="txt">${g.name}<div class="why">מתאים במיוחד ל${IAKidsLang.t(skill.label)}</div></span>
+          <span>▶️</span>
+        </a>`).join('')}
+    `;
+  }).join('');
+
+  const avg = IAKidsSkills.SKILLS.reduce((s, k) => s + (results[k.key] ?? 0), 0) / IAKidsSkills.SKILLS.length;
+  const stars = '⭐'.repeat(Math.max(1, Math.round(avg)));
+
+  $card.innerHTML = `
+    <div class="end-screen">
+      <div class="stars">${stars}</div>
+      <h1 class="game-title">התוצאות שלכם!</h1>
+      <div class="radar-wrap">${IAKidsSkills.radarSVG(results, 'var(--accent)')}</div>
+      <p style="color:var(--muted);font-size:0.85rem">
+        ⚠️ זו הערכה משחקית קצרה, לא אבחון קליני. מטרתה להציע כיוון למשחק המתאים.
+      </p>
+    </div>
+    ${recSections}
+    <button class="game-btn" style="width:100%;margin-top:16px" onclick="startTest()">🔁 עשו את המבחן שוב</button>
+  `;
+}
+
+(async () => {
+  game = await IAKidsGame.init('brain-test');
+  renderIntro();
+})();
+</script>
+</body>
+</html>

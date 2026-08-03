@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סדר מהקטן לגדול | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:60px;min-height:60px;padding:4px 10px;margin:5px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:14px;font-size:1.3rem;font-weight:800;cursor:grab;touch-action:none}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+.chip.reveal{background:var(--green);color:#fff;border-color:var(--green)}
+#tray{min-height:84px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:10px}
+#slot-row{display:flex;justify-content:center;gap:8px}
+.slot{width:82px;height:82px;min-height:82px;display:flex;align-items:center;justify-content:center;padding:2px}
+.slot .chip{margin:0;cursor:grab}
+#edge-labels{display:flex;justify-content:space-between;font-weight:700;color:var(--muted);font-size:0.95rem;margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">↗️</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="edge-labels" dir="ltr"><span id="small-label">הכי קטן</span><span id="big-label">הכי גדול</span></div>
+    <div id="slot-row" dir="ltr"></div>
+    <div id="tray"></div>
+    <button class="game-btn success" id="confirm-btn" onclick="confirmOrder()" disabled></button>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:   { he: 'סדר מהקטן לגדול', en: 'Sort Ascending' },
+  howto:   { he: 'גרור למשבצות: הקטן ביותר בהתחלה, הגדול ביותר בסוף', en: 'Drag into the slots: smallest first, biggest last' },
+  rounds:  { he: 'כמה סיבובים?', en: 'How many rounds?' },
+  confirm: { he: 'בדוק ✔', en: 'Check ✔' },
+  small:   { he: 'הכי קטן', en: 'smallest' },
+  big:     { he: 'הכי גדול', en: 'biggest' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'sort-ascending',
+  how: 'גוררים את המספרים למשבצות לפי הסדר מהקטן לגדול, ובסוף לוחצים "בדוק".',
+  example: '<span dir="ltr"><b>3, 9, 15, 40</b></span> ← מסודרים מהקטן לגדול',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('confirm-btn').textContent = IAKidsLang.t(T.confirm);
+$('small-label').textContent = IAKidsLang.t(T.small);
+$('big-label').textContent = IAKidsLang.t(T.big);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, resolving = false;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('sort-ascending').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// level 1: numbers to 20 (4 items) · 2: to 1000 (5 items) · 3: expressions to compute (4 items)
+function makeRound(lvl) {
+  if (lvl === 0) lvl = 1 + rnd(3);
+  const n = lvl === 2 ? 5 : 4, vals = new Set(), items = [];
+  while (items.length < n) {
+    let label, val;
+    if (lvl === 1) { val = 1 + rnd(20); label = String(val); }
+    else if (lvl === 2) { val = 1 + rnd(1000); label = String(val); }
+    else {
+      const a = 2 + rnd(9), b = 2 + rnd(9), op = ['+', '−', '×'][rnd(3)];
+      val = op === '+' ? a + b : op === '−' ? a - b : a * b;
+      if (val < 0) continue;
+      label = `${a} ${op} ${b}`;
+    }
+    if (vals.has(val)) continue;
+    vals.add(val);
+    items.push({ label, val });
+  }
+  return { items };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeRound(lvl),
+    x => x.items.map(i => i.label).sort().join('|'));
+  const row = $('slot-row'), tray = $('tray');
+  row.innerHTML = tray.innerHTML = '';
+  for (const it of q.items) {
+    const slot = document.createElement('div');
+    slot.className = 'slot drop-zone';
+    row.appendChild(slot);
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `<span dir="ltr">${it.label}</span>`;
+    chip.dataset.val = it.val;
+    makeDraggable(chip);
+    tray.appendChild(chip);
+  }
+  resolving = false;
+  updateConfirm();
+}
+
+/* ---- Pointer Events drag (touch-friendly, setPointerCapture) ---- */
+let drag = null;
+function makeDraggable(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag || resolving) return;
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    const r = chip.getBoundingClientRect();
+    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
+    moveTo(e);
+  });
+  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
+  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) { settle(chip); drag = null; unmark(); }
+  });
+}
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  const t = targetAt(e.clientX, e.clientY);
+  document.querySelectorAll('.slot, #tray').forEach(z =>
+    z.classList.toggle('over', z === t && validTarget(t)));
+}
+const targetAt = (x, y) => {
+  const el = document.elementFromPoint(x, y);
+  return el?.closest('.slot') || el?.closest('#tray') || null;
+};
+const validTarget = t => t && (t.id === 'tray' || !t.querySelector('.chip'));
+const unmark = () => document.querySelectorAll('.slot, #tray').forEach(z => z.classList.remove('over'));
+function settle(chip) {
+  chip.classList.remove('dragging');
+  chip.style.left = chip.style.top = chip.style.width = '';
+}
+function dropChip(e) {
+  const t = targetAt(e.clientX, e.clientY);
+  unmark();
+  const chip = drag.chip;
+  drag = null;
+  settle(chip);
+  if (validTarget(t)) t.appendChild(chip); // else: stays where it was (bounce back)
+  updateConfirm();
+}
+function updateConfirm() {
+  const slots = [...document.querySelectorAll('#slot-row .slot')];
+  $('confirm-btn').disabled = resolving || !slots.length || !slots.every(s => s.querySelector('.chip'));
+}
+
+function confirmOrder() {
+  if (resolving) return;
+  resolving = true;
+  $('confirm-btn').disabled = true;
+  const btn = $('confirm-btn');
+  const slots = [...document.querySelectorAll('#slot-row .slot')];
+  const chips = slots.map(s => s.querySelector('.chip'));
+  const vals = chips.map(c => +c.dataset.val);
+  const ok = vals.every((v, i) => i === 0 || v > vals[i - 1]);
+  if (ok) {
+    score += 10;
+    $('score').textContent = score;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+    chips.forEach(c => c.classList.add('reveal'));
+    setTimeout(next, 800);
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    // reveal the correct order, then move on
+    const sortedChips = [...chips].sort((a, b) => a.dataset.val - b.dataset.val);
+    setTimeout(() => {
+      slots.forEach((s, i) => { s.appendChild(sortedChips[i]); sortedChips[i].classList.add('reveal'); });
+      setTimeout(next, 1600);
+    }, 500);
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = (TOTAL - mistakes) / TOTAL;
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

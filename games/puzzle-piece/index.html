@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>איזה חלק חסר בפאזל | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .pic-svg { width: 220px; height: 220px; margin: 10px auto; display: block; }
+  .piece-shape { stroke: rgba(0,0,0,.18); stroke-width: 2; stroke-linejoin: round; }
+  .hole { fill: none; stroke: var(--muted); stroke-width: 3; stroke-dasharray: 6 5; }
+  .hole-q { font-size: 26px; font-weight: 800; fill: var(--muted); }
+  #choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .piece-btn { min-height: 84px; min-width: 84px; display: flex; align-items: center; justify-content: center; padding: 6px; }
+  .piece-btn svg { display: block; pointer-events: none; }
+  #t-instruction { color: var(--muted); font-weight: 700; margin: 4px 0 0; }
+  .level-picked { outline: 4px solid var(--yellow); }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span data-ui="score">ניקוד</span>: <span id="score">0</span></span>
+  <span><span data-ui="question">שאלה</span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🧩</div>
+    <h1 class="game-title" id="t-title">איזה חלק חסר בפאזל</h1>
+    <p id="t-desc">יש תמונה עם חלק חסר — בוחרים את החתיכה שמתאימה בדיוק כדי להשלים אותה!</p>
+    <p id="t-rounds">כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="t-instruction">בחר/י את החתיכה שמתאימה בדיוק למקום הריק</p>
+    <div id="picture"></div>
+    <div id="choices"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" data-ui="play_again" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'puzzle-piece';
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = arr => arr[rnd(arr.length)];
+
+let game, diff, timer, score = 0, qnum = 0, level = 1, TOTAL = 10, cur = null, locked = false;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'יש תמונה עם חלק חסר — בוחרים את החתיכה שמתאימה בדיוק כדי להשלים אותה! צריך אותה צורה, אותו צבע ואותו כיוון.',
+  example: 'במשבצת הריקה 🔲 חסר עיגול כתום 🟠 — הבחירה הנכונה היא עיגול כתום, לא עיגול כחול 🔵 ולא ריבוע כתום 🟧.',
+});
+
+const T = {
+  title: { he: 'איזה חלק חסר בפאזל', en: 'Missing Puzzle Piece', es: '¿Qué pieza falta?', de: 'Welches Puzzleteil fehlt?', pt: 'Qual peça falta?' },
+  desc:  { he: 'יש תמונה עם חלק חסר — בוחרים את החתיכה שמתאימה בדיוק כדי להשלים אותה!', en: 'A picture is missing a piece — pick the one that completes it exactly!', es: '¡A la imagen le falta una pieza, elige la que la completa exactamente!', de: 'Einem Bild fehlt ein Teil — wähle das passende Teil, um es zu vervollständigen!', pt: 'Uma imagem está com uma peça em falta — escolha a que a completa exatamente!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  instruction: { he: 'בחר/י את החתיכה שמתאימה בדיוק למקום הריק', en: 'Pick the piece that fits the empty spot exactly', es: 'Elige la pieza que encaja exactamente en el hueco', de: 'Wähle das Teil, das genau in die Lücke passt', pt: 'Escolha a peça que encaixa exatamente no espaço' },
+};
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+$('t-title').textContent = IAKidsLang.t(T.title);
+document.title = IAKidsLang.t(T.title) + ' | iakids';
+$('t-desc').textContent = IAKidsLang.t(T.desc);
+$('t-rounds').textContent = IAKidsLang.t(T.rounds);
+$('t-instruction').textContent = IAKidsLang.t(T.instruction);
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [data-r="${p.rounds}"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = game || await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  if (!document.querySelector('#rounds-row .success')) setRounds(TOTAL, $('rounds-row').children[1]);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+/* ---- content generator ---- */
+const COLORS = ['#ff6a2a', '#22c55e', '#3b82f6', '#a855f7', '#facc15', '#ef4444'];
+const SHAPES_ALL = ['circle', 'square', 'diamond', 'hexagon', 'star', 'triangle', 'arrow', 'pacman'];
+const SHAPES_ASYM = ['triangle', 'arrow', 'pacman']; // rotation-distinguishable, for level 'hard'
+const RULE = ['easy', 'medium', 'hard'];
+
+const otherColor = c => pick(COLORS.filter(x => x !== c));
+const otherShape = (pool, s) => pick(pool.filter(x => x !== s));
+const otherRotation = r => pick([0, 90, 180, 270].filter(x => x !== r));
+const sameKey = (a, b) => a.shape === b.shape && a.color === b.color && a.rotation === b.rotation;
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = rnd(i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// level 1 (easy): distractors differ mainly by color · 2 (medium): mainly by shape
+// · 3 (hard): includes a rotated same-shape-same-color distractor (asymmetric shapes only)
+function makeQuestion(lvl) {
+  const ruleType = RULE[lvl - 1];
+  const shapePool = ruleType === 'hard' ? SHAPES_ASYM : SHAPES_ALL;
+  const types = Array.from({ length: 3 }, () => ({
+    shape: pick(shapePool),
+    color: pick(COLORS),
+    rotation: ruleType === 'hard' ? pick([0, 90, 180, 270]) : 0,
+  }));
+  // diagonal-stripe pattern: a coherent little geometric picture, not just noise
+  const cells = Array.from({ length: 9 }, (_, i) => types[(Math.floor(i / 3) + (i % 3)) % 3]);
+  const blankIdx = rnd(9);
+  const correct = cells[blankIdx];
+
+  const distColor = { shape: correct.shape, color: otherColor(correct.color), rotation: correct.rotation };
+  let distShapeOrRot;
+  if (ruleType === 'hard') {
+    distShapeOrRot = { shape: correct.shape, color: correct.color, rotation: otherRotation(correct.rotation) };
+  } else if (ruleType === 'medium') {
+    distShapeOrRot = { shape: otherShape(shapePool, correct.shape), color: correct.color, rotation: 0 };
+  } else { // easy: obviously different shape, easy to rule out — color is the real challenge
+    distShapeOrRot = { shape: otherShape(SHAPES_ALL, correct.shape), color: pick(COLORS), rotation: 0 };
+  }
+  let distRandom, tries = 0;
+  do {
+    distRandom = { shape: otherShape(SHAPES_ALL, correct.shape), color: otherColor(correct.color), rotation: 0 };
+    tries++;
+  } while (tries < 10 && (sameKey(distRandom, distColor) || sameKey(distRandom, distShapeOrRot)));
+
+  const arr = shuffle([
+    { p: correct, ok: true },
+    { p: distColor, ok: false },
+    { p: distShapeOrRot, ok: false },
+    { p: distRandom, ok: false },
+  ]);
+  return { cells, blankIdx, correct, options: arr.map(x => x.p), correctIndex: arr.findIndex(x => x.ok) };
+}
+
+/* ---- SVG rendering ---- */
+function shapePath(shape, r) {
+  switch (shape) {
+    case 'circle': return `<circle class="piece-shape" cx="0" cy="0" r="${r}"/>`;
+    case 'square': return `<rect class="piece-shape" x="${-r * 0.85}" y="${-r * 0.85}" width="${r * 1.7}" height="${r * 1.7}" rx="${r * 0.18}"/>`;
+    case 'diamond': return `<polygon class="piece-shape" points="0,${-r} ${r},0 0,${r} ${-r},0"/>`;
+    case 'hexagon': {
+      const pts = [...Array(6)].map((_, i) => {
+        const a = Math.PI / 3 * i - Math.PI / 2;
+        return `${(r * Math.cos(a)).toFixed(2)},${(r * Math.sin(a)).toFixed(2)}`;
+      }).join(' ');
+      return `<polygon class="piece-shape" points="${pts}"/>`;
+    }
+    case 'star': {
+      const pts = [];
+      for (let i = 0; i < 10; i++) {
+        const rad = i % 2 === 0 ? r : r * 0.45;
+        const a = Math.PI / 5 * i - Math.PI / 2;
+        pts.push(`${(rad * Math.cos(a)).toFixed(2)},${(rad * Math.sin(a)).toFixed(2)}`);
+      }
+      return `<polygon class="piece-shape" points="${pts.join(' ')}"/>`;
+    }
+    case 'triangle':
+      return `<polygon class="piece-shape" points="0,${-r} ${(r * 0.87).toFixed(2)},${(r * 0.5).toFixed(2)} ${(-r * 0.87).toFixed(2)},${(r * 0.5).toFixed(2)}"/>`;
+    case 'arrow':
+      return `<polygon class="piece-shape" points="0,${-r} ${r},${(r * 0.5).toFixed(2)} ${(r * 0.35).toFixed(2)},${(r * 0.5).toFixed(2)} ${(r * 0.35).toFixed(2)},${r} ${(-r * 0.35).toFixed(2)},${r} ${(-r * 0.35).toFixed(2)},${(r * 0.5).toFixed(2)} ${-r},${(r * 0.5).toFixed(2)}"/>`;
+    case 'pacman': {
+      const a = 45 * Math.PI / 180;
+      const x1 = (r * Math.cos(-a)).toFixed(2), y1 = (r * Math.sin(-a)).toFixed(2);
+      const x2 = (r * Math.cos(a)).toFixed(2), y2 = (r * Math.sin(a)).toFixed(2);
+      return `<path class="piece-shape" d="M0,0 L${x1},${y1} A${r},${r} 0 1 1 ${x2},${y2} Z"/>`;
+    }
+  }
+}
+
+function renderPicture(cells, blankIdx) {
+  let out = `<svg viewBox="0 0 180 180" class="pic-svg" aria-hidden="true">`;
+  for (let i = 0; i < 9; i++) {
+    const row = Math.floor(i / 3), col = i % 3, cx = col * 60 + 30, cy = row * 60 + 30;
+    if (i === blankIdx) {
+      out += `<g transform="translate(${cx},${cy})"><rect x="-24" y="-24" width="48" height="48" rx="10" class="hole"/><text y="8" text-anchor="middle" class="hole-q">?</text></g>`;
+    } else {
+      const c = cells[i];
+      out += `<g transform="translate(${cx},${cy}) rotate(${c.rotation})" fill="${c.color}">${shapePath(c.shape, 20)}</g>`;
+    }
+  }
+  $('picture').innerHTML = out + `</svg>`;
+}
+
+function renderChoices(options) {
+  $('choices').innerHTML = options.map((p, i) => `
+    <button class="game-btn outline piece-btn" data-i="${i}" onclick="answer(${i},this)">
+      <svg viewBox="0 0 80 80" width="64" height="64" aria-hidden="true">
+        <g transform="translate(40,40) rotate(${p.rotation})" fill="${p.color}">${shapePath(p.shape, 26)}</g>
+      </svg>
+    </button>`).join('');
+}
+
+/* ---- game loop ---- */
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  cur = await game.newQuestion(() => makeQuestion(lvl), q => JSON.stringify({ c: q.cells, b: q.blankIdx }));
+  renderPicture(cur.cells, cur.blankIdx);
+  renderChoices(cur.options);
+  timer.start(IAKidsTimer.secondsFor(lvl, 14));
+}
+
+function answer(idx, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  document.querySelectorAll('#choices .game-btn').forEach(b => b.disabled = true);
+  const isRight = idx === cur.correctIndex;
+  if (isRight) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    const cb = document.querySelector(`#choices .game-btn[data-i="${cur.correctIndex}"]`);
+    if (cb) cb.classList.add('correct');
+  }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

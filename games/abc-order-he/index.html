@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סדר אלפביתי | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .word-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0; }
+  .wtile, .wslot {
+    min-width: 56px; height: 50px; padding: 0 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; font-weight: 800; border-radius: 12px;
+  }
+  .wtile {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15); cursor: grab; touch-action: none;
+    user-select: none;
+  }
+  .wtile.dragging { cursor: grabbing; opacity: 0.9; }
+  .wtile.placed { background: var(--green); box-shadow: none; cursor: default; }
+  .slots-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin: 16px 0; align-items: center; }
+  .wslot {
+    border: 3px dashed var(--muted); border-radius: 12px; background: var(--card);
+    color: var(--muted); font-size: 1rem;
+  }
+  .wslot.over { border-color: var(--accent); background: var(--accent-soft); }
+  .wslot.filled { border-style: solid; border-color: var(--green); }
+  .order-num { font-size: 0.85rem; color: var(--muted); font-weight: 700; margin: 0 2px; }
+  @keyframes shakeW { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-8px);} 40%,80%{transform:translateX(8px);} }
+  .wtile.shake { animation: shakeW 0.35s; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span><span id="qlabel">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">📚</div>
+    <h1 class="game-title">סדר אלפביתי</h1>
+    <p>גרור את המילים לפי סדר הא"ב — מא' ועד ת'.</p>
+    <p>כמה סיבובים?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)" id="lvl-1">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)" id="lvl-2">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)" id="lvl-3">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="slots-row" id="slots"></div>
+    <div class="word-row" id="bank"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// real Hebrew alphabet order, used for correct alphabetical sorting.
+const ALPHABET = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
+const SOFIT_MAP = { 'ם': 'מ', 'ן': 'נ', 'ץ': 'צ', 'ף': 'פ', 'ך': 'כ' };
+
+// word bank, grouped by first letter — spellings verified.
+const WORDS_BY_LETTER = {
+  'א': ['אריה', 'אוטו', 'אצבע', 'אגס'],
+  'ב': ['בית', 'בננה', 'בלון', 'בקבוק'],
+  'ג': ['גן', 'גלידה', 'גזר', 'גשם'],
+  'ד': ['דג', 'דובי', 'דלת', 'דבש'],
+  'ה': ['הר', 'הורים'],
+  'ו': ['ורד', 'וילון'],
+  'ז': ['זברה', 'זאב', 'זמן', 'זבוב'],
+  'ח': ['חתול', 'חלון', 'חג', 'חלב'],
+  'ט': ['טלפון', 'טבעת', 'טוסט'],
+  'י': ['יד', 'ים', 'ילד', 'ילדה'],
+  'כ': ['כלב', 'כדור', 'כיסא', 'כובע'],
+  'ל': ['לב', 'לימון', 'לוח', 'לילה'],
+  'מ': ['מים', 'מלך', 'מטריה', 'מחשב'],
+  'נ': ['נמר', 'נחש', 'נעל', 'נר'],
+  'ס': ['ספר', 'סוכריה', 'סוס', 'סבתא'],
+  'ע': ['עוגה', 'עץ', 'עיפרון', 'עגבניה'],
+  'פ': ['פיל', 'פרח', 'פיצה', 'פרפר'],
+  'צ': ['צבע', 'צהוב', 'ציפור', 'צלחת'],
+  'ק': ['קוף', 'קשת', 'קיץ', 'קפה'],
+  'ר': ['רכבת', 'רדיו', 'רגל', 'רופא'],
+  'ש': ['שמש', 'שולחן', 'שיר', 'שעון'],
+  'ת': ['תפוח', 'תות', 'תיק', 'תלמיד'],
+};
+const ALL_LETTERS = Object.keys(WORDS_BY_LETTER).sort((a, b) => ALPHABET.indexOf(a) - ALPHABET.indexOf(b));
+const HARD_LETTERS = ALL_LETTERS.filter(l => WORDS_BY_LETTER[l].length >= 4);
+
+const N = 4; // words per round
+
+function rank(ch) {
+  const base = SOFIT_MAP[ch] || ch;
+  const i = ALPHABET.indexOf(base);
+  return i === -1 ? 99 : i;
+}
+function heCompare(a, b) {
+  const la = [...a], lb = [...b];
+  const len = Math.max(la.length, lb.length);
+  for (let i = 0; i < len; i++) {
+    if (la[i] === undefined) return -1;
+    if (lb[i] === undefined) return 1;
+    const ra = rank(la[i]), rb = rank(lb[i]);
+    if (ra !== rb) return ra - rb;
+  }
+  return 0;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// level 1: first letters spread far apart in the alphabet (easy to tell order)
+function farApartWords() {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const cand = shuffle(ALL_LETTERS).slice(0, N);
+    const idxs = cand.map(l => ALPHABET.indexOf(l)).sort((a, b) => a - b);
+    let minGap = Infinity;
+    for (let i = 1; i < idxs.length; i++) minGap = Math.min(minGap, idxs[i] - idxs[i - 1]);
+    if (minGap >= 3) return cand.map(l => WORDS_BY_LETTER[l][Math.floor(Math.random() * WORDS_BY_LETTER[l].length)]);
+  }
+  return shuffle(ALL_LETTERS).slice(0, N).map(l => WORDS_BY_LETTER[l][0]);
+}
+
+// level 2: first letters close together (harder to tell order)
+function closeWords() {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const start = Math.floor(Math.random() * (ALPHABET.length - 6));
+    const windowLetters = ALPHABET.slice(start, start + 7).filter(l => WORDS_BY_LETTER[l]);
+    if (windowLetters.length >= N) {
+      const cand = shuffle(windowLetters).slice(0, N);
+      return cand.map(l => WORDS_BY_LETTER[l][Math.floor(Math.random() * WORDS_BY_LETTER[l].length)]);
+    }
+  }
+  return farApartWords();
+}
+
+// level 3: same first letter — must compare the second letter
+function sameLetterWords() {
+  const letter = HARD_LETTERS[Math.floor(Math.random() * HARD_LETTERS.length)];
+  return shuffle(WORDS_BY_LETTER[letter]).slice(0, N);
+}
+
+const GEN = { 1: farApartWords, 2: closeWords, 3: sameLetterWords };
+
+let game, score = 0, qnum = 0, level = 1, TOTAL = 10, diff, sessionRight = 0, sessionWrong = 0;
+let placed = 0, roundLen = 0;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'abc-order-he',
+  how: 'בעברית לכל אות יש מקום קבוע בא"ב: א ב ג ד ה ו ז ח ט י כ ל מ נ ס ע פ צ ק ר ש ת. גרור את המילים לפי הסדר הזה — מהמילה שמתחילה באות הכי מוקדמת ועד האחרונה.',
+  example: '<b dir="rtl">דג</b>, <b dir="rtl">אריה</b>, <b dir="rtl">כלב</b> ← הסדר הנכון: <b dir="rtl">אריה</b> ← <b dir="rtl">דג</b> ← <b dir="rtl">כלב</b> (כי א׳ לפני ד׳ לפני כ׳)',
+});
+
+document.getElementById('qlabel').textContent = IAKidsLang.ui('question');
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('abc-order-he');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// restore last-picked rounds count (default 10), mark the matching button
+(async () => {
+  const tmp = await IAKidsGame.init('abc-order-he');
+  const p = await tmp.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  const btn = [...document.querySelectorAll('#rounds-row .game-btn')].find(b => Number(b.textContent) === TOTAL);
+  (btn || document.querySelectorAll('#rounds-row .game-btn')[1]).classList.add('success');
+})();
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + Math.floor(Math.random() * 3) : diff.level;
+  const words = await game.newQuestion(() => GEN[lvl](), w => w.slice().sort().join(','));
+  buildRound(words);
+}
+
+function buildRound(words) {
+  const sorted = words.slice().sort(heCompare);
+  placed = 0;
+  roundLen = words.length;
+
+  const slotsEl = document.getElementById('slots');
+  const bankEl = document.getElementById('bank');
+  slotsEl.innerHTML = '';
+  bankEl.innerHTML = '';
+
+  for (let i = 0; i < roundLen; i++) {
+    if (i > 0) {
+      const arrow = document.createElement('span');
+      arrow.textContent = '←';
+      arrow.style.color = 'var(--muted)';
+      slotsEl.appendChild(arrow);
+    }
+    const slot = document.createElement('div');
+    slot.className = 'wslot drop-zone';
+    slot.dataset.idx = i;
+    slot.textContent = (i + 1) + '.';
+    slotsEl.appendChild(slot);
+  }
+
+  shuffle(words).forEach(word => {
+    const tile = document.createElement('div');
+    tile.className = 'wtile';
+    tile.textContent = word;
+    tile.dataset.correctIdx = sorted.indexOf(word);
+    bankEl.appendChild(tile);
+    attachDrag(tile);
+  });
+}
+
+function attachDrag(tile) {
+  tile.addEventListener('pointerdown', e => {
+    if (tile.classList.contains('placed')) return;
+    tile.setPointerCapture(e.pointerId);
+    const rect = tile.getBoundingClientRect();
+    const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+    tile.classList.add('dragging');
+    tile.style.position = 'fixed';
+    tile.style.left = rect.left + 'px';
+    tile.style.top = rect.top + 'px';
+    tile.style.width = rect.width + 'px';
+    tile.style.zIndex = 200;
+    tile.style.pointerEvents = 'none';
+
+    const move = ev => {
+      tile.style.left = (ev.clientX - offX) + 'px';
+      tile.style.top = (ev.clientY - offY) + 'px';
+      document.querySelectorAll('.wslot').forEach(s => s.classList.remove('over'));
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.wslot');
+      if (zone && !zone.classList.contains('filled')) zone.classList.add('over');
+    };
+
+    const up = ev => {
+      tile.releasePointerCapture(e.pointerId);
+      tile.removeEventListener('pointermove', move);
+      tile.removeEventListener('pointerup', up);
+      tile.classList.remove('dragging');
+      document.querySelectorAll('.wslot').forEach(s => s.classList.remove('over'));
+
+      // hit-test BEFORE restoring pointer-events/position — the tile is still
+      // sitting fixed under the pointer, so elementFromPoint would hit itself otherwise
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.wslot');
+
+      tile.style.pointerEvents = '';
+      tile.style.position = '';
+      tile.style.left = '';
+      tile.style.top = '';
+      tile.style.width = '';
+      tile.style.zIndex = '';
+
+      if (!zone) return; // dropped off any slot — no penalty
+
+      if (zone.classList.contains('filled')) {
+        wrongDrop(tile);
+        return;
+      }
+
+      if (Number(zone.dataset.idx) === Number(tile.dataset.correctIdx)) {
+        zone.classList.add('filled');
+        zone.textContent = '';
+        zone.appendChild(tile);
+        tile.classList.add('placed');
+        IAKidsFX.correct(tile);
+        IAKidsCoins.right(tile);
+        diff.right();
+        score += 10;
+        sessionRight++;
+        document.getElementById('score').textContent = score;
+        placed++;
+        if (placed >= roundLen) setTimeout(next, 700);
+      } else {
+        wrongDrop(tile);
+      }
+    };
+
+    tile.addEventListener('pointermove', move);
+    tile.addEventListener('pointerup', up);
+  });
+}
+
+function wrongDrop(tile) {
+  IAKidsFX.wrong(tile);
+  IAKidsCoins.wrong();
+  diff.wrong();
+  sessionWrong++;
+  tile.classList.add('shake');
+  setTimeout(() => tile.classList.remove('shake'), 400);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = sessionRight / Math.max(1, sessionRight + sessionWrong);
+  document.getElementById('stars').textContent = '⭐'.repeat(acc >= 0.85 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

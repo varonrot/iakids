@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ספירת צורות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .shape-wrap { display: flex; justify-content: center; margin: 6px 0; }
+  .shape-wrap svg { width: min(78vw, 320px); height: auto; background: #fff; border-radius: 12px; }
+  .q-text { font-size: 1.25rem; font-weight: 800; margin: 8px 0; }
+  .hint { font-size: 0.95rem; color: #777; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔷</div>
+    <h1 class="game-title" id="title">ספירת צורות</h1>
+    <p id="subtitle">כמה משולשים ומלבנים מסתתרים בציור?</p>
+    <p id="rounds-q">כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="q-text" id="q-text"></div>
+    <p class="hint" id="hint" hidden></p>
+    <div class="shape-wrap" id="shape"></div>
+    <div class="answer-grid" style="grid-template-columns:repeat(4,1fr)" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, diff, timer, score = 0, qnum = 0, correctCount = 0, level = 1, current;
+let TOTAL = 10;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'count-shapes',
+  how: 'סופרים כמה צורות מהסוג המבוקש מסתתרות בציור, ובוחרים את המספר הנכון מתוך 4 אפשרויות.',
+  example: 'כמה משולשים בציור? רואים 🔺🔺🔺 ← לוחצים על <b>3</b>',
+});
+
+const T = {
+  title:    { he: 'ספירת צורות', en: 'Shape Count', es: 'Cuenta las formas', de: 'Formen zählen', pt: 'Conte as formas' },
+  subtitle: { he: 'כמה משולשים ומלבנים מסתתרים בציור?', en: 'How many triangles and rectangles hide in the picture?', es: '¿Cuántos triángulos y rectángulos se esconden en el dibujo?', de: 'Wie viele Dreiecke und Rechtecke verstecken sich im Bild?', pt: 'Quantos triângulos e retângulos se escondem no desenho?' },
+  rounds_q: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  ask_tri:  { he: 'כמה משולשים יש בציור?', en: 'How many triangles are in the picture?', es: '¿Cuántos triángulos hay en el dibujo?', de: 'Wie viele Dreiecke sind im Bild?', pt: 'Quantos triângulos há no desenho?' },
+  ask_rect: { he: 'כמה מלבנים יש בציור?', en: 'How many rectangles are in the picture?', es: '¿Cuántos rectángulos hay en el dibujo?', de: 'Wie viele Rechtecke sind im Bild?', pt: 'Quantos retângulos há no desenho?' },
+  hint:     { he: 'טיפ: גם צורות שמורכבות מכמה חלקים נספרות!', en: 'Tip: shapes made of several parts count too!', es: '¡Ojo: las formas hechas de varias partes también cuentan!', de: 'Tipp: Formen aus mehreren Teilen zählen auch!', pt: 'Dica: formas feitas de várias partes também contam!' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('subtitle').textContent = IAKidsLang.t(T.subtitle);
+document.getElementById('rounds-q').textContent = IAKidsLang.t(T.rounds_q);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [k, b] of [['level_easy', 1], ['level_medium', 2], ['level_hard', 3], ['level_random', 0]])
+  document.querySelector(`#level-row [data-lvl="${b}"]`).textContent = IAKidsLang.ui(k);
+
+const rnd = n => Math.floor(Math.random() * n);
+const C2 = n => n * (n - 1) / 2; // choose 2
+const COLORS = ['#ff6a2a', '#3b82f6', '#22a94b', '#a855f7', '#eab308', '#ec4899'];
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+let roundsPicked = false;
+function setRounds(n, btn) {
+  TOTAL = n; roundsPicked = true;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+/* ---- generators: every figure is BUILT from counted parts, so the true
+   count is computed, never guessed ---- */
+
+// level 1: separate shapes scattered on a grid — count = number drawn
+function genScatter() {
+  const nTri = 2 + rnd(4);                                 // 2..5
+  const nRect = 2 + rnd(Math.min(5, 9 - nTri) - 1);        // 2..min(5, 9−nTri) — never exceeds the 9 grid cells
+  const cells = [...Array(9).keys()];
+  for (let i = cells.length - 1; i > 0; i--) { const j = rnd(i + 1); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+  let svg = '';
+  const place = (idx, isTri) => {
+    const c = cells[idx], cx = 55 + (c % 3) * 95 + rnd(17) - 8, cy = 42 + Math.floor(c / 3) * 60 + rnd(13) - 6;
+    const col = COLORS[rnd(COLORS.length)];
+    if (isTri) svg += `<polygon points="${cx},${cy - 20} ${cx - 22},${cy + 16} ${cx + 22},${cy + 16}" fill="${col}" opacity="0.85"/>`;
+    else svg += `<rect x="${cx - 22}" y="${cy - 15}" width="44" height="30" rx="2" fill="${col}" opacity="0.85"/>`;
+  };
+  for (let i = 0; i < nTri; i++) place(i, true);
+  for (let i = 0; i < nRect; i++) place(nTri + i, false);
+  const askTri = Math.random() < 0.5;
+  return { key: `sc${nTri}-${nRect}-${askTri ? 't' : 'r'}`, askTri, answer: askTri ? nTri : nRect,
+           svg: `<svg viewBox="0 0 300 200">${svg}</svg>`,
+           cands: [/*wrong kind*/ askTri ? nRect : nTri], hint: false };
+}
+
+// triangle fan: k cevians from apex to base (+optional midline parallel to base).
+// rays through apex = k+2, horizontal cuts = mids+1 → triangles = (mids+1)·C(k+2,2)
+function genFan(k, midline) {
+  const A = [150, 22], y = 168, x0 = 38, x1 = 262;
+  let svg = `<polygon points="${A} ${x0},${y} ${x1},${y}" fill="#e3f0ff" stroke="#2b3a55" stroke-width="3"/>`;
+  const baseX = [];
+  for (let i = 1; i <= k; i++) baseX.push(x0 + (x1 - x0) * i / (k + 1));
+  for (const bx of baseX) svg += `<line x1="${A[0]}" y1="${A[1]}" x2="${bx}" y2="${y}" stroke="#2b3a55" stroke-width="3"/>`;
+  if (midline) {
+    const t = 0.55, lx = A[0] + t * (x0 - A[0]), rx = A[0] + t * (x1 - A[0]), my = A[1] + t * (y - A[1]);
+    svg += `<line x1="${lx}" y1="${my}" x2="${rx}" y2="${my}" stroke="#2b3a55" stroke-width="3"/>`;
+  }
+  const answer = (midline ? 2 : 1) * C2(k + 2);
+  return { key: `fan${k}${midline ? 'm' : ''}`, askTri: true, answer,
+           svg: `<svg viewBox="0 0 300 200">${svg}</svg>`,
+           cands: [k + 1, (midline ? 2 : 1) * (k + 1)], hint: true }; // "visible small parts" trap
+}
+
+// rectangle split into a grid of m rows × n cols → rectangles = C(m+1,2)·C(n+1,2)
+function genGrid(m, n) {
+  const x = 45, y = 45, W = 210, H = 115;
+  let svg = `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#ffe9dd" stroke="#2b3a55" stroke-width="3"/>`;
+  for (let i = 1; i < n; i++) svg += `<line x1="${x + W * i / n}" y1="${y}" x2="${x + W * i / n}" y2="${y + H}" stroke="#2b3a55" stroke-width="3"/>`;
+  for (let i = 1; i < m; i++) svg += `<line x1="${x}" y1="${y + H * i / m}" x2="${x + W}" y2="${y + H * i / m}" stroke="#2b3a55" stroke-width="3"/>`;
+  const answer = C2(m + 1) * C2(n + 1); // grid has m+1 horizontal, n+1 vertical lines; pick 2 of each
+  return { key: `gr${m}x${n}`, askTri: false, answer,
+           svg: `<svg viewBox="0 0 300 200">${svg}</svg>`,
+           cands: [m * n, m * n + 1], hint: true };
+}
+
+// level 2: overlapping · level 3: shapes within shapes
+function makeQuestion(lvl) {
+  let q;
+  if (lvl === 1) q = genScatter();
+  else if (lvl === 2) q = Math.random() < 0.5 ? genFan(1 + rnd(3), false) : genGrid(1, 2 + rnd(3));
+  else q = Math.random() < 0.5 ? genFan(1 + rnd(2), true) : genGrid(2, 2 + rnd(2));
+  const opts = [q.answer];
+  for (const c of [...q.cands, q.answer + 1, q.answer - 1, q.answer + 2, q.answer - 2, q.answer + 3])
+    if (opts.length < 4 && c > 0 && !opts.includes(c)) opts.push(c);
+  for (let i = opts.length - 1; i > 0; i--) { const j = rnd(i + 1); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  q.opts = opts;
+  return q;
+}
+
+async function start(lvl) {
+  game = await IAKidsGame.init('count-shapes');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !roundsPicked) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.key);
+  current = q.answer;
+  document.getElementById('q-text').textContent = IAKidsLang.t(q.askTri ? T.ask_tri : T.ask_rect);
+  document.getElementById('hint').textContent = IAKidsLang.t(T.hint);
+  document.getElementById('hint').hidden = !q.hint;
+  document.getElementById('shape').innerHTML = q.svg;
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of q.opts) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.innerHTML = `<span dir="ltr">${o}</span>`;
+    b.onclick = () => answer(o, b);
+    grid.appendChild(b);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl, 20));
+}
+
+let locked = false;
+function answer(said, btn) {
+  if (locked) return; locked = true;
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (said === current) {
+    score += 10; correctCount++;
+    diff.right(); IAKidsFX.correct(btn); IAKidsCoins.right(btn);
+  } else {
+    diff.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, correct: correctCount, total: TOTAL });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(correctCount / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

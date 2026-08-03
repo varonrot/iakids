@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מערכת השמש | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:76px;min-height:80px;padding:6px 8px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;cursor:grab;touch-action:none;text-align:center}
+.chip .p{border-radius:50%;margin:0 auto 4px}
+.chip .n{font-size:0.8rem;font-weight:700}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+#tray{min-height:96px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+#slots{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;margin-top:14px;padding:10px;justify-content:center}
+.slot{width:56px;min-height:76px;border:3px dashed var(--muted);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:4px;transition:background .2s,border-color .2s}
+.slot.over{border-color:var(--accent);background:var(--accent-soft)}
+.slot .rank{font-size:0.75rem;font-weight:800;color:var(--muted)}
+.slot .p{border-radius:50%;margin-bottom:2px}
+.slot .n{font-size:0.65rem;font-weight:700}
+#trivia-mode{display:none}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🪐☀️</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="order-mode">
+      <div id="tray"></div>
+      <div id="slots" dir="ltr"></div>
+    </div>
+    <div id="trivia-mode">
+      <div class="game-question" id="trivia-q"></div>
+      <div class="answer-grid" id="trivia-opts"></div>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:  { he: 'מערכת השמש', en: 'The Solar System' },
+  howto:  { he: 'סדרו את כוכבי הלכת לפי המרחק שלהם מהשמש!', en: 'Order the planets by distance from the sun!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'solar-system',
+  how: 'בכל תמונה מופיע כוכב לכת — גוררים אותו למקום הנכון בשורה, לפי המרחק שלו מהשמש ☀️ (מהקרוב ביותר עד הרחוק ביותר). ברמה הקשה יש גם שאלות טריוויה מסקרנות על כוכבי הלכת!',
+  example: '☀️ ← <b>כוכב חמה</b> (מקום 1, הכי קרוב) ← נוגה ← כדור הארץ ← ... ← <b>נפטון</b> (מקום 8, הכי רחוק)',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+/* Verified distance-from-sun order (Mercury..Neptune, per NASA), colors + relative
+   sizes are approximate but directionally correct (Jupiter/Saturn much bigger, etc). */
+const PLANETS = [
+  { key:'mercury', n:'כוכב חמה', rank:1, d:14, c:'#9c9c9c' },
+  { key:'venus',   n:'נוגה',     rank:2, d:22, c:'#e3c98f' },
+  { key:'earth',   n:'כדור הארץ', rank:3, d:23, c:'#3b82f6' },
+  { key:'mars',    n:'מאדים',    rank:4, d:16, c:'#c1440e' },
+  { key:'jupiter', n:'צדק',      rank:5, d:44, c:'#d9a066' },
+  { key:'saturn',  n:'שבתאי',    rank:6, d:40, c:'#e8c88a' },
+  { key:'uranus',  n:'אורנוס',   rank:7, d:30, c:'#a0e8e0' },
+  { key:'neptune', n:'נפטון',    rank:8, d:29, c:'#3b52a0' },
+];
+const byKey = k => PLANETS.find(p => p.key === k);
+
+// Verified trivia facts (Venus is hottest due to greenhouse effect, despite being
+// farther from the sun than Mercury; Saturn has the most prominent rings; etc.)
+const TRIVIA = [
+  { q: 'איזה כוכב לכת הכי גדול?', ans: 'jupiter', opts: ['jupiter', 'saturn', 'earth', 'neptune'] },
+  { q: 'איזה כוכב לכת הכי קטן?', ans: 'mercury', opts: ['mercury', 'mars', 'venus', 'earth'] },
+  { q: 'איזה כוכב לכת הכי חם — למרות שהוא לא הכי קרוב לשמש?', ans: 'venus', opts: ['venus', 'mercury', 'mars', 'jupiter'] },
+  { q: 'לאיזה כוכב לכת יש את הטבעות הכי בולטות?', ans: 'saturn', opts: ['saturn', 'uranus', 'jupiter', 'neptune'] },
+  { q: 'איך מכנים את מאדים בגלל צבעו?', ans: 'mars', opts: ['mars', 'venus', 'mercury', 'jupiter'] },
+  { q: 'איזה כוכב לכת הכי קרוב לשמש?', ans: 'mercury', opts: ['mercury', 'venus', 'earth', 'mars'] },
+  { q: 'איזה כוכב לכת הכי רחוק מהשמש?', ans: 'neptune', opts: ['neptune', 'uranus', 'saturn', 'mars'] },
+  { q: 'על איזה כוכב לכת אנחנו חיים?', ans: 'earth', opts: ['earth', 'mars', 'venus', 'mercury'] },
+];
+
+let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, boardSize = 8;
+const placed = new Set();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('solar-system').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  boardSize = lvl === 1 ? 4 : 8; // easy = 4 inner planets · medium/random/hard board = all 8
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  renderSlots();
+  show('play-screen');
+  next();
+}
+
+function renderSlots() {
+  placed.clear();
+  const row = $('slots');
+  row.innerHTML = '<span style="font-size:1.8rem">☀️</span>';
+  for (let r = 1; r <= boardSize; r++) {
+    const s = document.createElement('div');
+    s.className = 'slot';
+    s.dataset.rank = r;
+    s.innerHTML = `<span class="rank">${r}</span>`;
+    row.appendChild(s);
+  }
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const effLvl = level === 0 ? diff.level : level;
+  if (effLvl >= 3) { $('order-mode').style.display = 'none'; $('trivia-mode').style.display = 'block'; await showTrivia(); }
+  else { $('trivia-mode').style.display = 'none'; $('order-mode').style.display = 'block'; await showOrderItem(); }
+}
+
+let currentTrivia = null;
+async function showTrivia() {
+  const t = await game.newQuestion(() => TRIVIA[rnd(TRIVIA.length)], x => x.q);
+  currentTrivia = t;
+  $('trivia-q').textContent = t.q;
+  const box = $('trivia-opts');
+  box.innerHTML = '';
+  let answered = false; // guard: ignore a double-tap on the same question (SDK's 700ms next() delay leaves buttons live)
+  const opts = [...t.opts].sort(() => Math.random() - 0.5);
+  opts.forEach(key => {
+    const b = document.createElement('button');
+    b.className = 'game-btn secondary';
+    b.textContent = byKey(key).n;
+    b.onclick = () => { if (answered) return; answered = true; answerTrivia(key === t.ans, b); };
+    box.appendChild(b);
+  });
+}
+function answerTrivia(correct, btn) {
+  if (correct) { score += 10; diff.right(); IAKidsFX.correct(btn); IAKidsCoins.right(btn); }
+  else { mistakes++; diff.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong(); }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function showOrderItem() {
+  if (placed.size >= boardSize) renderSlots(); // board full — start a fresh board
+  const tray = $('tray');
+  tray.innerHTML = '';
+  const q = await game.newQuestion(
+    () => {
+      const pool = PLANETS.filter(p => p.rank <= boardSize && !placed.has(p.rank));
+      return pool[rnd(pool.length)];
+    },
+    p => p.key
+  );
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.innerHTML = `<span class="p" style="width:${q.d}px;height:${q.d}px;background:${q.c}"></span><span class="n">${q.n}</span>`;
+  chip.dataset.rank = q.rank;
+  makeDraggable(chip);
+  tray.appendChild(chip);
+}
+
+/* ---- Pointer Events drag (works on touch — setPointerCapture, not HTML5 DnD) ---- */
+let drag = null;
+function makeDraggable(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag) return;
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    const r = chip.getBoundingClientRect();
+    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
+    moveTo(e);
+  });
+  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
+  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) { settle(chip); drag = null; unmarkZones(); }
+  });
+}
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  const z = zoneAt(e.clientX, e.clientY);
+  document.querySelectorAll('.slot').forEach(zn => zn.classList.toggle('over', zn === z));
+}
+const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('.slot') || null;
+const unmarkZones = () => document.querySelectorAll('.slot').forEach(z => z.classList.remove('over'));
+function settle(chip) {
+  chip.classList.remove('dragging');
+  chip.style.left = chip.style.top = chip.style.width = '';
+}
+
+async function dropChip(e) {
+  const z = zoneAt(e.clientX, e.clientY);
+  unmarkZones();
+  const chip = drag.chip;
+  drag = null;
+  settle(chip);
+  if (!z || z.children.length > 1) return; // slot already taken or missed
+  const correct = String(z.dataset.rank) === chip.dataset.rank;
+  if (correct) {
+    score += 10;
+    $('score').textContent = score;
+    diff.right();
+    IAKidsFX.correct(z);
+    IAKidsCoins.right(z);
+    z.innerHTML = `<span class="rank">${z.dataset.rank}</span>` + chip.innerHTML;
+    placed.add(+chip.dataset.rank);
+    chip.remove();
+    setTimeout(next, 400);
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = TOTAL / (TOTAL + mistakes);
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

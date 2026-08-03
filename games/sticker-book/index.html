@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אוסף מדבקות דיגיטלי | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+body { max-width: 640px; margin: 0 auto; align-items: stretch; }
+.progress-line { text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--accent); margin: 4px 0 18px; }
+.album-page { margin-bottom: 22px; }
+.album-page h2 { font-size: 1.1rem; margin: 0 0 10px; }
+.stickers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.sticker-slot {
+  aspect-ratio: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; background: var(--card); box-shadow: var(--shadow); position: relative;
+  border: 3px solid var(--accent-soft);
+}
+.sticker-slot.locked { background: #e5e7eb; filter: grayscale(1); opacity: 0.55; font-size: 1.4rem; }
+.sticker-slot.unlocked { animation: bounce-in 0.5s; }
+.sticker-slot.rare { border-color: var(--yellow); box-shadow: 0 0 0 3px var(--yellow), var(--shadow); }
+.sticker-slot.rare::after {
+  content: '✨'; position: absolute; top: -8px; right: -8px; font-size: 1.1rem;
+}
+.sticker-slot .name { position: absolute; bottom: -20px; font-size: 0.6rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+@media (max-width: 400px) { .stickers { grid-template-columns: repeat(4, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="game-card" id="card">
+  <div style="font-size:4rem">⭐</div>
+  <h1 class="game-title">אוסף מדבקות דיגיטלי</h1>
+  <p>כל משחק שסיימת פעם אחת פותח מדבקה באלבום!</p>
+</div>
+
+<div class="progress-line" id="progress-line">0/30</div>
+<div id="album"></div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// ponytail: sticker mapping is a static curated list (5 per category × 6 categories = 30),
+// emoji copied 1:1 from games/index.html's own catalog so it stays visually consistent with
+// the hub without needing to fetch+parse that page's internal JS structure at runtime.
+const ALBUM = [
+  { cat: '🔢 חשבון ומתמטיקה', games: [
+    ['true-false-math', 'אמת או שקר', '✅'], ['target-bubbles', 'קליעה למטרה', '🎯'],
+    ['memory-equations', 'זיכרון תרגילים', '🃏'], ['times-table-race', 'אליפות הכפל', '🏁'],
+    ['fraction-pizza', 'שברים בפיצה', '🍕'],
+  ]},
+  { cat: '📜 עברית ושפה', games: [
+    ['word-scramble', 'סדר את המילה', '🔤'], ['hangman-house', 'בניית בית', '🏠'],
+    ['rhymes', 'חרוזים', '🎵'], ['word-search', 'תפזורת', '🔍'],
+    ['roots', 'שורשים', '🌳'],
+  ]},
+  { cat: '🇬🇧 אנגלית', games: [
+    ['spelling-bee', 'Spelling Bee', '🐝'], ['colors-shapes', 'Colors & Shapes', '🎨'],
+    ['animals-en', 'Animals', '🦁'], ['days-of-week', 'Days of Week', '📅'],
+    ['action-verbs', 'Action Verbs', '🏃'],
+  ]},
+  { cat: '🌍 מדעים וגיאוגרפיה', games: [
+    ['solar-system', 'מערכת השמש', '🪐'], ['water-cycle', 'מחזור המים', '💧'],
+    ['flags', 'דגלי מדינות', '🚩'], ['food-chain', 'שרשרת המזון', '🦊'],
+    ['israel-map', 'מפת ישראל', '🇮🇱'],
+  ]},
+  { cat: '🧩 לוגיקה וקוד', games: [
+    ['robot-grid', 'כוון את הרובוט', '🤖'], ['memory-classic', 'משחק הזיכרון', '🧠'],
+    ['maze', 'מבוך', '🌀'], ['simon-says', 'סיימון', '🚦'],
+    ['puzzle-piece', 'החלק החסר', '🧩'],
+  ]},
+  { cat: '⏱️ שיעורי בית ומוטיבציה', games: [
+    ['pomodoro-rocket', 'טיימר חללית', '🚀'], ['task-checklist', 'רשימת משימות', '✅'],
+    ['typing-race', 'הקלדה מהירה', '⌨️'], ['quiz-maker', 'בוחן עצמי', '📝'],
+    ['daily-goals', 'מטרות יומיות', '🎯'],
+  ]},
+];
+const ALL_SLUGS = ALBUM.flatMap(p => p.games.map(g => g[0]));
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'sticker-book',
+  how: 'האלבום מתמלא לבד! כל פעם שתסיימו לשחק במשחק (ולו פעם אחת), המדבקה שלו נפתחת כאן באלבום. יש גם מדבקות נדירות ⭐ מיוחדות עם נצנוץ — יש סיכוי קטן לקבל אותן!',
+  example: 'שיחקתם ב"אמת או שקר" וסיימתם? המדבקה ✅ נפתחת אוטומטית באלבום שלכם.',
+});
+
+// scan every iakids_game_* DB and return the set of slugs that have at least one saved score
+async function slugsWithScores() {
+  if (!indexedDB.databases) return new Set(); // ponytail: browsers without databases() just show a locked album, no crash
+  const names = (await indexedDB.databases()).map(d => d.name).filter(n => n && n.startsWith('iakids_game_'));
+  const found = new Set();
+  await Promise.all(names.map(dbName => new Promise(res => {
+    const slug = dbName.replace('iakids_game_', '');
+    const req = indexedDB.open(dbName);
+    req.onsuccess = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('scores')) { db.close(); return res(); }
+      const r = db.transaction('scores').objectStore('scores').count();
+      r.onsuccess = () => { if (r.result > 0) found.add(slug); db.close(); res(); };
+      r.onerror = () => { db.close(); res(); };
+    };
+    req.onerror = () => res();
+  })));
+  return found;
+}
+
+async function run() {
+  const game = await IAKidsGame.init('sticker-book');
+  const progress = (await game.loadProgress()) || { unlocked: {} };
+  const played = await slugsWithScores();
+  const newlyUnlocked = [];
+
+  for (const slug of ALL_SLUGS) {
+    if (played.has(slug) && !progress.unlocked[slug]) {
+      const rare = Math.random() < 0.05; // 5% rare variant
+      progress.unlocked[slug] = { rare, ts: Date.now() };
+      newlyUnlocked.push(slug);
+    }
+  }
+
+  // render album
+  const albumEl = document.getElementById('album');
+  albumEl.innerHTML = '';
+  for (const page of ALBUM) {
+    const pageEl = document.createElement('div');
+    pageEl.className = 'album-page';
+    pageEl.innerHTML = `<h2>${page.cat}</h2>`;
+    const grid = document.createElement('div');
+    grid.className = 'stickers';
+    for (const [slug, name, emoji] of page.games) {
+      const u = progress.unlocked[slug];
+      const slot = document.createElement('div');
+      slot.className = 'sticker-slot ' + (u ? 'unlocked' : 'locked') + (u?.rare ? ' rare' : '');
+      slot.title = name;
+      slot.textContent = u ? emoji : '❔';
+      grid.appendChild(slot);
+    }
+    pageEl.appendChild(grid);
+    albumEl.appendChild(pageEl);
+  }
+
+  const total = Object.keys(progress.unlocked).length;
+  document.getElementById('progress-line').textContent = `${total}/${ALL_SLUGS.length}`;
+
+  await game.saveProgress(progress);
+
+  if (newlyUnlocked.length) {
+    await IAKidsCoins.add(10 * newlyUnlocked.length); // +10 per new sticker, no dedicated button to fly from
+    await game.saveScore(total, { newlyUnlocked });
+    IAKidsFX.celebrate();
+    game.complete(total);
+  }
+}
+run();
+</script>
+</body>
+</html>

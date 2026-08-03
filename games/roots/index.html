@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>שורשים פשוטים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:64px;min-height:60px;padding:6px 14px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.3rem;font-weight:800;cursor:grab;touch-action:none}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+#tray{min-height:90px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+.bins{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.bins .drop-zone{padding:8px 4px}
+.bins h3{margin:0 0 6px;font-size:1.25rem;letter-spacing:1px}
+.bin-items{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;min-height:30px}
+.bin-items span{background:var(--green);color:#fff;border-radius:10px;padding:3px 8px;font-weight:700;font-size:0.95rem}
+@media (max-width:420px){.bins{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">מילה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🌳</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="tray"></div>
+    <div class="bins" id="bins"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:  { he: 'שורשים פשוטים', en: 'Hebrew Roots' },
+  howto:  { he: 'לכל מילה יש שורש בן 3 אותיות. גרור כל מילה לעץ השורש שממנו היא נגזרת!', en: 'Every word has a 3-letter root. Drag each word to its root tree!' },
+  rounds: { he: 'כמה מילים?', en: 'How many words?' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'roots',
+  how: 'במשחק יש 3 "עצי שורש", לכל אחד 3 אותיות שורש. גוררים כל מילה לעץ של השורש שהיא נגזרת ממנו.',
+  example: '<b>א-כ-ל</b> ← <b>אוכל</b>, <b>אכילה</b>, <b>מאכל</b> (כולן מהשורש הזה)',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+/* ---- root banks (all real triliteral roots, verified derivations) ----
+   level 1: transparent derivations (root letters clearly visible in order)
+   level 2: mixed binyanim (verb patterns) — same root, less "obvious" spelling
+   level 3: visually/phonetically similar roots — easy to confuse, needs care
+   each root's word list is ordered easy→hard; adaptive difficulty widens the pool. */
+const ROOT_SETS = {
+  1: [
+    [ { root: 'א-כ-ל', words: ['אוכל','אכילה','מאכל','יאכל'] },
+      { root: 'כ-ת-ב', words: ['כותב','כתיבה','מכתב','כתובת'] },
+      { root: 'ל-מ-ד', words: ['לומד','למידה','מלומד','תלמיד'] } ],
+    [ { root: 'ש-מ-ר', words: ['שומר','שמירה','משמר','שמור'] },
+      { root: 'ר-ק-ד', words: ['רוקד','ריקוד','רקדן','ירקוד'] },
+      { root: 'ש-ח-ק', words: ['משחק','שיחק','שחקן','ישחק'] } ],
+  ],
+  2: [
+    [ { root: 'ש-ב-ר', words: ['שבר','שבירה','נשבר','שברון'] },
+      { root: 'ג-ד-ל', words: ['גדול','גדל','גידול','הגדיל'] },
+      { root: 'ל-ב-ש', words: ['לבש','לבוש','הלביש','מלביש'] } ],
+    [ { root: 'פ-ת-ח', words: ['פתח','פתיחה','נפתח','מפתח'] },
+      { root: 'ס-ג-ר', words: ['סגר','סגור','נסגר','סגירה'] },
+      { root: 'ר-ח-ץ', words: ['רחץ','רחצה','רחוץ','התרחץ'] } ],
+  ],
+  3: [
+    [ { root: 'ש-מ-ר', words: ['שומר','משמר','שמור','שמירה'] },
+      { root: 'ש-ב-ר', words: ['שבור','שבירה','שברים','שבר'] },
+      { root: 'ש-ק-ר', words: ['שקר','שקרן','שקרים','שיקר'] } ],
+    [ { root: 'ד-ב-ק', words: ['דבק','דביק','נדבק','הדביק'] },
+      { root: 'ד-ל-ק', words: ['דלק','דליקה','נדלק','הדליק'] },
+      { root: 'ד-פ-ק', words: ['דפק','דופק','דפיקה','נדפק'] } ],
+  ],
+};
+
+let game, diff, level = 1, TOTAL = 10, score = 0, sorted = 0, mistakes = 0, curSet = null;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('roots').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  const setLvl = lvl || 1 + rnd(3);
+  diff = game.difficulty(lvl || 1, 3);
+  curSet = ROOT_SETS[setLvl][rnd(ROOT_SETS[setLvl].length)];
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  const bins = $('bins');
+  bins.innerHTML = '';
+  curSet.forEach((r, i) => {
+    const b = document.createElement('div');
+    b.className = 'drop-zone';
+    b.dataset.root = i;
+    b.innerHTML = `<h3 dir="ltr">${r.root}</h3><div class="bin-items"></div>`;
+    bins.appendChild(b);
+  });
+  show('play-screen');
+  await fillTray();
+}
+
+async function fillTray() {
+  const tray = $('tray');
+  const pool = [];
+  curSet.forEach((r, i) => {
+    const n = Math.min(r.words.length, 2 + diff.level);
+    for (let k = 0; k < n; k++) pool.push({ word: r.words[k], rootIdx: i });
+  });
+  while (tray.querySelectorAll('.chip').length < Math.min(4, TOTAL - sorted)) {
+    const q = await game.newQuestion(() => pool[rnd(pool.length)], x => x.word);
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = q.word;
+    chip.dataset.rootIdx = q.rootIdx;
+    makeDraggable(chip);
+    tray.appendChild(chip);
+  }
+}
+
+/* ---- Pointer Events drag (touch-friendly, setPointerCapture) ---- */
+let drag = null;
+function makeDraggable(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag) return;
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    const r = chip.getBoundingClientRect();
+    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
+    moveTo(e);
+  });
+  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
+  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) { settle(chip); drag = null; unmarkZones(); }
+  });
+}
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  const z = zoneAt(e.clientX, e.clientY);
+  document.querySelectorAll('.drop-zone').forEach(zn => zn.classList.toggle('over', zn === z));
+}
+const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('.drop-zone') || null;
+const unmarkZones = () => document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('over'));
+function settle(chip) {
+  chip.classList.remove('dragging');
+  chip.style.left = chip.style.top = chip.style.width = '';
+}
+
+async function dropChip(e) {
+  const z = zoneAt(e.clientX, e.clientY);
+  unmarkZones();
+  const chip = drag.chip;
+  drag = null;
+  settle(chip);
+  if (!z) return;
+  const correct = z.dataset.root === chip.dataset.rootIdx;
+  if (correct) {
+    score += 10;
+    sorted++;
+    $('score').textContent = score;
+    $('qnum').textContent = Math.min(sorted + 1, TOTAL);
+    diff.right();
+    IAKidsFX.correct(z);
+    IAKidsCoins.right(z);
+    const s = document.createElement('span');
+    s.textContent = chip.textContent;
+    z.querySelector('.bin-items').appendChild(s);
+    chip.remove();
+    if (sorted >= TOTAL) return end();
+    await fillTray();
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = TOTAL / (TOTAL + mistakes);
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

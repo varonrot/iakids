@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תפזורת אותיות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .ws-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0 16px; }
+  .ws-word { background: var(--accent-soft); color: var(--accent); font-weight: 700; padding: 6px 12px; border-radius: 999px; font-size: 1rem; }
+  .ws-word.found { background: var(--green); color: #fff; text-decoration: line-through; opacity: 0.8; }
+  .ws-grid { display: grid; gap: 4px; margin: 0 auto; max-width: 420px; touch-action: none; }
+  .ws-cell {
+    aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
+    background: var(--accent-soft); border-radius: 8px; font-weight: 800; font-size: 1.2rem;
+    color: var(--text); user-select: none; touch-action: none; transition: background .15s, color .15s;
+  }
+  .ws-cell.selected { background: var(--yellow); }
+  .ws-cell.found { background: var(--green); color: #fff; }
+  @media (max-width: 400px) { .ws-cell { font-size: 1rem; } }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>סבב <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔍</div>
+    <h1 class="game-title">תפזורת אותיות</h1>
+    <p>מוצאים מילים בלוח האותיות — גוררים אצבע על פני הרצף הנכון!</p>
+    <p>כמה סבבים (לוחות)?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline success" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="ws-words" id="ws-words"></div>
+    <div class="ws-grid" id="ws-grid"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// ---- content bank: real, kid-friendly Hebrew nouns ----
+const WORDS = [
+  'חתול', 'כלב', 'שמש', 'ירח', 'בית', 'ספר', 'פרח', 'דבש', 'תפוח', 'גשם',
+  'אריה', 'דוב', 'נמר', 'פיל', 'דלת', 'שולחן', 'כיסא', 'חלון', 'ילד', 'ילדה',
+  'מלך', 'עוגה', 'בננה', 'תות', 'ענן', 'כוכב', 'נחש', 'ציפור', 'פרפר', 'ארנב',
+  'קיפוד', 'תרנגול', 'סוס', 'עכבר', 'נמלה', 'פרה', 'תיק', 'עיפרון', 'מחברת',
+  'שעון', 'כובע', 'מטריה', 'גלידה', 'בלון',
+];
+
+const rnd = n => Math.floor(Math.random() * n);
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const HEB = 'אבגדהוזחטיכלמנסעפצקרשת'.split('');
+
+// level 1: 5x5, horizontal only · level 2: 5x5, +vertical · level 3: 7x7, +diagonal
+function generatePuzzle(level) {
+  const size = level === 3 ? 7 : 5;
+  const dirs = level === 1 ? [[0, 1], [0, -1]]
+    : level === 2 ? [[0, 1], [0, -1], [1, 0], [-1, 0]]
+    : [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+  const targetCount = level === 1 ? 4 : 5;
+  const candidates = shuffle(WORDS.filter(w => w.length >= 3 && w.length <= size))
+    .sort((a, b) => b.length - a.length);
+
+  const grid = Array.from({ length: size }, () => Array(size).fill(null));
+  const placed = [];
+
+  for (const word of candidates) {
+    if (placed.length >= targetCount) break;
+    for (let attempt = 0; attempt < 150; attempt++) {
+      const dir = dirs[rnd(dirs.length)];
+      const [dr, dc] = dir;
+      const r0 = rnd(size), c0 = rnd(size);
+      const r1 = r0 + dr * (word.length - 1), c1 = c0 + dc * (word.length - 1);
+      if (r1 < 0 || r1 >= size || c1 < 0 || c1 >= size) continue;
+      let fits = true;
+      for (let i = 0; i < word.length; i++) {
+        const rr = r0 + dr * i, cc = c0 + dc * i;
+        const existing = grid[rr][cc];
+        if (existing !== null && existing !== word[i]) { fits = false; break; }
+      }
+      if (!fits) continue;
+      for (let i = 0; i < word.length; i++) grid[r0 + dr * i][c0 + dc * i] = word[i];
+      placed.push(word);
+      break;
+    }
+  }
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++)
+      if (grid[r][c] === null) grid[r][c] = HEB[rnd(HEB.length)];
+
+  return { size, grid, words: placed, dirs };
+}
+
+let game, score = 0, qnum = 0, level = 1, TOTAL = 5, diff;
+let puzzle, remaining, wrongThisRound, dragging = false, startCell = null, currentPath = [];
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'word-search',
+  how: 'מתחבאות מילים בלוח האותיות — לאורך, לרוחב (וגם באלכסון ברמה קשה). לוחצים על האות הראשונה של המילה, גוררים את האצבע עד האות האחרונה, ומרימים!',
+  example: '<b>חתול</b> 🐱 מוסתרת בלוח — גוררים על ח-ת-ו-ל ברצף ישר כדי למצוא אותה.',
+});
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('word-search');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+function cellEl(r, c) { return document.querySelector(`.ws-cell[data-r="${r}"][data-c="${c}"]`); }
+
+function renderPuzzle() {
+  const wordsEl = document.getElementById('ws-words');
+  wordsEl.innerHTML = '';
+  puzzle.words.forEach(w => {
+    const span = document.createElement('span');
+    span.className = 'ws-word';
+    span.textContent = w;
+    span.dataset.word = w;
+    wordsEl.appendChild(span);
+  });
+
+  const gridEl = document.getElementById('ws-grid');
+  gridEl.style.gridTemplateColumns = `repeat(${puzzle.size}, 1fr)`;
+  gridEl.innerHTML = '';
+  for (let r = 0; r < puzzle.size; r++) {
+    for (let c = 0; c < puzzle.size; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'ws-cell';
+      cell.dataset.r = r; cell.dataset.c = c;
+      cell.textContent = puzzle.grid[r][c];
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+function paintPath() {
+  document.querySelectorAll('.ws-cell.selected').forEach(el => el.classList.remove('selected'));
+  currentPath.forEach(p => { const el = cellEl(p.r, p.c); if (el && !el.classList.contains('found')) el.classList.add('selected'); });
+}
+
+document.getElementById('ws-grid').addEventListener('pointerdown', e => {
+  const cell = e.target.closest('.ws-cell');
+  if (!cell) return;
+  e.preventDefault();
+  dragging = true;
+  startCell = { r: +cell.dataset.r, c: +cell.dataset.c };
+  currentPath = [startCell];
+  paintPath();
+});
+
+document.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const cell = el && el.closest && el.closest('.ws-cell');
+  if (!cell) return;
+  const r = +cell.dataset.r, c = +cell.dataset.c;
+  const dr = r - startCell.r, dc = c - startCell.c;
+  if (dr === 0 && dc === 0) { currentPath = [startCell]; paintPath(); return; }
+  const adr = Math.abs(dr), adc = Math.abs(dc);
+  let dir = null;
+  if (dr === 0) dir = [0, Math.sign(dc)];
+  else if (dc === 0) dir = [Math.sign(dr), 0];
+  else if (adr === adc) dir = [Math.sign(dr), Math.sign(dc)];
+  if (!dir) return; // not a straight line from the start cell — ignore, keep last valid path
+  const allowed = puzzle.dirs.some(d => d[0] === dir[0] && d[1] === dir[1]);
+  if (!allowed) return;
+  const len = Math.max(adr, adc) + 1;
+  const path = [];
+  for (let i = 0; i < len; i++) path.push({ r: startCell.r + dir[0] * i, c: startCell.c + dir[1] * i });
+  currentPath = path;
+  paintPath();
+});
+
+document.addEventListener('pointerup', () => {
+  if (!dragging) return;
+  dragging = false;
+  finalizeSelection();
+});
+
+function markWordFound(word) {
+  const span = document.querySelector(`.ws-word[data-word="${CSS.escape(word)}"]`);
+  if (span) span.classList.add('found');
+}
+
+function finalizeSelection() {
+  if (currentPath.length < 2) { currentPath = []; paintPath(); return; }
+  const letters = currentPath.map(p => puzzle.grid[p.r][p.c]).join('');
+  const rev = [...letters].reverse().join('');
+  const target = remaining.find(w => w === letters || w === rev);
+  const lastCell = cellEl(currentPath[currentPath.length - 1].r, currentPath[currentPath.length - 1].c);
+
+  if (target) {
+    remaining = remaining.filter(w => w !== target);
+    currentPath.forEach(p => cellEl(p.r, p.c).classList.add('found'));
+    markWordFound(target);
+    IAKidsFX.correct(lastCell);
+    IAKidsCoins.right(lastCell);
+    score += 10;
+    document.getElementById('score').textContent = score;
+    if (remaining.length === 0) { setTimeout(roundComplete, 500); }
+  } else {
+    wrongThisRound = true;
+    IAKidsFX.wrong(lastCell);
+    IAKidsCoins.wrong();
+  }
+  currentPath.forEach(p => { const el = cellEl(p.r, p.c); if (!el.classList.contains('found')) el.classList.remove('selected'); });
+  currentPath = [];
+}
+
+function roundComplete() {
+  if (wrongThisRound) diff.wrong(); else diff.right();
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  puzzle = await game.newQuestion(() => generatePuzzle(lvl), q => q.words.slice().sort().join(','));
+  remaining = puzzle.words.slice();
+  wrongThisRound = false;
+  renderPuzzle();
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 40) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

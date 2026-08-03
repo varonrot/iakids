@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חרוזים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🎵</div>
+    <h1 class="game-title">חרוזים</h1>
+    <p>איזו מילה מתחרזת עם המילה שמופיעה? רק אחת נכונה!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p>מה מתחרז עם:</p>
+    <div class="game-question" id="question"></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+let game, score = 0, qnum = 0, current, level = 1;
+let TOTAL = 10;
+
+// Rhyme groups: every word in a group truly shares its last-syllable sound
+// (checked by ear, not just spelling). "trap" = a word that LOOKS like it
+// should rhyme (same final letter) but has a different vowel, so it doesn't
+// really rhyme — used as a tricky distractor at medium/hard levels.
+const GROUPS = {
+  on:  { words: ['בלון','ארון','חלון','סבון','פעמון','חשבון','עיתון','לימון'], trap: 'שמן' },
+  od:  { words: ['דוד','עוד','לוד','כבוד','סוד'], trap: 'ילד' },
+  ash: { words: ['רעש','נחש','לחש','פרש'], trap: 'אש' },
+  il:  { words: ['פיל','ברזיל','תרגיל','אציל'], trap: 'אוכל' },
+  ot:  { words: ['בנות','תמונות','מתנות','שעות','משפחות','עוגות'], trap: 'בית' },
+  or:  { words: ['ציפור','מגדלור','אור','כפתור'], trap: 'נהר' },
+};
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'rhymes',
+  how: 'מופיעה מילה, ויש 4 אפשרויות. רק מילה אחת מסתיימת באותו צליל — זה החרוז! לא מספיק שהאות האחרונה זהה, צריך שהצליל בסוף המילה יהיה זהה.',
+  example: 'המילה <b>חלון</b> מתחרזת עם <b>בלון</b> (שתיהן מסתיימות ב"–ון"), אבל לא עם <b>שמן</b> (מסתיימת באות נ אבל בצליל אחר).',
+});
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+let diff, timer;
+async function start(lvl) {
+  game = await IAKidsGame.init('rhymes');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(-1, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+function makeQuestion(lvl) {
+  const keys = Object.keys(GROUPS);
+  const gKey = keys[rnd(keys.length)];
+  const g = GROUPS[gKey];
+  const pool = [...g.words].sort(() => Math.random() - 0.5);
+  const word = pool[0], correct = pool[1];
+  const otherKeys = keys.filter(k => k !== gKey).sort(() => Math.random() - 0.5).slice(0, 3);
+  const distractors = otherKeys.map(k => {
+    const w = GROUPS[k].words;
+    return w[rnd(w.length)];
+  });
+  const useTrap = g.trap && (lvl >= 3 || (lvl === 2 && Math.random() < 0.6));
+  if (useTrap) distractors[rnd(distractors.length)] = g.trap;
+  const options = [correct, ...distractors];
+  for (let i = options.length - 1; i > 0; i--) { const j = rnd(i + 1); [options[i], options[j]] = [options[j], options[i]]; }
+  return { word, options, correctIdx: options.indexOf(correct) };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.word + '|' + x.correctIdx + x.options.join(''));
+  current = q.correctIdx;
+  $('question').textContent = q.word;
+  const box = $('answers');
+  box.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.textContent = opt;
+    b.onclick = () => answer(i, b);
+    box.appendChild(b);
+  });
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(i, btn) {
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (i === current) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    if (btn) IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

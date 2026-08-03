@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חישוב היקפים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .shape-wrap { display: flex; justify-content: center; margin: 6px 0; }
+  .shape-wrap svg { width: min(74vw, 300px); height: auto; }
+  .q-text { font-size: 1.25rem; font-weight: 800; margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">📐</div>
+    <h1 class="game-title" id="title">חישוב היקפים</h1>
+    <p id="subtitle">חבר את כל הצלעות ומצא את ההיקף!</p>
+    <p id="rounds-q">כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="q-text" id="q-text"></div>
+    <div class="shape-wrap" id="shape"></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, diff, timer, score = 0, qnum = 0, correctCount = 0, level = 1, current;
+let TOTAL = 10;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'perimeter',
+  how: 'מחברים את כל הצלעות של הצורה כדי למצוא את ההיקף, ובוחרים את התשובה הנכונה מתוך 4 אפשרויות.',
+  example: 'ריבוע שכל צלע שלו 4: <span dir="ltr"><b>4 + 4 + 4 + 4 = 16</b></span> ← ההיקף הוא 16',
+});
+
+const T = {
+  title:    { he: 'חישוב היקפים', en: 'Perimeter Quest', es: 'Perímetros', de: 'Umfang rechnen', pt: 'Perímetros' },
+  subtitle: { he: 'חבר את כל הצלעות ומצא את ההיקף!', en: 'Add up all the sides to find the perimeter!', es: '¡Suma todos los lados y halla el perímetro!', de: 'Addiere alle Seiten für den Umfang!', pt: 'Some todos os lados e ache o perímetro!' },
+  rounds_q: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  ask_perim:  { he: 'מה היקף הצורה? (ס״מ)', en: 'What is the perimeter? (cm)', es: '¿Cuál es el perímetro? (cm)', de: 'Wie groß ist der Umfang? (cm)', pt: 'Qual é o perímetro? (cm)' },
+  ask_side:   { he: 'ההיקף הוא {p} ס״מ. מה אורך הצלע החסרה?', en: 'The perimeter is {p} cm. Find the missing side!', es: 'El perímetro es {p} cm. ¿Cuánto mide el lado que falta?', de: 'Der Umfang ist {p} cm. Wie lang ist die fehlende Seite?', pt: 'O perímetro é {p} cm. Qual é o lado que falta?' },
+  equal_sides:{ he: 'כל הצלעות שוות', en: 'All sides are equal', es: 'Todos los lados son iguales', de: 'Alle Seiten sind gleich', pt: 'Todos os lados são iguais' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('subtitle').textContent = IAKidsLang.t(T.subtitle);
+document.getElementById('rounds-q').textContent = IAKidsLang.t(T.rounds_q);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [k, b] of [['level_easy', 1], ['level_medium', 2], ['level_hard', 3], ['level_random', 0]])
+  document.querySelector(`#level-row [data-lvl="${b}"]`).textContent = IAKidsLang.ui(k);
+
+const rnd = n => Math.floor(Math.random() * n);
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+let roundsPicked = false;
+function setRounds(n, btn) {
+  TOTAL = n; roundsPicked = true;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+// ---- SVG builders (labels always match the numbers used in the math) ----
+const lbl = (x, y, txt) =>
+  `<text x="${x}" y="${y}" font-size="18" font-weight="800" fill="#2b3a55" text-anchor="middle" dominant-baseline="central" direction="ltr">${txt}</text>`;
+
+function rectSVG(w, h, hide) { // hide: null | 'h' (right side shown as ?)
+  const sc = Math.min(190 / w, 110 / h), W = w * sc, H = h * sc;
+  const x = (300 - W) / 2, y = (170 - H) / 2 + 8;
+  return `<svg viewBox="0 0 300 186">
+    <rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#ffe9dd" stroke="#ff6a2a" stroke-width="4" rx="3"/>
+    ${lbl(x + W / 2, y - 14, w)}${hide ? '' : lbl(x + W / 2, y + H + 15, w)}
+    ${lbl(x + W + 15, y + H / 2, hide === 'h' ? '?' : h)}${hide ? '' : lbl(x - 15, y + H / 2, h)}
+  </svg>`;
+}
+
+function triSVG(a, b, c, hide) { // base a, left side b, right side c; hide: null | 'c'
+  const cx = (a * a + b * b - c * c) / (2 * a), cy = Math.sqrt(Math.max(0.5, b * b - cx * cx));
+  const sc = Math.min(200 / a, 110 / cy);
+  const x0 = (300 - a * sc) / 2, y0 = 150;
+  const A = [x0, y0], B = [x0 + a * sc, y0], C = [x0 + cx * sc, y0 - cy * sc];
+  return `<svg viewBox="0 0 300 186">
+    <polygon points="${A}, ${B}, ${C}" fill="#e3f0ff" stroke="#3b82f6" stroke-width="4"/>
+    ${lbl((A[0] + B[0]) / 2, y0 + 17, a)}
+    ${lbl((A[0] + C[0]) / 2 - 16, (A[1] + C[1]) / 2 - 6, b)}
+    ${lbl((B[0] + C[0]) / 2 + 16, (B[1] + C[1]) / 2 - 6, hide === 'c' ? '?' : c)}
+  </svg>`;
+}
+
+function pentSVG(s) { // regular pentagon, side s
+  const R = 78, C = [150, 96], pts = [];
+  for (let i = 0; i < 5; i++) {
+    const a = (i * 72 - 90) * Math.PI / 180;
+    pts.push([C[0] + R * Math.cos(a), C[1] + R * Math.sin(a)]);
+  }
+  let out = `<svg viewBox="0 0 300 200"><polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="#e9fbe9" stroke="#22a94b" stroke-width="4"/>`;
+  for (let i = 0; i < 5; i++) {
+    const q = pts[(i + 1) % 5], p = pts[i];
+    const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+    const dx = mx - C[0], dy = my - C[1], len = Math.hypot(dx, dy);
+    out += lbl(mx + dx / len * 18, my + dy / len * 16, s);
+  }
+  return out + `<text x="150" y="100" font-size="13" font-weight="700" fill="#2b3a55" text-anchor="middle">${IAKidsLang.t(T.equal_sides)}</text></svg>`;
+}
+
+function makeTriangleSides() {
+  while (true) {
+    const a = 5 + rnd(6), b = 3 + rnd(7), c = 3 + rnd(7);
+    if (a + b > c && a + c > b && b + c > a && a !== b && b !== c) return [a, b, c];
+  }
+}
+
+// level 1: rect/square · 2: triangle/pentagon · 3: missing side (perimeter given)
+function makeQuestion(lvl) {
+  let q;
+  if (lvl === 1) {
+    const sq = Math.random() < 0.3, w = 3 + rnd(9), h = sq ? w : 2 + rnd(7);
+    const P = 2 * (w + h);
+    q = { key: `r${w}x${h}`, svg: rectSVG(w, h, null), answer: P, ask: 'perim',
+          cands: [P + 2, P - 2, P + 4, w + h, P - 4, w * h] };
+  } else if (lvl === 2) {
+    if (Math.random() < 0.5) {
+      const [a, b, c] = makeTriangleSides(), P = a + b + c;
+      q = { key: `t${[a, b, c].sort().join('-')}`, svg: triSVG(a, b, c, null), answer: P, ask: 'perim',
+            cands: [P + 1, P - 1, P + 2, P - 2, a + b, P + 3] };
+    } else {
+      const s = 3 + rnd(7), P = 5 * s;
+      q = { key: `p${s}`, svg: pentSVG(s), answer: P, ask: 'perim',
+            cands: [4 * s, 6 * s, P + 5, P - 5, P + s, 3 * s] };
+    }
+  } else {
+    if (Math.random() < 0.5) {
+      const w = 4 + rnd(8), h = 2 + rnd(7), P = 2 * (w + h);
+      q = { key: `mr${w}x${h}`, svg: rectSVG(w, h, 'h'), answer: h, ask: 'side', P,
+            cands: [h + 1, h - 1, h + 2, w, P - w, h + 3] };
+    } else {
+      const [a, b, c] = makeTriangleSides(), P = a + b + c;
+      q = { key: `mt${a}-${b}-${c}`, svg: triSVG(a, b, c, 'c'), answer: c, ask: 'side', P,
+            cands: [c + 1, c - 1, c + 2, a, b, c + 3] };
+    }
+  }
+  const opts = [q.answer];
+  for (const d of q.cands) { if (opts.length < 4 && d > 0 && !opts.includes(d)) opts.push(d); }
+  for (let n = 1; opts.length < 4; n++) if (!opts.includes(q.answer + 4 + n)) opts.push(q.answer + 4 + n);
+  for (let i = opts.length - 1; i > 0; i--) { const j = rnd(i + 1); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  q.opts = opts;
+  return q;
+}
+
+async function start(lvl) {
+  game = await IAKidsGame.init('perimeter');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !roundsPicked) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.key);
+  current = q.answer;
+  document.getElementById('q-text').textContent = q.ask === 'perim'
+    ? IAKidsLang.t(T.ask_perim)
+    : IAKidsLang.t(T.ask_side).replace('{p}', q.P);
+  document.getElementById('shape').innerHTML = q.svg;
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of q.opts) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.innerHTML = `<span dir="ltr">${o}</span>`;
+    b.onclick = () => answer(o, b);
+    grid.appendChild(b);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl, 15));
+}
+
+let locked = false;
+function answer(said, btn) {
+  if (locked) return; locked = true;
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (said === current) {
+    score += 10; correctCount++;
+    diff.right(); IAKidsFX.correct(btn); IAKidsCoins.right(btn);
+  } else {
+    diff.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, correct: correctCount, total: TOTAL });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(correctCount / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

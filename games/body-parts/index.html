@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Body Parts Quiz | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .figure-wrap { margin: 12px auto; max-width: 260px; }
+  .figure-wrap svg { width: 100%; height: auto; touch-action: manipulation; }
+  .hit { fill: transparent; cursor: pointer; }
+  .hit:active { fill: rgba(255,106,42,0.25); }
+  .instruction { margin: 10px 0 4px; }
+  .instruction .en { font-size: 1.6rem; font-weight: 800; }
+  .instruction .he { font-size: 1.1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🧍</div>
+    <h1 class="game-title">Body Parts Quiz</h1>
+    <p>לוחצים על חלק הגוף הנכון לפי המילה באנגלית!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="instruction">
+      <div class="en" dir="ltr">Tap the <span id="part-en"></span></div>
+      <div class="he">לחצו על <b id="part-he"></b></div>
+    </div>
+    <button class="game-btn outline" style="min-height:0;padding:8px 16px" onclick="speakInstruction()">🔊 שוב</button>
+    <div class="figure-wrap">
+      <svg viewBox="0 0 240 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- body outline -->
+        <circle cx="120" cy="60" r="40" fill="#ffd8a8"/>
+        <circle cx="106" cy="62" r="4" fill="#333"/>
+        <circle cx="134" cy="62" r="4" fill="#333"/>
+        <path d="M100 80 Q120 92 140 80" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <rect x="95" y="42" width="20" height="6" rx="3" fill="#5b3a1e"/>
+        <rect x="125" y="42" width="20" height="6" rx="3" fill="#5b3a1e"/>
+        <rect x="85" y="100" width="70" height="110" rx="24" fill="#4da6ff"/>
+        <path d="M85 110 L50 180 L35 240" stroke="#ffd8a8" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <path d="M155 110 L190 180 L205 240" stroke="#ffd8a8" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <path d="M100 210 L95 290 L92 370" stroke="#2b3a55" stroke-width="24" fill="none" stroke-linecap="round"/>
+        <path d="M140 210 L145 290 L148 370" stroke="#2b3a55" stroke-width="24" fill="none" stroke-linecap="round"/>
+        <ellipse cx="88" cy="380" rx="16" ry="9" fill="#5b3a1e"/>
+        <ellipse cx="152" cy="380" rx="16" ry="9" fill="#5b3a1e"/>
+
+        <!-- clickable hit areas -->
+        <circle class="hit" data-part="head" cx="120" cy="60" r="42"/>
+        <rect class="hit" data-part="eyebrow" x="90" y="40" width="60" height="14" rx="6"/>
+        <circle class="hit" data-part="hand" cx="35" cy="240" r="26"/>
+        <circle class="hit" data-part="hand" cx="205" cy="240" r="26"/>
+        <circle class="hit" data-part="elbow" cx="50" cy="180" r="22"/>
+        <circle class="hit" data-part="elbow" cx="190" cy="180" r="22"/>
+        <circle class="hit" data-part="leg" cx="97" cy="250" r="18"/>
+        <circle class="hit" data-part="leg" cx="143" cy="250" r="18"/>
+        <circle class="hit" data-part="knee" cx="95" cy="290" r="20"/>
+        <circle class="hit" data-part="knee" cx="145" cy="290" r="20"/>
+        <circle class="hit" data-part="ankle" cx="92" cy="370" r="20"/>
+        <circle class="hit" data-part="ankle" cx="148" cy="370" r="20"/>
+      </svg>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, score = 0, qnum = 0, level = 1, diff, timer, current, locked = false;
+let TOTAL = 10;
+const rnd = n => Math.floor(Math.random() * n);
+
+const PARTS = {
+  head: { en: 'HEAD', he: 'ראש' },
+  hand: { en: 'HAND', he: 'יד' },
+  leg: { en: 'LEG', he: 'רגל' },
+  elbow: { en: 'ELBOW', he: 'מרפק' },
+  knee: { en: 'KNEE', he: 'ברך' },
+  eyebrow: { en: 'EYEBROW', he: 'גבה' },
+  ankle: { en: 'ANKLE', he: 'קרסול' },
+};
+// cumulative pools by level — harder = more possible targets to tell apart
+const POOL = {
+  1: ['head', 'hand', 'leg'],
+  2: ['head', 'hand', 'leg', 'elbow', 'knee'],
+  3: ['head', 'hand', 'leg', 'elbow', 'knee', 'eyebrow', 'ankle'],
+};
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'body-parts',
+  how: 'קוראים לכם למצוא חלק בגוף — למשל "Tap the KNEE" (לחצו על הברך). לוחצים על החלק הנכון בדמות שעל המסך!',
+  example: '<span dir="ltr"><b>Tap the HEAD</b></span> → לחיצה על הראש ✓',
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+function markRounds(n) {
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.toggle('success', +b.textContent === n));
+  TOTAL = n;
+}
+function markLevel(lvl) {
+  document.querySelectorAll('#level-row .game-btn').forEach(b => b.classList.remove('outline'));
+  const idx = lvl === 0 ? 3 : lvl - 1;
+  const btn = document.querySelectorAll('#level-row .game-btn')[idx];
+  if (btn) btn.classList.add('outline');
+}
+
+(async function boot() {
+  game = await IAKidsGame.init('body-parts');
+  const p = await game.loadProgress();
+  if (p) {
+    if (p.rounds) markRounds(p.rounds);
+    if (p.lastLevel != null) markLevel(p.lastLevel);
+  }
+})();
+
+function speakInstruction() {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(`Tap the ${current}`);
+    u.lang = 'en-US';
+    speechSynthesis.speak(u);
+  } catch (e) { /* no TTS — text instruction still shown */ }
+}
+
+async function start(lvl) {
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  document.querySelectorAll('.hit').forEach(h => h.addEventListener('click', onHit));
+  show('play-screen');
+  next();
+}
+
+function onHit(e) {
+  if (locked) return;
+  answer(e.currentTarget.dataset.part, e.currentTarget);
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const pool = POOL[lvl];
+  const q = await game.newQuestion(() => ({ part: pool[rnd(pool.length)] }), x => x.part);
+  current = q.part;
+  document.getElementById('part-en').textContent = PARTS[current].en;
+  document.getElementById('part-he').textContent = PARTS[current].he;
+  locked = false;
+  speakInstruction();
+  timer.start(IAKidsTimer.secondsFor(lvl, 12));
+}
+
+function answer(said, el) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (said === current) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(el);
+    IAKidsCoins.right(el);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(el);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

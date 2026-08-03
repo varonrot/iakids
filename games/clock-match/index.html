@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>שעון מחוגים ← דיגיטלי | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .clock-wrap { display: flex; justify-content: center; margin: 8px 0; }
+  .clock-wrap svg { width: min(62vw, 240px); height: auto; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🕒</div>
+    <h1 class="game-title" id="title">שעון מחוגים ← דיגיטלי</h1>
+    <p id="subtitle">איזו שעה דיגיטלית מתאימה לשעון?</p>
+    <p id="rounds-q">כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="clock-wrap" id="clock"></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, diff, timer, score = 0, qnum = 0, correctCount = 0, level = 1, current;
+let TOTAL = 10;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'clock-match',
+  how: 'מסתכלים על שעון המחוגים ובוחרים את השעה הדיגיטלית הנכונה מתוך 4 אפשרויות — לפני שהפצצה מתפוצצת! 💣',
+  example: 'המחוג הקטן על 3 והמחוג הגדול על 12 ← לוחצים על <span dir="ltr"><b>3:00</b></span>',
+});
+
+const T = {
+  title:    { he: 'שעון מחוגים ← דיגיטלי', en: 'Clock to Digital', es: 'Reloj a digital', de: 'Uhr zu digital', pt: 'Relógio para digital' },
+  subtitle: { he: 'איזו שעה דיגיטלית מתאימה לשעון?', en: 'Which digital time matches the clock?', es: '¿Qué hora digital coincide con el reloj?', de: 'Welche digitale Zeit passt zur Uhr?', pt: 'Que hora digital combina com o relógio?' },
+  rounds_q: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('subtitle').textContent = IAKidsLang.t(T.subtitle);
+document.getElementById('rounds-q').textContent = IAKidsLang.t(T.rounds_q);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [k, b] of [['level_easy', 1], ['level_medium', 2], ['level_hard', 3], ['level_random', 0]])
+  document.querySelector(`#level-row [data-lvl="${b}"]`).textContent = IAKidsLang.ui(k);
+
+const rnd = n => Math.floor(Math.random() * n);
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+let roundsPicked = false;
+function setRounds(n, btn) {
+  TOTAL = n; roundsPicked = true;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+// ---- clock SVG (hand angles computed from the time) ----
+function clockSVG(h, m) {
+  const C = 110, R = 100;
+  let s = `<svg viewBox="0 0 220 220" role="img"><circle cx="${C}" cy="${C}" r="${R}" fill="#fff" stroke="#2b3a55" stroke-width="6"/>`;
+  for (let i = 0; i < 60; i++) {
+    const a = i * 6 * Math.PI / 180, big = i % 5 === 0;
+    const r1 = big ? R - 12 : R - 6;
+    s += `<line x1="${C + r1 * Math.sin(a)}" y1="${C - r1 * Math.cos(a)}" x2="${C + (R - 3) * Math.sin(a)}" y2="${C - (R - 3) * Math.cos(a)}" stroke="#2b3a55" stroke-width="${big ? 3 : 1}"/>`;
+  }
+  for (let n = 1; n <= 12; n++) {
+    const a = n * 30 * Math.PI / 180;
+    s += `<text x="${C + 76 * Math.sin(a)}" y="${C - 76 * Math.cos(a)}" font-size="17" font-weight="800" fill="#2b3a55" text-anchor="middle" dominant-baseline="central">${n}</text>`;
+  }
+  const hA = ((h % 12) * 30 + m * 0.5) * Math.PI / 180;   // hour hand angle
+  const mA = m * 6 * Math.PI / 180;                        // minute hand angle
+  s += `<line x1="${C}" y1="${C}" x2="${C + 48 * Math.sin(hA)}" y2="${C - 48 * Math.cos(hA)}" stroke="#2b3a55" stroke-width="8" stroke-linecap="round"/>`;
+  s += `<line x1="${C}" y1="${C}" x2="${C + 70 * Math.sin(mA)}" y2="${C - 70 * Math.cos(mA)}" stroke="#ff6a2a" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="6" fill="#2b3a55"/></svg>`;
+  return s;
+}
+
+const fmt = (h, m) => `${h}:${String(m).padStart(2, '0')}`;
+function addMin(h, m, d) {
+  const t = (((h % 12) * 60 + m + d) % 720 + 720) % 720;
+  return fmt(Math.floor(t / 60) || 12, t % 60);
+}
+
+// level 1: whole hours, 2: halves & quarters, 3: 5-minute precision
+function makeQuestion(lvl) {
+  const h = 1 + rnd(12);
+  const m = lvl === 1 ? 0 : lvl === 2 ? [0, 15, 30, 45][rnd(4)] : rnd(12) * 5;
+  const answer = fmt(h, m);
+  // distractors: swapped hands, ±15 min, then fillers
+  const swapH = Math.round(m / 5) || 12;
+  const cands = [fmt(Math.min(swapH, 12), (h % 12) * 5), addMin(h, m, 15), addMin(h, m, -15),
+                 addMin(h, m, 30), addMin(h, m, 60), addMin(h, m, -60), addMin(h, m, lvl === 3 ? 5 : 45)];
+  const opts = [answer];
+  for (const c of cands) { if (opts.length < 4 && !opts.includes(c)) opts.push(c); }
+  for (let i = opts.length - 1; i > 0; i--) { const j = rnd(i + 1); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  return { h, m, answer, opts };
+}
+
+async function start(lvl) {
+  game = await IAKidsGame.init('clock-match');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !roundsPicked) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => `${x.h}:${x.m}`);
+  current = q.answer;
+  document.getElementById('clock').innerHTML = clockSVG(q.h, q.m);
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of q.opts) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.innerHTML = `<span dir="ltr">${o}</span>`;
+    b.onclick = () => answer(o, b);
+    grid.appendChild(b);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl, 12));
+}
+
+let locked = false;
+function answer(said, btn) {
+  if (locked) return; locked = true;
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (said === current) {
+    score += 10; correctCount++;
+    diff.right(); IAKidsFX.correct(btn); IAKidsCoins.right(btn);
+  } else {
+    diff.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, correct: correctCount, total: TOTAL });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(correctCount / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

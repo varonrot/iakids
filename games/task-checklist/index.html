@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>רשימת V אינטראקטיבית | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #addRow { display: flex; gap: 8px; margin-top: 10px; }
+  #taskInput { flex: 1; font: inherit; font-size: 1.1rem; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--muted); }
+  #taskList { list-style: none; padding: 0; margin: 18px 0 0; text-align: right; }
+  .task-item { display: flex; align-items: center; gap: 10px; background: var(--accent-soft); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+  .task-item .check { font-size: 1.5rem; cursor: pointer; flex-shrink: 0; }
+  .task-item .task-text { flex: 1; font-size: 1.15rem; }
+  .task-item.done .task-text { text-decoration: line-through; color: var(--muted); }
+  .del-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; }
+  #emptyMsg, #allDoneMsg { color: var(--muted); margin-top: 16px; }
+  #allDoneMsg { color: var(--green); font-weight: 800; font-size: 1.2rem; }
+</style>
+</head>
+<body>
+
+<div class="game-card">
+  <div style="font-size:3rem">✅</div>
+  <h1 class="game-title">רשימת המשימות שלי</h1>
+  <div id="addRow">
+    <input id="taskInput" type="text" placeholder="מה המשימה הבאה?" maxlength="60">
+    <button class="game-btn" onclick="addTask()">➕ הוסף</button>
+  </div>
+  <ul id="taskList"></ul>
+  <p id="emptyMsg">אין משימות עדיין — תוסיפו אחת! 📝</p>
+  <p id="allDoneMsg" hidden>🎉 כל הכבוד! סיימת את כל המשימות! 🎉</p>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, tasks = [];
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'task-checklist',
+  how: 'כותבים משימה בתיבה ולוחצים "הוסף". כשהמשימה מוכנה, לוחצים על העיגול ⬜ ליד המשימה כדי לסמן ✅ שסיימתם — מקבלים מטבע! כשגומרים את כל המשימות ברשימה מקבלים חגיגה גדולה עם קונפטי ובונוס מטבעות.',
+  example: '<b>✏️ לכתוב שיעורי בית</b> ⬜ ← לוחצים אחרי שמסיימים ← ✅ (+10 🪙)',
+});
+
+(async function init() {
+  game = await IAKidsGame.init('task-checklist');
+  const p = await game.loadProgress();
+  tasks = p?.tasks || [];
+  render();
+})();
+
+document.getElementById('taskInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTask();
+});
+
+async function addTask() {
+  const input = document.getElementById('taskInput');
+  const text = input.value.trim();
+  if (!text) return;
+  tasks.push({ id: Date.now(), text, done: false });
+  input.value = '';
+  await persist();
+  render();
+}
+
+async function toggleTask(id) {
+  const wasAllDone = tasks.length > 0 && tasks.every(t => t.done);
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  if (t.done) {
+    await IAKidsCoins.add(10);
+  }
+  await persist();
+  render();
+  if (t.done) {
+    const el = document.querySelector(`[data-id="${id}"] .check`);
+    if (el) IAKidsFX.correct(el);
+  }
+  const nowAllDone = tasks.length > 0 && tasks.every(t => t.done);
+  if (nowAllDone && !wasAllDone) {
+    IAKidsFX.celebrate();
+    await IAKidsCoins.add(25);
+  }
+}
+
+async function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  await persist();
+  render();
+}
+
+function persist() { return game.saveProgress({ tasks }); }
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function render() {
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  tasks.forEach(t => {
+    const li = document.createElement('li');
+    li.dataset.id = t.id;
+    li.className = 'task-item' + (t.done ? ' done' : '');
+    li.innerHTML = `
+      <span class="check" onclick="toggleTask(${t.id})">${t.done ? '✅' : '⬜'}</span>
+      <span class="task-text">${escapeHtml(t.text)}</span>
+      <button class="del-btn" onclick="deleteTask(${t.id})" title="מחק">🗑</button>`;
+    list.appendChild(li);
+  });
+  document.getElementById('emptyMsg').hidden = tasks.length > 0;
+  document.getElementById('allDoneMsg').hidden = !(tasks.length > 0 && tasks.every(t => t.done));
+}
+</script>
+</body>
+</html>

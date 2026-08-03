@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מילים מורכבות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#board{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:14px}
+.tile{min-width:80px;padding:14px 16px;font-size:1.25rem;font-weight:800;background:var(--card);border:3px solid var(--accent);border-radius:16px;cursor:pointer;user-select:none}
+.tile.selected{background:var(--accent);color:#fff}
+.tile.used{visibility:hidden}
+#banner{min-height:2.6rem;font-size:1.25rem;font-weight:800;text-align:center;margin-top:10px}
+#banner .word{color:var(--accent)}
+#banner .meaning{display:block;font-size:0.95rem;font-weight:600;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🚡</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="task-label" style="text-align:center;font-weight:700"></p>
+    <div id="board"></div>
+    <div id="banner"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title: { he: 'מילים מורכבות', en: 'Compound Words' },
+  howto: { he: 'שני חלקים מתחברים למילה אחת! מצא ולחץ על שני החלקים שמתחברים ליצירת מילה אמיתית.', en: 'Two parts combine into one word! Tap the two parts that combine into a real word.' },
+  rounds:{ he: 'כמה מילים?', en: 'How many words?' },
+  task:  { he: 'לחץ על שני החלקים שמתחברים למילה', en: 'Tap the two parts that combine into a word' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'compound-words',
+  how: 'על הלוח מפוזרים חלקי מילים. צריך למצוא את שני החלקים שביחד יוצרים מילה אמיתית, וללחוץ עליהם אחד אחרי השני.',
+  example: '<b>כדור</b> + <b>רגל</b> = <b>כדורגל</b> ⚽',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('task-label').textContent = IAKidsLang.t(T.task);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+/* ---- compound-word bank (verified real Hebrew compounds) ----
+   level 1: fused single-word compounds (obvious) · level 2: everyday two-word
+   compounds (construct state) · level 3: less common / professions / a
+   pre-inflected first part (משקפי). */
+const COMPOUNDS = {
+  1: [
+    { p1: 'כדור', p2: 'רגל', result: 'כדורגל', meaning: 'משחק כדור עם הרגליים ⚽' },
+    { p1: 'כדור', p2: 'סל', result: 'כדורסל', meaning: 'משחק כדור שזורקים לתוך סל 🏀' },
+    { p1: 'כדור', p2: 'עף', result: 'כדורעף', meaning: 'משחק כדור שעף מעל רשת 🏐' },
+    { p1: 'מגדל', p2: 'אור', result: 'מגדלור', meaning: 'מגדל עם אור שמראה לספינות את הדרך 🗼' },
+    { p1: 'רמז', p2: 'אור', result: 'רמזור', meaning: 'אור ברחוב שאומר מתי לעצור ומתי ללכת 🚦' },
+    { p1: 'מד', p2: 'חום', result: 'מדחום', meaning: 'כלי שמודד כמה חום יש לגוף 🌡️' },
+    { p1: 'אופן', p2: 'נוע', result: 'אופנוע', meaning: 'רכב על שני גלגלים שנוסע לבד 🏍️' },
+    { p1: 'תפוח', p2: 'אדמה', result: 'תפוח אדמה', meaning: 'ירק שגדל באדמה 🥔' },
+  ],
+  2: [
+    { p1: 'בית', p2: 'ספר', result: 'בית ספר', meaning: 'המקום שבו לומדים 🏫' },
+    { p1: 'בית', p2: 'חולים', result: 'בית חולים', meaning: 'המקום שבו רופאים מטפלים בחולים 🏥' },
+    { p1: 'גן', p2: 'ילדים', result: 'גן ילדים', meaning: 'המקום שבו ילדים קטנים משחקים ולומדים 🧒' },
+    { p1: 'יום', p2: 'הולדת', result: 'יום הולדת', meaning: 'היום שבו נולדת 🎂' },
+    { p1: 'סוף', p2: 'שבוע', result: 'סוף שבוע', meaning: 'יומיים בלי בית ספר — שישי ושבת 🌞' },
+    { p1: 'מברשת', p2: 'שיניים', result: 'מברשת שיניים', meaning: 'הכלי שבו מצחצחים שיניים 🪥' },
+    { p1: 'שעון', p2: 'יד', result: 'שעון יד', meaning: 'שעון שקושרים על היד ⌚' },
+    { p1: 'ארון', p2: 'בגדים', result: 'ארון בגדים', meaning: 'הארון ששומרים בו בגדים 👕' },
+  ],
+  3: [
+    { p1: 'רופא', p2: 'שיניים', result: 'רופא שיניים', meaning: 'הרופא שמטפל בשיניים 🦷' },
+    { p1: 'עורך', p2: 'דין', result: 'עורך דין', meaning: 'מי שעוזר בבית משפט ומכיר את החוק ⚖️' },
+    { p1: 'שוטר', p2: 'תנועה', result: 'שוטר תנועה', meaning: 'שוטר ששומר על הסדר בכביש 🚓' },
+    { p1: 'מסך', p2: 'מגע', result: 'מסך מגע', meaning: 'מסך שעובד כשנוגעים בו באצבע 📱' },
+    { p1: 'משקפי', p2: 'שמש', result: 'משקפי שמש', meaning: 'משקפיים שמגנות על העיניים מהשמש 🕶️' },
+    { p1: 'כלב', p2: 'ים', result: 'כלב ים', meaning: 'חיה שחיה בים ונראית קצת ככלב 🦭' },
+  ],
+};
+// decoy words — guaranteed NOT to appear in any COMPOUNDS entry above, so no accidental pair can form
+const DISTRACTORS = ['מחשב','כיסא','דלת','חלון','עיפרון','מחברת','תיק','כובע','נעל','טלפון','ענן','כוכב','דג','ציפור','פרח','עץ','גשר','רכבת','מטוס','ספינה'];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, resolving = false, current = null, selected = [];
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('compound-words').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  $('banner').innerHTML = '';
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const pool = COMPOUNDS[lvl];
+  current = await game.newQuestion(() => pool[rnd(pool.length)], c => c.result);
+  const decoyCount = 1 + diff.level; // harder → more decoys to sift through
+  const decoys = shuffle(DISTRACTORS).slice(0, decoyCount);
+  const tiles = shuffle([current.p1, current.p2, ...decoys]);
+  const board = $('board');
+  board.innerHTML = '';
+  selected = [];
+  resolving = false;
+  tiles.forEach(text => {
+    const el = document.createElement('button');
+    el.className = 'tile game-btn outline';
+    el.style.cssText = 'min-width:80px;padding:14px 16px;font-size:1.25rem';
+    el.textContent = text;
+    el.onclick = () => pick(el, text);
+    board.appendChild(el);
+  });
+}
+
+function pick(el, text) {
+  if (resolving || el.classList.contains('used')) return;
+  const already = selected.find(s => s.el === el);
+  if (already) { el.classList.remove('selected'); selected = selected.filter(s => s.el !== el); return; }
+  el.classList.add('selected');
+  selected.push({ el, text });
+  if (selected.length === 2) { resolving = true; setTimeout(check, 150); }
+}
+
+function check() {
+  const [A, B] = selected;
+  const match = (A.text === current.p1 && B.text === current.p2) || (A.text === current.p2 && B.text === current.p1);
+  if (match) {
+    score += 10;
+    $('score').textContent = score;
+    diff.right();
+    IAKidsFX.correct(A.el);
+    IAKidsFX.correct(B.el);
+    IAKidsCoins.right(A.el);
+    A.el.classList.add('used'); B.el.classList.add('used');
+    $('banner').innerHTML = `<span class="word">${current.p1} + ${current.p2} = ${current.result}</span><span class="meaning">${current.meaning}</span>`;
+    setTimeout(next, 1500);
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(A.el);
+    IAKidsFX.wrong(B.el);
+    IAKidsCoins.wrong();
+    setTimeout(() => {
+      A.el.classList.remove('selected');
+      B.el.classList.remove('selected');
+      selected = [];
+      resolving = false;
+    }, 550);
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = TOTAL / (TOTAL + mistakes);
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

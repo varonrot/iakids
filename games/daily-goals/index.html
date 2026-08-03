@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בונה מטרות יומי | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #streakLine { font-size: 1.4rem; font-weight: 800; margin: 4px 0 18px; }
+  .goal-row { display: flex; align-items: center; gap: 8px; background: var(--accent-soft); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
+  .goal-row select { font-size: 1.3rem; border: none; background: transparent; }
+  .goal-row input[type=text] { flex: 1; font: inherit; font-size: 1.05rem; padding: 8px 10px; border-radius: 10px; border: 2px solid var(--muted); }
+  .goal-row input:disabled { border-color: transparent; background: transparent; text-decoration: line-through; color: var(--muted); }
+  .goal-row .check { font-size: 1.5rem; cursor: pointer; flex-shrink: 0; }
+  #allDoneMsg { color: var(--green); font-weight: 800; font-size: 1.2rem; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="game-card">
+  <div style="font-size:3rem">🎯</div>
+  <h1 class="game-title">בונה מטרות יומי</h1>
+  <p>מה שלוש המטרות שלך להיום?</p>
+  <div id="streakLine">🔥 <span id="streakCount">0</span> ימים ברצף</div>
+  <div id="goalsList"></div>
+  <p id="allDoneMsg" hidden>🎉 השלמת את כל המטרות היום! 🎉</p>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const EMOJIS = ['🎯', '📚', '🏫', '🧹', '🎨', '⚽', '🎵', '🧸', '🥕', '💧'];
+let game, data;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'daily-goals',
+  how: 'כותבים שלוש מטרות קטנות להיום (למשל: לקרוא ספר, לסדר את החדר, לתרגל חשבון), בוחרים אימוג\'י לכל אחת, וכשמסיימים משימה מסמנים ✅. אם משלימים את כל השלוש באותו יום — מקבלים בונוס מטבעות! חוזרים כל יום כדי לשמור על רצף 🔥.',
+  example: '🏫 <b>לסיים שיעורי בית</b> ✅<br>📚 <b>לקרוא 10 דקות</b> ✅<br>🧹 <b>לסדר את התיק</b> ✅ ← כל השלוש! +25 🪙 ו-🔥 עולה',
+});
+
+(async function init() {
+  game = await IAKidsGame.init('daily-goals');
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  const blankGoals = () => [
+    { text: '', emoji: '🎯', done: false },
+    { text: '', emoji: '🎯', done: false },
+    { text: '', emoji: '🎯', done: false },
+  ];
+  let p = await game.loadProgress();
+  if (!p) {
+    p = { goals: blankGoals(), streak: 0, lastCompletedDate: null, lastSeenDate: today };
+    await game.saveProgress(p);
+  } else if (p.lastSeenDate !== today) {
+    if (p.lastCompletedDate !== yesterday) p.streak = 0; // streak broken by a missed day
+    p.goals = blankGoals();
+    p.lastSeenDate = today;
+    await game.saveProgress(p);
+  }
+  data = p;
+  render();
+})();
+
+function setEmoji(i, v) { data.goals[i].emoji = v; persist(); }
+function setText(i, v) { data.goals[i].text = v; persist(); }
+function persist() { return game.saveProgress(data); }
+
+async function toggleGoal(i) {
+  const g = data.goals[i];
+  if (!g.done && !g.text.trim()) return; // nothing to complete
+  const wasAllDone = data.goals.every(x => x.done);
+  g.done = !g.done;
+  if (g.done) await IAKidsCoins.add(5);
+  await persist();
+  render();
+
+  const nowAllDone = data.goals.every(x => x.done);
+  const today = new Date().toDateString();
+  if (nowAllDone && !wasAllDone && data.lastCompletedDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    data.streak = (data.lastCompletedDate === yesterday) ? data.streak + 1 : 1;
+    data.lastCompletedDate = today;
+    IAKidsFX.celebrate();
+    await IAKidsCoins.add(25);
+    await persist();
+    render();
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function render() {
+  document.getElementById('streakCount').textContent = data.streak;
+  const wrap = document.getElementById('goalsList');
+  wrap.innerHTML = '';
+  data.goals.forEach((g, i) => {
+    const row = document.createElement('div');
+    row.className = 'goal-row';
+    row.innerHTML = `
+      <select onchange="setEmoji(${i},this.value)" ${g.done ? 'disabled' : ''}>
+        ${EMOJIS.map(e => `<option ${e === g.emoji ? 'selected' : ''}>${e}</option>`).join('')}
+      </select>
+      <input type="text" value="${escapeHtml(g.text)}" placeholder="מטרה ${i + 1}" maxlength="40"
+        ${g.done ? 'disabled' : ''} oninput="setText(${i},this.value)">
+      <span class="check" onclick="toggleGoal(${i})">${g.done ? '✅' : '⬜'}</span>`;
+    wrap.appendChild(row);
+  });
+  document.getElementById('allDoneMsg').hidden = !data.goals.every(g => g.done && g.text.trim());
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>זהה את התבנית | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#seq-wrap{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:20px 0}
+.seq-item{width:52px;height:52px;background:var(--accent-soft);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.seq-q{width:52px;height:52px;background:var(--card);border:3px dashed var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:var(--accent)}
+#opts{grid-template-columns:repeat(4,1fr)}
+#opts .game-btn{padding:8px;min-height:64px}
+#opts svg{width:40px;height:40px}
+.seq-item svg{width:36px;height:36px}
+@media (max-width:400px){ .seq-item,.seq-q{width:42px;height:42px} #opts svg{width:32px;height:32px} }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔶</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="prompt-label" style="font-weight:700"></p>
+    <div id="seq-wrap" dir="ltr"></div>
+    <div class="answer-grid" id="opts"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+const T = {
+  title:  { he: 'זהה את התבנית', en: 'Pattern Match' },
+  howto:  { he: 'הביטו ברצף הצורות ובחרו מה מגיע אחר כך.', en: 'Look at the shape sequence and pick what comes next.' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?' },
+  prompt: { he: 'מה מגיע אחר כך?', en: "What comes next?" },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'pattern-match',
+  how: 'יש רצף של צורות צבעוניות שחוזר על עצמו לפי כלל קבוע. צריך לגלות את הכלל ולבחור את הצורה שמתאימה למקום ה"?".',
+  example: '🔴🔵🔴🔵<b>?</b> ← התשובה היא 🔴 (אדום, כחול חוזר חוזר חלילה)',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+$('prompt-label').textContent = IAKidsLang.t(T.prompt);
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+// ---- token pool: shape + color pairs, rendered as inline SVG ----
+const TOKENS = [
+  { id: 'circle-red',    shape: 'circle',   color: '#ef4444' },
+  { id: 'square-blue',   shape: 'square',   color: '#3b82f6' },
+  { id: 'triangle-green',shape: 'triangle', color: '#22c55e' },
+  { id: 'diamond-purple',shape: 'diamond',  color: '#a855f7' },
+  { id: 'star-yellow',   shape: 'star',     color: '#facc15' },
+  { id: 'hex-orange',    shape: 'hexagon',  color: '#ff6a2a' },
+];
+function shapeMarkup(shape, color) {
+  switch (shape) {
+    case 'circle':   return `<circle cx="24" cy="24" r="20" fill="${color}"/>`;
+    case 'square':   return `<rect x="4" y="4" width="40" height="40" rx="8" fill="${color}"/>`;
+    case 'triangle': return `<polygon points="24,4 44,42 4,42" fill="${color}"/>`;
+    case 'diamond':  return `<polygon points="24,2 46,24 24,46 2,24" fill="${color}"/>`;
+    case 'star':     return `<polygon points="24,2 29,18 46,18 32,28 37,44 24,34 11,44 16,28 2,18 19,18" fill="${color}"/>`;
+    case 'hexagon':  return `<polygon points="24,2 44,13 44,35 24,46 4,35 4,13" fill="${color}"/>`;
+  }
+}
+const tokenSvg = t => `<svg viewBox="0 0 48 48">${shapeMarkup(t.shape, t.color)}</svg>`;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function pickTokens(n) { return shuffle(TOKENS).slice(0, n); }
+
+// ---- deterministic pattern generator ----
+// Each pattern is produced by a single fixed rule per type, so the next item
+// is always the one unique value that rule yields — no ambiguity.
+function makePattern(lvl) {
+  let type;
+  if (lvl === 1) type = 'abab';
+  else if (lvl === 2) type = Math.random() < 0.5 ? 'aabb' : 'abc';
+  else type = 'grow';
+
+  let cycle, showLen, picks;
+  if (type === 'abab') { picks = pickTokens(2); cycle = picks; showLen = 6; }
+  else if (type === 'aabb') { picks = pickTokens(2); cycle = [picks[0], picks[0], picks[1], picks[1]]; showLen = 9; }
+  else if (type === 'abc') { picks = pickTokens(3); cycle = picks; showLen = 7; }
+
+  let seq;
+  if (type === 'grow') {
+    // blocks: A | A,B | A,B,B | A,B,B,B ... flattened. Deterministic by construction:
+    // build past the cut point, then read the next item straight off that same array.
+    picks = pickTokens(2);
+    const [A, B] = picks;
+    const full = [];
+    for (let k = 1; full.length < 10; k++) { full.push(A); for (let j = 0; j < k - 1; j++) full.push(B); }
+    return finalize(full.slice(0, 9), full[9], picks);
+  }
+
+  seq = Array.from({ length: showLen }, (_, i) => cycle[i % cycle.length]);
+  const nextTok = cycle[showLen % cycle.length];
+  return finalize(seq, nextTok, picks);
+}
+
+function finalize(seq, correct, alphabet) {
+  // distractors: unique tokens != correct, prefer tokens outside the pattern's alphabet first
+  const pool = shuffle(TOKENS.filter(t => t.id !== correct.id));
+  const options = shuffle([correct, ...pool.slice(0, 3)]);
+  return { seq, correct, options, key: seq.map(t => t.id).join(',') + '>' + correct.id };
+}
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+let game, diff, timer, level = 1, TOTAL = 10;
+let score = 0, qnum = 0, current;
+
+const ready = IAKidsGame.init('pattern-match').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makePattern(lvl), x => x.key);
+  current = q.correct.id;
+
+  const wrap = $('seq-wrap');
+  wrap.innerHTML = q.seq.map(t => `<div class="seq-item">${tokenSvg(t)}</div>`).join('') + `<div class="seq-q">?</div>`;
+
+  const opts = $('opts');
+  opts.innerHTML = '';
+  q.options.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline';
+    btn.innerHTML = tokenSvg(t);
+    btn.onclick = () => answer(t.id, btn);
+    opts.appendChild(btn);
+  });
+
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(said, btn) {
+  timer.stop();
+  document.querySelectorAll('#opts .game-btn').forEach(b => b.disabled = true);
+  if (said === current) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const ratio = score / (TOTAL * 10);
+  $('stars').textContent = '⭐'.repeat(ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

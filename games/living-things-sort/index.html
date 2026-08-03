@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חי, צומח, דומם | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:72px;min-height:76px;padding:6px 10px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;cursor:grab;touch-action:none}
+.chip .e{font-size:2rem;line-height:1.1}
+.chip .n{font-size:0.85rem;font-weight:700}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+#tray{min-height:96px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+.bins{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.drop-zone h3{margin:0 0 6px;font-size:1rem}
+.bin-items{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:34px}
+.bin-items span{background:var(--green);color:#fff;border-radius:10px;padding:4px 8px;font-weight:700;font-size:1.3rem}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">פריט</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🐶🌳🪨</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="tray"></div>
+    <div class="bins">
+      <div class="drop-zone" data-cat="animal"><h3>🐾 חי</h3><div class="bin-items"></div></div>
+      <div class="drop-zone" data-cat="plant"><h3>🌱 צומח</h3><div class="bin-items"></div></div>
+      <div class="drop-zone" data-cat="nonliving"><h3>🪨 דומם</h3><div class="bin-items"></div></div>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:  { he: 'חי, צומח, דומם', en: 'Living, Plant, or Non-living' },
+  howto:  { he: 'גרור כל פריט לתיבה הנכונה!', en: 'Drag each item to the right box!' },
+  rounds: { he: 'כמה פריטים למיין?', en: 'How many items?' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'living-things-sort',
+  how: 'כל דבר בעולם שייך לאחת משלוש קבוצות: <b>חי</b> (בעלי חיים וגם בני אדם), <b>צומח</b> (עצים, פרחים וכל הצמחים), או <b>דומם</b> (חפצים שלא חיים ולא צומחים). גוררים כל פריט לתיבה שלו. שימו לב: פטרייה היא יצור <b>חי</b> אך היא לא צמח — היא לא עושה פוטוסינתזה כמו צמח! וצמר, למרות שמגיע מכבשה חיה, הוא עצמו חומר <b>דומם</b>.',
+  example: '🐶 כלב ← לתיבת חי &nbsp;·&nbsp; 🌳 עץ ← לתיבת צומח &nbsp;·&nbsp; 🪨 אבן ← לתיבת דומם',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+/* Bank — scientifically verified for Israeli 1st-grade חי/צומח/דומם classification.
+   tier 1 = obvious (easy). tier 2 = fungi/coral nuance (living but not plant/looks like plant).
+   tier 3 = animal-derived products (non-living material even though it comes from a living creature). */
+const BANK = [
+  { e:'🐶', n:'כלב',    cat:'animal',    tier:1 },
+  { e:'🐱', n:'חתול',   cat:'animal',    tier:1 },
+  { e:'🐦', n:'ציפור',  cat:'animal',    tier:1 },
+  { e:'🐟', n:'דג',     cat:'animal',    tier:1 },
+  { e:'🦋', n:'פרפר',   cat:'animal',    tier:1 },
+  { e:'🐄', n:'פרה',    cat:'animal',    tier:1 },
+  { e:'🦁', n:'אריה',   cat:'animal',    tier:1 },
+  { e:'🐝', n:'דבורה',  cat:'animal',    tier:1 },
+  { e:'🌳', n:'עץ',     cat:'plant',     tier:1 },
+  { e:'🌸', n:'פרח',    cat:'plant',     tier:1 },
+  { e:'🌵', n:'קקטוס',  cat:'plant',     tier:1 },
+  { e:'🍃', n:'עלה',    cat:'plant',     tier:1 },
+  { e:'🌿', n:'שיח',    cat:'plant',     tier:1 },
+  { e:'🌱', n:'עשב',    cat:'plant',     tier:1 },
+  { e:'🪨', n:'אבן',    cat:'nonliving', tier:1 },
+  { e:'🪑', n:'כיסא',   cat:'nonliving', tier:1 },
+  { e:'🚗', n:'מכונית', cat:'nonliving', tier:1 },
+  { e:'☁️', n:'ענן',    cat:'nonliving', tier:1 },
+  { e:'⛰️', n:'הר',     cat:'nonliving', tier:1 },
+  { e:'🏀', n:'כדור',   cat:'nonliving', tier:1 },
+  { e:'📖', n:'ספר',    cat:'nonliving', tier:1 },
+  { e:'💧', n:'מים',    cat:'nonliving', tier:1 },
+  { e:'☀️', n:'שמש',    cat:'nonliving', tier:1 },
+  { e:'🍄', n:'פטרייה', cat:'animal',    tier:2 }, // living organism, not a plant — no photosynthesis
+  { e:'🪸', n:'אלמוג',  cat:'animal',    tier:2 }, // coral looks like a plant but is a colony of animals
+  { e:'🧶', n:'צמר',    cat:'nonliving', tier:3 }, // from a living sheep, but the wool itself is non-living
+  { e:'🍯', n:'דבש',    cat:'nonliving', tier:3 }, // made by bees, but honey itself is non-living
+  { e:'🧀', n:'גבינה',  cat:'nonliving', tier:3 }, // from milk, but cheese itself is non-living
+  { e:'🥚', n:'ביצה',   cat:'nonliving', tier:3 }, // a product, not alive by itself
+];
+
+let game, diff, level = 1, TOTAL = 10, score = 0, sorted = 0, mistakes = 0;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('living-things-sort').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  await fillTray();
+}
+
+function makeItem(lvl) {
+  if (lvl === 0) lvl = 1 + rnd(3);
+  const pool = BANK.filter(x => x.tier <= lvl);
+  const x = pool[rnd(pool.length)];
+  return { text: x.e + '|' + x.n, cat: x.cat };
+}
+
+async function fillTray() {
+  const tray = $('tray');
+  while (tray.querySelectorAll('.chip').length < Math.min(4, TOTAL - sorted)) {
+    const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+    const q = await game.newQuestion(() => makeItem(lvl), x => x.text);
+    const [e, n] = q.text.split('|');
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `<span class="e">${e}</span><span class="n">${n}</span>`;
+    chip.dataset.cat = q.cat;
+    makeDraggable(chip);
+    tray.appendChild(chip);
+  }
+}
+
+/* ---- Pointer Events drag (works on touch — setPointerCapture, not HTML5 DnD) ---- */
+let drag = null;
+function makeDraggable(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag) return;
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    const r = chip.getBoundingClientRect();
+    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
+    moveTo(e);
+  });
+  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
+  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) { settle(chip); drag = null; unmarkZones(); }
+  });
+}
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  const z = zoneAt(e.clientX, e.clientY);
+  document.querySelectorAll('.drop-zone').forEach(zn => zn.classList.toggle('over', zn === z));
+}
+const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('.drop-zone') || null;
+const unmarkZones = () => document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('over'));
+function settle(chip) {
+  chip.classList.remove('dragging');
+  chip.style.left = chip.style.top = chip.style.width = '';
+}
+
+async function dropChip(e) {
+  const z = zoneAt(e.clientX, e.clientY);
+  unmarkZones();
+  const chip = drag.chip;
+  drag = null;
+  settle(chip);
+  if (!z) return;
+  const correct = z.dataset.cat === chip.dataset.cat;
+  if (correct) {
+    score += 10;
+    sorted++;
+    $('score').textContent = score;
+    $('qnum').textContent = Math.min(sorted + 1, TOTAL);
+    diff.right();
+    IAKidsFX.correct(z);
+    IAKidsCoins.right(z);
+    const s = document.createElement('span');
+    s.textContent = chip.querySelector('.e').textContent;
+    z.querySelector('.bin-items').appendChild(s);
+    chip.remove();
+    if (sorted >= TOTAL) return end();
+    await fillTray();
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = TOTAL / (TOTAL + mistakes);
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

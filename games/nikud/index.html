@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>זהה את הניקוד | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🎯</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div style="font-size:3.5rem" id="emoji"></div>
+    <div class="game-question" id="question"></div>
+    <button class="game-btn outline" id="speak-btn" style="font-size:1.1rem;padding:8px 18px;min-height:0" onclick="speak()">🔊</button>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'nikud';
+const T = {
+  title: { he: 'זהה את הניקוד', en: 'Spot the Correct Vowels', es: 'Detecta la vocalización correcta', de: 'Erkenne die richtige Vokalisierung', pt: 'Identifique a vocalização correta' },
+  instr: { he: 'איזה ניקוד נכון למילה? בחר את הכתיב עם הניקוד הנכון!', en: 'Which nikud is correct? Pick the right vowel points!', es: '¿Qué vocalización es correcta? ¡Elige la correcta!', de: 'Welche Vokalisierung stimmt? Wähle die richtige!', pt: 'Qual vocalização está certa? Escolha a certa!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  question: { he: 'איזה ניקוד נכון?', en: 'Which vowel points are correct?', es: '¿Qué vocalización es correcta?', de: 'Welche Vokalzeichen stimmen?', pt: 'Que vocalização está certa?' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'מופיעים 4 כתיבים מנוקדים של אותה מילה. רק אחד מהם מנוקד נכון! אפשר ללחוץ על 🔊 כדי לשמוע איך המילה נשמעת, ולבחור את הניקוד המתאים לפני שהפצצה מתפוצצת 💣',
+  example: '📖 &nbsp; <b dir="ltr" style="unicode-bidi:isolate">סֵפֶר</b> ← ✓ נכון &nbsp;|&nbsp; <b dir="ltr" style="unicode-bidi:isolate">סַפֶר</b> ← ✗ שגוי',
+});
+
+// ---------- nikud (Unicode combining Hebrew points) ----------
+const D = 'ּ', SD = 'ׁ'; // dagesh, shin-dot
+const PATACH = 'ַ', QAMATS = 'ָ', HIRIQ = 'ִ', TSERE = 'ֵ',
+      SEGOL = 'ֶ', HOLAM = 'ֹ', QUBUTS = 'ֻ', SHEVA = 'ְ';
+const VOWELS = [PATACH, QAMATS, HIRIQ, TSERE, SEGOL, HOLAM, QUBUTS, SHEVA];
+
+// letters: [{c: base char, pre: fixed marks (dagesh/shin-dot), v: vowel mark (mutable)}]
+const WORDS = [
+  // level 1 — patach / qamats only
+  { lvl: 1, e: '🌳', bare: 'גן', letters: [{ c: 'ג', pre: D, v: PATACH }, { c: 'ן', v: '' }] },
+  { lvl: 1, e: '🌊', bare: 'ים', letters: [{ c: 'י', v: QAMATS }, { c: 'ם', v: '' }] },
+  { lvl: 1, e: '🎉', bare: 'חג', letters: [{ c: 'ח', v: PATACH }, { c: 'ג', v: '' }] },
+  { lvl: 1, e: '🐟', bare: 'דג', letters: [{ c: 'ד', pre: D, v: QAMATS }, { c: 'ג', v: '' }] },
+  { lvl: 1, e: '🗑️', bare: 'פח', letters: [{ c: 'פ', pre: D, v: PATACH }, { c: 'ח', v: '' }] },
+  { lvl: 1, e: '👨', bare: 'אבא', letters: [{ c: 'א', v: PATACH }, { c: 'ב', pre: D, v: QAMATS }, { c: 'א', v: '' }] },
+  { lvl: 1, e: '🥄', bare: 'כף', letters: [{ c: 'כ', pre: D, v: PATACH }, { c: 'ף', v: '' }] },
+  { lvl: 1, e: '🐫', bare: 'גמל', letters: [{ c: 'ג', pre: D, v: QAMATS }, { c: 'מ', v: QAMATS }, { c: 'ל', v: '' }] },
+  // level 2 — + hiriq / tsere / segol
+  { lvl: 2, e: '👩', bare: 'אמא', letters: [{ c: 'א', v: HIRIQ }, { c: 'מ', pre: D, v: QAMATS }, { c: 'א', v: '' }] },
+  { lvl: 2, e: '📖', bare: 'ספר', letters: [{ c: 'ס', v: TSERE }, { c: 'פ', v: SEGOL }, { c: 'ר', v: '' }] },
+  { lvl: 2, e: '🐕', bare: 'כלב', letters: [{ c: 'כ', pre: D, v: SEGOL }, { c: 'ל', v: SEGOL }, { c: 'ב', v: '' }] },
+  { lvl: 2, e: '🏠', bare: 'בית', letters: [{ c: 'ב', pre: D, v: PATACH }, { c: 'י', v: HIRIQ }, { c: 'ת', v: '' }] },
+  { lvl: 2, e: '🌳', bare: 'עץ', letters: [{ c: 'ע', v: TSERE }, { c: 'ץ', v: '' }] },
+  { lvl: 2, e: '👑', bare: 'מלך', letters: [{ c: 'מ', v: SEGOL }, { c: 'ל', v: SEGOL }, { c: 'ך', v: '' }] },
+  { lvl: 2, e: '🌸', bare: 'פרח', letters: [{ c: 'פ', pre: D, v: SEGOL }, { c: 'ר', v: PATACH }, { c: 'ח', v: '' }] },
+  // level 3 — sheva / dagesh, longer words
+  { lvl: 3, e: '👨‍👩‍👧', bare: 'משפחה', letters: [{ c: 'מ', v: HIRIQ }, { c: 'ש', pre: SD, v: SHEVA }, { c: 'פ', pre: D, v: QAMATS }, { c: 'ח', v: QAMATS }, { c: 'ה', v: '' }] },
+  { lvl: 3, e: '⚽', bare: 'כדור', letters: [{ c: 'כ', pre: D, v: PATACH }, { c: 'ד', pre: D, v: '' }, { c: 'ו', v: D }, { c: 'ר', v: '' }] },
+  { lvl: 3, e: '🎓', bare: 'תלמיד', letters: [{ c: 'ת', pre: D, v: PATACH }, { c: 'ל', v: SHEVA }, { c: 'מ', v: HIRIQ }, { c: 'י', v: '' }, { c: 'ד', v: '' }] },
+  { lvl: 3, e: '🪑', bare: 'שלחן', letters: [{ c: 'ש', pre: SD, v: QUBUTS }, { c: 'ל', v: SHEVA }, { c: 'ח', v: QAMATS }, { c: 'ן', v: '' }] },
+  { lvl: 3, e: '👦', bare: 'ילדים', letters: [{ c: 'י', v: SHEVA }, { c: 'ל', v: QAMATS }, { c: 'ד', v: HIRIQ }, { c: 'י', v: '' }, { c: 'ם', v: '' }] },
+  { lvl: 3, e: '✏️', bare: 'עפרון', letters: [{ c: 'ע', v: HIRIQ }, { c: 'פ', pre: D, v: QAMATS }, { c: 'ר', v: '' }, { c: 'ו', v: HOLAM }, { c: 'ן', v: '' }] },
+];
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
+const render = letters => letters.map(l => l.c + (l.pre || '') + (l.v || '')).join('');
+
+function mutate(letters) {
+  const idxs = letters.map((l, i) => l.v ? i : -1).filter(i => i >= 0);
+  const clone = letters.map(l => ({ ...l }));
+  const howMany = idxs.length > 1 && Math.random() < 0.4 ? 2 : 1;
+  for (const i of shuffle([...idxs]).slice(0, howMany)) {
+    let nv;
+    do { nv = VOWELS[rnd(VOWELS.length)]; } while (nv === letters[i].v);
+    clone[i].v = nv;
+  }
+  return clone;
+}
+function optionsFor(word) {
+  const correct = render(word.letters);
+  const variants = new Set();
+  let guard = 0;
+  while (variants.size < 3 && guard++ < 60) {
+    const v = render(mutate(word.letters));
+    if (v !== correct) variants.add(v);
+  }
+  return shuffle([correct, ...variants]);
+}
+
+function speak() {
+  if (!currentWord || !('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(render(currentWord.letters));
+  u.lang = 'he-IL';
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false, currentWord = null;
+let diff, timer;
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(false, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+function makeQuestion(lvl) {
+  const pool = WORDS.filter(x => x.lvl === lvl);
+  const word = pool[rnd(pool.length)];
+  const correct = render(word.letters);
+  const opts = optionsFor(word);
+  return { word, correct, opts, key: word.bare };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.key);
+  currentWord = q.word;
+  document.getElementById('emoji').textContent = q.word.e;
+  document.getElementById('question').textContent = IAKidsLang.t(T.question);
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of q.opts) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.style.fontSize = '1.6rem';
+    btn.textContent = o;
+    btn.onclick = () => answer(o === q.correct, btn);
+    grid.appendChild(btn);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(ok, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 600);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עודף מהקנייה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span data-ui="score"></span>: <span id="score">0</span></span>
+  <span><span data-ui="question"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card">
+  <div id="start-screen">
+    <div style="font-size:4rem">💰</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="tagline"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5)">5</button>
+      <button class="game-btn success" onclick="setRounds(10)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question"></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+/*GEN*/
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ltr = s => `<span dir="ltr">${s}</span>`;
+const T = d => IAKidsLang.t(d);
+const shek = v => ltr(v + ' ₪');
+
+const STR = {
+  title:   { he: 'עודף מהקנייה', en: 'Change Calculator', es: 'El cambio de la compra', de: 'Rückgeld ausrechnen', pt: 'Troco da compra' },
+  tagline: { he: 'קניתם בחנות — כמה עודף מגיע לכם?', en: 'You bought something — how much change do you get?', es: 'Compraste en la tienda: ¿cuánto cambio te toca?', de: 'Du hast eingekauft — wie viel Rückgeld bekommst du?', pt: 'Você comprou na loja — quanto troco recebe?' },
+  rounds:  { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  costs:   { he: '{item} עולה {p}', en: '{item} costs {p}', es: '{item} cuesta {p}', de: '{item} kostet {p}', pt: '{item} custa {p}' },
+  paid:    { he: 'שילמתם עם שטר של {p}', en: 'You paid with a {p} bill', es: 'Pagaste con un billete de {p}', de: 'Du hast mit einem {p}-Schein bezahlt', pt: 'Você pagou com uma nota de {p}' },
+  howMuch: { he: 'כמה עודף תקבלו?', en: 'How much change do you get?', es: '¿Cuánto cambio recibes?', de: 'Wie viel Rückgeld bekommst du?', pt: 'Quanto troco você recebe?' },
+  bought:  { he: 'קניתם:', en: 'You bought:', es: 'Compraste:', de: 'Du hast gekauft:', pt: 'Você comprou:' },
+};
+
+const ITEMS = [
+  ['🍦', { he: 'גלידה', en: 'Ice cream' }],
+  ['🍫', { he: 'שוקולד', en: 'Chocolate' }],
+  ['🥤', { he: 'שתייה', en: 'A drink' }],
+  ['🍭', { he: 'סוכרייה', en: 'A lollipop' }],
+  ['⚽', { he: 'כדור', en: 'A ball' }],
+  ['🧸', { he: 'דובי', en: 'A teddy bear' }],
+  ['📚', { he: 'ספר', en: 'A book' }],
+  ['🎨', { he: 'צבעים', en: 'Paints' }],
+  ['🎈', { he: 'בלון', en: 'A balloon' }],
+  ['✏️', { he: 'עיפרון', en: 'A pencil' }],
+  ['🍕', { he: 'פיצה', en: 'Pizza' }],
+  ['🚗', { he: 'מכונית צעצוע', en: 'A toy car' }],
+];
+
+function pickItems(count) {
+  const idx = [];
+  while (idx.length < count) { const i = rnd(ITEMS.length); if (!idx.includes(i)) idx.push(i); }
+  return idx.map(i => ITEMS[i]);
+}
+
+function distractors(answer, extra) {
+  const dis = [];
+  const pool = shuffle([answer + 1, answer - 1, answer + 2, answer - 2, answer + 5, answer - 5, answer + 10, answer - 10, ...extra]);
+  for (const v of pool) if (dis.length < 3 && v > 0 && v !== answer && !dis.includes(v)) dis.push(v);
+  for (let k = 3; dis.length < 3; k++) { const v = answer + k; if (!dis.includes(v)) dis.push(v); }
+  return dis;
+}
+
+function makeQuestion(lvl) {
+  if (lvl === 3) { // כמה פריטים יחד
+    const items = pickItems(2 + rnd(2));
+    const prices = items.map(() => 5 + rnd(26));
+    const total = prices.reduce((a, b) => a + b, 0);
+    const paid = total < 50 ? 50 : 100;
+    const answer = paid - total;
+    const lines = items.map(([e, name], i) =>
+      `<div style="font-size:1.3rem">${e} ${T(name)} — ${shek(prices[i])}</div>`).join('');
+    const html = `<div style="font-size:1.1rem">${T(STR.bought)}</div>${lines}` +
+      `<div style="font-size:1.1rem">${T(STR.paid).replace('{p}', shek(paid))}</div><b>${T(STR.howMuch)}</b>`;
+    const options = shuffle([answer, ...distractors(answer, [total, total + 10])]).map(v => ({ html: shek(v), ok: v === answer }));
+    return { html, options, answer, total, paid, key: items.map(x => x[0]).join('') + ':' + prices.join(',') };
+  }
+  const paid = lvl === 1 ? 10 : 50;
+  const price = lvl === 1 ? 2 + rnd(8) : 11 + rnd(38);
+  const [emoji, name] = pickItems(1)[0];
+  const answer = paid - price;
+  const html = `<div style="font-size:3.2rem">${emoji}</div>` +
+    `<div style="font-size:1.2rem">${T(STR.costs).replace('{item}', T(name)).replace('{p}', shek(price))}</div>` +
+    `<div style="font-size:1.2rem">${T(STR.paid).replace('{p}', shek(paid))}</div><b>${T(STR.howMuch)}</b>`;
+  const options = shuffle([answer, ...distractors(answer, [price, paid])]).map(v => ({ html: shek(v), ok: v === answer }));
+  return { html, options, answer, total: price, paid, key: emoji + ':' + price + ':' + paid };
+}
+/*END GEN*/
+
+const SLUG = 'change-calculator';
+let game, score = 0, qnum = 0, current, level = 1, locked = false, started = false;
+let TOTAL = 10, roundsPicked = false, diff, timer;
+
+document.getElementById('title').textContent = T(STR.title);
+document.getElementById('tagline').textContent = T(STR.tagline);
+document.getElementById('rounds-label').textContent = T(STR.rounds);
+document.getElementById('again').textContent = IAKidsLang.ui('play_again');
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`[data-lvl="${l}"]`).textContent = IAKidsLang.ui(k);
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'change-calculator',
+  how: 'קניתם משהו בחנות ושילמתם עם שטר גדול — צריך לחשב כמה עודף מקבלים בחזרה, ולבחור את התשובה הנכונה לפני שהזמן נגמר! 💣',
+  example: '🍎 מחיר: <span dir="ltr"><b>7 ₪</b></span><br>שילמתם עם <span dir="ltr"><b>10 ₪</b></span><br>← העודף הוא <span dir="ltr"><b>10 − 7 = 3 ₪</b></span>',
+});
+(async () => { // ברירות מחדל שמורות: סיבובים + רמז לרמה האחרונה
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (started) return;
+  if (p?.rounds && !roundsPicked) setRoundsUI(p.rounds);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+})();
+
+function setRoundsUI(n) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => { // outline מנצח את success ב-CSS — מחליפים ביניהם
+    const on = +b.textContent === n;
+    b.classList.toggle('success', on);
+    b.classList.toggle('outline', !on);
+  });
+}
+function setRounds(n) { roundsPicked = true; setRoundsUI(n); }
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) document.getElementById(s).hidden = s !== id; };
+
+async function start(lvl) {
+  started = true;
+  game ||= await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(-1, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  current = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
+  document.getElementById('question').innerHTML = current.html;
+  const box = document.getElementById('answers');
+  box.innerHTML = '';
+  current.options.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'game-btn';
+    b.innerHTML = o.html;
+    b.onclick = () => answer(i, b);
+    box.appendChild(b);
+  });
+  locked = false;
+  timer.start(IAKidsTimer.secondsFor(lvl, 15)); // חישוב עודף לוקח יותר זמן — בסיס 15 שניות
+}
+
+function answer(i, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  const ok = !!current.options[i]?.ok;
+  if (ok) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    const okIdx = current.options.findIndex(o => o.ok);
+    document.getElementById('answers').children[okIdx]?.classList.add('correct'); // מראים את הנכונה
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, ok ? 600 : 1200);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משקל ומאזניים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #scale { width: 100%; height: auto; display: block; }
+  #scale text { font-family: inherit; }
+  #beam-g { transition: transform 0.7s cubic-bezier(.3,1.4,.5,1); transform-origin: 260px 95px; }
+  .pan-g { transition: transform 0.7s cubic-bezier(.3,1.4,.5,1); }
+  .chip rect { fill: var(--blue); stroke: #1d4ed8; stroke-width: 1.5; cursor: pointer; }
+  .chip text { fill: #fff; font-size: 12px; font-weight: 800; pointer-events: none; }
+  .weights-row { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+  .weights-row .game-btn { min-width: 64px; padding: 12px 10px; }
+  #pan-toggle .game-btn { font-size: 1rem; padding: 10px 14px; min-height: 48px; }
+  #pan-toggle .sel { outline: 4px solid var(--yellow); }
+  .level-picked { outline: 4px solid var(--yellow); }
+  #q-text { font-size: 1.3rem; font-weight: 800; margin: 8px 0 0; }
+  #sums { margin: 4px 0 0; font-weight: 700; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span data-ui="score">ניקוד</span>: <span id="score">0</span></span>
+  <span><span data-ui="question">שאלה</span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">⚖️</div>
+    <h1 class="game-title" id="t-title">משקל ומאזניים</h1>
+    <p id="t-desc">הוסף משקולות עד שהמאזניים מאוזנים — כמה שוקל החפץ?</p>
+    <p id="t-rounds">כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="q-text"></p>
+    <p id="sums"></p>
+    <svg id="scale" viewBox="0 0 520 310" aria-hidden="true">
+      <rect x="180" y="265" width="160" height="14" rx="7" fill="#b45309"/>
+      <polygon points="260,95 234,265 286,265" fill="#f59e0b" stroke="#b45309" stroke-width="2"/>
+      <g id="beam-g"><rect x="95" y="89" width="330" height="12" rx="6" fill="#b45309"/>
+        <circle cx="260" cy="95" r="8" fill="#78350f"/></g>
+      <g id="panL" class="pan-g">
+        <line x1="0" y1="0" x2="-30" y2="58" stroke="#78350f" stroke-width="2.5"/>
+        <line x1="0" y1="0" x2="30" y2="58" stroke="#78350f" stroke-width="2.5"/>
+        <rect x="-40" y="58" width="80" height="9" rx="4" fill="#92400e"/>
+        <g id="contL"></g>
+      </g>
+      <g id="panR" class="pan-g">
+        <line x1="0" y1="0" x2="-30" y2="58" stroke="#78350f" stroke-width="2.5"/>
+        <line x1="0" y1="0" x2="30" y2="58" stroke="#78350f" stroke-width="2.5"/>
+        <rect x="-40" y="58" width="80" height="9" rx="4" fill="#92400e"/>
+        <g id="contR"></g>
+      </g>
+    </svg>
+    <div id="pan-toggle" class="weights-row" hidden>
+      <button class="game-btn outline" id="tg-R" onclick="setTarget('R')"></button>
+      <button class="game-btn outline" id="tg-L" onclick="setTarget('L')"></button>
+    </div>
+    <div class="weights-row" dir="ltr" id="weights-row"></div>
+    <button class="game-btn success" id="btn-check" style="width:100%" onclick="check()">בדוק ✓</button>
+    <p id="t-hint" style="color:var(--muted);font-size:0.95rem;margin:6px 0 0"></p>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" data-ui="play_again" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'balance-scale';
+let game, diff, score = 0, qnum = 0, level = 1, TOTAL = 10;
+let cur = null, chips = { L: [], R: [] }, supply = {}, target = 'R', locked = false, revealed = false;
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const sum = a => a.reduce((s, v) => s + v, 0);
+const EMOJI = ['🎁', '🧸', '🍉', '📚', '🪨', '🎒', '🥥', '🧱'];
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'balance-scale',
+  how: 'גוררים משקולות לצד הריק של המאזניים עד שהם מתאזנים, ואז לוחצים "בדוק".',
+  example: 'חפץ במשקל <span dir="ltr"><b>7</b></span> ← גוררים משקולות <span dir="ltr"><b>5 + 2</b></span> והמאזניים מתאזנים',
+});
+
+const T = {
+  title: { he: 'משקל ומאזניים', en: 'Balance Scale', es: 'La balanza', de: 'Balkenwaage', pt: 'Balança' },
+  desc:  { he: 'הוסף משקולות עד שהמאזניים מאוזנים — כמה שוקל החפץ?', en: 'Add weights until the scale balances!', es: '¡Añade pesas hasta equilibrar la balanza!', de: 'Lege Gewichte auf, bis die Waage im Gleichgewicht ist!', pt: 'Adicione pesos até equilibrar a balança!' },
+  rounds:{ he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  q:     { he: 'אזן את המאזניים! כמה שוקל', en: 'Balance the scale! How heavy is', es: '¡Equilibra la balanza! ¿Cuánto pesa', de: 'Bring die Waage ins Gleichgewicht! Wie schwer ist', pt: 'Equilibre a balança! Quanto pesa' },
+  hint:  { he: 'לחיצה על משקולת בכפתורים מוסיפה, לחיצה על משקולת שעל הכף מסירה', en: 'Tap a button to add a weight, tap a weight on the pan to remove it', es: 'Toca un botón para añadir una pesa, toca una pesa del plato para quitarla', de: 'Knopf antippen legt ein Gewicht auf, Gewicht auf der Schale antippen nimmt es weg', pt: 'Toque num botão para adicionar um peso, toque num peso no prato para remover' },
+  right: { he: 'כף ימין ➕', en: 'Right pan ➕', es: 'Plato derecho ➕', de: 'Rechte Schale ➕', pt: 'Prato direito ➕' },
+  left:  { he: 'כף שמאל ➕', en: 'Left pan ➕', es: 'Plato izquierdo ➕', de: 'Linke Schale ➕', pt: 'Prato esquerdo ➕' },
+  wsum:  { he: 'משקולות מימין', en: 'Weights on right', es: 'Pesas a la derecha', de: 'Gewichte rechts', pt: 'Pesos à direita' },
+  check: { he: 'בדוק ✓', en: 'Check ✓', es: 'Comprobar ✓', de: 'Prüfen ✓', pt: 'Verificar ✓' },
+};
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+$('t-title').textContent = IAKidsLang.t(T.title);
+document.title = IAKidsLang.t(T.title) + ' | iakids';
+$('t-desc').textContent = IAKidsLang.t(T.desc);
+$('t-rounds').textContent = IAKidsLang.t(T.rounds);
+$('t-hint').textContent = IAKidsLang.t(T.hint);
+$('tg-R').textContent = IAKidsLang.t(T.right);
+$('tg-L').textContent = IAKidsLang.t(T.left);
+$('btn-check').textContent = IAKidsLang.t(T.check);
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [data-r="${p.rounds}"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = game || await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  if (!document.querySelector('#rounds-row .success')) setRounds(TOTAL, $('rounds-row').children[1]);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+/* levels: 1 = one weight balances (obj ∈ 1,2,5,10) · 2 = combination needed (3..18)
+   · 3 = one of each weight only — some targets (4, 9, 14) force weights on BOTH pans */
+function makeQuestion(lvl) {
+  const em = EMOJI[rnd(EMOJI.length)];
+  if (lvl === 1) {
+    const w = [1, 2, 5, 10][rnd(4)];
+    return { w, em, lvl, key: 'e' + w + em };
+  }
+  if (lvl === 2) {
+    let w;
+    do { w = 3 + rnd(16); } while (w === 5 || w === 10);
+    return { w, em, lvl, key: 'm' + w + em };
+  }
+  const pool = [4, 9, 14, 7, 13, 16, 17];
+  const w = pool[rnd(pool.length)];
+  return { w, em, lvl, key: 'h' + w + em };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false; revealed = false;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  cur = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
+  chips = { L: [], R: [] };
+  // ponytail: hard = one of each weight (forces both-pan solutions); easy/medium effectively unlimited
+  supply = cur.lvl === 3 ? { 1: 1, 2: 1, 5: 1, 10: 1 } : { 1: 99, 2: 99, 5: 99, 10: 99 };
+  target = 'R';
+  $('pan-toggle').hidden = cur.lvl !== 3;
+  setTarget('R');
+  $('q-text').innerHTML = `${IAKidsLang.t(T.q)} ${cur.em}?`;
+  renderWeightBtns();
+  renderScale();
+}
+
+function setTarget(p) {
+  target = p;
+  $('tg-R').classList.toggle('sel', p === 'R');
+  $('tg-L').classList.toggle('sel', p === 'L');
+}
+
+function renderWeightBtns() {
+  $('weights-row').innerHTML = [1, 2, 5, 10].map(v =>
+    `<button class="game-btn outline" data-v="${v}" onclick="addW(${v},this)">` +
+    `<span dir="ltr">${v}${cur.lvl === 3 ? ' ×' + supply[v] : ''}</span></button>`).join('');
+}
+
+function addW(v, btn) {
+  if (locked) return;
+  const list = chips[target];
+  if (supply[v] <= 0 || list.length >= 6) { IAKidsFX._beep([[160, 0, 0.12]]); return; }
+  supply[v]--;
+  list.push(v);
+  IAKidsFX._beep([[700, 0, 0.06]]);
+  renderWeightBtns();
+  renderScale();
+}
+
+function removeChip(pan, i) {
+  if (locked) return;
+  supply[chips[pan][i]]++;
+  chips[pan].splice(i, 1);
+  IAKidsFX._beep([[440, 0, 0.06]]);
+  renderWeightBtns();
+  renderScale();
+}
+$('scale').addEventListener('pointerdown', e => {
+  const c = e.target.closest('[data-chip]');
+  if (c) removeChip(c.dataset.pan, +c.dataset.i);
+});
+
+/* ---- SVG rendering ---- */
+const PIVOT = { x: 260, y: 95 }, ARM = 165;
+
+function chipsSvg(pan) {
+  return chips[pan].map((v, i) => {
+    const x = -35 + (i % 3) * 24, y = 58 - 17 * (Math.floor(i / 3) + 1);
+    return `<g class="chip" data-chip data-pan="${pan}" data-i="${i}">` +
+      `<rect x="${x}" y="${y}" width="22" height="16" rx="3"/>` +
+      `<text x="${x + 11}" y="${y + 12}" text-anchor="middle">${v}</text></g>`;
+  }).join('');
+}
+
+function renderScale() {
+  const rows = Math.ceil(chips.L.length / 3);
+  const oy = 52 - 17 * rows; // object floats up as chips stack under it
+  $('contL').innerHTML = chipsSvg('L') +
+    `<text x="0" y="${oy}" text-anchor="middle" font-size="34">${cur.em}</text>` +
+    `<circle cx="22" cy="${oy - 30}" r="11" fill="#fff" stroke="var(--accent)" stroke-width="2.5"/>` +
+    `<text id="w-badge" x="22" y="${oy - 25}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--accent)">${revealed ? cur.w : '?'}</text>`;
+  $('contR').innerHTML = chipsSvg('R');
+  const L = cur.w + sum(chips.L), R = sum(chips.R);
+  const deg = Math.max(-16, Math.min(16, (R - L) * 4)), th = deg * Math.PI / 180;
+  $('beam-g').style.transform = `rotate(${deg}deg)`;
+  $('panL').style.transform = `translate(${PIVOT.x - ARM * Math.cos(th)}px, ${PIVOT.y - ARM * Math.sin(th)}px)`;
+  $('panR').style.transform = `translate(${PIVOT.x + ARM * Math.cos(th)}px, ${PIVOT.y + ARM * Math.sin(th)}px)`;
+  $('sums').innerHTML = `${IAKidsLang.t(T.wsum)}: <span dir="ltr">${R}</span>` +
+    (chips.L.length ? ` | ${cur.em} + <span dir="ltr">${sum(chips.L)}</span>` : '');
+}
+
+function check() {
+  if (locked) return;
+  locked = true;
+  const btn = $('btn-check');
+  const ok = cur.w + sum(chips.L) === sum(chips.R) && chips.R.length > 0;
+  revealed = true;
+  renderScale(); // reveal the object's weight
+  if (ok) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 1300);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

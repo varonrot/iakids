@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אות פותחת / סוגרת | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔠</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div style="font-size:5rem" id="emoji"></div>
+    <div class="game-question" id="question"></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'first-last-letter';
+const T = {
+  title: { he: 'אות פותחת / סוגרת', en: 'First & Last Letter', es: 'Primera y última letra', de: 'Erster & letzter Buchstabe', pt: 'Primeira e última letra' },
+  instr: { he: 'תמונה מופיעה — צריך לדעת איך קוראים לה בעברית ולבחור את האות הנכונה!', en: 'A picture appears — know its Hebrew name and pick the right letter!', es: 'Aparece una imagen — ¡conoce su nombre en hebreo y elige la letra correcta!', de: 'Ein Bild erscheint — kenne den hebräischen Namen und wähle den richtigen Buchstaben!', pt: 'Uma imagem aparece — saiba o nome em hebraico e escolha a letra certa!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  qFirst: { he: 'באיזו אות מתחילה המילה?', en: 'Which letter does the word start with?', es: '¿Con qué letra empieza la palabra?', de: 'Mit welchem Buchstaben beginnt das Wort?', pt: 'Com que letra a palavra começa?' },
+  qLast: { he: 'באיזו אות מסתיימת המילה?', en: 'Which letter does the word end with?', es: '¿Con qué letra termina la palabra?', de: 'Mit welchem Buchstaben endet das Wort?', pt: 'Com que letra a palavra termina?' },
+  qMiddle: { he: 'איזו אות באמצע המילה?', en: 'Which letter is in the middle of the word?', es: '¿Qué letra está en medio de la palabra?', de: 'Welcher Buchstabe steht in der Mitte des Wortes?', pt: 'Que letra está no meio da palavra?' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'מופיעה תמונה — צריך לחשוב איך קוראים לה בעברית, ואז לבחור את האות שבה המילה מתחילה או מסתיימת. שימו לב לאותיות סופיות בסוף מילה (ם ן ץ ף ך)! לפני שהפצצה מתפוצצת 💣',
+  example: '🐕 &nbsp; <b>כלב</b> ← מתחילה ב-<b>כ</b>, מסתיימת ב-<b>ב</b>',
+});
+
+// ---------- word / emoji bank (≥25 items) ----------
+const BANK = [
+  { w: 'כלב', e: '🐕' }, { w: 'חתול', e: '🐈' }, { w: 'תפוח', e: '🍎' }, { w: 'בננה', e: '🍌' },
+  { w: 'שמש', e: '☀️' }, { w: 'ירח', e: '🌙' }, { w: 'עץ', e: '🌳' }, { w: 'פרח', e: '🌸' },
+  { w: 'ספר', e: '📖' }, { w: 'כדור', e: '⚽' }, { w: 'דג', e: '🐟' }, { w: 'ציפור', e: '🐦' },
+  { w: 'תיק', e: '🎒' }, { w: 'שולחן', e: '🪑' }, { w: 'מיטה', e: '🛏️' }, { w: 'מכונית', e: '🚗' },
+  { w: 'אופניים', e: '🚲' }, { w: 'בית', e: '🏠' }, { w: 'ענן', e: '☁️' }, { w: 'גשם', e: '🌧️' },
+  { w: 'כובע', e: '🎩' }, { w: 'נעל', e: '👞' }, { w: 'חולצה', e: '👕' }, { w: 'שעון', e: '⏰' },
+  { w: 'מפתח', e: '🔑' }, { w: 'תפוז', e: '🍊' }, { w: 'ענב', e: '🍇' }, { w: 'גזר', e: '🥕' },
+  { w: 'עוגה', e: '🎂' }, { w: 'כוכב', e: '⭐' }, { w: 'לב', e: '❤️' }, { w: 'יד', e: '✋' },
+  { w: 'עין', e: '👁️' }, { w: 'אוזן', e: '👂' }, { w: 'שן', e: '🦷' }, { w: 'כף', e: '🥄' },
+  { w: 'מלך', e: '👑' },
+];
+
+const FINAL_MAP = { 'מ': 'ם', 'נ': 'ן', 'צ': 'ץ', 'פ': 'ף', 'כ': 'ך' };
+const FINAL_SET = new Set(Object.values(FINAL_MAP));
+const REGULAR = 'אבגדהוזחטיכלמנסעפצקרשת'.split('');
+const SIMILAR = {
+  'ב': ['כ', 'נ'], 'כ': ['ב', 'פ'], 'ד': ['ר'], 'ר': ['ד'], 'ג': ['נ', 'ז'], 'ז': ['ג', 'ר'],
+  'ח': ['ה', 'כ'], 'ה': ['ח', 'ע'], 'ע': ['א', 'ה'], 'א': ['ע'], 'ט': ['ת'], 'ת': ['ט'],
+  'ס': ['ש'], 'ש': ['ס'], 'צ': ['ק'], 'ק': ['צ', 'כ'], 'ו': ['ז'], 'נ': ['ג', 'ב'],
+  'מ': ['נ'], 'פ': ['כ'], 'ל': ['ה'], 'י': ['ו'],
+};
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
+
+function pickDistractors(correct) {
+  const isFinal = FINAL_SET.has(correct);
+  const set = new Set();
+  if (isFinal) {
+    const reg = Object.entries(FINAL_MAP).find(([r, f]) => f === correct);
+    if (reg) set.add(reg[0]); // classic trap: regular form instead of final form
+    for (const f of FINAL_SET) { if (f !== correct && set.size < 3) set.add(f); }
+  }
+  for (const n of (SIMILAR[correct] || [])) { if (n !== correct && set.size < 3) set.add(n); }
+  while (set.size < 3) {
+    const c = REGULAR[rnd(REGULAR.length)];
+    if (c !== correct) set.add(c);
+  }
+  return shuffle([...set]).slice(0, 3);
+}
+
+// level 1: first letter · level 2: last letter · level 3: mixed (also middle)
+function questionType(lvl) {
+  if (lvl === 1) return 'first';
+  if (lvl === 2) return 'last';
+  return ['first', 'last', 'middle'][rnd(3)];
+}
+function letterFor(word, type) {
+  if (type === 'first') return word[0];
+  if (type === 'last') return word[word.length - 1];
+  return word[Math.floor(word.length / 2)];
+}
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false;
+let diff, timer;
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(false, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+function makeQuestion(lvl) {
+  const type = questionType(lvl);
+  const pool = type === 'middle' ? BANK.filter(x => x.w.length >= 3) : BANK;
+  const item = pool[rnd(pool.length)];
+  const correct = letterFor(item.w, type);
+  const opts = shuffle([correct, ...pickDistractors(correct)]);
+  return { word: item.w, emoji: item.e, type, correct, opts };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.word + '|' + x.type);
+  document.getElementById('emoji').textContent = q.emoji;
+  const qText = q.type === 'first' ? T.qFirst : q.type === 'last' ? T.qLast : T.qMiddle;
+  document.getElementById('question').textContent = IAKidsLang.t(qText);
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of q.opts) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.textContent = o;
+    btn.onclick = () => answer(o === q.correct, btn);
+    grid.appendChild(btn);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(ok, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 600);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

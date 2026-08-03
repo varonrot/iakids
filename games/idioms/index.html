@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ביטויים ופתגמים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">💬</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="hint" style="color:var(--muted);font-weight:700;min-height:1.4em"></p>
+    <div class="game-question" id="question" style="font-size:1.7rem"></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'idioms';
+const T = {
+  title: { he: 'ביטויים ופתגמים', en: 'Idioms & Proverbs', es: 'Refranes', de: 'Redewendungen', pt: 'Ditados' },
+  instr: { he: 'בוחרים את המשמעות הנכונה של הפתגם. ברמה קשה — משלימים את המילה החסרה!', en: 'Pick the correct meaning of the idiom. Hard level completes the missing word!', es: 'Elige el significado correcto del refrán. ¡En difícil completas la palabra que falta!', de: 'Wähle die richtige Bedeutung. Im schweren Level ergänzt du das fehlende Wort!', pt: 'Escolha o significado certo. No difícil, complete a palavra que falta!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  hint: { he: 'המשמעות היא:', en: 'The meaning is:', es: 'El significado es:', de: 'Die Bedeutung ist:', pt: 'O significado é:' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false, diff;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'מופיע פתגם עברי — בוחרים את המשמעות האמיתית שלו מתוך 3 אפשרויות. ברמה קשה מוצגת המשמעות, וצריך להשלים את המילה החסרה בפתגם עצמו.',
+  example: '<b>"גם לקיר יש אוזניים"</b> ← פירושו: צריך להיזהר במה שאומרים כי אולי מישהו מקשיב בסתר.',
+});
+
+// level 1 = transparent (guessable) idioms, level 2 = metaphoric idioms, level 3 (any idiom) = fill the missing word using the meaning as a hint
+const POOL = [
+  { level: 1, text: 'לשמור על קור רוח', meaning: 'להישאר רגוע גם במצב מלחיץ', wrongs: ['לצאת החוצה כשקר בחוץ', 'לכעוס בשקט בלי להראות את זה'], blank: 'לשמור על קור ◻', ans: 'רוח', bwrongs: ['מים', 'לב'] },
+  { level: 1, text: 'לקום עם הרגל השמאלית', meaning: 'להיות במצב רוח רע כבר מתחילת היום', wrongs: ['לקום מוקדם יותר מהרגיל בבוקר', 'ללכת לאט כי כואבת הרגל'], blank: 'לקום עם ה◻ השמאלית', ans: 'רגל', bwrongs: ['יד', 'כתף'] },
+  { level: 1, text: 'לשים יד על הלב', meaning: 'לדבר בכנות ובלב פתוח', wrongs: ['להירגע כשהלב פועם מהר', 'להבטיח הבטחה שאי אפשר לקיים'], blank: 'לשים ◻ על הלב', ans: 'יד', bwrongs: ['ספר', 'פרח'] },
+  { level: 1, text: 'כמו דג במים', meaning: 'להרגיש בנוח לגמרי, כאילו זה המקום הכי טבעי בשבילך', wrongs: ['לשחות מהר מאוד בבריכה', 'להיות צמא מאוד ולרצות לשתות'], blank: 'כמו דג ב◻', ans: 'מים', bwrongs: ['אוויר', 'חול'] },
+  { level: 1, text: 'לתפוס שתי ציפורים במכה אחת', meaning: 'להשיג שתי מטרות בפעולה אחת', wrongs: ['לתפוס שני חיות בו-זמנית ביד', 'לפספס מטרה אחת ולפגוע בטעות בשנייה'], blank: 'לתפוס שתי ◻ במכה אחת', ans: 'ציפורים', bwrongs: ['דגים', 'פרפרים'] },
+  { level: 1, text: 'לבנות מגדלים באוויר', meaning: 'לחלום על תוכניות שלא ממש ריאליות', wrongs: ['לבנות מגדל גבוה מאוד מקוביות', 'לטוס במטוס לבניין גבוה'], blank: 'לבנות מגדלים ב◻', ans: 'אוויר', bwrongs: ['ים', 'חול'] },
+  { level: 2, text: 'אין עשן בלי אש', meaning: 'אם יש שמועה, כנראה יש בה קצת אמת', wrongs: ['אסור להצית מדורה בלי זהירות', 'כשיש בעיה קטנה, מתעלמים ממנה'], blank: 'אין עשן בלי ◻', ans: 'אש', bwrongs: ['מים', 'רעש'] },
+  { level: 2, text: 'לשבור את הקרח', meaning: 'להתחיל שיחה ולהוריד את המתח בין אנשים', wrongs: ['לשחק במשחק על קרח קפוא בחורף', 'לפתור בעיה קשה מאוד בכוח'], blank: 'לשבור את ה◻', ans: 'קרח', bwrongs: ['זכוכית', 'אבן'] },
+  { level: 2, text: 'לא רואים את היער מרוב העצים', meaning: 'מתמקדים כל כך בפרטים שלא רואים את התמונה הכללית', wrongs: ['יש כל כך הרבה עצים שקשה ללכת ביער', 'צריך לנטוע עצים חדשים כדי לראות יער'], blank: 'לא רואים את ה◻ מרוב העצים', ans: 'יער', bwrongs: ['שביל', 'נוף'] },
+  { level: 2, text: 'גם לקיר יש אוזניים', meaning: 'צריך להיזהר במה שאומרים כי אולי מישהו מקשיב בסתר', wrongs: ['קירות עבים חוסמים רעשים מבחוץ', 'כדאי לדבר בקול רם כדי שכולם ישמעו'], blank: 'גם לקיר יש ◻', ans: 'אוזניים', bwrongs: ['עיניים', 'חלונות'] },
+  { level: 2, text: 'התפוח לא נופל רחוק מהעץ', meaning: 'ילדים דומים בתכונות שלהם להורים שלהם', wrongs: ['כדאי לאסוף תפוחים שנפלו מיד מתחת לעץ', 'עצי תפוחים גדלים קרוב אחד לשני'], blank: 'התפוח לא נופל רחוק מה◻', ans: 'עץ', bwrongs: ['סל', 'שולחן'] },
+  { level: 2, text: 'לשבת בין הכיסאות', meaning: 'לא להחליט ולא להשתייך באמת לאף צד', wrongs: ['אין מספיק כיסאות לכולם במסיבה', 'לשבת במקום לא נוח בין שני אנשים'], blank: 'לשבת בין ה◻', ans: 'כיסאות', bwrongs: ['שולחנות', 'ספרים'] },
+  { level: 2, text: 'לשים את הראש בחול', meaning: 'להתעלם מבעיה במקום להתמודד איתה', wrongs: ['לשחק בחול בים או בחצר', 'להסתתר ממישהו כדי שלא יראה אותך'], blank: 'לשים את ה◻ בחול', ans: 'ראש', bwrongs: ['רגליים', 'ידיים'] },
+  { level: 2, text: 'עבודת נמלים', meaning: 'עבודה קשה, סבלנית וממושכת', wrongs: ['עבודה שעושים נמלים אמיתיות בגינה', 'עבודה מהירה מאוד שנגמרת ברגע'], blank: 'עבודת ◻', ans: 'נמלים', bwrongs: ['דבורים', 'כלבים'] },
+  { level: 2, text: 'לשמור כמו בבת עין', meaning: 'לשמור על משהו בזהירות רבה, כי הוא יקר מאוד', wrongs: ['להסתכל על משהו הרבה זמן בלי להפסיק', 'לעצום עין אחת כדי לכוון טוב יותר'], blank: 'לשמור כמו ב◻ עין', ans: 'בת', bwrongs: ['אור', 'צבע'] },
+  { level: 2, text: 'לשבת על הגדר', meaning: 'לא לבחור צד, להישאר בלי החלטה', wrongs: ['לשבת בחוץ ליד גדר הבית', 'לטפס על גדר גבוהה בזהירות'], blank: 'לשבת על ה◻', ans: 'גדר', bwrongs: ['כיסא', 'ספה'] },
+  { level: 2, text: 'לתפוס את השור בקרניים', meaning: 'להתמודד עם בעיה קשה ישירות ובאומץ', wrongs: ['לתפוס פרה בחווה בעדינות', 'לברוח מבעיה קשה ומפחידה'], blank: 'לתפוס את ה◻ בקרניים', ans: 'שור', bwrongs: ['כלב', 'סוס'] },
+];
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.sort(() => Math.random() - 0.5);
+
+// lvl 1-2: meaning-match from idioms tagged <= lvl (transparent first, metaphoric added at 2).
+// lvl 3: fill-the-missing-word mode, drawing from the whole pool.
+function makeQuestion(lvl) {
+  if (lvl >= 3) {
+    const item = POOL[rnd(POOL.length)];
+    return { mode: 'fill', item, prompt: item.blank, hint: item.meaning, ans: item.ans, opts: [item.ans, ...item.bwrongs] };
+  }
+  const pool = POOL.filter(x => x.level <= lvl);
+  const item = pool[rnd(pool.length)];
+  return { mode: 'meaning', item, prompt: item.text, hint: '', ans: item.meaning, opts: [item.meaning, ...item.wrongs] };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.mode + '|' + x.item.text);
+  document.getElementById('hint').textContent = q.mode === 'fill' ? `${IAKidsLang.t(T.hint)} ${q.hint}` : '';
+  document.getElementById('question').textContent = q.prompt;
+  const grid = document.getElementById('answers');
+  grid.style.gridTemplateColumns = q.mode === 'fill' ? 'repeat(3,1fr)' : '1fr';
+  grid.innerHTML = '';
+  for (const o of shuffle([...q.opts])) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.textContent = o;
+    btn.onclick = () => answer(o === q.ans, btn);
+    grid.appendChild(btn);
+  }
+}
+
+function answer(ok, btn) {
+  if (locked) return;
+  locked = true;
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

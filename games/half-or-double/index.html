@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חצי או כפול | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">✂️</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div style="font-size:1.4rem;font-weight:800;margin-top:12px" id="mode-line"></div>
+    <div class="game-question" style="font-size:3.5rem"><span dir="ltr" id="question"></span></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'half-or-double';
+const T = {
+  title: { he: 'חצי או כפול', en: 'Half or Double', es: 'Mitad o doble', de: 'Halb oder doppelt', pt: 'Metade ou dobro' },
+  instr: { he: 'מהר! לחץ על החצי או הכפול של המספר', en: 'Quick! Tap the half or the double of the number', es: '¡Rápido! Toca la mitad o el doble del número', de: 'Schnell! Tippe auf die Hälfte oder das Doppelte', pt: 'Rápido! Toque na metade ou no dobro do número' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  half: { he: '✂️ מה החצי של…', en: '✂️ What is half of…', es: '✂️ ¿Cuál es la mitad de…', de: '✂️ Was ist die Hälfte von…', pt: '✂️ Qual é a metade de…' },
+  double: { he: '✖️2 מה הכפול של…', en: '✖️2 What is double…', es: '✖️2 ¿Cuál es el doble de…', de: '✖️2 Was ist das Doppelte von…', pt: '✖️2 Qual é o dobro de…' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false;
+let diff, timer;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'half-or-double',
+  how: 'מופיע מספר עם הוראה: חצי או כפול. בוחרים מהר את התשובה הנכונה, לפני שהפצצה מתפוצצת! 💣',
+  example: 'כפול של <span dir="ltr"><b>6</b></span> ← בוחרים 12<br>חצי של <span dir="ltr"><b>8</b></span> ← בוחרים 4',
+});
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(false, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.sort(() => Math.random() - 0.5);
+
+// level 1: double up to 10, 2: half of even numbers, 3: mixed with bigger numbers
+function makeQuestion(lvl) {
+  const mode = lvl === 1 ? 'double' : lvl === 2 ? 'half' : (Math.random() < 0.5 ? 'double' : 'half');
+  let n, ans;
+  if (mode === 'double') { n = lvl === 3 ? 5 + rnd(26) : 1 + rnd(10); ans = 2 * n; }
+  else { n = 2 * (lvl === 3 ? 5 + rnd(26) : 2 + rnd(19)); ans = n / 2; }
+  return { mode, n, ans, text: mode + ':' + n };
+}
+
+// wrong answers: the opposite operation (classic mix-up), the number itself, near misses
+function distractors(q) {
+  const s = new Set();
+  const opposite = q.mode === 'double' ? (q.n % 2 === 0 ? q.n / 2 : null) : q.n * 2;
+  if (opposite != null && opposite !== q.ans) s.add(opposite);
+  if (q.n !== q.ans) s.add(q.n);
+  while (s.size < 3) {
+    const d = q.ans + (1 + rnd(5)) * (Math.random() < 0.5 ? 1 : -1);
+    if (d !== q.ans && d > 0) s.add(d);
+  }
+  return shuffle([...s]).slice(0, 3);
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.text); // no repeats
+  document.getElementById('mode-line').textContent = IAKidsLang.t(T[q.mode]);
+  document.getElementById('question').textContent = q.n;
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of shuffle([q.ans, ...distractors(q)])) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.innerHTML = `<span dir="ltr">${o}</span>`;
+    btn.onclick = () => answer(o === q.ans, btn);
+    grid.appendChild(btn);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl, 7)); // fast game: 7s / 5s / 3s
+}
+
+function answer(ok, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 600);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

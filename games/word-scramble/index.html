@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סדר את המילה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .tile-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 18px 0; }
+  .tile, .slot {
+    width: 54px; height: 58px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.9rem; font-weight: 800; border-radius: 12px;
+  }
+  .tile {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15); cursor: grab; touch-action: none;
+    user-select: none; transition: transform 0.15s;
+  }
+  .tile.dragging { cursor: grabbing; opacity: 0.9; }
+  .tile.placed { background: var(--green); box-shadow: none; cursor: default; }
+  .slots-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0; }
+  .slot {
+    border: 3px dashed var(--muted); border-radius: 12px; padding: 0;
+    background: var(--card); min-height: 58px;
+  }
+  .slot.over { border-color: var(--accent); background: var(--accent-soft); }
+  .slot.filled { border-style: solid; border-color: var(--green); }
+  @keyframes shakeTile { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-8px);} 40%,80%{transform:translateX(8px);} }
+  .tile.shake { animation: shakeTile 0.35s; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span><span id="qlabel">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔤</div>
+    <h1 class="game-title">סדר את המילה</h1>
+    <p>האותיות התבלבלו! גרור כל אות למקום הנכון ובנה את המילה.</p>
+    <p>כמה סיבובים?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)" id="lvl-1">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)" id="lvl-2">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)" id="lvl-3">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="slots-row" id="slots"></div>
+    <div class="tile-row" id="bank"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// word bank by level — words verified for correct standard Hebrew spelling;
+// sofit letters (ם ן ץ ף ך) only ever appear where they belong: at the word's end.
+const WORDS = {
+  1: ['בית', 'ילד', 'כלב', 'ספר', 'שיר', 'עיר', 'אור', 'דלת', 'חלב', 'דבש'],
+  2: ['שולחן', 'כיסא', 'תפוח', 'ילדים', 'חלון', 'מטבח', 'תפוז', 'כדור', 'מספר', 'שמיים', 'גלידה'],
+  3: ['מספריים', 'תלמידים', 'מחשבים', 'עיפרון', 'בלונים', 'תפוחים', 'פרפרים', 'צעצועים', 'מדבקות', 'כרטיסים'],
+};
+
+let game, score = 0, qnum = 0, level = 1, TOTAL = 10, diff, sessionRight = 0, sessionWrong = 0;
+let placed = 0, wordLen = 0;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'word-scramble',
+  how: 'האותיות של מילה התבלבלו! גרור כל אות מהמאגר למקום הריק המתאים כדי לבנות את המילה הנכונה, אות אחרי אות.',
+  example: 'אותיות מבולבלות: <b dir="rtl">ת ל ד י</b> ← גורר לסדר הנכון ← <b dir="rtl">יל ד ת</b>... כלומר: <b dir="rtl">ילדת</b> שגוי, הנכון הוא <b dir="rtl">ילד</b> 🙂',
+});
+
+document.getElementById('qlabel').textContent = IAKidsLang.ui('question');
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('word-scramble');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+function pickWord(lvl) {
+  const pool = WORDS[lvl] || WORDS[1];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function scramble(word) {
+  const letters = [...word].map((c, i) => ({ c, i }));
+  let arr;
+  do {
+    arr = letters.map(t => ({ ...t, r: Math.random() })).sort((a, b) => a.r - b.r);
+  } while (letters.length > 1 && arr.every((t, i) => t.i === i));
+  return arr;
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + Math.floor(Math.random() * 3) : diff.level;
+  const word = await game.newQuestion(() => pickWord(lvl), w => w);
+  buildRound(word);
+}
+
+function buildRound(word) {
+  placed = 0;
+  wordLen = word.length;
+  const slotsEl = document.getElementById('slots');
+  const bankEl = document.getElementById('bank');
+  slotsEl.innerHTML = '';
+  bankEl.innerHTML = '';
+
+  for (let i = 0; i < wordLen; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'slot drop-zone';
+    slot.dataset.idx = i;
+    slotsEl.appendChild(slot);
+  }
+
+  const scrambled = scramble(word);
+  scrambled.forEach(({ c, i }) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.textContent = c;
+    tile.dataset.correctIdx = i;
+    bankEl.appendChild(tile);
+    attachDrag(tile);
+  });
+}
+
+function attachDrag(tile) {
+  tile.addEventListener('pointerdown', e => {
+    if (tile.classList.contains('placed')) return;
+    tile.setPointerCapture(e.pointerId);
+    const rect = tile.getBoundingClientRect();
+    const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+    tile.classList.add('dragging');
+    tile.style.position = 'fixed';
+    tile.style.width = rect.width + 'px';
+    tile.style.height = rect.height + 'px';
+    tile.style.left = rect.left + 'px';
+    tile.style.top = rect.top + 'px';
+    tile.style.zIndex = 200;
+    tile.style.pointerEvents = 'none';
+
+    const move = ev => {
+      tile.style.left = (ev.clientX - offX) + 'px';
+      tile.style.top = (ev.clientY - offY) + 'px';
+      document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.slot');
+      if (zone && !zone.classList.contains('filled')) zone.classList.add('over');
+    };
+
+    const up = ev => {
+      tile.releasePointerCapture(e.pointerId);
+      tile.removeEventListener('pointermove', move);
+      tile.removeEventListener('pointerup', up);
+      tile.classList.remove('dragging');
+      document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
+
+      // hit-test BEFORE restoring pointer-events/position — the tile is still
+      // sitting fixed under the pointer, so elementFromPoint would hit itself otherwise
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.slot');
+
+      tile.style.pointerEvents = '';
+      // clear the temp free-floating positioning either way — return to normal flow first
+      tile.style.position = '';
+      tile.style.left = '';
+      tile.style.top = '';
+      tile.style.width = '';
+      tile.style.height = '';
+      tile.style.zIndex = '';
+
+      if (!zone) return; // released off any slot — no penalty, just snaps back
+
+      if (zone.classList.contains('filled')) {
+        wrongDrop(tile);
+        return;
+      }
+
+      if (Number(zone.dataset.idx) === Number(tile.dataset.correctIdx)) {
+        zone.classList.add('filled');
+        zone.appendChild(tile);
+        tile.classList.add('placed');
+        IAKidsFX.correct(tile);
+        IAKidsCoins.right(tile);
+        diff.right();
+        score += 10;
+        sessionRight++;
+        document.getElementById('score').textContent = score;
+        placed++;
+        if (placed >= wordLen) setTimeout(next, 700);
+      } else {
+        wrongDrop(tile);
+      }
+    };
+
+    tile.addEventListener('pointermove', move);
+    tile.addEventListener('pointerup', up);
+  });
+}
+
+function wrongDrop(tile) {
+  IAKidsFX.wrong(tile);
+  IAKidsCoins.wrong();
+  diff.wrong();
+  sessionWrong++;
+  tile.classList.add('shake');
+  setTimeout(() => tile.classList.remove('shake'), 400);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = sessionRight / Math.max(1, sessionRight + sessionWrong);
+  document.getElementById('stars').textContent = '⭐'.repeat(acc >= 0.85 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+
+// restore last-picked rounds count (default 10), mark the matching button
+(async () => {
+  const tmp = await IAKidsGame.init('word-scramble');
+  const p = await tmp.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  const btn = [...document.querySelectorAll('#rounds-row .game-btn')].find(b => Number(b.textContent) === TOTAL);
+  (btn || document.querySelectorAll('#rounds-row .game-btn')[1]).classList.add('success');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capital vs Small Letters | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .letters-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; direction: ltr; }
+  .letter-card { font-size: 1.8rem; min-height: 64px; }
+  .letter-card.matched { visibility: hidden; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🅰️</div>
+    <h1 class="game-title">Capital vs Small Letters</h1>
+    <p>מתאימים כל אות גדולה לאות הקטנה שלה!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p>לחצו על אות גדולה ואז על האות הקטנה שמתאימה לה</p>
+    <div class="letters-grid" id="letters-grid"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, score = 0, qnum = 0, level = 1, diff, timer;
+let TOTAL = 10;
+let selected = null, locked = false, matchedCount = 0, pairCount = 0;
+const rnd = n => Math.floor(Math.random() * n);
+const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const EASY_POOL = 'ABCDEF'.split('');
+const CONFUSABLE = [['B', 'D'], ['P', 'Q']];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) { const j = rnd(i + 1);[arr[i], arr[j]] = [arr[j], arr[i]]; }
+  return arr;
+}
+function sampleDistinct(arr, n) {
+  const copy = [...arr], out = [];
+  while (out.length < n && copy.length) out.push(copy.splice(rnd(copy.length), 1)[0]);
+  return out;
+}
+function pickLetters(lvl) {
+  if (lvl === 1) return sampleDistinct(EASY_POOL, 4);
+  if (lvl === 2) return sampleDistinct(ALPHA, 5);
+  const pair = CONFUSABLE[rnd(CONFUSABLE.length)];
+  const others = sampleDistinct(ALPHA.filter(l => !pair.includes(l)), 4);
+  return shuffle([...pair, ...others]);
+}
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'capital-small',
+  how: 'על המסך יש אותיות גדולות וקטנות מעורבבות. לוחצים על אות גדולה, ואז לוחצים על האות הקטנה שמתאימה לה — כל אות גדולה שייכת לאות קטנה אחת בלבד!',
+  example: '<span dir="ltr"><b>A</b></span> ← מתאימה ל־ <span dir="ltr"><b>a</b></span> ✓ (לא ל-e או לאות אחרת)',
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+function markRounds(n) {
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.toggle('success', +b.textContent === n));
+  TOTAL = n;
+}
+function markLevel(lvl) {
+  document.querySelectorAll('#level-row .game-btn').forEach(b => b.classList.remove('outline'));
+  const idx = lvl === 0 ? 3 : lvl - 1;
+  const btn = document.querySelectorAll('#level-row .game-btn')[idx];
+  if (btn) btn.classList.add('outline');
+}
+
+(async function boot() {
+  game = await IAKidsGame.init('capital-small');
+  const p = await game.loadProgress();
+  if (p) {
+    if (p.rounds) markRounds(p.rounds);
+    if (p.lastLevel != null) markLevel(p.lastLevel);
+  }
+})();
+
+async function start(lvl) {
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => roundTimeout() });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => ({ letters: pickLetters(lvl) }), x => [...x.letters].sort().join(''));
+
+  pairCount = q.letters.length;
+  matchedCount = 0;
+  selected = null;
+  locked = false;
+
+  const cards = [];
+  q.letters.forEach(L => {
+    cards.push({ letter: L, text: L });
+    cards.push({ letter: L, text: L.toLowerCase() });
+  });
+  shuffle(cards);
+
+  const grid = document.getElementById('letters-grid');
+  grid.innerHTML = '';
+  cards.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline letter-card';
+    btn.textContent = c.text;
+    btn.dataset.letter = c.letter;
+    btn.onclick = () => pick(btn, c.letter);
+    grid.appendChild(btn);
+  });
+
+  timer.start(IAKidsTimer.secondsFor(lvl, 8 * pairCount));
+}
+
+function pick(btn, letter) {
+  if (locked || btn.classList.contains('matched') || btn === selected?.el) return;
+  btn.classList.add('bounce-in');
+  if (!selected) { selected = { el: btn, letter }; return; }
+
+  locked = true;
+  const first = selected, second = { el: btn, letter };
+  selected = null;
+
+  if (first.letter === second.letter) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(first.el);
+    IAKidsFX.correct(second.el);
+    IAKidsCoins.right(second.el);
+    matchedCount++;
+    document.getElementById('score').textContent = score;
+    setTimeout(() => {
+      first.el.classList.add('matched');
+      second.el.classList.add('matched');
+      locked = false;
+      if (matchedCount >= pairCount) { timer.stop(); setTimeout(next, 500); }
+    }, 500);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(first.el);
+    IAKidsFX.wrong(second.el);
+    IAKidsCoins.wrong();
+    setTimeout(() => { locked = false; }, 500);
+  }
+}
+
+function roundTimeout() {
+  if (locked) return; // a match is already resolving (or round just finished) — let it play out
+  diff.wrong();
+  IAKidsCoins.wrong();
+  locked = true;
+  setTimeout(next, 500);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

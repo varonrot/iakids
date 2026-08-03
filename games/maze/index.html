@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌀 מבוך דרכים בסיסי | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #maze-wrap { touch-action: none; }
+  #maze { width: min(82vw, 340px); height: auto; display: block; margin: 8px auto; }
+  #player-g, .goal-t, .coin-t { transition: transform 0.25s linear; }
+  #player-g text, .goal-t text, .coin-t text { text-anchor: middle; dominant-baseline: central; }
+  #maze-wrap.correct { animation: pop 0.4s; }
+  #maze-wrap.wrong { animation: shake 0.4s; }
+  .dir-pad { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(2, 56px); gap: 6px; justify-content: center; margin: 10px auto; }
+  .dir-pad .game-btn { font-size: 1.5rem; min-width: 0; min-height: 0; padding: 0; margin: 0; }
+  #steps-line { font-weight: 700; color: var(--muted); margin: 2px 0; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
+  <span><span id="lbl-q"></span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🌀</div>
+    <h1 class="game-title" id="title-line"></h1>
+    <p id="intro-line"></p>
+    <p id="rounds-line"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-n="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="steps-line"></p>
+    <div id="maze-wrap">
+      <svg id="maze" viewBox="0 0 340 340"></svg>
+    </div>
+    <div class="dir-pad">
+      <span></span><button class="game-btn outline" onclick="tryMove('up')">⬆️</button><span></span>
+      <button class="game-btn outline" onclick="tryMove('left')">⬅️</button>
+      <span></span>
+      <button class="game-btn outline" onclick="tryMove('right')">➡️</button>
+      <span></span><button class="game-btn outline" onclick="tryMove('down')">⬇️</button><span></span>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="lbl-best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const t = d => IAKidsLang.t(d), ui = k => IAKidsLang.ui(k);
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'maze',
+  how: 'עוזרים לעכבר 🐭 להגיע לגבינה 🧀 דרך המבוך — לוחצים על החצים (או במקלדת) כדי לזוז. אי אפשר לעבור דרך קירות.',
+  example: 'עכבר 🐭 מתחת לגבינה 🧀 ← לוחצים ⬆️ כמה פעמים עד שמגיעים אליה',
+});
+
+const T = {
+  title: { he: 'מבוך דרכים בסיסי', en: 'Maze Path', es: 'El laberinto', de: 'Labyrinth', pt: 'Labirinto' },
+  intro: { he: 'עזרו לעכבר 🐭 למצוא את הדרך לגבינה 🧀!', en: 'Help the mouse 🐭 find the way to the cheese 🧀!', es: '¡Ayuda al ratón 🐭 a encontrar el camino al queso 🧀!', de: 'Hilf der Maus 🐭, den Weg zum Käse 🧀 zu finden!', pt: 'Ajude o rato 🐭 a encontrar o caminho até o queijo 🧀!' },
+  rounds: { he: 'כמה מבוכים?', en: 'How many mazes?', es: '¿Cuántos laberintos?', de: 'Wie viele Labyrinthe?', pt: 'Quantos labirintos?' },
+  steps: { he: 'צעדים', en: 'Steps', es: 'Pasos', de: 'Schritte', pt: 'Passos' },
+};
+$('lbl-score').textContent = ui('score');
+$('lbl-q').textContent = ui('question');
+$('lbl-best').textContent = ui('your_best');
+$('title-line').textContent = t(T.title);
+document.title = t(T.title) + ' | iakids';
+$('intro-line').textContent = t(T.intro);
+$('rounds-line').textContent = t(T.rounds);
+$('again-btn').textContent = ui('play_again');
+document.querySelector('[data-lvl="1"]').textContent = ui('level_easy');
+document.querySelector('[data-lvl="2"]').textContent = ui('level_medium');
+document.querySelector('[data-lvl="3"]').textContent = ui('level_hard');
+document.querySelector('[data-lvl="0"]').textContent = ui('level_random');
+
+const SIZE_FOR = { 1: 6, 2: 10, 3: 14 };
+const DELTA = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
+const WALLDIR = { up: 'N', down: 'S', left: 'W', right: 'E' };
+const OPP = { N: 'S', S: 'N', E: 'W', W: 'E' };
+
+// randomized DFS spanning-tree carve — guarantees a unique, always-solvable path start→goal
+function generateMaze(n) {
+  const cells = Array.from({ length: n }, () => Array.from({ length: n }, () => ({ N: true, E: true, S: true, W: true, visited: false })));
+  const stack = [[0, 0]];
+  cells[0][0].visited = true;
+  while (stack.length) {
+    const [r, c] = stack[stack.length - 1];
+    const nbs = [];
+    if (r > 0 && !cells[r - 1][c].visited) nbs.push(['N', r - 1, c]);
+    if (c < n - 1 && !cells[r][c + 1].visited) nbs.push(['E', r, c + 1]);
+    if (r < n - 1 && !cells[r + 1][c].visited) nbs.push(['S', r + 1, c]);
+    if (c > 0 && !cells[r][c - 1].visited) nbs.push(['W', r, c - 1]);
+    if (!nbs.length) { stack.pop(); continue; }
+    const [dir, nr, nc] = nbs[rnd(nbs.length)];
+    cells[r][c][dir] = false;
+    cells[nr][nc][OPP[dir]] = false;
+    cells[nr][nc].visited = true;
+    stack.push([nr, nc]);
+  }
+  return cells;
+}
+
+// grid is a tree (single spanning path) — BFS parent-walk gives the one unique start→goal path
+function findPath(cells, n) {
+  const start = '0,0', goal = `${n - 1},${n - 1}`;
+  const parent = { [start]: null };
+  const q = [[0, 0]];
+  while (q.length) {
+    const [r, c] = q.shift();
+    const key = `${r},${c}`;
+    if (key === goal) break;
+    const cell = cells[r][c];
+    const steps = [];
+    if (!cell.N) steps.push([r - 1, c]);
+    if (!cell.S) steps.push([r + 1, c]);
+    if (!cell.E) steps.push([r, c + 1]);
+    if (!cell.W) steps.push([r, c - 1]);
+    for (const [nr, nc] of steps) {
+      const nk = `${nr},${nc}`;
+      if (!(nk in parent)) { parent[nk] = key; q.push([nr, nc]); }
+    }
+  }
+  const path = [];
+  let k = goal;
+  while (k) { const [r, c] = k.split(',').map(Number); path.unshift({ r, c }); k = parent[k]; }
+  return path;
+}
+
+let game, diff, score = 0, qnum = 0, level = 1, TOTAL = 10;
+let cur, playerPos, moves = 0, solved = false, coins = [];
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+const ready = (async () => {
+  game = await IAKidsGame.init('maze');
+  const p = await game.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  document.querySelector(`#rounds-row [data-n="${TOTAL}"]`)?.classList.add('success');
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  window.addEventListener('keydown', onKey);
+  next();
+}
+
+function onKey(e) {
+  if ($('play-screen').hidden) return;
+  const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+  if (map[e.key]) { e.preventDefault(); tryMove(map[e.key]); }
+}
+
+function makeMaze(lvl) {
+  const n = SIZE_FOR[lvl];
+  const cells = generateMaze(n);
+  const path = findPath(cells, n);
+  let coinCells = [];
+  if (lvl === 3 && path.length > 3) {
+    const inner = path.slice(1, -1);
+    const picks = new Set();
+    while (picks.size < Math.min(3, inner.length)) picks.add(rnd(inner.length));
+    coinCells = [...picks].map(i => inner[i]);
+  }
+  return { n, cells, pathLen: path.length - 1, coins: coinCells, lvl, seed: Math.random().toString(36).slice(2) };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  cur = await game.newQuestion(() => makeMaze(lvl), q => q.seed);
+  playerPos = { r: 0, c: 0 };
+  moves = 0;
+  solved = false;
+  coins = cur.coins.map(c => ({ ...c }));
+  $('steps-line').textContent = `${t(T.steps)}: 0`;
+  renderMaze();
+}
+
+function cellSize() { return (340 - 20) / cur.n; }
+function px(c) { return 10 + c * cellSize(); }
+function py(r) { return 10 + r * cellSize(); }
+function centerX(c) { return px(c) + cellSize() / 2; }
+function centerY(r) { return py(r) + cellSize() / 2; }
+
+function wallsPath() {
+  const cs = cellSize(), n = cur.n;
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const cell = cur.cells[r][c], x = px(c), y = py(r);
+    if (cell.N) d += `M${x} ${y} L${x + cs} ${y} `;
+    if (cell.W) d += `M${x} ${y} L${x} ${y + cs} `;
+    if (r === n - 1 && cell.S) d += `M${x} ${y + cs} L${x + cs} ${y + cs} `;
+    if (c === n - 1 && cell.E) d += `M${x + cs} ${y} L${x + cs} ${y + cs} `;
+  }
+  return d;
+}
+
+function renderCoins() {
+  const fs = Math.min(22, cellSize() * 0.6);
+  document.querySelectorAll('.coin-t').forEach(e => e.remove());
+  const g = $('maze').querySelector('#coins-g');
+  g.innerHTML = coins.map(k => `<g class="coin-t" style="transform:translate(${centerX(k.c)}px,${centerY(k.r)}px)"><text font-size="${fs}">🪙</text></g>`).join('');
+}
+
+function renderMaze() {
+  const fs = Math.min(26, cellSize() * 0.75);
+  let html = `<path d="${wallsPath()}" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/>`;
+  html += `<g class="goal-t" style="transform:translate(${centerX(cur.n - 1)}px,${centerY(cur.n - 1)}px)"><text font-size="${fs}">🧀</text></g>`;
+  html += `<g id="coins-g"></g>`;
+  html += `<g id="player-g" style="transform:translate(${centerX(0)}px,${centerY(0)}px)"><text font-size="${fs}">🐭</text></g>`;
+  $('maze').innerHTML = html;
+  renderCoins();
+}
+
+function tryMove(dir) {
+  if (solved) return;
+  const cell = cur.cells[playerPos.r][playerPos.c];
+  if (cell[WALLDIR[dir]]) { IAKidsFX._beep([[160, 0, 0.08]]); return; }
+  const d = DELTA[dir];
+  playerPos = { r: playerPos.r + d[0], c: playerPos.c + d[1] };
+  moves++;
+  $('player-g').style.transform = `translate(${centerX(playerPos.c)}px,${centerY(playerPos.r)}px)`;
+  $('steps-line').textContent = `${t(T.steps)}: ${moves}`;
+  const ci = coins.findIndex(k => k.r === playerPos.r && k.c === playerPos.c);
+  if (ci >= 0) { coins.splice(ci, 1); renderCoins(); IAKidsFX._beep([[988, 0, 0.08], [1319, 0.08, 0.15]]); }
+  if (playerPos.r === cur.n - 1 && playerPos.c === cur.n - 1) { solved = true; setTimeout(finishMaze, 300); }
+}
+
+function finishMaze() {
+  const slack = Math.max(2, Math.floor(cur.pathLen * 0.6));
+  const collected = cur.coins.length - coins.length;
+  const ok = moves <= cur.pathLen + slack;
+  const wrap = $('maze-wrap');
+  if (ok) {
+    score += 10 + collected * 3;
+    diff.right();
+    IAKidsFX.correct(wrap);
+    IAKidsCoins.right(wrap);
+  } else {
+    score += Math.max(3, 5 + collected * 2);
+    diff.wrong();
+    IAKidsFX.wrong(wrap);
+    IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 1100);
+}
+
+async function end() {
+  window.removeEventListener('keydown', onKey);
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>איש תלוי — בניית בית | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .house-wrap { margin: 10px auto; width: 100%; max-width: 260px; }
+  .house-wrap svg { width: 100%; height: auto; }
+  .piece { opacity: 0; transform: scale(0.8); transform-origin: center bottom; transition: opacity .25s, transform .25s; }
+  .piece.show { opacity: 1; transform: scale(1); }
+  .collapse-box { font-size: 4rem; display: none; }
+  .collapse-box.show { display: block; animation: shake .5s; }
+  .hint-emoji { font-size: 2.2rem; margin: 4px 0; }
+  .mistakes-line { color: var(--muted); font-weight: 700; margin: 4px 0 8px; }
+  .word-display { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 14px 0; direction: rtl; }
+  .blank { min-width: 30px; font-size: 1.9rem; font-weight: 800; border-bottom: 4px solid var(--accent); text-align: center; padding-bottom: 2px; }
+  .keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px; direction: rtl; }
+  .kbd-btn { font-size: 1.2rem; padding: 10px; min-height: 44px; min-width: 40px; margin: 2px; }
+  .kbd-btn.success { background: var(--green); }
+  .kbd-btn.danger { background: var(--red); opacity: .6; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span><span id="word-label">מילה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🏠</div>
+    <h1 class="game-title">איש תלוי — בניית בית</h1>
+    <p>נחשו אותיות! כל ניחוש נכון בונה חלק בבית, כל טעות מפילה חלק. 6 טעויות = הבית קורס.</p>
+    <p>כמה מילים?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="house-wrap">
+      <svg viewBox="0 0 220 200" id="house-svg">
+        <rect x="30" y="172" width="160" height="6" fill="#c9b896"/>
+        <g class="piece" data-i="0"><rect x="40" y="158" width="140" height="16" fill="#a8a29e"/></g>
+        <g class="piece" data-i="1"><rect x="50" y="100" width="120" height="60" fill="#e8ab6b"/></g>
+        <g class="piece" data-i="2"><rect x="95" y="128" width="30" height="32" fill="#8b5a2b"/></g>
+        <g class="piece" data-i="3"><rect x="60" y="112" width="22" height="22" fill="#bfe3ff" stroke="#fff" stroke-width="2"/></g>
+        <g class="piece" data-i="4"><rect x="138" y="112" width="22" height="22" fill="#bfe3ff" stroke="#fff" stroke-width="2"/></g>
+        <g class="piece" data-i="5"><polygon points="42,100 110,52 178,100" fill="#e0524b"/></g>
+        <g class="piece" data-i="6"><rect x="145" y="62" width="16" height="32" fill="#7a7a7a"/></g>
+        <g class="piece" data-i="7"><polygon points="161,60 161,48 178,54" fill="#ff6a2a"/><rect x="160" y="48" width="2" height="18" fill="#555"/></g>
+      </svg>
+      <div class="collapse-box" id="collapse-box">🏚️💥</div>
+    </div>
+    <div class="mistakes-line">טעויות: <span id="mistakes">0</span>/6</div>
+    <div class="hint-emoji" id="hint" hidden></div>
+    <div class="word-display" id="word-display"></div>
+    <div class="keyboard" id="keyboard"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const PIECES = 8;
+
+// Only base letters on the keyboard (22) — final forms are normalized to their base for matching.
+const BASE_LETTERS = 'אבגדהוזחטיכלמנסעפצקרשת'.split('');
+const FINALS = { 'ך':'כ', 'ם':'מ', 'ן':'נ', 'ף':'פ', 'ץ':'צ' };
+const norm = ch => FINALS[ch] || ch;
+
+// word banks — [word, hintEmoji]. Only easy words carry a picture hint.
+const WORDS = {
+  1: [ // 3-4 letters + hint
+    ['כלב','🐶'], ['חתול','🐱'], ['פיל','🐘'], ['דוב','🐻'], ['סוס','🐴'], ['פרה','🐮'],
+    ['תות','🍓'], ['בית','🏠'], ['ספר','📖'], ['כדור','⚽'], ['עוגה','🎂'], ['דלת','🚪'],
+    ['שמש','☀️'], ['ירח','🌙'], ['דבש','🍯'], ['דגל','🚩'], ['תפוח','🍎'], ['ענן','☁️'],
+    ['כוכב','⭐'], ['מפתח','🔑'], ['נמר','🐯'], ['ארנב','🐰'], ['עכבר','🐭'], ['פרפר','🦋'],
+  ],
+  2: [ // 5-6 letters, no hint
+    ['שולחן'], ['מטריה'], ['ילדים'], ['תלמיד'], ['ספרייה'], ['משפחה'], ['קפיצה'], ['מסעדה'],
+    ['מסלול'], ['חלומות'], ['מחברת'], ['שמיכה'], ['מטוסים'], ['גלידה'], ['תפוזים'], ['שכונה'],
+    ['תמונה'], ['חברים'], ['מדינה'], ['ארוחה'], ['משחקים'],
+  ],
+  3: [ // no hint — abstract/longer words
+    ['אחריות'], ['סקרנות'], ['דמיון'], ['חוכמה'], ['אמונה'], ['חברות'], ['עצמאות'], ['סבלנות'],
+    ['נדיבות'], ['אחדות'], ['הפתעה'], ['הצלחה'], ['מסורת'], ['אכזבה'], ['אומץ'], ['שמחה'],
+  ],
+};
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'hangman-house',
+  how: 'יש מילה נסתרת. לוחצים על אותיות במקלדת שעל המסך (או מקלידים במקלדת שלכם) כדי לנחש. ניחוש נכון בונה חלק בבית 🏠, טעות מפילה חלק. שש טעויות — והבית קורס!',
+  example: 'המילה <b>כלב</b> 🐶 — ניחשתם <b>כ</b>? מעולה, מופיע: <b dir="ltr">כ _ _</b> והבית מתחיל להיבנות.',
+});
+
+let game, diff, level = 1, TOTAL = 10;
+let score = 0, qnum = 0, wordsWon = 0;
+let wordChars = [], wordNorm = [], revealed = [], hasHint = null;
+let mistakes = 0, built = 0, builtF = 0, totalUnique = 1, tried = new Set(), locked = false;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+function markRounds(n) {
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.toggle('success', +b.textContent === n));
+  TOTAL = n;
+}
+function markLevel(lvl) {
+  document.querySelectorAll('#level-row .game-btn').forEach(b => b.classList.remove('outline'));
+  const idx = lvl === 0 ? 3 : lvl - 1;
+  document.querySelectorAll('#level-row .game-btn')[idx]?.classList.add('outline');
+}
+
+// build the on-screen Hebrew keyboard once
+(function buildKeyboard() {
+  const kb = $('keyboard');
+  for (const ch of BASE_LETTERS) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline kbd-btn';
+    b.textContent = ch;
+    b.dataset.letter = ch;
+    b.onclick = () => press(ch, b);
+    kb.appendChild(b);
+  }
+})();
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('play-screen').hidden) return;
+  const key = norm(e.key);
+  if (!BASE_LETTERS.includes(key)) return;
+  const btn = document.querySelector(`.kbd-btn[data-letter="${key}"]`);
+  if (btn && !btn.disabled) press(key, btn);
+});
+
+const ready = IAKidsGame.init('hangman-house').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) markRounds(p.rounds);
+  if (p?.lastLevel != null) markLevel(p.lastLevel);
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const entry = await game.newQuestion(() => {
+    const bank = WORDS[lvl];
+    const e = bank[rnd(bank.length)];
+    return { w: e[0], hint: e[1] || null };
+  }, q => q.w);
+  loadWord(entry.w, entry.hint);
+}
+
+function loadWord(word, hint) {
+  wordChars = word.split('');
+  wordNorm = wordChars.map(norm);
+  revealed = wordChars.map(() => false);
+  hasHint = hint;
+  totalUnique = new Set(wordNorm).size;
+  mistakes = 0; built = 0; builtF = 0; tried = new Set(); locked = false;
+  $('mistakes').textContent = '0';
+  $('collapse-box').classList.remove('show');
+  document.querySelectorAll('#house-svg .piece').forEach(p => p.classList.remove('show'));
+  $('house-svg').style.display = '';
+  document.querySelectorAll('.kbd-btn').forEach(b => { b.disabled = false; b.classList.remove('success', 'danger'); });
+  if (hint) { $('hint').textContent = '💡 ' + hint; $('hint').hidden = false; }
+  else $('hint').hidden = true;
+  paintWord();
+}
+
+function paintWord() {
+  const wrap = $('word-display');
+  wrap.innerHTML = '';
+  wordChars.forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = 'blank';
+    span.textContent = revealed[i] ? ch : '_';
+    wrap.appendChild(span);
+  });
+}
+
+function paintHouse() {
+  document.querySelectorAll('#house-svg .piece').forEach(p => {
+    p.classList.toggle('show', +p.dataset.i < built);
+  });
+}
+
+function press(letter, btn) {
+  if (locked || tried.has(letter)) return;
+  tried.add(letter);
+  if (btn) btn.disabled = true;
+  if (wordNorm.includes(letter)) {
+    for (let i = 0; i < wordNorm.length; i++) if (wordNorm[i] === letter) revealed[i] = true;
+    score += 10;
+    diff.right();
+    builtF = Math.min(PIECES, builtF + PIECES / totalUnique);
+    built = revealed.every(Boolean) ? PIECES : Math.round(builtF);
+    if (btn) { btn.classList.add('success'); IAKidsFX.correct(btn); }
+    IAKidsCoins.right(btn);
+    $('score').textContent = score;
+    paintHouse();
+    paintWord();
+    if (revealed.every(Boolean)) return win();
+  } else {
+    mistakes++;
+    diff.wrong();
+    builtF = Math.max(0, builtF - 1);
+    built = Math.round(builtF);
+    if (btn) { btn.classList.add('danger'); IAKidsFX.wrong(btn); }
+    IAKidsCoins.wrong();
+    $('mistakes').textContent = mistakes;
+    paintHouse();
+    if (mistakes >= 6) return collapse();
+  }
+}
+
+function win() {
+  locked = true;
+  wordsWon++;
+  IAKidsFX.scorePop('🏠 בית שלם!', $('house-svg'));
+  setTimeout(next, 1200);
+}
+
+function collapse() {
+  locked = true;
+  revealed = revealed.map(() => true);
+  paintWord();
+  $('house-svg').style.display = 'none';
+  $('collapse-box').classList.add('show');
+  document.querySelectorAll('.kbd-btn').forEach(b => b.disabled = true);
+  setTimeout(next, 1400);
+}
+
+async function end() {
+  await game.saveScore(score, { level, wordsWon, total: TOTAL });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const ratio = wordsWon / TOTAL;
+  $('stars').textContent = '⭐'.repeat(ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

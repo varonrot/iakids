@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>גלגל המזל להפסקות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .wheel-wrap { position: relative; width: 280px; height: 280px; margin: 16px auto 8px; }
+  .wheel-wrap svg { width: 100%; height: 100%; display: block; }
+  #wheelGroup { transform-origin: 150px 150px; transition: transform 3.2s cubic-bezier(.15,.65,.3,1); }
+  .pointer { fill: var(--text); }
+  .slice-label { font-size: 10.5px; font-weight: 700; fill: #fff; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+  .result-card { margin-top: 14px; padding: 16px; border-radius: var(--radius); background: var(--accent-soft); }
+  .result-card .activity { font-size: 1.8rem; font-weight: 800; margin: 8px 0; }
+  details.edit-box { text-align: right; margin-top: 18px; }
+  details.edit-box summary { cursor: pointer; font-weight: 700; color: var(--muted); }
+  .edit-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .edit-row input { flex: 1; font: inherit; padding: 8px 10px; border-radius: 10px; border: 2px solid #e5e7eb; }
+  .edit-row span { width: 22px; text-align: center; font-weight: 800; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="game-card" id="card">
+  <div style="font-size:3.2rem">🎡</div>
+  <h1 class="game-title">גלגל המזל להפסקות</h1>
+  <p>סובבו את הגלגל ותקבלו פעילות הפסקה כיפית!</p>
+
+  <div class="wheel-wrap">
+    <svg viewBox="0 0 300 300">
+      <g id="wheelGroup"></g>
+      <polygon class="pointer" points="150,10 136,32 164,32"></polygon>
+      <circle cx="150" cy="150" r="14" fill="#fff" stroke="#1f2937" stroke-width="2"></circle>
+    </svg>
+  </div>
+
+  <button class="game-btn" id="spinBtn" onclick="spin()">סובבו! 🎡</button>
+
+  <div class="result-card" id="result" hidden>
+    <div>הפעילות שלכם:</div>
+    <div class="activity" id="resultText"></div>
+    <button class="game-btn success" id="doneBtn" onclick="markDone()">✓ עשיתי את זה!</button>
+  </div>
+
+  <details class="edit-box">
+    <summary>🔧 הורים: עריכת רשימת הפעילויות</summary>
+    <div id="editRows"></div>
+    <button class="game-btn secondary" onclick="saveActivities()">💾 שמור פעילויות</button>
+  </details>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, activities, rot = 0, landedIndex = 0, spinning = false, totalSpins = 0, bonusClaimedDate = null;
+
+const DEFAULT_ACTIVITIES = ['מתיחות', 'שתו מים', '10 קפיצות', 'ריקוד 30 שניות', 'עצימת עיניים', 'חיוך גדול', 'נשימה עמוקה', 'קפיצות מקום'];
+const COLORS = ['#ff6a2a', '#3b82f6', '#22c55e', '#a855f7', '#facc15', '#ef4444', '#06b6d4', '#f97316'];
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'break-wheel',
+  how: 'לחצו על "סובבו!" והגלגל יסתובב וייעצר על פעילות הפסקה קצרה. עשו אותה, ואז לחצו "עשיתי את זה!" כדי לקבל מטבעות 🪙.',
+  example: 'הגלגל עצר על <b>"10 קפיצות"</b>? קפצו 10 קפיצות, ואז לחצו על הכפתור הירוק לאישור!',
+});
+
+const cx = 150, cy = 150, r = 140;
+function point(angleDeg, radius) {
+  const rad = angleDeg * Math.PI / 180;
+  return { x: cx + radius * Math.sin(rad), y: cy - radius * Math.cos(rad) };
+}
+
+function buildWheel() {
+  const g = document.getElementById('wheelGroup');
+  g.innerHTML = '';
+  const n = activities.length;
+  const step = 360 / n;
+  for (let i = 0; i < n; i++) {
+    const start = i * step, end = (i + 1) * step, mid = start + step / 2;
+    const p1 = point(start, r), p2 = point(end, r);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M ${cx},${cy} L ${p1.x},${p1.y} A ${r},${r} 0 0 1 ${p2.x},${p2.y} Z`);
+    path.setAttribute('fill', COLORS[i % COLORS.length]);
+    g.appendChild(path);
+    const lp = point(mid, r * 0.64);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', lp.x);
+    text.setAttribute('y', lp.y);
+    text.setAttribute('class', 'slice-label');
+    text.textContent = activities[i];
+    g.appendChild(text);
+  }
+}
+
+function buildEditRows() {
+  const wrap = document.getElementById('editRows');
+  wrap.innerHTML = '';
+  activities.forEach((a, i) => {
+    const row = document.createElement('div');
+    row.className = 'edit-row';
+    row.innerHTML = `<span>${i + 1}.</span><input value="${a.replace(/"/g, '&quot;')}">`;
+    wrap.appendChild(row);
+  });
+}
+
+async function saveActivities() {
+  const inputs = [...document.querySelectorAll('#editRows input')];
+  const vals = inputs.map(i => i.value.trim()).filter(Boolean);
+  if (vals.length !== 8) { alert('צריך בדיוק 8 פעילויות (לא ריקות)'); return; }
+  activities = vals;
+  buildWheel();
+  await persist();
+  alert('נשמר! 🎉');
+}
+
+function todayKey() { return new Date().toDateString(); }
+
+async function persist() {
+  await game.saveProgress({ activities, totalSpins, bonusClaimedDate });
+}
+
+async function init() {
+  game = await IAKidsGame.init('break-wheel');
+  const p = await game.loadProgress();
+  activities = (p?.activities?.length === 8) ? p.activities : DEFAULT_ACTIVITIES.slice();
+  totalSpins = p?.totalSpins || 0;
+  bonusClaimedDate = p?.bonusClaimedDate || null;
+  buildWheel();
+  buildEditRows();
+}
+
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('result').hidden = true;
+
+  const n = activities.length;
+  const step = 360 / n;
+  landedIndex = Math.floor(Math.random() * n);
+  const mid = landedIndex * step + step / 2;
+  const desiredMod = (360 - mid) % 360;
+  const currentMod = ((rot % 360) + 360) % 360;
+  const delta = (desiredMod - currentMod + 360) % 360;
+  rot += 360 * 5 + delta;
+
+  const g = document.getElementById('wheelGroup');
+  g.style.transform = `rotate(${rot}deg)`;
+
+  const onEnd = (e) => {
+    if (e && e.propertyName !== 'transform') return;
+    g.removeEventListener('transitionend', onEnd);
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+    showResult();
+  };
+  g.addEventListener('transitionend', onEnd);
+}
+
+function showResult() {
+  document.getElementById('resultText').textContent = activities[landedIndex];
+  document.getElementById('result').hidden = false;
+  document.getElementById('doneBtn').disabled = false;
+}
+
+async function markDone() {
+  const btn = document.getElementById('doneBtn');
+  btn.disabled = true;
+  totalSpins++;
+  IAKidsFX.correct(btn);
+  await IAKidsCoins.right(btn);
+
+  const key = todayKey();
+  if (bonusClaimedDate !== key) {
+    bonusClaimedDate = key;
+    await game.saveScore(totalSpins, { activity: activities[landedIndex] });
+    game.complete(totalSpins); // daily bonus +25, confetti, postMessage
+  }
+  await persist();
+}
+
+init();
+</script>
+</body>
+</html>

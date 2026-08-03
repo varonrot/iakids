@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animals Vocabulary | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🦁</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div style="font-size:5rem" id="cue"></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'animals-en';
+const T = {
+  title: { he: 'חיות באנגלית', en: 'Animals Vocabulary', es: 'Vocabulario de animales', de: 'Tiere-Vokabeln', pt: 'Vocabulário de animais' },
+  instr: { he: 'איך קוראים לחיה הזאת באנגלית? בחר את השם הנכון!', en: "What's this animal called in English? Pick the right name!", es: '¿Cómo se llama este animal en inglés?', de: 'Wie heißt dieses Tier auf Englisch?', pt: 'Como se chama este animal em inglês?' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false;
+let diff, timer;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'מופיע אימוג\'י של חיה — צריך לבחור מתוך 4 שמות באנגלית את השם הנכון של החיה, לפני שהפצצה מתפוצצת! 💣',
+  example: '🐶 ← <span dir="ltr"><b>Dog</b></span>',
+});
+
+// animal bank: emoji ↔ English name, by level
+const BANK = {
+  1: [ // easy: pets & farm animals
+    { word: 'Dog', emoji: '🐶' }, { word: 'Cat', emoji: '🐱' }, { word: 'Cow', emoji: '🐮' },
+    { word: 'Pig', emoji: '🐷' }, { word: 'Horse', emoji: '🐴' }, { word: 'Sheep', emoji: '🐑' },
+    { word: 'Chicken', emoji: '🐔' }, { word: 'Duck', emoji: '🦆' }, { word: 'Rabbit', emoji: '🐰' },
+    { word: 'Goat', emoji: '🐐' },
+  ],
+  2: [ // medium: common wild / zoo animals
+    { word: 'Lion', emoji: '🦁' }, { word: 'Tiger', emoji: '🐯' }, { word: 'Elephant', emoji: '🐘' },
+    { word: 'Monkey', emoji: '🐒' }, { word: 'Bear', emoji: '🐻' }, { word: 'Zebra', emoji: '🦓' },
+    { word: 'Giraffe', emoji: '🦒' }, { word: 'Kangaroo', emoji: '🦘' }, { word: 'Penguin', emoji: '🐧' },
+    { word: 'Fox', emoji: '🦊' },
+  ],
+  3: [ // hard: wild / less common animals
+    { word: 'Owl', emoji: '🦉' }, { word: 'Wolf', emoji: '🐺' }, { word: 'Koala', emoji: '🐨' },
+    { word: 'Panda', emoji: '🐼' }, { word: 'Hedgehog', emoji: '🦔' }, { word: 'Camel', emoji: '🐪' },
+    { word: 'Dolphin', emoji: '🐬' }, { word: 'Whale', emoji: '🐳' }, { word: 'Octopus', emoji: '🐙' },
+    { word: 'Crocodile', emoji: '🐊' }, { word: 'Snake', emoji: '🐍' }, { word: 'Turtle', emoji: '🐢' },
+  ],
+};
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(false, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.sort(() => Math.random() - 0.5);
+const pick = a => a[rnd(a.length)];
+function speak(text) {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    speechSynthesis.speak(u);
+  } catch (e) { /* TTS optional */ }
+}
+
+function makeQuestion(lvl) {
+  const pool = BANK[lvl];
+  const correct = pick(pool);
+  const others = pool.filter(w => w.word !== correct.word);
+  shuffle(others);
+  const options = shuffle([correct.word, ...others.slice(0, 3).map(w => w.word)]);
+  return { emoji: correct.emoji, answer: correct.word, options };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.emoji + '|' + x.answer);
+  document.getElementById('cue').textContent = q.emoji;
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of q.options) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.innerHTML = `<span dir="ltr">${o}</span>`;
+    btn.onclick = () => answer(o === q.answer, btn, q.answer);
+    grid.appendChild(btn);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(ok, btn, correctWord) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+    if (correctWord) speak(correctWord);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>שם עצם, פועל או תואר | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 16px 0; }
+  .chip {
+    padding: 10px 16px; font-size: 1.15rem; font-weight: 700; border-radius: 16px;
+    background: var(--accent); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    cursor: grab; touch-action: none; user-select: none; transition: transform 0.15s;
+    max-width: 260px;
+  }
+  .chip.dragging { cursor: grabbing; opacity: 0.9; }
+  .chip.placed { background: var(--green); box-shadow: none; cursor: default; padding: 8px 12px; font-size: 0.95rem; }
+  .bins { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .bin { min-height: 140px; padding: 10px 6px; }
+  .bin h3 { margin: 4px 0 10px; font-size: 1rem; }
+  .bin .chip-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  @media (max-width: 460px) {
+    .bins { grid-template-columns: 1fr; }
+  }
+  @keyframes shakeChip { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-8px);} 40%,80%{transform:translateX(8px);} }
+  .chip.shake { animation: shakeChip 0.35s; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span><span id="qlabel">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">5</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🏷️</div>
+    <h1 class="game-title">שם עצם, פועל או תואר</h1>
+    <p>גרור כל מילה לתיבה המתאימה לתפקיד שלה במשפט.</p>
+    <p>כמה סיבובים?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)" id="lvl-1">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)" id="lvl-2">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)" id="lvl-3">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="bins">
+      <div class="bin drop-zone" data-p="n"><h3>📦 שם עצם</h3><div class="chip-list"></div></div>
+      <div class="bin drop-zone" data-p="v"><h3>🏃 פועל</h3><div class="chip-list"></div></div>
+      <div class="bin drop-zone" data-p="a"><h3>🎨 תואר</h3><div class="chip-list"></div></div>
+    </div>
+    <div class="chip-row" id="bank"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// word bank tagged by part of speech — n = שם עצם (noun), v = פועל (verb), a = תואר (adjective).
+// Each tag double-checked against the word's dominant grammatical role.
+const NOUNS = ['ילד', 'כלב', 'ספר', 'בית', 'שולחן', 'כדור', 'ילדה', 'מכונית', 'חתול', 'עץ', 'כיסא', 'פרח'];
+const VERBS = ['אוכל', 'ישן', 'קורא', 'כותב', 'שותה', 'הולך', 'צוחק', 'בוכה', 'קופץ', 'שוחה', 'רואה', 'שומע'];
+const ADJECTIVES = ['גדול', 'קטן', 'יפה', 'מהיר', 'איטי', 'חכם', 'שמח', 'עצוב', 'חזק', 'חלש', 'ארוך', 'קצר'];
+
+// level 3: genuinely ambiguous Hebrew words (same spelling, different role) shown
+// inside a short sentence so the correct part-of-speech is determined by context.
+const HARD = [
+  { t: 'התבשיל מבושל ב<b>שמן</b> זית', p: 'n' },   // שמן = "oil" (noun)
+  { t: 'הכלב <b>שמן</b> ואוהב לאכול', p: 'a' },    // שמן = "fat" (adjective)
+  { t: 'הוא <b>כתב</b> מכתב לסבתא', p: 'v' },      // כתב = "wrote" (verb)
+  { t: 'ה<b>כתב</b> מהטלוויזיה ראיין את ראש העיר', p: 'n' }, // כתב = "reporter" (noun)
+  { t: 'הילד <b>שר</b> שיר יפה במסיבה', p: 'v' },   // שר = "sang" (verb)
+  { t: 'ה<b>שר</b> דיבר היום בכנסת', p: 'n' },      // שר = "minister" (noun)
+  { t: 'ה<b>דובר</b> של הממשלה הודיע על הצעד', p: 'n' }, // דובר = "spokesperson" (noun)
+  { t: 'הוא <b>דובר</b> שלוש שפות', p: 'v' },       // דובר = "speaks" (verb-like participle)
+  { t: 'הכובע <b>אדום</b> וגדול', p: 'a' },
+  { t: 'ה<b>ילדים</b> שיחקו בגן', p: 'n' },
+  { t: 'הציפור <b>עפה</b> בשמיים', p: 'v' },
+];
+
+const LEVELS = {
+  1: [...NOUNS.map(t => ({ t, p: 'n' })), ...VERBS.map(t => ({ t, p: 'v' }))],
+  2: [...NOUNS.map(t => ({ t, p: 'n' })), ...VERBS.map(t => ({ t, p: 'v' })), ...ADJECTIVES.map(t => ({ t, p: 'a' }))],
+  3: HARD,
+};
+
+const BATCH = 9;
+let game, score = 0, qnum = 0, level = 1, TOTAL = 5, diff, sessionRight = 0, sessionWrong = 0;
+let placed = 0, batchSize = 0;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'word-types',
+  how: 'לכל מילה יש תפקיד במשפט: 📦 שם עצם (דבר/אדם/מקום), 🏃 פועל (פעולה) או 🎨 תואר (תיאור). גרור כל מילה לתיבה הנכונה.',
+  example: '<b dir="rtl">כלב</b> ← 📦 שם עצם &nbsp;&nbsp; <b dir="rtl">רץ</b> ← 🏃 פועל &nbsp;&nbsp; <b dir="rtl">גדול</b> ← 🎨 תואר',
+});
+
+document.getElementById('qlabel').textContent = IAKidsLang.ui('question');
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('word-types');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// restore last-picked rounds count (default 5), mark the matching button
+(async () => {
+  const tmp = await IAKidsGame.init('word-types');
+  const p = await tmp.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  const btn = [...document.querySelectorAll('#rounds-row .game-btn')].find(b => Number(b.textContent) === TOTAL);
+  (btn || document.querySelectorAll('#rounds-row .game-btn')[0]).classList.add('success');
+})();
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function makeBatch(lvl) {
+  const pool = LEVELS[lvl] || LEVELS[1];
+  return shuffle(pool).slice(0, Math.min(BATCH, pool.length));
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + Math.floor(Math.random() * 3) : diff.level;
+  const batch = await game.newQuestion(() => makeBatch(lvl), b => b.map(x => x.t).sort().join(','));
+  buildRound(batch);
+}
+
+function buildRound(batch) {
+  placed = 0;
+  batchSize = batch.length;
+  document.querySelectorAll('.bin .chip-list').forEach(el => el.innerHTML = '');
+  const bank = document.getElementById('bank');
+  bank.innerHTML = '';
+  shuffle(batch).forEach(({ t, p }) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = t;
+    chip.dataset.p = p;
+    bank.appendChild(chip);
+    attachDrag(chip);
+  });
+}
+
+function attachDrag(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (chip.classList.contains('placed')) return;
+    chip.setPointerCapture(e.pointerId);
+    const rect = chip.getBoundingClientRect();
+    const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+    chip.classList.add('dragging');
+    chip.style.position = 'fixed';
+    chip.style.left = rect.left + 'px';
+    chip.style.top = rect.top + 'px';
+    chip.style.width = rect.width + 'px';
+    chip.style.zIndex = 200;
+    chip.style.pointerEvents = 'none';
+
+    const move = ev => {
+      chip.style.left = (ev.clientX - offX) + 'px';
+      chip.style.top = (ev.clientY - offY) + 'px';
+      document.querySelectorAll('.bin').forEach(b => b.classList.remove('over'));
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.bin');
+      if (zone) zone.classList.add('over');
+    };
+
+    const up = ev => {
+      chip.releasePointerCapture(e.pointerId);
+      chip.removeEventListener('pointermove', move);
+      chip.removeEventListener('pointerup', up);
+      chip.classList.remove('dragging');
+      document.querySelectorAll('.bin').forEach(b => b.classList.remove('over'));
+
+      // hit-test BEFORE restoring pointer-events/position — the chip is still
+      // sitting fixed under the pointer, so elementFromPoint would hit itself otherwise
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.bin');
+
+      chip.style.pointerEvents = '';
+      chip.style.position = '';
+      chip.style.left = '';
+      chip.style.top = '';
+      chip.style.width = '';
+      chip.style.zIndex = '';
+
+      if (!zone) return; // dropped off any bin — no penalty
+
+      if (zone.dataset.p === chip.dataset.p) {
+        chip.classList.add('placed');
+        zone.querySelector('.chip-list').appendChild(chip);
+        IAKidsFX.correct(chip);
+        IAKidsCoins.right(chip);
+        diff.right();
+        score += 10;
+        sessionRight++;
+        document.getElementById('score').textContent = score;
+        placed++;
+        if (placed >= batchSize) setTimeout(next, 700);
+      } else {
+        wrongDrop(chip);
+      }
+    };
+
+    chip.addEventListener('pointermove', move);
+    chip.addEventListener('pointerup', up);
+  });
+}
+
+function wrongDrop(chip) {
+  IAKidsFX.wrong(chip);
+  IAKidsCoins.wrong();
+  diff.wrong();
+  sessionWrong++;
+  chip.classList.add('shake');
+  setTimeout(() => chip.classList.remove('shake'), 400);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = sessionRight / Math.max(1, sessionRight + sessionWrong);
+  document.getElementById('stars').textContent = '⭐'.repeat(acc >= 0.85 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

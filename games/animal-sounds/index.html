@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>זהה את צליל החיה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #speaker-btn {
+    font-size: 3.5rem; background: none; border: none; cursor: pointer;
+    display: block; margin: 10px auto; padding: 10px; min-width: 90px; min-height: 90px;
+  }
+  #speaker-btn:active { transform: scale(0.9); }
+  #reveal { min-height: 1.6em; font-size: 1.2rem; font-weight: 700; color: var(--muted); }
+  #emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+  .emoji-btn { font-size: 3rem; padding: 14px; min-height: 90px; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔊</div>
+    <h1 class="game-title">זהה את צליל החיה</h1>
+    <p>נשמיע צליל — ואתם תבחרו איזו חיה עשתה אותו!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question" style="font-size:1.3rem">איזו חיה עושה את הצליל?</div>
+    <button id="speaker-btn" onclick="playCurrent()">🔊</button>
+    <div id="reveal">&nbsp;</div>
+    <div id="emoji-grid"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, score = 0, qnum = 0, level = 1, TOTAL = 10, locked = false, current;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'animal-sounds',
+  how: 'לוחצים על הרמקול 🔊 ושומעים צליל של חיה. אחר כך בוחרים מתוך 4 חיות איזו מהן עושה את הצליל הזה.',
+  example: 'שומעים "הב הב!" ← בוחרים 🐶 כלב',
+});
+
+// ponytail: verified common Hebrew children's onomatopoeia per animal
+const ANIMALS = [
+  { id: 'dog',    name: 'כלב',      emoji: '🐶', sound: 'הב הב!',       cat: 'farm', lvl: 1, notes: [[300,0,.12],[300,.18,.12]] },
+  { id: 'cat',    name: 'חתול',     emoji: '🐱', sound: 'מיאו!',        cat: 'farm', lvl: 1, notes: [[500,0,.25],[620,.22,.2]] },
+  { id: 'cow',    name: 'פרה',      emoji: '🐮', sound: 'מووווו!',      cat: 'farm', lvl: 1, notes: [[150,0,.45]] },
+  { id: 'sheep',  name: 'כבשה',     emoji: '🐑', sound: 'מeeה!',        cat: 'farm', lvl: 1, notes: [[350,0,.15],[380,.18,.15]] },
+  { id: 'rooster',name: 'תרנגול',   emoji: '🐓', sound: 'קוקוריקו!',    cat: 'farm', lvl: 1, notes: [[600,0,.1],[800,.12,.1],[1000,.24,.2]] },
+  { id: 'duck',   name: 'ברווז',    emoji: '🦆', sound: 'קוואק קוואק!', cat: 'farm', lvl: 1, notes: [[400,0,.1],[400,.16,.1]] },
+  { id: 'horse',  name: 'סוס',      emoji: '🐴', sound: 'יהההה! (צהלה)', cat: 'farm', lvl: 1, notes: [[250,0,.3],[300,.22,.2]] },
+  { id: 'pig',    name: 'חזיר',     emoji: '🐷', sound: 'נחר נחר!',     cat: 'farm', lvl: 1, notes: [[200,0,.15],[220,.18,.15]] },
+  { id: 'hen',    name: 'תרנגולת',  emoji: '🐔', sound: 'קרקור!',       cat: 'farm', lvl: 2, notes: [[500,0,.08],[520,.12,.08],[500,.24,.08]] },
+  { id: 'lion',   name: 'אריה',     emoji: '🦁', sound: 'שאאאג!',       cat: 'wild', lvl: 2, notes: [[120,0,.5]] },
+  { id: 'bear',   name: 'דוב',      emoji: '🐻', sound: 'נהם נהם!',     cat: 'wild', lvl: 2, notes: [[100,0,.4]] },
+  { id: 'wolf',   name: 'זאב',      emoji: '🐺', sound: 'אאווווו! (יבבה)', cat: 'wild', lvl: 2, notes: [[300,0,.6]] },
+  { id: 'snake',  name: 'נחש',      emoji: '🐍', sound: 'ששששש! (לחישה)', cat: 'wild', lvl: 2, notes: [[900,0,.5]] },
+  { id: 'frog',   name: 'צפרדע',    emoji: '🐸', sound: 'קרררו קרררו!', cat: 'wild', lvl: 2, notes: [[250,0,.1],[250,.16,.1],[250,.32,.1]] },
+  { id: 'monkey', name: 'קוף',      emoji: '🐵', sound: 'הוהו אהא!',    cat: 'wild', lvl: 2, notes: [[450,0,.08],[480,.12,.08],[450,.24,.08]] },
+  { id: 'owl',    name: 'ינשוף',    emoji: '🦉', sound: 'הו-הו!',       cat: 'wild', lvl: 2, notes: [[300,0,.3],[280,.4,.3]] },
+  { id: 'elephant',name:'פיל',      emoji: '🐘', sound: 'פאםםם!',       cat: 'wild', lvl: 2, notes: [[150,0,.6]] },
+  { id: 'bee',    name: 'דבורה',    emoji: '🐝', sound: 'זזזזז! (זמזום)', cat: 'bird', lvl: 2, notes: [[600,0,.5]] },
+  { id: 'bird',   name: 'ציפור',    emoji: '🐦', sound: "צ'יק צ'יק!",   cat: 'bird', lvl: 1, notes: [[900,0,.08],[950,.12,.08],[1000,.24,.1]] },
+];
+
+let ctx;
+function playTone(notes) {
+  if (IAKidsFX.muted) return;
+  try {
+    ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+    notes.forEach(([freq, start, dur]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'triangle'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.18, ctx.currentTime + start);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(ctx.currentTime + start); o.stop(ctx.currentTime + start + dur);
+    });
+  } catch (e) {}
+}
+function playCurrent() { if (current) playTone(current.notes); }
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+let diff, timer;
+async function start(lvl) {
+  game = await IAKidsGame.init('animal-sounds');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => { if (!locked) resolve(null, null); } });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function pickDistractors(target, lvl) {
+  // hard: prefer same-category near-miss distractors (closer challenge); easier: any others
+  const sameCat = ANIMALS.filter(a => a.id !== target.id && a.cat === target.cat);
+  const rest = ANIMALS.filter(a => a.id !== target.id && a.cat !== target.cat);
+  const pool = lvl >= 3 ? [...shuffle(sameCat), ...shuffle(rest)] : shuffle([...sameCat, ...rest]);
+  return pool.slice(0, 3);
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const pool = ANIMALS.filter(a => a.lvl <= lvl);
+  const q = await game.newQuestion(() => pool[rnd(pool.length)], a => a.id);
+  current = q;
+  document.getElementById('reveal').innerHTML = '&nbsp;';
+  const choices = shuffle([current, ...pickDistractors(current, lvl)]);
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = '';
+  choices.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline emoji-btn';
+    btn.textContent = a.emoji;
+    btn.onclick = () => resolve(a, btn);
+    grid.appendChild(btn);
+  });
+  setTimeout(playCurrent, 300);
+  timer.start(IAKidsTimer.secondsFor(lvl, 10));
+}
+
+function resolve(chosen, el) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  const isCorrect = chosen && chosen.id === current.id;
+  document.getElementById('reveal').textContent = `${current.emoji} ${current.name} ← ${current.sound}`;
+  if (isCorrect) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(el);
+    IAKidsCoins.right(el);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(el);
+    IAKidsCoins.wrong();
+    [...document.getElementById('emoji-grid').children].forEach(b => {
+      if (b.textContent === current.emoji) b.classList.add('correct-flash-btn', 'correct');
+    });
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 1300);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

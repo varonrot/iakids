@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎨 מילוי לפי קוד | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #grid-wrap { touch-action: none; }
+  #pgrid { width: min(85vw, 340px); height: auto; display: block; margin: 8px auto; }
+  #pgrid .cell { stroke: #d1d5db; stroke-width: 1.5; cursor: pointer; } /* fill set via JS attribute, not here — a CSS fill rule would win over it */
+  #pgrid .hdr { font-size: 13px; font-weight: 800; fill: var(--muted); }
+  #grid-wrap.correct { animation: pop 0.4s; }
+  #grid-wrap.wrong { animation: shake 0.4s; }
+  #cmd-list { max-height: 110px; overflow-y: auto; background: var(--accent-soft); border-radius: 14px;
+    padding: 8px 12px; margin: 8px 0; font-weight: 700; font-size: 1rem; text-align: right; }
+  #cmd-list div { margin: 3px 0; }
+  #cmd-list b { padding: 1px 6px; border-radius: 6px; color: #fff; }
+  .palette-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px 0; }
+  .swatch { width: 44px; height: 44px; border-radius: 12px; border: 3px solid transparent; cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+  .swatch.sel { border-color: var(--text); transform: scale(1.1); }
+  .swatch.eraser { background: #fff repeating-linear-gradient(45deg,#e5e7eb 0 4px,#fff 4px 8px); }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
+  <span><span id="lbl-q"></span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🎨</div>
+    <h1 class="game-title" id="title-line"></h1>
+    <p id="intro-line"></p>
+    <p id="rounds-line"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-n="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="cmd-list"></div>
+    <div class="palette-row" id="palette"></div>
+    <div id="grid-wrap">
+      <svg id="pgrid" viewBox="0 0 340 340"></svg>
+    </div>
+    <button class="game-btn success" id="check-btn" style="width:100%" onclick="check()"></button>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="lbl-best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const t = d => IAKidsLang.t(d), ui = k => IAKidsLang.ui(k);
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'pixel-art-code',
+  how: 'בוחרים צבע מהפלטה, ואז לוחצים על המשבצות ברשת לפי רשימת הפקודות — כל פקודה אומרת איזו משבצת (טור+שורה) לצבוע ובאיזה צבע. בסיום לוחצים "בדוק" ורואים אם התמונה יצאה נכון.',
+  example: '<span dir="ltr"><b>ג3=אדום</b></span> ← בוחרים 🔴 אדום, לוחצים על טור ג׳, שורה 3',
+});
+
+const T = {
+  title: { he: 'מילוי לפי קוד', en: 'Pixel Art Code', es: 'Arte píxel por código', de: 'Pixel-Art-Code', pt: 'Pixel art por código' },
+  intro: { he: 'צבעו את המשבצות לפי רשימת הפקודות ותגלו ציור!', en: 'Color the cells by the command list and reveal a picture!', es: '¡Colorea las casillas según la lista y descubre un dibujo!', de: 'Färbe die Felder nach der Befehlsliste und enthülle ein Bild!', pt: 'Pinte as células conforme a lista e revele um desenho!' },
+  rounds: { he: 'כמה ציורים?', en: 'How many pictures?', es: '¿Cuántos dibujos?', de: 'Wie viele Bilder?', pt: 'Quantos desenhos?' },
+  check: { he: 'בדוק ✓', en: 'Check ✓', es: 'Comprobar ✓', de: 'Prüfen ✓', pt: 'Verificar ✓' },
+};
+$('lbl-score').textContent = ui('score');
+$('lbl-q').textContent = ui('question');
+$('lbl-best').textContent = ui('your_best');
+$('title-line').textContent = t(T.title);
+document.title = t(T.title) + ' | iakids';
+$('intro-line').textContent = t(T.intro);
+$('rounds-line').textContent = t(T.rounds);
+$('check-btn').textContent = t(T.check);
+$('again-btn').textContent = ui('play_again');
+document.querySelector('[data-lvl="1"]').textContent = ui('level_easy');
+document.querySelector('[data-lvl="2"]').textContent = ui('level_medium');
+document.querySelector('[data-lvl="3"]').textContent = ui('level_hard');
+document.querySelector('[data-lvl="0"]').textContent = ui('level_random');
+
+const HEB = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח'];
+const COLORS = [
+  { key: 'red', hex: '#ef4444', name: { he: 'אדום', en: 'Red', es: 'Rojo', de: 'Rot', pt: 'Vermelho' } },
+  { key: 'blue', hex: '#3b82f6', name: { he: 'כחול', en: 'Blue', es: 'Azul', de: 'Blau', pt: 'Azul' } },
+  { key: 'green', hex: '#22c55e', name: { he: 'ירוק', en: 'Green', es: 'Verde', de: 'Grün', pt: 'Verde' } },
+  { key: 'yellow', hex: '#facc15', name: { he: 'צהוב', en: 'Yellow', es: 'Amarillo', de: 'Gelb', pt: 'Amarelo' } },
+  { key: 'purple', hex: '#a855f7', name: { he: 'סגול', en: 'Purple', es: 'Morado', de: 'Lila', pt: 'Roxo' } },
+  { key: 'pink', hex: '#f472b6', name: { he: 'ורוד', en: 'Pink', es: 'Rosa', de: 'Rosa', pt: 'Rosa' } },
+];
+
+// 'X' = filled cell in the target picture, '.' = stays white
+const PATTERNS = {
+  5: {
+    heart: ['.X.X.', 'XXXXX', 'XXXXX', '.XXX.', '..X..'],
+    star: ['..X..', '..X..', 'XXXXX', '..X..', '..X..'],
+  },
+  8: {
+    heart: ['.XX..XX.', 'XXXXXXXX', 'XXXXXXXX', 'XXXXXXXX', '.XXXXXX.', '..XXXX..', '...XX...', '........'],
+    star: ['...XX...', '...XX...', '..XXXX..', '.XXXXXX.', 'XXXXXXXX', '...XX...', '..XXXX..', '.X....X.'],
+  },
+};
+
+function toMatrix(rows) { return rows.map(row => [...row].map(ch => ch === 'X')); }
+
+// hard groups consecutive same-colored cells within a column into one range command
+function buildCommands(matrix, n, ranged) {
+  const cmds = [];
+  for (let c = 0; c < n; c++) {
+    let r = 0;
+    while (r < n) {
+      if (matrix[r][c]) {
+        let r2 = r;
+        if (ranged) while (r2 + 1 < n && matrix[r2 + 1][c]) r2++;
+        cmds.push({ col: c, r1: r + 1, r2: r2 + 1 });
+        r = r2 + 1;
+      } else r++;
+    }
+  }
+  return cmds;
+}
+
+let game, diff, score = 0, qnum = 0, level = 1, TOTAL = 10;
+let cur, playerGrid = [], selColor = null, locked = false;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+const ready = (async () => {
+  game = await IAKidsGame.init('pixel-art-code');
+  const p = await game.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  document.querySelector(`#rounds-row [data-n="${TOTAL}"]`)?.classList.add('success');
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// lvl1: 5x5, single-cell commands · lvl2: 8x8, single-cell · lvl3: 8x8, range commands per column
+function makeQuestion(lvl) {
+  const n = lvl === 1 ? 5 : 8;
+  const ranged = lvl === 3;
+  const name = Math.random() < 0.5 ? 'heart' : 'star';
+  const matrix = toMatrix(PATTERNS[n][name]);
+  const color = COLORS[rnd(COLORS.length)];
+  const commands = buildCommands(matrix, n, ranged);
+  return { n, name, matrix, color, commands, lvl, key: `${lvl}_${n}_${name}_${color.key}` };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  cur = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
+  playerGrid = Array.from({ length: cur.n }, () => Array(cur.n).fill(null));
+  selColor = null;
+  locked = false;
+  renderPalette();
+  renderCommands();
+  renderGrid();
+}
+
+function renderPalette() {
+  $('palette').innerHTML = COLORS.map(c =>
+    `<div class="swatch" style="background:${c.hex}" data-c="${c.key}" onclick="pickColor('${c.key}')"></div>`
+  ).join('') + `<div class="swatch eraser" data-c="_" onclick="pickColor('_')" title="${t({ he: 'מחק', en: 'Erase', es: 'Borrar', de: 'Löschen', pt: 'Apagar' })}"></div>`;
+}
+function pickColor(key) {
+  if (locked) return;
+  selColor = key === '_' ? '_' : COLORS.find(c => c.key === key);
+  document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('sel', s.dataset.c === key));
+}
+
+function renderCommands() {
+  const colorName = t(cur.color.name);
+  $('cmd-list').innerHTML = cur.commands.map(cmd => {
+    const range = cmd.r1 !== cmd.r2 ? `-${HEB[cmd.col]}${cmd.r2}` : '';
+    return `<div><span dir="ltr">${HEB[cmd.col]}${cmd.r1}${range}</span> = <b style="background:${cur.color.hex}">${colorName}</b></div>`;
+  }).join('');
+}
+
+// viewBox is 340x340; layout is (n+1) slots square: n data columns/rows + 1 for headers, margin 8 both sides
+const MARGIN = 8;
+function cellSize() { return (340 - 2 * MARGIN) / (cur.n + 1); }
+// column 0 (א) sits at the rightmost data column — natural Hebrew reading order; row numbers sit further right still
+function gx(c) { return MARGIN + (cur.n - 1 - c) * cellSize(); }
+function gy(r) { return MARGIN + cellSize() + r * cellSize(); }
+
+function renderGrid() {
+  const cs = cellSize(), n = cur.n;
+  let html = '';
+  for (let c = 0; c < n; c++) {
+    html += `<text class="hdr" x="${gx(c) + cs / 2}" y="${MARGIN + cs * 0.65}" text-anchor="middle">${HEB[c]}</text>`;
+  }
+  for (let r = 0; r < n; r++) {
+    html += `<text class="hdr" x="${MARGIN + n * cs + cs / 2}" y="${gy(r) + cs / 2 + 4}" text-anchor="middle">${r + 1}</text>`;
+  }
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const fill = playerGrid[r][c] ? playerGrid[r][c].hex : '#fff';
+    html += `<rect class="cell" data-r="${r}" data-c="${c}" x="${gx(c)}" y="${gy(r)}" width="${cs}" height="${cs}" fill="${fill}"/>`;
+  }
+  $('pgrid').innerHTML = html;
+}
+$('pgrid').addEventListener('pointerdown', e => {
+  if (locked) return;
+  const cell = e.target.closest('rect.cell');
+  if (!cell || !selColor) return;
+  const r = +cell.dataset.r, c = +cell.dataset.c;
+  playerGrid[r][c] = selColor === '_' ? null : selColor;
+  cell.setAttribute('fill', selColor === '_' ? '#fff' : selColor.hex);
+});
+
+function matches() {
+  for (let r = 0; r < cur.n; r++) for (let c = 0; c < cur.n; c++) {
+    const want = cur.matrix[r][c] ? cur.color.hex : null;
+    const got = playerGrid[r][c] ? playerGrid[r][c].hex : null;
+    if (want !== got) return false;
+  }
+  return true;
+}
+
+function check() {
+  if (locked) return;
+  locked = true;
+  const wrap = $('grid-wrap'), ok = matches();
+  if (!ok) { // reveal the correct picture briefly
+    for (let r = 0; r < cur.n; r++) for (let c = 0; c < cur.n; c++)
+      if (cur.matrix[r][c]) document.querySelector(`rect[data-r="${r}"][data-c="${c}"]`)?.setAttribute('fill', cur.color.hex);
+  }
+  if (ok) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(wrap);
+    IAKidsCoins.right(wrap);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(wrap);
+    IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 1300);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

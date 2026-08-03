@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מאזני לוגיקה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #scales { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 10px 0; }
+  .cmp { margin-bottom: 4px; }
+  .cmp-scale { width: 190px; height: auto; display: block; margin: 0 auto; }
+  .cmp-cap { font-weight: 700; font-size: 1.05rem; margin-top: -4px; }
+  #q-text { font-size: 1.4rem; font-weight: 800; margin: 6px 0 2px; }
+  #answers .game-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px; }
+  #answers .game-btn .em { font-size: 2.1rem; }
+  #answers .game-btn .nm { font-size: 1rem; }
+  .level-picked { outline: 4px solid var(--yellow); }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span data-ui="score">ניקוד</span>: <span id="score">0</span></span>
+  <span><span data-ui="question">שאלה</span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🤔⚖️</div>
+    <h1 class="game-title" id="t-title">מאזני לוגיקה</h1>
+    <p id="t-desc">השתמשו בשקילות כדי לגלות מי הכי כבד או הכי קל!</p>
+    <p id="t-rounds">כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="q-text"></p>
+    <div id="scales"></div>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" data-ui="play_again" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'logic-scale';
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+// pool of animals: 10 emoji+name pairs, plenty of room for no-repeat rotation
+const ITEMS = [
+  { emoji: '🐘', name: 'פיל' }, { emoji: '🦁', name: 'אריה' }, { emoji: '🐒', name: 'קוף' },
+  { emoji: '🐭', name: 'עכבר' }, { emoji: '🐻', name: 'דוב' }, { emoji: '🦒', name: 'ג\'ירפה' },
+  { emoji: '🐹', name: 'אוגר' }, { emoji: '🐢', name: 'צב' }, { emoji: '🐰', name: 'ארנב' },
+  { emoji: '🐴', name: 'סוס' },
+];
+
+/**
+ * makeQuestion(lvl): correctness BY CONSTRUCTION — never invents facts independently.
+ * 1) pick k distinct items (k=3 easy/medium, k=4 hard)
+ * 2) assign each a random distinct weight-rank 1..k (hard: may tie the two MIDDLE
+ *    ranks only — ranks 1 and k stay unique by construction, so the queried extreme
+ *    can never land on a tie; no generate-and-retry needed)
+ * 3) derive the shown comparisons FROM the true ranks (easy: both comparisons touch
+ *    the answer directly; medium: 2-step consecutive chain; hard: 3-step chain over
+ *    all 4, optionally with one "=" from the tie)
+ * 4) correct answer = extreme of the TRUE ranks, never re-derived from the shown facts
+ */
+function makeQuestion(lvl) {
+  const askHeaviest = Math.random() < 0.5;
+  const k = lvl === 3 ? 4 : 3;
+  const pool = shuffle(ITEMS).slice(0, k);
+  let ranks = shuffle(Array.from({ length: k }, (_, i) => i + 1));
+  if (k === 4 && Math.random() < 0.5) ranks = ranks.map(r => r === 3 ? 2 : r); // tie middle ranks only
+
+  const order = pool
+    .map((item, i) => ({ item, rank: ranks[i], i }))
+    .sort((a, b) => b.rank - a.rank || a.i - b.i); // order[0]=heaviest .. order[k-1]=lightest, both unique
+
+  const correctItem = askHeaviest ? order[0].item : order[k - 1].item;
+
+  let comparisons = [];
+  if (k === 3 && lvl === 1) {
+    // easy: both comparisons touch the answer directly (no chaining needed)
+    const others = order.filter(o => o.item !== correctItem);
+    comparisons = others.map(o => askHeaviest
+      ? { a: correctItem, b: o.item, rel: 'gt' }
+      : { a: o.item, b: correctItem, rel: 'gt' });
+  } else if (k === 3) {
+    // medium: strict consecutive chain — must combine transitively
+    comparisons = [
+      { a: order[0].item, b: order[1].item, rel: 'gt' },
+      { a: order[1].item, b: order[2].item, rel: 'gt' },
+    ];
+  } else {
+    // hard: connected chain across all 4, "=" where the tie landed
+    for (let i = 0; i < 3; i++) {
+      comparisons.push({ a: order[i].item, b: order[i + 1].item, rel: order[i].rank === order[i + 1].rank ? 'eq' : 'gt' });
+    }
+  }
+
+  let optionItems;
+  if (k === 3) {
+    optionItems = pool;
+  } else {
+    // hard: correct + the second-most-extreme item (plausible distractor) + one more
+    const adjacent = (askHeaviest ? order[1] : order[2]).item;
+    const remaining = order.map(o => o.item).filter(it => it !== correctItem && it !== adjacent);
+    optionItems = [correctItem, adjacent, remaining[rnd(remaining.length)]];
+  }
+
+  return { lvl, k, askHeaviest, order, comparisons, correctItem, options: shuffle(optionItems) };
+}
+const keyFn = q => q.lvl + (q.askHeaviest ? 'H' : 'L') + q.order.map(o => o.item.emoji + o.rank).join('-');
+
+/* ---- static tilted-scale SVG, adapted from balance-scale's beam-rotation technique
+   (same pivot/arm translate math), but pre-computed once per fixed angle — no
+   interactivity, no CSS transition needed since each comparison is drawn fresh. ---- */
+function scaleSvg(leftEmoji, rightEmoji, eq) {
+  const deg = eq ? 0 : -14; // 'a' (left) is always the heavier-or-equal side by construction
+  const th = deg * Math.PI / 180;
+  const P = { x: 150, y: 50 }, ARM = 95;
+  const lx = (P.x - ARM * Math.cos(th)).toFixed(1), ly = (P.y - ARM * Math.sin(th)).toFixed(1);
+  const rx = (P.x + ARM * Math.cos(th)).toFixed(1), ry = (P.y + ARM * Math.sin(th)).toFixed(1);
+  return `<svg class="cmp-scale" viewBox="0 0 300 170" aria-hidden="true">
+    <rect x="130" y="130" width="40" height="10" rx="5" fill="#b45309"/>
+    <polygon points="150,50 128,130 172,130" fill="#f59e0b" stroke="#b45309" stroke-width="1.5"/>
+    <g transform="rotate(${deg} ${P.x} ${P.y})">
+      <rect x="55" y="45" width="190" height="8" rx="4" fill="#b45309"/>
+      <circle cx="${P.x}" cy="${P.y}" r="5" fill="#78350f"/>
+    </g>
+    <g transform="translate(${lx} ${ly})">
+      <line x1="0" y1="0" x2="-20" y2="34" stroke="#78350f" stroke-width="2"/>
+      <line x1="0" y1="0" x2="20" y2="34" stroke="#78350f" stroke-width="2"/>
+      <rect x="-26" y="34" width="52" height="7" rx="3" fill="#92400e"/>
+      <text x="0" y="26" text-anchor="middle" font-size="30">${leftEmoji}</text>
+    </g>
+    <g transform="translate(${rx} ${ry})">
+      <line x1="0" y1="0" x2="-20" y2="34" stroke="#78350f" stroke-width="2"/>
+      <line x1="0" y1="0" x2="20" y2="34" stroke="#78350f" stroke-width="2"/>
+      <rect x="-26" y="34" width="52" height="7" rx="3" fill="#92400e"/>
+      <text x="0" y="26" text-anchor="middle" font-size="30">${rightEmoji}</text>
+    </g>
+  </svg>`;
+}
+
+let game, diff, timer, score = 0, qnum = 0, level = 1, TOTAL = 10, cur = null, locked = false;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'המאזניים מראים מי יותר כבד — הצד שיורד למטה הוא הכבד יותר! השתמשו בכל השקילות המוצגות כדי לענות מי הכי כבד או הכי קל.',
+  example: 'אם 🐘 כבד מ-🐭 ו-🐭 כבד מ-🐜, אז 🐘 הכי כבד',
+});
+
+const T = {
+  title: { he: 'מאזני לוגיקה', en: 'Logic Scales', es: 'Balanzas de lógica', de: 'Logik-Waagen', pt: 'Balanças de lógica' },
+  desc:  { he: 'השתמשו בשקילות כדי לגלות מי הכי כבד או הכי קל!', en: 'Use the weighings to figure out who is heaviest or lightest!', es: '¡Usa las pesadas para descubrir quién es el más pesado o el más liviano!', de: 'Nutze die Wiegungen, um herauszufinden, wer am schwersten oder leichtesten ist!', pt: 'Use as pesagens para descobrir quem é o mais pesado ou o mais leve!' },
+  rounds:{ he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  qHeavy:{ he: 'מי הכי כבד?', en: 'Who is heaviest?', es: '¿Quién es el más pesado?', de: 'Wer ist am schwersten?', pt: 'Quem é o mais pesado?' },
+  qLight:{ he: 'מי הכי קל?', en: 'Who is lightest?', es: '¿Quién es el más liviano?', de: 'Wer ist am leichtesten?', pt: 'Quem é o mais leve?' },
+};
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+$('t-title').textContent = IAKidsLang.t(T.title);
+document.title = IAKidsLang.t(T.title) + ' | iakids';
+$('t-desc').textContent = IAKidsLang.t(T.desc);
+$('t-rounds').textContent = IAKidsLang.t(T.rounds);
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [data-r="${p.rounds}"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  game = game || await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  if (!document.querySelector('#rounds-row .success')) setRounds(TOTAL, $('rounds-row').children[1]);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  cur = await game.newQuestion(() => makeQuestion(lvl), keyFn);
+  $('q-text').textContent = IAKidsLang.t(cur.askHeaviest ? T.qHeavy : T.qLight);
+  renderScales();
+  renderAnswers();
+  timer.start(IAKidsTimer.secondsFor(lvl, 15)); // reading 2-3 scales takes longer than a plain mcq
+}
+
+function renderScales() {
+  $('scales').innerHTML = cur.comparisons.map(c => {
+    const eq = c.rel === 'eq';
+    return `<div class="cmp">${scaleSvg(c.a.emoji, c.b.emoji, eq)}<div class="cmp-cap">${c.a.emoji} ${c.a.name} ${eq ? '=' : '>'} ${c.b.emoji} ${c.b.name}</div></div>`;
+  }).join('');
+}
+
+function renderAnswers() {
+  const box = $('answers');
+  box.innerHTML = cur.options.map(it =>
+    `<button class="game-btn outline" data-emoji="${it.emoji}"><span class="em">${it.emoji}</span><span class="nm">${it.name}</span></button>`
+  ).join('');
+  [...box.children].forEach((btn, i) => btn.onclick = () => answer(cur.options[i], btn));
+}
+
+function answer(item, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  const correct = item && item.emoji === cur.correctItem.emoji;
+  if (correct) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    const correctBtn = [...document.querySelectorAll('#answers .game-btn')].find(b => b.dataset.emoji === cur.correctItem.emoji);
+    if (correctBtn) correctBtn.classList.add('correct');
+  }
+  $('score').textContent = score;
+  setTimeout(next, 1100);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

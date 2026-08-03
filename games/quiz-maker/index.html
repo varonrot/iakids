@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בוחן עצמי קצר | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .pack-row { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 14px; background: var(--accent-soft); margin: 8px 0; }
+  .pack-row .name { flex: 1; text-align: right; font-weight: 700; }
+  .pack-row .count { color: var(--muted); font-size: 0.85rem; }
+  .pack-row button { margin: 0; padding: 8px 14px; font-size: 1rem; min-height: 40px; }
+  .qform { text-align: right; margin-top: 14px; }
+  .qform input[type=text] { width: 100%; font: inherit; padding: 10px; border-radius: 10px; border: 2px solid #e5e7eb; margin: 6px 0; box-sizing: border-box; }
+  .opt-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .opt-row input[type=text] { flex: 1; }
+  .opt-row input[type=radio] { width: 22px; height: 22px; }
+  .qlist-item { display: flex; justify-content: space-between; align-items: center; background: #f9fafb; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+  .qlist-item button { padding: 4px 10px; min-height: 0; font-size: 0.9rem; }
+  .name-input { width: 100%; font: inherit; padding: 10px; border-radius: 10px; border: 2px solid #e5e7eb; margin: 6px 0; box-sizing: border-box; }
+</style>
+</head>
+<body>
+
+<div class="game-hud" id="playHud" hidden>
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">1</span></span>
+</div>
+
+<div class="game-card" id="card">
+
+  <div id="home-screen">
+    <div style="font-size:3.2rem">📝</div>
+    <h1 class="game-title">בוחן עצמי קצר</h1>
+    <p>צרו חבילת שאלות משלכם, או שחקו בחבילה שכבר יצרתם.</p>
+    <button class="game-btn" onclick="startNewPack()">➕ חבילה חדשה</button>
+    <div id="packList"></div>
+  </div>
+
+  <div id="edit-screen" hidden>
+    <h2 class="game-title">✏️ עריכת חבילה</h2>
+    <input class="name-input" id="packName" placeholder="שם החבילה (למשל: מבחן טבע פרק 3)">
+    <div id="qList"></div>
+    <div class="qform">
+      <p><b>שאלה חדשה</b></p>
+      <input type="text" id="qText" placeholder="כתבו כאן את השאלה">
+      <div class="opt-row"><input type="radio" name="correctOpt" value="0"><input type="text" class="optInput" placeholder="תשובה 1"></div>
+      <div class="opt-row"><input type="radio" name="correctOpt" value="1"><input type="text" class="optInput" placeholder="תשובה 2"></div>
+      <div class="opt-row"><input type="radio" name="correctOpt" value="2"><input type="text" class="optInput" placeholder="תשובה 3"></div>
+      <div class="opt-row"><input type="radio" name="correctOpt" value="3"><input type="text" class="optInput" placeholder="תשובה 4"></div>
+      <p style="font-size:0.85rem;color:var(--muted)">סמנו בעיגול איזו תשובה נכונה</p>
+      <button class="game-btn secondary" onclick="addQuestion()">➕ הוסף שאלה</button>
+    </div>
+    <button class="game-btn success" onclick="finishPack()">💾 שמור וסיום</button>
+    <button class="game-btn outline" onclick="cancelEdit()">ביטול</button>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question"></div>
+    <div class="answer-grid" id="playOptions"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p>תשובות נכונות מתוך הכל</p>
+    <p id="player-line"></p>
+    <button class="game-btn" onclick="replayPack()">שחק שוב 🔁</button>
+    <button class="game-btn outline" onclick="goHome()">🏠 לרשימת החבילות</button>
+    <div id="share-slot"></div>
+  </div>
+
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, packs = [], editingPack = null, playPack = null, playQuestions = [], qIndex = 0, score = 0;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'quiz-maker',
+  how: 'במצב עריכה כותבים שאלה, ארבע תשובות אפשריות, ומסמנים איזו נכונה. אחרי שיש כמה שאלות שומרים את החבילה. אחר כך אפשר לשחק בחבילה — השאלות והתשובות מתערבבות בכל פעם, ולכל תשובה נכונה מקבלים מטבעות 🪙!',
+  example: 'שאלה: <b>"מה בירת ישראל?"</b> תשובות: ירושלים / תל אביב / חיפה / אילת — מסמנים את "ירושלים" כנכונה.',
+});
+
+const show = id => {
+  document.getElementById('playHud').hidden = id !== 'play-screen';
+  for (const s of ['home-screen', 'edit-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function persist() { await game.saveProgress({ packs }); }
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function renderPackList() {
+  const list = document.getElementById('packList');
+  list.innerHTML = '';
+  if (!packs.length) {
+    list.innerHTML = '<p style="color:var(--muted)">עדיין אין חבילות — צרו אחת חדשה!</p>';
+    return;
+  }
+  packs.forEach(pack => {
+    const row = document.createElement('div');
+    row.className = 'pack-row';
+    row.innerHTML = `
+      <button class="game-btn success" onclick="playPackById('${pack.id}')">▶️ שחק</button>
+      <button class="game-btn danger" onclick="deletePack('${pack.id}')">🗑️</button>
+      <span class="name">${escapeHtml(pack.name)} <span class="count">(${pack.questions.length} שאלות)</span></span>`;
+    list.appendChild(row);
+  });
+}
+
+// ---- edit mode ----
+function startNewPack() {
+  editingPack = { id: 'p' + Date.now(), name: '', questions: [] };
+  document.getElementById('packName').value = '';
+  renderQList();
+  show('edit-screen');
+}
+
+function renderQList() {
+  const wrap = document.getElementById('qList');
+  wrap.innerHTML = '';
+  editingPack.questions.forEach((q, i) => {
+    const row = document.createElement('div');
+    row.className = 'qlist-item';
+    row.innerHTML = `<span>${i + 1}. ${escapeHtml(q.q)}</span><button class="game-btn danger" onclick="removeQuestion(${i})">✕</button>`;
+    wrap.appendChild(row);
+  });
+}
+
+function removeQuestion(i) {
+  editingPack.questions.splice(i, 1);
+  renderQList();
+}
+
+function addQuestion() {
+  const qText = document.getElementById('qText').value.trim();
+  const opts = [...document.querySelectorAll('.optInput')].map(i => i.value.trim());
+  const correctRadio = document.querySelector('input[name=correctOpt]:checked');
+  if (!qText || opts.some(o => !o) || !correctRadio) {
+    alert('מלאו שאלה, 4 תשובות, וסמנו איזו נכונה');
+    return;
+  }
+  editingPack.questions.push({ q: qText, opts, correct: Number(correctRadio.value) });
+  document.getElementById('qText').value = '';
+  document.querySelectorAll('.optInput').forEach(i => i.value = '');
+  document.querySelectorAll('input[name=correctOpt]').forEach(r => r.checked = false);
+  renderQList();
+}
+
+async function finishPack() {
+  const name = document.getElementById('packName').value.trim();
+  if (!name) { alert('תנו שם לחבילה'); return; }
+  if (!editingPack.questions.length) { alert('הוסיפו לפחות שאלה אחת'); return; }
+  editingPack.name = name;
+  const idx = packs.findIndex(p => p.id === editingPack.id);
+  if (idx >= 0) packs[idx] = editingPack; else packs.push(editingPack);
+  await persist();
+  renderPackList();
+  show('home-screen');
+}
+
+function cancelEdit() { show('home-screen'); }
+
+async function deletePack(id) {
+  if (!confirm('למחוק את החבילה הזו?')) return;
+  packs = packs.filter(p => p.id !== id);
+  await persist();
+  renderPackList();
+}
+
+// ---- play mode ----
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function playPackById(id) {
+  playPack = packs.find(p => p.id === id);
+  if (!playPack) return;
+  startPlay();
+}
+
+function startPlay() {
+  score = 0;
+  qIndex = 0;
+  document.getElementById('score').textContent = 0;
+  playQuestions = shuffle(playPack.questions).map(q => {
+    const opts = shuffle(q.opts.map((text, i) => ({ text, isCorrect: i === q.correct })));
+    return { q: q.q, opts };
+  });
+  document.getElementById('qtotal').textContent = playQuestions.length;
+  show('play-screen');
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = playQuestions[qIndex];
+  document.getElementById('qnum').textContent = qIndex + 1;
+  document.getElementById('question').textContent = q.q;
+  const grid = document.getElementById('playOptions');
+  grid.innerHTML = '';
+  q.opts.forEach(o => {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline';
+    btn.textContent = o.text;
+    btn.onclick = () => answer(o.isCorrect, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function answer(isCorrect, btn) {
+  document.querySelectorAll('#playOptions .game-btn').forEach(b => b.disabled = true);
+  if (isCorrect) {
+    score += 10;
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => {
+    qIndex++;
+    if (qIndex >= playQuestions.length) endPlay();
+    else showQuestion();
+  }, 700);
+}
+
+async function endPlay() {
+  const total = playQuestions.length;
+  const right = score / 10;
+  await game.saveScore(score, { pack: playPack.name, total });
+  document.getElementById('final-score').textContent = `${right} / ${total}`;
+  document.getElementById('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(right / total * 3)));
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('player-line').textContent = top?.player ? `${top.player} · ${new Date().toLocaleDateString('he-IL')}` : '';
+  document.getElementById('share-slot').innerHTML = '';
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+
+function replayPack() { startPlay(); }
+function goHome() { renderPackList(); show('home-screen'); }
+
+async function init() {
+  game = await IAKidsGame.init('quiz-maker');
+  const p = await game.loadProgress();
+  packs = p?.packs || [];
+  renderPackList();
+  show('home-screen');
+}
+
+init();
+</script>
+</body>
+</html>

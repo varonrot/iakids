@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אליפות לוח הכפל | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .stopwatch { font-weight: 900; color: #3b82f6; }
+  .time-line { font-size: 1.3rem; font-weight: 800; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span class="stopwatch">⏱ <span dir="ltr" id="clock">0.0</span></span>
+  <span><span id="q-label">שאלה</span> <span dir="ltr"><span id="qnum">1</span>/10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🏁</div>
+    <h1 class="game-title" id="title">אליפות לוח הכפל</h1>
+    <p id="subtitle">10 תרגילי כפל ברצף — כמה מהר תסיים?</p>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" dir="ltr" id="question"></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p class="time-line" id="time-line"></p>
+    <p id="player-line"></p>
+    <p><span id="best-label">השיא שלך</span>: <b id="best"></b></p>
+    <p id="best-time-line"></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const TOTAL = 10; // ponytail: fixed race length by spec — no rounds picker
+let game, diff, timer, score = 0, qnum = 0, correctCount = 0, level = 1, current;
+let t0 = 0, tickI = null;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'times-table-race',
+  how: 'עונים על תרגילי כפל כמה שיותר מהר — בוחרים את התשובה הנכונה מתוך 4 אפשרויות, והסטופר רץ!',
+  example: '<span dir="ltr"><b>3 × 4 = ?</b></span> ← לוחצים על <b>12</b>',
+});
+
+const T = {
+  title:    { he: 'אליפות לוח הכפל', en: 'Times Table Race', es: 'Carrera de multiplicar', de: 'Einmaleins-Rennen', pt: 'Corrida da tabuada' },
+  subtitle: { he: '10 תרגילי כפל ברצף — כמה מהר תסיים?', en: '10 multiplications in a row — how fast can you go?', es: '10 multiplicaciones seguidas — ¿qué tan rápido eres?', de: '10 Malaufgaben am Stück — wie schnell bist du?', pt: '10 multiplicações seguidas — quão rápido você é?' },
+  your_time: { he: 'הזמן שלך', en: 'Your time', es: 'Tu tiempo', de: 'Deine Zeit', pt: 'Seu tempo' },
+  best_time: { he: 'הזמן הכי מהיר עם 10/10', en: 'Fastest time with 10/10', es: 'Mejor tiempo con 10/10', de: 'Bestzeit mit 10/10', pt: 'Melhor tempo com 10/10' },
+  seconds:   { he: 'שניות', en: 'seconds', es: 'segundos', de: 'Sekunden', pt: 'segundos' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('subtitle').textContent = IAKidsLang.t(T.subtitle);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [k, b] of [['level_easy', 1], ['level_medium', 2], ['level_hard', 3], ['level_random', 0]])
+  document.querySelector(`#level-row [data-lvl="${b}"]`).textContent = IAKidsLang.ui(k);
+
+const rnd = n => Math.floor(Math.random() * n);
+const secs = ms => (ms / 1000).toFixed(1);
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+// level 1: up to 5×5 · 2: up to 10×10 · 3: up to 12×12 + division
+function makeQuestion(lvl) {
+  if (lvl === 3 && Math.random() < 0.4) {
+    const a = 2 + rnd(11), b = 2 + rnd(11);
+    return { text: `${a * b} ÷ ${b} =`, answer: a, cands: [a + 1, a - 1, a + 2, b, a - 2, a + 3] };
+  }
+  const max = lvl === 1 ? 5 : lvl === 2 ? 10 : 12;
+  const a = 2 + rnd(max - 1), b = 2 + rnd(max - 1), ans = a * b;
+  return { text: `${a} × ${b} =`, answer: ans,
+           cands: [(a + 1) * b, a * (b + 1), (a - 1) * b, a * (b - 1), ans + a, ans - b, ans + 1] };
+}
+
+async function start(lvl) {
+  game = await IAKidsGame.init('times-table-race');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  await game.saveProgress({ lastLevel: lvl });
+  show('play-screen');
+  t0 = Date.now();
+  tickI = setInterval(() => { document.getElementById('clock').textContent = secs(Date.now() - t0); }, 100);
+  next();
+}
+
+let hardQ = false;
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.text);
+  current = q.answer;
+  document.getElementById('question').textContent = q.text;
+  const opts = [q.answer];
+  for (const c of q.cands) { if (opts.length < 4 && c > 0 && !opts.includes(c)) opts.push(c); }
+  for (let n = 2; opts.length < 4; n++) if (!opts.includes(q.answer + n)) opts.push(q.answer + n);
+  for (let i = opts.length - 1; i > 0; i--) { const j = rnd(i + 1); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of opts) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.innerHTML = `<span dir="ltr">${o}</span>`;
+    b.onclick = () => answer(o, b);
+    grid.appendChild(b);
+  }
+  hardQ = lvl === 3;
+  if (hardQ) timer.start(IAKidsTimer.secondsFor(3, 12)); // bomb only on hard questions
+  else timer.stop();
+}
+
+let locked = false;
+function answer(said, btn) {
+  if (locked) return; locked = true;
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (said === current) {
+    score += 10; correctCount++;
+    diff.right(); IAKidsFX.correct(btn); IAKidsCoins.right(btn);
+  } else {
+    diff.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 500);
+}
+
+async function end() {
+  clearInterval(tickI);
+  const timeMs = Date.now() - t0;
+  const perfect = correctCount === TOTAL;
+  await game.saveScore(score, { level, timeMs, perfect, correct: correctCount });
+  const all = await game.getHighScores(100);
+  const bestTimes = all.filter(r => r.meta?.perfect).map(r => r.meta.timeMs);
+  const bestTime = bestTimes.length ? Math.min(...bestTimes) : null;
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('time-line').innerHTML =
+    `⏱ ${IAKidsLang.t(T.your_time)}: <span dir="ltr">${secs(timeMs)}</span> ${IAKidsLang.t(T.seconds)}`;
+  document.getElementById('best').textContent = all[0]?.score ?? score;
+  document.getElementById('best-time-line').innerHTML = bestTime === null ? '' :
+    `🏆 ${IAKidsLang.t(T.best_time)}: <b dir="ltr">${secs(bestTime)}</b> ${IAKidsLang.t(T.seconds)}`;
+  document.getElementById('player-line').textContent =
+    `${all[0]?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(correctCount / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

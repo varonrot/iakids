@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>זכר או נקבה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 16px 0; }
+  .chip {
+    padding: 10px 16px; font-size: 1.3rem; font-weight: 800; border-radius: 999px;
+    background: var(--accent); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    cursor: grab; touch-action: none; user-select: none; transition: transform 0.15s;
+  }
+  .chip.dragging { cursor: grabbing; opacity: 0.9; }
+  .chip.placed { background: var(--green); box-shadow: none; cursor: default; padding: 8px 14px; font-size: 1.1rem; }
+  .bins { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .bin { min-height: 140px; }
+  .bin h3 { margin: 4px 0 10px; }
+  .bin .chip-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  @keyframes shakeChip { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-8px);} 40%,80%{transform:translateX(8px);} }
+  .chip.shake { animation: shakeChip 0.35s; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span><span id="qlabel">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">5</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🚻</div>
+    <h1 class="game-title">זכר או נקבה</h1>
+    <p>גרור כל מילה לתיבה הנכונה: זכר או נקבה.</p>
+    <p>כמה סיבובים?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)" id="lvl-1">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)" id="lvl-2">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)" id="lvl-3">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="bins">
+      <div class="bin drop-zone" data-g="m"><h3>👦 זכר</h3><div class="chip-list"></div></div>
+      <div class="bin drop-zone" data-g="f"><h3>👧 נקבה</h3><div class="chip-list"></div></div>
+    </div>
+    <div class="chip-row" id="bank"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// word bank tagged by grammatical gender — double-checked against standard Hebrew usage.
+// level 1: transparent (obviously male/female by meaning, mostly clear ה-ending pattern)
+// level 2: everyday objects, standard patterns (bare = masc, -ה/-ת suffix = fem)
+// level 3: real exceptions — words whose gender contradicts the usual pattern
+const LEVELS = {
+  1: [
+    ['ילד','m'],['ילדה','f'],['חתול','m'],['חתולה','f'],['כלב','m'],['כלבה','f'],
+    ['מלך','m'],['מלכה','f'],['נסיך','m'],['נסיכה','f'],['דוד','m'],['דודה','f'],
+    ['סבא','m'],['סבתא','f'],['אח','m'],['אחות','f'],
+  ],
+  2: [
+    ['ספר','m'],['כיסא','m'],['כדור','m'],['עיפרון','m'],['חלון','m'],['מחשב','m'],
+    ['טלפון','m'],['אוטובוס','m'],['רחוב','m'],['גן','m'],['כובע','m'],
+    ['עוגה','f'],['מיטה','f'],['ספה','f'],['עגלה','f'],['חצאית','f'],['מכונית','f'],
+    ['חולצה','f'],['מחברת','f'],['תמונה','f'],['מגירה','f'],['חנות','f'],
+  ],
+  3: [
+    // masculine despite an ending or "feel" that suggests feminine
+    ['לילה','m'],['שולחן','m'],['כביש','m'],['קיר','m'],
+    // feminine despite no ה/ת ending at all — classic Hebrew exceptions
+    ['שמש','f'],['רוח','f'],['דרך','f'],['עין','f'],['אבן','f'],
+    ['רגל','f'],['יד','f'],['אוזן','f'],['אש','f'],['ארץ','f'],
+  ],
+};
+
+const BATCH = 8;
+let game, score = 0, qnum = 0, level = 1, TOTAL = 5, diff, sessionRight = 0, sessionWrong = 0;
+let placed = 0, batchSize = 0;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'gender-sort',
+  how: 'בעברית לכל מילה יש מין: זכר או נקבה. גרור כל מילה לתיבה הנכונה — 👦 זכר או 👧 נקבה.',
+  example: '<b dir="rtl">ילד</b> ← 👦 זכר &nbsp;&nbsp; <b dir="rtl">ילדה</b> ← 👧 נקבה &nbsp;&nbsp; ויש גם הפתעות: <b dir="rtl">שולחן</b> הוא זכר, ו-<b dir="rtl">שמש</b> היא נקבה! ☀️',
+});
+
+document.getElementById('qlabel').textContent = IAKidsLang.ui('question');
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('gender-sort');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// restore last-picked rounds count (default 5), mark the matching button
+(async () => {
+  const tmp = await IAKidsGame.init('gender-sort');
+  const p = await tmp.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  const btn = [...document.querySelectorAll('#rounds-row .game-btn')].find(b => Number(b.textContent) === TOTAL);
+  (btn || document.querySelectorAll('#rounds-row .game-btn')[0]).classList.add('success');
+})();
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function makeBatch(lvl) {
+  const pool = LEVELS[lvl] || LEVELS[1];
+  return shuffle(pool).slice(0, Math.min(BATCH, pool.length));
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + Math.floor(Math.random() * 3) : diff.level;
+  const batch = await game.newQuestion(() => makeBatch(lvl), b => b.map(x => x[0]).sort().join(','));
+  buildRound(batch);
+}
+
+function buildRound(batch) {
+  placed = 0;
+  batchSize = batch.length;
+  document.querySelectorAll('.bin .chip-list').forEach(el => el.innerHTML = '');
+  const bank = document.getElementById('bank');
+  bank.innerHTML = '';
+  shuffle(batch).forEach(([word, g]) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = word;
+    chip.dataset.g = g;
+    bank.appendChild(chip);
+    attachDrag(chip);
+  });
+}
+
+function attachDrag(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (chip.classList.contains('placed')) return;
+    chip.setPointerCapture(e.pointerId);
+    const rect = chip.getBoundingClientRect();
+    const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+    chip.classList.add('dragging');
+    chip.style.position = 'fixed';
+    chip.style.left = rect.left + 'px';
+    chip.style.top = rect.top + 'px';
+    chip.style.zIndex = 200;
+    chip.style.pointerEvents = 'none';
+
+    const move = ev => {
+      chip.style.left = (ev.clientX - offX) + 'px';
+      chip.style.top = (ev.clientY - offY) + 'px';
+      document.querySelectorAll('.bin').forEach(b => b.classList.remove('over'));
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.bin');
+      if (zone) zone.classList.add('over');
+    };
+
+    const up = ev => {
+      chip.releasePointerCapture(e.pointerId);
+      chip.removeEventListener('pointermove', move);
+      chip.removeEventListener('pointerup', up);
+      chip.classList.remove('dragging');
+      document.querySelectorAll('.bin').forEach(b => b.classList.remove('over'));
+
+      // hit-test BEFORE restoring pointer-events/position — the chip is still
+      // sitting fixed under the pointer, so elementFromPoint would hit itself otherwise
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const zone = under && under.closest('.bin');
+
+      chip.style.pointerEvents = '';
+      chip.style.position = '';
+      chip.style.left = '';
+      chip.style.top = '';
+      chip.style.zIndex = '';
+
+      if (!zone) return; // dropped off any bin — no penalty
+
+      if (zone.dataset.g === chip.dataset.g) {
+        chip.classList.add('placed');
+        zone.querySelector('.chip-list').appendChild(chip);
+        IAKidsFX.correct(chip);
+        IAKidsCoins.right(chip);
+        diff.right();
+        score += 10;
+        sessionRight++;
+        document.getElementById('score').textContent = score;
+        placed++;
+        if (placed >= batchSize) setTimeout(next, 700);
+      } else {
+        wrongDrop(chip);
+      }
+    };
+
+    chip.addEventListener('pointermove', move);
+    chip.addEventListener('pointerup', up);
+  });
+}
+
+function wrongDrop(chip) {
+  IAKidsFX.wrong(chip);
+  IAKidsCoins.wrong();
+  diff.wrong();
+  sessionWrong++;
+  chip.classList.add('shake');
+  setTimeout(() => chip.classList.remove('shake'), 400);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = sessionRight / Math.max(1, sessionRight + sessionWrong);
+  document.getElementById('stars').textContent = '⭐'.repeat(acc >= 0.85 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

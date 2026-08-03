@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍕 מחשבון שברים ויזואלי | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .picked { outline: 4px solid var(--yellow); }
+  #pizza { width: min(70vw, 280px); height: auto; touch-action: manipulation; }
+  #pizza path { cursor: pointer; transition: fill 0.15s; }
+  #fraction { font-size: 3rem; font-weight: 900; color: var(--accent); margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
+  <span><span id="lbl-q"></span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🍕</div>
+    <h1 class="game-title" id="title-line"></h1>
+    <p id="intro-line"></p>
+    <p id="rounds-line"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-n="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="task-line" style="margin:4px 0;font-weight:700"></p>
+    <div id="fraction" dir="ltr"></div>
+    <svg id="pizza" viewBox="0 0 200 200" aria-label="פיצה"></svg>
+    <div>
+      <button class="game-btn success" id="confirm-btn" onclick="confirm_()"></button>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="lbl-best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const t = d => IAKidsLang.t(d), ui = k => IAKidsLang.ui(k);
+let game, diff, timer, score = 0, qnum = 0, current = null, level = 1, answering = false;
+let TOTAL = 10;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'fraction-pizza',
+  how: 'לוחצים על פרוסות הפיצה כדי לצבוע אותן לפי השבר המבוקש, ואז לוחצים "בדוק".',
+  example: 'השבר <span dir="ltr"><b>3/8</b></span> ← צובעים 3 פרוסות מתוך 8',
+});
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+// static UI strings
+$('lbl-score').textContent = ui('score');
+$('lbl-q').textContent = ui('question');
+$('lbl-best').textContent = ui('your_best');
+$('title-line').textContent = t({ he: 'מחשבון שברים ויזואלי', en: 'Pizza Fractions', es: 'Fracciones de pizza', de: 'Pizza-Brüche', pt: 'Frações de pizza' });
+$('intro-line').textContent = t({ he: 'צבעו חלקי פיצה לפי השבר!', en: 'Color pizza slices to match the fraction!', es: '¡Colorea la pizza según la fracción!', de: 'Färbe die Pizza passend zum Bruch!', pt: 'Pinte a pizza conforme a fração!' });
+$('rounds-line').textContent = t({ he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' });
+$('task-line').textContent = t({ he: 'לחצו על פרוסות כדי לצבוע את השבר', en: 'Tap slices to color the fraction', es: 'Toca las porciones para colorear', de: 'Tippe Stücke an, um den Bruch zu färben', pt: 'Toque nas fatias para colorir' });
+$('confirm-btn').textContent = t({ he: '✓ בדוק', en: '✓ Check', es: '✓ Comprobar', de: '✓ Prüfen', pt: '✓ Verificar' });
+$('again-btn').textContent = ui('play_again');
+document.querySelector('[data-lvl="1"]').textContent = ui('level_easy');
+document.querySelector('[data-lvl="2"]').textContent = ui('level_medium');
+document.querySelector('[data-lvl="3"]').textContent = ui('level_hard');
+document.querySelector('[data-lvl="0"]').textContent = ui('level_random');
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+const ready = (async () => { // preload saved rounds + last level
+  game = await IAKidsGame.init('fraction-pizza');
+  const p = await game.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  document.querySelector(`#rounds-row [data-n="${TOTAL}"]`)?.classList.add('success');
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('picked');
+})();
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => judge(null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// level 1: halves+quarters · 2: up to eighths · 3: equivalent fractions (pizza has more slices than denominator)
+function makeQuestion(lvl) {
+  if (lvl === 1) { const d = [2, 4][rnd(2)]; return { n: 1 + rnd(d - 1), d, S: d }; }
+  if (lvl === 2) { const d = [3, 4, 5, 6, 8][rnd(5)]; return { n: 1 + rnd(d - 1), d, S: d }; }
+  const [n, d] = [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [2, 4], [1, 6]][rnd(7)];
+  const ks = [2, 3, 4, 5, 6].filter(k => d * k <= 12);
+  return { n, d, S: d * ks[rnd(ks.length)] };
+}
+
+function drawPizza(S) {
+  const svg = $('pizza');
+  svg.innerHTML = '<circle cx="100" cy="100" r="97" fill="#d98e3c"/><circle cx="100" cy="100" r="88" fill="#ffe9a8"/>';
+  const pt = a => [100 + 85 * Math.cos(a), 100 + 85 * Math.sin(a)];
+  for (let i = 0; i < S; i++) {
+    const a0 = -Math.PI / 2 + i * 2 * Math.PI / S, a1 = a0 + 2 * Math.PI / S;
+    const [x0, y0] = pt(a0), [x1, y1] = pt(a1);
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', `M100,100 L${x0},${y0} A85,85 0 0 1 ${x1},${y1} Z`);
+    p.setAttribute('fill', '#ffe9a8');
+    p.setAttribute('stroke', '#c98a3b');
+    p.setAttribute('stroke-width', '2');
+    p.addEventListener('click', () => {
+      if (answering) return;
+      const on = p.dataset.sel === '1';
+      p.dataset.sel = on ? '' : '1';
+      p.setAttribute('fill', on ? '#ffe9a8' : '#ff6a2a');
+      IAKidsFX._beep([[on ? 400 : 600, 0, 0.06]]);
+    });
+    svg.appendChild(p);
+  }
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  answering = false;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  current = await game.newQuestion(() => makeQuestion(lvl), q => `${q.n}/${q.d}|${q.S}`);
+  $('fraction').textContent = `${current.n}/${current.d}`;
+  drawPizza(current.S);
+  timer.start(IAKidsTimer.secondsFor(lvl, 30, 14)); // generous — coloring takes time
+}
+
+function confirm_() {
+  if (answering) return;
+  const sel = document.querySelectorAll('#pizza path[data-sel="1"]').length;
+  judge(sel * current.d === current.n * current.S); // colored/total === n/d (handles equivalents)
+}
+
+function judge(ok) {
+  if (answering) return;
+  answering = true;
+  timer.stop();
+  const btn = $('confirm-btn');
+  if (ok) {
+    score += 10; diff.right();
+    IAKidsFX.correct(btn); IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn); IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 800);
+}
+
+async function end() {
+  timer.stop();
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

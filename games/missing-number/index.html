@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>השלם את הנעלם | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">❓</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question"><span dir="ltr" id="question"></span></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'missing-number';
+const T = {
+  title: { he: 'השלם את הנעלם', en: 'Missing Number', es: 'Número perdido', de: 'Fehlende Zahl', pt: 'Número que falta' },
+  instr: { he: 'איזה מספר מתחבא בתרגיל? בחר את התשובה הנכונה!', en: 'Which number is hiding? Pick the right answer!', es: '¿Qué número se esconde? ¡Elige la respuesta correcta!', de: 'Welche Zahl versteckt sich? Wähle die richtige Antwort!', pt: 'Que número está escondido? Escolha a resposta certa!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+};
+// UI strings
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false;
+let diff, timer;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'missing-number',
+  how: 'בתרגיל מתחבא מספר ◻ — בוחרים מתוך 4 האפשרויות את המספר שמשלים את התרגיל, לפני שהפצצה מתפוצצת! 💣',
+  example: '<span dir="ltr"><b>7 + ◻ = 10</b></span> ← בוחרים 3',
+});
+
+// preselect saved rounds + last level
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(false, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.sort(() => Math.random() - 0.5);
+
+// level 1: addition to 10, 2: add/sub to 50, 3: mult/div — hide a random term
+function makeQuestion(lvl) {
+  let a, b, op, res;
+  if (lvl === 1) { a = 1 + rnd(9); b = 1 + rnd(10 - a); op = '+'; res = a + b; }
+  else if (lvl === 2) {
+    if (Math.random() < 0.5) { a = 5 + rnd(41); b = 1 + rnd(50 - a); op = '+'; res = a + b; }
+    else { a = 10 + rnd(41); b = 1 + rnd(a); op = '−'; res = a - b; }
+  } else {
+    if (Math.random() < 0.5) { a = 2 + rnd(9); b = 2 + rnd(9); op = '×'; res = a * b; }
+    else { b = 2 + rnd(9); res = 2 + rnd(9); a = b * res; op = '÷'; }
+  }
+  const pos = rnd(3); // 0=a, 1=b, 2=result
+  const ans = [a, b, res][pos];
+  const parts = [String(a), op, String(b), '=', String(res)];
+  parts[pos === 2 ? 4 : pos * 2] = '◻';
+  return { text: parts.join(' '), ans };
+}
+
+// 3 plausible wrong answers, ±1..5, never negative, never the right one
+function distractors(ans) {
+  const s = new Set();
+  while (s.size < 3) {
+    const d = ans + (1 + rnd(5)) * (Math.random() < 0.5 ? 1 : -1);
+    if (d !== ans && d >= 0) s.add(d);
+  }
+  return [...s];
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.text); // no repeats
+  document.getElementById('question').textContent = q.text;
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of shuffle([q.ans, ...distractors(q.ans)])) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.innerHTML = `<span dir="ltr">${o}</span>`;
+    btn.onclick = () => answer(o === q.ans, btn);
+    grid.appendChild(btn);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(ok, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 600);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

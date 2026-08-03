@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌡️ מד חום ומספרים שליליים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  .picked { outline: 4px solid var(--yellow); }
+  #thermo { width: min(45vw, 170px); height: auto; touch-action: none; direction: ltr; cursor: grab; }
+  #question { font-size: 1.4rem; font-weight: 800; margin: 8px 0; }
+  #readout { font-size: 2.4rem; font-weight: 900; color: var(--blue); }
+  #readout.below { color: var(--red); }
+  .nudge { font-size: 1.6rem; min-width: 60px; }
+  #play-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  #side-col { display: flex; flex-direction: column; gap: 10px; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
+  <span><span id="lbl-q"></span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🌡️</div>
+    <h1 class="game-title" id="title-line"></h1>
+    <p id="intro-line"></p>
+    <p id="rounds-line"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-n="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="question"></div>
+    <div id="play-row">
+      <svg id="thermo" viewBox="0 0 150 340" aria-label="מד חום">
+        <rect x="61" y="18" width="28" height="272" rx="14" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+        <circle cx="75" cy="305" r="26" fill="#ef4444" stroke="#b91c1c" stroke-width="2"/>
+        <rect id="mercury" x="67" y="150" width="16" height="140" fill="#ef4444"/>
+        <g id="ticks" font-size="13" font-weight="700" fill="#374151"></g>
+      </svg>
+      <div id="side-col">
+        <button class="game-btn secondary nudge" onclick="nudge(1)">▲</button>
+        <div id="readout" dir="ltr">0°</div>
+        <button class="game-btn secondary nudge" onclick="nudge(-1)">▼</button>
+      </div>
+    </div>
+    <button class="game-btn success" id="confirm-btn" onclick="confirm_()"></button>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="lbl-best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const t = d => IAKidsLang.t(d), ui = k => IAKidsLang.ui(k);
+let game, diff, timer, score = 0, qnum = 0, current = null, level = 1, answering = false;
+let TOTAL = 10, sel = 0;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'thermometer',
+  how: 'גוררים את הכספית במד החום לטמפרטורה הנכונה ולוחצים "בדוק".',
+  example: 'היה <span dir="ltr"><b>10°</b></span> וירד ב-<span dir="ltr"><b>3°</b></span> ← גוררים ל-<span dir="ltr"><b>7°</b></span>',
+});
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+const TMIN = -20, TMAX = 40, Y0 = 280, Y1 = 20; // svg y for TMIN / TMAX
+const yFor = temp => Y0 - (temp - TMIN) * (Y0 - Y1) / (TMAX - TMIN);
+
+$('lbl-score').textContent = ui('score');
+$('lbl-q').textContent = ui('question');
+$('lbl-best').textContent = ui('your_best');
+$('title-line').textContent = t({ he: 'מד חום ומספרים שליליים', en: 'Thermometer & Negative Numbers', es: 'Termómetro y números negativos', de: 'Thermometer & negative Zahlen', pt: 'Termômetro e números negativos' });
+$('intro-line').textContent = t({ he: 'גררו את הכספית לתשובה הנכונה!', en: 'Drag the mercury to the right answer!', es: '¡Arrastra el mercurio a la respuesta!', de: 'Zieh das Quecksilber zur richtigen Antwort!', pt: 'Arraste o mercúrio até a resposta!' });
+$('rounds-line').textContent = t({ he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' });
+$('confirm-btn').textContent = t({ he: '✓ בדוק', en: '✓ Check', es: '✓ Comprobar', de: '✓ Prüfen', pt: '✓ Verificar' });
+$('again-btn').textContent = ui('play_again');
+document.querySelector('[data-lvl="1"]').textContent = ui('level_easy');
+document.querySelector('[data-lvl="2"]').textContent = ui('level_medium');
+document.querySelector('[data-lvl="3"]').textContent = ui('level_hard');
+document.querySelector('[data-lvl="0"]').textContent = ui('level_random');
+
+// scale ticks: labels every 10°, minor every 5°
+(() => {
+  const g = $('ticks');
+  let h = '';
+  for (let temp = TMIN; temp <= TMAX; temp += 5) {
+    const y = yFor(temp), major = temp % 10 === 0;
+    h += `<line x1="${major ? 40 : 48}" y1="${y}" x2="59" y2="${y}" stroke="${temp === 0 ? '#3b82f6' : '#9ca3af'}" stroke-width="${temp === 0 ? 3 : 2}"/>`;
+    if (major) h += `<text x="36" y="${y + 4.5}" text-anchor="end" fill="${temp === 0 ? '#3b82f6' : '#374151'}">${temp}°</text>`;
+  }
+  g.innerHTML = h;
+})();
+
+function setTemp(v) {
+  sel = Math.max(TMIN, Math.min(TMAX, Math.round(v)));
+  const y = yFor(sel);
+  const m = $('mercury');
+  m.setAttribute('y', y);
+  m.setAttribute('height', 300 - y);
+  $('readout').textContent = sel + '°';
+  $('readout').classList.toggle('below', sel < 0);
+}
+function nudge(d) { if (!answering) { setTemp(sel + d); IAKidsFX._beep([[500 + sel * 5, 0, 0.04]]); } }
+
+// drag via Pointer Events (mouse + touch)
+(() => {
+  const svg = $('thermo');
+  let dragging = false;
+  const fromEvent = e => {
+    const r = svg.getBoundingClientRect();
+    const svgY = (e.clientY - r.top) * 340 / r.height;
+    setTemp(TMIN + (Y0 - svgY) * (TMAX - TMIN) / (Y0 - Y1));
+  };
+  svg.addEventListener('pointerdown', e => {
+    if (answering) return;
+    dragging = true;
+    svg.setPointerCapture(e.pointerId);
+    fromEvent(e);
+  });
+  svg.addEventListener('pointermove', e => { if (dragging && !answering) fromEvent(e); });
+  svg.addEventListener('pointerup', () => dragging = false);
+  svg.addEventListener('pointercancel', () => dragging = false);
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+const ready = (async () => {
+  game = await IAKidsGame.init('thermometer');
+  const p = await game.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  document.querySelector(`#rounds-row [data-n="${TOTAL}"]`)?.classList.add('success');
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('picked');
+})();
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => judge(null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// level 1: positive only · 2: crossing zero · 3: negative start
+function makeQuestion(lvl) {
+  let start, delta;
+  if (lvl === 1) {
+    start = 2 + rnd(28);
+    delta = Math.random() < 0.5
+      ? 1 + rnd(Math.min(12, TMAX - start))   // rise
+      : -(1 + rnd(Math.min(12, start)));      // drop, stays >= 0
+  } else if (lvl === 2) {
+    if (Math.random() < 0.5) { start = 1 + rnd(10); delta = -(start + 1 + rnd(10)); }  // drop below zero
+    else { start = -(1 + rnd(10)); delta = -start + 1 + rnd(10); }                     // rise above zero
+  } else {
+    start = -(1 + rnd(15));
+    delta = Math.random() < 0.5
+      ? 1 + rnd(15)                                // rise
+      : -(1 + rnd(Math.min(12, start - TMIN)));    // drop, stays >= -20
+  }
+  return { start, delta };
+}
+
+const phrase = q => t({
+  he: `היה <b dir="ltr">${q.start}°</b>, ${q.delta > 0 ? 'עלה ב' : 'ירד ב'}-<b dir="ltr">${Math.abs(q.delta)}°</b>. כמה מעלות עכשיו?`,
+  en: `It was <b dir="ltr">${q.start}°</b>, it ${q.delta > 0 ? 'rose by' : 'dropped by'} <b dir="ltr">${Math.abs(q.delta)}°</b>. What is it now?`,
+  es: `Hacía <b dir="ltr">${q.start}°</b>, ${q.delta > 0 ? 'subió' : 'bajó'} <b dir="ltr">${Math.abs(q.delta)}°</b>. ¿Cuánto hace ahora?`,
+  de: `Es war <b dir="ltr">${q.start}°</b>, es ${q.delta > 0 ? 'stieg um' : 'sank um'} <b dir="ltr">${Math.abs(q.delta)}°</b>. Wie viel ist es jetzt?`,
+  pt: `Estava <b dir="ltr">${q.start}°</b>, ${q.delta > 0 ? 'subiu' : 'caiu'} <b dir="ltr">${Math.abs(q.delta)}°</b>. Quanto está agora?`,
+});
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  answering = false;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  current = await game.newQuestion(() => makeQuestion(lvl), q => `${q.start}|${q.delta}`);
+  $('question').innerHTML = phrase(current);
+  setTemp(current.start); // mercury starts at the "before" temperature
+  timer.start(IAKidsTimer.secondsFor(lvl, 30, 14)); // generous — dragging takes time
+}
+
+function confirm_() { judge(sel === current.start + current.delta); }
+
+function judge(ok) {
+  if (answering) return;
+  answering = true;
+  timer.stop();
+  const btn = $('confirm-btn');
+  if (ok) {
+    score += 10; diff.right();
+    IAKidsFX.correct(btn); IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn); IAKidsCoins.wrong();
+    setTemp(current.start + current.delta); // show the right answer briefly
+  }
+  $('score').textContent = score;
+  setTimeout(next, 900);
+}
+
+async function end() {
+  timer.stop();
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

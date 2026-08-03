@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אילו כישורים חושבים מפתחים משחקי iakids</title>
+<style>
+  :root {
+    --bg-0: #fff8f2;
+    --bg-1: #fdefe2;
+    --card: #ffffff;
+    --text-1: #241f1a;
+    --text-2: #786f64;
+    --text-3: #a89c8d;
+    --line: #ece1d4;
+    --accent: #ff6a2a;
+    --ring: #f1e6d8;
+
+    --s-math: #2a78d6;   --s-math-dark: #3987e5;
+    --s-heb:  #eb6834;   --s-heb-dark:  #d95926;
+    --s-eng:  #1baf7a;   --s-eng-dark:  #199e70;
+    --s-sci:  #eda100;   --s-sci-dark:  #c98500;
+    --s-log:  #e87ba4;   --s-log-dark:  #d55181;
+    --s-hw:   #008300;   --s-hw-dark:   #008300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      --bg-0: #1a1613; --bg-1: #201a15; --card: #24201b;
+      --text-1: #f5efe8; --text-2: #b9ada0; --text-3: #83786b;
+      --line: #362e26; --accent: #ff7d47; --ring: #322a22;
+      --s-math: var(--s-math-dark); --s-heb: var(--s-heb-dark); --s-eng: var(--s-eng-dark);
+      --s-sci: var(--s-sci-dark); --s-log: var(--s-log-dark); --s-hw: var(--s-hw-dark);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg-0: #1a1613; --bg-1: #201a15; --card: #24201b;
+    --text-1: #f5efe8; --text-2: #b9ada0; --text-3: #83786b;
+    --line: #362e26; --accent: #ff7d47; --ring: #322a22;
+    --s-math: var(--s-math-dark); --s-heb: var(--s-heb-dark); --s-eng: var(--s-eng-dark);
+    --s-sci: var(--s-sci-dark); --s-log: var(--s-log-dark); --s-hw: var(--s-hw-dark);
+  }
+  :root[data-theme="light"] {
+    --bg-0: #fff8f2; --bg-1: #fdefe2; --card: #ffffff;
+    --text-1: #241f1a; --text-2: #786f64; --text-3: #a89c8d;
+    --line: #ece1d4; --accent: #ff6a2a; --ring: #f1e6d8;
+    --s-math: #2a78d6; --s-heb: #eb6834; --s-eng: #1baf7a;
+    --s-sci: #eda100; --s-log: #e87ba4; --s-hw: #008300;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: linear-gradient(175deg, var(--bg-0) 0%, var(--bg-1) 100%);
+    color: var(--text-1);
+    font-family: 'Heebo', 'Segoe UI', system-ui, sans-serif;
+    direction: inherit; /* follows <html dir>, which IAKidsLang.init() sets dynamically */
+    padding: 28px 18px 60px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  .back-link {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-2);
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  header { margin-bottom: 30px; }
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: clamp(1.6rem, 4vw, 2.3rem);
+    font-weight: 800;
+    margin: 0 0 8px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .sub {
+    color: var(--text-2);
+    font-size: 1rem;
+    max-width: 62ch;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .note {
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: var(--text-3);
+    border-right: 3px solid var(--line);
+    padding-right: 12px;
+    line-height: 1.6;
+    max-width: 68ch;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 34px;
+  }
+  @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .card h2 { font-size: 0.98rem; font-weight: 800; margin: 0; }
+  .card .n { margin-inline-start: auto; font-size: 0.72rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+  .top-skills {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    justify-content: center;
+  }
+  .chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-1);
+    background: var(--ring);
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  th:first-child, td:first-child { text-align: right; position: sticky; right: 0; background: var(--card); }
+  thead th {
+    font-size: 0.72rem;
+    color: var(--text-2);
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+    letter-spacing: 0.02em;
+  }
+  tbody tr:not(:last-child) td { border-bottom: 1px solid var(--line); }
+  tbody td:first-child { font-weight: 700; }
+  .cell-val { display: inline-flex; align-items: center; gap: 6px; }
+  .bar { width: 34px; height: 5px; border-radius: 3px; background: var(--ring); overflow: hidden; }
+  .bar > span { display: block; height: 100%; border-radius: 3px; }
+
+  h2.section-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 12px;
+  }
+  section + section { margin-top: 30px; }
+
+  .fact-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .fact-card .fact-emoji { font-size: 1.6rem; margin-bottom: 6px; }
+  .fact-card p { font-size: 0.88rem; line-height: 1.6; margin: 0 0 10px; }
+  .fact-card a {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .fact-card a:hover { text-decoration: underline; }
+  @media (max-width: 560px) { #factsGrid { grid-template-columns: 1fr !important; } }
+
+  .cat-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .cat-filter button {
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .cat-filter button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #allGamesTable th[data-sort] { cursor: pointer; user-select: none; }
+  #allGamesTable th[data-sort]:hover { color: var(--accent); }
+  #allGamesTable th[data-sort].sorted::after { content: ' ▾'; }
+  #allGamesTable th[data-sort].sorted.asc::after { content: ' ▴'; }
+  #allGamesTable tbody tr { cursor: pointer; }
+  #allGamesTable tbody tr:hover td { background: var(--ring); }
+  #allGamesTable .gname { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+  #gameModalOverlay {
+    position: fixed; inset: 0; background: rgba(20, 15, 10, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; z-index: 200;
+  }
+  #gameModalOverlay[hidden] { display: none; }
+  #gameModal {
+    background: var(--card); border-radius: 20px; padding: 22px;
+    max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto;
+    position: relative; text-align: center;
+  }
+  #gameModalClose {
+    position: absolute; top: 10px; inset-inline-end: 10px;
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    background: var(--ring); font-size: 1rem; cursor: pointer;
+  }
+  #gameModalRadar { max-width: 280px; margin: 0 auto; }
+  #gameModalLegend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 8px 0 14px; }
+  #gameModalLegend .leg-chip {
+    display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700;
+    background: var(--ring); border-radius: 999px; padding: 5px 10px;
+  }
+  #gameModalLegend .leg-chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  #gameModalLegend .leg-chip button { border: none; background: none; cursor: pointer; font-size: 0.85rem; color: var(--text-2); padding: 0; }
+  .compare-add { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .compare-add select {
+    font: inherit; font-size: 0.85rem; padding: 6px 10px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text-1); max-width: 220px;
+  }
+  #gameModalCards { display: flex; flex-direction: column; gap: 10px; }
+  .modal-game-card {
+    background: var(--ring); border-radius: 14px; padding: 12px 14px; text-align: start;
+  }
+  .modal-game-card .mg-head { display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 6px; }
+  .modal-game-card .mg-head .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .modal-game-card .play-link {
+    display: inline-block; margin-top: 8px; font-size: 0.82rem; font-weight: 700;
+    color: var(--accent); text-decoration: none;
+  }
+  .modal-game-card .play-link:hover { text-decoration: underline; }
+
+  .game-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .game-picker label { font-weight: 700; font-size: 0.9rem; }
+  .game-picker select {
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--text-1);
+    max-width: 100%;
+  }
+  .game-detail {
+    display: none;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .game-detail.active { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+  .game-detail .radar-col { flex: 0 0 220px; }
+  .game-detail .info-col { flex: 1 1 260px; min-width: 220px; }
+  .game-detail h3 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 800; }
+  .game-detail .cat-line { color: var(--text-2); font-size: 0.85rem; margin-bottom: 12px; }
+  .game-detail .top-skills { justify-content: flex-start; }
+  .game-detail .play-link {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .game-detail .play-link:hover { text-decoration: underline; }
+
+  footer { margin-top: 30px; font-size: 0.78rem; color: var(--text-3); line-height: 1.7; max-width: 70ch; }
+
+  .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 760px) { .trust-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .trust-grid { grid-template-columns: 1fr; } }
+  .trust-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+  }
+  .trust-card .trust-emoji { font-size: 1.8rem; margin-bottom: 6px; }
+  .trust-card h3 { font-size: 0.95rem; font-weight: 800; margin: 0 0 4px; }
+  .trust-card p { font-size: 0.82rem; color: var(--text-2); margin: 0; line-height: 1.5; }
+
+  .method-box {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px 20px;
+  }
+  .method-box ol { margin: 10px 0 0; padding-inline-start: 20px; }
+  .method-box li { margin-bottom: 8px; font-size: 0.9rem; line-height: 1.6; }
+  .method-box code { background: var(--ring); padding: 1px 6px; border-radius: 6px; font-size: 0.85em; }
+
+  .commitment {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+  .commitment .trust-emoji { font-size: 2rem; }
+  .commitment p { max-width: 60ch; margin: 8px auto 0; color: var(--text-2); line-height: 1.7; font-size: 0.92rem; }
+  .safe-links { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .safe-links a { font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+  .safe-links a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <a class="back-link" href="../" id="tBackLink"></a>
+    <div id="langSwitcherSlot"></div>
+  </div>
+  <header>
+    <span class="eyebrow" id="tEyebrow"></span>
+    <h1 id="tH1"></h1>
+    <p class="sub" id="tSub"></p>
+    <p class="note" id="tNote"></p>
+    <a class="game-btn" href="../brain-test/" id="tCta" style="display:inline-block;text-decoration:none;margin-top:10px"></a>
+  </header>
+
+  <section>
+    <h2 class="section-title" id="tTrustTitle"></h2>
+    <div class="trust-grid" id="trustGrid"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title" id="tMethodTitle"></h2>
+    <div class="method-box">
+      <p style="margin:0;color:var(--text-2);font-size:0.9rem" id="tMethodIntro"></p>
+      <ol id="tMethodList"></ol>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title" id="tFactsTitle"></h2>
+    <div class="grid" id="factsGrid" style="grid-template-columns:repeat(2,1fr)"></div>
+    <p class="note" id="tFactsCaution" style="margin-top:14px;max-width:none"></p>
+  </section>
+
+  <section>
+    <div class="grid" id="radarGrid"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title" id="tDataTableTitle"></h2>
+    <div class="table-wrap">
+      <table id="dataTable"></table>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title" id="tPickerTitle"></h2>
+    <div class="game-picker">
+      <label for="gameSelect" id="tPickerLabel"></label>
+      <select id="gameSelect">
+        <option value="" id="tPickerPlaceholder"></option>
+      </select>
+    </div>
+  </section>
+
+  <div id="gameModalOverlay" hidden>
+    <div id="gameModal">
+      <button id="gameModalClose" aria-label="close">✕</button>
+      <div id="gameModalRadar"></div>
+      <div id="gameModalLegend"></div>
+      <div class="compare-add">
+        <label for="compareSelect" id="tCompareAddLabel"></label>
+        <select id="compareSelect"><option value="" id="tCompareAddPlaceholder"></option></select>
+      </div>
+      <div id="gameModalCards"></div>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title" id="tCompareTitle"></h2>
+    <p class="sub" id="tCompareSub" style="margin-bottom:14px"></p>
+    <div class="cat-filter" id="catFilter"></div>
+    <div class="table-wrap">
+      <table id="allGamesTable"></table>
+    </div>
+  </section>
+
+  <footer id="legendFooter"></footer>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// data + scoring + radar rendering all live in IAKidsSkills (game-sdk.js) —
+// single source of truth shared with games/brain-test/.
+IAKidsLang.mountSwitcher(document.getElementById('langSwitcherSlot'));
+
+document.getElementById('tBackLink').textContent = IAKidsLang.t({
+  he: '← לכל המשחקים', en: '← All games', es: '← Todos los juegos', de: '← Alle Spiele', pt: '← Todos os jogos' });
+document.getElementById('tDataTableTitle').textContent = IAKidsLang.t({
+  he: 'טבלת הציונים המלאה — לפי קטגוריה', en: 'Full score table — by category',
+  es: 'Tabla de puntuaciones completa — por categoría', de: 'Vollständige Punktetabelle — nach Kategorie', pt: 'Tabela completa de pontuações — por categoria' });
+document.getElementById('tPickerTitle').textContent = IAKidsLang.t({
+  he: '🔍 בדקו משחק ספציפי', en: '🔍 Look up a specific game', es: '🔍 Consulten un juego específico', de: '🔍 Ein bestimmtes Spiel ansehen', pt: '🔍 Consulte um jogo específico' });
+document.getElementById('tPickerLabel').textContent = IAKidsLang.t({
+  he: 'בחרו משחק:', en: 'Choose a game:', es: 'Elijan un juego:', de: 'Spiel wählen:', pt: 'Escolha um jogo:' });
+document.getElementById('tPickerPlaceholder').textContent = IAKidsLang.t({
+  he: '— בחרו —', en: '— Choose —', es: '— Elegir —', de: '— Auswählen —', pt: '— Escolher —' });
+document.getElementById('tCompareTitle').textContent = IAKidsLang.t({
+  he: '🔬 השוואה מלאה — כל 100 המשחקים', en: '🔬 Full comparison — all 100 games',
+  es: '🔬 Comparación completa — los 100 juegos', de: '🔬 Vollständiger Vergleich — alle 100 Spiele', pt: '🔬 Comparação completa — todos os 100 jogos' });
+document.getElementById('tCompareSub').textContent = IAKidsLang.t({
+  he: 'השוואה בין קטגוריות ובין משחקים בודדים לפי כל אחד מ-8 כישורי החשיבה. סננו לפי קטגוריה, או לחצו על כותרת עמודה למיון. לחיצה על שורה מציגה את הרדאר המלא שלה למעלה.',
+  en: 'Compare categories and individual games across all 8 thinking skills. Filter by category, or click a column header to sort. Clicking a row shows its full radar above.',
+  es: 'Comparen categorías y juegos individuales en las 8 habilidades de pensamiento. Filtren por categoría o hagan clic en un encabezado de columna para ordenar. Al hacer clic en una fila se muestra su radar completo arriba.',
+  de: 'Vergleicht Kategorien und einzelne Spiele über alle 8 Denkfähigkeiten. Filtert nach Kategorie oder klickt auf eine Spaltenüberschrift zum Sortieren. Ein Klick auf eine Zeile zeigt ihr vollständiges Radar oben.',
+  pt: 'Compare categorias e jogos individuais nas 8 habilidades de pensamento. Filtre por categoria ou clique em um cabeçalho de coluna para ordenar. Clicar em uma linha mostra seu radar completo acima.' });
+
+// ---- header ----
+document.getElementById('tEyebrow').textContent = IAKidsLang.t({
+  he: 'מדריך להורים', en: 'A guide for parents', es: 'Guía para padres', de: 'Ein Leitfaden für Eltern', pt: 'Um guia para os pais' });
+document.getElementById('tH1').textContent = IAKidsLang.t({
+  he: 'אילו כישורי חשיבה כל קטגוריית משחקים מפתחת',
+  en: 'Which thinking skills each game category builds',
+  es: 'Qué habilidades de pensamiento desarrolla cada categoría de juegos',
+  de: 'Welche Denkfähigkeiten jede Spielkategorie fördert',
+  pt: 'Quais habilidades de pensamento cada categoria de jogos desenvolve' });
+document.getElementById('tSub').textContent = IAKidsLang.t({
+  he: '100 המשחקים של iakids מחולקים ל-6 קטגוריות. הרדאר של כל קטגוריה מראה עד כמה היא מתרגלת כל אחד מ-8 כישורי חשיבה מרכזיים אצל ילדים — כדי שתדעו למה לכוון לפי הצורך של הילד שלכם.',
+  en: 'iakids\' 100 games are split into 6 categories. Each category\'s radar shows how much it practices each of 8 core thinking skills in children — so you know where to aim based on what your child needs.',
+  es: 'Los 100 juegos de iakids se dividen en 6 categorías. El radar de cada categoría muestra cuánto practica cada una de las 8 habilidades de pensamiento centrales en los niños, para que sepas hacia dónde apuntar según lo que tu hijo/a necesita.',
+  de: 'Die 100 Spiele von iakids sind in 6 Kategorien unterteilt. Das Radar jeder Kategorie zeigt, wie stark sie jede der 8 zentralen Denkfähigkeiten bei Kindern trainiert — damit ihr wisst, worauf ihr je nach Bedarf eures Kindes zielen solltet.',
+  pt: 'Os 100 jogos do iakids estão divididos em 6 categorias. O radar de cada categoria mostra o quanto ela treina cada uma das 8 habilidades de pensamento essenciais nas crianças — para você saber para onde direcionar conforme a necessidade do seu filho/a.' });
+document.getElementById('tNote').innerHTML = IAKidsLang.t({
+  he: '⚠️ הציונים (0–5) הם הערכה חינוכית שלנו לפי מבנה המשחקים, לא מדידה קלינית או נוירולוגית. תיוגי "אזור מוחי" הם כינויים מוכרים ומיועדים להמחשה בלבד.',
+  en: '⚠️ The scores (0–5) are our educational estimate based on each game\'s design, not a clinical or neurological measurement. "Brain area" tags are familiar terms meant for illustration only.',
+  es: '⚠️ Las puntuaciones (0–5) son nuestra estimación educativa según el diseño de cada juego, no una medición clínica o neurológica. Las etiquetas de "área cerebral" son términos conocidos solo con fines ilustrativos.',
+  de: '⚠️ Die Werte (0–5) sind unsere pädagogische Einschätzung basierend auf dem Spieldesign, keine klinische oder neurologische Messung. "Gehirnregion"-Bezeichnungen dienen nur der Veranschaulichung.',
+  pt: '⚠️ As pontuações (0–5) são nossa estimativa educacional baseada no design de cada jogo, não uma medição clínica ou neurológica. As marcações de "área cerebral" são termos conhecidos apenas para ilustração.' });
+document.getElementById('tCta').textContent = IAKidsLang.t({
+  he: '🧪 בדקו את הכישורים של הילד/ה שלכם (4 דקות)', en: '🧪 Test your child\'s skills (4 minutes)',
+  es: '🧪 Evalúen las habilidades de su hijo/a (4 minutos)', de: '🧪 Testet die Fähigkeiten eures Kindes (4 Minuten)',
+  pt: '🧪 Avalie as habilidades do seu filho/a (4 minutos)' });
+
+// ---- trust section ----
+document.getElementById('tTrustTitle').textContent = IAKidsLang.t({
+  he: '🛡️ למה הורים סומכים על iakids', en: '🛡️ Why parents trust iakids',
+  es: '🛡️ Por qué los padres confían en iakids', de: '🛡️ Warum Eltern iakids vertrauen', pt: '🛡️ Por que os pais confiam no iakids' });
+
+const TRUST = [
+  { emoji: '🔍',
+    title: { he: 'שקיפות מלאה, לא "קופסה שחורה"', en: 'Fully transparent, not a "black box"', es: 'Totalmente transparente, no una "caja negra"', de: 'Völlig transparent, keine "Black Box"', pt: 'Totalmente transparente, não uma "caixa preta"' },
+    text: { he: 'כל ציון בעמוד הזה מגיע מנוסחה גלויה — לא אלגוריתם סודי. גללו למטה ותראו בדיוק איך אנחנו מחשבים.',
+      en: 'Every score on this page comes from a visible formula — not a secret algorithm. Scroll down and see exactly how we calculate it.',
+      es: 'Cada puntuación en esta página proviene de una fórmula visible, no de un algoritmo secreto. Desplácense hacia abajo y vean exactamente cómo calculamos.',
+      de: 'Jeder Wert auf dieser Seite stammt aus einer offengelegten Formel — kein geheimer Algorithmus. Scrollt nach unten und seht genau, wie wir rechnen.',
+      pt: 'Cada pontuação nesta página vem de uma fórmula visível — não um algoritmo secreto. Role para baixo e veja exatamente como calculamos.' } },
+  { emoji: '🔒',
+    title: { he: 'אין פרסומות, אין מעקב', en: 'No ads, no tracking', es: 'Sin anuncios, sin seguimiento', de: 'Keine Werbung, kein Tracking', pt: 'Sem anúncios, sem rastreamento' },
+    text: { he: 'ההתקדמות של הילד/ה נשמרת <b>במכשיר שלכם בלבד</b> (לא בשרת שלנו) — אלא אם תבחרו במפורש להתחבר.',
+      en: 'Your child\'s progress is saved <b>on your device only</b> (not on our servers) — unless you explicitly choose to sign in.',
+      es: 'El progreso de su hijo/a se guarda <b>solo en su dispositivo</b> (no en nuestros servidores), a menos que elijan iniciar sesión explícitamente.',
+      de: 'Der Fortschritt eures Kindes wird <b>nur auf eurem Gerät</b> gespeichert (nicht auf unseren Servern) — außer ihr meldet euch ausdrücklich an.',
+      pt: 'O progresso do seu filho/a é salvo <b>apenas no seu dispositivo</b> (não em nossos servidores) — a menos que você opte explicitamente por entrar.' } },
+  { emoji: '🎯',
+    title: { he: 'קושי שמתאים את עצמו', en: 'Difficulty that adapts itself', es: 'Dificultad que se adapta sola', de: 'Schwierigkeit, die sich selbst anpasst', pt: 'Dificuldade que se adapta sozinha' },
+    text: { he: 'כל משחק מתקשה כשהילד/ה מצליחים ומקל כשהם מתקשים — בזמן אמת, בלי צורך לבחור רמה ידנית כל פעם.',
+      en: 'Every game gets harder when your child succeeds and eases up when they struggle — in real time, no need to manually pick a level each time.',
+      es: 'Cada juego se vuelve más difícil cuando su hijo/a tiene éxito y más fácil cuando le cuesta — en tiempo real, sin elegir nivel manualmente cada vez.',
+      de: 'Jedes Spiel wird schwerer, wenn euer Kind erfolgreich ist, und leichter, wenn es Schwierigkeiten hat — in Echtzeit, ohne jedes Mal manuell ein Level wählen zu müssen.',
+      pt: 'Cada jogo fica mais difícil quando seu filho/a tem sucesso e mais fácil quando enfrenta dificuldades — em tempo real, sem precisar escolher o nível manualmente.' } },
+  { emoji: '🧩',
+    title: { he: '100 משחקים, 8 כישורים, לא ניחוש', en: '100 games, 8 skills, not a guess', es: '100 juegos, 8 habilidades, no una suposición', de: '100 Spiele, 8 Fähigkeiten, kein Rätselraten', pt: '100 jogos, 8 habilidades, não um palpite' },
+    text: { he: 'כל משחק תוכנן סביב מכניקה ספציפית (זיכרון, מהירות, לוגיקה...) — לא "בידור כללי" שנקרא לימודי.',
+      en: 'Every game was designed around a specific mechanic (memory, speed, logic...) — not generic "entertainment" labeled educational.',
+      es: 'Cada juego fue diseñado en torno a una mecánica específica (memoria, velocidad, lógica...) — no "entretenimiento genérico" etiquetado como educativo.',
+      de: 'Jedes Spiel wurde um eine bestimmte Mechanik herum entworfen (Gedächtnis, Tempo, Logik...) — keine generische "Unterhaltung", die als lehrreich bezeichnet wird.',
+      pt: 'Cada jogo foi projetado em torno de uma mecânica específica (memória, velocidade, lógica...) — não "entretenimento genérico" rotulado como educativo.' } },
+  { emoji: '🌍',
+    title: { he: 'עברית, אנגלית וגם ספרדית/גרמנית/פורטוגזית', en: 'Hebrew, English, plus Spanish/German/Portuguese', es: 'Hebreo, inglés y también español/alemán/portugués', de: 'Hebräisch, Englisch und auch Spanisch/Deutsch/Portugiesisch', pt: 'Hebraico, inglês e também espanhol/alemão/português' },
+    text: { he: 'ממשק ותוכן שנבנו לשפה ולתרבות — לא תרגום מכונה גנרי.',
+      en: 'Interface and content built for the language and culture — not generic machine translation.',
+      es: 'Interfaz y contenido creados para el idioma y la cultura, no una traducción automática genérica.',
+      de: 'Oberfläche und Inhalt für die jeweilige Sprache und Kultur gebaut — keine generische Maschinenübersetzung.',
+      pt: 'Interface e conteúdo construídos para o idioma e a cultura — não uma tradução automática genérica.' } },
+  { emoji: '📚',
+    title: { he: 'מבוסס מחקר אמיתי, לא שיווק', en: 'Grounded in real research, not marketing', es: 'Basado en investigación real, no en marketing', de: 'Auf echter Forschung basiert, nicht auf Marketing', pt: 'Baseado em pesquisa real, não em marketing' },
+    text: { he: 'הגישה שלנו נשענת על מחקר מוכר של Harvard, NIH ו-AAP — ראו מקורות מלאים למטה.',
+      en: 'Our approach relies on recognized research from Harvard, NIH, and the AAP — see full sources below.',
+      es: 'Nuestro enfoque se basa en investigación reconocida de Harvard, NIH y AAP — vean las fuentes completas abajo.',
+      de: 'Unser Ansatz stützt sich auf anerkannte Forschung von Harvard, NIH und AAP — vollständige Quellen unten.',
+      pt: 'Nossa abordagem se baseia em pesquisa reconhecida de Harvard, NIH e AAP — veja as fontes completas abaixo.' } },
+];
+document.getElementById('trustGrid').innerHTML = TRUST.map(c => `
+  <div class="trust-card">
+    <div class="trust-emoji">${c.emoji}</div>
+    <h3>${IAKidsLang.t(c.title)}</h3>
+    <p>${IAKidsLang.t(c.text)}</p>
+  </div>`).join('');
+
+// ---- method section ----
+document.getElementById('tMethodTitle').textContent = IAKidsLang.t({
+  he: '🧮 איך בדיוק אנחנו קובעים כל ציון', en: '🧮 Exactly how we determine every score',
+  es: '🧮 Cómo determinamos exactamente cada puntuación', de: '🧮 Wie wir jeden Wert genau bestimmen', pt: '🧮 Como determinamos exatamente cada pontuação' });
+document.getElementById('tMethodIntro').textContent = IAKidsLang.t({
+  he: 'אנחנו לא מבקשים מכם לסמוך על "בינה מלאכותית קסומה". הנה השיטה, שלב אחרי שלב:',
+  en: 'We\'re not asking you to trust some "magic AI." Here\'s the method, step by step:',
+  es: 'No les pedimos que confíen en una "IA mágica". Aquí está el método, paso a paso:',
+  de: 'Wir bitten euch nicht, einer "magischen KI" zu vertrauen. Hier ist die Methode, Schritt für Schritt:',
+  pt: 'Não pedimos que você confie em uma "IA mágica". Aqui está o método, passo a passo:' });
+const METHOD_STEPS = [
+  { he: 'לכל אחת מ-6 הקטגוריות יש <b>פרופיל בסיס</b> לפי סוג התוכן שלה (למשל: מתמטיקה מקבלת ציון גבוה בחשיבה מספרית ולוגית).',
+    en: 'Each of the 6 categories has a <b>baseline profile</b> based on its content type (e.g. math gets a high score in numeracy and logic).',
+    es: 'Cada una de las 6 categorías tiene un <b>perfil base</b> según su tipo de contenido (p. ej., matemáticas obtiene una puntuación alta en numeración y lógica).',
+    de: 'Jede der 6 Kategorien hat ein <b>Basisprofil</b> je nach Inhaltstyp (z. B. erhält Mathematik hohe Werte in Numerik und Logik).',
+    pt: 'Cada uma das 6 categorias tem um <b>perfil base</b> conforme seu tipo de conteúdo (ex.: matemática recebe pontuação alta em raciocínio numérico e lógico).' },
+  { he: 'לכל משחק יש <b>מכניקת אינטראקציה</b> (גרירה, זיכרון-קלפים, לחיצה מהירה, וכו\') שמוסיפה "בונוס" לכישור שהיא מתרגלת ישירות — משחק זיכרון-קלפים מקבל בונוס אמיתי לזיכרון, לא רק כי הוא בקטגוריית מתמטיקה.',
+    en: 'Each game has an <b>interaction mechanic</b> (drag, memory-cards, fast tap, etc.) that adds a "bonus" to the skill it directly practices — a memory-card game gets a real memory bonus, not just because it\'s in the math category.',
+    es: 'Cada juego tiene una <b>mecánica de interacción</b> (arrastrar, cartas de memoria, toque rápido, etc.) que añade un "bono" a la habilidad que practica directamente — un juego de cartas de memoria recibe un bono real de memoria, no solo por estar en la categoría de matemáticas.',
+    de: 'Jedes Spiel hat eine <b>Interaktionsmechanik</b> (Ziehen, Memory-Karten, schnelles Tippen usw.), die einen "Bonus" für die direkt trainierte Fähigkeit hinzufügt — ein Memory-Kartenspiel erhält einen echten Gedächtnisbonus, nicht nur weil es in der Mathematik-Kategorie ist.',
+    pt: 'Cada jogo tem uma <b>mecânica de interação</b> (arrastar, cartas de memória, toque rápido, etc.) que adiciona um "bônus" à habilidade que treina diretamente — um jogo de cartas de memória recebe um bônus real de memória, não apenas por estar na categoria de matemática.' },
+  { he: 'התוצאה מוצגת <b>כפי שהיא</b> — אתם יכולים לבחור כל משחק מתוך ה-100 בטבלה למטה ולראות בדיוק את הציון שלו ולמה.',
+    en: 'The result is shown <b>as-is</b> — you can pick any of the 100 games in the table below and see exactly its score and why.',
+    es: 'El resultado se muestra <b>tal cual</b> — pueden elegir cualquiera de los 100 juegos en la tabla de abajo y ver exactamente su puntuación y por qué.',
+    de: 'Das Ergebnis wird <b>unverändert</b> angezeigt — ihr könnt jedes der 100 Spiele in der Tabelle unten auswählen und genau seinen Wert und den Grund dafür sehen.',
+    pt: 'O resultado é mostrado <b>como é</b> — você pode escolher qualquer um dos 100 jogos na tabela abaixo e ver exatamente sua pontuação e o porquê.' },
+];
+document.getElementById('tMethodList').innerHTML = METHOD_STEPS.map(s => `<li>${IAKidsLang.t(s)}</li>`).join('');
+const SKILLS = IAKidsSkills.SKILLS;
+const GAMES = IAKidsSkills.GAMES;
+const COLOR_OF = { math: 'var(--s-math)', heb: 'var(--s-heb)', eng: 'var(--s-eng)', sci: 'var(--s-sci)', log: 'var(--s-log)', hw: 'var(--s-hw)' };
+const CAT_META = Object.fromEntries(Object.entries(IAKidsSkills.CAT_META).map(([key, m]) => [key, {
+  name: IAKidsLang.t(m.name), color: COLOR_OF[key], n: GAMES.filter(g => g.cat === key).length,
+}]));
+const CATEGORIES = Object.entries(IAKidsSkills.CAT_META).map(([key, m]) => ({
+  key, name: IAKidsLang.t(m.name), emoji: m.emoji, n: CAT_META[key].n, color: COLOR_OF[key], scores: m.scores,
+}));
+
+function gameScores(g) { return IAKidsSkills.gameScores(g); }
+function radarSVG(cat) { return IAKidsSkills.radarSVG(cat.scores, cat.color); }
+
+function topSkills(cat, n = 3) {
+  return Object.entries(cat.scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([k]) => IAKidsLang.t(SKILLS.find(s => s.key === k).label));
+}
+
+const MAX = 5;
+
+document.getElementById('tFactsTitle').textContent = IAKidsLang.t({
+  he: '🧬 עובדות על המוח — למה משחק חינוכי עוזר', en: '🧬 Facts about the brain — why educational play helps',
+  es: '🧬 Datos sobre el cerebro — por qué ayuda el juego educativo', de: '🧬 Fakten über das Gehirn — warum pädagogisches Spielen hilft',
+  pt: '🧬 Fatos sobre o cérebro — por que o jogo educativo ajuda' });
+document.getElementById('tFactsCaution').innerHTML = IAKidsLang.t({
+  he: '⚖️ בהגינות: המחקר על "מסכים" לילדים עדיין מתפתח, וההשפעה תלויה מאוד <b>באיזה תוכן</b> ו<b>כמה זמן</b> — לא רק בזה שיש מסך. משחק פעיל, מאתגר וקצר בזמן שונה לגמרי מגלילה פסיבית ארוכה. ה"מרשם" הכי מבוסס שיש הוא פשוט: משחק (גם לא-דיגיטלי!) הוא חשוב, ובכמות סבירה.',
+  en: '⚖️ In fairness: research on "screens" for children is still evolving, and the effect depends heavily on <b>what content</b> and <b>how much time</b> — not just on having a screen at all. Active, challenging, short-form play is completely different from long passive scrolling. The most well-established "prescription" is simply: play (digital or not!) matters, in reasonable amounts.',
+  es: '⚖️ Para ser justos: la investigación sobre las "pantallas" en niños aún está evolucionando, y el efecto depende mucho de <b>qué contenido</b> y <b>cuánto tiempo</b> — no solo de tener una pantalla. El juego activo, desafiante y breve es completamente distinto del desplazamiento pasivo prolongado. La "receta" más establecida es simple: el juego (¡también no digital!) importa, en cantidades razonables.',
+  de: '⚖️ Fairerweise: Die Forschung zu "Bildschirmen" bei Kindern entwickelt sich noch, und die Wirkung hängt stark davon ab, <b>welcher Inhalt</b> und <b>wie viel Zeit</b> — nicht nur davon, dass überhaupt ein Bildschirm vorhanden ist. Aktives, forderndes, kurzes Spielen unterscheidet sich völlig von langem passivem Scrollen. Das am besten belegte "Rezept" ist einfach: Spielen (auch nicht-digital!) ist wichtig, in angemessenem Umfang.',
+  pt: '⚖️ Para ser justo: a pesquisa sobre "telas" para crianças ainda está evoluindo, e o efeito depende muito de <b>qual conteúdo</b> e <b>quanto tempo</b> — não apenas de haver uma tela. Brincar de forma ativa, desafiadora e breve é completamente diferente de rolar passivamente por muito tempo. A "receita" mais estabelecida é simples: brincar (mesmo não digital!) importa, em quantidade razoável.' });
+
+const FACTS = [
+  {
+    emoji: '🧠',
+    text: {
+      he: 'בשנים הראשונות לחיים נוצרים במוח הילד/ה יותר ממיליון חיבורים עצביים חדשים <b>בכל שנייה</b>. אינטראקציות פעילות ומשחקיות עם מבוגר הן אחד הגורמים המרכזיים שמעצבים את "אדריכלות" המוח הזו.',
+      en: 'In the first years of life, a child\'s brain forms more than a million new neural connections <b>every second</b>. Active, playful interactions with an adult are one of the key factors shaping this brain "architecture."',
+      es: 'En los primeros años de vida, el cerebro del niño/a forma más de un millón de nuevas conexiones neuronales <b>cada segundo</b>. Las interacciones activas y lúdicas con un adulto son uno de los factores clave que dan forma a esta "arquitectura" cerebral.',
+      de: 'In den ersten Lebensjahren bildet das Gehirn eines Kindes mehr als eine Million neue neuronale Verbindungen <b>pro Sekunde</b>. Aktive, spielerische Interaktionen mit einem Erwachsenen sind einer der Hauptfaktoren, die diese Gehirn-"Architektur" formen.',
+      pt: 'Nos primeiros anos de vida, o cérebro da criança forma mais de um milhão de novas conexões neurais <b>a cada segundo</b>. Interações ativas e lúdicas com um adulto são um dos principais fatores que moldam essa "arquitetura" cerebral.' },
+    source: 'Center on the Developing Child, Harvard University',
+    url: 'https://developingchild.harvard.edu/key-concept/brain-architecture/',
+  },
+  {
+    emoji: '🎯',
+    text: {
+      he: 'משחק עוזר לילדים לתרגל ולחזק בדיוק את מה שנקרא "תפקוד ניהולי" (Executive Function) — היכולת להתמקד, לזכור לטווח קצר (זיכרון עבודה), ולשלוט בדחפים. אלו בדיוק הכישורים שכל משחק ב-iakids מתאמן עליהם.',
+      en: 'Play helps children practice and strengthen exactly what\'s called "Executive Function" — the ability to focus, hold information in short-term (working) memory, and control impulses. These are exactly the skills every iakids game trains.',
+      es: 'El juego ayuda a los niños a practicar y fortalecer exactamente lo que se llama "función ejecutiva" — la capacidad de concentrarse, retener información a corto plazo (memoria de trabajo) y controlar impulsos. Estas son exactamente las habilidades que entrena cada juego de iakids.',
+      de: 'Spielen hilft Kindern, genau das zu üben und zu stärken, was als "exekutive Funktion" bezeichnet wird — die Fähigkeit, sich zu konzentrieren, Informationen kurzfristig zu behalten (Arbeitsgedächtnis) und Impulse zu kontrollieren. Genau diese Fähigkeiten trainiert jedes iakids-Spiel.',
+      pt: 'Brincar ajuda as crianças a praticar e fortalecer exatamente o que se chama de "função executiva" — a capacidade de focar, reter informações a curto prazo (memória de trabalho) e controlar impulsos. Essas são exatamente as habilidades que cada jogo do iakids treina.' },
+    source: 'Harvard Graduate School of Education',
+    url: 'https://www.gse.harvard.edu/ideas/usable-knowledge/25/01/play-helps-children-build-better-brains-here-are-some-ways-get-kids',
+  },
+  {
+    emoji: '🩺',
+    text: {
+      he: 'האיגוד האמריקאי לרפואת ילדים (AAP) פרסם דו"ח קליני שקורא לרופאי ילדים "לרשום מרשם למשחק". בציטוט ד"ר Michael Yogman, מחבר הדו"ח הראשי: <i>"אנחנו ממליצים לרופאים לרשום מרשם למשחק, כי הוא כל כך חשוב"</i> — משחק משפר מבנה ותפקוד מוחי ומקדם את התפקוד הניהולי שעליו נשענת הלמידה.',
+      en: 'The American Academy of Pediatrics (AAP) published a clinical report calling on pediatricians to "prescribe play." As lead author Dr. Michael Yogman put it: <i>"We\'re recommending doctors write a prescription for play because it\'s so important"</i> — play improves brain structure and function and promotes the executive function that learning relies on.',
+      es: 'La Academia Americana de Pediatría (AAP) publicó un informe clínico que pide a los pediatras que "receten juego". Según el Dr. Michael Yogman, autor principal: <i>"Recomendamos que los médicos receten el juego porque es muy importante"</i> — el juego mejora la estructura y función cerebral y promueve la función ejecutiva de la que depende el aprendizaje.',
+      de: 'Die American Academy of Pediatrics (AAP) veröffentlichte einen klinischen Bericht, der Kinderärzte auffordert, "Spielen zu verschreiben". Hauptautor Dr. Michael Yogman dazu: <i>"Wir empfehlen Ärzten, ein Rezept fürs Spielen auszustellen, weil es so wichtig ist"</i> — Spielen verbessert Gehirnstruktur und -funktion und fördert die exekutive Funktion, auf der Lernen beruht.',
+      pt: 'A Academia Americana de Pediatria (AAP) publicou um relatório clínico pedindo que pediatras "prescrevam brincadeira". Segundo o autor principal, Dr. Michael Yogman: <i>"Recomendamos que os médicos prescrevam brincadeira porque é muito importante"</i> — brincar melhora a estrutura e função cerebral e promove a função executiva da qual a aprendizagem depende.' },
+    source: 'American Academy of Pediatrics',
+    url: 'https://www.aap.org/en/patient-care/early-childhood/early-childhood-health-and-development/power-of-play/',
+  },
+  {
+    emoji: '🎮',
+    text: {
+      he: 'מחקר בתמיכת NIH (מעקב ABCD, כ-2,000 ילדים) מצא שילדים ששיחקו באופן קבוע היו מהירים ומדויקים יותר במבחני שליטה עצמית וזיכרון עבודה, עם פעילות גבוהה יותר באזורי קשב וזיכרון במוח. <i>חשוב: זהו מחקר מתאמי (לא סיבתי), ולא הבדילו בין סוגי משחקים.</i>',
+      en: 'An NIH-funded study (the ABCD study, ~2,000 children) found that children who played regularly were faster and more accurate on tests of impulse control and working memory, with higher activity in brain regions for attention and memory. <i>Important: this is a correlational study (not causal), and it didn\'t distinguish between game genres.</i>',
+      es: 'Un estudio financiado por el NIH (estudio ABCD, ~2.000 niños) encontró que los niños que jugaban regularmente eran más rápidos y precisos en pruebas de control de impulsos y memoria de trabajo, con mayor actividad en zonas cerebrales de atención y memoria. <i>Importante: es un estudio correlacional (no causal), y no distinguió entre tipos de juegos.</i>',
+      de: 'Eine vom NIH finanzierte Studie (ABCD-Studie, ca. 2.000 Kinder) fand, dass regelmäßig spielende Kinder bei Tests zu Impulskontrolle und Arbeitsgedächtnis schneller und genauer waren, mit höherer Aktivität in Gehirnregionen für Aufmerksamkeit und Gedächtnis. <i>Wichtig: Dies ist eine Korrelationsstudie (nicht kausal), und es wurde nicht zwischen Spielegenres unterschieden.</i>',
+      pt: 'Um estudo financiado pelo NIH (estudo ABCD, ~2.000 crianças) constatou que crianças que jogavam regularmente eram mais rápidas e precisas em testes de controle de impulso e memória de trabalho, com maior atividade em áreas cerebrais de atenção e memória. <i>Importante: é um estudo correlacional (não causal), e não distinguiu entre gêneros de jogos.</i>' },
+    source: 'National Institutes of Health (NIH)',
+    url: 'https://www.nih.gov/news-events/news-releases/video-gaming-may-be-associated-better-cognitive-performance-children',
+  },
+  {
+    emoji: '⏰',
+    text: {
+      he: 'מחקר שפורסם ב-JAMA Pediatrics (414 ילדים, במימון NIH) מצא: ילדים עם <b>יותר מ-2 שעות מסך ביום</b> הראו ירידה של כ-8 נקודות באחוזון התפקוד הניהולי, ציון גבוה יותר בכ-3 נקודות בסולמות חוסר-קשב, ופגיעה בשליטה בדחפים — לעומת ילדים עם פחות זמן מסך. המסקנה: <b>כמות וסוג</b> חשובים לא פחות מעצם הקיום של מסך.',
+      en: 'A study published in JAMA Pediatrics (414 children, NIH-funded) found: children with <b>more than 2 hours of screen time a day</b> showed roughly an 8-point drop in executive-function percentile, a ~3-point higher score on inattention scales, and impaired impulse control — compared to children with less screen time. The takeaway: <b>amount and type</b> matter just as much as having a screen at all.',
+      es: 'Un estudio publicado en JAMA Pediatrics (414 niños, financiado por el NIH) encontró: los niños con <b>más de 2 horas de pantalla al día</b> mostraron una caída de unos 8 puntos en el percentil de función ejecutiva, una puntuación unos 3 puntos más alta en escalas de falta de atención, y peor control de impulsos, en comparación con niños con menos tiempo de pantalla. Conclusión: <b>la cantidad y el tipo</b> importan tanto como el hecho de tener pantalla.',
+      de: 'Eine in JAMA Pediatrics veröffentlichte Studie (414 Kinder, NIH-finanziert) fand: Kinder mit <b>mehr als 2 Stunden Bildschirmzeit täglich</b> zeigten einen Rückgang von etwa 8 Punkten im Perzentil der exekutiven Funktion, einen um ca. 3 Punkte höheren Wert auf Unaufmerksamkeitsskalen und beeinträchtigte Impulskontrolle — im Vergleich zu Kindern mit weniger Bildschirmzeit. Fazit: <b>Menge und Art</b> sind genauso wichtig wie die bloße Existenz eines Bildschirms.',
+      pt: 'Um estudo publicado na JAMA Pediatrics (414 crianças, financiado pelo NIH) constatou: crianças com <b>mais de 2 horas de tela por dia</b> mostraram uma queda de cerca de 8 pontos no percentil de função executiva, pontuação cerca de 3 pontos maior em escalas de desatenção, e controle de impulso prejudicado — em comparação com crianças com menos tempo de tela. Conclusão: <b>quantidade e tipo</b> importam tanto quanto simplesmente ter uma tela.' },
+    source: 'JAMA Pediatrics / NIH',
+    url: 'https://www.nih.gov/news-events/news-releases/more-two-hours-daily-screen-time-linked-cognitive-behavioral-problems-children-born-extremely-preterm',
+  },
+];
+
+const T_SOURCE = IAKidsLang.t({ he: 'מקור', en: 'Source', es: 'Fuente', de: 'Quelle', pt: 'Fonte' });
+document.getElementById('factsGrid').innerHTML = FACTS.map(f => `
+  <div class="fact-card">
+    <div class="fact-emoji">${f.emoji}</div>
+    <p>${IAKidsLang.t(f.text)}</p>
+    <a href="${f.url}" target="_blank" rel="noopener">${T_SOURCE}: ${f.source} ↗</a>
+  </div>
+`).join('');
+
+document.getElementById('radarGrid').innerHTML = CATEGORIES.map(cat => `
+  <div class="card">
+    <div class="card-head">
+      <span class="dot" style="background:${cat.color}"></span>
+      <h2>${cat.emoji} ${cat.name}</h2>
+      <span class="n">${cat.n} משחקים</span>
+    </div>
+    ${radarSVG(cat)}
+    <div class="top-skills">
+      ${topSkills(cat).map(s => `<span class="chip">${s}</span>`).join('')}
+    </div>
+  </div>
+`).join('');
+
+const T_CATEGORY = IAKidsLang.t({ he: 'קטגוריה', en: 'Category', es: 'Categoría', de: 'Kategorie', pt: 'Categoria' });
+const thead = `<thead><tr><th>${T_CATEGORY}</th>${SKILLS.map(s => `<th>${IAKidsLang.t(s.label)}</th>`).join('')}</tr></thead>`;
+const tbody = `<tbody>${CATEGORIES.map(cat => `
+  <tr>
+    <td>${cat.emoji} ${cat.name}</td>
+    ${SKILLS.map(s => {
+      const v = cat.scores[s.key];
+      const pct = (v / MAX) * 100;
+      return `<td><span class="cell-val">${v}<span class="bar"><span style="width:${pct}%;background:${cat.color}"></span></span></span></td>`;
+    }).join('')}
+  </tr>`).join('')}</tbody>`;
+document.getElementById('dataTable').innerHTML = thead + tbody;
+
+// per-game picker
+const select = document.getElementById('gameSelect');
+const byCat = {};
+GAMES.forEach(g => (byCat[g.cat] ||= []).push(g));
+Object.keys(CAT_META).forEach(catKey => {
+  const list = byCat[catKey] || [];
+  if (!list.length) return;
+  const og = document.createElement('optgroup');
+  og.label = CAT_META[catKey].name; // already resolved above
+  list.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.slug;
+    opt.textContent = `${g.emoji} ${g.name}`;
+    og.appendChild(opt);
+  });
+  select.appendChild(og);
+});
+
+// ---- game modal: click a game anywhere -> radar dialog, compare up to 3 ----
+const COMPARE_COLORS = ['var(--s-math)', 'var(--s-heb)', 'var(--s-eng)']; // 3-slot dataviz-validated all-pairs palette
+const COMPARE_MAX = 3;
+let compareSlugs = [];
+const modalOverlay = document.getElementById('gameModalOverlay');
+const modalEl = document.getElementById('gameModal');
+const compareSelect = document.getElementById('compareSelect');
+
+document.getElementById('tCompareAddLabel').textContent = IAKidsLang.t({
+  he: '➕ השוו עם:', en: '➕ Compare with:', es: '➕ Comparar con:', de: '➕ Vergleichen mit:', pt: '➕ Comparar com:' });
+const T_COMPARE_PLACEHOLDER = IAKidsLang.t({
+  he: '— בחרו משחק —', en: '— Choose a game —', es: '— Elegir un juego —', de: '— Spiel wählen —', pt: '— Escolher um jogo —' });
+document.getElementById('tCompareAddPlaceholder').textContent = T_COMPARE_PLACEHOLDER;
+
+function multiRadarSVG(entries) {
+  // entries: [{scores, color}], up to 3. Reuses IAKidsSkills geometry, draws all series on one chart.
+  const size = 260, cx = size / 2, cy = size / 2, r = size * 0.36, max = 5;
+  const pt = (i, v) => {
+    const angle = (Math.PI * 2 * i) / SKILLS.length - Math.PI / 2;
+    const rad = (v / max) * r;
+    return [cx + rad * Math.cos(angle), cy + rad * Math.sin(angle)];
+  };
+  const rings = [1, 2, 3, 4, 5].map(lvl => {
+    const pts = SKILLS.map((_, i) => pt(i, lvl).join(',')).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="var(--line)" stroke-width="${lvl === 5 ? 1.4 : 1}" opacity="${lvl === 5 ? 0.9 : 0.5}"/>`;
+  }).join('');
+  const spokes = SKILLS.map((_, i) => {
+    const [x, y] = pt(i, max);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)" stroke-width="1" opacity="0.6"/>`;
+  }).join('');
+  const labels = SKILLS.map((s, i) => {
+    const angle = (Math.PI * 2 * i) / SKILLS.length - Math.PI / 2;
+    const lx = cx + (r + 22) * Math.cos(angle), ly = cy + (r + 22) * Math.sin(angle);
+    const anchor = Math.cos(angle) > 0.3 ? 'start' : Math.cos(angle) < -0.3 ? 'end' : 'middle';
+    return `<text x="${lx}" y="${ly}" font-size="8.5" fill="var(--text-3)" text-anchor="${anchor}" dominant-baseline="middle">${IAKidsLang.t(s.label)}</text>`;
+  }).join('');
+  const series = entries.map(({ scores, color }) => {
+    const pts = SKILLS.map((s, i) => pt(i, scores[s.key] || 0));
+    const dots = pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="${color}"/>`).join('');
+    return `<polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="${color}" fill-opacity="0.16" stroke="${color}" stroke-width="2.2"/>${dots}`;
+  }).join('');
+  return `<svg viewBox="0 0 ${size} ${size}" width="100%">${rings}${spokes}${series}${labels}</svg>`;
+}
+
+function renderModal() {
+  const entries = compareSlugs.map((slug, i) => {
+    const g = GAMES.find(x => x.slug === slug);
+    return { g, meta: CAT_META[g.cat], scores: gameScores(g), color: COMPARE_COLORS[i] };
+  });
+
+  document.getElementById('gameModalRadar').innerHTML = multiRadarSVG(entries);
+  document.getElementById('gameModalLegend').innerHTML = entries.map((e, i) => `
+    <span class="leg-chip"><span class="dot" style="background:${e.color}"></span>${e.g.emoji} ${e.g.name}
+      ${entries.length > 1 ? `<button data-remove="${e.g.slug}">✕</button>` : ''}
+    </span>`).join('');
+  document.getElementById('gameModalCards').innerHTML = entries.map(e => `
+    <div class="modal-game-card">
+      <div class="mg-head"><span class="dot" style="background:${e.color}"></span>${e.g.emoji} ${e.g.name}
+        <span style="font-weight:400;color:var(--text-2);font-size:0.8rem">· ${e.meta.name}</span></div>
+      <div class="top-skills" style="justify-content:flex-start">
+        ${Object.entries(e.scores).sort((a, b) => b[1] - a[1]).slice(0, 3)
+          .map(([k, v]) => `<span class="chip">${IAKidsLang.t(SKILLS.find(s => s.key === k).label)} ${v}/5</span>`).join('')}
+      </div>
+      <a class="play-link" href="../${e.g.slug}/">▶️ ${IAKidsLang.ui('start') || 'שחקו'}</a>
+    </div>`).join('');
+
+  compareSelect.innerHTML = `<option value="">${T_COMPARE_PLACEHOLDER}</option>` +
+    GAMES.filter(g => !compareSlugs.includes(g.slug))
+      .map(g => `<option value="${g.slug}">${g.emoji} ${g.name} (${CAT_META[g.cat].name})</option>`).join('');
+  compareSelect.parentElement.style.display = compareSlugs.length >= COMPARE_MAX ? 'none' : '';
+
+  document.querySelectorAll('#gameModalLegend button[data-remove]').forEach(b => b.onclick = () => {
+    compareSlugs = compareSlugs.filter(s => s !== b.dataset.remove);
+    renderModal();
+  });
+}
+
+function openGameModal(slug) {
+  compareSlugs = [slug];
+  renderModal();
+  modalOverlay.hidden = false;
+}
+function closeGameModal() { modalOverlay.hidden = true; }
+
+document.getElementById('gameModalClose').onclick = closeGameModal;
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeGameModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modalOverlay.hidden) closeGameModal(); });
+compareSelect.addEventListener('change', () => {
+  if (compareSelect.value && compareSlugs.length < COMPARE_MAX) {
+    compareSlugs.push(compareSelect.value);
+    renderModal();
+  }
+});
+
+select.addEventListener('change', () => { if (select.value) openGameModal(select.value); });
+const preselect = new URLSearchParams(location.search).get('game');
+if (preselect && GAMES.some(g => g.slug === preselect)) {
+  select.value = preselect;
+  openGameModal(preselect);
+}
+
+// full 100-game comparison table: filter by category, sort by any column,
+// click a row to open its radar in the "בדקו משחק ספציפי" section above.
+const T_ALL = IAKidsLang.t({ he: 'הכל', en: 'All', es: 'Todos', de: 'Alle', pt: 'Todos' });
+const T_GAME = IAKidsLang.t({ he: 'משחק', en: 'Game', es: 'Juego', de: 'Spiel', pt: 'Jogo' });
+
+let filterCat = 'all';
+let sortKey = 'cat';
+let sortDir = 'asc';
+
+const allGamesRows = GAMES.map(g => ({ g, meta: CAT_META[g.cat], scores: gameScores(g) }));
+
+document.getElementById('catFilter').innerHTML =
+  [['all', T_ALL, null], ...Object.entries(CAT_META).map(([k, m]) => [k, m.name, m.color])]
+    .map(([key, label, color]) => `<button data-cat="${key}" class="${key === filterCat ? 'active' : ''}"
+      style="${color ? `border-color:${color}` : ''}">${label}</button>`).join('');
+document.getElementById('catFilter').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-cat]');
+  if (!btn) return;
+  filterCat = btn.dataset.cat;
+  document.querySelectorAll('#catFilter button').forEach(b => b.classList.toggle('active', b === btn));
+  renderAllGamesTable();
+});
+
+function renderAllGamesTable() {
+  const rows = allGamesRows
+    .filter(r => filterCat === 'all' || r.g.cat === filterCat)
+    .sort((a, b) => {
+      let av, bv;
+      if (sortKey === 'name') { av = a.g.name; bv = b.g.name; }
+      else if (sortKey === 'cat') { av = a.meta.name; bv = b.meta.name; }
+      else { av = a.scores[sortKey]; bv = b.scores[sortKey]; }
+      const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+  const headCell = (key, label) =>
+    `<th data-sort="${key}" class="${sortKey === key ? 'sorted ' + sortDir : ''}">${label}</th>`;
+  const thead = `<thead><tr>
+    ${headCell('name', T_GAME)}${headCell('cat', T_CATEGORY)}
+    ${SKILLS.map(s => headCell(s.key, IAKidsLang.t(s.label))).join('')}
+  </tr></thead>`;
+
+  const tbody = `<tbody>${rows.map(({ g, meta, scores }) => `
+    <tr data-slug="${g.slug}">
+      <td><span class="gname">${g.emoji} ${g.name}</span></td>
+      <td><span class="dot" style="background:${meta.color};display:inline-block;margin-inline-end:5px"></span>${meta.name}</td>
+      ${SKILLS.map(s => `<td>${scores[s.key]}</td>`).join('')}
+    </tr>`).join('')}</tbody>`;
+
+  document.getElementById('allGamesTable').innerHTML = thead + tbody;
+
+  document.querySelectorAll('#allGamesTable th[data-sort]').forEach(th => th.onclick = () => {
+    const key = th.dataset.sort;
+    sortDir = sortKey === key ? (sortDir === 'asc' ? 'desc' : 'asc') : (key === 'name' || key === 'cat' ? 'asc' : 'desc');
+    sortKey = key;
+    renderAllGamesTable();
+  });
+  document.querySelectorAll('#allGamesTable tbody tr').forEach(tr => tr.onclick = () => {
+    select.value = tr.dataset.slug;
+    openGameModal(tr.dataset.slug);
+  });
+}
+renderAllGamesTable();
+
+const T_FOOTER_LEAD = IAKidsLang.t({
+  he: '🧠 אזורי מוח לפי כישור: ', en: '🧠 Brain areas by skill: ', es: '🧠 Áreas cerebrales por habilidad: ',
+  de: '🧠 Gehirnregionen nach Fähigkeit: ', pt: '🧠 Áreas cerebrais por habilidade: ' });
+const T_FOOTER_TAIL = IAKidsLang.t({
+  he: '. הציונים מבוססים על מנגנון המשחק (למשל: זיכרון תרגילים = ניקוד זיכרון גבוה), לא על מחקר נוירולוגי ממוקד ילדים.',
+  en: '. Scores are based on each game\'s mechanic (e.g. memory-card matching = a high memory score), not on child-specific neurological research.',
+  es: '. Las puntuaciones se basan en la mecánica de cada juego (p. ej., emparejar cartas de memoria = puntuación alta en memoria), no en investigación neurológica específica de niños.',
+  de: '. Die Werte basieren auf der Mechanik jedes Spiels (z. B. Memory-Karten zuordnen = hoher Gedächtniswert), nicht auf kinderspezifischer neurologischer Forschung.',
+  pt: '. As pontuações se baseiam na mecânica de cada jogo (ex.: combinar cartas de memória = pontuação alta em memória), não em pesquisa neurológica específica para crianças.' });
+document.getElementById('legendFooter').innerHTML =
+  T_FOOTER_LEAD +
+  SKILLS.map(s => `<b>${IAKidsLang.t(s.label)}</b> — ${IAKidsLang.t(s.brain)}`).join(' · ') +
+  T_FOOTER_TAIL;
+</script>
+</body>
+</html>

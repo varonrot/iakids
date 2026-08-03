@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>החלף אות וקבל מילה חדשה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔁</div>
+    <h1 class="game-title">החלף אות וקבל מילה חדשה</h1>
+    <p>מחליפים אות אחת במילה — ומקבלים מילה חדשה. שיר ← גיר!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question" dir="rtl"></div>
+    <div id="hint-line" style="font-size:3rem;margin:6px 0"></div>
+    <div id="prompt-line" style="color:var(--muted);margin-bottom:6px"></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// ---- content bank: verified Hebrew word pairs at edit-distance 1 ----
+// level 1: the differing letter is always the FIRST letter
+const PAIRS1 = [
+  ['שיר', 'גיר', '🖍️'],
+  ['ספר', 'כפר', '🏘️'],
+  ['גג', 'דג', '🐟'],
+  ['כוס', 'סוס', '🐴'],
+  ['לוח', 'כוח', '💪'],
+  ['נמל', 'גמל', '🐫'],
+  ['חלב', 'שלב', '🪜'],
+  ['קול', 'חול', '🏖️'],
+];
+// level 2 pool: any letter position may differ (adds to PAIRS1)
+const PAIRS_ANY = PAIRS1.concat([
+  ['גיר', 'גור', '🐺'],
+  ['דג', 'דב', '🐻'],
+  ['עץ', 'עז', '🐐'],
+  ['דלת', 'דלי', '🪣'],
+  ['ילד', 'יעד', '🎯'],
+  ['כלב', 'כלה', '👰'],
+  ['מלך', 'מלח', '🧂'],
+  ['קר', 'קש', '🌾'],
+  ['שמש', 'שמח', '😊'],
+  ['ים', 'יד', '✋'],
+  ['נהר', 'נמר', '🐯'],
+  ['בור', 'בוץ', '🟤'],
+  ['כדור', 'כפור', '❄️'],
+  ['עוגה', 'עוגן', '⚓'],
+]);
+// level 3: two-hop chains, each hop verified edit-distance 1
+const CHAINS = [
+  { words: ['שיר', 'גיר', 'גור'], hint: '🐺' },
+  { words: ['כוס', 'סוס', 'סוד'], hint: '🤫' },
+  { words: ['קול', 'חול', 'חוג'], hint: '🎨' },
+  { words: ['מלך', 'מלח', 'מלט'], hint: '🧱' },
+];
+const ALL_WORDS = [...new Set([
+  ...PAIRS_ANY.flatMap(p => [p[0], p[1]]),
+  ...CHAINS.flatMap(c => c.words),
+])];
+
+const rnd = n => Math.floor(Math.random() * n);
+const pick = arr => arr[rnd(arr.length)];
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function buildOptions(correct, mustInclude, exclude) {
+  const opts = new Set([correct, ...mustInclude]);
+  const banned = new Set([correct, ...mustInclude, ...exclude]);
+  let pool = shuffle(ALL_WORDS.filter(w => w.length === correct.length && !banned.has(w)));
+  for (const w of pool) { if (opts.size >= 4) break; opts.add(w); }
+  if (opts.size < 4) {
+    pool = shuffle(ALL_WORDS.filter(w => !banned.has(w) && !opts.has(w)));
+    for (const w of pool) { if (opts.size >= 4) break; opts.add(w); }
+  }
+  return shuffle([...opts]);
+}
+
+function makeQuestion(lvl) {
+  if (lvl === 3) {
+    const chain = pick(CHAINS);
+    const [w1, w2, correct] = chain.words;
+    const options = buildOptions(correct, [w2], [w1]);
+    return { mode: 'chain', source: w1, hint: chain.hint, correct, options,
+      prompt: 'אחרי שתי החלפות אות, לאיזו מילה מגיעים?' };
+  }
+  const pool = lvl === 1 ? PAIRS1 : PAIRS_ANY;
+  const item = pick(pool);
+  const options = buildOptions(item[1], [], [item[0]]);
+  return { mode: 'pair', source: item[0], hint: item[2], correct: item[1], options,
+    prompt: 'איזו מילה מתקבלת אם נחליף אות אחת?' };
+}
+
+let game, score = 0, qnum = 0, current, level = 1, TOTAL = 10, diff, timer;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'letter-swap',
+  how: 'מופיעה מילה, ואם מחליפים בה אות אחת מקבלים מילה חדשה לגמרי! צריך לבחור מהאפשרויות את המילה החדשה הנכונה, לפי הרמז.',
+  example: '<b>שיר</b> 🎵 ← (מחליפים ש ב-ג) ← <b>גיר</b> 🖍️',
+});
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('letter-swap');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.mode + '|' + x.source + '|' + x.correct);
+  current = q;
+  document.getElementById('question').textContent = q.source;
+  document.getElementById('hint-line').textContent = q.hint;
+  document.getElementById('prompt-line').textContent = q.prompt;
+  const answers = document.getElementById('answers');
+  answers.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline';
+    btn.textContent = opt;
+    btn.onclick = () => answer(opt, btn);
+    answers.appendChild(btn);
+  });
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(said, btn) {
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (said === current.correct) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    if (btn) IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משחק הקלדה מהירה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#play-area {
+  position: relative; width: 100%; height: 320px; overflow: hidden;
+  background: var(--accent-soft); border-radius: var(--radius); margin: 12px 0;
+}
+.falling {
+  position: absolute; top: -40px; font-size: 1.3rem; font-weight: 800;
+  background: var(--card); border: 2px solid var(--accent); border-radius: 10px;
+  padding: 6px 10px; white-space: nowrap; color: var(--text);
+}
+.falling .matched { color: var(--green); }
+#keyboard { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; margin-top: 8px; }
+#keyboard button {
+  min-height: 40px; padding: 4px; font-size: 1rem; margin: 0;
+  background: var(--card); color: var(--accent); border: 2px solid var(--accent-soft);
+  box-shadow: none;
+}
+#keyboard button:active { background: var(--accent-soft); }
+.hearts { font-size: 1.2rem; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span class="hearts" id="hearts">❤️❤️❤️</span>
+  <span>יעד <span id="qnum">0</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">⌨️</div>
+    <h1 class="game-title">משחק הקלדה מהירה</h1>
+    <p>אותיות ומילים נופלות מלמעלה — הקלידו אותן לפני שהן מגיעות לתחתית!</p>
+    <p>כמה תפיסות כדי לנצח?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="play-area"></div>
+    <div id="keyboard"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+// level 1: single letters (no final forms — kept simple/unambiguous for the easiest level)
+const LETTERS = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
+// level 2: short 2–3 letter real words
+const WORDS2 = ['אח','אם','יד','עץ','דג','ים','לב','גן','כד','נר','שן','פה','דם','אב','בד','גג','חג','טל','שק','סל',
+  'ילד','כלב','שמש','דבש','עגל','בית','ספר','גשם','ירח'];
+// level 3: longer 4–6 letter words, faster fall
+const WORDS3 = ['חתול','שולחן','מחשב','ילקוט','תפוח','רחוב','משפחה','ספרייה','חלון','מקרר','טלפון','גינה','ארנב','תפוז'];
+
+// on-screen Hebrew keyboard — needed for tablets, and covers final letters (ך ם ן ף ץ)
+// that appear inside real words even though level 1 (single letters) skips them.
+const KB_ROWS = [
+  ['ק','ר','א','ט','ו','ן','ם','פ'],
+  ['ש','ד','ג','כ','ע','י','ח','ל','ך','ף'],
+  ['ז','ס','ב','ה','נ','מ','צ','ת','ץ'],
+];
+
+// fall duration / spawn interval per level (ms) — level 3 is both denser word pool and faster fall
+const SPEED = { 1: { fall: 6500, spawn: 1500 }, 2: { fall: 5800, spawn: 1900 }, 3: { fall: 4200, spawn: 1700 } };
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'typing-race',
+  how: 'אותיות או מילים נופלות מלמעלה. מקלידים אותן (במקלדת האמיתית או במקלדת שעל המסך) לפני שהן מגיעות לתחתית — אם תפסתם אותן, הן מתפוצצות בכיף! אם מילה מגיעה לתחתית בלי שהקלדתם אותה, מאבדים ❤️.',
+  example: 'מילה נופלת <b>דג</b> ← מקלידים ד ואז ג ← 💥 נתפסה, +10 נקודות!',
+});
+
+let game, diff, level = 1, TOTAL = 10;
+let score = 0, lives = 3, caught = 0, playing = false, spawnTimeout = null;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+// build on-screen keyboard once
+(function buildKeyboard() {
+  const kb = $('keyboard');
+  for (const row of KB_ROWS) {
+    for (const ch of row) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = ch;
+      b.onclick = () => handleKey(ch);
+      kb.appendChild(b);
+    }
+  }
+})();
+
+async function start(lvl) {
+  game = await IAKidsGame.init('typing-race');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  $('qnum').textContent = 0;
+  score = 0; lives = 3; caught = 0; playing = true;
+  $('score').textContent = 0;
+  updateHearts();
+  $('play-area').innerHTML = '';
+  show('play-screen');
+  document.addEventListener('keydown', onKeydown);
+  scheduleSpawn();
+}
+
+function updateHearts() { $('hearts').textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives); }
+
+function wordLevelFor() { return level === 0 ? 1 + rnd(3) : level; }
+function pickWord(lvl) {
+  const pool = lvl === 1 ? LETTERS : lvl === 2 ? WORDS2 : WORDS3;
+  return pool[rnd(pool.length)];
+}
+
+// ponytail: recursive setTimeout (not setInterval) so each spawn re-reads the
+// current adaptive speed — difficulty keeps rising smoothly as the player succeeds.
+function scheduleSpawn() {
+  const lvl = wordLevelFor();
+  spawnTimeout = setTimeout(async () => {
+    if (!playing) return;
+    await spawnOne(lvl);
+    scheduleSpawn();
+  }, SPEED[lvl].spawn);
+}
+
+async function spawnOne(lvl) {
+  const text = await game.newQuestion(() => pickWord(lvl), w => w);
+  const area = $('play-area');
+  const el = document.createElement('div');
+  el.className = 'falling';
+  el.dataset.text = text;
+  el.dataset.matched = '0';
+  el.textContent = text;
+  el.style.left = (5 + rnd(75)) + '%';
+  area.appendChild(el);
+
+  // speed multiplier from adaptive difficulty: harder level ⇒ faster fall
+  const mul = 1 - (diff.level - 1) * 0.12;
+  const fallMs = Math.round(SPEED[lvl].fall * mul);
+  const areaH = area.clientHeight;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.style.transition = `top ${fallMs}ms linear`;
+    el.style.top = (areaH + 10) + 'px';
+  }));
+  el.addEventListener('transitionend', () => {
+    if (!el.isConnected) return; // already popped by the player
+    missItem(el);
+  });
+}
+
+function renderMatched(el) {
+  const text = el.dataset.text, m = +el.dataset.matched;
+  el.innerHTML = `<span class="matched">${text.slice(0, m)}</span>${text.slice(m)}`;
+}
+
+function popItem(el) {
+  score += 10;
+  caught++;
+  diff.right();
+  IAKidsFX.correct(el);
+  IAKidsCoins.right(el);
+  el.remove();
+  $('score').textContent = score;
+  $('qnum').textContent = caught;
+  if (caught >= TOTAL) endGame(true);
+}
+
+function missItem(el) {
+  lives--;
+  diff.wrong();
+  IAKidsFX.wrong(el);
+  IAKidsCoins.wrong();
+  el.remove();
+  updateHearts();
+  if (lives <= 0) endGame(false);
+}
+
+function normalizeKey(key) {
+  return key && key.length === 1 && key >= 'א' && key <= 'ת' ? key : null;
+}
+
+function onKeydown(e) {
+  const ch = normalizeKey(e.key);
+  if (ch) handleKey(ch);
+}
+
+function handleKey(ch) {
+  if (!playing) return;
+  const items = [...$('play-area').querySelectorAll('.falling')]
+    .sort((a, b) => parseFloat(b.style.top) - parseFloat(a.style.top)); // closest to bottom first
+  for (const el of items) {
+    const text = el.dataset.text;
+    let m = +el.dataset.matched;
+    if (text[m] === ch) {
+      m++;
+      el.dataset.matched = String(m);
+      renderMatched(el);
+      if (m === text.length) popItem(el);
+      break;
+    }
+  }
+}
+
+async function endGame(won) {
+  playing = false;
+  clearTimeout(spawnTimeout);
+  document.removeEventListener('keydown', onKeydown);
+  await game.saveScore(score, { level, caught, lives });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(won ? Math.max(1, lives) : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

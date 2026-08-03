@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>פירמידת חיבור | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#pyramid{display:flex;flex-direction:column;gap:8px;align-items:center;margin:14px 0}
+.prow{display:flex;gap:8px;justify-content:center}
+.cell{width:72px;height:60px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:1.3rem;font-weight:800;background:var(--card);border:3px dashed var(--muted);cursor:pointer}
+.cell.given{background:var(--accent-soft);border:3px solid var(--accent);cursor:default}
+.cell.locked{background:var(--green);border-color:var(--green);color:#fff;cursor:default}
+.cell.selected{border:3px solid var(--blue);background:#eff6ff}
+#keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:280px;margin:0 auto}
+#keypad .game-btn{padding:10px;font-size:1.5rem;margin:0}
+#confirm-btn{width:100%;max-width:280px;margin-top:10px}
+@media (max-width:400px){.cell{width:60px;height:54px;font-size:1.1rem}}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">פירמידה</span> <span id="qnum">1</span>/<span id="qtotal">5</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔺</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(3,this)">3</button>
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(8,this)">8</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="pyramid"></div>
+    <div id="keypad"></div>
+    <button class="game-btn success" id="confirm-btn" onclick="confirmPyramid()"></button>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:   { he: 'פירמידת חיבור', en: 'Addition Pyramid' },
+  howto:   { he: 'כל לבנה = סכום שתי הלבנים שמתחתיה. מלא את החסרות!', en: 'Each brick = the sum of the two below it. Fill in the blanks!' },
+  rounds:  { he: 'כמה פירמידות?', en: 'How many pyramids?' },
+  confirm: { he: 'בדוק ✔', en: 'Check ✔' },
+  pyramid: { he: 'פירמידה', en: 'Pyramid' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'addition-pyramid',
+  how: 'כל לבנה בפירמידה היא סכום שתי הלבנים שמתחתיה. לוחצים על לבנה ריקה, מקלידים את המספר החסר ולוחצים "בדוק".',
+  example: '<span dir="ltr"><b>2 + 3 = 5</b></span> ← הלבנה מעל היא הסכום',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('confirm-btn').textContent = IAKidsLang.t(T.confirm);
+$('q-label').textContent = IAKidsLang.t(T.pyramid);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+// ponytail: rounds 3/5/8 (not 5/10/15) — a pyramid is a multi-cell round, 15 would drag
+let game, diff, level = 1, TOTAL = 5, score = 0, qnum = 0, mistakes = 0;
+let cur = null, selected = null, resolving = false;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('addition-pyramid').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  buildKeypad();
+  show('play-screen');
+  next();
+}
+
+// level 1: 3 stories, top ≤ 10 · 2: 4 stories · 3: 4 stories + one blank in the bottom row
+// rows[0] = bottom row; rows[r][i] = rows[r-1][i] + rows[r-1][i+1]
+function makePyramid(lvl) {
+  if (lvl === 0) lvl = 1 + rnd(3);
+  const S = lvl === 1 ? 3 : 4;
+  const maxBase = lvl === 1 ? 4 : lvl === 2 ? 9 : 12;
+  let rows;
+  for (let tries = 0; tries < 60; tries++) {
+    const base = Array.from({ length: S }, () => 1 + rnd(maxBase));
+    rows = [base];
+    for (let r = 1; r < S; r++)
+      rows.push(rows[r - 1].slice(1).map((v, i) => v + rows[r - 1][i]));
+    if (lvl !== 1 || rows[S - 1][0] <= 10) break;
+  }
+  const given = new Set(rows[0].map((_, i) => `0,${i}`));
+  if (lvl === 3) { // hide one bottom brick, reveal the brick above it (solvable by subtraction)
+    const j = rnd(S);
+    given.delete(`0,${j}`);
+    given.add(`1,${j === 0 ? 0 : j - 1}`);
+  }
+  return { rows, given: [...given], key: lvl + ':' + rows[0].join(',') + ':' + [...given].join(';') };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  cur = await game.newQuestion(() => makePyramid(lvl), p => p.key);
+  const given = new Set(cur.given);
+  const S = cur.rows.length;
+  const pyr = $('pyramid');
+  pyr.innerHTML = '';
+  selected = null;
+  for (let r = S - 1; r >= 0; r--) {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'prow';
+    rowEl.dir = 'ltr'; // brick i sits above bottom bricks i,i+1 — keep geometry LTR
+    for (let i = 0; i < cur.rows[r].length; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dir = 'ltr';
+      cell.dataset.expected = cur.rows[r][i];
+      if (given.has(`${r},${i}`)) {
+        cell.classList.add('given');
+        cell.textContent = cur.rows[r][i];
+      } else {
+        cell.addEventListener('click', () => select(cell));
+      }
+      rowEl.appendChild(cell);
+    }
+    pyr.appendChild(rowEl);
+  }
+  resolving = false;
+  selectNextBlank();
+}
+
+const blanks = () => [...document.querySelectorAll('#pyramid .cell:not(.given):not(.locked)')];
+function select(cell) {
+  if (cell.classList.contains('given') || cell.classList.contains('locked')) return;
+  selected?.classList.remove('selected');
+  selected = cell;
+  cell.classList.add('selected');
+}
+function selectNextBlank() {
+  selected?.classList.remove('selected');
+  selected = null;
+  const empty = blanks().find(c => !c.textContent) || blanks()[0];
+  if (empty) select(empty);
+}
+
+/* ---- on-screen numeric keypad + physical keyboard ---- */
+function buildKeypad() {
+  const pad = $('keypad');
+  if (pad.childElementCount) return;
+  for (const k of ['1','2','3','4','5','6','7','8','9','⌫','0','✔']) {
+    const b = document.createElement('button');
+    b.className = 'game-btn' + (k === '⌫' ? ' danger' : k === '✔' ? ' success' : ' outline');
+    b.textContent = k;
+    b.addEventListener('click', () => key(k));
+    pad.appendChild(b);
+  }
+}
+function key(k) {
+  if (resolving) return;
+  if (k === '✔') return confirmPyramid();
+  if (!selected) return;
+  if (k === '⌫') selected.textContent = selected.textContent.slice(0, -1);
+  else if (selected.textContent.length < 3) selected.textContent += k;
+}
+document.addEventListener('keydown', e => {
+  if ($('play-screen').hidden || resolving) return;
+  if (/^[0-9]$/.test(e.key)) key(e.key);
+  else if (e.key === 'Backspace') { key('⌫'); e.preventDefault(); }
+  else if (e.key === 'Enter') confirmPyramid();
+});
+
+function confirmPyramid() {
+  if (resolving) return;
+  const filled = blanks().filter(c => c.textContent !== '');
+  if (!filled.length) return;
+  const btn = $('confirm-btn');
+  let newlyLocked = 0, anyWrong = false;
+  for (const cell of filled) {
+    if (+cell.textContent === +cell.dataset.expected) {
+      cell.classList.remove('selected');
+      cell.classList.add('locked');
+      newlyLocked++;
+      score += 10;
+    } else {
+      anyWrong = true;
+      cell.classList.add('wrong');
+      setTimeout(() => { cell.classList.remove('wrong'); cell.textContent = ''; }, 600);
+    }
+  }
+  $('score').textContent = score;
+  if (anyWrong) {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  } else {
+    IAKidsFX.correct(btn);
+  }
+  if (blanks().length === 0) { // pyramid complete
+    resolving = true;
+    diff.right();
+    IAKidsCoins.right(btn);
+    setTimeout(next, 900);
+  } else {
+    setTimeout(selectNextBlank, anyWrong ? 650 : 0);
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(mistakes === 0 ? 3 : mistakes <= Math.ceil(TOTAL / 2) ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

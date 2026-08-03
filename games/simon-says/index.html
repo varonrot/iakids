@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סיימון | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #status { font-size: 1.15rem; font-weight: 700; color: var(--muted); min-height: 1.6em; margin: 4px 0 0; }
+  .simon-board {
+    width: min(88vw, 320px);
+    height: min(88vw, 320px);
+    margin: 18px auto 6px;
+    display: grid;
+    gap: 8px;
+    background: #1f2937;
+    box-shadow: var(--shadow);
+  }
+  .simon-board.n4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; border-radius: 50%; overflow: hidden; }
+  .simon-board.n6 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); height: min(60vw, 220px); border-radius: 28px; overflow: hidden; }
+  .simon-panel {
+    border: none;
+    cursor: pointer;
+    min-height: 100px;
+    filter: brightness(0.72);
+    transition: filter 0.12s, transform 0.12s;
+    padding: 0;
+  }
+  .simon-panel.active { filter: brightness(1.4) saturate(1.3); transform: scale(0.96); }
+  .simon-board.locked .simon-panel { cursor: default; }
+  .level-picked { outline: 4px solid var(--yellow); }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="t-round">סיבוב</span>: <span id="round">0</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🚦</div>
+    <h1 class="game-title" id="t-title">סיימון אומר</h1>
+    <p id="t-desc">תסתכלו ותקשיבו לרצף הצבעים, ואז חזרו עליו באותו סדר!</p>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="status"></p>
+    <div class="simon-board" id="board"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" data-ui="play_again" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'simon-says';
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// classic Simon color set (first 4) + two extra for hard mode's 6 panels
+const COLORS = [
+  { cssVar: '--green',  freq: 392.00, label: { he: 'ירוק',  en: 'Green',  es: 'Verde',  de: 'Grün',   pt: 'Verde' } },
+  { cssVar: '--red',    freq: 329.63, label: { he: 'אדום',  en: 'Red',    es: 'Rojo',   de: 'Rot',    pt: 'Vermelho' } },
+  { cssVar: '--yellow', freq: 261.63, label: { he: 'צהוב',  en: 'Yellow', es: 'Amarillo', de: 'Gelb', pt: 'Amarelo' } },
+  { cssVar: '--blue',   freq: 220.00, label: { he: 'כחול',  en: 'Blue',   es: 'Azul',   de: 'Blau',   pt: 'Azul' } },
+  { cssVar: '--purple', freq: 349.23, label: { he: 'סגול',  en: 'Purple', es: 'Morado', de: 'Lila',   pt: 'Roxo' } },
+  { cssVar: '--accent', freq: 440.00, label: { he: 'כתום',  en: 'Orange', es: 'Naranja', de: 'Orange', pt: 'Laranja' } },
+];
+// pace presets: {flash, gap} in ms per step — easy/medium/hard/random(mixed each round)
+const PACE = [
+  { flash: 450, gap: 260 }, // easy  (~700ms/step)
+  { flash: 320, gap: 190 }, // medium (~500ms/step)
+  { flash: 220, gap: 140 }, // hard   (~350ms/step)
+];
+const START_LEN = 3 - 1; // 2
+const IDLE_MS = 6000;
+
+const T = {
+  title: { he: 'סיימון אומר', en: 'Simon Says', es: 'Simón dice', de: 'Simon sagt', pt: 'Simon manda' },
+  desc:  { he: 'תסתכלו ותקשיבו לרצף הצבעים, ואז חזרו עליו באותו סדר!', en: 'Watch and listen to the color sequence, then repeat it!', es: '¡Mira y escucha la secuencia de colores, luego repítela!', de: 'Schau und hör dir die Farbfolge an und wiederhole sie!', pt: 'Observe e ouça a sequência de cores, depois repita!' },
+  round: { he: 'סיבוב', en: 'Round', es: 'Ronda', de: 'Runde', pt: 'Rodada' },
+  watch: { he: '👀 תראו את הרצף...', en: '👀 Watch the sequence...', es: '👀 Mira la secuencia...', de: '👀 Schau dir die Folge an...', pt: '👀 Observe a sequência...' },
+  turn:  { he: '👉 עכשיו תורכם! חזרו על הרצף', en: "👉 Your turn! Repeat it", es: '👉 ¡Tu turno! Repítela', de: '👉 Du bist dran! Wiederhole sie', pt: '👉 Sua vez! Repita' },
+};
+
+let game, level = 1, panelCount = 4, panelEls = [], seq = [], playerPos = 0, rounds = 0;
+let inputLocked = true, idleTimer = null, audioCtx = null;
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'המערכת מדליקה רבעים צבעוניים אחד אחרי השני, וכל צבע משמיע צליל משלו — תזכרו את הסדר! אחרי שהיא מסיימת, לחצו על הרבעים באותו סדר בדיוק. כל סיבוב מוצלח מוסיף עוד צבע אחד לרצף. טעות ברבע הלא נכון מסיימת את המשחק.',
+  example: '<span dir="ltr"><b>ירוק ← אדום ← ירוק</b></span><br>לוחצים: ירוק, אז אדום, אז ירוק — באותו סדר בדיוק',
+});
+
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+$('t-title').textContent = IAKidsLang.t(T.title);
+document.title = IAKidsLang.t(T.title) + ' | iakids';
+$('t-desc').textContent = IAKidsLang.t(T.desc);
+$('t-round').textContent = IAKidsLang.t(T.round);
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+// ---- tiny local WebAudio tone helper (own AudioContext, not IAKidsFX) ----
+function tone(freq, durMs) {
+  try {
+    const ctx = audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.22, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durMs / 1000);
+    o.connect(g).connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + durMs / 1000);
+  } catch (e) { /* no audio — fine */ }
+}
+
+async function start(lvl) {
+  game = game || await IAKidsGame.init(SLUG);
+  level = lvl;
+  await game.saveProgress({ lastLevel: lvl });
+  panelCount = lvl === 3 ? 6 : 4;
+  buildBoard();
+  seq = [];
+  rounds = 0;
+  for (let i = 0; i < START_LEN; i++) seq.push(rnd(panelCount));
+  updateHUD();
+  show('play-screen');
+  playRound();
+}
+
+function buildBoard() {
+  const board = $('board');
+  board.className = 'simon-board ' + (panelCount === 6 ? 'n6' : 'n4');
+  board.innerHTML = '';
+  panelEls = [];
+  for (let i = 0; i < panelCount; i++) {
+    const c = COLORS[i];
+    const btn = document.createElement('button');
+    btn.className = 'simon-panel';
+    btn.style.background = `var(${c.cssVar})`;
+    btn.setAttribute('aria-label', IAKidsLang.t(c.label));
+    btn.onclick = () => tapPanel(i, btn);
+    board.appendChild(btn);
+    panelEls.push(btn);
+  }
+}
+
+function updateHUD() { $('round').textContent = rounds; }
+
+function paceFor(lvl) {
+  if (lvl === 1 || lvl === 2 || lvl === 3) return PACE[lvl - 1];
+  return PACE[rnd(3)]; // random level: mix a random preset each round
+}
+
+function flashPanel(idx, durMs) {
+  const el = panelEls[idx];
+  el.classList.add('active');
+  tone(COLORS[idx].freq, durMs);
+  setTimeout(() => el.classList.remove('active'), durMs);
+}
+
+async function flashSequence(sequence, pace) {
+  for (const idx of sequence) {
+    await delay(pace.gap);
+    flashPanel(idx, pace.flash);
+    await delay(pace.flash);
+  }
+}
+
+function clearIdleTimer() { if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; } }
+function startIdleTimer() { clearIdleTimer(); idleTimer = setTimeout(onIdleTimeout, IDLE_MS); }
+
+async function playRound() {
+  inputLocked = true;
+  playerPos = 0;
+  clearIdleTimer();
+  $('board').classList.add('locked');
+  $('status').textContent = IAKidsLang.t(T.watch);
+  const pace = paceFor(level);
+  await flashSequence(seq, pace);
+  inputLocked = false;
+  $('board').classList.remove('locked');
+  $('status').textContent = IAKidsLang.t(T.turn);
+  startIdleTimer();
+}
+
+function tapPanel(idx, btn) {
+  if (inputLocked) return;
+  if (idx === seq[playerPos]) {
+    flashPanel(idx, 220);
+    playerPos++;
+    if (playerPos === seq.length) {
+      // full round reproduced correctly — this is the "answer" that earns coins
+      clearIdleTimer();
+      inputLocked = true;
+      $('board').classList.add('locked');
+      rounds++;
+      updateHUD();
+      IAKidsFX.correct(btn);
+      IAKidsCoins.right(btn);
+      setTimeout(() => { seq.push(rnd(panelCount)); playRound(); }, 900);
+    } else {
+      startIdleTimer(); // waiting for the next tap in this round
+    }
+  } else {
+    inputLocked = true;
+    clearIdleTimer();
+    $('board').classList.add('locked');
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    setTimeout(() => end(rounds), 700);
+  }
+}
+
+function onIdleTimeout() {
+  inputLocked = true;
+  $('board').classList.add('locked');
+  IAKidsCoins.wrong();
+  end(rounds);
+}
+
+async function end(score) {
+  clearIdleTimer();
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.min(3, 1 + Math.floor(score / 5))));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

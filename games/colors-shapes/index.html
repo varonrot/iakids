@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colors &amp; Shapes | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.instruction{font-size:1.5rem;font-weight:800;margin:16px 0 4px}
+.he-caption{color:var(--muted);font-size:1.05rem;margin:0 0 12px}
+.shape-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.tile{background:var(--card);border:3px solid var(--accent-soft);border-radius:16px;padding:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:90px;transition:transform .1s}
+.tile:active{transform:scale(.95)}
+.tile svg{width:56px;height:56px}
+.tile.correct{animation:pop .4s;border-color:var(--green)!important}
+.tile.wrong{animation:shake .4s;border-color:var(--red)!important}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🎨</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="instruction" id="instruction" dir="ltr"></div>
+    <p class="he-caption" id="he-caption"></p>
+    <div class="shape-grid" id="grid"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:  { he: 'צבעים וצורות', en: 'Colors & Shapes' },
+  howto:  { he: 'קרא את ההוראה באנגלית ולחץ על הצורה הנכונה!', en: 'Read the instruction and tap the right shape!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?' },
+};
+const COLORS = {
+  RED:    { he: 'אדום',  hex: '#ef4444' },
+  BLUE:   { he: 'כחול',  hex: '#3b82f6' },
+  GREEN:  { he: 'ירוק',  hex: '#22c55e' },
+  YELLOW: { he: 'צהוב',  hex: '#facc15' },
+  PURPLE: { he: 'סגול',  hex: '#a855f7' },
+  ORANGE: { he: 'כתום',  hex: '#f97316' },
+};
+const SHAPES = {
+  CIRCLE:   { he: 'עיגול' },
+  SQUARE:   { he: 'ריבוע' },
+  TRIANGLE: { he: 'משולש' },
+  STAR:     { he: 'כוכב' },
+  HEART:    { he: 'לב' },
+  DIAMOND:  { he: 'מעוין' },
+};
+const COLOR_KEYS = Object.keys(COLORS), SHAPE_KEYS = Object.keys(SHAPES);
+
+function svgFor(shape, hex) {
+  const paths = {
+    CIRCLE: `<circle cx="32" cy="32" r="27" fill="${hex}"/>`,
+    SQUARE: `<rect x="6" y="6" width="52" height="52" rx="6" fill="${hex}"/>`,
+    TRIANGLE: `<polygon points="32,6 58,58 6,58" fill="${hex}"/>`,
+    DIAMOND: `<polygon points="32,4 60,32 32,60 4,32" fill="${hex}"/>`,
+    STAR: `<polygon points="32,4 39,24 60,24 43,37 49,58 32,46 15,58 21,37 4,24 25,24" fill="${hex}"/>`,
+    HEART: `<path d="M32 56 C10 40 4 26 14 16 C22 8 32 14 32 22 C32 14 42 8 50 16 C60 26 54 40 32 56 Z" fill="${hex}"/>`,
+  };
+  return `<svg viewBox="0 0 64 64">${paths[shape]}</svg>`;
+}
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'colors-shapes',
+  how: 'קוראים את ההוראה באנגלית (מתורגמת מתחת בעברית) ולוחצים על הצורה המתאימה בתמונה. ברמה הקשה צריך למצוא צורה שהיא לא הצבע שכתוב.',
+  example: '<span dir="ltr"><b>Tap the RED CIRCLE</b></span> ← לוחצים על העיגול האדום',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+let game, diff, timer, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, resolving = false;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('colors-shapes').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => pick(null, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const shuffle = a => [...a].sort(() => Math.random() - 0.5);
+
+// level 1: color only · 2: color + shape · 3: "NOT <color>" negation
+function makeQuestion(lvl) {
+  if (lvl === 0) lvl = 1 + rnd(3);
+  const n = 6;
+  if (lvl === 3) {
+    const notColor = COLOR_KEYS[rnd(COLOR_KEYS.length)];
+    const otherColor = COLOR_KEYS.filter(c => c !== notColor)[rnd(COLOR_KEYS.length - 1)];
+    const oddIdx = rnd(n);
+    const tiles = Array.from({ length: n }, (_, i) => ({
+      color: i === oddIdx ? otherColor : notColor,
+      shape: SHAPE_KEYS[rnd(SHAPE_KEYS.length)],
+    }));
+    return { mode: 'not', targetColor: notColor, tiles, correctIdx: oddIdx };
+  }
+  const targetColor = COLOR_KEYS[rnd(COLOR_KEYS.length)];
+  const targetShape = SHAPE_KEYS[rnd(SHAPE_KEYS.length)];
+  if (lvl === 1) {
+    // exactly one tile has targetColor; distinct colors across all tiles
+    const colors = shuffle(COLOR_KEYS).slice(0, n);
+    if (!colors.includes(targetColor)) colors[0] = targetColor;
+    const targetIdx = colors.indexOf(targetColor);
+    const tiles = colors.map(c => ({ color: c, shape: SHAPE_KEYS[rnd(SHAPE_KEYS.length)] }));
+    return { mode: 'color', targetColor, tiles, correctIdx: targetIdx };
+  }
+  // lvl 2: exactly one tile matches color+shape
+  const targetIdx = rnd(n);
+  const tiles = [];
+  for (let i = 0; i < n; i++) {
+    if (i === targetIdx) { tiles.push({ color: targetColor, shape: targetShape }); continue; }
+    let c, s;
+    do { c = COLOR_KEYS[rnd(COLOR_KEYS.length)]; s = SHAPE_KEYS[rnd(SHAPE_KEYS.length)]; }
+    while (c === targetColor && s === targetShape);
+    tiles.push({ color: c, shape: s });
+  }
+  return { mode: 'colorshape', targetColor, targetShape, tiles, correctIdx: targetIdx };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const key = q => q.mode === 'not' ? `not-${q.targetColor}` : q.mode === 'color' ? `color-${q.targetColor}` : `cs-${q.targetColor}-${q.targetShape}`;
+  const q = await game.newQuestion(() => makeQuestion(lvl), key);
+  current = q;
+
+  let en, he;
+  if (q.mode === 'color') {
+    en = `Tap something <b>${q.targetColor}</b>`;
+    he = `לחץ על משהו ${COLORS[q.targetColor].he}`;
+  } else if (q.mode === 'colorshape') {
+    en = `Tap the <b>${q.targetColor} ${q.targetShape}</b>`;
+    he = `לחץ על ה${SHAPES[q.targetShape].he} ה${COLORS[q.targetColor].he}`;
+  } else {
+    en = `Tap the shape that is <b>NOT ${q.targetColor}</b>`;
+    he = `לחץ על הצורה שהיא לא ${COLORS[q.targetColor].he}`;
+  }
+  $('instruction').innerHTML = en;
+  $('he-caption').textContent = he;
+
+  const grid = $('grid');
+  grid.innerHTML = '';
+  q.tiles.forEach((t, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = svgFor(t.shape, COLORS[t.color].hex);
+    tile.onclick = () => pick(i, tile);
+    grid.appendChild(tile);
+  });
+  resolving = false;
+  timer.start(IAKidsTimer.secondsFor(lvl, 8));
+}
+
+let current = null;
+function pick(idx, tile) {
+  if (resolving) return;
+  resolving = true;
+  timer.stop();
+  const ok = idx === current.correctIdx;
+  if (ok) {
+    score += 10;
+    diff.right();
+    if (tile) { IAKidsFX.correct(tile); IAKidsCoins.right(tile); }
+  } else {
+    mistakes++;
+    diff.wrong();
+    if (tile) IAKidsFX.wrong(tile);
+    IAKidsCoins.wrong();
+    const correctTile = $('grid').children[current.correctIdx];
+    correctTile?.classList.add('correct');
+  }
+  $('score').textContent = score;
+  document.querySelectorAll('#grid .tile').forEach(t => t.onclick = null);
+  setTimeout(next, ok ? 600 : 1200);
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = (TOTAL - mistakes) / TOTAL;
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

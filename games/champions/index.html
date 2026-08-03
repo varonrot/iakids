@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אלוף האלופים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  body { align-items: stretch; max-width: 700px; margin: 0 auto; }
+  h1, h2 { text-align: center; }
+  section { margin-bottom: 28px; }
+  .player-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
+  .player-row input {
+    font: inherit; font-size: 1.1rem; padding: 10px 14px;
+    border: 2px solid var(--accent); border-radius: var(--radius); text-align: center;
+  }
+  .total-line { text-align: center; font-size: 1.3rem; font-weight: 800; margin: 10px 0; }
+</style>
+</head>
+<body>
+<h1 class="game-title" style="font-size:2rem">🏆 אלוף האלופים</h1>
+
+<section class="player-row">
+  <label for="player">👤 שם השחקן:</label>
+  <input id="player" maxlength="20" placeholder="השם שלך">
+  <button class="game-btn secondary" style="min-height:auto;padding:10px 18px" onclick="saveName()">שמור</button>
+</section>
+
+<section>
+  <div class="total-line" id="totals"></div>
+  <table class="champ-table" id="champs">
+    <tr><th>משחק</th><th>שחקן</th><th>שיא</th><th>תאריך ושעה</th></tr>
+  </table>
+  <p id="empty" style="text-align:center;color:var(--muted)" hidden>עוד אין תוצאות — לכו לשחק! 🎮</p>
+</section>
+
+<section>
+  <h2>⚔️ טורנירים</h2>
+  <div style="text-align:center">
+    <button class="game-btn" onclick="newTournament()">🆕 טורניר חדש (3 סיבובים)</button>
+    <a class="game-btn outline" href="../" style="display:inline-block;text-decoration:none">🎮 לכל המשחקים</a>
+  </div>
+  <table class="champ-table" id="tournaments" style="margin-top:14px">
+    <tr><th>תאריך</th><th>משחקים</th><th>ניקוד כולל</th><th>מצב</th></tr>
+  </table>
+</section>
+
+<script src="../firebase-config.js"></script>
+<script src="../game-sdk.js"></script>
+<script>
+const fmt = ts => new Date(ts).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
+const GAME_NAMES = {}; // slug -> "emoji name", filled from hub catalog below
+
+// scan all per-game DBs for the champion table
+async function loadChamps() {
+  let names = [];
+  if (indexedDB.databases) {
+    names = (await indexedDB.databases()).map(d => d.name).filter(n => n && n.startsWith('iakids_game_'));
+  }
+  const rows = [];
+  let totalBest = 0;
+  for (const dbName of names) {
+    const slug = dbName.replace('iakids_game_', '');
+    const scores = await new Promise(res => {
+      const req = indexedDB.open(dbName);
+      req.onsuccess = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains('scores')) { db.close(); return res([]); }
+        const r = db.transaction('scores').objectStore('scores').getAll();
+        r.onsuccess = () => { db.close(); res(r.result || []); };
+        r.onerror = () => { db.close(); res([]); };
+      };
+      req.onerror = () => res([]);
+    });
+    if (!scores.length) continue;
+    const best = scores.reduce((a, b) => (b.score > a.score ? b : a));
+    totalBest += best.score;
+    rows.push({ slug, best });
+  }
+  rows.sort((a, b) => b.best.score - a.best.score);
+  const table = document.getElementById('champs');
+  for (const { slug, best } of rows) {
+    const tr = table.insertRow();
+    tr.innerHTML = `<td>${GAME_NAMES[slug] || slug}</td><td>${best.player || 'אורח'}</td>
+      <td><b>${best.score}</b></td><td>${fmt(best.ts)}</td>`;
+  }
+  document.getElementById('empty').hidden = rows.length > 0;
+  document.getElementById('totals').textContent =
+    `סה"כ שיאים: ${totalBest} · 🪙 ${await IAKidsCoins.get()}`;
+}
+
+async function loadName() {
+  document.getElementById('player').value = (await IAKidsCoins._kvGet('player')) || '';
+}
+async function saveName() {
+  const v = document.getElementById('player').value.trim() || 'אורח';
+  await IAKidsCoins._kvPut('player', v);
+  IAKidsFX.correct(document.getElementById('player'), '✓');
+}
+
+// tournaments: pick 3 rounds from playable games (probed like the hub)
+async function playableSlugs() {
+  const all = Object.keys(GAME_NAMES);
+  const found = [];
+  await Promise.all(all.map(async slug => {
+    try {
+      const r = await fetch('../' + slug + '/index.html', { method: 'HEAD' });
+      if (r.ok) found.push(slug);
+    } catch (e) {}
+  }));
+  return found;
+}
+
+async function newTournament() {
+  const playable = await playableSlugs();
+  if (!playable.length) return alert('אין עדיין משחקים זמינים');
+  // 3 rounds; games can repeat when fewer than 3 are playable
+  const slugs = Array.from({ length: 3 }, () => playable[Math.floor(Math.random() * playable.length)]);
+  const t = await IAKidsTournament.create(slugs);
+  location.href = IAKidsTournament.gameUrl(t, 0);
+}
+
+async function loadTournaments() {
+  const list = (await IAKidsTournament.all()).sort((a, b) => b.ts - a.ts).slice(0, 10);
+  const table = document.getElementById('tournaments');
+  const highlight = new URLSearchParams(location.search).get('t');
+  for (const t of list) {
+    const total = Object.values(t.scores).reduce((s, r) => s + r.score, 0);
+    const games = t.slugs.map(s => (GAME_NAMES[s] || s).split(' ')[0]).join(' ');
+    const tr = table.insertRow();
+    if (t.id === highlight) tr.style.outline = '3px solid var(--accent)';
+    tr.innerHTML = `<td>${fmt(t.ts)}</td><td>${games}</td><td><b>${total}</b></td>
+      <td>${t.done ? '✅ הסתיים' : `▶️ סיבוב ${Object.keys(t.scores).length + 1}/${t.slugs.length}`}</td>`;
+    if (!t.done) {
+      tr.style.cursor = 'pointer';
+      tr.onclick = () => location.href = IAKidsTournament.gameUrl(t, Object.keys(t.scores).length);
+    }
+  }
+}
+
+// game names come from the hub page's catalog so there's one source of truth
+fetch('../index.html').then(r => r.text()).then(html => {
+  for (const m of html.matchAll(/\['([a-z0-9-]+)','([^']+)','([^']+)'\]/g))
+    GAME_NAMES[m[1]] = m[3] + ' ' + m[2];
+  GAME_NAMES['demo'] = '🤖 דמו: אמת או שקר';
+  loadChamps(); loadTournaments();
+});
+loadName();
+IAKidsCoins.mount();
+IAKidsAuth.mount();
+</script>
+</body>
+</html>

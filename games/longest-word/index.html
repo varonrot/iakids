@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>טריוויית מילים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">📏</div>
+    <h1 class="game-title">טריוויית מילים</h1>
+    <p>איזו מילה הכי ארוכה? לחצו עליה מהר לפני שהפצצה מתפוצצת!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question">איזו מילה הכי ארוכה?</div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+// ---- content bank: real, correctly-spelled Hebrew words, mixed lengths ----
+// (lengths are computed live via word.length — final-form letters count as 1 char, like any other)
+const WORDS = [
+  'יד','עץ','דג','לב','ים','אב','אם','אח','גג','דף','קר','קש',
+  'כלב','שמש','ילד','בית','ספר','דבש','מלך','חלב','דלת','קול','חול','כוס','סוס',
+  'גיר','שיר','גור','יעד','כלה','מלח','נהר','נמר','בור','בוץ','תיק','מחק','עוף','דוב',
+  'חתול','תפוח','ילדה','כיסא','בננה','ארנב','חלון','מחשב','מקרר','גינה','תחנה',
+  'משחק','ציור','מורה','כיתה','מבחן','רכבת','מטוס','כפתור','אריה',
+  'דובון','שולחן','תמונה','גלידה','מחברת','מקלחת','מטריה','תלמיד','חופשה','ילדים',
+  'משפחה','מסעדה','צעצוע','מסיבה','חברים','מקהלה','הפסקה','שיעור','ספינה',
+  'מכונית','אופנוע','עיפרון','ספרייה','כדורגל','כדורסל','מוזיקה','תלמידה','ספרנית','משחקים','מדרגות',
+  'אופניים','אוטובוס','טלוויזיה',
+];
+
+const rnd = n => Math.floor(Math.random() * n);
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// level 1: bold gap (>=3 letters between longest & runner-up)
+// level 2: close call (exactly 1 letter gap)
+// level 3: same visual length trap (1-letter gap, but 2+ other words tie at the shorter length)
+function makeQuestion(level) {
+  const n = 4;
+  const test = lens => {
+    const sorted = lens.slice().sort((a, b) => b - a);
+    if (sorted[0] === sorted[1]) return false; // no unique longest — reject
+    const gap = sorted[0] - sorted[1];
+    if (level === 1) return gap >= 3;
+    if (level === 2) return gap === 1;
+    return gap === 1 && sorted[1] === sorted[2]; // level 3
+  };
+  for (let tries = 0; tries < 400; tries++) {
+    const words = shuffle(WORDS).slice(0, n);
+    const lens = words.map(w => w.length);
+    if (test(lens)) {
+      const correct = words[lens.indexOf(Math.max(...lens))];
+      return { options: words, correct };
+    }
+  }
+  // fallback: relax to "just needs a unique longest" so the game never stalls
+  for (let tries = 0; tries < 400; tries++) {
+    const words = shuffle(WORDS).slice(0, n);
+    const lens = words.map(w => w.length);
+    const maxLen = Math.max(...lens);
+    if (lens.filter(l => l === maxLen).length === 1) {
+      return { options: words, correct: words[lens.indexOf(maxLen)] };
+    }
+  }
+  const words = shuffle(WORDS).slice(0, n); // last resort, extremely unlikely
+  const lens = words.map(w => w.length);
+  return { options: words, correct: words[lens.indexOf(Math.max(...lens))] };
+}
+
+let game, score = 0, qnum = 0, current, level = 1, TOTAL = 10, diff, timer;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'longest-word',
+  how: 'רואים כמה מילים על המסך — צריך ללחוץ מהר על המילה שיש בה הכי הרבה אותיות, לפני שהפצצה מתפוצצת! 💣',
+  example: '<b>תפוח</b> (4 אותיות) לעומת <b>ספר</b> (3 אותיות) ← תפוח ארוכה יותר, זו התשובה!',
+});
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  game = await IAKidsGame.init('longest-word');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.options.join(','));
+  current = q;
+  const answers = document.getElementById('answers');
+  answers.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn outline';
+    btn.textContent = opt;
+    btn.onclick = () => answer(opt, btn);
+    answers.appendChild(btn);
+  });
+  timer.start(IAKidsTimer.secondsFor(lvl, 6)); // fast round — smaller base
+}
+
+function answer(said, btn) {
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  if (said === current.correct) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    if (btn) IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 600);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

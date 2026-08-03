@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הבנת הנקרא | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🧐</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="instr"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-l="3" onclick="start(3)"></button>
+      <button class="game-btn" data-l="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="passage" style="font-size:1.1rem;line-height:1.7;text-align:right;background:var(--accent-soft);border-radius:16px;padding:14px"></p>
+    <div class="game-question" id="question" style="font-size:1.4rem"></div>
+    <div class="answer-grid" style="grid-template-columns:1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'reading-comprehension';
+const T = {
+  title: { he: 'הבנת הנקרא', en: 'Reading Comprehension', es: 'Comprensión lectora', de: 'Leseverständnis', pt: 'Compreensão de leitura' },
+  instr: { he: 'קראו את הקטע הקצר וענו על השאלה שאחריו', en: 'Read the short passage and answer the question below it', es: 'Lee el texto corto y responde la pregunta', de: 'Lies den kurzen Text und beantworte die Frage', pt: 'Leia o texto curto e responda à pergunta' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+};
+document.getElementById('title').textContent = IAKidsLang.t(T.title);
+document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
+document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
+document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false, diff;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'קוראים קטע קצר של כמה משפטים, ואז עונים על שאלת מי / מה / למה שקשורה אליו. התשובה תמיד כתובה או ברורה מתוך הקטע.',
+  example: '<b>"דנה קנתה גלידת שוקולד בקיוסק..."</b><br>שאלה: מה דנה קנתה? ← גלידת שוקולד',
+});
+
+// levels are cumulative pools: 1=explicit answer in text, 2=+light inference, 3=+longer passage/more inference
+const POOL = [
+  { level: 1, text: 'דנה קנתה גלידת שוקולד בקיוסק ליד הבית. היא אכלה אותה לאט כי היה חם בחוץ. הגלידה הייתה כל כך טעימה שהיא רצתה עוד אחת.', q: 'מה דנה קנתה בקיוסק?', ans: 'גלידת שוקולד', wrongs: ['תפוח', 'ממתק', 'עוגה'] },
+  { level: 1, text: 'אבא הכין ארוחת ערב מיוחדת ליום הולדתה של אמא. הוא בישל פסטה ברוטב עגבניות והכין סלט ירוק. אמא התרגשה מאוד וחייכה כל הערב.', q: 'מי הכין את ארוחת הערב?', ans: 'אבא', wrongs: ['אמא', 'הסבתא', 'האח הגדול'] },
+  { level: 1, text: 'בכיתה ג׳ הכריזו על תחרות קריאה. מי שיקרא הכי הרבה ספרים עד סוף החודש יזכה בפרס. תמר החליטה להשתתף וקראה ספר כל יום.', q: 'מה תמר החליטה לעשות?', ans: 'להשתתף בתחרות ולקרוא ספר כל יום', wrongs: ['לכתוב ספר חדש', 'ללמד את הכיתה לקרוא', 'לוותר על התחרות'] },
+  { level: 1, text: 'רועי איבד את הכובע האדום שלו במשחק בהפסקה. הוא חיפש בכל החצר אבל לא מצא אותו. בסוף היום גילה שהכובע נמצא בתיק שלו כל הזמן.', q: 'מה קרה לכובע של רועי בסוף?', ans: 'הוא היה בתיק שלו כל הזמן', wrongs: ['הוא נמצא אצל חבר', 'המורה מצאה אותו בחצר', 'הוא אבד לגמרי'] },
+  { level: 1, text: 'בגן החיות הייתה קופה קטנה בשם מוקי שאהבה לקפוץ בין הענפים. כל המבקרים עצרו לצפות בה. מוקי הייתה הכי אהובה בגן החיות.', q: 'מי הייתה הכי אהובה בגן החיות?', ans: 'הקופה מוקי', wrongs: ['הפיל', 'האריה', 'הצוות של הגן'] },
+  { level: 1, text: 'בסוף השבוע יצאה משפחת אברהם לטיול בהרים. הם הביאו איתם אוהל, שקי שינה ופנס גדול. בלילה ישבו סביב מדורה ושרו שירים.', q: 'מה המשפחה עשתה בלילה?', ans: 'ישבה סביב מדורה ושרה שירים', wrongs: ['חזרה הביתה מוקדם', 'הלכה לישון בלי לאכול', 'טיפסה על ההר בחושך'] },
+  { level: 1, text: 'עידו רצה ללמוד לרכוב על אופניים בלי גלגלי עזר. אבא שלו רץ לידו והחזיק את המושב בהתחלה. אחרי כמה נפילות, עידו הצליח לרכוב לבד.', q: 'מי עזר לעידו ללמוד לרכוב על אופניים?', ans: 'אבא שלו', wrongs: ['המורה שלו', 'חבר מבית הספר', 'הסבא שלו'] },
+  { level: 1, text: 'סבתא רבקה אופה עוגות דבש כל ערב שבת. הבית מתמלא בריח מתוק ונעים. הנכדים תמיד מגיעים מוקדם כדי לטעום עוגה טרייה מהתנור.', q: 'מי אופה עוגות דבש כל שבת?', ans: 'סבתא רבקה', wrongs: ['אמא', 'דודה', 'הנכדים בעצמם'] },
+  { level: 1, text: 'בכיתה התקיימה תחרות מדע. אורי בנה הר געש קטן שיכול "להתפרץ" עם סודה לשתייה וחומץ. כל הכיתה התלהבה כשההר געש שלו התפוצץ בכיתה.', q: 'מה אורי בנה לתחרות המדע?', ans: 'הר געש קטן', wrongs: ['רובוט', 'מכונית צעצוע', 'טלסקופ'] },
+  { level: 1, text: 'המורה נעמי ביקשה מהתלמידים לצייר את בעל החיים האהוב עליהם. רוב הילדים ציירו כלבים וחתולים. אחד הילדים צייר דווקא דינוזאור ירוק וגדול.', q: 'מי ביקש מהתלמידים לצייר בעל חיים?', ans: 'המורה נעמי', wrongs: ['המנהל', 'אמא של רוני', 'הילד שצייר דינוזאור'] },
+  { level: 2, text: 'הכלב של משפחת כהן ברח מהגינה כשהשער נשאר פתוח. הילדים חיפשו אותו בכל השכונה במשך שעה. לבסוף מצאו אותו ישן מתחת לעץ ליד הפארק.', q: 'למה הכלב ברח מהגינה?', ans: 'כי השער נשאר פתוח', wrongs: ['כי הוא פחד מרעש', 'כי הוא רדף אחרי חתול', 'כי הילדים שחררו אותו בכוונה'] },
+  { level: 2, text: 'יוסי שכח את המטרייה בבית והלך לבית הספר ברגל. באמצע הדרך התחיל לרדת גשם חזק. יוסי הגיע לבית הספר רטוב לגמרי.', q: 'למה יוסי הגיע רטוב לבית הספר?', ans: 'כי ירד גשם והוא שכח מטרייה', wrongs: ['כי הוא נפל לשלולית', 'כי הוא שחה בבריכה', 'כי הוא שפך עליו מים'] },
+  { level: 2, text: 'השמש זרחה חזק בבוקר הקיץ. משפחת לוי החליטה לנסוע לים ולהביא איתם כדורים ומגבות. הילדים שחו בים עד שהתעייפו לגמרי.', q: 'למה הילדים התעייפו?', ans: 'כי הם שחו בים הרבה זמן', wrongs: ['כי הם הלכו ברגל לים', 'כי השמש הייתה חזקה מדי', 'כי הם שיחקו כדורגל כל היום'] },
+  { level: 2, text: 'בחנות הצעצועים היה מבצע מיוחד על בובות ומשחקי קופסה. שירה רצתה לקנות בובה אבל לא היה לה מספיק כסף. היא חסכה מדמי הכיס שלה במשך חודשיים.', q: 'למה שירה חסכה כסף במשך חודשיים?', ans: 'כדי לקנות בובה שרצתה', wrongs: ['כדי לקנות אופניים חדשים', 'כי ההורים ביקשו ממנה', 'כדי לתרום לצדקה'] },
+  { level: 3, text: 'נועה שכחה להשקות את הפרח שלה במשך שבוע שלם. כשחזרה מהחופשה ראתה שהעלים הצהיבו ונבלו. היא מיהרה להשקות אותו ולקוות שהוא יתעורר.', q: 'למה הפרח של נועה נבל?', ans: 'כי היא שכחה להשקות אותו', wrongs: ['כי היה קר מדי', 'כי חתול דרך עליו', 'כי לא הייתה לו שמש'] },
+  { level: 3, text: 'בהפסקת הצהריים שיחקו הילדים משחק מחבואים בחצר בית הספר. תום הסתתר מאחורי עץ גדול וחיכה בשקט. כשכולם עברו לידו בלי לראות אותו, הוא צחק בקול.', q: 'מה תום עשה כשכולם עברו לידו בלי לראות אותו?', ans: 'צחק בקול', wrongs: ['קרא לעזרה', 'יצא מהמחבוא', 'בכה'] },
+];
+
+(async () => {
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  const r = p?.rounds || TOTAL;
+  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
+  if (p?.lastLevel != null)
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
+})();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn?.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  if (!game) game = await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => a.sort(() => Math.random() - 0.5);
+const poolForLevel = lvl => POOL.filter(x => x.level <= lvl);
+
+function makeQuestion(lvl) {
+  const pool = poolForLevel(lvl);
+  return pool[rnd(pool.length)];
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.text);
+  document.getElementById('passage').textContent = q.text;
+  document.getElementById('question').textContent = q.q;
+  const grid = document.getElementById('answers');
+  grid.innerHTML = '';
+  for (const o of shuffle([q.ans, ...q.wrongs])) {
+    const btn = document.createElement('button');
+    btn.className = 'game-btn';
+    btn.textContent = o;
+    btn.onclick = () => answer(o === q.ans, btn);
+    grid.appendChild(btn);
+  }
+}
+
+function answer(ok, btn) {
+  if (locked) return;
+  locked = true;
+  if (ok) {
+    score += 10; right++;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL, right });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

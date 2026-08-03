@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🤖 כוון את הרובוט | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #grid-wrap { touch-action: none; }
+  #grid { width: min(80vw, 320px); height: auto; display: block; margin: 8px auto; }
+  #grid rect.cell { fill: #fff; stroke: #e5e7eb; stroke-width: 2; }
+  #robot-g, .flag-t, .obs-t { transition: transform 0.4s cubic-bezier(.3,1.2,.5,1); }
+  #robot-g text, .flag-t text, .obs-t text { font-size: 30px; text-anchor: middle; dominant-baseline: central; }
+  #grid-wrap.correct { animation: pop 0.4s; }
+  #grid-wrap.wrong { animation: shake 0.4s; }
+  .dir-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
+  .dir-row .game-btn { font-size: 1.6rem; min-width: 56px; min-height: 56px; padding: 10px; }
+  #queue-row { min-height: 46px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; align-items: center;
+    background: var(--accent-soft); border-radius: 14px; padding: 8px; margin: 8px 0; font-size: 1.4rem; }
+  #queue-row .chip { background: var(--card); border-radius: 8px; padding: 2px 8px; box-shadow: 0 2px 0 rgba(0,0,0,.1); }
+  .ctrl-row { display: flex; gap: 8px; justify-content: center; }
+  .ctrl-row .game-btn { flex: 1; font-size: 1.1rem; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
+  <span><span id="lbl-q"></span> <span dir="ltr"><span id="qnum">1</span>/<span id="qtotal">10</span></span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🤖</div>
+    <h1 class="game-title" id="title-line"></h1>
+    <p id="intro-line"></p>
+    <p id="rounds-line"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" data-n="15" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <p id="task-line" style="font-weight:800;font-size:1.1rem;margin:4px 0"></p>
+    <div id="grid-wrap">
+      <svg id="grid" viewBox="0 0 300 300"></svg>
+    </div>
+    <div id="queue-row"></div>
+    <div class="dir-row">
+      <button class="game-btn outline" onclick="addStep('left')">⬅️</button>
+      <button class="game-btn outline" onclick="addStep('up')">⬆️</button>
+      <button class="game-btn outline" onclick="addStep('down')">⬇️</button>
+      <button class="game-btn outline" onclick="addStep('right')">➡️</button>
+    </div>
+    <div class="ctrl-row">
+      <button class="game-btn secondary" id="undo-btn" onclick="undoStep()">↩️ <span id="lbl-undo"></span></button>
+      <button class="game-btn secondary" id="clear-btn" onclick="clearSteps()">🗑️ <span id="lbl-clear"></span></button>
+    </div>
+    <button class="game-btn success" id="run-btn" style="width:100%" onclick="runQueue()">▶️ <span id="lbl-run"></span></button>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="lbl-best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const t = d => IAKidsLang.t(d), ui = k => IAKidsLang.ui(k);
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'robot-grid',
+  how: 'לוחצים על החצים כדי לבנות רצף פקודות לרובוט, ואז לוחצים "הרץ" — הרובוט זז צעד-צעד. המטרה: להגיע לדגל 🚩 בלי לפגוע בקיר או במכשול.',
+  example: 'רובוט 🤖 שניים משבצות משמאל לדגל 🚩 ← לוחצים ➡️➡️ ואז "הרץ"',
+});
+
+const T = {
+  title: { he: 'כוון את הרובוט', en: 'Guide the Robot', es: 'Guía al robot', de: 'Roboter steuern', pt: 'Guie o robô' },
+  intro: { he: 'בנה רצף פקודות שיביא את הרובוט לדגל!', en: 'Build a command sequence to get the robot to the flag!', es: '¡Crea una secuencia de comandos para llevar al robot a la bandera!', de: 'Baue eine Befehlsfolge, um den Roboter zur Flagge zu bringen!', pt: 'Monte uma sequência de comandos para levar o robô até a bandeira!' },
+  rounds: { he: 'כמה סיבובים?', en: 'How many rounds?', es: '¿Cuántas rondas?', de: 'Wie viele Runden?', pt: 'Quantas rodadas?' },
+  task: { he: 'הבא את הרובוט 🤖 לדגל 🚩', en: 'Get the robot 🤖 to the flag 🚩', es: 'Lleva al robot 🤖 a la bandera 🚩', de: 'Bring den Roboter 🤖 zur Flagge 🚩', pt: 'Leve o robô 🤖 até a bandeira 🚩' },
+  undo: { he: 'בטל צעד', en: 'Undo', es: 'Deshacer', de: 'Rückgängig', pt: 'Desfazer' },
+  clear: { he: 'נקה', en: 'Clear', es: 'Borrar', de: 'Leeren', pt: 'Limpar' },
+  run: { he: 'הרץ', en: 'Run', es: 'Ejecutar', de: 'Starten', pt: 'Executar' },
+};
+$('lbl-score').textContent = ui('score');
+$('lbl-q').textContent = ui('question');
+$('lbl-best').textContent = ui('your_best');
+$('lbl-undo').textContent = t(T.undo);
+$('lbl-clear').textContent = t(T.clear);
+$('lbl-run').textContent = t(T.run);
+$('title-line').textContent = t(T.title);
+document.title = t(T.title) + ' | iakids';
+$('intro-line').textContent = t(T.intro);
+$('rounds-line').textContent = t(T.rounds);
+$('task-line').textContent = t(T.task);
+$('again-btn').textContent = ui('play_again');
+document.querySelector('[data-lvl="1"]').textContent = ui('level_easy');
+document.querySelector('[data-lvl="2"]').textContent = ui('level_medium');
+document.querySelector('[data-lvl="3"]').textContent = ui('level_hard');
+document.querySelector('[data-lvl="0"]').textContent = ui('level_random');
+
+const N = 5, CELL = 60;
+const DELTA = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
+const cx = c => c * CELL + CELL / 2, cy = r => r * CELL + CELL / 2;
+
+let game, diff, score = 0, qnum = 0, level = 1, TOTAL = 10;
+let cur, queue = [], robotPos, animating = false;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+const ready = (async () => {
+  game = await IAKidsGame.init('robot-grid');
+  const p = await game.loadProgress();
+  if (p?.rounds) TOTAL = p.rounds;
+  document.querySelector(`#rounds-row [data-n="${TOTAL}"]`)?.classList.add('success');
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('level-picked');
+})();
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+// lvl1: same row/col, short straight line (3x3 feel) · lvl2: differs in both row+col (one turn)
+// lvl3: like lvl2 but with a single obstacle cell to route around
+function makeQuestion(lvl) {
+  let r0 = rnd(N), c0 = rnd(N), tr, tc, obstacles = [];
+  if (lvl === 1) {
+    const dist = 1 + rnd(2);
+    if (Math.random() < 0.5) { c0 = rnd(N - dist); r0 = rnd(N); tr = r0; tc = c0 + dist; }
+    else { r0 = rnd(N - dist); c0 = rnd(N); tr = r0 + dist; tc = c0; }
+  } else {
+    do { tr = rnd(N); tc = rnd(N); } while (tr === r0 || tc === c0 || Math.abs(tr - r0) + Math.abs(tc - c0) < 2);
+    if (lvl === 3) {
+      let ob;
+      do { ob = [rnd(N), rnd(N)]; } while ((ob[0] === r0 && ob[1] === c0) || (ob[0] === tr && ob[1] === tc));
+      obstacles = [ob];
+    }
+  }
+  return { r: r0, c: c0, tr, tc, obstacles, lvl };
+}
+const qKey = q => `${q.lvl}_${q.r}${q.c}_${q.tr}${q.tc}_${q.obstacles.map(o => o.join('')).join(',')}`;
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  cur = await game.newQuestion(() => makeQuestion(lvl), qKey);
+  robotPos = { r: cur.r, c: cur.c };
+  queue = [];
+  animating = false;
+  renderGrid();
+  renderQueue();
+  setBtnsEnabled(true);
+}
+
+function gridLines() {
+  let d = '';
+  for (let i = 0; i <= N; i++) {
+    d += `M0 ${i * CELL} L${N * CELL} ${i * CELL} `;
+    d += `M${i * CELL} 0 L${i * CELL} ${N * CELL} `;
+  }
+  return d;
+}
+
+function renderGrid() {
+  let html = `<path d="${gridLines()}" stroke="#e5e7eb" stroke-width="2" fill="none"/>`;
+  html += `<g class="flag-t" style="transform:translate(${cx(cur.tc)}px,${cy(cur.tr)}px)"><text>🚩</text></g>`;
+  cur.obstacles.forEach(o => {
+    html += `<g class="obs-t" style="transform:translate(${cx(o[1])}px,${cy(o[0])}px)"><text>🪨</text></g>`;
+  });
+  html += `<g id="robot-g" style="transform:translate(${cx(robotPos.c)}px,${cy(robotPos.r)}px)"><text>🤖</text></g>`;
+  $('grid').innerHTML = html;
+}
+
+function moveRobotSvg(pos) {
+  $('robot-g').style.transform = `translate(${cx(pos.c)}px,${cy(pos.r)}px)`;
+}
+
+const DIR_EMOJI = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️' };
+function renderQueue() {
+  $('queue-row').innerHTML = queue.length
+    ? queue.map(d => `<span class="chip">${DIR_EMOJI[d]}</span>`).join('')
+    : `<span style="color:var(--muted);font-size:1rem">${t({ he: 'לחצו על החצים כדי להוסיף צעדים', en: 'Tap arrows to add steps', es: 'Toca las flechas para añadir pasos', de: 'Tippe auf die Pfeile, um Schritte hinzuzufügen', pt: 'Toque nas setas para adicionar passos' })}</span>`;
+  $('run-btn').disabled = queue.length === 0 || animating;
+}
+
+function addStep(d) {
+  if (animating || queue.length >= 12) return;
+  queue.push(d);
+  renderQueue();
+}
+function undoStep() { if (!animating) { queue.pop(); renderQueue(); } }
+function clearSteps() { if (!animating) { queue = []; renderQueue(); } }
+
+function setBtnsEnabled(on) {
+  document.querySelectorAll('.dir-row .game-btn, #undo-btn, #clear-btn').forEach(b => b.disabled = !on);
+}
+
+function runQueue() {
+  if (animating || queue.length === 0) return;
+  animating = true;
+  setBtnsEnabled(false);
+  $('run-btn').disabled = true;
+  let pos = { ...robotPos }, i = 0;
+  const step = () => {
+    if (i >= queue.length) return finishRun(pos, true);
+    const d = DELTA[queue[i]];
+    const nr = pos.r + d[0], nc = pos.c + d[1];
+    if (nr < 0 || nr >= N || nc < 0 || nc >= N || cur.obstacles.some(o => o[0] === nr && o[1] === nc)) {
+      return finishRun(pos, false);
+    }
+    pos = { r: nr, c: nc };
+    moveRobotSvg(pos);
+    i++;
+    setTimeout(step, 420);
+  };
+  step();
+}
+
+function finishRun(pos, completedAll) {
+  animating = false;
+  const ok = completedAll && pos.r === cur.tr && pos.c === cur.tc;
+  robotPos = pos;
+  judge(ok);
+}
+
+function judge(ok) {
+  const wrap = $('grid-wrap');
+  if (ok) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(wrap);
+    IAKidsCoins.right(wrap);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(wrap);
+    IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 900);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent =
+    `${top?.player || ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

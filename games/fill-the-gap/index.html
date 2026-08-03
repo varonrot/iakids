@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>השלמת מילה במשפט | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">⬜</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div style="font-size:3rem;text-align:center" id="cue"></div>
+    <div class="game-question" id="question" dir="ltr"></div>
+    <div class="answer-grid" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+const T = {
+  title: { he: 'השלמת מילה במשפט', en: 'Fill the Gap' },
+  howto: { he: 'משפט באנגלית עם מקום ריק — בחר את המילה הנכונה שמשלימה אותו מתוך 4 אפשרויות!', en: 'An English sentence has a blank — pick the correct word to complete it from 4 options!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'fill-the-gap',
+  how: 'רואים משפט באנגלית עם מקום ריק (___) ובוחרים את המילה שמשלימה אותו נכון, מתוך 4 אפשרויות.',
+  example: '<span dir="ltr">I see a ___ 🐶</span> ← <span dir="ltr"><b>dog</b></span> ✓',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+// ---- content bank: >= 20 sentences per level, ___ = blank, correct + 3 wrong-but-plausible ----
+// easy: noun blank, with emoji cue
+const EASY = [
+  { s: 'I see a ___', cue: '🐶', a: 'dog', d: ['cat', 'book', 'car'] },
+  { s: 'She has a ___', cue: '🐱', a: 'cat', d: ['dog', 'ball', 'sun'] },
+  { s: 'He is eating an ___', cue: '🍎', a: 'apple', d: ['banana', 'chair', 'shoe'] },
+  { s: 'I have a ___', cue: '📕', a: 'book', d: ['bird', 'fish', 'star'] },
+  { s: 'Look at the ___', cue: '☀️', a: 'sun', d: ['moon', 'table', 'hat'] },
+  { s: 'She is drawing a ___', cue: '⭐', a: 'star', d: ['tree', 'egg', 'box'] },
+  { s: 'We have a big ___', cue: '🏠', a: 'house', d: ['boat', 'pen', 'cloud'] },
+  { s: 'The ___ is red', cue: '🍎', a: 'apple', d: ['grass', 'sky', 'milk'] },
+  { s: 'He is riding a ___', cue: '🚲', a: 'bike', d: ['spoon', 'window', 'lamp'] },
+  { s: 'I want a ___ of water', cue: '🥤', a: 'glass', d: ['shoe', 'chair', 'kite'] },
+  { s: 'She is holding a ___', cue: '🎈', a: 'balloon', d: ['rock', 'pencil', 'plate'] },
+  { s: 'The ___ is flying', cue: '🐦', a: 'bird', d: ['fish', 'table', 'sock'] },
+  { s: 'I have two ___', cue: '👟', a: 'shoes', d: ['clocks', 'moons', 'doors'] },
+  { s: 'This is my ___', cue: '🎒', a: 'bag', d: ['sun', 'wall', 'cloud'] },
+  { s: 'He is holding a ___', cue: '🖊️', a: 'pen', d: ['fish', 'tree', 'box'] },
+  { s: 'She wears a ___', cue: '👗', a: 'dress', d: ['spoon', 'cloud', 'clock'] },
+  { s: 'I see a yellow ___', cue: '🐤', a: 'chick', d: ['cup', 'window', 'shoe'] },
+  { s: 'The ___ is on the table', cue: '🍞', a: 'bread', d: ['cloud', 'shirt', 'wheel'] },
+  { s: 'We ride the ___', cue: '🚌', a: 'bus', d: ['spoon', 'star', 'lamp'] },
+  { s: 'I like this ___', cue: '🧸', a: 'toy', d: ['cloud', 'window', 'wall'] },
+];
+// medium: verb blank
+const MEDIUM = [
+  { s: 'I ___ to school every day', a: 'go', d: ['goes', 'going', 'gone'] },
+  { s: 'She ___ a book now', a: 'reads', d: ['read', 'reading', 'to read'] },
+  { s: 'They ___ football on Sundays', a: 'play', d: ['plays', 'playing', 'played to'] },
+  { s: 'He ___ his hands before lunch', a: 'washes', d: ['wash', 'washing', 'washed to'] },
+  { s: 'We ___ TV every evening', a: 'watch', d: ['watches', 'watching', 'watched to'] },
+  { s: 'The dog ___ very loud', a: 'barks', d: ['bark', 'barking', 'to bark'] },
+  { s: 'I ___ my teeth every morning', a: 'brush', d: ['brushes', 'brushing', 'brushed to'] },
+  { s: 'She ___ apples at the store', a: 'buys', d: ['buy', 'buying', 'bought to'] },
+  { s: 'My brother ___ very fast', a: 'runs', d: ['run', 'running', 'runned'] },
+  { s: 'Birds ___ in the sky', a: 'fly', d: ['flies', 'flying', 'flew to'] },
+  { s: 'I ___ my homework after school', a: 'do', d: ['does', 'doing', 'did to'] },
+  { s: 'She ___ the piano every day', a: 'plays', d: ['play', 'playing', 'played to'] },
+  { s: 'We ___ pizza on Fridays', a: 'eat', d: ['eats', 'eating', 'ate to'] },
+  { s: 'He ___ in the pool every summer', a: 'swims', d: ['swim', 'swimming', 'swam to'] },
+  { s: 'I ___ my friends after class', a: 'meet', d: ['meets', 'meeting', 'met to'] },
+  { s: 'The sun ___ in the morning', a: 'rises', d: ['rise', 'rising', 'rose to'] },
+  { s: 'They ___ a new house', a: 'build', d: ['builds', 'building', 'built to'] },
+  { s: 'I ___ my bed every day', a: 'make', d: ['makes', 'making', 'made to'] },
+  { s: 'She ___ letters to her friend', a: 'writes', d: ['write', 'writing', 'wrote to'] },
+  { s: 'We ___ the bus to school', a: 'take', d: ['takes', 'taking', 'took to'] },
+];
+// hard: prepositions + am/is/are
+const HARD = [
+  { s: 'The cat is ___ the box', a: 'in', d: ['on', 'at', 'from'] },
+  { s: 'The book is ___ the table', a: 'on', d: ['in', 'under', 'at'] },
+  { s: 'The ball is ___ the bed', a: 'under', d: ['on', 'in', 'to'] },
+  { s: 'I ___ a student', a: 'am', d: ['is', 'are', 'be'] },
+  { s: 'She ___ my sister', a: 'is', d: ['am', 'are', 'be'] },
+  { s: 'They ___ my friends', a: 'are', d: ['am', 'is', 'be'] },
+  { s: 'We ___ happy today', a: 'are', d: ['am', 'is', 'be'] },
+  { s: 'He ___ at home now', a: 'is', d: ['am', 'are', 'be'] },
+  { s: 'The dog is ___ the house', a: 'in', d: ['on', 'under', 'from'] },
+  { s: 'The picture is ___ the wall', a: 'on', d: ['in', 'under', 'at'] },
+  { s: 'The keys are ___ the drawer', a: 'in', d: ['on', 'under', 'at'] },
+  { s: 'The shoes are ___ the bed', a: 'under', d: ['on', 'in', 'to'] },
+  { s: 'You ___ my best friend', a: 'are', d: ['am', 'is', 'be'] },
+  { s: 'It ___ a sunny day', a: 'is', d: ['am', 'are', 'be'] },
+  { s: 'The cup is ___ the shelf', a: 'on', d: ['in', 'under', 'at'] },
+  { s: 'The fish is ___ the water', a: 'in', d: ['on', 'under', 'at'] },
+  { s: 'My parents ___ at work', a: 'are', d: ['am', 'is', 'be'] },
+  { s: 'The lamp is ___ the desk', a: 'on', d: ['in', 'under', 'at'] },
+  { s: 'The mouse ran ___ the table', a: 'under', d: ['on', 'in', 'to'] },
+  { s: 'I ___ ready to go', a: 'am', d: ['is', 'are', 'be'] },
+];
+
+function makeQuestion(lvl) {
+  const bank = lvl === 1 ? EASY : lvl === 2 ? MEDIUM : HARD;
+  const item = bank[rnd(bank.length)];
+  const options = [item.a, ...item.d];
+  for (let i = options.length - 1; i > 0; i--) { const j = rnd(i + 1); [options[i], options[j]] = [options[j], options[i]]; }
+  return { sentence: item.s, cue: item.cue || '', correct: item.a, options };
+}
+
+let game, diff, timer, level = 1, TOTAL = 10, qnum = 0, score = 0;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('fill-the-gap').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+let current;
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.sentence + '|' + lvl);
+  current = q;
+  $('cue').textContent = q.cue;
+  $('question').textContent = q.sentence;
+  const box = $('answers');
+  box.innerHTML = '';
+  for (const opt of q.options) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.innerHTML = `<span dir="ltr">${opt}</span>`;
+    b.onclick = () => answer(opt, b);
+    box.appendChild(b);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl, 12));
+}
+
+function answer(picked, btn) {
+  timer.stop();
+  document.querySelectorAll('#answers .game-btn').forEach(b => b.disabled = true);
+  const right = picked === current.correct;
+  if (right) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    if (btn) IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    document.querySelectorAll('#answers .game-btn').forEach(b => {
+      if (b.textContent.trim() === current.correct) b.classList.add('correct');
+    });
+  }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

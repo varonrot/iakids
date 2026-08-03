@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סידור משפט מבולבל | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:56px;min-height:56px;padding:8px 14px;margin:5px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:14px;font-size:1.2rem;font-weight:800;cursor:grab;touch-action:none}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+.chip.reveal{background:var(--green);color:#fff;border-color:var(--green)}
+#tray{min-height:80px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:10px}
+#slot-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.slot{min-width:64px;min-height:60px;display:flex;align-items:center;justify-content:center;padding:2px}
+.slot .chip{margin:0;cursor:grab}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🧩</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="slot-row"></div>
+    <div id="tray"></div>
+    <button class="game-btn success" id="confirm-btn" onclick="confirmOrder()" disabled></button>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:  { he: 'סידור משפט מבולבל', en: 'Sentence Scramble' },
+  howto:  { he: 'המילים התבלבלו! גרור אותן למשבצות כדי להרכיב משפט תקין, ואז לחץ "בדוק".', en: 'The words got mixed up! Drag them into the slots to build a correct sentence, then press Check.' },
+  rounds: { he: 'כמה משפטים?', en: 'How many sentences?' },
+  confirm:{ he: 'בדוק ✔', en: 'Check ✔' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'sentence-scramble',
+  how: 'המילים של המשפט מתבלבלות! גוררים כל מילה למשבצת הנכונה כדי לבנות משפט שמתקבל על הדעת, ואז לוחצים על "בדוק".',
+  example: '<b>אכל · תפוח · הילד</b> ← <b>הילד אכל תפוח</b>',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('confirm-btn').textContent = IAKidsLang.t(T.confirm);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('q-label').textContent = IAKidsLang.ui('question');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+/* ---- sentence bank ----
+   level 1: 3 words · level 2: 5 words (time-adverb can move to front or end,
+   both grammatically valid — 'alt' holds that alternate order) · level 3: 7+ words with a comma. */
+const SENTENCES = {
+  1: [
+    ['הילד','אוכל','תפוח'], ['הכלבה','רצה','מהר'], ['הציפור','שרה','יפה'],
+    ['אמא','מבשלת','ארוחה'], ['אני','אוהב','אותך'], ['הילדה','כותבת','מכתב'],
+    ['החתול','ישן','הרבה'], ['הדג','שוחה','במים'], ['השמש','זורחת','בשמיים'],
+    ['הילדים','משחקים','בחוץ'], ['המורה','מלמדת','עברית'], ['הנהג','נוהג','מהר'],
+    ['התלמיד','לומד','היטב'], ['הפרח','פורח','באביב'], ['הגלגל','מסתובב','מהר'],
+    ['הדבורה','אוספת','דבש'], ['הנמלה','בונה','קן'], ['הברווז','שוחה','באגם'],
+    ['הענן','נע','לאט'], ['הירח','מאיר','בלילה'], ['הדייג','תופס','דגים'],
+    ['הרוח','נושבת','חזק'], ['הכוכבים','נוצצים','בלילה'], ['הגשם','יורד','עכשיו'],
+  ],
+  2: [
+    { w: ['אתמול','הילד','אכל','תפוח','אדום'] },
+    { w: ['היום','אמא','בישלה','מרק','חם'] },
+    { w: ['תמיד','אבא','שותה','קפה','חזק'] },
+    { w: ['מחר','הילדה','תלמד','שיעור','חדש'] },
+    { w: ['לפעמים','הכלב','אוכל','עצם','גדול'] },
+    { w: ['עכשיו','הילדים','משחקים','כדור','אדום'] },
+    { w: ['אתמול','המורה','לימדה','שיר','יפה'] },
+    { w: ['היום','הדייג','תפס','דג','גדול'] },
+    { w: ['תמיד','הציפור','בונה','קן','קטן'] },
+    { w: ['מחר','הילד','יקנה','גלידה','טעימה'] },
+    { w: ['לפעמים','החתול','תופס','עכבר','קטן'] },
+    { w: ['עכשיו','אני','כותב','מכתב','ארוך'] },
+    { w: ['אתמול','הגננת','סיפרה','סיפור','מצחיק'] },
+    { w: ['היום','הנהג','נהג','מכונית','חדשה'] },
+    { w: ['תמיד','הילדים','אוהבים','גלידה','קרה'] },
+    { w: ['מחר','אנחנו','נבקר','דוד','זקן'] },
+    { w: ['לפעמים','הרוח','שוברת','ענף','יבש'] },
+    { w: ['עכשיו','הטבח','מבשל','עוגה','מתוקה'] },
+    { w: ['אתמול','הרופא','בדק','ילד','חולה'] },
+    { w: ['היום','הגנן','שותל','עץ','צעיר'] },
+    { w: ['תמיד','הסבתא','אופה','עוגות','טובות'] },
+    { w: ['מחר','הכיתה','תבקר','גן','חדש'] },
+    { w: ['לפעמים','השוטר','עוצר','מכונית','מהירה'] },
+    { w: ['עכשיו','הצייר','מצייר','תמונה','יפה'] },
+  ].map(s => ({ words: s.w, alt: [...s.w.slice(1), s.w[0]] })), // adverb moved to the end — also valid
+  3: [
+    ['אמא','בישלה','ארוחה','טעימה,','ואבא','שטף','את','הכלים'],
+    ['הילד','קם','מוקדם,','והילדה','ישנה','עוד','קצת'],
+    ['השמש','זרחה','בבוקר,','והעננים','הלבנים','נעלמו','לאט'],
+    ['הכלב','נבח','בחצר,','והחתול','השחור','ברח','מהר'],
+    ['הילדים','שיחקו','בכדור,','והמורה','צפתה','בהם','בשמחה'],
+    ['אני','אוהב','לקרוא','ספרים,','ואחי','אוהב','לצייר','ציורים'],
+    ['הדייג','ישב','בסירה,','והדגים','שחו','מסביב','לאט'],
+    ['הגננת','סיפרה','סיפור','יפה,','והילדים','הקשיבו','בשקט'],
+    ['הרוח','נשבה','בחוזקה,','והעצים','הגבוהים','התנדנדו','בשקט'],
+    ['הטבח','בישל','מרק','חם,','והמלצר','הגיש','אותו','לאורחים'],
+    ['הילדה','ציירה','בית','קטן,','ואחיה','צייר','שמש','גדולה'],
+    ['הכיתה','יצאה','לטיול,','והמורה','הובילה','את','הדרך'],
+    ['הסבתא','אפתה','עוגה','מתוקה,','והסבא','שתה','תה','חם'],
+    ['הרופא','בדק','את','הילד,','והאחות','רשמה','תרופה'],
+    ['השוטר','עצר','את','המכונית,','והנהג','הראה','רישיון'],
+    ['הדבורים','אספו','דבש','מתוק,','והפרפרים','עפו','מסביב'],
+    ['הגנן','שתל','פרחים','צבעוניים,','והילדים','השקו','אותם'],
+    ['הצייר','צייר','תמונה','גדולה,','וכולם','הביטו','בהתפעלות'],
+    ['הדייגים','יצאו','לים','המוקדם,','וחזרו','עם','דגים','רבים'],
+    ['הילד','שבר','את','הכוס,','ואמא','כעסה','מעט'],
+    ['הנהג','נסע','לאט','בגשם,','והמכונית','החליקה','קצת'],
+    ['התלמידים','כתבו','מבחן','קשה,','והמורה','חייכה','בסוף'],
+    ['הכובע','עף','ברוח','החזקה,','והילד','רץ','אחריו'],
+    ['הצפרדע','קפצה','לתוך','הבריכה,','והדגים','נבהלו','ממנה'],
+  ],
+};
+// normalize level 1 & 3 into {words, alt} shape too
+SENTENCES[1] = SENTENCES[1].map(w => ({ words: w, alt: null }));
+SENTENCES[3] = SENTENCES[3].map(w => ({ words: w, alt: null }));
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, resolving = false, current = null;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('sentence-scramble').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const pool = SENTENCES[lvl];
+  const q = await game.newQuestion(() => pool[rnd(pool.length)], s => s.words.join('|'));
+  current = q;
+  const row = $('slot-row'), tray = $('tray');
+  row.innerHTML = tray.innerHTML = '';
+  let scrambled = shuffle(q.words);
+  if (scrambled.join(' ') === q.words.join(' ')) scrambled.reverse(); // avoid a trivially-solved shuffle
+  for (const _ of q.words) {
+    const slot = document.createElement('div');
+    slot.className = 'slot drop-zone';
+    row.appendChild(slot);
+  }
+  for (const w of scrambled) {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = w;
+    makeDraggable(chip);
+    tray.appendChild(chip);
+  }
+  resolving = false;
+  updateConfirm();
+}
+
+/* ---- Pointer Events drag (touch-friendly, setPointerCapture) ---- */
+let drag = null;
+function makeDraggable(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag || resolving) return;
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    const r = chip.getBoundingClientRect();
+    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
+    moveTo(e);
+  });
+  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
+  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) { settle(chip); drag = null; unmark(); }
+  });
+}
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  const t = targetAt(e.clientX, e.clientY);
+  document.querySelectorAll('.slot, #tray').forEach(z => z.classList.toggle('over', z === t && validTarget(t)));
+}
+const targetAt = (x, y) => {
+  const el = document.elementFromPoint(x, y);
+  return el?.closest('.slot') || el?.closest('#tray') || null;
+};
+const validTarget = t => t && (t.id === 'tray' || !t.querySelector('.chip'));
+const unmark = () => document.querySelectorAll('.slot, #tray').forEach(z => z.classList.remove('over'));
+function settle(chip) {
+  chip.classList.remove('dragging');
+  chip.style.left = chip.style.top = chip.style.width = '';
+}
+function dropChip(e) {
+  const t = targetAt(e.clientX, e.clientY);
+  unmark();
+  const chip = drag.chip;
+  drag = null;
+  settle(chip);
+  if (validTarget(t)) t.appendChild(chip);
+  updateConfirm();
+}
+function updateConfirm() {
+  const slots = [...document.querySelectorAll('#slot-row .slot')];
+  $('confirm-btn').disabled = resolving || !slots.length || !slots.every(s => s.querySelector('.chip'));
+}
+
+function confirmOrder() {
+  if (resolving) return;
+  resolving = true;
+  $('confirm-btn').disabled = true;
+  const btn = $('confirm-btn');
+  const slots = [...document.querySelectorAll('#slot-row .slot')];
+  const chips = slots.map(s => s.querySelector('.chip'));
+  const said = chips.map(c => c.textContent).join(' ');
+  const ok = said === current.words.join(' ') || (current.alt && said === current.alt.join(' '));
+  if (ok) {
+    score += 10;
+    $('score').textContent = score;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+    chips.forEach(c => c.classList.add('reveal'));
+    setTimeout(next, 800);
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    const correctWords = current.words;
+    setTimeout(() => {
+      slots.forEach((s, i) => {
+        s.innerHTML = '';
+        const c = document.createElement('div');
+        c.className = 'chip reveal';
+        c.textContent = correctWords[i];
+        s.appendChild(c);
+      });
+      setTimeout(next, 1600);
+    }, 500);
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = TOTAL / (TOTAL + mistakes);
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>

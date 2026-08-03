@@ -1,0 +1,366 @@
+/* iakids games — shared style. Load in every game:
+   <link rel="stylesheet" href="../game-style.css">
+   Brand palette matches /he/index.html (--accent:#ff6a2a). */
+
+:root {
+  --accent: #ff6a2a;
+  --accent-soft: #fff0e8;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --yellow: #facc15;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --card: #ffffff;
+  --bg: linear-gradient(160deg, #fff7f2 0%, #ffe9db 100%);
+  --radius: 20px;
+  --shadow: 0 6px 20px rgba(31, 41, 55, 0.12);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: 'Heebo', 'Rubik', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  user-select: none;
+}
+
+/* ---- layout ---- */
+.game-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
+}
+
+.game-title { font-size: 1.6rem; font-weight: 800; margin: 8px 0; }
+.game-question { font-size: 2.2rem; font-weight: 800; margin: 20px 0; }
+
+/* score + timer bar */
+.game-hud {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 520px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 8px 4px;
+  margin-top: 52px; /* clear the fixed coin badge + help button */
+}
+.game-hud .score { color: var(--accent); }
+
+/* ---- buttons: big, round, kid-friendly ---- */
+.game-btn {
+  font: inherit;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 16px 28px;
+  min-height: 60px;
+  min-width: 60px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+  transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+  margin: 6px;
+}
+.game-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.15); }
+.game-btn.secondary { background: var(--blue); }
+.game-btn.success { background: var(--green); }
+.game-btn.danger { background: var(--red); }
+.game-btn.outline { background: var(--card); color: var(--accent); border: 3px solid var(--accent); }
+.game-btn.outline.success { background: var(--green); color: #fff; border-color: var(--green); }
+.game-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* answer grid (multiple choice) */
+.answer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* ---- feedback animations ---- */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+@keyframes float-up {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-60px); }
+}
+@keyframes bounce-in {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.correct { animation: pop 0.4s; background: var(--green) !important; color: #fff !important; }
+.wrong { animation: shake 0.4s; background: var(--red) !important; color: #fff !important; }
+.bounce-in { animation: bounce-in 0.5s; }
+
+/* floating "+10" score popup (created by SDK) */
+.score-pop {
+  position: fixed;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--green);
+  pointer-events: none;
+  animation: float-up 0.9s forwards;
+  z-index: 99;
+}
+
+/* ---- end screen ---- */
+.end-screen .big-score { font-size: 3.5rem; font-weight: 900; color: var(--accent); }
+.end-screen .stars { font-size: 3rem; letter-spacing: 8px; }
+
+/* drag targets */
+.drop-zone {
+  border: 3px dashed var(--muted);
+  border-radius: var(--radius);
+  min-height: 90px;
+  padding: 12px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.drop-zone.over { border-color: var(--accent); background: var(--accent-soft); }
+
+/* shared coin wallet badge (injected by IAKidsCoins.mount()) */
+#iakids-coin-badge {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  background: var(--yellow);
+  color: var(--text);
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  z-index: 50;
+}
+#iakids-coin-badge.bump { animation: pop 0.3s; }
+
+/* Google sign-in widget (injected by IAKidsAuth.mount) */
+#iakids-auth-widget {
+  position: fixed;
+  top: 68px;
+  left: 12px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#iakids-auth-widget img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: var(--shadow);
+}
+#iakids-auth-widget span {
+  background: var(--card);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+#iakids-auth-widget button[title] {
+  border: none;
+  background: var(--card);
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+#iakids-auth-widget .signin-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+/* language switcher pill row (opt-in via IAKidsLang.mountSwitcher()) */
+#iakids-lang-switcher {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--card);
+  border-radius: 999px;
+  padding: 4px;
+  box-shadow: var(--shadow);
+}
+#iakids-lang-switcher button {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  padding: 4px 7px;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.5;
+}
+#iakids-lang-switcher button.active { opacity: 1; background: var(--accent-soft); }
+
+/* home/back-to-hub button (injected by IAKidsGame.init) */
+#iakids-home-btn {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  z-index: 50;
+  font-size: 1.4rem;
+  background: var(--card);
+  border: 2px solid var(--muted);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+
+/* help button + modal (injected by IAKidsHelp) */
+#iakids-help-btn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 50;
+  font-size: 1.4rem;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+#iakids-help-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 41, 55, 0.55);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#iakids-help-modal .help-card { max-width: 440px; animation: bounce-in 0.4s; }
+#iakids-help-modal .help-how { font-size: 1.15rem; }
+#iakids-help-modal .help-example {
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 1.3rem;
+  margin: 12px 0;
+}
+
+/* per-question countdown (injected by IAKidsTimer) */
+#iakids-timer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 55;
+  pointer-events: none;
+}
+#iakids-timer .fuse {
+  height: 8px;
+  width: 100%;
+  background: var(--green);
+  transition: width 0.1s linear, background 0.3s;
+}
+#iakids-timer .bomb {
+  position: absolute;
+  top: 12px;
+  right: 50%;
+  transform: translateX(50%);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+#iakids-timer .bomb span { font-size: 1.1rem; vertical-align: middle; }
+#iakids-timer.danger .fuse { background: var(--red); }
+#iakids-timer.danger .bomb { animation: pop 0.5s infinite; color: var(--red); }
+
+/* on/off switch for the countdown (injected by IAKidsTimer.mountToggle) */
+#iakids-timer-toggle { font-size: 1.1rem; padding: 10px 20px; min-height: 0; }
+#iakids-timer-toggle.floating {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  z-index: 55;
+  margin: 0;
+}
+
+/* challenge-a-friend banner (injected by IAKidsShare) */
+.challenge-banner {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--purple);
+  color: #fff;
+  font-weight: 800;
+  padding: 10px 20px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  z-index: 60;
+  white-space: nowrap;
+  max-width: 95vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* tournament "next game" button (injected by IAKidsTournament) */
+.game-btn.tournament-next {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  animation: bounce-in 0.5s;
+}
+
+/* champions page tables */
+.champ-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.champ-table th, .champ-table td { padding: 10px 14px; text-align: right; }
+.champ-table th { background: var(--accent); color: #fff; }
+.champ-table tr:nth-child(even) td { background: var(--accent-soft); }
+
+@media (max-width: 400px) {
+  .game-question { font-size: 1.7rem; }
+  .game-btn { font-size: 1.2rem; padding: 12px 20px; }
+}

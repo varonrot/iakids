@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>יחיד או רבים | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#grid{display:grid;gap:10px;margin-top:12px}
+.mcard{height:80px;perspective:600px;cursor:pointer;touch-action:manipulation}
+.mcard .inner{position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
+.mcard.flipped .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;border-radius:14px;font-size:1.3rem;font-weight:800;padding:4px;text-align:center}
+.face.front{background:var(--accent);color:#fff;font-size:1.8rem}
+.face.back{transform:rotateY(180deg);background:var(--card);border:3px solid var(--accent)}
+.mcard.matched .face.back{background:var(--green);border-color:var(--green);color:#fff}
+.mcard.matched{cursor:default}
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="pairs-label">זוגות</span> <span id="qnum">0</span>/<span id="qtotal">10</span></span>
+  <span>👣 <span id="moves">0</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">👥</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="grid"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="moves-line"></p>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const T = {
+  title:  { he: 'יחיד או רבים', en: 'Singular or Plural' },
+  howto:  { he: 'מצאו זוגות: מילה ביחיד והצורה שלה ברבים. פחות מהלכים = יותר כוכבים!', en: 'Match each singular word with its plural form. Fewer moves = more stars!' },
+  rounds: { he: 'כמה זוגות למצוא?', en: 'How many pairs?' },
+  pairs:  { he: 'זוגות', en: 'Pairs' },
+  moves:  { he: 'מהלכים', en: 'Moves' },
+  newboard: { he: 'לוח חדש! 🃏', en: 'New board! 🃏' },
+};
+
+// Word banks — every pair double-checked for correct Hebrew grammar.
+// Level 1 (easy): fully regular ים/ות plurals, no internal vowel change.
+// Level 2 (medium): plurals with an internal vowel/nikud shift (incl. dual forms).
+// Level 3 (hard): true irregulars — suppletive or gender-switching plural patterns.
+const BANK = {
+  1: [
+    ['כלב','כלבים'], ['חתול','חתולים'], ['ילד','ילדים'], ['ילדה','ילדות'], ['ספר','ספרים'],
+    ['כיסא','כיסאות'], ['שולחן','שולחנות'], ['דלת','דלתות'], ['חלון','חלונות'], ['עץ','עצים'],
+    ['פרח','פרחים'], ['תפוח','תפוחים'], ['כדור','כדורים'], ['מכונית','מכוניות'], ['ספה','ספות'],
+    ['עט','עטים'], ['תיק','תיקים'], ['כובע','כובעים'], ['מחברת','מחברות'], ['חבר','חברים'],
+    ['דג','דגים'], ['ציפור','ציפורים'], ['פיל','פילים'], ['דוב','דובים'], ['סוס','סוסים'],
+    ['קיר','קירות'], ['חדר','חדרים'], ['דירה','דירות'], ['שעה','שעות'], ['מילה','מילים'],
+    ['שאלה','שאלות'], ['תשובה','תשובות'], ['חיה','חיות'], ['צעצוע','צעצועים'], ['אבן','אבנים'],
+  ],
+  2: [
+    ['עיר','ערים'], ['בית','בתים'], ['יום','ימים'], ['עיפרון','עפרונות'], ['נהר','נהרות'],
+    ['הר','הרים'], ['אריה','אריות'], ['ביצה','ביצים'], ['עין','עיניים'], ['יד','ידיים'],
+    ['רגל','רגליים'], ['אוזן','אוזניים'], ['שן','שיניים'], ['עגבנייה','עגבניות'],
+  ],
+  3: [
+    ['איש','אנשים'], ['אישה','נשים'], ['בת','בנות'], ['אחות','אחיות'], ['פה','פיות'],
+    ['לב','לבבות'], ['אב','אבות'], ['אם','אמהות'], ['מקום','מקומות'], ['קול','קולות'],
+    ['חלום','חלומות'], ['מטבע','מטבעות'], ['אוצר','אוצרות'], ['לילה','לילות'],
+  ],
+};
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'singular-plural',
+  how: 'הופכים שני קלפים בכל תור ומחפשים זוג מתאים: מילה ביחיד (אחד) והצורה שלה ברבים (הרבה).',
+  example: 'הקלף <b>כיסא</b> (אחד) מתאים לקלף <b>כיסאות</b> (הרבה) — זה זוג!',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('pairs-label').textContent = IAKidsLang.t(T.pairs);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+let game, diff, level = 1, TOTAL = 10;
+let score = 0, pairsDone = 0, moves = 0;
+let first = null, busy = false, boardLeft = 0;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+function markRounds(n) {
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.toggle('success', +b.textContent === n));
+  TOTAL = n;
+}
+
+const ready = IAKidsGame.init('singular-plural').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) markRounds(p.rounds);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  await deal();
+}
+
+// nPairs per board scales with level; no two pairs on a board repeat a word.
+function makeBoard(lvl) {
+  const bank = BANK[lvl];
+  const nPairs = Math.min(lvl === 1 ? 4 : lvl === 2 ? 5 : 6, bank.length);
+  const idxs = [...bank.keys()];
+  for (let i = idxs.length - 1; i > 0; i--) { const j = rnd(i + 1); [idxs[i], idxs[j]] = [idxs[j], idxs[i]]; }
+  const pairs = idxs.slice(0, nPairs).map(i => bank[i]);
+  return { pairs, key: pairs.map(p => p[0]).sort().join('|') };
+}
+
+async function deal() {
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const board = await game.newQuestion(() => makeBoard(lvl), b => b.key);
+  const cards = [];
+  board.pairs.forEach((p, i) => {
+    cards.push({ text: p[0], pid: i });
+    cards.push({ text: p[1], pid: i });
+  });
+  for (let i = cards.length - 1; i > 0; i--) { const j = rnd(i + 1); [cards[i], cards[j]] = [cards[j], cards[i]]; }
+  boardLeft = board.pairs.length;
+  first = null; busy = false;
+  const grid = $('grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${cards.length <= 8 ? 3 : 4}, 1fr)`;
+  for (const c of cards) {
+    const el = document.createElement('div');
+    el.className = 'mcard';
+    el.dataset.pid = c.pid;
+    el.innerHTML = `<div class="inner"><div class="face front">❓</div><div class="face back">${c.text}</div></div>`;
+    el.addEventListener('click', () => flip(el));
+    grid.appendChild(el);
+  }
+}
+
+function flip(el) {
+  if (busy || el.classList.contains('flipped')) return;
+  el.classList.add('flipped');
+  if (!first) { first = el; return; }
+  moves++;
+  $('moves').textContent = moves;
+  busy = true;
+  const a = first, b = el;
+  first = null;
+  setTimeout(() => {
+    if (a.dataset.pid === b.dataset.pid) {
+      a.classList.add('matched'); b.classList.add('matched');
+      score += 10;
+      pairsDone++;
+      boardLeft--;
+      $('score').textContent = score;
+      $('qnum').textContent = pairsDone;
+      diff.right();
+      IAKidsFX.correct(b);
+      IAKidsCoins.right(b);
+      busy = false;
+      if (boardLeft === 0) {
+        if (pairsDone >= TOTAL) return end();
+        IAKidsFX.scorePop(IAKidsLang.t(T.newboard), $('grid'));
+        setTimeout(deal, 1000);
+      }
+    } else {
+      diff.wrong();
+      IAKidsFX.wrong(b);
+      IAKidsCoins.wrong();
+      setTimeout(() => {
+        a.classList.remove('flipped');
+        b.classList.remove('flipped');
+        busy = false;
+      }, 700);
+    }
+  }, 450);
+}
+
+async function end() {
+  await game.saveScore(score, { level, moves, pairs: pairsDone });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('moves-line').textContent = `${IAKidsLang.t(T.moves)}: ${moves}`;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const ratio = moves / Math.max(1, pairsDone);
+  $('stars').textContent = '⭐'.repeat(ratio <= 1.7 ? 3 : ratio <= 2.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
