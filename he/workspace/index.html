@@ -16516,6 +16516,11 @@ function handleResetLessonOverlayClick(
 
 window.confirmResetLesson = async function confirmResetLesson(){
 
+  const confirmButton =
+    document.getElementById(
+      "confirmResetLessonBtn"
+    );
+    
 const resetContext =
   window.RESET_LESSON_CONTEXT
   || {};
