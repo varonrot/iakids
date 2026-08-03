@@ -15715,19 +15715,40 @@ noResponseCount = 0;
 
           },
 
-          body:
-            JSON.stringify({
+body:
+  JSON.stringify({
 
-              kid_id:
-                CURRENT_KID.id,
+    kid_id:
+      CURRENT_KID.id,
 
-              lesson_id:
-                lesson.id,
+    lesson_id:
+      Number(
+        lesson.learning_lesson_id
+        ||
+        currentLessonId
+        ||
+        window.RESET_LESSON_CONTEXT
+          ?.lessonId
+        ||
+        0
+      ),
 
-              message:
-                null
+    unit_lesson_id:
+      Number(
+        lesson.unit_lesson_id
+        ||
+        lesson.id
+        ||
+        window.RESET_LESSON_CONTEXT
+          ?.unitLessonId
+        ||
+        0
+      ),
 
-            })
+    message:
+      null
+
+  })
 
         }
 
@@ -16708,7 +16729,7 @@ console.log(
 
 window.IS_RESTARTING_RESET_LESSON =
   true;
-  
+
   await startSelectedUnitLesson(
     lessonToRestart
   );
