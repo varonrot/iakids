@@ -1,1 +1,189 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משחקים | iakids</title>
+<link rel="stylesheet" href="game-style.css">
+<script src="game-sdk.js"></script>
+<style>
+  body { align-items: stretch; max-width: 1100px; margin: 0 auto; }
+  h1 { text-align: center; }
+  h2 { margin: 28px 4px 10px; font-size: 1.3rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .tile {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 10px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: transform 0.15s;
+  }
+  a.tile:hover { transform: translateY(-4px) scale(1.03); }
+  .tile .emoji { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+  .tile.soon { opacity: 0.45; }
+  .tile.soon::after { content: "בקרוב"; display: block; font-size: 0.75rem; color: var(--muted); }
 
+  #gate { max-width: 420px; margin: 60px auto; text-align: center; }
+  #gate .gate-card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 32px 24px;
+  }
+  #gate .gate-card > div:first-child { font-size: 3.5rem; margin-bottom: 6px; }
+  #gate p { color: var(--muted); margin: 8px 0 22px; }
+  #gate .game-btn { width: 100%; margin: 6px 0; }
+</style>
+</head>
+<body>
+<div id="gate" hidden>
+  <div class="gate-card">
+    <div>🎮🧠</div>
+    <h1 class="game-title">ברוכים הבאים ל-iakids!</h1>
+    <p>100 משחקי חשיבה לילדים. התחברו כדי לשמור התקדמות, או המשיכו כאורחים.</p>
+    <button class="game-btn" id="gateGoogleBtn">🔐 התחברות עם Google</button>
+    <button class="game-btn outline" id="gateGuestBtn">👤 המשך כאורח</button>
+  </div>
+</div>
+
+<div id="main" hidden>
+<h1 class="game-title" style="font-size:2rem">🎮 המשחקים של iakids</h1>
+<p style="text-align:center">
+  <a class="game-btn" href="champions/" style="display:inline-block;text-decoration:none">🏆 אלוף האלופים וטורנירים</a>
+  <a class="game-btn secondary" href="skills/" style="display:inline-block;text-decoration:none">🧠 אילו כישורים מפתח כל משחק</a>
+  <a class="game-btn outline" href="brain-test/" style="display:inline-block;text-decoration:none">🧪 מבחן כישורי חשיבה</a>
+</p>
+<div id="hub"></div>
+</div>
+
+<script>
+// First-ever visit: show a login/guest gate, then land on skills/ (the site's
+// main page). Every visit after that goes straight to this grid as before —
+// games' 🏠 home button (href="../") always lands here, never re-gated.
+const GATE_SEEN_KEY = 'iakids_gate_seen';
+if (new URLSearchParams(location.search).has('gate')) localStorage.removeItem(GATE_SEEN_KEY); // ?gate=1 to re-see it
+if (!localStorage.getItem(GATE_SEEN_KEY)) {
+  document.getElementById('gate').hidden = false;
+  const pass = () => { localStorage.setItem(GATE_SEEN_KEY, '1'); location.href = 'skills/'; };
+  document.getElementById('gateGuestBtn').onclick = pass;
+  document.getElementById('gateGoogleBtn').onclick = async () => {
+    await IAKidsAuth.signIn();
+    if (await IAKidsAuth.currentUser()) pass();
+  };
+} else {
+  document.getElementById('main').hidden = false;
+  buildHub();
+}
+IAKidsCoins.mount();
+IAKidsAuth.mount();
+
+// Playable games are auto-detected: hub probes <slug>/index.html on load.
+// Ship a game = paste its folder here. No code changes needed.
+function buildHub() {
+const CATS = [
+  ['🔢 חשבון ומתמטיקה', [
+    ['true-false-math','אמת או שקר','✅'],['missing-number','השלם את הנעלם','❓'],
+    ['target-bubbles','קליעה למטרה','🎯'],['compare-numbers','גדול קטן שווה','⚖️'],
+    ['odd-even-sort','זוגי או אי-זוגי','2️⃣'],['memory-equations','זיכרון תרגילים','🃏'],
+    ['number-sequence','סדרה חסרה','📈'],['multiplication-bingo','בינגו כפל','🎱'],
+    ['tens-units','עשרות ויחידות','🔟'],['rounding','עיגול מספרים','🔵'],
+    ['odd-one-out-math','יוצא דופן','🕵️'],['fraction-pizza','שברים בפיצה','🍕'],
+    ['sort-ascending','מהקטן לגדול','↗️'],['make-ten','משלימים ל-10','🔗'],
+    ['addition-pyramid','פירמידת חיבור','🔺'],['toy-shop','חנות צעצועים','🧸'],
+    ['change-calculator','עודף מקנייה','💰'],['thermometer','מד חום','🌡️'],
+    ['clock-match','שעון מחוגים','🕒'],['number-line-jumps','ציר המספרים','🐸'],
+    ['balance-scale','מאזניים','⚖️'],['perimeter','היקפים','📐'],
+    ['times-table-race','אליפות הכפל','🏁'],['count-shapes','ספירת צורות','🔷'],
+    ['half-or-double','חצי או כפול','✂️'],
+  ]],
+  ['📜 עברית ושפה', [
+    ['word-scramble','סדר את המילה','🔤'],['gender-sort','זכר או נקבה','🚻'],
+    ['hangman-house','בניית בית','🏠'],['spelling-error','שגיאת כתיב','✏️'],
+    ['singular-plural','יחיד ורבים','👥'],['rhymes','חרוזים','🎵'],
+    ['opposites-he','הפכים','↔️'],['synonyms','מילים נרדפות','🤝'],
+    ['missing-letter','האות החסרה','🅰️'],['word-types','שם עצם או פועל','🏷️'],
+    ['word-search','תפזורת','🔍'],['story-fill','השלם את הסיפור','📖'],
+    ['sentence-scramble','משפט מבולבל','🧩'],['first-last-letter','אות פותחת','🔠'],
+    ['roots','שורשים','🌳'],['abc-order-he','סדר אלפביתי','📚'],
+    ['compound-words','מילים מורכבות','🚡'],['nikud','זהה את הניקוד','🎯'],
+    ['idioms','פתגמים','💬'],['reading-comprehension','הבנת הנקרא','🧐'],
+    ['syllables','הברות','👏'],['longest-word','המילה הארוכה','📏'],
+    ['acronyms','ראשי תיבות','🔡'],['letter-swap','החלף אות','🔁'],
+    ['picture-story','סיפור בתמונות','🖼️'],
+  ]],
+  ['🇬🇧 אנגלית', [
+    ['english-word-match','Word Match','🖇️'],['spelling-bee','Spelling Bee','🐝'],
+    ['abc-order-en','ABC Order','🔤'],['colors-shapes','Colors & Shapes','🎨'],
+    ['pronouns','He She It','🗣️'],['numbers-to-words','Numbers to Words','5️⃣'],
+    ['opposites-en','Opposites','↔️'],['animals-en','Animals','🦁'],
+    ['fruit-veggie-sort','Fruit & Veggies','🍎'],['days-of-week','Days of Week','📅'],
+    ['body-parts','Body Parts','🦵'],['action-verbs','Action Verbs','🏃'],
+    ['plural-en','Singular-Plural','🐱'],['fill-the-gap','Fill the Gap','⬜'],
+    ['capital-small','Aa Letters','🅰️'],
+  ]],
+  ['🌍 מדעים וגיאוגרפיה', [
+    ['living-things-sort','חי צומח דומם','🌱'],['water-cycle','מחזור המים','💧'],
+    ['solar-system','מערכת השמש','🪐'],['weather-clothes','מזג אוויר ולבוש','🧥'],
+    ['recycling-sort','מיון מחזור','♻️'],['food-chain','שרשרת המזון','🦊'],
+    ['continents','זהה יבשת','🗺️'],['flags','דגלי מדינות','🚩'],
+    ['capitals','ערי בירה','🏛️'],['plant-parts','חלקי הצמח','🌷'],
+    ['states-of-matter','מצבי צבירה','🧊'],['carnivore-herbivore','טורף או צמחוני','🥩'],
+    ['animal-sounds','קולות חיות','🔊'],['israel-map','מפת ישראל','🇮🇱'],
+    ['seasons','עונות השנה','🍂'],
+  ]],
+  ['🧩 לוגיקה וקוד', [
+    ['robot-grid','כוון את הרובוט','🤖'],['pattern-match','זהה תבנית','🔶'],
+    ['memory-classic','משחק הזיכרון','🧠'],['sudoku-4x4','סודוקו 4×4','🔢'],
+    ['maze','מבוך','🌀'],['simon-says','סיימון','🚦'],
+    ['pixel-art-code','פיקסל ארט','🎨'],['puzzle-piece','החלק החסר','🧩'],
+    ['keys-locks','מפתחות ומנעולים','🔑'],['logic-scale','מאזני לוגיקה','🤔'],
+  ]],
+  ['⏱️ שיעורי בית ומוטיבציה', [
+    ['pomodoro-rocket','טיימר חללית','🚀'],['task-checklist','רשימת משימות','✅'],
+    ['break-wheel','גלגל הפסקות','🎡'],['sticker-book','אוסף מדבקות','⭐'],
+    ['flashcards','פלאשקארדס','🗂️'],['daily-goals','מטרות יומיות','🎯'],
+    ['mood-journal','יומן מצב רוח','😊'],['typing-race','הקלדה מהירה','⌨️'],
+    ['quiz-maker','בוחן עצמי','📝'],['leaderboard','טבלת שיאים','🏆'],
+  ]],
+];
+
+// demo tile pinned first while it's the only playable game
+CATS[0][1].unshift(['demo', 'דמו: אמת או שקר', '🤖']);
+
+// render all as "coming soon", then probe each folder and activate the ones that exist
+document.getElementById('hub').innerHTML = CATS.map(([title, games]) => `
+  <h2>${title}</h2>
+  <div class="grid">
+    ${games.map(([slug, name, emoji]) =>
+      `<div class="tile soon" data-slug="${slug}"><span class="emoji">${emoji}</span>${name}</div>`
+    ).join('')}
+  </div>`).join('');
+
+document.querySelectorAll('.tile[data-slug]').forEach(async tile => {
+  const slug = tile.dataset.slug;
+  try {
+    const r = await fetch(slug + '/index.html', { method: 'HEAD' });
+    if (!r.ok) return;
+    const a = document.createElement('a');
+    a.className = 'tile';
+    a.href = slug + '/';
+    a.innerHTML = tile.innerHTML;
+    tile.replaceWith(a);
+  } catch (e) { /* stays "coming soon" */ }
+});
+
+window.addEventListener('message', e => {
+  if (e.data?.type === 'iakids-game-complete')
+    console.log('game complete:', e.data.slug, e.data.score);
+});
+} // end buildHub
+</script>
+</body>
+</html>
