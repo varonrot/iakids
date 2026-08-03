@@ -15379,16 +15379,68 @@ window.IS_RESTARTING_RESET_LESSON =
               `Bearer ${session.access_token}`
           },
 
-          body:
-            JSON.stringify({
+const resolvedUnitLessonId =
+  Number(
+    lesson?.unit_lesson_id
+    ||
+    lesson?.id
+    ||
+    window.SELECTED_UNIT_LESSON?.unit_lesson_id
+    ||
+    window.RESET_LESSON_CONTEXT?.unitLessonId
+    ||
+    0
+  );
 
-              kid_id:
-                CURRENT_KID.id,
+if(!resolvedUnitLessonId){
 
-              unit_lesson_id:
-                lesson.id
+  console.error(
+    "LESSON INTRO ABORTED — MISSING UNIT LESSON ID",
+    {
+      lesson,
+      selectedUnitLesson:
+        window.SELECTED_UNIT_LESSON,
 
-            })
+      resetContext:
+        window.RESET_LESSON_CONTEXT
+    }
+  );
+
+  hideLessonLoading();
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי לזהות את השיעור. נסו שוב."
+  );
+
+  return;
+}
+
+const introResponse =
+  await fetch(
+    `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
+    {
+      method:
+        "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        "Authorization":
+          `Bearer ${session.access_token}`
+      },
+
+      body:
+        JSON.stringify({
+          kid_id:
+            CURRENT_KID.id,
+
+          unit_lesson_id:
+            resolvedUnitLessonId
+        })
+    }
+  );
         }
 
       );
