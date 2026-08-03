@@ -16520,7 +16520,7 @@ window.confirmResetLesson = async function confirmResetLesson(){
     document.getElementById(
       "confirmResetLessonBtn"
     );
-    
+
 const resetContext =
   window.RESET_LESSON_CONTEXT
   || {};
@@ -16592,8 +16592,7 @@ if(!session?.access_token){
 
 
 const response = await fetch(
-  API_BASE
-  + "/api/tutor/reset-unit-lesson",
+TUTOR_API_BASE + "/api/tutor/reset-unit-lesson",
   {
     method:
       "POST",
