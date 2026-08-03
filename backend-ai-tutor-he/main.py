@@ -427,7 +427,10 @@ class UnitLessonRequest(BaseModel):
 
 class ActiveLessonStateRequest(BaseModel):
     kid_id: str
-
+class ResetUnitLessonRequest(BaseModel):
+    kid_id: str
+    lesson_id: int
+    unit_lesson_id: int
 class StructuredLessonRequest(
     BaseModel
 ):
@@ -1739,39 +1742,42 @@ def get_or_create_lesson_progress(
 def get_recent_lesson_history_for_llm(
         kid_id: str,
         lesson_id: int,
+        unit_lesson_id: int | None = None,
         limit: int = 8
 ):
-    res = (
-
+    query = (
         sb.table(
             "kid_lesson_history"
         )
-
         .select(
             "role, content"
         )
-
         .eq(
             "kid_id",
             kid_id
         )
-
         .eq(
             "lesson_id",
             lesson_id
         )
+    )
 
+    if unit_lesson_id is not None:
+        query = query.eq(
+            "unit_lesson_id",
+            unit_lesson_id
+        )
+
+    res = (
+        query
         .order(
             "created_at",
             desc=True
         )
-
         .limit(
             limit
         )
-
         .execute()
-
     )
 
     messages = list(
@@ -1781,27 +1787,22 @@ def get_recent_lesson_history_for_llm(
     )
 
     return [
-
         {
-
             "role":
                 message["role"],
 
             "content":
                 message["content"]
-
         }
 
-        for message
-        in messages
+        for message in messages
 
         if message.get(
             "role"
         ) in (
-               "user",
-               "assistant"
-           )
-
+            "user",
+            "assistant"
+        )
     ]
 
 
@@ -1838,6 +1839,7 @@ def should_show_answering_hint(
 def save_lesson_history(
         kid_id: str,
         lesson_id: int,
+        unit_lesson_id: int | None,
         session_id: str,
         objective_index: int | None,
         user_content: str | None,
@@ -1863,6 +1865,9 @@ def save_lesson_history(
             "lesson_id":
                 lesson_id,
 
+            "unit_lesson_id":
+                unit_lesson_id,
+
             "session_id":
                 session_id,
 
@@ -1870,16 +1875,16 @@ def save_lesson_history(
                 objective_index,
 
             "role":
-                "user",
+                "assistant",
 
             "content":
-                user_content.strip(),
+                assistant_content,
 
             "evaluation":
-                None,
+                evaluation,
 
             "sequence_json":
-                None
+                sequence_json
 
         })
 
@@ -6215,6 +6220,7 @@ def run_learning_coach(
         get_recent_lesson_history_for_llm(
             kid_id=child["id"],
             lesson_id=lesson["id"],
+            unit_lesson_id=unit_lesson["id"],
             limit=12
         )
     )
@@ -6521,6 +6527,7 @@ def run_learning_coach(
     save_lesson_history(
         kid_id=child["id"],
         lesson_id=lesson["id"],
+        unit_lesson_id=unit_lesson["id"],
         session_id=session_id,
         objective_index=None,
         user_content=message,
@@ -7251,6 +7258,9 @@ def structured_lesson(
                 lesson_id=
                 lesson["id"],
 
+                unit_lesson_id=
+                body.unit_lesson_id,
+
                 limit=8
 
             )
@@ -7762,6 +7772,9 @@ def structured_lesson(
             lesson_id=
             lesson["id"],
 
+            unit_lesson_id=
+            body.unit_lesson_id,
+
             session_id=
             session_id,
 
@@ -8002,7 +8015,442 @@ def structured_lesson(
 
         )
 
+# =====================================================
+# RESET UNIT LESSON PROGRESS
+# =====================================================
 
+@app.post(
+    "/api/tutor/reset-unit-lesson"
+)
+def reset_unit_lesson(
+        body: ResetUnitLessonRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LESSON VALIDATION
+        # =============================================
+
+        lesson = get_learning_lesson(
+            body.lesson_id
+        )
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        if (
+                int(
+                    unit_lesson.get(
+                        "learning_lesson_id"
+                    )
+                    or 0
+                )
+                !=
+                int(
+                    lesson.get(
+                        "id"
+                    )
+                    or 0
+                )
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Unit lesson does not belong "
+                    "to the selected lesson"
+                )
+            )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            lesson.get("grade")
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # DELETE LEARNING COACH SESSIONS
+        #
+        # רק עבור הילד ותת־השיעור הנוכחי
+        # =============================================
+
+        coach_delete = (
+            sb.table(
+                "learning_coach_sessions"
+            )
+            .delete()
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # DELETE UNIT LESSON HISTORY
+        # =============================================
+
+        history_delete = (
+            sb.table(
+                "kid_lesson_history"
+            )
+            .delete()
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # RESET MAIN PROGRESS ROW
+        #
+        # kid_lesson_progress היא רשומה אחת לנושא,
+        # לכן לא מוחקים אותה אלא מאפסים אותה
+        # ומכוונים לתת־השיעור שנבחר.
+        # =============================================
+
+        progress_res = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .select("*")
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        progress = None
+
+        if progress_res.data:
+
+            progress_id = (
+                progress_res.data[0]["id"]
+            )
+            objectives = (
+                    lesson.get(
+                        "learning_objectives"
+                    )
+                    or []
+            )
+
+            reset_objectives_progress = []
+
+            for index, _ in enumerate(
+                    objectives,
+                    start=1
+            ):
+                reset_objectives_progress.append({
+                    "objective_index":
+                        index,
+
+                    "score":
+                        0,
+
+                    "highest_difficulty_reached":
+                        0,
+
+                    "evidence_count":
+                        0,
+
+                    "evidence_by_level": {
+                        "1": 0,
+                        "2": 0,
+                        "3": 0,
+                        "4": 0,
+                        "5": 0
+                    }
+                })
+                
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "current_stage":
+                        LESSON_STAGE_INTRO,
+
+                    "current_flow_step":
+                        0,
+
+                    "flow_state":
+                        {},
+
+                    "status":
+                        "in_progress",
+
+                    "progress_percent":
+                        0,
+
+                    "mastery_score":
+                        0,
+
+                    "current_objective_index":
+                        1,
+
+                    "objectives_progress":
+                        [],
+
+                    "total_interactions":
+                        0,
+
+                    "attempts_count":
+                        0,
+
+                    "hints_used":
+                        0,
+
+                    "consecutive_successes":
+                        0,
+
+                    "consecutive_failures":
+                        0,
+
+                    "last_evaluation":
+                        None,
+
+                    "last_error_type":
+                        None,
+
+                    "completed_at":
+                        None,
+
+                    "xp_earned":
+                        0,
+
+                    "stars_earned":
+                        0,
+
+                    "last_session_id":
+                        None,
+
+                    "started_at":
+                        now_iso,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress_id
+                )
+                .execute()
+            )
+
+            if progress_update.data:
+                progress = (
+                    progress_update.data[0]
+                )
+
+        # =============================================
+        # DEBUG
+        # =============================================
+
+        print(
+            "UNIT LESSON RESET COMPLETED:",
+            json.dumps(
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "lesson_id":
+                        lesson["id"],
+
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "coach_rows_deleted":
+                        len(
+                            coach_delete.data
+                            or []
+                        ),
+
+                    "history_rows_deleted":
+                        len(
+                            history_delete.data
+                            or []
+                        ),
+
+                    "progress_reset":
+                        progress is not None,
+
+                    "lesson_content_deleted":
+                        False,
+
+                    "lesson_audio_deleted":
+                        False
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        return {
+            "success": True,
+
+            "kid_id":
+                child["id"],
+
+            "lesson_id":
+                lesson["id"],
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "reset": {
+                "learning_coach_sessions":
+                    True,
+
+                "lesson_history":
+                    True,
+
+                "lesson_progress":
+                    True
+            },
+
+            "preserved": {
+                "lesson_content":
+                    True,
+
+                "lesson_audio":
+                    True
+            },
+
+            "progress": {
+                "current_stage":
+                    (
+                        progress.get(
+                            "current_stage"
+                        )
+                        if progress
+                        else LESSON_STAGE_INTRO
+                    ),
+
+                "progress_percent":
+                    0,
+
+                "mastery_score":
+                    0,
+
+                "status":
+                    "in_progress"
+            }
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "RESET UNIT LESSON ERROR:",
+            {
+                "kid_id":
+                    body.kid_id,
+
+                "lesson_id":
+                    body.lesson_id,
+
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error_type":
+                    type(e).__name__,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to reset unit lesson"
+        )
 # =====================================================
 # HOMEWORK IMAGE / PDF ANALYSIS
 # =====================================================
