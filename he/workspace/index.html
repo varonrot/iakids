@@ -16520,28 +16520,6 @@ const unitLessonId =
     || 0
   );
 
-
-const selectedUnitLesson =
-  window.SELECTED_UNIT_LESSON
-  || {};
-
-const unitLessonId =
-  Number(
-    selectedUnitLesson.unit_lesson_id
-    || selectedUnitLesson.id
-    || 0
-  );
-
-const lessonId =
-  Number(
-    currentLessonId
-    || selectedUnitLesson.learning_lesson_id
-    || selectedUnitLesson.lesson_id
-    || window.CURRENT_LESSON_ID
-    || 0
-  );
-
-
 if(
   !kidId
   ||
