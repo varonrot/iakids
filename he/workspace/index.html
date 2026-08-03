@@ -14228,14 +14228,28 @@ throw new Error(
     }
 
 
-    const data =
-      await response.json();
+const data =
+  await response.json();
 
+currentLessonId =
+  Number(
+    data.learning_lesson_id
+    || currentLessonId
+    || 0
+  );
 
-    console.log(
-      "UNIT LESSON RESPONSE:",
-      data
-    );
+window.CURRENT_LESSON_ID =
+  currentLessonId;
+
+console.log(
+  "CURRENT LESSON ID UPDATED:",
+  currentLessonId
+);
+
+console.log(
+  "UNIT LESSON RESPONSE:",
+  data
+);
 
 
     /*
@@ -16397,7 +16411,16 @@ function openResetLessonModal(){
     return;
 
   }
+window.RESET_LESSON_CONTEXT = {
+  kidId:
+    CURRENT_KID.id,
 
+  lessonId:
+    lessonId,
+
+  unitLessonId:
+    unitLessonId
+};
 
   const modal =
     document.getElementById(
@@ -16478,26 +16501,54 @@ function handleResetLessonOverlayClick(
 
 async function confirmResetLesson(){
 
-  const confirmButton =
-    document.getElementById(
-      "confirmResetLessonBtn"
-    );
+const resetContext =
+  window.RESET_LESSON_CONTEXT
+  || {};
+
+const kidId =
+  resetContext.kidId;
+
+const lessonId =
+  Number(
+    resetContext.lessonId
+    || 0
+  );
+
+const unitLessonId =
+  Number(
+    resetContext.unitLessonId
+    || 0
+  );
 
 
-  const unitLessonId =
-    Number(
-      window.SELECTED_UNIT_LESSON
-        ?.unit_lesson_id
-    );
+const selectedUnitLesson =
+  window.SELECTED_UNIT_LESSON
+  || {};
+
+const unitLessonId =
+  Number(
+    selectedUnitLesson.unit_lesson_id
+    || selectedUnitLesson.id
+    || 0
+  );
+
+const lessonId =
+  Number(
+    currentLessonId
+    || selectedUnitLesson.learning_lesson_id
+    || selectedUnitLesson.lesson_id
+    || window.CURRENT_LESSON_ID
+    || 0
+  );
 
 
-  if(
-    !CURRENT_KID?.id
-    ||
-    !currentLessonId
-    ||
-    !unitLessonId
-  ){
+if(
+  !kidId
+  ||
+  !lessonId
+  ||
+  !unitLessonId
+){
 
     console.error(
       "RESET LESSON FAILED — MISSING VALUES",
@@ -16506,7 +16557,7 @@ async function confirmResetLesson(){
           CURRENT_KID?.id,
 
         lessonId:
-          currentLessonId,
+          lessonId,
 
         unitLessonId
       }
@@ -16557,19 +16608,17 @@ const response = await fetch(
         `Bearer ${session.access_token}`
     },
 
-    body:
-      JSON.stringify({
-        kid_id:
-          CURRENT_KID.id,
+body:
+  JSON.stringify({
+    kid_id:
+      kidId,
 
-        lesson_id:
-          Number(
-            currentLessonId
-          ),
+    lesson_id:
+      lessonId,
 
-        unit_lesson_id:
-          unitLessonId
-      })
+    unit_lesson_id:
+      unitLessonId
+  })
   }
 );
 
