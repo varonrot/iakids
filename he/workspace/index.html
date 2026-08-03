@@ -15112,7 +15112,34 @@ console.log(
 async function startSelectedUnitLesson(
   lesson
 ){
+const resolvedUnitLessonId =
+  Number(
+    lesson?.unit_lesson_id
+    ||
+    lesson?.id
+    ||
+    0
+  );
 
+
+if(
+  !resolvedUnitLessonId
+){
+
+  console.error(
+    "START LESSON FAILED — MISSING UNIT LESSON ID",
+    {
+      lesson
+    }
+  );
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי לזהות את השיעור. נסו לבחור אותו שוב."
+  );
+
+  return;
+}
   console.log(
     "START UNIT LESSON:",
     {
@@ -15322,11 +15349,11 @@ if(
   !shouldSkipRestore
 ){
 
-  activeLessonRestored =
-    await restoreActiveUnitLesson(
-      session,
-      lesson.id
-    );
+activeLessonRestored =
+  await restoreActiveUnitLesson(
+    session,
+    resolvedUnitLessonId
+  );
 
 }
 
@@ -15338,8 +15365,8 @@ if(
   console.log(
     "SELECTED ACTIVE LESSON RESTORED:",
     {
-      unitLessonId:
-        lesson.id
+unitLessonId:
+  resolvedUnitLessonId
     }
   );
 
@@ -15379,14 +15406,16 @@ window.IS_RESTARTING_RESET_LESSON =
               `Bearer ${session.access_token}`
           },
 
-          body:
-            JSON.stringify({
+body:
+  JSON.stringify({
 
-              kid_id:
-                CURRENT_KID.id,
+    kid_id:
+      CURRENT_KID.id,
 
-              unit_lesson_id:
-                lesson.id
+    unit_lesson_id:
+      resolvedUnitLessonId
+
+  })
 
             })
         }
@@ -15444,7 +15473,12 @@ console.log(
   currentSessionId
 );
 
+lesson.id =
+  resolvedUnitLessonId;
 
+lesson.unit_lesson_id =
+  resolvedUnitLessonId;
+  
 const universalLessonPromise =
   loadUniversalUnitLesson(
     lesson,
