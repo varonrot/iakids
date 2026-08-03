@@ -11,6 +11,25 @@
  *   const p = await game.loadProgress();
  *   game.complete(850); // notify hub/workspace
  */
+
+// Cloud config lives here (not a separate <script> per page) so every one of
+// the 100 games has it, not just the hub/champions — IAKidsAuth/IAKidsCloud
+// need it wherever game.complete() can actually fire. apiKey/publishable key
+// are not secrets by design (Firebase/Supabase docs) — real protection is
+// Firebase's Authorized Domains list and Supabase's RLS policies.
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyDkG_TyCebc-MDvWZWYyVkvDg8owErIWCA',
+  authDomain: 'smarts-brains.firebaseapp.com',
+  projectId: 'smarts-brains',
+  storageBucket: 'smarts-brains.firebasestorage.app',
+  messagingSenderId: '48287114684',
+  appId: '1:48287114684:web:495b67e4b3ce03d3bf37b9',
+};
+const SUPABASE_CONFIG = {
+  url: 'https://bxnfzuglfwytiyaguwjj.supabase.co',
+  publishableKey: 'sb_publishable_L3yZe3EAiTA5lEpDky1eXA_j6ERXAdc',
+};
+
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
@@ -61,6 +80,7 @@ const IAKidsGame = {
         IAKidsFX.celebrate();
         IAKidsShare.onComplete(slug, score);      // challenge beaten? banner
         IAKidsTournament.onComplete(slug, score); // in tournament? next-game button
+        IAKidsCloud.recordWin(slug, score);       // signed-in players only; no-op for guests
       },
       shareButton(score, el) { return IAKidsShare.button(slug, score, el); },
       timer: opts => IAKidsTimer.create(opts),
@@ -899,5 +919,63 @@ const IAKidsAuth = {
     }
     await this._init();
     this._paint();
+  },
+};
+
+/**
+ * IAKidsCloud — optional cloud leaderboard, only for signed-in players (never
+ * guests — matches the "your data stays on your device unless you sign in"
+ * promise on the skills page). Fails silently if supabase-config.js/the
+ * game_wins table aren't set up yet (see games/games-tables.sql).
+ *
+ * Honesty note: identity here is only as strong as "the browser said this
+ * email" — Supabase RLS can't verify a Firebase-issued token, so this can't
+ * cryptographically stop someone from inserting under a fake email. RLS does
+ * guarantee no one can edit or delete a score once written. Fine for a fun
+ * kids' leaderboard; not a substitute for real server-side auth if this ever
+ * needs to be tamper-proof.
+ */
+const IAKidsCloud = {
+  _client: null, _ready: null,
+
+  async _init() {
+    if (this._ready) return this._ready;
+    this._ready = (async () => {
+      if (typeof SUPABASE_CONFIG === 'undefined') return false;
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      this._client = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.publishableKey);
+      return true;
+    })().catch(() => false);
+    return this._ready;
+  },
+
+  async recordWin(slug, score, meta) {
+    const user = await IAKidsAuth.currentUser();
+    if (!user) return; // guests: local-only, never sent to the cloud
+    if (!(await this._init())) return;
+    try {
+      await this._client.from('game_wins').insert({
+        email: user.email, display_name: user.name, game_slug: slug, score, meta: meta || null,
+      });
+    } catch (e) { /* table not migrated yet, or offline — silently skip */ }
+  },
+
+  async recordAchievement(key) {
+    const user = await IAKidsAuth.currentUser();
+    if (!user) return;
+    if (!(await this._init())) return;
+    try {
+      await this._client.from('game_achievements')
+        .insert({ email: user.email, display_name: user.name, achievement_key: key })
+        .select(); // duplicate (email, achievement_key) -> unique-violation, caught below
+    } catch (e) { /* already unlocked, table missing, or offline — fine */ }
+  },
+
+  async topWins(slug, n = 10) {
+    if (!(await this._init())) return [];
+    const { data } = await this._client.from('game_wins')
+      .select('email,display_name,score,created_at').eq('game_slug', slug)
+      .order('score', { ascending: false }).limit(n);
+    return data || [];
   },
 };
