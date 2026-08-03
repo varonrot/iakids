@@ -1875,16 +1875,16 @@ def save_lesson_history(
                 objective_index,
 
             "role":
-                "assistant",
+                "user",
 
             "content":
-                assistant_content,
+                user_content.strip(),
 
             "evaluation":
-                evaluation,
+                None,
 
             "sequence_json":
-                sequence_json
+                None
 
         })
 
@@ -1899,6 +1899,9 @@ def save_lesson_history(
 
         "lesson_id":
             lesson_id,
+
+        "unit_lesson_id":
+            unit_lesson_id,
 
         "session_id":
             session_id,
@@ -8235,7 +8238,7 @@ def reset_unit_lesson(
                         "5": 0
                     }
                 })
-                
+
             progress_update = (
                 sb.table(
                     "kid_lesson_progress"
@@ -8266,7 +8269,7 @@ def reset_unit_lesson(
                         1,
 
                     "objectives_progress":
-                        [],
+                        reset_objectives_progress,
 
                     "total_interactions":
                         0,
