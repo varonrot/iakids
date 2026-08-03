@@ -728,7 +728,7 @@ document
 
 
 const redirectUrl =
-  "https://iakids.app/he/onboarding/prepare-user/";
+  location.origin + "/he/onboarding/prepare-user/";
 
 const { error } =
   await sb.auth.signInWithOAuth({

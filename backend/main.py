@@ -202,6 +202,14 @@ def save_chat_message(
     }).execute()
 
 # ---------
+# HEALTH
+# ---------
+
+@app.get("/")
+def health():
+    return {"status": "ok", "service": "iakids-backend"}
+
+# ---------
 # CHAT
 # ---------
 
