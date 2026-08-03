@@ -16377,17 +16377,35 @@ let noResponseCount = 0;
 
 function openResetLessonModal(){
 
+  const selectedUnitLesson =
+    window.SELECTED_UNIT_LESSON
+    || {};
+
   const unitLessonId =
     Number(
-      window.SELECTED_UNIT_LESSON
-        ?.unit_lesson_id
+      selectedUnitLesson.unit_lesson_id
+      || selectedUnitLesson.id
+      || 0
     );
 
+  const lessonId =
+    Number(
+      currentLessonId
+      || window.CURRENT_LESSON_ID
+      || selectedUnitLesson.learning_lesson_id
+      || selectedUnitLesson.lesson_id
+      || 0
+    );
+
+  const currentKidId =
+    CURRENT_KID?.id
+    || window.ACTIVE_KID_ID
+    || null;
 
   if(
-    !CURRENT_KID?.id
+    !currentKidId
     ||
-    !currentLessonId
+    !lessonId
     ||
     !unitLessonId
   ){
@@ -16396,66 +16414,63 @@ function openResetLessonModal(){
       "RESET LESSON MODAL SKIPPED — MISSING LESSON DATA",
       {
         kidId:
-          CURRENT_KID?.id,
+          currentKidId,
 
         lessonId:
+          lessonId,
+
+        unitLessonId:
+          unitLessonId,
+
+        currentLessonId:
           currentLessonId,
 
-        unitLessonId,
+        windowCurrentLessonId:
+          window.CURRENT_LESSON_ID,
 
         selectedUnitLesson:
-          window.SELECTED_UNIT_LESSON
+          selectedUnitLesson
       }
     );
 
     return;
-
   }
-window.RESET_LESSON_CONTEXT = {
-  kidId:
-    CURRENT_KID.id,
 
-  lessonId:
-    lessonId,
+  window.RESET_LESSON_CONTEXT = {
+    kidId:
+      currentKidId,
 
-  unitLessonId:
-    unitLessonId
-};
+    lessonId:
+      lessonId,
+
+    unitLessonId:
+      unitLessonId
+  };
 
   const modal =
     document.getElementById(
       "resetLessonModal"
     );
 
-
   if(!modal){
+
+    console.error(
+      "RESET LESSON MODAL ELEMENT NOT FOUND"
+    );
+
     return;
   }
-
 
   modal.style.display =
     "flex";
 
-
   document.body.style.overflow =
     "hidden";
 
-
   console.log(
     "RESET LESSON MODAL OPENED:",
-    {
-      kidId:
-        CURRENT_KID.id,
-
-      lessonId:
-        Number(
-          currentLessonId
-        ),
-
-      unitLessonId
-    }
+    window.RESET_LESSON_CONTEXT
   );
-
 }
 
 
