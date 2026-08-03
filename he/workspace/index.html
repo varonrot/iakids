@@ -16528,10 +16528,69 @@ async function confirmResetLesson(){
   }
 
 
-  /*
-    בשלב הבא כאן תהיה קריאה לבק.
-    כרגע לא מוחקים שום דבר.
-  */
+const {
+  data: {
+    session
+  }
+} = await sb.auth.getSession();
+
+
+if(!session?.access_token){
+  throw new Error(
+    "Missing authentication session"
+  );
+}
+
+
+const response = await fetch(
+  API_BASE
+  + "/api/tutor/reset-unit-lesson",
+  {
+    method:
+      "POST",
+
+    headers: {
+      "Content-Type":
+        "application/json",
+
+      "Authorization":
+        `Bearer ${session.access_token}`
+    },
+
+    body:
+      JSON.stringify({
+        kid_id:
+          CURRENT_KID.id,
+
+        lesson_id:
+          Number(
+            currentLessonId
+          ),
+
+        unit_lesson_id:
+          unitLessonId
+      })
+  }
+);
+
+
+const result = await response.json();
+
+
+if(!response.ok){
+
+  throw new Error(
+    result?.detail
+    || "Failed to reset lesson"
+  );
+
+}
+
+
+console.log(
+  "RESET UNIT LESSON SUCCESS:",
+  result
+);
 
   console.log(
     "RESET LESSON CONFIRMED — FRONTEND READY:",
