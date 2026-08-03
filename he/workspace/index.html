@@ -15197,7 +15197,7 @@ if(
   window.SELECTED_UNIT_LESSON = {
 
     unit_lesson_id:
-      lesson.id,
+      resolvedUnitLessonId,
 
     learning_lesson_id:
       CURRENT_PARENT_LESSON.id,
@@ -15406,16 +15406,10 @@ window.IS_RESTARTING_RESET_LESSON =
               `Bearer ${session.access_token}`
           },
 
-body:
-  JSON.stringify({
-
-    kid_id:
-      CURRENT_KID.id,
-
-    unit_lesson_id:
-      resolvedUnitLessonId
-
-  })
+body: JSON.stringify({
+  kid_id: CURRENT_KID.id,
+  unit_lesson_id: resolvedUnitLessonId
+})
 
             })
         }
@@ -15478,7 +15472,7 @@ lesson.id =
 
 lesson.unit_lesson_id =
   resolvedUnitLessonId;
-  
+
 const universalLessonPromise =
   loadUniversalUnitLesson(
     lesson,
