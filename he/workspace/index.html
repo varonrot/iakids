@@ -16717,41 +16717,26 @@ console.log(
     }
   );
 
-  const lessonToRestart =
-    window.SELECTED_UNIT_LESSON;
+closeResetLessonModal();
 
-  closeResetLessonModal();
-
-  if(confirmButton){
-
-    confirmButton.disabled =
-      false;
-
-    confirmButton.textContent =
-      "כן, להתחיל מחדש";
-
+console.log(
+  "RESET COMPLETED — RELOADING CLEAN LESSON",
+  {
+    kidId,
+    lessonId,
+    unitLessonId
   }
+);
 
-  if(!lessonToRestart){
-
-    console.error(
-      "RESET SUCCEEDED BUT SELECTED LESSON IS MISSING"
-    );
-
-    return;
-  }
-
-  console.log(
-    "RESTARTING RESET LESSON:",
-    lessonToRestart
-  );
-
-window.IS_RESTARTING_RESET_LESSON =
-  true;
-
-  await startSelectedUnitLesson(
-    lessonToRestart
-  );
+/*
+  רענון מלא עוצר:
+  - אודיו ישן
+  - אנימציית שיעור ישנה
+  - טיימרים
+  - פעולות async שעדיין רצות
+  - תוכן ישן במחברת
+*/
+window.location.reload();
 
 };
 const MAX_NO_RESPONSE_PROMPTS = 3;
