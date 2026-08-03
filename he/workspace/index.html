@@ -15389,32 +15389,23 @@ window.IS_RESTARTING_RESET_LESSON =
        1. טעינת הפתיח האישי
     ============================================= */
 
-    const introResponse =
-      await fetch(
+const introResponse =
+  await fetch(
+    `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
+    {
+      method: "POST",
 
-        `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`
+      },
 
-        {
-          method:
-            "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            "Authorization":
-              `Bearer ${session.access_token}`
-          },
-
-body: JSON.stringify({
-  kid_id: CURRENT_KID.id,
-  unit_lesson_id: resolvedUnitLessonId
-})
-
-            })
-        }
-
-      );
+      body: JSON.stringify({
+        kid_id: CURRENT_KID.id,
+        unit_lesson_id: resolvedUnitLessonId
+      })
+    }
+  );
 
 
     if(
