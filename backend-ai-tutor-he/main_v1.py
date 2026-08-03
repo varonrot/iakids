@@ -18,7 +18,8 @@ import wave
 import os
 import json
 import base64
-
+import traceback
+import time
 # =====================================================
 # CONFIG
 # =====================================================
@@ -1501,7 +1502,8 @@ def get_or_create_lesson_progress(
         kid_id: str,
         lesson: dict,
         session_id: str | None = None,
-        is_lesson_start: bool = False
+        is_lesson_start: bool = False,
+        unit_lesson_id: int | None = None
 ):
     lesson_id = lesson["id"]
 
@@ -1667,6 +1669,9 @@ def get_or_create_lesson_progress(
 
             "lesson_id":
                 lesson_id,
+
+            "current_unit_lesson_id":
+                unit_lesson_id,
 
             "status":
                 "in_progress",
@@ -3794,11 +3799,44 @@ def generate_and_store_lesson_audio(
         if not segment_text:
             continue
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                segment_text
-            )
+        print(
+            "BACKGROUND TTS SEGMENT START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "segment_index": index,
+                "text_length": len(segment_text),
+                "text": repr(segment_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    segment_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS SEGMENT SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS SEGMENT FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "text_length": len(segment_text),
+                    "text": repr(segment_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         storage_path = (
             f"unit_lessons/"
@@ -3849,11 +3887,41 @@ def generate_and_store_lesson_audio(
 
     if question_text:
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                question_text
-            )
+        print(
+            "BACKGROUND TTS QUESTION START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "text_length": len(question_text),
+                "text": repr(question_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    question_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS QUESTION SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS QUESTION FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "text_length": len(question_text),
+                    "text": repr(question_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         question_path = (
             f"unit_lessons/"
@@ -4194,12 +4262,35 @@ def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
+        print(
+            "LIVE TTS REQUEST:",
+            {
+                "session_id": body.session_id,
+                "text_length": len(text),
+                "text": repr(text)
+            }
+        )
+        # =============================================
+        # GEMINI TTS DEBUG
+        # =============================================
 
-        # Gemini TTS
-        response = gemini_client.models.generate_content(
-            model="gemini-3.1-flash-tts-preview",
+        tts_started_at = time.perf_counter()
 
-            contents=(
+        print(
+            "========== LIVE TTS GEMINI START ==========",
+            {
+                "session_id": body.session_id,
+                "text_length": len(text),
+                "text": repr(text)
+            }
+        )
+
+        try:
+
+            response = gemini_client.models.generate_content(
+                model="gemini-3.1-flash-tts-preview",
+
+                contents=(
                     "Speak in natural, fluent Hebrew. "
                     "Sound like a warm, friendly and patient teacher "
                     "speaking naturally to a school-age child. "
@@ -4207,33 +4298,65 @@ def tutor_tts(
                     "and an encouraging tone. "
                     "Read exactly the following Hebrew text:\n\n"
                     + text
-            ),
+                ),
 
-            config=types.GenerateContentConfig(
+                config=types.GenerateContentConfig(
+                    temperature=2.0,
 
-                temperature=2.0,
+                    response_modalities=[
+                        "AUDIO"
+                    ],
 
-                response_modalities=[
-                    "AUDIO"
-                ],
-
-                speech_config=types.SpeechConfig(
-
-                    voice_config=
-                    types.VoiceConfig(
-
-                        prebuilt_voice_config=
-                        types.PrebuiltVoiceConfig(
-                            voice_name="Aoede"
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=
+                            types.PrebuiltVoiceConfig(
+                                voice_name="Aoede"
+                            )
                         )
-
                     )
-
                 )
-
             )
 
-        )
+            print(
+                "========== LIVE TTS GEMINI SUCCESS ==========",
+                {
+                    "session_id": body.session_id,
+                    "elapsed_ms": round(
+                        (
+                            time.perf_counter()
+                            - tts_started_at
+                        )
+                        * 1000
+                    )
+                }
+            )
+
+        except Exception as gemini_error:
+
+            print(
+                "========== LIVE TTS GEMINI FAILED ==========",
+                {
+                    "session_id": body.session_id,
+                    "text_length": len(text),
+                    "text": repr(text),
+                    "elapsed_ms": round(
+                        (
+                            time.perf_counter()
+                            - tts_started_at
+                        )
+                        * 1000
+                    ),
+                    "error_type":
+                        type(gemini_error).__name__,
+                    "error":
+                        repr(gemini_error)
+                }
+            )
+
+            traceback.print_exc()
+
+            raise
 
         # קבלת PCM audio
         audio_data = (
@@ -4338,15 +4461,35 @@ def tutor_tts(
         error_message = repr(e)
 
         print(
-            "GEMINI TTS ERROR:",
-            error_message
+            "GEMINI TTS ENDPOINT ERROR:",
+            {
+                "error_type":
+                    type(e).__name__,
+
+                "error":
+                    error_message,
+
+                "session_id":
+                    body.session_id,
+
+                "text_length":
+                    len(
+                        (
+                            body.text
+                            or ""
+                        ).strip()
+                    )
+            }
         )
+        traceback.print_exc()
 
         raise HTTPException(
             status_code=500,
-            detail=f"Gemini TTS failed: {error_message}"
+            detail=(
+                "Gemini TTS failed: "
+                f"{error_message}"
+            )
         )
-
 @app.get(
     "/api/learning-lessons/{learning_lesson_id}/units"
 )
@@ -5120,6 +5263,17 @@ def get_or_generate_unit_lesson(
                     "pending",
                     "failed"
             ):
+                print(
+                    "QUEUE BACKGROUND AUDIO FROM CACHE:",
+                    {
+                        "unit_lesson_id": unit_lesson["id"],
+                        "audio_generation_status":
+                            audio_generation_status,
+                        "has_cached_audio":
+                            isinstance(cached_audio, dict)
+                    }
+                )
+
                 background_tasks.add_task(
                     generate_unit_lesson_audio_background,
                     unit_lesson["id"]
@@ -5173,6 +5327,12 @@ def get_or_generate_unit_lesson(
 
                 "audio_generation_status":
                     audio_generation_status,
+
+                "audio_mode": (
+                    "stored"
+                    if response_audio
+                    else "background_generating"
+                ),
 
                 "lesson_audio":
                     response_audio
@@ -5425,12 +5585,6 @@ def get_or_generate_unit_lesson(
             "generation_status":
                 "ready",
 
-            "audio_generation_status":
-                "pending",
-
-            "audio_generation_error":
-                None,
-
             "generation_error":
                 None,
 
@@ -5439,6 +5593,22 @@ def get_or_generate_unit_lesson(
 
             "generated_at":
                 generated_at,
+
+            # האודיו החדש עדיין לא מוכן
+            "audio_generation_status":
+                "pending",
+
+            "lesson_audio_json":
+                None,
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                None,
+
+            "tts_generated_at":
+                None,
 
             "updated_at":
                 generated_at
@@ -5550,7 +5720,23 @@ def get_or_generate_unit_lesson(
         # =============================================
         # START AUDIO GENERATION IN BACKGROUND
         # =============================================
-
+        print(
+            "QUEUE BACKGROUND AUDIO AFTER LESSON GENERATION:",
+            {
+                "unit_lesson_id": unit_lesson["id"],
+                "content_version": content_version,
+                "segments_count": len(
+                    structured_lesson.get("lesson")
+                    or []
+                ),
+                "has_question": bool(
+                    (
+                            structured_lesson.get("question")
+                            or {}
+                    ).get("text")
+                )
+            }
+        )
         background_tasks.add_task(
             generate_unit_lesson_audio_background,
             unit_lesson["id"]
@@ -6207,24 +6393,65 @@ def run_learning_coach(
     )
 
     # =============================================
-    # MOVE TO NEXT UNIVERSAL LESSON STAGE
+    # FINISH LEARNING COACH AND LESSON
     # =============================================
 
     if coach_finished:
 
-        if coach_index == 1:
-            next_stage = (
-                LESSON_STAGE_CLARIFICATION
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        next_stage = (
+            LESSON_STAGE_COMPLETED
+        )
+
+        progress_update = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .update({
+                "current_stage":
+                    next_stage,
+
+                "status":
+                    "completed",
+
+                "progress_percent":
+                    100,
+
+                "mastery_score":
+                    understanding_score,
+
+                "completed_at":
+                    now_iso,
+
+                "last_activity_at":
+                    now_iso,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                progress["id"]
+            )
+            .execute()
+        )
+
+        if progress_update.data:
+            progress = (
+                progress_update.data[0]
             )
 
-        else:
-            next_stage = (
-                LESSON_STAGE_FINAL_ASSESSMENT
-            )
+    else:
 
-        progress = update_lesson_stage(
-            progress=progress,
-            current_stage=next_stage
+        next_stage = (
+            progress.get(
+                "current_stage"
+            )
         )
 
     print("-" * 70)
@@ -6372,7 +6599,11 @@ def run_learning_coach(
 
         "wait_for_answer":
             not coach_finished,
+        "coach_finished":
+            coach_finished,
 
+        "lesson_completed":
+            coach_finished,
         "session_id":
             session_id,
 
@@ -6591,12 +6822,150 @@ def structured_lesson(
                 session_id=session_id,
 
                 is_lesson_start=
-                is_lesson_start
+                is_lesson_start,
+
+                unit_lesson_id=
+                body.unit_lesson_id
 
             )
 
         )
+        # =============================================
+        # UNIT LESSON SWITCH
+        #
+        # kid_lesson_progress הוא ברמת הנושא הראשי,
+        # ולכן חייבים לזהות מעבר לשיעור פנימי חדש.
+        # =============================================
 
+        requested_unit_lesson_id = (
+            int(body.unit_lesson_id)
+            if body.unit_lesson_id
+            else None
+        )
+
+        stored_unit_lesson_id = (
+            int(
+                progress.get(
+                    "current_unit_lesson_id"
+                )
+                or 0
+            )
+            or None
+        )
+
+        is_new_unit_lesson = (
+            requested_unit_lesson_id is not None
+            and requested_unit_lesson_id
+            != stored_unit_lesson_id
+        )
+
+        if is_new_unit_lesson:
+
+            now_iso = (
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+            )
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    # תת־השיעור החדש
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    # מתחילים זרימה חדשה
+                    "current_stage":
+                        LESSON_STAGE_INTRO,
+
+                    "current_flow_step":
+                        0,
+
+                    "flow_state":
+                        {},
+
+                    "status":
+                        "in_progress",
+
+                    # מאפסים את תוצאת תת־השיעור הקודם
+                    "progress_percent":
+                        0,
+
+                    "mastery_score":
+                        0,
+
+                    "current_objective_index":
+                        1,
+
+                    "total_interactions":
+                        0,
+
+                    "hints_used":
+                        0,
+
+                    "consecutive_successes":
+                        0,
+
+                    "consecutive_failures":
+                        0,
+
+                    "last_evaluation":
+                        None,
+
+                    "last_error_type":
+                        None,
+
+                    "completed_at":
+                        None,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
+
+            if not progress_update.data:
+                raise RuntimeError(
+                    "Failed to switch unit lesson"
+                )
+
+            progress = progress_update.data[0]
+
+            print(
+                "UNIT LESSON PROGRESS SWITCHED:",
+                {
+                    "kid_id":
+                        child["id"],
+
+                    "lesson_id":
+                        lesson["id"],
+
+                    "previous_unit_lesson_id":
+                        stored_unit_lesson_id,
+
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    "current_stage":
+                        progress.get(
+                            "current_stage"
+                        ),
+
+                    "status":
+                        progress.get(
+                            "status"
+                        )
+                }
+            )
         # =============================================
         # LESSON MODE
         #
@@ -6610,13 +6979,14 @@ def structured_lesson(
         # =============================================
 
         review_mode = (
+            progress.get(
+                "status"
+            )
+            == "completed"
 
-                progress.get(
-                    "status"
-                )
+            and
 
-                == "completed"
-
+            not is_new_unit_lesson
         )
 
         # =============================================
@@ -6681,6 +7051,14 @@ def structured_lesson(
         )
 
         if is_real_student_answer:
+            if (
+                    current_stage
+                    == LESSON_STAGE_COMPLETED
+            ):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Lesson is already completed"
+                )
 
             if not body.unit_lesson_id:
                 raise HTTPException(
