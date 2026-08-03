@@ -16653,6 +16653,10 @@ console.log(
     }
   );
 
+  const lessonToRestart =
+    window.SELECTED_UNIT_LESSON;
+
+  closeResetLessonModal();
 
   if(confirmButton){
 
@@ -16664,8 +16668,23 @@ console.log(
 
   }
 
+  if(!lessonToRestart){
 
-  closeResetLessonModal();
+    console.error(
+      "RESET SUCCEEDED BUT SELECTED LESSON IS MISSING"
+    );
+
+    return;
+  }
+
+  console.log(
+    "RESTARTING RESET LESSON:",
+    lessonToRestart
+  );
+
+  await startSelectedUnitLesson(
+    lessonToRestart
+  );
 
 };
 const MAX_NO_RESPONSE_PROMPTS = 3;
