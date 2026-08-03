@@ -15309,11 +15309,26 @@ async function startSelectedUnitLesson(
    CHECK WHETHER THIS LESSON IS ALREADY ACTIVE
 ============================================= */
 
-const activeLessonRestored =
-  await restoreActiveUnitLesson(
-    session,
-    lesson.id
-  );
+const shouldSkipRestore =
+  window.IS_RESTARTING_RESET_LESSON
+  === true;
+
+
+let activeLessonRestored =
+  false;
+
+
+if(
+  !shouldSkipRestore
+){
+
+  activeLessonRestored =
+    await restoreActiveUnitLesson(
+      session,
+      lesson.id
+    );
+
+}
 
 
 if(
@@ -15331,6 +15346,15 @@ if(
   return;
 
 }
+
+
+/*
+  לאחר איפוס מאפשרים יצירת שיעור חדש,
+  ואז מחזירים את הדגל למצב רגיל.
+*/
+
+window.IS_RESTARTING_RESET_LESSON =
+  false;
 
   try{
 
@@ -16682,6 +16706,9 @@ console.log(
     lessonToRestart
   );
 
+window.IS_RESTARTING_RESET_LESSON =
+  true;
+  
   await startSelectedUnitLesson(
     lessonToRestart
   );
