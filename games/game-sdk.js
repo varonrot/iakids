@@ -358,15 +358,19 @@ const {
       const client =
         await this._getClient();
 
-      const answeredCount =
-        this._correctAnswers +
-        this._wrongAnswers +
-        this._skippedAnswers;
+const attemptsCount =
+  this._correctAnswers +
+  this._wrongAnswers +
+  this._skippedAnswers;
 
-      const denominator =
-        answeredCount > 0
-          ? answeredCount
-          : this._questionsCount;
+const completedQuestions =
+  this._correctAnswers +
+  this._skippedAnswers;
+
+const denominator =
+  attemptsCount > 0
+    ? attemptsCount
+    : this._questionsCount;
 
       const accuracyPercent =
         denominator > 0
@@ -443,11 +447,8 @@ const {
             difficulty:
               this._difficulty,
 
-            questions_count:
-              Math.max(
-                this._questionsCount,
-                answeredCount
-              ),
+questions_count:
+  this._questionsCount,
 
             correct_answers:
               this._correctAnswers,
