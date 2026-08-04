@@ -1,1 +1,761 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
 
+  <title>התחברות – KidsIA</title>
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+
+  <!-- Supabase JS -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap"
+  rel="stylesheet"
+>
+  <style>
+
+    :root{
+
+      --bg1:#fff9f1;
+      --bg2:#eaf6ff;
+
+      --ink:#173b6c;
+      --muted:#667996;
+
+      --line:rgba(23,59,108,.10);
+
+      --shadow:
+        0 24px 60px
+        rgba(31,74,126,.14);
+
+      --shadow2:
+        0 12px 30px
+        rgba(31,74,126,.10);
+
+      --purple:#6b4eff;
+      --purple2:#9478ff;
+
+    }
+
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select{
+  font-family:"Heebo", Arial, sans-serif !important;
+}
+
+
+    body{
+
+      margin:0;
+
+      min-height:100vh;
+
+      display:flex;
+
+      align-items:center;
+      justify-content:center;
+
+
+font-family:"Heebo", Arial, sans-serif;
+
+
+      color:var(--ink);
+
+
+      background:
+
+        radial-gradient(
+          800px 520px at 15% 10%,
+          rgba(255,213,154,.30),
+          transparent 60%
+        ),
+
+        radial-gradient(
+          900px 600px at 85% 8%,
+          rgba(120,190,255,.30),
+          transparent 62%
+        ),
+
+        linear-gradient(
+          110deg,
+          var(--bg1),
+          var(--bg2)
+        );
+
+
+      padding:28px 18px;
+
+    }
+
+
+
+    /* ==============================
+       CARD
+    ============================== */
+
+
+    .wrap{
+
+      width:100%;
+
+      max-width:560px;
+
+
+      padding:
+        36px
+        34px
+        34px;
+
+
+      text-align:center;
+
+
+      background:
+        rgba(255,255,255,.78);
+
+
+      border-radius:32px;
+
+
+      border:
+        1px solid
+        rgba(255,255,255,.90);
+
+
+      backdrop-filter:
+        blur(20px);
+
+      -webkit-backdrop-filter:
+        blur(20px);
+
+
+      box-shadow:
+        var(--shadow);
+
+    }
+
+
+
+    /* ==============================
+       ROBOT
+    ============================== */
+
+
+    .icon{
+
+      width:110px;
+      height:110px;
+
+
+      display:flex;
+
+      align-items:center;
+      justify-content:center;
+
+
+      margin:
+        0 auto
+        20px;
+
+
+      border-radius:30px;
+
+
+      background:
+
+        radial-gradient(
+          circle at 50% 40%,
+          rgba(255,255,255,.98),
+          rgba(255,255,255,.65) 65%,
+          rgba(225,240,255,.72)
+        );
+
+
+      border:
+        1px solid
+        rgba(255,255,255,.9);
+
+
+      box-shadow:
+        0 16px 38px
+        rgba(38,88,145,.13);
+
+    }
+
+
+    .icon img{
+
+      width:88px;
+
+      height:88px;
+
+      object-fit:contain;
+
+      display:block;
+
+    }
+
+
+
+    /* ==============================
+       TITLE
+    ============================== */
+
+
+    h1{
+
+      margin:
+        0
+        0
+        8px;
+
+
+      font-size:34px;
+
+      line-height:1.2;
+
+      font-weight:900;
+
+      color:#173b6c;
+
+    }
+
+
+    h1 span{
+
+      color:#3478e5;
+
+    }
+
+
+    .sub{
+
+      max-width:440px;
+
+      margin:
+        0 auto
+        26px;
+
+
+      color:var(--muted);
+
+      font-size:16px;
+
+      line-height:1.7;
+
+      font-weight:500;
+
+    }
+
+
+
+    /* ==============================
+       BENEFITS
+    ============================== */
+
+
+    .benefits{
+
+      display:grid;
+
+      grid-template-columns:
+        repeat(3,1fr);
+
+
+      gap:10px;
+
+
+      margin-bottom:26px;
+
+    }
+
+
+    .benefit{
+
+      min-height:100px;
+
+
+      padding:
+        14px
+        10px;
+
+
+      display:flex;
+
+      flex-direction:column;
+
+      align-items:center;
+
+      justify-content:center;
+
+
+      gap:7px;
+
+
+      border-radius:20px;
+
+
+      background:
+        rgba(247,250,255,.82);
+
+
+      border:
+        1px solid
+        rgba(23,59,108,.07);
+
+    }
+
+
+    .benefit-icon{
+
+      font-size:24px;
+
+    }
+
+
+    .benefit strong{
+
+      font-size:13px;
+
+      line-height:1.35;
+
+      color:#173b6c;
+
+    }
+
+
+
+    /* ==============================
+       GOOGLE BUTTON
+    ============================== */
+
+
+    .btn{
+
+      width:100%;
+
+
+      min-height:58px;
+
+
+      padding:
+        14px
+        18px;
+
+
+      border-radius:18px;
+
+
+      font-size:16px;
+
+      font-weight:800;
+
+
+      border:
+        2px solid
+        rgba(23,59,108,.10);
+
+
+      cursor:pointer;
+
+
+      display:flex;
+
+      align-items:center;
+
+      justify-content:center;
+
+
+      gap:12px;
+
+
+      background:#fff;
+
+
+      color:#173b6c;
+
+
+      box-shadow:
+        0 10px 26px
+        rgba(31,74,126,.08);
+
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+
+    }
+
+
+    .btn:hover{
+
+      transform:
+        translateY(-2px);
+
+
+      border-color:
+        rgba(107,78,255,.28);
+
+
+      box-shadow:
+        0 15px 34px
+        rgba(31,74,126,.13);
+
+    }
+
+
+    .btn img{
+
+      width:22px;
+
+      height:22px;
+
+    }
+
+
+
+    /* ==============================
+       NOTE
+    ============================== */
+
+
+    .note{
+
+      margin-top:18px;
+
+
+      padding-top:16px;
+
+
+      border-top:
+        1px solid
+        rgba(23,59,108,.08);
+
+
+      font-size:13px;
+
+      color:var(--muted);
+
+      line-height:1.6;
+
+    }
+
+
+    .note strong{
+
+      color:#173b6c;
+
+    }
+
+
+
+    /* ==============================
+       MOBILE
+    ============================== */
+
+
+    @media(max-width:620px){
+
+      body{
+
+        align-items:flex-start;
+
+        padding:
+          24px
+          14px;
+
+      }
+
+
+      .wrap{
+
+        padding:
+          30px
+          20px;
+
+        border-radius:26px;
+
+      }
+
+
+      .icon{
+
+        width:96px;
+
+        height:96px;
+
+      }
+
+
+      .icon img{
+
+        width:76px;
+
+        height:76px;
+
+      }
+
+
+      h1{
+
+        font-size:29px;
+
+      }
+
+
+      .sub{
+
+        font-size:15px;
+
+      }
+
+
+      .benefits{
+
+        grid-template-columns:1fr;
+
+      }
+
+
+      .benefit{
+
+        min-height:70px;
+
+        flex-direction:row;
+
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <div class="wrap">
+
+
+    <!-- ROBOT -->
+
+
+    <div class="icon">
+
+      <img
+        src="/assets/robots/Robot_icon.png"
+        alt="הרובוט הלימודי של KidsIA"
+      >
+
+    </div>
+
+
+
+    <!-- TITLE -->
+
+
+    <h1>
+
+      עוד רגע
+
+      <span>
+        מתחילים ללמוד
+      </span>
+
+    </h1>
+
+
+
+    <p class="sub">
+
+      התחברו כדי שנוכל לשמור את
+      פרופיל הילד, ההעדפות וההתקדמות שלו,
+      ולאפשר לו להמשיך ללמוד מכל מכשיר.
+
+    </p>
+
+
+
+    <!-- BENEFITS -->
+
+
+    <div class="benefits">
+
+
+      <div class="benefit">
+
+        <span class="benefit-icon">
+          ⭐
+        </span>
+
+        <strong>
+          שומרים את ההתקדמות
+        </strong>
+
+      </div>
+
+
+
+      <div class="benefit">
+
+        <span class="benefit-icon">
+          📱
+        </span>
+
+        <strong>
+          ממשיכים מכל מכשיר
+        </strong>
+
+      </div>
+
+
+
+      <div class="benefit">
+
+        <span class="benefit-icon">
+          🛡️
+        </span>
+
+        <strong>
+          הפרטים נשמרים בבטחה
+        </strong>
+
+      </div>
+
+
+    </div>
+
+
+
+    <!-- GOOGLE LOGIN -->
+
+
+    <button
+      class="btn"
+      id="googleBtn"
+    >
+
+      <img
+        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+        alt="Google"
+      >
+
+      המשך עם Google
+
+    </button>
+
+
+
+    <!-- PRIVACY -->
+
+
+    <div class="note">
+
+      <strong>
+        הפרטיות שלכם חשובה לנו.
+      </strong>
+
+      <br>
+
+      ההתחברות משמשת לשמירת פרופיל הילד
+      וחוויית הלמידה האישית שלו.
+
+    </div>
+
+
+  </div>
+
+
+
+<script>
+
+/*
+========================================
+SUPABASE
+הלוגיקה נשארה בדיוק כפי שהייתה
+========================================
+*/
+
+
+const SUPABASE_URL =
+  "https://bxnfzuglfwytiyaguwjj.supabase.co";
+
+
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+
+const sb =
+  supabase.createClient(
+
+    SUPABASE_URL,
+
+    SUPABASE_ANON_KEY
+
+  );
+
+
+
+document
+  .getElementById(
+    "googleBtn"
+  )
+  .addEventListener(
+    "click",
+
+    async () => {
+
+
+const redirectUrl =
+  location.origin + "/he/onboarding/prepare-user/";
+
+const { error } =
+  await sb.auth.signInWithOAuth({
+    provider: "google",
+
+    options: {
+      redirectTo: redirectUrl,
+
+      queryParams: {
+        prompt: "select_account"
+      }
+    }
+  });
+
+if (error) {
+  console.error("Google login error:", error);
+  alert("אירעה שגיאה בהתחברות עם Google");
+}
+
+
+    }
+
+  );
+
+</script>
+
+
+</body>
+
+</html>
