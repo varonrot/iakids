@@ -10700,29 +10700,42 @@ body.lesson-theme-science
 
 <aside class="sidebar games-sidebar">
 
-  <!-- כפתור ראשי -->
-  <button
-    type="button"
-    class="new-task games-main-action"
-    id="gamesQuickStartSide"
-  >
-    <i class="fa-solid fa-bolt"></i>
-    התחל משחק מהיר
-  </button>
+  <div class="games-player-card">
+
+    <img
+      id="gamesSidebarAvatar"
+      src="/assets/avatars/cat_blue.png"
+      alt=""
+    >
+
+    <div class="games-player-info">
+
+      <strong id="gamesSidebarName">
+        שחקן
+      </strong>
+
+      <span id="gamesSidebarGrade">
+        כיתה
+      </span>
+
+    </div>
+
+  </div>
 
 
-  <!-- תפריט המשחקים -->
   <div class="kid-actions games-menu">
 
     <button
       type="button"
       class="side-item active"
-      id="gamesHomeSidebarBtn"
+      id="gamesHomeButton"
     >
       <i class="fa-solid fa-house"></i>
 
       <div class="side-text">
-        <span class="side-title">דף הבית</span>
+        <span class="side-title">
+          דף הבית
+        </span>
       </div>
     </button>
 
@@ -10730,12 +10743,14 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="myGamesSidebarBtn"
+      id="myGamesButton"
     >
       <i class="fa-solid fa-gamepad"></i>
 
       <div class="side-text">
-        <span class="side-title">המשחקים שלי</span>
+        <span class="side-title">
+          המשחקים שלי
+        </span>
       </div>
     </button>
 
@@ -10743,12 +10758,14 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesMissionsSidebarBtn"
+      id="gamesMissionsButton"
     >
       <i class="fa-solid fa-bullseye"></i>
 
       <div class="side-text">
-        <span class="side-title">משימות</span>
+        <span class="side-title">
+          משימות
+        </span>
       </div>
     </button>
 
@@ -10756,12 +10773,14 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="weeklyChampionSidebarBtn"
+      id="weeklyChampionButton"
     >
       <i class="fa-solid fa-trophy"></i>
 
       <div class="side-text">
-        <span class="side-title">אלוף השבוע</span>
+        <span class="side-title">
+          אלוף השבוע
+        </span>
       </div>
     </button>
 
@@ -10769,12 +10788,14 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesFriendsSidebarBtn"
+      id="friendsButton"
     >
       <i class="fa-solid fa-user-group"></i>
 
       <div class="side-text">
-        <span class="side-title">חברים</span>
+        <span class="side-title">
+          חברים
+        </span>
       </div>
     </button>
 
@@ -10782,12 +10803,14 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesProgressSidebarBtn"
+      id="gamesProgressButton"
     >
       <i class="fa-solid fa-chart-line"></i>
 
       <div class="side-text">
-        <span class="side-title">התקדמות</span>
+        <span class="side-title">
+          התקדמות
+        </span>
       </div>
     </button>
 
@@ -10795,12 +10818,14 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesRewardsSidebarBtn"
+      id="gamesRewardsButton"
     >
       <i class="fa-solid fa-gift"></i>
 
       <div class="side-text">
-        <span class="side-title">פרסים</span>
+        <span class="side-title">
+          פרסים
+        </span>
       </div>
     </button>
 
@@ -10808,49 +10833,52 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesSettingsSidebarBtn"
+      id="gamesSettingsButton"
     >
       <i class="fa-solid fa-gear"></i>
 
       <div class="side-text">
-        <span class="side-title">הגדרות</span>
+        <span class="side-title">
+          הגדרות
+        </span>
       </div>
     </button>
 
   </div>
 
 
-  <!-- נשמר בדיוק כדי לא לפגוע בלוגיקה -->
-  <div class="sidebar-bottom">
+  <div class="games-sidebar-bottom">
 
     <button
       type="button"
-      class="manage-btn"
-      id="openParentModal"
+      class="games-quick-start"
+      id="gamesQuickStartButton"
     >
-      <i class="fa-solid fa-children"></i>
-      החלפת ילד
+      <span>⚡</span>
+
+      <strong>
+        התחל משחק מהיר
+      </strong>
     </button>
 
 
-    <button
-      type="button"
-      class="manage-btn"
-      id="openSettings"
-    >
-      <i class="fa-solid fa-user-pen"></i>
-      פרטי הילד
-    </button>
+    <div class="games-daily-tip">
 
+      <span class="games-tip-icon">
+        💡
+      </span>
 
-    <button
-      type="button"
-      class="manage-btn"
-      id="manageSubscriptionSide"
-    >
-      <i class="fa-regular fa-credit-card"></i>
-      ניהול מנוי
-    </button>
+      <div>
+        <strong>
+          טיפ להיום
+        </strong>
+
+        <p>
+          תרגול של 10 דקות ביום מחזק את הזיכרון.
+        </p>
+      </div>
+
+    </div>
 
   </div>
 
@@ -11549,92 +11577,53 @@ body.lesson-theme-science
      KINGDOM HOME BOTTOM BAR
      ===================================================== -->
 
-<nav class="games-bottom-dock">
+<section class="kingdom-compact-bar">
 
-  <button
-    type="button"
-    class="games-dock-button coach"
-    id="gamesCoachButton"
-  >
-    <span class="games-dock-icon">🤖</span>
-
-    <span class="games-dock-text">
-      <strong>מאמן אישי</strong>
-      <small>עזרה בזמן משחק</small>
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🪙</span>
+    <span>
+      <strong>1,245</strong>
+      <small>המטבעות שלך</small>
     </span>
   </button>
 
-
-  <button
-    type="button"
-    class="games-dock-button quick"
-    id="gamesFastGameButton"
-  >
-    <span class="games-dock-icon">🎯</span>
-
-    <span class="games-dock-text">
-      <strong>תרגול מהיר</strong>
-      <small>מתחילים מיד</small>
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🎯</span>
+    <span>
+      <strong>המשימה</strong>
+      <small>השלימו 10 תרגילים</small>
     </span>
   </button>
 
+  <button class="kingdom-compact-item kingdom-compact-progress">
+    <span>
+      <strong>בונים את הממלכה</strong>
 
-  <button
-    type="button"
-    class="games-dock-button random"
-    id="gamesRandomButton"
-  >
-    <span class="games-dock-icon">🎲</span>
+      <span class="kingdom-compact-track">
+        <span></span>
+      </span>
 
-    <span class="games-dock-text">
-      <strong>משחק אקראי</strong>
-      <small>בחירה מפתיעה</small>
+      <small>32% הושלמו</small>
     </span>
   </button>
 
-
-  <button
-    type="button"
-    class="games-dock-button daily"
-    id="gamesDailyChallengeButton"
-  >
-    <span class="games-dock-icon">⭐</span>
-
-    <span class="games-dock-text">
-      <strong>אתגר יומי</strong>
-      <small>פרס מיוחד</small>
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🛡️</span>
+    <span>
+      <strong>הגנה נוכחית</strong>
+      <small>חזקה</small>
     </span>
   </button>
 
-
-  <button
-    type="button"
-    class="games-dock-button library"
-    id="gamesLibraryButton"
-  >
-    <span class="games-dock-icon">🎮</span>
-
-    <span class="games-dock-text">
-      <strong>ספריית משחקים</strong>
-      <small>כל המשחקים</small>
+  <button class="kingdom-compact-item">
+    <span class="kingdom-compact-icon">🎁</span>
+    <span>
+      <strong>פרסים</strong>
+      <small>3 מחכים לאיסוף</small>
     </span>
   </button>
 
-
-  <button
-    type="button"
-    class="games-dock-button create"
-    id="gamesCreateButton"
-  >
-    <span class="games-dock-icon">✏️</span>
-
-    <span class="games-dock-text">
-      <strong>יצירת משחק</strong>
-      <small>משחק אישי</small>
-    </span>
-  </button>
-
-</nav>
+</section>
 </section><!-- סגירת dashboardView -->
 <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW
@@ -12291,96 +12280,142 @@ body.lesson-theme-science
 
 <aside class="rightbar home-rightbar games-rightbar">
 
-  <!-- המשימות שלך -->
-  <section class="games-panel games-missions-panel">
+  <!-- משימות יומיות -->
+  <section class="games-panel games-daily-missions">
 
-    <div class="games-panel-heading">
-      <h2>המשימות שלך</h2>
-      <span>🎯</span>
+    <div class="games-panel-title">
+
+      <span>
+        המשימות שלך
+      </span>
+
+      <b>🎯</b>
+
     </div>
 
 
-    <article class="games-mission-card">
+    <div class="games-mission-list">
 
-      <span class="games-mission-icon">📘</span>
+      <article class="games-mission-item">
 
-      <div class="games-mission-body">
+        <span class="games-mission-icon blue">
+          📖
+        </span>
 
-        <strong>
-          השלימו 5 שאלות במתמטיקה
-        </strong>
+        <div class="games-mission-info">
 
-        <div class="games-mission-track">
-          <span style="width:40%"></span>
+          <strong>
+            השלם 5 שאלות במתמטיקה
+          </strong>
+
+          <div class="games-mission-progress">
+
+            <span style="width:40%"></span>
+
+          </div>
+
+          <small>
+            2 מתוך 5
+          </small>
+
         </div>
 
-        <small>2 מתוך 5</small>
-
-      </div>
-
-    </article>
+      </article>
 
 
-    <article class="games-mission-card">
+      <article class="games-mission-item">
 
-      <span class="games-mission-icon">🧪</span>
+        <span class="games-mission-icon purple">
+          🧪
+        </span>
 
-      <div class="games-mission-body">
+        <div class="games-mission-info">
 
-        <strong>
-          תרגלו 10 דקות במדעים
-        </strong>
+          <strong>
+            תרגל 10 דקות במדעים
+          </strong>
 
-        <div class="games-mission-track">
-          <span style="width:70%"></span>
+          <div class="games-mission-progress">
+
+            <span style="width:70%"></span>
+
+          </div>
+
+          <small>
+            7 מתוך 10
+          </small>
+
         </div>
 
-        <small>7 מתוך 10</small>
-
-      </div>
-
-    </article>
+      </article>
 
 
-    <article class="games-mission-card completed">
+      <article class="games-mission-item complete">
 
-      <span class="games-mission-icon">🧩</span>
+        <span class="games-mission-icon green">
+          🧩
+        </span>
 
-      <div class="games-mission-body">
-        <strong>אתגר יומי</strong>
-        <small>המשימה הושלמה</small>
-      </div>
+        <div class="games-mission-info">
 
-      <span class="games-mission-done">✓</span>
+          <strong>
+            אתגר יומי
+          </strong>
 
-    </article>
+          <small>
+            הסתיים בהצלחה
+          </small>
+
+        </div>
+
+        <span class="games-mission-check">
+          ✓
+        </span>
+
+      </article>
+
+    </div>
 
   </section>
 
 
   <!-- אלוף השבוע -->
-  <section class="games-panel games-leaderboard-panel">
+  <section class="games-panel games-leaderboard">
 
-    <div class="games-panel-heading">
-      <h2>אלוף השבוע</h2>
-      <span>🏆</span>
+    <div class="games-panel-title">
+
+      <span>
+        אלוף השבוע
+      </span>
+
+      <b>🏆</b>
+
     </div>
 
 
-    <div class="games-champion-card">
+    <div class="games-current-player">
 
       <img
-        id="rightbarAvatar"
+        id="gamesChampionAvatar"
         src="/assets/avatars/cat_blue.png"
         alt=""
       >
 
-      <div class="games-champion-info">
-        <strong id="rightbarName">שחקן</strong>
-        <small>1,250 כוכבים</small>
+      <div>
+
+        <strong id="gamesChampionName">
+          שחקן
+        </strong>
+
+        <span>
+          1,250 כוכבים
+        </span>
+
       </div>
 
-      <span class="games-champion-cup">🏆</span>
+      <b>
+        🏆
+      </b>
 
     </div>
 
@@ -12420,29 +12455,36 @@ body.lesson-theme-science
   </section>
 
 
-  <!-- התקדמות -->
-  <section class="games-panel games-progress-panel">
+  <!-- התקדמות כללית -->
+  <section class="games-panel games-overall-progress">
 
-    <div class="games-panel-heading">
-      <h2>התקדמות כללית</h2>
-      <span>📈</span>
+    <div class="games-panel-title">
+
+      <span>
+        התקדמות כללית
+      </span>
+
+      <b>📈</b>
+
     </div>
 
 
-    <div class="games-progress-layout">
+    <div class="games-progress-content">
 
       <div
         class="games-progress-ring"
         style="--games-progress:68"
       >
+
         <div>
           <strong>68%</strong>
-          <small>הושלם</small>
+          <span>הושלם</span>
         </div>
+
       </div>
 
 
-      <div class="games-progress-chart">
+      <div class="games-mini-chart">
 
         <svg
           viewBox="0 0 220 85"
@@ -12451,7 +12493,7 @@ body.lesson-theme-science
         >
           <polyline
             points="0,72 28,65 55,68 82,55 110,61 138,38 165,50 192,28 220,17"
-          ></polyline>
+          />
 
           <circle cx="0" cy="72" r="4"></circle>
           <circle cx="28" cy="65" r="4"></circle>
@@ -25670,504 +25712,446 @@ body.lesson-theme-science
   }
 
 }
-    /* ==========================================================
-   IAKIDS GAMES WORKSPACE — FINAL OVERRIDES
-========================================================== */
+    /* =====================================================
+   IAKIDS GAMES WORKSPACE
+===================================================== */
 
-:root{
-  --games-navy:#07132c;
-  --games-navy-2:#101f42;
-  --games-line:rgba(116,158,238,.25);
-  --games-text:#f5f7ff;
-  --games-muted:rgba(216,226,250,.68);
+.games-sidebar,
+.games-rightbar,
+.games-bottom-dock{
+  font-family:"Heebo", Arial, sans-serif;
 }
 
 
-/* ==========================================================
-   MAIN APP GRID
-========================================================== */
-
-.app{
-  grid-template-columns:
-    230px
-    minmax(0,1fr)
-    290px !important;
-
-  grid-template-rows:
-    70px
-    minmax(0,1fr) !important;
-
-  background:#061128;
-}
-
-
-/* ==========================================================
-   CENTRAL WORLD BACKGROUND
-========================================================== */
-
-.main{
-  padding:0 !important;
-
-  overflow:hidden;
-
-  background:#061128;
-}
-
-
-.games-world-stage{
-  position:relative;
-
-  width:100%;
-  height:100%;
-
-  min-height:0;
-
-  overflow:hidden;
-
-  background-image:
-    linear-gradient(
-      180deg,
-      rgba(4,11,29,.03),
-      rgba(4,11,29,.08)
-    ),
-    url("/assets/games/workspace/games-world-background.webp");
-
-  background-position:center center;
-  background-size:cover;
-  background-repeat:no-repeat;
-}
-
-
-/*
-  מסתיר אלמנטים ישנים של מפת הלמידה,
-  אבל לא מסתיר את הסרגל התחתון החדש.
-*/
-
-.games-world-stage
-.kingdom-label,
-
-.games-world-stage
-.kingdom-arrow,
-
-.games-world-stage
-.kingdom-path,
-
-.games-world-stage
-.kingdom-home-label,
-
-.games-world-stage
-.kingdom-progress-label{
-
-  display:none !important;
-}
-
-
-/* ==========================================================
+/* =====================================================
    LEFT SIDEBAR
-========================================================== */
+===================================================== */
 
 .games-sidebar{
-  padding:12px 10px !important;
+  padding:14px 12px !important;
 
-  border-right:1px solid var(--games-line) !important;
+  border:1px solid rgba(100,143,225,.28) !important;
+  border-radius:22px !important;
 
   background:
     radial-gradient(
       circle at 50% 0%,
-      rgba(73,91,190,.18),
-      transparent 34%
+      rgba(74,101,205,.18),
+      transparent 36%
     ),
     linear-gradient(
       180deg,
-      #111e3e,
-      #071127
+      rgba(18,28,58,.97),
+      rgba(8,15,34,.98)
     ) !important;
 
   box-shadow:
-    inset -1px 0 rgba(255,255,255,.03),
-    8px 0 28px rgba(0,0,0,.24);
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 18px 40px rgba(0,4,22,.42) !important;
 }
 
 
-.games-main-action{
-  width:100%;
+.games-player-card{
+  min-height:76px;
 
-  min-height:54px !important;
+  display:flex;
+  align-items:center;
+  gap:11px;
 
-  margin:0 0 10px !important;
+  padding:10px;
+
+  margin-bottom:12px;
+
+  border:1px solid rgba(121,156,230,.20);
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(39,52,96,.90),
+      rgba(22,30,62,.92)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+
+.games-player-card img{
+  width:52px;
+  height:52px;
+
+  flex:0 0 52px;
+
+  border-radius:50%;
+  object-fit:cover;
+
+  border:3px solid rgba(255,196,76,.82);
+
+  box-shadow:
+    0 0 0 3px rgba(255,177,38,.10);
+}
+
+
+.games-player-info{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+}
+
+
+.games-player-info strong{
+  color:#fff;
+
+  font-size:17px;
+  font-weight:900;
+}
+
+
+.games-player-info span{
+  margin-top:2px;
+
+  color:rgba(207,218,245,.67);
+
+  font-size:12px;
+  font-weight:700;
+}
+
+
+.games-menu{
+  gap:8px !important;
+}
+
+
+.games-sidebar .side-item{
+  min-height:58px !important;
+
+  padding:0 13px !important;
+
+  border:1px solid rgba(117,148,214,.17) !important;
+  border-radius:16px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(34,45,82,.91),
+      rgba(18,25,52,.94)
+    ) !important;
+
+  color:rgba(240,244,255,.92) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 5px 12px rgba(0,3,15,.17) !important;
+}
+
+
+.games-sidebar .side-item:hover{
+  transform:translateY(-2px);
+
+  border-color:rgba(143,173,239,.34) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(48,61,108,.96),
+      rgba(25,34,69,.96)
+    ) !important;
+}
+
+
+.games-sidebar .side-item.active{
+  border-color:rgba(166,126,255,.65) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7447e8,
+      #4f29b8
+    ) !important;
+
+  box-shadow:
+    inset 4px 0 0 #c8a3ff,
+    0 7px 18px rgba(80,43,190,.32) !important;
+}
+
+
+.games-sidebar .side-item i{
+  background:transparent !important;
+
+  color:#fff !important;
+
+  box-shadow:none !important;
+}
+
+
+.games-sidebar-bottom{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+
+  margin-top:12px;
+
+  padding-top:12px;
+
+  border-top:1px solid rgba(126,154,214,.16);
+}
+
+
+.games-quick-start{
+  min-height:58px;
 
   display:flex;
   align-items:center;
   justify-content:center;
   gap:9px;
 
-  border:1px solid rgba(186,142,255,.45) !important;
-  border-radius:15px !important;
+  border:1px solid rgba(198,156,255,.48);
+  border-radius:17px;
 
-  color:#fff !important;
-
-  font-size:14px !important;
-  font-weight:900 !important;
-
-  background:
-    linear-gradient(
-      135deg,
-      #864cff,
-      #5930d5
-    ) !important;
-
-  box-shadow:
-    0 9px 22px rgba(92,48,211,.32) !important;
-}
-
-
-.games-menu{
-  flex:1;
-
-  min-height:0;
-
-  display:flex;
-  flex-direction:column;
-
-  gap:7px !important;
-
-  overflow-y:auto;
-  overflow-x:hidden;
-}
-
-
-.games-menu .side-item{
-  min-height:54px !important;
-
-  flex:0 0 54px;
-
-  padding:0 11px !important;
-
-  gap:10px !important;
-
-  border:1px solid rgba(112,145,215,.16) !important;
-  border-radius:14px !important;
-
-  color:rgba(245,248,255,.93) !important;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(31,44,82,.96),
-      rgba(18,28,57,.98)
-    ) !important;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.035),
-    0 4px 10px rgba(0,0,0,.14) !important;
-}
-
-
-.games-menu .side-item:hover{
-  transform:translateY(-1px);
-
-  border-color:rgba(139,168,235,.32) !important;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(42,57,103,.98),
-      rgba(24,35,70,.98)
-    ) !important;
-}
-
-
-.games-menu .side-item.active{
-  border-color:rgba(172,129,255,.62) !important;
-
-  background:
-    linear-gradient(
-      135deg,
-      #7343df,
-      #4b28ac
-    ) !important;
-
-  box-shadow:
-    inset 4px 0 0 #c4a1ff,
-    0 7px 18px rgba(76,39,177,.30) !important;
-}
-
-
-.games-menu .side-item i{
-  width:34px !important;
-  height:34px !important;
-
-  flex:0 0 34px !important;
-
-  display:grid !important;
-  place-items:center !important;
-
-  border-radius:10px !important;
-
-  color:#fff !important;
-
-  font-size:16px !important;
-
-  background:rgba(255,255,255,.08) !important;
-
-  box-shadow:none !important;
-}
-
-
-.games-menu .side-title{
   color:#fff;
 
-  font-size:14px !important;
-  font-weight:900;
+  background:
+    linear-gradient(
+      135deg,
+      #8b4eff,
+      #5832d1
+    );
+
+  box-shadow:
+    0 9px 22px rgba(95,52,210,.32);
+
+  cursor:pointer;
 }
 
 
-/* שלושת הכפתורים המחוברים ללוגיקה */
-
-.games-sidebar .sidebar-bottom{
-  margin-top:9px !important;
-  padding-top:9px !important;
-
-  display:grid;
-  gap:6px !important;
-
-  border-top:1px solid rgba(119,148,213,.16) !important;
+.games-quick-start span{
+  font-size:23px;
 }
 
 
-.games-sidebar .manage-btn{
-  min-height:48px !important;
+.games-quick-start strong{
+  font-size:15px;
+}
 
-  padding:0 10px !important;
 
-  gap:9px !important;
+.games-daily-tip{
+  min-height:87px;
 
-  border:1px solid rgba(111,143,211,.16) !important;
-  border-radius:13px !important;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
 
-  color:rgba(243,247,255,.92) !important;
+  padding:12px;
 
-  font-size:13px !important;
+  border:1px solid rgba(66,210,207,.34);
+  border-radius:17px;
 
   background:
     linear-gradient(
       145deg,
-      rgba(31,44,82,.96),
-      rgba(18,28,57,.98)
-    ) !important;
+      rgba(19,62,77,.82),
+      rgba(12,35,51,.88)
+    );
 }
 
 
-.games-sidebar .manage-btn:hover{
-  color:#fff !important;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(44,59,105,.98),
-      rgba(25,37,73,.98)
-    ) !important;
+.games-tip-icon{
+  font-size:23px;
 }
 
 
-.games-sidebar .manage-btn i{
-  width:34px !important;
-  height:34px !important;
+.games-daily-tip strong{
+  color:#ffe67b;
 
-  flex:0 0 34px !important;
-
-  font-size:15px !important;
-
-  border-radius:10px !important;
+  font-size:14px;
 }
 
 
-/* ==========================================================
+.games-daily-tip p{
+  margin:3px 0 0;
+
+  color:rgba(220,236,247,.78);
+
+  font-size:11px;
+  line-height:1.45;
+}
+
+
+/* =====================================================
    RIGHT SIDEBAR
-========================================================== */
+===================================================== */
 
 .games-rightbar{
-  padding:10px !important;
-
   display:flex !important;
   flex-direction:column !important;
-
-  gap:10px !important;
+  gap:12px !important;
 
   overflow-y:auto !important;
   overflow-x:hidden !important;
-
-  border-left:1px solid var(--games-line) !important;
-
-  background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(61,103,210,.16),
-      transparent 36%
-    ),
-    linear-gradient(
-      180deg,
-      #101d3b,
-      #071127
-    ) !important;
-
-  box-shadow:
-    -8px 0 28px rgba(0,0,0,.22);
 }
 
 
 .games-panel{
-  padding:13px !important;
+  position:relative;
 
-  margin:0 !important;
+  padding:15px;
 
-  flex:0 0 auto;
-
-  border:1px solid rgba(105,145,224,.24);
-  border-radius:18px;
+  border:1px solid rgba(104,146,226,.28);
+  border-radius:21px;
 
   color:#fff;
 
   background:
     radial-gradient(
       circle at 50% 0%,
-      rgba(57,96,190,.13),
+      rgba(64,111,218,.15),
       transparent 50%
     ),
     linear-gradient(
       145deg,
-      rgba(19,31,66,.98),
-      rgba(8,17,39,.99)
+      rgba(21,31,64,.97),
+      rgba(9,16,37,.98)
     );
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.055),
-    0 10px 25px rgba(0,0,0,.27);
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 14px 30px rgba(0,5,22,.35);
 }
 
 
-.games-panel-heading{
+.games-panel-title{
   display:flex;
   align-items:center;
   justify-content:space-between;
 
-  margin-bottom:10px;
-}
+  margin-bottom:12px;
 
-
-.games-panel-heading h2{
-  margin:0;
-
-  color:#fff;
-
-  font-size:18px;
+  font-size:17px;
   font-weight:900;
 }
 
 
-.games-panel-heading > span{
-  font-size:19px;
+.games-panel-title b{
+  font-size:20px;
 }
 
 
-/* משימות */
+.games-mission-list{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
 
-.games-mission-card{
-  min-height:62px;
+
+.games-mission-item{
+  min-height:69px;
 
   display:grid;
 
   grid-template-columns:
-    40px
+    43px
     minmax(0,1fr);
 
-  gap:8px;
+  gap:9px;
 
   align-items:center;
 
-  padding:8px;
+  padding:9px;
 
-  margin-bottom:7px;
+  border:1px solid rgba(126,155,220,.20);
+  border-radius:15px;
 
-  border:1px solid rgba(119,151,219,.17);
-  border-radius:13px;
-
-  background:rgba(36,49,87,.68);
+  background:rgba(37,48,87,.66);
 }
 
 
-.games-mission-card.completed{
+.games-mission-item.complete{
   grid-template-columns:
-    40px
+    43px
     minmax(0,1fr)
-    23px;
+    25px;
 
-  border-color:rgba(67,213,123,.48);
+  border-color:rgba(67,215,125,.55);
 
   background:
     linear-gradient(
       145deg,
-      rgba(27,98,65,.68),
-      rgba(16,55,44,.74)
+      rgba(27,101,68,.65),
+      rgba(19,61,49,.72)
     );
 }
 
 
 .games-mission-icon{
-  width:40px;
-  height:40px;
+  width:43px;
+  height:43px;
 
   display:grid;
   place-items:center;
 
-  border-radius:11px;
+  border-radius:12px;
 
-  background:rgba(255,255,255,.08);
-
-  font-size:20px;
+  font-size:22px;
 }
 
 
-.games-mission-body{
+.games-mission-icon.blue{
+  background:rgba(57,142,255,.20);
+}
+
+
+.games-mission-icon.purple{
+  background:rgba(151,84,255,.20);
+}
+
+
+.games-mission-icon.green{
+  background:rgba(57,215,128,.20);
+}
+
+
+.games-mission-info{
   min-width:0;
 }
 
 
-.games-mission-body strong{
+.games-mission-info strong{
   display:block;
 
-  color:#f4f7ff;
+  color:#f3f6ff;
 
-  font-size:11px;
-  line-height:1.35;
+  font-size:12px;
+  line-height:1.3;
 }
 
 
-.games-mission-body small{
+.games-mission-info small{
   display:block;
 
   margin-top:3px;
 
-  color:rgba(201,213,240,.64);
+  color:rgba(199,211,238,.65);
 
-  font-size:9px;
+  font-size:10px;
 }
 
 
-.games-mission-track{
+.games-mission-progress{
   height:5px;
 
-  margin-top:5px;
+  margin-top:6px;
 
   overflow:hidden;
 
   border-radius:999px;
 
-  background:rgba(112,136,193,.23);
+  background:rgba(126,148,197,.23);
 }
 
 
-.games-mission-track span{
+.games-mission-progress span{
   display:block;
 
   height:100%;
@@ -26177,15 +26161,15 @@ body.lesson-theme-science
   background:
     linear-gradient(
       90deg,
-      #8d58ff,
-      #45c7ff
+      #57b7ff,
+      #895cff
     );
 }
 
 
-.games-mission-done{
-  width:22px;
-  height:22px;
+.games-mission-check{
+  width:23px;
+  height:23px;
 
   display:grid;
   place-items:center;
@@ -26194,121 +26178,136 @@ body.lesson-theme-science
 
   color:#fff;
 
-  background:#36c777;
+  background:#38c776;
 
-  font-size:12px;
+  font-size:13px;
   font-weight:900;
 }
 
 
-/* אלוף השבוע */
+/* =====================================================
+   LEADERBOARD
+===================================================== */
 
-.games-champion-card{
-  min-height:64px;
+.games-current-player{
+  min-height:70px;
 
   display:grid;
 
   grid-template-columns:
-    47px
+    52px
     minmax(0,1fr)
-    29px;
+    34px;
 
   align-items:center;
-  gap:8px;
+  gap:9px;
 
-  padding:8px 10px;
+  padding:9px 11px;
 
-  margin-bottom:8px;
+  margin-bottom:10px;
 
-  border:1px solid rgba(255,178,55,.62);
-  border-radius:14px;
-
-  color:#fff;
+  border:1px solid rgba(255,179,57,.66);
+  border-radius:16px;
 
   background:
     linear-gradient(
       135deg,
-      rgba(183,101,23,.73),
-      rgba(101,50,17,.78)
+      rgba(191,105,25,.70),
+      rgba(111,55,20,.75)
     );
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12);
+    inset 0 1px 0 rgba(255,255,255,.13),
+    0 7px 18px rgba(118,61,20,.25);
 }
 
 
-.games-champion-card img{
-  width:44px;
-  height:44px;
+.games-current-player img{
+  width:48px;
+  height:48px;
+
+  border-radius:50%;
 
   object-fit:cover;
 
   border:3px solid #ffbd43;
-  border-radius:50%;
 }
 
 
-.games-champion-info strong{
+.games-current-player strong{
   display:block;
 
-  color:#fff;
-
-  font-size:15px;
+  font-size:17px;
 }
 
 
-.games-champion-info small{
+.games-current-player span{
   display:block;
 
-  color:rgba(255,234,200,.75);
+  color:rgba(255,235,200,.78);
 
-  font-size:9px;
+  font-size:11px;
 }
 
 
-.games-champion-cup{
-  font-size:20px;
+.games-current-player > b{
+  font-size:24px;
+}
+
+
+.games-ranking-list{
+  display:flex;
+  flex-direction:column;
 }
 
 
 .games-ranking-row{
-  min-height:29px;
+  min-height:34px;
 
   display:grid;
 
   grid-template-columns:
-    18px
-    24px
+    20px
+    27px
     minmax(0,1fr)
     auto;
 
   align-items:center;
-  gap:6px;
 
-  border-bottom:1px solid rgba(121,149,207,.10);
+  gap:7px;
 
-  color:rgba(231,237,252,.83);
+  border-bottom:1px solid rgba(129,154,210,.12);
 
-  font-size:10px;
+  color:rgba(232,238,253,.84);
+
+  font-size:12px;
 }
 
 
-.games-ranking-row strong,
+.games-ranking-row strong{
+  font-size:12px;
+}
+
+
 .games-ranking-row b{
-  font-size:10px;
+  color:#fff;
+
+  font-size:12px;
 }
 
 
-/* התקדמות */
+/* =====================================================
+   OVERALL PROGRESS
+===================================================== */
 
-.games-progress-layout{
+.games-progress-content{
   display:grid;
 
   grid-template-columns:
-    76px
+    92px
     minmax(0,1fr);
 
-  gap:8px;
+  gap:10px;
 
   align-items:center;
 
@@ -26321,17 +26320,19 @@ body.lesson-theme-science
 
   position:relative;
 
-  width:72px;
-  height:72px;
+  width:84px;
+  height:84px;
 
   display:grid;
   place-items:center;
+
+  margin:auto;
 
   border-radius:50%;
 
   background:
     conic-gradient(
-      #29e0bd
+      #25e6c4
       0deg,
 
       #348cff
@@ -26340,15 +26341,18 @@ body.lesson-theme-science
         3.6deg
       ),
 
-      rgba(71,91,139,.30)
+      rgba(79,97,145,.30)
       calc(
         var(--games-progress) *
         3.6deg
       ),
 
-      rgba(71,91,139,.30)
+      rgba(79,97,145,.30)
       360deg
     );
+
+  box-shadow:
+    0 0 20px rgba(45,158,255,.25);
 }
 
 
@@ -26357,11 +26361,17 @@ body.lesson-theme-science
 
   position:absolute;
 
-  inset:8px;
+  inset:9px;
 
   border-radius:50%;
 
-  background:#111d3c;
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #263c6b,
+      #111b38 58%,
+      #091126
+    );
 }
 
 
@@ -26380,95 +26390,100 @@ body.lesson-theme-science
 .games-progress-ring strong{
   color:#fff;
 
-  font-size:18px;
+  font-size:21px;
   line-height:1;
 }
 
 
-.games-progress-ring small{
-  margin-top:2px;
+.games-progress-ring span{
+  margin-top:3px;
 
-  color:rgba(204,217,244,.62);
+  color:rgba(201,216,244,.65);
 
-  font-size:7px;
+  font-size:8px;
 }
 
 
-.games-progress-chart{
-  height:62px;
+.games-mini-chart{
+  position:relative;
+
+  height:72px;
 
   overflow:hidden;
 
-  border-radius:10px;
+  border-radius:11px;
 
   background:
     repeating-linear-gradient(
       to top,
-      transparent 0 14px,
-      rgba(89,125,193,.10) 15px 16px
+      transparent 0 16px,
+      rgba(91,127,195,.12) 17px 18px
     );
 }
 
 
-.games-progress-chart svg{
+.games-mini-chart svg{
   width:100%;
   height:100%;
 }
 
 
-.games-progress-chart polyline{
+.games-mini-chart polyline{
   fill:none;
 
   stroke:#3da5ff;
   stroke-width:4;
+
+  filter:
+    drop-shadow(
+      0 0 4px
+      rgba(60,160,255,.68)
+    );
 }
 
 
-.games-progress-chart circle{
-  fill:#111c3b;
+.games-mini-chart circle{
+  fill:#111b39;
 
-  stroke:#64bcff;
+  stroke:#65bdff;
   stroke-width:3;
 }
 
 
-/* ==========================================================
+/* =====================================================
    BOTTOM DOCK
-========================================================== */
+===================================================== */
 
 .games-bottom-dock{
-  position:absolute;
+  flex:
+    0
+    0
+    76px;
 
-  right:14px;
-  left:14px;
-  bottom:10px;
-
-  z-index:20;
-
-  height:72px;
+  min-height:76px;
 
   display:grid;
 
   grid-template-columns:
     repeat(6,minmax(0,1fr));
 
-  gap:8px;
+  gap:9px;
 
   padding:7px;
 
-  border:1px solid rgba(98,143,224,.31);
-  border-radius:18px;
+  border:1px solid rgba(99,143,224,.30);
+  border-radius:21px;
 
   background:
     linear-gradient(
       145deg,
-      rgba(12,31,61,.97),
-      rgba(5,17,37,.98)
+      rgba(15,30,60,.96),
+      rgba(7,17,37,.98)
     );
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.065),
-    0 10px 28px rgba(0,0,0,.38);
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 12px 30px rgba(0,5,22,.40);
 }
 
 
@@ -26479,42 +26494,42 @@ body.lesson-theme-science
   align-items:center;
   justify-content:center;
 
-  gap:7px;
+  gap:8px;
 
-  padding:5px 7px;
+  padding:6px 8px;
 
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:13px;
+  border:1px solid rgba(255,255,255,.20);
+  border-radius:15px;
 
   color:#fff;
 
   cursor:pointer;
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    inset 0 -8px 14px rgba(0,0,0,.13);
+    inset 0 1px 0 rgba(255,255,255,.20),
+    inset 0 -9px 15px rgba(0,0,0,.15);
 
   transition:
-    transform .16s ease,
-    filter .16s ease;
+    transform .18s ease,
+    filter .18s ease;
 }
 
 
 .games-dock-button:hover{
   transform:translateY(-2px);
 
-  filter:brightness(1.08);
+  filter:
+    brightness(1.08)
+    saturate(1.08);
 }
 
 
-.games-dock-icon{
-  flex:0 0 auto;
-
-  font-size:23px;
+.games-dock-button > span{
+  font-size:25px;
 }
 
 
-.games-dock-text{
+.games-dock-button > div{
   min-width:0;
 
   display:flex;
@@ -26524,26 +26539,27 @@ body.lesson-theme-science
 }
 
 
-.games-dock-text strong{
+.games-dock-button strong{
   overflow:hidden;
 
   color:#fff;
 
-  font-size:11px;
+  font-size:13px;
+  line-height:1.15;
 
   white-space:nowrap;
   text-overflow:ellipsis;
 }
 
 
-.games-dock-text small{
-  margin-top:1px;
+.games-dock-button small{
+  margin-top:2px;
 
   overflow:hidden;
 
-  color:rgba(255,255,255,.66);
+  color:rgba(255,255,255,.68);
 
-  font-size:7px;
+  font-size:8px;
 
   white-space:nowrap;
   text-overflow:ellipsis;
@@ -26551,65 +26567,97 @@ body.lesson-theme-science
 
 
 .games-dock-button.coach{
-  background:linear-gradient(145deg,#1683d0,#105b99);
+  background:
+    linear-gradient(
+      145deg,
+      #1882cb,
+      #12609f
+    );
 }
 
 
 .games-dock-button.quick{
-  background:linear-gradient(145deg,#13a653,#08753a);
+  background:
+    linear-gradient(
+      145deg,
+      #12a752,
+      #08783a
+    );
 }
 
 
 .games-dock-button.random{
-  background:linear-gradient(145deg,#8754df,#582caf);
+  background:
+    linear-gradient(
+      145deg,
+      #8553df,
+      #5b2fb4
+    );
 }
 
 
 .games-dock-button.daily{
-  background:linear-gradient(145deg,#f28d18,#c95308);
+  background:
+    linear-gradient(
+      145deg,
+      #f48d18,
+      #cf590b
+    );
 }
 
 
 .games-dock-button.library{
-  background:linear-gradient(145deg,#258de5,#115fb8);
+  background:
+    linear-gradient(
+      145deg,
+      #268ee7,
+      #1262bd
+    );
 }
 
 
 .games-dock-button.create{
-  background:linear-gradient(145deg,#db5797,#a72c6e);
+  background:
+    linear-gradient(
+      145deg,
+      #d95294,
+      #a92e70
+    );
 }
 
 
-/* ==========================================================
-   SMALLER SCREENS
-========================================================== */
+/* =====================================================
+   RESPONSIVE
+===================================================== */
 
-@media(max-width:1350px){
+@media(max-width:1450px){
 
-  .app{
+  .games-bottom-dock{
     grid-template-columns:
-      205px
-      minmax(0,1fr)
-      255px !important;
-  }
+      repeat(3,minmax(0,1fr));
 
-  .games-dock-text small{
-    display:none;
+    flex-basis:142px;
   }
 
 }
 
 
-@media(max-width:1100px){
-
-  .app{
-    grid-template-columns:
-      200px
-      minmax(0,1fr) !important;
-  }
+@media(max-width:1180px){
 
   .games-rightbar{
     display:none !important;
+  }
+
+}
+
+
+@media(max-width:760px){
+
+  .games-bottom-dock{
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+
+    flex-basis:auto;
   }
 
 }
