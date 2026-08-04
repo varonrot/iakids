@@ -11551,80 +11551,83 @@ body.lesson-theme-science
      KINGDOM HOME BOTTOM BAR
      ===================================================== -->
 
-<nav
-  class="kingdom-compact-bar"
-  aria-label="פעולות מהירות במשחקים"
->
+<nav class="games-bottom-dock">
 
   <button
     type="button"
-    class="kingdom-compact-item"
-    id="gamesCoinsButton"
+    class="games-dock-button coach"
+    id="gamesCoachButton"
   >
-    <span class="kingdom-compact-icon">🪙</span>
+    <span class="games-dock-icon">🤖</span>
 
-    <div>
-      <strong>1,245</strong>
-      <small>המטבעות שלך</small>
-    </div>
-  </button>
-
-
-  <button
-    type="button"
-    class="kingdom-compact-item"
-    id="gamesMissionButton"
-  >
-    <span class="kingdom-compact-icon">🎯</span>
-
-    <div>
-      <strong>המשימה</strong>
-      <small>השלימו 10 תרגילים</small>
-    </div>
-  </button>
-
-
-  <button
-    type="button"
-    class="kingdom-compact-item kingdom-compact-progress"
-    id="gamesKingdomProgressButton"
-  >
-    <div class="kingdom-compact-progress-text">
-      <strong>בונים את הממלכה</strong>
-      <small>32% הושלמו</small>
-    </div>
-
-    <span class="kingdom-compact-track">
-      <span style="width:32%"></span>
+    <span class="games-dock-text">
+      <strong>מאמן אישי</strong>
     </span>
   </button>
 
 
   <button
     type="button"
-    class="kingdom-compact-item"
-    id="gamesDefenseButton"
+    class="games-dock-button quick"
+    id="gamesFastGameButton"
   >
-    <span class="kingdom-compact-icon">🛡️</span>
+    <span class="games-dock-icon">🎯</span>
 
-    <div>
-      <strong>הגנה נוכחית</strong>
-      <small>חזקה</small>
-    </div>
+    <span class="games-dock-text">
+      <strong>תרגול מהיר</strong>
+    </span>
   </button>
 
 
   <button
     type="button"
-    class="kingdom-compact-item"
-    id="gamesRewardsButton"
+    class="games-dock-button random"
+    id="gamesRandomButton"
   >
-    <span class="kingdom-compact-icon">🎁</span>
+    <span class="games-dock-icon">🎲</span>
 
-    <div>
-      <strong>פרסים</strong>
-      <small>3 מחכים לאיסוף</small>
-    </div>
+    <span class="games-dock-text">
+      <strong>משחק אקראי</strong>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button daily"
+    id="gamesDailyChallengeButton"
+  >
+    <span class="games-dock-icon">⭐</span>
+
+    <span class="games-dock-text">
+      <strong>אתגר יומי</strong>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button library"
+    id="gamesLibraryButton"
+  >
+    <span class="games-dock-icon">🎮</span>
+
+    <span class="games-dock-text">
+      <strong>ספריית משחקים</strong>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button create"
+    id="gamesCreateButton"
+  >
+    <span class="games-dock-icon">✏️</span>
+
+    <span class="games-dock-text">
+      <strong>יצירת משחק</strong>
+    </span>
   </button>
 
 </nav>
@@ -26666,291 +26669,213 @@ body.lesson-theme-science
 
 }
     /* =====================================================
-   GAMES WORKSPACE — BOTTOM DOCK
+   GAMES BOTTOM DOCK
 ===================================================== */
 
-.dashboard-view{
+.games-world-stage{
   position:relative !important;
 }
 
-.dashboard-view .dash-content{
-  position:relative !important;
-  height:100% !important;
-  min-height:0 !important;
-  overflow:hidden !important;
-}
-
-.kingdom-map-area{
-  height:100% !important;
-  min-height:0 !important;
-  padding-bottom:108px !important;
-}
-
-
-/* מסתיר את הסרגל הישן אם עדיין נשאר בקוד */
-
-.kingdom-bottom-bar{
-  display:none !important;
-}
-
-
-/* הסרגל החדש */
-
-.kingdom-compact-bar{
+.games-bottom-dock{
   position:absolute !important;
 
-  right:14px !important;
-  left:14px !important;
-  bottom:12px !important;
+  left:50% !important;
+  bottom:10px !important;
 
-  height:78px !important;
+  transform:translateX(-50%) !important;
+
+  z-index:50 !important;
+
+  width:min(920px, calc(100% - 36px)) !important;
+  height:76px !important;
 
   display:grid !important;
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
 
-  grid-template-columns:
-    1fr
-    1fr
-    1.45fr
-    1fr
-    1fr !important;
-
-  gap:8px !important;
+  gap:10px !important;
 
   padding:7px !important;
 
   direction:rtl;
 
-  border:
-    1px solid
-    rgba(112,166,255,.30) !important;
-
-  border-radius:20px !important;
+  border:1px solid rgba(94,154,238,.30) !important;
+  border-radius:19px !important;
 
   background:
     linear-gradient(
       180deg,
-      rgba(10,35,61,.96),
-      rgba(5,22,42,.98)
+      rgba(10,32,60,.96),
+      rgba(5,17,38,.98)
     ) !important;
 
   box-shadow:
-    0 14px 32px
-    rgba(0,12,35,.42),
+    0 16px 34px rgba(0,8,28,.45),
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
 
-    inset 0 1px 0
-    rgba(255,255,255,.12) !important;
-
-  backdrop-filter:
-    blur(14px)
-    saturate(120%);
-
-  -webkit-backdrop-filter:
-    blur(14px)
-    saturate(120%);
-
-  z-index:40 !important;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
 }
 
 
-/* כרטיס בסרגל */
-
-.kingdom-compact-item{
+.games-dock-button{
   min-width:0;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
 
-  gap:9px;
+  gap:9px !important;
 
-  padding:
-    6px
-    10px;
+  padding:7px 10px !important;
 
-  border:
-    1px solid
-    rgba(255,255,255,.13);
+  border:1px solid rgba(255,255,255,.18) !important;
+  border-radius:14px !important;
 
-  border-radius:14px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20,55,83,.96),
-      rgba(8,31,54,.98)
-    );
-
-  color:#fff;
+  color:#fff !important;
 
   cursor:pointer;
 
-  text-align:right;
-
   box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.08);
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -10px 15px rgba(0,0,0,.15),
+    0 5px 12px rgba(0,0,0,.18);
 
   transition:
-    transform .2s ease,
-    border-color .2s ease,
-    background .2s ease;
+    transform .18s ease,
+    filter .18s ease;
 }
 
 
-.kingdom-compact-item:hover{
-  transform:
-    translateY(-2px);
+.games-dock-button:hover{
+  transform:translateY(-3px);
 
-  border-color:
-    rgba(100,190,255,.48);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(27,72,107,.98),
-      rgba(10,40,69,.98)
-    );
+  filter:
+    brightness(1.10)
+    saturate(1.08);
 }
 
 
-.kingdom-compact-item strong{
-  display:block;
+.games-dock-icon{
+  flex:0 0 auto;
 
-  color:#fff;
-
-  font-size:13px;
-  line-height:1.15;
-  font-weight:900;
-
-  white-space:nowrap;
-}
-
-
-.kingdom-compact-item small{
-  display:block;
-
-  margin-top:3px;
-
-  color:
-    rgba(211,224,245,.68);
-
-  font-size:9px;
-  line-height:1.15;
-
-  white-space:nowrap;
-}
-
-
-.kingdom-compact-icon{
-  flex:
-    0
-    0
-    auto;
-
-  font-size:25px;
+  font-size:28px;
   line-height:1;
 }
 
 
-/* כרטיס ההתקדמות המרכזי */
+.games-dock-text{
+  min-width:0;
 
-.kingdom-compact-progress{
-  display:flex;
-  flex-direction:column;
+  display:block;
 
-  align-items:stretch;
-  justify-content:center;
-
-  gap:7px;
+  text-align:right;
 }
 
 
-.kingdom-compact-progress-text{
-  display:flex;
-
-  align-items:center;
-  justify-content:space-between;
-
-  gap:8px;
-}
-
-
-.kingdom-compact-track{
-  width:100%;
-  height:7px;
-
+.games-dock-text strong{
   display:block;
 
   overflow:hidden;
 
-  border-radius:999px;
+  color:#fff;
 
-  background:
-    rgba(3,15,31,.72);
+  font-size:14px;
+  line-height:1.2;
+  font-weight:900;
 
-  box-shadow:
-    inset 0 1px 3px
-    rgba(0,0,0,.50);
+  white-space:nowrap;
+  text-overflow:ellipsis;
 }
 
 
-.kingdom-compact-track > span{
-  display:block;
-
-  height:100%;
-
-  border-radius:inherit;
-
+.games-dock-button.coach{
   background:
     linear-gradient(
-      90deg,
-      #35d0ff,
-      #82ed4c
-    );
-
-  box-shadow:
-    0 0 10px
-    rgba(92,230,116,.45);
+      145deg,
+      #1888d5,
+      #0f609f
+    ) !important;
 }
 
 
-/* מסכים נמוכים */
-
-@media(max-height:850px){
-
-  .kingdom-compact-bar{
-    height:68px !important;
-    bottom:8px !important;
-  }
-
-  .kingdom-map-area{
-    padding-bottom:88px !important;
-  }
-
-  .kingdom-compact-icon{
-    font-size:21px;
-  }
-
-  .kingdom-compact-item strong{
-    font-size:12px;
-  }
-
+.games-dock-button.quick{
+  background:
+    linear-gradient(
+      145deg,
+      #16ae58,
+      #087d3d
+    ) !important;
 }
 
 
-/* טאבלט */
+.games-dock-button.random{
+  background:
+    linear-gradient(
+      145deg,
+      #8e58e7,
+      #5b2db4
+    ) !important;
+}
 
-@media(max-width:1050px){
 
-  .kingdom-compact-bar{
-    grid-template-columns:
-      repeat(3,minmax(0,1fr)) !important;
+.games-dock-button.daily{
+  background:
+    linear-gradient(
+      145deg,
+      #ff971a,
+      #d65a08
+    ) !important;
+}
 
-    height:auto !important;
 
-    max-height:170px;
+.games-dock-button.library{
+  background:
+    linear-gradient(
+      145deg,
+      #2697eb,
+      #1164bb
+    ) !important;
+}
 
-    overflow-y:auto;
+
+.games-dock-button.create{
+  background:
+    linear-gradient(
+      145deg,
+      #e25c9c,
+      #aa2f72
+    ) !important;
+}
+
+
+/* מסתיר את הסרגל התחתון הישן */
+
+.kingdom-compact-bar,
+.kingdom-bottom-bar{
+  display:none !important;
+}
+
+
+/* משאיר מקום כדי שהסרגל לא יכסה את המפה */
+
+.kingdom-map-area{
+  padding-bottom:92px !important;
+}
+
+
+@media(max-width:1250px){
+
+  .games-bottom-dock{
+    width:calc(100% - 24px) !important;
+    gap:7px !important;
+  }
+
+  .games-dock-icon{
+    font-size:23px;
+  }
+
+  .games-dock-text strong{
+    font-size:11px;
   }
 
 }
