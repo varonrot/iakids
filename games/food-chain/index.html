@@ -122,45 +122,49 @@
        כפתור חזרה יחיד
     ============================= */
 
-    .workspace-back{
-      position:fixed;
-      top:14px;
-      right:18px;
-      z-index:1000;
+.workspace-back{
+  position:fixed;
 
-      min-height:48px;
-      padding:0 18px;
+  top:14px;
 
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:9px;
+  /* משאירים מקום לכפתור העזרה של המשחק */
+  right:82px;
 
-      border:1px solid rgba(160,191,255,.34);
-      border-radius:16px;
+  z-index:900;
 
-      color:#fff;
-      text-decoration:none;
+  min-height:48px;
+  padding:0 18px;
 
-      background:
-        linear-gradient(
-          145deg,
-          #7956ff,
-          #4e31bf
-        );
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
 
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.18),
-        0 11px 28px rgba(0,0,0,.32);
+  border:1px solid rgba(160,191,255,.34);
+  border-radius:16px;
 
-      font-size:14px;
-      font-weight:900;
+  color:#fff;
+  text-decoration:none;
 
-      transition:
-        transform .18s ease,
-        filter .18s ease,
-        box-shadow .18s ease;
-    }
+  background:
+    linear-gradient(
+      145deg,
+      #7956ff,
+      #4e31bf
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 11px 28px rgba(0,0,0,.32);
+
+  font-size:14px;
+  font-weight:900;
+
+  transition:
+    transform .18s ease,
+    filter .18s ease,
+    box-shadow .18s ease;
+}
 
     .workspace-back:hover{
       transform:translateY(-2px);
@@ -785,17 +789,17 @@
         align-items:start !important;
       }
 
-      .workspace-back{
-        top:9px;
-        right:9px;
+.workspace-back{
+  top:9px;
+  right:62px;
 
-        min-height:43px;
-        padding:0 12px;
+  min-height:43px;
+  padding:0 11px;
 
-        border-radius:13px;
+  border-radius:13px;
 
-        font-size:12px;
-      }
+  font-size:11px;
+}
 
       .workspace-back span{
         font-size:17px;
