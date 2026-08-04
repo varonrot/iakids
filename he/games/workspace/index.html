@@ -10721,6 +10721,14 @@ body.games-workspace .notification-btn,
 
   border-radius:15px !important;
 }
+    .games-sidebar .games-research-link i{
+  background:
+    linear-gradient(
+      135deg,
+      #d45aa4,
+      #7048ff
+    ) !important;
+}
 </style>
 </head>
 <body class="games-workspace">
@@ -10901,17 +10909,16 @@ body.games-workspace .notification-btn,
       </div>
     </button>
 
-      <button
+<button
   type="button"
-  class="games-side-item games-research-link"
+  class="side-item games-research-link"
   onclick="window.location.href='/he/games/how-it-works/'"
 >
-  <span class="games-side-icon">🧠</span>
+  <i class="fa-solid fa-brain"></i>
 
-  <span class="games-side-text">
-    <strong>איך זה עובד?</strong>
-    <small>המדע מאחורי המשחקים</small>
-  </span>
+  <div class="side-text">
+    <span class="side-title">איך זה עובד?</span>
+  </div>
 </button>
 
     <button
