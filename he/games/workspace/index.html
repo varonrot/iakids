@@ -10700,42 +10700,28 @@ body.lesson-theme-science
 
 <aside class="sidebar games-sidebar">
 
-  <div class="games-player-card">
-
-    <img
-      id="gamesSidebarAvatar"
-      src="/assets/avatars/cat_blue.png"
-      alt=""
-    >
-
-    <div class="games-player-info">
-
-      <strong id="gamesSidebarName">
-        שחקן
-      </strong>
-
-      <span id="gamesSidebarGrade">
-        כיתה
-      </span>
-
-    </div>
-
-  </div>
+  <!-- כפתור ראשי -->
+  <button
+    type="button"
+    class="new-task games-main-action"
+    id="gamesQuickStartSide"
+  >
+    ⚡ התחל משחק מהיר
+  </button>
 
 
+  <!-- ניווט המשחקים -->
   <div class="kid-actions games-menu">
 
     <button
       type="button"
       class="side-item active"
-      id="gamesHomeButton"
+      id="gamesHomeSidebarBtn"
     >
       <i class="fa-solid fa-house"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          דף הבית
-        </span>
+        <span class="side-title">דף הבית</span>
       </div>
     </button>
 
@@ -10743,14 +10729,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="myGamesButton"
+      id="myGamesSidebarBtn"
     >
       <i class="fa-solid fa-gamepad"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          המשחקים שלי
-        </span>
+        <span class="side-title">המשחקים שלי</span>
       </div>
     </button>
 
@@ -10758,14 +10742,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesMissionsButton"
+      id="gamesMissionsSidebarBtn"
     >
       <i class="fa-solid fa-bullseye"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          משימות
-        </span>
+        <span class="side-title">משימות</span>
       </div>
     </button>
 
@@ -10773,14 +10755,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="weeklyChampionButton"
+      id="weeklyChampionSidebarBtn"
     >
       <i class="fa-solid fa-trophy"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          אלוף השבוע
-        </span>
+        <span class="side-title">אלוף השבוע</span>
       </div>
     </button>
 
@@ -10788,14 +10768,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="friendsButton"
+      id="gamesFriendsSidebarBtn"
     >
       <i class="fa-solid fa-user-group"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          חברים
-        </span>
+        <span class="side-title">חברים</span>
       </div>
     </button>
 
@@ -10803,14 +10781,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesProgressButton"
+      id="gamesProgressSidebarBtn"
     >
       <i class="fa-solid fa-chart-line"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          התקדמות
-        </span>
+        <span class="side-title">התקדמות</span>
       </div>
     </button>
 
@@ -10818,14 +10794,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesRewardsButton"
+      id="gamesRewardsSidebarBtn"
     >
       <i class="fa-solid fa-gift"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          פרסים
-        </span>
+        <span class="side-title">פרסים</span>
       </div>
     </button>
 
@@ -10833,52 +10807,52 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesSettingsButton"
+      id="gamesSettingsSidebarBtn"
     >
       <i class="fa-solid fa-gear"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          הגדרות
-        </span>
+        <span class="side-title">הגדרות</span>
       </div>
     </button>
 
   </div>
 
 
-  <div class="games-sidebar-bottom">
+  <!-- חשוב:
+       שלושת הכפתורים המקוריים נשמרים עם אותם IDs
+       כדי שהלוגיקה הקיימת תמשיך לעבוד
+  -->
+  <div class="sidebar-bottom">
 
     <button
       type="button"
-      class="games-quick-start"
-      id="gamesQuickStartButton"
+      class="manage-btn"
+      id="openParentModal"
     >
-      <span>⚡</span>
-
-      <strong>
-        התחל משחק מהיר
-      </strong>
+      <i class="fa-solid fa-children"></i>
+      החלפת ילד
     </button>
 
 
-    <div class="games-daily-tip">
+    <button
+      type="button"
+      class="manage-btn"
+      id="openSettings"
+    >
+      <i class="fa-solid fa-user-pen"></i>
+      פרטי הילד
+    </button>
 
-      <span class="games-tip-icon">
-        💡
-      </span>
 
-      <div>
-        <strong>
-          טיפ להיום
-        </strong>
-
-        <p>
-          תרגול של 10 דקות ביום מחזק את הזיכרון.
-        </p>
-      </div>
-
-    </div>
+    <button
+      type="button"
+      class="manage-btn"
+      id="manageSubscriptionSide"
+    >
+      <i class="fa-regular fa-credit-card"></i>
+      ניהול מנוי
+    </button>
 
   </div>
 
