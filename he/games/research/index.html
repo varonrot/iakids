@@ -1,1 +1,3472 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    איך המשחקים מפתחים כישורי חשיבה | iakids Games
+  </title>
+
+  <meta
+    name="description"
+    content="הסבר להורים על הכישורים שהמשחקים של iakids מתרגלים, שיטת ההערכה הפדגוגית והמחקרים שעליהם מבוססים עקרונות התכנון."
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+
+    /* =========================================================
+       ROOT
+    ========================================================= */
+
+    :root{
+      --bg:#07152f;
+      --bg2:#0b2450;
+      --surface:#102750;
+      --surface2:#142f61;
+      --surface-soft:rgba(15,39,80,.76);
+
+      --white:#ffffff;
+      --text:#f4f8ff;
+      --muted:#aebfdf;
+      --muted2:#7f96bf;
+
+      --line:rgba(135,174,240,.18);
+      --line-strong:rgba(135,174,240,.32);
+
+      --purple:#7956ff;
+      --purple2:#a261ff;
+
+      --blue:#2f9dff;
+      --cyan:#32d7ff;
+      --green:#31d581;
+      --orange:#ff9f2e;
+      --pink:#f65ca7;
+      --yellow:#ffd04b;
+
+      --shadow:
+        0 22px 55px
+        rgba(0,7,28,.36);
+
+      --shadow-soft:
+        0 13px 34px
+        rgba(0,7,28,.25);
+
+      --radius-lg:28px;
+      --radius-md:20px;
+      --radius-sm:14px;
+    }
+
+
+    /* =========================================================
+       RESET
+    ========================================================= */
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    html,
+    body,
+    button,
+    input,
+    select,
+    textarea{
+      font-family:"Heebo", Arial, sans-serif;
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+
+      color:var(--text);
+
+      background:
+        radial-gradient(
+          1000px 620px at 10% 4%,
+          rgba(55,128,255,.20),
+          transparent 62%
+        ),
+        radial-gradient(
+          900px 650px at 90% 8%,
+          rgba(126,74,255,.18),
+          transparent 60%
+        ),
+        radial-gradient(
+          750px 500px at 50% 100%,
+          rgba(0,212,177,.10),
+          transparent 68%
+        ),
+        linear-gradient(
+          180deg,
+          #07152f,
+          #061126 65%,
+          #081936
+        );
+
+      overflow-x:hidden;
+    }
+
+    a{
+      color:inherit;
+    }
+
+    button{
+      font:inherit;
+    }
+
+
+    /* =========================================================
+       BACKGROUND EFFECTS
+    ========================================================= */
+
+    .page-stars{
+      position:fixed;
+      inset:0;
+
+      z-index:-2;
+      pointer-events:none;
+
+      opacity:.34;
+
+      background-image:
+        radial-gradient(
+          circle,
+          rgba(255,255,255,.85) 1px,
+          transparent 1.4px
+        );
+
+      background-size:46px 46px;
+    }
+
+    .page-glow{
+      position:fixed;
+      left:50%;
+      bottom:-260px;
+
+      width:900px;
+      height:520px;
+
+      transform:translateX(-50%);
+
+      z-index:-1;
+      pointer-events:none;
+
+      border-radius:50%;
+
+      background:
+        radial-gradient(
+          ellipse,
+          rgba(31,211,194,.20),
+          transparent 68%
+        );
+
+      filter:blur(18px);
+    }
+
+
+    /* =========================================================
+       TOP NAV
+    ========================================================= */
+
+    .top-nav{
+      position:sticky;
+      top:0;
+
+      z-index:100;
+
+      width:100%;
+
+      padding:12px 18px;
+    }
+
+    .top-nav-inner{
+      width:min(1220px,100%);
+      min-height:64px;
+
+      margin:0 auto;
+      padding:8px 12px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+
+      border:
+        1px solid
+        rgba(134,170,233,.22);
+
+      border-radius:20px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(18,35,73,.94),
+          rgba(8,22,49,.94)
+        );
+
+      box-shadow:
+        0 12px 34px
+        rgba(0,5,22,.28);
+
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
+
+    .top-brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+
+      text-decoration:none;
+    }
+
+    .top-brand-icon{
+      width:46px;
+      height:46px;
+
+      display:grid;
+      place-items:center;
+
+      overflow:hidden;
+
+      border-radius:14px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(72,117,255,.34),
+          rgba(113,66,255,.26)
+        );
+
+      border:
+        1px solid
+        rgba(145,180,255,.25);
+    }
+
+    .top-brand-icon img{
+      width:39px;
+      height:39px;
+      object-fit:contain;
+    }
+
+    .top-brand-text{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+
+    .top-brand-text strong{
+      font-size:17px;
+      font-weight:900;
+    }
+
+    .top-brand-text small{
+      margin-top:4px;
+
+      color:var(--muted);
+      font-size:11px;
+      font-weight:600;
+    }
+
+    .top-nav-actions{
+      display:flex;
+      align-items:center;
+      gap:9px;
+    }
+
+    .nav-button{
+      min-height:44px;
+
+      padding:0 16px;
+
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+
+      border:
+        1px solid
+        rgba(135,174,240,.24);
+
+      border-radius:14px;
+
+      color:#fff;
+      text-decoration:none;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(33,55,99,.94),
+          rgba(17,34,70,.94)
+        );
+
+      box-shadow:
+        inset 0 1px 0
+        rgba(255,255,255,.08);
+
+      font-size:13px;
+      font-weight:800;
+
+      transition:
+        transform .18s ease,
+        border-color .18s ease,
+        filter .18s ease;
+    }
+
+    .nav-button:hover{
+      transform:translateY(-2px);
+      border-color:rgba(126,176,255,.52);
+      filter:brightness(1.08);
+    }
+
+    .nav-button.primary{
+      border-color:
+        rgba(164,126,255,.48);
+
+      background:
+        linear-gradient(
+          145deg,
+          #825dff,
+          #5b39d9
+        );
+
+      box-shadow:
+        0 10px 24px
+        rgba(89,53,218,.28);
+    }
+
+
+    /* =========================================================
+       GENERAL LAYOUT
+    ========================================================= */
+
+    .page{
+      width:min(1180px,calc(100% - 32px));
+      margin:0 auto;
+      padding:42px 0 90px;
+    }
+
+    .section{
+      margin-top:76px;
+      scroll-margin-top:100px;
+    }
+
+    .section-heading{
+      max-width:820px;
+      margin:0 auto 28px;
+
+      text-align:center;
+    }
+
+    .section-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+
+      margin-bottom:12px;
+      padding:7px 13px;
+
+      border:
+        1px solid
+        rgba(130,167,235,.24);
+
+      border-radius:999px;
+
+      color:#bcd2f5;
+
+      background:
+        rgba(28,57,109,.52);
+
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .section-heading h2{
+      margin:0;
+
+      font-size:
+        clamp(28px,4vw,44px);
+
+      line-height:1.16;
+      font-weight:900;
+
+      letter-spacing:-.4px;
+    }
+
+    .section-heading p{
+      max-width:740px;
+
+      margin:14px auto 0;
+
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.8;
+    }
+
+
+    /* =========================================================
+       HERO
+    ========================================================= */
+
+    .hero{
+      position:relative;
+
+      min-height:610px;
+
+      display:grid;
+      grid-template-columns:
+        minmax(0,1.08fr)
+        minmax(340px,.92fr);
+
+      align-items:center;
+      gap:48px;
+
+      padding:58px 58px;
+
+      overflow:hidden;
+
+      border:
+        1px solid
+        rgba(130,168,239,.22);
+
+      border-radius:34px;
+
+      background:
+        radial-gradient(
+          650px 480px at 88% 30%,
+          rgba(65,119,255,.19),
+          transparent 68%
+        ),
+        linear-gradient(
+          135deg,
+          rgba(18,48,98,.93),
+          rgba(6,22,51,.94)
+        );
+
+      box-shadow:var(--shadow);
+    }
+
+    .hero::before{
+      content:"";
+
+      position:absolute;
+      inset:0;
+
+      pointer-events:none;
+
+      background:
+        linear-gradient(
+          115deg,
+          rgba(255,255,255,.055),
+          transparent 30%,
+          transparent 75%,
+          rgba(122,84,255,.06)
+        );
+    }
+
+    .hero-content{
+      position:relative;
+      z-index:2;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+
+      padding:9px 14px;
+
+      border:
+        1px solid
+        rgba(74,210,255,.32);
+
+      border-radius:999px;
+
+      color:#d8f7ff;
+
+      background:
+        rgba(20,119,158,.18);
+
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .hero h1{
+      margin:22px 0 18px;
+
+      font-size:
+        clamp(39px,6vw,67px);
+
+      line-height:1.04;
+      font-weight:900;
+
+      letter-spacing:-1.4px;
+    }
+
+    .hero h1 span{
+      color:#72cfff;
+    }
+
+    .hero-lead{
+      max-width:660px;
+
+      margin:0;
+
+      color:#c3d2ec;
+      font-size:18px;
+      line-height:1.85;
+      font-weight:500;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+
+      margin-top:28px;
+    }
+
+    .hero-cta{
+      min-height:52px;
+      padding:0 21px;
+
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+
+      border-radius:16px;
+
+      text-decoration:none;
+
+      font-size:14px;
+      font-weight:900;
+
+      transition:
+        transform .18s ease,
+        filter .18s ease;
+    }
+
+    .hero-cta:hover{
+      transform:translateY(-2px);
+      filter:brightness(1.08);
+    }
+
+    .hero-cta.primary{
+      color:#fff;
+
+      background:
+        linear-gradient(
+          145deg,
+          #7f5dff,
+          #5c39db
+        );
+
+      box-shadow:
+        0 14px 30px
+        rgba(95,58,220,.28);
+    }
+
+    .hero-cta.secondary{
+      color:#e6efff;
+
+      border:
+        1px solid
+        rgba(137,175,241,.26);
+
+      background:
+        rgba(17,39,79,.78);
+    }
+
+    .hero-note{
+      margin-top:18px;
+
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+
+      color:#91a7ca;
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    .hero-visual{
+      position:relative;
+      z-index:2;
+
+      min-height:440px;
+
+      display:grid;
+      place-items:center;
+    }
+
+    .brain-orbit{
+      position:relative;
+
+      width:min(410px,100%);
+      aspect-ratio:1;
+
+      display:grid;
+      place-items:center;
+    }
+
+    .orbit{
+      position:absolute;
+      inset:10%;
+
+      border:
+        1px solid
+        rgba(96,174,255,.21);
+
+      border-radius:50%;
+    }
+
+    .orbit.two{
+      inset:24%;
+      border-color:
+        rgba(145,105,255,.28);
+    }
+
+    .brain-core{
+      position:relative;
+
+      width:180px;
+      height:180px;
+
+      display:grid;
+      place-items:center;
+
+      border:
+        1px solid
+        rgba(103,207,255,.42);
+
+      border-radius:50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(50,160,255,.42),
+          rgba(42,81,171,.20) 45%,
+          rgba(13,28,63,.82) 74%
+        );
+
+      box-shadow:
+        0 0 70px
+        rgba(58,153,255,.27);
+    }
+
+    .brain-core span{
+      font-size:82px;
+      filter:
+        drop-shadow(
+          0 12px 22px
+          rgba(0,0,0,.24)
+        );
+    }
+
+    .skill-node{
+      position:absolute;
+
+      min-width:124px;
+
+      padding:11px 13px;
+
+      border:
+        1px solid
+        rgba(138,175,239,.24);
+
+      border-radius:15px;
+
+      color:#eaf2ff;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(31,60,112,.94),
+          rgba(13,31,66,.94)
+        );
+
+      box-shadow:
+        0 12px 25px
+        rgba(0,6,25,.24);
+
+      font-size:12px;
+      font-weight:800;
+      text-align:center;
+    }
+
+    .skill-node.one{
+      top:4%;
+      right:35%;
+    }
+
+    .skill-node.two{
+      top:28%;
+      left:0;
+    }
+
+    .skill-node.three{
+      bottom:15%;
+      left:7%;
+    }
+
+    .skill-node.four{
+      bottom:2%;
+      right:32%;
+    }
+
+    .skill-node.five{
+      top:32%;
+      right:-2%;
+    }
+
+
+    /* =========================================================
+       TRUST STRIP
+    ========================================================= */
+
+    .trust-strip{
+      margin-top:20px;
+
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    .trust-item{
+      min-height:104px;
+
+      padding:18px;
+
+      display:flex;
+      align-items:center;
+      gap:14px;
+
+      border:
+        1px solid
+        rgba(130,168,239,.18);
+
+      border-radius:20px;
+
+      background:
+        rgba(13,34,73,.76);
+
+      box-shadow:var(--shadow-soft);
+    }
+
+    .trust-icon{
+      width:48px;
+      height:48px;
+
+      flex:0 0 48px;
+
+      display:grid;
+      place-items:center;
+
+      border-radius:15px;
+
+      background:
+        rgba(62,118,224,.17);
+
+      font-size:24px;
+    }
+
+    .trust-item strong{
+      display:block;
+      margin-bottom:4px;
+
+      font-size:14px;
+    }
+
+    .trust-item span{
+      color:var(--muted);
+      font-size:11px;
+      line-height:1.5;
+    }
+
+
+    /* =========================================================
+       PRINCIPLES
+    ========================================================= */
+
+    .principles-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:17px;
+    }
+
+    .principle-card{
+      min-height:230px;
+
+      padding:25px;
+
+      border:
+        1px solid
+        rgba(134,171,238,.19);
+
+      border-radius:24px;
+
+      background:
+        linear-gradient(
+          160deg,
+          rgba(22,51,102,.90),
+          rgba(9,27,61,.92)
+        );
+
+      box-shadow:var(--shadow-soft);
+
+      transition:
+        transform .2s ease,
+        border-color .2s ease;
+    }
+
+    .principle-card:hover{
+      transform:translateY(-5px);
+      border-color:
+        rgba(124,176,255,.42);
+    }
+
+    .principle-icon{
+      width:54px;
+      height:54px;
+
+      display:grid;
+      place-items:center;
+
+      margin-bottom:19px;
+
+      border-radius:17px;
+
+      font-size:27px;
+    }
+
+    .principle-card:nth-child(1) .principle-icon{
+      background:rgba(47,157,255,.18);
+    }
+
+    .principle-card:nth-child(2) .principle-icon{
+      background:rgba(49,213,129,.16);
+    }
+
+    .principle-card:nth-child(3) .principle-icon{
+      background:rgba(255,159,46,.16);
+    }
+
+    .principle-card:nth-child(4) .principle-icon{
+      background:rgba(246,92,167,.15);
+    }
+
+    .principle-card:nth-child(5) .principle-icon{
+      background:rgba(121,86,255,.18);
+    }
+
+    .principle-card:nth-child(6) .principle-icon{
+      background:rgba(255,208,75,.14);
+    }
+
+    .principle-card h3{
+      margin:0 0 10px;
+
+      font-size:19px;
+      font-weight:900;
+    }
+
+    .principle-card p{
+      margin:0;
+
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.75;
+    }
+
+
+    /* =========================================================
+       SCORING METHOD
+    ========================================================= */
+
+    .method-panel{
+      padding:32px;
+
+      border:
+        1px solid
+        rgba(134,171,238,.20);
+
+      border-radius:28px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(20,48,97,.93),
+          rgba(9,27,61,.94)
+        );
+
+      box-shadow:var(--shadow);
+    }
+
+    .method-intro{
+      display:grid;
+      grid-template-columns:1fr 340px;
+      align-items:center;
+      gap:34px;
+    }
+
+    .method-copy h3{
+      margin:0 0 13px;
+
+      font-size:27px;
+      font-weight:900;
+    }
+
+    .method-copy p{
+      margin:0;
+
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.85;
+    }
+
+    .score-scale{
+      padding:22px;
+
+      border:
+        1px solid
+        rgba(140,177,239,.17);
+
+      border-radius:21px;
+
+      background:
+        rgba(7,24,55,.66);
+    }
+
+    .score-scale-title{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+
+      margin-bottom:14px;
+
+      color:#d9e7ff;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .scale-bars{
+      display:flex;
+      flex-direction:column;
+      gap:9px;
+    }
+
+    .scale-row{
+      display:grid;
+      grid-template-columns:28px 1fr 90px;
+      align-items:center;
+      gap:9px;
+
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .scale-line{
+      height:8px;
+      overflow:hidden;
+
+      border-radius:999px;
+
+      background:
+        rgba(92,121,174,.18);
+    }
+
+    .scale-line span{
+      display:block;
+      height:100%;
+      border-radius:inherit;
+    }
+
+    .scale-row:nth-child(1) .scale-line span{
+      width:20%;
+      background:#526c9f;
+    }
+
+    .scale-row:nth-child(2) .scale-line span{
+      width:40%;
+      background:#347ac8;
+    }
+
+    .scale-row:nth-child(3) .scale-line span{
+      width:60%;
+      background:#2ca9d9;
+    }
+
+    .scale-row:nth-child(4) .scale-line span{
+      width:80%;
+      background:#38c48f;
+    }
+
+    .scale-row:nth-child(5) .scale-line span{
+      width:100%;
+      background:#ffd04b;
+    }
+
+    .method-warning{
+      margin-top:22px;
+      padding:15px 17px;
+
+      display:flex;
+      gap:11px;
+
+      border:
+        1px solid
+        rgba(255,200,82,.22);
+
+      border-radius:16px;
+
+      color:#e8d49d;
+
+      background:
+        rgba(119,76,15,.16);
+
+      font-size:12px;
+      line-height:1.7;
+    }
+
+
+    /* =========================================================
+       CATEGORY CHARTS
+    ========================================================= */
+
+    .charts-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .chart-card{
+      padding:23px;
+
+      border:
+        1px solid
+        rgba(134,171,238,.19);
+
+      border-radius:24px;
+
+      background:
+        linear-gradient(
+          160deg,
+          rgba(21,49,98,.94),
+          rgba(8,25,58,.95)
+        );
+
+      box-shadow:var(--shadow-soft);
+    }
+
+    .chart-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .chart-head h3{
+      margin:0;
+
+      font-size:17px;
+      font-weight:900;
+    }
+
+    .chart-head small{
+      display:block;
+      margin-top:4px;
+
+      color:var(--muted2);
+      font-size:11px;
+    }
+
+    .chart-count{
+      padding:5px 9px;
+
+      border-radius:999px;
+
+      color:#c9dcfa;
+      background:
+        rgba(70,113,191,.18);
+
+      font-size:10px;
+      font-weight:800;
+    }
+
+    .radar{
+      position:relative;
+
+      width:260px;
+      max-width:100%;
+      aspect-ratio:1;
+
+      margin:19px auto 8px;
+    }
+
+    .radar svg{
+      width:100%;
+      height:100%;
+      overflow:visible;
+    }
+
+    .radar-grid{
+      fill:none;
+      stroke:rgba(157,184,227,.19);
+      stroke-width:1;
+    }
+
+    .radar-axis{
+      stroke:rgba(157,184,227,.16);
+      stroke-width:1;
+    }
+
+    .radar-fill-blue{
+      fill:rgba(47,157,255,.25);
+      stroke:#3ba7ff;
+      stroke-width:2.5;
+    }
+
+    .radar-fill-pink{
+      fill:rgba(246,92,167,.22);
+      stroke:#f65ca7;
+      stroke-width:2.5;
+    }
+
+    .radar-fill-green{
+      fill:rgba(49,213,129,.22);
+      stroke:#31d581;
+      stroke-width:2.5;
+    }
+
+    .radar-dot-blue{
+      fill:#3ba7ff;
+    }
+
+    .radar-dot-pink{
+      fill:#f65ca7;
+    }
+
+    .radar-dot-green{
+      fill:#31d581;
+    }
+
+    .chart-skills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+
+      justify-content:center;
+
+      margin-top:12px;
+    }
+
+    .skill-tag{
+      padding:6px 9px;
+
+      border:
+        1px solid
+        rgba(135,174,240,.16);
+
+      border-radius:999px;
+
+      color:#c7d7ef;
+      background:
+        rgba(36,64,111,.38);
+
+      font-size:10px;
+      font-weight:700;
+    }
+
+
+    /* =========================================================
+       AVERAGE TABLE
+    ========================================================= */
+
+    .table-card{
+      overflow:hidden;
+
+      border:
+        1px solid
+        rgba(134,171,238,.19);
+
+      border-radius:25px;
+
+      background:
+        rgba(11,31,68,.88);
+
+      box-shadow:var(--shadow-soft);
+    }
+
+    .table-toolbar{
+      padding:18px 20px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+
+      border-bottom:
+        1px solid
+        rgba(134,171,238,.14);
+    }
+
+    .table-toolbar strong{
+      font-size:17px;
+    }
+
+    .table-toolbar span{
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .table-scroll{
+      overflow-x:auto;
+    }
+
+    table{
+      width:100%;
+      min-width:940px;
+
+      border-collapse:collapse;
+    }
+
+    th,
+    td{
+      padding:14px 13px;
+
+      border-bottom:
+        1px solid
+        rgba(134,171,238,.10);
+
+      text-align:center;
+
+      font-size:12px;
+    }
+
+    th{
+      color:#aec1e1;
+      background:
+        rgba(10,28,62,.76);
+
+      font-weight:800;
+    }
+
+    td{
+      color:#dce8fb;
+    }
+
+    td:first-child,
+    th:first-child{
+      min-width:180px;
+      text-align:right;
+      font-weight:800;
+    }
+
+    tbody tr{
+      transition:background .16s ease;
+    }
+
+    tbody tr:hover{
+      background:
+        rgba(47,105,190,.11);
+    }
+
+    .category-name{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .category-dot{
+      width:9px;
+      height:9px;
+
+      border-radius:50%;
+    }
+
+    .mini-score{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .mini-score-line{
+      width:46px;
+      height:5px;
+
+      overflow:hidden;
+
+      border-radius:999px;
+
+      background:
+        rgba(120,151,206,.17);
+    }
+
+    .mini-score-line span{
+      display:block;
+      height:100%;
+
+      border-radius:inherit;
+
+      background:
+        linear-gradient(
+          90deg,
+          #2f9dff,
+          #32d7ff
+        );
+    }
+
+
+    /* =========================================================
+       GAME EXPLORER
+    ========================================================= */
+
+    .explorer{
+      padding:27px;
+
+      border:
+        1px solid
+        rgba(134,171,238,.19);
+
+      border-radius:28px;
+
+      background:
+        linear-gradient(
+          160deg,
+          rgba(20,47,95,.93),
+          rgba(8,25,58,.94)
+        );
+
+      box-shadow:var(--shadow);
+    }
+
+    .filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap:9px;
+
+      margin-bottom:20px;
+    }
+
+    .filter-btn{
+      padding:9px 14px;
+
+      border:
+        1px solid
+        rgba(135,174,240,.19);
+
+      border-radius:999px;
+
+      color:#c9d9f1;
+
+      background:
+        rgba(21,51,100,.72);
+
+      cursor:pointer;
+
+      font-size:12px;
+      font-weight:800;
+
+      transition:
+        background .16s ease,
+        border-color .16s ease,
+        transform .16s ease;
+    }
+
+    .filter-btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .filter-btn.active{
+      color:#fff;
+
+      border-color:
+        rgba(130,98,255,.68);
+
+      background:
+        linear-gradient(
+          145deg,
+          #7b58ff,
+          #5a38d7
+        );
+    }
+
+    .games-table{
+      width:100%;
+      min-width:850px;
+    }
+
+    .game-title-cell{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .game-emoji{
+      width:36px;
+      height:36px;
+
+      flex:0 0 36px;
+
+      display:grid;
+      place-items:center;
+
+      border-radius:11px;
+
+      background:
+        rgba(62,112,202,.16);
+
+      font-size:18px;
+    }
+
+    .game-title-cell span{
+      display:block;
+    }
+
+    .game-title-cell small{
+      display:block;
+      margin-top:2px;
+
+      color:var(--muted2);
+      font-size:9px;
+      font-weight:600;
+    }
+
+    .score-number{
+      min-width:30px;
+
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      padding:4px 7px;
+
+      border-radius:8px;
+
+      background:
+        rgba(50,95,174,.20);
+
+      font-weight:900;
+    }
+
+
+    /* =========================================================
+       RESEARCH
+    ========================================================= */
+
+    .research-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:17px;
+    }
+
+    .research-card{
+      min-height:230px;
+
+      padding:24px;
+
+      display:flex;
+      flex-direction:column;
+
+      border:
+        1px solid
+        rgba(134,171,238,.19);
+
+      border-radius:23px;
+
+      background:
+        linear-gradient(
+          155deg,
+          rgba(22,51,101,.94),
+          rgba(8,26,59,.95)
+        );
+
+      box-shadow:var(--shadow-soft);
+    }
+
+    .research-source{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+
+      margin-bottom:15px;
+    }
+
+    .research-icon{
+      width:44px;
+      height:44px;
+
+      display:grid;
+      place-items:center;
+
+      border-radius:14px;
+
+      background:
+        rgba(73,121,213,.18);
+
+      font-size:22px;
+    }
+
+    .research-type{
+      padding:5px 9px;
+
+      border-radius:999px;
+
+      color:#bcd1f1;
+      background:
+        rgba(65,105,177,.18);
+
+      font-size:9px;
+      font-weight:800;
+    }
+
+    .research-card h3{
+      margin:0 0 10px;
+
+      font-size:17px;
+      font-weight:900;
+    }
+
+    .research-card p{
+      margin:0 0 17px;
+
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.75;
+    }
+
+    .research-card a{
+      margin-top:auto;
+
+      color:#69c7ff;
+      text-decoration:none;
+
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .research-card a:hover{
+      text-decoration:underline;
+    }
+
+    .research-disclaimer{
+      margin-top:19px;
+      padding:17px 19px;
+
+      border:
+        1px solid
+        rgba(255,190,70,.18);
+
+      border-radius:17px;
+
+      color:#d6c8a7;
+      background:
+        rgba(116,73,10,.13);
+
+      font-size:12px;
+      line-height:1.75;
+    }
+
+
+    /* =========================================================
+       CTA
+    ========================================================= */
+
+    .final-cta{
+      position:relative;
+
+      overflow:hidden;
+
+      padding:46px 38px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:28px;
+
+      border:
+        1px solid
+        rgba(143,178,239,.22);
+
+      border-radius:29px;
+
+      background:
+        radial-gradient(
+          500px 300px at 90% 50%,
+          rgba(113,75,255,.26),
+          transparent 65%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(23,57,113,.96),
+          rgba(8,25,59,.96)
+        );
+
+      box-shadow:var(--shadow);
+    }
+
+    .final-cta h2{
+      margin:0 0 10px;
+
+      font-size:
+        clamp(27px,4vw,40px);
+
+      font-weight:900;
+    }
+
+    .final-cta p{
+      max-width:720px;
+
+      margin:0;
+
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.75;
+    }
+
+    .final-cta-buttons{
+      flex:0 0 auto;
+
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+
+    /* =========================================================
+       FOOTER
+    ========================================================= */
+
+    .footer{
+      margin-top:46px;
+      padding:25px 0 0;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+
+      border-top:
+        1px solid
+        rgba(134,171,238,.13);
+
+      color:var(--muted2);
+      font-size:11px;
+    }
+
+    .footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+    }
+
+    .footer a{
+      text-decoration:none;
+    }
+
+    .footer a:hover{
+      color:#dbe8ff;
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media(max-width:1000px){
+
+      .hero{
+        grid-template-columns:1fr;
+        padding:46px 34px;
+      }
+
+      .hero-visual{
+        min-height:360px;
+      }
+
+      .trust-strip{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .principles-grid{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .charts-grid{
+        grid-template-columns:1fr;
+      }
+
+      .chart-card{
+        max-width:620px;
+        width:100%;
+        margin:0 auto;
+      }
+
+      .method-intro{
+        grid-template-columns:1fr;
+      }
+
+    }
+
+
+    @media(max-width:760px){
+
+      .top-nav{
+        padding:8px;
+      }
+
+      .top-nav-inner{
+        min-height:58px;
+        border-radius:16px;
+      }
+
+      .top-brand-text small{
+        display:none;
+      }
+
+      .nav-button{
+        min-height:40px;
+        padding:0 11px;
+        font-size:11px;
+      }
+
+      .nav-button .nav-label-home{
+        display:none;
+      }
+
+      .page{
+        width:min(100% - 20px,1180px);
+        padding-top:22px;
+      }
+
+      .hero{
+        min-height:auto;
+        padding:34px 22px;
+        border-radius:25px;
+      }
+
+      .hero h1{
+        letter-spacing:-.7px;
+      }
+
+      .hero-lead{
+        font-size:16px;
+      }
+
+      .hero-visual{
+        min-height:310px;
+      }
+
+      .brain-orbit{
+        width:310px;
+      }
+
+      .brain-core{
+        width:135px;
+        height:135px;
+      }
+
+      .brain-core span{
+        font-size:62px;
+      }
+
+      .skill-node{
+        min-width:98px;
+        padding:8px 9px;
+        font-size:9px;
+      }
+
+      .trust-strip,
+      .principles-grid,
+      .research-grid{
+        grid-template-columns:1fr;
+      }
+
+      .section{
+        margin-top:58px;
+      }
+
+      .method-panel,
+      .explorer{
+        padding:20px;
+        border-radius:22px;
+      }
+
+      .table-toolbar{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .final-cta{
+        flex-direction:column;
+        align-items:flex-start;
+
+        padding:32px 23px;
+      }
+
+      .final-cta-buttons{
+        width:100%;
+      }
+
+      .final-cta-buttons .hero-cta{
+        width:100%;
+      }
+
+      .footer{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+    }
+
+
+    @media(max-width:520px){
+
+      .top-brand-text{
+        display:none;
+      }
+
+      .top-brand-icon{
+        width:41px;
+        height:41px;
+      }
+
+      .top-brand-icon img{
+        width:34px;
+        height:34px;
+      }
+
+      .trust-strip{
+        grid-template-columns:1fr;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+      }
+
+      .hero-cta{
+        width:100%;
+      }
+
+      .brain-orbit{
+        transform:scale(.88);
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="page-stars"></div>
+  <div class="page-glow"></div>
+
+
+  <!-- =======================================================
+       TOP NAV
+  ======================================================== -->
+
+  <header class="top-nav">
+
+    <div class="top-nav-inner">
+
+      <a
+        class="top-brand"
+        href="/he/games/"
+        aria-label="דף המשחקים של iakids"
+      >
+
+        <span class="top-brand-icon">
+
+          <img
+            src="/assets/robots/Robot_icon.png"
+            alt="iakids"
+          >
+
+        </span>
+
+        <span class="top-brand-text">
+
+          <strong>
+            iakids Games
+          </strong>
+
+          <small>
+            משחקים שמפתחים חשיבה
+          </small>
+
+        </span>
+
+      </a>
+
+
+      <nav class="top-nav-actions">
+
+        <a
+          class="nav-button"
+          href="/he/games/"
+        >
+          <span>🎮</span>
+
+          <span class="nav-label-home">
+            דף המשחקים
+          </span>
+        </a>
+
+        <a
+          class="nav-button primary"
+          href="/he/games/workspace/"
+        >
+          <span>🏰</span>
+          חזרה למפת המשחקים
+        </a>
+
+      </nav>
+
+    </div>
+
+  </header>
+
+
+  <main class="page">
+
+
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
+
+    <section class="hero">
+
+      <div class="hero-content">
+
+        <div class="hero-badge">
+          🧠 תכנון פדגוגי מבוסס עקרונות מחקריים
+        </div>
+
+        <h1>
+          לא רק משחקים.
+          <br>
+          <span>
+            אימון חכם למוח.
+          </span>
+        </h1>
+
+        <p class="hero-lead">
+          כל משחק ב־iakids נבחן לפי הכישורים שהוא מתרגל:
+          זיכרון, קשב וריכוז, חשיבה לוגית, שפה, גמישות מחשבתית,
+          מהירות עיבוד וחשיבה מספרית. המטרה אינה להעסיק את הילד
+          מול המסך, אלא לתת לו פעילות קצרה, ברורה וממוקדת.
+        </p>
+
+        <div class="hero-actions">
+
+          <a
+            class="hero-cta primary"
+            href="#method"
+          >
+            📊 איך אנחנו מעריכים משחק?
+          </a>
+
+          <a
+            class="hero-cta secondary"
+            href="#research"
+          >
+            🔬 לקריאת הבסיס המחקרי
+          </a>
+
+        </div>
+
+        <div class="hero-note">
+
+          <span>ℹ️</span>
+
+          <span>
+            הציונים בעמוד הם דירוג פדגוגי פנימי של מבנה המשחק.
+            הם אינם אבחון רפואי, פסיכולוגי או קליני של הילד.
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="hero-visual"
+        aria-hidden="true"
+      >
+
+        <div class="brain-orbit">
+
+          <div class="orbit"></div>
+          <div class="orbit two"></div>
+
+          <div class="brain-core">
+            <span>🧠</span>
+          </div>
+
+          <div class="skill-node one">
+            זיכרון עבודה
+          </div>
+
+          <div class="skill-node two">
+            קשב וריכוז
+          </div>
+
+          <div class="skill-node three">
+            גמישות מחשבתית
+          </div>
+
+          <div class="skill-node four">
+            חשיבה לוגית
+          </div>
+
+          <div class="skill-node five">
+            מהירות עיבוד
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TRUST STRIP
+    ====================================================== -->
+
+    <section class="trust-strip">
+
+      <article class="trust-item">
+
+        <div class="trust-icon">
+          🎯
+        </div>
+
+        <div>
+          <strong>
+            מטרה ברורה
+          </strong>
+
+          <span>
+            כל משחק מתמקד בכישורים מוגדרים.
+          </span>
+        </div>
+
+      </article>
+
+
+      <article class="trust-item">
+
+        <div class="trust-icon">
+          🔍
+        </div>
+
+        <div>
+          <strong>
+            שקיפות להורים
+          </strong>
+
+          <span>
+            ניתן לראות מה כל פעילות מתרגלת.
+          </span>
+        </div>
+
+      </article>
+
+
+      <article class="trust-item">
+
+        <div class="trust-icon">
+          🧩
+        </div>
+
+        <div>
+          <strong>
+            קושי מותאם
+          </strong>
+
+          <span>
+            בחירה בין רמות ומספר סבבים.
+          </span>
+        </div>
+
+      </article>
+
+
+      <article class="trust-item">
+
+        <div class="trust-icon">
+          ⏱️
+        </div>
+
+        <div>
+          <strong>
+            פעילות קצרה
+          </strong>
+
+          <span>
+            אימון ממוקד במקום גלילה אינסופית.
+          </span>
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         PRINCIPLES
+    ====================================================== -->
+
+    <section class="section" id="principles">
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          🛡️ למה הורים יכולים להבין מה הילד עושה
+        </div>
+
+        <h2>
+          שישה עקרונות שמנחים את בניית המשחקים
+        </h2>
+
+        <p>
+          אנחנו לא מסתפקים בשאלה האם המשחק כיפי.
+          אנחנו בוחנים אילו פעולות הילד נדרש לבצע,
+          איזה מאמץ חשיבתי הן דורשות ומה הוא יכול לתרגל באמצעותן.
+        </p>
+
+      </div>
+
+
+      <div class="principles-grid">
+
+        <article class="principle-card">
+
+          <div class="principle-icon">
+            🧠
+          </div>
+
+          <h3>
+            פעולה חשיבתית אמיתית
+          </h3>
+
+          <p>
+            הילד נדרש לזכור, להשוות, לזהות דפוס,
+            לבחור אסטרטגיה או לעדכן תשובה — ולא רק ללחוץ במהירות.
+          </p>
+
+        </article>
+
+
+        <article class="principle-card">
+
+          <div class="principle-icon">
+            🎯
+          </div>
+
+          <h3>
+            קושי שתואם את המשימה
+          </h3>
+
+          <p>
+            רמת הקושי נובעת ממספר האפשרויות,
+            אורך הרצף, זמן התגובה והמורכבות של הבחירה.
+          </p>
+
+        </article>
+
+
+        <article class="principle-card">
+
+          <div class="principle-icon">
+            🔁
+          </div>
+
+          <h3>
+            משוב וחזרה ממוקדת
+          </h3>
+
+          <p>
+            הילד מקבל תגובה ברורה ויכול לנסות שוב,
+            בלי להפוך טעות לחוויה מלחיצה.
+          </p>
+
+        </article>
+
+
+        <article class="principle-card">
+
+          <div class="principle-icon">
+            🧩
+          </div>
+
+          <h3>
+            מגוון סוגי חשיבה
+          </h3>
+
+          <p>
+            המערכת משלבת שפה, מספרים, זיכרון,
+            היגיון, ידע, תכנון וגמישות מחשבתית.
+          </p>
+
+        </article>
+
+
+        <article class="principle-card">
+
+          <div class="principle-icon">
+            ⏱️
+          </div>
+
+          <h3>
+            סבבים קצרים וברורים
+          </h3>
+
+          <p>
+            לכל משחק התחלה, מטרה וסיום.
+            אין פיד אינסופי ואין צורך להישאר במסך ללא גבול.
+          </p>
+
+        </article>
+
+
+        <article class="principle-card">
+
+          <div class="principle-icon">
+            👨‍👩‍👧
+          </div>
+
+          <h3>
+            מידע שניתן להסביר להורה
+          </h3>
+
+          <p>
+            ניתן להציג באילו תחומים הילד התאמן,
+            כמה פעמים שיחק ומה הייתה רמת הקושי.
+          </p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         METHOD
+    ====================================================== -->
+
+    <section class="section" id="method">
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          📐 שיטת ההערכה
+        </div>
+
+        <h2>
+          איך נקבע הציון של כל משחק?
+        </h2>
+
+        <p>
+          כל משחק מקבל פרופיל פנימי בשמונה ממדים.
+          הציון מתאר את עוצמת התרגול שמבנה המשחק מאפשר,
+          ולא את יכולתו או ציונו האישי של הילד.
+        </p>
+
+      </div>
+
+
+      <div class="method-panel">
+
+        <div class="method-intro">
+
+          <div class="method-copy">
+
+            <h3>
+              סולם של 0 עד 5
+            </h3>
+
+            <p>
+              אנחנו בוחנים את הפעולות שהילד מבצע בפועל:
+              האם הוא צריך להחזיק מידע בזיכרון, לעבור בין כללים,
+              להתעלם ממסיחים, לזהות קשרים, לעבוד במהירות
+              או להשתמש בידע לשוני ומספרי.
+            </p>
+
+          </div>
+
+
+          <div class="score-scale">
+
+            <div class="score-scale-title">
+
+              <span>
+                עוצמת התרגול
+              </span>
+
+              <span>
+                0–5
+              </span>
+
+            </div>
+
+            <div class="scale-bars">
+
+              <div class="scale-row">
+                <b>1</b>
+                <div class="scale-line"><span></span></div>
+                <span>נגיעה קלה</span>
+              </div>
+
+              <div class="scale-row">
+                <b>2</b>
+                <div class="scale-line"><span></span></div>
+                <span>תרגול בסיסי</span>
+              </div>
+
+              <div class="scale-row">
+                <b>3</b>
+                <div class="scale-line"><span></span></div>
+                <span>תרגול ברור</span>
+              </div>
+
+              <div class="scale-row">
+                <b>4</b>
+                <div class="scale-line"><span></span></div>
+                <span>תרגול משמעותי</span>
+              </div>
+
+              <div class="scale-row">
+                <b>5</b>
+                <div class="scale-line"><span></span></div>
+                <span>מרכיב מרכזי</span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="method-warning">
+
+          <span>⚠️</span>
+
+          <span>
+            דירוג גבוה יותר אינו אומר שהמשחק “טוב יותר”.
+            משחקי ידע, שפה, זיכרון ותכנון משרתים מטרות שונות.
+            המטרה היא ליצור שילוב מגוון ומאוזן.
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CATEGORY CHARTS
+    ====================================================== -->
+
+    <section class="section" id="categories">
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          🕸️ פרופיל הכישורים לפי קטגוריה
+        </div>
+
+        <h2>
+          לכל קבוצת משחקים יש “צורת חשיבה” אחרת
+        </h2>
+
+        <p>
+          הגרפים הבאים מציגים דוגמאות לפרופיל הממוצע של קבוצות משחקים.
+          הנתונים הם הערכה פנימית של iakids המבוססת על מבנה המשחקים.
+        </p>
+
+      </div>
+
+
+      <div class="charts-grid">
+
+
+        <!-- MATHEMATICS -->
+
+        <article class="chart-card">
+
+          <div class="chart-head">
+
+            <div>
+              <h3>
+                🔢 חשבון ומתמטיקה
+              </h3>
+
+              <small>
+                דוגמה לפרופיל ממוצע
+              </small>
+            </div>
+
+            <span class="chart-count">
+              25 משחקים
+            </span>
+
+          </div>
+
+
+          <div class="radar">
+
+            <svg
+              viewBox="0 0 240 240"
+              role="img"
+              aria-label="גרף כישורים של משחקי חשבון ומתמטיקה"
+            >
+
+              <polygon
+                class="radar-grid"
+                points="120,18 192,48 222,120 192,192 120,222 48,192 18,120 48,48"
+              />
+
+              <polygon
+                class="radar-grid"
+                points="120,43 174,66 197,120 174,174 120,197 66,174 43,120 66,66"
+              />
+
+              <polygon
+                class="radar-grid"
+                points="120,68 156,84 172,120 156,156 120,172 84,156 68,120 84,84"
+              />
+
+              <polygon
+                class="radar-grid"
+                points="120,94 138,102 146,120 138,138 120,146 102,138 94,120 102,102"
+              />
+
+              <line class="radar-axis" x1="120" y1="120" x2="120" y2="18"/>
+              <line class="radar-axis" x1="120" y1="120" x2="192" y2="48"/>
+              <line class="radar-axis" x1="120" y1="120" x2="222" y2="120"/>
+              <line class="radar-axis" x1="120" y1="120" x2="192" y2="192"/>
+              <line class="radar-axis" x1="120" y1="120" x2="120" y2="222"/>
+              <line class="radar-axis" x1="120" y1="120" x2="48" y2="192"/>
+              <line class="radar-axis" x1="120" y1="120" x2="18" y2="120"/>
+              <line class="radar-axis" x1="120" y1="120" x2="48" y2="48"/>
+
+              <polygon
+                class="radar-fill-blue"
+                points="120,58 178,62 213,120 164,164 120,206 84,156 35,120 77,77"
+              />
+
+              <circle class="radar-dot-blue" cx="120" cy="58" r="4"/>
+              <circle class="radar-dot-blue" cx="178" cy="62" r="4"/>
+              <circle class="radar-dot-blue" cx="213" cy="120" r="4"/>
+              <circle class="radar-dot-blue" cx="164" cy="164" r="4"/>
+              <circle class="radar-dot-blue" cx="120" cy="206" r="4"/>
+              <circle class="radar-dot-blue" cx="84" cy="156" r="4"/>
+              <circle class="radar-dot-blue" cx="35" cy="120" r="4"/>
+              <circle class="radar-dot-blue" cx="77" cy="77" r="4"/>
+
+            </svg>
+
+          </div>
+
+
+          <div class="chart-skills">
+            <span class="skill-tag">חשיבה לוגית</span>
+            <span class="skill-tag">חשיבה מספרית</span>
+            <span class="skill-tag">קשב וריכוז</span>
+          </div>
+
+        </article>
+
+
+        <!-- LANGUAGE -->
+
+        <article class="chart-card">
+
+          <div class="chart-head">
+
+            <div>
+              <h3>
+                📜 עברית ושפה
+              </h3>
+
+              <small>
+                דוגמה לפרופיל ממוצע
+              </small>
+            </div>
+
+            <span class="chart-count">
+              25 משחקים
+            </span>
+
+          </div>
+
+
+          <div class="radar">
+
+            <svg
+              viewBox="0 0 240 240"
+              role="img"
+              aria-label="גרף כישורים של משחקי עברית ושפה"
+            >
+
+              <polygon class="radar-grid" points="120,18 192,48 222,120 192,192 120,222 48,192 18,120 48,48"/>
+              <polygon class="radar-grid" points="120,43 174,66 197,120 174,174 120,197 66,174 43,120 66,66"/>
+              <polygon class="radar-grid" points="120,68 156,84 172,120 156,156 120,172 84,156 68,120 84,84"/>
+              <polygon class="radar-grid" points="120,94 138,102 146,120 138,138 120,146 102,138 94,120 102,102"/>
+
+              <line class="radar-axis" x1="120" y1="120" x2="120" y2="18"/>
+              <line class="radar-axis" x1="120" y1="120" x2="192" y2="48"/>
+              <line class="radar-axis" x1="120" y1="120" x2="222" y2="120"/>
+              <line class="radar-axis" x1="120" y1="120" x2="192" y2="192"/>
+              <line class="radar-axis" x1="120" y1="120" x2="120" y2="222"/>
+              <line class="radar-axis" x1="120" y1="120" x2="48" y2="192"/>
+              <line class="radar-axis" x1="120" y1="120" x2="18" y2="120"/>
+              <line class="radar-axis" x1="120" y1="120" x2="48" y2="48"/>
+
+              <polygon
+                class="radar-fill-pink"
+                points="120,38 169,71 190,120 181,181 120,128 55,185 48,120 69,69"
+              />
+
+              <circle class="radar-dot-pink" cx="120" cy="38" r="4"/>
+              <circle class="radar-dot-pink" cx="169" cy="71" r="4"/>
+              <circle class="radar-dot-pink" cx="190" cy="120" r="4"/>
+              <circle class="radar-dot-pink" cx="181" cy="181" r="4"/>
+              <circle class="radar-dot-pink" cx="120" cy="128" r="4"/>
+              <circle class="radar-dot-pink" cx="55" cy="185" r="4"/>
+              <circle class="radar-dot-pink" cx="48" cy="120" r="4"/>
+              <circle class="radar-dot-pink" cx="69" cy="69" r="4"/>
+
+            </svg>
+
+          </div>
+
+
+          <div class="chart-skills">
+            <span class="skill-tag">שפה ואוצר מילים</span>
+            <span class="skill-tag">זיכרון</span>
+            <span class="skill-tag">קשב וריכוז</span>
+          </div>
+
+        </article>
+
+
+        <!-- EXECUTIVE -->
+
+        <article class="chart-card">
+
+          <div class="chart-head">
+
+            <div>
+              <h3>
+                ⏱️ שיעורי בית ומוטיבציה
+              </h3>
+
+              <small>
+                דוגמה לפרופיל ממוצע
+              </small>
+            </div>
+
+            <span class="chart-count">
+              10 משחקים
+            </span>
+
+          </div>
+
+
+          <div class="radar">
+
+            <svg
+              viewBox="0 0 240 240"
+              role="img"
+              aria-label="גרף כישורים של משחקי מוטיבציה ותכנון"
+            >
+
+              <polygon class="radar-grid" points="120,18 192,48 222,120 192,192 120,222 48,192 18,120 48,48"/>
+              <polygon class="radar-grid" points="120,43 174,66 197,120 174,174 120,197 66,174 43,120 66,66"/>
+              <polygon class="radar-grid" points="120,68 156,84 172,120 156,156 120,172 84,156 68,120 84,84"/>
+              <polygon class="radar-grid" points="120,94 138,102 146,120 138,138 120,146 102,138 94,120 102,102"/>
+
+              <line class="radar-axis" x1="120" y1="120" x2="120" y2="18"/>
+              <line class="radar-axis" x1="120" y1="120" x2="192" y2="48"/>
+              <line class="radar-axis" x1="120" y1="120" x2="222" y2="120"/>
+              <line class="radar-axis" x1="120" y1="120" x2="192" y2="192"/>
+              <line class="radar-axis" x1="120" y1="120" x2="120" y2="222"/>
+              <line class="radar-axis" x1="120" y1="120" x2="48" y2="192"/>
+              <line class="radar-axis" x1="120" y1="120" x2="18" y2="120"/>
+              <line class="radar-axis" x1="120" y1="120" x2="48" y2="48"/>
+
+              <polygon
+                class="radar-fill-green"
+                points="120,76 181,59 159,120 145,145 120,137 91,149 103,120 55,55"
+              />
+
+              <circle class="radar-dot-green" cx="120" cy="76" r="4"/>
+              <circle class="radar-dot-green" cx="181" cy="59" r="4"/>
+              <circle class="radar-dot-green" cx="159" cy="120" r="4"/>
+              <circle class="radar-dot-green" cx="145" cy="145" r="4"/>
+              <circle class="radar-dot-green" cx="120" cy="137" r="4"/>
+              <circle class="radar-dot-green" cx="91" cy="149" r="4"/>
+              <circle class="radar-dot-green" cx="103" cy="120" r="4"/>
+              <circle class="radar-dot-green" cx="55" cy="55" r="4"/>
+
+            </svg>
+
+          </div>
+
+
+          <div class="chart-skills">
+            <span class="skill-tag">קשב וריכוז</span>
+            <span class="skill-tag">מהירות עיבוד</span>
+            <span class="skill-tag">גמישות מחשבתית</span>
+          </div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CATEGORY TABLE
+    ====================================================== -->
+
+    <section class="section">
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          📊 תמונת מצב מלאה
+        </div>
+
+        <h2>
+          ממוצע הכישורים לפי קטגוריה
+        </h2>
+
+        <p>
+          הטבלה מאפשרת להבין כיצד קטגוריות שונות משלימות זו את זו.
+          שילוב בין משחקים הוא חשוב יותר מחיפוש אחר ציון יחיד גבוה.
+        </p>
+
+      </div>
+
+
+      <div class="table-card">
+
+        <div class="table-toolbar">
+
+          <strong>
+            טבלת הציונים הממוצעים
+          </strong>
+
+          <span>
+            דירוג פנימי: 0–5
+          </span>
+
+        </div>
+
+
+        <div class="table-scroll">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>קטגוריה</th>
+                <th>זיכרון</th>
+                <th>קשב וריכוז</th>
+                <th>חשיבה לוגית</th>
+                <th>שפה ואוצר מילים</th>
+                <th>חשיבה מספרית</th>
+                <th>מהירות עיבוד</th>
+                <th>גמישות מחשבתית</th>
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              <tr>
+                <td>
+                  <div class="category-name">
+                    <span class="category-dot" style="background:#2f9dff"></span>
+                    🔢 חשבון ומתמטיקה
+                  </div>
+                </td>
+
+                <td>3</td>
+                <td>4</td>
+                <td>5</td>
+                <td>1</td>
+                <td>5</td>
+                <td>3</td>
+                <td>3</td>
+              </tr>
+
+
+              <tr>
+                <td>
+                  <div class="category-name">
+                    <span class="category-dot" style="background:#ff7650"></span>
+                    📜 עברית ושפה
+                  </div>
+                </td>
+
+                <td>4</td>
+                <td>3</td>
+                <td>2</td>
+                <td>5</td>
+                <td>0</td>
+                <td>2</td>
+                <td>3</td>
+              </tr>
+
+
+              <tr>
+                <td>
+                  <div class="category-name">
+                    <span class="category-dot" style="background:#31d581"></span>
+                    🇬🇧 אנגלית
+                  </div>
+                </td>
+
+                <td>4</td>
+                <td>3</td>
+                <td>2</td>
+                <td>5</td>
+                <td>0</td>
+                <td>2</td>
+                <td>2</td>
+              </tr>
+
+
+              <tr>
+                <td>
+                  <div class="category-name">
+                    <span class="category-dot" style="background:#f0a300"></span>
+                    🌍 מדעים וגיאוגרפיה
+                  </div>
+                </td>
+
+                <td>5</td>
+                <td>3</td>
+                <td>3</td>
+                <td>3</td>
+                <td>1</td>
+                <td>1</td>
+                <td>2</td>
+              </tr>
+
+
+              <tr>
+                <td>
+                  <div class="category-name">
+                    <span class="category-dot" style="background:#f65ca7"></span>
+                    🧩 לוגיקה וקוד
+                  </div>
+                </td>
+
+                <td>3</td>
+                <td>4</td>
+                <td>5</td>
+                <td>0</td>
+                <td>1</td>
+                <td>3</td>
+                <td>4</td>
+              </tr>
+
+
+              <tr>
+                <td>
+                  <div class="category-name">
+                    <span class="category-dot" style="background:#42c66c"></span>
+                    ⏱️ שיעורי בית ומוטיבציה
+                  </div>
+                </td>
+
+                <td>1</td>
+                <td>5</td>
+                <td>1</td>
+                <td>1</td>
+                <td>0</td>
+                <td>1</td>
+                <td>5</td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         GAME EXPLORER
+    ====================================================== -->
+
+    <section class="section" id="games">
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          🔎 בדקו משחק ספציפי
+        </div>
+
+        <h2>
+          מה כל משחק מתרגל?
+        </h2>
+
+        <p>
+          הטבלה הבאה היא דוגמה למאגר שניתן להרחיב לכל המשחקים.
+          לחיצה על קטגוריה מסננת את הרשימה.
+        </p>
+
+      </div>
+
+
+      <div class="explorer">
+
+        <div class="filters">
+
+          <button
+            class="filter-btn active"
+            data-filter="all"
+            type="button"
+          >
+            הכל
+          </button>
+
+          <button
+            class="filter-btn"
+            data-filter="math"
+            type="button"
+          >
+            חשבון ומתמטיקה
+          </button>
+
+          <button
+            class="filter-btn"
+            data-filter="language"
+            type="button"
+          >
+            עברית ושפה
+          </button>
+
+          <button
+            class="filter-btn"
+            data-filter="english"
+            type="button"
+          >
+            אנגלית
+          </button>
+
+          <button
+            class="filter-btn"
+            data-filter="science"
+            type="button"
+          >
+            מדעים
+          </button>
+
+          <button
+            class="filter-btn"
+            data-filter="logic"
+            type="button"
+          >
+            לוגיקה וקוד
+          </button>
+
+        </div>
+
+
+        <div class="table-card">
+
+          <div class="table-scroll">
+
+            <table class="games-table">
+
+              <thead>
+
+                <tr>
+                  <th>משחק</th>
+                  <th>קטגוריה</th>
+                  <th>זיכרון</th>
+                  <th>קשב</th>
+                  <th>לוגיקה</th>
+                  <th>שפה</th>
+                  <th>חשיבה מספרית</th>
+                  <th>גמישות</th>
+                </tr>
+
+              </thead>
+
+
+              <tbody id="gamesTableBody">
+
+                <tr data-category="science">
+
+                  <td>
+
+                    <div class="game-title-cell">
+
+                      <span class="game-emoji">
+                        🦊
+                      </span>
+
+                      <span>
+                        שרשרת המזון
+                        <small>food-chain</small>
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <td>מדעים</td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">4</span></td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">2</span></td>
+                  <td><span class="score-number">0</span></td>
+                  <td><span class="score-number">2</span></td>
+
+                </tr>
+
+
+                <tr data-category="math">
+
+                  <td>
+
+                    <div class="game-title-cell">
+
+                      <span class="game-emoji">
+                        🍕
+                      </span>
+
+                      <span>
+                        שברים בפיצה
+                        <small>fraction-pizza</small>
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <td>חשבון ומתמטיקה</td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">4</span></td>
+                  <td><span class="score-number">5</span></td>
+                  <td><span class="score-number">1</span></td>
+                  <td><span class="score-number">5</span></td>
+                  <td><span class="score-number">3</span></td>
+
+                </tr>
+
+
+                <tr data-category="language">
+
+                  <td>
+
+                    <div class="game-title-cell">
+
+                      <span class="game-emoji">
+                        🔍
+                      </span>
+
+                      <span>
+                        תפזורת
+                        <small>word-search</small>
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <td>עברית ושפה</td>
+                  <td><span class="score-number">4</span></td>
+                  <td><span class="score-number">4</span></td>
+                  <td><span class="score-number">2</span></td>
+                  <td><span class="score-number">5</span></td>
+                  <td><span class="score-number">0</span></td>
+                  <td><span class="score-number">2</span></td>
+
+                </tr>
+
+
+                <tr data-category="english">
+
+                  <td>
+
+                    <div class="game-title-cell">
+
+                      <span class="game-emoji">
+                        🐝
+                      </span>
+
+                      <span>
+                        Spelling Bee
+                        <small>spelling-bee</small>
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <td>אנגלית</td>
+                  <td><span class="score-number">4</span></td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">1</span></td>
+                  <td><span class="score-number">5</span></td>
+                  <td><span class="score-number">0</span></td>
+                  <td><span class="score-number">2</span></td>
+
+                </tr>
+
+
+                <tr data-category="logic">
+
+                  <td>
+
+                    <div class="game-title-cell">
+
+                      <span class="game-emoji">
+                        🔑
+                      </span>
+
+                      <span>
+                        מפתחות ומנעולים
+                        <small>keys-locks</small>
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <td>לוגיקה וקוד</td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">4</span></td>
+                  <td><span class="score-number">5</span></td>
+                  <td><span class="score-number">0</span></td>
+                  <td><span class="score-number">1</span></td>
+                  <td><span class="score-number">4</span></td>
+
+                </tr>
+
+
+                <tr data-category="science">
+
+                  <td>
+
+                    <div class="game-title-cell">
+
+                      <span class="game-emoji">
+                        💧
+                      </span>
+
+                      <span>
+                        מחזור המים
+                        <small>water-cycle</small>
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <td>מדעים</td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">3</span></td>
+                  <td><span class="score-number">2</span></td>
+                  <td><span class="score-number">0</span></td>
+                  <td><span class="score-number">2</span></td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         RESEARCH
+    ====================================================== -->
+
+    <section class="section" id="research">
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          🔬 הבסיס המחקרי
+        </div>
+
+        <h2>
+          מה המחקר אומר על משחק, למידה ותפקודים ניהוליים?
+        </h2>
+
+        <p>
+          המחקרים אינם אומרים שכל משחק מסך מועיל.
+          הם מצביעים על פוטנציאל במשחקים מובנים, ממוקדי מטרה
+          ומותאמים לגיל — לצד צורך במינון, תכנון והמשך מחקר.
+        </p>
+
+      </div>
+
+
+      <div class="research-grid">
+
+
+        <article class="research-card">
+
+          <div class="research-source">
+
+            <div class="research-icon">
+              🧠
+            </div>
+
+            <span class="research-type">
+              מחקר אורך
+            </span>
+
+          </div>
+
+          <h3>
+            סוג המשחק חשוב, לא רק עצם המשחק
+          </h3>
+
+          <p>
+            מחקר אורך מצא קשרים שונים בין סוגי משחקים
+            לבין מרכיבים של תפקודים ניהוליים.
+            התוצאות אינן מצדיקות מסקנה שכל זמן מסך מפתח חשיבה.
+          </p>
+
+          <a
+            href="https://pubmed.ncbi.nlm.nih.gov/34844694/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            מקור: PubMed ↗
+          </a>
+
+        </article>
+
+
+        <article class="research-card">
+
+          <div class="research-source">
+
+            <div class="research-icon">
+              🎯
+            </div>
+
+            <span class="research-type">
+              מחקר חינוכי
+            </span>
+
+          </div>
+
+          <h3>
+            משחקים שתוכננו למטרה יכולים לתרגל כישורים
+          </h3>
+
+          <p>
+            מחקר שבחן משחקים שתוכננו במיוחד עבור עיכוב תגובה,
+            זיכרון עבודה וגמישות מחשבתית מצא פוטנציאל לשיפור
+            כאשר הפעילות הייתה שיטתית ומובנית.
+          </p>
+
+          <a
+            href="https://pubmed.ncbi.nlm.nih.gov/31551874/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            מקור: PubMed ↗
+          </a>
+
+        </article>
+
+
+        <article class="research-card">
+
+          <div class="research-source">
+
+            <div class="research-icon">
+              🏃
+            </div>
+
+            <span class="research-type">
+              סקירה ומטא־אנליזה
+            </span>
+
+          </div>
+
+          <h3>
+            משחקים פעילים עשויים לתרום לתפקודים ניהוליים
+          </h3>
+
+          <p>
+            מטא־אנליזה של מחקרים בילדים מצאה השפעות חיוביות
+            אפשריות על גמישות מחשבתית, שליטה מעכבת וזיכרון עבודה,
+            אך ציינה צורך במחקרים קפדניים נוספים.
+          </p>
+
+          <a
+            href="https://pubmed.ncbi.nlm.nih.gov/37833741/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            מקור: PubMed ↗
+          </a>
+
+        </article>
+
+
+        <article class="research-card">
+
+          <div class="research-source">
+
+            <div class="research-icon">
+              ⚖️
+            </div>
+
+            <span class="research-type">
+              ניסוי מבוקר
+            </span>
+
+          </div>
+
+          <h3>
+            התוצאות במחקר אינן תמיד אחידות
+          </h3>
+
+          <p>
+            מחקר ניסויי רחב יחסית מצא תוצאות מעורבות:
+            חלק מהמדדים השתפרו וחלקם לא הראו שינוי מובהק.
+            לכן נכון לדבר על פוטנציאל לתרגול ולא על הבטחת תוצאה.
+          </p>
+
+          <a
+            href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8518708/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            מקור: NIH / PMC ↗
+          </a>
+
+        </article>
+
+      </div>
+
+
+      <div class="research-disclaimer">
+
+        <strong>
+          חשוב לדעת:
+        </strong>
+
+        iakids אינו כלי אבחוני או טיפולי.
+        משחקים חינוכיים יכולים להיות חלק מסביבה לימודית מגוונת,
+        אך אינם מחליפים הוראה, פעילות גופנית, שינה, קשר חברתי,
+        קריאה משותפת או הערכה מקצועית במקרה הצורך.
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FINAL CTA
+    ====================================================== -->
+
+    <section class="section final-cta">
+
+      <div>
+
+        <h2>
+          עכשיו אפשר לראות את המשחקים בעיניים אחרות
+        </h2>
+
+        <p>
+          מאחורי כל כרטיס משחק נמצא יעד ברור:
+          לתרגל פעולה, לתת משוב ולעזור לילד להתקדם
+          בקצב שמתאים לו.
+        </p>
+
+      </div>
+
+
+      <div class="final-cta-buttons">
+
+        <a
+          class="hero-cta primary"
+          href="/he/games/workspace/"
+        >
+          🏰 חזרה למפת המשחקים
+        </a>
+
+        <a
+          class="hero-cta secondary"
+          href="/he/games/"
+        >
+          🎮 לצפייה בכל המשחקים
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="footer">
+
+      <div>
+        © iakids — משחקים חינוכיים לילדים
+      </div>
+
+      <nav class="footer-links">
+
+        <a href="/he/games/">
+          דף המשחקים
+        </a>
+
+        <a href="/he/games/workspace/">
+          מפת המשחקים
+        </a>
+
+        <a href="/he/parent-panel/">
+          פאנל הורים
+        </a>
+
+      </nav>
+
+    </footer>
+
+  </main>
+
+
+  <!-- =======================================================
+       FILTER SCRIPT
+  ======================================================== -->
+
+  <script>
+
+    const filterButtons =
+      document.querySelectorAll(
+        ".filter-btn"
+      );
+
+    const gameRows =
+      document.querySelectorAll(
+        "#gamesTableBody tr"
+      );
+
+
+    filterButtons.forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const filter =
+              button.dataset.filter;
+
+
+            filterButtons.forEach(
+              (item) => {
+
+                item.classList.remove(
+                  "active"
+                );
+
+              }
+            );
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            gameRows.forEach(
+              (row) => {
+
+                const category =
+                  row.dataset.category;
+
+
+                const shouldShow =
+                  filter === "all" ||
+                  category === filter;
+
+
+                row.style.display =
+                  shouldShow
+                    ? ""
+                    : "none";
+
+              }
+            );
+
+          }
+        );
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
