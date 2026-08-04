@@ -1,1 +1,217 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>שרשרת המזון | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #chips { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin:20px 0; }
+  .chip {
+    font-size:1.1rem; font-weight:700; background:var(--card); border:3px solid var(--accent);
+    color:var(--accent); border-radius:16px; padding:14px 10px; min-width:70px; min-height:70px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;
+    transition: transform .15s, opacity .3s;
+  }
+  .chip .emoji { font-size:2rem; }
+  .chip:active { transform: scale(0.94); }
+  .chip.used { opacity:0.25; pointer-events:none; }
+  #chain { display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:center; min-height:80px; margin:14px 0; }
+  #chain .link { font-size:1rem; font-weight:800; background:var(--accent-soft); border-radius:12px; padding:8px 10px; display:flex; flex-direction:column; align-items:center; }
+  #chain .link .emoji { font-size:1.6rem; }
+  #chain .arrow { font-size:1.5rem; color:var(--accent); font-weight:900; }
+  #hint { color:var(--muted); font-weight:600; min-height:1.4em; }
+</style>
+</head>
+<body>
 
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🦊</div>
+    <h1 class="game-title">שרשרת המזון</h1>
+    <p>מי אוכל את מי? לחצו על היצורים לפי הסדר הנכון — מהיצרן ועד הטורף!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question" style="font-size:1.4rem"></div>
+    <div id="hint"></div>
+    <div id="chain"></div>
+    <div id="chips"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, score = 0, qnum = 0, level = 1, TOTAL = 10;
+let current, chainStep, locked = false;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'food-chain',
+  how: 'כל שרשרת מזון מתחילה בצמח (יצרן), ואז חיה שאוכלת אותו, ואז חיה שאוכלת את החיה הזו. לחצו על היצורים המפוזרים לפי הסדר הנכון — ממי שנאכל ראשון ועד הטורף האחרון!',
+  example: '🌾 חיטה ← 🐭 עכבר ← 🦉 ינשוף<br>(הינשוף אוכל את העכבר, שאוכל את החיטה)',
+});
+
+// ponytail: verified real food chains, 3-4 links each, producer→consumer(s)→top predator
+const CHAINS = [
+  { level: 1, links: [{n:'עשב', e:'🌱'}, {n:'ארנב', e:'🐰'}, {n:'שועל', e:'🦊'}] },
+  { level: 1, links: [{n:'עשב', e:'🌱'}, {n:'פרה', e:'🐄'}, {n:'אדם', e:'🧑'}] },
+  { level: 1, links: [{n:'עלים', e:'🍃'}, {n:'זחל', e:'🐛'}, {n:'ציפור', e:'🐦'}] },
+  { level: 1, links: [{n:'אצות', e:'🌿'}, {n:'דג קטן', e:'🐟'}, {n:'דג גדול', e:'🐠'}] },
+  { level: 2, links: [{n:'חיטה', e:'🌾'}, {n:'עכבר', e:'🐭'}, {n:'ינשוף', e:'🦉'}] },
+  { level: 2, links: [{n:'פרח', e:'🌸'}, {n:'דבורה', e:'🐝'}, {n:'ציפור', e:'🐦'}, {n:'נחש', e:'🐍'}] },
+  { level: 2, links: [{n:'עשב', e:'🌱'}, {n:'ארבה', e:'🦗'}, {n:'צפרדע', e:'🐸'}, {n:'נחש', e:'🐍'}] },
+  { level: 2, links: [{n:'פלנקטון', e:'🦠'}, {n:'דג קטן', e:'🐟'}, {n:'כריש', e:'🦈'}] },
+  { level: 3, links: [{n:'עשב', e:'🌱'}, {n:'ארנב', e:'🐰'}, {n:'נחש', e:'🐍'}, {n:'נשר', e:'🦅'}] },
+  { level: 3, links: [{n:'עלים', e:'🍃'}, {n:'חרגול', e:'🦗'}, {n:'צפרדע', e:'🐸'}, {n:'חסידה', e:'🦩'}] },
+  { level: 3, links: [{n:'עשב ים', e:'🌿'}, {n:'צב ים', e:'🐢'}, {n:'כריש', e:'🦈'}] },
+  { level: 3, links: [{n:'תירס', e:'🌽'}, {n:'עכבר', e:'🐭'}, {n:'נחש', e:'🐍'}, {n:'שועל', e:'🦊'}] },
+];
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+let diff, timer;
+async function start(lvl) {
+  game = await IAKidsGame.init('food-chain');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => { if (!locked) failStep(); } });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const pool = CHAINS.filter(c => c.level === lvl);
+  const q = await game.newQuestion(() => pool[rnd(pool.length)], c => c.links.map(l => l.n).join('>'));
+  current = q;
+  chainStep = 0;
+  document.getElementById('question').textContent = `סדרו את שרשרת המזון: מי אוכל את מי? (${q.links.length} חוליות)`;
+  document.getElementById('hint').textContent = 'לחצו קודם על היצרן (הצמח)';
+  renderChain();
+  renderChips();
+  timer.start(IAKidsTimer.secondsFor(lvl, 14));
+}
+
+function renderChain() {
+  const chainEl = document.getElementById('chain');
+  chainEl.innerHTML = '';
+  current.links.slice(0, chainStep).forEach((l, i) => {
+    if (i > 0) { const a = document.createElement('span'); a.className = 'arrow'; a.textContent = '←'; chainEl.appendChild(a); }
+    const d = document.createElement('div');
+    d.className = 'link';
+    d.innerHTML = `<span class="emoji">${l.e}</span>${l.n}`;
+    chainEl.appendChild(d);
+  });
+}
+
+function renderChips() {
+  const chipsEl = document.getElementById('chips');
+  chipsEl.innerHTML = '';
+  const scattered = shuffle(current.links);
+  scattered.forEach(l => {
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.innerHTML = `<span class="emoji">${l.e}</span>${l.n}`;
+    c.onclick = () => tapChip(l, c);
+    chipsEl.appendChild(c);
+  });
+}
+
+function tapChip(l, el) {
+  if (locked) return;
+  const expected = current.links[chainStep];
+  if (l.n === expected.n) {
+    locked = true;
+    el.classList.add('used');
+    IAKidsFX.correct(el);
+    chainStep++;
+    renderChain();
+    if (chainStep >= current.links.length) {
+      timer.stop();
+      score += 10;
+      diff.right();
+      IAKidsCoins.right(el);
+      document.getElementById('score').textContent = score;
+      document.getElementById('hint').textContent = '✔ מעולה! שרשרת שלמה';
+      setTimeout(() => { locked = false; next(); }, 900);
+    } else {
+      document.getElementById('hint').textContent = `עכשיו לחצו על מי שאוכל את ה${expected.n}`;
+      setTimeout(() => { locked = false; }, 250);
+    }
+  } else {
+    IAKidsFX.wrong(el);
+    IAKidsCoins.wrong();
+    diff.wrong();
+  }
+}
+
+function failStep() {
+  timer.stop();
+  locked = true;
+  diff.wrong();
+  IAKidsCoins.wrong();
+  document.getElementById('hint').textContent = '⏰ נגמר הזמן!';
+  setTimeout(() => { locked = false; next(); }, 900);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
