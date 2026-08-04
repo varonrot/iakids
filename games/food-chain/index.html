@@ -86,49 +86,56 @@
     }
 
 
-    body{
-      margin:0 !important;
+   body{
+  margin:0 !important;
+  min-height:100vh !important;
 
-      min-height:100vh !important;
+  padding:
+    92px
+    20px
+    34px !important;
 
-      padding:
-        92px
-        20px
-        34px !important;
+  display:grid !important;
+  place-items:center !important;
 
-      display:flex !important;
+  color:var(--food-text) !important;
 
-      align-items:center !important;
-      justify-content:center !important;
+  background:
+    radial-gradient(
+      circle at 16% 15%,
+      rgba(36,143,255,.25),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 86% 12%,
+      rgba(125,74,255,.22),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 50% 110%,
+      rgba(29,211,139,.20),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #050e22,
+      #0a2147 52%,
+      #07152e
+    ) !important;
 
-      color:
-        var(--food-text) !important;
+  overflow-x:hidden;
+}
 
-      background:
-        radial-gradient(
-          circle at 16% 15%,
-          rgba(36,143,255,.25),
-          transparent 34%
-        ),
-        radial-gradient(
-          circle at 86% 12%,
-          rgba(125,74,255,.22),
-          transparent 32%
-        ),
-        radial-gradient(
-          circle at 50% 110%,
-          rgba(29,211,139,.20),
-          transparent 38%
-        ),
-        linear-gradient(
-          145deg,
-          #050e22,
-          #0a2147 52%,
-          #07152e
-        ) !important;
+.food-game-shell{
+  width:min(820px,100%);
+  margin:0 auto;
 
-      overflow-x:hidden;
-    }
+  position:relative;
+  left:0;
+  right:0;
+
+  transform:translate(-12px,-18px);
+}
 
 
     body::before{
@@ -224,9 +231,8 @@
         0
         17px;
 
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:grid;
+      place-items:center;
 
       gap:8px;
 
@@ -406,7 +412,7 @@
       width:100% !important;
       min-height:570px !important;
 
-      margin:0 !important;
+      margin:0 auto !important;
 
       padding:
         38px
