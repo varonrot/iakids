@@ -17872,11 +17872,11 @@ b{
   <!-- פעולות במובייל -->
   <div class="mobile-actions">
 
-    <a href="/onboarding/cuenta" class="mobile-login">
+    <a href="/he/games-onboarding/cuenta/" class="mobile-login">
       👨‍👩‍👧 כניסת הורים
     </a>
 
-    <a href="/he/onboarding/" class="mobile-cta">
+    <a href="/he/games-onboarding/" class="mobile-cta">
       🎮 מתחילים לשחק
     </a>
 
@@ -17887,12 +17887,12 @@ b{
     <!-- כפתורים במחשב -->
     <div class="nav-actions" id="navActions">
 
-      <a href="/onboarding/cuenta" class="nav-login" id="loginLink">
+      <a href="/he/games-onboarding/cuenta/" class="nav-login" id="loginLink">
         <span>👨‍👩‍👧</span>
         כניסת הורים
       </a>
 
-      <a href="/he/onboarding" class="nav-cta" id="startLink">
+      <a href="/he/games-onboarding/" class="nav-cta" id="startLink">
         <span>🚀</span>
         מתחילים ללמוד
       </a>
@@ -17942,7 +17942,7 @@ b{
 
     <div class="games-hero-buttons">
 
-      <a href="/he/games/" class="games-hero-button primary">
+      <a href="/he/games-onboarding/" class="games-hero-button primary">
         <span>🎮</span>
         התחילו לשחק עכשיו
       </a>
@@ -18352,7 +18352,7 @@ b{
           </li>
         </ul>
 
-        <a href="/he/games/" class="live-game-button">
+        <a href="/he/games-onboarding/" class="live-game-button">
           <span>▶</span>
           שחקו עכשיו
         </a>
@@ -19189,7 +19189,7 @@ b{
       </div>
 
       <!-- כפתור -->
-      <a href="/he/register/" class="games-final-cta-button">
+      <a href="/he/games-onboarding/" class="games-final-cta-button">
         <span class="games-final-cta-button-icon">🎮</span>
 
         <span>
@@ -19443,10 +19443,10 @@ async function updateNavbar() {
           </span>
 
           <a
-            href="/he/workspace/"
+            href="/he/games/workspace/"
             class="nav-cta"
           >
-            🚀 המשך ללמידה
+             🎮 המשך למשחקים
           </a>
 
           <button
@@ -19506,10 +19506,10 @@ if (mobileActions) {
     </div>
 
     <a
-      href="/he/workspace/"
+      href="/he/games/workspace/"
       class="mobile-cta"
     >
-      🚀 המשך ללמידה
+      🎮 המשך למשחקים
     </a>
 
     <button
@@ -19542,54 +19542,53 @@ if (mobileActions) {
      משתמש לא מחובר
   ========================= */
 
-  else {
+else {
 
-    if (navActions) {
+  if (navActions) {
 
-      navActions.innerHTML = `
+    navActions.innerHTML = `
 
-        <a
-          href="/he/onboarding/cuenta/"
-          class="nav-login"
-        >
-          👨‍👩‍👧 כניסת הורים
-        </a>
+      <a
+        href="/he/games-onboarding/cuenta/"
+        class="nav-login"
+      >
+        👨‍👩‍👧 כניסת הורים
+      </a>
 
-        <a
-          href="/he/onboarding/"
-          class="nav-cta"
-        >
-          🚀 מתחילים ללמוד
-        </a>
+      <a
+        href="/he/games-onboarding/"
+        class="nav-cta"
+      >
+        🎮 מתחילים לשחק
+      </a>
 
-      `;
-
-    }
-
-
-    if (mobileActions) {
-
-      mobileActions.innerHTML = `
-
-        <a
-          href="/he/onboarding/cuenta/"
-          class="mobile-login"
-        >
-          👨‍👩‍👧 כניסת הורים
-        </a>
-
-        <a
-          href="/he/onboarding/"
-          class="mobile-cta"
-        >
-          🚀 מתחילים ללמוד
-        </a>
-
-      `;
-
-    }
+    `;
 
   }
+
+  if (mobileActions) {
+
+    mobileActions.innerHTML = `
+
+      <a
+        href="/he/games-onboarding/cuenta/"
+        class="mobile-login"
+      >
+        👨‍👩‍👧 כניסת הורים
+      </a>
+
+      <a
+        href="/he/games-onboarding/"
+        class="mobile-cta"
+      >
+        🎮 מתחילים לשחק
+      </a>
+
+    `;
+
+  }
+
+}
 
 }
 
