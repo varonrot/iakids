@@ -1,1 +1,318 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
+  <title>מרחב המשחקים – KidsIA</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    html,
+    body{
+      margin:0;
+      min-height:100%;
+      font-family:Arial, sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      padding:24px;
+
+      color:#173b6c;
+
+      background:
+        radial-gradient(
+          800px 500px at 20% 10%,
+          rgba(255,202,92,.28),
+          transparent 60%
+        ),
+        radial-gradient(
+          900px 600px at 85% 10%,
+          rgba(91,150,255,.28),
+          transparent 62%
+        ),
+        linear-gradient(
+          135deg,
+          #fff8ed,
+          #eaf5ff
+        );
+    }
+
+    .workspace-card{
+      width:min(680px,100%);
+
+      padding:42px 32px;
+
+      text-align:center;
+
+      border:1px solid rgba(255,255,255,.9);
+      border-radius:30px;
+
+      background:rgba(255,255,255,.84);
+
+      box-shadow:
+        0 24px 60px rgba(31,74,126,.14);
+
+      backdrop-filter:blur(18px);
+    }
+
+    .robot{
+      width:110px;
+      height:110px;
+
+      margin:0 auto 18px;
+
+      display:grid;
+      place-items:center;
+
+      border-radius:30px;
+
+      background:#edf6ff;
+    }
+
+    .robot img{
+      width:88px;
+      height:88px;
+      object-fit:contain;
+    }
+
+    h1{
+      margin:0 0 10px;
+
+      font-size:36px;
+      font-weight:900;
+    }
+
+    p{
+      margin:0;
+
+      font-size:17px;
+      line-height:1.7;
+
+      color:#667996;
+    }
+
+    .status{
+      margin-top:24px;
+
+      padding:15px 18px;
+
+      border-radius:16px;
+
+      background:#f5f8ff;
+
+      font-size:14px;
+      font-weight:700;
+
+      color:#29486f;
+    }
+
+    .error{
+      background:#fff1ef;
+      color:#c94737;
+    }
+
+    .success{
+      background:#edf9f2;
+      color:#238653;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="workspace-card">
+
+    <div class="robot">
+      <img
+        src="/assets/robots/Robot_icon.png"
+        alt="KidsIA"
+      >
+    </div>
+
+    <h1>
+      ברוכים הבאים למרחב המשחקים
+    </h1>
+
+    <p>
+      החשבון ופרופיל הילד נטענים עכשיו.
+      מיד נתחיל לבנות כאן את סביבת המשחקים האישית.
+    </p>
+
+    <div
+      class="status"
+      id="status"
+    >
+      בודקים את החשבון...
+    </div>
+
+  </main>
+
+
+<script>
+const SUPABASE_URL =
+  "https://bxnfzuglfwytiyaguwjj.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJieG5menVnbGZ3eXRpeWFndXdqaiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzY5MjI5NDY1LCJleHAiOjIwODQ4MDU0NjV9.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+const sb =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+const statusEl =
+  document.getElementById("status");
+
+
+function showStatus(
+  text,
+  type = ""
+){
+  statusEl.textContent = text;
+  statusEl.className =
+    `status ${type}`.trim();
+}
+
+
+(async () => {
+
+  const {
+    data: { session },
+    error: sessionError
+  } =
+    await sb.auth.getSession();
+
+
+  if (
+    sessionError ||
+    !session?.user
+  ) {
+
+    showStatus(
+      "לא נמצא משתמש מחובר. מחזירים למסך ההתחברות...",
+      "error"
+    );
+
+    setTimeout(() => {
+
+      window.location.replace(
+        "/he/games-onboarding/cuenta/"
+      );
+
+    }, 1200);
+
+    return;
+  }
+
+
+  const activeKidId =
+    localStorage.getItem(
+      "active_kid_id"
+    );
+
+
+  if (!activeKidId) {
+
+    showStatus(
+      "לא נמצא פרופיל ילד פעיל. מחזירים לתהליך ההרשמה...",
+      "error"
+    );
+
+    setTimeout(() => {
+
+      window.location.replace(
+        "/he/games-onboarding/"
+      );
+
+    }, 1200);
+
+    return;
+  }
+
+
+  const {
+    data: kid,
+    error: kidError
+  } =
+    await sb
+      .from("kids_profiles")
+      .select(
+        "id, child_name, age, avatar_key"
+      )
+      .eq(
+        "id",
+        activeKidId
+      )
+      .eq(
+        "user_id",
+        session.user.id
+      )
+      .single();
+
+
+  if (
+    kidError ||
+    !kid
+  ) {
+
+    console.error(
+      "Kid load error:",
+      kidError
+    );
+
+    showStatus(
+      "לא הצלחנו לטעון את פרופיל הילד.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  showStatus(
+    `הכול מוכן, ${kid.child_name}!`,
+    "success"
+  );
+
+
+  console.log(
+    "Loaded game workspace:",
+    {
+      userId:
+        session.user.id,
+
+      activeKidId:
+        kid.id,
+
+      childName:
+        kid.child_name,
+
+      age:
+        kid.age,
+
+      avatarKey:
+        kid.avatar_key
+    }
+  );
+
+})();
+</script>
+
+</body>
+</html>
