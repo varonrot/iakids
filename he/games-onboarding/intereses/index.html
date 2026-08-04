@@ -1,1 +1,735 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 
+<title>מה הילד רוצה לחזק? | KidsIA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap"
+  rel="stylesheet"
+>
+<style>
+:root{
+  --bg1:#fff9f1;
+  --bg2:#eaf6ff;
+
+  --ink:#173b6c;
+  --muted:#667996;
+
+  --line:rgba(23,59,108,.10);
+
+  --shadow:0 20px 55px rgba(31,74,126,.12);
+  --shadow2:0 12px 30px rgba(31,74,126,.10);
+
+  --purple:#6b4eff;
+  --purple2:#9478ff;
+
+  --focus:rgba(107,78,255,.18);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select{
+  font-family:"Heebo", Arial, sans-serif !important;
+}
+
+html,
+body{
+  min-height:100%;
+}
+
+body{
+  margin:0;
+
+font-family:"Heebo", Arial, sans-serif;
+
+  color:var(--ink);
+
+  background:
+    radial-gradient(
+      800px 520px at 15% 10%,
+      rgba(255,213,154,.30),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 85% 8%,
+      rgba(120,190,255,.30),
+      transparent 62%
+    ),
+    linear-gradient(
+      110deg,
+      var(--bg1),
+      var(--bg2)
+    );
+
+  overflow-x:hidden;
+}
+
+/* WRAPPER */
+
+.wrap{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:36px 18px 54px;
+}
+
+.container{
+  width:min(980px,100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+  text-align:center;
+}
+
+/* TOP BAR */
+
+.top-bar{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:6px;
+}
+
+.back-link{
+  text-decoration:none;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:700;
+}
+
+.back-link:hover{
+  color:var(--ink);
+}
+
+.progress{
+  text-align:right;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+.progress-bar{
+  width:160px;
+  height:7px;
+  margin-top:7px;
+  background:rgba(23,59,108,.10);
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  width:100%;
+  height:100%;
+  border-radius:999px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--purple),
+      var(--purple2)
+    );
+}
+
+/* ROBOT */
+
+.mascot{
+  width:118px;
+  height:118px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin-top:4px;
+
+  border-radius:32px;
+
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      rgba(255,255,255,.95),
+      rgba(255,255,255,.62) 65%,
+      rgba(225,240,255,.70)
+    );
+
+  border:1px solid rgba(255,255,255,.85);
+
+  box-shadow:
+    0 16px 38px rgba(38,88,145,.13),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.mascot img{
+  width:96px;
+  height:96px;
+  object-fit:contain;
+  display:block;
+}
+
+/* TITLE */
+
+h1{
+  margin:2px 0 0;
+  font-size:38px;
+  line-height:1.2;
+  font-weight:900;
+  color:#173b6c;
+}
+
+h1 span{
+  color:#3478e5;
+}
+
+.sub{
+  max-width:720px;
+  margin:0;
+  font-size:18px;
+  line-height:1.7;
+  font-weight:500;
+  color:var(--muted);
+}
+
+/* INTERESTS */
+
+.interests{
+  width:min(820px,100%);
+
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+
+  gap:14px;
+
+  margin-top:10px;
+}
+
+.interest{
+  position:relative;
+
+  min-height:82px;
+
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+
+  gap:14px;
+
+  padding:16px 20px;
+
+  border-radius:22px;
+
+  border:
+    2px solid
+    rgba(23,59,108,.08);
+
+  background:
+    rgba(255,255,255,.76);
+
+  box-shadow:
+    0 12px 28px
+    rgba(31,74,126,.08);
+
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+
+  cursor:pointer;
+
+  text-align:right;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease,
+    background .2s ease;
+}
+
+.interest:hover{
+  transform:translateY(-3px);
+
+  box-shadow:
+    0 16px 34px
+    rgba(31,74,126,.12);
+}
+
+.interest-icon{
+  width:50px;
+  height:50px;
+
+  flex:0 0 50px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f2efff,
+      #edf7ff
+    );
+
+  font-size:25px;
+}
+
+.interest-text{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.interest-text strong{
+  font-size:17px;
+  font-weight:800;
+  color:#173b6c;
+}
+
+.interest-text small{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.4;
+}
+
+/* SELECTED */
+
+.interest.active{
+  border-color:
+    rgba(107,78,255,.65);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,240,255,.96),
+      rgba(235,247,255,.96)
+    );
+
+  box-shadow:
+    0 0 0 5px var(--focus),
+    0 16px 38px rgba(107,78,255,.13);
+}
+
+.interest.active::after{
+  content:"✓";
+
+  position:absolute;
+
+  top:10px;
+  left:10px;
+
+  width:26px;
+  height:26px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:#34b875;
+
+  color:white;
+
+  font-size:15px;
+  font-weight:900;
+}
+
+/* BUTTON */
+
+.btn{
+  width:min(620px,100%);
+
+  margin-top:16px;
+
+  padding:17px;
+
+  border-radius:18px;
+
+  border:none;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7a58ff,
+      #5d43e8
+    );
+
+  font-weight:800;
+  font-size:18px;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 12px 28px
+    rgba(93,67,232,.24);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+
+  box-shadow:
+    0 16px 34px
+    rgba(93,67,232,.30);
+}
+
+.note{
+  margin-top:-8px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* MOBILE */
+
+@media(max-width:720px){
+
+  .wrap{
+    padding:22px 16px 40px;
+  }
+
+  .progress-bar{
+    width:110px;
+  }
+
+  .mascot{
+    width:96px;
+    height:96px;
+  }
+
+  .mascot img{
+    width:78px;
+    height:78px;
+  }
+
+  h1{
+    font-size:30px;
+  }
+
+  .sub{
+    font-size:16px;
+  }
+
+  .interests{
+    grid-template-columns:1fr;
+    gap:11px;
+  }
+
+  .interest{
+    min-height:74px;
+    padding:14px 16px;
+  }
+
+  .interest-icon{
+    width:46px;
+    height:46px;
+    flex-basis:46px;
+  }
+
+}
+</style>
+
+</head>
+
+<body>
+
+<main class="wrap">
+
+<section class="container">
+
+  <div class="top-bar">
+
+    <a
+      class="back-link"
+      href="/he/onboarding/perfil/"
+    >
+      ← חזרה
+    </a>
+
+    <div class="progress">
+
+      שלב 4 מתוך 4
+
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="mascot">
+
+    <img
+      src="/assets/robots/Robot_icon.png"
+      alt="הרובוט הלימודי של KidsIA"
+    >
+
+  </div>
+
+
+  <h1>
+    מה הילד היה רוצה
+    <span>לחזק בלימודים?</span>
+  </h1>
+
+
+  <p class="sub">
+    בחרו מקצוע אחד או יותר.
+    כך נוכל להתאים תרגילים, הסברים ותוכן לימודי
+    לתחומים שבהם הילד רוצה להתקדם.
+  </p>
+
+
+  <div
+    class="interests"
+    id="interests"
+  >
+
+
+    <div
+      class="interest"
+      data-value="math"
+    >
+      <span class="interest-icon">➗</span>
+
+      <span class="interest-text">
+        <strong>מתמטיקה</strong>
+        <small>חשבון, תרגילים ובעיות מילוליות</small>
+      </span>
+    </div>
+
+
+    <div
+      class="interest"
+      data-value="reading"
+    >
+      <span class="interest-icon">📖</span>
+
+      <span class="interest-text">
+        <strong>קריאה והבנת הנקרא</strong>
+        <small>קריאה, טקסטים ושאלות הבנה</small>
+      </span>
+    </div>
+
+
+    <div
+      class="interest"
+      data-value="hebrew"
+    >
+      <span class="interest-icon">✍️</span>
+
+      <span class="interest-text">
+        <strong>עברית וכתיבה</strong>
+        <small>כתיבה, הבעה, אוצר מילים ודקדוק</small>
+      </span>
+    </div>
+
+
+    <div
+      class="interest"
+      data-value="english"
+    >
+      <span class="interest-icon">🇬🇧</span>
+
+      <span class="interest-text">
+        <strong>אנגלית</strong>
+        <small>מילים, קריאה, כתיבה והבנת השפה</small>
+      </span>
+    </div>
+
+
+    <div
+      class="interest"
+      data-value="science"
+    >
+      <span class="interest-icon">🔬</span>
+
+      <span class="interest-text">
+        <strong>מדעים</strong>
+        <small>טבע, גוף האדם, חומרים ותופעות</small>
+      </span>
+    </div>
+
+
+    <div
+      class="interest"
+      data-value="bible"
+    >
+      <span class="interest-icon">📜</span>
+
+      <span class="interest-text">
+        <strong>תנ״ך</strong>
+        <small>סיפורים, דמויות ונושאים מהמקרא</small>
+      </span>
+    </div>
+
+
+    <div
+      class="interest"
+      data-value="history"
+    >
+      <span class="interest-icon">🌍</span>
+
+      <span class="interest-text">
+        <strong>היסטוריה</strong>
+        <small>אירועים, תקופות ודמויות חשובות</small>
+      </span>
+    </div>
+
+
+    <div
+      class="interest"
+      data-value="logic"
+    >
+      <span class="interest-icon">🧠</span>
+
+      <span class="interest-text">
+        <strong>חשיבה ולוגיקה</strong>
+        <small>פתרון בעיות ופיתוח חשיבה</small>
+      </span>
+    </div>
+
+
+  </div>
+
+
+  <button
+    class="btn"
+    id="nextBtn"
+  >
+    סיימנו, בואו נתחיל
+  </button>
+
+
+  <p class="note">
+    תמיד אפשר לשנות ולהוסיף מקצועות בהמשך.
+  </p>
+
+
+</section>
+
+</main>
+
+
+<script>
+
+const items =
+  document.querySelectorAll(
+    ".interest"
+  );
+
+
+let selected =
+  JSON.parse(
+    sessionStorage.getItem(
+      "learning_interests"
+    ) || "[]"
+  );
+
+
+/* שחזור בחירה קיימת */
+
+items.forEach(
+  item => {
+
+    if(
+      selected.includes(
+        item.dataset.value
+      )
+    ){
+      item.classList.add(
+        "active"
+      );
+    }
+
+  }
+);
+
+
+/* בחירה מרובה */
+
+items.forEach(
+  item => {
+
+    item.onclick = () => {
+
+      item.classList.toggle(
+        "active"
+      );
+
+
+      selected = [
+
+        ...items
+
+      ]
+      .filter(
+        x =>
+          x.classList.contains(
+            "active"
+          )
+      )
+      .map(
+        x =>
+          x.dataset.value
+      );
+
+    };
+
+  }
+);
+
+
+/* סיום */
+
+function finish(){
+
+  sessionStorage.setItem(
+    "learning_interests",
+    JSON.stringify(
+      selected
+    )
+  );
+
+
+  sessionStorage.setItem(
+    "onboarding_step",
+    "4"
+  );
+
+
+  window.location.href =
+    "/he/onboarding/cuenta/";
+
+}
+
+
+document
+  .getElementById(
+    "nextBtn"
+  )
+  .onclick =
+    finish;
+
+</script>
+
+</body>
+</html>
