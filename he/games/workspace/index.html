@@ -26669,104 +26669,222 @@ body.lesson-theme-science
 
 }
     /* =====================================================
-   GAMES BOTTOM DOCK
+   GAMES BOTTOM DOCK — LARGE ARCADE VERSION
 ===================================================== */
 
 .games-world-stage{
   position:relative !important;
 }
 
+
+/* מעט מקום בתחתית המפה כדי שהסרגל לא יכסה תוכן חשוב */
+
+.kingdom-map-area{
+  padding-bottom:105px !important;
+}
+
+
+/* מסתירים את הסרגל הישן בלבד */
+
+.kingdom-compact-bar,
+.kingdom-bottom-bar{
+  display:none !important;
+}
+
+
+/* הסרגל עצמו */
+
 .games-bottom-dock{
   position:absolute !important;
 
   left:50% !important;
-  bottom:10px !important;
+  bottom:14px !important;
 
   transform:translateX(-50%) !important;
 
-  z-index:50 !important;
+  z-index:80 !important;
 
-  width:min(920px, calc(100% - 36px)) !important;
-  height:76px !important;
+  width:min(1030px, calc(100% - 42px)) !important;
+  height:82px !important;
 
   display:grid !important;
-  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
 
-  gap:10px !important;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr)) !important;
 
-  padding:7px !important;
+  gap:12px !important;
+
+  padding:0 !important;
 
   direction:rtl;
 
-  border:1px solid rgba(94,154,238,.30) !important;
-  border-radius:19px !important;
+  border:none !important;
+  border-radius:0 !important;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(10,32,60,.96),
-      rgba(5,17,38,.98)
-    ) !important;
+  background:transparent !important;
 
-  box-shadow:
-    0 16px 34px rgba(0,8,28,.45),
-    inset 0 1px 0 rgba(255,255,255,.10) !important;
+  box-shadow:none !important;
 
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
 }
 
 
+/* כל כפתור */
+
 .games-dock-button{
+  position:relative;
+
   min-width:0;
+  height:82px !important;
 
   display:flex !important;
+
   align-items:center !important;
   justify-content:center !important;
 
-  gap:9px !important;
+  gap:11px !important;
 
-  padding:7px 10px !important;
+  padding:10px 14px !important;
 
-  border:1px solid rgba(255,255,255,.18) !important;
-  border-radius:14px !important;
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(255,255,255,.26) !important;
+
+  border-radius:17px !important;
 
   color:#fff !important;
 
   cursor:pointer;
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    inset 0 -10px 15px rgba(0,0,0,.15),
-    0 5px 12px rgba(0,0,0,.18);
+    inset 0 1px 0
+    rgba(255,255,255,.32),
+
+    inset 0 -12px 20px
+    rgba(0,0,0,.16),
+
+    0 8px 15px
+    rgba(0,5,22,.30),
+
+    0 2px 0
+    rgba(0,0,0,.36) !important;
 
   transition:
     transform .18s ease,
-    filter .18s ease;
+    filter .18s ease,
+    box-shadow .18s ease;
+}
+
+
+/* ברק עדין בחלק העליון */
+
+.games-dock-button::before{
+  content:"";
+
+  position:absolute;
+
+  inset:
+    1px
+    2px
+    auto
+    2px;
+
+  height:45%;
+
+  border-radius:
+    15px
+    15px
+    50%
+    50%;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.20),
+      rgba(255,255,255,0)
+    );
+}
+
+
+/* תוכן מעל הברק */
+
+.games-dock-button > *{
+  position:relative;
+  z-index:2;
 }
 
 
 .games-dock-button:hover{
-  transform:translateY(-3px);
+  transform:
+    translateY(-5px)
+    scale(1.025);
 
   filter:
     brightness(1.10)
-    saturate(1.08);
+    saturate(1.10);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.38),
+
+    inset 0 -12px 20px
+    rgba(0,0,0,.13),
+
+    0 14px 24px
+    rgba(0,5,22,.38),
+
+    0 2px 0
+    rgba(0,0,0,.35) !important;
 }
 
+
+.games-dock-button:active{
+  transform:
+    translateY(-1px)
+    scale(.985);
+}
+
+
+/* אייקון */
 
 .games-dock-icon{
-  flex:0 0 auto;
+  flex:
+    0
+    0
+    auto;
 
-  font-size:28px;
+  display:grid;
+
+  place-items:center;
+
+  min-width:38px;
+
+  font-size:33px !important;
   line-height:1;
+
+  filter:
+    drop-shadow(
+      0 3px 4px
+      rgba(0,0,0,.28)
+    );
 }
 
+
+/* אזור הטקסט */
 
 .games-dock-text{
   min-width:0;
 
-  display:block;
+  display:flex !important;
+  flex-direction:column;
+
+  align-items:flex-start;
+  justify-content:center;
 
   text-align:right;
 }
@@ -26775,25 +26893,37 @@ body.lesson-theme-science
 .games-dock-text strong{
   display:block;
 
-  overflow:hidden;
+  overflow:visible;
 
-  color:#fff;
+  color:#fff !important;
 
-  font-size:14px;
-  line-height:1.2;
+  font-size:16px !important;
+  line-height:1.12;
   font-weight:900;
 
-  white-space:nowrap;
-  text-overflow:ellipsis;
+  white-space:normal !important;
+  text-overflow:clip;
+
+  text-shadow:
+    0 2px 3px
+    rgba(0,0,0,.30);
 }
 
+
+.games-dock-text small{
+  display:none !important;
+}
+
+
+/* צבעי הכפתורים */
 
 .games-dock-button.coach{
   background:
     linear-gradient(
       145deg,
-      #1888d5,
-      #0f609f
+      #159de9,
+      #0872bd 56%,
+      #075997
     ) !important;
 }
 
@@ -26802,8 +26932,9 @@ body.lesson-theme-science
   background:
     linear-gradient(
       145deg,
-      #16ae58,
-      #087d3d
+      #22c866,
+      #0b9b48 56%,
+      #087437
     ) !important;
 }
 
@@ -26812,8 +26943,9 @@ body.lesson-theme-science
   background:
     linear-gradient(
       145deg,
-      #8e58e7,
-      #5b2db4
+      #a06af2,
+      #7541d6 56%,
+      #542aa9
     ) !important;
 }
 
@@ -26822,8 +26954,9 @@ body.lesson-theme-science
   background:
     linear-gradient(
       145deg,
-      #ff971a,
-      #d65a08
+      #ffad20,
+      #f2780e 56%,
+      #cf5006
     ) !important;
 }
 
@@ -26832,8 +26965,9 @@ body.lesson-theme-science
   background:
     linear-gradient(
       145deg,
-      #2697eb,
-      #1164bb
+      #249dea,
+      #1475d1 56%,
+      #0d57aa
     ) !important;
 }
 
@@ -26842,40 +26976,73 @@ body.lesson-theme-science
   background:
     linear-gradient(
       145deg,
-      #e25c9c,
-      #aa2f72
+      #ec6eae,
+      #d5448c 56%,
+      #a6296b
     ) !important;
 }
 
 
-/* מסתיר את הסרגל התחתון הישן */
+/* מסכים מעט צרים יותר */
 
-.kingdom-compact-bar,
-.kingdom-bottom-bar{
-  display:none !important;
-}
-
-
-/* משאיר מקום כדי שהסרגל לא יכסה את המפה */
-
-.kingdom-map-area{
-  padding-bottom:92px !important;
-}
-
-
-@media(max-width:1250px){
+@media(max-width:1450px){
 
   .games-bottom-dock{
-    width:calc(100% - 24px) !important;
+    width:
+      min(
+        920px,
+        calc(100% - 30px)
+      ) !important;
+
+    gap:9px !important;
+  }
+
+  .games-dock-button{
+    height:74px !important;
+
+    padding:
+      8px
+      9px !important;
+
     gap:7px !important;
   }
 
   .games-dock-icon{
-    font-size:23px;
+    min-width:31px;
+
+    font-size:27px !important;
   }
 
   .games-dock-text strong{
-    font-size:11px;
+    font-size:13px !important;
+  }
+
+}
+
+
+/* מסכים נמוכים */
+
+@media(max-height:820px){
+
+  .games-bottom-dock{
+    bottom:8px !important;
+    height:68px !important;
+  }
+
+  .games-dock-button{
+    height:68px !important;
+  }
+
+  .games-dock-icon{
+    font-size:25px !important;
+  }
+
+  .games-dock-text strong{
+    font-size:12px !important;
+  }
+
+  .kingdom-map-area{
+    padding-bottom:82px !important;
   }
 
 }
