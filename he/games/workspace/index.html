@@ -10700,42 +10700,28 @@ body.lesson-theme-science
 
 <aside class="sidebar games-sidebar">
 
-  <div class="games-player-card">
-
-    <img
-      id="gamesSidebarAvatar"
-      src="/assets/avatars/cat_blue.png"
-      alt=""
-    >
-
-    <div class="games-player-info">
-
-      <strong id="gamesSidebarName">
-        שחקן
-      </strong>
-
-      <span id="gamesSidebarGrade">
-        כיתה
-      </span>
-
-    </div>
-
-  </div>
+  <!-- כפתור ראשי -->
+  <button
+    type="button"
+    class="new-task games-main-action"
+    id="gamesQuickStartSide"
+  >
+    ⚡ התחל משחק מהיר
+  </button>
 
 
+  <!-- ניווט המשחקים -->
   <div class="kid-actions games-menu">
 
     <button
       type="button"
       class="side-item active"
-      id="gamesHomeButton"
+      id="gamesHomeSidebarBtn"
     >
       <i class="fa-solid fa-house"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          דף הבית
-        </span>
+        <span class="side-title">דף הבית</span>
       </div>
     </button>
 
@@ -10743,14 +10729,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="myGamesButton"
+      id="myGamesSidebarBtn"
     >
       <i class="fa-solid fa-gamepad"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          המשחקים שלי
-        </span>
+        <span class="side-title">המשחקים שלי</span>
       </div>
     </button>
 
@@ -10758,14 +10742,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesMissionsButton"
+      id="gamesMissionsSidebarBtn"
     >
       <i class="fa-solid fa-bullseye"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          משימות
-        </span>
+        <span class="side-title">משימות</span>
       </div>
     </button>
 
@@ -10773,14 +10755,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="weeklyChampionButton"
+      id="weeklyChampionSidebarBtn"
     >
       <i class="fa-solid fa-trophy"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          אלוף השבוע
-        </span>
+        <span class="side-title">אלוף השבוע</span>
       </div>
     </button>
 
@@ -10788,14 +10768,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="friendsButton"
+      id="gamesFriendsSidebarBtn"
     >
       <i class="fa-solid fa-user-group"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          חברים
-        </span>
+        <span class="side-title">חברים</span>
       </div>
     </button>
 
@@ -10803,14 +10781,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesProgressButton"
+      id="gamesProgressSidebarBtn"
     >
       <i class="fa-solid fa-chart-line"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          התקדמות
-        </span>
+        <span class="side-title">התקדמות</span>
       </div>
     </button>
 
@@ -10818,14 +10794,12 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesRewardsButton"
+      id="gamesRewardsSidebarBtn"
     >
       <i class="fa-solid fa-gift"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          פרסים
-        </span>
+        <span class="side-title">פרסים</span>
       </div>
     </button>
 
@@ -10833,52 +10807,52 @@ body.lesson-theme-science
     <button
       type="button"
       class="side-item"
-      id="gamesSettingsButton"
+      id="gamesSettingsSidebarBtn"
     >
       <i class="fa-solid fa-gear"></i>
 
       <div class="side-text">
-        <span class="side-title">
-          הגדרות
-        </span>
+        <span class="side-title">הגדרות</span>
       </div>
     </button>
 
   </div>
 
 
-  <div class="games-sidebar-bottom">
+  <!-- חשוב:
+       שלושת הכפתורים המקוריים נשמרים עם אותם IDs
+       כדי שהלוגיקה הקיימת תמשיך לעבוד
+  -->
+  <div class="sidebar-bottom">
 
     <button
       type="button"
-      class="games-quick-start"
-      id="gamesQuickStartButton"
+      class="manage-btn"
+      id="openParentModal"
     >
-      <span>⚡</span>
-
-      <strong>
-        התחל משחק מהיר
-      </strong>
+      <i class="fa-solid fa-children"></i>
+      החלפת ילד
     </button>
 
 
-    <div class="games-daily-tip">
+    <button
+      type="button"
+      class="manage-btn"
+      id="openSettings"
+    >
+      <i class="fa-solid fa-user-pen"></i>
+      פרטי הילד
+    </button>
 
-      <span class="games-tip-icon">
-        💡
-      </span>
 
-      <div>
-        <strong>
-          טיפ להיום
-        </strong>
-
-        <p>
-          תרגול של 10 דקות ביום מחזק את הזיכרון.
-        </p>
-      </div>
-
-    </div>
+    <button
+      type="button"
+      class="manage-btn"
+      id="manageSubscriptionSide"
+    >
+      <i class="fa-regular fa-credit-card"></i>
+      ניהול מנוי
+    </button>
 
   </div>
 
@@ -11578,51 +11552,7 @@ body.lesson-theme-science
      ===================================================== -->
 
 <section class="kingdom-compact-bar">
-
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🪙</span>
-    <span>
-      <strong>1,245</strong>
-      <small>המטבעות שלך</small>
-    </span>
-  </button>
-
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🎯</span>
-    <span>
-      <strong>המשימה</strong>
-      <small>השלימו 10 תרגילים</small>
-    </span>
-  </button>
-
-  <button class="kingdom-compact-item kingdom-compact-progress">
-    <span>
-      <strong>בונים את הממלכה</strong>
-
-      <span class="kingdom-compact-track">
-        <span></span>
-      </span>
-
-      <small>32% הושלמו</small>
-    </span>
-  </button>
-
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🛡️</span>
-    <span>
-      <strong>הגנה נוכחית</strong>
-      <small>חזקה</small>
-    </span>
-  </button>
-
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🎁</span>
-    <span>
-      <strong>פרסים</strong>
-      <small>3 מחכים לאיסוף</small>
-    </span>
-  </button>
-
+  ...
 </section>
 </section><!-- סגירת dashboardView -->
 <!-- =====================================================
@@ -12280,99 +12210,67 @@ body.lesson-theme-science
 
 <aside class="rightbar home-rightbar games-rightbar">
 
-  <!-- משימות יומיות -->
-  <section class="games-panel games-daily-missions">
+  <!-- משימות -->
+  <section class="games-panel games-missions-panel">
 
-    <div class="games-panel-title">
+    <div class="games-panel-heading">
+      <h2>המשימות שלך</h2>
+      <span>🎯</span>
+    </div>
 
-      <span>
-        המשימות שלך
-      </span>
 
-      <b>🎯</b>
+    <div class="games-mission-card">
+
+      <div class="games-mission-icon">📘</div>
+
+      <div class="games-mission-body">
+
+        <strong>
+          השלימו 5 שאלות במתמטיקה
+        </strong>
+
+        <div class="games-mission-track">
+          <span style="width:40%"></span>
+        </div>
+
+        <small>2 מתוך 5</small>
+
+      </div>
 
     </div>
 
 
-    <div class="games-mission-list">
+    <div class="games-mission-card">
 
-      <article class="games-mission-item">
+      <div class="games-mission-icon">🧪</div>
 
-        <span class="games-mission-icon blue">
-          📖
-        </span>
+      <div class="games-mission-body">
 
-        <div class="games-mission-info">
+        <strong>
+          תרגלו 10 דקות במדעים
+        </strong>
 
-          <strong>
-            השלם 5 שאלות במתמטיקה
-          </strong>
-
-          <div class="games-mission-progress">
-
-            <span style="width:40%"></span>
-
-          </div>
-
-          <small>
-            2 מתוך 5
-          </small>
-
+        <div class="games-mission-track">
+          <span style="width:70%"></span>
         </div>
 
-      </article>
+        <small>7 מתוך 10</small>
+
+      </div>
+
+    </div>
 
 
-      <article class="games-mission-item">
+    <div class="games-mission-card completed">
 
-        <span class="games-mission-icon purple">
-          🧪
-        </span>
+      <div class="games-mission-icon">🧩</div>
 
-        <div class="games-mission-info">
+      <div class="games-mission-body">
+        <strong>אתגר יומי</strong>
+        <small>המשימה הושלמה</small>
+      </div>
 
-          <strong>
-            תרגל 10 דקות במדעים
-          </strong>
-
-          <div class="games-mission-progress">
-
-            <span style="width:70%"></span>
-
-          </div>
-
-          <small>
-            7 מתוך 10
-          </small>
-
-        </div>
-
-      </article>
-
-
-      <article class="games-mission-item complete">
-
-        <span class="games-mission-icon green">
-          🧩
-        </span>
-
-        <div class="games-mission-info">
-
-          <strong>
-            אתגר יומי
-          </strong>
-
-          <small>
-            הסתיים בהצלחה
-          </small>
-
-        </div>
-
-        <span class="games-mission-check">
-          ✓
-        </span>
-
-      </article>
+      <span class="games-mission-done">✓</span>
 
     </div>
 
@@ -12380,42 +12278,29 @@ body.lesson-theme-science
 
 
   <!-- אלוף השבוע -->
-  <section class="games-panel games-leaderboard">
+  <section class="games-panel games-leaderboard-panel">
 
-    <div class="games-panel-title">
-
-      <span>
-        אלוף השבוע
-      </span>
-
-      <b>🏆</b>
-
+    <div class="games-panel-heading">
+      <h2>אלוף השבוע</h2>
+      <span>🏆</span>
     </div>
 
 
-    <div class="games-current-player">
+    <div class="games-champion-card">
 
+      <!-- נשמרים IDs כדי שנוכל לטעון את הילד המחובר -->
       <img
-        id="gamesChampionAvatar"
+        id="rightbarAvatar"
         src="/assets/avatars/cat_blue.png"
         alt=""
       >
 
       <div>
-
-        <strong id="gamesChampionName">
-          שחקן
-        </strong>
-
-        <span>
-          1,250 כוכבים
-        </span>
-
+        <strong id="rightbarName">שחקן</strong>
+        <small>1,250 כוכבים</small>
       </div>
 
-      <b>
-        🏆
-      </b>
+      <span>🏆</span>
 
     </div>
 
@@ -12423,29 +12308,29 @@ body.lesson-theme-science
     <div class="games-ranking-list">
 
       <div class="games-ranking-row">
-        <span>2</span>
-        <i>🧒</i>
+        <span class="games-rank-number">2</span>
+        <span class="games-rank-avatar">🧒</span>
         <strong>נועם</strong>
         <b>980</b>
       </div>
 
       <div class="games-ranking-row">
-        <span>3</span>
-        <i>👧</i>
+        <span class="games-rank-number">3</span>
+        <span class="games-rank-avatar">👧</span>
         <strong>מיה</strong>
         <b>870</b>
       </div>
 
       <div class="games-ranking-row">
-        <span>4</span>
-        <i>🧒</i>
+        <span class="games-rank-number">4</span>
+        <span class="games-rank-avatar">🧒</span>
         <strong>אריאל</strong>
         <b>760</b>
       </div>
 
       <div class="games-ranking-row">
-        <span>5</span>
-        <i>👧</i>
+        <span class="games-rank-number">5</span>
+        <span class="games-rank-avatar">👧</span>
         <strong>דניאל</strong>
         <b>620</b>
       </div>
@@ -12455,36 +12340,29 @@ body.lesson-theme-science
   </section>
 
 
-  <!-- התקדמות כללית -->
-  <section class="games-panel games-overall-progress">
+  <!-- התקדמות -->
+  <section class="games-panel games-progress-panel">
 
-    <div class="games-panel-title">
-
-      <span>
-        התקדמות כללית
-      </span>
-
-      <b>📈</b>
-
+    <div class="games-panel-heading">
+      <h2>התקדמות כללית</h2>
+      <span>📈</span>
     </div>
 
 
-    <div class="games-progress-content">
+    <div class="games-progress-layout">
 
       <div
         class="games-progress-ring"
         style="--games-progress:68"
       >
-
         <div>
           <strong>68%</strong>
-          <span>הושלם</span>
+          <small>הושלם</small>
         </div>
-
       </div>
 
 
-      <div class="games-mini-chart">
+      <div class="games-progress-chart">
 
         <svg
           viewBox="0 0 220 85"
@@ -12493,7 +12371,7 @@ body.lesson-theme-science
         >
           <polyline
             points="0,72 28,65 55,68 82,55 110,61 138,38 165,50 192,28 220,17"
-          />
+          ></polyline>
 
           <circle cx="0" cy="72" r="4"></circle>
           <circle cx="28" cy="65" r="4"></circle>
