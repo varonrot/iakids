@@ -188,20 +188,20 @@ if (!pendingChildName || !pendingChildAge) {
   אין סיבה לעבור שוב דרך complete
   */
 
-  if (existingKids && existingKids.length > 0) {
+if (existingKids && existingKids.length > 0) {
 
-    setStatus("מעבירים אותך לסביבת הלמידה...");
+  setStatus("מעבירים אותך לסביבת המשחקים...");
 
-    setTimeout(() => {
+  setTimeout(() => {
 
-      window.location.replace(
-        "/he/workspace/"
-      );
+    window.location.replace(
+      "/he/games/workspace/"
+    );
 
-    }, 500);
+  }, 500);
 
-    return;
-  }
+  return;
+}
 
 }
 
@@ -219,7 +219,7 @@ setTimeout(() => {
 
   // small pause so user sees "Ready"
   setTimeout(() => {
-    window.location.href = "/he/onboarding/complete/";
+    window.location.href = "/he/games-onboarding/complete/";
   }, 600);
 
 }, 2800);
