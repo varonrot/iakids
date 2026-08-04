@@ -146,16 +146,15 @@ const IAKidsActivity = {
         return null;
       }
 
-      const {
-        data: gameRow,
-        error: gameError
-      } =
-        await client
-          .from('games_catalog')
-          .select('id, game_code')
-          .eq('game_code', slug)
-          .eq('is_active', true)
-          .single();
+const {
+  data: gameRow,
+  error: gameError
+} =
+  await client
+    .from('games_catalog')
+    .select('id, game_code, is_active')
+    .eq('game_code', slug)
+    .maybeSingle();
 
       if (
         gameError ||
