@@ -10706,11 +10706,12 @@ body.lesson-theme-science
     class="new-task games-main-action"
     id="gamesQuickStartSide"
   >
-    ⚡ התחל משחק מהיר
+    <i class="fa-solid fa-bolt"></i>
+    התחל משחק מהיר
   </button>
 
 
-  <!-- ניווט המשחקים -->
+  <!-- תפריט המשחקים -->
   <div class="kid-actions games-menu">
 
     <button
@@ -10819,10 +10820,7 @@ body.lesson-theme-science
   </div>
 
 
-  <!-- חשוב:
-       שלושת הכפתורים המקוריים נשמרים עם אותם IDs
-       כדי שהלוגיקה הקיימת תמשיך לעבוד
-  -->
+  <!-- נשמר בדיוק כדי לא לפגוע בלוגיקה -->
   <div class="sidebar-bottom">
 
     <button
@@ -10864,7 +10862,10 @@ body.lesson-theme-science
        HOME DASHBOARD
        ===================================================== -->
   <section id="dashboardView" class="dashboard-view">
-
+   <section
+  id="dashboardView"
+  class="dashboard-view games-world-stage"
+>
     <div class="dash-wrapper">
 
       <!-- כותרת -->
@@ -11551,9 +11552,92 @@ body.lesson-theme-science
      KINGDOM HOME BOTTOM BAR
      ===================================================== -->
 
-<section class="kingdom-compact-bar">
-  ...
-</section>
+<nav class="games-bottom-dock">
+
+  <button
+    type="button"
+    class="games-dock-button coach"
+    id="gamesCoachButton"
+  >
+    <span class="games-dock-icon">🤖</span>
+
+    <span class="games-dock-text">
+      <strong>מאמן אישי</strong>
+      <small>עזרה בזמן משחק</small>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button quick"
+    id="gamesFastGameButton"
+  >
+    <span class="games-dock-icon">🎯</span>
+
+    <span class="games-dock-text">
+      <strong>תרגול מהיר</strong>
+      <small>מתחילים מיד</small>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button random"
+    id="gamesRandomButton"
+  >
+    <span class="games-dock-icon">🎲</span>
+
+    <span class="games-dock-text">
+      <strong>משחק אקראי</strong>
+      <small>בחירה מפתיעה</small>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button daily"
+    id="gamesDailyChallengeButton"
+  >
+    <span class="games-dock-icon">⭐</span>
+
+    <span class="games-dock-text">
+      <strong>אתגר יומי</strong>
+      <small>פרס מיוחד</small>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button library"
+    id="gamesLibraryButton"
+  >
+    <span class="games-dock-icon">🎮</span>
+
+    <span class="games-dock-text">
+      <strong>ספריית משחקים</strong>
+      <small>כל המשחקים</small>
+    </span>
+  </button>
+
+
+  <button
+    type="button"
+    class="games-dock-button create"
+    id="gamesCreateButton"
+  >
+    <span class="games-dock-icon">✏️</span>
+
+    <span class="games-dock-text">
+      <strong>יצירת משחק</strong>
+      <small>משחק אישי</small>
+    </span>
+  </button>
+
+</nav>
 </section><!-- סגירת dashboardView -->
 <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW
@@ -12210,7 +12294,7 @@ body.lesson-theme-science
 
 <aside class="rightbar home-rightbar games-rightbar">
 
-  <!-- משימות -->
+  <!-- המשימות שלך -->
   <section class="games-panel games-missions-panel">
 
     <div class="games-panel-heading">
@@ -12219,9 +12303,9 @@ body.lesson-theme-science
     </div>
 
 
-    <div class="games-mission-card">
+    <article class="games-mission-card">
 
-      <div class="games-mission-icon">📘</div>
+      <span class="games-mission-icon">📘</span>
 
       <div class="games-mission-body">
 
@@ -12237,12 +12321,12 @@ body.lesson-theme-science
 
       </div>
 
-    </div>
+    </article>
 
 
-    <div class="games-mission-card">
+    <article class="games-mission-card">
 
-      <div class="games-mission-icon">🧪</div>
+      <span class="games-mission-icon">🧪</span>
 
       <div class="games-mission-body">
 
@@ -12258,12 +12342,12 @@ body.lesson-theme-science
 
       </div>
 
-    </div>
+    </article>
 
 
-    <div class="games-mission-card completed">
+    <article class="games-mission-card completed">
 
-      <div class="games-mission-icon">🧩</div>
+      <span class="games-mission-icon">🧩</span>
 
       <div class="games-mission-body">
         <strong>אתגר יומי</strong>
@@ -12272,7 +12356,7 @@ body.lesson-theme-science
 
       <span class="games-mission-done">✓</span>
 
-    </div>
+    </article>
 
   </section>
 
@@ -12288,19 +12372,18 @@ body.lesson-theme-science
 
     <div class="games-champion-card">
 
-      <!-- נשמרים IDs כדי שנוכל לטעון את הילד המחובר -->
       <img
         id="rightbarAvatar"
         src="/assets/avatars/cat_blue.png"
         alt=""
       >
 
-      <div>
+      <div class="games-champion-info">
         <strong id="rightbarName">שחקן</strong>
         <small>1,250 כוכבים</small>
       </div>
 
-      <span>🏆</span>
+      <span class="games-champion-cup">🏆</span>
 
     </div>
 
@@ -12308,29 +12391,29 @@ body.lesson-theme-science
     <div class="games-ranking-list">
 
       <div class="games-ranking-row">
-        <span class="games-rank-number">2</span>
-        <span class="games-rank-avatar">🧒</span>
+        <span>2</span>
+        <i>🧒</i>
         <strong>נועם</strong>
         <b>980</b>
       </div>
 
       <div class="games-ranking-row">
-        <span class="games-rank-number">3</span>
-        <span class="games-rank-avatar">👧</span>
+        <span>3</span>
+        <i>👧</i>
         <strong>מיה</strong>
         <b>870</b>
       </div>
 
       <div class="games-ranking-row">
-        <span class="games-rank-number">4</span>
-        <span class="games-rank-avatar">🧒</span>
+        <span>4</span>
+        <i>🧒</i>
         <strong>אריאל</strong>
         <b>760</b>
       </div>
 
       <div class="games-ranking-row">
-        <span class="games-rank-number">5</span>
-        <span class="games-rank-avatar">👧</span>
+        <span>5</span>
+        <i>👧</i>
         <strong>דניאל</strong>
         <b>620</b>
       </div>
@@ -12385,6 +12468,218 @@ body.lesson-theme-science
         </svg>
 
       </div>
+
+    </div>
+
+  </section>
+
+</aside>
+
+  <!-- ==================================================
+       ברכה לילד
+       ================================================== -->
+  <section class="home-right-welcome">
+
+    <div class="home-right-welcome-text">
+
+      <h2>
+        שלום
+        <span id="rightbarName">ילד</span>!
+      </h2>
+
+      <p>
+        מוכנים להרפתקה חדשה?<br>
+        בחרו ממלכה והתחילו ללמוד<br>
+        ולהציל את הממלכה!
+      </p>
+
+    </div>
+
+    <img
+      class="home-right-student"
+      src="/assets/characters/student-boy-large.png"
+      alt=""
+    >
+
+    <!-- נשמר לצורך הלוגיקה הקיימת -->
+    <img
+      id="rightbarAvatar"
+      class="home-right-hidden-avatar"
+      src="/assets/avatars/cat_blue.png"
+      alt=""
+    >
+
+  </section>
+
+
+  <!-- ==================================================
+       ארבע פעולות מרכזיות
+       ================================================== -->
+  <section class="home-right-actions">
+
+    <!-- משחקי למידה -->
+    <button
+      type="button"
+      class="home-right-action home-right-games"
+      onclick="showLearning('games', this)"
+    >
+      <img
+        src="/assets/cards/learning-game.webp"
+        alt=""
+      >
+
+      <strong>משחקי למידה</strong>
+    </button>
+
+
+    <!-- תרגול -->
+    <button
+      type="button"
+      class="home-right-action home-right-practice"
+      onclick="showLearning('practice', this)"
+    >
+      <img
+        src="/assets/cards/practice-pencil.webp"
+        alt=""
+      >
+
+      <strong>תרגול</strong>
+    </button>
+
+
+    <!-- שיעורי בית -->
+    <button
+      type="button"
+      class="home-right-action home-right-homework"
+      onclick="startHomeworkCamera()"
+    >
+      <img
+        src="/assets/cards/homework-camera.webp"
+        alt=""
+      >
+
+      <strong>שיעורי בית</strong>
+    </button>
+
+
+    <!-- למד אותי משהו -->
+    <button
+      type="button"
+      class="home-right-action home-right-learn"
+      onclick="startLearnChat()"
+    >
+      <img
+        src="/assets/robots/askie-robot.png"
+        alt=""
+      >
+
+      <strong>למד אותי משהו</strong>
+    </button>
+
+  </section>
+
+
+  <!-- ==================================================
+       נקודות / הישגים / רצף
+       ================================================== -->
+  <section class="home-right-stats">
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">⭐</span>
+      <strong>125</strong>
+      <small>סה״כ נקודות</small>
+    </div>
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">🏆</span>
+      <strong>7</strong>
+      <small>הושגו</small>
+    </div>
+
+    <div class="home-right-stat">
+      <span class="home-right-stat-icon">🔥</span>
+      <strong>12</strong>
+      <small>ימים ברצף</small>
+    </div>
+
+  </section>
+
+
+  <!-- ==================================================
+       התקדמות כללית
+       ================================================== -->
+  <section class="home-right-progress">
+
+    <h3>התקדמות כללית</h3>
+
+    <div class="home-right-progress-content">
+
+      <div class="home-right-chart">
+
+        <svg
+          viewBox="0 0 300 95"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+
+          <polyline
+            points="
+              8,76
+              48,66
+              88,56
+              128,45
+              168,61
+              208,50
+              248,25
+              292,27
+            "
+            fill="none"
+            stroke="#3187f5"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <g
+            fill="#ffffff"
+            stroke="#3187f5"
+            stroke-width="3"
+          >
+            <circle cx="8" cy="76" r="4"/>
+            <circle cx="48" cy="66" r="4"/>
+            <circle cx="88" cy="56" r="4"/>
+            <circle cx="128" cy="45" r="4"/>
+            <circle cx="168" cy="61" r="4"/>
+            <circle cx="208" cy="50" r="4"/>
+            <circle cx="248" cy="25" r="4"/>
+            <circle cx="292" cy="27" r="4"/>
+          </g>
+
+        </svg>
+
+        <div class="home-right-chart-days">
+          <span>א׳</span>
+          <span>ב׳</span>
+          <span>ג׳</span>
+          <span>ד׳</span>
+          <span>ה׳</span>
+          <span>ו׳</span>
+          <span>ש׳</span>
+        </div>
+
+      </div>
+
+
+<div
+  class="home-right-donut"
+  style="--progress:35"
+  aria-label="35 אחוז התקדמות"
+>
+  <div class="home-right-donut-inner">
+    <strong>35%</strong>
+    <span>הושלמו</span>
+  </div>
+</div>
 
     </div>
 
@@ -25590,500 +25885,948 @@ body.lesson-theme-science
   }
 
 }
-    /* ===========================================================
-   GAMES MODE
-=========================================================== */
+    /* ==========================================================
+   IAKIDS GAMES WORKSPACE — FINAL OVERRIDES
+========================================================== */
+
+:root{
+  --games-navy:#07132c;
+  --games-navy-2:#101f42;
+  --games-line:rgba(116,158,238,.25);
+  --games-text:#f5f7ff;
+  --games-muted:rgba(216,226,250,.68);
+}
+
+
+/* ==========================================================
+   MAIN APP GRID
+========================================================== */
+
+.app{
+  grid-template-columns:
+    230px
+    minmax(0,1fr)
+    290px !important;
+
+  grid-template-rows:
+    70px
+    minmax(0,1fr) !important;
+
+  background:#061128;
+}
+
+
+/* ==========================================================
+   CENTRAL WORLD BACKGROUND
+========================================================== */
+
+.main{
+  padding:0 !important;
+
+  overflow:hidden;
+
+  background:#061128;
+}
+
+
+.games-world-stage{
+  position:relative;
+
+  width:100%;
+  height:100%;
+
+  min-height:0;
+
+  overflow:hidden;
+
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(4,11,29,.03),
+      rgba(4,11,29,.08)
+    ),
+    url("/assets/games/workspace/games-world-background.webp");
+
+  background-position:center center;
+  background-size:cover;
+  background-repeat:no-repeat;
+}
+
+
+/*
+  מסתיר אלמנטים ישנים של מפת הלמידה,
+  אבל לא מסתיר את הסרגל התחתון החדש.
+*/
+
+.games-world-stage
+.kingdom-label,
+
+.games-world-stage
+.kingdom-arrow,
+
+.games-world-stage
+.kingdom-path,
+
+.games-world-stage
+.kingdom-home-label,
+
+.games-world-stage
+.kingdom-progress-label{
+
+  display:none !important;
+}
+
+
+/* ==========================================================
+   LEFT SIDEBAR
+========================================================== */
 
 .games-sidebar{
+  padding:12px 10px !important;
 
-  background:linear-gradient(
-    180deg,
-    #17223f,
-    #11192f
-  );
+  border-right:1px solid var(--games-line) !important;
 
-  border-radius:26px;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(73,91,190,.18),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #111e3e,
+      #071127
+    ) !important;
+
+  box-shadow:
+    inset -1px 0 rgba(255,255,255,.03),
+    8px 0 28px rgba(0,0,0,.24);
 }
 
 
 .games-main-action{
-
   width:100%;
 
-  height:66px;
+  min-height:54px !important;
 
-  border:none;
+  margin:0 0 10px !important;
 
-  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
 
-  cursor:pointer;
+  border:1px solid rgba(186,142,255,.45) !important;
+  border-radius:15px !important;
 
-  color:#fff;
+  color:#fff !important;
 
-  font-size:19px;
+  font-size:14px !important;
+  font-weight:900 !important;
 
-  font-weight:800;
-
-  background:linear-gradient(
-    135deg,
-    #7d52ff,
-    #9d63ff
-  );
+  background:
+    linear-gradient(
+      135deg,
+      #864cff,
+      #5930d5
+    ) !important;
 
   box-shadow:
-    0 14px 35px
-    rgba(125,82,255,.35);
-
-  margin-bottom:18px;
+    0 9px 22px rgba(92,48,211,.32) !important;
 }
 
 
 .games-menu{
+  flex:1;
+
+  min-height:0;
 
   display:flex;
-
   flex-direction:column;
 
-  gap:12px;
+  gap:7px !important;
+
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 
 
 .games-menu .side-item{
+  min-height:54px !important;
 
-  min-height:72px;
+  flex:0 0 54px;
 
-  border-radius:18px;
+  padding:0 11px !important;
 
-  background:#1b2747;
+  gap:10px !important;
 
-  border:1px solid
-    rgba(255,255,255,.06);
+  border:1px solid rgba(112,145,215,.16) !important;
+  border-radius:14px !important;
 
-  transition:.25s;
+  color:rgba(245,248,255,.93) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31,44,82,.96),
+      rgba(18,28,57,.98)
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 4px 10px rgba(0,0,0,.14) !important;
 }
 
 
 .games-menu .side-item:hover{
+  transform:translateY(-1px);
 
-  transform:translateX(-4px);
+  border-color:rgba(139,168,235,.32) !important;
 
-  background:#24345d;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(42,57,103,.98),
+      rgba(24,35,70,.98)
+    ) !important;
 }
 
 
 .games-menu .side-item.active{
+  border-color:rgba(172,129,255,.62) !important;
 
-  background:linear-gradient(
-    135deg,
-    #6f4bff,
-    #915eff
-  );
+  background:
+    linear-gradient(
+      135deg,
+      #7343df,
+      #4b28ac
+    ) !important;
+
+  box-shadow:
+    inset 4px 0 0 #c4a1ff,
+    0 7px 18px rgba(76,39,177,.30) !important;
+}
+
+
+.games-menu .side-item i{
+  width:34px !important;
+  height:34px !important;
+
+  flex:0 0 34px !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  border-radius:10px !important;
+
+  color:#fff !important;
+
+  font-size:16px !important;
+
+  background:rgba(255,255,255,.08) !important;
+
+  box-shadow:none !important;
 }
 
 
 .games-menu .side-title{
+  color:#fff;
 
-  color:white;
-
-  font-size:20px;
-
-  font-weight:800;
+  font-size:14px !important;
+  font-weight:900;
 }
 
 
-.games-menu i{
+/* שלושת הכפתורים המחוברים ללוגיקה */
 
-  color:white;
+.games-sidebar .sidebar-bottom{
+  margin-top:9px !important;
+  padding-top:9px !important;
 
-  font-size:28px;
+  display:grid;
+  gap:6px !important;
+
+  border-top:1px solid rgba(119,148,213,.16) !important;
 }
 
 
-/* ==========================================
-   BOTTOM 3 BUTTONS
-========================================== */
+.games-sidebar .manage-btn{
+  min-height:48px !important;
 
-.sidebar-bottom{
+  padding:0 10px !important;
 
-  margin-top:auto;
+  gap:9px !important;
 
-  display:flex;
+  border:1px solid rgba(111,143,211,.16) !important;
+  border-radius:13px !important;
 
-  flex-direction:column;
+  color:rgba(243,247,255,.92) !important;
 
-  gap:12px;
+  font-size:13px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31,44,82,.96),
+      rgba(18,28,57,.98)
+    ) !important;
 }
 
 
-.sidebar-bottom .manage-btn{
+.games-sidebar .manage-btn:hover{
+  color:#fff !important;
 
-  min-height:66px;
-
-  border-radius:18px;
-
-  border:none;
-
-  background:#202d50;
-
-  color:white;
-
-  font-size:18px;
-
-  font-weight:700;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(44,59,105,.98),
+      rgba(25,37,73,.98)
+    ) !important;
 }
 
 
-.sidebar-bottom .manage-btn:hover{
+.games-sidebar .manage-btn i{
+  width:34px !important;
+  height:34px !important;
 
-  background:#2d4173;
+  flex:0 0 34px !important;
+
+  font-size:15px !important;
+
+  border-radius:10px !important;
 }
 
 
+/* ==========================================================
+   RIGHT SIDEBAR
+========================================================== */
 
-/* ==========================================
-   RIGHT PANELS
-========================================== */
+.games-rightbar{
+  padding:10px !important;
 
-.games-panel{
+  display:flex !important;
+  flex-direction:column !important;
 
-  background:linear-gradient(
-    180deg,
-    #17223f,
-    #11192f
-  );
+  gap:10px !important;
 
-  border-radius:24px;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
 
-  padding:18px;
+  border-left:1px solid var(--games-line) !important;
 
-  margin-bottom:18px;
-
-  color:white;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(61,103,210,.16),
+      transparent 36%
+    ),
+    linear-gradient(
+      180deg,
+      #101d3b,
+      #071127
+    ) !important;
 
   box-shadow:
-    0 18px 35px
-    rgba(0,0,0,.25);
+    -8px 0 28px rgba(0,0,0,.22);
+}
+
+
+.games-panel{
+  padding:13px !important;
+
+  margin:0 !important;
+
+  flex:0 0 auto;
+
+  border:1px solid rgba(105,145,224,.24);
+  border-radius:18px;
+
+  color:#fff;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(57,96,190,.13),
+      transparent 50%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(19,31,66,.98),
+      rgba(8,17,39,.99)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.055),
+    0 10px 25px rgba(0,0,0,.27);
 }
 
 
 .games-panel-heading{
-
   display:flex;
-
+  align-items:center;
   justify-content:space-between;
 
-  align-items:center;
-
-  margin-bottom:18px;
+  margin-bottom:10px;
 }
 
 
 .games-panel-heading h2{
-
   margin:0;
 
-  font-size:28px;
+  color:#fff;
 
-  color:white;
+  font-size:18px;
+  font-weight:900;
 }
 
 
-/* ==========================================
-   MISSIONS
-========================================== */
+.games-panel-heading > span{
+  font-size:19px;
+}
+
+
+/* משימות */
 
 .games-mission-card{
+  min-height:62px;
 
-  display:flex;
+  display:grid;
 
-  gap:16px;
+  grid-template-columns:
+    40px
+    minmax(0,1fr);
+
+  gap:8px;
 
   align-items:center;
 
-  padding:14px;
+  padding:8px;
 
-  margin-bottom:12px;
+  margin-bottom:7px;
 
-  border-radius:18px;
+  border:1px solid rgba(119,151,219,.17);
+  border-radius:13px;
 
-  background:#223055;
+  background:rgba(36,49,87,.68);
+}
+
+
+.games-mission-card.completed{
+  grid-template-columns:
+    40px
+    minmax(0,1fr)
+    23px;
+
+  border-color:rgba(67,213,123,.48);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27,98,65,.68),
+      rgba(16,55,44,.74)
+    );
+}
+
+
+.games-mission-icon{
+  width:40px;
+  height:40px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:11px;
+
+  background:rgba(255,255,255,.08);
+
+  font-size:20px;
+}
+
+
+.games-mission-body{
+  min-width:0;
+}
+
+
+.games-mission-body strong{
+  display:block;
+
+  color:#f4f7ff;
+
+  font-size:11px;
+  line-height:1.35;
+}
+
+
+.games-mission-body small{
+  display:block;
+
+  margin-top:3px;
+
+  color:rgba(201,213,240,.64);
+
+  font-size:9px;
 }
 
 
 .games-mission-track{
+  height:5px;
 
-  width:100%;
-
-  height:10px;
-
-  background:#32456f;
-
-  border-radius:999px;
+  margin-top:5px;
 
   overflow:hidden;
 
-  margin-top:8px;
+  border-radius:999px;
+
+  background:rgba(112,136,193,.23);
 }
 
 
 .games-mission-track span{
-
   display:block;
 
   height:100%;
 
   border-radius:999px;
 
-  background:linear-gradient(
-    90deg,
-    #9d63ff,
-    #53d2ff
-  );
+  background:
+    linear-gradient(
+      90deg,
+      #8d58ff,
+      #45c7ff
+    );
 }
 
 
-/* ==========================================
-   CHAMPION
-========================================== */
+.games-mission-done{
+  width:22px;
+  height:22px;
 
-.games-champion-card{
-
-  display:flex;
-
-  align-items:center;
-
-  gap:14px;
-
-  background:linear-gradient(
-    135deg,
-    #775123,
-    #d09a36
-  );
-
-  border-radius:18px;
-
-  padding:14px;
-
-  color:white;
-
-  margin-bottom:18px;
-}
-
-
-.games-champion-card img{
-
-  width:60px;
-
-  height:60px;
+  display:grid;
+  place-items:center;
 
   border-radius:50%;
+
+  color:#fff;
+
+  background:#36c777;
+
+  font-size:12px;
+  font-weight:900;
 }
 
 
-.games-ranking-row{
+/* אלוף השבוע */
+
+.games-champion-card{
+  min-height:64px;
 
   display:grid;
 
   grid-template-columns:
-    30px
-    30px
-    1fr
-    auto;
-
-  gap:10px;
+    47px
+    minmax(0,1fr)
+    29px;
 
   align-items:center;
+  gap:8px;
 
-  padding:8px 0;
+  padding:8px 10px;
+
+  margin-bottom:8px;
+
+  border:1px solid rgba(255,178,55,.62);
+  border-radius:14px;
+
+  color:#fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(183,101,23,.73),
+      rgba(101,50,17,.78)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12);
 }
 
 
-/* ==========================================
-   PROGRESS
-========================================== */
+.games-champion-card img{
+  width:44px;
+  height:44px;
 
-.games-progress-layout{
+  object-fit:cover;
 
-  display:flex;
+  border:3px solid #ffbd43;
+  border-radius:50%;
+}
 
-  gap:18px;
+
+.games-champion-info strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:15px;
+}
+
+
+.games-champion-info small{
+  display:block;
+
+  color:rgba(255,234,200,.75);
+
+  font-size:9px;
+}
+
+
+.games-champion-cup{
+  font-size:20px;
+}
+
+
+.games-ranking-row{
+  min-height:29px;
+
+  display:grid;
+
+  grid-template-columns:
+    18px
+    24px
+    minmax(0,1fr)
+    auto;
 
   align-items:center;
+  gap:6px;
+
+  border-bottom:1px solid rgba(121,149,207,.10);
+
+  color:rgba(231,237,252,.83);
+
+  font-size:10px;
+}
+
+
+.games-ranking-row strong,
+.games-ranking-row b{
+  font-size:10px;
+}
+
+
+/* התקדמות */
+
+.games-progress-layout{
+  display:grid;
+
+  grid-template-columns:
+    76px
+    minmax(0,1fr);
+
+  gap:8px;
+
+  align-items:center;
+
+  direction:ltr;
 }
 
 
 .games-progress-ring{
+  --games-progress:68;
 
-  width:130px;
+  position:relative;
 
-  height:130px;
+  width:72px;
+  height:72px;
+
+  display:grid;
+  place-items:center;
 
   border-radius:50%;
 
-  display:grid;
-
-  place-items:center;
-
   background:
+    conic-gradient(
+      #29e0bd
+      0deg,
 
-  conic-gradient(
-      #34d399 calc(var(--games-progress)*1%),
-      #2a355b 0
-  );
+      #348cff
+      calc(
+        var(--games-progress) *
+        3.6deg
+      ),
 
+      rgba(71,91,139,.30)
+      calc(
+        var(--games-progress) *
+        3.6deg
+      ),
+
+      rgba(71,91,139,.30)
+      360deg
+    );
 }
 
 
-.games-progress-ring div{
+.games-progress-ring::before{
+  content:"";
 
-  width:94px;
+  position:absolute;
 
-  height:94px;
+  inset:8px;
 
   border-radius:50%;
 
-  background:#16223d;
+  background:#111d3c;
+}
 
-  display:grid;
 
-  place-items:center;
+.games-progress-ring > div{
+  position:relative;
+  z-index:2;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  direction:rtl;
+}
+
+
+.games-progress-ring strong{
+  color:#fff;
+
+  font-size:18px;
+  line-height:1;
+}
+
+
+.games-progress-ring small{
+  margin-top:2px;
+
+  color:rgba(204,217,244,.62);
+
+  font-size:7px;
 }
 
 
 .games-progress-chart{
+  height:62px;
 
-  flex:1;
+  overflow:hidden;
 
-  height:130px;
+  border-radius:10px;
+
+  background:
+    repeating-linear-gradient(
+      to top,
+      transparent 0 14px,
+      rgba(89,125,193,.10) 15px 16px
+    );
 }
 
 
 .games-progress-chart svg{
-
   width:100%;
-
   height:100%;
 }
 
 
 .games-progress-chart polyline{
-
   fill:none;
 
-  stroke:#4fb3ff;
-
+  stroke:#3da5ff;
   stroke-width:4;
 }
 
 
 .games-progress-chart circle{
+  fill:#111c3b;
 
-  fill:#4fb3ff;
+  stroke:#64bcff;
+  stroke-width:3;
 }
 
 
-
-/* ==========================================
+/* ==========================================================
    BOTTOM DOCK
-========================================== */
+========================================================== */
 
 .games-bottom-dock{
+  position:absolute;
+
+  right:14px;
+  left:14px;
+  bottom:10px;
+
+  z-index:20;
+
+  height:72px;
 
   display:grid;
 
   grid-template-columns:
-    repeat(6,1fr);
+    repeat(6,minmax(0,1fr));
 
-  gap:16px;
+  gap:8px;
 
-  margin-top:18px;
+  padding:7px;
+
+  border:1px solid rgba(98,143,224,.31);
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(12,31,61,.97),
+      rgba(5,17,37,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.065),
+    0 10px 28px rgba(0,0,0,.38);
 }
 
 
 .games-dock-button{
+  min-width:0;
 
-  height:95px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-  border:none;
+  gap:7px;
 
-  border-radius:22px;
+  padding:5px 7px;
+
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:13px;
+
+  color:#fff;
 
   cursor:pointer;
 
-  color:white;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -8px 14px rgba(0,0,0,.13);
 
-  display:flex;
-
-  align-items:center;
-
-  justify-content:center;
-
-  gap:16px;
-
-  font-weight:800;
-
-  font-size:18px;
-
-  transition:.25s;
+  transition:
+    transform .16s ease,
+    filter .16s ease;
 }
 
 
 .games-dock-button:hover{
+  transform:translateY(-2px);
 
-  transform:translateY(-5px);
-}
-
-
-.games-dock-button.coach{
-background:#1f6acb;
-}
-
-.games-dock-button.quick{
-background:#16974a;
-}
-
-.games-dock-button.random{
-background:#6b3ed7;
-}
-
-.games-dock-button.daily{
-background:#ea7a12;
-}
-
-.games-dock-button.library{
-background:#2a72d8;
-}
-
-.games-dock-button.create{
-background:#d84f88;
+  filter:brightness(1.08);
 }
 
 
 .games-dock-icon{
+  flex:0 0 auto;
 
-  font-size:34px;
+  font-size:23px;
 }
 
 
 .games-dock-text{
+  min-width:0;
 
   display:flex;
-
   flex-direction:column;
+
+  text-align:right;
 }
 
 
 .games-dock-text strong{
+  overflow:hidden;
 
-  font-size:22px;
+  color:#fff;
+
+  font-size:11px;
+
+  white-space:nowrap;
+  text-overflow:ellipsis;
 }
 
 
 .games-dock-text small{
+  margin-top:1px;
 
-  opacity:.8;
+  overflow:hidden;
 
-  font-size:13px;
+  color:rgba(255,255,255,.66);
+
+  font-size:7px;
+
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+
+.games-dock-button.coach{
+  background:linear-gradient(145deg,#1683d0,#105b99);
+}
+
+
+.games-dock-button.quick{
+  background:linear-gradient(145deg,#13a653,#08753a);
+}
+
+
+.games-dock-button.random{
+  background:linear-gradient(145deg,#8754df,#582caf);
+}
+
+
+.games-dock-button.daily{
+  background:linear-gradient(145deg,#f28d18,#c95308);
+}
+
+
+.games-dock-button.library{
+  background:linear-gradient(145deg,#258de5,#115fb8);
+}
+
+
+.games-dock-button.create{
+  background:linear-gradient(145deg,#db5797,#a72c6e);
+}
+
+
+/* ==========================================================
+   SMALLER SCREENS
+========================================================== */
+
+@media(max-width:1350px){
+
+  .app{
+    grid-template-columns:
+      205px
+      minmax(0,1fr)
+      255px !important;
+  }
+
+  .games-dock-text small{
+    display:none;
+  }
+
+}
+
+
+@media(max-width:1100px){
+
+  .app{
+    grid-template-columns:
+      200px
+      minmax(0,1fr) !important;
+  }
+
+  .games-rightbar{
+    display:none !important;
+  }
+
 }
 </style>
 
