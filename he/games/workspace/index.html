@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he" dir="rtl" xmlns="http://www.w3.org/1999/html">
 <head>
 <meta charset="UTF-8">
 <title>חבר ללימודים AI – סביבת למידה</title>
@@ -1292,8 +1292,7 @@ box-shadow:
   }
 }
 
-}
-
+ 
 
 /* מובייל קטן */
 @media (max-width: 480px){
@@ -10732,6 +10731,267 @@ body.games-workspace .notification-btn,
 </style>
 </head>
 <body class="games-workspace">
+<section class="games-mobile-home" id="gamesMobileHome">
+
+  <header class="games-mobile-header">
+
+    <button
+      class="games-mobile-profile"
+      type="button"
+      onclick="document.getElementById('openParentModal').click()"
+    >
+      <img id="mobileKidAvatar" src="" alt="">
+      <span>
+        <strong id="mobileKidName">היי!</strong>
+        <small id="mobileKidGrade">כיתה</small>
+      </span>
+      <i class="fa-solid fa-chevron-down"></i>
+    </button>
+
+    <div class="games-mobile-logo">
+      <span class="logo-i">i</span>
+      <span class="logo-a">a</span>
+      <span class="logo-k">k</span>
+      <span class="logo-i2">i</span>
+      <span class="logo-d">d</span>
+      <span class="logo-s">s</span>
+    </div>
+
+    <div class="games-mobile-currency">
+      <button type="button">
+        💎 <strong id="mobileDiamonds">45</strong>
+      </button>
+
+      <button type="button">
+        ⭐ <strong id="mobileStars">890</strong>
+      </button>
+    </div>
+
+  </header>
+
+
+  <section class="games-mobile-welcome">
+    <div class="games-mobile-ribbon">
+      ברוכים הבאים
+    </div>
+
+    <p>לממלכות הלמידה שלכם!</p>
+  </section>
+
+
+  <main class="games-mobile-map">
+
+    <button
+      class="mobile-kingdom mobile-kingdom-jungle"
+      type="button"
+      data-subject="מדעים"
+    >
+      <span class="mobile-kingdom-label">
+        <strong>ג׳ונגל</strong>
+        <small>מדעים</small>
+      </span>
+
+      <span class="mobile-progress-card">
+        <b>4/28 שיעורים</b>
+        <span class="mobile-progress-track">
+          <span style="width:14%"></span>
+        </span>
+      </span>
+    </button>
+
+
+    <button
+      class="mobile-kingdom mobile-kingdom-ice locked"
+      type="button"
+      data-subject="גיאוגרפיה"
+    >
+      <span class="mobile-kingdom-label">
+        <strong>קרח ושלג</strong>
+        <small>גיאוגרפיה</small>
+      </span>
+
+      <span class="mobile-progress-card">
+        <b>0/28 שיעורים</b>
+        <span class="mobile-progress-track">
+          <span style="width:0%"></span>
+        </span>
+        <i class="fa-solid fa-lock"></i>
+      </span>
+    </button>
+
+
+    <button
+      class="mobile-kingdom mobile-kingdom-desert locked"
+      type="button"
+      data-subject="היסטוריה"
+    >
+      <span class="mobile-kingdom-label">
+        <strong>מדבר</strong>
+        <small>היסטוריה</small>
+      </span>
+
+      <span class="mobile-progress-card">
+        <b>0/28 שיעורים</b>
+        <span class="mobile-progress-track">
+          <span style="width:0%"></span>
+        </span>
+        <i class="fa-solid fa-lock"></i>
+      </span>
+    </button>
+
+
+    <button
+      class="mobile-kingdom mobile-kingdom-center"
+      type="button"
+      id="mobileContinueLearning"
+    >
+      <span class="mobile-kingdom-label">
+        <strong>האי שלנו</strong>
+        <small>התחילו כאן!</small>
+      </span>
+    </button>
+
+
+    <button
+      class="mobile-kingdom mobile-kingdom-candy locked"
+      type="button"
+      data-subject="חשבון"
+    >
+      <span class="mobile-kingdom-label">
+        <strong>קנדילנד</strong>
+        <small>חשבון</small>
+      </span>
+
+      <span class="mobile-progress-card">
+        <b>0/28 שיעורים</b>
+        <span class="mobile-progress-track">
+          <span style="width:0%"></span>
+        </span>
+        <i class="fa-solid fa-lock"></i>
+      </span>
+    </button>
+
+
+    <button
+      class="mobile-kingdom mobile-kingdom-water locked"
+      type="button"
+      data-subject="אנגלית"
+    >
+      <span class="mobile-kingdom-label">
+        <strong>מתחת למים</strong>
+        <small>אנגלית</small>
+      </span>
+
+      <span class="mobile-progress-card">
+        <b>0/28 שיעורים</b>
+        <span class="mobile-progress-track">
+          <span style="width:0%"></span>
+        </span>
+        <i class="fa-solid fa-lock"></i>
+      </span>
+    </button>
+
+
+    <button
+      class="mobile-kingdom mobile-kingdom-lake locked"
+      type="button"
+      data-subject="עברית"
+    >
+      <span class="mobile-kingdom-label">
+        <strong>אגם</strong>
+        <small>עברית</small>
+      </span>
+
+      <span class="mobile-progress-card">
+        <b>0/28 שיעורים</b>
+        <span class="mobile-progress-track">
+          <span style="width:0%"></span>
+        </span>
+        <i class="fa-solid fa-lock"></i>
+      </span>
+    </button>
+
+  </main>
+
+
+  <aside class="games-mobile-tools">
+
+    <button type="button" onclick="showLearning('learn')">
+      <span>🤖</span>
+      <strong>למד אותי</strong>
+    </button>
+
+    <button
+  type="button"
+  onclick="document.getElementById('homeworkCameraInput').click()"
+>
+      <span>📷</span>
+      <strong>מצלמה</strong>
+    </button>
+
+    <button type="button" onclick="showLearning('notebook')">
+      <span>📓</span>
+      <strong>מחברת</strong>
+    </button>
+
+    <button type="button" onclick="showLearning('homework')">
+      <span>🎒</span>
+      <strong>שיעורי בית</strong>
+    </button>
+
+    <button
+  type="button"
+  onclick="document.getElementById('mobileProgressBtn').click()"
+>
+      <span>📊</span>
+      <strong>התקדמות</strong>
+    </button>
+
+    <button
+  type="button"
+  onclick="alert('החנות תיפתח בקרוב 🎁')"
+>
+      <span>🎁</span>
+      <strong>חנות</strong>
+    </button>
+
+  </aside>
+
+
+  <div class="games-mobile-guide">
+    <div class="games-mobile-guide-character">👾</div>
+
+    <div class="games-mobile-guide-bubble">
+      <strong>בחרו ממלכה</strong>
+      <span>כדי להתחיל ללמוד ולהרוויח נקודות!</span>
+    </div>
+  </div>
+
+
+  <nav class="games-mobile-bottom-nav">
+
+    <button type="button" id="mobileLessonsBtn">
+      <span>📖</span>
+      <strong>השיעורים שלי</strong>
+    </button>
+
+    <button
+      type="button"
+      class="active"
+      id="mobileContinueBtn"
+    >
+      <span>🎒</span>
+      <strong>המשך ללמוד</strong>
+    </button>
+
+    <button type="button" id="mobileProgressBtn">
+      <span>📊</span>
+      <strong>ההתקדמות שלי</strong>
+    </button>
+
+  </nav>
+
+</section>
 <div
   id="lesson-background-layer"
   aria-hidden="true"
@@ -27623,6 +27883,1175 @@ body.lesson-theme-science
   color:
     rgba(221,232,255,.72);
 }
+/* =====================================================
+   GAMES MOBILE WORKSPACE
+===================================================== */
+
+.games-mobile-home{
+  display:none;
+}
+
+
+/* =====================================================
+   MOBILE ONLY
+===================================================== */
+
+@media (max-width:760px){
+
+  html,
+  body{
+    width:100%;
+    height:100%;
+    min-height:100%;
+    margin:0;
+    overflow:hidden !important;
+  }
+
+  body.games-workspace{
+    background:#9fdcff !important;
+  }
+
+  body.games-workspace .app,
+  body.games-workspace > .hamburger,
+  body.games-workspace > #lesson-background-layer,
+  body.games-workspace > .floating-tutor-robot{
+    display:none !important;
+  }
+
+
+  /* =====================================================
+     MAIN MOBILE SHELL
+  ===================================================== */
+
+  .games-mobile-home{
+    position:fixed;
+    inset:0;
+    z-index:999;
+
+    display:block;
+
+    width:100%;
+    height:100dvh;
+
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    direction:rtl;
+
+    color:#202463;
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(191,231,255,.35),
+        rgba(87,185,221,.15)
+      ),
+      url("/assets/games/workspace/games-world-mobile.webp");
+
+    background-size:cover;
+    background-position:center top;
+    background-repeat:no-repeat;
+
+    padding:
+      max(12px,env(safe-area-inset-top))
+      0
+      calc(112px + env(safe-area-inset-bottom));
+  }
+
+
+  /* שכבת הבהרה עדינה */
+
+  .games-mobile-home::before{
+    content:"";
+
+    position:fixed;
+    inset:0;
+
+    z-index:-1;
+
+    pointer-events:none;
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(187,228,255,.22) 0%,
+        transparent 20%,
+        transparent 75%,
+        rgba(20,76,115,.18) 100%
+      );
+  }
+
+
+  /* =====================================================
+     HEADER
+  ===================================================== */
+
+  .games-mobile-header{
+    position:relative;
+    z-index:30;
+
+    min-height:76px;
+
+    display:grid;
+
+    grid-template-columns:
+      minmax(110px,1fr)
+      auto
+      minmax(120px,1fr);
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:
+      6px
+      14px
+      0;
+
+    direction:ltr;
+  }
+
+
+  /* פרופיל הילד */
+
+  .games-mobile-profile{
+    justify-self:start;
+
+    min-width:118px;
+    min-height:58px;
+
+    display:flex;
+    align-items:center;
+
+    gap:7px;
+
+    padding:
+      5px
+      8px
+      5px
+      6px;
+
+    direction:rtl;
+
+    border:0;
+    border-radius:20px;
+
+    background:
+      rgba(255,255,255,.92);
+
+    color:#26256d;
+
+    box-shadow:
+      0 6px 18px
+      rgba(51,86,135,.18);
+
+    cursor:pointer;
+  }
+
+  .games-mobile-profile img{
+    width:48px;
+    height:48px;
+
+    flex:0 0 48px;
+
+    object-fit:cover;
+
+    border-radius:50%;
+
+    border:
+      3px solid
+      rgba(255,255,255,.95);
+
+    box-shadow:
+      0 4px 10px
+      rgba(48,72,115,.18);
+  }
+
+  .games-mobile-profile > span{
+    min-width:0;
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    text-align:right;
+  }
+
+  .games-mobile-profile strong{
+    max-width:90px;
+
+    overflow:hidden;
+
+    color:#26256d;
+
+    font-size:15px;
+    line-height:1.1;
+
+    font-weight:900;
+
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+
+  .games-mobile-profile small{
+    margin-top:3px;
+
+    color:#727c9f;
+
+    font-size:11px;
+    font-weight:700;
+  }
+
+  .games-mobile-profile i{
+    color:#5145ac;
+
+    font-size:11px;
+  }
+
+
+  /* לוגו צבעוני */
+
+  .games-mobile-logo{
+    justify-self:center;
+
+    display:flex;
+
+    direction:ltr;
+
+    font-size:38px;
+    line-height:1;
+
+    font-weight:900;
+
+    letter-spacing:-3px;
+
+    filter:
+      drop-shadow(
+        0 3px 3px
+        rgba(255,255,255,.76)
+      );
+  }
+
+  .games-mobile-logo .logo-i{
+    color:#7148d7;
+  }
+
+  .games-mobile-logo .logo-a{
+    color:#d35bba;
+  }
+
+  .games-mobile-logo .logo-k{
+    color:#f2a632;
+  }
+
+  .games-mobile-logo .logo-i2{
+    color:#55b353;
+  }
+
+  .games-mobile-logo .logo-d{
+    color:#359fd5;
+  }
+
+  .games-mobile-logo .logo-s{
+    color:#407ed7;
+  }
+
+
+  /* מטבעות */
+
+  .games-mobile-currency{
+    justify-self:end;
+
+    display:flex;
+
+    gap:7px;
+
+    direction:ltr;
+  }
+
+  .games-mobile-currency button{
+    min-width:62px;
+    height:44px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    gap:5px;
+
+    padding:
+      0
+      10px;
+
+    border:0;
+    border-radius:999px;
+
+    background:
+      rgba(255,255,255,.92);
+
+    color:#29276f;
+
+    font-size:18px;
+    font-weight:900;
+
+    box-shadow:
+      0 5px 15px
+      rgba(48,74,120,.17);
+  }
+
+
+  /* =====================================================
+     WELCOME
+  ===================================================== */
+
+  .games-mobile-welcome{
+    position:relative;
+    z-index:20;
+
+    width:min(88%,390px);
+
+    margin:
+      14px
+      auto
+      8px;
+
+    text-align:center;
+  }
+
+  .games-mobile-ribbon{
+    position:relative;
+
+    min-height:61px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:
+      7px
+      45px;
+
+    border:
+      2px solid
+      rgba(255,255,255,.74);
+
+    border-radius:
+      18px
+      18px
+      12px
+      12px;
+
+    color:#fff;
+
+    background:
+      linear-gradient(
+        180deg,
+        #9d65ef,
+        #7044d8
+      );
+
+    font-size:29px;
+    font-weight:900;
+
+    text-shadow:
+      0 2px 4px
+      rgba(68,34,128,.28);
+
+    box-shadow:
+      0 9px 18px
+      rgba(78,45,168,.24),
+      inset 0 1px 0
+      rgba(255,255,255,.32);
+  }
+
+  .games-mobile-ribbon::before,
+  .games-mobile-ribbon::after{
+    content:"";
+
+    position:absolute;
+    bottom:-18px;
+
+    width:62px;
+    height:42px;
+
+    z-index:-1;
+
+    background:
+      linear-gradient(
+        145deg,
+        #8051e0,
+        #5f36c0
+      );
+  }
+
+  .games-mobile-ribbon::before{
+    right:-25px;
+
+    clip-path:
+      polygon(
+        0 0,
+        100% 16%,
+        68% 100%,
+        0 75%
+      );
+  }
+
+  .games-mobile-ribbon::after{
+    left:-25px;
+
+    clip-path:
+      polygon(
+        0 16%,
+        100% 0,
+        100% 75%,
+        32% 100%
+      );
+  }
+
+  .games-mobile-welcome p{
+    margin:
+      10px
+      0
+      0;
+
+    color:#2e2a70;
+
+    font-size:18px;
+    font-weight:800;
+
+    text-shadow:
+      0 2px 2px
+      rgba(255,255,255,.70);
+  }
+
+
+  /* =====================================================
+     MAP AREA
+  ===================================================== */
+
+  .games-mobile-map{
+    position:relative;
+    z-index:10;
+
+    width:100%;
+    min-height:1220px;
+
+    margin-top:0;
+
+    pointer-events:none;
+  }
+
+
+  /* =====================================================
+     KINGDOM BUTTONS
+  ===================================================== */
+
+  .mobile-kingdom{
+    position:absolute;
+
+    display:block;
+
+    margin:0;
+    padding:0;
+
+    border:0;
+
+    background:transparent;
+
+    pointer-events:auto;
+
+    cursor:pointer;
+  }
+
+  .mobile-kingdom:active{
+    transform:
+      scale(.97);
+  }
+
+
+  /* מיקומי הממלכות על גבי התמונה */
+
+  .mobile-kingdom-jungle{
+    top:105px;
+    left:50%;
+
+    width:190px;
+    height:210px;
+
+    transform:
+      translateX(-50%);
+  }
+
+  .mobile-kingdom-ice{
+    top:305px;
+    left:18px;
+
+    width:180px;
+    height:190px;
+  }
+
+  .mobile-kingdom-desert{
+    top:305px;
+    right:16px;
+
+    width:180px;
+    height:190px;
+  }
+
+  .mobile-kingdom-center{
+    top:535px;
+    left:50%;
+
+    width:190px;
+    height:190px;
+
+    transform:
+      translateX(-50%);
+  }
+
+  .mobile-kingdom-candy{
+    top:740px;
+    left:10px;
+
+    width:183px;
+    height:200px;
+  }
+
+  .mobile-kingdom-water{
+    top:740px;
+    right:10px;
+
+    width:183px;
+    height:200px;
+  }
+
+  .mobile-kingdom-lake{
+    top:995px;
+    left:50%;
+
+    width:188px;
+    height:180px;
+
+    transform:
+      translateX(-50%);
+  }
+
+
+  /* =====================================================
+     KINGDOM LABEL
+  ===================================================== */
+
+  .mobile-kingdom-label{
+    position:absolute;
+    left:50%;
+    bottom:36px;
+
+    transform:
+      translateX(-50%);
+
+    min-width:145px;
+
+    padding:
+      10px
+      16px;
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:center;
+    justify-content:center;
+
+    border:
+      2px solid
+      rgba(255,255,255,.88);
+
+    border-radius:
+      17px;
+
+    color:#fff;
+
+    text-align:center;
+
+    box-shadow:
+      0 7px 16px
+      rgba(35,60,100,.22),
+      inset 0 1px 0
+      rgba(255,255,255,.28);
+  }
+
+  .mobile-kingdom-label strong{
+    font-size:20px;
+    line-height:1.1;
+
+    font-weight:900;
+  }
+
+  .mobile-kingdom-label small{
+    margin-top:4px;
+
+    font-size:13px;
+    font-weight:800;
+
+    color:
+      rgba(255,255,255,.91);
+  }
+
+
+  /* צבעים */
+
+  .mobile-kingdom-jungle
+  .mobile-kingdom-label{
+    background:
+      linear-gradient(
+        180deg,
+        #56b94e,
+        #308936
+      );
+  }
+
+  .mobile-kingdom-ice
+  .mobile-kingdom-label{
+    background:
+      linear-gradient(
+        180deg,
+        #58a6e5,
+        #3478c4
+      );
+  }
+
+  .mobile-kingdom-desert
+  .mobile-kingdom-label{
+    background:
+      linear-gradient(
+        180deg,
+        #e29531,
+        #b85e21
+      );
+  }
+
+  .mobile-kingdom-center
+  .mobile-kingdom-label{
+    bottom:29px;
+
+    min-width:160px;
+
+    background:
+      linear-gradient(
+        180deg,
+        #9a5eea,
+        #6540c7
+      );
+  }
+
+  .mobile-kingdom-candy
+  .mobile-kingdom-label{
+    background:
+      linear-gradient(
+        180deg,
+        #ec609c,
+        #bf3e7b
+      );
+  }
+
+  .mobile-kingdom-water
+  .mobile-kingdom-label{
+    background:
+      linear-gradient(
+        180deg,
+        #2b9ed8,
+        #276dba
+      );
+  }
+
+  .mobile-kingdom-lake
+  .mobile-kingdom-label{
+    background:
+      linear-gradient(
+        180deg,
+        #54af4c,
+        #367e38
+      );
+  }
+
+
+  /* =====================================================
+     PROGRESS CARD
+  ===================================================== */
+
+  .mobile-progress-card{
+    position:absolute;
+
+    left:50%;
+    bottom:-13px;
+
+    transform:
+      translateX(-50%);
+
+    width:158px;
+    min-height:57px;
+
+    padding:
+      8px
+      13px
+      9px;
+
+    display:block;
+
+    border:
+      2px solid
+      rgba(255,255,255,.92);
+
+    border-radius:
+      15px;
+
+    background:
+      rgba(255,255,255,.95);
+
+    color:#303268;
+
+    box-shadow:
+      0 7px 14px
+      rgba(49,73,111,.18);
+  }
+
+  .mobile-progress-card b{
+    display:block;
+
+    margin-bottom:7px;
+
+    font-size:11px;
+    line-height:1;
+
+    font-weight:900;
+
+    text-align:right;
+  }
+
+  .mobile-progress-track{
+    display:block;
+
+    width:100%;
+    height:6px;
+
+    overflow:hidden;
+
+    border-radius:999px;
+
+    background:#dfe5f2;
+  }
+
+  .mobile-progress-track > span{
+    display:block;
+
+    height:100%;
+
+    border-radius:inherit;
+
+    background:
+      linear-gradient(
+        90deg,
+        #6c4eff,
+        #39a7ff
+      );
+  }
+
+  .mobile-progress-card > i{
+    position:absolute;
+
+    top:14px;
+    left:10px;
+
+    width:28px;
+    height:28px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:50%;
+
+    color:#fff;
+
+    background:
+      linear-gradient(
+        145deg,
+        #7b82b5,
+        #4e5689
+      );
+
+    font-size:12px;
+  }
+
+  .mobile-kingdom.locked{
+    filter:
+      saturate(.82);
+  }
+
+
+  /* =====================================================
+     RIGHT TOOLS BAR
+  ===================================================== */
+
+  .games-mobile-tools{
+    position:fixed;
+
+    top:178px;
+    right:0;
+
+    z-index:50;
+
+    width:88px;
+
+    padding:
+      12px
+      7px;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:12px;
+
+    border:
+      1px solid
+      rgba(129,90,228,.30);
+
+    border-right:0;
+
+    border-radius:
+      24px
+      0
+      0
+      24px;
+
+    background:
+      rgba(248,246,255,.90);
+
+    backdrop-filter:
+      blur(15px);
+
+    -webkit-backdrop-filter:
+      blur(15px);
+
+    box-shadow:
+      -7px
+      10px
+      25px
+      rgba(63,57,127,.18);
+  }
+
+  .games-mobile-tools button{
+    width:74px;
+    min-height:90px;
+
+    padding:
+      7px
+      4px;
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:center;
+    justify-content:center;
+
+    gap:6px;
+
+    border:
+      1px solid
+      rgba(222,218,241,.92);
+
+    border-radius:
+      20px;
+
+    background:
+      rgba(255,255,255,.94);
+
+    color:#312b73;
+
+    box-shadow:
+      0 5px 12px
+      rgba(52,61,110,.12);
+
+    cursor:pointer;
+  }
+
+  .games-mobile-tools button span{
+    display:grid;
+    place-items:center;
+
+    min-height:40px;
+
+    font-size:34px;
+    line-height:1;
+  }
+
+  .games-mobile-tools button strong{
+    font-size:13px;
+    line-height:1.15;
+
+    font-weight:900;
+
+    text-align:center;
+  }
+
+
+  /* =====================================================
+     GUIDE CHARACTER
+  ===================================================== */
+
+  .games-mobile-guide{
+    position:absolute;
+
+    top:1125px;
+    left:14px;
+
+    z-index:25;
+
+    display:flex;
+
+    align-items:flex-end;
+
+    pointer-events:none;
+  }
+
+  .games-mobile-guide-character{
+    font-size:88px;
+    line-height:1;
+
+    filter:
+      drop-shadow(
+        0 8px 12px
+        rgba(63,46,122,.24)
+      );
+  }
+
+  .games-mobile-guide-bubble{
+    position:relative;
+
+    width:185px;
+
+    margin:
+      0
+      0
+      10px
+      -7px;
+
+    padding:
+      13px
+      16px;
+
+    border:
+      2px solid
+      rgba(255,255,255,.94);
+
+    border-radius:
+      24px
+      24px
+      24px
+      8px;
+
+    background:
+      rgba(255,255,255,.94);
+
+    color:#302b72;
+
+    box-shadow:
+      0 8px 18px
+      rgba(48,70,111,.16);
+  }
+
+  .games-mobile-guide-bubble strong{
+    display:block;
+
+    font-size:17px;
+    font-weight:900;
+  }
+
+  .games-mobile-guide-bubble span{
+    display:block;
+
+    margin-top:3px;
+
+    color:#6d7393;
+
+    font-size:12px;
+    line-height:1.35;
+
+    font-weight:700;
+  }
+
+
+  /* =====================================================
+     BOTTOM NAV
+  ===================================================== */
+
+  .games-mobile-bottom-nav{
+    position:fixed;
+
+    right:14px;
+    bottom:
+      max(
+        12px,
+        env(safe-area-inset-bottom)
+      );
+    left:14px;
+
+    z-index:80;
+
+    min-height:92px;
+
+    display:grid;
+
+    grid-template-columns:
+      1fr
+      1.12fr
+      1fr;
+
+    align-items:end;
+
+    padding:
+      7px;
+
+    border:
+      1px solid
+      rgba(255,255,255,.82);
+
+    border-radius:
+      27px;
+
+    background:
+      rgba(255,255,255,.90);
+
+    backdrop-filter:
+      blur(18px);
+
+    -webkit-backdrop-filter:
+      blur(18px);
+
+    box-shadow:
+      0 12px 28px
+      rgba(41,69,112,.22);
+  }
+
+  .games-mobile-bottom-nav button{
+    min-width:0;
+    min-height:76px;
+
+    padding:
+      7px
+      5px;
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:center;
+    justify-content:center;
+
+    gap:3px;
+
+    border:0;
+    border-radius:21px;
+
+    background:transparent;
+
+    color:#302b72;
+
+    cursor:pointer;
+  }
+
+  .games-mobile-bottom-nav button span{
+    font-size:34px;
+    line-height:1;
+  }
+
+  .games-mobile-bottom-nav button strong{
+    font-size:13px;
+    line-height:1.15;
+
+    font-weight:900;
+
+    text-align:center;
+  }
+
+  .games-mobile-bottom-nav button.active{
+    min-height:99px;
+
+    margin-top:-29px;
+
+    border:
+      2px solid
+      rgba(255,255,255,.76);
+
+    color:#fff;
+
+    background:
+      linear-gradient(
+        180deg,
+        #ac70f3,
+        #7547db
+      );
+
+    box-shadow:
+      0 10px 20px
+      rgba(102,63,210,.28),
+      inset 0 1px 0
+      rgba(255,255,255,.28);
+  }
+
+  .games-mobile-bottom-nav button.active span{
+    font-size:43px;
+  }
+
+
+  /* =====================================================
+     SMALL MOBILE
+  ===================================================== */
+
+  @media (max-width:390px){
+
+    .games-mobile-header{
+      padding-right:8px;
+      padding-left:8px;
+
+      grid-template-columns:
+        minmax(100px,1fr)
+        auto
+        minmax(105px,1fr);
+    }
+
+    .games-mobile-logo{
+      font-size:30px;
+    }
+
+    .games-mobile-currency button{
+      min-width:53px;
+
+      padding:
+        0
+        7px;
+
+      font-size:15px;
+    }
+
+    .games-mobile-tools{
+      width:78px;
+    }
+
+    .games-mobile-tools button{
+      width:65px;
+      min-height:81px;
+    }
+
+    .games-mobile-tools button span{
+      font-size:29px;
+    }
+
+    .games-mobile-tools button strong{
+      font-size:11px;
+    }
+
+  }
+
+}
 </style>
 
 
@@ -31215,6 +32644,169 @@ document.addEventListener(
     ){
       closeGamesCategory();
     }
+
+  }
+);
+</script>
+<script>
+function syncMobileKidHeader(){
+  const desktopAvatar =
+    document.getElementById("userAvatar");
+
+  const desktopName =
+    document.getElementById("userName");
+
+  const desktopGrade =
+    document.getElementById("dashboardKidGrade");
+
+  const mobileAvatar =
+    document.getElementById("mobileKidAvatar");
+
+  const mobileName =
+    document.getElementById("mobileKidName");
+
+  const mobileGrade =
+    document.getElementById("mobileKidGrade");
+
+  if(
+    desktopAvatar &&
+    mobileAvatar
+  ){
+    mobileAvatar.src =
+      desktopAvatar.src;
+  }
+
+  if(
+    desktopName &&
+    mobileName
+  ){
+    mobileName.textContent =
+      `היי ${desktopName.textContent}!`;
+  }
+
+  if(
+    desktopGrade &&
+    mobileGrade
+  ){
+    mobileGrade.textContent =
+      desktopGrade.textContent;
+  }
+}
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    syncMobileKidHeader();
+
+
+    /* המשך ללמוד */
+
+    document
+      .getElementById("mobileContinueBtn")
+      ?.addEventListener(
+        "click",
+        () => {
+          showLearning("learn");
+        }
+      );
+
+
+    document
+      .getElementById("mobileContinueLearning")
+      ?.addEventListener(
+        "click",
+        () => {
+          showLearning("learn");
+        }
+      );
+
+
+    /* השיעורים שלי */
+
+    document
+      .getElementById("mobileLessonsBtn")
+      ?.addEventListener(
+        "click",
+        () => {
+          window.location.href =
+            "/he/workspace/";
+        }
+      );
+
+
+    /* התקדמות */
+
+    document
+      .getElementById("mobileProgressBtn")
+      ?.addEventListener(
+        "click",
+        () => {
+
+          const progressButton =
+            document.querySelector(
+              '[onclick*="openProgressView"]'
+            );
+
+          if(progressButton){
+            progressButton.click();
+          }else{
+            console.warn(
+              "Progress view button not found"
+            );
+          }
+
+        }
+      );
+
+
+    /* לחיצה על ממלכה */
+
+    document
+      .querySelectorAll(
+        ".mobile-kingdom[data-subject]"
+      )
+      .forEach(
+        kingdom => {
+
+          kingdom.addEventListener(
+            "click",
+            () => {
+
+              if(
+                kingdom.classList.contains(
+                  "locked"
+                )
+              ){
+                return;
+              }
+
+              const subject =
+                kingdom.dataset.subject;
+
+              const desktopSubjectButton =
+                [...document.querySelectorAll(
+                  "[data-subject]"
+                )]
+                .find(
+                  button =>
+                    button !== kingdom &&
+                    button.dataset.subject === subject
+                );
+
+              if(desktopSubjectButton){
+                desktopSubjectButton.click();
+              }else{
+                console.warn(
+                  "Desktop subject button not found:",
+                  subject
+                );
+              }
+
+            }
+          );
+
+        }
+      );
 
   }
 );
