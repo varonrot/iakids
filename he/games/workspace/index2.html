@@ -11030,35 +11030,60 @@ body.lesson-theme-science
 
 <section class="kingdom-map-area">
 <div
-  id="jungleWorldView"
-  class="jungle-world-view"
+  id="gamesKingdomView"
+  class="games-kingdom-view"
   aria-hidden="true"
 >
+  <div class="games-kingdom-overlay"></div>
+
   <button
     type="button"
-    class="jungle-back-button"
-    onclick="closeJungleWorld()"
+    class="games-kingdom-back"
+    id="gamesKingdomBack"
   >
     <i class="fa-solid fa-arrow-right"></i>
-    חזרה למפת הממלכות
+    חזרה למפת המשחקים
   </button>
 
-  <div class="jungle-world-content">
-    <!-- בהמשך נוסיף כאן את 8 האזורים כלחצנים -->
-  </div>
+  <header class="games-kingdom-header">
+
+    <div
+      class="games-kingdom-icon"
+      id="gamesKingdomIcon"
+    >
+      🎮
+    </div>
+
+    <div>
+      <h2 id="gamesKingdomTitle">
+        עולם המשחקים
+      </h2>
+
+      <p id="gamesKingdomSubtitle">
+        בחרו משחק והתחילו לשחק
+      </p>
+    </div>
+
+  </header>
+
+  <div
+    class="games-kingdom-grid"
+    id="gamesKingdomGrid"
+  ></div>
 </div>
   <!-- ממלכת השלג -->
   <button
     type="button"
     class="kingdom-label kingdom-label-snow"
     data-kingdom="snow"
+    data-games-category="math"
   >
     <strong class="kingdom-label-title">
-      ממלכת השלג
+      ממלכת המספרים
     </strong>
 
     <span class="kingdom-label-subject">
-      מתמטיקה
+      חשבון ומתמטיקה
     </span>
 
     <span class="kingdom-label-progress">
@@ -11106,13 +11131,14 @@ body.lesson-theme-science
     type="button"
     class="kingdom-label kingdom-label-jungle"
     data-kingdom="jungle"
+    data-games-category="science"
   >
     <strong class="kingdom-label-title">
-      ממלכת הג׳ונגל
+      ממלכת המדע
     </strong>
 
     <span class="kingdom-label-subject">
-      גאוגרפיה
+      מדעים וגאוגרפיה
     </span>
 
     <span class="kingdom-label-progress">
@@ -11133,13 +11159,14 @@ body.lesson-theme-science
     type="button"
     class="kingdom-label kingdom-label-desert"
     data-kingdom="desert"
+    data-games-category="hebrew"
   >
     <strong class="kingdom-label-title">
-      ממלכת המדבר
+      ממלכת המילים
     </strong>
 
     <span class="kingdom-label-subject">
-      היסטוריה
+      עברית ושפה
     </span>
 
     <span class="kingdom-label-progress">
@@ -11160,13 +11187,14 @@ body.lesson-theme-science
     type="button"
     class="kingdom-label kingdom-label-candy"
     data-kingdom="candy"
+    data-games-category="english"
   >
     <strong class="kingdom-label-title">
-      ממלכת הלב
+      ממלכת האנגלית
     </strong>
 
     <span class="kingdom-label-subject">
-      עברית
+      English Games
     </span>
 
     <span class="kingdom-label-progress">
@@ -11187,13 +11215,14 @@ body.lesson-theme-science
     type="button"
     class="kingdom-label kingdom-label-ocean"
     data-kingdom="ocean"
+    data-games-category="logic"
   >
     <strong class="kingdom-label-title">
-      ממלכת הים
+      ממלכת החשיבה
     </strong>
 
     <span class="kingdom-label-subject">
-      אנגלית
+      לוגיקה וזיכרון
     </span>
 
     <span class="kingdom-label-progress">
@@ -11214,13 +11243,14 @@ body.lesson-theme-science
     type="button"
     class="kingdom-label kingdom-label-shadow"
     data-kingdom="shadow"
+    data-games-category="habits"
   >
     <strong class="kingdom-label-title">
-      ממלכת הצללים
+      ממלכת האתגרים
     </strong>
 
     <span class="kingdom-label-subject">
-      תנ״ך
+      משימות והרגלים
     </span>
 
     <span class="kingdom-label-progress">
@@ -11241,13 +11271,14 @@ body.lesson-theme-science
     type="button"
     class="kingdom-label kingdom-label-center"
     data-kingdom="center"
+    data-games-category="all"
   >
     <strong class="kingdom-label-title">
-      הממלכה שלנו
+      ספריית המשחקים
     </strong>
 
     <span class="kingdom-label-subject">
-      מסע הלמידה
+      כל המשחקים במקום אחד
     </span>
 
     <span class="kingdom-label-progress">
@@ -25232,108 +25263,427 @@ html.windows .kingdom-label-snow:hover{
     #27539b
   );
 }
-    /* =====================================================
-   JUNGLE WORLD DRILL DOWN
+
+ /* =====================================================
+   GAMES KINGDOM ZOOM VIEW
 ===================================================== */
 
 .kingdom-map-area{
   position:relative !important;
   overflow:hidden !important;
-
-  /*
-    מאפשר לתמונת העולם הראשית לבצע זום
-    בלי להזיז את הסרגלים שמסביב.
-  */
   isolation:isolate;
 }
 
 
-/* שכבת הקלוז-אפ של הג׳ונגל */
+/* שכבת העולם שנפתחת */
 
-.jungle-world-view{
+.games-kingdom-view{
   position:absolute;
   inset:0;
 
-  z-index:40;
+  z-index:100;
 
-  overflow:hidden;
+  padding:
+    86px
+    38px
+    120px;
+
+  overflow-y:auto;
+  overflow-x:hidden;
 
   opacity:0;
   visibility:hidden;
   pointer-events:none;
 
+  transform:scale(1.10);
+
   border-radius:inherit;
 
-  background-image:
-    url("/assets/games/workspace/games-world-background.webp");
-
-  background-size:cover;
-  background-position:center center;
-  background-repeat:no-repeat;
-
-  /*
-    מתחיל מעט מוקטן כדי שהכניסה תרגיש
-    כמו תנועה פנימה לתוך הג׳ונגל.
-  */
-  transform:scale(1.12);
-
-  filter:
-    brightness(.78)
-    blur(2px);
+  background:
+    radial-gradient(
+      circle at 50% 20%,
+      rgba(66,143,255,.24),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(6,17,42,.96),
+      rgba(10,25,58,.94)
+    );
 
   transition:
-    opacity .55s ease,
-    transform 1.05s cubic-bezier(.2,.8,.2,1),
-    filter .8s ease,
-    visibility 0s linear .8s;
+    opacity .45s ease,
+    transform .75s cubic-bezier(.2,.8,.2,1),
+    visibility 0s linear .75s;
 }
 
 
 /* מצב פתוח */
 
-.kingdom-map-area.jungle-open
-.jungle-world-view{
+.kingdom-map-area.games-category-open
+.games-kingdom-view{
   opacity:1;
   visibility:visible;
   pointer-events:auto;
 
   transform:scale(1);
 
-  filter:
-    brightness(1)
-    blur(0);
-
   transition:
-    opacity .5s ease,
-    transform 1.05s cubic-bezier(.2,.8,.2,1),
-    filter .8s ease,
+    opacity .45s ease,
+    transform .75s cubic-bezier(.2,.8,.2,1),
     visibility 0s;
 }
 
 
-/* הכרטיסים של הממלכות נעלמים בזמן הכניסה */
+/* שכבת צבע פנימית */
 
-.kingdom-map-area.jungle-opening
+.games-kingdom-overlay{
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    radial-gradient(
+      circle at 50% 10%,
+      rgba(112,72,255,.22),
+      transparent 38%
+    );
+}
+
+
+/* בזמן הזום מסתירים את הכרטיסים */
+
+.kingdom-map-area.games-category-opening
 .kingdom-label,
-.kingdom-map-area.jungle-open
+.kingdom-map-area.games-category-open
 .kingdom-label{
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+
+
+/* מסתירים גם את הסרגל התחתון בזמן הפתיחה */
+
+.kingdom-map-area.games-category-opening
+.games-bottom-dock,
+.kingdom-map-area.games-category-open
+.games-bottom-dock{
   opacity:0;
   pointer-events:none;
 }
 
 
-/* אנימציית זום של המפה לכיוון הג׳ונגל */
+/* אנימציית הזום של המפה */
 
-.kingdom-map-area.jungle-opening{
+.kingdom-map-area.games-category-opening{
   animation:
-    kingdomZoomIntoJungle
-    .72s
+    gamesKingdomZoom
+    .65s
     cubic-bezier(.3,.75,.25,1)
     forwards;
 }
 
 
-@keyframes kingdomZoomIntoJungle{
+@keyframes gamesKingdomZoom{
+
+  0%{
+    background-size:cover;
+    filter:brightness(1);
+  }
+
+  55%{
+    background-size:140%;
+    filter:brightness(.88);
+  }
+
+  100%{
+    background-size:175%;
+    filter:brightness(.55);
+  }
+
+}
+
+
+/* כפתור חזרה */
+
+.games-kingdom-back{
+  position:absolute;
+
+  top:22px;
+  right:24px;
+
+  min-height:48px;
+
+  padding:
+    0
+    18px;
+
+  display:flex;
+  align-items:center;
+  gap:9px;
+
+  border:
+    1px solid
+    rgba(150,185,255,.28);
+
+  border-radius:16px;
+
+  color:#fff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(35,48,91,.96),
+      rgba(15,25,57,.96)
+    );
+
+  box-shadow:
+    0 9px 24px
+    rgba(0,0,0,.28);
+
+  font-size:15px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  z-index:4;
+}
+
+
+.games-kingdom-back:hover{
+  transform:translateY(-2px);
+
+  border-color:
+    rgba(164,195,255,.55);
+}
+
+
+/* כותרת העולם */
+
+.games-kingdom-header{
+  position:relative;
+  z-index:3;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:18px;
+
+  margin:
+    0
+    auto
+    28px;
+
+  color:#fff;
+
+  text-align:right;
+}
+
+
+.games-kingdom-icon{
+  width:78px;
+  height:78px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(122,82,255,.95),
+      rgba(66,46,174,.96)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.22);
+
+  box-shadow:
+    0 12px 28px
+    rgba(25,15,80,.38);
+
+  font-size:38px;
+}
+
+
+.games-kingdom-header h2{
+  margin:0;
+
+  font-size:
+    clamp(
+      30px,
+      3vw,
+      46px
+    );
+
+  font-weight:900;
+
+  text-shadow:
+    0 4px 14px
+    rgba(0,0,0,.35);
+}
+
+
+.games-kingdom-header p{
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    rgba(220,230,255,.78);
+
+  font-size:15px;
+  font-weight:700;
+}
+
+
+/* רשת המשחקים */
+
+.games-kingdom-grid{
+  position:relative;
+  z-index:3;
+
+  width:min(1050px,100%);
+
+  margin:auto;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0,1fr)
+    );
+
+  gap:16px;
+}
+
+
+/* כרטיס משחק */
+
+.games-kingdom-card{
+  min-width:0;
+  min-height:145px;
+
+  padding:
+    17px
+    13px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:8px;
+
+  text-align:center;
+
+  text-decoration:none;
+
+  border:
+    1px solid
+    rgba(151,182,255,.22);
+
+  border-radius:22px;
+
+  color:#fff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(34,49,92,.94),
+      rgba(16,25,57,.96)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.07),
+
+    0 12px 28px
+    rgba(0,5,25,.30);
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.games-kingdom-card:hover{
+  transform:
+    translateY(-5px)
+    scale(1.02);
+
+  border-color:
+    rgba(119,181,255,.62);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.10),
+
+    0 18px 34px
+    rgba(0,5,25,.42),
+
+    0 0 20px
+    rgba(70,140,255,.14);
+}
+
+
+.games-kingdom-card-icon{
+  font-size:40px;
+  line-height:1;
+}
+
+
+.games-kingdom-card strong{
+  font-size:16px;
+  line-height:1.25;
+}
+
+
+.games-kingdom-card small{
+  color:
+    rgba(204,216,245,.68);
+
+  font-size:11px;
+}
+
+
+/* מובייל */
+
+@media(max-width:900px){
+
+  .games-kingdom-view{
+    padding:
+      82px
+      18px
+      40px;
+  }
+
+  .games-kingdom-grid{
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0,1fr)
+      );
+  }
+
+}
+
+
+@media(max-width:520px){
+
+  .games-kingdom-grid{
+    grid-template-columns:1fr;
+  }
+
+}
 
   0%{
     background-size:cover;
@@ -29925,8 +30275,8 @@ if (document.readyState === "loading") {
   initLessonRenderer();
 
 }
-    /* =====================================================
-   JUNGLE WORLD DRILL DOWN
+/* =====================================================
+   GAMES KINGDOM DRILL DOWN
 ===================================================== */
 
 const kingdomMapArea =
@@ -29934,104 +30284,632 @@ const kingdomMapArea =
     ".kingdom-map-area"
   );
 
-const jungleKingdomButton =
-  document.querySelector(
-    '[data-kingdom="jungle"]'
-  );
-
-const jungleWorldView =
+const gamesKingdomView =
   document.getElementById(
-    "jungleWorldView"
+    "gamesKingdomView"
+  );
+
+const gamesKingdomGrid =
+  document.getElementById(
+    "gamesKingdomGrid"
+  );
+
+const gamesKingdomTitle =
+  document.getElementById(
+    "gamesKingdomTitle"
+  );
+
+const gamesKingdomSubtitle =
+  document.getElementById(
+    "gamesKingdomSubtitle"
+  );
+
+const gamesKingdomIcon =
+  document.getElementById(
+    "gamesKingdomIcon"
+  );
+
+const gamesKingdomBack =
+  document.getElementById(
+    "gamesKingdomBack"
   );
 
 
-function openJungleWorld(){
+/* =====================================================
+   רשימות המשחקים
+
+   הנתיבים כאן תואמים לשמות התיקיות
+   הקיימות אצלך תחת /games/
+===================================================== */
+
+const gamesCategories = {
+
+  math: {
+    title: "ממלכת המספרים",
+    subtitle: "משחקי חשבון ומתמטיקה",
+    icon: "🔢",
+
+    games: [
+      {
+        title: "אמת או שקר",
+        icon: "✅",
+        path: "/games/true-false-math/"
+      },
+      {
+        title: "גדול, קטן או שווה",
+        icon: "⚖️",
+        path: "/games/compare-numbers/"
+      },
+      {
+        title: "זוגי או אי־זוגי",
+        icon: "2️⃣",
+        path: "/games/odd-even-sort/"
+      },
+      {
+        title: "עיגול מספרים",
+        icon: "🔵",
+        path: "/games/rounding/"
+      },
+      {
+        title: "עשרות ויחידות",
+        icon: "🔟",
+        path: "/games/tens-units/"
+      },
+      {
+        title: "בינגו כפל",
+        icon: "🎱",
+        path: "/games/multiplication-bingo/"
+      },
+      {
+        title: "פירמידת חיבור",
+        icon: "🔺",
+        path: "/games/addition-pyramid/"
+      },
+      {
+        title: "ציר המספרים",
+        icon: "🐸",
+        path: "/games/number-line-jumps/"
+      },
+      {
+        title: "היקפים",
+        icon: "📐",
+        path: "/games/perimeter/"
+      },
+      {
+        title: "מאזניים",
+        icon: "⚖️",
+        path: "/games/balance-scale/"
+      },
+      {
+        title: "שעון מחוגים",
+        icon: "🕘",
+        path: "/games/clock-match/"
+      },
+      {
+        title: "מד חום",
+        icon: "🌡️",
+        path: "/games/thermometer/"
+      }
+    ]
+  },
+
+
+  hebrew: {
+    title: "ממלכת המילים",
+    subtitle: "משחקי עברית, קריאה ושפה",
+    icon: "📜",
+
+    games: [
+      {
+        title: "שגיאת כתיב",
+        icon: "✏️",
+        path: "/games/spelling-error/"
+      },
+      {
+        title: "זכר או נקבה",
+        icon: "🚻",
+        path: "/games/gender-sort/"
+      },
+      {
+        title: "חרוזים",
+        icon: "🎵",
+        path: "/games/rhymes/"
+      },
+      {
+        title: "הפכים",
+        icon: "↔️",
+        path: "/games/opposites-he/"
+      },
+      {
+        title: "מילים נרדפות",
+        icon: "🤝",
+        path: "/games/synonyms/"
+      },
+      {
+        title: "אות חסרה",
+        icon: "🅰️",
+        path: "/games/missing-letter/"
+      },
+      {
+        title: "סוגי מילים",
+        icon: "🔤",
+        path: "/games/word-types/"
+      },
+      {
+        title: "תפזורת",
+        icon: "🔍",
+        path: "/games/word-search/"
+      },
+      {
+        title: "שורשים",
+        icon: "🌳",
+        path: "/games/roots/"
+      },
+      {
+        title: "סדר את המשפט",
+        icon: "🧩",
+        path: "/games/sentence-scramble/"
+      },
+      {
+        title: "השלם את הסיפור",
+        icon: "📖",
+        path: "/games/story-fill/"
+      },
+      {
+        title: "סיפור בתמונות",
+        icon: "🖼️",
+        path: "/games/picture-story/"
+      }
+    ]
+  },
+
+
+  english: {
+    title: "English Kingdom",
+    subtitle: "English learning games",
+    icon: "🇬🇧",
+
+    games: [
+      {
+        title: "ABC Order",
+        icon: "🔤",
+        path: "/games/abc-order-en/"
+      },
+      {
+        title: "Spelling Bee",
+        icon: "🐝",
+        path: "/games/spelling-bee/"
+      },
+      {
+        title: "Word Match",
+        icon: "🖇️",
+        path: "/games/english-word-match/"
+      },
+      {
+        title: "Animals",
+        icon: "🦁",
+        path: "/games/animals-en/"
+      },
+      {
+        title: "Fruit & Veggies",
+        icon: "🍎",
+        path: "/games/fruit-veggie-sort/"
+      },
+      {
+        title: "Colors & Shapes",
+        icon: "🎨",
+        path: "/games/colors-shapes/"
+      },
+      {
+        title: "Body Parts",
+        icon: "🦵",
+        path: "/games/body-parts/"
+      },
+      {
+        title: "Days of Week",
+        icon: "📅",
+        path: "/games/days-of-week/"
+      },
+      {
+        title: "Action Verbs",
+        icon: "🏃",
+        path: "/games/action-verbs/"
+      },
+      {
+        title: "Fill the Gap",
+        icon: "⬜",
+        path: "/games/fill-the-gap/"
+      },
+      {
+        title: "Opposites",
+        icon: "↔️",
+        path: "/games/opposites-en/"
+      },
+      {
+        title: "Pronouns",
+        icon: "🗣️",
+        path: "/games/pronouns/"
+      },
+      {
+        title: "Numbers to Words",
+        icon: "5️⃣",
+        path: "/games/numbers-to-words/"
+      },
+      {
+        title: "Singular–Plural",
+        icon: "🐱",
+        path: "/games/plural-en/"
+      }
+    ]
+  },
+
+
+  science: {
+    title: "ממלכת המדע",
+    subtitle: "משחקי מדעים וגאוגרפיה",
+    icon: "🌍",
+
+    games: [
+      {
+        title: "שרשרת המזון",
+        icon: "🦊",
+        path: "/games/food-chain/"
+      },
+      {
+        title: "מחזור המים",
+        icon: "💧",
+        path: "/games/water-cycle/"
+      },
+      {
+        title: "מערכת השמש",
+        icon: "🪐",
+        path: "/games/solar-system/"
+      },
+      {
+        title: "מזג אוויר ולבוש",
+        icon: "🧥",
+        path: "/games/weather-clothes/"
+      },
+      {
+        title: "מצבי צבירה",
+        icon: "🧊",
+        path: "/games/states-of-matter/"
+      },
+      {
+        title: "חלקי הצמח",
+        icon: "🌷",
+        path: "/games/plant-parts/"
+      },
+      {
+        title: "ערי בירה",
+        icon: "🏛️",
+        path: "/games/capitals/"
+      },
+      {
+        title: "דגלי מדינות",
+        icon: "🚩",
+        path: "/games/flags/"
+      },
+      {
+        title: "מפת ישראל",
+        icon: "🇮🇱",
+        path: "/games/israel-map/"
+      },
+      {
+        title: "יבשות",
+        icon: "🗺️",
+        path: "/games/continents/"
+      },
+      {
+        title: "עונות השנה",
+        icon: "🍂",
+        path: "/games/seasons/"
+      },
+      {
+        title: "קולות חיות",
+        icon: "🔊",
+        path: "/games/animal-sounds/"
+      }
+    ]
+  },
+
+
+  logic: {
+    title: "ממלכת החשיבה",
+    subtitle: "לוגיקה, זיכרון וחידות",
+    icon: "🧩",
+
+    games: [
+      {
+        title: "כוון את הרובוט",
+        icon: "🤖",
+        path: "/games/robot-grid/"
+      },
+      {
+        title: "זהה תבנית",
+        icon: "🔶",
+        path: "/games/pattern-match/"
+      },
+      {
+        title: "משחק הזיכרון",
+        icon: "🧠",
+        path: "/games/memory-classic/"
+      },
+      {
+        title: "סודוקו 4×4",
+        icon: "🔢",
+        path: "/games/sudoku-4x4/"
+      },
+      {
+        title: "מבוך",
+        icon: "🌀",
+        path: "/games/maze/"
+      },
+      {
+        title: "סיימון",
+        icon: "🚦",
+        path: "/games/simon-says/"
+      },
+      {
+        title: "פיקסל ארט",
+        icon: "🎨",
+        path: "/games/pixel-art-code/"
+      },
+      {
+        title: "החלק החסר",
+        icon: "🧩",
+        path: "/games/puzzle-piece/"
+      },
+      {
+        title: "מפתחות ומנעולים",
+        icon: "🔑",
+        path: "/games/keys-locks/"
+      },
+      {
+        title: "מאזני לוגיקה",
+        icon: "🤔",
+        path: "/games/logic-scale/"
+      }
+    ]
+  },
+
+
+  habits: {
+    title: "ממלכת האתגרים",
+    subtitle: "משימות, הרגלים ויצירה",
+    icon: "🚀",
+
+    games: [
+      {
+        title: "רשימת משימות",
+        icon: "✅",
+        path: "/games/task-checklist/"
+      },
+      {
+        title: "מטרות יומיות",
+        icon: "🎯",
+        path: "/games/daily-goals/"
+      },
+      {
+        title: "טיימר חללית",
+        icon: "🚀",
+        path: "/games/pomodoro-rocket/"
+      },
+      {
+        title: "גלגל הפסקות",
+        icon: "🎡",
+        path: "/games/break-wheel/"
+      },
+      {
+        title: "יומן מצב רוח",
+        icon: "😊",
+        path: "/games/mood-journal/"
+      },
+      {
+        title: "פלאשקארדס",
+        icon: "🗂️",
+        path: "/games/flashcards/"
+      },
+      {
+        title: "בוחן עצמי",
+        icon: "📝",
+        path: "/games/quiz-maker/"
+      },
+      {
+        title: "פיקסל ארט",
+        icon: "🎨",
+        path: "/games/pixel-art-code/"
+      }
+    ]
+  }
+
+};
+
+
+/* מחבר את כל המשחקים לספרייה המרכזית */
+
+gamesCategories.all = {
+  title: "ספריית המשחקים",
+  subtitle: "כל המשחקים במקום אחד",
+  icon: "🎮",
+
+  games: [
+    ...gamesCategories.math.games,
+    ...gamesCategories.hebrew.games,
+    ...gamesCategories.english.games,
+    ...gamesCategories.science.games,
+    ...gamesCategories.logic.games,
+    ...gamesCategories.habits.games
+  ]
+};
+
+
+/* מונע הכנסת HTML מתוך טקסט */
+
+function escapeGameText(value){
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+/* מצייר את כרטיסי המשחקים */
+
+function renderGamesCategory(categoryKey){
+
+  const category =
+    gamesCategories[categoryKey];
+
+  if(
+    !category ||
+    !gamesKingdomGrid
+  ){
+    return false;
+  }
+
+
+  gamesKingdomTitle.textContent =
+    category.title;
+
+  gamesKingdomSubtitle.textContent =
+    category.subtitle;
+
+  gamesKingdomIcon.textContent =
+    category.icon;
+
+
+  gamesKingdomGrid.innerHTML =
+    category.games
+      .map(game => `
+
+        <a
+          class="games-kingdom-card"
+          href="${escapeGameText(game.path)}"
+        >
+          <span class="games-kingdom-card-icon">
+            ${escapeGameText(game.icon)}
+          </span>
+
+          <strong>
+            ${escapeGameText(game.title)}
+          </strong>
+
+          <small>
+            לחצו כדי לשחק
+          </small>
+        </a>
+
+      `)
+      .join("");
+
+
+  return true;
+
+}
+
+
+/* פתיחת עולם משחקים */
+
+function openGamesCategory(categoryKey){
 
   if(
     !kingdomMapArea ||
-    !jungleWorldView
+    !gamesKingdomView
   ){
     return;
   }
 
-  /*
-    מונע לחיצה כפולה בזמן האנימציה.
-  */
+
   if(
     kingdomMapArea.classList.contains(
-      "jungle-opening"
+      "games-category-opening"
     ) ||
     kingdomMapArea.classList.contains(
-      "jungle-open"
+      "games-category-open"
     )
   ){
     return;
   }
 
 
+  const rendered =
+    renderGamesCategory(
+      categoryKey
+    );
+
+
+  if(!rendered){
+    console.error(
+      "Unknown games category:",
+      categoryKey
+    );
+
+    return;
+  }
+
+
   kingdomMapArea.classList.add(
-    "jungle-opening"
+    "games-category-opening"
   );
 
 
-  /*
-    אחרי שהזום התחיל,
-    מציגים את תמונת הג׳ונגל מעליו.
-  */
   window.setTimeout(
     () => {
 
       kingdomMapArea.classList.add(
-        "jungle-open"
+        "games-category-open"
       );
 
-      jungleWorldView.setAttribute(
+      gamesKingdomView.setAttribute(
         "aria-hidden",
         "false"
       );
 
     },
-    430
+    360
   );
 
 
-  /*
-    מנקים את מחלקת האנימציה,
-    אבל משאירים את מצב jungle-open.
-  */
   window.setTimeout(
     () => {
 
       kingdomMapArea.classList.remove(
-        "jungle-opening"
+        "games-category-opening"
       );
 
     },
-    1100
+    900
   );
 
 }
 
 
-function closeJungleWorld(){
+/* סגירה וחזרה למפה */
+
+function closeGamesCategory(){
 
   if(
     !kingdomMapArea ||
-    !jungleWorldView
+    !gamesKingdomView
   ){
     return;
   }
 
 
   kingdomMapArea.classList.remove(
-    "jungle-open"
+    "games-category-open"
   );
 
   kingdomMapArea.classList.add(
-    "jungle-closing"
+    "games-category-closing"
   );
 
-  jungleWorldView.setAttribute(
+  gamesKingdomView.setAttribute(
     "aria-hidden",
     "true"
   );
@@ -30041,12 +30919,9 @@ function closeJungleWorld(){
     () => {
 
       kingdomMapArea.classList.remove(
-        "jungle-closing"
+        "games-category-closing"
       );
 
-      /*
-        מחזיר את המפה להגדרות המקוריות.
-      */
       kingdomMapArea.style.backgroundSize =
         "";
 
@@ -30057,32 +30932,49 @@ function closeJungleWorld(){
         "";
 
     },
-    700
+    650
   );
 
 }
 
 
-if(jungleKingdomButton){
+/* חיבור כל כרטיסי הממלכות */
 
-  jungleKingdomButton.addEventListener(
-    "click",
-    event => {
+document
+  .querySelectorAll(
+    ".kingdom-label[data-games-category]"
+  )
+  .forEach(button => {
 
-      event.preventDefault();
-      event.stopPropagation();
+    button.addEventListener(
+      "click",
+      event => {
 
-      openJungleWorld();
+        event.preventDefault();
+        event.stopPropagation();
 
-    }
-  );
+        const categoryKey =
+          button.dataset.gamesCategory;
 
-}
+        openGamesCategory(
+          categoryKey
+        );
+
+      }
+    );
+
+  });
 
 
-/*
-  חזרה באמצעות מקש Escape.
-*/
+/* כפתור חזרה */
+
+gamesKingdomBack?.addEventListener(
+  "click",
+  closeGamesCategory
+);
+
+
+/* מקש Escape */
 
 document.addEventListener(
   "keydown",
@@ -30091,10 +30983,10 @@ document.addEventListener(
     if(
       event.key === "Escape" &&
       kingdomMapArea?.classList.contains(
-        "jungle-open"
+        "games-category-open"
       )
     ){
-      closeJungleWorld();
+      closeGamesCategory();
     }
 
   }
