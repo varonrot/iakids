@@ -1,1 +1,123 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ההתקדמות שלי | iakids Games</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#07172f;--panel:#0d2a59;--panel2:#102f66;--line:rgba(143,185,255,.2);--txt:#fff;--muted:#9eb4d5;--purple:#8e50ff;--cyan:#41dbff;--green:#27d98a;--yellow:#ffd24b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,rgba(113,63,255,.22),transparent 32%),linear-gradient(#0b2146,#06142b);color:var(--txt);font-family:Arial,sans-serif;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:95px 95px}
+.shell{display:grid;grid-template-columns:220px 1fr;gap:18px;padding:18px;direction:ltr}.side,.card{background:linear-gradient(180deg,rgba(15,45,95,.96),rgba(7,26,59,.96));border:1px solid var(--line);box-shadow:0 18px 45px rgba(0,0,0,.25)}
+.side{direction:rtl;border-radius:26px;padding:16px;min-height:calc(100vh - 36px);display:flex;flex-direction:column;position:sticky;top:18px}.logo{width:150px;margin:0 auto 18px}.nav{display:grid;gap:10px}.nav a{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:800;background:#112b58;border:1px solid var(--line);padding:13px;border-radius:15px}.nav a.active{background:linear-gradient(135deg,#435cff,#8d4eff)}.nav img{width:28px;height:28px;object-fit:contain}.coach{margin-top:auto;text-align:center}.coach img{width:150px;max-height:180px;object-fit:contain}.coach p{font-size:12px;color:var(--muted);background:#102b59;border-radius:12px;padding:9px}
+.main{direction:rtl;min-width:0}.top{display:grid;grid-template-columns:1.7fr repeat(5,1fr);gap:12px;margin-bottom:16px}.hero,.stat{border-radius:20px;min-height:108px}.hero{display:flex;align-items:center;gap:14px;padding:14px 18px}.hero img{width:78px;height:78px;border-radius:50%;object-fit:cover;border:4px solid #fff}.hero h1{margin:0;font-size:27px}.hero p{margin:5px 0 0;color:var(--muted)}.stat{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px}.stat img{width:38px;height:38px;object-fit:contain}.stat strong{font-size:23px}.stat span{font-size:12px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}.center{border-radius:22px;overflow:hidden}.tabs{display:grid;grid-template-columns:repeat(4,1fr);background:#071c3f;border-bottom:1px solid var(--line)}.tab{border:0;background:none;color:#dce7f8;padding:16px;font-size:16px;font-weight:900;cursor:pointer}.tab.active{background:linear-gradient(#985bff,#6341df)}
+.inner{padding:18px}.head{text-align:center}.head h2{margin:0;font-size:28px}.head p{color:var(--muted)}.inside{display:grid;grid-template-columns:240px 1fr;gap:15px;margin-top:15px}.mini,.radar{background:rgba(4,22,52,.7);border:1px solid var(--line);border-radius:18px;padding:14px}.mini h3{margin-top:0}.lists{display:grid;gap:9px}.item{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center;background:#112f63;border-radius:13px;padding:8px}.item img{width:38px;height:38px;object-fit:contain}.item strong{font-size:13px;display:block}.item small{font-size:11px;color:var(--muted)}.stars{color:var(--yellow);font-size:11px}.radar{min-height:520px}.radar h3,.radar p{text-align:center}.radar p{color:var(--muted);font-size:13px}.radar canvas{max-height:430px}
+.right{display:grid;gap:16px}.mission,.activity,.small{border-radius:22px;padding:16px}.mission{background:linear-gradient(180deg,rgba(110,38,180,.96),rgba(39,23,103,.96));border-color:rgba(210,145,255,.5)}.mission h3{text-align:center;font-size:22px}.mission img{width:100%;height:175px;object-fit:cover;border-radius:17px}.mission button{width:100%;padding:13px;border:0;border-radius:13px;background:linear-gradient(#ffdf58,#ffae16);font-weight:900;font-size:17px;cursor:pointer}.activity h3{margin-top:0}.act{display:grid;gap:8px}.actrow{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:center;background:#0a234e;border-radius:12px;padding:8px}.actrow img{width:34px;height:34px;object-fit:contain}.actrow strong{display:block;font-size:13px}.actrow small,.actrow time{font-size:11px;color:var(--muted)}
+.bottom{display:grid;grid-template-columns:1.1fr 1.1fr 1fr 1.35fr;gap:14px;margin-top:16px}.small{min-height:190px}.small h3{margin-top:0}.chartbox{height:120px}.bars,.records{display:grid;gap:9px}.barrow{display:grid;grid-template-columns:1fr 105px 40px;gap:8px;align-items:center;font-size:13px}.bar{height:8px;background:#071a3a;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple))}.record{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}.badges{display:flex;justify-content:center;gap:10px;margin-top:25px}.badges img{width:58px;height:58px;object-fit:contain}.loading{position:fixed;inset:0;background:rgba(2,10,25,.9);display:grid;place-items:center;z-index:99}.loading.hide{display:none}.loading div{background:#0d2a59;border:1px solid var(--line);padding:22px 28px;border-radius:18px;font-weight:900}
+@media(max-width:1250px){.top{grid-template-columns:1.5fr repeat(3,1fr)}.top .stat:nth-last-child(-n+2){display:none}.layout{grid-template-columns:1fr}.bottom{grid-template-columns:repeat(2,1fr)}}@media(max-width:800px){.shell{grid-template-columns:1fr;padding:10px}.side{display:none}.top{grid-template-columns:1fr 1fr}.hero{grid-column:1/-1}.inside{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}.tabs{display:flex;overflow:auto}.tab{min-width:145px}}
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div>טוען את ההתקדמות שלך…</div></div>
+<div class="shell">
+<aside class="side">
+<img class="logo" src="/assets/games/progress/iakids-games-logo.webp" alt="">
+<nav class="nav">
+<a class="active" href="/he/games/progress/"><img src="/assets/games/progress/icons/progress.webp">ההתקדמות שלי</a>
+<a href="/he/games/workspace/"><img src="/assets/games/progress/icons/map.webp">חזרה למפת המשחקים</a>
+<a href="/he/games/"><img src="/assets/games/progress/icons/games.webp">דף המשחקים</a>
+<a href="/he/"><img src="/assets/games/progress/icons/home.webp">דף הבית</a>
+</nav>
+<div class="coach"><img src="/assets/games/progress/progress-robot.webp"><p>כל אימון קטן הופך אותך לחזק יותר!</p></div>
+</aside>
 
+<main class="main">
+<section class="top">
+<article class="card hero"><img id="kidAvatar" src="/assets/avatars/default-boy.webp"><div><h1 id="hello">היי!</h1><p>הנה תמונת המצב הלימודית שלך</p></div></article>
+<article class="card stat"><img src="/assets/games/progress/icons/star.webp"><strong id="xp">0</strong><span>נקודות XP</span></article>
+<article class="card stat"><img src="/assets/games/progress/icons/controller.webp"><strong id="games">0</strong><span>משחקים שהושלמו</span></article>
+<article class="card stat"><img src="/assets/games/progress/icons/book.webp"><strong id="lessons">0</strong><span>שיעורים שהושלמו</span></article>
+<article class="card stat"><img src="/assets/games/progress/icons/clock.webp"><strong id="minutes">0</strong><span>דקות למידה</span></article>
+<article class="card stat"><img src="/assets/games/progress/icons/fire.webp"><strong id="streak">0</strong><span>רצף ימים</span></article>
+</section>
+
+<section class="layout">
+<article class="card center">
+<div class="tabs"><button class="tab active" data-tab="skills">🧠 יכולות</button><button class="tab" data-tab="subjects">📚 מקצועות</button><button class="tab" data-tab="kingdoms">🏰 ממלכות</button><button class="tab" data-tab="games">🎮 סגנון משחק</button></div>
+<div class="inner">
+<div class="head"><h2 id="heading">יכולות הלמידה שלי</h2><p id="desc">דיוק, התמדה, עצמאות, שיפור ושליטה</p></div>
+<div class="inside">
+<div><section class="mini"><h3>💪 הכוחות שלי</h3><div class="lists" id="strengths"></div></section><section class="mini" style="margin-top:12px"><h3>🎯 מה כדאי לחזק</h3><div class="lists" id="focus"></div></section></div>
+<section class="radar"><h3 id="radarTitle">פרופיל היכולות שלי</h3><p>מבוסס על שיעורים ומשחקים שהושלמו</p><canvas id="radar"></canvas></section>
+</div></div>
+</article>
+
+<aside class="right">
+<article class="card mission"><h3>🚀 המשימה הבאה שלי</h3><img id="missionImg" src="/assets/games/progress/missions/default-mission.webp"><h2 id="missionTitle">טוען המלצה…</h2><p id="missionText">אנחנו בוחרים את האימון שיעזור לך הכי הרבה.</p><p>⏱ 3–5 דקות · 🎮 אימון אישי · ⭐ +50 XP</p><button id="missionBtn">התחל משימה 🚀</button></article>
+<article class="card activity"><h3>🕘 פעילות אחרונה</h3><div class="act" id="activity"></div></article>
+</aside>
+</section>
+
+<section class="bottom">
+<article class="card small"><h3>📈 השיפור שלי השבוע</h3><div class="chartbox"><canvas id="week"></canvas></div></article>
+<article class="card small"><h3>🏅 הישגים אחרונים</h3><div class="badges" id="badges"></div></article>
+<article class="card small"><h3>⚡ שיאים אישיים</h3><div class="records" id="records"></div></article>
+<article class="card small"><h3>🏰 התקדמות לפי מקצועות</h3><div class="bars" id="subjects"></div></article>
+</section>
+</main>
+</div>
+
+<script>
+const SUPABASE_URL='https://bxnfzuglfwytiyaguwjj.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const A='/assets/games/progress/';
+const IMG={math:A+'subjects/math.webp',hebrew:A+'subjects/hebrew.webp',english:A+'subjects/english.webp',science:A+'subjects/science.webp',logic:A+'subjects/logic.webp',other:A+'subjects/default.webp'};
+const clamp=n=>Math.max(0,Math.min(100,Number(n)||0)),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,num=v=>Number(v||0);
+const activeKid=()=>localStorage.getItem('active_kid_id')||localStorage.getItem('iakids_active_kid_id')||localStorage.getItem('selected_kid_id');
+const subjImg=s=>/חשבון|מתמטיקה/.test(s)?IMG.math:/עברית/.test(s)?IMG.hebrew:/אנגלית/.test(s)?IMG.english:/מדעים|גאוגרפיה/.test(s)?IMG.science:/לוגיקה|קוד/.test(s)?IMG.logic:IMG.other;
+const stars=s=>'★'.repeat(Math.max(1,Math.round(s/20)))+'☆'.repeat(5-Math.max(1,Math.round(s/20)));
+const label=s=>s>=90?'שולט היטב':s>=75?'שולט':s>=60?'כמעט שולט':s>=40?'מתאמן':'כדאי לחזק';
+const ago=d=>{if(!d)return'';const m=Math.round((Date.now()-new Date(d))/60000);return m<60?`לפני ${Math.max(1,m)} דקות`:m<1440?`לפני ${Math.round(m/60)} שעות`:`לפני ${Math.round(m/1440)} ימים`};
+let cache,radarChart,weekChart;
+
+async function load(){
+ const kidId=activeKid(); if(!kidId){fatal('לא נמצא ילד פעיל. חזור למערכת ובחר ילד.');return}
+ const [k,g,p]=await Promise.all([
+  sb.from('kids_profiles').select('id,child_name,avatar_url,age,grade').eq('id',kidId).single(),
+  sb.from('kid_game_sessions').select('*,games_catalog:game_id(id,game_code,game_name,subject,category,icon_path,game_url)').eq('kid_id',kidId).order('created_at',{ascending:false}).limit(300),
+  sb.from('kid_lesson_progress').select('*,learning_lessons:lesson_id(id,grade,subject,category,lesson_name,lesson_goal)').eq('kid_id',kidId).order('updated_at',{ascending:false}).limit(300)
+ ]);
+ if(k.error){console.error(k.error);fatal('לא הצלחנו לטעון את פרטי הילד.');return}
+ cache=build(k.data,g.data||[],p.data||[]); render(cache); loading.classList.add('hide');
+}
+function build(kid,games,progress){
+ const cg=games.filter(x=>x.completed),cl=progress.filter(x=>x.status==='completed'||x.completed_at);
+ const acc=cg.map(x=>num(x.accuracy_percent)).filter(Boolean),mast=progress.map(x=>num(x.mastery_score)).filter(Boolean);
+ const ar=avg(cg.map(x=>num(x.average_response_ms)).filter(Boolean)),hints=cg.reduce((s,x)=>s+num(x.hints_used),0)+progress.reduce((s,x)=>s+num(x.hints_used),0),attempts=cg.reduce((s,x)=>s+num(x.questions_count),0)+progress.reduce((s,x)=>s+num(x.attempts_count),0);
+ const completion=progress.length?cl.length/progress.length*100:(cg.length?100:0),speed=ar?clamp(100-(ar-1200)/45):50,ind=clamp(100-hints/Math.max(1,attempts)*220),pers=clamp(completion*.7+avg(cg.map(x=>num(x.best_correct_streak)*10))*.3);
+ const recent=avg(cg.slice(0,5).map(x=>num(x.performance_score||x.accuracy_percent))),older=avg(cg.slice(5,10).map(x=>num(x.performance_score||x.accuracy_percent))),improve=cg.slice(5,10).length?clamp(50+(recent-older)*2.3):60;
+ const sm=new Map();
+ for(const x of progress){const s=x.learning_lessons?.subject||'אחר';if(!sm.has(s))sm.set(s,{subject:s,scores:[],topics:[]});const z=sm.get(s),sc=num(x.mastery_score||x.progress_percent);if(sc)z.scores.push(sc);if(x.learning_lessons?.lesson_name)z.topics.push({name:x.learning_lessons.lesson_name,score:sc,subject:s})}
+ for(const x of cg){const s=x.games_catalog?.subject||'אחר';if(!sm.has(s))sm.set(s,{subject:s,scores:[],topics:[]});sm.get(s).scores.push(num(x.performance_score||x.accuracy_percent))}
+ const subjects=[...sm.values()].map(x=>({...x,score:Math.round(avg(x.scores))})).sort((a,b)=>b.score-a.score),topics=subjects.flatMap(x=>x.topics).filter(x=>x.score);
+ const strengths=topics.slice().sort((a,b)=>b.score-a.score).slice(0,3),focus=topics.slice().sort((a,b)=>a.score-b.score).slice(0,3);
+ const acts=[...cg.slice(0,5).map(x=>({title:x.games_catalog?.game_name||x.metadata?.game_slug||'משחק',sub:`דיוק ${Math.round(num(x.accuracy_percent))}%`,date:x.completed_at||x.created_at,img:x.games_catalog?.icon_path||A+'icons/controller.webp'})),...cl.slice(0,5).map(x=>({title:x.learning_lessons?.lesson_name||'שיעור',sub:`שליטה ${Math.round(num(x.mastery_score))}%`,date:x.completed_at||x.updated_at,img:A+'icons/book.webp'}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+ const next=focus[0],game=cg.find(x=>x.games_catalog?.game_url)||cg[0];
+ return {kid,summary:{xp:cg.reduce((s,x)=>s+num(x.score),0)+cl.length*50,games:cg.length,lessons:cl.length,minutes:Math.round((cg.reduce((s,x)=>s+num(x.duration_seconds),0))/60),streak:streak([...cg.map(x=>x.completed_at||x.created_at),...cl.map(x=>x.completed_at||x.updated_at)])},skills:[Math.round(avg(mast)||avg(acc)),Math.round(avg(acc)),Math.round(speed),Math.round(pers),Math.round(ind),Math.round(improve)],subjects,strengths,focus,acts,gameStyle:[Math.round(avg(acc)),Math.round(speed),Math.round(pers),Math.round(ind),Math.round(clamp(avg(cg.map(x=>num(x.best_correct_streak)*12)))),Math.round(improve)],mission:next?{title:next.name,text:`זה הנושא שהכי כדאי לחזק עכשיו ב${next.subject}.`,img:subjImg(next.subject),url:game?.games_catalog?.game_url||'/he/games/workspace/'}:{title:'בחר משחק חדש',text:'שחק עוד קצת כדי שנבנה לך אימון אישי.',img:A+'missions/default-mission.webp',url:'/he/games/workspace/'},records:[['דיוק הכי גבוה',`${Math.round(Math.max(0,...cg.map(x=>num(x.accuracy_percent))))}%`],['רצף הצלחות',Math.max(0,...cg.map(x=>num(x.best_correct_streak)))],['תגובה מהירה',ar?`${(Math.min(...cg.map(x=>num(x.average_response_ms)).filter(Boolean))/1000).toFixed(1)} שנ׳`:'—']],week:weekly(cg,cl),badges:badges(cg,cl,avg(acc))}
+}
+function streak(d){const set=new Set(d.filter(Boolean).map(x=>new Date(x).toISOString().slice(0,10)));let n=0,c=new Date();for(let i=0;i<365;i++){const k=c.toISOString().slice(0,10);if(set.has(k)){n++;c.setDate(c.getDate()-1)}else if(i===0)c.setDate(c.getDate()-1);else break}return n}
+function weekly(g,l){const v=[0,0,0,0,0,0,0];for(const x of [...g,...l]){const d=new Date(x.completed_at||x.updated_at||x.created_at);if((Date.now()-d)/86400000<=7)v[d.getDay()]+=Math.round(num(x.performance_score||x.accuracy_percent||x.mastery_score||x.progress_percent)/10)}return{labels:['א','ב','ג','ד','ה','ו','ש'],values:v}}
+function badges(g,l,a){const x=[];if(g.length)x.push('first-game.webp');if(g.length>=10)x.push('ten-games.webp');if(l.length>=5)x.push('five-lessons.webp');if(a>=90)x.push('accuracy-master.webp');while(x.length<4)x.push('locked-medal.webp');return x.slice(0,4).map(y=>A+'badges/'+y)}
+function render(d){hello.textContent=`היי ${d.kid.child_name||'אלוף'}!`;kidAvatar.src=d.kid.avatar_url||'/assets/avatars/default-boy.webp';xp.textContent=d.summary.xp.toLocaleString('he-IL');games.textContent=d.summary.games;lessons.textContent=d.summary.lessons;minutes.textContent=d.summary.minutes;streak.textContent=d.summary.streak;topics(strengths,d.strengths);topics(focus,d.focus);missionTitle.textContent=d.mission.title;missionText.textContent=d.mission.text;missionImg.src=d.mission.img;missionBtn.onclick=()=>location.href=d.mission.url;activity.innerHTML=d.acts.length?d.acts.map(x=>`<div class="actrow"><img src="${x.img}"><div><strong>${x.title}</strong><small>${x.sub}</small></div><time>${ago(x.date)}</time></div>`).join(''):'<p>עדיין אין פעילות.</p>';records.innerHTML=d.records.map(x=>`<div class="record"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');subjects.innerHTML=d.subjects.length?d.subjects.slice(0,6).map(x=>`<div class="barrow"><span>${x.subject}</span><div class="bar"><i style="width:${clamp(x.score)}%"></i></div><b>${x.score}%</b></div>`).join(''):'<p>עדיין אין נתונים לפי מקצוע.</p>';badges.innerHTML=d.badges.map(x=>`<img src="${x}">`).join('');drawRadar('skills');drawWeek(d.week);document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');drawRadar(b.dataset.tab)})}
+function topics(el,a){el.innerHTML=a.length?a.map(x=>`<div class="item"><img src="${subjImg(x.subject)}"><div><strong>${x.name}</strong><small>${x.subject} · ${label(x.score)}</small></div><span class="stars">${stars(x.score)}</span></div>`).join(''):'<p>צריך עוד קצת פעילות.</p>'}
+function drawRadar(t){const m={skills:['יכולות הלמידה שלי','דיוק, התמדה, עצמאות, שיפור ושליטה',['שליטה','דיוק','מהירות','התמדה','עצמאות','שיפור'],cache.skills],subjects:['המקצועות שלי','איפה אני חזק ואיזה מקצוע כדאי לחזק',cache.subjects.slice(0,6).map(x=>x.subject),cache.subjects.slice(0,6).map(x=>x.score)],kingdoms:['הממלכות שלי','כמה התקדמתי בכל עולם לימודי',cache.subjects.slice(0,6).map(x=>'ממלכת '+x.subject),cache.subjects.slice(0,6).map(x=>x.score)],games:['איך אני משחק ולומד','דיוק, מהירות, התמדה, עצמאות ורצף',['דיוק','מהירות','התמדה','עצמאות','רצף','שיפור'],cache.gameStyle]};const c=m[t];heading.textContent=c[0];desc.textContent=c[1];radarTitle.textContent=c[0];if(radarChart)radarChart.destroy();radarChart=new Chart(radar,{type:'radar',data:{labels:c[2].length?c[2]:['אין נתונים'],datasets:[{data:c[3].length?c[3]:[0],fill:true,backgroundColor:'rgba(180,74,255,.28)',borderColor:'#d67cff',pointBackgroundColor:'#fff',pointRadius:5,borderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(130,175,255,.22)'},angleLines:{color:'rgba(130,175,255,.18)'},pointLabels:{color:'#fff',font:{size:13,weight:'bold'}}}}}})}
+function drawWeek(w){if(weekChart)weekChart.destroy();weekChart=new Chart(week,{type:'line',data:{labels:w.labels,datasets:[{data:w.values,borderColor:'#41dbff',backgroundColor:'rgba(65,219,255,.15)',fill:true,tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{display:false},x:{ticks:{color:'#b8c9e5'},grid:{display:false}}}}})}
+function fatal(m){loading.innerHTML=`<div>${m}<br><br><a style="color:#55dfff" href="/he/games/workspace/">חזרה למפת המשחקים</a></div>`}
+load();
+</script>
+</body>
+</html>
