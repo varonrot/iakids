@@ -1145,18 +1145,32 @@
     let diff, timer;
 
     async function start(lvl) {
-      game =
-        await IAKidsGame.init(
-          'food-chain'
-        );
+game = await IAKidsGame.init(
+  'food-chain'
+);
 
-      level = lvl;
+level = lvl;
 
-      diff =
-        game.difficulty(
-          lvl || 1,
-          3
-        );
+diff = game.difficulty(
+  lvl || 1,
+  3
+);
+
+IAKidsActivity.configure({
+  difficulty:
+    lvl,
+
+  questionsCount:
+    TOTAL,
+
+  metadata: {
+    selected_level:
+      lvl,
+
+    random_difficulty:
+      lvl === 0
+  }
+});
 
       timer =
         game.timer({
@@ -1232,7 +1246,7 @@
       document
         .getElementById('qnum')
         .textContent = qnum;
-
+IAKidsActivity.questionStarted();
       const lvl =
         level === 0
           ? 1 + rnd(3)
@@ -1369,13 +1383,12 @@
 
         renderChain();
 
-        if (
-          chainStep >=
-          current.links.length
-        ) {
-          timer.stop();
+if (chainStep >= current.links.length) {
+  timer.stop();
 
-          score += 10;
+  IAKidsActivity.correct();
+
+  score += 10;
 
           diff.right();
 
@@ -1404,17 +1417,21 @@
             locked = false;
           }, 250);
         }
-      } else {
-        IAKidsFX.wrong(el);
+} else {
+  IAKidsActivity.wrong();
+
+  IAKidsFX.wrong(el);
         IAKidsCoins.wrong();
         diff.wrong();
       }
     }
 
     function failStep() {
-      timer.stop();
+timer.stop();
 
-      locked = true;
+IAKidsActivity.skipped();
+
+locked = true;
 
       diff.wrong();
       IAKidsCoins.wrong();
@@ -1490,7 +1507,21 @@
 
       show('end-screen');
 
-      game.complete(score);
+      game.complete(score, {
+  maxScore:
+    TOTAL * 10,
+
+  metadata: {
+    selected_level:
+      level,
+
+    total_rounds:
+      TOTAL,
+
+    chains_completed:
+      score / 10
+  }
+});
     }
   </script>
 
