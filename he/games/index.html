@@ -17682,6 +17682,117 @@ b{
 }
 
 }
+/* =====================================================
+   NAVIGATION
+===================================================== */
+
+.iakids-header .nav-links{
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    gap:8px;
+
+    flex:1;
+
+    margin:0 24px;
+
+}
+
+
+.iakids-header .nav-links>a{
+
+    position:relative;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    gap:6px;
+
+    height:46px;
+
+    padding:0 16px;
+
+    border-radius:14px;
+
+    text-decoration:none;
+
+    color:#29486f;
+
+    font-size:14px;
+    font-weight:800;
+
+    transition:
+        .25s;
+
+}
+
+
+.iakids-header .nav-links>a:hover{
+
+    background:#EDF5FF;
+
+    color:#1565D8;
+
+    transform:translateY(-2px);
+
+}
+
+
+.iakids-header .nav-links>a.active{
+
+    background:linear-gradient(
+        135deg,
+        #EEF5FF,
+        #E3F0FF
+    );
+
+    color:#1565D8;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.9),
+        0 8px 18px rgba(25,90,180,.08);
+
+}
+
+
+.iakids-header .nav-links>a.active::after{
+
+    content:"";
+
+    position:absolute;
+
+    bottom:6px;
+    left:50%;
+
+    width:6px;
+    height:6px;
+
+    border-radius:50%;
+
+    background:#FFC529;
+
+    transform:translateX(-50%);
+
+}
+
+
+.iakids-header .nav-link-icon{
+
+    width:20px;
+    height:20px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:14px;
+
+    opacity:.85;
+
+}
 </style>
   <script type="application/ld+json">
 {
@@ -17724,53 +17835,58 @@ b{
 
     </a>
 
-    <!-- תפריט ראשי -->
-    <nav class="nav-links" id="navLinks">
+<!-- תפריט ראשי -->
+<nav class="nav-links" id="navLinks">
 
-      <a href="#hero">
-        <span class="nav-link-icon">🏠</span>
-        דף הבית
-      </a>
+  <a href="#hero" class="active">
+    <span class="nav-link-icon">🏠</span>
+    דף הבית
+  </a>
 
-      <a href="#how-it-works">
-        <span class="nav-link-icon">✨</span>
-        איך זה עובד?
-      </a>
+  <a href="#why-kids-love">
+    <span class="nav-link-icon">❤️</span>
+    למה הילדים אוהבים
+  </a>
 
-      <a href="#features">
-        <span class="nav-link-icon">📚</span>
-        מה אפשר ללמוד?
-      </a>
+  <a href="#games-showcase">
+    <span class="nav-link-icon">🎮</span>
+    המשחקים בפעולה
+  </a>
 
-      <a href="#security">
-        <span class="nav-link-icon">🛡️</span>
-        בטיחות להורים
-      </a>
+  <a href="#parent-dashboard">
+    <span class="nav-link-icon">📈</span>
+    מעקב להורים
+  </a>
 
-      <a href="#pricing">
-        <span class="nav-link-icon">⭐</span>
-        מסלולים
-      </a>
+  <a href="#trust">
+    <span class="nav-link-icon">🛡️</span>
+    למה אפשר לסמוך
+  </a>
 
-      <a href="/contact">
-        <span class="nav-link-icon">💬</span>
-        דברו איתנו
-      </a>
+  <a href="#pricing">
+    <span class="nav-link-icon">💎</span>
+    מחירים
+  </a>
 
-      <!-- פעולות במובייל -->
-      <div class="mobile-actions">
+  <a href="#contact">
+    <span class="nav-link-icon">💬</span>
+    דברו איתנו
+  </a>
 
-        <a href="/onboarding/cuenta" class="mobile-login">
-          👨‍👩‍👧 כניסת הורים
-        </a>
+  <!-- פעולות במובייל -->
+  <div class="mobile-actions">
 
-        <a href="/he/onboarding/" class="mobile-cta">
-          🚀 מתחילים ללמוד
-        </a>
+    <a href="/onboarding/cuenta" class="mobile-login">
+      👨‍👩‍👧 כניסת הורים
+    </a>
 
-      </div>
+    <a href="/he/onboarding/" class="mobile-cta">
+      🚀 מתחילים לשחק
+    </a>
 
-    </nav>
+  </div>
+
+</nav>
 
     <!-- כפתורים במחשב -->
     <div class="nav-actions" id="navActions">
