@@ -29,10 +29,554 @@ const SUPABASE_CONFIG = {
   url: 'https://bxnfzuglfwytiyaguwjj.supabase.co',
   publishableKey: 'sb_publishable_L3yZe3EAiTA5lEpDky1eXA_j6ERXAdc',
 };
+/**
+ * IAKidsActivity
+ * שומר הפעלה אחת של משחק בטבלת kid_game_sessions.
+ *
+ * ההפעלה נוצרת כאשר המשחק מתחיל בפועל באמצעות IAKidsGame.init().
+ * במהלך המשחק מעדכנים את המדדים בזיכרון.
+ * בסיום נשלחת פעולת UPDATE אחת ל-Supabase.
+ */
+const IAKidsActivity = {
+  _client: null,
+  _sessionId: null,
+  _gameId: null,
+  _kidId: null,
+  _slug: null,
 
+  _startedAt: null,
+  _questionStartedAt: null,
+
+  _questionsCount: 0,
+  _correctAnswers: 0,
+  _wrongAnswers: 0,
+  _skippedAnswers: 0,
+  _hintsUsed: 0,
+
+  _currentStreak: 0,
+  _bestCorrectStreak: 0,
+
+  _responseTimes: [],
+  _difficulty: 1,
+  _metadata: {},
+  _finished: false,
+
+  async _getClient() {
+    if (this._client) return this._client;
+
+    const { createClient } =
+      await import('https://esm.sh/@supabase/supabase-js@2');
+
+    this._client = createClient(
+      SUPABASE_CONFIG.url,
+      SUPABASE_CONFIG.publishableKey
+    );
+
+    return this._client;
+  },
+
+  _readLessonContext() {
+    const params = new URLSearchParams(location.search);
+
+    const learningLessonId =
+      params.get('learning_lesson_id');
+
+    const unitLessonId =
+      params.get('unit_lesson_id');
+
+    return {
+      learning_lesson_id:
+        learningLessonId
+          ? Number(learningLessonId)
+          : null,
+
+      unit_lesson_id:
+        unitLessonId
+          ? Number(unitLessonId)
+          : null,
+    };
+  },
+
+  async start(slug, options = {}) {
+    try {
+      this._reset();
+
+      this._slug = slug;
+      this._startedAt = Date.now();
+      this._questionStartedAt = Date.now();
+
+      this._difficulty =
+        Number(options.difficulty ?? 1);
+
+      this._questionsCount =
+        Number(options.questionsCount ?? 0);
+
+      this._metadata =
+        options.metadata || {};
+
+      this._kidId =
+        localStorage.getItem('active_kid_id');
+
+      if (!this._kidId) {
+        console.warn(
+          '[IAKidsActivity] active_kid_id not found'
+        );
+
+        return null;
+      }
+
+      const client =
+        await this._getClient();
+
+      const {
+        data: { session },
+        error: sessionError
+      } =
+        await client.auth.getSession();
+
+      if (
+        sessionError ||
+        !session?.user
+      ) {
+        console.warn(
+          '[IAKidsActivity] Supabase session not found',
+          sessionError
+        );
+
+        return null;
+      }
+
+      const {
+        data: gameRow,
+        error: gameError
+      } =
+        await client
+          .from('games_catalog')
+          .select('id, game_code')
+          .eq('game_code', slug)
+          .eq('is_active', true)
+          .single();
+
+      if (
+        gameError ||
+        !gameRow
+      ) {
+        console.warn(
+          '[IAKidsActivity] Game not found in games_catalog:',
+          slug,
+          gameError
+        );
+
+        return null;
+      }
+
+      this._gameId =
+        gameRow.id;
+
+      const lessonContext =
+        this._readLessonContext();
+
+      const {
+        data: insertedSession,
+        error: insertError
+      } =
+        await client
+          .from('kid_game_sessions')
+          .insert({
+            kid_id:
+              this._kidId,
+
+            game_id:
+              this._gameId,
+
+            learning_lesson_id:
+              lessonContext.learning_lesson_id,
+
+            unit_lesson_id:
+              lessonContext.unit_lesson_id,
+
+            difficulty:
+              this._difficulty,
+
+            questions_count:
+              this._questionsCount,
+
+            completed:
+              false,
+
+            ended_reason:
+              'interrupted',
+
+            metadata:
+              this._metadata
+          })
+          .select('id')
+          .single();
+
+      if (
+        insertError ||
+        !insertedSession
+      ) {
+        console.error(
+          '[IAKidsActivity] Failed to create session:',
+          insertError
+        );
+
+        return null;
+      }
+
+      this._sessionId =
+        insertedSession.id;
+
+      console.log(
+        '[IAKidsActivity] Session started:',
+        {
+          sessionId:
+            this._sessionId,
+
+          kidId:
+            this._kidId,
+
+          gameId:
+            this._gameId,
+
+          slug:
+            this._slug
+        }
+      );
+
+      return this._sessionId;
+
+    } catch (error) {
+      console.error(
+        '[IAKidsActivity] start error:',
+        error
+      );
+
+      return null;
+    }
+  },
+
+  configure(options = {}) {
+    if (
+      options.difficulty !== undefined
+    ) {
+      this._difficulty =
+        Number(options.difficulty);
+    }
+
+    if (
+      options.questionsCount !== undefined
+    ) {
+      this._questionsCount =
+        Number(options.questionsCount);
+    }
+
+    if (
+      options.metadata
+    ) {
+      this._metadata = {
+        ...this._metadata,
+        ...options.metadata
+      };
+    }
+  },
+
+  questionStarted() {
+    this._questionStartedAt =
+      Date.now();
+  },
+
+  _recordResponseTime() {
+    if (!this._questionStartedAt) return;
+
+    const responseTime =
+      Date.now() -
+      this._questionStartedAt;
+
+    if (
+      Number.isFinite(responseTime) &&
+      responseTime >= 0
+    ) {
+      this._responseTimes.push(
+        responseTime
+      );
+    }
+
+    this._questionStartedAt =
+      Date.now();
+  },
+
+  correct() {
+    this._recordResponseTime();
+
+    this._correctAnswers += 1;
+    this._currentStreak += 1;
+
+    this._bestCorrectStreak =
+      Math.max(
+        this._bestCorrectStreak,
+        this._currentStreak
+      );
+  },
+
+  wrong() {
+    this._recordResponseTime();
+
+    this._wrongAnswers += 1;
+    this._currentStreak = 0;
+  },
+
+  skipped() {
+    this._recordResponseTime();
+
+    this._skippedAnswers += 1;
+    this._currentStreak = 0;
+  },
+
+  hint() {
+    this._hintsUsed += 1;
+  },
+
+  async finish({
+    score = 0,
+    maxScore = 0,
+    completed = true,
+    endedReason = 'completed',
+    performanceScore = null,
+    metadata = {}
+  } = {}) {
+    if (
+      this._finished ||
+      !this._sessionId
+    ) {
+      return;
+    }
+
+    this._finished = true;
+
+    try {
+      const client =
+        await this._getClient();
+
+      const answeredCount =
+        this._correctAnswers +
+        this._wrongAnswers +
+        this._skippedAnswers;
+
+      const denominator =
+        answeredCount > 0
+          ? answeredCount
+          : this._questionsCount;
+
+      const accuracyPercent =
+        denominator > 0
+          ? (
+              this._correctAnswers /
+              denominator
+            ) * 100
+          : 0;
+
+      const durationSeconds =
+        this._startedAt
+          ? Math.max(
+              0,
+              Math.round(
+                (
+                  Date.now() -
+                  this._startedAt
+                ) / 1000
+              )
+            )
+          : 0;
+
+      const averageResponseMs =
+        this._responseTimes.length
+          ? Math.round(
+              this._responseTimes.reduce(
+                (sum, value) =>
+                  sum + value,
+                0
+              ) /
+              this._responseTimes.length
+            )
+          : null;
+
+      const finalPerformance =
+        performanceScore !== null
+          ? Number(performanceScore)
+          : Math.round(
+              Math.max(
+                0,
+                Math.min(
+                  100,
+                  accuracyPercent -
+                  (
+                    this._hintsUsed * 2
+                  )
+                )
+              )
+            );
+
+      const finalMetadata = {
+        ...this._metadata,
+        ...metadata,
+        language:
+          typeof IAKidsLang !== 'undefined'
+            ? IAKidsLang.code
+            : document.documentElement.lang,
+
+        timer_enabled:
+          typeof IAKidsTimer !== 'undefined'
+            ? IAKidsTimer.enabled
+            : null,
+
+        game_slug:
+          this._slug
+      };
+
+      const {
+        error
+      } =
+        await client
+          .from('kid_game_sessions')
+          .update({
+            difficulty:
+              this._difficulty,
+
+            questions_count:
+              Math.max(
+                this._questionsCount,
+                answeredCount
+              ),
+
+            correct_answers:
+              this._correctAnswers,
+
+            wrong_answers:
+              this._wrongAnswers,
+
+            skipped_answers:
+              this._skippedAnswers,
+
+            hints_used:
+              this._hintsUsed,
+
+            score:
+              Number(score) || 0,
+
+            max_score:
+              Number(maxScore) || 0,
+
+            accuracy_percent:
+              Number(
+                accuracyPercent.toFixed(2)
+              ),
+
+            duration_seconds:
+              durationSeconds,
+
+            average_response_ms:
+              averageResponseMs,
+
+            best_correct_streak:
+              this._bestCorrectStreak,
+
+            completed:
+              Boolean(completed),
+
+            ended_reason:
+              endedReason,
+
+            performance_score:
+              finalPerformance,
+
+            metadata:
+              finalMetadata,
+
+            completed_at:
+              completed
+                ? new Date().toISOString()
+                : null
+          })
+          .eq(
+            'id',
+            this._sessionId
+          );
+
+      if (error) {
+        console.error(
+          '[IAKidsActivity] Failed to finish session:',
+          error
+        );
+
+        this._finished = false;
+        return;
+      }
+
+      console.log(
+        '[IAKidsActivity] Session completed:',
+        {
+          sessionId:
+            this._sessionId,
+
+          score,
+
+          accuracyPercent,
+
+          durationSeconds,
+
+          correctAnswers:
+            this._correctAnswers,
+
+          wrongAnswers:
+            this._wrongAnswers
+        }
+      );
+
+    } catch (error) {
+      this._finished = false;
+
+      console.error(
+        '[IAKidsActivity] finish error:',
+        error
+      );
+    }
+  },
+
+  _reset() {
+    this._sessionId = null;
+    this._gameId = null;
+    this._kidId = null;
+    this._slug = null;
+
+    this._startedAt = null;
+    this._questionStartedAt = null;
+
+    this._questionsCount = 0;
+    this._correctAnswers = 0;
+    this._wrongAnswers = 0;
+    this._skippedAnswers = 0;
+    this._hintsUsed = 0;
+
+    this._currentStreak = 0;
+    this._bestCorrectStreak = 0;
+
+    this._responseTimes = [];
+    this._difficulty = 1;
+    this._metadata = {};
+    this._finished = false;
+  }
+};
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
+    IAKidsActivity.start(slug).catch(error => {
+  console.warn(
+    '[IAKidsGame] Activity session was not started:',
+    error
+  );
+});
     if (!document.getElementById('iakids-home-btn')) {
       const home = document.createElement('a');
       home.id = 'iakids-home-btn';
@@ -72,16 +616,81 @@ const IAKidsGame = {
       saveProgress: obj => tx('kv', 'readwrite', s => s.put(obj, 'progress')),
       loadProgress: async () => (await tx('kv', 'readonly', s => s.get('progress'))) ?? null,
       clearProgress: () => tx('kv', 'readwrite', s => s.delete('progress')),
-      complete(score) {
-        const msg = { type: 'iakids-game-complete', slug, score, ts: Date.now() };
-        if (window.parent !== window) window.parent.postMessage(msg, '*');
-        window.dispatchEvent(new CustomEvent('iakids-game-complete', { detail: msg }));
-        IAKidsCoins.add(IAKidsCoins.COMPLETE);
-        IAKidsFX.celebrate();
-        IAKidsShare.onComplete(slug, score);      // challenge beaten? banner
-        IAKidsTournament.onComplete(slug, score); // in tournament? next-game button
-        IAKidsCloud.recordWin(slug, score);       // signed-in players only; no-op for guests
-      },
+complete(score, options = {}) {
+  const msg = {
+    type:
+      'iakids-game-complete',
+
+    slug,
+
+    score,
+
+    ts:
+      Date.now()
+  };
+
+  if (window.parent !== window) {
+    window.parent.postMessage(
+      msg,
+      '*'
+    );
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(
+      'iakids-game-complete',
+      {
+        detail:
+          msg
+      }
+    )
+  );
+
+  IAKidsCoins.add(
+    IAKidsCoins.COMPLETE
+  );
+
+  IAKidsFX.celebrate();
+
+  IAKidsShare.onComplete(
+    slug,
+    score
+  );
+
+  IAKidsTournament.onComplete(
+    slug,
+    score
+  );
+
+  IAKidsCloud.recordWin(
+    slug,
+    score
+  );
+
+  IAKidsActivity.finish({
+    score,
+
+    maxScore:
+      options.maxScore ?? 0,
+
+    completed:
+      true,
+
+    endedReason:
+      'completed',
+
+    performanceScore:
+      options.performanceScore ?? null,
+
+    metadata:
+      options.metadata || {}
+  }).catch(error => {
+    console.warn(
+      '[IAKidsGame] Activity finish failed:',
+      error
+    );
+  });
+},
       shareButton(score, el) { return IAKidsShare.button(slug, score, el); },
       timer: opts => IAKidsTimer.create(opts),
 
