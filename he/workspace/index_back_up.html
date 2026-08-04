@@ -10726,6 +10726,20 @@ body.lesson-theme-science
   </div>
 </button>
 
+<button class="side-item" onclick="window.open('https://smarts-brains.online/', '_blank')">
+  <i class="fa-solid fa-gamepad"></i>
+  <div class="side-text">
+    <span class="side-title">משחקים</span>
+  </div>
+</button>
+
+<button class="side-item" onclick="window.open('https://smarts-brains.online/skills/', '_blank')">
+  <i class="fa-solid fa-brain"></i>
+  <div class="side-text">
+    <span class="side-title">אילו כישורים אני מפתח?</span>
+  </div>
+</button>
+
 <!--
   המקצועות הדינאמיים ייכנסו לכאן אוטומטית.
   התוכן נקבע לפי גיל הילד -> כיתה -> learning_lessons
@@ -11881,7 +11895,16 @@ body.lesson-theme-science
           >
             <i class="fa-solid fa-microphone"></i>
           </button>
-
+<button
+  id="resetLessonBtn"
+  class="reset-lesson-btn"
+  type="button"
+  title="התחלת השיעור מחדש"
+  aria-label="התחלת השיעור מחדש"
+  onclick="openResetLessonModal()"
+>
+  <i class="fa-solid fa-rotate-left"></i>
+</button>
         </div>
 
         <div class="composer-note">
@@ -12340,6 +12363,72 @@ body.lesson-theme-science
 </div>
 
 <!-- Existing functional modals -->
+<!-- =====================================================
+     RESET LESSON CONFIRMATION MODAL
+===================================================== -->
+
+<div
+  class="modal-overlay"
+  id="resetLessonModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="resetLessonModalTitle"
+  onclick="handleResetLessonOverlayClick(event)"
+>
+  <div
+    class="modal reset-lesson-modal"
+    onclick="event.stopPropagation()"
+  >
+
+    <button
+      type="button"
+      class="modal-close"
+      onclick="closeResetLessonModal()"
+      aria-label="סגירה"
+    >
+      ✕
+    </button>
+
+    <div class="reset-lesson-modal-icon">
+      <i class="fa-solid fa-rotate-left"></i>
+    </div>
+
+    <h2 id="resetLessonModalTitle">
+      להתחיל את השיעור מחדש?
+    </h2>
+
+    <p>
+      כל ההתקדמות והתשובות בשיעור הזה יימחקו,
+      והשיעור יתחיל שוב מההתחלה.
+    </p>
+
+    <div class="reset-lesson-warning">
+      הפעולה תשפיע רק על השיעור הנוכחי.
+    </div>
+
+    <div class="modal-actions reset-lesson-actions">
+
+      <button
+        type="button"
+        class="reset-lesson-cancel"
+        onclick="closeResetLessonModal()"
+      >
+        לא, להמשיך בשיעור
+      </button>
+
+      <button
+        type="button"
+        id="confirmResetLessonBtn"
+        class="reset-lesson-confirm"
+        onclick="confirmResetLesson()"
+      >
+        כן, להתחיל מחדש
+      </button>
+
+    </div>
+
+  </div>
+</div>
 <div class="modal-overlay" id="quotaModal"><div class="modal"><h2>נגמרה מכסת השאלות</h2><p>כדי להמשיך להשתמש במערכת, יש להפעיל גישה מלאה.</p><div class="modal-actions"><button onclick="closeQuotaModal()">סגירה</button><button class="save" onclick="goToUpgrade()">שדרוג</button></div></div></div>
 
 <div class="modal-overlay" id="settingsModal">
@@ -14153,14 +14242,28 @@ throw new Error(
     }
 
 
-    const data =
-      await response.json();
+const data =
+  await response.json();
 
+currentLessonId =
+  Number(
+    data.learning_lesson_id
+    || currentLessonId
+    || 0
+  );
 
-    console.log(
-      "UNIT LESSON RESPONSE:",
-      data
-    );
+window.CURRENT_LESSON_ID =
+  currentLessonId;
+
+console.log(
+  "CURRENT LESSON ID UPDATED:",
+  currentLessonId
+);
+
+console.log(
+  "UNIT LESSON RESPONSE:",
+  data
+);
 
 
     /*
@@ -14540,53 +14643,22 @@ console.log(
   ============================================= */
 
 /* =============================================
-   AUDIO SOURCE FROM BACKEND ONLY
+   AUDIO SOURCE
+
+   אם קיים אודיו שמור:
+   משתמשים בו.
+
+   אם האודיו השמור עדיין לא מוכן:
+   מתחילים מיד TTS חי לכל הקטעים,
+   בלי להמתין ל-Storage.
 ============================================= */
 
-let lessonAudio =
+const lessonAudio =
   data?.lesson_audio || null;
 
-let audioStatus =
+const audioStatus =
   data?.audio_generation_status || "pending";
 
-
-/*
-  אם האודיו עדיין נוצר,
-  מחכים לבקאנד ולא מפעילים TTS חי.
-*/
-
-if(
-  audioStatus !== "ready"
-  ||
-  !lessonAudio
-){
-
-  console.log(
-    "WAITING FOR STORED LESSON AUDIO:",
-    {
-      unitLessonId:
-        data.unit_lesson_id,
-
-      audioStatus
-    }
-  );
-
-
-  lessonAudio =
-    await waitForUnitLessonAudio(
-      data.unit_lesson_id
-    );
-
-
-  audioStatus =
-    "ready";
-
-}
-
-
-/*
-  מיון הקטעים לפי index
-*/
 
 const storedSegments =
   Array.isArray(
@@ -14601,11 +14673,7 @@ const storedSegments =
     : [];
 
 
-/*
-  בדיקה שהמטמון שהתקבל תקין
-*/
-
-const useStoredAudio =
+const canUseStoredAudio =
   (
     audioStatus === "ready"
 
@@ -14626,10 +14694,12 @@ const useStoredAudio =
 
 
 console.log(
-  "UNIVERSAL LESSON AUDIO DEBUG:",
+  "UNIVERSAL LESSON AUDIO MODE:",
   {
-    status:
-      audioStatus,
+    unitLessonId:
+      data.unit_lesson_id,
+
+    audioStatus,
 
     lessonPartsCount:
       lessonParts.length,
@@ -14637,45 +14707,54 @@ console.log(
     storedSegmentsCount:
       storedSegments.length,
 
-    segmentUrls:
-      storedSegments.map(
-        segment => segment.url
-      ),
-
-    questionUrl:
-      lessonAudio?.question?.url
+    mode:
+      canUseStoredAudio
+        ? "stored"
+        : "live_tts"
   }
 );
 
 
-if(
-  !useStoredAudio
-){
-
-  console.error(
-    "STORED LESSON AUDIO INVALID:",
-    lessonAudio
-  );
-
-  throw new Error(
-    "Stored lesson audio is incomplete"
-  );
-
-}
-
-
 /*
-  משתמשים רק בקבצים שהגיעו מה-Storage.
-  אין יותר fallback ל-TTS חי.
+  מתחילים את כל בקשות ה-TTS החי מיד ובמקביל.
+
+  preloadAudio() כבר שומר Promise במטמון,
+  ולכן אין יצירת אודיו כפולה לאותו טקסט.
 */
 
 const lessonAudioPromises =
-  storedSegments.map(
-    segment =>
-      Promise.resolve(
-        segment.url
+  canUseStoredAudio
+
+    ? storedSegments.map(
+        segment =>
+          Promise.resolve(
+            segment.url
+          )
       )
-  );
+
+    : lessonParts.map(
+        paragraph =>
+          window.lessonRenderer
+            .preloadAudioWithRetry(
+              paragraph,
+              3
+            )
+            .catch(
+              error => {
+
+                console.error(
+                  "LIVE LESSON TTS FAILED:",
+                  {
+                    paragraph,
+                    error
+                  }
+                );
+
+                return null;
+
+              }
+            )
+      );
 
 
 const questionStoredUrl =
@@ -14689,11 +14768,84 @@ const questionStoredUrl =
 const questionAudioPromise =
   questionText
 
-    ? Promise.resolve(
+    ? (
+        canUseStoredAudio
+          &&
         questionStoredUrl
+
+          ? Promise.resolve(
+              questionStoredUrl
+            )
+
+          : window.lessonRenderer
+              .preloadAudioWithRetry(
+                questionText,
+                3
+              )
+              .catch(
+                error => {
+
+                  console.error(
+                    "LIVE QUESTION TTS FAILED:",
+                    error
+                  );
+
+                  return null;
+
+                }
+              )
       )
 
     : null;
+
+
+/*
+  האודיו המשותף עדיין ממשיך להיווצר בבקאנד.
+
+  הבדיקה מתבצעת ברקע בלבד,
+  בלי await ובלי לעכב את הילד.
+*/
+
+if(
+  !canUseStoredAudio
+  &&
+  data?.unit_lesson_id
+){
+
+  waitForUnitLessonAudio(
+    data.unit_lesson_id
+  )
+    .then(
+      storedAudio => {
+
+        console.log(
+          "STORED LESSON AUDIO READY IN BACKGROUND:",
+          {
+            unitLessonId:
+              data.unit_lesson_id,
+
+            segmentCount:
+              storedAudio
+                ?.segments
+                ?.length
+              || 0
+          }
+        );
+
+      }
+    )
+    .catch(
+      error => {
+
+        console.warn(
+          "STORED LESSON AUDIO BACKGROUND CHECK FAILED:",
+          error
+        );
+
+      }
+    );
+
+}
 
   /* =============================================
      הצגה והשמעה לפי הסדר
@@ -14722,15 +14874,21 @@ const questionAudioPromise =
       ];
 
 
-    if(
-      !audioUrl
-    ){
+if(
+  !audioUrl
+){
 
-      throw new Error(
-        `Lesson TTS returned no audio for part ${index + 1}`
-      );
+  console.warn(
+    "LESSON AUDIO MISSING, WRITING TEXT ONLY:",
+    {
+      index:
+        index + 1,
 
+      paragraph
     }
+  );
+
+}
 
 
     /* =============================================
@@ -14773,22 +14931,44 @@ if(
 */
 
 const audioPromise =
-  window.lessonRenderer
-    .playAudioUrl(
-      audioUrl
-    );
+  audioUrl
+
+    ? window.lessonRenderer
+        .playAudioUrl(
+          audioUrl
+        )
+
+    : Promise.resolve();
+
+let segmentDuration =
+  null;
 
 
-const segmentDuration =
-  useStoredAudio
+if(
+  canUseStoredAudio
+){
 
-    ? Number(
-        storedSegments[
-          index
-        ]?.duration_seconds
-      )
+  segmentDuration =
+    Number(
+      storedSegments[
+        index
+      ]?.duration_seconds
+    )
+    ||
+    null;
 
-    : null;
+}
+else if(
+  audioUrl
+){
+
+  segmentDuration =
+    await window.lessonRenderer
+      .getAudioDuration(
+        audioUrl
+      );
+
+}
 
 
 const typingPromise =
@@ -14829,17 +15009,7 @@ animateImportantParts(
     const questionAudioUrl =
       await questionAudioPromise;
 
-    if(
-      useStoredAudio
-      &&
-      !questionAudioUrl
-    ){
 
-      throw new Error(
-        "Stored question audio URL is missing"
-      );
-
-    }
 
     const questionLine =
       document.createElement(
@@ -14874,16 +15044,35 @@ if(
       );
 
 
-  const questionDuration =
-    useStoredAudio
+let questionDuration =
+  null;
 
-      ? Number(
-          lessonAudio
-            ?.question
-            ?.duration_seconds
-        )
 
-      : null;
+if(
+  canUseStoredAudio
+){
+
+  questionDuration =
+    Number(
+      lessonAudio
+        ?.question
+        ?.duration_seconds
+    )
+    ||
+    null;
+
+}
+else if(
+  questionAudioUrl
+){
+
+  questionDuration =
+    await window.lessonRenderer
+      .getAudioDuration(
+        questionAudioUrl
+      );
+
+}
 
 
   const questionTyping =
@@ -14937,7 +15126,34 @@ console.log(
 async function startSelectedUnitLesson(
   lesson
 ){
+const resolvedUnitLessonId =
+  Number(
+    lesson?.unit_lesson_id
+    ||
+    lesson?.id
+    ||
+    0
+  );
 
+
+if(
+  !resolvedUnitLessonId
+){
+
+  console.error(
+    "START LESSON FAILED — MISSING UNIT LESSON ID",
+    {
+      lesson
+    }
+  );
+
+  addMessage(
+    "assistant",
+    "לא הצלחתי לזהות את השיעור. נסו לבחור אותו שוב."
+  );
+
+  return;
+}
   console.log(
     "START UNIT LESSON:",
     {
@@ -14995,7 +15211,7 @@ async function startSelectedUnitLesson(
   window.SELECTED_UNIT_LESSON = {
 
     unit_lesson_id:
-      lesson.id,
+      resolvedUnitLessonId,
 
     learning_lesson_id:
       CURRENT_PARENT_LESSON.id,
@@ -15134,11 +15350,26 @@ async function startSelectedUnitLesson(
    CHECK WHETHER THIS LESSON IS ALREADY ACTIVE
 ============================================= */
 
-const activeLessonRestored =
+const shouldSkipRestore =
+  window.IS_RESTARTING_RESET_LESSON
+  === true;
+
+
+let activeLessonRestored =
+  false;
+
+
+if(
+  !shouldSkipRestore
+){
+
+activeLessonRestored =
   await restoreActiveUnitLesson(
     session,
-    lesson.id
+    resolvedUnitLessonId
   );
+
+}
 
 
 if(
@@ -15148,8 +15379,8 @@ if(
   console.log(
     "SELECTED ACTIVE LESSON RESTORED:",
     {
-      unitLessonId:
-        lesson.id
+unitLessonId:
+  resolvedUnitLessonId
     }
   );
 
@@ -15157,42 +15388,38 @@ if(
 
 }
 
+
+/*
+  לאחר איפוס מאפשרים יצירת שיעור חדש,
+  ואז מחזירים את הדגל למצב רגיל.
+*/
+
+window.IS_RESTARTING_RESET_LESSON =
+  false;
+
   try{
 
     /* =============================================
        1. טעינת הפתיח האישי
     ============================================= */
 
-    const introResponse =
-      await fetch(
+const introResponse =
+  await fetch(
+    `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
+    {
+      method: "POST",
 
-        `${TUTOR_API_BASE}/api/tutor/lesson-intro`,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`
+      },
 
-        {
-          method:
-            "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            "Authorization":
-              `Bearer ${session.access_token}`
-          },
-
-          body:
-            JSON.stringify({
-
-              kid_id:
-                CURRENT_KID.id,
-
-              unit_lesson_id:
-                lesson.id
-
-            })
-        }
-
-      );
+      body: JSON.stringify({
+        kid_id: CURRENT_KID.id,
+        unit_lesson_id: resolvedUnitLessonId
+      })
+    }
+  );
 
 
     if(
@@ -15245,6 +15472,11 @@ console.log(
   currentSessionId
 );
 
+lesson.id =
+  resolvedUnitLessonId;
+
+lesson.unit_lesson_id =
+  resolvedUnitLessonId;
 
 const universalLessonPromise =
   loadUniversalUnitLesson(
@@ -15516,19 +15748,40 @@ noResponseCount = 0;
 
           },
 
-          body:
-            JSON.stringify({
+body:
+  JSON.stringify({
 
-              kid_id:
-                CURRENT_KID.id,
+    kid_id:
+      CURRENT_KID.id,
 
-              lesson_id:
-                lesson.id,
+    lesson_id:
+      Number(
+        lesson.learning_lesson_id
+        ||
+        currentLessonId
+        ||
+        window.RESET_LESSON_CONTEXT
+          ?.lessonId
+        ||
+        0
+      ),
 
-              message:
-                null
+    unit_lesson_id:
+      Number(
+        lesson.unit_lesson_id
+        ||
+        lesson.id
+        ||
+        window.RESET_LESSON_CONTEXT
+          ?.unitLessonId
+        ||
+        0
+      ),
 
-            })
+    message:
+      null
+
+  })
 
         }
 
@@ -16188,7 +16441,7 @@ const TUTOR_API_BASE = "https://iakids-ai-tutor-he.onrender.com";
 const messagesEl = document.querySelector(".messages");
 const chatEl = document.querySelector(".chat");
 const inputEl = document.querySelector(".input input");
-const sendBtn = document.querySelector(".input button");
+const sendBtn = document.querySelector(".send-btn");
 
 let kidId = null;
 let currentSessionId = null;
@@ -16196,7 +16449,310 @@ let currentLearningMode = "chat";
 let currentLessonId = null;
 let noResponseTimer = null;
 let noResponseCount = 0;
+/* =====================================================
+   RESET LESSON MODAL
+===================================================== */
 
+function openResetLessonModal(){
+
+  const selectedUnitLesson =
+    window.SELECTED_UNIT_LESSON
+    || {};
+
+  const unitLessonId =
+    Number(
+      selectedUnitLesson.unit_lesson_id
+      || selectedUnitLesson.id
+      || 0
+    );
+
+  const lessonId =
+    Number(
+      currentLessonId
+      || window.CURRENT_LESSON_ID
+      || selectedUnitLesson.learning_lesson_id
+      || selectedUnitLesson.lesson_id
+      || 0
+    );
+
+  const currentKidId =
+    CURRENT_KID?.id
+    || window.ACTIVE_KID_ID
+    || null;
+
+  if(
+    !currentKidId
+    ||
+    !lessonId
+    ||
+    !unitLessonId
+  ){
+
+    console.warn(
+      "RESET LESSON MODAL SKIPPED — MISSING LESSON DATA",
+      {
+        kidId:
+          currentKidId,
+
+        lessonId:
+          lessonId,
+
+        unitLessonId:
+          unitLessonId,
+
+        currentLessonId:
+          currentLessonId,
+
+        windowCurrentLessonId:
+          window.CURRENT_LESSON_ID,
+
+        selectedUnitLesson:
+          selectedUnitLesson
+      }
+    );
+
+    return;
+  }
+
+  window.RESET_LESSON_CONTEXT = {
+    kidId:
+      currentKidId,
+
+    lessonId:
+      lessonId,
+
+    unitLessonId:
+      unitLessonId
+  };
+
+  const modal =
+    document.getElementById(
+      "resetLessonModal"
+    );
+
+  if(!modal){
+
+    console.error(
+      "RESET LESSON MODAL ELEMENT NOT FOUND"
+    );
+
+    return;
+  }
+
+  modal.style.display =
+    "flex";
+
+  document.body.style.overflow =
+    "hidden";
+
+  console.log(
+    "RESET LESSON MODAL OPENED:",
+    window.RESET_LESSON_CONTEXT
+  );
+}
+
+
+function closeResetLessonModal(){
+
+  const modal =
+    document.getElementById(
+      "resetLessonModal"
+    );
+
+
+  if(!modal){
+    return;
+  }
+
+
+  modal.style.display =
+    "none";
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+function handleResetLessonOverlayClick(
+  event
+){
+
+  if(
+    event.target?.id
+    ===
+    "resetLessonModal"
+  ){
+
+    closeResetLessonModal();
+
+  }
+
+}
+
+
+window.confirmResetLesson = async function confirmResetLesson(){
+
+  const confirmButton =
+    document.getElementById(
+      "confirmResetLessonBtn"
+    );
+
+const resetContext =
+  window.RESET_LESSON_CONTEXT
+  || {};
+
+const kidId =
+  resetContext.kidId;
+
+const lessonId =
+  Number(
+    resetContext.lessonId
+    || 0
+  );
+
+const unitLessonId =
+  Number(
+    resetContext.unitLessonId
+    || 0
+  );
+
+if(
+  !kidId
+  ||
+  !lessonId
+  ||
+  !unitLessonId
+){
+
+    console.error(
+      "RESET LESSON FAILED — MISSING VALUES",
+      {
+        kidId:
+          CURRENT_KID?.id,
+
+        lessonId:
+          lessonId,
+
+        unitLessonId
+      }
+    );
+
+    return;
+
+  }
+
+
+  if(confirmButton){
+
+    confirmButton.disabled =
+      true;
+
+    confirmButton.textContent =
+      "מאפסים את השיעור...";
+
+  }
+
+
+const {
+  data: {
+    session
+  }
+} = await sb.auth.getSession();
+
+
+if(!session?.access_token){
+  throw new Error(
+    "Missing authentication session"
+  );
+}
+
+
+const response = await fetch(
+TUTOR_API_BASE + "/api/tutor/reset-unit-lesson",
+  {
+    method:
+      "POST",
+
+    headers: {
+      "Content-Type":
+        "application/json",
+
+      "Authorization":
+        `Bearer ${session.access_token}`
+    },
+
+body:
+  JSON.stringify({
+    kid_id:
+      kidId,
+
+    lesson_id:
+      lessonId,
+
+    unit_lesson_id:
+      unitLessonId
+  })
+  }
+);
+
+
+const result = await response.json();
+
+
+if(!response.ok){
+
+  throw new Error(
+    result?.detail
+    || "Failed to reset lesson"
+  );
+
+}
+
+
+console.log(
+  "RESET UNIT LESSON SUCCESS:",
+  result
+);
+
+  console.log(
+    "RESET LESSON CONFIRMED — FRONTEND READY:",
+    {
+      kidId:
+        CURRENT_KID.id,
+
+      lessonId:
+        Number(
+          currentLessonId
+        ),
+
+      unitLessonId
+    }
+  );
+
+closeResetLessonModal();
+
+console.log(
+  "RESET COMPLETED — RELOADING CLEAN LESSON",
+  {
+    kidId,
+    lessonId,
+    unitLessonId
+  }
+);
+
+/*
+  רענון מלא עוצר:
+  - אודיו ישן
+  - אנימציית שיעור ישנה
+  - טיימרים
+  - פעולות async שעדיין רצות
+  - תוכן ישן במחברת
+*/
+window.location.reload();
+
+};
 const MAX_NO_RESPONSE_PROMPTS = 3;
 
 const NO_RESPONSE_DELAYS = [
@@ -24746,6 +25302,260 @@ html.windows .kingdom-label-snow:hover{
   .kingdom-map-area{
     animation:none !important;
     transition:opacity .2s ease !important;
+  }
+
+}
+    /* =====================================================
+   RESET LESSON BUTTON
+===================================================== */
+
+.reset-lesson-btn{
+  display:none;
+
+  position:relative;
+
+  width:48px;
+  height:48px;
+
+  flex:0 0 48px;
+
+  border:
+    1px solid
+    rgba(221,116,91,.24);
+
+  border-radius:15px;
+
+  background:
+    rgba(255,235,226,.90);
+
+  color:#c85a43;
+
+  font-size:18px;
+
+  cursor:pointer;
+
+  transition:
+    transform .2s ease,
+    background .2s ease,
+    box-shadow .2s ease;
+}
+
+/* מופיע רק כאשר נמצאים בתוך שיעור */
+
+body.lesson-theme-science
+.reset-lesson-btn{
+  display:grid;
+  place-items:center;
+}
+
+body.lesson-theme-science
+.reset-lesson-btn:hover{
+  transform:
+    translateY(-2px);
+
+  background:
+    rgba(255,220,207,.98);
+
+  box-shadow:
+    0 7px 17px
+    rgba(176,75,49,.18);
+}
+
+body.lesson-theme-science
+.reset-lesson-btn:active{
+  transform:
+    scale(.96);
+}
+
+.reset-lesson-btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+    /* =====================================================
+   RESET LESSON MODAL
+===================================================== */
+
+.reset-lesson-modal{
+  position:relative;
+
+  width:min(470px,94vw) !important;
+
+  padding:
+    32px
+    30px
+    28px !important;
+
+  text-align:center;
+
+  border-radius:
+    28px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #fff9f6
+    ) !important;
+}
+
+.reset-lesson-modal .modal-close{
+  position:absolute;
+
+  top:16px;
+  left:16px;
+
+  width:38px;
+  height:38px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:#f3f1f7;
+
+  color:#5c647c;
+}
+
+.reset-lesson-modal-icon{
+  width:78px;
+  height:78px;
+
+  margin:
+    2px
+    auto
+    16px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff0e9,
+      #ffd9ca
+    );
+
+  color:#c8563d;
+
+  font-size:31px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(184,80,52,.15);
+}
+
+.reset-lesson-modal h2{
+  margin:
+    0
+    0
+    10px !important;
+
+  color:#25325e;
+
+  font-size:27px !important;
+}
+
+.reset-lesson-modal p{
+  margin:
+    0
+    auto;
+
+  max-width:370px;
+
+  color:#68728e;
+
+  font-size:16px;
+  line-height:1.65;
+}
+
+.reset-lesson-warning{
+  margin:
+    18px
+    0
+    4px;
+
+  padding:
+    10px
+    13px;
+
+  border:
+    1px solid
+    rgba(210,103,72,.18);
+
+  border-radius:13px;
+
+  background:
+    rgba(255,235,226,.68);
+
+  color:#a14a35;
+
+  font-size:13px;
+  font-weight:800;
+}
+
+.reset-lesson-actions{
+  display:grid !important;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap:10px !important;
+
+  margin-top:
+    20px !important;
+}
+
+.reset-lesson-cancel,
+.reset-lesson-confirm{
+  min-height:50px;
+
+  border:0;
+  border-radius:14px;
+
+  padding:
+    0
+    14px;
+
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+.reset-lesson-cancel{
+  background:#f0f1f6;
+  color:#4c5674;
+}
+
+.reset-lesson-confirm{
+  background:
+    linear-gradient(
+      145deg,
+      #e46d50,
+      #bd4934
+    );
+
+  color:#fff;
+
+  box-shadow:
+    0 9px 20px
+    rgba(181,69,46,.22);
+}
+
+.reset-lesson-confirm:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+
+@media(max-width:520px){
+
+  .reset-lesson-actions{
+    grid-template-columns:
+      1fr !important;
   }
 
 }
