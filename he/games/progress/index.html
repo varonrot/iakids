@@ -49,7 +49,7 @@ button,a{font:inherit}
   min-height:100vh;
   padding:16px;
   display:grid;
-  grid-template-columns:minmax(0,1fr) 290px;
+  grid-template-columns:minmax(0,1fr) clamp(250px,15vw,290px);
   gap:var(--gap);
   direction:ltr;
 }
@@ -278,7 +278,7 @@ button,a{font:inherit}
 /* לוגו */
 
 .logo{
-  width:235px;
+  width:clamp(190px,82%,225px);
   height:95px;
 
   object-fit:contain;
@@ -316,8 +316,8 @@ button,a{font:inherit}
 }
 
 .side-home img{
-    width:125px;
-    height:105px;
+    width:clamp(88px,46%,118px);
+    height:auto;
 
     object-fit:contain;
 
@@ -376,8 +376,8 @@ button,a{font:inherit}
 }
 
 .side-link img{
-  width:88px;
-  height:88px;
+  width:clamp(56px,26%,78px);
+  height:auto;
 
   object-fit:contain;
 
@@ -443,8 +443,8 @@ button,a{font:inherit}
 }
 
 .side-coach img{
-    width:170px;
-    height:150px;
+    width:clamp(120px,72%,160px);
+    height:auto;
 
     object-fit:contain;
 
