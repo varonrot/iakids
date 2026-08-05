@@ -440,6 +440,225 @@ button,a{font:inherit}
   .rec a{grid-column:1/-1;text-align:center}
 }
 
+
+/* ===== ICON-FIRST PREMIUM PATCH ===== */
+
+/* Force every horizontal icon/title row to behave correctly in RTL */
+.radar-head,
+.coach-msg,
+.side-link,
+.rec,
+.play{
+  direction:rtl;
+}
+
+/* Top stat cards: large icon on the RIGHT, text on the LEFT */
+.stat{
+  display:grid !important;
+  grid-template-columns:72px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  column-gap:12px;
+  align-content:center;
+  align-items:center;
+  text-align:right;
+  padding:14px 16px;
+}
+.stat img{
+  grid-column:1;
+  grid-row:1 / 3;
+  width:70px !important;
+  height:70px !important;
+  margin:0 !important;
+  justify-self:center;
+}
+.stat strong{
+  grid-column:2;
+  grid-row:1;
+  align-self:end;
+  font-size:30px !important;
+  line-height:1;
+}
+.stat span{
+  grid-column:2;
+  grid-row:2;
+  align-self:start;
+  margin-top:6px !important;
+  font-size:13px !important;
+}
+
+/* Robot card: robot clearly on the RIGHT */
+.coach-msg{
+  flex-direction:row;
+  justify-content:flex-start;
+  text-align:right;
+}
+.coach-msg img{
+  width:112px !important;
+  height:112px !important;
+}
+.coach-msg h3{
+  font-size:24px !important;
+}
+
+/* Main category cards: big icon to the RIGHT of the title */
+.radar-head{
+  justify-content:flex-start !important;
+  flex-direction:row !important;
+  text-align:right;
+  min-height:88px !important;
+  gap:16px !important;
+  padding-inline:8px;
+}
+.radar-head img{
+  order:0;
+  width:82px !important;
+  height:82px !important;
+  flex:0 0 82px;
+}
+.radar-head h2{
+  order:1;
+  font-size:28px !important;
+  text-align:right;
+}
+.radar-sub{
+  text-align:right !important;
+  padding-inline:106px 10px;
+  margin-top:-28px !important;
+  min-height:28px;
+  font-size:13px !important;
+}
+
+/* Give the chart cards enough height after enlarging icons */
+.radar-card{
+  min-height:470px !important;
+}
+.radar-wrap{
+  height:285px !important;
+}
+
+/* Sidebar: large icon on the RIGHT of each label */
+.side-link{
+  flex-direction:row !important;
+  justify-content:flex-start;
+  text-align:right;
+  min-height:68px !important;
+  gap:13px !important;
+}
+.side-link img{
+  width:50px !important;
+  height:50px !important;
+  flex:0 0 50px;
+}
+.side-link{
+  font-size:15px !important;
+}
+
+/* Recommendation rows: large subject icon on the RIGHT */
+.rec{
+  grid-template-columns:66px minmax(0,1fr) auto !important;
+}
+.rec img{
+  width:62px !important;
+  height:62px !important;
+}
+
+/* Summary cards: icons must feel like game assets, not tiny bullets */
+.sum img{
+  width:58px !important;
+  height:58px !important;
+  margin-bottom:4px;
+}
+.sum{
+  min-height:112px !important;
+}
+
+/* Bottom area */
+.badges img{
+  width:78px !important;
+  height:78px !important;
+}
+.kingdom img{
+  width:94px !important;
+  height:74px !important;
+}
+.play{
+  flex-direction:row !important;
+  text-align:right;
+}
+.play img{
+  width:78px !important;
+  height:78px !important;
+}
+
+/* Responsive safeguards */
+@media(max-width:1600px){
+  .stat{
+    grid-template-columns:62px minmax(0,1fr);
+    padding:11px 13px;
+  }
+  .stat img{
+    width:60px !important;
+    height:60px !important;
+  }
+  .radar-head img{
+    width:72px !important;
+    height:72px !important;
+    flex-basis:72px;
+  }
+  .radar-head h2{
+    font-size:25px !important;
+  }
+  .radar-sub{
+    padding-inline:96px 8px;
+  }
+  .radar-card{
+    min-height:440px !important;
+  }
+  .radar-wrap{
+    height:260px !important;
+  }
+}
+
+@media(max-width:980px){
+  .stat{
+    grid-template-columns:64px minmax(0,1fr);
+  }
+  .radar-sub{
+    margin-top:-20px !important;
+  }
+}
+
+@media(max-width:700px){
+  .stat{
+    grid-template-columns:58px minmax(0,1fr);
+  }
+  .stat img{
+    width:56px !important;
+    height:56px !important;
+  }
+  .radar-head{
+    min-height:76px !important;
+  }
+  .radar-head img{
+    width:66px !important;
+    height:66px !important;
+    flex-basis:66px;
+  }
+  .radar-head h2{
+    font-size:23px !important;
+  }
+  .radar-sub{
+    padding-inline:82px 6px;
+    margin-top:-18px !important;
+  }
+  .radar-card{
+    min-height:425px !important;
+  }
+  .radar-wrap{
+    height:250px !important;
+  }
+}
+
 </style>
 </head>
 <body>
