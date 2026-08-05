@@ -335,32 +335,32 @@ button,a{font:inherit}
 .side-nav{
   display:flex;
   flex-direction:column;
-  gap:11px;
+  gap:9px;
 }
 
 .side-link{
   position:relative;
 
   width:100%;
-  min-height:78px;
+  height:92px;
+  min-height:92px;
 
   display:grid;
-  grid-template-columns:68px minmax(0,1fr);
+  grid-template-columns:94px minmax(0,1fr);
   align-items:center;
 
-  padding:6px 14px 6px 12px;
+  padding:5px 14px 5px 6px;
 
-  border-radius:20px;
+  border-radius:22px;
 
   color:#fff;
   text-decoration:none;
 
-  background:
-    linear-gradient(
-      180deg,
-      #174888,
-      #0b2c62
-    );
+  background:linear-gradient(
+    180deg,
+    #174888,
+    #0b2c62
+  );
 
   border:1px solid rgba(152,206,255,.18);
 
@@ -372,12 +372,16 @@ button,a{font:inherit}
 }
 
 .side-link img{
-  width:62px;
-  height:62px;
+  width:88px;
+  height:88px;
 
   object-fit:contain;
 
   justify-self:center;
+  align-self:center;
+
+  transform:scale(1.28);
+  transform-origin:center;
 
   filter:
     drop-shadow(
@@ -389,15 +393,18 @@ button,a{font:inherit}
 .side-link span{
   min-width:0;
 
-  padding-inline:8px;
+  padding-inline:4px;
 
   text-align:center;
 
-  font-size:20px;
+  font-size:21px;
   line-height:1.15;
   font-weight:1000;
 
   white-space:normal;
+
+  text-shadow:
+    0 2px 3px rgba(0,0,0,.55);
 }
 
 .side-link.active{
@@ -670,7 +677,7 @@ button,a{font:inherit}
         src="/assets/games/progress/icons/progress.png"
         alt=""
       >
-      <span>ההתקדמות שלי</span>
+      <span>התקדמות</span>
     </a>
 
     <a class="side-link" href="/he/games/">
