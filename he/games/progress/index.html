@@ -570,6 +570,287 @@ img{max-width:100%}
   *,*::before,*::after{scroll-behavior:auto!important;transition:none!important}
 }
 
+
+/* ===== WINDOWS / LARGE DESKTOP SIZE LOCK ===== */
+@media (min-width: 1500px){
+  :root{
+    --gap:14px;
+    --sidebar:190px;
+  }
+
+  .app{
+    width:min(100%, 1680px);
+    max-width:1680px;
+    margin:0 auto;
+    padding:14px;
+    grid-template-columns:minmax(0,1fr) var(--sidebar);
+  }
+
+  .main{
+    width:100%;
+  }
+
+  .top{
+    grid-template-columns:
+      minmax(300px,360px)
+      repeat(3,minmax(130px,150px))
+      minmax(300px,350px);
+    justify-content:space-between;
+    gap:14px;
+  }
+
+  .profile,
+  .stat,
+  .coach-msg{
+    min-height:104px;
+    height:104px;
+  }
+
+  .profile{
+    padding:10px 14px;
+  }
+
+  .profile>img{
+    width:78px;
+    height:78px;
+    border-radius:22px;
+  }
+
+  .profile h1{
+    font-size:26px;
+  }
+
+  .profile p{
+    font-size:13px;
+  }
+
+  .stat img{
+    width:46px;
+    height:46px;
+  }
+
+  .stat strong{
+    font-size:25px;
+  }
+
+  .coach-msg img{
+    width:76px;
+    height:76px;
+  }
+
+  .coach-msg h3{
+    font-size:19px;
+  }
+
+  .coach-msg p{
+    font-size:12px;
+  }
+
+  .radars{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+  }
+
+  .radar-card{
+    min-height:370px;
+    height:370px;
+    padding:12px 14px;
+  }
+
+  .radar-head{
+    min-height:46px;
+  }
+
+  .radar-head img{
+    width:42px;
+    height:42px;
+  }
+
+  .radar-head h2{
+    font-size:21px;
+  }
+
+  .radar-sub{
+    font-size:12px;
+  }
+
+  .radar-wrap{
+    height:225px;
+    max-width:360px;
+  }
+
+  .radar-bottom{
+    min-height:62px;
+    padding:9px 12px;
+  }
+
+  .radar-bottom strong{
+    font-size:17px;
+  }
+
+  .lower{
+    grid-template-columns:1.12fr .95fr 1.25fr;
+    gap:14px;
+  }
+
+  .section{
+    min-height:220px;
+    height:220px;
+    padding:13px;
+  }
+
+  .section h2{
+    font-size:20px;
+    margin-bottom:10px;
+  }
+
+  .rec{
+    min-height:58px;
+    grid-template-columns:50px 1fr auto;
+    padding:7px 9px;
+  }
+
+  .rec img{
+    width:46px;
+    height:46px;
+  }
+
+  .summary{
+    gap:8px;
+  }
+
+  .sum{
+    min-height:82px;
+  }
+
+  .sum img{
+    width:36px;
+    height:36px;
+  }
+
+  .sum strong{
+    font-size:19px;
+  }
+
+  .trend{
+    height:145px;
+  }
+
+  .trend-note{
+    min-height:38px;
+    font-size:12px;
+    padding:7px 10px;
+  }
+
+  .bottom{
+    grid-template-columns:1fr 1fr 1.55fr minmax(190px,220px);
+    gap:14px;
+  }
+
+  .challenge,
+  .achievement,
+  .kingdoms-card{
+    min-height:132px;
+    height:132px;
+    padding:11px 13px;
+  }
+
+  .challenge h3,
+  .achievement h3,
+  .kingdoms-card h3{
+    font-size:18px;
+    margin-bottom:8px;
+  }
+
+  .badges{
+    min-height:72px;
+  }
+
+  .badges img{
+    width:54px;
+    height:54px;
+  }
+
+  .kingdom img{
+    width:58px;
+    height:48px;
+  }
+
+  .play{
+    min-height:132px;
+    height:132px;
+    font-size:23px;
+    padding:12px;
+  }
+
+  .play img{
+    width:54px;
+    height:54px;
+  }
+
+  .sidebar{
+    top:14px;
+    height:calc(100vh - 28px);
+    min-height:0;
+    padding:12px 10px;
+  }
+
+  .logo{
+    width:142px;
+    height:58px;
+    margin-bottom:10px;
+  }
+
+  .side-home{
+    padding:8px;
+    margin-bottom:10px;
+  }
+
+  .side-home img{
+    width:84px;
+    height:62px;
+  }
+
+  .side-home strong{
+    font-size:17px;
+  }
+
+  .side-nav{
+    gap:7px;
+  }
+
+  .side-link{
+    min-height:52px;
+    font-size:13px;
+    padding:7px 9px;
+  }
+
+  .side-link img{
+    width:36px;
+    height:36px;
+  }
+
+  .side-coach img{
+    width:100px;
+    height:100px;
+  }
+
+  .side-coach p{
+    font-size:11px;
+    padding:7px 8px;
+  }
+}
+
+@media (min-width: 2200px){
+  body::before{
+    background-size:cover;
+  }
+
+  .app{
+    max-width:1680px;
+  }
+}
+
 </style>
 </head>
 <body>
