@@ -3,37 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>דשבורד המשחקים שלי | iakids</title>
+<title>מרכז ההתקדמות במשחקים | iakids</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
-
 :root{
-  --bg:#07172f;
-  --panel:#0b2a59;
-  --panel2:#071e45;
-  --line:rgba(167,214,255,.24);
-  --text:#fff;
+  --ink:#fff;
   --muted:#c8d8ef;
-  --shadow:0 22px 55px rgba(0,8,30,.42);
-  --radius:28px;
+  --navy:#061631;
+  --panel:#0a2b5c;
+  --panel-2:#071f46;
+  --line:rgba(150,207,255,.24);
+  --gold:#ffc72f;
+  --radius-xl:30px;
+  --radius-lg:24px;
+  --radius-md:18px;
   --gap:16px;
-  --sidebar:206px;
+  --shadow:0 24px 65px rgba(0,8,30,.44);
   --font:"Segoe UI Variable Display","Segoe UI Variable Text","Segoe UI",Tahoma,Arial,sans-serif;
 }
 *{box-sizing:border-box}
-html{font-size:16px}
-html,body{
-  margin:0;
-  min-height:100%;
-  font-family:var(--font);
-  color:var(--text);
-  background:#06152d;
-}
+html,body{margin:0;min-height:100%;font-family:var(--font);color:var(--ink)}
 body{
   overflow-x:hidden;
   background:
-    linear-gradient(180deg,rgba(4,16,38,.28),rgba(3,13,34,.78)),
+    linear-gradient(180deg,rgba(3,16,39,.28),rgba(3,14,35,.74)),
     url("/assets/games/progress/dashboard-world-bg.webp") center/cover fixed no-repeat;
 }
 body::after{
@@ -43,54 +37,210 @@ body::after{
   pointer-events:none;
   z-index:-1;
   background:
-    radial-gradient(circle at 10% 10%,rgba(56,174,255,.22),transparent 24%),
-    radial-gradient(circle at 80% 8%,rgba(124,75,255,.20),transparent 28%),
-    linear-gradient(180deg,rgba(6,18,45,.08),rgba(4,14,35,.28));
+    radial-gradient(circle at 12% 10%,rgba(48,173,255,.22),transparent 26%),
+    radial-gradient(circle at 80% 8%,rgba(119,76,255,.18),transparent 28%),
+    linear-gradient(180deg,rgba(4,16,40,.04),rgba(4,16,40,.28));
 }
 img{display:block}
 button,a{font:inherit}
-.app{
-  width:min(100%,1800px);
+.dashboard{
+  width:min(100%,1840px);
   margin:0 auto;
   min-height:100vh;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) var(--sidebar);
-  gap:var(--gap);
   padding:16px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 214px;
+  gap:var(--gap);
   direction:ltr;
 }
-.main{
+.content{
   min-width:0;
   direction:rtl;
   display:grid;
   gap:var(--gap);
   align-content:start;
 }
-.glass,
-.radar-card,
-.challenge,
-.achievement,
-.kingdoms-card{
+.card{
   position:relative;
   overflow:hidden;
   border:1px solid var(--line);
-  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.10);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.09);
 }
-.glass::before,
-.radar-card::before,
-.challenge::before,
-.achievement::before,
-.kingdoms-card::before{
+.card::before{
   content:"";
   position:absolute;
   inset:0;
   pointer-events:none;
-  background:linear-gradient(135deg,rgba(255,255,255,.10),transparent 28%,transparent 72%,rgba(255,255,255,.035));
+  background:linear-gradient(135deg,rgba(255,255,255,.10),transparent 28%,transparent 72%,rgba(255,255,255,.03));
 }
-.glass{
-  border-radius:var(--radius);
-  background:linear-gradient(180deg,rgba(18,58,118,.96),rgba(6,28,68,.97));
+
+/* Top strip */
+.hero-strip{
+  display:grid;
+  grid-template-columns:minmax(350px,1.5fr) repeat(3,minmax(160px,.72fr)) minmax(330px,1.35fr);
+  gap:var(--gap);
 }
+.profile-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  color:#122957;
+  background:linear-gradient(135deg,#fff8dd,#ffd890);
+  border-color:rgba(255,255,255,.9);
+}
+.profile-card>img{
+  width:98px;height:98px;border-radius:28px;object-fit:cover;
+  background:#fff;border:4px solid #fff;
+  box-shadow:0 12px 28px rgba(77,43,0,.22);
+}
+.profile-card h1{margin:0;font-size:34px;font-weight:1000}
+.profile-card p{margin:4px 0;color:#28416e;font-size:14px;font-weight:800}
+.xp-line{margin-top:11px;display:grid;grid-template-columns:auto minmax(120px,1fr) auto;gap:9px;align-items:center;font-size:12px;font-weight:1000}
+.xpbar,.bar{height:14px;border-radius:999px;overflow:hidden;background:#071a38;box-shadow:inset 0 2px 4px rgba(0,0,0,.35)}
+.xpbar i,.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#fff36d,#ffc32f 58%,#ff8b17);box-shadow:0 0 18px rgba(255,191,30,.6)}
+
+.metric-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:16px;
+  display:grid;
+  grid-template-columns:92px 1fr;
+  align-items:center;
+  gap:12px;
+  background:linear-gradient(180deg,rgba(20,65,132,.98),rgba(7,31,72,.98));
+}
+.metric-card img{width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 12px 10px rgba(0,0,0,.34))}
+.metric-card .metric-copy{min-width:0}
+.metric-card strong{display:block;font-size:34px;line-height:1;font-weight:1000}
+.metric-card span{display:block;margin-top:7px;font-size:13px;color:var(--muted);font-weight:800;line-height:1.25}
+
+.coach-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  background:linear-gradient(135deg,rgba(19,58,118,.98),rgba(7,31,75,.98));
+}
+.coach-card img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 13px 11px rgba(0,0,0,.34))}
+.coach-card h3{margin:0 0 6px;font-size:24px;font-weight:1000}
+.coach-card p{margin:0;color:#dceaff;font-size:14px;line-height:1.5;font-weight:700}
+
+/* Main showcase */
+.showcase{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--gap);
+}
+.showcase-card{
+  min-height:500px;
+  border-radius:32px;
+  padding:18px;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+}
+.showcase-card.green{background:radial-gradient(circle at 85% 10%,rgba(179,255,71,.26),transparent 28%),linear-gradient(180deg,#188236,#063e20)}
+.showcase-card.blue{background:radial-gradient(circle at 85% 10%,rgba(49,218,255,.25),transparent 28%),linear-gradient(180deg,#1764bf,#082f71)}
+.showcase-card.purple{background:radial-gradient(circle at 85% 10%,rgba(239,116,255,.24),transparent 28%),linear-gradient(180deg,#7638bd,#3d196f)}
+.showcase-head{display:grid;grid-template-columns:100px 1fr;gap:15px;align-items:center;min-height:112px}
+.showcase-head img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 13px 10px rgba(0,0,0,.34))}
+.showcase-head h2{margin:0;font-size:30px;font-weight:1000}
+.showcase-head p{margin:4px 0 0;color:rgba(255,255,255,.84);font-size:13px}
+.radar-wrap{height:300px;max-width:430px;width:100%;margin:0 auto}
+.showcase-foot{
+  min-height:76px;
+  border-radius:18px;
+  padding:12px 15px;
+  background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.25));
+  border:1px solid rgba(255,255,255,.14);
+}
+.showcase-foot span{display:block;font-size:12px;color:rgba(255,255,255,.78)}
+.showcase-foot strong{display:block;margin-top:3px;font-size:20px;font-weight:1000}
+
+/* Insights */
+.insights{
+  display:grid;
+  grid-template-columns:1.2fr .95fr 1.25fr;
+  gap:var(--gap);
+}
+.panel{
+  min-height:280px;
+  border-radius:var(--radius-xl);
+  padding:18px;
+  background:linear-gradient(180deg,rgba(18,58,118,.97),rgba(6,28,68,.98));
+}
+.panel h2{margin:0 0 15px;font-size:23px;font-weight:1000}
+.recommendations{display:grid;gap:11px}
+.rec{
+  min-height:75px;
+  display:grid;
+  grid-template-columns:72px 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:18px;
+  background:linear-gradient(180deg,rgba(7,34,77,.95),rgba(5,25,58,.98));
+  border:1px solid rgba(148,203,255,.15);
+}
+.rec img{width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 8px 7px rgba(0,0,0,.3))}
+.rec strong{display:block;font-size:15px;font-weight:1000}
+.rec small{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.35}
+.rec a{color:#fff;text-decoration:none;padding:10px 14px;border-radius:13px;font-size:12px;font-weight:1000;background:linear-gradient(#32bdff,#1170ce);border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 16px rgba(0,93,200,.28)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sum{min-height:112px;border-radius:18px;padding:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(180deg,rgba(8,37,83,.95),rgba(5,27,64,.98));border:1px solid rgba(153,205,255,.15)}
+.sum img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 8px 7px rgba(0,0,0,.3))}
+.sum strong{font-size:22px;font-weight:1000}
+.sum span{margin-top:4px;color:var(--muted);font-size:11px}
+.trend{height:200px}
+.trend-note{margin-top:10px;min-height:44px;display:flex;align-items:center;border-radius:14px;padding:9px 11px;font-size:12px;background:linear-gradient(180deg,rgba(46,183,92,.22),rgba(24,128,63,.16));border:1px solid rgba(97,231,136,.25)}
+
+/* Bottom row */
+.bottom-grid{
+  display:grid;
+  grid-template-columns:1fr 1.1fr 1.75fr minmax(230px,.75fr);
+  gap:var(--gap);
+}
+.challenge-card,.achievement-card,.kingdoms-card{
+  min-height:176px;
+  border-radius:28px;
+  padding:16px;
+}
+.challenge-card{background:radial-gradient(circle at 82% 10%,rgba(255,106,223,.24),transparent 28%),linear-gradient(135deg,#8a2daf,#43156f)}
+.achievement-card{background:radial-gradient(circle at 85% 10%,rgba(57,236,255,.18),transparent 28%),linear-gradient(135deg,#1b7e89,#16466f)}
+.kingdoms-card{background:radial-gradient(circle at 50% 0,rgba(73,191,255,.22),transparent 34%),linear-gradient(135deg,#1768b5,#103b75)}
+.challenge-card h3,.achievement-card h3,.kingdoms-card h3{margin:0 0 12px;font-size:20px;font-weight:1000}
+.challenge-card strong{display:block;margin-bottom:12px}
+.challenge-card p{margin:9px 0 0;color:#e7d9ff;font-size:13px}
+.badges{display:flex;align-items:center;justify-content:center;gap:10px;min-height:105px;flex-wrap:wrap}
+.badges img{width:82px;height:82px;object-fit:contain;filter:drop-shadow(0 11px 10px rgba(0,0,0,.36))}
+.kingdoms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.kingdom{text-align:center;min-width:0;border-radius:17px;padding:8px 5px;background:rgba(4,27,62,.58);border:1px solid rgba(164,211,255,.16)}
+.kingdom img{width:98px;height:78px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 10px 8px rgba(0,0,0,.38))}
+.kingdom strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kingdom span{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:999px;background:linear-gradient(#63d925,#2b9e0d);font-size:11px;font-weight:1000}
+.play{
+  min-height:176px;
+  border-radius:29px;
+  border:2px solid rgba(255,255,255,.64);
+  background:linear-gradient(180deg,#ffe85f,#ffbf27 55%,#f3940a);
+  color:#573000;
+  font-size:29px;
+  font-weight:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  padding:18px;
+  cursor:pointer;
+  box-shadow:0 18px 35px rgba(156,83,0,.4),inset 0 3px 0 rgba(255,255,255,.56),inset 0 -4px 0 rgba(177,89,0,.22);
+  transition:.18s ease;
+}
+.play:hover{transform:translateY(-3px) scale(1.01)}
+.play img{width:86px;height:86px;object-fit:contain;filter:drop-shadow(0 10px 8px rgba(110,55,0,.28))}
 
 /* Sidebar */
 .sidebar{
@@ -98,620 +248,208 @@ button,a{font:inherit}
   position:sticky;
   top:16px;
   height:calc(100vh - 32px);
-  border-radius:30px;
-  padding:16px 12px;
+  border-radius:32px;
+  padding:16px 13px;
   display:flex;
   flex-direction:column;
-  background:linear-gradient(180deg,rgba(8,34,77,.985),rgba(4,19,48,.995));
+  background:linear-gradient(180deg,rgba(8,34,77,.99),rgba(4,19,48,.995));
   border:1px solid rgba(137,198,255,.24);
-  box-shadow:0 26px 70px rgba(0,7,28,.55),inset 0 1px 0 rgba(255,255,255,.07);
+  box-shadow:0 28px 80px rgba(0,7,28,.56),inset 0 1px 0 rgba(255,255,255,.07);
 }
-.logo{
-  width:158px;
-  height:68px;
-  object-fit:contain;
-  margin:0 auto 12px;
-  filter:drop-shadow(0 10px 12px rgba(0,0,0,.35));
-}
-.side-home{
-  text-align:center;
-  border-radius:22px;
-  padding:10px;
-  margin-bottom:12px;
-  background:linear-gradient(180deg,#174b96,#0c2c62);
-  border:1px solid rgba(168,218,255,.25);
-  box-shadow:0 12px 24px rgba(0,8,29,.25),inset 0 1px 0 rgba(255,255,255,.10);
-}
-.side-home img{
-  width:98px;height:74px;object-fit:contain;margin:0 auto 2px;
-  filter:drop-shadow(0 10px 9px rgba(0,0,0,.34));
-}
+.logo{width:164px;height:70px;object-fit:contain;margin:0 auto 13px}
+.side-home{text-align:center;border-radius:22px;padding:10px;margin-bottom:12px;background:linear-gradient(180deg,#174b96,#0c2c62);border:1px solid rgba(168,218,255,.25)}
+.side-home img{width:104px;height:78px;object-fit:contain;margin:0 auto}
 .side-home strong{font-size:18px;font-weight:1000}
 .side-nav{display:grid;gap:9px}
-.side-link{
-  min-height:60px;
-  display:flex;
-  align-items:center;
-  gap:11px;
-  padding:9px 11px;
-  border-radius:17px;
-  color:#fff;
-  text-decoration:none;
-  font-size:14px;
-  font-weight:1000;
-  background:linear-gradient(180deg,#123a78,#0b2859);
-  border:1px solid rgba(152,206,255,.18);
-  box-shadow:0 9px 20px rgba(0,8,28,.23),inset 0 1px 0 rgba(255,255,255,.05);
-  transition:.18s ease;
-}
-.side-link:hover{transform:translateY(-2px);filter:brightness(1.09)}
-.side-link.active{
-  background:linear-gradient(135deg,#1e72ef,#5a45ff 58%,#863dfd);
-  border-color:rgba(255,255,255,.5);
-  box-shadow:0 0 0 3px rgba(82,125,255,.15),0 0 28px rgba(83,76,255,.52);
-}
-.side-link img{
-  width:43px;height:43px;object-fit:contain;
-  filter:drop-shadow(0 6px 6px rgba(0,0,0,.28));
-}
+.side-link{min-height:64px;display:flex;align-items:center;gap:12px;padding:9px 11px;border-radius:17px;color:#fff;text-decoration:none;font-size:14px;font-weight:1000;background:linear-gradient(180deg,#123a78,#0b2859);border:1px solid rgba(152,206,255,.18);box-shadow:0 9px 20px rgba(0,8,28,.23)}
+.side-link.active{background:linear-gradient(135deg,#1e72ef,#5a45ff 58%,#863dfd);border-color:rgba(255,255,255,.5);box-shadow:0 0 0 3px rgba(82,125,255,.15),0 0 28px rgba(83,76,255,.52)}
+.side-link img{width:48px;height:48px;object-fit:contain}
 .side-coach{margin-top:auto;text-align:center;padding-top:10px}
-.side-coach img{
-  width:128px;height:128px;object-fit:contain;margin:0 auto;
-  filter:drop-shadow(0 14px 12px rgba(0,0,0,.4));
-}
-.side-coach p{
-  margin:0;
-  padding:9px 10px;
-  border-radius:14px;
-  font-size:11px;
-  line-height:1.45;
-  color:#e7f0ff;
-  background:rgba(11,43,91,.9);
-  border:1px solid rgba(155,207,255,.18);
-}
-
-/* Top */
-.top{
-  display:grid;
-  grid-template-columns:minmax(330px,1.45fr) repeat(3,minmax(140px,.68fr)) minmax(320px,1.28fr);
-  gap:var(--gap);
-}
-.profile,.stat,.coach-msg{min-height:118px}
-.profile{
-  display:flex;
-  align-items:center;
-  gap:15px;
-  padding:13px 16px;
-  color:#122957;
-  background:linear-gradient(135deg,rgba(255,248,225,.99),rgba(255,226,165,.98));
-  border-color:rgba(255,255,255,.8);
-}
-.profile>img{
-  width:90px;height:90px;border-radius:26px;object-fit:cover;
-  background:#fff;border:4px solid #fff;
-  box-shadow:0 10px 24px rgba(70,42,0,.22);
-}
-.profile h1{margin:0;font-size:31px;font-weight:1000;letter-spacing:-.4px}
-.profile p{margin:3px 0;color:#29436f;font-size:14px;font-weight:800}
-.xp-line{
-  margin-top:10px;
-  display:grid;
-  grid-template-columns:auto minmax(110px,1fr) auto;
-  gap:8px;align-items:center;
-  font-size:12px;font-weight:1000;
-}
-.xpbar,.bar{
-  height:13px;
-  border-radius:999px;
-  overflow:hidden;
-  background:#061936;
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.12);
-}
-.xpbar i,.bar i{
-  display:block;height:100%;border-radius:inherit;
-  background:linear-gradient(90deg,#fff16a,#ffc52e 55%,#ff8a19);
-  box-shadow:0 0 18px rgba(255,196,38,.65),inset 0 1px 0 rgba(255,255,255,.65);
-}
-.stat{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:10px;
-  background:linear-gradient(180deg,rgba(18,61,125,.97),rgba(7,31,72,.97));
-}
-.stat img{
-  width:58px;height:58px;object-fit:contain;margin-bottom:2px;
-  filter:drop-shadow(0 9px 9px rgba(0,0,0,.32));
-}
-.stat strong{font-size:28px;line-height:1;font-weight:1000}
-.stat span{font-size:12px;color:var(--muted);margin-top:5px;font-weight:800}
-.coach-msg{
-  display:flex;align-items:center;gap:14px;padding:14px 16px;
-  background:linear-gradient(135deg,rgba(18,58,117,.98),rgba(7,31,75,.98));
-}
-.coach-msg img{
-  width:94px;height:94px;object-fit:contain;flex:none;
-  filter:drop-shadow(0 12px 10px rgba(0,0,0,.32));
-}
-.coach-msg h3{margin:0 0 5px;font-size:22px;font-weight:1000}
-.coach-msg p{margin:0;color:#dceaff;line-height:1.5;font-size:13px;font-weight:700}
-
-/* Main hero cards */
-.radars{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:var(--gap);
-}
-.radar-card{
-  min-height:430px;
-  border-radius:30px;
-  padding:15px 16px 15px;
-}
-.radar-card.green{background:radial-gradient(circle at 50% 7%,rgba(156,255,67,.24),transparent 31%),linear-gradient(180deg,#17792d,#073d1d)}
-.radar-card.blue{background:radial-gradient(circle at 50% 7%,rgba(52,216,255,.24),transparent 31%),linear-gradient(180deg,#1561bb,#082f72)}
-.radar-card.purple{background:radial-gradient(circle at 50% 7%,rgba(238,117,255,.22),transparent 31%),linear-gradient(180deg,#7134b7,#3b176e)}
-.radar-head{min-height:54px;display:flex;align-items:center;justify-content:center;gap:11px}
-.radar-head img{
-  width:52px;height:52px;object-fit:contain;
-  filter:drop-shadow(0 9px 8px rgba(0,0,0,.34));
-}
-.radar-head h2{font-size:24px;margin:0;font-weight:1000}
-.radar-sub{text-align:center;font-size:13px;color:rgba(255,255,255,.86);margin:2px 0 4px}
-.radar-wrap{height:278px;margin:0 auto;max-width:420px}
-.radar-bottom{
-  margin-top:8px;padding:11px 14px;border-radius:18px;min-height:70px;
-  background:linear-gradient(180deg,rgba(0,0,0,.13),rgba(0,0,0,.24));
-  border:1px solid rgba(255,255,255,.14);
-}
-.radar-bottom span{display:block;font-size:12px;color:rgba(255,255,255,.78)}
-.radar-bottom strong{display:block;margin-top:2px;font-size:19px;font-weight:1000}
-
-/* Middle */
-.lower{
-  display:grid;
-  grid-template-columns:1.16fr .95fr 1.26fr;
-  gap:var(--gap);
-}
-.section{min-height:252px;padding:16px}
-.section h2{margin:0 0 13px;font-size:22px;font-weight:1000}
-.recommendations{display:grid;gap:10px}
-.rec{
-  min-height:65px;
-  display:grid;
-  grid-template-columns:58px 1fr auto;
-  gap:11px;align-items:center;
-  padding:8px 10px;
-  border-radius:17px;
-  background:linear-gradient(180deg,rgba(7,33,75,.9),rgba(5,25,58,.94));
-  border:1px solid rgba(146,202,255,.15);
-}
-.rec img{
-  width:54px;height:54px;object-fit:contain;
-  filter:drop-shadow(0 7px 6px rgba(0,0,0,.32));
-}
-.rec strong{display:block;font-size:15px;font-weight:1000}
-.rec small{display:block;margin-top:3px;color:var(--muted);font-size:12px;line-height:1.35}
-.rec a{
-  color:#fff;text-decoration:none;padding:9px 13px;border-radius:12px;
-  font-size:12px;font-weight:1000;
-  background:linear-gradient(180deg,#2fb9ff,#1170ce);
-  border:1px solid rgba(255,255,255,.32);
-  box-shadow:0 8px 16px rgba(0,93,200,.3),inset 0 1px 0 rgba(255,255,255,.28);
-}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.sum{
-  min-height:96px;
-  border-radius:17px;
-  background:linear-gradient(180deg,rgba(8,37,83,.93),rgba(5,27,64,.96));
-  border:1px solid rgba(153,205,255,.15);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px;
-}
-.sum img{
-  width:43px;height:43px;object-fit:contain;
-  filter:drop-shadow(0 7px 7px rgba(0,0,0,.3));
-}
-.sum strong{font-size:21px;font-weight:1000;line-height:1.05}
-.sum span{color:var(--muted);font-size:11px;margin-top:4px}
-.trend{height:178px}
-.trend-note{
-  margin-top:9px;min-height:42px;display:flex;align-items:center;
-  border-radius:14px;padding:8px 11px;font-size:12px;
-  background:linear-gradient(180deg,rgba(46,183,92,.22),rgba(24,128,63,.16));
-  border:1px solid rgba(97,231,136,.25);
-}
-
-/* Bottom */
-.bottom{
-  display:grid;
-  grid-template-columns:1fr 1.08fr 1.6fr minmax(220px,.72fr);
-  gap:var(--gap);
-}
-.challenge,.achievement,.kingdoms-card{
-  min-height:158px;
-  border-radius:26px;
-  padding:14px;
-}
-.challenge{background:radial-gradient(circle at 85% 12%,rgba(255,103,223,.25),transparent 30%),linear-gradient(135deg,#862cae,#45156f)}
-.achievement{background:radial-gradient(circle at 85% 10%,rgba(61,237,255,.18),transparent 30%),linear-gradient(135deg,#197985,#16466f)}
-.kingdoms-card{background:radial-gradient(circle at 50% 0,rgba(73,191,255,.24),transparent 34%),linear-gradient(135deg,#1766b2,#103b75)}
-.challenge h3,.achievement h3,.kingdoms-card h3{margin:0 0 10px;font-size:19px;font-weight:1000}
-.challenge strong{display:block;margin-bottom:10px}
-.challenge p{margin:8px 0 0;color:#e6d9ff;font-size:12px}
-.badges{display:flex;gap:9px;align-items:center;justify-content:center;min-height:90px;flex-wrap:wrap}
-.badges img{
-  width:66px;height:66px;object-fit:contain;
-  filter:drop-shadow(0 10px 9px rgba(0,0,0,.36));
-}
-.kingdoms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.kingdom{
-  text-align:center;min-width:0;border-radius:16px;padding:7px 5px 6px;
-  background:rgba(4,27,62,.58);border:1px solid rgba(164,211,255,.16);
-}
-.kingdom img{
-  width:72px;height:58px;object-fit:contain;margin:0 auto;
-  filter:drop-shadow(0 9px 8px rgba(0,0,0,.38));
-}
-.kingdom strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kingdom span{
-  display:inline-block;margin-top:4px;padding:3px 9px;border-radius:999px;
-  background:linear-gradient(#63d925,#2b9e0d);
-  color:#fff;font-size:11px;font-weight:1000;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
-}
-.play{
-  min-width:0;min-height:158px;border-radius:27px;
-  border:2px solid rgba(255,255,255,.62);
-  background:linear-gradient(180deg,#ffe45d,#ffbc25 55%,#f3950a);
-  color:#573000;font-size:27px;font-weight:1000;
-  display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;
-  cursor:pointer;
-  box-shadow:0 18px 35px rgba(156,83,0,.4),inset 0 3px 0 rgba(255,255,255,.56),inset 0 -4px 0 rgba(177,89,0,.22);
-  transition:.18s ease;
-}
-.play:hover{transform:translateY(-3px) scale(1.01);filter:saturate(1.12)}
-.play img{
-  width:64px;height:64px;object-fit:contain;
-  filter:drop-shadow(0 9px 7px rgba(110,55,0,.28));
-}
+.side-coach img{width:138px;height:138px;object-fit:contain;margin:0 auto}
+.side-coach p{margin:0;padding:9px 10px;border-radius:14px;font-size:11px;line-height:1.45;color:#e7f0ff;background:rgba(11,43,91,.9);border:1px solid rgba(155,207,255,.18)}
 
 /* Loading */
-.loading{
-  position:fixed;inset:0;z-index:999;display:grid;place-items:center;
-  background:rgba(2,10,27,.94);backdrop-filter:blur(8px);
-}
+.loading{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:rgba(2,10,27,.94);backdrop-filter:blur(8px)}
 .loading.hide{display:none}
-.loading div{
-  min-width:290px;text-align:center;border-radius:24px;padding:24px;
-  background:linear-gradient(180deg,#123973,#092755);
-  border:1px solid var(--line);box-shadow:var(--shadow);
-}
-.loading img{width:96px;height:96px;object-fit:contain;margin:0 auto 12px}
+.loading div{min-width:290px;text-align:center;border-radius:24px;padding:24px;background:linear-gradient(180deg,#123973,#092755);border:1px solid var(--line);box-shadow:var(--shadow)}
+.loading img{width:100px;height:100px;object-fit:contain;margin:0 auto 12px}
 
 /* Responsive */
 @media(max-width:1600px){
-  :root{--sidebar:190px;--gap:14px}
-  .app{max-width:1680px;padding:14px}
-  .top{grid-template-columns:minmax(300px,1.35fr) repeat(3,minmax(125px,.66fr))}
-  .coach-msg{grid-column:1/-1;min-height:96px}
-  .radar-card{min-height:395px}
-  .radar-wrap{height:245px}
-  .section{min-height:230px}
+  .dashboard{grid-template-columns:minmax(0,1fr) 194px;padding:14px}
+  .hero-strip{grid-template-columns:minmax(300px,1.35fr) repeat(3,minmax(140px,.66fr))}
+  .coach-card{grid-column:1/-1}
+  .showcase-card{min-height:455px}
+  .radar-wrap{height:265px}
 }
-@media(max-width:1250px){
-  .app{grid-template-columns:minmax(0,1fr) 176px}
-  .radars{grid-template-columns:repeat(2,1fr)}
-  .radar-card:last-child{grid-column:1/-1}
-  .lower{grid-template-columns:1fr 1fr}
-  .trend-card{grid-column:1/-1}
-  .bottom{grid-template-columns:1fr 1fr}
+@media(max-width:1280px){
+  .dashboard{grid-template-columns:minmax(0,1fr) 178px}
+  .showcase{grid-template-columns:repeat(2,1fr)}
+  .showcase-card:last-child{grid-column:1/-1}
+  .insights{grid-template-columns:1fr 1fr}
+  .trend-panel{grid-column:1/-1}
+  .bottom-grid{grid-template-columns:1fr 1fr}
   .kingdoms-card{grid-column:1/-1}
 }
 @media(max-width:980px){
-  .app{grid-template-columns:1fr;padding:12px}
+  .dashboard{grid-template-columns:1fr;padding:12px}
   .sidebar{display:none}
-  .top{grid-template-columns:1.4fr repeat(2,1fr)}
-  .profile{grid-column:span 2}
-  .coach-msg{grid-column:1/-1}
+  .hero-strip{grid-template-columns:1.4fr repeat(2,1fr)}
+  .profile-card{grid-column:span 2}
 }
 @media(max-width:700px){
-  :root{--gap:12px}
-  .app{padding:10px}
-  .top{grid-template-columns:1fr 1fr}
-  .profile,.coach-msg{grid-column:1/-1}
-  .profile{min-height:116px}
-  .profile>img{width:80px;height:80px}
-  .profile h1{font-size:26px}
-  .stat{min-height:108px}
-  .radars,.lower,.bottom{grid-template-columns:1fr}
-  .radar-card,.radar-card:last-child,.trend-card,.kingdoms-card{grid-column:auto}
-  .radar-card{min-height:395px}
-  .radar-wrap{height:255px}
-  .section{min-height:auto}
+  .dashboard{padding:9px}
+  .hero-strip{grid-template-columns:1fr 1fr}
+  .profile-card,.coach-card{grid-column:1/-1}
+  .metric-card{grid-template-columns:70px 1fr}
+  .metric-card img{width:70px;height:70px}
+  .showcase,.insights,.bottom-grid{grid-template-columns:1fr}
+  .showcase-card,.showcase-card:last-child,.trend-panel,.kingdoms-card{grid-column:auto}
   .summary{grid-template-columns:repeat(2,1fr)}
   .kingdoms{grid-template-columns:repeat(2,1fr)}
   .kingdom:last-child{grid-column:1/-1}
-  .play{min-height:112px}
+  .play{min-height:120px}
 }
 @media(max-width:430px){
-  .app{padding:7px}
-  .profile{display:grid;grid-template-columns:76px 1fr}
-  .profile>img{width:76px;height:76px}
+  .profile-card{display:grid;grid-template-columns:80px 1fr}
+  .profile-card>img{width:80px;height:80px}
   .xp-line{grid-column:1/-1}
-  .coach-msg img{width:80px;height:80px}
-  .rec{grid-template-columns:54px 1fr}
+  .rec{grid-template-columns:62px 1fr}
   .rec a{grid-column:1/-1;text-align:center}
 }
-
-
-/* ===== ICON-FIRST PREMIUM PATCH ===== */
-
-/* Force every horizontal icon/title row to behave correctly in RTL */
-.radar-head,
-.coach-msg,
-.side-link,
-.rec,
-.play{
-  direction:rtl;
-}
-
-/* Top stat cards: large icon on the RIGHT, text on the LEFT */
-.stat{
-  display:grid !important;
-  grid-template-columns:72px minmax(0,1fr);
-  grid-template-rows:auto auto;
-  column-gap:12px;
-  align-content:center;
-  align-items:center;
-  text-align:right;
-  padding:14px 16px;
-}
-.stat img{
-  grid-column:1;
-  grid-row:1 / 3;
-  width:70px !important;
-  height:70px !important;
-  margin:0 !important;
-  justify-self:center;
-}
-.stat strong{
-  grid-column:2;
-  grid-row:1;
-  align-self:end;
-  font-size:30px !important;
-  line-height:1;
-}
-.stat span{
-  grid-column:2;
-  grid-row:2;
-  align-self:start;
-  margin-top:6px !important;
-  font-size:13px !important;
-}
-
-/* Robot card: robot clearly on the RIGHT */
-.coach-msg{
-  flex-direction:row;
-  justify-content:flex-start;
-  text-align:right;
-}
-.coach-msg img{
-  width:112px !important;
-  height:112px !important;
-}
-.coach-msg h3{
-  font-size:24px !important;
-}
-
-/* Main category cards: big icon to the RIGHT of the title */
-.radar-head{
-  justify-content:flex-start !important;
-  flex-direction:row !important;
-  text-align:right;
-  min-height:88px !important;
-  gap:16px !important;
-  padding-inline:8px;
-}
-.radar-head img{
-  order:0;
-  width:82px !important;
-  height:82px !important;
-  flex:0 0 82px;
-}
-.radar-head h2{
-  order:1;
-  font-size:28px !important;
-  text-align:right;
-}
-.radar-sub{
-  text-align:right !important;
-  padding-inline:106px 10px;
-  margin-top:-28px !important;
-  min-height:28px;
-  font-size:13px !important;
-}
-
-/* Give the chart cards enough height after enlarging icons */
-.radar-card{
-  min-height:470px !important;
-}
-.radar-wrap{
-  height:285px !important;
-}
-
-/* Sidebar: large icon on the RIGHT of each label */
-.side-link{
-  flex-direction:row !important;
-  justify-content:flex-start;
-  text-align:right;
-  min-height:68px !important;
-  gap:13px !important;
-}
-.side-link img{
-  width:50px !important;
-  height:50px !important;
-  flex:0 0 50px;
-}
-.side-link{
-  font-size:15px !important;
-}
-
-/* Recommendation rows: large subject icon on the RIGHT */
-.rec{
-  grid-template-columns:66px minmax(0,1fr) auto !important;
-}
-.rec img{
-  width:62px !important;
-  height:62px !important;
-}
-
-/* Summary cards: icons must feel like game assets, not tiny bullets */
-.sum img{
-  width:58px !important;
-  height:58px !important;
-  margin-bottom:4px;
-}
-.sum{
-  min-height:112px !important;
-}
-
-/* Bottom area */
-.badges img{
-  width:78px !important;
-  height:78px !important;
-}
-.kingdom img{
-  width:94px !important;
-  height:74px !important;
-}
-.play{
-  flex-direction:row !important;
-  text-align:right;
-}
-.play img{
-  width:78px !important;
-  height:78px !important;
-}
-
-/* Responsive safeguards */
-@media(max-width:1600px){
-  .stat{
-    grid-template-columns:62px minmax(0,1fr);
-    padding:11px 13px;
-  }
-  .stat img{
-    width:60px !important;
-    height:60px !important;
-  }
-  .radar-head img{
-    width:72px !important;
-    height:72px !important;
-    flex-basis:72px;
-  }
-  .radar-head h2{
-    font-size:25px !important;
-  }
-  .radar-sub{
-    padding-inline:96px 8px;
-  }
-  .radar-card{
-    min-height:440px !important;
-  }
-  .radar-wrap{
-    height:260px !important;
-  }
-}
-
-@media(max-width:980px){
-  .stat{
-    grid-template-columns:64px minmax(0,1fr);
-  }
-  .radar-sub{
-    margin-top:-20px !important;
-  }
-}
-
-@media(max-width:700px){
-  .stat{
-    grid-template-columns:58px minmax(0,1fr);
-  }
-  .stat img{
-    width:56px !important;
-    height:56px !important;
-  }
-  .radar-head{
-    min-height:76px !important;
-  }
-  .radar-head img{
-    width:66px !important;
-    height:66px !important;
-    flex-basis:66px;
-  }
-  .radar-head h2{
-    font-size:23px !important;
-  }
-  .radar-sub{
-    padding-inline:82px 6px;
-    margin-top:-18px !important;
-  }
-  .radar-card{
-    min-height:425px !important;
-  }
-  .radar-wrap{
-    height:250px !important;
-  }
-}
-
 </style>
 </head>
 <body>
-<div class="loading" id="loading"><div><img src="/assets/games/progress/progress-robot.webp" alt="">טוען את דשבורד המשחקים שלך…</div></div>
-<div class="app">
-<main class="main">
-<section class="top">
-<article class="glass profile"><img id="kidAvatar" src="/assets/avatars/default-boy.webp"><div><h1 id="kidName">היי!</h1><p id="kidGrade">דשבורד המשחקים שלי</p><div class="xp-line"><span>XP</span><div class="xpbar"><i id="xpFill"></i></div><strong id="xpText">0 / 500</strong></div></div></article>
-<article class="glass stat"><img src="/assets/games/progress/icons/star.webp"><strong id="totalXp">0</strong><span>נקודות</span></article>
-<article class="glass stat"><img src="/assets/games/progress/icons/controller.webp"><strong id="gamesPlayed">0</strong><span>משחקים שהושלמו</span></article>
-<article class="glass stat"><img src="/assets/games/progress/icons/fire.webp"><strong id="dayStreak">0</strong><span>ימי רצף</span></article>
-<article class="glass coach-msg"><img src="/assets/games/progress/progress-robot.webp"><div><h3 id="coachTitle">כל הכבוד!</h3><p id="coachText">שחק עוד כמה משחקים כדי שאוכל לבנות לך תמונת מצב אישית.</p></div></article>
-</section>
+<div class="loading" id="loading"><div><img src="/assets/games/progress/progress-robot.webp" alt="">טוען את מרכז ההתקדמות שלך…</div></div>
 
-<section class="radars">
-<article class="radar-card green"><div class="radar-head"><img src="/assets/games/progress/icons/subjects.webp"><h2>1. מקצועות</h2></div><p class="radar-sub">באילו מקצועות אני הכי חזק?</p><div class="radar-wrap"><canvas id="subjectsRadar"></canvas></div><div class="radar-bottom"><span>המקצוע החזק שלך:</span><strong id="bestSubject">אין מספיק נתונים</strong></div></article>
-<article class="radar-card blue"><div class="radar-head"><img src="/assets/games/progress/icons/skills.webp"><h2>2. מיומנויות</h2></div><p class="radar-sub">הכישורים שהמשחקים בודקים ומפתחים</p><div class="radar-wrap"><canvas id="skillsRadar"></canvas></div><div class="radar-bottom"><span>המיומנות הבולטת שלך:</span><strong id="bestSkill">אין מספיק נתונים</strong></div></article>
-<article class="radar-card purple"><div class="radar-head"><img src="/assets/games/progress/icons/progress.webp"><h2>3. התקדמות</h2></div><p class="radar-sub">איך הביצועים משתנים לאורך זמן</p><div class="radar-wrap"><canvas id="progressRadar"></canvas></div><div class="radar-bottom"><span>השיפור הבולט שלך:</span><strong id="bestProgress">אין מספיק נתונים</strong></div></article>
-</section>
+<div class="dashboard">
+  <main class="content">
+    <section class="hero-strip">
+      <article class="card profile-card">
+        <img id="kidAvatar" src="/assets/avatars/default-boy.webp" alt="">
+        <div>
+          <h1 id="kidName">היי!</h1>
+          <p id="kidGrade">מרכז ההתקדמות במשחקים</p>
+          <div class="xp-line">
+            <span>XP</span>
+            <div class="xpbar"><i id="xpFill"></i></div>
+            <strong id="xpText">0 / 500</strong>
+          </div>
+        </div>
+      </article>
 
-<section class="lower">
-<article class="glass section"><h2>🎯 המלצות עבורך</h2><div class="recommendations" id="recommendations"></div></article>
-<article class="glass section"><h2>📊 הסטטיסטיקה שלך</h2><div class="summary">
-<div class="sum"><img src="/assets/games/progress/icons/controller.webp"><strong id="statMonth">0</strong><span>משחקים החודש</span></div>
-<div class="sum"><img src="/assets/games/progress/icons/accuracy.webp"><strong id="statAccuracy">0%</strong><span>דיוק ממוצע</span></div>
-<div class="sum"><img src="/assets/games/progress/icons/clock.webp"><strong id="statResponse">—</strong><span>תגובה ממוצעת</span></div>
-<div class="sum"><img src="/assets/games/progress/icons/trophy.webp"><strong id="statBestStreak">0</strong><span>רצף הצלחות</span></div>
-<div class="sum"><img src="/assets/games/progress/icons/fire.webp"><strong id="statDays">0</strong><span>ימי רצף</span></div>
-<div class="sum"><img src="/assets/games/progress/icons/star.webp"><strong id="statScore">0</strong><span>נקודות סה״כ</span></div>
-</div></article>
-<article class="glass section trend-card"><h2>📈 ההתקדמות שלך</h2><div class="trend"><canvas id="trendChart"></canvas></div><div class="trend-note" id="trendNote">צריך עוד כמה משחקים כדי להציג מגמת שיפור.</div></article>
-</section>
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/star.webp" alt="">
+        <div class="metric-copy"><strong id="totalXp">0</strong><span>נקודות</span></div>
+      </article>
 
-<section class="bottom">
-<article class="challenge"><h3>🔥 אתגר השבוע</h3><strong>השלים 5 משחקים</strong><div class="bar"><i id="challengeFill"></i></div><p id="challengeText">0 מתוך 5</p></article>
-<article class="achievement"><h3>🏆 הישגים אחרונים</h3><div class="badges" id="badges"></div></article>
-<article class="kingdoms-card"><h3>🏰 הממלכות שלי</h3><div class="kingdoms" id="kingdoms"></div></article>
-<button class="play" id="playNow"><img src="/assets/games/progress/icons/sword.webp">שחק עכשיו!</button>
-</section>
-</main>
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/controller.webp" alt="">
+        <div class="metric-copy"><strong id="gamesPlayed">0</strong><span>משחקים שהושלמו</span></div>
+      </article>
 
-<aside class="sidebar">
-<img class="logo" src="/assets/games/progress/iakids-games-logo.webp">
-<div class="side-home"><img src="/assets/games/progress/level-shield.webp"><strong>האי שלנו</strong></div>
-<nav class="side-nav">
-<a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/map.webp">המפה שלי</a>
-<a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/missions.webp">משימות</a>
-<a class="side-link active" href="/he/games/progress/"><img src="/assets/games/progress/icons/progress.webp">ההתקדמות שלי</a>
-<a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/trophy.webp">הישגים</a>
-<a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/chest.webp">חנות</a>
-</nav>
-<div class="side-coach"><img src="/assets/games/progress/progress-robot.webp"><p id="sideCoach">אני מנתח את המשחקים שלך כדי לעזור לך להשתפר.</p></div>
-</aside>
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/fire.webp" alt="">
+        <div class="metric-copy"><strong id="dayStreak">0</strong><span>ימי רצף</span></div>
+      </article>
+
+      <article class="card coach-card">
+        <img src="/assets/games/progress/progress-robot.webp" alt="">
+        <div><h3 id="coachTitle">כל הכבוד!</h3><p id="coachText">שחק עוד כמה משחקים כדי שאוכל לבנות לך תמונת מצב אישית.</p></div>
+      </article>
+    </section>
+
+    <section class="showcase">
+      <article class="card showcase-card green">
+        <div class="showcase-head">
+          <img src="/assets/games/progress/icons/subjects.webp" alt="">
+          <div><h2>1. מקצועות</h2><p>באילו מקצועות אני הכי חזק?</p></div>
+        </div>
+        <div class="radar-wrap"><canvas id="subjectsRadar"></canvas></div>
+        <div class="showcase-foot"><span>המקצוע החזק שלך:</span><strong id="bestSubject">אין מספיק נתונים</strong></div>
+      </article>
+
+      <article class="card showcase-card blue">
+        <div class="showcase-head">
+          <img src="/assets/games/progress/icons/skills.webp" alt="">
+          <div><h2>2. מיומנויות</h2><p>הכישורים שהמשחקים בודקים ומפתחים</p></div>
+        </div>
+        <div class="radar-wrap"><canvas id="skillsRadar"></canvas></div>
+        <div class="showcase-foot"><span>המיומנות הבולטת שלך:</span><strong id="bestSkill">אין מספיק נתונים</strong></div>
+      </article>
+
+      <article class="card showcase-card purple">
+        <div class="showcase-head">
+          <img src="/assets/games/progress/icons/progress.webp" alt="">
+          <div><h2>3. התקדמות</h2><p>איך הביצועים משתנים לאורך זמן</p></div>
+        </div>
+        <div class="radar-wrap"><canvas id="progressRadar"></canvas></div>
+        <div class="showcase-foot"><span>השיפור הבולט שלך:</span><strong id="bestProgress">אין מספיק נתונים</strong></div>
+      </article>
+    </section>
+
+    <section class="insights">
+      <article class="card panel">
+        <h2>🎯 המלצות עבורך</h2>
+        <div class="recommendations" id="recommendations"></div>
+      </article>
+
+      <article class="card panel">
+        <h2>📊 הסטטיסטיקה שלך</h2>
+        <div class="summary">
+          <div class="sum"><img src="/assets/games/progress/icons/controller.webp"><strong id="statMonth">0</strong><span>משחקים החודש</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/accuracy.webp"><strong id="statAccuracy">0%</strong><span>דיוק ממוצע</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/clock.webp"><strong id="statResponse">—</strong><span>תגובה ממוצעת</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/trophy.webp"><strong id="statBestStreak">0</strong><span>רצף הצלחות</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/fire.webp"><strong id="statDays">0</strong><span>ימי רצף</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/star.webp"><strong id="statScore">0</strong><span>נקודות סה״כ</span></div>
+        </div>
+      </article>
+
+      <article class="card panel trend-panel">
+        <h2>📈 ההתקדמות שלך</h2>
+        <div class="trend"><canvas id="trendChart"></canvas></div>
+        <div class="trend-note" id="trendNote">צריך עוד כמה משחקים כדי להציג מגמת שיפור.</div>
+      </article>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="card challenge-card">
+        <h3>🔥 אתגר השבוע</h3>
+        <strong>השלים 5 משחקים</strong>
+        <div class="bar"><i id="challengeFill"></i></div>
+        <p id="challengeText">0 מתוך 5</p>
+      </article>
+
+      <article class="card achievement-card">
+        <h3>🏆 הישגים אחרונים</h3>
+        <div class="badges" id="badges"></div>
+      </article>
+
+      <article class="card kingdoms-card">
+        <h3>🏰 הממלכות שלי</h3>
+        <div class="kingdoms" id="kingdoms"></div>
+      </article>
+
+      <button class="play" id="playNow">
+        <img src="/assets/games/progress/icons/sword.webp" alt="">
+        שחק עכשיו!
+      </button>
+    </section>
+  </main>
+
+  <aside class="sidebar">
+    <img class="logo" src="/assets/games/progress/iakids-games-logo.webp" alt="">
+    <div class="side-home"><img src="/assets/games/progress/level-shield.webp" alt=""><strong>האי שלנו</strong></div>
+    <nav class="side-nav">
+      <a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/map.webp">המפה שלי</a>
+      <a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/missions.webp">משימות</a>
+      <a class="side-link active" href="/he/games/progress/"><img src="/assets/games/progress/icons/progress.webp">ההתקדמות שלי</a>
+      <a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/trophy.webp">הישגים</a>
+      <a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/chest.webp">חנות</a>
+    </nav>
+    <div class="side-coach"><img src="/assets/games/progress/progress-robot.webp"><p id="sideCoach">אני מנתח את המשחקים שלך כדי לעזור לך להשתפר.</p></div>
+  </aside>
 </div>
 
 <script>
