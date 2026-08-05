@@ -3,64 +3,455 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>מרכז המשחקים | iakids</title>
+<title>מרכז ההתקדמות במשחקים | iakids</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
-:root{--font:"Segoe UI Variable Display","Segoe UI Variable Text","Segoe UI",Tahoma,Arial,sans-serif;--text:#fff;--muted:#c9d7ef;--line:rgba(173,216,255,.22);--gap:18px;--shadow:0 24px 70px rgba(0,8,30,.45)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:var(--font);color:var(--text)}body{overflow-x:hidden;background:linear-gradient(180deg,rgba(3,14,35,.18),rgba(3,13,32,.72)),url('/assets/games/progress/dashboard-world-bg.webp') center/cover fixed no-repeat}body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 12% 10%,rgba(58,175,255,.20),transparent 25%),radial-gradient(circle at 78% 8%,rgba(132,82,255,.18),transparent 28%)}img{display:block}a,button{font:inherit}
-.shell{width:min(100%,1840px);margin:auto;min-height:100vh;padding:18px;display:grid;grid-template-columns:88px minmax(0,1fr);gap:18px;direction:ltr}.main{direction:rtl;min-width:0;display:grid;gap:18px;align-content:start}
-.rail{direction:rtl;position:sticky;top:18px;height:calc(100vh - 36px);border-radius:28px;background:linear-gradient(180deg,rgba(8,34,77,.99),rgba(4,19,48,.995));border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;padding:14px 9px;gap:10px}.rail .logo{width:68px;height:68px;object-fit:contain}.rail-link{width:66px;height:66px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(180deg,#123a78,#0b2859);border:1px solid rgba(153,207,255,.18);position:relative}.rail-link.active{background:linear-gradient(145deg,#1d74f0,#5e43ff 58%,#8c3cff);box-shadow:0 0 28px rgba(89,77,255,.5)}.rail-link img{width:46px;height:46px;object-fit:contain}.rail-link span{position:absolute;right:78px;top:50%;transform:translateY(-50%);white-space:nowrap;background:#071d40;border:1px solid var(--line);border-radius:12px;padding:8px 10px;opacity:0;pointer-events:none;font-size:12px}.rail-link:hover span{opacity:1}.rail-robot{margin-top:auto}.rail-robot img{width:72px;height:72px;object-fit:contain}
-.hero{min-height:470px;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,.8fr);gap:18px}.world-stage{position:relative;overflow:hidden;border-radius:34px;min-height:470px;border:1px solid var(--line);box-shadow:var(--shadow);background:linear-gradient(180deg,rgba(7,26,57,.12),rgba(4,18,44,.55)),url('/assets/games/progress/dashboard-world-bg.webp') center/cover no-repeat}.hero-profile{position:absolute;top:22px;right:22px;z-index:2;min-width:330px;max-width:440px;border-radius:26px;padding:14px 16px;display:grid;grid-template-columns:86px 1fr;gap:14px;align-items:center;color:#122957;background:linear-gradient(135deg,#fff9e7,#ffd991);border:1px solid #fff;box-shadow:0 18px 42px rgba(42,25,0,.25)}.hero-profile>img{width:86px;height:86px;object-fit:cover;border-radius:24px;border:4px solid #fff}.hero-profile h1{margin:0;font-size:31px;font-weight:1000}.hero-profile p{margin:3px 0;color:#29436f;font-size:13px;font-weight:800}.xp-line{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:12px;font-weight:1000}.xpbar,.bar{height:14px;border-radius:999px;overflow:hidden;background:#071a38}.xpbar i,.bar i{display:block;height:100%;background:linear-gradient(90deg,#fff36d,#ffc32f 58%,#ff8b17)}
-.mission-card{position:absolute;right:22px;bottom:22px;z-index:2;width:min(430px,calc(100% - 44px));border-radius:28px;padding:18px;background:linear-gradient(135deg,rgba(13,44,93,.97),rgba(6,24,60,.98));border:1px solid var(--line);box-shadow:0 20px 48px rgba(0,9,32,.38)}.mission-top{display:flex;align-items:center;gap:14px}.mission-top img{width:92px;height:92px;object-fit:contain}.mission-top h2{margin:0;font-size:25px;font-weight:1000}.mission-top p{margin:4px 0 0;color:var(--muted);font-size:13px}.play{margin-top:14px;width:100%;min-height:72px;border:0;border-radius:22px;display:flex;align-items:center;justify-content:center;gap:12px;cursor:pointer;color:#593000;font-size:25px;font-weight:1000;background:linear-gradient(180deg,#ffe963,#ffc22d 56%,#f5960d);box-shadow:0 15px 30px rgba(153,82,0,.35),inset 0 3px 0 rgba(255,255,255,.58)}.play img{width:58px;height:58px;object-fit:contain}.floating-kingdoms{position:absolute;left:22px;bottom:22px;z-index:2;display:flex;gap:10px}.floating-kingdoms .kingdom{width:100px;border-radius:20px;padding:8px;text-align:center;background:rgba(5,27,63,.84);border:1px solid var(--line);backdrop-filter:blur(8px)}.floating-kingdoms .kingdom img{width:82px;height:60px;object-fit:contain;margin:auto}.floating-kingdoms .kingdom strong{display:block;font-size:11px}.floating-kingdoms .kingdom span{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:linear-gradient(#63d925,#2b9e0d);font-size:10px;font-weight:1000}
-.hero-side{display:grid;grid-template-rows:auto auto 1fr;gap:18px}.coach-card{min-height:150px;border-radius:30px;padding:18px;display:grid;grid-template-columns:120px 1fr;align-items:center;gap:15px;background:linear-gradient(135deg,#173d7e,#09265a);border:1px solid var(--line);box-shadow:var(--shadow)}.coach-card img{width:120px;height:120px;object-fit:contain}.coach-card h3{margin:0 0 6px;font-size:24px;font-weight:1000}.coach-card p{margin:0;color:var(--muted);font-size:13px}.quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.metric{min-height:142px;border-radius:24px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#123d7d,#082759);border:1px solid var(--line);box-shadow:var(--shadow)}.metric img{width:74px;height:74px;object-fit:contain}.metric strong{font-size:28px;font-weight:1000}.metric span{margin-top:5px;font-size:11px;color:var(--muted)}.week-card{border-radius:30px;padding:18px;background:linear-gradient(135deg,#812ca8,#42146d);border:1px solid var(--line);box-shadow:var(--shadow)}.week-card h3{margin:0 0 8px;font-size:22px}.week-card p{margin:0 0 14px;color:#eadcff}.week-card strong{display:block;margin-top:10px}
-.progress-zone{display:grid;grid-template-columns:1.4fr .8fr;gap:18px}.radar-stack{display:grid;grid-template-columns:1fr 1fr;gap:18px}.radar-card{min-height:390px;border-radius:30px;padding:18px;display:grid;grid-template-rows:auto 1fr auto;border:1px solid var(--line);box-shadow:var(--shadow)}.radar-card.green{background:radial-gradient(circle at 86% 8%,rgba(172,255,70,.22),transparent 28%),linear-gradient(180deg,#197d35,#073e20)}.radar-card.blue{background:radial-gradient(circle at 86% 8%,rgba(47,217,255,.22),transparent 28%),linear-gradient(180deg,#1762bd,#082f71)}.radar-card.purple{background:radial-gradient(circle at 86% 8%,rgba(240,116,255,.22),transparent 28%),linear-gradient(180deg,#7338b7,#3e196f)}.radar-card.progress-wide{grid-column:1/-1;min-height:360px}.radar-head{display:grid;grid-template-columns:88px 1fr;gap:14px;align-items:center}.radar-head img{width:88px;height:88px;object-fit:contain}.radar-head h2{margin:0;font-size:27px}.radar-head p{margin:3px 0 0;color:rgba(255,255,255,.84);font-size:12px}.radar-wrap{height:240px}.radar-card.progress-wide .radar-wrap{height:220px}.radar-foot{border-radius:17px;padding:11px 13px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12)}.radar-foot span{display:block;font-size:12px;color:rgba(255,255,255,.75)}.radar-foot strong{display:block;margin-top:2px;font-size:18px}.insight-column{display:grid;gap:18px}.panel{border-radius:30px;padding:18px;background:linear-gradient(180deg,rgba(18,58,118,.97),rgba(6,28,68,.98));border:1px solid var(--line);box-shadow:var(--shadow)}.panel h2{margin:0 0 14px;font-size:22px}.recommendations{display:grid;gap:10px}.rec{display:grid;grid-template-columns:64px 1fr auto;gap:11px;align-items:center;min-height:72px;padding:9px 10px;border-radius:17px;background:rgba(5,28,64,.86);border:1px solid rgba(150,205,255,.14)}.rec img{width:60px;height:60px;object-fit:contain}.rec strong{display:block;font-size:14px}.rec small{display:block;margin-top:3px;color:var(--muted);font-size:11px}.rec a{color:#fff;text-decoration:none;padding:9px 12px;border-radius:12px;font-size:11px;font-weight:1000;background:linear-gradient(#32bdff,#1170ce)}.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.sum{min-height:108px;border-radius:18px;padding:8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,28,64,.86);border:1px solid rgba(150,205,255,.14)}.sum img{width:56px;height:56px;object-fit:contain}.sum strong{font-size:21px}.sum span{font-size:10px;color:var(--muted)}.trend{height:185px}.trend-note{margin-top:9px;padding:9px 10px;border-radius:13px;font-size:11px;background:rgba(41,176,89,.18);border:1px solid rgba(92,225,132,.24)}.badges{display:flex;gap:10px;flex-wrap:wrap}.badges img{width:72px;height:72px;object-fit:contain}
-.loading{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:rgba(2,10,27,.94)}.loading.hide{display:none}.loading div{min-width:290px;text-align:center;border-radius:24px;padding:24px;background:linear-gradient(180deg,#123973,#092755);border:1px solid var(--line)}.loading img{width:100px;height:100px;object-fit:contain;margin:auto}
-@media(max-width:1380px){.shell{grid-template-columns:78px 1fr}.hero{grid-template-columns:1fr}.hero-side{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}.week-card{grid-column:1/-1}.progress-zone{grid-template-columns:1fr}}
-@media(max-width:900px){.shell{grid-template-columns:1fr;padding:10px}.rail{display:none}.world-stage{min-height:560px}.hero-side{grid-template-columns:1fr}.radar-stack{grid-template-columns:1fr}.radar-card.progress-wide{grid-column:auto}.floating-kingdoms{display:none}}
-@media(max-width:620px){.hero-profile{position:relative;top:auto;right:auto;margin:12px;width:calc(100% - 24px);min-width:0}.mission-card{right:12px;bottom:12px;width:calc(100% - 24px)}.world-stage{min-height:590px}.coach-card{grid-template-columns:90px 1fr}.coach-card img{width:90px;height:90px}.quick-stats{grid-template-columns:1fr}.metric{min-height:110px;display:grid;grid-template-columns:76px 1fr;text-align:right}.metric img{width:70px;height:70px}.summary{grid-template-columns:1fr 1fr}.rec{grid-template-columns:58px 1fr}.rec a{grid-column:1/-1;text-align:center}}
+:root{
+  --ink:#fff;
+  --muted:#c8d8ef;
+  --navy:#061631;
+  --panel:#0a2b5c;
+  --panel-2:#071f46;
+  --line:rgba(150,207,255,.24);
+  --gold:#ffc72f;
+  --radius-xl:30px;
+  --radius-lg:24px;
+  --radius-md:18px;
+  --gap:16px;
+  --shadow:0 24px 65px rgba(0,8,30,.44);
+  --font:"Segoe UI Variable Display","Segoe UI Variable Text","Segoe UI",Tahoma,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:var(--font);color:var(--ink)}
+body{
+  overflow-x:hidden;
+  background:
+    linear-gradient(180deg,rgba(3,16,39,.28),rgba(3,14,35,.74)),
+    url("/assets/games/progress/dashboard-world-bg.webp") center/cover fixed no-repeat;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 12% 10%,rgba(48,173,255,.22),transparent 26%),
+    radial-gradient(circle at 80% 8%,rgba(119,76,255,.18),transparent 28%),
+    linear-gradient(180deg,rgba(4,16,40,.04),rgba(4,16,40,.28));
+}
+img{display:block}
+button,a{font:inherit}
+.dashboard{
+  width:min(100%,1840px);
+  margin:0 auto;
+  min-height:100vh;
+  padding:16px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 214px;
+  gap:var(--gap);
+  direction:ltr;
+}
+.content{
+  min-width:0;
+  direction:rtl;
+  display:grid;
+  gap:var(--gap);
+  align-content:start;
+}
+.card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.09);
+}
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.10),transparent 28%,transparent 72%,rgba(255,255,255,.03));
+}
+
+/* Top strip */
+.hero-strip{
+  display:grid;
+  grid-template-columns:minmax(350px,1.5fr) repeat(3,minmax(160px,.72fr)) minmax(330px,1.35fr);
+  gap:var(--gap);
+}
+.profile-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  color:#122957;
+  background:linear-gradient(135deg,#fff8dd,#ffd890);
+  border-color:rgba(255,255,255,.9);
+}
+.profile-card>img{
+  width:98px;height:98px;border-radius:28px;object-fit:cover;
+  background:#fff;border:4px solid #fff;
+  box-shadow:0 12px 28px rgba(77,43,0,.22);
+}
+.profile-card h1{margin:0;font-size:34px;font-weight:1000}
+.profile-card p{margin:4px 0;color:#28416e;font-size:14px;font-weight:800}
+.xp-line{margin-top:11px;display:grid;grid-template-columns:auto minmax(120px,1fr) auto;gap:9px;align-items:center;font-size:12px;font-weight:1000}
+.xpbar,.bar{height:14px;border-radius:999px;overflow:hidden;background:#071a38;box-shadow:inset 0 2px 4px rgba(0,0,0,.35)}
+.xpbar i,.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#fff36d,#ffc32f 58%,#ff8b17);box-shadow:0 0 18px rgba(255,191,30,.6)}
+
+.metric-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:16px;
+  display:grid;
+  grid-template-columns:92px 1fr;
+  align-items:center;
+  gap:12px;
+  background:linear-gradient(180deg,rgba(20,65,132,.98),rgba(7,31,72,.98));
+}
+.metric-card img{width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 12px 10px rgba(0,0,0,.34))}
+.metric-card .metric-copy{min-width:0}
+.metric-card strong{display:block;font-size:34px;line-height:1;font-weight:1000}
+.metric-card span{display:block;margin-top:7px;font-size:13px;color:var(--muted);font-weight:800;line-height:1.25}
+
+.coach-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  background:linear-gradient(135deg,rgba(19,58,118,.98),rgba(7,31,75,.98));
+}
+.coach-card img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 13px 11px rgba(0,0,0,.34))}
+.coach-card h3{margin:0 0 6px;font-size:24px;font-weight:1000}
+.coach-card p{margin:0;color:#dceaff;font-size:14px;line-height:1.5;font-weight:700}
+
+/* Main showcase */
+.showcase{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--gap);
+}
+.showcase-card{
+  min-height:500px;
+  border-radius:32px;
+  padding:18px;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+}
+.showcase-card.green{background:radial-gradient(circle at 85% 10%,rgba(179,255,71,.26),transparent 28%),linear-gradient(180deg,#188236,#063e20)}
+.showcase-card.blue{background:radial-gradient(circle at 85% 10%,rgba(49,218,255,.25),transparent 28%),linear-gradient(180deg,#1764bf,#082f71)}
+.showcase-card.purple{background:radial-gradient(circle at 85% 10%,rgba(239,116,255,.24),transparent 28%),linear-gradient(180deg,#7638bd,#3d196f)}
+.showcase-head{display:grid;grid-template-columns:100px 1fr;gap:15px;align-items:center;min-height:112px}
+.showcase-head img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 13px 10px rgba(0,0,0,.34))}
+.showcase-head h2{margin:0;font-size:30px;font-weight:1000}
+.showcase-head p{margin:4px 0 0;color:rgba(255,255,255,.84);font-size:13px}
+.radar-wrap{height:300px;max-width:430px;width:100%;margin:0 auto}
+.showcase-foot{
+  min-height:76px;
+  border-radius:18px;
+  padding:12px 15px;
+  background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.25));
+  border:1px solid rgba(255,255,255,.14);
+}
+.showcase-foot span{display:block;font-size:12px;color:rgba(255,255,255,.78)}
+.showcase-foot strong{display:block;margin-top:3px;font-size:20px;font-weight:1000}
+
+/* Insights */
+.insights{
+  display:grid;
+  grid-template-columns:1.2fr .95fr 1.25fr;
+  gap:var(--gap);
+}
+.panel{
+  min-height:280px;
+  border-radius:var(--radius-xl);
+  padding:18px;
+  background:linear-gradient(180deg,rgba(18,58,118,.97),rgba(6,28,68,.98));
+}
+.panel h2{margin:0 0 15px;font-size:23px;font-weight:1000}
+.recommendations{display:grid;gap:11px}
+.rec{
+  min-height:75px;
+  display:grid;
+  grid-template-columns:72px 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:18px;
+  background:linear-gradient(180deg,rgba(7,34,77,.95),rgba(5,25,58,.98));
+  border:1px solid rgba(148,203,255,.15);
+}
+.rec img{width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 8px 7px rgba(0,0,0,.3))}
+.rec strong{display:block;font-size:15px;font-weight:1000}
+.rec small{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.35}
+.rec a{color:#fff;text-decoration:none;padding:10px 14px;border-radius:13px;font-size:12px;font-weight:1000;background:linear-gradient(#32bdff,#1170ce);border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 16px rgba(0,93,200,.28)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sum{min-height:112px;border-radius:18px;padding:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(180deg,rgba(8,37,83,.95),rgba(5,27,64,.98));border:1px solid rgba(153,205,255,.15)}
+.sum img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 8px 7px rgba(0,0,0,.3))}
+.sum strong{font-size:22px;font-weight:1000}
+.sum span{margin-top:4px;color:var(--muted);font-size:11px}
+.trend{height:200px}
+.trend-note{margin-top:10px;min-height:44px;display:flex;align-items:center;border-radius:14px;padding:9px 11px;font-size:12px;background:linear-gradient(180deg,rgba(46,183,92,.22),rgba(24,128,63,.16));border:1px solid rgba(97,231,136,.25)}
+
+/* Bottom row */
+.bottom-grid{
+  display:grid;
+  grid-template-columns:1fr 1.1fr 1.75fr minmax(230px,.75fr);
+  gap:var(--gap);
+}
+.challenge-card,.achievement-card,.kingdoms-card{
+  min-height:176px;
+  border-radius:28px;
+  padding:16px;
+}
+.challenge-card{background:radial-gradient(circle at 82% 10%,rgba(255,106,223,.24),transparent 28%),linear-gradient(135deg,#8a2daf,#43156f)}
+.achievement-card{background:radial-gradient(circle at 85% 10%,rgba(57,236,255,.18),transparent 28%),linear-gradient(135deg,#1b7e89,#16466f)}
+.kingdoms-card{background:radial-gradient(circle at 50% 0,rgba(73,191,255,.22),transparent 34%),linear-gradient(135deg,#1768b5,#103b75)}
+.challenge-card h3,.achievement-card h3,.kingdoms-card h3{margin:0 0 12px;font-size:20px;font-weight:1000}
+.challenge-card strong{display:block;margin-bottom:12px}
+.challenge-card p{margin:9px 0 0;color:#e7d9ff;font-size:13px}
+.badges{display:flex;align-items:center;justify-content:center;gap:10px;min-height:105px;flex-wrap:wrap}
+.badges img{width:82px;height:82px;object-fit:contain;filter:drop-shadow(0 11px 10px rgba(0,0,0,.36))}
+.kingdoms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.kingdom{text-align:center;min-width:0;border-radius:17px;padding:8px 5px;background:rgba(4,27,62,.58);border:1px solid rgba(164,211,255,.16)}
+.kingdom img{width:98px;height:78px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 10px 8px rgba(0,0,0,.38))}
+.kingdom strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kingdom span{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:999px;background:linear-gradient(#63d925,#2b9e0d);font-size:11px;font-weight:1000}
+.play{
+  min-height:176px;
+  border-radius:29px;
+  border:2px solid rgba(255,255,255,.64);
+  background:linear-gradient(180deg,#ffe85f,#ffbf27 55%,#f3940a);
+  color:#573000;
+  font-size:29px;
+  font-weight:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  padding:18px;
+  cursor:pointer;
+  box-shadow:0 18px 35px rgba(156,83,0,.4),inset 0 3px 0 rgba(255,255,255,.56),inset 0 -4px 0 rgba(177,89,0,.22);
+  transition:.18s ease;
+}
+.play:hover{transform:translateY(-3px) scale(1.01)}
+.play img{width:86px;height:86px;object-fit:contain;filter:drop-shadow(0 10px 8px rgba(110,55,0,.28))}
+
+/* Sidebar */
+.sidebar{
+  direction:rtl;
+  position:sticky;
+  top:16px;
+  height:calc(100vh - 32px);
+  border-radius:32px;
+  padding:16px 13px;
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(180deg,rgba(8,34,77,.99),rgba(4,19,48,.995));
+  border:1px solid rgba(137,198,255,.24);
+  box-shadow:0 28px 80px rgba(0,7,28,.56),inset 0 1px 0 rgba(255,255,255,.07);
+}
+.logo{width:164px;height:70px;object-fit:contain;margin:0 auto 13px}
+.side-home{text-align:center;border-radius:22px;padding:10px;margin-bottom:12px;background:linear-gradient(180deg,#174b96,#0c2c62);border:1px solid rgba(168,218,255,.25)}
+.side-home img{width:104px;height:78px;object-fit:contain;margin:0 auto}
+.side-home strong{font-size:18px;font-weight:1000}
+.side-nav{display:grid;gap:9px}
+.side-link{min-height:64px;display:flex;align-items:center;gap:12px;padding:9px 11px;border-radius:17px;color:#fff;text-decoration:none;font-size:14px;font-weight:1000;background:linear-gradient(180deg,#123a78,#0b2859);border:1px solid rgba(152,206,255,.18);box-shadow:0 9px 20px rgba(0,8,28,.23)}
+.side-link.active{background:linear-gradient(135deg,#1e72ef,#5a45ff 58%,#863dfd);border-color:rgba(255,255,255,.5);box-shadow:0 0 0 3px rgba(82,125,255,.15),0 0 28px rgba(83,76,255,.52)}
+.side-link img{width:48px;height:48px;object-fit:contain}
+.side-coach{margin-top:auto;text-align:center;padding-top:10px}
+.side-coach img{width:138px;height:138px;object-fit:contain;margin:0 auto}
+.side-coach p{margin:0;padding:9px 10px;border-radius:14px;font-size:11px;line-height:1.45;color:#e7f0ff;background:rgba(11,43,91,.9);border:1px solid rgba(155,207,255,.18)}
+
+/* Loading */
+.loading{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:rgba(2,10,27,.94);backdrop-filter:blur(8px)}
+.loading.hide{display:none}
+.loading div{min-width:290px;text-align:center;border-radius:24px;padding:24px;background:linear-gradient(180deg,#123973,#092755);border:1px solid var(--line);box-shadow:var(--shadow)}
+.loading img{width:100px;height:100px;object-fit:contain;margin:0 auto 12px}
+
+/* Responsive */
+@media(max-width:1600px){
+  .dashboard{grid-template-columns:minmax(0,1fr) 194px;padding:14px}
+  .hero-strip{grid-template-columns:minmax(300px,1.35fr) repeat(3,minmax(140px,.66fr))}
+  .coach-card{grid-column:1/-1}
+  .showcase-card{min-height:455px}
+  .radar-wrap{height:265px}
+}
+@media(max-width:1280px){
+  .dashboard{grid-template-columns:minmax(0,1fr) 178px}
+  .showcase{grid-template-columns:repeat(2,1fr)}
+  .showcase-card:last-child{grid-column:1/-1}
+  .insights{grid-template-columns:1fr 1fr}
+  .trend-panel{grid-column:1/-1}
+  .bottom-grid{grid-template-columns:1fr 1fr}
+  .kingdoms-card{grid-column:1/-1}
+}
+@media(max-width:980px){
+  .dashboard{grid-template-columns:1fr;padding:12px}
+  .sidebar{display:none}
+  .hero-strip{grid-template-columns:1.4fr repeat(2,1fr)}
+  .profile-card{grid-column:span 2}
+}
+@media(max-width:700px){
+  .dashboard{padding:9px}
+  .hero-strip{grid-template-columns:1fr 1fr}
+  .profile-card,.coach-card{grid-column:1/-1}
+  .metric-card{grid-template-columns:70px 1fr}
+  .metric-card img{width:70px;height:70px}
+  .showcase,.insights,.bottom-grid{grid-template-columns:1fr}
+  .showcase-card,.showcase-card:last-child,.trend-panel,.kingdoms-card{grid-column:auto}
+  .summary{grid-template-columns:repeat(2,1fr)}
+  .kingdoms{grid-template-columns:repeat(2,1fr)}
+  .kingdom:last-child{grid-column:1/-1}
+  .play{min-height:120px}
+}
+@media(max-width:430px){
+  .profile-card{display:grid;grid-template-columns:80px 1fr}
+  .profile-card>img{width:80px;height:80px}
+  .xp-line{grid-column:1/-1}
+  .rec{grid-template-columns:62px 1fr}
+  .rec a{grid-column:1/-1;text-align:center}
+}
 </style>
 </head>
 <body>
-<div class="loading" id="loading"><div><img src="/assets/games/progress/progress-robot.webp" alt="">טוען את מרכז המשחקים שלך…</div></div>
-<div class="shell">
-<aside class="rail">
-<img class="logo" src="/assets/games/progress/iakids-games-logo.webp">
-<a class="rail-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/map.webp"><span>המפה שלי</span></a>
-<a class="rail-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/missions.webp"><span>משימות</span></a>
-<a class="rail-link active" href="/he/games/progress/"><img src="/assets/games/progress/icons/progress.webp"><span>ההתקדמות שלי</span></a>
-<a class="rail-link" href="/he/games/"><img src="/assets/games/progress/icons/trophy.webp"><span>הישגים</span></a>
-<a class="rail-link" href="/he/games/"><img src="/assets/games/progress/icons/chest.webp"><span>חנות</span></a>
-<div class="rail-robot"><img src="/assets/games/progress/progress-robot.webp"></div>
-</aside>
-<main class="main">
-<section class="hero">
-<div class="world-stage">
-<article class="hero-profile"><img id="kidAvatar" src="/assets/avatars/default-boy.webp"><div><h1 id="kidName">היי!</h1><p id="kidGrade">מרכז המשחקים שלי</p></div><div class="xp-line"><span>XP</span><div class="xpbar"><i id="xpFill"></i></div><strong id="xpText">0 / 500</strong></div></article>
-<article class="mission-card"><div class="mission-top"><img src="/assets/games/progress/icons/sword.webp"><div><h2>המשימה הבאה שלך</h2><p>בחר ממלכה, השלם משחק והמשך לבנות את הכוח שלך.</p></div></div><button class="play" id="playNow"><img src="/assets/games/progress/icons/controller.webp">שחק עכשיו!</button></article>
-<div class="floating-kingdoms" id="kingdoms"></div>
+<div class="loading" id="loading"><div><img src="/assets/games/progress/progress-robot.webp" alt="">טוען את מרכז ההתקדמות שלך…</div></div>
+
+<div class="dashboard">
+  <main class="content">
+    <section class="hero-strip">
+      <article class="card profile-card">
+        <img id="kidAvatar" src="/assets/avatars/default-boy.webp" alt="">
+        <div>
+          <h1 id="kidName">היי!</h1>
+          <p id="kidGrade">מרכז ההתקדמות במשחקים</p>
+          <div class="xp-line">
+            <span>XP</span>
+            <div class="xpbar"><i id="xpFill"></i></div>
+            <strong id="xpText">0 / 500</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/star.webp" alt="">
+        <div class="metric-copy"><strong id="totalXp">0</strong><span>נקודות</span></div>
+      </article>
+
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/controller.webp" alt="">
+        <div class="metric-copy"><strong id="gamesPlayed">0</strong><span>משחקים שהושלמו</span></div>
+      </article>
+
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/fire.webp" alt="">
+        <div class="metric-copy"><strong id="dayStreak">0</strong><span>ימי רצף</span></div>
+      </article>
+
+      <article class="card coach-card">
+        <img src="/assets/games/progress/progress-robot.webp" alt="">
+        <div><h3 id="coachTitle">כל הכבוד!</h3><p id="coachText">שחק עוד כמה משחקים כדי שאוכל לבנות לך תמונת מצב אישית.</p></div>
+      </article>
+    </section>
+
+    <section class="showcase">
+      <article class="card showcase-card green">
+        <div class="showcase-head">
+          <img src="/assets/games/progress/icons/subjects.webp" alt="">
+          <div><h2>1. מקצועות</h2><p>באילו מקצועות אני הכי חזק?</p></div>
+        </div>
+        <div class="radar-wrap"><canvas id="subjectsRadar"></canvas></div>
+        <div class="showcase-foot"><span>המקצוע החזק שלך:</span><strong id="bestSubject">אין מספיק נתונים</strong></div>
+      </article>
+
+      <article class="card showcase-card blue">
+        <div class="showcase-head">
+          <img src="/assets/games/progress/icons/skills.webp" alt="">
+          <div><h2>2. מיומנויות</h2><p>הכישורים שהמשחקים בודקים ומפתחים</p></div>
+        </div>
+        <div class="radar-wrap"><canvas id="skillsRadar"></canvas></div>
+        <div class="showcase-foot"><span>המיומנות הבולטת שלך:</span><strong id="bestSkill">אין מספיק נתונים</strong></div>
+      </article>
+
+      <article class="card showcase-card purple">
+        <div class="showcase-head">
+          <img src="/assets/games/progress/icons/progress.webp" alt="">
+          <div><h2>3. התקדמות</h2><p>איך הביצועים משתנים לאורך זמן</p></div>
+        </div>
+        <div class="radar-wrap"><canvas id="progressRadar"></canvas></div>
+        <div class="showcase-foot"><span>השיפור הבולט שלך:</span><strong id="bestProgress">אין מספיק נתונים</strong></div>
+      </article>
+    </section>
+
+    <section class="insights">
+      <article class="card panel">
+        <h2>🎯 המלצות עבורך</h2>
+        <div class="recommendations" id="recommendations"></div>
+      </article>
+
+      <article class="card panel">
+        <h2>📊 הסטטיסטיקה שלך</h2>
+        <div class="summary">
+          <div class="sum"><img src="/assets/games/progress/icons/controller.webp"><strong id="statMonth">0</strong><span>משחקים החודש</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/accuracy.webp"><strong id="statAccuracy">0%</strong><span>דיוק ממוצע</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/clock.webp"><strong id="statResponse">—</strong><span>תגובה ממוצעת</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/trophy.webp"><strong id="statBestStreak">0</strong><span>רצף הצלחות</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/fire.webp"><strong id="statDays">0</strong><span>ימי רצף</span></div>
+          <div class="sum"><img src="/assets/games/progress/icons/star.webp"><strong id="statScore">0</strong><span>נקודות סה״כ</span></div>
+        </div>
+      </article>
+
+      <article class="card panel trend-panel">
+        <h2>📈 ההתקדמות שלך</h2>
+        <div class="trend"><canvas id="trendChart"></canvas></div>
+        <div class="trend-note" id="trendNote">צריך עוד כמה משחקים כדי להציג מגמת שיפור.</div>
+      </article>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="card challenge-card">
+        <h3>🔥 אתגר השבוע</h3>
+        <strong>השלים 5 משחקים</strong>
+        <div class="bar"><i id="challengeFill"></i></div>
+        <p id="challengeText">0 מתוך 5</p>
+      </article>
+
+      <article class="card achievement-card">
+        <h3>🏆 הישגים אחרונים</h3>
+        <div class="badges" id="badges"></div>
+      </article>
+
+      <article class="card kingdoms-card">
+        <h3>🏰 הממלכות שלי</h3>
+        <div class="kingdoms" id="kingdoms"></div>
+      </article>
+
+      <button class="play" id="playNow">
+        <img src="/assets/games/progress/icons/sword.webp" alt="">
+        שחק עכשיו!
+      </button>
+    </section>
+  </main>
+
+  <aside class="sidebar">
+    <img class="logo" src="/assets/games/progress/iakids-games-logo.webp" alt="">
+    <div class="side-home"><img src="/assets/games/progress/level-shield.webp" alt=""><strong>האי שלנו</strong></div>
+    <nav class="side-nav">
+      <a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/map.webp">המפה שלי</a>
+      <a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/missions.webp">משימות</a>
+      <a class="side-link active" href="/he/games/progress/"><img src="/assets/games/progress/icons/progress.webp">ההתקדמות שלי</a>
+      <a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/trophy.webp">הישגים</a>
+      <a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/chest.webp">חנות</a>
+    </nav>
+    <div class="side-coach"><img src="/assets/games/progress/progress-robot.webp"><p id="sideCoach">אני מנתח את המשחקים שלך כדי לעזור לך להשתפר.</p></div>
+  </aside>
 </div>
-<div class="hero-side">
-<article class="coach-card"><img src="/assets/games/progress/progress-robot.webp"><div><h3 id="coachTitle">כל הכבוד!</h3><p id="coachText">שחק עוד כמה משחקים כדי שאוכל לבנות לך תמונת מצב אישית.</p></div></article>
-<section class="quick-stats"><article class="metric"><img src="/assets/games/progress/icons/star.webp"><strong id="totalXp">0</strong><span>נקודות</span></article><article class="metric"><img src="/assets/games/progress/icons/controller.webp"><strong id="gamesPlayed">0</strong><span>משחקים שהושלמו</span></article><article class="metric"><img src="/assets/games/progress/icons/fire.webp"><strong id="dayStreak">0</strong><span>ימי רצף</span></article></section>
-<article class="week-card"><h3>🔥 אתגר השבוע</h3><p>השלים 5 משחקים</p><div class="bar"><i id="challengeFill"></i></div><strong id="challengeText">0 מתוך 5</strong></article>
-</div>
-</section>
-<section class="progress-zone">
-<div class="radar-stack">
-<article class="radar-card green"><div class="radar-head"><img src="/assets/games/progress/icons/subjects.webp"><div><h2>מקצועות</h2><p>איפה הכוח הלימודי שלך הכי בולט?</p></div></div><div class="radar-wrap"><canvas id="subjectsRadar"></canvas></div><div class="radar-foot"><span>המקצוע החזק שלך:</span><strong id="bestSubject">אין מספיק נתונים</strong></div></article>
-<article class="radar-card blue"><div class="radar-head"><img src="/assets/games/progress/icons/skills.webp"><div><h2>מיומנויות</h2><p>הכישורים שהמשחקים בודקים ומפתחים</p></div></div><div class="radar-wrap"><canvas id="skillsRadar"></canvas></div><div class="radar-foot"><span>המיומנות הבולטת שלך:</span><strong id="bestSkill">אין מספיק נתונים</strong></div></article>
-<article class="radar-card purple progress-wide"><div class="radar-head"><img src="/assets/games/progress/icons/progress.webp"><div><h2>מסלול ההתקדמות</h2><p>איך הביצועים שלך משתנים לאורך זמן</p></div></div><div class="radar-wrap"><canvas id="progressRadar"></canvas></div><div class="radar-foot"><span>השיפור הבולט שלך:</span><strong id="bestProgress">אין מספיק נתונים</strong></div></article>
-</div>
-<div class="insight-column">
-<article class="panel"><h2>🎯 מה כדאי לעשות עכשיו?</h2><div class="recommendations" id="recommendations"></div></article>
-<article class="panel"><h2>📊 תמונת מצב</h2><div class="summary"><div class="sum"><img src="/assets/games/progress/icons/controller.webp"><strong id="statMonth">0</strong><span>משחקים החודש</span></div><div class="sum"><img src="/assets/games/progress/icons/accuracy.webp"><strong id="statAccuracy">0%</strong><span>דיוק ממוצע</span></div><div class="sum"><img src="/assets/games/progress/icons/clock.webp"><strong id="statResponse">—</strong><span>תגובה ממוצעת</span></div><div class="sum"><img src="/assets/games/progress/icons/trophy.webp"><strong id="statBestStreak">0</strong><span>רצף הצלחות</span></div><div class="sum"><img src="/assets/games/progress/icons/fire.webp"><strong id="statDays">0</strong><span>ימי רצף</span></div><div class="sum"><img src="/assets/games/progress/icons/star.webp"><strong id="statScore">0</strong><span>נקודות סה״כ</span></div></div></article>
-<article class="panel"><h2>📈 מגמת ביצועים</h2><div class="trend"><canvas id="trendChart"></canvas></div><div class="trend-note" id="trendNote">צריך עוד כמה משחקים כדי להציג מגמת שיפור.</div></article>
-<article class="panel"><h2>🏆 הישגים אחרונים</h2><div class="badges" id="badges"></div></article>
-</div>
-</section>
-</main>
-</div>
+
 <script>
 const SUPABASE_URL='https://bxnfzuglfwytiyaguwjj.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o';
@@ -120,7 +511,7 @@ function build(profile,rows){
 }
 
 function render(d){
- const name=d.profile.child_name||d.profile.name||'אלוף',grade=d.profile.grade||d.profile.age||'';kidName.textContent='היי '+name+'!';kidGrade.textContent=(grade?'כיתה '+grade+' · ':'')+'דשבורד המשחקים שלי';kidAvatar.src=d.profile.avatar_url||d.profile.avatar||'/assets/avatars/default-boy.webp';totalXp.textContent=d.summary.totalXp.toLocaleString('he-IL');gamesPlayed.textContent=d.summary.games;dayStreak.textContent=d.summary.days;xpText.textContent=d.summary.xpInLevel+' / 500';xpFill.style.width=(d.summary.xpInLevel/5)+'%';coachTitle.textContent='כל הכבוד, '+name+'!';coachText.textContent=d.summary.games?('שיחקת '+d.summary.games+' משחקים. המקצוע החזק שלך כרגע הוא '+d.bestSubject+'.'):'שחק כמה משחקים כדי שאוכל לזהות במה אתה חזק.';const sideCoach=document.getElementById('sideCoach'); if(sideCoach) sideCoach.textContent=d.summary.games?('אני כבר מנתח '+d.summary.games+' משחקים שלך.'):'שחק כמה משחקים ואבנה לך תמונת מצב אישית.';bestSubject.textContent=d.bestSubject;bestSkill.textContent=d.bestSkill;bestProgress.textContent=d.bestProgress;
+ const name=d.profile.child_name||d.profile.name||'אלוף',grade=d.profile.grade||d.profile.age||'';kidName.textContent='היי '+name+'!';kidGrade.textContent=(grade?'כיתה '+grade+' · ':'')+'דשבורד המשחקים שלי';kidAvatar.src=d.profile.avatar_url||d.profile.avatar||'/assets/avatars/default-boy.webp';totalXp.textContent=d.summary.totalXp.toLocaleString('he-IL');gamesPlayed.textContent=d.summary.games;dayStreak.textContent=d.summary.days;xpText.textContent=d.summary.xpInLevel+' / 500';xpFill.style.width=(d.summary.xpInLevel/5)+'%';coachTitle.textContent='כל הכבוד, '+name+'!';coachText.textContent=d.summary.games?('שיחקת '+d.summary.games+' משחקים. המקצוע החזק שלך כרגע הוא '+d.bestSubject+'.'):'שחק כמה משחקים כדי שאוכל לזהות במה אתה חזק.';sideCoach.textContent=d.summary.games?('אני כבר מנתח '+d.summary.games+' משחקים שלך.'):'שחק כמה משחקים ואבנה לך תמונת מצב אישית.';bestSubject.textContent=d.bestSubject;bestSkill.textContent=d.bestSkill;bestProgress.textContent=d.bestProgress;
  radar('subjectsRadar',d.subjectsRadar,'rgba(152,255,51,.3)','#b8ff48');radar('skillsRadar',d.skills,'rgba(54,203,255,.28)','#44dcff');radar('progressRadar',d.progress,'rgba(216,90,255,.28)','#ec73ff');
  recommendations.innerHTML=d.recommendations.map(x=>`<div class="rec"><img src="${escapeHtml(x.img)}"><div><strong>${escapeHtml(x.title)}</strong><small>${escapeHtml(x.text)}</small></div><a href="${escapeHtml(x.url)}">למשחק</a></div>`).join('');
  statMonth.textContent=d.summary.month;statAccuracy.textContent=d.summary.accuracy+'%';statResponse.textContent=d.summary.response?(d.summary.response/1000).toFixed(1)+' שנ׳':'—';statBestStreak.textContent=d.summary.bestStreak;statDays.textContent=d.summary.days;statScore.textContent=d.summary.totalXp.toLocaleString('he-IL');challengeFill.style.width=clamp(d.summary.week/5*100)+'%';challengeText.textContent=Math.min(d.summary.week,5)+' מתוך 5';badges.innerHTML=d.badges.slice(0,5).map(x=>`<img src="${x}">`).join('');
