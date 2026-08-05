@@ -73,63 +73,489 @@ button,a{font:inherit}
   pointer-events:none;
   background:linear-gradient(135deg,rgba(255,255,255,.10),transparent 28%,transparent 72%,rgba(255,255,255,.03));
 }
+ /* ==================================================
+   PREMIUM TOP BAR
+================================================== */
 
-/* Top strip */
-.hero-strip{
-  display:grid;
-  grid-template-columns:minmax(350px,1.5fr) repeat(3,minmax(160px,.72fr)) minmax(330px,1.35fr);
-  gap:var(--gap);
-}
-.profile-card{
-  min-height:126px;
-  border-radius:var(--radius-xl);
-  padding:14px 18px;
-  display:flex;
-  align-items:center;
-  gap:16px;
-  color:#122957;
-  background:linear-gradient(135deg,#fff8dd,#ffd890);
-  border-color:rgba(255,255,255,.9);
-}
-.profile-card>img{
-  width:98px;height:98px;border-radius:28px;object-fit:cover;
-  background:#fff;border:4px solid #fff;
-  box-shadow:0 12px 28px rgba(77,43,0,.22);
-}
-.profile-card h1{margin:0;font-size:34px;font-weight:1000}
-.profile-card p{margin:4px 0;color:#28416e;font-size:14px;font-weight:800}
-.xp-line{margin-top:11px;display:grid;grid-template-columns:auto minmax(120px,1fr) auto;gap:9px;align-items:center;font-size:12px;font-weight:1000}
-.xpbar,.bar{height:14px;border-radius:999px;overflow:hidden;background:#071a38;box-shadow:inset 0 2px 4px rgba(0,0,0,.35)}
-.xpbar i,.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#fff36d,#ffc32f 58%,#ff8b17);box-shadow:0 0 18px rgba(255,191,30,.6)}
+.premium-topbar{
+  width:100%;
 
-.metric-card{
-  min-height:126px;
-  border-radius:var(--radius-xl);
-  padding:16px;
   display:grid;
-  grid-template-columns:92px 1fr;
+  grid-template-columns:
+    minmax(360px,1.65fr)
+    repeat(4,minmax(155px,.78fr))
+    minmax(360px,1.55fr);
+
+  gap:14px;
+
+  direction:rtl;
+  align-items:stretch;
+}
+
+/* בסיס לכל הכרטיסים */
+
+.top-profile-card,
+.top-stat-card,
+.top-coach-card{
+  position:relative;
+
+  min-width:0;
+  height:128px;
+
+  border-radius:25px;
+
+  background:
+    radial-gradient(
+      circle at 88% 8%,
+      rgba(60,151,255,.16),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #123c7b,
+      #092756
+    );
+
+  border:1px solid rgba(137,202,255,.25);
+
+  box-shadow:
+    0 16px 35px rgba(0,8,30,.34),
+    inset 0 1px 0 rgba(255,255,255,.10);
+
+  overflow:hidden;
+}
+
+/* ==================================================
+   כרטיס הילד
+================================================== */
+
+.top-profile-card{
+  padding:12px 16px;
+
+  display:grid;
+  grid-template-columns:102px minmax(0,1fr) 76px;
   align-items:center;
+
+  gap:14px;
+}
+
+.top-avatar-wrap{
+  width:96px;
+  height:96px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  padding:4px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #55dfff,
+      #1f79ff 46%,
+      #ffc72f
+    );
+
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.12),
+    0 10px 22px rgba(0,10,40,.34);
+}
+
+.top-avatar-wrap img{
+  width:100%;
+  height:100%;
+
+  border-radius:50%;
+
+  object-fit:cover;
+
+  background:#0b2858;
+}
+
+.top-profile-copy{
+  min-width:0;
+
+  text-align:right;
+}
+
+.top-profile-copy h1{
+  margin:0;
+
+  color:#fff;
+
+  font-size:28px;
+  line-height:1;
+  font-weight:1000;
+
+  white-space:nowrap;
+
+  text-shadow:
+    0 3px 6px rgba(0,0,0,.28);
+}
+
+.top-profile-copy > p{
+  margin:7px 0 0;
+
+  color:#d8e7ff;
+
+  font-size:17px;
+  line-height:1;
+  font-weight:900;
+}
+
+/* XP */
+
+.top-xp-row{
+  margin-top:12px;
+
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr);
+  align-items:center;
+
+  gap:9px;
+}
+
+.top-xp-icon{
+  height:42px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:14px;
+
+  color:#fff;
+
+  font-size:17px;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      145deg,
+      #963eff,
+      #6322c9
+    );
+
+  border:2px solid rgba(255,255,255,.34);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 7px 14px rgba(42,8,96,.34);
+}
+
+.top-xp-content{
+  min-width:0;
+}
+
+.top-xp-numbers{
+  margin-bottom:5px;
+
+  color:#fff;
+
+  font-size:13px;
+  font-weight:1000;
+}
+
+.top-xp-bar{
+  width:100%;
+  height:17px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#071a39;
+
+  border:1px solid rgba(126,202,255,.42);
+
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,.46);
+}
+
+.top-xp-bar i{
+  display:block;
+
+  width:0%;
+  height:100%;
+
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff9f00,
+      #ffc72f 58%,
+      #fff154
+    );
+
+  box-shadow:
+    0 0 14px rgba(255,194,34,.52);
+
+  transition:width .5s ease;
+}
+
+/* כוכב ורמה */
+
+.top-level-star{
+  position:relative;
+
+  width:74px;
+  height:82px;
+
+  display:grid;
+  place-items:center;
+}
+
+.top-level-star img{
+  position:absolute;
+
+  width:74px;
+  height:74px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 9px 8px
+      rgba(0,0,0,.34)
+    );
+}
+
+.top-level-star strong{
+  position:relative;
+  z-index:1;
+
+  margin-top:-2px;
+
+  color:#fff;
+
+  font-size:23px;
+  font-weight:1000;
+
+  text-shadow:
+    0 2px 3px rgba(70,35,0,.65);
+}
+
+/* ==================================================
+   כרטיסי נתונים
+================================================== */
+
+.top-stat-card{
+  padding:12px 14px;
+
+  display:grid;
+  grid-template-columns:76px minmax(0,1fr);
+  align-items:center;
+
+  gap:10px;
+}
+
+.top-stat-card img{
+  width:72px;
+  height:72px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 10px 8px
+      rgba(0,0,0,.32)
+    );
+}
+
+.top-stat-copy{
+  min-width:0;
+
+  text-align:center;
+}
+
+.top-stat-copy strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:35px;
+  line-height:1;
+  font-weight:1000;
+
+  text-shadow:
+    0 3px 6px rgba(0,0,0,.3);
+}
+
+.top-stat-copy span{
+  display:block;
+
+  margin-top:8px;
+
+  color:#d6e5fb;
+
+  font-size:14px;
+  line-height:1.1;
+  font-weight:900;
+}
+
+/* הגדלה מותאמת לכל אייקון */
+
+.top-stat-card:nth-child(2) img{
+  transform:scale(1.08);
+}
+
+.top-stat-card:nth-child(3) img{
+  transform:scale(1.10);
+}
+
+.top-stat-card:nth-child(4) img{
+  transform:scale(1.12);
+}
+
+.top-stat-card:nth-child(5) img{
+  transform:scale(1.08);
+}
+
+/* ==================================================
+   כרטיס המאמן
+================================================== */
+
+.top-coach-card{
+  padding:12px 14px;
+
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 108px;
+  align-items:center;
+
   gap:12px;
-  background:linear-gradient(180deg,rgba(20,65,132,.98),rgba(7,31,72,.98));
 }
-.metric-card img{width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 12px 10px rgba(0,0,0,.34))}
-.metric-card .metric-copy{min-width:0}
-.metric-card strong{display:block;font-size:34px;line-height:1;font-weight:1000}
-.metric-card span{display:block;margin-top:7px;font-size:13px;color:var(--muted);font-weight:800;line-height:1.25}
 
-.coach-card{
-  min-height:126px;
-  border-radius:var(--radius-xl);
-  padding:14px 18px;
-  display:flex;
-  align-items:center;
-  gap:16px;
-  background:linear-gradient(135deg,rgba(19,58,118,.98),rgba(7,31,75,.98));
+.top-coach-copy{
+  min-width:0;
+
+  text-align:right;
 }
-.coach-card img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 13px 11px rgba(0,0,0,.34))}
-.coach-card h3{margin:0 0 6px;font-size:24px;font-weight:1000}
-.coach-card p{margin:0;color:#dceaff;font-size:14px;line-height:1.5;font-weight:700}
 
+.top-coach-copy h2{
+  margin:0;
+
+  color:#fff;
+
+  font-size:25px;
+  line-height:1.05;
+  font-weight:1000;
+
+  white-space:nowrap;
+}
+
+.top-coach-copy p{
+  margin:9px 0 0;
+
+  color:#d8e8ff;
+
+  font-size:14px;
+  line-height:1.45;
+  font-weight:800;
+}
+
+.top-coach-card > img{
+  width:108px;
+  height:108px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 10px 9px
+      rgba(0,0,0,.34)
+    );
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media(max-width:1750px){
+
+  .premium-topbar{
+    grid-template-columns:
+      minmax(330px,1.45fr)
+      repeat(4,minmax(140px,.72fr));
+  }
+
+  .top-coach-card{
+    grid-column:1 / -1;
+
+    height:112px;
+
+    grid-template-columns:minmax(0,1fr) 95px;
+  }
+
+  .top-coach-card > img{
+    width:92px;
+    height:92px;
+  }
+}
+
+@media(max-width:1350px){
+
+  .premium-topbar{
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+  }
+
+  .top-profile-card,
+  .top-coach-card{
+    grid-column:1 / -1;
+  }
+
+  .top-stat-card{
+    height:112px;
+  }
+}
+
+@media(max-width:760px){
+
+  .premium-topbar{
+    grid-template-columns:1fr;
+  }
+
+  .top-profile-card,
+  .top-coach-card{
+    grid-column:auto;
+  }
+
+  .top-profile-card{
+    height:auto;
+    min-height:155px;
+
+    grid-template-columns:86px minmax(0,1fr);
+  }
+
+  .top-avatar-wrap{
+    width:82px;
+    height:82px;
+  }
+
+  .top-level-star{
+    position:absolute;
+    top:12px;
+    left:12px;
+
+    width:58px;
+    height:58px;
+  }
+
+  .top-level-star img{
+    width:58px;
+    height:58px;
+  }
+
+  .top-level-star strong{
+    font-size:18px;
+  }
+}
 /* Main showcase */
 
 .showcase{
@@ -1329,486 +1755,390 @@ button,a{font:inherit}
   }
 }
 /* ==================================================
-   PREMIUM TOP BAR
+   SHOWCASE — PREMIUM COMPACT OVERRIDE
+   הדבק בסוף ה-CSS לפני </style>
 ================================================== */
 
-.premium-topbar{
-  width:100%;
-
+.showcase{
   display:grid;
-  grid-template-columns:
-    minmax(360px,1.65fr)
-    repeat(4,minmax(155px,.78fr))
-    minmax(360px,1.55fr);
-
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:14px;
-
-  direction:rtl;
   align-items:stretch;
 }
 
-/* בסיס לכל הכרטיסים */
+/* כרטיס בסיס */
 
-.top-profile-card,
-.top-stat-card,
-.top-coach-card{
+.showcase-card{
   position:relative;
 
-  min-width:0;
-  height:128px;
+  height:390px;
+  min-height:390px;
+
+  padding:14px 16px 12px;
+
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
 
   border-radius:25px;
 
-  background:
-    radial-gradient(
-      circle at 88% 8%,
-      rgba(60,151,255,.16),
-      transparent 34%
-    ),
-    linear-gradient(
-      180deg,
-      #123c7b,
-      #092756
-    );
+  overflow:hidden;
 
-  border:1px solid rgba(137,202,255,.25);
+  isolation:isolate;
 
   box-shadow:
-    0 16px 35px rgba(0,8,30,.34),
-    inset 0 1px 0 rgba(255,255,255,.10);
+    0 18px 38px rgba(0,8,30,.38),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
 
-  overflow:hidden;
+/* ברק עדין בתוך הכרטיס */
+
+.showcase-card::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  z-index:-1;
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.10),
+      transparent 22%,
+      transparent 76%,
+      rgba(255,255,255,.03)
+    );
 }
 
 /* ==================================================
-   כרטיס הילד
+   צבע ירוק
 ================================================== */
 
-.top-profile-card{
-  padding:12px 16px;
-
-  display:grid;
-  grid-template-columns:102px minmax(0,1fr) 76px;
-  align-items:center;
-
-  gap:14px;
-}
-
-.top-avatar-wrap{
-  width:96px;
-  height:96px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:50%;
-
-  padding:4px;
-
+.showcase-card.green{
   background:
+    radial-gradient(
+      circle at 84% 4%,
+      rgba(143,255,50,.20),
+      transparent 30%
+    ),
     linear-gradient(
-      145deg,
-      #55dfff,
-      #1f79ff 46%,
-      #ffc72f
+      160deg,
+      #087428 0%,
+      #04511d 52%,
+      #022f13 100%
     );
 
+  border:2px solid #82d91d;
+
   box-shadow:
-    0 0 0 3px rgba(255,255,255,.12),
-    0 10px 22px rgba(0,10,40,.34);
+    0 0 0 1px rgba(183,255,76,.16),
+    0 0 24px rgba(74,203,20,.24),
+    0 18px 38px rgba(0,8,30,.38),
+    inset 0 1px 0 rgba(255,255,255,.14);
 }
 
-.top-avatar-wrap img{
-  width:100%;
-  height:100%;
+/* ==================================================
+   צבע כחול
+================================================== */
 
-  border-radius:50%;
+.showcase-card.blue{
+  background:
+    radial-gradient(
+      circle at 84% 4%,
+      rgba(35,205,255,.20),
+      transparent 30%
+    ),
+    linear-gradient(
+      160deg,
+      #0878c8 0%,
+      #075294 52%,
+      #032f69 100%
+    );
 
-  object-fit:cover;
+  border:2px solid #24bfff;
 
-  background:#0b2858;
+  box-shadow:
+    0 0 0 1px rgba(91,218,255,.14),
+    0 0 24px rgba(24,161,255,.25),
+    0 18px 38px rgba(0,8,30,.38),
+    inset 0 1px 0 rgba(255,255,255,.14);
 }
 
-.top-profile-copy{
+/* ==================================================
+   צבע סגול
+================================================== */
+
+.showcase-card.purple{
+  background:
+    radial-gradient(
+      circle at 84% 4%,
+      rgba(230,87,255,.20),
+      transparent 30%
+    ),
+    linear-gradient(
+      160deg,
+      #7b28b5 0%,
+      #51177f 52%,
+      #2f0c51 100%
+    );
+
+  border:2px solid #c34cff;
+
+  box-shadow:
+    0 0 0 1px rgba(229,123,255,.15),
+    0 0 24px rgba(178,48,255,.25),
+    0 18px 38px rgba(0,8,30,.38),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+/* ==================================================
+   אזור הכותרת
+================================================== */
+
+.showcase-head{
+  min-width:0;
+  min-height:78px;
+
+  display:grid;
+  grid-template-columns:68px minmax(0,1fr);
+  align-items:start;
+
+  gap:11px;
+}
+
+/* האייקון מימין */
+
+.showcase-head > img{
+  width:66px;
+  height:66px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  transform:none;
+
+  filter:
+    drop-shadow(0 8px 7px rgba(0,0,0,.35))
+    drop-shadow(0 0 9px rgba(255,255,255,.08));
+}
+
+.showcase-title{
   min-width:0;
 
   text-align:right;
 }
 
-.top-profile-copy h1{
+.showcase-title h2{
   margin:0;
 
   color:#fff;
 
-  font-size:28px;
-  line-height:1;
+  font-size:23px;
+  line-height:1.08;
   font-weight:1000;
-
-  white-space:nowrap;
 
   text-shadow:
     0 3px 6px rgba(0,0,0,.28);
 }
 
-.top-profile-copy > p{
-  margin:7px 0 0;
+.showcase-title > p{
+  margin:4px 0 0;
 
-  color:#d8e7ff;
+  color:rgba(255,255,255,.82);
 
-  font-size:17px;
-  line-height:1;
-  font-weight:900;
+  font-size:12px;
+  line-height:1.25;
+  font-weight:750;
 }
 
-/* XP */
+/* התוצאה הקטנה מתחת לכותרת */
 
-.top-xp-row{
-  margin-top:12px;
+.showcase-result{
+  width:max-content;
+  max-width:100%;
 
-  display:grid;
-  grid-template-columns:54px minmax(0,1fr);
+  min-height:29px;
+
+  margin-top:7px;
+  padding:5px 10px;
+
+  display:inline-flex;
   align-items:center;
+  gap:6px;
 
-  gap:9px;
-}
-
-.top-xp-icon{
-  height:42px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:14px;
-
-  color:#fff;
-
-  font-size:17px;
-  font-weight:1000;
+  border-radius:10px;
 
   background:
     linear-gradient(
-      145deg,
-      #963eff,
-      #6322c9
+      180deg,
+      rgba(0,0,0,.13),
+      rgba(0,0,0,.28)
     );
 
-  border:2px solid rgba(255,255,255,.34);
+  border:1px solid rgba(255,255,255,.13);
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.28),
-    0 7px 14px rgba(42,8,96,.34);
+    inset 0 1px 0 rgba(255,255,255,.05);
 }
 
-.top-xp-content{
-  min-width:0;
-}
+.showcase-result span{
+  color:rgba(255,255,255,.70);
 
-.top-xp-numbers{
-  margin-bottom:5px;
-
-  color:#fff;
-
-  font-size:13px;
-  font-weight:1000;
-}
-
-.top-xp-bar{
-  width:100%;
-  height:17px;
-
-  overflow:hidden;
-
-  border-radius:999px;
-
-  background:#071a39;
-
-  border:1px solid rgba(126,202,255,.42);
-
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,.46);
-}
-
-.top-xp-bar i{
-  display:block;
-
-  width:0%;
-  height:100%;
-
-  border-radius:inherit;
-
-  background:
-    linear-gradient(
-      90deg,
-      #ff9f00,
-      #ffc72f 58%,
-      #fff154
-    );
-
-  box-shadow:
-    0 0 14px rgba(255,194,34,.52);
-
-  transition:width .5s ease;
-}
-
-/* כוכב ורמה */
-
-.top-level-star{
-  position:relative;
-
-  width:74px;
-  height:82px;
-
-  display:grid;
-  place-items:center;
-}
-
-.top-level-star img{
-  position:absolute;
-
-  width:74px;
-  height:74px;
-
-  object-fit:contain;
-
-  filter:
-    drop-shadow(
-      0 9px 8px
-      rgba(0,0,0,.34)
-    );
-}
-
-.top-level-star strong{
-  position:relative;
-  z-index:1;
-
-  margin-top:-2px;
-
-  color:#fff;
-
-  font-size:23px;
-  font-weight:1000;
-
-  text-shadow:
-    0 2px 3px rgba(70,35,0,.65);
-}
-
-/* ==================================================
-   כרטיסי נתונים
-================================================== */
-
-.top-stat-card{
-  padding:12px 14px;
-
-  display:grid;
-  grid-template-columns:76px minmax(0,1fr);
-  align-items:center;
-
-  gap:10px;
-}
-
-.top-stat-card img{
-  width:72px;
-  height:72px;
-
-  object-fit:contain;
-
-  justify-self:center;
-
-  filter:
-    drop-shadow(
-      0 10px 8px
-      rgba(0,0,0,.32)
-    );
-}
-
-.top-stat-copy{
-  min-width:0;
-
-  text-align:center;
-}
-
-.top-stat-copy strong{
-  display:block;
-
-  color:#fff;
-
-  font-size:35px;
+  font-size:10px;
   line-height:1;
-  font-weight:1000;
+  font-weight:700;
 
-  text-shadow:
-    0 3px 6px rgba(0,0,0,.3);
+  white-space:nowrap;
 }
 
-.top-stat-copy span{
-  display:block;
-
-  margin-top:8px;
-
-  color:#d6e5fb;
+.showcase-result strong{
+  color:#fff;
 
   font-size:14px;
-  line-height:1.1;
-  font-weight:900;
-}
-
-/* הגדלה מותאמת לכל אייקון */
-
-.top-stat-card:nth-child(2) img{
-  transform:scale(1.08);
-}
-
-.top-stat-card:nth-child(3) img{
-  transform:scale(1.10);
-}
-
-.top-stat-card:nth-child(4) img{
-  transform:scale(1.12);
-}
-
-.top-stat-card:nth-child(5) img{
-  transform:scale(1.08);
-}
-
-/* ==================================================
-   כרטיס המאמן
-================================================== */
-
-.top-coach-card{
-  padding:12px 14px;
-
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 108px;
-  align-items:center;
-
-  gap:12px;
-}
-
-.top-coach-copy{
-  min-width:0;
-
-  text-align:right;
-}
-
-.top-coach-copy h2{
-  margin:0;
-
-  color:#fff;
-
-  font-size:25px;
-  line-height:1.05;
+  line-height:1;
   font-weight:1000;
 
   white-space:nowrap;
 }
 
-.top-coach-copy p{
-  margin:9px 0 0;
+/* ==================================================
+   גרף
+================================================== */
 
-  color:#d8e8ff;
+.radar-wrap{
+  width:100%;
+  max-width:360px;
+  height:235px;
 
-  font-size:14px;
-  line-height:1.45;
-  font-weight:800;
+  margin:0 auto;
+
+  align-self:center;
+  justify-self:center;
 }
 
-.top-coach-card > img{
-  width:108px;
-  height:108px;
-
-  object-fit:contain;
-
-  justify-self:center;
-
-  filter:
-    drop-shadow(
-      0 10px 9px
-      rgba(0,0,0,.34)
-    );
+.radar-wrap canvas{
+  width:100% !important;
+  height:100% !important;
 }
 
 /* ==================================================
-   RESPONSIVE
+   שורת ממוצע תחתונה
 ================================================== */
 
-@media(max-width:1750px){
+.showcase-average{
+  width:100%;
+  min-height:43px;
 
-  .premium-topbar{
-    grid-template-columns:
-      minmax(330px,1.45fr)
-      repeat(4,minmax(140px,.72fr));
+  padding:8px 13px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:9px;
+
+  border-radius:14px;
+
+  color:#fff;
+
+  font-size:18px;
+  line-height:1;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.08),
+      rgba(0,0,0,.24)
+    );
+
+  border:1px solid rgba(255,255,255,.18);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.showcase-average-icon{
+  font-size:24px;
+  line-height:1;
+
+  filter:
+    drop-shadow(0 5px 5px rgba(0,0,0,.30));
+}
+
+.showcase-card.green .showcase-average{
+  border-color:rgba(166,255,72,.32);
+  background:linear-gradient(180deg,rgba(107,190,22,.25),rgba(0,38,12,.42));
+}
+
+.showcase-card.blue .showcase-average{
+  border-color:rgba(78,208,255,.32);
+  background:linear-gradient(180deg,rgba(25,129,220,.26),rgba(0,34,75,.44));
+}
+
+.showcase-card.purple .showcase-average{
+  border-color:rgba(221,104,255,.34);
+  background:linear-gradient(180deg,rgba(142,46,202,.27),rgba(42,5,72,.44));
+}
+
+/* ==================================================
+   התאמה למסכים
+================================================== */
+
+@media(max-width:1600px){
+
+  .showcase-card{
+    height:370px;
+    min-height:370px;
   }
 
-  .top-coach-card{
-    grid-column:1 / -1;
-
-    height:112px;
-
-    grid-template-columns:minmax(0,1fr) 95px;
+  .showcase-head{
+    min-height:72px;
+    grid-template-columns:60px minmax(0,1fr);
   }
 
-  .top-coach-card > img{
-    width:92px;
-    height:92px;
+  .showcase-head > img{
+    width:58px;
+    height:58px;
+  }
+
+  .showcase-title h2{
+    font-size:21px;
+  }
+
+  .radar-wrap{
+    max-width:330px;
+    height:220px;
+  }
+
+  .showcase-average{
+    min-height:39px;
+    font-size:16px;
   }
 }
 
-@media(max-width:1350px){
+@media(max-width:1280px){
 
-  .premium-topbar{
-    grid-template-columns:
-      repeat(2,minmax(0,1fr));
+  .showcase{
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 
-  .top-profile-card,
-  .top-coach-card{
+  .showcase-card:last-child{
     grid-column:1 / -1;
-  }
-
-  .top-stat-card{
-    height:112px;
   }
 }
 
-@media(max-width:760px){
+@media(max-width:700px){
 
-  .premium-topbar{
+  .showcase{
     grid-template-columns:1fr;
   }
 
-  .top-profile-card,
-  .top-coach-card{
+  .showcase-card,
+  .showcase-card:last-child{
     grid-column:auto;
-  }
-
-  .top-profile-card{
-    height:auto;
-    min-height:155px;
-
-    grid-template-columns:86px minmax(0,1fr);
-  }
-
-  .top-avatar-wrap{
-    width:82px;
-    height:82px;
-  }
-
-  .top-level-star{
-    position:absolute;
-    top:12px;
-    left:12px;
-
-    width:58px;
-    height:58px;
-  }
-
-  .top-level-star img{
-    width:58px;
-    height:58px;
-  }
-
-  .top-level-star strong{
-    font-size:18px;
   }
 }
 </style>
@@ -1819,7 +2149,7 @@ button,a{font:inherit}
 <div class="dashboard">
   <main class="content">
 
-      <section class="hero-strip premium-topbar">
+<section class="hero-strip premium-topbar">
 
   <!-- כרטיס הילד -->
   <article class="top-profile-card">
@@ -1945,41 +2275,6 @@ button,a{font:inherit}
   </article>
 
 </section>
-
-    <section class="hero-strip">
-      <article class="card profile-card">
-        <img id="kidAvatar" src="/assets/avatars/default-boy.webp" alt="">
-        <div>
-          <h1 id="kidName">היי!</h1>
-          <p id="kidGrade">מרכז ההתקדמות במשחקים</p>
-          <div class="xp-line">
-            <span>XP</span>
-            <div class="xpbar"><i id="xpFill"></i></div>
-            <strong id="xpText">0 / 500</strong>
-          </div>
-        </div>
-      </article>
-
-      <article class="card metric-card">
-        <img src="/assets/games/progress/icons/star.webp" alt="">
-        <div class="metric-copy"><strong id="totalXp">0</strong><span>נקודות</span></div>
-      </article>
-
-      <article class="card metric-card">
-        <img src="/assets/games/progress/icons/controller.webp" alt="">
-        <div class="metric-copy"><strong id="gamesPlayed">0</strong><span>משחקים שהושלמו</span></div>
-      </article>
-
-      <article class="card metric-card">
-        <img src="/assets/games/progress/icons/fire.webp" alt="">
-        <div class="metric-copy"><strong id="dayStreak">0</strong><span>ימי רצף</span></div>
-      </article>
-
-      <article class="card coach-card">
-        <img src="/assets/games/progress/progress-robot.webp" alt="">
-        <div><h3 id="coachTitle">כל הכבוד!</h3><p id="coachText">שחק עוד כמה משחקים כדי שאוכל לבנות לך תמונת מצב אישית.</p></div>
-      </article>
-    </section>
 
     <section class="showcase">
 
