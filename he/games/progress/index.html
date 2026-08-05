@@ -222,44 +222,547 @@ button,a{font:inherit}
   width:100%;
   margin:auto;
 }
+/* ==================================================
+   INSIGHTS PREMIUM SECTION
+================================================== */
 
-/* Insights */
-.insights{
+.insights-premium{
   display:grid;
-  grid-template-columns:1.2fr .95fr 1.25fr;
+
+  grid-template-columns:
+    minmax(0,1.18fr)
+    minmax(0,.92fr)
+    minmax(0,1.28fr);
+
   gap:var(--gap);
-}
-.panel{
-  min-height:280px;
-  border-radius:var(--radius-xl);
-  padding:18px;
-  background:linear-gradient(180deg,rgba(18,58,118,.97),rgba(6,28,68,.98));
-}
-.panel h2{margin:0 0 15px;font-size:23px;font-weight:1000}
-.recommendations{display:grid;gap:11px}
-.rec{
-  min-height:75px;
-  display:grid;
-  grid-template-columns:72px 1fr auto;
-  gap:12px;
-  align-items:center;
-  padding:10px 12px;
-  border-radius:18px;
-  background:linear-gradient(180deg,rgba(7,34,77,.95),rgba(5,25,58,.98));
-  border:1px solid rgba(148,203,255,.15);
-}
-.rec img{width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 8px 7px rgba(0,0,0,.3))}
-.rec strong{display:block;font-size:15px;font-weight:1000}
-.rec small{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.35}
-.rec a{color:#fff;text-decoration:none;padding:10px 14px;border-radius:13px;font-size:12px;font-weight:1000;background:linear-gradient(#32bdff,#1170ce);border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 16px rgba(0,93,200,.28)}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.sum{min-height:112px;border-radius:18px;padding:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(180deg,rgba(8,37,83,.95),rgba(5,27,64,.98));border:1px solid rgba(153,205,255,.15)}
-.sum img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 8px 7px rgba(0,0,0,.3))}
-.sum strong{font-size:22px;font-weight:1000}
-.sum span{margin-top:4px;color:var(--muted);font-size:11px}
-.trend{height:200px}
-.trend-note{margin-top:10px;min-height:44px;display:flex;align-items:center;border-radius:14px;padding:9px 11px;font-size:12px;background:linear-gradient(180deg,rgba(46,183,92,.22),rgba(24,128,63,.16));border:1px solid rgba(97,231,136,.25)}
 
+  align-items:stretch;
+}
+
+/* ==================================================
+   PREMIUM PANEL
+================================================== */
+
+.premium-panel{
+  position:relative;
+
+  min-width:0;
+  min-height:310px;
+
+  padding:18px;
+
+  border-radius:28px;
+
+  background:
+    radial-gradient(
+      circle at 90% 0,
+      rgba(72,161,255,.20),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(19,62,124,.98),
+      rgba(5,28,68,.99)
+    );
+
+  border:1px solid rgba(150,207,255,.22);
+
+  box-shadow:
+    0 20px 45px rgba(0,8,30,.34),
+    inset 0 1px 0 rgba(255,255,255,.10);
+
+  overflow:hidden;
+}
+
+.premium-panel::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.07),
+      transparent 25%,
+      transparent 76%,
+      rgba(65,157,255,.04)
+    );
+}
+
+/* ==================================================
+   PANEL HEADING
+================================================== */
+
+.panel-heading{
+  position:relative;
+  z-index:1;
+
+  min-height:60px;
+
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr);
+  align-items:center;
+
+  gap:12px;
+
+  margin-bottom:15px;
+}
+
+.panel-heading-icon{
+  width:52px;
+  height:52px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:17px;
+
+  font-size:28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(51,153,255,.30),
+      rgba(18,70,150,.42)
+    );
+
+  border:1px solid rgba(162,214,255,.30);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 9px 18px rgba(0,12,43,.27);
+}
+
+.panel-heading-copy{
+  min-width:0;
+
+  text-align:right;
+}
+
+.panel-heading-copy h2{
+  margin:0;
+
+  color:#fff;
+
+  font-size:23px;
+  line-height:1.1;
+  font-weight:1000;
+
+  text-shadow:
+    0 3px 6px rgba(0,0,0,.25);
+}
+
+.panel-heading-copy p{
+  margin:5px 0 0;
+
+  color:#bdd2ef;
+
+  font-size:12px;
+  line-height:1.35;
+  font-weight:700;
+}
+
+/* ==================================================
+   RECOMMENDATIONS
+================================================== */
+
+.recommendations{
+  position:relative;
+  z-index:1;
+
+  display:grid;
+  gap:10px;
+}
+
+.rec{
+  min-width:0;
+  min-height:72px;
+
+  display:grid;
+
+  /* RTL:
+     אייקון מימין
+     טקסט באמצע
+     כפתור משמאל
+  */
+  grid-template-columns:68px minmax(0,1fr) auto;
+  align-items:center;
+
+  gap:12px;
+
+  padding:8px 10px 8px 12px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 96% 10%,
+      rgba(56,173,255,.15),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(8,39,88,.96),
+      rgba(4,25,61,.98)
+    );
+
+  border:1px solid rgba(151,207,255,.16);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 18px rgba(0,8,30,.20);
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.rec:hover{
+  transform:translateY(-2px);
+
+  border-color:rgba(112,198,255,.42);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 12px 24px rgba(0,10,38,.27);
+}
+
+.rec img{
+  width:64px;
+  height:64px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 8px 8px
+      rgba(0,0,0,.32)
+    );
+}
+
+.rec > div{
+  min-width:0;
+
+  text-align:right;
+}
+
+.rec strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:15px;
+  line-height:1.15;
+  font-weight:1000;
+}
+
+.rec small{
+  display:block;
+
+  margin-top:5px;
+
+  color:#bfd1ea;
+
+  font-size:11px;
+  line-height:1.35;
+  font-weight:700;
+}
+
+.rec a{
+  min-width:72px;
+  min-height:38px;
+
+  padding:9px 13px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:12px;
+
+  color:#fff;
+  text-decoration:none;
+
+  font-size:12px;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      180deg,
+      #43c7ff,
+      #1475d3
+    );
+
+  border:1px solid rgba(255,255,255,.38);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    0 8px 16px rgba(0,92,201,.28);
+
+  transition:
+    transform .17s ease,
+    filter .17s ease;
+}
+
+.rec a:hover{
+  transform:scale(1.04);
+
+  filter:brightness(1.08);
+}
+
+/* ==================================================
+   STATISTICS
+================================================== */
+
+.summary{
+  position:relative;
+  z-index:1;
+
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+
+  gap:10px;
+}
+
+.sum{
+  min-width:0;
+  min-height:91px;
+
+  padding:9px 10px;
+
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr);
+  align-items:center;
+
+  gap:10px;
+
+  border-radius:17px;
+
+  text-align:right;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(58,165,255,.13),
+      transparent 38%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(8,39,87,.96),
+      rgba(4,26,62,.98)
+    );
+
+  border:1px solid rgba(151,205,255,.15);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 18px rgba(0,8,30,.17);
+}
+
+.sum img{
+  width:56px;
+  height:56px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 8px 7px
+      rgba(0,0,0,.30)
+    );
+}
+
+.sum-copy{
+  min-width:0;
+}
+
+.sum strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:22px;
+  line-height:1;
+  font-weight:1000;
+
+  white-space:nowrap;
+}
+
+.sum span{
+  display:block;
+
+  margin-top:6px;
+
+  color:#bcd0ec;
+
+  font-size:11px;
+  line-height:1.25;
+  font-weight:750;
+}
+
+/* ==================================================
+   TREND PANEL
+================================================== */
+
+.trend-panel{
+  display:grid;
+
+  grid-template-rows:auto minmax(0,1fr) auto;
+}
+
+.trend-heading{
+  grid-template-columns:54px minmax(0,1fr) auto;
+}
+
+.trend-badge{
+  padding:6px 10px;
+
+  border-radius:999px;
+
+  color:#dff7ff;
+
+  font-size:10px;
+  font-weight:900;
+
+  white-space:nowrap;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(37,191,255,.25),
+      rgba(11,91,173,.24)
+    );
+
+  border:1px solid rgba(110,213,255,.30);
+}
+
+.trend{
+  position:relative;
+  z-index:1;
+
+  width:100%;
+  height:190px;
+
+  padding:7px 4px 0;
+}
+
+.trend canvas{
+  width:100% !important;
+  height:100% !important;
+}
+
+.trend-note{
+  position:relative;
+  z-index:1;
+
+  min-height:46px;
+
+  margin-top:10px;
+  padding:10px 13px;
+
+  display:flex;
+  align-items:center;
+
+  border-radius:14px;
+
+  color:#d9ffe5;
+
+  font-size:12px;
+  line-height:1.35;
+  font-weight:750;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(41,185,91,.22),
+      rgba(18,105,57,.16)
+    );
+
+  border:1px solid rgba(92,226,134,.25);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media(max-width:1600px){
+
+  .insights-premium{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .trend-panel{
+    grid-column:1 / -1;
+  }
+
+  .premium-panel{
+    min-height:295px;
+  }
+
+  .trend{
+    height:185px;
+  }
+}
+
+@media(max-width:1100px){
+
+  .insights-premium{
+    grid-template-columns:1fr;
+  }
+
+  .trend-panel{
+    grid-column:auto;
+  }
+
+  .summary{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:700px){
+
+  .premium-panel{
+    padding:14px;
+  }
+
+  .summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .rec{
+    grid-template-columns:60px minmax(0,1fr);
+  }
+
+  .rec img{
+    width:56px;
+    height:56px;
+  }
+
+  .rec a{
+    grid-column:1 / -1;
+
+    width:100%;
+  }
+
+  .trend-heading{
+    grid-template-columns:50px minmax(0,1fr);
+  }
+
+  .trend-badge{
+    display:none;
+  }
+}
 /* Bottom row */
 .bottom-grid{
   display:grid;
@@ -949,30 +1452,149 @@ button,a{font:inherit}
 
 </section>
 
-    <section class="insights">
-      <article class="card panel">
-        <h2>🎯 המלצות עבורך</h2>
-        <div class="recommendations" id="recommendations"></div>
-      </article>
+   <section class="insights insights-premium">
 
-      <article class="card panel">
-        <h2>📊 הסטטיסטיקה שלך</h2>
-        <div class="summary">
-          <div class="sum"><img src="/assets/games/progress/icons/controller.webp"><strong id="statMonth">0</strong><span>משחקים החודש</span></div>
-          <div class="sum"><img src="/assets/games/progress/icons/accuracy.webp"><strong id="statAccuracy">0%</strong><span>דיוק ממוצע</span></div>
-          <div class="sum"><img src="/assets/games/progress/icons/clock.webp"><strong id="statResponse">—</strong><span>תגובה ממוצעת</span></div>
-          <div class="sum"><img src="/assets/games/progress/icons/trophy.webp"><strong id="statBestStreak">0</strong><span>רצף הצלחות</span></div>
-          <div class="sum"><img src="/assets/games/progress/icons/fire.webp"><strong id="statDays">0</strong><span>ימי רצף</span></div>
-          <div class="sum"><img src="/assets/games/progress/icons/star.webp"><strong id="statScore">0</strong><span>נקודות סה״כ</span></div>
+  <!-- המלצות -->
+  <article class="card panel premium-panel recommendations-panel">
+
+    <div class="panel-heading">
+      <div class="panel-heading-icon">🎯</div>
+
+      <div class="panel-heading-copy">
+        <h2>המלצות עבורך</h2>
+        <p>הצעדים שיעזרו לך להשתפר במשחק הבא</p>
+      </div>
+    </div>
+
+    <div
+      class="recommendations"
+      id="recommendations"
+    ></div>
+
+  </article>
+
+
+  <!-- סטטיסטיקה -->
+  <article class="card panel premium-panel statistics-panel">
+
+    <div class="panel-heading">
+      <div class="panel-heading-icon">📊</div>
+
+      <div class="panel-heading-copy">
+        <h2>הסטטיסטיקה שלך</h2>
+        <p>מבט מהיר על הביצועים האחרונים שלך</p>
+      </div>
+    </div>
+
+    <div class="summary">
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/controller.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statMonth">0</strong>
+          <span>משחקים החודש</span>
         </div>
-      </article>
+      </div>
 
-      <article class="card panel trend-panel">
-        <h2>📈 ההתקדמות שלך</h2>
-        <div class="trend"><canvas id="trendChart"></canvas></div>
-        <div class="trend-note" id="trendNote">צריך עוד כמה משחקים כדי להציג מגמת שיפור.</div>
-      </article>
-    </section>
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/accuracy.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statAccuracy">0%</strong>
+          <span>דיוק ממוצע</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/clock.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statResponse">—</strong>
+          <span>תגובה ממוצעת</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/trophy.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statBestStreak">0</strong>
+          <span>רצף הצלחות</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/fire.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statDays">0</strong>
+          <span>ימי רצף</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/star.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statScore">0</strong>
+          <span>נקודות סה״כ</span>
+        </div>
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- גרף התקדמות -->
+  <article class="card panel premium-panel trend-panel">
+
+    <div class="panel-heading trend-heading">
+      <div class="panel-heading-icon">📈</div>
+
+      <div class="panel-heading-copy">
+        <h2>ההתקדמות שלך</h2>
+        <p>כך הביצועים שלך משתנים ממשחק למשחק</p>
+      </div>
+
+      <div class="trend-badge">
+        מגמה אישית
+      </div>
+    </div>
+
+    <div class="trend">
+      <canvas id="trendChart"></canvas>
+    </div>
+
+    <div
+      class="trend-note"
+      id="trendNote"
+    >
+      צריך עוד כמה משחקים כדי להציג מגמת שיפור.
+    </div>
+
+  </article>
+
+</section>
 
     <section class="bottom-grid">
       <article class="card challenge-card">
