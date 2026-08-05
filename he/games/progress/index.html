@@ -131,35 +131,97 @@ button,a{font:inherit}
 .coach-card p{margin:0;color:#dceaff;font-size:14px;line-height:1.5;font-weight:700}
 
 /* Main showcase */
+
 .showcase{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:var(--gap);
 }
+
 .showcase-card{
-  min-height:500px;
-  border-radius:32px;
-  padding:18px;
+  height:410px;
+  min-height:410px;
+
+  padding:16px 18px 14px;
+
   display:grid;
-  grid-template-rows:auto 1fr auto;
+  grid-template-rows:110px 1fr;
+
+  border-radius:32px;
 }
-.showcase-card.green{background:radial-gradient(circle at 85% 10%,rgba(179,255,71,.26),transparent 28%),linear-gradient(180deg,#188236,#063e20)}
-.showcase-card.blue{background:radial-gradient(circle at 85% 10%,rgba(49,218,255,.25),transparent 28%),linear-gradient(180deg,#1764bf,#082f71)}
-.showcase-card.purple{background:radial-gradient(circle at 85% 10%,rgba(239,116,255,.24),transparent 28%),linear-gradient(180deg,#7638bd,#3d196f)}
-.showcase-head{display:grid;grid-template-columns:100px 1fr;gap:15px;align-items:center;min-height:112px}
-.showcase-head img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 13px 10px rgba(0,0,0,.34))}
-.showcase-head h2{margin:0;font-size:30px;font-weight:1000}
-.showcase-head p{margin:4px 0 0;color:rgba(255,255,255,.84);font-size:13px}
-.radar-wrap{height:300px;max-width:430px;width:100%;margin:0 auto}
-.showcase-foot{
-  min-height:76px;
-  border-radius:18px;
-  padding:12px 15px;
-  background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.25));
-  border:1px solid rgba(255,255,255,.14);
+
+.showcase-card.green{
+  background:radial-gradient(circle at 85% 10%,rgba(179,255,71,.26),transparent 28%),linear-gradient(180deg,#188236,#063e20);
 }
-.showcase-foot span{display:block;font-size:12px;color:rgba(255,255,255,.78)}
-.showcase-foot strong{display:block;margin-top:3px;font-size:20px;font-weight:1000}
+
+.showcase-card.blue{
+  background:radial-gradient(circle at 85% 10%,rgba(49,218,255,.25),transparent 28%),linear-gradient(180deg,#1764bf,#082f71);
+}
+
+.showcase-card.purple{
+  background:radial-gradient(circle at 85% 10%,rgba(239,116,255,.24),transparent 28%),linear-gradient(180deg,#7638bd,#3d196f);
+}
+
+.showcase-head{
+  display:grid;
+  grid-template-columns:90px 1fr;
+  gap:14px;
+  align-items:start;
+}
+
+.showcase-head img{
+  width:86px;
+  height:86px;
+  object-fit:contain;
+  filter:drop-shadow(0 10px 8px rgba(0,0,0,.35));
+}
+
+.showcase-title h2{
+  margin:0;
+  font-size:28px;
+  font-weight:1000;
+}
+
+.showcase-title>p{
+  margin:4px 0 0;
+  color:rgba(255,255,255,.84);
+  font-size:13px;
+}
+
+/* עבר מהתחתית לראש הכרטיס */
+
+.showcase-result{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+
+  margin-top:10px;
+
+  padding:7px 11px;
+
+  border-radius:12px;
+
+  background:rgba(0,0,0,.18);
+
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.showcase-result span{
+  font-size:11px;
+  color:rgba(255,255,255,.75);
+}
+
+.showcase-result strong{
+  font-size:16px;
+  font-weight:1000;
+}
+
+.radar-wrap{
+  height:255px;
+  max-width:380px;
+  width:100%;
+  margin:auto;
+}
 
 /* Insights */
 .insights{
@@ -807,33 +869,85 @@ button,a{font:inherit}
     </section>
 
     <section class="showcase">
-      <article class="card showcase-card green">
-        <div class="showcase-head">
-          <img src="/assets/games/progress/icons/subjects.webp" alt="">
-          <div><h2>1. מקצועות</h2><p>באילו מקצועות אני הכי חזק?</p></div>
-        </div>
-        <div class="radar-wrap"><canvas id="subjectsRadar"></canvas></div>
-        <div class="showcase-foot"><span>המקצוע החזק שלך:</span><strong id="bestSubject">אין מספיק נתונים</strong></div>
-      </article>
 
-      <article class="card showcase-card blue">
-        <div class="showcase-head">
-          <img src="/assets/games/progress/icons/skills.webp" alt="">
-          <div><h2>2. מיומנויות</h2><p>הכישורים שהמשחקים בודקים ומפתחים</p></div>
-        </div>
-        <div class="radar-wrap"><canvas id="skillsRadar"></canvas></div>
-        <div class="showcase-foot"><span>המיומנות הבולטת שלך:</span><strong id="bestSkill">אין מספיק נתונים</strong></div>
-      </article>
+  <article class="card showcase-card green">
 
-      <article class="card showcase-card purple">
-        <div class="showcase-head">
-          <img src="/assets/games/progress/icons/progress.webp" alt="">
-          <div><h2>3. התקדמות</h2><p>איך הביצועים משתנים לאורך זמן</p></div>
+    <div class="showcase-head">
+      <img
+        src="/assets/games/progress/icons/subjects.webp"
+        alt=""
+      >
+
+      <div class="showcase-title">
+        <h2>1. מקצועות</h2>
+        <p>באילו מקצועות אני הכי חזק?</p>
+
+        <div class="showcase-result">
+          <span>המקצוע החזק שלך:</span>
+          <strong id="bestSubject">אין מספיק נתונים</strong>
         </div>
-        <div class="radar-wrap"><canvas id="progressRadar"></canvas></div>
-        <div class="showcase-foot"><span>השיפור הבולט שלך:</span><strong id="bestProgress">אין מספיק נתונים</strong></div>
-      </article>
-    </section>
+      </div>
+    </div>
+
+    <div class="radar-wrap">
+      <canvas id="subjectsRadar"></canvas>
+    </div>
+
+  </article>
+
+
+  <article class="card showcase-card blue">
+
+    <div class="showcase-head">
+      <img
+        src="/assets/games/progress/icons/skills.webp"
+        alt=""
+      >
+
+      <div class="showcase-title">
+        <h2>2. מיומנויות</h2>
+        <p>הכישורים שהמשחקים בודקים ומפתחים</p>
+
+        <div class="showcase-result">
+          <span>המיומנות הבולטת שלך:</span>
+          <strong id="bestSkill">אין מספיק נתונים</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="radar-wrap">
+      <canvas id="skillsRadar"></canvas>
+    </div>
+
+  </article>
+
+
+  <article class="card showcase-card purple">
+
+    <div class="showcase-head">
+      <img
+        src="/assets/games/progress/icons/progress.webp"
+        alt=""
+      >
+
+      <div class="showcase-title">
+        <h2>3. התקדמות</h2>
+        <p>איך הביצועים משתנים לאורך זמן</p>
+
+        <div class="showcase-result">
+          <span>השיפור הבולט שלך:</span>
+          <strong id="bestProgress">אין מספיק נתונים</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="radar-wrap">
+      <canvas id="progressRadar"></canvas>
+    </div>
+
+  </article>
+
+</section>
 
     <section class="insights">
       <article class="card panel">
