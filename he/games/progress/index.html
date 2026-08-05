@@ -1328,7 +1328,489 @@ button,a{font:inherit}
     font-size:36px;
   }
 }
+/* ==================================================
+   PREMIUM TOP BAR
+================================================== */
 
+.premium-topbar{
+  width:100%;
+
+  display:grid;
+  grid-template-columns:
+    minmax(360px,1.65fr)
+    repeat(4,minmax(155px,.78fr))
+    minmax(360px,1.55fr);
+
+  gap:14px;
+
+  direction:rtl;
+  align-items:stretch;
+}
+
+/* בסיס לכל הכרטיסים */
+
+.top-profile-card,
+.top-stat-card,
+.top-coach-card{
+  position:relative;
+
+  min-width:0;
+  height:128px;
+
+  border-radius:25px;
+
+  background:
+    radial-gradient(
+      circle at 88% 8%,
+      rgba(60,151,255,.16),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #123c7b,
+      #092756
+    );
+
+  border:1px solid rgba(137,202,255,.25);
+
+  box-shadow:
+    0 16px 35px rgba(0,8,30,.34),
+    inset 0 1px 0 rgba(255,255,255,.10);
+
+  overflow:hidden;
+}
+
+/* ==================================================
+   כרטיס הילד
+================================================== */
+
+.top-profile-card{
+  padding:12px 16px;
+
+  display:grid;
+  grid-template-columns:102px minmax(0,1fr) 76px;
+  align-items:center;
+
+  gap:14px;
+}
+
+.top-avatar-wrap{
+  width:96px;
+  height:96px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  padding:4px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #55dfff,
+      #1f79ff 46%,
+      #ffc72f
+    );
+
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.12),
+    0 10px 22px rgba(0,10,40,.34);
+}
+
+.top-avatar-wrap img{
+  width:100%;
+  height:100%;
+
+  border-radius:50%;
+
+  object-fit:cover;
+
+  background:#0b2858;
+}
+
+.top-profile-copy{
+  min-width:0;
+
+  text-align:right;
+}
+
+.top-profile-copy h1{
+  margin:0;
+
+  color:#fff;
+
+  font-size:28px;
+  line-height:1;
+  font-weight:1000;
+
+  white-space:nowrap;
+
+  text-shadow:
+    0 3px 6px rgba(0,0,0,.28);
+}
+
+.top-profile-copy > p{
+  margin:7px 0 0;
+
+  color:#d8e7ff;
+
+  font-size:17px;
+  line-height:1;
+  font-weight:900;
+}
+
+/* XP */
+
+.top-xp-row{
+  margin-top:12px;
+
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr);
+  align-items:center;
+
+  gap:9px;
+}
+
+.top-xp-icon{
+  height:42px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:14px;
+
+  color:#fff;
+
+  font-size:17px;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      145deg,
+      #963eff,
+      #6322c9
+    );
+
+  border:2px solid rgba(255,255,255,.34);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 7px 14px rgba(42,8,96,.34);
+}
+
+.top-xp-content{
+  min-width:0;
+}
+
+.top-xp-numbers{
+  margin-bottom:5px;
+
+  color:#fff;
+
+  font-size:13px;
+  font-weight:1000;
+}
+
+.top-xp-bar{
+  width:100%;
+  height:17px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:#071a39;
+
+  border:1px solid rgba(126,202,255,.42);
+
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,.46);
+}
+
+.top-xp-bar i{
+  display:block;
+
+  width:0%;
+  height:100%;
+
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff9f00,
+      #ffc72f 58%,
+      #fff154
+    );
+
+  box-shadow:
+    0 0 14px rgba(255,194,34,.52);
+
+  transition:width .5s ease;
+}
+
+/* כוכב ורמה */
+
+.top-level-star{
+  position:relative;
+
+  width:74px;
+  height:82px;
+
+  display:grid;
+  place-items:center;
+}
+
+.top-level-star img{
+  position:absolute;
+
+  width:74px;
+  height:74px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 9px 8px
+      rgba(0,0,0,.34)
+    );
+}
+
+.top-level-star strong{
+  position:relative;
+  z-index:1;
+
+  margin-top:-2px;
+
+  color:#fff;
+
+  font-size:23px;
+  font-weight:1000;
+
+  text-shadow:
+    0 2px 3px rgba(70,35,0,.65);
+}
+
+/* ==================================================
+   כרטיסי נתונים
+================================================== */
+
+.top-stat-card{
+  padding:12px 14px;
+
+  display:grid;
+  grid-template-columns:76px minmax(0,1fr);
+  align-items:center;
+
+  gap:10px;
+}
+
+.top-stat-card img{
+  width:72px;
+  height:72px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 10px 8px
+      rgba(0,0,0,.32)
+    );
+}
+
+.top-stat-copy{
+  min-width:0;
+
+  text-align:center;
+}
+
+.top-stat-copy strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:35px;
+  line-height:1;
+  font-weight:1000;
+
+  text-shadow:
+    0 3px 6px rgba(0,0,0,.3);
+}
+
+.top-stat-copy span{
+  display:block;
+
+  margin-top:8px;
+
+  color:#d6e5fb;
+
+  font-size:14px;
+  line-height:1.1;
+  font-weight:900;
+}
+
+/* הגדלה מותאמת לכל אייקון */
+
+.top-stat-card:nth-child(2) img{
+  transform:scale(1.08);
+}
+
+.top-stat-card:nth-child(3) img{
+  transform:scale(1.10);
+}
+
+.top-stat-card:nth-child(4) img{
+  transform:scale(1.12);
+}
+
+.top-stat-card:nth-child(5) img{
+  transform:scale(1.08);
+}
+
+/* ==================================================
+   כרטיס המאמן
+================================================== */
+
+.top-coach-card{
+  padding:12px 14px;
+
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 108px;
+  align-items:center;
+
+  gap:12px;
+}
+
+.top-coach-copy{
+  min-width:0;
+
+  text-align:right;
+}
+
+.top-coach-copy h2{
+  margin:0;
+
+  color:#fff;
+
+  font-size:25px;
+  line-height:1.05;
+  font-weight:1000;
+
+  white-space:nowrap;
+}
+
+.top-coach-copy p{
+  margin:9px 0 0;
+
+  color:#d8e8ff;
+
+  font-size:14px;
+  line-height:1.45;
+  font-weight:800;
+}
+
+.top-coach-card > img{
+  width:108px;
+  height:108px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 10px 9px
+      rgba(0,0,0,.34)
+    );
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media(max-width:1750px){
+
+  .premium-topbar{
+    grid-template-columns:
+      minmax(330px,1.45fr)
+      repeat(4,minmax(140px,.72fr));
+  }
+
+  .top-coach-card{
+    grid-column:1 / -1;
+
+    height:112px;
+
+    grid-template-columns:minmax(0,1fr) 95px;
+  }
+
+  .top-coach-card > img{
+    width:92px;
+    height:92px;
+  }
+}
+
+@media(max-width:1350px){
+
+  .premium-topbar{
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+  }
+
+  .top-profile-card,
+  .top-coach-card{
+    grid-column:1 / -1;
+  }
+
+  .top-stat-card{
+    height:112px;
+  }
+}
+
+@media(max-width:760px){
+
+  .premium-topbar{
+    grid-template-columns:1fr;
+  }
+
+  .top-profile-card,
+  .top-coach-card{
+    grid-column:auto;
+  }
+
+  .top-profile-card{
+    height:auto;
+    min-height:155px;
+
+    grid-template-columns:86px minmax(0,1fr);
+  }
+
+  .top-avatar-wrap{
+    width:82px;
+    height:82px;
+  }
+
+  .top-level-star{
+    position:absolute;
+    top:12px;
+    left:12px;
+
+    width:58px;
+    height:58px;
+  }
+
+  .top-level-star img{
+    width:58px;
+    height:58px;
+  }
+
+  .top-level-star strong{
+    font-size:18px;
+  }
+}
 </style>
 </head>
 <body>
@@ -1336,6 +1818,134 @@ button,a{font:inherit}
 
 <div class="dashboard">
   <main class="content">
+
+      <section class="hero-strip premium-topbar">
+
+  <!-- כרטיס הילד -->
+  <article class="top-profile-card">
+
+    <div class="top-avatar-wrap">
+      <img
+        id="kidAvatar"
+        src="/assets/avatars/default-boy.webp"
+        alt=""
+      >
+    </div>
+
+    <div class="top-profile-copy">
+      <h1 id="kidName">יונתן</h1>
+      <p id="kidGrade">כיתה ה׳</p>
+
+      <div class="top-xp-row">
+        <div class="top-xp-icon">XP</div>
+
+        <div class="top-xp-content">
+          <div class="top-xp-numbers">
+            <strong id="xpText">320 / 500</strong>
+          </div>
+
+          <div class="top-xp-bar">
+            <i id="xpFill"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="top-level-star">
+      <img
+        src="/assets/games/progress/icons/star.webp"
+        alt=""
+      >
+      <strong id="kidLevel">5</strong>
+    </div>
+
+  </article>
+
+
+  <!-- משחקים -->
+  <article class="top-stat-card">
+
+    <img
+      src="/assets/games/progress/icons/controller.webp"
+      alt=""
+    >
+
+    <div class="top-stat-copy">
+      <strong id="gamesPlayed">0</strong>
+      <span>משחקים</span>
+    </div>
+
+  </article>
+
+
+  <!-- הישגים -->
+  <article class="top-stat-card">
+
+    <img
+      src="/assets/games/progress/icons/trophy.webp"
+      alt=""
+    >
+
+    <div class="top-stat-copy">
+      <strong id="topAchievements">0</strong>
+      <span>הישגים</span>
+    </div>
+
+  </article>
+
+
+  <!-- נקודות -->
+  <article class="top-stat-card">
+
+    <img
+      src="/assets/games/progress/icons/star.webp"
+      alt=""
+    >
+
+    <div class="top-stat-copy">
+      <strong id="totalXp">0</strong>
+      <span>נקודות</span>
+    </div>
+
+  </article>
+
+
+  <!-- רצף -->
+  <article class="top-stat-card">
+
+    <img
+      src="/assets/games/progress/icons/fire.webp"
+      alt=""
+    >
+
+    <div class="top-stat-copy">
+      <strong id="dayStreak">0</strong>
+      <span>ימי רצף</span>
+    </div>
+
+  </article>
+
+
+  <!-- הודעת המאמן -->
+  <article class="top-coach-card">
+
+    <div class="top-coach-copy">
+      <h2 id="coachTitle">יונתן! 👋</h2>
+
+      <p id="coachText">
+        שיחקת 12 משחקים השבוע ושיפרת את הביצועים שלך!
+      </p>
+    </div>
+
+    <img
+      src="/assets/games/progress/progress-robot.webp"
+      alt=""
+    >
+
+  </article>
+
+</section>
+
     <section class="hero-strip">
       <article class="card profile-card">
         <img id="kidAvatar" src="/assets/avatars/default-boy.webp" alt="">
