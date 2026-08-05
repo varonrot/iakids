@@ -390,31 +390,29 @@ button,a{font:inherit}
     );
 }
 
-.side-link span{
-  min-width:0;
+.side-link{
+    display:flex;
+    align-items:center;
 
-  padding-inline:4px;
+    height:92px;
 
-  text-align:center;
+    padding:0 16px;
 
-  font-size:21px;
-  line-height:1.15;
-  font-weight:1000;
-
-  white-space:normal;
-
-  text-shadow:
-    0 2px 3px rgba(0,0,0,.55);
+    gap:12px;
 }
 
-.side-link.active{
-  background:
-    linear-gradient(
-      135deg,
-      #2774f1,
-      #5549ff 55%,
-      #7d3fff
-    );
+.side-link img{
+    order:2;
+    width:78px;
+    height:78px;
+    margin-right:auto;
+}
+
+.side-link span{
+    order:1;
+    flex:1;
+    text-align:right;
+}
 
   border-color:rgba(255,255,255,.72);
 
