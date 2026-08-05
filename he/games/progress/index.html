@@ -523,6 +523,92 @@ button,a{font:inherit}
   .rec{grid-template-columns:62px 1fr}
   .rec a{grid-column:1/-1;text-align:center}
 }
+    /* =================================
+   Sidebar responsive image sizing
+   ברירת מחדל: Windows / מסך רגיל
+================================= */
+
+.logo{
+  width:190px;
+  height:72px;
+  transform:none;
+  margin:6px auto 10px;
+}
+
+.side-home{
+  min-height:120px;
+}
+
+.side-home img{
+  width:92px;
+  height:76px;
+  transform:none;
+}
+
+.side-link{
+  height:78px;
+  min-height:78px;
+  grid-template-columns:76px minmax(0,1fr);
+}
+
+.side-link img{
+  width:68px;
+  height:68px;
+  transform:none;
+}
+
+.side-link span{
+  font-size:19px;
+}
+
+.side-coach img{
+  width:128px;
+  height:112px;
+  transform:none;
+}
+
+
+/* =================================
+   מסכי Retina / צפיפות גבוהה
+   למשל רוב מחשבי Mac
+================================= */
+
+@media (min-resolution: 1.5dppx){
+
+  .logo{
+    width:220px;
+    height:86px;
+  }
+
+  .side-home{
+    min-height:136px;
+  }
+
+  .side-home img{
+    width:112px;
+    height:94px;
+  }
+
+  .side-link{
+    height:88px;
+    min-height:88px;
+    grid-template-columns:88px minmax(0,1fr);
+  }
+
+  .side-link img{
+    width:80px;
+    height:80px;
+  }
+
+  .side-link span{
+    font-size:21px;
+  }
+
+  .side-coach img{
+    width:155px;
+    height:136px;
+  }
+}
 </style>
 </head>
 <body>
