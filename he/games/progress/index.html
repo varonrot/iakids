@@ -609,380 +609,104 @@ button,a{font:inherit}
     height:136px;
   }
 }
-    /* ==================================================
-   TOP BAR OVERRIDE
-   הדבק בסוף ה-CSS, לפני </style>
-================================================== */
+
+    /* TOP BAR OVERRIDE */
 
 .hero-strip{
-  width:100%;
-
   display:grid;
   grid-template-columns:
-    minmax(340px,1.55fr)
+    minmax(360px,1.55fr)
     repeat(3,minmax(170px,.72fr))
-    minmax(390px,1.7fr);
-
-  gap:clamp(10px,1vw,16px);
-
+    minmax(360px,1.55fr);
+  gap:14px;
   align-items:stretch;
 }
 
-/* כל הכרטיסים העליונים */
-
-.profile-card,
-.metric-card,
-.coach-card{
+.hero-strip > .card{
   min-height:132px;
   height:132px;
-
   border-radius:28px;
-
-  border:1px solid rgba(151,207,255,.22);
-
-  box-shadow:
-    0 18px 38px rgba(0,8,30,.32),
-    inset 0 1px 0 rgba(255,255,255,.12);
-
-  overflow:hidden;
 }
 
-/* ==================================================
-   כרטיס הילד
-================================================== */
-
 .profile-card{
-  padding:14px 18px;
-
   display:grid;
-  grid-template-columns:110px minmax(0,1fr);
+  grid-template-columns:104px minmax(0,1fr);
   align-items:center;
   gap:16px;
-
-  color:#112a5c;
-
-  background:
-    radial-gradient(
-      circle at 92% 16%,
-      rgba(255,255,255,.75),
-      transparent 30%
-    ),
-    linear-gradient(
-      135deg,
-      #fff9e8,
-      #ffe8a6
-    );
-
-  border-color:rgba(255,255,255,.8);
+  padding:14px 18px;
 }
 
 .profile-card > img{
-  width:104px;
-  height:104px;
-
-  padding:5px;
-
-  border-radius:26px;
-
+  width:98px;
+  height:98px;
   object-fit:contain;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.98),
-      rgba(247,250,255,.92)
-    );
-
-  border:3px solid rgba(255,255,255,.92);
-
-  box-shadow:
-    0 11px 25px rgba(45,59,103,.19),
-    inset 0 1px 0 #fff;
-
-  transform:none;
 }
-
-.profile-card > div{
-  min-width:0;
-}
-
-.profile-card h1{
-  margin:0;
-
-  font-size:clamp(25px,1.65vw,34px);
-  line-height:1.05;
-  font-weight:1000;
-
-  color:#112a5c;
-
-  white-space:nowrap;
-}
-
-.profile-card p{
-  margin:7px 0 0;
-
-  color:#28436f;
-
-  font-size:clamp(12px,.78vw,15px);
-  line-height:1.25;
-  font-weight:900;
-
-  white-space:nowrap;
-}
-
-.xp-line{
-  margin-top:10px;
-
-  display:grid;
-  grid-template-columns:auto minmax(100px,1fr) auto;
-  align-items:center;
-  gap:9px;
-
-  color:#142d58;
-
-  font-size:12px;
-  font-weight:1000;
-}
-
-.xpbar{
-  height:13px;
-
-  border-radius:999px;
-
-  background:#061832;
-
-  border:1px solid rgba(255,255,255,.45);
-
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,.35);
-}
-
-.xpbar i{
-  background:
-    linear-gradient(
-      90deg,
-      #fff56f,
-      #ffc72f 55%,
-      #ff9418
-    );
-
-  box-shadow:
-    0 0 14px rgba(255,191,30,.52);
-}
-
-/* ==================================================
-   כרטיסי מספרים: נקודות / משחקים / רצף
-================================================== */
 
 .metric-card{
-  padding:12px 16px;
-
   display:grid;
-  grid-template-columns:82px minmax(0,1fr);
+  grid-template-columns:88px minmax(0,1fr);
   align-items:center;
-  gap:12px;
-
-  background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(56,142,255,.18),
-      transparent 36%
-    ),
-    linear-gradient(
-      180deg,
-      #174888,
-      #0a285c
-    );
+  gap:10px;
+  padding:14px;
 }
 
 .metric-card img{
-  width:78px;
-  height:78px;
-
+  width:82px;
+  height:82px;
   object-fit:contain;
-
-  justify-self:center;
-
-  transform:scale(1.12);
-  transform-origin:center;
-
-  filter:
-    drop-shadow(0 10px 8px rgba(0,0,0,.3))
-    drop-shadow(0 0 10px rgba(76,168,255,.12));
+  transform:none;
 }
 
 .metric-card .metric-copy{
-  min-width:0;
-
   text-align:center;
 }
 
 .metric-card strong{
-  display:block;
-
-  margin:0;
-
-  font-size:clamp(31px,2vw,42px);
-  line-height:1;
-  font-weight:1000;
-
-  color:#fff;
-
-  text-shadow:
-    0 3px 6px rgba(0,0,0,.28);
+  font-size:38px;
 }
 
 .metric-card span{
-  display:block;
-
-  margin-top:8px;
-
-  color:#dce9ff;
-
-  font-size:clamp(12px,.78vw,15px);
-  line-height:1.15;
-  font-weight:900;
+  font-size:14px;
 }
-
-/* מעט הבדל לכל אייקון */
-
-.metric-card:nth-child(2) img{
-  transform:scale(1.16);
-}
-
-.metric-card:nth-child(3) img{
-  transform:scale(1.18);
-}
-
-.metric-card:nth-child(4) img{
-  transform:scale(1.12);
-}
-
-/* ==================================================
-   כרטיס המאמן
-================================================== */
 
 .coach-card{
-  padding:14px 18px;
-
   display:grid;
-  grid-template-columns:110px minmax(0,1fr);
+  grid-template-columns:108px minmax(0,1fr);
   align-items:center;
-  gap:16px;
-
-  background:
-    radial-gradient(
-      circle at 12% 12%,
-      rgba(70,157,255,.19),
-      transparent 35%
-    ),
-    linear-gradient(
-      135deg,
-      #174889,
-      #092859
-    );
+  gap:14px;
+  padding:14px 18px;
 }
 
 .coach-card img{
-  width:108px;
-  height:108px;
-
+  width:102px;
+  height:102px;
   object-fit:contain;
-
-  transform:scale(1.08);
-  transform-origin:center;
-
-  filter:
-    drop-shadow(0 12px 10px rgba(0,0,0,.32))
-    drop-shadow(0 0 12px rgba(69,177,255,.13));
+  transform:none;
 }
-
-.coach-card > div{
-  min-width:0;
-}
-
-.coach-card h3{
-  margin:0 0 7px;
-
-  font-size:clamp(21px,1.35vw,28px);
-  line-height:1.05;
-  font-weight:1000;
-
-  color:#fff;
-
-  white-space:nowrap;
-
-  text-shadow:
-    0 3px 6px rgba(0,0,0,.26);
-}
-
-.coach-card p{
-  margin:0;
-
-  color:#dceaff;
-
-  font-size:clamp(12px,.78vw,15px);
-  line-height:1.4;
-  font-weight:800;
-}
-
-/* ==================================================
-   התאמה למסכים בינוניים
-================================================== */
 
 @media(max-width:1600px){
-
   .hero-strip{
     grid-template-columns:
-      minmax(315px,1.35fr)
-      repeat(3,minmax(150px,.68fr));
+      minmax(320px,1.3fr)
+      repeat(3,minmax(145px,.7fr));
   }
 
   .coach-card{
     grid-column:1 / -1;
   }
 
-  .profile-card,
-  .metric-card,
-  .coach-card{
-    height:122px;
+  .hero-strip > .card{
     min-height:122px;
-  }
-
-  .profile-card{
-    grid-template-columns:96px minmax(0,1fr);
-  }
-
-  .profile-card > img{
-    width:92px;
-    height:92px;
-  }
-
-  .metric-card{
-    grid-template-columns:70px minmax(0,1fr);
+    height:122px;
   }
 
   .metric-card img{
-    width:68px;
-    height:68px;
-  }
-
-  .coach-card{
-    grid-template-columns:94px minmax(0,1fr);
-  }
-
-  .coach-card img{
-    width:92px;
-    height:92px;
+    width:72px;
+    height:72px;
   }
 }
 
-/* ==================================================
-   התאמה למסכים צרים יותר
-================================================== */
-
 @media(max-width:1180px){
-
   .hero-strip{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
@@ -991,11 +715,8 @@ button,a{font:inherit}
   .coach-card{
     grid-column:1 / -1;
   }
-
-  .metric-card{
-    grid-template-columns:78px minmax(0,1fr);
-  }
 }
+
 </style>
 </head>
 <body>
