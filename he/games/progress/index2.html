@@ -1,1 +1,1770 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מרכז ההתקדמות במשחקים | iakids</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#fff;
+  --muted:#c8d8ef;
+  --navy:#061631;
+  --panel:#0a2b5c;
+  --panel-2:#071f46;
+  --line:rgba(150,207,255,.24);
+  --gold:#ffc72f;
+  --radius-xl:30px;
+  --radius-lg:24px;
+  --radius-md:18px;
+  --gap:16px;
+  --shadow:0 24px 65px rgba(0,8,30,.44);
+  --font:"Segoe UI Variable Display","Segoe UI Variable Text","Segoe UI",Tahoma,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:var(--font);color:var(--ink)}
+body{
+  overflow-x:hidden;
+  background:
+    linear-gradient(180deg,rgba(3,16,39,.28),rgba(3,14,35,.74)),
+    url("/assets/games/progress/dashboard-world-bg.webp") center/cover fixed no-repeat;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 12% 10%,rgba(48,173,255,.22),transparent 26%),
+    radial-gradient(circle at 80% 8%,rgba(119,76,255,.18),transparent 28%),
+    linear-gradient(180deg,rgba(4,16,40,.04),rgba(4,16,40,.28));
+}
+img{display:block}
+button,a{font:inherit}
+.dashboard{
+  width:min(100%,1920px);
+  margin:0 auto;
+  min-height:100vh;
+  padding:16px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(250px,15vw,290px);
+  gap:var(--gap);
+  direction:ltr;
+}
+.content{
+  min-width:0;
+  direction:rtl;
+  display:grid;
+  gap:var(--gap);
+  align-content:start;
+}
+.card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.09);
+}
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.10),transparent 28%,transparent 72%,rgba(255,255,255,.03));
+}
 
+/* Top strip */
+.hero-strip{
+  display:grid;
+  grid-template-columns:minmax(350px,1.5fr) repeat(3,minmax(160px,.72fr)) minmax(330px,1.35fr);
+  gap:var(--gap);
+}
+.profile-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  color:#122957;
+  background:linear-gradient(135deg,#fff8dd,#ffd890);
+  border-color:rgba(255,255,255,.9);
+}
+.profile-card>img{
+  width:98px;height:98px;border-radius:28px;object-fit:cover;
+  background:#fff;border:4px solid #fff;
+  box-shadow:0 12px 28px rgba(77,43,0,.22);
+}
+.profile-card h1{margin:0;font-size:34px;font-weight:1000}
+.profile-card p{margin:4px 0;color:#28416e;font-size:14px;font-weight:800}
+.xp-line{margin-top:11px;display:grid;grid-template-columns:auto minmax(120px,1fr) auto;gap:9px;align-items:center;font-size:12px;font-weight:1000}
+.xpbar,.bar{height:14px;border-radius:999px;overflow:hidden;background:#071a38;box-shadow:inset 0 2px 4px rgba(0,0,0,.35)}
+.xpbar i,.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#fff36d,#ffc32f 58%,#ff8b17);box-shadow:0 0 18px rgba(255,191,30,.6)}
+
+.metric-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:16px;
+  display:grid;
+  grid-template-columns:92px 1fr;
+  align-items:center;
+  gap:12px;
+  background:linear-gradient(180deg,rgba(20,65,132,.98),rgba(7,31,72,.98));
+}
+.metric-card img{width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 12px 10px rgba(0,0,0,.34))}
+.metric-card .metric-copy{min-width:0}
+.metric-card strong{display:block;font-size:34px;line-height:1;font-weight:1000}
+.metric-card span{display:block;margin-top:7px;font-size:13px;color:var(--muted);font-weight:800;line-height:1.25}
+
+.coach-card{
+  min-height:126px;
+  border-radius:var(--radius-xl);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  background:linear-gradient(135deg,rgba(19,58,118,.98),rgba(7,31,75,.98));
+}
+.coach-card img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 13px 11px rgba(0,0,0,.34))}
+.coach-card h3{margin:0 0 6px;font-size:24px;font-weight:1000}
+.coach-card p{margin:0;color:#dceaff;font-size:14px;line-height:1.5;font-weight:700}
+
+/* Main showcase */
+
+.showcase{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--gap);
+}
+
+.showcase-card{
+  height:410px;
+  min-height:410px;
+
+  padding:16px 18px 14px;
+
+  display:grid;
+  grid-template-rows:110px 1fr;
+
+  border-radius:32px;
+}
+
+.showcase-card.green{
+  background:radial-gradient(circle at 85% 10%,rgba(179,255,71,.26),transparent 28%),linear-gradient(180deg,#188236,#063e20);
+}
+
+.showcase-card.blue{
+  background:radial-gradient(circle at 85% 10%,rgba(49,218,255,.25),transparent 28%),linear-gradient(180deg,#1764bf,#082f71);
+}
+
+.showcase-card.purple{
+  background:radial-gradient(circle at 85% 10%,rgba(239,116,255,.24),transparent 28%),linear-gradient(180deg,#7638bd,#3d196f);
+}
+
+.showcase-head{
+  display:grid;
+  grid-template-columns:90px 1fr;
+  gap:14px;
+  align-items:start;
+}
+
+.showcase-head img{
+  width:86px;
+  height:86px;
+  object-fit:contain;
+  filter:drop-shadow(0 10px 8px rgba(0,0,0,.35));
+}
+
+.showcase-title h2{
+  margin:0;
+  font-size:28px;
+  font-weight:1000;
+}
+
+.showcase-title>p{
+  margin:4px 0 0;
+  color:rgba(255,255,255,.84);
+  font-size:13px;
+}
+
+/* עבר מהתחתית לראש הכרטיס */
+
+.showcase-result{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+
+  margin-top:10px;
+
+  padding:7px 11px;
+
+  border-radius:12px;
+
+  background:rgba(0,0,0,.18);
+
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.showcase-result span{
+  font-size:11px;
+  color:rgba(255,255,255,.75);
+}
+
+.showcase-result strong{
+  font-size:16px;
+  font-weight:1000;
+}
+
+.radar-wrap{
+  height:255px;
+  max-width:380px;
+  width:100%;
+  margin:auto;
+}
+/* ==================================================
+   INSIGHTS PREMIUM SECTION
+================================================== */
+
+.insights-premium{
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1.18fr)
+    minmax(0,.92fr)
+    minmax(0,1.28fr);
+
+  gap:var(--gap);
+
+  align-items:stretch;
+}
+
+/* ==================================================
+   PREMIUM PANEL
+================================================== */
+
+.premium-panel{
+  position:relative;
+
+  min-width:0;
+  min-height:310px;
+
+  padding:18px;
+
+  border-radius:28px;
+
+  background:
+    radial-gradient(
+      circle at 90% 0,
+      rgba(72,161,255,.20),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(19,62,124,.98),
+      rgba(5,28,68,.99)
+    );
+
+  border:1px solid rgba(150,207,255,.22);
+
+  box-shadow:
+    0 20px 45px rgba(0,8,30,.34),
+    inset 0 1px 0 rgba(255,255,255,.10);
+
+  overflow:hidden;
+}
+
+.premium-panel::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.07),
+      transparent 25%,
+      transparent 76%,
+      rgba(65,157,255,.04)
+    );
+}
+
+/* ==================================================
+   PANEL HEADING
+================================================== */
+
+.panel-heading{
+  position:relative;
+  z-index:1;
+
+  min-height:60px;
+
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr);
+  align-items:center;
+
+  gap:12px;
+
+  margin-bottom:15px;
+}
+
+.panel-heading-icon{
+  width:52px;
+  height:52px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:17px;
+
+  font-size:28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(51,153,255,.30),
+      rgba(18,70,150,.42)
+    );
+
+  border:1px solid rgba(162,214,255,.30);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 9px 18px rgba(0,12,43,.27);
+}
+
+.panel-heading-copy{
+  min-width:0;
+
+  text-align:right;
+}
+
+.panel-heading-copy h2{
+  margin:0;
+
+  color:#fff;
+
+  font-size:23px;
+  line-height:1.1;
+  font-weight:1000;
+
+  text-shadow:
+    0 3px 6px rgba(0,0,0,.25);
+}
+
+.panel-heading-copy p{
+  margin:5px 0 0;
+
+  color:#bdd2ef;
+
+  font-size:12px;
+  line-height:1.35;
+  font-weight:700;
+}
+
+/* ==================================================
+   RECOMMENDATIONS
+================================================== */
+
+.recommendations{
+  position:relative;
+  z-index:1;
+
+  display:grid;
+  gap:10px;
+}
+
+.rec{
+  min-width:0;
+  min-height:72px;
+
+  display:grid;
+
+  /* RTL:
+     אייקון מימין
+     טקסט באמצע
+     כפתור משמאל
+  */
+  grid-template-columns:68px minmax(0,1fr) auto;
+  align-items:center;
+
+  gap:12px;
+
+  padding:8px 10px 8px 12px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 96% 10%,
+      rgba(56,173,255,.15),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(8,39,88,.96),
+      rgba(4,25,61,.98)
+    );
+
+  border:1px solid rgba(151,207,255,.16);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 18px rgba(0,8,30,.20);
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.rec:hover{
+  transform:translateY(-2px);
+
+  border-color:rgba(112,198,255,.42);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 12px 24px rgba(0,10,38,.27);
+}
+
+.rec img{
+  width:64px;
+  height:64px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 8px 8px
+      rgba(0,0,0,.32)
+    );
+}
+
+.rec > div{
+  min-width:0;
+
+  text-align:right;
+}
+
+.rec strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:15px;
+  line-height:1.15;
+  font-weight:1000;
+}
+
+.rec small{
+  display:block;
+
+  margin-top:5px;
+
+  color:#bfd1ea;
+
+  font-size:11px;
+  line-height:1.35;
+  font-weight:700;
+}
+
+.rec a{
+  min-width:72px;
+  min-height:38px;
+
+  padding:9px 13px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:12px;
+
+  color:#fff;
+  text-decoration:none;
+
+  font-size:12px;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      180deg,
+      #43c7ff,
+      #1475d3
+    );
+
+  border:1px solid rgba(255,255,255,.38);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    0 8px 16px rgba(0,92,201,.28);
+
+  transition:
+    transform .17s ease,
+    filter .17s ease;
+}
+
+.rec a:hover{
+  transform:scale(1.04);
+
+  filter:brightness(1.08);
+}
+
+/* ==================================================
+   STATISTICS
+================================================== */
+
+.summary{
+  position:relative;
+  z-index:1;
+
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+
+  gap:10px;
+}
+
+.sum{
+  min-width:0;
+  min-height:91px;
+
+  padding:9px 10px;
+
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr);
+  align-items:center;
+
+  gap:10px;
+
+  border-radius:17px;
+
+  text-align:right;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(58,165,255,.13),
+      transparent 38%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(8,39,87,.96),
+      rgba(4,26,62,.98)
+    );
+
+  border:1px solid rgba(151,205,255,.15);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 18px rgba(0,8,30,.17);
+}
+
+.sum img{
+  width:56px;
+  height:56px;
+
+  object-fit:contain;
+
+  justify-self:center;
+
+  filter:
+    drop-shadow(
+      0 8px 7px
+      rgba(0,0,0,.30)
+    );
+}
+
+.sum-copy{
+  min-width:0;
+}
+
+.sum strong{
+  display:block;
+
+  color:#fff;
+
+  font-size:22px;
+  line-height:1;
+  font-weight:1000;
+
+  white-space:nowrap;
+}
+
+.sum span{
+  display:block;
+
+  margin-top:6px;
+
+  color:#bcd0ec;
+
+  font-size:11px;
+  line-height:1.25;
+  font-weight:750;
+}
+
+/* ==================================================
+   TREND PANEL
+================================================== */
+
+.trend-panel{
+  display:grid;
+
+  grid-template-rows:auto minmax(0,1fr) auto;
+}
+
+.trend-heading{
+  grid-template-columns:54px minmax(0,1fr) auto;
+}
+
+.trend-badge{
+  padding:6px 10px;
+
+  border-radius:999px;
+
+  color:#dff7ff;
+
+  font-size:10px;
+  font-weight:900;
+
+  white-space:nowrap;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(37,191,255,.25),
+      rgba(11,91,173,.24)
+    );
+
+  border:1px solid rgba(110,213,255,.30);
+}
+
+.trend{
+  position:relative;
+  z-index:1;
+
+  width:100%;
+  height:190px;
+
+  padding:7px 4px 0;
+}
+
+.trend canvas{
+  width:100% !important;
+  height:100% !important;
+}
+
+.trend-note{
+  position:relative;
+  z-index:1;
+
+  min-height:46px;
+
+  margin-top:10px;
+  padding:10px 13px;
+
+  display:flex;
+  align-items:center;
+
+  border-radius:14px;
+
+  color:#d9ffe5;
+
+  font-size:12px;
+  line-height:1.35;
+  font-weight:750;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(41,185,91,.22),
+      rgba(18,105,57,.16)
+    );
+
+  border:1px solid rgba(92,226,134,.25);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media(max-width:1600px){
+
+  .insights-premium{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .trend-panel{
+    grid-column:1 / -1;
+  }
+
+  .premium-panel{
+    min-height:295px;
+  }
+
+  .trend{
+    height:185px;
+  }
+}
+
+@media(max-width:1100px){
+
+  .insights-premium{
+    grid-template-columns:1fr;
+  }
+
+  .trend-panel{
+    grid-column:auto;
+  }
+
+  .summary{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:700px){
+
+  .premium-panel{
+    padding:14px;
+  }
+
+  .summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .rec{
+    grid-template-columns:60px minmax(0,1fr);
+  }
+
+  .rec img{
+    width:56px;
+    height:56px;
+  }
+
+  .rec a{
+    grid-column:1 / -1;
+
+    width:100%;
+  }
+
+  .trend-heading{
+    grid-template-columns:50px minmax(0,1fr);
+  }
+
+  .trend-badge{
+    display:none;
+  }
+}
+/* Bottom row */
+.bottom-grid{
+  display:grid;
+  grid-template-columns:1fr 1.1fr 1.75fr minmax(230px,.75fr);
+  gap:var(--gap);
+}
+.challenge-card,.achievement-card,.kingdoms-card{
+  min-height:176px;
+  border-radius:28px;
+  padding:16px;
+}
+.challenge-card{background:radial-gradient(circle at 82% 10%,rgba(255,106,223,.24),transparent 28%),linear-gradient(135deg,#8a2daf,#43156f)}
+.achievement-card{background:radial-gradient(circle at 85% 10%,rgba(57,236,255,.18),transparent 28%),linear-gradient(135deg,#1b7e89,#16466f)}
+.kingdoms-card{background:radial-gradient(circle at 50% 0,rgba(73,191,255,.22),transparent 34%),linear-gradient(135deg,#1768b5,#103b75)}
+.challenge-card h3,.achievement-card h3,.kingdoms-card h3{margin:0 0 12px;font-size:20px;font-weight:1000}
+.challenge-card strong{display:block;margin-bottom:12px}
+.challenge-card p{margin:9px 0 0;color:#e7d9ff;font-size:13px}
+.badges{display:flex;align-items:center;justify-content:center;gap:10px;min-height:105px;flex-wrap:wrap}
+.badges img{width:82px;height:82px;object-fit:contain;filter:drop-shadow(0 11px 10px rgba(0,0,0,.36))}
+.kingdoms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.kingdom{text-align:center;min-width:0;border-radius:17px;padding:8px 5px;background:rgba(4,27,62,.58);border:1px solid rgba(164,211,255,.16)}
+.kingdom img{width:98px;height:78px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 10px 8px rgba(0,0,0,.38))}
+.kingdom strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kingdom span{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:999px;background:linear-gradient(#63d925,#2b9e0d);font-size:11px;font-weight:1000}
+.play{
+  min-height:176px;
+  border-radius:29px;
+  border:2px solid rgba(255,255,255,.64);
+  background:linear-gradient(180deg,#ffe85f,#ffbf27 55%,#f3940a);
+  color:#573000;
+  font-size:29px;
+  font-weight:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  padding:18px;
+  cursor:pointer;
+  box-shadow:0 18px 35px rgba(156,83,0,.4),inset 0 3px 0 rgba(255,255,255,.56),inset 0 -4px 0 rgba(177,89,0,.22);
+  transition:.18s ease;
+}
+.play:hover{transform:translateY(-3px) scale(1.01)}
+.play img{width:86px;height:86px;object-fit:contain;filter:drop-shadow(0 10px 8px rgba(110,55,0,.28))}
+
+/* ===========================
+   Sidebar
+=========================== */
+
+.sidebar{
+  direction:rtl;
+  position:sticky;
+  top:16px;
+  height:calc(100vh - 32px);
+
+  padding:18px 16px 14px;
+
+  display:flex;
+  flex-direction:column;
+
+  border-radius:32px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8,34,77,.99),
+      rgba(4,19,48,.995)
+    );
+
+  border:1px solid rgba(137,198,255,.24);
+
+  box-shadow:
+    0 28px 80px rgba(0,7,28,.56),
+    inset 0 1px 0 rgba(255,255,255,.07);
+
+  overflow:hidden;
+}
+
+/* לוגו */
+
+.logo{
+  width:clamp(190px,82%,225px);
+  height:95px;
+
+  object-fit:contain;
+
+  transform:scale(1.18);
+
+  margin:8px auto 14px;
+}
+
+/* האי שלנו */
+
+.side-home{
+  min-height:142px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  padding:10px;
+  margin-bottom:12px;
+
+  text-align:center;
+
+  border-radius:22px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #174b96,
+      #0c2c62
+    );
+
+  border:1px solid rgba(168,218,255,.25);
+}
+
+.side-home img{
+    width:clamp(88px,46%,118px);
+    height:auto;
+
+    object-fit:contain;
+
+    transform:scale(1.28);
+
+    margin:0 auto 0;
+}
+
+.side-home strong{
+  display:block;
+
+  font-size:23px;
+  line-height:1.1;
+  font-weight:1000;
+}
+
+/* תפריט */
+
+.side-nav{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+
+.side-link{
+  position:relative;
+
+  width:100%;
+  height:92px;
+  min-height:92px;
+
+  display:grid;
+  grid-template-columns:94px minmax(0,1fr);
+  align-items:center;
+
+  padding:5px 14px 5px 6px;
+
+  border-radius:22px;
+
+  color:#fff;
+  text-decoration:none;
+
+  background:linear-gradient(
+    180deg,
+    #174888,
+    #0b2c62
+  );
+
+  border:1px solid rgba(152,206,255,.18);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 18px rgba(0,8,28,.24);
+
+  overflow:hidden;
+}
+
+.side-link img{
+  width:clamp(56px,26%,78px);
+  height:auto;
+
+  object-fit:contain;
+
+  justify-self:center;
+  align-self:center;
+
+  transform:scale(1.28);
+  transform-origin:center;
+
+  filter:
+    drop-shadow(
+      0 7px 7px
+      rgba(0,0,0,.32)
+    );
+}
+
+.side-link span{
+  min-width:0;
+
+  padding-inline:4px;
+
+  text-align:right;
+
+  font-size:21px;
+  line-height:1.15;
+  font-weight:1000;
+
+  white-space:normal;
+
+  text-shadow:
+    0 2px 3px rgba(0,0,0,.55);
+}
+
+.side-link.active{
+  background:
+    linear-gradient(
+      135deg,
+      #2774f1,
+      #5549ff 55%,
+      #7d3fff
+    );
+
+  border-color:rgba(255,255,255,.72);
+
+  box-shadow:
+    0 0 0 3px rgba(82,125,255,.18),
+    0 0 25px rgba(83,76,255,.55),
+    inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+/* רובוט תחתון */
+
+.side-coach{
+  margin-top:auto;
+
+  padding-top:12px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  text-align:center;
+}
+
+.side-coach img{
+    width:clamp(120px,72%,160px);
+    height:auto;
+
+    object-fit:contain;
+
+    transform:scale(1.25);
+
+    margin:0 auto 6px;
+}
+
+.side-coach p{
+  width:100%;
+
+  margin:0;
+  padding:10px 12px;
+
+  border-radius:15px;
+
+  color:#e7f0ff;
+
+  font-size:12px;
+  line-height:1.45;
+
+  background:rgba(11,43,91,.9);
+
+  border:1px solid rgba(155,207,255,.18);
+}
+.loading{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:rgba(2,10,27,.94);backdrop-filter:blur(8px)}
+.loading.hide{display:none}
+.loading div{min-width:290px;text-align:center;border-radius:24px;padding:24px;background:linear-gradient(180deg,#123973,#092755);border:1px solid var(--line);box-shadow:var(--shadow)}
+.loading img{width:100px;height:100px;object-fit:contain;margin:0 auto 12px}
+
+/* Responsive */
+@media(max-width:1600px){
+  .dashboard{
+    grid-template-columns:minmax(0,1fr) 270px;
+    padding:14px;
+  }
+  .hero-strip{grid-template-columns:minmax(300px,1.35fr) repeat(3,minmax(140px,.66fr))}
+  .coach-card{grid-column:1/-1}
+  .showcase-card{min-height:455px}
+  .radar-wrap{height:265px}
+}
+@media(max-width:1280px){
+  .dashboard{
+  grid-template-columns:minmax(0,1fr) 250px;
+}
+  .showcase{grid-template-columns:repeat(2,1fr)}
+  .showcase-card:last-child{grid-column:1/-1}
+  .insights{grid-template-columns:1fr 1fr}
+  .trend-panel{grid-column:1/-1}
+  .bottom-grid{grid-template-columns:1fr 1fr}
+  .kingdoms-card{grid-column:1/-1}
+}
+@media(max-width:980px){
+  .dashboard{grid-template-columns:1fr;padding:12px}
+  .sidebar{display:none}
+  .hero-strip{grid-template-columns:1.4fr repeat(2,1fr)}
+  .profile-card{grid-column:span 2}
+}
+@media(max-width:700px){
+  .dashboard{padding:9px}
+  .hero-strip{grid-template-columns:1fr 1fr}
+  .profile-card,.coach-card{grid-column:1/-1}
+  .metric-card{grid-template-columns:70px 1fr}
+  .metric-card img{width:70px;height:70px}
+  .showcase,.insights,.bottom-grid{grid-template-columns:1fr}
+  .showcase-card,.showcase-card:last-child,.trend-panel,.kingdoms-card{grid-column:auto}
+  .summary{grid-template-columns:repeat(2,1fr)}
+  .kingdoms{grid-template-columns:repeat(2,1fr)}
+  .kingdom:last-child{grid-column:1/-1}
+  .play{min-height:120px}
+}
+@media(max-width:430px){
+  .profile-card{display:grid;grid-template-columns:80px 1fr}
+  .profile-card>img{width:80px;height:80px}
+  .xp-line{grid-column:1/-1}
+  .rec{grid-template-columns:62px 1fr}
+  .rec a{grid-column:1/-1;text-align:center}
+}
+    /* =================================
+   Sidebar responsive image sizing
+   ברירת מחדל: Windows / מסך רגיל
+================================= */
+
+.logo{
+  width:190px;
+  height:72px;
+  transform:none;
+  margin:6px auto 10px;
+}
+
+.side-home{
+  min-height:120px;
+}
+
+.side-home img{
+  width:92px;
+  height:76px;
+  transform:none;
+}
+
+.side-link{
+  height:78px;
+  min-height:78px;
+  grid-template-columns:76px minmax(0,1fr);
+}
+
+.side-link img{
+  width:68px;
+  height:68px;
+  transform:none;
+}
+
+.side-link span{
+  font-size:19px;
+}
+
+.side-coach img{
+  width:128px;
+  height:112px;
+  transform:none;
+}
+
+
+/* =================================
+   מסכי Retina / צפיפות גבוהה
+   למשל רוב מחשבי Mac
+================================= */
+
+@media (min-resolution: 1.5dppx){
+
+  .logo{
+    width:220px;
+    height:86px;
+  }
+
+  .side-home{
+    min-height:136px;
+  }
+
+  .side-home img{
+    width:112px;
+    height:94px;
+  }
+
+  .side-link{
+    height:88px;
+    min-height:88px;
+    grid-template-columns:88px minmax(0,1fr);
+  }
+
+  .side-link img{
+    width:80px;
+    height:80px;
+  }
+
+  .side-link span{
+    font-size:21px;
+  }
+
+  .side-coach img{
+    width:155px;
+    height:136px;
+  }
+}
+
+    /* =========================================
+   TOP BAR FINAL OVERRIDE
+========================================= */
+
+.hero-strip{
+  display:grid;
+  grid-template-columns:
+    minmax(380px,1.55fr)
+    repeat(3,minmax(180px,.72fr))
+    minmax(380px,1.55fr);
+  gap:14px;
+  align-items:stretch;
+}
+
+.hero-strip > .card{
+  height:138px;
+  min-height:138px;
+  border-radius:28px;
+}
+
+/* כרטיס הילד */
+
+.profile-card{
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+  padding:12px 18px;
+}
+
+.profile-card > img{
+  width:110px;
+  height:110px;
+  object-fit:contain;
+  transform:scale(1.12);
+}
+
+/* שלושת כרטיסי הנתונים */
+
+.metric-card{
+  display:grid;
+  grid-template-columns:100px minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+  padding:10px 14px;
+  overflow:hidden;
+}
+
+.metric-card img{
+  width:94px;
+  height:94px;
+  object-fit:contain;
+  justify-self:center;
+  transform:scale(1.48);
+  transform-origin:center;
+}
+
+.metric-card .metric-copy{
+  min-width:0;
+  text-align:center;
+}
+
+.metric-card strong{
+  display:block;
+  font-size:42px;
+  line-height:1;
+  font-weight:1000;
+}
+
+.metric-card span{
+  display:block;
+  margin-top:8px;
+  font-size:15px;
+  line-height:1.15;
+  font-weight:900;
+}
+
+/* התאמה נפרדת לפי האייקון */
+
+.metric-card:nth-child(2) img{
+  transform:scale(1.55); /* כוכב */
+}
+
+.metric-card:nth-child(3) img{
+  transform:scale(1.42); /* שלט */
+}
+
+.metric-card:nth-child(4) img{
+  transform:scale(1.58); /* אש */
+}
+
+/* כרטיס המאמן */
+
+.coach-card{
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+  padding:12px 18px;
+}
+
+.coach-card img{
+  width:112px;
+  height:112px;
+  object-fit:contain;
+  transform:scale(1.18);
+  transform-origin:center;
+}
+
+.coach-card h3{
+  margin:0 0 6px;
+  font-size:28px;
+  line-height:1.05;
+}
+
+.coach-card p{
+  margin:0;
+  font-size:14px;
+  line-height:1.4;
+}
+
+/* מסכים בינוניים */
+
+@media(max-width:1600px){
+
+  .hero-strip{
+    grid-template-columns:
+      minmax(320px,1.3fr)
+      repeat(3,minmax(155px,.7fr));
+  }
+
+  .coach-card{
+    grid-column:1 / -1;
+  }
+
+  .hero-strip > .card{
+    height:126px;
+    min-height:126px;
+  }
+
+  .metric-card{
+    grid-template-columns:86px minmax(0,1fr);
+  }
+
+  .metric-card img{
+    width:80px;
+    height:80px;
+  }
+
+  .metric-card strong{
+    font-size:36px;
+  }
+}
+
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div><img src="/assets/games/progress/progress-robot.webp" alt="">טוען את מרכז ההתקדמות שלך…</div></div>
+
+<div class="dashboard">
+  <main class="content">
+    <section class="hero-strip">
+      <article class="card profile-card">
+        <img id="kidAvatar" src="/assets/avatars/default-boy.webp" alt="">
+        <div>
+          <h1 id="kidName">היי!</h1>
+          <p id="kidGrade">מרכז ההתקדמות במשחקים</p>
+          <div class="xp-line">
+            <span>XP</span>
+            <div class="xpbar"><i id="xpFill"></i></div>
+            <strong id="xpText">0 / 500</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/star.webp" alt="">
+        <div class="metric-copy"><strong id="totalXp">0</strong><span>נקודות</span></div>
+      </article>
+
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/controller.webp" alt="">
+        <div class="metric-copy"><strong id="gamesPlayed">0</strong><span>משחקים שהושלמו</span></div>
+      </article>
+
+      <article class="card metric-card">
+        <img src="/assets/games/progress/icons/fire.webp" alt="">
+        <div class="metric-copy"><strong id="dayStreak">0</strong><span>ימי רצף</span></div>
+      </article>
+
+      <article class="card coach-card">
+        <img src="/assets/games/progress/progress-robot.webp" alt="">
+        <div><h3 id="coachTitle">כל הכבוד!</h3><p id="coachText">שחק עוד כמה משחקים כדי שאוכל לבנות לך תמונת מצב אישית.</p></div>
+      </article>
+    </section>
+
+    <section class="showcase">
+
+  <article class="card showcase-card green">
+
+    <div class="showcase-head">
+      <img
+        src="/assets/games/progress/icons/subjects.webp"
+        alt=""
+      >
+
+      <div class="showcase-title">
+        <h2>1. מקצועות</h2>
+        <p>באילו מקצועות אני הכי חזק?</p>
+
+        <div class="showcase-result">
+          <span>המקצוע החזק שלך:</span>
+          <strong id="bestSubject">אין מספיק נתונים</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="radar-wrap">
+      <canvas id="subjectsRadar"></canvas>
+    </div>
+
+  </article>
+
+
+  <article class="card showcase-card blue">
+
+    <div class="showcase-head">
+      <img
+        src="/assets/games/progress/icons/skills.webp"
+        alt=""
+      >
+
+      <div class="showcase-title">
+        <h2>2. מיומנויות</h2>
+        <p>הכישורים שהמשחקים בודקים ומפתחים</p>
+
+        <div class="showcase-result">
+          <span>המיומנות הבולטת שלך:</span>
+          <strong id="bestSkill">אין מספיק נתונים</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="radar-wrap">
+      <canvas id="skillsRadar"></canvas>
+    </div>
+
+  </article>
+
+
+  <article class="card showcase-card purple">
+
+    <div class="showcase-head">
+      <img
+        src="/assets/games/progress/icons/progress.webp"
+        alt=""
+      >
+
+      <div class="showcase-title">
+        <h2>3. התקדמות</h2>
+        <p>איך הביצועים משתנים לאורך זמן</p>
+
+        <div class="showcase-result">
+          <span>השיפור הבולט שלך:</span>
+          <strong id="bestProgress">אין מספיק נתונים</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="radar-wrap">
+      <canvas id="progressRadar"></canvas>
+    </div>
+
+  </article>
+
+</section>
+
+   <section class="insights insights-premium">
+
+  <!-- המלצות -->
+  <article class="card panel premium-panel recommendations-panel">
+
+    <div class="panel-heading">
+      <div class="panel-heading-icon">🎯</div>
+
+      <div class="panel-heading-copy">
+        <h2>המלצות עבורך</h2>
+        <p>הצעדים שיעזרו לך להשתפר במשחק הבא</p>
+      </div>
+    </div>
+
+    <div
+      class="recommendations"
+      id="recommendations"
+    ></div>
+
+  </article>
+
+
+  <!-- סטטיסטיקה -->
+  <article class="card panel premium-panel statistics-panel">
+
+    <div class="panel-heading">
+      <div class="panel-heading-icon">📊</div>
+
+      <div class="panel-heading-copy">
+        <h2>הסטטיסטיקה שלך</h2>
+        <p>מבט מהיר על הביצועים האחרונים שלך</p>
+      </div>
+    </div>
+
+    <div class="summary">
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/controller.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statMonth">0</strong>
+          <span>משחקים החודש</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/accuracy.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statAccuracy">0%</strong>
+          <span>דיוק ממוצע</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/clock.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statResponse">—</strong>
+          <span>תגובה ממוצעת</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/trophy.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statBestStreak">0</strong>
+          <span>רצף הצלחות</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/fire.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statDays">0</strong>
+          <span>ימי רצף</span>
+        </div>
+      </div>
+
+      <div class="sum">
+        <img
+          src="/assets/games/progress/icons/star.webp"
+          alt=""
+        >
+
+        <div class="sum-copy">
+          <strong id="statScore">0</strong>
+          <span>נקודות סה״כ</span>
+        </div>
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- גרף התקדמות -->
+  <article class="card panel premium-panel trend-panel">
+
+    <div class="panel-heading trend-heading">
+      <div class="panel-heading-icon">📈</div>
+
+      <div class="panel-heading-copy">
+        <h2>ההתקדמות שלך</h2>
+        <p>כך הביצועים שלך משתנים ממשחק למשחק</p>
+      </div>
+
+      <div class="trend-badge">
+        מגמה אישית
+      </div>
+    </div>
+
+    <div class="trend">
+      <canvas id="trendChart"></canvas>
+    </div>
+
+    <div
+      class="trend-note"
+      id="trendNote"
+    >
+      צריך עוד כמה משחקים כדי להציג מגמת שיפור.
+    </div>
+
+  </article>
+
+</section>
+
+    <section class="bottom-grid">
+      <article class="card challenge-card">
+        <h3>🔥 אתגר השבוע</h3>
+        <strong>השלים 5 משחקים</strong>
+        <div class="bar"><i id="challengeFill"></i></div>
+        <p id="challengeText">0 מתוך 5</p>
+      </article>
+
+      <article class="card achievement-card">
+        <h3>🏆 הישגים אחרונים</h3>
+        <div class="badges" id="badges"></div>
+      </article>
+
+      <article class="card kingdoms-card">
+        <h3>🏰 הממלכות שלי</h3>
+        <div class="kingdoms" id="kingdoms"></div>
+      </article>
+
+      <button class="play" id="playNow">
+        <img src="/assets/games/progress/icons/sword.webp" alt="">
+        שחק עכשיו!
+      </button>
+    </section>
+  </main>
+
+<aside class="sidebar">
+
+  <img
+    class="logo"
+    src="/assets/games/progress/iakids-games-logo.webp"
+    alt="iakids games"
+  >
+
+  <div class="side-home">
+    <img
+      src="/assets/games/progress/level-shield.webp"
+      alt=""
+    >
+    <strong>האי שלנו</strong>
+  </div>
+
+  <nav class="side-nav">
+
+    <a class="side-link" href="/he/games/workspace/">
+      <img
+        src="/assets/games/progress/icons/map.png"
+        alt=""
+      >
+      <span>המפה שלי</span>
+    </a>
+
+    <a class="side-link" href="/he/games/workspace/">
+      <img
+        src="/assets/games/progress/icons/missions.png"
+        alt=""
+      >
+      <span>משימות</span>
+    </a>
+
+    <a class="side-link active" href="/he/games/progress/">
+      <img
+        src="/assets/games/progress/icons/progress.png"
+        alt=""
+      >
+      <span>התקדמות</span>
+    </a>
+
+    <a class="side-link" href="/he/games/">
+      <img
+        src="/assets/games/progress/icons/trophy.png"
+        alt=""
+      >
+      <span>הישגים</span>
+    </a>
+
+    <a class="side-link" href="/he/games/">
+      <img
+        src="/assets/games/progress/icons/chest.png"
+        alt=""
+      >
+      <span>חנות</span>
+    </a>
+
+  </nav>
+
+  <div class="side-coach">
+    <img
+      src="/assets/games/progress/progress-robot.png"
+      alt=""
+    >
+
+    <p id="sideCoach">
+      אני מנתח את המשחקים שלך כדי לעזור לך להשתפר.
+    </p>
+  </div>
+
+</aside>
+</div>
+
+<script>
+const SUPABASE_URL='https://bxnfzuglfwytiyaguwjj.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const A='/assets/games/progress/';
+const clamp=(v,min=0,max=100)=>Math.max(min,Math.min(max,Number(v)||0));
+const num=v=>Number(v||0);
+const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
+const rnd=v=>Math.round(Number(v||0));
+const kidId=()=>localStorage.getItem('active_kid_id')||localStorage.getItem('iakids_active_kid_id')||localStorage.getItem('selected_kid_id');
+
+function subject(v){v=String(v||'').trim();if(/חשבון|מתמטיקה/.test(v))return'מתמטיקה';if(/עברית|שפה/.test(v))return'עברית';if(/אנגלית/.test(v))return'אנגלית';if(/מדעים/.test(v))return'מדעים';if(/גאוגרפ/.test(v))return'גאוגרפיה';if(/לוגיקה|קוד|חשיבה/.test(v))return'חשיבה';return v||'אחר'}
+function imgForSubject(s){const m={מתמטיקה:'math',עברית:'hebrew',אנגלית:'english',מדעים:'science',גאוגרפיה:'geography',חשיבה:'logic'};return A+'subjects/'+(m[subject(s)]||'default')+'.webp'}
+function kingdomImg(s){const m={מתמטיקה:'volcano',עברית:'jungle',אנגלית:'candy',מדעים:'science',גאוגרפיה:'ice',חשיבה:'underwater'};return A+'kingdoms/'+(m[subject(s)]||'default')+'.webp'}
+function level(x){return num(x.difficulty||x.metadata?.selected_level||1)}
+function dayStreak(rows){const set=new Set(rows.map(x=>x.completed_at||x.created_at||x.started_at).filter(Boolean).map(x=>new Date(x).toISOString().slice(0,10)));let n=0,d=new Date();for(let i=0;i<365;i++){const k=d.toISOString().slice(0,10);if(set.has(k)){n++;d.setDate(d.getDate()-1)}else if(i===0)d.setDate(d.getDate()-1);else break}return n}
+function best(labels,values){if(!values.length)return'אין מספיק נתונים';let i=0;values.forEach((v,x)=>{if(v>values[i])i=x});return labels[i]}
+function trend(current,previous){if(!current.length||!previous.length)return 50;return clamp(50+(avg(current)-avg(previous))*2.2)}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+
+async function load(){
+ const id=kidId();if(!id){fatal('לא נמצא ילד פעיל. חזור למפת המשחקים ובחר ילד.');return}
+ const [p,s]=await Promise.all([
+  db.from('kids_profiles').select('*').eq('id',id).single(),
+  db.from('kid_game_sessions').select('*,games_catalog:game_id(*)').eq('kid_id',id).order('created_at',{ascending:false}).limit(500)
+ ]);
+ if(p.error){console.error(p.error);fatal('לא הצלחנו לטעון את פרטי הילד: '+p.error.message);return}
+ if(s.error){console.error(s.error);fatal('לא הצלחנו לטעון את נתוני המשחקים: '+s.error.message);return}
+ render(build(p.data,(s.data||[]).filter(x=>x.completed)));loading.classList.add('hide')
+}
+
+function build(profile,rows){
+ const totalXp=rows.reduce((s,x)=>s+num(x.score),0),acc=rows.map(x=>num(x.accuracy_percent)),responses=rows.map(x=>num(x.average_response_ms)).filter(Boolean),questions=rows.reduce((s,x)=>s+num(x.questions_count),0),hints=rows.reduce((s,x)=>s+num(x.hints_used),0),bestStreak=Math.max(0,...rows.map(x=>num(x.best_correct_streak))),accuracy=avg(acc),response=avg(responses),days=dayStreak(rows);
+ const sm=new Map();
+ for(const x of rows){const c=x.games_catalog||{},s=subject(c.subject||c.category||x.metadata?.subject||'אחר');if(!sm.has(s))sm.set(s,{subject:s,scores:[],count:0});sm.get(s).scores.push(num(x.performance_score||x.accuracy_percent));sm.get(s).count++}
+ const subjects=[...sm.values()].map(x=>({...x,score:rnd(avg(x.scores))})).sort((a,b)=>b.score-a.score);
+ const pref=['מתמטיקה','עברית','אנגלית','מדעים','חשיבה'],map=new Map(subjects.map(x=>[x.subject,x.score]));
+ const subjectsRadar={labels:pref,values:pref.map(x=>rnd(map.get(x)||0))};
+ const skillKeys=['logic','memory','attention','processing_speed','cognitive_flexibility'];
+ const skillNames={logic:'חשיבה לוגית',memory:'זיכרון',attention:'קשב',processing_speed:'מהירות עיבוד',cognitive_flexibility:'גמישות מחשבתית'};
+ const skillTotals=Object.fromEntries(skillKeys.map(k=>[k,0])),skillWeights=Object.fromEntries(skillKeys.map(k=>[k,0]));
+ for(const x of rows){const c=x.games_catalog||{},sp=c.skills_profile||{},perf=clamp(x.performance_score||x.accuracy_percent);for(const k of skillKeys){const w=num(sp[k]);if(w>0){skillTotals[k]+=perf*w;skillWeights[k]+=w}}}
+ const skills={labels:skillKeys.map(k=>skillNames[k]),values:skillKeys.map(k=>skillWeights[k]?rnd(skillTotals[k]/skillWeights[k]):0)};
+ const recent=rows.slice(0,10),previous=rows.slice(10,20),recentScore=recent.map(x=>num(x.performance_score||x.accuracy_percent)),prevScore=previous.map(x=>num(x.performance_score||x.accuracy_percent)),recentAcc=recent.map(x=>num(x.accuracy_percent)),prevAcc=previous.map(x=>num(x.accuracy_percent)),recentSpeed=recent.map(x=>num(x.average_response_ms)).filter(Boolean).map(v=>100-v/40),prevSpeed=previous.map(x=>num(x.average_response_ms)).filter(Boolean).map(v=>100-v/40),recentDiff=recent.map(level),prevDiff=previous.map(level),consistency=recent.length?clamp(100-Math.sqrt(avg(recentScore.map(v=>Math.pow(v-avg(recentScore),2))))*2):0;
+ const persistence=rows.length?clamp((rows.length/20)*70+Math.min(days,7)*4.3):0;
+ const progress={labels:['דיוק','מהירות תגובה','רמת קושי','עקביות','התמדה'],values:[rnd(trend(recentAcc,prevAcc)),rnd(trend(recentSpeed,prevSpeed)),rnd(trend(recentDiff,prevDiff)),rnd(consistency),rnd(persistence)]};
+
+ const month=rows.filter(x=>{const d=new Date(x.completed_at||x.created_at),n=new Date();return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}).length;
+ const week=rows.filter(x=>Date.now()-new Date(x.completed_at||x.created_at)<7*86400000).length;
+ const recommendations=[];
+ const weakest=subjects.slice().sort((a,b)=>a.score-b.score)[0];if(weakest)recommendations.push({img:imgForSubject(weakest.subject),title:'חזק את '+weakest.subject,text:'הציון הנוכחי שלך הוא '+weakest.score+'%.',url:'/he/games/workspace/'});
+ const minSkill=Math.min(...skills.values),iSkill=skills.values.indexOf(minSkill);recommendations.push({img:A+'icons/skills.webp',title:'שפר את '+skills.labels[iSkill],text:'בחר משחק קצר והתמקד בשיפור אחד.',url:'/he/games/workspace/'});
+ recommendations.push({img:A+'icons/progress.webp',title:'נסה רמת קושי נוספת',text:'עלה שלב רק לאחר שתי הצלחות רצופות.',url:'/he/games/'});
+ const badges=[];if(rows.length)badges.push(A+'badges/first-game.webp');if(rows.length>=10)badges.push(A+'badges/ten-games.webp');if(totalXp>=500)badges.push(A+'badges/xp-500.webp');if(accuracy>=90)badges.push(A+'badges/accuracy-master.webp');while(badges.length<5)badges.push(A+'badges/locked-medal.webp');
+ const ordered=rows.slice().reverse().slice(-8),trendData={labels:ordered.map((x,i)=>'משחק '+(i+1)),values:ordered.map(x=>rnd(x.performance_score||x.accuracy_percent))};
+ return {profile,rows,subjects,subjectsRadar,skills,progress,recommendations,badges,trendData,summary:{totalXp,xpInLevel:totalXp%500,level:Math.floor(totalXp/500)+1,games:rows.length,month,accuracy:rnd(accuracy),response:rnd(response),bestStreak,days,week,improvement:previous.length?rnd(avg(recentScore)-avg(prevScore)):0},bestSubject:best(subjectsRadar.labels,subjectsRadar.values),bestSkill:best(skills.labels,skills.values),bestProgress:best(progress.labels,progress.values)}
+}
+
+function render(d){
+ const name=d.profile.child_name||d.profile.name||'אלוף',grade=d.profile.grade||d.profile.age||'';kidName.textContent='היי '+name+'!';kidGrade.textContent=(grade?'כיתה '+grade+' · ':'')+'דשבורד המשחקים שלי';kidAvatar.src=d.profile.avatar_url||d.profile.avatar||'/assets/avatars/default-boy.webp';totalXp.textContent=d.summary.totalXp.toLocaleString('he-IL');gamesPlayed.textContent=d.summary.games;dayStreak.textContent=d.summary.days;xpText.textContent=d.summary.xpInLevel+' / 500';xpFill.style.width=(d.summary.xpInLevel/5)+'%';coachTitle.textContent='כל הכבוד, '+name+'!';coachText.textContent=d.summary.games?('שיחקת '+d.summary.games+' משחקים. המקצוע החזק שלך כרגע הוא '+d.bestSubject+'.'):'שחק כמה משחקים כדי שאוכל לזהות במה אתה חזק.';sideCoach.textContent=d.summary.games?('אני כבר מנתח '+d.summary.games+' משחקים שלך.'):'שחק כמה משחקים ואבנה לך תמונת מצב אישית.';bestSubject.textContent=d.bestSubject;bestSkill.textContent=d.bestSkill;bestProgress.textContent=d.bestProgress;
+ radar('subjectsRadar',d.subjectsRadar,'rgba(152,255,51,.3)','#b8ff48');radar('skillsRadar',d.skills,'rgba(54,203,255,.28)','#44dcff');radar('progressRadar',d.progress,'rgba(216,90,255,.28)','#ec73ff');
+ recommendations.innerHTML=d.recommendations.map(x=>`<div class="rec"><img src="${escapeHtml(x.img)}"><div><strong>${escapeHtml(x.title)}</strong><small>${escapeHtml(x.text)}</small></div><a href="${escapeHtml(x.url)}">למשחק</a></div>`).join('');
+ statMonth.textContent=d.summary.month;statAccuracy.textContent=d.summary.accuracy+'%';statResponse.textContent=d.summary.response?(d.summary.response/1000).toFixed(1)+' שנ׳':'—';statBestStreak.textContent=d.summary.bestStreak;statDays.textContent=d.summary.days;statScore.textContent=d.summary.totalXp.toLocaleString('he-IL');challengeFill.style.width=clamp(d.summary.week/5*100)+'%';challengeText.textContent=Math.min(d.summary.week,5)+' מתוך 5';badges.innerHTML=d.badges.slice(0,5).map(x=>`<img src="${x}">`).join('');
+ const pref=['מתמטיקה','עברית','אנגלית','מדעים','חשיבה'],sm=new Map(d.subjects.map(x=>[x.subject,x]));kingdoms.innerHTML=pref.map(s=>{const x=sm.get(s);return`<div class="kingdom"><img src="${kingdomImg(s)}"><strong>${s}</strong><span>${x?x.score:0}%</span></div>`}).join('');playNow.onclick=()=>location.href='/he/games/workspace/';trendChart(d.trendData,d.summary.improvement)
+}
+
+function radar(id,data,fill,border){new Chart(document.getElementById(id),{type:'radar',data:{labels:data.labels,datasets:[{data:data.values,fill:true,backgroundColor:fill,borderColor:border,borderWidth:4,pointRadius:6,pointBackgroundColor:'#fff',pointBorderColor:border}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,.2)'},angleLines:{color:'rgba(255,255,255,.18)'},pointLabels:{color:'#fff',font:{family:'Segoe UI',size:13,weight:'bold'},callback:(l,i)=>l+'\n'+data.values[i]}}}}})}
+function trendChart(data,improvement){new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:data.labels,datasets:[{data:data.values,borderColor:'#b7ff43',backgroundColor:'rgba(122,255,63,.15)',fill:true,tension:.35,pointRadius:5,pointBackgroundColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#d4e4ff'},grid:{display:false}},y:{min:0,max:100,ticks:{color:'#d4e4ff',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.1)'}}}}});trendNote.textContent=data.values.length<2?'צריך עוד כמה משחקים כדי להציג מגמת שיפור.':improvement>0?'שיפור של '+improvement+'% לעומת המשחקים הקודמים.':improvement<0?'יש ירידה של '+Math.abs(improvement)+'%. כדאי לתרגל משחק קצר.':'הביצועים יציבים. נסה לעלות מעט ברמת הקושי.'}
+function fatal(m){loading.innerHTML=`<div><img src="/assets/games/progress/progress-robot.webp">${escapeHtml(m)}<br><br><a style="color:#58ddff" href="/he/games/workspace/">חזרה למפת המשחקים</a></div>`}
+load();
+</script>
+</body>
+</html>
