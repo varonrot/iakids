@@ -297,30 +297,42 @@ button,a{font:inherit}
 /* ---------- Menu ---------- */
 
 .side-nav{
-    display:grid;
-    gap:10px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.side-link span{
+    flex:1;
+    text-align:center;
+    white-space:nowrap;
 }
 
 .side-link{
-    min-height:72px;
+    height:88px;
+    padding:0 20px;
+
     display:flex;
     align-items:center;
-    gap:14px;
-    padding:10px 14px;
-    border-radius:18px;
+    justify-content:space-between;
+
+    border-radius:22px;
+
+    background:linear-gradient(180deg,#143c7c,#0a2759);
 
     color:#fff;
     text-decoration:none;
 
-    font-size:15px;
+    font-size:20px;
     font-weight:900;
 
-    background:linear-gradient(180deg,#123a78,#0b2859);
-
-    border:1px solid rgba(152,206,255,.18);
+    border:1px solid rgba(255,255,255,.08);
 
     box-shadow:
-        0 9px 20px rgba(0,8,28,.23);
+        inset 0 1px rgba(255,255,255,.08),
+        0 8px 18px rgba(0,0,0,.25);
+
+    overflow:hidden;
 }
 
 .side-link.active{
@@ -335,10 +347,14 @@ button,a{font:inherit}
 /* ===== הגדלת האייקונים ===== */
 
 .side-link img{
-    width:60px;
-    height:60px;
+    width:64px;
+    height:64px;
+
     object-fit:contain;
+
     flex-shrink:0;
+
+    margin-left:16px;
 }
 
 /* ---------- Robot ---------- */
@@ -542,18 +558,78 @@ button,a{font:inherit}
     </section>
   </main>
 
-  <aside class="sidebar">
-    <img class="logo" src="/assets/games/progress/iakids-games-logo.webp" alt="">
-    <div class="side-home"><img src="/assets/games/progress/level-shield.webp" alt=""><strong>האי שלנו</strong></div>
-    <nav class="side-nav">
-      <a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/map.png">המפה שלי</a>
-      <a class="side-link" href="/he/games/workspace/"><img src="/assets/games/progress/icons/missions.png">משימות</a>
-      <a class="side-link active" href="/he/games/progress/"><img src="/assets/games/progress/icons/progress.png">ההתקדמות שלי</a>
-      <a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/trophy.png">הישגים</a>
-      <a class="side-link" href="/he/games/"><img src="/assets/games/progress/icons/chest.png">חנות</a>
-    </nav>
-    <div class="side-coach"><img src="/assets/games/progress/progress-robot.png"><p id="sideCoach">אני מנתח את המשחקים שלך כדי לעזור לך להשתפר.</p></div>
-  </aside>
+<aside class="sidebar">
+
+  <img
+    class="logo"
+    src="/assets/games/progress/iakids-games-logo.webp"
+    alt="iakids games"
+  >
+
+  <div class="side-home">
+    <img
+      src="/assets/games/progress/level-shield.webp"
+      alt=""
+    >
+    <strong>האי שלנו</strong>
+  </div>
+
+  <nav class="side-nav">
+
+    <a class="side-link" href="/he/games/workspace/">
+      <img
+        src="/assets/games/progress/icons/map.png"
+        alt=""
+      >
+      <span>המפה שלי</span>
+    </a>
+
+    <a class="side-link" href="/he/games/workspace/">
+      <img
+        src="/assets/games/progress/icons/missions.png"
+        alt=""
+      >
+      <span>משימות</span>
+    </a>
+
+    <a class="side-link active" href="/he/games/progress/">
+      <img
+        src="/assets/games/progress/icons/progress.png"
+        alt=""
+      >
+      <span>ההתקדמות שלי</span>
+    </a>
+
+    <a class="side-link" href="/he/games/">
+      <img
+        src="/assets/games/progress/icons/trophy.png"
+        alt=""
+      >
+      <span>הישגים</span>
+    </a>
+
+    <a class="side-link" href="/he/games/">
+      <img
+        src="/assets/games/progress/icons/chest.png"
+        alt=""
+      >
+      <span>חנות</span>
+    </a>
+
+  </nav>
+
+  <div class="side-coach">
+    <img
+      src="/assets/games/progress/progress-robot.png"
+      alt=""
+    >
+
+    <p id="sideCoach">
+      אני מנתח את המשחקים שלך כדי לעזור לך להשתפר.
+    </p>
+  </div>
+
+</aside>
 </div>
 
 <script>
