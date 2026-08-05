@@ -278,12 +278,14 @@ button,a{font:inherit}
 /* לוגו */
 
 .logo{
-  width:220px;
-  height:90px;
+  width:235px;
+  height:95px;
 
   object-fit:contain;
 
-  margin:0 auto 12px;
+  transform:scale(1.18);
+
+  margin:8px auto 14px;
 }
 
 /* האי שלנו */
@@ -314,12 +316,14 @@ button,a{font:inherit}
 }
 
 .side-home img{
-  width:105px;
-  height:88px;
+    width:125px;
+    height:105px;
 
-  object-fit:contain;
+    object-fit:contain;
 
-  margin:0 auto 3px;
+    transform:scale(1.28);
+
+    margin:0 auto 0;
 }
 
 .side-home strong{
@@ -390,29 +394,31 @@ button,a{font:inherit}
     );
 }
 
-.side-link{
-    display:flex;
-    align-items:center;
-
-    height:92px;
-
-    padding:0 16px;
-
-    gap:12px;
-}
-
-.side-link img{
-    order:2;
-    width:78px;
-    height:78px;
-    margin-right:auto;
-}
-
 .side-link span{
-    order:1;
-    flex:1;
-    text-align:right;
+  min-width:0;
+
+  padding-inline:4px;
+
+  text-align:right;
+
+  font-size:21px;
+  line-height:1.15;
+  font-weight:1000;
+
+  white-space:normal;
+
+  text-shadow:
+    0 2px 3px rgba(0,0,0,.55);
 }
+
+.side-link.active{
+  background:
+    linear-gradient(
+      135deg,
+      #2774f1,
+      #5549ff 55%,
+      #7d3fff
+    );
 
   border-color:rgba(255,255,255,.72);
 
@@ -437,12 +443,14 @@ button,a{font:inherit}
 }
 
 .side-coach img{
-  width:148px;
-  height:130px;
+    width:170px;
+    height:150px;
 
-  object-fit:contain;
+    object-fit:contain;
 
-  margin:0 auto 8px;
+    transform:scale(1.25);
+
+    margin:0 auto 6px;
 }
 
 .side-coach p{
