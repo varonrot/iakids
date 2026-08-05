@@ -851,7 +851,67 @@ img{max-width:100%}
   }
 }
 
+
+/* ===== MAC DESKTOP BALANCE ===== */
+@media (min-width:1200px){
+  html.os-mac .app{width:100%;max-width:1880px;padding:16px;gap:16px;grid-template-columns:minmax(0,1fr) 202px}
+  html.os-mac .main{gap:16px}
+  html.os-mac .top{grid-template-columns:minmax(320px,1.35fr) repeat(3,minmax(135px,.67fr)) minmax(300px,1.15fr);gap:16px}
+  html.os-mac .profile,html.os-mac .stat,html.os-mac .coach-msg{height:auto;min-height:118px}
+  html.os-mac .profile>img{width:88px;height:88px}
+  html.os-mac .profile h1{font-size:30px}
+  html.os-mac .stat img{width:56px;height:56px}
+  html.os-mac .stat strong{font-size:28px}
+  html.os-mac .coach-msg img{width:94px;height:94px}
+  html.os-mac .coach-msg h3{font-size:22px}
+  html.os-mac .coach-msg p{font-size:14px}
+  html.os-mac .radars{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  html.os-mac .radar-card{height:auto;min-height:430px;padding:15px 16px}
+  html.os-mac .radar-head{min-height:54px}
+  html.os-mac .radar-head img{width:52px;height:52px}
+  html.os-mac .radar-head h2{font-size:24px}
+  html.os-mac .radar-wrap{height:278px;max-width:420px}
+  html.os-mac .radar-bottom{min-height:70px;padding:11px 14px}
+  html.os-mac .lower{grid-template-columns:1.12fr .95fr 1.25fr;gap:16px}
+  html.os-mac .section{height:auto;min-height:255px;padding:16px}
+  html.os-mac .section h2{font-size:22px}
+  html.os-mac .rec{min-height:66px;grid-template-columns:58px 1fr auto}
+  html.os-mac .rec img{width:54px;height:54px}
+  html.os-mac .sum{min-height:96px}
+  html.os-mac .sum img{width:43px;height:43px}
+  html.os-mac .trend{height:180px}
+  html.os-mac .bottom{grid-template-columns:1fr 1fr 1.6fr minmax(210px,.72fr);gap:16px}
+  html.os-mac .challenge,html.os-mac .achievement,html.os-mac .kingdoms-card{height:auto;min-height:158px;padding:14px}
+  html.os-mac .badges img{width:66px;height:66px}
+  html.os-mac .kingdom img{width:72px;height:58px}
+  html.os-mac .play{height:auto;min-height:158px;font-size:27px}
+  html.os-mac .play img{width:64px;height:64px}
+  html.os-mac .sidebar{top:16px;height:calc(100vh - 32px);padding:14px 11px}
+  html.os-mac .logo{width:156px;height:66px}
+  html.os-mac .side-home img{width:98px;height:72px}
+  html.os-mac .side-link{min-height:59px;font-size:14px}
+  html.os-mac .side-link img{width:42px;height:42px}
+  html.os-mac .side-coach img{width:125px;height:125px}
+}
+@media (min-width:1200px) and (max-height:820px){
+  html.os-mac .radar-card{min-height:390px}
+  html.os-mac .radar-wrap{height:240px}
+  html.os-mac .section{min-height:225px}
+  html.os-mac .trend{height:150px}
+  html.os-mac .challenge,html.os-mac .achievement,html.os-mac .kingdoms-card,html.os-mac .play{min-height:140px}
+}
+
 </style>
+<script>
+(function(){
+  const ua = navigator.userAgent || "";
+  const platform = navigator.userAgentData?.platform || navigator.platform || "";
+  const root = document.documentElement;
+  if (/Mac|iPhone|iPad|iPod/i.test(platform + " " + ua)) root.classList.add("os-mac");
+  else if (/Win/i.test(platform + " " + ua)) root.classList.add("os-windows");
+  else root.classList.add("os-other");
+})();
+</script>
 </head>
 <body>
 <div class="loading" id="loading"><div><img src="/assets/games/progress/progress-robot.webp" alt="">טוען את דשבורד המשחקים שלך…</div></div>
