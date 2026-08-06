@@ -1235,8 +1235,40 @@ function imgForSubject(s){const m={מתמטיקה:'math',עברית:'hebrew',א�
 function kingdomImg(s){const m={מתמטיקה:'volcano',עברית:'jungle',אנגלית:'candy',מדעים:'science',גאוגרפיה:'ice',חשיבה:'underwater'};return A+'kingdoms/'+(m[subject(s)]||'default')+'.webp'}
 function level(x){return num(x.difficulty||x.metadata?.selected_level||1)}
 function dayStreak(rows){const set=new Set(rows.map(x=>x.completed_at||x.created_at||x.started_at).filter(Boolean).map(x=>new Date(x).toISOString().slice(0,10)));let n=0,d=new Date();for(let i=0;i<365;i++){const k=d.toISOString().slice(0,10);if(set.has(k)){n++;d.setDate(d.getDate()-1)}else if(i===0)d.setDate(d.getDate()-1);else break}return n}
-function best(labels,values){if(!values.length)return'אין מספיק נתונים';let i=0;values.forEach((v,x)=>{if(v>values[i])i=x});return labels[i]}
-function trend(current,previous){if(!current.length||!previous.length)return 50;return clamp(50+(avg(current)-avg(previous))*2.2)}
+function best(labels, values) {
+  if (
+    !Array.isArray(values) ||
+    !values.length ||
+    Math.max(...values.map(Number)) <= 0
+  ) {
+    return 'אין מספיק נתונים';
+  }
+
+  let bestIndex = 0;
+
+  values.forEach((value, index) => {
+    if (Number(value) > Number(values[bestIndex])) {
+      bestIndex = index;
+    }
+  });
+
+  return labels[bestIndex];
+}
+
+function trend(current, previous) {
+  if (
+    !Array.isArray(current) ||
+    !Array.isArray(previous) ||
+    !current.length ||
+    !previous.length
+  ) {
+    return 0;
+  }
+
+  return clamp(
+    50 + (avg(current) - avg(previous)) * 2.2
+  );
+}
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 
 async function load(){
@@ -1264,14 +1296,110 @@ function build(profile,rows){
  const skills={labels:skillKeys.map(k=>skillNames[k]),values:skillKeys.map(k=>skillWeights[k]?rnd(skillTotals[k]/skillWeights[k]):0)};
  const recent=rows.slice(0,10),previous=rows.slice(10,20),recentScore=recent.map(x=>num(x.performance_score||x.accuracy_percent)),prevScore=previous.map(x=>num(x.performance_score||x.accuracy_percent)),recentAcc=recent.map(x=>num(x.accuracy_percent)),prevAcc=previous.map(x=>num(x.accuracy_percent)),recentSpeed=recent.map(x=>num(x.average_response_ms)).filter(Boolean).map(v=>100-v/40),prevSpeed=previous.map(x=>num(x.average_response_ms)).filter(Boolean).map(v=>100-v/40),recentDiff=recent.map(level),prevDiff=previous.map(level),consistency=recent.length?clamp(100-Math.sqrt(avg(recentScore.map(v=>Math.pow(v-avg(recentScore),2))))*2):0;
  const persistence=rows.length?clamp((rows.length/20)*70+Math.min(days,7)*4.3):0;
- const progress={labels:['דיוק','מהירות תגובה','רמת קושי','עקביות','התמדה'],values:[rnd(trend(recentAcc,prevAcc)),rnd(trend(recentSpeed,prevSpeed)),rnd(trend(recentDiff,prevDiff)),rnd(consistency),rnd(persistence)]};
+ const hasGameData =
+  rows.length > 0;
+
+const hasComparisonData =
+  recent.length > 0 &&
+  previous.length > 0;
+
+const progress = {
+  labels: [
+    'דיוק',
+    'מהירות תגובה',
+    'רמת קושי',
+    'עקביות',
+    'התמדה'
+  ],
+
+  values: !hasGameData
+    ? [0, 0, 0, 0, 0]
+    : [
+        hasComparisonData
+          ? rnd(trend(recentAcc, prevAcc))
+          : rnd(accuracy),
+
+        hasComparisonData &&
+        recentSpeed.length &&
+        prevSpeed.length
+          ? rnd(trend(recentSpeed, prevSpeed))
+          : 0,
+
+        hasComparisonData
+          ? rnd(trend(recentDiff, prevDiff))
+          : rnd(
+              clamp(
+                (avg(recentDiff) / 3) * 100
+              )
+            ),
+
+        rnd(consistency),
+
+        rnd(persistence)
+      ]
+};
 
  const month=rows.filter(x=>{const d=new Date(x.completed_at||x.created_at),n=new Date();return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}).length;
  const week=rows.filter(x=>Date.now()-new Date(x.completed_at||x.created_at)<7*86400000).length;
- const recommendations=[];
- const weakest=subjects.slice().sort((a,b)=>a.score-b.score)[0];if(weakest)recommendations.push({img:imgForSubject(weakest.subject),title:'חזק את '+weakest.subject,text:'הציון הנוכחי שלך הוא '+weakest.score+'%.',url:'/he/games/workspace/'});
- const minSkill=Math.min(...skills.values),iSkill=skills.values.indexOf(minSkill);recommendations.push({img:A+'icons/skills.webp',title:'שפר את '+skills.labels[iSkill],text:'בחר משחק קצר והתמקד בשיפור אחד.',url:'/he/games/workspace/'});
- recommendations.push({img:A+'icons/progress.webp',title:'נסה רמת קושי נוספת',text:'עלה שלב רק לאחר שתי הצלחות רצופות.',url:'/he/games/'});
+ const recommendations = [];
+
+if (!rows.length) {
+  recommendations.push({
+    img: A + 'icons/controller.webp',
+    title: 'שחק את המשחק הראשון שלך',
+    text: 'אחרי כמה משחקים נוכל להציג המלצות אישיות.',
+    url: '/he/games/workspace/'
+  });
+} else {
+  const weakest =
+    subjects
+      .slice()
+      .sort((a, b) => a.score - b.score)[0];
+
+  if (weakest) {
+    recommendations.push({
+      img: imgForSubject(weakest.subject),
+      title: 'חזק את ' + weakest.subject,
+      text:
+        'הציון הנוכחי שלך הוא ' +
+        weakest.score +
+        '%.',
+      url: '/he/games/workspace/'
+    });
+  }
+
+  const availableSkills =
+    skills.values
+      .map((value, index) => ({
+        value,
+        index
+      }))
+      .filter(item => item.value > 0);
+
+  if (availableSkills.length) {
+    const weakestSkill =
+      availableSkills
+        .sort((a, b) => a.value - b.value)[0];
+
+    recommendations.push({
+      img: A + 'icons/skills.webp',
+      title:
+        'שפר את ' +
+        skills.labels[weakestSkill.index],
+      text:
+        'בחר משחק קצר והתמקד בשיפור אחד.',
+      url: '/he/games/workspace/'
+    });
+  }
+
+  recommendations.push({
+    img: A + 'icons/progress.webp',
+    title: 'נסה רמת קושי נוספת',
+    text:
+      'עלה שלב רק לאחר שתי הצלחות רצופות.',
+    url: '/he/games/'
+  });
+}
  const badges=[];if(rows.length)badges.push(A+'badges/first-game.webp');if(rows.length>=10)badges.push(A+'badges/ten-games.webp');if(totalXp>=500)badges.push(A+'badges/xp-500.webp');if(accuracy>=90)badges.push(A+'badges/accuracy-master.webp');while(badges.length<5)badges.push(A+'badges/locked-medal.webp');
  const ordered=rows.slice().reverse().slice(-8),trendData={labels:ordered.map((x,i)=>'משחק '+(i+1)),values:ordered.map(x=>rnd(x.performance_score||x.accuracy_percent))};
  return {profile,rows,subjects,subjectsRadar,skills,progress,recommendations,badges,trendData,summary:{totalXp,xpInLevel:totalXp%500,level:Math.floor(totalXp/500)+1,games:rows.length,month,accuracy:rnd(accuracy),response:rnd(response),bestStreak,days,week,improvement:previous.length?rnd(avg(recentScore)-avg(prevScore)):0},bestSubject:best(subjectsRadar.labels,subjectsRadar.values),bestSkill:best(skills.labels,skills.values),bestProgress:best(progress.labels,progress.values)}
