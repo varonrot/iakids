@@ -740,83 +740,15 @@ const rnd = n =>
    GRADE + NIQQUD
 ================================================== */
 
-function numberValue(value){
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+
+async function loadKidContext() {
+  const kid = await IAKidsGame.getActiveKidContext();
+
+  CHILD_AGE = kid.age;
+  USE_NIQQUD = kid.usesNiqqud;
 }
-
-function gradeFromObject(raw){
-  if (!raw) return null;
-
-  try{
-    const value =
-      typeof raw === 'string'
-        ? JSON.parse(raw)
-        : raw;
-
-    return (
-      numberValue(value?.grade) ??
-      numberValue(value?.age) ??
-      numberValue(value?.class_grade) ??
-      numberValue(value?.school_grade)
-    );
-  }catch{
-    return null;
-  }
-}
-
-function getChildGrade(){
-  const directKeys = [
-    'active_kid_grade',
-    'iakids_active_kid_grade',
-    'selected_kid_grade',
-    'kid_grade',
-    'grade',
-    'active_kid_age',
-    'kid_age',
-    'age'
-  ];
-
-  for (const key of directKeys){
-    const grade =
-      numberValue(
-        localStorage.getItem(key)
-      );
-
-    if (grade !== null){
-      return grade;
-    }
-  }
-
-  const objectKeys = [
-    'active_kid',
-    'iakids_active_kid',
-    'selected_kid',
-    'kid_profile',
-    'active_kid_profile'
-  ];
-
-  for (const key of objectKeys){
-    const grade =
-      gradeFromObject(
-        localStorage.getItem(key)
-      );
-
-    if (grade !== null){
-      return grade;
-    }
-  }
-
-  return null;
-}
-
-const CHILD_AGE =
-  getChildGrade();
-
-const USE_NIQQUD =
-  CHILD_AGE === 1 ||
-  CHILD_AGE === 2;
-
 /* ==================================================
    TEXT
 ================================================== */
@@ -855,10 +787,7 @@ const T_NIQQUD = {
   }
 };
 
-const T =
-  USE_NIQQUD
-    ? T_NIQQUD
-    : T_REGULAR;
+let T = T_REGULAR;
 
 /* ==================================================
    PLANETS
@@ -982,10 +911,7 @@ const PLANETS_NIQQUD = [
   }
 ];
 
-const PLANETS =
-  USE_NIQQUD
-    ? PLANETS_NIQQUD
-    : PLANETS_REGULAR;
+let PLANETS = PLANETS_REGULAR;
 
 const byKey = key =>
   PLANETS.find(
@@ -1163,10 +1089,7 @@ const TRIVIA_NIQQUD = [
   }
 ];
 
-const TRIVIA =
-  USE_NIQQUD
-    ? TRIVIA_NIQQUD
-    : TRIVIA_REGULAR;
+let TRIVIA = TRIVIA_REGULAR;
 
 /* ==================================================
    HELP
@@ -1174,79 +1097,106 @@ const TRIVIA =
 
 IAKidsCoins.mount();
 
-IAKidsHelp.mount({
-  slug:'solar-system',
+async function initializeGamePage() {
+  await loadKidContext();
 
-  how:USE_NIQQUD
-    ? 'בְּכָל כַּרְטִיס מוֹפִיעַ כּוֹכַב לֶכֶת. גּוֹרְרִים אוֹתוֹ לַמָּקוֹם הַנָּכוֹן בַּשּׁוּרָה, לְפִי הַמֶּרְחָק שֶׁלּוֹ מֵהַשֶּׁמֶשׁ — מֵהַקָּרוֹב בְּיוֹתֵר וְעַד הָרָחוֹק בְּיוֹתֵר.'
-    : 'בכל כרטיס מופיע כוכב לכת — גוררים אותו למקום הנכון בשורה, לפי המרחק שלו מהשמש ☀️, מהקרוב ביותר עד הרחוק ביותר. ברמה הקשה יש גם שאלות טריוויה על כוכבי הלכת!',
+  /*
+    רק עכשיו, אחרי שהגיל הגיע מה-SDK,
+    בוחרים את הטקסטים המתאימים.
+  */
+  T =
+    USE_NIQQUD
+      ? T_NIQQUD
+      : T_REGULAR;
 
-  example:USE_NIQQUD
-    ? '☀️ ← <b>כּוֹכַב חַמָּה</b> (מָקוֹם 1) ← נֹגַהּ ← כַּדּוּר הָאָרֶץ ← ... ← <b>נֶפְּטוּן</b> (מָקוֹם 8)'
-    : '☀️ ← <b>כוכב חמה</b> (מקום 1, הכי קרוב) ← נוגה ← כדור הארץ ← ... ← <b>נפטון</b> (מקום 8, הכי רחוק)'
-});
+  PLANETS =
+    USE_NIQQUD
+      ? PLANETS_NIQQUD
+      : PLANETS_REGULAR;
 
-/* ==================================================
-   INITIAL UI
-================================================== */
+  TRIVIA =
+    USE_NIQQUD
+      ? TRIVIA_NIQQUD
+      : TRIVIA_REGULAR;
 
-$('title').textContent =
-  IAKidsLang.t(T.title);
+  $('title').textContent =
+    IAKidsLang.t(T.title);
 
-$('howto').textContent =
-  IAKidsLang.t(T.howto);
+  $('howto').textContent =
+    IAKidsLang.t(T.howto);
 
-$('rounds-label').textContent =
-  IAKidsLang.t(T.rounds);
+  $('rounds-label').textContent =
+    IAKidsLang.t(T.rounds);
 
-$('score-label').textContent =
-  USE_NIQQUD
-    ? 'נִקּוּד'
-    : IAKidsLang.ui('score');
+  $('score-label').textContent =
+    USE_NIQQUD
+      ? 'נִקּוּד'
+      : IAKidsLang.ui('score');
 
-$('q-label').textContent =
-  USE_NIQQUD
-    ? 'שְׁאֵלָה'
-    : 'שאלה';
+  $('q-label').textContent =
+    USE_NIQQUD
+      ? 'שְׁאֵלָה'
+      : 'שאלה';
 
-$('best-label').textContent =
-  IAKidsLang.ui('your_best');
+  $('best-label').textContent =
+    IAKidsLang.ui('your_best');
 
-$('again-btn').textContent =
-  IAKidsLang.ui('play_again');
+  $('again-btn').textContent =
+    IAKidsLang.ui('play_again');
 
-$('back-text').textContent =
-  USE_NIQQUD
-    ? 'חֲזָרָה לְמַפַּת הַמִּשְׂחָקִים'
-    : 'חזרה למפת המשחקים';
+  $('back-text').textContent =
+    USE_NIQQUD
+      ? 'חֲזָרָה לְמַפַּת הַמִּשְׂחָקִים'
+      : 'חזרה למפת המשחקים';
 
-document
-  .querySelectorAll(
-    '#level-row .game-btn'
-  )
-  .forEach((button,index) => {
-    const regular =
-      IAKidsLang.ui(
-        [
+  document
+    .querySelectorAll('#level-row .game-btn')
+    .forEach((button, index) => {
+      const regular =
+        IAKidsLang.ui([
           'level_easy',
           'level_medium',
           'level_hard',
           'level_random'
-        ][index]
-      );
+        ][index]);
 
-    const niqqud = [
-      'קַל',
-      'בֵּינוֹנִי',
-      'קָשֶׁה',
-      'אַקְרָאִי'
-    ][index];
+      const niqqud = [
+        'קַל',
+        'בֵּינוֹנִי',
+        'קָשֶׁה',
+        'אַקְרָאִי'
+      ][index];
 
-    button.textContent =
-      USE_NIQQUD
-        ? niqqud
-        : regular;
+      button.textContent =
+        USE_NIQQUD
+          ? niqqud
+          : regular;
+    });
+
+  IAKidsHelp.mount({
+    slug:'solar-system',
+
+    how:USE_NIQQUD
+      ? 'בְּכָל כַּרְטִיס מוֹפִיעַ כּוֹכַב לֶכֶת. גּוֹרְרִים אוֹתוֹ לַמָּקוֹם הַנָּכוֹן בַּשּׁוּרָה, לְפִי הַמֶּרְחָק שֶׁלּוֹ מֵהַשֶּׁמֶשׁ — מֵהַקָּרוֹב בְּיוֹתֵר וְעַד הָרָחוֹק בְּיוֹתֵר.'
+      : 'בכל כרטיס מופיע כוכב לכת — גוררים אותו למקום הנכון בשורה, לפי המרחק שלו מהשמש ☀️, מהקרוב ביותר עד הרחוק ביותר. ברמה הקשה יש גם שאלות טריוויה על כוכבי הלכת!',
+
+    example:USE_NIQQUD
+      ? '☀️ ← <b>כּוֹכַב חַמָּה</b> (מָקוֹם 1) ← נֹגַהּ ← כַּדּוּר הָאָרֶץ ← ... ← <b>נֶפְּטוּן</b> (מָקוֹם 8)'
+      : '☀️ ← <b>כוכב חמה</b> (מקום 1, הכי קרוב) ← נוגה ← כדור הארץ ← ... ← <b>נפטון</b> (מקום 8, הכי רחוק)'
   });
+
+  console.log(
+    '[Solar System] Kid context:',
+    {
+      childAge: CHILD_AGE,
+      usesNiqqud: USE_NIQQUD
+    }
+  );
+}
+
+initializeGamePage();
+
+initializeGamePage();
 
 /* תיקון צבע הטקסט בחלונית העזרה */
 new MutationObserver(() => {
