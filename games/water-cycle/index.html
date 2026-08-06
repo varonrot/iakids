@@ -22,20 +22,6 @@
 .slot .n{font-size:1rem;font-weight:800}
 #trivia-mode,#sequence-mode{display:none}
 #seq-title{font-weight:700;margin-top:10px}
-
-/* תיקון צבע הטקסט בחלונית העזרה בלבד */
-[role="dialog"] [class*="example"],
-[class*="help"] [class*="example"]{
-  color:#102a4f !important;
-  background:#fff1e8 !important;
-  text-shadow:none !important;
-}
-[role="dialog"] [class*="example"] *,
-[class*="help"] [class*="example"] *{
-  color:#102a4f !important;
-  text-shadow:none !important;
-}
-
 </style>
 </head>
 <body>
@@ -116,101 +102,30 @@
 <script>
 const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
-
-function readNumber(value){
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function readGradeObject(raw){
-  if (!raw) return null;
-  try{
-    const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return (
-      readNumber(obj?.grade) ??
-      readNumber(obj?.age) ??
-      readNumber(obj?.class_grade) ??
-      readNumber(obj?.school_grade)
-    );
-  }catch{
-    return null;
-  }
-}
-
-function getChildGrade(){
-  const directKeys = [
-    'active_kid_grade',
-    'iakids_active_kid_grade',
-    'selected_kid_grade',
-    'kid_grade',
-    'grade',
-    'active_kid_age',
-    'kid_age',
-    'age'
-  ];
-
-  for (const key of directKeys){
-    const value = readNumber(localStorage.getItem(key));
-    if (value !== null) return value;
-  }
-
-  const objectKeys = [
-    'active_kid',
-    'iakids_active_kid',
-    'selected_kid',
-    'kid_profile',
-    'active_kid_profile'
-  ];
-
-  for (const key of objectKeys){
-    const value = readGradeObject(localStorage.getItem(key));
-    if (value !== null) return value;
-  }
-
-  return null;
-}
-
-const CHILD_GRADE = getChildGrade();
-const USE_NIQQUD = CHILD_GRADE === 1 || CHILD_GRADE === 2;
-const T = USE_NIQQUD ? {
-  title:   { he: 'מַחְזוֹר הַמַּיִם בַּטֶּבַע', en: 'The Water Cycle' },
-  howto:   { he: 'גִּרְרוּ כָּל שָׁלָב לַמָּקוֹם הַנָּכוֹן בָּאִיּוּר!', en: 'Drag each stage to its place on the picture!' },
-  rounds:  { he: 'כַּמָּה שְׁאֵלוֹת?', en: 'How many questions?' },
-  seqTitle:{ he: 'עַכְשָׁו סַדְּרוּ אֶת הַשְּׁלָבִים לְפִי הַסֵּדֶר הַנָּכוֹן בַּזְּמַן!', en: 'Now put the stages in the correct order!' },
-} : {
+const T = {
   title:   { he: 'מחזור המים בטבע', en: 'The Water Cycle' },
   howto:   { he: 'גרור כל שלב למקום הנכון באיור!', en: 'Drag each stage to its place on the picture!' },
-  rounds:  { he: 'כמה שאלות2?', en: 'How many questions?' },
+  rounds:  { he: 'כמה שאלות?', en: 'How many questions?' },
   seqTitle:{ he: 'עכשיו סדרו את השלבים לפי הסדר הנכון בזמן!', en: 'Now put the stages in the correct order!' },
 };
 IAKidsCoins.mount();
 IAKidsHelp.mount({
   slug: 'water-cycle',
-  how: USE_NIQQUD
-    ? 'מַיִם בַּטֶּבַע עוֹבְרִים מַסָּע אֵין־סוֹפִי: הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַיָּם וְהַמַּיִם <b>מִתְאַדִּים</b> וְעוֹלִים לַשָּׁמַיִם. שָׁם הֵם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת שֶׁיּוֹצְרוֹת עָנָן (<b>עִבּוּי</b>). כְּשֶׁהֶעָנָן מִתְמַלֵּא יוֹרֵד גֶּשֶׁם (<b>מִשְׁקָעִים</b>). הַגֶּשֶׁם זוֹרֵם בַּנְּחָלִים בַּחֲזָרָה לַיָּם (<b>הַזְרָמָה</b>).'
-    : 'מים בטבע עוברים מסע אינסופי: השמש מחממת את הים והמים <b>מתאדים</b> (אידוי) ועולים לשמיים. שם הם מתקררים ונהפכים לטיפות שיוצרות ענן (<b>עיבוי</b>). כשהענן מתמלא, יורד גשם (<b>משקעים</b>). הגשם זורם בנחלים בחזרה לים (<b>הזרמה</b>) — והמסע מתחיל מחדש! גוררים כל שלב למקום שלו באיור, ואז מסדרים את השלבים לפי סדר הזמן הנכון.',
-  example: USE_NIQQUD
-    ? '💧☀️ אִדּוּי ← ☁️ עִבּוּי ← 🌧️ מִשְׁקָעִים ← 🌊 הַזְרָמָה ← וְחוֹזֵר חֲלִילָה'
-    : '💧☀️ אידוי ← ☁️ עיבוי ← 🌧️ משקעים ← 🌊 הזרמה ← (וחוזר חלילה)',
+  how: 'מים בטבע עוברים מסע אינסופי: השמש מחממת את הים והמים <b>מתאדים</b> (אידוי) ועולים לשמיים. שם הם מתקררים ונהפכים לטיפות שיוצרות ענן (<b>עיבוי</b>). כשהענן מתמלא, יורד גשם (<b>משקעים</b>). הגשם זורם בנחלים בחזרה לים (<b>הזרמה</b>) — והמסע מתחיל מחדש! גוררים כל שלב למקום שלו באיור, ואז מסדרים את השלבים לפי סדר הזמן הנכון.',
+  example: '💧☀️ אידוי ← ☁️ עיבוי ← 🌧️ משקעים ← 🌊 הזרמה ← (וחוזר חלילה)',
 });
 $('title').textContent = IAKidsLang.t(T.title);
 $('howto').textContent = IAKidsLang.t(T.howto);
 $('rounds-label').textContent = IAKidsLang.t(T.rounds);
-$('score-label').textContent = USE_NIQQUD ? 'נִקּוּד' : IAKidsLang.ui('score');
+$('score-label').textContent = IAKidsLang.ui('score');
 $('best-label').textContent = IAKidsLang.ui('your_best');
 $('again-btn').textContent = IAKidsLang.ui('play_again');
 $('seq-title').textContent = IAKidsLang.t(T.seqTitle);
-$('q-label').textContent = USE_NIQQUD ? 'שְׁאֵלָה' : 'שאלה';
 ['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
   document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
 
 /* Verified scientific order: evaporation -> condensation -> precipitation -> runoff/collection */
-const STAGES = USE_NIQQUD ? [
-  { id:'evaporation',   n:'אִדּוּי',     e:'💧☀️', rank:1, why:'הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַמַּיִם בַּיָּם וְהֵם הוֹפְכִים לְאֵדִים שֶׁעוֹלִים לַשָּׁמַיִם' },
-  { id:'condensation',  n:'עִבּוּי',     e:'☁️',   rank:2, why:'הָאֵדִים בַּשָּׁמַיִם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת מַיִם קְטַנּוֹת שֶׁיּוֹצְרוֹת עָנָן' },
-  { id:'precipitation', n:'מִשְׁקָעִים', e:'🌧️',  rank:3, why:'הֶעָנָן מִתְמַלֵּא בְּטִפּוֹת כְּבֵדוֹת שֶׁנּוֹפְלוֹת כְּגֶשֶׁם אוֹ כְּשֶׁלֶג' },
-  { id:'runoff',        n:'הַזְרָמָה',   e:'🌊',   rank:4, why:'הַגֶּשֶׁם שֶׁנּוֹפֵל זוֹרֵם בַּנְּחָלִים וּבַנְּהָרוֹת בַּחֲזָרָה לַיָּם' },
-] : [
+const STAGES = [
   { id:'evaporation',   n:'אידוי',    e:'💧☀️', rank:1, why:'השמש מחממת את המים בים והם הופכים לאדים שעולים לשמיים' },
   { id:'condensation',  n:'עיבוי',    e:'☁️',   rank:2, why:'האדים בשמיים מתקררים והופכים לטיפות מים קטנות שיוצרות ענן' },
   { id:'precipitation', n:'משקעים',   e:'🌧️',   rank:3, why:'הענן מתמלא בטיפות כבדות שנופלות כגשם או שלג' },
@@ -245,19 +160,6 @@ async function start(lvl) {
   level = lvl;
   stageCount = lvl === 1 ? 3 : 4; // easy: evap/cond/precip · medium+/random/hard board: + runoff
   diff = game.difficulty(lvl || 1, 3);
-
-  IAKidsActivity.configure({
-    difficulty: lvl,
-    questionsCount: TOTAL,
-    metadata: {
-      selected_level: lvl,
-      random_difficulty: lvl === 0,
-      game_mode: 'water-cycle',
-      child_grade: CHILD_GRADE,
-      uses_niqqud: USE_NIQQUD
-    }
-  });
-
   await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
   $('qtotal').textContent = TOTAL;
   document.querySelectorAll('.hotspot').forEach(h => {
@@ -273,14 +175,13 @@ async function next() {
   if (qnum >= TOTAL) return startSequenceStep();
   qnum++;
   $('qnum').textContent = qnum;
-  IAKidsActivity.questionStarted();
   const effLvl = level === 0 ? diff.level : level;
   if (effLvl >= 3) { showMode('trivia-mode'); await showTrivia(); }
   else { showMode('order-mode'); await showOrderItem(); }
 }
 
 async function showTrivia() {
-  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + qnum + ':' + s.id);
+  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + s.id);
   $('trivia-q').textContent = t.why + ' — ' + IAKidsLang.t({ he:'איך קוראים לשלב הזה?', en:'What is this stage called?' });
   const box = $('trivia-opts');
   box.innerHTML = '';
@@ -295,8 +196,8 @@ async function showTrivia() {
   });
 }
 function answerTrivia(correct, btn) {
-  if (correct) { score += 10; diff.right(); IAKidsActivity.correct(); IAKidsFX.correct(btn); IAKidsCoins.right(btn); }
-  else { mistakes++; diff.wrong(); IAKidsActivity.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong(); }
+  if (correct) { score += 10; diff.right(); IAKidsFX.correct(btn); IAKidsCoins.right(btn); }
+  else { mistakes++; diff.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong(); }
   $('score').textContent = score;
   setTimeout(next, 700);
 }
@@ -313,7 +214,7 @@ async function showOrderItem() {
       const pool = STAGES.slice(0, stageCount).filter(x => !placed.has(x.id));
       return pool[rnd(pool.length)];
     },
-    x => 'order:' + qnum + ':' + x.id
+    x => 'order:' + x.id
   );
   const chip = document.createElement('div');
   chip.className = 'chip';
@@ -402,7 +303,6 @@ function dropOnHotspot(chip, z) {
     score += 10;
     $('score').textContent = score;
     diff.right();
-    IAKidsActivity.correct();
     IAKidsFX.correct(z);
     IAKidsCoins.right(z);
     z.classList.add('filled');
@@ -413,7 +313,6 @@ function dropOnHotspot(chip, z) {
   } else {
     mistakes++;
     diff.wrong();
-    IAKidsActivity.wrong();
     IAKidsFX.wrong(chip);
     IAKidsCoins.wrong();
   }
@@ -439,41 +338,16 @@ function dropOnSlot(chip, z) {
 }
 
 async function end() {
-  const maxScore = (TOTAL + stageCount) * 10;
-
-  try {
-    await game.complete(score, {
-      maxScore,
-      metadata: {
-        selected_level: level,
-        random_difficulty: level === 0,
-        total_rounds: TOTAL,
-        mistakes,
-        stage_count: stageCount,
-        sequence_completed: true,
-        game_mode: 'water-cycle',
-        child_grade: CHILD_GRADE,
-        uses_niqqud: USE_NIQQUD
-      }
-    });
-  } catch (error) {
-    console.error('water-cycle complete failed:', error);
-    alert('המשחק הסתיים, אבל שמירת הפרוגרס נכשלה. בדוק את ה-Console.');
-    return;
-  }
-
   await game.saveScore(score, { level, mistakes });
   const top = (await game.getHighScores(1))[0];
-
   $('final-score').textContent = score;
   $('best').textContent = top?.score ?? score;
   $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-
   const acc = TOTAL / (TOTAL + mistakes);
   $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
-
   game.shareButton(score, $('share-slot'));
   show('end-screen');
+  game.complete(score);
 }
 </script>
 </body>
