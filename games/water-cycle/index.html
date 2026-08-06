@@ -4,25 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>מחזור המים בטבע | iakids</title>
-
 <link rel="stylesheet" href="../game-style.css">
-
 <style>
-/* ==================================================
-   WATER CYCLE — PREMIUM GAME
-================================================== */
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:110px;min-height:56px;padding:8px 14px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.15rem;font-weight:800;cursor:grab;touch-action:none}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+#tray,#seq-tray{min-height:76px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+#illustration{position:relative;width:100%;max-width:440px;margin:8px auto;aspect-ratio:300/180;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+#illustration svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hotspot{position:absolute;border:3px dashed rgba(59,130,246,.55);border-radius:14px;transition:background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;text-align:center}
+.hotspot.over{border-color:var(--accent);background:rgba(255,106,42,.25)}
+.hotspot.filled{border-style:solid;border-color:var(--green);background:rgba(34,197,94,.35)}
+.hotspot span{background:#fff;border-radius:10px;padding:3px 8px;font-weight:800;font-size:0.95rem;box-shadow:var(--shadow)}
+#seq-slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
+.slot{min-width:110px;min-height:60px;border:3px dashed var(--muted);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;transition:background .2s,border-color .2s}
+.slot.over{border-color:var(--accent);background:var(--accent-soft)}
+.slot .rank{font-size:0.7rem;font-weight:800;color:var(--muted)}
+.slot .n{font-size:1rem;font-weight:800}
+#trivia-mode,#sequence-mode{display:none}
+#seq-title{font-weight:700;margin-top:10px}
 
-:root{
-  --wc-bg:#06142d;
-  --wc-panel:#0b2857;
-  --wc-panel-2:#071d43;
-  --wc-line:rgba(130,191,255,.28);
-  --wc-text:#f7f9ff;
-  --wc-muted:#bfd1ec;
-  --wc-blue:#44c8ff;
-  --wc-green:#4fe39b;
-  --wc-purple:#7653ff;
-}
+/* ==================================================
+   IAKIDS PREMIUM SHELL — VISUAL ONLY
+   לוגיקת המשחק והגרירה נשארת כמו במשחק המקורי
+================================================== */
 
 html,
 body,
@@ -37,19 +41,19 @@ button{
 body{
   margin:0 !important;
   min-height:100vh !important;
-  padding:88px 20px 30px !important;
+  padding:88px 18px 30px !important;
 
   display:flex !important;
   flex-direction:column !important;
   align-items:center !important;
   justify-content:center !important;
 
-  color:var(--wc-text) !important;
+  color:#f7f9ff !important;
 
   background:
-    radial-gradient(circle at 15% 15%,rgba(27,137,255,.22),transparent 34%),
-    radial-gradient(circle at 87% 10%,rgba(119,73,255,.22),transparent 33%),
-    radial-gradient(circle at 50% 108%,rgba(20,215,150,.20),transparent 38%),
+    radial-gradient(circle at 14% 14%,rgba(26,139,255,.22),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(117,72,255,.22),transparent 34%),
+    radial-gradient(circle at 50% 108%,rgba(17,211,151,.18),transparent 38%),
     linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
 
   overflow-x:hidden;
@@ -69,8 +73,6 @@ body::before{
   opacity:.13;
 }
 
-/* חזרה למפה */
-
 .workspace-back{
   position:fixed;
   top:14px;
@@ -85,29 +87,25 @@ body::before{
   justify-content:center;
   gap:9px;
 
-  border:1px solid rgba(160,191,255,.34);
-  border-radius:16px;
-
   color:#fff;
   text-decoration:none;
+  font-size:14px;
+  font-weight:900;
+
+  border:1px solid rgba(160,191,255,.34);
+  border-radius:16px;
 
   background:linear-gradient(145deg,#7956ff,#4e31bf);
 
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.18),
     0 11px 28px rgba(0,0,0,.32);
-
-  font-size:14px;
-  font-weight:900;
 }
-
-/* HUD */
 
 .game-hud{
   position:relative !important;
   inset:auto !important;
   transform:none !important;
-  z-index:10 !important;
 
   width:min(720px,100%) !important;
   min-width:0 !important;
@@ -121,12 +119,14 @@ body::before{
   justify-content:center !important;
   gap:34px !important;
 
+  color:#fff !important;
+
   border:1px solid rgba(126,180,255,.24) !important;
   border-bottom:0 !important;
   border-radius:26px 26px 0 0 !important;
 
-  color:#fff !important;
-  background:linear-gradient(145deg,rgba(27,45,87,.98),rgba(9,22,50,.98)) !important;
+  background:
+    linear-gradient(145deg,rgba(27,45,87,.98),rgba(9,22,50,.98)) !important;
 
   box-shadow:
     inset 0 -1px 0 rgba(255,255,255,.03),
@@ -150,8 +150,6 @@ body::before{
   color:#69deff !important;
 }
 
-/* Main card */
-
 .game-card{
   position:relative !important;
 
@@ -161,12 +159,16 @@ body::before{
   margin:0 auto !important;
   padding:28px 38px 38px !important;
 
+  /*
+    חשוב: לא מגדירים overflow:hidden.
+    הכרטיס המקורי הופך ל-position:fixed בזמן גרירה.
+  */
   overflow:visible !important;
+
+  color:#f7f9ff !important;
 
   border:1px solid rgba(119,176,255,.27) !important;
   border-radius:0 0 32px 32px !important;
-
-  color:#f7f9ff !important;
 
   background:
     radial-gradient(circle at 50% 0%,rgba(48,145,255,.22),transparent 40%),
@@ -176,9 +178,6 @@ body::before{
     inset 0 1px 0 rgba(255,255,255,.08),
     0 30px 75px rgba(0,5,25,.5),
     0 0 48px rgba(45,138,255,.1) !important;
-
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
 }
 
 .game-card::before{
@@ -200,20 +199,6 @@ body::before{
 
 #start-screen{
   text-align:center;
-}
-
-#start-screen > .start-emoji{
-  margin-top:2px;
-  font-size:5rem;
-  line-height:1;
-
-  filter:drop-shadow(0 12px 17px rgba(0,0,0,.3));
-  animation:waterFloat 2.8s ease-in-out infinite;
-}
-
-@keyframes waterFloat{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-7px)}
 }
 
 .game-title{
@@ -268,11 +253,13 @@ body::before{
   min-height:58px !important;
   padding:10px 15px !important;
 
+  color:#fff !important;
+
   border:1px solid rgba(255,255,255,.19) !important;
   border-radius:17px !important;
 
-  color:#fff !important;
-  background:linear-gradient(145deg,#7653ff,#4e32bd) !important;
+  background:
+    linear-gradient(145deg,#7653ff,#4e32bd) !important;
 
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.2),
@@ -281,47 +268,52 @@ body::before{
 
   font-size:16px !important;
   font-weight:900 !important;
-
-  cursor:pointer;
-}
-
-.game-btn:disabled{
-  opacity:.6;
-  cursor:not-allowed;
 }
 
 .game-btn.outline{
   color:#dce8ff !important;
+
   border-color:rgba(124,170,244,.3) !important;
-  background:linear-gradient(145deg,rgba(40,62,110,.96),rgba(19,35,71,.98)) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(40,62,110,.96),
+      rgba(19,35,71,.98)
+    ) !important;
 }
 
 .game-btn.outline.success{
   color:#fff !important;
+
   border-color:rgba(92,239,161,.65) !important;
-  background:linear-gradient(145deg,#35cd7e,#178f57) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #35cd7e,
+      #178f57
+    ) !important;
 }
 
 .game-btn.secondary{
-  background:linear-gradient(145deg,#178bd7,#0d579b) !important;
+  background:
+    linear-gradient(
+      145deg,
+      #178bd7,
+      #0d579b
+    ) !important;
 }
-
-/* Game area */
 
 #play-screen{
   min-height:500px;
 }
 
 #illustration{
-  position:relative;
-
   width:100%;
   max-width:560px;
+
   margin:10px auto 18px;
-
-  aspect-ratio:300/180;
-
-  overflow:hidden;
 
   border:1px solid rgba(117,191,255,.28);
   border-radius:24px;
@@ -331,29 +323,9 @@ body::before{
     0 20px 40px rgba(0,10,35,.30);
 }
 
-#illustration svg{
-  position:absolute;
-  inset:0;
-
-  width:100%;
-  height:100%;
-  display:block;
-}
-
 .hotspot{
-  position:absolute;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-
-  border:3px dashed rgba(94,189,255,.66) !important;
-  border-radius:14px;
-
+  border-color:rgba(94,189,255,.66) !important;
   background:rgba(11,47,98,.12);
-
-  transition:background .2s,border-color .2s;
 }
 
 .hotspot.over{
@@ -362,35 +334,21 @@ body::before{
 }
 
 .hotspot.filled{
-  border-style:solid !important;
   border-color:#52e397 !important;
   background:rgba(43,200,117,.35) !important;
 }
 
 .hotspot span{
-  padding:3px 8px;
-
-  color:#08204b;
-  background:#fff;
-
-  border-radius:10px;
-
-  font-size:.95rem;
-  font-weight:900;
-
-  box-shadow:0 8px 18px rgba(0,0,0,.22);
+  color:#08204b !important;
+  background:#fff !important;
 }
 
 #tray,
 #seq-tray{
   position:relative;
   z-index:20;
-  min-height:110px;
 
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  align-items:center;
+  min-height:100px;
 }
 
 .chip{
@@ -400,15 +358,10 @@ body::before{
   padding:11px 16px !important;
   margin:7px !important;
 
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
+  color:#f7f9ff !important;
 
   border:1px solid rgba(122,191,255,.36) !important;
   border-radius:20px !important;
-
-  color:#f7f9ff !important;
 
   background:
     radial-gradient(circle at 50% 0%,rgba(87,173,255,.23),transparent 59%),
@@ -420,20 +373,16 @@ body::before{
 
   font-size:1.05rem !important;
   font-weight:900 !important;
-
-  cursor:grab;
-  touch-action:none;
-  user-select:none;
 }
 
+/*
+  רק עיצוב; position:fixed והזזה נשארים
+  בדיוק לפי לוגיקת המשחק המקורי.
+*/
 .chip.dragging{
-  position:fixed;
-  z-index:1000;
-
-  pointer-events:none;
-  cursor:grabbing;
-
-  box-shadow:0 18px 35px rgba(0,0,0,.36) !important;
+  z-index:99999 !important;
+  opacity:1 !important;
+  visibility:visible !important;
 }
 
 .game-question{
@@ -443,11 +392,11 @@ body::before{
   margin:10px auto 18px !important;
   padding:13px 18px;
 
-  border:1px solid rgba(109,184,255,.25);
-  border-radius:17px;
-
   color:#fff !important;
   background:rgba(35,77,136,.42);
+
+  border:1px solid rgba(109,184,255,.25);
+  border-radius:17px;
 
   font-size:1.35rem !important;
   line-height:1.55;
@@ -455,15 +404,10 @@ body::before{
   text-align:center;
 }
 
-#trivia-mode,
-#sequence-mode{
-  display:none;
-}
-
 #seq-title{
   margin:10px 0 18px;
 
-  color:#fff;
+  color:#fff !important;
 
   font-size:1.35rem;
   line-height:1.45;
@@ -471,33 +415,15 @@ body::before{
   text-align:center;
 }
 
-#seq-slots{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:8px;
-
-  margin-top:14px;
-}
-
 .slot{
   min-width:125px !important;
   min-height:76px !important;
 
-  padding:5px;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-
-  border:3px dashed rgba(126,180,255,.45) !important;
-  border-radius:18px !important;
-
   color:#fff;
   background:rgba(7,34,77,.55);
 
-  transition:background .2s,border-color .2s;
+  border-color:rgba(126,180,255,.45) !important;
+  border-radius:18px !important;
 }
 
 .slot.over{
@@ -506,50 +432,10 @@ body::before{
 }
 
 .slot .rank{
-  color:#c9d9f3;
-  font-size:.75rem;
-  font-weight:900;
+  color:#c9d9f3 !important;
 }
 
-.slot .n{
-  font-size:1rem;
-  font-weight:900;
-}
-
-/* End screen */
-
-.end-screen{
-  min-height:500px;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-
-  text-align:center;
-}
-
-.end-screen .stars{
-  font-size:4rem;
-}
-
-.end-screen .big-score{
-  margin:17px 0 9px;
-
-  color:#fff;
-
-  font-size:4.4rem;
-  line-height:1;
-  font-weight:900;
-}
-
-/* ==================================================
-   HELP WINDOW — FIX WHITE TEXT ON LIGHT BOX
-================================================== */
-
-.help-example,
-.iakids-help-example,
-.ia-help-example,
+/* תיקון טקסט חלונית העזרה */
 [class*="help"] [class*="example"],
 [role="dialog"] [class*="example"]{
   color:#102a4f !important;
@@ -557,40 +443,10 @@ body::before{
   text-shadow:none !important;
 }
 
-.help-example *,
-.iakids-help-example *,
-.ia-help-example *,
 [class*="help"] [class*="example"] *,
 [role="dialog"] [class*="example"] *{
   color:#102a4f !important;
   text-shadow:none !important;
-}
-
-/* Mobile */
-
-
-/* הכרטיס חייב להישאר גלוי בזמן הגרירה */
-body .chip.dragging{
-  display:inline-flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
-  position:fixed !important;
-  z-index:99999 !important;
-  pointer-events:none !important;
-  transform:none !important;
-}
-
-/* הכרטיס הראשון בחלק הסידור */
-#sequence-mode{
-  position:relative;
-  z-index:5;
-  min-height:330px;
-}
-
-#seq-tray .chip{
-  display:inline-flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
 }
 
 @media(max-width:680px){
@@ -656,194 +512,124 @@ body .chip.dragging{
     min-width:90px !important;
   }
 }
+
 </style>
 </head>
-
 <body>
 
 <a class="workspace-back" href="/he/games/workspace/">
   <span>🏰</span>
-  <span>חזרה למפת המשחקים</span>
+  <span id="back-text">חזרה למפת המשחקים</span>
 </a>
 
-<div class="game-hud">
-  <span class="score">
-    <span id="score-label">ניקוד</span>:
-    <span id="score">0</span>
-  </span>
 
-  <span>
-    <span id="q-label">שאלה</span>
-    <span id="qnum">1</span>/<span id="qtotal">10</span>
-  </span>
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
 </div>
 
 <div class="game-card" id="card">
-
   <div id="start-screen">
-    <div class="start-emoji">💧☁️🌧️</div>
-
+    <div style="font-size:4rem">💧☁️🌧️</div>
     <h1 class="game-title" id="title"></h1>
     <p id="howto"></p>
     <p id="rounds-label"></p>
-
-    <div class="answer-grid" id="rounds-row">
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
-      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
     </div>
-
-    <div class="answer-grid" id="level-row">
-      <button class="game-btn secondary" data-lvl="1" onclick="startGame(1)"></button>
-      <button class="game-btn secondary" data-lvl="2" onclick="startGame(2)"></button>
-      <button class="game-btn secondary" data-lvl="3" onclick="startGame(3)"></button>
-      <button class="game-btn" data-lvl="0" onclick="startGame(0)"></button>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
     </div>
   </div>
 
   <div id="play-screen" hidden>
-
     <div id="order-mode">
-
       <div id="illustration">
         <svg viewBox="0 0 300 180" aria-hidden="true">
           <rect x="0" y="0" width="300" height="180" fill="#cfe8fa"/>
           <rect x="0" y="120" width="300" height="60" fill="#5b9bd5"/>
-
-          <path
-            d="M40,112 C30,125 55,132 45,145 C38,155 20,158 12,180 L0,180 L0,110 Z"
-            fill="#c9a876"
-          />
-
-          <path
-            d="M42,115 C32,128 52,134 42,148 C34,158 22,162 14,180"
-            stroke="#3b82f6"
-            stroke-width="5"
-            fill="none"
-          />
-
+          <path d="M40,112 C30,125 55,132 45,145 C38,155 20,158 12,180 L0,180 L0,110 Z" fill="#c9a876"/>
+          <path d="M42,115 C32,128 52,134 42,148 C34,158 22,162 14,180" stroke="#3b82f6" stroke-width="5" fill="none"/>
           <circle cx="252" cy="34" r="22" fill="#facc15"/>
-
           <g fill="#ffffff" stroke="#cbd5e1">
             <ellipse cx="80" cy="46" rx="30" ry="18"/>
             <ellipse cx="55" cy="52" rx="20" ry="14"/>
             <ellipse cx="105" cy="52" rx="22" ry="14"/>
           </g>
-
           <g stroke="#3b82f6" stroke-width="3" stroke-linecap="round">
             <line x1="60" y1="78" x2="52" y2="98"/>
             <line x1="78" y1="78" x2="70" y2="102"/>
             <line x1="96" y1="78" x2="88" y2="98"/>
           </g>
         </svg>
-
-        <div
-          class="hotspot"
-          data-stage="condensation"
-          style="left:14%;top:10%;width:40%;height:28%"
-        >
-          <span></span>
-        </div>
-
-        <div
-          class="hotspot"
-          data-stage="precipitation"
-          style="left:14%;top:40%;width:38%;height:24%"
-        >
-          <span></span>
-        </div>
-
-        <div
-          class="hotspot"
-          data-stage="runoff"
-          style="left:0%;top:66%;width:26%;height:30%"
-        >
-          <span></span>
-        </div>
-
-        <div
-          class="hotspot"
-          data-stage="evaporation"
-          style="left:52%;top:64%;width:46%;height:32%"
-        >
-          <span></span>
-        </div>
+        <div class="hotspot" data-stage="condensation" style="left:14%;top:10%;width:40%;height:28%"><span></span></div>
+        <div class="hotspot" data-stage="precipitation" style="left:14%;top:40%;width:38%;height:24%"><span></span></div>
+        <div class="hotspot" data-stage="runoff" style="left:0%;top:66%;width:26%;height:30%"><span></span></div>
+        <div class="hotspot" data-stage="evaporation" style="left:52%;top:64%;width:46%;height:32%"><span></span></div>
       </div>
-
       <div id="tray"></div>
     </div>
-
     <div id="trivia-mode">
       <div class="game-question" id="trivia-q"></div>
       <div class="answer-grid" id="trivia-opts"></div>
     </div>
-
     <div id="sequence-mode">
       <p id="seq-title"></p>
       <div id="seq-slots"></div>
       <div id="seq-tray"></div>
     </div>
-
   </div>
 
   <div id="end-screen" class="end-screen" hidden>
     <div class="stars" id="stars"></div>
     <div class="big-score" id="final-score"></div>
-
     <p id="player-line"></p>
-
-    <p>
-      <span id="best-label"></span>:
-      <b id="best"></b>
-    </p>
-
-    <button
-      class="game-btn"
-      id="again-btn"
-      onclick="location.reload()"
-    ></button>
-
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
     <div id="share-slot"></div>
   </div>
-
 </div>
 
 <script src="../game-sdk.js"></script>
-
 <script>
 const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
 
 /* ==================================================
-   GRADE + NIQQUD
+   GRADE / AGE AND NIQQUD
 ================================================== */
 
-function numberFrom(value){
+function readNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
-function readGradeFromObject(value){
-  if (!value) return null;
+function readGradeObject(raw) {
+  if (!raw) return null;
 
-  try{
-    const data =
-      typeof value === 'string'
-        ? JSON.parse(value)
-        : value;
+  try {
+    const value =
+      typeof raw === 'string'
+        ? JSON.parse(raw)
+        : raw;
 
     return (
-      numberFrom(data?.grade) ??
-      numberFrom(data?.age) ??
-      numberFrom(data?.class_grade) ??
-      numberFrom(data?.school_grade)
+      readNumber(value?.grade) ??
+      readNumber(value?.age) ??
+      readNumber(value?.class_grade) ??
+      readNumber(value?.school_grade)
     );
-  }catch{
+  } catch {
     return null;
   }
 }
 
-function getChildGrade(){
+function getChildGrade() {
   const directKeys = [
     'active_kid_grade',
     'iakids_active_kid_grade',
@@ -851,12 +637,19 @@ function getChildGrade(){
     'kid_grade',
     'grade',
     'active_kid_age',
-    'kid_age'
+    'kid_age',
+    'age'
   ];
 
-  for (const key of directKeys){
-    const grade = numberFrom(localStorage.getItem(key));
-    if (grade !== null) return grade;
+  for (const key of directKeys) {
+    const value =
+      readNumber(
+        localStorage.getItem(key)
+      );
+
+    if (value !== null) {
+      return value;
+    }
   }
 
   const objectKeys = [
@@ -867,13 +660,15 @@ function getChildGrade(){
     'active_kid_profile'
   ];
 
-  for (const key of objectKeys){
-    const grade =
-      readGradeFromObject(
+  for (const key of objectKeys) {
+    const value =
+      readGradeObject(
         localStorage.getItem(key)
       );
 
-    if (grade !== null) return grade;
+    if (value !== null) {
+      return value;
+    }
   }
 
   return null;
@@ -888,39 +683,59 @@ const USE_NIQQUD =
    TEXT
 ================================================== */
 
-const TEXT = {
-  regular:{
-    title:'מחזור המים בטבע',
-    howto:'גרור כל שלב למקום הנכון באיור!',
-    rounds:'כמה שאלות?',
-    seqTitle:'עכשיו סדרו את השלבים לפי הסדר הנכון בזמן!',
-    triviaSuffix:'איך קוראים לשלב הזה?',
-    score:'ניקוד',
-    question:'שאלה',
-    back:'חזרה למפת המשחקים',
-    levels:['קל','בינוני','קשה','אקראי']
+const T_REGULAR = {
+  title: {
+    he: 'מחזור המים בטבע',
+    en: 'The Water Cycle'
   },
-
-  niqqud:{
-    title:'מַחְזוֹר הַמַּיִם בַּטֶּבַע',
-    howto:'גִּרְרוּ כָּל שָׁלָב לַמָּקוֹם הַנָּכוֹן בָּאִיּוּר!',
-    rounds:'כַּמָּה שְׁאֵלוֹת?',
-    seqTitle:'עַכְשָׁו סַדְּרוּ אֶת הַשְּׁלָבִים לְפִי הַסֵּדֶר הַנָּכוֹן!',
-    triviaSuffix:'אֵיךְ קוֹרְאִים לַשָּׁלָב הַזֶּה?',
-    score:'נִקּוּד',
-    question:'שְׁאֵלָה',
-    back:'חֲזָרָה לְמַפַּת הַמִּשְׂחָקִים',
-    levels:['קַל','בֵּינוֹנִי','קָשֶׁה','אַקְרָאִי']
+  howto: {
+    he: 'גרור כל שלב למקום הנכון באיור!',
+    en: 'Drag each stage to its place on the picture!'
+  },
+  rounds: {
+    he: 'כמה שאלות?',
+    en: 'How many questions?'
+  },
+  seqTitle: {
+    he: 'עכשיו סדרו את השלבים לפי הסדר הנכון בזמן!',
+    en: 'Now put the stages in the correct order!'
+  },
+  trivia: {
+    he: 'איך קוראים לשלב הזה?',
+    en: 'What is this stage called?'
   }
 };
 
-const UI_TEXT =
+const T_NIQQUD = {
+  title: {
+    he: 'מַחְזוֹר הַמַּיִם בַּטֶּבַע',
+    en: 'The Water Cycle'
+  },
+  howto: {
+    he: 'גִּרְרוּ כָּל שָׁלָב לַמָּקוֹם הַנָּכוֹן בָּאִיּוּר!',
+    en: 'Drag each stage to its place on the picture!'
+  },
+  rounds: {
+    he: 'כַּמָּה שְׁאֵלוֹת?',
+    en: 'How many questions?'
+  },
+  seqTitle: {
+    he: 'עַכְשָׁו סַדְּרוּ אֶת הַשְּׁלָבִים לְפִי הַסֵּדֶר הַנָּכוֹן בַּזְּמַן!',
+    en: 'Now put the stages in the correct order!'
+  },
+  trivia: {
+    he: 'אֵיךְ קוֹרְאִים לַשָּׁלָב הַזֶּה?',
+    en: 'What is this stage called?'
+  }
+};
+
+const T =
   USE_NIQQUD
-    ? TEXT.niqqud
-    : TEXT.regular;
+    ? T_NIQQUD
+    : T_REGULAR;
 
 /* ==================================================
-   STAGES
+   ORIGINAL GAME STAGES
 ================================================== */
 
 const STAGES_REGULAR = [
@@ -960,7 +775,7 @@ const STAGES_NIQQUD = [
     n:'אִדּוּי',
     e:'💧☀️',
     rank:1,
-    why:'הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַמַּיִם בַּיָּם, וְהֵם הוֹפְכִים לְאֵדִים שֶׁעוֹלִים לַשָּׁמַיִם'
+    why:'הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַמַּיִם בַּיָּם וְהֵם הוֹפְכִים לְאֵדִים שֶׁעוֹלִים לַשָּׁמַיִם'
   },
   {
     id:'condensation',
@@ -991,40 +806,19 @@ const STAGES =
     : STAGES_REGULAR;
 
 /* ==================================================
-   STATE
-================================================== */
-
-let game = null;
-let diff = null;
-let timer = null;
-
-let level = 1;
-let TOTAL = 10;
-let score = 0;
-let qnum = 0;
-let mistakes = 0;
-let stageCount = 3;
-let starting = false;
-
-const placed = new Set();
-const seqPlaced = new Set();
-
-/* ==================================================
    HELP
 ================================================== */
 
 const HELP_REGULAR = {
   how:
     'מים בטבע עוברים מסע אינסופי: השמש מחממת את הים והמים <b>מתאדים</b> (אידוי) ועולים לשמיים. שם הם מתקררים ונהפכים לטיפות שיוצרות ענן (<b>עיבוי</b>). כשהענן מתמלא, יורד גשם (<b>משקעים</b>). הגשם זורם בנחלים בחזרה לים (<b>הזרמה</b>) — והמסע מתחיל מחדש! גוררים כל שלב למקום שלו באיור, ואז מסדרים את השלבים לפי סדר הזמן הנכון.',
-
   example:
-    '💧☀️ אידוי ← ☁️ עיבוי ← 🌧️ משקעים ← 🌊 הזרמה ← וחוזר חלילה'
+    '💧☀️ אידוי ← ☁️ עיבוי ← 🌧️ משקעים ← 🌊 הזרמה ← (וחוזר חלילה)'
 };
 
 const HELP_NIQQUD = {
   how:
-    'מַיִם בַּטֶּבַע עוֹבְרִים מַסָּע אֵין־סוֹפִי: הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַיָּם, וְהַמַּיִם <b>מִתְאַדִּים</b> וְעוֹלִים לַשָּׁמַיִם. שָׁם הֵם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת שֶׁיּוֹצְרוֹת עָנָן (<b>עִבּוּי</b>). כְּשֶׁהֶעָנָן מִתְמַלֵּא, יוֹרֵד גֶּשֶׁם (<b>מִשְׁקָעִים</b>). הַגֶּשֶׁם זוֹרֵם בַּנְּחָלִים בַּחֲזָרָה לַיָּם (<b>הַזְרָמָה</b>) — וְהַמַּסָּע מַתְחִיל מֵחָדָשׁ.',
-
+    'מַיִם בַּטֶּבַע עוֹבְרִים מַסָּע אֵין־סוֹפִי: הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַיָּם וְהַמַּיִם <b>מִתְאַדִּים</b> וְעוֹלִים לַשָּׁמַיִם. שָׁם הֵם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת שֶׁיּוֹצְרוֹת עָנָן (<b>עִבּוּי</b>). כְּשֶׁהֶעָנָן מִתְמַלֵּא יוֹרֵד גֶּשֶׁם (<b>מִשְׁקָעִים</b>). הַגֶּשֶׁם זוֹרֵם בַּנְּחָלִים בַּחֲזָרָה לַיָּם (<b>הַזְרָמָה</b>) — וְהַמַּסָּע מַתְחִיל מֵחָדָשׁ.',
   example:
     '💧☀️ אִדּוּי ← ☁️ עִבּוּי ← 🌧️ מִשְׁקָעִים ← 🌊 הַזְרָמָה ← וְחוֹזֵר חֲלִילָה'
 };
@@ -1042,35 +836,27 @@ IAKidsHelp.mount({
   example:HELP_TEXT.example
 });
 
-/*
-  הגנה נוספת: ה-SDK יכול לתת למחלקות החלונית שמות שונים.
-  אנו מאתרים את תיבת הדוגמה לפי התוכן ומכריחים טקסט כהה.
-*/
-function fixHelpExampleColors(){
+/* תיקון צבע הדוגמה בחלונית העזרה */
+function fixHelpExampleColor() {
   document
     .querySelectorAll('body *')
-    .forEach(el => {
+    .forEach(element => {
       const text =
-        (el.textContent || '').trim();
+        (element.textContent || '').trim();
 
       if (
         text.includes('אידוי') ||
         text.includes('אִדּוּי')
-      ){
-        const style =
-          getComputedStyle(el);
+      ) {
+        const dialog =
+          element.closest('[role="dialog"]');
 
-        const bg =
-          style.backgroundColor;
+        if (dialog) {
+          element.style.color = '#102a4f';
+          element.style.textShadow = 'none';
 
-        if (
-          bg.includes('255') ||
-          el.closest('[role="dialog"]')
-        ){
-          el.style.color = '#102a4f';
-          el.style.textShadow = 'none';
-
-          el.querySelectorAll('*')
+          element
+            .querySelectorAll('*')
             .forEach(child => {
               child.style.color = '#102a4f';
               child.style.textShadow = 'none';
@@ -1080,12 +866,9 @@ function fixHelpExampleColors(){
     });
 }
 
-const helpObserver =
-  new MutationObserver(
-    () => fixHelpExampleColors()
-  );
-
-helpObserver.observe(
+new MutationObserver(
+  fixHelpExampleColor
+).observe(
   document.body,
   {
     childList:true,
@@ -1094,26 +877,27 @@ helpObserver.observe(
 );
 
 /* ==================================================
-   INITIAL TEXT
+   INITIAL UI
 ================================================== */
 
 $('title').textContent =
-  UI_TEXT.title;
+  IAKidsLang.t(T.title);
 
 $('howto').textContent =
-  UI_TEXT.howto;
+  IAKidsLang.t(T.howto);
 
 $('rounds-label').textContent =
-  UI_TEXT.rounds;
+  IAKidsLang.t(T.rounds);
 
 $('score-label').textContent =
-  UI_TEXT.score;
+  USE_NIQQUD
+    ? 'נִקּוּד'
+    : IAKidsLang.ui('score');
 
 $('q-label').textContent =
-  UI_TEXT.question;
-
-$('seq-title').textContent =
-  UI_TEXT.seqTitle;
+  USE_NIQQUD
+    ? 'שְׁאֵלָה'
+    : 'שאלה';
 
 $('best-label').textContent =
   IAKidsLang.ui('your_best');
@@ -1121,232 +905,190 @@ $('best-label').textContent =
 $('again-btn').textContent =
   IAKidsLang.ui('play_again');
 
-document
-  .querySelector('.workspace-back span:last-child')
-  .textContent =
-    UI_TEXT.back;
+$('seq-title').textContent =
+  IAKidsLang.t(T.seqTitle);
 
-document
-  .querySelectorAll('#level-row .game-btn')
-  .forEach((button,index) => {
-    button.textContent =
-      UI_TEXT.levels[index];
+$('back-text').textContent =
+  USE_NIQQUD
+    ? 'חֲזָרָה לְמַפַּת הַמִּשְׂחָקִים'
+    : 'חזרה למפת המשחקים';
+
+['level_easy','level_medium','level_hard','level_random']
+  .forEach((key,index) => {
+    const regular =
+      IAKidsLang.ui(key);
+
+    const niqqud = [
+      'קַל',
+      'בֵּינוֹנִי',
+      'קָשֶׁה',
+      'אַקְרָאִי'
+    ][index];
+
+    document
+      .querySelectorAll(
+        '#level-row .game-btn'
+      )[index]
+      .textContent =
+        USE_NIQQUD
+          ? niqqud
+          : regular;
   });
 
 /* ==================================================
-   HELPERS
+   ORIGINAL GAME STATE
 ================================================== */
 
-function setRounds(n,button){
+let game = null;
+let diff = null;
+
+let level = 1;
+let TOTAL = 10;
+let score = 0;
+let qnum = 0;
+let mistakes = 0;
+let stageCount = 3;
+let starting = false;
+
+const placed = new Set();
+const seqPlaced = new Set();
+
+function setRounds(n, btn) {
   TOTAL = n;
 
   document
     .querySelectorAll(
       '#rounds-row .game-btn'
     )
-    .forEach(btn => {
-      btn.classList.remove('success');
+    .forEach(button => {
+      button.classList.remove(
+        'success'
+      );
     });
 
-  button?.classList.add('success');
+  btn?.classList.add('success');
 
   $('qtotal').textContent =
     String(TOTAL);
 }
 
-function show(id){
+const show = id => {
   for (
-    const screenId of [
+    const screen of [
       'start-screen',
       'play-screen',
       'end-screen'
     ]
-  ){
-    $(screenId).hidden =
-      screenId !== id;
+  ) {
+    $(screen).hidden =
+      screen !== id;
   }
-}
+};
 
-function showMode(id){
+const showMode = id => {
   for (
-    const modeId of [
+    const mode of [
       'order-mode',
       'trivia-mode',
       'sequence-mode'
     ]
-  ){
-    $(modeId).style.display =
-      modeId === id
+  ) {
+    $(mode).style.display =
+      mode === id
         ? 'block'
         : 'none';
   }
-}
-
-function getActiveStages(){
-  return STAGES.slice(0,stageCount);
-}
-
-function getActiveStageIds(){
-  return new Set(
-    getActiveStages()
-      .map(stage => stage.id)
-  );
-}
-
-function clearBoard(){
-  placed.clear();
-
-  document
-    .querySelectorAll('.hotspot')
-    .forEach(hotspot => {
-      hotspot.classList.remove('filled');
-
-      const label =
-        hotspot.querySelector('span');
-
-      if (label){
-        label.textContent = '';
-      }
-    });
-}
-
-function prepareBoard(){
-  const activeIds =
-    getActiveStageIds();
-
-  document
-    .querySelectorAll('.hotspot')
-    .forEach(hotspot => {
-      hotspot.hidden =
-        !activeIds.has(
-          hotspot.dataset.stage
-        );
-    });
-
-  clearBoard();
-}
-
-function resetGameState(){
-  score = 0;
-  qnum = 0;
-  mistakes = 0;
-
-  placed.clear();
-  seqPlaced.clear();
-
-  $('score').textContent = '0';
-  $('qnum').textContent = '1';
-  $('qtotal').textContent =
-    String(TOTAL);
-
-  $('tray').innerHTML = '';
-  $('seq-tray').innerHTML = '';
-  $('seq-slots').innerHTML = '';
-}
+};
 
 /* ==================================================
-   START
+   START — SESSION IS CREATED ONLY ON CLICK
 ================================================== */
 
-async function startGame(selectedLevel){
+async function start(lvl) {
   if (starting) return;
 
   starting = true;
 
-  document
-    .querySelectorAll(
-      '#level-row .game-btn'
-    )
-    .forEach(button => {
-      button.disabled = true;
-    });
-
-  try{
-    /*
-      Session נוצר רק לאחר לחיצה על רמה.
-      כך רענון רגיל לא יוצר session interrupted.
-    */
+  try {
     game =
       await IAKidsGame.init(
         'water-cycle'
       );
 
-    level = selectedLevel;
+    level = lvl;
 
-    /*
-      קל: שלושה שלבים.
-      בינוני/קשה/אקראי: ארבעה שלבים.
-    */
     stageCount =
-      selectedLevel === 1
+      lvl === 1
         ? 3
         : 4;
 
-    resetGameState();
+    score = 0;
+    qnum = 0;
+    mistakes = 0;
+
+    placed.clear();
+    seqPlaced.clear();
+
+    $('score').textContent = '0';
+    $('qnum').textContent = '1';
+    $('qtotal').textContent =
+      String(TOTAL);
 
     diff =
       game.difficulty(
-        selectedLevel || 1,
+        lvl || 1,
         3
       );
 
     IAKidsActivity.configure({
-      difficulty:selectedLevel,
+      difficulty:lvl,
       questionsCount:TOTAL,
 
       metadata:{
-        selected_level:
-          selectedLevel,
-
+        selected_level:lvl,
         random_difficulty:
-          selectedLevel === 0,
-
-        game_mode:
-          'water-cycle',
-
-        child_grade:
-          CHILD_GRADE,
-
-        uses_niqqud:
-          USE_NIQQUD
+          lvl === 0,
+        game_mode:'water-cycle',
+        child_grade:CHILD_GRADE,
+        uses_niqqud:USE_NIQQUD
       }
     });
 
-    timer =
-      game.timer({
-        style:'bomb',
-
-        onTimeout:() => {
-          if (!game) return;
-
-          timer?.stop();
-
-          IAKidsActivity.skipped();
-
-          mistakes++;
-
-          diff?.wrong();
-          IAKidsCoins.wrong();
-
-          setTimeout(
-            () => nextQuestion(),
-            500
-          );
-        }
-      });
-
     await game.saveProgress({
-      lastLevel:selectedLevel,
+      lastLevel:lvl,
       rounds:TOTAL
     });
 
-    prepareBoard();
+    document
+      .querySelectorAll('.hotspot')
+      .forEach(hotspot => {
+        hotspot.hidden =
+          STAGES.find(
+            stage =>
+              stage.id ===
+              hotspot.dataset.stage
+          ).rank > stageCount;
+      });
+
+    placed.clear();
+
+    document
+      .querySelectorAll('.hotspot')
+      .forEach(hotspot => {
+        hotspot.classList.remove(
+          'filled'
+        );
+
+        hotspot
+          .querySelector('span')
+          .textContent = '';
+      });
 
     show('play-screen');
 
-    await nextQuestion();
+    next();
 
-  }catch(error){
+  } catch (error) {
     console.error(
       'water-cycle start failed:',
       error
@@ -1356,78 +1098,56 @@ async function startGame(selectedLevel){
       'המשחק לא הצליח להתחיל. בדוק את ה-Console.'
     );
 
-  }finally{
+  } finally {
     starting = false;
-
-    document
-      .querySelectorAll(
-        '#level-row .game-btn'
-      )
-      .forEach(button => {
-        button.disabled = false;
-      });
   }
 }
 
 /* ==================================================
-   QUESTIONS
+   ORIGINAL QUESTION FLOW
 ================================================== */
 
-async function nextQuestion(){
-  if (qnum >= TOTAL){
-    await startSequenceStep();
-    return;
+async function next() {
+  if (qnum >= TOTAL) {
+    return startSequenceStep();
   }
 
   qnum++;
 
   $('qnum').textContent =
-    String(qnum);
+    qnum;
 
   IAKidsActivity.questionStarted();
 
-  const effectiveLevel =
+  const effLvl =
     level === 0
       ? diff.level
       : level;
 
-  timer.start(
-    IAKidsTimer.secondsFor(
-      effectiveLevel,
-      18
-    )
-  );
-
-  if (effectiveLevel >= 3){
+  if (effLvl >= 3) {
     showMode('trivia-mode');
     await showTrivia();
-  }else{
+  } else {
     showMode('order-mode');
     await showOrderItem();
   }
 }
 
-/* ==================================================
-   TRIVIA
-================================================== */
-
-async function showTrivia(){
-  const activeStages =
-    getActiveStages();
-
-  const question =
+async function showTrivia() {
+  const t =
     await game.newQuestion(
       () =>
-        activeStages[
-          rnd(activeStages.length)
+        STAGES[
+          rnd(stageCount)
         ],
-
       stage =>
-        `trivia:${stage.id}:${qnum}`
+        'trivia:' + stage.id
     );
 
   $('trivia-q').textContent =
-    `${question.why} — ${UI_TEXT.triviaSuffix}`;
+    t.why +
+    ' — ' +
+    IAKidsLang.t(T.trivia);
 
   const box =
     $('trivia-opts');
@@ -1436,11 +1156,15 @@ async function showTrivia(){
 
   let answered = false;
 
-  const options =
-    [...activeStages]
-      .sort(() => Math.random() - .5);
+  const opts =
+    STAGES
+      .slice(0,stageCount)
+      .sort(
+        () =>
+          Math.random() - .5
+      );
 
-  options.forEach(stage => {
+  opts.forEach(stage => {
     const button =
       document.createElement(
         'button'
@@ -1458,7 +1182,7 @@ async function showTrivia(){
       answered = true;
 
       answerTrivia(
-        stage.id === question.id,
+        stage.id === t.id,
         button
       );
     };
@@ -1467,104 +1191,74 @@ async function showTrivia(){
   });
 }
 
-function answerTrivia(correct,button){
-  timer?.stop();
-
-  if (correct){
+function answerTrivia(correct, btn) {
+  if (correct) {
     score += 10;
-
-    diff?.right();
+    diff.right();
 
     IAKidsActivity.correct();
 
-    IAKidsFX.correct(button);
-    IAKidsCoins.right(button);
-  }else{
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
     mistakes++;
-
-    diff?.wrong();
+    diff.wrong();
 
     IAKidsActivity.wrong();
 
-    IAKidsFX.wrong(button);
+    IAKidsFX.wrong(btn);
     IAKidsCoins.wrong();
   }
 
   $('score').textContent =
-    String(score);
+    score;
 
-  setTimeout(
-    () => nextQuestion(),
-    700
-  );
+  setTimeout(next,700);
 }
 
-/* ==================================================
-   DRAG TO PICTURE
-================================================== */
+/*
+  פונקציית המשחק המקורית:
+  לא שיניתי את יצירת הכרטיס או את pool.
+*/
+async function showOrderItem() {
+  if (placed.size >= stageCount) {
+    placed.clear();
 
-async function showOrderItem(){
-  const activeStages =
-    getActiveStages();
+    document
+      .querySelectorAll('.hotspot')
+      .forEach(hotspot => {
+        hotspot.classList.remove(
+          'filled'
+        );
 
-  /*
-    כאשר כל הלוח התמלא, פותחים סיבוב חדש.
-  */
-  if (
-    placed.size >=
-    activeStages.length
-  ){
-    clearBoard();
+        hotspot
+          .querySelector('span')
+          .textContent = '';
+      });
   }
 
-  let pool =
-    activeStages.filter(
-      stage =>
-        !placed.has(stage.id)
-    );
-
-  /*
-    הגנה מפני מצב ריק:
-    לעולם לא משאירים את הילד בלי כרטיס לגרירה.
-  */
-  if (!pool.length){
-    clearBoard();
-    pool = [...activeStages];
-  }
-
-  const tray =
-    $('tray');
+  const tray = $('tray');
 
   tray.innerHTML = '';
 
   const stage =
     await game.newQuestion(
-      () =>
-        pool[
+      () => {
+        const pool =
+          STAGES
+            .slice(0,stageCount)
+            .filter(
+              item =>
+                !placed.has(item.id)
+            );
+
+        return pool[
           rnd(pool.length)
-        ],
-
+        ];
+      },
       item =>
-        `order:${item.id}:${qnum}`
+        'order:' + item.id
     );
-
-  if (!stage){
-    console.error(
-      'No stage returned',
-      {
-        pool,
-        qnum,
-        stageCount
-      }
-    );
-
-    setTimeout(
-      () => showOrderItem(),
-      150
-    );
-
-    return;
-  }
 
   const chip =
     document.createElement(
@@ -1585,78 +1279,18 @@ async function showOrderItem(){
 
   makeDraggable(
     chip,
-    '.hotspot:not([hidden])',
+    '.hotspot',
     dropOnHotspot
   );
 
   tray.appendChild(chip);
 }
 
-function dropOnHotspot(chip,zone){
-  if (
-    !zone ||
-    zone.hidden ||
-    zone.classList.contains('filled')
-  ){
-    return;
-  }
-
-  const correct =
-    zone.dataset.stage ===
-    chip.dataset.stage;
-
-  if (correct){
-    timer?.stop();
-
-    score += 10;
-
-    $('score').textContent =
-      String(score);
-
-    diff?.right();
-
-    IAKidsActivity.correct();
-
-    IAKidsFX.correct(zone);
-    IAKidsCoins.right(zone);
-
-    zone.classList.add('filled');
-
-    zone
-      .querySelector('span')
-      .textContent =
-        chip.dataset.name;
-
-    placed.add(
-      chip.dataset.stage
-    );
-
-    chip.remove();
-
-    setTimeout(
-      () => nextQuestion(),
-      500
-    );
-
-  }else{
-    mistakes++;
-
-    diff?.wrong();
-
-    IAKidsActivity.wrong();
-
-    IAKidsFX.wrong(chip);
-    IAKidsCoins.wrong();
-  }
-}
-
 /* ==================================================
-   FINAL SEQUENCE — BONUS
+   ORIGINAL FINAL SEQUENCE
 ================================================== */
 
-async function startSequenceStep(){
-  timer?.stop();
-
+async function startSequenceStep() {
   showMode('sequence-mode');
 
   const slots =
@@ -1668,15 +1302,14 @@ async function startSequenceStep(){
     let rank = 1;
     rank <= stageCount;
     rank++
-  ){
+  ) {
     const slot =
       document.createElement(
         'div'
       );
 
     slot.className = 'slot';
-    slot.dataset.rank =
-      String(rank);
+    slot.dataset.rank = rank;
 
     slot.innerHTML =
       `<span class="rank">${rank}</span>`;
@@ -1686,27 +1319,15 @@ async function startSequenceStep(){
 
   seqPlaced.clear();
 
-  /*
-    שומרים על לוגיקת המשחק המקורית:
-    מציגים קודם את מצב הסידור, ובפריים הבא יוצרים את הכרטיס הראשון.
-  */
-  requestAnimationFrame(() => {
-    seqNextItem().catch(error => {
-      console.error('sequence first item failed:', error);
-    });
-  });
+  await seqNextItem();
 }
 
-async function seqNextItem(){
-  const activeStages =
-    getActiveStages();
-
+async function seqNextItem() {
   if (
     seqPlaced.size >=
-    activeStages.length
-  ){
-    await endGame();
-    return;
+    stageCount
+  ) {
+    return end();
   }
 
   const tray =
@@ -1715,15 +1336,12 @@ async function seqNextItem(){
   tray.innerHTML = '';
 
   const pool =
-    activeStages.filter(
-      stage =>
-        !seqPlaced.has(stage.id)
-    );
-
-  if (!pool.length){
-    await endGame();
-    return;
-  }
+    STAGES
+      .slice(0,stageCount)
+      .filter(
+        stage =>
+          !seqPlaced.has(stage.id)
+      );
 
   const stage =
     pool[
@@ -1742,7 +1360,7 @@ async function seqNextItem(){
     `<span>${stage.n}</span>`;
 
   chip.dataset.rank =
-    String(stage.rank);
+    stage.rank;
 
   chip.dataset.stage =
     stage.id;
@@ -1756,61 +1374,8 @@ async function seqNextItem(){
   tray.appendChild(chip);
 }
 
-function dropOnSlot(chip,zone){
-  if (
-    !zone ||
-    zone.querySelector('.n')
-  ){
-    return;
-  }
-
-  const correct =
-    String(zone.dataset.rank) ===
-    String(chip.dataset.rank);
-
-  if (correct){
-    /*
-      שלב הסדר הוא בונוס.
-      הוא מוסיף ניקוד, אבל לא מגדיל
-      את questions_count בטבלה.
-    */
-    score += 10;
-
-    $('score').textContent =
-      String(score);
-
-    IAKidsFX.correct(zone);
-    IAKidsCoins.right(zone);
-
-    zone.innerHTML =
-      `<span class="rank">` +
-      `${zone.dataset.rank}` +
-      `</span>` +
-      `<span class="n">` +
-      `${chip.innerHTML}` +
-      `</span>`;
-
-    seqPlaced.add(
-      chip.dataset.stage
-    );
-
-    chip.remove();
-
-    setTimeout(
-      () => seqNextItem(),
-      400
-    );
-
-  }else{
-    mistakes++;
-
-    IAKidsFX.wrong(chip);
-    IAKidsCoins.wrong();
-  }
-}
-
 /* ==================================================
-   POINTER DRAG — ORIGINAL GAME LOGIC
+   POINTER EVENTS DRAG — EXACT ORIGINAL LOGIC
 ================================================== */
 
 let drag = null;
@@ -1820,20 +1385,28 @@ function makeDraggable(chip, zoneSelector, onDrop) {
     if (drag) return;
 
     e.preventDefault();
-    chip.setPointerCapture(e.pointerId);
 
-    const r = chip.getBoundingClientRect();
+    chip.setPointerCapture(
+      e.pointerId
+    );
+
+    const r =
+      chip.getBoundingClientRect();
 
     drag = {
       chip,
-      dx: e.clientX - r.left,
-      dy: e.clientY - r.top,
+      dx:e.clientX - r.left,
+      dy:e.clientY - r.top,
       zoneSelector,
       onDrop
     };
 
-    chip.style.width = r.width + 'px';
-    chip.classList.add('dragging');
+    chip.style.width =
+      r.width + 'px';
+
+    chip.classList.add(
+      'dragging'
+    );
 
     moveTo(e);
   });
@@ -1853,39 +1426,58 @@ function makeDraggable(chip, zoneSelector, onDrop) {
   chip.addEventListener('pointercancel', () => {
     if (drag?.chip === chip) {
       settle(chip);
-      unmarkZones(drag.zoneSelector);
+      unmarkZones(
+        drag.zoneSelector
+      );
       drag = null;
     }
   });
 }
 
 function moveTo(e) {
-  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
-  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  drag.chip.style.left =
+    (e.clientX - drag.dx) + 'px';
 
-  const z = zoneAt(
-    e.clientX,
-    e.clientY,
-    drag.zoneSelector
-  );
+  drag.chip.style.top =
+    (e.clientY - drag.dy) + 'px';
+
+  const zone =
+    zoneAt(
+      e.clientX,
+      e.clientY,
+      drag.zoneSelector
+    );
 
   document
-    .querySelectorAll(drag.zoneSelector)
-    .forEach(zn => {
-      zn.classList.toggle('over', zn === z);
+    .querySelectorAll(
+      drag.zoneSelector
+    )
+    .forEach(candidate => {
+      candidate.classList.toggle(
+        'over',
+        candidate === zone
+      );
     });
 }
 
 const zoneAt = (x, y, selector) =>
-  document.elementFromPoint(x, y)?.closest(selector) || null;
+  document
+    .elementFromPoint(x,y)
+    ?.closest(selector) ||
+  null;
 
 const unmarkZones = selector =>
   document
     .querySelectorAll(selector)
-    .forEach(zone => zone.classList.remove('over'));
+    .forEach(zone => {
+      zone.classList.remove('over');
+    });
 
 function settle(chip) {
-  chip.classList.remove('dragging');
+  chip.classList.remove(
+    'dragging'
+  );
+
   chip.style.left = '';
   chip.style.top = '';
   chip.style.width = '';
@@ -1898,11 +1490,12 @@ function finishDrag(e) {
     onDrop
   } = drag;
 
-  const zone = zoneAt(
-    e.clientX,
-    e.clientY,
-    zoneSelector
-  );
+  const zone =
+    zoneAt(
+      e.clientX,
+      e.clientY,
+      zoneSelector
+    );
 
   unmarkZones(zoneSelector);
 
@@ -1910,89 +1503,166 @@ function finishDrag(e) {
 
   settle(chip);
 
-  onDrop(chip, zone);
+  onDrop(chip,zone);
+}
+
+/* ==================================================
+   ORIGINAL DROP LOGIC + ACTIVITY REPORTING
+================================================== */
+
+function dropOnHotspot(chip, zone) {
+  if (
+    !zone ||
+    zone.classList.contains(
+      'filled'
+    )
+  ) {
+    return;
+  }
+
+  const correct =
+    zone.dataset.stage ===
+    chip.dataset.stage;
+
+  if (correct) {
+    score += 10;
+
+    $('score').textContent =
+      score;
+
+    diff.right();
+
+    IAKidsActivity.correct();
+
+    IAKidsFX.correct(zone);
+    IAKidsCoins.right(zone);
+
+    zone.classList.add(
+      'filled'
+    );
+
+    zone
+      .querySelector('span')
+      .textContent =
+        chip.dataset.name;
+
+    placed.add(
+      chip.dataset.stage
+    );
+
+    chip.remove();
+
+    setTimeout(next,500);
+  } else {
+    mistakes++;
+
+    diff.wrong();
+
+    IAKidsActivity.wrong();
+
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
+}
+
+function dropOnSlot(chip, zone) {
+  if (
+    !zone ||
+    zone.children.length > 1
+  ) {
+    return;
+  }
+
+  const correct =
+    String(zone.dataset.rank) ===
+    chip.dataset.rank;
+
+  if (correct) {
+    /*
+      שלב הסידור הוא בונוס.
+      לא מדווחים עליו כשאלה נוספת,
+      כדי questions_count יישאר TOTAL.
+    */
+    score += 10;
+
+    $('score').textContent =
+      score;
+
+    IAKidsFX.correct(zone);
+    IAKidsCoins.right(zone);
+
+    zone.innerHTML =
+      `<span class="rank">` +
+      `${zone.dataset.rank}` +
+      `</span>` +
+      `<span class="n">` +
+      `${chip.innerHTML}` +
+      `</span>`;
+
+    seqPlaced.add(
+      chip.dataset.stage
+    );
+
+    chip.remove();
+
+    setTimeout(
+      seqNextItem,
+      400
+    );
+  } else {
+    mistakes++;
+
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
 }
 
 /* ==================================================
    END + DATABASE
 ================================================== */
 
-async function endGame(){
-  timer?.stop();
-
+async function end() {
   const maxScore =
     (TOTAL + stageCount) * 10;
 
   /*
-    קודם סוגרים את ה-session.
-    כך גם אם leaderboard או share ייכשלו,
-    הפרוגרס כבר נשמר.
+    קודם סוגרים את session בטבלה.
+    כך כשל ב-leaderboard לא מבטל את הפרוגרס.
   */
-  try{
+  try {
     await game.complete(
       score,
       {
         maxScore,
 
         metadata:{
-          selected_level:
-            level,
-
+          selected_level:level,
           random_difficulty:
             level === 0,
-
-          total_rounds:
-            TOTAL,
-
+          total_rounds:TOTAL,
           mistakes,
-
-          stage_count:
-            stageCount,
-
-          sequence_completed:
-            true,
-
-          game_mode:
-            'water-cycle',
-
-          child_grade:
-            CHILD_GRADE,
-
-          uses_niqqud:
-            USE_NIQQUD
+          stage_count:stageCount,
+          sequence_completed:true,
+          game_mode:'water-cycle',
+          child_grade:CHILD_GRADE,
+          uses_niqqud:USE_NIQQUD
         }
       }
     );
-
-    console.log(
-      'Water-cycle session completed',
-      {
-        score,
-        maxScore,
-        level,
-        mistakes,
-        totalRounds:TOTAL
-      }
-    );
-
-  }catch(error){
+  } catch (error) {
     console.error(
-      'game.complete failed:',
+      'water-cycle complete failed:',
       error
     );
 
     alert(
-      'שמירת תוצאת המשחק נכשלה. בדוק את ה-Console.'
+      'המשחק הסתיים, אבל שמירת הפרוגרס נכשלה. בדוק את ה-Console.'
     );
 
     return;
   }
 
-  /*
-    leaderboard ומסך סיום:
-    כשל כאן לא מבטל את שמירת הפרוגרס.
-  */
-  try{
+  try {
     await game.saveScore(
       score,
       {
@@ -2003,17 +1673,16 @@ async function endGame(){
       }
     );
 
-    const topScores =
-      await game.getHighScores(1);
-
     const top =
-      topScores?.[0];
+      (
+        await game.getHighScores(1)
+      )[0];
 
     $('final-score').textContent =
-      String(score);
+      score;
 
     $('best').textContent =
-      String(top?.score ?? score);
+      top?.score ?? score;
 
     $('player-line').textContent =
       `${
@@ -2030,13 +1699,9 @@ async function endGame(){
           )
       }`;
 
-    const trackedAttempts =
-      TOTAL + mistakes;
-
     const accuracy =
-      trackedAttempts > 0
-        ? TOTAL / trackedAttempts
-        : 0;
+      TOTAL /
+      (TOTAL + mistakes);
 
     $('stars').textContent =
       '⭐'.repeat(
@@ -2047,24 +1712,24 @@ async function endGame(){
             : 1
       );
 
-    show('end-screen');
-
     game.shareButton(
       score,
       $('share-slot')
     );
 
-  }catch(error){
+    show('end-screen');
+
+  } catch (error) {
     console.error(
-      'End-screen rendering failed:',
+      'water-cycle end screen failed:',
       error
     );
 
     $('final-score').textContent =
-      String(score);
+      score;
 
     $('best').textContent =
-      String(score);
+      score;
 
     show('end-screen');
   }
