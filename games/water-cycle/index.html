@@ -22,9 +22,467 @@
 .slot .n{font-size:1rem;font-weight:800}
 #trivia-mode,#sequence-mode{display:none}
 #seq-title{font-weight:700;margin-top:10px}
+
+/* ==================================================
+   IAKIDS PREMIUM GAME SHELL — WATER CYCLE
+================================================== */
+
+html,
+body,
+button{
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+}
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:88px 20px 30px !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0 !important;
+
+  color:#f7f9ff !important;
+
+  background:
+    radial-gradient(circle at 15% 15%,rgba(27,137,255,.22),transparent 34%),
+    radial-gradient(circle at 87% 10%,rgba(119,73,255,.22),transparent 33%),
+    radial-gradient(circle at 50% 108%,rgba(20,215,150,.20),transparent 38%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.72) 0 1px,transparent 1.4px);
+
+  background-size:72px 72px;
+  opacity:.13;
+}
+
+.workspace-back{
+  position:fixed;
+  top:14px;
+  right:82px;
+  z-index:900;
+
+  min-height:48px;
+  padding:0 18px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+
+  border:1px solid rgba(160,191,255,.34);
+  border-radius:16px;
+
+  color:#fff;
+  text-decoration:none;
+
+  background:linear-gradient(145deg,#7956ff,#4e31bf);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 11px 28px rgba(0,0,0,.32);
+
+  font-size:14px;
+  font-weight:900;
+}
+
+.game-hud{
+  position:relative !important;
+  inset:auto !important;
+  transform:none !important;
+  z-index:10 !important;
+
+  width:min(720px,100%) !important;
+  min-width:0 !important;
+  min-height:58px !important;
+
+  margin:0 auto !important;
+  padding:8px 20px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:34px !important;
+
+  border:1px solid rgba(126,180,255,.24) !important;
+  border-bottom:0 !important;
+  border-radius:26px 26px 0 0 !important;
+
+  color:#fff !important;
+
+  background:
+    linear-gradient(145deg,rgba(27,45,87,.98),rgba(9,22,50,.98)) !important;
+
+  box-shadow:
+    inset 0 -1px 0 rgba(255,255,255,.03),
+    0 9px 23px rgba(0,0,0,.18) !important;
+
+  font-size:15px !important;
+  font-weight:900 !important;
+}
+
+.game-hud .score{
+  color:#ffc83d !important;
+}
+
+.game-hud #score{
+  color:#fff !important;
+  font-size:18px;
+}
+
+.game-hud #qnum,
+.game-hud #qtotal{
+  color:#69deff !important;
+}
+
+.game-card{
+  position:relative !important;
+
+  width:min(720px,100%) !important;
+  min-height:650px !important;
+
+  margin:0 auto !important;
+  padding:28px 38px 38px !important;
+
+  overflow:hidden !important;
+
+  border:1px solid rgba(119,176,255,.27) !important;
+  border-radius:0 0 32px 32px !important;
+
+  color:#f7f9ff !important;
+
+  background:
+    radial-gradient(circle at 50% 0%,rgba(48,145,255,.22),transparent 40%),
+    linear-gradient(145deg,rgba(19,43,86,.98),rgba(7,21,48,.99)) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 30px 75px rgba(0,5,25,.5),
+    0 0 48px rgba(45,138,255,.1) !important;
+
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+
+.game-card::before{
+  content:"";
+  position:absolute;
+  inset:10px;
+  pointer-events:none;
+
+  border:1px solid rgba(126,180,255,.13);
+  border-radius:24px;
+}
+
+#start-screen,
+#play-screen,
+#end-screen{
+  position:relative;
+  z-index:3;
+}
+
+#start-screen{
+  text-align:center;
+}
+
+#start-screen > div:first-child{
+  margin-top:2px;
+  font-size:5rem !important;
+  line-height:1;
+  filter:drop-shadow(0 12px 17px rgba(0,0,0,.3));
+  animation:waterFloat 2.8s ease-in-out infinite;
+}
+
+@keyframes waterFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-7px)}
+}
+
+.game-title{
+  margin:13px 0 10px !important;
+  color:#fff !important;
+
+  font-size:clamp(38px,5vw,54px) !important;
+  line-height:1.05 !important;
+  font-weight:900 !important;
+
+  text-shadow:
+    0 4px 16px rgba(0,0,0,.38),
+    0 0 23px rgba(68,180,255,.18);
+}
+
+#howto{
+  max-width:600px;
+  margin:0 auto 20px !important;
+
+  color:#b8c7e3 !important;
+
+  font-size:16px !important;
+  line-height:1.7 !important;
+  font-weight:600;
+}
+
+#rounds-label{
+  margin:21px 0 9px !important;
+  color:#fff !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+}
+
+.answer-grid{
+  display:grid !important;
+  gap:12px !important;
+  margin-top:13px !important;
+}
+
+#rounds-row{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+
+#level-row{
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+}
+
+.game-btn{
+  min-height:58px !important;
+  padding:10px 15px !important;
+
+  border:1px solid rgba(255,255,255,.19) !important;
+  border-radius:17px !important;
+
+  color:#fff !important;
+
+  background:linear-gradient(145deg,#7653ff,#4e32bd) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    inset 0 -8px 15px rgba(0,0,0,.14),
+    0 9px 21px rgba(26,9,91,.32) !important;
+
+  font-size:16px !important;
+  font-weight:900 !important;
+
+  cursor:pointer;
+}
+
+.game-btn.outline{
+  color:#dce8ff !important;
+  border-color:rgba(124,170,244,.3) !important;
+  background:linear-gradient(145deg,rgba(40,62,110,.96),rgba(19,35,71,.98)) !important;
+}
+
+.game-btn.outline.success{
+  color:#fff !important;
+  border-color:rgba(92,239,161,.65) !important;
+  background:linear-gradient(145deg,#35cd7e,#178f57) !important;
+}
+
+.game-btn.secondary{
+  background:linear-gradient(145deg,#178bd7,#0d579b) !important;
+}
+
+#play-screen{
+  min-height:500px;
+}
+
+#illustration{
+  width:100%;
+  max-width:560px;
+  margin:10px auto 18px;
+  border:1px solid rgba(117,191,255,.28);
+  border-radius:24px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 20px 40px rgba(0,10,35,.30);
+}
+
+.hotspot{
+  border:3px dashed rgba(94,189,255,.66) !important;
+  background:rgba(11,47,98,.12);
+}
+
+.hotspot.over{
+  border-color:#69deff !important;
+  background:rgba(39,169,239,.25) !important;
+}
+
+.hotspot.filled{
+  border-style:solid !important;
+  border-color:#52e397 !important;
+  background:rgba(43,200,117,.35) !important;
+}
+
+.hotspot span{
+  color:#08204b;
+  background:#fff;
+}
+
+#tray,
+#seq-tray{
+  min-height:100px;
+}
+
+.chip{
+  min-width:132px !important;
+  min-height:72px !important;
+
+  padding:11px 16px !important;
+  margin:7px !important;
+
+  border:1px solid rgba(122,191,255,.36) !important;
+  border-radius:20px !important;
+
+  color:#f7f9ff !important;
+
+  background:
+    radial-gradient(circle at 50% 0%,rgba(87,173,255,.23),transparent 59%),
+    linear-gradient(145deg,rgba(38,67,121,.98),rgba(17,39,80,.98)) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    0 11px 23px rgba(0,8,31,.3) !important;
+
+  font-size:1.05rem !important;
+  font-weight:900 !important;
+}
+
+.game-question{
+  width:fit-content;
+  max-width:100%;
+
+  margin:10px auto 18px !important;
+  padding:13px 18px;
+
+  border:1px solid rgba(109,184,255,.25);
+  border-radius:17px;
+
+  color:#fff !important;
+  background:rgba(35,77,136,.42);
+
+  font-size:1.35rem !important;
+  line-height:1.5;
+  font-weight:900 !important;
+  text-align:center;
+}
+
+#seq-title{
+  margin:10px 0 18px;
+  color:#fff;
+  font-size:1.35rem;
+  font-weight:900;
+  text-align:center;
+}
+
+.slot{
+  min-width:125px !important;
+  min-height:76px !important;
+
+  border:3px dashed rgba(126,180,255,.45) !important;
+  border-radius:18px !important;
+
+  color:#fff;
+  background:rgba(7,34,77,.55);
+}
+
+.end-screen{
+  min-height:500px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.end-screen .stars{
+  font-size:4rem;
+}
+
+.end-screen .big-score{
+  margin:17px 0 9px;
+  color:#fff;
+  font-size:4.4rem;
+  line-height:1;
+  font-weight:900;
+}
+
+@media(max-width:680px){
+  body{
+    padding:75px 10px 16px !important;
+    justify-content:flex-start !important;
+  }
+
+  .workspace-back{
+    top:9px;
+    right:62px;
+    min-height:43px;
+    padding:0 11px;
+    border-radius:13px;
+    font-size:11px;
+  }
+
+  .game-hud{
+    width:100% !important;
+    min-height:52px !important;
+    padding:6px 10px !important;
+    gap:20px !important;
+    font-size:12px !important;
+  }
+
+  .game-card{
+    width:100% !important;
+    min-height:0 !important;
+    padding:24px 14px 28px !important;
+    border-radius:0 0 25px 25px !important;
+  }
+
+  .game-title{
+    font-size:34px !important;
+  }
+
+  #howto{
+    font-size:14px !important;
+  }
+
+  #level-row{
+    grid-template-columns:1fr !important;
+  }
+
+  .game-btn{
+    min-height:51px !important;
+    font-size:14px !important;
+  }
+
+  .chip{
+    min-width:94px !important;
+    min-height:62px !important;
+  }
+
+  .slot{
+    min-width:90px !important;
+  }
+}
+
 </style>
 </head>
 <body>
+
+<a class="workspace-back" href="/he/games/workspace/">
+  <span>🏰</span>
+  חזרה למפת המשחקים
+</a>
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -132,7 +590,7 @@ const STAGES = [
   { id:'runoff',        n:'הזרמה',    e:'🌊',   rank:4, why:'הגשם שנופל זורם בנחלים ובנהרות בחזרה לים' },
 ];
 
-let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, stageCount = 3;
+let game, diff, timer, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, stageCount = 3;
 const placed = new Set();
 
 function setRounds(n, btn) {
@@ -158,8 +616,29 @@ const showMode = id => {
 async function start(lvl) {
   await ready;
   level = lvl;
-  stageCount = lvl === 1 ? 3 : 4; // easy: evap/cond/precip · medium+/random/hard board: + runoff
+  stageCount = lvl === 1 ? 3 : 4;
   diff = game.difficulty(lvl || 1, 3);
+
+  IAKidsActivity.configure({
+    difficulty: lvl,
+    questionsCount: TOTAL,
+    metadata: {
+      selected_level: lvl,
+      random_difficulty: lvl === 0,
+      game_mode: 'water-cycle'
+    }
+  });
+
+  timer = game.timer({
+    style: 'bomb',
+    onTimeout: () => {
+      IAKidsActivity.skipped();
+      mistakes++;
+      IAKidsCoins.wrong();
+      setTimeout(next, 350);
+    }
+  });
+
   await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
   $('qtotal').textContent = TOTAL;
   document.querySelectorAll('.hotspot').forEach(h => {
@@ -175,7 +654,14 @@ async function next() {
   if (qnum >= TOTAL) return startSequenceStep();
   qnum++;
   $('qnum').textContent = qnum;
+
+  IAKidsActivity.questionStarted();
+
   const effLvl = level === 0 ? diff.level : level;
+
+  timer.start(
+    IAKidsTimer.secondsFor(effLvl, 18)
+  );
   if (effLvl >= 3) { showMode('trivia-mode'); await showTrivia(); }
   else { showMode('order-mode'); await showOrderItem(); }
 }
@@ -196,8 +682,22 @@ async function showTrivia() {
   });
 }
 function answerTrivia(correct, btn) {
-  if (correct) { score += 10; diff.right(); IAKidsFX.correct(btn); IAKidsCoins.right(btn); }
-  else { mistakes++; diff.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong(); }
+  timer.stop();
+
+  if (correct) {
+    score += 10;
+    diff.right();
+    IAKidsActivity.correct();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsActivity.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+
   $('score').textContent = score;
   setTimeout(next, 700);
 }
@@ -226,6 +726,7 @@ async function showOrderItem() {
 }
 
 async function startSequenceStep() {
+  timer?.stop();
   showMode('sequence-mode');
   const slots = $('seq-slots');
   slots.innerHTML = '';
@@ -300,9 +801,11 @@ function dropOnHotspot(chip, z) {
   if (!z || z.classList.contains('filled')) return;
   const correct = z.dataset.stage === chip.dataset.stage;
   if (correct) {
+    timer.stop();
     score += 10;
     $('score').textContent = score;
     diff.right();
+    IAKidsActivity.correct();
     IAKidsFX.correct(z);
     IAKidsCoins.right(z);
     z.classList.add('filled');
@@ -313,6 +816,7 @@ function dropOnHotspot(chip, z) {
   } else {
     mistakes++;
     diff.wrong();
+    IAKidsActivity.wrong();
     IAKidsFX.wrong(chip);
     IAKidsCoins.wrong();
   }
@@ -338,7 +842,14 @@ function dropOnSlot(chip, z) {
 }
 
 async function end() {
-  await game.saveScore(score, { level, mistakes });
+  timer?.stop();
+
+  await game.saveScore(score, {
+    level,
+    mistakes,
+    rounds: TOTAL,
+    stage_count: stageCount
+  });
   const top = (await game.getHighScores(1))[0];
   $('final-score').textContent = score;
   $('best').textContent = top?.score ?? score;
@@ -347,7 +858,17 @@ async function end() {
   $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
   game.shareButton(score, $('share-slot'));
   show('end-screen');
-  game.complete(score);
+  game.complete(score, {
+    maxScore: (TOTAL + stageCount) * 10,
+    metadata: {
+      selected_level: level,
+      total_rounds: TOTAL,
+      mistakes,
+      stage_count: stageCount,
+      sequence_completed: true,
+      game_mode: 'water-cycle'
+    }
+  });
 }
 </script>
 </body>
