@@ -347,6 +347,31 @@ body::before{
   .slot{ min-width:90px !important; }
 }
 
+
+/* תיקון יציבות הכרטיסים */
+#tray,
+#seq-tray{
+  position:relative !important;
+  z-index:20 !important;
+  width:100% !important;
+  min-height:86px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+#tray .chip,
+#seq-tray .chip{
+  position:relative;
+  left:auto;
+  top:auto;
+}
+
+#tray .chip.dragging,
+#seq-tray .chip.dragging{
+  position:fixed !important;
+}
+
 </style>
 </head>
 <body>
@@ -481,7 +506,7 @@ const T = USE_NIQQUD ? {
 } : {
   title:   { he: 'מחזור המים בטבע', en: 'The Water Cycle' },
   howto:   { he: 'גרור כל שלב למקום הנכון באיור!', en: 'Drag each stage to its place on the picture!' },
-  rounds:  { he: 'כמה שאלות?', en: 'How many questions?' },
+  rounds:  { he: 'כמה שאלות2?', en: 'How many questions?' },
   seqTitle:{ he: 'עכשיו סדרו את השלבים לפי הסדר הנכון בזמן!', en: 'Now put the stages in the correct order!' },
 };
 IAKidsCoins.mount();
@@ -598,7 +623,7 @@ async function next() {
 }
 
 async function showTrivia() {
-  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + s.id);
+  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => `trivia:${qnum}:${s.id}`);
   $('trivia-q').textContent = t.why + ' — ' + IAKidsLang.t({ he:'איך קוראים לשלב הזה?', en:'What is this stage called?' });
   const box = $('trivia-opts');
   box.innerHTML = '';
@@ -620,24 +645,62 @@ function answerTrivia(correct, btn) {
 }
 
 async function showOrderItem() {
-  if (placed.size >= stageCount) { // board full — reset for a fresh round of labeling
+  if (placed.size >= stageCount) {
     placed.clear();
-    document.querySelectorAll('.hotspot').forEach(h => { h.classList.remove('filled'); h.querySelector('span').textContent = ''; });
+
+    document.querySelectorAll('.hotspot').forEach(h => {
+      h.classList.remove('filled');
+      h.querySelector('span').textContent = '';
+    });
   }
+
   const tray = $('tray');
   tray.innerHTML = '';
-  const s = await game.newQuestion(
-    () => {
-      const pool = STAGES.slice(0, stageCount).filter(x => !placed.has(x.id));
-      return pool[rnd(pool.length)];
-    },
-    x => 'order:' + x.id
-  );
+
+  const pool = STAGES
+    .slice(0, stageCount)
+    .filter(x => !placed.has(x.id));
+
+  /*
+    הגנה: לעולם לא ממשיכים בלי כרטיס.
+    אם מסיבה כלשהי המאגר התרוקן, מאפסים את הלוח ומנסים שוב.
+  */
+  if (!pool.length) {
+    placed.clear();
+
+    document.querySelectorAll('.hotspot').forEach(h => {
+      h.classList.remove('filled');
+      h.querySelector('span').textContent = '';
+    });
+
+    return showOrderItem();
+  }
+
+  let s = null;
+
+  try {
+    s = await game.newQuestion(
+      () => pool[rnd(pool.length)],
+      x => `order:${qnum}:${x.id}`
+    );
+  } catch (error) {
+    console.warn('newQuestion failed; using local fallback', error);
+  }
+
+  /*
+    אם ה-SDK החזיר null/undefined בגלל מניעת חזרות,
+    משתמשים ישירות בפריט מהמאגר הפעיל.
+  */
+  if (!s) {
+    s = pool[rnd(pool.length)];
+  }
+
   const chip = document.createElement('div');
   chip.className = 'chip';
   chip.innerHTML = `<span>${s.e}</span><span>${s.n}</span>`;
   chip.dataset.stage = s.id;
   chip.dataset.name = s.n;
+
   makeDraggable(chip, '.hotspot', dropOnHotspot);
   tray.appendChild(chip);
 }
@@ -660,15 +723,24 @@ async function startSequenceStep() {
 const seqPlaced = new Set();
 async function seqNextItem() {
   if (seqPlaced.size >= stageCount) return end();
+
   const tray = $('seq-tray');
   tray.innerHTML = '';
-  const pool = STAGES.slice(0, stageCount).filter(x => !seqPlaced.has(x.id));
+
+  const pool = STAGES
+    .slice(0, stageCount)
+    .filter(x => !seqPlaced.has(x.id));
+
+  if (!pool.length) return end();
+
   const s = pool[rnd(pool.length)];
+
   const chip = document.createElement('div');
   chip.className = 'chip';
   chip.innerHTML = `<span>${s.e}</span><span>${s.n}</span>`;
   chip.dataset.rank = s.rank;
   chip.dataset.stage = s.id;
+
   makeDraggable(chip, '.slot', dropOnSlot);
   tray.appendChild(chip);
 }
