@@ -692,42 +692,6 @@ const showMode = id => {
   for (const s of ['order-mode', 'trivia-mode', 'sequence-mode']) $(s).style.display = s === id ? 'block' : 'none';
 };
 
-async function start(lvl) {
-  await ready;
-  level = lvl;
-  stageCount = lvl === 1 ? 3 : 4;
-  diff = game.difficulty(lvl || 1, 3);
-
-  IAKidsActivity.configure({
-    difficulty: lvl,
-    questionsCount: TOTAL,
-    metadata: {
-      selected_level: lvl,
-      random_difficulty: lvl === 0,
-      game_mode: 'water-cycle'
-    }
-  });
-
-  timer = game.timer({
-    style: 'bomb',
-    onTimeout: () => {
-      IAKidsActivity.skipped();
-      mistakes++;
-      IAKidsCoins.wrong();
-      setTimeout(next, 350);
-    }
-  });
-
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  $('qtotal').textContent = TOTAL;
-  document.querySelectorAll('.hotspot').forEach(h => {
-    h.hidden = STAGES.find(s => s.id === h.dataset.stage).rank > stageCount;
-  });
-  placed.clear();
-  document.querySelectorAll('.hotspot').forEach(h => { h.classList.remove('filled'); h.querySelector('span').textContent = ''; });
-  show('play-screen');
-  next();
-}
 
 async function next() {
   if (qnum >= TOTAL) return startSequenceStep();
