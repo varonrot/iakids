@@ -23,339 +23,22 @@
 #trivia-mode,#sequence-mode{display:none}
 #seq-title{font-weight:700;margin-top:10px}
 
-/* ==================================================
-   IAKIDS PREMIUM SHELL — SAFE VISUAL OVERRIDES ONLY
-   מנגנון המשחק, הכרטיסים והגרירה נשארים ללא שינוי
-================================================== */
-
-html,
-body,
-button{
-  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
-}
-
-*{ box-sizing:border-box; }
-
-body{
-  margin:0 !important;
-  min-height:100vh !important;
-  padding:88px 18px 30px !important;
-
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:center !important;
-
-  color:#f7f9ff !important;
-
-  background:
-    radial-gradient(circle at 14% 14%,rgba(26,139,255,.22),transparent 34%),
-    radial-gradient(circle at 88% 10%,rgba(117,72,255,.22),transparent 34%),
-    radial-gradient(circle at 50% 108%,rgba(17,211,151,.18),transparent 38%),
-    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
-
-  overflow-x:hidden;
-}
-
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  pointer-events:none;
-  background-image:
-    radial-gradient(circle,rgba(255,255,255,.72) 0 1px,transparent 1.4px);
-  background-size:72px 72px;
-  opacity:.13;
-}
-
-.workspace-back{
-  position:fixed;
-  top:14px;
-  right:82px;
-  z-index:900;
-
-  min-height:48px;
-  padding:0 18px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:9px;
-
-  color:#fff;
-  text-decoration:none;
-  font-size:14px;
-  font-weight:900;
-
-  border:1px solid rgba(160,191,255,.34);
-  border-radius:16px;
-
-  background:linear-gradient(145deg,#7956ff,#4e31bf);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    0 11px 28px rgba(0,0,0,.32);
-}
-
-.game-hud{
-  position:relative !important;
-  inset:auto !important;
-  transform:none !important;
-
-  width:min(720px,100%) !important;
-  min-width:0 !important;
-  min-height:58px !important;
-
-  margin:0 auto !important;
-  padding:8px 20px !important;
-
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:34px !important;
-
-  color:#fff !important;
-
-  border:1px solid rgba(126,180,255,.24) !important;
-  border-bottom:0 !important;
-  border-radius:26px 26px 0 0 !important;
-
-  background:linear-gradient(145deg,rgba(27,45,87,.98),rgba(9,22,50,.98)) !important;
-  box-shadow:
-    inset 0 -1px 0 rgba(255,255,255,.03),
-    0 9px 23px rgba(0,0,0,.18) !important;
-
-  font-size:15px !important;
-  font-weight:900 !important;
-}
-
-.game-hud .score{ color:#ffc83d !important; }
-.game-hud #score{ color:#fff !important; font-size:18px; }
-.game-hud #qnum,
-.game-hud #qtotal{ color:#69deff !important; }
-
-.game-card{
-  position:relative !important;
-
-  width:min(720px,100%) !important;
-  min-height:650px !important;
-
-  margin:0 auto !important;
-  padding:28px 38px 38px !important;
-
-  /* לא מגדירים overflow — חשוב לגרירה המקורית */
-
-  color:#f7f9ff !important;
-
-  border:1px solid rgba(119,176,255,.27) !important;
-  border-radius:0 0 32px 32px !important;
-
-  background:
-    radial-gradient(circle at 50% 0%,rgba(48,145,255,.22),transparent 40%),
-    linear-gradient(145deg,rgba(19,43,86,.98),rgba(7,21,48,.99)) !important;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 30px 75px rgba(0,5,25,.5),
-    0 0 48px rgba(45,138,255,.1) !important;
-}
-
-.game-title{
-  margin:13px 0 10px !important;
-  color:#fff !important;
-  font-size:clamp(38px,5vw,54px) !important;
-  line-height:1.08 !important;
-  font-weight:900 !important;
-  text-shadow:
-    0 4px 16px rgba(0,0,0,.38),
-    0 0 23px rgba(68,180,255,.18);
-}
-
-#howto{
-  max-width:600px;
-  margin:0 auto 20px !important;
-  color:#c8d8ef !important;
-  font-size:16px !important;
-  line-height:1.7 !important;
-  font-weight:700;
-}
-
-#rounds-label{
-  margin:21px 0 9px !important;
-  color:#fff !important;
-  font-size:18px !important;
-  font-weight:900 !important;
-}
-
-.game-btn{
-  min-height:58px !important;
-  padding:10px 15px !important;
-  color:#fff !important;
-  border:1px solid rgba(255,255,255,.19) !important;
-  border-radius:17px !important;
-  background:linear-gradient(145deg,#7653ff,#4e32bd) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.2),
-    inset 0 -8px 15px rgba(0,0,0,.14),
-    0 9px 21px rgba(26,9,91,.32) !important;
-  font-size:16px !important;
-  font-weight:900 !important;
-}
-
-.game-btn.outline{
-  color:#dce8ff !important;
-  border-color:rgba(124,170,244,.3) !important;
-  background:linear-gradient(145deg,rgba(40,62,110,.96),rgba(19,35,71,.98)) !important;
-}
-
-.game-btn.outline.success{
-  color:#fff !important;
-  border-color:rgba(92,239,161,.65) !important;
-  background:linear-gradient(145deg,#35cd7e,#178f57) !important;
-}
-
-.game-btn.secondary{
-  background:linear-gradient(145deg,#178bd7,#0d579b) !important;
-}
-
-#illustration{
-  max-width:560px !important;
-  margin:10px auto 18px !important;
-  border:1px solid rgba(117,191,255,.28);
-  border-radius:24px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 20px 40px rgba(0,10,35,.30) !important;
-}
-
-/* משאירים את display/position של chip, tray ו-drag כפי שהם במקור */
-.chip{
-  min-width:132px !important;
-  min-height:72px !important;
-  padding:11px 16px !important;
-  margin:7px !important;
-  color:#f7f9ff !important;
-  border:1px solid rgba(122,191,255,.36) !important;
-  border-radius:20px !important;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(87,173,255,.23),transparent 59%),
-    linear-gradient(145deg,rgba(38,67,121,.98),rgba(17,39,80,.98)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.1),
-    0 11px 23px rgba(0,8,31,.3) !important;
-  font-size:1.05rem !important;
-  font-weight:900 !important;
-}
-
-.chip.dragging{
-  z-index:99999 !important;
-  opacity:1 !important;
-  visibility:visible !important;
-}
-
-.hotspot{
-  border-color:rgba(94,189,255,.66) !important;
-  background:rgba(11,47,98,.12);
-}
-.hotspot.over{
-  border-color:#69deff !important;
-  background:rgba(39,169,239,.25) !important;
-}
-.hotspot.filled{
-  border-color:#52e397 !important;
-  background:rgba(43,200,117,.35) !important;
-}
-.hotspot span{
-  color:#08204b !important;
-  background:#fff !important;
-}
-
-.game-question{
-  color:#fff !important;
-  background:rgba(35,77,136,.42);
-  border:1px solid rgba(109,184,255,.25);
-  border-radius:17px;
-  font-weight:900 !important;
-}
-
-#seq-title{
-  color:#fff !important;
-  font-size:1.35rem;
-  font-weight:900 !important;
-  text-align:center;
-}
-
-.slot{
-  color:#fff;
-  background:rgba(7,34,77,.55);
-  border-color:rgba(126,180,255,.45) !important;
-  border-radius:18px !important;
-}
-.slot.over{
-  border-color:#65dfff !important;
-  background:rgba(32,150,221,.22) !important;
-}
-
-/* תיקון צבע תיבת הדוגמה בחלונית העזרה */
-[class*="help"] [class*="example"],
-[role="dialog"] [class*="example"]{
+/* תיקון צבע הטקסט בחלונית העזרה בלבד */
+[role="dialog"] [class*="example"],
+[class*="help"] [class*="example"]{
   color:#102a4f !important;
   background:#fff1e8 !important;
   text-shadow:none !important;
 }
-[class*="help"] [class*="example"] *,
-[role="dialog"] [class*="example"] *{
+[role="dialog"] [class*="example"] *,
+[class*="help"] [class*="example"] *{
   color:#102a4f !important;
   text-shadow:none !important;
-}
-
-@media(max-width:680px){
-  body{
-    padding:75px 10px 16px !important;
-    justify-content:flex-start !important;
-  }
-
-  .workspace-back{
-    top:9px;
-    right:62px;
-    min-height:43px;
-    padding:0 11px;
-    border-radius:13px;
-    font-size:11px;
-  }
-
-  .game-hud{
-    width:100% !important;
-    min-height:52px !important;
-    padding:6px 10px !important;
-    gap:20px !important;
-    font-size:12px !important;
-  }
-
-  .game-card{
-    width:100% !important;
-    min-height:0 !important;
-    padding:24px 14px 28px !important;
-    border-radius:0 0 25px 25px !important;
-  }
-
-  .game-title{ font-size:34px !important; }
-  #howto{ font-size:14px !important; }
-  #level-row{ grid-template-columns:1fr !important; }
-  .game-btn{ min-height:51px !important; font-size:14px !important; }
-  .chip{ min-width:94px !important; min-height:62px !important; }
-  .slot{ min-width:90px !important; }
 }
 
 </style>
 </head>
 <body>
-
-<a class="workspace-back" href="/he/games/workspace/">
-  <span>🏰</span>
-  <span id="back-text">חזרה למפת המשחקים</span>
-</a>
-
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -434,38 +117,54 @@ body::before{
 const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
 
-function _num(v){
-  const n = Number(v);
+function readNumber(value){
+  const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
-function _gradeFromObject(raw){
+function readGradeObject(raw){
   if (!raw) return null;
   try{
-    const o = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return _num(o?.grade) ?? _num(o?.age) ?? _num(o?.class_grade) ?? _num(o?.school_grade);
+    const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return (
+      readNumber(obj?.grade) ??
+      readNumber(obj?.age) ??
+      readNumber(obj?.class_grade) ??
+      readNumber(obj?.school_grade)
+    );
   }catch{
     return null;
   }
 }
 
 function getChildGrade(){
-  const direct = [
-    'active_kid_grade','iakids_active_kid_grade','selected_kid_grade',
-    'kid_grade','grade','active_kid_age','kid_age','age'
+  const directKeys = [
+    'active_kid_grade',
+    'iakids_active_kid_grade',
+    'selected_kid_grade',
+    'kid_grade',
+    'grade',
+    'active_kid_age',
+    'kid_age',
+    'age'
   ];
-  for (const key of direct){
-    const n = _num(localStorage.getItem(key));
-    if (n !== null) return n;
+
+  for (const key of directKeys){
+    const value = readNumber(localStorage.getItem(key));
+    if (value !== null) return value;
   }
 
-  const objects = [
-    'active_kid','iakids_active_kid','selected_kid',
-    'kid_profile','active_kid_profile'
+  const objectKeys = [
+    'active_kid',
+    'iakids_active_kid',
+    'selected_kid',
+    'kid_profile',
+    'active_kid_profile'
   ];
-  for (const key of objects){
-    const n = _gradeFromObject(localStorage.getItem(key));
-    if (n !== null) return n;
+
+  for (const key of objectKeys){
+    const value = readGradeObject(localStorage.getItem(key));
+    if (value !== null) return value;
   }
 
   return null;
@@ -489,10 +188,10 @@ IAKidsHelp.mount({
   slug: 'water-cycle',
   how: USE_NIQQUD
     ? 'מַיִם בַּטֶּבַע עוֹבְרִים מַסָּע אֵין־סוֹפִי: הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַיָּם וְהַמַּיִם <b>מִתְאַדִּים</b> וְעוֹלִים לַשָּׁמַיִם. שָׁם הֵם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת שֶׁיּוֹצְרוֹת עָנָן (<b>עִבּוּי</b>). כְּשֶׁהֶעָנָן מִתְמַלֵּא יוֹרֵד גֶּשֶׁם (<b>מִשְׁקָעִים</b>). הַגֶּשֶׁם זוֹרֵם בַּנְּחָלִים בַּחֲזָרָה לַיָּם (<b>הַזְרָמָה</b>).'
-    : 'מים בטבע עוברים מסע אינסופי: השמש מחממת את הים והמים <b>מתאדים</b> (אידוי) ועולים לשמיים. שם הם מתקררים ונהפכים לטיפות שיוצרות ענן (<b>עיבוי</b>). כשהענן מתמלא, יורד גשם (<b>משקעים</b>). הגשם זורם בנחלים בחזרה לים (<b>הזרמה</b>).',
+    : 'מים בטבע עוברים מסע אינסופי: השמש מחממת את הים והמים <b>מתאדים</b> (אידוי) ועולים לשמיים. שם הם מתקררים ונהפכים לטיפות שיוצרות ענן (<b>עיבוי</b>). כשהענן מתמלא, יורד גשם (<b>משקעים</b>). הגשם זורם בנחלים בחזרה לים (<b>הזרמה</b>) — והמסע מתחיל מחדש! גוררים כל שלב למקום שלו באיור, ואז מסדרים את השלבים לפי סדר הזמן הנכון.',
   example: USE_NIQQUD
     ? '💧☀️ אִדּוּי ← ☁️ עִבּוּי ← 🌧️ מִשְׁקָעִים ← 🌊 הַזְרָמָה ← וְחוֹזֵר חֲלִילָה'
-    : '💧☀️ אידוי ← ☁️ עיבוי ← 🌧️ משקעים ← 🌊 הזרמה ← וחוזר חלילה',
+    : '💧☀️ אידוי ← ☁️ עיבוי ← 🌧️ משקעים ← 🌊 הזרמה ← (וחוזר חלילה)',
 });
 $('title').textContent = IAKidsLang.t(T.title);
 $('howto').textContent = IAKidsLang.t(T.howto);
@@ -502,32 +201,15 @@ $('best-label').textContent = IAKidsLang.ui('your_best');
 $('again-btn').textContent = IAKidsLang.ui('play_again');
 $('seq-title').textContent = IAKidsLang.t(T.seqTitle);
 $('q-label').textContent = USE_NIQQUD ? 'שְׁאֵלָה' : 'שאלה';
-$('back-text').textContent = USE_NIQQUD ? 'חֲזָרָה לְמַפַּת הַמִּשְׂחָקִים' : 'חזרה למפת המשחקים';
 ['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
-  document.querySelectorAll('#level-row .game-btn')[i].textContent = USE_NIQQUD ? ['קַל','בֵּינוֹנִי','קָשֶׁה','אַקְרָאִי'][i] : IAKidsLang.ui(k));
-
-/* תיקון צבע הטקסט בתיבת הדוגמה הבהירה */
-new MutationObserver(() => {
-  document.querySelectorAll('[role="dialog"] *').forEach(el => {
-    const text = (el.textContent || '').trim();
-    if (text.includes('אידוי') || text.includes('אִדּוּי')) {
-      el.style.color = '#102a4f';
-      el.style.textShadow = 'none';
-      el.querySelectorAll('*').forEach(child => {
-        child.style.color = '#102a4f';
-        child.style.textShadow = 'none';
-      });
-    }
-  });
-}).observe(document.body, { childList:true, subtree:true });
-
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
 
 /* Verified scientific order: evaporation -> condensation -> precipitation -> runoff/collection */
 const STAGES = USE_NIQQUD ? [
-  { id:'evaporation',   n:'אִדּוּי',    e:'💧☀️', rank:1, why:'הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַמַּיִם בַּיָּם וְהֵם הוֹפְכִים לְאֵדִים שֶׁעוֹלִים לַשָּׁמַיִם' },
-  { id:'condensation',  n:'עִבּוּי',    e:'☁️',   rank:2, why:'הָאֵדִים בַּשָּׁמַיִם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת מַיִם קְטַנּוֹת שֶׁיּוֹצְרוֹת עָנָן' },
-  { id:'precipitation', n:'מִשְׁקָעִים', e:'🌧️', rank:3, why:'הֶעָנָן מִתְמַלֵּא בְּטִפּוֹת כְּבֵדוֹת שֶׁנּוֹפְלוֹת כְּגֶשֶׁם אוֹ כְּשֶׁלֶג' },
-  { id:'runoff',        n:'הַזְרָמָה',   e:'🌊',  rank:4, why:'הַגֶּשֶׁם שֶׁנּוֹפֵל זוֹרֵם בַּנְּחָלִים וּבַנְּהָרוֹת בַּחֲזָרָה לַיָּם' },
+  { id:'evaporation',   n:'אִדּוּי',     e:'💧☀️', rank:1, why:'הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַמַּיִם בַּיָּם וְהֵם הוֹפְכִים לְאֵדִים שֶׁעוֹלִים לַשָּׁמַיִם' },
+  { id:'condensation',  n:'עִבּוּי',     e:'☁️',   rank:2, why:'הָאֵדִים בַּשָּׁמַיִם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת מַיִם קְטַנּוֹת שֶׁיּוֹצְרוֹת עָנָן' },
+  { id:'precipitation', n:'מִשְׁקָעִים', e:'🌧️',  rank:3, why:'הֶעָנָן מִתְמַלֵּא בְּטִפּוֹת כְּבֵדוֹת שֶׁנּוֹפְלוֹת כְּגֶשֶׁם אוֹ כְּשֶׁלֶג' },
+  { id:'runoff',        n:'הַזְרָמָה',   e:'🌊',   rank:4, why:'הַגֶּשֶׁם שֶׁנּוֹפֵל זוֹרֵם בַּנְּחָלִים וּבַנְּהָרוֹת בַּחֲזָרָה לַיָּם' },
 ] : [
   { id:'evaporation',   n:'אידוי',    e:'💧☀️', rank:1, why:'השמש מחממת את המים בים והם הופכים לאדים שעולים לשמיים' },
   { id:'condensation',  n:'עיבוי',    e:'☁️',   rank:2, why:'האדים בשמיים מתקררים והופכים לטיפות מים קטנות שיוצרות ענן' },
@@ -598,7 +280,7 @@ async function next() {
 }
 
 async function showTrivia() {
-  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + s.id);
+  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + qnum + ':' + s.id);
   $('trivia-q').textContent = t.why + ' — ' + IAKidsLang.t({ he:'איך קוראים לשלב הזה?', en:'What is this stage called?' });
   const box = $('trivia-opts');
   box.innerHTML = '';
@@ -631,7 +313,7 @@ async function showOrderItem() {
       const pool = STAGES.slice(0, stageCount).filter(x => !placed.has(x.id));
       return pool[rnd(pool.length)];
     },
-    x => 'order:' + x.id
+    x => 'order:' + qnum + ':' + x.id
   );
   const chip = document.createElement('div');
   chip.className = 'chip';
@@ -780,25 +462,18 @@ async function end() {
     return;
   }
 
-  try {
-    await game.saveScore(score, { level, mistakes });
-    const top = (await game.getHighScores(1))[0];
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
 
-    $('final-score').textContent = score;
-    $('best').textContent = top?.score ?? score;
-    $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
 
-    const acc = TOTAL / (TOTAL + mistakes);
-    $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
+  const acc = TOTAL / (TOTAL + mistakes);
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
 
-    game.shareButton(score, $('share-slot'));
-    show('end-screen');
-  } catch (error) {
-    console.error('water-cycle end screen failed:', error);
-    $('final-score').textContent = score;
-    $('best').textContent = score;
-    show('end-screen');
-  }
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
 }
 </script>
 </body>
