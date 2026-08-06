@@ -4,279 +4,1471 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>מזג אוויר ולבוש | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
 <style>
-.chip{display:inline-flex;align-items:center;justify-content:center;min-width:64px;min-height:56px;padding:8px 12px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.15rem;font-weight:700;cursor:grab;touch-action:none;white-space:nowrap}
-.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
-#tray{min-height:90px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
-#weather-display{font-size:3.2rem;text-align:center;margin:6px 0}
-#weather-label{font-size:1.2rem;font-weight:800;text-align:center;color:var(--text);margin-bottom:6px}
-#progress-note{text-align:center;color:var(--muted);font-weight:700;margin-bottom:6px}
-#suitcase{min-height:100px;margin-top:10px}
-#suitcase h3{margin:0 0 6px;font-size:1.15rem;text-align:center}
-#suitcase-items{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:34px}
-#suitcase-items span{background:var(--green);color:#fff;border-radius:10px;padding:6px 12px;font-weight:700;font-size:1rem}
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-blue:#1693f1;
+  --space-green:#1ea96b;
+  --space-purple:#7653ff;
+  --space-gold:#ffd15c;
+}
+
+html,body{
+  min-height:100%;
+}
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:86px 18px 28px !important;
+  overflow-x:hidden;
+  color:var(--space-text) !important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(470px,calc(100vw - 28px)) !important;
+  min-height:690px;
+  margin:0 auto !important;
+  padding:0 !important;
+  overflow:hidden;
+  border:1px solid var(--space-line) !important;
+  border-radius:28px !important;
+  color:var(--space-text) !important;
+  background:
+    linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98)) !important;
+  box-shadow:
+    0 28px 75px rgba(0,8,28,.48),
+    inset 0 1px rgba(255,255,255,.08) !important;
+}
+
+.game-hud{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px !important;
+  display:flex !important;
+  align-items:center;
+  justify-content:center !important;
+  gap:42px;
+  color:#fff !important;
+  background:rgba(5,18,46,.88) !important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{
+  color:var(--space-gold) !important;
+}
+
+#start-screen,
+#play-screen,
+#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.15rem,7vw,3.2rem) !important;
+  line-height:1.05;
+  color:#fff !important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#howto{
+  max-width:360px;
+  margin:14px auto 20px;
+  color:var(--space-muted) !important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{
+  width:100%;
+  gap:12px !important;
+}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px !important;
+  border:1px solid rgba(118,176,255,.34) !important;
+  color:#fff !important;
+  font-weight:900 !important;
+  background:linear-gradient(180deg,#1c91db,#0877bd) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16) !important;
+}
+
+.game-btn:hover{
+  transform:translateY(-2px);
+}
+
+.game-btn.outline{
+  background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75)) !important;
+}
+
+.game-btn.success{
+  background:linear-gradient(180deg,#37d182,#16ad64) !important;
+  border-color:rgba(97,255,174,.6) !important;
+}
+
+#level-row{
+  margin-top:16px;
+}
+
+#level-row .game-btn[data-lvl="0"]{
+  background:linear-gradient(180deg,#8054ff,#6035dc) !important;
+}
+
+/* PLAY */
+#play-screen{
+  position:relative;
+}
+
+.play-heading{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin-bottom:12px;
+}
+
+#weather-display{
+  font-size:4.5rem;
+  line-height:1;
+  text-align:center;
+  margin:0;
+  filter:drop-shadow(0 10px 14px rgba(0,0,0,.2));
+}
+
+#weather-label{
+  font-size:1.45rem;
+  font-weight:900;
+  text-align:center;
+  color:#fff;
+}
+
+#progress-note{
+  width:max-content;
+  max-width:100%;
+  margin:0 auto 18px;
+  padding:7px 14px;
+  border-radius:999px;
+  color:#d9e8ff;
+  font-weight:800;
+  background:rgba(5,22,54,.5);
+  border:1px solid rgba(120,181,255,.2);
+}
+
+.wardrobe-title{
+  margin:0 0 8px;
+  text-align:center;
+  color:#fff;
+  font-size:1rem;
+}
+
+#tray{
+  min-height:180px;
+  padding:14px 10px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-content:center;
+  gap:10px;
+  border-radius:22px;
+  background:rgba(4,22,55,.5);
+  border:1px solid rgba(116,177,255,.18);
+}
+
+.chip{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:122px;
+  min-height:56px;
+  padding:9px 14px;
+  margin:0;
+  border:1px solid rgba(129,190,255,.35);
+  border-radius:15px;
+  color:#fff;
+  font-size:1rem;
+  font-weight:900;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  white-space:nowrap;
+  background:linear-gradient(180deg,#1c4e8d,#123b73);
+  box-shadow:0 9px 19px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.12);
+}
+
+.chip.dragging{
+  position:fixed;
+  z-index:100;
+  pointer-events:none;
+  cursor:grabbing;
+  transform:scale(1.05);
+  box-shadow:0 18px 40px rgba(0,0,0,.36);
+}
+
+#suitcase{
+  min-height:142px;
+  margin-top:18px;
+  padding:14px;
+  border:2px dashed rgba(106,189,255,.56);
+  border-radius:22px;
+  transition:.2s ease;
+  background:
+    linear-gradient(180deg,rgba(18,69,124,.48),rgba(5,31,69,.64));
+}
+
+#suitcase.over{
+  border-color:#5dffad;
+  background:rgba(35,185,111,.18);
+  transform:scale(1.015);
+}
+
+#suitcase h3{
+  margin:0 0 10px;
+  font-size:1.2rem;
+  text-align:center;
+}
+
+#suitcase-items{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  min-height:48px;
+}
+
+#suitcase-items span{
+  padding:7px 12px;
+  border-radius:11px;
+  color:#fff;
+  font-weight:900;
+  font-size:.95rem;
+  background:linear-gradient(180deg,#26bd76,#15995b);
+}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem !important;
+  letter-spacing:4px;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff !important;
+  font-size:4rem !important;
+  font-weight:1000;
+}
+
+#player-line,
+#end-screen p{
+  color:#d7e3f7 !important;
+}
+
+#share-slot{
+  margin-top:8px;
+}
+
+[hidden]{
+  display:none !important;
+}
+
+@media(max-width:600px){
+  body{
+    padding:74px 10px 18px !important;
+  }
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px !important;
+  }
+
+  #start-screen,
+  #play-screen,
+  #end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 18px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px !important;
+    gap:24px;
+  }
+
+  .chip{
+    min-width:calc(50% - 6px);
+    font-size:.92rem;
+  }
+
+  #tray{
+    min-height:210px;
+  }
+}
 </style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
-  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score">
+    <span id="score-label">ניקוד</span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span id="q-label">שאלה</span>
+    <span id="qnum">1</span>/<span id="qtotal">10</span>
+  </span>
 </div>
 
 <div class="game-card" id="card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">🧳</div>
+    <div class="hero-icon">🧳🌦️</div>
+
     <h1 class="game-title" id="title"></h1>
+
     <p id="howto"></p>
-    <p id="rounds-label"></p>
-    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
-      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
-      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
-      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+
+    <p class="section-label" id="rounds-label"></p>
+
+    <div
+      class="answer-grid"
+      style="grid-template-columns:repeat(3,1fr)"
+      id="rounds-row"
+    >
+      <button
+        class="game-btn outline"
+        onclick="setRounds(5,this)"
+      >5</button>
+
+      <button
+        class="game-btn outline success"
+        onclick="setRounds(10,this)"
+      >10</button>
+
+      <button
+        class="game-btn outline"
+        onclick="setRounds(15,this)"
+      >15</button>
     </div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
-      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
-      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
-      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
-      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+
+    <p class="section-label">בחרו רמת קושי</p>
+
+    <div
+      class="answer-grid"
+      style="grid-template-columns:1fr 1fr"
+      id="level-row"
+    >
+      <button
+        class="game-btn secondary"
+        data-lvl="1"
+        onclick="start(1)"
+      ></button>
+
+      <button
+        class="game-btn secondary"
+        data-lvl="2"
+        onclick="start(2)"
+      ></button>
+
+      <button
+        class="game-btn secondary"
+        data-lvl="3"
+        onclick="start(3)"
+      ></button>
+
+      <button
+        class="game-btn"
+        data-lvl="0"
+        onclick="start(0)"
+      ></button>
     </div>
   </div>
 
   <div id="play-screen" hidden>
-    <div id="weather-display"></div>
-    <div id="weather-label"></div>
+
+    <div class="play-heading">
+      <div id="weather-display"></div>
+      <div id="weather-label"></div>
+    </div>
+
     <div id="progress-note"></div>
+
+    <h3 class="wardrobe-title">גררו בגדים מתאימים למזוודה</h3>
+
     <div id="tray"></div>
+
     <div class="drop-zone" id="suitcase">
       <h3>🧳 <span id="suitcase-label">המזוודה</span></h3>
       <div id="suitcase-items"></div>
     </div>
+
   </div>
 
   <div id="end-screen" class="end-screen" hidden>
+
     <div class="stars" id="stars"></div>
+
     <div class="big-score" id="final-score"></div>
+
     <p id="player-line"></p>
-    <p><span id="best-label"></span>: <b id="best"></b></p>
-    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+
+    <p>
+      <span id="best-label"></span>:
+      <b id="best"></b>
+    </p>
+
+    <button
+      class="game-btn"
+      id="again-btn"
+      onclick="location.reload()"
+    ></button>
+
     <div id="share-slot"></div>
+
   </div>
+
 </div>
 
 <script src="../game-sdk.js"></script>
+
 <script>
-const $ = id => document.getElementById(id);
-const rnd = n => Math.floor(Math.random() * n);
+const $ =
+  id =>
+    document.getElementById(id);
 
-const T = {
-  title:  { he: 'מזג אוויר ולבוש', en: 'Weather & Clothes' },
-  howto:  { he: 'תראו איזה מזג אוויר יש, וגררו מהארון למזוודה בגדים שמתאימים!', en: 'See the weather, drag matching clothes into the suitcase!' },
-  rounds: { he: 'כמה תנאי מזג אוויר?', en: 'How many weather rounds?' },
-  suitcase: { he: 'המזוודה', en: 'The suitcase' },
+const rnd =
+  n =>
+    Math.floor(
+      Math.random() * n
+    );
+
+const T_REGULAR = {
+  title: {
+    he: 'מזג אוויר ולבוש',
+    en: 'Weather & Clothes'
+  },
+
+  howto: {
+    he: 'ראו מה מזג האוויר וגררו למזוודה בגדים שמתאימים לו.',
+    en: 'See the weather and drag matching clothes into the suitcase.'
+  },
+
+  rounds: {
+    he: 'כמה סבבים?',
+    en: 'How many rounds?'
+  },
+
+  suitcase: {
+    he: 'המזוודה',
+    en: 'The suitcase'
+  }
 };
 
-// weather categories: emoji+label shown normally; hard level shows a temperature number instead
-const WEATHER = {
-  hot:   { emoji: '☀️', label: 'קיץ חם',    temp: [27, 36] },
-  cold:  { emoji: '❄️', label: 'חורף קר',   temp: [2, 13] },
-  mild:  { emoji: '🍂', label: 'סתיו נעים', temp: [16, 23] },
-  rainy: { emoji: '🌧️', label: 'יום גשום',  temp: null },
+const T_NIQQUD = {
+  title: {
+    he: 'מֶזֶג אֲוִיר וּלְבוּשׁ',
+    en: 'Weather & Clothes'
+  },
+
+  howto: {
+    he: 'רְאוּ מָה מֶזֶג הָאֲוִיר וְגִרְרוּ לַמִּזְוָדָה בְּגָדִים שֶׁמַּתְאִימִים לוֹ.',
+    en: 'See the weather and drag matching clothes into the suitcase.'
+  },
+
+  rounds: {
+    he: 'כַּמָּה סְבָבִים?',
+    en: 'How many rounds?'
+  },
+
+  suitcase: {
+    he: 'הַמִּזְוָדָה',
+    en: 'The suitcase'
+  }
 };
 
-// clothing bank — each item tagged with the weather types it suits (several can be valid per weather)
-const BANK = [
-  { text: '👕 חולצת קיץ',        w: ['hot'] },
-  { text: '🩳 מכנסיים קצרים',    w: ['hot'] },
-  { text: '👒 כובע שמש',         w: ['hot'] },
-  { text: '🕶️ משקפי שמש',       w: ['hot'] },
-  { text: '👡 סנדלים',           w: ['hot'] },
-  { text: '🩱 בגד ים',           w: ['hot'] },
-  { text: '🧥 מעיל חורף כבד',    w: ['cold'] },
-  { text: '🧶 כובע צמר',         w: ['cold'] },
-  { text: '🧣 צעיף',             w: ['cold'] },
-  { text: '🧤 כפפות',            w: ['cold'] },
-  { text: '👢 מגפיים חמים',      w: ['cold', 'rainy'] },
-  { text: '🧶 סוודר',            w: ['cold', 'mild'] },
-  { text: '👖 מכנסיים ארוכים',   w: ['cold', 'mild', 'rainy'] },
-  { text: '🌂 מעיל גשם',         w: ['rainy'] },
-  { text: '☂️ מטריה',            w: ['rainy'] },
-  { text: '🥾 מגפי גומי',        w: ['rainy'] },
-  { text: '🧥 ג׳קט קליל',        w: ['mild'] },
-  { text: '👔 חולצה שרוול ארוך', w: ['mild', 'cold'] },
+const WEATHER_REGULAR = {
+  hot: {
+    emoji: '☀️',
+    label: 'קיץ חם',
+    temp: [27,36]
+  },
+
+  cold: {
+    emoji: '❄️',
+    label: 'חורף קר',
+    temp: [2,13]
+  },
+
+  mild: {
+    emoji: '🍂',
+    label: 'סתיו נעים',
+    temp: [16,23]
+  },
+
+  rainy: {
+    emoji: '🌧️',
+    label: 'יום גשום',
+    temp: null
+  }
+};
+
+const WEATHER_NIQQUD = {
+  hot: {
+    emoji: '☀️',
+    label: 'קַיִץ חַם',
+    temp: [27,36]
+  },
+
+  cold: {
+    emoji: '❄️',
+    label: 'חוֹרֶף קַר',
+    temp: [2,13]
+  },
+
+  mild: {
+    emoji: '🍂',
+    label: 'סְתָיו נָעִים',
+    temp: [16,23]
+  },
+
+  rainy: {
+    emoji: '🌧️',
+    label: 'יוֹם גָּשׁוּם',
+    temp: null
+  }
+};
+
+const BANK_REGULAR = [
+  { text:'👕 חולצת קיץ', w:['hot'] },
+  { text:'🩳 מכנסיים קצרים', w:['hot'] },
+  { text:'👒 כובע שמש', w:['hot'] },
+  { text:'🕶️ משקפי שמש', w:['hot'] },
+  { text:'👡 סנדלים', w:['hot'] },
+  { text:'🩱 בגד ים', w:['hot'] },
+
+  { text:'🧥 מעיל חורף כבד', w:['cold'] },
+  { text:'🧶 כובע צמר', w:['cold'] },
+  { text:'🧣 צעיף', w:['cold'] },
+  { text:'🧤 כפפות', w:['cold'] },
+  { text:'👢 מגפיים חמים', w:['cold','rainy'] },
+  { text:'🧶 סוודר', w:['cold','mild'] },
+
+  { text:'👖 מכנסיים ארוכים', w:['cold','mild','rainy'] },
+  { text:'🌂 מעיל גשם', w:['rainy'] },
+  { text:'☂️ מטרייה', w:['rainy'] },
+  { text:'🥾 מגפי גומי', w:['rainy'] },
+
+  { text:'🧥 ג׳קט קליל', w:['mild'] },
+  { text:'👔 חולצה עם שרוול ארוך', w:['mild','cold'] }
 ];
 
-const POOL = { 1: ['hot', 'cold'], 2: ['hot', 'cold', 'mild', 'rainy'], 3: ['hot', 'mild', 'cold'] };
-const MIN_CORRECT = 2;
+const BANK_NIQQUD = [
+  { text:'👕 חֻלְצַת קַיִץ', w:['hot'] },
+  { text:'🩳 מִכְנָסַיִם קְצָרִים', w:['hot'] },
+  { text:'👒 כּוֹבַע שֶׁמֶשׁ', w:['hot'] },
+  { text:'🕶️ מִשְׁקְפֵי שֶׁמֶשׁ', w:['hot'] },
+  { text:'👡 סַנְדָּלִים', w:['hot'] },
+  { text:'🩱 בֶּגֶד יָם', w:['hot'] },
 
-IAKidsCoins.mount();
-IAKidsHelp.mount({
-  slug: 'weather-clothes',
-  how: 'רואים איזה מזג אוויר יש היום, וגוררים מהארון למזוודה בגדים שמתאימים למזג האוויר הזה. צריך למצוא לפחות 2 בגדים נכונים כדי לעבור למזג אוויר הבא!',
-  example: '☀️ קיץ חם ← <b>👕 חולצת קיץ</b>, <b>🩳 מכנסיים קצרים</b> (לא 🧥 מעיל חורף!)',
-});
-$('title').textContent = IAKidsLang.t(T.title);
-$('howto').textContent = IAKidsLang.t(T.howto);
-$('rounds-label').textContent = IAKidsLang.t(T.rounds);
-$('score-label').textContent = IAKidsLang.ui('score');
-$('best-label').textContent = IAKidsLang.ui('your_best');
-$('again-btn').textContent = IAKidsLang.ui('play_again');
-$('suitcase-label').textContent = IAKidsLang.t(T.suitcase);
-['level_easy', 'level_medium', 'level_hard', 'level_random'].forEach((k, i) =>
-  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+  { text:'🧥 מְעִיל חוֹרֶף כָּבֵד', w:['cold'] },
+  { text:'🧶 כּוֹבַע צֶמֶר', w:['cold'] },
+  { text:'🧣 צָעִיף', w:['cold'] },
+  { text:'🧤 כְּפָפוֹת', w:['cold'] },
+  { text:'👢 מַגָּפַיִם חַמִּים', w:['cold','rainy'] },
+  { text:'🧶 סְוֶדֶר', w:['cold','mild'] },
 
-let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0;
-let currentType, correctCount, advancing = false;
+  { text:'👖 מִכְנָסַיִם אֲרֻכִּים', w:['cold','mild','rainy'] },
+  { text:'🌂 מְעִיל גֶּשֶׁם', w:['rainy'] },
+  { text:'☂️ מִטְרִיָּה', w:['rainy'] },
+  { text:'🥾 מַגְּפֵי גּוּמִי', w:['rainy'] },
 
-function setRounds(n, btn) {
-  TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
-  btn.classList.add('success');
-}
+  { text:'🧥 ז׳ָקֶט קַל', w:['mild'] },
+  { text:'👔 חֻלְצָה עִם שַׁרְווּל אָרֹךְ', w:['mild','cold'] }
+];
 
-const ready = IAKidsGame.init('weather-clothes').then(async g => {
-  game = g;
-  const p = await g.loadProgress();
-  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
-  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
-});
-
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+const POOL = {
+  1:['hot','cold'],
+  2:['hot','cold','mild','rainy'],
+  3:['hot','mild','cold']
 };
 
-async function start(lvl) {
+const MIN_CORRECT = 2;
+
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+
+let T = T_REGULAR;
+let WEATHER = WEATHER_REGULAR;
+let BANK = BANK_REGULAR;
+
+let game;
+let diff;
+let level = 1;
+let TOTAL = 10;
+let score = 0;
+let qnum = 0;
+let mistakes = 0;
+
+let currentType;
+let correctCount = 0;
+let advancing = false;
+let ending = false;
+
+async function loadKidContext() {
+  try {
+    const kidId =
+      localStorage.getItem(
+        'active_kid_id'
+      );
+
+    if (!kidId) return;
+
+    const client =
+      await IAKidsActivity._getClient();
+
+    const {
+      data,
+      error
+    } =
+      await client
+        .from('kids_profiles')
+        .select('id, age')
+        .eq('id',kidId)
+        .maybeSingle();
+
+    if (error || !data) {
+      console.warn(
+        '[weather-clothes] Kid profile was not loaded',
+        error
+      );
+
+      return;
+    }
+
+    CHILD_AGE =
+      Number(data.age);
+
+    USE_NIQQUD =
+      CHILD_AGE === 1 ||
+      CHILD_AGE === 2;
+
+  } catch(error) {
+    console.warn(
+      '[weather-clothes] loadKidContext error',
+      error
+    );
+  }
+}
+
+function applyLanguage() {
+  T =
+    USE_NIQQUD
+      ? T_NIQQUD
+      : T_REGULAR;
+
+  WEATHER =
+    USE_NIQQUD
+      ? WEATHER_NIQQUD
+      : WEATHER_REGULAR;
+
+  BANK =
+    USE_NIQQUD
+      ? BANK_NIQQUD
+      : BANK_REGULAR;
+
+  $('title').textContent =
+    IAKidsLang.t(T.title);
+
+  $('howto').textContent =
+    IAKidsLang.t(T.howto);
+
+  $('rounds-label').textContent =
+    IAKidsLang.t(T.rounds);
+
+  $('score-label').textContent =
+    IAKidsLang.ui('score');
+
+  $('q-label').textContent =
+    IAKidsLang.ui('question');
+
+  $('best-label').textContent =
+    IAKidsLang.ui('your_best');
+
+  $('again-btn').textContent =
+    IAKidsLang.ui('play_again');
+
+  $('suitcase-label').textContent =
+    IAKidsLang.t(T.suitcase);
+
+  [
+    'level_easy',
+    'level_medium',
+    'level_hard',
+    'level_random'
+  ].forEach(
+    (key,index) => {
+      document
+        .querySelectorAll(
+          '#level-row .game-btn'
+        )[index]
+        .textContent =
+          IAKidsLang.ui(key);
+    }
+  );
+}
+
+IAKidsCoins.mount();
+
+IAKidsHelp.mount({
+  slug:'weather-clothes',
+
+  how:
+    'רואים את מזג האוויר וגוררים למזוודה בגדים שמתאימים. צריך למצוא שני בגדים מתאימים כדי לעבור לסבב הבא.',
+
+  example:
+    '☀️ קיץ חם ← <b>👕 חולצת קיץ</b> ו־<b>🩳 מכנסיים קצרים</b>.'
+});
+
+function setRounds(n,button) {
+  TOTAL = n;
+
+  document
+    .querySelectorAll(
+      '#rounds-row .game-btn'
+    )
+    .forEach(
+      item =>
+        item.classList.remove(
+          'success'
+        )
+    );
+
+  button.classList.add(
+    'success'
+  );
+}
+
+const ready =
+  (async () => {
+    await loadKidContext();
+
+    applyLanguage();
+
+    game =
+      await IAKidsGame.init(
+        'weather-clothes'
+      );
+
+    const progress =
+      await game.loadProgress();
+
+    if (progress?.rounds) {
+      const button =
+        document.querySelector(
+          `#rounds-row [onclick*="(${progress.rounds},"]`
+        ) ||
+        $('rounds-row').children[1];
+
+      setRounds(
+        progress.rounds,
+        button
+      );
+    }
+
+    if (
+      progress?.lastLevel !==
+      undefined
+    ) {
+      document
+        .querySelector(
+          `#level-row [data-lvl="${progress.lastLevel}"]`
+        )
+        ?.classList.add(
+          'success'
+        );
+    }
+  })();
+
+const show =
+  id => {
+    [
+      'start-screen',
+      'play-screen',
+      'end-screen'
+    ].forEach(
+      screen =>
+        $(screen).hidden =
+          screen !== id
+    );
+  };
+
+async function start(selectedLevel) {
   await ready;
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  $('qtotal').textContent = TOTAL;
+
+  level =
+    selectedLevel;
+
+  diff =
+    game.difficulty(
+      selectedLevel || 1,
+      3
+    );
+
+  score = 0;
+  qnum = 0;
+  mistakes = 0;
+  ending = false;
+
+  $('score').textContent =
+    '0';
+
+  $('qnum').textContent =
+    '1';
+
+  $('qtotal').textContent =
+    TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:
+      selectedLevel || 1,
+
+    questionsCount:
+      TOTAL,
+
+    metadata: {
+      game_mode:
+        'weather-clothes',
+
+      selected_level:
+        selectedLevel,
+
+      random_difficulty:
+        selectedLevel === 0,
+
+      child_age:
+        CHILD_AGE,
+
+      uses_niqqud:
+        USE_NIQQUD,
+
+      required_correct_clothes:
+        MIN_CORRECT
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:
+      selectedLevel,
+
+    rounds:
+      TOTAL
+  });
+
   show('play-screen');
+
   await next();
 }
 
 function pickTemp(type) {
-  const [lo, hi] = WEATHER[type].temp;
-  return lo + rnd(hi - lo + 1);
+  const [minimum,maximum] =
+    WEATHER[type].temp;
+
+  return (
+    minimum +
+    rnd(
+      maximum -
+      minimum +
+      1
+    )
+  );
 }
 
 async function next() {
   advancing = false;
-  if (qnum >= TOTAL) return end();
-  qnum++;
-  $('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const pool = POOL[lvl];
-  const q = await game.newQuestion(() => {
-    const type = pool[rnd(pool.length)];
-    return { type, showTemp: lvl === 3, temp: lvl === 3 ? pickTemp(type) : null };
-  }, x => x.type + '-' + x.temp);
-  currentType = q.type;
-  correctCount = 0;
-  if (q.showTemp) {
-    $('weather-display').textContent = '🌡️';
-    $('weather-label').innerHTML = `<span dir="ltr">${q.temp}°C</span>`;
-  } else {
-    $('weather-display').textContent = WEATHER[q.type].emoji;
-    $('weather-label').textContent = WEATHER[q.type].label;
+
+  if (qnum >= TOTAL) {
+    await end();
+    return;
   }
-  $('progress-note').textContent = `${correctCount}/${MIN_CORRECT} בגדים נכונים`;
-  $('suitcase-items').innerHTML = '';
-  fillWardrobe(q.type);
+
+  qnum += 1;
+
+  $('qnum').textContent =
+    qnum;
+
+  const currentLevel =
+    level === 0
+      ? 1 + rnd(3)
+      : diff.level;
+
+  const pool =
+    POOL[currentLevel];
+
+  const question =
+    await game.newQuestion(
+      () => {
+        const type =
+          pool[
+            rnd(pool.length)
+          ];
+
+        return {
+          type,
+
+          showTemp:
+            currentLevel === 3,
+
+          temp:
+            currentLevel === 3
+              ? pickTemp(type)
+              : null
+        };
+      },
+
+      item =>
+        `${item.type}-${item.temp}`
+    );
+
+  currentType =
+    question.type;
+
+  correctCount = 0;
+
+  IAKidsActivity.questionStarted();
+
+  if (question.showTemp) {
+    $('weather-display').textContent =
+      '🌡️';
+
+    $('weather-label').innerHTML =
+      `<span dir="ltr">${question.temp}°C</span>`;
+  } else {
+    $('weather-display').textContent =
+      WEATHER[
+        question.type
+      ].emoji;
+
+    $('weather-label').textContent =
+      WEATHER[
+        question.type
+      ].label;
+  }
+
+  updateProgress();
+
+  $('suitcase-items').innerHTML =
+    '';
+
+  fillWardrobe(
+    question.type
+  );
+}
+
+function updateProgress() {
+  const regular =
+    `${correctCount}/${MIN_CORRECT} בגדים נכונים`;
+
+  const niqqud =
+    `${correctCount}/${MIN_CORRECT} בְּגָדִים נְכוֹנִים`;
+
+  $('progress-note').textContent =
+    USE_NIQQUD
+      ? niqqud
+      : regular;
+}
+
+function shuffled(items) {
+  return [...items].sort(
+    () =>
+      Math.random() - .5
+  );
 }
 
 function fillWardrobe(type) {
-  const correct = BANK.filter(i => i.w.includes(type)).sort(() => Math.random() - 0.5).slice(0, 4);
-  const wrong = BANK.filter(i => !i.w.includes(type)).sort(() => Math.random() - 0.5).slice(0, 3);
-  const items = correct.concat(wrong).sort(() => Math.random() - 0.5);
-  const tray = $('tray');
-  tray.innerHTML = '';
-  items.forEach(item => {
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    chip.textContent = item.text;
-    chip.dataset.ok = item.w.includes(type) ? '1' : '0';
-    makeDraggable(chip);
-    tray.appendChild(chip);
-  });
-}
+  const correct =
+    shuffled(
+      BANK.filter(
+        item =>
+          item.w.includes(type)
+      )
+    ).slice(0,4);
 
-/* ---- Pointer Events drag (works on touch — setPointerCapture, not HTML5 DnD) ---- */
-let drag = null;
-function makeDraggable(chip) {
-  chip.addEventListener('pointerdown', e => {
-    if (drag) return;
-    e.preventDefault();
-    chip.setPointerCapture(e.pointerId);
-    const r = chip.getBoundingClientRect();
-    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
-    chip.style.width = r.width + 'px';
-    chip.classList.add('dragging');
-    moveTo(e);
-  });
-  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
-  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
-  chip.addEventListener('pointercancel', () => {
-    if (drag?.chip === chip) { settle(chip); drag = null; unmarkZones(); }
-  });
-}
-function moveTo(e) {
-  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
-  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
-  const z = zoneAt(e.clientX, e.clientY);
-  document.querySelectorAll('.drop-zone').forEach(zn => zn.classList.toggle('over', zn === z));
-}
-const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('.drop-zone') || null;
-const unmarkZones = () => document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('over'));
-function settle(chip) {
-  chip.classList.remove('dragging');
-  chip.style.left = chip.style.top = chip.style.width = '';
-}
+  const wrong =
+    shuffled(
+      BANK.filter(
+        item =>
+          !item.w.includes(type)
+      )
+    ).slice(0,3);
 
-async function dropChip(e) {
-  const z = zoneAt(e.clientX, e.clientY);
-  unmarkZones();
-  const chip = drag.chip;
-  drag = null;
-  settle(chip);
-  if (!z || z.id !== 'suitcase' || advancing) return;
-  if (chip.dataset.ok === '1') {
-    score += 10;
-    correctCount++;
-    $('score').textContent = score;
-    $('progress-note').textContent = `${correctCount}/${MIN_CORRECT} בגדים נכונים`;
-    diff.right();
-    IAKidsFX.correct(z);
-    IAKidsCoins.right(z);
-    const s = document.createElement('span');
-    s.textContent = chip.textContent;
-    $('suitcase-items').appendChild(s);
-    chip.remove();
-    if (correctCount >= MIN_CORRECT) {
-      advancing = true;
-      if (qnum >= TOTAL) return setTimeout(end, 500);
-      setTimeout(next, 600);
+  const items =
+    shuffled([
+      ...correct,
+      ...wrong
+    ]);
+
+  const tray =
+    $('tray');
+
+  tray.innerHTML =
+    '';
+
+  items.forEach(
+    item => {
+      const chip =
+        document.createElement(
+          'div'
+        );
+
+      chip.className =
+        'chip';
+
+      chip.textContent =
+        item.text;
+
+      chip.dataset.ok =
+        item.w.includes(type)
+          ? '1'
+          : '0';
+
+      makeDraggable(chip);
+
+      tray.appendChild(chip);
     }
+  );
+}
+
+/* Pointer Events drag: desktop + touch */
+let drag = null;
+
+function makeDraggable(chip) {
+  chip.addEventListener(
+    'pointerdown',
+    event => {
+      if (drag || advancing) {
+        return;
+      }
+
+      event.preventDefault();
+
+      chip.setPointerCapture(
+        event.pointerId
+      );
+
+      const rect =
+        chip.getBoundingClientRect();
+
+      drag = {
+        chip,
+
+        dx:
+          event.clientX -
+          rect.left,
+
+        dy:
+          event.clientY -
+          rect.top
+      };
+
+      chip.style.width =
+        `${rect.width}px`;
+
+      chip.classList.add(
+        'dragging'
+      );
+
+      moveTo(event);
+    }
+  );
+
+  chip.addEventListener(
+    'pointermove',
+    event => {
+      if (
+        drag?.chip === chip
+      ) {
+        moveTo(event);
+      }
+    }
+  );
+
+  chip.addEventListener(
+    'pointerup',
+    event => {
+      if (
+        drag?.chip === chip
+      ) {
+        dropChip(event);
+      }
+    }
+  );
+
+  chip.addEventListener(
+    'pointercancel',
+    () => {
+      if (
+        drag?.chip === chip
+      ) {
+        settle(chip);
+        drag = null;
+        unmarkZones();
+      }
+    }
+  );
+}
+
+function moveTo(event) {
+  drag.chip.style.left =
+    `${
+      event.clientX -
+      drag.dx
+    }px`;
+
+  drag.chip.style.top =
+    `${
+      event.clientY -
+      drag.dy
+    }px`;
+
+  const zone =
+    zoneAt(
+      event.clientX,
+      event.clientY
+    );
+
+  document
+    .querySelectorAll(
+      '.drop-zone'
+    )
+    .forEach(
+      item =>
+        item.classList.toggle(
+          'over',
+          item === zone
+        )
+    );
+}
+
+const zoneAt =
+  (x,y) =>
+    document
+      .elementFromPoint(x,y)
+      ?.closest(
+        '.drop-zone'
+      ) ||
+    null;
+
+const unmarkZones =
+  () =>
+    document
+      .querySelectorAll(
+        '.drop-zone'
+      )
+      .forEach(
+        item =>
+          item.classList.remove(
+            'over'
+          )
+      );
+
+function settle(chip) {
+  chip.classList.remove(
+    'dragging'
+  );
+
+  chip.style.left =
+    '';
+
+  chip.style.top =
+    '';
+
+  chip.style.width =
+    '';
+}
+
+async function dropChip(event) {
+  const zone =
+    zoneAt(
+      event.clientX,
+      event.clientY
+    );
+
+  unmarkZones();
+
+  const chip =
+    drag.chip;
+
+  drag = null;
+
+  settle(chip);
+
+  if (
+    !zone ||
+    zone.id !== 'suitcase' ||
+    advancing
+  ) {
+    return;
+  }
+
+  if (
+    chip.dataset.ok === '1'
+  ) {
+    score += 10;
+    correctCount += 1;
+
+    $('score').textContent =
+      score;
+
+    updateProgress();
+
+    diff.right();
+
+    IAKidsFX.correct(zone);
+
+    await IAKidsCoins.right(
+      zone
+    );
+
+    const selected =
+      document.createElement(
+        'span'
+      );
+
+    selected.textContent =
+      chip.textContent;
+
+    $('suitcase-items')
+      .appendChild(
+        selected
+      );
+
+    chip.remove();
+
+    if (
+      correctCount >=
+      MIN_CORRECT
+    ) {
+      advancing = true;
+
+      /*
+       * כל סבב נחשב כשאלה אחת.
+       * לכן מסמנים correct פעם אחת בלבד,
+       * ולא פעם אחת לכל פריט לבוש.
+       */
+      IAKidsActivity.correct();
+
+      if (
+        qnum >= TOTAL
+      ) {
+        setTimeout(
+          () => {
+            end();
+          },
+          520
+        );
+
+        return;
+      }
+
+      setTimeout(
+        () => {
+          next();
+        },
+        650
+      );
+    }
+
   } else {
-    mistakes++;
+    mistakes += 1;
+
     diff.wrong();
+
+    IAKidsActivity.wrong();
+
     IAKidsFX.wrong(chip);
-    IAKidsCoins.wrong();
+
+    await IAKidsCoins.wrong();
   }
 }
 
 async function end() {
-  await game.saveScore(score, { level, mistakes });
-  const top = (await game.getHighScores(1))[0];
-  $('final-score').textContent = score;
-  $('best').textContent = top?.score ?? score;
-  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  const acc = TOTAL / (TOTAL + mistakes);
-  $('stars').textContent = '⭐'.repeat(acc >= 0.85 ? 3 : acc >= 0.6 ? 2 : 1);
-  game.shareButton(score, $('share-slot'));
+  if (ending) return;
+
+  ending = true;
+  advancing = true;
+
+  const maxScore =
+    TOTAL *
+    MIN_CORRECT *
+    10;
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      mistakes
+    }
+  );
+
+  const top =
+    (
+      await game.getHighScores(1)
+    )[0];
+
+  $('final-score').textContent =
+    score;
+
+  $('best').textContent =
+    top?.score ?? score;
+
+  $('player-line').textContent =
+    `${
+      top?.player ||
+      IAKidsLang.ui('guest')
+    } · ${
+      new Date()
+        .toLocaleString(
+          'he-IL',
+          {
+            dateStyle:'short',
+            timeStyle:'short'
+          }
+        )
+    }`;
+
+  const accuracy =
+    TOTAL /
+    (
+      TOTAL +
+      mistakes
+    );
+
+  $('stars').textContent =
+    '⭐'.repeat(
+      accuracy >= .85
+        ? 3
+        : accuracy >= .6
+          ? 2
+          : 1
+    );
+
+  /*
+   * קודם סוגרים את הסשן בטבלה,
+   * ורק לאחר שהשמירה הצליחה מציגים סיום.
+   */
+  await game.complete(
+    score,
+    {
+      maxScore,
+
+      performanceScore:
+        Math.round(
+          accuracy * 100
+        ),
+
+      metadata: {
+        game_mode:
+          'weather-clothes',
+
+        selected_level:
+          level,
+
+        random_difficulty:
+          level === 0,
+
+        total_rounds:
+          TOTAL,
+
+        mistakes,
+
+        correct_rounds:
+          TOTAL,
+
+        required_correct_clothes:
+          MIN_CORRECT,
+
+        child_age:
+          CHILD_AGE,
+
+        uses_niqqud:
+          USE_NIQQUD
+      }
+    }
+  );
+
+  game.shareButton(
+    score,
+    $('share-slot')
+  );
+
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
