@@ -599,12 +599,91 @@ function setRounds(n, btn) {
   btn.classList.add('success');
 }
 
-const ready = IAKidsGame.init('water-cycle').then(async g => {
-  game = g;
-  const p = await g.loadProgress();
-  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
-  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
-});
+async function start(lvl) {
+  try {
+    /* יוצרים Session רק לאחר לחיצה על רמת קושי */
+    game = await IAKidsGame.init('water-cycle');
+
+    level = lvl;
+    stageCount = lvl === 1 ? 3 : 4;
+
+    diff = game.difficulty(
+      lvl || 1,
+      3
+    );
+
+    IAKidsActivity.configure({
+      difficulty: lvl,
+      questionsCount: TOTAL,
+
+      metadata: {
+        selected_level: lvl,
+        random_difficulty: lvl === 0,
+        game_mode: 'water-cycle'
+      }
+    });
+
+    timer = game.timer({
+      style: 'bomb',
+
+      onTimeout: () => {
+        if (!game) return;
+
+        timer.stop();
+
+        IAKidsActivity.skipped();
+
+        mistakes++;
+        diff.wrong();
+        IAKidsCoins.wrong();
+
+        setTimeout(next, 500);
+      }
+    });
+
+    const p = await game.loadProgress();
+
+    await game.saveProgress({
+      lastLevel: lvl,
+      rounds: TOTAL
+    });
+
+    $('qtotal').textContent = TOTAL;
+
+    document
+      .querySelectorAll('.hotspot')
+      .forEach(h => {
+        const stage = STAGES.find(
+          s => s.id === h.dataset.stage
+        );
+
+        h.hidden = stage.rank > stageCount;
+      });
+
+    placed.clear();
+
+    document
+      .querySelectorAll('.hotspot')
+      .forEach(h => {
+        h.classList.remove('filled');
+        h.querySelector('span').textContent = '';
+      });
+
+    show('play-screen');
+
+    await next();
+
+  } catch (error) {
+    console.error(
+      'water-cycle start failed:',
+      error
+    );
+
+    alert(
+      'המשחק לא הצליח להתחיל. בדוק את Console.'
+    );
+  }
+}
 
 const show = id => {
   for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
@@ -823,52 +902,149 @@ function dropOnHotspot(chip, z) {
 }
 
 function dropOnSlot(chip, z) {
-  if (!z || z.children.length > 1) return;
-  const correct = String(z.dataset.rank) === chip.dataset.rank;
+  if (!z || z.children.length > 1) {
+    return;
+  }
+
+  const correct =
+    String(z.dataset.rank) ===
+    String(chip.dataset.rank);
+
   if (correct) {
     score += 10;
+
     $('score').textContent = score;
+
+    IAKidsActivity.correct();
+
     IAKidsFX.correct(z);
     IAKidsCoins.right(z);
-    z.innerHTML = `<span class="rank">${z.dataset.rank}</span><span class="n">${chip.innerHTML}</span>`;
+
+    z.innerHTML = `
+      <span class="rank">${z.dataset.rank}</span>
+      <span class="n">${chip.innerHTML}</span>
+    `;
+
     seqPlaced.add(chip.dataset.stage);
+
     chip.remove();
+
     setTimeout(seqNextItem, 400);
+
   } else {
     mistakes++;
+
+    IAKidsActivity.wrong();
+
     IAKidsFX.wrong(chip);
     IAKidsCoins.wrong();
   }
 }
 
 async function end() {
-  timer?.stop();
+  try {
+    timer?.stop();
 
-  await game.saveScore(score, {
-    level,
-    mistakes,
-    rounds: TOTAL,
-    stage_count: stageCount
-  });
-  const top = (await game.getHighScores(1))[0];
-  $('final-score').textContent = score;
-  $('best').textContent = top?.score ?? score;
-  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  const acc = TOTAL / (TOTAL + mistakes);
-  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
-  game.shareButton(score, $('share-slot'));
-  show('end-screen');
-  game.complete(score, {
-    maxScore: (TOTAL + stageCount) * 10,
-    metadata: {
-      selected_level: level,
-      total_rounds: TOTAL,
-      mistakes,
-      stage_count: stageCount,
-      sequence_completed: true,
-      game_mode: 'water-cycle'
-    }
-  });
+    const maxScore =
+      (TOTAL + stageCount) * 10;
+
+    await game.saveScore(
+      score,
+      {
+        level,
+        mistakes,
+        rounds: TOTAL,
+        stage_count: stageCount
+      }
+    );
+
+    const topScores =
+      await game.getHighScores(1);
+
+    const top = topScores?.[0];
+
+    $('final-score').textContent =
+      score;
+
+    $('best').textContent =
+      top?.score ?? score;
+
+    $('player-line').textContent =
+      `${top?.player || IAKidsLang.ui('guest')} · ${
+        new Date().toLocaleString(
+          'he-IL',
+          {
+            dateStyle: 'short',
+            timeStyle: 'short'
+          }
+        )
+      }`;
+
+    const totalAttempts =
+      TOTAL + mistakes;
+
+    const accuracy =
+      totalAttempts > 0
+        ? TOTAL / totalAttempts
+        : 0;
+
+    $('stars').textContent =
+      '⭐'.repeat(
+        accuracy >= 0.9
+          ? 3
+          : accuracy >= 0.7
+            ? 2
+            : 1
+      );
+
+    game.shareButton(
+      score,
+      $('share-slot')
+    );
+
+    show('end-screen');
+
+    /* חשוב: ממתינים לעדכון הטבלה */
+    await game.complete(
+      score,
+      {
+        maxScore,
+
+        metadata: {
+          selected_level: level,
+          random_difficulty:
+            level === 0,
+
+          total_rounds: TOTAL,
+          mistakes,
+          stage_count: stageCount,
+          sequence_completed: true,
+          game_mode: 'water-cycle'
+        }
+      }
+    );
+
+    console.log(
+      'Water-cycle session completed',
+      {
+        score,
+        maxScore,
+        level,
+        mistakes,
+        totalRounds: TOTAL
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      'water-cycle completion failed:',
+      error
+    );
+
+    alert(
+      'המשחק הסתיים, אבל שמירת הנתונים נכשלה. בדוק את Console.'
+    );
+  }
 }
 </script>
 </body>
