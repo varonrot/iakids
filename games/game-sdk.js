@@ -571,12 +571,14 @@ questions_count:
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
-    IAKidsActivity.start(slug).catch(error => {
+const activitySessionId =
+  await IAKidsActivity.start(slug);
+
+if (!activitySessionId) {
   console.warn(
-    '[IAKidsGame] Activity session was not started:',
-    error
+    '[IAKidsGame] Activity session was not started'
   );
-});
+}
     if (!document.getElementById('iakids-home-btn')) {
       const home = document.createElement('a');
       home.id = 'iakids-home-btn';
@@ -616,7 +618,7 @@ const IAKidsGame = {
       saveProgress: obj => tx('kv', 'readwrite', s => s.put(obj, 'progress')),
       loadProgress: async () => (await tx('kv', 'readonly', s => s.get('progress'))) ?? null,
       clearProgress: () => tx('kv', 'readwrite', s => s.delete('progress')),
-complete(score, options = {}) {
+async complete(score, options = {}) {
   const msg = {
     type:
       'iakids-game-complete',
@@ -667,29 +669,24 @@ complete(score, options = {}) {
     score
   );
 
-  IAKidsActivity.finish({
-    score,
+await IAKidsActivity.finish({
+  score,
 
-    maxScore:
-      options.maxScore ?? 0,
+  maxScore:
+    options.maxScore ?? 0,
 
-    completed:
-      true,
+  completed:
+    true,
 
-    endedReason:
-      'completed',
+  endedReason:
+    'completed',
 
-    performanceScore:
-      options.performanceScore ?? null,
+  performanceScore:
+    options.performanceScore ?? null,
 
-    metadata:
-      options.metadata || {}
-  }).catch(error => {
-    console.warn(
-      '[IAKidsGame] Activity finish failed:',
-      error
-    );
-  });
+  metadata:
+    options.metadata || {}
+});
 },
       shareButton(score, el) { return IAKidsShare.button(slug, score, el); },
       timer: opts => IAKidsTimer.create(opts),
