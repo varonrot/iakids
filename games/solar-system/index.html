@@ -810,12 +810,12 @@ function getChildGrade(){
   return null;
 }
 
-const CHILD_GRADE =
+const CHILD_AGE =
   getChildGrade();
 
 const USE_NIQQUD =
-  CHILD_GRADE === 1 ||
-  CHILD_GRADE === 2;
+  CHILD_AGE === 1 ||
+  CHILD_AGE === 2;
 
 /* ==================================================
    TEXT
@@ -1428,8 +1428,8 @@ async function startGame(selectedLevel){
         board_size:
           boardSize,
 
-        child_grade:
-          CHILD_GRADE,
+        child_age:
+          CHILD_AGE,
 
         uses_niqqud:
           USE_NIQQUD
@@ -1962,8 +1962,8 @@ async function endGame(){
           game_mode:
             'solar-system',
 
-          child_grade:
-            CHILD_GRADE,
+          child_age:
+            CHILD_AGE,
 
           uses_niqqud:
             USE_NIQQUD
