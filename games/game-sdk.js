@@ -42,7 +42,6 @@ const IAKidsActivity = {
   _sessionId: null,
   _gameId: null,
   _kidId: null,
-  _kidAge: null,
   _slug: null,
 
   _startedAt: null,
@@ -76,87 +75,6 @@ const IAKidsActivity = {
     return this._client;
   },
 
-  async getActiveKidContext() {
-  const kidId =
-    localStorage.getItem('active_kid_id');
-
-  if (!kidId) {
-    console.warn(
-      '[IAKidsActivity] active_kid_id not found'
-    );
-
-    return {
-      id: null,
-      age: null,
-      usesNiqqud: false
-    };
-  }
-
-  try {
-    const client =
-      await this._getClient();
-
-    const {
-      data: kid,
-      error
-    } =
-      await client
-        .from('kids_profiles')
-        .select('id, age')
-        .eq('id', kidId)
-        .maybeSingle();
-
-    if (error || !kid) {
-      console.warn(
-        '[IAKidsActivity] Active kid profile not found:',
-        error
-      );
-
-      return {
-        id: kidId,
-        age: null,
-        usesNiqqud: false
-      };
-    }
-
-    const parsedAge =
-      Number(kid.age);
-
-    const age =
-      Number.isFinite(parsedAge)
-        ? parsedAge
-        : null;
-
-    if (age !== null) {
-      localStorage.setItem(
-        'active_kid_age',
-        String(age)
-      );
-    }
-
-    return {
-      id: kid.id,
-      age,
-
-      usesNiqqud:
-        age === 1 ||
-        age === 2
-    };
-
-  } catch (error) {
-    console.warn(
-      '[IAKidsActivity] getActiveKidContext error:',
-      error
-    );
-
-    return {
-      id: kidId,
-      age: null,
-      usesNiqqud: false
-    };
-  }
-},
-  
   _readLessonContext() {
     const params = new URLSearchParams(location.search);
 
@@ -207,30 +125,14 @@ const IAKidsActivity = {
         return null;
       }
 
-const client =
-  await this._getClient();
+      const client =
+        await this._getClient();
 
-const kidContext =
-  await this.getActiveKidContext();
-
-this._kidAge =
-  kidContext.age;
-
-this._metadata = {
-  ...this._metadata,
-
-  child_age:
-    this._kidAge,
-
-  uses_niqqud:
-    kidContext.usesNiqqud
-};
-
-const {
-  data: { session },
-  error: sessionError
-} =
-  await client.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError
+      } =
+        await client.auth.getSession();
 
       if (
         sessionError ||
@@ -519,18 +421,10 @@ const denominator =
               )
             );
 
-const finalMetadata = {
-  ...this._metadata,
-  ...metadata,
-
-  child_age:
-    this._kidAge,
-
-  uses_niqqud:
-    this._kidAge === 1 ||
-    this._kidAge === 2,
-
-  language:
+      const finalMetadata = {
+        ...this._metadata,
+        ...metadata,
+        language:
           typeof IAKidsLang !== 'undefined'
             ? IAKidsLang.code
             : document.documentElement.lang,
@@ -654,7 +548,6 @@ questions_count:
     this._sessionId = null;
     this._gameId = null;
     this._kidId = null;
-    this._kidAge = null;
     this._slug = null;
 
     this._startedAt = null;
@@ -676,10 +569,6 @@ questions_count:
   }
 };
 const IAKidsGame = {
-  async getActiveKidContext() {
-    return IAKidsActivity.getActiveKidContext();
-  },
-
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
     IAKidsActivity.start(slug).catch(error => {
