@@ -1,1 +1,805 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחזור המים בטבע | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:110px;min-height:56px;padding:8px 14px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.15rem;font-weight:800;cursor:grab;touch-action:none}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+#tray,#seq-tray{min-height:76px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+#illustration{position:relative;width:100%;max-width:440px;margin:8px auto;aspect-ratio:300/180;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+#illustration svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hotspot{position:absolute;border:3px dashed rgba(59,130,246,.55);border-radius:14px;transition:background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;text-align:center}
+.hotspot.over{border-color:var(--accent);background:rgba(255,106,42,.25)}
+.hotspot.filled{border-style:solid;border-color:var(--green);background:rgba(34,197,94,.35)}
+.hotspot span{background:#fff;border-radius:10px;padding:3px 8px;font-weight:800;font-size:0.95rem;box-shadow:var(--shadow)}
+#seq-slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
+.slot{min-width:110px;min-height:60px;border:3px dashed var(--muted);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;transition:background .2s,border-color .2s}
+.slot.over{border-color:var(--accent);background:var(--accent-soft)}
+.slot .rank{font-size:0.7rem;font-weight:800;color:var(--muted)}
+.slot .n{font-size:1rem;font-weight:800}
+#trivia-mode,#sequence-mode{display:none}
+#seq-title{font-weight:700;margin-top:10px}
 
+/* ==================================================
+   IAKIDS PREMIUM SHELL — SAFE VISUAL OVERRIDES ONLY
+   מנגנון המשחק, הכרטיסים והגרירה נשארים ללא שינוי
+================================================== */
+
+html,
+body,
+button{
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:88px 18px 30px !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  color:#f7f9ff !important;
+
+  background:
+    radial-gradient(circle at 14% 14%,rgba(26,139,255,.22),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(117,72,255,.22),transparent 34%),
+    radial-gradient(circle at 50% 108%,rgba(17,211,151,.18),transparent 38%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.72) 0 1px,transparent 1.4px);
+  background-size:72px 72px;
+  opacity:.13;
+}
+
+.workspace-back{
+  position:fixed;
+  top:14px;
+  right:82px;
+  z-index:900;
+
+  min-height:48px;
+  padding:0 18px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+
+  color:#fff;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:900;
+
+  border:1px solid rgba(160,191,255,.34);
+  border-radius:16px;
+
+  background:linear-gradient(145deg,#7956ff,#4e31bf);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 11px 28px rgba(0,0,0,.32);
+}
+
+.game-hud{
+  position:relative !important;
+  inset:auto !important;
+  transform:none !important;
+
+  width:min(720px,100%) !important;
+  min-width:0 !important;
+  min-height:58px !important;
+
+  margin:0 auto !important;
+  padding:8px 20px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:34px !important;
+
+  color:#fff !important;
+
+  border:1px solid rgba(126,180,255,.24) !important;
+  border-bottom:0 !important;
+  border-radius:26px 26px 0 0 !important;
+
+  background:linear-gradient(145deg,rgba(27,45,87,.98),rgba(9,22,50,.98)) !important;
+  box-shadow:
+    inset 0 -1px 0 rgba(255,255,255,.03),
+    0 9px 23px rgba(0,0,0,.18) !important;
+
+  font-size:15px !important;
+  font-weight:900 !important;
+}
+
+.game-hud .score{ color:#ffc83d !important; }
+.game-hud #score{ color:#fff !important; font-size:18px; }
+.game-hud #qnum,
+.game-hud #qtotal{ color:#69deff !important; }
+
+.game-card{
+  position:relative !important;
+
+  width:min(720px,100%) !important;
+  min-height:650px !important;
+
+  margin:0 auto !important;
+  padding:28px 38px 38px !important;
+
+  /* לא מגדירים overflow — חשוב לגרירה המקורית */
+
+  color:#f7f9ff !important;
+
+  border:1px solid rgba(119,176,255,.27) !important;
+  border-radius:0 0 32px 32px !important;
+
+  background:
+    radial-gradient(circle at 50% 0%,rgba(48,145,255,.22),transparent 40%),
+    linear-gradient(145deg,rgba(19,43,86,.98),rgba(7,21,48,.99)) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 30px 75px rgba(0,5,25,.5),
+    0 0 48px rgba(45,138,255,.1) !important;
+}
+
+.game-title{
+  margin:13px 0 10px !important;
+  color:#fff !important;
+  font-size:clamp(38px,5vw,54px) !important;
+  line-height:1.08 !important;
+  font-weight:900 !important;
+  text-shadow:
+    0 4px 16px rgba(0,0,0,.38),
+    0 0 23px rgba(68,180,255,.18);
+}
+
+#howto{
+  max-width:600px;
+  margin:0 auto 20px !important;
+  color:#c8d8ef !important;
+  font-size:16px !important;
+  line-height:1.7 !important;
+  font-weight:700;
+}
+
+#rounds-label{
+  margin:21px 0 9px !important;
+  color:#fff !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+}
+
+.game-btn{
+  min-height:58px !important;
+  padding:10px 15px !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.19) !important;
+  border-radius:17px !important;
+  background:linear-gradient(145deg,#7653ff,#4e32bd) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    inset 0 -8px 15px rgba(0,0,0,.14),
+    0 9px 21px rgba(26,9,91,.32) !important;
+  font-size:16px !important;
+  font-weight:900 !important;
+}
+
+.game-btn.outline{
+  color:#dce8ff !important;
+  border-color:rgba(124,170,244,.3) !important;
+  background:linear-gradient(145deg,rgba(40,62,110,.96),rgba(19,35,71,.98)) !important;
+}
+
+.game-btn.outline.success{
+  color:#fff !important;
+  border-color:rgba(92,239,161,.65) !important;
+  background:linear-gradient(145deg,#35cd7e,#178f57) !important;
+}
+
+.game-btn.secondary{
+  background:linear-gradient(145deg,#178bd7,#0d579b) !important;
+}
+
+#illustration{
+  max-width:560px !important;
+  margin:10px auto 18px !important;
+  border:1px solid rgba(117,191,255,.28);
+  border-radius:24px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 20px 40px rgba(0,10,35,.30) !important;
+}
+
+/* משאירים את display/position של chip, tray ו-drag כפי שהם במקור */
+.chip{
+  min-width:132px !important;
+  min-height:72px !important;
+  padding:11px 16px !important;
+  margin:7px !important;
+  color:#f7f9ff !important;
+  border:1px solid rgba(122,191,255,.36) !important;
+  border-radius:20px !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(87,173,255,.23),transparent 59%),
+    linear-gradient(145deg,rgba(38,67,121,.98),rgba(17,39,80,.98)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    0 11px 23px rgba(0,8,31,.3) !important;
+  font-size:1.05rem !important;
+  font-weight:900 !important;
+}
+
+.chip.dragging{
+  z-index:99999 !important;
+  opacity:1 !important;
+  visibility:visible !important;
+}
+
+.hotspot{
+  border-color:rgba(94,189,255,.66) !important;
+  background:rgba(11,47,98,.12);
+}
+.hotspot.over{
+  border-color:#69deff !important;
+  background:rgba(39,169,239,.25) !important;
+}
+.hotspot.filled{
+  border-color:#52e397 !important;
+  background:rgba(43,200,117,.35) !important;
+}
+.hotspot span{
+  color:#08204b !important;
+  background:#fff !important;
+}
+
+.game-question{
+  color:#fff !important;
+  background:rgba(35,77,136,.42);
+  border:1px solid rgba(109,184,255,.25);
+  border-radius:17px;
+  font-weight:900 !important;
+}
+
+#seq-title{
+  color:#fff !important;
+  font-size:1.35rem;
+  font-weight:900 !important;
+  text-align:center;
+}
+
+.slot{
+  color:#fff;
+  background:rgba(7,34,77,.55);
+  border-color:rgba(126,180,255,.45) !important;
+  border-radius:18px !important;
+}
+.slot.over{
+  border-color:#65dfff !important;
+  background:rgba(32,150,221,.22) !important;
+}
+
+/* תיקון צבע תיבת הדוגמה בחלונית העזרה */
+[class*="help"] [class*="example"],
+[role="dialog"] [class*="example"]{
+  color:#102a4f !important;
+  background:#fff1e8 !important;
+  text-shadow:none !important;
+}
+[class*="help"] [class*="example"] *,
+[role="dialog"] [class*="example"] *{
+  color:#102a4f !important;
+  text-shadow:none !important;
+}
+
+@media(max-width:680px){
+  body{
+    padding:75px 10px 16px !important;
+    justify-content:flex-start !important;
+  }
+
+  .workspace-back{
+    top:9px;
+    right:62px;
+    min-height:43px;
+    padding:0 11px;
+    border-radius:13px;
+    font-size:11px;
+  }
+
+  .game-hud{
+    width:100% !important;
+    min-height:52px !important;
+    padding:6px 10px !important;
+    gap:20px !important;
+    font-size:12px !important;
+  }
+
+  .game-card{
+    width:100% !important;
+    min-height:0 !important;
+    padding:24px 14px 28px !important;
+    border-radius:0 0 25px 25px !important;
+  }
+
+  .game-title{ font-size:34px !important; }
+  #howto{ font-size:14px !important; }
+  #level-row{ grid-template-columns:1fr !important; }
+  .game-btn{ min-height:51px !important; font-size:14px !important; }
+  .chip{ min-width:94px !important; min-height:62px !important; }
+  .slot{ min-width:90px !important; }
+}
+
+</style>
+</head>
+<body>
+
+<a class="workspace-back" href="/he/games/workspace/">
+  <span>🏰</span>
+  <span id="back-text">חזרה למפת המשחקים</span>
+</a>
+
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">💧☁️🌧️</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="order-mode">
+      <div id="illustration">
+        <svg viewBox="0 0 300 180" aria-hidden="true">
+          <rect x="0" y="0" width="300" height="180" fill="#cfe8fa"/>
+          <rect x="0" y="120" width="300" height="60" fill="#5b9bd5"/>
+          <path d="M40,112 C30,125 55,132 45,145 C38,155 20,158 12,180 L0,180 L0,110 Z" fill="#c9a876"/>
+          <path d="M42,115 C32,128 52,134 42,148 C34,158 22,162 14,180" stroke="#3b82f6" stroke-width="5" fill="none"/>
+          <circle cx="252" cy="34" r="22" fill="#facc15"/>
+          <g fill="#ffffff" stroke="#cbd5e1">
+            <ellipse cx="80" cy="46" rx="30" ry="18"/>
+            <ellipse cx="55" cy="52" rx="20" ry="14"/>
+            <ellipse cx="105" cy="52" rx="22" ry="14"/>
+          </g>
+          <g stroke="#3b82f6" stroke-width="3" stroke-linecap="round">
+            <line x1="60" y1="78" x2="52" y2="98"/>
+            <line x1="78" y1="78" x2="70" y2="102"/>
+            <line x1="96" y1="78" x2="88" y2="98"/>
+          </g>
+        </svg>
+        <div class="hotspot" data-stage="condensation" style="left:14%;top:10%;width:40%;height:28%"><span></span></div>
+        <div class="hotspot" data-stage="precipitation" style="left:14%;top:40%;width:38%;height:24%"><span></span></div>
+        <div class="hotspot" data-stage="runoff" style="left:0%;top:66%;width:26%;height:30%"><span></span></div>
+        <div class="hotspot" data-stage="evaporation" style="left:52%;top:64%;width:46%;height:32%"><span></span></div>
+      </div>
+      <div id="tray"></div>
+    </div>
+    <div id="trivia-mode">
+      <div class="game-question" id="trivia-q"></div>
+      <div class="answer-grid" id="trivia-opts"></div>
+    </div>
+    <div id="sequence-mode">
+      <p id="seq-title"></p>
+      <div id="seq-slots"></div>
+      <div id="seq-tray"></div>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+function _num(v){
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function _gradeFromObject(raw){
+  if (!raw) return null;
+  try{
+    const o = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return _num(o?.grade) ?? _num(o?.age) ?? _num(o?.class_grade) ?? _num(o?.school_grade);
+  }catch{
+    return null;
+  }
+}
+
+function getChildGrade(){
+  const direct = [
+    'active_kid_grade','iakids_active_kid_grade','selected_kid_grade',
+    'kid_grade','grade','active_kid_age','kid_age','age'
+  ];
+  for (const key of direct){
+    const n = _num(localStorage.getItem(key));
+    if (n !== null) return n;
+  }
+
+  const objects = [
+    'active_kid','iakids_active_kid','selected_kid',
+    'kid_profile','active_kid_profile'
+  ];
+  for (const key of objects){
+    const n = _gradeFromObject(localStorage.getItem(key));
+    if (n !== null) return n;
+  }
+
+  return null;
+}
+
+const CHILD_GRADE = getChildGrade();
+const USE_NIQQUD = CHILD_GRADE === 1 || CHILD_GRADE === 2;
+const T = USE_NIQQUD ? {
+  title:   { he: 'מַחְזוֹר הַמַּיִם בַּטֶּבַע', en: 'The Water Cycle' },
+  howto:   { he: 'גִּרְרוּ כָּל שָׁלָב לַמָּקוֹם הַנָּכוֹן בָּאִיּוּר!', en: 'Drag each stage to its place on the picture!' },
+  rounds:  { he: 'כַּמָּה שְׁאֵלוֹת?', en: 'How many questions?' },
+  seqTitle:{ he: 'עַכְשָׁו סַדְּרוּ אֶת הַשְּׁלָבִים לְפִי הַסֵּדֶר הַנָּכוֹן בַּזְּמַן!', en: 'Now put the stages in the correct order!' },
+} : {
+  title:   { he: 'מחזור המים בטבע', en: 'The Water Cycle' },
+  howto:   { he: 'גרור כל שלב למקום הנכון באיור!', en: 'Drag each stage to its place on the picture!' },
+  rounds:  { he: 'כמה שאלות?', en: 'How many questions?' },
+  seqTitle:{ he: 'עכשיו סדרו את השלבים לפי הסדר הנכון בזמן!', en: 'Now put the stages in the correct order!' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'water-cycle',
+  how: USE_NIQQUD
+    ? 'מַיִם בַּטֶּבַע עוֹבְרִים מַסָּע אֵין־סוֹפִי: הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַיָּם וְהַמַּיִם <b>מִתְאַדִּים</b> וְעוֹלִים לַשָּׁמַיִם. שָׁם הֵם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת שֶׁיּוֹצְרוֹת עָנָן (<b>עִבּוּי</b>). כְּשֶׁהֶעָנָן מִתְמַלֵּא יוֹרֵד גֶּשֶׁם (<b>מִשְׁקָעִים</b>). הַגֶּשֶׁם זוֹרֵם בַּנְּחָלִים בַּחֲזָרָה לַיָּם (<b>הַזְרָמָה</b>).'
+    : 'מים בטבע עוברים מסע אינסופי: השמש מחממת את הים והמים <b>מתאדים</b> (אידוי) ועולים לשמיים. שם הם מתקררים ונהפכים לטיפות שיוצרות ענן (<b>עיבוי</b>). כשהענן מתמלא, יורד גשם (<b>משקעים</b>). הגשם זורם בנחלים בחזרה לים (<b>הזרמה</b>).',
+  example: USE_NIQQUD
+    ? '💧☀️ אִדּוּי ← ☁️ עִבּוּי ← 🌧️ מִשְׁקָעִים ← 🌊 הַזְרָמָה ← וְחוֹזֵר חֲלִילָה'
+    : '💧☀️ אידוי ← ☁️ עיבוי ← 🌧️ משקעים ← 🌊 הזרמה ← וחוזר חלילה',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = USE_NIQQUD ? 'נִקּוּד' : IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+$('seq-title').textContent = IAKidsLang.t(T.seqTitle);
+$('q-label').textContent = USE_NIQQUD ? 'שְׁאֵלָה' : 'שאלה';
+$('back-text').textContent = USE_NIQQUD ? 'חֲזָרָה לְמַפַּת הַמִּשְׂחָקִים' : 'חזרה למפת המשחקים';
+['level_easy','level_medium','level_hard','level_random'].forEach((k,i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = USE_NIQQUD ? ['קַל','בֵּינוֹנִי','קָשֶׁה','אַקְרָאִי'][i] : IAKidsLang.ui(k));
+
+/* תיקון צבע הטקסט בתיבת הדוגמה הבהירה */
+new MutationObserver(() => {
+  document.querySelectorAll('[role="dialog"] *').forEach(el => {
+    const text = (el.textContent || '').trim();
+    if (text.includes('אידוי') || text.includes('אִדּוּי')) {
+      el.style.color = '#102a4f';
+      el.style.textShadow = 'none';
+      el.querySelectorAll('*').forEach(child => {
+        child.style.color = '#102a4f';
+        child.style.textShadow = 'none';
+      });
+    }
+  });
+}).observe(document.body, { childList:true, subtree:true });
+
+
+/* Verified scientific order: evaporation -> condensation -> precipitation -> runoff/collection */
+const STAGES = USE_NIQQUD ? [
+  { id:'evaporation',   n:'אִדּוּי',    e:'💧☀️', rank:1, why:'הַשֶּׁמֶשׁ מְחַמֶּמֶת אֶת הַמַּיִם בַּיָּם וְהֵם הוֹפְכִים לְאֵדִים שֶׁעוֹלִים לַשָּׁמַיִם' },
+  { id:'condensation',  n:'עִבּוּי',    e:'☁️',   rank:2, why:'הָאֵדִים בַּשָּׁמַיִם מִתְקָרְרִים וְהוֹפְכִים לְטִפּוֹת מַיִם קְטַנּוֹת שֶׁיּוֹצְרוֹת עָנָן' },
+  { id:'precipitation', n:'מִשְׁקָעִים', e:'🌧️', rank:3, why:'הֶעָנָן מִתְמַלֵּא בְּטִפּוֹת כְּבֵדוֹת שֶׁנּוֹפְלוֹת כְּגֶשֶׁם אוֹ כְּשֶׁלֶג' },
+  { id:'runoff',        n:'הַזְרָמָה',   e:'🌊',  rank:4, why:'הַגֶּשֶׁם שֶׁנּוֹפֵל זוֹרֵם בַּנְּחָלִים וּבַנְּהָרוֹת בַּחֲזָרָה לַיָּם' },
+] : [
+  { id:'evaporation',   n:'אידוי',    e:'💧☀️', rank:1, why:'השמש מחממת את המים בים והם הופכים לאדים שעולים לשמיים' },
+  { id:'condensation',  n:'עיבוי',    e:'☁️',   rank:2, why:'האדים בשמיים מתקררים והופכים לטיפות מים קטנות שיוצרות ענן' },
+  { id:'precipitation', n:'משקעים',   e:'🌧️',   rank:3, why:'הענן מתמלא בטיפות כבדות שנופלות כגשם או שלג' },
+  { id:'runoff',        n:'הזרמה',    e:'🌊',   rank:4, why:'הגשם שנופל זורם בנחלים ובנהרות בחזרה לים' },
+];
+
+let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, stageCount = 3;
+const placed = new Set();
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('water-cycle').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+const showMode = id => {
+  for (const s of ['order-mode', 'trivia-mode', 'sequence-mode']) $(s).style.display = s === id ? 'block' : 'none';
+};
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  stageCount = lvl === 1 ? 3 : 4; // easy: evap/cond/precip · medium+/random/hard board: + runoff
+  diff = game.difficulty(lvl || 1, 3);
+
+  IAKidsActivity.configure({
+    difficulty: lvl,
+    questionsCount: TOTAL,
+    metadata: {
+      selected_level: lvl,
+      random_difficulty: lvl === 0,
+      game_mode: 'water-cycle',
+      child_grade: CHILD_GRADE,
+      uses_niqqud: USE_NIQQUD
+    }
+  });
+
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  document.querySelectorAll('.hotspot').forEach(h => {
+    h.hidden = STAGES.find(s => s.id === h.dataset.stage).rank > stageCount;
+  });
+  placed.clear();
+  document.querySelectorAll('.hotspot').forEach(h => { h.classList.remove('filled'); h.querySelector('span').textContent = ''; });
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return startSequenceStep();
+  qnum++;
+  $('qnum').textContent = qnum;
+  IAKidsActivity.questionStarted();
+  const effLvl = level === 0 ? diff.level : level;
+  if (effLvl >= 3) { showMode('trivia-mode'); await showTrivia(); }
+  else { showMode('order-mode'); await showOrderItem(); }
+}
+
+async function showTrivia() {
+  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + s.id);
+  $('trivia-q').textContent = t.why + ' — ' + IAKidsLang.t({ he:'איך קוראים לשלב הזה?', en:'What is this stage called?' });
+  const box = $('trivia-opts');
+  box.innerHTML = '';
+  let answered = false; // guard: ignore a double-tap on the same question (SDK's 700ms next() delay leaves buttons live)
+  const opts = STAGES.slice(0, stageCount).sort(() => Math.random() - 0.5);
+  opts.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'game-btn secondary';
+    b.textContent = `${s.e} ${s.n}`;
+    b.onclick = () => { if (answered) return; answered = true; answerTrivia(s.id === t.id, b); };
+    box.appendChild(b);
+  });
+}
+function answerTrivia(correct, btn) {
+  if (correct) { score += 10; diff.right(); IAKidsActivity.correct(); IAKidsFX.correct(btn); IAKidsCoins.right(btn); }
+  else { mistakes++; diff.wrong(); IAKidsActivity.wrong(); IAKidsFX.wrong(btn); IAKidsCoins.wrong(); }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function showOrderItem() {
+  if (placed.size >= stageCount) { // board full — reset for a fresh round of labeling
+    placed.clear();
+    document.querySelectorAll('.hotspot').forEach(h => { h.classList.remove('filled'); h.querySelector('span').textContent = ''; });
+  }
+  const tray = $('tray');
+  tray.innerHTML = '';
+  const s = await game.newQuestion(
+    () => {
+      const pool = STAGES.slice(0, stageCount).filter(x => !placed.has(x.id));
+      return pool[rnd(pool.length)];
+    },
+    x => 'order:' + x.id
+  );
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.innerHTML = `<span>${s.e}</span><span>${s.n}</span>`;
+  chip.dataset.stage = s.id;
+  chip.dataset.name = s.n;
+  makeDraggable(chip, '.hotspot', dropOnHotspot);
+  tray.appendChild(chip);
+}
+
+async function startSequenceStep() {
+  showMode('sequence-mode');
+  const slots = $('seq-slots');
+  slots.innerHTML = '';
+  for (let r = 1; r <= stageCount; r++) {
+    const s = document.createElement('div');
+    s.className = 'slot';
+    s.dataset.rank = r;
+    s.innerHTML = `<span class="rank">${r}</span>`;
+    slots.appendChild(s);
+  }
+  seqPlaced.clear();
+  await seqNextItem();
+}
+
+const seqPlaced = new Set();
+async function seqNextItem() {
+  if (seqPlaced.size >= stageCount) return end();
+  const tray = $('seq-tray');
+  tray.innerHTML = '';
+  const pool = STAGES.slice(0, stageCount).filter(x => !seqPlaced.has(x.id));
+  const s = pool[rnd(pool.length)];
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.innerHTML = `<span>${s.e}</span><span>${s.n}</span>`;
+  chip.dataset.rank = s.rank;
+  chip.dataset.stage = s.id;
+  makeDraggable(chip, '.slot', dropOnSlot);
+  tray.appendChild(chip);
+}
+
+/* ---- Pointer Events drag (works on touch — setPointerCapture, not HTML5 DnD) ---- */
+let drag = null;
+function makeDraggable(chip, zoneSelector, onDrop) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag) return;
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    const r = chip.getBoundingClientRect();
+    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top, zoneSelector, onDrop };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
+    moveTo(e);
+  });
+  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
+  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) finishDrag(e); });
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) { settle(chip); unmarkZones(drag.zoneSelector); drag = null; }
+  });
+}
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  const z = zoneAt(e.clientX, e.clientY, drag.zoneSelector);
+  document.querySelectorAll(drag.zoneSelector).forEach(zn => zn.classList.toggle('over', zn === z));
+}
+const zoneAt = (x, y, sel) => document.elementFromPoint(x, y)?.closest(sel) || null;
+const unmarkZones = sel => document.querySelectorAll(sel).forEach(z => z.classList.remove('over'));
+function settle(chip) {
+  chip.classList.remove('dragging');
+  chip.style.left = chip.style.top = chip.style.width = '';
+}
+function finishDrag(e) {
+  const { chip, zoneSelector, onDrop } = drag;
+  const z = zoneAt(e.clientX, e.clientY, zoneSelector);
+  unmarkZones(zoneSelector);
+  drag = null;
+  settle(chip);
+  onDrop(chip, z);
+}
+
+function dropOnHotspot(chip, z) {
+  if (!z || z.classList.contains('filled')) return;
+  const correct = z.dataset.stage === chip.dataset.stage;
+  if (correct) {
+    score += 10;
+    $('score').textContent = score;
+    diff.right();
+    IAKidsActivity.correct();
+    IAKidsFX.correct(z);
+    IAKidsCoins.right(z);
+    z.classList.add('filled');
+    z.querySelector('span').textContent = chip.dataset.name;
+    placed.add(chip.dataset.stage);
+    chip.remove();
+    setTimeout(next, 500);
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsActivity.wrong();
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
+}
+
+function dropOnSlot(chip, z) {
+  if (!z || z.children.length > 1) return;
+  const correct = String(z.dataset.rank) === chip.dataset.rank;
+  if (correct) {
+    score += 10;
+    $('score').textContent = score;
+    IAKidsFX.correct(z);
+    IAKidsCoins.right(z);
+    z.innerHTML = `<span class="rank">${z.dataset.rank}</span><span class="n">${chip.innerHTML}</span>`;
+    seqPlaced.add(chip.dataset.stage);
+    chip.remove();
+    setTimeout(seqNextItem, 400);
+  } else {
+    mistakes++;
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
+}
+
+async function end() {
+  const maxScore = (TOTAL + stageCount) * 10;
+
+  try {
+    await game.complete(score, {
+      maxScore,
+      metadata: {
+        selected_level: level,
+        random_difficulty: level === 0,
+        total_rounds: TOTAL,
+        mistakes,
+        stage_count: stageCount,
+        sequence_completed: true,
+        game_mode: 'water-cycle',
+        child_grade: CHILD_GRADE,
+        uses_niqqud: USE_NIQQUD
+      }
+    });
+  } catch (error) {
+    console.error('water-cycle complete failed:', error);
+    alert('המשחק הסתיים, אבל שמירת הפרוגרס נכשלה. בדוק את ה-Console.');
+    return;
+  }
+
+  try {
+    await game.saveScore(score, { level, mistakes });
+    const top = (await game.getHighScores(1))[0];
+
+    $('final-score').textContent = score;
+    $('best').textContent = top?.score ?? score;
+    $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+
+    const acc = TOTAL / (TOTAL + mistakes);
+    $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
+
+    game.shareButton(score, $('share-slot'));
+    show('end-screen');
+  } catch (error) {
+    console.error('water-cycle end screen failed:', error);
+    $('final-score').textContent = score;
+    $('best').textContent = score;
+    show('end-screen');
+  }
+}
+</script>
+</body>
+</html>
