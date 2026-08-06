@@ -161,7 +161,7 @@ body::before{
   margin:0 auto !important;
   padding:28px 38px 38px !important;
 
-  overflow:hidden !important;
+  overflow:visible !important;
 
   border:1px solid rgba(119,176,255,.27) !important;
   border-radius:0 0 32px 32px !important;
@@ -383,7 +383,9 @@ body::before{
 
 #tray,
 #seq-tray{
-  min-height:100px;
+  position:relative;
+  z-index:20;
+  min-height:110px;
 
   display:flex;
   flex-wrap:wrap;
@@ -565,6 +567,31 @@ body::before{
 }
 
 /* Mobile */
+
+
+/* הכרטיס חייב להישאר גלוי בזמן הגרירה */
+body .chip.dragging{
+  display:inline-flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  position:fixed !important;
+  z-index:99999 !important;
+  pointer-events:none !important;
+  transform:none !important;
+}
+
+/* הכרטיס הראשון בחלק הסידור */
+#sequence-mode{
+  position:relative;
+  z-index:5;
+  min-height:330px;
+}
+
+#seq-tray .chip{
+  display:inline-flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+}
 
 @media(max-width:680px){
   body{
@@ -1659,7 +1686,15 @@ async function startSequenceStep(){
 
   seqPlaced.clear();
 
-  await seqNextItem();
+  /*
+    שומרים על לוגיקת המשחק המקורית:
+    מציגים קודם את מצב הסידור, ובפריים הבא יוצרים את הכרטיס הראשון.
+  */
+  requestAnimationFrame(() => {
+    seqNextItem().catch(error => {
+      console.error('sequence first item failed:', error);
+    });
+  });
 }
 
 async function seqNextItem(){
@@ -1775,155 +1810,99 @@ function dropOnSlot(chip,zone){
 }
 
 /* ==================================================
-   POINTER DRAG
+   POINTER DRAG — ORIGINAL GAME LOGIC
 ================================================== */
 
 let drag = null;
 
-function makeDraggable(
-  chip,
-  zoneSelector,
-  onDrop
-){
-  chip.addEventListener(
-    'pointerdown',
-    event => {
-      if (drag) return;
+function makeDraggable(chip, zoneSelector, onDrop) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag) return;
 
-      event.preventDefault();
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
 
-      chip.setPointerCapture(
-        event.pointerId
-      );
+    const r = chip.getBoundingClientRect();
 
-      const rect =
-        chip.getBoundingClientRect();
+    drag = {
+      chip,
+      dx: e.clientX - r.left,
+      dy: e.clientY - r.top,
+      zoneSelector,
+      onDrop
+    };
 
-      drag = {
-        chip,
-        dx:event.clientX - rect.left,
-        dy:event.clientY - rect.top,
-        zoneSelector,
-        onDrop
-      };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
 
-      chip.style.width =
-        `${rect.width}px`;
+    moveTo(e);
+  });
 
-      chip.classList.add(
-        'dragging'
-      );
-
-      moveTo(event);
+  chip.addEventListener('pointermove', e => {
+    if (drag?.chip === chip) {
+      moveTo(e);
     }
-  );
+  });
 
-  chip.addEventListener(
-    'pointermove',
-    event => {
-      if (drag?.chip === chip){
-        moveTo(event);
-      }
+  chip.addEventListener('pointerup', e => {
+    if (drag?.chip === chip) {
+      finishDrag(e);
     }
-  );
+  });
 
-  chip.addEventListener(
-    'pointerup',
-    event => {
-      if (drag?.chip === chip){
-        finishDrag(event);
-      }
-    }
-  );
-
-  chip.addEventListener(
-    'pointercancel',
-    () => {
-      if (drag?.chip !== chip){
-        return;
-      }
-
-      const selector =
-        drag.zoneSelector;
-
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) {
       settle(chip);
-      unmarkZones(selector);
-
+      unmarkZones(drag.zoneSelector);
       drag = null;
     }
-  );
+  });
 }
 
-function moveTo(event){
-  if (!drag) return;
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
 
-  drag.chip.style.left =
-    `${event.clientX - drag.dx}px`;
-
-  drag.chip.style.top =
-    `${event.clientY - drag.dy}px`;
-
-  const zone =
-    zoneAt(
-      event.clientX,
-      event.clientY,
-      drag.zoneSelector
-    );
+  const z = zoneAt(
+    e.clientX,
+    e.clientY,
+    drag.zoneSelector
+  );
 
   document
-    .querySelectorAll(
-      drag.zoneSelector
-    )
-    .forEach(candidate => {
-      candidate.classList.toggle(
-        'over',
-        candidate === zone
-      );
+    .querySelectorAll(drag.zoneSelector)
+    .forEach(zn => {
+      zn.classList.toggle('over', zn === z);
     });
 }
 
-function zoneAt(x,y,selector){
-  return (
-    document
-      .elementFromPoint(x,y)
-      ?.closest(selector) ||
-    null
-  );
-}
+const zoneAt = (x, y, selector) =>
+  document.elementFromPoint(x, y)?.closest(selector) || null;
 
-function unmarkZones(selector){
+const unmarkZones = selector =>
   document
     .querySelectorAll(selector)
-    .forEach(zone => {
-      zone.classList.remove('over');
-    });
-}
+    .forEach(zone => zone.classList.remove('over'));
 
-function settle(chip){
-  chip.classList.remove(
-    'dragging'
-  );
-
+function settle(chip) {
+  chip.classList.remove('dragging');
   chip.style.left = '';
   chip.style.top = '';
   chip.style.width = '';
 }
 
-function finishDrag(event){
-  if (!drag) return;
-
+function finishDrag(e) {
   const {
     chip,
     zoneSelector,
     onDrop
   } = drag;
 
-  const zone =
-    zoneAt(
-      event.clientX,
-      event.clientY,
-      zoneSelector
-    );
+  const zone = zoneAt(
+    e.clientX,
+    e.clientY,
+    zoneSelector
+  );
 
   unmarkZones(zoneSelector);
 
@@ -1931,7 +1910,7 @@ function finishDrag(event){
 
   settle(chip);
 
-  onDrop(chip,zone);
+  onDrop(chip, zone);
 }
 
 /* ==================================================
