@@ -687,6 +687,8 @@ await IAKidsActivity.finish({
   metadata:
     options.metadata || {}
 });
+
+return true;
 },
       shareButton(score, el) { return IAKidsShare.button(slug, score, el); },
       timer: opts => IAKidsTimer.create(opts),
