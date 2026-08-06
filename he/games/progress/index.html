@@ -852,7 +852,92 @@ button,a{font:inherit}
     font-size:36px;
   }
 }
+/* ===============================
+   STATISTICS PREMIUM
+================================ */
 
+.summary{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+}
+
+.sum{
+    min-height:118px;
+
+    display:grid;
+    grid-template-columns:82px 1fr;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:14px 16px;
+
+    border-radius:22px;
+
+    text-align:right;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(8,39,87,.98),
+            rgba(4,26,62,.99)
+        );
+
+    border:1px solid rgba(160,215,255,.16);
+}
+
+/* האייקון */
+
+.sum img{
+
+    grid-column:1;
+
+    justify-self:center;
+
+    width:74px;
+    height:74px;
+
+    object-fit:contain;
+
+    filter:
+        drop-shadow(0 8px 10px rgba(0,0,0,.35));
+}
+
+/* הטקסט */
+
+.sum-copy{
+
+    grid-column:2;
+
+    text-align:right;
+}
+
+.sum strong{
+
+    display:block;
+
+    font-size:26px;
+    line-height:1;
+
+    font-weight:1000;
+}
+
+.sum span{
+
+    display:block;
+
+    margin-top:8px;
+
+    font-size:15px;
+
+    line-height:1.25;
+
+    color:#d8e6ff;
+
+    font-weight:800;
+}
 </style>
 </head>
 <body>
