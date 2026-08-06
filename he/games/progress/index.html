@@ -340,14 +340,17 @@ button,a{font:inherit}
 /* לוגו */
 
 .logo{
-  width:clamp(190px,82%,225px);
-  height:95px;
+    display:block;
 
-  object-fit:contain;
+    width:88%;
+    max-width:300px;
+    min-width:240px;
 
-  transform:scale(1.18);
+    height:auto;
 
-  margin:8px auto 14px;
+    margin:16px auto 24px;
+
+    object-fit:contain;
 }
 
 /* האי שלנו */
@@ -378,14 +381,14 @@ button,a{font:inherit}
 }
 
 .side-home img{
-    width:clamp(88px,46%,118px);
+    width:150px;
+    max-width:78%;
     height:auto;
 
+    display:block;
+    margin:0 auto 8px;
+
     object-fit:contain;
-
-    transform:scale(1.28);
-
-    margin:0 auto 0;
 }
 
 .side-home strong{
@@ -490,47 +493,71 @@ button,a{font:inherit}
     inset 0 1px 0 rgba(255,255,255,.2);
 }
 
-/* רובוט תחתון */
+/* ==================================================
+   ROBOT PANEL
+================================================== */
 
 .side-coach{
-  margin-top:auto;
+    margin-top:auto;
 
-  padding-top:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
 
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+    padding:20px 12px 8px;
 
-  text-align:center;
+    text-align:center;
 }
 
 .side-coach img{
-    width:clamp(120px,72%,160px);
+    display:block;
+
+    width:185px;
+    max-width:90%;
     height:auto;
+
+    margin:0 auto 14px;
 
     object-fit:contain;
 
-    transform:scale(1.25);
+    filter:
+        drop-shadow(0 12px 20px rgba(0,0,0,.35))
+        drop-shadow(0 0 14px rgba(82,180,255,.18));
 
-    margin:0 auto 6px;
+    transition:transform .25s ease;
+}
+
+.side-coach img:hover{
+    transform:translateY(-3px) scale(1.03);
 }
 
 .side-coach p{
-  width:100%;
+    width:100%;
 
-  margin:0;
-  padding:10px 12px;
+    margin:0;
 
-  border-radius:15px;
+    padding:12px 14px;
 
-  color:#e7f0ff;
+    border-radius:18px;
 
-  font-size:12px;
-  line-height:1.45;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(17,61,122,.96),
+            rgba(8,34,77,.98)
+        );
 
-  background:rgba(11,43,91,.9);
+    border:1px solid rgba(162,214,255,.18);
 
-  border:1px solid rgba(155,207,255,.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06);
+
+    color:#edf5ff;
+
+    font-size:13px;
+    line-height:1.45;
+    font-weight:700;
 }
 .loading{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:rgba(2,10,27,.94);backdrop-filter:blur(8px)}
 .loading.hide{display:none}
@@ -624,7 +651,7 @@ button,a{font:inherit}
 }
 
 .side-coach img{
-  width:128px;
+  width:205px;
   height:112px;
   transform:none;
 }
