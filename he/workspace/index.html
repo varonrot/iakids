@@ -11146,6 +11146,26 @@ body.lesson-theme-science
   flex-direction:column;
   gap:8px;
 }
+    /* =====================================================
+   SCIENCE VIEW SAFETY
+===================================================== */
+
+body.science-hierarchy-mode
+#dashboardView,
+
+body.science-hierarchy-mode
+#learningView,
+
+body.science-hierarchy-mode
+#learningPathView{
+  display:none !important;
+}
+
+
+body.science-hierarchy-mode
+#scienceHierarchyView{
+  display:block !important;
+}
 </style>
 </head>
 <body>
@@ -22996,43 +23016,80 @@ function restoreDefaultWorkspaceBackground(){
 }
 function showDashboard(){
 
-  document.body.classList.remove(
-    "science-hierarchy-mode"
-  );
+  /*
+    אם אנחנו כרגע בתוך מסך המדעים,
+    אסור לשום קריאה מאוחרת להחזיר את הדשבורד.
+  */
+  if(
+    document.body.classList.contains(
+      "science-hierarchy-mode"
+    )
+  ){
+    console.log(
+      "showDashboard blocked: science hierarchy is open"
+    );
+
+    return;
+  }
+
 
   restoreDefaultWorkspaceBackground();
+
+
   const dashboard =
-    document.getElementById("dashboardView");
+    document.getElementById(
+      "dashboardView"
+    );
 
   const learning =
-    document.getElementById("learningView");
+    document.getElementById(
+      "learningView"
+    );
 
-    const pathView =
-  document.getElementById(
-    "learningPathView"
-  );
+  const pathView =
+    document.getElementById(
+      "learningPathView"
+    );
 
+  const scienceView =
+    document.getElementById(
+      "scienceHierarchyView"
+    );
 
 
   if(dashboard){
-    dashboard.style.display = "block";
+    dashboard.style.display =
+      "block";
   }
+
 
   if(learning){
-    learning.style.display = "none";
+    learning.style.display =
+      "none";
   }
 
-if(pathView){
-  pathView.style.display = "none";
-}
 
-  /* כפתור דף הבית פעיל */
+  if(pathView){
+    pathView.style.display =
+      "none";
+  }
+
+
+  if(scienceView){
+    scienceView.style.display =
+      "none";
+  }
+
 
   document
-    .querySelectorAll(".side-item")
+    .querySelectorAll(
+      ".side-item"
+    )
     .forEach(btn => {
 
-      btn.classList.remove("active");
+      btn.classList.remove(
+        "active"
+      );
 
     });
 
@@ -23041,6 +23098,7 @@ if(pathView){
     document.getElementById(
       "homeSidebarBtn"
     );
+
 
   if(homeBtn){
 
@@ -32023,9 +32081,18 @@ const SCIENCE_CATEGORY_IMAGES = {
 ===================================================== */
 
 async function openScienceHierarchy(){
-document.body.classList.add(
-  "science-hierarchy-mode"
-);
+
+  /*
+    קודם מסמנים שאנחנו במסך מדעים.
+    מכאן showDashboard לא יכול
+    להחזיר בטעות את המפה.
+  */
+
+  document.body.classList.add(
+    "science-hierarchy-mode"
+  );
+
+
   const dashboard =
     document.getElementById(
       "dashboardView"
@@ -32047,6 +32114,10 @@ document.body.classList.add(
     );
 
 
+  /*
+    קודם מסתירים הכול.
+  */
+
   if(dashboard){
     dashboard.style.display =
       "none";
@@ -32067,13 +32138,19 @@ document.body.classList.add(
 
   if(scienceView){
     scienceView.style.display =
-      "block";
+      "none";
   }
 
 
   /*
-    מדגיש מדעים בסרגל שמאל
+    ורק עכשיו מציגים את מדעים.
   */
+
+  if(scienceView){
+    scienceView.style.display =
+      "block";
+  }
+
 
   document
     .querySelectorAll(
@@ -32093,28 +32170,29 @@ document.body.classList.add(
       "#subjectsContainer .side-item"
     )]
     .find(btn =>
-      btn.textContent.trim()
-        .includes("מדעים")
+      btn.textContent
+        .trim()
+        .includes(
+          "מדעים"
+        )
     );
 
 
-if(scienceSidebarButton){
+  if(scienceSidebarButton){
 
-  scienceSidebarButton
-    .classList
-    .add("active");
+    scienceSidebarButton
+      .classList
+      .add(
+        "active"
+      );
 
-}
-
-
-/* מציג 3 המלצות אקראיות */
-
-renderRandomScienceRecommendations();
+  }
 
 
-/* טוען את היררכיית המדעים */
+  renderRandomScienceRecommendations();
 
-await loadScienceCategories();
+
+  await loadScienceCategories();
 
 }
 
@@ -32124,9 +32202,12 @@ await loadScienceCategories();
 ===================================================== */
 
 function closeScienceHierarchy(){
-document.body.classList.remove(
-  "science-hierarchy-mode"
-);
+
+  document.body.classList.remove(
+    "science-hierarchy-mode"
+  );
+
+
   const scienceView =
     document.getElementById(
       "scienceHierarchyView"
