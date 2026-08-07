@@ -32594,12 +32594,10 @@ async function loadScienceParentLessons(
       "scienceTree"
     );
 
-
   const grade =
     Number(
       CURRENT_KID?.age
     );
-
 
   if(
     !tree ||
@@ -32618,38 +32616,34 @@ async function loadScienceParentLessons(
     data,
     error
   } = await sb
-
     .from(
       "learning_lessons"
     )
-
     .select(`
       id,
+      grade,
+      subject,
+      category,
       lesson_name,
       lesson_order,
       is_checkpoint
     `)
-
     .eq(
       "grade",
       grade
     )
-
     .eq(
       "subject",
       "מדעים"
     )
-
     .eq(
       "category",
       category
     )
-
     .eq(
       "is_active",
       true
     )
-
     .order(
       "lesson_order",
       {
@@ -32669,15 +32663,23 @@ async function loadScienceParentLessons(
   }
 
 
-  const oldLevel =
-    document.getElementById(
+  document
+    .getElementById(
       "scienceLevel2"
-    );
+    )
+    ?.remove();
 
+  document
+    .getElementById(
+      "scienceLevel3"
+    )
+    ?.remove();
 
-  if(oldLevel){
-    oldLevel.remove();
-  }
+  document
+    .getElementById(
+      "scienceLevel4"
+    )
+    ?.remove();
 
 
   const level =
@@ -32769,7 +32771,726 @@ async function loadScienceParentLessons(
     level
   );
 
+
+  /* =================================================
+     לחיצה על רמה 2
+  ================================================= */
+
+  level
+    .querySelectorAll(
+      "[data-parent-lesson-id]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const parentLessonId =
+            Number(
+              button.dataset
+                .parentLessonId
+            );
+
+
+          const parentLesson =
+            (data || [])
+              .find(
+                item =>
+                  Number(item.id)
+                  ===
+                  parentLessonId
+              );
+
+
+          if(!parentLesson){
+            return;
+          }
+
+
+          /*
+            חשוב:
+            startSelectedUnitLesson משתמש
+            ב-CURRENT_PARENT_LESSON
+          */
+
+          CURRENT_PARENT_LESSON = {
+            ...parentLesson,
+            subject:"מדעים",
+            category
+          };
+
+
+          level
+            .querySelectorAll(
+              "[data-parent-lesson-id]"
+            )
+            .forEach(card => {
+
+              card.classList.remove(
+                "selected"
+              );
+
+            });
+
+
+          button.classList.add(
+            "selected"
+          );
+
+
+          /*
+            מנקים רק רמות 3 ו-4
+          */
+
+          document
+            .getElementById(
+              "scienceLevel3"
+            )
+            ?.remove();
+
+          document
+            .getElementById(
+              "scienceLevel4"
+            )
+            ?.remove();
+
+
+          await loadScienceUnits(
+            parentLesson
+          );
+
+        }
+      );
+
+    });
+
+
+  /*
+    ברירת מחדל:
+    פותחים אוטומטית את הנושא הראשון
+    כדי שהשטח למטה לא יהיה ריק.
+  */
+
+  if(data?.length){
+
+    CURRENT_PARENT_LESSON = {
+      ...data[0],
+      subject:"מדעים",
+      category
+    };
+
+
+    await loadScienceUnits(
+      CURRENT_PARENT_LESSON
+    );
+
+  }
+
 }
+
+
+/* =====================================================
+   LOAD LEVEL 3
+   lesson_units_content.unit_name
+===================================================== */
+
+async function loadScienceUnits(
+  parentLesson
+){
+
+  const tree =
+    document.getElementById(
+      "scienceTree"
+    );
+
+
+  if(
+    !tree ||
+    !parentLesson?.id
+  ){
+    return;
+  }
+
+
+  updateScienceBreadcrumb(
+    SCIENCE_SELECTED_CATEGORY,
+    parentLesson.lesson_name
+  );
+
+
+  const {
+    data,
+    error
+  } = await sb
+
+    .from(
+      "lesson_units_content"
+    )
+
+    .select(`
+      id,
+      learning_lesson_id,
+      unit_order,
+      unit_name,
+      lesson_order,
+      lesson_name,
+      status
+    `)
+
+    .eq(
+      "learning_lesson_id",
+      parentLesson.id
+    )
+
+    .order(
+      "unit_order",
+      {
+        ascending:true
+      }
+    )
+
+    .order(
+      "lesson_order",
+      {
+        ascending:true
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "SCIENCE LEVEL 3 ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  /*
+    אותה יחידה מופיעה כמה פעמים,
+    כי לכל שיעור יש שורה משלו.
+
+    לכן מוציאים רשימת יחידות ייחודית.
+  */
+
+  const units = [];
+
+  const seenUnits =
+    new Set();
+
+
+  (data || [])
+    .forEach(row => {
+
+      const key =
+        `${row.unit_order}__${row.unit_name}`;
+
+
+      if(
+        row.unit_name &&
+        !seenUnits.has(key)
+      ){
+
+        seenUnits.add(
+          key
+        );
+
+
+        units.push({
+          unit_order:
+            row.unit_order,
+
+          unit_name:
+            row.unit_name
+        });
+
+      }
+
+    });
+
+
+  document
+    .getElementById(
+      "scienceLevel3"
+    )
+    ?.remove();
+
+  document
+    .getElementById(
+      "scienceLevel4"
+    )
+    ?.remove();
+
+
+  if(
+    units.length === 0
+  ){
+
+    return;
+
+  }
+
+
+  const level =
+    document.createElement(
+      "section"
+    );
+
+
+  level.id =
+    "scienceLevel3";
+
+  level.className =
+    "science-tree-level";
+
+
+  level.innerHTML = `
+
+    <div class="science-tree-row">
+
+      ${
+        units
+          .map(
+            (unit,index) => `
+
+              <button
+                type="button"
+
+                class="
+                  science-tree-card
+                  ${
+                    index === 0
+                      ? "selected"
+                      : ""
+                  }
+                "
+
+                data-science-unit-order="${unit.unit_order}"
+              >
+
+                <div
+                  class="science-tree-card-icon"
+                >
+                  ${
+                    index === 0
+                      ? "🌿"
+                      : "🧩"
+                  }
+                </div>
+
+                <strong>
+                  ${unit.unit_name}
+                </strong>
+
+                <small>
+                  יחידת לימוד
+                </small>
+
+                <div
+                  class="science-tree-progress"
+                >
+
+                  <span
+                    style="
+                      width:${
+                        index === 0
+                          ? 100
+                          : 35
+                      }%
+                    "
+                  ></span>
+
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+
+  `;
+
+
+  tree.appendChild(
+    level
+  );
+
+
+  level
+    .querySelectorAll(
+      "[data-science-unit-order]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const unitOrder =
+            Number(
+              button.dataset
+                .scienceUnitOrder
+            );
+
+
+          const unit =
+            units.find(
+              item =>
+                Number(
+                  item.unit_order
+                )
+                ===
+                unitOrder
+            );
+
+
+          if(!unit){
+            return;
+          }
+
+
+          /*
+            חשוב:
+            מנגנון השיעור הקיים משתמש
+            ב-CURRENT_UNIT
+          */
+
+          CURRENT_UNIT = {
+            ...unit
+          };
+
+
+          level
+            .querySelectorAll(
+              "[data-science-unit-order]"
+            )
+            .forEach(card => {
+
+              card.classList.remove(
+                "selected"
+              );
+
+            });
+
+
+          button.classList.add(
+            "selected"
+          );
+
+
+          document
+            .getElementById(
+              "scienceLevel4"
+            )
+            ?.remove();
+
+
+          await loadScienceUnitLessons(
+            parentLesson,
+            unit
+          );
+
+        }
+      );
+
+    });
+
+
+  /*
+    ברירת מחדל:
+    פותחים את היחידה הראשונה.
+  */
+
+  CURRENT_UNIT = {
+    ...units[0]
+  };
+
+
+  await loadScienceUnitLessons(
+    parentLesson,
+    units[0]
+  );
+
+}
+
+
+/* =====================================================
+   LOAD LEVEL 4
+   lesson_units_content.lesson_name
+===================================================== */
+
+async function loadScienceUnitLessons(
+  parentLesson,
+  unit
+){
+
+  const tree =
+    document.getElementById(
+      "scienceTree"
+    );
+
+
+  if(
+    !tree ||
+    !parentLesson?.id ||
+    !unit
+  ){
+    return;
+  }
+
+
+  updateScienceBreadcrumb(
+    SCIENCE_SELECTED_CATEGORY,
+    parentLesson.lesson_name,
+    unit.unit_name
+  );
+
+
+  const {
+    data,
+    error
+  } = await sb
+
+    .from(
+      "lesson_units_content"
+    )
+
+    .select(`
+      id,
+      learning_lesson_id,
+      unit_order,
+      unit_name,
+      lesson_order,
+      lesson_name,
+      status
+    `)
+
+    .eq(
+      "learning_lesson_id",
+      parentLesson.id
+    )
+
+    .eq(
+      "unit_order",
+      unit.unit_order
+    )
+
+    .order(
+      "lesson_order",
+      {
+        ascending:true
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "SCIENCE LEVEL 4 ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  document
+    .getElementById(
+      "scienceLevel4"
+    )
+    ?.remove();
+
+
+  if(
+    !data ||
+    data.length === 0
+  ){
+    return;
+  }
+
+
+  const level =
+    document.createElement(
+      "section"
+    );
+
+
+  level.id =
+    "scienceLevel4";
+
+  level.className =
+    "science-tree-level";
+
+
+  level.innerHTML = `
+
+    <div class="science-tree-row">
+
+      ${
+        data
+          .map(
+            (lesson,index) => `
+
+              <button
+                type="button"
+
+                class="
+                  science-tree-card
+                  science-tree-lesson-card
+                  ${
+                    index === 0
+                      ? "current"
+                      : ""
+                  }
+                "
+
+                data-unit-lesson-id="${lesson.id}"
+              >
+
+                <div
+                  class="science-tree-card-icon"
+                >
+                  ${
+                    index === 0
+                      ? "▶"
+                      : "📘"
+                  }
+                </div>
+
+                <strong>
+                  ${lesson.lesson_name}
+                </strong>
+
+                <small>
+                  שיעור ${lesson.lesson_order || index + 1}
+                </small>
+
+                <div
+                  class="science-tree-progress"
+                >
+
+                  <span
+                    style="
+                      width:${
+                        index === 0
+                          ? 75
+                          : 0
+                      }%
+                    "
+                  ></span>
+
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+
+  `;
+
+
+  tree.appendChild(
+    level
+  );
+
+
+  /* =================================================
+     לחיצה על שיעור = פתיחת מנגנון השיעור הקיים
+  ================================================= */
+
+  level
+    .querySelectorAll(
+      "[data-unit-lesson-id]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const unitLessonId =
+            Number(
+              button.dataset
+                .unitLessonId
+            );
+
+
+          const lesson =
+            data.find(
+              item =>
+                Number(item.id)
+                ===
+                unitLessonId
+            );
+
+
+          if(!lesson){
+            return;
+          }
+
+
+          /*
+            מוודאים שהגלובלים הישנים
+            מוכנים בדיוק כמו במסלול הקודם.
+          */
+
+          CURRENT_PARENT_LESSON = {
+            ...parentLesson,
+            subject:"מדעים",
+            category:
+              SCIENCE_SELECTED_CATEGORY
+          };
+
+
+          CURRENT_UNIT = {
+            unit_order:
+              unit.unit_order,
+
+            unit_name:
+              unit.unit_name
+          };
+
+
+          console.log(
+            "SCIENCE START UNIT LESSON:",
+            {
+              parent:
+                CURRENT_PARENT_LESSON,
+
+              unit:
+                CURRENT_UNIT,
+
+              lesson
+            }
+          );
+
+
+          /*
+            כאן מתחבר ישירות למנגנון
+            השיעור שכבר קיים באתר.
+          */
+
+          await startSelectedUnitLesson(
+            lesson
+          );
+
+        }
+      );
+
+    });
+
+}
+
     /* =====================================================
    SCIENCE BREADCRUMB
 ===================================================== */
