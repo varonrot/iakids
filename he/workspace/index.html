@@ -32804,9 +32804,124 @@ async function loadScienceParentLessons(
   `;
 
 
-  tree.appendChild(
-    level
+tree.appendChild(
+  level
+);
+
+
+/* =====================================================
+   לחיצה על נושא = פתיחת שכבה 3
+===================================================== */
+
+level
+  .querySelectorAll(
+    "[data-parent-lesson-id]"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      async () => {
+
+        const parentLessonId =
+          Number(
+            button.dataset
+              .parentLessonId
+          );
+
+
+        const parentLesson =
+          (data || []).find(
+            item =>
+              Number(item.id) ===
+              parentLessonId
+          );
+
+
+        if(!parentLesson){
+          return;
+        }
+
+
+        CURRENT_PARENT_LESSON = {
+          ...parentLesson,
+          subject:"מדעים",
+          category
+        };
+
+
+        /* מסמנים את הכרטיס הפעיל */
+
+        level
+          .querySelectorAll(
+            "[data-parent-lesson-id]"
+          )
+          .forEach(card => {
+
+            card.classList.remove(
+              "selected"
+            );
+
+          });
+
+
+        button.classList.add(
+          "selected"
+        );
+
+
+        /* מוחקים שכבות 3–4 קודמות */
+
+        document
+          .getElementById(
+            "scienceLevel3"
+          )
+          ?.remove();
+
+
+        document
+          .getElementById(
+            "scienceLevel4"
+          )
+          ?.remove();
+
+
+        /* פתיחת שכבה 3 */
+
+        await loadScienceUnits(
+          parentLesson
+        );
+
+      }
+    );
+
+  });
+
+
+/* =====================================================
+   ברירת מחדל:
+   פותחים את הנושא הראשון
+===================================================== */
+
+if(
+  data &&
+  data.length > 0
+){
+
+  CURRENT_PARENT_LESSON = {
+    ...data[0],
+    subject:"מדעים",
+    category
+  };
+
+
+  await loadScienceUnits(
+    data[0]
   );
+
+}
+
+}
 
 
   /* =================================================
