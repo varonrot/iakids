@@ -11110,6 +11110,42 @@ body.lesson-theme-science
       rgba(0,0,0,.42)
     );
 }
+    /* =====================================================
+   SCIENCE RECOMMENDATION IMAGES
+===================================================== */
+
+.science-recommend-item{
+  overflow:hidden;
+}
+
+
+.science-recommend-image{
+  width:82px;
+  height:58px;
+
+  flex:0 0 82px;
+
+  object-fit:cover;
+
+  border-radius:11px;
+
+  display:block;
+
+  border:
+    1px solid
+    rgba(100,160,130,.18);
+
+  box-shadow:
+    0 4px 12px
+    rgba(0,0,0,.20);
+}
+
+
+#scienceRecommendations{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
 </style>
 </head>
 <body>
@@ -12315,100 +12351,17 @@ data-kingdom="desert"
        מומלץ עבורך
   ================================================== -->
 
-  <section class="science-side-card science-recommend-card">
-
-    <div class="science-side-section-title">
-      מומלץ עבורך
-    </div>
 
 
-    <!-- יער הגשם -->
+<section class="science-side-card">
 
-    <button
-      type="button"
-      class="science-recommend-item"
-    >
+  <div class="science-side-section-title">
+    מומלץ עבורך
+  </div>
 
-      <img
-        class="science-recommend-image"
-        src="/assets/science/sidebar/rainforest.webp"
-        alt="מערכות אקולוגיות ביער הגשם"
-      >
+  <div id="scienceRecommendations"></div>
 
-
-      <span class="science-recommend-text">
-
-        <strong>
-          מערכות אקולוגיות ביער הגשם
-        </strong>
-
-        <small>
-          25 דקות
-        </small>
-
-      </span>
-
-    </button>
-
-
-    <!-- השפעת האדם -->
-
-    <button
-      type="button"
-      class="science-recommend-item"
-    >
-
-      <img
-        class="science-recommend-image"
-        src="/assets/science/sidebar/pollution.webp"
-        alt="השפעת האדם על הסביבה"
-      >
-
-
-      <span class="science-recommend-text">
-
-        <strong>
-          השפעת האדם על הסביבה
-        </strong>
-
-        <small>
-          20 דקות
-        </small>
-
-      </span>
-
-    </button>
-
-
-    <!-- מחזור המים -->
-
-    <button
-      type="button"
-      class="science-recommend-item"
-    >
-
-      <img
-        class="science-recommend-image"
-        src="/assets/science/sidebar/water-cycle.webp"
-        alt="מחזור המים בטבע"
-      >
-
-
-      <span class="science-recommend-text">
-
-        <strong>
-          מחזור המים בטבע
-        </strong>
-
-        <small>
-          15 דקות
-        </small>
-
-      </span>
-
-    </button>
-
-  </section>
+</section>
 
 
   <!-- =================================================
@@ -31873,7 +31826,171 @@ document.addEventListener(
 
 let SCIENCE_SELECTED_CATEGORY = null;
 
+/* =====================================================
+   SCIENCE RANDOM RECOMMENDATIONS
+===================================================== */
 
+const SCIENCE_RECOMMENDATIONS = [
+
+  {
+    title:"בעלי חיים",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/animals.webp"
+  },
+
+  {
+    title:"חומרים וכימיה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/chemistry.webp"
+  },
+
+  {
+    title:"כדור הארץ",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/earth.webp"
+  },
+
+  {
+    title:"אקולוגיה",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/ecology.webp"
+  },
+
+  {
+    title:"חשמל",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/electricity.webp"
+  },
+
+  {
+    title:"אנרגיה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/energy.webp"
+  },
+
+  {
+    title:"כוחות ותנועה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/forces-motion.webp"
+  },
+
+  {
+    title:"גוף האדם",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/human-body.webp"
+  },
+
+  {
+    title:"אוקיינוסים",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/ocean.webp"
+  },
+
+  {
+    title:"צמחים",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/plants.webp"
+  },
+
+  {
+    title:"השפעת האדם על הסביבה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/pollution.webp"
+  },
+
+  {
+    title:"יער הגשם",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/rainforest.webp"
+  },
+
+  {
+    title:"חלל",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/space.webp"
+  },
+
+  {
+    title:"הרי געש",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/volcano.webp"
+  },
+
+  {
+    title:"מחזור המים",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/water-cycle.webp"
+  },
+
+  {
+    title:"מזג אוויר",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/weather.webp"
+  }
+
+];
+function renderRandomScienceRecommendations(){
+
+  const container =
+    document.getElementById(
+      "scienceRecommendations"
+    );
+
+  if(!container){
+    return;
+  }
+
+
+  const shuffled =
+    [...SCIENCE_RECOMMENDATIONS]
+      .sort(
+        () =>
+          Math.random() - 0.5
+      );
+
+
+  const selected =
+    shuffled.slice(
+      0,
+      3
+    );
+
+
+  container.innerHTML =
+    selected
+      .map(
+        item => `
+
+          <button
+            type="button"
+            class="science-recommend-item"
+          >
+
+            <img
+              class="science-recommend-image"
+              src="${item.image}"
+              alt="${item.title}"
+            >
+
+            <span>
+
+              <strong>
+                ${item.title}
+              </strong>
+
+              <small>
+                ${item.duration}
+              </small>
+
+            </span>
+
+          </button>
+
+        `
+      )
+      .join("");
+
+}
 /* תמונות לשורה הראשונה */
 
 const SCIENCE_CATEGORY_IMAGES = {
@@ -31981,16 +32098,23 @@ document.body.classList.add(
     );
 
 
-  if(scienceSidebarButton){
+if(scienceSidebarButton){
 
-    scienceSidebarButton
-      .classList
-      .add("active");
+  scienceSidebarButton
+    .classList
+    .add("active");
 
-  }
+}
 
 
-  await loadScienceCategories();
+/* מציג 3 המלצות אקראיות */
+
+renderRandomScienceRecommendations();
+
+
+/* טוען את היררכיית המדעים */
+
+await loadScienceCategories();
 
 }
 
