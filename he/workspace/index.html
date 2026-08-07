@@ -16,6 +16,31 @@
 <style>
 
 *{box-sizing:border-box}
+/* =====================================================
+   INITIAL PAGE LOAD — PREVENT WHITE FLASH
+===================================================== */
+
+html{
+  background:#020916;
+}
+
+body{
+  background:#020916 !important;
+}
+
+/* האפליקציה מוסתרת עד שה-JS סיים לאתחל */
+.app{
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* אחרי שהכול מוכן */
+body.app-ready .app{
+  opacity:1 !important;
+  visibility:visible !important;
+
+  transition:opacity .18s ease;
+}
 :root{
   --purple:#7048ff;--purple2:#9368ff;--ink:#172052;--muted:#78819f;
   --line:#e9e8f4;--bg:#f5f7ff;--card:#fff;
