@@ -33012,7 +33012,15 @@ async function loadScienceUnits(
   */
 
   const units = [];
-
+console.log(
+  "SCIENCE LEVEL 3 RAW DATA:",
+  {
+    parentLessonId: parentLesson.id,
+    parentLessonName: parentLesson.lesson_name,
+    rows: data,
+    error
+  }
+);
   const seenUnits =
     new Set();
 
@@ -33059,7 +33067,10 @@ async function loadScienceUnits(
     )
     ?.remove();
 
-
+console.log(
+  "SCIENCE LEVEL 3 UNITS:",
+  units
+);
   if(
     units.length === 0
   ){
