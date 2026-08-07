@@ -11979,7 +11979,7 @@ data-kingdom="desert"
 </section>
 </section><!-- סגירת dashboardView -->
 
-    <!-- =====================================================
+<!-- =====================================================
      SCIENCE HIERARCHY VIEW
 ===================================================== -->
 
@@ -11989,73 +11989,299 @@ data-kingdom="desert"
   style="display:none;"
 >
 
-  <div class="science-hierarchy-screen">
+  <div class="science-subject-layout">
 
-    <!-- כותרת -->
-    <header class="science-tree-header">
+    <!-- =================================================
+         MAIN SCIENCE TREE
+    ================================================== -->
 
-      <button
-        type="button"
-        class="science-tree-back"
-        onclick="closeScienceHierarchy()"
+    <div class="science-hierarchy-screen">
+
+      <header class="science-tree-header">
+
+        <button
+          type="button"
+          class="science-tree-back"
+          onclick="closeScienceHierarchy()"
+        >
+          <i class="fa-solid fa-arrow-right"></i>
+          חזרה
+        </button>
+
+
+        <div class="science-tree-title-icon">
+          <i class="fa-solid fa-leaf"></i>
+        </div>
+
+
+        <div>
+          <h1>מדעים</h1>
+          <p>
+            בחר נושא כדי להתחיל ללמוד ולהתקדם
+          </p>
+        </div>
+
+      </header>
+
+
+      <!-- BREADCRUMB -->
+
+      <div
+        id="scienceBreadcrumb"
+        class="science-breadcrumb"
       >
-        <i class="fa-solid fa-arrow-right"></i>
-        חזרה
-      </button>
-
-      <div class="science-tree-title-icon">
-        <i class="fa-solid fa-leaf"></i>
+        <span class="active">
+          מדעים
+        </span>
       </div>
 
-      <div>
-        <h1>מדעים</h1>
-        <p>בחר נושא כדי להתחיל ללמוד ולהתקדם</p>
+
+      <!-- TREE -->
+
+      <div
+        id="scienceTree"
+        class="science-tree"
+      >
+
+        <div class="science-tree-loading">
+          טוענים את עולם המדעים...
+        </div>
+
       </div>
 
-    </header>
 
+      <!-- LEGEND -->
 
-    <!-- Breadcrumb -->
-    <div
-      id="scienceBreadcrumb"
-      class="science-breadcrumb"
-    >
-      <span class="active">מדעים</span>
+      <div class="science-tree-legend">
+
+        <span>
+          <i class="science-legend-dot completed"></i>
+          הושלם
+        </span>
+
+        <span>
+          <i class="science-legend-dot current"></i>
+          נוכחי
+        </span>
+
+        <span>
+          <i class="science-legend-dot locked"></i>
+          נעול
+        </span>
+
+      </div>
+
     </div>
 
 
-    <!-- כל 4 רמות ההיררכיה ייכנסו לכאן -->
-    <div
-      id="scienceTree"
-      class="science-tree"
-    >
+    <!-- =================================================
+         SCIENCE RIGHT SIDEBAR
+    ================================================== -->
 
-      <div class="science-tree-loading">
-        טוענים את עולם המדעים...
-      </div>
-
-    </div>
+    <aside class="science-rightbar">
 
 
-    <!-- מקרא -->
-    <div class="science-tree-legend">
+      <!-- התקדמות במדעים -->
 
-      <span>
-        <i class="science-legend-dot completed"></i>
-        הושלם
-      </span>
+      <section class="science-side-card science-progress-card">
 
-      <span>
-        <i class="science-legend-dot current"></i>
-        נוכחי
-      </span>
+        <h3>
+          ההתקדמות שלי במדעים
+        </h3>
 
-      <span>
-        <i class="science-legend-dot locked"></i>
-        נעול
-      </span>
+        <div class="science-side-donut">
 
-    </div>
+          <div class="science-side-donut-inner">
+
+            <strong>
+              72%
+            </strong>
+
+            <span>
+              התקדמות כללית
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="science-side-stats">
+
+          <div>
+            <strong>28</strong>
+            <span>שיעורים הושלמו</span>
+          </div>
+
+          <div>
+            <strong>14</strong>
+            <span>בתהליך</span>
+          </div>
+
+          <div>
+            <strong>6</strong>
+            <span>נותרו</span>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- המשך שיעור -->
+
+      <section class="science-side-card science-continue-card">
+
+        <span class="science-side-heading">
+          המשך שיעור
+        </span>
+
+        <div class="science-continue-content">
+
+          <div class="science-continue-image">
+            🐸
+          </div>
+
+          <div class="science-continue-text">
+
+            <strong>
+              מהי מערכת אקולוגית?
+            </strong>
+
+            <span>
+              מבוא למערכת אקולוגית
+            </span>
+
+            <div class="science-continue-progress">
+              <span style="width:75%"></span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="science-side-primary-btn"
+        >
+          המשך
+          <i class="fa-solid fa-play"></i>
+        </button>
+
+      </section>
+
+
+      <!-- מומלץ עבורך -->
+
+      <section class="science-side-card">
+
+        <div class="science-side-section-title">
+          מומלץ עבורך
+        </div>
+
+
+        <button
+          type="button"
+          class="science-recommend-item"
+        >
+
+          <span class="science-recommend-icon">
+            🌳
+          </span>
+
+          <span>
+            <strong>
+              מערכות אקולוגיות ביער הגשם
+            </strong>
+
+            <small>
+              25 דקות
+            </small>
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="science-recommend-item"
+        >
+
+          <span class="science-recommend-icon">
+            🏭
+          </span>
+
+          <span>
+            <strong>
+              השפעת האדם על הסביבה
+            </strong>
+
+            <small>
+              20 דקות
+            </small>
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="science-recommend-item"
+        >
+
+          <span class="science-recommend-icon">
+            💧
+          </span>
+
+          <span>
+            <strong>
+              מחזור המים בטבע
+            </strong>
+
+            <small>
+              15 דקות
+            </small>
+          </span>
+
+        </button>
+
+      </section>
+
+
+      <!-- אתגר -->
+
+      <section class="science-side-card science-challenge-card">
+
+        <div class="science-challenge-icon">
+          🏆
+        </div>
+
+        <div>
+
+          <strong>
+            אתגר יומי
+          </strong>
+
+          <p>
+            ענה על 5 שאלות בנושא מדעים
+            וקבל 20 כוכבים
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="science-side-primary-btn"
+        >
+          התחל את האתגר
+        </button>
+
+      </section>
+
+
+    </aside>
 
   </div>
 
@@ -22651,6 +22877,11 @@ function restoreDefaultWorkspaceBackground(){
 
 }
 function showDashboard(){
+
+  document.body.classList.remove(
+    "science-hierarchy-mode"
+  );
+
   restoreDefaultWorkspaceBackground();
   const dashboard =
     document.getElementById("dashboardView");
@@ -27326,6 +27557,774 @@ body.lesson-theme-science
 .science-legend-dot.locked{
   background:#727f93;
 }
+    /* =====================================================
+   SCIENCE SUBJECT SCREEN + INTERNAL SIDEBAR
+===================================================== */
+
+
+/* =====================================================
+   כשהילד נמצא במסך מדעים:
+   מורידים את סרגל הבית הימני
+   ומרחיבים את MAIN
+===================================================== */
+
+body.science-hierarchy-mode .app{
+  grid-template-columns:
+    270px
+    minmax(0,1fr) !important;
+}
+
+
+body.science-hierarchy-mode .topbar{
+  grid-column:
+    1 / 3 !important;
+}
+
+
+body.science-hierarchy-mode .main{
+  grid-column:
+    2 !important;
+}
+
+
+/* הסרגל הימני הרגיל של הבית נעלם */
+
+body.science-hierarchy-mode
+.rightbar.home-rightbar{
+  display:none !important;
+}
+
+
+/* הרובוט הצף של הבית גם לא שייך למסך הזה */
+
+body.science-hierarchy-mode
+.floating-tutor-robot{
+  display:none !important;
+}
+
+
+
+/* =====================================================
+   SCIENCE VIEW
+===================================================== */
+
+.science-hierarchy-view{
+  width:100% !important;
+  height:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  overflow:hidden !important;
+
+  border-radius:
+    22px !important;
+}
+
+
+/* MAIN + RIGHT SIDEBAR */
+
+.science-subject-layout{
+  width:100%;
+  height:100%;
+
+  min-width:0;
+  min-height:0;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    270px;
+
+  gap:14px;
+
+  direction:ltr;
+}
+
+
+/* עץ */
+
+.science-hierarchy-screen{
+  direction:rtl;
+
+  min-width:0;
+  min-height:0;
+
+  border-radius:22px;
+}
+
+
+/* =====================================================
+   SCIENCE SIDEBAR
+===================================================== */
+
+.science-rightbar{
+  direction:rtl;
+
+  width:100%;
+  height:100%;
+
+  min-height:0;
+
+  padding:
+    0
+    2px
+    0
+    0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:10px;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+
+.science-rightbar::-webkit-scrollbar{
+  width:4px;
+}
+
+
+.science-rightbar::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+.science-rightbar::-webkit-scrollbar-thumb{
+  border-radius:999px;
+
+  background:
+    rgba(85,213,122,.25);
+}
+
+
+
+/* =====================================================
+   SIDEBAR CARDS
+===================================================== */
+
+.science-side-card{
+  position:relative;
+
+  flex:
+    0
+    0
+    auto;
+
+  overflow:hidden;
+
+  padding:
+    15px;
+
+  border:
+    1px solid
+    rgba(85,158,134,.22);
+
+  border-radius:
+    18px;
+
+  background:
+    radial-gradient(
+      circle at 80% 0%,
+      rgba(48,180,96,.10),
+      transparent 43%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,26,34,.97),
+      rgba(6,14,25,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.045),
+
+    0 8px 22px
+    rgba(0,5,18,.28);
+
+  color:#eef8f3;
+}
+
+
+.science-side-card::before{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent,
+      rgba(84,230,127,.025),
+      transparent
+    );
+}
+
+
+
+/* =====================================================
+   PROGRESS
+===================================================== */
+
+.science-progress-card h3{
+  position:relative;
+  z-index:2;
+
+  margin:
+    0
+    0
+    12px;
+
+  text-align:center;
+
+  color:#f3f8f6;
+
+  font-size:
+    15px;
+
+  font-weight:
+    850;
+}
+
+
+.science-side-donut{
+  --progress:72;
+
+  position:relative;
+
+  width:92px;
+  height:92px;
+
+  margin:
+    2px
+    auto
+    13px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #55e57b
+      0
+      calc(
+        var(--progress) * 1%
+      ),
+
+      rgba(59,85,81,.32)
+      calc(
+        var(--progress) * 1%
+      )
+      100%
+    );
+
+  box-shadow:
+    0 0 19px
+    rgba(61,222,113,.18);
+}
+
+
+.science-side-donut::before{
+  content:"";
+
+  position:absolute;
+
+  inset:9px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #243d42,
+      #0b1721 65%
+    );
+
+  border:
+    1px solid
+    rgba(101,216,142,.18);
+}
+
+
+.science-side-donut-inner{
+  position:relative;
+
+  z-index:2;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+}
+
+
+.science-side-donut-inner strong{
+  font-size:
+    24px;
+
+  line-height:1;
+
+  color:#fff;
+}
+
+
+.science-side-donut-inner span{
+  margin-top:
+    4px;
+
+  color:
+    rgba(205,226,218,.66);
+
+  font-size:
+    8px;
+}
+
+
+
+/* stats */
+
+.science-side-stats{
+  position:relative;
+  z-index:2;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:3px;
+}
+
+
+.science-side-stats > div{
+  text-align:center;
+
+  padding:
+    3px
+    5px;
+}
+
+
+.science-side-stats > div +
+div{
+  border-right:
+    1px solid
+    rgba(123,169,158,.14);
+}
+
+
+.science-side-stats strong{
+  display:block;
+
+  color:#63df82;
+
+  font-size:
+    17px;
+}
+
+
+.science-side-stats span{
+  display:block;
+
+  margin-top:
+    2px;
+
+  color:
+    rgba(199,214,213,.58);
+
+  font-size:
+    8px;
+}
+
+
+
+/* =====================================================
+   CONTINUE LESSON
+===================================================== */
+
+.science-side-heading,
+.science-side-section-title{
+  position:relative;
+  z-index:2;
+
+  display:block;
+
+  margin-bottom:
+    10px;
+
+  color:#9cecad;
+
+  font-size:
+    14px;
+
+  font-weight:
+    900;
+}
+
+
+.science-continue-content{
+  position:relative;
+  z-index:2;
+
+  display:grid;
+
+  grid-template-columns:
+    62px
+    minmax(0,1fr);
+
+  gap:9px;
+
+  align-items:center;
+
+  direction:ltr;
+}
+
+
+.science-continue-image{
+  width:62px;
+  height:62px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    13px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(45,148,70,.32),
+      rgba(7,28,23,.85)
+    );
+
+  font-size:
+    37px;
+}
+
+
+.science-continue-text{
+  direction:rtl;
+
+  min-width:0;
+}
+
+
+.science-continue-text strong{
+  display:block;
+
+  font-size:
+    13px;
+
+  line-height:
+    1.35;
+}
+
+
+.science-continue-text > span{
+  display:block;
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(203,218,214,.62);
+
+  font-size:
+    9px;
+}
+
+
+.science-continue-progress{
+  height:6px;
+
+  margin-top:
+    8px;
+
+  overflow:hidden;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(86,110,111,.28);
+}
+
+
+.science-continue-progress span{
+  display:block;
+
+  height:100%;
+
+  border-radius:
+    inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #32c963,
+      #72e68e
+    );
+}
+
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.science-side-primary-btn{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  min-height:
+    38px;
+
+  margin-top:
+    11px;
+
+  border:
+    1px solid
+    rgba(105,239,139,.27);
+
+  border-radius:
+    10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #258443,
+      #176934
+    );
+
+  color:#fff;
+
+  font-size:
+    12px;
+
+  font-weight:
+    850;
+
+  cursor:pointer;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.10),
+
+    0 6px 15px
+    rgba(14,104,47,.23);
+}
+
+
+.science-side-primary-btn i{
+  margin-right:
+    6px;
+}
+
+
+
+/* =====================================================
+   RECOMMENDED
+===================================================== */
+
+.science-recommend-item{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  min-height:
+    52px;
+
+  padding:
+    6px
+    7px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  border:
+    0;
+
+  border-bottom:
+    1px solid
+    rgba(100,137,132,.12);
+
+  background:
+    transparent;
+
+  color:#eef6f3;
+
+  text-align:right;
+
+  cursor:pointer;
+}
+
+
+.science-recommend-item:hover{
+  background:
+    rgba(73,193,106,.055);
+}
+
+
+.science-recommend-icon{
+  width:44px;
+  height:38px;
+
+  flex:
+    0
+    0
+    44px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    8px;
+
+  background:
+    rgba(55,122,91,.13);
+
+  font-size:
+    22px;
+}
+
+
+.science-recommend-item strong{
+  display:block;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.25;
+}
+
+
+.science-recommend-item small{
+  display:block;
+
+  margin-top:
+    2px;
+
+  color:
+    rgba(193,210,205,.55);
+
+  font-size:
+    8px;
+}
+
+
+
+/* =====================================================
+   CHALLENGE
+===================================================== */
+
+.science-challenge-card{
+  display:grid;
+
+  grid-template-columns:
+    45px
+    minmax(0,1fr);
+
+  gap:
+    7px;
+
+  align-items:center;
+
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(122,79,220,.14),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(25,24,53,.98),
+      rgba(13,16,34,.98)
+    );
+}
+
+
+.science-challenge-icon{
+  font-size:
+    32px;
+}
+
+
+.science-challenge-card strong{
+  font-size:
+    14px;
+
+  color:#c5a4ff;
+}
+
+
+.science-challenge-card p{
+  margin:
+    4px
+    0
+    0;
+
+  color:
+    rgba(207,209,230,.69);
+
+  font-size:
+    9px;
+
+  line-height:
+    1.4;
+}
+
+
+.science-challenge-card
+.science-side-primary-btn{
+  grid-column:
+    1 / -1;
+}
+
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:1250px){
+
+  .science-subject-layout{
+    grid-template-columns:
+      minmax(0,1fr)
+      230px;
+  }
+
+}
+
+
+@media(max-width:1000px){
+
+  .science-subject-layout{
+    display:block;
+  }
+
+
+  .science-rightbar{
+    display:none;
+  }
+
+}
 </style>
 
 
@@ -30414,7 +31413,9 @@ const SCIENCE_CATEGORY_ICONS = {
 ===================================================== */
 
 async function openScienceHierarchy(){
-
+document.body.classList.add(
+  "science-hierarchy-mode"
+);
   const dashboard =
     document.getElementById(
       "dashboardView"
@@ -30506,7 +31507,9 @@ async function openScienceHierarchy(){
 ===================================================== */
 
 function closeScienceHierarchy(){
-
+document.body.classList.remove(
+  "science-hierarchy-mode"
+);
   const scienceView =
     document.getElementById(
       "scienceHierarchyView"
