@@ -31610,7 +31610,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Renderer V6";
+      "▶ Rotem V6";
 
 
     document.body.appendChild(
@@ -33605,9 +33605,50 @@ level
            פתיחת השיעור בדיוק דרך המנוע הישן
         ========================================= */
 
-        await startSelectedUnitLesson(
-          lesson
-        );
+/* =====================================================
+   יוצאים ממצב עץ המדעים לפני פתיחת השיעור
+===================================================== */
+
+document.body.classList.remove(
+  "science-hierarchy-mode"
+);
+
+
+const scienceView =
+  document.getElementById(
+    "scienceHierarchyView"
+  );
+
+if(scienceView){
+  scienceView.style.display = "none";
+}
+
+
+const dashboard =
+  document.getElementById(
+    "dashboardView"
+  );
+
+if(dashboard){
+  dashboard.style.display = "none";
+}
+
+
+const pathView =
+  document.getElementById(
+    "learningPathView"
+  );
+
+if(pathView){
+  pathView.style.display = "none";
+}
+
+
+/* עכשיו מותר למנוע השיעור לפתוח את learningView */
+
+await startSelectedUnitLesson(
+  lesson
+);
 
       }
     );
