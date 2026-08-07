@@ -14073,16 +14073,88 @@ function renderLearningPathSidebar(
       טוענת את המסלול החדש
       */
 
-      button.onclick =
-        () => {
+button.onclick =
+  async () => {
 
-          loadLearningPath(
-            grade,
-            subject,
-            item.category
-          );
+    /* =========================================
+       במדעים עובדים עם ההיררכיה החדשה
+    ========================================= */
 
-        };
+    if(
+      subject === "מדעים"
+    ){
+
+      console.log(
+        "SCIENCE SIDEBAR CATEGORY:",
+        item.category
+      );
+
+
+      SCIENCE_SELECTED_CATEGORY =
+        item.category;
+
+
+      /* סימון הכפתור שנבחר */
+
+      sidebar
+        .querySelectorAll(
+          ".learning-path-sidebar-item"
+        )
+        .forEach(
+          btn => {
+            btn.classList.remove(
+              "active"
+            );
+          }
+        );
+
+
+      button.classList.add(
+        "active"
+      );
+
+
+      /* משאירים את מסך המדעים פתוח */
+
+      document.body.classList.add(
+        "science-hierarchy-mode"
+      );
+
+
+      const scienceView =
+        document.getElementById(
+          "scienceHierarchyView"
+        );
+
+
+      if(scienceView){
+        scienceView.style.display =
+          "block";
+      }
+
+
+      /* מחליפים רמה 2 לפי הקטגוריה */
+
+      await loadScienceParentLessons(
+        item.category
+      );
+
+
+      return;
+    }
+
+
+    /* =========================================
+       שאר המקצועות ממשיכים במערכת הישנה
+    ========================================= */
+
+    loadLearningPath(
+      grade,
+      subject,
+      item.category
+    );
+
+  };
 
 
       sidebar.appendChild(
@@ -31538,7 +31610,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Renderer V3";
+      "▶ Renderer V4";
 
 
     document.body.appendChild(
