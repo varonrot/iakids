@@ -16,30 +16,125 @@
   .part.ask-highlight * { fill: var(--yellow) !important; }
   #mcq-diagram { pointer-events: none; opacity: .95; }
 </style>
+
+<style id="iakids-premium-overrides">
+:root{
+  --space-bg:#06142d; --space-panel:#0b2857; --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27); --space-text:#f7f9ff;
+  --space-muted:#b8c7e3; --space-gold:#ffd15c;
+}
+html,body{min-height:100%}
+body{
+  margin:0!important; min-height:100vh!important; padding:86px 18px 28px!important;
+  overflow-x:hidden; color:var(--space-text)!important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif!important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important;
+}
+body:before{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px; opacity:.08;
+}
+*{box-sizing:border-box}
+.game-card{
+  width:min(500px,calc(100vw - 28px))!important; min-height:690px;
+  margin:0 auto!important; padding:0!important; overflow:hidden;
+  border:1px solid var(--space-line)!important; border-radius:28px!important;
+  color:var(--space-text)!important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08)!important;
+}
+.game-hud{
+  position:fixed!important; top:0!important; left:0!important; right:0!important; z-index:20;
+  min-height:72px; padding:16px 24px!important; display:flex!important;
+  align-items:center; justify-content:center!important; gap:42px;
+  color:#fff!important; background:rgba(5,18,46,.88)!important;
+  border-bottom:1px solid rgba(126,180,255,.18); backdrop-filter:blur(14px);
+}
+.game-hud .score{color:var(--space-gold)!important}
+#start-screen,#play-screen,#end-screen{min-height:688px;padding:34px 30px 30px}
+#start-screen{display:flex;flex-direction:column;align-items:center;text-align:center}
+.game-title{
+  margin:0; font-size:clamp(2.15rem,7vw,3.2rem)!important; line-height:1.05;
+  color:#fff!important; text-shadow:0 4px 12px rgba(0,0,0,.22)
+}
+#start-screen>div:first-child{font-size:5rem!important;margin:6px 0 8px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.22))}
+#start-screen p{color:var(--space-muted)!important;font-weight:600;line-height:1.65}
+.answer-grid{width:100%;gap:12px!important}
+.game-btn{
+  min-height:54px;border-radius:15px!important;border:1px solid rgba(118,176,255,.34)!important;
+  color:#fff!important;font-weight:900!important;
+  background:linear-gradient(180deg,#1c91db,#0877bd)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16)!important;
+}
+.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important}
+.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64)!important}
+#play-screen{position:relative}
+.game-question{
+  min-height:54px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+  padding:9px 15px;border-radius:16px;text-align:center;color:#fff!important;
+  font-size:1.35rem!important;font-weight:900;
+  background:rgba(4,22,55,.5);border:1px solid rgba(116,177,255,.18)
+}
+#plantWrap{
+  max-width:340px;margin:8px auto;padding:10px;border-radius:22px;
+  background:rgba(226,245,255,.96);border:1px solid rgba(125,190,255,.35);
+  box-shadow:0 16px 34px rgba(0,0,0,.20)
+}
+#plantsvg{width:100%;height:auto;display:block;touch-action:manipulation}
+.part{cursor:pointer;transition:filter .2s,opacity .2s,transform .15s;transform-box:fill-box;transform-origin:center}
+.part:hover{filter:brightness(1.08);transform:scale(1.025)}
+.part.correct-flash{filter:drop-shadow(0 0 10px #36dc88)}
+.part.correct-flash *{fill:#36c979!important}
+.part.wrong-flash *{fill:#ff606e!important}
+.part.ask-highlight{filter:drop-shadow(0 0 12px #ffd15c)}
+.part.ask-highlight *{fill:#ffd15c!important}
+#mcq-mode #plantWrap{max-width:210px}
+#mcq-diagram{pointer-events:none;opacity:.96;width:100%;height:auto;display:block}
+#mcq-answers{margin-top:12px}
+#mcq-answers .game-btn{min-height:64px;padding:10px 14px;line-height:1.45;font-size:.98rem!important}
+#end-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.stars{min-height:78px;font-size:3.7rem!important;letter-spacing:4px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.24))}
+.big-score{margin:8px 0;color:#fff!important;font-size:4rem!important;font-weight:1000}
+#player-line,#end-screen p{color:#d7e3f7!important}
+[hidden]{display:none!important}
+@media(max-width:600px){
+  body{padding:74px 10px 18px!important}
+  .game-card{min-height:calc(100vh - 94px);border-radius:22px!important}
+  #start-screen,#play-screen,#end-screen{min-height:calc(100vh - 96px);padding:26px 16px 24px}
+  .game-hud{min-height:62px;padding:12px 14px!important;gap:24px}
+  #plantWrap{max-width:300px}
+}
+</style>
+
 </head>
 <body>
 
 <div class="game-hud">
-  <span class="score">ניקוד: <span id="score">0</span></span>
-  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
 </div>
 
 <div class="game-card" id="card">
   <div id="start-screen">
     <div style="font-size:4rem">🌷</div>
-    <h1 class="game-title">חלקים של צמח</h1>
-    <p>לחצו על החלק הנכון בצמח! ברמה קשה — בחרו את התפקיד הנכון של כל חלק.</p>
-    <p>כמה שאלות?</p>
+    <h1 class="game-title" id="title">חלקים של צמח</h1>
+    <p id="howto">לחצו על החלק הנכון בצמח! ברמה קשה — בחרו את התפקיד הנכון של כל חלק.</p>
+    <p id="rounds-label">כמה שאלות?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
     </div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
-      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
-      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
-      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 
@@ -58,8 +153,8 @@
     <div class="stars" id="stars"></div>
     <div class="big-score" id="final-score"></div>
     <p id="player-line"></p>
-    <p>השיא שלך: <b id="best"></b></p>
-    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <p><span id="best-label">השיא שלך</span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()">שחק שוב 🔁</button>
     <div id="share-slot"></div>
   </div>
 </div>
@@ -67,6 +162,44 @@
 <script src="../game-sdk.js"></script>
 <script>
 let game, score = 0, qnum = 0, level = 1, TOTAL = 10, locked = false, current, mode;
+let CHILD_AGE = null, USE_NIQQUD = false, mistakes = 0, timeouts = 0, ending = false;
+
+const T_REGULAR = {
+  title:'חלקים של צמח',
+  howto:'לחצו על החלק הנכון בצמח! ברמה קשה — בחרו את התפקיד הנכון של כל חלק.',
+  rounds:'כמה שאלות?'
+};
+const T_NIQQUD = {
+  title:'חֲלָקִים שֶׁל צֶמַח',
+  howto:'לַחֲצוּ עַל הַחֵלֶק הַנָּכוֹן בַּצֶּמַח! בָּרָמָה הַקָּשָׁה — בַּחֲרוּ אֶת הַתַּפְקִיד הַנָּכוֹן שֶׁל כָּל חֵלֶק.',
+  rounds:'כַּמָּה שְׁאֵלוֹת?'
+};
+
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+    const client = await IAKidsActivity._getClient();
+    const {data,error} = await client.from('kids_profiles').select('id, age').eq('id',kidId).maybeSingle();
+    if(error || !data) return;
+    CHILD_AGE = Number(data.age);
+    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+  }catch(error){
+    console.warn('[plant-parts] loadKidContext error', error);
+  }
+}
+
+function applyKidText(){
+  const t = USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+  document.getElementById('title').textContent = t.title;
+  document.getElementById('howto').textContent = t.howto;
+  document.getElementById('rounds-label').textContent = t.rounds;
+  document.getElementById('score-label').textContent = IAKidsLang.ui('score');
+  document.getElementById('q-label').textContent = IAKidsLang.ui('question');
+  document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
+  document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
+}
+
 IAKidsCoins.mount();
 IAKidsHelp.mount({
   slug: 'plant-parts',
@@ -159,16 +292,44 @@ const show = id => {
 
 let diff, timer;
 async function start(lvl) {
+  await loadKidContext();
+  applyKidText();
+
   game = await IAKidsGame.init('plant-parts');
   level = lvl;
   diff = game.difficulty(lvl || 1, 3);
   timer = game.timer({ style: 'bomb', onTimeout: () => { if (!locked) handleTimeout(); } });
+
+  score = 0;
+  qnum = 0;
+  mistakes = 0;
+  timeouts = 0;
+  ending = false;
+  locked = false;
+
   const p = await game.loadProgress();
   if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+
+  IAKidsActivity.configure({
+    difficulty: lvl || 1,
+    questionsCount: TOTAL,
+    metadata: {
+      game_mode: 'plant-parts',
+      selected_level: lvl,
+      random_difficulty: lvl === 0,
+      child_age: CHILD_AGE,
+      uses_niqqud: USE_NIQQUD,
+      timer_enabled: true
+    }
+  });
+
   await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+
+  document.getElementById('score').textContent = '0';
+  document.getElementById('qnum').textContent = '1';
   document.getElementById('qtotal').textContent = TOTAL;
   show('play-screen');
-  next();
+  await next();
 }
 
 const rnd = n => Math.floor(Math.random() * n);
@@ -183,17 +344,18 @@ async function next() {
   const pool = PARTS.filter(p => p.minLevel <= lvl);
   const q = await game.newQuestion(() => ({ part: pool[rnd(pool.length)], mode }), x => x.mode + ':' + x.part.id);
   current = q.part;
+  IAKidsActivity.questionStarted();
 
   document.getElementById('tap-mode').hidden = mode !== 'tap';
   document.getElementById('mcq-mode').hidden = mode !== 'mcq';
 
   if (mode === 'tap') {
-    document.getElementById('question').textContent = `לחצו על ה${current.name}`;
+    document.getElementById('question').textContent = USE_NIQQUD ? `לַחֲצוּ עַל הַ${({root:'שֹׁרֶשׁ',stem:'גִּבְעוֹל',leaf:'עָלֶה',flower:'פֶּרַח',fruit:'פְּרִי',seed:'זֶרַע'})[current.id]}` : `לחצו על ה${current.name}`;
     const svg = document.getElementById('plantsvg');
     const groups = drawPlant(svg, { minLevel: lvl });
     Object.values(groups).forEach(g => g.onclick = () => resolveTap(g.dataset.id === current.id, g));
   } else {
-    document.getElementById('question').textContent = `מה התפקיד של ה${current.name}?`;
+    document.getElementById('question').textContent = USE_NIQQUD ? `מָה הַתַּפְקִיד שֶׁל הַ${({root:'שֹׁרֶשׁ',stem:'גִּבְעוֹל',leaf:'עָלֶה',flower:'פֶּרַח',fruit:'פְּרִי',seed:'זֶרַע'})[current.id]}?` : `מה התפקיד של ה${current.name}?`;
     const svg = document.getElementById('mcq-diagram');
     const groups = drawPlant(svg, { minLevel: 2 });
     Object.values(groups).forEach(g => g.classList.remove('ask-highlight'));
@@ -221,12 +383,15 @@ function resolveTap(isCorrect, el) {
   if (isCorrect) {
     score += 10;
     diff.right();
+    IAKidsActivity.correct();
     IAKidsFX.correct(el);
     IAKidsCoins.right(el);
     if (mode === 'tap') el.classList.add('correct-flash');
     else el.classList.add('correct');
   } else {
+    mistakes++;
     diff.wrong();
+    IAKidsActivity.wrong();
     IAKidsFX.wrong(el);
     IAKidsCoins.wrong();
     if (mode === 'tap') { el.classList.add('wrong-flash'); setTimeout(() => document.querySelector(`#plantsvg [data-id="${current.id}"]`)?.classList.add('correct-flash'), 400); }
@@ -238,24 +403,53 @@ function resolveTap(isCorrect, el) {
 function handleTimeout() {
   locked = true;
   timer.stop();
+  timeouts++;
   diff.wrong();
+  IAKidsActivity.skipped();
   IAKidsCoins.wrong();
   document.getElementById('score').textContent = score;
   setTimeout(() => { locked = false; next(); }, 700);
 }
 
 async function end() {
-  await game.saveScore(score, { level });
+  if (ending) return;
+  ending = true;
+  locked = true;
+  timer?.stop();
+
+  const maxScore = TOTAL * 10;
+  const successfulAnswers = Math.round(score / 10);
+  const performance = TOTAL ? Math.round((successfulAnswers / TOTAL) * 100) : 0;
+
+  await game.saveScore(score, { level, mistakes, timeouts });
+
   const top = (await game.getHighScores(1))[0];
   document.getElementById('final-score').textContent = score;
   document.getElementById('best').textContent = top?.score ?? score;
   document.getElementById('player-line').textContent =
-    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
   document.getElementById('stars').textContent =
-    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+    '⭐'.repeat(performance >= 90 ? 3 : performance >= 70 ? 2 : 1);
+
+  await game.complete(score, {
+    maxScore,
+    performanceScore: performance,
+    metadata: {
+      game_mode: 'plant-parts',
+      selected_level: level,
+      random_difficulty: level === 0,
+      total_rounds: TOTAL,
+      mistakes,
+      timeouts,
+      correct_answers: successfulAnswers,
+      child_age: CHILD_AGE,
+      uses_niqqud: USE_NIQQUD,
+      timer_enabled: true
+    }
+  });
+
   game.shareButton(score, document.getElementById('share-slot'));
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
