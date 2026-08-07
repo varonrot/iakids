@@ -32238,9 +32238,9 @@ function renderScienceCategoryLevel(
                 SCIENCE_SELECTED_CATEGORY;
 
 
-              const icon =
-                SCIENCE_CATEGORY_IMAGES[
-                  "/assets/science/categories/default.webp";
+              const image =
+                SCIENCE_CATEGORY_IMAGES[item.category]
+                  || "/assets/science/categories/default.webp";
 
 
               return `
