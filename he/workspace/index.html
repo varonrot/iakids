@@ -31610,7 +31610,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Renderer V5";
+      "▶ Renderer V6";
 
 
     document.body.appendChild(
@@ -33529,7 +33529,90 @@ async function loadScienceUnitLessons(
   tree.appendChild(
     level
   );
+/* =====================================================
+   לחיצה על שיעור ברמה 5
+   פתיחת מנגנון השיעור הקיים
+===================================================== */
 
+level
+  .querySelectorAll(
+    "[data-unit-lesson-id]"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      async () => {
+
+        const unitLessonId =
+          Number(
+            button.dataset.unitLessonId
+          );
+
+
+        const lesson =
+          (data || []).find(
+            item =>
+              Number(item.id) === unitLessonId
+          );
+
+
+        if(!lesson){
+          console.error(
+            "SCIENCE LESSON NOT FOUND:",
+            unitLessonId
+          );
+
+          return;
+        }
+
+
+        /* =========================================
+           מכינים את המשתנים שהמסלול הישן מצפה להם
+        ========================================= */
+
+        CURRENT_PARENT_LESSON = {
+          ...parentLesson,
+          subject: "מדעים",
+          category: SCIENCE_SELECTED_CATEGORY
+        };
+
+
+        CURRENT_UNIT = {
+          unit_order: unit.unit_order,
+          unit_name: unit.unit_name
+        };
+
+
+        console.log(
+          "SCIENCE OPEN LESSON:",
+          {
+            category:
+              SCIENCE_SELECTED_CATEGORY,
+
+            parentLesson:
+              CURRENT_PARENT_LESSON,
+
+            unit:
+              CURRENT_UNIT,
+
+            lesson
+          }
+        );
+
+
+        /* =========================================
+           פתיחת השיעור בדיוק דרך המנוע הישן
+        ========================================= */
+
+        await startSelectedUnitLesson(
+          lesson
+        );
+
+      }
+    );
+
+  });
 
   /* =================================================
      לחיצה על שיעור = פתיחת מנגנון השיעור הקיים
