@@ -1,1 +1,215 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>זהה את היבשת | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #mapWrap { max-width: 480px; margin: 8px auto; }
+  #worldmap { width: 100%; height: auto; display: block; touch-action: manipulation; }
+  .region { fill: #b7dfa8; stroke: #ffffff; stroke-width: 4; cursor: pointer; transition: fill .2s; }
+  .region:hover { fill: #a3d18f; }
+  .region.ocean { fill: #7ec8e3; stroke-width: 3; }
+  .region.correct-flash { fill: var(--green) !important; }
+  .region.wrong-flash { fill: var(--red) !important; }
+  .region-label {
+    font-size: 26px; font-weight: 800; fill: #1f2937; text-anchor: middle;
+    pointer-events: none; opacity: 0; transition: opacity .2s;
+  }
+  .region-label.show { opacity: 1; }
+</style>
+</head>
+<body>
 
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🗺️</div>
+    <h1 class="game-title">זהה את היבשת</h1>
+    <p>לוחצים על היבשת הנכונה במפת העולם!</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question" style="font-size:1.5rem"></div>
+    <div id="mapWrap">
+      <svg id="worldmap" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, score = 0, qnum = 0, level = 1, TOTAL = 10, locked = false, current;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'continents',
+  how: 'על המפה יש 7 יבשות ואוקיינוסים. נשאל "איפה נמצאת X?" ואתם לוחצים על המקום הנכון במפה. אזור ירוק = יבשה, אזור כחול = אוקיינוס.',
+  example: 'שואלים: "איפה אפריקה?" ← לוחצים על היבשה הגדולה שבמרכז-דרום המפה 🌍',
+});
+
+// ponytail: simplified polygon world map — recognizable relative positions, not real coastlines
+const REGIONS = [
+  { id: 'namerica', name: 'צפון אמריקה', minLevel: 1, ocean: false,
+    points: '120,80 260,90 290,180 230,260 150,320 90,300 50,220 60,140', label: [165, 190] },
+  { id: 'asia', name: 'אסיה', minLevel: 1, ocean: false,
+    points: '580,70 860,60 900,180 840,300 740,340 650,300 590,220 560,140', label: [720, 190] },
+  { id: 'africa', name: 'אפריקה', minLevel: 1, ocean: false,
+    points: '470,215 580,210 610,300 590,420 540,480 480,460 450,340', label: [520, 340] },
+  { id: 'samerica', name: 'דרום אמריקה', minLevel: 2, ocean: false,
+    points: '230,330 300,320 330,380 310,450 270,480 230,470 210,400', label: [265, 400] },
+  { id: 'europe', name: 'אירופה', minLevel: 2, ocean: false,
+    points: '460,90 560,80 580,150 540,210 470,200 440,140', label: [505, 145] },
+  { id: 'australia', name: 'אוסטרליה', minLevel: 2, ocean: false,
+    points: '760,410 880,400 900,450 860,485 780,480 750,450', label: [815, 445] },
+  { id: 'antarctica', name: 'אנטארקטיקה', minLevel: 2, ocean: false,
+    points: '20,520 980,520 980,590 20,590', label: [500, 560] },
+  { id: 'pacific1', name: 'האוקיינוס השקט', minLevel: 3, ocean: true, group: 'pacific',
+    points: '0,70 150,70 150,450 0,450', label: [75, 260] },
+  { id: 'pacific2', name: 'האוקיינוס השקט', minLevel: 3, ocean: true, group: 'pacific',
+    points: '850,70 1000,70 1000,450 850,450', label: [925, 260] },
+  { id: 'atlantic', name: 'האוקיינוס האטלנטי', minLevel: 3, ocean: true, group: 'atlantic',
+    points: '260,70 450,70 450,450 260,450', label: [355, 260] },
+  { id: 'indian', name: 'האוקיינוס ההודי', minLevel: 3, ocean: true, group: 'indian',
+    points: '560,300 850,300 850,450 560,450', label: [700, 380] },
+  { id: 'arctic', name: 'האוקיינוס הארקטי', minLevel: 3, ocean: true, group: 'arctic',
+    points: '0,0 1000,0 1000,60 0,60', label: [500, 32] },
+];
+const byId = id => REGIONS.find(r => r.id === id);
+
+function buildMap() {
+  const svg = document.getElementById('worldmap');
+  svg.innerHTML = '';
+  // oceans first (background), continents drawn after (on top)
+  const order = [...REGIONS.filter(r => r.ocean), ...REGIONS.filter(r => !r.ocean)];
+  order.forEach(r => {
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', r.points);
+    poly.setAttribute('class', 'region' + (r.ocean ? ' ocean' : ''));
+    poly.dataset.id = r.id;
+    poly.dataset.group = r.group || r.id;
+    poly.onclick = () => tapRegion(r, poly);
+    svg.appendChild(poly);
+  });
+  order.forEach(r => {
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', r.label[0]); t.setAttribute('y', r.label[1]);
+    t.setAttribute('class', 'region-label');
+    t.dataset.group = r.group || r.id;
+    t.textContent = r.name;
+    svg.appendChild(t);
+  });
+}
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+let diff, timer;
+async function start(lvl) {
+  game = await IAKidsGame.init('continents');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => { if (!locked) resolveTap(null, null); } });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  buildMap();
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const pool = REGIONS.filter(r => r.minLevel <= lvl);
+  const q = await game.newQuestion(() => pool[rnd(pool.length)], r => r.group || r.id);
+  current = q;
+  document.getElementById('question').textContent = `איפה נמצא/ת ${q.name}?`;
+  document.querySelectorAll('.region-label').forEach(l => l.classList.remove('show'));
+  document.querySelectorAll('.region').forEach(p => p.classList.remove('correct-flash', 'wrong-flash'));
+  timer.start(IAKidsTimer.secondsFor(lvl, 12));
+}
+
+function tapRegion(r, el) { resolveTap(r, el); }
+
+function resolveTap(r, el) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  const isCorrect = r && (r.group || r.id) === (current.group || current.id);
+  document.querySelectorAll(`.region[data-group="${current.group || current.id}"]`)
+    .forEach(p => p.classList.add(isCorrect ? 'correct-flash' : 'wrong-flash'));
+  document.querySelectorAll(`.region-label[data-group="${current.group || current.id}"]`)
+    .forEach(l => l.classList.add('show'));
+  if (isCorrect) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(el);
+    IAKidsCoins.right(el);
+  } else {
+    if (el) { el.classList.add('wrong-flash'); IAKidsFX.wrong(el); }
+    diff.wrong();
+    IAKidsCoins.wrong();
+    setTimeout(() => {
+      document.querySelectorAll(`.region[data-group="${current.group || current.id}"]`)
+        .forEach(p => p.classList.add('correct-flash'));
+    }, 500);
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 1100);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
