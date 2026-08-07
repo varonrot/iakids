@@ -4,46 +4,329 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>זהה את צליל החיה | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
 <style>
-  #speaker-btn {
-    font-size: 3.5rem; background: none; border: none; cursor: pointer;
-    display: block; margin: 10px auto; padding: 10px; min-width: 90px; min-height: 90px;
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-blue:#1693f1;
+  --space-green:#1ea96b;
+  --space-purple:#7653ff;
+  --space-gold:#ffd15c;
+}
+
+html,body{min-height:100%}
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:86px 18px 28px !important;
+  overflow-x:hidden;
+  color:var(--space-text) !important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(520px,calc(100vw - 28px)) !important;
+  min-height:690px;
+  margin:0 auto !important;
+  padding:0 !important;
+  overflow:hidden;
+  border:1px solid var(--space-line) !important;
+  border-radius:28px !important;
+  color:var(--space-text) !important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98)) !important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08) !important;
+}
+
+.game-hud{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px !important;
+  display:flex !important;
+  align-items:center;
+  justify-content:center !important;
+  gap:42px;
+  color:#fff !important;
+  background:rgba(5,18,46,.88) !important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{color:var(--space-gold) !important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.15rem,7vw,3.1rem) !important;
+  line-height:1.05;
+  color:#fff !important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#howto{
+  max-width:410px;
+  margin:14px auto 20px;
+  color:var(--space-muted) !important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{
+  width:100%;
+  gap:12px !important;
+}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px !important;
+  border:1px solid rgba(118,176,255,.34) !important;
+  color:#fff !important;
+  font-weight:900 !important;
+  background:linear-gradient(180deg,#1c91db,#0877bd) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16) !important;
+}
+
+.game-btn:hover{transform:translateY(-2px)}
+.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75)) !important}
+.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64) !important;border-color:rgba(97,255,174,.6) !important}
+#level-row{margin-top:16px}
+#level-row .game-btn[data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc) !important}
+
+/* PLAY */
+#play-screen{position:relative}
+
+.game-question{
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:12px;
+  padding:10px 16px;
+  border-radius:16px;
+  text-align:center;
+  color:#fff !important;
+  font-size:1.35rem !important;
+  font-weight:900;
+  background:rgba(4,22,55,.5);
+  border:1px solid rgba(116,177,255,.18);
+}
+
+#speaker-btn{
+  width:116px;
+  height:116px;
+  display:block;
+  margin:18px auto 10px;
+  padding:0;
+  border:1px solid rgba(130,196,255,.38);
+  border-radius:999px;
+  color:#fff;
+  font-size:4rem;
+  cursor:pointer;
+  background:
+    radial-gradient(circle at 35% 25%,rgba(255,255,255,.22),transparent 30%),
+    linear-gradient(160deg,#1d8de1,#6650e8);
+  box-shadow:
+    0 18px 36px rgba(0,0,0,.28),
+    inset 0 1px rgba(255,255,255,.18);
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+
+#speaker-btn:hover{
+  transform:translateY(-2px) scale(1.02);
+}
+
+#speaker-btn:active{
+  transform:scale(.93);
+}
+
+#reveal{
+  min-height:38px;
+  margin:8px auto 14px;
+  text-align:center;
+  font-size:1.12rem;
+  font-weight:900;
+  color:#d9e7fb;
+}
+
+#emoji-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:10px;
+}
+
+.emoji-btn{
+  min-height:104px !important;
+  padding:14px !important;
+  font-size:3.25rem !important;
+  background:
+    linear-gradient(180deg,rgba(52,81,139,.82),rgba(21,49,99,.82)) !important;
+}
+
+.emoji-btn.correct{
+  background:linear-gradient(180deg,#37d182,#16ad64) !important;
+}
+
+.emoji-btn:disabled{
+  opacity:.76;
+  cursor:default;
+}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem !important;
+  letter-spacing:4px;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff !important;
+  font-size:4rem !important;
+  font-weight:1000;
+}
+
+#player-line,#end-screen p{color:#d7e3f7 !important}
+#share-slot{margin-top:8px}
+[hidden]{display:none !important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px !important}
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px !important;
   }
-  #speaker-btn:active { transform: scale(0.9); }
-  #reveal { min-height: 1.6em; font-size: 1.2rem; font-weight: 700; color: var(--muted); }
-  #emoji-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
-  .emoji-btn { font-size: 3rem; padding: 14px; min-height: 90px; }
+
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px !important;
+    gap:24px;
+  }
+
+  #speaker-btn{
+    width:102px;
+    height:102px;
+    font-size:3.5rem;
+  }
+
+  .emoji-btn{
+    min-height:92px !important;
+    font-size:2.9rem !important;
+  }
+}
 </style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score">ניקוד: <span id="score">0</span></span>
-  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score">
+    <span id="score-label">ניקוד</span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span id="q-label">שאלה</span>
+    <span id="qnum">1</span>/<span id="qtotal">10</span>
+  </span>
 </div>
 
 <div class="game-card" id="card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">🔊</div>
-    <h1 class="game-title">זהה את צליל החיה</h1>
-    <p>נשמיע צליל — ואתם תבחרו איזו חיה עשתה אותו!</p>
-    <p>כמה שאלות?</p>
+    <div class="hero-icon">🔊🐾</div>
+
+    <h1 class="game-title" id="title"></h1>
+
+    <p id="howto"></p>
+
+    <p class="section-label" id="rounds-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
     </div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
-      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
-      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
-      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+
+    <p class="section-label" id="level-label"></p>
+
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
     </div>
   </div>
 
   <div id="play-screen" hidden>
-    <div class="game-question" id="question" style="font-size:1.3rem">איזו חיה עושה את הצליל?</div>
+    <div class="game-question" id="question"></div>
     <button id="speaker-btn" onclick="playCurrent()">🔊</button>
     <div id="reveal">&nbsp;</div>
     <div id="emoji-grid"></div>
@@ -53,156 +336,602 @@
     <div class="stars" id="stars"></div>
     <div class="big-score" id="final-score"></div>
     <p id="player-line"></p>
-    <p>השיא שלך: <b id="best"></b></p>
-    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
     <div id="share-slot"></div>
   </div>
 </div>
 
 <script src="../game-sdk.js"></script>
-<script>
-let game, score = 0, qnum = 0, level = 1, TOTAL = 10, locked = false, current;
-IAKidsCoins.mount();
-IAKidsHelp.mount({
-  slug: 'animal-sounds',
-  how: 'לוחצים על הרמקול 🔊 ושומעים צליל של חיה. אחר כך בוחרים מתוך 4 חיות איזו מהן עושה את הצליל הזה.',
-  example: 'שומעים "הב הב!" ← בוחרים 🐶 כלב',
-});
 
-// ponytail: verified common Hebrew children's onomatopoeia per animal
-const ANIMALS = [
-  { id: 'dog',    name: 'כלב',      emoji: '🐶', sound: 'הב הב!',       cat: 'farm', lvl: 1, notes: [[300,0,.12],[300,.18,.12]] },
-  { id: 'cat',    name: 'חתול',     emoji: '🐱', sound: 'מיאו!',        cat: 'farm', lvl: 1, notes: [[500,0,.25],[620,.22,.2]] },
-  { id: 'cow',    name: 'פרה',      emoji: '🐮', sound: 'מووווו!',      cat: 'farm', lvl: 1, notes: [[150,0,.45]] },
-  { id: 'sheep',  name: 'כבשה',     emoji: '🐑', sound: 'מeeה!',        cat: 'farm', lvl: 1, notes: [[350,0,.15],[380,.18,.15]] },
-  { id: 'rooster',name: 'תרנגול',   emoji: '🐓', sound: 'קוקוריקו!',    cat: 'farm', lvl: 1, notes: [[600,0,.1],[800,.12,.1],[1000,.24,.2]] },
-  { id: 'duck',   name: 'ברווז',    emoji: '🦆', sound: 'קוואק קוואק!', cat: 'farm', lvl: 1, notes: [[400,0,.1],[400,.16,.1]] },
-  { id: 'horse',  name: 'סוס',      emoji: '🐴', sound: 'יהההה! (צהלה)', cat: 'farm', lvl: 1, notes: [[250,0,.3],[300,.22,.2]] },
-  { id: 'pig',    name: 'חזיר',     emoji: '🐷', sound: 'נחר נחר!',     cat: 'farm', lvl: 1, notes: [[200,0,.15],[220,.18,.15]] },
-  { id: 'hen',    name: 'תרנגולת',  emoji: '🐔', sound: 'קרקור!',       cat: 'farm', lvl: 2, notes: [[500,0,.08],[520,.12,.08],[500,.24,.08]] },
-  { id: 'lion',   name: 'אריה',     emoji: '🦁', sound: 'שאאאג!',       cat: 'wild', lvl: 2, notes: [[120,0,.5]] },
-  { id: 'bear',   name: 'דוב',      emoji: '🐻', sound: 'נהם נהם!',     cat: 'wild', lvl: 2, notes: [[100,0,.4]] },
-  { id: 'wolf',   name: 'זאב',      emoji: '🐺', sound: 'אאווווו! (יבבה)', cat: 'wild', lvl: 2, notes: [[300,0,.6]] },
-  { id: 'snake',  name: 'נחש',      emoji: '🐍', sound: 'ששששש! (לחישה)', cat: 'wild', lvl: 2, notes: [[900,0,.5]] },
-  { id: 'frog',   name: 'צפרדע',    emoji: '🐸', sound: 'קרררו קרררו!', cat: 'wild', lvl: 2, notes: [[250,0,.1],[250,.16,.1],[250,.32,.1]] },
-  { id: 'monkey', name: 'קוף',      emoji: '🐵', sound: 'הוהו אהא!',    cat: 'wild', lvl: 2, notes: [[450,0,.08],[480,.12,.08],[450,.24,.08]] },
-  { id: 'owl',    name: 'ינשוף',    emoji: '🦉', sound: 'הו-הו!',       cat: 'wild', lvl: 2, notes: [[300,0,.3],[280,.4,.3]] },
-  { id: 'elephant',name:'פיל',      emoji: '🐘', sound: 'פאםםם!',       cat: 'wild', lvl: 2, notes: [[150,0,.6]] },
-  { id: 'bee',    name: 'דבורה',    emoji: '🐝', sound: 'זזזזז! (זמזום)', cat: 'bird', lvl: 2, notes: [[600,0,.5]] },
-  { id: 'bird',   name: 'ציפור',    emoji: '🐦', sound: "צ'יק צ'יק!",   cat: 'bird', lvl: 1, notes: [[900,0,.08],[950,.12,.08],[1000,.24,.1]] },
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+function shuffle(arr){
+  const copy = [...arr];
+
+  for(let i=copy.length-1;i>0;i--){
+    const j = rnd(i+1);
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+
+  return copy;
+}
+
+const T_REGULAR = {
+  title:{he:'זהה את צליל החיה',en:'Identify the Animal Sound'},
+  howto:{he:'נשמיע צליל — ואתם תבחרו איזו חיה עשתה אותו!',en:'Hear a sound and choose which animal made it!'},
+  rounds:{he:'כמה שאלות?',en:'How many questions?'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'},
+  question:{he:'איזו חיה עושה את הצליל?',en:'Which animal makes this sound?'}
+};
+
+const T_NIQQUD = {
+  title:{he:'זַהוּ אֶת צְלִיל הַחַיָּה',en:'Identify the Animal Sound'},
+  howto:{he:'נַשְׁמִיעַ צְלִיל — וְאַתֶּם תִּבְחֲרוּ אֵיזוֹ חַיָּה עָשְׂתָה אוֹתוֹ!',en:'Hear a sound and choose which animal made it!'},
+  rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},
+  question:{he:'אֵיזוֹ חַיָּה עוֹשָׂה אֶת הַצְּלִיל?',en:'Which animal makes this sound?'}
+};
+
+const ANIMALS_REGULAR = [
+  {id:'dog',name:'כלב',emoji:'🐶',sound:'הב הב!',cat:'farm',lvl:1,notes:[[300,0,.12],[300,.18,.12]]},
+  {id:'cat',name:'חתול',emoji:'🐱',sound:'מיאו!',cat:'farm',lvl:1,notes:[[500,0,.25],[620,.22,.2]]},
+  {id:'cow',name:'פרה',emoji:'🐮',sound:'מווווו!',cat:'farm',lvl:1,notes:[[150,0,.45]]},
+  {id:'sheep',name:'כבשה',emoji:'🐑',sound:'מההה!',cat:'farm',lvl:1,notes:[[350,0,.15],[380,.18,.15]]},
+  {id:'rooster',name:'תרנגול',emoji:'🐓',sound:'קוקוריקו!',cat:'farm',lvl:1,notes:[[600,0,.1],[800,.12,.1],[1000,.24,.2]]},
+  {id:'duck',name:'ברווז',emoji:'🦆',sound:'קוואק קוואק!',cat:'farm',lvl:1,notes:[[400,0,.1],[400,.16,.1]]},
+  {id:'horse',name:'סוס',emoji:'🐴',sound:'צהלה!',cat:'farm',lvl:1,notes:[[250,0,.3],[300,.22,.2]]},
+  {id:'pig',name:'חזיר',emoji:'🐷',sound:'נחר נחר!',cat:'farm',lvl:1,notes:[[200,0,.15],[220,.18,.15]]},
+  {id:'hen',name:'תרנגולת',emoji:'🐔',sound:'קרקור!',cat:'farm',lvl:2,notes:[[500,0,.08],[520,.12,.08],[500,.24,.08]]},
+  {id:'lion',name:'אריה',emoji:'🦁',sound:'שאגה!',cat:'wild',lvl:2,notes:[[120,0,.5]]},
+  {id:'bear',name:'דוב',emoji:'🐻',sound:'נהמה!',cat:'wild',lvl:2,notes:[[100,0,.4]]},
+  {id:'wolf',name:'זאב',emoji:'🐺',sound:'אווווו!',cat:'wild',lvl:2,notes:[[300,0,.6]]},
+  {id:'snake',name:'נחש',emoji:'🐍',sound:'ששששש!',cat:'wild',lvl:2,notes:[[900,0,.5]]},
+  {id:'frog',name:'צפרדע',emoji:'🐸',sound:'קרקור!',cat:'wild',lvl:2,notes:[[250,0,.1],[250,.16,.1],[250,.32,.1]]},
+  {id:'monkey',name:'קוף',emoji:'🐵',sound:'הו הו!',cat:'wild',lvl:2,notes:[[450,0,.08],[480,.12,.08],[450,.24,.08]]},
+  {id:'owl',name:'ינשוף',emoji:'🦉',sound:'הו-הו!',cat:'wild',lvl:2,notes:[[300,0,.3],[280,.4,.3]]},
+  {id:'elephant',name:'פיל',emoji:'🐘',sound:'תרועה!',cat:'wild',lvl:2,notes:[[150,0,.6]]},
+  {id:'bee',name:'דבורה',emoji:'🐝',sound:'זזזזז!',cat:'bird',lvl:2,notes:[[600,0,.5]]},
+  {id:'bird',name:'ציפור',emoji:'🐦',sound:"צ'יק צ'יק!",cat:'bird',lvl:1,notes:[[900,0,.08],[950,.12,.08],[1000,.24,.1]]}
 ];
 
-let ctx;
-function playTone(notes) {
-  if (IAKidsFX.muted) return;
-  try {
-    ctx ||= new (window.AudioContext || window.webkitAudioContext)();
-    notes.forEach(([freq, start, dur]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = 'triangle'; o.frequency.value = freq;
-      g.gain.setValueAtTime(0.18, ctx.currentTime + start);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-      o.connect(g).connect(ctx.destination);
-      o.start(ctx.currentTime + start); o.stop(ctx.currentTime + start + dur);
-    });
-  } catch (e) {}
-}
-function playCurrent() { if (current) playTone(current.notes); }
+const NIQQUD_NAMES = {
+  dog:'כֶּלֶב',
+  cat:'חָתוּל',
+  cow:'פָּרָה',
+  sheep:'כִּבְשָׂה',
+  rooster:'תַּרְנְגוֹל',
+  duck:'בַּרְוָז',
+  horse:'סוּס',
+  pig:'חֲזִיר',
+  hen:'תַּרְנְגֹלֶת',
+  lion:'אַרְיֵה',
+  bear:'דֹּב',
+  wolf:'זְאֵב',
+  snake:'נָחָשׁ',
+  frog:'צְפַרְדֵּעַ',
+  monkey:'קוֹף',
+  owl:'יַנְשׁוּף',
+  elephant:'פִּיל',
+  bee:'דְּבוֹרָה',
+  bird:'צִפּוֹר'
+};
 
-function setRounds(n, btn) {
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+let T = T_REGULAR;
+
+let game, diff, timer;
+let score = 0, qnum = 0, level = 1, TOTAL = 10;
+let locked = false, current;
+let mistakes = 0, timeouts = 0, replays = 0, ending = false;
+
+function animalName(animal){
+  if(IAKidsLang.code === 'he' && USE_NIQQUD){
+    return NIQQUD_NAMES[animal.id] || animal.name;
+  }
+
+  return animal.name;
+}
+
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client = await IAKidsActivity._getClient();
+
+    const {data,error} = await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(error || !data){
+      console.warn('[animal-sounds] Kid profile was not loaded',error);
+      return;
+    }
+
+    CHILD_AGE = Number(data.age);
+    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+
+  }catch(error){
+    console.warn('[animal-sounds] loadKidContext error',error);
+  }
+}
+
+function applyLanguage(){
+  T = USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+
+  $('title').textContent = IAKidsLang.t(T.title);
+  $('howto').textContent = IAKidsLang.t(T.howto);
+  $('rounds-label').textContent = IAKidsLang.t(T.rounds);
+  $('level-label').textContent = IAKidsLang.t(T.level);
+  $('question').textContent = IAKidsLang.t(T.question);
+  $('score-label').textContent = IAKidsLang.ui('score');
+  $('q-label').textContent = IAKidsLang.ui('question');
+  $('best-label').textContent = IAKidsLang.ui('your_best');
+  $('again-btn').textContent = IAKidsLang.ui('play_again');
+
+  ['level_easy','level_medium','level_hard','level_random'].forEach((key,index)=>{
+    document.querySelectorAll('#level-row .game-btn')[index].textContent =
+      IAKidsLang.ui(key);
+  });
+}
+
+IAKidsCoins.mount();
+
+IAKidsHelp.mount({
+  slug:'animal-sounds',
+  how:'לוחצים על הרמקול ושומעים צליל. אחר כך בוחרים מתוך ארבע חיות איזו מהן מתאימה לצליל.',
+  example:'שומעים "הב הב!" ← בוחרים 🐶 כלב'
+});
+
+let ctx;
+
+function playTone(notes){
+  if(IAKidsFX.muted) return;
+
+  try{
+    ctx ||= new (
+      window.AudioContext ||
+      window.webkitAudioContext
+    )();
+
+    notes.forEach(([freq,start,dur])=>{
+      const oscillator =
+        ctx.createOscillator();
+
+      const gain =
+        ctx.createGain();
+
+      oscillator.type = 'triangle';
+      oscillator.frequency.value = freq;
+
+      gain.gain.setValueAtTime(
+        .18,
+        ctx.currentTime + start
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + start + dur
+      );
+
+      oscillator
+        .connect(gain)
+        .connect(ctx.destination);
+
+      oscillator.start(
+        ctx.currentTime + start
+      );
+
+      oscillator.stop(
+        ctx.currentTime + start + dur
+      );
+    });
+
+  }catch(error){
+    console.warn('[animal-sounds] audio error',error);
+  }
+}
+
+function playCurrent(){
+  if(!current) return;
+
+  replays++;
+  playTone(current.notes);
+}
+
+function setRounds(n,btn){
   TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(button=>button.classList.remove('success'));
+
   btn.classList.add('success');
 }
 
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen'])
-    document.getElementById(s).hidden = s !== id;
+const ready = (async()=>{
+  await loadKidContext();
+  applyLanguage();
+
+  game = await IAKidsGame.init('animal-sounds');
+
+  const progress = await game.loadProgress();
+
+  if(progress?.rounds){
+    const btn =
+      document.querySelector(`#rounds-row [onclick*="(${progress.rounds},"]`) ||
+      $('rounds-row').children[1];
+
+    setRounds(progress.rounds,btn);
+  }
+
+  if(progress?.lastLevel !== undefined){
+    document
+      .querySelector(`#level-row [data-lvl="${progress.lastLevel}"]`)
+      ?.classList.add('success');
+  }
+})();
+
+const show = id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(screen=>$(screen).hidden = screen !== id);
 };
 
-let diff, timer;
-async function start(lvl) {
-  game = await IAKidsGame.init('animal-sounds');
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  timer = game.timer({ style: 'bomb', onTimeout: () => { if (!locked) resolve(null, null); } });
-  const p = await game.loadProgress();
-  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  document.getElementById('qtotal').textContent = TOTAL;
-  show('play-screen');
-  next();
-}
+async function start(selectedLevel){
+  await ready;
 
-const rnd = n => Math.floor(Math.random() * n);
-function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  level = selectedLevel;
+  diff = game.difficulty(selectedLevel || 1,3);
 
-function pickDistractors(target, lvl) {
-  // hard: prefer same-category near-miss distractors (closer challenge); easier: any others
-  const sameCat = ANIMALS.filter(a => a.id !== target.id && a.cat === target.cat);
-  const rest = ANIMALS.filter(a => a.id !== target.id && a.cat !== target.cat);
-  const pool = lvl >= 3 ? [...shuffle(sameCat), ...shuffle(rest)] : shuffle([...sameCat, ...rest]);
-  return pool.slice(0, 3);
-}
-
-async function next() {
-  if (qnum >= TOTAL) return end();
-  qnum++;
-  document.getElementById('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const pool = ANIMALS.filter(a => a.lvl <= lvl);
-  const q = await game.newQuestion(() => pool[rnd(pool.length)], a => a.id);
-  current = q;
-  document.getElementById('reveal').innerHTML = '&nbsp;';
-  const choices = shuffle([current, ...pickDistractors(current, lvl)]);
-  const grid = document.getElementById('emoji-grid');
-  grid.innerHTML = '';
-  choices.forEach(a => {
-    const btn = document.createElement('button');
-    btn.className = 'game-btn outline emoji-btn';
-    btn.textContent = a.emoji;
-    btn.onclick = () => resolve(a, btn);
-    grid.appendChild(btn);
+  timer = game.timer({
+    style:'bomb',
+    onTimeout:()=>{
+      if(!locked) handleTimeout();
+    }
   });
-  setTimeout(playCurrent, 300);
-  timer.start(IAKidsTimer.secondsFor(lvl, 10));
+
+  score = 0;
+  qnum = 0;
+  mistakes = 0;
+  timeouts = 0;
+  replays = 0;
+  ending = false;
+  locked = false;
+
+  $('score').textContent = '0';
+  $('qnum').textContent = '1';
+  $('qtotal').textContent = TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:selectedLevel || 1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'animal-sounds',
+      selected_level:selectedLevel,
+      random_difficulty:selectedLevel === 0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD,
+      audio_mode:'synthetic-tones'
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:selectedLevel,
+    rounds:TOTAL
+  });
+
+  show('play-screen');
+  await next();
 }
 
-function resolve(chosen, el) {
-  if (locked) return;
+function pickDistractors(target,lvl){
+  const sameCat =
+    ANIMALS_REGULAR.filter(
+      animal=>
+        animal.id !== target.id &&
+        animal.cat === target.cat
+    );
+
+  const rest =
+    ANIMALS_REGULAR.filter(
+      animal=>
+        animal.id !== target.id &&
+        animal.cat !== target.cat
+    );
+
+  const pool =
+    lvl >= 3
+      ? [
+          ...shuffle(sameCat),
+          ...shuffle(rest)
+        ]
+      : shuffle([
+          ...sameCat,
+          ...rest
+        ]);
+
+  return pool.slice(0,3);
+}
+
+async function next(){
+  if(ending) return;
+
+  if(qnum >= TOTAL){
+    await end();
+    return;
+  }
+
+  qnum++;
+  $('qnum').textContent = qnum;
+
+  const lvl =
+    level === 0
+      ? 1 + rnd(3)
+      : diff.level;
+
+  const pool =
+    ANIMALS_REGULAR.filter(
+      animal=>animal.lvl <= lvl
+    );
+
+  const q =
+    await game.newQuestion(
+      ()=>pool[rnd(pool.length)],
+      animal=>animal.id
+    );
+
+  current = q;
+  locked = false;
+
+  IAKidsActivity.questionStarted();
+
+  $('reveal').innerHTML = '&nbsp;';
+
+  const choices =
+    shuffle([
+      current,
+      ...pickDistractors(
+        current,
+        lvl
+      )
+    ]);
+
+  const grid =
+    $('emoji-grid');
+
+  grid.innerHTML = '';
+
+  choices.forEach(animal=>{
+    const button =
+      document.createElement('button');
+
+    button.className =
+      'game-btn outline emoji-btn';
+
+    button.textContent =
+      animal.emoji;
+
+    button.setAttribute(
+      'aria-label',
+      animalName(animal)
+    );
+
+    button.onclick =
+      ()=>resolve(animal,button);
+
+    grid.appendChild(button);
+  });
+
+  setTimeout(()=>{
+    if(!ending && !locked){
+      playTone(current.notes);
+    }
+  },300);
+
+  timer.start(
+    IAKidsTimer.secondsFor(
+      lvl,
+      10
+    )
+  );
+}
+
+async function resolve(chosen,element){
+  if(locked || ending) return;
+
   locked = true;
   timer.stop();
-  const isCorrect = chosen && chosen.id === current.id;
-  document.getElementById('reveal').textContent = `${current.emoji} ${current.name} ← ${current.sound}`;
-  if (isCorrect) {
+
+  document.querySelectorAll('#emoji-grid .game-btn')
+    .forEach(button=>button.disabled = true);
+
+  const isCorrect =
+    chosen &&
+    chosen.id === current.id;
+
+  $('reveal').textContent =
+    `${current.emoji} ${animalName(current)} ← ${current.sound}`;
+
+  if(isCorrect){
     score += 10;
     diff.right();
-    IAKidsFX.correct(el);
-    IAKidsCoins.right(el);
-  } else {
+
+    IAKidsActivity.correct();
+
+    IAKidsFX.correct(element);
+    await IAKidsCoins.right(element);
+
+  }else{
+    mistakes++;
     diff.wrong();
-    IAKidsFX.wrong(el);
-    IAKidsCoins.wrong();
-    [...document.getElementById('emoji-grid').children].forEach(b => {
-      if (b.textContent === current.emoji) b.classList.add('correct-flash-btn', 'correct');
+
+    IAKidsActivity.wrong();
+
+    if(element){
+      IAKidsFX.wrong(element);
+    }
+
+    await IAKidsCoins.wrong();
+
+    [
+      ...$('emoji-grid').children
+    ].forEach(button=>{
+      if(
+        button.textContent ===
+        current.emoji
+      ){
+        button.classList.add(
+          'correct'
+        );
+      }
     });
   }
-  document.getElementById('score').textContent = score;
-  setTimeout(() => { locked = false; next(); }, 1300);
+
+  $('score').textContent = score;
+
+  setTimeout(async()=>{
+    locked = false;
+    await next();
+  },1100);
 }
 
-async function end() {
-  await game.saveScore(score, { level });
-  const top = (await game.getHighScores(1))[0];
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('best').textContent = top?.score ?? score;
-  document.getElementById('player-line').textContent =
-    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  document.getElementById('stars').textContent =
-    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
-  game.shareButton(score, document.getElementById('share-slot'));
+async function handleTimeout(){
+  if(locked || ending) return;
+
+  locked = true;
+  timer.stop();
+  timeouts++;
+
+  diff.wrong();
+
+  IAKidsActivity.skipped();
+
+  await IAKidsCoins.wrong();
+
+  $('reveal').textContent =
+    `${current.emoji} ${animalName(current)} ← ${current.sound}`;
+
+  [
+    ...$('emoji-grid').children
+  ].forEach(button=>{
+    button.disabled = true;
+
+    if(
+      button.textContent ===
+      current.emoji
+    ){
+      button.classList.add(
+        'correct'
+      );
+    }
+  });
+
+  setTimeout(async()=>{
+    locked = false;
+    await next();
+  },1100);
+}
+
+async function end(){
+  if(ending) return;
+
+  ending = true;
+  locked = true;
+  timer?.stop();
+
+  const maxScore =
+    TOTAL * 10;
+
+  const correctAnswers =
+    Math.round(
+      score / 10
+    );
+
+  const accuracy =
+    correctAnswers /
+    Math.max(
+      1,
+      correctAnswers +
+      mistakes +
+      timeouts
+    );
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      mistakes,
+      timeouts,
+      replays
+    }
+  );
+
+  const top =
+    (await game.getHighScores(1))[0];
+
+  $('final-score').textContent =
+    score;
+
+  $('best').textContent =
+    top?.score ?? score;
+
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        'he-IL',
+        {
+          dateStyle:'short',
+          timeStyle:'short'
+        }
+      )
+    }`;
+
+  $('stars').textContent =
+    '⭐'.repeat(
+      accuracy >= .9
+        ? 3
+        : accuracy >= .7
+          ? 2
+          : 1
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+
+      performanceScore:
+        Math.round(
+          accuracy * 100
+        ),
+
+      metadata:{
+        game_mode:'animal-sounds',
+        selected_level:level,
+        random_difficulty:level === 0,
+        total_rounds:TOTAL,
+        mistakes,
+        timeouts,
+        replays,
+        correct_answers:correctAnswers,
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD,
+        audio_mode:'synthetic-tones'
+      }
+    }
+  );
+
+  game.shareButton(
+    score,
+    $('share-slot')
+  );
+
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
