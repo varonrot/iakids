@@ -10994,6 +10994,122 @@ body.lesson-theme-science
   }
 
 }
+    /* =====================================================
+   SCIENCE CATEGORY PREMIUM VISUALS
+===================================================== */
+
+.science-tree-card{
+  padding:
+    13px
+    13px
+    14px !important;
+}
+
+
+.science-tree-card-visual{
+  position:relative;
+
+  width:86px;
+  height:70px;
+
+  margin:
+    -2px
+    auto
+    7px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  overflow:visible;
+}
+
+
+.science-tree-card-visual::before{
+  content:"";
+
+  position:absolute;
+
+  width:64px;
+  height:42px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(53,180,255,.18),
+      transparent 70%
+    );
+
+  filter:blur(8px);
+
+  transform:translateY(12px);
+}
+
+
+.science-tree-card-visual img{
+  position:relative;
+  z-index:2;
+
+  display:block;
+
+  width:82px;
+  height:68px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 8px 8px
+      rgba(0,0,0,.38)
+    );
+
+  transition:
+    transform .22s ease,
+    filter .22s ease;
+}
+
+
+.science-tree-card:hover
+.science-tree-card-visual img{
+  transform:
+    translateY(-3px)
+    scale(1.06);
+
+  filter:
+    drop-shadow(
+      0 11px 11px
+      rgba(0,0,0,.46)
+    );
+}
+
+
+/* נושא נבחר */
+
+.science-tree-card.selected
+.science-tree-card-visual::before{
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(81,236,110,.38),
+      transparent 70%
+    );
+}
+
+
+.science-tree-card.selected
+.science-tree-card-visual img{
+  filter:
+    drop-shadow(
+      0 0 9px
+      rgba(81,236,110,.30)
+    )
+    drop-shadow(
+      0 8px 9px
+      rgba(0,0,0,.42)
+    );
+}
 </style>
 </head>
 <body>
@@ -12078,210 +12194,259 @@ data-kingdom="desert"
          SCIENCE RIGHT SIDEBAR
     ================================================== -->
 
-    <aside class="science-rightbar">
+    <!-- =================================================
+     SCIENCE RIGHT SIDEBAR
+================================================== -->
+
+<aside class="science-rightbar">
 
 
-      <!-- התקדמות במדעים -->
+  <!-- =================================================
+       התקדמות במדעים
+  ================================================== -->
 
-      <section class="science-side-card science-progress-card">
+  <section class="science-side-card science-progress-card">
 
-        <h3>
-          ההתקדמות שלי במדעים
-        </h3>
+    <h3>
+      ההתקדמות שלי במדעים
+    </h3>
 
-        <div class="science-side-donut">
+    <div class="science-side-donut">
 
-          <div class="science-side-donut-inner">
+      <div class="science-side-donut-inner">
 
-            <strong>
-              72%
-            </strong>
+        <strong>
+          72%
+        </strong>
 
-            <span>
-              התקדמות כללית
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <div class="science-side-stats">
-
-          <div>
-            <strong>28</strong>
-            <span>שיעורים הושלמו</span>
-          </div>
-
-          <div>
-            <strong>14</strong>
-            <span>בתהליך</span>
-          </div>
-
-          <div>
-            <strong>6</strong>
-            <span>נותרו</span>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- המשך שיעור -->
-
-      <section class="science-side-card science-continue-card">
-
-        <span class="science-side-heading">
-          המשך שיעור
+        <span>
+          התקדמות כללית
         </span>
 
-        <div class="science-continue-content">
+      </div>
 
-          <div class="science-continue-image">
-            🐸
-          </div>
+    </div>
 
-          <div class="science-continue-text">
 
-            <strong>
-              מהי מערכת אקולוגית?
-            </strong>
+    <div class="science-side-stats">
 
-            <span>
-              מבוא למערכת אקולוגית
-            </span>
+      <div>
+        <strong>28</strong>
+        <span>שיעורים הושלמו</span>
+      </div>
 
-            <div class="science-continue-progress">
-              <span style="width:75%"></span>
-            </div>
+      <div>
+        <strong>14</strong>
+        <span>בתהליך</span>
+      </div>
 
-          </div>
+      <div>
+        <strong>6</strong>
+        <span>נותרו</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =================================================
+       המשך שיעור
+  ================================================== -->
+
+  <section class="science-side-card science-continue-card">
+
+    <span class="science-side-heading">
+      המשך שיעור
+    </span>
+
+
+    <div class="science-continue-content">
+
+      <div class="science-continue-image">
+
+        <img
+          src="/assets/science/sidebar/ecology-frog.webp"
+          alt="מערכת אקולוגית"
+        >
+
+      </div>
+
+
+      <div class="science-continue-text">
+
+        <strong>
+          מהי מערכת אקולוגית?
+        </strong>
+
+        <span>
+          מבוא למערכת אקולוגית
+        </span>
+
+
+        <div class="science-continue-progress">
+
+          <span
+            style="width:75%"
+          ></span>
 
         </div>
 
+      </div>
 
-        <button
-          type="button"
-          class="science-side-primary-btn"
-        >
-          המשך
-          <i class="fa-solid fa-play"></i>
-        </button>
-
-      </section>
+    </div>
 
 
-      <!-- מומלץ עבורך -->
+    <button
+      type="button"
+      class="science-side-primary-btn"
+    >
 
-      <section class="science-side-card">
+      המשך
 
-        <div class="science-side-section-title">
-          מומלץ עבורך
-        </div>
+      <i class="fa-solid fa-play"></i>
 
+    </button>
 
-        <button
-          type="button"
-          class="science-recommend-item"
-        >
-
-          <span class="science-recommend-icon">
-            🌳
-          </span>
-
-          <span>
-            <strong>
-              מערכות אקולוגיות ביער הגשם
-            </strong>
-
-            <small>
-              25 דקות
-            </small>
-          </span>
-
-        </button>
+  </section>
 
 
-        <button
-          type="button"
-          class="science-recommend-item"
-        >
+  <!-- =================================================
+       מומלץ עבורך
+  ================================================== -->
 
-          <span class="science-recommend-icon">
-            🏭
-          </span>
+  <section class="science-side-card science-recommend-card">
 
-          <span>
-            <strong>
-              השפעת האדם על הסביבה
-            </strong>
-
-            <small>
-              20 דקות
-            </small>
-          </span>
-
-        </button>
+    <div class="science-side-section-title">
+      מומלץ עבורך
+    </div>
 
 
-        <button
-          type="button"
-          class="science-recommend-item"
-        >
+    <!-- יער הגשם -->
 
-          <span class="science-recommend-icon">
-            💧
-          </span>
+    <button
+      type="button"
+      class="science-recommend-item"
+    >
 
-          <span>
-            <strong>
-              מחזור המים בטבע
-            </strong>
-
-            <small>
-              15 דקות
-            </small>
-          </span>
-
-        </button>
-
-      </section>
+      <img
+        class="science-recommend-image"
+        src="/assets/science/sidebar/rainforest.webp"
+        alt="מערכות אקולוגיות ביער הגשם"
+      >
 
 
-      <!-- אתגר -->
+      <span class="science-recommend-text">
 
-      <section class="science-side-card science-challenge-card">
+        <strong>
+          מערכות אקולוגיות ביער הגשם
+        </strong>
 
-        <div class="science-challenge-icon">
-          🏆
-        </div>
+        <small>
+          25 דקות
+        </small>
 
-        <div>
+      </span>
 
-          <strong>
-            אתגר יומי
-          </strong>
-
-          <p>
-            ענה על 5 שאלות בנושא מדעים
-            וקבל 20 כוכבים
-          </p>
-
-        </div>
+    </button>
 
 
-        <button
-          type="button"
-          class="science-side-primary-btn"
-        >
-          התחל את האתגר
-        </button>
+    <!-- השפעת האדם -->
 
-      </section>
+    <button
+      type="button"
+      class="science-recommend-item"
+    >
+
+      <img
+        class="science-recommend-image"
+        src="/assets/science/sidebar/pollution.webp"
+        alt="השפעת האדם על הסביבה"
+      >
 
 
-    </aside>
+      <span class="science-recommend-text">
+
+        <strong>
+          השפעת האדם על הסביבה
+        </strong>
+
+        <small>
+          20 דקות
+        </small>
+
+      </span>
+
+    </button>
+
+
+    <!-- מחזור המים -->
+
+    <button
+      type="button"
+      class="science-recommend-item"
+    >
+
+      <img
+        class="science-recommend-image"
+        src="/assets/science/sidebar/water-cycle.webp"
+        alt="מחזור המים בטבע"
+      >
+
+
+      <span class="science-recommend-text">
+
+        <strong>
+          מחזור המים בטבע
+        </strong>
+
+        <small>
+          15 דקות
+        </small>
+
+      </span>
+
+    </button>
+
+  </section>
+
+
+  <!-- =================================================
+       אתגר יומי
+  ================================================== -->
+
+  <section class="science-side-card science-challenge-card">
+
+    <div class="science-challenge-icon">
+      🏆
+    </div>
+
+
+    <div>
+
+      <strong>
+        אתגר יומי
+      </strong>
+
+      <p>
+        ענה על 5 שאלות בנושא מדעים
+        וקבל 20 כוכבים
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="science-side-primary-btn"
+    >
+      התחל את האתגר
+    </button>
+
+  </section>
+
+
+</aside>
 
   </div>
 
@@ -28325,6 +28490,328 @@ div{
   }
 
 }
+    /* =====================================================
+   SCIENCE RIGHTBAR — PREMIUM IMAGE VERSION
+===================================================== */
+
+
+/* =====================================================
+   CONTINUE LESSON IMAGE
+===================================================== */
+
+.science-continue-content{
+  display:grid !important;
+
+  grid-template-columns:
+    92px
+    minmax(0,1fr) !important;
+
+  gap:12px !important;
+
+  align-items:center !important;
+
+  direction:ltr;
+}
+
+
+.science-continue-image{
+  position:relative;
+
+  width:92px !important;
+  height:82px !important;
+
+  overflow:hidden !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    #071811 !important;
+
+  border:
+    1px solid
+    rgba(92,204,121,.18);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.05),
+
+    0 7px 18px
+    rgba(0,0,0,.30);
+}
+
+
+.science-continue-image::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 45%,
+      rgba(5,16,22,.48) 100%
+    );
+}
+
+
+.science-continue-image img{
+  width:100%;
+  height:100%;
+
+  display:block;
+
+  object-fit:cover;
+
+  transition:
+    transform .3s ease,
+    filter .3s ease;
+}
+
+
+.science-continue-card:hover
+.science-continue-image img{
+  transform:
+    scale(1.06);
+
+  filter:
+    brightness(1.05)
+    saturate(1.08);
+}
+
+
+/* =====================================================
+   CONTINUE TEXT
+===================================================== */
+
+.science-continue-text{
+  direction:rtl !important;
+
+  min-width:0;
+}
+
+
+.science-continue-text strong{
+  display:block;
+
+  color:#f4f8f5;
+
+  font-size:
+    13px !important;
+
+  line-height:
+    1.35;
+}
+
+
+.science-continue-text > span{
+  display:block;
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(198,218,210,.62);
+
+  font-size:
+    9px;
+}
+
+
+/* =====================================================
+   RECOMMENDATIONS
+===================================================== */
+
+.science-recommend-card{
+  padding:
+    14px
+    12px !important;
+}
+
+
+.science-recommend-item{
+  position:relative;
+
+  width:100%;
+
+  min-height:
+    62px !important;
+
+  margin-bottom:
+    7px;
+
+  padding:
+    0 !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    96px
+    minmax(0,1fr) !important;
+
+  align-items:center;
+
+  gap:
+    10px;
+
+  direction:ltr;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(95,139,126,.15) !important;
+
+  border-radius:
+    11px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(16,28,35,.90),
+      rgba(8,17,27,.94)
+    ) !important;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease;
+}
+
+
+.science-recommend-item:last-child{
+  margin-bottom:0;
+}
+
+
+.science-recommend-item:hover{
+  transform:
+    translateY(-1px);
+
+  border-color:
+    rgba(83,220,118,.28) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23,40,44,.97),
+      rgba(10,22,30,.98)
+    ) !important;
+}
+
+
+/* =====================================================
+   RECOMMENDATION IMAGE
+===================================================== */
+
+.science-recommend-image{
+  width:96px;
+  height:62px;
+
+  display:block;
+
+  object-fit:cover;
+
+  border-radius:
+    10px 0 0 10px;
+
+  transition:
+    transform .28s ease,
+    filter .28s ease;
+}
+
+
+.science-recommend-item:hover
+.science-recommend-image{
+  transform:
+    scale(1.05);
+
+  filter:
+    brightness(1.05)
+    saturate(1.08);
+}
+
+
+/* =====================================================
+   IMAGE DARK OVERLAY
+===================================================== */
+
+.science-recommend-item::after{
+  content:"";
+
+  position:absolute;
+
+  left:0;
+  top:0;
+  bottom:0;
+
+  width:108px;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 35%,
+      rgba(8,17,27,.80) 100%
+    );
+}
+
+
+/* =====================================================
+   RECOMMENDATION TEXT
+===================================================== */
+
+.science-recommend-text{
+  position:relative;
+  z-index:2;
+
+  min-width:0;
+
+  padding:
+    8px
+    7px
+    8px
+    0;
+
+  direction:rtl;
+
+  text-align:right;
+}
+
+
+.science-recommend-text strong{
+  display:block;
+
+  color:#edf5f1;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.3;
+}
+
+
+.science-recommend-text small{
+  display:block;
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(181,207,197,.56);
+
+  font-size:
+    8px;
+}
 </style>
 
 
@@ -31387,26 +31874,32 @@ document.addEventListener(
 let SCIENCE_SELECTED_CATEGORY = null;
 
 
-/* אייקונים לשורה הראשונה */
+/* תמונות לשורה הראשונה */
 
-const SCIENCE_CATEGORY_ICONS = {
+const SCIENCE_CATEGORY_IMAGES = {
 
-  "אקולוגיה": "🌿",
+  "אקולוגיה":
+    "/assets/science/categories/ecology.webp",
 
-  "גוף האדם": "🫁",
+  "גוף האדם":
+    "/assets/science/categories/human-body.webp",
 
-  "חומרים": "🧪",
+  "חומרים":
+    "/assets/science/categories/materials.webp",
 
-  "אנרגיה": "⚡",
+  "אנרגיה":
+    "/assets/science/categories/energy.webp",
 
-  "חשמל": "🔌",
+  "חשמל":
+    "/assets/science/categories/electricity.webp",
 
-  "כוחות ותנועה": "⚙️",
+  "כוחות ותנועה":
+    "/assets/science/categories/forces.webp",
 
-  "כדור הארץ": "🌍"
+  "כדור הארץ":
+    "/assets/science/categories/earth.webp"
 
 };
-
 
 /* =====================================================
    OPEN SCIENCE
@@ -31746,9 +32239,8 @@ function renderScienceCategoryLevel(
 
 
               const icon =
-                SCIENCE_CATEGORY_ICONS[
-                  item.category
-                ] || "🔬";
+                SCIENCE_CATEGORY_IMAGES[
+                  "/assets/science/categories/default.webp";
 
 
               return `
@@ -31768,11 +32260,15 @@ function renderScienceCategoryLevel(
                   data-science-category="${item.category}"
                 >
 
-                  <div
-                    class="science-tree-card-icon"
-                  >
-                    ${icon}
-                  </div>
+<div class="science-tree-card-visual">
+
+  <img
+    src="${image}"
+    alt="${item.category}"
+    loading="lazy"
+  >
+
+</div>
 
                   <strong>
                     ${item.category}
