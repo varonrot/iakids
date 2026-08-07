@@ -1,1 +1,243 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דגלי מדינות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.flag-wrap{display:flex;justify-content:center;margin:16px 0}
+.flag-wrap svg{width:220px;max-width:80vw;height:auto;border-radius:8px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,.08)}
+#choices .game-btn{font-size:1.15rem}
+</style>
+</head>
+<body>
 
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🚩</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="flag-wrap" id="flag-wrap"></div>
+    <div class="answer-grid" id="choices"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---- flag SVGs, built from small reusable helpers so stripe colors stay exact ---- */
+const stripesH = colors => colors.map((c, i) => `<rect y="${(i * 40 / colors.length).toFixed(2)}" width="60" height="${(40 / colors.length + 0.4).toFixed(2)}" fill="${c}"/>`).join('');
+const stripesV = colors => colors.map((c, i) => `<rect x="${(i * 60 / colors.length).toFixed(2)}" width="${(60 / colors.length + 0.4).toFixed(2)}" height="40" fill="${c}"/>`).join('');
+const star = (cx, cy, rO, rI, n = 5, rot = -90) => {
+  const p = [];
+  for (let i = 0; i < n * 2; i++) {
+    const r = i % 2 === 0 ? rO : rI;
+    const a = (rot + i * 180 / n) * Math.PI / 180;
+    p.push(`${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`);
+  }
+  return p.join(' ');
+};
+
+// tier 1 = most iconic/easiest · tier 2 = medium · tier 3 = hardest to place
+const FLAGS = {
+  IL: { name: { he: 'ישראל', en: 'Israel' }, tier: 1, svg: `
+    <rect width="60" height="40" fill="#fff"/>
+    <rect y="5" width="60" height="4" fill="#0038b8"/>
+    <rect y="31" width="60" height="4" fill="#0038b8"/>
+    <polygon points="30,13 36,24 24,24" fill="none" stroke="#0038b8" stroke-width="1.4"/>
+    <polygon points="30,27 36,16 24,16" fill="none" stroke="#0038b8" stroke-width="1.4"/>` },
+  US: { name: { he: 'ארה"ב', en: 'USA' }, tier: 1, svg: `
+    <rect width="60" height="40" fill="#fff"/>
+    ${Array.from({ length: 7 }, (_, i) => `<rect y="${(i * 2 * 40 / 13).toFixed(2)}" width="60" height="${(40 / 13 + 0.3).toFixed(2)}" fill="#B22234"/>`).join('')}
+    <rect width="26" height="22" fill="#3C3B6E"/>
+    ${[[5,4],[10,4],[15,4],[20,4],[7,8],[12,8],[17,8],[22,8],[5,12],[10,12],[15,12],[20,12],[7,16],[12,16],[17,16],[22,16]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="0.9" fill="#fff"/>`).join('')}` },
+  FR: { name: { he: 'צרפת', en: 'France' }, tier: 1, svg: stripesV(['#0055A4', '#fff', '#EF4135']) },
+  GB: { name: { he: 'בריטניה', en: 'UK' }, tier: 1, svg: `
+    <rect width="60" height="40" fill="#00247D"/>
+    <line x1="0" y1="0" x2="60" y2="40" stroke="#fff" stroke-width="8"/>
+    <line x1="60" y1="0" x2="0" y2="40" stroke="#fff" stroke-width="8"/>
+    <line x1="0" y1="0" x2="60" y2="40" stroke="#CF142B" stroke-width="3"/>
+    <line x1="60" y1="0" x2="0" y2="40" stroke="#CF142B" stroke-width="3"/>
+    <rect x="24" width="12" height="40" fill="#fff"/>
+    <rect y="14" width="60" height="12" fill="#fff"/>
+    <rect x="27" width="6" height="40" fill="#CF142B"/>
+    <rect y="17" width="60" height="6" fill="#CF142B"/>` },
+  JP: { name: { he: 'יפן', en: 'Japan' }, tier: 1, svg: `
+    <rect width="60" height="40" fill="#fff"/>
+    <circle cx="30" cy="20" r="8" fill="#BC002D"/>` },
+  IT: { name: { he: 'איטליה', en: 'Italy' }, tier: 2, svg: stripesV(['#008C45', '#fff', '#CD212A']) },
+  DE: { name: { he: 'גרמניה', en: 'Germany' }, tier: 2, svg: stripesH(['#000000', '#DD0000', '#FFCE00']) },
+  ES: { name: { he: 'ספרד', en: 'Spain' }, tier: 2, svg: `
+    <rect width="60" height="40" fill="#AA151B"/>
+    <rect y="10" width="60" height="20" fill="#F1BF00"/>` },
+  RU: { name: { he: 'רוסיה', en: 'Russia' }, tier: 2, svg: stripesH(['#fff', '#0039A6', '#D52B1E']) },
+  CA: { name: { he: 'קנדה', en: 'Canada' }, tier: 2, svg: `
+    <rect width="15" height="40" fill="#FF0000"/>
+    <rect x="15" width="30" height="40" fill="#fff"/>
+    <rect x="45" width="15" height="40" fill="#FF0000"/>
+    <polygon points="30,10 32,17 38,15 34,21 39,24 32,24 33,31 30,26 27,31 28,24 21,24 26,21 22,15 28,17" fill="#FF0000"/>` },
+  EG: { name: { he: 'מצרים', en: 'Egypt' }, tier: 3, svg: `${stripesH(['#CE1126', '#fff', '#000000'])}<circle cx="30" cy="20" r="4" fill="#C09300"/>` },
+  CN: { name: { he: 'סין', en: 'China' }, tier: 3, svg: `
+    <rect width="60" height="40" fill="#DE2910"/>
+    <polygon points="${star(10, 8, 4, 1.6)}" fill="#FFDE00"/>
+    <polygon points="${star(18, 4, 1.3, 0.5)}" fill="#FFDE00"/>
+    <polygon points="${star(20, 8.5, 1.3, 0.5)}" fill="#FFDE00"/>
+    <polygon points="${star(19.5, 13, 1.3, 0.5)}" fill="#FFDE00"/>
+    <polygon points="${star(16, 16, 1.3, 0.5)}" fill="#FFDE00"/>` },
+  GR: { name: { he: 'יוון', en: 'Greece' }, tier: 3, svg: `
+    ${stripesH(['#0D5EAF', '#fff', '#0D5EAF', '#fff', '#0D5EAF', '#fff', '#0D5EAF', '#fff', '#0D5EAF'])}
+    <rect width="24" height="17.8" fill="#0D5EAF"/>
+    <rect x="9" width="6" height="17.8" fill="#fff"/>
+    <rect y="6" width="24" height="5.8" fill="#fff"/>` },
+  SE: { name: { he: 'שוודיה', en: 'Sweden' }, tier: 3, svg: `
+    <rect width="60" height="40" fill="#006AA7"/>
+    <rect x="18" width="7" height="40" fill="#FECC02"/>
+    <rect y="17" width="60" height="7" fill="#FECC02"/>` },
+  BR: { name: { he: 'ברזיל', en: 'Brazil' }, tier: 3, svg: `
+    <rect width="60" height="40" fill="#009739"/>
+    <polygon points="30,6 52,20 30,34 8,20" fill="#FEDD00"/>
+    <circle cx="30" cy="20" r="7.5" fill="#002776"/>` },
+};
+const CODES = Object.keys(FLAGS);
+
+const T = {
+  title:  { he: 'דגלי מדינות', en: 'Country Flags' },
+  howto:  { he: 'תראה דגל — בחר את שם המדינה הנכון!', en: 'See a flag — pick the right country!' },
+  rounds: { he: 'כמה שאלות?', en: 'How many questions?' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'flags',
+  how: 'בכל שאלה מופיע דגל של מדינה. צריך ללחוץ על שם המדינה הנכונה מתוך 4 אפשרויות, לפני שהפצצה מתפוצצת! 💣',
+  example: 'דגל עם פס לבן ועיגול אדום באמצע ← <b>יפן</b>',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy', 'level_medium', 'level_hard', 'level_random'].forEach((k, i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+let game, diff, timer, level = 1, TOTAL = 10, score = 0, qnum = 0, current;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('flags').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+function makeQuestion(lvl) {
+  const pool = CODES.filter(c => FLAGS[c].tier === lvl);
+  const code = pool[rnd(pool.length)];
+  return { code };
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  $('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.code);
+  current = q.code;
+  $('flag-wrap').innerHTML = `<svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">${FLAGS[q.code].svg}</svg>`;
+
+  const wrong = shuffle(CODES.filter(c => c !== q.code)).slice(0, 3);
+  const opts = shuffle([q.code, ...wrong]);
+  const box = $('choices');
+  box.innerHTML = '';
+  for (const c of opts) {
+    const b = document.createElement('button');
+    b.className = 'game-btn outline';
+    b.textContent = IAKidsLang.t(FLAGS[c].name);
+    b.onclick = () => answer(c, b);
+    box.appendChild(b);
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(said, btn) {
+  timer.stop();
+  document.querySelectorAll('#choices .game-btn').forEach(b => b.disabled = true);
+  if (said === current) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+  }
+  $('score').textContent = score;
+  setTimeout(next, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.min(3, Math.round(score / (TOTAL * 10) * 3))));
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
