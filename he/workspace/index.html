@@ -32422,8 +32422,17 @@ async function loadScienceCategories(){
     הקטגוריה הראשונה במסד.
   */
 
-  SCIENCE_SELECTED_CATEGORY =
-    categories[0].category;
+const defaultScienceCategory =
+  categories.find(
+    item =>
+      item.category === "אקולוגיה"
+  );
+
+
+SCIENCE_SELECTED_CATEGORY =
+  defaultScienceCategory
+    ? defaultScienceCategory.category
+    : categories[0].category;
 
 
   renderScienceCategoryLevel(
