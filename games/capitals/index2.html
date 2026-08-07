@@ -1,1 +1,233 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עיר בירה ומדינה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#grid{display:grid;gap:10px;margin-top:12px}
+.mcard{height:74px;perspective:600px;cursor:pointer;touch-action:manipulation}
+.mcard .inner{position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
+.mcard.flipped .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;border-radius:14px;font-weight:800;text-align:center;padding:4px}
+.face.front{background:var(--accent);color:#fff;font-size:1.8rem}
+.face.back{transform:rotateY(180deg);background:var(--card);border:3px solid var(--accent);font-size:1.05rem}
+.mcard.matched .face.back{background:var(--green);border-color:var(--green);color:#fff}
+.mcard.matched{cursor:default}
+</style>
+</head>
+<body>
 
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="pairs-label">זוגות</span> <span id="qnum">0</span>/<span id="qtotal">10</span></span>
+  <span>👣 <span id="moves">0</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🏛️</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="grid"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="moves-line"></p>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+// verified country ↔ capital pairs. tier 1 = very famous · tier 2 = medium · tier 3 = less obvious
+const PAIRS = [
+  { country: 'ישראל', capital: 'ירושלים', tier: 1 },
+  { country: 'ארה"ב', capital: 'וושינגטון', tier: 1 },
+  { country: 'צרפת', capital: 'פריז', tier: 1 },
+  { country: 'בריטניה', capital: 'לונדון', tier: 1 },
+  { country: 'איטליה', capital: 'רומא', tier: 1 },
+  { country: 'יפן', capital: 'טוקיו', tier: 1 },
+  { country: 'גרמניה', capital: 'ברלין', tier: 1 },
+  { country: 'רוסיה', capital: 'מוסקבה', tier: 1 },
+  { country: 'ספרד', capital: 'מדריד', tier: 2 },
+  { country: 'מצרים', capital: 'קהיר', tier: 2 },
+  { country: 'יוון', capital: 'אתונה', tier: 2 },
+  { country: 'סין', capital: 'בייג\'ינג', tier: 2 },
+  { country: 'הודו', capital: 'ניו דלהי', tier: 2 },
+  { country: 'ברזיל', capital: 'ברזיליה', tier: 2 },
+  { country: 'קנדה', capital: 'אוטווה', tier: 2 },
+  { country: 'אוסטרליה', capital: 'קנברה', tier: 3 },
+  { country: 'שווייץ', capital: 'ברן', tier: 3 },
+  { country: 'טורקיה', capital: 'אנקרה', tier: 3 },
+  { country: 'ניו זילנד', capital: 'וולינגטון', tier: 3 },
+  { country: 'דרום אפריקה', capital: 'פרטוריה', tier: 3 },
+];
+
+const T = {
+  title:  { he: 'עיר בירה ומדינה', en: 'Country & Capital' },
+  howto:  { he: 'מצא זוגות: שם המדינה והעיר בירה שלה. פחות מהלכים = יותר כוכבים!', en: 'Match each country with its capital. Fewer moves = more stars!' },
+  rounds: { he: 'כמה זוגות למצוא?', en: 'How many pairs?' },
+  moves:  { he: 'מהלכים', en: 'Moves' },
+  newboard: { he: 'לוח חדש! 🃏', en: 'New board! 🃏' },
+};
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'capitals',
+  how: 'הופכים שני קלפים בכל תור ומחפשים זוג מתאים: שם מדינה וקלף עם עיר הבירה שלה.',
+  example: 'הקלף <b>ישראל</b> מתאים לקלף <b>ירושלים</b> — זו עיר הבירה שלה!',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy', 'level_medium', 'level_hard', 'level_random'].forEach((k, i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+let game, diff, level = 1, TOTAL = 10;
+let score = 0, pairsDone = 0, moves = 0, mistakes = 0;
+let first = null, busy = false, boardLeft = 0;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('capitals').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  show('play-screen');
+  await deal();
+}
+
+// level 1: 3 pairs from the most famous capitals · 2: 5 pairs (adds tier-2) · 3: 6 pairs biased toward the less obvious ones
+function makeBoard(lvl) {
+  const nPairs = lvl === 1 ? 3 : lvl === 2 ? 5 : 6;
+  const pool = lvl === 1 ? PAIRS.filter(p => p.tier === 1)
+             : lvl === 2 ? PAIRS.filter(p => p.tier <= 2)
+             : PAIRS.filter(p => p.tier >= 2);
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) { const j = rnd(i + 1); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
+  const pairs = shuffled.slice(0, nPairs);
+  return { pairs, key: pairs.map(p => p.country).sort().join('|') };
+}
+
+async function deal() {
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const board = await game.newQuestion(() => makeBoard(lvl), b => b.key);
+  const cards = [];
+  for (const p of board.pairs) {
+    cards.push({ text: p.country, id: p.country });
+    cards.push({ text: p.capital, id: p.country });
+  }
+  for (let i = cards.length - 1; i > 0; i--) { const j = rnd(i + 1); [cards[i], cards[j]] = [cards[j], cards[i]]; }
+  boardLeft = board.pairs.length;
+  first = null; busy = false;
+  const grid = $('grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${cards.length <= 6 ? 3 : 4}, 1fr)`;
+  for (const c of cards) {
+    const el = document.createElement('div');
+    el.className = 'mcard';
+    el.dataset.id = c.id;
+    el.innerHTML = `<div class="inner"><div class="face front">❓</div><div class="face back">${c.text}</div></div>`;
+    el.addEventListener('click', () => flip(el));
+    grid.appendChild(el);
+  }
+}
+
+function flip(el) {
+  if (busy || el.classList.contains('flipped')) return;
+  el.classList.add('flipped');
+  if (!first) { first = el; return; }
+  moves++;
+  $('moves').textContent = moves;
+  busy = true;
+  const a = first, b = el;
+  first = null;
+  setTimeout(() => {
+    if (a.dataset.id === b.dataset.id) {
+      a.classList.add('matched'); b.classList.add('matched');
+      score += 10;
+      pairsDone++;
+      boardLeft--;
+      $('score').textContent = score;
+      $('qnum').textContent = pairsDone;
+      diff.right();
+      IAKidsFX.correct(b);
+      IAKidsCoins.right(b);
+      busy = false;
+      if (boardLeft === 0) {
+        if (pairsDone >= TOTAL) return end();
+        IAKidsFX.scorePop(IAKidsLang.t(T.newboard), $('grid'));
+        setTimeout(deal, 1000);
+      }
+    } else {
+      mistakes++;
+      diff.wrong();
+      IAKidsFX.wrong(b);
+      IAKidsCoins.wrong();
+      setTimeout(() => {
+        a.classList.remove('flipped');
+        b.classList.remove('flipped');
+        busy = false;
+      }, 700);
+    }
+  }, 450);
+}
+
+async function end() {
+  await game.saveScore(score, { level, moves, pairs: pairsDone });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('moves-line').textContent = `${IAKidsLang.t(T.moves)}: ${moves}`;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const ratio = moves / Math.max(1, pairsDone);
+  $('stars').textContent = '⭐'.repeat(ratio <= 1.7 ? 3 : ratio <= 2.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
