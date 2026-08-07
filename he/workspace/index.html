@@ -33655,7 +33655,92 @@ await startSelectedUnitLesson(
 
   });
 
+  /* =================================================
+     לחיצה על שיעור = פתיחת מנגנון השיעור הקיים
+  ================================================= */
 
+  level
+    .querySelectorAll(
+      "[data-unit-lesson-id]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const unitLessonId =
+            Number(
+              button.dataset
+                .unitLessonId
+            );
+
+
+          const lesson =
+            data.find(
+              item =>
+                Number(item.id)
+                ===
+                unitLessonId
+            );
+
+
+          if(!lesson){
+            return;
+          }
+
+
+          /*
+            מוודאים שהגלובלים הישנים
+            מוכנים בדיוק כמו במסלול הקודם.
+          */
+
+          CURRENT_PARENT_LESSON = {
+            ...parentLesson,
+            subject:"מדעים",
+            category:
+              SCIENCE_SELECTED_CATEGORY
+          };
+
+
+          CURRENT_UNIT = {
+            unit_order:
+              unit.unit_order,
+
+            unit_name:
+              unit.unit_name
+          };
+
+
+          console.log(
+            "SCIENCE START UNIT LESSON:",
+            {
+              parent:
+                CURRENT_PARENT_LESSON,
+
+              unit:
+                CURRENT_UNIT,
+
+              lesson
+            }
+          );
+
+
+          /*
+            כאן מתחבר ישירות למנגנון
+            השיעור שכבר קיים באתר.
+          */
+
+          await startSelectedUnitLesson(
+            lesson
+          );
+
+        }
+      );
+
+    });
+
+}
 
     /* =====================================================
    SCIENCE BREADCRUMB
