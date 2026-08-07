@@ -11850,55 +11850,121 @@ body.lesson-theme-science
 
     </div>
 
-      <!-- =====================================================
-     KINGDOM HOME BOTTOM BAR
-     ===================================================== -->
+<!-- =====================================================
+     KINGDOM HOME BOTTOM BAR — PREMIUM
+===================================================== -->
 
-<section class="kingdom-compact-bar">
+<section class="kingdom-status-bar">
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🪙</span>
-    <span>
-      <strong>1,245</strong>
-      <small>המטבעות שלך</small>
-    </span>
-  </button>
+  <!-- התקדמות כללית -->
+  <div class="kingdom-status-card kingdom-status-overall">
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🎯</span>
-    <span>
-      <strong>המשימה</strong>
-      <small>השלימו 10 תרגילים</small>
-    </span>
-  </button>
+    <div class="kingdom-status-ring">
+      <div class="kingdom-status-ring-inner">
+        <strong>62%</strong>
+      </div>
+    </div>
 
-  <button class="kingdom-compact-item kingdom-compact-progress">
-    <span>
-      <strong>בונים את הממלכה</strong>
+    <div class="kingdom-status-copy">
+      <strong>ההתקדמות הכוללת שלך</strong>
 
-      <span class="kingdom-compact-track">
-        <span></span>
+      <span class="kingdom-status-accent">
+        62%
       </span>
 
-      <small>32% הושלמו</small>
-    </span>
-  </button>
+      <div class="kingdom-status-meta">
+        <span>
+          <b>32</b>
+          מקצועות הושלמו
+        </span>
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🛡️</span>
-    <span>
-      <strong>הגנה נוכחית</strong>
-      <small>חזקה</small>
-    </span>
-  </button>
+        <span>
+          <b>18</b>
+          בתהליך
+        </span>
+      </div>
+    </div>
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🎁</span>
-    <span>
-      <strong>פרסים</strong>
-      <small>3 מחכים לאיסוף</small>
-    </span>
-  </button>
+  </div>
+
+
+  <!-- רצף יומי -->
+  <div class="kingdom-status-card kingdom-status-streak">
+
+    <div class="kingdom-streak-main">
+
+      <div class="kingdom-streak-icon">
+        🔥
+      </div>
+
+      <div>
+        <span class="kingdom-status-label">
+          רצף יומי
+        </span>
+
+        <strong class="kingdom-streak-number">
+          12
+          <small>ימים</small>
+        </strong>
+
+        <p>
+          כל הכבוד! המשך כך
+        </p>
+      </div>
+
+    </div>
+
+    <div class="kingdom-week">
+
+      <span>א</span>
+      <span>ב</span>
+      <span>ג</span>
+      <span>ד</span>
+      <span>ה</span>
+      <span>ו</span>
+      <span>ש</span>
+
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="current"></i>
+      <i></i>
+
+    </div>
+
+  </div>
+
+
+  <!-- היעד הבא -->
+  <div class="kingdom-status-card kingdom-status-goal">
+
+    <div class="kingdom-goal-icon">
+      <i class="fa-solid fa-trophy"></i>
+    </div>
+
+    <div class="kingdom-goal-copy">
+
+      <span class="kingdom-status-label">
+        היעד הבא שלך
+      </span>
+
+      <strong>
+        להשלים 5 שיעורים במתמטיקה
+      </strong>
+
+      <div class="kingdom-goal-progress">
+        <span></span>
+      </div>
+
+    </div>
+
+    <b class="kingdom-goal-count">
+      3/5
+    </b>
+
+  </div>
 
 </section>
 </section><!-- סגירת dashboardView -->
@@ -24793,160 +24859,650 @@ document.addEventListener(
 
 }
 /* =====================================================
-   KINGDOM COMPACT BOTTOM BAR
+   KINGDOM STATUS BAR — PREMIUM DARK
 ===================================================== */
 
-.dashboard-view{
-  position:relative !important;
-}
-
-.kingdom-compact-bar{
+.kingdom-status-bar{
   position:absolute;
 
-  right:12px;
-  left:12px;
+  right:18px;
+  left:18px;
   bottom:10px;
 
-  height:92px;
+  height:104px;
 
   display:grid;
+
   grid-template-columns:
-    .85fr
-    1fr
+    1.05fr
     1.45fr
-    1fr
-    1fr;
+    1.05fr;
 
-  gap:9px;
-
-  padding:8px;
+  gap:12px;
 
   direction:rtl;
-
-  border:1px solid rgba(255,255,255,.22);
-  border-radius:22px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(10,35,61,.94),
-      rgba(5,24,45,.96)
-    );
-
-  box-shadow:
-    0 12px 30px rgba(0,20,50,.35),
-    inset 0 1px 0 rgba(255,255,255,.13);
-
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
 
   z-index:30;
 }
 
-.kingdom-compact-item{
+
+/* =====================================================
+   CARD BASE
+===================================================== */
+
+.kingdom-status-card{
+  position:relative;
+
   min-width:0;
+
+  height:104px;
 
   display:flex;
   align-items:center;
-  justify-content:center;
-
-  gap:9px;
-
-  padding:7px 10px;
-
-  border:
-    1px solid
-    rgba(255,210,95,.32);
-
-  border-radius:16px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(17,48,72,.95),
-      rgba(8,29,49,.96)
-    );
-
-  color:#fff;
-
-  cursor:pointer;
-
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.08);
-}
-
-.kingdom-compact-item strong{
-  display:block;
-
-  color:#fff;
-
-  font-size:15px;
-  line-height:1.2;
-  font-weight:900;
-}
-
-.kingdom-compact-item small{
-  display:block;
-
-  margin-top:3px;
-
-  color:#c8d7e7;
-
-  font-size:10px;
-  line-height:1.2;
-  font-weight:700;
-}
-
-.kingdom-compact-icon{
-  flex:none;
-
-  font-size:34px;
-
-  filter:
-    drop-shadow(
-      0 5px 5px
-      rgba(0,0,0,.28)
-    );
-}
-
-.kingdom-compact-progress > span{
-  width:100%;
-}
-
-.kingdom-compact-track{
-  width:100%;
-  height:9px;
-
-  display:block;
-
-  margin-top:6px;
 
   overflow:hidden;
 
-  border-radius:999px;
+  border:
+    1px solid
+    rgba(93,128,194,.24);
 
-  background:#071927;
+  border-radius:
+    18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13,25,45,.96),
+      rgba(6,15,30,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.045),
+
+    inset 0 0 0 1px
+    rgba(69,105,170,.035),
+
+    0 8px 22px
+    rgba(0,5,18,.30);
+
+  backdrop-filter:
+    blur(12px)
+    saturate(110%);
+
+  -webkit-backdrop-filter:
+    blur(12px)
+    saturate(110%);
 }
 
-.kingdom-compact-track > span{
+
+/* אור פנימי מאוד עדין */
+
+.kingdom-status-card::before{
+  content:"";
+
+  position:absolute;
+
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(50,111,210,.09),
+      transparent 60%
+    );
+}
+
+
+/* =====================================================
+   GENERAL TEXT
+===================================================== */
+
+.kingdom-status-label{
   display:block;
 
-  width:32%;
-  height:100%;
+  color:
+    rgba(200,212,238,.72);
 
-  border-radius:999px;
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+}
+
+
+.kingdom-status-card strong{
+  color:
+    #f5f7ff;
+}
+
+
+/* =====================================================
+   OVERALL PROGRESS
+===================================================== */
+
+.kingdom-status-overall{
+  padding:
+    10px
+    16px;
+
+  gap:
+    16px;
+}
+
+
+.kingdom-status-ring{
+  --progress:62;
+
+  position:relative;
+
+  width:76px;
+  height:76px;
+
+  flex:
+    0 0
+    76px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #39d5ff
+      0
+      calc(var(--progress) * 1%),
+
+      rgba(62,82,120,.32)
+      calc(var(--progress) * 1%)
+      100%
+    );
+
+  box-shadow:
+    0 0 15px
+    rgba(47,182,255,.16);
+}
+
+
+.kingdom-status-ring::before{
+  content:"";
+
+  position:absolute;
+
+  inset:7px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 45% 30%,
+      #1d2c4c,
+      #091326 72%
+    );
+
+  border:
+    1px solid
+    rgba(109,151,220,.17);
+}
+
+
+.kingdom-status-ring-inner{
+  position:relative;
+
+  z-index:2;
+}
+
+
+.kingdom-status-ring-inner strong{
+  font-size:
+    22px;
+
+  line-height:
+    1;
+}
+
+
+.kingdom-status-copy{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:flex-start;
+
+  gap:3px;
+}
+
+
+.kingdom-status-copy > strong{
+  font-size:
+    15px;
+
+  font-weight:
+    800;
+}
+
+
+.kingdom-status-accent{
+  color:
+    #37d5ff;
+
+  font-size:
+    12px;
+
+  font-weight:
+    850;
+}
+
+
+.kingdom-status-meta{
+  display:flex;
+
+  gap:
+    22px;
+
+  margin-top:
+    4px;
+
+  color:
+    rgba(190,201,226,.66);
+
+  font-size:
+    10px;
+}
+
+
+.kingdom-status-meta span{
+  white-space:nowrap;
+}
+
+
+.kingdom-status-meta b{
+  margin-left:
+    3px;
+
+  color:
+    #f2f6ff;
+
+  font-size:
+    11px;
+}
+
+
+/* =====================================================
+   STREAK
+===================================================== */
+
+.kingdom-status-streak{
+  padding:
+    10px
+    18px;
+
+  display:grid;
+
+  grid-template-columns:
+    .75fr
+    1.25fr;
+
+  gap:
+    18px;
+}
+
+
+.kingdom-streak-main{
+  display:flex;
+
+  align-items:center;
+
+  gap:
+    11px;
+}
+
+
+.kingdom-streak-icon{
+  font-size:
+    38px;
+
+  filter:
+    drop-shadow(
+      0 5px 9px
+      rgba(255,132,43,.22)
+    );
+}
+
+
+.kingdom-streak-number{
+  display:block;
+
+  margin-top:
+    1px;
+
+  font-size:
+    26px;
+
+  line-height:
+    1;
+}
+
+
+.kingdom-streak-number small{
+  margin-right:
+    3px;
+
+  color:
+    rgba(205,213,232,.68);
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+.kingdom-streak-main p{
+  margin:
+    6px
+    0
+    0;
+
+  color:
+    rgba(197,207,229,.67);
+
+  font-size:
+    10px;
+}
+
+
+/* WEEK */
+
+.kingdom-week{
+  display:grid;
+
+  grid-template-columns:
+    repeat(7,1fr);
+
+  grid-template-rows:
+    auto
+    auto;
+
+  gap:
+    6px
+    7px;
+
+  align-items:center;
+
+  justify-items:center;
+}
+
+
+.kingdom-week span{
+  color:
+    rgba(200,210,231,.64);
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+}
+
+
+.kingdom-week i{
+  width:18px;
+  height:18px;
+
+  display:grid;
+  place-items:center;
+
+  border:
+    1px solid
+    rgba(104,134,190,.38);
+
+  border-radius:50%;
+
+  background:
+    rgba(9,18,34,.55);
+
+  color:
+    transparent;
+
+  font-size:
+    9px;
+
+  font-style:normal;
+}
+
+
+.kingdom-week i.done{
+  border-color:
+    #35c9f5;
+
+  background:
+    #35bde7;
+
+  color:
+    #07182a;
+
+  font-weight:
+    900;
+
+  box-shadow:
+    0 0 8px
+    rgba(53,199,245,.25);
+}
+
+
+.kingdom-week i.current{
+  border:
+    2px solid
+    #39d2ff;
+
+  background:
+    transparent;
+
+  box-shadow:
+    0 0 8px
+    rgba(57,210,255,.18);
+}
+
+
+/* =====================================================
+   NEXT GOAL
+===================================================== */
+
+.kingdom-status-goal{
+  padding:
+    10px
+    15px;
+
+  gap:
+    13px;
+}
+
+
+.kingdom-goal-icon{
+  width:58px;
+  height:58px;
+
+  flex:
+    0
+    0
+    58px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    15px;
+
+  background:
+    radial-gradient(
+      circle at 50% 25%,
+      rgba(237,185,72,.16),
+      rgba(60,43,20,.12)
+    );
+
+  border:
+    1px solid
+    rgba(215,169,69,.20);
+
+  color:
+    #d9a941;
+
+  font-size:
+    27px;
+}
+
+
+.kingdom-goal-copy{
+  flex:1;
+
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:
+    4px;
+}
+
+
+.kingdom-goal-copy strong{
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+
+  white-space:nowrap;
+
+  font-size:
+    13px;
+
+  font-weight:
+    800;
+}
+
+
+.kingdom-goal-progress{
+  width:100%;
+
+  height:6px;
+
+  margin-top:
+    4px;
+
+  overflow:hidden;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(71,89,124,.32);
+}
+
+
+.kingdom-goal-progress span{
+  display:block;
+
+  width:
+    60%;
+
+  height:
+    100%;
+
+  border-radius:
+    inherit;
 
   background:
     linear-gradient(
       90deg,
-      #65d834,
-      #a9ed38
+      #2bc7e8,
+      #29a8d8
     );
 
   box-shadow:
-    0 0 9px
-    rgba(122,232,51,.55);
+    0 0 7px
+    rgba(43,193,232,.22);
+}
+
+
+.kingdom-goal-count{
+  align-self:
+    flex-end;
+
+  margin-bottom:
+    5px;
+
+  color:
+    rgba(223,231,247,.77);
+
+  font-size:
+    11px;
+}
+
+
+/* =====================================================
+   SMALLER DESKTOPS
+===================================================== */
+
+@media(max-width:1500px){
+
+  .kingdom-status-bar{
+    right:12px;
+    left:12px;
+
+    height:94px;
+
+    gap:8px;
+  }
+
+
+  .kingdom-status-card{
+    height:94px;
+  }
+
+
+  .kingdom-status-ring{
+    width:66px;
+    height:66px;
+
+    flex-basis:66px;
+  }
+
+
+  .kingdom-status-ring-inner strong{
+    font-size:19px;
+  }
+
+
+  .kingdom-status-copy > strong{
+    font-size:13px;
+  }
+
+
+  .kingdom-streak-icon{
+    font-size:31px;
+  }
+
+
+  .kingdom-streak-number{
+    font-size:22px;
+  }
+
+
+  .kingdom-goal-icon{
+    width:50px;
+    height:50px;
+
+    flex-basis:50px;
+
+    font-size:23px;
+  }
+
 }
     /* =====================================================
    LESSON SCORE LIVE UPDATE
