@@ -6824,12 +6824,11 @@ box-shadow:
    HOME RIGHT SIDEBAR — COMPACT VERSION
 ===================================================== */
 
-/* הסרגל הימני צר יותר */
 .app{
   grid-template-columns:
     270px
     minmax(0,1fr)
-    285px !important;
+    250px !important;
 }
 
 
@@ -6860,14 +6859,17 @@ box-shadow:
 ===================================================== */
 
 .home-right-welcome{
-  min-height:142px !important;
-  height:142px !important;
+  min-height:118px !important;
+  height:118px !important;
 
   padding:
-    15px
-    105px
-    14px
-    13px !important;
+    13px
+    82px
+    12px
+    12px !important;
+
+  border-radius:
+    17px !important;
 }
 
 
@@ -6880,17 +6882,16 @@ box-shadow:
 
 
 .home-right-welcome p{
-  font-size:13px !important;
-  line-height:1.45 !important;
+  font-size:11px !important;
+  line-height:1.4 !important;
 }
 
-
 .home-right-student{
-  right:-6px !important;
-  bottom:-20px !important;
+  right:-8px !important;
+  bottom:-14px !important;
 
-  width:120px !important;
-  height:155px !important;
+  width:96px !important;
+  height:128px !important;
 }
 
 
@@ -6899,8 +6900,8 @@ box-shadow:
 ===================================================== */
 
 .home-right-actions{
-  padding:8px !important;
-  gap:8px !important;
+  padding:7px !important;
+  gap:6px !important;
 
   grid-template-columns:
     repeat(2,minmax(0,1fr)) !important;
@@ -6908,29 +6909,37 @@ box-shadow:
 
 
 .home-right-action{
-  min-height:118px !important;
-  height:118px !important;
+  min-height:100px !important;
+  height:100px !important;
 
   padding:
-    8px
+    7px
     5px
-    9px !important;
+    8px !important;
 
-  gap:5px !important;
+  gap:3px !important;
 
-  border-radius:17px !important;
+  border-radius:
+    14px !important;
 }
 
 .home-right-action img{
-  width:68px !important;
-  height:68px !important;
+  width:52px !important;
+  height:52px !important;
 
   object-fit:contain !important;
+
+  filter:
+    drop-shadow(
+      0 5px 8px
+      rgba(0,0,0,.28)
+    ) !important;
 }
 
 .home-right-action strong{
-  font-size:13px !important;
+  font-size:12px !important;
   line-height:1.15 !important;
+  font-weight:800 !important;
 }
 
 
@@ -8421,6 +8430,26 @@ body.lesson-theme-science
     rgba(50,91,185,.06) !important;
 }
 
+.home-right-welcome,
+.home-right-actions,
+.home-right-stats,
+.home-right-progress{
+  border-radius:16px !important;
+
+  border-color:
+    rgba(93,124,187,.20) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(18,26,50,.96),
+      rgba(8,14,30,.97)
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 7px 19px rgba(0,5,20,.25) !important;
+}
 
 /* אור כחול עדין בחלק העליון */
 
@@ -9595,59 +9624,110 @@ body.lesson-theme-science
 /* Accent שונה לכל פעולה */
 
 /* =====================================================
-   צבעי ארבעת כרטיסי הפעולה
+   RIGHT ACTIONS — MATURE PREMIUM COLORS
 ===================================================== */
 
+/* בסיס משותף */
 
-/* תרגול — כתום */
-
-.home-right-practice{
-  background:
-    linear-gradient(
-      180deg,
-      #e49a3a 0%,
-      #c9762b 55%,
-      #a95a1f 100%
-    ) !important;
-}
-
-
-/* משחקי למידה — סגול */
-
-.home-right-games{
-  background:
-    linear-gradient(
-      180deg,
-      #6e3ed8 0%,
-      #5a2fc0 55%,
-      #44208e 100%
-    ) !important;
-}
-
-
-/* למד אותי משהו — ורוד */
-
-.home-right-learn{
-  background:
-    linear-gradient(
-      180deg,
-      #d45aa4 0%,
-      #c54890 55%,
-      #a43676 100%
-    ) !important;
-}
-
-
-/* שיעורי בית — כחול */
-
+.home-right-practice,
+.home-right-games,
+.home-right-learn,
 .home-right-homework{
   background:
     linear-gradient(
-      180deg,
-      #2d83e6 0%,
-      #236fd3 55%,
-      #1558b9 100%
+      145deg,
+      rgba(25,34,62,.98),
+      rgba(13,20,40,.98)
     ) !important;
+
+  border:
+    1px solid
+    rgba(112,143,205,.20) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    inset 0 -12px 24px rgba(0,0,0,.18),
+    0 6px 16px rgba(0,5,20,.24) !important;
+}
+
+
+/* תרגול — ענבר כהה */
+
+.home-right-practice{
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(209,145,55,.16),
+      transparent 55%
+    ),
+    linear-gradient(
+      145deg,
+      #20253a,
+      #101727
+    ) !important;
+
+  border-color:
+    rgba(215,159,74,.28) !important;
+}
+
+
+/* משחקים — סגול עמוק */
+
+.home-right-games{
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(113,77,220,.19),
+      transparent 55%
+    ),
+    linear-gradient(
+      145deg,
+      #22233e,
+      #111429
+    ) !important;
+
+  border-color:
+    rgba(126,98,228,.28) !important;
+}
+
+
+/* למד אותי — בורדו/סגול עמוק */
+
+.home-right-learn{
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(184,73,142,.16),
+      transparent 55%
+    ),
+    linear-gradient(
+      145deg,
+      #292039,
+      #151324
+    ) !important;
+
+  border-color:
+    rgba(190,92,151,.25) !important;
+}
+
+
+/* שיעורי בית — כחול כהה */
+
+.home-right-homework{
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(55,126,225,.20),
+      transparent 55%
+    ),
+    linear-gradient(
+      145deg,
+      #1d2942,
+      #0e1728
+    ) !important;
+
+  border-color:
+    rgba(74,137,230,.30) !important;
 }
 
 /* =====================================================
