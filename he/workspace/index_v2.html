@@ -8766,47 +8766,43 @@ body.lesson-theme-science
 
 
 /* =====================================================
-   TOPBAR קבוע בכל המערכת
+   TOPBAR — FLOATING PREMIUM
 ===================================================== */
 
 .topbar{
+  position:relative !important;
+
   height:60px !important;
   min-height:60px !important;
 
   align-self:start !important;
 
   padding:
-    6px
-    16px !important;
+    0
+    4px !important;
 
-  border:
-    1px solid
-    rgba(116,151,221,.22) !important;
+  margin:0 !important;
 
-  border-radius:
-    20px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+
+  border:0 !important;
+  border-radius:0 !important;
 
   background:
-    linear-gradient(
-      180deg,
-      rgba(25,31,58,.94),
-      rgba(14,19,39,.95)
-    ) !important;
+    transparent !important;
 
   backdrop-filter:
-    blur(18px)
-    saturate(120%) !important;
+    none !important;
 
   -webkit-backdrop-filter:
-    blur(18px)
-    saturate(120%) !important;
+    none !important;
 
   box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.07),
+    none !important;
 
-    0 8px 22px
-    rgba(0,5,20,.24) !important;
+  overflow:visible !important;
 }
 
 
@@ -8838,42 +8834,74 @@ body.lesson-theme-science
 /* כפתורי סרגל עליון */
 
 .top-pill{
-  height:44px !important;
+  height:42px !important;
+
+  padding:
+    0
+    15px !important;
 
   border:
     1px solid
-    rgba(139,165,228,.22) !important;
+    rgba(105,135,195,.20) !important;
+
+  border-radius:
+    13px !important;
 
   background:
     linear-gradient(
       180deg,
-      rgba(41,48,83,.93),
-      rgba(25,30,58,.95)
+      rgba(18,28,49,.94),
+      rgba(9,17,32,.97)
     ) !important;
 
-  color:#f6f7ff !important;
+  color:
+    rgba(235,241,255,.92) !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    750 !important;
 
   box-shadow:
     inset 0 1px 0
-    rgba(255,255,255,.08),
+    rgba(255,255,255,.04),
 
-    0 7px 18px
-    rgba(0,5,20,.20) !important;
+    0 5px 14px
+    rgba(0,5,18,.24) !important;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    transform .18s ease !important;
 }
 
 
 .top-pill:hover{
+  transform:
+    translateY(-1px);
+
+  border-color:
+    rgba(83,143,255,.34) !important;
+
   background:
     linear-gradient(
       180deg,
-      rgba(55,65,110,.96),
-      rgba(31,38,73,.96)
+      rgba(27,43,72,.97),
+      rgba(13,25,46,.98)
     ) !important;
 }
 
 
 .top-pill i{
-  color:#91a9ff !important;
+  margin-left:
+    7px !important;
+
+  color:
+    #72a7ff !important;
+
+  font-size:
+    16px !important;
 }
 
 
@@ -8883,42 +8911,54 @@ body.lesson-theme-science
 .notification-btn{
   border:
     1px solid
-    rgba(131,164,232,.20) !important;
+    rgba(99,128,188,.19) !important;
 
   background:
     linear-gradient(
       180deg,
-      rgba(39,47,84,.92),
-      rgba(23,29,57,.94)
+      rgba(17,27,47,.95),
+      rgba(8,16,31,.98)
     ) !important;
 
   color:#fff !important;
 
   box-shadow:
     inset 0 1px 0
-    rgba(255,255,255,.07),
+    rgba(255,255,255,.035),
 
-    0 7px 18px
-    rgba(0,5,20,.24) !important;
+    0 5px 14px
+    rgba(0,5,18,.23) !important;
 }
 
-
 .stat-pill{
-  height:44px !important;
-  min-width:88px !important;
+  height:42px !important;
+
+  min-width:76px !important;
 
   padding:
     0
+    13px !important;
+
+  gap:
+    7px !important;
+
+  border-radius:
+    13px !important;
+
+  font-size:
     15px !important;
 }
 
-
 .notification-btn{
-  width:46px !important;
-  height:46px !important;
+  width:42px !important;
+  height:42px !important;
+
+  border-radius:
+    13px !important;
+
+  font-size:
+    17px !important;
 }
-
-
 /* =====================================================
    LEFT SIDEBAR — FINAL DARK PREMIUM
 ===================================================== */
@@ -10954,6 +10994,178 @@ body.lesson-theme-science
   }
 
 }
+    /* =====================================================
+   SCIENCE CATEGORY PREMIUM VISUALS
+===================================================== */
+
+.science-tree-card{
+  padding:
+    13px
+    13px
+    14px !important;
+}
+
+
+.science-tree-card-visual{
+  position:relative;
+
+  width:86px;
+  height:70px;
+
+  margin:
+    -2px
+    auto
+    7px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  overflow:visible;
+}
+
+
+.science-tree-card-visual::before{
+  content:"";
+
+  position:absolute;
+
+  width:64px;
+  height:42px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(53,180,255,.18),
+      transparent 70%
+    );
+
+  filter:blur(8px);
+
+  transform:translateY(12px);
+}
+
+
+.science-tree-card-visual img{
+  position:relative;
+  z-index:2;
+
+  display:block;
+
+  width:82px;
+  height:68px;
+
+  object-fit:contain;
+
+  filter:
+    drop-shadow(
+      0 8px 8px
+      rgba(0,0,0,.38)
+    );
+
+  transition:
+    transform .22s ease,
+    filter .22s ease;
+}
+
+
+.science-tree-card:hover
+.science-tree-card-visual img{
+  transform:
+    translateY(-3px)
+    scale(1.06);
+
+  filter:
+    drop-shadow(
+      0 11px 11px
+      rgba(0,0,0,.46)
+    );
+}
+
+
+/* נושא נבחר */
+
+.science-tree-card.selected
+.science-tree-card-visual::before{
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(81,236,110,.38),
+      transparent 70%
+    );
+}
+
+
+.science-tree-card.selected
+.science-tree-card-visual img{
+  filter:
+    drop-shadow(
+      0 0 9px
+      rgba(81,236,110,.30)
+    )
+    drop-shadow(
+      0 8px 9px
+      rgba(0,0,0,.42)
+    );
+}
+    /* =====================================================
+   SCIENCE RECOMMENDATION IMAGES
+===================================================== */
+
+.science-recommend-item{
+  overflow:hidden;
+}
+
+
+.science-recommend-image{
+  width:82px;
+  height:58px;
+
+  flex:0 0 82px;
+
+  object-fit:cover;
+
+  border-radius:11px;
+
+  display:block;
+
+  border:
+    1px solid
+    rgba(100,160,130,.18);
+
+  box-shadow:
+    0 4px 12px
+    rgba(0,0,0,.20);
+}
+
+
+#scienceRecommendations{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+    /* =====================================================
+   SCIENCE VIEW SAFETY
+===================================================== */
+
+body.science-hierarchy-mode
+#dashboardView,
+
+body.science-hierarchy-mode
+#learningView,
+
+body.science-hierarchy-mode
+#learningPathView{
+  display:none !important;
+}
+
+
+body.science-hierarchy-mode
+#scienceHierarchyView{
+  display:block !important;
+}
 </style>
 </head>
 <body>
@@ -11003,7 +11215,18 @@ body.lesson-theme-science
 
   </div>
 
+<div class="topbar-learning-world">
 
+  <div class="topbar-world-icon">
+    <i class="fa-solid fa-book-open"></i>
+  </div>
+
+  <div class="topbar-world-text">
+    <strong>עולם הלמידה</strong>
+    <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
+  </div>
+
+</div>
   <div class="top-actions">
 
     <button class="top-pill">
@@ -11083,14 +11306,14 @@ body.lesson-theme-science
   </div>
 </button>
 
-<button class="side-item" onclick="window.open('https://smarts-brains.online/', '_blank')">
+<button class="side-item" onclick="window.open('https://iakids.app/he/games/how-it-works/', '_blank')">
   <i class="fa-solid fa-gamepad"></i>
   <div class="side-text">
     <span class="side-title">משחקים</span>
   </div>
 </button>
 
-<button class="side-item" onclick="window.open('https://smarts-brains.online/skills/', '_blank')">
+<button class="side-item" onclick="window.open('https://iakids.app/he/games/how-it-works/', '_blank')">
   <i class="fa-solid fa-brain"></i>
   <div class="side-text">
     <span class="side-title">אילו כישורים אני מפתח?</span>
@@ -11279,242 +11502,252 @@ body.lesson-theme-science
 <!-- =====================================================
      KINGDOM MAP AREA
 ===================================================== -->
-
-<section class="kingdom-map-area">
-<div
-  id="jungleWorldView"
-  class="jungle-world-view"
-  aria-hidden="true"
+<!-- =========================
+     אנגלית
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-snow"
+data-kingdom="snow"
 >
-  <button
-    type="button"
-    class="jungle-back-button"
-    onclick="closeJungleWorld()"
-  >
-    <i class="fa-solid fa-arrow-right"></i>
-    חזרה למפת הממלכות
-  </button>
 
-  <div class="jungle-world-content">
-    <!-- בהמשך נוסיף כאן את 8 האזורים כלחצנים -->
-  </div>
-</div>
-  <!-- ממלכת השלג -->
-  <button
-    type="button"
-    class="kingdom-label kingdom-label-snow"
-    data-kingdom="snow"
-  >
-    <strong class="kingdom-label-title">
-      ממלכת השלג
-    </strong>
+  <strong class="kingdom-label-title">
+    אנגלית
+  </strong>
 
-    <span class="kingdom-label-subject">
-      מתמטיקה
+  <span class="kingdom-label-subject">
+    75% התקדמות
+  </span>
+
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:75%"
+      ></span>
     </span>
 
-    <span class="kingdom-label-progress">
-      <span class="kingdom-label-track">
-        <span
-          class="kingdom-label-fill"
-          style="width:75%"
-        ></span>
-      </span>
+    <b>כניסה →</b>
+  </span>
 
-      <b>75%</b>
-    </span>
-  </button>
+</button>
 
 
-<!--  &lt;!&ndash; ממלכת האש &ndash;&gt;-->
-<!--  <button-->
-<!--    type="button"-->
-<!--    class="kingdom-label kingdom-label-fire"-->
-<!--    data-kingdom="fire"-->
-<!--  >-->
-<!--    <strong class="kingdom-label-title">-->
-<!--      ממלכת האש-->
-<!--    </strong>-->
+<!-- =========================
+     מתמטיקה
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-fire"
+data-kingdom="fire"
+>
 
-<!--    <span class="kingdom-label-subject">-->
-<!--      מדעים-->
-<!--    </span>-->
+  <strong class="kingdom-label-title">
+    מתמטיקה
+  </strong>
 
-<!--    <span class="kingdom-label-progress">-->
-<!--      <span class="kingdom-label-track">-->
-<!--        <span-->
-<!--          class="kingdom-label-fill"-->
-<!--          style="width:42%"-->
-<!--        ></span>-->
-<!--      </span>-->
+  <span class="kingdom-label-subject">
+    58% התקדמות
+  </span>
 
-<!--      <b>42%</b>-->
-<!--    </span>-->
-<!--  </button>-->
-
-
-  <!-- ממלכת הג׳ונגל -->
-  <button
-    type="button"
-    class="kingdom-label kingdom-label-jungle"
-    data-kingdom="jungle"
-  >
-    <strong class="kingdom-label-title">
-      ממלכת הג׳ונגל
-    </strong>
-
-    <span class="kingdom-label-subject">
-      גאוגרפיה
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:58%"
+      ></span>
     </span>
 
-    <span class="kingdom-label-progress">
-      <span class="kingdom-label-track">
-        <span
-          class="kingdom-label-fill"
-          style="width:58%"
-        ></span>
-      </span>
+    <b>כניסה →</b>
+  </span>
 
-      <b>58%</b>
+</button>
+
+
+<!-- =========================
+     מדעים
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-jungle"
+data-kingdom="jungle"
+>
+
+  <strong class="kingdom-label-title">
+    מדעים
+  </strong>
+
+  <span class="kingdom-label-subject">
+    36% התקדמות
+  </span>
+
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:36%"
+      ></span>
     </span>
-  </button>
+
+    <b>כניסה →</b>
+  </span>
+
+</button>
 
 
-  <!-- ממלכת המדבר -->
-  <button
-    type="button"
-    class="kingdom-label kingdom-label-desert"
-    data-kingdom="desert"
-  >
-    <strong class="kingdom-label-title">
-      ממלכת המדבר
-    </strong>
+<!-- =========================
+     תנ״ך
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-shadow"
+data-kingdom="shadow"
+>
 
-    <span class="kingdom-label-subject">
+  <strong class="kingdom-label-title">
+    תנ״ך
+  </strong>
+
+  <span class="kingdom-label-subject">
+    51% התקדמות
+  </span>
+
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:51%"
+      ></span>
+    </span>
+
+    <b>כניסה →</b>
+  </span>
+
+</button>
+
+
+<!-- =========================
+     היסטוריה
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-candy"
+data-kingdom="candy"
+>
+
+  <strong class="kingdom-label-title">
+        + הוסף מקצוע
+  </strong>
+
+  <span class="kingdom-label-subject">
+    27% התקדמות
+  </span>
+
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:27%"
+      ></span>
+    </span>
+
+    <b>כניסה →</b>
+  </span>
+
+</button>
+
+
+<!-- =========================
+     עברית
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-center"
+data-kingdom="center"
+>
+
+  <strong class="kingdom-label-title">
+    עברית
+  </strong>
+
+  <span class="kingdom-label-subject">
+    68% התקדמות
+  </span>
+
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:68%"
+      ></span>
+    </span>
+
+    <b>כניסה →</b>
+  </span>
+
+</button>
+
+
+<!-- =========================
+     הוסף מקצוע
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-ocean"
+data-kingdom="ocean"
+>
+
+  <strong class="kingdom-label-title">
+    + הוסף מקצוע
+  </strong>
+
+  <span class="kingdom-label-subject">
+    התאמה אישית לילד
+  </span>
+
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:0%"
+      ></span>
+    </span>
+
+    <b>הוסף →</b>
+  </span>
+
+</button>
+
+
+<!-- =========================
+     הוסף מקצוע
+========================= -->
+<button
+type="button"
+class="kingdom-label kingdom-label-desert"
+data-kingdom="desert"
+>
+
+  <strong class="kingdom-label-title">
       היסטוריה
+  </strong>
+
+  <span class="kingdom-label-subject">
+    התאמה אישית לילד
+  </span>
+
+  <span class="kingdom-label-progress">
+    <span class="kingdom-label-track">
+      <span
+      class="kingdom-label-fill"
+      style="width:0%"
+      ></span>
     </span>
 
-    <span class="kingdom-label-progress">
-      <span class="kingdom-label-track">
-        <span
-          class="kingdom-label-fill"
-          style="width:36%"
-        ></span>
-      </span>
+    <b>הוסף →</b>
+  </span>
 
-      <b>36%</b>
-    </span>
-  </button>
-
-
-  <!-- ממלכת הלב -->
-  <button
-    type="button"
-    class="kingdom-label kingdom-label-candy"
-    data-kingdom="candy"
-  >
-    <strong class="kingdom-label-title">
-      ממלכת הלב
-    </strong>
-
-    <span class="kingdom-label-subject">
-      עברית
-    </span>
-
-    <span class="kingdom-label-progress">
-      <span class="kingdom-label-track">
-        <span
-          class="kingdom-label-fill"
-          style="width:68%"
-        ></span>
-      </span>
-
-      <b>68%</b>
-    </span>
-  </button>
-
-
-  <!-- ממלכת הים -->
-  <button
-    type="button"
-    class="kingdom-label kingdom-label-ocean"
-    data-kingdom="ocean"
-  >
-    <strong class="kingdom-label-title">
-      ממלכת הים
-    </strong>
-
-    <span class="kingdom-label-subject">
-      אנגלית
-    </span>
-
-    <span class="kingdom-label-progress">
-      <span class="kingdom-label-track">
-        <span
-          class="kingdom-label-fill"
-          style="width:51%"
-        ></span>
-      </span>
-
-      <b>51%</b>
-    </span>
-  </button>
-
-
-  <!-- ממלכת הצללים -->
-  <button
-    type="button"
-    class="kingdom-label kingdom-label-shadow"
-    data-kingdom="shadow"
-  >
-    <strong class="kingdom-label-title">
-      ממלכת הצללים
-    </strong>
-
-    <span class="kingdom-label-subject">
-      תנ״ך
-    </span>
-
-    <span class="kingdom-label-progress">
-      <span class="kingdom-label-track">
-        <span
-          class="kingdom-label-fill"
-          style="width:27%"
-        ></span>
-      </span>
-
-      <b>27%</b>
-    </span>
-  </button>
-
-
-  <!-- הממלכה המרכזית -->
-  <button
-    type="button"
-    class="kingdom-label kingdom-label-center"
-    data-kingdom="center"
-  >
-    <strong class="kingdom-label-title">
-      הממלכה שלנו
-    </strong>
-
-    <span class="kingdom-label-subject">
-      מסע הלמידה
-    </span>
-
-    <span class="kingdom-label-progress">
-      <span class="kingdom-label-track">
-        <span
-          class="kingdom-label-fill"
-          style="width:32%"
-        ></span>
-      </span>
-
-      <b>32%</b>
-    </span>
-  </button>
-
-</section>
+</button>
 <!-- 4 כרטיסים ראשיים -->
 <div class="dash-action-cards">
 
@@ -11799,59 +12032,399 @@ body.lesson-theme-science
 
     </div>
 
-      <!-- =====================================================
-     KINGDOM HOME BOTTOM BAR
-     ===================================================== -->
+<!-- =====================================================
+     KINGDOM HOME BOTTOM BAR — PREMIUM
+===================================================== -->
 
-<section class="kingdom-compact-bar">
+<section class="kingdom-status-bar">
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🪙</span>
-    <span>
-      <strong>1,245</strong>
-      <small>המטבעות שלך</small>
-    </span>
-  </button>
+  <!-- התקדמות כללית -->
+  <div class="kingdom-status-card kingdom-status-overall">
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🎯</span>
-    <span>
-      <strong>המשימה</strong>
-      <small>השלימו 10 תרגילים</small>
-    </span>
-  </button>
+    <div class="kingdom-status-ring">
+      <div class="kingdom-status-ring-inner">
+        <strong>62%</strong>
+      </div>
+    </div>
 
-  <button class="kingdom-compact-item kingdom-compact-progress">
-    <span>
-      <strong>בונים את הממלכה</strong>
+    <div class="kingdom-status-copy">
+      <strong>התקדמות כוללת</strong>
 
-      <span class="kingdom-compact-track">
-        <span></span>
+      <span class="kingdom-status-accent">
+        62%
       </span>
 
-      <small>32% הושלמו</small>
-    </span>
-  </button>
+      <div class="kingdom-status-meta">
+        <span>
+          <b>32</b>
+          מקצועות הושלמו
+        </span>
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🛡️</span>
-    <span>
-      <strong>הגנה נוכחית</strong>
-      <small>חזקה</small>
-    </span>
-  </button>
+        <span>
+          <b>18</b>
+          בתהליך
+        </span>
+      </div>
+    </div>
 
-  <button class="kingdom-compact-item">
-    <span class="kingdom-compact-icon">🎁</span>
-    <span>
-      <strong>פרסים</strong>
-      <small>3 מחכים לאיסוף</small>
-    </span>
-  </button>
+  </div>
+
+
+  <!-- רצף יומי -->
+  <div class="kingdom-status-card kingdom-status-streak">
+
+    <div class="kingdom-streak-main">
+
+      <div class="kingdom-streak-icon">
+        🔥
+      </div>
+
+      <div>
+        <span class="kingdom-status-label">
+          רצף יומי
+        </span>
+
+        <strong class="kingdom-streak-number">
+          12
+          <small>ימים</small>
+        </strong>
+
+        <p>
+          כל הכבוד! המשך כך
+        </p>
+      </div>
+
+    </div>
+
+    <div class="kingdom-week">
+
+      <span>א</span>
+      <span>ב</span>
+      <span>ג</span>
+      <span>ד</span>
+      <span>ה</span>
+      <span>ו</span>
+      <span>ש</span>
+
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="done">✓</i>
+      <i class="current"></i>
+      <i></i>
+
+    </div>
+
+  </div>
+
+
+  <!-- היעד הבא -->
+  <div class="kingdom-status-card kingdom-status-goal">
+
+    <div class="kingdom-goal-icon">
+      <i class="fa-solid fa-trophy"></i>
+    </div>
+
+    <div class="kingdom-goal-copy">
+
+      <span class="kingdom-status-label">
+        היעד הבא שלך
+      </span>
+
+      <strong>
+        להשלים 5 שיעורים במתמטיקה
+      </strong>
+
+      <div class="kingdom-goal-progress">
+        <span></span>
+      </div>
+
+    </div>
+
+    <b class="kingdom-goal-count">
+      3/5
+    </b>
+
+  </div>
 
 </section>
 </section><!-- סגירת dashboardView -->
+
 <!-- =====================================================
+     SCIENCE HIERARCHY VIEW
+===================================================== -->
+
+<section
+  id="scienceHierarchyView"
+  class="science-hierarchy-view"
+  style="display:none;"
+>
+
+  <div class="science-subject-layout">
+
+    <!-- =================================================
+         MAIN SCIENCE TREE
+    ================================================== -->
+
+    <div class="science-hierarchy-screen">
+
+      <header class="science-tree-header">
+
+        <button
+          type="button"
+          class="science-tree-back"
+          onclick="closeScienceHierarchy()"
+        >
+          <i class="fa-solid fa-arrow-right"></i>
+          חזרה
+        </button>
+
+
+        <div class="science-tree-title-icon">
+          <i class="fa-solid fa-leaf"></i>
+        </div>
+
+
+        <div>
+          <h1>מדעים</h1>
+          <p>
+            בחר נושא כדי להתחיל ללמוד ולהתקדם
+          </p>
+        </div>
+
+      </header>
+
+
+      <!-- BREADCRUMB -->
+
+      <div
+        id="scienceBreadcrumb"
+        class="science-breadcrumb"
+      >
+        <span class="active">
+          מדעים
+        </span>
+      </div>
+
+
+      <!-- TREE -->
+
+      <div
+        id="scienceTree"
+        class="science-tree"
+      >
+
+        <div class="science-tree-loading">
+          טוענים את עולם המדעים...
+        </div>
+
+      </div>
+
+
+      <!-- LEGEND -->
+
+      <div class="science-tree-legend">
+
+        <span>
+          <i class="science-legend-dot completed"></i>
+          הושלם
+        </span>
+
+        <span>
+          <i class="science-legend-dot current"></i>
+          נוכחי
+        </span>
+
+        <span>
+          <i class="science-legend-dot locked"></i>
+          נעול
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- =================================================
+         SCIENCE RIGHT SIDEBAR
+    ================================================== -->
+
+    <!-- =================================================
+     SCIENCE RIGHT SIDEBAR
+================================================== -->
+
+<aside class="science-rightbar">
+
+
+  <!-- =================================================
+       התקדמות במדעים
+  ================================================== -->
+
+  <section class="science-side-card science-progress-card">
+
+    <h3>
+      ההתקדמות שלי במדעים
+    </h3>
+
+    <div class="science-side-donut">
+
+      <div class="science-side-donut-inner">
+
+        <strong>
+          72%
+        </strong>
+
+        <span>
+          התקדמות כללית
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="science-side-stats">
+
+      <div>
+        <strong>28</strong>
+        <span>שיעורים הושלמו</span>
+      </div>
+
+      <div>
+        <strong>14</strong>
+        <span>בתהליך</span>
+      </div>
+
+      <div>
+        <strong>6</strong>
+        <span>נותרו</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =================================================
+       המשך שיעור
+  ================================================== -->
+
+  <section class="science-side-card science-continue-card">
+
+    <span class="science-side-heading">
+      המשך שיעור
+    </span>
+
+
+    <div class="science-continue-content">
+
+      <div class="science-continue-image">
+
+        <img
+          src="/assets/science/sidebar/ecology-frog.webp"
+          alt="מערכת אקולוגית"
+        >
+
+      </div>
+
+
+      <div class="science-continue-text">
+
+        <strong>
+          מהי מערכת אקולוגית?
+        </strong>
+
+        <span>
+          מבוא למערכת אקולוגית
+        </span>
+
+
+        <div class="science-continue-progress">
+
+          <span
+            style="width:75%"
+          ></span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="science-side-primary-btn"
+    >
+
+      המשך
+
+      <i class="fa-solid fa-play"></i>
+
+    </button>
+
+  </section>
+
+
+  <!-- =================================================
+       מומלץ עבורך
+  ================================================== -->
+
+
+
+<section class="science-side-card">
+
+  <div class="science-side-section-title">
+    מומלץ עבורך
+  </div>
+
+  <div id="scienceRecommendations"></div>
+
+</section>
+
+
+  <!-- =================================================
+       אתגר יומי
+  ================================================== -->
+
+  <section class="science-side-card science-challenge-card">
+
+    <div class="science-challenge-icon">
+      🏆
+    </div>
+
+
+    <div>
+
+      <strong>
+        אתגר יומי
+      </strong>
+
+      <p>
+        ענה על 5 שאלות בנושא מדעים
+        וקבל 20 כוכבים
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="science-side-primary-btn"
+    >
+      התחל את האתגר
+    </button>
+
+  </section>
+
+
+</aside>
+
+  </div>
+
+</section>
+    <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW
      ===================================================== -->
 
@@ -22442,39 +23015,81 @@ function restoreDefaultWorkspaceBackground(){
 
 }
 function showDashboard(){
+
+  /*
+    אם אנחנו כרגע בתוך מסך המדעים,
+    אסור לשום קריאה מאוחרת להחזיר את הדשבורד.
+  */
+  if(
+    document.body.classList.contains(
+      "science-hierarchy-mode"
+    )
+  ){
+    console.log(
+      "showDashboard blocked: science hierarchy is open"
+    );
+
+    return;
+  }
+
+
   restoreDefaultWorkspaceBackground();
+
+
   const dashboard =
-    document.getElementById("dashboardView");
+    document.getElementById(
+      "dashboardView"
+    );
 
   const learning =
-    document.getElementById("learningView");
+    document.getElementById(
+      "learningView"
+    );
 
-    const pathView =
-  document.getElementById(
-    "learningPathView"
-  );
+  const pathView =
+    document.getElementById(
+      "learningPathView"
+    );
 
+  const scienceView =
+    document.getElementById(
+      "scienceHierarchyView"
+    );
 
 
   if(dashboard){
-    dashboard.style.display = "block";
+    dashboard.style.display =
+      "block";
   }
+
 
   if(learning){
-    learning.style.display = "none";
+    learning.style.display =
+      "none";
   }
 
-if(pathView){
-  pathView.style.display = "none";
-}
 
-  /* כפתור דף הבית פעיל */
+  if(pathView){
+    pathView.style.display =
+      "none";
+  }
+
+
+  if(scienceView){
+    scienceView.style.display =
+      "none";
+  }
+
 
   document
-    .querySelectorAll(".side-item")
+    .querySelectorAll(
+      ".side-item"
+    )
     .forEach(btn => {
 
-      btn.classList.remove("active");
+      btn.classList.remove(
+        "active"
+      );
 
     });
 
@@ -22483,6 +23098,7 @@ if(pathView){
     document.getElementById(
       "homeSidebarBtn"
     );
+
 
   if(homeBtn){
 
@@ -24742,160 +25358,654 @@ document.addEventListener(
 
 }
 /* =====================================================
-   KINGDOM COMPACT BOTTOM BAR
+   KINGDOM STATUS BAR — PREMIUM DARK
 ===================================================== */
 
-.dashboard-view{
-  position:relative !important;
-}
-
-.kingdom-compact-bar{
+.kingdom-status-bar{
   position:absolute;
 
-  right:12px;
-  left:12px;
+  left:50%;
+  transform:translateX(-50%);
+
   bottom:10px;
 
-  height:92px;
+  width:900px;
+  max-width:68%;
+
+  height:104px;
 
   display:grid;
+
   grid-template-columns:
-    .85fr
-    1fr
+    1.05fr
     1.45fr
-    1fr
-    1fr;
+    1.05fr;
 
-  gap:9px;
-
-  padding:8px;
+  gap:12px;
 
   direction:rtl;
-
-  border:1px solid rgba(255,255,255,.22);
-  border-radius:22px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(10,35,61,.94),
-      rgba(5,24,45,.96)
-    );
-
-  box-shadow:
-    0 12px 30px rgba(0,20,50,.35),
-    inset 0 1px 0 rgba(255,255,255,.13);
-
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
 
   z-index:30;
 }
 
-.kingdom-compact-item{
+
+/* =====================================================
+   CARD BASE
+===================================================== */
+
+.kingdom-status-card{
+  position:relative;
+
   min-width:0;
+
+  height:104px;
 
   display:flex;
   align-items:center;
-  justify-content:center;
-
-  gap:9px;
-
-  padding:7px 10px;
-
-  border:
-    1px solid
-    rgba(255,210,95,.32);
-
-  border-radius:16px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(17,48,72,.95),
-      rgba(8,29,49,.96)
-    );
-
-  color:#fff;
-
-  cursor:pointer;
-
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.08);
-}
-
-.kingdom-compact-item strong{
-  display:block;
-
-  color:#fff;
-
-  font-size:15px;
-  line-height:1.2;
-  font-weight:900;
-}
-
-.kingdom-compact-item small{
-  display:block;
-
-  margin-top:3px;
-
-  color:#c8d7e7;
-
-  font-size:10px;
-  line-height:1.2;
-  font-weight:700;
-}
-
-.kingdom-compact-icon{
-  flex:none;
-
-  font-size:34px;
-
-  filter:
-    drop-shadow(
-      0 5px 5px
-      rgba(0,0,0,.28)
-    );
-}
-
-.kingdom-compact-progress > span{
-  width:100%;
-}
-
-.kingdom-compact-track{
-  width:100%;
-  height:9px;
-
-  display:block;
-
-  margin-top:6px;
 
   overflow:hidden;
 
-  border-radius:999px;
+  border:
+    1px solid
+    rgba(93,128,194,.24);
 
-  background:#071927;
+  border-radius:
+    18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13,25,45,.96),
+      rgba(6,15,30,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.045),
+
+    inset 0 0 0 1px
+    rgba(69,105,170,.035),
+
+    0 8px 22px
+    rgba(0,5,18,.30);
+
+  backdrop-filter:
+    blur(12px)
+    saturate(110%);
+
+  -webkit-backdrop-filter:
+    blur(12px)
+    saturate(110%);
 }
 
-.kingdom-compact-track > span{
+
+/* אור פנימי מאוד עדין */
+
+.kingdom-status-card::before{
+  content:"";
+
+  position:absolute;
+
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(50,111,210,.09),
+      transparent 60%
+    );
+}
+
+
+/* =====================================================
+   GENERAL TEXT
+===================================================== */
+
+.kingdom-status-label{
   display:block;
 
-  width:32%;
-  height:100%;
+  color:
+    rgba(200,212,238,.72);
 
-  border-radius:999px;
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+}
+
+
+.kingdom-status-card strong{
+  color:
+    #f5f7ff;
+}
+
+
+/* =====================================================
+   OVERALL PROGRESS
+===================================================== */
+
+.kingdom-status-overall{
+  padding:
+    10px
+    16px;
+
+  gap:
+    16px;
+}
+
+
+.kingdom-status-ring{
+  --progress:62;
+
+  position:relative;
+
+  width:76px;
+  height:76px;
+
+  flex:
+    0 0
+    76px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #39d5ff
+      0
+      calc(var(--progress) * 1%),
+
+      rgba(62,82,120,.32)
+      calc(var(--progress) * 1%)
+      100%
+    );
+
+  box-shadow:
+    0 0 15px
+    rgba(47,182,255,.16);
+}
+
+
+.kingdom-status-ring::before{
+  content:"";
+
+  position:absolute;
+
+  inset:7px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 45% 30%,
+      #1d2c4c,
+      #091326 72%
+    );
+
+  border:
+    1px solid
+    rgba(109,151,220,.17);
+}
+
+
+.kingdom-status-ring-inner{
+  position:relative;
+
+  z-index:2;
+}
+
+
+.kingdom-status-ring-inner strong{
+  font-size:
+    22px;
+
+  line-height:
+    1;
+}
+
+
+.kingdom-status-copy{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:flex-start;
+
+  gap:3px;
+}
+
+
+.kingdom-status-copy > strong{
+  font-size:
+    15px;
+
+  font-weight:
+    800;
+}
+
+
+.kingdom-status-accent{
+  color:
+    #37d5ff;
+
+  font-size:
+    12px;
+
+  font-weight:
+    850;
+}
+
+
+.kingdom-status-meta{
+  display:flex;
+
+  gap:
+    22px;
+
+  margin-top:
+    4px;
+
+  color:
+    rgba(190,201,226,.66);
+
+  font-size:
+    10px;
+}
+
+
+.kingdom-status-meta span{
+  white-space:nowrap;
+}
+
+
+.kingdom-status-meta b{
+  margin-left:
+    3px;
+
+  color:
+    #f2f6ff;
+
+  font-size:
+    11px;
+}
+
+
+/* =====================================================
+   STREAK
+===================================================== */
+
+.kingdom-status-streak{
+  padding:
+    10px
+    18px;
+
+  display:grid;
+
+  grid-template-columns:
+    .75fr
+    1.25fr;
+
+  gap:
+    18px;
+}
+
+
+.kingdom-streak-main{
+  display:flex;
+
+  align-items:center;
+
+  gap:
+    11px;
+}
+
+
+.kingdom-streak-icon{
+  font-size:
+    38px;
+
+  filter:
+    drop-shadow(
+      0 5px 9px
+      rgba(255,132,43,.22)
+    );
+}
+
+
+.kingdom-streak-number{
+  display:block;
+
+  margin-top:
+    1px;
+
+  font-size:
+    26px;
+
+  line-height:
+    1;
+}
+
+
+.kingdom-streak-number small{
+  margin-right:
+    3px;
+
+  color:
+    rgba(205,213,232,.68);
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+.kingdom-streak-main p{
+  margin:
+    6px
+    0
+    0;
+
+  color:
+    rgba(197,207,229,.67);
+
+  font-size:
+    10px;
+}
+
+
+/* WEEK */
+
+.kingdom-week{
+  display:grid;
+
+  grid-template-columns:
+    repeat(7,1fr);
+
+  grid-template-rows:
+    auto
+    auto;
+
+  gap:
+    6px
+    7px;
+
+  align-items:center;
+
+  justify-items:center;
+}
+
+
+.kingdom-week span{
+  color:
+    rgba(200,210,231,.64);
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+}
+
+
+.kingdom-week i{
+  width:18px;
+  height:18px;
+
+  display:grid;
+  place-items:center;
+
+  border:
+    1px solid
+    rgba(104,134,190,.38);
+
+  border-radius:50%;
+
+  background:
+    rgba(9,18,34,.55);
+
+  color:
+    transparent;
+
+  font-size:
+    9px;
+
+  font-style:normal;
+}
+
+
+.kingdom-week i.done{
+  border-color:
+    #35c9f5;
+
+  background:
+    #35bde7;
+
+  color:
+    #07182a;
+
+  font-weight:
+    900;
+
+  box-shadow:
+    0 0 8px
+    rgba(53,199,245,.25);
+}
+
+
+.kingdom-week i.current{
+  border:
+    2px solid
+    #39d2ff;
+
+  background:
+    transparent;
+
+  box-shadow:
+    0 0 8px
+    rgba(57,210,255,.18);
+}
+
+
+/* =====================================================
+   NEXT GOAL
+===================================================== */
+
+.kingdom-status-goal{
+  padding:
+    10px
+    15px;
+
+  gap:
+    13px;
+}
+
+
+.kingdom-goal-icon{
+  width:58px;
+  height:58px;
+
+  flex:
+    0
+    0
+    58px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    15px;
+
+  background:
+    radial-gradient(
+      circle at 50% 25%,
+      rgba(237,185,72,.16),
+      rgba(60,43,20,.12)
+    );
+
+  border:
+    1px solid
+    rgba(215,169,69,.20);
+
+  color:
+    #d9a941;
+
+  font-size:
+    27px;
+}
+
+
+.kingdom-goal-copy{
+  flex:1;
+
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:
+    4px;
+}
+
+
+.kingdom-goal-copy strong{
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+
+  white-space:nowrap;
+
+  font-size:
+    13px;
+
+  font-weight:
+    800;
+}
+
+
+.kingdom-goal-progress{
+  width:100%;
+
+  height:6px;
+
+  margin-top:
+    4px;
+
+  overflow:hidden;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(71,89,124,.32);
+}
+
+
+.kingdom-goal-progress span{
+  display:block;
+
+  width:
+    60%;
+
+  height:
+    100%;
+
+  border-radius:
+    inherit;
 
   background:
     linear-gradient(
       90deg,
-      #65d834,
-      #a9ed38
+      #2bc7e8,
+      #29a8d8
     );
 
   box-shadow:
-    0 0 9px
-    rgba(122,232,51,.55);
+    0 0 7px
+    rgba(43,193,232,.22);
+}
+
+
+.kingdom-goal-count{
+  align-self:
+    flex-end;
+
+  margin-bottom:
+    5px;
+
+  color:
+    rgba(223,231,247,.77);
+
+  font-size:
+    11px;
+}
+
+
+/* =====================================================
+   SMALLER DESKTOPS
+===================================================== */
+
+@media(max-width:1500px){
+
+  .kingdom-status-bar{
+    right:12px;
+    left:12px;
+
+    height:94px;
+
+    gap:8px;
+  }
+
+
+  .kingdom-status-card{
+    height:94px;
+  }
+
+
+  .kingdom-status-ring{
+    width:66px;
+    height:66px;
+
+    flex-basis:66px;
+  }
+
+
+  .kingdom-status-ring-inner strong{
+    font-size:19px;
+  }
+
+
+  .kingdom-status-copy > strong{
+    font-size:13px;
+  }
+
+
+  .kingdom-streak-icon{
+    font-size:31px;
+  }
+
+
+  .kingdom-streak-number{
+    font-size:22px;
+  }
+
+
+  .kingdom-goal-icon{
+    width:50px;
+    height:50px;
+
+    flex-basis:50px;
+
+    font-size:23px;
+  }
+
 }
     /* =====================================================
    LESSON SCORE LIVE UPDATE
@@ -25041,41 +26151,32 @@ document.addEventListener(
   }
 
 }
-    /* =====================================================
-   KINGDOM LABEL — SNOW TEST
+
+/* =====================================================
+   KINGDOM SUBJECT CARDS — DARK PREMIUM
 ===================================================== */
-
-.kingdom-map-area{
-  position:relative !important;
-}
-
-
-/* התווית עצמה */
 
 .kingdom-label{
   position:absolute;
 
-  width:clamp(118px, 7.2vw, 138px);
-  min-height:clamp(68px, 4.4vw, 80px);
+  width:150px;
+  min-height:96px;
 
-  padding:
-    8px
-    11px
-    9px;
+  padding:12px 14px 11px;
 
   display:flex;
   flex-direction:column;
-  align-items:center;
+  align-items:stretch;
   justify-content:center;
 
   direction:rtl;
+  text-align:right;
 
   border:
     1px solid
-    rgba(255,255,255,.48);
+    rgba(88,135,200,.38);
 
-  border-radius:
-    15px;
+  border-radius:14px;
 
   color:#fff;
 
@@ -25084,36 +26185,32 @@ document.addEventListener(
   background:
     linear-gradient(
       180deg,
-      rgba(20,91,155,.86),
-      rgba(8,54,103,.88) 55%,
-      rgba(4,32,67,.92)
-    );
+      rgba(8,22,38,.96),
+      rgba(4,14,27,.97)
+    ) !important;
 
   backdrop-filter:
-    blur(7px)
+    blur(10px)
     saturate(115%);
 
   -webkit-backdrop-filter:
-    blur(7px)
+    blur(10px)
     saturate(115%);
 
   box-shadow:
     inset 0 1px 0
-    rgba(255,255,255,.18),
+    rgba(255,255,255,.05),
 
-    inset 0 -8px 14px
-    rgba(0,0,0,.16),
-
-    0 5px 12px
-    rgba(0,15,45,.26);
+    0 8px 22px
+    rgba(0,7,22,.40);
 
   transform:
     translate(-50%,-50%);
 
   transition:
     transform .18s ease,
-    box-shadow .18s ease,
-    filter .18s ease;
+    border-color .18s ease,
+    box-shadow .18s ease;
 
   z-index:10;
 }
@@ -25121,113 +26218,101 @@ document.addEventListener(
 
 .kingdom-label:hover{
   transform:
-    translate(-50%,-53%)
-    scale(1.03);
+    translate(-50%,-54%)
+    scale(1.025);
 
-  filter:
-    brightness(1.05);
-
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.24),
-
-    0 8px 18px
-    rgba(0,15,45,.32);
-}
-
-
-/* הכותרת העליונה */
-
-.kingdom-label-title{
-  width:calc(100% + 12px);
-
-  margin:
-    -6px
-    0
-    3px;
-
-  padding:
-    4px
-    6px;
-
-  border-radius:
-    11px
-    11px
-    8px
-    8px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(54,143,205,.90),
-      rgba(19,92,151,.90)
-    );
+  border-color:
+    rgba(71,184,239,.60);
 
   box-shadow:
     inset 0 1px 0
-    rgba(255,255,255,.22),
+    rgba(255,255,255,.07),
 
-    0 2px 5px
-    rgba(0,15,45,.24);
+    0 12px 28px
+    rgba(0,7,22,.50),
 
-  font-size:
-    clamp(14px, .82vw, 16px);
-
-  line-height:1.05;
-  font-weight:900;
-
-  white-space:nowrap;
+    0 0 18px
+    rgba(38,169,229,.12);
 }
 
 
 /* שם המקצוע */
 
-.kingdom-label-subject{
-  margin-top:1px;
+.kingdom-label-title{
+  width:100%;
 
-  font-size:
-    clamp(10px, .62vw, 12px);
+  margin:0 0 3px;
+  padding:0;
 
-  line-height:1.2;
-  font-weight:800;
+  background:none !important;
 
-  color:
-    rgba(255,255,255,.88);
+  border:0 !important;
+  border-radius:0 !important;
+
+  box-shadow:none !important;
+
+  color:#f6f9ff;
+
+  font-size:17px;
+  line-height:1.15;
+
+  font-weight:900;
+
+  text-align:center;
 }
 
 
-/* אזור פס ההתקדמות */
+/* שורת "התקדמות 78%" */
+
+.kingdom-label-subject{
+  display:block;
+
+  margin:
+    1px
+    0
+    7px;
+
+  color:
+    rgba(203,218,239,.78);
+
+  font-size:11px;
+  line-height:1;
+
+  font-weight:600;
+
+  text-align:center;
+}
+
+
+/* פס + אחוז */
 
 .kingdom-label-progress{
   width:100%;
 
-  margin-top:5px;
-
-  display:grid;
-
-  grid-template-columns:
-    minmax(0,1fr)
-    auto;
-
-  gap:6px;
-
+  display:flex;
   align-items:center;
+
+  gap:7px;
+
+  direction:rtl;
 }
 
 
 .kingdom-label-track{
-  height:7px;
+  flex:1;
+
+  height:6px;
 
   overflow:hidden;
 
   border-radius:999px;
 
   background:
-    rgba(0,18,46,.54);
+    rgba(106,128,157,.34);
 
   box-shadow:
-    inset 0 1px 3px
-    rgba(0,0,0,.38);
+    inset 0 1px 2px
+    rgba(0,0,0,.30);
 }
 
 
@@ -25236,199 +26321,153 @@ document.addEventListener(
 
   height:100%;
 
-  border-radius:999px;
+  border-radius:inherit;
 
   background:
     linear-gradient(
       90deg,
-      #2fd8ff,
-      #70edff
-    );
+      #19c2e8,
+      #43d8f4
+    ) !important;
 
   box-shadow:
-    0 0 6px
-    rgba(47,216,255,.48);
+    0 0 7px
+    rgba(47,216,255,.35);
 }
 
 
 .kingdom-label-progress b{
-  min-width:25px;
+  min-width:28px;
+
+  color:
+    #dff8ff;
 
   font-size:10px;
   line-height:1;
 
-  color:#fff;
+  font-weight:800;
 }
 
 
-/* =====================================================
-   מיקום ממלכת השלג במפה
-===================================================== */
+/* כפתור כניסה קטן */
+
+.kingdom-label::after{
+  content:"כניסה  ←";
+
+  width:72px;
+  height:23px;
+
+  margin:
+    8px
+    auto
+    0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(31,53,79,.94),
+      rgba(13,29,47,.98)
+    );
+
+  border:
+    1px solid
+    rgba(93,145,202,.20);
+
+  color:
+    rgba(237,245,255,.92);
+
+  font-size:9px;
+  font-weight:800;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.04);
+}
+/* ===========================
+   אנגלית
+=========================== */
 
 .kingdom-label-snow{
-  /*
-    לפי המפה שלך:
-    אי השלג נמצא בחלק העליון-שמאלי.
-  */
-
-  top:29%;
-  left:20%;
-
-  transform:
-    translate(-50%,-50%);
-}
-html.windows .kingdom-label-snow{
-  transform:
-    translate(-50%,-50%)
-    scale(.90);
+  top:18%;
+  left:24%;
 }
 
-html.windows .kingdom-label-snow:hover{
-  transform:
-    translate(-50%,-54%)
-    scale(.93);
-}
 
-.kingdom-label-snow:hover{
-  transform:
-    translate(-50%,-54%)
-    scale(1.025);
-}
-    /* =====================================================
-   KINGDOM LABEL POSITIONS
-===================================================== */
-
-
-
-/* הר הגעש */
+/* ===========================
+   מתמטיקה
+=========================== */
 
 .kingdom-label-fire{
-  top:25%;
+  top:17%;
   left:49%;
 }
 
 
-/* ג׳ונגל */
+/* ===========================
+   מדעים
+=========================== */
 
 .kingdom-label-jungle{
-  top:25%;
-  left:55%;
+  top:18%;
+  left:73%;
 }
 
 
-/* מדבר */
-
-.kingdom-label-desert{
-  top:55%;
-  left:20%;
-}
-
-
-/* ממלכה ורודה */
+/* ===========================
+   היסטוריה (למטה ימין)
+=========================== */
 
 .kingdom-label-candy{
-  top:56%;
-  left:77%;
+  top:60%;
+  left:79%;
 }
 
 
-/* ממלכה תת-ימית */
-
-.kingdom-label-ocean{
-  top:78%;
-  left:29%;
-}
-
-
-/* ממלכה כהה */
-
-.kingdom-label-shadow{
-  top:78%;
-  left:64%;
-}
-
-
-/* האי המרכזי */
+/* ===========================
+   עברית (למטה אמצע)
+=========================== */
 
 .kingdom-label-center{
-  top:56%;
+  top:82%;
   left:49%;
 }
-    /* =====================================================
-   KINGDOM LABEL COLORS
-===================================================== */
 
-.kingdom-label-snow{
-  background:linear-gradient(
-    180deg,
-    #4da3ff,
-    #2a6dc4 55%,
-    #18488d
-  );
-}
 
-.kingdom-label-fire{
-  background:linear-gradient(
-    180deg,
-    #ff8248,
-    #d34b1d 55%,
-    #8b240e
-  );
-}
-
-.kingdom-label-jungle{
-  background:linear-gradient(
-    180deg,
-    #57b85a,
-    #2f7a37 55%,
-    #1d4c23
-  );
-}
-
-.kingdom-label-desert{
-  background:linear-gradient(
-    180deg,
-    #e0b15a,
-    #b97a2b 55%,
-    #7c4c19
-  );
-}
-
-.kingdom-label-candy{
-  background:linear-gradient(
-    180deg,
-    #ff8bc7,
-    #d95ca2 55%,
-    #9f3d73
-  );
-}
-
-.kingdom-label-ocean{
-  background:linear-gradient(
-    180deg,
-    #38c7d9,
-    #2286b4 55%,
-    #165b7d
-  );
-}
+/* ===========================
+   תנ״ך (אמצע שמאל)
+=========================== */
 
 .kingdom-label-shadow{
-  background:linear-gradient(
-    180deg,
-    #8b86a3,
-    #615d77 55%,
-    #3a3748
-  );
+  top:60%;
+  left:21%;
 }
 
-.kingdom-label-center{
-  background:linear-gradient(
-    180deg,
-    #66b4ff,
-    #3f7ed2 55%,
-    #27539b
-  );
+
+/* ===========================
+   הוסף מקצוע (למטה שמאל)
+=========================== */
+
+.kingdom-label-ocean{
+  top:80%;
+  left:30%;
 }
+
+
+/* ===========================
+   הוסף מקצוע (אמצע ימין)
+=========================== */
+
+.kingdom-label-desert{
+  top:80%;
+  left:72%;
+}
+
     /* =====================================================
    JUNGLE WORLD DRILL DOWN
 ===================================================== */
@@ -25915,6 +26954,1874 @@ body.lesson-theme-science
       1fr !important;
   }
 
+}
+    /* =====================================================
+   LEARNING WORLD — TOP CENTER
+===================================================== */
+
+.topbar-learning-world{
+  position:absolute !important;
+
+  left:50% !important;
+  top:50% !important;
+
+  transform:
+    translate(-50%,-50%) !important;
+
+  display:flex !important;
+  align-items:center !important;
+
+  gap:
+    12px !important;
+
+  direction:rtl !important;
+
+  pointer-events:none;
+}
+
+
+.topbar-world-icon{
+  width:46px;
+  height:46px;
+
+  flex:
+    0
+    0
+    46px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    50%;
+
+  border:
+    1px solid
+    rgba(47,151,255,.34);
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(35,111,201,.26),
+      rgba(5,20,39,.40)
+    );
+
+  color:
+    #67c4ff;
+
+  font-size:
+    20px;
+
+  box-shadow:
+    0 0 18px
+    rgba(29,139,255,.17),
+
+    inset 0 0 18px
+    rgba(42,142,255,.08);
+}
+
+
+.topbar-world-text{
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  text-align:center;
+}
+
+
+.topbar-world-text strong{
+  color:#f4f7ff;
+
+  font-size:
+    25px;
+
+  line-height:
+    1;
+
+  font-weight:
+    850;
+
+  letter-spacing:
+    -.4px;
+
+  text-shadow:
+    0 2px 8px
+    rgba(0,0,0,.35);
+}
+
+
+.topbar-world-text span{
+  margin-top:
+    5px;
+
+  color:
+    rgba(185,200,229,.69);
+
+  font-size:
+    10px;
+
+  line-height:
+    1;
+
+  font-weight:
+    600;
+}
+    .brand img{
+  width:40px !important;
+  height:40px !important;
+
+  border-radius:
+    12px !important;
+}
+
+.brand-title{
+  font-size:
+    17px !important;
+}
+
+.brand-sub{
+  margin-top:
+    1px !important;
+
+  font-size:
+    9px !important;
+}
+
+.brand-ai{
+  padding:
+    2px
+    5px !important;
+
+  font-size:
+    8px !important;
+
+  border-radius:
+    6px !important;
+}
+    /* =====================================================
+   SCIENCE HIERARCHY — V1
+===================================================== */
+
+.science-hierarchy-view{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+
+  overflow:hidden;
+
+  border-radius:22px;
+}
+
+
+.science-hierarchy-screen{
+  position:relative;
+
+  width:100%;
+  height:100%;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+
+  padding:
+    22px
+    28px
+    28px;
+
+  direction:rtl;
+
+  color:#eef5ff;
+
+  /*
+    כרגע לא צריך תמונת רקע חדשה.
+    בנוי כרקע כהה עם עלים.
+  */
+  background:
+    linear-gradient(
+      rgba(3,12,22,.88),
+      rgba(3,10,20,.94)
+    ),
+    url("/assets/backgrounds/science-tree-bg.webp");
+
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+
+  box-shadow:
+    inset 0 0 80px
+    rgba(0,0,0,.38);
+}
+
+
+/* עלים כהים בצדדים */
+
+.science-hierarchy-screen::before{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(40,180,85,.08),
+      transparent 30%
+    ),
+
+    radial-gradient(
+      circle at 88% 20%,
+      rgba(0,190,130,.07),
+      transparent 28%
+    );
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.science-tree-header{
+  position:relative;
+  z-index:3;
+
+  min-height:100px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:18px;
+
+  text-align:center;
+}
+
+
+.science-tree-header h1{
+  margin:0;
+
+  color:#fff;
+
+  font-size:42px;
+  line-height:1;
+
+  font-weight:900;
+}
+
+
+.science-tree-header p{
+  margin:
+    8px
+    0
+    0;
+
+  color:
+    rgba(215,226,242,.72);
+
+  font-size:14px;
+  font-weight:650;
+}
+
+
+.science-tree-title-icon{
+  width:66px;
+  height:66px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  color:#6bea7b;
+
+  font-size:29px;
+
+  border:
+    2px solid
+    rgba(86,224,104,.55);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(46,140,66,.28),
+      rgba(6,26,17,.92)
+    );
+
+  box-shadow:
+    0 0 25px
+    rgba(56,217,89,.20);
+}
+
+
+.science-tree-back{
+  position:absolute;
+
+  right:0;
+  top:18px;
+
+  height:40px;
+
+  padding:
+    0
+    14px;
+
+  display:flex;
+  align-items:center;
+
+  gap:7px;
+
+  border:
+    1px solid
+    rgba(113,157,210,.24);
+
+  border-radius:12px;
+
+  background:
+    rgba(9,20,36,.86);
+
+  color:#d9e7f8;
+
+  cursor:pointer;
+
+  font-size:13px;
+  font-weight:800;
+}
+
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
+
+.science-breadcrumb{
+  position:relative;
+  z-index:3;
+
+  min-height:44px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:9px;
+
+  margin:
+    0
+    auto
+    12px;
+
+  color:
+    rgba(181,201,225,.65);
+
+  font-size:12px;
+  font-weight:700;
+}
+
+
+.science-breadcrumb span:not(:last-child)::after{
+  content:"›";
+
+  margin-right:9px;
+
+  color:
+    rgba(109,199,255,.60);
+}
+
+
+.science-breadcrumb .active{
+  color:#67e678;
+}
+
+
+/* =====================================================
+   TREE
+===================================================== */
+
+.science-tree{
+  position:relative;
+  z-index:3;
+
+  width:100%;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:34px;
+
+  padding:
+    10px
+    0
+    35px;
+}
+
+
+.science-tree-loading{
+  width:max-content;
+
+  max-width:90%;
+
+  margin:
+    80px
+    auto;
+
+  padding:
+    15px
+    22px;
+
+  border-radius:14px;
+
+  color:#dce8f7;
+
+  background:
+    rgba(8,19,35,.86);
+
+  border:
+    1px solid
+    rgba(87,133,191,.22);
+}
+
+
+/* =====================================================
+   LEVEL
+===================================================== */
+
+.science-tree-level{
+  position:relative;
+
+  width:100%;
+}
+
+
+.science-tree-level-title{
+  display:none;
+}
+
+
+.science-tree-row{
+  position:relative;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(130px,1fr)
+    );
+
+  gap:16px;
+
+  align-items:stretch;
+}
+
+
+/* קו רוחבי של העץ */
+
+.science-tree-row::before{
+  content:"";
+
+  position:absolute;
+
+  top:-16px;
+
+  right:6%;
+  left:6%;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #53c6ff 10%,
+      #62e5cf 50%,
+      #53c6ff 90%,
+      transparent
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(69,184,255,.48);
+}
+
+
+/* =====================================================
+   NODE
+===================================================== */
+
+.science-tree-card{
+  position:relative;
+
+  min-width:0;
+  min-height:150px;
+
+  padding:
+    19px
+    12px
+    15px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  color:#f4f7ff;
+
+  border:
+    1px solid
+    rgba(102,145,191,.33);
+
+  border-radius:19px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(17,32,51,.96),
+      rgba(8,19,32,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.05),
+
+    0 9px 22px
+    rgba(0,5,18,.30);
+
+  cursor:pointer;
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+
+.science-tree-card::before{
+  content:"";
+
+  position:absolute;
+
+  top:-17px;
+  left:50%;
+
+  width:2px;
+  height:17px;
+
+  transform:
+    translateX(-50%);
+
+  background:#62cfff;
+
+  box-shadow:
+    0 0 8px
+    rgba(69,188,255,.65);
+}
+
+
+.science-tree-card:hover{
+  transform:
+    translateY(-4px);
+
+  border-color:
+    rgba(80,180,255,.62);
+
+  box-shadow:
+    0 12px 27px
+    rgba(0,5,20,.40),
+
+    0 0 17px
+    rgba(47,141,255,.13);
+}
+
+
+.science-tree-card-icon{
+  height:38px;
+
+  display:grid;
+  place-items:center;
+
+  margin-bottom:8px;
+
+  font-size:29px;
+}
+
+
+.science-tree-card strong{
+  display:block;
+
+  color:#f7f9ff;
+
+  font-size:16px;
+  line-height:1.25;
+
+  font-weight:900;
+}
+
+
+.science-tree-card small{
+  display:block;
+
+  margin-top:6px;
+
+  color:
+    rgba(185,204,226,.67);
+
+  font-size:10px;
+}
+
+
+/* progress */
+
+.science-tree-progress{
+  width:100%;
+  height:6px;
+
+  margin-top:13px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:
+    rgba(74,98,127,.32);
+}
+
+
+.science-tree-progress span{
+  display:block;
+
+  height:100%;
+
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #19a7ff,
+      #35d4ff
+    );
+}
+
+
+/* =====================================================
+   SELECTED
+===================================================== */
+
+.science-tree-card.selected{
+  border-color:
+    rgba(99,232,113,.75);
+
+  background:
+    radial-gradient(
+      circle at 50% 0,
+      rgba(60,184,77,.20),
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(14,48,31,.97),
+      rgba(7,26,20,.99)
+    );
+
+  box-shadow:
+    0 0 0 1px
+    rgba(76,213,91,.12),
+
+    0 0 25px
+    rgba(59,216,82,.16),
+
+    0 12px 28px
+    rgba(0,7,19,.38);
+}
+
+
+.science-tree-card.selected
+.science-tree-progress span{
+  background:
+    linear-gradient(
+      90deg,
+      #49d858,
+      #7ded6a
+    );
+}
+
+
+/* =====================================================
+   LOCKED
+===================================================== */
+
+.science-tree-card.locked{
+  opacity:.52;
+
+  cursor:not-allowed;
+}
+
+
+/* =====================================================
+   LEGEND
+===================================================== */
+
+.science-tree-legend{
+  position:relative;
+  z-index:3;
+
+  width:max-content;
+  max-width:90%;
+
+  margin:
+    0
+    auto;
+
+  padding:
+    9px
+    20px;
+
+  display:flex;
+  align-items:center;
+
+  gap:25px;
+
+  border:
+    1px solid
+    rgba(96,132,180,.21);
+
+  border-radius:13px;
+
+  background:
+    rgba(5,14,27,.86);
+
+  color:
+    rgba(207,218,235,.75);
+
+  font-size:11px;
+}
+
+
+.science-tree-legend span{
+  display:flex;
+  align-items:center;
+
+  gap:6px;
+}
+
+
+.science-legend-dot{
+  width:11px;
+  height:11px;
+
+  display:block;
+
+  border-radius:50%;
+}
+
+
+.science-legend-dot.completed{
+  background:#4bd260;
+}
+
+
+.science-legend-dot.current{
+  background:#279fff;
+}
+
+
+.science-legend-dot.locked{
+  background:#727f93;
+}
+    /* =====================================================
+   SCIENCE SUBJECT SCREEN + INTERNAL SIDEBAR
+===================================================== */
+
+
+/* =====================================================
+   כשהילד נמצא במסך מדעים:
+   מורידים את סרגל הבית הימני
+   ומרחיבים את MAIN
+===================================================== */
+
+body.science-hierarchy-mode .app{
+  grid-template-columns:
+    270px
+    minmax(0,1fr) !important;
+}
+
+
+body.science-hierarchy-mode .topbar{
+  grid-column:
+    1 / 3 !important;
+}
+
+
+body.science-hierarchy-mode .main{
+  grid-column:
+    2 !important;
+}
+
+
+/* הסרגל הימני הרגיל של הבית נעלם */
+
+body.science-hierarchy-mode
+.rightbar.home-rightbar{
+  display:none !important;
+}
+
+
+/* הרובוט הצף של הבית גם לא שייך למסך הזה */
+
+body.science-hierarchy-mode
+.floating-tutor-robot{
+  display:none !important;
+}
+
+
+
+/* =====================================================
+   SCIENCE VIEW
+===================================================== */
+
+.science-hierarchy-view{
+  width:100% !important;
+  height:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  overflow:hidden !important;
+
+  border-radius:
+    22px !important;
+}
+
+
+/* MAIN + RIGHT SIDEBAR */
+
+.science-subject-layout{
+  width:100%;
+  height:100%;
+
+  min-width:0;
+  min-height:0;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    270px;
+
+  gap:14px;
+
+  direction:ltr;
+}
+
+
+/* עץ */
+
+.science-hierarchy-screen{
+  direction:rtl;
+
+  min-width:0;
+  min-height:0;
+
+  border-radius:22px;
+}
+
+
+/* =====================================================
+   SCIENCE SIDEBAR
+===================================================== */
+
+.science-rightbar{
+  direction:rtl;
+
+  width:100%;
+  height:100%;
+
+  min-height:0;
+
+  padding:
+    0
+    2px
+    0
+    0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:10px;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+
+.science-rightbar::-webkit-scrollbar{
+  width:4px;
+}
+
+
+.science-rightbar::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+.science-rightbar::-webkit-scrollbar-thumb{
+  border-radius:999px;
+
+  background:
+    rgba(85,213,122,.25);
+}
+
+
+
+/* =====================================================
+   SIDEBAR CARDS
+===================================================== */
+
+.science-side-card{
+  position:relative;
+
+  flex:
+    0
+    0
+    auto;
+
+  overflow:hidden;
+
+  padding:
+    15px;
+
+  border:
+    1px solid
+    rgba(85,158,134,.22);
+
+  border-radius:
+    18px;
+
+  background:
+    radial-gradient(
+      circle at 80% 0%,
+      rgba(48,180,96,.10),
+      transparent 43%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,26,34,.97),
+      rgba(6,14,25,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.045),
+
+    0 8px 22px
+    rgba(0,5,18,.28);
+
+  color:#eef8f3;
+}
+
+
+.science-side-card::before{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent,
+      rgba(84,230,127,.025),
+      transparent
+    );
+}
+
+
+
+/* =====================================================
+   PROGRESS
+===================================================== */
+
+.science-progress-card h3{
+  position:relative;
+  z-index:2;
+
+  margin:
+    0
+    0
+    12px;
+
+  text-align:center;
+
+  color:#f3f8f6;
+
+  font-size:
+    15px;
+
+  font-weight:
+    850;
+}
+
+
+.science-side-donut{
+  --progress:72;
+
+  position:relative;
+
+  width:92px;
+  height:92px;
+
+  margin:
+    2px
+    auto
+    13px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #55e57b
+      0
+      calc(
+        var(--progress) * 1%
+      ),
+
+      rgba(59,85,81,.32)
+      calc(
+        var(--progress) * 1%
+      )
+      100%
+    );
+
+  box-shadow:
+    0 0 19px
+    rgba(61,222,113,.18);
+}
+
+
+.science-side-donut::before{
+  content:"";
+
+  position:absolute;
+
+  inset:9px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #243d42,
+      #0b1721 65%
+    );
+
+  border:
+    1px solid
+    rgba(101,216,142,.18);
+}
+
+
+.science-side-donut-inner{
+  position:relative;
+
+  z-index:2;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+}
+
+
+.science-side-donut-inner strong{
+  font-size:
+    24px;
+
+  line-height:1;
+
+  color:#fff;
+}
+
+
+.science-side-donut-inner span{
+  margin-top:
+    4px;
+
+  color:
+    rgba(205,226,218,.66);
+
+  font-size:
+    8px;
+}
+
+
+
+/* stats */
+
+.science-side-stats{
+  position:relative;
+  z-index:2;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:3px;
+}
+
+
+.science-side-stats > div{
+  text-align:center;
+
+  padding:
+    3px
+    5px;
+}
+
+
+.science-side-stats > div +
+div{
+  border-right:
+    1px solid
+    rgba(123,169,158,.14);
+}
+
+
+.science-side-stats strong{
+  display:block;
+
+  color:#63df82;
+
+  font-size:
+    17px;
+}
+
+
+.science-side-stats span{
+  display:block;
+
+  margin-top:
+    2px;
+
+  color:
+    rgba(199,214,213,.58);
+
+  font-size:
+    8px;
+}
+
+
+
+/* =====================================================
+   CONTINUE LESSON
+===================================================== */
+
+.science-side-heading,
+.science-side-section-title{
+  position:relative;
+  z-index:2;
+
+  display:block;
+
+  margin-bottom:
+    10px;
+
+  color:#9cecad;
+
+  font-size:
+    14px;
+
+  font-weight:
+    900;
+}
+
+
+.science-continue-content{
+  position:relative;
+  z-index:2;
+
+  display:grid;
+
+  grid-template-columns:
+    62px
+    minmax(0,1fr);
+
+  gap:9px;
+
+  align-items:center;
+
+  direction:ltr;
+}
+
+
+.science-continue-image{
+  width:62px;
+  height:62px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    13px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(45,148,70,.32),
+      rgba(7,28,23,.85)
+    );
+
+  font-size:
+    37px;
+}
+
+
+.science-continue-text{
+  direction:rtl;
+
+  min-width:0;
+}
+
+
+.science-continue-text strong{
+  display:block;
+
+  font-size:
+    13px;
+
+  line-height:
+    1.35;
+}
+
+
+.science-continue-text > span{
+  display:block;
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(203,218,214,.62);
+
+  font-size:
+    9px;
+}
+
+
+.science-continue-progress{
+  height:6px;
+
+  margin-top:
+    8px;
+
+  overflow:hidden;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(86,110,111,.28);
+}
+
+
+.science-continue-progress span{
+  display:block;
+
+  height:100%;
+
+  border-radius:
+    inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #32c963,
+      #72e68e
+    );
+}
+
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.science-side-primary-btn{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  min-height:
+    38px;
+
+  margin-top:
+    11px;
+
+  border:
+    1px solid
+    rgba(105,239,139,.27);
+
+  border-radius:
+    10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #258443,
+      #176934
+    );
+
+  color:#fff;
+
+  font-size:
+    12px;
+
+  font-weight:
+    850;
+
+  cursor:pointer;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.10),
+
+    0 6px 15px
+    rgba(14,104,47,.23);
+}
+
+
+.science-side-primary-btn i{
+  margin-right:
+    6px;
+}
+
+
+
+/* =====================================================
+   RECOMMENDED
+===================================================== */
+
+.science-recommend-item{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  min-height:
+    52px;
+
+  padding:
+    6px
+    7px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  border:
+    0;
+
+  border-bottom:
+    1px solid
+    rgba(100,137,132,.12);
+
+  background:
+    transparent;
+
+  color:#eef6f3;
+
+  text-align:right;
+
+  cursor:pointer;
+}
+
+
+.science-recommend-item:hover{
+  background:
+    rgba(73,193,106,.055);
+}
+
+
+.science-recommend-icon{
+  width:44px;
+  height:38px;
+
+  flex:
+    0
+    0
+    44px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    8px;
+
+  background:
+    rgba(55,122,91,.13);
+
+  font-size:
+    22px;
+}
+
+
+.science-recommend-item strong{
+  display:block;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.25;
+}
+
+
+.science-recommend-item small{
+  display:block;
+
+  margin-top:
+    2px;
+
+  color:
+    rgba(193,210,205,.55);
+
+  font-size:
+    8px;
+}
+
+
+
+/* =====================================================
+   CHALLENGE
+===================================================== */
+
+.science-challenge-card{
+  display:grid;
+
+  grid-template-columns:
+    45px
+    minmax(0,1fr);
+
+  gap:
+    7px;
+
+  align-items:center;
+
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(122,79,220,.14),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(25,24,53,.98),
+      rgba(13,16,34,.98)
+    );
+}
+
+
+.science-challenge-icon{
+  font-size:
+    32px;
+}
+
+
+.science-challenge-card strong{
+  font-size:
+    14px;
+
+  color:#c5a4ff;
+}
+
+
+.science-challenge-card p{
+  margin:
+    4px
+    0
+    0;
+
+  color:
+    rgba(207,209,230,.69);
+
+  font-size:
+    9px;
+
+  line-height:
+    1.4;
+}
+
+
+.science-challenge-card
+.science-side-primary-btn{
+  grid-column:
+    1 / -1;
+}
+
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:1250px){
+
+  .science-subject-layout{
+    grid-template-columns:
+      minmax(0,1fr)
+      230px;
+  }
+
+}
+
+
+@media(max-width:1000px){
+
+  .science-subject-layout{
+    display:block;
+  }
+
+
+  .science-rightbar{
+    display:none;
+  }
+
+}
+    /* =====================================================
+   SCIENCE RIGHTBAR — PREMIUM IMAGE VERSION
+===================================================== */
+
+
+/* =====================================================
+   CONTINUE LESSON IMAGE
+===================================================== */
+
+.science-continue-content{
+  display:grid !important;
+
+  grid-template-columns:
+    92px
+    minmax(0,1fr) !important;
+
+  gap:12px !important;
+
+  align-items:center !important;
+
+  direction:ltr;
+}
+
+
+.science-continue-image{
+  position:relative;
+
+  width:92px !important;
+  height:82px !important;
+
+  overflow:hidden !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    #071811 !important;
+
+  border:
+    1px solid
+    rgba(92,204,121,.18);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.05),
+
+    0 7px 18px
+    rgba(0,0,0,.30);
+}
+
+
+.science-continue-image::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 45%,
+      rgba(5,16,22,.48) 100%
+    );
+}
+
+
+.science-continue-image img{
+  width:100%;
+  height:100%;
+
+  display:block;
+
+  object-fit:cover;
+
+  transition:
+    transform .3s ease,
+    filter .3s ease;
+}
+
+
+.science-continue-card:hover
+.science-continue-image img{
+  transform:
+    scale(1.06);
+
+  filter:
+    brightness(1.05)
+    saturate(1.08);
+}
+
+
+/* =====================================================
+   CONTINUE TEXT
+===================================================== */
+
+.science-continue-text{
+  direction:rtl !important;
+
+  min-width:0;
+}
+
+
+.science-continue-text strong{
+  display:block;
+
+  color:#f4f8f5;
+
+  font-size:
+    13px !important;
+
+  line-height:
+    1.35;
+}
+
+
+.science-continue-text > span{
+  display:block;
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(198,218,210,.62);
+
+  font-size:
+    9px;
+}
+
+
+/* =====================================================
+   RECOMMENDATIONS
+===================================================== */
+
+.science-recommend-card{
+  padding:
+    14px
+    12px !important;
+}
+
+
+.science-recommend-item{
+  position:relative;
+
+  width:100%;
+
+  min-height:
+    62px !important;
+
+  margin-bottom:
+    7px;
+
+  padding:
+    0 !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    96px
+    minmax(0,1fr) !important;
+
+  align-items:center;
+
+  gap:
+    10px;
+
+  direction:ltr;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(95,139,126,.15) !important;
+
+  border-radius:
+    11px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(16,28,35,.90),
+      rgba(8,17,27,.94)
+    ) !important;
+
+  color:#fff;
+
+  cursor:pointer;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease;
+}
+
+
+.science-recommend-item:last-child{
+  margin-bottom:0;
+}
+
+
+.science-recommend-item:hover{
+  transform:
+    translateY(-1px);
+
+  border-color:
+    rgba(83,220,118,.28) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23,40,44,.97),
+      rgba(10,22,30,.98)
+    ) !important;
+}
+
+
+/* =====================================================
+   RECOMMENDATION IMAGE
+===================================================== */
+
+.science-recommend-image{
+  width:96px;
+  height:62px;
+
+  display:block;
+
+  object-fit:cover;
+
+  border-radius:
+    10px 0 0 10px;
+
+  transition:
+    transform .28s ease,
+    filter .28s ease;
+}
+
+
+.science-recommend-item:hover
+.science-recommend-image{
+  transform:
+    scale(1.05);
+
+  filter:
+    brightness(1.05)
+    saturate(1.08);
+}
+
+
+/* =====================================================
+   IMAGE DARK OVERLAY
+===================================================== */
+
+.science-recommend-item::after{
+  content:"";
+
+  position:absolute;
+
+  left:0;
+  top:0;
+  bottom:0;
+
+  width:108px;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 35%,
+      rgba(8,17,27,.80) 100%
+    );
+}
+
+
+/* =====================================================
+   RECOMMENDATION TEXT
+===================================================== */
+
+.science-recommend-text{
+  position:relative;
+  z-index:2;
+
+  min-width:0;
+
+  padding:
+    8px
+    7px
+    8px
+    0;
+
+  direction:rtl;
+
+  text-align:right;
+}
+
+
+.science-recommend-text strong{
+  display:block;
+
+  color:#edf5f1;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.3;
+}
+
+
+.science-recommend-text small{
+  display:block;
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(181,207,197,.56);
+
+  font-size:
+    8px;
 }
 </style>
 
@@ -28942,7 +31849,9 @@ if(jungleKingdomButton){
       event.preventDefault();
       event.stopPropagation();
 
-      openJungleWorld();
+      console.log("SCIENCE CLICK");
+
+      openScienceHierarchy();
 
     }
   );
@@ -28969,6 +31878,1690 @@ document.addEventListener(
 
   }
 );
+    /* =====================================================
+   SCIENCE HIERARCHY V1
+===================================================== */
+
+let SCIENCE_SELECTED_CATEGORY = null;
+
+/* =====================================================
+   SCIENCE RANDOM RECOMMENDATIONS
+===================================================== */
+
+const SCIENCE_RECOMMENDATIONS = [
+
+  {
+    title:"בעלי חיים",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/animals.webp"
+  },
+
+  {
+    title:"חומרים וכימיה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/chemistry.webp"
+  },
+
+  {
+    title:"כדור הארץ",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/earth.webp"
+  },
+
+  {
+    title:"אקולוגיה",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/ecology.webp"
+  },
+
+  {
+    title:"חשמל",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/electricity.webp"
+  },
+
+  {
+    title:"אנרגיה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/energy.webp"
+  },
+
+  {
+    title:"כוחות ותנועה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/forces-motion.webp"
+  },
+
+  {
+    title:"גוף האדם",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/human-body.webp"
+  },
+
+  {
+    title:"אוקיינוסים",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/ocean.webp"
+  },
+
+  {
+    title:"צמחים",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/plants.webp"
+  },
+
+  {
+    title:"השפעת האדם על הסביבה",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/pollution.webp"
+  },
+
+  {
+    title:"יער הגשם",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/rainforest.webp"
+  },
+
+  {
+    title:"חלל",
+    duration:"25 דקות",
+    image:"/assets/science/sidebar/space.webp"
+  },
+
+  {
+    title:"הרי געש",
+    duration:"20 דקות",
+    image:"/assets/science/sidebar/volcano.webp"
+  },
+
+  {
+    title:"מחזור המים",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/water-cycle.webp"
+  },
+
+  {
+    title:"מזג אוויר",
+    duration:"15 דקות",
+    image:"/assets/science/sidebar/weather.webp"
+  }
+
+];
+function renderRandomScienceRecommendations(){
+
+  const container =
+    document.getElementById(
+      "scienceRecommendations"
+    );
+
+  if(!container){
+    return;
+  }
+
+
+  const shuffled =
+    [...SCIENCE_RECOMMENDATIONS]
+      .sort(
+        () =>
+          Math.random() - 0.5
+      );
+
+
+  const selected =
+    shuffled.slice(
+      0,
+      3
+    );
+
+
+  container.innerHTML =
+    selected
+      .map(
+        item => `
+
+          <button
+            type="button"
+            class="science-recommend-item"
+          >
+
+            <img
+              class="science-recommend-image"
+              src="${item.image}"
+              alt="${item.title}"
+            >
+
+            <span>
+
+              <strong>
+                ${item.title}
+              </strong>
+
+              <small>
+                ${item.duration}
+              </small>
+
+            </span>
+
+          </button>
+
+        `
+      )
+      .join("");
+
+}
+/* תמונות לשורה הראשונה */
+
+const SCIENCE_CATEGORY_IMAGES = {
+
+  "אקולוגיה":
+    "/assets/science/categories/ecology.webp",
+
+  "גוף האדם":
+    "/assets/science/categories/human-body.webp",
+
+  "חומרים":
+    "/assets/science/categories/materials.webp",
+
+  "אנרגיה":
+    "/assets/science/categories/energy.webp",
+
+  "חשמל":
+    "/assets/science/categories/electricity.webp",
+
+  "כוחות ותנועה":
+    "/assets/science/categories/forces.webp",
+
+  "כדור הארץ":
+    "/assets/science/categories/earth.webp"
+
+};
+
+/* =====================================================
+   OPEN SCIENCE
+===================================================== */
+
+async function openScienceHierarchy(){
+
+  /*
+    קודם מסמנים שאנחנו במסך מדעים.
+    מכאן showDashboard לא יכול
+    להחזיר בטעות את המפה.
+  */
+
+  document.body.classList.add(
+    "science-hierarchy-mode"
+  );
+
+
+  const dashboard =
+    document.getElementById(
+      "dashboardView"
+    );
+
+  const learning =
+    document.getElementById(
+      "learningView"
+    );
+
+  const oldPath =
+    document.getElementById(
+      "learningPathView"
+    );
+
+  const scienceView =
+    document.getElementById(
+      "scienceHierarchyView"
+    );
+
+
+  /*
+    קודם מסתירים הכול.
+  */
+
+  if(dashboard){
+    dashboard.style.display =
+      "none";
+  }
+
+
+  if(learning){
+    learning.style.display =
+      "none";
+  }
+
+
+  if(oldPath){
+    oldPath.style.display =
+      "none";
+  }
+
+
+  if(scienceView){
+    scienceView.style.display =
+      "none";
+  }
+
+
+  /*
+    ורק עכשיו מציגים את מדעים.
+  */
+
+  if(scienceView){
+    scienceView.style.display =
+      "block";
+  }
+
+
+  document
+    .querySelectorAll(
+      ".side-item"
+    )
+    .forEach(btn => {
+
+      btn.classList.remove(
+        "active"
+      );
+
+    });
+
+
+  const scienceSidebarButton =
+    [...document.querySelectorAll(
+      "#subjectsContainer .side-item"
+    )]
+    .find(btn =>
+      btn.textContent
+        .trim()
+        .includes(
+          "מדעים"
+        )
+    );
+
+
+  if(scienceSidebarButton){
+
+    scienceSidebarButton
+      .classList
+      .add(
+        "active"
+      );
+
+  }
+
+
+  renderRandomScienceRecommendations();
+
+
+  await loadScienceCategories();
+
+}
+
+
+/* =====================================================
+   CLOSE SCIENCE
+===================================================== */
+
+function closeScienceHierarchy(){
+
+  document.body.classList.remove(
+    "science-hierarchy-mode"
+  );
+
+
+  const scienceView =
+    document.getElementById(
+      "scienceHierarchyView"
+    );
+
+
+  if(scienceView){
+
+    scienceView.style.display =
+      "none";
+
+  }
+
+
+  showDashboard();
+
+}
+
+
+/* =====================================================
+   LOAD LEVEL 1
+   learning_lessons.category
+===================================================== */
+
+async function loadScienceCategories(){
+
+  const tree =
+    document.getElementById(
+      "scienceTree"
+    );
+
+
+  if(!tree){
+    return;
+  }
+
+
+  tree.innerHTML = `
+
+    <div class="science-tree-loading">
+      טוענים את נושאי המדעים...
+    </div>
+
+  `;
+
+
+  const grade =
+    Number(
+      CURRENT_KID?.age
+    );
+
+
+  if(!grade){
+
+    tree.innerHTML = `
+
+      <div class="science-tree-loading">
+        לא נמצאה כיתה לילד
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } = await sb
+
+    .from(
+      "learning_lessons"
+    )
+
+    .select(`
+      category,
+      category_order
+    `)
+
+    .eq(
+      "grade",
+      grade
+    )
+
+    .eq(
+      "subject",
+      "מדעים"
+    )
+
+    .eq(
+      "is_active",
+      true
+    )
+
+    .order(
+      "category_order",
+      {
+        ascending:true
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "SCIENCE CATEGORIES ERROR:",
+      error
+    );
+
+
+    tree.innerHTML = `
+
+      <div class="science-tree-loading">
+        לא הצלחנו לטעון את נושאי המדעים
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  /*
+    מורידים כפילויות
+  */
+
+  const categories = [];
+
+  const seen =
+    new Set();
+
+
+  (data || [])
+    .forEach(row => {
+
+      if(
+        row.category &&
+        !seen.has(
+          row.category
+        )
+      ){
+
+        seen.add(
+          row.category
+        );
+
+        categories.push(
+          row
+        );
+
+      }
+
+    });
+
+
+  if(
+    categories.length === 0
+  ){
+
+    tree.innerHTML = `
+
+      <div class="science-tree-loading">
+        אין כרגע נושאים במדעים
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  /*
+    ברירת מחדל:
+    הקטגוריה הראשונה במסד.
+  */
+
+  SCIENCE_SELECTED_CATEGORY =
+    categories[0].category;
+
+
+  renderScienceCategoryLevel(
+    categories
+  );
+
+
+  /*
+    מיד פותחים גם רמה 2
+    של ברירת המחדל.
+  */
+
+  await loadScienceParentLessons(
+    SCIENCE_SELECTED_CATEGORY
+  );
+
+}
+
+
+/* =====================================================
+   RENDER LEVEL 1
+===================================================== */
+
+function renderScienceCategoryLevel(
+  categories
+){
+
+  const tree =
+    document.getElementById(
+      "scienceTree"
+    );
+
+
+  if(!tree){
+    return;
+  }
+
+
+  tree.innerHTML = `
+
+    <section
+      id="scienceLevel1"
+      class="science-tree-level"
+    >
+
+      <div class="science-tree-row">
+
+        ${
+          categories
+            .map(item => {
+
+              const selected =
+                item.category ===
+                SCIENCE_SELECTED_CATEGORY;
+
+
+              const image =
+                SCIENCE_CATEGORY_IMAGES[item.category]
+                  || "/assets/science/categories/default.webp";
+
+
+              return `
+
+                <button
+                  type="button"
+
+                  class="
+                    science-tree-card
+                    ${
+                      selected
+                        ? "selected"
+                        : ""
+                    }
+                  "
+
+                  data-science-category="${item.category}"
+                >
+
+<div class="science-tree-card-visual">
+
+  <img
+    src="${image}"
+    alt="${item.category}"
+    loading="lazy"
+  >
+
+</div>
+
+                  <strong>
+                    ${item.category}
+                  </strong>
+
+                  <small>
+                    נושא במדעים
+                  </small>
+
+                  <div
+                    class="science-tree-progress"
+                  >
+                    <span
+                      style="
+                        width:${
+                          selected
+                            ? 72
+                            : 20
+                        }%
+                      "
+                    ></span>
+                  </div>
+
+                </button>
+
+              `;
+
+            })
+            .join("")
+        }
+
+      </div>
+
+    </section>
+
+  `;
+
+
+  tree
+    .querySelectorAll(
+      "[data-science-category]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const category =
+            button.dataset
+              .scienceCategory;
+
+
+          SCIENCE_SELECTED_CATEGORY =
+            category;
+
+
+          /*
+            מסמנים נושא חדש כפעיל
+          */
+
+          tree
+            .querySelectorAll(
+              "[data-science-category]"
+            )
+            .forEach(card => {
+
+              card.classList.remove(
+                "selected"
+              );
+
+            });
+
+
+          button.classList.add(
+            "selected"
+          );
+
+
+          /*
+            מוחקים רמות 2-4 הישנות
+          */
+
+          tree
+            .querySelectorAll(
+              ".science-tree-level:not(#scienceLevel1)"
+            )
+            .forEach(level => {
+
+              level.remove();
+
+            });
+
+
+          await loadScienceParentLessons(
+            category
+          );
+
+        }
+      );
+
+    });
+
+}
+
+
+/* =====================================================
+   LOAD LEVEL 2
+   learning_lessons.lesson_name
+===================================================== */
+
+async function loadScienceParentLessons(
+  category
+){
+
+  const tree =
+    document.getElementById(
+      "scienceTree"
+    );
+
+  const grade =
+    Number(
+      CURRENT_KID?.age
+    );
+
+  if(
+    !tree ||
+    !grade
+  ){
+    return;
+  }
+
+
+  updateScienceBreadcrumb(
+    category
+  );
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from(
+      "learning_lessons"
+    )
+    .select(`
+      id,
+      grade,
+      subject,
+      category,
+      lesson_name,
+      lesson_order,
+      is_checkpoint
+    `)
+    .eq(
+      "grade",
+      grade
+    )
+    .eq(
+      "subject",
+      "מדעים"
+    )
+    .eq(
+      "category",
+      category
+    )
+    .eq(
+      "is_active",
+      true
+    )
+    .order(
+      "lesson_order",
+      {
+        ascending:true
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "SCIENCE LEVEL 2 ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  document
+    .getElementById(
+      "scienceLevel2"
+    )
+    ?.remove();
+
+  document
+    .getElementById(
+      "scienceLevel3"
+    )
+    ?.remove();
+
+  document
+    .getElementById(
+      "scienceLevel4"
+    )
+    ?.remove();
+
+
+  const level =
+    document.createElement(
+      "section"
+    );
+
+
+  level.id =
+    "scienceLevel2";
+
+  level.className =
+    "science-tree-level";
+
+
+  level.innerHTML = `
+
+    <div class="science-tree-row">
+
+      ${
+        (data || [])
+          .map(
+            (lesson,index) => `
+
+              <button
+                type="button"
+
+                class="
+                  science-tree-card
+                  ${
+                    index === 0
+                      ? "selected"
+                      : ""
+                  }
+                "
+
+                data-parent-lesson-id="${lesson.id}"
+              >
+
+                <div
+                  class="science-tree-card-icon"
+                >
+                  ${
+                    lesson.is_checkpoint
+                      ? "🏆"
+                      : "🌱"
+                  }
+                </div>
+
+                <strong>
+                  ${lesson.lesson_name}
+                </strong>
+
+                <small>
+                  ${
+                    lesson.is_checkpoint
+                      ? "אתגר מסכם"
+                      : "נושא לימוד"
+                  }
+                </small>
+
+                <div
+                  class="science-tree-progress"
+                >
+                  <span
+                    style="
+                      width:${
+                        index === 0
+                          ? 100
+                          : 25
+                      }%
+                    "
+                  ></span>
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+
+  `;
+
+
+  tree.appendChild(
+    level
+  );
+
+
+  /* =================================================
+     לחיצה על רמה 2
+  ================================================= */
+
+  level
+    .querySelectorAll(
+      "[data-parent-lesson-id]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const parentLessonId =
+            Number(
+              button.dataset
+                .parentLessonId
+            );
+
+
+          const parentLesson =
+            (data || [])
+              .find(
+                item =>
+                  Number(item.id)
+                  ===
+                  parentLessonId
+              );
+
+
+          if(!parentLesson){
+            return;
+          }
+
+
+          /*
+            חשוב:
+            startSelectedUnitLesson משתמש
+            ב-CURRENT_PARENT_LESSON
+          */
+
+          CURRENT_PARENT_LESSON = {
+            ...parentLesson,
+            subject:"מדעים",
+            category
+          };
+
+
+          level
+            .querySelectorAll(
+              "[data-parent-lesson-id]"
+            )
+            .forEach(card => {
+
+              card.classList.remove(
+                "selected"
+              );
+
+            });
+
+
+          button.classList.add(
+            "selected"
+          );
+
+
+          /*
+            מנקים רק רמות 3 ו-4
+          */
+
+          document
+            .getElementById(
+              "scienceLevel3"
+            )
+            ?.remove();
+
+          document
+            .getElementById(
+              "scienceLevel4"
+            )
+            ?.remove();
+
+
+          await loadScienceUnits(
+            parentLesson
+          );
+
+        }
+      );
+
+    });
+
+
+  /*
+    ברירת מחדל:
+    פותחים אוטומטית את הנושא הראשון
+    כדי שהשטח למטה לא יהיה ריק.
+  */
+
+  if(data?.length){
+
+    CURRENT_PARENT_LESSON = {
+      ...data[0],
+      subject:"מדעים",
+      category
+    };
+
+
+    await loadScienceUnits(
+      CURRENT_PARENT_LESSON
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   LOAD LEVEL 3
+   lesson_units_content.unit_name
+===================================================== */
+
+async function loadScienceUnits(
+  parentLesson
+){
+
+  const tree =
+    document.getElementById(
+      "scienceTree"
+    );
+
+
+  if(
+    !tree ||
+    !parentLesson?.id
+  ){
+    return;
+  }
+
+
+  updateScienceBreadcrumb(
+    SCIENCE_SELECTED_CATEGORY,
+    parentLesson.lesson_name
+  );
+
+
+  const {
+    data,
+    error
+  } = await sb
+
+    .from(
+      "lesson_units_content"
+    )
+
+    .select(`
+      id,
+      learning_lesson_id,
+      unit_order,
+      unit_name,
+      lesson_order,
+      lesson_name,
+      status
+    `)
+
+    .eq(
+      "learning_lesson_id",
+      parentLesson.id
+    )
+
+    .order(
+      "unit_order",
+      {
+        ascending:true
+      }
+    )
+
+    .order(
+      "lesson_order",
+      {
+        ascending:true
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "SCIENCE LEVEL 3 ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  /*
+    אותה יחידה מופיעה כמה פעמים,
+    כי לכל שיעור יש שורה משלו.
+
+    לכן מוציאים רשימת יחידות ייחודית.
+  */
+
+  const units = [];
+
+  const seenUnits =
+    new Set();
+
+
+  (data || [])
+    .forEach(row => {
+
+      const key =
+        `${row.unit_order}__${row.unit_name}`;
+
+
+      if(
+        row.unit_name &&
+        !seenUnits.has(key)
+      ){
+
+        seenUnits.add(
+          key
+        );
+
+
+        units.push({
+          unit_order:
+            row.unit_order,
+
+          unit_name:
+            row.unit_name
+        });
+
+      }
+
+    });
+
+
+  document
+    .getElementById(
+      "scienceLevel3"
+    )
+    ?.remove();
+
+  document
+    .getElementById(
+      "scienceLevel4"
+    )
+    ?.remove();
+
+
+  if(
+    units.length === 0
+  ){
+
+    return;
+
+  }
+
+
+  const level =
+    document.createElement(
+      "section"
+    );
+
+
+  level.id =
+    "scienceLevel3";
+
+  level.className =
+    "science-tree-level";
+
+
+  level.innerHTML = `
+
+    <div class="science-tree-row">
+
+      ${
+        units
+          .map(
+            (unit,index) => `
+
+              <button
+                type="button"
+
+                class="
+                  science-tree-card
+                  ${
+                    index === 0
+                      ? "selected"
+                      : ""
+                  }
+                "
+
+                data-science-unit-order="${unit.unit_order}"
+              >
+
+                <div
+                  class="science-tree-card-icon"
+                >
+                  ${
+                    index === 0
+                      ? "🌿"
+                      : "🧩"
+                  }
+                </div>
+
+                <strong>
+                  ${unit.unit_name}
+                </strong>
+
+                <small>
+                  יחידת לימוד
+                </small>
+
+                <div
+                  class="science-tree-progress"
+                >
+
+                  <span
+                    style="
+                      width:${
+                        index === 0
+                          ? 100
+                          : 35
+                      }%
+                    "
+                  ></span>
+
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+
+  `;
+
+
+  tree.appendChild(
+    level
+  );
+
+
+  level
+    .querySelectorAll(
+      "[data-science-unit-order]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const unitOrder =
+            Number(
+              button.dataset
+                .scienceUnitOrder
+            );
+
+
+          const unit =
+            units.find(
+              item =>
+                Number(
+                  item.unit_order
+                )
+                ===
+                unitOrder
+            );
+
+
+          if(!unit){
+            return;
+          }
+
+
+          /*
+            חשוב:
+            מנגנון השיעור הקיים משתמש
+            ב-CURRENT_UNIT
+          */
+
+          CURRENT_UNIT = {
+            ...unit
+          };
+
+
+          level
+            .querySelectorAll(
+              "[data-science-unit-order]"
+            )
+            .forEach(card => {
+
+              card.classList.remove(
+                "selected"
+              );
+
+            });
+
+
+          button.classList.add(
+            "selected"
+          );
+
+
+          document
+            .getElementById(
+              "scienceLevel4"
+            )
+            ?.remove();
+
+
+          await loadScienceUnitLessons(
+            parentLesson,
+            unit
+          );
+
+        }
+      );
+
+    });
+
+
+  /*
+    ברירת מחדל:
+    פותחים את היחידה הראשונה.
+  */
+
+  CURRENT_UNIT = {
+    ...units[0]
+  };
+
+
+  await loadScienceUnitLessons(
+    parentLesson,
+    units[0]
+  );
+
+}
+
+
+/* =====================================================
+   LOAD LEVEL 4
+   lesson_units_content.lesson_name
+===================================================== */
+
+async function loadScienceUnitLessons(
+  parentLesson,
+  unit
+){
+
+  const tree =
+    document.getElementById(
+      "scienceTree"
+    );
+
+
+  if(
+    !tree ||
+    !parentLesson?.id ||
+    !unit
+  ){
+    return;
+  }
+
+
+  updateScienceBreadcrumb(
+    SCIENCE_SELECTED_CATEGORY,
+    parentLesson.lesson_name,
+    unit.unit_name
+  );
+
+
+  const {
+    data,
+    error
+  } = await sb
+
+    .from(
+      "lesson_units_content"
+    )
+
+    .select(`
+      id,
+      learning_lesson_id,
+      unit_order,
+      unit_name,
+      lesson_order,
+      lesson_name,
+      status
+    `)
+
+    .eq(
+      "learning_lesson_id",
+      parentLesson.id
+    )
+
+    .eq(
+      "unit_order",
+      unit.unit_order
+    )
+
+    .order(
+      "lesson_order",
+      {
+        ascending:true
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "SCIENCE LEVEL 4 ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  document
+    .getElementById(
+      "scienceLevel4"
+    )
+    ?.remove();
+
+
+  if(
+    !data ||
+    data.length === 0
+  ){
+    return;
+  }
+
+
+  const level =
+    document.createElement(
+      "section"
+    );
+
+
+  level.id =
+    "scienceLevel4";
+
+  level.className =
+    "science-tree-level";
+
+
+  level.innerHTML = `
+
+    <div class="science-tree-row">
+
+      ${
+        data
+          .map(
+            (lesson,index) => `
+
+              <button
+                type="button"
+
+                class="
+                  science-tree-card
+                  science-tree-lesson-card
+                  ${
+                    index === 0
+                      ? "current"
+                      : ""
+                  }
+                "
+
+                data-unit-lesson-id="${lesson.id}"
+              >
+
+                <div
+                  class="science-tree-card-icon"
+                >
+                  ${
+                    index === 0
+                      ? "▶"
+                      : "📘"
+                  }
+                </div>
+
+                <strong>
+                  ${lesson.lesson_name}
+                </strong>
+
+                <small>
+                  שיעור ${lesson.lesson_order || index + 1}
+                </small>
+
+                <div
+                  class="science-tree-progress"
+                >
+
+                  <span
+                    style="
+                      width:${
+                        index === 0
+                          ? 75
+                          : 0
+                      }%
+                    "
+                  ></span>
+
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+
+  `;
+
+
+  tree.appendChild(
+    level
+  );
+
+
+  /* =================================================
+     לחיצה על שיעור = פתיחת מנגנון השיעור הקיים
+  ================================================= */
+
+  level
+    .querySelectorAll(
+      "[data-unit-lesson-id]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const unitLessonId =
+            Number(
+              button.dataset
+                .unitLessonId
+            );
+
+
+          const lesson =
+            data.find(
+              item =>
+                Number(item.id)
+                ===
+                unitLessonId
+            );
+
+
+          if(!lesson){
+            return;
+          }
+
+
+          /*
+            מוודאים שהגלובלים הישנים
+            מוכנים בדיוק כמו במסלול הקודם.
+          */
+
+          CURRENT_PARENT_LESSON = {
+            ...parentLesson,
+            subject:"מדעים",
+            category:
+              SCIENCE_SELECTED_CATEGORY
+          };
+
+
+          CURRENT_UNIT = {
+            unit_order:
+              unit.unit_order,
+
+            unit_name:
+              unit.unit_name
+          };
+
+
+          console.log(
+            "SCIENCE START UNIT LESSON:",
+            {
+              parent:
+                CURRENT_PARENT_LESSON,
+
+              unit:
+                CURRENT_UNIT,
+
+              lesson
+            }
+          );
+
+
+          /*
+            כאן מתחבר ישירות למנגנון
+            השיעור שכבר קיים באתר.
+          */
+
+          await startSelectedUnitLesson(
+            lesson
+          );
+
+        }
+      );
+
+    });
+
+}
+
+    /* =====================================================
+   SCIENCE BREADCRUMB
+===================================================== */
+
+function updateScienceBreadcrumb(
+  category = null,
+  parentLesson = null,
+  unitName = null
+){
+
+  const breadcrumb =
+    document.getElementById(
+      "scienceBreadcrumb"
+    );
+
+
+  if(!breadcrumb){
+    return;
+  }
+
+
+  const parts = [
+    "מדעים"
+  ];
+
+
+  if(category){
+    parts.push(
+      category
+    );
+  }
+
+
+  if(parentLesson){
+    parts.push(
+      parentLesson
+    );
+  }
+
+
+  if(unitName){
+    parts.push(
+      unitName
+    );
+  }
+
+
+  breadcrumb.innerHTML =
+    parts
+      .map(
+        (
+          part,
+          index
+        ) => `
+
+          <span
+            class="${
+              index ===
+              parts.length - 1
+                ? "active"
+                : ""
+            }"
+          >
+            ${part}
+          </span>
+
+        `
+      )
+      .join("");
+
+}
 </script>
 <!-- =====================================================
      HOMEWORK FILE INPUTS
