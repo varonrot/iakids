@@ -23359,6 +23359,18 @@ document.addEventListener(
 
     showDashboard();
 
+    requestAnimationFrame(() => {
+
+      requestAnimationFrame(() => {
+
+        document.body.classList.add(
+          "app-ready"
+        );
+
+      });
+
+    });
+
   }
 );
 
