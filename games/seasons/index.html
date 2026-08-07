@@ -4,48 +4,349 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>עונות השנה | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
 <style>
-.chip{display:inline-flex;align-items:center;justify-content:center;min-width:64px;min-height:56px;padding:8px 12px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.1rem;font-weight:700;cursor:grab;touch-action:none;white-space:nowrap}
-.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
-#tray{min-height:90px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
-.bins{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.drop-zone{padding:10px 6px}
-.drop-zone h3{margin:0 0 6px;font-size:1.05rem}
-.bin-items{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;min-height:30px}
-.bin-items span{color:#fff;border-radius:10px;padding:4px 8px;font-weight:700;font-size:0.85rem}
-.bin-summer{border-color:var(--yellow) !important}
-.bin-summer h3{color:#a16207}
-.bin-summer .bin-items span{background:var(--yellow);color:#1f2937}
-.bin-winter{border-color:var(--blue) !important}
-.bin-winter h3{color:var(--blue)}
-.bin-winter .bin-items span{background:var(--blue)}
-.bin-spring{border-color:var(--purple) !important}
-.bin-spring h3{color:var(--purple)}
-.bin-spring .bin-items span{background:var(--purple)}
-.bin-autumn{border-color:var(--accent) !important}
-.bin-autumn h3{color:var(--accent)}
-.bin-autumn .bin-items span{background:var(--accent)}
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-blue:#1693f1;
+  --space-green:#1ea96b;
+  --space-purple:#7653ff;
+  --space-gold:#ffd15c;
+}
+
+html,body{min-height:100%}
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:86px 18px 28px !important;
+  overflow-x:hidden;
+  color:var(--space-text) !important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(560px,calc(100vw - 28px)) !important;
+  min-height:690px;
+  margin:0 auto !important;
+  padding:0 !important;
+  overflow:hidden;
+  border:1px solid var(--space-line) !important;
+  border-radius:28px !important;
+  color:var(--space-text) !important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98)) !important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08) !important;
+}
+
+.game-hud{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px !important;
+  display:flex !important;
+  align-items:center;
+  justify-content:center !important;
+  gap:42px;
+  color:#fff !important;
+  background:rgba(5,18,46,.88) !important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{color:var(--space-gold) !important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.15rem,7vw,3.15rem) !important;
+  line-height:1.05;
+  color:#fff !important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#howto{
+  max-width:410px;
+  margin:14px auto 20px;
+  color:var(--space-muted) !important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{
+  width:100%;
+  gap:12px !important;
+}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px !important;
+  border:1px solid rgba(118,176,255,.34) !important;
+  color:#fff !important;
+  font-weight:900 !important;
+  background:linear-gradient(180deg,#1c91db,#0877bd) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16) !important;
+}
+
+.game-btn:hover{transform:translateY(-2px)}
+.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75)) !important}
+.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64) !important;border-color:rgba(97,255,174,.6) !important}
+#level-row{margin-top:16px}
+#level-row .game-btn[data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc) !important}
+
+/* PLAY */
+#play-screen{position:relative}
+
+.play-note{
+  margin:0 auto 12px;
+  text-align:center;
+  color:#d5e4fb;
+  font-size:.96rem;
+  font-weight:800;
+}
+
+#tray{
+  min-height:150px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border-radius:22px;
+  background:rgba(4,22,55,.5);
+  border:1px solid rgba(116,177,255,.18);
+}
+
+.chip{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:130px;
+  min-height:56px;
+  padding:8px 12px;
+  border:1px solid rgba(129,190,255,.35);
+  border-radius:15px;
+  color:#fff;
+  font-size:.98rem;
+  font-weight:900;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  text-align:center;
+  white-space:normal;
+  background:linear-gradient(180deg,#1c4e8d,#123b73);
+  box-shadow:0 9px 19px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.12);
+}
+
+.chip.dragging{
+  position:fixed;
+  z-index:100;
+  pointer-events:none;
+  cursor:grabbing;
+  transform:scale(1.05);
+  box-shadow:0 18px 40px rgba(0,0,0,.36);
+}
+
+.bins{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+  margin-top:16px;
+}
+
+.drop-zone{
+  min-height:150px;
+  padding:11px 8px;
+  border:2px dashed rgba(106,189,255,.42);
+  border-radius:20px;
+  transition:.2s ease;
+  background:linear-gradient(180deg,rgba(18,69,124,.42),rgba(5,31,69,.60));
+}
+
+.drop-zone.over{
+  transform:scale(1.015);
+  background:rgba(35,185,111,.18);
+  border-color:#5dffad !important;
+}
+
+.drop-zone h3{
+  margin:0 0 9px;
+  font-size:1.06rem;
+  text-align:center;
+  font-weight:900;
+}
+
+.bin-items{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-content:flex-start;
+  gap:6px;
+  min-height:65px;
+}
+
+.bin-items span{
+  border-radius:10px;
+  padding:5px 8px;
+  font-weight:800;
+  font-size:.82rem;
+  line-height:1.25;
+}
+
+.bin-summer{border-color:rgba(255,209,92,.66) !important}
+.bin-summer h3{color:#ffe08b}
+.bin-summer .bin-items span{background:#d6a31b;color:#fff}
+
+.bin-winter{border-color:rgba(59,166,255,.72) !important}
+.bin-winter h3{color:#79c9ff}
+.bin-winter .bin-items span{background:#168fd5;color:#fff}
+
+.bin-spring{border-color:rgba(161,106,255,.72) !important}
+.bin-spring h3{color:#c5a0ff}
+.bin-spring .bin-items span{background:#8155da;color:#fff}
+
+.bin-autumn{border-color:rgba(255,142,68,.72) !important}
+.bin-autumn h3{color:#ffb175}
+.bin-autumn .bin-items span{background:#d97835;color:#fff}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem !important;
+  letter-spacing:4px;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff !important;
+  font-size:4rem !important;
+  font-weight:1000;
+}
+
+#player-line,#end-screen p{color:#d7e3f7 !important}
+#share-slot{margin-top:8px}
+[hidden]{display:none !important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px !important}
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px !important;
+  }
+
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px !important;
+    gap:24px;
+  }
+
+  .chip{min-width:calc(50% - 6px)}
+  .bins{grid-template-columns:1fr 1fr}
+  .drop-zone{min-height:135px}
+}
 </style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
-  <span><span id="q-label">פריט</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score">
+    <span id="score-label">ניקוד</span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span id="q-label">פריט</span>
+    <span id="qnum">1</span>/<span id="qtotal">10</span>
+  </span>
 </div>
 
 <div class="game-card" id="card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">🍂</div>
+    <div class="hero-icon">🍂🌸☀️❄️</div>
+
     <h1 class="game-title" id="title"></h1>
+
     <p id="howto"></p>
-    <p id="rounds-label"></p>
+
+    <p class="section-label" id="rounds-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
-      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
     </div>
+
+    <p class="section-label" id="level-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
       <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
@@ -55,6 +356,7 @@
   </div>
 
   <div id="play-screen" hidden>
+    <div class="play-note" id="play-note"></div>
     <div id="tray"></div>
     <div class="bins" id="bins"></div>
   </div>
@@ -70,201 +372,542 @@
 </div>
 
 <script src="../game-sdk.js"></script>
+
 <script>
 const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
 
-const T = {
-  title:  { he: 'עונות השנה', en: 'Seasons' },
-  howto:  { he: 'גררו כל תופעה או חג לעונה הנכונה שלו!', en: 'Drag each phenomenon or holiday to its season!' },
-  rounds: { he: 'כמה פריטים למיין?', en: 'How many items?' },
+const T_REGULAR = {
+  title:{he:'עונות השנה',en:'Seasons'},
+  howto:{he:'גררו כל תופעה או חג לעונה הנכונה שלו!',en:'Drag each phenomenon or holiday to its season!'},
+  rounds:{he:'כמה פריטים למיין?',en:'How many items?'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'},
+  play:{he:'גררו כל פריט אל העונה המתאימה',en:'Drag each item to the matching season'}
 };
 
-const BINS = {
-  summer: { cls: 'bin-summer', emoji: '☀️', label: { he: 'קיץ',  en: 'Summer' } },
-  winter: { cls: 'bin-winter', emoji: '❄️', label: { he: 'חורף', en: 'Winter' } },
-  spring: { cls: 'bin-spring', emoji: '🌸', label: { he: 'אביב', en: 'Spring' } },
-  autumn: { cls: 'bin-autumn', emoji: '🍂', label: { he: 'סתיו', en: 'Autumn' } },
+const T_NIQQUD = {
+  title:{he:'עוֹנוֹת הַשָּׁנָה',en:'Seasons'},
+  howto:{he:'גִּרְרוּ כָּל תּוֹפָעָה אוֹ חַג לָעוֹנָה הַנְּכוֹנָה שֶׁלּוֹ!',en:'Drag each phenomenon or holiday to its season!'},
+  rounds:{he:'כַּמָּה פְּרִיטִים לְמַיֵּן?',en:'How many items?'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},
+  play:{he:'גִּרְרוּ כָּל פְּרִיט אֶל הָעוֹנָה הַמַּתְאִימָה',en:'Drag each item to the matching season'}
 };
 
-// Israeli seasonal associations (not generic northern-hemisphere defaults):
-// rainy season = winter, school year starts in autumn (Sept), Passover = "חג האביב", etc.
-// tier: 1 = obvious/iconic (easy pool), 2 = base phenomena pool, 3 = + Jewish holidays (hard pool)
-const BANK = [
-  { text: '🏖️ יום בים ושחייה',       cat: 'summer', tier: 1 },
-  { text: '🍦 גלידה קרה',            cat: 'summer', tier: 1 },
-  { text: '🏕️ חופשת הקיץ',          cat: 'summer', tier: 2 },
-  { text: '🥵 חום ושרב',             cat: 'summer', tier: 2 },
-  { text: '🍉 אבטיח קר',             cat: 'summer', tier: 2 },
-  { text: '🧀 חג השבועות',          cat: 'summer', tier: 3 },
-  { text: '🕯️ תשעה באב',           cat: 'summer', tier: 3 },
+const BINS_REGULAR = {
+  summer:{cls:'bin-summer',emoji:'☀️',label:{he:'קיץ',en:'Summer'}},
+  winter:{cls:'bin-winter',emoji:'❄️',label:{he:'חורף',en:'Winter'}},
+  spring:{cls:'bin-spring',emoji:'🌸',label:{he:'אביב',en:'Spring'}},
+  autumn:{cls:'bin-autumn',emoji:'🍂',label:{he:'סתיו',en:'Autumn'}}
+};
 
-  { text: '❄️ שלג',                 cat: 'winter', tier: 1 },
-  { text: '🌧️ גשם וסופה',          cat: 'winter', tier: 1 },
-  { text: '☂️ מטריה ומגפיים',       cat: 'winter', tier: 2 },
-  { text: '☕ שוקו חם ליד האח',      cat: 'winter', tier: 2 },
-  { text: '🥶 קור וצמרמורת',        cat: 'winter', tier: 2 },
-  { text: '🕎 חג החנוכה',           cat: 'winter', tier: 3 },
+const BINS_NIQQUD = {
+  summer:{cls:'bin-summer',emoji:'☀️',label:{he:'קַיִץ',en:'Summer'}},
+  winter:{cls:'bin-winter',emoji:'❄️',label:{he:'חוֹרֶף',en:'Winter'}},
+  spring:{cls:'bin-spring',emoji:'🌸',label:{he:'אָבִיב',en:'Spring'}},
+  autumn:{cls:'bin-autumn',emoji:'🍂',label:{he:'סְתָיו',en:'Autumn'}}
+};
 
-  { text: '🌸 פריחת עצי פרי',       cat: 'spring', tier: 1 },
-  { text: '🌷 פרחי בר בשדה',        cat: 'spring', tier: 1 },
-  { text: '🐣 אפרוחים וטלאים',      cat: 'spring', tier: 2 },
-  { text: '🧹 ניקיון גדול לפסח',    cat: 'spring', tier: 2 },
-  { text: '🌤️ מזג אוויר נעים',     cat: 'spring', tier: 2 },
-  { text: '🍷 חג הפסח',             cat: 'spring', tier: 3 },
-  { text: '🔥 ל״ג בעומר ומדורות',   cat: 'spring', tier: 3 },
+const BANK_REGULAR = [
+  {text:'🏖️ יום בים ושחייה',cat:'summer',tier:1},
+  {text:'🍦 גלידה קרה',cat:'summer',tier:1},
+  {text:'🏕️ חופשת הקיץ',cat:'summer',tier:2},
+  {text:'🥵 חום ושרב',cat:'summer',tier:2},
+  {text:'🍉 אבטיח קר',cat:'summer',tier:2},
+  {text:'🧀 חג השבועות',cat:'summer',tier:3},
+  {text:'🕯️ תשעה באב',cat:'summer',tier:3},
 
-  { text: '🍂 עלים נושרים (שלכת)',  cat: 'autumn', tier: 1 },
-  { text: '💨 רוחות ועננים ראשונים', cat: 'autumn', tier: 1 },
-  { text: '🎒 חזרה לבית הספר',      cat: 'autumn', tier: 2 },
-  { text: '🍇 בציר ענבים ורימונים', cat: 'autumn', tier: 2 },
-  { text: '🌦️ הגשם הראשון (יורה)', cat: 'autumn', tier: 2 },
-  { text: '🍯 ראש השנה',            cat: 'autumn', tier: 3 },
-  { text: '🌿 חג הסוכות',           cat: 'autumn', tier: 3 },
+  {text:'❄️ שלג',cat:'winter',tier:1},
+  {text:'🌧️ גשם וסופה',cat:'winter',tier:1},
+  {text:'☂️ מטרייה ומגפיים',cat:'winter',tier:2},
+  {text:'☕ שוקו חם ליד האח',cat:'winter',tier:2},
+  {text:'🥶 קור וצמרמורת',cat:'winter',tier:2},
+  {text:'🕎 חג החנוכה',cat:'winter',tier:3},
+
+  {text:'🌸 פריחת עצי פרי',cat:'spring',tier:1},
+  {text:'🌷 פרחי בר בשדה',cat:'spring',tier:1},
+  {text:'🐣 אפרוחים וטלאים',cat:'spring',tier:2},
+  {text:'🧹 ניקיון גדול לפסח',cat:'spring',tier:2},
+  {text:'🌤️ מזג אוויר נעים',cat:'spring',tier:2},
+  {text:'🍷 חג הפסח',cat:'spring',tier:3},
+  {text:'🔥 ל״ג בעומר ומדורות',cat:'spring',tier:3},
+
+  {text:'🍂 עלים נושרים (שלכת)',cat:'autumn',tier:1},
+  {text:'💨 רוחות ועננים ראשונים',cat:'autumn',tier:1},
+  {text:'🎒 חזרה לבית הספר',cat:'autumn',tier:2},
+  {text:'🍇 בציר ענבים ורימונים',cat:'autumn',tier:2},
+  {text:'🌦️ הגשם הראשון (יורה)',cat:'autumn',tier:2},
+  {text:'🍯 ראש השנה',cat:'autumn',tier:3},
+  {text:'🌿 חג הסוכות',cat:'autumn',tier:3}
 ];
 
+const BANK_NIQQUD = [
+  {text:'🏖️ יוֹם בַּיָּם וּשְׂחִיָּה',cat:'summer',tier:1},
+  {text:'🍦 גְּלִידָה קָרָה',cat:'summer',tier:1},
+  {text:'🏕️ חֻפְשַׁת הַקַּיִץ',cat:'summer',tier:2},
+  {text:'🥵 חֹם וְשָׁרָב',cat:'summer',tier:2},
+  {text:'🍉 אֲבַטִּיחַ קַר',cat:'summer',tier:2},
+  {text:'🧀 חַג הַשָּׁבוּעוֹת',cat:'summer',tier:3},
+  {text:'🕯️ תִּשְׁעָה בְּאָב',cat:'summer',tier:3},
+
+  {text:'❄️ שֶׁלֶג',cat:'winter',tier:1},
+  {text:'🌧️ גֶּשֶׁם וּסְעוּדָה',cat:'winter',tier:1},
+  {text:'☂️ מִטְרִיָּה וּמַגָּפַיִם',cat:'winter',tier:2},
+  {text:'☕ שׁוֹקוֹ חַם לְיַד הָאָח',cat:'winter',tier:2},
+  {text:'🥶 קֹר וּצְמַרְמֹרֶת',cat:'winter',tier:2},
+  {text:'🕎 חַג הַחֲנֻכָּה',cat:'winter',tier:3},
+
+  {text:'🌸 פְּרִיחַת עֲצֵי פְּרִי',cat:'spring',tier:1},
+  {text:'🌷 פִּרְחֵי בַּר בַּשָּׂדֶה',cat:'spring',tier:1},
+  {text:'🐣 אֶפְרוֹחִים וּטְלָאִים',cat:'spring',tier:2},
+  {text:'🧹 נִקָּיוֹן גָּדוֹל לְפֶסַח',cat:'spring',tier:2},
+  {text:'🌤️ מֶזֶג אֲוִיר נָעִים',cat:'spring',tier:2},
+  {text:'🍷 חַג הַפֶּסַח',cat:'spring',tier:3},
+  {text:'🔥 ל״ג בָּעוֹמֶר וּמְדוּרוֹת',cat:'spring',tier:3},
+
+  {text:'🍂 עָלִים נוֹשְׁרִים (שַׁלֶּכֶת)',cat:'autumn',tier:1},
+  {text:'💨 רוּחוֹת וַעֲנָנִים רִאשׁוֹנִים',cat:'autumn',tier:1},
+  {text:'🎒 חֲזָרָה לְבֵית הַסֵּפֶר',cat:'autumn',tier:2},
+  {text:'🍇 בָּצִיר עֲנָבִים וְרִמּוֹנִים',cat:'autumn',tier:2},
+  {text:'🌦️ הַגֶּשֶׁם הָרִאשׁוֹן (יוֹרֶה)',cat:'autumn',tier:2},
+  {text:'🍯 רֹאשׁ הַשָּׁנָה',cat:'autumn',tier:3},
+  {text:'🌿 חַג הַסֻּכּוֹת',cat:'autumn',tier:3}
+];
+
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+let T = T_REGULAR;
+let BINS = BINS_REGULAR;
+let BANK = BANK_REGULAR;
+
+let game, diff, level = 1, TOTAL = 10;
+let score = 0, sorted = 0, mistakes = 0, maxTier = 1;
+let drag = null, ending = false;
+
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client = await IAKidsActivity._getClient();
+
+    const {data,error} = await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(error || !data){
+      console.warn('[seasons] Kid profile was not loaded',error);
+      return;
+    }
+
+    CHILD_AGE = Number(data.age);
+    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+
+  }catch(error){
+    console.warn('[seasons] loadKidContext error',error);
+  }
+}
+
+function applyLanguage(){
+  T = USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+  BINS = USE_NIQQUD ? BINS_NIQQUD : BINS_REGULAR;
+  BANK = USE_NIQQUD ? BANK_NIQQUD : BANK_REGULAR;
+
+  $('title').textContent = IAKidsLang.t(T.title);
+  $('howto').textContent = IAKidsLang.t(T.howto);
+  $('rounds-label').textContent = IAKidsLang.t(T.rounds);
+  $('level-label').textContent = IAKidsLang.t(T.level);
+  $('play-note').textContent = IAKidsLang.t(T.play);
+  $('score-label').textContent = IAKidsLang.ui('score');
+  $('q-label').textContent = IAKidsLang.ui('question');
+  $('best-label').textContent = IAKidsLang.ui('your_best');
+  $('again-btn').textContent = IAKidsLang.ui('play_again');
+
+  ['level_easy','level_medium','level_hard','level_random'].forEach((key,index)=>{
+    document.querySelectorAll('#level-row .game-btn')[index].textContent =
+      IAKidsLang.ui(key);
+  });
+}
+
 IAKidsCoins.mount();
+
 IAKidsHelp.mount({
-  slug: 'seasons',
-  how: 'בישראל יש 4 עונות: קיץ, חורף, אביב וסתיו. כל תופעת טבע או חג שייכים לעונה מסוימת. גוררים כל פריט לתיבת העונה הנכונה!',
-  example: '❄️ שלג ← תיבת <b>חורף</b> · 🍂 שלכת ← תיבת <b>סתיו</b>',
+  slug:'seasons',
+  how:'בישראל יש ארבע עונות: קיץ, חורף, אביב וסתיו. גוררים כל תופעה או חג לתיבת העונה המתאימה.',
+  example:'❄️ שלג ← <b>חורף</b> · 🍂 שלכת ← <b>סתיו</b>'
 });
-$('title').textContent = IAKidsLang.t(T.title);
-$('howto').textContent = IAKidsLang.t(T.howto);
-$('rounds-label').textContent = IAKidsLang.t(T.rounds);
-$('score-label').textContent = IAKidsLang.ui('score');
-$('best-label').textContent = IAKidsLang.ui('your_best');
-$('again-btn').textContent = IAKidsLang.ui('play_again');
-['level_easy', 'level_medium', 'level_hard', 'level_random'].forEach((k, i) =>
-  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
 
-let game, diff, level = 1, TOTAL = 10, score = 0, sorted = 0, mistakes = 0, maxTier = 1;
-
-function setRounds(n, btn) {
+function setRounds(n,btn){
   TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(button=>button.classList.remove('success'));
+
   btn.classList.add('success');
 }
 
-const ready = IAKidsGame.init('seasons').then(async g => {
-  game = g;
-  const p = await g.loadProgress();
-  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
-  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
-});
+const ready = (async()=>{
+  await loadKidContext();
+  applyLanguage();
 
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+  game = await IAKidsGame.init('seasons');
+
+  const progress = await game.loadProgress();
+
+  if(progress?.rounds){
+    const btn =
+      document.querySelector(`#rounds-row [onclick*="(${progress.rounds},"]`) ||
+      $('rounds-row').children[1];
+
+    setRounds(progress.rounds,btn);
+  }
+
+  if(progress?.lastLevel !== undefined){
+    document
+      .querySelector(`#level-row [data-lvl="${progress.lastLevel}"]`)
+      ?.classList.add('success');
+  }
+})();
+
+const show = id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(screen=>$(screen).hidden = screen !== id);
 };
 
-function renderBins() {
-  $('bins').innerHTML = Object.entries(BINS).map(([cat, b]) => `
-    <div class="drop-zone ${b.cls}" data-cat="${cat}">
-      <h3>${b.emoji} ${IAKidsLang.t(b.label)}</h3>
-      <div class="bin-items"></div>
-    </div>`).join('');
+function renderBins(){
+  $('bins').innerHTML =
+    Object.entries(BINS)
+      .map(([cat,bin])=>`
+        <div class="drop-zone ${bin.cls}" data-cat="${cat}">
+          <h3>${bin.emoji} ${IAKidsLang.t(bin.label)}</h3>
+          <div class="bin-items"></div>
+        </div>
+      `)
+      .join('');
 }
 
-async function start(lvl) {
+async function start(selectedLevel){
   await ready;
-  level = lvl;
-  maxTier = lvl === 0 ? 1 + rnd(3) : lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+
+  level = selectedLevel;
+  maxTier =
+    selectedLevel === 0
+      ? 1 + rnd(3)
+      : selectedLevel;
+
+  diff = game.difficulty(
+    selectedLevel || 1,
+    3
+  );
+
+  score = 0;
+  sorted = 0;
+  mistakes = 0;
+  ending = false;
+  drag = null;
+
+  $('score').textContent = '0';
+  $('qnum').textContent = '1';
   $('qtotal').textContent = TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:selectedLevel || 1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'seasons',
+      selected_level:selectedLevel,
+      random_difficulty:selectedLevel === 0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD,
+      max_tier:maxTier
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:selectedLevel,
+    rounds:TOTAL
+  });
+
   renderBins();
   show('play-screen');
+
   await fillTray();
 }
 
-async function fillTray() {
+async function fillTray(){
   const tray = $('tray');
-  const tier = level === 0 ? 1 + rnd(3) : maxTier;
-  const pool = BANK.filter(i => i.tier <= tier);
-  while (tray.querySelectorAll('.chip').length < Math.min(4, TOTAL - sorted)) {
-    const q = await game.newQuestion(() => pool[rnd(pool.length)], x => x.text);
-    const chip = document.createElement('div');
+
+  const tier =
+    level === 0
+      ? 1 + rnd(3)
+      : maxTier;
+
+  const pool =
+    BANK.filter(
+      item=>item.tier <= tier
+    );
+
+  while(
+    tray.querySelectorAll('.chip').length <
+    Math.min(4,TOTAL - sorted)
+  ){
+    const q = await game.newQuestion(
+      ()=>pool[rnd(pool.length)],
+      item=>item.text
+    );
+
+    const chip =
+      document.createElement('div');
+
     chip.className = 'chip';
     chip.textContent = q.text;
     chip.dataset.cat = q.cat;
+
     makeDraggable(chip);
+
     tray.appendChild(chip);
   }
 }
 
-/* ---- Pointer Events drag (works on touch — setPointerCapture, not HTML5 DnD) ---- */
-let drag = null;
-function makeDraggable(chip) {
-  chip.addEventListener('pointerdown', e => {
-    if (drag) return;
-    e.preventDefault();
-    chip.setPointerCapture(e.pointerId);
-    const r = chip.getBoundingClientRect();
-    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
-    chip.style.width = r.width + 'px';
+function makeDraggable(chip){
+  chip.addEventListener('pointerdown',event=>{
+    if(drag || ending) return;
+
+    event.preventDefault();
+
+    chip.setPointerCapture(
+      event.pointerId
+    );
+
+    const rect =
+      chip.getBoundingClientRect();
+
+    drag = {
+      chip,
+      dx:event.clientX - rect.left,
+      dy:event.clientY - rect.top
+    };
+
+    chip.style.width =
+      `${rect.width}px`;
+
     chip.classList.add('dragging');
-    moveTo(e);
+
+    IAKidsActivity.questionStarted();
+
+    moveTo(event);
   });
-  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
-  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
-  chip.addEventListener('pointercancel', () => {
-    if (drag?.chip === chip) { settle(chip); drag = null; unmarkZones(); }
+
+  chip.addEventListener('pointermove',event=>{
+    if(drag?.chip === chip){
+      moveTo(event);
+    }
   });
-}
-function moveTo(e) {
-  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
-  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
-  const z = zoneAt(e.clientX, e.clientY);
-  document.querySelectorAll('.drop-zone').forEach(zn => zn.classList.toggle('over', zn === z));
-}
-const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('.drop-zone') || null;
-const unmarkZones = () => document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('over'));
-function settle(chip) {
-  chip.classList.remove('dragging');
-  chip.style.left = chip.style.top = chip.style.width = '';
+
+  chip.addEventListener('pointerup',event=>{
+    if(drag?.chip === chip){
+      dropChip(event);
+    }
+  });
+
+  chip.addEventListener('pointercancel',()=>{
+    if(drag?.chip === chip){
+      settle(chip);
+      drag = null;
+      unmarkZones();
+    }
+  });
 }
 
-async function dropChip(e) {
-  const z = zoneAt(e.clientX, e.clientY);
+function moveTo(event){
+  drag.chip.style.left =
+    `${event.clientX - drag.dx}px`;
+
+  drag.chip.style.top =
+    `${event.clientY - drag.dy}px`;
+
+  const zone =
+    zoneAt(
+      event.clientX,
+      event.clientY
+    );
+
+  document.querySelectorAll('.drop-zone')
+    .forEach(item=>
+      item.classList.toggle(
+        'over',
+        item === zone
+      )
+    );
+}
+
+const zoneAt = (x,y)=>
+  document.elementFromPoint(x,y)
+    ?.closest('.drop-zone') || null;
+
+const unmarkZones = ()=>
+  document.querySelectorAll('.drop-zone')
+    .forEach(item=>item.classList.remove('over'));
+
+function settle(chip){
+  chip.classList.remove('dragging');
+  chip.style.left = '';
+  chip.style.top = '';
+  chip.style.width = '';
+}
+
+async function dropChip(event){
+  const zone =
+    zoneAt(
+      event.clientX,
+      event.clientY
+    );
+
   unmarkZones();
+
   const chip = drag.chip;
   drag = null;
+
   settle(chip);
-  if (!z) return;
-  const correct = z.dataset.cat === chip.dataset.cat;
-  if (correct) {
+
+  if(!zone || ending) return;
+
+  const correct =
+    zone.dataset.cat ===
+    chip.dataset.cat;
+
+  if(correct){
     score += 10;
     sorted++;
+
     $('score').textContent = score;
-    $('qnum').textContent = Math.min(sorted + 1, TOTAL);
+    $('qnum').textContent =
+      Math.min(
+        sorted + 1,
+        TOTAL
+      );
+
     diff.right();
-    IAKidsFX.correct(z);
-    IAKidsCoins.right(z);
-    const s = document.createElement('span');
-    s.textContent = chip.textContent;
-    z.querySelector('.bin-items').appendChild(s);
+
+    IAKidsActivity.correct();
+
+    IAKidsFX.correct(zone);
+    await IAKidsCoins.right(zone);
+
+    const placed =
+      document.createElement('span');
+
+    placed.textContent =
+      chip.textContent;
+
+    zone.querySelector('.bin-items')
+      .appendChild(placed);
+
     chip.remove();
-    if (sorted >= TOTAL) return end();
+
+    if(sorted >= TOTAL){
+      await end();
+      return;
+    }
+
     await fillTray();
-  } else {
+
+  }else{
     mistakes++;
+
     diff.wrong();
+
+    IAKidsActivity.wrong();
+
     IAKidsFX.wrong(chip);
-    IAKidsCoins.wrong();
+
+    await IAKidsCoins.wrong();
   }
 }
 
-async function end() {
-  await game.saveScore(score, { level, mistakes });
-  const top = (await game.getHighScores(1))[0];
-  $('final-score').textContent = score;
-  $('best').textContent = top?.score ?? score;
-  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  const acc = TOTAL / (TOTAL + mistakes);
-  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
-  game.shareButton(score, $('share-slot'));
+async function end(){
+  if(ending) return;
+
+  ending = true;
+
+  const maxScore =
+    TOTAL * 10;
+
+  const accuracy =
+    TOTAL /
+    Math.max(
+      1,
+      TOTAL + mistakes
+    );
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      mistakes
+    }
+  );
+
+  const top =
+    (await game.getHighScores(1))[0];
+
+  $('final-score').textContent =
+    score;
+
+  $('best').textContent =
+    top?.score ?? score;
+
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        'he-IL',
+        {
+          dateStyle:'short',
+          timeStyle:'short'
+        }
+      )
+    }`;
+
+  $('stars').textContent =
+    '⭐'.repeat(
+      accuracy >= .9
+        ? 3
+        : accuracy >= .7
+          ? 2
+          : 1
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+
+      performanceScore:
+        Math.round(
+          accuracy * 100
+        ),
+
+      metadata:{
+        game_mode:'seasons',
+        selected_level:level,
+        random_difficulty:level === 0,
+        total_items:TOTAL,
+        sorted_items:sorted,
+        mistakes,
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD,
+        max_tier:maxTier
+      }
+    }
+  );
+
+  game.shareButton(
+    score,
+    $('share-slot')
+  );
+
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
