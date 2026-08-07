@@ -4,38 +4,319 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>עיר בירה ומדינה | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
 <style>
-#grid{display:grid;gap:10px;margin-top:12px}
-.mcard{height:74px;perspective:600px;cursor:pointer;touch-action:manipulation}
-.mcard .inner{position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-blue:#1693f1;
+  --space-green:#1ea96b;
+  --space-purple:#7653ff;
+  --space-gold:#ffd15c;
+}
+
+html,body{min-height:100%}
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:86px 18px 28px !important;
+  overflow-x:hidden;
+  color:var(--space-text) !important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(560px,calc(100vw - 28px)) !important;
+  min-height:690px;
+  margin:0 auto !important;
+  padding:0 !important;
+  overflow:hidden;
+  border:1px solid var(--space-line) !important;
+  border-radius:28px !important;
+  color:var(--space-text) !important;
+  background:
+    linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98)) !important;
+  box-shadow:
+    0 28px 75px rgba(0,8,28,.48),
+    inset 0 1px rgba(255,255,255,.08) !important;
+}
+
+.game-hud{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px !important;
+  display:flex !important;
+  align-items:center;
+  justify-content:center !important;
+  gap:34px;
+  color:#fff !important;
+  background:rgba(5,18,46,.88) !important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{color:var(--space-gold) !important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.15rem,7vw,3.1rem) !important;
+  line-height:1.05;
+  color:#fff !important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#howto{
+  max-width:420px;
+  margin:14px auto 20px;
+  color:var(--space-muted) !important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{width:100%;gap:12px !important}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px !important;
+  border:1px solid rgba(118,176,255,.34) !important;
+  color:#fff !important;
+  font-weight:900 !important;
+  background:linear-gradient(180deg,#1c91db,#0877bd) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16) !important;
+}
+
+.game-btn:hover{transform:translateY(-2px)}
+.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75)) !important}
+.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64) !important;border-color:rgba(97,255,174,.6) !important}
+#level-row{margin-top:16px}
+#level-row .game-btn[data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc) !important}
+
+/* GAME */
+#play-screen{position:relative}
+
+.memory-note{
+  margin:0 auto 12px;
+  text-align:center;
+  color:#d5e4fb;
+  font-size:.95rem;
+  font-weight:800;
+}
+
+#grid{
+  display:grid;
+  gap:11px;
+  margin-top:12px;
+}
+
+.mcard{
+  height:82px;
+  perspective:700px;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+.mcard .inner{
+  position:relative;
+  width:100%;
+  height:100%;
+  transition:transform .42s cubic-bezier(.2,.75,.25,1);
+  transform-style:preserve-3d;
+}
+
 .mcard.flipped .inner{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;border-radius:14px;font-weight:800;text-align:center;padding:4px}
-.face.front{background:var(--accent);color:#fff;font-size:1.8rem}
-.face.back{transform:rotateY(180deg);background:var(--card);border:3px solid var(--accent);font-size:1.05rem}
-.mcard.matched .face.back{background:var(--green);border-color:var(--green);color:#fff}
-.mcard.matched{cursor:default}
+
+.face{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:16px;
+  font-weight:900;
+  text-align:center;
+  padding:6px;
+  box-shadow:0 10px 22px rgba(0,0,0,.18);
+}
+
+.face.front{
+  color:#fff;
+  font-size:1.8rem;
+  border:1px solid rgba(149,195,255,.45);
+  background:
+    radial-gradient(circle at 30% 20%,rgba(255,255,255,.18),transparent 34%),
+    linear-gradient(160deg,#3369db,#6840dc);
+}
+
+.face.back{
+  transform:rotateY(180deg);
+  color:#fff;
+  border:1px solid rgba(116,186,255,.40);
+  font-size:1rem;
+  line-height:1.25;
+  background:
+    linear-gradient(180deg,#1a4d89,#0e3568);
+}
+
+.mcard.matched .face.back{
+  background:linear-gradient(180deg,#2acb7a,#15965a);
+  border-color:rgba(112,255,183,.75);
+  color:#fff;
+}
+
+.mcard.matched{
+  cursor:default;
+  filter:drop-shadow(0 0 11px rgba(54,220,136,.24));
+}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem !important;
+  letter-spacing:4px;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff !important;
+  font-size:4rem !important;
+  font-weight:1000;
+}
+
+#moves-line,#player-line,#end-screen p{
+  color:#d7e3f7 !important;
+}
+
+#share-slot{margin-top:8px}
+[hidden]{display:none !important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px !important}
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px !important;
+  }
+
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 10px !important;
+    gap:18px;
+    font-size:.88rem;
+  }
+
+  .mcard{height:76px}
+  .face.back{font-size:.88rem}
+}
 </style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
-  <span><span id="pairs-label">זוגות</span> <span id="qnum">0</span>/<span id="qtotal">10</span></span>
-  <span>👣 <span id="moves">0</span></span>
+  <span class="score">
+    <span id="score-label">ניקוד</span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span id="pairs-label">זוגות</span>
+    <span id="qnum">0</span>/<span id="qtotal">10</span>
+  </span>
+
+  <span>
+    👣 <span id="moves">0</span>
+  </span>
 </div>
 
 <div class="game-card" id="card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">🏛️</div>
+    <div class="hero-icon">🏛️🌍</div>
+
     <h1 class="game-title" id="title"></h1>
+
     <p id="howto"></p>
-    <p id="rounds-label"></p>
+
+    <p class="section-label" id="rounds-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
-      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
     </div>
+
+    <p class="section-label" id="level-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
       <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
@@ -45,6 +326,7 @@
   </div>
 
   <div id="play-screen" hidden>
+    <div class="memory-note" id="memory-note"></div>
     <div id="grid"></div>
   </div>
 
@@ -60,173 +342,482 @@
 </div>
 
 <script src="../game-sdk.js"></script>
+
 <script>
 const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
 
-// verified country ↔ capital pairs. tier 1 = very famous · tier 2 = medium · tier 3 = less obvious
-const PAIRS = [
-  { country: 'ישראל', capital: 'ירושלים', tier: 1 },
-  { country: 'ארה"ב', capital: 'וושינגטון', tier: 1 },
-  { country: 'צרפת', capital: 'פריז', tier: 1 },
-  { country: 'בריטניה', capital: 'לונדון', tier: 1 },
-  { country: 'איטליה', capital: 'רומא', tier: 1 },
-  { country: 'יפן', capital: 'טוקיו', tier: 1 },
-  { country: 'גרמניה', capital: 'ברלין', tier: 1 },
-  { country: 'רוסיה', capital: 'מוסקבה', tier: 1 },
-  { country: 'ספרד', capital: 'מדריד', tier: 2 },
-  { country: 'מצרים', capital: 'קהיר', tier: 2 },
-  { country: 'יוון', capital: 'אתונה', tier: 2 },
-  { country: 'סין', capital: 'בייג\'ינג', tier: 2 },
-  { country: 'הודו', capital: 'ניו דלהי', tier: 2 },
-  { country: 'ברזיל', capital: 'ברזיליה', tier: 2 },
-  { country: 'קנדה', capital: 'אוטווה', tier: 2 },
-  { country: 'אוסטרליה', capital: 'קנברה', tier: 3 },
-  { country: 'שווייץ', capital: 'ברן', tier: 3 },
-  { country: 'טורקיה', capital: 'אנקרה', tier: 3 },
-  { country: 'ניו זילנד', capital: 'וולינגטון', tier: 3 },
-  { country: 'דרום אפריקה', capital: 'פרטוריה', tier: 3 },
+const T_REGULAR = {
+  title:{he:'עיר בירה ומדינה',en:'Country & Capital'},
+  howto:{
+    he:'מצאו זוגות: שם המדינה ועיר הבירה שלה. פחות מהלכים = יותר כוכבים!',
+    en:'Match each country with its capital. Fewer moves = more stars!'
+  },
+  rounds:{he:'כמה זוגות למצוא?',en:'How many pairs?'},
+  pairs:{he:'זוגות',en:'Pairs'},
+  moves:{he:'מהלכים',en:'Moves'},
+  newboard:{he:'לוח חדש! 🃏',en:'New board! 🃏'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'},
+  memory:{he:'הפכו שני קלפים ומצאו מדינה ועיר בירה שמתאימות זו לזו',en:'Flip two cards and match a country with its capital'}
+};
+
+const T_NIQQUD = {
+  title:{he:'עִיר בִּירָה וּמְדִינָה',en:'Country & Capital'},
+  howto:{
+    he:'מִצְאוּ זוּגוֹת: שֵׁם הַמְּדִינָה וְעִיר הַבִּירָה שֶׁלָּהּ. פָּחוֹת מַהֲלָכִים = יוֹתֵר כּוֹכָבִים!',
+    en:'Match each country with its capital. Fewer moves = more stars!'
+  },
+  rounds:{he:'כַּמָּה זוּגוֹת לִמְצֹא?',en:'How many pairs?'},
+  pairs:{he:'זוּגוֹת',en:'Pairs'},
+  moves:{he:'מַהֲלָכִים',en:'Moves'},
+  newboard:{he:'לוּחַ חָדָשׁ! 🃏',en:'New board! 🃏'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},
+  memory:{he:'הִפְכוּ שְׁנֵי קְלָפִים וּמִצְאוּ מְדִינָה וְעִיר בִּירָה שֶׁמַּתְאִימוֹת זוֹ לָזוֹ',en:'Flip two cards and match a country with its capital'}
+};
+
+const PAIRS_REGULAR = [
+  { country:'ישראל', capital:'ירושלים', tier:1 },
+  { country:'ארה"ב', capital:'וושינגטון', tier:1 },
+  { country:'צרפת', capital:'פריז', tier:1 },
+  { country:'בריטניה', capital:'לונדון', tier:1 },
+  { country:'איטליה', capital:'רומא', tier:1 },
+  { country:'יפן', capital:'טוקיו', tier:1 },
+  { country:'גרמניה', capital:'ברלין', tier:1 },
+  { country:'רוסיה', capital:'מוסקבה', tier:1 },
+  { country:'ספרד', capital:'מדריד', tier:2 },
+  { country:'מצרים', capital:'קהיר', tier:2 },
+  { country:'יוון', capital:'אתונה', tier:2 },
+  { country:'סין', capital:'בייג\'ינג', tier:2 },
+  { country:'הודו', capital:'ניו דלהי', tier:2 },
+  { country:'ברזיל', capital:'ברזיליה', tier:2 },
+  { country:'קנדה', capital:'אוטווה', tier:2 },
+  { country:'אוסטרליה', capital:'קנברה', tier:3 },
+  { country:'שווייץ', capital:'ברן', tier:3 },
+  { country:'טורקיה', capital:'אנקרה', tier:3 },
+  { country:'ניו זילנד', capital:'וולינגטון', tier:3 },
+  { country:'דרום אפריקה', capital:'פרטוריה', tier:3 }
 ];
 
-const T = {
-  title:  { he: 'עיר בירה ומדינה', en: 'Country & Capital' },
-  howto:  { he: 'מצא זוגות: שם המדינה והעיר בירה שלה. פחות מהלכים = יותר כוכבים!', en: 'Match each country with its capital. Fewer moves = more stars!' },
-  rounds: { he: 'כמה זוגות למצוא?', en: 'How many pairs?' },
-  moves:  { he: 'מהלכים', en: 'Moves' },
-  newboard: { he: 'לוח חדש! 🃏', en: 'New board! 🃏' },
-};
-IAKidsCoins.mount();
-IAKidsHelp.mount({
-  slug: 'capitals',
-  how: 'הופכים שני קלפים בכל תור ומחפשים זוג מתאים: שם מדינה וקלף עם עיר הבירה שלה.',
-  example: 'הקלף <b>ישראל</b> מתאים לקלף <b>ירושלים</b> — זו עיר הבירה שלה!',
-});
-$('title').textContent = IAKidsLang.t(T.title);
-$('howto').textContent = IAKidsLang.t(T.howto);
-$('rounds-label').textContent = IAKidsLang.t(T.rounds);
-$('score-label').textContent = IAKidsLang.ui('score');
-$('best-label').textContent = IAKidsLang.ui('your_best');
-$('again-btn').textContent = IAKidsLang.ui('play_again');
-['level_easy', 'level_medium', 'level_hard', 'level_random'].forEach((k, i) =>
-  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+const PAIRS_NIQQUD = [
+  { country:'יִשְׂרָאֵל', capital:'יְרוּשָׁלַיִם', tier:1 },
+  { country:'אַרְצוֹת הַבְּרִית', capital:'וָשִׁינְגְטוֹן', tier:1 },
+  { country:'צָרְפַת', capital:'פָּרִיז', tier:1 },
+  { country:'בְּרִיטַנְיָה', capital:'לוֹנְדוֹן', tier:1 },
+  { country:'אִיטַלְיָה', capital:'רוֹמָא', tier:1 },
+  { country:'יַפָּן', capital:'טוֹקְיוֹ', tier:1 },
+  { country:'גֶּרְמַנְיָה', capital:'בֶּרְלִין', tier:1 },
+  { country:'רוּסְיָה', capital:'מוֹסְקְבָה', tier:1 },
+  { country:'סְפָרַד', capital:'מַדְרִיד', tier:2 },
+  { country:'מִצְרַיִם', capital:'קָהִיר', tier:2 },
+  { country:'יָוָן', capital:'אַתּוּנָה', tier:2 },
+  { country:'סִין', capital:'בֵּייג׳ִינְג', tier:2 },
+  { country:'הוֹדּוּ', capital:'נְיוּ דֶּלְהִי', tier:2 },
+  { country:'בְּרָזִיל', capital:'בְּרָזִילְיָה', tier:2 },
+  { country:'קָנָדָה', capital:'אוֹטָוָה', tier:2 },
+  { country:'אוֹסְטְרַלְיָה', capital:'קַנְבֶּרָה', tier:3 },
+  { country:'שְׁוַיְץ', capital:'בֶּרְן', tier:3 },
+  { country:'טוּרְקִיָּה', capital:'אַנְקָרָה', tier:3 },
+  { country:'נְיוּ זִילַנְד', capital:'וֶלִינְגְטוֹן', tier:3 },
+  { country:'דְּרוֹם אַפְרִיקָה', capital:'פְּרֶטוֹרְיָה', tier:3 }
+];
+
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+let T = T_REGULAR;
+let PAIRS = PAIRS_REGULAR;
 
 let game, diff, level = 1, TOTAL = 10;
 let score = 0, pairsDone = 0, moves = 0, mistakes = 0;
-let first = null, busy = false, boardLeft = 0;
+let first = null, busy = false, boardLeft = 0, ending = false;
 
-function setRounds(n, btn) {
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client = await IAKidsActivity._getClient();
+
+    const {data,error} = await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(error || !data){
+      console.warn('[capitals] Kid profile was not loaded',error);
+      return;
+    }
+
+    CHILD_AGE = Number(data.age);
+    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+
+  }catch(error){
+    console.warn('[capitals] loadKidContext error',error);
+  }
+}
+
+function applyLanguage(){
+  T = USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+  PAIRS = USE_NIQQUD ? PAIRS_NIQQUD : PAIRS_REGULAR;
+
+  $('title').textContent = IAKidsLang.t(T.title);
+  $('howto').textContent = IAKidsLang.t(T.howto);
+  $('rounds-label').textContent = IAKidsLang.t(T.rounds);
+  $('pairs-label').textContent = IAKidsLang.t(T.pairs);
+  $('level-label').textContent = IAKidsLang.t(T.level);
+  $('memory-note').textContent = IAKidsLang.t(T.memory);
+  $('score-label').textContent = IAKidsLang.ui('score');
+  $('best-label').textContent = IAKidsLang.ui('your_best');
+  $('again-btn').textContent = IAKidsLang.ui('play_again');
+
+  ['level_easy','level_medium','level_hard','level_random'].forEach((key,index)=>{
+    document.querySelectorAll('#level-row .game-btn')[index].textContent = IAKidsLang.ui(key);
+  });
+}
+
+IAKidsCoins.mount();
+
+IAKidsHelp.mount({
+  slug:'capitals',
+  how:'הופכים שני קלפים בכל תור ומחפשים זוג מתאים: שם מדינה וקלף עם עיר הבירה שלה.',
+  example:'הקלף <b>ישראל</b> מתאים לקלף <b>ירושלים</b> — זו עיר הבירה שלה!'
+});
+
+function setRounds(n,btn){
   TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(button=>button.classList.remove('success'));
+
   btn.classList.add('success');
 }
 
-const ready = IAKidsGame.init('capitals').then(async g => {
-  game = g;
-  const p = await g.loadProgress();
-  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
-  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
-});
+const ready = (async()=>{
+  await loadKidContext();
+  applyLanguage();
 
-const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id; };
+  game = await IAKidsGame.init('capitals');
 
-async function start(lvl) {
+  const progress = await game.loadProgress();
+
+  if(progress?.rounds){
+    const btn =
+      document.querySelector(`#rounds-row [onclick*="(${progress.rounds},"]`) ||
+      $('rounds-row').children[1];
+
+    setRounds(progress.rounds,btn);
+  }
+
+  if(progress?.lastLevel !== undefined){
+    document
+      .querySelector(`#level-row [data-lvl="${progress.lastLevel}"]`)
+      ?.classList.add('success');
+  }
+})();
+
+const show = id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(screen=>$(screen).hidden = screen !== id);
+};
+
+async function start(selectedLevel){
   await ready;
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+
+  level = selectedLevel;
+  diff = game.difficulty(selectedLevel || 1,3);
+
+  score = 0;
+  pairsDone = 0;
+  moves = 0;
+  mistakes = 0;
+  first = null;
+  busy = false;
+  ending = false;
+
+  $('score').textContent = '0';
+  $('qnum').textContent = '0';
+  $('moves').textContent = '0';
   $('qtotal').textContent = TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:selectedLevel || 1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'capitals',
+      selected_level:selectedLevel,
+      random_difficulty:selectedLevel === 0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:selectedLevel,
+    rounds:TOTAL
+  });
+
   show('play-screen');
   await deal();
 }
 
-// level 1: 3 pairs from the most famous capitals · 2: 5 pairs (adds tier-2) · 3: 6 pairs biased toward the less obvious ones
-function makeBoard(lvl) {
-  const nPairs = lvl === 1 ? 3 : lvl === 2 ? 5 : 6;
-  const pool = lvl === 1 ? PAIRS.filter(p => p.tier === 1)
-             : lvl === 2 ? PAIRS.filter(p => p.tier <= 2)
-             : PAIRS.filter(p => p.tier >= 2);
+function makeBoard(lvl){
+  const nPairs =
+    lvl === 1 ? 3 :
+    lvl === 2 ? 5 : 6;
+
+  const pool =
+    lvl === 1
+      ? PAIRS.filter(p=>p.tier === 1)
+      : lvl === 2
+        ? PAIRS.filter(p=>p.tier <= 2)
+        : PAIRS.filter(p=>p.tier >= 2);
+
   const shuffled = [...pool];
-  for (let i = shuffled.length - 1; i > 0; i--) { const j = rnd(i + 1); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
-  const pairs = shuffled.slice(0, nPairs);
-  return { pairs, key: pairs.map(p => p.country).sort().join('|') };
+
+  for(let i=shuffled.length-1;i>0;i--){
+    const j = rnd(i+1);
+    [shuffled[i],shuffled[j]] = [shuffled[j],shuffled[i]];
+  }
+
+  const pairs = shuffled.slice(0,nPairs);
+
+  return {
+    pairs,
+    key:pairs.map(p=>p.country).sort().join('|')
+  };
 }
 
-async function deal() {
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const board = await game.newQuestion(() => makeBoard(lvl), b => b.key);
-  const cards = [];
-  for (const p of board.pairs) {
-    cards.push({ text: p.country, id: p.country });
-    cards.push({ text: p.capital, id: p.country });
+async function deal(){
+  if(ending || pairsDone >= TOTAL){
+    await end();
+    return;
   }
-  for (let i = cards.length - 1; i > 0; i--) { const j = rnd(i + 1); [cards[i], cards[j]] = [cards[j], cards[i]]; }
-  boardLeft = board.pairs.length;
-  first = null; busy = false;
+
+  const lvl =
+    level === 0
+      ? 1 + rnd(3)
+      : diff.level;
+
+  const board =
+    await game.newQuestion(
+      ()=>makeBoard(lvl),
+      item=>item.key
+    );
+
+  /*
+   * Do not deal more pairs than are still needed.
+   * This prevents a 5-pair game from accidentally ending with 6.
+   */
+  const remaining = TOTAL - pairsDone;
+  const selectedPairs = board.pairs.slice(0,Math.min(board.pairs.length,remaining));
+
+  const cards = [];
+
+  for(const p of selectedPairs){
+    cards.push({text:p.country,id:p.country});
+    cards.push({text:p.capital,id:p.country});
+  }
+
+  for(let i=cards.length-1;i>0;i--){
+    const j = rnd(i+1);
+    [cards[i],cards[j]] = [cards[j],cards[i]];
+  }
+
+  boardLeft = selectedPairs.length;
+  first = null;
+  busy = false;
+
   const grid = $('grid');
   grid.innerHTML = '';
-  grid.style.gridTemplateColumns = `repeat(${cards.length <= 6 ? 3 : 4}, 1fr)`;
-  for (const c of cards) {
+  grid.style.gridTemplateColumns =
+    `repeat(${cards.length <= 6 ? 3 : 4},1fr)`;
+
+  for(const card of cards){
     const el = document.createElement('div');
+
     el.className = 'mcard';
-    el.dataset.id = c.id;
-    el.innerHTML = `<div class="inner"><div class="face front">❓</div><div class="face back">${c.text}</div></div>`;
-    el.addEventListener('click', () => flip(el));
+    el.dataset.id = card.id;
+
+    el.innerHTML =
+      `<div class="inner">` +
+      `<div class="face front">❓</div>` +
+      `<div class="face back">${card.text}</div>` +
+      `</div>`;
+
+    el.addEventListener('click',()=>flip(el));
+
     grid.appendChild(el);
   }
 }
 
-function flip(el) {
-  if (busy || el.classList.contains('flipped')) return;
+function flip(el){
+  if(
+    ending ||
+    busy ||
+    el.classList.contains('flipped') ||
+    el.classList.contains('matched')
+  ){
+    return;
+  }
+
   el.classList.add('flipped');
-  if (!first) { first = el; return; }
+
+  if(!first){
+    first = el;
+    IAKidsActivity.questionStarted();
+    return;
+  }
+
   moves++;
   $('moves').textContent = moves;
+
   busy = true;
-  const a = first, b = el;
+
+  const a = first;
+  const b = el;
   first = null;
-  setTimeout(() => {
-    if (a.dataset.id === b.dataset.id) {
-      a.classList.add('matched'); b.classList.add('matched');
+
+  setTimeout(async()=>{
+    if(a.dataset.id === b.dataset.id){
+      a.classList.add('matched');
+      b.classList.add('matched');
+
       score += 10;
       pairsDone++;
       boardLeft--;
+
       $('score').textContent = score;
       $('qnum').textContent = pairsDone;
+
       diff.right();
+
+      IAKidsActivity.correct();
+
       IAKidsFX.correct(b);
-      IAKidsCoins.right(b);
+      await IAKidsCoins.right(b);
+
       busy = false;
-      if (boardLeft === 0) {
-        if (pairsDone >= TOTAL) return end();
-        IAKidsFX.scorePop(IAKidsLang.t(T.newboard), $('grid'));
-        setTimeout(deal, 1000);
+
+      if(pairsDone >= TOTAL){
+        await end();
+        return;
       }
-    } else {
+
+      if(boardLeft === 0){
+        IAKidsFX.scorePop(
+          IAKidsLang.t(T.newboard),
+          $('grid')
+        );
+
+        setTimeout(()=>{
+          deal();
+        },850);
+      }
+
+    }else{
       mistakes++;
+
       diff.wrong();
+
+      IAKidsActivity.wrong();
+
       IAKidsFX.wrong(b);
-      IAKidsCoins.wrong();
-      setTimeout(() => {
+      await IAKidsCoins.wrong();
+
+      setTimeout(()=>{
         a.classList.remove('flipped');
         b.classList.remove('flipped');
         busy = false;
-      }, 700);
+      },650);
     }
-  }, 450);
+  },420);
 }
 
-async function end() {
-  await game.saveScore(score, { level, moves, pairs: pairsDone });
-  const top = (await game.getHighScores(1))[0];
+async function end(){
+  if(ending) return;
+
+  ending = true;
+  busy = true;
+
+  const maxScore = TOTAL * 10;
+
+  await game.saveScore(score,{
+    level,
+    moves,
+    pairs:pairsDone,
+    mistakes
+  });
+
+  const top =
+    (await game.getHighScores(1))[0];
+
   $('final-score').textContent = score;
   $('best').textContent = top?.score ?? score;
-  $('moves-line').textContent = `${IAKidsLang.t(T.moves)}: ${moves}`;
-  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  const ratio = moves / Math.max(1, pairsDone);
-  $('stars').textContent = '⭐'.repeat(ratio <= 1.7 ? 3 : ratio <= 2.6 ? 2 : 1);
-  game.shareButton(score, $('share-slot'));
+  $('moves-line').textContent =
+    `${IAKidsLang.t(T.moves)}: ${moves}`;
+
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        'he-IL',
+        {
+          dateStyle:'short',
+          timeStyle:'short'
+        }
+      )
+    }`;
+
+  const moveRatio =
+    moves /
+    Math.max(1,pairsDone);
+
+  $('stars').textContent =
+    '⭐'.repeat(
+      moveRatio <= 1.7
+        ? 3
+        : moveRatio <= 2.6
+          ? 2
+          : 1
+    );
+
+  const accuracy =
+    pairsDone /
+    Math.max(
+      1,
+      pairsDone + mistakes
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+
+      performanceScore:
+        Math.round(
+          accuracy * 100
+        ),
+
+      metadata:{
+        game_mode:'capitals',
+        selected_level:level,
+        random_difficulty:level === 0,
+        total_pairs:TOTAL,
+        matched_pairs:pairsDone,
+        moves,
+        mistakes,
+        move_ratio:Number(moveRatio.toFixed(2)),
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD
+      }
+    }
+  );
+
+  game.shareButton(
+    score,
+    $('share-slot')
+  );
+
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
