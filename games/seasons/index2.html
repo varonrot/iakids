@@ -1,1 +1,271 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עונות השנה | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:64px;min-height:56px;padding:8px 12px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.1rem;font-weight:700;cursor:grab;touch-action:none;white-space:nowrap}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+#tray{min-height:90px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.drop-zone{padding:10px 6px}
+.drop-zone h3{margin:0 0 6px;font-size:1.05rem}
+.bin-items{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;min-height:30px}
+.bin-items span{color:#fff;border-radius:10px;padding:4px 8px;font-weight:700;font-size:0.85rem}
+.bin-summer{border-color:var(--yellow) !important}
+.bin-summer h3{color:#a16207}
+.bin-summer .bin-items span{background:var(--yellow);color:#1f2937}
+.bin-winter{border-color:var(--blue) !important}
+.bin-winter h3{color:var(--blue)}
+.bin-winter .bin-items span{background:var(--blue)}
+.bin-spring{border-color:var(--purple) !important}
+.bin-spring h3{color:var(--purple)}
+.bin-spring .bin-items span{background:var(--purple)}
+.bin-autumn{border-color:var(--accent) !important}
+.bin-autumn h3{color:var(--accent)}
+.bin-autumn .bin-items span{background:var(--accent)}
+</style>
+</head>
+<body>
 
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">פריט</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🍂</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="tray"></div>
+    <div class="bins" id="bins"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+const T = {
+  title:  { he: 'עונות השנה', en: 'Seasons' },
+  howto:  { he: 'גררו כל תופעה או חג לעונה הנכונה שלו!', en: 'Drag each phenomenon or holiday to its season!' },
+  rounds: { he: 'כמה פריטים למיין?', en: 'How many items?' },
+};
+
+const BINS = {
+  summer: { cls: 'bin-summer', emoji: '☀️', label: { he: 'קיץ',  en: 'Summer' } },
+  winter: { cls: 'bin-winter', emoji: '❄️', label: { he: 'חורף', en: 'Winter' } },
+  spring: { cls: 'bin-spring', emoji: '🌸', label: { he: 'אביב', en: 'Spring' } },
+  autumn: { cls: 'bin-autumn', emoji: '🍂', label: { he: 'סתיו', en: 'Autumn' } },
+};
+
+// Israeli seasonal associations (not generic northern-hemisphere defaults):
+// rainy season = winter, school year starts in autumn (Sept), Passover = "חג האביב", etc.
+// tier: 1 = obvious/iconic (easy pool), 2 = base phenomena pool, 3 = + Jewish holidays (hard pool)
+const BANK = [
+  { text: '🏖️ יום בים ושחייה',       cat: 'summer', tier: 1 },
+  { text: '🍦 גלידה קרה',            cat: 'summer', tier: 1 },
+  { text: '🏕️ חופשת הקיץ',          cat: 'summer', tier: 2 },
+  { text: '🥵 חום ושרב',             cat: 'summer', tier: 2 },
+  { text: '🍉 אבטיח קר',             cat: 'summer', tier: 2 },
+  { text: '🧀 חג השבועות',          cat: 'summer', tier: 3 },
+  { text: '🕯️ תשעה באב',           cat: 'summer', tier: 3 },
+
+  { text: '❄️ שלג',                 cat: 'winter', tier: 1 },
+  { text: '🌧️ גשם וסופה',          cat: 'winter', tier: 1 },
+  { text: '☂️ מטריה ומגפיים',       cat: 'winter', tier: 2 },
+  { text: '☕ שוקו חם ליד האח',      cat: 'winter', tier: 2 },
+  { text: '🥶 קור וצמרמורת',        cat: 'winter', tier: 2 },
+  { text: '🕎 חג החנוכה',           cat: 'winter', tier: 3 },
+
+  { text: '🌸 פריחת עצי פרי',       cat: 'spring', tier: 1 },
+  { text: '🌷 פרחי בר בשדה',        cat: 'spring', tier: 1 },
+  { text: '🐣 אפרוחים וטלאים',      cat: 'spring', tier: 2 },
+  { text: '🧹 ניקיון גדול לפסח',    cat: 'spring', tier: 2 },
+  { text: '🌤️ מזג אוויר נעים',     cat: 'spring', tier: 2 },
+  { text: '🍷 חג הפסח',             cat: 'spring', tier: 3 },
+  { text: '🔥 ל״ג בעומר ומדורות',   cat: 'spring', tier: 3 },
+
+  { text: '🍂 עלים נושרים (שלכת)',  cat: 'autumn', tier: 1 },
+  { text: '💨 רוחות ועננים ראשונים', cat: 'autumn', tier: 1 },
+  { text: '🎒 חזרה לבית הספר',      cat: 'autumn', tier: 2 },
+  { text: '🍇 בציר ענבים ורימונים', cat: 'autumn', tier: 2 },
+  { text: '🌦️ הגשם הראשון (יורה)', cat: 'autumn', tier: 2 },
+  { text: '🍯 ראש השנה',            cat: 'autumn', tier: 3 },
+  { text: '🌿 חג הסוכות',           cat: 'autumn', tier: 3 },
+];
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'seasons',
+  how: 'בישראל יש 4 עונות: קיץ, חורף, אביב וסתיו. כל תופעת טבע או חג שייכים לעונה מסוימת. גוררים כל פריט לתיבת העונה הנכונה!',
+  example: '❄️ שלג ← תיבת <b>חורף</b> · 🍂 שלכת ← תיבת <b>סתיו</b>',
+});
+$('title').textContent = IAKidsLang.t(T.title);
+$('howto').textContent = IAKidsLang.t(T.howto);
+$('rounds-label').textContent = IAKidsLang.t(T.rounds);
+$('score-label').textContent = IAKidsLang.ui('score');
+$('best-label').textContent = IAKidsLang.ui('your_best');
+$('again-btn').textContent = IAKidsLang.ui('play_again');
+['level_easy', 'level_medium', 'level_hard', 'level_random'].forEach((k, i) =>
+  document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
+
+let game, diff, level = 1, TOTAL = 10, score = 0, sorted = 0, mistakes = 0, maxTier = 1;
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const ready = IAKidsGame.init('seasons').then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+});
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+};
+
+function renderBins() {
+  $('bins').innerHTML = Object.entries(BINS).map(([cat, b]) => `
+    <div class="drop-zone ${b.cls}" data-cat="${cat}">
+      <h3>${b.emoji} ${IAKidsLang.t(b.label)}</h3>
+      <div class="bin-items"></div>
+    </div>`).join('');
+}
+
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  maxTier = lvl === 0 ? 1 + rnd(3) : lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  $('qtotal').textContent = TOTAL;
+  renderBins();
+  show('play-screen');
+  await fillTray();
+}
+
+async function fillTray() {
+  const tray = $('tray');
+  const tier = level === 0 ? 1 + rnd(3) : maxTier;
+  const pool = BANK.filter(i => i.tier <= tier);
+  while (tray.querySelectorAll('.chip').length < Math.min(4, TOTAL - sorted)) {
+    const q = await game.newQuestion(() => pool[rnd(pool.length)], x => x.text);
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = q.text;
+    chip.dataset.cat = q.cat;
+    makeDraggable(chip);
+    tray.appendChild(chip);
+  }
+}
+
+/* ---- Pointer Events drag (works on touch — setPointerCapture, not HTML5 DnD) ---- */
+let drag = null;
+function makeDraggable(chip) {
+  chip.addEventListener('pointerdown', e => {
+    if (drag) return;
+    e.preventDefault();
+    chip.setPointerCapture(e.pointerId);
+    const r = chip.getBoundingClientRect();
+    drag = { chip, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    chip.style.width = r.width + 'px';
+    chip.classList.add('dragging');
+    moveTo(e);
+  });
+  chip.addEventListener('pointermove', e => { if (drag?.chip === chip) moveTo(e); });
+  chip.addEventListener('pointerup', e => { if (drag?.chip === chip) dropChip(e); });
+  chip.addEventListener('pointercancel', () => {
+    if (drag?.chip === chip) { settle(chip); drag = null; unmarkZones(); }
+  });
+}
+function moveTo(e) {
+  drag.chip.style.left = (e.clientX - drag.dx) + 'px';
+  drag.chip.style.top = (e.clientY - drag.dy) + 'px';
+  const z = zoneAt(e.clientX, e.clientY);
+  document.querySelectorAll('.drop-zone').forEach(zn => zn.classList.toggle('over', zn === z));
+}
+const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('.drop-zone') || null;
+const unmarkZones = () => document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('over'));
+function settle(chip) {
+  chip.classList.remove('dragging');
+  chip.style.left = chip.style.top = chip.style.width = '';
+}
+
+async function dropChip(e) {
+  const z = zoneAt(e.clientX, e.clientY);
+  unmarkZones();
+  const chip = drag.chip;
+  drag = null;
+  settle(chip);
+  if (!z) return;
+  const correct = z.dataset.cat === chip.dataset.cat;
+  if (correct) {
+    score += 10;
+    sorted++;
+    $('score').textContent = score;
+    $('qnum').textContent = Math.min(sorted + 1, TOTAL);
+    diff.right();
+    IAKidsFX.correct(z);
+    IAKidsCoins.right(z);
+    const s = document.createElement('span');
+    s.textContent = chip.textContent;
+    z.querySelector('.bin-items').appendChild(s);
+    chip.remove();
+    if (sorted >= TOTAL) return end();
+    await fillTray();
+  } else {
+    mistakes++;
+    diff.wrong();
+    IAKidsFX.wrong(chip);
+    IAKidsCoins.wrong();
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, mistakes });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = TOTAL / (TOTAL + mistakes);
+  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
