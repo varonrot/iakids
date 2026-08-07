@@ -1,1 +1,262 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חלקים של צמח | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+  #plantWrap { max-width: 340px; margin: 8px auto; }
+  #plantsvg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+  .part { cursor: pointer; transition: filter .2s, opacity .2s; }
+  .part:hover { filter: brightness(1.08); }
+  .part.correct-flash { filter: drop-shadow(0 0 0 var(--green)); }
+  .part.correct-flash * { fill: var(--green) !important; }
+  .part.wrong-flash * { fill: var(--red) !important; }
+  .part.ask-highlight * { fill: var(--yellow) !important; }
+  #mcq-diagram { pointer-events: none; opacity: .95; }
+</style>
+</head>
+<body>
 
+<div class="game-hud">
+  <span class="score">ניקוד: <span id="score">0</span></span>
+  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🌷</div>
+    <h1 class="game-title">חלקים של צמח</h1>
+    <p>לחצו על החלק הנכון בצמח! ברמה קשה — בחרו את התפקיד הנכון של כל חלק.</p>
+    <p>כמה שאלות?</p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
+      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
+      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
+      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question" style="font-size:1.4rem"></div>
+    <div id="tap-mode">
+      <div id="plantWrap"><svg id="plantsvg" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    </div>
+    <div id="mcq-mode" hidden>
+      <div id="plantWrap"><svg id="mcq-diagram" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg" style="max-width:180px;margin:0 auto;display:block"></svg></div>
+      <div class="answer-grid" id="mcq-answers" style="grid-template-columns:1fr"></div>
+    </div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p>השיא שלך: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+let game, score = 0, qnum = 0, level = 1, TOTAL = 10, locked = false, current, mode;
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'plant-parts',
+  how: 'לצמח יש כמה חלקים: שורש, גבעול, עלה ופרח (וגם פרי וזרע). ברמה קלה ובינונית לוחצים על החלק שנשאלים עליו בציור. ברמה קשה בוחרים מה כל חלק עושה בשביל הצמח.',
+  example: 'שואלים: "לחצו על השורש" ← לוחצים על החלק שבתוך האדמה, בתחתית הצמח 🌱',
+});
+
+// ponytail: verified plant-biology facts (root=water/anchor, stem=support/transport,
+// leaf=photosynthesis, flower=seeds/pollination, fruit=protects+spreads seeds, seed=embryo)
+const PARTS = [
+  { id: 'root', name: 'שורש', minLevel: 1, fn: 'סופג מים ומינרלים מהאדמה ומעגן את הצמח בקרקע' },
+  { id: 'stem', name: 'גבעול', minLevel: 1, fn: 'תומך בצמח ומעביר מים וחומרי מזון בין השורש לעלים ולפרח' },
+  { id: 'leaf', name: 'עלה', minLevel: 1, fn: 'מייצר מזון לצמח מאור השמש (פוטוסינתזה)' },
+  { id: 'flower', name: 'פרח', minLevel: 1, fn: 'מייצר זרעים ומושך חרקים שמאביקים את הצמח' },
+  { id: 'fruit', name: 'פרי', minLevel: 2, fn: 'עוטף ומגן על הזרעים ועוזר להפיץ אותם' },
+  { id: 'seed', name: 'זרע', minLevel: 2, fn: 'מכיל צמח קטן שממנו יכול לצמוח צמח חדש' },
+];
+
+function drawPlant(svg, opts = {}) {
+  const NS = 'http://www.w3.org/2000/svg';
+  svg.innerHTML = '';
+  const el = (tag, attrs) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  };
+  const group = (id, visual) => {
+    const g = el('g', { class: 'part', 'data-id': id });
+    visual.forEach(v => g.appendChild(v));
+    svg.appendChild(g);
+    return g;
+  };
+  // ground
+  svg.appendChild(el('rect', { x: 0, y: 480, width: 400, height: 120, fill: '#c9a06a' }));
+  svg.appendChild(el('rect', { x: 0, y: 470, width: 400, height: 12, fill: '#8bc76a' }));
+  // root
+  const rootPaths = [
+    el('path', { d: 'M200,480 Q160,520 130,560', stroke: '#a0743a', 'stroke-width': 8, fill: 'none', 'stroke-linecap': 'round' }),
+    el('path', { d: 'M200,480 Q240,520 270,560', stroke: '#a0743a', 'stroke-width': 8, fill: 'none', 'stroke-linecap': 'round' }),
+    el('path', { d: 'M200,480 L200,560', stroke: '#a0743a', 'stroke-width': 8, fill: 'none', 'stroke-linecap': 'round' }),
+    el('rect', { x: 120, y: 480, width: 160, height: 100, fill: 'transparent' }), // generous hit area
+  ];
+  const g_root = group('root', rootPaths);
+  // stem
+  const stemPaths = [
+    el('rect', { x: 190, y: 230, width: 20, height: 250, fill: '#3f9142', rx: 8 }),
+    el('rect', { x: 165, y: 230, width: 70, height: 250, fill: 'transparent' }),
+  ];
+  const g_stem = group('stem', stemPaths);
+  // leaves
+  const leafPaths = [
+    el('ellipse', { cx: 130, cy: 350, rx: 70, ry: 34, fill: '#4caf50', transform: 'rotate(-20 130 350)' }),
+    el('ellipse', { cx: 270, cy: 400, rx: 70, ry: 34, fill: '#4caf50', transform: 'rotate(20 270 400)' }),
+  ];
+  const g_leaf = group('leaf', leafPaths);
+  // flower
+  const petals = [];
+  for (let i = 0; i < 6; i++) {
+    const ang = i * 60;
+    petals.push(el('ellipse', { cx: 200, cy: 110, rx: 32, ry: 55, fill: '#ff6fa5', transform: `rotate(${ang} 200 160)` }));
+  }
+  petals.push(el('circle', { cx: 200, cy: 160, r: 30, fill: '#ffd23f' }));
+  const g_flower = group('flower', petals);
+  // fruit (level 2+)
+  const g_fruit = group('fruit', [
+    el('circle', { cx: 285, cy: 340, r: 30, fill: '#e63946' }),
+    el('path', { d: 'M285,310 q8,-14 18,-10', stroke: '#3f9142', 'stroke-width': 5, fill: 'none' }),
+  ]);
+  // seed (level 2+)
+  const g_seed = group('seed', [
+    el('ellipse', { cx: 110, cy: 540, rx: 22, ry: 15, fill: '#8b5a2b' }),
+    el('rect', { x: 80, y: 515, width: 60, height: 50, fill: 'transparent' }),
+  ]);
+
+  const groups = { root: g_root, stem: g_stem, leaf: g_leaf, flower: g_flower, fruit: g_fruit, seed: g_seed };
+  if (opts.minLevel < 2) { g_fruit.remove(); g_seed.remove(); delete groups.fruit; delete groups.seed; }
+  return groups;
+}
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+let diff, timer;
+async function start(lvl) {
+  game = await IAKidsGame.init('plant-parts');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => { if (!locked) handleTimeout(); } });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+const rnd = n => Math.floor(Math.random() * n);
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  mode = lvl >= 3 ? 'mcq' : 'tap';
+  const pool = PARTS.filter(p => p.minLevel <= lvl);
+  const q = await game.newQuestion(() => ({ part: pool[rnd(pool.length)], mode }), x => x.mode + ':' + x.part.id);
+  current = q.part;
+
+  document.getElementById('tap-mode').hidden = mode !== 'tap';
+  document.getElementById('mcq-mode').hidden = mode !== 'mcq';
+
+  if (mode === 'tap') {
+    document.getElementById('question').textContent = `לחצו על ה${current.name}`;
+    const svg = document.getElementById('plantsvg');
+    const groups = drawPlant(svg, { minLevel: lvl });
+    Object.values(groups).forEach(g => g.onclick = () => resolveTap(g.dataset.id === current.id, g));
+  } else {
+    document.getElementById('question').textContent = `מה התפקיד של ה${current.name}?`;
+    const svg = document.getElementById('mcq-diagram');
+    const groups = drawPlant(svg, { minLevel: 2 });
+    Object.values(groups).forEach(g => g.classList.remove('ask-highlight'));
+    groups[current.id]?.classList.add('ask-highlight');
+    const wrong = shuffle(PARTS.filter(p => p.id !== current.id)).slice(0, 3);
+    const choices = shuffle([current, ...wrong]);
+    const box = document.getElementById('mcq-answers');
+    box.innerHTML = '';
+    choices.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'game-btn outline';
+      btn.style.fontSize = '1.05rem';
+      btn.textContent = c.fn;
+      btn.onclick = () => resolveTap(c.id === current.id, btn);
+      box.appendChild(btn);
+    });
+  }
+  timer.start(IAKidsTimer.secondsFor(lvl, mode === 'mcq' ? 14 : 12));
+}
+
+function resolveTap(isCorrect, el) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (isCorrect) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(el);
+    IAKidsCoins.right(el);
+    if (mode === 'tap') el.classList.add('correct-flash');
+    else el.classList.add('correct');
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(el);
+    IAKidsCoins.wrong();
+    if (mode === 'tap') { el.classList.add('wrong-flash'); setTimeout(() => document.querySelector(`#plantsvg [data-id="${current.id}"]`)?.classList.add('correct-flash'), 400); }
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 1000);
+}
+
+function handleTimeout() {
+  locked = true;
+  timer.stop();
+  diff.wrong();
+  IAKidsCoins.wrong();
+  document.getElementById('score').textContent = score;
+  setTimeout(() => { locked = false; next(); }, 700);
+}
+
+async function end() {
+  await game.saveScore(score, { level });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent =
+    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
