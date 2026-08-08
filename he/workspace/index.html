@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <title>חבר ללימודים AI – סביבת למידה</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+(function(){
+
+  const isWindows =
+    navigator.userAgent.includes("Windows");
+
+  const isDesktop =
+    window.innerWidth > 1200;
+
+  if(isWindows && isDesktop){
+    document.documentElement.classList.add(
+      "is-windows-desktop"
+    );
+  }
+
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28432,7 +28449,7 @@ div{
     52px;
 
   padding:6px 18px 6px 7px;
-  
+
   display:flex;
 
   align-items:center;
@@ -28930,7 +28947,16 @@ div{
   font-size:
     8px;
 }
+/* =====================================================
+   WINDOWS DESKTOP SCALE
+   רק Windows, לא מובייל
+===================================================== */
 
+html.is-windows-desktop .app{
+  zoom:0.82;
+  width:121.95%;
+  height:121.95vh;
+}
 </style>
 
 
@@ -31609,7 +31635,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V8";
+      "▶ Rotem V9";
 
 
     document.body.appendChild(
