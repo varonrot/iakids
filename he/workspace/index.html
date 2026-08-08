@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <title>חבר ללימודים AI – סביבת למידה</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+(function () {
+
+  const isWindows =
+    navigator.userAgent.includes("Windows");
+
+  const isDesktop =
+    window.innerWidth >= 1200;
+
+  if (isWindows && isDesktop) {
+    document.documentElement.classList.add(
+      "windows-workspace"
+    );
+  }
+
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11190,6 +11207,17 @@ body.science-hierarchy-mode
 body.science-hierarchy-mode
 #scienceHierarchyView{
   display:block !important;
+}
+    /* =====================================================
+   WINDOWS WORKSPACE — 80% SCALE
+   רק הדף הזה, רק Windows Desktop
+===================================================== */
+
+html.windows-workspace .app{
+  zoom:0.80 !important;
+
+  width:125% !important;
+  height:125vh !important;
 }
 </style>
 </head>
