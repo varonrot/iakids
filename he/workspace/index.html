@@ -34354,68 +34354,134 @@ function updateScienceBreadcrumb(
 }
 </script>
 <script>
-    /* =====================================================
-   MOBILE HOME LAYOUT
-   Move quick actions above kingdom map
+/* =====================================================
+   MOBILE HOME V2 — FIX MAP
 ===================================================== */
 
-function setupMobileHomeLayout(){
+@media (max-width:760px){
 
-  const dashboard =
-    document.querySelector(
-      "#dashboardView .dash-content"
-    );
+  /* דף הבית עצמו */
+  #dashboardView{
+    display:block !important;
 
-  const actions =
-    document.querySelector(
-      ".home-right-actions"
-    );
+    width:100% !important;
+    min-height:100vh !important;
 
-  const map =
-    document.querySelector(
-      ".kingdom-map-area"
-    );
+    overflow:visible !important;
 
-
-  if(
-    !dashboard ||
-    !actions ||
-    !map
-  ){
-    return;
+    background:#020916 !important;
   }
 
 
-  if(
-    window.innerWidth <= 760
-  ){
+  #dashboardView .dash-wrapper,
+  #dashboardView .dash-layout,
+  #dashboardView .dash-content{
+    width:100% !important;
 
-    if(
-      actions.parentElement !== dashboard
-    ){
+    height:auto !important;
+    min-height:0 !important;
 
-      dashboard.insertBefore(
-        actions,
-        map
-      );
+    display:block !important;
+  }
 
-    }
 
+  /* =================================================
+     ארבעת הכפתורים
+  ================================================= */
+
+  .home-rightbar{
+    display:block !important;
+
+    width:100% !important;
+
+    padding:
+      8px
+      14px
+      12px !important;
+
+    background:#020916 !important;
+  }
+
+
+  .home-right-welcome,
+  .home-right-stats,
+  .home-right-progress{
+    display:none !important;
+  }
+
+
+  .home-right-actions{
+    display:grid !important;
+
+    grid-template-columns:
+      repeat(2,minmax(0,1fr)) !important;
+
+    width:100% !important;
+
+    gap:10px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+
+    border:0 !important;
+    box-shadow:none !important;
+  }
+
+
+  .home-right-action{
+    width:100% !important;
+
+    height:108px !important;
+    min-height:108px !important;
+
+    border-radius:18px !important;
+  }
+
+
+  /* =================================================
+     המפה — זה החלק שהיה חסר
+  ================================================= */
+
+  .kingdom-map-area{
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+
+    height:680px !important;
+    min-height:680px !important;
+
+    flex:none !important;
+
+    margin:0 !important;
+
+    overflow:hidden !important;
+
+    background-position:
+      center top !important;
+
+    background-size:
+      auto 680px !important;
+
+    background-repeat:
+      no-repeat !important;
+  }
+
+
+  /* המפה/תמונה הפנימית אם קיימת */
+  .kingdom-map-area img,
+  .kingdom-map-image{
+    width:100% !important;
+    height:100% !important;
+
+    object-fit:cover !important;
+    object-position:center top !important;
   }
 
 }
-
-
-window.addEventListener(
-  "DOMContentLoaded",
-  setupMobileHomeLayout
-);
-
-
-window.addEventListener(
-  "resize",
-  setupMobileHomeLayout
-);
 </script>
 <!-- =====================================================
      HOMEWORK FILE INPUTS
