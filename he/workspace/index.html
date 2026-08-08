@@ -11209,26 +11209,14 @@ body.science-hierarchy-mode
   display:block !important;
 }
 /* =====================================================
-   WINDOWS DESKTOP LAYOUT
-   מדמה layout רחב יותר בלי zoom
+   WINDOWS DESKTOP — MATCH CHROME 80%
 ===================================================== */
 
 html.windows-workspace .app{
-  grid-template-columns:
-    220px
-    minmax(0,1fr)
-    270px !important;
+  zoom: 0.80 !important;
 
-  grid-template-rows:
-    66px
-    minmax(0,1fr) !important;
-
-  gap:10px !important;
-
-  padding:
-    10px
-    14px
-    14px !important;
+  width: 125% !important;
+  height: 125vh !important;
 }
 </style>
 </head>
@@ -31652,7 +31640,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V2";
+      "▶ Rotem V3";
 
 
     document.body.appendChild(
