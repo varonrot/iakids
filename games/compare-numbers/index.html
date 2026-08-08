@@ -4,26 +4,273 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>גדול, קטן או שווה | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
+<style>
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-blue:#1693f1;
+  --space-green:#1ea96b;
+  --space-purple:#7653ff;
+  --space-gold:#ffd15c;
+}
+
+html,body{min-height:100%}
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:86px 18px 28px !important;
+  overflow-x:hidden;
+  color:var(--space-text) !important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(500px,calc(100vw - 28px)) !important;
+  min-height:690px;
+  margin:0 auto !important;
+  padding:0 !important;
+  overflow:hidden;
+  border:1px solid var(--space-line) !important;
+  border-radius:28px !important;
+  color:var(--space-text) !important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98)) !important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08) !important;
+}
+
+.game-hud{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px !important;
+  display:flex !important;
+  align-items:center;
+  justify-content:center !important;
+  gap:42px;
+  color:#fff !important;
+  background:rgba(5,18,46,.88) !important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{color:var(--space-gold) !important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.1rem,7vw,3rem) !important;
+  line-height:1.05;
+  color:#fff !important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#instr{
+  max-width:410px;
+  margin:14px auto 20px;
+  color:var(--space-muted) !important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{
+  width:100%;
+  gap:12px !important;
+}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px !important;
+  border:1px solid rgba(118,176,255,.34) !important;
+  color:#fff !important;
+  font-weight:900 !important;
+  background:linear-gradient(180deg,#1c91db,#0877bd) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16) !important;
+}
+
+.game-btn:hover{transform:translateY(-2px)}
+.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75)) !important}
+.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64) !important;border-color:rgba(97,255,174,.6) !important}
+#level-row{margin-top:16px}
+#level-row .game-btn[data-l="0"]{background:linear-gradient(180deg,#8054ff,#6035dc) !important}
+
+/* PLAY */
+#play-screen{position:relative}
+
+.game-question{
+  min-height:190px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:24px 0 28px;
+  padding:20px;
+  border-radius:24px;
+  color:#fff !important;
+  font-size:clamp(2rem,8vw,4rem) !important;
+  font-weight:1000;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(66,169,255,.15),transparent 50%),
+    rgba(4,22,55,.48);
+  border:1px solid rgba(116,177,255,.18);
+}
+
+#answers{
+  grid-template-columns:repeat(3,1fr) !important;
+}
+
+#answers .game-btn{
+  min-height:88px;
+  font-size:2rem !important;
+}
+
+#answers .game-btn:disabled{
+  opacity:.72;
+  cursor:default;
+}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem !important;
+  letter-spacing:4px;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff !important;
+  font-size:4rem !important;
+  font-weight:1000;
+}
+
+#player-line,#end-screen p{color:#d7e3f7 !important}
+#share-slot{margin-top:8px}
+[hidden]{display:none !important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px !important}
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px !important;
+  }
+
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px !important;
+    gap:24px;
+  }
+
+  .game-question{
+    min-height:160px;
+    margin:18px 0 22px;
+  }
+
+  #answers .game-btn{
+    min-height:76px;
+    font-size:1.7rem !important;
+  }
+}
+</style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
-  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score">
+    <span id="score-label"></span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span id="q-label"></span>
+    <span id="qnum">1</span>/<span id="qtotal">10</span>
+  </span>
 </div>
 
 <div class="game-card" id="card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">⚖️</div>
+    <div class="hero-icon">⚖️</div>
+
     <h1 class="game-title" id="title"></h1>
+
     <p id="instr"></p>
-    <p id="rounds-label"></p>
+
+    <p class="section-label" id="rounds-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
-      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline success" data-r="10" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
     </div>
+
+    <p class="section-label" id="level-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
       <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
@@ -33,8 +280,11 @@
   </div>
 
   <div id="play-screen" hidden>
-    <div class="game-question"><span dir="ltr" id="question"></span></div>
-    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="answers"></div>
+    <div class="game-question">
+      <span dir="ltr" id="question"></span>
+    </div>
+
+    <div class="answer-grid" id="answers"></div>
   </div>
 
   <div id="end-screen" class="end-screen" hidden>
@@ -45,155 +295,467 @@
     <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
     <div id="share-slot"></div>
   </div>
+
 </div>
 
 <script src="../game-sdk.js"></script>
+
 <script>
 const SLUG = 'compare-numbers';
-const T = {
-  title: { he: 'גדול, קטן או שווה', en: 'Greater, Less or Equal', es: 'Mayor, menor o igual', de: 'Größer, kleiner oder gleich', pt: 'Maior, menor ou igual' },
-  instr: { he: 'איזה סימן מתאים בין שני הצדדים? > < =', en: 'Which sign fits between the two sides? > < =', es: '¿Qué signo va entre los dos lados? > < =', de: 'Welches Zeichen passt zwischen die beiden Seiten? > < =', pt: 'Qual sinal cabe entre os dois lados? > < =' },
-  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+const T_REGULAR = {
+  title:{he:'גדול, קטן או שווה',en:'Greater, Less or Equal',es:'Mayor, menor o igual',de:'Größer, kleiner oder gleich',pt:'Maior, menor ou igual'},
+  instr:{he:'איזה סימן מתאים בין שני הצדדים? > < =',en:'Which sign fits between the two sides? > < =',es:'¿Qué signo va entre los dos lados? > < =',de:'Welches Zeichen passt zwischen die beiden Seiten? > < =',pt:'Qual sinal cabe entre os dois lados? > < ='},
+  rounds:{he:'כמה שאלות?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'}
 };
-document.getElementById('title').textContent = IAKidsLang.t(T.title);
-document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
-document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
-document.getElementById('score-label').textContent = IAKidsLang.ui('score');
-document.getElementById('q-label').textContent = IAKidsLang.ui('question');
-document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
-document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
-for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
-  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
+
+const T_NIQQUD = {
+  title:{he:'גָּדוֹל, קָטָן אוֹ שָׁוֶה',en:'Greater, Less or Equal',es:'Mayor, menor o igual',de:'Größer, kleiner oder gleich',pt:'Maior, menor ou igual'},
+  instr:{he:'אֵיזֶה סִימָן מַתְאִים בֵּין שְׁנֵי הַצְּדָדִים? > < =',en:'Which sign fits between the two sides? > < =',es:'¿Qué signo va entre los dos lados? > < =',de:'Welches Zeichen passt zwischen die beiden Seiten? > < =',pt:'Qual sinal cabe entre os dois lados? > < ='},
+  rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'}
+};
+
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+let TXT = T_REGULAR;
 
 let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false;
-let diff, timer;
+let diff, timer, mistakes = 0, timeouts = 0, ending = false;
+
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client = await IAKidsActivity._getClient();
+
+    const {data,error} = await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(error || !data){
+      console.warn('[compare-numbers] Kid profile was not loaded',error);
+      return;
+    }
+
+    CHILD_AGE = Number(data.age);
+    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+
+  }catch(error){
+    console.warn('[compare-numbers] loadKidContext error',error);
+  }
+}
+
+function applyLanguage(){
+  TXT = USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+
+  $('title').textContent = IAKidsLang.t(TXT.title);
+  $('instr').textContent = IAKidsLang.t(TXT.instr);
+  $('rounds-label').textContent = IAKidsLang.t(TXT.rounds);
+  $('level-label').textContent = IAKidsLang.t(TXT.level);
+  $('score-label').textContent = IAKidsLang.ui('score');
+  $('q-label').textContent = IAKidsLang.ui('question');
+  $('best-label').textContent = IAKidsLang.ui('your_best');
+  $('again-btn').textContent = IAKidsLang.ui('play_again');
+
+  for(const [lvl,key] of [
+    [1,'level_easy'],
+    [2,'level_medium'],
+    [3,'level_hard'],
+    [0,'level_random']
+  ]){
+    document.querySelector(`#level-row [data-l="${lvl}"]`).textContent =
+      IAKidsLang.ui(key);
+  }
+}
+
 IAKidsCoins.mount();
+
 IAKidsHelp.mount({
-  slug: 'compare-numbers',
-  how: 'משווים בין שני הצדדים ובוחרים את הסימן המתאים: גדול, קטן או שווה — מהר, לפני שהפצצה מתפוצצת! 💣',
-  example: '<span dir="ltr"><b>8 ◻ 5</b></span> ← בוחרים <span dir="ltr"><b>&gt;</b></span> כי 8 גדול מ-5',
+  slug:'compare-numbers',
+  how:'משווים בין שני הצדדים ובוחרים את הסימן המתאים: גדול, קטן או שווה — לפני שהזמן נגמר.',
+  example:'<span dir="ltr"><b>8 ◻ 5</b></span> ← בוחרים <span dir="ltr"><b>&gt;</b></span> כי 8 גדול מ-5'
 });
 
-(async () => {
-  game = await IAKidsGame.init(SLUG);
-  const p = await game.loadProgress();
-  const r = p?.rounds || TOTAL;
-  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
-  if (p?.lastLevel != null)
-    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
-})();
-
-function setRounds(n, btn) {
+function setRounds(n,btn){
   TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(button=>button.classList.remove('success'));
+
   btn?.classList.add('success');
 }
 
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen'])
-    document.getElementById(s).hidden = s !== id;
+const ready = (async()=>{
+  await loadKidContext();
+  applyLanguage();
+
+  game = await IAKidsGame.init(SLUG);
+
+  const progress = await game.loadProgress();
+
+  const rounds = progress?.rounds || TOTAL;
+
+  setRounds(
+    rounds,
+    document.querySelector(`#rounds-row [data-r="${rounds}"]`)
+  );
+
+  if(progress?.lastLevel !== undefined){
+    document.querySelector(`#level-row [data-l="${progress.lastLevel}"]`)
+      ?.classList.add('success');
+  }
+})();
+
+const show = id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(screen=>$(screen).hidden = screen !== id);
 };
 
-async function start(lvl) {
-  if (!game) game = await IAKidsGame.init(SLUG);
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  document.getElementById('qtotal').textContent = TOTAL;
+async function start(selectedLevel){
+  await ready;
+
+  level = selectedLevel;
+  diff = game.difficulty(selectedLevel || 1,3);
+
+  timer = game.timer({
+    style:'bomb',
+    onTimeout:()=>{
+      if(!locked) handleTimeout();
+    }
+  });
+
+  score = 0;
+  qnum = 0;
+  right = 0;
+  mistakes = 0;
+  timeouts = 0;
+  ending = false;
+  locked = false;
+
+  $('score').textContent = '0';
+  $('qnum').textContent = '1';
+  $('qtotal').textContent = TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:selectedLevel || 1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'compare-numbers',
+      selected_level:selectedLevel,
+      random_difficulty:selectedLevel === 0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD,
+      timer_enabled:true
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:selectedLevel,
+    rounds:TOTAL
+  });
+
   show('play-screen');
-  next();
+  await next();
 }
 
-const rnd = n => Math.floor(Math.random() * n);
-const shuffle = a => a.sort(() => Math.random() - 0.5);
+function expr(){
+  const a = 1 + rnd(9);
+  const b = 1 + rnd(9);
 
-// small expression with a known value
-function expr() {
-  const a = 1 + rnd(9), b = 1 + rnd(9);
-  return Math.random() < 0.5
-    ? { t: `${a} + ${b}`, v: a + b }
-    : a >= b ? { t: `${a} − ${b}`, v: a - b } : { t: `${b} − ${a}`, v: b - a };
-}
-// expression that equals exactly v (for = questions)
-function exprEq(v) {
-  const a = rnd(Math.min(v, 9) + 1);
-  return { t: `${a} + ${v - a}`, v };
+  return Math.random() < .5
+    ? {t:`${a} + ${b}`,v:a+b}
+    : a >= b
+      ? {t:`${a} − ${b}`,v:a-b}
+      : {t:`${b} − ${a}`,v:b-a};
 }
 
-// level 1: number vs number (to 20), 2: expression vs number, 3: expression vs expression
-function makeQuestion(lvl) {
-  const eq = Math.random() < 0.3; // ~30% equal questions so = stays a real option
-  let L, R;
-  if (lvl === 1) {
+function exprEq(v){
+  const a = rnd(Math.min(v,9)+1);
+  return {
+    t:`${a} + ${v-a}`,
+    v
+  };
+}
+
+function makeQuestion(lvl){
+  const eq = Math.random() < .3;
+
+  let L,R;
+
+  if(lvl === 1){
     const v = rnd(21);
-    L = { t: String(v), v };
-    const w = eq ? v : Math.max(0, v + (1 + rnd(5)) * (Math.random() < 0.5 ? 1 : -1));
-    R = { t: String(w), v: w };
-  } else if (lvl === 2) {
+
+    L = {t:String(v),v};
+
+    const w =
+      eq
+        ? v
+        : Math.max(
+            0,
+            v +
+            (1+rnd(5)) *
+            (Math.random() < .5 ? 1 : -1)
+          );
+
+    R = {t:String(w),v:w};
+
+  }else if(lvl === 2){
     L = expr();
-    const w = eq ? L.v : Math.max(0, L.v + (1 + rnd(4)) * (Math.random() < 0.5 ? 1 : -1));
-    R = { t: String(w), v: w };
-    if (Math.random() < 0.5) [L, R] = [R, L]; // number side can be on either side
-  } else {
+
+    const w =
+      eq
+        ? L.v
+        : Math.max(
+            0,
+            L.v +
+            (1+rnd(4)) *
+            (Math.random() < .5 ? 1 : -1)
+          );
+
+    R = {t:String(w),v:w};
+
+    if(Math.random() < .5){
+      [L,R] = [R,L];
+    }
+
+  }else{
     L = expr();
-    R = eq && L.v >= 1 ? exprEq(L.v) : expr();
+
+    R =
+      eq && L.v >= 1
+        ? exprEq(L.v)
+        : expr();
   }
-  const sign = L.v > R.v ? '>' : L.v < R.v ? '<' : '=';
-  return { text: `${L.t} ◻ ${R.t}`, sign };
+
+  const sign =
+    L.v > R.v
+      ? '>'
+      : L.v < R.v
+        ? '<'
+        : '=';
+
+  return {
+    text:`${L.t} ◻ ${R.t}`,
+    sign
+  };
 }
 
-async function next() {
-  if (qnum >= TOTAL) return end();
+function shuffle(arr){
+  const copy = [...arr];
+
+  for(let i=copy.length-1;i>0;i--){
+    const j = rnd(i+1);
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+
+  return copy;
+}
+
+async function next(){
+  if(ending) return;
+
+  if(qnum >= TOTAL){
+    await end();
+    return;
+  }
+
   qnum++;
   locked = false;
-  document.getElementById('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.text); // no repeats
-  document.getElementById('question').textContent = q.text;
-  const grid = document.getElementById('answers');
-  grid.innerHTML = '';
-  for (const s of shuffle(['>', '<', '='])) {
-    const btn = document.createElement('button');
-    btn.className = 'game-btn';
-    btn.innerHTML = `<span dir="ltr" style="font-size:1.6em">${s}</span>`;
-    btn.onclick = () => answer(s, btn);
-    grid.appendChild(btn);
-  }
-  timer.start(IAKidsTimer.secondsFor(lvl));
+
+  $('qnum').textContent = qnum;
+
+  const lvl =
+    level === 0
+      ? 1 + rnd(3)
+      : diff.level;
+
+  const q =
+    await game.newQuestion(
+      ()=>makeQuestion(lvl),
+      item=>item.text
+    );
+
   window._sign = q.sign;
+
+  IAKidsActivity.questionStarted();
+
+  $('question').textContent = q.text;
+
+  const grid = $('answers');
+  grid.innerHTML = '';
+
+  for(const sign of shuffle(['>','<','='])){
+    const button =
+      document.createElement('button');
+
+    button.className = 'game-btn';
+
+    button.innerHTML =
+      `<span dir="ltr">${sign}</span>`;
+
+    button.onclick =
+      ()=>answer(sign,button);
+
+    grid.appendChild(button);
+  }
+
+  timer.start(
+    IAKidsTimer.secondsFor(lvl)
+  );
 }
 
-function answer(said, btn) {
-  if (locked) return;
+async function answer(said,button){
+  if(locked || ending) return;
+
   locked = true;
   timer.stop();
-  if (said === window._sign) {
-    score += 10; right++;
+
+  document.querySelectorAll('#answers .game-btn')
+    .forEach(btn=>btn.disabled = true);
+
+  if(said === window._sign){
+    score += 10;
+    right++;
+
     diff.right();
-    IAKidsFX.correct(btn);
-    IAKidsCoins.right(btn);
-  } else {
+
+    IAKidsActivity.correct();
+
+    IAKidsFX.correct(button);
+    await IAKidsCoins.right(button);
+
+  }else{
+    mistakes++;
+
     diff.wrong();
-    IAKidsFX.wrong(btn);
-    IAKidsCoins.wrong();
+
+    IAKidsActivity.wrong();
+
+    if(button){
+      IAKidsFX.wrong(button);
+    }
+
+    await IAKidsCoins.wrong();
   }
-  document.getElementById('score').textContent = score;
-  setTimeout(next, 600);
+
+  $('score').textContent = score;
+
+  setTimeout(async()=>{
+    await next();
+  },550);
 }
 
-async function end() {
-  await game.saveScore(score, { level, rounds: TOTAL, right });
-  const top = (await game.getHighScores(1))[0];
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('best').textContent = top?.score ?? score;
-  document.getElementById('player-line').textContent =
-    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  document.getElementById('stars').textContent =
-    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
-  game.shareButton(score, document.getElementById('share-slot'));
+async function handleTimeout(){
+  if(locked || ending) return;
+
+  locked = true;
+  timer.stop();
+  timeouts++;
+
+  document.querySelectorAll('#answers .game-btn')
+    .forEach(btn=>btn.disabled = true);
+
+  diff.wrong();
+
+  IAKidsActivity.skipped();
+
+  await IAKidsCoins.wrong();
+
+  setTimeout(async()=>{
+    await next();
+  },550);
+}
+
+async function end(){
+  if(ending) return;
+
+  ending = true;
+  timer?.stop();
+
+  const maxScore = TOTAL * 10;
+
+  const accuracy =
+    right /
+    Math.max(
+      1,
+      right + mistakes + timeouts
+    );
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      rounds:TOTAL,
+      right,
+      mistakes,
+      timeouts
+    }
+  );
+
+  const top =
+    (await game.getHighScores(1))[0];
+
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        'he-IL',
+        {
+          dateStyle:'short',
+          timeStyle:'short'
+        }
+      )
+    }`;
+
+  $('stars').textContent =
+    '⭐'.repeat(
+      accuracy >= .9
+        ? 3
+        : accuracy >= .6
+          ? 2
+          : 1
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+
+      performanceScore:
+        Math.round(
+          accuracy * 100
+        ),
+
+      metadata:{
+        game_mode:'compare-numbers',
+        selected_level:level,
+        random_difficulty:level === 0,
+        total_rounds:TOTAL,
+        correct_answers:right,
+        mistakes,
+        timeouts,
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD,
+        timer_enabled:true
+      }
+    }
+  );
+
+  game.shareButton(
+    score,
+    $('share-slot')
+  );
+
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
