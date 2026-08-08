@@ -1,1 +1,198 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עשרות ויחידות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+</head>
+<body>
 
+<div class="game-hud">
+  <span class="score"><span data-ui="score"></span>: <span id="score">0</span></span>
+  <span><span data-ui="question"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🔟</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="tagline"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5)">5</button>
+      <button class="game-btn success" onclick="setRounds(10)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div class="game-question" id="question"></div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span data-ui="your_best"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+/*GEN*/
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ltr = s => `<span dir="ltr">${s}</span>`;
+const T = d => IAKidsLang.t(d);
+
+const STR = {
+  title:   { he: 'עשרות ויחידות', en: 'Tens & Units', es: 'Decenas y unidades', de: 'Zehner und Einer', pt: 'Dezenas e unidades' },
+  tagline: { he: 'מפרקים מספרים למאות, עשרות ויחידות!', en: 'Break numbers into hundreds, tens and units!', es: '¡Descompón números en centenas, decenas y unidades!', de: 'Zerlege Zahlen in Hunderter, Zehner und Einer!', pt: 'Decomponha números em centenas, dezenas e unidades!' },
+  rounds:  { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
+  howMany: { he: 'כמה <b>{p}</b> יש במספר {n}?', en: 'How many <b>{p}</b> in {n}?', es: '¿Cuántas <b>{p}</b> hay en {n}?', de: 'Wie viele <b>{p}</b> hat {n}?', pt: 'Quantas <b>{p}</b> há em {n}?' },
+  decomp:  { he: 'איך מפרקים נכון את המספר {n}?', en: 'Which is the correct breakdown of {n}?', es: '¿Cuál es la descomposición correcta de {n}?', de: 'Was ist die richtige Zerlegung von {n}?', pt: 'Qual é a decomposição correta de {n}?' },
+  hundreds:{ he: 'מאות', en: 'hundreds', es: 'centenas', de: 'Hunderter', pt: 'centenas' },
+  tens:    { he: 'עשרות', en: 'tens', es: 'decenas', de: 'Zehner', pt: 'dezenas' },
+  units:   { he: 'יחידות', en: 'units', es: 'unidades', de: 'Einer', pt: 'unidades' },
+};
+
+function makeQuestion(lvl) {
+  if (lvl === 3) { // פירוק מפורק: 456 = 400+50+6 (כל הספרות ≥ 1 כדי שהפירוק יהיה נקי)
+    const h = 1 + rnd(9), t = 1 + rnd(9), u = 1 + rnd(9);
+    const n = h * 100 + t * 10 + u;
+    const mk = (a, b, c) => `${a}+${b}+${c}`;
+    const answer = mk(h * 100, t * 10, u);
+    const dis = [mk(h * 100, t, u), mk(h * 10, t * 10, u), mk(h * 100, t * 10, u * 10)];
+    const options = shuffle([answer, ...dis]).map(v => ({ html: ltr(v), ok: v === answer }));
+    return { html: T(STR.decomp).replace('{n}', ltr(n)), options, answer, n, place: 'decomp', key: 'd:' + n };
+  }
+  const n = lvl === 2 ? 100 + rnd(900) : 10 + rnd(90);
+  const places = lvl === 2 ? ['hundreds', 'tens', 'units'] : ['tens', 'units'];
+  const place = places[rnd(places.length)];
+  const digits = { hundreds: Math.floor(n / 100) % 10, tens: Math.floor(n / 10) % 10, units: n % 10 };
+  const answer = digits[place];
+  const dis = [];
+  for (const d of shuffle([...Object.values(digits), answer + 1, answer - 1, answer + 2]))
+    if (dis.length < 3 && d >= 0 && d <= 9 && d !== answer && !dis.includes(d)) dis.push(d);
+  while (dis.length < 3) { const d = rnd(10); if (d !== answer && !dis.includes(d)) dis.push(d); }
+  const options = shuffle([answer, ...dis]).map(v => ({ html: ltr(String(v)), ok: v === answer }));
+  return { html: T(STR.howMany).replace('{p}', T(STR[place])).replace('{n}', ltr(n)), options, answer, n, place, key: place + ':' + n };
+}
+/*END GEN*/
+
+const SLUG = 'tens-units';
+let game, score = 0, qnum = 0, current, level = 1, locked = false, started = false;
+let TOTAL = 10, roundsPicked = false, diff, timer;
+
+document.getElementById('title').textContent = T(STR.title);
+document.getElementById('tagline').textContent = T(STR.tagline);
+document.getElementById('rounds-label').textContent = T(STR.rounds);
+document.getElementById('again').textContent = IAKidsLang.ui('play_again');
+document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
+for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
+  document.querySelector(`[data-lvl="${l}"]`).textContent = IAKidsLang.ui(k);
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'tens-units',
+  how: 'מופיע מספר ושאלה: כמה עשרות, יחידות או מאות יש בו? בוחרים את התשובה הנכונה לפני שהפצצה מתפוצצת! 💣',
+  example: 'כמה עשרות יש במספר <span dir="ltr"><b>45</b></span>? ← בוחרים 4',
+});
+(async () => { // ברירות מחדל שמורות: סיבובים + רמז לרמה האחרונה
+  game = await IAKidsGame.init(SLUG);
+  const p = await game.loadProgress();
+  if (started) return;
+  if (p?.rounds && !roundsPicked) setRoundsUI(p.rounds);
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+})();
+
+function setRoundsUI(n) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => { // outline מנצח את success ב-CSS — מחליפים ביניהם
+    const on = +b.textContent === n;
+    b.classList.toggle('success', on);
+    b.classList.toggle('outline', !on);
+  });
+}
+function setRounds(n) { roundsPicked = true; setRoundsUI(n); }
+
+const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) document.getElementById(s).hidden = s !== id; };
+
+async function start(lvl) {
+  started = true;
+  game ||= await IAKidsGame.init(SLUG);
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => answer(-1, null) });
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  document.getElementById('qnum').textContent = qnum;
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  current = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
+  document.getElementById('question').innerHTML = current.html;
+  const box = document.getElementById('answers');
+  box.innerHTML = '';
+  current.options.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'game-btn';
+    b.innerHTML = o.html;
+    b.onclick = () => answer(i, b);
+    box.appendChild(b);
+  });
+  locked = false;
+  timer.start(IAKidsTimer.secondsFor(lvl));
+}
+
+function answer(i, btn) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  const ok = !!current.options[i]?.ok;
+  if (ok) {
+    score += 10;
+    diff.right();
+    IAKidsFX.correct(btn);
+    IAKidsCoins.right(btn);
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(btn);
+    IAKidsCoins.wrong();
+    const okIdx = current.options.findIndex(o => o.ok);
+    document.getElementById('answers').children[okIdx]?.classList.add('correct'); // מראים את הנכונה
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, ok ? 600 : 1200);
+}
+
+async function end() {
+  await game.saveScore(score, { level, rounds: TOTAL });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  document.getElementById('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
