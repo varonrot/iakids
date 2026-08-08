@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <title>חבר ללימודים AI – סביבת למידה</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+(function () {
+
+  const isWindows =
+    navigator.userAgent.includes("Windows");
+
+  const isDesktop =
+    window.innerWidth >= 1200;
+
+  if (isWindows && isDesktop) {
+    document.documentElement.classList.add(
+      "windows-workspace"
+    );
+  }
+
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,6 +33,31 @@
 <style>
 
 *{box-sizing:border-box}
+/* =====================================================
+   INITIAL PAGE LOAD — PREVENT WHITE FLASH
+===================================================== */
+
+html{
+  background:#020916;
+}
+
+body{
+  background:#020916 !important;
+}
+
+/* האפליקציה מוסתרת עד שה-JS סיים לאתחל */
+.app{
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* אחרי שהכול מוכן */
+body.app-ready .app{
+  opacity:1 !important;
+  visibility:visible !important;
+
+  transition:opacity .18s ease;
+}
 :root{
   --purple:#7048ff;--purple2:#9368ff;--ink:#172052;--muted:#78819f;
   --line:#e9e8f4;--bg:#f5f7ff;--card:#fff;
@@ -727,7 +769,7 @@ body{
   font-size:32px !important;
   font-weight:400 !important;
   line-height:1.7 !important;
-  color:#26314f !important;
+  color:#ffffff !important;
 }
 
 /* תשובה חיובית */
@@ -11166,6 +11208,23 @@ body.science-hierarchy-mode
 #scienceHierarchyView{
   display:block !important;
 }
+/* =====================================================
+   WINDOWS WORKSPACE — TRUE 80% VIEW
+===================================================== */
+
+html.windows-workspace .app{
+  position:fixed !important;
+
+  top:0 !important;
+  left:0 !important;
+
+  width:125vw !important;
+  height:125vh !important;
+
+  zoom:0.80 !important;
+
+  margin:0 !important;
+}
 </style>
 </head>
 <body>
@@ -11527,7 +11586,7 @@ data-kingdom="snow"
       ></span>
     </span>
 
-    <b>כניסה →</b>
+    <b>כניסה2 →</b>
   </span>
 
 </button>
@@ -14048,16 +14107,88 @@ function renderLearningPathSidebar(
       טוענת את המסלול החדש
       */
 
-      button.onclick =
-        () => {
+button.onclick =
+  async () => {
 
-          loadLearningPath(
-            grade,
-            subject,
-            item.category
-          );
+    /* =========================================
+       במדעים עובדים עם ההיררכיה החדשה
+    ========================================= */
 
-        };
+    if(
+      subject === "מדעים"
+    ){
+
+      console.log(
+        "SCIENCE SIDEBAR CATEGORY:",
+        item.category
+      );
+
+
+      SCIENCE_SELECTED_CATEGORY =
+        item.category;
+
+
+      /* סימון הכפתור שנבחר */
+
+      sidebar
+        .querySelectorAll(
+          ".learning-path-sidebar-item"
+        )
+        .forEach(
+          btn => {
+            btn.classList.remove(
+              "active"
+            );
+          }
+        );
+
+
+      button.classList.add(
+        "active"
+      );
+
+
+      /* משאירים את מסך המדעים פתוח */
+
+      document.body.classList.add(
+        "science-hierarchy-mode"
+      );
+
+
+      const scienceView =
+        document.getElementById(
+          "scienceHierarchyView"
+        );
+
+
+      if(scienceView){
+        scienceView.style.display =
+          "block";
+      }
+
+
+      /* מחליפים רמה 2 לפי הקטגוריה */
+
+      await loadScienceParentLessons(
+        item.category
+      );
+
+
+      return;
+    }
+
+
+    /* =========================================
+       שאר המקצועות ממשיכים במערכת הישנה
+    ========================================= */
+
+    loadLearningPath(
+      grade,
+      subject,
+      item.category
+    );
+
+  };
 
 
       sidebar.appendChild(
@@ -23334,6 +23465,18 @@ document.addEventListener(
 
     showDashboard();
 
+    requestAnimationFrame(() => {
+
+      requestAnimationFrame(() => {
+
+        document.body.classList.add(
+          "app-ready"
+        );
+
+      });
+
+    });
+
   }
 );
 
@@ -23385,7 +23528,7 @@ document.addEventListener(
   font-family:"Gveret Levin", cursive !important;
   font-size:34px;
   line-height:1.6;
-  color:#26314f;
+  color:#ffffff;
 
   padding:3px 8px;
 
@@ -28322,9 +28465,7 @@ div{
   min-height:
     52px;
 
-  padding:
-    6px
-    7px;
+  padding:6px 18px 6px 7px;
 
   display:flex;
 
@@ -28822,6 +28963,11 @@ div{
 
   font-size:
     8px;
+}
+/* הזזת הטקסט בכרטיסי "מומלץ עבורך" מעט שמאלה */
+#scienceRecommendations
+.science-recommend-item > span{
+  transform:translateX(-12px);
 }
 </style>
 
@@ -31501,7 +31647,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Renderer V1";
+      "▶ Rotem V12";
 
 
     document.body.appendChild(
@@ -31951,7 +32097,7 @@ const SCIENCE_RECOMMENDATIONS = [
   },
 
   {
-    title:"השפעת האדם על הסביבה",
+    title:"האדם וסביבה",
     duration:"20 דקות",
     image:"/assets/science/sidebar/pollution.webp"
   },
@@ -32385,8 +32531,17 @@ async function loadScienceCategories(){
     הקטגוריה הראשונה במסד.
   */
 
-  SCIENCE_SELECTED_CATEGORY =
-    categories[0].category;
+const defaultScienceCategory =
+  categories.find(
+    item =>
+      item.category === "אקולוגיה"
+  );
+
+
+SCIENCE_SELECTED_CATEGORY =
+  defaultScienceCategory
+    ? defaultScienceCategory.category
+    : categories[0].category;
 
 
   renderScienceCategoryLevel(
@@ -32767,127 +32922,125 @@ async function loadScienceParentLessons(
   `;
 
 
-  tree.appendChild(
-    level
-  );
-
-
-  /* =================================================
-     לחיצה על רמה 2
-  ================================================= */
-
+tree.appendChild(
   level
-    .querySelectorAll(
-      "[data-parent-lesson-id]"
-    )
-    .forEach(button => {
+);
 
-      button.addEventListener(
-        "click",
-        async () => {
 
-          const parentLessonId =
-            Number(
-              button.dataset
-                .parentLessonId
+/* =====================================================
+   לחיצה על נושא = פתיחת שכבה 3
+===================================================== */
+
+level
+  .querySelectorAll(
+    "[data-parent-lesson-id]"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      async () => {
+
+        const parentLessonId =
+          Number(
+            button.dataset
+              .parentLessonId
+          );
+
+
+        const parentLesson =
+          (data || []).find(
+            item =>
+              Number(item.id) ===
+              parentLessonId
+          );
+
+
+        if(!parentLesson){
+          return;
+        }
+
+
+        CURRENT_PARENT_LESSON = {
+          ...parentLesson,
+          subject:"מדעים",
+          category
+        };
+
+
+        /* מסמנים את הכרטיס הפעיל */
+
+        level
+          .querySelectorAll(
+            "[data-parent-lesson-id]"
+          )
+          .forEach(card => {
+
+            card.classList.remove(
+              "selected"
             );
 
-
-          const parentLesson =
-            (data || [])
-              .find(
-                item =>
-                  Number(item.id)
-                  ===
-                  parentLessonId
-              );
+          });
 
 
-          if(!parentLesson){
-            return;
-          }
+        button.classList.add(
+          "selected"
+        );
 
 
-          /*
-            חשוב:
-            startSelectedUnitLesson משתמש
-            ב-CURRENT_PARENT_LESSON
-          */
+        /* מוחקים שכבות 3–4 קודמות */
 
-          CURRENT_PARENT_LESSON = {
-            ...parentLesson,
-            subject:"מדעים",
-            category
-          };
+        document
+          .getElementById(
+            "scienceLevel3"
+          )
+          ?.remove();
 
 
-          level
-            .querySelectorAll(
-              "[data-parent-lesson-id]"
-            )
-            .forEach(card => {
-
-              card.classList.remove(
-                "selected"
-              );
-
-            });
+        document
+          .getElementById(
+            "scienceLevel4"
+          )
+          ?.remove();
 
 
-          button.classList.add(
-            "selected"
-          );
+        /* פתיחת שכבה 3 */
 
+        await loadScienceUnits(
+          parentLesson
+        );
 
-          /*
-            מנקים רק רמות 3 ו-4
-          */
-
-          document
-            .getElementById(
-              "scienceLevel3"
-            )
-            ?.remove();
-
-          document
-            .getElementById(
-              "scienceLevel4"
-            )
-            ?.remove();
-
-
-          await loadScienceUnits(
-            parentLesson
-          );
-
-        }
-      );
-
-    });
-
-
-  /*
-    ברירת מחדל:
-    פותחים אוטומטית את הנושא הראשון
-    כדי שהשטח למטה לא יהיה ריק.
-  */
-
-  if(data?.length){
-
-    CURRENT_PARENT_LESSON = {
-      ...data[0],
-      subject:"מדעים",
-      category
-    };
-
-
-    await loadScienceUnits(
-      CURRENT_PARENT_LESSON
+      }
     );
 
-  }
+  });
+
+
+/* =====================================================
+   ברירת מחדל:
+   פותחים את הנושא הראשון
+===================================================== */
+
+if(
+  data &&
+  data.length > 0
+){
+
+  CURRENT_PARENT_LESSON = {
+    ...data[0],
+    subject:"מדעים",
+    category
+  };
+
+
+  await loadScienceUnits(
+    data[0]
+  );
 
 }
+
+}
+
 
 
 /* =====================================================
@@ -32977,7 +33130,15 @@ async function loadScienceUnits(
   */
 
   const units = [];
-
+console.log(
+  "SCIENCE LEVEL 3 RAW DATA:",
+  {
+    parentLessonId: parentLesson.id,
+    parentLessonName: parentLesson.lesson_name,
+    rows: data,
+    error
+  }
+);
   const seenUnits =
     new Set();
 
@@ -33024,7 +33185,10 @@ async function loadScienceUnits(
     )
     ?.remove();
 
-
+console.log(
+  "SCIENCE LEVEL 3 UNITS:",
+  units
+);
   if(
     units.length === 0
   ){
@@ -33402,92 +33566,133 @@ async function loadScienceUnitLessons(
   tree.appendChild(
     level
   );
+/* =====================================================
+   לחיצה על שיעור ברמה 5
+   פתיחת מנגנון השיעור הקיים
+===================================================== */
 
+level
+  .querySelectorAll(
+    "[data-unit-lesson-id]"
+  )
+  .forEach(button => {
 
-  /* =================================================
-     לחיצה על שיעור = פתיחת מנגנון השיעור הקיים
-  ================================================= */
+    button.addEventListener(
+      "click",
+      async () => {
 
-  level
-    .querySelectorAll(
-      "[data-unit-lesson-id]"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        async () => {
-
-          const unitLessonId =
-            Number(
-              button.dataset
-                .unitLessonId
-            );
-
-
-          const lesson =
-            data.find(
-              item =>
-                Number(item.id)
-                ===
-                unitLessonId
-            );
-
-
-          if(!lesson){
-            return;
-          }
-
-
-          /*
-            מוודאים שהגלובלים הישנים
-            מוכנים בדיוק כמו במסלול הקודם.
-          */
-
-          CURRENT_PARENT_LESSON = {
-            ...parentLesson,
-            subject:"מדעים",
-            category:
-              SCIENCE_SELECTED_CATEGORY
-          };
-
-
-          CURRENT_UNIT = {
-            unit_order:
-              unit.unit_order,
-
-            unit_name:
-              unit.unit_name
-          };
-
-
-          console.log(
-            "SCIENCE START UNIT LESSON:",
-            {
-              parent:
-                CURRENT_PARENT_LESSON,
-
-              unit:
-                CURRENT_UNIT,
-
-              lesson
-            }
+        const unitLessonId =
+          Number(
+            button.dataset.unitLessonId
           );
 
 
-          /*
-            כאן מתחבר ישירות למנגנון
-            השיעור שכבר קיים באתר.
-          */
-
-          await startSelectedUnitLesson(
-            lesson
+        const lesson =
+          (data || []).find(
+            item =>
+              Number(item.id) === unitLessonId
           );
 
+
+        if(!lesson){
+          console.error(
+            "SCIENCE LESSON NOT FOUND:",
+            unitLessonId
+          );
+
+          return;
         }
-      );
 
-    });
+
+        /* =========================================
+           מכינים את המשתנים שהמסלול הישן מצפה להם
+        ========================================= */
+
+        CURRENT_PARENT_LESSON = {
+          ...parentLesson,
+          subject: "מדעים",
+          category: SCIENCE_SELECTED_CATEGORY
+        };
+
+
+        CURRENT_UNIT = {
+          unit_order: unit.unit_order,
+          unit_name: unit.unit_name
+        };
+
+
+        console.log(
+          "SCIENCE OPEN LESSON:",
+          {
+            category:
+              SCIENCE_SELECTED_CATEGORY,
+
+            parentLesson:
+              CURRENT_PARENT_LESSON,
+
+            unit:
+              CURRENT_UNIT,
+
+            lesson
+          }
+        );
+
+
+        /* =========================================
+           פתיחת השיעור בדיוק דרך המנוע הישן
+        ========================================= */
+
+/* =====================================================
+   יוצאים ממצב עץ המדעים לפני פתיחת השיעור
+===================================================== */
+
+document.body.classList.remove(
+  "science-hierarchy-mode"
+);
+
+
+const scienceView =
+  document.getElementById(
+    "scienceHierarchyView"
+  );
+
+if(scienceView){
+  scienceView.style.display = "none";
+}
+
+
+const dashboard =
+  document.getElementById(
+    "dashboardView"
+  );
+
+if(dashboard){
+  dashboard.style.display = "none";
+}
+
+
+const pathView =
+  document.getElementById(
+    "learningPathView"
+  );
+
+if(pathView){
+  pathView.style.display = "none";
+}
+
+
+/* עכשיו מותר למנוע השיעור לפתוח את learningView */
+
+await startSelectedUnitLesson(
+  lesson
+);
+
+      }
+    );
+
+  });
+
+
 
 }
 
