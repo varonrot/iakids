@@ -16,6 +16,19 @@
   .exercise { font-size: 2rem; font-weight: 800; margin: 10px 0 4px; }
   .level-picked { outline: 4px solid var(--yellow); }
 </style>
+
+<style id="premium">
+body{margin:0!important;min-height:100vh!important;padding:86px 18px 28px!important;overflow-x:hidden;color:#f7f9ff!important;font-family:"Heebo","Segoe UI",Arial,sans-serif!important;background:radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important}
+*{box-sizing:border-box}.game-card{width:min(560px,calc(100vw - 28px))!important;min-height:690px;margin:0 auto!important;padding:0!important;overflow:hidden;border:1px solid rgba(119,176,255,.27)!important;border-radius:28px!important;background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;box-shadow:0 28px 75px rgba(0,8,28,.48)!important}
+.game-hud{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:20;min-height:72px;padding:16px 24px!important;display:flex!important;align-items:center;justify-content:center!important;gap:42px;color:#fff!important;background:rgba(5,18,46,.88)!important;border-bottom:1px solid rgba(126,180,255,.18);backdrop-filter:blur(14px)}
+.game-hud .score{color:#ffd15c!important}#start-screen,#play-screen,#end-screen{min-height:688px;padding:34px 30px 30px}#start-screen{display:flex;flex-direction:column;align-items:center;text-align:center}.game-title{font-size:clamp(2.15rem,7vw,3.1rem)!important;color:#fff!important}
+#t-desc{max-width:420px;color:#b8c7e3!important;font-weight:600;line-height:1.65}.game-btn{min-height:54px;border-radius:15px!important;border:1px solid rgba(118,176,255,.34)!important;color:#fff!important;font-weight:900!important;background:linear-gradient(180deg,#1c91db,#0877bd)!important}.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important}.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64)!important}
+.exercise{min-height:82px;display:flex;align-items:center;justify-content:center;margin:4px 0 14px!important;padding:10px 16px;border-radius:20px;color:#fff;font-size:clamp(2rem,7vw,3rem)!important;font-weight:1000!important;background:rgba(4,22,55,.5);border:1px solid rgba(116,177,255,.18)}
+#axis-wrap{padding:12px 10px 6px;border-radius:22px;background:rgba(4,22,55,.46);border:1px solid rgba(116,177,255,.18)}.tick-label{fill:#c7d7ef!important}.tick-label.start{fill:#67c6ff!important}.hop-row{gap:10px!important}.level-picked{outline:4px solid #ffd15c}
+#end-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}[hidden]{display:none!important}
+@media(max-width:600px){body{padding:74px 10px 18px!important}.game-card{min-height:calc(100vh - 94px);border-radius:22px!important}#start-screen,#play-screen,#end-screen{min-height:calc(100vh - 96px);padding:26px 15px 24px}.game-hud{min-height:62px;padding:12px 14px!important;gap:24px}}
+</style>
+
 </head>
 <body>
 
@@ -35,7 +48,7 @@
       <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
     </div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+    <p id="level-label"></p><div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
@@ -67,175 +80,24 @@
 
 <script src="../game-sdk.js"></script>
 <script>
-const SLUG = 'number-line-jumps';
-let game, diff, score = 0, qnum = 0, level = 1, TOTAL = 10;
-let cur = null, pos = 0, locked = false;
-const $ = id => document.getElementById(id);
-const rnd = n => Math.floor(Math.random() * n);
-IAKidsCoins.mount();
-IAKidsHelp.mount({
-  slug: 'number-line-jumps',
-  how: 'עוזרים לצפרדע לקפוץ על ציר המספרים: לוחצים "קדימה" או "אחורה" לפי התרגיל, ובסוף "בדוק".',
-  example: 'מתחילים ב-5, התרגיל <span dir="ltr"><b>5 + 3</b></span> ← קופצים 3 קדימה ונוחתים על <b>8</b>',
-});
-
-// UI strings (he/en/es/de/pt) — shared keys via data-ui, game-specific below
-const T = {
-  title: { he: 'ציר המספרים', en: 'Number Line Jumps', es: 'Saltos en la recta', de: 'Zahlenstrahl-Sprünge', pt: 'Saltos na reta' },
-  desc:  { he: 'הקפץ את הצפרדע קדימה ואחורה עד לתוצאת התרגיל!', en: 'Hop the frog forward and back to the answer!', es: '¡Salta con la rana hasta el resultado!', de: 'Hüpfe mit dem Frosch zum Ergebnis!', pt: 'Pule com o sapo até o resultado!' },
-  rounds:{ he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
-  back:  { he: '⬅ אחורה', en: '⬅ Back', es: '⬅ Atrás', de: '⬅ Zurück', pt: '⬅ Voltar' },
-  fwd:   { he: 'קדימה ➡', en: 'Forward ➡', es: 'Adelante ➡', de: 'Vorwärts ➡', pt: 'Avançar ➡' },
-  check: { he: 'בדוק ✓', en: 'Check ✓', es: 'Comprobar ✓', de: 'Prüfen ✓', pt: 'Verificar ✓' },
-};
-document.querySelectorAll('[data-ui]').forEach(el => {
-  const k = el.dataset.ui;
-  el.textContent = IAKidsLang.ui(k);
-});
-$('t-title').textContent = IAKidsLang.t(T.title);
-document.title = IAKidsLang.t(T.title) + ' | iakids';
-$('t-desc').textContent = IAKidsLang.t(T.desc);
-$('t-rounds').textContent = IAKidsLang.t(T.rounds);
-$('btn-back').textContent = IAKidsLang.t(T.back);
-$('btn-fwd').textContent = IAKidsLang.t(T.fwd);
-$('btn-check').textContent = IAKidsLang.t(T.check);
-
-function setRounds(n, btn) {
-  TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
-  btn.classList.add('success');
-}
-
-// preselect last rounds + level from saved progress
-(async () => {
-  game = await IAKidsGame.init(SLUG);
-  const p = await game.loadProgress();
-  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [data-r="${p.rounds}"]`) || $('rounds-row').children[1]);
-  if (p?.lastLevel != null) document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
-})();
-
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
-};
-
-async function start(lvl) {
-  game = game || await IAKidsGame.init(SLUG);
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  if (!document.querySelector('#rounds-row .success')) setRounds(TOTAL, $('rounds-row').children[1]);
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  $('qtotal').textContent = TOTAL;
-  show('play-screen');
-  next();
-}
-
-/* levels: 1 = 0..20 forward only (X+a) · 2 = forward+back (X+a−b, stays 0..20) · 3 = negatives (−10..10) */
-function makeQuestion(lvl) {
-  if (lvl === 1) {
-    const x = rnd(14), a = 1 + rnd(7);
-    return { text: `${x} + ${a}`, x, ans: x + a, min: 0, max: 20 };
-  }
-  if (lvl === 2) {
-    const x = 3 + rnd(10), a = 1 + rnd(7), b = 1 + rnd(Math.min(7, x + a));
-    return { text: `${x} + ${a} − ${b}`, x, ans: x + a - b, min: 0, max: 20 };
-  }
-  // level 3 — negatives; retry until every stop stays on the line
-  while (true) {
-    const x = -6 + rnd(13), s1 = rnd(2) ? 1 : -1, s2 = rnd(2) ? 1 : -1;
-    const a = 1 + rnd(6), b = 1 + rnd(6);
-    const mid = x + s1 * a, ans = mid + s2 * b;
-    if (mid < -10 || mid > 10 || ans < -10 || ans > 10) continue;
-    return { text: `${x} ${s1 > 0 ? '+' : '−'} ${a} ${s2 > 0 ? '+' : '−'} ${b}`, x, ans, min: -10, max: 10 };
-  }
-}
-
-async function next() {
-  if (qnum >= TOTAL) return end();
-  qnum++;
-  locked = false;
-  $('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  cur = await game.newQuestion(() => makeQuestion(lvl), q => q.text);
-  pos = cur.x;
-  $('exercise').textContent = cur.text + ' = ?';
-  drawAxis();
-}
-
-/* ---- SVG number line ---- */
-const PAD = 28, W = 640, LINE_Y = 84;
-let step = 1, frogEl = null, frogX = 0;
-const xOf = n => PAD + (n - cur.min) * step;
-
-function drawAxis() {
-  step = (W - 2 * PAD) / (cur.max - cur.min);
-  let s = `<line x1="${PAD - 12}" y1="${LINE_Y}" x2="${W - PAD + 12}" y2="${LINE_Y}" stroke="#1f2937" stroke-width="3"/>`;
-  s += `<polygon points="${W - PAD + 12},${LINE_Y} ${W - PAD + 2},${LINE_Y - 6} ${W - PAD + 2},${LINE_Y + 6}" fill="#1f2937"/>`;
-  for (let n = cur.min; n <= cur.max; n++) {
-    const x = xOf(n);
-    s += `<line x1="${x}" y1="${LINE_Y - 6}" x2="${x}" y2="${LINE_Y + 6}" stroke="#1f2937" stroke-width="2"/>`;
-    s += `<text x="${x}" y="112" text-anchor="middle" class="tick-label${n === cur.x ? ' start' : ''}">${n}</text>`;
-  }
-  s += `<text id="ans-flash" text-anchor="middle" font-size="22" font-weight="800" y="30" visibility="hidden"></text>`;
-  s += `<text id="frog" text-anchor="middle" font-size="30" x="${xOf(cur.x)}" y="${LINE_Y - 8}">🐸</text>`;
-  $('axis').innerHTML = s;
-  frogEl = $('frog');
-  frogX = xOf(cur.x);
-}
-
-let anim = null;
-function hop(dir) {
-  if (locked) return;
-  const to = pos + dir;
-  if (to < cur.min || to > cur.max) { IAKidsFX._beep([[160, 0, 0.12]]); return; }
-  pos = to;
-  const from = frogX, target = xOf(pos), t0 = performance.now(), DUR = 170;
-  cancelAnimationFrame(anim);
-  const tick = now => {
-    const t = Math.min(1, (now - t0) / DUR);
-    frogX = from + (target - from) * t;
-    frogEl.setAttribute('x', frogX);
-    frogEl.setAttribute('y', LINE_Y - 8 - 26 * Math.sin(Math.PI * t));
-    if (t < 1) anim = requestAnimationFrame(tick);
-  };
-  anim = requestAnimationFrame(tick);
-  IAKidsFX._beep([[dir > 0 ? 620 : 440, 0, 0.06]]);
-}
-
-function check() {
-  if (locked) return;
-  locked = true;
-  const btn = $('btn-check');
-  if (pos === cur.ans) {
-    score += 10;
-    diff.right();
-    IAKidsFX.correct(btn);
-    IAKidsCoins.right(btn);
-  } else {
-    diff.wrong();
-    IAKidsFX.wrong(btn);
-    IAKidsCoins.wrong();
-    const f = $('ans-flash'); // show where the frog should have landed
-    f.setAttribute('x', xOf(cur.ans));
-    f.setAttribute('fill', 'var(--red)');
-    f.textContent = '⬇ ' + cur.ans;
-    f.setAttribute('visibility', 'visible');
-  }
-  $('score').textContent = score;
-  setTimeout(next, 1100);
-}
-
-async function end() {
-  await game.saveScore(score, { level });
-  const top = (await game.getHighScores(1))[0];
-  $('final-score').textContent = score;
-  $('best').textContent = top?.score ?? score;
-  $('player-line').textContent =
-    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
-  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
-  game.shareButton(score, $('share-slot'));
-  show('end-screen');
-  game.complete(score);
-}
+const SLUG='number-line-jumps',$=id=>document.getElementById(id),rnd=n=>Math.floor(Math.random()*n);
+const T0={title:{he:'ציר המספרים',en:'Number Line Jumps'},desc:{he:'הקפיצו את הצפרדע קדימה ואחורה עד לתוצאת התרגיל!',en:'Hop the frog forward and back to the answer!'},rounds:{he:'כמה שאלות?',en:'How many questions?'},level:{he:'בחרו רמת קושי',en:'Choose difficulty'},back:{he:'⬅ אחורה',en:'⬅ Back'},fwd:{he:'קדימה ➡',en:'Forward ➡'},check:{he:'בדוק ✓',en:'Check ✓'}};
+const T1={...T0,title:{he:'צִיר הַמִּסְפָּרִים',en:'Number Line Jumps'},desc:{he:'הַקְפִּיצוּ אֶת הַצְּפַרְדֵּעַ קָדִימָה וְאָחוֹרָה עַד לְתוֹצְאַת הַתַּרְגִּיל!',en:'Hop the frog forward and back to the answer!'},rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?'},level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},back:{he:'⬅ אָחוֹרָה',en:'⬅ Back'},fwd:{he:'קָדִימָה ➡',en:'Forward ➡'},check:{he:'בִּדְקוּ ✓',en:'Check ✓'}};
+let CHILD_AGE=null,USE_NIQQUD=false,TXT=T0,game,diff,score=0,qnum=0,level=1,TOTAL=10,cur=null,pos=0,locked=false,ending=false,correctAnswers=0,mistakes=0,hops=0,outOfBoundsAttempts=0;
+async function loadKidContext(){try{const kidId=localStorage.getItem('active_kid_id');if(!kidId)return;const client=await IAKidsActivity._getClient();const {data}=await client.from('kids_profiles').select('id, age').eq('id',kidId).maybeSingle();if(data){CHILD_AGE=Number(data.age);USE_NIQQUD=CHILD_AGE===1||CHILD_AGE===2}}catch(e){console.warn(e)}}
+function applyLanguage(){TXT=USE_NIQQUD?T1:T0;document.querySelectorAll('[data-ui]').forEach(el=>el.textContent=IAKidsLang.ui(el.dataset.ui));$('t-title').textContent=IAKidsLang.t(TXT.title);$('t-desc').textContent=IAKidsLang.t(TXT.desc);$('t-rounds').textContent=IAKidsLang.t(TXT.rounds);$('level-label').textContent=IAKidsLang.t(TXT.level);$('btn-back').textContent=IAKidsLang.t(TXT.back);$('btn-fwd').textContent=IAKidsLang.t(TXT.fwd);$('btn-check').textContent=IAKidsLang.t(TXT.check)}
+IAKidsCoins.mount();IAKidsHelp.mount({slug:SLUG,how:'עוזרים לצפרדע לקפוץ על ציר המספרים. לוחצים קדימה או אחורה עד שמגיעים לתוצאה ואז בודקים.',example:'מתחילים ב-5, התרגיל <span dir="ltr"><b>5 + 3</b></span> ← קופצים 3 קדימה ונוחתים על <b>8</b>'});
+function setRounds(n,btn){TOTAL=n;document.querySelectorAll('#rounds-row .game-btn').forEach(b=>b.classList.remove('success'));btn?.classList.add('success')}
+const ready=(async()=>{await loadKidContext();applyLanguage();game=await IAKidsGame.init(SLUG);const p=await game.loadProgress();if(p?.rounds)setRounds(p.rounds,document.querySelector(`#rounds-row [data-r="${p.rounds}"]`)||$('rounds-row').children[1]);if(p?.lastLevel!=null)document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked')})();
+const show=id=>['start-screen','play-screen','end-screen'].forEach(s=>$(s).hidden=s!==id);
+async function start(lvl){await ready;level=lvl;diff=game.difficulty(lvl||1,3);score=qnum=correctAnswers=mistakes=hops=outOfBoundsAttempts=0;ending=locked=false;$('score').textContent='0';$('qnum').textContent='1';$('qtotal').textContent=TOTAL;IAKidsActivity.configure({difficulty:lvl||1,questionsCount:TOTAL,metadata:{game_mode:SLUG,selected_level:lvl,random_difficulty:lvl===0,child_age:CHILD_AGE,uses_niqqud:USE_NIQQUD,timer_enabled:false}});await game.saveProgress({lastLevel:lvl,rounds:TOTAL});show('play-screen');await next()}
+function makeQuestion(lvl){if(lvl===1){const x=rnd(14),a=1+rnd(7);return{text:`${x} + ${a}`,x,ans:x+a,min:0,max:20}}if(lvl===2){const x=3+rnd(10),a=1+rnd(7),b=1+rnd(Math.min(7,x+a));return{text:`${x} + ${a} − ${b}`,x,ans:x+a-b,min:0,max:20}}while(true){const x=-6+rnd(13),s1=rnd(2)?1:-1,s2=rnd(2)?1:-1,a=1+rnd(6),b=1+rnd(6),mid=x+s1*a,ans=mid+s2*b;if(mid>=-10&&mid<=10&&ans>=-10&&ans<=10)return{text:`${x} ${s1>0?'+':'−'} ${a} ${s2>0?'+':'−'} ${b}`,x,ans,min:-10,max:10}}}
+async function next(){if(ending)return;if(qnum>=TOTAL)return end();qnum++;locked=false;$('qnum').textContent=qnum;const lvl=level===0?1+rnd(3):diff.level;cur=await game.newQuestion(()=>makeQuestion(lvl),q=>q.text);pos=cur.x;IAKidsActivity.questionStarted();$('exercise').textContent=cur.text+' = ?';drawAxis()}
+const PAD=28,W=640,LINE_Y=84;let step=1,frogEl=null,frogX=0,anim=null;const xOf=n=>PAD+(n-cur.min)*step;
+function drawAxis(){step=(W-2*PAD)/(cur.max-cur.min);let s=`<line x1="${PAD-12}" y1="${LINE_Y}" x2="${W-PAD+12}" y2="${LINE_Y}" stroke="#d7e3f7" stroke-width="3"/>`;s+=`<polygon points="${W-PAD+12},${LINE_Y} ${W-PAD+2},${LINE_Y-6} ${W-PAD+2},${LINE_Y+6}" fill="#d7e3f7"/>`;for(let n=cur.min;n<=cur.max;n++){const x=xOf(n);s+=`<line x1="${x}" y1="${LINE_Y-6}" x2="${x}" y2="${LINE_Y+6}" stroke="#d7e3f7" stroke-width="2"/>`;s+=`<text x="${x}" y="112" text-anchor="middle" class="tick-label${n===cur.x?' start':''}">${n}</text>`}s+=`<text id="ans-flash" text-anchor="middle" font-size="22" font-weight="900" y="30" visibility="hidden"></text><text id="frog" text-anchor="middle" font-size="30" x="${xOf(cur.x)}" y="${LINE_Y-8}">🐸</text>`;$('axis').innerHTML=s;frogEl=$('frog');frogX=xOf(cur.x)}
+function hop(dir){if(locked||ending)return;const to=pos+dir;if(to<cur.min||to>cur.max){outOfBoundsAttempts++;IAKidsFX._beep([[160,0,.12]]);return}pos=to;hops++;const from=frogX,target=xOf(pos),t0=performance.now(),DUR=170;cancelAnimationFrame(anim);const tick=now=>{const t=Math.min(1,(now-t0)/DUR);frogX=from+(target-from)*t;frogEl.setAttribute('x',frogX);frogEl.setAttribute('y',LINE_Y-8-26*Math.sin(Math.PI*t));if(t<1)anim=requestAnimationFrame(tick)};anim=requestAnimationFrame(tick);IAKidsFX._beep([[dir>0?620:440,0,.06]])}
+async function check(){if(locked||ending)return;locked=true;const ok=pos===cur.ans,btn=$('btn-check');if(ok){score+=10;correctAnswers++;diff.right();IAKidsActivity.correct();IAKidsFX.correct(btn);await IAKidsCoins.right(btn)}else{mistakes++;diff.wrong();IAKidsActivity.wrong();IAKidsFX.wrong(btn);await IAKidsCoins.wrong();const f=$('ans-flash');f.setAttribute('x',xOf(cur.ans));f.setAttribute('fill','#ff6d79');f.textContent='⬇ '+cur.ans;f.setAttribute('visibility','visible')}$('score').textContent=score;setTimeout(()=>next(),ok?650:1000)}
+async function end(){if(ending)return;ending=true;locked=true;const maxScore=TOTAL*10,accuracy=correctAnswers/Math.max(1,correctAnswers+mistakes);await game.saveScore(score,{level,correct:correctAnswers,mistakes,hops,out_of_bounds_attempts:outOfBoundsAttempts});const top=(await game.getHighScores(1))[0];$('final-score').textContent=score;$('best').textContent=top?.score??score;$('player-line').textContent=`${top?.player||IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}`;$('stars').textContent='⭐'.repeat(accuracy>=.9?3:accuracy>=.7?2:1);await game.complete(score,{maxScore,performanceScore:Math.round(accuracy*100),metadata:{game_mode:SLUG,selected_level:level,random_difficulty:level===0,total_rounds:TOTAL,correct_answers:correctAnswers,mistakes,hops,out_of_bounds_attempts:outOfBoundsAttempts,child_age:CHILD_AGE,uses_niqqud:USE_NIQQUD,timer_enabled:false}});game.shareButton(score,$('share-slot'));show('end-screen')}
 </script>
 </body>
 </html>
