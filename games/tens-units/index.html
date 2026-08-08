@@ -4,26 +4,271 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>עשרות ויחידות | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
+<style>
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-blue:#1693f1;
+  --space-green:#1ea96b;
+  --space-purple:#7653ff;
+  --space-gold:#ffd15c;
+}
+
+html,body{min-height:100%}
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  padding:86px 18px 28px !important;
+  overflow-x:hidden;
+  color:var(--space-text) !important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif !important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e) !important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(520px,calc(100vw - 28px)) !important;
+  min-height:690px;
+  margin:0 auto !important;
+  padding:0 !important;
+  overflow:hidden;
+  border:1px solid var(--space-line) !important;
+  border-radius:28px !important;
+  color:var(--space-text) !important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98)) !important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08) !important;
+}
+
+.game-hud{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px !important;
+  display:flex !important;
+  align-items:center;
+  justify-content:center !important;
+  gap:42px;
+  color:#fff !important;
+  background:rgba(5,18,46,.88) !important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{color:var(--space-gold) !important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.15rem,7vw,3.1rem) !important;
+  line-height:1.05;
+  color:#fff !important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#tagline{
+  max-width:420px;
+  margin:14px auto 20px;
+  color:var(--space-muted) !important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{
+  width:100%;
+  gap:12px !important;
+}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px !important;
+  border:1px solid rgba(118,176,255,.34) !important;
+  color:#fff !important;
+  font-weight:900 !important;
+  background:linear-gradient(180deg,#1c91db,#0877bd) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16) !important;
+}
+
+.game-btn:hover{transform:translateY(-2px)}
+.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75)) !important}
+.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64) !important;border-color:rgba(97,255,174,.6) !important}
+#level-row{margin-top:16px}
+#level-row .game-btn[data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc) !important}
+
+/* PLAY */
+#play-screen{position:relative}
+
+.game-question{
+  min-height:150px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:20px 0 24px;
+  padding:18px 20px;
+  border-radius:24px;
+  color:#fff !important;
+  font-size:clamp(1.45rem,5vw,2.1rem) !important;
+  font-weight:900;
+  text-align:center;
+  line-height:1.55;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(66,169,255,.15),transparent 50%),
+    rgba(4,22,55,.48);
+  border:1px solid rgba(116,177,255,.18);
+}
+
+#answers{
+  grid-template-columns:1fr 1fr !important;
+}
+
+#answers .game-btn{
+  min-height:74px;
+  font-size:1.3rem !important;
+}
+
+#answers .game-btn.correct{
+  background:linear-gradient(180deg,#37d182,#16ad64) !important;
+}
+
+#answers .game-btn:disabled{
+  opacity:.74;
+  cursor:default;
+}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem !important;
+  letter-spacing:4px;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff !important;
+  font-size:4rem !important;
+  font-weight:1000;
+}
+
+#player-line,#end-screen p{color:#d7e3f7 !important}
+#share-slot{margin-top:8px}
+[hidden]{display:none !important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px !important}
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px !important;
+  }
+
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px !important;
+    gap:24px;
+  }
+
+  .game-question{min-height:130px}
+  #answers .game-btn{min-height:66px;font-size:1.18rem !important}
+}
+</style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score"><span data-ui="score"></span>: <span id="score">0</span></span>
-  <span><span data-ui="question"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score">
+    <span data-ui="score"></span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span data-ui="question"></span>
+    <span id="qnum">1</span>/<span id="qtotal">10</span>
+  </span>
 </div>
 
 <div class="game-card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">🔟</div>
+    <div class="hero-icon">🔟🧩</div>
+
     <h1 class="game-title" id="title"></h1>
+
     <p id="tagline"></p>
-    <p id="rounds-label"></p>
+
+    <p class="section-label" id="rounds-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5)">5</button>
       <button class="game-btn success" onclick="setRounds(10)">10</button>
       <button class="game-btn outline" onclick="setRounds(15)">15</button>
     </div>
+
+    <p class="section-label" id="level-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
       <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
@@ -34,7 +279,7 @@
 
   <div id="play-screen" hidden>
     <div class="game-question" id="question"></div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="answers"></div>
+    <div class="answer-grid" id="answers"></div>
   </div>
 
   <div id="end-screen" class="end-screen" hidden>
@@ -45,153 +290,600 @@
     <button class="game-btn" id="again" onclick="location.reload()"></button>
     <div id="share-slot"></div>
   </div>
+
 </div>
 
 <script src="../game-sdk.js"></script>
+
 <script>
-/*GEN*/
 const rnd = n => Math.floor(Math.random() * n);
-const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const ltr = s => `<span dir="ltr">${s}</span>`;
 const T = d => IAKidsLang.t(d);
+const $ = id => document.getElementById(id);
 
-const STR = {
-  title:   { he: 'עשרות ויחידות', en: 'Tens & Units', es: 'Decenas y unidades', de: 'Zehner und Einer', pt: 'Dezenas e unidades' },
-  tagline: { he: 'מפרקים מספרים למאות, עשרות ויחידות!', en: 'Break numbers into hundreds, tens and units!', es: '¡Descompón números en centenas, decenas y unidades!', de: 'Zerlege Zahlen in Hunderter, Zehner und Einer!', pt: 'Decomponha números em centenas, dezenas e unidades!' },
-  rounds:  { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
-  howMany: { he: 'כמה <b>{p}</b> יש במספר {n}?', en: 'How many <b>{p}</b> in {n}?', es: '¿Cuántas <b>{p}</b> hay en {n}?', de: 'Wie viele <b>{p}</b> hat {n}?', pt: 'Quantas <b>{p}</b> há em {n}?' },
-  decomp:  { he: 'איך מפרקים נכון את המספר {n}?', en: 'Which is the correct breakdown of {n}?', es: '¿Cuál es la descomposición correcta de {n}?', de: 'Was ist die richtige Zerlegung von {n}?', pt: 'Qual é a decomposição correta de {n}?' },
-  hundreds:{ he: 'מאות', en: 'hundreds', es: 'centenas', de: 'Hunderter', pt: 'centenas' },
-  tens:    { he: 'עשרות', en: 'tens', es: 'decenas', de: 'Zehner', pt: 'dezenas' },
-  units:   { he: 'יחידות', en: 'units', es: 'unidades', de: 'Einer', pt: 'unidades' },
+function shuffle(arr){
+  const copy = [...arr];
+
+  for(let i=copy.length-1;i>0;i--){
+    const j = rnd(i+1);
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+
+  return copy;
+}
+
+const STR_REGULAR = {
+  title:{he:'עשרות ויחידות',en:'Tens & Units',es:'Decenas y unidades',de:'Zehner und Einer',pt:'Dezenas e unidades'},
+  tagline:{he:'מפרקים מספרים למאות, עשרות ויחידות!',en:'Break numbers into hundreds, tens and units!',es:'¡Descompón números en centenas, decenas y unidades!',de:'Zerlege Zahlen in Hunderter, Zehner und Einer!',pt:'Decomponha números em centenas, dezenas e unidades!'},
+  rounds:{he:'כמה שאלות?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'},
+  howMany:{he:'כמה <b>{p}</b> יש במספר {n}?',en:'How many <b>{p}</b> in {n}?',es:'¿Cuántas <b>{p}</b> hay en {n}?',de:'Wie viele <b>{p}</b> hat {n}?',pt:'Quantas <b>{p}</b> há em {n}?'},
+  decomp:{he:'איך מפרקים נכון את המספר {n}?',en:'Which is the correct breakdown of {n}?',es:'¿Cuál es la descomposición correcta de {n}?',de:'Was ist die richtige Zerlegung von {n}?',pt:'Qual é a decomposição correta de {n}?'},
+  hundreds:{he:'מאות',en:'hundreds',es:'centenas',de:'Hunderter',pt:'centenas'},
+  tens:{he:'עשרות',en:'tens',es:'decenas',de:'Zehner',pt:'dezenas'},
+  units:{he:'יחידות',en:'units',es:'unidades',de:'Einer',pt:'unidades'}
 };
 
-function makeQuestion(lvl) {
-  if (lvl === 3) { // פירוק מפורק: 456 = 400+50+6 (כל הספרות ≥ 1 כדי שהפירוק יהיה נקי)
-    const h = 1 + rnd(9), t = 1 + rnd(9), u = 1 + rnd(9);
-    const n = h * 100 + t * 10 + u;
-    const mk = (a, b, c) => `${a}+${b}+${c}`;
-    const answer = mk(h * 100, t * 10, u);
-    const dis = [mk(h * 100, t, u), mk(h * 10, t * 10, u), mk(h * 100, t * 10, u * 10)];
-    const options = shuffle([answer, ...dis]).map(v => ({ html: ltr(v), ok: v === answer }));
-    return { html: T(STR.decomp).replace('{n}', ltr(n)), options, answer, n, place: 'decomp', key: 'd:' + n };
-  }
-  const n = lvl === 2 ? 100 + rnd(900) : 10 + rnd(90);
-  const places = lvl === 2 ? ['hundreds', 'tens', 'units'] : ['tens', 'units'];
-  const place = places[rnd(places.length)];
-  const digits = { hundreds: Math.floor(n / 100) % 10, tens: Math.floor(n / 10) % 10, units: n % 10 };
-  const answer = digits[place];
-  const dis = [];
-  for (const d of shuffle([...Object.values(digits), answer + 1, answer - 1, answer + 2]))
-    if (dis.length < 3 && d >= 0 && d <= 9 && d !== answer && !dis.includes(d)) dis.push(d);
-  while (dis.length < 3) { const d = rnd(10); if (d !== answer && !dis.includes(d)) dis.push(d); }
-  const options = shuffle([answer, ...dis]).map(v => ({ html: ltr(String(v)), ok: v === answer }));
-  return { html: T(STR.howMany).replace('{p}', T(STR[place])).replace('{n}', ltr(n)), options, answer, n, place, key: place + ':' + n };
-}
-/*END GEN*/
+const STR_NIQQUD = {
+  title:{he:'עֲשָׂרוֹת וִיחִידוֹת',en:'Tens & Units',es:'Decenas y unidades',de:'Zehner und Einer',pt:'Dezenas e unidades'},
+  tagline:{he:'מְפָרְקִים מִסְפָּרִים לְמֵאוֹת, עֲשָׂרוֹת וִיחִידוֹת!',en:'Break numbers into hundreds, tens and units!',es:'¡Descompón números en centenas, decenas y unidades!',de:'Zerlege Zahlen in Hunderter, Zehner und Einer!',pt:'Decomponha números em centenas, dezenas e unidades!'},
+  rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},
+  howMany:{he:'כַּמָּה <b>{p}</b> יֵשׁ בַּמִּסְפָּר {n}?',en:'How many <b>{p}</b> in {n}?',es:'¿Cuántas <b>{p}</b> hay en {n}?',de:'Wie viele <b>{p}</b> hat {n}?',pt:'Quantas <b>{p}</b> há em {n}?'},
+  decomp:{he:'אֵיךְ מְפָרְקִים נָכוֹן אֶת הַמִּסְפָּר {n}?',en:'Which is the correct breakdown of {n}?',es:'¿Cuál es la descomposición correcta de {n}?',de:'Was ist die richtige Zerlegung von {n}?',pt:'Qual é a decomposição correta de {n}?'},
+  hundreds:{he:'מֵאוֹת',en:'hundreds',es:'centenas',de:'Hunderter',pt:'centenas'},
+  tens:{he:'עֲשָׂרוֹת',en:'tens',es:'decenas',de:'Zehner',pt:'dezenas'},
+  units:{he:'יְחִידוֹת',en:'units',es:'unidades',de:'Einer',pt:'unidades'}
+};
+
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+let STR = STR_REGULAR;
 
 const SLUG = 'tens-units';
+
 let game, score = 0, qnum = 0, current, level = 1, locked = false, started = false;
 let TOTAL = 10, roundsPicked = false, diff, timer;
+let correctAnswers = 0, mistakes = 0, timeouts = 0, ending = false;
 
-document.getElementById('title').textContent = T(STR.title);
-document.getElementById('tagline').textContent = T(STR.tagline);
-document.getElementById('rounds-label').textContent = T(STR.rounds);
-document.getElementById('again').textContent = IAKidsLang.ui('play_again');
-document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
-for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
-  document.querySelector(`[data-lvl="${l}"]`).textContent = IAKidsLang.ui(k);
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client = await IAKidsActivity._getClient();
+
+    const {data,error} = await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(error || !data){
+      console.warn('[tens-units] Kid profile was not loaded',error);
+      return;
+    }
+
+    CHILD_AGE = Number(data.age);
+    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+
+  }catch(error){
+    console.warn('[tens-units] loadKidContext error',error);
+  }
+}
+
+function applyLanguage(){
+  STR = USE_NIQQUD ? STR_NIQQUD : STR_REGULAR;
+
+  $('title').textContent = T(STR.title);
+  $('tagline').textContent = T(STR.tagline);
+  $('rounds-label').textContent = T(STR.rounds);
+  $('level-label').textContent = T(STR.level);
+  $('again').textContent = IAKidsLang.ui('play_again');
+
+  document.querySelectorAll('[data-ui]')
+    .forEach(el=>{
+      el.textContent = IAKidsLang.ui(el.dataset.ui);
+    });
+
+  for(const [lvl,key] of [
+    [1,'level_easy'],
+    [2,'level_medium'],
+    [3,'level_hard'],
+    [0,'level_random']
+  ]){
+    document.querySelector(`[data-lvl="${lvl}"]`).textContent =
+      IAKidsLang.ui(key);
+  }
+}
+
+function makeQuestion(lvl){
+  if(lvl === 3){
+    const h = 1 + rnd(9);
+    const t = 1 + rnd(9);
+    const u = 1 + rnd(9);
+
+    const n = h*100 + t*10 + u;
+
+    const mk = (a,b,c)=>
+      `${a}+${b}+${c}`;
+
+    const answer =
+      mk(h*100,t*10,u);
+
+    const distractors = [
+      mk(h*100,t,u),
+      mk(h*10,t*10,u),
+      mk(h*100,t*10,u*10)
+    ];
+
+    const options =
+      shuffle([
+        answer,
+        ...distractors
+      ]).map(value=>({
+        html:ltr(value),
+        ok:value === answer
+      }));
+
+    return {
+      html:T(STR.decomp).replace('{n}',ltr(n)),
+      options,
+      answer,
+      n,
+      place:'decomp',
+      key:`d:${n}`
+    };
+  }
+
+  const n =
+    lvl === 2
+      ? 100 + rnd(900)
+      : 10 + rnd(90);
+
+  const places =
+    lvl === 2
+      ? ['hundreds','tens','units']
+      : ['tens','units'];
+
+  const place =
+    places[rnd(places.length)];
+
+  const digits = {
+    hundreds:
+      Math.floor(n/100)%10,
+
+    tens:
+      Math.floor(n/10)%10,
+
+    units:
+      n%10
+  };
+
+  const answer =
+    digits[place];
+
+  const distractors = [];
+
+  for(const d of shuffle([
+    ...Object.values(digits),
+    answer+1,
+    answer-1,
+    answer+2
+  ])){
+    if(
+      distractors.length < 3 &&
+      d >= 0 &&
+      d <= 9 &&
+      d !== answer &&
+      !distractors.includes(d)
+    ){
+      distractors.push(d);
+    }
+  }
+
+  while(distractors.length < 3){
+    const d = rnd(10);
+
+    if(
+      d !== answer &&
+      !distractors.includes(d)
+    ){
+      distractors.push(d);
+    }
+  }
+
+  const options =
+    shuffle([
+      answer,
+      ...distractors
+    ]).map(value=>({
+      html:ltr(String(value)),
+      ok:value === answer
+    }));
+
+  return {
+    html:
+      T(STR.howMany)
+        .replace('{p}',T(STR[place]))
+        .replace('{n}',ltr(n)),
+
+    options,
+    answer,
+    n,
+    place,
+    key:`${place}:${n}`
+  };
+}
 
 IAKidsCoins.mount();
+
 IAKidsHelp.mount({
-  slug: 'tens-units',
-  how: 'מופיע מספר ושאלה: כמה עשרות, יחידות או מאות יש בו? בוחרים את התשובה הנכונה לפני שהפצצה מתפוצצת! 💣',
-  example: 'כמה עשרות יש במספר <span dir="ltr"><b>45</b></span>? ← בוחרים 4',
+  slug:'tens-units',
+  how:'מופיע מספר ושאלה: כמה עשרות, יחידות או מאות יש בו? בוחרים את התשובה הנכונה לפני שהזמן נגמר.',
+  example:'כמה עשרות יש במספר <span dir="ltr"><b>45</b></span>? ← בוחרים 4'
 });
-(async () => { // ברירות מחדל שמורות: סיבובים + רמז לרמה האחרונה
+
+function setRoundsUI(n){
+  TOTAL = n;
+
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(button=>{
+      const on =
+        Number(button.textContent) === n;
+
+      button.classList.toggle(
+        'success',
+        on
+      );
+
+      button.classList.toggle(
+        'outline',
+        !on
+      );
+    });
+}
+
+function setRounds(n){
+  roundsPicked = true;
+  setRoundsUI(n);
+}
+
+const ready = (async()=>{
+  await loadKidContext();
+  applyLanguage();
+
   game = await IAKidsGame.init(SLUG);
-  const p = await game.loadProgress();
-  if (started) return;
-  if (p?.rounds && !roundsPicked) setRoundsUI(p.rounds);
-  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+
+  const progress =
+    await game.loadProgress();
+
+  if(started) return;
+
+  if(
+    progress?.rounds &&
+    !roundsPicked
+  ){
+    setRoundsUI(
+      progress.rounds
+    );
+  }
+
+  if(
+    progress?.lastLevel !==
+    undefined
+  ){
+    document
+      .querySelector(
+        `#level-row [data-lvl="${progress.lastLevel}"]`
+      )
+      ?.classList.add(
+        'success'
+      );
+  }
 })();
 
-function setRoundsUI(n) {
-  TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => { // outline מנצח את success ב-CSS — מחליפים ביניהם
-    const on = +b.textContent === n;
-    b.classList.toggle('success', on);
-    b.classList.toggle('outline', !on);
-  });
-}
-function setRounds(n) { roundsPicked = true; setRoundsUI(n); }
+const show = id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(screen=>$(screen).hidden = screen !== id);
+};
 
-const show = id => { for (const s of ['start-screen', 'play-screen', 'end-screen']) document.getElementById(s).hidden = s !== id; };
-
-async function start(lvl) {
+async function start(selectedLevel){
   started = true;
-  game ||= await IAKidsGame.init(SLUG);
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  timer = game.timer({ style: 'bomb', onTimeout: () => answer(-1, null) });
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  document.getElementById('qtotal').textContent = TOTAL;
-  show('play-screen');
-  next();
-}
 
-async function next() {
-  if (qnum >= TOTAL) return end();
-  qnum++;
-  document.getElementById('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  current = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
-  document.getElementById('question').innerHTML = current.html;
-  const box = document.getElementById('answers');
-  box.innerHTML = '';
-  current.options.forEach((o, i) => {
-    const b = document.createElement('button');
-    b.className = 'game-btn';
-    b.innerHTML = o.html;
-    b.onclick = () => answer(i, b);
-    box.appendChild(b);
-  });
+  await ready;
+
+  level = selectedLevel;
+
+  diff =
+    game.difficulty(
+      selectedLevel || 1,
+      3
+    );
+
+  timer =
+    game.timer({
+      style:'bomb',
+      onTimeout:()=>{
+        if(!locked) handleTimeout();
+      }
+    });
+
+  score = 0;
+  qnum = 0;
+  correctAnswers = 0;
+  mistakes = 0;
+  timeouts = 0;
+  ending = false;
   locked = false;
-  timer.start(IAKidsTimer.secondsFor(lvl));
+
+  $('score').textContent = '0';
+  $('qnum').textContent = '1';
+  $('qtotal').textContent = TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:selectedLevel || 1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'tens-units',
+      selected_level:selectedLevel,
+      random_difficulty:selectedLevel === 0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD,
+      timer_enabled:true
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:selectedLevel,
+    rounds:TOTAL
+  });
+
+  show('play-screen');
+
+  await next();
 }
 
-function answer(i, btn) {
-  if (locked) return;
-  locked = true;
-  timer.stop();
-  const ok = !!current.options[i]?.ok;
-  if (ok) {
-    score += 10;
-    diff.right();
-    IAKidsFX.correct(btn);
-    IAKidsCoins.right(btn);
-  } else {
-    diff.wrong();
-    IAKidsFX.wrong(btn);
-    IAKidsCoins.wrong();
-    const okIdx = current.options.findIndex(o => o.ok);
-    document.getElementById('answers').children[okIdx]?.classList.add('correct'); // מראים את הנכונה
+async function next(){
+  if(ending) return;
+
+  if(qnum >= TOTAL){
+    await end();
+    return;
   }
-  document.getElementById('score').textContent = score;
-  setTimeout(next, ok ? 600 : 1200);
+
+  qnum++;
+  locked = false;
+
+  $('qnum').textContent = qnum;
+
+  const lvl =
+    level === 0
+      ? 1 + rnd(3)
+      : diff.level;
+
+  current =
+    await game.newQuestion(
+      ()=>makeQuestion(lvl),
+      question=>question.key
+    );
+
+  IAKidsActivity.questionStarted();
+
+  $('question').innerHTML =
+    current.html;
+
+  const box = $('answers');
+
+  box.innerHTML = '';
+
+  current.options.forEach(
+    (option,index)=>{
+      const button =
+        document.createElement('button');
+
+      button.className =
+        'game-btn';
+
+      button.innerHTML =
+        option.html;
+
+      button.onclick =
+        ()=>answer(index,button);
+
+      box.appendChild(button);
+    }
+  );
+
+  timer.start(
+    IAKidsTimer.secondsFor(lvl)
+  );
 }
 
-async function end() {
-  await game.saveScore(score, { level, rounds: TOTAL });
-  const top = (await game.getHighScores(1))[0];
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('best').textContent = top?.score ?? score;
-  document.getElementById('player-line').textContent =
-    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  document.getElementById('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
-  game.shareButton(score, document.getElementById('share-slot'));
+async function answer(index,button){
+  if(locked || ending) return;
+
+  locked = true;
+
+  timer.stop();
+
+  document.querySelectorAll('#answers .game-btn')
+    .forEach(btn=>btn.disabled = true);
+
+  const ok =
+    !!current.options[index]?.ok;
+
+  if(ok){
+    score += 10;
+    correctAnswers++;
+
+    diff.right();
+
+    IAKidsActivity.correct();
+
+    IAKidsFX.correct(button);
+
+    await IAKidsCoins.right(button);
+
+  }else{
+    mistakes++;
+
+    diff.wrong();
+
+    IAKidsActivity.wrong();
+
+    if(button){
+      IAKidsFX.wrong(button);
+    }
+
+    await IAKidsCoins.wrong();
+
+    const okIndex =
+      current.options.findIndex(
+        option=>option.ok
+      );
+
+    $('answers')
+      .children[okIndex]
+      ?.classList.add('correct');
+  }
+
+  $('score').textContent =
+    score;
+
+  setTimeout(
+    async()=>{
+      await next();
+    },
+    ok ? 550 : 950
+  );
+}
+
+async function handleTimeout(){
+  if(locked || ending) return;
+
+  locked = true;
+
+  timer.stop();
+
+  timeouts++;
+
+  document.querySelectorAll('#answers .game-btn')
+    .forEach(btn=>btn.disabled = true);
+
+  diff.wrong();
+
+  IAKidsActivity.skipped();
+
+  await IAKidsCoins.wrong();
+
+  const okIndex =
+    current.options.findIndex(
+      option=>option.ok
+    );
+
+  $('answers')
+    .children[okIndex]
+    ?.classList.add('correct');
+
+  setTimeout(
+    async()=>{
+      await next();
+    },
+    900
+  );
+}
+
+async function end(){
+  if(ending) return;
+
+  ending = true;
+
+  timer?.stop();
+
+  const maxScore =
+    TOTAL * 10;
+
+  const accuracy =
+    correctAnswers /
+    Math.max(
+      1,
+      correctAnswers +
+      mistakes +
+      timeouts
+    );
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      rounds:TOTAL,
+      correct:correctAnswers,
+      mistakes,
+      timeouts
+    }
+  );
+
+  const top =
+    (await game.getHighScores(1))[0];
+
+  $('final-score').textContent =
+    score;
+
+  $('best').textContent =
+    top?.score ?? score;
+
+  $('player-line').textContent =
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        'he-IL',
+        {
+          dateStyle:'short',
+          timeStyle:'short'
+        }
+      )
+    }`;
+
+  $('stars').textContent =
+    '⭐'.repeat(
+      accuracy >= .9
+        ? 3
+        : accuracy >= .7
+          ? 2
+          : 1
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+
+      performanceScore:
+        Math.round(
+          accuracy * 100
+        ),
+
+      metadata:{
+        game_mode:'tens-units',
+        selected_level:level,
+        random_difficulty:level === 0,
+        total_rounds:TOTAL,
+        correct_answers:correctAnswers,
+        mistakes,
+        timeouts,
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD,
+        timer_enabled:true
+      }
+    }
+  );
+
+  game.shareButton(
+    score,
+    $('share-slot')
+  );
+
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
