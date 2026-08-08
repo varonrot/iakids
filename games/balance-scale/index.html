@@ -20,6 +20,255 @@
   #q-text { font-size: 1.3rem; font-weight: 800; margin: 8px 0 0; }
   #sums { margin: 4px 0 0; font-weight: 700; color: var(--muted); }
 </style>
+
+<style id="iakids-premium-overrides">
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-gold:#ffd15c;
+}
+html,body{min-height:100%}
+body{
+  margin:0!important;
+  min-height:100vh!important;
+  padding:86px 18px 28px!important;
+  overflow-x:hidden;
+  color:var(--space-text)!important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif!important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+*{box-sizing:border-box}
+.game-card{
+  width:min(580px,calc(100vw - 28px))!important;
+  min-height:690px;
+  margin:0 auto!important;
+  padding:0!important;
+  overflow:hidden;
+  border:1px solid var(--space-line)!important;
+  border-radius:28px!important;
+  color:var(--space-text)!important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08)!important;
+}
+.game-hud{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px!important;
+  display:flex!important;
+  align-items:center;
+  justify-content:center!important;
+  gap:42px;
+  color:#fff!important;
+  background:rgba(5,18,46,.88)!important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+.game-hud .score{color:var(--space-gold)!important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+#start-screen>div:first-child{
+  font-size:5rem!important;
+  margin:6px 0 8px;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+.game-title{
+  margin:0;
+  font-size:clamp(2.15rem,7vw,3.1rem)!important;
+  line-height:1.05;
+  color:#fff!important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+#t-desc{
+  max-width:430px;
+  margin:14px auto 20px;
+  color:var(--space-muted)!important;
+  font-weight:600;
+  line-height:1.65;
+}
+#t-rounds,#level-label{
+  margin:8px 0 10px;
+  color:#fff!important;
+  font-weight:900;
+}
+.answer-grid{width:100%;gap:12px!important}
+.game-btn{
+  min-height:54px;
+  border-radius:15px!important;
+  border:1px solid rgba(118,176,255,.34)!important;
+  color:#fff!important;
+  font-weight:900!important;
+  background:linear-gradient(180deg,#1c91db,#0877bd)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16)!important;
+}
+.game-btn.outline{
+  background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important;
+}
+.game-btn.success{
+  background:linear-gradient(180deg,#37d182,#16ad64)!important;
+  border-color:rgba(97,255,174,.6)!important;
+}
+#level-row{margin-top:16px}
+#level-row .game-btn[data-l="0"]{
+  background:linear-gradient(180deg,#8054ff,#6035dc)!important;
+}
+.level-picked{
+  outline:4px solid #ffd15c!important;
+  outline-offset:2px;
+}
+
+#play-screen{position:relative}
+#q-text{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0!important;
+  color:#fff!important;
+  font-size:1.25rem!important;
+  font-weight:900!important;
+  text-align:center;
+}
+#sums{
+  min-height:28px;
+  margin:4px 0 4px!important;
+  color:#b8c7e3!important;
+  font-weight:800!important;
+  text-align:center;
+}
+#scale{
+  width:100%;
+  height:auto;
+  display:block;
+  margin:6px 0 8px;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 50% 28%,rgba(49,155,255,.12),transparent 50%),
+    rgba(4,22,55,.44);
+  border:1px solid rgba(116,177,255,.18);
+  box-shadow:0 14px 30px rgba(0,0,0,.16);
+}
+#scale text{font-family:inherit}
+#beam-g{
+  transition:transform .7s cubic-bezier(.3,1.4,.5,1);
+  transform-origin:260px 95px;
+}
+.pan-g{
+  transition:transform .7s cubic-bezier(.3,1.4,.5,1);
+}
+.chip rect{
+  fill:#1d8fe1!important;
+  stroke:#6ccaff!important;
+  stroke-width:1.5;
+  cursor:pointer;
+}
+.chip text{
+  fill:#fff!important;
+  font-size:12px;
+  font-weight:900;
+  pointer-events:none;
+}
+.weights-row{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-top:10px;
+}
+.weights-row .game-btn{
+  min-width:64px;
+  padding:12px 10px;
+}
+#pan-toggle .game-btn{
+  font-size:1rem;
+  padding:10px 14px;
+  min-height:48px;
+}
+#pan-toggle .sel{
+  outline:4px solid #ffd15c!important;
+  outline-offset:2px;
+}
+#btn-check{
+  margin-top:12px!important;
+  min-height:58px;
+}
+#t-hint{
+  color:#b8c7e3!important;
+  line-height:1.5;
+}
+
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.stars{
+  min-height:78px;
+  font-size:3.7rem!important;
+  letter-spacing:4px;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
+}
+.big-score{
+  margin:8px 0;
+  color:#fff!important;
+  font-size:4rem!important;
+  font-weight:1000;
+}
+#player-line,#end-screen p{color:#d7e3f7!important}
+[hidden]{display:none!important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px!important}
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px!important;
+  }
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px!important;
+    gap:24px;
+  }
+  #scale{margin-top:2px}
+  .weights-row{gap:6px}
+  .weights-row .game-btn{min-width:58px}
+}
+</style>
+
 </head>
 <body>
 
@@ -39,7 +288,7 @@
       <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
     </div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+    <p id="level-label"></p><div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
@@ -90,201 +339,457 @@
 <script src="../game-sdk.js"></script>
 <script>
 const SLUG = 'balance-scale';
-let game, diff, score = 0, qnum = 0, level = 1, TOTAL = 10;
-let cur = null, chips = { L: [], R: [] }, supply = {}, target = 'R', locked = false, revealed = false;
 const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
-const sum = a => a.reduce((s, v) => s + v, 0);
-const EMOJI = ['🎁', '🧸', '🍉', '📚', '🪨', '🎒', '🥥', '🧱'];
-IAKidsCoins.mount();
-IAKidsHelp.mount({
-  slug: 'balance-scale',
-  how: 'גוררים משקולות לצד הריק של המאזניים עד שהם מתאזנים, ואז לוחצים "בדוק".',
-  example: 'חפץ במשקל <span dir="ltr"><b>7</b></span> ← גוררים משקולות <span dir="ltr"><b>5 + 2</b></span> והמאזניים מתאזנים',
-});
+const sum = a => a.reduce((s,v)=>s+v,0);
+const EMOJI = ['🎁','🧸','🍉','📚','🪨','🎒','🥥','🧱'];
 
-const T = {
-  title: { he: 'משקל ומאזניים', en: 'Balance Scale', es: 'La balanza', de: 'Balkenwaage', pt: 'Balança' },
-  desc:  { he: 'הוסף משקולות עד שהמאזניים מאוזנים — כמה שוקל החפץ?', en: 'Add weights until the scale balances!', es: '¡Añade pesas hasta equilibrar la balanza!', de: 'Lege Gewichte auf, bis die Waage im Gleichgewicht ist!', pt: 'Adicione pesos até equilibrar a balança!' },
-  rounds:{ he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
-  q:     { he: 'אזן את המאזניים! כמה שוקל', en: 'Balance the scale! How heavy is', es: '¡Equilibra la balanza! ¿Cuánto pesa', de: 'Bring die Waage ins Gleichgewicht! Wie schwer ist', pt: 'Equilibre a balança! Quanto pesa' },
-  hint:  { he: 'לחיצה על משקולת בכפתורים מוסיפה, לחיצה על משקולת שעל הכף מסירה', en: 'Tap a button to add a weight, tap a weight on the pan to remove it', es: 'Toca un botón para añadir una pesa, toca una pesa del plato para quitarla', de: 'Knopf antippen legt ein Gewicht auf, Gewicht auf der Schale antippen nimmt es weg', pt: 'Toque num botão para adicionar um peso, toque num peso no prato para remover' },
-  right: { he: 'כף ימין ➕', en: 'Right pan ➕', es: 'Plato derecho ➕', de: 'Rechte Schale ➕', pt: 'Prato direito ➕' },
-  left:  { he: 'כף שמאל ➕', en: 'Left pan ➕', es: 'Plato izquierdo ➕', de: 'Linke Schale ➕', pt: 'Prato esquerdo ➕' },
-  wsum:  { he: 'משקולות מימין', en: 'Weights on right', es: 'Pesas a la derecha', de: 'Gewichte rechts', pt: 'Pesos à direita' },
-  check: { he: 'בדוק ✓', en: 'Check ✓', es: 'Comprobar ✓', de: 'Prüfen ✓', pt: 'Verificar ✓' },
+const T_REGULAR = {
+  title:{he:'משקל ומאזניים',en:'Balance Scale',es:'La balanza',de:'Balkenwaage',pt:'Balança'},
+  desc:{he:'הוסיפו משקולות עד שהמאזניים מאוזנים — כמה שוקל החפץ?',en:'Add weights until the scale balances!',es:'¡Añade pesas hasta equilibrar la balanza!',de:'Lege Gewichte auf, bis die Waage im Gleichgewicht ist!',pt:'Adicione pesos até equilibrar a balança!'},
+  rounds:{he:'כמה שאלות?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'},
+  q:{he:'אזנו את המאזניים! כמה שוקל',en:'Balance the scale! How heavy is',es:'¡Equilibra la balanza! ¿Cuánto pesa',de:'Bring die Waage ins Gleichgewicht! Wie schwer ist',pt:'Equilibre a balança! Quanto pesa'},
+  hint:{he:'לחיצה על משקולת בכפתורים מוסיפה, לחיצה על משקולת שעל הכף מסירה',en:'Tap a button to add a weight, tap a weight on the pan to remove it',es:'Toca un botón para añadir una pesa, toca una pesa del plato para quitarla',de:'Knopf antippen legt ein Gewicht auf, Gewicht auf der Schale antippen nimmt es weg',pt:'Toque num botão para adicionar um peso, toque num peso no prato para remover'},
+  right:{he:'כף ימין ➕',en:'Right pan ➕',es:'Plato derecho ➕',de:'Rechte Schale ➕',pt:'Prato direito ➕'},
+  left:{he:'כף שמאל ➕',en:'Left pan ➕',es:'Plato izquierdo ➕',de:'Linke Schale ➕',pt:'Prato esquerdo ➕'},
+  wsum:{he:'משקולות מימין',en:'Weights on right',es:'Pesas a la derecha',de:'Gewichte rechts',pt:'Pesos à direita'},
+  check:{he:'בדוק ✓',en:'Check ✓',es:'Comprobar ✓',de:'Prüfen ✓',pt:'Verificar ✓'}
 };
-document.querySelectorAll('[data-ui]').forEach(el => el.textContent = IAKidsLang.ui(el.dataset.ui));
-$('t-title').textContent = IAKidsLang.t(T.title);
-document.title = IAKidsLang.t(T.title) + ' | iakids';
-$('t-desc').textContent = IAKidsLang.t(T.desc);
-$('t-rounds').textContent = IAKidsLang.t(T.rounds);
-$('t-hint').textContent = IAKidsLang.t(T.hint);
-$('tg-R').textContent = IAKidsLang.t(T.right);
-$('tg-L').textContent = IAKidsLang.t(T.left);
-$('btn-check').textContent = IAKidsLang.t(T.check);
 
-function setRounds(n, btn) {
-  TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
-  btn.classList.add('success');
+const T_NIQQUD = {
+  title:{he:'מִשְׁקָל וּמֹאזְנַיִם',en:'Balance Scale',es:'La balanza',de:'Balkenwaage',pt:'Balança'},
+  desc:{he:'הוֹסִיפוּ מִשְׁקוֹלוֹת עַד שֶׁהַמֹּאזְנַיִם מְאֻזָּנִים — כַּמָּה שׁוֹקֵל הַחֵפֶץ?',en:'Add weights until the scale balances!',es:'¡Añade pesas hasta equilibrar la balanza!',de:'Lege Gewichte auf, bis die Waage im Gleichgewicht ist!',pt:'Adicione pesos até equilibrar a balança!'},
+  rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},
+  q:{he:'אַזְּנוּ אֶת הַמֹּאזְנַיִם! כַּמָּה שׁוֹקֵל',en:'Balance the scale! How heavy is',es:'¡Equilibra la balanza! ¿Cuánto pesa',de:'Bring die Waage ins Gleichgewicht! Wie schwer ist',pt:'Equilibre a balança! Quanto pesa'},
+  hint:{he:'לְחִיצָה עַל מִשְׁקוֹלֶת בַּכַּפְתּוֹרִים מוֹסִיפָה, וּלְחִיצָה עַל מִשְׁקוֹלֶת שֶׁעַל הַכַּף מְסִירָה',en:'Tap a button to add a weight, tap a weight on the pan to remove it',es:'Toca un botón para añadir una pesa, toca una pesa del plato para quitarla',de:'Knopf antippen legt ein Gewicht auf, Gewicht auf der Schale antippen nimmt es weg',pt:'Toque num botão para adicionar um peso, toque num peso no prato para remover'},
+  right:{he:'כַּף יָמִין ➕',en:'Right pan ➕',es:'Plato derecho ➕',de:'Rechte Schale ➕',pt:'Prato direito ➕'},
+  left:{he:'כַּף שְׂמֹאל ➕',en:'Left pan ➕',es:'Plato izquierdo ➕',de:'Linke Schale ➕',pt:'Prato esquerdo ➕'},
+  wsum:{he:'מִשְׁקוֹלוֹת מִיָּמִין',en:'Weights on right',es:'Pesas a la derecha',de:'Gewichte rechts',pt:'Pesos à direita'},
+  check:{he:'בִּדְקוּ ✓',en:'Check ✓',es:'Comprobar ✓',de:'Prüfen ✓',pt:'Verificar ✓'}
+};
+
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+let T = T_REGULAR;
+
+let game, diff;
+let score = 0, qnum = 0, level = 1, TOTAL = 10;
+let cur = null, chips = {L:[],R:[]}, supply = {}, target = 'R';
+let locked = false, revealed = false, ending = false;
+let correctAnswers = 0, mistakes = 0;
+let weightsAdded = 0, weightsRemoved = 0, bothPanSolutions = 0;
+
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client = await IAKidsActivity._getClient();
+    const {data,error} = await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(error || !data){
+      console.warn('[balance-scale] Kid profile was not loaded',error);
+      return;
+    }
+
+    CHILD_AGE = Number(data.age);
+    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+  }catch(error){
+    console.warn('[balance-scale] loadKidContext error',error);
+  }
 }
 
-(async () => {
+function applyLanguage(){
+  T = USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+
+  document.querySelectorAll('[data-ui]').forEach(el=>{
+    el.textContent = IAKidsLang.ui(el.dataset.ui);
+  });
+
+  $('t-title').textContent = IAKidsLang.t(T.title);
+  document.title = IAKidsLang.t(T.title) + ' | iakids';
+  $('t-desc').textContent = IAKidsLang.t(T.desc);
+  $('t-rounds').textContent = IAKidsLang.t(T.rounds);
+  $('level-label').textContent = IAKidsLang.t(T.level);
+  $('t-hint').textContent = IAKidsLang.t(T.hint);
+  $('tg-R').textContent = IAKidsLang.t(T.right);
+  $('tg-L').textContent = IAKidsLang.t(T.left);
+  $('btn-check').textContent = IAKidsLang.t(T.check);
+}
+
+IAKidsCoins.mount();
+
+IAKidsHelp.mount({
+  slug:'balance-scale',
+  how:'מוסיפים משקולות לכף הריקה עד שהמאזניים מתאזנים, ואז לוחצים "בדוק". ברמה קשה אפשר להוסיף משקולות לשתי הכפות.',
+  example:'חפץ במשקל <span dir="ltr"><b>7</b></span> ← מוסיפים משקולות <span dir="ltr"><b>5 + 2</b></span> והמאזניים מתאזנים'
+});
+
+function setRounds(n,btn){
+  TOTAL = n;
+
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(b=>b.classList.remove('success'));
+
+  btn?.classList.add('success');
+}
+
+const ready = (async()=>{
+  await loadKidContext();
+  applyLanguage();
+
   game = await IAKidsGame.init(SLUG);
+
   const p = await game.loadProgress();
-  if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [data-r="${p.rounds}"]`) || $('rounds-row').children[1]);
-  if (p?.lastLevel != null) document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
+
+  if(p?.rounds){
+    setRounds(
+      p.rounds,
+      document.querySelector(`#rounds-row [data-r="${p.rounds}"]`) || $('rounds-row').children[1]
+    );
+  }
+
+  if(p?.lastLevel != null){
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('level-picked');
+  }
 })();
 
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
+const show = id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(s=>$(s).hidden=s!==id);
 };
 
-async function start(lvl) {
-  game = game || await IAKidsGame.init(SLUG);
+async function start(lvl){
+  await ready;
+
   level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  if (!document.querySelector('#rounds-row .success')) setRounds(TOTAL, $('rounds-row').children[1]);
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  diff = game.difficulty(lvl || 1,3);
+
+  score = 0;
+  qnum = 0;
+  correctAnswers = 0;
+  mistakes = 0;
+  weightsAdded = 0;
+  weightsRemoved = 0;
+  bothPanSolutions = 0;
+  ending = false;
+  locked = false;
+  revealed = false;
+
+  if(!document.querySelector('#rounds-row .success')){
+    setRounds(TOTAL,$('rounds-row').children[1]);
+  }
+
+  $('score').textContent = '0';
+  $('qnum').textContent = '1';
   $('qtotal').textContent = TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:lvl || 1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'balance-scale',
+      selected_level:lvl,
+      random_difficulty:lvl===0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD,
+      timer_enabled:false
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:lvl,
+    rounds:TOTAL
+  });
+
   show('play-screen');
-  next();
+  await next();
 }
 
-/* levels: 1 = one weight balances (obj ∈ 1,2,5,10) · 2 = combination needed (3..18)
-   · 3 = one of each weight only — some targets (4, 9, 14) force weights on BOTH pans */
-function makeQuestion(lvl) {
+/* 1 = one weight balances · 2 = combination · 3 = one of each weight, possibly both pans */
+function makeQuestion(lvl){
   const em = EMOJI[rnd(EMOJI.length)];
-  if (lvl === 1) {
-    const w = [1, 2, 5, 10][rnd(4)];
-    return { w, em, lvl, key: 'e' + w + em };
+
+  if(lvl===1){
+    const w=[1,2,5,10][rnd(4)];
+    return {w,em,lvl,key:'e'+w+em};
   }
-  if (lvl === 2) {
+
+  if(lvl===2){
     let w;
-    do { w = 3 + rnd(16); } while (w === 5 || w === 10);
-    return { w, em, lvl, key: 'm' + w + em };
+    do{
+      w=3+rnd(16);
+    }while(w===5 || w===10);
+
+    return {w,em,lvl,key:'m'+w+em};
   }
-  const pool = [4, 9, 14, 7, 13, 16, 17];
-  const w = pool[rnd(pool.length)];
-  return { w, em, lvl, key: 'h' + w + em };
+
+  const pool=[4,9,14,7,13,16,17];
+  const w=pool[rnd(pool.length)];
+
+  return {w,em,lvl,key:'h'+w+em};
 }
 
-async function next() {
-  if (qnum >= TOTAL) return end();
+async function next(){
+  if(ending) return;
+
+  if(qnum>=TOTAL){
+    await end();
+    return;
+  }
+
   qnum++;
-  locked = false; revealed = false;
-  $('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  cur = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
-  chips = { L: [], R: [] };
-  // ponytail: hard = one of each weight (forces both-pan solutions); easy/medium effectively unlimited
-  supply = cur.lvl === 3 ? { 1: 1, 2: 1, 5: 1, 10: 1 } : { 1: 99, 2: 99, 5: 99, 10: 99 };
-  target = 'R';
-  $('pan-toggle').hidden = cur.lvl !== 3;
+  locked=false;
+  revealed=false;
+
+  $('qnum').textContent=qnum;
+
+  const lvl=level===0 ? 1+rnd(3) : diff.level;
+
+  cur=await game.newQuestion(
+    ()=>makeQuestion(lvl),
+    q=>q.key
+  );
+
+  IAKidsActivity.questionStarted();
+
+  chips={L:[],R:[]};
+
+  supply=
+    cur.lvl===3
+      ? {1:1,2:1,5:1,10:1}
+      : {1:99,2:99,5:99,10:99};
+
+  target='R';
+
+  $('pan-toggle').hidden=cur.lvl!==3;
   setTarget('R');
-  $('q-text').innerHTML = `${IAKidsLang.t(T.q)} ${cur.em}?`;
+
+  $('q-text').innerHTML=`${IAKidsLang.t(T.q)} ${cur.em}?`;
+
   renderWeightBtns();
   renderScale();
 }
 
-function setTarget(p) {
-  target = p;
-  $('tg-R').classList.toggle('sel', p === 'R');
-  $('tg-L').classList.toggle('sel', p === 'L');
+function setTarget(p){
+  target=p;
+  $('tg-R').classList.toggle('sel',p==='R');
+  $('tg-L').classList.toggle('sel',p==='L');
 }
 
-function renderWeightBtns() {
-  $('weights-row').innerHTML = [1, 2, 5, 10].map(v =>
+function renderWeightBtns(){
+  $('weights-row').innerHTML=[1,2,5,10].map(v=>
     `<button class="game-btn outline" data-v="${v}" onclick="addW(${v},this)">` +
-    `<span dir="ltr">${v}${cur.lvl === 3 ? ' ×' + supply[v] : ''}</span></button>`).join('');
+    `<span dir="ltr">${v}${cur.lvl===3?' ×'+supply[v]:''}</span></button>`
+  ).join('');
 }
 
-function addW(v, btn) {
-  if (locked) return;
-  const list = chips[target];
-  if (supply[v] <= 0 || list.length >= 6) { IAKidsFX._beep([[160, 0, 0.12]]); return; }
+function addW(v,btn){
+  if(locked || ending) return;
+
+  const list=chips[target];
+
+  if(supply[v]<=0 || list.length>=6){
+    IAKidsFX._beep([[160,0,.12]]);
+    return;
+  }
+
   supply[v]--;
   list.push(v);
-  IAKidsFX._beep([[700, 0, 0.06]]);
+  weightsAdded++;
+
+  IAKidsFX._beep([[700,0,.06]]);
+
   renderWeightBtns();
   renderScale();
 }
 
-function removeChip(pan, i) {
-  if (locked) return;
+function removeChip(pan,i){
+  if(locked || ending) return;
+
   supply[chips[pan][i]]++;
-  chips[pan].splice(i, 1);
-  IAKidsFX._beep([[440, 0, 0.06]]);
+  chips[pan].splice(i,1);
+  weightsRemoved++;
+
+  IAKidsFX._beep([[440,0,.06]]);
+
   renderWeightBtns();
   renderScale();
 }
-$('scale').addEventListener('pointerdown', e => {
-  const c = e.target.closest('[data-chip]');
-  if (c) removeChip(c.dataset.pan, +c.dataset.i);
+
+$('scale').addEventListener('pointerdown',e=>{
+  const c=e.target.closest('[data-chip]');
+  if(c){
+    removeChip(c.dataset.pan,+c.dataset.i);
+  }
 });
 
-/* ---- SVG rendering ---- */
-const PIVOT = { x: 260, y: 95 }, ARM = 165;
+const PIVOT={x:260,y:95},ARM=165;
 
-function chipsSvg(pan) {
-  return chips[pan].map((v, i) => {
-    const x = -35 + (i % 3) * 24, y = 58 - 17 * (Math.floor(i / 3) + 1);
-    return `<g class="chip" data-chip data-pan="${pan}" data-i="${i}">` +
-      `<rect x="${x}" y="${y}" width="22" height="16" rx="3"/>` +
-      `<text x="${x + 11}" y="${y + 12}" text-anchor="middle">${v}</text></g>`;
+function chipsSvg(pan){
+  return chips[pan].map((v,i)=>{
+    const x=-35+(i%3)*24;
+    const y=58-17*(Math.floor(i/3)+1);
+
+    return `<g class="chip" data-chip data-pan="${pan}" data-i="${i}">
+      <rect x="${x}" y="${y}" width="22" height="16" rx="3"/>
+      <text x="${x+11}" y="${y+12}" text-anchor="middle">${v}</text>
+    </g>`;
   }).join('');
 }
 
-function renderScale() {
-  const rows = Math.ceil(chips.L.length / 3);
-  const oy = 52 - 17 * rows; // object floats up as chips stack under it
-  $('contL').innerHTML = chipsSvg('L') +
+function renderScale(){
+  const rows=Math.ceil(chips.L.length/3);
+  const oy=52-17*rows;
+
+  $('contL').innerHTML=
+    chipsSvg('L') +
     `<text x="0" y="${oy}" text-anchor="middle" font-size="34">${cur.em}</text>` +
-    `<circle cx="22" cy="${oy - 30}" r="11" fill="#fff" stroke="var(--accent)" stroke-width="2.5"/>` +
-    `<text id="w-badge" x="22" y="${oy - 25}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--accent)">${revealed ? cur.w : '?'}</text>`;
-  $('contR').innerHTML = chipsSvg('R');
-  const L = cur.w + sum(chips.L), R = sum(chips.R);
-  const deg = Math.max(-16, Math.min(16, (R - L) * 4)), th = deg * Math.PI / 180;
-  $('beam-g').style.transform = `rotate(${deg}deg)`;
-  $('panL').style.transform = `translate(${PIVOT.x - ARM * Math.cos(th)}px, ${PIVOT.y - ARM * Math.sin(th)}px)`;
-  $('panR').style.transform = `translate(${PIVOT.x + ARM * Math.cos(th)}px, ${PIVOT.y + ARM * Math.sin(th)}px)`;
-  $('sums').innerHTML = `${IAKidsLang.t(T.wsum)}: <span dir="ltr">${R}</span>` +
-    (chips.L.length ? ` | ${cur.em} + <span dir="ltr">${sum(chips.L)}</span>` : '');
+    `<circle cx="22" cy="${oy-30}" r="11" fill="#fff" stroke="#48b6ff" stroke-width="2.5"/>` +
+    `<text id="w-badge" x="22" y="${oy-25}" text-anchor="middle" font-size="13" font-weight="800" fill="#167bc3">${revealed?cur.w:'?'}</text>`;
+
+  $('contR').innerHTML=chipsSvg('R');
+
+  const L=cur.w+sum(chips.L);
+  const R=sum(chips.R);
+
+  const deg=Math.max(-16,Math.min(16,(R-L)*4));
+  const th=deg*Math.PI/180;
+
+  $('beam-g').style.transform=`rotate(${deg}deg)`;
+
+  $('panL').style.transform=
+    `translate(${PIVOT.x-ARM*Math.cos(th)}px, ${PIVOT.y-ARM*Math.sin(th)}px)`;
+
+  $('panR').style.transform=
+    `translate(${PIVOT.x+ARM*Math.cos(th)}px, ${PIVOT.y+ARM*Math.sin(th)}px)`;
+
+  $('sums').innerHTML=
+    `${IAKidsLang.t(T.wsum)}: <span dir="ltr">${R}</span>` +
+    (chips.L.length
+      ? ` | ${cur.em} + <span dir="ltr">${sum(chips.L)}</span>`
+      : '');
 }
 
-function check() {
-  if (locked) return;
-  locked = true;
-  const btn = $('btn-check');
-  const ok = cur.w + sum(chips.L) === sum(chips.R) && chips.R.length > 0;
-  revealed = true;
-  renderScale(); // reveal the object's weight
-  if (ok) {
-    score += 10;
+async function check(){
+  if(locked || ending) return;
+
+  locked=true;
+
+  const btn=$('btn-check');
+  const ok=
+    cur.w + sum(chips.L) === sum(chips.R) &&
+    chips.R.length>0;
+
+  revealed=true;
+  renderScale();
+
+  if(ok){
+    score+=10;
+    correctAnswers++;
+
+    if(chips.L.length>0 && chips.R.length>0){
+      bothPanSolutions++;
+    }
+
     diff.right();
+    IAKidsActivity.correct();
+
     IAKidsFX.correct(btn);
-    IAKidsCoins.right(btn);
-  } else {
+    await IAKidsCoins.right(btn);
+
+  }else{
+    mistakes++;
+
     diff.wrong();
+    IAKidsActivity.wrong();
+
     IAKidsFX.wrong(btn);
-    IAKidsCoins.wrong();
+    await IAKidsCoins.wrong();
   }
-  $('score').textContent = score;
-  setTimeout(next, 1300);
+
+  $('score').textContent=score;
+
+  setTimeout(async()=>{
+    await next();
+  },ok ? 900 : 1200);
 }
 
-async function end() {
-  await game.saveScore(score, { level });
-  const top = (await game.getHighScores(1))[0];
-  $('final-score').textContent = score;
-  $('best').textContent = top?.score ?? score;
-  $('player-line').textContent =
-    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
-  $('stars').textContent = '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
-  game.shareButton(score, $('share-slot'));
+async function end(){
+  if(ending) return;
+
+  ending=true;
+  locked=true;
+
+  const maxScore=TOTAL*10;
+
+  const accuracy=
+    correctAnswers /
+    Math.max(1,correctAnswers+mistakes);
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      correct:correctAnswers,
+      total:TOTAL,
+      mistakes,
+      weights_added:weightsAdded,
+      weights_removed:weightsRemoved,
+      both_pan_solutions:bothPanSolutions
+    }
+  );
+
+  const top=(await game.getHighScores(1))[0];
+
+  $('final-score').textContent=score;
+  $('best').textContent=top?.score??score;
+
+  $('player-line').textContent=
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        IAKidsLang.code==='he' ? 'he-IL' : IAKidsLang.code,
+        {dateStyle:'short',timeStyle:'short'}
+      )
+    }`;
+
+  $('stars').textContent=
+    '⭐'.repeat(
+      accuracy>=.9 ? 3 :
+      accuracy>=.7 ? 2 : 1
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+      performanceScore:Math.round(accuracy*100),
+      metadata:{
+        game_mode:'balance-scale',
+        selected_level:level,
+        random_difficulty:level===0,
+        total_rounds:TOTAL,
+        correct_answers:correctAnswers,
+        mistakes,
+        weights_added:weightsAdded,
+        weights_removed:weightsRemoved,
+        both_pan_solutions:bothPanSolutions,
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD,
+        timer_enabled:false
+      }
+    }
+  );
+
+  game.shareButton(score,$('share-slot'));
+
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
