@@ -11810,6 +11810,84 @@ html.windows-workspace .app{
   }
 
 }
+    /* =====================================================
+   MOBILE HOME V2 — FIX MAP
+===================================================== */
+
+@media (max-width:760px){
+
+  #dashboardView{
+    display:block !important;
+    width:100% !important;
+    min-height:100vh !important;
+    overflow:visible !important;
+    background:#020916 !important;
+  }
+
+  #dashboardView .dash-wrapper,
+  #dashboardView .dash-layout,
+  #dashboardView .dash-content{
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    display:block !important;
+  }
+
+  .home-rightbar{
+    display:block !important;
+    width:100% !important;
+    padding:8px 14px 12px !important;
+    background:#020916 !important;
+  }
+
+  .home-right-welcome,
+  .home-right-stats,
+  .home-right-progress{
+    display:none !important;
+  }
+
+  .home-right-actions{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    width:100% !important;
+    gap:10px !important;
+    margin:0 !important;
+    padding:0 !important;
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+  }
+
+  .home-right-action{
+    width:100% !important;
+    height:108px !important;
+    min-height:108px !important;
+    border-radius:18px !important;
+  }
+
+  .kingdom-map-area{
+    position:relative !important;
+    display:block !important;
+    width:100% !important;
+    height:680px !important;
+    min-height:680px !important;
+    flex:none !important;
+    margin:0 !important;
+    overflow:hidden !important;
+    background-position:center top !important;
+    background-size:auto 680px !important;
+    background-repeat:no-repeat !important;
+  }
+
+  .kingdom-map-area img,
+  .kingdom-map-image{
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+    object-position:center top !important;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -32232,7 +32310,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V12";
+      "▶ Rotem V13";
 
 
     document.body.appendChild(
@@ -34353,136 +34431,7 @@ function updateScienceBreadcrumb(
 
 }
 </script>
-<script>
-/* =====================================================
-   MOBILE HOME V2 — FIX MAP
-===================================================== */
 
-@media (max-width:760px){
-
-  /* דף הבית עצמו */
-  #dashboardView{
-    display:block !important;
-
-    width:100% !important;
-    min-height:100vh !important;
-
-    overflow:visible !important;
-
-    background:#020916 !important;
-  }
-
-
-  #dashboardView .dash-wrapper,
-  #dashboardView .dash-layout,
-  #dashboardView .dash-content{
-    width:100% !important;
-
-    height:auto !important;
-    min-height:0 !important;
-
-    display:block !important;
-  }
-
-
-  /* =================================================
-     ארבעת הכפתורים
-  ================================================= */
-
-  .home-rightbar{
-    display:block !important;
-
-    width:100% !important;
-
-    padding:
-      8px
-      14px
-      12px !important;
-
-    background:#020916 !important;
-  }
-
-
-  .home-right-welcome,
-  .home-right-stats,
-  .home-right-progress{
-    display:none !important;
-  }
-
-
-  .home-right-actions{
-    display:grid !important;
-
-    grid-template-columns:
-      repeat(2,minmax(0,1fr)) !important;
-
-    width:100% !important;
-
-    gap:10px !important;
-
-    margin:0 !important;
-    padding:0 !important;
-
-    background:transparent !important;
-
-    border:0 !important;
-    box-shadow:none !important;
-  }
-
-
-  .home-right-action{
-    width:100% !important;
-
-    height:108px !important;
-    min-height:108px !important;
-
-    border-radius:18px !important;
-  }
-
-
-  /* =================================================
-     המפה — זה החלק שהיה חסר
-  ================================================= */
-
-  .kingdom-map-area{
-    position:relative !important;
-
-    display:block !important;
-
-    width:100% !important;
-
-    height:680px !important;
-    min-height:680px !important;
-
-    flex:none !important;
-
-    margin:0 !important;
-
-    overflow:hidden !important;
-
-    background-position:
-      center top !important;
-
-    background-size:
-      auto 680px !important;
-
-    background-repeat:
-      no-repeat !important;
-  }
-
-
-  /* המפה/תמונה הפנימית אם קיימת */
-  .kingdom-map-area img,
-  .kingdom-map-image{
-    width:100% !important;
-    height:100% !important;
-
-    object-fit:cover !important;
-    object-position:center top !important;
-  }
-
-}
-</script>
 <!-- =====================================================
      HOMEWORK FILE INPUTS
 ===================================================== -->
