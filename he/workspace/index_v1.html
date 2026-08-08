@@ -752,7 +752,7 @@ body{
   font-size:32px !important;
   font-weight:400 !important;
   line-height:1.7 !important;
-  color:#26314f !important;
+  color:#ffffff !important;
 }
 
 /* תשובה חיובית */
@@ -23494,7 +23494,7 @@ document.addEventListener(
   font-family:"Gveret Levin", cursive !important;
   font-size:34px;
   line-height:1.6;
-  color:#26314f;
+  color:#ffffff;
 
   padding:3px 8px;
 
@@ -28431,9 +28431,7 @@ div{
   min-height:
     52px;
 
-  padding:
-    6px
-    7px;
+  padding:6px 18px 6px 7px;
 
   display:flex;
 
@@ -28931,6 +28929,11 @@ div{
 
   font-size:
     8px;
+}
+/* הזזת הטקסט בכרטיסי "מומלץ עבורך" מעט שמאלה */
+#scienceRecommendations
+.science-recommend-item > span{
+  transform:translateX(-12px);
 }
 </style>
 
@@ -31610,7 +31613,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Renderer V5";
+      "▶ Rotem V1";
 
 
     document.body.appendChild(
@@ -33529,92 +33532,133 @@ async function loadScienceUnitLessons(
   tree.appendChild(
     level
   );
+/* =====================================================
+   לחיצה על שיעור ברמה 5
+   פתיחת מנגנון השיעור הקיים
+===================================================== */
 
+level
+  .querySelectorAll(
+    "[data-unit-lesson-id]"
+  )
+  .forEach(button => {
 
-  /* =================================================
-     לחיצה על שיעור = פתיחת מנגנון השיעור הקיים
-  ================================================= */
+    button.addEventListener(
+      "click",
+      async () => {
 
-  level
-    .querySelectorAll(
-      "[data-unit-lesson-id]"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        async () => {
-
-          const unitLessonId =
-            Number(
-              button.dataset
-                .unitLessonId
-            );
-
-
-          const lesson =
-            data.find(
-              item =>
-                Number(item.id)
-                ===
-                unitLessonId
-            );
-
-
-          if(!lesson){
-            return;
-          }
-
-
-          /*
-            מוודאים שהגלובלים הישנים
-            מוכנים בדיוק כמו במסלול הקודם.
-          */
-
-          CURRENT_PARENT_LESSON = {
-            ...parentLesson,
-            subject:"מדעים",
-            category:
-              SCIENCE_SELECTED_CATEGORY
-          };
-
-
-          CURRENT_UNIT = {
-            unit_order:
-              unit.unit_order,
-
-            unit_name:
-              unit.unit_name
-          };
-
-
-          console.log(
-            "SCIENCE START UNIT LESSON:",
-            {
-              parent:
-                CURRENT_PARENT_LESSON,
-
-              unit:
-                CURRENT_UNIT,
-
-              lesson
-            }
+        const unitLessonId =
+          Number(
+            button.dataset.unitLessonId
           );
 
 
-          /*
-            כאן מתחבר ישירות למנגנון
-            השיעור שכבר קיים באתר.
-          */
-
-          await startSelectedUnitLesson(
-            lesson
+        const lesson =
+          (data || []).find(
+            item =>
+              Number(item.id) === unitLessonId
           );
 
+
+        if(!lesson){
+          console.error(
+            "SCIENCE LESSON NOT FOUND:",
+            unitLessonId
+          );
+
+          return;
         }
-      );
 
-    });
+
+        /* =========================================
+           מכינים את המשתנים שהמסלול הישן מצפה להם
+        ========================================= */
+
+        CURRENT_PARENT_LESSON = {
+          ...parentLesson,
+          subject: "מדעים",
+          category: SCIENCE_SELECTED_CATEGORY
+        };
+
+
+        CURRENT_UNIT = {
+          unit_order: unit.unit_order,
+          unit_name: unit.unit_name
+        };
+
+
+        console.log(
+          "SCIENCE OPEN LESSON:",
+          {
+            category:
+              SCIENCE_SELECTED_CATEGORY,
+
+            parentLesson:
+              CURRENT_PARENT_LESSON,
+
+            unit:
+              CURRENT_UNIT,
+
+            lesson
+          }
+        );
+
+
+        /* =========================================
+           פתיחת השיעור בדיוק דרך המנוע הישן
+        ========================================= */
+
+/* =====================================================
+   יוצאים ממצב עץ המדעים לפני פתיחת השיעור
+===================================================== */
+
+document.body.classList.remove(
+  "science-hierarchy-mode"
+);
+
+
+const scienceView =
+  document.getElementById(
+    "scienceHierarchyView"
+  );
+
+if(scienceView){
+  scienceView.style.display = "none";
+}
+
+
+const dashboard =
+  document.getElementById(
+    "dashboardView"
+  );
+
+if(dashboard){
+  dashboard.style.display = "none";
+}
+
+
+const pathView =
+  document.getElementById(
+    "learningPathView"
+  );
+
+if(pathView){
+  pathView.style.display = "none";
+}
+
+
+/* עכשיו מותר למנוע השיעור לפתוח את learningView */
+
+await startSelectedUnitLesson(
+  lesson
+);
+
+      }
+    );
+
+  });
+
+
 
 }
 
