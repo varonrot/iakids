@@ -12035,6 +12035,186 @@ html.windows-workspace .app{
   }
 
 }
+    /* =====================================================
+   MOBILE KINGDOM CARDS — FINAL POSITIONING V2
+===================================================== */
+
+@media (max-width:760px){
+
+  /* המפה לא צריכה 980px של שטח שחור */
+  .kingdom-map-area{
+    height:700px !important;
+    min-height:700px !important;
+  }
+
+
+  /* כרטיס קטן ושקוף יותר */
+  .kingdom-map-area .kingdom-label{
+    width:82px !important;
+    min-width:82px !important;
+
+    min-height:48px !important;
+
+    padding:6px 6px !important;
+
+    gap:3px !important;
+
+    border-radius:12px !important;
+
+    background:
+      rgba(3,14,29,.56) !important;
+
+    border:
+      1px solid
+      rgba(89,185,238,.27) !important;
+
+    backdrop-filter:
+      blur(6px) !important;
+
+    -webkit-backdrop-filter:
+      blur(6px) !important;
+
+    box-shadow:
+      0 4px 12px rgba(0,0,0,.18) !important;
+  }
+
+
+  /* שם בלבד */
+  .kingdom-map-area .kingdom-label-title{
+    margin:0 !important;
+
+    font-size:11px !important;
+    line-height:1.1 !important;
+
+    color:#fff !important;
+  }
+
+
+  /* מסתירים "75% התקדמות" */
+  .kingdom-map-area .kingdom-label-subject{
+    display:none !important;
+  }
+
+
+  /* משאירים רק פס קטן */
+  .kingdom-map-area .kingdom-label-progress{
+    width:100% !important;
+
+    margin:3px 0 0 !important;
+
+    display:block !important;
+  }
+
+  .kingdom-map-area .kingdom-label-track{
+    display:block !important;
+
+    width:68% !important;
+    height:3px !important;
+
+    margin:0 auto !important;
+  }
+
+
+  /*
+    חשוב:
+    ה-b כבר מכיל "כניסה →"
+    אבל יש לך גם ::after שיוצר עוד כפתור.
+    לכן מסתירים את ה-b.
+  */
+  .kingdom-map-area .kingdom-label-progress b{
+    display:none !important;
+  }
+
+
+  /* כפתור הכניסה היחיד */
+  .kingdom-map-area .kingdom-label::after{
+    content:"כניסה";
+
+    width:48px !important;
+    height:18px !important;
+
+    margin:5px auto 0 !important;
+
+    font-size:8px !important;
+
+    border-radius:999px !important;
+
+    background:
+      rgba(20,45,70,.68) !important;
+  }
+
+
+  /* =========================================
+     שורה עליונה
+  ========================================= */
+
+  .kingdom-label-snow{
+    top:21% !important;
+    left:7% !important;
+    right:auto !important;
+    transform:none !important;
+  }
+
+  .kingdom-label-fire{
+    top:20% !important;
+    left:50% !important;
+    right:auto !important;
+    transform:translateX(-50%) !important;
+  }
+
+  .kingdom-label-jungle{
+    top:21% !important;
+    right:7% !important;
+    left:auto !important;
+    transform:none !important;
+  }
+
+
+  /* =========================================
+     שורה אמצעית
+  ========================================= */
+
+  .kingdom-label-shadow{
+    top:58% !important;
+    left:7% !important;
+    right:auto !important;
+    transform:none !important;
+  }
+
+  .kingdom-label-ocean{
+    top:57% !important;
+    right:7% !important;
+    left:auto !important;
+    transform:none !important;
+  }
+
+
+  /* =========================================
+     שורה תחתונה
+  ========================================= */
+
+  .kingdom-label-desert{
+    top:79% !important;
+    left:5% !important;
+    right:auto !important;
+    transform:none !important;
+  }
+
+  .kingdom-label-center{
+    top:82% !important;
+    left:50% !important;
+    right:auto !important;
+    transform:translateX(-50%) !important;
+  }
+
+  .kingdom-label-candy{
+    top:79% !important;
+    right:5% !important;
+    left:auto !important;
+    transform:none !important;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -32459,7 +32639,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V16";
+      "▶ Rotem V17";
 
 
     document.body.appendChild(
