@@ -11208,16 +11208,27 @@ body.science-hierarchy-mode
 #scienceHierarchyView{
   display:block !important;
 }
-    /* =====================================================
-   WINDOWS WORKSPACE — 80% SCALE
-   רק הדף הזה, רק Windows Desktop
+/* =====================================================
+   WINDOWS DESKTOP LAYOUT
+   מדמה layout רחב יותר בלי zoom
 ===================================================== */
 
 html.windows-workspace .app{
-  zoom:0.80 !important;
+  grid-template-columns:
+    220px
+    minmax(0,1fr)
+    270px !important;
 
-  width:125% !important;
-  height:125vh !important;
+  grid-template-rows:
+    66px
+    minmax(0,1fr) !important;
+
+  gap:10px !important;
+
+  padding:
+    10px
+    14px
+    14px !important;
 }
 </style>
 </head>
@@ -31641,7 +31652,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V1";
+      "▶ Rotem V2";
 
 
     document.body.appendChild(
