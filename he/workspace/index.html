@@ -11209,16 +11209,21 @@ body.science-hierarchy-mode
   display:block !important;
 }
 /* =====================================================
-   WINDOWS DESKTOP — MATCH CHROME 80%
+   WINDOWS WORKSPACE — TRUE 80% VIEW
 ===================================================== */
 
 html.windows-workspace .app{
+  position:fixed !important;
+
+  top:0 !important;
+  left:0 !important;
+
+  width:125vw !important;
+  height:125vh !important;
+
   zoom:0.80 !important;
 
-  width:125% !important;
-  height:125% !important;
-
-  min-height:125vh !important;
+  margin:0 !important;
 }
 </style>
 </head>
@@ -31642,7 +31647,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V11";
+      "▶ Rotem V12";
 
 
     document.body.appendChild(
