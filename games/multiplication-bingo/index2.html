@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בינגו לוח הכפל | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+#board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+#board .cell {
+  min-height: 62px; font-size: 1.3rem; font-weight: 800; border-radius: 14px;
+  border: 3px solid var(--accent); background: var(--card); color: var(--accent);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+#board .cell.marked { background: var(--green); border-color: var(--green); color: #fff; cursor: default; }
+#board .cell.flash { background: var(--accent); color: #fff; }
+#exercise { font-size: 2.4rem; font-weight: 900; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<div class="game-hud">
+  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
+  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div style="font-size:4rem">🎱</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="subtitle"></p>
+    <p id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+      <button class="game-btn secondary" onclick="start(1)" id="lvl1"></button>
+      <button class="game-btn secondary" onclick="start(2)" id="lvl2"></button>
+      <button class="game-btn secondary" onclick="start(3)" id="lvl3"></button>
+      <button class="game-btn" onclick="start(0)" id="lvl0"></button>
+    </div>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="exercise"></div>
+    <div id="board"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" onclick="location.reload()" id="again"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../game-sdk.js"></script>
+<script>
+const T = IAKidsLang.t.bind(IAKidsLang), UI = IAKidsLang.ui.bind(IAKidsLang);
+document.getElementById('title').textContent = T({he:'בינגו לוח הכפל', en:'Multiplication Bingo', es:'Bingo de multiplicar', de:'Einmaleins-Bingo', pt:'Bingo de multiplicação'});
+document.getElementById('subtitle').textContent = T({he:'תרגיל מוגרל — סמן את התוצאה בלוח. שורה או טור מלא = בינגו! 🎉', en:'An exercise is drawn — tap its answer on the board. Full row or column = Bingo! 🎉', es:'Sale una cuenta — toca su resultado. ¡Fila o columna llena = Bingo! 🎉', de:'Eine Aufgabe wird gezogen — tippe das Ergebnis. Volle Reihe = Bingo! 🎉', pt:'Sai uma conta — toque no resultado. Linha ou coluna cheia = Bingo! 🎉'});
+document.getElementById('rounds-label').textContent = T({he:'כמה הגרלות?', en:'How many draws?', es:'¿Cuántos sorteos?', de:'Wie viele Ziehungen?', pt:'Quantos sorteios?'});
+document.getElementById('score-label').textContent = UI('score');
+document.getElementById('q-label').textContent = UI('question');
+document.getElementById('best-label').textContent = UI('your_best');
+document.getElementById('again').textContent = UI('play_again');
+document.getElementById('lvl1').textContent = UI('level_easy');
+document.getElementById('lvl2').textContent = UI('level_medium');
+document.getElementById('lvl3').textContent = UI('level_hard');
+document.getElementById('lvl0').textContent = UI('level_random');
+
+let game, score = 0, qnum = 0, correct = 0, level = 1, locked = false;
+let TOTAL = 10, diff, timer, cells = [], current = null;
+const awarded = new Set();
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: 'multiplication-bingo',
+  how: 'מגרילים תרגיל כפל — מסמנים את התוצאה שלו בלוח הבינגו לפני שהפצצה מתפוצצת! 💣 שורה או טור מלא = בינגו! 🎉',
+  example: 'יצא <span dir="ltr"><b>3 × 4</b></span> ← לוחצים על המשבצת <b>12</b> בלוח',
+});
+
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+
+const show = id => {
+  for (const s of ['start-screen', 'play-screen', 'end-screen'])
+    document.getElementById(s).hidden = s !== id;
+};
+
+const rnd = n => Math.floor(Math.random() * n);
+const RANGE = { 1: [1, 6], 2: [2, 9], 3: [3, 12] }; // factor min/max per level
+
+function buildBoard(lvl) {
+  const [lo, hi] = RANGE[lvl];
+  const seen = new Set();
+  cells = [];
+  while (cells.length < 16) {
+    const a = lo + rnd(hi - lo + 1), b = lo + rnd(hi - lo + 1);
+    if (seen.has(a * b)) continue;
+    seen.add(a * b);
+    cells.push({ a, b, val: a * b, marked: false });
+  }
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  cells.forEach((c, i) => {
+    const el = document.createElement('button');
+    el.className = 'cell';
+    el.textContent = c.val;
+    el.onclick = () => tap(i);
+    c.el = el;
+    board.appendChild(el);
+  });
+}
+
+async function start(lvl) {
+  game = await IAKidsGame.init('multiplication-bingo');
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  timer = game.timer({ style: 'bomb', onTimeout: () => resolve(false, null) });
+  const p = await game.loadProgress();
+  if (p?.rounds && !document.querySelector('#rounds-row .success')) TOTAL = p.rounds;
+  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
+  document.getElementById('qtotal').textContent = TOTAL;
+  buildBoard(lvl === 0 ? 1 + rnd(3) : lvl);
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++;
+  locked = false;
+  document.getElementById('qnum').textContent = qnum;
+  const open = cells.filter(c => !c.marked);
+  current = await game.newQuestion(() => open[rnd(open.length)], c => `${c.a}×${c.b}`);
+  document.getElementById('exercise').innerHTML = `<span dir="ltr">${current.a} × ${current.b} = ?</span>`;
+  timer.start(IAKidsTimer.secondsFor(diff.level, 15));
+}
+
+function tap(i) {
+  const c = cells[i];
+  if (locked || c.marked) return;
+  resolve(c.val === current.val, c);
+}
+
+function resolve(right, c) {
+  if (locked) return;
+  locked = true;
+  timer.stop();
+  if (right) {
+    c.marked = true;
+    c.el.classList.add('marked');
+    score += 10; correct++;
+    diff.right();
+    IAKidsFX.correct(c.el);
+    IAKidsCoins.right(c.el);
+    checkBingo();
+  } else {
+    diff.wrong();
+    IAKidsFX.wrong(c ? c.el : document.getElementById('exercise'));
+    IAKidsCoins.wrong();
+    // flash where the right answer was
+    const hit = cells.find(x => x.val === current.val);
+    hit.el.classList.add('flash');
+    setTimeout(() => hit.el.classList.remove('flash'), 800);
+  }
+  document.getElementById('score').textContent = score;
+  setTimeout(next, right ? 600 : 1000);
+}
+
+function checkBingo() {
+  for (let i = 0; i < 4; i++) {
+    const lines = { ['r' + i]: [0, 1, 2, 3].map(j => cells[i * 4 + j]),
+                    ['c' + i]: [0, 1, 2, 3].map(j => cells[j * 4 + i]) };
+    for (const [key, line] of Object.entries(lines)) {
+      if (!awarded.has(key) && line.every(c => c.marked)) {
+        awarded.add(key);
+        score += 20;
+        IAKidsCoins.add(20);
+        IAKidsFX.scorePop(T({he:'🎉 בינגו! +20', en:'🎉 Bingo! +20', es:'🎉 ¡Bingo! +20', de:'🎉 Bingo! +20', pt:'🎉 Bingo! +20'}), line[0].el);
+        IAKidsFX._beep([[659, 0, 0.1], [784, 0.1, 0.1], [1047, 0.2, 0.3]]);
+      }
+    }
+  }
+}
+
+async function end() {
+  await game.saveScore(score, { level, correct, total: TOTAL, bingos: awarded.size });
+  const top = (await game.getHighScores(1))[0];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('best').textContent = top?.score ?? score;
+  document.getElementById('player-line').textContent =
+    `${top?.player || UI('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
+  const acc = correct / TOTAL;
+  document.getElementById('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.6 ? 2 : 1);
+  game.shareButton(score, document.getElementById('share-slot'));
+  show('end-screen');
+  game.complete(score);
+}
+</script>
+</body>
+</html>
