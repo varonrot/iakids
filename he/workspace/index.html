@@ -27665,7 +27665,7 @@ document.addEventListener(
 
 .kingdom-label-snow{
   top:18%;
-  left:24%;
+  left:26%;
 }
 
 
@@ -27685,7 +27685,7 @@ document.addEventListener(
 
 .kingdom-label-jungle{
   top:16%;
-  left:75%;
+  left:80%;
 }
 
 
@@ -27715,7 +27715,7 @@ document.addEventListener(
 
 .kingdom-label-shadow{
   top:60%;
-  left:21%;
+  left:16%;
 }
 
 
@@ -27725,7 +27725,7 @@ document.addEventListener(
 
 .kingdom-label-ocean{
   top:80%;
-  left:30%;
+  left:27%;
 }
 
 
@@ -33367,7 +33367,7 @@ async function loadCustomSubjectsForDashboard(){
   }
 
   const { data, error } =
-    await supabase
+    await sb
       .from("kid_custom_subjects")
       .select(`
         id,
