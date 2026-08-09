@@ -32993,7 +32993,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V22";
+      "▶ Rotem V23";
 
 
     document.body.appendChild(
@@ -33915,7 +33915,7 @@ async function openCustomSubject(
       data: units,
       error: unitsError
     } =
-      await supabase
+      await sb
         .from(
           "kid_custom_units"
         )
@@ -33994,7 +33994,7 @@ async function openCustomSubject(
       data: lessons,
       error: lessonsError
     } =
-      await supabase
+      await sb
         .from(
           "kid_custom_lessons"
         )
