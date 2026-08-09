@@ -1004,6 +1004,25 @@ function showCurriculumBuilding() {
     "curriculum-is-updating"
   );
 }
+function hideCurriculumBuilding() {
+
+  const tree =
+    document.getElementById("curriculumTree");
+
+  const loader =
+    tree.querySelector(".curriculum-update-loader");
+
+  if (loader) {
+    loader.remove();
+  }
+
+  const flow =
+    tree.querySelector(".curriculum-flow");
+
+  if (flow) {
+    flow.classList.remove("curriculum-is-updating");
+  }
+}
 async function submitText(text) {
 
   text = text.trim();
@@ -1152,7 +1171,7 @@ try {
 
     const data =
       JSON.parse(rawText);
-
+let curriculumWasRendered = false;
 
     console.log(
       "CURRICULUM RESPONSE:",
@@ -1219,18 +1238,21 @@ try {
 
 if (data.hierarchy) {
 
-  // יש כבר עץ אמיתי מה-AI
   render(data.hierarchy);
+  curriculumWasRendered = true;
 
-} else if (data.subject) {
+} else if (
+  data.subject &&
+  !CURRENT_PLAN
+) {
 
-  // המקצוע כבר זוהה,
-  // אבל עדיין לא נבחר נושא.
+  // רק בתחילת בניית מקצוע חדש
   render({
     subject: data.subject,
     topics: []
   });
 
+  curriculumWasRendered = true;
 }
 
 
@@ -1298,13 +1320,14 @@ if (data.hierarchy) {
 
   }
 
+finally {
 
-  finally {
+  hideCurriculumBuilding();
 
-    input.disabled = false;
-    input.focus();
+  input.disabled = false;
+  input.focus();
 
-  }
+}
 
 }
 document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();submitText(document.getElementById('chatInput').value);document.getElementById('chatInput').value=''});document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));
