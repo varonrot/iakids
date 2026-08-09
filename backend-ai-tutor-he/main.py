@@ -378,6 +378,10 @@ class CurriculumBuilderChatRequest(BaseModel):
 
     history: list[dict] | None = None
 
+class CurriculumApproveRequest(BaseModel):
+    kid_id: str
+    custom_subject_id: str
+    curriculum_id: str
 
 class CurriculumBuilderAIResponse(BaseModel):
     reply: str
@@ -9965,6 +9969,388 @@ def curriculum_builder_chat(
             detail="Curriculum Builder failed"
         )
 
+# =====================================================
+# APPROVE CUSTOM CURRICULUM
+# =====================================================
+
+@app.post("/api/curriculum/approve")
+def approve_custom_curriculum(
+        body: CurriculumApproveRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        if not body.custom_subject_id:
+            raise HTTPException(
+                status_code=400,
+                detail="custom_subject_id is required"
+            )
+
+        if not body.curriculum_id:
+            raise HTTPException(
+                status_code=400,
+                detail="curriculum_id is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # CUSTOM SUBJECT OWNERSHIP
+        # =============================================
+
+        custom_subject = get_custom_subject(
+            user_id=user.id,
+            kid_id=child["id"],
+            custom_subject_id=
+                body.custom_subject_id
+        )
+
+        # =============================================
+        # LOAD CURRENT CURRICULUM
+        # =============================================
+
+        curriculum_res = (
+            sb.table(
+                "kid_custom_curriculums"
+            )
+            .select("*")
+            .eq(
+                "id",
+                body.curriculum_id
+            )
+            .eq(
+                "custom_subject_id",
+                custom_subject["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        if not curriculum_res.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Curriculum not found"
+            )
+
+        curriculum = (
+            curriculum_res.data[0]
+        )
+
+        curriculum_json = (
+            curriculum.get(
+                "curriculum_json"
+            )
+            or {}
+        )
+
+        if not curriculum_json:
+            raise HTTPException(
+                status_code=400,
+                detail="Curriculum is empty"
+            )
+
+        # =============================================
+        # VALIDATE TREE
+        # =============================================
+
+        subject_name = str(
+            curriculum_json.get(
+                "subject"
+            )
+            or ""
+        ).strip()
+
+        topics = (
+            curriculum_json.get(
+                "topics"
+            )
+            or []
+        )
+
+        if not subject_name:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Curriculum subject is missing"
+                )
+            )
+
+        if not isinstance(
+                topics,
+                list
+        ) or not topics:
+
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Curriculum has no topics"
+                )
+            )
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        current_version = int(
+            curriculum.get(
+                "version"
+            )
+            or 1
+        )
+
+        # =============================================
+        # 1. ACTIVATE SUBJECT
+        # =============================================
+
+        subject_update = (
+            sb.table(
+                "kid_custom_subjects"
+            )
+            .update({
+                "status":
+                    "active",
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                custom_subject["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        if not subject_update.data:
+            raise RuntimeError(
+                "Failed to activate custom subject"
+            )
+
+        # =============================================
+        # 2. ACTIVATE CURRICULUM
+        # =============================================
+
+        curriculum_update = (
+            sb.table(
+                "kid_custom_curriculums"
+            )
+            .update({
+                "status":
+                    "active",
+
+                "last_change_type":
+                    "approved",
+
+                "last_change_summary":
+                    "Parent approved curriculum",
+
+                "updated_by":
+                    "parent",
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                curriculum["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        if not curriculum_update.data:
+            raise RuntimeError(
+                "Failed to activate curriculum"
+            )
+
+        approved_curriculum = (
+            curriculum_update.data[0]
+        )
+
+        # =============================================
+        # 3. MARK CURRENT VERSION AS APPROVED
+        #
+        # הגרסה כבר קיימת אצלך כי
+        # update_custom_curriculum שומר snapshot
+        # בכל שינוי.
+        #
+        # לכן לא יוצרים כאן version כפולה.
+        # רק מעדכנים את ה-snapshot הקיים.
+        # =============================================
+
+        version_update = (
+            sb.table(
+                "kid_custom_curriculum_versions"
+            )
+            .update({
+                "change_type":
+                    "approved",
+
+                "change_summary":
+                    "Parent approved curriculum",
+
+                "changed_by":
+                    "parent"
+            })
+            .eq(
+                "curriculum_id",
+                curriculum["id"]
+            )
+            .eq(
+                "version",
+                current_version
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # DEBUG
+        # =============================================
+
+        print(
+            "CUSTOM CURRICULUM APPROVED:",
+            json.dumps(
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "custom_subject_id":
+                        custom_subject["id"],
+
+                    "subject_name":
+                        custom_subject.get(
+                            "subject_name"
+                        ),
+
+                    "curriculum_id":
+                        curriculum["id"],
+
+                    "version":
+                        current_version,
+
+                    "subject_status":
+                        "active",
+
+                    "curriculum_status":
+                        "active",
+
+                    "version_rows_updated":
+                        len(
+                            version_update.data
+                            or []
+                        )
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        return {
+            "success": True,
+
+            "kid_id":
+                child["id"],
+
+            "custom_subject_id":
+                custom_subject["id"],
+
+            "curriculum_id":
+                approved_curriculum["id"],
+
+            "subject":
+                custom_subject.get(
+                    "subject_name"
+                ),
+
+            "version":
+                approved_curriculum.get(
+                    "version"
+                ),
+
+            "subject_status":
+                "active",
+
+            "curriculum_status":
+                "active"
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "CURRICULUM APPROVE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Curriculum approval failed"
+        )
+    
 @app.post("/api/tutor/chat")
 def tutor_chat(
         body: TutorChatRequest,
