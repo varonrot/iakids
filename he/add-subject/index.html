@@ -398,10 +398,11 @@ let CURRENT_PLAN = null;
 let CURRENT_CUSTOM_SUBJECT_ID = null;
 let CURRENT_CURRICULUM_ID = null;
 let CURRENT_VERSION = null;
+let CONVERSATION_HISTORY = [];
 function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){location.replace('/he/onboarding/cuenta/');return}const user=s.session.user;document.getElementById('userName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'הורה';document.getElementById('userAvatar').src=user.user_metadata?.avatar_url||user.user_metadata?.picture||'/assets/default-parent.png';let kidId=localStorage.getItem('active_kid_id');if(!kidId){const {data:kids}=await sb.from('kids_profiles').select('id').eq('user_id',user.id).order('created_at',{ascending:true});if(!kids?.length)return;kidId=kids[0].id;localStorage.setItem('active_kid_id',kidId)}const {data:kid,error}=await sb.from('kids_profiles').select('id,child_name,age,avatar_key,usage_goals,learning_interests').eq('id',kidId).single();if(error||!kid){console.error(error);return}CURRENT_KID=kid;window.ACTIVE_KID_ID=kid.id;document.getElementById('subtitle').textContent=`בואו נבנה יחד מקצוע חדש שמתאים בדיוק ל${kid.child_name}`;document.getElementById('welcome').innerHTML=`שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור <strong>${esc(kid.child_name)}</strong>.<br><br>מה הייתם רוצים ש${esc(kid.child_name)} ילמד/תלמד?`}
 
-function makePlan(text){if(PLANS[text])return PLANS[text];if(text.includes('תכנות')||text.toLowerCase().includes('python'))return PLANS['תכנות'];if(text.includes('חלל')||text.includes('כוכב')||text.includes('אסטרונומ'))return PLANS['אסטרונומיה'];return{subject:text.slice(0,28),branches:[{title:"היכרות",children:["מושגי יסוד","שפה בסיסית","הבנה ראשונית"]},{title:"מיומנויות",children:["תרגול","יישום","פתרון בעיות"]},{title:"העמקה",children:["דוגמאות","השוואה","חשיבה עצמאית"]},{title:"פרויקט",children:["תכנון","ביצוע","הצגה"]}]}}
+
 function render(plan) {
   if (!plan) return;
 
@@ -599,8 +600,20 @@ async function submitText(text) {
 
   msg("parent", text);
 
-  const input = document.getElementById("chatInput");
+  /*
+    שומרים את הודעת ההורה בזיכרון השיחה.
+  */
+  CONVERSATION_HISTORY.push({
+    role: "user",
+    content: text
+  });
+
+
+  const input =
+    document.getElementById("chatInput");
+
   input.disabled = true;
+
 
   try {
 
@@ -610,39 +623,65 @@ async function submitText(text) {
     const accessToken =
       sessionData?.session?.access_token;
 
+
     if (!accessToken) {
-      location.replace("/he/onboarding/cuenta/");
+
+      location.replace(
+        "/he/onboarding/cuenta/"
+      );
+
       return;
     }
 
-    const response = await fetch(CURRICULUM_API, {
 
-      method: "POST",
+    const response =
+      await fetch(
+        CURRICULUM_API,
+        {
 
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`
-      },
+          method: "POST",
 
-      body: JSON.stringify({
+          headers: {
 
-        kid_id: CURRENT_KID.id,
+            "Content-Type":
+              "application/json",
 
-        message: text,
+            "Authorization":
+              `Bearer ${accessToken}`
 
-        custom_subject_id:
-          CURRENT_CUSTOM_SUBJECT_ID,
+          },
 
-        curriculum_id:
-          CURRENT_CURRICULUM_ID
 
-      })
+          body: JSON.stringify({
 
-    });
+            kid_id:
+              CURRENT_KID.id,
 
-    const rawText = await response.text();
+            message:
+              text,
+
+            custom_subject_id:
+              CURRENT_CUSTOM_SUBJECT_ID,
+
+            /*
+              ההודעה הנוכחית כבר נשלחת ב-message,
+              לכן לא שולחים אותה שוב בתוך history.
+            */
+            history:
+              CONVERSATION_HISTORY.slice(0, -1)
+
+          })
+
+        }
+      );
+
+
+    const rawText =
+      await response.text();
+
 
     if (!response.ok) {
+
       console.error(
         "Curriculum API error:",
         response.status,
@@ -654,50 +693,109 @@ async function submitText(text) {
       );
     }
 
-    const data = JSON.parse(rawText);
+
+    const data =
+      JSON.parse(rawText);
+
 
     console.log(
       "CURRICULUM RESPONSE:",
       data
     );
 
+
     /*
-      נשמור את הזהות של המקצוע/תוכנית
-      כדי שההודעה הבאה תמשיך את אותו עץ
+      מזהה המקצוע נשמר כדי שכל ההודעות הבאות
+      ימשיכו לעבוד על אותו מקצוע.
     */
 
     if (data.custom_subject_id) {
+
       CURRENT_CUSTOM_SUBJECT_ID =
         data.custom_subject_id;
+
     }
+
 
     if (data.curriculum_id) {
+
       CURRENT_CURRICULUM_ID =
         data.curriculum_id;
+
     }
+
 
     if (data.version !== undefined) {
+
       CURRENT_VERSION =
         data.version;
+
     }
 
+
     /*
-      תשובת היועץ
+      תשובת ה-AI
     */
 
     if (data.reply) {
-      msg("ai", data.reply);
+
+      msg(
+        "ai",
+        data.reply
+      );
+
+      CONVERSATION_HISTORY.push({
+
+        role:
+          "assistant",
+
+        content:
+          data.reply
+
+      });
+
     }
 
+
     /*
-      ציור ההיררכיה
+      ההיררכיה החזותית
     */
 
     if (data.hierarchy) {
-      render(data.hierarchy);
+
+      render(
+        data.hierarchy
+      );
+
     }
 
+
+    /*
+      DEBUG — מאוד שימושי עכשיו
+    */
+
+    console.log(
+      "CURRICULUM STATE:",
+      {
+        custom_subject_id:
+          CURRENT_CUSTOM_SUBJECT_ID,
+
+        curriculum_id:
+          CURRENT_CURRICULUM_ID,
+
+        version:
+          CURRENT_VERSION,
+
+        history:
+          CONVERSATION_HISTORY,
+
+        hierarchy:
+          data.hierarchy
+      }
+    );
+
   }
+
 
   catch (error) {
 
@@ -706,6 +804,29 @@ async function submitText(text) {
       error
     );
 
+
+    /*
+      אם הבקשה נכשלה, נוריד מה-history
+      את הודעת המשתמש האחרונה,
+      כי היא למעשה לא עובדה על ידי השרת.
+    */
+
+    const last =
+      CONVERSATION_HISTORY[
+        CONVERSATION_HISTORY.length - 1
+      ];
+
+    if (
+      last &&
+      last.role === "user" &&
+      last.content === text
+    ) {
+
+      CONVERSATION_HISTORY.pop();
+
+    }
+
+
     msg(
       "ai",
       "לא הצלחתי לעדכן כרגע את תוכנית הלימודים. נסו שוב."
@@ -713,12 +834,14 @@ async function submitText(text) {
 
   }
 
+
   finally {
 
     input.disabled = false;
     input.focus();
 
   }
+
 }
 document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();submitText(document.getElementById('chatInput').value);document.getElementById('chatInput').value=''});document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));
 document.getElementById('approveBtn').onclick = () => {
