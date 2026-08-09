@@ -10278,6 +10278,321 @@ def approve_custom_curriculum(
             .execute()
         )
 
+        # =============================================
+        # BUILD RUNTIME UNITS + LESSONS
+        # =============================================
+
+        topics = (
+            curriculum_json.get("topics")
+            or []
+        )
+
+        if not isinstance(topics, list):
+            raise RuntimeError(
+                "Invalid curriculum topics"
+            )
+
+        units_created = 0
+        lessons_created = 0
+
+        for topic_index, topic in enumerate(
+                topics,
+                start=1
+        ):
+
+            if not isinstance(topic, dict):
+                continue
+
+            topic_name = str(
+                topic.get("name")
+                or ""
+            ).strip()
+
+            if not topic_name:
+                continue
+
+            units = (
+                topic.get("units")
+                or []
+            )
+
+            if not isinstance(units, list):
+                continue
+
+            for unit_index, unit in enumerate(
+                    units,
+                    start=1
+            ):
+
+                if not isinstance(unit, dict):
+                    continue
+
+                unit_name = str(
+                    unit.get("name")
+                    or ""
+                ).strip()
+
+                if not unit_name:
+                    continue
+
+                # =====================================
+                # FIND EXISTING UNIT
+                # =====================================
+
+                existing_unit_res = (
+                    sb.table(
+                        "kid_custom_units"
+                    )
+                    .select("*")
+                    .eq(
+                        "curriculum_id",
+                        curriculum["id"]
+                    )
+                    .eq(
+                        "topic_order",
+                        topic_index
+                    )
+                    .eq(
+                        "unit_order",
+                        unit_index
+                    )
+                    .limit(1)
+                    .execute()
+                )
+
+                if existing_unit_res.data:
+
+                    custom_unit = (
+                        existing_unit_res.data[0]
+                    )
+
+                    # אם השם השתנה בגרסה חדשה
+                    # מעדכנים את היחידה הקיימת
+                    update_unit_res = (
+                        sb.table(
+                            "kid_custom_units"
+                        )
+                        .update({
+                            "topic_name":
+                                topic_name,
+
+                            "unit_name":
+                                unit_name,
+
+                            "status":
+                                "active",
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "updated_at":
+                                now_iso
+                        })
+                        .eq(
+                            "id",
+                            custom_unit["id"]
+                        )
+                        .execute()
+                    )
+
+                    if update_unit_res.data:
+                        custom_unit = (
+                            update_unit_res.data[0]
+                        )
+
+                else:
+
+                    # =================================
+                    # CREATE UNIT
+                    # =================================
+
+                    unit_insert_res = (
+                        sb.table(
+                            "kid_custom_units"
+                        )
+                        .insert({
+                            "user_id":
+                                user.id,
+
+                            "kid_id":
+                                child["id"],
+
+                            "custom_subject_id":
+                                custom_subject["id"],
+
+                            "curriculum_id":
+                                curriculum["id"],
+
+                            "topic_name":
+                                topic_name,
+
+                            "topic_order":
+                                topic_index,
+
+                            "unit_name":
+                                unit_name,
+
+                            "unit_order":
+                                unit_index,
+
+                            "status":
+                                "active",
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "created_at":
+                                now_iso,
+
+                            "updated_at":
+                                now_iso
+                        })
+                        .execute()
+                    )
+
+                    if not unit_insert_res.data:
+                        raise RuntimeError(
+                            "Failed to create custom unit"
+                        )
+
+                    custom_unit = (
+                        unit_insert_res.data[0]
+                    )
+
+                    units_created += 1
+
+
+                # =====================================
+                # LESSONS
+                # =====================================
+
+                lessons = (
+                    unit.get("lessons")
+                    or []
+                )
+
+                if not isinstance(
+                        lessons,
+                        list
+                ):
+                    continue
+
+                for lesson_index, lesson in enumerate(
+                        lessons,
+                        start=1
+                ):
+
+                    if not isinstance(
+                            lesson,
+                            dict
+                    ):
+                        continue
+
+                    lesson_name = str(
+                        lesson.get("name")
+                        or ""
+                    ).strip()
+
+                    if not lesson_name:
+                        continue
+
+                    # =================================
+                    # FIND EXISTING LESSON
+                    # =================================
+
+                    existing_lesson_res = (
+                        sb.table(
+                            "kid_custom_lessons"
+                        )
+                        .select("*")
+                        .eq(
+                            "custom_unit_id",
+                            custom_unit["id"]
+                        )
+                        .eq(
+                            "lesson_order",
+                            lesson_index
+                        )
+                        .limit(1)
+                        .execute()
+                    )
+
+                    if existing_lesson_res.data:
+
+                        existing_lesson = (
+                            existing_lesson_res.data[0]
+                        )
+
+                        sb.table(
+                            "kid_custom_lessons"
+                        ).update({
+                            "lesson_name":
+                                lesson_name,
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "updated_at":
+                                now_iso
+                        }).eq(
+                            "id",
+                            existing_lesson["id"]
+                        ).execute()
+
+                    else:
+
+                        # =============================
+                        # CREATE LESSON
+                        # =============================
+
+                        lesson_insert_res = (
+                            sb.table(
+                                "kid_custom_lessons"
+                            )
+                            .insert({
+                                "user_id":
+                                    user.id,
+
+                                "kid_id":
+                                    child["id"],
+
+                                "custom_subject_id":
+                                    custom_subject["id"],
+
+                                "curriculum_id":
+                                    curriculum["id"],
+
+                                "custom_unit_id":
+                                    custom_unit["id"],
+
+                                "lesson_name":
+                                    lesson_name,
+
+                                "lesson_order":
+                                    lesson_index,
+
+                                "status":
+                                    "pending",
+
+                                "source_curriculum_version":
+                                    current_version,
+
+                                "created_at":
+                                    now_iso,
+
+                                "updated_at":
+                                    now_iso
+                            })
+                            .execute()
+                        )
+
+                        if not lesson_insert_res.data:
+                            raise RuntimeError(
+                                "Failed to create custom lesson"
+                            )
+
+                        lessons_created += 1
+
         print(
             "CUSTOM CURRICULUM APPROVED:",
             json.dumps(
@@ -10301,7 +10616,12 @@ def approve_custom_curriculum(
                         len(
                             version_update.data
                             or []
-                        )
+                        ),
+                    "units_created":
+                        units_created,
+
+                    "lessons_created":
+                        lessons_created
                 },
                 ensure_ascii=False,
                 indent=2
@@ -10334,7 +10654,13 @@ def approve_custom_curriculum(
                 "active",
 
             "curriculum_status":
-                "active"
+                "active",
+
+            "units_created":
+                units_created,
+
+            "lessons_created":
+                lessons_created
         }
 
     except HTTPException:
