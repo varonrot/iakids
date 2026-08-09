@@ -30823,6 +30823,13 @@ div{
       #7cff88
     ) !important;
 }
+    .science-tree-icon-img{
+  width:52px;
+  height:52px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto;
+}
 </style>
 
 
@@ -35614,9 +35621,13 @@ function renderCustomSubjectTree(
               data-topic-name="${topicName}"
             >
 
-              <div class="science-tree-card-icon">
-                <i class="fa-solid fa-map"></i>
-              </div>
+<div class="science-tree-card-icon">
+  <img
+    src="/assets/science/ui/unit-puzzle.webp"
+    alt=""
+    class="science-tree-icon-img"
+  >
+</div>
 
               <strong>
                 ${topicName}
@@ -35938,19 +35949,27 @@ function renderCustomUnitLessons(
                 data-lesson-order="${lesson.lesson_order}"
               >
 
-                <div class="science-tree-card-icon">
+<div class="science-tree-card-icon">
 
-                  ${
-                    index === 0
-                      ? `
-                        <i class="fa-solid fa-play"></i>
-                      `
-                      : `
-                        <i class="fa-solid fa-book-open"></i>
-                      `
-                  }
+  ${
+    index === 0
+      ? `
+        <img
+          src="/assets/science/ui/lesson-play.webp"
+          alt=""
+          class="science-tree-icon-img"
+        >
+      `
+      : `
+        <img
+          src="/assets/science/ui/lesson-book.webp"
+          alt=""
+          class="science-tree-icon-img"
+        >
+      `
+  }
 
-                </div>
+</div>
 
                 <strong>
                   ${lesson.lesson_name}
