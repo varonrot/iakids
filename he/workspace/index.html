@@ -12930,32 +12930,35 @@ data-custom-slot="0"
 
 
 <!-- =========================
-     הוסף מקצוע
+     היסטוריה
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-desert custom-subject-slot"
-data-kingdom="desert"
-data-custom-slot="1"
+  type="button"
+  id="historySubjectCard"
+  class="kingdom-label kingdom-label-desert history-subject-card"
+  data-kingdom="desert"
 >
 
   <strong class="kingdom-label-title">
-      היסטוריה
+    היסטוריה
   </strong>
 
   <span class="kingdom-label-subject">
-    התאמה אישית לילד
+    תוכנית אישית
   </span>
 
   <span class="kingdom-label-progress">
     <span class="kingdom-label-track">
       <span
-      class="kingdom-label-fill"
-      style="width:0%"
+        class="kingdom-label-fill"
+        id="historySubjectProgress"
+        style="width:0%"
       ></span>
     </span>
 
-    <b>הוסף →</b>
+    <b id="historySubjectAction">
+      התחלה →
+    </b>
   </span>
 
 </button>
@@ -32993,7 +32996,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V24";
+      "▶ Rotem V25";
 
 
     document.body.appendChild(
@@ -33725,6 +33728,145 @@ async function loadCustomSubjectsForDashboard(){
 /* =====================================================
    OPEN CUSTOM SUBJECT
 ===================================================== */
+
+/* =====================================================
+   OPEN HISTORY SUBJECT
+===================================================== */
+
+async function openHistorySubject(){
+
+  console.log(
+    "OPEN HISTORY SUBJECT",
+    CURRENT_KID
+  );
+
+
+  if(
+    !CURRENT_KID ||
+    !CURRENT_KID.id
+  ){
+
+    console.error(
+      "CURRENT_KID missing"
+    );
+
+    return;
+  }
+
+
+  /*
+    בודקים אם כבר קיימת
+    תוכנית היסטוריה מאושרת לילד
+  */
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "kid_custom_subjects"
+      )
+      .select(
+        `
+        id,
+        subject_name,
+        status
+        `
+      )
+      .eq(
+        "kid_id",
+        CURRENT_KID.id
+      )
+      .eq(
+        "subject_name",
+        "היסטוריה"
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      )
+      .limit(1);
+
+
+  if(error){
+
+    console.error(
+      "HISTORY SUBJECT ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  const historySubject =
+    data?.[0];
+
+
+  /*
+    כבר קיימת תוכנית היסטוריה
+  */
+
+  if(historySubject){
+
+    console.log(
+      "HISTORY SUBJECT FOUND:",
+      historySubject
+    );
+
+    await openCustomSubject(
+      historySubject.id,
+      "היסטוריה"
+    );
+
+    return;
+  }
+
+
+  /*
+    עדיין אין תוכנית:
+    עוברים לבניית מקצוע אישי,
+    אבל כבר יודעים שמדובר בהיסטוריה
+  */
+
+  window.location.href =
+    "/he/add-subject/?subject=" +
+    encodeURIComponent(
+      "היסטוריה"
+    );
+
+}
+
+const historySubjectCard =
+  document.getElementById(
+    "historySubjectCard"
+  );
+
+
+if(historySubjectCard){
+
+  historySubjectCard
+    .addEventListener(
+      "click",
+      async event => {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        await openHistorySubject();
+
+      }
+    );
+
+}
+
 
 async function openCustomSubject(
   subjectId,
