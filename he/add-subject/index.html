@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>הוספת מקצוע חדש2 | IAKids</title>
+<title>הוספת מקצוע חדש | IAKids</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -14,6 +14,319 @@
 .curriculum{min-width:760px;padding-bottom:50px}.subject{width:330px;margin:4px auto 64px;padding:23px;border:1px solid rgba(128,92,255,.72);border-radius:16px;background:rgba(14,24,50,.82);text-align:center;position:relative}.subject:after{content:"";position:absolute;bottom:-38px;left:50%;height:38px;border-left:1px solid #654ad4}.subject strong{display:block;font-size:18px}.subject small,.branch-card small{color:#8593aa}.branches{display:grid;grid-template-columns:repeat(var(--count),1fr);gap:18px;position:relative}.branches:before{content:"";position:absolute;top:-28px;left:9%;right:9%;border-top:1px solid rgba(98,77,207,.7)}.branch{position:relative}.branch:before{content:"";position:absolute;top:-28px;left:50%;height:28px;border-left:1px solid rgba(98,77,207,.7)}.branch-card{min-height:118px;padding:17px 12px;border:1px solid rgba(78,128,188,.4);border-radius:14px;background:rgba(9,23,44,.82);text-align:center}.children{display:flex;gap:8px;justify-content:center;margin-top:35px;position:relative}.child{width:86px;min-height:74px;padding:10px 6px;border:1px dashed rgba(94,128,181,.48);border-radius:11px;background:rgba(8,20,39,.7);font-size:10px;text-align:center}.child i{display:block;color:#8a67ff;margin-bottom:5px}
 .chat{direction:rtl;display:flex;flex-direction:column}.chat-head{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid rgba(100,143,198,.12)}.chat-title strong{display:block;font-size:14px}.chat-title span{font-size:10px;color:#91a0b7}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#41dc81;margin-left:5px}.core{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;border:1px solid #7656ff;color:#9b7aff}.messages{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}.msg{max-width:83%;padding:12px 14px;border-radius:13px;font-size:12px;line-height:1.75}.msg.ai{align-self:flex-start;background:#0d1c33}.msg.parent{align-self:flex-end;background:linear-gradient(135deg,#32177d,#4d22bb)}.suggestions{display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 12px}.suggestions button{border:1px solid rgba(124,80,255,.46);background:#0f152b;color:#a993ff;border-radius:999px;padding:7px 12px;font-size:10px;cursor:pointer}.form{height:64px;padding:8px 10px;border-top:1px solid rgba(100,143,198,.12);display:flex;gap:7px}.form input{flex:1;min-width:0;border:1px solid rgba(96,139,193,.13);background:#081528;color:#fff;outline:none;border-radius:12px;padding:0 12px}.form button{width:43px;border:0;border-radius:12px;background:linear-gradient(135deg,#6b3ee8,#885eff);color:#fff}
 @media(max-width:900px){body{overflow:auto}.app{display:block;height:auto}.topbar{position:sticky;top:0;height:64px}.sidebar{display:none}.main{min-height:calc(100vh - 64px);padding:10px}.grid{display:flex;flex-direction:column}.chat{height:330px}.tree{height:620px}.curriculum{transform:scale(.68);transform-origin:top right;width:147%}}
+/* =========================================================
+   CURRICULUM BUILDER — 4 LEVEL VISUAL TREE
+   ========================================================= */
+
+.curriculum{
+  min-width:0;
+  width:100%;
+  padding:10px 10px 90px;
+}
+
+.curriculum-flow{
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+.level{
+  position:relative;
+}
+
+.level-label{
+  width:max-content;
+  margin:0 auto 14px;
+  padding:5px 12px;
+
+  border:1px solid rgba(128,92,255,.25);
+  border-radius:999px;
+
+  background:rgba(86,52,180,.10);
+
+  color:#8f78dd;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.3px;
+}
+
+.node-row{
+  display:flex;
+  justify-content:center;
+  align-items:stretch;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.node{
+  position:relative;
+
+  border:1px solid rgba(93,136,195,.32);
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12,29,54,.94),
+      rgba(6,18,36,.96)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 12px 28px rgba(0,0,0,.16);
+
+  text-align:center;
+}
+
+.node strong{
+  display:block;
+  color:#f2f5ff;
+  line-height:1.35;
+}
+
+.node small{
+  display:block;
+  margin-top:6px;
+  color:#687b98;
+  font-size:10px;
+}
+
+
+/* SUBJECT */
+
+.node-subject{
+  width:330px;
+  min-height:112px;
+
+  margin:auto;
+  padding:20px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  border-color:rgba(132,86,255,.65);
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(119,70,255,.18),
+      transparent 60%
+    ),
+    rgba(10,23,47,.96);
+
+  box-shadow:
+    0 0 45px rgba(105,65,255,.08);
+}
+
+.node-subject strong{
+  font-size:20px;
+}
+
+.node-icon{
+  width:34px;
+  height:34px;
+
+  display:grid;
+  place-items:center;
+
+  margin-bottom:8px;
+
+  border-radius:50%;
+
+  border:1px solid rgba(137,95,255,.55);
+
+  color:#9b7aff;
+  background:rgba(103,58,220,.10);
+}
+
+.node-icon.small{
+  width:28px;
+  height:28px;
+  margin:0 auto 8px;
+  font-size:11px;
+}
+
+
+/* CONNECTORS */
+
+.connector-down{
+  width:1px;
+  height:34px;
+
+  margin:0 auto;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(126,88,255,.8),
+      rgba(56,164,255,.28)
+    );
+
+  box-shadow:
+    0 0 8px rgba(91,92,255,.25);
+}
+
+
+/* TOPICS */
+
+.node-topic{
+  width:210px;
+  min-height:92px;
+
+  padding:17px 14px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.node-topic strong{
+  font-size:15px;
+}
+
+.node-number{
+  position:absolute;
+  top:8px;
+  left:10px;
+
+  color:#574d87;
+  font-size:9px;
+  font-weight:900;
+}
+
+
+/* TOPIC GROUP */
+
+.topic-groups{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+
+.topic-group{
+  padding:15px;
+
+  border:1px solid rgba(75,117,176,.12);
+  border-radius:15px;
+
+  background:rgba(5,15,31,.32);
+}
+
+.group-title{
+  margin-bottom:13px;
+
+  color:#8293ae;
+  font-size:11px;
+  font-weight:800;
+}
+
+
+/* UNITS */
+
+.node-unit{
+  width:170px;
+  min-height:105px;
+
+  padding:15px 10px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.node-unit strong{
+  font-size:13px;
+}
+
+
+/* LESSONS */
+
+.lessons-groups{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.lesson-group{
+  padding:13px 15px 16px;
+
+  border-top:
+    1px solid rgba(69,111,168,.12);
+}
+
+.lesson-group-title{
+  margin-bottom:12px;
+
+  color:#778aa8;
+  font-size:11px;
+  font-weight:700;
+}
+
+.node-lesson{
+  width:135px;
+  min-height:82px;
+
+  padding:14px 9px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  border-color:rgba(75,113,169,.24);
+
+  background:rgba(7,19,38,.75);
+}
+
+.node-lesson strong{
+  font-size:11px;
+}
+
+.lesson-index{
+  position:absolute;
+
+  top:7px;
+  right:8px;
+
+  width:18px;
+  height:18px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:rgba(101,69,210,.16);
+
+  color:#8970e9;
+
+  font-size:8px;
+  font-weight:900;
+}
+
+
+/* WHEN ONLY SUBJECT EXISTS */
+
+.building-note{
+  width:max-content;
+
+  margin:30px auto 0;
+  padding:9px 16px;
+
+  border:1px dashed rgba(124,91,230,.25);
+  border-radius:10px;
+
+  color:#7888a4;
+  font-size:11px;
+}
+
+.building-note i{
+  margin-left:6px;
+  color:#8b6df1;
+}
+
 </style>
 </head>
 <body>
@@ -49,7 +362,7 @@
 </aside>
 <main class="main">
 <section class="shell">
-<header class="head"><div class="spark">✦</div><h1>הוספת מקצוע חדש</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
+<header class="head"><div class="spark">✦</div><h1>הוספת מקצוע חדש2</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
 <div class="grid">
 <section class="tree">
   <div class="tree-stage">
@@ -90,137 +403,192 @@ async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){
 
 function makePlan(text){if(PLANS[text])return PLANS[text];if(text.includes('תכנות')||text.toLowerCase().includes('python'))return PLANS['תכנות'];if(text.includes('חלל')||text.includes('כוכב')||text.includes('אסטרונומ'))return PLANS['אסטרונומיה'];return{subject:text.slice(0,28),branches:[{title:"היכרות",children:["מושגי יסוד","שפה בסיסית","הבנה ראשונית"]},{title:"מיומנויות",children:["תרגול","יישום","פתרון בעיות"]},{title:"העמקה",children:["דוגמאות","השוואה","חשיבה עצמאית"]},{title:"פרויקט",children:["תכנון","ביצוע","הצגה"]}]}}
 function render(plan) {
-
   if (!plan) return;
 
   CURRENT_PLAN = plan;
 
-  const emptyTree =
-    document.getElementById("emptyTree");
+  const emptyTree = document.getElementById("emptyTree");
+  const tree = document.getElementById("curriculumTree");
+  const approve = document.getElementById("approveBtn");
 
-  const tree =
-    document.getElementById("curriculumTree");
+  const topics = Array.isArray(plan.topics) ? plan.topics : [];
+
+  // כל עוד יש רק מקצוע בלי נושא - אפשר כבר להראות את המקצוע
+  if (!plan.subject) return;
 
   emptyTree.hidden = true;
   tree.hidden = false;
 
-
-  const topics =
-    Array.isArray(plan.topics)
-      ? plan.topics
-      : [];
-
-
   tree.innerHTML = `
+    <div class="curriculum-flow">
 
-    <!-- LEVEL 1 : SUBJECT -->
+      <!-- LEVEL 1 -->
+      <div class="level level-subject">
+        <div class="level-label">מקצוע</div>
 
-    <div class="subject">
-
-      <strong>
-        ${esc(plan.subject || "מקצוע חדש")}
-      </strong>
-
-      <small>
-        מקצוע
-      </small>
-
-    </div>
-
-
-    <!-- LEVEL 2 : TOPICS -->
-
-    <div
-      class="branches"
-      style="--count:${Math.max(topics.length,1)}"
-    >
-
-      ${topics.map(topic => `
-
-        <div class="branch">
-
-          <div class="branch-card">
-
-            <strong>
-              ${esc(topic.name)}
-            </strong>
-
-            <small>
-              נושא
-            </small>
-
+        <div class="node node-subject">
+          <div class="node-icon">
+            <i class="fa-solid fa-book-open"></i>
           </div>
 
+          <strong>${esc(plan.subject)}</strong>
+          <small>המקצוע החדש</small>
+        </div>
+      </div>
 
-          <!-- LEVEL 3 : UNITS -->
+      ${topics.length ? `
+        <div class="connector-down"></div>
 
-          <div class="children">
+        <!-- LEVEL 2 -->
+        <div class="level">
+          <div class="level-label">נושאים מרכזיים</div>
 
-            ${(topic.units || []).map(unit => `
-
-              <div class="child">
-
-                <strong>
-                  ${esc(unit.name)}
-                </strong>
-
-                <small>
-                  יחידה
-                </small>
-
-                <!-- LEVEL 4 : LESSONS -->
-
-                <div class="lesson-list">
-
-                  ${(unit.lessons || []).map(lesson => `
-
-                    <div class="lesson-item">
-
-                      ${esc(
-                        typeof lesson === "string"
-                          ? lesson
-                          : lesson.name
-                      )}
-
-                    </div>
-
-                  `).join("")}
-
-                </div>
-
+          <div class="node-row topics-row">
+            ${topics.map(topic => `
+              <div class="node node-topic">
+                <div class="node-number">02</div>
+                <strong>${esc(topic.name || "")}</strong>
+                <small>נושא מרכזי</small>
               </div>
-
             `).join("")}
-
           </div>
-
         </div>
 
-      `).join("")}
+        ${topics.some(t => Array.isArray(t.units) && t.units.length) ? `
+          <div class="connector-down"></div>
+
+          <!-- LEVEL 3 -->
+          <div class="level">
+            <div class="level-label">יחידות לימוד</div>
+
+            <div class="topic-groups">
+              ${topics.map(topic => `
+                <div class="topic-group">
+
+                  <div class="group-title">
+                    ${esc(topic.name || "")}
+                  </div>
+
+                  <div class="node-row units-row">
+                    ${(topic.units || []).map(unit => `
+                      <div class="node node-unit">
+                        <div class="node-icon small">
+                          <i class="fa-solid fa-layer-group"></i>
+                        </div>
+
+                        <strong>${esc(unit.name || "")}</strong>
+                        <small>יחידת לימוד</small>
+                      </div>
+                    `).join("")}
+                  </div>
+
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        ` : ""}
+
+        ${topics.some(t =>
+          (t.units || []).some(u =>
+            Array.isArray(u.lessons) && u.lessons.length
+          )
+        ) ? `
+          <div class="connector-down"></div>
+
+          <!-- LEVEL 4 -->
+          <div class="level">
+            <div class="level-label">שיעורים</div>
+
+            <div class="lessons-groups">
+
+              ${topics.map(topic =>
+                (topic.units || []).map(unit => {
+
+                  const lessons = Array.isArray(unit.lessons)
+                    ? unit.lessons
+                    : [];
+
+                  if (!lessons.length) return "";
+
+                  return `
+                    <div class="lesson-group">
+
+                      <div class="lesson-group-title">
+                        ${esc(unit.name || "")}
+                      </div>
+
+                      <div class="node-row lessons-row">
+
+                        ${lessons.map((lesson, index) => {
+
+                          const lessonName =
+                            typeof lesson === "string"
+                              ? lesson
+                              : lesson.name;
+
+                          return `
+                            <div class="node node-lesson">
+
+                              <span class="lesson-index">
+                                ${index + 1}
+                              </span>
+
+                              <strong>
+                                ${esc(lessonName || "")}
+                              </strong>
+
+                              <small>
+                                שיעור
+                              </small>
+
+                            </div>
+                          `;
+
+                        }).join("")}
+
+                      </div>
+                    </div>
+                  `;
+
+                }).join("")
+              ).join("")}
+
+            </div>
+          </div>
+        ` : ""}
+
+      ` : `
+        <div class="building-note">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          עכשיו נגדיר מה לומדים בתוך המקצוע
+        </div>
+      `}
 
     </div>
-
   `;
 
+  const hasUnits = topics.some(
+    topic =>
+      Array.isArray(topic.units) &&
+      topic.units.length > 0
+  );
 
-  const approve =
-    document.getElementById("approveBtn");
+  const hasLessons = topics.some(
+    topic =>
+      (topic.units || []).some(
+        unit =>
+          Array.isArray(unit.lessons) &&
+          unit.lessons.length > 0
+      )
+  );
 
-
-  if (
-    topics.length > 0 &&
-    topics.some(
-      topic =>
-        Array.isArray(topic.units) &&
-        topic.units.length > 0
-    )
-  ) {
-
+  if (hasUnits && hasLessons) {
     approve.disabled = false;
     approve.classList.add("ready");
-
+  } else {
+    approve.disabled = true;
+    approve.classList.remove("ready");
   }
-
 }
 function msg(role,text){const d=document.createElement('div');d.className=`msg ${role}`;d.textContent=text;document.getElementById('messages').appendChild(d)}
 async function submitText(text) {
