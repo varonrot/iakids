@@ -12,7 +12,95 @@
 .sidebar{grid-column:1;grid-row:2;direction:rtl;padding:12px;background:linear-gradient(180deg,#061225,#030b19);border-right:1px solid rgba(105,149,203,.12);display:flex;flex-direction:column;min-height:0}.new-task{height:50px;border:0;border-radius:12px;background:linear-gradient(135deg,#7548ff,#5630cb);color:#fff;font-weight:900;margin-bottom:10px}.kid-actions{flex:1;display:flex;flex-direction:column;gap:6px;overflow:auto}.side-item,.manage-btn{border:1px solid rgba(97,139,197,.1);background:rgba(12,26,48,.72);color:#cbd6e7;border-radius:11px;display:flex;align-items:center;gap:10px;cursor:pointer}.side-item{height:43px;padding:0 11px;font-weight:800}.side-item:hover{background:#123361}.side-item i,.manage-btn i{width:24px;text-align:center;color:#8fa1bd}.side-title{font-size:12px}.sidebar-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-top:10px;border-top:1px solid rgba(107,146,196,.12)}.manage-btn{height:38px;justify-content:center;font-size:0}
 .main{grid-column:2;grid-row:2;direction:rtl;padding:18px 22px 22px;min-width:0;min-height:0}.shell{height:100%;display:flex;flex-direction:column;max-width:1500px;margin:auto}.head{text-align:center;padding-bottom:14px}.spark{font-size:26px;color:#8d65ff}.head h1{font-size:28px;margin:2px 0 4px}.head p{margin:0;color:#b3bfd1;font-size:14px}.grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;direction:ltr}.tree,.chat{border:1px solid rgba(89,139,205,.2);border-radius:17px;background:linear-gradient(180deg,rgba(6,20,40,.9),rgba(2,12,27,.96));min-height:0;overflow:hidden;position:relative}.tree{direction:rtl;background:radial-gradient(circle at 50% 25%,rgba(93,61,205,.08),transparent 31%),linear-gradient(180deg,#061428,#020c1b)}.tree-stage{height:calc(100% - 74px);padding:36px 34px 20px;overflow:auto}.empty{height:100%;display:grid;place-items:center;text-align:center}.empty-card{max-width:420px}.orbit{width:86px;height:86px;border-radius:50%;margin:0 auto 18px;display:grid;place-items:center;border:1px solid rgba(135,95,255,.7);font-size:38px;color:#9871ff;box-shadow:0 0 45px rgba(112,72,255,.12)}.empty strong{display:block;font-size:22px;margin-bottom:6px}.empty p{margin:0;color:#7f8ea7;line-height:1.7}.tree-footer{position:absolute;bottom:0;left:0;right:0;height:74px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,transparent,rgba(2,12,27,.97) 36%)}.approve{min-width:300px;height:43px;border-radius:12px;border:1px solid rgba(117,72,255,.25);color:#707791;background:#111932;font-weight:800}.approve.ready{color:#fff;background:linear-gradient(135deg,#6738e9,#845bff);cursor:pointer}
 .curriculum{min-width:760px;padding-bottom:50px}.subject{width:330px;margin:4px auto 64px;padding:23px;border:1px solid rgba(128,92,255,.72);border-radius:16px;background:rgba(14,24,50,.82);text-align:center;position:relative}.subject:after{content:"";position:absolute;bottom:-38px;left:50%;height:38px;border-left:1px solid #654ad4}.subject strong{display:block;font-size:18px}.subject small,.branch-card small{color:#8593aa}.branches{display:grid;grid-template-columns:repeat(var(--count),1fr);gap:18px;position:relative}.branches:before{content:"";position:absolute;top:-28px;left:9%;right:9%;border-top:1px solid rgba(98,77,207,.7)}.branch{position:relative}.branch:before{content:"";position:absolute;top:-28px;left:50%;height:28px;border-left:1px solid rgba(98,77,207,.7)}.branch-card{min-height:118px;padding:17px 12px;border:1px solid rgba(78,128,188,.4);border-radius:14px;background:rgba(9,23,44,.82);text-align:center}.children{display:flex;gap:8px;justify-content:center;margin-top:35px;position:relative}.child{width:86px;min-height:74px;padding:10px 6px;border:1px dashed rgba(94,128,181,.48);border-radius:11px;background:rgba(8,20,39,.7);font-size:10px;text-align:center}.child i{display:block;color:#8a67ff;margin-bottom:5px}
-.chat{direction:rtl;display:flex;flex-direction:column}.chat-head{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid rgba(100,143,198,.12)}.chat-title strong{display:block;font-size:14px}.chat-title span{font-size:10px;color:#91a0b7}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#41dc81;margin-left:5px}.core{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;border:1px solid #7656ff;color:#9b7aff}.messages{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}.msg{max-width:83%;padding:12px 14px;border-radius:13px;font-size:12px;line-height:1.75}.msg.ai{align-self:flex-start;background:#0d1c33}.msg.parent{align-self:flex-end;background:linear-gradient(135deg,#32177d,#4d22bb)}.suggestions{display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 12px}.suggestions button{border:1px solid rgba(124,80,255,.46);background:#0f152b;color:#a993ff;border-radius:999px;padding:7px 12px;font-size:10px;cursor:pointer}.form{height:64px;padding:8px 10px;border-top:1px solid rgba(100,143,198,.12);display:flex;gap:7px}.form input{flex:1;min-width:0;border:1px solid rgba(96,139,193,.13);background:#081528;color:#fff;outline:none;border-radius:12px;padding:0 12px}.form button{width:43px;border:0;border-radius:12px;background:linear-gradient(135deg,#6b3ee8,#885eff);color:#fff}
+.chat{direction:rtl;display:flex;flex-direction:column}.chat-head{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid rgba(100,143,198,.12)}.chat-title strong{display:block;font-size:14px}.chat-title span{font-size:10px;color:#91a0b7}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#41dc81;margin-left:5px}.core{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;border:1px solid #7656ff;color:#9b7aff}
+.messages{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+
+  padding:18px 16px 22px;
+
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+
+  scroll-behavior:smooth;
+}
+
+
+/* =========================
+   CHAT BUBBLES
+========================= */
+
+.msg{
+  position:relative;
+
+  max-width:86%;
+
+  padding:12px 15px;
+
+  border-radius:16px;
+
+  font-size:12px;
+  line-height:1.65;
+
+  white-space:pre-wrap;
+  word-break:break-word;
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.12);
+}
+
+
+/* AI */
+
+.msg.ai{
+  align-self:flex-start;
+
+  color:#dce5f3;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,34,61,.96),
+      rgba(10,25,47,.96)
+    );
+
+  border:
+    1px solid rgba(90,132,190,.14);
+
+  border-bottom-left-radius:5px;
+}
+
+
+/* PARENT */
+
+.msg.parent{
+  align-self:flex-end;
+
+  max-width:78%;
+
+  color:#fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #43229d,
+      #6131cf
+    );
+
+  border:
+    1px solid rgba(146,102,255,.22);
+
+  border-bottom-right-radius:5px;
+}
+
+
+/* קצת יותר רווח בין פסקאות */
+
+.msg br + br{
+  line-height:2.1;
+}
 @media(max-width:900px){body{overflow:auto}.app{display:block;height:auto}.topbar{position:sticky;top:0;height:64px}.sidebar{display:none}.main{min-height:calc(100vh - 64px);padding:10px}.grid{display:flex;flex-direction:column}.chat{height:330px}.tree{height:620px}.curriculum{transform:scale(.68);transform-origin:top right;width:147%}}
 /* =========================================================
    CURRICULUM BUILDER — 4 LEVEL VISUAL TREE
@@ -505,6 +593,340 @@
     opacity .25s ease,
     filter .25s ease;
 }
+    /* =========================================================
+   AI TYPING
+========================================================= */
+
+.ai-typing{
+  width:max-content;
+  min-width:142px;
+
+  padding:11px 14px !important;
+}
+
+.typing-content{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.typing-label{
+  color:#8698b4;
+  font-size:10px;
+  white-space:nowrap;
+}
+
+.typing-dots{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.typing-dots i{
+  width:5px;
+  height:5px;
+
+  display:block;
+
+  border-radius:50%;
+
+  background:#8d6cff;
+
+  animation:
+    chatTypingDot
+    1.15s
+    infinite
+    ease-in-out;
+}
+
+.typing-dots i:nth-child(2){
+  animation-delay:.16s;
+}
+
+.typing-dots i:nth-child(3){
+  animation-delay:.32s;
+}
+
+@keyframes chatTypingDot{
+
+  0%,
+  60%,
+  100%{
+    opacity:.25;
+    transform:translateY(0);
+  }
+
+  30%{
+    opacity:1;
+    transform:translateY(-4px);
+  }
+
+}
+    /* =========================================================
+   CHAT SUGGESTIONS
+========================================================= */
+
+.suggestions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  gap:7px;
+
+  padding:10px 14px 12px;
+
+  direction:rtl;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(4,13,28,0),
+      rgba(4,13,28,.35)
+    );
+}
+
+.suggestions button{
+  appearance:none !important;
+  -webkit-appearance:none !important;
+
+  border:
+    1px solid rgba(126,92,255,.34) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(16,31,56,.98),
+      rgba(8,21,41,.98)
+    ) !important;
+
+  color:#aebbd0 !important;
+
+  padding:7px 12px !important;
+
+  min-height:30px !important;
+
+  border-radius:999px !important;
+
+  font-family:inherit !important;
+  font-size:10px !important;
+  font-weight:600 !important;
+  line-height:1 !important;
+
+  white-space:nowrap;
+
+  cursor:pointer;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 5px 14px rgba(0,0,0,.16);
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    background .18s ease,
+    color .18s ease,
+    box-shadow .18s ease;
+}
+
+.suggestions button:hover{
+  color:#fff !important;
+
+  border-color:
+    rgba(145,105,255,.72) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(58,39,125,.98),
+      rgba(31,25,76,.98)
+    ) !important;
+
+  box-shadow:
+    0 7px 20px rgba(83,49,190,.20),
+    inset 0 1px 0 rgba(255,255,255,.06);
+
+  transform:translateY(-1px);
+}
+
+.suggestions button:active{
+  transform:translateY(0) scale(.97);
+}
+
+.suggestions button:focus{
+  outline:none;
+}
+
+.suggestions button:focus-visible{
+  border-color:#936fff !important;
+
+  box-shadow:
+    0 0 0 3px rgba(126,92,255,.15);
+}
+    /* =========================================================
+   CHAT INPUT
+========================================================= */
+
+.form{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  margin:0 12px 12px;
+  padding:7px 8px;
+
+  min-height:48px;
+
+  border:
+    1px solid rgba(91,132,190,.22);
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(11,26,49,.98),
+      rgba(6,18,36,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 8px 22px rgba(0,0,0,.16);
+
+  direction:rtl;
+}
+
+
+/* INPUT */
+
+.form input{
+  flex:1;
+  min-width:0;
+  height:36px;
+
+  padding:0 10px;
+
+  border:0 !important;
+  outline:0 !important;
+
+  background:transparent !important;
+
+  color:#edf3ff !important;
+
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:500;
+
+  direction:rtl;
+
+  box-shadow:none !important;
+}
+
+
+.form input::placeholder{
+  color:#657792;
+  opacity:1;
+}
+
+
+/* SEND BUTTON */
+
+.form button{
+  flex:0 0 36px;
+
+  width:36px;
+  height:36px;
+
+  padding:0 !important;
+
+  display:grid;
+  place-items:center;
+
+  border:
+    1px solid rgba(139,101,255,.55) !important;
+
+  border-radius:11px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6840e8,
+      #835bff
+    ) !important;
+
+  color:#fff !important;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 6px 18px rgba(94,58,215,.22),
+    inset 0 1px 0 rgba(255,255,255,.12);
+
+  transition:
+    transform .16s ease,
+    box-shadow .16s ease,
+    filter .16s ease;
+}
+
+
+.form button i{
+  font-size:13px;
+}
+
+
+.form button:hover{
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 8px 22px rgba(94,58,215,.30),
+    inset 0 1px 0 rgba(255,255,255,.15);
+}
+
+
+.form button:active{
+  transform:scale(.96);
+}
+
+
+/* כשה-input בפוקוס */
+
+.form:focus-within{
+  border-color:
+    rgba(126,92,255,.52);
+
+  box-shadow:
+    0 0 0 3px rgba(126,92,255,.08),
+    0 10px 28px rgba(0,0,0,.20);
+}
+
+
+/* DISABLED בזמן שה-AI עובד */
+
+.form input:disabled{
+  opacity:.55;
+  cursor:wait;
+}
+
+.form:has(input:disabled){
+  opacity:.82;
+}
+    .approve.approved{
+  color:#dfffea !important;
+
+  border-color:
+    rgba(65,220,129,.42) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #126f45,
+      #169657
+    ) !important;
+
+  box-shadow:
+    0 8px 28px
+    rgba(24,173,98,.18);
+
+  cursor:default;
+}
 </style>
 </head>
 <body>
@@ -540,7 +962,7 @@
 </aside>
 <main class="main">
 <section class="shell">
-<header class="head"><div class="spark">✦</div><h1>הוספת מקצוע חדש</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
+<header class="head"><div class="spark">✦</div><h1>הוספת מקצוע חדש4</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
 <div class="grid">
 <section class="tree">
   <div class="tree-stage">
@@ -569,6 +991,9 @@ const sb = supabase.createClient(
 
 const CURRICULUM_API =
   "https://iakids-ai-tutor-he.onrender.com/api/curriculum/chat";
+
+const CURRICULUM_APPROVE_API =
+  "https://iakids-ai-tutor-he.onrender.com/api/curriculum/approve";
 
 let CURRENT_KID = null;
 let CURRENT_PLAN = null;
@@ -947,7 +1372,81 @@ function render(plan, options = {}) {
 
 }
 
-function msg(role,text){const d=document.createElement('div');d.className=`msg ${role}`;d.textContent=text;document.getElementById('messages').appendChild(d)}
+function msg(role, text) {
+
+  const messages =
+    document.getElementById("messages");
+
+  const d =
+    document.createElement("div");
+
+  d.className =
+    `msg ${role}`;
+
+  d.textContent =
+    text;
+
+  messages.appendChild(d);
+
+  requestAnimationFrame(() => {
+
+    messages.scrollTo({
+      top: messages.scrollHeight,
+      behavior: "smooth"
+    });
+
+  });
+}
+let AI_TYPING_ELEMENT = null;
+
+
+function showAiTyping() {
+
+  const messages =
+    document.getElementById("messages");
+
+  if (AI_TYPING_ELEMENT) return;
+
+
+  const wrap =
+    document.createElement("div");
+
+  wrap.className =
+    "msg ai ai-typing";
+
+  wrap.innerHTML = `
+    <div class="typing-content">
+
+      <span class="typing-label">
+        היועץ בונה תשובה
+      </span>
+
+      <span class="typing-dots">
+        <i></i>
+        <i></i>
+        <i></i>
+      </span>
+
+    </div>
+  `;
+
+  messages.appendChild(wrap);
+
+  AI_TYPING_ELEMENT = wrap;
+
+  messages.scrollTop =
+    messages.scrollHeight;
+}
+
+
+function hideAiTyping() {
+
+  if (!AI_TYPING_ELEMENT) return;
+
+  AI_TYPING_ELEMENT.remove();
+
+  AI_TYPING_ELEMENT = null;
+}
 function showCurriculumBuilding() {
 
   if (!CURRENT_PLAN?.subject) return;
@@ -1084,9 +1583,12 @@ if (
 input.disabled = true;
 
 /*
-  בזמן שה-AI מעדכן תוכנית קיימת,
-  משאירים את העץ הישן ברקע
-  ומציגים מצב עבודה.
+  חיווי שה-AI עובד
+*/
+showAiTyping();
+
+/*
+  חיווי על העץ
 */
 showCurriculumBuilding();
 
@@ -1213,7 +1715,7 @@ let curriculumWasRendered = false;
     */
 
     if (data.reply) {
-
+      hideAiTyping();
       msg(
         "ai",
         data.reply
@@ -1321,7 +1823,7 @@ if (data.hierarchy) {
   }
 
 finally {
-
+  hideAiTyping();
   hideCurriculumBuilding();
 
   input.disabled = false;
@@ -1331,19 +1833,197 @@ finally {
 
 }
 document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();submitText(document.getElementById('chatInput').value);document.getElementById('chatInput').value=''});document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));
-document.getElementById('approveBtn').onclick = () => {
+document.getElementById(
+  "approveBtn"
+).onclick = async () => {
 
-  if (!CURRENT_PLAN) return;
+  if (
+    !CURRENT_PLAN ||
+    !CURRENT_KID ||
+    !CURRENT_CUSTOM_SUBJECT_ID ||
+    !CURRENT_CURRICULUM_ID
+  ) {
+    console.warn(
+      "Cannot approve curriculum:",
+      {
+        CURRENT_PLAN,
+        CURRENT_KID,
+        CURRENT_CUSTOM_SUBJECT_ID,
+        CURRENT_CURRICULUM_ID
+      }
+    );
 
-  console.log(
-    "Approve curriculum:",
-    {
-      custom_subject_id: CURRENT_CUSTOM_SUBJECT_ID,
-      curriculum_id: CURRENT_CURRICULUM_ID,
-      version: CURRENT_VERSION,
-      curriculum: CURRENT_PLAN
+    return;
+  }
+
+
+  const btn =
+    document.getElementById(
+      "approveBtn"
+    );
+
+  const originalText =
+    btn.textContent;
+
+
+  /*
+    מצב שמירה
+  */
+
+  btn.disabled = true;
+
+  btn.textContent =
+    "✦ מאשר את תוכנית הלימודים...";
+
+
+  try {
+
+    /*
+      token
+    */
+
+    const { data: sessionData } =
+      await sb.auth.getSession();
+
+
+    const accessToken =
+      sessionData?.session?.access_token;
+
+
+    if (!accessToken) {
+
+      location.replace(
+        "/he/onboarding/cuenta/"
+      );
+
+      return;
     }
-  );
+
+
+    /*
+      POST APPROVE
+    */
+
+    const response =
+      await fetch(
+        CURRICULUM_APPROVE_API,
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${accessToken}`
+
+          },
+
+
+          body: JSON.stringify({
+
+            kid_id:
+              CURRENT_KID.id,
+
+            custom_subject_id:
+              CURRENT_CUSTOM_SUBJECT_ID,
+
+            curriculum_id:
+              CURRENT_CURRICULUM_ID
+
+          })
+
+        }
+      );
+
+
+    const rawText =
+      await response.text();
+
+
+    /*
+      SERVER ERROR
+    */
+
+    if (!response.ok) {
+
+      console.error(
+        "Curriculum approve API error:",
+        response.status,
+        rawText
+      );
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+
+    /*
+      PARSE
+    */
+
+    const data =
+      JSON.parse(rawText);
+
+
+    console.log(
+      "CURRICULUM APPROVED:",
+      data
+    );
+
+
+    /*
+      SUCCESS UI
+    */
+
+    btn.textContent =
+      "✓ תוכנית הלימודים אושרה";
+
+    btn.classList.add(
+      "approved"
+    );
+
+
+    /*
+      כרגע חוזרים לעולם הלמידה.
+      בשלב הבא נגרום ל-workspace
+      לקרוא את המקצוע החדש ולהציג אותו
+      במקום + הוסף מקצוע.
+    */
+
+    setTimeout(() => {
+
+      location.href =
+        "/he/workspace/";
+
+    }, 1100);
+
+  }
+
+
+  catch (error) {
+
+    console.error(
+      "Curriculum approval failed:",
+      error
+    );
+
+
+    btn.disabled = false;
+
+    btn.textContent =
+      originalText;
+
+
+    msg(
+      "ai",
+      "לא הצלחתי לאשר את תוכנית הלימודים כרגע. נסו שוב."
+    );
+
+  }
 
 };
 document.getElementById('openParentModal').onclick=()=>location.href='/he/workspace/';document.getElementById('openSettings').onclick=()=>location.href='/he/workspace/';document.getElementById('manageSubscriptionSide').onclick=()=>location.href='/he/workspace/';init();
