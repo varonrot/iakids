@@ -34103,7 +34103,6 @@ function renderCustomSubjectTree(
     return;
   }
 
-
   if(!units.length){
 
     tree.innerHTML = `
@@ -34116,9 +34115,12 @@ function renderCustomSubjectTree(
   }
 
 
-  const topics =
-    new Map();
+  /* =========================================
+     GROUP BY TOPIC
+  ========================================= */
 
+  const topicsMap =
+    new Map();
 
   units.forEach(unit => {
 
@@ -34126,147 +34128,420 @@ function renderCustomSubjectTree(
       unit.topic_name ||
       "נושא";
 
-    if(
-      !topics.has(
-        topicName
-      )
-    ){
-      topics.set(
+    if(!topicsMap.has(topicName)){
+      topicsMap.set(
         topicName,
         []
       );
     }
 
-    topics
+    topicsMap
       .get(topicName)
       .push(unit);
 
   });
 
 
-  tree.innerHTML =
-    [...topics.entries()]
+  const topics =
+    [...topicsMap.entries()];
+
+
+  /* =========================================
+     TOP LEVEL - TOPICS
+  ========================================= */
+
+  const topicCards =
+    topics
       .map(
         (
           [
             topicName,
             topicUnits
-          ]
+          ],
+          index
         ) => {
 
-          return `
+          const selected =
+            index === 0
+              ? "selected"
+              : "";
 
-            <section
-              class="science-tree-section"
+          return `
+            <button
+              type="button"
+              class="
+                science-tree-card
+                custom-topic-card
+                ${selected}
+              "
+              data-topic-name="${topicName}"
             >
 
-              <div
-                class="science-tree-section-title"
-              >
+              <div class="science-tree-card-icon">
+                <i class="fa-solid fa-map"></i>
+              </div>
+
+              <strong>
                 ${topicName}
+              </strong>
+
+              <small>
+                ${topicUnits.length}
+                יחידות לימוד
+              </small>
+
+              <div class="science-tree-progress">
+                <span
+                  style="width:${
+                    index === 0
+                      ? "100%"
+                      : "0%"
+                  }"
+                ></span>
               </div>
 
-              <div
-                class="science-tree-row"
-              >
-
-                ${
-                  topicUnits
-                    .map(unit => {
-
-                      const
-                        unitLessons =
-                          lessons
-                            .filter(
-                              lesson =>
-                                lesson.custom_unit_id ===
-                                unit.id
-                            )
-                            .sort(
-                              (a,b) =>
-                                a.lesson_order -
-                                b.lesson_order
-                            );
-
-
-                      return `
-
-                        <article
-                          class="science-tree-card"
-                          data-custom-unit-id="${unit.id}"
-                        >
-
-                          <div
-                            class="science-tree-card-icon"
-                          >
-                            <i
-                              class="fa-solid fa-book-open"
-                            ></i>
-                          </div>
-
-                          <h3>
-                            ${unit.unit_name}
-                          </h3>
-
-                          <small>
-                            ${
-                              unitLessons.length
-                            }
-                            שיעורים
-                          </small>
-
-                          <div
-                            class="custom-unit-lessons"
-                          >
-
-                            ${
-                              unitLessons
-                                .map(
-                                  lesson => `
-
-                                    <button
-                                      type="button"
-                                      class="custom-lesson-item"
-                                      data-custom-unit-id="${unit.id}"
-                                      data-lesson-order="${lesson.lesson_order}"
-                                    >
-
-                                      <span
-                                        class="custom-lesson-number"
-                                      >
-                                        ${lesson.lesson_order}
-                                      </span>
-
-                                      <span>
-                                        ${lesson.lesson_name}
-                                      </span>
-
-                                    </button>
-
-                                  `
-                                )
-                                .join("")
-                            }
-
-                          </div>
-
-                        </article>
-
-                      `;
-
-                    })
-                    .join("")
-                }
-
-              </div>
-
-            </section>
-
+            </button>
           `;
 
         }
       )
       .join("");
+
+
+  tree.innerHTML = `
+
+    <!-- =====================================
+         TOPICS
+    ====================================== -->
+
+    <div class="science-tree-level">
+
+      <div class="science-tree-connector">
+      </div>
+
+      <div
+        class="science-tree-row"
+        id="customTopicsRow"
+      >
+        ${topicCards}
+      </div>
+
+    </div>
+
+
+    <!-- =====================================
+         UNITS
+    ====================================== -->
+
+    <div
+      id="customUnitsLevel"
+      class="science-tree-level"
+    >
+    </div>
+
+
+    <!-- =====================================
+         LESSONS
+    ====================================== -->
+
+    <div
+      id="customLessonsLevel"
+      class="science-tree-level"
+    >
+    </div>
+
+  `;
+
+
+  /* =========================================
+     FIRST TOPIC
+  ========================================= */
+
+  if(topics.length){
+
+    renderCustomTopicUnits(
+      topics[0][0],
+      units,
+      lessons
+    );
+
+  }
+
+
+  /* =========================================
+     TOPIC CLICK
+  ========================================= */
+
+  tree
+    .querySelectorAll(
+      ".custom-topic-card"
+    )
+    .forEach(card => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          tree
+            .querySelectorAll(
+              ".custom-topic-card"
+            )
+            .forEach(item =>
+              item.classList.remove(
+                "selected"
+              )
+            );
+
+
+          card.classList.add(
+            "selected"
+          );
+
+
+          renderCustomTopicUnits(
+            card.dataset.topicName,
+            units,
+            lessons
+          );
+
+        }
+      );
+
+    });
+
+}
+
+function renderCustomTopicUnits(
+  topicName,
+  units,
+  lessons
+){
+
+  const unitsLevel =
+    document.getElementById(
+      "customUnitsLevel"
+    );
+
+  const lessonsLevel =
+    document.getElementById(
+      "customLessonsLevel"
+    );
+
+
+  const topicUnits =
+    units
+      .filter(
+        unit =>
+          unit.topic_name ===
+          topicName
+      )
+      .sort(
+        (a,b) =>
+          a.unit_order -
+          b.unit_order
+      );
+
+
+  unitsLevel.innerHTML = `
+
+    <div class="science-tree-connector">
+    </div>
+
+    <div class="science-tree-row">
+
+      ${
+        topicUnits
+          .map(
+            (unit,index) => `
+
+              <button
+                type="button"
+                class="
+                  science-tree-card
+                  custom-unit-card
+                  ${
+                    index === 0
+                      ? "selected"
+                      : ""
+                  }
+                "
+                data-unit-id="${unit.id}"
+              >
+
+                <div class="science-tree-card-icon">
+                  <i class="fa-solid fa-book"></i>
+                </div>
+
+                <strong>
+                  ${unit.unit_name}
+                </strong>
+
+                <small>
+                  יחידת לימוד
+                </small>
+
+                <div class="science-tree-progress">
+                  <span
+                    style="width:${
+                      index === 0
+                        ? "100%"
+                        : "0%"
+                    }"
+                  ></span>
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+  `;
+
+
+  if(topicUnits.length){
+
+    renderCustomUnitLessons(
+      topicUnits[0].id,
+      lessons
+    );
+
+  }
+
+
+  unitsLevel
+    .querySelectorAll(
+      ".custom-unit-card"
+    )
+    .forEach(card => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          unitsLevel
+            .querySelectorAll(
+              ".custom-unit-card"
+            )
+            .forEach(item =>
+              item.classList.remove(
+                "selected"
+              )
+            );
+
+
+          card.classList.add(
+            "selected"
+          );
+
+
+          renderCustomUnitLessons(
+            card.dataset.unitId,
+            lessons
+          );
+
+        }
+      );
+
+    });
+
+}
+
+function renderCustomUnitLessons(
+  unitId,
+  lessons
+){
+
+  const lessonsLevel =
+    document.getElementById(
+      "customLessonsLevel"
+    );
+
+
+  const unitLessons =
+    lessons
+      .filter(
+        lesson =>
+          lesson.custom_unit_id ===
+          unitId
+      )
+      .sort(
+        (a,b) =>
+          a.lesson_order -
+          b.lesson_order
+      );
+
+
+  lessonsLevel.innerHTML = `
+
+    <div class="science-tree-connector">
+    </div>
+
+    <div class="science-tree-row">
+
+      ${
+        unitLessons
+          .map(
+            (lesson,index) => `
+
+              <button
+                type="button"
+                class="
+                  science-tree-card
+                  custom-lesson-card
+                  ${
+                    index === 0
+                      ? "selected"
+                      : ""
+                  }
+                "
+                data-unit-id="${unitId}"
+                data-lesson-order="${lesson.lesson_order}"
+              >
+
+                <div class="science-tree-card-icon">
+
+                  ${
+                    index === 0
+                      ? `
+                        <i class="fa-solid fa-play"></i>
+                      `
+                      : `
+                        <i class="fa-solid fa-book-open"></i>
+                      `
+                  }
+
+                </div>
+
+                <strong>
+                  ${lesson.lesson_name}
+                </strong>
+
+                <small>
+                  שיעור ${lesson.lesson_order}
+                </small>
+
+                <div class="science-tree-progress">
+                  <span
+                    style="width:${
+                      index === 0
+                        ? "100%"
+                        : "0%"
+                    }"
+                  ></span>
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+  `;
 
 }
 
