@@ -89,7 +89,139 @@ function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt
 async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){location.replace('/he/onboarding/cuenta/');return}const user=s.session.user;document.getElementById('userName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'הורה';document.getElementById('userAvatar').src=user.user_metadata?.avatar_url||user.user_metadata?.picture||'/assets/default-parent.png';let kidId=localStorage.getItem('active_kid_id');if(!kidId){const {data:kids}=await sb.from('kids_profiles').select('id').eq('user_id',user.id).order('created_at',{ascending:true});if(!kids?.length)return;kidId=kids[0].id;localStorage.setItem('active_kid_id',kidId)}const {data:kid,error}=await sb.from('kids_profiles').select('id,child_name,age,avatar_key,usage_goals,learning_interests').eq('id',kidId).single();if(error||!kid){console.error(error);return}CURRENT_KID=kid;window.ACTIVE_KID_ID=kid.id;document.getElementById('subtitle').textContent=`בואו נבנה יחד מקצוע חדש שמתאים בדיוק ל${kid.child_name}`;document.getElementById('welcome').innerHTML=`שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור <strong>${esc(kid.child_name)}</strong>.<br><br>מה הייתם רוצים ש${esc(kid.child_name)} ילמד/תלמד?`}
 
 function makePlan(text){if(PLANS[text])return PLANS[text];if(text.includes('תכנות')||text.toLowerCase().includes('python'))return PLANS['תכנות'];if(text.includes('חלל')||text.includes('כוכב')||text.includes('אסטרונומ'))return PLANS['אסטרונומיה'];return{subject:text.slice(0,28),branches:[{title:"היכרות",children:["מושגי יסוד","שפה בסיסית","הבנה ראשונית"]},{title:"מיומנויות",children:["תרגול","יישום","פתרון בעיות"]},{title:"העמקה",children:["דוגמאות","השוואה","חשיבה עצמאית"]},{title:"פרויקט",children:["תכנון","ביצוע","הצגה"]}]}}
-function render(plan){CURRENT_PLAN=plan;document.getElementById('emptyTree').hidden=true;const tree=document.getElementById('curriculumTree');tree.hidden=false;tree.innerHTML=`<div class="subject"><strong>${esc(plan.subject)}</strong><small>המקצוע המרכזי</small></div><div class="branches" style="--count:${plan.branches.length}">${plan.branches.map(b=>`<div class="branch"><div class="branch-card"><strong>${esc(b.title)}</strong><small>תחום משנה</small></div><div class="children">${b.children.map(c=>`<div class="child"><i class="fa-solid fa-plus"></i>${esc(c)}</div>`).join('')}</div></div>`).join('')}</div>`;const a=document.getElementById('approveBtn');a.disabled=false;a.classList.add('ready')}
+function render(plan) {
+
+  if (!plan) return;
+
+  CURRENT_PLAN = plan;
+
+  const emptyTree =
+    document.getElementById("emptyTree");
+
+  const tree =
+    document.getElementById("curriculumTree");
+
+  emptyTree.hidden = true;
+  tree.hidden = false;
+
+
+  const topics =
+    Array.isArray(plan.topics)
+      ? plan.topics
+      : [];
+
+
+  tree.innerHTML = `
+
+    <!-- LEVEL 1 : SUBJECT -->
+
+    <div class="subject">
+
+      <strong>
+        ${esc(plan.subject || "מקצוע חדש")}
+      </strong>
+
+      <small>
+        מקצוע
+      </small>
+
+    </div>
+
+
+    <!-- LEVEL 2 : TOPICS -->
+
+    <div
+      class="branches"
+      style="--count:${Math.max(topics.length,1)}"
+    >
+
+      ${topics.map(topic => `
+
+        <div class="branch">
+
+          <div class="branch-card">
+
+            <strong>
+              ${esc(topic.name)}
+            </strong>
+
+            <small>
+              נושא
+            </small>
+
+          </div>
+
+
+          <!-- LEVEL 3 : UNITS -->
+
+          <div class="children">
+
+            ${(topic.units || []).map(unit => `
+
+              <div class="child">
+
+                <strong>
+                  ${esc(unit.name)}
+                </strong>
+
+                <small>
+                  יחידה
+                </small>
+
+                <!-- LEVEL 4 : LESSONS -->
+
+                <div class="lesson-list">
+
+                  ${(unit.lessons || []).map(lesson => `
+
+                    <div class="lesson-item">
+
+                      ${esc(
+                        typeof lesson === "string"
+                          ? lesson
+                          : lesson.name
+                      )}
+
+                    </div>
+
+                  `).join("")}
+
+                </div>
+
+              </div>
+
+            `).join("")}
+
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+  `;
+
+
+  const approve =
+    document.getElementById("approveBtn");
+
+
+  if (
+    topics.length > 0 &&
+    topics.some(
+      topic =>
+        Array.isArray(topic.units) &&
+        topic.units.length > 0
+    )
+  ) {
+
+    approve.disabled = false;
+    approve.classList.add("ready");
+
+  }
+
+}
 function msg(role,text){const d=document.createElement('div');d.className=`msg ${role}`;d.textContent=text;document.getElementById('messages').appendChild(d)}
 async function submitText(text) {
 
@@ -193,8 +325,8 @@ async function submitText(text) {
       ציור ההיררכיה
     */
 
-    if (data.curriculum) {
-      render(data.curriculum);
+    if (data.hierarchy) {
+      render(data.hierarchy);
     }
 
   }
