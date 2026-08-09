@@ -89,6 +89,8 @@ $('again-btn').textContent = IAKidsLang.ui('play_again');
   document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k));
 
 let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, mistakes = 0, resolving = false;
+let correctCount = 0, ending = false;
+let CHILD_AGE = null, USE_NIQQUD = false;
 
 function setRounds(n, btn) {
   TOTAL = n;
@@ -96,12 +98,26 @@ function setRounds(n, btn) {
   btn.classList.add('success');
 }
 
-const ready = IAKidsGame.init('abc-order-en').then(async g => {
+async function loadKidContext() {
+  try {
+    const kidId = localStorage.getItem('active_kid_id');
+    if (!kidId) return;
+    const client = await IAKidsActivity._getClient();
+    const { data, error } = await client.from('kids_profiles').select('id, age').eq('id', kidId).maybeSingle();
+    if (!error && data) {
+      CHILD_AGE = Number(data.age);
+      USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+    }
+  } catch (e) { console.warn('[abc-order-en] loadKidContext', e); }
+}
+const ready = (async () => {
+  await loadKidContext();
+  const g = await IAKidsGame.init('abc-order-en');
   game = g;
   const p = await g.loadProgress();
   if (p?.rounds) setRounds(p.rounds, document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`) || $('rounds-row').children[1]);
   if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
-});
+})();
 
 const show = id => {
   for (const s of ['start-screen', 'play-screen', 'end-screen']) $(s).hidden = s !== id;
@@ -111,6 +127,14 @@ async function start(lvl) {
   await ready;
   level = lvl;
   diff = game.difficulty(lvl || 1, 3);
+  score = 0; qnum = 0; mistakes = 0; correctCount = 0; resolving = false; ending = false;
+  $('score').textContent = '0';
+  IAKidsActivity.configure({
+    difficulty: lvl || 1, questionsCount: TOTAL,
+    metadata: { game_mode:'abc_order', game_slug:'abc-order-en', selected_level:lvl,
+      random_difficulty:lvl===0, child_age:CHILD_AGE, uses_niqqud:USE_NIQQUD,
+      interaction:'drag_and_drop', language_subject:'english' }
+  });
   await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
   $('qtotal').textContent = TOTAL;
   show('play-screen');
@@ -147,6 +171,7 @@ async function next() {
   $('qnum').textContent = qnum;
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
   const q = await game.newQuestion(() => makeRound(lvl), x => x.items.map(i => i.label).join('|'));
+  IAKidsActivity.questionStarted();
   const row = $('slot-row'), tray = $('tray');
   row.innerHTML = tray.innerHTML = '';
   const shuffledItems = [...q.items].sort(() => Math.random() - 0.5);
@@ -228,8 +253,10 @@ function confirmOrder() {
   const ok = vals.every((v, i) => i === 0 || v > vals[i - 1]);
   if (ok) {
     score += 10;
+    correctCount++;
     $('score').textContent = score;
     diff.right();
+    IAKidsActivity.correct();
     IAKidsFX.correct(btn);
     IAKidsCoins.right(btn);
     chips.forEach(c => c.classList.add('reveal'));
@@ -237,6 +264,7 @@ function confirmOrder() {
   } else {
     mistakes++;
     diff.wrong();
+    IAKidsActivity.wrong();
     IAKidsFX.wrong(btn);
     IAKidsCoins.wrong();
     const sortedChips = [...chips].sort((a, b) => a.dataset.val > b.dataset.val ? 1 : -1);
@@ -248,16 +276,28 @@ function confirmOrder() {
 }
 
 async function end() {
-  await game.saveScore(score, { level, mistakes });
+  if (ending) return;
+  ending = true;
+  const maxScore = TOTAL * 10;
+  const accuracy = correctCount / Math.max(1, correctCount + mistakes);
+  await game.saveScore(score, { level, correct: correctCount, total: TOTAL, mistakes });
   const top = (await game.getHighScores(1))[0];
   $('final-score').textContent = score;
   $('best').textContent = top?.score ?? score;
-  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  const acc = (TOTAL - mistakes) / TOTAL;
-  $('stars').textContent = '⭐'.repeat(acc >= 0.9 ? 3 : acc >= 0.6 ? 2 : 1);
+  $('player-line').textContent = `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString(IAKidsLang.code === 'he' ? 'he-IL' : IAKidsLang.code, { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('stars').textContent = '⭐'.repeat(accuracy >= .9 ? 3 : accuracy >= .6 ? 2 : 1);
+  await game.complete(score, {
+    maxScore,
+    performanceScore: Math.round(accuracy * 100),
+    metadata: {
+      game_mode:'abc_order', game_slug:'abc-order-en', selected_level:level,
+      random_difficulty:level===0, total_rounds:TOTAL, correct_answers:correctCount,
+      mistakes, child_age:CHILD_AGE, uses_niqqud:USE_NIQQUD,
+      interaction:'drag_and_drop', language_subject:'english'
+    }
+  });
   game.shareButton(score, $('share-slot'));
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
