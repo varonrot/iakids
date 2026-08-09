@@ -13607,7 +13607,7 @@ data-custom-slot="1"
   </div>
 
 </section>
-    
+
     <!-- =====================================================
      CUSTOM SUBJECT VIEW
 ===================================================== -->
@@ -13796,7 +13796,7 @@ data-custom-slot="1"
   </div>
 
 </section>
-    
+
     <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW
      ===================================================== -->
@@ -27915,7 +27915,7 @@ document.addEventListener(
 
 .kingdom-label-ocean{
   top:80%;
-  left:27%;
+  left:24%;
 }
 
 
@@ -33690,6 +33690,161 @@ async function loadCustomSubjectsForDashboard(){
     "CUSTOM SUBJECTS:",
     CUSTOM_SUBJECTS
   );
+
+}
+
+/* =====================================================
+   OPEN CUSTOM SUBJECT
+===================================================== */
+
+async function openCustomSubject(
+  subjectId,
+  subjectName
+){
+
+  console.log(
+    "OPEN CUSTOM SUBJECT VIEW:",
+    {
+      subjectId,
+      subjectName
+    }
+  );
+
+
+  const dashboard =
+    document.getElementById(
+      "dashboardView"
+    );
+
+  const learning =
+    document.getElementById(
+      "learningView"
+    );
+
+  const learningPath =
+    document.getElementById(
+      "learningPathView"
+    );
+
+  const scienceView =
+    document.getElementById(
+      "scienceHierarchyView"
+    );
+
+  const customView =
+    document.getElementById(
+      "customSubjectView"
+    );
+
+  const title =
+    document.getElementById(
+      "customSubjectTitle"
+    );
+
+  const breadcrumb =
+    document.getElementById(
+      "customSubjectBreadcrumbRoot"
+    );
+
+  const tree =
+    document.getElementById(
+      "customSubjectTree"
+    );
+
+
+  /*
+    בדיקת HTML
+  */
+
+  if(!customView){
+
+    console.error(
+      "customSubjectView not found"
+    );
+
+    return;
+
+  }
+
+
+  /*
+    מסתירים את כל המסכים האחרים
+  */
+
+  if(dashboard){
+    dashboard.style.display =
+      "none";
+  }
+
+  if(learning){
+    learning.style.display =
+      "none";
+  }
+
+  if(learningPath){
+    learningPath.style.display =
+      "none";
+  }
+
+  if(scienceView){
+    scienceView.style.display =
+      "none";
+  }
+
+
+  /*
+    מציגים מקצוע אישי
+  */
+
+  customView.style.display =
+    "block";
+
+
+  /*
+    שם המקצוע
+  */
+
+  if(title){
+
+    title.textContent =
+      subjectName ||
+      "מקצוע אישי";
+
+  }
+
+
+  if(breadcrumb){
+
+    breadcrumb.textContent =
+      subjectName ||
+      "מקצוע אישי";
+
+  }
+
+
+  /*
+    Loading ראשוני
+  */
+
+  if(tree){
+
+    tree.innerHTML = `
+
+      <div class="science-tree-loading">
+        טוענים את תוכנית הלימודים...
+      </div>
+
+    `;
+
+  }
+
+
+  /*
+    כרגע רק פותחים את המסך.
+    בשלב הבא נטען לכאן את
+    kid_custom_units
+    ואת kid_custom_lessons.
+  */
 
 }
 
