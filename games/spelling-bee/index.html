@@ -4,51 +4,339 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spelling Bee | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
 <style>
-  .word-display { font-size: 2.4rem; letter-spacing: 10px; font-weight: 800; margin: 18px 0 8px; direction: ltr; min-height: 2.6rem; }
-  .word-display .filled { color: var(--accent); }
-  .hint-line { color: var(--muted); font-size: 1rem; min-height: 1.3rem; }
-  .keyboard { direction: ltr; display: flex; flex-direction: column; gap: 6px; margin-top: 14px; align-items: center; }
-  .kbd-row { display: flex; justify-content: center; gap: 4px; }
-  .kbd-btn { font-size: 1.05rem; padding: 8px 4px; min-height: 42px; min-width: 30px; margin: 2px; }
-  .kbd-tools { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-gold:#ffd15c;
+}
+
+html,body{min-height:100%}
+
+body{
+  margin:0!important;
+  min-height:100vh!important;
+  padding:86px 18px 28px!important;
+  overflow-x:hidden;
+  color:var(--space-text)!important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif!important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(560px,calc(100vw - 28px))!important;
+  min-height:690px;
+  margin:0 auto!important;
+  padding:0!important;
+  overflow:hidden;
+  border:1px solid var(--space-line)!important;
+  border-radius:28px!important;
+  color:var(--space-text)!important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08)!important;
+}
+
+.game-hud{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px!important;
+  display:flex!important;
+  align-items:center;
+  justify-content:center!important;
+  gap:42px;
+  color:#fff!important;
+  background:rgba(5,18,46,.88)!important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{color:var(--space-gold)!important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.2rem,7vw,3.2rem)!important;
+  line-height:1.05;
+  color:#fff!important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#subtitle{
+  max-width:420px;
+  margin:14px auto 20px;
+  color:var(--space-muted)!important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{
+  width:100%;
+  gap:12px!important;
+}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px!important;
+  border:1px solid rgba(118,176,255,.34)!important;
+  color:#fff!important;
+  font-weight:900!important;
+  background:linear-gradient(180deg,#1c91db,#0877bd)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16)!important;
+}
+
+.game-btn.outline,.game-btn.secondary{
+  background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important;
+}
+
+.game-btn.success{
+  background:linear-gradient(180deg,#37d182,#16ad64)!important;
+  border-color:rgba(97,255,174,.6)!important;
+}
+
+#level-row{margin-top:16px}
+#level-row [data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc)!important}
+
+/* PLAY */
+#play-screen{text-align:center}
+
+.prompt-line{
+  margin:0 0 10px;
+  color:#fff;
+  font-weight:900;
+  font-size:1.1rem;
+}
+
+.word-display{
+  min-height:82px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:12px 0 8px;
+  padding:12px 14px;
+  border-radius:22px;
+  direction:ltr;
+  font-size:2.25rem;
+  letter-spacing:10px;
+  font-weight:1000;
+  color:#dce9ff;
+  background:rgba(4,22,55,.5);
+  border:1px solid rgba(116,177,255,.18);
+}
+
+.word-display .filled{
+  color:#70caff;
+  text-shadow:0 0 14px rgba(112,202,255,.25);
+}
+
+.hint-line{
+  min-height:30px;
+  color:#b8c7e3;
+  font-size:1rem;
+  font-weight:700;
+}
+
+.tool-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+.keyboard{
+  direction:ltr;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  margin-top:16px;
+  align-items:center;
+}
+
+.kbd-row{
+  display:flex;
+  justify-content:center;
+  gap:5px;
+  width:100%;
+}
+
+.kbd-btn{
+  flex:1 1 0;
+  max-width:48px;
+  min-width:30px;
+  min-height:44px!important;
+  padding:7px 3px!important;
+  margin:0!important;
+  font-size:1rem!important;
+}
+
+.kbd-btn:disabled{
+  opacity:.6;
+  cursor:default;
+}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem!important;
+  letter-spacing:4px;
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff!important;
+  font-size:4rem!important;
+  font-weight:1000;
+}
+
+#player-line,#end-screen p{color:#d7e3f7!important}
+[hidden]{display:none!important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px!important}
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px!important;
+  }
+
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px!important;
+    gap:24px;
+  }
+
+  .word-display{
+    min-height:72px;
+    font-size:1.85rem;
+    letter-spacing:7px;
+  }
+
+  .kbd-row{gap:3px}
+  .kbd-btn{
+    min-width:26px;
+    font-size:.92rem!important;
+    padding:6px 2px!important;
+  }
+}
 </style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score">ניקוד: <span id="score">0</span></span>
-  <span>שאלה <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score">
+    <span id="score-label">ניקוד</span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span id="q-label">שאלה</span>
+    <span id="qnum">1</span>/<span id="qtotal">10</span>
+  </span>
 </div>
 
 <div class="game-card" id="card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">🐝</div>
-    <h1 class="game-title">Spelling Bee</h1>
-    <p>תשמעו מילה באנגלית — ותקלידו אותה נכון!</p>
-    <p>כמה שאלות?</p>
+    <div class="hero-icon">🐝</div>
+
+    <h1 class="game-title" id="title"></h1>
+
+    <p id="subtitle"></p>
+
+    <p class="section-label" id="rounds-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
     </div>
+
+    <p class="section-label" id="level-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
-      <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
-      <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
-      <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
     </div>
   </div>
 
   <div id="play-screen" hidden>
-    <p>הקלד/י את המילה ששמעת:</p>
+    <p class="prompt-line" id="prompt-line"></p>
+
     <div class="word-display" id="word-display"></div>
+
     <div class="hint-line" id="hint-line"></div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
-      <button class="game-btn secondary" onclick="replay()">🔊 שוב</button>
-      <button class="game-btn outline" onclick="backspace()">⌫ מחק</button>
+
+    <div class="tool-row">
+      <button class="game-btn secondary" id="replay-btn" onclick="replay()"></button>
+      <button class="game-btn outline" id="backspace-btn" onclick="backspace()"></button>
     </div>
+
     <div class="keyboard" id="keyboard"></div>
   </div>
 
@@ -56,170 +344,436 @@
     <div class="stars" id="stars"></div>
     <div class="big-score" id="final-score"></div>
     <p id="player-line"></p>
-    <p>השיא שלך: <b id="best"></b></p>
-    <button class="game-btn" onclick="location.reload()">שחק שוב 🔁</button>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
     <div id="share-slot"></div>
   </div>
 </div>
 
 <script src="../game-sdk.js"></script>
+
 <script>
-let game, score = 0, qnum = 0, level = 1, diff, timer;
-let TOTAL = 10;
-let currentWord = '', guess = '';
+const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
 
 const WORD_BANK = {
-  1: ['cat','dog','sun','hat','bed','cup','pen','box','run','red','big','six','ten','top','bus','egg','ant','arm','ear','eye'],
-  2: ['frog','lion','milk','book','fish','star','moon','cake','rain','wind','apple','chair','table','mouse','water','happy','green','black','white','house','bread','plant','tiger','zebra','snake'],
-  3: ['rabbit','coffee','kitten','dinner','summer','bottle','hammer','yellow','letter','butter','cotton','puppy','balloon','mirror','arrow','giraffe','umbrella','spaghetti','broccoli'],
+  1:['cat','dog','sun','hat','bed','cup','pen','box','run','red','big','six','ten','top','bus','egg','ant','arm','ear','eye'],
+  2:['frog','lion','milk','book','fish','star','moon','cake','rain','wind','apple','chair','table','mouse','water','happy','green','black','white','house','bread','plant','tiger','zebra','snake'],
+  3:['rabbit','coffee','kitten','dinner','summer','bottle','hammer','yellow','letter','butter','cotton','puppy','balloon','mirror','arrow','giraffe','umbrella','spaghetti','broccoli']
 };
+
+const T_REGULAR = {
+  title:{he:'Spelling Bee',en:'Spelling Bee'},
+  subtitle:{he:'תשמעו מילה באנגלית — ותקלידו אותה נכון!',en:'Hear an English word and spell it correctly!'},
+  rounds:{he:'כמה שאלות?',en:'How many questions?'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'},
+  prompt:{he:'הקלידו את המילה ששמעתם:',en:'Type the word you heard:'},
+  replay:{he:'🔊 שוב',en:'🔊 Replay'},
+  backspace:{he:'⌫ מחק',en:'⌫ Delete'},
+  noVoice:{he:'אין קול זמין — רמז: האות הראשונה היא',en:'No voice available — hint: first letter is'},
+  correctWord:{he:'המילה הנכונה:',en:'Correct word:'}
+};
+
+const T_NIQQUD = {
+  title:{he:'Spelling Bee',en:'Spelling Bee'},
+  subtitle:{he:'תִּשְׁמְעוּ מִלָּה בְּאַנְגְּלִית — וְתַקְלִידוּ אוֹתָהּ נָכוֹן!',en:'Hear an English word and spell it correctly!'},
+  rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},
+  prompt:{he:'הַקְלִידוּ אֶת הַמִּלָּה שֶׁשְּׁמַעְתֶּם:',en:'Type the word you heard:'},
+  replay:{he:'🔊 שׁוּב',en:'🔊 Replay'},
+  backspace:{he:'⌫ מָחַק',en:'⌫ Delete'},
+  noVoice:{he:'אֵין קוֹל זָמִין — רֶמֶז: הָאוֹת הָרִאשׁוֹנָה הִיא',en:'No voice available — hint: first letter is'},
+  correctWord:{he:'הַמִּלָּה הַנְּכוֹנָה:',en:'Correct word:'}
+};
+
+let CHILD_AGE = null;
+let USE_NIQQUD = false;
+let T = T_REGULAR;
+
+let game, score = 0, qnum = 0, level = 1, diff;
+let TOTAL = 10;
+let currentWord = '', guess = '';
+let locked = false, ending = false;
+let correctCount = 0, mistakes = 0, replayCount = 0;
+
+async function loadKidContext(){
+  try{
+    const kidId = localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client = await IAKidsActivity._getClient();
+
+    const {data,error} = await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(!error && data){
+      CHILD_AGE = Number(data.age);
+      USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+    }
+  }catch(e){
+    console.warn('[spelling-bee] loadKidContext',e);
+  }
+}
+
+function applyLanguage(){
+  T = USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+
+  $('title').textContent = IAKidsLang.t(T.title);
+  $('subtitle').textContent = IAKidsLang.t(T.subtitle);
+  $('rounds-label').textContent = IAKidsLang.t(T.rounds);
+  $('level-label').textContent = IAKidsLang.t(T.level);
+  $('prompt-line').textContent = IAKidsLang.t(T.prompt);
+  $('replay-btn').textContent = IAKidsLang.t(T.replay);
+  $('backspace-btn').textContent = IAKidsLang.t(T.backspace);
+
+  $('score-label').textContent = IAKidsLang.ui('score');
+  $('q-label').textContent = IAKidsLang.ui('question');
+  $('best-label').textContent = IAKidsLang.ui('your_best');
+  $('again-btn').textContent = IAKidsLang.ui('play_again');
+
+  ['level_easy','level_medium','level_hard','level_random'].forEach((key,index)=>{
+    document.querySelectorAll('#level-row .game-btn')[index].textContent =
+      IAKidsLang.ui(key);
+  });
+}
 
 IAKidsCoins.mount();
+
 IAKidsHelp.mount({
-  slug: 'spelling-bee',
-  how: 'תשמעו מילה באנגלית — לחצו על 🔊 כדי לשמוע שוב, ואז הקלידו את האותיות הנכונות במקלדת שעל המסך (או במקלדת שלכם).',
-  example: '<span dir="ltr"><b>🔊 "cat"</b></span> → מקלידים <span dir="ltr"><b>c-a-t</b></span> ✓',
+  slug:'spelling-bee',
+  how:'תשמעו מילה באנגלית — לחצו על 🔊 כדי לשמוע שוב, ואז הקלידו את האותיות הנכונות במקלדת שעל המסך או במקלדת שלכם.',
+  example:'<span dir="ltr"><b>🔊 "cat"</b></span> → מקלידים <span dir="ltr"><b>c-a-t</b></span> ✓'
 });
 
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen'])
-    document.getElementById(s).hidden = s !== id;
+const show = id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(s=>$(s).hidden=s!==id);
 };
 
-function setRounds(n, btn) {
-  TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
-  btn.classList.add('success');
-}
-function markRounds(n) {
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.toggle('success', +b.textContent === n));
-  TOTAL = n;
-}
-function markLevel(lvl) {
-  document.querySelectorAll('#level-row .game-btn').forEach(b => b.classList.remove('outline'));
-  const idx = lvl === 0 ? 3 : lvl - 1;
-  const btn = document.querySelectorAll('#level-row .game-btn')[idx];
-  if (btn) btn.classList.add('outline');
+function setRounds(n,btn){
+  TOTAL=n;
+
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(b=>b.classList.remove('success'));
+
+  btn?.classList.add('success');
 }
 
-// build on-screen QWERTY keyboard
-(function buildKeyboard() {
-  const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
-  const kb = document.getElementById('keyboard');
-  rows.forEach(row => {
-    const div = document.createElement('div');
-    div.className = 'kbd-row';
-    for (const ch of row) {
-      const b = document.createElement('button');
-      b.className = 'game-btn outline kbd-btn';
-      b.textContent = ch;
-      b.onclick = () => tapLetter(ch);
+function markRounds(n){
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(b=>b.classList.toggle('success',+b.textContent===n));
+
+  TOTAL=n;
+}
+
+function markLevel(lvl){
+  document.querySelectorAll('#level-row .game-btn')
+    .forEach(b=>b.classList.remove('success'));
+
+  const idx=lvl===0 ? 3 : lvl-1;
+  const btn=document.querySelectorAll('#level-row .game-btn')[idx];
+
+  if(btn) btn.classList.add('success');
+}
+
+(function buildKeyboard(){
+  const rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
+  const kb=$('keyboard');
+
+  rows.forEach(row=>{
+    const div=document.createElement('div');
+    div.className='kbd-row';
+
+    for(const ch of row){
+      const b=document.createElement('button');
+      b.className='game-btn outline kbd-btn';
+      b.textContent=ch;
+      b.onclick=()=>tapLetter(ch);
       div.appendChild(b);
     }
+
     kb.appendChild(div);
   });
 })();
 
-(async function boot() {
-  game = await IAKidsGame.init('spelling-bee');
-  const p = await game.loadProgress();
-  if (p) {
-    if (p.rounds) markRounds(p.rounds);
-    if (p.lastLevel != null) markLevel(p.lastLevel);
+const ready=(async()=>{
+  await loadKidContext();
+  applyLanguage();
+
+  game=await IAKidsGame.init('spelling-bee');
+
+  const p=await game.loadProgress();
+
+  if(p){
+    if(p.rounds) markRounds(p.rounds);
+    if(p.lastLevel!=null) markLevel(p.lastLevel);
   }
 })();
 
-function speak(word) {
-  if (!('speechSynthesis' in window)) return false;
-  try {
+function speak(word){
+  if(!('speechSynthesis' in window)) return false;
+
+  try{
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(word);
-    u.lang = 'en-US';
+
+    const u=new SpeechSynthesisUtterance(word);
+    u.lang='en-US';
     speechSynthesis.speak(u);
+
     return true;
-  } catch (e) { return false; }
+  }catch(e){
+    return false;
+  }
 }
-function replay() { speak(currentWord); }
 
-async function start(lvl) {
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  document.getElementById('qtotal').textContent = TOTAL;
+function replay(){
+  if(!currentWord || ending) return;
+  replayCount++;
+  speak(currentWord);
+}
+
+async function start(lvl){
+  await ready;
+
+  level=lvl;
+  diff=game.difficulty(lvl||1,3);
+
+  score=0;
+  qnum=0;
+  correctCount=0;
+  mistakes=0;
+  replayCount=0;
+  locked=false;
+  ending=false;
+
+  $('score').textContent='0';
+  $('qtotal').textContent=TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:lvl||1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'spelling_bee',
+      game_slug:'spelling-bee',
+      selected_level:lvl,
+      random_difficulty:lvl===0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD,
+      language_subject:'english',
+      input_mode:'keyboard',
+      audio_mode:'speechSynthesis'
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:lvl,
+    rounds:TOTAL
+  });
+
   show('play-screen');
-  document.addEventListener('keydown', onKeydown);
-  next();
+
+  document.addEventListener('keydown',onKeydown);
+
+  await next();
 }
 
-function onKeydown(e) {
-  if (document.getElementById('play-screen').hidden) return;
-  if (/^[a-zA-Z]$/.test(e.key)) tapLetter(e.key.toUpperCase());
-  else if (e.key === 'Backspace') backspace();
-}
+function onKeydown(e){
+  if($('play-screen').hidden || locked || ending) return;
 
-function renderGuess() {
-  const chars = [];
-  for (let i = 0; i < currentWord.length; i++) {
-    chars.push(i < guess.length ? `<span class="filled">${guess[i]}</span>` : '_');
+  if(/^[a-zA-Z]$/.test(e.key)){
+    tapLetter(e.key.toUpperCase());
+  }else if(e.key==='Backspace'){
+    backspace();
+    e.preventDefault();
   }
-  document.getElementById('word-display').innerHTML = chars.join(' ');
 }
 
-function tapLetter(ch) {
-  if (guess.length >= currentWord.length) return;
-  guess += ch.toLowerCase();
-  renderGuess();
-  if (guess.length === currentWord.length) setTimeout(checkAnswer, 250);
+function renderGuess(){
+  const chars=[];
+
+  for(let i=0;i<currentWord.length;i++){
+    chars.push(
+      i<guess.length
+        ? `<span class="filled">${guess[i]}</span>`
+        : '_'
+    );
+  }
+
+  $('word-display').innerHTML=chars.join(' ');
 }
-function backspace() {
-  guess = guess.slice(0, -1);
+
+function setKeyboardEnabled(enabled){
+  document.querySelectorAll('.kbd-btn')
+    .forEach(b=>b.disabled=!enabled);
+
+  $('backspace-btn').disabled=!enabled;
+}
+
+function tapLetter(ch){
+  if(locked || ending) return;
+  if(guess.length>=currentWord.length) return;
+
+  guess+=ch.toLowerCase();
+
+  renderGuess();
+
+  if(guess.length===currentWord.length){
+    locked=true;
+    setKeyboardEnabled(false);
+    setTimeout(checkAnswer,250);
+  }
+}
+
+function backspace(){
+  if(locked || ending) return;
+
+  guess=guess.slice(0,-1);
   renderGuess();
 }
 
-async function next() {
-  if (qnum >= TOTAL) return end();
+async function next(){
+  if(ending) return;
+
+  if(qnum>=TOTAL){
+    await end();
+    return;
+  }
+
   qnum++;
-  document.getElementById('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const q = await game.newQuestion(() => ({ word: WORD_BANK[lvl][rnd(WORD_BANK[lvl].length)] }), x => x.word);
-  currentWord = q.word;
-  guess = '';
+  locked=false;
+  setKeyboardEnabled(true);
+
+  $('qnum').textContent=qnum;
+
+  const lvl=level===0 ? 1+rnd(3) : diff.level;
+
+  const q=await game.newQuestion(
+    ()=>({word:WORD_BANK[lvl][rnd(WORD_BANK[lvl].length)]}),
+    x=>x.word
+  );
+
+  currentWord=q.word;
+  guess='';
+
+  IAKidsActivity.questionStarted();
+
   renderGuess();
-  const spoke = speak(currentWord);
-  document.getElementById('hint-line').textContent = spoke ? '' : `אין קול זמין — רמז: האות הראשונה היא "${currentWord[0].toUpperCase()}"`;
+
+  const spoke=speak(currentWord);
+
+  $('hint-line').textContent=
+    spoke
+      ? ''
+      : `${IAKidsLang.t(T.noVoice)} "${currentWord[0].toUpperCase()}"`;
 }
 
-function checkAnswer() {
-  const el = document.getElementById('word-display');
-  if (guess === currentWord) {
-    score += 10;
+async function checkAnswer(){
+  const el=$('word-display');
+  const ok=guess===currentWord;
+
+  if(ok){
+    score+=10;
+    correctCount++;
+
     diff.right();
+    IAKidsActivity.correct();
+
     IAKidsFX.correct(el);
-    IAKidsCoins.right(el);
-  } else {
+    await IAKidsCoins.right(el);
+
+  }else{
+    mistakes++;
+
     diff.wrong();
+    IAKidsActivity.wrong();
+
     IAKidsFX.wrong(el);
-    IAKidsCoins.wrong();
-    document.getElementById('hint-line').textContent = `המילה הנכונה: ${currentWord}`;
+    await IAKidsCoins.wrong();
+
+    $('hint-line').textContent=
+      `${IAKidsLang.t(T.correctWord)} ${currentWord}`;
   }
-  document.getElementById('score').textContent = score;
-  setTimeout(next, 900);
+
+  $('score').textContent=score;
+
+  setTimeout(async()=>{
+    await next();
+  },ok ? 700 : 1100);
 }
 
-async function end() {
-  document.removeEventListener('keydown', onKeydown);
-  await game.saveScore(score, { level });
-  const top = (await game.getHighScores(1))[0];
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('best').textContent = top?.score ?? score;
-  document.getElementById('player-line').textContent =
-    `${top?.player || 'אורח'} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  document.getElementById('stars').textContent =
-    '⭐'.repeat(Math.max(1, Math.round(score / (TOTAL * 10) * 3)));
-  game.shareButton(score, document.getElementById('share-slot'));
+async function end(){
+  if(ending) return;
+
+  ending=true;
+  locked=true;
+
+  document.removeEventListener('keydown',onKeydown);
+  setKeyboardEnabled(false);
+
+  const maxScore=TOTAL*10;
+
+  const accuracy=
+    correctCount /
+    Math.max(1,correctCount+mistakes);
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      correct:correctCount,
+      total:TOTAL,
+      mistakes,
+      replays:replayCount
+    }
+  );
+
+  const top=(await game.getHighScores(1))[0];
+
+  $('final-score').textContent=score;
+  $('best').textContent=top?.score??score;
+
+  $('player-line').textContent=
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        'he-IL',
+        {dateStyle:'short',timeStyle:'short'}
+      )
+    }`;
+
+  $('stars').textContent=
+    '⭐'.repeat(
+      accuracy>=.9 ? 3 :
+      accuracy>=.7 ? 2 : 1
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+      performanceScore:Math.round(accuracy*100),
+      metadata:{
+        game_mode:'spelling_bee',
+        game_slug:'spelling-bee',
+        selected_level:level,
+        random_difficulty:level===0,
+        total_rounds:TOTAL,
+        correct_answers:correctCount,
+        mistakes,
+        replays:replayCount,
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD,
+        language_subject:'english',
+        input_mode:'keyboard',
+        audio_mode:'speechSynthesis'
+      }
+    }
+  );
+
+  game.shareButton(score,$('share-slot'));
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
