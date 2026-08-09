@@ -908,6 +908,25 @@
 .form:has(input:disabled){
   opacity:.82;
 }
+    .approve.approved{
+  color:#dfffea !important;
+
+  border-color:
+    rgba(65,220,129,.42) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #126f45,
+      #169657
+    ) !important;
+
+  box-shadow:
+    0 8px 28px
+    rgba(24,173,98,.18);
+
+  cursor:default;
+}
 </style>
 </head>
 <body>
@@ -972,6 +991,9 @@ const sb = supabase.createClient(
 
 const CURRICULUM_API =
   "https://iakids-ai-tutor-he.onrender.com/api/curriculum/chat";
+
+const CURRICULUM_APPROVE_API =
+  "https://iakids-ai-tutor-he.onrender.com/api/curriculum/approve";
 
 let CURRENT_KID = null;
 let CURRENT_PLAN = null;
@@ -1811,19 +1833,197 @@ finally {
 
 }
 document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();submitText(document.getElementById('chatInput').value);document.getElementById('chatInput').value=''});document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));
-document.getElementById('approveBtn').onclick = () => {
+document.getElementById(
+  "approveBtn"
+).onclick = async () => {
 
-  if (!CURRENT_PLAN) return;
+  if (
+    !CURRENT_PLAN ||
+    !CURRENT_KID ||
+    !CURRENT_CUSTOM_SUBJECT_ID ||
+    !CURRENT_CURRICULUM_ID
+  ) {
+    console.warn(
+      "Cannot approve curriculum:",
+      {
+        CURRENT_PLAN,
+        CURRENT_KID,
+        CURRENT_CUSTOM_SUBJECT_ID,
+        CURRENT_CURRICULUM_ID
+      }
+    );
 
-  console.log(
-    "Approve curriculum:",
-    {
-      custom_subject_id: CURRENT_CUSTOM_SUBJECT_ID,
-      curriculum_id: CURRENT_CURRICULUM_ID,
-      version: CURRENT_VERSION,
-      curriculum: CURRENT_PLAN
+    return;
+  }
+
+
+  const btn =
+    document.getElementById(
+      "approveBtn"
+    );
+
+  const originalText =
+    btn.textContent;
+
+
+  /*
+    מצב שמירה
+  */
+
+  btn.disabled = true;
+
+  btn.textContent =
+    "✦ מאשר את תוכנית הלימודים...";
+
+
+  try {
+
+    /*
+      token
+    */
+
+    const { data: sessionData } =
+      await sb.auth.getSession();
+
+
+    const accessToken =
+      sessionData?.session?.access_token;
+
+
+    if (!accessToken) {
+
+      location.replace(
+        "/he/onboarding/cuenta/"
+      );
+
+      return;
     }
-  );
+
+
+    /*
+      POST APPROVE
+    */
+
+    const response =
+      await fetch(
+        CURRICULUM_APPROVE_API,
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${accessToken}`
+
+          },
+
+
+          body: JSON.stringify({
+
+            kid_id:
+              CURRENT_KID.id,
+
+            custom_subject_id:
+              CURRENT_CUSTOM_SUBJECT_ID,
+
+            curriculum_id:
+              CURRENT_CURRICULUM_ID
+
+          })
+
+        }
+      );
+
+
+    const rawText =
+      await response.text();
+
+
+    /*
+      SERVER ERROR
+    */
+
+    if (!response.ok) {
+
+      console.error(
+        "Curriculum approve API error:",
+        response.status,
+        rawText
+      );
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+
+    /*
+      PARSE
+    */
+
+    const data =
+      JSON.parse(rawText);
+
+
+    console.log(
+      "CURRICULUM APPROVED:",
+      data
+    );
+
+
+    /*
+      SUCCESS UI
+    */
+
+    btn.textContent =
+      "✓ תוכנית הלימודים אושרה";
+
+    btn.classList.add(
+      "approved"
+    );
+
+
+    /*
+      כרגע חוזרים לעולם הלמידה.
+      בשלב הבא נגרום ל-workspace
+      לקרוא את המקצוע החדש ולהציג אותו
+      במקום + הוסף מקצוע.
+    */
+
+    setTimeout(() => {
+
+      location.href =
+        "/he/workspace/";
+
+    }, 1100);
+
+  }
+
+
+  catch (error) {
+
+    console.error(
+      "Curriculum approval failed:",
+      error
+    );
+
+
+    btn.disabled = false;
+
+    btn.textContent =
+      originalText;
+
+
+    msg(
+      "ai",
+      "לא הצלחתי לאשר את תוכנית הלימודים כרגע. נסו שוב."
+    );
+
+  }
 
 };
 document.getElementById('openParentModal').onclick=()=>location.href='/he/workspace/';document.getElementById('openSettings').onclick=()=>location.href='/he/workspace/';document.getElementById('manageSubscriptionSide').onclick=()=>location.href='/he/workspace/';init();
