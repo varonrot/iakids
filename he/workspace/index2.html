@@ -12215,6 +12215,35 @@ html.windows-workspace .app{
   }
 
 }
+    /* =====================================================
+   CUSTOM SUBJECT MODE
+===================================================== */
+
+body.custom-subject-mode .home-rightbar{
+  display:none !important;
+}
+
+body.custom-subject-mode .app{
+  grid-template-columns:
+    270px
+    minmax(0,1fr) !important;
+}
+
+body.custom-subject-mode .topbar{
+  grid-column:
+    1 / 3 !important;
+}
+
+body.custom-subject-mode .main{
+  grid-column:
+    2 !important;
+}
+
+body.custom-subject-mode
+#customSubjectView{
+  width:100% !important;
+  height:100% !important;
+}
 </style>
 </head>
 <body>
@@ -12873,8 +12902,9 @@ data-kingdom="center"
 ========================= -->
 <button
 type="button"
-class="kingdom-label kingdom-label-ocean"
+class="kingdom-label kingdom-label-ocean custom-subject-slot"
 data-kingdom="ocean"
+data-custom-slot="0"
 >
 
   <strong class="kingdom-label-title">
@@ -12900,31 +12930,35 @@ data-kingdom="ocean"
 
 
 <!-- =========================
-     הוסף מקצוע
+     היסטוריה
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-desert"
-data-kingdom="desert"
+  type="button"
+  id="historySubjectCard"
+  class="kingdom-label kingdom-label-desert history-subject-card"
+  data-kingdom="desert"
 >
 
   <strong class="kingdom-label-title">
-      היסטוריה
+    היסטוריה
   </strong>
 
   <span class="kingdom-label-subject">
-    התאמה אישית לילד
+    תוכנית אישית
   </span>
 
   <span class="kingdom-label-progress">
     <span class="kingdom-label-track">
       <span
-      class="kingdom-label-fill"
-      style="width:0%"
+        class="kingdom-label-fill"
+        id="historySubjectProgress"
+        style="width:0%"
       ></span>
     </span>
 
-    <b>הוסף →</b>
+    <b id="historySubjectAction">
+      התחלה →
+    </b>
   </span>
 
 </button>
@@ -13605,6 +13639,196 @@ data-kingdom="desert"
   </div>
 
 </section>
+
+    <!-- =====================================================
+     CUSTOM SUBJECT VIEW
+===================================================== -->
+
+<section
+  id="customSubjectView"
+  class="science-hierarchy-view"
+  style="display:none;"
+>
+
+  <div class="science-subject-layout">
+
+    <!-- =============================================
+         MAIN CUSTOM SUBJECT TREE
+    ============================================== -->
+
+    <div class="science-hierarchy-screen">
+
+      <header class="science-tree-header">
+
+        <button
+          type="button"
+          class="science-tree-back"
+          onclick="closeCustomSubject()"
+        >
+          <i class="fa-solid fa-arrow-right"></i>
+          חזרה
+        </button>
+
+        <div class="science-tree-title-icon">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+
+        <div>
+          <h1 id="customSubjectTitle">
+            מקצוע אישי
+          </h1>
+
+          <p>
+            בחר יחידת לימוד כדי להתחיל ללמוד ולהתקדם
+          </p>
+        </div>
+
+      </header>
+
+
+      <!-- =============================================
+           BREADCRUMB
+      ============================================== -->
+
+      <div
+        id="customSubjectBreadcrumb"
+        class="science-breadcrumb"
+      >
+        <span
+          id="customSubjectBreadcrumbRoot"
+          class="active"
+        >
+          מקצוע אישי
+        </span>
+      </div>
+
+
+      <!-- =============================================
+           TREE
+      ============================================== -->
+
+      <div
+        id="customSubjectTree"
+        class="science-tree"
+      >
+        <div class="science-tree-loading">
+          טוענים את תוכנית הלימודים...
+        </div>
+      </div>
+
+
+      <!-- =============================================
+           LEGEND
+      ============================================== -->
+
+      <div class="science-tree-legend">
+
+        <span>
+          <i class="science-legend-dot completed"></i>
+          הושלם
+        </span>
+
+        <span>
+          <i class="science-legend-dot current"></i>
+          נוכחי
+        </span>
+
+        <span>
+          <i class="science-legend-dot locked"></i>
+          נעול
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- =============================================
+         RIGHT SIDEBAR
+    ============================================== -->
+
+    <aside class="science-rightbar">
+
+      <section
+        class="science-side-card science-progress-card"
+      >
+
+        <h3 id="customSubjectProgressTitle">
+          ההתקדמות שלי
+        </h3>
+
+        <div class="science-side-donut">
+
+          <div class="science-side-donut-inner">
+
+            <strong id="customSubjectProgressPercent">
+              0%
+            </strong>
+
+            <span>
+              התקדמות כללית
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="science-side-stats">
+
+          <div>
+            <strong id="customSubjectLessonsTotal">
+              0
+            </strong>
+            <span>שיעורים</span>
+          </div>
+
+          <div>
+            <strong id="customSubjectLessonsCompleted">
+              0
+            </strong>
+            <span>הושלמו</span>
+          </div>
+
+          <div>
+            <strong id="customSubjectLessonsRemaining">
+              0
+            </strong>
+            <span>נותרו</span>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =============================================
+           NEXT LESSON
+      ============================================== -->
+
+      <section
+        class="science-side-card science-continue-card"
+      >
+
+        <h3>
+          השיעור הבא
+        </h3>
+
+        <div
+          id="customSubjectNextLesson"
+          class="science-tree-loading"
+        >
+          עדיין לא נבחר שיעור
+        </div>
+
+      </section>
+
+    </aside>
+
+  </div>
+
+</section>
+
     <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW
      ===================================================== -->
@@ -18525,8 +18749,11 @@ CURRENT_KID = kid;
 /* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
 CURRENT_KID.grade = Number(kid.age);
 
-/* טעינת המקצועות לפי הכיתה */
+/* טעינת המקצועות הקבועים לפי הכיתה */
 await loadSubjects(CURRENT_KID.grade);
+
+/* טעינת המקצועות האישיים שאושרו ע"י ההורה */
+await loadCustomSubjectsForDashboard();
 
 const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
 
@@ -27659,8 +27886,8 @@ document.addEventListener(
 =========================== */
 
 .kingdom-label-snow{
-  top:18%;
-  left:24%;
+  top:17%;
+  left:27%;
 }
 
 
@@ -27669,8 +27896,8 @@ document.addEventListener(
 =========================== */
 
 .kingdom-label-fire{
-  top:17%;
-  left:49%;
+  top:15%;
+  left:53%;
 }
 
 
@@ -27679,8 +27906,8 @@ document.addEventListener(
 =========================== */
 
 .kingdom-label-jungle{
-  top:18%;
-  left:73%;
+  top:16%;
+  left:80%;
 }
 
 
@@ -27689,8 +27916,8 @@ document.addEventListener(
 =========================== */
 
 .kingdom-label-candy{
-  top:60%;
-  left:79%;
+  top:50%;
+  left:86%;
 }
 
 
@@ -27710,7 +27937,7 @@ document.addEventListener(
 
 .kingdom-label-shadow{
   top:60%;
-  left:21%;
+  left:9%;
 }
 
 
@@ -27720,7 +27947,7 @@ document.addEventListener(
 
 .kingdom-label-ocean{
   top:80%;
-  left:30%;
+  left:24%;
 }
 
 
@@ -27730,7 +27957,7 @@ document.addEventListener(
 
 .kingdom-label-desert{
   top:80%;
-  left:72%;
+  left:80%;
 }
 
     /* =====================================================
@@ -30090,6 +30317,299 @@ div{
 #scienceRecommendations
 .science-recommend-item > span{
   transform:translateX(-12px);
+}
+    /* =====================================================
+   SCIENCE LEVEL 1 — FULL IMAGE PREMIUM CARDS
+===================================================== */
+
+#scienceLevel1 .science-tree-card{
+  position:relative !important;
+
+  height:155px !important;
+  min-height:155px !important;
+
+  padding:0 !important;
+
+  overflow:hidden !important;
+
+  border-radius:17px !important;
+
+  border:
+    1px solid
+    rgba(95,142,205,.32) !important;
+
+  background:#07111f !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 20px rgba(0,5,18,.28) !important;
+
+  isolation:isolate;
+}
+
+
+/* =========================================
+   התמונה ממלאת את כל הכרטיס
+========================================= */
+
+#scienceLevel1 .science-tree-card-visual{
+  position:absolute !important;
+
+  inset:0 !important;
+
+  width:100% !important;
+  height:100% !important;
+
+  margin:0 !important;
+
+  overflow:hidden !important;
+
+  display:block !important;
+
+  z-index:0 !important;
+}
+
+
+#scienceLevel1 .science-tree-card-visual img{
+  position:absolute !important;
+
+  inset:0 !important;
+
+  width:100% !important;
+  height:100% !important;
+
+  max-width:none !important;
+
+  object-fit:cover !important;
+  object-position:center !important;
+
+  transform:scale(1.02);
+
+  filter:
+    saturate(.95)
+    contrast(1.05)
+    brightness(.86) !important;
+
+  transition:
+    transform .35s ease,
+    filter .35s ease !important;
+}
+
+
+/* מבטלים את ההילה של האייקון הישן */
+
+#scienceLevel1 .science-tree-card-visual::before{
+  display:none !important;
+}
+
+
+/* =========================================
+   שכבות כהות — זה החלק החשוב
+========================================= */
+
+#scienceLevel1 .science-tree-card::before{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  z-index:1;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(3,9,19,.26) 0%,
+      rgba(3,9,19,.02) 28%,
+      rgba(3,9,19,.02) 72%,
+      rgba(3,9,19,.28) 100%
+    );
+}
+
+
+#scienceLevel1 .science-tree-card::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  z-index:2;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(2,8,17,.02) 0%,
+      rgba(2,8,17,.06) 38%,
+      rgba(2,8,17,.56) 68%,
+      rgba(2,8,17,.96) 100%
+    );
+}
+
+
+/* =========================================
+   כותרת
+========================================= */
+
+#scienceLevel1 .science-tree-card > strong{
+  position:absolute !important;
+
+  right:10px;
+  left:10px;
+  bottom:31px;
+
+  z-index:5;
+
+  color:#fff !important;
+
+  font-size:15px !important;
+  line-height:1.15 !important;
+  font-weight:900 !important;
+
+  text-align:center;
+
+  text-shadow:
+    0 2px 6px rgba(0,0,0,.72);
+}
+
+
+/* =========================================
+   תת כותרת
+========================================= */
+
+#scienceLevel1 .science-tree-card > small{
+  position:absolute !important;
+
+  right:10px;
+  left:10px;
+  bottom:17px;
+
+  z-index:5;
+
+  color:
+    rgba(218,228,243,.68) !important;
+
+  font-size:9px !important;
+  font-weight:700 !important;
+
+  text-align:center;
+}
+
+
+/* =========================================
+   פס התקדמות
+========================================= */
+
+#scienceLevel1 .science-tree-progress{
+  position:absolute !important;
+
+  right:10px !important;
+  left:10px !important;
+  bottom:7px !important;
+
+  z-index:6 !important;
+
+  height:4px !important;
+
+  border-radius:999px;
+
+  overflow:hidden;
+
+  background:
+    rgba(100,124,160,.28) !important;
+}
+
+
+#scienceLevel1 .science-tree-progress span{
+  display:block;
+
+  height:100%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #169cff,
+      #42d5ff
+    ) !important;
+
+  box-shadow:
+    0 0 7px
+    rgba(37,180,255,.48);
+}
+
+
+/* =========================================
+   HOVER
+========================================= */
+
+#scienceLevel1 .science-tree-card:hover{
+  transform:translateY(-3px) !important;
+
+  border-color:
+    rgba(81,166,255,.55) !important;
+
+  box-shadow:
+    0 12px 25px rgba(0,5,20,.38),
+    0 0 18px rgba(34,137,255,.10) !important;
+}
+
+
+#scienceLevel1
+.science-tree-card:hover
+.science-tree-card-visual img{
+  transform:scale(1.07);
+
+  filter:
+    saturate(1.03)
+    contrast(1.07)
+    brightness(.92) !important;
+}
+
+
+/* =========================================
+   SELECTED — אקולוגיה
+========================================= */
+
+#scienceLevel1 .science-tree-card.selected{
+  border-color:
+    rgba(67,224,96,.72) !important;
+
+  box-shadow:
+    inset 0 0 28px rgba(45,210,83,.08),
+    0 0 18px rgba(45,220,83,.15),
+    0 10px 24px rgba(0,5,20,.36) !important;
+}
+
+
+#scienceLevel1 .science-tree-card.selected::after{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(2,12,8,.02) 0%,
+      rgba(3,24,12,.08) 38%,
+      rgba(3,28,13,.54) 68%,
+      rgba(2,20,10,.96) 100%
+    );
+}
+
+
+#scienceLevel1
+.science-tree-card.selected
+.science-tree-progress span{
+  background:
+    linear-gradient(
+      90deg,
+      #33d85c,
+      #7aff83
+    ) !important;
+
+  box-shadow:
+    0 0 8px
+    rgba(76,238,101,.52);
 }
 </style>
 
@@ -32769,7 +33289,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V17";
+      "▶ Rotem V26";
 
 
     document.body.appendChild(
@@ -33343,6 +33863,1211 @@ const SCIENCE_CATEGORY_IMAGES = {
     "/assets/science/categories/earth.webp"
 
 };
+
+let CUSTOM_SUBJECTS = [];
+
+async function loadCustomSubjectsForDashboard(){
+
+  if(!CURRENT_KID){
+    return;
+  }
+
+  const slots =
+    [...document.querySelectorAll(
+      ".custom-subject-slot"
+    )];
+
+  if(!slots.length){
+    return;
+  }
+
+  const { data, error } =
+    await sb
+      .from("kid_custom_subjects")
+      .select(`
+        id,
+        kid_id,
+        subject_name,
+        status,
+        created_at
+      `)
+      .eq(
+        "kid_id",
+        CURRENT_KID.id
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .order(
+        "created_at",
+        {
+          ascending:true
+        }
+      );
+
+  if(error){
+
+    console.error(
+      "LOAD CUSTOM SUBJECTS ERROR:",
+      error
+    );
+
+    return;
+  }
+
+  CUSTOM_SUBJECTS =
+    data || [];
+
+  slots.forEach(
+    (
+      slot,
+      index
+    ) => {
+
+      const subject =
+        CUSTOM_SUBJECTS[index];
+
+      const title =
+        slot.querySelector(
+          ".kingdom-label-title"
+        );
+
+      const sub =
+        slot.querySelector(
+          ".kingdom-label-subject"
+        );
+
+      const fill =
+        slot.querySelector(
+          ".kingdom-label-fill"
+        );
+
+      const action =
+        slot.querySelector(
+          ".kingdom-label-progress b"
+        );
+
+
+      /*
+        אין מקצוע בסלוט
+      */
+
+      if(!subject){
+
+        slot.dataset.customSubjectId =
+          "";
+
+        slot.dataset.customSubjectName =
+          "";
+
+        title.textContent =
+          "+ הוסף מקצוע";
+
+        sub.textContent =
+          "התאמה אישית לילד";
+
+        if(fill){
+          fill.style.width =
+            "0%";
+        }
+
+        if(action){
+          action.textContent =
+            "הוסף →";
+        }
+
+        return;
+      }
+
+
+      /*
+        יש מקצוע מאושר
+      */
+
+      slot.dataset.customSubjectId =
+        subject.id;
+
+      slot.dataset.customSubjectName =
+        subject.subject_name;
+
+      title.textContent =
+        subject.subject_name;
+
+      sub.textContent =
+        "תכנית אישית";
+
+      if(fill){
+        fill.style.width =
+          "0%";
+      }
+
+      if(action){
+        action.textContent =
+          "כניסה →";
+      }
+
+    }
+  );
+
+
+  console.log(
+    "CUSTOM SUBJECTS:",
+    CUSTOM_SUBJECTS
+  );
+
+}
+
+/* =====================================================
+   OPEN CUSTOM SUBJECT
+===================================================== */
+
+/* =====================================================
+   OPEN HISTORY SUBJECT
+===================================================== */
+
+async function openHistorySubject(){
+
+  console.log(
+    "OPEN HISTORY SUBJECT",
+    CURRENT_KID
+  );
+
+
+  if(
+    !CURRENT_KID ||
+    !CURRENT_KID.id
+  ){
+
+    console.error(
+      "CURRENT_KID missing"
+    );
+
+    return;
+  }
+
+
+  /*
+    בודקים אם כבר קיימת
+    תוכנית היסטוריה מאושרת לילד
+  */
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "kid_custom_subjects"
+      )
+      .select(
+        `
+        id,
+        subject_name,
+        status
+        `
+      )
+      .eq(
+        "kid_id",
+        CURRENT_KID.id
+      )
+      .eq(
+        "subject_name",
+        "היסטוריה"
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      )
+      .limit(1);
+
+
+  if(error){
+
+    console.error(
+      "HISTORY SUBJECT ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  const historySubject =
+    data?.[0];
+
+
+  /*
+    כבר קיימת תוכנית היסטוריה
+  */
+
+  if(historySubject){
+
+    console.log(
+      "HISTORY SUBJECT FOUND:",
+      historySubject
+    );
+
+    await openCustomSubject(
+      historySubject.id,
+      "היסטוריה"
+    );
+
+    return;
+  }
+
+
+  /*
+    עדיין אין תוכנית:
+    עוברים לבניית מקצוע אישי,
+    אבל כבר יודעים שמדובר בהיסטוריה
+  */
+
+  window.location.href =
+    "/he/add-subject/?subject=" +
+    encodeURIComponent(
+      "היסטוריה"
+    );
+
+}
+
+const historySubjectCard =
+  document.getElementById(
+    "historySubjectCard"
+  );
+
+
+if(historySubjectCard){
+
+  historySubjectCard
+    .addEventListener(
+      "click",
+      async event => {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        await openHistorySubject();
+
+      }
+    );
+
+}
+
+
+async function openCustomSubject(
+  subjectId,
+  subjectName
+){
+
+  console.log(
+    "OPEN CUSTOM SUBJECT VIEW:",
+    {
+      subjectId,
+      subjectName,
+      kidId: CURRENT_KID?.id
+    }
+  );
+
+
+  const dashboard =
+    document.getElementById(
+      "dashboardView"
+    );
+
+  const learning =
+    document.getElementById(
+      "learningView"
+    );
+
+  const learningPath =
+    document.getElementById(
+      "learningPathView"
+    );
+
+  const scienceView =
+    document.getElementById(
+      "scienceHierarchyView"
+    );
+
+  const customView =
+    document.getElementById(
+      "customSubjectView"
+    );
+
+  const title =
+    document.getElementById(
+      "customSubjectTitle"
+    );
+
+  const breadcrumb =
+    document.getElementById(
+      "customSubjectBreadcrumbRoot"
+    );
+
+  const tree =
+    document.getElementById(
+      "customSubjectTree"
+    );
+
+  const rightbar =
+    document.querySelector(
+      ".home-rightbar"
+    );
+
+
+  if(!customView){
+
+    console.error(
+      "customSubjectView not found"
+    );
+
+    return;
+  }
+
+
+  if(!tree){
+
+    console.error(
+      "customSubjectTree not found"
+    );
+
+    return;
+  }
+
+
+  if(!CURRENT_KID?.id){
+
+    console.error(
+      "CURRENT_KID missing:",
+      CURRENT_KID
+    );
+
+    tree.innerHTML = `
+      <div class="science-tree-loading">
+        לא נמצא ילד פעיל
+      </div>
+    `;
+
+    return;
+  }
+
+
+  /* =========================================
+     מסכים
+  ========================================= */
+
+  if(dashboard){
+    dashboard.style.display =
+      "none";
+  }
+
+  if(learning){
+    learning.style.display =
+      "none";
+  }
+
+  if(learningPath){
+    learningPath.style.display =
+      "none";
+  }
+
+  if(scienceView){
+    scienceView.style.display =
+      "none";
+  }
+
+  customView.style.display =
+    "block";
+
+
+  /* =========================================
+     סרגל ימין
+  ========================================= */
+
+  if(rightbar){
+    rightbar.style.display =
+      "none";
+  }
+
+
+  document.body.classList.add(
+    "custom-subject-mode"
+  );
+
+
+  /* =========================================
+     כותרות
+  ========================================= */
+
+  if(title){
+
+    title.textContent =
+      subjectName ||
+      "מקצוע אישי";
+
+  }
+
+
+  if(breadcrumb){
+
+    breadcrumb.textContent =
+      subjectName ||
+      "מקצוע אישי";
+
+  }
+
+
+  tree.innerHTML = `
+    <div class="science-tree-loading">
+      טוענים את תוכנית הלימודים...
+    </div>
+  `;
+
+
+  try{
+
+    /* =========================================
+       יחידות
+    ========================================= */
+
+    console.log(
+      "LOADING CUSTOM UNITS...",
+      {
+        subjectId,
+        kidId: CURRENT_KID.id
+      }
+    );
+
+
+    const {
+      data: units,
+      error: unitsError
+    } =
+      await sb
+        .from(
+          "kid_custom_units"
+        )
+        .select(
+          `
+          id,
+          kid_id,
+          custom_subject_id,
+          curriculum_id,
+          topic_name,
+          topic_order,
+          unit_name,
+          unit_order,
+          status,
+          source_curriculum_version
+          `
+        )
+        .eq(
+          "kid_id",
+          CURRENT_KID.id
+        )
+        .eq(
+          "custom_subject_id",
+          subjectId
+        )
+        .order(
+          "topic_order",
+          {
+            ascending:true
+          }
+        )
+        .order(
+          "unit_order",
+          {
+            ascending:true
+          }
+        );
+
+
+    console.log(
+      "CUSTOM UNITS RESULT:",
+      {
+        units,
+        unitsError
+      }
+    );
+
+
+    if(unitsError){
+
+      console.error(
+        "CUSTOM UNITS ERROR:",
+        unitsError
+      );
+
+      tree.innerHTML = `
+        <div class="science-tree-loading">
+          שגיאה בטעינת יחידות הלימוד
+        </div>
+      `;
+
+      return;
+    }
+
+
+    /* =========================================
+       שיעורים
+    ========================================= */
+
+    console.log(
+      "LOADING CUSTOM LESSONS..."
+    );
+
+
+    const {
+      data: lessons,
+      error: lessonsError
+    } =
+      await sb
+        .from(
+          "kid_custom_lessons"
+        )
+        .select(
+          `
+          kid_id,
+          custom_subject_id,
+          curriculum_id,
+          custom_unit_id,
+          lesson_name,
+          lesson_order,
+          status,
+          source_curriculum_version
+          `
+        )
+        .eq(
+          "kid_id",
+          CURRENT_KID.id
+        )
+        .eq(
+          "custom_subject_id",
+          subjectId
+        )
+        .order(
+          "lesson_order",
+          {
+            ascending:true
+          }
+        );
+
+
+    console.log(
+      "CUSTOM LESSONS RESULT:",
+      {
+        lessons,
+        lessonsError
+      }
+    );
+
+
+    if(lessonsError){
+
+      console.error(
+        "CUSTOM LESSONS ERROR:",
+        lessonsError
+      );
+
+      tree.innerHTML = `
+        <div class="science-tree-loading">
+          שגיאה בטעינת השיעורים
+        </div>
+      `;
+
+      return;
+    }
+
+
+    console.log(
+      "RENDER CUSTOM SUBJECT:",
+      {
+        unitsCount:
+          units?.length || 0,
+
+        lessonsCount:
+          lessons?.length || 0
+      }
+    );
+
+
+    renderCustomSubjectTree(
+      units || [],
+      lessons || []
+    );
+
+  }
+
+  catch(error){
+
+    console.error(
+      "OPEN CUSTOM SUBJECT FAILED:",
+      error
+    );
+
+    tree.innerHTML = `
+      <div class="science-tree-loading">
+        שגיאה בטעינת תוכנית הלימודים
+      </div>
+    `;
+
+  }
+
+}
+
+
+function renderCustomSubjectTree(
+  units,
+  lessons
+){
+
+  const tree =
+    document.getElementById(
+      "customSubjectTree"
+    );
+
+  if(!tree){
+    return;
+  }
+
+  if(!units.length){
+
+    tree.innerHTML = `
+      <div class="science-tree-loading">
+        עדיין אין יחידות לימוד במקצוע הזה
+      </div>
+    `;
+
+    return;
+  }
+
+
+  /* =========================================
+     GROUP BY TOPIC
+  ========================================= */
+
+  const topicsMap =
+    new Map();
+
+  units.forEach(unit => {
+
+    const topicName =
+      unit.topic_name ||
+      "נושא";
+
+    if(!topicsMap.has(topicName)){
+      topicsMap.set(
+        topicName,
+        []
+      );
+    }
+
+    topicsMap
+      .get(topicName)
+      .push(unit);
+
+  });
+
+
+  const topics =
+    [...topicsMap.entries()];
+
+
+  /* =========================================
+     TOP LEVEL - TOPICS
+  ========================================= */
+
+  const topicCards =
+    topics
+      .map(
+        (
+          [
+            topicName,
+            topicUnits
+          ],
+          index
+        ) => {
+
+          const selected =
+            index === 0
+              ? "selected"
+              : "";
+
+          return `
+            <button
+              type="button"
+              class="
+                science-tree-card
+                custom-topic-card
+                ${selected}
+              "
+              data-topic-name="${topicName}"
+            >
+
+              <div class="science-tree-card-icon">
+                <i class="fa-solid fa-map"></i>
+              </div>
+
+              <strong>
+                ${topicName}
+              </strong>
+
+              <small>
+                ${topicUnits.length}
+                יחידות לימוד
+              </small>
+
+              <div class="science-tree-progress">
+                <span
+                  style="width:${
+                    index === 0
+                      ? "100%"
+                      : "0%"
+                  }"
+                ></span>
+              </div>
+
+            </button>
+          `;
+
+        }
+      )
+      .join("");
+
+
+  tree.innerHTML = `
+
+    <!-- =====================================
+         TOPICS
+    ====================================== -->
+
+    <div class="science-tree-level">
+
+      <div class="science-tree-connector">
+      </div>
+
+      <div
+        class="science-tree-row"
+        id="customTopicsRow"
+      >
+        ${topicCards}
+      </div>
+
+    </div>
+
+
+    <!-- =====================================
+         UNITS
+    ====================================== -->
+
+    <div
+      id="customUnitsLevel"
+      class="science-tree-level"
+    >
+    </div>
+
+
+    <!-- =====================================
+         LESSONS
+    ====================================== -->
+
+    <div
+      id="customLessonsLevel"
+      class="science-tree-level"
+    >
+    </div>
+
+  `;
+
+
+  /* =========================================
+     FIRST TOPIC
+  ========================================= */
+
+  if(topics.length){
+
+    renderCustomTopicUnits(
+      topics[0][0],
+      units,
+      lessons
+    );
+
+  }
+
+
+  /* =========================================
+     TOPIC CLICK
+  ========================================= */
+
+  tree
+    .querySelectorAll(
+      ".custom-topic-card"
+    )
+    .forEach(card => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          tree
+            .querySelectorAll(
+              ".custom-topic-card"
+            )
+            .forEach(item =>
+              item.classList.remove(
+                "selected"
+              )
+            );
+
+
+          card.classList.add(
+            "selected"
+          );
+
+
+          renderCustomTopicUnits(
+            card.dataset.topicName,
+            units,
+            lessons
+          );
+
+        }
+      );
+
+    });
+
+}
+
+function renderCustomTopicUnits(
+  topicName,
+  units,
+  lessons
+){
+
+  const unitsLevel =
+    document.getElementById(
+      "customUnitsLevel"
+    );
+
+  const lessonsLevel =
+    document.getElementById(
+      "customLessonsLevel"
+    );
+
+
+  const topicUnits =
+    units
+      .filter(
+        unit =>
+          unit.topic_name ===
+          topicName
+      )
+      .sort(
+        (a,b) =>
+          a.unit_order -
+          b.unit_order
+      );
+
+
+  unitsLevel.innerHTML = `
+
+    <div class="science-tree-connector">
+    </div>
+
+    <div class="science-tree-row">
+
+      ${
+        topicUnits
+          .map(
+            (unit,index) => `
+
+              <button
+                type="button"
+                class="
+                  science-tree-card
+                  custom-unit-card
+                  ${
+                    index === 0
+                      ? "selected"
+                      : ""
+                  }
+                "
+                data-unit-id="${unit.id}"
+              >
+
+                <div class="science-tree-card-icon">
+                  <i class="fa-solid fa-book"></i>
+                </div>
+
+                <strong>
+                  ${unit.unit_name}
+                </strong>
+
+                <small>
+                  יחידת לימוד
+                </small>
+
+                <div class="science-tree-progress">
+                  <span
+                    style="width:${
+                      index === 0
+                        ? "100%"
+                        : "0%"
+                    }"
+                  ></span>
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+  `;
+
+
+  if(topicUnits.length){
+
+    renderCustomUnitLessons(
+      topicUnits[0].id,
+      lessons
+    );
+
+  }
+
+
+  unitsLevel
+    .querySelectorAll(
+      ".custom-unit-card"
+    )
+    .forEach(card => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          unitsLevel
+            .querySelectorAll(
+              ".custom-unit-card"
+            )
+            .forEach(item =>
+              item.classList.remove(
+                "selected"
+              )
+            );
+
+
+          card.classList.add(
+            "selected"
+          );
+
+
+          renderCustomUnitLessons(
+            card.dataset.unitId,
+            lessons
+          );
+
+        }
+      );
+
+    });
+
+}
+
+function renderCustomUnitLessons(
+  unitId,
+  lessons
+){
+
+  const lessonsLevel =
+    document.getElementById(
+      "customLessonsLevel"
+    );
+
+
+  const unitLessons =
+    lessons
+      .filter(
+        lesson =>
+          lesson.custom_unit_id ===
+          unitId
+      )
+      .sort(
+        (a,b) =>
+          a.lesson_order -
+          b.lesson_order
+      );
+
+
+  lessonsLevel.innerHTML = `
+
+    <div class="science-tree-connector">
+    </div>
+
+    <div class="science-tree-row">
+
+      ${
+        unitLessons
+          .map(
+            (lesson,index) => `
+
+              <button
+                type="button"
+                class="
+                  science-tree-card
+                  custom-lesson-card
+                  ${
+                    index === 0
+                      ? "selected"
+                      : ""
+                  }
+                "
+                data-unit-id="${unitId}"
+                data-lesson-order="${lesson.lesson_order}"
+              >
+
+                <div class="science-tree-card-icon">
+
+                  ${
+                    index === 0
+                      ? `
+                        <i class="fa-solid fa-play"></i>
+                      `
+                      : `
+                        <i class="fa-solid fa-book-open"></i>
+                      `
+                  }
+
+                </div>
+
+                <strong>
+                  ${lesson.lesson_name}
+                </strong>
+
+                <small>
+                  שיעור ${lesson.lesson_order}
+                </small>
+
+                <div class="science-tree-progress">
+                  <span
+                    style="width:${
+                      index === 0
+                        ? "100%"
+                        : "0%"
+                    }"
+                  ></span>
+                </div>
+
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+  `;
+
+}
+
+function closeCustomSubject(){
+
+  const customView =
+    document.getElementById(
+      "customSubjectView"
+    );
+
+  const rightbar =
+    document.querySelector(
+      ".home-rightbar"
+    );
+
+  if(customView){
+    customView.style.display =
+      "none";
+  }
+
+  if(rightbar){
+    rightbar.style.display =
+      "";
+  }
+
+  document.body.classList.remove(
+    "custom-subject-mode"
+  );
+
+  showDashboard();
+}
+
+document
+  .querySelectorAll(
+    ".custom-subject-slot"
+  )
+  .forEach(
+    slot => {
+
+      slot.addEventListener(
+        "click",
+        async event => {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+
+          const subjectId =
+            slot.dataset.customSubjectId;
+
+          const subjectName =
+            slot.dataset.customSubjectName;
+
+
+          /*
+            סלוט פנוי
+          */
+
+          if(!subjectId){
+
+            window.location.href =
+              "/he/add-subject/";
+
+            return;
+          }
+
+
+          /*
+            מקצוע אישי קיים
+          */
+
+          console.log(
+            "OPEN CUSTOM SUBJECT:",
+            {
+              subjectId,
+              subjectName
+            }
+          );
+
+
+
+          await openCustomSubject(
+             subjectId,
+             subjectName
+           );
+
+        }
+      );
+
+    }
+  );
 
 /* =====================================================
    OPEN SCIENCE
