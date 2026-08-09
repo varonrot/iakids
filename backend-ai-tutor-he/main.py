@@ -41,6 +41,9 @@ LESSON_DIRECTOR_PROMPT_PATH = Path(
 LEARNING_COACH_PROMPT_PATH = Path(
     "prompts/learning_coach_system_prompt.txt"
 )
+CURRICULUM_BUILDER_PROMPT_PATH = Path(
+    "prompts/iakids_curriculum_builder_system_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -246,6 +249,11 @@ if not LEARNING_COACH_PROMPT_PATH.exists():
         f"Missing Learning Coach prompt file: "
         f"{LEARNING_COACH_PROMPT_PATH}"
     )
+if not CURRICULUM_BUILDER_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Curriculum Builder prompt file: "
+        f"{CURRICULUM_BUILDER_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -273,6 +281,12 @@ LESSON_DIRECTOR_PROMPT_TEMPLATE = (
 )
 LEARNING_COACH_PROMPT_TEMPLATE = (
     LEARNING_COACH_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+CURRICULUM_BUILDER_PROMPT_TEMPLATE = (
+    CURRICULUM_BUILDER_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -337,6 +351,18 @@ class TutorChatRequest(BaseModel):
     message: str
     kid_id: str
 
+class CurriculumBuilderChatRequest(BaseModel):
+    kid_id: str
+    message: str
+    history: list[dict] = []
+
+
+class CurriculumBuilderAIResponse(BaseModel):
+    reply: str
+    subject: str | None = None
+    focus_topic: str | None = None
+    hierarchy: dict | None = None
+    ready_to_create: bool = False
 
 class TutorTTSRequest(BaseModel):
     text: str
@@ -9044,6 +9070,233 @@ def homework_analyze(
 # AI TUTOR CHAT
 # =====================================================
 
+# =====================================================
+# CURRICULUM BUILDER CHAT
+# =====================================================
+
+@app.post("/api/curriculum/chat")
+def curriculum_builder_chat(
+        body: CurriculumBuilderChatRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        message = (
+            body.message
+            or ""
+        ).strip()
+
+        if not message:
+            raise HTTPException(
+                status_code=400,
+                detail="message is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # RUNTIME CONTEXT
+        # =============================================
+
+        runtime_context = {
+            "child": {
+                "id":
+                    child.get("id"),
+
+                "name":
+                    child.get("child_name"),
+
+                # אצלנו age הוא כרגע מספר הכיתה
+                "grade":
+                    child.get("age"),
+
+                "gender":
+                    child.get("gender")
+                    or "male"
+            }
+        }
+
+        system_prompt = (
+            CURRICULUM_BUILDER_PROMPT_TEMPLATE
+            + "\n\n"
+            + "RUNTIME_CONTEXT:\n"
+            + json.dumps(
+                runtime_context,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
+        # CONVERSATION HISTORY
+        # =============================================
+
+        messages = [
+            {
+                "role": "system",
+                "content": system_prompt
+            }
+        ]
+
+        for item in body.history[-12:]:
+
+            if not isinstance(
+                    item,
+                    dict
+            ):
+                continue
+
+            role = item.get("role")
+            content = str(
+                item.get("content")
+                or ""
+            ).strip()
+
+            if (
+                    role not in (
+                        "user",
+                        "assistant"
+                    )
+                    or not content
+            ):
+                continue
+
+            messages.append({
+                "role": role,
+                "content": content
+            })
+
+        messages.append({
+            "role": "user",
+            "content": message
+        })
+
+        # =============================================
+        # OPENAI
+        # =============================================
+
+        completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                messages=
+                    messages,
+
+                response_format=
+                    CurriculumBuilderAIResponse
+            )
+        )
+
+        curriculum_data = (
+            completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not curriculum_data:
+            raise RuntimeError(
+                "Curriculum Builder returned no response"
+            )
+
+        # =============================================
+        # USAGE
+        # =============================================
+
+        input_tokens = 0
+        output_tokens = 0
+        total_tokens = 0
+
+        if completion.usage:
+            input_tokens = (
+                completion.usage.prompt_tokens
+                or 0
+            )
+
+            output_tokens = (
+                completion.usage.completion_tokens
+                or 0
+            )
+
+            total_tokens = (
+                completion.usage.total_tokens
+                or 0
+            )
+
+        openai_cost_usd = (
+            calculate_openai_cost(
+                model=DEFAULT_OPENAI_MODEL,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens
+            )
+        )
+
+        increment_usage_summary(
+            user_id=user.id,
+            ai_calls=1,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens,
+            openai_cost_usd=openai_cost_usd
+        )
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        response_data = (
+            curriculum_data.model_dump()
+        )
+
+        response_data["kid_id"] = (
+            child["id"]
+        )
+
+        return response_data
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "CURRICULUM BUILDER ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Curriculum Builder failed"
+        )
+    
 @app.post("/api/tutor/chat")
 def tutor_chat(
         body: TutorChatRequest,
