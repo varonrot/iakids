@@ -71,14 +71,171 @@
 <script>
 const SUPABASE_URL="https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);let CURRENT_KID=null,CURRENT_PLAN=null;
+const sb = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+const CURRICULUM_API =
+  "https://iakids-ai-tutor-he.onrender.com/api/curriculum/chat";
+
+let CURRENT_KID = null;
+let CURRENT_PLAN = null;
+
+let CURRENT_CUSTOM_SUBJECT_ID = null;
+let CURRENT_CURRICULUM_ID = null;
+let CURRENT_VERSION = null;
 function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){location.replace('/he/onboarding/cuenta/');return}const user=s.session.user;document.getElementById('userName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'הורה';document.getElementById('userAvatar').src=user.user_metadata?.avatar_url||user.user_metadata?.picture||'/assets/default-parent.png';let kidId=localStorage.getItem('active_kid_id');if(!kidId){const {data:kids}=await sb.from('kids_profiles').select('id').eq('user_id',user.id).order('created_at',{ascending:true});if(!kids?.length)return;kidId=kids[0].id;localStorage.setItem('active_kid_id',kidId)}const {data:kid,error}=await sb.from('kids_profiles').select('id,child_name,age,avatar_key,usage_goals,learning_interests').eq('id',kidId).single();if(error||!kid){console.error(error);return}CURRENT_KID=kid;window.ACTIVE_KID_ID=kid.id;document.getElementById('subtitle').textContent=`בואו נבנה יחד מקצוע חדש שמתאים בדיוק ל${kid.child_name}`;document.getElementById('welcome').innerHTML=`שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור <strong>${esc(kid.child_name)}</strong>.<br><br>מה הייתם רוצים ש${esc(kid.child_name)} ילמד/תלמד?`}
-const PLANS={"תכנות":{subject:"תכנות",branches:[{title:"יסודות",children:["איך מחשב חושב","אלגוריתם","פקודות"]},{title:"Python",children:["משתנים","תנאים","לולאות"]},{title:"חשיבה לוגית",children:["דפוסים","פירוק בעיה","אתגרים"]},{title:"פרויקטים",children:["משחק ראשון","ציור בקוד","פרויקט אישי"]}]},"אסטרונומיה":{subject:"אסטרונומיה",branches:[{title:"מערכת השמש",children:["השמש","כוכבי הלכת","ירחים"]},{title:"כוכבים",children:["מהו כוכב","קבוצות כוכבים","מחזור חיים"]},{title:"היקום",children:["גלקסיות","חורים שחורים","מרחקים"]},{title:"חקר החלל",children:["טלסקופים","חלליות","משימות חלל"]}]}};
+
 function makePlan(text){if(PLANS[text])return PLANS[text];if(text.includes('תכנות')||text.toLowerCase().includes('python'))return PLANS['תכנות'];if(text.includes('חלל')||text.includes('כוכב')||text.includes('אסטרונומ'))return PLANS['אסטרונומיה'];return{subject:text.slice(0,28),branches:[{title:"היכרות",children:["מושגי יסוד","שפה בסיסית","הבנה ראשונית"]},{title:"מיומנויות",children:["תרגול","יישום","פתרון בעיות"]},{title:"העמקה",children:["דוגמאות","השוואה","חשיבה עצמאית"]},{title:"פרויקט",children:["תכנון","ביצוע","הצגה"]}]}}
 function render(plan){CURRENT_PLAN=plan;document.getElementById('emptyTree').hidden=true;const tree=document.getElementById('curriculumTree');tree.hidden=false;tree.innerHTML=`<div class="subject"><strong>${esc(plan.subject)}</strong><small>המקצוע המרכזי</small></div><div class="branches" style="--count:${plan.branches.length}">${plan.branches.map(b=>`<div class="branch"><div class="branch-card"><strong>${esc(b.title)}</strong><small>תחום משנה</small></div><div class="children">${b.children.map(c=>`<div class="child"><i class="fa-solid fa-plus"></i>${esc(c)}</div>`).join('')}</div></div>`).join('')}</div>`;const a=document.getElementById('approveBtn');a.disabled=false;a.classList.add('ready')}
 function msg(role,text){const d=document.createElement('div');d.className=`msg ${role}`;d.textContent=text;document.getElementById('messages').appendChild(d)}
-function submitText(text){text=text.trim();if(!text)return;msg('parent',text);const plan=makePlan(text);setTimeout(()=>{render(plan);msg('ai',`מעולה. התחלתי לבנות מסלול ל־${plan.subject}. בשלב הבא נחבר את השיחה ל-AI האמיתי ונעדכן את העץ בזמן אמת.`)},300)}
-document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();submitText(document.getElementById('chatInput').value);document.getElementById('chatInput').value=''});document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));document.getElementById('approveBtn').onclick=()=>{if(CURRENT_PLAN)msg('ai','ה-UI מוכן. השלב הבא הוא לחבר שמירה ל-kid_learning_plans ו-kid_learning_plan_nodes.')};document.getElementById('openParentModal').onclick=()=>location.href='/he/workspace/';document.getElementById('openSettings').onclick=()=>location.href='/he/workspace/';document.getElementById('manageSubscriptionSide').onclick=()=>location.href='/he/workspace/';init();
+async function submitText(text) {
+
+  text = text.trim();
+
+  if (!text || !CURRENT_KID) return;
+
+  msg("parent", text);
+
+  const input = document.getElementById("chatInput");
+  input.disabled = true;
+
+  try {
+
+    const { data: sessionData } =
+      await sb.auth.getSession();
+
+    const accessToken =
+      sessionData?.session?.access_token;
+
+    if (!accessToken) {
+      location.replace("/he/onboarding/cuenta/");
+      return;
+    }
+
+    const response = await fetch(CURRICULUM_API, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`
+      },
+
+      body: JSON.stringify({
+
+        kid_id: CURRENT_KID.id,
+
+        message: text,
+
+        custom_subject_id:
+          CURRENT_CUSTOM_SUBJECT_ID,
+
+        curriculum_id:
+          CURRENT_CURRICULUM_ID
+
+      })
+
+    });
+
+    const rawText = await response.text();
+
+    if (!response.ok) {
+      console.error(
+        "Curriculum API error:",
+        response.status,
+        rawText
+      );
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+    const data = JSON.parse(rawText);
+
+    console.log(
+      "CURRICULUM RESPONSE:",
+      data
+    );
+
+    /*
+      נשמור את הזהות של המקצוע/תוכנית
+      כדי שההודעה הבאה תמשיך את אותו עץ
+    */
+
+    if (data.custom_subject_id) {
+      CURRENT_CUSTOM_SUBJECT_ID =
+        data.custom_subject_id;
+    }
+
+    if (data.curriculum_id) {
+      CURRENT_CURRICULUM_ID =
+        data.curriculum_id;
+    }
+
+    if (data.version !== undefined) {
+      CURRENT_VERSION =
+        data.version;
+    }
+
+    /*
+      תשובת היועץ
+    */
+
+    if (data.reply) {
+      msg("ai", data.reply);
+    }
+
+    /*
+      ציור ההיררכיה
+    */
+
+    if (data.curriculum) {
+      render(data.curriculum);
+    }
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Curriculum chat failed:",
+      error
+    );
+
+    msg(
+      "ai",
+      "לא הצלחתי לעדכן כרגע את תוכנית הלימודים. נסו שוב."
+    );
+
+  }
+
+  finally {
+
+    input.disabled = false;
+    input.focus();
+
+  }
+}
+document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();submitText(document.getElementById('chatInput').value);document.getElementById('chatInput').value=''});document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));
+document.getElementById('approveBtn').onclick = () => {
+
+  if (!CURRENT_PLAN) return;
+
+  console.log(
+    "Approve curriculum:",
+    {
+      custom_subject_id: CURRENT_CUSTOM_SUBJECT_ID,
+      curriculum_id: CURRENT_CURRICULUM_ID,
+      version: CURRENT_VERSION,
+      curriculum: CURRENT_PLAN
+    }
+  );
+
+};
+document.getElementById('openParentModal').onclick=()=>location.href='/he/workspace/';document.getElementById('openSettings').onclick=()=>location.href='/he/workspace/';document.getElementById('manageSubscriptionSide').onclick=()=>location.href='/he/workspace/';init();
 </script>
 </body></html>
