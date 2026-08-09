@@ -12328,58 +12328,188 @@ html.windows-workspace .app{
 </header>
 
 <aside class="sidebar">
-  <button class="new-task" data-ask="homework">＋ משימה חדשה</button>
+
+  <!-- =========================
+       ADD SUBJECT
+  ========================== -->
+
+  <button
+    class="new-task"
+    onclick="window.location.href='https://iakids.app/he/add-subject/'"
+  >
+    ＋ הוסף מקצוע
+  </button>
+
+
   <div class="kid-actions">
+
+    <!-- דף הבית -->
     <button
-  class="side-item active"
-  id="homeSidebarBtn"
-  onclick="showDashboard()"
->
-  <i class="fa-solid fa-house"></i>
-  <div class="side-text">
-    <span class="side-title">דף הבית</span>
-  </div>
-</button>
-<!-- כפתורים קבועים -->
-<button class="side-item" data-ask="learn">
-  <i class="fa-solid fa-list"></i>
-  <div class="side-text">
-    <span class="side-title">השיעורים שלי</span>
-  </div>
-</button>
+      class="side-item active"
+      id="homeSidebarBtn"
+      onclick="showDashboard()"
+    >
+      <i class="fa-solid fa-house"></i>
 
-<button class="side-item" data-ask="practice">
-  <i class="fa-regular fa-calendar-check"></i>
-  <div class="side-text">
-    <span class="side-title">משימות</span>
-  </div>
-</button>
+      <div class="side-text">
+        <span class="side-title">
+          דף הבית
+        </span>
+      </div>
+    </button>
 
-<button class="side-item" onclick="window.open('https://iakids.app/he/games/how-it-works/', '_blank')">
-  <i class="fa-solid fa-gamepad"></i>
-  <div class="side-text">
-    <span class="side-title">משחקים</span>
-  </div>
-</button>
 
-<button class="side-item" onclick="window.open('https://iakids.app/he/games/how-it-works/', '_blank')">
-  <i class="fa-solid fa-brain"></i>
-  <div class="side-text">
-    <span class="side-title">אילו כישורים אני מפתח?</span>
-  </div>
-</button>
+    <!-- השיעורים שלי -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/my-lessons/'"
+    >
+      <i class="fa-solid fa-book-open"></i>
 
-<!--
-  המקצועות הדינאמיים ייכנסו לכאן אוטומטית.
-  התוכן נקבע לפי גיל הילד -> כיתה -> learning_lessons
--->
-<div id="subjectsContainer"></div>
+      <div class="side-text">
+        <span class="side-title">
+          השיעורים שלי
+        </span>
+      </div>
+    </button>
+
+
+    <!-- הכנה למבחן -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/exam-prep/'"
+    >
+      <i class="fa-solid fa-bullseye"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          הכנה למבחן
+        </span>
+      </div>
+    </button>
+
+
+    <!-- משימות -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/tasks/'"
+    >
+      <i class="fa-regular fa-calendar-check"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          משימות
+        </span>
+      </div>
+    </button>
+
+
+    <!-- משחקים -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/games/'"
+    >
+      <i class="fa-solid fa-gamepad"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          משחקים
+        </span>
+      </div>
+    </button>
+
+
+    <!-- התקדמות -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/games/progress/'"
+    >
+      <i class="fa-solid fa-chart-line"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          התקדמות
+        </span>
+      </div>
+    </button>
+
+
+    <!-- הישגים -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/achievements/'"
+    >
+      <i class="fa-solid fa-trophy"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          הישגים
+        </span>
+      </div>
+    </button>
+
+
+    <!-- הקבצים שלי -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/files/'"
+    >
+      <i class="fa-solid fa-folder-open"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          הקבצים שלי
+        </span>
+      </div>
+    </button>
+
+
+    <!-- איך זה עובד -->
+    <button
+      class="side-item"
+      onclick="window.location.href='https://iakids.app/he/how-it-works/'"
+    >
+      <i class="fa-solid fa-circle-question"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          איך זה עובד?
+        </span>
+      </div>
+    </button>
+
   </div>
+
+
+  <!-- מכאן והלאה לא לגעת -->
   <div class="sidebar-bottom">
-    <button class="manage-btn" id="openParentModal"><i class="fa-solid fa-children"></i>החלפת ילד</button>
-    <button class="manage-btn" id="openSettings"><i class="fa-solid fa-user-pen"></i>פרטי הילד</button>
-    <button class="manage-btn" id="manageSubscriptionSide"><i class="fa-regular fa-credit-card"></i>ניהול מנוי</button>
+
+    <button
+      class="manage-btn"
+      id="openParentModal"
+    >
+      <i class="fa-solid fa-children"></i>
+      החלפת ילד
+    </button>
+
+    <button
+      class="manage-btn"
+      id="openSettings"
+    >
+      <i class="fa-solid fa-user-pen"></i>
+      פרטי הילד
+    </button>
+
+    <button
+      class="manage-btn"
+      id="manageSubscriptionSide"
+    >
+      <i class="fa-regular fa-credit-card"></i>
+      ניהול מנוי
+    </button>
+
   </div>
+
 </aside>
 
 <main class="main">
