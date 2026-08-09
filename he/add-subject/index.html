@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}html,body{height:100%;margin:0}body{background:#020916;color:#f5f7ff;font-family:"Heebo",Arial,sans-serif;overflow:hidden}button,input{font:inherit}.app{height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr);grid-template-rows:72px minmax(0,1fr);direction:ltr}.topbar{grid-column:1/3;direction:rtl;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid rgba(115,159,212,.14);background:rgba(2,9,22,.96)}.brand{display:flex;align-items:center;gap:10px;cursor:pointer}.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;border:1px solid rgba(70,180,255,.3);color:#5ed5ff;background:rgba(8,24,45,.8)}.brand-title{font-weight:900;font-size:18px}.brand-sub{font-size:9px;color:#72839d}.top-left,.stats,.user{display:flex;align-items:center}.top-left{gap:12px}.stats{gap:8px}.pill,.bell{height:42px;border:1px solid rgba(108,151,207,.17);background:#09172b;border-radius:12px;display:flex;align-items:center;justify-content:center}.pill{padding:0 14px;gap:8px;font-weight:800}.bell{width:42px;position:relative}.badge{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#ff4158;font-size:10px;border:2px solid #020916}.user{gap:8px;font-weight:800;font-size:13px}.user img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.25)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{background:#020916;color:#f5f7ff;font-family:"Heebo",Arial,sans-serif;overflow:hidden}button,input{font:inherit}.app{height:100vh;display:grid;grid-template-columns:230px minmax(0,1fr) !important;grid-template-rows:72px minmax(0,1fr);direction:ltr}.topbar{grid-column:1/3;direction:rtl;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid rgba(115,159,212,.14);background:rgba(2,9,22,.96)}.brand{display:flex;align-items:center;gap:10px;cursor:pointer}.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;border:1px solid rgba(70,180,255,.3);color:#5ed5ff;background:rgba(8,24,45,.8)}.brand-title{font-weight:900;font-size:18px}.brand-sub{font-size:9px;color:#72839d}.top-left,.stats,.user{display:flex;align-items:center}.top-left{gap:12px}.stats{gap:8px}.pill,.bell{height:42px;border:1px solid rgba(108,151,207,.17);background:#09172b;border-radius:12px;display:flex;align-items:center;justify-content:center}.pill{padding:0 14px;gap:8px;font-weight:800}.bell{width:42px;position:relative}.badge{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#ff4158;font-size:10px;border:2px solid #020916}.user{gap:8px;font-weight:800;font-size:13px}.user img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.25)}
 .sidebar{grid-column:1;grid-row:2;direction:rtl;padding:12px;background:linear-gradient(180deg,#061225,#030b19);border-right:1px solid rgba(105,149,203,.12);display:flex;flex-direction:column;min-height:0}.new-task{height:50px;border:0;border-radius:12px;background:linear-gradient(135deg,#7548ff,#5630cb);color:#fff;font-weight:900;margin-bottom:10px}.kid-actions{flex:1;display:flex;flex-direction:column;gap:6px;overflow:auto}.side-item,.manage-btn{border:1px solid rgba(97,139,197,.1);background:rgba(12,26,48,.72);color:#cbd6e7;border-radius:11px;display:flex;align-items:center;gap:10px;cursor:pointer}.side-item{height:43px;padding:0 11px;font-weight:800}.side-item:hover{background:#123361}.side-item i,.manage-btn i{width:24px;text-align:center;color:#8fa1bd}.side-title{font-size:12px}.sidebar-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-top:10px;border-top:1px solid rgba(107,146,196,.12)}.manage-btn{height:38px;justify-content:center;font-size:0}
 .main{grid-column:2;grid-row:2;direction:rtl;padding:18px 22px 22px;min-width:0;min-height:0}.shell{height:100%;display:flex;flex-direction:column;max-width:1500px;margin:auto}.head{text-align:center;padding-bottom:14px}.spark{font-size:26px;color:#8d65ff}.head h1{font-size:28px;margin:2px 0 4px}.head p{margin:0;color:#b3bfd1;font-size:14px}.grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;direction:ltr}.tree,.chat{border:1px solid rgba(89,139,205,.2);border-radius:17px;background:linear-gradient(180deg,rgba(6,20,40,.9),rgba(2,12,27,.96));min-height:0;overflow:hidden;position:relative}.tree{direction:rtl;background:radial-gradient(circle at 50% 25%,rgba(93,61,205,.08),transparent 31%),linear-gradient(180deg,#061428,#020c1b)}.tree-stage{height:calc(100% - 74px);padding:36px 34px 20px;overflow:auto}.empty{height:100%;display:grid;place-items:center;text-align:center}.empty-card{max-width:420px}.orbit{width:86px;height:86px;border-radius:50%;margin:0 auto 18px;display:grid;place-items:center;border:1px solid rgba(135,95,255,.7);font-size:38px;color:#9871ff;box-shadow:0 0 45px rgba(112,72,255,.12)}.empty strong{display:block;font-size:22px;margin-bottom:6px}.empty p{margin:0;color:#7f8ea7;line-height:1.7}.tree-footer{position:absolute;bottom:0;left:0;right:0;height:74px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,transparent,rgba(2,12,27,.97) 36%)}.approve{min-width:300px;height:43px;border-radius:12px;border:1px solid rgba(117,72,255,.25);color:#707791;background:#111932;font-weight:800}.approve.ready{color:#fff;background:linear-gradient(135deg,#6738e9,#845bff);cursor:pointer}
 .curriculum{min-width:760px;padding-bottom:50px}.subject{width:330px;margin:4px auto 64px;padding:23px;border:1px solid rgba(128,92,255,.72);border-radius:16px;background:rgba(14,24,50,.82);text-align:center;position:relative}.subject:after{content:"";position:absolute;bottom:-38px;left:50%;height:38px;border-left:1px solid #654ad4}.subject strong{display:block;font-size:18px}.subject small,.branch-card small{color:#8593aa}.branches{display:grid;grid-template-columns:repeat(var(--count),1fr);gap:18px;position:relative}.branches:before{content:"";position:absolute;top:-28px;left:9%;right:9%;border-top:1px solid rgba(98,77,207,.7)}.branch{position:relative}.branch:before{content:"";position:absolute;top:-28px;left:50%;height:28px;border-left:1px solid rgba(98,77,207,.7)}.branch-card{min-height:118px;padding:17px 12px;border:1px solid rgba(78,128,188,.4);border-radius:14px;background:rgba(9,23,44,.82);text-align:center}.children{display:flex;gap:8px;justify-content:center;margin-top:35px;position:relative}.child{width:86px;min-height:74px;padding:10px 6px;border:1px dashed rgba(94,128,181,.48);border-radius:11px;background:rgba(8,20,39,.7);font-size:10px;text-align:center}.child i{display:block;color:#8a67ff;margin-bottom:5px}
@@ -927,6 +927,272 @@
 
   cursor:default;
 }
+    /* =====================================================
+   ADD SUBJECT — WORKSPACE LEFT SIDEBAR
+===================================================== */
+
+.sidebar{
+  grid-column:1;
+  grid-row:2;
+
+  direction:rtl;
+
+  min-height:0;
+
+  padding:10px 8px 12px;
+
+  display:flex;
+  flex-direction:column;
+
+  border:
+    1px solid
+    rgba(76,113,170,.24);
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7,18,37,.97),
+      rgba(3,11,25,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.035),
+
+    0 12px 30px
+    rgba(0,5,20,.24);
+
+  overflow:hidden;
+}
+
+
+/* רשימת הכפתורים */
+
+.kid-actions{
+  flex:1;
+
+  min-height:0;
+
+  overflow-y:auto;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:6px;
+}
+
+
+/* כפתור רגיל */
+
+.side-item{
+  width:100%;
+
+  min-height:47px;
+  height:47px;
+
+  padding:
+    0
+    12px;
+
+  display:flex;
+  align-items:center;
+
+  gap:10px;
+
+  border:
+    1px solid
+    rgba(78,117,170,.16);
+
+  border-radius:11px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13,30,55,.88),
+      rgba(8,22,42,.92)
+    );
+
+  color:#dce5f3;
+
+  cursor:pointer;
+
+  text-align:right;
+
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    transform .18s ease;
+}
+
+
+.side-item:hover{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20,48,86,.96),
+      rgba(11,32,62,.96)
+    );
+
+  border-color:
+    rgba(70,144,240,.28);
+
+  transform:
+    translateX(-2px);
+}
+
+
+/* דף הבית */
+
+.side-item.active{
+  color:#fff;
+
+  border-color:
+    rgba(67,142,255,.58);
+
+  background:
+    linear-gradient(
+      135deg,
+      #266ee7,
+      #2358c7
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.12),
+
+    0 6px 18px
+    rgba(26,95,220,.25);
+}
+
+
+/* אייקון */
+
+.side-item i{
+  width:28px;
+  height:28px;
+
+  flex:
+    0 0
+    28px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:8px;
+
+  background:
+    rgba(126,159,211,.11);
+
+  color:#9daecc;
+
+  font-size:13px;
+}
+
+
+.side-item.active i{
+  color:#fff;
+
+  background:
+    rgba(255,255,255,.15);
+}
+
+
+/* טקסט */
+
+.side-title{
+  font-size:12px;
+
+  font-weight:800;
+
+  white-space:nowrap;
+}
+
+
+/* =====================================================
+   BOTTOM BUTTONS
+===================================================== */
+
+.sidebar-bottom{
+  flex:none;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:6px;
+
+  margin-top:10px;
+
+  padding-top:10px;
+
+  border-top:
+    1px solid
+    rgba(90,125,177,.14);
+}
+
+
+.manage-btn{
+  height:38px;
+
+  display:grid;
+  place-items:center;
+
+  border:
+    1px solid
+    rgba(78,117,170,.16);
+
+  border-radius:10px;
+
+  background:
+    rgba(9,24,45,.92);
+
+  color:#9daecc;
+
+  cursor:pointer;
+}
+
+
+.manage-btn:hover{
+  color:#fff;
+
+  background:
+    rgba(18,48,86,.95);
+}
+
+
+.manage-btn i{
+  width:auto !important;
+  height:auto !important;
+
+  color:inherit !important;
+
+  background:none !important;
+
+  box-shadow:none !important;
+
+  font-size:14px !important;
+}
+
+
+/* scrollbar */
+
+.kid-actions::-webkit-scrollbar{
+  width:4px;
+}
+
+.kid-actions::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.kid-actions::-webkit-scrollbar-thumb{
+  background:
+    rgba(98,136,194,.25);
+
+  border-radius:999px;
+}
 </style>
 </head>
 <body>
@@ -942,27 +1208,153 @@
   </div>
 </header>
 <aside class="sidebar">
-  <button class="new-task">＋ הוסף מקצוע</button>
+
   <div class="kid-actions">
-    <button class="side-item" onclick="location.href='/he/workspace/'"><i class="fa-solid fa-house"></i><span class="side-title">דף הבית</span></button>
-    <button class="side-item" onclick="location.href='/he/my-lessons/'"><i class="fa-solid fa-book-open"></i><span class="side-title">השיעורים שלי</span></button>
-    <button class="side-item" onclick="location.href='/he/exam-prep/'"><i class="fa-solid fa-bullseye"></i><span class="side-title">הכנה למבחן</span></button>
-    <button class="side-item" onclick="location.href='/he/tasks/'"><i class="fa-regular fa-calendar-check"></i><span class="side-title">משימות</span></button>
-    <button class="side-item" onclick="location.href='/he/games/'"><i class="fa-solid fa-gamepad"></i><span class="side-title">משחקים</span></button>
-    <button class="side-item" onclick="location.href='/he/games/progress/'"><i class="fa-solid fa-chart-line"></i><span class="side-title">התקדמות</span></button>
-    <button class="side-item" onclick="location.href='/he/achievements/'"><i class="fa-solid fa-trophy"></i><span class="side-title">הישגים</span></button>
-    <button class="side-item" onclick="location.href='/he/files/'"><i class="fa-solid fa-folder-open"></i><span class="side-title">הקבצים שלי</span></button>
-    <button class="side-item" onclick="location.href='/he/how-it-works/'"><i class="fa-solid fa-circle-question"></i><span class="side-title">איך זה עובד?</span></button>
+
+    <button
+      class="side-item active"
+      onclick="location.href='/he/workspace/'"
+    >
+      <i class="fa-solid fa-house"></i>
+
+      <span class="side-title">
+        דף הבית
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/my-lessons/'"
+    >
+      <i class="fa-solid fa-book-open"></i>
+
+      <span class="side-title">
+        השיעורים שלי
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/exam-prep/'"
+    >
+      <i class="fa-solid fa-bullseye"></i>
+
+      <span class="side-title">
+        הכנה למבחן
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/tasks/'"
+    >
+      <i class="fa-regular fa-calendar-check"></i>
+
+      <span class="side-title">
+        משימות
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/games/'"
+    >
+      <i class="fa-solid fa-gamepad"></i>
+
+      <span class="side-title">
+        משחקים
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/games/progress/'"
+    >
+      <i class="fa-solid fa-chart-line"></i>
+
+      <span class="side-title">
+        התקדמות
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/achievements/'"
+    >
+      <i class="fa-solid fa-trophy"></i>
+
+      <span class="side-title">
+        הישגים
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/files/'"
+    >
+      <i class="fa-solid fa-folder-open"></i>
+
+      <span class="side-title">
+        הקבצים שלי
+      </span>
+    </button>
+
+
+    <button
+      class="side-item"
+      onclick="location.href='/he/how-it-works/'"
+    >
+      <i class="fa-solid fa-circle-question"></i>
+
+      <span class="side-title">
+        איך זה עובד?
+      </span>
+    </button>
+
   </div>
+
+
   <div class="sidebar-bottom">
-    <button class="manage-btn" id="openParentModal"><i class="fa-solid fa-children"></i></button>
-    <button class="manage-btn" id="openSettings"><i class="fa-solid fa-user-pen"></i></button>
-    <button class="manage-btn" id="manageSubscriptionSide"><i class="fa-regular fa-credit-card"></i></button>
+
+    <button
+      class="manage-btn"
+      id="manageSubscriptionSide"
+      title="מנוי"
+    >
+      <i class="fa-regular fa-credit-card"></i>
+    </button>
+
+
+    <button
+      class="manage-btn"
+      id="openSettings"
+      title="הגדרות ילד"
+    >
+      <i class="fa-solid fa-user-pen"></i>
+    </button>
+
+
+    <button
+      class="manage-btn"
+      id="openParentModal"
+      title="ניהול ילדים"
+    >
+      <i class="fa-solid fa-children"></i>
+    </button>
+
   </div>
+
 </aside>
 <main class="main">
 <section class="shell">
-<header class="head"><div class="spark">✦</div><h1>הוספת מקצוע חדש4</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
+<header class="head"><div class="spark">✦</div><h1>הוספת מקצוע חדש</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
 <div class="grid">
 <section class="tree">
   <div class="tree-stage">
