@@ -34051,13 +34051,14 @@ function renderRandomScienceRecommendations(){
 }
 /* =====================================================
    SCIENCE LEVEL 1 — CATEGORY IMAGES
+   שכבה 1: קטגוריות ראשיות
 ===================================================== */
 
 const SCIENCE_CATEGORY_IMAGES = {
 
-  /* =========================
+  /* =====================================================
      כיתה א׳
-  ========================= */
+  ===================================================== */
 
   "החושים":
     "/assets/science/categories/senses.webp",
@@ -34084,9 +34085,9 @@ const SCIENCE_CATEGORY_IMAGES = {
     "/assets/science/categories/protect-environment.webp",
 
 
-  /* =========================
+  /* =====================================================
      כיתה ב׳
-  ========================= */
+  ===================================================== */
 
   "יצורים חיים":
     "/assets/science/categories/living-things.webp",
@@ -34101,9 +34102,9 @@ const SCIENCE_CATEGORY_IMAGES = {
     "/assets/science/categories/seasons-weather.webp",
 
 
-  /* =========================
+  /* =====================================================
      כיתה ג׳
-  ========================= */
+  ===================================================== */
 
   "סביבה":
     "/assets/science/categories/environment.webp",
@@ -34112,9 +34113,9 @@ const SCIENCE_CATEGORY_IMAGES = {
     "/assets/science/categories/light-sound.webp",
 
 
-  /* =========================
+  /* =====================================================
      כיתה ד׳
-  ========================= */
+  ===================================================== */
 
   "בעלי חיים וצמחים":
     "/assets/science/categories/animals-plants.webp",
@@ -34132,9 +34133,9 @@ const SCIENCE_CATEGORY_IMAGES = {
     "/assets/science/categories/natural-resources.webp",
 
 
-  /* =========================
+  /* =====================================================
      כיתה ה׳
-  ========================= */
+  ===================================================== */
 
   "אקולוגיה":
     "/assets/science/categories/ecology.webp",
@@ -34146,9 +34147,9 @@ const SCIENCE_CATEGORY_IMAGES = {
     "/assets/science/categories/earth.webp",
 
 
-  /* =========================
+  /* =====================================================
      כיתה ו׳
-  ========================= */
+  ===================================================== */
 
   "תאים":
     "/assets/science/categories/cells.webp",
@@ -34164,29 +34165,546 @@ const SCIENCE_CATEGORY_IMAGES = {
 
 };
 
+
+/* =====================================================
+   SCIENCE LEVEL 2 — LESSON IMAGES
+   שכבה 2: כרטיסי הנושאים
+===================================================== */
+
 const SCIENCE_PARENT_LESSON_IMAGES = {
 
   /* =====================================================
-     כדור הארץ
+     החושים
   ===================================================== */
 
-  "מבנה כדור הארץ":
-    "/assets/science/topics/earth-structure.webp",
+  "חמשת החושים":
+    "/assets/science/topics/five-senses.webp",
 
-  "יבשות ואוקיינוסים":
-    "/assets/science/topics/continents-oceans.webp",
+  "חוש הראייה":
+    "/assets/science/topics/sight.webp",
 
-  "משאבי טבע":
-    "/assets/science/topics/natural-resources.webp",
+  "חוש השמיעה":
+    "/assets/science/topics/hearing.webp",
 
-  "מים על פני כדור הארץ":
-    "/assets/science/topics/water-on-earth.webp",
+  "חוש הריח":
+    "/assets/science/topics/smell.webp",
 
-  "שמירה על כדור הארץ":
-    "/assets/science/topics/protect-earth.webp",
+  "חוש הטעם":
+    "/assets/science/topics/taste.webp",
 
-  "אתגר כדור הארץ":
-    "/assets/science/topics/earth-challenge.webp",
+  "חוש המישוש":
+    "/assets/science/topics/touch.webp",
+
+  "איזה חוש עוזר לנו?":
+    "/assets/science/topics/which-sense.webp",
+
+  "חוש הריח והטעם":
+    "/assets/science/topics/smell-taste.webp",
+
+  "אתגר החושים":
+    "/assets/science/topics/senses-challenge.webp",
+
+
+  /* =====================================================
+     גוף האדם
+  ===================================================== */
+
+  "חלקי הגוף":
+    "/assets/science/topics/body-parts.webp",
+
+  "ראש ופנים":
+    "/assets/science/topics/head-face.webp",
+
+  "ידיים ורגליים":
+    "/assets/science/topics/arms-legs.webp",
+
+  "איך הגוף נע?":
+    "/assets/science/topics/how-body-moves.webp",
+
+  "איך שומרים על הגוף?":
+    "/assets/science/topics/protect-body.webp",
+
+  "שמירה על הגוף":
+    "/assets/science/topics/protect-body.webp",
+
+  "איברי הגוף":
+    "/assets/science/topics/body-organs.webp",
+
+  "החושים":
+    "/assets/science/topics/senses.webp",
+
+  "תזונה בריאה":
+    "/assets/science/topics/healthy-nutrition.webp",
+
+  "תזונה ובריאות":
+    "/assets/science/topics/nutrition-health.webp",
+
+  "מערכת הנשימה":
+    "/assets/science/topics/respiratory-system.webp",
+
+  "מערכת העיכול":
+    "/assets/science/topics/digestive-system.webp",
+
+  "מערכת הדם":
+    "/assets/science/topics/circulatory-system.webp",
+
+  "מערכת התנועה":
+    "/assets/science/topics/musculoskeletal-system.webp",
+
+  "שמירה על הבריאות":
+    "/assets/science/topics/healthy-body.webp",
+
+  "הקשר בין מערכות הגוף":
+    "/assets/science/topics/body-systems-connection.webp",
+
+  "אתגר גוף האדם":
+    "/assets/science/topics/human-body-challenge.webp",
+
+
+  /* =====================================================
+     חי ודומם / יצורים חיים
+  ===================================================== */
+
+  "מהו יצור חי?":
+    "/assets/science/topics/what-is-living-thing.webp",
+
+  "מהו דומם?":
+    "/assets/science/topics/what-is-nonliving.webp",
+
+  "מה יצורים חיים צריכים?":
+    "/assets/science/topics/living-things-needs.webp",
+
+  "צורכי החיים":
+    "/assets/science/topics/life-needs.webp",
+
+  "גדילה":
+    "/assets/science/topics/growth.webp",
+
+  "גדילה והתפתחות":
+    "/assets/science/topics/growth-development.webp",
+
+  "תנועה":
+    "/assets/science/topics/movement.webp",
+
+  "ממיינים חי ודומם":
+    "/assets/science/topics/living-nonliving-sorting.webp",
+
+  "מאפייני חיים":
+    "/assets/science/topics/life-characteristics.webp",
+
+  "אתגר חי ודומם":
+    "/assets/science/topics/living-nonliving-challenge.webp",
+
+  "אתגר היצורים החיים":
+    "/assets/science/topics/living-things-challenge.webp",
+
+
+  /* =====================================================
+     בעלי חיים
+  ===================================================== */
+
+  "מכירים בעלי חיים":
+    "/assets/science/topics/animals-introduction.webp",
+
+  "חיות בית":
+    "/assets/science/topics/pets.webp",
+
+  "חיות בר":
+    "/assets/science/topics/wild-animals.webp",
+
+  "חיות בית וחיות בר":
+    "/assets/science/topics/pets-wild-animals.webp",
+
+  "איפה בעלי חיים חיים?":
+    "/assets/science/topics/animal-habitats.webp",
+
+  "מה בעלי חיים אוכלים?":
+    "/assets/science/topics/animal-food.webp",
+
+  "איך בעלי חיים נעים?":
+    "/assets/science/topics/animal-movement.webp",
+
+  "כיצד בעלי חיים נעים?":
+    "/assets/science/topics/animal-movement.webp",
+
+  "כיסוי הגוף":
+    "/assets/science/topics/animal-body-coverings.webp",
+
+  "קבוצות בעלי חיים":
+    "/assets/science/topics/animal-groups.webp",
+
+  "סביבות חיים":
+    "/assets/science/topics/habitats.webp",
+
+  "מזון של בעלי חיים":
+    "/assets/science/topics/animal-food.webp",
+
+  "התאמה לסביבה":
+    "/assets/science/topics/animal-adaptation.webp",
+
+  "התאמות בעלי חיים":
+    "/assets/science/topics/animal-adaptations.webp",
+
+  "מחזור חיים":
+    "/assets/science/topics/animal-life-cycle.webp",
+
+  "מחזורי חיים":
+    "/assets/science/topics/life-cycles.webp",
+
+  "אתגר בעלי החיים":
+    "/assets/science/topics/animals-challenge.webp",
+
+
+  /* =====================================================
+     צמחים
+  ===================================================== */
+
+  "מהו צמח?":
+    "/assets/science/topics/what-is-plant.webp",
+
+  "מכירים צמחים":
+    "/assets/science/topics/plants-introduction.webp",
+
+  "חלקי הצמח":
+    "/assets/science/topics/plant-parts.webp",
+
+  "שורש":
+    "/assets/science/topics/root.webp",
+
+  "השורש":
+    "/assets/science/topics/root.webp",
+
+  "גבעול":
+    "/assets/science/topics/stem.webp",
+
+  "הגבעול":
+    "/assets/science/topics/stem.webp",
+
+  "עלים":
+    "/assets/science/topics/leaves.webp",
+
+  "העלה":
+    "/assets/science/topics/leaf.webp",
+
+  "פרחים":
+    "/assets/science/topics/flowers.webp",
+
+  "שורש וגבעול":
+    "/assets/science/topics/root-stem.webp",
+
+  "עלים ופרחים":
+    "/assets/science/topics/leaves-flowers.webp",
+
+  "הפרח והפרי":
+    "/assets/science/topics/flower-fruit.webp",
+
+  "מה צמח צריך?":
+    "/assets/science/topics/plant-needs.webp",
+
+  "מה צמח צריך כדי לגדול?":
+    "/assets/science/topics/plant-needs.webp",
+
+  "מזרע לצמח":
+    "/assets/science/topics/seed-to-plant.webp",
+
+  "מחזור החיים של הצמח":
+    "/assets/science/topics/plant-life-cycle.webp",
+
+  "התאמות צמחים":
+    "/assets/science/topics/plant-adaptations.webp",
+
+  "אתגר הצמחים":
+    "/assets/science/topics/plants-challenge.webp",
+
+
+  /* =====================================================
+     עונות ומזג אוויר
+  ===================================================== */
+
+  "ארבע עונות השנה":
+    "/assets/science/topics/four-seasons.webp",
+
+  "סתיו":
+    "/assets/science/topics/autumn.webp",
+
+  "חורף":
+    "/assets/science/topics/winter.webp",
+
+  "אביב":
+    "/assets/science/topics/spring.webp",
+
+  "קיץ":
+    "/assets/science/topics/summer.webp",
+
+  "מה לובשים בכל עונה?":
+    "/assets/science/topics/season-clothing.webp",
+
+  "איך מתלבשים בכל עונה?":
+    "/assets/science/topics/season-clothing.webp",
+
+  "שינויים בטבע":
+    "/assets/science/topics/seasonal-nature-changes.webp",
+
+  "מהו מזג אוויר?":
+    "/assets/science/topics/weather.webp",
+
+  "שמש ועננים":
+    "/assets/science/topics/sun-clouds.webp",
+
+  "גשם ורוח":
+    "/assets/science/topics/rain-wind.webp",
+
+  "אתגר העונות":
+    "/assets/science/topics/seasons-challenge.webp",
+
+  "אתגר מזג האוויר":
+    "/assets/science/topics/weather-challenge.webp",
+
+
+  /* =====================================================
+     חומרים
+  ===================================================== */
+
+  "מכירים חומרים":
+    "/assets/science/topics/materials-introduction.webp",
+
+  "מהו חומר?":
+    "/assets/science/topics/what-is-material.webp",
+
+  "ממה עשויים חפצים?":
+    "/assets/science/topics/objects-materials.webp",
+
+  "עץ":
+    "/assets/science/topics/wood.webp",
+
+  "מתכת":
+    "/assets/science/topics/metal.webp",
+
+  "פלסטיק":
+    "/assets/science/topics/plastic.webp",
+
+  "זכוכית":
+    "/assets/science/topics/glass.webp",
+
+  "קשה ורך":
+    "/assets/science/topics/hard-soft.webp",
+
+  "חלק ומחוספס":
+    "/assets/science/topics/smooth-rough.webp",
+
+  "שקוף ואטום":
+    "/assets/science/topics/transparent-opaque.webp",
+
+  "ממיינים חומרים":
+    "/assets/science/topics/sorting-materials.webp",
+
+  "תכונות חומרים":
+    "/assets/science/topics/material-properties.webp",
+
+  "שימושים בחומרים":
+    "/assets/science/topics/material-uses.webp",
+
+  "שימוש בחומרים":
+    "/assets/science/topics/material-uses.webp",
+
+  "מצבי צבירה":
+    "/assets/science/topics/states-of-matter.webp",
+
+  "מוצק נוזל וגז":
+    "/assets/science/topics/states-of-matter.webp",
+
+  "שינוי מצב צבירה":
+    "/assets/science/topics/state-changes.webp",
+
+  "שינויי מצב צבירה":
+    "/assets/science/topics/state-changes.webp",
+
+  "חומרים טבעיים ומלאכותיים":
+    "/assets/science/topics/natural-artificial-materials.webp",
+
+  "תערובות":
+    "/assets/science/topics/mixtures.webp",
+
+  "הפרדת חומרים":
+    "/assets/science/topics/separating-materials.webp",
+
+  "אתגר החומרים":
+    "/assets/science/topics/materials-challenge.webp",
+
+
+  /* =====================================================
+     סביבה
+  ===================================================== */
+
+  "הסביבה שלנו":
+    "/assets/science/topics/our-environment.webp",
+
+  "מהי סביבה?":
+    "/assets/science/topics/what-is-environment.webp",
+
+  "יצורים חיים בסביבה":
+    "/assets/science/topics/living-things-environment.webp",
+
+  "קשרים בין יצורים":
+    "/assets/science/topics/organism-connections.webp",
+
+  "שומרים על ניקיון":
+    "/assets/science/topics/keep-clean.webp",
+
+  "שמירה על ניקיון":
+    "/assets/science/topics/keep-clean.webp",
+
+  "חוסכים במים":
+    "/assets/science/topics/save-water.webp",
+
+  "חיסכון במים":
+    "/assets/science/topics/save-water.webp",
+
+  "שומרים על הצמחים":
+    "/assets/science/topics/protect-plants.webp",
+
+  "שומרים על בעלי החיים":
+    "/assets/science/topics/protect-animals.webp",
+
+  "שמירה על הסביבה":
+    "/assets/science/topics/protect-environment.webp",
+
+  "אתגר שומרי הסביבה":
+    "/assets/science/topics/environment-guardians-challenge.webp",
+
+  "אתגר הסביבה":
+    "/assets/science/topics/environment-challenge.webp",
+
+
+  /* =====================================================
+     אור וקול
+  ===================================================== */
+
+  "מקורות אור":
+    "/assets/science/topics/light-sources.webp",
+
+  "אור וצל":
+    "/assets/science/topics/light-shadow.webp",
+
+  "מקורות קול":
+    "/assets/science/topics/sound-sources.webp",
+
+  "חזק וחלש":
+    "/assets/science/topics/loud-soft.webp",
+
+  "גבוה ונמוך בקול":
+    "/assets/science/topics/high-low-sound.webp",
+
+  "אתגר האור והקול":
+    "/assets/science/topics/light-sound-challenge.webp",
+
+
+  /* =====================================================
+     אקולוגיה / מערכות אקולוגיות
+  ===================================================== */
+
+  "מהי מערכת אקולוגית?":
+    "/assets/science/topics/what-is-ecosystem.webp",
+
+  "מערכת אקולוגית":
+    "/assets/science/topics/what-is-ecosystem.webp",
+
+  "שרשרת מזון":
+    "/assets/science/topics/food-chain.webp",
+
+  "מארג מזון":
+    "/assets/science/topics/food-web.webp",
+
+  "יצרנים וצרכנים":
+    "/assets/science/topics/producers-consumers.webp",
+
+  "יצרנים צרכנים ומפרקים":
+    "/assets/science/topics/producers-consumers-decomposers.webp",
+
+  "יחסי גומלין":
+    "/assets/science/topics/ecosystem-interactions.webp",
+
+  "התאמות לסביבה":
+    "/assets/science/topics/adaptations.webp",
+
+  "השפעת האדם":
+    "/assets/science/topics/human-impact.webp",
+
+  "השפעת האדם על הסביבה":
+    "/assets/science/topics/human-impact.webp",
+
+  "אתגר המערכת האקולוגית":
+    "/assets/science/topics/ecosystem-challenge.webp",
+
+  "אתגר האקולוגיה":
+    "/assets/science/topics/ecology-challenge.webp",
+
+
+  /* =====================================================
+     אנרגיה
+  ===================================================== */
+
+  "מהי אנרגיה?":
+    "/assets/science/topics/what-is-energy.webp",
+
+  "סוגי אנרגיה":
+    "/assets/science/topics/energy-types.webp",
+
+  "מקורות אנרגיה":
+    "/assets/science/topics/energy-sources.webp",
+
+  "אנרגיית אור":
+    "/assets/science/topics/light-energy.webp",
+
+  "אנרגיית חום":
+    "/assets/science/topics/heat-energy.webp",
+
+  "המרות אנרגיה":
+    "/assets/science/topics/energy-transformations.webp",
+
+  "המרת אנרגיה":
+    "/assets/science/topics/energy-transformations.webp",
+
+  "אנרגיה מתחדשת":
+    "/assets/science/topics/renewable-energy.webp",
+
+  "חיסכון באנרגיה":
+    "/assets/science/topics/save-energy.webp",
+
+  "אתגר האנרגיה":
+    "/assets/science/topics/energy-challenge.webp",
+
+
+  /* =====================================================
+     חשמל
+  ===================================================== */
+
+  "מהו חשמל?":
+    "/assets/science/topics/what-is-electricity.webp",
+
+  "מהו זרם חשמלי?":
+    "/assets/science/topics/electric-current.webp",
+
+  "מעגל חשמלי":
+    "/assets/science/topics/electric-circuit.webp",
+
+  "מעגל חשמלי פשוט":
+    "/assets/science/topics/electric-circuit.webp",
+
+  "מעגל פתוח וסגור":
+    "/assets/science/topics/open-closed-circuit.webp",
+
+  "מוליכים ומבודדים":
+    "/assets/science/topics/conductors-insulators.webp",
+
+  "רכיבי המעגל":
+    "/assets/science/topics/circuit-components.webp",
+
+  "בטיחות בחשמל":
+    "/assets/science/topics/electric-safety.webp",
+
+  "אתגר החשמל":
+    "/assets/science/topics/electricity-challenge.webp",
 
 
   /* =====================================================
@@ -34213,121 +34731,138 @@ const SCIENCE_PARENT_LESSON_IMAGES = {
 
 
   /* =====================================================
-     חשמל
+     משאבי טבע
   ===================================================== */
 
-  "מעגל חשמלי":
-    "/assets/science/topics/electric-circuit.webp",
+  "מהו משאב טבע?":
+    "/assets/science/topics/what-is-natural-resource.webp",
 
-  "מעגל פתוח וסגור":
-    "/assets/science/topics/open-closed-circuit.webp",
+  "מים":
+    "/assets/science/topics/water-resource.webp",
 
-  "מוליכים ומבודדים":
-    "/assets/science/topics/conductors-insulators.webp",
+  "קרקע":
+    "/assets/science/topics/soil-resource.webp",
 
-  "רכיבי המעגל":
-    "/assets/science/topics/circuit-components.webp",
+  "אוויר":
+    "/assets/science/topics/air-resource.webp",
 
-  "בטיחות בחשמל":
-    "/assets/science/topics/electric-safety.webp",
+  "שמירה על משאבים":
+    "/assets/science/topics/protect-resources.webp",
 
-  "אתגר החשמל":
-    "/assets/science/topics/electricity-challenge.webp",
+  "אתגר משאבי הטבע":
+    "/assets/science/topics/natural-resources-challenge.webp",
 
 
   /* =====================================================
-     אנרגיה
+     כדור הארץ
   ===================================================== */
 
-  "מהי אנרגיה?":
-    "/assets/science/topics/what-is-energy.webp",
+  "מבנה כדור הארץ":
+    "/assets/science/topics/earth-structure.webp",
 
-  "סוגי אנרגיה":
-    "/assets/science/topics/energy-types.webp",
+  "יבשות ואוקיינוסים":
+    "/assets/science/topics/continents-oceans.webp",
 
-  "מקורות אנרגיה":
-    "/assets/science/topics/energy-sources.webp",
+  "משאבי טבע":
+    "/assets/science/topics/natural-resources.webp",
 
-  "המרות אנרגיה":
-    "/assets/science/topics/energy-transformations.webp",
+  "מים על פני כדור הארץ":
+    "/assets/science/topics/water-on-earth.webp",
 
-  "אנרגיה מתחדשת":
-    "/assets/science/topics/renewable-energy.webp",
+  "שמירה על כדור הארץ":
+    "/assets/science/topics/protect-earth.webp",
 
-  "אתגר האנרגיה":
-    "/assets/science/topics/energy-challenge.webp",
+  "אתגר כדור הארץ":
+    "/assets/science/topics/earth-challenge.webp",
 
 
   /* =====================================================
-     חומרים
+     תאים
   ===================================================== */
 
-  "תכונות חומרים":
-    "/assets/science/topics/material-properties.webp",
+  "מהו תא?":
+    "/assets/science/topics/what-is-cell.webp",
 
-  "מצבי צבירה":
-    "/assets/science/topics/states-of-matter.webp",
+  "תא צמח":
+    "/assets/science/topics/plant-cell.webp",
 
-  "שינויי מצב צבירה":
-    "/assets/science/topics/state-changes.webp",
+  "תא בעל חיים":
+    "/assets/science/topics/animal-cell.webp",
 
-  "תערובות":
-    "/assets/science/topics/mixtures.webp",
+  "מבנה התא":
+    "/assets/science/topics/cell-structure.webp",
 
-  "הפרדת חומרים":
-    "/assets/science/topics/separating-materials.webp",
+  "מהתא ליצור חי":
+    "/assets/science/topics/cell-to-organism.webp",
 
-  "אתגר החומרים":
-    "/assets/science/topics/materials-challenge.webp",
+  "אתגר התאים":
+    "/assets/science/topics/cells-challenge.webp",
 
 
   /* =====================================================
-     אקולוגיה
+     מגוון ביולוגי
   ===================================================== */
 
-  "מהי מערכת אקולוגית?":
-    "/assets/science/topics/what-is-ecosystem.webp",
+  "מהו מגוון ביולוגי?":
+    "/assets/science/topics/what-is-biodiversity.webp",
 
-  "שרשרת מזון":
-    "/assets/science/topics/food-chain.webp",
+  "קבוצות יצורים חיים":
+    "/assets/science/topics/living-organism-groups.webp",
 
-  "יצרנים צרכנים ומפרקים":
-    "/assets/science/topics/producers-consumers-decomposers.webp",
+  "סכנת הכחדה":
+    "/assets/science/topics/endangered-species.webp",
 
-  "יחסי גומלין":
-    "/assets/science/topics/ecosystem-interactions.webp",
+  "שמירה על המגוון":
+    "/assets/science/topics/protect-biodiversity.webp",
 
-  "התאמות לסביבה":
-    "/assets/science/topics/adaptations.webp",
+  "אתגר המגוון":
+    "/assets/science/topics/biodiversity-challenge.webp",
 
-  "השפעת האדם":
-    "/assets/science/topics/human-impact.webp",
 
-  "אתגר האקולוגיה":
-    "/assets/science/topics/ecology-challenge.webp",
-
-      /* =====================================================
-     גוף האדם
+  /* =====================================================
+     כדור הארץ והחלל
   ===================================================== */
 
-  "מערכת הנשימה":
-    "/assets/science/topics/respiratory-system.webp",
+  "מערכת השמש":
+    "/assets/science/topics/solar-system.webp",
 
-  "מערכת העיכול":
-    "/assets/science/topics/digestive-system.webp",
+  "השמש":
+    "/assets/science/topics/sun.webp",
 
-  "מערכת הדם":
-    "/assets/science/topics/circulatory-system.webp",
+  "הירח":
+    "/assets/science/topics/moon.webp",
 
-  "מערכת התנועה":
-    "/assets/science/topics/musculoskeletal-system.webp",
+  "כוכבי הלכת":
+    "/assets/science/topics/planets.webp",
 
-  "שמירה על הבריאות":
-    "/assets/science/topics/healthy-body.webp",
+  "יום ולילה":
+    "/assets/science/topics/day-night.webp",
 
-  "אתגר גוף האדם":
-    "/assets/science/topics/human-body-challenge.webp"
+  "עונות השנה":
+    "/assets/science/topics/seasons.webp",
 
+  "אתגר החלל":
+    "/assets/science/topics/space-challenge.webp",
+
+
+  /* =====================================================
+     חקר מדעי
+  ===================================================== */
+
+  "שאלת חקר":
+    "/assets/science/topics/research-question.webp",
+
+  "השערה":
+    "/assets/science/topics/hypothesis.webp",
+
+  "תכנון ניסוי":
+    "/assets/science/topics/experiment-planning.webp",
+
+  "משתנים בניסוי":
+    "/assets/science/topics/experiment-variables.webp",
+
+  "תוצאות":
+    "/assets/science/topics/results.webp"
 
 };
 
