@@ -12873,8 +12873,9 @@ data-kingdom="center"
 ========================= -->
 <button
 type="button"
-class="kingdom-label kingdom-label-ocean"
+class="kingdom-label kingdom-label-ocean custom-subject-slot"
 data-kingdom="ocean"
+data-custom-slot="0"
 >
 
   <strong class="kingdom-label-title">
@@ -12904,8 +12905,9 @@ data-kingdom="ocean"
 ========================= -->
 <button
 type="button"
-class="kingdom-label kingdom-label-desert"
+class="kingdom-label kingdom-label-desert custom-subject-slot"
 data-kingdom="desert"
+data-custom-slot="1"
 >
 
   <strong class="kingdom-label-title">
@@ -18525,8 +18527,11 @@ CURRENT_KID = kid;
 /* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
 CURRENT_KID.grade = Number(kid.age);
 
-/* טעינת המקצועות לפי הכיתה */
+/* טעינת המקצועות הקבועים לפי הכיתה */
 await loadSubjects(CURRENT_KID.grade);
+
+/* טעינת המקצועות האישיים שאושרו ע"י ההורה */
+await loadCustomSubjectsForDashboard();
 
 const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
 
@@ -32769,7 +32774,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V17";
+      "▶ Rotem V18";
 
 
     document.body.appendChild(
@@ -33343,6 +33348,220 @@ const SCIENCE_CATEGORY_IMAGES = {
     "/assets/science/categories/earth.webp"
 
 };
+
+let CUSTOM_SUBJECTS = [];
+
+async function loadCustomSubjectsForDashboard(){
+
+  if(!CURRENT_KID){
+    return;
+  }
+
+  const slots =
+    [...document.querySelectorAll(
+      ".custom-subject-slot"
+    )];
+
+  if(!slots.length){
+    return;
+  }
+
+  const { data, error } =
+    await supabase
+      .from("kid_custom_subjects")
+      .select(`
+        id,
+        kid_id,
+        subject_name,
+        status,
+        created_at
+      `)
+      .eq(
+        "kid_id",
+        CURRENT_KID.id
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .order(
+        "created_at",
+        {
+          ascending:true
+        }
+      );
+
+  if(error){
+
+    console.error(
+      "LOAD CUSTOM SUBJECTS ERROR:",
+      error
+    );
+
+    return;
+  }
+
+  CUSTOM_SUBJECTS =
+    data || [];
+
+  slots.forEach(
+    (
+      slot,
+      index
+    ) => {
+
+      const subject =
+        CUSTOM_SUBJECTS[index];
+
+      const title =
+        slot.querySelector(
+          ".kingdom-label-title"
+        );
+
+      const sub =
+        slot.querySelector(
+          ".kingdom-label-subject"
+        );
+
+      const fill =
+        slot.querySelector(
+          ".kingdom-label-fill"
+        );
+
+      const action =
+        slot.querySelector(
+          ".kingdom-label-progress b"
+        );
+
+
+      /*
+        אין מקצוע בסלוט
+      */
+
+      if(!subject){
+
+        slot.dataset.customSubjectId =
+          "";
+
+        slot.dataset.customSubjectName =
+          "";
+
+        title.textContent =
+          "+ הוסף מקצוע";
+
+        sub.textContent =
+          "התאמה אישית לילד";
+
+        if(fill){
+          fill.style.width =
+            "0%";
+        }
+
+        if(action){
+          action.textContent =
+            "הוסף →";
+        }
+
+        return;
+      }
+
+
+      /*
+        יש מקצוע מאושר
+      */
+
+      slot.dataset.customSubjectId =
+        subject.id;
+
+      slot.dataset.customSubjectName =
+        subject.subject_name;
+
+      title.textContent =
+        subject.subject_name;
+
+      sub.textContent =
+        "תכנית אישית";
+
+      if(fill){
+        fill.style.width =
+          "0%";
+      }
+
+      if(action){
+        action.textContent =
+          "כניסה →";
+      }
+
+    }
+  );
+
+
+  console.log(
+    "CUSTOM SUBJECTS:",
+    CUSTOM_SUBJECTS
+  );
+
+}
+
+document
+  .querySelectorAll(
+    ".custom-subject-slot"
+  )
+  .forEach(
+    slot => {
+
+      slot.addEventListener(
+        "click",
+        async event => {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+
+          const subjectId =
+            slot.dataset.customSubjectId;
+
+          const subjectName =
+            slot.dataset.customSubjectName;
+
+
+          /*
+            סלוט פנוי
+          */
+
+          if(!subjectId){
+
+            window.location.href =
+              "/he/add-subject/";
+
+            return;
+          }
+
+
+          /*
+            מקצוע אישי קיים
+          */
+
+          console.log(
+            "OPEN CUSTOM SUBJECT:",
+            {
+              subjectId,
+              subjectName
+            }
+          );
+
+
+          // בשלב הבא נחבר כאן:
+          // await openCustomSubject(
+          //   subjectId,
+          //   subjectName
+          // );
+
+        }
+      );
+
+    }
+  );
 
 /* =====================================================
    OPEN SCIENCE
