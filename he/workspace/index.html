@@ -33722,6 +33722,10 @@ async function loadCustomSubjectsForDashboard(){
 
 }
 
+/* =====================================================
+   OPEN CUSTOM SUBJECT
+===================================================== */
+
 async function openCustomSubject(
   subjectId,
   subjectName
@@ -33731,7 +33735,8 @@ async function openCustomSubject(
     "OPEN CUSTOM SUBJECT VIEW:",
     {
       subjectId,
-      subjectName
+      subjectName,
+      kidId: CURRENT_KID?.id
     }
   );
 
@@ -33783,9 +33788,38 @@ async function openCustomSubject(
 
 
   if(!customView){
+
     console.error(
       "customSubjectView not found"
     );
+
+    return;
+  }
+
+
+  if(!tree){
+
+    console.error(
+      "customSubjectTree not found"
+    );
+
+    return;
+  }
+
+
+  if(!CURRENT_KID?.id){
+
+    console.error(
+      "CURRENT_KID missing:",
+      CURRENT_KID
+    );
+
+    tree.innerHTML = `
+      <div class="science-tree-loading">
+        לא נמצא ילד פעיל
+      </div>
+    `;
+
     return;
   }
 
@@ -33819,13 +33853,14 @@ async function openCustomSubject(
 
 
   /* =========================================
-     מסתירים סרגל ימין
+     סרגל ימין
   ========================================= */
 
   if(rightbar){
     rightbar.style.display =
       "none";
   }
+
 
   document.body.classList.add(
     "custom-subject-mode"
@@ -33837,161 +33872,222 @@ async function openCustomSubject(
   ========================================= */
 
   if(title){
+
     title.textContent =
       subjectName ||
       "מקצוע אישי";
+
   }
 
+
   if(breadcrumb){
+
     breadcrumb.textContent =
       subjectName ||
       "מקצוע אישי";
+
   }
 
 
-  /* =========================================
-     Loading
-  ========================================= */
-
-  if(tree){
-    tree.innerHTML = `
-      <div class="science-tree-loading">
-        טוענים את תוכנית הלימודים...
-      </div>
-    `;
-  }
+  tree.innerHTML = `
+    <div class="science-tree-loading">
+      טוענים את תוכנית הלימודים...
+    </div>
+  `;
 
 
-  /* =========================================
-     טעינת היחידות
-  ========================================= */
+  try{
 
-  const {
-    data: units,
-    error: unitsError
-  } =
-    await supabaseClient
-      .from(
-        "kid_custom_units"
-      )
-      .select(
-        `
-        id,
-        topic_name,
-        topic_order,
-        unit_name,
-        unit_order,
-        status,
-        source_curriculum_version
-        `
-      )
-      .eq(
-        "custom_subject_id",
-        subjectId
-      )
-      .order(
-        "topic_order",
-        {
-          ascending:true
-        }
-      )
-      .order(
-        "unit_order",
-        {
-          ascending:true
-        }
+    /* =========================================
+       יחידות
+    ========================================= */
+
+    console.log(
+      "LOADING CUSTOM UNITS...",
+      {
+        subjectId,
+        kidId: CURRENT_KID.id
+      }
+    );
+
+
+    const {
+      data: units,
+      error: unitsError
+    } =
+      await supabaseClient
+        .from(
+          "kid_custom_units"
+        )
+        .select(
+          `
+          id,
+          kid_id,
+          custom_subject_id,
+          curriculum_id,
+          topic_name,
+          topic_order,
+          unit_name,
+          unit_order,
+          status,
+          source_curriculum_version
+          `
+        )
+        .eq(
+          "kid_id",
+          CURRENT_KID.id
+        )
+        .eq(
+          "custom_subject_id",
+          subjectId
+        )
+        .order(
+          "topic_order",
+          {
+            ascending:true
+          }
+        )
+        .order(
+          "unit_order",
+          {
+            ascending:true
+          }
+        );
+
+
+    console.log(
+      "CUSTOM UNITS RESULT:",
+      {
+        units,
+        unitsError
+      }
+    );
+
+
+    if(unitsError){
+
+      console.error(
+        "CUSTOM UNITS ERROR:",
+        unitsError
       );
 
+      tree.innerHTML = `
+        <div class="science-tree-loading">
+          שגיאה בטעינת יחידות הלימוד
+        </div>
+      `;
 
-  if(unitsError){
+      return;
+    }
+
+
+    /* =========================================
+       שיעורים
+    ========================================= */
+
+    console.log(
+      "LOADING CUSTOM LESSONS..."
+    );
+
+
+    const {
+      data: lessons,
+      error: lessonsError
+    } =
+      await supabaseClient
+        .from(
+          "kid_custom_lessons"
+        )
+        .select(
+          `
+          kid_id,
+          custom_subject_id,
+          curriculum_id,
+          custom_unit_id,
+          lesson_name,
+          lesson_order,
+          status,
+          source_curriculum_version
+          `
+        )
+        .eq(
+          "kid_id",
+          CURRENT_KID.id
+        )
+        .eq(
+          "custom_subject_id",
+          subjectId
+        )
+        .order(
+          "lesson_order",
+          {
+            ascending:true
+          }
+        );
+
+
+    console.log(
+      "CUSTOM LESSONS RESULT:",
+      {
+        lessons,
+        lessonsError
+      }
+    );
+
+
+    if(lessonsError){
+
+      console.error(
+        "CUSTOM LESSONS ERROR:",
+        lessonsError
+      );
+
+      tree.innerHTML = `
+        <div class="science-tree-loading">
+          שגיאה בטעינת השיעורים
+        </div>
+      `;
+
+      return;
+    }
+
+
+    console.log(
+      "RENDER CUSTOM SUBJECT:",
+      {
+        unitsCount:
+          units?.length || 0,
+
+        lessonsCount:
+          lessons?.length || 0
+      }
+    );
+
+
+    renderCustomSubjectTree(
+      units || [],
+      lessons || []
+    );
+
+  }
+
+  catch(error){
 
     console.error(
-      "CUSTOM UNITS ERROR:",
-      unitsError
+      "OPEN CUSTOM SUBJECT FAILED:",
+      error
     );
 
     tree.innerHTML = `
       <div class="science-tree-loading">
-        שגיאה בטעינת יחידות הלימוד
+        שגיאה בטעינת תוכנית הלימודים
       </div>
     `;
 
-    return;
   }
-
-
-  console.log(
-    "CUSTOM UNITS:",
-    units
-  );
-
-
-  /* =========================================
-     טעינת השיעורים
-  ========================================= */
-
-  const {
-    data: lessons,
-    error: lessonsError
-  } =
-    await supabaseClient
-      .from(
-        "kid_custom_lessons"
-      )
-      .select(
-        `
-        custom_unit_id,
-        lesson_name,
-        lesson_order,
-        status,
-        source_curriculum_version
-        `
-      )
-      .eq(
-        "custom_subject_id",
-        subjectId
-      )
-      .order(
-        "lesson_order",
-        {
-          ascending:true
-        }
-      );
-
-
-  if(lessonsError){
-
-    console.error(
-      "CUSTOM LESSONS ERROR:",
-      lessonsError
-    );
-
-    tree.innerHTML = `
-      <div class="science-tree-loading">
-        שגיאה בטעינת השיעורים
-      </div>
-    `;
-
-    return;
-  }
-
-
-  console.log(
-    "CUSTOM LESSONS:",
-    lessons
-  );
-
-
-  /* =========================================
-     בניית העץ
-  ========================================= */
-
-  renderCustomSubjectTree(
-    units || [],
-    lessons || []
-  );
 
 }
+
 
 function renderCustomSubjectTree(
   units,
