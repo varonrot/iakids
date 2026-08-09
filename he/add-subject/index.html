@@ -460,6 +460,51 @@
   }
 
 }
+    .curriculum-update-loader{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+
+  z-index:20;
+
+  min-width:270px;
+  padding:20px 28px;
+
+  text-align:center;
+
+  border:1px solid rgba(126,88,255,.38);
+  border-radius:16px;
+
+  background:rgba(5,15,32,.94);
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.45),
+    0 0 40px rgba(105,65,255,.12);
+
+  backdrop-filter:blur(12px);
+}
+
+.curriculum-update-loader strong{
+  display:block;
+  font-size:14px;
+  color:#f2f5ff;
+}
+
+.curriculum-update-loader small{
+  display:block;
+  margin-top:5px;
+  font-size:10px;
+  color:#7889a5;
+}
+
+.curriculum-is-updating{
+  opacity:.28;
+  filter:blur(1px);
+  transition:
+    opacity .25s ease,
+    filter .25s ease;
+}
 </style>
 </head>
 <body>
@@ -903,6 +948,62 @@ function render(plan, options = {}) {
 }
 
 function msg(role,text){const d=document.createElement('div');d.className=`msg ${role}`;d.textContent=text;document.getElementById('messages').appendChild(d)}
+function showCurriculumBuilding() {
+
+  if (!CURRENT_PLAN?.subject) return;
+
+  const topics =
+    Array.isArray(CURRENT_PLAN.topics)
+      ? CURRENT_PLAN.topics
+      : [];
+
+  /*
+    אם עדיין אין נושא בכלל,
+    נשאיר את התצוגה הקיימת.
+    ה-preview שכבר כתבת מטפל בזה.
+  */
+  if (!topics.length) return;
+
+  const tree =
+    document.getElementById("curriculumTree");
+
+  const existingFlow =
+    tree.querySelector(".curriculum-flow");
+
+  if (!existingFlow) return;
+
+
+  // מונע יצירה כפולה
+  const oldLoader =
+    tree.querySelector(".curriculum-update-loader");
+
+  if (oldLoader) oldLoader.remove();
+
+
+  const loader =
+    document.createElement("div");
+
+  loader.className =
+    "curriculum-update-loader";
+
+  loader.innerHTML = `
+    <div class="building-spark">✦</div>
+
+    <strong>
+      מעדכן את תוכנית הלימודים...
+    </strong>
+
+    <small>
+      מתאים מחדש את היחידות והשיעורים
+    </small>
+  `;
+
+  tree.appendChild(loader);
+
+  existingFlow.classList.add(
+    "curriculum-is-updating"
+  );
+}
 async function submitText(text) {
 
   text = text.trim();
@@ -961,10 +1062,16 @@ if (
   const input =
     document.getElementById("chatInput");
 
-  input.disabled = true;
+input.disabled = true;
 
+/*
+  בזמן שה-AI מעדכן תוכנית קיימת,
+  משאירים את העץ הישן ברקע
+  ומציגים מצב עבודה.
+*/
+showCurriculumBuilding();
 
-  try {
+try {
 
     const { data: sessionData } =
       await sb.auth.getSession();
