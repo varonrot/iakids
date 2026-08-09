@@ -1,1 +1,874 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>הוספת מקצוע חדש | IAKids</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{background:#020916;color:#f5f7ff;font-family:"Heebo",Arial,sans-serif;overflow:hidden}button,input{font:inherit}.app{height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr);grid-template-rows:72px minmax(0,1fr);direction:ltr}.topbar{grid-column:1/3;direction:rtl;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid rgba(115,159,212,.14);background:rgba(2,9,22,.96)}.brand{display:flex;align-items:center;gap:10px;cursor:pointer}.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;border:1px solid rgba(70,180,255,.3);color:#5ed5ff;background:rgba(8,24,45,.8)}.brand-title{font-weight:900;font-size:18px}.brand-sub{font-size:9px;color:#72839d}.top-left,.stats,.user{display:flex;align-items:center}.top-left{gap:12px}.stats{gap:8px}.pill,.bell{height:42px;border:1px solid rgba(108,151,207,.17);background:#09172b;border-radius:12px;display:flex;align-items:center;justify-content:center}.pill{padding:0 14px;gap:8px;font-weight:800}.bell{width:42px;position:relative}.badge{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#ff4158;font-size:10px;border:2px solid #020916}.user{gap:8px;font-weight:800;font-size:13px}.user img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.25)}
+.sidebar{grid-column:1;grid-row:2;direction:rtl;padding:12px;background:linear-gradient(180deg,#061225,#030b19);border-right:1px solid rgba(105,149,203,.12);display:flex;flex-direction:column;min-height:0}.new-task{height:50px;border:0;border-radius:12px;background:linear-gradient(135deg,#7548ff,#5630cb);color:#fff;font-weight:900;margin-bottom:10px}.kid-actions{flex:1;display:flex;flex-direction:column;gap:6px;overflow:auto}.side-item,.manage-btn{border:1px solid rgba(97,139,197,.1);background:rgba(12,26,48,.72);color:#cbd6e7;border-radius:11px;display:flex;align-items:center;gap:10px;cursor:pointer}.side-item{height:43px;padding:0 11px;font-weight:800}.side-item:hover{background:#123361}.side-item i,.manage-btn i{width:24px;text-align:center;color:#8fa1bd}.side-title{font-size:12px}.sidebar-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-top:10px;border-top:1px solid rgba(107,146,196,.12)}.manage-btn{height:38px;justify-content:center;font-size:0}
+.main{grid-column:2;grid-row:2;direction:rtl;padding:18px 22px 22px;min-width:0;min-height:0}.shell{height:100%;display:flex;flex-direction:column;max-width:1500px;margin:auto}.head{text-align:center;padding-bottom:14px}.spark{font-size:26px;color:#8d65ff}.head h1{font-size:28px;margin:2px 0 4px}.head p{margin:0;color:#b3bfd1;font-size:14px}.grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;direction:ltr}.tree,.chat{border:1px solid rgba(89,139,205,.2);border-radius:17px;background:linear-gradient(180deg,rgba(6,20,40,.9),rgba(2,12,27,.96));min-height:0;overflow:hidden;position:relative}.tree{direction:rtl;background:radial-gradient(circle at 50% 25%,rgba(93,61,205,.08),transparent 31%),linear-gradient(180deg,#061428,#020c1b)}.tree-stage{height:calc(100% - 74px);padding:36px 34px 20px;overflow:auto}.empty{height:100%;display:grid;place-items:center;text-align:center}.empty-card{max-width:420px}.orbit{width:86px;height:86px;border-radius:50%;margin:0 auto 18px;display:grid;place-items:center;border:1px solid rgba(135,95,255,.7);font-size:38px;color:#9871ff;box-shadow:0 0 45px rgba(112,72,255,.12)}.empty strong{display:block;font-size:22px;margin-bottom:6px}.empty p{margin:0;color:#7f8ea7;line-height:1.7}.tree-footer{position:absolute;bottom:0;left:0;right:0;height:74px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,transparent,rgba(2,12,27,.97) 36%)}.approve{min-width:300px;height:43px;border-radius:12px;border:1px solid rgba(117,72,255,.25);color:#707791;background:#111932;font-weight:800}.approve.ready{color:#fff;background:linear-gradient(135deg,#6738e9,#845bff);cursor:pointer}
+.curriculum{min-width:760px;padding-bottom:50px}.subject{width:330px;margin:4px auto 64px;padding:23px;border:1px solid rgba(128,92,255,.72);border-radius:16px;background:rgba(14,24,50,.82);text-align:center;position:relative}.subject:after{content:"";position:absolute;bottom:-38px;left:50%;height:38px;border-left:1px solid #654ad4}.subject strong{display:block;font-size:18px}.subject small,.branch-card small{color:#8593aa}.branches{display:grid;grid-template-columns:repeat(var(--count),1fr);gap:18px;position:relative}.branches:before{content:"";position:absolute;top:-28px;left:9%;right:9%;border-top:1px solid rgba(98,77,207,.7)}.branch{position:relative}.branch:before{content:"";position:absolute;top:-28px;left:50%;height:28px;border-left:1px solid rgba(98,77,207,.7)}.branch-card{min-height:118px;padding:17px 12px;border:1px solid rgba(78,128,188,.4);border-radius:14px;background:rgba(9,23,44,.82);text-align:center}.children{display:flex;gap:8px;justify-content:center;margin-top:35px;position:relative}.child{width:86px;min-height:74px;padding:10px 6px;border:1px dashed rgba(94,128,181,.48);border-radius:11px;background:rgba(8,20,39,.7);font-size:10px;text-align:center}.child i{display:block;color:#8a67ff;margin-bottom:5px}
+.chat{direction:rtl;display:flex;flex-direction:column}.chat-head{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid rgba(100,143,198,.12)}.chat-title strong{display:block;font-size:14px}.chat-title span{font-size:10px;color:#91a0b7}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#41dc81;margin-left:5px}.core{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;border:1px solid #7656ff;color:#9b7aff}.messages{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}.msg{max-width:83%;padding:12px 14px;border-radius:13px;font-size:12px;line-height:1.75}.msg.ai{align-self:flex-start;background:#0d1c33}.msg.parent{align-self:flex-end;background:linear-gradient(135deg,#32177d,#4d22bb)}.suggestions{display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 12px}.suggestions button{border:1px solid rgba(124,80,255,.46);background:#0f152b;color:#a993ff;border-radius:999px;padding:7px 12px;font-size:10px;cursor:pointer}.form{height:64px;padding:8px 10px;border-top:1px solid rgba(100,143,198,.12);display:flex;gap:7px}.form input{flex:1;min-width:0;border:1px solid rgba(96,139,193,.13);background:#081528;color:#fff;outline:none;border-radius:12px;padding:0 12px}.form button{width:43px;border:0;border-radius:12px;background:linear-gradient(135deg,#6b3ee8,#885eff);color:#fff}
+@media(max-width:900px){body{overflow:auto}.app{display:block;height:auto}.topbar{position:sticky;top:0;height:64px}.sidebar{display:none}.main{min-height:calc(100vh - 64px);padding:10px}.grid{display:flex;flex-direction:column}.chat{height:330px}.tree{height:620px}.curriculum{transform:scale(.68);transform-origin:top right;width:147%}}
+/* =========================================================
+   CURRICULUM BUILDER — 4 LEVEL VISUAL TREE
+   ========================================================= */
 
+.curriculum{
+  min-width:0;
+  width:100%;
+  padding:10px 10px 90px;
+}
+
+.curriculum-flow{
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+.level{
+  position:relative;
+}
+
+.level-label{
+  width:max-content;
+  margin:0 auto 14px;
+  padding:5px 12px;
+
+  border:1px solid rgba(128,92,255,.25);
+  border-radius:999px;
+
+  background:rgba(86,52,180,.10);
+
+  color:#8f78dd;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.3px;
+}
+
+.node-row{
+  display:flex;
+  justify-content:center;
+  align-items:stretch;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.node{
+  position:relative;
+
+  border:1px solid rgba(93,136,195,.32);
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12,29,54,.94),
+      rgba(6,18,36,.96)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 12px 28px rgba(0,0,0,.16);
+
+  text-align:center;
+}
+
+.node strong{
+  display:block;
+  color:#f2f5ff;
+  line-height:1.35;
+}
+
+.node small{
+  display:block;
+  margin-top:6px;
+  color:#687b98;
+  font-size:10px;
+}
+
+
+/* SUBJECT */
+
+.node-subject{
+  width:330px;
+  min-height:112px;
+
+  margin:auto;
+  padding:20px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  border-color:rgba(132,86,255,.65);
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(119,70,255,.18),
+      transparent 60%
+    ),
+    rgba(10,23,47,.96);
+
+  box-shadow:
+    0 0 45px rgba(105,65,255,.08);
+}
+
+.node-subject strong{
+  font-size:20px;
+}
+
+.node-icon{
+  width:34px;
+  height:34px;
+
+  display:grid;
+  place-items:center;
+
+  margin-bottom:8px;
+
+  border-radius:50%;
+
+  border:1px solid rgba(137,95,255,.55);
+
+  color:#9b7aff;
+  background:rgba(103,58,220,.10);
+}
+
+.node-icon.small{
+  width:28px;
+  height:28px;
+  margin:0 auto 8px;
+  font-size:11px;
+}
+
+
+/* CONNECTORS */
+
+.connector-down{
+  width:1px;
+  height:34px;
+
+  margin:0 auto;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(126,88,255,.8),
+      rgba(56,164,255,.28)
+    );
+
+  box-shadow:
+    0 0 8px rgba(91,92,255,.25);
+}
+
+
+/* TOPICS */
+
+.node-topic{
+  width:210px;
+  min-height:92px;
+
+  padding:17px 14px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.node-topic strong{
+  font-size:15px;
+}
+
+.node-number{
+  position:absolute;
+  top:8px;
+  left:10px;
+
+  color:#574d87;
+  font-size:9px;
+  font-weight:900;
+}
+
+
+/* TOPIC GROUP */
+
+.topic-groups{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+
+.topic-group{
+  padding:15px;
+
+  border:1px solid rgba(75,117,176,.12);
+  border-radius:15px;
+
+  background:rgba(5,15,31,.32);
+}
+
+.group-title{
+  margin-bottom:13px;
+
+  color:#8293ae;
+  font-size:11px;
+  font-weight:800;
+}
+
+
+/* UNITS */
+
+.node-unit{
+  width:170px;
+  min-height:105px;
+
+  padding:15px 10px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.node-unit strong{
+  font-size:13px;
+}
+
+
+/* LESSONS */
+
+.lessons-groups{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.lesson-group{
+  padding:13px 15px 16px;
+
+  border-top:
+    1px solid rgba(69,111,168,.12);
+}
+
+.lesson-group-title{
+  margin-bottom:12px;
+
+  color:#778aa8;
+  font-size:11px;
+  font-weight:700;
+}
+
+.node-lesson{
+  width:135px;
+  min-height:82px;
+
+  padding:14px 9px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  border-color:rgba(75,113,169,.24);
+
+  background:rgba(7,19,38,.75);
+}
+
+.node-lesson strong{
+  font-size:11px;
+}
+
+.lesson-index{
+  position:absolute;
+
+  top:7px;
+  right:8px;
+
+  width:18px;
+  height:18px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:rgba(101,69,210,.16);
+
+  color:#8970e9;
+
+  font-size:8px;
+  font-weight:900;
+}
+
+
+/* WHEN ONLY SUBJECT EXISTS */
+
+.building-note{
+  width:max-content;
+
+  margin:30px auto 0;
+  padding:9px 16px;
+
+  border:1px dashed rgba(124,91,230,.25);
+  border-radius:10px;
+
+  color:#7888a4;
+  font-size:11px;
+}
+
+.building-note i{
+  margin-left:6px;
+  color:#8b6df1;
+}
+/* =========================================================
+   HIDDEN ELEMENT FIX
+   ========================================================= */
+
+#emptyTree[hidden]{
+  display:none !important;
+}
+
+#curriculumTree[hidden]{
+  display:none !important;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand" onclick="location.href='/he/workspace/'">
+    <div class="brand-mark"><i class="fa-solid fa-book-open"></i></div>
+    <div><div class="brand-title">עולם הלמידה</div><div class="brand-sub">בונים מסלול שמתאים בדיוק לילד</div></div>
+  </div>
+  <div class="top-left">
+    <div class="stats"><div class="pill">⭐ <span>890</span></div><div class="pill">💎 <span>45</span></div><div class="bell"><i class="fa-regular fa-bell"></i><span class="badge">3</span></div></div>
+    <div class="user"><span id="userName">טוען...</span><img id="userAvatar" src="/assets/default-parent.png"></div>
+  </div>
+</header>
+<aside class="sidebar">
+  <button class="new-task">＋ הוסף מקצוע</button>
+  <div class="kid-actions">
+    <button class="side-item" onclick="location.href='/he/workspace/'"><i class="fa-solid fa-house"></i><span class="side-title">דף הבית</span></button>
+    <button class="side-item" onclick="location.href='/he/my-lessons/'"><i class="fa-solid fa-book-open"></i><span class="side-title">השיעורים שלי</span></button>
+    <button class="side-item" onclick="location.href='/he/exam-prep/'"><i class="fa-solid fa-bullseye"></i><span class="side-title">הכנה למבחן</span></button>
+    <button class="side-item" onclick="location.href='/he/tasks/'"><i class="fa-regular fa-calendar-check"></i><span class="side-title">משימות</span></button>
+    <button class="side-item" onclick="location.href='/he/games/'"><i class="fa-solid fa-gamepad"></i><span class="side-title">משחקים</span></button>
+    <button class="side-item" onclick="location.href='/he/games/progress/'"><i class="fa-solid fa-chart-line"></i><span class="side-title">התקדמות</span></button>
+    <button class="side-item" onclick="location.href='/he/achievements/'"><i class="fa-solid fa-trophy"></i><span class="side-title">הישגים</span></button>
+    <button class="side-item" onclick="location.href='/he/files/'"><i class="fa-solid fa-folder-open"></i><span class="side-title">הקבצים שלי</span></button>
+    <button class="side-item" onclick="location.href='/he/how-it-works/'"><i class="fa-solid fa-circle-question"></i><span class="side-title">איך זה עובד?</span></button>
+  </div>
+  <div class="sidebar-bottom">
+    <button class="manage-btn" id="openParentModal"><i class="fa-solid fa-children"></i></button>
+    <button class="manage-btn" id="openSettings"><i class="fa-solid fa-user-pen"></i></button>
+    <button class="manage-btn" id="manageSubscriptionSide"><i class="fa-regular fa-credit-card"></i></button>
+  </div>
+</aside>
+<main class="main">
+<section class="shell">
+<header class="head"><div class="spark">✦</div><h1>2הוספת מקצוע חדש</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
+<div class="grid">
+<section class="tree">
+  <div class="tree-stage">
+    <div class="empty" id="emptyTree"><div class="empty-card"><div class="orbit">＋</div><strong>המקצוע החדש ייבנה כאן</strong><p>ספרו ליועץ מה הילד רוצה ללמוד.<br>ההיררכיה תיווצר כאן תוך כדי השיחה.</p></div></div>
+    <div id="curriculumTree" class="curriculum" hidden></div>
+  </div>
+  <div class="tree-footer"><button id="approveBtn" class="approve" disabled>✦ אישור ובניית תוכנית לימודים</button></div>
+</section>
+<aside class="chat">
+  <div class="chat-head"><div class="chat-title"><strong>שיחה עם היועץ האישי</strong><span><i class="dot"></i> מחובר</span></div><div class="core">✦</div></div>
+  <div class="messages" id="messages"><div class="msg ai" id="welcome">שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור הילד/ה שלכם.<br><br>מה הייתם רוצים להוסיף?</div></div>
+  <div class="suggestions"><button data-topic="תכנות">תכנות</button><button data-topic="מדעים וטכנולוגיה">מדעים וטכנולוגיה</button><button data-topic="חשיבה לוגית">חשיבה לוגית</button><button data-topic="רובוטיקה">רובוטיקה</button><button data-topic="אסטרונומיה">אסטרונומיה</button></div>
+  <form class="form" id="chatForm"><input id="chatInput" placeholder="הקלידו תשובה..."><button><i class="fa-solid fa-paper-plane"></i></button></form>
+</aside>
+</div>
+</section>
+</main>
+</div>
+<script>
+const SUPABASE_URL="https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const sb = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+const CURRICULUM_API =
+  "https://iakids-ai-tutor-he.onrender.com/api/curriculum/chat";
+
+let CURRENT_KID = null;
+let CURRENT_PLAN = null;
+
+let CURRENT_CUSTOM_SUBJECT_ID = null;
+let CURRENT_CURRICULUM_ID = null;
+let CURRENT_VERSION = null;
+let CONVERSATION_HISTORY = [];
+function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){location.replace('/he/onboarding/cuenta/');return}const user=s.session.user;document.getElementById('userName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'הורה';document.getElementById('userAvatar').src=user.user_metadata?.avatar_url||user.user_metadata?.picture||'/assets/default-parent.png';let kidId=localStorage.getItem('active_kid_id');if(!kidId){const {data:kids}=await sb.from('kids_profiles').select('id').eq('user_id',user.id).order('created_at',{ascending:true});if(!kids?.length)return;kidId=kids[0].id;localStorage.setItem('active_kid_id',kidId)}const {data:kid,error}=await sb.from('kids_profiles').select('id,child_name,age,avatar_key,usage_goals,learning_interests').eq('id',kidId).single();if(error||!kid){console.error(error);return}CURRENT_KID=kid;window.ACTIVE_KID_ID=kid.id;document.getElementById('subtitle').textContent=`בואו נבנה יחד מקצוע חדש שמתאים בדיוק ל${kid.child_name}`;document.getElementById('welcome').innerHTML=`שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור <strong>${esc(kid.child_name)}</strong>.<br><br>מה הייתם רוצים ש${esc(kid.child_name)} ילמד/תלמד?`}
+
+
+function render(plan) {
+  if (!plan) return;
+
+  CURRENT_PLAN = plan;
+
+  const emptyTree = document.getElementById("emptyTree");
+  const tree = document.getElementById("curriculumTree");
+  const approve = document.getElementById("approveBtn");
+
+  const topics = Array.isArray(plan.topics) ? plan.topics : [];
+
+  // כל עוד יש רק מקצוע בלי נושא - אפשר כבר להראות את המקצוע
+  if (!plan.subject) return;
+
+  emptyTree.hidden = true;
+  tree.hidden = false;
+
+  tree.innerHTML = `
+    <div class="curriculum-flow">
+
+      <!-- LEVEL 1 -->
+      <div class="level level-subject">
+        <div class="level-label">מקצוע</div>
+
+        <div class="node node-subject">
+          <div class="node-icon">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+
+          <strong>${esc(plan.subject)}</strong>
+          <small>המקצוע החדש</small>
+        </div>
+      </div>
+
+      ${topics.length ? `
+        <div class="connector-down"></div>
+
+        <!-- LEVEL 2 -->
+        <div class="level">
+          <div class="level-label">נושאים מרכזיים</div>
+
+          <div class="node-row topics-row">
+            ${topics.map(topic => `
+              <div class="node node-topic">
+                <div class="node-number">02</div>
+                <strong>${esc(topic.name || "")}</strong>
+                <small>נושא מרכזי</small>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        ${topics.some(t => Array.isArray(t.units) && t.units.length) ? `
+          <div class="connector-down"></div>
+
+          <!-- LEVEL 3 -->
+          <div class="level">
+            <div class="level-label">יחידות לימוד</div>
+
+            <div class="topic-groups">
+              ${topics.map(topic => `
+                <div class="topic-group">
+
+                  <div class="group-title">
+                    ${esc(topic.name || "")}
+                  </div>
+
+                  <div class="node-row units-row">
+                    ${(topic.units || []).map(unit => `
+                      <div class="node node-unit">
+                        <div class="node-icon small">
+                          <i class="fa-solid fa-layer-group"></i>
+                        </div>
+
+                        <strong>${esc(unit.name || "")}</strong>
+                        <small>יחידת לימוד</small>
+                      </div>
+                    `).join("")}
+                  </div>
+
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        ` : ""}
+
+        ${topics.some(t =>
+          (t.units || []).some(u =>
+            Array.isArray(u.lessons) && u.lessons.length
+          )
+        ) ? `
+          <div class="connector-down"></div>
+
+          <!-- LEVEL 4 -->
+          <div class="level">
+            <div class="level-label">שיעורים</div>
+
+            <div class="lessons-groups">
+
+              ${topics.map(topic =>
+                (topic.units || []).map(unit => {
+
+                  const lessons = Array.isArray(unit.lessons)
+                    ? unit.lessons
+                    : [];
+
+                  if (!lessons.length) return "";
+
+                  return `
+                    <div class="lesson-group">
+
+                      <div class="lesson-group-title">
+                        ${esc(unit.name || "")}
+                      </div>
+
+                      <div class="node-row lessons-row">
+
+                        ${lessons.map((lesson, index) => {
+
+                          const lessonName =
+                            typeof lesson === "string"
+                              ? lesson
+                              : lesson.name;
+
+                          return `
+                            <div class="node node-lesson">
+
+                              <span class="lesson-index">
+                                ${index + 1}
+                              </span>
+
+                              <strong>
+                                ${esc(lessonName || "")}
+                              </strong>
+
+                              <small>
+                                שיעור
+                              </small>
+
+                            </div>
+                          `;
+
+                        }).join("")}
+
+                      </div>
+                    </div>
+                  `;
+
+                }).join("")
+              ).join("")}
+
+            </div>
+          </div>
+        ` : ""}
+
+      ` : `
+        <div class="building-note">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          עכשיו נגדיר מה לומדים בתוך המקצוע
+        </div>
+      `}
+
+    </div>
+  `;
+
+  const hasUnits = topics.some(
+    topic =>
+      Array.isArray(topic.units) &&
+      topic.units.length > 0
+  );
+
+  const hasLessons = topics.some(
+    topic =>
+      (topic.units || []).some(
+        unit =>
+          Array.isArray(unit.lessons) &&
+          unit.lessons.length > 0
+      )
+  );
+
+  if (hasUnits && hasLessons) {
+    approve.disabled = false;
+    approve.classList.add("ready");
+  } else {
+    approve.disabled = true;
+    approve.classList.remove("ready");
+  }
+}
+function msg(role,text){const d=document.createElement('div');d.className=`msg ${role}`;d.textContent=text;document.getElementById('messages').appendChild(d)}
+async function submitText(text) {
+
+  text = text.trim();
+
+  if (!text || !CURRENT_KID) return;
+
+  msg("parent", text);
+
+  /*
+    שומרים את הודעת ההורה בזיכרון השיחה.
+  */
+  CONVERSATION_HISTORY.push({
+    role: "user",
+    content: text
+  });
+
+
+  const input =
+    document.getElementById("chatInput");
+
+  input.disabled = true;
+
+
+  try {
+
+    const { data: sessionData } =
+      await sb.auth.getSession();
+
+    const accessToken =
+      sessionData?.session?.access_token;
+
+
+    if (!accessToken) {
+
+      location.replace(
+        "/he/onboarding/cuenta/"
+      );
+
+      return;
+    }
+
+
+    const response =
+      await fetch(
+        CURRICULUM_API,
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${accessToken}`
+
+          },
+
+
+          body: JSON.stringify({
+
+            kid_id:
+              CURRENT_KID.id,
+
+            message:
+              text,
+
+            custom_subject_id:
+              CURRENT_CUSTOM_SUBJECT_ID,
+
+            /*
+              ההודעה הנוכחית כבר נשלחת ב-message,
+              לכן לא שולחים אותה שוב בתוך history.
+            */
+            history:
+              CONVERSATION_HISTORY.slice(0, -1)
+
+          })
+
+        }
+      );
+
+
+    const rawText =
+      await response.text();
+
+
+    if (!response.ok) {
+
+      console.error(
+        "Curriculum API error:",
+        response.status,
+        rawText
+      );
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+
+    const data =
+      JSON.parse(rawText);
+
+
+    console.log(
+      "CURRICULUM RESPONSE:",
+      data
+    );
+
+
+    /*
+      מזהה המקצוע נשמר כדי שכל ההודעות הבאות
+      ימשיכו לעבוד על אותו מקצוע.
+    */
+
+    if (data.custom_subject_id) {
+
+      CURRENT_CUSTOM_SUBJECT_ID =
+        data.custom_subject_id;
+
+    }
+
+
+    if (data.curriculum_id) {
+
+      CURRENT_CURRICULUM_ID =
+        data.curriculum_id;
+
+    }
+
+
+    if (data.version !== undefined) {
+
+      CURRENT_VERSION =
+        data.version;
+
+    }
+
+
+    /*
+      תשובת ה-AI
+    */
+
+    if (data.reply) {
+
+      msg(
+        "ai",
+        data.reply
+      );
+
+      CONVERSATION_HISTORY.push({
+
+        role:
+          "assistant",
+
+        content:
+          data.reply
+
+      });
+
+    }
+
+
+    /*
+      ההיררכיה החזותית
+    */
+
+    if (data.hierarchy) {
+
+      render(
+        data.hierarchy
+      );
+
+    }
+
+
+    /*
+      DEBUG — מאוד שימושי עכשיו
+    */
+
+    console.log(
+      "CURRICULUM STATE:",
+      {
+        custom_subject_id:
+          CURRENT_CUSTOM_SUBJECT_ID,
+
+        curriculum_id:
+          CURRENT_CURRICULUM_ID,
+
+        version:
+          CURRENT_VERSION,
+
+        history:
+          CONVERSATION_HISTORY,
+
+        hierarchy:
+          data.hierarchy
+      }
+    );
+
+  }
+
+
+  catch (error) {
+
+    console.error(
+      "Curriculum chat failed:",
+      error
+    );
+
+
+    /*
+      אם הבקשה נכשלה, נוריד מה-history
+      את הודעת המשתמש האחרונה,
+      כי היא למעשה לא עובדה על ידי השרת.
+    */
+
+    const last =
+      CONVERSATION_HISTORY[
+        CONVERSATION_HISTORY.length - 1
+      ];
+
+    if (
+      last &&
+      last.role === "user" &&
+      last.content === text
+    ) {
+
+      CONVERSATION_HISTORY.pop();
+
+    }
+
+
+    msg(
+      "ai",
+      "לא הצלחתי לעדכן כרגע את תוכנית הלימודים. נסו שוב."
+    );
+
+  }
+
+
+  finally {
+
+    input.disabled = false;
+    input.focus();
+
+  }
+
+}
+document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();submitText(document.getElementById('chatInput').value);document.getElementById('chatInput').value=''});document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));
+document.getElementById('approveBtn').onclick = () => {
+
+  if (!CURRENT_PLAN) return;
+
+  console.log(
+    "Approve curriculum:",
+    {
+      custom_subject_id: CURRENT_CUSTOM_SUBJECT_ID,
+      curriculum_id: CURRENT_CURRICULUM_ID,
+      version: CURRENT_VERSION,
+      curriculum: CURRENT_PLAN
+    }
+  );
+
+};
+document.getElementById('openParentModal').onclick=()=>location.href='/he/workspace/';document.getElementById('openSettings').onclick=()=>location.href='/he/workspace/';document.getElementById('manageSubscriptionSide').onclick=()=>location.href='/he/workspace/';init();
+</script>
+</body></html>
