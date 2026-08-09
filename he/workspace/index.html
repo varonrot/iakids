@@ -30611,6 +30611,218 @@ div{
     0 0 8px
     rgba(76,238,101,.52);
 }
+    /* =====================================================
+   SCIENCE LEVEL 2 — FULL IMAGE PREMIUM CARDS
+===================================================== */
+
+#scienceLevel2 .science-tree-card{
+  position:relative !important;
+
+  height:145px !important;
+  min-height:145px !important;
+
+  padding:0 !important;
+
+  overflow:hidden !important;
+
+  border-radius:17px !important;
+
+  border:
+    1px solid
+    rgba(95,142,205,.32) !important;
+
+  background:#07111f !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 20px rgba(0,5,18,.28) !important;
+
+  isolation:isolate;
+}
+
+
+#scienceLevel2 .science-tree-card-visual{
+  position:absolute !important;
+
+  inset:0 !important;
+
+  width:100% !important;
+  height:100% !important;
+
+  margin:0 !important;
+
+  display:block !important;
+
+  overflow:hidden !important;
+
+  z-index:0 !important;
+}
+
+
+#scienceLevel2 .science-tree-card-visual img{
+  position:absolute !important;
+
+  inset:0 !important;
+
+  width:100% !important;
+  height:100% !important;
+
+  max-width:none !important;
+
+  object-fit:cover !important;
+  object-position:center !important;
+
+  transform:scale(1.02);
+
+  filter:
+    saturate(.95)
+    contrast(1.05)
+    brightness(.84) !important;
+
+  transition:
+    transform .35s ease,
+    filter .35s ease !important;
+}
+
+
+#scienceLevel2 .science-tree-card-visual::before{
+  display:none !important;
+}
+
+
+#scienceLevel2 .science-tree-card::before{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  z-index:1;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(3,9,19,.25) 0%,
+      rgba(3,9,19,.02) 28%,
+      rgba(3,9,19,.02) 72%,
+      rgba(3,9,19,.25) 100%
+    );
+}
+
+
+#scienceLevel2 .science-tree-card::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  z-index:2;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(2,8,17,.01) 0%,
+      rgba(2,8,17,.08) 38%,
+      rgba(2,8,17,.60) 68%,
+      rgba(2,8,17,.96) 100%
+    );
+}
+
+
+#scienceLevel2 .science-tree-card > strong{
+  position:absolute !important;
+
+  right:9px;
+  left:9px;
+  bottom:31px;
+
+  z-index:5;
+
+  margin:0 !important;
+
+  color:#fff !important;
+
+  font-size:14px !important;
+  line-height:1.15 !important;
+
+  font-weight:900 !important;
+
+  text-align:center;
+
+  text-shadow:
+    0 2px 7px rgba(0,0,0,.85);
+}
+
+
+#scienceLevel2 .science-tree-card > small{
+  position:absolute !important;
+
+  right:8px;
+  left:8px;
+  bottom:17px;
+
+  z-index:5;
+
+  color:
+    rgba(219,228,242,.68) !important;
+
+  font-size:9px !important;
+
+  text-align:center;
+}
+
+
+#scienceLevel2 .science-tree-progress{
+  position:absolute !important;
+
+  right:9px !important;
+  left:9px !important;
+  bottom:7px !important;
+
+  z-index:6 !important;
+
+  height:4px !important;
+
+  background:
+    rgba(100,124,160,.28) !important;
+}
+
+
+#scienceLevel2
+.science-tree-card:hover
+.science-tree-card-visual img{
+  transform:scale(1.07);
+
+  filter:
+    saturate(1.03)
+    contrast(1.07)
+    brightness(.91) !important;
+}
+
+
+#scienceLevel2 .science-tree-card.selected{
+  border-color:
+    rgba(67,224,96,.72) !important;
+
+  box-shadow:
+    0 0 19px rgba(45,220,83,.15),
+    0 8px 20px rgba(0,5,18,.30) !important;
+}
+
+
+#scienceLevel2
+.science-tree-card.selected
+.science-tree-progress span{
+  background:
+    linear-gradient(
+      90deg,
+      #35d85e,
+      #7cff88
+    ) !important;
+}
 </style>
 
 
@@ -33864,6 +34076,150 @@ const SCIENCE_CATEGORY_IMAGES = {
 
 };
 
+const SCIENCE_PARENT_LESSON_IMAGES = {
+
+  /* =====================================================
+     כדור הארץ
+  ===================================================== */
+
+  "מבנה כדור הארץ":
+    "/assets/science/topics/earth-structure.webp",
+
+  "יבשות ואוקיינוסים":
+    "/assets/science/topics/continents-oceans.webp",
+
+  "משאבי טבע":
+    "/assets/science/topics/natural-resources.webp",
+
+  "מים על פני כדור הארץ":
+    "/assets/science/topics/water-on-earth.webp",
+
+  "שמירה על כדור הארץ":
+    "/assets/science/topics/protect-earth.webp",
+
+  "אתגר כדור הארץ":
+    "/assets/science/topics/earth-challenge.webp",
+
+
+  /* =====================================================
+     כוחות ותנועה
+  ===================================================== */
+
+  "מהו כוח?":
+    "/assets/science/topics/what-is-force.webp",
+
+  "דחיפה ומשיכה":
+    "/assets/science/topics/push-pull.webp",
+
+  "כוח הכבידה":
+    "/assets/science/topics/gravity.webp",
+
+  "חיכוך":
+    "/assets/science/topics/friction.webp",
+
+  "תנועה ומהירות":
+    "/assets/science/topics/motion-speed.webp",
+
+  "אתגר הכוחות":
+    "/assets/science/topics/forces-challenge.webp",
+
+
+  /* =====================================================
+     חשמל
+  ===================================================== */
+
+  "מעגל חשמלי":
+    "/assets/science/topics/electric-circuit.webp",
+
+  "מעגל פתוח וסגור":
+    "/assets/science/topics/open-closed-circuit.webp",
+
+  "מוליכים ומבודדים":
+    "/assets/science/topics/conductors-insulators.webp",
+
+  "רכיבי המעגל":
+    "/assets/science/topics/circuit-components.webp",
+
+  "בטיחות בחשמל":
+    "/assets/science/topics/electric-safety.webp",
+
+  "אתגר החשמל":
+    "/assets/science/topics/electricity-challenge.webp",
+
+
+  /* =====================================================
+     אנרגיה
+  ===================================================== */
+
+  "מהי אנרגיה?":
+    "/assets/science/topics/what-is-energy.webp",
+
+  "סוגי אנרגיה":
+    "/assets/science/topics/energy-types.webp",
+
+  "מקורות אנרגיה":
+    "/assets/science/topics/energy-sources.webp",
+
+  "המרות אנרגיה":
+    "/assets/science/topics/energy-transformations.webp",
+
+  "אנרגיה מתחדשת":
+    "/assets/science/topics/renewable-energy.webp",
+
+  "אתגר האנרגיה":
+    "/assets/science/topics/energy-challenge.webp",
+
+
+  /* =====================================================
+     חומרים
+  ===================================================== */
+
+  "תכונות חומרים":
+    "/assets/science/topics/material-properties.webp",
+
+  "מצבי צבירה":
+    "/assets/science/topics/states-of-matter.webp",
+
+  "שינויי מצב צבירה":
+    "/assets/science/topics/state-changes.webp",
+
+  "תערובות":
+    "/assets/science/topics/mixtures.webp",
+
+  "הפרדת חומרים":
+    "/assets/science/topics/separating-materials.webp",
+
+  "אתגר החומרים":
+    "/assets/science/topics/materials-challenge.webp",
+
+
+  /* =====================================================
+     אקולוגיה
+  ===================================================== */
+
+  "מהי מערכת אקולוגית?":
+    "/assets/science/topics/what-is-ecosystem.webp",
+
+  "שרשרת מזון":
+    "/assets/science/topics/food-chain.webp",
+
+  "יצרנים צרכנים ומפרקים":
+    "/assets/science/topics/producers-consumers-decomposers.webp",
+
+  "יחסי גומלין":
+    "/assets/science/topics/ecosystem-interactions.webp",
+
+  "התאמות לסביבה":
+    "/assets/science/topics/adaptations.webp",
+
+  "השפעת האדם":
+    "/assets/science/topics/human-impact.webp",
+
+  "אתגר האקולוגיה":
+    "/assets/science/topics/ecology-challenge.webp"
+
+};
+
 let CUSTOM_SUBJECTS = [];
 
 async function loadCustomSubjectsForDashboard(){
@@ -35702,66 +36058,87 @@ async function loadScienceParentLessons(
     <div class="science-tree-row">
 
       ${
-        (data || [])
-          .map(
-            (lesson,index) => `
 
-              <button
-                type="button"
+(data || [])
+  .map(
+    (lesson,index) => {
 
-                class="
-                  science-tree-card
-                  ${
-                    index === 0
-                      ? "selected"
-                      : ""
-                  }
-                "
+      const image =
+        SCIENCE_PARENT_LESSON_IMAGES[
+          lesson.lesson_name
+        ] ||
+        "/assets/science/topics/default.webp";
 
-                data-parent-lesson-id="${lesson.id}"
-              >
 
-                <div
-                  class="science-tree-card-icon"
-                >
-                  ${
-                    lesson.is_checkpoint
-                      ? "🏆"
-                      : "🌱"
-                  }
-                </div>
+      return `
 
-                <strong>
-                  ${lesson.lesson_name}
-                </strong>
+        <button
+          type="button"
 
-                <small>
-                  ${
-                    lesson.is_checkpoint
-                      ? "אתגר מסכם"
-                      : "נושא לימוד"
-                  }
-                </small>
+          class="
+            science-tree-card
+            science-level2-image-card
+            ${
+              index === 0
+                ? "selected"
+                : ""
+            }
+          "
 
-                <div
-                  class="science-tree-progress"
-                >
-                  <span
-                    style="
-                      width:${
-                        index === 0
-                          ? 100
-                          : 25
-                      }%
-                    "
-                  ></span>
-                </div>
+          data-parent-lesson-id="${lesson.id}"
+        >
 
-              </button>
+          <div
+            class="science-tree-card-visual"
+          >
 
-            `
-          )
-          .join("")
+            <img
+              src="${image}"
+              alt="${lesson.lesson_name}"
+              loading="lazy"
+            >
+
+          </div>
+
+
+          <strong>
+            ${lesson.lesson_name}
+          </strong>
+
+
+          <small>
+            ${
+              lesson.is_checkpoint
+                ? "אתגר מסכם"
+                : "נושא לימוד"
+            }
+          </small>
+
+
+          <div
+            class="science-tree-progress"
+          >
+
+            <span
+              style="
+                width:${
+                  index === 0
+                    ? 100
+                    : 25
+                }%
+              "
+            ></span>
+
+          </div>
+
+        </button>
+
+      `;
+
+    }
+  )
+  .join("")
+
       }
 
     </div>
