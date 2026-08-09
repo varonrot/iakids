@@ -4,26 +4,277 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Animals Vocabulary | iakids</title>
+
 <link rel="stylesheet" href="../game-style.css">
+
+<style>
+:root{
+  --space-bg:#06142d;
+  --space-panel:#0b2857;
+  --space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);
+  --space-text:#f7f9ff;
+  --space-muted:#b8c7e3;
+  --space-gold:#ffd15c;
+}
+
+html,body{min-height:100%}
+
+body{
+  margin:0!important;
+  min-height:100vh!important;
+  padding:86px 18px 28px!important;
+  overflow-x:hidden;
+  color:var(--space-text)!important;
+  font-family:"Heebo","Segoe UI",Arial,sans-serif!important;
+  background:
+    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;
+  opacity:.08;
+}
+
+*{box-sizing:border-box}
+
+.game-card{
+  width:min(540px,calc(100vw - 28px))!important;
+  min-height:690px;
+  margin:0 auto!important;
+  padding:0!important;
+  overflow:hidden;
+  border:1px solid var(--space-line)!important;
+  border-radius:28px!important;
+  color:var(--space-text)!important;
+  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;
+  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08)!important;
+}
+
+.game-hud{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  z-index:20;
+  min-height:72px;
+  padding:16px 24px!important;
+  display:flex!important;
+  align-items:center;
+  justify-content:center!important;
+  gap:42px;
+  color:#fff!important;
+  background:rgba(5,18,46,.88)!important;
+  border-bottom:1px solid rgba(126,180,255,.18);
+  backdrop-filter:blur(14px);
+}
+
+.game-hud .score{color:var(--space-gold)!important}
+
+#start-screen,#play-screen,#end-screen{
+  min-height:688px;
+  padding:34px 30px 30px;
+}
+
+#start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.hero-icon{
+  margin:6px 0 8px;
+  font-size:5rem;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(2.15rem,7vw,3.1rem)!important;
+  line-height:1.05;
+  color:#fff!important;
+  text-shadow:0 4px 12px rgba(0,0,0,.22);
+}
+
+#instr{
+  max-width:420px;
+  margin:14px auto 20px;
+  color:var(--space-muted)!important;
+  font-weight:600;
+  line-height:1.65;
+}
+
+.section-label{
+  margin:8px 0 10px;
+  color:#fff;
+  font-weight:900;
+}
+
+.answer-grid{
+  width:100%;
+  gap:12px!important;
+}
+
+.game-btn{
+  min-height:54px;
+  border-radius:15px!important;
+  border:1px solid rgba(118,176,255,.34)!important;
+  color:#fff!important;
+  font-weight:900!important;
+  background:linear-gradient(180deg,#1c91db,#0877bd)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16)!important;
+}
+
+.game-btn.outline,.game-btn.secondary{
+  background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important;
+}
+
+.game-btn.success{
+  background:linear-gradient(180deg,#37d182,#16ad64)!important;
+  border-color:rgba(97,255,174,.6)!important;
+}
+
+#level-row{margin-top:16px}
+#level-row .game-btn[data-l="0"]{
+  background:linear-gradient(180deg,#8054ff,#6035dc)!important;
+}
+
+/* PLAY */
+#play-screen{text-align:center}
+
+#cue{
+  min-height:185px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:8px 0 18px;
+  border-radius:26px;
+  font-size:7rem!important;
+  background:
+    radial-gradient(circle at 50% 30%,rgba(64,169,255,.16),transparent 55%),
+    rgba(4,22,55,.48);
+  border:1px solid rgba(116,177,255,.18);
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.16));
+}
+
+#answers{
+  grid-template-columns:1fr 1fr!important;
+}
+
+#answers .game-btn{
+  min-height:70px;
+  font-size:1.25rem!important;
+}
+
+#answers .game-btn.correct{
+  background:linear-gradient(180deg,#37d182,#16ad64)!important;
+}
+
+#answers .game-btn:disabled{
+  opacity:.74;
+  cursor:default;
+}
+
+/* END */
+#end-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stars{
+  min-height:78px;
+  font-size:3.7rem!important;
+  letter-spacing:4px;
+}
+
+.big-score{
+  margin:8px 0;
+  color:#fff!important;
+  font-size:4rem!important;
+  font-weight:1000;
+}
+
+#player-line,#end-screen p{color:#d7e3f7!important}
+[hidden]{display:none!important}
+
+@media(max-width:600px){
+  body{padding:74px 10px 18px!important}
+
+  .game-card{
+    min-height:calc(100vh - 94px);
+    border-radius:22px!important;
+  }
+
+  #start-screen,#play-screen,#end-screen{
+    min-height:calc(100vh - 96px);
+    padding:26px 15px 24px;
+  }
+
+  .game-hud{
+    min-height:62px;
+    padding:12px 14px!important;
+    gap:24px;
+  }
+
+  #cue{
+    min-height:155px;
+    font-size:6rem!important;
+  }
+
+  #answers .game-btn{
+    min-height:64px;
+    font-size:1.15rem!important;
+  }
+}
+</style>
 </head>
+
 <body>
 
 <div class="game-hud">
-  <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
-  <span><span id="q-label"></span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+  <span class="score">
+    <span id="score-label"></span>:
+    <span id="score">0</span>
+  </span>
+
+  <span>
+    <span id="q-label"></span>
+    <span id="qnum">1</span>/<span id="qtotal">10</span>
+  </span>
 </div>
 
 <div class="game-card" id="card">
+
   <div id="start-screen">
-    <div style="font-size:4rem">🦁</div>
+    <div class="hero-icon">🦁</div>
+
     <h1 class="game-title" id="title"></h1>
+
     <p id="instr"></p>
-    <p id="rounds-label"></p>
+
+    <p class="section-label" id="rounds-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
-      <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline success" data-r="10" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" data-r="15" onclick="setRounds(15,this)">15</button>
     </div>
+
+    <p class="section-label" id="level-label"></p>
+
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-l="1" onclick="start(1)"></button>
       <button class="game-btn secondary" data-l="2" onclick="start(2)"></button>
@@ -33,7 +284,7 @@
   </div>
 
   <div id="play-screen" hidden>
-    <div style="font-size:5rem" id="cue"></div>
+    <div id="cue"></div>
     <div class="answer-grid" id="answers"></div>
   </div>
 
@@ -48,157 +299,428 @@
 </div>
 
 <script src="../game-sdk.js"></script>
-<script>
-const SLUG = 'animals-en';
-const T = {
-  title: { he: 'חיות באנגלית', en: 'Animals Vocabulary', es: 'Vocabulario de animales', de: 'Tiere-Vokabeln', pt: 'Vocabulário de animais' },
-  instr: { he: 'איך קוראים לחיה הזאת באנגלית? בחר את השם הנכון!', en: "What's this animal called in English? Pick the right name!", es: '¿Cómo se llama este animal en inglés?', de: 'Wie heißt dieses Tier auf Englisch?', pt: 'Como se chama este animal em inglês?' },
-  rounds: { he: 'כמה שאלות?', en: 'How many questions?', es: '¿Cuántas preguntas?', de: 'Wie viele Fragen?', pt: 'Quantas perguntas?' },
-};
-document.getElementById('title').textContent = IAKidsLang.t(T.title);
-document.getElementById('instr').textContent = IAKidsLang.t(T.instr);
-document.getElementById('rounds-label').textContent = IAKidsLang.t(T.rounds);
-document.getElementById('score-label').textContent = IAKidsLang.ui('score');
-document.getElementById('q-label').textContent = IAKidsLang.ui('question');
-document.getElementById('best-label').textContent = IAKidsLang.ui('your_best');
-document.getElementById('again-btn').textContent = IAKidsLang.ui('play_again');
-for (const [l, k] of [[1, 'level_easy'], [2, 'level_medium'], [3, 'level_hard'], [0, 'level_random']])
-  document.querySelector(`#level-row [data-l="${l}"]`).textContent = IAKidsLang.ui(k);
 
-let game, score = 0, qnum = 0, level = 1, right = 0, TOTAL = 10, locked = false;
-let diff, timer;
+<script>
+const SLUG='animals-en';
+const $=id=>document.getElementById(id);
+const rnd=n=>Math.floor(Math.random()*n);
+
+const T_REGULAR={
+  title:{he:'חיות באנגלית',en:'Animals Vocabulary',es:'Vocabulario de animales',de:'Tiere-Vokabeln',pt:'Vocabulário de animais'},
+  instr:{he:'איך קוראים לחיה הזאת באנגלית? בחרו את השם הנכון!',en:"What's this animal called in English? Pick the right name!",es:'¿Cómo se llama este animal en inglés?',de:'Wie heißt dieses Tier auf Englisch?',pt:'Como se chama este animal em inglês?'},
+  rounds:{he:'כמה שאלות?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בחרו רמת קושי',en:'Choose difficulty'}
+};
+
+const T_NIQQUD={
+  title:{he:'חַיּוֹת בְּאַנְגְּלִית',en:'Animals Vocabulary',es:'Vocabulario de animales',de:'Tiere-Vokabeln',pt:'Vocabulário de animais'},
+  instr:{he:'אֵיךְ קוֹרְאִים לַחַיָּה הַזֹּאת בְּאַנְגְּלִית? בַּחֲרוּ אֶת הַשֵּׁם הַנָּכוֹן!',en:"What's this animal called in English? Pick the right name!",es:'¿Cómo se llama este animal en inglés?',de:'Wie heißt dieses Tier auf Englisch?',pt:'Como se chama este animal em inglês?'},
+  rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},
+  level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'}
+};
+
+let CHILD_AGE=null;
+let USE_NIQQUD=false;
+let T=T_REGULAR;
+
+let game,score=0,qnum=0,level=1,right=0,TOTAL=10,locked=false;
+let diff,timer,currentAnswer='',ending=false,mistakes=0,timeouts=0;
+
+const BANK={
+  1:[
+    {word:'Dog',emoji:'🐶'},{word:'Cat',emoji:'🐱'},{word:'Cow',emoji:'🐮'},
+    {word:'Pig',emoji:'🐷'},{word:'Horse',emoji:'🐴'},{word:'Sheep',emoji:'🐑'},
+    {word:'Chicken',emoji:'🐔'},{word:'Duck',emoji:'🦆'},{word:'Rabbit',emoji:'🐰'},
+    {word:'Goat',emoji:'🐐'}
+  ],
+  2:[
+    {word:'Lion',emoji:'🦁'},{word:'Tiger',emoji:'🐯'},{word:'Elephant',emoji:'🐘'},
+    {word:'Monkey',emoji:'🐒'},{word:'Bear',emoji:'🐻'},{word:'Zebra',emoji:'🦓'},
+    {word:'Giraffe',emoji:'🦒'},{word:'Kangaroo',emoji:'🦘'},{word:'Penguin',emoji:'🐧'},
+    {word:'Fox',emoji:'🦊'}
+  ],
+  3:[
+    {word:'Owl',emoji:'🦉'},{word:'Wolf',emoji:'🐺'},{word:'Koala',emoji:'🐨'},
+    {word:'Panda',emoji:'🐼'},{word:'Hedgehog',emoji:'🦔'},{word:'Camel',emoji:'🐪'},
+    {word:'Dolphin',emoji:'🐬'},{word:'Whale',emoji:'🐳'},{word:'Octopus',emoji:'🐙'},
+    {word:'Crocodile',emoji:'🐊'},{word:'Snake',emoji:'🐍'},{word:'Turtle',emoji:'🐢'}
+  ]
+};
+
+async function loadKidContext(){
+  try{
+    const kidId=localStorage.getItem('active_kid_id');
+    if(!kidId) return;
+
+    const client=await IAKidsActivity._getClient();
+
+    const {data,error}=await client
+      .from('kids_profiles')
+      .select('id, age')
+      .eq('id',kidId)
+      .maybeSingle();
+
+    if(!error && data){
+      CHILD_AGE=Number(data.age);
+      USE_NIQQUD=CHILD_AGE===1 || CHILD_AGE===2;
+    }
+  }catch(e){
+    console.warn('[animals-en] loadKidContext',e);
+  }
+}
+
+function applyLanguage(){
+  T=USE_NIQQUD ? T_NIQQUD : T_REGULAR;
+
+  $('title').textContent=IAKidsLang.t(T.title);
+  $('instr').textContent=IAKidsLang.t(T.instr);
+  $('rounds-label').textContent=IAKidsLang.t(T.rounds);
+  $('level-label').textContent=IAKidsLang.t(T.level);
+
+  $('score-label').textContent=IAKidsLang.ui('score');
+  $('q-label').textContent=IAKidsLang.ui('question');
+  $('best-label').textContent=IAKidsLang.ui('your_best');
+  $('again-btn').textContent=IAKidsLang.ui('play_again');
+
+  for(const [lvl,key] of [
+    [1,'level_easy'],
+    [2,'level_medium'],
+    [3,'level_hard'],
+    [0,'level_random']
+  ]){
+    document.querySelector(`#level-row [data-l="${lvl}"]`).textContent=
+      IAKidsLang.ui(key);
+  }
+}
+
 IAKidsCoins.mount();
+
 IAKidsHelp.mount({
-  slug: SLUG,
-  how: 'מופיע אימוג\'י של חיה — צריך לבחור מתוך 4 שמות באנגלית את השם הנכון של החיה, לפני שהפצצה מתפוצצת! 💣',
-  example: '🐶 ← <span dir="ltr"><b>Dog</b></span>',
+  slug:SLUG,
+  how:'מופיע אימוג׳י של חיה — צריך לבחור מתוך 4 שמות באנגלית את השם הנכון של החיה לפני שהזמן נגמר.',
+  example:'🐶 ← <span dir="ltr"><b>Dog</b></span>'
 });
 
-// animal bank: emoji ↔ English name, by level
-const BANK = {
-  1: [ // easy: pets & farm animals
-    { word: 'Dog', emoji: '🐶' }, { word: 'Cat', emoji: '🐱' }, { word: 'Cow', emoji: '🐮' },
-    { word: 'Pig', emoji: '🐷' }, { word: 'Horse', emoji: '🐴' }, { word: 'Sheep', emoji: '🐑' },
-    { word: 'Chicken', emoji: '🐔' }, { word: 'Duck', emoji: '🦆' }, { word: 'Rabbit', emoji: '🐰' },
-    { word: 'Goat', emoji: '🐐' },
-  ],
-  2: [ // medium: common wild / zoo animals
-    { word: 'Lion', emoji: '🦁' }, { word: 'Tiger', emoji: '🐯' }, { word: 'Elephant', emoji: '🐘' },
-    { word: 'Monkey', emoji: '🐒' }, { word: 'Bear', emoji: '🐻' }, { word: 'Zebra', emoji: '🦓' },
-    { word: 'Giraffe', emoji: '🦒' }, { word: 'Kangaroo', emoji: '🦘' }, { word: 'Penguin', emoji: '🐧' },
-    { word: 'Fox', emoji: '🦊' },
-  ],
-  3: [ // hard: wild / less common animals
-    { word: 'Owl', emoji: '🦉' }, { word: 'Wolf', emoji: '🐺' }, { word: 'Koala', emoji: '🐨' },
-    { word: 'Panda', emoji: '🐼' }, { word: 'Hedgehog', emoji: '🦔' }, { word: 'Camel', emoji: '🐪' },
-    { word: 'Dolphin', emoji: '🐬' }, { word: 'Whale', emoji: '🐳' }, { word: 'Octopus', emoji: '🐙' },
-    { word: 'Crocodile', emoji: '🐊' }, { word: 'Snake', emoji: '🐍' }, { word: 'Turtle', emoji: '🐢' },
-  ],
-};
+function setRounds(n,btn){
+  TOTAL=n;
 
-(async () => {
-  game = await IAKidsGame.init(SLUG);
-  const p = await game.loadProgress();
-  const r = p?.rounds || TOTAL;
-  setRounds(r, document.querySelector(`#rounds-row [data-r="${r}"]`));
-  if (p?.lastLevel != null)
-    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('bounce-in');
-})();
+  document.querySelectorAll('#rounds-row .game-btn')
+    .forEach(b=>b.classList.remove('success'));
 
-function setRounds(n, btn) {
-  TOTAL = n;
-  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
   btn?.classList.add('success');
 }
 
-const show = id => {
-  for (const s of ['start-screen', 'play-screen', 'end-screen'])
-    document.getElementById(s).hidden = s !== id;
+const ready=(async()=>{
+  await loadKidContext();
+  applyLanguage();
+
+  game=await IAKidsGame.init(SLUG);
+
+  const p=await game.loadProgress();
+  const r=p?.rounds || TOTAL;
+
+  setRounds(
+    r,
+    document.querySelector(`#rounds-row [data-r="${r}"]`) || $('rounds-row').children[1]
+  );
+
+  if(p?.lastLevel!=null){
+    document.querySelector(`#level-row [data-l="${p.lastLevel}"]`)?.classList.add('success');
+  }
+})();
+
+const show=id=>{
+  ['start-screen','play-screen','end-screen']
+    .forEach(s=>$(s).hidden=s!==id);
 };
 
-async function start(lvl) {
-  if (!game) game = await IAKidsGame.init(SLUG);
-  level = lvl;
-  diff = game.difficulty(lvl || 1, 3);
-  timer = game.timer({ style: 'bomb', onTimeout: () => answer(false, null) });
-  await game.saveProgress({ lastLevel: lvl, rounds: TOTAL });
-  document.getElementById('qtotal').textContent = TOTAL;
-  show('play-screen');
-  next();
+function shuffle(arr){
+  const a=[...arr];
+
+  for(let i=a.length-1;i>0;i--){
+    const j=rnd(i+1);
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+
+  return a;
 }
 
-const rnd = n => Math.floor(Math.random() * n);
-const shuffle = a => a.sort(() => Math.random() - 0.5);
-const pick = a => a[rnd(a.length)];
-function speak(text) {
-  try {
-    if (!('speechSynthesis' in window)) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
+function pick(a){
+  return a[rnd(a.length)];
+}
+
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+
+    speechSynthesis.cancel();
+
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US';
     speechSynthesis.speak(u);
-  } catch (e) { /* TTS optional */ }
+  }catch(e){}
 }
 
-function makeQuestion(lvl) {
-  const pool = BANK[lvl];
-  const correct = pick(pool);
-  const others = pool.filter(w => w.word !== correct.word);
-  shuffle(others);
-  const options = shuffle([correct.word, ...others.slice(0, 3).map(w => w.word)]);
-  return { emoji: correct.emoji, answer: correct.word, options };
+function makeQuestion(lvl){
+  const pool=BANK[lvl];
+  const correct=pick(pool);
+
+  const others=shuffle(
+    pool.filter(w=>w.word!==correct.word)
+  );
+
+  const options=shuffle([
+    correct.word,
+    ...others.slice(0,3).map(w=>w.word)
+  ]);
+
+  return {
+    emoji:correct.emoji,
+    answer:correct.word,
+    options
+  };
 }
 
-async function next() {
-  if (qnum >= TOTAL) return end();
+async function start(lvl){
+  await ready;
+
+  level=lvl;
+  diff=game.difficulty(lvl||1,3);
+
+  timer=game.timer({
+    style:'bomb',
+    onTimeout:()=>{
+      if(!locked) handleTimeout();
+    }
+  });
+
+  score=0;
+  qnum=0;
+  right=0;
+  mistakes=0;
+  timeouts=0;
+  ending=false;
+  locked=false;
+  currentAnswer='';
+
+  $('score').textContent='0';
+  $('qnum').textContent='1';
+  $('qtotal').textContent=TOTAL;
+
+  IAKidsActivity.configure({
+    difficulty:lvl||1,
+    questionsCount:TOTAL,
+    metadata:{
+      game_mode:'animals_en',
+      game_slug:SLUG,
+      selected_level:lvl,
+      random_difficulty:lvl===0,
+      child_age:CHILD_AGE,
+      uses_niqqud:USE_NIQQUD,
+      language_subject:'english',
+      vocabulary_category:'animals',
+      cue_type:'emoji',
+      timer_enabled:true,
+      tts_feedback:true
+    }
+  });
+
+  await game.saveProgress({
+    lastLevel:lvl,
+    rounds:TOTAL
+  });
+
+  show('play-screen');
+  await next();
+}
+
+async function next(){
+  if(ending) return;
+
+  if(qnum>=TOTAL){
+    await end();
+    return;
+  }
+
   qnum++;
-  locked = false;
-  document.getElementById('qnum').textContent = qnum;
-  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.emoji + '|' + x.answer);
-  document.getElementById('cue').textContent = q.emoji;
-  const grid = document.getElementById('answers');
-  grid.innerHTML = '';
-  for (const o of q.options) {
-    const btn = document.createElement('button');
-    btn.className = 'game-btn';
-    btn.innerHTML = `<span dir="ltr">${o}</span>`;
-    btn.onclick = () => answer(o === q.answer, btn, q.answer);
+  locked=false;
+
+  $('qnum').textContent=qnum;
+
+  const lvl=level===0 ? 1+rnd(3) : diff.level;
+
+  const q=await game.newQuestion(
+    ()=>makeQuestion(lvl),
+    x=>`${x.emoji}|${x.answer}`
+  );
+
+  currentAnswer=q.answer;
+
+  IAKidsActivity.questionStarted();
+
+  $('cue').textContent=q.emoji;
+
+  const grid=$('answers');
+  grid.innerHTML='';
+
+  for(const option of q.options){
+    const btn=document.createElement('button');
+    btn.className='game-btn';
+    btn.innerHTML=`<span dir="ltr">${option}</span>`;
+    btn.onclick=()=>answer(option,btn);
     grid.appendChild(btn);
   }
-  timer.start(IAKidsTimer.secondsFor(lvl));
+
+  timer.start(
+    IAKidsTimer.secondsFor(lvl)
+  );
 }
 
-function answer(ok, btn, correctWord) {
-  if (locked) return;
-  locked = true;
+async function answer(selected,btn){
+  if(locked || ending) return;
+
+  locked=true;
   timer.stop();
-  if (ok) {
-    score += 10; right++;
+
+  document.querySelectorAll('#answers .game-btn')
+    .forEach(b=>b.disabled=true);
+
+  const ok=selected===currentAnswer;
+
+  if(ok){
+    score+=10;
+    right++;
+
     diff.right();
+    IAKidsActivity.correct();
+
     IAKidsFX.correct(btn);
-    IAKidsCoins.right(btn);
-    if (correctWord) speak(correctWord);
-  } else {
+    await IAKidsCoins.right(btn);
+
+    speak(currentAnswer);
+
+  }else{
+    mistakes++;
+
     diff.wrong();
-    IAKidsFX.wrong(btn);
-    IAKidsCoins.wrong();
+    IAKidsActivity.wrong();
+
+    if(btn) IAKidsFX.wrong(btn);
+    await IAKidsCoins.wrong();
+
+    [...$('answers').children].forEach(b=>{
+      if(b.textContent.trim()===currentAnswer){
+        b.classList.add('correct');
+      }
+    });
   }
-  document.getElementById('score').textContent = score;
-  setTimeout(next, 700);
+
+  $('score').textContent=score;
+
+  setTimeout(async()=>{
+    await next();
+  },ok ? 650 : 950);
 }
 
-async function end() {
-  await game.saveScore(score, { level, rounds: TOTAL, right });
-  const top = (await game.getHighScores(1))[0];
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('best').textContent = top?.score ?? score;
-  document.getElementById('player-line').textContent =
-    `${top?.player || IAKidsLang.ui('guest')} · ${new Date().toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}`;
-  document.getElementById('stars').textContent =
-    '⭐'.repeat(Math.max(1, Math.round(right / TOTAL * 3)));
-  game.shareButton(score, document.getElementById('share-slot'));
+async function handleTimeout(){
+  if(locked || ending) return;
+
+  locked=true;
+  timer.stop();
+  timeouts++;
+
+  document.querySelectorAll('#answers .game-btn')
+    .forEach(b=>b.disabled=true);
+
+  diff.wrong();
+  IAKidsActivity.skipped();
+
+  await IAKidsCoins.wrong();
+
+  [...$('answers').children].forEach(b=>{
+    if(b.textContent.trim()===currentAnswer){
+      b.classList.add('correct');
+    }
+  });
+
+  setTimeout(async()=>{
+    await next();
+  },900);
+}
+
+async function end(){
+  if(ending) return;
+
+  ending=true;
+  locked=true;
+  timer?.stop();
+
+  const maxScore=TOTAL*10;
+
+  const accuracy=
+    right /
+    Math.max(
+      1,
+      right+mistakes+timeouts
+    );
+
+  await game.saveScore(
+    score,
+    {
+      level,
+      rounds:TOTAL,
+      right,
+      mistakes,
+      timeouts
+    }
+  );
+
+  const top=(await game.getHighScores(1))[0];
+
+  $('final-score').textContent=score;
+  $('best').textContent=top?.score??score;
+
+  $('player-line').textContent=
+    `${top?.player || IAKidsLang.ui('guest')} · ${
+      new Date().toLocaleString(
+        'he-IL',
+        {dateStyle:'short',timeStyle:'short'}
+      )
+    }`;
+
+  $('stars').textContent=
+    '⭐'.repeat(
+      accuracy>=.9 ? 3 :
+      accuracy>=.7 ? 2 : 1
+    );
+
+  await game.complete(
+    score,
+    {
+      maxScore,
+      performanceScore:Math.round(accuracy*100),
+      metadata:{
+        game_mode:'animals_en',
+        game_slug:SLUG,
+        selected_level:level,
+        random_difficulty:level===0,
+        total_rounds:TOTAL,
+        correct_answers:right,
+        mistakes,
+        timeouts,
+        child_age:CHILD_AGE,
+        uses_niqqud:USE_NIQQUD,
+        language_subject:'english',
+        vocabulary_category:'animals',
+        cue_type:'emoji',
+        timer_enabled:true,
+        tts_feedback:true
+      }
+    }
+  );
+
+  game.shareButton(score,$('share-slot'));
   show('end-screen');
-  game.complete(score);
 }
 </script>
 </body>
