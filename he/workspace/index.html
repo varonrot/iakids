@@ -13607,6 +13607,196 @@ data-custom-slot="1"
   </div>
 
 </section>
+    
+    <!-- =====================================================
+     CUSTOM SUBJECT VIEW
+===================================================== -->
+
+<section
+  id="customSubjectView"
+  class="science-hierarchy-view"
+  style="display:none;"
+>
+
+  <div class="science-subject-layout">
+
+    <!-- =============================================
+         MAIN CUSTOM SUBJECT TREE
+    ============================================== -->
+
+    <div class="science-hierarchy-screen">
+
+      <header class="science-tree-header">
+
+        <button
+          type="button"
+          class="science-tree-back"
+          onclick="closeCustomSubject()"
+        >
+          <i class="fa-solid fa-arrow-right"></i>
+          חזרה
+        </button>
+
+        <div class="science-tree-title-icon">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+
+        <div>
+          <h1 id="customSubjectTitle">
+            מקצוע אישי
+          </h1>
+
+          <p>
+            בחר יחידת לימוד כדי להתחיל ללמוד ולהתקדם
+          </p>
+        </div>
+
+      </header>
+
+
+      <!-- =============================================
+           BREADCRUMB
+      ============================================== -->
+
+      <div
+        id="customSubjectBreadcrumb"
+        class="science-breadcrumb"
+      >
+        <span
+          id="customSubjectBreadcrumbRoot"
+          class="active"
+        >
+          מקצוע אישי
+        </span>
+      </div>
+
+
+      <!-- =============================================
+           TREE
+      ============================================== -->
+
+      <div
+        id="customSubjectTree"
+        class="science-tree"
+      >
+        <div class="science-tree-loading">
+          טוענים את תוכנית הלימודים...
+        </div>
+      </div>
+
+
+      <!-- =============================================
+           LEGEND
+      ============================================== -->
+
+      <div class="science-tree-legend">
+
+        <span>
+          <i class="science-legend-dot completed"></i>
+          הושלם
+        </span>
+
+        <span>
+          <i class="science-legend-dot current"></i>
+          נוכחי
+        </span>
+
+        <span>
+          <i class="science-legend-dot locked"></i>
+          נעול
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- =============================================
+         RIGHT SIDEBAR
+    ============================================== -->
+
+    <aside class="science-rightbar">
+
+      <section
+        class="science-side-card science-progress-card"
+      >
+
+        <h3 id="customSubjectProgressTitle">
+          ההתקדמות שלי
+        </h3>
+
+        <div class="science-side-donut">
+
+          <div class="science-side-donut-inner">
+
+            <strong id="customSubjectProgressPercent">
+              0%
+            </strong>
+
+            <span>
+              התקדמות כללית
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="science-side-stats">
+
+          <div>
+            <strong id="customSubjectLessonsTotal">
+              0
+            </strong>
+            <span>שיעורים</span>
+          </div>
+
+          <div>
+            <strong id="customSubjectLessonsCompleted">
+              0
+            </strong>
+            <span>הושלמו</span>
+          </div>
+
+          <div>
+            <strong id="customSubjectLessonsRemaining">
+              0
+            </strong>
+            <span>נותרו</span>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =============================================
+           NEXT LESSON
+      ============================================== -->
+
+      <section
+        class="science-side-card science-continue-card"
+      >
+
+        <h3>
+          השיעור הבא
+        </h3>
+
+        <div
+          id="customSubjectNextLesson"
+          class="science-tree-loading"
+        >
+          עדיין לא נבחר שיעור
+        </div>
+
+      </section>
+
+    </aside>
+
+  </div>
+
+</section>
+    
     <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW
      ===================================================== -->
@@ -27715,7 +27905,7 @@ document.addEventListener(
 
 .kingdom-label-shadow{
   top:60%;
-  left:14%;
+  left:10%;
 }
 
 
@@ -27734,8 +27924,8 @@ document.addEventListener(
 =========================== */
 
 .kingdom-label-desert{
-  top:80%;
-  left:74%;
+  top:79%;
+  left:76%;
 }
 
     /* =====================================================
@@ -32774,7 +32964,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V18";
+      "▶ Rotem V19";
 
 
     document.body.appendChild(
@@ -33551,11 +33741,11 @@ document
           );
 
 
-          // בשלב הבא נחבר כאן:
-          // await openCustomSubject(
-          //   subjectId,
-          //   subjectName
-          // );
+
+          await openCustomSubject(
+             subjectId,
+             subjectName
+           );
 
         }
       );
