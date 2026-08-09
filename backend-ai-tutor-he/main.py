@@ -351,12 +351,29 @@ class TutorChatRequest(BaseModel):
     message: str
     kid_id: str
 
+class CurriculumLesson(BaseModel):
+    name: str
+
+
+class CurriculumUnit(BaseModel):
+    name: str
+    lessons: list[CurriculumLesson]
+
+
+class CurriculumTopic(BaseModel):
+    name: str
+    units: list[CurriculumUnit]
+
+
+class CurriculumHierarchy(BaseModel):
+    subject: str
+    topics: list[CurriculumTopic]
+
+
 class CurriculumBuilderChatRequest(BaseModel):
     kid_id: str
     message: str
 
-    # בהודעה הראשונה עדיין אין subject id.
-    # אחרי שהמקצוע נוצר, ה-Frontend ישלח אותו בכל הודעה.
     custom_subject_id: str | None = None
 
     history: list[dict] | None = None
@@ -364,9 +381,13 @@ class CurriculumBuilderChatRequest(BaseModel):
 
 class CurriculumBuilderAIResponse(BaseModel):
     reply: str
+
     subject: str | None = None
+
     focus_topic: str | None = None
-    hierarchy: dict | None = None
+
+    hierarchy: CurriculumHierarchy | None = None
+
     ready_to_create: bool = False
 
 class TutorTTSRequest(BaseModel):
@@ -9711,11 +9732,20 @@ def curriculum_builder_chat(
             or ""
         ).strip()
 
-        hierarchy = (
-            curriculum_data.hierarchy
-            or current_tree
-            or {}
-        )
+        if curriculum_data.hierarchy:
+
+            hierarchy = (
+                curriculum_data
+                .hierarchy
+                .model_dump()
+            )
+
+        else:
+
+            hierarchy = (
+                    current_tree
+                    or {}
+            )
 
         # =============================================
         # CREATE SUBJECT
