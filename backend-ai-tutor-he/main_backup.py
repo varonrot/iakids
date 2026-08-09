@@ -41,6 +41,9 @@ LESSON_DIRECTOR_PROMPT_PATH = Path(
 LEARNING_COACH_PROMPT_PATH = Path(
     "prompts/learning_coach_system_prompt.txt"
 )
+CURRICULUM_BUILDER_PROMPT_PATH = Path(
+    "prompts/iakids_curriculum_builder_system_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -246,6 +249,11 @@ if not LEARNING_COACH_PROMPT_PATH.exists():
         f"Missing Learning Coach prompt file: "
         f"{LEARNING_COACH_PROMPT_PATH}"
     )
+if not CURRICULUM_BUILDER_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Curriculum Builder prompt file: "
+        f"{CURRICULUM_BUILDER_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -273,6 +281,12 @@ LESSON_DIRECTOR_PROMPT_TEMPLATE = (
 )
 LEARNING_COACH_PROMPT_TEMPLATE = (
     LEARNING_COACH_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+CURRICULUM_BUILDER_PROMPT_TEMPLATE = (
+    CURRICULUM_BUILDER_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -337,6 +351,44 @@ class TutorChatRequest(BaseModel):
     message: str
     kid_id: str
 
+class CurriculumLesson(BaseModel):
+    name: str
+
+
+class CurriculumUnit(BaseModel):
+    name: str
+    lessons: list[CurriculumLesson]
+
+
+class CurriculumTopic(BaseModel):
+    name: str
+    units: list[CurriculumUnit]
+
+
+class CurriculumHierarchy(BaseModel):
+    subject: str
+    topics: list[CurriculumTopic]
+
+
+class CurriculumBuilderChatRequest(BaseModel):
+    kid_id: str
+    message: str
+
+    custom_subject_id: str | None = None
+
+    history: list[dict] | None = None
+
+
+class CurriculumBuilderAIResponse(BaseModel):
+    reply: str
+
+    subject: str | None = None
+
+    focus_topic: str | None = None
+
+    hierarchy: CurriculumHierarchy | None = None
+
+    ready_to_create: bool = False
 
 class TutorTTSRequest(BaseModel):
     text: str
@@ -646,6 +698,404 @@ def get_child_by_id(user_id: str, kid_id: str):
         raise HTTPException(status_code=404, detail="Child not found")
 
     return res.data
+
+# =====================================================
+# CUSTOM CURRICULUM HELPERS
+# =====================================================
+
+def get_custom_subject(
+        user_id: str,
+        kid_id: str,
+        custom_subject_id: str
+):
+    res = (
+        sb.table(
+            "kid_custom_subjects"
+        )
+        .select("*")
+        .eq(
+            "id",
+            custom_subject_id
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Custom subject not found"
+        )
+
+    return res.data[0]
+
+
+def create_custom_subject(
+        user_id: str,
+        kid_id: str,
+        subject_name: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    clean_subject_name = str(
+        subject_name or ""
+    ).strip()
+
+    if not clean_subject_name:
+        raise ValueError(
+            "subject_name is required"
+        )
+
+    res = (
+        sb.table(
+            "kid_custom_subjects"
+        )
+        .insert({
+            "user_id":
+                user_id,
+
+            "kid_id":
+                kid_id,
+
+            "subject_name":
+                clean_subject_name,
+
+            "status":
+                "draft",
+
+            "created_by":
+                "parent_ai_builder",
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+        .execute()
+    )
+
+    if not res.data:
+        raise RuntimeError(
+            "Failed to create custom subject"
+        )
+
+    return res.data[0]
+
+
+def get_current_custom_curriculum(
+        custom_subject_id: str
+):
+    res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .select("*")
+        .eq(
+            "custom_subject_id",
+            custom_subject_id
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return None
+
+    return res.data[0]
+
+
+def create_custom_curriculum(
+        user_id: str,
+        kid_id: str,
+        custom_subject_id: str,
+        curriculum_json: dict,
+        ready_to_create: bool,
+        parent_message: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    curriculum_status = (
+        "ready_for_approval"
+        if ready_to_create
+        else "building"
+    )
+
+    # =============================================
+    # CURRENT VERSION
+    # =============================================
+
+    curriculum_res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .insert({
+            "user_id":
+                user_id,
+
+            "kid_id":
+                kid_id,
+
+            "custom_subject_id":
+                custom_subject_id,
+
+            "curriculum_json":
+                curriculum_json,
+
+            "version":
+                1,
+
+            "status":
+                curriculum_status,
+
+            "last_change_type":
+                "created",
+
+            "last_change_summary":
+                "Initial curriculum created by AI",
+
+            "updated_by":
+                "ai",
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+        .execute()
+    )
+
+    if not curriculum_res.data:
+        raise RuntimeError(
+            "Failed to create custom curriculum"
+        )
+
+    curriculum = (
+        curriculum_res.data[0]
+    )
+
+    # =============================================
+    # VERSION 1 SNAPSHOT
+    # =============================================
+
+    sb.table(
+        "kid_custom_curriculum_versions"
+    ).insert({
+        "user_id":
+            user_id,
+
+        "kid_id":
+            kid_id,
+
+        "custom_subject_id":
+            custom_subject_id,
+
+        "curriculum_id":
+            curriculum["id"],
+
+        "version":
+            1,
+
+        "curriculum_json":
+            curriculum_json,
+
+        "change_type":
+            "created",
+
+        "change_summary":
+            "Initial curriculum created by AI",
+
+        "changed_by":
+            "ai",
+
+        "parent_message":
+            parent_message,
+
+        "created_at":
+            now_iso
+    }).execute()
+
+    return curriculum
+
+
+def update_custom_curriculum(
+        user_id: str,
+        kid_id: str,
+        custom_subject: dict,
+        curriculum: dict,
+        curriculum_json: dict,
+        subject_name: str | None,
+        ready_to_create: bool,
+        parent_message: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    current_version = int(
+        curriculum.get(
+            "version"
+        )
+        or 1
+    )
+
+    new_version = (
+        current_version + 1
+    )
+
+    curriculum_status = (
+        "ready_for_approval"
+        if ready_to_create
+        else "building"
+    )
+
+    # =============================================
+    # UPDATE SUBJECT NAME IF AI REFINED IT
+    # =============================================
+
+    clean_subject_name = str(
+        subject_name or ""
+    ).strip()
+
+    if (
+            clean_subject_name
+            and
+            clean_subject_name
+            != custom_subject.get(
+                "subject_name"
+            )
+    ):
+        sb.table(
+            "kid_custom_subjects"
+        ).update({
+            "subject_name":
+                clean_subject_name,
+
+            "updated_at":
+                now_iso
+        }).eq(
+            "id",
+            custom_subject["id"]
+        ).eq(
+            "user_id",
+            user_id
+        ).execute()
+
+    # =============================================
+    # UPDATE CURRENT CURRICULUM
+    # =============================================
+
+    updated_res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .update({
+            "curriculum_json":
+                curriculum_json,
+
+            "version":
+                new_version,
+
+            "status":
+                curriculum_status,
+
+            "last_change_type":
+                "ai_update",
+
+            "last_change_summary":
+                "Curriculum updated from parent conversation",
+
+            "updated_by":
+                "ai",
+
+            "updated_at":
+                now_iso
+        })
+        .eq(
+            "id",
+            curriculum["id"]
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .execute()
+    )
+
+    if not updated_res.data:
+        raise RuntimeError(
+            "Failed to update custom curriculum"
+        )
+
+    updated_curriculum = (
+        updated_res.data[0]
+    )
+
+    # =============================================
+    # SAVE NEW VERSION SNAPSHOT
+    # =============================================
+
+    sb.table(
+        "kid_custom_curriculum_versions"
+    ).insert({
+        "user_id":
+            user_id,
+
+        "kid_id":
+            kid_id,
+
+        "custom_subject_id":
+            custom_subject["id"],
+
+        "curriculum_id":
+            curriculum["id"],
+
+        "version":
+            new_version,
+
+        "curriculum_json":
+            curriculum_json,
+
+        "change_type":
+            "ai_update",
+
+        "change_summary":
+            "Curriculum updated from parent conversation",
+
+        "changed_by":
+            "ai",
+
+        "parent_message":
+            parent_message,
+
+        "created_at":
+            now_iso
+    }).execute()
+
+    return updated_curriculum
 
 def get_gender_placeholders(
         child: dict
@@ -9043,6 +9493,477 @@ def homework_analyze(
 # =====================================================
 # AI TUTOR CHAT
 # =====================================================
+
+# =====================================================
+# CURRICULUM BUILDER CHAT
+# =====================================================
+
+@app.post("/api/curriculum/chat")
+def curriculum_builder_chat(
+        body: CurriculumBuilderChatRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        message = str(
+            body.message or ""
+        ).strip()
+
+        if not message:
+            raise HTTPException(
+                status_code=400,
+                detail="message is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        custom_subject = None
+        current_curriculum = None
+
+        # =============================================
+        # LOAD EXISTING SUBJECT + TREE
+        # =============================================
+
+        if body.custom_subject_id:
+
+            custom_subject = (
+                get_custom_subject(
+                    user_id=user.id,
+                    kid_id=child["id"],
+                    custom_subject_id=
+                        body.custom_subject_id
+                )
+            )
+
+            current_curriculum = (
+                get_current_custom_curriculum(
+                    custom_subject_id=
+                        custom_subject["id"]
+                )
+            )
+
+        current_tree = {}
+
+        if current_curriculum:
+            current_tree = (
+                current_curriculum.get(
+                    "curriculum_json"
+                )
+                or {}
+            )
+
+        # =============================================
+        # RUNTIME CONTEXT
+        # =============================================
+
+        runtime_context = {
+
+            "child": {
+                "id":
+                    child.get("id"),
+
+                "name":
+                    child.get("child_name"),
+
+                # אצלנו age משמש כמספר הכיתה
+                "grade":
+                    child.get("age"),
+
+                "gender":
+                    child.get("gender")
+                    or "male"
+            },
+
+            "current_subject": (
+                {
+                    "id":
+                        custom_subject.get("id"),
+
+                    "subject_name":
+                        custom_subject.get(
+                            "subject_name"
+                        ),
+
+                    "status":
+                        custom_subject.get(
+                            "status"
+                        )
+                }
+                if custom_subject
+                else None
+            ),
+
+            "current_curriculum": (
+                current_tree
+            )
+        }
+
+        system_prompt = (
+            CURRICULUM_BUILDER_PROMPT_TEMPLATE
+            + "\n\n"
+            + "RUNTIME_CONTEXT:\n"
+            + json.dumps(
+                runtime_context,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
+        # CONVERSATION HISTORY
+        # =============================================
+
+        messages = [
+            {
+                "role":
+                    "system",
+
+                "content":
+                    system_prompt
+            }
+        ]
+
+        history = (
+            body.history
+            or []
+        )
+
+        for item in history[-12:]:
+
+            if not isinstance(
+                    item,
+                    dict
+            ):
+                continue
+
+            role = item.get(
+                "role"
+            )
+
+            content = str(
+                item.get(
+                    "content"
+                )
+                or ""
+            ).strip()
+
+            if (
+                    role not in (
+                        "user",
+                        "assistant"
+                    )
+                    or not content
+            ):
+                continue
+
+            messages.append({
+                "role":
+                    role,
+
+                "content":
+                    content
+            })
+
+        messages.append({
+            "role":
+                "user",
+
+            "content":
+                message
+        })
+
+        # =============================================
+        # OPENAI
+        # =============================================
+
+        completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                messages=
+                    messages,
+
+                response_format=
+                    CurriculumBuilderAIResponse
+            )
+        )
+
+        curriculum_data = (
+            completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not curriculum_data:
+            raise RuntimeError(
+                "Curriculum Builder returned no response"
+            )
+
+        response_subject = str(
+            curriculum_data.subject
+            or ""
+        ).strip()
+
+        if curriculum_data.hierarchy:
+
+            hierarchy = (
+                curriculum_data
+                .hierarchy
+                .model_dump()
+            )
+
+        else:
+
+            hierarchy = (
+                    current_tree
+                    or {}
+            )
+
+        # =============================================
+        # CREATE SUBJECT
+        #
+        # ברגע שה-AI זיהה מקצוע,
+        # נוצרת הרשומה הראשית.
+        # =============================================
+
+        if (
+                not custom_subject
+                and response_subject
+        ):
+
+            custom_subject = (
+                create_custom_subject(
+                    user_id=user.id,
+                    kid_id=child["id"],
+                    subject_name=
+                        response_subject
+                )
+            )
+
+        # =============================================
+        # SAVE CURRICULUM
+        # =============================================
+
+        if (
+                custom_subject
+                and hierarchy
+        ):
+
+            if not current_curriculum:
+
+                current_curriculum = (
+                    create_custom_curriculum(
+                        user_id=user.id,
+
+                        kid_id=
+                            child["id"],
+
+                        custom_subject_id=
+                            custom_subject["id"],
+
+                        curriculum_json=
+                            hierarchy,
+
+                        ready_to_create=
+                            bool(
+                                curriculum_data
+                                .ready_to_create
+                            ),
+
+                        parent_message=
+                            message
+                    )
+                )
+
+            else:
+
+                current_curriculum = (
+                    update_custom_curriculum(
+                        user_id=user.id,
+
+                        kid_id=
+                            child["id"],
+
+                        custom_subject=
+                            custom_subject,
+
+                        curriculum=
+                            current_curriculum,
+
+                        curriculum_json=
+                            hierarchy,
+
+                        subject_name=
+                            response_subject,
+
+                        ready_to_create=
+                            bool(
+                                curriculum_data
+                                .ready_to_create
+                            ),
+
+                        parent_message=
+                            message
+                    )
+                )
+
+        # =============================================
+        # TOKEN USAGE
+        # =============================================
+
+        input_tokens = 0
+        output_tokens = 0
+        total_tokens = 0
+
+        if completion.usage:
+
+            input_tokens = (
+                completion
+                .usage
+                .prompt_tokens
+                or 0
+            )
+
+            output_tokens = (
+                completion
+                .usage
+                .completion_tokens
+                or 0
+            )
+
+            total_tokens = (
+                completion
+                .usage
+                .total_tokens
+                or 0
+            )
+
+        openai_cost_usd = (
+            calculate_openai_cost(
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                input_tokens=
+                    input_tokens,
+
+                output_tokens=
+                    output_tokens
+            )
+        )
+
+        increment_usage_summary(
+            user_id=user.id,
+
+            ai_calls=1,
+
+            input_tokens=
+                input_tokens,
+
+            output_tokens=
+                output_tokens,
+
+            total_tokens=
+                total_tokens,
+
+            openai_cost_usd=
+                openai_cost_usd
+        )
+
+        # =============================================
+        # RESPONSE TO FRONTEND
+        # =============================================
+
+        response_data = (
+            curriculum_data
+            .model_dump()
+        )
+
+        response_data[
+            "kid_id"
+        ] = child["id"]
+
+        response_data[
+            "custom_subject_id"
+        ] = (
+            custom_subject.get("id")
+            if custom_subject
+            else None
+        )
+
+        response_data[
+            "curriculum_id"
+        ] = (
+            current_curriculum.get("id")
+            if current_curriculum
+            else None
+        )
+
+        response_data[
+            "version"
+        ] = (
+            current_curriculum.get(
+                "version"
+            )
+            if current_curriculum
+            else None
+        )
+
+        response_data[
+            "curriculum_status"
+        ] = (
+            current_curriculum.get(
+                "status"
+            )
+            if current_curriculum
+            else None
+        )
+
+        return response_data
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "CURRICULUM BUILDER ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Curriculum Builder failed"
+        )
 
 @app.post("/api/tutor/chat")
 def tutor_chat(
