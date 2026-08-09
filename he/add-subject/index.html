@@ -495,7 +495,7 @@
 </aside>
 <main class="main">
 <section class="shell">
-<header class="head"><div class="spark">✦</div><h1>3הוספת מקצוע חדש</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
+<header class="head"><div class="spark">✦</div><h1>הוספת מקצוע חדש</h1><p id="subtitle">בואו נבנה יחד את המקצוע המושלם לילד שלכם</p></header>
 <div class="grid">
 <section class="tree">
   <div class="tree-stage">
@@ -913,16 +913,20 @@ async function submitText(text) {
 
   /*
     שומרים את הודעת ההורה בזיכרון השיחה.
-  */
-  CONVERSATION_HISTORY.push({
-  /*
-  =========================================================
-  LIVE CURRICULUM BUILD PREVIEW
-  =========================================================
+CONVERSATION_HISTORY.push({
+  role: "user",
+  content: text
+});
 
-  אם כבר ידוע המקצוע אבל עדיין אין נושא,
-  אנחנו מציגים מיד את מה שההורה כתב כרמה 2
-  ומראים שה-AI בונה את היחידות.
+
+/*
+=========================================================
+LIVE CURRICULUM BUILD PREVIEW
+=========================================================
+
+אם כבר ידוע המקצוע אבל עדיין אין נושא,
+אנחנו מציגים מיד את מה שההורה כתב כרמה 2
+ומראים שה-AI בונה את היחידות.
 */
 
 if (
@@ -935,20 +939,15 @@ if (
 ) {
 
   const temporaryPlan = {
-
-    subject:
-      CURRENT_PLAN.subject,
+    subject: CURRENT_PLAN.subject,
 
     topics: [
       {
         name: text,
-
         units: [],
-
         _building: true
       }
     ]
-
   };
 
   render(
@@ -957,7 +956,6 @@ if (
       temporary: true
     }
   );
-
 }
     role: "user",
     content: text
