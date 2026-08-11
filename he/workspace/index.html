@@ -36286,23 +36286,15 @@ async function openSubjectHierarchy(subject){
     subject
   );
 
-  if(subject === "מדעים"){
-    await openScienceHierarchy();
-    return;
-  }
-
-  /*
-    בשלב הבא נשתמש באותו מסך
-    של מדעים גם לשאר המקצועות.
-  */
-
-  alert(
-    "פותח עכשיו את מסך " + subject
+  await openScienceHierarchy(
+    subject
   );
 
 }
 
-async function openScienceHierarchy(){
+async function openScienceHierarchy(
+  subject = "מדעים"
+){
 
   /*
     קודם מסמנים שאנחנו במסך מדעים.
@@ -36387,17 +36379,17 @@ async function openScienceHierarchy(){
     });
 
 
-  const scienceSidebarButton =
-    [...document.querySelectorAll(
-      "#subjectsContainer .side-item"
-    )]
-    .find(btn =>
-      btn.textContent
-        .trim()
-        .includes(
-          "מדעים"
-        )
-    );
+const scienceSidebarButton =
+  [...document.querySelectorAll(
+    "#subjectsContainer .side-item"
+  )]
+  .find(btn =>
+    btn.textContent
+      .trim()
+      .includes(
+        subject
+      )
+  );
 
 
   if(scienceSidebarButton){
@@ -36414,7 +36406,9 @@ async function openScienceHierarchy(){
   renderRandomScienceRecommendations();
 
 
-  await loadScienceCategories();
+  await loadScienceCategories(
+  subject
+);
 
 }
 
@@ -36454,7 +36448,9 @@ function closeScienceHierarchy(){
    learning_lessons.category
 ===================================================== */
 
-async function loadScienceCategories(){
+async function loadScienceCategories(
+  subject = "מדעים"
+){
 
   const tree =
     document.getElementById(
@@ -36467,13 +36463,13 @@ async function loadScienceCategories(){
   }
 
 
-  tree.innerHTML = `
+tree.innerHTML = `
 
-    <div class="science-tree-loading">
-      טוענים את נושאי המדעים...
-    </div>
+  <div class="science-tree-loading">
+    טוענים את נושאי ${subject}...
+  </div>
 
-  `;
+`;
 
 
   const grade =
@@ -36515,10 +36511,10 @@ async function loadScienceCategories(){
       grade
     )
 
-    .eq(
-      "subject",
-      "מדעים"
-    )
+.eq(
+  "subject",
+  subject
+)
 
     .eq(
       "is_active",
