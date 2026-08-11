@@ -12716,6 +12716,7 @@ body.custom-subject-mode
 ========================= -->
 <button
 type="button"
+id="englishMapCard"
 class="kingdom-label kingdom-label-snow"
 data-kingdom="snow"
 >
@@ -12840,6 +12841,7 @@ data-kingdom="shadow"
 ========================= -->
 <button
 type="button"
+id="geoMapCard"
 class="kingdom-label kingdom-label-candy"
 data-kingdom="candy"
 >
@@ -15172,6 +15174,239 @@ const SUBJECT_CONFIG = {
   }
 
 };
+
+/* =====================================================
+   UPDATE KINGDOM MAP BY GRADE
+===================================================== */
+
+function setMapCardSubject(card, subjectName){
+
+  if(!card){
+    return;
+  }
+
+  const title =
+    card.querySelector(
+      ".kingdom-label-title"
+    );
+
+  const subtitle =
+    card.querySelector(
+      ".kingdom-label-subject"
+    );
+
+  const action =
+    card.querySelector(
+      ".kingdom-label-progress b"
+    );
+
+  const fill =
+    card.querySelector(
+      ".kingdom-label-fill"
+    );
+
+
+  /* מקצוע רגיל */
+
+  if(subjectName){
+
+    card.classList.remove(
+      "custom-subject-slot"
+    );
+
+    delete card.dataset.customSlot;
+
+    card.dataset.subject =
+      subjectName;
+
+    if(title){
+      title.textContent =
+        subjectName;
+    }
+
+    if(subtitle){
+      subtitle.textContent =
+        "תוכנית לימודים";
+    }
+
+    if(action){
+      action.textContent =
+        "כניסה →";
+    }
+
+    if(fill){
+      fill.style.width =
+        "0%";
+    }
+
+    return;
+  }
+
+
+  /* סלוט פנוי */
+
+  card.classList.add(
+    "custom-subject-slot"
+  );
+
+  delete card.dataset.subject;
+
+  if(title){
+    title.textContent =
+      "+ הוסף מקצוע";
+  }
+
+  if(subtitle){
+    subtitle.textContent =
+      "התאמה אישית לילד";
+  }
+
+  if(action){
+    action.textContent =
+      "הוסף →";
+  }
+
+  if(fill){
+    fill.style.width =
+      "0%";
+  }
+}
+
+
+
+function updateKingdomMapByGrade(grade){
+
+  grade = Number(grade);
+
+
+  const englishCard =
+    document.getElementById(
+      "englishMapCard"
+    );
+
+  const geoCard =
+    document.getElementById(
+      "geoMapCard"
+    );
+
+  const historyCard =
+    document.getElementById(
+      "historySubjectCard"
+    );
+
+
+  /*
+    אנגלית
+
+    א׳ = אין
+    ב׳ ומעלה = יש
+  */
+
+  if(grade >= 2){
+
+    setMapCardSubject(
+      englishCard,
+      "אנגלית"
+    );
+
+  }else{
+
+    setMapCardSubject(
+      englishCard,
+      null
+    );
+
+  }
+
+
+  /*
+    מולדת / גאוגרפיה
+  */
+
+  if(grade === 1 ||
+     grade === 2){
+
+    setMapCardSubject(
+      geoCard,
+      "מולדת וחברה"
+    );
+
+  }
+
+  else if(grade === 3){
+
+    setMapCardSubject(
+      geoCard,
+      "מולדת וגאוגרפיה"
+    );
+
+  }
+
+  else{
+
+    setMapCardSubject(
+      geoCard,
+      "גאוגרפיה"
+    );
+
+  }
+
+
+  /*
+    היסטוריה
+
+    רק ד׳ ומעלה
+  */
+
+  if(grade >= 4){
+
+    setMapCardSubject(
+      historyCard,
+      "היסטוריה"
+    );
+
+  }else{
+
+    setMapCardSubject(
+      historyCard,
+      null
+    );
+
+  }
+
+
+  /*
+    נותנים מספרים לכל
+    הסלוטים הפנויים
+  */
+
+  document
+    .querySelectorAll(
+      ".custom-subject-slot"
+    )
+    .forEach(
+      (slot,index) => {
+
+        slot.dataset.customSlot =
+          String(index);
+
+      }
+    );
+
+
+  console.log(
+    "KINGDOM MAP UPDATED:",
+    {
+      grade,
+      customSlots:
+        document.querySelectorAll(
+          ".custom-subject-slot"
+        ).length
+    }
+  );
+
+}
+
 async function loadSubjects(grade) {
   const container = document.getElementById("subjectsContainer");
 
@@ -18765,8 +19000,15 @@ CURRENT_KID = kid;
 /* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
 CURRENT_KID.grade = Number(kid.age);
 
+/* מעדכנים את המפה לפי הכיתה */
+updateKingdomMapByGrade(
+  CURRENT_KID.grade
+);
+
 /* טעינת המקצועות הקבועים לפי הכיתה */
-await loadSubjects(CURRENT_KID.grade);
+await loadSubjects(
+  CURRENT_KID.grade
+);
 
 /* טעינת המקצועות האישיים שאושרו ע"י ההורה */
 await loadCustomSubjectsForDashboard();
@@ -33530,7 +33772,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V27";
+      "▶ Rotem V28";
 
 
     document.body.appendChild(
