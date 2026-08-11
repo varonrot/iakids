@@ -12747,9 +12747,10 @@ data-kingdom="snow"
      מתמטיקה
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-fire"
-data-kingdom="fire"
+  type="button"
+  class="kingdom-label kingdom-label-fire"
+  data-kingdom="fire"
+  data-subject="מתמטיקה"
 >
 
   <strong class="kingdom-label-title">
@@ -12809,9 +12810,10 @@ data-kingdom="jungle"
      תנ״ך
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-shadow"
-data-kingdom="shadow"
+  type="button"
+  class="kingdom-label kingdom-label-shadow"
+  data-kingdom="shadow"
+  data-subject='תנ"ך'
 >
 
   <strong class="kingdom-label-title">
@@ -12872,9 +12874,10 @@ data-kingdom="candy"
      עברית
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-center"
-data-kingdom="center"
+  type="button"
+  class="kingdom-label kingdom-label-center"
+  data-kingdom="center"
+  data-subject="עברית"
 >
 
   <strong class="kingdom-label-title">
@@ -34129,6 +34132,62 @@ if(jungleKingdomButton){
 
 }
 
+/* =====================================================
+   DEFAULT SUBJECT CARDS CLICK
+===================================================== */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    const card =
+      event.target.closest(
+        ".kingdom-label[data-subject]"
+      );
+
+    if(!card){
+      return;
+    }
+
+    const subject =
+      card.dataset.subject;
+
+    if(!subject){
+      return;
+    }
+
+
+    /*
+      מדעים כבר מחובר
+      ל-openScienceHierarchy
+    */
+
+    if(subject === "מדעים"){
+      return;
+    }
+
+
+    event.preventDefault();
+    event.stopPropagation();
+
+
+    console.log(
+      "SUBJECT CARD CLICK:",
+      subject
+    );
+
+
+    /*
+      כרגע רק בדיקה שהכפתורים
+      באמת מחוברים.
+    */
+
+    alert(
+      "נלחץ מקצוע: " + subject
+    );
+
+  }
+);
 
 /*
   חזרה באמצעות מקש Escape.
