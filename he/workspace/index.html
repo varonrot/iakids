@@ -33775,7 +33775,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V28";
+      "▶ Rotem V29";
 
 
     document.body.appendChild(
@@ -34182,9 +34182,7 @@ document.addEventListener(
       באמת מחוברים.
     */
 
-    alert(
-      "נלחץ מקצוע: " + subject
-    );
+openSubjectHierarchy(subject);
 
   }
 );
@@ -36280,6 +36278,29 @@ document
 /* =====================================================
    OPEN SCIENCE
 ===================================================== */
+
+async function openSubjectHierarchy(subject){
+
+  console.log(
+    "OPEN SUBJECT HIERARCHY:",
+    subject
+  );
+
+  if(subject === "מדעים"){
+    await openScienceHierarchy();
+    return;
+  }
+
+  /*
+    בשלב הבא נשתמש באותו מסך
+    של מדעים גם לשאר המקצועות.
+  */
+
+  alert(
+    "פותח עכשיו את מסך " + subject
+  );
+
+}
 
 async function openScienceHierarchy(){
 
