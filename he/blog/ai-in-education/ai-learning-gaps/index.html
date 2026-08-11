@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="https://iakids.app/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="https://iakids.app/favicon.ico">
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<title>איך AI מזהה פערי למידה אצל תלמידים? | iakids</title>
+
+<meta name="description"
+content="איך בינה מלאכותית יכולה לזהות פערי למידה, טעויות חוזרות ונקודות קושי אצל תלמידים? מדריך על AI, נתוני למידה, התאמה אישית והתערבות מוקדמת.">
+
+<link rel="canonical"
+href="https://iakids.app/he/blog/ai-in-education/ai-learning-gaps/">
+
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://iakids.app/he/blog/ai-in-education/ai-learning-gaps/">
+<meta property="og:title" content="איך AI מזהה פערי למידה אצל תלמידים?">
+<meta property="og:description" content="איך מערכות AI משתמשות בדפוסי תשובות, ניסיונות, זמן תגובה ורמזים כדי לזהות נקודות קושי מוקדם יותר.">
+<meta property="og:image" content="https://iakids.app/assets/ai-personalized-learning.webp">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="איך AI מזהה פערי למידה אצל תלמידים?">
+<meta name="twitter:description" content="זיהוי פערי למידה באמצעות AI, נתוני תלמידים ולמידה מותאמת אישית.">
+<meta name="twitter:image" content="https://iakids.app/assets/ai-personalized-learning.webp">
+
+<!-- Article Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "איך AI מזהה פערי למידה אצל תלמידים?",
+  "description": "מדריך על זיהוי פערי למידה באמצעות בינה מלאכותית, נתוני ביצוע, טעויות חוזרות ולמידה מותאמת אישית.",
+  "author": {
+    "@type": "Organization",
+    "name": "iakids"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "iakids",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://iakids.app/favicon.ico"
+    }
+  },
+  "image": "https://iakids.app/assets/ai-personalized-learning.webp",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://iakids.app/he/blog/ai-in-education/ai-learning-gaps/"
+  }
+}
+</script>
+
+<!-- FAQ Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "מהו פער למידה?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "פער למידה הוא מצב שבו לתלמיד חסר ידע או שליטה במיומנות מסוימת הנדרשת להמשך הלמידה."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "איך AI יכול לזהות פערי למידה?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "מערכת AI יכולה לנתח תשובות, טעויות חוזרות, מספר ניסיונות, זמן תגובה ושימוש ברמזים כדי לזהות דפוסים שמצביעים על נקודות קושי."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "האם תשובה שגויה אחת מעידה על פער למידה?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "לא בהכרח. פער למידה מזוהה בדרך כלל לפי דפוס מתמשך, למשל טעויות חוזרות באותו סוג שאלה או קושי ביישום מיומנות במספר מצבים."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "מה אפשר לעשות אחרי שמזהים פער למידה?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "אפשר לחזור למיומנות קודמת, להציג הסבר אחר, להוריד זמנית את רמת הקושי, לתת תרגול ממוקד ולבדוק שוב את ההבנה."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "האם AI מחליף אבחון של מורה?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "לא. AI יכול לספק מידע נוסף ולזהות דפוסים, אך מורה אנושי מביא הקשר, שיקול דעת והיכרות עמוקה יותר עם התלמיד."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:#fff;
+  color:#1f2937;
+  direction:rtl;
+}
+
+a{
+  color:#2563eb;
+  text-decoration:none;
+  font-weight:600;
+}
+
+a:hover{
+  text-decoration:underline;
+}
+
+.wrapper{
+  max-width:1200px;
+  margin:auto;
+  padding:40px 20px 80px;
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:40px;
+}
+
+img{
+  width:100%;
+  border-radius:16px;
+  margin-bottom:24px;
+}
+
+h1{
+  font-size:clamp(30px,4vw,44px);
+  line-height:1.25;
+  color:#0f172a;
+}
+
+h2{
+  margin-top:48px;
+  color:#0f172a;
+  line-height:1.35;
+}
+
+h3{
+  margin-top:26px;
+  color:#0f172a;
+}
+
+p{
+  line-height:1.85;
+  margin:18px 0;
+}
+
+strong{
+  color:#0f172a;
+}
+
+.table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  background:#fff;
+  margin-top:20px;
+}
+
+.table th,
+.table td{
+  padding:14px;
+  border-bottom:1px solid #e5e7eb;
+  vertical-align:top;
+  font-size:15px;
+  text-align:right;
+}
+
+.table th{
+  background:#f8fafc;
+  color:#0f172a;
+  font-weight:800;
+}
+
+.table tr:last-child td{
+  border-bottom:none;
+}
+
+.checklist{
+  list-style:none;
+  padding-right:0;
+  margin:18px 0 0;
+}
+
+.checklist li{
+  position:relative;
+  padding-right:28px;
+  margin:10px 0;
+  line-height:1.7;
+}
+
+.checklist li::before{
+  content:"✓";
+  position:absolute;
+  right:0;
+  top:0;
+  color:#22c55e;
+  font-weight:900;
+}
+
+.note{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:18px;
+  margin:22px 0;
+}
+
+.example-box{
+  background:linear-gradient(135deg,#eff6ff,#f0fdf4);
+  border:1px solid #dbeafe;
+  border-radius:16px;
+  padding:22px;
+  margin:24px 0;
+}
+
+.example-box h3{
+  margin-top:0;
+}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#ffffffcc;
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid #e5e7eb;
+}
+
+.topbar-inner{
+  max-width:1200px;
+  margin:auto;
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.topbar-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:16px;
+  color:#0f172a;
+}
+
+.topbar-cta .btn-primary{
+  padding:10px 22px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 6px 18px rgba(37,99,235,.25);
+}
+
+.sidebar{
+  position:sticky;
+  top:96px;
+  align-self:start;
+  border-right:1px solid #e5e7eb;
+  padding-right:24px;
+}
+
+.side-box{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:24px;
+}
+
+.side-box h3{
+  margin-top:0;
+  font-size:16px;
+}
+
+.side-nav{
+  list-style:none;
+  padding-right:0;
+  margin:14px 0 0;
+}
+
+.side-nav li{
+  margin:11px 0;
+  line-height:1.55;
+}
+
+.side-image{
+  width:100%;
+  border-radius:12px;
+  margin-bottom:14px;
+}
+
+.side-note{
+  font-size:14px;
+  line-height:1.7;
+  color:#334155;
+}
+
+.side-cta{
+  text-align:center;
+  padding:22px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+}
+
+.side-cta strong{
+  color:#fff;
+}
+
+.side-cta p{
+  margin:0 0 14px;
+  font-size:15px;
+}
+
+.side-btn{
+  display:inline-block;
+  padding:12px 24px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+  text-decoration:none;
+}
+
+.faq{
+  margin-top:40px;
+}
+
+.faq-item{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:18px;
+  margin:14px 0;
+  box-shadow:0 10px 30px rgba(0,0,0,.04);
+}
+
+.faq-item h3{
+  margin:0 0 10px;
+  font-size:17px;
+}
+
+.faq-item p{
+  margin:0;
+  color:#374151;
+}
+
+.cta{
+  margin-top:70px;
+  padding:36px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff;
+  text-align:center;
+}
+
+.cta h2{
+  margin-top:0;
+  color:#fff;
+}
+
+.cta strong{
+  color:#fff;
+}
+
+.cta p{
+  max-width:700px;
+  margin:16px auto;
+}
+
+.cta a{
+  display:inline-block;
+  margin-top:18px;
+  padding:14px 28px;
+  background:#fff;
+  color:#0f172a;
+  font-weight:800;
+  border-radius:999px;
+}
+
+@media (max-width:900px){
+
+  .wrapper{
+    grid-template-columns:1fr;
+    gap:0;
+    padding-top:24px;
+  }
+
+  main{
+    order:1;
+  }
+
+  aside.sidebar{
+    position:static;
+    border-right:none;
+    padding-right:0;
+    margin-top:48px;
+    order:2;
+    padding-top:32px;
+    border-top:2px solid #e5e7eb;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+  h2{
+    font-size:22px;
+  }
+
+  main img{
+    border-radius:12px;
+  }
+
+  .table{
+    display:block;
+    overflow-x:auto;
+  }
+
+  .cta{
+    margin-top:48px;
+    padding:28px 18px;
+    box-sizing:border-box;
+  }
+
+  .cta a{
+    display:block;
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    padding:14px 20px;
+    text-align:center;
+  }
+}
+</style>
+
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+
+    <div class="topbar-brand">
+      🤖 <strong>iakids</strong>
+    </div>
+
+    <div class="topbar-cta">
+      <a href="https://iakids.app/he/" class="btn-primary">
+        התנסו ב-iakids
+      </a>
+    </div>
+
+  </div>
+</header>
+
+
+<div class="wrapper">
+
+<main>
+
+  <img
+    src="https://iakids.app/assets/ai-personalized-learning.webp"
+    alt="זיהוי פערי למידה באמצעות בינה מלאכותית"
+  >
+
+  <h1>איך AI מזהה פערי למידה אצל תלמידים?</h1>
+
+  <p>
+    תלמיד יכול להצליח ברוב התרגילים בפרק
+    ועדיין להחזיק פער קטן במיומנות בסיסית.
+    לפעמים הפער כמעט לא מורגש,
+    עד שמגיע נושא מתקדם יותר
+    שתלוי בדיוק באותה מיומנות.
+  </p>
+
+  <p>
+    אחד השימושים המעניינים של
+    <a href="/he/blog/ai-in-education/">בינה מלאכותית בחינוך</a>
+    הוא היכולת לנתח את תהליך הלמידה
+    ולנסות לזהות פערים כאלה מוקדם יותר.
+  </p>
+
+  <p>
+    במקום להסתכל רק על ציון סופי,
+    מערכת AI יכולה לבחון את דפוסי התשובות,
+    מספר הניסיונות, סוגי הטעויות,
+    השימוש ברמזים וההתקדמות לאורך זמן.
+  </p>
+
+  <div class="note">
+    <strong>בקצרה:</strong>
+    AI אינו "קורא מחשבות",
+    אבל הוא יכול לנתח דפוסי ביצוע
+    ולזהות סימנים לכך שתלמיד עדיין לא שולט
+    במיומנות מסוימת.
+  </div>
+
+
+  <h2>מהו פער למידה?</h2>
+
+  <p>
+    <strong>פער למידה</strong> הוא מצב שבו לתלמיד חסר ידע,
+    הבנה או שליטה במיומנות מסוימת
+    שנדרשת להמשך הלמידה.
+  </p>
+
+  <p>
+    הפער יכול להיות קטן מאוד.
+    לדוגמה, תלמיד בכפל עשוי לדעת היטב
+    את רוב לוח הכפל,
+    אך להתקשות שוב ושוב בכפולות מסוימות.
+  </p>
+
+  <p>
+    במקרים אחרים הפער עמוק יותר:
+    תלמיד שמתחיל ללמוד שברים
+    עשוי להתקשות לא בגלל השברים עצמם,
+    אלא משום שהוא עדיין אינו שולט מספיק בחילוק.
+  </p>
+
+  <p>
+    לכן זיהוי הקושי המדויק חשוב יותר
+    מאשר רק לדעת שהתלמיד קיבל תשובה שגויה.
+  </p>
+
+
+  <h2>למה קשה לזהות פערי למידה?</h2>
+
+  <p>
+    לא כל טעות מעידה על פער.
+  </p>
+
+  <p>
+    תלמיד יכול לטעות בגלל חוסר תשומת לב,
+    לקרוא לא נכון את השאלה,
+    למהר,
+    או פשוט לעשות טעות חד-פעמית.
+  </p>
+
+  <p>
+    לכן צריך להסתכל על דפוס רחב יותר.
+  </p>
+
+  <p>
+    למשל:
+  </p>
+
+  <ul class="checklist">
+    <li>האם אותה טעות חוזרת?</li>
+    <li>האם הקושי מופיע בכמה שאלות שונות?</li>
+    <li>האם התלמיד מצליח רק אחרי רמז?</li>
+    <li>האם זמן התגובה ארוך במיוחד?</li>
+    <li>האם הוא מצליח בשאלה קלה אבל נכשל ביישום?</li>
+    <li>האם קיים קושי במיומנות קודמת?</li>
+  </ul>
+
+
+  <h2>איך AI יכול לזהות פערי למידה?</h2>
+
+  <p>
+    מערכת AI יכולה לאסוף מספר סוגים של מידע
+    ולחפש בתוכם דפוסים.
+  </p>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>המידע</th>
+        <th>מה הוא יכול לרמוז</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td>טעויות חוזרות</td>
+        <td>קושי עקבי במיומנות מסוימת</td>
+      </tr>
+
+      <tr>
+        <td>מספר ניסיונות גבוה</td>
+        <td>הבנה חלקית או חוסר ביטחון</td>
+      </tr>
+
+      <tr>
+        <td>שימוש תכוף ברמזים</td>
+        <td>התלמיד אינו מצליח לבצע את המשימה באופן עצמאי</td>
+      </tr>
+
+      <tr>
+        <td>זמן תגובה ארוך</td>
+        <td>ייתכן שהתלמיד מתקשה בשליפה או בהבנת התהליך</td>
+      </tr>
+
+      <tr>
+        <td>הצלחה בסוג אחד וכישלון בסוג אחר</td>
+        <td>ייתכן שקיימת הבנה חלקית בלבד</td>
+      </tr>
+
+      <tr>
+        <td>פער בין נושאים קשורים</td>
+        <td>ייתכן שחסרה מיומנות בסיסית קודמת</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+
+  <h2>דוגמה: פער למידה במתמטיקה</h2>
+
+  <div class="example-box">
+    <h3>תלמיד לומד שברים</h3>
+
+    <p>
+      התלמיד מצליח לזהות חצי ורבע,
+      אבל מתקשה שוב ושוב להשוות בין שני שברים.
+    </p>
+
+    <p>
+      מערכת רגילה יכולה פשוט לסמן
+      "טעות" ולהציג את השאלה הבאה.
+    </p>
+
+    <p>
+      מערכת AI יכולה לבדוק האם הקושי חוזר
+      ולנסות להבין אם מקור הבעיה
+      הוא בהשוואת גדלים,
+      במכנים,
+      או במיומנות קודמת.
+    </p>
+
+    <p>
+      אם נמצא דפוס,
+      אפשר לתת תרגול ממוקד
+      ולא לחזור על כל נושא השברים.
+    </p>
+  </div>
+
+  <p>
+    זהו אחד השימושים האפשריים של
+    <a href="/he/blog/ai-in-education/ai-math-learning/">AI במתמטיקה</a>.
+  </p>
+
+
+  <h2>תשובה נכונה לא תמיד אומרת שהתלמיד הבין</h2>
+
+  <p>
+    אחת הטעויות האפשריות במערכות למידה
+    היא להניח שתשובה נכונה אחת
+    פירושה שהתלמיד שולט בנושא.
+  </p>
+
+  <p>
+    התלמיד יכול לנחש,
+    לזכור תשובה,
+    לקבל רמז משמעותי
+    או להצליח במקרה.
+  </p>
+
+  <p>
+    לכן מערכת יכולה לבדוק הבנה
+    באמצעות כמה סוגי שאלות.
+  </p>
+
+  <ul class="checklist">
+    <li>שאלה דומה</li>
+    <li>שאלה בניסוח אחר</li>
+    <li>בעיה יישומית</li>
+    <li>שאלה שמחברת שני רעיונות</li>
+    <li>תרגול לאחר זמן</li>
+  </ul>
+
+  <p>
+    העיקרון הזה מתחבר ל-
+    <a href="/he/blog/personalized-learning/mastery-learning/">
+      Mastery Learning – למידה עד שליטה
+    </a>.
+  </p>
+
+
+  <h2>זיהוי פערים ו-AI Tutor</h2>
+
+  <p>
+    <a href="/he/blog/ai-in-education/ai-tutor/">AI Tutor</a>
+    יכול להשתמש בזיהוי פערים
+    כחלק מהשיחה עם התלמיד.
+  </p>
+
+  <p>
+    למשל, תלמיד עונה תשובה חלקית.
+    במקום לומר רק "לא נכון",
+    ה-Tutor יכול לנסות לזהות
+    איזה חלק מהרעיון כבר הובן
+    ומה עדיין חסר.
+  </p>
+
+  <p>
+    לאחר מכן הוא יכול:
+  </p>
+
+  <ul class="checklist">
+    <li>לתת רמז</li>
+    <li>לשאול שאלה פשוטה יותר</li>
+    <li>להציג דוגמה נוספת</li>
+    <li>לחזור למיומנות קודמת</li>
+    <li>לבדוק שוב את ההבנה</li>
+  </ul>
+
+  <p>
+    כאשר ה-Tutor מכיר תלמיד מסוים לאורך זמן,
+    הוא יכול להתקרב לרעיון של
+    <a href="/he/blog/ai-in-education/ai-private-tutor/">
+      מורה פרטי AI
+    </a>.
+  </p>
+
+
+  <h2>זיהוי פערים ולמידה מבוססת נתונים</h2>
+
+  <p>
+    זיהוי פערים מתבסס במידה רבה על
+    <a href="/he/blog/personalized-learning/data-driven-learning/">
+      למידה מבוססת נתונים
+    </a>.
+  </p>
+
+  <p>
+    במקום להסתכל רק על ציונים,
+    ניתן לנתח את הדרך שבה התלמיד לומד.
+  </p>
+
+  <p>
+    מידע כזה יכול לכלול:
+  </p>
+
+  <ul class="checklist">
+    <li>נושאים שהושלמו</li>
+    <li>אחוזי הצלחה</li>
+    <li>זמן תגובה</li>
+    <li>מספר ניסיונות</li>
+    <li>רמזים</li>
+    <li>טעויות חוזרות</li>
+    <li>רמת שליטה בכל מיומנות</li>
+  </ul>
+
+  <p>
+    כאשר המידע מצטבר לאורך זמן,
+    ניתן לקבל תמונה מפורטת יותר
+    של מצב הלמידה.
+  </p>
+
+
+  <h2>איך זיהוי פערים מאפשר למידה מותאמת אישית?</h2>
+
+  <p>
+    כדי ליצור
+    <a href="/he/blog/personalized-learning/">למידה מותאמת אישית</a>,
+    המערכת צריכה לדעת לא רק מה התלמיד למד,
+    אלא גם מה עדיין לא הובן.
+  </p>
+
+  <p>
+    כאשר מזוהה פער,
+    אפשר לשנות את מסלול הלמידה.
+  </p>
+
+  <p>
+    למשל:
+  </p>
+
+  <ul class="checklist">
+    <li>לחזור לנושא קודם</li>
+    <li>להציג הסבר אחר</li>
+    <li>להוריד זמנית את רמת הקושי</li>
+    <li>להוסיף תרגול ממוקד</li>
+    <li>לתת דוגמה חזותית</li>
+    <li>לבדוק שוב לאחר מספר שאלות</li>
+  </ul>
+
+  <p>
+    כך אפשר לבנות
+    <a href="/he/blog/personalized-learning/personalized-learning-path/">
+      מסלול למידה אישי
+    </a>
+    שמתעדכן בהתאם למצב האמיתי של התלמיד.
+  </p>
+
+
+  <h2>זיהוי פערים ולמידה אדפטיבית</h2>
+
+  <p>
+    <a href="/he/blog/adaptive-learning/">למידה אדפטיבית</a>
+    משתמשת בדיוק ברעיון הזה:
+    המערכת מגיבה לביצועי התלמיד
+    ומשנה את המשך הלמידה.
+  </p>
+
+  <img
+    src="https://iakids.app/assets/adaptive-learning-ai.webp"
+    alt="למידה אדפטיבית וזיהוי פערי למידה באמצעות AI"
+    loading="lazy"
+  >
+
+  <p>
+    אם התלמיד שולט בנושא,
+    אפשר להתקדם.
+  </p>
+
+  <p>
+    אם מזוהה קושי,
+    אפשר לעצור,
+    לחזור שלב אחד אחורה
+    ולתת תרגול נוסף.
+  </p>
+
+  <p>
+    כך זיהוי הפער אינו רק מידע לדוח —
+    הוא משפיע על מה שהתלמיד יקבל עכשיו.
+  </p>
+
+
+  <h2>מה עושים אחרי שמזהים פער?</h2>
+
+  <p>
+    זיהוי הפער הוא רק השלב הראשון.
+  </p>
+
+  <p>
+    מערכת לימודית צריכה להחליט
+    מהי ההתערבות המתאימה.
+  </p>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>סוג הקושי</th>
+        <th>תגובה אפשרית</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td>טעות חד-פעמית</td>
+        <td>לתת משוב ולהמשיך</td>
+      </tr>
+
+      <tr>
+        <td>טעות שחוזרת</td>
+        <td>להוסיף הסבר ותרגול</td>
+      </tr>
+
+      <tr>
+        <td>חוסר במיומנות קודמת</td>
+        <td>לחזור שלב אחד במסלול</td>
+      </tr>
+
+      <tr>
+        <td>הבנה חלקית</td>
+        <td>לשאול שאלה שמבדילה בין המושגים</td>
+      </tr>
+
+      <tr>
+        <td>שליטה מלאה</td>
+        <td>להתקדם לרמה גבוהה יותר</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+
+  <h2>זיהוי פערי למידה בשיעורי בית</h2>
+
+  <p>
+    גם בזמן
+    <a href="/he/blog/ai-in-education/ai-homework-help/">
+      עזרה בשיעורי בית עם AI
+    </a>,
+    המערכת יכולה לזהות דפוסי קושי.
+  </p>
+
+  <p>
+    ילד שמבקש שוב ושוב עזרה
+    באותו סוג של תרגיל
+    אולי אינו זקוק רק לפתרון התרגיל הנוכחי.
+  </p>
+
+  <p>
+    ייתכן שהוא זקוק להסבר של העיקרון עצמו.
+  </p>
+
+  <div class="note">
+    <strong>זו נקודה חשובה:</strong>
+    מערכת לימודית טובה לא צריכה לשאול רק
+    "איך פותרים את השאלה?",
+    אלא גם "למה התלמיד מתקשה בה?"
+  </div>
+
+
+  <h2>זיהוי פערים בלימוד אנגלית</h2>
+
+  <p>
+    ב-
+    <a href="/he/blog/ai-in-education/ai-english-learning/">
+      AI ללימוד אנגלית
+    </a>
+    אפשר לזהות פערים מסוגים שונים.
+  </p>
+
+  <p>
+    למשל:
+  </p>
+
+  <ul class="checklist">
+    <li>אוצר מילים חסר</li>
+    <li>קושי בקריאה</li>
+    <li>קושי בהבנת הנקרא</li>
+    <li>קושי בבניית משפט</li>
+    <li>טעויות דקדוק שחוזרות</li>
+  </ul>
+
+  <p>
+    שני תלמידים יכולים לקבל אותה תשובה שגויה,
+    אבל הסיבה לטעות יכולה להיות שונה.
+  </p>
+
+  <p>
+    לכן חשוב לזהות את המקור
+    ולא רק את התוצאה.
+  </p>
+
+
+  <h2>זיהוי פערים אצל ילדים</h2>
+
+  <p>
+    כאשר מדובר ב-
+    <a href="/he/blog/ai-in-education/ai-for-kids/">AI לילדים</a>,
+    חשוב במיוחד להיזהר מפרשנות יתר של הנתונים.
+  </p>
+
+  <p>
+    ילד יכול להיות עייף,
+    לא מרוכז,
+    למהר,
+    או לא להבין את ניסוח השאלה.
+  </p>
+
+  <p>
+    לכן מערכת טובה צריכה לבחון
+    כמה אינטראקציות ולא להסיק מסקנה
+    מטעות בודדת.
+  </p>
+
+  <p>
+    זה חלק חשוב גם ב-
+    <a href="/he/blog/personalized-learning/personalized-learning-for-kids/">
+      למידה מותאמת אישית לילדים
+    </a>.
+  </p>
+
+
+  <h2>איך זיהוי פערים עוזר למורים?</h2>
+
+  <p>
+    זיהוי פערים באמצעות AI
+    יכול להיות שימושי לא רק עבור התלמיד.
+  </p>
+
+  <p>
+    הוא יכול לתת למורה תמונת מצב:
+  </p>
+
+  <ul class="checklist">
+    <li>אילו נושאים גורמים לקושי בכיתה</li>
+    <li>אילו תלמידים זקוקים לחיזוק</li>
+    <li>אילו טעויות חוזרות אצל מספר תלמידים</li>
+    <li>אילו מיומנויות בסיסיות דורשות חזרה</li>
+  </ul>
+
+  <p>
+    כך AI יכול לתמוך במורה,
+    ולא בהכרח להחליף אותו.
+  </p>
+
+  <p>
+    הרחבה בנושא:
+    <a href="/he/blog/ai-in-education/can-ai-replace-teachers/">
+      האם AI יכול להחליף מורים?
+    </a>
+  </p>
+
+
+  <h2>זיהוי פערים ומערכת למידה חכמה</h2>
+
+  <p>
+    כאשר משלבים נתוני למידה,
+    זיהוי פערים,
+    התאמת רמת קושי
+    ומסלול אישי,
+    מתקבלת
+    <a href="/he/blog/ai-in-education/intelligent-learning-system/">
+      מערכת למידה חכמה
+    </a>.
+  </p>
+
+  <p>
+    מערכת כזו אינה רק מציגה תוכן.
+  </p>
+
+  <p>
+    היא מנסה להחליט בכל שלב:
+  </p>
+
+  <ul class="checklist">
+    <li>מה התלמיד יודע?</li>
+    <li>מה עדיין לא הובן?</li>
+    <li>מה צריך לתרגל?</li>
+    <li>האם כדאי לחזור אחורה?</li>
+    <li>האם אפשר להתקדם?</li>
+  </ul>
+
+
+  <h2>שאלות נפוצות על זיהוי פערי למידה עם AI</h2>
+
+  <div class="faq">
+
+    <div class="faq-item">
+      <h3>מהו פער למידה?</h3>
+      <p>
+        פער למידה הוא מצב שבו לתלמיד חסר ידע
+        או שליטה במיומנות שנדרשת להמשך הלמידה.
+      </p>
+    </div>
+
+    <div class="faq-item">
+      <h3>איך AI מזהה פערי למידה?</h3>
+      <p>
+        AI יכול לנתח דפוסים כמו טעויות חוזרות,
+        מספר ניסיונות, זמן תגובה ושימוש ברמזים
+        כדי להעריך היכן קיים קושי.
+      </p>
+    </div>
+
+    <div class="faq-item">
+      <h3>האם טעות אחת מעידה על פער?</h3>
+      <p>
+        לא. עדיף להסתכל על דפוס מתמשך
+        ולא להסיק מסקנה מטעות בודדת.
+      </p>
+    </div>
+
+    <div class="faq-item">
+      <h3>מה עושים אחרי שמזהים פער?</h3>
+      <p>
+        אפשר לחזור למיומנות קודמת,
+        להציג הסבר אחר,
+        להוסיף תרגול ולבדוק שוב את ההבנה.
+      </p>
+    </div>
+
+    <div class="faq-item">
+      <h3>האם AI מחליף את שיקול הדעת של המורה?</h3>
+      <p>
+        לא. AI יכול לספק מידע ודפוסים,
+        אבל מורה מוסיף הקשר, ניסיון,
+        היכרות עם התלמיד ושיקול דעת חינוכי.
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="cta">
+
+    <h2>לא רק לראות את הטעות — להבין מה עומד מאחוריה</h2>
+
+    <p>
+      iakids מפתחת סביבת למידה שבה AI
+      יכול לעקוב אחר תהליך הלמידה,
+      לזהות נקודות קושי
+      ולהתאים את ההסבר והתרגול
+      להתקדמות התלמיד.
+    </p>
+
+    <a href="https://iakids.app/he/">
+      הכירו את iakids
+    </a>
+
+  </div>
+
+</main>
+
+
+<aside class="sidebar">
+
+  <div class="side-box">
+
+    <h3>🧭 למידה אדפטיבית ו-AI</h3>
+
+    <ul class="side-nav">
+
+      <li>
+        <a href="/he/blog/adaptive-learning/">
+          למידה אדפטיבית
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/personalized-learning/">
+          למידה מותאמת אישית
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/">
+          בינה מלאכותית בחינוך
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/ai-tutor/">
+          AI Tutor
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/ai-private-tutor/">
+          מורה פרטי AI
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/personalized-learning/data-driven-learning/">
+          למידה מבוססת נתונים
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/personalized-learning/personalized-learning-path/">
+          מסלול למידה אישי
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/personalized-learning/mastery-learning/">
+          Mastery Learning
+        </a>
+      </li>
+
+      <li>
+        <strong>זיהוי פערי למידה עם AI</strong>
+      </li>
+
+      <li>
+        <a href="/he/blog/personalized-learning/self-paced-learning/">
+          למידה בקצב אישי
+        </a>
+      </li>
+
+    </ul>
+
+  </div>
+
+
+  <div class="side-box">
+
+    <img
+      src="https://iakids.app/assets/adaptive-learning-ai.webp"
+      alt="למידה אדפטיבית באמצעות בינה מלאכותית"
+      class="side-image"
+      loading="lazy"
+    >
+
+    <p class="side-note">
+      <strong>למידה אדפטיבית</strong>
+      מאפשרת למערכת לשנות את רמת הקושי,
+      ההסבר והתרגול בהתאם לביצועי התלמיד.
+    </p>
+
+  </div>
+
+
+  <div class="side-box">
+
+    <img
+      src="https://iakids.app/assets/ai-personalized-learning.webp"
+      alt="למידה אישית באמצעות AI"
+      class="side-image"
+      loading="lazy"
+    >
+
+    <p class="side-note">
+      <strong>למידה אישית עם AI</strong>
+      מאפשרת להתאים את תהליך הלמידה
+      לידע, לקצב ולנקודות הקושי של התלמיד.
+    </p>
+
+  </div>
+
+
+  <div class="side-box">
+
+    <h3>🤖 עוד על AI ולמידה</h3>
+
+    <ul class="side-nav">
+
+      <li>
+        <a href="/he/blog/ai-in-education/ai-homework-help/">
+          AI לעזרה בשיעורי בית
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/ai-for-kids/">
+          AI לילדים
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/intelligent-learning-system/">
+          מערכת למידה חכמה
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/ai-math-learning/">
+          AI במתמטיקה
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/ai-english-learning/">
+          AI ללימוד אנגלית
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/personalized-learning/personalized-learning-for-kids/">
+          למידה מותאמת אישית לילדים
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/can-ai-replace-teachers/">
+          האם AI יכול להחליף מורים?
+        </a>
+      </li>
+
+      <li>
+        <a href="/he/blog/ai-in-education/ai-chat-vs-ai-tutor/">
+          צ'אט AI מול AI Tutor
+        </a>
+      </li>
+
+    </ul>
+
+  </div>
+
+
+  <div class="side-cta">
+
+    <p>
+      רוצים לראות איך AI
+      <strong>מזהה נקודות קושי בלמידה?</strong>
+    </p>
+
+    <a href="https://iakids.app/he/" class="side-btn">
+      הכירו את iakids
+    </a>
+
+  </div>
+
+</aside>
+
+</div>
+
+</body>
+</html>
