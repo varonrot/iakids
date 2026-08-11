@@ -13423,7 +13423,9 @@ data-custom-slot="0"
 
 
         <div>
-          <h1>מדעים</h1>
+          <h1 id="hierarchySubjectTitle">
+  מדעים
+</h1>
           <p>
             בחר נושא כדי להתחיל ללמוד ולהתקדם
           </p>
@@ -34211,7 +34213,7 @@ document.addEventListener(
 ===================================================== */
 
 let SCIENCE_SELECTED_CATEGORY = null;
-
+let CURRENT_HIERARCHY_SUBJECT = "מדעים";
 /* =====================================================
    SCIENCE RANDOM RECOMMENDATIONS
 ===================================================== */
@@ -36295,7 +36297,20 @@ async function openSubjectHierarchy(subject){
 async function openScienceHierarchy(
   subject = "מדעים"
 ){
+CURRENT_HIERARCHY_SUBJECT = subject;
+const hierarchyTitle =
+  document.getElementById(
+    "hierarchySubjectTitle"
+  );
 
+if(hierarchyTitle){
+  hierarchyTitle.textContent =
+    subject;
+}
+console.log(
+  "CURRENT HIERARCHY SUBJECT:",
+  CURRENT_HIERARCHY_SUBJECT
+);
   /*
     קודם מסמנים שאנחנו במסך מדעים.
     מכאן showDashboard לא יכול
@@ -36604,10 +36619,12 @@ tree.innerHTML = `
   */
 
 const defaultScienceCategory =
-  categories.find(
-    item =>
-      item.category === "אקולוגיה"
-  );
+  CURRENT_HIERARCHY_SUBJECT === "מדעים"
+    ? categories.find(
+        item =>
+          item.category === "אקולוגיה"
+      )
+    : null;
 
 
 SCIENCE_SELECTED_CATEGORY =
@@ -36859,10 +36876,10 @@ async function loadScienceParentLessons(
       "grade",
       grade
     )
-    .eq(
-      "subject",
-      "מדעים"
-    )
+.eq(
+  "subject",
+  CURRENT_HIERARCHY_SUBJECT
+)
     .eq(
       "category",
       category
