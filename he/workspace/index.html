@@ -33511,7 +33511,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V26";
+      "▶ Rotem V27";
 
 
     document.body.appendChild(
@@ -35031,23 +35031,6 @@ async function loadCustomSubjectsForDashboard(){
 }
 
 
-
-if(historySubjectCard){
-
-  historySubjectCard
-    .addEventListener(
-      "click",
-      async event => {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        await openHistorySubject();
-
-      }
-    );
-
-}
 
 
 async function openCustomSubject(
