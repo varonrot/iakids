@@ -25240,90 +25240,198 @@ document.addEventListener(
 </script>
 <style>
 /* =====================================================
-   LESSON RENDERER V1
+   LESSON RENDERER V1 — CHAT DESIGN
 ===================================================== */
 
 .lesson-renderer-root{
   width:100%;
   direction:rtl;
+
   display:flex;
   flex-direction:column;
-  gap:18px;
-  padding:10px 0 40px;
+
+  gap:14px;
+
+  padding:4px 0 20px;
 }
+
+
+/* שורת המורה */
 
 .lesson-renderer-row{
+  width:100%;
+
   display:flex;
+
   align-items:flex-start;
-  gap:16px;
-  direction:rtl;
+
+  gap:14px;
+
+  direction:ltr;
 }
 
+
+/* תמונת המורה */
+
 .lesson-renderer-avatar{
-  width:58px;
-  height:58px;
-  object-fit:contain;
-  flex:none;
+  width:72px;
+  height:72px;
+
+  flex:0 0 72px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:
+    2px solid
+    rgba(68,145,255,.30);
+
+  background:#10203a;
+
+  box-shadow:
+    0 8px 20px
+    rgba(0,0,0,.28);
 }
+
+
+/* אזור הבועות */
 
 .lesson-renderer-content{
   flex:1;
+
   min-width:0;
+
   display:flex;
   flex-direction:column;
-  gap:12px;
+
+  align-items:flex-start;
+
+  gap:8px;
+
+  direction:rtl;
 }
+
+
+/* כל שורת טקסט של הפתיח */
 
 .lesson-renderer-line{
   position:relative;
-  width:max-content;
-  max-width:90%;
+
+  width:auto;
+  max-width:92%;
 
   direction:rtl;
   text-align:right;
 
-  font-family:"Gveret Levin", cursive !important;
-  font-size:34px;
-  line-height:1.6;
-  color:#ffffff;
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
 
-  padding:3px 8px;
+  font-size:15px !important;
+
+  font-weight:500;
+
+  line-height:1.65;
+
+  color:#eef3ff !important;
+
+  padding:
+    12px
+    17px;
+
+  border:
+    1px solid
+    rgba(83,126,189,.20);
+
+  border-radius:
+    16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,38,66,.97),
+      rgba(12,27,49,.98)
+    );
+
+  box-shadow:
+    0 7px 18px
+    rgba(0,5,20,.20);
 
   opacity:1;
 }
 
+
+/* מתמטיקה */
+
 .lesson-renderer-line.math{
   direction:ltr;
-  text-align:right;
 
-  font-family:"Gveret Levin", cursive !important;
-  font-size:42px;
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:17px !important;
+
   font-weight:700;
-  color:#3478e5;
+
+  color:#9ecbff !important;
 }
 
+
+/* שאלה */
+
 .lesson-renderer-line.question{
-  font-size:36px;
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:16px !important;
+
   font-weight:700;
+
+  color:#ffffff !important;
 
   background:
     linear-gradient(
-      transparent 65%,
-      rgba(255,222,80,.55) 65%
+      145deg,
+      rgba(35,44,89,.98),
+      rgba(29,29,78,.98)
     );
 }
 
+
+/* הדגשה */
+
 .lesson-renderer-line.highlighted{
-  background:#fff1a8;
-  border-radius:12px;
-  padding:5px 12px;
-  transition:.35s ease;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(44,55,96,.98),
+      rgba(30,39,76,.98)
+    );
+
+  border-color:
+    rgba(255,196,66,.55);
+
+  border-radius:16px;
+
+  padding:
+    12px
+    17px;
 }
+
+
+/* הצלחה */
 
 .lesson-renderer-line.success{
-  color:#248c59;
-}
+  color:#8de4b7 !important;
 
+  font-weight:700;
+}
 .lesson-renderer-circle{
   display:inline-block;
   position:relative;
