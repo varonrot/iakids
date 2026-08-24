@@ -454,42 +454,42 @@
          LOAD UNIT LESSON
       ===================================== */
 
-      const {
-        data: lesson,
-        error
-      } =
-        await sb
+const {
+  data: lesson,
+  error
+} = await sb
+  .from("lesson_units_content")
+  .select("*")
+  .eq("id", lessonId)
+  .maybeSingle();
 
-          .from(
-            "lesson_units_content"
-          )
+console.log(
+  "LESSON QUERY RESULT:",
+  {
+    lessonId,
+    lesson,
+    error
+  }
+);
 
-          .select(`
-            id,
-            learning_lesson_id,
-            unit_order,
-            unit_name,
-            lesson_order,
-            lesson_name,
-            grade,
-            subject,
-            parent_lesson,
-            status,
-            lesson_complexity,
-            estimated_duration_seconds,
-            max_duration_seconds,
-            lesson_content_json,
-            generated_lesson_json,
-            lesson_audio_json,
-            audio_generation_status
-          `)
+if(error){
 
-          .eq(
-            "id",
-            lessonId
-          )
+  console.error(
+    "LOAD LESSON ERROR:",
+    error
+  );
 
-          .single();
+  lessonApp.innerHTML = `
+    <div class="lesson-error" style="display:block;padding:30px;text-align:right">
+      <strong>שגיאה בטעינת השיעור</strong><br><br>
+      <div>message: ${error.message || "-"}</div>
+      <div>code: ${error.code || "-"}</div>
+      <div>details: ${error.details || "-"}</div>
+    </div>
+  `;
+
+  return;
+}
 
 
       if(
