@@ -33019,78 +33019,204 @@ body.lesson-theme-science
     14px !important;
 }
     /* =====================================================
-   CHAT WIDTH + TYPOGRAPHY HARD FIX
+   LESSON CHAT — CLEAN RESET
 ===================================================== */
 
-/* כל אזור ההודעות */
+/* כל הצ'אט בפונט אחד בלבד */
 body.lesson-theme-science
-.lesson-chat-workspace
-.messages{
-  padding:
-    14px
-    14px
-    88px !important;
-
-  align-items:stretch !important;
+.lesson-chat-workspace,
+body.lesson-theme-science
+.lesson-chat-workspace *{
+  font-family:"Heebo", Arial, sans-serif !important;
 }
 
 
-/* כל שורת מורה תופסת 100% */
+/* =====================================================
+   HEADER
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome{
+  flex:0 0 auto !important;
+
+  padding:14px 16px !important;
+  margin:0 !important;
+
+  text-align:right !important;
+
+  background:
+    rgba(7,18,38,.95) !important;
+
+  border-bottom:
+    1px solid
+    rgba(87,125,190,.18) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome h1{
+  margin:0 !important;
+  padding:0 !important;
+
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:20px !important;
+  line-height:1.25 !important;
+  font-weight:900 !important;
+
+  color:#fff !important;
+
+  text-align:right !important;
+
+  transform:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome h1::after{
+  display:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome p{
+  margin:4px 0 0 !important;
+
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:11px !important;
+  line-height:1.4 !important;
+  font-weight:500 !important;
+
+  color:#8796b5 !important;
+
+  text-align:right !important;
+}
+
+
+/* =====================================================
+   MESSAGES AREA
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages{
+  flex:1 1 auto !important;
+
+  width:100% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+
+  padding:
+    14px
+    12px
+    88px !important;
+
+  margin:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:10px !important;
+
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  background:none !important;
+
+  direction:rtl !important;
+}
+
+
+/* =====================================================
+   TUTOR ROW
+===================================================== */
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-response{
-  display:flex !important;
-
   width:100% !important;
   max-width:100% !important;
+
+  display:flex !important;
+  flex-direction:row !important;
 
   align-items:flex-start !important;
 
   gap:8px !important;
 
-  margin:
-    0
-    0
-    8px !important;
-
+  margin:0 !important;
   padding:0 !important;
 
   direction:rtl !important;
 }
 
 
-/* האזור של הטקסט מקבל את כל המקום שנשאר */
+/* avatar */
+
 body.lesson-theme-science
 .lesson-chat-workspace
-.tutor-writing-area{
-  flex:1 1 0 !important;
+.tutor-avatar{
+  width:30px !important;
+  height:30px !important;
 
-  width:calc(100% - 44px) !important;
-  max-width:calc(100% - 44px) !important;
+  min-width:30px !important;
+  max-width:30px !important;
 
-  min-width:0 !important;
+  flex:0 0 30px !important;
 
-  align-items:stretch !important;
+  border-radius:50% !important;
 
-  gap:7px !important;
+  object-fit:cover !important;
 }
 
 
-/* כל משפט של המורה */
+/* אזור כל הטקסט של המורה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 auto !important;
+
+  width:auto !important;
+  max-width:none !important;
+
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:7px !important;
+
+  align-items:stretch !important;
+
+  text-align:right !important;
+}
+
+
+/* =====================================================
+   כל הודעת מורה
+===================================================== */
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-writing,
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-writing.question-line,
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-writing.success-line,
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-writing.math-line{
-
-  display:block !important;
 
   width:100% !important;
   max-width:100% !important;
@@ -33103,97 +33229,85 @@ body.lesson-theme-science
     10px
     12px !important;
 
-  font-family:
-    "Heebo",
-    Arial,
-    sans-serif !important;
+  font-family:"Heebo", Arial, sans-serif !important;
 
-  font-size:
-    13px !important;
-
-  line-height:
-    1.55 !important;
-
-  font-weight:
-    500 !important;
+  font-size:13px !important;
+  line-height:1.55 !important;
+  font-weight:500 !important;
 
   letter-spacing:0 !important;
 
-  color:#edf3ff !important;
+  color:#eaf0fb !important;
 
   text-align:right !important;
   direction:rtl !important;
 
   white-space:normal !important;
 
+  overflow-wrap:break-word !important;
   word-break:normal !important;
-  overflow-wrap:anywhere !important;
-
-  border-radius:
-    13px !important;
-
-  background:
-    rgba(18,33,57,.96) !important;
 
   border:
     1px solid
-    rgba(92,128,191,.14) !important;
+    rgba(100,132,190,.15) !important;
+
+  border-radius:12px !important;
+
+  background:
+    #101d33 !important;
+
+  box-shadow:none !important;
 }
 
 
-/* שאלה - רק צבע מעט שונה, לא גודל שונה */
+/* שאלה */
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-writing.question-line{
   font-size:13px !important;
+  font-weight:700 !important;
+
+  color:#f3efff !important;
 
   background:
-    rgba(42,35,89,.88) !important;
+    #211d47 !important;
 
   border-color:
-    rgba(124,91,231,.27) !important;
+    rgba(129,94,240,.30) !important;
 }
 
 
 /* הצלחה */
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-writing.success-line{
   font-size:13px !important;
 
-  color:#bff4d3 !important;
+  color:#b8f1cf !important;
 
   background:
-    rgba(20,65,56,.55) !important;
+    #12352f !important;
 }
 
 
-/* גם מתמטיקה לא קופצת ל-40px */
+/* מתמטיקה */
+
 body.lesson-theme-science
 .lesson-chat-workspace
 .tutor-writing.math-line{
   font-size:14px !important;
+  font-weight:700 !important;
 
-  color:#dcecff !important;
+  color:#dceaff !important;
 }
 
 
-/* אווטאר קטן, כדי שלא יגנוב רוחב */
-body.lesson-theme-science
-.lesson-chat-workspace
-.tutor-avatar{
-  width:32px !important;
-  height:32px !important;
+/* =====================================================
+   USER MESSAGE
+===================================================== */
 
-  max-width:32px !important;
-
-  flex:
-    0 0
-    32px !important;
-}
-
-
-/* הודעת ילד */
 body.lesson-theme-science
 .lesson-chat-workspace
 .msg-row.user{
@@ -33202,6 +33316,10 @@ body.lesson-theme-science
   display:flex !important;
 
   justify-content:flex-start !important;
+
+  margin:2px 0 !important;
+
+  direction:rtl !important;
 }
 
 
@@ -33210,23 +33328,109 @@ body.lesson-theme-science
 .msg-row.user
 .msg-bubble{
   width:auto !important;
-
-  max-width:86% !important;
+  max-width:82% !important;
 
   padding:
     9px
     12px !important;
 
-  font-family:
-    "Heebo",
-    Arial,
-    sans-serif !important;
+  margin:0 !important;
 
-  font-size:
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:13px !important;
+  line-height:1.5 !important;
+
+  color:#fff !important;
+
+  border-radius:
     13px !important;
 
-  line-height:
-    1.5 !important;
+  background:
+    linear-gradient(
+      135deg,
+      #5637b8,
+      #39247e
+    ) !important;
+}
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.composer-wrap{
+  position:absolute !important;
+
+  right:10px !important;
+  left:10px !important;
+  bottom:10px !important;
+
+  width:auto !important;
+
+  padding:0 !important;
+  margin:0 !important;
+
+  background:none !important;
+
+  z-index:20 !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input{
+  width:100% !important;
+  max-width:none !important;
+
+  height:54px !important;
+  min-height:54px !important;
+
+  padding:5px !important;
+
+  margin:0 !important;
+
+  border:
+    1px solid
+    rgba(91,126,195,.24) !important;
+
+  border-radius:13px !important;
+
+  background:
+    #09172d !important;
+
+  box-shadow:
+    0 5px 16px
+    rgba(0,0,0,.22) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input input{
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:13px !important;
+
+  color:#fff !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input input::placeholder{
+  color:
+    rgba(186,199,225,.48) !important;
+}
+
+
+/* הערה מתחת לשדה מיותרת */
+body.lesson-theme-science
+.lesson-chat-workspace
+.composer-note{
+  display:none !important;
 }
 </style>
 
