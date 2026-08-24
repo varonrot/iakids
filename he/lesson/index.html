@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IAKIDS – שיעור</title>
+</head>
+
+<body>
+
+  <header>
+    <a href="/he/workspace/">
+      ← חזרה לשולחן הראשי
+    </a>
+
+    <h1 id="lessonTitle">
+      טוען שיעור...
+    </h1>
+  </header>
+
+  <main id="lessonApp">
+    <div id="lessonLoading">
+      טוען את השיעור...
+    </div>
+  </main>
+
+  <script>
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const lessonId =
+      params.get("lesson_id");
+
+    const parentLessonId =
+      params.get("parent_lesson_id");
+
+    const unitOrder =
+      params.get("unit_order");
+
+    const subject =
+      params.get("subject");
+
+    console.log({
+      lessonId,
+      parentLessonId,
+      unitOrder,
+      subject
+    });
+  </script>
+
+</body>
+</html>
