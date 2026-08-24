@@ -31470,6 +31470,70 @@ body.lesson-theme-science
 
   border-radius:12px !important;
 }
+    
+    /* =====================================================
+   LESSON MODE — HIDE WORKSPACE SIDE BARS
+===================================================== */
+
+/* בזמן שיעור מסתירים את הסרגל הראשי השמאלי */
+body.lesson-theme-science .sidebar{
+  display:none !important;
+}
+
+
+/* בזמן שיעור מסתירים את הסרגל הראשי הימני */
+body.lesson-theme-science .rightbar{
+  display:none !important;
+}
+
+
+/* האפליקציה הופכת לעמודה אחת מלאה */
+body.lesson-theme-science .app{
+  grid-template-columns:
+    minmax(0,1fr) !important;
+
+  grid-template-rows:
+    64px
+    minmax(0,1fr) !important;
+}
+
+
+/* הסרגל העליון תופס את כל הרוחב */
+body.lesson-theme-science .topbar{
+  grid-column:
+    1 !important;
+
+  grid-row:
+    1 !important;
+}
+
+
+/* אזור התוכן ממלא את כל הרוחב */
+body.lesson-theme-science .main{
+  grid-column:
+    1 !important;
+
+  grid-row:
+    2 !important;
+
+  width:100% !important;
+
+  min-width:0 !important;
+
+  padding:
+    0 !important;
+}
+
+
+/* learningView ממלא את כל אזור השיעור */
+body.lesson-theme-science
+#learningView{
+  width:100% !important;
+  height:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+}
 </style>
 
 
