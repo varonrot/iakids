@@ -14074,7 +14074,78 @@ data-custom-slot="0"
     class="learning-view"
     style="display:none;"
   >
+<div class="new-lesson-shell">
 
+  <aside class="new-lesson-flow">
+
+    <div class="new-lesson-flow-title">
+      מהלך השיעור
+    </div>
+
+    <div class="new-lesson-flow-steps">
+
+      <div class="new-flow-step completed">
+        <span class="new-flow-number">1</span>
+        <div>
+          <strong>פתיחה</strong>
+          <small>ברוכים הבאים</small>
+        </div>
+      </div>
+
+      <div class="new-flow-step active">
+        <span class="new-flow-number">2</span>
+        <div>
+          <strong>הסבר</strong>
+          <small>לומדים את הנושא</small>
+        </div>
+      </div>
+
+      <div class="new-flow-step">
+        <span class="new-flow-number">3</span>
+        <div>
+          <strong>דוגמה</strong>
+        </div>
+      </div>
+
+      <div class="new-flow-step">
+        <span class="new-flow-number">4</span>
+        <div>
+          <strong>תרגול</strong>
+        </div>
+      </div>
+
+      <div class="new-flow-step">
+        <span class="new-flow-number">5</span>
+        <div>
+          <strong>שאלות</strong>
+        </div>
+      </div>
+
+      <div class="new-flow-step">
+        <span class="new-flow-number">🏆</span>
+        <div>
+          <strong>סיכום</strong>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="new-lesson-robot">
+
+      <img
+        src="/assets/robots/askie-robot.png"
+        alt=""
+      >
+
+      <button type="button">
+        🔊 הסבר קולי
+      </button>
+
+    </div>
+
+  </aside>
+
+  <div class="new-lesson-center">
     <section class="workspace">
 <div
   id="lessonLoadingOverlay"
@@ -14254,6 +14325,7 @@ data-custom-slot="0"
       <div class="notebook-rocket"></div>
 
     </section>
+    </div>
 <!-- =====================================================
      LESSON MASTERY DASHBOARD
 ===================================================== -->
@@ -14476,6 +14548,7 @@ data-custom-slot="0"
   </article>
 
 </section>
+     </div>
   </section>
 
 </main>
@@ -31079,199 +31152,323 @@ div{
   object-fit:contain;
   display:block;
 }
-  /* =====================================================
-   NEW LESSON UI V1
-   רק עיצוב — ללא שינוי לוגיקה
+/* =====================================================
+   NEW LESSON SHELL — STEP 1
 ===================================================== */
 
 body.lesson-theme-science
-.learning-view{
-  position:relative !important;
-  width:100% !important;
-  height:100% !important;
-  min-height:0 !important;
-  gap:0 !important;
-  overflow:hidden !important;
+.new-lesson-shell{
+  width:100%;
+  height:100%;
+
+  min-width:0;
+  min-height:0;
+
+  display:grid;
+
+  grid-template-columns:
+    185px
+    minmax(0,1fr)
+    155px;
+
+  gap:12px;
+
+  direction:ltr;
 }
 
 
-/* מבטלים את המחברת הישנה */
+/* CENTER */
 
 body.lesson-theme-science
-.learning-view
-.workspace{
-  position:relative !important;
+.new-lesson-center{
+  min-width:0;
+  min-height:0;
 
+  height:100%;
+
+  direction:rtl;
+}
+
+
+/* מחברת קיימת ממלאת את המרכז */
+
+body.lesson-theme-science
+.new-lesson-center
+.workspace{
   width:100% !important;
   height:100% !important;
+
   min-height:0 !important;
 
-  flex:1 1 auto !important;
+  flex:none !important;
+}
+
+
+/* LEFT FLOW */
+
+body.lesson-theme-science
+.new-lesson-flow{
+  min-height:0;
+
+  display:flex;
+  flex-direction:column;
+
+  padding:
+    15px
+    11px
+    11px;
 
   border:
     1px solid
-    rgba(74,123,220,.24) !important;
+    rgba(68,132,238,.30);
 
-  border-radius:
-    20px !important;
-
-  overflow:hidden !important;
+  border-radius:18px;
 
   background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(31,83,180,.15),
-      transparent 42%
-    ),
     linear-gradient(
       180deg,
-      rgba(5,13,29,.98),
-      rgba(3,9,22,.99)
-    ) !important;
+      rgba(7,18,38,.96),
+      rgba(4,11,27,.98)
+    );
 
-  background-image:none !important;
+  direction:rtl;
 
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.04),
-
-    0 16px 34px
-    rgba(0,4,18,.35) !important;
+  overflow:hidden;
 }
 
 
-/* מבטלים את הקישוטים של המחברת */
+.new-lesson-flow-title{
+  padding-bottom:12px;
 
-body.lesson-theme-science
-.learning-view
-.workspace::before,
-body.lesson-theme-science
-.learning-view
-.workspace::after{
-  content:none !important;
-  display:none !important;
+  border-bottom:
+    1px solid
+    rgba(88,135,216,.20);
+
+  text-align:center;
+
+  color:#fff;
+
+  font-size:16px;
+  font-weight:900;
 }
 
 
-/* כותרת זמנית */
+.new-lesson-flow-steps{
+  position:relative;
 
-body.lesson-theme-science
-.learning-view
-.workspace
-.welcome{
-  position:relative !important;
+  margin-top:12px;
 
-  flex:0 0 auto !important;
+  display:flex;
+  flex-direction:column;
 
+  gap:5px;
+}
+
+
+.new-flow-step{
+  min-height:55px;
+
+  display:flex;
+  align-items:center;
+
+  gap:9px;
+
+  color:#aebbd4;
+}
+
+
+.new-flow-number{
+  width:32px;
+  height:32px;
+
+  flex:
+    0
+    0
+    32px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  border:
+    1px solid
+    rgba(92,139,219,.42);
+
+  background:#091831;
+
+  color:#9db9ea;
+
+  font-weight:900;
+}
+
+
+.new-flow-step strong{
+  display:block;
+
+  color:inherit;
+
+  font-size:13px;
+}
+
+
+.new-flow-step small{
+  display:block;
+
+  margin-top:1px;
+
+  color:#7789ad;
+
+  font-size:9px;
+}
+
+
+.new-flow-step.completed
+.new-flow-number{
+  color:#75ef82;
+
+  border-color:#4fe16a;
+}
+
+
+.new-flow-step.active{
   padding:
-    14px
-    20px
-    10px !important;
+    7px
+    7px;
 
-  margin:0 !important;
+  border:
+    1px solid
+    rgba(100,81,255,.68);
+
+  border-radius:13px;
 
   background:
-    transparent !important;
+    linear-gradient(
+      135deg,
+      rgba(65,48,188,.72),
+      rgba(21,38,103,.56)
+    );
 
-  border:0 !important;
-
-  text-align:center !important;
+  color:#fff;
 }
 
 
-body.lesson-theme-science
-.learning-view
-.workspace
-.welcome h1{
-  margin:0 !important;
+.new-flow-step.active
+.new-flow-number{
+  border-color:#b08eff;
 
-  color:#fff !important;
-
-  font-family:
-    "Heebo",
-    Arial,
-    sans-serif !important;
-
-  font-size:
-    28px !important;
-
-  font-weight:
-    900 !important;
-
-  transform:none !important;
+  box-shadow:
+    0 0 13px
+    rgba(110,83,255,.68);
 }
 
 
-body.lesson-theme-science
-.learning-view
-.workspace
-.welcome h1::after{
-  display:none !important;
+/* ROBOT */
+
+.new-lesson-robot{
+  margin-top:auto;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+
+  gap:5px;
 }
 
 
-body.lesson-theme-science
-.learning-view
-.workspace
-.welcome p{
-  margin-top:3px !important;
+.new-lesson-robot img{
+  width:145px;
 
-  color:
-    rgba(194,207,235,.72) !important;
+  max-height:180px;
 
-  font-family:
-    "Heebo",
-    Arial,
-    sans-serif !important;
+  object-fit:contain;
 
-  font-size:
-    13px !important;
+  filter:
+    drop-shadow(
+      0 0 15px
+      rgba(54,161,255,.32)
+    );
 }
 
 
-/* משאירים כרגע את מנוע התוכן בדיוק כפי שהוא */
+.new-lesson-robot button{
+  width:100%;
+
+  height:38px;
+
+  border:
+    1px solid
+    rgba(79,136,229,.28);
+
+  border-radius:10px;
+
+  background:
+    rgba(10,27,58,.90);
+
+  color:#e8efff;
+
+  font-size:11px;
+  font-weight:800;
+}
+
+
+/* =========================================
+   MASTERY הופך לטור ימני
+========================================= */
 
 body.lesson-theme-science
-.learning-view
-.workspace
-.messages{
-  position:relative !important;
+#lessonMasteryDock{
+  width:155px !important;
+  height:100% !important;
 
-  flex:1 1 auto !important;
-
-  width:100% !important;
   min-height:0 !important;
 
+  flex:none !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:8px !important;
+
   padding:
-    18px
-    24px
-    110px !important;
+    8px !important;
 
   overflow-y:auto !important;
 
+  opacity:1 !important;
+  visibility:visible !important;
+
+  transform:none !important;
+
+  border:
+    1px solid
+    rgba(54,177,255,.34);
+
+  border-radius:18px;
+
   background:
-    transparent !important;
+    rgba(5,18,38,.72);
+
+  backdrop-filter:
+    blur(15px);
+
+  direction:rtl;
 }
 
 
-/* משאירים גם את שורת ההקלדה פעילה */
+/* כל כרטיסי המדדים קומפקטיים */
 
 body.lesson-theme-science
-.learning-view
-.workspace
-.composer-wrap{
-  position:absolute !important;
+#lessonMasteryDock
+.lesson-mastery-card{
+  min-height:auto !important;
 
-  right:18px !important;
-  left:18px !important;
-  bottom:16px !important;
+  padding:
+    9px
+    7px !important;
 
-  width:auto !important;
-
-  padding:0 !important;
-
-  background:
-    transparent !important;
+  border-radius:12px !important;
 }
 </style>
 
