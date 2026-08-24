@@ -31079,6 +31079,200 @@ div{
   object-fit:contain;
   display:block;
 }
+  /* =====================================================
+   NEW LESSON UI V1
+   רק עיצוב — ללא שינוי לוגיקה
+===================================================== */
+
+body.lesson-theme-science
+.learning-view{
+  position:relative !important;
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  gap:0 !important;
+  overflow:hidden !important;
+}
+
+
+/* מבטלים את המחברת הישנה */
+
+body.lesson-theme-science
+.learning-view
+.workspace{
+  position:relative !important;
+
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+
+  flex:1 1 auto !important;
+
+  border:
+    1px solid
+    rgba(74,123,220,.24) !important;
+
+  border-radius:
+    20px !important;
+
+  overflow:hidden !important;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(31,83,180,.15),
+      transparent 42%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(5,13,29,.98),
+      rgba(3,9,22,.99)
+    ) !important;
+
+  background-image:none !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.04),
+
+    0 16px 34px
+    rgba(0,4,18,.35) !important;
+}
+
+
+/* מבטלים את הקישוטים של המחברת */
+
+body.lesson-theme-science
+.learning-view
+.workspace::before,
+body.lesson-theme-science
+.learning-view
+.workspace::after{
+  content:none !important;
+  display:none !important;
+}
+
+
+/* כותרת זמנית */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome{
+  position:relative !important;
+
+  flex:0 0 auto !important;
+
+  padding:
+    14px
+    20px
+    10px !important;
+
+  margin:0 !important;
+
+  background:
+    transparent !important;
+
+  border:0 !important;
+
+  text-align:center !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome h1{
+  margin:0 !important;
+
+  color:#fff !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    28px !important;
+
+  font-weight:
+    900 !important;
+
+  transform:none !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome h1::after{
+  display:none !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.welcome p{
+  margin-top:3px !important;
+
+  color:
+    rgba(194,207,235,.72) !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    13px !important;
+}
+
+
+/* משאירים כרגע את מנוע התוכן בדיוק כפי שהוא */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.messages{
+  position:relative !important;
+
+  flex:1 1 auto !important;
+
+  width:100% !important;
+  min-height:0 !important;
+
+  padding:
+    18px
+    24px
+    110px !important;
+
+  overflow-y:auto !important;
+
+  background:
+    transparent !important;
+}
+
+
+/* משאירים גם את שורת ההקלדה פעילה */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-wrap{
+  position:absolute !important;
+
+  right:18px !important;
+  left:18px !important;
+  bottom:16px !important;
+
+  width:auto !important;
+
+  padding:0 !important;
+
+  background:
+    transparent !important;
+}
 </style>
 
 
@@ -37773,15 +37967,9 @@ if(pathView){
 
 /* עכשיו מותר למנוע השיעור לפתוח את learningView */
 
-const params = new URLSearchParams({
-  lesson_id: lesson.id,
-  parent_lesson_id: CURRENT_PARENT_LESSON?.id || "",
-  unit_order: CURRENT_UNIT?.unit_order || "",
-  subject: CURRENT_PARENT_LESSON?.subject || ""
-});
-
-window.location.href =
-  `/he/lesson/?${params.toString()}`;
+await startSelectedUnitLesson(
+  lesson
+);
 
       }
     );
