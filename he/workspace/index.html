@@ -18101,25 +18101,19 @@ if(
     );
 
 
-  if(title){
+if(title){
 
-    title.textContent =
-      lesson.lesson_name;
+  title.textContent =
+    "שיחה עם המורה";
 
-  }
+}
 
+if(subtitle){
 
-  if(subtitle){
+  subtitle.textContent =
+    `${CURRENT_PARENT_LESSON.subject || ""} • ${lesson.lesson_name || ""}`;
 
-    subtitle.textContent =
-
-      `${CURRENT_PARENT_LESSON.subject || ""}`
-
-      +
-
-      ` • ${CURRENT_UNIT?.unit_name || ""}`;
-
-  }
+}
 
 
   const emptyState =
@@ -18951,15 +18945,12 @@ if(
       );
 
 
-    if(title){
+if(title){
 
-      title.textContent =
-        state.unit_lesson
-          ?.lesson_name
-        ||
-        "ממשיכים את השיעור";
+  title.textContent =
+    "שיחה עם המורה";
 
-    }
+}
 
 
     const subtitle =
@@ -18968,17 +18959,12 @@ if(
       );
 
 
-    if(subtitle){
+if(subtitle){
 
-      subtitle.textContent =
+  subtitle.textContent =
+    `${state.parent_lesson?.subject || ""} • ${state.unit_lesson?.lesson_name || ""}`;
 
-        `${state.parent_lesson?.subject || ""}`
-
-        +
-
-        ` • ${state.unit_lesson?.unit_name || ""}`;
-
-    }
+}
 
 /* =============================================
    RESTORE LAST TEACHER MESSAGE
