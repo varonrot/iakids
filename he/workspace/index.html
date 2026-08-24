@@ -33018,6 +33018,216 @@ body.lesson-theme-science
   border-radius:
     14px !important;
 }
+    /* =====================================================
+   CHAT WIDTH + TYPOGRAPHY HARD FIX
+===================================================== */
+
+/* כל אזור ההודעות */
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages{
+  padding:
+    14px
+    14px
+    88px !important;
+
+  align-items:stretch !important;
+}
+
+
+/* כל שורת מורה תופסת 100% */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  display:flex !important;
+
+  width:100% !important;
+  max-width:100% !important;
+
+  align-items:flex-start !important;
+
+  gap:8px !important;
+
+  margin:
+    0
+    0
+    8px !important;
+
+  padding:0 !important;
+
+  direction:rtl !important;
+}
+
+
+/* האזור של הטקסט מקבל את כל המקום שנשאר */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 0 !important;
+
+  width:calc(100% - 44px) !important;
+  max-width:calc(100% - 44px) !important;
+
+  min-width:0 !important;
+
+  align-items:stretch !important;
+
+  gap:7px !important;
+}
+
+
+/* כל משפט של המורה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+
+  display:block !important;
+
+  width:100% !important;
+  max-width:100% !important;
+
+  box-sizing:border-box !important;
+
+  margin:0 !important;
+
+  padding:
+    10px
+    12px !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    13px !important;
+
+  line-height:
+    1.55 !important;
+
+  font-weight:
+    500 !important;
+
+  letter-spacing:0 !important;
+
+  color:#edf3ff !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+
+  white-space:normal !important;
+
+  word-break:normal !important;
+  overflow-wrap:anywhere !important;
+
+  border-radius:
+    13px !important;
+
+  background:
+    rgba(18,33,57,.96) !important;
+
+  border:
+    1px solid
+    rgba(92,128,191,.14) !important;
+}
+
+
+/* שאלה - רק צבע מעט שונה, לא גודל שונה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line{
+  font-size:13px !important;
+
+  background:
+    rgba(42,35,89,.88) !important;
+
+  border-color:
+    rgba(124,91,231,.27) !important;
+}
+
+
+/* הצלחה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line{
+  font-size:13px !important;
+
+  color:#bff4d3 !important;
+
+  background:
+    rgba(20,65,56,.55) !important;
+}
+
+
+/* גם מתמטיקה לא קופצת ל-40px */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+  font-size:14px !important;
+
+  color:#dcecff !important;
+}
+
+
+/* אווטאר קטן, כדי שלא יגנוב רוחב */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar{
+  width:32px !important;
+  height:32px !important;
+
+  max-width:32px !important;
+
+  flex:
+    0 0
+    32px !important;
+}
+
+
+/* הודעת ילד */
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user{
+  width:100% !important;
+
+  display:flex !important;
+
+  justify-content:flex-start !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user
+.msg-bubble{
+  width:auto !important;
+
+  max-width:86% !important;
+
+  padding:
+    9px
+    12px !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    13px !important;
+
+  line-height:
+    1.5 !important;
+}
 </style>
 
 
