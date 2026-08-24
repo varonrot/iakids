@@ -14200,10 +14200,10 @@ data-custom-slot="0"
 
       <div class="lesson-sidebar-teacher">
 
-        <img
-          src="/assets/lesson/lesson-teacher.webp"
-          alt="המורה"
-        >
+<!--        <img-->
+<!--          src="/assets/lesson/lesson-teacher.webp"-->
+<!--          alt="המורה"-->
+<!--        >-->
 
       </div>
 
@@ -14644,6 +14644,7 @@ data-custom-slot="0"
   </article>
 
 </section>
+      </div>
   </section>
 
 </main>
@@ -32224,6 +32225,80 @@ body.lesson-theme-science
 .lesson-chat-workspace
 .notebook-rocket{
   display:none !important;
+}
+    /* =====================================================
+   LESSON MAIN + BOTTOM FIX
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  width:100% !important;
+  height:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  display:grid !important;
+
+  grid-template-rows:
+    minmax(0,1fr)
+    150px !important;
+
+  gap:12px !important;
+}
+
+
+/* האזור העליון */
+
+body.lesson-theme-science
+.lesson-content-split{
+  width:100% !important;
+  height:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+}
+
+
+/* אזור ההתקדמות התחתון */
+
+body.lesson-theme-science
+.lesson-mastery-dock{
+  position:relative !important;
+
+  width:100% !important;
+  height:150px !important;
+  min-height:150px !important;
+
+  margin:0 !important;
+  padding:0 !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(4,minmax(0,1fr)) !important;
+
+  gap:12px !important;
+
+  overflow:hidden !important;
+
+  transform:none !important;
+}
+
+
+/* הכרטיסים עצמם */
+
+body.lesson-theme-science
+.lesson-mastery-card{
+  width:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+  height:150px !important;
+
+  padding:10px 12px !important;
+
+  border-radius:16px !important;
 }
 </style>
 
