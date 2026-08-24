@@ -12716,6 +12716,7 @@ body.custom-subject-mode
 ========================= -->
 <button
 type="button"
+id="englishMapCard"
 class="kingdom-label kingdom-label-snow"
 data-kingdom="snow"
 >
@@ -12746,9 +12747,10 @@ data-kingdom="snow"
      מתמטיקה
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-fire"
-data-kingdom="fire"
+  type="button"
+  class="kingdom-label kingdom-label-fire"
+  data-kingdom="fire"
+  data-subject="מתמטיקה"
 >
 
   <strong class="kingdom-label-title">
@@ -12808,9 +12810,10 @@ data-kingdom="jungle"
      תנ״ך
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-shadow"
-data-kingdom="shadow"
+  type="button"
+  class="kingdom-label kingdom-label-shadow"
+  data-kingdom="shadow"
+  data-subject='תנ"ך'
 >
 
   <strong class="kingdom-label-title">
@@ -12840,6 +12843,7 @@ data-kingdom="shadow"
 ========================= -->
 <button
 type="button"
+id="geoMapCard"
 class="kingdom-label kingdom-label-candy"
 data-kingdom="candy"
 >
@@ -12870,9 +12874,10 @@ data-kingdom="candy"
      עברית
 ========================= -->
 <button
-type="button"
-class="kingdom-label kingdom-label-center"
-data-kingdom="center"
+  type="button"
+  class="kingdom-label kingdom-label-center"
+  data-kingdom="center"
+  data-subject="עברית"
 >
 
   <strong class="kingdom-label-title">
@@ -12930,38 +12935,34 @@ data-custom-slot="0"
 
 
 <!-- =========================
-     היסטוריה
+     הוסף מקצוע - סלוט 2
 ========================= -->
 <button
   type="button"
   id="historySubjectCard"
-  class="kingdom-label kingdom-label-desert history-subject-card"
-  data-kingdom="desert"
+  class="kingdom-label kingdom-label-desert"
+  data-subject="היסטוריה"
 >
-
   <strong class="kingdom-label-title">
     היסטוריה
   </strong>
 
   <span class="kingdom-label-subject">
-    תוכנית אישית
+    תוכנית לימודים
   </span>
 
   <span class="kingdom-label-progress">
     <span class="kingdom-label-track">
       <span
         class="kingdom-label-fill"
-        id="historySubjectProgress"
         style="width:0%"
       ></span>
     </span>
 
-    <b id="historySubjectAction">
-      התחלה →
-    </b>
+    <b>כניסה ←</b>
   </span>
-
 </button>
+ 
 </section>
 <!-- 4 כרטיסים ראשיים -->
 <div class="dash-action-cards">
@@ -13402,7 +13403,9 @@ data-custom-slot="0"
 
 
         <div>
-          <h1>מדעים</h1>
+          <h1 id="hierarchySubjectTitle">
+  מדעים
+</h1>
           <p>
             בחר נושא כדי להתחיל ללמוד ולהתקדם
           </p>
@@ -15156,6 +15159,239 @@ const SUBJECT_CONFIG = {
   }
 
 };
+
+/* =====================================================
+   UPDATE KINGDOM MAP BY GRADE
+===================================================== */
+
+function setMapCardSubject(card, subjectName){
+
+  if(!card){
+    return;
+  }
+
+  const title =
+    card.querySelector(
+      ".kingdom-label-title"
+    );
+
+  const subtitle =
+    card.querySelector(
+      ".kingdom-label-subject"
+    );
+
+  const action =
+    card.querySelector(
+      ".kingdom-label-progress b"
+    );
+
+  const fill =
+    card.querySelector(
+      ".kingdom-label-fill"
+    );
+
+
+  /* מקצוע רגיל */
+
+  if(subjectName){
+
+    card.classList.remove(
+      "custom-subject-slot"
+    );
+
+    delete card.dataset.customSlot;
+
+    card.dataset.subject =
+      subjectName;
+
+    if(title){
+      title.textContent =
+        subjectName;
+    }
+
+    if(subtitle){
+      subtitle.textContent =
+        "תוכנית לימודים";
+    }
+
+    if(action){
+      action.textContent =
+        "כניסה →";
+    }
+
+    if(fill){
+      fill.style.width =
+        "0%";
+    }
+
+    return;
+  }
+
+
+  /* סלוט פנוי */
+
+  card.classList.add(
+    "custom-subject-slot"
+  );
+
+  delete card.dataset.subject;
+
+  if(title){
+    title.textContent =
+      "+ הוסף מקצוע";
+  }
+
+  if(subtitle){
+    subtitle.textContent =
+      "התאמה אישית לילד";
+  }
+
+  if(action){
+    action.textContent =
+      "הוסף →";
+  }
+
+  if(fill){
+    fill.style.width =
+      "0%";
+  }
+}
+
+
+
+function updateKingdomMapByGrade(grade){
+
+  grade = Number(grade);
+
+
+  const englishCard =
+    document.getElementById(
+      "englishMapCard"
+    );
+
+  const geoCard =
+    document.getElementById(
+      "geoMapCard"
+    );
+
+  const historyCard =
+    document.getElementById(
+      "historySubjectCard"
+    );
+
+
+  /*
+    אנגלית
+
+    א׳ = אין
+    ב׳ ומעלה = יש
+  */
+
+  if(grade >= 2){
+
+    setMapCardSubject(
+      englishCard,
+      "אנגלית"
+    );
+
+  }else{
+
+    setMapCardSubject(
+      englishCard,
+      null
+    );
+
+  }
+
+
+  /*
+    מולדת / גאוגרפיה
+  */
+
+  if(grade === 1 ||
+     grade === 2){
+
+    setMapCardSubject(
+      geoCard,
+      "מולדת וחברה"
+    );
+
+  }
+
+  else if(grade === 3){
+
+    setMapCardSubject(
+      geoCard,
+      "מולדת וגאוגרפיה"
+    );
+
+  }
+
+  else{
+
+    setMapCardSubject(
+      geoCard,
+      "גאוגרפיה"
+    );
+
+  }
+
+
+  /*
+    היסטוריה
+
+    רק ד׳ ומעלה
+  */
+
+  if(grade >= 4){
+
+    setMapCardSubject(
+      historyCard,
+      "היסטוריה"
+    );
+
+  }else{
+
+    setMapCardSubject(
+      historyCard,
+      null
+    );
+
+  }
+
+
+  /*
+    נותנים מספרים לכל
+    הסלוטים הפנויים
+  */
+
+  document
+    .querySelectorAll(
+      ".custom-subject-slot"
+    )
+    .forEach(
+      (slot,index) => {
+
+        slot.dataset.customSlot =
+          String(index);
+
+      }
+    );
+
+
+  console.log(
+    "KINGDOM MAP UPDATED:",
+    {
+      grade,
+      customSlots:
+        document.querySelectorAll(
+          ".custom-subject-slot"
+        ).length
+    }
+  );
+
+}
+
 async function loadSubjects(grade) {
   const container = document.getElementById("subjectsContainer");
 
@@ -18705,7 +18941,7 @@ if (user) {
 }
 
   if (!sessionData.session) {
-    window.location.replace("he/onboarding/cuenta/");
+    window.location.replace("/he/onboarding/cuenta/");
     return;
   }
 
@@ -18749,8 +18985,15 @@ CURRENT_KID = kid;
 /* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
 CURRENT_KID.grade = Number(kid.age);
 
+/* מעדכנים את המפה לפי הכיתה */
+updateKingdomMapByGrade(
+  CURRENT_KID.grade
+);
+
 /* טעינת המקצועות הקבועים לפי הכיתה */
-await loadSubjects(CURRENT_KID.grade);
+await loadSubjects(
+  CURRENT_KID.grade
+);
 
 /* טעינת המקצועות האישיים שאושרו ע"י ההורה */
 await loadCustomSubjectsForDashboard();
@@ -33514,7 +33757,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V26";
+      "▶ Rotem V1";
 
 
     document.body.appendChild(
@@ -33871,6 +34114,60 @@ if(jungleKingdomButton){
 
 }
 
+/* =====================================================
+   DEFAULT SUBJECT CARDS CLICK
+===================================================== */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    const card =
+      event.target.closest(
+        ".kingdom-label[data-subject]"
+      );
+
+    if(!card){
+      return;
+    }
+
+    const subject =
+      card.dataset.subject;
+
+    if(!subject){
+      return;
+    }
+
+
+    /*
+      מדעים כבר מחובר
+      ל-openScienceHierarchy
+    */
+
+    if(subject === "מדעים"){
+      return;
+    }
+
+
+    event.preventDefault();
+    event.stopPropagation();
+
+
+    console.log(
+      "SUBJECT CARD CLICK:",
+      subject
+    );
+
+
+    /*
+      כרגע רק בדיקה שהכפתורים
+      באמת מחוברים.
+    */
+
+openSubjectHierarchy(subject);
+
+  }
+);
 
 /*
   חזרה באמצעות מקש Escape.
@@ -33896,7 +34193,7 @@ document.addEventListener(
 ===================================================== */
 
 let SCIENCE_SELECTED_CATEGORY = null;
-
+let CURRENT_HIERARCHY_SUBJECT = "מדעים";
 /* =====================================================
    SCIENCE RANDOM RECOMMENDATIONS
 ===================================================== */
@@ -35033,147 +35330,7 @@ async function loadCustomSubjectsForDashboard(){
 
 }
 
-/* =====================================================
-   OPEN CUSTOM SUBJECT
-===================================================== */
 
-/* =====================================================
-   OPEN HISTORY SUBJECT
-===================================================== */
-
-async function openHistorySubject(){
-
-  console.log(
-    "OPEN HISTORY SUBJECT",
-    CURRENT_KID
-  );
-
-
-  if(
-    !CURRENT_KID ||
-    !CURRENT_KID.id
-  ){
-
-    console.error(
-      "CURRENT_KID missing"
-    );
-
-    return;
-  }
-
-
-  /*
-    בודקים אם כבר קיימת
-    תוכנית היסטוריה מאושרת לילד
-  */
-
-  const {
-    data,
-    error
-  } =
-    await sb
-      .from(
-        "kid_custom_subjects"
-      )
-      .select(
-        `
-        id,
-        subject_name,
-        status
-        `
-      )
-      .eq(
-        "kid_id",
-        CURRENT_KID.id
-      )
-      .eq(
-        "subject_name",
-        "היסטוריה"
-      )
-      .eq(
-        "status",
-        "active"
-      )
-      .order(
-        "created_at",
-        {
-          ascending:false
-        }
-      )
-      .limit(1);
-
-
-  if(error){
-
-    console.error(
-      "HISTORY SUBJECT ERROR:",
-      error
-    );
-
-    return;
-  }
-
-
-  const historySubject =
-    data?.[0];
-
-
-  /*
-    כבר קיימת תוכנית היסטוריה
-  */
-
-  if(historySubject){
-
-    console.log(
-      "HISTORY SUBJECT FOUND:",
-      historySubject
-    );
-
-    await openCustomSubject(
-      historySubject.id,
-      "היסטוריה"
-    );
-
-    return;
-  }
-
-
-  /*
-    עדיין אין תוכנית:
-    עוברים לבניית מקצוע אישי,
-    אבל כבר יודעים שמדובר בהיסטוריה
-  */
-
-  window.location.href =
-    "/he/add-subject/?subject=" +
-    encodeURIComponent(
-      "היסטוריה"
-    );
-
-}
-
-const historySubjectCard =
-  document.getElementById(
-    "historySubjectCard"
-  );
-
-
-if(historySubjectCard){
-
-  historySubjectCard
-    .addEventListener(
-      "click",
-      async event => {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        await openHistorySubject();
-
-      }
-    );
-
-}
 
 
 async function openCustomSubject(
@@ -36104,8 +36261,36 @@ document
    OPEN SCIENCE
 ===================================================== */
 
-async function openScienceHierarchy(){
+async function openSubjectHierarchy(subject){
 
+  console.log(
+    "OPEN SUBJECT HIERARCHY:",
+    subject
+  );
+
+  await openScienceHierarchy(
+    subject
+  );
+
+}
+
+async function openScienceHierarchy(
+  subject = "מדעים"
+){
+CURRENT_HIERARCHY_SUBJECT = subject;
+const hierarchyTitle =
+  document.getElementById(
+    "hierarchySubjectTitle"
+  );
+
+if(hierarchyTitle){
+  hierarchyTitle.textContent =
+    subject;
+}
+console.log(
+  "CURRENT HIERARCHY SUBJECT:",
+  CURRENT_HIERARCHY_SUBJECT
+);
   /*
     קודם מסמנים שאנחנו במסך מדעים.
     מכאן showDashboard לא יכול
@@ -36189,17 +36374,17 @@ async function openScienceHierarchy(){
     });
 
 
-  const scienceSidebarButton =
-    [...document.querySelectorAll(
-      "#subjectsContainer .side-item"
-    )]
-    .find(btn =>
-      btn.textContent
-        .trim()
-        .includes(
-          "מדעים"
-        )
-    );
+const scienceSidebarButton =
+  [...document.querySelectorAll(
+    "#subjectsContainer .side-item"
+  )]
+  .find(btn =>
+    btn.textContent
+      .trim()
+      .includes(
+        subject
+      )
+  );
 
 
   if(scienceSidebarButton){
@@ -36216,7 +36401,9 @@ async function openScienceHierarchy(){
   renderRandomScienceRecommendations();
 
 
-  await loadScienceCategories();
+  await loadScienceCategories(
+  subject
+);
 
 }
 
@@ -36256,7 +36443,9 @@ function closeScienceHierarchy(){
    learning_lessons.category
 ===================================================== */
 
-async function loadScienceCategories(){
+async function loadScienceCategories(
+  subject = "מדעים"
+){
 
   const tree =
     document.getElementById(
@@ -36269,13 +36458,13 @@ async function loadScienceCategories(){
   }
 
 
-  tree.innerHTML = `
+tree.innerHTML = `
 
-    <div class="science-tree-loading">
-      טוענים את נושאי המדעים...
-    </div>
+  <div class="science-tree-loading">
+    טוענים את נושאי ${subject}...
+  </div>
 
-  `;
+`;
 
 
   const grade =
@@ -36317,10 +36506,10 @@ async function loadScienceCategories(){
       grade
     )
 
-    .eq(
-      "subject",
-      "מדעים"
-    )
+.eq(
+  "subject",
+  subject
+)
 
     .eq(
       "is_active",
@@ -36410,10 +36599,12 @@ async function loadScienceCategories(){
   */
 
 const defaultScienceCategory =
-  categories.find(
-    item =>
-      item.category === "אקולוגיה"
-  );
+  CURRENT_HIERARCHY_SUBJECT === "מדעים"
+    ? categories.find(
+        item =>
+          item.category === "אקולוגיה"
+      )
+    : null;
 
 
 SCIENCE_SELECTED_CATEGORY =
@@ -36665,10 +36856,10 @@ async function loadScienceParentLessons(
       "grade",
       grade
     )
-    .eq(
-      "subject",
-      "מדעים"
-    )
+.eq(
+  "subject",
+  CURRENT_HIERARCHY_SUBJECT
+)
     .eq(
       "category",
       category
