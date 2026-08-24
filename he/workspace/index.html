@@ -33666,7 +33666,7 @@ body.lesson-theme-science
       #33216f
     ) !important;
 }
-   
+
     /* =====================================================
    LESSON CHAT — FINAL FINAL OVERRIDE
    זה העיצוב הסופי של הצ'אט בשיעור
@@ -34126,6 +34126,157 @@ body.lesson-theme-science
 .input input::placeholder{
   color:
     rgba(173,190,219,.52) !important;
+}
+    /* =====================================================
+   LESSON CHAT — VISUAL SIZE FIX
+===================================================== */
+
+/* יותר מקום לתוכן */
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages{
+  padding:18px 22px 100px !important;
+  gap:18px !important;
+}
+
+
+/* שורת המורה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+
+  align-items:flex-start !important;
+
+  gap:16px !important;
+
+  direction:ltr !important;
+
+  margin:0 0 18px !important;
+}
+
+
+/* תמונת המורה — כמו בדוגמה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar{
+  width:86px !important;
+  height:86px !important;
+
+  flex:0 0 86px !important;
+
+  border-radius:50% !important;
+
+  object-fit:cover !important;
+
+  object-position:center top !important;
+
+  border:2px solid rgba(63,143,255,.25) !important;
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.30),
+    0 0 18px rgba(55,135,255,.10) !important;
+}
+
+
+/* כל האזור ליד הדמות */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 auto !important;
+
+  width:auto !important;
+  max-width:none !important;
+
+  min-width:0 !important;
+
+  align-items:flex-start !important;
+}
+
+
+/* בועת המורה — רחבה כמו בתמונה המקורית */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+
+  width:auto !important;
+
+  min-width:55% !important;
+  max-width:94% !important;
+
+  padding:16px 20px !important;
+
+  font-family:"Heebo",Arial,sans-serif !important;
+
+  font-size:16px !important;
+  line-height:1.7 !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+
+  border-radius:18px !important;
+}
+
+
+/* הילד */
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user{
+  width:100% !important;
+
+  display:flex !important;
+
+  align-items:center !important;
+
+  justify-content:flex-start !important;
+
+  gap:12px !important;
+
+  direction:rtl !important;
+
+  margin:2px 0 18px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user
+.msg-avatar{
+  width:58px !important;
+  height:58px !important;
+
+  flex:0 0 58px !important;
+
+  border-radius:50% !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user
+.msg-bubble{
+  width:auto !important;
+
+  max-width:78% !important;
+
+  padding:13px 18px !important;
+
+  font-size:16px !important;
+  line-height:1.55 !important;
+
+  border-radius:17px !important;
 }
 </style>
 
