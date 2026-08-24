@@ -31751,6 +31751,64 @@ body.lesson-theme-science
     9px
     10px !important;
 }
+    /* ===== FIX LESSON CENTER ===== */
+
+body.lesson-theme-science .lesson-center-new .workspace{
+    background: #061225 !important;
+    background-image: none !important;
+
+    border: 1px solid rgba(80,130,220,.28) !important;
+    border-radius: 18px !important;
+
+    overflow: hidden !important;
+}
+
+/* מבטל כל שכבת רקע ישנה */
+body.lesson-theme-science .lesson-center-new .workspace::before,
+body.lesson-theme-science .lesson-center-new .workspace::after{
+    content: none !important;
+    display: none !important;
+}
+
+/* מסתיר את 4 כרטיסי המדדים הישנים */
+body.lesson-theme-science #lessonMasteryDock{
+    display: none !important;
+}
+    /* ===== FIX RIGHT LESSON CHAT ===== */
+
+body.lesson-theme-science .lesson-chat-new .tutor-writing{
+    font-family: "Heebo", Arial, sans-serif !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+
+    color: #f4f7ff !important;
+
+    background: #101d35 !important;
+
+    border: 1px solid rgba(100,140,210,.18) !important;
+    border-radius: 16px !important;
+
+    padding: 13px 15px !important;
+
+    width: auto !important;
+    max-width: 85% !important;
+}
+
+/* ביטול כתב היד הישן */
+body.lesson-theme-science .lesson-chat-new *{
+    text-shadow: none;
+}
+
+body.lesson-theme-science .lesson-chat-new .tutor-writing-area{
+    width: 100% !important;
+}
+
+/* רובוט גדול ישן */
+body.lesson-theme-science .lesson-chat-new .notebook-rocket,
+body.lesson-theme-science .lesson-chat-new .robot-large,
+body.lesson-theme-science .lesson-chat-new .lesson-robot{
+    display: none !important;
+}
 </style>
 
 
