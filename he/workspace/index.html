@@ -33432,6 +33432,240 @@ body.lesson-theme-science
 .composer-note{
   display:none !important;
 }
+   /* =====================================================
+   LESSON CHAT TYPOGRAPHY — FINAL CLEAN STYLE
+===================================================== */
+
+/* כל הצ'אט בפונט אחיד */
+body.lesson-theme-science
+.lesson-chat-workspace,
+body.lesson-theme-science
+.lesson-chat-workspace *{
+  font-family:"Heebo", Arial, sans-serif !important;
+}
+
+
+/* מסתירים את הכותרת הישנה של המחברת */
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome{
+  display:none !important;
+}
+
+
+/* אזור ההודעות */
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages{
+  width:100% !important;
+
+  padding:
+    18px
+    16px
+    88px !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:12px !important;
+
+  overflow-y:auto !important;
+
+  background:transparent !important;
+
+  direction:rtl !important;
+}
+
+
+/* שורת המורה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+
+  display:flex !important;
+
+  align-items:flex-start !important;
+
+  gap:10px !important;
+
+  margin:0 0 8px !important;
+
+  direction:rtl !important;
+}
+
+
+/* תמונת המורה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar{
+  width:40px !important;
+  height:40px !important;
+
+  flex:0 0 40px !important;
+
+  border-radius:50% !important;
+
+  object-fit:cover !important;
+}
+
+
+/* אזור הטקסט */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 auto !important;
+
+  width:auto !important;
+  max-width:none !important;
+
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:8px !important;
+}
+
+
+/* כל הודעת מורה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+
+  width:100% !important;
+  max-width:100% !important;
+
+  margin:0 !important;
+
+  padding:
+    12px
+    14px !important;
+
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:14px !important;
+  line-height:1.65 !important;
+  font-weight:500 !important;
+
+  color:#eef4ff !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+
+  white-space:normal !important;
+
+  word-break:normal !important;
+  overflow-wrap:break-word !important;
+
+  border:
+    1px solid rgba(102,138,204,.16) !important;
+
+  border-radius:
+    16px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(18,32,55,.97),
+      rgba(12,25,45,.98)
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.025) !important;
+}
+
+
+/* שאלה - אותו גודל, רק הדגשה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line{
+  font-size:14px !important;
+  font-weight:700 !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(44,36,91,.96),
+      rgba(29,28,68,.98)
+    ) !important;
+
+  border-color:
+    rgba(123,92,242,.32) !important;
+}
+
+
+/* תשובה נכונה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line{
+  font-size:14px !important;
+
+  color:#c3f4d6 !important;
+
+  background:
+    rgba(18,54,46,.92) !important;
+}
+
+
+/* מתמטיקה לא קופצת לגודל ענק */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+  font-size:15px !important;
+  font-weight:700 !important;
+}
+
+
+/* הודעת הילד */
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user{
+  width:100% !important;
+
+  justify-content:flex-start !important;
+
+  margin:2px 0 6px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user
+.msg-bubble{
+  max-width:82% !important;
+
+  padding:
+    11px
+    14px !important;
+
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:14px !important;
+  line-height:1.55 !important;
+
+  border-radius:
+    16px !important;
+
+  color:#fff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4b2e9f,
+      #33216f
+    ) !important;
+} 
 </style>
 
 
