@@ -14273,24 +14273,33 @@ data-custom-slot="0"
 
   </div>
 </div>
-      <div class="welcome">
+<div class="welcome lesson-chat-header">
 
-        <img
-          id="heroAvatar"
-          alt=""
-          style="display:none"
-        >
+  <div class="lesson-chat-header-icon">
+    ✨
+  </div>
 
-        <h1 id="heroGreeting">
-          בואו נפתור יחד!
-        </h1>
+  <div class="lesson-chat-header-text">
 
-        <p id="learningSubtitle">
-          אפשר לשאול שאלה, להעלות תרגיל או לצלם את המחברת —
-          המורה AI יעזור שלב אחרי שלב.
-        </p>
+    <h1 id="heroGreeting">
+      שיחה עם המורה
+    </h1>
 
-      </div>
+    <p id="learningSubtitle">
+      המורה האישית שלך כאן כדי להסביר ולעזור
+    </p>
+
+  </div>
+
+  <button
+    type="button"
+    class="lesson-chat-help"
+  >
+    <i class="fa-regular fa-circle-question"></i>
+    איך המורה עובדת?
+  </button>
+
+</div>
 
 
       <div class="messages">
@@ -34277,6 +34286,202 @@ body.lesson-theme-science
   line-height:1.55 !important;
 
   border-radius:17px !important;
+}
+    /* =====================================================
+   LESSON CHAT HEADER — FINAL
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header{
+  flex:0 0 62px !important;
+
+  width:100% !important;
+
+  min-height:62px !important;
+
+  padding:10px 16px !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+
+  align-items:center !important;
+
+  gap:10px !important;
+
+  position:relative !important;
+
+  direction:rtl !important;
+
+  text-align:right !important;
+
+  border-bottom:
+    1px solid rgba(92,133,196,.18) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9,22,42,.88),
+      rgba(7,18,36,.70)
+    ) !important;
+
+  box-shadow:none !important;
+}
+
+
+/* הכוכב הקטן */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header-icon{
+  width:34px;
+  height:34px;
+
+  flex:0 0 34px;
+
+  display:grid;
+  place-items:center;
+
+  font-size:20px;
+
+  color:#c6a5ff;
+
+  text-shadow:
+    0 0 12px rgba(139,91,255,.55);
+}
+
+
+/* אזור הטקסט */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header-text{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  justify-content:center;
+
+  flex:1;
+}
+
+
+/* שיחה עם המורה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header
+#heroGreeting{
+  margin:0 !important;
+
+  padding:0 !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:18px !important;
+
+  line-height:1.2 !important;
+
+  font-weight:800 !important;
+
+  color:#f4f6ff !important;
+
+  text-align:right !important;
+
+  transform:none !important;
+
+  max-width:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header
+#heroGreeting::after{
+  display:none !important;
+}
+
+
+/* שורת המשנה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header
+#learningSubtitle{
+  margin:3px 0 0 !important;
+
+  padding:0 !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:10px !important;
+
+  line-height:1.25 !important;
+
+  font-weight:500 !important;
+
+  color:
+    rgba(166,188,219,.65) !important;
+
+  text-align:right !important;
+
+  max-width:none !important;
+}
+
+
+/* כפתור איך המורה עובדת */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-help{
+  height:34px;
+
+  flex:0 0 auto;
+
+  padding:0 11px;
+
+  display:flex;
+  align-items:center;
+
+  gap:6px;
+
+  border:
+    1px solid rgba(83,128,197,.28);
+
+  border-radius:11px;
+
+  background:
+    rgba(7,20,40,.70);
+
+  color:
+    rgba(220,229,245,.82);
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif;
+
+  font-size:10px;
+
+  font-weight:700;
+
+  cursor:pointer;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-help i{
+  font-size:13px;
+
+  color:#c9d8f4;
 }
 </style>
 
