@@ -1,53 +1,737 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
   <title>IAKIDS – שיעור</title>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+  </script>
+
+  <style>
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html,
+    body{
+      margin:0;
+      min-height:100%;
+      font-family:
+        Arial,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    body{
+      background:#020916;
+      color:#ffffff;
+    }
+
+    .lesson-page{
+      min-height:100vh;
+      padding:24px;
+    }
+
+    .lesson-header{
+      width:min(1200px,100%);
+      margin:0 auto 30px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
+
+    .back-button{
+      min-height:46px;
+
+      padding:
+        0
+        18px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      border:
+        1px solid
+        rgba(110,150,230,.30);
+
+      border-radius:14px;
+
+      background:
+        rgba(15,27,50,.88);
+
+      color:#ffffff;
+
+      text-decoration:none;
+
+      font-size:14px;
+      font-weight:800;
+    }
+
+    .lesson-header-info{
+      text-align:right;
+    }
+
+    .lesson-subject{
+      color:#61cfff;
+      font-size:14px;
+      font-weight:800;
+    }
+
+    #lessonTitle{
+      margin:
+        4px
+        0
+        0;
+
+      font-size:
+        clamp(
+          28px,
+          4vw,
+          44px
+        );
+
+      line-height:1.15;
+    }
+
+    .lesson-app{
+      width:min(1200px,100%);
+      margin:auto;
+    }
+
+    .lesson-loading,
+    .lesson-error{
+      min-height:300px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      border:
+        1px solid
+        rgba(100,145,230,.25);
+
+      border-radius:24px;
+
+      background:
+        rgba(8,17,35,.90);
+
+      font-size:20px;
+      font-weight:800;
+    }
+
+    .lesson-error{
+      color:#ff9e9e;
+    }
+
+    .lesson-debug-card{
+      padding:24px;
+
+      border:
+        1px solid
+        rgba(100,145,230,.26);
+
+      border-radius:24px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(15,29,55,.96),
+          rgba(7,14,30,.98)
+        );
+
+      box-shadow:
+        0
+        18px
+        40px
+        rgba(0,0,0,.28);
+    }
+
+    .lesson-debug-card h2{
+      margin:
+        0
+        0
+        20px;
+
+      font-size:22px;
+    }
+
+    .lesson-data-grid{
+      display:grid;
+
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0,1fr)
+        );
+
+      gap:12px;
+    }
+
+    .lesson-data-item{
+      padding:15px;
+
+      border-radius:15px;
+
+      background:
+        rgba(255,255,255,.05);
+
+      border:
+        1px solid
+        rgba(255,255,255,.08);
+    }
+
+    .lesson-data-item small{
+      display:block;
+
+      margin-bottom:5px;
+
+      color:#8294b8;
+
+      font-size:11px;
+    }
+
+    .lesson-data-item strong{
+      font-size:16px;
+    }
+
+    @media(max-width:700px){
+
+      .lesson-page{
+        padding:14px;
+      }
+
+      .lesson-header{
+        align-items:flex-start;
+        flex-direction:column-reverse;
+      }
+
+      .lesson-data-grid{
+        grid-template-columns:1fr;
+      }
+
+    }
+
+  </style>
+
 </head>
 
 <body>
 
-  <header>
-    <a href="/he/workspace/">
-      ← חזרה לשולחן הראשי
-    </a>
+  <div class="lesson-page">
 
-    <h1 id="lessonTitle">
-      טוען שיעור...
-    </h1>
-  </header>
+    <!-- ================================
+         HEADER
+    ================================= -->
 
-  <main id="lessonApp">
-    <div id="lessonLoading">
-      טוען את השיעור...
-    </div>
-  </main>
+    <header class="lesson-header">
+
+      <div class="lesson-header-info">
+
+        <div
+          class="lesson-subject"
+          id="lessonSubject"
+        >
+          שיעור
+        </div>
+
+        <h1 id="lessonTitle">
+          טוען שיעור...
+        </h1>
+
+      </div>
+
+
+      <a
+        href="/he/workspace/"
+        class="back-button"
+      >
+        ← חזרה לשולחן הראשי
+      </a>
+
+    </header>
+
+
+    <!-- ================================
+         LESSON APP
+    ================================= -->
+
+    <main
+      id="lessonApp"
+      class="lesson-app"
+    >
+
+      <div
+        id="lessonLoading"
+        class="lesson-loading"
+      >
+        טוען את השיעור...
+      </div>
+
+    </main>
+
+  </div>
+
 
   <script>
+
+    /* =========================================
+       SUPABASE
+    ========================================= */
+
+    const SUPABASE_URL =
+      "https://bxnfzuglfwytiyaguwjj.supabase.co";
+
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+
+    const sb =
+      supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+
+    /* =========================================
+       URL PARAMETERS
+    ========================================= */
+
     const params =
       new URLSearchParams(
         window.location.search
       );
 
+
     const lessonId =
-      params.get("lesson_id");
+      Number(
+        params.get(
+          "lesson_id"
+        )
+      );
+
 
     const parentLessonId =
-      params.get("parent_lesson_id");
+      Number(
+        params.get(
+          "parent_lesson_id"
+        )
+      );
+
 
     const unitOrder =
-      params.get("unit_order");
+      Number(
+        params.get(
+          "unit_order"
+        )
+      );
+
 
     const subject =
-      params.get("subject");
+      params.get(
+        "subject"
+      ) || "";
 
-    console.log({
-      lessonId,
-      parentLessonId,
-      unitOrder,
-      subject
-    });
+
+    console.log(
+      "LESSON PAGE PARAMS:",
+      {
+        lessonId,
+        parentLessonId,
+        unitOrder,
+        subject
+      }
+    );
+
+
+    /* =========================================
+       ELEMENTS
+    ========================================= */
+
+    const lessonTitle =
+      document.getElementById(
+        "lessonTitle"
+      );
+
+
+    const lessonSubject =
+      document.getElementById(
+        "lessonSubject"
+      );
+
+
+    const lessonApp =
+      document.getElementById(
+        "lessonApp"
+      );
+
+
+    /* =========================================
+       ERROR
+    ========================================= */
+
+    function showLessonError(
+      message
+    ){
+
+      lessonApp.innerHTML = `
+
+        <div class="lesson-error">
+
+          ${message}
+
+        </div>
+
+      `;
+
+    }
+
+
+    /* =========================================
+       LOAD LESSON
+    ========================================= */
+
+    async function loadLesson(){
+
+      if(
+        !lessonId
+      ){
+
+        showLessonError(
+          "לא התקבל מזהה שיעור."
+        );
+
+        return;
+      }
+
+
+      /* =====================================
+         AUTH CHECK
+      ===================================== */
+
+      const {
+        data: sessionData,
+        error: sessionError
+      } =
+        await sb.auth.getSession();
+
+
+      if(
+        sessionError
+      ){
+
+        console.error(
+          "SESSION ERROR:",
+          sessionError
+        );
+
+      }
+
+
+      if(
+        !sessionData?.session
+      ){
+
+        window.location.replace(
+          "/he/onboarding/cuenta/"
+        );
+
+        return;
+      }
+
+
+      /* =====================================
+         LOAD UNIT LESSON
+      ===================================== */
+
+      const {
+        data: lesson,
+        error
+      } =
+        await sb
+
+          .from(
+            "lesson_units_content"
+          )
+
+          .select(`
+            id,
+            learning_lesson_id,
+            unit_order,
+            unit_name,
+            lesson_order,
+            lesson_name,
+            grade,
+            subject,
+            parent_lesson,
+            status,
+            lesson_complexity,
+            estimated_duration_seconds,
+            max_duration_seconds,
+            lesson_content_json,
+            generated_lesson_json,
+            lesson_audio_json,
+            audio_generation_status
+          `)
+
+          .eq(
+            "id",
+            lessonId
+          )
+
+          .single();
+
+
+      if(
+        error
+      ){
+
+        console.error(
+          "LOAD LESSON ERROR:",
+          error
+        );
+
+
+        showLessonError(
+          "לא הצלחנו לטעון את השיעור."
+        );
+
+        return;
+      }
+
+
+      if(
+        !lesson
+      ){
+
+        showLessonError(
+          "השיעור לא נמצא."
+        );
+
+        return;
+      }
+
+
+      console.log(
+        "LESSON LOADED:",
+        lesson
+      );
+
+
+      /* =====================================
+         HEADER
+      ===================================== */
+
+      lessonTitle.textContent =
+        lesson.lesson_name ||
+        "שיעור";
+
+
+      lessonSubject.textContent =
+        lesson.subject ||
+        subject ||
+        "שיעור";
+
+
+      document.title =
+        `${
+          lesson.lesson_name ||
+          "שיעור"
+        } | IAKIDS`;
+
+
+      /* =====================================
+         TEMPORARY TEST VIEW
+      ===================================== */
+
+      lessonApp.innerHTML = `
+
+        <section
+          class="lesson-debug-card"
+        >
+
+          <h2>
+            ✅ השיעור נטען בהצלחה
+          </h2>
+
+
+          <div
+            class="lesson-data-grid"
+          >
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                ID
+              </small>
+
+              <strong>
+                ${lesson.id}
+              </strong>
+
+            </div>
+
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                מקצוע
+              </small>
+
+              <strong>
+                ${
+                  lesson.subject ||
+                  subject ||
+                  "-"
+                }
+              </strong>
+
+            </div>
+
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                נושא ראשי
+              </small>
+
+              <strong>
+                ${
+                  lesson.parent_lesson ||
+                  parentLessonId ||
+                  "-"
+                }
+              </strong>
+
+            </div>
+
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                יחידה
+              </small>
+
+              <strong>
+                ${
+                  lesson.unit_name ||
+                  "-"
+                }
+              </strong>
+
+            </div>
+
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                שיעור
+              </small>
+
+              <strong>
+                ${
+                  lesson.lesson_name ||
+                  "-"
+                }
+              </strong>
+
+            </div>
+
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                סדר שיעור
+              </small>
+
+              <strong>
+                ${
+                  lesson.lesson_order ??
+                  "-"
+                }
+              </strong>
+
+            </div>
+
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                סטטוס
+              </small>
+
+              <strong>
+                ${
+                  lesson.status ||
+                  "-"
+                }
+              </strong>
+
+            </div>
+
+
+            <div
+              class="lesson-data-item"
+            >
+
+              <small>
+                סטטוס אודיו
+              </small>
+
+              <strong>
+                ${
+                  lesson.audio_generation_status ||
+                  "-"
+                }
+              </strong>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      `;
+
+
+      /* נשמור אותו גלובלית לשלב הבא */
+
+      window.CURRENT_LESSON =
+        lesson;
+
+    }
+
+
+    /* =========================================
+       START
+    ========================================= */
+
+    loadLesson();
+
   </script>
 
 </body>
