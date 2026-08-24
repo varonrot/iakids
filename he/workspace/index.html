@@ -12962,7 +12962,7 @@ data-custom-slot="0"
     <b>כניסה ←</b>
   </span>
 </button>
- 
+
 </section>
 <!-- 4 כרטיסים ראשיים -->
 <div class="dash-action-cards">
@@ -37773,9 +37773,15 @@ if(pathView){
 
 /* עכשיו מותר למנוע השיעור לפתוח את learningView */
 
-await startSelectedUnitLesson(
-  lesson
-);
+const params = new URLSearchParams({
+  lesson_id: lesson.id,
+  parent_lesson_id: CURRENT_PARENT_LESSON?.id || "",
+  unit_order: CURRENT_UNIT?.unit_order || "",
+  subject: CURRENT_PARENT_LESSON?.subject || ""
+});
+
+window.location.href =
+  `/he/lesson/?${params.toString()}`;
 
       }
     );
