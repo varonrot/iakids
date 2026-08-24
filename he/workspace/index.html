@@ -14069,71 +14069,155 @@ data-custom-slot="0"
        זה ה-Workspace המקורי שלך
        ===================================================== -->
 
-  <section
-    id="learningView"
-    class="learning-view"
-    style="display:none;"
-  >
-<div class="lesson-screen-new">
+<section
+  id="learningView"
+  class="learning-view"
+  style="display:none;"
+>
 
-  <!-- שמאל: מהלך השיעור -->
-  <aside class="lesson-flow-new">
+  <div class="lesson-layout-v1">
 
-    <div class="lesson-flow-title">
-      מהלך השיעור
-    </div>
+    <!-- =========================================
+         LEFT — LESSONS SIDEBAR
+    ========================================== -->
 
-    <div class="lesson-flow-step done">
-      <span>1</span>
-      <div>
-        <strong>פתיחה</strong>
-        <small>ברוכים הבאים</small>
+    <aside class="lesson-lessons-sidebar">
+
+      <div class="lesson-sidebar-subject">
+        <span class="lesson-sidebar-subject-icon">🌿</span>
+
+        <div>
+          <strong>מדעים</strong>
+          <small>מערכות אקולוגיות</small>
+        </div>
       </div>
-    </div>
 
-    <div class="lesson-flow-step active">
-      <span>2</span>
-      <div>
-        <strong>הסבר</strong>
-        <small>לומדים את הנושא</small>
+
+      <div class="lesson-sidebar-unit">
+
+        <div class="lesson-sidebar-unit-image">
+          <img
+            src="/assets/science/categories/ecology.webp"
+            alt=""
+          >
+        </div>
+
+        <span>מערכות אקולוגיות</span>
+
       </div>
-    </div>
 
-    <div class="lesson-flow-step">
-      <span>3</span>
-      <div><strong>דוגמה</strong></div>
-    </div>
 
-    <div class="lesson-flow-step">
-      <span>4</span>
-      <div><strong>תרגול</strong></div>
-    </div>
+      <div class="lesson-sidebar-list">
 
-    <div class="lesson-flow-step">
-      <span>5</span>
-      <div><strong>שאלה 1</strong></div>
-    </div>
+        <div class="lesson-sidebar-row completed">
 
-    <div class="lesson-flow-step">
-      <span>6</span>
-      <div><strong>שאלה 2</strong></div>
-    </div>
+          <div class="lesson-sidebar-status">
+            ✓
+          </div>
 
-    <div class="lesson-flow-step">
-      <span>🏆</span>
-      <div><strong>סיכום</strong></div>
-    </div>
+          <div class="lesson-sidebar-name">
+            <b>1.</b>
+            מהי מערכת?
+          </div>
 
-    <div class="lesson-flow-robot">
-      <img src="/assets/robots/askie-robot.png" alt="">
-      <button type="button">🔊 הסבר קולי</button>
-    </div>
+        </div>
 
-  </aside>
 
-  <!-- מרכז -->
-  <div class="lesson-center-new">
-    <section class="workspace">
+        <div class="lesson-sidebar-row completed">
+
+          <div class="lesson-sidebar-status">
+            ✓
+          </div>
+
+          <div class="lesson-sidebar-name">
+            <b>2.</b>
+            מהי מערכת אקולוגית?
+          </div>
+
+        </div>
+
+
+        <div class="lesson-sidebar-row current">
+
+          <div class="lesson-sidebar-status">
+            <span></span>
+          </div>
+
+          <div class="lesson-sidebar-name">
+            <b>3.</b>
+            מרכיבי המערכת
+          </div>
+
+        </div>
+
+
+        <div class="lesson-sidebar-row locked">
+
+          <div class="lesson-sidebar-status">
+            🔒
+          </div>
+
+          <div class="lesson-sidebar-name">
+            <b>4.</b>
+            סוגי מערכות אקולוגיות
+          </div>
+
+        </div>
+
+
+        <div class="lesson-sidebar-row locked">
+
+          <div class="lesson-sidebar-status">
+            🔒
+          </div>
+
+          <div class="lesson-sidebar-name">
+            <b>5.</b>
+            שרשרת מזון
+          </div>
+
+        </div>
+
+
+        <div class="lesson-sidebar-checkpoint locked">
+
+          <span>🏆</span>
+
+          <strong>
+            בדיקת הבנה
+          </strong>
+
+          <span class="checkpoint-lock">
+            🔒
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- הדמות תוחלף בהמשך בדמות האיש הבוגר -->
+
+      <div class="lesson-sidebar-teacher">
+
+        <img
+          src="/assets/robots/askie-robot.png"
+          alt=""
+        >
+
+      </div>
+
+    </aside>
+
+
+    <!-- =========================================
+         EXISTING LESSON
+         לא משנים כרגע
+    ========================================== -->
+
+    <div class="lesson-main-existing">
+
+      <section class="workspace">
 <div
   id="lessonLoadingOverlay"
   class="lesson-loading-overlay"
@@ -14312,18 +14396,10 @@ data-custom-slot="0"
       <div class="notebook-rocket"></div>
 
     </section>
-        </div>
-    <aside class="lesson-chat-new">
 
-  <div class="lesson-chat-new-header">
-    <span>✦</span>
-    <div>
-      <strong>שיחה עם המורה</strong>
-      <small>המורה האישי שלך לשיעור</small>
-    </div>
+            </div>
+
   </div>
-
-</aside>
 <!-- =====================================================
      LESSON MASTERY DASHBOARD
 ===================================================== -->
@@ -31150,8 +31226,7 @@ div{
   display:block;
 }
     /* =====================================================
-   NEW LESSON SCREEN
-   FLOW | VISUAL STAGE | CHAT
+   LESSON LEFT SIDEBAR V1
 ===================================================== */
 
 body.lesson-theme-science .sidebar,
@@ -31161,653 +31236,551 @@ body.lesson-theme-science .rightbar{
 
 body.lesson-theme-science .app{
   grid-template-columns:minmax(0,1fr) !important;
-  grid-template-rows:64px minmax(0,1fr) !important;
-}
-
-body.lesson-theme-science .topbar{
-  grid-column:1 !important;
 }
 
 body.lesson-theme-science .main{
   grid-column:1 !important;
-  grid-row:2 !important;
-
-  padding:10px 14px 14px !important;
+  width:100% !important;
+  padding:0 !important;
 }
 
 body.lesson-theme-science #learningView{
   width:100% !important;
   height:100% !important;
-
   min-height:0 !important;
-
-  display:block !important;
 }
 
 
-/* ============================
-   MAIN GRID
-============================ */
-
 body.lesson-theme-science
-.lesson-screen-new{
+.lesson-layout-v1{
   width:100%;
   height:100%;
-
-  min-width:0;
-  min-height:0;
 
   display:grid;
 
   grid-template-columns:
-    190px
-    minmax(0,1fr)
-    400px;
+    235px
+    minmax(0,1fr);
 
   gap:12px;
 
   direction:ltr;
-}
 
-
-/* ============================
-   LEFT FLOW
-============================ */
-
-.lesson-flow-new{
-  min-height:0;
-
-  display:flex;
-  flex-direction:column;
-
-  padding:16px 12px;
-
-  direction:rtl;
-
-  border:
-    1px solid
-    rgba(68,130,230,.28);
-
-  border-radius:18px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(7,18,38,.97),
-      rgba(4,11,25,.99)
-    );
-
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.04);
-}
-
-.lesson-flow-title{
-  padding-bottom:14px;
-
-  margin-bottom:10px;
-
-  border-bottom:
-    1px solid
-    rgba(90,135,210,.18);
-
-  color:#fff;
-
-  text-align:center;
-
-  font-size:17px;
-  font-weight:900;
-}
-
-.lesson-flow-step{
-  min-height:56px;
-
-  display:flex;
-  align-items:center;
-
-  gap:10px;
-
-  padding:6px;
-
-  color:#9caaca;
-}
-
-.lesson-flow-step > span{
-  width:33px;
-  height:33px;
-
-  flex:0 0 33px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:50%;
-
-  border:
-    1px solid
-    rgba(80,135,220,.55);
-
-  background:#09172d;
-
-  color:#9ec5ff;
-
-  font-weight:900;
-}
-
-.lesson-flow-step strong{
-  color:inherit;
-  font-size:13px;
-}
-
-.lesson-flow-step small{
-  display:block;
-
-  margin-top:2px;
-
-  color:#6f7e9e;
-
-  font-size:9px;
-}
-
-.lesson-flow-step.done > span{
-  color:#74ef78;
-  border-color:#55d65b;
-}
-
-.lesson-flow-step.active{
-  border:
-    1px solid
-    rgba(105,79,255,.68);
-
-  border-radius:13px;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(65,45,180,.72),
-      rgba(20,37,96,.62)
-    );
-
-  color:#fff;
-}
-
-.lesson-flow-step.active > span{
-  border-color:#b894ff;
-
-  box-shadow:
-    0 0 14px
-    rgba(112,84,255,.55);
-}
-
-.lesson-flow-robot{
-  margin-top:auto;
-
-  text-align:center;
-}
-
-.lesson-flow-robot img{
-  width:145px;
-  max-height:180px;
-
-  object-fit:contain;
-
-  filter:
-    drop-shadow(
-      0 0 17px
-      rgba(54,158,255,.28)
-    );
-}
-
-.lesson-flow-robot button{
-  width:100%;
-  height:40px;
-
-  border:
-    1px solid
-    rgba(74,130,220,.25);
-
-  border-radius:10px;
-
-  background:
-    rgba(10,27,56,.9);
-
-  color:#fff;
-
-  font-weight:800;
-}
-
-
-/* ============================
-   CENTER VISUAL AREA
-============================ */
-
-body.lesson-theme-science
-.lesson-center-new{
   min-width:0;
   min-height:0;
-
-  display:flex;
-  flex-direction:column;
-
-  gap:10px;
-
-  direction:rtl;
-}
-
-body.lesson-theme-science
-.lesson-center-new
-.workspace{
-  flex:1 1 auto !important;
-
-  width:100% !important;
-  height:auto !important;
-
-  min-height:0 !important;
-
-  border:
-    1px solid
-    rgba(62,122,224,.28) !important;
-
-  border-radius:
-    18px !important;
-
-  background:
-    radial-gradient(
-      circle at 50% 45%,
-      rgba(40,68,130,.12),
-      transparent 55%
-    ),
-    linear-gradient(
-      180deg,
-      #071327,
-      #050d1d
-    ) !important;
-
-  background-image:none !important;
-
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.035),
-
-    0 15px 32px
-    rgba(0,4,20,.30) !important;
 }
 
 
-/* המרכז נשאר ריק לצורך תמונות/וידאו */
-
 body.lesson-theme-science
-.lesson-center-new
-.workspace .welcome{
-  display:none !important;
-}
-
-body.lesson-theme-science
-.lesson-center-new
-.workspace::before,
-body.lesson-theme-science
-.lesson-center-new
-.workspace::after,
-body.lesson-theme-science
-.lesson-center-new
-.notebook-rocket{
-  display:none !important;
-}
-
-
-/* ============================
-   RIGHT CHAT
-============================ */
-
-body.lesson-theme-science
-.lesson-chat-new{
+.lesson-main-existing{
   min-width:0;
   min-height:0;
 
   height:100%;
 
+  direction:rtl;
+}
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+body.lesson-theme-science
+.lesson-lessons-sidebar{
+  position:relative;
+
+  min-height:0;
+
   display:flex;
   flex-direction:column;
 
-  direction:rtl;
-
   overflow:hidden;
+
+  padding:
+    15px
+    12px
+    10px;
+
+  direction:rtl;
 
   border:
     1px solid
-    rgba(64,126,230,.32);
+    rgba(73,127,225,.30);
 
-  border-radius:18px;
+  border-radius:
+    19px;
 
   background:
     linear-gradient(
       180deg,
-      rgba(7,18,38,.98),
+      rgba(8,18,38,.98),
       rgba(4,11,25,.99)
     );
 
   box-shadow:
     inset 0 1px 0
-    rgba(255,255,255,.04);
+    rgba(255,255,255,.045),
+
+    0 16px 34px
+    rgba(0,5,20,.28);
 }
 
-.lesson-chat-new-header{
-  flex:0 0 66px;
 
+/* SUBJECT */
+
+.lesson-sidebar-subject{
   display:flex;
+
   align-items:center;
 
-  gap:9px;
+  gap:11px;
 
-  padding:12px 16px;
+  padding:
+    3px
+    3px
+    13px;
 
   border-bottom:
     1px solid
-    rgba(82,128,205,.16);
+    rgba(86,126,201,.18);
 }
 
-.lesson-chat-new-header > span{
-  color:#bf8cff;
 
-  font-size:22px;
+.lesson-sidebar-subject-icon{
+  width:39px;
+  height:39px;
+
+  flex:
+    0 0
+    39px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    11px;
+
+  background:
+    rgba(31,88,94,.44);
+
+  font-size:
+    23px;
 }
 
-.lesson-chat-new-header strong{
+
+.lesson-sidebar-subject strong{
   display:block;
 
   color:#fff;
 
-  font-size:17px;
-  font-weight:900;
+  font-size:
+    18px;
+
+  font-weight:
+    900;
 }
 
-.lesson-chat-new-header small{
+
+.lesson-sidebar-subject small{
   display:block;
 
   margin-top:2px;
 
-  color:#7786a8;
+  color:
+    rgba(169,187,219,.62);
 
-  font-size:10px;
+  font-size:
+    10px;
 }
 
 
-/* messages עכשיו בצ'אט */
+/* UNIT */
 
-body.lesson-theme-science
-.lesson-chat-new
-.messages{
-  position:relative !important;
-
-  flex:1 1 auto !important;
-
-  width:100% !important;
-
-  min-height:0 !important;
-
-  padding:
-    16px
-    14px
-    100px !important;
-
-  overflow-y:auto !important;
-
-  display:flex !important;
-  flex-direction:column !important;
-
-  gap:13px !important;
-
-  background:
-    transparent !important;
-}
-
-
-/* מבטלים כתב מחברת בצ'אט */
-
-body.lesson-theme-science
-.lesson-chat-new
-.tutor-response{
-  width:100% !important;
+.lesson-sidebar-unit{
+  min-height:65px;
 
   margin:
-    0
-    0
-    12px !important;
-}
-
-body.lesson-theme-science
-.lesson-chat-new
-.tutor-writing-area{
-  width:auto !important;
-
-  max-width:82% !important;
-}
-
-body.lesson-theme-science
-.lesson-chat-new
-.tutor-writing{
-  padding:
     12px
-    14px !important;
+    0
+    10px;
+
+  padding:
+    7px
+    9px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:
+    10px;
 
   border:
     1px solid
-    rgba(93,126,188,.15);
+    rgba(115,84,246,.50);
 
   border-radius:
-    15px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(22,36,61,.97),
-      rgba(14,26,47,.98)
-    );
-
-  font-family:
-    "Heebo",
-    Arial,
-    sans-serif !important;
-
-  font-size:
-    14px !important;
-
-  line-height:
-    1.65 !important;
-
-  color:
-    #edf2ff !important;
-}
-
-
-/* הודעת הילד */
-
-body.lesson-theme-science
-.lesson-chat-new
-.msg-row.user .msg-bubble{
-  max-width:80% !important;
-
-  padding:
-    11px
-    14px !important;
-
-  font-size:
-    13px !important;
+    14px;
 
   background:
     linear-gradient(
       135deg,
-      #5933bd,
-      #392384
-    ) !important;
+      rgba(65,43,158,.68),
+      rgba(26,35,82,.70)
+    );
+
+  color:#fff;
+
+  font-size:
+    13px;
+
+  font-weight:
+    900;
 }
 
 
-/* ============================
-   CHAT COMPOSER
-============================ */
+.lesson-sidebar-unit-image{
+  width:43px;
+  height:43px;
 
-body.lesson-theme-science
-.lesson-chat-new
-.composer-wrap{
-  position:absolute !important;
+  flex:
+    0 0
+    43px;
 
-  right:12px !important;
-  left:12px !important;
-  bottom:12px !important;
+  overflow:hidden;
 
-  width:auto !important;
+  border-radius:
+    10px;
+}
 
-  padding:0 !important;
+
+.lesson-sidebar-unit-image img{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+
+/* LIST */
+
+.lesson-sidebar-list{
+  position:relative;
+
+  flex:
+    1;
+
+  min-height:0;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:3px;
+}
+
+
+.lesson-sidebar-list::before{
+  content:"";
+
+  position:absolute;
+
+  top:18px;
+  bottom:65px;
+
+  right:17px;
+
+  width:2px;
 
   background:
-    transparent !important;
+    linear-gradient(
+      #50ca62 0%,
+      #50ca62 28%,
+      #7355ff 28%,
+      #7355ff 47%,
+      rgba(74,105,166,.36) 47%
+    );
 }
 
-body.lesson-theme-science
-.lesson-chat-new
-.input{
-  width:100% !important;
 
-  max-width:none !important;
+.lesson-sidebar-row{
+  position:relative;
 
-  min-height:60px !important;
+  z-index:2;
 
-  margin:0 !important;
+  min-height:
+    55px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:
+    10px;
+
+  padding:
+    5px
+    7px;
 
   border:
     1px solid
-    rgba(74,117,200,.22) !important;
+    transparent;
 
   border-radius:
-    14px !important;
+    12px;
+
+  color:
+    rgba(213,223,242,.78);
+}
+
+
+.lesson-sidebar-status{
+  width:34px;
+  height:34px;
+
+  flex:
+    0 0
+    34px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:
+    50%;
+
+  border:
+    1px solid
+    rgba(85,119,180,.38);
 
   background:
-    rgba(8,21,43,.97) !important;
+    #08172e;
 
-  box-shadow:
-    none !important;
-}
-
-body.lesson-theme-science
-.lesson-chat-new
-.input input{
-  color:#fff !important;
+  color:
+    #9aaaca;
 
   font-size:
-    13px !important;
+    15px;
+
+  font-weight:
+    900;
 }
 
-body.lesson-theme-science
-.lesson-chat-new
-.input input::placeholder{
+
+.lesson-sidebar-name{
+  line-height:
+    1.35;
+
+  font-size:
+    12px;
+
+  font-weight:
+    750;
+}
+
+
+.lesson-sidebar-name b{
+  margin-left:
+    3px;
+
   color:
-    rgba(180,195,224,.48) !important;
+    rgba(178,195,224,.80);
 }
 
 
-/* ============================
-   MASTERY
-============================ */
+/* COMPLETED */
 
-body.lesson-theme-science
-#lessonMasteryDock{
-  position:absolute !important;
+.lesson-sidebar-row.completed
+.lesson-sidebar-status{
+  background:
+    linear-gradient(
+      145deg,
+      #53d665,
+      #2cab48
+    );
 
-  left:
-    214px !important;
+  border-color:
+    #67e478;
 
-  right:
-    412px !important;
+  color:#fff;
 
-  bottom:
-    14px !important;
+  box-shadow:
+    0 0 12px
+    rgba(61,207,87,.22);
+}
 
-  width:auto !important;
 
-  height:
-    145px !important;
+/* CURRENT */
 
+.lesson-sidebar-row.current{
+  border-color:
+    rgba(150,84,255,.78);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(77,46,180,.62),
+      rgba(32,35,94,.58)
+    );
+
+  color:#fff;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.05),
+
+    0 0 17px
+    rgba(106,67,255,.17);
+}
+
+
+.lesson-sidebar-row.current
+.lesson-sidebar-status{
+  border-color:
+    #9b70ff;
+
+  background:
+    #172257;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(105,75,255,.15),
+
+    0 0 15px
+    rgba(73,157,255,.62);
+}
+
+
+.lesson-sidebar-row.current
+.lesson-sidebar-status span{
+  width:11px;
+  height:11px;
+
+  border-radius:
+    50%;
+
+  background:
+    #5cd6ff;
+
+  box-shadow:
+    0 0 11px
+    #54cfff;
+}
+
+
+/* LOCKED */
+
+.lesson-sidebar-row.locked{
+  opacity:.58;
+}
+
+
+.lesson-sidebar-row.locked
+.lesson-sidebar-status{
+  font-size:
+    13px;
+}
+
+
+/* CHECKPOINT */
+
+.lesson-sidebar-checkpoint{
   min-height:
-    145px !important;
+    55px;
+
+  margin-top:
+    8px;
+
+  display:grid;
 
   grid-template-columns:
-    1.15fr
-    1.25fr
+    35px
     1fr
-    .9fr !important;
+    25px;
+
+  align-items:center;
 
   gap:
-    9px !important;
-}
-
-body.lesson-theme-science
-#lessonMasteryDock
-.lesson-mastery-card{
-  min-height:
-    140px !important;
+    8px;
 
   padding:
-    9px
-    10px !important;
-}
-    /* ===== FIX LESSON CENTER ===== */
+    7px
+    10px;
 
-body.lesson-theme-science .lesson-center-new .workspace{
-    background: #061225 !important;
-    background-image: none !important;
+  border:
+    1px solid
+    rgba(66,105,169,.25);
 
-    border: 1px solid rgba(80,130,220,.28) !important;
-    border-radius: 18px !important;
+  border-radius:
+    13px;
 
-    overflow: hidden !important;
-}
+  background:
+    rgba(9,22,42,.72);
 
-/* מבטל כל שכבת רקע ישנה */
-body.lesson-theme-science .lesson-center-new .workspace::before,
-body.lesson-theme-science .lesson-center-new .workspace::after{
-    content: none !important;
-    display: none !important;
+  color:
+    rgba(220,228,244,.75);
 }
 
-/* מסתיר את 4 כרטיסי המדדים הישנים */
-body.lesson-theme-science #lessonMasteryDock{
-    display: none !important;
-}
-    /* ===== FIX RIGHT LESSON CHAT ===== */
 
-body.lesson-theme-science .lesson-chat-new .tutor-writing{
-    font-family: "Heebo", Arial, sans-serif !important;
-    font-size: 16px !important;
-    line-height: 1.6 !important;
-
-    color: #f4f7ff !important;
-
-    background: #101d35 !important;
-
-    border: 1px solid rgba(100,140,210,.18) !important;
-    border-radius: 16px !important;
-
-    padding: 13px 15px !important;
-
-    width: auto !important;
-    max-width: 85% !important;
+.lesson-sidebar-checkpoint strong{
+  font-size:
+    12px;
 }
 
-/* ביטול כתב היד הישן */
-body.lesson-theme-science .lesson-chat-new *{
-    text-shadow: none;
+
+.lesson-sidebar-checkpoint > span:first-child{
+  font-size:
+    20px;
 }
 
-body.lesson-theme-science .lesson-chat-new .tutor-writing-area{
-    width: 100% !important;
+
+.checkpoint-lock{
+  opacity:
+    .6;
 }
 
-/* רובוט גדול ישן */
-body.lesson-theme-science .lesson-chat-new .notebook-rocket,
-body.lesson-theme-science .lesson-chat-new .robot-large,
-body.lesson-theme-science .lesson-chat-new .lesson-robot{
-    display: none !important;
+
+/* =====================================================
+   TEACHER
+===================================================== */
+
+.lesson-sidebar-teacher{
+  flex:
+    0
+    0
+    180px;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:center;
+
+  margin-top:
+    5px;
+
+  overflow:hidden;
+}
+
+
+.lesson-sidebar-teacher img{
+  width:
+    170px;
+
+  height:
+    180px;
+
+  object-fit:
+    contain;
+
+  object-position:
+    center bottom;
+
+  filter:
+    drop-shadow(
+      0 0 18px
+      rgba(42,139,255,.22)
+    );
 }
 </style>
 
@@ -38609,50 +38582,5 @@ function updateScienceBreadcrumb(
   accept="image/jpeg,image/png,image/webp,application/pdf"
   style="display:none;"
 >
-<script>
-function setupNewLessonScreen(){
 
-  const chat =
-    document.querySelector(".lesson-chat-new");
-
-  const messages =
-    document.querySelector("#learningView .messages");
-
-  const composer =
-    document.querySelector("#learningView .composer-wrap");
-
-  if(!chat || !messages || !composer){
-    return;
-  }
-
-  if(!chat.contains(messages)){
-    chat.appendChild(messages);
-  }
-
-  if(!chat.contains(composer)){
-    chat.appendChild(composer);
-  }
-}
-
-const lessonUiObserver =
-  new MutationObserver(() => {
-
-    if(
-      document.body.classList.contains(
-        "lesson-theme-science"
-      )
-    ){
-      setupNewLessonScreen();
-    }
-
-  });
-
-lessonUiObserver.observe(
-  document.body,
-  {
-    attributes:true,
-    attributeFilter:["class"]
-  }
-);
-</script>
 </body></html>
