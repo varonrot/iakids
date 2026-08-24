@@ -17714,8 +17714,8 @@ if(
       );
 
 
-    line.className =
-      "tutor-writing";
+line.className =
+  "tutor-writing tutor-chat-bubble";
 
 
 line.textContent = "";
@@ -17830,8 +17830,8 @@ animateImportantParts(
       );
 
 
-    questionLine.className =
-      "tutor-writing question-line";
+questionLine.className =
+  "tutor-writing tutor-chat-bubble question-line";
 
 
 questionLine.textContent = "";
@@ -20075,7 +20075,8 @@ function animateTutorReply(text) {
     const sentence = sentences[sentenceIndex];
 
     const line = document.createElement("div");
-    line.className = "tutor-writing";
+    line.className =
+  "tutor-writing tutor-chat-bubble";
 
     writingArea.appendChild(line);
 
@@ -33431,6 +33432,116 @@ body.lesson-theme-science
 .lesson-chat-workspace
 .composer-note{
   display:none !important;
+}
+    /* =========================================
+   REAL LESSON CHAT BUBBLES
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-chat-bubble{
+  display:block !important;
+
+  width:100% !important;
+  max-width:100% !important;
+
+  margin:0 !important;
+
+  padding:9px 11px !important;
+
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:12px !important;
+  line-height:1.55 !important;
+  font-weight:500 !important;
+
+  color:#eaf1ff !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+
+  white-space:normal !important;
+
+  background:#101d33 !important;
+
+  border:
+    1px solid rgba(93,126,185,.16) !important;
+
+  border-radius:12px !important;
+
+  box-shadow:none !important;
+}
+
+
+/* שאלה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-chat-bubble.question-line{
+  font-size:12px !important;
+  font-weight:700 !important;
+
+  background:#211d47 !important;
+
+  border-color:
+    rgba(126,93,235,.30) !important;
+}
+
+
+/* אזור הטקסט עצמו */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 0 !important;
+
+  width:auto !important;
+  max-width:none !important;
+
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:7px !important;
+}
+
+
+/* כל שורת מורה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+
+  display:flex !important;
+
+  gap:8px !important;
+
+  align-items:flex-start !important;
+
+  margin:0 0 9px !important;
+}
+
+
+/* אווטאר */
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar{
+  width:30px !important;
+  height:30px !important;
+
+  flex:0 0 30px !important;
+}
+
+
+/* messages */
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages{
+  padding:
+    14px
+    12px
+    84px !important;
+
+  align-items:stretch !important;
 }
 </style>
 
