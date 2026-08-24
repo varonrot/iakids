@@ -33665,7 +33665,468 @@ body.lesson-theme-science
       #4b2e9f,
       #33216f
     ) !important;
-} 
+}
+   
+    /* =====================================================
+   LESSON CHAT — FINAL FINAL OVERRIDE
+   זה העיצוב הסופי של הצ'אט בשיעור
+===================================================== */
+
+/* כל אזור השיחה */
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages{
+  padding:18px 20px 110px !important;
+  gap:16px !important;
+  background:transparent !important;
+  direction:rtl !important;
+}
+
+
+/* =====================================================
+   הודעת המורה
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+  max-width:100% !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:flex-start !important;
+
+  gap:14px !important;
+
+  margin:0 0 16px !important;
+
+  direction:ltr !important;
+}
+
+
+/* תמונת המורה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar{
+  width:72px !important;
+  height:72px !important;
+
+  flex:0 0 72px !important;
+
+  object-fit:cover !important;
+
+  border-radius:50% !important;
+
+  border:2px solid rgba(71,143,255,.28) !important;
+
+  background:#0e1a30 !important;
+
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.28),
+    0 0 18px rgba(48,132,255,.10) !important;
+}
+
+
+/* אזור הבועה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  width:auto !important;
+  max-width:calc(100% - 90px) !important;
+
+  flex:1 1 auto !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  align-items:flex-end !important;
+
+  gap:7px !important;
+
+  direction:rtl !important;
+}
+
+
+/* בועת המורה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing{
+  width:auto !important;
+  max-width:88% !important;
+
+  margin:0 !important;
+
+  padding:14px 18px !important;
+
+  border:
+    1px solid
+    rgba(84,126,190,.20) !important;
+
+  border-radius:
+    18px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,38,66,.97),
+      rgba(12,27,49,.98)
+    ) !important;
+
+  box-shadow:
+    0 8px 20px rgba(0,5,20,.22),
+    inset 0 1px 0 rgba(255,255,255,.035) !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:15px !important;
+
+  font-weight:500 !important;
+
+  line-height:1.7 !important;
+
+  letter-spacing:0 !important;
+
+  color:#eef3ff !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+
+  white-space:pre-wrap !important;
+
+  overflow-wrap:break-word !important;
+
+  transform:none !important;
+}
+
+
+/* לבטל לחלוטין כתב יד שהיה בשיעור */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing *,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line,
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+}
+
+
+/* הצלחה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line{
+  color:#8de4b7 !important;
+  font-weight:700 !important;
+}
+
+
+/* שאלה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line{
+  color:#ffffff !important;
+
+  font-weight:700 !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(24,44,75,.98),
+      rgba(14,30,54,.98)
+    ) !important;
+}
+
+
+/* מתמטיקה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+  font-size:17px !important;
+  font-weight:700 !important;
+
+  color:#9ecbff !important;
+}
+
+
+/* =====================================================
+   הודעת הילד
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user{
+  width:100% !important;
+
+  display:flex !important;
+
+  align-items:flex-end !important;
+  justify-content:flex-start !important;
+
+  gap:12px !important;
+
+  direction:rtl !important;
+
+  margin:2px 0 16px !important;
+}
+
+
+/* תמונת הילד */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user
+.msg-avatar{
+  width:52px !important;
+  height:52px !important;
+
+  flex:0 0 52px !important;
+
+  border-radius:50% !important;
+
+  object-fit:cover !important;
+
+  border:
+    2px solid
+    rgba(62,151,255,.38) !important;
+
+  box-shadow:
+    0 7px 18px rgba(0,0,0,.25) !important;
+}
+
+
+/* בועת הילד */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user
+.msg-bubble{
+  width:auto !important;
+
+  max-width:72% !important;
+
+  padding:
+    11px
+    17px !important;
+
+  border-radius:
+    17px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #33217c,
+      #472495
+    ) !important;
+
+  border:
+    1px solid
+    rgba(137,102,255,.22) !important;
+
+  box-shadow:
+    0 7px 18px
+    rgba(25,8,70,.28) !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    15px !important;
+
+  font-weight:
+    500 !important;
+
+  line-height:
+    1.55 !important;
+
+  color:
+    #f5f2ff !important;
+
+  text-align:right !important;
+
+  direction:rtl !important;
+}
+
+
+/* =====================================================
+   לא לאפשר לחוקים הישנים להגדיל אווטארים
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-avatar{
+  max-width:
+    72px !important;
+}
+
+
+/* =====================================================
+   כותרת הצ'אט
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome{
+  padding:
+    16px
+    20px
+    11px !important;
+
+  border-bottom:
+    1px solid
+    rgba(91,128,189,.15) !important;
+
+  text-align:right !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome h1{
+  margin:0 !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    20px !important;
+
+  line-height:
+    1.25 !important;
+
+  font-weight:
+    800 !important;
+
+  color:
+    #f5f7ff !important;
+
+  transform:
+    none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome h1::after{
+  display:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome p{
+  margin:
+    3px
+    0
+    0 !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    11px !important;
+
+  line-height:
+    1.4 !important;
+
+  color:
+    rgba(176,195,225,.62) !important;
+}
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.composer-wrap{
+  right:14px !important;
+  left:14px !important;
+
+  bottom:14px !important;
+
+  padding:0 !important;
+
+  background:
+    transparent !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input{
+  width:100% !important;
+
+  min-height:
+    58px !important;
+
+  padding:
+    5px
+    6px !important;
+
+  border:
+    1px solid
+    rgba(79,120,184,.24) !important;
+
+  border-radius:
+    17px !important;
+
+  background:
+    rgba(12,27,49,.97) !important;
+
+  box-shadow:
+    0 8px 22px
+    rgba(0,4,17,.28) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input input{
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:
+    14px !important;
+
+  color:
+    #eef3ff !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input input::placeholder{
+  color:
+    rgba(173,190,219,.52) !important;
+}
 </style>
 
 
