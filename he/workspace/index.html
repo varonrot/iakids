@@ -14421,7 +14421,7 @@ data-custom-slot="0"
 
             </div>
 
- 
+
 <!-- =====================================================
      LESSON MASTERY DASHBOARD
 ===================================================== -->
@@ -32300,6 +32300,723 @@ body.lesson-theme-science
   padding:10px 12px !important;
 
   border-radius:16px !important;
+}
+    /* =====================================================
+   LESSON UI — CLEAN FINAL OVERRIDE
+   Visual 2/3 + Chat 1/3
+===================================================== */
+
+
+/* =========================================
+   1. מעיפים את הרובוט הגדול מימין
+========================================= */
+
+body.lesson-theme-science
+.floating-tutor-robot{
+  display:none !important;
+}
+
+
+/* =========================================
+   2. חלוקת המסך
+========================================= */
+
+body.lesson-theme-science
+.lesson-content-split{
+  display:grid !important;
+
+  grid-template-columns:
+    minmax(0, 2fr)
+    minmax(390px, 1fr) !important;
+
+  gap:12px !important;
+
+  width:100% !important;
+  height:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  direction:ltr !important;
+}
+
+
+/* =========================================
+   3. אזור ההמחשה
+========================================= */
+
+body.lesson-theme-science
+.lesson-visual-stage{
+  min-width:0 !important;
+  min-height:0 !important;
+
+  border-radius:18px !important;
+
+  border:
+    1px solid
+    rgba(70,125,220,.28) !important;
+
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(31,72,135,.15),
+      transparent 55%
+    ),
+    #061326 !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 10px 26px rgba(0,5,20,.28) !important;
+
+  overflow:hidden !important;
+}
+
+
+/* placeholder יותר עדין */
+
+body.lesson-theme-science
+.lesson-visual-placeholder{
+  color:
+    rgba(155,176,210,.32) !important;
+}
+
+body.lesson-theme-science
+.lesson-visual-placeholder span{
+  font-size:18px !important;
+}
+
+body.lesson-theme-science
+.lesson-visual-placeholder small{
+  font-size:11px !important;
+}
+
+
+/* =========================================
+   4. הצ'אט עצמו
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace{
+  position:relative !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  width:100% !important;
+  height:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  padding:0 !important;
+
+  overflow:hidden !important;
+
+  border:
+    1px solid
+    rgba(73,129,225,.30) !important;
+
+  border-radius:18px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #07152b 0%,
+      #050f21 100%
+    ) !important;
+
+  background-image:none !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 10px 26px rgba(0,5,20,.30) !important;
+}
+
+
+/* מבטלים לחלוטין מסגרת מחברת ישנה */
+
+body.lesson-theme-science
+.lesson-chat-workspace::before,
+body.lesson-theme-science
+.lesson-chat-workspace::after{
+  content:none !important;
+  display:none !important;
+}
+
+
+/* =========================================
+   5. כותרת הצ'אט
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome{
+  flex:
+    0 0 auto !important;
+
+  width:100% !important;
+
+  padding:
+    16px
+    18px
+    12px !important;
+
+  margin:0 !important;
+
+  text-align:right !important;
+
+  border:0 !important;
+
+  border-bottom:
+    1px solid
+    rgba(82,124,196,.16) !important;
+
+  background:
+    rgba(9,22,44,.72) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome h1{
+  margin:0 !important;
+
+  padding:0 !important;
+
+  max-width:none !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:21px !important;
+  line-height:1.25 !important;
+
+  font-weight:900 !important;
+
+  color:#fff !important;
+
+  text-align:right !important;
+
+  transform:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome h1::after{
+  display:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.welcome p{
+  margin:
+    4px
+    0
+    0 !important;
+
+  max-width:none !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:11px !important;
+  line-height:1.4 !important;
+
+  color:
+    rgba(168,187,220,.62) !important;
+
+  text-align:right !important;
+}
+
+
+/* =========================================
+   6. כל אזור ההודעות
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages{
+  position:relative !important;
+
+  flex:
+    1 1 auto !important;
+
+  width:100% !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  padding:
+    16px
+    14px
+    92px !important;
+
+  margin:0 !important;
+
+  display:flex !important;
+
+  flex-direction:column !important;
+
+  gap:12px !important;
+
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  background:
+    transparent !important;
+
+  direction:rtl !important;
+}
+
+
+/* scrollbar */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages::-webkit-scrollbar{
+  width:5px;
+}
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.messages::-webkit-scrollbar-thumb{
+  background:
+    rgba(91,128,194,.30);
+
+  border-radius:999px;
+}
+
+
+/* =========================================
+   7. הודעות המורה — גודל אחיד
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+  max-width:100% !important;
+
+  display:flex !important;
+
+  flex-direction:row !important;
+
+  align-items:flex-start !important;
+
+  gap:9px !important;
+
+  padding:0 !important;
+
+  margin:
+    0
+    0
+    2px !important;
+
+  direction:rtl !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 auto !important;
+
+  width:auto !important;
+  max-width:none !important;
+
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:6px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing{
+
+  width:fit-content !important;
+
+  max-width:92% !important;
+
+  margin:0 !important;
+
+  padding:
+    11px
+    13px !important;
+
+  border:
+    1px solid
+    rgba(101,138,202,.15) !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,35,60,.98),
+      rgba(13,27,49,.98)
+    ) !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:14px !important;
+  line-height:1.65 !important;
+
+  font-weight:500 !important;
+
+  color:#edf3ff !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+
+  overflow-wrap:anywhere !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.025) !important;
+}
+
+
+/* שאלה כבר לא קופצת לגודל אחר */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line,
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.success-line,
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.math-line{
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:14px !important;
+  line-height:1.65 !important;
+
+  font-weight:600 !important;
+}
+
+
+/* שאלה — רק הדגשה קלה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing.question-line{
+  border-color:
+    rgba(131,105,255,.30) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(39,37,85,.97),
+      rgba(22,28,61,.98)
+    ) !important;
+}
+
+
+/* =========================================
+   8. אווטארים קטנים ואחידים
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar,
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-avatar{
+  width:36px !important;
+  height:36px !important;
+
+  max-width:36px !important;
+
+  flex:
+    0 0 36px !important;
+
+  object-fit:cover !important;
+
+  border-radius:50% !important;
+}
+
+
+/* =========================================
+   9. הודעת הילד
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row{
+  width:100% !important;
+
+  margin:0 !important;
+
+  gap:8px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user{
+  justify-content:flex-start !important;
+
+  direction:rtl !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.msg-row.user
+.msg-bubble{
+  width:auto !important;
+
+  max-width:82% !important;
+
+  margin:0 !important;
+
+  padding:
+    10px
+    13px !important;
+
+  border-radius:
+    14px !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:14px !important;
+  line-height:1.55 !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5637b8,
+      #39247e
+    ) !important;
+
+  color:#fff !important;
+}
+
+
+/* =========================================
+   10. שורת ההקלדה — תמיד בתחתית הצ'אט
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.composer-wrap{
+  position:absolute !important;
+
+  right:12px !important;
+  left:12px !important;
+
+  bottom:12px !important;
+
+  width:auto !important;
+
+  margin:0 !important;
+
+  padding:0 !important;
+
+  z-index:30 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input{
+  width:100% !important;
+
+  max-width:none !important;
+
+  min-height:56px !important;
+  height:56px !important;
+
+  margin:0 !important;
+
+  padding:
+    5px
+    6px !important;
+
+  border:
+    1px solid
+    rgba(82,124,204,.25) !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    rgba(9,23,46,.98) !important;
+
+  box-shadow:
+    0 7px 17px
+    rgba(0,4,17,.25) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input input{
+  font-size:13px !important;
+
+  color:#eef3ff !important;
+
+  padding:
+    0
+    9px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.input input::placeholder{
+  color:
+    rgba(174,191,220,.48) !important;
+}
+
+
+/* כפתורים */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.composer-icon,
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.talk-btn{
+  width:42px !important;
+  height:42px !important;
+
+  flex:
+    0 0
+    42px !important;
+
+  border-radius:
+    11px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.send-btn{
+  width:44px !important;
+  height:44px !important;
+
+  flex:
+    0 0
+    44px !important;
+
+  border-radius:
+    12px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.composer-note{
+  display:none !important;
+}
+
+
+/* =========================================
+   11. מסתירים קישוטים/רובוטים בתוך הצ'אט
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.notebook-rocket,
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-pointer-robot,
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-pointer-arrow{
+  display:none !important;
+}
+
+
+/* =========================================
+   12. שורת המדדים למטה
+========================================= */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  display:grid !important;
+
+  grid-template-rows:
+    minmax(0,1fr)
+    138px !important;
+
+  gap:10px !important;
+}
+
+
+body.lesson-theme-science
+#lessonMasteryDock{
+  width:100% !important;
+
+  height:138px !important;
+  min-height:138px !important;
+
+  margin:0 !important;
+
+  padding:0 !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(4,minmax(0,1fr)) !important;
+
+  gap:10px !important;
+
+  overflow:hidden !important;
+}
+
+
+body.lesson-theme-science
+#lessonMasteryDock
+.lesson-mastery-card{
+  height:138px !important;
+  min-height:138px !important;
+
+  padding:
+    8px
+    10px !important;
+
+  border-radius:
+    14px !important;
 }
 </style>
 
