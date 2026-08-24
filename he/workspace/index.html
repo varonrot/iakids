@@ -14325,7 +14325,7 @@ data-custom-slot="0"
       <div class="notebook-rocket"></div>
 
     </section>
-    </div>
+
 <!-- =====================================================
      LESSON MASTERY DASHBOARD
 ===================================================== -->
@@ -14548,6 +14548,113 @@ data-custom-slot="0"
   </article>
 
 </section>
+          </div>
+
+    <!-- =========================================
+         RIGHT — TEACHER CHAT
+    ========================================== -->
+
+    <aside class="lesson-chat-panel">
+
+      <div class="lesson-chat-header">
+
+        <div class="lesson-chat-title">
+          <span class="lesson-chat-spark">✦</span>
+
+          <div>
+            <strong>שיחה עם המורה</strong>
+            <small>המורה האישי שלך לשיעור</small>
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="lesson-chat-body">
+
+        <div class="lesson-chat-message teacher">
+
+          <img
+            src="/assets/avatars/teacher-female.png"
+            alt=""
+          >
+
+          <div class="lesson-chat-bubble">
+            שלום! אני כאן כדי לעזור לך להבין את השיעור.
+            אם משהו לא ברור, אפשר לשאול אותי בכל שלב.
+          </div>
+
+        </div>
+
+
+        <div class="lesson-chat-message student">
+
+          <div class="lesson-chat-bubble">
+            איך הצמח מקבל את האור?
+          </div>
+
+        </div>
+
+
+        <div class="lesson-chat-message teacher">
+
+          <img
+            src="/assets/avatars/teacher-female.png"
+            alt=""
+          >
+
+          <div class="lesson-chat-bubble">
+            שאלה מצוינת 😊
+            במהלך השיעור נבדוק יחד איך אור השמש משפיע על הצמח.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="lesson-chat-suggestions">
+
+        <button type="button">
+          כן, בבקשה
+        </button>
+
+        <button type="button">
+          אפשר דוגמה?
+        </button>
+
+        <button type="button">
+          שאלה אחרת
+        </button>
+
+      </div>
+
+
+      <div class="lesson-chat-input">
+
+        <button
+          type="button"
+          class="lesson-chat-mic"
+        >
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+
+        <input
+          type="text"
+          placeholder="כתבו שאלה..."
+        >
+
+        <button
+          type="button"
+          class="lesson-chat-send"
+        >
+          ➤
+        </button>
+
+      </div>
+
+    </aside>
+
      </div>
   </section>
 
@@ -31166,10 +31273,10 @@ body.lesson-theme-science
 
   display:grid;
 
-  grid-template-columns:
-    185px
-    minmax(0,1fr)
-    155px;
+grid-template-columns:
+  185px
+  minmax(0,1fr)
+  390px;
 
   gap:12px;
 
@@ -31470,7 +31577,7 @@ body.lesson-theme-science
 
   border-radius:12px !important;
 }
-    
+
     /* =====================================================
    LESSON MODE — HIDE WORKSPACE SIDE BARS
 ===================================================== */
@@ -31533,6 +31640,596 @@ body.lesson-theme-science
 
   min-width:0 !important;
   min-height:0 !important;
+}
+    /* =====================================================
+   LESSON FINAL LAYOUT V2
+   FLOW | VISUAL LESSON | CHAT
+===================================================== */
+
+
+/* המרכז כולל עכשיו:
+   workspace למעלה
+   mastery למטה
+*/
+
+body.lesson-theme-science
+.new-lesson-center{
+  display:flex !important;
+  flex-direction:column !important;
+
+  min-width:0 !important;
+  min-height:0 !important;
+
+  height:100% !important;
+
+  gap:10px !important;
+}
+
+
+/* אזור השיעור המרכזי */
+
+body.lesson-theme-science
+.new-lesson-center
+.workspace{
+  flex:
+    1
+    1
+    auto !important;
+
+  width:100% !important;
+  height:auto !important;
+
+  min-height:0 !important;
+}
+
+
+/* =====================================================
+   MASTERY חוזר לשורה בתחתית
+===================================================== */
+
+body.lesson-theme-science
+#lessonMasteryDock{
+  width:100% !important;
+  height:150px !important;
+
+  min-height:150px !important;
+
+  flex:
+    0
+    0
+    150px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    1.15fr
+    1.25fr
+    1fr
+    .9fr !important;
+
+  gap:9px !important;
+
+  padding:0 !important;
+
+  overflow:hidden !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  background:
+    transparent !important;
+
+  backdrop-filter:
+    none !important;
+
+  -webkit-backdrop-filter:
+    none !important;
+}
+
+
+body.lesson-theme-science
+#lessonMasteryDock
+.lesson-mastery-card{
+  min-height:145px !important;
+
+  height:145px !important;
+
+  padding:
+    10px
+    11px !important;
+
+  border-radius:
+    15px !important;
+}
+
+
+/* =====================================================
+   CHAT PANEL
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-panel{
+  position:relative;
+
+  width:100%;
+  height:100%;
+
+  min-width:0;
+  min-height:0;
+
+  display:flex;
+  flex-direction:column;
+
+  overflow:hidden;
+
+  direction:rtl;
+
+  border:
+    1px solid
+    rgba(63,125,232,.34);
+
+  border-radius:
+    19px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7,18,39,.97),
+      rgba(4,11,27,.99)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.05),
+
+    0 15px 32px
+    rgba(0,5,21,.32);
+}
+
+
+/* HEADER */
+
+.lesson-chat-header{
+  flex:none;
+
+  min-height:66px;
+
+  padding:
+    12px
+    15px;
+
+  display:flex;
+  align-items:center;
+
+  border-bottom:
+    1px solid
+    rgba(77,121,200,.18);
+}
+
+
+.lesson-chat-title{
+  display:flex;
+  align-items:center;
+
+  gap:10px;
+
+  color:#fff;
+}
+
+
+.lesson-chat-title strong{
+  display:block;
+
+  font-size:16px;
+  font-weight:900;
+}
+
+
+.lesson-chat-title small{
+  display:block;
+
+  margin-top:2px;
+
+  color:
+    rgba(175,194,228,.60);
+
+  font-size:10px;
+}
+
+
+.lesson-chat-spark{
+  width:34px;
+  height:34px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:10px;
+
+  color:#d0afff;
+
+  background:
+    rgba(109,70,241,.15);
+
+  box-shadow:
+    0 0 13px
+    rgba(112,70,255,.13);
+}
+
+
+/* BODY */
+
+.lesson-chat-body{
+  flex:
+    1
+    1
+    auto;
+
+  min-height:0;
+
+  overflow-y:auto;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:14px;
+
+  padding:
+    16px
+    14px;
+}
+
+
+.lesson-chat-message{
+  display:flex;
+
+  align-items:flex-end;
+
+  gap:8px;
+}
+
+
+.lesson-chat-message.teacher{
+  justify-content:flex-start;
+}
+
+
+.lesson-chat-message.student{
+  justify-content:flex-end;
+}
+
+
+.lesson-chat-message img{
+  width:42px;
+  height:42px;
+
+  flex:
+    0
+    0
+    42px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:
+    1px solid
+    rgba(101,155,241,.24);
+}
+
+
+.lesson-chat-bubble{
+  max-width:82%;
+
+  padding:
+    12px
+    14px;
+
+  border-radius:
+    15px;
+
+  color:
+    rgba(235,241,255,.91);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(21,36,61,.95),
+      rgba(15,27,49,.96)
+    );
+
+  border:
+    1px solid
+    rgba(89,126,191,.16);
+
+  font-size:
+    13px;
+
+  line-height:
+    1.65;
+}
+
+
+.lesson-chat-message.student
+.lesson-chat-bubble{
+  color:#fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(74,45,177,.96),
+      rgba(48,35,126,.97)
+    );
+
+  border-color:
+    rgba(126,95,232,.28);
+}
+
+
+/* QUICK ANSWERS */
+
+.lesson-chat-suggestions{
+  flex:none;
+
+  padding:
+    7px
+    12px
+    10px;
+
+  display:flex;
+
+  gap:6px;
+
+  overflow-x:auto;
+}
+
+
+.lesson-chat-suggestions button{
+  flex:
+    0
+    0
+    auto;
+
+  min-height:
+    32px;
+
+  padding:
+    0
+    11px;
+
+  border:
+    1px solid
+    rgba(108,82,225,.38);
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(41,27,91,.38);
+
+  color:
+    #ddd4ff;
+
+  font-size:
+    10px;
+
+  font-weight:
+    750;
+
+  cursor:pointer;
+}
+
+
+/* INPUT */
+
+.lesson-chat-input{
+  flex:none;
+
+  min-height:
+    66px;
+
+  margin:
+    0
+    12px
+    13px;
+
+  padding:
+    7px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:
+    7px;
+
+  border:
+    1px solid
+    rgba(75,118,202,.22);
+
+  border-radius:
+    15px;
+
+  background:
+    rgba(10,22,44,.94);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.035);
+}
+
+
+.lesson-chat-input input{
+  flex:1;
+
+  min-width:0;
+
+  border:0;
+  outline:0;
+
+  background:
+    transparent;
+
+  color:#fff;
+
+  font-size:
+    13px;
+}
+
+
+.lesson-chat-input input::placeholder{
+  color:
+    rgba(170,188,221,.48);
+}
+
+
+.lesson-chat-mic,
+.lesson-chat-send{
+  width:43px;
+  height:43px;
+
+  flex:
+    0
+    0
+    43px;
+
+  display:grid;
+  place-items:center;
+
+  border:0;
+
+  border-radius:
+    12px;
+
+  cursor:pointer;
+}
+
+
+.lesson-chat-mic{
+  background:
+    rgba(92,62,172,.19);
+
+  color:#d8c7ff;
+}
+
+
+.lesson-chat-send{
+  color:#fff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #754aff,
+      #4b29c5
+    );
+
+  box-shadow:
+    0 6px 14px
+    rgba(77,43,207,.25);
+}
+
+
+/* =====================================================
+   מסתירים את שורת ההקלדה הישנה במרכז כרגע
+===================================================== */
+
+body.lesson-theme-science
+.new-lesson-center
+.workspace
+.composer-wrap{
+  display:none !important;
+}
+
+
+/* מפנים מקום — אין יותר composer למטה */
+
+body.lesson-theme-science
+.new-lesson-center
+.workspace
+.messages{
+  padding-bottom:
+    25px !important;
+}
+
+
+/* =====================================================
+   LEFT FLOW POLISH
+===================================================== */
+
+body.lesson-theme-science
+.new-lesson-flow{
+  border-color:
+    rgba(55,133,239,.32);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.04),
+
+    0 15px 30px
+    rgba(0,5,20,.30),
+
+    0 0 22px
+    rgba(25,112,228,.05);
+}
+
+
+body.lesson-theme-science
+.new-flow-step.active{
+  background:
+    radial-gradient(
+      circle at 100% 50%,
+      rgba(79,67,255,.28),
+      transparent 62%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(55,42,159,.77),
+      rgba(19,34,89,.62)
+    );
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:1450px){
+
+  body.lesson-theme-science
+  .new-lesson-shell{
+    grid-template-columns:
+      165px
+      minmax(0,1fr)
+      330px !important;
+
+    gap:
+      9px;
+  }
+
+
+  body.lesson-theme-science
+  #lessonMasteryDock{
+    height:
+      135px !important;
+
+    min-height:
+      135px !important;
+
+    flex-basis:
+      135px !important;
+  }
+
+
+  body.lesson-theme-science
+  #lessonMasteryDock
+  .lesson-mastery-card{
+    height:
+      130px !important;
+
+    min-height:
+      130px !important;
+  }
+
 }
 </style>
 
