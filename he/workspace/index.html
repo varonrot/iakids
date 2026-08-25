@@ -25299,16 +25299,14 @@ document.addEventListener(
 
 .lesson-renderer-content{
   flex:1;
-
+  width:100%;
   min-width:0;
 
   display:flex;
   flex-direction:column;
-
   align-items:flex-start;
 
   gap:8px;
-
   direction:rtl;
 }
 
@@ -25318,8 +25316,9 @@ document.addEventListener(
 .lesson-renderer-line{
   position:relative;
 
-  width:auto;
-  max-width:92%;
+width: fit-content;
+min-width: 420px;
+max-width: 96%;
 
   direction:rtl;
   text-align:right;
