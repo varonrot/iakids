@@ -14438,225 +14438,241 @@ data-custom-slot="0"
 
 <section
   id="lessonMasteryDock"
-  class="lesson-mastery-dock"
+  class="lesson-mastery-dock mastery-hud"
   aria-label="מצב ההבנה בשיעור"
 >
 
-  <!-- ===============================================
-       1. הבנה כוללת
-  ================================================ -->
+  <!-- 1 — מצב הבנה -->
+  <article class="mastery-hud-card mastery-status-hud">
 
-  <article class="lesson-mastery-card lesson-overall-card">
-
-    <div class="lesson-card-title">
-      הבנה כוללת בנושא
+    <div class="mastery-hud-title">
+      מצב הבנה
     </div>
 
-    <div class="lesson-overall-layout">
-
-      <div
-        id="lessonOverallGauge"
-        class="lesson-overall-gauge"
-        style="--mastery:0"
-      >
-
-        <div class="lesson-gauge-inner">
-
-          <strong id="lessonOverallScore">
-            0%
-          </strong>
-
-          <span>
-            הבנה כוללת
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div class="lesson-part-summary">
-
-        <div class="lesson-part-summary-item">
-
-          <span>
-            חלק 1
-            <small>הבנה יסודית</small>
-          </span>
-
-          <strong id="lessonPartOneSummary">
-            0%
-          </strong>
-
-        </div>
-
-
-        <div class="lesson-part-summary-item muted">
-
-          <span>
-            חלק 2
-            <small>יישום והעמקה</small>
-          </span>
-
-          <strong id="lessonPartTwoSummary">
-            0%
-          </strong>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </article>
-
-
-  <!-- ===============================================
-       2. מד התקדמות
-  ================================================ -->
-
-  <article class="lesson-mastery-card lesson-meter-card">
-
-    <div class="lesson-card-title">
-      מד ההתקדמות שלי
-    </div>
-
-    <div class="lesson-meter-value">
-
-      <strong id="lessonMeterScore">
-        0%
-      </strong>
-
-      <span
-        id="lessonMeterMarker"
-        class="lesson-meter-marker"
-        style="left:0%"
-      ></span>
-
-    </div>
-
-    <div class="lesson-meter-labels">
-      <span>0%</span>
-      <span>25%</span>
-      <span>50%</span>
-      <span>75%</span>
-      <span>100%</span>
-    </div>
-
-    <div class="lesson-meter-track">
-
-      <span
-        id="lessonMeterNeedle"
-        class="lesson-meter-needle"
-        style="left:0%"
-      ></span>
-
-    </div>
-
-    <div class="lesson-meter-note">
-      כל חלק יכול להוסיף עד 50% להבנה הכוללת
-    </div>
-
-  </article>
-
-
-  <!-- ===============================================
-       3. חלוקה ללמידה
-  ================================================ -->
-
-  <article class="lesson-mastery-card lesson-stages-card">
-
-    <div class="lesson-card-title">
-      חלוקה ללמידה
-    </div>
-
-    <div class="lesson-stage-grid">
-
-      <div
-        id="lessonStageOneCard"
-        class="lesson-stage active"
-      >
-
-        <strong>
-          חלק 1
-        </strong>
-
-        <span>
-          הבנה יסודית
-        </span>
-
-        <div class="lesson-stage-icon">
-          📖
-        </div>
-
-        <b id="lessonStageOneScore">
-          0%
-        </b>
-
-      </div>
-
-
-      <div
-        id="lessonStageTwoCard"
-        class="lesson-stage locked"
-      >
-
-        <strong>
-          חלק 2
-        </strong>
-
-        <span>
-          יישום והעמקה
-        </span>
-
-        <div class="lesson-stage-icon">
-          🔒
-        </div>
-
-        <b id="lessonStageTwoScore">
-          0%
-        </b>
-
-      </div>
-
-    </div>
-
-  </article>
-
-
-  <!-- ===============================================
-       4. מצב ההבנה
-  ================================================ -->
-
-  <article class="lesson-mastery-card lesson-status-card">
-
-    <div class="lesson-card-title">
-      מצב ההבנה
-    </div>
-
-    <div
-      id="lessonStatusText"
-      class="lesson-status-heading"
-    >
+    <div class="mastery-status-text">
       אתם בדרך הנכונה!
     </div>
 
     <img
-      class="lesson-status-robot"
-      src="/assets/robots/askie-robot.png"
+      class="mastery-teacher"
+      src="/assets/lesson/lesson-teacher.webp"
       alt=""
     >
 
-    <p id="lessonStatusDescription">
+    <div class="mastery-status-note">
       המשיכו כך כדי להגיע לשליטה מלאה בנושא.
-    </p>
+    </div>
+
+  </article>
+
+
+  <!-- 2 — חלוקה ללמידה -->
+  <article class="mastery-hud-card mastery-parts-hud">
+
+    <div class="mastery-hud-title">
+      חלוקה ללמידה
+    </div>
+
+    <div class="mastery-parts-grid">
+
+      <div class="mastery-part-box active">
+
+        <strong>חלק 1</strong>
+        <span>הבנת הנושא</span>
+
+        <div
+          class="mastery-mini-ring"
+          id="lessonPartOneGauge"
+          style="--value:0"
+        >
+          <div>
+            <b id="lessonPartOneSummary">0%</b>
+            <small>הושלם</small>
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="mastery-part-box">
+
+        <strong>חלק 2</strong>
+        <span>יישום והעמקה</span>
+
+        <div
+          class="mastery-mini-ring"
+          id="lessonPartTwoGauge"
+          style="--value:0"
+        >
+          <div>
+            <b id="lessonPartTwoSummary">0%</b>
+            <small>הושלם</small>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- 3 — התקדמות שלי -->
+  <article class="mastery-hud-card mastery-main-gauge-card">
+
+    <div class="mastery-hud-title">
+      מד ההתקדמות שלי
+    </div>
+
+    <div
+      class="mastery-tech-ring mastery-tech-ring-purple"
+      id="lessonProgressGauge"
+      style="--value:0"
+    >
+
+      <div class="mastery-ring-core">
+
+        <strong id="lessonProgressScore">
+          0%
+        </strong>
+
+        <span>
+          השלמה כללית
+        </span>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- 4 — הבנה כללית -->
+  <article class="mastery-hud-card mastery-main-gauge-card">
+
+    <div class="mastery-hud-title">
+      הבנה כללית בנושא
+    </div>
+
+    <div
+      id="lessonOverallGauge"
+      class="mastery-tech-ring"
+      style="--mastery:0; --value:0"
+    >
+
+      <div class="mastery-ring-core">
+
+        <strong id="lessonOverallScore">
+          0%
+        </strong>
+
+        <span>
+          הבנה כללית
+        </span>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- 5 — גרף -->
+  <article class="mastery-hud-card mastery-chart-card">
+
+    <div class="mastery-hud-title">
+      התקדמות לאורך השיעור
+    </div>
+
+    <div class="mastery-chart">
+
+      <svg
+        viewBox="0 0 300 120"
+        preserveAspectRatio="none"
+      >
+
+        <defs>
+
+          <linearGradient
+            id="masteryChartFill"
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
+
+            <stop
+              offset="0%"
+              stop-color="#ffe349"
+              stop-opacity=".28"
+            />
+
+            <stop
+              offset="100%"
+              stop-color="#ffe349"
+              stop-opacity="0"
+            />
+
+          </linearGradient>
+
+          <filter id="masteryGlow">
+
+            <feGaussianBlur
+              stdDeviation="3"
+              result="blur"
+            />
+
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+
+          </filter>
+
+        </defs>
+
+
+        <path
+          class="mastery-chart-fill"
+          d="
+            M15 92
+            C55 82, 55 67, 90 61
+            C125 55, 145 57, 174 49
+            C214 39, 220 19, 272 15
+            L272 110
+            L15 110 Z
+          "
+        />
+
+
+        <path
+          class="mastery-chart-line"
+          d="
+            M15 92
+            C55 82, 55 67, 90 61
+            C125 55, 145 57, 174 49
+            C214 39, 220 19, 272 15
+          "
+        />
+
+
+        <circle cx="15"  cy="92" r="6"/>
+        <circle cx="90"  cy="61" r="6"/>
+        <circle cx="174" cy="49" r="6"/>
+        <circle cx="272" cy="15" r="7"/>
+
+      </svg>
+
+      <div class="mastery-chart-labels">
+        <span>התחלה</span>
+        <span>עכשיו</span>
+      </div>
+
+    </div>
 
   </article>
 
 </section>
-      </div>
-      </div>
-  </section>
 
 </main>
 
@@ -35999,6 +36015,540 @@ body.lesson-theme-science
 
   line-height:
     1.25 !important;
+}
+    /* =====================================================
+   MASTERY HUD — FINAL STRUCTURE
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  grid-template-rows:
+    minmax(0,1fr)
+    190px !important;
+}
+
+
+body.lesson-theme-science
+.mastery-hud{
+  width:100% !important;
+  height:190px !important;
+  min-height:190px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    1.05fr
+    1.28fr
+    1.28fr
+    1.28fr
+    1.12fr !important;
+
+  gap:10px !important;
+
+  padding:5px !important;
+
+  direction:rtl !important;
+
+  overflow:visible !important;
+
+  background:transparent !important;
+}
+
+
+/* =========================================
+   CARD
+========================================= */
+
+.mastery-hud-card{
+  position:relative;
+
+  min-width:0;
+  height:180px;
+
+  padding:10px 12px 12px;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(31,172,255,.70);
+
+  border-radius:15px;
+
+  background:
+    radial-gradient(
+      circle at 50% -15%,
+      rgba(28,121,255,.20),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      #08162d 0%,
+      #041022 100%
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(44,112,255,.11),
+    inset 0 0 28px rgba(15,84,190,.06),
+    0 0 14px rgba(0,151,255,.15),
+    0 10px 24px rgba(0,3,15,.38);
+
+  color:#fff;
+}
+
+
+.mastery-hud-card::before{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:10%;
+  right:10%;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #25d8ff,
+      #6976ff,
+      transparent
+    );
+
+  box-shadow:
+    0 0 11px #28baff;
+}
+
+
+/* =========================================
+   TITLE
+========================================= */
+
+.mastery-hud-title{
+  position:relative;
+  z-index:3;
+
+  height:27px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin-bottom:7px;
+
+  border-bottom:
+    1px solid
+    rgba(50,139,235,.18);
+
+  color:#f4f8ff;
+
+  font-size:14px;
+  font-weight:900;
+}
+
+
+/* =========================================
+   LARGE FUTURE RINGS
+========================================= */
+
+.mastery-tech-ring{
+  --value:0;
+
+  position:relative;
+
+  width:126px;
+  height:126px;
+
+  margin:0 auto;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      from -90deg,
+
+      #16d5ff 0deg,
+
+      #208cff
+      calc(var(--value) * 2.5deg),
+
+      #4b63ff
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+      360deg
+    );
+
+  box-shadow:
+    0 0 5px #2bc8ff,
+    0 0 18px rgba(38,158,255,.56),
+    inset 0 0 12px rgba(255,255,255,.16);
+}
+
+
+.mastery-tech-ring-purple{
+  background:
+    conic-gradient(
+      from -90deg,
+
+      #19dfff,
+      #247fff
+      calc(var(--value) * 1.8deg),
+
+      #963dff
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+    );
+}
+
+
+.mastery-tech-ring::before{
+  content:"";
+
+  position:absolute;
+
+  inset:8px;
+
+  border-radius:50%;
+
+  border:
+    1px solid
+    rgba(70,185,255,.55);
+
+  box-shadow:
+    inset 0 0 13px rgba(33,133,255,.28);
+}
+
+
+.mastery-tech-ring::after{
+  content:"";
+
+  position:absolute;
+
+  inset:-9px;
+
+  border-radius:50%;
+
+  border:
+    1px dashed
+    rgba(36,194,255,.36);
+
+  box-shadow:
+    0 0 11px
+    rgba(35,170,255,.15);
+}
+
+
+.mastery-ring-core{
+  position:absolute;
+
+  inset:18px;
+
+  z-index:4;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #1d355f,
+      #071427 68%
+    );
+
+  border:
+    1px solid
+    rgba(77,177,255,.38);
+
+  box-shadow:
+    inset 0 0 18px
+    rgba(31,111,226,.18);
+}
+
+
+.mastery-ring-core strong{
+  font-size:31px;
+  line-height:1;
+
+  color:#fff;
+
+  text-shadow:
+    0 0 12px rgba(63,177,255,.52);
+}
+
+
+.mastery-ring-core span{
+  margin-top:5px;
+
+  color:#d7e5f8;
+
+  font-size:10px;
+  font-weight:800;
+}
+
+
+/* =========================================
+   TWO SMALL RINGS
+========================================= */
+
+.mastery-parts-grid{
+  height:130px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,1fr);
+
+  gap:8px;
+}
+
+
+.mastery-part-box{
+  padding:7px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+
+  border:
+    1px solid
+    rgba(43,133,220,.20);
+
+  border-radius:11px;
+
+  background:
+    rgba(6,20,41,.72);
+}
+
+
+.mastery-part-box.active{
+  border-color:
+    rgba(139,71,255,.58);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(77,36,145,.40),
+      rgba(15,24,57,.80)
+    );
+
+  box-shadow:
+    inset 0 0 20px rgba(134,55,255,.12);
+}
+
+
+.mastery-part-box > strong{
+  font-size:13px;
+}
+
+
+.mastery-part-box > span{
+  margin-top:1px;
+
+  color:#aebbd3;
+
+  font-size:9px;
+}
+
+
+.mastery-mini-ring{
+  --value:0;
+
+  width:78px;
+  height:78px;
+
+  margin-top:5px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #23d8ff
+      calc(var(--value) * 3.6deg),
+      rgba(40,68,108,.38) 0
+    );
+
+  box-shadow:
+    0 0 12px
+    rgba(33,173,255,.25);
+}
+
+
+.mastery-mini-ring > div{
+  width:62px;
+  height:62px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:#061226;
+
+  border:
+    1px solid
+    rgba(72,150,245,.26);
+}
+
+
+.mastery-mini-ring b{
+  font-size:20px;
+}
+
+
+.mastery-mini-ring small{
+  color:#aebbd2;
+
+  font-size:8px;
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.mastery-status-hud{
+  text-align:center;
+}
+
+
+.mastery-status-text{
+  position:relative;
+  z-index:3;
+
+  font-size:18px;
+  font-weight:900;
+}
+
+
+.mastery-teacher{
+  position:relative;
+  z-index:3;
+
+  display:block;
+
+  width:68px;
+  height:77px;
+
+  object-fit:contain;
+
+  margin:2px auto 0;
+
+  filter:
+    drop-shadow(
+      0 0 10px
+      rgba(36,170,255,.37)
+    );
+}
+
+
+.mastery-status-note{
+  position:relative;
+  z-index:3;
+
+  margin-top:-4px;
+
+  color:#aab8d1;
+
+  font-size:8px;
+  line-height:1.3;
+}
+
+
+/* =========================================
+   CHART
+========================================= */
+
+.mastery-chart{
+  position:relative;
+
+  height:132px;
+
+  padding:
+    3px
+    4px
+    20px;
+}
+
+
+.mastery-chart svg{
+  width:100%;
+  height:104px;
+
+  overflow:visible;
+}
+
+
+.mastery-chart-fill{
+  fill:
+    url(#masteryChartFill);
+}
+
+
+.mastery-chart-line{
+  fill:none;
+
+  stroke:#ffe35a;
+
+  stroke-width:3;
+
+  filter:
+    url(#masteryGlow);
+}
+
+
+.mastery-chart circle{
+  fill:#ffd73f;
+
+  stroke:#fff2a6;
+
+  stroke-width:2;
+
+  filter:
+    drop-shadow(
+      0 0 5px
+      #ffc928
+    );
+}
+
+
+.mastery-chart-labels{
+  position:absolute;
+
+  right:5px;
+  bottom:2px;
+  left:5px;
+
+  display:flex;
+  justify-content:space-between;
+
+  color:#cbd6e9;
+
+  font-size:9px;
+  font-weight:800;
 }
 </style>
 
