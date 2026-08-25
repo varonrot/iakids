@@ -36710,6 +36710,96 @@ body.lesson-theme-science
 
   overflow:hidden !important;
 }
+    /* =====================================================
+   TRUE FINAL FIX — GIVE HUD REAL VERTICAL SPACE
+===================================================== */
+
+body.lesson-theme-science
+.learning-view{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:block !important;
+
+  overflow:visible !important;
+}
+
+
+body.lesson-theme-science
+.lesson-main-existing{
+  width:100% !important;
+  height:100% !important;
+
+  display:grid !important;
+
+  grid-template-rows:
+    minmax(0, calc(100% - 202px))
+    190px !important;
+
+  gap:12px !important;
+
+  overflow:visible !important;
+}
+
+
+/* החלק העליון באמת מתכווץ כדי לפנות מקום לבוטום */
+
+body.lesson-theme-science
+.lesson-content-split{
+  width:100% !important;
+  height:100% !important;
+
+  min-height:0 !important;
+
+  overflow:hidden !important;
+}
+
+
+/* הבוטום */
+
+body.lesson-theme-science
+#lessonMasteryDock{
+  width:100% !important;
+
+  height:190px !important;
+  min-height:190px !important;
+  max-height:190px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(5, minmax(0,1fr)) !important;
+
+  grid-template-rows:
+    180px !important;
+
+  gap:9px !important;
+
+  padding:5px 6px !important;
+
+  overflow:visible !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* כל חמשת הכרטיסים */
+
+body.lesson-theme-science
+#lessonMasteryDock
+.mastery-hud-card{
+  width:100% !important;
+
+  height:180px !important;
+  min-height:180px !important;
+  max-height:180px !important;
+
+  margin:0 !important;
+
+  box-sizing:border-box !important;
+
+  overflow:hidden !important;
+}
 </style>
 
 
@@ -39388,7 +39478,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V8";
+      "▶ Rotem V9";
 
 
     document.body.appendChild(
