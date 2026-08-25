@@ -14640,11 +14640,11 @@ data-custom-slot="0"
       אתם בדרך הנכונה!
     </div>
 
-<!--    <img-->
-<!--      class="lesson-status-robot"-->
-<!--      src="/assets/robots/askie-robot.png"-->
-<!--      alt=""-->
-<!--    >-->
+    <img
+      class="lesson-status-robot"
+      src="/assets/robots/askie-robot.png"
+      alt=""
+    >
 
     <p id="lessonStatusDescription">
       המשיכו כך כדי להגיע לשליטה מלאה בנושא.
@@ -25274,6 +25274,9 @@ document.addEventListener(
 /* תמונת המורה */
 
 .lesson-renderer-avatar{
+  position:relative;
+  z-index:3;
+
   width:72px;
   height:72px;
 
@@ -25283,23 +25286,18 @@ document.addEventListener(
 
   border-radius:50%;
 
-  border:
-    2px solid
-    rgba(68,145,255,.30);
+  border:2px solid rgba(68,145,255,.30);
 
   background:#10203a;
 
-  box-shadow:
-    0 8px 20px
-    rgba(0,0,0,.28);
+  box-shadow:0 8px 20px rgba(0,0,0,.28);
 }
-
 
 /* אזור הבועות */
 
 .lesson-renderer-content{
-  flex:1;
-  width:100%;
+  flex:1 1 auto;
+  width:auto;
   min-width:0;
 
   display:flex;
