@@ -36550,6 +36550,76 @@ body.lesson-theme-science
   font-size:9px;
   font-weight:800;
 }
+    /* =====================================================
+   FINAL FIX — MASTERY HUD NOT CLIPPED
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  grid-template-rows:
+    minmax(0,1fr)
+    190px !important;
+}
+
+
+/* כל הבוטום */
+
+body.lesson-theme-science
+.mastery-hud,
+body.lesson-theme-science
+.lesson-mastery-dock{
+  width:100% !important;
+
+  height:190px !important;
+  min-height:190px !important;
+
+  margin:0 !important;
+
+  padding:
+    5px
+    6px
+    5px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(5,minmax(0,1fr)) !important;
+
+  gap:9px !important;
+
+  overflow:visible !important;
+
+  box-sizing:border-box !important;
+
+  transform:none !important;
+}
+
+
+/* הכרטיסים החדשים */
+
+body.lesson-theme-science
+.mastery-hud-card{
+  width:100% !important;
+
+  min-width:0 !important;
+
+  height:180px !important;
+  min-height:180px !important;
+
+  overflow:hidden !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* מנטרל את גובה 150px של הכרטיסים הישנים */
+
+body.lesson-theme-science
+.lesson-mastery-dock
+.lesson-mastery-card{
+  height:auto !important;
+  min-height:0 !important;
+}
 </style>
 
 
