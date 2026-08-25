@@ -34694,6 +34694,100 @@ body.lesson-theme-science
   text-align:right !important;
   direction:rtl !important;
 }
+    /* =====================================================
+   FINAL FIX — CHAT CONTENT FULL WIDTH
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.messages{
+  width:100% !important;
+
+  padding:
+    12px
+    18px
+    110px
+    18px !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* שורת המורה */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+
+  align-items:flex-start !important;
+
+  gap:10px !important;
+
+  direction:rtl !important;
+}
+
+
+/* המורה בצד ימין */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-avatar{
+  width:48px !important;
+  height:58px !important;
+
+  flex:0 0 48px !important;
+
+  object-fit:contain !important;
+
+  border-radius:0 !important;
+
+  transform:scaleX(-1) !important;
+}
+
+
+/* כל שאר הרוחב לטקסט */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 0 !important;
+
+  width:auto !important;
+  max-width:none !important;
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  align-items:stretch !important;
+
+  gap:7px !important;
+}
+
+
+/* בועה רחבה */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-writing{
+  width:100% !important;
+  max-width:100% !important;
+
+  box-sizing:border-box !important;
+
+  margin:0 !important;
+
+  padding:14px 18px !important;
+}
 </style>
 
 
