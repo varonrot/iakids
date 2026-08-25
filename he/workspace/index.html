@@ -14516,66 +14516,86 @@ data-custom-slot="0"
 
   </article>
 
+<!-- 3 — התקדמות שלי -->
+<article class="mastery-hud-card mastery-main-gauge-card">
 
-  <!-- 3 — התקדמות שלי -->
-  <article class="mastery-hud-card mastery-main-gauge-card">
+  <div class="mastery-hud-title">
+    מד ההתקדמות שלי
+  </div>
 
-    <div class="mastery-hud-title">
-      מד ההתקדמות שלי
+  <div
+    class="mastery-tech-ring mastery-tech-ring-purple"
+    id="lessonProgressGauge"
+    style="--value:0"
+  >
+
+    <div class="mastery-ring-scale">
+      <span style="--i:0">0</span>
+      <span style="--i:1">25</span>
+      <span style="--i:2">50</span>
+      <span style="--i:3">75</span>
+      <span style="--i:4">100</span>
+      <span style="--i:5">125</span>
+      <span style="--i:6">150</span>
+      <span style="--i:7">175</span>
     </div>
 
-    <div
-      class="mastery-tech-ring mastery-tech-ring-purple"
-      id="lessonProgressGauge"
-      style="--value:0"
-    >
+    <div class="mastery-ring-core">
 
-      <div class="mastery-ring-core">
+      <strong id="lessonProgressScore">
+        0%
+      </strong>
 
-        <strong id="lessonProgressScore">
-          0%
-        </strong>
-
-        <span>
-          השלמה כללית
-        </span>
-
-      </div>
-
-    </div>
-
-  </article>
-
-
-  <!-- 4 — הבנה כללית -->
-  <article class="mastery-hud-card mastery-main-gauge-card">
-
-    <div class="mastery-hud-title">
-      הבנה כללית בנושא
-    </div>
-
-    <div
-      id="lessonOverallGauge"
-      class="mastery-tech-ring"
-      style="--mastery:0; --value:0"
-    >
-
-      <div class="mastery-ring-core">
-
-        <strong id="lessonOverallScore">
-          0%
-        </strong>
-
-        <span>
-          הבנה כללית
-        </span>
-
-      </div>
+      <span>
+        השלמה כללית
+      </span>
 
     </div>
 
-  </article>
+  </div>
 
+</article>
+
+
+<!-- 4 — הבנה כללית -->
+<article class="mastery-hud-card mastery-main-gauge-card">
+
+  <div class="mastery-hud-title">
+    הבנה כללית בנושא
+  </div>
+
+  <div
+    id="lessonOverallGauge"
+    class="mastery-tech-ring"
+    style="--mastery:0; --value:0"
+  >
+
+    <div class="mastery-ring-scale">
+      <span style="--i:0">0</span>
+      <span style="--i:1">25</span>
+      <span style="--i:2">50</span>
+      <span style="--i:3">75</span>
+      <span style="--i:4">100</span>
+      <span style="--i:5">125</span>
+      <span style="--i:6">150</span>
+      <span style="--i:7">175</span>
+    </div>
+
+    <div class="mastery-ring-core">
+
+      <strong id="lessonOverallScore">
+        0%
+      </strong>
+
+      <span>
+        הבנה כללית
+      </span>
+
+    </div>
+
+  </div>
+
+</article>
 
   <!-- 5 — גרף -->
   <article class="mastery-hud-card mastery-chart-card">
@@ -36799,6 +36819,78 @@ body.lesson-theme-science
   box-sizing:border-box !important;
 
   overflow:hidden !important;
+}
+    /* ===== HUD COMPASS NUMBERS ===== */
+
+.mastery-tech-ring{
+  overflow:visible !important;
+}
+
+.mastery-ring-scale{
+  position:absolute;
+  inset:-12px;
+  border-radius:50%;
+  z-index:6;
+  pointer-events:none;
+}
+
+.mastery-ring-scale span{
+  --angle:calc(var(--i) * 45deg);
+
+  position:absolute;
+  top:50%;
+  left:50%;
+
+  width:22px;
+  margin-left:-11px;
+  margin-top:-4px;
+
+  text-align:center;
+  font-size:6px;
+  line-height:1;
+  font-weight:800;
+
+  color:rgba(82,210,255,.78);
+
+  text-shadow:
+    0 0 5px rgba(38,195,255,.8);
+
+  transform:
+    rotate(var(--angle))
+    translateY(-63px)
+    rotate(calc(-1 * var(--angle)));
+}
+
+/* שנתות קטנות כמו מכשיר מדידה */
+.mastery-ring-scale::before{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border-radius:50%;
+
+  background:
+    repeating-conic-gradient(
+      rgba(71,211,255,.75) 0deg .7deg,
+      transparent .7deg 7.5deg
+    );
+
+  -webkit-mask:
+    radial-gradient(
+      circle,
+      transparent 68%,
+      #000 69% 73%,
+      transparent 74%
+    );
+
+  mask:
+    radial-gradient(
+      circle,
+      transparent 68%,
+      #000 69% 73%,
+      transparent 74%
+    );
+
+  opacity:.55;
 }
 </style>
 
