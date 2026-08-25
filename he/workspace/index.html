@@ -14291,13 +14291,14 @@ data-custom-slot="0"
 
   </div>
 
-  <button
-    type="button"
-    class="lesson-chat-help"
-  >
-    <i class="fa-regular fa-circle-question"></i>
-    איך המורה עובדת?
-  </button>
+<button
+  type="button"
+  class="lesson-chat-help"
+  onclick="openLessonTeacherHelp()"
+>
+  <i class="fa-regular fa-circle-question"></i>
+  איך המורה עובדת?
+</button>
 
 </div>
 
@@ -35118,6 +35119,208 @@ body.lesson-theme-science
 .reset-lesson-btn:hover i{
   color:#ffffff !important;
 }
+    /* =====================================================
+   HOW TEACHER WORKS — MODAL
+===================================================== */
+
+.lesson-teacher-help-overlay{
+  position:fixed;
+  inset:0;
+
+  z-index:999999;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:20px;
+
+  background:
+    rgba(1,7,20,.74);
+
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+
+  direction:rtl;
+}
+
+
+.lesson-teacher-help-card{
+  position:relative;
+
+  width:min(480px,94vw);
+
+  padding:26px;
+
+  border:
+    1px solid
+    rgba(91,142,230,.34);
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #12213a,
+      #081426
+    );
+
+  color:#fff;
+
+  box-shadow:
+    0 24px 70px
+    rgba(0,0,0,.50),
+    inset 0 1px 0
+    rgba(255,255,255,.06);
+}
+
+
+.lesson-teacher-help-close{
+  position:absolute;
+
+  top:13px;
+  left:13px;
+
+  width:34px;
+  height:34px;
+
+  border:
+    1px solid
+    rgba(123,157,218,.20);
+
+  border-radius:10px;
+
+  background:
+    rgba(255,255,255,.05);
+
+  color:#dce7ff;
+
+  font-size:22px;
+
+  cursor:pointer;
+}
+
+
+.lesson-teacher-help-head{
+  display:flex;
+  align-items:center;
+
+  gap:14px;
+
+  padding-left:35px;
+
+  margin-bottom:22px;
+}
+
+
+.lesson-teacher-help-head img{
+  width:68px;
+  height:78px;
+
+  object-fit:contain;
+
+  flex:none;
+
+  filter:
+    drop-shadow(
+      0 8px 12px
+      rgba(0,0,0,.28)
+    );
+}
+
+
+.lesson-teacher-help-head h2{
+  margin:0;
+
+  font-size:22px;
+  font-weight:900;
+}
+
+
+.lesson-teacher-help-head p{
+  margin:4px 0 0;
+
+  color:#9fb0ce;
+
+  font-size:12px;
+}
+
+
+.lesson-teacher-help-items{
+  display:flex;
+  flex-direction:column;
+
+  gap:10px;
+}
+
+
+.lesson-teacher-help-items > div{
+  display:flex;
+  align-items:flex-start;
+
+  gap:11px;
+
+  padding:12px 13px;
+
+  border:
+    1px solid
+    rgba(94,128,186,.16);
+
+  border-radius:14px;
+
+  background:
+    rgba(22,39,68,.72);
+}
+
+
+.lesson-teacher-help-items span{
+  width:27px;
+  height:27px;
+
+  flex:0 0 27px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #7553ff,
+      #4930bd
+    );
+
+  font-size:12px;
+  font-weight:900;
+}
+
+
+.lesson-teacher-help-items p{
+  margin:0;
+
+  color:#dce5f7;
+
+  font-size:13px;
+  line-height:1.6;
+}
+
+
+.lesson-teacher-help-tip{
+  margin-top:14px;
+
+  padding:11px 13px;
+
+  border-radius:13px;
+
+  background:
+    rgba(103,74,220,.12);
+
+  color:#c9d7f4;
+
+  font-size:12px;
+  line-height:1.5;
+}
 </style>
 
 
@@ -37796,7 +37999,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V5";
+      "▶ Rotem V6";
 
 
     document.body.appendChild(
@@ -41918,5 +42121,125 @@ function updateScienceBreadcrumb(
   accept="image/jpeg,image/png,image/webp,application/pdf"
   style="display:none;"
 >
+<script>
+function openLessonTeacherHelp(){
 
+  const existing =
+    document.getElementById(
+      "lessonTeacherHelpModal"
+    );
+
+  if(existing){
+    existing.remove();
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.id =
+    "lessonTeacherHelpModal";
+
+  overlay.className =
+    "lesson-teacher-help-overlay";
+
+  overlay.innerHTML = `
+    <div class="lesson-teacher-help-card">
+
+      <button
+        class="lesson-teacher-help-close"
+        type="button"
+        onclick="closeLessonTeacherHelp()"
+        aria-label="סגירה"
+      >
+        ×
+      </button>
+
+      <div class="lesson-teacher-help-head">
+
+        <img
+          src="/assets/lesson/lesson-teacher.webp"
+          alt=""
+        >
+
+        <div>
+          <h2>איך המורה עובדת?</h2>
+          <p>המורה מלווה אותך לאורך כל השיעור</p>
+        </div>
+
+      </div>
+
+      <div class="lesson-teacher-help-items">
+
+        <div>
+          <span>1</span>
+          <p>
+            המורה מסבירה את החומר בצורה פשוטה,
+            שלב אחרי שלב.
+          </p>
+        </div>
+
+        <div>
+          <span>2</span>
+          <p>
+            תוך כדי השיעור היא שואלת שאלות
+            כדי לבדוק שהבנת.
+          </p>
+        </div>
+
+        <div>
+          <span>3</span>
+          <p>
+            אם משהו לא ברור, אפשר לשאול אותה
+            בכל רגע והיא תסביר בדרך אחרת.
+          </p>
+        </div>
+
+        <div>
+          <span>4</span>
+          <p>
+            המורה מתאימה את ההמשך לפי התשובות שלך
+            ועוזרת לך להתקדם בקצב שלך.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="lesson-teacher-help-tip">
+        💡 אפשר גם לכתוב או לדבר עם המורה
+        בתיבה שבתחתית המסך.
+      </div>
+
+    </div>
+  `;
+
+  overlay.addEventListener(
+    "click",
+    function(event){
+
+      if(event.target === overlay){
+        closeLessonTeacherHelp();
+      }
+
+    }
+  );
+
+  document.body.appendChild(
+    overlay
+  );
+}
+
+
+function closeLessonTeacherHelp(){
+
+  const modal =
+    document.getElementById(
+      "lessonTeacherHelpModal"
+    );
+
+  if(modal){
+    modal.remove();
+  }
+
+}
+</script>
 </body></html>
