@@ -34612,6 +34612,88 @@ body.lesson-theme-science .lesson-chat-workspace .tutor-writing-area {
   direction: rtl !important;
   text-align: right !important;
 }
+    /* =========================================
+   FINAL — wide teacher messages
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+
+  direction:rtl !important;
+
+  align-items:flex-start !important;
+
+  gap:10px !important;
+}
+
+
+/* המורה מימין */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar{
+  width:48px !important;
+  height:58px !important;
+
+  min-width:48px !important;
+  max-width:48px !important;
+
+  flex:0 0 48px !important;
+
+  object-fit:contain !important;
+
+  border-radius:0 !important;
+
+  background:transparent !important;
+
+  transform:scaleX(-1) !important;
+}
+
+
+/* כל השטח שנשאר מוקדש לטקסט */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 0 !important;
+
+  width:0 !important;
+  max-width:none !important;
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  align-items:stretch !important;
+
+  gap:7px !important;
+
+  direction:rtl !important;
+}
+
+
+/* הבועות עצמן רחבות */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing{
+  width:100% !important;
+  max-width:100% !important;
+
+  box-sizing:border-box !important;
+
+  margin:0 !important;
+
+  padding:14px 18px !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+}
 </style>
 
 
