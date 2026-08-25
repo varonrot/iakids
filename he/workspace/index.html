@@ -14296,8 +14296,8 @@ data-custom-slot="0"
   class="lesson-chat-help"
   onclick="openLessonTeacherHelp()"
 >
-  <i class="fa-regular fa-circle-question"></i>
-  איך המורה עובדת?
+  <span class="lesson-help-icon">?</span>
+  איך לומדים כאן?
 </button>
 
 </div>
@@ -35321,6 +35321,25 @@ body.lesson-theme-science
   font-size:12px;
   line-height:1.5;
 }
+    .lesson-help-icon{
+  width:18px;
+  height:18px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(126,166,235,.45);
+  border-radius:50%;
+
+  color:#9fc5ff;
+
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+
+  flex:none;
+}
 </style>
 
 
@@ -37999,7 +38018,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V6";
+      "▶ Rotem V7";
 
 
     document.body.appendChild(
