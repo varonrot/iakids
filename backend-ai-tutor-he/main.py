@@ -4171,37 +4171,59 @@ def build_lesson_hero_image_prompt(
     ).strip()
 
     return f"""
-Create one premium educational illustration for a school lesson.
+Create one premium educational HERO illustration for a school lesson.
 
-Grade:
-{grade}
+CURRICULUM CONTEXT:
+Grade: {grade}
+Subject: {subject}
+Main topic: {parent_lesson_name}
+Unit: {unit_name}
+Lesson: {lesson_name}
+Learning objective: {learning_objective}
 
-Subject:
-{subject}
+IMPORTANT CONTEXT RULE:
+The lesson title must NEVER be interpreted in isolation.
 
-Main topic:
-{parent_lesson_name}
+First understand the lesson through its complete curriculum context:
+Subject -> Main topic -> Unit -> Lesson -> Learning objective.
 
-Unit:
-{unit_name}
+The illustration must clearly belong to the MAIN TOPIC and UNIT,
+while visually introducing the specific LESSON.
 
-Lesson:
-{lesson_name}
+If the lesson title is broad or ambiguous, use the Main topic,
+Unit and Learning objective to determine its correct meaning.
 
-Learning objective:
-{learning_objective}
+For example:
+If a lesson is called "What is a system?" and it belongs to a unit
+about ecosystems, the image should explain the idea of a system
+through an ecological context: living and non-living elements
+interacting, influencing and depending on one another.
 
-The image must visually explain the central idea of the lesson,
-not merely decorate it.
+Do NOT interpret such a lesson as a mechanical system,
+computer system, gears, machinery or another unrelated type
+of system unless the curriculum context specifically requires it.
 
-Requirements:
-- clear enough for a child in grade {grade}
+VISUAL GOAL:
+Create one immediately understandable visual scene that helps
+the student intuitively understand the central concept of the lesson
+before the full lesson explanation begins.
+
+The image must TEACH the concept visually,
+not simply decorate or illustrate the lesson title.
+
+The visual should prioritize the actual educational concept
+described by the curriculum context and learning objective.
+
+REQUIREMENTS:
+- appropriate for a student in grade {grade}
 - educational and scientifically accurate
+- one clear central educational concept
 - premium modern 3D educational illustration
-- visually rich but not childish
-- one clear central concept
+- visually rich and engaging but not childish
+- realistic enough to support learning
+- clear visual relationships between important elements
 - cinematic soft lighting
-- clean composition
+- clean professional composition
 - suitable for a large lesson presentation area
 - landscape composition
 - no written text
