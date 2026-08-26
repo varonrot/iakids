@@ -14435,7 +14435,56 @@ data-custom-slot="0"
     <!-- =====================================================
      LESSON MEDIA CONTROLS
 ===================================================== -->
+<div class="lesson-flow-track">
 
+  <div class="lesson-flow-step completed">
+    <div class="lesson-flow-node">✓</div>
+    <span>פתיחה</span>
+  </div>
+
+  <div class="lesson-flow-step active">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-book-open"></i>
+    </div>
+    <span>הסבר 1</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-comments"></i>
+    </div>
+    <span>דיאלוג 1</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-book-open"></i>
+    </div>
+    <span>הסבר 2</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-comments"></i>
+    </div>
+    <span>דיאלוג 2</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-flag-checkered"></i>
+    </div>
+    <span>סיכום</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-arrow-right"></i>
+    </div>
+    <span>השלב הבא</span>
+  </div>
+
+</div>
 <div class="lesson-media-controls">
 
   <!-- חזרה 10 שניות -->
@@ -37622,6 +37671,226 @@ body.lesson-theme-science
 
   transition:
     width .08s linear;
+}
+    /* =====================================================
+   LESSON FLOW TRACK
+===================================================== */
+
+.lesson-flow-track{
+  position:relative;
+
+  width:100%;
+  height:72px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:8px 34px;
+
+  direction:rtl;
+
+  border:1px solid rgba(34,132,235,.22);
+  border-radius:15px;
+
+  background:
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(19,111,255,.12),
+      transparent 52%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(6,18,39,.96),
+      rgba(3,12,27,.99)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 7px 18px rgba(0,4,20,.22);
+
+  overflow:hidden;
+}
+
+
+/* הקו שמחבר את כל השלבים */
+
+.lesson-flow-track::before{
+  content:"";
+
+  position:absolute;
+
+  top:30px;
+  right:62px;
+  left:62px;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(31,83,145,.22),
+      rgba(32,125,215,.55),
+      rgba(31,83,145,.22)
+    );
+
+  box-shadow:
+    0 0 8px rgba(28,134,255,.18);
+}
+
+
+/* שלב */
+
+.lesson-flow-step{
+  position:relative;
+  z-index:2;
+
+  width:92px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  gap:5px;
+
+  color:#778aa9;
+
+  font-size:10px;
+  font-weight:700;
+
+  text-align:center;
+}
+
+
+/* עיגול */
+
+.lesson-flow-node{
+  width:38px;
+  height:38px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  border:
+    2px solid
+    rgba(67,119,181,.46);
+
+  background:
+    radial-gradient(
+      circle,
+      #0d2340,
+      #071426
+    );
+
+  color:#7b97bd;
+
+  font-size:14px;
+
+  box-shadow:
+    inset 0 0 10px
+    rgba(29,94,164,.16);
+}
+
+
+/* שלב שהושלם */
+
+.lesson-flow-step.completed{
+  color:#9ee675;
+}
+
+.lesson-flow-step.completed .lesson-flow-node{
+  border-color:#58d92d;
+
+  color:#aaff72;
+
+  background:
+    radial-gradient(
+      circle,
+      #15351c,
+      #071a10
+    );
+
+  box-shadow:
+    0 0 12px
+    rgba(81,226,39,.26),
+    inset 0 0 12px
+    rgba(88,220,48,.14);
+}
+
+
+/* השלב הפעיל */
+
+.lesson-flow-step.active{
+  color:#ffffff;
+}
+
+.lesson-flow-step.active .lesson-flow-node{
+  width:46px;
+  height:46px;
+
+  margin-top:-4px;
+
+  border-color:#49ccff;
+
+  color:#9beeff;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #1d4676,
+      #07182d 67%
+    );
+
+  box-shadow:
+    0 0 0 4px rgba(75,94,255,.13),
+    0 0 18px rgba(42,204,255,.52),
+    0 0 28px rgba(104,72,255,.25),
+    inset 0 0 12px rgba(65,203,255,.20);
+}
+
+
+/* אור משני משני הצדדים של הפעיל */
+
+.lesson-flow-step.active::before,
+.lesson-flow-step.active::after{
+  content:"";
+
+  position:absolute;
+
+  top:20px;
+
+  width:42px;
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #26d8ff
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(44,213,255,.70);
+}
+
+.lesson-flow-step.active::before{
+  right:65px;
+}
+
+.lesson-flow-step.active::after{
+  left:65px;
+
+  transform:scaleX(-1);
+}
+
+
+/* אייקונים */
+
+.lesson-flow-node i{
+  font-size:13px;
 }
 </style>
 
