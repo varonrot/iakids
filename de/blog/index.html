@@ -637,9 +637,9 @@ footer{
 
   <div class="footer-inner">
 
-    <div>
-      © 2026 IAKIDS
-    </div>
+<div>
+  © <span id="current-year"></span> IAKIDS
+</div>
 
     <div>
       KI-gestütztes Lernen für Kinder
@@ -648,6 +648,8 @@ footer{
   </div>
 
 </footer>
-
+<script>
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
