@@ -14210,6 +14210,7 @@ data-custom-slot="0"
     </aside>
 
 
+
     <!-- =========================================
          EXISTING LESSON
          לא משנים כרגע
@@ -14431,6 +14432,114 @@ data-custom-slot="0"
 
             </div>
 
+    <!-- =====================================================
+     LESSON MEDIA CONTROLS
+===================================================== -->
+
+<div class="lesson-media-controls">
+
+  <!-- חזרה 10 שניות -->
+  <button
+    type="button"
+    class="lesson-media-btn"
+    id="lessonAudioBack"
+    aria-label="חזרה 10 שניות"
+    title="חזרה 10 שניות"
+  >
+    <i class="fa-solid fa-rotate-left"></i>
+  </button>
+
+  <!-- PLAY / PAUSE -->
+  <button
+    type="button"
+    class="lesson-media-btn lesson-media-play"
+    id="lessonAudioPlay"
+    aria-label="ניגון"
+    title="ניגון"
+  >
+    <i class="fa-solid fa-play"></i>
+  </button>
+
+  <!-- קדימה 10 שניות -->
+  <button
+    type="button"
+    class="lesson-media-btn"
+    id="lessonAudioForward"
+    aria-label="קדימה 10 שניות"
+    title="קדימה 10 שניות"
+  >
+    <i class="fa-solid fa-rotate-right"></i>
+  </button>
+
+
+  <!-- WAVEFORM -->
+  <div class="lesson-waveform">
+
+    <span style="--h:28%"></span>
+    <span style="--h:52%"></span>
+    <span style="--h:38%"></span>
+    <span style="--h:72%"></span>
+    <span style="--h:45%"></span>
+    <span style="--h:86%"></span>
+    <span style="--h:60%"></span>
+    <span style="--h:35%"></span>
+    <span style="--h:74%"></span>
+    <span style="--h:96%"></span>
+    <span style="--h:58%"></span>
+    <span style="--h:42%"></span>
+    <span style="--h:79%"></span>
+    <span style="--h:54%"></span>
+    <span style="--h:34%"></span>
+    <span style="--h:64%"></span>
+    <span style="--h:91%"></span>
+    <span style="--h:49%"></span>
+    <span style="--h:67%"></span>
+    <span style="--h:38%"></span>
+    <span style="--h:82%"></span>
+    <span style="--h:56%"></span>
+    <span style="--h:30%"></span>
+    <span style="--h:69%"></span>
+    <span style="--h:89%"></span>
+    <span style="--h:47%"></span>
+    <span style="--h:76%"></span>
+    <span style="--h:40%"></span>
+    <span style="--h:61%"></span>
+    <span style="--h:32%"></span>
+
+  </div>
+
+
+  <!-- זמן -->
+  <div class="lesson-media-time">
+     <span id="lessonAudioCurrent">00:00</span>
+     <span class="lesson-media-slash">/</span>
+     <span id="lessonAudioDuration">00:00</span>
+  </div>
+
+
+  <!-- SPEED -->
+  <button
+    type="button"
+    class="lesson-media-speed"
+    id="lessonAudioSpeed"
+  >
+    1.0x
+    <i class="fa-solid fa-chevron-down"></i>
+  </button>
+
+
+  <!-- FULLSCREEN -->
+  <button
+    type="button"
+    class="lesson-media-btn lesson-media-fullscreen"
+    id="lessonFullscreenBtn"
+    aria-label="מסך מלא"
+    title="מסך מלא"
+  >
+    <i class="fa-solid fa-expand"></i>
+  </button>
+
+</div>
 
 <!-- =====================================================
      LESSON MASTERY DASHBOARD
@@ -36892,6 +37001,628 @@ body.lesson-theme-science
 
   opacity:.55;
 }
+    /* =====================================================
+   LESSON MEDIA CONTROLS — PREMIUM HUD
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  position:relative !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:8px !important;
+}
+
+
+/* אזור הוויזואל + הצ'אט נשאר גמיש */
+
+body.lesson-theme-science
+.lesson-content-split{
+  flex:
+    1
+    1
+    auto !important;
+
+  height:auto !important;
+  min-height:0 !important;
+}
+
+
+/* =====================================================
+   MAIN PLAYER BAR
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-controls{
+  position:relative;
+
+  flex:
+    0
+    0
+    64px;
+
+  width:100%;
+  min-width:0;
+  height:64px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:10px;
+
+  padding:
+    8px
+    12px;
+
+  direction:ltr;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(55,130,235,.32);
+
+  border-radius:
+    16px;
+
+  background:
+    radial-gradient(
+      circle at 45% 0%,
+      rgba(35,128,255,.13),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(9,23,46,.98),
+      rgba(5,14,31,.99)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.055),
+
+    inset 0 0 0 1px
+    rgba(65,111,188,.04),
+
+    0 8px 23px
+    rgba(0,5,22,.32);
+
+  z-index:30;
+}
+
+
+/* כחול עדין לרוחב */
+
+body.lesson-theme-science
+.lesson-media-controls::before{
+  content:"";
+
+  position:absolute;
+
+  left:110px;
+  right:180px;
+  bottom:7px;
+
+  height:1px;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(29,152,255,.28),
+      rgba(88,80,255,.34),
+      transparent
+    );
+}
+
+
+/* =====================================================
+   ROUND BUTTONS
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-btn{
+  position:relative;
+
+  width:43px;
+  height:43px;
+
+  flex:
+    0
+    0
+    43px;
+
+  display:grid;
+  place-items:center;
+
+  padding:0;
+
+  border:
+    1px solid
+    rgba(90,137,214,.28);
+
+  border-radius:
+    13px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25,41,72,.94),
+      rgba(11,24,47,.98)
+    );
+
+  color:
+    #a6b9dc;
+
+  font-size:17px;
+
+  cursor:pointer;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.06),
+
+    0 5px 13px
+    rgba(0,4,18,.22);
+
+  transition:
+    transform .17s ease,
+    border-color .17s ease,
+    color .17s ease;
+}
+
+
+body.lesson-theme-science
+.lesson-media-btn:hover{
+  transform:
+    translateY(-2px);
+
+  color:#fff;
+
+  border-color:
+    rgba(75,167,255,.62);
+}
+
+
+/* =====================================================
+   PLAY BUTTON
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-play{
+  width:48px;
+  height:48px;
+
+  flex-basis:48px;
+
+  border-radius:
+    15px;
+
+  border-color:
+    rgba(153,122,255,.62);
+
+  color:#fff;
+
+  background:
+    radial-gradient(
+      circle at 35% 24%,
+      #9175ff,
+      #6740df 54%,
+      #39208e 100%
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.28),
+
+    0 0 18px
+    rgba(111,72,255,.35),
+
+    0 7px 18px
+    rgba(37,18,105,.38);
+}
+
+
+body.lesson-theme-science
+.lesson-media-play::after{
+  content:"";
+
+  position:absolute;
+
+  inset:-5px;
+
+  border-radius:19px;
+
+  border:
+    1px solid
+    rgba(139,107,255,.24);
+
+  pointer-events:none;
+}
+
+
+/* =====================================================
+   WAVEFORM
+===================================================== */
+
+body.lesson-theme-science
+.lesson-waveform{
+  position:relative;
+
+  flex:
+    1
+    1
+    auto;
+
+  min-width:120px;
+  height:42px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:3px;
+
+  padding:
+    4px
+    12px;
+
+  overflow:hidden;
+}
+
+
+/* זוהר מאחורי הגל */
+
+body.lesson-theme-science
+.lesson-waveform::before{
+  content:"";
+
+  position:absolute;
+
+  left:8%;
+  right:8%;
+  top:50%;
+
+  height:24px;
+
+  transform:
+    translateY(-50%);
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(30,186,255,.20),
+      transparent 72%
+    );
+
+  filter:
+    blur(8px);
+}
+
+
+/* קווי הגל */
+
+body.lesson-theme-science
+.lesson-waveform span{
+  position:relative;
+
+  z-index:2;
+
+  width:3px;
+
+  height:
+    var(--h);
+
+  min-height:5px;
+
+  border-radius:
+    999px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #985cff,
+      #32dfff,
+      #247bff
+    );
+
+  box-shadow:
+    0 0 5px
+    rgba(45,198,255,.45);
+
+  opacity:.95;
+}
+
+
+/* קצת חיים */
+
+body.lesson-theme-science
+.lesson-waveform span:nth-child(3n){
+  animation:
+    lessonWavePulse
+    1.25s
+    ease-in-out
+    infinite alternate;
+}
+
+
+body.lesson-theme-science
+.lesson-waveform span:nth-child(3n + 1){
+  animation:
+    lessonWavePulse
+    1.55s
+    ease-in-out
+    infinite alternate-reverse;
+}
+
+
+@keyframes lessonWavePulse{
+
+  from{
+    transform:
+      scaleY(.70);
+
+    opacity:.64;
+  }
+
+  to{
+    transform:
+      scaleY(1);
+
+    opacity:1;
+  }
+
+}
+
+
+/* =====================================================
+   TIME
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-time{
+  flex:
+    0
+    0
+    auto;
+
+  min-width:92px;
+
+  padding:
+    8px
+    10px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:4px;
+
+  border:
+    1px solid
+    rgba(89,126,188,.16);
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(4,13,29,.62);
+
+  color:
+    #d5def0;
+
+  font-size:
+    13px;
+
+  font-weight:
+    700;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+body.lesson-theme-science
+.lesson-media-slash{
+  color:
+    rgba(171,190,223,.42);
+}
+
+
+/* =====================================================
+   SPEED
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-speed{
+  height:42px;
+
+  flex:
+    0
+    0
+    76px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:7px;
+
+  border:
+    1px solid
+    rgba(92,132,202,.21);
+
+  border-radius:
+    11px;
+
+  background:
+    rgba(8,20,42,.92);
+
+  color:
+    #e4eafa;
+
+  font-size:
+    13px;
+
+  font-weight:
+    800;
+
+  cursor:pointer;
+}
+
+
+body.lesson-theme-science
+.lesson-media-speed i{
+  color:
+    #708dbe;
+
+  font-size:
+    9px;
+}
+
+
+/* =====================================================
+   FULLSCREEN
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-fullscreen{
+  color:
+    #37c4ff;
+}
+
+
+/* =====================================================
+   SMALLER WINDOWS
+===================================================== */
+
+@media(max-width:1500px){
+
+  body.lesson-theme-science
+  .lesson-media-controls{
+    height:58px;
+
+    flex-basis:58px;
+
+    gap:7px;
+
+    padding:
+      6px
+      9px;
+  }
+
+
+  body.lesson-theme-science
+  .lesson-media-btn{
+    width:38px;
+    height:38px;
+
+    flex-basis:38px;
+
+    font-size:14px;
+  }
+
+
+  body.lesson-theme-science
+  .lesson-media-play{
+    width:43px;
+    height:43px;
+
+    flex-basis:43px;
+  }
+
+
+  body.lesson-theme-science
+  .lesson-media-time{
+    min-width:82px;
+
+    padding:
+      6px
+      7px;
+
+    font-size:
+      11px;
+  }
+
+
+  body.lesson-theme-science
+  .lesson-media-speed{
+    flex-basis:66px;
+
+    height:38px;
+
+    font-size:
+      11px;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:760px){
+
+  body.lesson-theme-science
+  .lesson-media-controls{
+    display:none !important;
+  }
+
+}
+    /* =====================================================
+   LESSON WAVEFORM REAL PROGRESS
+===================================================== */
+
+.lesson-waveform{
+  --audio-progress:0%;
+
+  position:relative;
+
+  cursor:pointer;
+}
+
+
+/* שכבת ההתקדמות */
+
+.lesson-waveform::after{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  bottom:0;
+  left:0;
+
+  width:
+    var(--audio-progress);
+
+  pointer-events:none;
+
+  border-radius:12px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(111,76,255,.10),
+      rgba(44,215,255,.18)
+    );
+
+  box-shadow:
+    0 0 18px
+    rgba(51,185,255,.18);
+
+  transition:
+    width .08s linear;
+}
 </style>
 
 
@@ -38145,16 +38876,14 @@ async getAudioDuration(
 
 /* =========================
    PLAY AUDIO URL
+   + LESSON MEDIA CONTROLS
 ========================= */
 
-async playAudioUrl(
-  audioUrl
-){
+async playAudioUrl(audioUrl){
 
   if(!audioUrl){
     return;
   }
-
 
   console.log(
     "🔊 PLAY AUDIO URL:",
@@ -38162,10 +38891,40 @@ async playAudioUrl(
   );
 
 
+  /* אם היה אודיו קודם - עוצרים אותו */
+  if(
+    window.currentLessonAudio
+    &&
+    window.currentLessonAudio !== null
+  ){
+    try{
+      window.currentLessonAudio.pause();
+    }
+    catch(error){}
+  }
+
+
   const audio =
-    new Audio(
-      audioUrl
+    new Audio(audioUrl);
+
+
+  window.currentLessonAudio =
+    audio;
+
+
+  /* שומרים מהירות נבחרת */
+  audio.playbackRate =
+    window.lessonAudioPlaybackRate || 1;
+
+
+  /* מחברים את פס הקול */
+  if(
+    typeof window.connectLessonMediaControls === "function"
+  ){
+    window.connectLessonMediaControls(
+      audio
     );
+  }
 
 
   await new Promise(
@@ -38178,42 +38937,38 @@ async playAudioUrl(
       const hideLoadingOnce =
         () => {
 
-          if(
-            loadingHidden
-          ){
+          if(loadingHidden){
             return;
           }
 
-
-          loadingHidden =
-            true;
-
+          loadingHidden = true;
 
           hideLessonLoading();
 
         };
 
 
-      /*
-        loadeddata:
-        קובץ האודיו מוכן מספיק לנגינה
-      */
-
       audio.onloadeddata =
         hideLoadingOnce;
 
-
-      /*
-        playing:
-        האודיו התחיל להישמע בפועל
-      */
 
       audio.onplaying =
         hideLoadingOnce;
 
 
       audio.onended =
-        resolve;
+        () => {
+
+          if(
+            window.currentLessonAudio === audio
+          ){
+            window.currentLessonAudio =
+              null;
+          }
+
+          resolve();
+
+        };
 
 
       audio.onerror =
@@ -38221,9 +38976,14 @@ async playAudioUrl(
 
           hideLoadingOnce();
 
-          reject(
-            error
-          );
+          if(
+            window.currentLessonAudio === audio
+          ){
+            window.currentLessonAudio =
+              null;
+          }
+
+          reject(error);
 
         };
 
@@ -38235,9 +38995,7 @@ async playAudioUrl(
 
             hideLoadingOnce();
 
-            reject(
-              error
-            );
+            reject(error);
 
           }
         );
@@ -39570,7 +40328,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V10";
+      "▶ Rotem V13";
 
 
     document.body.appendChild(
@@ -43812,5 +44570,480 @@ function closeLessonTeacherHelp(){
   }
 
 }
+    /* =====================================================
+   LESSON MEDIA PLAYER CONTROLLER
+===================================================== */
+
+window.currentLessonAudio =
+  null;
+
+window.lessonAudioPlaybackRate =
+  1;
+
+
+/* =========================
+   FORMAT TIME
+========================= */
+
+function formatLessonAudioTime(seconds){
+
+  if(
+    !Number.isFinite(seconds)
+    ||
+    seconds < 0
+  ){
+    return "00:00";
+  }
+
+  const mins =
+    Math.floor(seconds / 60);
+
+  const secs =
+    Math.floor(seconds % 60);
+
+  return (
+    String(mins).padStart(2,"0")
+    +
+    ":"
+    +
+    String(secs).padStart(2,"0")
+  );
+
+}
+
+
+/* =========================
+   CONNECT AUDIO TO UI
+========================= */
+
+window.connectLessonMediaControls =
+function(audio){
+
+  if(!audio){
+    return;
+  }
+
+
+  const playBtn =
+    document.getElementById(
+      "lessonAudioPlay"
+    );
+
+  const backBtn =
+    document.getElementById(
+      "lessonAudioBack"
+    );
+
+  const forwardBtn =
+    document.getElementById(
+      "lessonAudioForward"
+    );
+
+  const speedBtn =
+    document.getElementById(
+      "lessonAudioSpeed"
+    );
+
+  const currentEl =
+    document.getElementById(
+      "lessonAudioCurrent"
+    );
+
+  const durationEl =
+    document.getElementById(
+      "lessonAudioDuration"
+    );
+
+  const waveform =
+    document.querySelector(
+      ".lesson-waveform"
+    );
+
+
+  if(
+    !playBtn
+    ||
+    !currentEl
+    ||
+    !durationEl
+  ){
+    return;
+  }
+
+
+  /* -------------------------
+     PLAY ICON
+  ------------------------- */
+
+  function updatePlayButton(){
+
+    const icon =
+      playBtn.querySelector("i");
+
+    if(!icon){
+      return;
+    }
+
+    if(audio.paused){
+
+      icon.className =
+        "fa-solid fa-play";
+
+      playBtn.title =
+        "ניגון";
+
+      playBtn.setAttribute(
+        "aria-label",
+        "ניגון"
+      );
+
+    }
+    else{
+
+      icon.className =
+        "fa-solid fa-pause";
+
+      playBtn.title =
+        "השהיה";
+
+      playBtn.setAttribute(
+        "aria-label",
+        "השהיה"
+      );
+
+    }
+
+  }
+
+
+  /* -------------------------
+     TIME + WAVE
+  ------------------------- */
+
+  function updateProgress(){
+
+    const duration =
+      Number(audio.duration);
+
+    const current =
+      Number(audio.currentTime);
+
+
+    currentEl.textContent =
+      formatLessonAudioTime(
+        current
+      );
+
+
+    if(
+      Number.isFinite(duration)
+      &&
+      duration > 0
+    ){
+
+      durationEl.textContent =
+        formatLessonAudioTime(
+          duration
+        );
+
+
+      const progress =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            current / duration
+          )
+        );
+
+
+      if(waveform){
+
+        waveform.style.setProperty(
+          "--audio-progress",
+          `${progress * 100}%`
+        );
+
+      }
+
+    }
+
+  }
+
+
+  /* -------------------------
+     AUDIO EVENTS
+  ------------------------- */
+
+  audio.addEventListener(
+    "loadedmetadata",
+    updateProgress
+  );
+
+  audio.addEventListener(
+    "durationchange",
+    updateProgress
+  );
+
+  audio.addEventListener(
+    "timeupdate",
+    updateProgress
+  );
+
+  audio.addEventListener(
+    "play",
+    updatePlayButton
+  );
+
+  audio.addEventListener(
+    "pause",
+    updatePlayButton
+  );
+
+  audio.addEventListener(
+    "ended",
+    () => {
+
+      updatePlayButton();
+      updateProgress();
+
+    }
+  );
+
+
+  /* -------------------------
+     PLAY / PAUSE
+  ------------------------- */
+
+  playBtn.onclick =
+    async () => {
+
+      if(
+        window.currentLessonAudio !== audio
+      ){
+        return;
+      }
+
+
+      if(audio.paused){
+
+        try{
+          await audio.play();
+        }
+        catch(error){
+          console.error(
+            "LESSON AUDIO PLAY FAILED:",
+            error
+          );
+        }
+
+      }
+      else{
+
+        audio.pause();
+
+      }
+
+    };
+
+
+  /* -------------------------
+     BACK 10
+  ------------------------- */
+
+  if(backBtn){
+
+    backBtn.onclick =
+      () => {
+
+        if(
+          window.currentLessonAudio !== audio
+        ){
+          return;
+        }
+
+        audio.currentTime =
+          Math.max(
+            0,
+            audio.currentTime - 10
+          );
+
+        updateProgress();
+
+      };
+
+  }
+
+
+  /* -------------------------
+     FORWARD 10
+  ------------------------- */
+
+  if(forwardBtn){
+
+    forwardBtn.onclick =
+      () => {
+
+        if(
+          window.currentLessonAudio !== audio
+        ){
+          return;
+        }
+
+        if(
+          Number.isFinite(
+            audio.duration
+          )
+        ){
+
+          audio.currentTime =
+            Math.min(
+              audio.duration,
+              audio.currentTime + 10
+            );
+
+        }
+        else{
+
+          audio.currentTime +=
+            10;
+
+        }
+
+        updateProgress();
+
+      };
+
+  }
+
+
+  /* -------------------------
+     CLICK WAVEFORM = SEEK
+  ------------------------- */
+
+  if(waveform){
+
+    waveform.onclick =
+      event => {
+
+        if(
+          window.currentLessonAudio !== audio
+        ){
+          return;
+        }
+
+        if(
+          !Number.isFinite(
+            audio.duration
+          )
+          ||
+          audio.duration <= 0
+        ){
+          return;
+        }
+
+
+        const rect =
+          waveform.getBoundingClientRect();
+
+
+        const ratio =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              (
+                event.clientX
+                -
+                rect.left
+              )
+              /
+              rect.width
+            )
+          );
+
+
+        audio.currentTime =
+          ratio
+          *
+          audio.duration;
+
+
+        updateProgress();
+
+      };
+
+  }
+
+
+  /* -------------------------
+     SPEED
+  ------------------------- */
+
+  if(speedBtn){
+
+    speedBtn.onclick =
+      () => {
+
+        const speeds =
+          [
+            0.75,
+            1,
+            1.25,
+            1.5
+          ];
+
+
+        const currentRate =
+          window.lessonAudioPlaybackRate
+          ||
+          1;
+
+
+        let index =
+          speeds.indexOf(
+            currentRate
+          );
+
+
+        index =
+          (
+            index + 1
+          )
+          %
+          speeds.length;
+
+
+        const newRate =
+          speeds[index];
+
+
+        window.lessonAudioPlaybackRate =
+          newRate;
+
+
+        audio.playbackRate =
+          newRate;
+
+
+        speedBtn.innerHTML =
+          `${
+            newRate === 1
+              ? "1.0"
+              : newRate
+          }x
+          <i class="fa-solid fa-chevron-down"></i>`;
+
+      };
+
+  }
+
+
+  /* מצב התחלתי */
+
+  updatePlayButton();
+  updateProgress();
+
+};
 </script>
 </body></html>
