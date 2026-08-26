@@ -37578,6 +37578,51 @@ body.lesson-theme-science
   }
 
 }
+    /* =====================================================
+   LESSON WAVEFORM REAL PROGRESS
+===================================================== */
+
+.lesson-waveform{
+  --audio-progress:0%;
+
+  position:relative;
+
+  cursor:pointer;
+}
+
+
+/* שכבת ההתקדמות */
+
+.lesson-waveform::after{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  bottom:0;
+  left:0;
+
+  width:
+    var(--audio-progress);
+
+  pointer-events:none;
+
+  border-radius:12px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(111,76,255,.10),
+      rgba(44,215,255,.18)
+    );
+
+  box-shadow:
+    0 0 18px
+    rgba(51,185,255,.18);
+
+  transition:
+    width .08s linear;
+}
 </style>
 
 
@@ -38831,16 +38876,14 @@ async getAudioDuration(
 
 /* =========================
    PLAY AUDIO URL
+   + LESSON MEDIA CONTROLS
 ========================= */
 
-async playAudioUrl(
-  audioUrl
-){
+async playAudioUrl(audioUrl){
 
   if(!audioUrl){
     return;
   }
-
 
   console.log(
     "🔊 PLAY AUDIO URL:",
@@ -38848,10 +38891,40 @@ async playAudioUrl(
   );
 
 
+  /* אם היה אודיו קודם - עוצרים אותו */
+  if(
+    window.currentLessonAudio
+    &&
+    window.currentLessonAudio !== null
+  ){
+    try{
+      window.currentLessonAudio.pause();
+    }
+    catch(error){}
+  }
+
+
   const audio =
-    new Audio(
-      audioUrl
+    new Audio(audioUrl);
+
+
+  window.currentLessonAudio =
+    audio;
+
+
+  /* שומרים מהירות נבחרת */
+  audio.playbackRate =
+    window.lessonAudioPlaybackRate || 1;
+
+
+  /* מחברים את פס הקול */
+  if(
+    typeof window.connectLessonMediaControls === "function"
+  ){
+    window.connectLessonMediaControls(
+      audio
     );
+  }
 
 
   await new Promise(
@@ -38864,42 +38937,38 @@ async playAudioUrl(
       const hideLoadingOnce =
         () => {
 
-          if(
-            loadingHidden
-          ){
+          if(loadingHidden){
             return;
           }
 
-
-          loadingHidden =
-            true;
-
+          loadingHidden = true;
 
           hideLessonLoading();
 
         };
 
 
-      /*
-        loadeddata:
-        קובץ האודיו מוכן מספיק לנגינה
-      */
-
       audio.onloadeddata =
         hideLoadingOnce;
 
-
-      /*
-        playing:
-        האודיו התחיל להישמע בפועל
-      */
 
       audio.onplaying =
         hideLoadingOnce;
 
 
       audio.onended =
-        resolve;
+        () => {
+
+          if(
+            window.currentLessonAudio === audio
+          ){
+            window.currentLessonAudio =
+              null;
+          }
+
+          resolve();
+
+        };
 
 
       audio.onerror =
@@ -38907,9 +38976,14 @@ async playAudioUrl(
 
           hideLoadingOnce();
 
-          reject(
-            error
-          );
+          if(
+            window.currentLessonAudio === audio
+          ){
+            window.currentLessonAudio =
+              null;
+          }
+
+          reject(error);
 
         };
 
@@ -38921,9 +38995,7 @@ async playAudioUrl(
 
             hideLoadingOnce();
 
-            reject(
-              error
-            );
+            reject(error);
 
           }
         );
@@ -40256,7 +40328,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V11";
+      "▶ Rotem V12";
 
 
     document.body.appendChild(
@@ -44498,5 +44570,480 @@ function closeLessonTeacherHelp(){
   }
 
 }
+    /* =====================================================
+   LESSON MEDIA PLAYER CONTROLLER
+===================================================== */
+
+window.currentLessonAudio =
+  null;
+
+window.lessonAudioPlaybackRate =
+  1;
+
+
+/* =========================
+   FORMAT TIME
+========================= */
+
+function formatLessonAudioTime(seconds){
+
+  if(
+    !Number.isFinite(seconds)
+    ||
+    seconds < 0
+  ){
+    return "00:00";
+  }
+
+  const mins =
+    Math.floor(seconds / 60);
+
+  const secs =
+    Math.floor(seconds % 60);
+
+  return (
+    String(mins).padStart(2,"0")
+    +
+    ":"
+    +
+    String(secs).padStart(2,"0")
+  );
+
+}
+
+
+/* =========================
+   CONNECT AUDIO TO UI
+========================= */
+
+window.connectLessonMediaControls =
+function(audio){
+
+  if(!audio){
+    return;
+  }
+
+
+  const playBtn =
+    document.getElementById(
+      "lessonAudioPlay"
+    );
+
+  const backBtn =
+    document.getElementById(
+      "lessonAudioBack"
+    );
+
+  const forwardBtn =
+    document.getElementById(
+      "lessonAudioForward"
+    );
+
+  const speedBtn =
+    document.getElementById(
+      "lessonAudioSpeed"
+    );
+
+  const currentEl =
+    document.getElementById(
+      "lessonAudioCurrent"
+    );
+
+  const durationEl =
+    document.getElementById(
+      "lessonAudioDuration"
+    );
+
+  const waveform =
+    document.querySelector(
+      ".lesson-waveform"
+    );
+
+
+  if(
+    !playBtn
+    ||
+    !currentEl
+    ||
+    !durationEl
+  ){
+    return;
+  }
+
+
+  /* -------------------------
+     PLAY ICON
+  ------------------------- */
+
+  function updatePlayButton(){
+
+    const icon =
+      playBtn.querySelector("i");
+
+    if(!icon){
+      return;
+    }
+
+    if(audio.paused){
+
+      icon.className =
+        "fa-solid fa-play";
+
+      playBtn.title =
+        "ניגון";
+
+      playBtn.setAttribute(
+        "aria-label",
+        "ניגון"
+      );
+
+    }
+    else{
+
+      icon.className =
+        "fa-solid fa-pause";
+
+      playBtn.title =
+        "השהיה";
+
+      playBtn.setAttribute(
+        "aria-label",
+        "השהיה"
+      );
+
+    }
+
+  }
+
+
+  /* -------------------------
+     TIME + WAVE
+  ------------------------- */
+
+  function updateProgress(){
+
+    const duration =
+      Number(audio.duration);
+
+    const current =
+      Number(audio.currentTime);
+
+
+    currentEl.textContent =
+      formatLessonAudioTime(
+        current
+      );
+
+
+    if(
+      Number.isFinite(duration)
+      &&
+      duration > 0
+    ){
+
+      durationEl.textContent =
+        formatLessonAudioTime(
+          duration
+        );
+
+
+      const progress =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            current / duration
+          )
+        );
+
+
+      if(waveform){
+
+        waveform.style.setProperty(
+          "--audio-progress",
+          `${progress * 100}%`
+        );
+
+      }
+
+    }
+
+  }
+
+
+  /* -------------------------
+     AUDIO EVENTS
+  ------------------------- */
+
+  audio.addEventListener(
+    "loadedmetadata",
+    updateProgress
+  );
+
+  audio.addEventListener(
+    "durationchange",
+    updateProgress
+  );
+
+  audio.addEventListener(
+    "timeupdate",
+    updateProgress
+  );
+
+  audio.addEventListener(
+    "play",
+    updatePlayButton
+  );
+
+  audio.addEventListener(
+    "pause",
+    updatePlayButton
+  );
+
+  audio.addEventListener(
+    "ended",
+    () => {
+
+      updatePlayButton();
+      updateProgress();
+
+    }
+  );
+
+
+  /* -------------------------
+     PLAY / PAUSE
+  ------------------------- */
+
+  playBtn.onclick =
+    async () => {
+
+      if(
+        window.currentLessonAudio !== audio
+      ){
+        return;
+      }
+
+
+      if(audio.paused){
+
+        try{
+          await audio.play();
+        }
+        catch(error){
+          console.error(
+            "LESSON AUDIO PLAY FAILED:",
+            error
+          );
+        }
+
+      }
+      else{
+
+        audio.pause();
+
+      }
+
+    };
+
+
+  /* -------------------------
+     BACK 10
+  ------------------------- */
+
+  if(backBtn){
+
+    backBtn.onclick =
+      () => {
+
+        if(
+          window.currentLessonAudio !== audio
+        ){
+          return;
+        }
+
+        audio.currentTime =
+          Math.max(
+            0,
+            audio.currentTime - 10
+          );
+
+        updateProgress();
+
+      };
+
+  }
+
+
+  /* -------------------------
+     FORWARD 10
+  ------------------------- */
+
+  if(forwardBtn){
+
+    forwardBtn.onclick =
+      () => {
+
+        if(
+          window.currentLessonAudio !== audio
+        ){
+          return;
+        }
+
+        if(
+          Number.isFinite(
+            audio.duration
+          )
+        ){
+
+          audio.currentTime =
+            Math.min(
+              audio.duration,
+              audio.currentTime + 10
+            );
+
+        }
+        else{
+
+          audio.currentTime +=
+            10;
+
+        }
+
+        updateProgress();
+
+      };
+
+  }
+
+
+  /* -------------------------
+     CLICK WAVEFORM = SEEK
+  ------------------------- */
+
+  if(waveform){
+
+    waveform.onclick =
+      event => {
+
+        if(
+          window.currentLessonAudio !== audio
+        ){
+          return;
+        }
+
+        if(
+          !Number.isFinite(
+            audio.duration
+          )
+          ||
+          audio.duration <= 0
+        ){
+          return;
+        }
+
+
+        const rect =
+          waveform.getBoundingClientRect();
+
+
+        const ratio =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              (
+                event.clientX
+                -
+                rect.left
+              )
+              /
+              rect.width
+            )
+          );
+
+
+        audio.currentTime =
+          ratio
+          *
+          audio.duration;
+
+
+        updateProgress();
+
+      };
+
+  }
+
+
+  /* -------------------------
+     SPEED
+  ------------------------- */
+
+  if(speedBtn){
+
+    speedBtn.onclick =
+      () => {
+
+        const speeds =
+          [
+            0.75,
+            1,
+            1.25,
+            1.5
+          ];
+
+
+        const currentRate =
+          window.lessonAudioPlaybackRate
+          ||
+          1;
+
+
+        let index =
+          speeds.indexOf(
+            currentRate
+          );
+
+
+        index =
+          (
+            index + 1
+          )
+          %
+          speeds.length;
+
+
+        const newRate =
+          speeds[index];
+
+
+        window.lessonAudioPlaybackRate =
+          newRate;
+
+
+        audio.playbackRate =
+          newRate;
+
+
+        speedBtn.innerHTML =
+          `${
+            newRate === 1
+              ? "1.0"
+              : newRate
+          }x
+          <i class="fa-solid fa-chevron-down"></i>`;
+
+      };
+
+  }
+
+
+  /* מצב התחלתי */
+
+  updatePlayButton();
+  updateProgress();
+
+};
 </script>
 </body></html>
