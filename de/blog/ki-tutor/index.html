@@ -1557,13 +1557,15 @@ Blog
 
 <div class="footer-bottom">
 
-<span>© 2026 IAKIDS. Alle Rechte vorbehalten.</span>
+<span>© <span id="current-year"></span> IAKIDS. Alle Rechte vorbehalten.</span>
 
 <span>Deutsch 🇩🇪</span>
 
 </div>
 
 </footer>
-
+<script>
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
