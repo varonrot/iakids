@@ -4033,6 +4033,590 @@ def normalize_universal_lesson_visuals(
     return normalized_sequence
 
 # =====================================================
+# UNIVERSAL LESSON MEDIA
+# Shared images / videos for all children
+# =====================================================
+
+LESSON_MEDIA_BUCKET = "lesson-media"
+
+LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
+
+# בשלב הראשון נייצר רק Hero Image אחת לכל תת-שיעור
+LESSON_MEDIA_HERO_VERSION = 1
+
+
+def get_lesson_media_storage_path(
+        unit_lesson_id: int,
+        media_type: str = "hero"
+) -> str:
+    """
+    נתיב קבוע למדיה של תת-שיעור.
+
+    אותו unit_lesson_id תמיד יוביל
+    לאותו קובץ, ולכן ילדים אחרים
+    יוכלו להשתמש באותה מדיה.
+    """
+
+    if media_type == "hero":
+        return (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"hero_v{LESSON_MEDIA_HERO_VERSION}.png"
+        )
+
+    raise ValueError(
+        f"Unsupported lesson media type: "
+        f"{media_type}"
+    )
+
+
+def create_lesson_media_signed_url(
+        storage_path: str
+) -> str:
+    """
+    יוצר URL זמני לקובץ שכבר נמצא
+    ב-Supabase Storage.
+    """
+
+    signed_response = (
+        sb.storage
+        .from_(
+            LESSON_MEDIA_BUCKET
+        )
+        .create_signed_url(
+            storage_path,
+            LESSON_MEDIA_URL_EXPIRY_SECONDS
+        )
+    )
+
+    signed_url = None
+
+    if isinstance(
+            signed_response,
+            dict
+    ):
+        signed_url = (
+            signed_response.get(
+                "signedURL"
+            )
+            or signed_response.get(
+                "signedUrl"
+            )
+            or signed_response.get(
+                "signed_url"
+            )
+        )
+
+    if not signed_url:
+        raise RuntimeError(
+            "Failed to create signed URL "
+            f"for lesson media: {storage_path}"
+        )
+
+    return signed_url
+
+
+def build_lesson_hero_image_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> str:
+    """
+    Prompt אוניברסלי לתמונה הראשונה של השיעור.
+
+    אין כאן מידע אישי על הילד.
+    לכן התמונה יכולה להישמר ולהיות
+    משותפת לכל הילדים שלומדים את אותו שיעור.
+    """
+
+    grade = str(
+        parent_lesson.get(
+            "grade"
+        )
+        or ""
+    ).strip()
+
+    subject = str(
+        parent_lesson.get(
+            "subject"
+        )
+        or ""
+    ).strip()
+
+    parent_lesson_name = str(
+        parent_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    ).strip()
+
+    unit_name = str(
+        unit_lesson.get(
+            "unit_name"
+        )
+        or ""
+    ).strip()
+
+    lesson_name = str(
+        unit_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    ).strip()
+
+    learning_objective = str(
+        unit_lesson.get(
+            "learning_objective"
+        )
+        or ""
+    ).strip()
+
+    return f"""
+Create one premium educational illustration for a school lesson.
+
+Grade:
+{grade}
+
+Subject:
+{subject}
+
+Main topic:
+{parent_lesson_name}
+
+Unit:
+{unit_name}
+
+Lesson:
+{lesson_name}
+
+Learning objective:
+{learning_objective}
+
+The image must visually explain the central idea of the lesson,
+not merely decorate it.
+
+Requirements:
+- clear enough for a child in grade {grade}
+- educational and scientifically accurate
+- premium modern 3D educational illustration
+- visually rich but not childish
+- one clear central concept
+- cinematic soft lighting
+- clean composition
+- suitable for a large lesson presentation area
+- landscape composition
+- no written text
+- no labels
+- no captions
+- no logos
+- no watermark
+""".strip()
+
+# =====================================================
+# GEMINI LESSON HERO IMAGE
+# =====================================================
+
+LESSON_IMAGE_MODEL = (
+    "gemini-3.1-flash-image"
+)
+
+
+def generate_lesson_hero_image_bytes(
+        prompt: str
+) -> tuple[bytes, str]:
+    """
+    יוצר תמונת Hero אחת דרך Gemini.
+
+    מחזיר:
+    - bytes של התמונה
+    - MIME type
+    """
+
+    clean_prompt = str(
+        prompt or ""
+    ).strip()
+
+    if not clean_prompt:
+        raise RuntimeError(
+            "Lesson hero image prompt is empty"
+        )
+
+    print(
+        "========== LESSON IMAGE GENERATION START ==========",
+        {
+            "model":
+                LESSON_IMAGE_MODEL,
+
+            "prompt_length":
+                len(clean_prompt)
+        }
+    )
+
+    started_at = (
+        time.perf_counter()
+    )
+
+    response = (
+        gemini_client
+        .models
+        .generate_content(
+
+            model=
+                LESSON_IMAGE_MODEL,
+
+            contents=
+                clean_prompt,
+
+            config=
+                types.GenerateContentConfig(
+
+                    # אנחנו רוצים רק תמונה,
+                    # ללא טקסט נלווה
+                    response_modalities=[
+                        "IMAGE"
+                    ],
+
+                    # אזור ההמחשה שלך רחב,
+                    # ולכן 16:9 מתאים למסך
+                    response_format={
+                        "image": {
+                            "aspect_ratio":
+                                "16:9",
+
+                            # בשלב ראשון 1K.
+                            # לא צריך לשרוף עלות על 2K/4K.
+                            "image_size":
+                                "1K"
+                        }
+                    }
+                )
+        )
+    )
+
+    elapsed_ms = round(
+        (
+            time.perf_counter()
+            - started_at
+        )
+        * 1000
+    )
+
+    print(
+        "========== LESSON IMAGE GEMINI RESPONSE ==========",
+        {
+            "elapsed_ms":
+                elapsed_ms
+        }
+    )
+
+    # =================================================
+    # FIND IMAGE PART
+    # =================================================
+
+    response_parts = (
+        getattr(
+            response,
+            "parts",
+            None
+        )
+        or []
+    )
+
+    for part in response_parts:
+
+        inline_data = getattr(
+            part,
+            "inline_data",
+            None
+        )
+
+        if inline_data is None:
+            continue
+
+        image_data = getattr(
+            inline_data,
+            "data",
+            None
+        )
+
+        if not image_data:
+            continue
+
+        mime_type = (
+            getattr(
+                inline_data,
+                "mime_type",
+                None
+            )
+            or
+            "image/png"
+        )
+
+        # בחלק מגרסאות SDK
+        # data מגיע כ-bytes.
+        #
+        # באחרות הוא יכול להגיע
+        # כ-base64 string.
+        if isinstance(
+                image_data,
+                str
+        ):
+
+            image_bytes = (
+                base64.b64decode(
+                    image_data
+                )
+            )
+
+        else:
+
+            image_bytes = bytes(
+                image_data
+            )
+
+        if not image_bytes:
+            continue
+
+        print(
+            "========== LESSON IMAGE GENERATED ==========",
+            {
+                "elapsed_ms":
+                    elapsed_ms,
+
+                "mime_type":
+                    mime_type,
+
+                "bytes":
+                    len(image_bytes)
+            }
+        )
+
+        return (
+            image_bytes,
+            mime_type
+        )
+
+    raise RuntimeError(
+        "Gemini returned no image data"
+    )
+
+
+# =====================================================
+# GENERATE + STORE HERO IMAGE
+# =====================================================
+
+def generate_and_store_lesson_hero_image(
+        unit_lesson_id: int
+) -> dict:
+    """
+    יוצר Hero Image אוניברסלית
+    עבור unit lesson אחד.
+
+    התמונה:
+    1. נוצרת דרך Gemini
+    2. עולה ל-Supabase Storage
+    3. מקבלת Signed URL
+    4. מוחזרת כ-metadata
+
+    אין כאן kid_id.
+    המדיה שייכת לשיעור עצמו.
+    """
+
+    print(
+        "LESSON HERO IMAGE START:",
+        unit_lesson_id
+    )
+
+    # =================================================
+    # LOAD UNIT LESSON
+    # =================================================
+
+    unit_lesson = get_unit_lesson(
+        unit_lesson_id
+    )
+
+    # =================================================
+    # LOAD PARENT LESSON
+    # =================================================
+
+    parent_lesson = (
+        get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+    )
+
+    # =================================================
+    # BUILD EDUCATIONAL PROMPT
+    # =================================================
+
+    image_prompt = (
+        build_lesson_hero_image_prompt(
+
+            unit_lesson=
+                unit_lesson,
+
+            parent_lesson=
+                parent_lesson
+        )
+    )
+
+    print(
+        "LESSON HERO IMAGE PROMPT:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "lesson_name":
+                unit_lesson.get(
+                    "lesson_name"
+                ),
+
+            "prompt":
+                image_prompt
+        }
+    )
+
+    # =================================================
+    # GEMINI
+    # =================================================
+
+    image_bytes, mime_type = (
+        generate_lesson_hero_image_bytes(
+            image_prompt
+        )
+    )
+
+    # =================================================
+    # STORAGE PATH
+    # =================================================
+
+    storage_path = (
+        get_lesson_media_storage_path(
+            unit_lesson_id=
+                unit_lesson_id,
+
+            media_type=
+                "hero"
+        )
+    )
+
+    # =================================================
+    # UPLOAD TO SUPABASE STORAGE
+    # =================================================
+
+    print(
+        "LESSON HERO IMAGE UPLOAD:",
+        {
+            "bucket":
+                LESSON_MEDIA_BUCKET,
+
+            "path":
+                storage_path,
+
+            "bytes":
+                len(image_bytes)
+        }
+    )
+
+    sb.storage.from_(
+        LESSON_MEDIA_BUCKET
+    ).upload(
+
+        path=
+            storage_path,
+
+        file=
+            image_bytes,
+
+        file_options={
+            "content-type":
+                mime_type,
+
+            # אם אנחנו מייצרים גרסה מחדש,
+            # הקובץ הקודם יוחלף.
+            "upsert":
+                "true"
+        }
+    )
+
+    # =================================================
+    # SIGNED URL
+    # =================================================
+
+    signed_url = (
+        create_lesson_media_signed_url(
+            storage_path
+        )
+    )
+
+    generated_at = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    result = {
+
+        "type":
+            "image",
+
+        "role":
+            "hero",
+
+        "version":
+            LESSON_MEDIA_HERO_VERSION,
+
+        "provider":
+            "gemini",
+
+        "model":
+            LESSON_IMAGE_MODEL,
+
+        "bucket":
+            LESSON_MEDIA_BUCKET,
+
+        "storage_path":
+            storage_path,
+
+        "mime_type":
+            mime_type,
+
+        "aspect_ratio":
+            "16:9",
+
+        "image_size":
+            "1K",
+
+        "generated_at":
+            generated_at,
+
+        # זה זמני בלבד.
+        # את ה-URL עצמו לא נשמור ב-DB.
+        "url":
+            signed_url,
+
+        "url_expires_in_seconds":
+            LESSON_MEDIA_URL_EXPIRY_SECONDS
+    }
+
+    print(
+        "LESSON HERO IMAGE READY:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "storage_path":
+                storage_path,
+
+            "generated_at":
+                generated_at
+        }
+    )
+
+    return result
+
+# =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
 LESSON_AUDIO_BUCKET = "lesson-audio"
@@ -6342,6 +6926,177 @@ def get_or_generate_unit_lesson(
             status_code=500,
             detail="Unit lesson generation failed"
         )
+
+# =====================================================
+# UNIT LESSON HERO IMAGE
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/hero-image"
+)
+def get_or_generate_unit_lesson_hero_image(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Lesson does not match child grade"
+            )
+
+        # =============================================
+        # STORAGE PATH
+        # =============================================
+
+        storage_path = (
+            get_lesson_media_storage_path(
+                unit_lesson_id=
+                    unit_lesson["id"],
+                media_type="hero"
+            )
+        )
+
+        # =============================================
+        # CACHE CHECK
+        #
+        # קודם מנסים לקבל URL לקובץ קיים.
+        # אם הוא קיים — אין קריאת Gemini.
+        # =============================================
+
+        try:
+
+            signed_url = (
+                create_lesson_media_signed_url(
+                    storage_path
+                )
+            )
+
+            print(
+                "LESSON HERO CACHE HIT:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+                    "storage_path":
+                        storage_path
+                }
+            )
+
+            return {
+                "success": True,
+                "source": "cache",
+                "unit_lesson_id":
+                    unit_lesson["id"],
+                "hero_image": {
+                    "type": "image",
+                    "role": "hero",
+                    "storage_path":
+                        storage_path,
+                    "url":
+                        signed_url
+                }
+            }
+
+        except Exception as cache_error:
+
+            print(
+                "LESSON HERO CACHE MISS:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+                    "error":
+                        repr(cache_error)
+                }
+            )
+
+        # =============================================
+        # GENERATE
+        # =============================================
+
+        hero_image = (
+            generate_and_store_lesson_hero_image(
+                unit_lesson["id"]
+            )
+        )
+
+        return {
+            "success": True,
+            "source": "generated",
+            "unit_lesson_id":
+                unit_lesson["id"],
+            "hero_image":
+                hero_image
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "UNIT LESSON HERO IMAGE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Lesson hero image generation failed"
+        )
+
 @app.post(
     "/api/tutor/unit-lesson/audio"
 )
