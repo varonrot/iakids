@@ -1936,7 +1936,7 @@ IAKIDS entdecken
 
 <div class="footer-inner">
 
-<span>© 2026 IAKIDS. Alle Rechte vorbehalten.</span>
+<span>© <span id="current-year"></span> IAKIDS. Alle Rechte vorbehalten.</span>
 
 <span>
 <a href="/de/blog/">Blog</a>
@@ -1947,6 +1947,8 @@ IAKIDS entdecken
 </div>
 
 </footer>
-
+<script>
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
