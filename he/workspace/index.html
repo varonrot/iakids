@@ -37892,6 +37892,83 @@ body.lesson-theme-science
 .lesson-flow-node i{
   font-size:13px;
 }
+    /* =====================================================
+   FINAL FIX — FLOW + AUDIO MUST NEVER SHRINK
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:8px !important;
+
+  overflow:hidden !important;
+}
+
+
+/* =====================================================
+   החלק העליון הוא היחיד שמותר לו לגדול/להצטמצם
+===================================================== */
+
+body.lesson-theme-science
+.lesson-content-split{
+  flex:1 1 0 !important;
+
+  height:auto !important;
+  min-height:0 !important;
+
+  overflow:hidden !important;
+}
+
+
+/* =====================================================
+   שלבי השיעור — לעולם לא נמחצים
+===================================================== */
+
+body.lesson-theme-science
+.lesson-flow-track{
+  flex:
+    0
+    0
+    72px !important;
+
+  width:100% !important;
+
+  height:72px !important;
+  min-height:72px !important;
+  max-height:72px !important;
+
+  flex-shrink:0 !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* =====================================================
+   פס הקול — לעולם לא נמחץ
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-controls{
+  flex:
+    0
+    0
+    58px !important;
+
+  width:100% !important;
+
+  height:58px !important;
+  min-height:58px !important;
+  max-height:58px !important;
+
+  flex-shrink:0 !important;
+
+  box-sizing:border-box !important;
+}
 </style>
 
 
@@ -40597,7 +40674,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V13";
+      "▶ Rotem V14";
 
 
     document.body.appendChild(
