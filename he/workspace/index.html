@@ -25682,36 +25682,7 @@ max-width:88%;
   }
 }
 
-/* כפתור דמו זמני */
-.lesson-renderer-demo-btn{
-  position:fixed;
-  left:25px;
-  bottom:95px;
-  z-index:9999;
-
-  border:0;
-  border-radius:16px;
-
-  padding:14px 22px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #7048ff,
-      #8b61ff
-    );
-
-  color:white;
-
-  font-size:17px;
-  font-weight:900;
-
-  cursor:pointer;
-
-  box-shadow:
-    0 10px 28px
-    rgba(112,72,255,.28);
-}
+ 
 
     /* =====================================================
    TABLET DASHBOARD - FINAL FIX
@@ -39160,7 +39131,7 @@ body.lesson-theme-science
       52px !important;
   }
 
-}  
+}
 </style>
 
 
@@ -41855,23 +41826,16 @@ function initLessonRenderer() {
   const renderer =
     window.lessonRenderer;
 
-  const demoButton =
-    document.createElement(
-      "button"
-    );
+const demoButton =
+  document.createElement(
+    "button"
+  );
 
+demoButton.className =
+  "lesson-renderer-demo-btn";
 
-    demoButton.className =
-      "lesson-renderer-demo-btn";
-
-
-    demoButton.textContent =
-      "▶ Rotem V14";
-
-
-    document.body.appendChild(
-      demoButton
-    );
+demoButton.style.display =
+  "none";
 
 
     demoButton.onclick =
