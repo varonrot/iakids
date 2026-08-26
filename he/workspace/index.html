@@ -14083,117 +14083,66 @@ data-custom-slot="0"
 
     <aside class="lesson-lessons-sidebar">
 
-      <div class="lesson-sidebar-subject">
-        <span class="lesson-sidebar-subject-icon">🌿</span>
+<div class="lesson-sidebar-subject">
 
-        <div>
-          <strong>מדעים</strong>
-          <small>מערכות אקולוגיות</small>
-        </div>
-      </div>
+  <span
+    class="lesson-sidebar-subject-icon"
+    id="lessonSidebarSubjectIcon"
+  >
+    🌿
+  </span>
 
+  <div>
 
-      <div class="lesson-sidebar-unit">
+    <strong id="lessonSidebarSubject">
+      מדעים
+    </strong>
 
-        <div class="lesson-sidebar-unit-image">
-          <img
-            src="/assets/science/categories/ecology.webp"
-            alt=""
-          >
-        </div>
+    <small id="lessonSidebarCategory">
+      טוען...
+    </small>
 
-        <span>מערכות אקולוגיות</span>
+  </div>
 
-      </div>
-
-
-      <div class="lesson-sidebar-list">
-
-        <div class="lesson-sidebar-row completed">
-
-          <div class="lesson-sidebar-status">
-            ✓
-          </div>
-
-          <div class="lesson-sidebar-name">
-            <b>1.</b>
-            מהי מערכת?
-          </div>
-
-        </div>
+</div>
 
 
-        <div class="lesson-sidebar-row completed">
+<div class="lesson-sidebar-unit">
 
-          <div class="lesson-sidebar-status">
-            ✓
-          </div>
+  <div class="lesson-sidebar-unit-image">
 
-          <div class="lesson-sidebar-name">
-            <b>2.</b>
-            מהי מערכת אקולוגית?
-          </div>
+    <img
+      id="lessonSidebarUnitImage"
+      src="/assets/science/categories/ecology.webp"
+      alt=""
+    >
 
-        </div>
+  </div>
 
+  <span id="lessonSidebarUnitName">
+    טוען יחידה...
+  </span>
 
-        <div class="lesson-sidebar-row current">
-
-          <div class="lesson-sidebar-status">
-            <span></span>
-          </div>
-
-          <div class="lesson-sidebar-name">
-            <b>3.</b>
-            מרכיבי המערכת
-          </div>
-
-        </div>
+</div>
 
 
-        <div class="lesson-sidebar-row locked">
+<div
+  class="lesson-sidebar-list"
+  id="lessonSidebarList"
+>
 
-          <div class="lesson-sidebar-status">
-            🔒
-          </div>
+  <div
+    style="
+      padding:20px 10px;
+      text-align:center;
+      color:#8294b8;
+      font-size:12px;
+    "
+  >
+    טוען שיעורים...
+  </div>
 
-          <div class="lesson-sidebar-name">
-            <b>4.</b>
-            סוגי מערכות אקולוגיות
-          </div>
-
-        </div>
-
-
-        <div class="lesson-sidebar-row locked">
-
-          <div class="lesson-sidebar-status">
-            🔒
-          </div>
-
-          <div class="lesson-sidebar-name">
-            <b>5.</b>
-            שרשרת מזון
-          </div>
-
-        </div>
-
-
-        <div class="lesson-sidebar-checkpoint locked">
-
-          <span>🏆</span>
-
-          <strong>
-            בדיקת הבנה
-          </strong>
-
-          <span class="checkpoint-lock">
-            🔒
-          </span>
-
-        </div>
-
-      </div>
+</div>
 
 
       <!-- הדמות תוחלף בהמשך בדמות האיש הבוגר -->
@@ -18140,6 +18089,668 @@ console.log(
 
 }
 
+/* =====================================================
+   REAL LESSON SIDEBAR
+   נטען ישירות מ-lesson_units_content
+===================================================== */
+
+window.LESSON_SIDEBAR_ROWS =
+  [];
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeLessonSidebarHtml(
+  value
+){
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+/* =====================================================
+   IMAGE BY CATEGORY
+===================================================== */
+
+function getLessonSidebarImage(){
+
+  const category =
+    String(
+      CURRENT_PARENT_LESSON
+        ?.category
+        || ""
+    );
+
+
+  /*
+    כרגע יש לנו תמונת Ecology.
+    בהמשך אפשר להרחיב את המפה
+    לכל קטגוריות המדעים.
+  */
+
+  if(
+    category.includes(
+      "אקולוג"
+    )
+    ||
+    category.includes(
+      "סביבה"
+    )
+  ){
+
+    return (
+      "/assets/science/categories/ecology.webp"
+    );
+
+  }
+
+
+  return (
+    "/assets/science/topics/default.webp"
+  );
+
+}
+
+
+/* =====================================================
+   LOAD REAL LESSONS
+===================================================== */
+
+async function loadRealLessonSidebar(
+  selectedLesson = null
+){
+
+  const list =
+    document.getElementById(
+      "lessonSidebarList"
+    );
+
+
+  if(!list){
+    return;
+  }
+
+
+  const parentLessonId =
+    Number(
+      CURRENT_PARENT_LESSON?.id
+      || 0
+    );
+
+
+  const unitOrder =
+    Number(
+      CURRENT_UNIT?.unit_order
+      || 0
+    );
+
+
+  if(
+    !parentLessonId
+    ||
+    !unitOrder
+  ){
+
+    console.warn(
+      "LESSON SIDEBAR — MISSING CONTEXT",
+      {
+        CURRENT_PARENT_LESSON,
+        CURRENT_UNIT
+      }
+    );
+
+
+    list.innerHTML = `
+
+      <div
+        style="
+          padding:18px 10px;
+          text-align:center;
+          color:#8294b8;
+          font-size:11px;
+        "
+      >
+        לא נמצאה יחידת לימוד
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  /* =============================================
+     כותרות הסרגל
+  ============================================= */
+
+  const subjectEl =
+    document.getElementById(
+      "lessonSidebarSubject"
+    );
+
+
+  const categoryEl =
+    document.getElementById(
+      "lessonSidebarCategory"
+    );
+
+
+  const unitEl =
+    document.getElementById(
+      "lessonSidebarUnitName"
+    );
+
+
+  const imageEl =
+    document.getElementById(
+      "lessonSidebarUnitImage"
+    );
+
+
+  if(subjectEl){
+
+    subjectEl.textContent =
+      CURRENT_PARENT_LESSON
+        ?.subject
+      ||
+      "מדעים";
+
+  }
+
+
+  if(categoryEl){
+
+    categoryEl.textContent =
+      CURRENT_PARENT_LESSON
+        ?.category
+      ||
+      CURRENT_PARENT_LESSON
+        ?.lesson_name
+      ||
+      "";
+
+  }
+
+
+  if(unitEl){
+
+    unitEl.textContent =
+      CURRENT_UNIT
+        ?.unit_name
+      ||
+      "";
+
+  }
+
+
+  if(imageEl){
+
+    imageEl.src =
+      getLessonSidebarImage();
+
+  }
+
+
+  /* =============================================
+     Loading
+  ============================================= */
+
+  list.innerHTML = `
+
+    <div
+      style="
+        padding:18px 10px;
+        text-align:center;
+        color:#8294b8;
+        font-size:11px;
+      "
+    >
+      טוען את שיעורי היחידה...
+    </div>
+
+  `;
+
+
+  /* =============================================
+     שליפה אמיתית מ-Supabase
+  ============================================= */
+
+  const {
+    data,
+    error
+  } =
+    await sb
+
+      .from(
+        "lesson_units_content"
+      )
+
+      .select(`
+        id,
+        learning_lesson_id,
+        unit_order,
+        unit_name,
+        lesson_order,
+        lesson_name,
+        status
+      `)
+
+      .eq(
+        "learning_lesson_id",
+        parentLessonId
+      )
+
+      .eq(
+        "unit_order",
+        unitOrder
+      )
+
+      .order(
+        "lesson_order",
+        {
+          ascending:true
+        }
+      );
+
+
+  if(error){
+
+    console.error(
+      "LESSON SIDEBAR LOAD ERROR:",
+      error
+    );
+
+
+    list.innerHTML = `
+
+      <div
+        style="
+          padding:18px 10px;
+          text-align:center;
+          color:#ff8996;
+          font-size:11px;
+        "
+      >
+        שגיאה בטעינת השיעורים
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  const lessons =
+    Array.isArray(data)
+      ? data
+      : [];
+
+
+  window.LESSON_SIDEBAR_ROWS =
+    lessons;
+
+
+  console.log(
+    "REAL LESSON SIDEBAR:",
+    {
+      parentLessonId,
+      unitOrder,
+      selectedLesson,
+      lessons
+    }
+  );
+
+
+  if(
+    lessons.length === 0
+  ){
+
+    list.innerHTML = `
+
+      <div
+        style="
+          padding:18px 10px;
+          text-align:center;
+          color:#8294b8;
+          font-size:11px;
+        "
+      >
+        אין שיעורים ביחידה הזאת
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  /* =============================================
+     זיהוי השיעור הנוכחי
+  ============================================= */
+
+  const selectedId =
+    Number(
+      selectedLesson?.unit_lesson_id
+      ||
+      selectedLesson?.id
+      ||
+      window.SELECTED_UNIT_LESSON
+        ?.unit_lesson_id
+      ||
+      0
+    );
+
+
+  let currentIndex =
+    lessons.findIndex(
+      lesson =>
+        Number(
+          lesson.id
+        )
+        ===
+        selectedId
+    );
+
+
+  /*
+    אם משום מה אין selectedId,
+    השיעור הראשון הוא הנוכחי.
+  */
+
+  if(
+    currentIndex < 0
+  ){
+
+    currentIndex =
+      0;
+
+  }
+
+
+  /* =============================================
+     בניית הרשימה
+  ============================================= */
+
+  list.innerHTML =
+    lessons
+
+      .map(
+        (
+          lesson,
+          index
+        ) => {
+
+
+          const isCurrent =
+            index ===
+            currentIndex;
+
+
+          /*
+            כרגע:
+            שיעורים לפני השיעור הנוכחי
+            מוצגים כהושלמו.
+
+            השיעור הנוכחי = current.
+
+            שיעורים אחריו = locked.
+
+            בשלב הבא נחבר completed
+            ל-kid_lesson_progress עצמו.
+          */
+
+          const isCompleted =
+            index <
+            currentIndex;
+
+
+          const isLocked =
+            index >
+            currentIndex;
+
+
+          let rowClass =
+            "";
+
+
+          let statusHtml =
+            "";
+
+
+          if(isCurrent){
+
+            rowClass =
+              "current";
+
+
+            statusHtml = `
+              <span></span>
+            `;
+
+          }
+          else if(
+            isCompleted
+          ){
+
+            rowClass =
+              "completed";
+
+
+            statusHtml =
+              "✓";
+
+          }
+          else{
+
+            rowClass =
+              "locked";
+
+
+            statusHtml =
+              "🔒";
+
+          }
+
+
+          const lessonOrder =
+            Number(
+              lesson.lesson_order
+            )
+            ||
+            index + 1;
+
+
+          return `
+
+            <div
+              class="
+                lesson-sidebar-row
+                ${rowClass}
+              "
+
+              data-sidebar-lesson-id="${
+                Number(
+                  lesson.id
+                )
+              }"
+
+              ${
+                isLocked
+                  ? 'data-locked="true"'
+                  : ""
+              }
+            >
+
+              <div
+                class="
+                  lesson-sidebar-status
+                "
+              >
+                ${statusHtml}
+              </div>
+
+
+              <div
+                class="
+                  lesson-sidebar-name
+                "
+              >
+
+                <b>
+                  ${lessonOrder}.
+                </b>
+
+                ${
+                  escapeLessonSidebarHtml(
+                    lesson.lesson_name
+                  )
+                }
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+
+      .join("");
+
+
+  /* =============================================
+     CLICK — שיעור אמיתי
+  ============================================= */
+
+  list
+    .querySelectorAll(
+      "[data-sidebar-lesson-id]"
+    )
+    .forEach(
+      row => {
+
+        row.addEventListener(
+          "click",
+          async () => {
+
+
+            if(
+              row.dataset.locked ===
+              "true"
+            ){
+
+              return;
+
+            }
+
+
+            const lessonId =
+              Number(
+                row.dataset
+                  .sidebarLessonId
+              );
+
+
+            const lesson =
+              lessons.find(
+                item =>
+                  Number(
+                    item.id
+                  )
+                  ===
+                  lessonId
+              );
+
+
+            if(!lesson){
+
+              console.error(
+                "SIDEBAR LESSON NOT FOUND:",
+                lessonId
+              );
+
+              return;
+
+            }
+
+
+            /*
+              אם לחצו על השיעור
+              שכבר פתוח — לא מפעילים מחדש.
+            */
+
+            const currentLessonId =
+              Number(
+                window
+                  .SELECTED_UNIT_LESSON
+                  ?.unit_lesson_id
+                ||
+                0
+              );
+
+
+            if(
+              currentLessonId ===
+              lessonId
+            ){
+
+              return;
+
+            }
+
+
+            console.log(
+              "SIDEBAR START LESSON:",
+              lesson
+            );
+
+
+            /*
+              זה אותו מנגנון שכבר משמש
+              את כרטיסי השיעורים ברמה 5.
+            */
+
+            await startSelectedUnitLesson(
+              lesson
+            );
+
+          }
+
+        );
+
+      }
+    );
+
+}
+
 async function startSelectedUnitLesson(
   lesson
 ){
@@ -18255,6 +18866,10 @@ if(
       lesson.lesson_name
 
   };
+
+await loadRealLessonSidebar(
+  window.SELECTED_UNIT_LESSON
+);
 
   setLessonBackgroundForSubject(
     CURRENT_PARENT_LESSON.subject
@@ -25682,7 +26297,7 @@ max-width:88%;
   }
 }
 
- 
+
 
     /* =====================================================
    TABLET DASHBOARD - FINAL FIX
