@@ -12976,7 +12976,7 @@ data-custom-slot="0"
       alt=""
     >
 
-    <h3>למד אותי משהו</h3>
+    <h3>למדו אותי משהו</h3>
 
     <p>
       יש משהו שמסקרן אותך?
@@ -14249,7 +14249,7 @@ data-custom-slot="0"
 
     <img
       class="lesson-loading-robot"
-      src="/assets/robots/askie-robot.png"
+      src="/assets/lesson/lesson-teacher.webp"
       alt=""
     >
 
@@ -14273,24 +14273,34 @@ data-custom-slot="0"
 
   </div>
 </div>
-      <div class="welcome">
+<div class="welcome lesson-chat-header">
 
-        <img
-          id="heroAvatar"
-          alt=""
-          style="display:none"
-        >
+  <div class="lesson-chat-header-icon">
+    ✨
+  </div>
 
-        <h1 id="heroGreeting">
-          בואו נפתור יחד!
-        </h1>
+  <div class="lesson-chat-header-text">
 
-        <p id="learningSubtitle">
-          אפשר לשאול שאלה, להעלות תרגיל או לצלם את המחברת —
-          המורה AI יעזור שלב אחרי שלב.
-        </p>
+    <h1 id="heroGreeting">
+      שיחה עם המורה
+    </h1>
 
-      </div>
+    <p id="learningSubtitle">
+      המורה האישית שלך כאן כדי להסביר ולעזור
+    </p>
+
+  </div>
+
+<button
+  type="button"
+  class="lesson-chat-help"
+  onclick="openLessonTeacherHelp()"
+>
+  <span class="lesson-help-icon">?</span>
+  איך לומדים כאן?
+</button>
+
+</div>
 
 
       <div class="messages">
@@ -14428,225 +14438,261 @@ data-custom-slot="0"
 
 <section
   id="lessonMasteryDock"
-  class="lesson-mastery-dock"
+  class="lesson-mastery-dock mastery-hud"
   aria-label="מצב ההבנה בשיעור"
 >
 
-  <!-- ===============================================
-       1. הבנה כוללת
-  ================================================ -->
+  <!-- 1 — מצב הבנה -->
+  <article class="mastery-hud-card mastery-status-hud">
 
-  <article class="lesson-mastery-card lesson-overall-card">
-
-    <div class="lesson-card-title">
-      הבנה כוללת בנושא
+    <div class="mastery-hud-title">
+      מצב הבנה
     </div>
 
-    <div class="lesson-overall-layout">
-
-      <div
-        id="lessonOverallGauge"
-        class="lesson-overall-gauge"
-        style="--mastery:0"
-      >
-
-        <div class="lesson-gauge-inner">
-
-          <strong id="lessonOverallScore">
-            0%
-          </strong>
-
-          <span>
-            הבנה כוללת
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div class="lesson-part-summary">
-
-        <div class="lesson-part-summary-item">
-
-          <span>
-            חלק 1
-            <small>הבנה יסודית</small>
-          </span>
-
-          <strong id="lessonPartOneSummary">
-            0%
-          </strong>
-
-        </div>
-
-
-        <div class="lesson-part-summary-item muted">
-
-          <span>
-            חלק 2
-            <small>יישום והעמקה</small>
-          </span>
-
-          <strong id="lessonPartTwoSummary">
-            0%
-          </strong>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </article>
-
-
-  <!-- ===============================================
-       2. מד התקדמות
-  ================================================ -->
-
-  <article class="lesson-mastery-card lesson-meter-card">
-
-    <div class="lesson-card-title">
-      מד ההתקדמות שלי
-    </div>
-
-    <div class="lesson-meter-value">
-
-      <strong id="lessonMeterScore">
-        0%
-      </strong>
-
-      <span
-        id="lessonMeterMarker"
-        class="lesson-meter-marker"
-        style="left:0%"
-      ></span>
-
-    </div>
-
-    <div class="lesson-meter-labels">
-      <span>0%</span>
-      <span>25%</span>
-      <span>50%</span>
-      <span>75%</span>
-      <span>100%</span>
-    </div>
-
-    <div class="lesson-meter-track">
-
-      <span
-        id="lessonMeterNeedle"
-        class="lesson-meter-needle"
-        style="left:0%"
-      ></span>
-
-    </div>
-
-    <div class="lesson-meter-note">
-      כל חלק יכול להוסיף עד 50% להבנה הכוללת
-    </div>
-
-  </article>
-
-
-  <!-- ===============================================
-       3. חלוקה ללמידה
-  ================================================ -->
-
-  <article class="lesson-mastery-card lesson-stages-card">
-
-    <div class="lesson-card-title">
-      חלוקה ללמידה
-    </div>
-
-    <div class="lesson-stage-grid">
-
-      <div
-        id="lessonStageOneCard"
-        class="lesson-stage active"
-      >
-
-        <strong>
-          חלק 1
-        </strong>
-
-        <span>
-          הבנה יסודית
-        </span>
-
-        <div class="lesson-stage-icon">
-          📖
-        </div>
-
-        <b id="lessonStageOneScore">
-          0%
-        </b>
-
-      </div>
-
-
-      <div
-        id="lessonStageTwoCard"
-        class="lesson-stage locked"
-      >
-
-        <strong>
-          חלק 2
-        </strong>
-
-        <span>
-          יישום והעמקה
-        </span>
-
-        <div class="lesson-stage-icon">
-          🔒
-        </div>
-
-        <b id="lessonStageTwoScore">
-          0%
-        </b>
-
-      </div>
-
-    </div>
-
-  </article>
-
-
-  <!-- ===============================================
-       4. מצב ההבנה
-  ================================================ -->
-
-  <article class="lesson-mastery-card lesson-status-card">
-
-    <div class="lesson-card-title">
-      מצב ההבנה
-    </div>
-
-    <div
-      id="lessonStatusText"
-      class="lesson-status-heading"
-    >
+    <div class="mastery-status-text">
       אתם בדרך הנכונה!
     </div>
 
     <img
-      class="lesson-status-robot"
-      src="/assets/robots/askie-robot.png"
+      class="mastery-teacher"
+      src="/assets/lesson/lesson-teacher.webp"
       alt=""
     >
 
-    <p id="lessonStatusDescription">
+    <div class="mastery-status-note">
       המשיכו כך כדי להגיע לשליטה מלאה בנושא.
-    </p>
+    </div>
+
+  </article>
+
+
+  <!-- 2 — חלוקה ללמידה -->
+  <article class="mastery-hud-card mastery-parts-hud">
+
+    <div class="mastery-hud-title">
+      חלוקה ללמידה
+    </div>
+
+    <div class="mastery-parts-grid">
+
+      <div class="mastery-part-box active">
+
+        <strong>חלק 1</strong>
+        <span>הבנת הנושא</span>
+
+        <div
+          class="mastery-mini-ring"
+          id="lessonPartOneGauge"
+          style="--value:0"
+        >
+          <div>
+            <b id="lessonPartOneSummary">0%</b>
+            <small>הושלם</small>
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="mastery-part-box">
+
+        <strong>חלק 2</strong>
+        <span>יישום והעמקה</span>
+
+        <div
+          class="mastery-mini-ring"
+          id="lessonPartTwoGauge"
+          style="--value:0"
+        >
+          <div>
+            <b id="lessonPartTwoSummary">0%</b>
+            <small>הושלם</small>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </article>
+
+<!-- 3 — התקדמות שלי -->
+<article class="mastery-hud-card mastery-main-gauge-card">
+
+  <div class="mastery-hud-title">
+    מד ההתקדמות שלי
+  </div>
+
+  <div
+    class="mastery-tech-ring mastery-tech-ring-purple"
+    id="lessonProgressGauge"
+    style="--value:0"
+  >
+
+    <div class="mastery-ring-scale">
+      <span style="--i:0">0</span>
+      <span style="--i:1">25</span>
+      <span style="--i:2">50</span>
+      <span style="--i:3">75</span>
+      <span style="--i:4">100</span>
+      <span style="--i:5">125</span>
+      <span style="--i:6">150</span>
+      <span style="--i:7">175</span>
+    </div>
+
+    <div class="mastery-ring-core">
+
+      <strong id="lessonProgressScore">
+        0%
+      </strong>
+
+      <span>
+        השלמה כללית
+      </span>
+
+    </div>
+
+  </div>
+
+</article>
+
+
+<!-- 4 — הבנה כללית -->
+<article class="mastery-hud-card mastery-main-gauge-card">
+
+  <div class="mastery-hud-title">
+    הבנה כללית בנושא
+  </div>
+
+  <div
+    id="lessonOverallGauge"
+    class="mastery-tech-ring"
+    style="--mastery:0; --value:0"
+  >
+
+    <div class="mastery-ring-scale">
+      <span style="--i:0">0</span>
+      <span style="--i:1">25</span>
+      <span style="--i:2">50</span>
+      <span style="--i:3">75</span>
+      <span style="--i:4">100</span>
+      <span style="--i:5">125</span>
+      <span style="--i:6">150</span>
+      <span style="--i:7">175</span>
+    </div>
+
+    <div class="mastery-ring-core">
+
+      <strong id="lessonOverallScore">
+        0%
+      </strong>
+
+      <span>
+        הבנה כללית
+      </span>
+
+    </div>
+
+  </div>
+
+</article>
+
+  <!-- 5 — גרף -->
+  <article class="mastery-hud-card mastery-chart-card">
+
+    <div class="mastery-hud-title">
+      התקדמות לאורך השיעור
+    </div>
+
+    <div class="mastery-chart">
+
+      <svg
+        viewBox="0 0 300 120"
+        preserveAspectRatio="none"
+      >
+
+        <defs>
+
+          <linearGradient
+            id="masteryChartFill"
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
+
+            <stop
+              offset="0%"
+              stop-color="#ffe349"
+              stop-opacity=".28"
+            />
+
+            <stop
+              offset="100%"
+              stop-color="#ffe349"
+              stop-opacity="0"
+            />
+
+          </linearGradient>
+
+          <filter id="masteryGlow">
+
+            <feGaussianBlur
+              stdDeviation="3"
+              result="blur"
+            />
+
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+
+          </filter>
+
+        </defs>
+
+
+        <path
+          class="mastery-chart-fill"
+          d="
+            M15 92
+            C55 82, 55 67, 90 61
+            C125 55, 145 57, 174 49
+            C214 39, 220 19, 272 15
+            L272 110
+            L15 110 Z
+          "
+        />
+
+
+        <path
+          class="mastery-chart-line"
+          d="
+            M15 92
+            C55 82, 55 67, 90 61
+            C125 55, 145 57, 174 49
+            C214 39, 220 19, 272 15
+          "
+        />
+
+
+        <circle cx="15"  cy="92" r="6"/>
+        <circle cx="90"  cy="61" r="6"/>
+        <circle cx="174" cy="49" r="6"/>
+        <circle cx="272" cy="15" r="7"/>
+
+      </svg>
+
+      <div class="mastery-chart-labels">
+        <span>התחלה</span>
+        <span>עכשיו</span>
+      </div>
+
+    </div>
 
   </article>
 
 </section>
-      </div>
-      </div>
-  </section>
 
 </main>
 
@@ -18092,25 +18138,19 @@ if(
     );
 
 
-  if(title){
+if(title){
 
-    title.textContent =
-      lesson.lesson_name;
+  title.textContent =
+    "שיחה עם המורה";
 
-  }
+}
 
+if(subtitle){
 
-  if(subtitle){
+  subtitle.textContent =
+    `${CURRENT_PARENT_LESSON.subject || ""} • ${lesson.lesson_name || ""}`;
 
-    subtitle.textContent =
-
-      `${CURRENT_PARENT_LESSON.subject || ""}`
-
-      +
-
-      ` • ${CURRENT_UNIT?.unit_name || ""}`;
-
-  }
+}
 
 
   const emptyState =
@@ -18942,15 +18982,12 @@ if(
       );
 
 
-    if(title){
+if(title){
 
-      title.textContent =
-        state.unit_lesson
-          ?.lesson_name
-        ||
-        "ממשיכים את השיעור";
+  title.textContent =
+    "שיחה עם המורה";
 
-    }
+}
 
 
     const subtitle =
@@ -18959,17 +18996,12 @@ if(
       );
 
 
-    if(subtitle){
+if(subtitle){
 
-      subtitle.textContent =
+  subtitle.textContent =
+    `${state.parent_lesson?.subject || ""} • ${state.unit_lesson?.lesson_name || ""}`;
 
-        `${state.parent_lesson?.subject || ""}`
-
-        +
-
-        ` • ${state.unit_lesson?.unit_name || ""}`;
-
-    }
+}
 
 /* =============================================
    RESTORE LAST TEACHER MESSAGE
@@ -19982,7 +20014,7 @@ function addMessage(role, text) {
   // 🤖 assistant avatar (שמאל)
   if (role === "assistant") {
     const avatar = document.createElement("img");
-    avatar.src = "/assets/robots/askie-robot.png";
+    avatar.src = "/assets/lesson/lesson-teacher.webp";
     avatar.className = "msg-avatar";
     row.appendChild(avatar);
   }
@@ -20007,7 +20039,7 @@ function addAssistantTyping(text) {
   row.className = "msg-row assistant";
 
   const avatar = document.createElement("img");
-  avatar.src = "/assets/robots/askie-robot.png";
+  avatar.src = "/assets/lesson/lesson-teacher.webp";
   avatar.className = "msg-avatar";
   row.appendChild(avatar);
 
@@ -20047,7 +20079,7 @@ function animateTutorReply(text) {
   row.className = "tutor-response";
 
   const avatar = document.createElement("img");
-  avatar.src = "/assets/robots/askie-robot.png";
+  avatar.src = "/assets/lesson/lesson-teacher.webp";
   avatar.className = "tutor-avatar";
 
   const writingArea = document.createElement("div");
@@ -25245,90 +25277,197 @@ document.addEventListener(
 </script>
 <style>
 /* =====================================================
-   LESSON RENDERER V1
+   LESSON RENDERER V1 — CHAT DESIGN
 ===================================================== */
 
 .lesson-renderer-root{
   width:100%;
   direction:rtl;
+
   display:flex;
   flex-direction:column;
-  gap:18px;
-  padding:10px 0 40px;
+
+  gap:14px;
+
+  padding:4px 0 20px;
 }
 
+
+/* שורת המורה */
+
 .lesson-renderer-row{
+  width:100%;
+
   display:flex;
+  flex-direction:row;
+
   align-items:flex-start;
-  gap:16px;
+  justify-content:flex-start;
+
+  gap:14px;
+
   direction:rtl;
 }
 
+
+/* תמונת המורה */
+
 .lesson-renderer-avatar{
-  width:58px;
-  height:58px;
-  object-fit:contain;
-  flex:none;
+  position:relative;
+  z-index:3;
+
+  width:72px;
+  height:72px;
+
+  flex:0 0 72px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  border:2px solid rgba(68,145,255,.30);
+
+  background:#10203a;
+
+  box-shadow:0 8px 20px rgba(0,0,0,.28);
 }
 
+/* אזור הבועות */
+
 .lesson-renderer-content{
-  flex:1;
+  flex:1 1 auto;
+  width:auto;
   min-width:0;
+
   display:flex;
   flex-direction:column;
-  gap:12px;
+  align-items:flex-start;
+
+  gap:8px;
+  direction:rtl;
 }
+
+
+/* כל שורת טקסט של הפתיח */
 
 .lesson-renderer-line{
   position:relative;
-  width:max-content;
-  max-width:90%;
+
+width: fit-content;
+min-width:0;
+max-width:88%;
 
   direction:rtl;
   text-align:right;
 
-  font-family:"Gveret Levin", cursive !important;
-  font-size:34px;
-  line-height:1.6;
-  color:#ffffff;
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
 
-  padding:3px 8px;
+  font-size:15px !important;
+
+  font-weight:500;
+
+  line-height:1.65;
+
+  color:#eef3ff !important;
+
+  padding:
+    12px
+    17px;
+
+  border:
+    1px solid
+    rgba(83,126,189,.20);
+
+  border-radius:
+    16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,38,66,.97),
+      rgba(12,27,49,.98)
+    );
+
+  box-shadow:
+    0 7px 18px
+    rgba(0,5,20,.20);
 
   opacity:1;
 }
 
+
+/* מתמטיקה */
+
 .lesson-renderer-line.math{
   direction:ltr;
-  text-align:right;
 
-  font-family:"Gveret Levin", cursive !important;
-  font-size:42px;
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:17px !important;
+
   font-weight:700;
-  color:#3478e5;
+
+  color:#9ecbff !important;
 }
 
+
+/* שאלה */
+
 .lesson-renderer-line.question{
-  font-size:36px;
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:16px !important;
+
   font-weight:700;
+
+  color:#ffffff !important;
 
   background:
     linear-gradient(
-      transparent 65%,
-      rgba(255,222,80,.55) 65%
+      145deg,
+      rgba(35,44,89,.98),
+      rgba(29,29,78,.98)
     );
 }
 
+
+/* הדגשה */
+
 .lesson-renderer-line.highlighted{
-  background:#fff1a8;
-  border-radius:12px;
-  padding:5px 12px;
-  transition:.35s ease;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(44,55,96,.98),
+      rgba(30,39,76,.98)
+    );
+
+  border-color:
+    rgba(255,196,66,.55);
+
+  border-radius:16px;
+
+  padding:
+    12px
+    17px;
 }
+
+
+/* הצלחה */
 
 .lesson-renderer-line.success{
-  color:#248c59;
-}
+  color:#8de4b7 !important;
 
+  font-weight:700;
+}
 .lesson-renderer-circle{
   display:inline-block;
   position:relative;
@@ -34278,6 +34417,2481 @@ body.lesson-theme-science
 
   border-radius:17px !important;
 }
+    /* =====================================================
+   LESSON CHAT HEADER — FINAL
+===================================================== */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header{
+  flex:0 0 62px !important;
+
+  width:100% !important;
+
+  min-height:62px !important;
+
+  padding:10px 16px !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+
+  align-items:center !important;
+
+  gap:10px !important;
+
+  position:relative !important;
+
+  direction:rtl !important;
+
+  text-align:right !important;
+
+  border-bottom:
+    1px solid rgba(92,133,196,.18) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9,22,42,.88),
+      rgba(7,18,36,.70)
+    ) !important;
+
+  box-shadow:none !important;
+}
+
+
+/* הכוכב הקטן */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header-icon{
+  width:34px;
+  height:34px;
+
+  flex:0 0 34px;
+
+  display:grid;
+  place-items:center;
+
+  font-size:20px;
+
+  color:#c6a5ff;
+
+  text-shadow:
+    0 0 12px rgba(139,91,255,.55);
+}
+
+
+/* אזור הטקסט */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header-text{
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  justify-content:center;
+
+  flex:1;
+}
+
+
+/* שיחה עם המורה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header
+#heroGreeting{
+  margin:0 !important;
+
+  padding:0 !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:18px !important;
+
+  line-height:1.2 !important;
+
+  font-weight:800 !important;
+
+  color:#f4f6ff !important;
+
+  text-align:right !important;
+
+  transform:none !important;
+
+  max-width:none !important;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header
+#heroGreeting::after{
+  display:none !important;
+}
+
+
+/* שורת המשנה */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-header
+#learningSubtitle{
+  margin:3px 0 0 !important;
+
+  padding:0 !important;
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif !important;
+
+  font-size:10px !important;
+
+  line-height:1.25 !important;
+
+  font-weight:500 !important;
+
+  color:
+    rgba(166,188,219,.65) !important;
+
+  text-align:right !important;
+
+  max-width:none !important;
+}
+
+
+/* כפתור איך המורה עובדת */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-help{
+  height:34px;
+
+  flex:0 0 auto;
+
+  padding:0 11px;
+
+  display:flex;
+  align-items:center;
+
+  gap:6px;
+
+  border:
+    1px solid rgba(83,128,197,.28);
+
+  border-radius:11px;
+
+  background:
+    rgba(7,20,40,.70);
+
+  color:
+    rgba(220,229,245,.82);
+
+  font-family:
+    "Heebo",
+    Arial,
+    sans-serif;
+
+  font-size:10px;
+
+  font-weight:700;
+
+  cursor:pointer;
+}
+
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.lesson-chat-help i{
+  font-size:13px;
+
+  color:#c9d8f4;
+}
+    /* =========================================
+   Teacher avatar — right side of message
+========================================= */
+
+body.lesson-theme-science .lesson-chat-workspace .tutor-response {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  direction: rtl !important;
+}
+
+/* Teacher image */
+body.lesson-theme-science .lesson-chat-workspace .tutor-avatar {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+
+  width: 52px !important;
+  height: 52px !important;
+  max-width: 52px !important;
+
+  flex: 0 0 52px !important;
+
+  /* הופך את התמונה אופקית */
+  transform: scaleX(-1) !important;
+}
+
+/* Text stays next to teacher */
+body.lesson-theme-science .lesson-chat-workspace .tutor-writing-area {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  direction: rtl !important;
+  text-align: right !important;
+}
+    /* =========================================
+   FINAL — wide teacher messages
+========================================= */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+
+  direction:rtl !important;
+
+  align-items:flex-start !important;
+
+  gap:10px !important;
+}
+
+
+/* המורה מימין */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-avatar{
+  width:48px !important;
+  height:58px !important;
+
+  min-width:48px !important;
+  max-width:48px !important;
+
+  flex:0 0 48px !important;
+
+  object-fit:contain !important;
+
+  border-radius:0 !important;
+
+  background:transparent !important;
+
+  transform:scaleX(-1) !important;
+}
+
+
+/* כל השטח שנשאר מוקדש לטקסט */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 0 !important;
+
+  width:0 !important;
+  max-width:none !important;
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  align-items:stretch !important;
+
+  gap:7px !important;
+
+  direction:rtl !important;
+}
+
+
+/* הבועות עצמן רחבות */
+
+body.lesson-theme-science
+.lesson-chat-workspace
+.tutor-writing{
+  width:100% !important;
+  max-width:100% !important;
+
+  box-sizing:border-box !important;
+
+  margin:0 !important;
+
+  padding:14px 18px !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+}
+    /* =====================================================
+   FINAL FIX — CHAT CONTENT FULL WIDTH
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.messages{
+  width:100% !important;
+
+  padding:
+    12px
+    18px
+    110px
+    18px !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* שורת המורה */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-response{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:row !important;
+
+  align-items:flex-start !important;
+
+  gap:10px !important;
+
+  direction:rtl !important;
+}
+
+
+/* המורה בצד ימין */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-avatar{
+  width:48px !important;
+  height:58px !important;
+
+  flex:0 0 48px !important;
+
+  object-fit:contain !important;
+
+  border-radius:0 !important;
+
+  transform:scaleX(-1) !important;
+}
+
+
+/* כל שאר הרוחב לטקסט */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-writing-area{
+  flex:1 1 0 !important;
+
+  width:auto !important;
+  max-width:none !important;
+  min-width:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  align-items:stretch !important;
+
+  gap:7px !important;
+}
+
+
+/* בועה רחבה */
+
+body.lesson-theme-science
+.learning-view
+.workspace.lesson-chat-workspace
+.tutor-writing{
+  width:100% !important;
+  max-width:100% !important;
+
+  box-sizing:border-box !important;
+
+  margin:0 !important;
+
+  padding:14px 18px !important;
+}
+    /* =====================================================
+   LESSON COMPOSER — FINAL PREMIUM DARK
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-wrap{
+  position:absolute !important;
+
+  right:28px !important;
+  left:28px !important;
+  bottom:22px !important;
+
+  width:auto !important;
+
+  padding:0 !important;
+  margin:0 !important;
+
+  background:transparent !important;
+
+  z-index:40 !important;
+}
+
+
+/* הקופסה עצמה */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.input{
+  width:100% !important;
+  max-width:none !important;
+
+  min-height:58px !important;
+  height:58px !important;
+
+  display:flex !important;
+  align-items:center !important;
+
+  gap:7px !important;
+
+  padding:6px 7px !important;
+
+  direction:rtl !important;
+
+  border:
+    1px solid rgba(91,128,192,.26) !important;
+
+  border-radius:18px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18,30,53,.97),
+      rgba(9,19,37,.98)
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 10px 24px rgba(0,5,20,.34) !important;
+
+  backdrop-filter:blur(14px) !important;
+}
+
+
+/* שדה הטקסט */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.input input{
+  flex:1 !important;
+  min-width:0 !important;
+
+  height:100% !important;
+
+  padding:0 12px !important;
+
+  border:0 !important;
+  outline:0 !important;
+
+  background:transparent !important;
+
+  color:#f3f6ff !important;
+
+  font-family:"Heebo", Arial, sans-serif !important;
+
+  font-size:14px !important;
+  font-weight:500 !important;
+
+  text-align:right !important;
+  direction:rtl !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.input input::placeholder{
+  color:rgba(184,199,226,.55) !important;
+}
+
+
+/* כפתורים רגילים */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-icon,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.talk-btn,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.reset-lesson-btn{
+  width:42px !important;
+  height:42px !important;
+
+  flex:0 0 42px !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  padding:0 !important;
+
+  border:
+    1px solid rgba(99,130,190,.20) !important;
+
+  border-radius:13px !important;
+
+  background:
+    rgba(28,42,68,.88) !important;
+
+  color:#aebfe2 !important;
+
+  box-shadow:none !important;
+
+  transform:none !important;
+}
+
+
+/* מיקרופון */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.talk-btn{
+  background:
+    linear-gradient(
+      145deg,
+      rgba(63,78,154,.95),
+      rgba(48,40,126,.95)
+    ) !important;
+
+  color:#d9dcff !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.talk-btn::before{
+  display:none !important;
+}
+
+
+/* שליחה */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.send-btn{
+  width:44px !important;
+  height:44px !important;
+
+  flex:0 0 44px !important;
+
+  border:0 !important;
+  border-radius:14px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #7454ff,
+      #4d2ed1
+    ) !important;
+
+  box-shadow:
+    0 7px 18px rgba(83,54,220,.38) !important;
+
+  color:#fff !important;
+}
+
+
+/* הטקסט "שליחה" נשאר מוסתר */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.send-btn{
+  font-size:0 !important;
+}
+
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.send-btn::after{
+  content:"➤";
+
+  display:block;
+
+  font-size:18px !important;
+
+  line-height:1;
+
+  color:#fff;
+
+  transform:rotate(180deg);
+}
+
+
+/* ההערה מתחת */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-note{
+  display:none !important;
+}
+    /* =====================================================
+   FINAL — COMPOSER ICONS VISIBLE
+===================================================== */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-icon i,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.talk-btn i,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.reset-lesson-btn i{
+  display:block !important;
+
+  font-family:"Font Awesome 6 Free" !important;
+  font-style:normal !important;
+
+  font-size:18px !important;
+  line-height:1 !important;
+
+  color:#dbe6ff !important;
+
+  opacity:1 !important;
+
+  visibility:visible !important;
+
+  position:relative !important;
+  z-index:5 !important;
+
+  text-shadow:
+    0 0 8px
+    rgba(111,166,255,.32);
+}
+
+
+/* paperclip */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-icon i{
+  color:#a8c8ff !important;
+}
+
+
+/* microphone */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.talk-btn i{
+  color:#ffffff !important;
+
+  font-size:19px !important;
+
+  text-shadow:
+    0 0 10px
+    rgba(166,145,255,.65);
+}
+
+
+/* reset */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.reset-lesson-btn i{
+  color:#9fb5d9 !important;
+}
+
+
+/* hover */
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.composer-icon:hover i,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.talk-btn:hover i,
+
+body.lesson-theme-science
+.learning-view
+.workspace
+.reset-lesson-btn:hover i{
+  color:#ffffff !important;
+}
+    /* =====================================================
+   HOW TEACHER WORKS — MODAL
+===================================================== */
+
+.lesson-teacher-help-overlay{
+  position:fixed;
+  inset:0;
+
+  z-index:999999;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:20px;
+
+  background:
+    rgba(1,7,20,.74);
+
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+
+  direction:rtl;
+}
+
+
+.lesson-teacher-help-card{
+  position:relative;
+
+  width:min(480px,94vw);
+
+  padding:26px;
+
+  border:
+    1px solid
+    rgba(91,142,230,.34);
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #12213a,
+      #081426
+    );
+
+  color:#fff;
+
+  box-shadow:
+    0 24px 70px
+    rgba(0,0,0,.50),
+    inset 0 1px 0
+    rgba(255,255,255,.06);
+}
+
+
+.lesson-teacher-help-close{
+  position:absolute;
+
+  top:13px;
+  left:13px;
+
+  width:34px;
+  height:34px;
+
+  border:
+    1px solid
+    rgba(123,157,218,.20);
+
+  border-radius:10px;
+
+  background:
+    rgba(255,255,255,.05);
+
+  color:#dce7ff;
+
+  font-size:22px;
+
+  cursor:pointer;
+}
+
+
+.lesson-teacher-help-head{
+  display:flex;
+  align-items:center;
+
+  gap:14px;
+
+  padding-left:35px;
+
+  margin-bottom:22px;
+}
+
+
+.lesson-teacher-help-head img{
+  width:68px;
+  height:78px;
+
+  object-fit:contain;
+
+  flex:none;
+
+  filter:
+    drop-shadow(
+      0 8px 12px
+      rgba(0,0,0,.28)
+    );
+}
+
+
+.lesson-teacher-help-head h2{
+  margin:0;
+
+  font-size:22px;
+  font-weight:900;
+}
+
+
+.lesson-teacher-help-head p{
+  margin:4px 0 0;
+
+  color:#9fb0ce;
+
+  font-size:12px;
+}
+
+
+.lesson-teacher-help-items{
+  display:flex;
+  flex-direction:column;
+
+  gap:10px;
+}
+
+
+.lesson-teacher-help-items > div{
+  display:flex;
+  align-items:flex-start;
+
+  gap:11px;
+
+  padding:12px 13px;
+
+  border:
+    1px solid
+    rgba(94,128,186,.16);
+
+  border-radius:14px;
+
+  background:
+    rgba(22,39,68,.72);
+}
+
+
+.lesson-teacher-help-items span{
+  width:27px;
+  height:27px;
+
+  flex:0 0 27px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #7553ff,
+      #4930bd
+    );
+
+  font-size:12px;
+  font-weight:900;
+}
+
+
+.lesson-teacher-help-items p{
+  margin:0;
+
+  color:#dce5f7;
+
+  font-size:13px;
+  line-height:1.6;
+}
+
+
+.lesson-teacher-help-tip{
+  margin-top:14px;
+
+  padding:11px 13px;
+
+  border-radius:13px;
+
+  background:
+    rgba(103,74,220,.12);
+
+  color:#c9d7f4;
+
+  font-size:12px;
+  line-height:1.5;
+}
+    .lesson-help-icon{
+  width:18px;
+  height:18px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(126,166,235,.45);
+  border-radius:50%;
+
+  color:#9fc5ff;
+
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+
+  flex:none;
+}
+    /* =====================================================
+   LESSON MASTERY DOCK — ULTRA TECH HUD FINAL
+===================================================== */
+
+body.lesson-theme-science
+.lesson-mastery-dock{
+  position:relative !important;
+
+  flex:0 0 172px !important;
+  min-height:172px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    1.15fr
+    1.05fr
+    1.22fr
+    .95fr !important;
+
+  gap:10px !important;
+
+  padding:
+    7px
+    8px
+    9px !important;
+
+  direction:rtl !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(3,9,22,.92),
+      rgba(2,7,18,.98)
+    ) !important;
+
+  border:
+    1px solid
+    rgba(47,126,255,.20) !important;
+
+  border-radius:
+    17px !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    inset 0 0 30px rgba(20,92,255,.035),
+    0 11px 30px rgba(0,4,18,.38) !important;
+
+  overflow:hidden !important;
+}
+
+
+/* כחול זוהר לאורך הקצה העליון */
+
+body.lesson-theme-science
+.lesson-mastery-dock::before{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:5%;
+  right:5%;
+
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(39,168,255,.75),
+      rgba(126,78,255,.70),
+      transparent
+    );
+
+  box-shadow:
+    0 0 12px rgba(45,148,255,.55);
+
+  pointer-events:none;
+}
+
+
+/* =====================================================
+   CARDS
+===================================================== */
+
+body.lesson-theme-science
+.lesson-mastery-card{
+  position:relative !important;
+
+  min-width:0 !important;
+  min-height:154px !important;
+
+  padding:
+    10px
+    12px
+    11px !important;
+
+  border:
+    1px solid
+    rgba(55,119,214,.34) !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    radial-gradient(
+      circle at 50% -20%,
+      rgba(40,109,255,.18),
+      transparent 52%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,24,48,.98),
+      rgba(4,11,26,.99)
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.055),
+    inset 0 0 22px rgba(33,87,195,.045),
+    0 7px 18px rgba(0,4,17,.30) !important;
+
+  overflow:hidden !important;
+}
+
+
+/* פינות HUD */
+
+body.lesson-theme-science
+.lesson-mastery-card::after{
+  content:"";
+
+  position:absolute;
+
+  inset:5px;
+
+  border-radius:10px;
+
+  border:
+    1px solid
+    rgba(88,149,255,.08);
+
+  pointer-events:none;
+}
+
+
+/* פס ניאון עליון */
+
+body.lesson-theme-science
+.lesson-mastery-card::before{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:24%;
+  right:24%;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #24c9ff,
+      #5986ff,
+      transparent
+    );
+
+  box-shadow:
+    0 0 10px rgba(45,175,255,.65);
+
+  pointer-events:none;
+}
+
+
+/* =====================================================
+   TITLES
+===================================================== */
+
+body.lesson-theme-science
+.lesson-card-title{
+  position:relative !important;
+  z-index:3 !important;
+
+  min-height:21px !important;
+
+  margin:
+    0
+    0
+    7px !important;
+
+  padding-bottom:
+    6px !important;
+
+  text-align:center !important;
+
+  border-bottom:
+    1px solid
+    rgba(67,123,213,.17) !important;
+
+  color:#eaf2ff !important;
+
+  font-size:
+    12px !important;
+
+  line-height:1.1 !important;
+
+  font-weight:
+    800 !important;
+
+  letter-spacing:
+    .1px;
+}
+
+
+/* =====================================================
+   OVERALL GAUGE — CYBER RING
+===================================================== */
+
+body.lesson-theme-science
+.lesson-overall-layout{
+  position:relative !important;
+  z-index:3 !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    92px
+    minmax(0,1fr) !important;
+
+  gap:9px !important;
+
+  align-items:center !important;
+
+  direction:ltr !important;
+}
+
+
+body.lesson-theme-science
+.lesson-overall-gauge{
+  position:relative !important;
+
+  width:84px !important;
+  height:84px !important;
+
+  margin:auto !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  border-radius:50% !important;
+
+  background:
+    conic-gradient(
+      from -90deg,
+
+      #26d5ff 0deg,
+
+      #456cff
+      calc(var(--mastery) * 2.4deg),
+
+      #a14cff
+      calc(var(--mastery) * 3.6deg),
+
+      rgba(40,61,104,.32)
+      calc(var(--mastery) * 3.6deg),
+
+      rgba(40,61,104,.32)
+      360deg
+    ) !important;
+
+  box-shadow:
+    0 0 0 1px rgba(74,148,255,.22),
+    0 0 17px rgba(31,140,255,.28),
+    inset 0 0 9px rgba(255,255,255,.13) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-overall-gauge::before{
+  inset:8px !important;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #1e315a,
+      #091429 64%,
+      #050c1b
+    ) !important;
+
+  border:
+    1px solid
+    rgba(92,159,255,.27) !important;
+
+  box-shadow:
+    inset 0 0 16px rgba(35,101,210,.15) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-gauge-inner strong{
+  color:#fff !important;
+
+  font-size:
+    23px !important;
+
+  text-shadow:
+    0 0 10px rgba(72,165,255,.55);
+}
+
+
+body.lesson-theme-science
+.lesson-gauge-inner span{
+  margin-top:4px !important;
+
+  color:
+    rgba(194,214,246,.72) !important;
+
+  font-size:
+    8px !important;
+}
+
+
+/* =====================================================
+   PART SUMMARY
+===================================================== */
+
+body.lesson-theme-science
+.lesson-part-summary{
+  gap:6px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-part-summary-item{
+  min-height:
+    38px !important;
+
+  padding:
+    5px
+    8px !important;
+
+  border:
+    1px solid
+    rgba(130,79,255,.22) !important;
+
+  border-radius:
+    9px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(88,51,163,.20),
+      rgba(30,36,77,.24)
+    ) !important;
+
+  box-shadow:
+    inset 0 0 12px
+    rgba(108,61,255,.04) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-part-summary-item strong{
+  color:#bf72ff !important;
+
+  font-size:
+    17px !important;
+
+  text-shadow:
+    0 0 8px rgba(174,83,255,.28);
+}
+
+
+body.lesson-theme-science
+.lesson-part-summary-item span{
+  color:#dce5f7 !important;
+
+  font-size:
+    10px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-part-summary-item small{
+  color:
+    rgba(164,179,208,.66) !important;
+
+  font-size:
+    7px !important;
+}
+
+
+/* =====================================================
+   METER — FUTURE HUD
+===================================================== */
+
+body.lesson-theme-science
+.lesson-meter-value{
+  height:
+    23px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-meter-value strong{
+  color:#31dbff !important;
+
+  font-size:
+    23px !important;
+
+  text-shadow:
+    0 0 12px rgba(38,209,255,.62) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-meter-labels{
+  margin:
+    2px
+    0
+    4px !important;
+
+  color:
+    rgba(216,230,250,.76) !important;
+
+  font-size:
+    7px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-meter-track{
+  height:
+    21px !important;
+
+  border:
+    1px solid
+    rgba(168,214,255,.60) !important;
+
+  background:
+    linear-gradient(
+      90deg,
+      #168fff 0%,
+      #18d8d0 25%,
+      #82df74 42%,
+      #ffd93b 60%,
+      #ff9628 78%,
+      #f14242 100%
+    ) !important;
+
+  box-shadow:
+    inset 0 0 9px rgba(255,255,255,.32),
+    0 0 12px rgba(34,143,255,.20) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-meter-needle{
+  width:
+    2px !important;
+
+  top:
+    -7px !important;
+
+  bottom:
+    -7px !important;
+
+  background:
+    #fff16a !important;
+
+  box-shadow:
+    0 0 8px rgba(255,233,92,.95) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-meter-note{
+  margin-top:
+    7px !important;
+
+  padding:
+    4px
+    7px !important;
+
+  border:
+    1px solid
+    rgba(71,116,194,.12);
+
+  border-radius:
+    7px !important;
+
+  background:
+    rgba(0,5,17,.44) !important;
+
+  color:
+    rgba(190,207,235,.72) !important;
+
+  font-size:
+    7px !important;
+}
+
+
+/* =====================================================
+   STAGES
+===================================================== */
+
+body.lesson-theme-science
+.lesson-stage-grid{
+  gap:
+    7px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-stage{
+  min-height:
+    79px !important;
+
+  padding:
+    5px !important;
+
+  border:
+    1px solid
+    rgba(89,121,181,.16) !important;
+
+  border-radius:
+    10px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(19,31,58,.78),
+      rgba(7,14,29,.90)
+    ) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-stage.active{
+  border-color:
+    rgba(155,82,255,.62) !important;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(144,74,255,.25),
+      transparent 58%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(44,30,83,.94),
+      rgba(19,17,48,.97)
+    ) !important;
+
+  box-shadow:
+    0 0 15px rgba(134,61,255,.17),
+    inset 0 1px 0 rgba(255,255,255,.05) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-stage-icon{
+  margin:
+    3px
+    0 !important;
+
+  font-size:
+    18px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-stage strong{
+  color:#e4c9ff !important;
+
+  font-size:
+    11px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-stage span{
+  color:
+    rgba(178,192,219,.65) !important;
+
+  font-size:
+    7px !important;
+}
+
+
+body.lesson-theme-science
+.lesson-stage b{
+  color:#c66cff !important;
+
+  font-size:
+    17px !important;
+
+  text-shadow:
+    0 0 9px rgba(177,79,255,.30);
+}
+
+
+/* =====================================================
+   STATUS CARD — AI PANEL
+===================================================== */
+
+body.lesson-theme-science
+.lesson-status-card{
+  justify-content:center !important;
+}
+
+
+body.lesson-theme-science
+.lesson-status-heading{
+  color:#fff !important;
+
+  font-size:
+    15px !important;
+
+  text-shadow:
+    0 0 10px rgba(73,151,255,.18);
+}
+
+
+body.lesson-theme-science
+.lesson-status-robot{
+  width:
+    52px !important;
+
+  height:
+    52px !important;
+
+  margin:
+    3px
+    auto
+    0 !important;
+
+  filter:
+    drop-shadow(
+      0 0 9px
+      rgba(39,161,255,.34)
+    ) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-status-card p{
+  margin-top:
+    2px !important;
+
+  color:
+    rgba(199,213,238,.70) !important;
+
+  font-size:
+    7px !important;
+
+  line-height:
+    1.25 !important;
+}
+    /* =====================================================
+   MASTERY HUD — FINAL STRUCTURE
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  grid-template-rows:
+    minmax(0,1fr)
+    190px !important;
+}
+
+
+body.lesson-theme-science
+.mastery-hud{
+  width:100% !important;
+  height:190px !important;
+  min-height:190px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    1.05fr
+    1.28fr
+    1.28fr
+    1.28fr
+    1.12fr !important;
+
+  gap:10px !important;
+
+  padding:5px !important;
+
+  direction:rtl !important;
+
+  overflow:visible !important;
+
+  background:transparent !important;
+}
+
+
+/* =========================================
+   CARD
+========================================= */
+
+.mastery-hud-card{
+  position:relative;
+
+  min-width:0;
+  height:180px;
+
+  padding:10px 12px 12px;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    rgba(31,172,255,.70);
+
+  border-radius:15px;
+
+  background:
+    radial-gradient(
+      circle at 50% -15%,
+      rgba(28,121,255,.20),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      #08162d 0%,
+      #041022 100%
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(44,112,255,.11),
+    inset 0 0 28px rgba(15,84,190,.06),
+    0 0 14px rgba(0,151,255,.15),
+    0 10px 24px rgba(0,3,15,.38);
+
+  color:#fff;
+}
+
+
+.mastery-hud-card::before{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:10%;
+  right:10%;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #25d8ff,
+      #6976ff,
+      transparent
+    );
+
+  box-shadow:
+    0 0 11px #28baff;
+}
+
+
+/* =========================================
+   TITLE
+========================================= */
+
+.mastery-hud-title{
+  position:relative;
+  z-index:3;
+
+  height:27px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin-bottom:7px;
+
+  border-bottom:
+    1px solid
+    rgba(50,139,235,.18);
+
+  color:#f4f8ff;
+
+  font-size:14px;
+  font-weight:900;
+}
+
+
+/* =========================================
+   LARGE FUTURE RINGS
+========================================= */
+
+.mastery-tech-ring{
+  --value:0;
+
+  position:relative;
+
+  width:126px;
+  height:126px;
+
+  margin:0 auto;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      from -90deg,
+
+      #16d5ff 0deg,
+
+      #208cff
+      calc(var(--value) * 2.5deg),
+
+      #4b63ff
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+      360deg
+    );
+
+  box-shadow:
+    0 0 5px #2bc8ff,
+    0 0 18px rgba(38,158,255,.56),
+    inset 0 0 12px rgba(255,255,255,.16);
+}
+
+
+.mastery-tech-ring-purple{
+  background:
+    conic-gradient(
+      from -90deg,
+
+      #19dfff,
+      #247fff
+      calc(var(--value) * 1.8deg),
+
+      #963dff
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+      calc(var(--value) * 3.6deg),
+
+      rgba(30,58,102,.38)
+    );
+}
+
+
+.mastery-tech-ring::before{
+  content:"";
+
+  position:absolute;
+
+  inset:8px;
+
+  border-radius:50%;
+
+  border:
+    1px solid
+    rgba(70,185,255,.55);
+
+  box-shadow:
+    inset 0 0 13px rgba(33,133,255,.28);
+}
+
+
+.mastery-tech-ring::after{
+  content:"";
+
+  position:absolute;
+
+  inset:-9px;
+
+  border-radius:50%;
+
+  border:
+    1px dashed
+    rgba(36,194,255,.36);
+
+  box-shadow:
+    0 0 11px
+    rgba(35,170,255,.15);
+}
+
+
+.mastery-ring-core{
+  position:absolute;
+
+  inset:18px;
+
+  z-index:4;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #1d355f,
+      #071427 68%
+    );
+
+  border:
+    1px solid
+    rgba(77,177,255,.38);
+
+  box-shadow:
+    inset 0 0 18px
+    rgba(31,111,226,.18);
+}
+
+
+.mastery-ring-core strong{
+  font-size:31px;
+  line-height:1;
+
+  color:#fff;
+
+  text-shadow:
+    0 0 12px rgba(63,177,255,.52);
+}
+
+
+.mastery-ring-core span{
+  margin-top:5px;
+
+  color:#d7e5f8;
+
+  font-size:10px;
+  font-weight:800;
+}
+
+
+/* =========================================
+   TWO SMALL RINGS
+========================================= */
+
+.mastery-parts-grid{
+  height:130px;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,1fr);
+
+  gap:8px;
+}
+
+
+.mastery-part-box{
+  padding:7px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+
+  border:
+    1px solid
+    rgba(43,133,220,.20);
+
+  border-radius:11px;
+
+  background:
+    rgba(6,20,41,.72);
+}
+
+
+.mastery-part-box.active{
+  border-color:
+    rgba(139,71,255,.58);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(77,36,145,.40),
+      rgba(15,24,57,.80)
+    );
+
+  box-shadow:
+    inset 0 0 20px rgba(134,55,255,.12);
+}
+
+
+.mastery-part-box > strong{
+  font-size:13px;
+}
+
+
+.mastery-part-box > span{
+  margin-top:1px;
+
+  color:#aebbd3;
+
+  font-size:9px;
+}
+
+
+.mastery-mini-ring{
+  --value:0;
+
+  width:78px;
+  height:78px;
+
+  margin-top:5px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:
+    conic-gradient(
+      #23d8ff
+      calc(var(--value) * 3.6deg),
+      rgba(40,68,108,.38) 0
+    );
+
+  box-shadow:
+    0 0 12px
+    rgba(33,173,255,.25);
+}
+
+
+.mastery-mini-ring > div{
+  width:62px;
+  height:62px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:#061226;
+
+  border:
+    1px solid
+    rgba(72,150,245,.26);
+}
+
+
+.mastery-mini-ring b{
+  font-size:20px;
+}
+
+
+.mastery-mini-ring small{
+  color:#aebbd2;
+
+  font-size:8px;
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.mastery-status-hud{
+  text-align:center;
+}
+
+
+.mastery-status-text{
+  position:relative;
+  z-index:3;
+
+  font-size:18px;
+  font-weight:900;
+}
+
+
+.mastery-teacher{
+  position:relative;
+  z-index:3;
+
+  display:block;
+
+  width:68px;
+  height:77px;
+
+  object-fit:contain;
+
+  margin:2px auto 0;
+
+  filter:
+    drop-shadow(
+      0 0 10px
+      rgba(36,170,255,.37)
+    );
+}
+
+
+.mastery-status-note{
+  position:relative;
+  z-index:3;
+
+  margin-top:-4px;
+
+  color:#aab8d1;
+
+  font-size:8px;
+  line-height:1.3;
+}
+
+
+/* =========================================
+   CHART
+========================================= */
+
+.mastery-chart{
+  position:relative;
+
+  height:132px;
+
+  padding:
+    3px
+    4px
+    20px;
+}
+
+
+.mastery-chart svg{
+  width:100%;
+  height:104px;
+
+  overflow:visible;
+}
+
+
+.mastery-chart-fill{
+  fill:
+    url(#masteryChartFill);
+}
+
+
+.mastery-chart-line{
+  fill:none;
+
+  stroke:#ffe35a;
+
+  stroke-width:3;
+
+  filter:
+    url(#masteryGlow);
+}
+
+
+.mastery-chart circle{
+  fill:#ffd73f;
+
+  stroke:#fff2a6;
+
+  stroke-width:2;
+
+  filter:
+    drop-shadow(
+      0 0 5px
+      #ffc928
+    );
+}
+
+
+.mastery-chart-labels{
+  position:absolute;
+
+  right:5px;
+  bottom:2px;
+  left:5px;
+
+  display:flex;
+  justify-content:space-between;
+
+  color:#cbd6e9;
+
+  font-size:9px;
+  font-weight:800;
+}
+    /* =====================================================
+   FINAL FIX — MASTERY HUD NOT CLIPPED
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  grid-template-rows:
+    minmax(0,1fr)
+    190px !important;
+}
+
+
+/* כל הבוטום */
+
+body.lesson-theme-science
+.mastery-hud,
+body.lesson-theme-science
+.lesson-mastery-dock{
+  width:100% !important;
+
+  height:190px !important;
+  min-height:190px !important;
+
+  margin:0 !important;
+
+  padding:
+    5px
+    6px
+    5px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(5,minmax(0,1fr)) !important;
+
+  gap:9px !important;
+
+  overflow:visible !important;
+
+  box-sizing:border-box !important;
+
+  transform:none !important;
+}
+
+
+/* הכרטיסים החדשים */
+
+body.lesson-theme-science
+.mastery-hud-card{
+  width:100% !important;
+
+  min-width:0 !important;
+
+  height:180px !important;
+  min-height:180px !important;
+
+  overflow:hidden !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* מנטרל את גובה 150px של הכרטיסים הישנים */
+
+body.lesson-theme-science
+.lesson-mastery-dock
+.lesson-mastery-card{
+  height:auto !important;
+  min-height:0 !important;
+}
+    /* =====================================================
+   TRUE FINAL FIX — GIVE HUD REAL VERTICAL SPACE
+===================================================== */
+
+body.lesson-theme-science
+.learning-view{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:block !important;
+
+  overflow:visible !important;
+}
+
+
+body.lesson-theme-science
+.lesson-main-existing{
+  width:100% !important;
+  height:100% !important;
+
+  display:grid !important;
+
+  grid-template-rows:
+    minmax(0, calc(100% - 202px))
+    190px !important;
+
+  gap:12px !important;
+
+  overflow:visible !important;
+}
+
+
+/* החלק העליון באמת מתכווץ כדי לפנות מקום לבוטום */
+
+body.lesson-theme-science
+.lesson-content-split{
+  width:100% !important;
+  height:100% !important;
+
+  min-height:0 !important;
+
+  overflow:hidden !important;
+}
+
+
+/* הבוטום */
+
+body.lesson-theme-science
+#lessonMasteryDock{
+  width:100% !important;
+
+  height:190px !important;
+  min-height:190px !important;
+  max-height:190px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(5, minmax(0,1fr)) !important;
+
+  grid-template-rows:
+    180px !important;
+
+  gap:9px !important;
+
+  padding:5px 6px !important;
+
+  overflow:visible !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* כל חמשת הכרטיסים */
+
+body.lesson-theme-science
+#lessonMasteryDock
+.mastery-hud-card{
+  width:100% !important;
+
+  height:180px !important;
+  min-height:180px !important;
+  max-height:180px !important;
+
+  margin:0 !important;
+
+  box-sizing:border-box !important;
+
+  overflow:hidden !important;
+}
+    /* =====================================================
+   TRUE FINAL FIX — GIVE HUD REAL VERTICAL SPACE
+===================================================== */
+
+body.lesson-theme-science
+.learning-view{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:block !important;
+
+  overflow:visible !important;
+}
+
+
+body.lesson-theme-science
+.lesson-main-existing{
+  width:100% !important;
+  height:100% !important;
+
+  display:grid !important;
+
+  grid-template-rows:
+    minmax(0, calc(100% - 202px))
+    190px !important;
+
+  gap:12px !important;
+
+  overflow:visible !important;
+}
+
+
+/* החלק העליון באמת מתכווץ כדי לפנות מקום לבוטום */
+
+body.lesson-theme-science
+.lesson-content-split{
+  width:100% !important;
+  height:100% !important;
+
+  min-height:0 !important;
+
+  overflow:hidden !important;
+}
+
+
+/* הבוטום */
+
+body.lesson-theme-science
+#lessonMasteryDock{
+  width:100% !important;
+
+  height:190px !important;
+  min-height:190px !important;
+  max-height:190px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(5, minmax(0,1fr)) !important;
+
+  grid-template-rows:
+    180px !important;
+
+  gap:9px !important;
+
+  padding:5px 6px !important;
+
+  overflow:visible !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* כל חמשת הכרטיסים */
+
+body.lesson-theme-science
+#lessonMasteryDock
+.mastery-hud-card{
+  width:100% !important;
+
+  height:180px !important;
+  min-height:180px !important;
+  max-height:180px !important;
+
+  margin:0 !important;
+
+  box-sizing:border-box !important;
+
+  overflow:hidden !important;
+}
+    /* ===== HUD COMPASS NUMBERS ===== */
+
+.mastery-tech-ring{
+  overflow:visible !important;
+}
+
+.mastery-ring-scale{
+  position:absolute;
+  inset:-12px;
+  border-radius:50%;
+  z-index:6;
+  pointer-events:none;
+}
+
+.mastery-ring-scale span{
+  --angle:calc(var(--i) * 45deg);
+
+  position:absolute;
+  top:50%;
+  left:50%;
+
+  width:22px;
+  margin-left:-11px;
+  margin-top:-4px;
+
+  text-align:center;
+  font-size:6px;
+  line-height:1;
+  font-weight:800;
+
+  color:rgba(82,210,255,.78);
+
+  text-shadow:
+    0 0 5px rgba(38,195,255,.8);
+
+  transform:
+    rotate(var(--angle))
+    translateY(-63px)
+    rotate(calc(-1 * var(--angle)));
+}
+
+/* שנתות קטנות כמו מכשיר מדידה */
+.mastery-ring-scale::before{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border-radius:50%;
+
+  background:
+    repeating-conic-gradient(
+      rgba(71,211,255,.75) 0deg .7deg,
+      transparent .7deg 7.5deg
+    );
+
+  -webkit-mask:
+    radial-gradient(
+      circle,
+      transparent 68%,
+      #000 69% 73%,
+      transparent 74%
+    );
+
+  mask:
+    radial-gradient(
+      circle,
+      transparent 68%,
+      #000 69% 73%,
+      transparent 74%
+    );
+
+  opacity:.55;
+}
 </style>
 
 
@@ -34405,7 +37019,7 @@ this.isRunning = false;
       );
 
     this.avatar.src =
-      "/assets/robots/askie-robot.png";
+      "/assets/lesson/lesson-teacher.webp";
 
     this.avatar.className =
       "lesson-renderer-avatar";
@@ -34454,7 +37068,7 @@ createPointerRobot(){
     document.createElement("img");
 
   this.pointerRobot.src =
-    "/assets/robots/askie-robot.png";
+    "/assets/lesson/lesson-teacher.webp";
 
   this.pointerRobot.className =
     "lesson-pointer-robot";
@@ -36956,7 +39570,7 @@ function initLessonRenderer() {
 
 
     demoButton.textContent =
-      "▶ Rotem V1";
+      "▶ Rotem V10";
 
 
     document.body.appendChild(
@@ -41078,5 +43692,125 @@ function updateScienceBreadcrumb(
   accept="image/jpeg,image/png,image/webp,application/pdf"
   style="display:none;"
 >
+<script>
+function openLessonTeacherHelp(){
 
+  const existing =
+    document.getElementById(
+      "lessonTeacherHelpModal"
+    );
+
+  if(existing){
+    existing.remove();
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.id =
+    "lessonTeacherHelpModal";
+
+  overlay.className =
+    "lesson-teacher-help-overlay";
+
+  overlay.innerHTML = `
+    <div class="lesson-teacher-help-card">
+
+      <button
+        class="lesson-teacher-help-close"
+        type="button"
+        onclick="closeLessonTeacherHelp()"
+        aria-label="סגירה"
+      >
+        ×
+      </button>
+
+      <div class="lesson-teacher-help-head">
+
+        <img
+          src="/assets/lesson/lesson-teacher.webp"
+          alt=""
+        >
+
+        <div>
+          <h2>איך המורה עובדת?</h2>
+          <p>המורה מלווה אותך לאורך כל השיעור</p>
+        </div>
+
+      </div>
+
+      <div class="lesson-teacher-help-items">
+
+        <div>
+          <span>1</span>
+          <p>
+            המורה מסבירה את החומר בצורה פשוטה,
+            שלב אחרי שלב.
+          </p>
+        </div>
+
+        <div>
+          <span>2</span>
+          <p>
+            תוך כדי השיעור היא שואלת שאלות
+            כדי לבדוק שהבנת.
+          </p>
+        </div>
+
+        <div>
+          <span>3</span>
+          <p>
+            אם משהו לא ברור, אפשר לשאול אותה
+            בכל רגע והיא תסביר בדרך אחרת.
+          </p>
+        </div>
+
+        <div>
+          <span>4</span>
+          <p>
+            המורה מתאימה את ההמשך לפי התשובות שלך
+            ועוזרת לך להתקדם בקצב שלך.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="lesson-teacher-help-tip">
+        💡 אפשר גם לכתוב או לדבר עם המורה
+        בתיבה שבתחתית המסך.
+      </div>
+
+    </div>
+  `;
+
+  overlay.addEventListener(
+    "click",
+    function(event){
+
+      if(event.target === overlay){
+        closeLessonTeacherHelp();
+      }
+
+    }
+  );
+
+  document.body.appendChild(
+    overlay
+  );
+}
+
+
+function closeLessonTeacherHelp(){
+
+  const modal =
+    document.getElementById(
+      "lessonTeacherHelpModal"
+    );
+
+  if(modal){
+    modal.remove();
+  }
+
+}
+</script>
 </body></html>
