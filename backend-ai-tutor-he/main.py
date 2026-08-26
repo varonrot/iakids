@@ -4267,28 +4267,18 @@ def generate_lesson_hero_image_bytes(
                 clean_prompt,
 
             config=
-                types.GenerateContentConfig(
+            types.GenerateContentConfig(
 
-                    # אנחנו רוצים רק תמונה,
-                    # ללא טקסט נלווה
-                    response_modalities=[
-                        "IMAGE"
-                    ],
+                response_modalities=[
+                    "IMAGE"
+                ],
 
-                    # אזור ההמחשה שלך רחב,
-                    # ולכן 16:9 מתאים למסך
-                    response_format={
-                        "image": {
-                            "aspect_ratio":
-                                "16:9",
-
-                            # בשלב ראשון 1K.
-                            # לא צריך לשרוף עלות על 2K/4K.
-                            "image_size":
-                                "1K"
-                        }
-                    }
+                image_config=
+                types.ImageConfig(
+                    aspect_ratio="16:9",
+                    image_size="1K"
                 )
+            )
         )
     )
 
