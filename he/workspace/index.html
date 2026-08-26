@@ -14145,16 +14145,14 @@ data-custom-slot="0"
 </div>
 
 
-      <!-- הדמות תוחלף בהמשך בדמות האיש הבוגר -->
+<div class="lesson-sidebar-teacher">
 
-      <div class="lesson-sidebar-teacher">
+  <img
+    src="/assets/lesson/lesson-teacher2.webp"
+    alt="המורה"
+  >
 
-<!--        <img-->
-<!--          src="/assets/lesson/lesson-teacher.webp"-->
-<!--          alt="המורה"-->
-<!--        >-->
-
-      </div>
+</div>
 
     </aside>
 
@@ -17126,6 +17124,172 @@ async function waitForUnitLessonAudio(
 
 }
 
+function showLessonHeroImage(
+  imageUrl
+){
+
+  if(!imageUrl){
+    return;
+  }
+
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-stage"
+    )
+    ||
+    document.querySelector(
+      ".lesson-media-stage"
+    )
+    ||
+    document.getElementById(
+      "lessonVisualStage"
+    );
+
+
+  if(!visualArea){
+
+    console.warn(
+      "LESSON HERO — visual area not found"
+    );
+
+    return;
+
+  }
+
+
+  visualArea.innerHTML = `
+    <div class="lesson-hero-image-wrap">
+
+      <img
+        src="${imageUrl}"
+        class="lesson-hero-image"
+        alt=""
+      >
+
+    </div>
+  `;
+
+}
+
+/* =====================================================
+   LESSON HERO IMAGE
+===================================================== */
+
+async function loadLessonHeroImage(
+  unitLessonId,
+  session
+){
+
+  try{
+
+    console.log(
+      "LESSON HERO REQUEST:",
+      unitLessonId
+    );
+
+
+    const response =
+      await fetch(
+        `${TUTOR_API_BASE}/api/tutor/unit-lesson/hero-image`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                unitLessonId
+            })
+        }
+      );
+
+
+    const responseText =
+      await response.text();
+
+
+    let data = null;
+
+
+    try{
+
+      data =
+        responseText
+          ? JSON.parse(responseText)
+          : null;
+
+    }
+    catch(parseError){
+
+      console.error(
+        "LESSON HERO JSON ERROR:",
+        responseText
+      );
+
+      return null;
+
+    }
+
+
+    if(
+      !response.ok
+      ||
+      !data?.hero_image?.url
+    ){
+
+      console.error(
+        "LESSON HERO FAILED:",
+        response.status,
+        data
+      );
+
+      return null;
+
+    }
+
+
+    console.log(
+      "LESSON HERO READY:",
+      data
+    );
+
+
+    showLessonHeroImage(
+      data.hero_image.url
+    );
+
+
+    return data.hero_image;
+
+  }
+  catch(error){
+
+    /*
+      כשל בתמונה לא מפיל את השיעור.
+    */
+
+    console.error(
+      "LESSON HERO ERROR:",
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
 async function loadUniversalUnitLesson(
   lesson,
   session
@@ -18971,6 +19135,15 @@ if(subtitle){
     return;
 
   }
+
+/* =============================================
+   START HERO IMAGE IN PARALLEL
+============================================= */
+
+loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
 
 /* =============================================
    CHECK WHETHER THIS LESSON IS ALREADY ACTIVE
