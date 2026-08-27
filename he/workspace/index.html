@@ -17379,6 +17379,370 @@ async function loadLessonHeroImage(
 
 }
 
+/* =====================================================
+   LESSON VISUALS
+===================================================== */
+
+window.CURRENT_LESSON_VISUALS = [];
+
+
+async function loadLessonVisuals(
+  unitLessonId,
+  session
+){
+
+  try{
+
+    console.log(
+      "LESSON VISUALS REQUEST:",
+      unitLessonId
+    );
+
+
+    const response =
+      await fetch(
+        `${TUTOR_API_BASE}/api/tutor/unit-lesson/visuals`,
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                unitLessonId
+            })
+        }
+      );
+
+
+    const responseText =
+      await response.text();
+
+
+    let data = null;
+
+
+    try{
+
+      data =
+        responseText
+          ? JSON.parse(responseText)
+          : null;
+
+    }
+    catch(error){
+
+      console.error(
+        "LESSON VISUALS JSON ERROR:",
+        responseText
+      );
+
+      return [];
+    }
+
+
+    if(!response.ok){
+
+      console.warn(
+        "LESSON VISUALS NOT READY:",
+        response.status,
+        data
+      );
+
+      return [];
+    }
+
+
+    const visuals =
+      Array.isArray(data?.visuals)
+        ? data.visuals
+        : [];
+
+
+    window.CURRENT_LESSON_VISUALS =
+      visuals;
+
+
+    console.log(
+      "LESSON VISUALS READY:",
+      visuals
+    );
+
+
+    return visuals;
+
+  }
+  catch(error){
+
+    console.error(
+      "LESSON VISUALS ERROR:",
+      error
+    );
+
+    return [];
+  }
+
+}
+
+
+
+/* =====================================================
+   SHOW LESSON VISUAL
+===================================================== */
+
+function showLessonVisual(
+  visual
+){
+
+  if(
+    !visual
+    ||
+    !visual.url
+  ){
+    return;
+  }
+
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-stage"
+    );
+
+
+  if(!visualArea){
+
+    console.warn(
+      "LESSON VISUAL — visual area not found"
+    );
+
+    return;
+  }
+
+
+  const oldImage =
+    visualArea.querySelector(
+      ".lesson-hero-image"
+    );
+
+
+  const wrap =
+    document.createElement(
+      "div"
+    );
+
+
+  wrap.className =
+    "lesson-hero-image-wrap lesson-dynamic-visual-wrap";
+
+
+  const image =
+    document.createElement(
+      "img"
+    );
+
+
+  image.src =
+    visual.url;
+
+
+  image.alt = "";
+
+
+  image.className =
+    "lesson-hero-image lesson-dynamic-visual";
+
+
+  wrap.appendChild(
+    image
+  );
+
+
+  visualArea.appendChild(
+    wrap
+  );
+
+
+  const reveal = () => {
+
+    requestAnimationFrame(
+      () => {
+
+        requestAnimationFrame(
+          () => {
+
+            image.classList.add(
+              "is-visible"
+            );
+
+
+            wrap.classList.add(
+              "is-visible"
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    if(oldImage){
+
+      oldImage.classList.add(
+        "lesson-image-leaving"
+      );
+
+    }
+
+
+    const oldWrap =
+      oldImage?.closest(
+        ".lesson-hero-image-wrap"
+      );
+
+
+    if(oldWrap){
+
+      setTimeout(
+        () => {
+
+          if(
+            oldWrap !== wrap
+          ){
+            oldWrap.remove();
+          }
+
+        },
+        900
+      );
+
+    }
+
+  };
+
+
+  if(image.complete){
+
+    reveal();
+
+  }
+  else{
+
+    image.addEventListener(
+      "load",
+      reveal,
+      {
+        once:true
+      }
+    );
+
+  }
+
+
+  console.log(
+    "LESSON VISUAL DISPLAYED:",
+    {
+      order:
+        visual.order,
+
+      trigger_text:
+        visual.trigger_text
+    }
+  );
+
+}
+
+
+
+/* =====================================================
+   VISUAL TRIGGER
+===================================================== */
+
+function showVisualForLessonText(
+  paragraph
+){
+
+  const text =
+    String(
+      paragraph || ""
+    ).trim();
+
+
+  if(!text){
+    return;
+  }
+
+
+  const visuals =
+    Array.isArray(
+      window.CURRENT_LESSON_VISUALS
+    )
+      ? window.CURRENT_LESSON_VISUALS
+      : [];
+
+
+  const visual =
+    visuals.find(
+      item => {
+
+        if(
+          !item
+          ||
+          item._shown
+          ||
+          !item.trigger_text
+          ||
+          !item.url
+        ){
+          return false;
+        }
+
+
+        const trigger =
+          String(
+            item.trigger_text
+          ).trim();
+
+
+        return (
+          text.includes(
+            trigger
+          )
+          ||
+          trigger.includes(
+            text
+          )
+        );
+
+      }
+    );
+
+
+  if(!visual){
+    return;
+  }
+
+
+  visual._shown =
+    true;
+
+
+  showLessonVisual(
+    visual
+  );
+
+}
+
 async function loadUniversalUnitLesson(
   lesson,
   session
@@ -18070,27 +18434,33 @@ if(
      הצגה והשמעה לפי הסדר
   ============================================= */
 
-  for(
-    let index = 0;
-    index < lessonParts.length;
-    index++
-  ){
+for(
+  let index = 0;
+  index < lessonParts.length;
+  index++
+){
 
-    const paragraph =
-      lessonParts[index];
+  const paragraph =
+    lessonParts[index];
 
 
-    /*
-      מחכים רק לאודיו של הקטע הנוכחי.
+  /* =============================================
+     SWITCH VISUAL FOR CURRENT LESSON TEXT
+  ============================================= */
 
-      בזמן הזה שאר קובצי האודיו
-      ממשיכים להיווצר במקביל.
-    */
+  showVisualForLessonText(
+    paragraph
+  );
 
-    const audioUrl =
-      await lessonAudioPromises[
-        index
-      ];
+
+  /*
+    מחכים רק לאודיו של הקטע הנוכחי.
+  */
+
+  const audioUrl =
+    await lessonAudioPromises[
+      index
+    ];
 
 
 if(
@@ -19230,6 +19600,15 @@ if(subtitle){
 ============================================= */
 
 loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
+
+/* =============================================
+   START LESSON VISUALS IN PARALLEL
+============================================= */
+
+loadLessonVisuals(
   resolvedUnitLessonId,
   session
 );
@@ -40362,6 +40741,80 @@ body.lesson-theme-science
     left:105%;
   }
 }
+
+    /* =====================================================
+   LESSON DYNAMIC VISUAL — FADE + SLOW ZOOM
+===================================================== */
+
+.lesson-visual-stage{
+  position:relative;
+  overflow:hidden;
+}
+
+
+.lesson-hero-image-wrap{
+  position:absolute;
+  inset:0;
+
+  overflow:hidden;
+}
+
+
+.lesson-hero-image{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+
+  opacity:0;
+
+  transform:
+    scale(1.015);
+
+  transition:
+    opacity .9s ease;
+
+  will-change:
+    opacity,
+    transform;
+}
+
+
+.lesson-hero-image.is-visible{
+  opacity:1;
+
+  animation:
+    lessonVisualSlowZoom
+    18s
+    ease-out
+    forwards;
+}
+
+
+.lesson-hero-image.lesson-image-leaving{
+  opacity:0 !important;
+}
+
+
+.lesson-dynamic-visual-wrap{
+  opacity:1;
+}
+
+
+@keyframes lessonVisualSlowZoom{
+
+  from{
+    transform:
+      scale(1.015);
+  }
+
+  to{
+    transform:
+      scale(1.10);
+  }
+
+}
+
 </style>
 
 
