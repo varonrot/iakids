@@ -17385,7 +17385,6 @@ async function loadLessonHeroImage(
 
 window.CURRENT_LESSON_VISUALS = [];
 
-
 async function loadLessonVisuals(
   unitLessonId,
   session
@@ -17628,111 +17627,6 @@ async function loadLessonVisuals(
   );
 
 }
-
-  try{
-
-    console.log(
-      "LESSON VISUALS REQUEST:",
-      unitLessonId
-    );
-
-
-    const response =
-      await fetch(
-        `${TUTOR_API_BASE}/api/tutor/unit-lesson/visuals`,
-        {
-          method:"POST",
-
-          headers:{
-            "Content-Type":
-              "application/json",
-
-            "Authorization":
-              `Bearer ${session.access_token}`
-          },
-
-          body:
-            JSON.stringify({
-              kid_id:
-                CURRENT_KID.id,
-
-              unit_lesson_id:
-                unitLessonId
-            })
-        }
-      );
-
-
-    const responseText =
-      await response.text();
-
-
-    let data = null;
-
-
-    try{
-
-      data =
-        responseText
-          ? JSON.parse(responseText)
-          : null;
-
-    }
-    catch(error){
-
-      console.error(
-        "LESSON VISUALS JSON ERROR:",
-        responseText
-      );
-
-      return [];
-    }
-
-
-    if(!response.ok){
-
-      console.warn(
-        "LESSON VISUALS NOT READY:",
-        response.status,
-        data
-      );
-
-      return [];
-    }
-
-
-    const visuals =
-      Array.isArray(data?.visuals)
-        ? data.visuals
-        : [];
-
-
-    window.CURRENT_LESSON_VISUALS =
-      visuals;
-
-
-    console.log(
-      "LESSON VISUALS READY:",
-      visuals
-    );
-
-
-    return visuals;
-
-  }
-  catch(error){
-
-    console.error(
-      "LESSON VISUALS ERROR:",
-      error
-    );
-
-    return [];
-  }
-
-}
-
-
 
 /* =====================================================
    SHOW LESSON VISUAL
