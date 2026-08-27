@@ -17391,9 +17391,24 @@ async function loadLessonVisuals(
 ){
 
   const MAX_VISUAL_CHECKS = 30;
-  const CHECK_DELAY_MS = 1000;
+  const CHECK_DELAY_MS = 1500;
 
-  window.CURRENT_LESSON_VISUALS = [];
+
+  /*
+    לא מאפסים אם כבר קיבלנו תמונות.
+    חשוב במיוחד אם הפונקציה נקראת שוב.
+  */
+
+  if(
+    !Array.isArray(
+      window.CURRENT_LESSON_VISUALS
+    )
+  ){
+
+    window.CURRENT_LESSON_VISUALS = [];
+
+  }
+
 
   for(
     let attempt = 1;
@@ -17411,13 +17426,14 @@ async function loadLessonVisuals(
         }
       );
 
+
       const response =
         await fetch(
           `${TUTOR_API_BASE}/api/tutor/unit-lesson/visuals`,
           {
-            method:"POST",
+            method: "POST",
 
-            headers:{
+            headers: {
               "Content-Type":
                 "application/json",
 
@@ -17440,6 +17456,7 @@ async function loadLessonVisuals(
       const responseText =
         await response.text();
 
+
       let data = null;
 
 
@@ -17447,7 +17464,9 @@ async function loadLessonVisuals(
 
         data =
           responseText
-            ? JSON.parse(responseText)
+            ? JSON.parse(
+                responseText
+              )
             : null;
 
       }
@@ -17458,7 +17477,10 @@ async function loadLessonVisuals(
           responseText
         );
 
-        return [];
+        return (
+          window.CURRENT_LESSON_VISUALS
+        );
+
       }
 
 
@@ -17466,78 +17488,128 @@ async function loadLessonVisuals(
 
         console.warn(
           "LESSON VISUALS CHECK FAILED:",
-          response.status,
-          data
+          {
+            status:
+              response.status,
+
+            data
+          }
         );
 
       }
       else{
 
         const incomingVisuals =
-          Array.isArray(data?.visuals)
+          Array.isArray(
+            data?.visuals
+          )
             ? data.visuals
             : [];
 
 
         /*
-          מעדכנים בלי למחוק פריטים
-          שכבר התקבלו קודם.
+          מוסיפים / מעדכנים תמונות
+          בלי לאבד את _shown.
         */
 
         for(
-          const incoming of incomingVisuals
+          const incoming
+          of incomingVisuals
         ){
 
-          const existingIndex =
+          if(
+            !incoming
+            ||
+            !incoming.order
+          ){
+            continue;
+          }
+
+
+          const existing =
             window.CURRENT_LESSON_VISUALS
-              .findIndex(
+              .find(
                 item =>
-                  Number(item.order)
+                  Number(
+                    item.order
+                  )
                   ===
-                  Number(incoming.order)
+                  Number(
+                    incoming.order
+                  )
               );
 
 
-          if(existingIndex === -1){
+          if(existing){
 
-            window.CURRENT_LESSON_VISUALS.push(
+            const alreadyShown =
+              existing._shown === true;
+
+
+            Object.assign(
+              existing,
               incoming
             );
+
+
+            if(alreadyShown){
+
+              existing._shown =
+                true;
+
+            }
 
           }
           else{
 
-            window.CURRENT_LESSON_VISUALS[
-              existingIndex
-            ] = {
-              ...window.CURRENT_LESSON_VISUALS[
-                existingIndex
-              ],
-              ...incoming
-            };
+            window.CURRENT_LESSON_VISUALS
+              .push(
+                {
+                  ...incoming,
+                  _shown: false
+                }
+              );
 
           }
 
         }
 
 
-        window.CURRENT_LESSON_VISUALS.sort(
-          (a,b) =>
-            Number(a.order || 0)
-            -
-            Number(b.order || 0)
-        );
+        /*
+          תמיד עובדים לפי סדר
+          Visual Director.
+        */
+
+        window.CURRENT_LESSON_VISUALS
+          .sort(
+            (a,b) =>
+              Number(
+                a.order || 0
+              )
+              -
+              Number(
+                b.order || 0
+              )
+          );
+
+
+        const ready =
+          window.CURRENT_LESSON_VISUALS
+            .length;
+
+
+        const planned =
+          Number(
+            data?.visuals_planned
+            || 0
+          );
 
 
         console.log(
           "LESSON VISUALS READY:",
           {
-            ready:
-              window.CURRENT_LESSON_VISUALS.length,
-
-            planned:
-              data?.visuals_planned,
-
+            ready,
+            planned,
             visuals:
               window.CURRENT_LESSON_VISUALS
           }
@@ -17545,8 +17617,9 @@ async function loadLessonVisuals(
 
 
         /*
-          תמונה הגיעה בזמן שפסקה כבר רצה?
-          נסה להציג אותה מיד.
+          אם תמונה חדשה הגיעה בזמן
+          שהפסקה שלה כבר רצה,
+          מנסים להציג אותה עכשיו.
         */
 
         if(
@@ -17562,26 +17635,22 @@ async function loadLessonVisuals(
 
         /*
           כל התמונות מוכנות.
-          אין צורך לבדוק יותר.
         */
-
-        const planned =
-          Number(
-            data?.visuals_planned
-            || 0
-          );
-
 
         if(
           planned > 0
           &&
-          window.CURRENT_LESSON_VISUALS.length
-          >= planned
+          ready >= planned
         ){
 
           console.log(
-            "ALL LESSON VISUALS LOADED"
+            "ALL LESSON VISUALS LOADED:",
+            {
+              ready,
+              planned
+            }
           );
+
 
           return (
             window.CURRENT_LESSON_VISUALS
@@ -17591,6 +17660,13 @@ async function loadLessonVisuals(
 
       }
 
+
+      /*
+        עדיין חסרות תמונות.
+        מחכים מעט ושואלים שוב.
+        לא עוצר את השיעור כי
+        loadLessonVisuals נקראת ללא await.
+      */
 
       await new Promise(
         resolve =>
@@ -17605,7 +17681,11 @@ async function loadLessonVisuals(
 
       console.error(
         "LESSON VISUALS ERROR:",
-        error
+        {
+          unitLessonId,
+          attempt,
+          error
+        }
       );
 
 
@@ -17620,6 +17700,17 @@ async function loadLessonVisuals(
     }
 
   }
+
+
+  console.warn(
+    "LESSON VISUALS POLLING FINISHED:",
+    {
+      unitLessonId,
+      loaded:
+        window.CURRENT_LESSON_VISUALS
+          .length
+    }
+  );
 
 
   return (
