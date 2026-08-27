@@ -4831,6 +4831,138 @@ def generate_and_store_lesson_visual_image(
             mime_type
     }
 
+def generate_all_lesson_visuals_background(
+        unit_lesson_id: int
+):
+    try:
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        visual_plan = (
+            generated_lesson_json.get(
+                "visual_plan"
+            )
+            or {}
+        )
+
+        visuals = (
+            visual_plan.get(
+                "visuals"
+            )
+            or []
+        )
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        if not visuals:
+
+            print(
+                "NO VISUALS FOUND IN VISUAL PLAN:",
+                unit_lesson_id
+            )
+
+            return
+
+        generated_visuals = []
+
+        for visual in visuals:
+
+            if not isinstance(
+                    visual,
+                    dict
+            ):
+                continue
+
+            visual_type = str(
+                visual.get("type")
+                or ""
+            ).strip().lower()
+
+            # כרגע מייצרים תמונות בלבד.
+            # video יתווסף בשלב הבא.
+            if visual_type != "image":
+                continue
+
+            try:
+
+                result = (
+                    generate_and_store_lesson_visual_image(
+                        unit_lesson_id=
+                            unit_lesson_id,
+
+                        content_version=
+                            content_version,
+
+                        visual=
+                            visual
+                    )
+                )
+
+                generated_visuals.append(
+                    result
+                )
+
+            except Exception as visual_error:
+
+                print(
+                    "LESSON VISUAL FAILED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual.get("order"),
+
+                        "error":
+                            repr(visual_error)
+                    }
+                )
+
+                traceback.print_exc()
+
+        print(
+            "ALL LESSON VISUALS READY:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "generated_count":
+                    len(generated_visuals),
+
+                "visuals":
+                    generated_visuals
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "ALL LESSON VISUALS ERROR:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
 def generate_first_lesson_visual_background(
         unit_lesson_id: int
 ):
@@ -6680,10 +6812,10 @@ def get_or_generate_unit_lesson(
                 )
 
                 background_tasks.add_task(
-                    generate_first_lesson_visual_background,
+                    generate_all_lesson_visuals_background,
                     unit_lesson["id"]
                 )
-            
+
             response_audio = None
 
             if (
