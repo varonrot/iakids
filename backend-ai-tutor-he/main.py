@@ -20,6 +20,7 @@ import json
 import base64
 import traceback
 import time
+from concurrent.futures import ThreadPoolExecutor
 # =====================================================
 # CONFIG
 # =====================================================
@@ -4963,6 +4964,73 @@ def generate_all_lesson_visuals_background(
 
         traceback.print_exc()
 
+def generate_unit_lesson_media_background(
+        unit_lesson_id: int
+):
+    print(
+        "========== LESSON MEDIA BACKGROUND START ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson_id
+        }
+    )
+
+    with ThreadPoolExecutor(
+            max_workers=2
+    ) as executor:
+
+        audio_future = executor.submit(
+            generate_unit_lesson_audio_background,
+            unit_lesson_id
+        )
+
+        visuals_future = executor.submit(
+            generate_all_lesson_visuals_background,
+            unit_lesson_id
+        )
+
+        try:
+            visuals_future.result()
+
+        except Exception as e:
+            print(
+                "LESSON VISUALS BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
+
+        try:
+            audio_future.result()
+
+        except Exception as e:
+            print(
+                "LESSON AUDIO BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
+
+    print(
+        "========== LESSON MEDIA BACKGROUND DONE ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson_id
+        }
+    )
+
 def generate_first_lesson_visual_background(
         unit_lesson_id: int
 ):
@@ -6807,12 +6875,7 @@ def get_or_generate_unit_lesson(
                 )
 
                 background_tasks.add_task(
-                    generate_unit_lesson_audio_background,
-                    unit_lesson["id"]
-                )
-
-                background_tasks.add_task(
-                    generate_all_lesson_visuals_background,
+                    generate_unit_lesson_media_background,
                     unit_lesson["id"]
                 )
 
@@ -7388,13 +7451,10 @@ def get_or_generate_unit_lesson(
             }
         )
         background_tasks.add_task(
-            generate_unit_lesson_audio_background,
+            generate_unit_lesson_media_background,
             unit_lesson["id"]
         )
-        background_tasks.add_task(
-            generate_all_lesson_visuals_background,
-            unit_lesson["id"]
-        )
+
         # =============================================
         # RESPONSE
         # =============================================
