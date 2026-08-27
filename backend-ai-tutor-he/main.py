@@ -3963,61 +3963,6 @@ def build_universal_unit_lesson_prompt(
 def build_lesson_director_prompt(
         lesson_text: str
 ) -> str:
-    def build_visual_director_prompt(
-            unit_lesson: dict,
-            parent_lesson: dict,
-            lesson_text: str,
-            structured_lesson: dict
-    ) -> str:
-        runtime_context = {
-
-            "grade":
-                parent_lesson.get(
-                    "grade"
-                ),
-
-            "subject":
-                parent_lesson.get(
-                    "subject"
-                ),
-
-            "main_topic":
-                parent_lesson.get(
-                    "lesson_name"
-                ),
-
-            "unit_name":
-                unit_lesson.get(
-                    "unit_name"
-                ),
-
-            "lesson_name":
-                unit_lesson.get(
-                    "lesson_name"
-                ),
-
-            "learning_objective":
-                unit_lesson.get(
-                    "learning_objective"
-                ),
-
-            "lesson_text":
-                lesson_text,
-
-            "structured_lesson":
-                structured_lesson
-        }
-
-        return (
-                VISUAL_DIRECTOR_PROMPT_TEMPLATE
-                + "\n\n"
-                + "RUNTIME_CONTEXT:\n"
-                + json.dumps(
-            runtime_context,
-            ensure_ascii=False,
-            indent=2
-        )
-        )
 
     return (
         LESSON_DIRECTOR_PROMPT_TEMPLATE
@@ -4027,6 +3972,65 @@ def build_lesson_director_prompt(
         )
     )
 
+
+def build_visual_director_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        lesson_text: str,
+        structured_lesson: dict
+) -> str:
+
+    runtime_context = {
+
+        "grade":
+            parent_lesson.get(
+                "grade"
+            ),
+
+        "subject":
+            parent_lesson.get(
+                "subject"
+            ),
+
+        "main_topic":
+            parent_lesson.get(
+                "lesson_name"
+            ),
+
+        "unit_name":
+            unit_lesson.get(
+                "unit_name"
+            ),
+
+        "lesson_name":
+            unit_lesson.get(
+                "lesson_name"
+            ),
+
+        "learning_objective":
+            unit_lesson.get(
+                "learning_objective"
+            ),
+
+        "lesson_text":
+            lesson_text,
+
+        "structured_lesson":
+            structured_lesson
+    }
+
+    return (
+        VISUAL_DIRECTOR_PROMPT_TEMPLATE
+        + "\n\n"
+        + "RUNTIME_CONTEXT:\n"
+        + json.dumps(
+            runtime_context,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+ 
 def normalize_universal_lesson_visuals(
         sequence: list[TutorAction]
 ) -> list[TutorAction]:
@@ -6848,8 +6852,7 @@ def get_or_generate_unit_lesson(
             # נשאר זמנית כדי לא לשבור את הפרונט
             "lesson":
                 lesson_text,
-
-            # המבנה החדש
+ 
             # המבנה החדש
             "structured_lesson":
                 structured_lesson,
