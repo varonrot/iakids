@@ -17891,10 +17891,39 @@ function showLessonVisual(
    VISUAL TRIGGER
 ===================================================== */
 
-function showVisualForLessonText(paragraph){
+function showVisualForLessonText(
+  paragraph
+){
+
+  const normalizeLessonVisualText = value => {
+
+    return String(
+      value || ""
+    )
+      .normalize("NFD")
+      .replace(
+        /[\u0591-\u05C7]/g,
+        ""
+      )
+      .replace(
+        /["'״׳.,!?;:()[\]{}…–—־]/g,
+        " "
+      )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim()
+      .toLowerCase();
+
+  };
+
 
   const text =
-    String(paragraph || "").trim();
+    normalizeLessonVisualText(
+      paragraph
+    );
+
 
   if(!text){
     return;
@@ -17910,29 +17939,17 @@ function showVisualForLessonText(paragraph){
 
 
   if(!visuals.length){
-
-    console.log(
-      "NO LESSON VISUALS AVAILABLE"
-    );
-
     return;
   }
 
 
-  console.log(
-    "CHECK VISUAL FOR PARAGRAPH:",
-    {
-      paragraph:text,
-      visuals:visuals
-    }
-  );
-
-
   /*
-    1. קודם ננסה התאמה אמיתית ל-trigger.
+    ==========================================
+    חיפוש visual שמתאים לפסקה הנוכחית
+    ==========================================
   */
 
-  let visual =
+  const visual =
     visuals.find(
       item => {
 
@@ -17948,107 +17965,157 @@ function showVisualForLessonText(paragraph){
 
 
         const trigger =
-          String(
-            item.trigger_text || ""
-          ).trim();
+          normalizeLessonVisualText(
+            item.trigger_text
+          );
 
 
         const source =
-          String(
-            item.source_text || ""
-          ).trim();
+          normalizeLessonVisualText(
+            item.source_text
+          );
 
 
-        if(!trigger && !source){
-          return false;
+        /*
+          1. התאמה ישירה ל-trigger
+        */
+
+        if(
+          trigger
+          &&
+          (
+            text.includes(trigger)
+            ||
+            trigger.includes(text)
+          )
+        ){
+          return true;
         }
 
 
-        return (
+        /*
+          2. התאמה ישירה ל-source_text
+        */
 
+        if(
+          source
+          &&
           (
-            trigger
-            &&
-            (
-              text.includes(trigger)
-              ||
-              trigger.includes(text)
-            )
+            text.includes(source)
+            ||
+            source.includes(text)
           )
+        ){
+          return true;
+        }
 
-          ||
 
-          (
+        /*
+          3. התאמת מילים חלקית ל-source_text
+        */
+
+        if(source){
+
+          const paragraphWords =
+            text
+              .split(" ")
+              .filter(
+                word =>
+                  word.length >= 3
+              );
+
+
+          const sourceWords =
             source
-            &&
-            (
-              source.includes(text)
-              ||
-              text.includes(source)
-            )
-          )
+              .split(" ")
+              .filter(
+                word =>
+                  word.length >= 3
+              );
 
-        );
+
+          if(
+            paragraphWords.length
+            &&
+            sourceWords.length
+          ){
+
+            const commonWords =
+              sourceWords.filter(
+                word =>
+                  paragraphWords.includes(
+                    word
+                  )
+              );
+
+
+            const overlap =
+              commonWords.length
+              /
+              Math.min(
+                paragraphWords.length,
+                sourceWords.length
+              );
+
+
+            /*
+              דורשים התאמה חזקה יחסית.
+              לא מספיק כמה מילים מקריות.
+            */
+
+            if(overlap >= 0.55){
+
+              return true;
+
+            }
+
+          }
+
+        }
+
+
+        return false;
 
       }
     );
 
 
   /*
-    2. לא מצאנו התאמה?
-       אל נתקע את השיעור.
-
-       ניקח את הוויזואל הבא
-       שעוד לא הוצג.
+    אין התאמה לפסקה הזאת?
+    לא מחליפים תמונה.
   */
-
-  if(!visual){
-
-    visual =
-      visuals
-        .filter(
-          item =>
-            item
-            &&
-            !item._shown
-            &&
-            item.url
-        )
-        .sort(
-          (a,b) =>
-            Number(a.order || 0)
-            -
-            Number(b.order || 0)
-        )[0];
-
-  }
-
 
   if(!visual){
 
     console.log(
-      "NO MORE LESSON VISUALS TO SHOW"
+      "NO VISUAL MATCH FOR PARAGRAPH:",
+      paragraph
     );
 
     return;
+
   }
 
 
   /*
-    מסמנים לפני ההצגה
-    כדי שלא יוצג שוב.
+    מצאנו את התמונה המתאימה.
   */
 
-  visual._shown = true;
+  visual._shown =
+    true;
 
 
   console.log(
     "LESSON VISUAL DISPLAYED:",
     {
-      order:visual.order,
+      order:
+        visual.order,
+
       trigger_text:
         visual.trigger_text,
-      url:visual.url
+
+      paragraph:
+        paragraph
     }
   );
 
