@@ -4030,7 +4030,7 @@ def build_visual_director_prompt(
         )
     )
 
- 
+
 def normalize_universal_lesson_visuals(
         sequence: list[TutorAction]
 ) -> list[TutorAction]:
@@ -4720,6 +4720,212 @@ def generate_and_store_lesson_hero_image(
 LESSON_AUDIO_BUCKET = "lesson-audio"
 LESSON_AUDIO_URL_EXPIRY_SECONDS = 3600
 
+def generate_and_store_lesson_visual_image(
+        unit_lesson_id: int,
+        content_version: int,
+        visual: dict
+) -> dict:
+
+    visual_order = int(
+        visual.get("order")
+        or 0
+    )
+
+    generation_prompt = str(
+        visual.get("generation_prompt")
+        or ""
+    ).strip()
+
+    trigger_text = str(
+        visual.get("trigger_text")
+        or ""
+    ).strip()
+
+    if not visual_order:
+        raise RuntimeError(
+            "Visual order is missing"
+        )
+
+    if not generation_prompt:
+        raise RuntimeError(
+            "Visual generation prompt is missing"
+        )
+
+    print(
+        "LESSON VISUAL IMAGE START:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "content_version":
+                content_version,
+
+            "order":
+                visual_order,
+
+            "trigger_text":
+                trigger_text
+        }
+    )
+
+    image_bytes, mime_type = (
+        generate_lesson_visual_image_bytes(
+            generation_prompt
+        )
+    )
+
+    storage_path = (
+        f"unit_lessons/"
+        f"{unit_lesson_id}/"
+        f"v{content_version}/"
+        f"visual_{visual_order}.png"
+    )
+
+    sb.storage.from_(
+        LESSON_MEDIA_BUCKET
+    ).upload(
+
+        path=
+            storage_path,
+
+        file=
+            image_bytes,
+
+        file_options={
+            "content-type":
+                mime_type,
+
+            "upsert":
+                "true"
+        }
+    )
+
+    print(
+        "LESSON VISUAL IMAGE STORED:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "order":
+                visual_order,
+
+            "storage_path":
+                storage_path
+        }
+    )
+
+    return {
+        "order":
+            visual_order,
+
+        "type":
+            "image",
+
+        "trigger_text":
+            trigger_text,
+
+        "storage_path":
+            storage_path,
+
+        "mime_type":
+            mime_type
+    }
+
+def generate_first_lesson_visual_background(
+        unit_lesson_id: int
+):
+    try:
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        visual_plan = (
+            generated_lesson_json.get(
+                "visual_plan"
+            )
+            or {}
+        )
+
+        visuals = (
+            visual_plan.get(
+                "visuals"
+            )
+            or []
+        )
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        first_image = None
+
+        for visual in visuals:
+
+            if not isinstance(
+                    visual,
+                    dict
+            ):
+                continue
+
+            if (
+                visual.get("type")
+                == "image"
+            ):
+                first_image = visual
+                break
+
+        if not first_image:
+
+            print(
+                "NO IMAGE FOUND IN VISUAL PLAN:",
+                unit_lesson_id
+            )
+
+            return
+
+        result = (
+            generate_and_store_lesson_visual_image(
+                unit_lesson_id=
+                    unit_lesson_id,
+
+                content_version=
+                    content_version,
+
+                visual=
+                    first_image
+            )
+        )
+
+        print(
+            "FIRST LESSON VISUAL READY:",
+            result
+        )
+
+    except Exception as e:
+
+        print(
+            "FIRST LESSON VISUAL ERROR:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
 
 def add_signed_urls_to_lesson_audio(
         lesson_audio_json: dict | None
@@ -6473,6 +6679,11 @@ def get_or_generate_unit_lesson(
                     unit_lesson["id"]
                 )
 
+                background_tasks.add_task(
+                    generate_first_lesson_visual_background,
+                    unit_lesson["id"]
+                )
+            
             response_audio = None
 
             if (
@@ -6852,7 +7063,7 @@ def get_or_generate_unit_lesson(
             # נשאר זמנית כדי לא לשבור את הפרונט
             "lesson":
                 lesson_text,
- 
+
             # המבנה החדש
             "structured_lesson":
                 structured_lesson,
