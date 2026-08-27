@@ -17727,6 +17727,15 @@ function showLessonVisual(
   visual
 ){
 
+const generating =
+  document.getElementById(
+    "lessonVisualGenerating"
+  );
+
+if(generating){
+  generating.style.display = "none";
+}
+
   if(
     !visual
     ||
