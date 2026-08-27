@@ -38,6 +38,9 @@ UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
 LESSON_DIRECTOR_PROMPT_PATH = Path(
     "prompts/lesson_director_prompt.txt"
 )
+VISUAL_DIRECTOR_PROMPT_PATH = Path(
+    "prompts/iakids_visual_director_prompt.txt"
+)
 LEARNING_COACH_PROMPT_PATH = Path(
     "prompts/learning_coach_system_prompt.txt"
 )
@@ -244,6 +247,11 @@ if not LESSON_DIRECTOR_PROMPT_PATH.exists():
         f"Missing lesson director prompt file: "
         f"{LESSON_DIRECTOR_PROMPT_PATH}"
     )
+if not VISUAL_DIRECTOR_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing visual director prompt file: "
+        f"{VISUAL_DIRECTOR_PROMPT_PATH}"
+    )
 if not LEARNING_COACH_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing Learning Coach prompt file: "
@@ -275,6 +283,12 @@ UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE = (
 )
 LESSON_DIRECTOR_PROMPT_TEMPLATE = (
     LESSON_DIRECTOR_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+VISUAL_DIRECTOR_PROMPT_TEMPLATE = (
+    VISUAL_DIRECTOR_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -468,6 +482,19 @@ class DirectedLessonQuestion(BaseModel):
 class DirectedLessonResponse(BaseModel):
     lesson: list[DirectedLessonSegment]
     question: DirectedLessonQuestion
+
+class VisualDirectorItem(BaseModel):
+    order: int
+    trigger_text: str
+    type: str
+    visual_goal: str
+    source_text: str
+    generation_prompt: str
+
+
+class VisualDirectorResponse(BaseModel):
+    version: int = 1
+    visuals: list[VisualDirectorItem]
 
 # =====================================================
 # STRUCTURED LESSON MODELS
@@ -3936,6 +3963,61 @@ def build_universal_unit_lesson_prompt(
 def build_lesson_director_prompt(
         lesson_text: str
 ) -> str:
+    def build_visual_director_prompt(
+            unit_lesson: dict,
+            parent_lesson: dict,
+            lesson_text: str,
+            structured_lesson: dict
+    ) -> str:
+        runtime_context = {
+
+            "grade":
+                parent_lesson.get(
+                    "grade"
+                ),
+
+            "subject":
+                parent_lesson.get(
+                    "subject"
+                ),
+
+            "main_topic":
+                parent_lesson.get(
+                    "lesson_name"
+                ),
+
+            "unit_name":
+                unit_lesson.get(
+                    "unit_name"
+                ),
+
+            "lesson_name":
+                unit_lesson.get(
+                    "lesson_name"
+                ),
+
+            "learning_objective":
+                unit_lesson.get(
+                    "learning_objective"
+                ),
+
+            "lesson_text":
+                lesson_text,
+
+            "structured_lesson":
+                structured_lesson
+        }
+
+        return (
+                VISUAL_DIRECTOR_PROMPT_TEMPLATE
+                + "\n\n"
+                + "RUNTIME_CONTEXT:\n"
+                + json.dumps(
+            runtime_context,
+            ensure_ascii=False,
+            indent=2
+        )
+        )
 
     return (
         LESSON_DIRECTOR_PROMPT_TEMPLATE
@@ -6633,6 +6715,113 @@ def get_or_generate_unit_lesson(
             directed_lesson_data.model_dump()
         )
 
+        # =============================================
+        # VISUAL DIRECTOR
+        # מחליט אילו המחשות דרושות לשיעור
+        # ומתי להציג תמונה או וידאו
+        # =============================================
+
+        visual_director_prompt = (
+            build_visual_director_prompt(
+                unit_lesson=
+                unit_lesson,
+
+                parent_lesson=
+                parent_lesson,
+
+                lesson_text=
+                lesson_text,
+
+                structured_lesson=
+                structured_lesson
+            )
+        )
+
+        print(
+            "========== VISUAL DIRECTOR START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "lesson_name":
+                    unit_lesson.get(
+                        "lesson_name"
+                    ),
+
+                "lesson_text_length":
+                    len(
+                        lesson_text
+                        or ""
+                    )
+            }
+        )
+
+        visual_director_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            visual_director_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Analyze the lesson and create "
+                                "the visual media plan. "
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                VisualDirectorResponse
+            )
+        )
+
+        visual_director_data = (
+            visual_director_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not visual_director_data:
+            raise RuntimeError(
+                "Visual Director returned no response"
+            )
+
+        visual_plan = (
+            visual_director_data
+            .model_dump()
+        )
+
+        print(
+            "========== VISUAL DIRECTOR RESULT =========="
+        )
+
+        print(
+            json.dumps(
+                visual_plan,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
         lesson_json = {
 
             "generation_model":
@@ -6661,9 +6850,16 @@ def get_or_generate_unit_lesson(
                 lesson_text,
 
             # המבנה החדש
+            # המבנה החדש
             "structured_lesson":
-                structured_lesson
+                structured_lesson,
 
+            # תוכנית ההמחשות של Visual Director
+            "visual_director_model":
+                DEFAULT_OPENAI_MODEL,
+
+            "visual_plan":
+                visual_plan
         }
 
         # =============================================
