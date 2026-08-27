@@ -17891,51 +17891,10 @@ function showLessonVisual(
    VISUAL TRIGGER
 ===================================================== */
 
-function showVisualForLessonText(
-  paragraph
-){
-
-  const normalizeLessonVisualText = value => {
-
-    return String(
-      value || ""
-    )
-      /*
-        הסרת ניקוד
-      */
-      .normalize("NFD")
-      .replace(
-        /[\u0591-\u05C7]/g,
-        ""
-      )
-
-      /*
-        גרשיים / מקפים / סימני פיסוק
-      */
-      .replace(
-        /["'״׳.,!?;:()[\]{}…–—־]/g,
-        " "
-      )
-
-      /*
-        רווחים כפולים
-      */
-      .replace(
-        /\s+/g,
-        " "
-      )
-
-      .trim()
-      .toLowerCase();
-
-  };
-
+function showVisualForLessonText(paragraph){
 
   const text =
-    normalizeLessonVisualText(
-      paragraph
-    );
-
+    String(paragraph || "").trim();
 
   if(!text){
     return;
@@ -17950,39 +17909,27 @@ function showVisualForLessonText(
       : [];
 
 
+  if(!visuals.length){
+
+    console.log(
+      "NO LESSON VISUALS AVAILABLE"
+    );
+
+    return;
+  }
+
+
   console.log(
     "CHECK VISUAL FOR PARAGRAPH:",
     {
-      paragraph,
-      normalizedParagraph:
-        text,
-
-      availableVisuals:
-        visuals.map(
-          visual => ({
-            order:
-              visual.order,
-
-            trigger:
-              visual.trigger_text,
-
-            shown:
-              visual._shown,
-
-            hasUrl:
-              Boolean(
-                visual.url
-              )
-          })
-        )
+      paragraph:text,
+      visuals:visuals
     }
   );
 
 
   /*
-    =========================================
-    1. קודם התאמה לפי trigger_text
-    =========================================
+    1. קודם ננסה התאמה אמיתית ל-trigger.
   */
 
   let visual =
@@ -17995,32 +17942,52 @@ function showVisualForLessonText(
           item._shown
           ||
           !item.url
-          ||
-          !item.trigger_text
         ){
           return false;
         }
 
 
         const trigger =
-          normalizeLessonVisualText(
-            item.trigger_text
-          );
+          String(
+            item.trigger_text || ""
+          ).trim();
 
 
-        if(!trigger){
+        const source =
+          String(
+            item.source_text || ""
+          ).trim();
+
+
+        if(!trigger && !source){
           return false;
         }
 
 
         return (
-          text.includes(
+
+          (
             trigger
+            &&
+            (
+              text.includes(trigger)
+              ||
+              trigger.includes(text)
+            )
           )
+
           ||
-          trigger.includes(
-            text
+
+          (
+            source
+            &&
+            (
+              source.includes(text)
+              ||
+              text.includes(source)
+            )
           )
+
         );
 
       }
@@ -18028,117 +17995,31 @@ function showVisualForLessonText(
 
 
   /*
-    =========================================
-    2. אם trigger_text לא נמצא,
-       מנסים source_text.
+    2. לא מצאנו התאמה?
+       אל נתקע את השיעור.
 
-       זה חשוב כי Visual Director יכול לבחור
-       trigger קצר שנחתך אחרת בפסקאות.
-    =========================================
+       ניקח את הוויזואל הבא
+       שעוד לא הוצג.
   */
 
   if(!visual){
 
     visual =
-      visuals.find(
-        item => {
-
-          if(
-            !item
-            ||
-            item._shown
-            ||
-            !item.url
-            ||
-            !item.source_text
-          ){
-            return false;
-          }
-
-
-          const source =
-            normalizeLessonVisualText(
-              item.source_text
-            );
-
-
-          if(!source){
-            return false;
-          }
-
-
-          /*
-            התאמה מלאה
-          */
-
-          if(
-            text.includes(
-              source
-            )
-            ||
-            source.includes(
-              text
-            )
-          ){
-            return true;
-          }
-
-
-          /*
-            התאמה לפי מילים משותפות.
-          */
-
-          const paragraphWords =
-            text
-              .split(" ")
-              .filter(
-                word =>
-                  word.length >= 3
-              );
-
-
-          const sourceWords =
-            source
-              .split(" ")
-              .filter(
-                word =>
-                  word.length >= 3
-              );
-
-
-          if(
-            paragraphWords.length === 0
-            ||
-            sourceWords.length === 0
-          ){
-            return false;
-          }
-
-
-          const commonWords =
-            sourceWords.filter(
-              word =>
-                paragraphWords.includes(
-                  word
-                )
-            );
-
-
-          const overlap =
-            commonWords.length
-            /
-            Math.min(
-              paragraphWords.length,
-              sourceWords.length
-            );
-
-
-          return (
-            overlap >= 0.45
-          );
-
-        }
-      );
+      visuals
+        .filter(
+          item =>
+            item
+            &&
+            !item._shown
+            &&
+            item.url
+        )
+        .sort(
+          (a,b) =>
+            Number(a.order || 0)
+            -
+            Number(b.order || 0)
+        )[0];
 
   }
 
@@ -18146,37 +18027,28 @@ function showVisualForLessonText(
   if(!visual){
 
     console.log(
-      "NO VISUAL MATCH FOR PARAGRAPH:",
-      paragraph
+      "NO MORE LESSON VISUALS TO SHOW"
     );
 
     return;
-
   }
 
 
   /*
-    מסמנים רק לאחר שנמצאה
-    תמונה אמיתית עם URL.
+    מסמנים לפני ההצגה
+    כדי שלא יוצג שוב.
   */
 
-  visual._shown =
-    true;
+  visual._shown = true;
 
 
   console.log(
-    "LESSON VISUAL MATCHED:",
+    "LESSON VISUAL DISPLAYED:",
     {
-      order:
-        visual.order,
-
+      order:visual.order,
       trigger_text:
         visual.trigger_text,
-
-      source_text:
-        visual.source_text,
-
-      paragraph
+      url:visual.url
     }
   );
 
