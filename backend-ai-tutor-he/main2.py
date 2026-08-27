@@ -41,6 +41,9 @@ LESSON_DIRECTOR_PROMPT_PATH = Path(
 LEARNING_COACH_PROMPT_PATH = Path(
     "prompts/learning_coach_system_prompt.txt"
 )
+CURRICULUM_BUILDER_PROMPT_PATH = Path(
+    "prompts/iakids_curriculum_builder_system_prompt.txt"
+)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -246,6 +249,11 @@ if not LEARNING_COACH_PROMPT_PATH.exists():
         f"Missing Learning Coach prompt file: "
         f"{LEARNING_COACH_PROMPT_PATH}"
     )
+if not CURRICULUM_BUILDER_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Curriculum Builder prompt file: "
+        f"{CURRICULUM_BUILDER_PROMPT_PATH}"
+    )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing homework vision prompt file: "
@@ -273,6 +281,12 @@ LESSON_DIRECTOR_PROMPT_TEMPLATE = (
 )
 LEARNING_COACH_PROMPT_TEMPLATE = (
     LEARNING_COACH_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+CURRICULUM_BUILDER_PROMPT_TEMPLATE = (
+    CURRICULUM_BUILDER_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -337,6 +351,48 @@ class TutorChatRequest(BaseModel):
     message: str
     kid_id: str
 
+class CurriculumLesson(BaseModel):
+    name: str
+
+
+class CurriculumUnit(BaseModel):
+    name: str
+    lessons: list[CurriculumLesson]
+
+
+class CurriculumTopic(BaseModel):
+    name: str
+    units: list[CurriculumUnit]
+
+
+class CurriculumHierarchy(BaseModel):
+    subject: str
+    topics: list[CurriculumTopic]
+
+
+class CurriculumBuilderChatRequest(BaseModel):
+    kid_id: str
+    message: str
+
+    custom_subject_id: str | None = None
+
+    history: list[dict] | None = None
+
+class CurriculumApproveRequest(BaseModel):
+    kid_id: str
+    custom_subject_id: str
+    curriculum_id: str
+
+class CurriculumBuilderAIResponse(BaseModel):
+    reply: str
+
+    subject: str | None = None
+
+    focus_topic: str | None = None
+
+    hierarchy: CurriculumHierarchy | None = None
+
+    ready_to_create: bool = False
 
 class TutorTTSRequest(BaseModel):
     text: str
@@ -427,7 +483,10 @@ class UnitLessonRequest(BaseModel):
 
 class ActiveLessonStateRequest(BaseModel):
     kid_id: str
-
+class ResetUnitLessonRequest(BaseModel):
+    kid_id: str
+    lesson_id: int
+    unit_lesson_id: int
 class StructuredLessonRequest(
     BaseModel
 ):
@@ -643,6 +702,454 @@ def get_child_by_id(user_id: str, kid_id: str):
         raise HTTPException(status_code=404, detail="Child not found")
 
     return res.data
+
+# =====================================================
+# CUSTOM CURRICULUM HELPERS
+# =====================================================
+
+def get_custom_subject(
+        user_id: str,
+        kid_id: str,
+        custom_subject_id: str
+):
+    res = (
+        sb.table(
+            "kid_custom_subjects"
+        )
+        .select("*")
+        .eq(
+            "id",
+            custom_subject_id
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Custom subject not found"
+        )
+
+    return res.data[0]
+
+def create_custom_subject(
+        user_id: str,
+        kid_id: str,
+        subject_name: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    clean_subject_name = str(
+        subject_name or ""
+    ).strip()
+
+    if not clean_subject_name:
+        raise ValueError(
+            "subject_name is required"
+        )
+
+    # =============================================
+    # CHECK IF SUBJECT ALREADY EXISTS FOR THIS KID
+    # =============================================
+
+    existing_res = (
+        sb.table(
+            "kid_custom_subjects"
+        )
+        .select("*")
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "subject_name",
+            clean_subject_name
+        )
+        .in_(
+            "status",
+            ["draft", "active"]
+        )
+        .order(
+            "created_at",
+            desc=True
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if existing_res.data:
+
+        existing_subject = (
+            existing_res.data[0]
+        )
+
+        print(
+            "REUSING CUSTOM SUBJECT:",
+            existing_subject["id"],
+            clean_subject_name
+        )
+
+        return existing_subject
+
+    # =============================================
+    # CREATE ONLY IF IT DOES NOT EXIST
+    # =============================================
+
+    res = (
+        sb.table(
+            "kid_custom_subjects"
+        )
+        .insert({
+            "user_id":
+                user_id,
+
+            "kid_id":
+                kid_id,
+
+            "subject_name":
+                clean_subject_name,
+
+            "status":
+                "draft",
+
+            "created_by":
+                "parent_ai_builder",
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+        .execute()
+    )
+
+    if not res.data:
+        raise RuntimeError(
+            "Failed to create custom subject"
+        )
+
+    return res.data[0]
+
+
+def get_current_custom_curriculum(
+        custom_subject_id: str
+):
+    res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .select("*")
+        .eq(
+            "custom_subject_id",
+            custom_subject_id
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return None
+
+    return res.data[0]
+
+
+def create_custom_curriculum(
+        user_id: str,
+        kid_id: str,
+        custom_subject_id: str,
+        curriculum_json: dict,
+        ready_to_create: bool,
+        parent_message: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    curriculum_status = (
+        "ready_for_approval"
+        if ready_to_create
+        else "building"
+    )
+
+    # =============================================
+    # CURRENT VERSION
+    # =============================================
+
+    curriculum_res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .insert({
+            "user_id":
+                user_id,
+
+            "kid_id":
+                kid_id,
+
+            "custom_subject_id":
+                custom_subject_id,
+
+            "curriculum_json":
+                curriculum_json,
+
+            "version":
+                1,
+
+            "status":
+                curriculum_status,
+
+            "last_change_type":
+                "created",
+
+            "last_change_summary":
+                "Initial curriculum created by AI",
+
+            "updated_by":
+                "ai",
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+        .execute()
+    )
+
+    if not curriculum_res.data:
+        raise RuntimeError(
+            "Failed to create custom curriculum"
+        )
+
+    curriculum = (
+        curriculum_res.data[0]
+    )
+
+    # =============================================
+    # VERSION 1 SNAPSHOT
+    # =============================================
+
+    sb.table(
+        "kid_custom_curriculum_versions"
+    ).insert({
+        "user_id":
+            user_id,
+
+        "kid_id":
+            kid_id,
+
+        "custom_subject_id":
+            custom_subject_id,
+
+        "curriculum_id":
+            curriculum["id"],
+
+        "version":
+            1,
+
+        "curriculum_json":
+            curriculum_json,
+
+        "change_type":
+            "created",
+
+        "change_summary":
+            "Initial curriculum created by AI",
+
+        "changed_by":
+            "ai",
+
+        "parent_message":
+            parent_message,
+
+        "created_at":
+            now_iso
+    }).execute()
+
+    return curriculum
+
+
+def update_custom_curriculum(
+        user_id: str,
+        kid_id: str,
+        custom_subject: dict,
+        curriculum: dict,
+        curriculum_json: dict,
+        subject_name: str | None,
+        ready_to_create: bool,
+        parent_message: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    current_version = int(
+        curriculum.get(
+            "version"
+        )
+        or 1
+    )
+
+    new_version = (
+        current_version + 1
+    )
+
+    curriculum_status = (
+        "ready_for_approval"
+        if ready_to_create
+        else "building"
+    )
+
+    # =============================================
+    # UPDATE SUBJECT NAME IF AI REFINED IT
+    # =============================================
+
+    clean_subject_name = str(
+        subject_name or ""
+    ).strip()
+
+    if (
+            clean_subject_name
+            and
+            clean_subject_name
+            != custom_subject.get(
+                "subject_name"
+            )
+    ):
+        sb.table(
+            "kid_custom_subjects"
+        ).update({
+            "subject_name":
+                clean_subject_name,
+
+            "updated_at":
+                now_iso
+        }).eq(
+            "id",
+            custom_subject["id"]
+        ).eq(
+            "user_id",
+            user_id
+        ).execute()
+
+    # =============================================
+    # UPDATE CURRENT CURRICULUM
+    # =============================================
+
+    updated_res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .update({
+            "curriculum_json":
+                curriculum_json,
+
+            "version":
+                new_version,
+
+            "status":
+                curriculum_status,
+
+            "last_change_type":
+                "ai_update",
+
+            "last_change_summary":
+                "Curriculum updated from parent conversation",
+
+            "updated_by":
+                "ai",
+
+            "updated_at":
+                now_iso
+        })
+        .eq(
+            "id",
+            curriculum["id"]
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .execute()
+    )
+
+    if not updated_res.data:
+        raise RuntimeError(
+            "Failed to update custom curriculum"
+        )
+
+    updated_curriculum = (
+        updated_res.data[0]
+    )
+
+    # =============================================
+    # SAVE NEW VERSION SNAPSHOT
+    # =============================================
+
+    sb.table(
+        "kid_custom_curriculum_versions"
+    ).insert({
+        "user_id":
+            user_id,
+
+        "kid_id":
+            kid_id,
+
+        "custom_subject_id":
+            custom_subject["id"],
+
+        "curriculum_id":
+            curriculum["id"],
+
+        "version":
+            new_version,
+
+        "curriculum_json":
+            curriculum_json,
+
+        "change_type":
+            "ai_update",
+
+        "change_summary":
+            "Curriculum updated from parent conversation",
+
+        "changed_by":
+            "ai",
+
+        "parent_message":
+            parent_message,
+
+        "created_at":
+            now_iso
+    }).execute()
+
+    return updated_curriculum
 
 def get_gender_placeholders(
         child: dict
@@ -1502,7 +2009,8 @@ def get_or_create_lesson_progress(
         kid_id: str,
         lesson: dict,
         session_id: str | None = None,
-        is_lesson_start: bool = False
+        is_lesson_start: bool = False,
+        unit_lesson_id: int | None = None
 ):
     lesson_id = lesson["id"]
 
@@ -1669,6 +2177,9 @@ def get_or_create_lesson_progress(
             "lesson_id":
                 lesson_id,
 
+            "current_unit_lesson_id":
+                unit_lesson_id,
+
             "status":
                 "in_progress",
 
@@ -1735,39 +2246,42 @@ def get_or_create_lesson_progress(
 def get_recent_lesson_history_for_llm(
         kid_id: str,
         lesson_id: int,
+        unit_lesson_id: int | None = None,
         limit: int = 8
 ):
-    res = (
-
+    query = (
         sb.table(
             "kid_lesson_history"
         )
-
         .select(
             "role, content"
         )
-
         .eq(
             "kid_id",
             kid_id
         )
-
         .eq(
             "lesson_id",
             lesson_id
         )
+    )
 
+    if unit_lesson_id is not None:
+        query = query.eq(
+            "unit_lesson_id",
+            unit_lesson_id
+        )
+
+    res = (
+        query
         .order(
             "created_at",
             desc=True
         )
-
         .limit(
             limit
         )
-
         .execute()
-
     )
 
     messages = list(
@@ -1777,27 +2291,22 @@ def get_recent_lesson_history_for_llm(
     )
 
     return [
-
         {
-
             "role":
                 message["role"],
 
             "content":
                 message["content"]
-
         }
 
-        for message
-        in messages
+        for message in messages
 
         if message.get(
             "role"
         ) in (
-               "user",
-               "assistant"
-           )
-
+            "user",
+            "assistant"
+        )
     ]
 
 
@@ -1834,6 +2343,7 @@ def should_show_answering_hint(
 def save_lesson_history(
         kid_id: str,
         lesson_id: int,
+        unit_lesson_id: int | None,
         session_id: str,
         objective_index: int | None,
         user_content: str | None,
@@ -1858,6 +2368,9 @@ def save_lesson_history(
 
             "lesson_id":
                 lesson_id,
+
+            "unit_lesson_id":
+                unit_lesson_id,
 
             "session_id":
                 session_id,
@@ -1890,6 +2403,9 @@ def save_lesson_history(
 
         "lesson_id":
             lesson_id,
+
+        "unit_lesson_id":
+            unit_lesson_id,
 
         "session_id":
             session_id,
@@ -3515,6 +4031,602 @@ def normalize_universal_lesson_visuals(
 
 
     return normalized_sequence
+
+# =====================================================
+# UNIVERSAL LESSON MEDIA
+# Shared images / videos for all children
+# =====================================================
+
+LESSON_MEDIA_BUCKET = "lesson-media"
+
+LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
+
+# בשלב הראשון נייצר רק Hero Image אחת לכל תת-שיעור
+LESSON_MEDIA_HERO_VERSION = 1
+
+
+def get_lesson_media_storage_path(
+        unit_lesson_id: int,
+        media_type: str = "hero"
+) -> str:
+    """
+    נתיב קבוע למדיה של תת-שיעור.
+
+    אותו unit_lesson_id תמיד יוביל
+    לאותו קובץ, ולכן ילדים אחרים
+    יוכלו להשתמש באותה מדיה.
+    """
+
+    if media_type == "hero":
+        return (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"hero_v{LESSON_MEDIA_HERO_VERSION}.png"
+        )
+
+    raise ValueError(
+        f"Unsupported lesson media type: "
+        f"{media_type}"
+    )
+
+
+def create_lesson_media_signed_url(
+        storage_path: str
+) -> str:
+    """
+    יוצר URL זמני לקובץ שכבר נמצא
+    ב-Supabase Storage.
+    """
+
+    signed_response = (
+        sb.storage
+        .from_(
+            LESSON_MEDIA_BUCKET
+        )
+        .create_signed_url(
+            storage_path,
+            LESSON_MEDIA_URL_EXPIRY_SECONDS
+        )
+    )
+
+    signed_url = None
+
+    if isinstance(
+            signed_response,
+            dict
+    ):
+        signed_url = (
+            signed_response.get(
+                "signedURL"
+            )
+            or signed_response.get(
+                "signedUrl"
+            )
+            or signed_response.get(
+                "signed_url"
+            )
+        )
+
+    if not signed_url:
+        raise RuntimeError(
+            "Failed to create signed URL "
+            f"for lesson media: {storage_path}"
+        )
+
+    return signed_url
+
+
+def build_lesson_hero_image_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> str:
+    """
+    Prompt אוניברסלי לתמונה הראשונה של השיעור.
+
+    אין כאן מידע אישי על הילד.
+    לכן התמונה יכולה להישמר ולהיות
+    משותפת לכל הילדים שלומדים את אותו שיעור.
+    """
+
+    grade = str(
+        parent_lesson.get(
+            "grade"
+        )
+        or ""
+    ).strip()
+
+    subject = str(
+        parent_lesson.get(
+            "subject"
+        )
+        or ""
+    ).strip()
+
+    parent_lesson_name = str(
+        parent_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    ).strip()
+
+    unit_name = str(
+        unit_lesson.get(
+            "unit_name"
+        )
+        or ""
+    ).strip()
+
+    lesson_name = str(
+        unit_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    ).strip()
+
+    learning_objective = str(
+        unit_lesson.get(
+            "learning_objective"
+        )
+        or ""
+    ).strip()
+
+    return f"""
+Create one premium educational HERO illustration for a school lesson.
+
+CURRICULUM CONTEXT:
+Grade: {grade}
+Subject: {subject}
+Main topic: {parent_lesson_name}
+Unit: {unit_name}
+Lesson: {lesson_name}
+Learning objective: {learning_objective}
+
+IMPORTANT CONTEXT RULE:
+The lesson title must NEVER be interpreted in isolation.
+
+First understand the lesson through its complete curriculum context:
+Subject -> Main topic -> Unit -> Lesson -> Learning objective.
+
+The illustration must clearly belong to the MAIN TOPIC and UNIT,
+while visually introducing the specific LESSON.
+
+If the lesson title is broad or ambiguous, use the Main topic,
+Unit and Learning objective to determine its correct meaning.
+
+For example:
+If a lesson is called "What is a system?" and it belongs to a unit
+about ecosystems, the image should explain the idea of a system
+through an ecological context: living and non-living elements
+interacting, influencing and depending on one another.
+
+Do NOT interpret such a lesson as a mechanical system,
+computer system, gears, machinery or another unrelated type
+of system unless the curriculum context specifically requires it.
+
+VISUAL GOAL:
+Create one immediately understandable visual scene that helps
+the student intuitively understand the central concept of the lesson
+before the full lesson explanation begins.
+
+The image must TEACH the concept visually,
+not simply decorate or illustrate the lesson title.
+
+The visual should prioritize the actual educational concept
+described by the curriculum context and learning objective.
+
+REQUIREMENTS:
+- appropriate for a student in grade {grade}
+- educational and scientifically accurate
+- one clear central educational concept
+- premium modern 3D educational illustration
+- visually rich and engaging but not childish
+- realistic enough to support learning
+- clear visual relationships between important elements
+- cinematic soft lighting
+- clean professional composition
+- suitable for a large lesson presentation area
+- landscape composition
+- no written text
+- no labels
+- no captions
+- no logos
+- no watermark
+""".strip()
+
+# =====================================================
+# GEMINI LESSON HERO IMAGE
+# =====================================================
+
+LESSON_IMAGE_MODEL = (
+    "gemini-3.1-flash-image"
+)
+
+
+def generate_lesson_hero_image_bytes(
+        prompt: str
+) -> tuple[bytes, str]:
+    """
+    יוצר תמונת Hero אחת דרך Gemini.
+
+    מחזיר:
+    - bytes של התמונה
+    - MIME type
+    """
+
+    clean_prompt = str(
+        prompt or ""
+    ).strip()
+
+    if not clean_prompt:
+        raise RuntimeError(
+            "Lesson hero image prompt is empty"
+        )
+
+    print(
+        "========== LESSON IMAGE GENERATION START ==========",
+        {
+            "model":
+                LESSON_IMAGE_MODEL,
+
+            "prompt_length":
+                len(clean_prompt)
+        }
+    )
+
+    started_at = (
+        time.perf_counter()
+    )
+
+    response = (
+        gemini_client
+        .models
+        .generate_content(
+
+            model=
+                LESSON_IMAGE_MODEL,
+
+            contents=
+                clean_prompt,
+
+            config=
+            types.GenerateContentConfig(
+
+                response_modalities=[
+                    "IMAGE"
+                ],
+
+                image_config=
+                types.ImageConfig(
+                    aspect_ratio="16:9",
+                    image_size="1K"
+                )
+            )
+        )
+    )
+
+    elapsed_ms = round(
+        (
+            time.perf_counter()
+            - started_at
+        )
+        * 1000
+    )
+
+    print(
+        "========== LESSON IMAGE GEMINI RESPONSE ==========",
+        {
+            "elapsed_ms":
+                elapsed_ms
+        }
+    )
+
+    # =================================================
+    # FIND IMAGE PART
+    # =================================================
+
+    response_parts = (
+        getattr(
+            response,
+            "parts",
+            None
+        )
+        or []
+    )
+
+    for part in response_parts:
+
+        inline_data = getattr(
+            part,
+            "inline_data",
+            None
+        )
+
+        if inline_data is None:
+            continue
+
+        image_data = getattr(
+            inline_data,
+            "data",
+            None
+        )
+
+        if not image_data:
+            continue
+
+        mime_type = (
+            getattr(
+                inline_data,
+                "mime_type",
+                None
+            )
+            or
+            "image/png"
+        )
+
+        # בחלק מגרסאות SDK
+        # data מגיע כ-bytes.
+        #
+        # באחרות הוא יכול להגיע
+        # כ-base64 string.
+        if isinstance(
+                image_data,
+                str
+        ):
+
+            image_bytes = (
+                base64.b64decode(
+                    image_data
+                )
+            )
+
+        else:
+
+            image_bytes = bytes(
+                image_data
+            )
+
+        if not image_bytes:
+            continue
+
+        print(
+            "========== LESSON IMAGE GENERATED ==========",
+            {
+                "elapsed_ms":
+                    elapsed_ms,
+
+                "mime_type":
+                    mime_type,
+
+                "bytes":
+                    len(image_bytes)
+            }
+        )
+
+        return (
+            image_bytes,
+            mime_type
+        )
+
+    raise RuntimeError(
+        "Gemini returned no image data"
+    )
+
+
+# =====================================================
+# GENERATE + STORE HERO IMAGE
+# =====================================================
+
+def generate_and_store_lesson_hero_image(
+        unit_lesson_id: int
+) -> dict:
+    """
+    יוצר Hero Image אוניברסלית
+    עבור unit lesson אחד.
+
+    התמונה:
+    1. נוצרת דרך Gemini
+    2. עולה ל-Supabase Storage
+    3. מקבלת Signed URL
+    4. מוחזרת כ-metadata
+
+    אין כאן kid_id.
+    המדיה שייכת לשיעור עצמו.
+    """
+
+    print(
+        "LESSON HERO IMAGE START:",
+        unit_lesson_id
+    )
+
+    # =================================================
+    # LOAD UNIT LESSON
+    # =================================================
+
+    unit_lesson = get_unit_lesson(
+        unit_lesson_id
+    )
+
+    # =================================================
+    # LOAD PARENT LESSON
+    # =================================================
+
+    parent_lesson = (
+        get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+    )
+
+    # =================================================
+    # BUILD EDUCATIONAL PROMPT
+    # =================================================
+
+    image_prompt = (
+        build_lesson_hero_image_prompt(
+
+            unit_lesson=
+                unit_lesson,
+
+            parent_lesson=
+                parent_lesson
+        )
+    )
+
+    print(
+        "LESSON HERO IMAGE PROMPT:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "lesson_name":
+                unit_lesson.get(
+                    "lesson_name"
+                ),
+
+            "prompt":
+                image_prompt
+        }
+    )
+
+    # =================================================
+    # GEMINI
+    # =================================================
+
+    image_bytes, mime_type = (
+        generate_lesson_hero_image_bytes(
+            image_prompt
+        )
+    )
+
+    # =================================================
+    # STORAGE PATH
+    # =================================================
+
+    storage_path = (
+        get_lesson_media_storage_path(
+            unit_lesson_id=
+                unit_lesson_id,
+
+            media_type=
+                "hero"
+        )
+    )
+
+    # =================================================
+    # UPLOAD TO SUPABASE STORAGE
+    # =================================================
+
+    print(
+        "LESSON HERO IMAGE UPLOAD:",
+        {
+            "bucket":
+                LESSON_MEDIA_BUCKET,
+
+            "path":
+                storage_path,
+
+            "bytes":
+                len(image_bytes)
+        }
+    )
+
+    sb.storage.from_(
+        LESSON_MEDIA_BUCKET
+    ).upload(
+
+        path=
+            storage_path,
+
+        file=
+            image_bytes,
+
+        file_options={
+            "content-type":
+                mime_type,
+
+            # אם אנחנו מייצרים גרסה מחדש,
+            # הקובץ הקודם יוחלף.
+            "upsert":
+                "true"
+        }
+    )
+
+    # =================================================
+    # SIGNED URL
+    # =================================================
+
+    signed_url = (
+        create_lesson_media_signed_url(
+            storage_path
+        )
+    )
+
+    generated_at = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    result = {
+
+        "type":
+            "image",
+
+        "role":
+            "hero",
+
+        "version":
+            LESSON_MEDIA_HERO_VERSION,
+
+        "provider":
+            "gemini",
+
+        "model":
+            LESSON_IMAGE_MODEL,
+
+        "bucket":
+            LESSON_MEDIA_BUCKET,
+
+        "storage_path":
+            storage_path,
+
+        "mime_type":
+            mime_type,
+
+        "aspect_ratio":
+            "16:9",
+
+        "image_size":
+            "1K",
+
+        "generated_at":
+            generated_at,
+
+        # זה זמני בלבד.
+        # את ה-URL עצמו לא נשמור ב-DB.
+        "url":
+            signed_url,
+
+        "url_expires_in_seconds":
+            LESSON_MEDIA_URL_EXPIRY_SECONDS
+    }
+
+    print(
+        "LESSON HERO IMAGE READY:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "storage_path":
+                storage_path,
+
+            "generated_at":
+                generated_at
+        }
+    )
+
+    return result
 
 # =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
@@ -5826,6 +6938,177 @@ def get_or_generate_unit_lesson(
             status_code=500,
             detail="Unit lesson generation failed"
         )
+
+# =====================================================
+# UNIT LESSON HERO IMAGE
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/hero-image"
+)
+def get_or_generate_unit_lesson_hero_image(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Lesson does not match child grade"
+            )
+
+        # =============================================
+        # STORAGE PATH
+        # =============================================
+
+        storage_path = (
+            get_lesson_media_storage_path(
+                unit_lesson_id=
+                    unit_lesson["id"],
+                media_type="hero"
+            )
+        )
+
+        # =============================================
+        # CACHE CHECK
+        #
+        # קודם מנסים לקבל URL לקובץ קיים.
+        # אם הוא קיים — אין קריאת Gemini.
+        # =============================================
+
+        try:
+
+            signed_url = (
+                create_lesson_media_signed_url(
+                    storage_path
+                )
+            )
+
+            print(
+                "LESSON HERO CACHE HIT:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+                    "storage_path":
+                        storage_path
+                }
+            )
+
+            return {
+                "success": True,
+                "source": "cache",
+                "unit_lesson_id":
+                    unit_lesson["id"],
+                "hero_image": {
+                    "type": "image",
+                    "role": "hero",
+                    "storage_path":
+                        storage_path,
+                    "url":
+                        signed_url
+                }
+            }
+
+        except Exception as cache_error:
+
+            print(
+                "LESSON HERO CACHE MISS:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+                    "error":
+                        repr(cache_error)
+                }
+            )
+
+        # =============================================
+        # GENERATE
+        # =============================================
+
+        hero_image = (
+            generate_and_store_lesson_hero_image(
+                unit_lesson["id"]
+            )
+        )
+
+        return {
+            "success": True,
+            "source": "generated",
+            "unit_lesson_id":
+                unit_lesson["id"],
+            "hero_image":
+                hero_image
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "UNIT LESSON HERO IMAGE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Lesson hero image generation failed"
+        )
+
 @app.post(
     "/api/tutor/unit-lesson/audio"
 )
@@ -6211,6 +7494,7 @@ def run_learning_coach(
         get_recent_lesson_history_for_llm(
             kid_id=child["id"],
             lesson_id=lesson["id"],
+            unit_lesson_id=unit_lesson["id"],
             limit=12
         )
     )
@@ -6517,6 +7801,7 @@ def run_learning_coach(
     save_lesson_history(
         kid_id=child["id"],
         lesson_id=lesson["id"],
+        unit_lesson_id=unit_lesson["id"],
         session_id=session_id,
         objective_index=None,
         user_content=message,
@@ -6818,12 +8103,150 @@ def structured_lesson(
                 session_id=session_id,
 
                 is_lesson_start=
-                is_lesson_start
+                is_lesson_start,
+
+                unit_lesson_id=
+                body.unit_lesson_id
 
             )
 
         )
+        # =============================================
+        # UNIT LESSON SWITCH
+        #
+        # kid_lesson_progress הוא ברמת הנושא הראשי,
+        # ולכן חייבים לזהות מעבר לשיעור פנימי חדש.
+        # =============================================
 
+        requested_unit_lesson_id = (
+            int(body.unit_lesson_id)
+            if body.unit_lesson_id
+            else None
+        )
+
+        stored_unit_lesson_id = (
+            int(
+                progress.get(
+                    "current_unit_lesson_id"
+                )
+                or 0
+            )
+            or None
+        )
+
+        is_new_unit_lesson = (
+            requested_unit_lesson_id is not None
+            and requested_unit_lesson_id
+            != stored_unit_lesson_id
+        )
+
+        if is_new_unit_lesson:
+
+            now_iso = (
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+            )
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    # תת־השיעור החדש
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    # מתחילים זרימה חדשה
+                    "current_stage":
+                        LESSON_STAGE_INTRO,
+
+                    "current_flow_step":
+                        0,
+
+                    "flow_state":
+                        {},
+
+                    "status":
+                        "in_progress",
+
+                    # מאפסים את תוצאת תת־השיעור הקודם
+                    "progress_percent":
+                        0,
+
+                    "mastery_score":
+                        0,
+
+                    "current_objective_index":
+                        1,
+
+                    "total_interactions":
+                        0,
+
+                    "hints_used":
+                        0,
+
+                    "consecutive_successes":
+                        0,
+
+                    "consecutive_failures":
+                        0,
+
+                    "last_evaluation":
+                        None,
+
+                    "last_error_type":
+                        None,
+
+                    "completed_at":
+                        None,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
+
+            if not progress_update.data:
+                raise RuntimeError(
+                    "Failed to switch unit lesson"
+                )
+
+            progress = progress_update.data[0]
+
+            print(
+                "UNIT LESSON PROGRESS SWITCHED:",
+                {
+                    "kid_id":
+                        child["id"],
+
+                    "lesson_id":
+                        lesson["id"],
+
+                    "previous_unit_lesson_id":
+                        stored_unit_lesson_id,
+
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    "current_stage":
+                        progress.get(
+                            "current_stage"
+                        ),
+
+                    "status":
+                        progress.get(
+                            "status"
+                        )
+                }
+            )
         # =============================================
         # LESSON MODE
         #
@@ -6837,13 +8260,14 @@ def structured_lesson(
         # =============================================
 
         review_mode = (
+            progress.get(
+                "status"
+            )
+            == "completed"
 
-                progress.get(
-                    "status"
-                )
+            and
 
-                == "completed"
-
+            not is_new_unit_lesson
         )
 
         # =============================================
@@ -7107,6 +8531,9 @@ def structured_lesson(
 
                 lesson_id=
                 lesson["id"],
+
+                unit_lesson_id=
+                body.unit_lesson_id,
 
                 limit=8
 
@@ -7619,6 +9046,9 @@ def structured_lesson(
             lesson_id=
             lesson["id"],
 
+            unit_lesson_id=
+            body.unit_lesson_id,
+
             session_id=
             session_id,
 
@@ -7859,7 +9289,442 @@ def structured_lesson(
 
         )
 
+# =====================================================
+# RESET UNIT LESSON PROGRESS
+# =====================================================
 
+@app.post(
+    "/api/tutor/reset-unit-lesson"
+)
+def reset_unit_lesson(
+        body: ResetUnitLessonRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LESSON VALIDATION
+        # =============================================
+
+        lesson = get_learning_lesson(
+            body.lesson_id
+        )
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        if (
+                int(
+                    unit_lesson.get(
+                        "learning_lesson_id"
+                    )
+                    or 0
+                )
+                !=
+                int(
+                    lesson.get(
+                        "id"
+                    )
+                    or 0
+                )
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Unit lesson does not belong "
+                    "to the selected lesson"
+                )
+            )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            lesson.get("grade")
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # DELETE LEARNING COACH SESSIONS
+        #
+        # רק עבור הילד ותת־השיעור הנוכחי
+        # =============================================
+
+        coach_delete = (
+            sb.table(
+                "learning_coach_sessions"
+            )
+            .delete()
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # DELETE UNIT LESSON HISTORY
+        # =============================================
+
+        history_delete = (
+            sb.table(
+                "kid_lesson_history"
+            )
+            .delete()
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # RESET MAIN PROGRESS ROW
+        #
+        # kid_lesson_progress היא רשומה אחת לנושא,
+        # לכן לא מוחקים אותה אלא מאפסים אותה
+        # ומכוונים לתת־השיעור שנבחר.
+        # =============================================
+
+        progress_res = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .select("*")
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        progress = None
+
+        if progress_res.data:
+
+            progress_id = (
+                progress_res.data[0]["id"]
+            )
+            objectives = (
+                    lesson.get(
+                        "learning_objectives"
+                    )
+                    or []
+            )
+
+            reset_objectives_progress = []
+
+            for index, _ in enumerate(
+                    objectives,
+                    start=1
+            ):
+                reset_objectives_progress.append({
+                    "objective_index":
+                        index,
+
+                    "score":
+                        0,
+
+                    "highest_difficulty_reached":
+                        0,
+
+                    "evidence_count":
+                        0,
+
+                    "evidence_by_level": {
+                        "1": 0,
+                        "2": 0,
+                        "3": 0,
+                        "4": 0,
+                        "5": 0
+                    }
+                })
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "current_stage":
+                        LESSON_STAGE_INTRO,
+
+                    "current_flow_step":
+                        0,
+
+                    "flow_state":
+                        {},
+
+                    "status":
+                        "in_progress",
+
+                    "progress_percent":
+                        0,
+
+                    "mastery_score":
+                        0,
+
+                    "current_objective_index":
+                        1,
+
+                    "objectives_progress":
+                        reset_objectives_progress,
+
+                    "total_interactions":
+                        0,
+
+                    "attempts_count":
+                        0,
+
+                    "hints_used":
+                        0,
+
+                    "consecutive_successes":
+                        0,
+
+                    "consecutive_failures":
+                        0,
+
+                    "last_evaluation":
+                        None,
+
+                    "last_error_type":
+                        None,
+
+                    "completed_at":
+                        None,
+
+                    "xp_earned":
+                        0,
+
+                    "stars_earned":
+                        0,
+
+                    "last_session_id":
+                        None,
+
+                    "started_at":
+                        now_iso,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress_id
+                )
+                .execute()
+            )
+
+            if progress_update.data:
+                progress = (
+                    progress_update.data[0]
+                )
+
+        # =============================================
+        # DEBUG
+        # =============================================
+
+        print(
+            "UNIT LESSON RESET COMPLETED:",
+            json.dumps(
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "lesson_id":
+                        lesson["id"],
+
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "coach_rows_deleted":
+                        len(
+                            coach_delete.data
+                            or []
+                        ),
+
+                    "history_rows_deleted":
+                        len(
+                            history_delete.data
+                            or []
+                        ),
+
+                    "progress_reset":
+                        progress is not None,
+
+                    "lesson_content_deleted":
+                        False,
+
+                    "lesson_audio_deleted":
+                        False
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        return {
+            "success": True,
+
+            "kid_id":
+                child["id"],
+
+            "lesson_id":
+                lesson["id"],
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "reset": {
+                "learning_coach_sessions":
+                    True,
+
+                "lesson_history":
+                    True,
+
+                "lesson_progress":
+                    True
+            },
+
+            "preserved": {
+                "lesson_content":
+                    True,
+
+                "lesson_audio":
+                    True
+            },
+
+            "progress": {
+                "current_stage":
+                    (
+                        progress.get(
+                            "current_stage"
+                        )
+                        if progress
+                        else LESSON_STAGE_INTRO
+                    ),
+
+                "progress_percent":
+                    0,
+
+                "mastery_score":
+                    0,
+
+                "status":
+                    "in_progress"
+            }
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "RESET UNIT LESSON ERROR:",
+            {
+                "kid_id":
+                    body.kid_id,
+
+                "lesson_id":
+                    body.lesson_id,
+
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error_type":
+                    type(e).__name__,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to reset unit lesson"
+        )
 # =====================================================
 # HOMEWORK IMAGE / PDF ANALYSIS
 # =====================================================
@@ -8449,6 +10314,1138 @@ def homework_analyze(
 # =====================================================
 # AI TUTOR CHAT
 # =====================================================
+
+# =====================================================
+# CURRICULUM BUILDER CHAT
+# =====================================================
+
+@app.post("/api/curriculum/chat")
+def curriculum_builder_chat(
+        body: CurriculumBuilderChatRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        message = str(
+            body.message or ""
+        ).strip()
+
+        if not message:
+            raise HTTPException(
+                status_code=400,
+                detail="message is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        custom_subject = None
+        current_curriculum = None
+
+        # =============================================
+        # LOAD EXISTING SUBJECT + TREE
+        # =============================================
+
+        if body.custom_subject_id:
+
+            custom_subject = (
+                get_custom_subject(
+                    user_id=user.id,
+                    kid_id=child["id"],
+                    custom_subject_id=
+                        body.custom_subject_id
+                )
+            )
+
+            current_curriculum = (
+                get_current_custom_curriculum(
+                    custom_subject_id=
+                        custom_subject["id"]
+                )
+            )
+
+        current_tree = {}
+
+        if current_curriculum:
+            current_tree = (
+                current_curriculum.get(
+                    "curriculum_json"
+                )
+                or {}
+            )
+
+        # =============================================
+        # RUNTIME CONTEXT
+        # =============================================
+
+        runtime_context = {
+
+            "child": {
+                "id":
+                    child.get("id"),
+
+                "name":
+                    child.get("child_name"),
+
+                # אצלנו age משמש כמספר הכיתה
+                "grade":
+                    child.get("age"),
+
+                "gender":
+                    child.get("gender")
+                    or "male"
+            },
+
+            "current_subject": (
+                {
+                    "id":
+                        custom_subject.get("id"),
+
+                    "subject_name":
+                        custom_subject.get(
+                            "subject_name"
+                        ),
+
+                    "status":
+                        custom_subject.get(
+                            "status"
+                        )
+                }
+                if custom_subject
+                else None
+            ),
+
+            "current_curriculum": (
+                current_tree
+            )
+        }
+
+        system_prompt = (
+            CURRICULUM_BUILDER_PROMPT_TEMPLATE
+            + "\n\n"
+            + "RUNTIME_CONTEXT:\n"
+            + json.dumps(
+                runtime_context,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
+        # CONVERSATION HISTORY
+        # =============================================
+
+        messages = [
+            {
+                "role":
+                    "system",
+
+                "content":
+                    system_prompt
+            }
+        ]
+
+        history = (
+            body.history
+            or []
+        )
+
+        for item in history[-12:]:
+
+            if not isinstance(
+                    item,
+                    dict
+            ):
+                continue
+
+            role = item.get(
+                "role"
+            )
+
+            content = str(
+                item.get(
+                    "content"
+                )
+                or ""
+            ).strip()
+
+            if (
+                    role not in (
+                        "user",
+                        "assistant"
+                    )
+                    or not content
+            ):
+                continue
+
+            messages.append({
+                "role":
+                    role,
+
+                "content":
+                    content
+            })
+
+        messages.append({
+            "role":
+                "user",
+
+            "content":
+                message
+        })
+
+        # =============================================
+        # OPENAI
+        # =============================================
+
+        completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                messages=
+                    messages,
+
+                response_format=
+                    CurriculumBuilderAIResponse
+            )
+        )
+
+        curriculum_data = (
+            completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not curriculum_data:
+            raise RuntimeError(
+                "Curriculum Builder returned no response"
+            )
+
+        response_subject = str(
+            curriculum_data.subject
+            or ""
+        ).strip()
+
+        if curriculum_data.hierarchy:
+
+            hierarchy = (
+                curriculum_data
+                .hierarchy
+                .model_dump()
+            )
+
+        else:
+
+            hierarchy = (
+                    current_tree
+                    or {}
+            )
+
+        # =============================================
+        # CREATE SUBJECT
+        #
+        # ברגע שה-AI זיהה מקצוע,
+        # נוצרת הרשומה הראשית.
+        # =============================================
+
+        if (
+                not custom_subject
+                and response_subject
+        ):
+
+            custom_subject = (
+                create_custom_subject(
+                    user_id=user.id,
+                    kid_id=child["id"],
+                    subject_name=
+                    response_subject
+                )
+            )
+
+            # אם חזר מקצוע שכבר היה קיים,
+            # נטען גם את התוכנית הקיימת שלו.
+            current_curriculum = (
+                get_current_custom_curriculum(
+                    custom_subject_id=
+                    custom_subject["id"]
+                )
+            )
+
+            if current_curriculum:
+                current_tree = (
+                        current_curriculum.get(
+                            "curriculum_json"
+                        )
+                        or {}
+                )
+
+        # =============================================
+        # SAVE CURRICULUM
+        # =============================================
+
+        if (
+                custom_subject
+                and hierarchy
+        ):
+
+            if not current_curriculum:
+
+                current_curriculum = (
+                    create_custom_curriculum(
+                        user_id=user.id,
+
+                        kid_id=
+                            child["id"],
+
+                        custom_subject_id=
+                            custom_subject["id"],
+
+                        curriculum_json=
+                            hierarchy,
+
+                        ready_to_create=
+                            bool(
+                                curriculum_data
+                                .ready_to_create
+                            ),
+
+                        parent_message=
+                            message
+                    )
+                )
+
+            else:
+
+                current_curriculum = (
+                    update_custom_curriculum(
+                        user_id=user.id,
+
+                        kid_id=
+                            child["id"],
+
+                        custom_subject=
+                            custom_subject,
+
+                        curriculum=
+                            current_curriculum,
+
+                        curriculum_json=
+                            hierarchy,
+
+                        subject_name=
+                            response_subject,
+
+                        ready_to_create=
+                            bool(
+                                curriculum_data
+                                .ready_to_create
+                            ),
+
+                        parent_message=
+                            message
+                    )
+                )
+
+        # =============================================
+        # TOKEN USAGE
+        # =============================================
+
+        input_tokens = 0
+        output_tokens = 0
+        total_tokens = 0
+
+        if completion.usage:
+
+            input_tokens = (
+                completion
+                .usage
+                .prompt_tokens
+                or 0
+            )
+
+            output_tokens = (
+                completion
+                .usage
+                .completion_tokens
+                or 0
+            )
+
+            total_tokens = (
+                completion
+                .usage
+                .total_tokens
+                or 0
+            )
+
+        openai_cost_usd = (
+            calculate_openai_cost(
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                input_tokens=
+                    input_tokens,
+
+                output_tokens=
+                    output_tokens
+            )
+        )
+
+        increment_usage_summary(
+            user_id=user.id,
+
+            ai_calls=1,
+
+            input_tokens=
+                input_tokens,
+
+            output_tokens=
+                output_tokens,
+
+            total_tokens=
+                total_tokens,
+
+            openai_cost_usd=
+                openai_cost_usd
+        )
+
+        # =============================================
+        # RESPONSE TO FRONTEND
+        # =============================================
+
+        response_data = (
+            curriculum_data
+            .model_dump()
+        )
+
+        response_data[
+            "kid_id"
+        ] = child["id"]
+
+        response_data[
+            "custom_subject_id"
+        ] = (
+            custom_subject.get("id")
+            if custom_subject
+            else None
+        )
+
+        response_data[
+            "curriculum_id"
+        ] = (
+            current_curriculum.get("id")
+            if current_curriculum
+            else None
+        )
+
+        response_data[
+            "version"
+        ] = (
+            current_curriculum.get(
+                "version"
+            )
+            if current_curriculum
+            else None
+        )
+
+        response_data[
+            "curriculum_status"
+        ] = (
+            current_curriculum.get(
+                "status"
+            )
+            if current_curriculum
+            else None
+        )
+
+        return response_data
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "CURRICULUM BUILDER ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Curriculum Builder failed"
+        )
+
+# =====================================================
+# APPROVE CUSTOM CURRICULUM
+# =====================================================
+
+@app.post("/api/curriculum/approve")
+def approve_custom_curriculum(
+        body: CurriculumApproveRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        if not body.custom_subject_id:
+            raise HTTPException(
+                status_code=400,
+                detail="custom_subject_id is required"
+            )
+
+        if not body.curriculum_id:
+            raise HTTPException(
+                status_code=400,
+                detail="curriculum_id is required"
+            )
+
+        # =============================================
+        # CHILD
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # SUBJECT
+        # =============================================
+
+        custom_subject = get_custom_subject(
+            user_id=user.id,
+            kid_id=child["id"],
+            custom_subject_id=
+                body.custom_subject_id
+        )
+
+        # =============================================
+        # CURRICULUM
+        # =============================================
+
+        curriculum_res = (
+            sb.table(
+                "kid_custom_curriculums"
+            )
+            .select("*")
+            .eq(
+                "id",
+                body.curriculum_id
+            )
+            .eq(
+                "custom_subject_id",
+                custom_subject["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        if not curriculum_res.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Curriculum not found"
+            )
+
+        curriculum = (
+            curriculum_res.data[0]
+        )
+
+        curriculum_json = (
+            curriculum.get(
+                "curriculum_json"
+            )
+            or {}
+        )
+
+        if not curriculum_json:
+            raise HTTPException(
+                status_code=400,
+                detail="Curriculum is empty"
+            )
+
+        current_version = int(
+            curriculum.get(
+                "version"
+            )
+            or 1
+        )
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # ACTIVATE SUBJECT
+        # =============================================
+
+        subject_update = (
+            sb.table(
+                "kid_custom_subjects"
+            )
+            .update({
+                "status":
+                    "active",
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                custom_subject["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        if not subject_update.data:
+            raise RuntimeError(
+                "Failed to activate custom subject"
+            )
+
+        # =============================================
+        # ACTIVATE CURRICULUM
+        # =============================================
+
+        curriculum_update = (
+            sb.table(
+                "kid_custom_curriculums"
+            )
+            .update({
+                "status":
+                    "active",
+
+                "last_change_type":
+                    "approved",
+
+                "last_change_summary":
+                    "Parent approved curriculum",
+
+                "updated_by":
+                    "parent",
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                curriculum["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        if not curriculum_update.data:
+            raise RuntimeError(
+                "Failed to activate curriculum"
+            )
+
+        approved_curriculum = (
+            curriculum_update.data[0]
+        )
+
+        # =============================================
+        # MARK CURRENT VERSION AS APPROVED
+        # =============================================
+
+        version_update = (
+            sb.table(
+                "kid_custom_curriculum_versions"
+            )
+            .update({
+                "change_type":
+                    "approved",
+
+                "change_summary":
+                    "Parent approved curriculum",
+
+                "changed_by":
+                    "parent"
+            })
+            .eq(
+                "curriculum_id",
+                curriculum["id"]
+            )
+            .eq(
+                "version",
+                current_version
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # BUILD RUNTIME UNITS + LESSONS
+        # =============================================
+
+        topics = (
+            curriculum_json.get("topics")
+            or []
+        )
+
+        if not isinstance(topics, list):
+            raise RuntimeError(
+                "Invalid curriculum topics"
+            )
+
+        units_created = 0
+        lessons_created = 0
+
+        for topic_index, topic in enumerate(
+                topics,
+                start=1
+        ):
+
+            if not isinstance(topic, dict):
+                continue
+
+            topic_name = str(
+                topic.get("name")
+                or ""
+            ).strip()
+
+            if not topic_name:
+                continue
+
+            units = (
+                topic.get("units")
+                or []
+            )
+
+            if not isinstance(units, list):
+                continue
+
+            for unit_index, unit in enumerate(
+                    units,
+                    start=1
+            ):
+
+                if not isinstance(unit, dict):
+                    continue
+
+                unit_name = str(
+                    unit.get("name")
+                    or ""
+                ).strip()
+
+                if not unit_name:
+                    continue
+
+                # =====================================
+                # FIND EXISTING UNIT
+                # =====================================
+
+                existing_unit_res = (
+                    sb.table(
+                        "kid_custom_units"
+                    )
+                    .select("*")
+                    .eq(
+                        "curriculum_id",
+                        curriculum["id"]
+                    )
+                    .eq(
+                        "topic_order",
+                        topic_index
+                    )
+                    .eq(
+                        "unit_order",
+                        unit_index
+                    )
+                    .limit(1)
+                    .execute()
+                )
+
+                if existing_unit_res.data:
+
+                    custom_unit = (
+                        existing_unit_res.data[0]
+                    )
+
+                    # אם השם השתנה בגרסה חדשה
+                    # מעדכנים את היחידה הקיימת
+                    update_unit_res = (
+                        sb.table(
+                            "kid_custom_units"
+                        )
+                        .update({
+                            "topic_name":
+                                topic_name,
+
+                            "unit_name":
+                                unit_name,
+
+                            "status":
+                                "active",
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "updated_at":
+                                now_iso
+                        })
+                        .eq(
+                            "id",
+                            custom_unit["id"]
+                        )
+                        .execute()
+                    )
+
+                    if update_unit_res.data:
+                        custom_unit = (
+                            update_unit_res.data[0]
+                        )
+
+                else:
+
+                    # =================================
+                    # CREATE UNIT
+                    # =================================
+
+                    unit_insert_res = (
+                        sb.table(
+                            "kid_custom_units"
+                        )
+                        .insert({
+                            "user_id":
+                                user.id,
+
+                            "kid_id":
+                                child["id"],
+
+                            "custom_subject_id":
+                                custom_subject["id"],
+
+                            "curriculum_id":
+                                curriculum["id"],
+
+                            "topic_name":
+                                topic_name,
+
+                            "topic_order":
+                                topic_index,
+
+                            "unit_name":
+                                unit_name,
+
+                            "unit_order":
+                                unit_index,
+
+                            "status":
+                                "active",
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "created_at":
+                                now_iso,
+
+                            "updated_at":
+                                now_iso
+                        })
+                        .execute()
+                    )
+
+                    if not unit_insert_res.data:
+                        raise RuntimeError(
+                            "Failed to create custom unit"
+                        )
+
+                    custom_unit = (
+                        unit_insert_res.data[0]
+                    )
+
+                    units_created += 1
+
+
+                # =====================================
+                # LESSONS
+                # =====================================
+
+                lessons = (
+                    unit.get("lessons")
+                    or []
+                )
+
+                if not isinstance(
+                        lessons,
+                        list
+                ):
+                    continue
+
+                for lesson_index, lesson in enumerate(
+                        lessons,
+                        start=1
+                ):
+
+                    if not isinstance(
+                            lesson,
+                            dict
+                    ):
+                        continue
+
+                    lesson_name = str(
+                        lesson.get("name")
+                        or ""
+                    ).strip()
+
+                    if not lesson_name:
+                        continue
+
+                    # =================================
+                    # FIND EXISTING LESSON
+                    # =================================
+
+                    existing_lesson_res = (
+                        sb.table(
+                            "kid_custom_lessons"
+                        )
+                        .select("*")
+                        .eq(
+                            "custom_unit_id",
+                            custom_unit["id"]
+                        )
+                        .eq(
+                            "lesson_order",
+                            lesson_index
+                        )
+                        .limit(1)
+                        .execute()
+                    )
+
+                    if existing_lesson_res.data:
+
+                        existing_lesson = (
+                            existing_lesson_res.data[0]
+                        )
+
+                        sb.table(
+                            "kid_custom_lessons"
+                        ).update({
+                            "lesson_name":
+                                lesson_name,
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "updated_at":
+                                now_iso
+                        }).eq(
+                            "id",
+                            existing_lesson["id"]
+                        ).execute()
+
+                    else:
+
+                        # =============================
+                        # CREATE LESSON
+                        # =============================
+
+                        lesson_insert_res = (
+                            sb.table(
+                                "kid_custom_lessons"
+                            )
+                            .insert({
+                                "user_id":
+                                    user.id,
+
+                                "kid_id":
+                                    child["id"],
+
+                                "custom_subject_id":
+                                    custom_subject["id"],
+
+                                "curriculum_id":
+                                    curriculum["id"],
+
+                                "custom_unit_id":
+                                    custom_unit["id"],
+
+                                "lesson_name":
+                                    lesson_name,
+
+                                "lesson_order":
+                                    lesson_index,
+
+                                "status":
+                                    "pending",
+
+                                "source_curriculum_version":
+                                    current_version,
+
+                                "created_at":
+                                    now_iso,
+
+                                "updated_at":
+                                    now_iso
+                            })
+                            .execute()
+                        )
+
+                        if not lesson_insert_res.data:
+                            raise RuntimeError(
+                                "Failed to create custom lesson"
+                            )
+
+                        lessons_created += 1
+
+        print(
+            "CUSTOM CURRICULUM APPROVED:",
+            json.dumps(
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "custom_subject_id":
+                        custom_subject["id"],
+
+                    "curriculum_id":
+                        curriculum["id"],
+
+                    "version":
+                        current_version,
+
+                    "version_rows_updated":
+                        len(
+                            version_update.data
+                            or []
+                        ),
+                    "units_created":
+                        units_created,
+
+                    "lessons_created":
+                        lessons_created
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        return {
+            "success": True,
+
+            "kid_id":
+                child["id"],
+
+            "custom_subject_id":
+                custom_subject["id"],
+
+            "curriculum_id":
+                approved_curriculum["id"],
+
+            "subject":
+                custom_subject.get(
+                    "subject_name"
+                ),
+
+            "version":
+                approved_curriculum.get(
+                    "version"
+                ),
+
+            "subject_status":
+                "active",
+
+            "curriculum_status":
+                "active",
+
+            "units_created":
+                units_created,
+
+            "lessons_created":
+                lessons_created
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "CURRICULUM APPROVE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Curriculum approval failed"
+        )
 
 @app.post("/api/tutor/chat")
 def tutor_chat(
