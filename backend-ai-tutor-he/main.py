@@ -4848,6 +4848,12 @@ def generate_and_store_lesson_visual_image(
 def generate_all_lesson_visuals_background(
         unit_lesson_id: int
 ):
+    import time
+    import traceback
+
+    MAX_VISUAL_RETRIES = 3
+    RETRY_DELAY_SECONDS = 3
+
     try:
 
         unit_lesson = get_unit_lesson(
@@ -4893,66 +4899,175 @@ def generate_all_lesson_visuals_background(
 
         generated_visuals = []
 
-        for visual in visuals:
+        image_visuals = [
+            visual
+            for visual in visuals
+            if isinstance(visual, dict)
+            and str(
+                visual.get("type") or ""
+            ).strip().lower() == "image"
+        ]
 
-            if not isinstance(
-                    visual,
-                    dict
+        print(
+            "LESSON VISUAL GENERATION START:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "content_version":
+                    content_version,
+
+                "planned_images":
+                    len(image_visuals)
+            }
+        )
+
+        for visual in image_visuals:
+
+            visual_order = (
+                visual.get("order")
+            )
+
+            success = False
+
+            for attempt in range(
+                1,
+                MAX_VISUAL_RETRIES + 1
             ):
-                continue
 
-            visual_type = str(
-                visual.get("type")
-                or ""
-            ).strip().lower()
+                try:
 
-            # כרגע מייצרים תמונות בלבד.
-            # video יתווסף בשלב הבא.
-            if visual_type != "image":
-                continue
+                    print(
+                        "LESSON VISUAL ATTEMPT:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
 
-            try:
+                            "order":
+                                visual_order,
 
-                result = (
-                    generate_and_store_lesson_visual_image(
-                        unit_lesson_id=
-                            unit_lesson_id,
+                            "attempt":
+                                attempt,
 
-                        content_version=
-                            content_version,
-
-                        visual=
-                            visual
+                            "max_attempts":
+                                MAX_VISUAL_RETRIES
+                        }
                     )
-                )
 
-                generated_visuals.append(
-                    result
-                )
+                    result = (
+                        generate_and_store_lesson_visual_image(
+                            unit_lesson_id=
+                                unit_lesson_id,
 
-            except Exception as visual_error:
+                            content_version=
+                                content_version,
+
+                            visual=
+                                visual
+                        )
+                    )
+
+                    generated_visuals.append(
+                        result
+                    )
+
+                    success = True
+
+                    print(
+                        "LESSON VISUAL SUCCESS:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order,
+
+                            "attempt":
+                                attempt
+                        }
+                    )
+
+                    break
+
+                except Exception as visual_error:
+
+                    print(
+                        "LESSON VISUAL ATTEMPT FAILED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order,
+
+                            "attempt":
+                                attempt,
+
+                            "max_attempts":
+                                MAX_VISUAL_RETRIES,
+
+                            "error":
+                                repr(
+                                    visual_error
+                                )
+                        }
+                    )
+
+                    traceback.print_exc()
+
+                    if (
+                        attempt
+                        <
+                        MAX_VISUAL_RETRIES
+                    ):
+
+                        delay = (
+                            RETRY_DELAY_SECONDS
+                            * attempt
+                        )
+
+                        print(
+                            "LESSON VISUAL RETRYING:",
+                            {
+                                "unit_lesson_id":
+                                    unit_lesson_id,
+
+                                "order":
+                                    visual_order,
+
+                                "retry_in_seconds":
+                                    delay
+                            }
+                        )
+
+                        time.sleep(
+                            delay
+                        )
+
+            if not success:
 
                 print(
-                    "LESSON VISUAL FAILED:",
+                    "LESSON VISUAL FAILED PERMANENTLY:",
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
 
                         "order":
-                            visual.get("order"),
+                            visual_order,
 
-                        "error":
-                            repr(visual_error)
+                        "attempts":
+                            MAX_VISUAL_RETRIES
                     }
                 )
-
-                traceback.print_exc()
 
         print(
             "ALL LESSON VISUALS READY:",
             {
                 "unit_lesson_id":
                     unit_lesson_id,
+
+                "planned_count":
+                    len(image_visuals),
 
                 "generated_count":
                     len(generated_visuals),
