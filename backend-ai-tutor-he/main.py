@@ -7002,10 +7002,11 @@ def get_or_generate_unit_lesson(
                     }
                 )
 
-                background_tasks.add_task(
-                    generate_unit_lesson_media_background,
-                    unit_lesson["id"]
-                )
+            # תמיד לבדוק/לייצר את המדיה גם בשיעור מה-cache
+            background_tasks.add_task(
+                generate_unit_lesson_media_background,
+                unit_lesson["id"]
+            )
 
             response_audio = None
 
