@@ -7391,6 +7391,10 @@ def get_or_generate_unit_lesson(
             generate_unit_lesson_audio_background,
             unit_lesson["id"]
         )
+        background_tasks.add_task(
+            generate_all_lesson_visuals_background,
+            unit_lesson["id"]
+        )
         # =============================================
         # RESPONSE
         # =============================================
