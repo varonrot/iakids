@@ -8003,7 +8003,7 @@ def get_unit_lesson_visuals(
             status_code=500,
             detail="Failed to load lesson visuals"
         )
-    
+
 @app.post(
     "/api/tutor/unit-lesson/audio"
 )
