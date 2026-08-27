@@ -14083,129 +14083,76 @@ data-custom-slot="0"
 
     <aside class="lesson-lessons-sidebar">
 
-      <div class="lesson-sidebar-subject">
-        <span class="lesson-sidebar-subject-icon">🌿</span>
+<div class="lesson-sidebar-subject">
 
-        <div>
-          <strong>מדעים</strong>
-          <small>מערכות אקולוגיות</small>
-        </div>
-      </div>
+  <span
+    class="lesson-sidebar-subject-icon"
+    id="lessonSidebarSubjectIcon"
+  >
+    🌿
+  </span>
 
+  <div>
 
-      <div class="lesson-sidebar-unit">
+    <strong id="lessonSidebarSubject">
+      מדעים
+    </strong>
 
-        <div class="lesson-sidebar-unit-image">
-          <img
-            src="/assets/science/categories/ecology.webp"
-            alt=""
-          >
-        </div>
+    <small id="lessonSidebarCategory">
+      טוען...
+    </small>
 
-        <span>מערכות אקולוגיות</span>
+  </div>
 
-      </div>
-
-
-      <div class="lesson-sidebar-list">
-
-        <div class="lesson-sidebar-row completed">
-
-          <div class="lesson-sidebar-status">
-            ✓
-          </div>
-
-          <div class="lesson-sidebar-name">
-            <b>1.</b>
-            מהי מערכת?
-          </div>
-
-        </div>
+</div>
 
 
-        <div class="lesson-sidebar-row completed">
+<div class="lesson-sidebar-unit">
 
-          <div class="lesson-sidebar-status">
-            ✓
-          </div>
+  <div class="lesson-sidebar-unit-image">
 
-          <div class="lesson-sidebar-name">
-            <b>2.</b>
-            מהי מערכת אקולוגית?
-          </div>
+    <img
+      id="lessonSidebarUnitImage"
+      src="/assets/science/categories/ecology.webp"
+      alt=""
+    >
 
-        </div>
+  </div>
 
+  <span id="lessonSidebarUnitName">
+    טוען יחידה...
+  </span>
 
-        <div class="lesson-sidebar-row current">
-
-          <div class="lesson-sidebar-status">
-            <span></span>
-          </div>
-
-          <div class="lesson-sidebar-name">
-            <b>3.</b>
-            מרכיבי המערכת
-          </div>
-
-        </div>
+</div>
 
 
-        <div class="lesson-sidebar-row locked">
+<div
+  class="lesson-sidebar-list"
+  id="lessonSidebarList"
+>
 
-          <div class="lesson-sidebar-status">
-            🔒
-          </div>
+  <div
+    style="
+      padding:20px 10px;
+      text-align:center;
+      color:#8294b8;
+      font-size:12px;
+    "
+  >
+    טוען שיעורים...
+  </div>
 
-          <div class="lesson-sidebar-name">
-            <b>4.</b>
-            סוגי מערכות אקולוגיות
-          </div>
-
-        </div>
-
-
-        <div class="lesson-sidebar-row locked">
-
-          <div class="lesson-sidebar-status">
-            🔒
-          </div>
-
-          <div class="lesson-sidebar-name">
-            <b>5.</b>
-            שרשרת מזון
-          </div>
-
-        </div>
+</div>
 
 
-        <div class="lesson-sidebar-checkpoint locked">
+<div class="lesson-sidebar-teacher">
 
-          <span>🏆</span>
+  <img
+    src="/assets/lesson/lesson-teacher2.webp"
+    alt="המורה"
+  >
 
-          <strong>
-            בדיקת הבנה
-          </strong>
-
-          <span class="checkpoint-lock">
-            🔒
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <!-- הדמות תוחלף בהמשך בדמות האיש הבוגר -->
-
-      <div class="lesson-sidebar-teacher">
-
-<!--        <img-->
-<!--          src="/assets/lesson/lesson-teacher.webp"-->
-<!--          alt="המורה"-->
-<!--        >-->
-
-      </div>
+</div>
 
     </aside>
 
@@ -14435,7 +14382,56 @@ data-custom-slot="0"
     <!-- =====================================================
      LESSON MEDIA CONTROLS
 ===================================================== -->
+<div class="lesson-flow-track">
 
+  <div class="lesson-flow-step completed">
+    <div class="lesson-flow-node">✓</div>
+    <span>פתיחה</span>
+  </div>
+
+  <div class="lesson-flow-step active">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-book-open"></i>
+    </div>
+    <span>הסבר 1</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-comments"></i>
+    </div>
+    <span>דיאלוג 1</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-book-open"></i>
+    </div>
+    <span>הסבר 2</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-comments"></i>
+    </div>
+    <span>דיאלוג 2</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-flag-checkered"></i>
+    </div>
+    <span>סיכום</span>
+  </div>
+
+  <div class="lesson-flow-step">
+    <div class="lesson-flow-node">
+      <i class="fa-solid fa-arrow-right"></i>
+    </div>
+    <span>השלב הבא</span>
+  </div>
+
+</div>
 <div class="lesson-media-controls">
 
   <!-- חזרה 10 שניות -->
@@ -17128,6 +17124,172 @@ async function waitForUnitLessonAudio(
 
 }
 
+function showLessonHeroImage(
+  imageUrl
+){
+
+  if(!imageUrl){
+    return;
+  }
+
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-stage"
+    )
+    ||
+    document.querySelector(
+      ".lesson-media-stage"
+    )
+    ||
+    document.getElementById(
+      "lessonVisualStage"
+    );
+
+
+  if(!visualArea){
+
+    console.warn(
+      "LESSON HERO — visual area not found"
+    );
+
+    return;
+
+  }
+
+
+  visualArea.innerHTML = `
+    <div class="lesson-hero-image-wrap">
+
+      <img
+        src="${imageUrl}"
+        class="lesson-hero-image"
+        alt=""
+      >
+
+    </div>
+  `;
+
+}
+
+/* =====================================================
+   LESSON HERO IMAGE
+===================================================== */
+
+async function loadLessonHeroImage(
+  unitLessonId,
+  session
+){
+
+  try{
+
+    console.log(
+      "LESSON HERO REQUEST:",
+      unitLessonId
+    );
+
+
+    const response =
+      await fetch(
+        `${TUTOR_API_BASE}/api/tutor/unit-lesson/hero-image`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              kid_id:
+                CURRENT_KID.id,
+
+              unit_lesson_id:
+                unitLessonId
+            })
+        }
+      );
+
+
+    const responseText =
+      await response.text();
+
+
+    let data = null;
+
+
+    try{
+
+      data =
+        responseText
+          ? JSON.parse(responseText)
+          : null;
+
+    }
+    catch(parseError){
+
+      console.error(
+        "LESSON HERO JSON ERROR:",
+        responseText
+      );
+
+      return null;
+
+    }
+
+
+    if(
+      !response.ok
+      ||
+      !data?.hero_image?.url
+    ){
+
+      console.error(
+        "LESSON HERO FAILED:",
+        response.status,
+        data
+      );
+
+      return null;
+
+    }
+
+
+    console.log(
+      "LESSON HERO READY:",
+      data
+    );
+
+
+    showLessonHeroImage(
+      data.hero_image.url
+    );
+
+
+    return data.hero_image;
+
+  }
+  catch(error){
+
+    /*
+      כשל בתמונה לא מפיל את השיעור.
+    */
+
+    console.error(
+      "LESSON HERO ERROR:",
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
 async function loadUniversalUnitLesson(
   lesson,
   session
@@ -18091,6 +18253,668 @@ console.log(
 
 }
 
+/* =====================================================
+   REAL LESSON SIDEBAR
+   נטען ישירות מ-lesson_units_content
+===================================================== */
+
+window.LESSON_SIDEBAR_ROWS =
+  [];
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeLessonSidebarHtml(
+  value
+){
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+/* =====================================================
+   IMAGE BY CATEGORY
+===================================================== */
+
+function getLessonSidebarImage(){
+
+  const category =
+    String(
+      CURRENT_PARENT_LESSON
+        ?.category
+        || ""
+    );
+
+
+  /*
+    כרגע יש לנו תמונת Ecology.
+    בהמשך אפשר להרחיב את המפה
+    לכל קטגוריות המדעים.
+  */
+
+  if(
+    category.includes(
+      "אקולוג"
+    )
+    ||
+    category.includes(
+      "סביבה"
+    )
+  ){
+
+    return (
+      "/assets/science/categories/ecology.webp"
+    );
+
+  }
+
+
+  return (
+    "/assets/science/topics/default.webp"
+  );
+
+}
+
+
+/* =====================================================
+   LOAD REAL LESSONS
+===================================================== */
+
+async function loadRealLessonSidebar(
+  selectedLesson = null
+){
+
+  const list =
+    document.getElementById(
+      "lessonSidebarList"
+    );
+
+
+  if(!list){
+    return;
+  }
+
+
+  const parentLessonId =
+    Number(
+      CURRENT_PARENT_LESSON?.id
+      || 0
+    );
+
+
+  const unitOrder =
+    Number(
+      CURRENT_UNIT?.unit_order
+      || 0
+    );
+
+
+  if(
+    !parentLessonId
+    ||
+    !unitOrder
+  ){
+
+    console.warn(
+      "LESSON SIDEBAR — MISSING CONTEXT",
+      {
+        CURRENT_PARENT_LESSON,
+        CURRENT_UNIT
+      }
+    );
+
+
+    list.innerHTML = `
+
+      <div
+        style="
+          padding:18px 10px;
+          text-align:center;
+          color:#8294b8;
+          font-size:11px;
+        "
+      >
+        לא נמצאה יחידת לימוד
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  /* =============================================
+     כותרות הסרגל
+  ============================================= */
+
+  const subjectEl =
+    document.getElementById(
+      "lessonSidebarSubject"
+    );
+
+
+  const categoryEl =
+    document.getElementById(
+      "lessonSidebarCategory"
+    );
+
+
+  const unitEl =
+    document.getElementById(
+      "lessonSidebarUnitName"
+    );
+
+
+  const imageEl =
+    document.getElementById(
+      "lessonSidebarUnitImage"
+    );
+
+
+  if(subjectEl){
+
+    subjectEl.textContent =
+      CURRENT_PARENT_LESSON
+        ?.subject
+      ||
+      "מדעים";
+
+  }
+
+
+  if(categoryEl){
+
+    categoryEl.textContent =
+      CURRENT_PARENT_LESSON
+        ?.category
+      ||
+      CURRENT_PARENT_LESSON
+        ?.lesson_name
+      ||
+      "";
+
+  }
+
+
+  if(unitEl){
+
+    unitEl.textContent =
+      CURRENT_UNIT
+        ?.unit_name
+      ||
+      "";
+
+  }
+
+
+  if(imageEl){
+
+    imageEl.src =
+      getLessonSidebarImage();
+
+  }
+
+
+  /* =============================================
+     Loading
+  ============================================= */
+
+  list.innerHTML = `
+
+    <div
+      style="
+        padding:18px 10px;
+        text-align:center;
+        color:#8294b8;
+        font-size:11px;
+      "
+    >
+      טוען את שיעורי היחידה...
+    </div>
+
+  `;
+
+
+  /* =============================================
+     שליפה אמיתית מ-Supabase
+  ============================================= */
+
+  const {
+    data,
+    error
+  } =
+    await sb
+
+      .from(
+        "lesson_units_content"
+      )
+
+      .select(`
+        id,
+        learning_lesson_id,
+        unit_order,
+        unit_name,
+        lesson_order,
+        lesson_name,
+        status
+      `)
+
+      .eq(
+        "learning_lesson_id",
+        parentLessonId
+      )
+
+      .eq(
+        "unit_order",
+        unitOrder
+      )
+
+      .order(
+        "lesson_order",
+        {
+          ascending:true
+        }
+      );
+
+
+  if(error){
+
+    console.error(
+      "LESSON SIDEBAR LOAD ERROR:",
+      error
+    );
+
+
+    list.innerHTML = `
+
+      <div
+        style="
+          padding:18px 10px;
+          text-align:center;
+          color:#ff8996;
+          font-size:11px;
+        "
+      >
+        שגיאה בטעינת השיעורים
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  const lessons =
+    Array.isArray(data)
+      ? data
+      : [];
+
+
+  window.LESSON_SIDEBAR_ROWS =
+    lessons;
+
+
+  console.log(
+    "REAL LESSON SIDEBAR:",
+    {
+      parentLessonId,
+      unitOrder,
+      selectedLesson,
+      lessons
+    }
+  );
+
+
+  if(
+    lessons.length === 0
+  ){
+
+    list.innerHTML = `
+
+      <div
+        style="
+          padding:18px 10px;
+          text-align:center;
+          color:#8294b8;
+          font-size:11px;
+        "
+      >
+        אין שיעורים ביחידה הזאת
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  /* =============================================
+     זיהוי השיעור הנוכחי
+  ============================================= */
+
+  const selectedId =
+    Number(
+      selectedLesson?.unit_lesson_id
+      ||
+      selectedLesson?.id
+      ||
+      window.SELECTED_UNIT_LESSON
+        ?.unit_lesson_id
+      ||
+      0
+    );
+
+
+  let currentIndex =
+    lessons.findIndex(
+      lesson =>
+        Number(
+          lesson.id
+        )
+        ===
+        selectedId
+    );
+
+
+  /*
+    אם משום מה אין selectedId,
+    השיעור הראשון הוא הנוכחי.
+  */
+
+  if(
+    currentIndex < 0
+  ){
+
+    currentIndex =
+      0;
+
+  }
+
+
+  /* =============================================
+     בניית הרשימה
+  ============================================= */
+
+  list.innerHTML =
+    lessons
+
+      .map(
+        (
+          lesson,
+          index
+        ) => {
+
+
+          const isCurrent =
+            index ===
+            currentIndex;
+
+
+          /*
+            כרגע:
+            שיעורים לפני השיעור הנוכחי
+            מוצגים כהושלמו.
+
+            השיעור הנוכחי = current.
+
+            שיעורים אחריו = locked.
+
+            בשלב הבא נחבר completed
+            ל-kid_lesson_progress עצמו.
+          */
+
+          const isCompleted =
+            index <
+            currentIndex;
+
+
+          const isLocked =
+            index >
+            currentIndex;
+
+
+          let rowClass =
+            "";
+
+
+          let statusHtml =
+            "";
+
+
+          if(isCurrent){
+
+            rowClass =
+              "current";
+
+
+            statusHtml = `
+              <span></span>
+            `;
+
+          }
+          else if(
+            isCompleted
+          ){
+
+            rowClass =
+              "completed";
+
+
+            statusHtml =
+              "✓";
+
+          }
+          else{
+
+            rowClass =
+              "locked";
+
+
+            statusHtml =
+              "🔒";
+
+          }
+
+
+          const lessonOrder =
+            Number(
+              lesson.lesson_order
+            )
+            ||
+            index + 1;
+
+
+          return `
+
+            <div
+              class="
+                lesson-sidebar-row
+                ${rowClass}
+              "
+
+              data-sidebar-lesson-id="${
+                Number(
+                  lesson.id
+                )
+              }"
+
+              ${
+                isLocked
+                  ? 'data-locked="true"'
+                  : ""
+              }
+            >
+
+              <div
+                class="
+                  lesson-sidebar-status
+                "
+              >
+                ${statusHtml}
+              </div>
+
+
+              <div
+                class="
+                  lesson-sidebar-name
+                "
+              >
+
+                <b>
+                  ${lessonOrder}.
+                </b>
+
+                ${
+                  escapeLessonSidebarHtml(
+                    lesson.lesson_name
+                  )
+                }
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+
+      .join("");
+
+
+  /* =============================================
+     CLICK — שיעור אמיתי
+  ============================================= */
+
+  list
+    .querySelectorAll(
+      "[data-sidebar-lesson-id]"
+    )
+    .forEach(
+      row => {
+
+        row.addEventListener(
+          "click",
+          async () => {
+
+
+            if(
+              row.dataset.locked ===
+              "true"
+            ){
+
+              return;
+
+            }
+
+
+            const lessonId =
+              Number(
+                row.dataset
+                  .sidebarLessonId
+              );
+
+
+            const lesson =
+              lessons.find(
+                item =>
+                  Number(
+                    item.id
+                  )
+                  ===
+                  lessonId
+              );
+
+
+            if(!lesson){
+
+              console.error(
+                "SIDEBAR LESSON NOT FOUND:",
+                lessonId
+              );
+
+              return;
+
+            }
+
+
+            /*
+              אם לחצו על השיעור
+              שכבר פתוח — לא מפעילים מחדש.
+            */
+
+            const currentLessonId =
+              Number(
+                window
+                  .SELECTED_UNIT_LESSON
+                  ?.unit_lesson_id
+                ||
+                0
+              );
+
+
+            if(
+              currentLessonId ===
+              lessonId
+            ){
+
+              return;
+
+            }
+
+
+            console.log(
+              "SIDEBAR START LESSON:",
+              lesson
+            );
+
+
+            /*
+              זה אותו מנגנון שכבר משמש
+              את כרטיסי השיעורים ברמה 5.
+            */
+
+            await startSelectedUnitLesson(
+              lesson
+            );
+
+          }
+
+        );
+
+      }
+    );
+
+}
+
 async function startSelectedUnitLesson(
   lesson
 ){
@@ -18207,6 +19031,10 @@ if(
 
   };
 
+await loadRealLessonSidebar(
+  window.SELECTED_UNIT_LESSON
+);
+
   setLessonBackgroundForSubject(
     CURRENT_PARENT_LESSON.subject
   );
@@ -18307,6 +19135,15 @@ if(subtitle){
     return;
 
   }
+
+/* =============================================
+   START HERO IMAGE IN PARALLEL
+============================================= */
+
+loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
 
 /* =============================================
    CHECK WHETHER THIS LESSON IS ALREADY ACTIVE
@@ -25633,36 +26470,7 @@ max-width:88%;
   }
 }
 
-/* כפתור דמו זמני */
-.lesson-renderer-demo-btn{
-  position:fixed;
-  left:25px;
-  bottom:95px;
-  z-index:9999;
 
-  border:0;
-  border-radius:16px;
-
-  padding:14px 22px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #7048ff,
-      #8b61ff
-    );
-
-  color:white;
-
-  font-size:17px;
-  font-weight:900;
-
-  cursor:pointer;
-
-  box-shadow:
-    0 10px 28px
-    rgba(112,72,255,.28);
-}
 
     /* =====================================================
    TABLET DASHBOARD - FINAL FIX
@@ -37623,6 +38431,1495 @@ body.lesson-theme-science
   transition:
     width .08s linear;
 }
+    /* =====================================================
+   LESSON FLOW TRACK
+===================================================== */
+
+.lesson-flow-track{
+  position:relative;
+
+  width:100%;
+  height:72px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:8px 34px;
+
+  direction:rtl;
+
+  border:1px solid rgba(34,132,235,.22);
+  border-radius:15px;
+
+  background:
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(19,111,255,.12),
+      transparent 52%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(6,18,39,.96),
+      rgba(3,12,27,.99)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 7px 18px rgba(0,4,20,.22);
+
+  overflow:hidden;
+}
+
+
+/* הקו שמחבר את כל השלבים */
+
+.lesson-flow-track::before{
+  content:"";
+
+  position:absolute;
+
+  top:30px;
+  right:62px;
+  left:62px;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(31,83,145,.22),
+      rgba(32,125,215,.55),
+      rgba(31,83,145,.22)
+    );
+
+  box-shadow:
+    0 0 8px rgba(28,134,255,.18);
+}
+
+
+/* שלב */
+
+.lesson-flow-step{
+  position:relative;
+  z-index:2;
+
+  width:92px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  gap:5px;
+
+  color:#778aa9;
+
+  font-size:10px;
+  font-weight:700;
+
+  text-align:center;
+}
+
+
+/* עיגול */
+
+.lesson-flow-node{
+  width:38px;
+  height:38px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  border:
+    2px solid
+    rgba(67,119,181,.46);
+
+  background:
+    radial-gradient(
+      circle,
+      #0d2340,
+      #071426
+    );
+
+  color:#7b97bd;
+
+  font-size:14px;
+
+  box-shadow:
+    inset 0 0 10px
+    rgba(29,94,164,.16);
+}
+
+
+/* שלב שהושלם */
+
+.lesson-flow-step.completed{
+  color:#9ee675;
+}
+
+.lesson-flow-step.completed .lesson-flow-node{
+  border-color:#58d92d;
+
+  color:#aaff72;
+
+  background:
+    radial-gradient(
+      circle,
+      #15351c,
+      #071a10
+    );
+
+  box-shadow:
+    0 0 12px
+    rgba(81,226,39,.26),
+    inset 0 0 12px
+    rgba(88,220,48,.14);
+}
+
+
+/* השלב הפעיל */
+
+.lesson-flow-step.active{
+  color:#ffffff;
+}
+
+.lesson-flow-step.active .lesson-flow-node{
+  width:46px;
+  height:46px;
+
+  margin-top:-4px;
+
+  border-color:#49ccff;
+
+  color:#9beeff;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #1d4676,
+      #07182d 67%
+    );
+
+  box-shadow:
+    0 0 0 4px rgba(75,94,255,.13),
+    0 0 18px rgba(42,204,255,.52),
+    0 0 28px rgba(104,72,255,.25),
+    inset 0 0 12px rgba(65,203,255,.20);
+}
+
+
+/* אור משני משני הצדדים של הפעיל */
+
+.lesson-flow-step.active::before,
+.lesson-flow-step.active::after{
+  content:"";
+
+  position:absolute;
+
+  top:20px;
+
+  width:42px;
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #26d8ff
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(44,213,255,.70);
+}
+
+.lesson-flow-step.active::before{
+  right:65px;
+}
+
+.lesson-flow-step.active::after{
+  left:65px;
+
+  transform:scaleX(-1);
+}
+
+
+/* אייקונים */
+
+.lesson-flow-node i{
+  font-size:13px;
+}
+    /* =====================================================
+   FINAL FIX — FLOW + AUDIO MUST NEVER SHRINK
+===================================================== */
+
+body.lesson-theme-science
+.lesson-main-existing{
+  height:100% !important;
+  min-height:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:8px !important;
+
+  overflow:hidden !important;
+}
+
+
+/* =====================================================
+   החלק העליון הוא היחיד שמותר לו לגדול/להצטמצם
+===================================================== */
+
+body.lesson-theme-science
+.lesson-content-split{
+  flex:1 1 0 !important;
+
+  height:auto !important;
+  min-height:0 !important;
+
+  overflow:hidden !important;
+}
+
+
+/* =====================================================
+   שלבי השיעור — לעולם לא נמחצים
+===================================================== */
+
+body.lesson-theme-science
+.lesson-flow-track{
+  flex:
+    0
+    0
+    72px !important;
+
+  width:100% !important;
+
+  height:72px !important;
+  min-height:72px !important;
+  max-height:72px !important;
+
+  flex-shrink:0 !important;
+
+  box-sizing:border-box !important;
+}
+
+
+/* =====================================================
+   פס הקול — לעולם לא נמחץ
+===================================================== */
+
+body.lesson-theme-science
+.lesson-media-controls{
+  flex:
+    0
+    0
+    58px !important;
+
+  width:100% !important;
+
+  height:58px !important;
+  min-height:58px !important;
+  max-height:58px !important;
+
+  flex-shrink:0 !important;
+
+  box-sizing:border-box !important;
+}
+  /* =====================================================
+   LESSON LEFT SIDEBAR — PREMIUM TEACHER EDITION
+   FINAL OVERRIDE
+===================================================== */
+
+body.lesson-theme-science
+.lesson-lessons-sidebar{
+  position:relative !important;
+
+  height:100% !important;
+  min-height:0 !important;
+
+  padding:
+    16px
+    14px
+    0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  overflow:hidden !important;
+
+  border:
+    1px solid
+    rgba(70,145,255,.34) !important;
+
+  border-radius:
+    22px !important;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(38,107,205,.18),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(4,17,36,.98) 0%,
+      rgba(3,14,31,.99) 48%,
+      rgba(2,10,24,.99) 100%
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.05),
+
+    inset 0 0 30px
+    rgba(13,90,180,.06),
+
+    0 15px 38px
+    rgba(0,4,18,.40),
+
+    0 0 20px
+    rgba(23,102,225,.08) !important;
+}
+
+
+/* =====================================================
+   SUBJECT HEADER
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-subject{
+  position:relative !important;
+
+  flex:
+    0 0 auto !important;
+
+  min-height:
+    62px !important;
+
+  padding:
+    8px
+    8px
+    13px !important;
+
+  display:flex !important;
+
+  align-items:center !important;
+
+  gap:
+    11px !important;
+
+  border-bottom:
+    1px solid
+    rgba(83,134,211,.18) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-subject::after{
+  content:"";
+
+  position:absolute;
+
+  right:8px;
+  left:8px;
+  bottom:-1px;
+
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(45,142,255,.54),
+      transparent
+    );
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-subject-icon{
+  width:
+    40px !important;
+
+  height:
+    40px !important;
+
+  flex:
+    0 0
+    40px !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  border:
+    1px solid
+    rgba(75,196,117,.32) !important;
+
+  border-radius:
+    12px !important;
+
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      rgba(92,238,128,.22),
+      rgba(20,77,52,.34)
+    ) !important;
+
+  font-size:
+    21px !important;
+
+  box-shadow:
+    0 0 15px
+    rgba(50,206,104,.10) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-subject strong{
+  display:block !important;
+
+  color:
+    #f3f7ff !important;
+
+  font-size:
+    17px !important;
+
+  line-height:
+    1.2 !important;
+
+  font-weight:
+    900 !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-subject small{
+  display:block !important;
+
+  margin-top:
+    3px !important;
+
+  color:
+    rgba(161,181,216,.62) !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    650 !important;
+}
+
+
+/* =====================================================
+   UNIT CARD
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-unit{
+  position:relative !important;
+
+  flex:
+    0 0 auto !important;
+
+  min-height:
+    54px !important;
+
+  margin:
+    11px
+    0
+    9px !important;
+
+  padding:
+    6px
+    8px !important;
+
+  display:flex !important;
+
+  align-items:center !important;
+
+  gap:
+    9px !important;
+
+  overflow:hidden !important;
+
+  border:
+    1px solid
+    rgba(111,77,255,.48) !important;
+
+  border-radius:
+    13px !important;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(120,73,255,.27),
+      transparent 55%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(59,35,132,.80),
+      rgba(25,26,76,.82)
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.08),
+
+    0 7px 17px
+    rgba(17,7,72,.23),
+
+    0 0 15px
+    rgba(106,64,255,.10) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-unit-image{
+  width:
+    45px !important;
+
+  height:
+    45px !important;
+
+  flex:
+    0 0
+    45px !important;
+
+  overflow:hidden !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.13) !important;
+
+  border-radius:
+    11px !important;
+
+  background:
+    rgba(255,255,255,.05) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-unit-image img{
+  width:
+    100% !important;
+
+  height:
+    100% !important;
+
+  display:block !important;
+
+  object-fit:
+    cover !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-unit > span{
+  color:#fff !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    850 !important;
+
+  line-height:
+    1.25 !important;
+}
+
+
+/* =====================================================
+   LESSON LIST
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-list{
+  position:relative !important;
+
+  flex:
+    1
+    1 auto !important;
+
+  min-height:0 !important;
+
+  padding:
+    4px
+    0
+    8px !important;
+
+  overflow-y:auto !important;
+  overflow-x:visible !important;
+}
+
+
+/*
+  קו ההתקדמות המרכזי
+*/
+
+body.lesson-theme-science
+.lesson-sidebar-list::before{
+  content:"";
+
+  position:absolute;
+
+  top:
+    21px;
+
+  bottom:
+    69px;
+
+  right:
+    24px;
+
+  width:
+    2px;
+
+  z-index:
+    0;
+
+  border-radius:
+    99px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #42d870 0%,
+      #42d870 31%,
+      #386dff 31%,
+      #506cff 49%,
+      rgba(55,82,128,.40) 49%,
+      rgba(55,82,128,.20) 100%
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(52,116,255,.22);
+}
+
+
+/* =====================================================
+   EACH LESSON
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-row{
+  position:relative !important;
+
+  z-index:
+    2 !important;
+
+  width:
+    100% !important;
+
+  min-height:
+    55px !important;
+
+  margin:
+    1px
+    0 !important;
+
+  padding:
+    6px
+    7px !important;
+
+  display:flex !important;
+
+  align-items:center !important;
+
+  gap:
+    10px !important;
+
+  border:
+    1px solid
+    transparent !important;
+
+  border-radius:
+    12px !important;
+
+  color:
+    rgba(211,221,241,.80) !important;
+
+  background:
+    transparent !important;
+
+  transition:
+    background .2s ease,
+    border-color .2s ease,
+    transform .2s ease,
+    box-shadow .2s ease !important;
+}
+
+
+/* הטקסט */
+
+body.lesson-theme-science
+.lesson-sidebar-name{
+  flex:
+    1 !important;
+
+  min-width:
+    0 !important;
+
+  color:
+    inherit !important;
+
+  font-size:
+    11px !important;
+
+  line-height:
+    1.45 !important;
+
+  font-weight:
+    750 !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-name b{
+  margin-left:
+    3px !important;
+
+  color:
+    rgba(170,190,222,.62) !important;
+
+  font-size:
+    10px !important;
+}
+
+
+/* =====================================================
+   STATUS CIRCLE
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-status{
+  position:relative !important;
+
+  z-index:
+    3 !important;
+
+  width:
+    31px !important;
+
+  height:
+    31px !important;
+
+  flex:
+    0 0
+    31px !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  border:
+    2px solid
+    rgba(84,115,164,.54) !important;
+
+  border-radius:
+    50% !important;
+
+  background:
+    #07172c !important;
+
+  color:
+    #8da1c5 !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    900 !important;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(4,15,31,.96) !important;
+}
+
+
+/* =====================================================
+   COMPLETED
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-row.completed{
+  color:
+    rgba(225,238,231,.90) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-row.completed
+.lesson-sidebar-status{
+  border-color:
+    #5be77a !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #57df70,
+      #20a945
+    ) !important;
+
+  color:
+    #fff !important;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(4,15,31,.96),
+
+    0 0 12px
+    rgba(51,219,95,.35) !important;
+}
+
+
+/* =====================================================
+   CURRENT LESSON
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-row.current{
+  min-height:
+    60px !important;
+
+  margin:
+    3px
+    0 !important;
+
+  border:
+    1px solid
+    rgba(119,73,255,.86) !important;
+
+  background:
+    radial-gradient(
+      circle at 100% 50%,
+      rgba(59,154,255,.15),
+      transparent 42%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(75,42,177,.76),
+      rgba(29,31,87,.78)
+    ) !important;
+
+  color:
+    #fff !important;
+
+  transform:
+    translateX(-1px);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.08),
+
+    0 0 17px
+    rgba(94,61,255,.26),
+
+    0 7px 17px
+    rgba(1,4,20,.24) !important;
+}
+
+
+/* פס אור בצד של השיעור הנוכחי */
+
+body.lesson-theme-science
+.lesson-sidebar-row.current::after{
+  content:"";
+
+  position:absolute;
+
+  top:
+    10px;
+
+  bottom:
+    10px;
+
+  left:
+    -1px;
+
+  width:
+    3px;
+
+  border-radius:
+    99px;
+
+  background:
+    #59cfff;
+
+  box-shadow:
+    0 0 12px
+    #44c8ff;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-row.current
+.lesson-sidebar-status{
+  border-color:
+    #8d73ff !important;
+
+  background:
+    radial-gradient(
+      circle,
+      #203a7c,
+      #111d51
+    ) !important;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(86,77,255,.14),
+
+    0 0 15px
+    rgba(61,170,255,.72) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-row.current
+.lesson-sidebar-status span{
+  width:
+    9px !important;
+
+  height:
+    9px !important;
+
+  border-radius:
+    50% !important;
+
+  background:
+    #5bdfff !important;
+
+  box-shadow:
+    0 0 10px
+    #43d6ff,
+
+    0 0 18px
+    rgba(66,212,255,.54) !important;
+
+  animation:
+    lessonSidebarCurrentPulse
+    1.8s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes lessonSidebarCurrentPulse{
+
+  0%,
+  100%{
+    transform:
+      scale(.85);
+
+    opacity:
+      .72;
+  }
+
+  50%{
+    transform:
+      scale(1.18);
+
+    opacity:
+      1;
+  }
+
+}
+
+
+/* =====================================================
+   LOCKED
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-row.locked{
+  opacity:
+    .46 !important;
+
+  filter:
+    saturate(.5);
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-row.locked
+.lesson-sidebar-status{
+  border-color:
+    rgba(83,105,145,.32) !important;
+
+  color:
+    rgba(141,158,188,.65) !important;
+
+  background:
+    #071426 !important;
+}
+
+
+/* =====================================================
+   CHECKPOINT
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-checkpoint{
+  position:relative !important;
+
+  z-index:
+    3 !important;
+
+  min-height:
+    50px !important;
+
+  margin:
+    7px
+    0
+    0 !important;
+
+  padding:
+    6px
+    8px !important;
+
+  display:grid !important;
+
+  grid-template-columns:
+    31px
+    minmax(0,1fr)
+    22px !important;
+
+  align-items:center !important;
+
+  gap:
+    8px !important;
+
+  border:
+    1px solid
+    rgba(174,127,43,.23) !important;
+
+  border-radius:
+    12px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(62,45,20,.36),
+      rgba(18,25,42,.72)
+    ) !important;
+
+  color:
+    rgba(226,218,194,.72) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-checkpoint > span:first-child{
+  font-size:
+    21px !important;
+
+  filter:
+    drop-shadow(
+      0 0 6px
+      rgba(255,188,45,.18)
+    );
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-checkpoint strong{
+  font-size:
+    11px !important;
+
+  font-weight:
+    800 !important;
+}
+
+
+body.lesson-theme-science
+.checkpoint-lock{
+  opacity:
+    .55;
+}
+
+
+/* =====================================================
+   PREMIUM TEACHER AREA
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-teacher{
+  position:relative !important;
+
+  flex:
+    0
+    0
+    245px !important;
+
+  height:
+    245px !important;
+
+  margin:
+    0
+    -14px
+    0 !important;
+
+  overflow:
+    hidden !important;
+
+  display:flex !important;
+
+  align-items:flex-end !important;
+  justify-content:center !important;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(16,102,210,.24),
+      transparent 62%
+    ) !important;
+}
+
+
+/* אור מאחורי הדמות */
+
+body.lesson-theme-science
+.lesson-sidebar-teacher::before{
+  content:"";
+
+  position:absolute;
+
+  left:
+    50%;
+
+  bottom:
+    34px;
+
+  width:
+    190px;
+
+  height:
+    190px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius:
+    50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(37,144,255,.21),
+      rgba(29,98,203,.08) 45%,
+      transparent 70%
+    );
+
+  border:
+    1px solid
+    rgba(46,141,255,.13);
+
+  box-shadow:
+    0 0 38px
+    rgba(35,127,255,.13);
+
+  pointer-events:none;
+}
+
+
+/* טבעות טכנולוגיות */
+
+body.lesson-theme-science
+.lesson-sidebar-teacher::after{
+  content:"";
+
+  position:absolute;
+
+  left:
+    50%;
+
+  bottom:
+    46px;
+
+  width:
+    150px;
+
+  height:
+    150px;
+
+  transform:
+    translateX(-50%);
+
+  border:
+    1px dashed
+    rgba(42,176,255,.26);
+
+  border-radius:
+    50%;
+
+  box-shadow:
+    0 0 0 14px
+    rgba(44,143,255,.025),
+
+    0 0 0 28px
+    rgba(44,143,255,.018);
+
+  pointer-events:none;
+}
+
+
+/* =====================================================
+   TEACHER IMAGE
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-teacher img{
+  position:absolute !important;
+
+  z-index:
+    4 !important;
+
+  left:
+    50% !important;
+
+  bottom:
+    34px !important;
+
+  width:
+    205px !important;
+
+  height:
+    220px !important;
+
+  max-width:
+    none !important;
+
+  object-fit:
+    contain !important;
+
+  object-position:
+    center bottom !important;
+
+  transform:
+    translateX(-50%) !important;
+
+  filter:
+    drop-shadow(
+      0 12px 15px
+      rgba(0,0,0,.43)
+    )
+
+    drop-shadow(
+      0 0 11px
+      rgba(49,139,255,.12)
+    ) !important;
+
+  pointer-events:
+    none !important;
+}
+
+
+/* =====================================================
+   VOICE BUTTON
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-teacher button{
+  position:absolute !important;
+
+  z-index:
+    8 !important;
+
+  right:
+    15px !important;
+
+  bottom:
+    10px !important;
+
+  min-width:
+    120px !important;
+
+  height:
+    39px !important;
+
+  padding:
+    0
+    13px !important;
+
+  display:flex !important;
+
+  align-items:center !important;
+  justify-content:center !important;
+
+  gap:
+    7px !important;
+
+  border:
+    1px solid
+    rgba(55,155,255,.48) !important;
+
+  border-radius:
+    11px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13,70,132,.95),
+      rgba(8,41,84,.97)
+    ) !important;
+
+  color:
+    #e9f5ff !important;
+
+  font-size:
+    11px !important;
+
+  font-weight:
+    850 !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.08),
+
+    0 6px 15px
+    rgba(0,5,22,.32),
+
+    0 0 13px
+    rgba(37,139,255,.11) !important;
+
+  cursor:
+    pointer !important;
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-teacher button:hover{
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(73,183,255,.74) !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.10),
+
+    0 8px 18px
+    rgba(0,5,22,.38),
+
+    0 0 18px
+    rgba(43,160,255,.22) !important;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-teacher button i{
+  color:
+    #55caff !important;
+
+  font-size:
+    14px !important;
+
+  text-shadow:
+    0 0 8px
+    rgba(74,205,255,.45);
+}
+
+
+/* =====================================================
+   REMOVE OLD BOTTOM VERSION LABEL
+===================================================== */
+
+body.lesson-theme-science
+.lesson-lessons-sidebar
+.lesson-sidebar-version,
+
+body.lesson-theme-science
+.lesson-lessons-sidebar
+.version-label,
+
+body.lesson-theme-science
+.lesson-lessons-sidebar
+[class*="version"]{
+  display:
+    none !important;
+}
+
+
+/* =====================================================
+   SCROLLBAR
+===================================================== */
+
+body.lesson-theme-science
+.lesson-sidebar-list::-webkit-scrollbar{
+  width:
+    3px;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-list::-webkit-scrollbar-track{
+  background:
+    transparent;
+}
+
+
+body.lesson-theme-science
+.lesson-sidebar-list::-webkit-scrollbar-thumb{
+  background:
+    rgba(70,129,215,.30);
+
+  border-radius:
+    999px;
+}
+
+
+/* =====================================================
+   SMALLER LAPTOPS
+===================================================== */
+
+@media(max-height:850px){
+
+  body.lesson-theme-science
+  .lesson-sidebar-teacher{
+    flex-basis:
+      205px !important;
+
+    height:
+      205px !important;
+  }
+
+
+  body.lesson-theme-science
+  .lesson-sidebar-teacher img{
+    width:
+      170px !important;
+
+    height:
+      185px !important;
+
+    bottom:
+      33px !important;
+  }
+
+
+  body.lesson-theme-science
+  .lesson-sidebar-row{
+    min-height:
+      48px !important;
+  }
+
+
+  body.lesson-theme-science
+  .lesson-sidebar-row.current{
+    min-height:
+      52px !important;
+  }
+
+}
 </style>
 
 
@@ -40317,23 +42614,16 @@ function initLessonRenderer() {
   const renderer =
     window.lessonRenderer;
 
-  const demoButton =
-    document.createElement(
-      "button"
-    );
+const demoButton =
+  document.createElement(
+    "button"
+  );
 
+demoButton.className =
+  "lesson-renderer-demo-btn";
 
-    demoButton.className =
-      "lesson-renderer-demo-btn";
-
-
-    demoButton.textContent =
-      "▶ Rotem V13";
-
-
-    document.body.appendChild(
-      demoButton
-    );
+demoButton.style.display =
+  "none";
 
 
     demoButton.onclick =
