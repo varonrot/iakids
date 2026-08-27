@@ -7728,6 +7728,282 @@ def get_or_generate_unit_lesson_hero_image(
             detail="Lesson hero image generation failed"
         )
 
+# =====================================================
+# UNIT LESSON VISUALS
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/visuals"
+)
+def get_unit_lesson_visuals(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # מוודאים שהילד שייך למשתמש
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD UNIT LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Lesson does not match child grade"
+            )
+
+        # =============================================
+        # LOAD VISUAL PLAN
+        # =============================================
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        visual_plan = (
+            generated_lesson_json.get(
+                "visual_plan"
+            )
+            or {}
+        )
+
+        planned_visuals = (
+            visual_plan.get(
+                "visuals"
+            )
+            or []
+        )
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        response_visuals = []
+
+        # =============================================
+        # BUILD RESPONSE
+        # =============================================
+
+        for visual in planned_visuals:
+
+            if not isinstance(
+                    visual,
+                    dict
+            ):
+                continue
+
+            visual_type = str(
+                visual.get("type")
+                or ""
+            ).strip().lower()
+
+            # כרגע הפרונט מקבל רק תמונות.
+            # וידאו נחבר בשלב הבא.
+            if visual_type != "image":
+                continue
+
+            visual_order = int(
+                visual.get("order")
+                or 0
+            )
+
+            if not visual_order:
+                continue
+
+            storage_path = (
+                f"unit_lessons/"
+                f"{unit_lesson['id']}/"
+                f"v{content_version}/"
+                f"visual_{visual_order}.png"
+            )
+
+            # -----------------------------------------
+            # התמונה יכולה עדיין להיות בתהליך יצירה.
+            # במקרה כזה פשוט לא מחזירים אותה עדיין.
+            # -----------------------------------------
+
+            try:
+
+                signed_url = (
+                    create_lesson_media_signed_url(
+                        storage_path
+                    )
+                )
+
+            except Exception as image_error:
+
+                print(
+                    "LESSON VISUAL NOT READY:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+
+                        "order":
+                            visual_order,
+
+                        "storage_path":
+                            storage_path,
+
+                        "error":
+                            repr(image_error)
+                    }
+                )
+
+                continue
+
+            response_visuals.append({
+
+                "order":
+                    visual_order,
+
+                "type":
+                    "image",
+
+                "trigger_text":
+                    visual.get(
+                        "trigger_text"
+                    ),
+
+                "visual_goal":
+                    visual.get(
+                        "visual_goal"
+                    ),
+
+                "source_text":
+                    visual.get(
+                        "source_text"
+                    ),
+
+                "storage_path":
+                    storage_path,
+
+                "url":
+                    signed_url
+            })
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        print(
+            "LESSON VISUALS RESPONSE:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "content_version":
+                    content_version,
+
+                "planned_count":
+                    len(planned_visuals),
+
+                "ready_count":
+                    len(response_visuals)
+            }
+        )
+
+        return {
+
+            "success":
+                True,
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "content_version":
+                content_version,
+
+            "visuals":
+                response_visuals,
+
+            "visuals_ready":
+                len(response_visuals),
+
+            "visuals_planned":
+                len([
+                    item
+                    for item in planned_visuals
+                    if isinstance(item, dict)
+                    and item.get("type") == "image"
+                ])
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "UNIT LESSON VISUALS ERROR:",
+            {
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load lesson visuals"
+        )
+    
 @app.post(
     "/api/tutor/unit-lesson/audio"
 )
