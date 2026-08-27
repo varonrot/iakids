@@ -14173,12 +14173,27 @@ data-custom-slot="0"
 
     <section class="lesson-visual-stage">
 
-      <div class="lesson-visual-placeholder">
-        <span>אזור המחשה</span>
-        <small>
-          כאן יוצגו בהמשך תמונות, וידאו והמחשות
-        </small>
-      </div>
+<div
+  class="lesson-visual-placeholder lesson-visual-generating"
+  id="lessonVisualGenerating"
+>
+  <div class="lesson-visual-orb">
+    <span class="lesson-visual-orb-core"></span>
+    <span class="lesson-visual-orb-ring ring-1"></span>
+    <span class="lesson-visual-orb-ring ring-2"></span>
+    <span class="lesson-visual-orb-ring ring-3"></span>
+  </div>
+
+  <strong>יוצרים המחשה חזותית...</strong>
+
+  <small>
+    בונים תמונה שתעזור להבין את הרעיון
+  </small>
+
+  <div class="lesson-visual-generating-line">
+    <span></span>
+  </div>
+</div>
 
     </section>
 
@@ -17123,7 +17138,6 @@ async function waitForUnitLessonAudio(
   );
 
 }
-
 function showLessonHeroImage(
   imageUrl
 ){
@@ -17136,14 +17150,6 @@ function showLessonHeroImage(
   const visualArea =
     document.querySelector(
       ".lesson-visual-stage"
-    )
-    ||
-    document.querySelector(
-      ".lesson-media-stage"
-    )
-    ||
-    document.getElementById(
-      "lessonVisualStage"
     );
 
 
@@ -17158,20 +17164,103 @@ function showLessonHeroImage(
   }
 
 
-  visualArea.innerHTML = `
-    <div class="lesson-hero-image-wrap">
+  const oldContent =
+    visualArea.innerHTML;
 
-      <img
-        src="${imageUrl}"
-        class="lesson-hero-image"
-        alt=""
-      >
 
-    </div>
-  `;
+  visualArea.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div class="lesson-hero-image-wrap">
+
+        <img
+          src="${imageUrl}"
+          class="lesson-hero-image"
+          alt=""
+        >
+
+      </div>
+    `
+  );
+
+
+  const image =
+    visualArea.querySelector(
+      ".lesson-hero-image"
+    );
+
+
+  const loading =
+    visualArea.querySelector(
+      ".lesson-visual-generating"
+    );
+
+
+  if(!image){
+    return;
+  }
+
+
+  const revealImage = () => {
+
+    requestAnimationFrame(
+      () => {
+
+        requestAnimationFrame(
+          () => {
+
+            image.classList.add(
+              "is-visible"
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    if(loading){
+
+      loading.style.opacity =
+        "0";
+
+      loading.style.transform =
+        "scale(1.03)";
+
+
+      setTimeout(
+        () => {
+
+          loading.remove();
+
+        },
+        650
+      );
+
+    }
+
+  };
+
+
+  if(image.complete){
+
+    revealImage();
+
+  }
+  else{
+
+    image.addEventListener(
+      "load",
+      revealImage,
+      {
+        once:true
+      }
+    );
+
+  }
 
 }
-
 /* =====================================================
    LESSON HERO IMAGE
 ===================================================== */
@@ -39919,6 +40008,359 @@ body.lesson-theme-science
       52px !important;
   }
 
+}
+    /* =====================================================
+   LESSON VISUAL GENERATION
+===================================================== */
+
+.lesson-visual-generating{
+  position:absolute;
+  inset:0;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap:12px;
+
+  z-index:3;
+
+  overflow:hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(47,126,255,.14),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(5,17,37,.96),
+      rgba(3,11,25,.98)
+    );
+
+  opacity:1;
+
+  transition:
+    opacity .55s ease,
+    transform .55s ease;
+}
+
+
+.lesson-visual-generating::before{
+  content:"";
+
+  position:absolute;
+  inset:-25%;
+
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent,
+      rgba(48,173,255,.10),
+      transparent 30%,
+      rgba(122,80,255,.12),
+      transparent 64%
+    );
+
+  animation:
+    lessonVisualSweep
+    7s linear infinite;
+}
+
+
+.lesson-visual-generating strong{
+  position:relative;
+  z-index:3;
+
+  color:#eef6ff;
+
+  font-size:20px;
+  font-weight:900;
+
+  letter-spacing:.2px;
+
+  text-shadow:
+    0 0 14px
+    rgba(74,166,255,.28);
+}
+
+
+.lesson-visual-generating small{
+  position:relative;
+  z-index:3;
+
+  color:
+    rgba(179,199,228,.64);
+
+  font-size:12px;
+  font-weight:700;
+}
+
+
+/* מרכז AI */
+
+.lesson-visual-orb{
+  position:relative;
+
+  width:104px;
+  height:104px;
+
+  display:grid;
+  place-items:center;
+
+  margin-bottom:5px;
+}
+
+
+.lesson-visual-orb-core{
+  position:relative;
+  z-index:4;
+
+  width:42px;
+  height:42px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 28%,
+      #dffaff 0%,
+      #5dd7ff 22%,
+      #4c78ff 55%,
+      #773dff 100%
+    );
+
+  box-shadow:
+    0 0 18px
+    rgba(66,206,255,.75),
+
+    0 0 42px
+    rgba(82,94,255,.48);
+
+  animation:
+    lessonVisualCorePulse
+    1.8s ease-in-out infinite;
+}
+
+
+.lesson-visual-orb-ring{
+  position:absolute;
+
+  border-radius:50%;
+
+  border:
+    1px solid
+    rgba(80,182,255,.38);
+
+  box-shadow:
+    0 0 12px
+    rgba(57,146,255,.12);
+}
+
+
+.lesson-visual-orb .ring-1{
+  width:68px;
+  height:68px;
+
+  animation:
+    lessonVisualRing
+    2.4s linear infinite;
+}
+
+
+.lesson-visual-orb .ring-2{
+  width:88px;
+  height:88px;
+
+  border-color:
+    rgba(124,93,255,.26);
+
+  animation:
+    lessonVisualRingReverse
+    3.1s linear infinite;
+}
+
+
+.lesson-visual-orb .ring-3{
+  width:104px;
+  height:104px;
+
+  border-style:dashed;
+
+  border-color:
+    rgba(70,190,255,.15);
+
+  animation:
+    lessonVisualRing
+    5s linear infinite;
+}
+
+
+/* פס התקדמות לא לינארי */
+
+.lesson-visual-generating-line{
+  position:relative;
+  z-index:3;
+
+  width:min(320px,58%);
+  height:4px;
+
+  margin-top:3px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:
+    rgba(107,138,194,.16);
+}
+
+
+.lesson-visual-generating-line span{
+  position:absolute;
+
+  top:0;
+  bottom:0;
+
+  width:35%;
+
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #49cfff,
+      #7765ff,
+      transparent
+    );
+
+  filter:
+    drop-shadow(
+      0 0 7px
+      rgba(78,180,255,.68)
+    );
+
+  animation:
+    lessonVisualLoading
+    1.65s ease-in-out infinite;
+}
+
+
+/* =====================================================
+   HERO IMAGE
+===================================================== */
+
+.lesson-hero-image-wrap{
+  position:absolute;
+
+  inset:0;
+
+  overflow:hidden;
+
+  background:#061326;
+}
+
+
+.lesson-hero-image{
+  width:100%;
+  height:100%;
+
+  display:block;
+
+  object-fit:cover;
+
+  opacity:0;
+
+  transform:
+    scale(1.035);
+
+  filter:
+    blur(10px)
+    brightness(.85);
+
+  transition:
+    opacity 1.1s ease,
+    transform 1.35s ease,
+    filter 1.2s ease;
+}
+
+
+.lesson-hero-image.is-visible{
+  opacity:1;
+
+  transform:
+    scale(1);
+
+  filter:
+    blur(0)
+    brightness(1);
+}
+
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+
+@keyframes lessonVisualSweep{
+  from{
+    transform:rotate(0deg);
+  }
+
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+
+@keyframes lessonVisualCorePulse{
+  0%,
+  100%{
+    transform:scale(.92);
+  }
+
+  50%{
+    transform:scale(1.08);
+  }
+}
+
+
+@keyframes lessonVisualRing{
+  from{
+    transform:rotate(0deg);
+  }
+
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+
+@keyframes lessonVisualRingReverse{
+  from{
+    transform:rotate(360deg);
+  }
+
+  to{
+    transform:rotate(0deg);
+  }
+}
+
+
+@keyframes lessonVisualLoading{
+  0%{
+    left:-38%;
+  }
+
+  55%{
+    left:55%;
+  }
+
+  100%{
+    left:105%;
+  }
 }
 </style>
 
