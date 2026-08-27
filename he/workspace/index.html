@@ -17391,6 +17391,244 @@ async function loadLessonVisuals(
   session
 ){
 
+  const MAX_VISUAL_CHECKS = 30;
+  const CHECK_DELAY_MS = 1000;
+
+  window.CURRENT_LESSON_VISUALS = [];
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_VISUAL_CHECKS;
+    attempt++
+  ){
+
+    try{
+
+      console.log(
+        "LESSON VISUALS CHECK:",
+        {
+          unitLessonId,
+          attempt
+        }
+      );
+
+      const response =
+        await fetch(
+          `${TUTOR_API_BASE}/api/tutor/unit-lesson/visuals`,
+          {
+            method:"POST",
+
+            headers:{
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+            },
+
+            body:
+              JSON.stringify({
+                kid_id:
+                  CURRENT_KID.id,
+
+                unit_lesson_id:
+                  unitLessonId
+              })
+          }
+        );
+
+
+      const responseText =
+        await response.text();
+
+      let data = null;
+
+
+      try{
+
+        data =
+          responseText
+            ? JSON.parse(responseText)
+            : null;
+
+      }
+      catch(error){
+
+        console.error(
+          "LESSON VISUALS JSON ERROR:",
+          responseText
+        );
+
+        return [];
+      }
+
+
+      if(!response.ok){
+
+        console.warn(
+          "LESSON VISUALS CHECK FAILED:",
+          response.status,
+          data
+        );
+
+      }
+      else{
+
+        const incomingVisuals =
+          Array.isArray(data?.visuals)
+            ? data.visuals
+            : [];
+
+
+        /*
+          מעדכנים בלי למחוק פריטים
+          שכבר התקבלו קודם.
+        */
+
+        for(
+          const incoming of incomingVisuals
+        ){
+
+          const existingIndex =
+            window.CURRENT_LESSON_VISUALS
+              .findIndex(
+                item =>
+                  Number(item.order)
+                  ===
+                  Number(incoming.order)
+              );
+
+
+          if(existingIndex === -1){
+
+            window.CURRENT_LESSON_VISUALS.push(
+              incoming
+            );
+
+          }
+          else{
+
+            window.CURRENT_LESSON_VISUALS[
+              existingIndex
+            ] = {
+              ...window.CURRENT_LESSON_VISUALS[
+                existingIndex
+              ],
+              ...incoming
+            };
+
+          }
+
+        }
+
+
+        window.CURRENT_LESSON_VISUALS.sort(
+          (a,b) =>
+            Number(a.order || 0)
+            -
+            Number(b.order || 0)
+        );
+
+
+        console.log(
+          "LESSON VISUALS READY:",
+          {
+            ready:
+              window.CURRENT_LESSON_VISUALS.length,
+
+            planned:
+              data?.visuals_planned,
+
+            visuals:
+              window.CURRENT_LESSON_VISUALS
+          }
+        );
+
+
+        /*
+          תמונה הגיעה בזמן שפסקה כבר רצה?
+          נסה להציג אותה מיד.
+        */
+
+        if(
+          window.CURRENT_LESSON_PARAGRAPH
+        ){
+
+          showVisualForLessonText(
+            window.CURRENT_LESSON_PARAGRAPH
+          );
+
+        }
+
+
+        /*
+          כל התמונות מוכנות.
+          אין צורך לבדוק יותר.
+        */
+
+        const planned =
+          Number(
+            data?.visuals_planned
+            || 0
+          );
+
+
+        if(
+          planned > 0
+          &&
+          window.CURRENT_LESSON_VISUALS.length
+          >= planned
+        ){
+
+          console.log(
+            "ALL LESSON VISUALS LOADED"
+          );
+
+          return (
+            window.CURRENT_LESSON_VISUALS
+          );
+
+        }
+
+      }
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            CHECK_DELAY_MS
+          )
+      );
+
+    }
+    catch(error){
+
+      console.error(
+        "LESSON VISUALS ERROR:",
+        error
+      );
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            CHECK_DELAY_MS
+          )
+      );
+
+    }
+
+  }
+
+
+  return (
+    window.CURRENT_LESSON_VISUALS
+  );
+
+}
+
   try{
 
     console.log(
@@ -18447,6 +18685,9 @@ for(
   /* =============================================
      SWITCH VISUAL FOR CURRENT LESSON TEXT
   ============================================= */
+
+window.CURRENT_LESSON_PARAGRAPH =
+  paragraph;
 
   showVisualForLessonText(
     paragraph
