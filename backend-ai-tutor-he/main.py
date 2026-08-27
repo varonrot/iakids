@@ -4498,6 +4498,19 @@ def generate_lesson_hero_image_bytes(
         "Gemini returned no image data"
     )
 
+def generate_lesson_visual_image_bytes(
+        prompt: str
+) -> tuple[bytes, str]:
+    """
+    יוצר תמונת המחשה רגילה של השיעור.
+
+    כרגע משתמש באותו מנוע Gemini
+    ובאותן הגדרות 16:9 של תמונת ה-Hero.
+    """
+
+    return generate_lesson_hero_image_bytes(
+        prompt
+    )
 
 # =====================================================
 # GENERATE + STORE HERO IMAGE
