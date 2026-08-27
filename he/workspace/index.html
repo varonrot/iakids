@@ -17783,8 +17783,13 @@ if(generating){
     );
 
 
-  image.src =
-    visual.url;
+const separator =
+  visual.url.includes("?")
+    ? "&"
+    : "?";
+
+image.src =
+  `${visual.url}${separator}cacheBust=${Date.now()}`;
 
 
   image.alt = "";
