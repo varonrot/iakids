@@ -5019,9 +5019,11 @@ def generate_lesson_visual_image_bytes(
 
     MATCH THE REFERENCE IMAGE:
 
-    - same illustration/rendering technique
-    - same level of realism
-    - same lighting style
+    - same premium semi-realistic digital illustration style
+    - same illustrated rendering technique
+    - same character design language
+    - same level of illustrated realism
+    - same cinematic lighting style
     - same color palette and color treatment
     - same texture and material treatment
     - same depth and atmosphere
