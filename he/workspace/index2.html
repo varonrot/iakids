@@ -17605,43 +17605,100 @@ async function loadLessonVisuals(
           );
 
 
-        console.log(
-          "LESSON VISUALS READY:",
-          {
-            ready,
-            planned,
-            visuals:
-              window.CURRENT_LESSON_VISUALS
-          }
-        );
+console.log(
+  "LESSON VISUALS READY:",
+  {
+    ready,
+    planned,
+    visuals:
+      window.CURRENT_LESSON_VISUALS
+  }
+);
 
 
-        /*
-          אם תמונה חדשה הגיעה בזמן
-          שהפסקה שלה כבר רצה,
-          מנסים להציג אותה עכשיו.
-        */
+/* =============================================
+   SHOW CURRENT SEGMENT VISUAL WHEN IT ARRIVES
+============================================= */
 
-        if(
-          window.CURRENT_LESSON_PARAGRAPH
-        ){
+const currentVisualOrder =
+  Number(
+    window.CURRENT_LESSON_VISUAL_ORDER
+    || 0
+  );
 
-          showVisualForLessonText(
-            window.CURRENT_LESSON_PARAGRAPH
-          );
 
+if(
+  currentVisualOrder > 0
+){
+
+  const currentVisual =
+    (
+      window.CURRENT_LESSON_VISUALS
+      || []
+    ).find(
+      item =>
+        Number(
+          item?.order
+          || 0
+        )
+        ===
+        currentVisualOrder
+        &&
+        item?.url
+    );
+
+
+  if(currentVisual){
+
+    const alreadyDisplayedOrder =
+      Number(
+        window.CURRENT_DISPLAYED_VISUAL_ORDER
+        || 0
+      );
+
+
+    if(
+      alreadyDisplayedOrder
+      !==
+      currentVisualOrder
+    ){
+
+      console.log(
+        "POLLING VISUAL ARRIVED FOR CURRENT SEGMENT:",
+        {
+          currentSegment:
+            currentVisualOrder,
+
+          visualOrder:
+            currentVisual.order
         }
+      );
 
 
-        /*
-          כל התמונות מוכנות.
-        */
+      window.CURRENT_DISPLAYED_VISUAL_ORDER =
+        currentVisualOrder;
 
-        if(
-          planned > 0
-          &&
-          ready >= planned
-        ){
+
+      showLessonVisual(
+        currentVisual
+      );
+
+    }
+
+  }
+
+}
+
+
+/*
+  כל התמונות מוכנות.
+*/
+
+if(
+  planned > 0
+  &&
+  ready >= planned
+){
 
           console.log(
             "ALL LESSON VISUALS LOADED:",
@@ -17719,6 +17776,167 @@ async function loadLessonVisuals(
 
 }
 
+async function waitForLessonVisual(
+  unitLessonId,
+  session,
+  visualOrder
+){
+
+  const MAX_CHECKS = 40;
+  const CHECK_DELAY_MS = 1000;
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_CHECKS;
+    attempt++
+  ){
+
+    const existing =
+      (
+        window.CURRENT_LESSON_VISUALS
+        || []
+      ).find(
+        visual =>
+          Number(
+            visual?.order || 0
+          )
+          ===
+          Number(
+            visualOrder
+          )
+          &&
+          visual?.url
+      );
+
+    if(existing){
+
+      console.log(
+        "SEGMENT VISUAL READY:",
+        {
+          visualOrder,
+          attempt
+        }
+      );
+
+      return existing;
+    }
+
+    /*
+      מרעננים את רשימת התמונות מה-Backend.
+    */
+
+    try{
+
+      const response =
+        await fetch(
+          `${TUTOR_API_BASE}/api/tutor/unit-lesson/visuals`,
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+            },
+
+            body:
+              JSON.stringify({
+                kid_id:
+                  CURRENT_KID.id,
+
+                unit_lesson_id:
+                  unitLessonId
+              })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if(
+        response.ok
+        &&
+        Array.isArray(
+          data?.visuals
+        )
+      ){
+
+        for(
+          const incoming
+          of data.visuals
+        ){
+
+          const existingIndex =
+            window.CURRENT_LESSON_VISUALS
+              .findIndex(
+                visual =>
+                  Number(
+                    visual?.order || 0
+                  )
+                  ===
+                  Number(
+                    incoming?.order || 0
+                  )
+              );
+
+          if(existingIndex >= 0){
+
+            window.CURRENT_LESSON_VISUALS[
+              existingIndex
+            ] = {
+              ...window.CURRENT_LESSON_VISUALS[
+                existingIndex
+              ],
+              ...incoming
+            };
+
+          }
+          else{
+
+            window.CURRENT_LESSON_VISUALS.push(
+              incoming
+            );
+
+          }
+
+        }
+
+      }
+
+    }
+    catch(error){
+
+      console.warn(
+        "WAIT FOR SEGMENT VISUAL ERROR:",
+        {
+          visualOrder,
+          attempt,
+          error
+        }
+      );
+
+    }
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          CHECK_DELAY_MS
+        )
+    );
+
+  }
+
+  console.warn(
+    "SEGMENT VISUAL TIMEOUT:",
+    visualOrder
+  );
+
+  return null;
+}
+
 /* =====================================================
    SHOW LESSON VISUAL
 ===================================================== */
@@ -17727,14 +17945,16 @@ function showLessonVisual(
   visual
 ){
 
-const generating =
-  document.getElementById(
-    "lessonVisualGenerating"
-  );
+  const generating =
+    document.getElementById(
+      "lessonVisualGenerating"
+    );
 
-if(generating){
-  generating.style.display = "none";
-}
+  if(generating){
+    generating.style.display =
+      "none";
+  }
+
 
   if(
     !visual
@@ -17761,11 +17981,41 @@ if(generating){
   }
 
 
-  const oldImage =
-    visualArea.querySelector(
-      ".lesson-hero-image"
+  /*
+    לוקחים את התמונה שמוצגת כרגע.
+    חשוב לקחת את האחרונה ולא את הראשונה,
+    כי בזמן transition יכולות להיות
+    שתי תמונות בתוך ה-stage.
+  */
+
+  const existingWraps =
+    Array.from(
+      visualArea.querySelectorAll(
+        ".lesson-hero-image-wrap"
+      )
     );
 
+
+  const oldWrap =
+    existingWraps.length
+      ? existingWraps[
+          existingWraps.length - 1
+        ]
+      : null;
+
+
+  const oldImage =
+    oldWrap
+      ? oldWrap.querySelector(
+          ".lesson-hero-image"
+        )
+      : null;
+
+
+  /*
+    יוצרים את התמונה החדשה
+    מעל התמונה הישנה.
+  */
 
   const wrap =
     document.createElement(
@@ -17777,22 +18027,36 @@ if(generating){
     "lesson-hero-image-wrap lesson-dynamic-visual-wrap";
 
 
+  wrap.style.zIndex =
+    "2";
+
+
+  if(oldWrap){
+
+    oldWrap.style.zIndex =
+      "1";
+
+  }
+
+
   const image =
     document.createElement(
       "img"
     );
 
 
-const separator =
-  visual.url.includes("?")
-    ? "&"
-    : "?";
-
-image.src =
-  `${visual.url}${separator}cacheBust=${Date.now()}`;
+  const separator =
+    visual.url.includes("?")
+      ? "&"
+      : "?";
 
 
-  image.alt = "";
+  image.src =
+    `${visual.url}${separator}cacheBust=${Date.now()}`;
+
+
+  image.alt =
+    "";
 
 
   image.className =
@@ -17808,6 +18072,14 @@ image.src =
     wrap
   );
 
+
+  /*
+    רק אחרי שהתמונה החדשה באמת נטענה,
+    מציגים אותה.
+
+    התמונה הישנה נשארת מלאה מתחתיה
+    עד שהחדשה כבר נראית.
+  */
 
   const reveal = () => {
 
@@ -17826,49 +18098,73 @@ image.src =
               "is-visible"
             );
 
+
+            /*
+              מחכים שהחדשה כבר תכסה
+              את הישנה.
+
+              רק אז מעלימים ומסירים
+              את הישנה.
+            */
+
+            setTimeout(
+              () => {
+
+                if(
+                  oldImage
+                  &&
+                  oldWrap
+                  &&
+                  oldWrap !== wrap
+                ){
+
+                  oldImage.classList.add(
+                    "lesson-image-leaving"
+                  );
+
+
+                  setTimeout(
+                    () => {
+
+                      if(
+                        oldWrap.isConnected
+                      ){
+
+                        oldWrap.remove();
+
+                      }
+
+                    },
+                    350
+                  );
+
+                }
+
+              },
+              500
+            );
+
           }
         );
 
       }
     );
 
-
-    if(oldImage){
-
-      oldImage.classList.add(
-        "lesson-image-leaving"
-      );
-
-    }
-
-
-    const oldWrap =
-      oldImage?.closest(
-        ".lesson-hero-image-wrap"
-      );
-
-
-    if(oldWrap){
-
-      setTimeout(
-        () => {
-
-          if(
-            oldWrap !== wrap
-          ){
-            oldWrap.remove();
-          }
-
-        },
-        900
-      );
-
-    }
-
   };
 
 
-  if(image.complete){
+  /*
+    image.complete לבדו לא מספיק:
+    גם תמונה שנכשלה יכולה להיות complete.
+
+    לכן בודקים naturalWidth.
+  */
+
+  if(
+    image.complete
+    &&
+    image.naturalWidth > 0
+  ){
 
     reveal();
 
@@ -17883,11 +18179,41 @@ image.src =
       }
     );
 
+
+    /*
+      אם החדשה נכשלה —
+      לא נוגעים בתמונה הישנה בכלל.
+    */
+
+    image.addEventListener(
+      "error",
+      () => {
+
+        console.warn(
+          "LESSON VISUAL IMAGE LOAD ERROR:",
+          {
+            order:
+              visual.order,
+
+            url:
+              visual.url
+          }
+        );
+
+
+        wrap.remove();
+
+      },
+      {
+        once:true
+      }
+    );
+
   }
 
 
   console.log(
-    "LESSON VISUAL DISPLAYED:",
+    "LESSON VISUAL REQUESTED:",
     {
       order:
         visual.order,
@@ -17900,7 +18226,6 @@ image.src =
 }
 
 
-
 /* =====================================================
    VISUAL TRIGGER
 ===================================================== */
@@ -17909,34 +18234,10 @@ function showVisualForLessonText(
   paragraph
 ){
 
-  const normalizeLessonVisualText = value => {
-
-    return String(
-      value || ""
-    )
-      .normalize("NFD")
-      .replace(
-        /[\u0591-\u05C7]/g,
-        ""
-      )
-      .replace(
-        /["'״׳.,!?;:()[\]{}…–—־]/g,
-        " "
-      )
-      .replace(
-        /\s+/g,
-        " "
-      )
-      .trim()
-      .toLowerCase();
-
-  };
-
-
   const text =
-    normalizeLessonVisualText(
-      paragraph
-    );
+    String(
+      paragraph || ""
+    ).trim();
 
 
   if(!text){
@@ -17953,166 +18254,84 @@ function showVisualForLessonText(
 
 
   if(!visuals.length){
+
+    console.log(
+      "NO LESSON VISUALS AVAILABLE"
+    );
+
     return;
   }
 
 
   /*
-    ==========================================
-    חיפוש visual שמתאים לפסקה הנוכחית
-    ==========================================
+    אותה פסקה יכולה להישלח כמה פעמים
+    בזמן כתיבה / TTS / polling.
+
+    לכן לא מחליפים תמונה שוב
+    אם אנחנו עדיין באותה פסקה.
+  */
+
+  if(
+    window.LAST_VISUAL_PARAGRAPH
+    ===
+    text
+  ){
+    return;
+  }
+
+
+  window.LAST_VISUAL_PARAGRAPH =
+    text;
+
+
+  /*
+    התמונות כבר מסודרות לפי order
+    ב-loadLessonVisuals.
+
+    מחפשים את התמונה הבאה
+    שעדיין לא הוצגה.
   */
 
   const visual =
     visuals.find(
-      item => {
-
-        if(
-          !item
-          ||
-          item._shown
-          ||
-          !item.url
-        ){
-          return false;
-        }
-
-
-        const trigger =
-          normalizeLessonVisualText(
-            item.trigger_text
-          );
-
-
-        const source =
-          normalizeLessonVisualText(
-            item.source_text
-          );
-
-
-        /*
-          1. התאמה ישירה ל-trigger
-        */
-
-        if(
-          trigger
-          &&
-          (
-            text.includes(trigger)
-            ||
-            trigger.includes(text)
-          )
-        ){
-          return true;
-        }
-
-
-        /*
-          2. התאמה ישירה ל-source_text
-        */
-
-        if(
-          source
-          &&
-          (
-            text.includes(source)
-            ||
-            source.includes(text)
-          )
-        ){
-          return true;
-        }
-
-
-        /*
-          3. התאמת מילים חלקית ל-source_text
-        */
-
-        if(source){
-
-          const paragraphWords =
-            text
-              .split(" ")
-              .filter(
-                word =>
-                  word.length >= 3
-              );
-
-
-          const sourceWords =
-            source
-              .split(" ")
-              .filter(
-                word =>
-                  word.length >= 3
-              );
-
-
-          if(
-            paragraphWords.length
-            &&
-            sourceWords.length
-          ){
-
-            const commonWords =
-              sourceWords.filter(
-                word =>
-                  paragraphWords.includes(
-                    word
-                  )
-              );
-
-
-            const overlap =
-              commonWords.length
-              /
-              Math.min(
-                paragraphWords.length,
-                sourceWords.length
-              );
-
-
-            /*
-              דורשים התאמה חזקה יחסית.
-              לא מספיק כמה מילים מקריות.
-            */
-
-            if(overlap >= 0.55){
-
-              return true;
-
-            }
-
-          }
-
-        }
-
-
-        return false;
-
-      }
+      item =>
+        item
+        &&
+        item.url
+        &&
+        item._shown !== true
     );
 
-
-  /*
-    אין התאמה לפסקה הזאת?
-    לא מחליפים תמונה.
-  */
 
   if(!visual){
 
     console.log(
-      "NO VISUAL MATCH FOR PARAGRAPH:",
-      paragraph
+      "ALL AVAILABLE LESSON VISUALS ALREADY SHOWN",
+      {
+        paragraph:
+          text,
+
+        visuals:
+          visuals.map(
+            item => ({
+              order:
+                item.order,
+
+              shown:
+                item._shown
+            })
+          )
+      }
     );
 
     return;
-
   }
 
 
   /*
-    מצאנו את התמונה המתאימה.
+    מסמנים אותה לפני ההצגה,
+    כדי שפולינג מקביל לא יציג
+    אותה שוב.
   */
 
   visual._shown =
@@ -18120,19 +18339,21 @@ function showVisualForLessonText(
 
 
   console.log(
-    "LESSON VISUAL DISPLAYED:",
+    "LESSON VISUAL ADVANCE:",
     {
       order:
         visual.order,
 
-      trigger_text:
-        visual.trigger_text,
-
       paragraph:
-        paragraph
+        text,
+
+      trigger_text:
+        visual.trigger_text
     }
   );
 
+window.CURRENT_DISPLAYED_VISUAL_ORDER =
+  visualOrder;
 
   showLessonVisual(
     visual
@@ -18840,44 +19061,91 @@ for(
   const paragraph =
     lessonParts[index];
 
-
   /* =============================================
-     SWITCH VISUAL FOR CURRENT LESSON TEXT
+     WAIT + SWITCH VISUAL FOR CURRENT SEGMENT
+
+     Segment 1 -> Visual 1
+     Segment 2 -> Visual 2
+     Segment 3 -> Visual 3
+     ...
   ============================================= */
 
 window.CURRENT_LESSON_PARAGRAPH =
   paragraph;
 
-  showVisualForLessonText(
-    paragraph
+const visualOrder =
+  index + 1;
+
+/*
+  שומרים איזה Segment מתנגן כרגע.
+  loadLessonVisuals ישתמש במספר הזה
+  כאשר התמונה מגיעה מה-Backend.
+*/
+window.CURRENT_LESSON_VISUAL_ORDER =
+  visualOrder;
+  /*
+    מחכים לתמונה ששייכת בדיוק
+    לפסקה הנוכחית.
+
+    אם היא עדיין נוצרת ב-Backend,
+    waitForLessonVisual ימשיך לבדוק
+    עד שהיא תהיה מוכנה.
+  */
+
+const visualForSegment =
+  (
+    window.CURRENT_LESSON_VISUALS
+    || []
+  ).find(
+    visual =>
+      Number(visual?.order || 0)
+      ===
+      Number(visualOrder)
+      &&
+      visual?.url
   );
 
+if(
+  visualForSegment
+){
+
+  console.log(
+    "SHOW READY VISUAL FOR SEGMENT:",
+    {
+      segment: visualOrder,
+      visualOrder: visualForSegment.order
+    }
+  );
+
+  window.CURRENT_DISPLAYED_VISUAL_ORDER =
+    visualOrder;
+
+  showLessonVisual(
+    visualForSegment
+  );
+
+}
+else{
+
+  console.log(
+    "VISUAL STILL GENERATING — CONTINUE LESSON:",
+    {
+      segment: visualOrder
+    }
+  );
+
+}
 
   /*
-    מחכים רק לאודיו של הקטע הנוכחי.
+    רק אחרי שהתמונה של הפסקה
+    מוכנה ומוצגת,
+    מחכים לאודיו של אותה פסקה.
   */
 
   const audioUrl =
     await lessonAudioPromises[
       index
     ];
-
-
-if(
-  !audioUrl
-){
-
-  console.warn(
-    "LESSON AUDIO MISSING, WRITING TEXT ONLY:",
-    {
-      index:
-        index + 1,
-
-      paragraph
-    }
-  );
-
-}
 
 
     /* =============================================
@@ -19996,15 +20264,6 @@ if(subtitle){
   }
 
 /* =============================================
-   START HERO IMAGE IN PARALLEL
-============================================= */
-
-loadLessonHeroImage(
-  resolvedUnitLessonId,
-  session
-);
-
-/* =============================================
    START LESSON VISUALS IN PARALLEL
 ============================================= */
 
@@ -20038,7 +20297,6 @@ activeLessonRestored =
 
 }
 
-
 if(
   activeLessonRestored
 ){
@@ -20046,15 +20304,37 @@ if(
   console.log(
     "SELECTED ACTIVE LESSON RESTORED:",
     {
-unitLessonId:
-  resolvedUnitLessonId
+      unitLessonId:
+        resolvedUnitLessonId
     }
   );
+
+
+  /*
+    השיעור שוחזר.
+    רק עכשיו מציגים Hero,
+    אחרי שכל פעולות השחזור הסתיימו.
+  */
+
+  await loadLessonHeroImage(
+    resolvedUnitLessonId,
+    session
+  );
+
 
   return;
 
 }
 
+/*
+  שיעור חדש.
+  מתחילים Hero לאחר שבדיקת השחזור הסתיימה.
+*/
+
+loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
 
 /*
   לאחר איפוס מאפשרים יצירת שיעור חדש,
@@ -41195,11 +41475,16 @@ body.lesson-theme-science
   opacity:0 !important;
 }
 
-
 .lesson-dynamic-visual-wrap{
   opacity:1;
-}
 
+  /*
+    חשוב:
+    בזמן שהתמונה החדשה נטענת,
+    רואים דרכה את התמונה הקודמת.
+  */
+  background:transparent !important;
+}
 
 @keyframes lessonVisualSlowZoom{
 
