@@ -4969,17 +4969,205 @@ def generate_lesson_hero_image_bytes(
     )
 
 def generate_lesson_visual_image_bytes(
-        prompt: str
+        prompt: str,
+        reference_image_bytes: bytes | None = None,
+        reference_mime_type: str = "image/png"
 ) -> tuple[bytes, str]:
-    """
-    יוצר תמונת המחשה רגילה של השיעור.
 
-    כרגע משתמש באותו מנוע Gemini
-    ובאותן הגדרות 16:9 של תמונת ה-Hero.
-    """
+    clean_prompt = str(
+        prompt or ""
+    ).strip()
 
-    return generate_lesson_hero_image_bytes(
-        prompt
+    if not clean_prompt:
+        raise RuntimeError(
+            "Lesson visual image prompt is empty"
+        )
+
+    # =============================================
+    # NORMAL FIRST IMAGE
+    # =============================================
+
+    if not reference_image_bytes:
+
+        return generate_lesson_hero_image_bytes(
+            clean_prompt
+        )
+
+    # =============================================
+    # REFERENCE-BASED IMAGE GENERATION
+    # =============================================
+
+    reference_part = types.Part.from_bytes(
+        data=reference_image_bytes,
+        mime_type=reference_mime_type
+    )
+
+    reference_prompt = f"""
+The provided image is the MASTER VISUAL REFERENCE
+for this lesson.
+
+Create a NEW educational scene based on the CURRENT SCENE
+instructions below.
+
+IMPORTANT:
+
+Preserve the visual identity of the reference image:
+
+- same illustration medium
+- same rendering style
+- same lighting language
+- same color treatment
+- same level of realism
+- same overall educational visual quality
+
+If recurring characters appear,
+preserve their approximate appearance, age,
+hair, clothing and proportions.
+
+If recurring objects appear,
+preserve their design, colors and proportions.
+
+Do NOT simply copy the reference composition.
+
+The new image must explain the educational content
+of the CURRENT SCENE.
+
+Do NOT add any written text, labels,
+captions, letters, numbers, logos or watermarks.
+
+CURRENT SCENE:
+
+{clean_prompt}
+""".strip()
+
+    print(
+        "LESSON VISUAL WITH REFERENCE:",
+        {
+            "prompt_length":
+                len(reference_prompt),
+
+            "reference_bytes":
+                len(reference_image_bytes)
+        }
+    )
+
+    started_at = (
+        time.perf_counter()
+    )
+
+    response = (
+        gemini_client
+        .models
+        .generate_content(
+
+            model=
+                LESSON_IMAGE_MODEL,
+
+            contents=[
+                reference_part,
+                reference_prompt
+            ],
+
+            config=
+            types.GenerateContentConfig(
+
+                response_modalities=[
+                    "IMAGE"
+                ],
+
+                image_config=
+                types.ImageConfig(
+                    aspect_ratio="16:9",
+                    image_size="1K"
+                )
+            )
+        )
+    )
+
+    elapsed_ms = round(
+        (
+            time.perf_counter()
+            - started_at
+        )
+        * 1000
+    )
+
+    response_parts = (
+        getattr(
+            response,
+            "parts",
+            None
+        )
+        or []
+    )
+
+    for part in response_parts:
+
+        inline_data = getattr(
+            part,
+            "inline_data",
+            None
+        )
+
+        if inline_data is None:
+            continue
+
+        image_data = getattr(
+            inline_data,
+            "data",
+            None
+        )
+
+        if not image_data:
+            continue
+
+        mime_type = (
+            getattr(
+                inline_data,
+                "mime_type",
+                None
+            )
+            or "image/png"
+        )
+
+        if isinstance(
+                image_data,
+                str
+        ):
+
+            image_bytes = (
+                base64.b64decode(
+                    image_data
+                )
+            )
+
+        else:
+
+            image_bytes = bytes(
+                image_data
+            )
+
+        print(
+            "LESSON VISUAL REFERENCE IMAGE GENERATED:",
+            {
+                "elapsed_ms":
+                    elapsed_ms,
+
+                "bytes":
+                    len(image_bytes),
+
+                "mime_type":
+                    mime_type
+            }
+        )
+
+        return (
+            image_bytes,
+            mime_type
+        )
+
+    raise RuntimeError(
+        "Gemini returned no reference-based image data"
     )
 
 # =====================================================
@@ -5207,7 +5395,9 @@ LESSON_AUDIO_URL_EXPIRY_SECONDS = 3600
 def generate_and_store_lesson_visual_image(
         unit_lesson_id: int,
         content_version: int,
-        visual: dict
+        visual: dict,
+        reference_image_bytes: bytes | None = None,
+        reference_mime_type: str = "image/png"
 ) -> dict:
 
     visual_order = int(
@@ -5254,7 +5444,11 @@ def generate_and_store_lesson_visual_image(
 
     image_bytes, mime_type = (
         generate_lesson_visual_image_bytes(
-            generation_prompt
+            generation_prompt,
+            reference_image_bytes=
+            reference_image_bytes,
+            reference_mime_type=
+            reference_mime_type
         )
     )
 
@@ -5368,7 +5562,8 @@ def generate_all_lesson_visuals_background(
             return
 
         generated_visuals = []
-
+        master_reference_bytes = None
+        master_reference_mime_type = "image/png"
         image_visuals = [
             visual
             for visual in visuals
@@ -5445,7 +5640,72 @@ def generate_all_lesson_visuals_background(
             visual_order = (
                 visual.get("order")
             )
+            # =========================================
+            # MASTER VISUAL REFERENCE
+            #
+            # visual_1 היא התמונה שמגדירה את העולם
+            # החזותי של כל השיעור.
+            # =========================================
 
+            if (
+                    int(visual_order or 0) > 1
+                    and master_reference_bytes is None
+            ):
+
+                reference_storage_path = (
+                    f"unit_lessons/"
+                    f"{unit_lesson_id}/"
+                    f"v{content_version}/"
+                    f"visual_1.png"
+                )
+
+                try:
+
+                    master_reference_bytes = (
+                        sb.storage
+                        .from_(
+                            LESSON_MEDIA_BUCKET
+                        )
+                        .download(
+                            reference_storage_path
+                        )
+                    )
+
+                    master_reference_mime_type = (
+                        "image/png"
+                    )
+
+                    print(
+                        "LESSON MASTER VISUAL REFERENCE LOADED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "storage_path":
+                                reference_storage_path,
+
+                            "bytes":
+                                len(
+                                    master_reference_bytes
+                                    or b""
+                                )
+                        }
+                    )
+
+                except Exception as reference_error:
+
+                    print(
+                        "LESSON MASTER VISUAL REFERENCE NOT READY:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "error":
+                                repr(reference_error)
+                        }
+                    )
+
+                    master_reference_bytes = None
             # =========================================
             # VISUAL CACHE CHECK
             #
@@ -5541,13 +5801,22 @@ def generate_all_lesson_visuals_background(
                     result = (
                         generate_and_store_lesson_visual_image(
                             unit_lesson_id=
-                                unit_lesson_id,
+                            unit_lesson_id,
 
                             content_version=
-                                content_version,
+                            content_version,
 
                             visual=
-                                visual
+                            visual,
+
+                            reference_image_bytes=(
+                                master_reference_bytes
+                                if int(visual_order or 0) > 1
+                                else None
+                            ),
+
+                            reference_mime_type=
+                            master_reference_mime_type
                         )
                     )
 
