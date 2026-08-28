@@ -17708,6 +17708,167 @@ async function loadLessonVisuals(
 
 }
 
+async function waitForLessonVisual(
+  unitLessonId,
+  session,
+  visualOrder
+){
+
+  const MAX_CHECKS = 40;
+  const CHECK_DELAY_MS = 1000;
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_CHECKS;
+    attempt++
+  ){
+
+    const existing =
+      (
+        window.CURRENT_LESSON_VISUALS
+        || []
+      ).find(
+        visual =>
+          Number(
+            visual?.order || 0
+          )
+          ===
+          Number(
+            visualOrder
+          )
+          &&
+          visual?.url
+      );
+
+    if(existing){
+
+      console.log(
+        "SEGMENT VISUAL READY:",
+        {
+          visualOrder,
+          attempt
+        }
+      );
+
+      return existing;
+    }
+
+    /*
+      מרעננים את רשימת התמונות מה-Backend.
+    */
+
+    try{
+
+      const response =
+        await fetch(
+          `${TUTOR_API_BASE}/api/tutor/unit-lesson/visuals`,
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+            },
+
+            body:
+              JSON.stringify({
+                kid_id:
+                  CURRENT_KID.id,
+
+                unit_lesson_id:
+                  unitLessonId
+              })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if(
+        response.ok
+        &&
+        Array.isArray(
+          data?.visuals
+        )
+      ){
+
+        for(
+          const incoming
+          of data.visuals
+        ){
+
+          const existingIndex =
+            window.CURRENT_LESSON_VISUALS
+              .findIndex(
+                visual =>
+                  Number(
+                    visual?.order || 0
+                  )
+                  ===
+                  Number(
+                    incoming?.order || 0
+                  )
+              );
+
+          if(existingIndex >= 0){
+
+            window.CURRENT_LESSON_VISUALS[
+              existingIndex
+            ] = {
+              ...window.CURRENT_LESSON_VISUALS[
+                existingIndex
+              ],
+              ...incoming
+            };
+
+          }
+          else{
+
+            window.CURRENT_LESSON_VISUALS.push(
+              incoming
+            );
+
+          }
+
+        }
+
+      }
+
+    }
+    catch(error){
+
+      console.warn(
+        "WAIT FOR SEGMENT VISUAL ERROR:",
+        {
+          visualOrder,
+          attempt,
+          error
+        }
+      );
+
+    }
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          CHECK_DELAY_MS
+        )
+    );
+
+  }
+
+  console.warn(
+    "SEGMENT VISUAL TIMEOUT:",
+    visualOrder
+  );
+
+  return null;
+}
+
 /* =====================================================
    SHOW LESSON VISUAL
 ===================================================== */
@@ -18411,83 +18572,6 @@ console.log(
     }
   );
 
-/* =============================================
-   WAIT FOR ALL LESSON VISUALS
-   BEFORE STARTING THE EXPLANATION
-============================================= */
-
-console.log(
-  "WAITING FOR LESSON VISUALS BEFORE PLAYBACK:",
-  {
-    unitLessonId:
-      data.unit_lesson_id,
-
-    lessonPartsCount:
-      lessonParts.length
-  }
-);
-
-
-window.CURRENT_LESSON_VISUALS = [];
-
-
-const readyVisuals =
-  await loadLessonVisuals(
-    data.unit_lesson_id,
-    session
-  );
-
-
-console.log(
-  "LESSON VISUALS READY FOR PLAYBACK:",
-  {
-    expected:
-      lessonParts.length,
-
-    received:
-      Array.isArray(
-        readyVisuals
-      )
-        ? readyVisuals.length
-        : 0,
-
-    orders:
-      Array.isArray(
-        readyVisuals
-      )
-        ? readyVisuals.map(
-            item =>
-              item.order
-          )
-        : []
-  }
-);
-
-
-/*
-  לא מתחילים שיעור כאשר חסרה
-  תמונה לאחת הפסקאות.
-*/
-
-if(
-  !Array.isArray(
-    readyVisuals
-  )
-  ||
-  readyVisuals.length
-    <
-    lessonParts.length
-){
-
-  throw new Error(
-    `Lesson visuals are incomplete: `
-    +
-    `${readyVisuals?.length || 0}/`
-    +
-    `${lessonParts.length}`
-  );
-
-}
 
   /* =============================================
      פתיחת הרשאת שמע בדפדפן
@@ -18800,101 +18884,90 @@ for(
   const paragraph =
     lessonParts[index];
 
-
   /* =============================================
-     SWITCH VISUAL FOR CURRENT LESSON TEXT
+     WAIT + SWITCH VISUAL FOR CURRENT SEGMENT
+     
+     Segment 1 -> Visual 1
+     Segment 2 -> Visual 2
+     Segment 3 -> Visual 3
+     ...
   ============================================= */
 
-window.CURRENT_LESSON_PARAGRAPH =
-  paragraph;
+  window.CURRENT_LESSON_PARAGRAPH =
+    paragraph;
 
-const visualOrder =
-  index + 1;
+  const visualOrder =
+    index + 1;
 
-const visualForSegment =
-  (
-    window.CURRENT_LESSON_VISUALS
-    || []
-  ).find(
-    visual =>
-      Number(
-        visual?.order
-        || 0
-      )
-      ===
-      visualOrder
-  );
 
-if(
-  visualForSegment
-  &&
-  visualForSegment.url
-){
-
-  console.log(
-    "SHOW VISUAL FOR SEGMENT:",
-    {
-      segment:
-        visualOrder,
-
-      visualOrder:
-        visualForSegment.order,
-
-      paragraph:
-        paragraph
-    }
-  );
-
-  showLessonVisual(
-    visualForSegment
-  );
-
-}
-else{
-
-  console.warn(
-    "VISUAL NOT READY FOR SEGMENT:",
-    {
-      segment:
-        visualOrder,
-
-      availableVisuals:
-        (
-          window.CURRENT_LESSON_VISUALS
-          || []
-        ).map(
-          item =>
-            item.order
-        )
-    }
-  );
-
-}
   /*
-    מחכים רק לאודיו של הקטע הנוכחי.
+    מחכים לתמונה ששייכת בדיוק
+    לפסקה הנוכחית.
+
+    אם היא עדיין נוצרת ב-Backend,
+    waitForLessonVisual ימשיך לבדוק
+    עד שהיא תהיה מוכנה.
+  */
+
+  const visualForSegment =
+    await waitForLessonVisual(
+      data.unit_lesson_id,
+      session,
+      visualOrder
+    );
+
+
+  if(
+    visualForSegment
+    &&
+    visualForSegment.url
+  ){
+
+    console.log(
+      "SHOW VISUAL FOR SEGMENT:",
+      {
+        segment:
+          visualOrder,
+
+        visualOrder:
+          visualForSegment.order,
+
+        paragraph:
+          paragraph
+      }
+    );
+
+    showLessonVisual(
+      visualForSegment
+    );
+
+  }
+  else{
+
+    console.warn(
+      "NO VISUAL FOR SEGMENT:",
+      {
+        segment:
+          visualOrder,
+
+        paragraph:
+          paragraph
+      }
+    );
+
+  }
+
+
+  /*
+    רק אחרי שהתמונה של הפסקה
+    מוכנה ומוצגת,
+    מחכים לאודיו של אותה פסקה.
   */
 
   const audioUrl =
     await lessonAudioPromises[
       index
     ];
-
-
-if(
-  !audioUrl
-){
-
-  console.warn(
-    "LESSON AUDIO MISSING, WRITING TEXT ONLY:",
-    {
-      index:
-        index + 1,
-
-      paragraph
-    }
-  );
-
-}
 
 
     /* =============================================
