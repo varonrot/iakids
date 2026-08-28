@@ -5201,6 +5201,54 @@ def generate_all_lesson_visuals_background(
             ).strip().lower() == "image"
         ]
 
+        structured_lesson = (
+            generated_lesson_json.get(
+                "structured_lesson"
+            )
+            or {}
+        )
+
+        segments = (
+            structured_lesson.get(
+                "lesson"
+            )
+            or []
+        )
+
+        print(
+            "VISUAL/AUDIO SEGMENT CHECK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "segments_count":
+                    len(segments),
+
+                "visuals_count":
+                    len(image_visuals)
+            }
+        )
+
+        if (
+            len(image_visuals)
+            !=
+            len(segments)
+        ):
+
+            print(
+                "CRITICAL VISUAL COUNT MISMATCH:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "segments_count":
+                        len(segments),
+
+                    "visuals_count":
+                        len(image_visuals)
+                }
+            )
+            
         print(
             "LESSON VISUAL GENERATION START:",
             {
@@ -5286,7 +5334,7 @@ def generate_all_lesson_visuals_background(
                             storage_path
                     }
                 )
-            
+
             success = False
 
             for attempt in range(
@@ -5406,7 +5454,7 @@ def generate_all_lesson_visuals_background(
             if not success:
 
                 print(
-                    "LESSON VISUAL FAILED PERMANENTLY:",
+                    "LESSON VISUAL PRIMARY PROMPT FAILED:",
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
@@ -5418,6 +5466,121 @@ def generate_all_lesson_visuals_background(
                             MAX_VISUAL_RETRIES
                     }
                 )
+
+                # =====================================
+                # FALLBACK PROMPT
+                #
+                # אסור להשאיר Segment בלי תמונה.
+                # אם ה-Prompt של Visual Director נכשל,
+                # מייצרים Prompt פשוט ובטוח יותר
+                # מתוך ה-source_text עצמו.
+                # =====================================
+
+                source_text = str(
+                    visual.get(
+                        "source_text"
+                    )
+                    or ""
+                ).strip()
+
+                parent_lesson = (
+                    get_learning_lesson(
+                        unit_lesson[
+                            "learning_lesson_id"
+                        ]
+                    )
+                )
+
+                fallback_prompt = (
+                    build_segment_visual_fallback_prompt(
+                        unit_lesson=
+                            unit_lesson,
+
+                        parent_lesson=
+                            parent_lesson,
+
+                        segment_text=
+                            source_text,
+
+                        segment_index=
+                            int(
+                                visual_order
+                            )
+                    )
+                )
+
+                fallback_visual = {
+                    **visual,
+
+                    "type":
+                        "image",
+
+                    "generation_prompt":
+                        fallback_prompt
+                }
+
+                try:
+
+                    print(
+                        "LESSON VISUAL FALLBACK START:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order
+                        }
+                    )
+
+                    result = (
+                        generate_and_store_lesson_visual_image(
+                            unit_lesson_id=
+                                unit_lesson_id,
+
+                            content_version=
+                                content_version,
+
+                            visual=
+                                fallback_visual
+                        )
+                    )
+
+                    generated_visuals.append(
+                        result
+                    )
+
+                    success = True
+
+                    print(
+                        "LESSON VISUAL FALLBACK SUCCESS:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order
+                        }
+                    )
+
+                except Exception as fallback_error:
+
+                    print(
+                        "LESSON VISUAL FALLBACK FAILED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order,
+
+                            "error":
+                                repr(
+                                    fallback_error
+                                )
+                        }
+                    )
+
+                    traceback.print_exc()
 
         print(
             "ALL LESSON VISUALS READY:",
