@@ -20157,15 +20157,6 @@ if(subtitle){
   }
 
 /* =============================================
-   START HERO IMAGE IN PARALLEL
-============================================= */
-
-loadLessonHeroImage(
-  resolvedUnitLessonId,
-  session
-);
-
-/* =============================================
    START LESSON VISUALS IN PARALLEL
 ============================================= */
 
@@ -20199,7 +20190,6 @@ activeLessonRestored =
 
 }
 
-
 if(
   activeLessonRestored
 ){
@@ -20207,15 +20197,37 @@ if(
   console.log(
     "SELECTED ACTIVE LESSON RESTORED:",
     {
-unitLessonId:
-  resolvedUnitLessonId
+      unitLessonId:
+        resolvedUnitLessonId
     }
   );
+
+
+  /*
+    השיעור שוחזר.
+    רק עכשיו מציגים Hero,
+    אחרי שכל פעולות השחזור הסתיימו.
+  */
+
+  await loadLessonHeroImage(
+    resolvedUnitLessonId,
+    session
+  );
+
 
   return;
 
 }
 
+/*
+  שיעור חדש.
+  מתחילים Hero לאחר שבדיקת השחזור הסתיימה.
+*/
+
+loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
 
 /*
   לאחר איפוס מאפשרים יצירת שיעור חדש,
