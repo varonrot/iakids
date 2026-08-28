@@ -5003,42 +5003,93 @@ def generate_lesson_visual_image_bytes(
     )
 
     reference_prompt = f"""
-The provided image is the MASTER VISUAL REFERENCE
-for this lesson.
+    The attached image is the MASTER STYLE REFERENCE
+    for an educational lesson image series.
 
-Create a NEW educational scene based on the CURRENT SCENE
-instructions below.
+    You must create a NEW SCENE, but it MUST look like it was
+    created by the EXACT SAME illustrator, using the EXACT SAME
+    visual medium and rendering technique as the reference image.
 
-IMPORTANT:
+    CRITICAL STYLE LOCK:
 
-Preserve the visual identity of the reference image:
+    The reference image controls HOW the new image looks.
+    The CURRENT SCENE controls ONLY WHAT the new image shows.
 
-- same illustration medium
-- same rendering style
-- same lighting language
-- same color treatment
-- same level of realism
-- same overall educational visual quality
+    DO NOT change the visual medium because of the scene description.
 
-If recurring characters appear,
-preserve their approximate appearance, age,
-hair, clothing and proportions.
+    MATCH THE REFERENCE IMAGE:
 
-If recurring objects appear,
-preserve their design, colors and proportions.
+    - same illustration/rendering technique
+    - same level of realism
+    - same lighting style
+    - same color palette and color treatment
+    - same texture and material treatment
+    - same depth and atmosphere
+    - same visual detail density
+    - same cinematic quality
+    - same overall educational production style
 
-Do NOT simply copy the reference composition.
+    The result must visually belong to the SAME IMAGE SERIES
+    as the reference.
 
-The new image must explain the educational content
-of the CURRENT SCENE.
+    If the reference looks semi-realistic,
+    the new image MUST remain semi-realistic.
 
-Do NOT add any written text, labels,
-captions, letters, numbers, logos or watermarks.
+    If the reference uses realistic materials and lighting,
+    preserve those characteristics.
 
-CURRENT SCENE:
+    NEVER convert the scene into:
 
-{clean_prompt}
-""".strip()
+    - an infographic
+    - a diagram
+    - a labeled educational chart
+    - a technical illustration
+    - a poster
+    - a textbook page
+    - a cartoon
+    - flat vector artwork
+    - comic-book artwork
+    - watercolor
+    - a different illustration style
+
+    VERY IMPORTANT:
+
+    Do NOT copy any text, labels or annotations
+    that may appear in the scene description.
+
+    ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE.
+
+    No:
+    - words
+    - labels
+    - titles
+    - captions
+    - letters
+    - numbers
+    - arrows with text
+    - annotations
+    - logos
+    - watermarks
+    - readable signs
+
+    When the same bicycle, child, object or environment
+    appears again, preserve its established visual identity
+    from the reference whenever applicable.
+
+    The composition and action may change completely.
+    The STYLE MUST NOT.
+
+    Think of this as another frame from the exact same
+    animated educational film.
+
+    CURRENT SCENE CONTENT:
+
+    {clean_prompt}
+
+    Again:
+    Use the CURRENT SCENE only to determine WHAT is shown.
+    Use the REFERENCE IMAGE to determine HOW everything looks.
+    """.strip()
 
     print(
         "LESSON VISUAL WITH REFERENCE:",
@@ -5410,6 +5461,73 @@ def generate_and_store_lesson_visual_image(
         or ""
     ).strip()
 
+    # =============================================
+    # GLOBAL LESSON VISUAL STYLE LOCK
+    #
+    # חל על visual_1 וגם על כל התמונות שאחריה.
+    # visual_1 תקבע את ה-DNA החזותי של השיעור.
+    # =============================================
+
+    LESSON_VISUAL_STYLE_LOCK = """
+    Create a premium semi-realistic digital educational illustration.
+
+    This image belongs to one consistent educational visual series.
+
+    MANDATORY VISUAL STYLE:
+
+    - premium semi-realistic digital illustration
+    - modern cinematic educational illustration
+    - realistic proportions
+    - soft natural cinematic lighting
+    - rich but controlled colors
+    - subtle depth
+    - clean professional composition
+    - polished educational animation-film quality
+    - visually engaging but not childish
+
+    DO NOT create:
+
+    - photography
+    - photorealistic photography
+    - infographic
+    - diagram
+    - technical drawing
+    - textbook page
+    - poster
+    - flat vector art
+    - comic-book art
+    - watercolor
+    - 3D infographic
+    - labeled educational chart
+
+    ABSOLUTELY NO WRITTEN TEXT INSIDE THE IMAGE.
+
+    Do not include:
+
+    - words
+    - labels
+    - captions
+    - titles
+    - letters
+    - numbers
+    - annotations
+    - readable signs
+    - logos
+    - watermarks
+    - arrows containing text
+
+    The educational concept must be communicated visually,
+    without written explanations.
+    """.strip()
+
+    final_generation_prompt = f"""
+    {LESSON_VISUAL_STYLE_LOCK}
+
+    CURRENT EDUCATIONAL SCENE:
+
+    {generation_prompt}
+    """.strip()
+
     trigger_text = str(
         visual.get("trigger_text")
         or ""
@@ -5444,7 +5562,7 @@ def generate_and_store_lesson_visual_image(
 
     image_bytes, mime_type = (
         generate_lesson_visual_image_bytes(
-            generation_prompt,
+            final_generation_prompt,
             reference_image_bytes=
             reference_image_bytes,
             reference_mime_type=
