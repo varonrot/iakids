@@ -5586,6 +5586,14 @@ def generate_and_store_lesson_visual_image(
     never as a photograph.
     """.strip()
 
+    final_generation_prompt = f"""
+    {LESSON_VISUAL_STYLE_LOCK}
+
+    CURRENT EDUCATIONAL SCENE:
+
+    {generation_prompt}
+    """.strip()
+    
     trigger_text = str(
         visual.get("trigger_text")
         or ""
@@ -8315,7 +8323,7 @@ def get_or_generate_unit_lesson(
                 generate_all_lesson_visuals_background,
                 unit_lesson["id"]
             )
-            
+
             # =========================================
             # RESPONSE
             # =========================================
