@@ -766,18 +766,40 @@ def update_tutor_session_after_vision(
 # DATA HELPERS
 # =====================================================
 
-def get_child_by_id(user_id: str, kid_id: str):
-    res = (
-        sb.table("kids_profiles")
-        .select("*")
-        .eq("id", kid_id)
-        .eq("user_id", user_id)
-        .single()
-        .execute()
+def get_child_by_id(
+        user_id: str,
+        kid_id: str
+):
+
+    def operation():
+
+        return (
+            sb.table(
+                "kids_profiles"
+            )
+            .select("*")
+            .eq(
+                "id",
+                kid_id
+            )
+            .eq(
+                "user_id",
+                user_id
+            )
+            .single()
+            .execute()
+        )
+
+    res = supabase_with_retry(
+        operation,
+        label="GET CHILD"
     )
 
     if not res.data:
-        raise HTTPException(status_code=404, detail="Child not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Child not found"
+        )
 
     return res.data
 
