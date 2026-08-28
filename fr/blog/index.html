@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>IA, soutien scolaire & aide aux devoirs pour enfants | IAKIDS</title>
+
+<meta name="description"
+content="Guides pour les parents sur le soutien scolaire, l'aide aux devoirs, les tuteurs en ligne, l'apprentissage personnalisé et les tuteurs IA pour enfants.">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://iakids.app/fr/blog/">
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/favicon.ico">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://iakids.app/fr/blog/">
+<meta property="og:title"
+content="IA, soutien scolaire & aide aux devoirs pour enfants">
+<meta property="og:description"
+content="Conseils et guides pour les parents sur le soutien scolaire, les devoirs, l'apprentissage personnalisé et les tuteurs IA.">
+<meta property="og:image"
+content="https://iakids.app/assets/fr/blog/ia-apprentissage-enfant.webp">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title"
+content="IA, soutien scolaire & aide aux devoirs pour enfants">
+<meta name="twitter:description"
+content="Des guides pratiques pour mieux accompagner les enfants dans leurs apprentissages.">
+<meta name="twitter:image"
+content="https://iakids.app/assets/fr/blog/ia-apprentissage-enfant.webp">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "IAKIDS Blog France",
+  "description": "Guides pour les parents sur le soutien scolaire, l'aide aux devoirs, les tuteurs en ligne, l'apprentissage personnalisé et l'intelligence artificielle pour l'apprentissage.",
+  "url": "https://iakids.app/fr/blog/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "IAKIDS",
+    "url": "https://iakids.app/fr/"
+  }
+}
+</script>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:#172033;
+  background:#fff;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.topbar{
+  border-bottom:1px solid #e8edf4;
+  background:rgba(255,255,255,.95);
+  position:sticky;
+  top:0;
+  z-index:50;
+  backdrop-filter:blur(10px);
+}
+
+.topbar-inner{
+  max-width:1180px;
+  margin:auto;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.logo{
+  font-size:24px;
+  font-weight:900;
+  color:#2563eb;
+}
+
+.nav{
+  display:flex;
+  gap:24px;
+  align-items:center;
+  font-size:15px;
+  font-weight:600;
+}
+
+.nav a:hover{
+  color:#2563eb;
+}
+
+.nav-cta{
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  color:#fff !important;
+  padding:10px 18px;
+  border-radius:999px;
+}
+
+.hero{
+  background:
+    radial-gradient(circle at 15% 20%,rgba(37,99,235,.13),transparent 30%),
+    radial-gradient(circle at 85% 30%,rgba(34,197,94,.12),transparent 30%),
+    linear-gradient(180deg,#f8fbff,#fff);
+  padding:95px 22px 85px;
+  text-align:center;
+}
+
+.hero-inner{
+  max-width:880px;
+  margin:auto;
+}
+
+.eyebrow{
+  display:inline-block;
+  padding:7px 14px;
+  border-radius:999px;
+  background:#eaf2ff;
+  color:#2563eb;
+  font-size:14px;
+  font-weight:800;
+  margin-bottom:20px;
+}
+
+h1{
+  margin:0;
+  font-size:clamp(38px,6vw,62px);
+  line-height:1.08;
+  letter-spacing:-1.5px;
+  color:#101828;
+}
+
+.hero p{
+  max-width:750px;
+  margin:24px auto 0;
+  font-size:20px;
+  line-height:1.7;
+  color:#526077;
+}
+
+.container{
+  max-width:1180px;
+  margin:auto;
+  padding:75px 22px 100px;
+}
+
+.section-head{
+  max-width:760px;
+  margin-bottom:35px;
+}
+
+.section-head h2{
+  margin:0 0 12px;
+  font-size:34px;
+  color:#101828;
+}
+
+.section-head p{
+  margin:0;
+  color:#667085;
+  line-height:1.7;
+  font-size:17px;
+}
+
+.featured{
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  border:1px solid #e4eaf2;
+  border-radius:24px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 14px 45px rgba(16,24,40,.07);
+  margin-bottom:35px;
+}
+
+.featured-content{
+  padding:48px;
+}
+
+.tag{
+  display:inline-block;
+  color:#2563eb;
+  background:#eff6ff;
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:18px;
+}
+
+.featured h2{
+  margin:0 0 18px;
+  font-size:38px;
+  line-height:1.2;
+  color:#101828;
+}
+
+.featured p{
+  color:#667085;
+  font-size:17px;
+  line-height:1.8;
+}
+
+.button{
+  display:inline-block;
+  margin-top:18px;
+  background:#2563eb;
+  color:#fff;
+  padding:13px 22px;
+  border-radius:999px;
+  font-weight:800;
+}
+
+.featured-visual{
+  min-height:390px;
+  background:#eef6ff;
+}
+
+.featured-visual img{
+  width:100%;
+  height:100%;
+  min-height:390px;
+  object-fit:cover;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:22px;
+  margin-top:28px;
+}
+
+.card{
+  border:1px solid #e5eaf1;
+  border-radius:20px;
+  padding:0;
+  overflow:hidden;
+  transition:.2s ease;
+  background:#fff;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 14px 35px rgba(16,24,40,.08);
+}
+
+.card img{
+  width:100%;
+  height:210px;
+  object-fit:cover;
+  display:block;
+}
+
+.card-body{
+  padding:26px;
+}
+
+.card-icon{
+  width:50px;
+  height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  background:#eff6ff;
+  font-size:25px;
+  margin-bottom:18px;
+}
+
+.card h3{
+  margin:0 0 12px;
+  font-size:22px;
+  color:#101828;
+}
+
+.card p{
+  margin:0 0 18px;
+  color:#667085;
+  line-height:1.7;
+}
+
+.card-link{
+  color:#2563eb;
+  font-weight:800;
+}
+
+.info-section{
+  margin-top:90px;
+  padding:55px;
+  border-radius:26px;
+  background:#f8fafc;
+}
+
+.info-section h2{
+  margin-top:0;
+  font-size:32px;
+}
+
+.info-section p{
+  line-height:1.85;
+  color:#526077;
+  font-size:17px;
+}
+
+.flow{
+  margin-top:30px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+}
+
+.flow-item{
+  padding:11px 16px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid #dde5ef;
+  font-weight:700;
+  color:#334155;
+}
+
+.arrow{
+  color:#94a3b8;
+  font-size:20px;
+}
+
+.cta{
+  margin-top:80px;
+  border-radius:28px;
+  padding:60px 30px;
+  text-align:center;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#16a34a);
+}
+
+.cta h2{
+  margin:0;
+  font-size:36px;
+}
+
+.cta p{
+  max-width:680px;
+  margin:18px auto;
+  line-height:1.7;
+  font-size:18px;
+}
+
+.cta a{
+  display:inline-block;
+  margin-top:12px;
+  background:#fff;
+  color:#172033;
+  padding:14px 25px;
+  border-radius:999px;
+  font-weight:900;
+}
+
+footer{
+  border-top:1px solid #e8edf4;
+  padding:35px 22px;
+  color:#667085;
+}
+
+.footer-inner{
+  max-width:1180px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+}
+
+@media(max-width:850px){
+
+  .nav a:not(.nav-cta){
+    display:none;
+  }
+
+  .featured{
+    grid-template-columns:1fr;
+  }
+
+  .featured-content{
+    padding:30px;
+  }
+
+  .featured h2{
+    font-size:30px;
+  }
+
+  .featured-visual,
+  .featured-visual img{
+    min-height:240px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .info-section{
+    padding:30px;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+  }
+
+  .flow{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .arrow{
+    transform:rotate(90deg);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+
+    <a href="/fr/" class="logo">iakids</a>
+
+    <nav class="nav">
+      <a href="/fr/blog/">Blog</a>
+      <a href="/fr/blog/soutien-scolaire/">Soutien scolaire</a>
+      <a href="/fr/blog/tuteur-ia/">Tuteur IA</a>
+      <a href="/fr/" class="nav-cta">Découvrir IAKIDS</a>
+    </nav>
+
+  </div>
+</header>
+
+
+<section class="hero">
+
+  <div class="hero-inner">
+
+    <div class="eyebrow">Guides IAKIDS pour les parents</div>
+
+    <h1>
+      IA, apprentissage & soutien scolaire pour enfants
+    </h1>
+
+    <p>
+      Des guides clairs pour comprendre le soutien scolaire,
+      l'aide aux devoirs, les tuteurs en ligne,
+      l'apprentissage personnalisé
+      et les nouvelles possibilités offertes par l'intelligence artificielle.
+    </p>
+
+  </div>
+
+</section>
+
+
+<main class="container">
+
+  <div class="section-head">
+
+    <h2>Nos principaux guides</h2>
+
+    <p>
+      Commencez par le besoin réel de votre enfant :
+      difficultés scolaires, devoirs, accompagnement individuel
+      ou besoin d'une aide disponible en ligne.
+    </p>
+
+  </div>
+
+
+  <!-- CLUSTER 1 -->
+
+  <article class="featured">
+
+    <div class="featured-content">
+
+      <span class="tag">Soutien scolaire</span>
+
+      <h2>Soutien scolaire pour enfants</h2>
+
+      <p>
+        Comment aider un enfant qui rencontre des difficultés à l'école ?
+        Le soutien scolaire peut permettre de reprendre une notion,
+        combler une lacune
+        et retrouver progressivement davantage d'autonomie.
+      </p>
+
+      <p>
+        Découvrez les différentes formes de soutien scolaire,
+        en ligne ou avec un professeur,
+        et les nouvelles possibilités offertes par les outils d'apprentissage personnalisés.
+      </p>
+
+      <a href="/fr/blog/soutien-scolaire/" class="button">
+        Voir le guide →
+      </a>
+
+    </div>
+
+    <div class="featured-visual">
+
+      <img
+      src="/assets/fr/blog/soutien-scolaire.webp"
+      alt="Soutien scolaire pour un enfant"
+      >
+
+    </div>
+
+  </article>
+
+
+  <div class="grid">
+
+
+    <!-- CLUSTER 2 -->
+
+    <a href="/fr/blog/aide-aux-devoirs/" class="card">
+
+      <img
+      src="/assets/fr/blog/aide-aux-devoirs.webp"
+      alt="Aide aux devoirs pour enfants"
+      loading="lazy"
+      >
+
+      <div class="card-body">
+
+        <div class="card-icon">📝</div>
+
+        <h3>Aide aux devoirs</h3>
+
+        <p>
+          Comment aider un enfant à avancer dans ses devoirs
+          sans lui donner directement la réponse ?
+        </p>
+
+        <span class="card-link">
+          Découvrir le guide →
+        </span>
+
+      </div>
+
+    </a>
+
+
+    <!-- CLUSTER 3 -->
+
+    <a href="/fr/blog/tuteur-en-ligne/" class="card">
+
+      <img
+      src="/assets/fr/blog/tuteur-en-ligne.webp"
+      alt="Tuteur en ligne pour enfants"
+      loading="lazy"
+      >
+
+      <div class="card-body">
+
+        <div class="card-icon">💻</div>
+
+        <h3>Tuteur en ligne</h3>
+
+        <p>
+          Professeur particulier,
+          soutien scolaire en ligne
+          ou tuteur numérique :
+          quelles sont les possibilités ?
+        </p>
+
+        <span class="card-link">
+          Découvrir le guide →
+        </span>
+
+      </div>
+
+    </a>
+
+
+    <!-- CLUSTER 4 -->
+
+    <a href="/fr/blog/apprentissage-personnalise/" class="card">
+
+      <img
+      src="/assets/fr/blog/apprentissage-personnalise.webp"
+      alt="Apprentissage personnalisé pour enfant"
+      loading="lazy"
+      >
+
+      <div class="card-body">
+
+        <div class="card-icon">🎯</div>
+
+        <h3>Apprentissage personnalisé</h3>
+
+        <p>
+          Chaque enfant apprend à son propre rythme.
+          Découvrez comment adapter les explications,
+          les exercices
+          et le niveau de difficulté.
+        </p>
+
+        <span class="card-link">
+          Découvrir le guide →
+        </span>
+
+      </div>
+
+    </a>
+
+
+    <!-- CLUSTER 5 -->
+
+    <a href="/fr/blog/tuteur-ia/" class="card">
+
+      <img
+      src="/assets/fr/blog/tuteur-ia.webp"
+      alt="Tuteur IA pour enfants"
+      loading="lazy"
+      >
+
+      <div class="card-body">
+
+        <div class="card-icon">🤖</div>
+
+        <h3>Tuteur IA</h3>
+
+        <p>
+          Qu'est-ce qu'un tuteur IA
+          et comment l'intelligence artificielle
+          peut-elle accompagner un enfant
+          dans ses apprentissages ?
+        </p>
+
+        <span class="card-link">
+          Découvrir le guide →
+        </span>
+
+      </div>
+
+    </a>
+
+  </div>
+
+
+  <section class="info-section">
+
+    <h2>Pourquoi ne pas parler uniquement d'intelligence artificielle ?</h2>
+
+    <p>
+      Les parents ne cherchent pas toujours un « tuteur IA ».
+      Ils cherchent souvent d'abord une solution à un problème concret :
+      un enfant qui bloque en maths,
+      des devoirs difficiles,
+      un besoin de soutien scolaire
+      ou une aide plus personnalisée.
+    </p>
+
+    <p>
+      L'intelligence artificielle devient alors un moyen
+      d'apporter des explications,
+      des exercices
+      et une aide plus adaptée au rythme de l'enfant.
+    </p>
+
+    <div class="flow">
+
+      <span class="flow-item">Besoin scolaire</span>
+
+      <span class="arrow">→</span>
+
+      <span class="flow-item">Aide adaptée</span>
+
+      <span class="arrow">→</span>
+
+      <span class="flow-item">Apprentissage personnalisé</span>
+
+      <span class="arrow">→</span>
+
+      <span class="flow-item">Tuteur IA</span>
+
+      <span class="arrow">→</span>
+
+      <span class="flow-item">IAKIDS</span>
+
+    </div>
+
+  </section>
+
+
+  <section class="info-section">
+
+    <h2>Apprendre avec une aide qui s'adapte à l'enfant</h2>
+
+    <p>
+      Un enfant peut avoir besoin
+      d'une explication différente,
+      d'un exemple supplémentaire
+      ou simplement de davantage de pratique.
+    </p>
+
+    <p>
+      Un environnement d'apprentissage interactif
+      peut présenter une notion,
+      poser une question,
+      analyser la réponse
+      puis décider du prochain exercice.
+    </p>
+
+    <p>
+      L'objectif n'est pas seulement
+      d'obtenir la bonne réponse,
+      mais d'aider l'enfant
+      à comprendre comment y arriver.
+    </p>
+
+  </section>
+
+
+  <section class="cta">
+
+    <h2>Une aide scolaire plus personnelle</h2>
+
+    <p>
+      IAKIDS développe un compagnon d'apprentissage basé sur l'IA,
+      conçu pour expliquer,
+      poser des questions,
+      vérifier la compréhension
+      et accompagner chaque enfant étape par étape.
+    </p>
+
+    <a href="/fr/">
+      Découvrir IAKIDS
+    </a>
+
+  </section>
+
+</main>
+
+
+<footer>
+
+  <div class="footer-inner">
+
+    <div>
+      © <span id="current-year"></span> IAKIDS. Tous droits réservés.
+    </div>
+
+    <div>
+      Apprentissage personnalisé avec l'IA pour les enfants
+    </div>
+
+  </div>
+
+</footer>
+
+
+<script>
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
