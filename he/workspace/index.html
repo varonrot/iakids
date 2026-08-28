@@ -17945,14 +17945,16 @@ function showLessonVisual(
   visual
 ){
 
-const generating =
-  document.getElementById(
-    "lessonVisualGenerating"
-  );
+  const generating =
+    document.getElementById(
+      "lessonVisualGenerating"
+    );
 
-if(generating){
-  generating.style.display = "none";
-}
+  if(generating){
+    generating.style.display =
+      "none";
+  }
+
 
   if(
     !visual
@@ -17979,11 +17981,41 @@ if(generating){
   }
 
 
-  const oldImage =
-    visualArea.querySelector(
-      ".lesson-hero-image"
+  /*
+    לוקחים את התמונה שמוצגת כרגע.
+    חשוב לקחת את האחרונה ולא את הראשונה,
+    כי בזמן transition יכולות להיות
+    שתי תמונות בתוך ה-stage.
+  */
+
+  const existingWraps =
+    Array.from(
+      visualArea.querySelectorAll(
+        ".lesson-hero-image-wrap"
+      )
     );
 
+
+  const oldWrap =
+    existingWraps.length
+      ? existingWraps[
+          existingWraps.length - 1
+        ]
+      : null;
+
+
+  const oldImage =
+    oldWrap
+      ? oldWrap.querySelector(
+          ".lesson-hero-image"
+        )
+      : null;
+
+
+  /*
+    יוצרים את התמונה החדשה
+    מעל התמונה הישנה.
+  */
 
   const wrap =
     document.createElement(
@@ -17995,22 +18027,36 @@ if(generating){
     "lesson-hero-image-wrap lesson-dynamic-visual-wrap";
 
 
+  wrap.style.zIndex =
+    "2";
+
+
+  if(oldWrap){
+
+    oldWrap.style.zIndex =
+      "1";
+
+  }
+
+
   const image =
     document.createElement(
       "img"
     );
 
 
-const separator =
-  visual.url.includes("?")
-    ? "&"
-    : "?";
-
-image.src =
-  `${visual.url}${separator}cacheBust=${Date.now()}`;
+  const separator =
+    visual.url.includes("?")
+      ? "&"
+      : "?";
 
 
-  image.alt = "";
+  image.src =
+    `${visual.url}${separator}cacheBust=${Date.now()}`;
+
+
+  image.alt =
+    "";
 
 
   image.className =
@@ -18026,6 +18072,14 @@ image.src =
     wrap
   );
 
+
+  /*
+    רק אחרי שהתמונה החדשה באמת נטענה,
+    מציגים אותה.
+
+    התמונה הישנה נשארת מלאה מתחתיה
+    עד שהחדשה כבר נראית.
+  */
 
   const reveal = () => {
 
@@ -18044,49 +18098,73 @@ image.src =
               "is-visible"
             );
 
+
+            /*
+              מחכים שהחדשה כבר תכסה
+              את הישנה.
+
+              רק אז מעלימים ומסירים
+              את הישנה.
+            */
+
+            setTimeout(
+              () => {
+
+                if(
+                  oldImage
+                  &&
+                  oldWrap
+                  &&
+                  oldWrap !== wrap
+                ){
+
+                  oldImage.classList.add(
+                    "lesson-image-leaving"
+                  );
+
+
+                  setTimeout(
+                    () => {
+
+                      if(
+                        oldWrap.isConnected
+                      ){
+
+                        oldWrap.remove();
+
+                      }
+
+                    },
+                    350
+                  );
+
+                }
+
+              },
+              500
+            );
+
           }
         );
 
       }
     );
 
-
-    if(oldImage){
-
-      oldImage.classList.add(
-        "lesson-image-leaving"
-      );
-
-    }
-
-
-    const oldWrap =
-      oldImage?.closest(
-        ".lesson-hero-image-wrap"
-      );
-
-
-    if(oldWrap){
-
-      setTimeout(
-        () => {
-
-          if(
-            oldWrap !== wrap
-          ){
-            oldWrap.remove();
-          }
-
-        },
-        900
-      );
-
-    }
-
   };
 
 
-  if(image.complete){
+  /*
+    image.complete לבדו לא מספיק:
+    גם תמונה שנכשלה יכולה להיות complete.
+
+    לכן בודקים naturalWidth.
+  */
+
+  if(
+    image.complete
+    &&
+    image.naturalWidth > 0
+  ){
 
     reveal();
 
@@ -18101,11 +18179,41 @@ image.src =
       }
     );
 
+
+    /*
+      אם החדשה נכשלה —
+      לא נוגעים בתמונה הישנה בכלל.
+    */
+
+    image.addEventListener(
+      "error",
+      () => {
+
+        console.warn(
+          "LESSON VISUAL IMAGE LOAD ERROR:",
+          {
+            order:
+              visual.order,
+
+            url:
+              visual.url
+          }
+        );
+
+
+        wrap.remove();
+
+      },
+      {
+        once:true
+      }
+    );
+
   }
 
 
   console.log(
-    "LESSON VISUAL DISPLAYED:",
+    "LESSON VISUAL REQUESTED:",
     {
       order:
         visual.order,
@@ -18116,7 +18224,6 @@ image.src =
   );
 
 }
-
 
 
 /* =====================================================
