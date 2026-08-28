@@ -18284,132 +18284,13 @@ function showLessonVisual(
 function showVisualForLessonText(
   paragraph
 ){
-
-  const text =
-    String(
-      paragraph || ""
-    ).trim();
-
-
-  if(!text){
-    return;
-  }
-
-
-  const visuals =
-    Array.isArray(
-      window.CURRENT_LESSON_VISUALS
-    )
-      ? window.CURRENT_LESSON_VISUALS
-      : [];
-
-
-  if(!visuals.length){
-
-    console.log(
-      "NO LESSON VISUALS AVAILABLE"
-    );
-
-    return;
-  }
-
-
-  /*
-    אותה פסקה יכולה להישלח כמה פעמים
-    בזמן כתיבה / TTS / polling.
-
-    לכן לא מחליפים תמונה שוב
-    אם אנחנו עדיין באותה פסקה.
-  */
-
-  if(
-    window.LAST_VISUAL_PARAGRAPH
-    ===
-    text
-  ){
-    return;
-  }
-
-
-  window.LAST_VISUAL_PARAGRAPH =
-    text;
-
-
-  /*
-    התמונות כבר מסודרות לפי order
-    ב-loadLessonVisuals.
-
-    מחפשים את התמונה הבאה
-    שעדיין לא הוצגה.
-  */
-
-  const visual =
-    visuals.find(
-      item =>
-        item
-        &&
-        item.url
-        &&
-        item._shown !== true
-    );
-
-
-  if(!visual){
-
-    console.log(
-      "ALL AVAILABLE LESSON VISUALS ALREADY SHOWN",
-      {
-        paragraph:
-          text,
-
-        visuals:
-          visuals.map(
-            item => ({
-              order:
-                item.order,
-
-              shown:
-                item._shown
-            })
-          )
-      }
-    );
-
-    return;
-  }
-
-
-  /*
-    מסמנים אותה לפני ההצגה,
-    כדי שפולינג מקביל לא יציג
-    אותה שוב.
-  */
-
-  visual._shown =
-    true;
-
-
-  console.log(
-    "LESSON VISUAL ADVANCE:",
-    {
-      order:
-        visual.order,
-
-      paragraph:
-        text,
-
-      trigger_text:
-        visual.trigger_text
-    }
-  );
-
-window.CURRENT_DISPLAYED_VISUAL_ORDER =
-  visualOrder;
-
-  showLessonVisual(
-    visual
-  );
-
+  // Legacy visual trigger disabled.
+  // Visuals are now controlled strictly by:
+  // CURRENT_LESSON_VISUAL_ORDER
+  // Segment 1 -> Visual 1
+  // Segment 2 -> Visual 2
+  // etc.
+  return;
 }
 
 async function loadUniversalUnitLesson(
@@ -19143,7 +19024,7 @@ window.CURRENT_LESSON_VISUAL_ORDER =
     עד שהיא תהיה מוכנה.
   */
 
-const visualForSegment =
+let visualForSegment =
   (
     window.CURRENT_LESSON_VISUALS
     || []
@@ -19156,15 +19037,43 @@ const visualForSegment =
       visual?.url
   );
 
+
+if(
+  !visualForSegment
+  &&
+  data?.unit_lesson_id
+){
+
+  console.log(
+    "WAITING FOR EXACT SEGMENT VISUAL:",
+    {
+      segment:
+        visualOrder
+    }
+  );
+
+  visualForSegment =
+    await waitForLessonVisual(
+      data.unit_lesson_id,
+      session,
+      visualOrder
+    );
+
+}
+
+
 if(
   visualForSegment
 ){
 
   console.log(
-    "SHOW READY VISUAL FOR SEGMENT:",
+    "SHOW EXACT VISUAL FOR SEGMENT:",
     {
-      segment: visualOrder,
-      visualOrder: visualForSegment.order
+      segment:
+        visualOrder,
+
+      visualOrder:
+        visualForSegment.order
     }
   );
 
@@ -19178,10 +19087,11 @@ if(
 }
 else{
 
-  console.log(
-    "VISUAL STILL GENERATING — CONTINUE LESSON:",
+  console.warn(
+    "SEGMENT VISUAL NOT AVAILABLE:",
     {
-      segment: visualOrder
+      segment:
+        visualOrder
     }
   );
 
@@ -49376,7 +49286,7 @@ function(audio){
   updateProgress();
 
 };
-    
+
     /* =====================================================
    AI LIVE ACTIVITY EFFECT
    Visual effect only
