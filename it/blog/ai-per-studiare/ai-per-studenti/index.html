@@ -1,0 +1,2595 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>AI per studenti: come usarla per studiare meglio | IAKIDS</title>
+
+<meta name="description"
+content="AI per studenti: scopri come l'intelligenza artificiale può aiutare nello studio con spiegazioni personalizzate, esercizi, domande, feedback e supporto ai compiti.">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://iakids.app/it/blog/ai-per-studiare/ai-per-studenti/">
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/favicon.ico">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://iakids.app/it/blog/ai-per-studiare/ai-per-studenti/">
+<meta property="og:title" content="AI per studenti: come usarla per studiare meglio">
+<meta property="og:description"
+content="Come utilizzare l'intelligenza artificiale per spiegazioni, esercizi, domande, compiti e studio personalizzato.">
+<meta property="og:image" content="https://iakids.app/assets/it/blog/ai-per-studiare.webp">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI per studenti | IAKIDS">
+<meta name="twitter:description"
+content="Come l'intelligenza artificiale può supportare gli studenti nello studio e nell'apprendimento.">
+<meta name="twitter:image" content="https://iakids.app/assets/it/blog/ai-per-studiare.webp">
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"Article",
+  "headline":"AI per studenti: come usarla per studiare meglio",
+  "description":"Guida all'utilizzo dell'intelligenza artificiale da parte degli studenti per spiegazioni, esercizi, compiti, ripasso e apprendimento personalizzato.",
+  "mainEntityOfPage":{
+    "@type":"WebPage",
+    "@id":"https://iakids.app/it/blog/ai-per-studiare/ai-per-studenti/"
+  },
+  "publisher":{
+    "@type":"Organization",
+    "name":"IAKIDS",
+    "url":"https://iakids.app/it/"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {
+      "@type":"Question",
+      "name":"Come può essere utilizzata l'AI dagli studenti?",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"Gli studenti possono utilizzare l'AI per ricevere spiegazioni, fare domande, creare esercizi, ottenere indizi, ripassare e verificare la propria comprensione."
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"L'AI può aiutare gli studenti con i compiti?",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"Sì. Può aiutare a comprendere una consegna, spiegare un concetto, fornire indizi e controllare il lavoro dello studente senza necessariamente svolgere il compito al suo posto."
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"L'AI può adattarsi al livello dello studente?",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"Un sistema educativo basato sull'AI può adattare spiegazioni, domande ed esercizi in base alle risposte e alle difficoltà incontrate dallo studente."
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"Quali sono i rischi dell'AI per gli studenti?",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"L'AI può produrre informazioni inesatte e può diventare una scorciatoia se viene utilizzata soltanto per ottenere risposte. È importante usarla in modo critico e verificare le informazioni importanti."
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"Qual è la differenza tra AI e Tutor AI per studenti?",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"Un sistema AI generalista può rispondere a molte richieste, mentre un Tutor AI educativo è progettato per accompagnare l'apprendimento attraverso spiegazioni, domande, esercizi e verifica della comprensione."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  margin:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:#172033;
+  background:#fff;
+}
+
+img,
+video,
+iframe{
+  max-width:100%;
+  height:auto;
+}
+
+a{
+  color:#2563eb;
+  text-decoration:none;
+}
+
+a:hover{
+  text-decoration:underline;
+}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #e8edf4;
+  backdrop-filter:blur(10px);
+}
+
+.topbar-inner{
+  max-width:1200px;
+  margin:auto;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.logo{
+  color:#2563eb;
+  font-size:24px;
+  font-weight:900;
+  text-decoration:none;
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  font-size:15px;
+  font-weight:700;
+}
+
+.nav a{
+  color:#334155;
+  text-decoration:none;
+}
+
+.nav a:hover{
+  color:#2563eb;
+}
+
+.nav-cta{
+  color:#fff !important;
+  padding:10px 18px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.hero{
+  max-width:1200px;
+  margin:auto;
+  padding:58px 22px 20px;
+}
+
+.breadcrumb{
+  margin-bottom:23px;
+  color:#64748b;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.breadcrumb a{
+  color:#64748b;
+}
+
+.article-tag{
+  display:inline-flex;
+  padding:7px 13px;
+  margin-bottom:18px;
+  border-radius:999px;
+  color:#2563eb;
+  background:#eff6ff;
+  font-size:14px;
+  font-weight:800;
+}
+
+.hero h1{
+  max-width:950px;
+  margin:0 0 22px;
+  color:#101828;
+  font-size:clamp(40px,5.7vw,64px);
+  line-height:1.07;
+  letter-spacing:-1.5px;
+}
+
+.lead{
+  max-width:840px;
+  margin:0;
+  color:#526077;
+  font-size:20px;
+  line-height:1.75;
+}
+
+.hero-image{
+  width:100%;
+  max-width:1200px;
+  margin:35px auto 0;
+  padding:0 22px;
+}
+
+.hero-image img{
+  display:block;
+  width:100%;
+  max-height:520px;
+  object-fit:cover;
+  border-radius:25px;
+}
+
+.page{
+  width:100%;
+  max-width:1200px;
+  margin:auto;
+  padding:65px 22px 90px;
+  display:grid;
+  grid-template-columns:minmax(0,790px) minmax(260px,300px);
+  gap:70px;
+  align-items:start;
+}
+
+.content{
+  max-width:790px;
+  min-width:0;
+}
+
+.content h2{
+  margin:58px 0 18px;
+  color:#101828;
+  font-size:32px;
+  line-height:1.25;
+  letter-spacing:-.5px;
+}
+
+.content h2:first-child{
+  margin-top:0;
+}
+
+.content h3{
+  margin:33px 0 13px;
+  color:#172033;
+  font-size:22px;
+  line-height:1.3;
+}
+
+.content p{
+  margin:0 0 21px;
+  color:#475569;
+  font-size:17px;
+  line-height:1.85;
+}
+
+.content ul{
+  margin:8px 0 25px;
+  padding-left:25px;
+  color:#475569;
+}
+
+.content li{
+  margin:9px 0;
+  font-size:17px;
+  line-height:1.7;
+}
+
+.note,
+.good-box,
+.warning-box,
+.example-box,
+.internal-card,
+.checklist{
+  width:100%;
+  max-width:100%;
+  margin:30px 0;
+  padding:25px 26px;
+  border-radius:20px;
+}
+
+.note{
+  border:1px solid #bfdbfe;
+  background:#eff6ff;
+}
+
+.good-box{
+  border:1px solid #bbf7d0;
+  background:#f0fdf4;
+}
+
+.warning-box{
+  border:1px solid #fde68a;
+  background:#fffbeb;
+}
+
+.example-box{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+}
+
+.note strong,
+.good-box strong,
+.warning-box strong,
+.example-box strong{
+  display:block;
+  margin-bottom:8px;
+  color:#172033;
+  font-size:17px;
+}
+
+.note p,
+.good-box p,
+.warning-box p,
+.example-box p{
+  margin:0;
+  font-size:16px;
+  line-height:1.7;
+}
+
+.steps{
+  width:100%;
+  max-width:100%;
+  margin:32px 0;
+  display:grid;
+  gap:15px;
+}
+
+.step{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr);
+  gap:18px;
+  align-items:flex-start;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  padding:22px;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+}
+
+.step-number{
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  font-weight:900;
+  font-size:19px;
+}
+
+.step > div{
+  min-width:0;
+}
+
+.step h3{
+  margin:1px 0 7px;
+  font-size:19px;
+}
+
+.step p{
+  margin:0;
+  font-size:16px;
+  line-height:1.7;
+}
+
+.table-wrap{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin:30px 0;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+}
+
+table{
+  width:100%;
+  min-width:690px;
+  border-collapse:collapse;
+}
+
+th,
+td{
+  padding:17px 18px;
+  text-align:left;
+  vertical-align:top;
+  border-bottom:1px solid #e2e8f0;
+  font-size:15px;
+  line-height:1.55;
+}
+
+th{
+  color:#172033;
+  background:#f8fafc;
+  font-weight:800;
+}
+
+td{
+  color:#475569;
+}
+
+tr:last-child td{
+  border-bottom:none;
+}
+
+.checklist{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+}
+
+.checklist h3{
+  margin:0 0 16px;
+}
+
+.check-item{
+  display:flex;
+  gap:11px;
+  margin:11px 0;
+  color:#475569;
+  line-height:1.6;
+}
+
+.check{
+  color:#22c55e;
+  font-weight:900;
+}
+
+.internal-card{
+  border:1px solid #bfdbfe;
+  background:linear-gradient(135deg,#eff6ff,#f0fdf4);
+}
+
+.internal-card h3{
+  margin:0 0 9px;
+}
+
+.internal-card p{
+  margin:0 0 12px;
+}
+
+.internal-card a{
+  font-weight:800;
+}
+
+.faq{
+  margin-top:60px;
+}
+
+.faq-item{
+  width:100%;
+  max-width:100%;
+  padding:23px 0;
+  border-bottom:1px solid #e2e8f0;
+}
+
+.faq-item h3{
+  margin:0 0 10px;
+  font-size:20px;
+}
+
+.faq-item p{
+  margin:0;
+}
+
+.final-cta{
+  width:100%;
+  max-width:100%;
+  margin-top:55px;
+  padding:42px 35px;
+  border-radius:25px;
+  text-align:center;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.final-cta h2{
+  margin:0 0 13px;
+  color:#fff;
+  font-size:31px;
+}
+
+.final-cta p{
+  max-width:610px;
+  margin:0 auto 22px;
+  color:#fff;
+  opacity:.96;
+  font-size:17px;
+}
+
+.final-cta a{
+  display:inline-block;
+  padding:13px 23px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  font-weight:900;
+  text-decoration:none;
+}
+
+.sidebar{
+  position:sticky;
+  top:95px;
+  min-width:0;
+}
+
+.sidebar-box{
+  margin-bottom:22px;
+  padding:24px;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  background:#fff;
+}
+
+.sidebar-box h3{
+  margin:0 0 16px;
+  color:#101828;
+  font-size:18px;
+}
+
+.sidebar-link{
+  display:block;
+  padding:10px 0;
+  border-bottom:1px solid #edf2f7;
+  color:#475569;
+  font-size:14px;
+  font-weight:650;
+  line-height:1.45;
+}
+
+.sidebar-link:last-child{
+  border-bottom:none;
+}
+
+.sidebar-link:hover{
+  color:#2563eb;
+}
+
+.sidebar-cta{
+  padding:25px;
+  border-radius:20px;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.sidebar-cta h3{
+  margin:0 0 10px;
+  color:#fff;
+}
+
+.sidebar-cta p{
+  margin:0 0 17px;
+  font-size:14px;
+  line-height:1.6;
+  opacity:.96;
+}
+
+.sidebar-cta a{
+  display:block;
+  padding:11px 15px;
+  border-radius:999px;
+  background:#fff;
+  color:#172033;
+  text-align:center;
+  font-size:14px;
+  font-weight:900;
+  text-decoration:none;
+}
+
+footer{
+  width:100%;
+  max-width:100%;
+  padding:35px 22px;
+  border-top:1px solid #e8edf4;
+  color:#64748b;
+}
+
+.footer-inner{
+  max-width:1200px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+}
+
+@media(max-width:900px){
+
+  .page,
+  .content,
+  .hero,
+  .hero-image,
+  .sidebar,
+  article,
+  aside{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .topbar-inner{
+    padding:12px 18px;
+    gap:12px;
+  }
+
+  .logo{
+    font-size:22px;
+    flex-shrink:0;
+  }
+
+  .nav{
+    margin-left:auto;
+  }
+
+  .nav a:not(.nav-cta){
+    display:none;
+  }
+
+  .nav-cta{
+    display:block;
+    padding:10px 16px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+
+  .hero{
+    width:100%;
+    max-width:100%;
+    padding:34px 20px 12px;
+  }
+
+  .breadcrumb{
+    font-size:13px;
+    line-height:1.6;
+    overflow-wrap:anywhere;
+  }
+
+  .article-tag{
+    font-size:13px;
+  }
+
+  .hero h1{
+    width:100%;
+    max-width:100%;
+    margin-bottom:18px;
+    font-size:clamp(34px,8vw,46px);
+    line-height:1.12;
+    letter-spacing:-.7px;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+
+  .lead{
+    width:100%;
+    max-width:100%;
+    font-size:18px;
+    line-height:1.7;
+    overflow-wrap:break-word;
+  }
+
+  .hero-image{
+    width:100%;
+    max-width:100%;
+    padding:0 20px;
+    margin-top:28px;
+  }
+
+  .hero-image img{
+    width:100%;
+    max-width:100%;
+    height:auto;
+    max-height:none;
+    border-radius:20px;
+  }
+
+  .page{
+    width:100%;
+    max-width:100%;
+    display:block;
+    padding:45px 20px 70px;
+  }
+
+  .content{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .content h2,
+  .content h3,
+  .content p,
+  .content li{
+    width:auto;
+    max-width:100%;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+
+  .content h2{
+    margin-top:45px;
+    font-size:29px;
+    line-height:1.25;
+  }
+
+  .content h3{
+    font-size:21px;
+    line-height:1.3;
+  }
+
+  .content p{
+    font-size:17px;
+    line-height:1.8;
+  }
+
+  .content ul{
+    max-width:100%;
+    padding-left:22px;
+    padding-right:0;
+  }
+
+  .sidebar{
+    position:static;
+    width:100%;
+    max-width:100%;
+    margin-top:50px;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist,
+  .faq-item,
+  .final-cta{
+    width:100%;
+    max-width:100%;
+  }
+
+  .steps,
+  .step{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .step > div{
+    min-width:0;
+  }
+
+  .table-wrap{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  footer{
+    width:100%;
+    max-width:100%;
+  }
+
+  .footer-inner{
+    width:100%;
+    max-width:100%;
+  }
+}
+
+@media(max-width:600px){
+
+  .topbar-inner{
+    padding:10px 16px;
+  }
+
+  .logo{
+    font-size:21px;
+  }
+
+  .nav-cta{
+    padding:9px 14px;
+    font-size:13px;
+  }
+
+  .hero{
+    padding:28px 18px 8px;
+  }
+
+  .hero h1{
+    font-size:34px;
+    line-height:1.13;
+    letter-spacing:-.5px;
+  }
+
+  .lead{
+    font-size:17px;
+    line-height:1.7;
+  }
+
+  .hero-image{
+    padding:0 18px;
+    margin-top:25px;
+  }
+
+  .hero-image img{
+    border-radius:18px;
+  }
+
+  .page{
+    padding:40px 18px 65px;
+  }
+
+  .content h2{
+    font-size:27px;
+    line-height:1.25;
+  }
+
+  .content h3{
+    font-size:20px;
+    line-height:1.3;
+  }
+
+  .content p,
+  .content li{
+    font-size:16.5px;
+    line-height:1.78;
+  }
+
+  .step{
+    grid-template-columns:1fr;
+    padding:19px;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist{
+    padding:21px 20px;
+  }
+
+  .final-cta{
+    padding:32px 23px;
+  }
+
+  .final-cta h2{
+    font-size:27px;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+  }
+}
+
+@media(max-width:380px){
+
+  .hero,
+  .page{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero-image{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero h1{
+    font-size:31px;
+  }
+
+  .nav-cta{
+    padding:8px 11px;
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+<div class="topbar-inner">
+
+<a href="/it/" class="logo">iakids</a>
+
+<nav class="nav">
+<a href="/it/blog/">Blog</a>
+<a href="/it/blog/tutor-ai/">Tutor AI</a>
+<a href="/it/blog/tutor-online/">Tutor online</a>
+<a href="/it/blog/aiuto-compiti/">Aiuto compiti</a>
+<a href="/it/blog/ripetizioni/">Ripetizioni</a>
+<a href="/it/" class="nav-cta">Scopri IAKIDS</a>
+</nav>
+
+</div>
+</header>
+
+
+<section class="hero">
+
+<div class="breadcrumb">
+<a href="/it/">IAKIDS</a>
+&nbsp;›&nbsp;
+<a href="/it/blog/">Blog</a>
+&nbsp;›&nbsp;
+<a href="/it/blog/ai-per-studiare/">AI per studiare</a>
+&nbsp;›&nbsp;
+AI per studenti
+</div>
+
+<span class="article-tag">Intelligenza artificiale · Studenti</span>
+
+<h1>AI per studenti: come usarla per studiare meglio e diventare più autonomi</h1>
+
+<p class="lead">
+L'intelligenza artificiale può offrire agli studenti
+spiegazioni, esercizi, domande e supporto quasi immediato.
+Il vero valore, però, non è far svolgere il lavoro all'AI:
+è utilizzarla per capire meglio, esercitarsi e imparare
+progressivamente a lavorare in autonomia.
+</p>
+
+</section>
+
+
+<div class="hero-image">
+<img
+  src="/assets/it/blog/ai-per-studiare.webp"
+  alt="Studente che utilizza l'intelligenza artificiale come supporto allo studio"
+  loading="eager"
+  width="1200"
+  height="675">
+</div>
+
+
+<main class="page">
+
+<article class="content">
+
+
+<h2>Che cosa significa AI per studenti?</h2>
+
+<p>
+Con
+<strong>AI per studenti</strong>
+si intendono
+gli utilizzi
+dell'intelligenza artificiale
+che possono supportare
+lo studio,
+la comprensione
+e la pratica.
+</p>
+
+<p>
+Uno studente
+può utilizzare
+l'AI
+per chiedere
+una spiegazione,
+approfondire
+un argomento,
+creare esercizi,
+ricevere
+un indizio
+o verificare
+ciò che ha capito.
+</p>
+
+<p>
+La tecnologia,
+però,
+può essere
+utilizzata
+anche semplicemente
+per ottenere
+una risposta.
+</p>
+
+<div class="note">
+
+<strong>AI per studenti non dovrebbe significare “AI che studia al posto dello studente”.</strong>
+
+<p>
+Un utilizzo
+educativo
+dovrebbe lasciare
+allo studente
+il compito
+di pensare,
+rispondere,
+provare
+e correggersi.
+</p>
+
+</div>
+
+
+<h2>Come può l'AI aiutare uno studente?</h2>
+
+<p>
+Le possibilità
+sono numerose
+e dipendono
+dal tipo
+di attività.
+</p>
+
+<div class="checklist">
+
+<h3>L'AI può essere utilizzata per</h3>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Spiegare un concetto difficile.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Riformulare una spiegazione con parole più semplici.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Creare esempi.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Generare esercizi.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Fornire indizi quando lo studente si blocca.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Fare domande per verificare la comprensione.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Aiutare a individuare gli errori.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Preparare attività di ripasso.</span>
+</div>
+
+</div>
+
+
+<h2>AI per studiare o AI per fare il lavoro?</h2>
+
+<p>
+Questa distinzione
+è fondamentale.
+</p>
+
+<p>
+La stessa
+tecnologia
+può essere
+utilizzata
+in modo passivo
+oppure
+come strumento
+di apprendimento.
+</p>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+<tr>
+<th>Uso passivo</th>
+<th>Uso orientato all'apprendimento</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td>“Dammi la risposta.”</td>
+<td>“Spiegami il concetto.”</td>
+</tr>
+
+<tr>
+<td>“Fai questo esercizio.”</td>
+<td>“Dammi un indizio per iniziare.”</td>
+</tr>
+
+<tr>
+<td>“Scrivi il testo per me.”</td>
+<td>“Aiutami a organizzare le idee.”</td>
+</tr>
+
+<tr>
+<td>“Fammi il riassunto da imparare.”</td>
+<td>“Fammi domande per verificare ciò che ricordo.”</td>
+</tr>
+
+<tr>
+<td>“Risolvi il problema.”</td>
+<td>“Controlla il mio procedimento.”</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<h2>Spiegazioni personalizzate</h2>
+
+<p>
+Uno dei vantaggi
+dell'AI
+è la possibilità
+di modificare
+rapidamente
+una spiegazione.
+</p>
+
+<p>
+Se uno studente
+non comprende
+la prima versione,
+può chiedere
+di presentare
+lo stesso concetto
+in modo diverso.
+</p>
+
+<div class="example-box">
+
+<strong>Per esempio</strong>
+
+<p>
+“Spiegamelo
+con parole
+più semplici.”
+</p>
+
+<p>
+“Fammi
+un esempio
+della vita quotidiana.”
+</p>
+
+<p>
+“Puoi dividere
+la spiegazione
+in piccoli passaggi?”
+</p>
+
+<p>
+“Fammi
+prima
+un esempio facile
+e poi
+uno più difficile.”
+</p>
+
+</div>
+
+
+<h2>Perché la personalizzazione può essere utile?</h2>
+
+<p>
+Gli studenti
+non imparano
+tutti
+alla stessa velocità
+e non incontrano
+necessariamente
+le stesse difficoltà.
+</p>
+
+<p>
+In una stessa
+lezione,
+uno studente
+può aver bisogno
+di tornare
+a un concetto
+precedente,
+mentre un altro
+può essere pronto
+per un esercizio
+più complesso.
+</p>
+
+<div class="good-box">
+
+<strong>Un percorso adattivo può cambiare in base alle risposte dello studente.</strong>
+
+<p>
+L'obiettivo
+non è semplicemente
+mostrare contenuti,
+ma utilizzare
+le risposte
+per decidere
+quale passo
+può essere
+più utile
+successivamente.
+</p>
+
+</div>
+
+
+<h2>Come può funzionare un percorso adattivo?</h2>
+
+<div class="steps">
+
+<div class="step">
+<div class="step-number">1</div>
+<div>
+<h3>Spiegazione</h3>
+<p>
+Lo studente
+riceve
+una spiegazione
+del concetto.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">2</div>
+<div>
+<h3>Domanda</h3>
+<p>
+Deve utilizzare
+ciò che
+ha appena
+imparato.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">3</div>
+<div>
+<h3>Risposta</h3>
+<p>
+Il sistema
+analizza
+la risposta
+e il tipo
+di difficoltà.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">4</div>
+<div>
+<h3>Adattamento</h3>
+<p>
+Può proporre
+una spiegazione
+più semplice,
+un indizio
+o un nuovo esercizio.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">5</div>
+<div>
+<h3>Nuova verifica</h3>
+<p>
+Lo studente
+prova nuovamente
+per verificare
+se il concetto
+è stato compreso.
+</p>
+</div>
+</div>
+
+</div>
+
+
+<h2>AI per studenti e compiti</h2>
+
+<p>
+I compiti
+sono probabilmente
+uno degli utilizzi
+più comuni
+dell'intelligenza artificiale
+tra gli studenti.
+</p>
+
+<p>
+La tentazione
+più immediata
+può essere
+quella
+di chiedere
+direttamente
+la soluzione.
+</p>
+
+<p>
+Un approccio
+più utile
+è chiedere
+solo l'aiuto
+necessario
+per continuare
+in autonomia.
+</p>
+
+<div class="example-box">
+
+<strong>Invece di chiedere “qual è la risposta?”</strong>
+
+<p>
+lo studente
+può chiedere:
+</p>
+
+<p>
+“Cosa significa
+questa domanda?”
+</p>
+
+<p>
+“Qual è
+il primo passo?”
+</p>
+
+<p>
+“Dammi
+un indizio.”
+</p>
+
+<p>
+“Controlla
+quello che
+ho fatto.”
+</p>
+
+</div>
+
+
+<div class="internal-card">
+
+<h3>AI per i compiti</h3>
+
+<p>
+Scopri
+come utilizzare
+l'intelligenza artificiale
+durante
+i compiti
+per capire
+e non soltanto
+per ottenere
+le risposte.
+</p>
+
+<a href="/it/blog/aiuto-compiti/ai-per-i-compiti/">
+AI per i compiti →
+</a>
+
+</div>
+
+
+<h2>AI per studenti e matematica</h2>
+
+<p>
+In matematica,
+un sistema AI
+può essere
+molto utile
+per spiegare
+un procedimento
+o generare
+nuovi esercizi.
+</p>
+
+<p>
+Ma è anche
+una materia
+in cui
+ricevere
+direttamente
+la soluzione
+può facilmente
+eliminare
+la parte
+più importante
+dell'esercizio:
+il ragionamento.
+</p>
+
+<div class="checklist">
+
+<h3>Un utilizzo più educativo può includere</h3>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Spiegazioni passo dopo passo.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Esempi più semplici prima degli esercizi complessi.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Indizi invece della soluzione completa.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Analisi del procedimento dello studente.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Nuovi esercizi per verificare la comprensione.</span>
+</div>
+
+</div>
+
+
+<div class="internal-card">
+
+<h3>AI per matematica</h3>
+
+<p>
+Approfondisci
+come utilizzare
+l'intelligenza artificiale
+per capire
+la matematica,
+lavorare
+sugli errori
+e fare pratica.
+</p>
+
+<a href="/it/blog/ai-per-studiare/ai-per-matematica/">
+AI per matematica →
+</a>
+
+</div>
+
+
+<h2>AI per ripassare prima di una verifica</h2>
+
+<p>
+L'AI
+può essere
+utilizzata
+anche
+per trasformare
+il ripasso
+in un'attività
+più interattiva.
+</p>
+
+<p>
+Invece
+di rileggere
+continuamente
+gli stessi appunti,
+lo studente
+può chiedere
+di essere
+interrogato.
+</p>
+
+<div class="example-box">
+
+<strong>Un esempio</strong>
+
+<p>
+“Fammi
+una domanda
+alla volta
+su questo argomento.”
+</p>
+
+<p>
+“Non mostrarmi
+la risposta
+finché
+non provo.”
+</p>
+
+<p>
+“Se sbaglio,
+spiegami
+il concetto
+e poi
+fammi
+una domanda simile.”
+</p>
+
+<p>
+“Alla fine
+dimmi quali argomenti
+dovrei ripassare.”
+</p>
+
+</div>
+
+
+<h2>Perché farsi interrogare dall'AI?</h2>
+
+<p>
+Rileggere
+un testo
+può dare
+la sensazione
+che tutto
+sia familiare.
+</p>
+
+<p>
+Rispondere
+a una domanda
+senza vedere
+la risposta,
+invece,
+costringe
+lo studente
+a recuperare
+ciò che sa.
+</p>
+
+<div class="note">
+
+<strong>Non basta riconoscere una risposta quando la vediamo.</strong>
+
+<p>
+È utile
+verificare
+se siamo
+in grado
+di produrla
+o applicarla
+senza averla
+davanti.
+</p>
+
+</div>
+
+
+<h2>AI per creare esercizi</h2>
+
+<p>
+L'intelligenza artificiale
+può generare
+nuove attività
+su un argomento
+che lo studente
+sta studiando.
+</p>
+
+<p>
+Questo
+può essere utile
+quando
+gli esercizi
+disponibili
+non sono sufficienti
+oppure
+quando serve
+una pratica
+più mirata.
+</p>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+<tr>
+<th>Situazione</th>
+<th>Possibile utilizzo dell'AI</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td>Argomento appena studiato</td>
+<td>Generare esercizi semplici di verifica.</td>
+</tr>
+
+<tr>
+<td>Difficoltà specifica</td>
+<td>Creare altri esercizi sullo stesso concetto.</td>
+</tr>
+
+<tr>
+<td>Risposte corrette</td>
+<td>Aumentare gradualmente la difficoltà.</td>
+</tr>
+
+<tr>
+<td>Errore ricorrente</td>
+<td>Creare un'attività mirata su quel passaggio.</td>
+</tr>
+
+<tr>
+<td>Preparazione a una verifica</td>
+<td>Combinare domande ed esercizi su più argomenti.</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<h2>AI per studenti e autonomia</h2>
+
+<p>
+Può sembrare
+un paradosso,
+ma un buon
+strumento AI
+dovrebbe aiutare
+lo studente
+a diventare
+meno dipendente
+dall'aiuto.
+</p>
+
+<p>
+Se ogni problema
+viene risolto
+immediatamente
+dalla tecnologia,
+lo studente
+può abituarsi
+a chiedere
+una risposta
+prima
+di provare.
+</p>
+
+<p>
+Un approccio
+più educativo
+può seguire
+la direzione
+opposta.
+</p>
+
+<div class="steps">
+
+<div class="step">
+<div class="step-number">1</div>
+<div>
+<h3>Prova</h3>
+<p>
+Lo studente
+affronta
+l'attività
+in autonomia.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">2</div>
+<div>
+<h3>Chiedi aiuto</h3>
+<p>
+Solo quando
+incontra
+una difficoltà
+reale.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">3</div>
+<div>
+<h3>Ricevi un supporto limitato</h3>
+<p>
+Una spiegazione,
+una domanda
+o un indizio.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">4</div>
+<div>
+<h3>Riprova</h3>
+<p>
+Lo studente
+riprende
+il lavoro
+da solo.
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">5</div>
+<div>
+<h3>Verifica</h3>
+<p>
+Un nuovo esercizio
+mostra
+se il concetto
+è realmente
+utilizzabile.
+</p>
+</div>
+</div>
+
+</div>
+
+
+<h2>AI per studenti o Tutor AI?</h2>
+
+<p>
+Un sistema
+di intelligenza artificiale
+generalista
+può essere
+utilizzato
+per moltissimi
+scopi.
+</p>
+
+<p>
+Un
+<a href="/it/blog/tutor-ai/">
+<strong>Tutor AI</strong>
+</a>
+è invece
+pensato
+specificamente
+per accompagnare
+un percorso
+di apprendimento.
+</p>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+<tr>
+<th></th>
+<th>AI generalista</th>
+<th>Tutor AI educativo</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td>Scopo</td>
+<td>Rispondere a richieste diverse</td>
+<td>Supportare lo studio</td>
+</tr>
+
+<tr>
+<td>Spiegazioni</td>
+<td>Su richiesta</td>
+<td>Parte del percorso</td>
+</tr>
+
+<tr>
+<td>Domande allo studente</td>
+<td>Possibili</td>
+<td>Possono essere integrate nella lezione</td>
+</tr>
+
+<tr>
+<td>Esercizi</td>
+<td>Su richiesta</td>
+<td>Possono seguire il livello dello studente</td>
+</tr>
+
+<tr>
+<td>Verifica della comprensione</td>
+<td>Dipende dalla richiesta</td>
+<td>Può essere parte del processo</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<div class="internal-card">
+
+<h3>Tutor AI per studenti</h3>
+
+<p>
+Scopri
+come funziona
+un Tutor AI
+orientato
+all'apprendimento
+e quando
+può essere utile
+a uno studente.
+</p>
+
+<a href="/it/blog/tutor-ai/tutor-ai-per-studenti/">
+Tutor AI per studenti →
+</a>
+
+</div>
+
+
+<h2>AI o ChatGPT per studenti?</h2>
+
+<p>
+ChatGPT
+è un sistema
+AI generalista
+e può essere
+utilizzato
+anche
+per attività
+legate
+allo studio.
+</p>
+
+<p>
+La differenza
+tra un chatbot
+generalista
+e un ambiente
+educativo
+non riguarda
+soltanto
+la tecnologia
+utilizzata.
+</p>
+
+<p>
+Riguarda
+anche
+come viene
+progettata
+l'esperienza.
+</p>
+
+<div class="internal-card">
+
+<h3>Tutor AI o ChatGPT?</h3>
+
+<p>
+Scopri
+le differenze
+tra un chatbot
+generalista
+e un Tutor AI
+pensato
+per lo studio.
+</p>
+
+<a href="/it/blog/tutor-ai/tutor-ai-o-chatgpt/">
+Tutor AI o ChatGPT →
+</a>
+
+</div>
+
+
+<h2>AI per studenti e tutor online</h2>
+
+<p>
+Un
+<a href="/it/blog/tutor-online/">
+<strong>tutor online</strong>
+</a>
+offre
+supporto umano
+a distanza.
+</p>
+
+<p>
+Può osservare
+lo studente,
+spiegare,
+rispondere
+alle domande
+e adattare
+la lezione
+in tempo reale.
+</p>
+
+<p>
+L'AI
+può invece
+essere disponibile
+in molti momenti
+della giornata
+per spiegazioni,
+domande
+ed esercizi.
+</p>
+
+<div class="good-box">
+
+<strong>Le due forme di supporto non devono necessariamente essere considerate alternative.</strong>
+
+<p>
+Uno studente
+può utilizzare
+un insegnante
+o un tutor
+per il percorso
+educativo
+e strumenti AI
+per continuare
+a esercitarsi
+tra una sessione
+e l'altra.
+</p>
+
+</div>
+
+
+<h2>AI per studenti e ripetizioni</h2>
+
+<p>
+Anche
+le
+<a href="/it/blog/ripetizioni/">
+<strong>ripetizioni</strong>
+</a>
+e l'intelligenza artificiale
+possono avere
+funzioni differenti.
+</p>
+
+<p>
+Le ripetizioni
+offrono
+una relazione
+diretta
+con una persona.
+</p>
+
+<p>
+L'AI
+può aggiungere
+occasioni
+di pratica
+e supporto
+quando
+il tutor
+non è presente.
+</p>
+
+
+<h2>Quali sono i rischi dell'AI per gli studenti?</h2>
+
+<p>
+L'intelligenza artificiale
+offre
+molte possibilità,
+ma presenta
+anche limiti
+che gli studenti
+dovrebbero conoscere.
+</p>
+
+<div class="warning-box">
+
+<strong>L'AI non è automaticamente corretta.</strong>
+
+<p>
+Può produrre
+informazioni
+inesatte,
+interpretare male
+una domanda
+o generare
+una spiegazione
+convincente
+ma sbagliata.
+</p>
+
+</div>
+
+<div class="checklist">
+
+<h3>È importante ricordare che</h3>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Le informazioni importanti devono essere verificate.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Una risposta veloce non equivale ad apprendimento.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Copiare può impedire di individuare le reali difficoltà.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Lo studente dovrebbe continuare a esercitare il proprio ragionamento.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Per i bambini sono importanti strumenti adatti all'età e al contesto educativo.</span>
+</div>
+
+</div>
+
+
+<h2>Come capire se l'AI sta aiutando davvero?</h2>
+
+<p>
+Il numero
+di attività
+completate
+non è
+l'unico indicatore
+utile.
+</p>
+
+<p>
+È più importante
+osservare
+cosa riesce
+a fare
+lo studente
+senza aiuto.
+</p>
+
+<div class="checklist">
+
+<h3>Segnali di apprendimento</h3>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Sa spiegare un concetto con parole proprie.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Risponde a domande senza vedere la soluzione.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Applica ciò che ha imparato a un nuovo problema.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Riconosce alcuni errori autonomamente.</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>Ha progressivamente bisogno di meno supporto.</span>
+</div>
+
+</div>
+
+
+<h2>AI per studenti più giovani</h2>
+
+<p>
+Quando
+si parla
+di bambini
+e studenti
+più giovani,
+l'esperienza
+dovrebbe essere
+progettata
+con particolare
+attenzione.
+</p>
+
+<p>
+Non basta
+mettere
+un chatbot
+davanti
+a un bambino
+e aspettarsi
+che sappia
+sempre
+come utilizzarlo
+per imparare.
+</p>
+
+<p>
+Può essere
+più utile
+un percorso
+che definisca:
+</p>
+
+<ul>
+<li>cosa spiegare;</li>
+<li>quanto spiegare;</li>
+<li>quando fare una domanda;</li>
+<li>quando fornire un indizio;</li>
+<li>quando ripetere un concetto;</li>
+<li>quando aumentare la difficoltà.</li>
+</ul>
+
+
+<h2>Il ruolo dei contenuti visivi</h2>
+
+<p>
+Per molti
+studenti,
+soprattutto
+più giovani,
+un'immagine
+o una rappresentazione
+visiva
+può rendere
+un concetto
+più concreto.
+</p>
+
+<p>
+L'intelligenza artificiale
+può quindi
+essere utilizzata
+all'interno
+di esperienze
+che combinano
+diversi formati.
+</p>
+
+<div class="good-box">
+
+<strong>Una lezione digitale non deve essere soltanto una lunga conversazione testuale.</strong>
+
+<p>
+Spiegazioni,
+immagini,
+domande,
+esercizi
+e dialogo
+possono lavorare
+insieme
+per mantenere
+lo studente
+attivo.
+</p>
+
+</div>
+
+
+<h2>Come IAKIDS utilizza l'AI per gli studenti</h2>
+
+<p>
+IAKIDS
+utilizza
+l'intelligenza artificiale
+per costruire
+lezioni
+interattive
+in cui
+lo studente
+partecipa
+al percorso.
+</p>
+
+<p>
+Una lezione
+può combinare:
+</p>
+
+<ul>
+<li>spiegazioni adatte all'argomento;</li>
+<li>contenuti visivi;</li>
+<li>domande durante la lezione;</li>
+<li>dialogo con il Tutor AI;</li>
+<li>esercizi;</li>
+<li>feedback;</li>
+<li>verifica della comprensione.</li>
+</ul>
+
+<p>
+Le risposte
+dello studente
+possono essere
+utilizzate
+per decidere
+come continuare
+il percorso.
+</p>
+
+<div class="note">
+
+<strong>L'obiettivo non è soltanto arrivare alla fine della lezione.</strong>
+
+<p>
+È verificare
+che lo studente
+stia comprendendo
+ciò che
+sta imparando.
+</p>
+
+</div>
+
+
+<h2>AI per studenti: quale dovrebbe essere l'obiettivo?</h2>
+
+<p>
+L'intelligenza artificiale
+può rendere
+l'aiuto
+più disponibile,
+interattivo
+e personalizzabile.
+</p>
+
+<p>
+Ma l'obiettivo
+finale
+dovrebbe rimanere
+lo stesso:
+aiutare
+lo studente
+a imparare.
+</p>
+
+<div class="good-box">
+
+<strong>La tecnologia è più utile quando aumenta la capacità dello studente di fare da solo.</strong>
+
+<p>
+Spiegare,
+fare domande,
+fornire indizi
+e creare
+nuove occasioni
+di pratica
+può essere
+più educativo
+che mostrare
+immediatamente
+la risposta.
+</p>
+
+</div>
+
+
+<div class="internal-card">
+
+<h3>Guida completa: AI per studiare</h3>
+
+<p>
+Scopri
+come utilizzare
+l'intelligenza artificiale
+come strumento
+di apprendimento
+per spiegazioni,
+esercizi,
+compiti
+e verifica
+della comprensione.
+</p>
+
+<a href="/it/blog/ai-per-studiare/">
+AI per studiare →
+</a>
+
+</div>
+
+
+<section class="faq">
+
+<h2>Domande frequenti sull'AI per studenti</h2>
+
+
+<div class="faq-item">
+
+<h3>Come può essere utilizzata l'AI dagli studenti?</h3>
+
+<p>
+Gli studenti
+possono utilizzarla
+per ricevere
+spiegazioni,
+fare domande,
+creare esercizi,
+ottenere indizi,
+ripassare
+e verificare
+la propria
+comprensione.
+</p>
+
+</div>
+
+
+<div class="faq-item">
+
+<h3>L'AI può aiutare gli studenti con i compiti?</h3>
+
+<p>
+Sì.
+Può aiutare
+a comprendere
+una consegna,
+spiegare
+un concetto,
+fornire indizi
+e controllare
+il lavoro
+dello studente
+senza necessariamente
+svolgere
+il compito
+al suo posto.
+</p>
+
+</div>
+
+
+<div class="faq-item">
+
+<h3>L'AI può adattarsi al livello dello studente?</h3>
+
+<p>
+Un sistema
+educativo
+basato sull'AI
+può adattare
+spiegazioni,
+domande
+ed esercizi
+in base
+alle risposte
+e alle difficoltà
+incontrate
+dallo studente.
+</p>
+
+</div>
+
+
+<div class="faq-item">
+
+<h3>Quali sono i rischi dell'AI per gli studenti?</h3>
+
+<p>
+L'AI
+può produrre
+informazioni inesatte
+e può diventare
+una scorciatoia
+se viene utilizzata
+soltanto
+per ottenere
+risposte.
+È importante
+usarla
+in modo critico
+e verificare
+le informazioni
+importanti.
+</p>
+
+</div>
+
+
+<div class="faq-item">
+
+<h3>Qual è la differenza tra AI e Tutor AI per studenti?</h3>
+
+<p>
+Un sistema AI
+generalista
+può rispondere
+a molte richieste,
+mentre
+un Tutor AI
+educativo
+è progettato
+per accompagnare
+l'apprendimento
+attraverso
+spiegazioni,
+domande,
+esercizi
+e verifica
+della comprensione.
+</p>
+
+</div>
+
+</section>
+
+
+<div class="final-cta">
+
+<h2>AI che accompagna lo studente durante l'apprendimento</h2>
+
+<p>
+IAKIDS combina
+Tutor AI,
+spiegazioni,
+contenuti visivi,
+domande
+ed esercizi
+per creare
+un'esperienza
+di studio
+interattiva
+e adattiva.
+</p>
+
+<a href="/it/">
+Scopri IAKIDS
+</a>
+
+</div>
+
+</article>
+
+
+<aside class="sidebar">
+
+<div class="sidebar-box">
+
+<h3>AI per studiare</h3>
+
+<a class="sidebar-link"
+href="/it/blog/ai-per-studiare/">
+AI per studiare
+</a>
+
+<a class="sidebar-link"
+href="/it/blog/ai-per-studiare/ai-per-matematica/">
+AI per matematica
+</a>
+
+<a class="sidebar-link"
+href="/it/blog/ai-per-studiare/studiare-con-ai/">
+Studiare con AI
+</a>
+
+</div>
+
+
+<div class="sidebar-box">
+
+<h3>Guide collegate</h3>
+
+<a class="sidebar-link"
+href="/it/blog/tutor-ai/tutor-ai-per-studenti/">
+Tutor AI per studenti
+</a>
+
+<a class="sidebar-link"
+href="/it/blog/aiuto-compiti/ai-per-i-compiti/">
+AI per i compiti
+</a>
+
+<a class="sidebar-link"
+href="/it/blog/tutor-online/tutor-online-per-studenti/">
+Tutor online per studenti
+</a>
+
+<a class="sidebar-link"
+href="/it/blog/ripetizioni/">
+Ripetizioni
+</a>
+
+</div>
+
+
+<div class="sidebar-cta">
+
+<h3>Scopri IAKIDS</h3>
+
+<p>
+Tutor AI,
+lezioni interattive,
+contenuti visivi,
+domande
+ed esercizi
+per accompagnare
+lo studente
+durante
+l'apprendimento.
+</p>
+
+<a href="/it/">
+Inizia con IAKIDS
+</a>
+
+</div>
+
+</aside>
+
+</main>
+
+
+<footer>
+
+<div class="footer-inner">
+
+<div>
+© <span id="current-year"></span> IAKIDS. Tutti i diritti riservati.
+</div>
+
+<div>
+AI per studenti · AI per studiare · Tutor AI
+</div>
+
+</div>
+
+</footer>
+
+
+<script>
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
