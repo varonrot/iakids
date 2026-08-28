@@ -326,6 +326,56 @@ print("==============================")
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
+# =====================================================
+# SUPABASE TEMPORARY ERROR RETRY
+# =====================================================
+
+def supabase_with_retry(
+        operation,
+        label: str = "SUPABASE",
+        max_attempts: int = 3,
+        base_delay_seconds: float = 0.5
+):
+
+    last_error = None
+
+    for attempt in range(
+        1,
+        max_attempts + 1
+    ):
+
+        try:
+
+            return operation()
+
+        except Exception as e:
+
+            last_error = e
+
+            print(
+                f"{label} RETRY:",
+                {
+                    "attempt":
+                        attempt,
+
+                    "max_attempts":
+                        max_attempts,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            if attempt >= max_attempts:
+                raise
+
+            time.sleep(
+                base_delay_seconds
+                * attempt
+            )
+
+    raise last_error
+
 client = OpenAI(
     api_key=OPENAI_API_KEY
 )
@@ -716,18 +766,40 @@ def update_tutor_session_after_vision(
 # DATA HELPERS
 # =====================================================
 
-def get_child_by_id(user_id: str, kid_id: str):
-    res = (
-        sb.table("kids_profiles")
-        .select("*")
-        .eq("id", kid_id)
-        .eq("user_id", user_id)
-        .single()
-        .execute()
+def get_child_by_id(
+        user_id: str,
+        kid_id: str
+):
+
+    def operation():
+
+        return (
+            sb.table(
+                "kids_profiles"
+            )
+            .select("*")
+            .eq(
+                "id",
+                kid_id
+            )
+            .eq(
+                "user_id",
+                user_id
+            )
+            .single()
+            .execute()
+        )
+
+    res = supabase_with_retry(
+        operation,
+        label="GET CHILD"
     )
 
     if not res.data:
-        raise HTTPException(status_code=404, detail="Child not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Child not found"
+        )
 
     return res.data
 
@@ -1860,44 +1932,52 @@ def get_lesson_units_and_lessons(
 def get_unit_lesson(
         unit_lesson_id: int
 ):
-    res = (
-        sb.table(
-            "lesson_units_content"
+
+    def operation():
+
+        return (
+            sb.table(
+                "lesson_units_content"
+            )
+            .select(
+                "id, "
+                "learning_lesson_id, "
+                "unit_order, "
+                "unit_name, "
+                "lesson_order, "
+                "lesson_name, "
+                "intro_template_id, "
+                "learning_objective, "
+                "lesson_complexity, "
+                "max_duration_seconds, "
+                "generation_status, "
+                "content_version, "
+                "generated_lesson_json, "
+                "generation_error, "
+                "generated_at, "
+                "tts_generated_at, "
+                "lesson_audio_json, "
+                "audio_generation_status, "
+                "audio_generation_error, "
+                "audio_generated_at, "
+                "status, "
+                "is_active"
+            )
+            .eq(
+                "id",
+                unit_lesson_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
-        .select(
-            "id, "
-            "learning_lesson_id, "
-            "unit_order, "
-            "unit_name, "
-            "lesson_order, "
-            "lesson_name, "
-            "intro_template_id, "
-            "learning_objective, "
-            "lesson_complexity, "
-            "max_duration_seconds, "
-            "generation_status, "
-            "content_version, "
-            "generated_lesson_json, "
-            "generation_error, "
-            "generated_at, "
-            "tts_generated_at, "
-            "lesson_audio_json, "
-            "audio_generation_status, "
-            "audio_generation_error, "
-            "audio_generated_at, "
-            "status, "
-            "is_active"
-        )
-        .eq(
-            "id",
-            unit_lesson_id
-        )
-        .eq(
-            "is_active",
-            True
-        )
-        .limit(1)
-        .execute()
+
+    res = supabase_with_retry(
+        operation,
+        label="GET UNIT LESSON"
     )
 
     if not res.data:
@@ -1911,29 +1991,37 @@ def get_unit_lesson(
 def get_intro_template(
         template_id: int
 ):
-    res = (
-        sb.table(
-            "lesson_intro_templates"
+
+    def operation():
+
+        return (
+            sb.table(
+                "lesson_intro_templates"
+            )
+            .select(
+                "id, "
+                "template_name, "
+                "lesson_type, "
+                "tts_provider, "
+                "tts_model, "
+                "tts_voice, "
+                "intro_json"
+            )
+            .eq(
+                "id",
+                template_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
-        .select(
-            "id, "
-            "template_name, "
-            "lesson_type, "
-            "tts_provider, "
-            "tts_model, "
-            "tts_voice, "
-            "intro_json"
-        )
-        .eq(
-            "id",
-            template_id
-        )
-        .eq(
-            "is_active",
-            True
-        )
-        .limit(1)
-        .execute()
+
+    res = supabase_with_retry(
+        operation,
+        label="GET INTRO TEMPLATE"
     )
 
     if not res.data:
@@ -1981,47 +2069,47 @@ def replace_intro_variables(
     return value
 
 
-
 def get_learning_lesson(
         lesson_id: int
 ):
-    res = (
 
-        sb.table(
-            "learning_lessons"
+    def operation():
+
+        return (
+            sb.table(
+                "learning_lessons"
+            )
+            .select(
+                "id, "
+                "grade, "
+                "subject, "
+                "category, "
+                "lesson_order, "
+                "lesson_name, "
+                "lesson_goal, "
+                "lesson_content, "
+                "teaching_method, "
+                "learning_objectives, "
+                "xp_reward, "
+                "stars_reward, "
+                "is_checkpoint, "
+                "is_active"
+            )
+            .eq(
+                "id",
+                lesson_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
 
-        .select(
-            "id, "
-            "grade, "
-            "subject, "
-            "category, "
-            "lesson_order, "
-            "lesson_name, "
-            "lesson_goal, "
-            "lesson_content, "
-            "teaching_method, "
-            "learning_objectives, "
-            "xp_reward, "
-            "stars_reward, "
-            "is_checkpoint, "
-            "is_active"
-        )
-
-        .eq(
-            "id",
-            lesson_id
-        )
-
-        .eq(
-            "is_active",
-            True
-        )
-
-        .limit(1)
-
-        .execute()
-
+    res = supabase_with_retry(
+        operation,
+        label="GET LEARNING LESSON"
     )
 
     if not res.data:
@@ -3330,125 +3418,214 @@ def parse_supabase_datetime(value: str):
         value.replace("Z", "+00:00")
     )
 
-
 def get_or_create_tutor_session(
         user_id: str,
         kid_id: str
 ):
-    """
-    מחפש את ה-Session האחרון של הילד.
 
-    אם ה-Session עדיין פעיל ולא עברו 30 דקות
-    מהפעילות האחרונה -> משתמשים בו.
-
-    אחרת -> סוגרים את הקודם ופותחים Session חדש.
-    """
-
-    now = datetime.now(timezone.utc)
-
-    res = (
-        sb.table("tutor_sessions")
-        .select(
-            "id, started_at, last_activity_at, status, "
-            "message_count, user_message_count, "
-            "assistant_message_count, ai_call_count, "
-            "input_tokens, output_tokens, total_tokens, "
-            "estimated_cost_usd"
-        )
-        .eq("user_id", user_id)
-        .eq("kid_id", kid_id)
-        .eq("status", "active")
-        .order("last_activity_at", desc=True)
-        .limit(1)
-        .execute()
+    now = datetime.now(
+        timezone.utc
     )
 
-    # =================================================
-    # אם קיים Session פעיל
-    # =================================================
+    # =============================================
+    # FIND ACTIVE SESSION
+    # =============================================
+
+    def load_session():
+
+        return (
+            sb.table(
+                "tutor_sessions"
+            )
+            .select(
+                "id, started_at, last_activity_at, status, "
+                "message_count, user_message_count, "
+                "assistant_message_count, ai_call_count, "
+                "input_tokens, output_tokens, total_tokens, "
+                "estimated_cost_usd"
+            )
+            .eq(
+                "user_id",
+                user_id
+            )
+            .eq(
+                "kid_id",
+                kid_id
+            )
+            .eq(
+                "status",
+                "active"
+            )
+            .order(
+                "last_activity_at",
+                desc=True
+            )
+            .limit(1)
+            .execute()
+        )
+
+    res = supabase_with_retry(
+        load_session,
+        label="GET TUTOR SESSION"
+    )
+
+    # =============================================
+    # EXISTING SESSION
+    # =============================================
 
     if res.data:
 
         session = res.data[0]
 
-        last_activity = parse_supabase_datetime(
-            session.get("last_activity_at")
+        last_activity = (
+            parse_supabase_datetime(
+                session.get(
+                    "last_activity_at"
+                )
+            )
         )
 
         if last_activity:
 
-            inactive_time = now - last_activity
+            inactive_time = (
+                now - last_activity
+            )
 
-            # עדיין בתוך חלון 30 הדקות
             if inactive_time < timedelta(
-                    minutes=SESSION_TIMEOUT_MINUTES
+                    minutes=
+                        SESSION_TIMEOUT_MINUTES
             ):
+
                 session["_is_new"] = False
 
                 return session
 
-        # =================================================
-        # ה-Session ישן יותר מ-30 דקות
-        # סוגרים אותו
-        # =================================================
+        # =========================================
+        # CLOSE OLD SESSION
+        # =========================================
 
-        started_at = parse_supabase_datetime(
-            session.get("started_at")
+        started_at = (
+            parse_supabase_datetime(
+                session.get(
+                    "started_at"
+                )
+            )
         )
 
         duration_seconds = 0
 
         if started_at and last_activity:
+
             duration_seconds = max(
                 0,
                 int(
                     (
-                            last_activity - started_at
+                        last_activity
+                        - started_at
                     ).total_seconds()
                 )
             )
 
-        sb.table("tutor_sessions").update({
-            "status": "completed",
-            "ended_at": (
-                    last_activity or now
-            ).isoformat(),
-            "duration_seconds": duration_seconds,
-            "updated_at": now.isoformat()
-        }).eq(
-            "id",
-            session["id"]
-        ).execute()
+        def close_old_session():
 
-        # מוסיפים את זמן השיחה לסיכום החודשי
-        increment_usage_summary(
-            user_id=user_id,
-            usage_seconds=duration_seconds
+            return (
+                sb.table(
+                    "tutor_sessions"
+                )
+                .update({
+                    "status":
+                        "completed",
+
+                    "ended_at":
+                        (
+                            last_activity
+                            or now
+                        ).isoformat(),
+
+                    "duration_seconds":
+                        duration_seconds,
+
+                    "updated_at":
+                        now.isoformat()
+                })
+                .eq(
+                    "id",
+                    session["id"]
+                )
+                .execute()
+            )
+
+        supabase_with_retry(
+            close_old_session,
+            label="CLOSE TUTOR SESSION"
         )
-    # =================================================
-    # פתיחת Session חדש
-    # =================================================
+
+        try:
+
+            increment_usage_summary(
+                user_id=user_id,
+                usage_seconds=
+                    duration_seconds
+            )
+
+        except Exception as usage_error:
+
+            print(
+                "SESSION USAGE UPDATE ERROR:",
+                repr(usage_error)
+            )
+
+    # =============================================
+    # CREATE SESSION
+    # =============================================
+
+    def create_session():
+
+        return (
+            sb.table(
+                "tutor_sessions"
+            )
+            .insert({
+                "user_id":
+                    user_id,
+
+                "kid_id":
+                    kid_id,
+
+                "started_at":
+                    now.isoformat(),
+
+                "last_activity_at":
+                    now.isoformat(),
+
+                "status":
+                    "active",
+
+                "ai_model":
+                    "gpt-4o-mini",
+
+                "tts_model":
+                    "gemini-3.1-flash-tts-preview"
+            })
+            .execute()
+        )
 
     new_session_res = (
-        sb.table("tutor_sessions")
-        .insert({
-            "user_id": user_id,
-            "kid_id": kid_id,
-            "started_at": now.isoformat(),
-            "last_activity_at": now.isoformat(),
-            "status": "active",
-            "ai_model": "gpt-4o-mini",
-            "tts_model": "gemini-3.1-flash-tts-preview"
-        })
-        .execute()
+        supabase_with_retry(
+            create_session,
+            label="CREATE TUTOR SESSION"
+        )
     )
 
     if not new_session_res.data:
+
         raise RuntimeError(
             "Failed to create tutor session"
         )
 
-    new_session = new_session_res.data[0]
+    new_session = (
+        new_session_res.data[0]
+    )
 
     new_session["_is_new"] = True
 
@@ -5248,7 +5425,7 @@ def generate_all_lesson_visuals_background(
                         len(image_visuals)
                 }
             )
-            
+
         print(
             "LESSON VISUAL GENERATION START:",
             {
@@ -7324,6 +7501,30 @@ def lesson_intro(
                 )
             )
 
+        # =============================================
+        # GUARANTEE PERSONAL GREETING FIRST
+        # =============================================
+
+        child_name = str(
+            child.get("child_name")
+            or ""
+        ).strip()
+
+        if child_name:
+            greeting_text = (
+                f"היי {child_name}! "
+                f"כיף שבאת ללמוד איתי."
+            )
+
+            sequence.insert(
+                0,
+                TutorAction(
+                    type="speak",
+                    text=greeting_text,
+                    speech_tts=greeting_text
+                )
+            )
+
         return {
             "success": True,
 
@@ -7608,35 +7809,43 @@ def get_or_generate_unit_lesson(
                     ).execute()
 
             # =========================================
-            # MEDIA BACKGROUND
+            # BACKGROUND AUDIO REPAIR ONLY
             #
-            # אם אודיו חסר / נמחק / נכשל,
-            # מנגנון הרקע ישחזר אותו.
+            # אם האודיו כבר קיים ותקין,
+            # אין שום סיבה להפעיל מחדש את כל
+            # מנגנון המדיה בכל Refresh.
             #
-            # מנגנון התמונות גם יבדוק את המדיה.
+            # זה מונע עשרות קריאות מיותרות
+            # ל-Supabase בכל טעינת עמוד.
             # =========================================
 
-            print(
-                "QUEUE BACKGROUND MEDIA CHECK FROM CACHE:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson["id"],
+            if response_audio is None:
 
-                    "audio_generation_status":
-                        audio_generation_status,
+                print(
+                    "QUEUE BACKGROUND AUDIO REPAIR:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
 
-                    "has_cached_audio":
-                        isinstance(
-                            cached_audio,
-                            dict
-                        )
-                }
-            )
+                        "audio_generation_status":
+                            audio_generation_status
+                    }
+                )
 
-            background_tasks.add_task(
-                generate_unit_lesson_media_background,
-                unit_lesson["id"]
-            )
+                background_tasks.add_task(
+                    generate_unit_lesson_audio_background,
+                    unit_lesson["id"]
+                )
+
+            else:
+
+                print(
+                    "SKIP BACKGROUND MEDIA - CACHE COMPLETE:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"]
+                    }
+                )
 
             # =========================================
             # RESPONSE
@@ -8326,6 +8535,9 @@ def get_or_generate_unit_lesson_hero_image(
         body: UnitLessonRequest,
         authorization: str = Header(None)
 ):
+    MAX_RETRIES = 3
+    RETRY_DELAY_SECONDS = 0.7
+
     try:
 
         # =============================================
@@ -8349,17 +8561,95 @@ def get_or_generate_unit_lesson_hero_image(
 
         # =============================================
         # LOAD LESSON
+        # WITH RETRY
         # =============================================
 
-        unit_lesson = get_unit_lesson(
-            body.unit_lesson_id
-        )
+        unit_lesson = None
 
-        parent_lesson = get_learning_lesson(
-            unit_lesson[
-                "learning_lesson_id"
-            ]
-        )
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                unit_lesson = get_unit_lesson(
+                    body.unit_lesson_id
+                )
+
+                break
+
+            except HTTPException:
+                raise
+
+            except Exception as e:
+
+                print(
+                    "HERO GET UNIT LESSON RETRY:",
+                    {
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(e)
+                    }
+                )
+
+                if attempt >= MAX_RETRIES:
+                    raise
+
+                time.sleep(
+                    RETRY_DELAY_SECONDS
+                    * attempt
+                )
+
+        # =============================================
+        # PARENT LESSON
+        # WITH RETRY
+        # =============================================
+
+        parent_lesson = None
+
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                parent_lesson = get_learning_lesson(
+                    unit_lesson[
+                        "learning_lesson_id"
+                    ]
+                )
+
+                break
+
+            except HTTPException:
+                raise
+
+            except Exception as e:
+
+                print(
+                    "HERO GET PARENT LESSON RETRY:",
+                    {
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(e)
+                    }
+                )
+
+                if attempt >= MAX_RETRIES:
+                    raise
+
+                time.sleep(
+                    RETRY_DELAY_SECONDS
+                    * attempt
+                )
 
         # =============================================
         # GRADE SECURITY
@@ -8399,18 +8689,57 @@ def get_or_generate_unit_lesson_hero_image(
 
         # =============================================
         # CACHE CHECK
-        #
-        # קודם מנסים לקבל URL לקובץ קיים.
-        # אם הוא קיים — אין קריאת Gemini.
+        # WITH RETRY
         # =============================================
 
-        try:
+        signed_url = None
+        last_cache_error = None
 
-            signed_url = (
-                create_lesson_media_signed_url(
-                    storage_path
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                signed_url = (
+                    create_lesson_media_signed_url(
+                        storage_path
+                    )
                 )
-            )
+
+                break
+
+            except Exception as cache_error:
+
+                last_cache_error = cache_error
+
+                print(
+                    "LESSON HERO CACHE CHECK RETRY:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(cache_error)
+                    }
+                )
+
+                if attempt < MAX_RETRIES:
+
+                    time.sleep(
+                        RETRY_DELAY_SECONDS
+                        * attempt
+                    )
+
+        # =============================================
+        # CACHE HIT
+        # =============================================
+
+        if signed_url:
 
             print(
                 "LESSON HERO CACHE HIT:",
@@ -8437,20 +8766,22 @@ def get_or_generate_unit_lesson_hero_image(
                 }
             }
 
-        except Exception as cache_error:
+        # =============================================
+        # CACHE MISS
+        # =============================================
 
-            print(
-                "LESSON HERO CACHE MISS:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson["id"],
-                    "error":
-                        repr(cache_error)
-                }
-            )
+        print(
+            "LESSON HERO CACHE MISS:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+                "error":
+                    repr(last_cache_error)
+            }
+        )
 
         # =============================================
-        # GENERATE
+        # GENERATE HERO
         # =============================================
 
         hero_image = (
