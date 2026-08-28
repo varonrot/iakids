@@ -17909,34 +17909,10 @@ function showVisualForLessonText(
   paragraph
 ){
 
-  const normalizeLessonVisualText = value => {
-
-    return String(
-      value || ""
-    )
-      .normalize("NFD")
-      .replace(
-        /[\u0591-\u05C7]/g,
-        ""
-      )
-      .replace(
-        /["'״׳.,!?;:()[\]{}…–—־]/g,
-        " "
-      )
-      .replace(
-        /\s+/g,
-        " "
-      )
-      .trim()
-      .toLowerCase();
-
-  };
-
-
   const text =
-    normalizeLessonVisualText(
-      paragraph
-    );
+    String(
+      paragraph || ""
+    ).trim();
 
 
   if(!text){
@@ -17953,166 +17929,84 @@ function showVisualForLessonText(
 
 
   if(!visuals.length){
+
+    console.log(
+      "NO LESSON VISUALS AVAILABLE"
+    );
+
     return;
   }
 
 
   /*
-    ==========================================
-    חיפוש visual שמתאים לפסקה הנוכחית
-    ==========================================
+    אותה פסקה יכולה להישלח כמה פעמים
+    בזמן כתיבה / TTS / polling.
+
+    לכן לא מחליפים תמונה שוב
+    אם אנחנו עדיין באותה פסקה.
+  */
+
+  if(
+    window.LAST_VISUAL_PARAGRAPH
+    ===
+    text
+  ){
+    return;
+  }
+
+
+  window.LAST_VISUAL_PARAGRAPH =
+    text;
+
+
+  /*
+    התמונות כבר מסודרות לפי order
+    ב-loadLessonVisuals.
+
+    מחפשים את התמונה הבאה
+    שעדיין לא הוצגה.
   */
 
   const visual =
     visuals.find(
-      item => {
-
-        if(
-          !item
-          ||
-          item._shown
-          ||
-          !item.url
-        ){
-          return false;
-        }
-
-
-        const trigger =
-          normalizeLessonVisualText(
-            item.trigger_text
-          );
-
-
-        const source =
-          normalizeLessonVisualText(
-            item.source_text
-          );
-
-
-        /*
-          1. התאמה ישירה ל-trigger
-        */
-
-        if(
-          trigger
-          &&
-          (
-            text.includes(trigger)
-            ||
-            trigger.includes(text)
-          )
-        ){
-          return true;
-        }
-
-
-        /*
-          2. התאמה ישירה ל-source_text
-        */
-
-        if(
-          source
-          &&
-          (
-            text.includes(source)
-            ||
-            source.includes(text)
-          )
-        ){
-          return true;
-        }
-
-
-        /*
-          3. התאמת מילים חלקית ל-source_text
-        */
-
-        if(source){
-
-          const paragraphWords =
-            text
-              .split(" ")
-              .filter(
-                word =>
-                  word.length >= 3
-              );
-
-
-          const sourceWords =
-            source
-              .split(" ")
-              .filter(
-                word =>
-                  word.length >= 3
-              );
-
-
-          if(
-            paragraphWords.length
-            &&
-            sourceWords.length
-          ){
-
-            const commonWords =
-              sourceWords.filter(
-                word =>
-                  paragraphWords.includes(
-                    word
-                  )
-              );
-
-
-            const overlap =
-              commonWords.length
-              /
-              Math.min(
-                paragraphWords.length,
-                sourceWords.length
-              );
-
-
-            /*
-              דורשים התאמה חזקה יחסית.
-              לא מספיק כמה מילים מקריות.
-            */
-
-            if(overlap >= 0.55){
-
-              return true;
-
-            }
-
-          }
-
-        }
-
-
-        return false;
-
-      }
+      item =>
+        item
+        &&
+        item.url
+        &&
+        item._shown !== true
     );
 
-
-  /*
-    אין התאמה לפסקה הזאת?
-    לא מחליפים תמונה.
-  */
 
   if(!visual){
 
     console.log(
-      "NO VISUAL MATCH FOR PARAGRAPH:",
-      paragraph
+      "ALL AVAILABLE LESSON VISUALS ALREADY SHOWN",
+      {
+        paragraph:
+          text,
+
+        visuals:
+          visuals.map(
+            item => ({
+              order:
+                item.order,
+
+              shown:
+                item._shown
+            })
+          )
+      }
     );
 
     return;
-
   }
 
 
   /*
-    מצאנו את התמונה המתאימה.
+    מסמנים אותה לפני ההצגה,
+    כדי שפולינג מקביל לא יציג
+    אותה שוב.
   */
 
   visual._shown =
@@ -18120,16 +18014,16 @@ function showVisualForLessonText(
 
 
   console.log(
-    "LESSON VISUAL DISPLAYED:",
+    "LESSON VISUAL ADVANCE:",
     {
       order:
         visual.order,
 
-      trigger_text:
-        visual.trigger_text,
-
       paragraph:
-        paragraph
+        text,
+
+      trigger_text:
+        visual.trigger_text
     }
   );
 
