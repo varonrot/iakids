@@ -1991,29 +1991,37 @@ def get_unit_lesson(
 def get_intro_template(
         template_id: int
 ):
-    res = (
-        sb.table(
-            "lesson_intro_templates"
+
+    def operation():
+
+        return (
+            sb.table(
+                "lesson_intro_templates"
+            )
+            .select(
+                "id, "
+                "template_name, "
+                "lesson_type, "
+                "tts_provider, "
+                "tts_model, "
+                "tts_voice, "
+                "intro_json"
+            )
+            .eq(
+                "id",
+                template_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
-        .select(
-            "id, "
-            "template_name, "
-            "lesson_type, "
-            "tts_provider, "
-            "tts_model, "
-            "tts_voice, "
-            "intro_json"
-        )
-        .eq(
-            "id",
-            template_id
-        )
-        .eq(
-            "is_active",
-            True
-        )
-        .limit(1)
-        .execute()
+
+    res = supabase_with_retry(
+        operation,
+        label="GET INTRO TEMPLATE"
     )
 
     if not res.data:
@@ -3410,125 +3418,214 @@ def parse_supabase_datetime(value: str):
         value.replace("Z", "+00:00")
     )
 
-
 def get_or_create_tutor_session(
         user_id: str,
         kid_id: str
 ):
-    """
-    מחפש את ה-Session האחרון של הילד.
 
-    אם ה-Session עדיין פעיל ולא עברו 30 דקות
-    מהפעילות האחרונה -> משתמשים בו.
-
-    אחרת -> סוגרים את הקודם ופותחים Session חדש.
-    """
-
-    now = datetime.now(timezone.utc)
-
-    res = (
-        sb.table("tutor_sessions")
-        .select(
-            "id, started_at, last_activity_at, status, "
-            "message_count, user_message_count, "
-            "assistant_message_count, ai_call_count, "
-            "input_tokens, output_tokens, total_tokens, "
-            "estimated_cost_usd"
-        )
-        .eq("user_id", user_id)
-        .eq("kid_id", kid_id)
-        .eq("status", "active")
-        .order("last_activity_at", desc=True)
-        .limit(1)
-        .execute()
+    now = datetime.now(
+        timezone.utc
     )
 
-    # =================================================
-    # אם קיים Session פעיל
-    # =================================================
+    # =============================================
+    # FIND ACTIVE SESSION
+    # =============================================
+
+    def load_session():
+
+        return (
+            sb.table(
+                "tutor_sessions"
+            )
+            .select(
+                "id, started_at, last_activity_at, status, "
+                "message_count, user_message_count, "
+                "assistant_message_count, ai_call_count, "
+                "input_tokens, output_tokens, total_tokens, "
+                "estimated_cost_usd"
+            )
+            .eq(
+                "user_id",
+                user_id
+            )
+            .eq(
+                "kid_id",
+                kid_id
+            )
+            .eq(
+                "status",
+                "active"
+            )
+            .order(
+                "last_activity_at",
+                desc=True
+            )
+            .limit(1)
+            .execute()
+        )
+
+    res = supabase_with_retry(
+        load_session,
+        label="GET TUTOR SESSION"
+    )
+
+    # =============================================
+    # EXISTING SESSION
+    # =============================================
 
     if res.data:
 
         session = res.data[0]
 
-        last_activity = parse_supabase_datetime(
-            session.get("last_activity_at")
+        last_activity = (
+            parse_supabase_datetime(
+                session.get(
+                    "last_activity_at"
+                )
+            )
         )
 
         if last_activity:
 
-            inactive_time = now - last_activity
+            inactive_time = (
+                now - last_activity
+            )
 
-            # עדיין בתוך חלון 30 הדקות
             if inactive_time < timedelta(
-                    minutes=SESSION_TIMEOUT_MINUTES
+                    minutes=
+                        SESSION_TIMEOUT_MINUTES
             ):
+
                 session["_is_new"] = False
 
                 return session
 
-        # =================================================
-        # ה-Session ישן יותר מ-30 דקות
-        # סוגרים אותו
-        # =================================================
+        # =========================================
+        # CLOSE OLD SESSION
+        # =========================================
 
-        started_at = parse_supabase_datetime(
-            session.get("started_at")
+        started_at = (
+            parse_supabase_datetime(
+                session.get(
+                    "started_at"
+                )
+            )
         )
 
         duration_seconds = 0
 
         if started_at and last_activity:
+
             duration_seconds = max(
                 0,
                 int(
                     (
-                            last_activity - started_at
+                        last_activity
+                        - started_at
                     ).total_seconds()
                 )
             )
 
-        sb.table("tutor_sessions").update({
-            "status": "completed",
-            "ended_at": (
-                    last_activity or now
-            ).isoformat(),
-            "duration_seconds": duration_seconds,
-            "updated_at": now.isoformat()
-        }).eq(
-            "id",
-            session["id"]
-        ).execute()
+        def close_old_session():
 
-        # מוסיפים את זמן השיחה לסיכום החודשי
-        increment_usage_summary(
-            user_id=user_id,
-            usage_seconds=duration_seconds
+            return (
+                sb.table(
+                    "tutor_sessions"
+                )
+                .update({
+                    "status":
+                        "completed",
+
+                    "ended_at":
+                        (
+                            last_activity
+                            or now
+                        ).isoformat(),
+
+                    "duration_seconds":
+                        duration_seconds,
+
+                    "updated_at":
+                        now.isoformat()
+                })
+                .eq(
+                    "id",
+                    session["id"]
+                )
+                .execute()
+            )
+
+        supabase_with_retry(
+            close_old_session,
+            label="CLOSE TUTOR SESSION"
         )
-    # =================================================
-    # פתיחת Session חדש
-    # =================================================
+
+        try:
+
+            increment_usage_summary(
+                user_id=user_id,
+                usage_seconds=
+                    duration_seconds
+            )
+
+        except Exception as usage_error:
+
+            print(
+                "SESSION USAGE UPDATE ERROR:",
+                repr(usage_error)
+            )
+
+    # =============================================
+    # CREATE SESSION
+    # =============================================
+
+    def create_session():
+
+        return (
+            sb.table(
+                "tutor_sessions"
+            )
+            .insert({
+                "user_id":
+                    user_id,
+
+                "kid_id":
+                    kid_id,
+
+                "started_at":
+                    now.isoformat(),
+
+                "last_activity_at":
+                    now.isoformat(),
+
+                "status":
+                    "active",
+
+                "ai_model":
+                    "gpt-4o-mini",
+
+                "tts_model":
+                    "gemini-3.1-flash-tts-preview"
+            })
+            .execute()
+        )
 
     new_session_res = (
-        sb.table("tutor_sessions")
-        .insert({
-            "user_id": user_id,
-            "kid_id": kid_id,
-            "started_at": now.isoformat(),
-            "last_activity_at": now.isoformat(),
-            "status": "active",
-            "ai_model": "gpt-4o-mini",
-            "tts_model": "gemini-3.1-flash-tts-preview"
-        })
-        .execute()
+        supabase_with_retry(
+            create_session,
+            label="CREATE TUTOR SESSION"
+        )
     )
 
     if not new_session_res.data:
+
         raise RuntimeError(
             "Failed to create tutor session"
         )
 
-    new_session = new_session_res.data[0]
+    new_session = (
+        new_session_res.data[0]
+    )
 
     new_session["_is_new"] = True
 
