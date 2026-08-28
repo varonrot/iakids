@@ -17621,18 +17621,7 @@ async function loadLessonVisuals(
           שהפסקה שלה כבר רצה,
           מנסים להציג אותה עכשיו.
         */
-
-        if(
-          window.CURRENT_LESSON_PARAGRAPH
-        ){
-
-          showVisualForLessonText(
-            window.CURRENT_LESSON_PARAGRAPH
-          );
-
-        }
-
-
+ 
         /*
           כל התמונות מוכנות.
         */
@@ -18742,11 +18731,68 @@ for(
 window.CURRENT_LESSON_PARAGRAPH =
   paragraph;
 
-  showVisualForLessonText(
-    paragraph
+const visualOrder =
+  index + 1;
+
+const visualForSegment =
+  (
+    window.CURRENT_LESSON_VISUALS
+    || []
+  ).find(
+    visual =>
+      Number(
+        visual?.order
+        || 0
+      )
+      ===
+      visualOrder
   );
 
+if(
+  visualForSegment
+  &&
+  visualForSegment.url
+){
 
+  console.log(
+    "SHOW VISUAL FOR SEGMENT:",
+    {
+      segment:
+        visualOrder,
+
+      visualOrder:
+        visualForSegment.order,
+
+      paragraph:
+        paragraph
+    }
+  );
+
+  showLessonVisual(
+    visualForSegment
+  );
+
+}
+else{
+
+  console.warn(
+    "VISUAL NOT READY FOR SEGMENT:",
+    {
+      segment:
+        visualOrder,
+
+      availableVisuals:
+        (
+          window.CURRENT_LESSON_VISUALS
+          || []
+        ).map(
+          item =>
+            item.order
+        )
+    }
+  );
+
+}
   /*
     מחכים רק לאודיו של הקטע הנוכחי.
   */
