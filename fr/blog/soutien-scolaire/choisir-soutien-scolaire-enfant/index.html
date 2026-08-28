@@ -29,15 +29,13 @@ gtag('config', 'G-DKPPTPCDW8');
 <meta property="og:title" content="Comment choisir un soutien scolaire pour son enfant ?">
 <meta property="og:description"
 content="Les critères essentiels pour trouver un accompagnement scolaire adapté au niveau, au rythme et aux besoins de votre enfant.">
-<meta property="og:image"
-content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
+<meta property="og:image" content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Comment choisir un soutien scolaire pour son enfant ?">
 <meta name="twitter:description"
 content="Cours particuliers, soutien en ligne, aide personnalisée : comment choisir la bonne formule pour son enfant ?">
-<meta name="twitter:image"
-content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
+<meta name="twitter:image" content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
 
 <script type="application/ld+json">
 {
@@ -72,7 +70,7 @@ content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
       "name":"Comment choisir un bon soutien scolaire ?",
       "acceptedAnswer":{
         "@type":"Answer",
-        "text":"Un bon soutien scolaire doit correspondre au besoin réel de l’enfant, proposer des explications adaptées, permettre de vérifier la compréhension et offrir un rythme compatible avec sa capacité de concentration."
+        "text":"Un bon soutien scolaire doit correspondre au besoin réel de l’enfant, proposer des explications adaptées, vérifier la compréhension et offrir un rythme compatible avec sa capacité de concentration."
       }
     },
     {
@@ -80,7 +78,7 @@ content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
       "name":"Faut-il choisir des cours particuliers ou du soutien scolaire en ligne ?",
       "acceptedAnswer":{
         "@type":"Answer",
-        "text":"Le choix dépend du profil de l’enfant. Les cours particuliers offrent une présence humaine directe, tandis que le soutien scolaire en ligne peut être plus flexible et plus facilement accessible à la maison."
+        "text":"Le choix dépend du profil de l’enfant. Les cours particuliers offrent une présence humaine directe, tandis que le soutien scolaire en ligne peut être plus flexible et accessible depuis la maison."
       }
     },
     {
@@ -88,7 +86,7 @@ content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
       "name":"Combien de temps doit durer une séance de soutien scolaire ?",
       "acceptedAnswer":{
         "@type":"Answer",
-        "text":"La durée idéale dépend de l’âge et du niveau de concentration de l’enfant. Des séances courtes, ciblées et régulières peuvent souvent être plus efficaces que des séances longues et fatigantes."
+        "text":"La durée idéale dépend de l’âge et de la capacité de concentration de l’enfant. Des séances ciblées et régulières peuvent être plus efficaces que de longues séances fatigantes."
       }
     },
     {
@@ -96,7 +94,15 @@ content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
       "name":"Le soutien scolaire doit-il suivre exactement le programme de l’école ?",
       "acceptedAnswer":{
         "@type":"Answer",
-        "text":"Il doit rester cohérent avec les apprentissages scolaires, mais peut revenir sur des bases antérieures si elles empêchent l’enfant de comprendre une notion actuelle."
+        "text":"Il doit rester cohérent avec les apprentissages scolaires, mais peut revenir sur des bases antérieures lorsqu’elles empêchent l’enfant de comprendre une notion actuelle."
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"Comment savoir si le soutien scolaire fonctionne ?",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"On peut observer si l’enfant comprend mieux ses erreurs, devient plus autonome, réutilise les méthodes apprises et rencontre moins souvent les mêmes blocages."
       }
     }
   ]
@@ -110,13 +116,26 @@ content="https://iakids.app/assets/fr/blog/soutien-scolaire.webp">
 
 html{
   scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
 }
 
 body{
   margin:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
   color:#172033;
   background:#fff;
+}
+
+img,
+video,
+iframe{
+  max-width:100%;
+  height:auto;
 }
 
 a{
@@ -195,7 +214,6 @@ a:hover{
 
 .article-tag{
   display:inline-flex;
-  align-items:center;
   padding:7px 13px;
   border-radius:999px;
   background:#eff6ff;
@@ -206,7 +224,7 @@ a:hover{
 }
 
 .hero h1{
-  max-width:900px;
+  max-width:950px;
   margin:0 0 20px;
   font-size:clamp(38px,5.3vw,58px);
   line-height:1.08;
@@ -215,7 +233,7 @@ a:hover{
 }
 
 .lead{
-  max-width:850px;
+  max-width:870px;
   margin:0;
   color:#526077;
   font-size:20px;
@@ -249,6 +267,7 @@ a:hover{
 
 .content{
   max-width:790px;
+  min-width:0;
 }
 
 .content h2{
@@ -344,13 +363,17 @@ a:hover{
 }
 
 .check{
+  flex:0 0 auto;
   color:#22c55e;
   font-weight:900;
 }
 
 .table-wrap{
+  width:100%;
+  max-width:100%;
   overflow-x:auto;
   margin:30px 0;
+  -webkit-overflow-scrolling:touch;
 }
 
 table{
@@ -373,9 +396,78 @@ th{
   color:#101828;
 }
 
+.steps{
+  margin:32px 0;
+}
+
+.step{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr);
+  gap:18px;
+  margin:15px 0;
+  padding:21px;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+  background:#fff;
+}
+
+.step-number{
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  background:#eff6ff;
+  color:#2563eb;
+  font-size:20px;
+  font-weight:900;
+}
+
+.step h3{
+  margin:0 0 7px;
+  font-size:19px;
+}
+
+.step p{
+  margin:0;
+  font-size:15px;
+}
+
+.internal-card{
+  margin:35px 0;
+  padding:26px;
+  border:1px solid #dbeafe;
+  border-radius:20px;
+  background:linear-gradient(135deg,#f8fbff,#f0fdf4);
+}
+
+.internal-card span{
+  display:block;
+  margin-bottom:7px;
+  color:#64748b;
+  font-size:13px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+.internal-card h3{
+  margin:0 0 9px;
+}
+
+.internal-card p{
+  margin-bottom:12px;
+}
+
+.internal-card a{
+  font-weight:800;
+}
+
 .sidebar{
   position:sticky;
   top:95px;
+  min-width:0;
 }
 
 .side-card{
@@ -501,43 +593,278 @@ footer{
   gap:20px;
 }
 
+/* ========================================
+   TABLET + MOBILE
+======================================== */
+
 @media(max-width:900px){
-  .page{
-    grid-template-columns:1fr;
+
+  .page,
+  .content,
+  .hero,
+  .hero-image,
+  .sidebar,
+  article,
+  aside{
+    min-width:0;
+    max-width:100%;
   }
 
-  .sidebar{
-    position:static;
+  .topbar-inner{
+    padding:12px 18px;
+    gap:12px;
+  }
+
+  .logo{
+    font-size:22px;
+    flex-shrink:0;
+  }
+
+  .nav{
+    margin-left:auto;
   }
 
   .nav a:not(.nav-cta){
     display:none;
   }
-}
 
-@media(max-width:600px){
+  .nav-cta{
+    display:block;
+    padding:10px 16px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+
   .hero{
-    padding-top:35px;
+    width:100%;
+    padding:34px 20px 12px;
+  }
+
+  .breadcrumb{
+    max-width:100%;
+    font-size:13px;
+    line-height:1.6;
+    overflow-wrap:anywhere;
+  }
+
+  .article-tag{
+    font-size:13px;
   }
 
   .hero h1{
-    font-size:38px;
+    width:100%;
+    max-width:100%;
+    margin-bottom:18px;
+    font-size:clamp(34px,8vw,46px);
+    line-height:1.12;
+    letter-spacing:-.7px;
+    overflow-wrap:break-word;
+    word-break:normal;
   }
 
   .lead{
+    width:100%;
+    max-width:100%;
     font-size:18px;
+    line-height:1.7;
+    overflow-wrap:break-word;
+  }
+
+  .hero-image{
+    width:100%;
+    padding:0 20px;
+    margin-top:28px;
+  }
+
+  .hero-image img{
+    width:100%;
+    height:auto;
+    max-height:none;
+    border-radius:20px;
+  }
+
+  .page{
+    width:100%;
+    display:block;
+    padding:45px 20px 70px;
+  }
+
+  .content{
+    width:100%;
+    max-width:100%;
+  }
+
+  .content h2,
+  .content h3,
+  .content p,
+  .content li{
+    max-width:100%;
+    overflow-wrap:break-word;
+    word-break:normal;
   }
 
   .content h2{
-    font-size:28px;
+    margin-top:45px;
+    font-size:29px;
+    line-height:1.25;
+  }
+
+  .content h3{
+    font-size:21px;
+    line-height:1.3;
+  }
+
+  .content p{
+    font-size:17px;
+    line-height:1.8;
+  }
+
+  .content ul{
+    max-width:100%;
+    padding-left:22px;
+    padding-right:0;
+  }
+
+  .sidebar{
+    position:static;
+    width:100%;
+    margin-top:50px;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist,
+  .faq-item,
+  .final-cta,
+  .steps,
+  .step{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .step > div{
+    min-width:0;
+  }
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media(max-width:600px){
+
+  .topbar-inner{
+    padding:10px 16px;
+  }
+
+  .logo{
+    font-size:21px;
+  }
+
+  .nav-cta{
+    padding:9px 14px;
+    font-size:13px;
+  }
+
+  .hero{
+    padding:28px 18px 8px;
+  }
+
+  .hero h1{
+    font-size:34px;
+    line-height:1.13;
+    letter-spacing:-.5px;
+  }
+
+  .lead{
+    font-size:17px;
+    line-height:1.7;
+  }
+
+  .hero-image{
+    padding:0 18px;
+    margin-top:25px;
+  }
+
+  .hero-image img{
+    border-radius:18px;
+  }
+
+  .page{
+    padding:40px 18px 65px;
+  }
+
+  .content h2{
+    font-size:27px;
+    line-height:1.25;
+  }
+
+  .content h3{
+    font-size:20px;
+    line-height:1.3;
+  }
+
+  .content p,
+  .content li{
+    font-size:16.5px;
+    line-height:1.78;
+  }
+
+  .step{
+    grid-template-columns:1fr;
+    padding:19px;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist{
+    padding:21px 20px;
   }
 
   .final-cta{
-    padding:32px 25px;
+    padding:32px 23px;
+  }
+
+  .final-cta h2{
+    font-size:27px;
   }
 
   .footer-inner{
     flex-direction:column;
+  }
+}
+
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media(max-width:380px){
+
+  .hero,
+  .page{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero-image{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero h1{
+    font-size:31px;
+  }
+
+  .nav-cta{
+    padding:8px 11px;
+    font-size:12px;
   }
 }
 </style>
@@ -547,55 +874,54 @@ footer{
 <body>
 
 <header class="topbar">
-  <div class="topbar-inner">
+<div class="topbar-inner">
 
-    <a href="/fr/" class="logo">iakids</a>
+<a href="/fr/" class="logo">iakids</a>
 
-    <nav class="nav">
-      <a href="/fr/blog/">Blog</a>
-      <a href="/fr/blog/soutien-scolaire/">Soutien scolaire</a>
-      <a href="/fr/blog/tuteur-ia/">Tuteur IA</a>
-      <a href="/fr/" class="nav-cta">Découvrir IAKIDS</a>
-    </nav>
+<nav class="nav">
+<a href="/fr/blog/">Blog</a>
+<a href="/fr/blog/soutien-scolaire/">Soutien scolaire</a>
+<a href="/fr/blog/aide-aux-devoirs/">Aide aux devoirs</a>
+<a href="/fr/blog/tuteur-en-ligne/">Tuteur en ligne</a>
+<a href="/fr/" class="nav-cta">Découvrir IAKIDS</a>
+</nav>
 
-  </div>
+</div>
 </header>
 
 
 <section class="hero">
 
-  <div class="breadcrumb">
-    <a href="/fr/">Accueil</a>
-    &nbsp;›&nbsp;
-    <a href="/fr/blog/">Blog</a>
-    &nbsp;›&nbsp;
-    <a href="/fr/blog/soutien-scolaire/">Soutien scolaire</a>
-    &nbsp;›&nbsp;
-    Choisir un soutien scolaire
-  </div>
+<div class="breadcrumb">
+<a href="/fr/">Accueil</a>
+&nbsp;›&nbsp;
+<a href="/fr/blog/">Blog</a>
+&nbsp;›&nbsp;
+<a href="/fr/blog/soutien-scolaire/">Soutien scolaire</a>
+&nbsp;›&nbsp;
+Choisir un soutien scolaire
+</div>
 
-  <span class="article-tag">Guide pour les parents</span>
+<span class="article-tag">Guide pratique pour les parents</span>
 
-  <h1>
-    Comment choisir un soutien scolaire pour son enfant ?
-  </h1>
+<h1>Comment choisir un soutien scolaire pour son enfant ?</h1>
 
-  <p class="lead">
-    Cours particuliers, soutien scolaire en ligne, accompagnement personnalisé :
-    toutes les solutions ne conviennent pas à tous les enfants.
-    Le bon choix commence par comprendre précisément
-    ce dont votre enfant a réellement besoin.
-  </p>
+<p class="lead">
+Cours particuliers, soutien scolaire en ligne, plateforme éducative
+ou accompagnement personnalisé : il existe aujourd’hui de nombreuses solutions.
+Le bon choix dépend surtout du besoin réel de l’enfant,
+de son âge, de son rythme et de la nature de ses difficultés.
+</p>
 
 </section>
 
 
 <div class="hero-image">
 
-  <img
-    src="/assets/fr/blog/soutien-scolaire.webp"
-    alt="Parent accompagnant un enfant pendant une séance de soutien scolaire"
-  >
+<img
+src="/assets/fr/blog/soutien-scolaire.webp"
+alt="Parent et enfant travaillant ensemble dans le cadre d’un soutien scolaire"
+>
 
 </div>
 
@@ -604,143 +930,83 @@ footer{
 
 <article class="content">
 
-<h2>Commencer par identifier le besoin de votre enfant</h2>
+
+<h2>Commencer par comprendre pourquoi l’enfant a besoin d’aide</h2>
 
 <p>
-Avant de chercher un professeur, une plateforme ou un tuteur en ligne,
-il est important de comprendre pourquoi votre enfant a besoin d’aide.
+Avant de choisir
+une formule de soutien scolaire,
+il est important
+d’identifier la difficulté
+que l’on souhaite résoudre.
 </p>
 
 <p>
-Le terme <strong>soutien scolaire</strong> peut en effet recouvrir
-des situations très différentes :
-un enfant qui n’a pas compris une notion,
-un élève qui manque de méthode,
-une difficulté concentrée dans une matière
-ou simplement un besoin de pratique supplémentaire.
-</p>
-
-<div class="note">
-  <strong>La première question à se poser</strong>
-  Votre enfant a-t-il besoin d’une nouvelle explication,
-  de davantage d’entraînement,
-  d’un cadre de travail
-  ou d’un accompagnement plus régulier ?
-</div>
-
-
-<h2>1. Identifier précisément les difficultés</h2>
-
-<p>
-Un soutien scolaire efficace ne devrait pas commencer
-par une série d’exercices au hasard.
-</p>
-
-<p>
-Il faut d’abord repérer ce qui bloque réellement.
-Par exemple, un enfant qui échoue dans un problème de mathématiques
-peut avoir compris l’opération,
-mais ne pas savoir interpréter la consigne.
-</p>
-
-<p>
-À l’inverse, un autre enfant peut lire correctement le problème
-mais manquer d’une base essentielle,
-comme les tables de multiplication ou la division.
-</p>
-
-<div class="checklist">
-
-  <div>
-    <span class="check">✓</span>
-    <span>Repérer les notions qui provoquent régulièrement des erreurs.</span>
-  </div>
-
-  <div>
-    <span class="check">✓</span>
-    <span>Observer si l’enfant comprend la consigne avant de commencer.</span>
-  </div>
-
-  <div>
-    <span class="check">✓</span>
-    <span>Identifier les bases antérieures qui pourraient être fragiles.</span>
-  </div>
-
-  <div>
-    <span class="check">✓</span>
-    <span>Différencier un manque de compréhension d’un manque de pratique.</span>
-  </div>
-
-</div>
-
-
-<h2>2. Choisir un accompagnement adapté à son âge</h2>
-
-<p>
-Un élève de primaire n’a pas les mêmes besoins
-qu’un collégien ou qu’un lycéen.
-</p>
-
-<p>
-Chez les jeunes enfants,
-le soutien scolaire doit généralement privilégier
-des explications courtes,
-des exemples concrets
-et une progression par petites étapes.
-</p>
-
-<p>
-Une séance trop longue ou trop dense
-peut rapidement devenir contre-productive.
-</p>
-
-<div class="good-box">
-  <strong>Pour un enfant de primaire</strong>
-  Il est souvent préférable de travailler une notion précise,
-  vérifier immédiatement la compréhension,
-  puis passer à une courte activité pratique.
-</div>
-
-
-<h2>3. Vérifier que les explications sont réellement personnalisées</h2>
-
-<p>
-Un enfant peut ne pas comprendre une explication
-sans pour autant être incapable de comprendre la notion.
-</p>
-
-<p>
-Il a parfois simplement besoin
-qu’on lui explique la même chose autrement.
-</p>
-
-<p>
-Un accompagnement personnalisé peut utiliser :
+Un enfant peut avoir besoin d’aide parce qu’il :
 </p>
 
 <ul>
-  <li>un exemple visuel ;</li>
-  <li>une situation concrète ;</li>
-  <li>une démonstration étape par étape ;</li>
-  <li>une question plus simple avant de revenir au problème initial ;</li>
-  <li>un exercice différent pour vérifier la compréhension.</li>
+<li>ne comprend pas une notion précise ;</li>
+<li>a accumulé plusieurs lacunes ;</li>
+<li>a besoin de davantage d’entraînement ;</li>
+<li>a du mal à travailler seul ;</li>
+<li>manque de confiance ;</li>
+<li>a besoin d’une autre manière d’expliquer.</li>
 </ul>
 
-<div class="example-box">
-  <strong>Exemple</strong>
-  Si un enfant ne comprend pas les fractions,
-  une représentation avec des parts de gâteau
-  peut parfois être plus claire
-  qu’une longue définition abstraite.
+<div class="note">
+<strong>Le choix de la solution vient après l’identification du besoin.</strong>
+Un enfant qui bloque sur une seule notion
+n’a pas nécessairement besoin
+du même accompagnement
+qu’un enfant qui a accumulé
+plusieurs mois de difficultés.
 </div>
 
 
-<h2>4. Soutien scolaire en ligne ou professeur particulier ?</h2>
+<h2>Identifier le blocage le plus précisément possible</h2>
 
 <p>
-Il n’existe pas une solution unique.
-Les deux formats peuvent être utiles,
-mais ils répondent à des besoins différents.
+Une difficulté scolaire
+peut être beaucoup plus précise
+qu’elle ne paraît.
+</p>
+
+<div class="example-box">
+<strong>Exemple</strong>
+Un enfant peut dire :
+« Je suis mauvais en maths ».
+Mais en réalité,
+il comprend très bien les opérations
+et bloque principalement
+sur les problèmes écrits.
+</div>
+
+<p>
+Dans ce cas,
+le besoin n’est pas forcément
+de reprendre l’ensemble
+des mathématiques.
+</p>
+
+<p>
+Il faut peut-être travailler :
+</p>
+
+<ul>
+<li>la compréhension des consignes ;</li>
+<li>l’identification des informations importantes ;</li>
+<li>le choix de l’opération ;</li>
+<li>la mise en étapes du problème.</li>
+</ul>
+
+
+<h2>Quel type de soutien scolaire choisir ?</h2>
+
+<p>
+Plusieurs formes d’accompagnement
+peuvent répondre
+à des besoins différents.
 </p>
 
 <div class="table-wrap">
@@ -749,42 +1015,36 @@ mais ils répondent à des besoins différents.
 
 <thead>
 <tr>
-  <th>Critère</th>
-  <th>Professeur particulier</th>
-  <th>Soutien scolaire en ligne</th>
+<th>Solution</th>
+<th>Points forts</th>
+<th>À vérifier</th>
 </tr>
 </thead>
 
 <tbody>
 
 <tr>
-  <td>Présence humaine</td>
-  <td>Interaction directe en face à face.</td>
-  <td>Interaction à distance ou accompagnement numérique.</td>
+<td>Professeur particulier</td>
+<td>Interaction humaine directe, suivi individualisé.</td>
+<td>Disponibilité, coût, qualité pédagogique.</td>
 </tr>
 
 <tr>
-  <td>Flexibilité</td>
-  <td>Dépend des horaires disponibles.</td>
-  <td>Souvent accessible plus facilement depuis la maison.</td>
+<td>Soutien scolaire en ligne</td>
+<td>Flexibilité, accès depuis la maison.</td>
+<td>Niveau d’interactivité et personnalisation.</td>
 </tr>
 
 <tr>
-  <td>Personnalisation</td>
-  <td>Peut être très élevée avec un bon professeur.</td>
-  <td>Dépend fortement de la plateforme ou du système utilisé.</td>
+<td>Plateforme d’exercices</td>
+<td>Entraînement régulier et autonomie.</td>
+<td>Ne pas se limiter à des exercices répétitifs.</td>
 </tr>
 
 <tr>
-  <td>Disponibilité</td>
-  <td>Limitée aux créneaux prévus.</td>
-  <td>Peut être disponible à davantage de moments.</td>
-</tr>
-
-<tr>
-  <td>Coût</td>
-  <td>Peut être relativement élevé selon la fréquence.</td>
-  <td>Peut proposer des alternatives plus accessibles.</td>
+<td>Tuteur numérique ou IA</td>
+<td>Disponibilité et possibilité d’interactions personnalisées.</td>
+<td>Qualité des explications et manière de guider l’enfant.</td>
 </tr>
 
 </tbody>
@@ -794,281 +1054,655 @@ mais ils répondent à des besoins différents.
 </div>
 
 
-<h2>5. Ne pas choisir uniquement en fonction du prix</h2>
+<h2>Soutien ponctuel ou accompagnement régulier ?</h2>
 
 <p>
-Le prix est évidemment un critère important,
-mais il ne suffit pas à déterminer
-si un accompagnement conviendra à votre enfant.
+La fréquence dépend
+de la nature du problème.
 </p>
 
 <p>
-Une formule moins coûteuse mais mal adaptée
-peut entraîner beaucoup de temps de travail
-pour peu de progrès.
+Une difficulté récente
+sur une notion précise
+peut parfois être résolue
+avec quelques séances ciblées.
 </p>
 
 <p>
 À l’inverse,
-un accompagnement ciblé sur les difficultés réelles
-peut parfois permettre de progresser
-avec des séances plus courtes.
+si plusieurs bases sont fragiles,
+un accompagnement plus régulier
+peut être nécessaire.
 </p>
 
-<div class="warning-box">
-  <strong>À éviter</strong>
-  Choisir uniquement une solution
-  parce qu’elle propose beaucoup d’exercices.
-  La quantité de travail ne garantit pas la compréhension.
+<div class="good-box">
+<strong>La fréquence doit correspondre au problème.</strong>
+Plus de séances
+ne signifie pas automatiquement
+plus de progrès.
+La qualité et le ciblage
+de l’aide comptent énormément.
 </div>
 
 
-<h2>6. Vérifier que l’enfant participe activement</h2>
+<h2>Le soutien scolaire doit-il être personnalisé ?</h2>
 
 <p>
-Un soutien scolaire ne devrait pas être
-un cours dans lequel l’enfant écoute passivement
-pendant toute la séance.
+La personnalisation
+est particulièrement importante
+lorsque les difficultés
+ne sont pas les mêmes
+d’un enfant à l’autre.
 </p>
 
 <p>
-Il doit également réfléchir,
-répondre,
-essayer
-et expliquer ce qu’il a compris.
-</p>
-
-<p>
-Une bonne séance alterne généralement :
+Un bon accompagnement
+devrait pouvoir ajuster :
 </p>
 
 <ul>
-  <li>une explication ;</li>
-  <li>une question ;</li>
-  <li>un exercice ;</li>
-  <li>une correction guidée ;</li>
-  <li>une nouvelle vérification de la compréhension.</li>
+<li>le niveau de difficulté ;</li>
+<li>la manière d’expliquer ;</li>
+<li>la quantité d’aide ;</li>
+<li>le rythme ;</li>
+<li>les exercices proposés.</li>
+</ul>
+
+<div class="internal-card">
+
+<span>APPRENTISSAGE PERSONNALISÉ</span>
+
+<h3>Comment adapter l’apprentissage aux besoins de l’enfant ?</h3>
+
+<p>
+Rythme,
+explications,
+questions
+et niveau d’aide :
+découvrez les principes
+de l’apprentissage personnalisé.
+</p>
+
+<a href="/fr/blog/apprentissage-personnalise/">
+Lire le guide →
+</a>
+
+</div>
+
+
+<h2>Choisir selon l’âge de l’enfant</h2>
+
+<p>
+Un enfant de primaire
+ne travaille pas
+de la même manière
+qu’un adolescent.
+</p>
+
+<p>
+Pour les plus jeunes,
+il est particulièrement utile
+de privilégier :
+</p>
+
+<ul>
+<li>des explications courtes ;</li>
+<li>un langage simple ;</li>
+<li>des exemples concrets ;</li>
+<li>des interactions fréquentes ;</li>
+<li>des supports visuels lorsque cela aide ;</li>
+<li>des séances adaptées à leur concentration.</li>
 </ul>
 
 
-<h2>7. Observer la réaction de votre enfant</h2>
+<h2>La durée des séances</h2>
 
 <p>
-Les résultats scolaires ne sont pas
-le seul indicateur à observer.
+Une séance longue
+n’est pas nécessairement
+plus efficace.
 </p>
 
 <p>
-Un accompagnement adapté peut également se voir
-dans la manière dont l’enfant aborde son travail.
+Lorsqu’un enfant
+commence à perdre
+sa concentration,
+la qualité du travail
+peut diminuer rapidement.
+</p>
+
+<div class="warning-box">
+<strong>Attention à la fatigue.</strong>
+Une séance courte
+avec un objectif précis
+peut parfois apporter davantage
+qu’une longue séance
+pendant laquelle l’enfant
+n’est plus vraiment attentif.
+</div>
+
+
+<h2>Cours particuliers ou soutien scolaire en ligne ?</h2>
+
+<p>
+Les deux solutions
+peuvent être efficaces.
+</p>
+
+<h3>Les cours particuliers</h3>
+
+<p>
+Ils permettent
+une interaction humaine directe
+et une observation fine
+de l’enfant.
 </p>
 
 <p>
-Posez-vous quelques questions :
+Ils peuvent être particulièrement utiles
+lorsque l’enfant a besoin :
+</p>
+
+<ul>
+<li>d’une présence humaine régulière ;</li>
+<li>d’un cadre de travail ;</li>
+<li>d’un accompagnement très individualisé.</li>
+</ul>
+
+<h3>Le soutien scolaire en ligne</h3>
+
+<p>
+Il peut offrir :
+</p>
+
+<ul>
+<li>davantage de flexibilité ;</li>
+<li>moins de déplacements ;</li>
+<li>un accès plus immédiat ;</li>
+<li>des outils numériques et visuels ;</li>
+<li>une utilisation plus fréquente selon la solution.</li>
+</ul>
+
+<div class="internal-card">
+
+<span>SOUTIEN EN LIGNE</span>
+
+<h3>Comment fonctionne le soutien scolaire en ligne ?</h3>
+
+<p>
+Découvrez ses avantages,
+ses limites
+et les critères à vérifier
+avant de choisir une solution.
+</p>
+
+<a href="/fr/blog/soutien-scolaire/soutien-scolaire-en-ligne/">
+Lire le guide →
+</a>
+
+</div>
+
+
+<h2>Et pour les mathématiques ?</h2>
+
+<p>
+Les mathématiques
+font partie des matières
+pour lesquelles les familles
+recherchent fréquemment
+un soutien supplémentaire.
+</p>
+
+<p>
+Un bon accompagnement
+ne devrait pas simplement
+faire davantage d’exercices.
+</p>
+
+<p>
+Il doit chercher à comprendre :
+</p>
+
+<ul>
+<li>quelle notion pose problème ;</li>
+<li>si une compétence précédente manque ;</li>
+<li>si l’enfant comprend la méthode ;</li>
+<li>si l’erreur vient du raisonnement ou du calcul.</li>
+</ul>
+
+<div class="internal-card">
+
+<span>MATHÉMATIQUES</span>
+
+<h3>Soutien scolaire en maths</h3>
+
+<p>
+Comment identifier
+un blocage en mathématiques
+et aider l’enfant
+à reconstruire progressivement
+les compétences nécessaires ?
+</p>
+
+<a href="/fr/blog/soutien-scolaire/soutien-scolaire-maths/">
+Lire le guide →
+</a>
+
+</div>
+
+
+<h2>Donner des réponses ou faire réfléchir ?</h2>
+
+<p>
+Un soutien scolaire efficace
+ne devrait pas seulement
+permettre à l’enfant
+de terminer son exercice.
+</p>
+
+<p>
+Il devrait également
+l’aider à comprendre
+comment arriver à la réponse.
+</p>
+
+<div class="example-box">
+<strong>Exemple</strong>
+Au lieu de dire :
+« La réponse est 36 »,
+on peut demander :
+« Quelle opération pourrais-tu utiliser pour trouver le total ? »
+</div>
+
+<p>
+Cette différence
+peut sembler petite,
+mais elle conserve
+l’enfant au centre
+du raisonnement.
+</p>
+
+<div class="internal-card">
+
+<span>AUTONOMIE</span>
+
+<h3>Aider son enfant sans lui donner la réponse</h3>
+
+<p>
+Découvrez comment utiliser
+questions et indices
+pour guider l’enfant
+sans faire le travail
+à sa place.
+</p>
+
+<a href="/fr/blog/aide-aux-devoirs/aider-sans-donner-reponse/">
+Lire le guide →
+</a>
+
+</div>
+
+
+<h2>Comment évaluer la qualité d’un soutien scolaire ?</h2>
+
+<p>
+Avant de regarder
+le nombre d’exercices
+ou la quantité de contenu,
+demandez-vous ce que fait
+réellement l’enfant.
 </p>
 
 <div class="checklist">
 
-  <div>
-    <span class="check">✓</span>
-    <span>Commence-t-il ses exercices avec davantage de confiance ?</span>
-  </div>
+<div>
+<span class="check">✓</span>
+<span>L’enfant participe-t-il activement ?</span>
+</div>
 
-  <div>
-    <span class="check">✓</span>
-    <span>Comprend-il mieux les consignes ?</span>
-  </div>
+<div>
+<span class="check">✓</span>
+<span>Les explications sont-elles adaptées à son niveau ?</span>
+</div>
 
-  <div>
-    <span class="check">✓</span>
-    <span>Est-il capable d’expliquer ce qu’il vient d’apprendre ?</span>
-  </div>
+<div>
+<span class="check">✓</span>
+<span>Le système ou le tuteur réagit-il à ses erreurs ?</span>
+</div>
 
-  <div>
-    <span class="check">✓</span>
-    <span>Fait-il moins souvent les mêmes erreurs ?</span>
-  </div>
+<div>
+<span class="check">✓</span>
+<span>La compréhension est-elle vérifiée ?</span>
+</div>
+
+<div>
+<span class="check">✓</span>
+<span>L’enfant devient-il progressivement plus autonome ?</span>
+</div>
 
 </div>
 
 
-<h2>8. Chercher un soutien qui développe l’autonomie</h2>
+<h2>Le prix compte, mais ce n’est pas le seul critère</h2>
 
 <p>
-Le meilleur soutien scolaire
-n’est pas celui qui permet uniquement
-de terminer les devoirs plus vite.
+Le budget familial
+est naturellement
+un élément important.
 </p>
 
 <p>
-Il doit progressivement aider l’enfant
-à résoudre davantage de problèmes par lui-même.
-</p>
-
-<p>
-L’objectif peut être de lui apprendre à :
+Mais il faut également comparer :
 </p>
 
 <ul>
-  <li>relire une consigne avant de demander de l’aide ;</li>
-  <li>identifier ce qu’il ne comprend pas ;</li>
-  <li>décomposer une tâche complexe ;</li>
-  <li>vérifier son résultat ;</li>
-  <li>corriger une erreur avec un indice plutôt qu’avec la réponse.</li>
+<li>la fréquence d’utilisation ;</li>
+<li>la disponibilité ;</li>
+<li>la personnalisation ;</li>
+<li>le niveau d’interaction ;</li>
+<li>la qualité pédagogique ;</li>
+<li>le suivi proposé.</li>
 </ul>
 
+<p>
+Une solution moins chère
+qui n’aide pas réellement
+l’enfant à comprendre
+n’est pas nécessairement
+la plus économique.
+</p>
 
-<h2>9. Choisir une solution capable de suivre les progrès</h2>
+
+<h2>Comment savoir si le soutien fonctionne ?</h2>
 
 <p>
-Pour savoir si l’accompagnement fonctionne,
-il est utile de suivre l’évolution
-des notions travaillées.
+Les notes peuvent être
+un indicateur,
+mais elles ne racontent pas tout.
 </p>
 
 <p>
-Un suivi peut permettre d’identifier :
+On peut également observer si l’enfant :
 </p>
 
 <ul>
-  <li>les sujets déjà maîtrisés ;</li>
-  <li>les erreurs qui se répètent ;</li>
-  <li>les notions qui nécessitent davantage de pratique ;</li>
-  <li>les domaines dans lesquels l’enfant progresse rapidement.</li>
+<li>commence plus facilement un exercice ;</li>
+<li>comprend mieux ses erreurs ;</li>
+<li>demande une aide plus précise ;</li>
+<li>réutilise les méthodes apprises ;</li>
+<li>a besoin de moins d’indices ;</li>
+<li>gagne en confiance et en autonomie.</li>
+</ul>
+
+<div class="good-box">
+<strong>L’objectif du soutien est progressivement d’avoir besoin de moins de soutien.</strong>
+Un bon accompagnement
+cherche à développer
+des compétences que l’enfant
+pourra ensuite réutiliser seul.
+</div>
+
+
+<h2>Le rôle des parents</h2>
+
+<p>
+Même lorsqu’un enfant
+utilise une solution externe,
+les parents conservent
+un rôle important.
+</p>
+
+<p>
+Ils peuvent notamment observer :
+</p>
+
+<ul>
+<li>si l’enfant utilise régulièrement l’accompagnement ;</li>
+<li>si les devoirs deviennent moins conflictuels ;</li>
+<li>si les mêmes difficultés persistent ;</li>
+<li>si la motivation évolue ;</li>
+<li>si l’enfant semble mieux comprendre ses erreurs.</li>
+</ul>
+
+
+<h2>Quel rôle pour l’intelligence artificielle ?</h2>
+
+<p>
+L’intelligence artificielle
+peut apporter
+une nouvelle forme
+d’interactivité.
+</p>
+
+<p>
+Elle peut notamment
+être utilisée pour :
+</p>
+
+<ul>
+<li>reformuler une explication ;</li>
+<li>proposer un exemple différent ;</li>
+<li>poser une question ;</li>
+<li>donner un indice ;</li>
+<li>réagir à une réponse ;</li>
+<li>adapter une partie du dialogue.</li>
 </ul>
 
 <p>
-Cela permet d’éviter de refaire constamment
-des exercices déjà maîtrisés.
+Mais la présence de l’IA
+ne garantit pas à elle seule
+la qualité pédagogique.
 </p>
 
+<div class="internal-card">
 
-<h2>10. Quelle place pour l’intelligence artificielle ?</h2>
+<span>TUTORAT NUMÉRIQUE</span>
+
+<h3>Tuteur IA ou ChatGPT : quelle différence ?</h3>
 
 <p>
-L’intelligence artificielle peut aujourd’hui
-compléter certaines formes de soutien scolaire.
+Découvrez la différence
+entre un assistant généraliste
+et une expérience organisée
+autour de l’apprentissage.
 </p>
 
+<a href="/fr/blog/tuteur-en-ligne/tuteur-ia-ou-chatgpt/">
+Lire le comparatif →
+</a>
+
+</div>
+
+
+<h2>Une méthode simple pour choisir</h2>
+
+<div class="steps">
+
+<div class="step">
+<div class="step-number">1</div>
+<div>
+<h3>Définir la difficulté</h3>
 <p>
-Un système éducatif basé sur l’IA
-peut analyser la réponse d’un enfant,
-proposer un indice,
-changer la manière d’expliquer
-ou ajuster la difficulté.
+Identifier précisément
+ce que l’enfant
+a besoin de travailler.
 </p>
+</div>
+</div>
 
+<div class="step">
+<div class="step-number">2</div>
+<div>
+<h3>Choisir le type d’accompagnement</h3>
 <p>
-Mais la différence essentielle
-se trouve dans la manière dont l’outil est conçu.
+Cours particulier,
+soutien en ligne,
+plateforme
+ou tuteur numérique.
 </p>
+</div>
+</div>
 
-<div class="note">
-  <strong>Un bon tuteur IA ne doit pas simplement donner la réponse</strong>
-  Il doit aider l’enfant à comprendre,
-  lui poser des questions
-  et vérifier qu’il maîtrise réellement la notion.
+<div class="step">
+<div class="step-number">3</div>
+<div>
+<h3>Vérifier l’adaptation</h3>
+<p>
+L’approche correspond-elle
+à l’âge,
+au niveau
+et au rythme
+de l’enfant ?
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">4</div>
+<div>
+<h3>Observer l’interaction</h3>
+<p>
+L’enfant participe-t-il
+ou reçoit-il simplement
+des réponses ?
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">5</div>
+<div>
+<h3>Mesurer les progrès</h3>
+<p>
+Vérifier après quelques semaines
+si les difficultés
+et la quantité d’aide nécessaire
+évoluent.
+</p>
+</div>
+</div>
+
 </div>
 
 
 <h2>Comment IAKIDS aborde le soutien scolaire</h2>
 
 <p>
-IAKIDS développe une expérience dans laquelle
-une leçon ne se limite pas à afficher du texte.
+IAKIDS développe
+une expérience éducative
+utilisant l’intelligence artificielle
+et pensée pour les enfants.
 </p>
 
 <p>
-L’enfant peut recevoir une explication,
-voir des supports visuels,
-répondre à des questions
-et poursuivre la leçon
-en fonction de sa compréhension.
+Les leçons peuvent associer
+des explications,
+des supports visuels,
+des questions
+et des interactions
+pendant le parcours.
 </p>
 
 <p>
-L’objectif est de proposer
-un accompagnement plus proche d’un véritable parcours pédagogique :
-<strong>expliquer, vérifier, adapter et progresser.</strong>
+L’enfant ne se limite donc pas
+à regarder un contenu :
+il participe
+et répond pendant l’apprentissage.
 </p>
+
+<div class="good-box">
+<strong>Comprendre avant de simplement terminer.</strong>
+L’objectif est d’utiliser
+l’interaction,
+les explications
+et les questions
+pour accompagner progressivement
+le raisonnement de l’enfant.
+</div>
+
+
+<div class="internal-card">
+
+<span>GUIDE PRINCIPAL</span>
+
+<h3>Soutien scolaire pour enfant</h3>
+
+<p>
+Retrouvez notre guide complet
+sur les différentes formes
+de soutien scolaire,
+leurs avantages
+et les critères importants
+pour les familles.
+</p>
+
+<a href="/fr/blog/soutien-scolaire/">
+Lire le guide principal →
+</a>
+
+</div>
 
 
 <section class="faq">
 
 <h2>Questions fréquentes</h2>
 
-
 <div class="faq-item">
-
 <h3>Comment choisir un bon soutien scolaire ?</h3>
-
 <p>
-Commencez par identifier les besoins précis de l’enfant,
-puis vérifiez que la solution propose
-des explications adaptées,
-des exercices ciblés
-et une véritable vérification de la compréhension.
+Commencez par identifier
+le besoin précis de l’enfant,
+puis choisissez une solution
+adaptée à son âge,
+son niveau
+et son rythme.
 </p>
-
 </div>
 
-
 <div class="faq-item">
-
-<h3>Faut-il choisir des cours particuliers ou du soutien scolaire en ligne ?</h3>
-
+<h3>Cours particuliers ou soutien scolaire en ligne ?</h3>
 <p>
-Cela dépend du profil de l’enfant.
-Les cours particuliers offrent une présence humaine directe,
-tandis que le soutien scolaire en ligne
-peut offrir davantage de flexibilité.
+Les deux peuvent convenir.
+Les cours particuliers
+offrent une interaction humaine directe,
+tandis que les solutions en ligne
+peuvent apporter davantage
+de flexibilité et de disponibilité.
 </p>
-
 </div>
 
-
 <div class="faq-item">
-
 <h3>Combien de temps doit durer une séance ?</h3>
-
 <p>
-La durée dépend de l’âge
-et de la capacité de concentration de l’enfant.
-Des séances courtes et ciblées
-peuvent être plus efficaces
-que des séances longues et fatigantes.
+Cela dépend de l’âge
+et de la concentration de l’enfant.
+Une séance ciblée et efficace
+peut être préférable
+à une séance trop longue.
 </p>
-
 </div>
 
-
 <div class="faq-item">
-
-<h3>Comment savoir si le soutien scolaire fonctionne ?</h3>
-
+<h3>Le soutien doit-il suivre exactement l’école ?</h3>
 <p>
-Observez non seulement les résultats,
-mais aussi la compréhension,
-la confiance,
-la capacité à expliquer une notion
-et la diminution des erreurs répétées.
+Il doit rester cohérent
+avec le programme scolaire,
+mais peut revenir
+sur des compétences antérieures
+si elles bloquent
+la progression actuelle.
 </p>
-
 </div>
 
-
 <div class="faq-item">
-
-<h3>Un tuteur IA peut-il aider un enfant ?</h3>
-
+<h3>Comment savoir si le soutien fonctionne ?</h3>
 <p>
-Oui, s’il est conçu pour accompagner l’apprentissage :
-poser des questions,
-adapter les explications,
-proposer des exercices
-et aider l’enfant à réfléchir plutôt que simplement donner la réponse.
+Observez si l’enfant
+comprend mieux ses erreurs,
+réutilise les méthodes apprises
+et a progressivement besoin
+de moins d’aide.
 </p>
-
 </div>
 
 </section>
@@ -1076,14 +1710,16 @@ et aider l’enfant à réfléchir plutôt que simplement donner la réponse.
 
 <section class="final-cta">
 
-<h2>Un accompagnement qui s’adapte à la compréhension</h2>
+<h2>Choisir un accompagnement adapté à l’enfant</h2>
 
 <p>
-IAKIDS aide l’enfant à apprendre étape par étape
-avec des explications,
-des questions,
-des exercices
-et une progression adaptée à ses réponses.
+IAKIDS combine intelligence artificielle,
+explications,
+supports visuels,
+questions
+et interactions
+pour créer une expérience d’apprentissage
+pensée pour les enfants.
 </p>
 
 <a href="/fr/">
@@ -1091,7 +1727,6 @@ Découvrir IAKIDS
 </a>
 
 </section>
-
 
 </article>
 
@@ -1107,7 +1742,15 @@ Guide du soutien scolaire
 </a>
 
 <a href="/fr/blog/soutien-scolaire/choisir-soutien-scolaire-enfant/">
-Comment choisir un soutien scolaire ?
+Choisir un soutien scolaire
+</a>
+
+<a href="/fr/blog/soutien-scolaire/soutien-scolaire-en-ligne/">
+Soutien scolaire en ligne
+</a>
+
+<a href="/fr/blog/soutien-scolaire/soutien-scolaire-maths/">
+Soutien scolaire en maths
 </a>
 
 </div>
@@ -1115,10 +1758,10 @@ Comment choisir un soutien scolaire ?
 
 <div class="side-card">
 
-<h3>Autres guides</h3>
+<h3>Guides associés</h3>
 
-<a href="/fr/blog/">
-Tous les guides
+<a href="/fr/blog/apprentissage-personnalise/">
+Apprentissage personnalisé
 </a>
 
 <a href="/fr/blog/aide-aux-devoirs/">
@@ -1129,12 +1772,8 @@ Aide aux devoirs
 Tuteur en ligne
 </a>
 
-<a href="/fr/blog/apprentissage-personnalise/">
-Apprentissage personnalisé
-</a>
-
-<a href="/fr/blog/tuteur-ia/">
-Tuteur IA
+<a href="/fr/blog/tuteur-en-ligne/tuteur-en-ligne-enfant/">
+Tuteur en ligne pour enfant
 </a>
 
 </div>
@@ -1142,13 +1781,14 @@ Tuteur IA
 
 <div class="side-cta">
 
-<h3>Besoin d’un accompagnement différent ?</h3>
+<h3>Un soutien qui fait participer</h3>
 
 <p>
-Découvrez une expérience d’apprentissage
-basée sur des explications,
-des questions
-et la vérification de la compréhension.
+Explications,
+questions
+et supports visuels
+pour accompagner progressivement
+la compréhension.
 </p>
 
 <a href="/fr/">
@@ -1171,13 +1811,12 @@ Découvrir IAKIDS
 </div>
 
 <div>
-Soutien scolaire personnalisé pour enfants
+Soutien scolaire pour enfants
 </div>
 
 </div>
 
 </footer>
-
 
 <script>
 document.getElementById('current-year').textContent = new Date().getFullYear();
