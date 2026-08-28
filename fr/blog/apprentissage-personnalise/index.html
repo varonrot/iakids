@@ -112,15 +112,32 @@ content="https://iakids.app/assets/fr/blog/apprentissage-personnalise.webp">
 </script>
 
 <style>
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
 
-html{scroll-behavior:smooth}
+html{
+  scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
 
 body{
   margin:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
   color:#172033;
   background:#fff;
+}
+
+img,
+video,
+iframe{
+  max-width:100%;
+  height:auto;
 }
 
 a{
@@ -128,7 +145,9 @@ a{
   text-decoration:none;
 }
 
-a:hover{text-decoration:underline}
+a:hover{
+  text-decoration:underline;
+}
 
 .topbar{
   border-bottom:1px solid #e8edf4;
@@ -168,7 +187,9 @@ a:hover{text-decoration:underline}
   text-decoration:none;
 }
 
-.nav a:hover{color:#2563eb}
+.nav a:hover{
+  color:#2563eb;
+}
 
 .nav-cta{
   color:#fff !important;
@@ -189,7 +210,9 @@ a:hover{text-decoration:underline}
   margin-bottom:25px;
 }
 
-.breadcrumb a{color:#64748b}
+.breadcrumb a{
+  color:#64748b;
+}
 
 .article-tag{
   display:inline-flex;
@@ -244,7 +267,10 @@ a:hover{text-decoration:underline}
   align-items:start;
 }
 
-.content{max-width:790px}
+.content{
+  max-width:790px;
+  min-width:0;
+}
 
 .content h2{
   margin:55px 0 18px;
@@ -253,7 +279,9 @@ a:hover{text-decoration:underline}
   color:#101828;
 }
 
-.content h2:first-child{margin-top:0}
+.content h2:first-child{
+  margin-top:0;
+}
 
 .content h3{
   margin:36px 0 14px;
@@ -319,6 +347,8 @@ a:hover{text-decoration:underline}
   font-size:18px;
 }
 
+/* CLUSTER */
+
 .cluster-intro{
   margin:0 0 50px;
 }
@@ -332,7 +362,7 @@ a:hover{text-decoration:underline}
 
 .guide-card{
   display:grid;
-  grid-template-columns:58px 1fr;
+  grid-template-columns:58px minmax(0,1fr);
   gap:18px;
   padding:25px;
   border:1px solid #e2e8f0;
@@ -369,7 +399,9 @@ a:hover{text-decoration:underline}
   line-height:1.7;
 }
 
-.guide-card a{font-weight:800}
+.guide-card a{
+  font-weight:800;
+}
 
 .checklist{
   margin:28px 0;
@@ -389,13 +421,17 @@ a:hover{text-decoration:underline}
 }
 
 .check{
+  flex:0 0 auto;
   color:#22c55e;
   font-weight:900;
 }
 
 .table-wrap{
+  width:100%;
+  max-width:100%;
   overflow-x:auto;
   margin:30px 0;
+  -webkit-overflow-scrolling:touch;
 }
 
 table{
@@ -404,7 +440,8 @@ table{
   min-width:650px;
 }
 
-th,td{
+th,
+td{
   border:1px solid #e2e8f0;
   padding:15px;
   text-align:left;
@@ -423,7 +460,7 @@ th{
 
 .step{
   display:grid;
-  grid-template-columns:52px 1fr;
+  grid-template-columns:52px minmax(0,1fr);
   gap:18px;
   margin:15px 0;
   padding:21px;
@@ -476,13 +513,18 @@ th{
   margin:0 0 9px;
 }
 
-.internal-card p{margin-bottom:12px}
+.internal-card p{
+  margin-bottom:12px;
+}
 
-.internal-card a{font-weight:800}
+.internal-card a{
+  font-weight:800;
+}
 
 .sidebar{
   position:sticky;
   top:95px;
+  min-width:0;
 }
 
 .side-card{
@@ -508,9 +550,13 @@ th{
   line-height:1.5;
 }
 
-.side-card a:last-child{border-bottom:none}
+.side-card a:last-child{
+  border-bottom:none;
+}
 
-.side-card a:hover{color:#2563eb}
+.side-card a:hover{
+  color:#2563eb;
+}
 
 .side-cta{
   padding:25px;
@@ -540,7 +586,9 @@ th{
   font-weight:900;
 }
 
-.faq{margin-top:60px}
+.faq{
+  margin-top:60px;
+}
 
 .faq-item{
   margin:14px 0;
@@ -555,7 +603,9 @@ th{
   font-size:19px;
 }
 
-.faq-item p{margin:0}
+.faq-item p{
+  margin:0;
+}
 
 .final-cta{
   margin-top:60px;
@@ -601,37 +651,21 @@ footer{
 }
 
 /* ========================================
-   RESPONSIVE - TABLET & MOBILE
+   TABLET + MOBILE
 ======================================== */
 
-html,
-body{
-  width:100%;
-  max-width:100%;
-  overflow-x:hidden;
-}
-
-img,
-video,
-iframe{
-  max-width:100%;
-  height:auto;
-}
-
-.page,
-.content,
-.hero,
-.hero-image,
-.sidebar,
-article,
-aside{
-  min-width:0;
-  max-width:100%;
-}
-
-
-/* TABLET + MOBILE */
 @media(max-width:900px){
+
+  .page,
+  .content,
+  .hero,
+  .hero-image,
+  .sidebar,
+  article,
+  aside{
+    min-width:0;
+    max-width:100%;
+  }
 
   .topbar-inner{
     padding:12px 18px;
@@ -660,11 +694,11 @@ aside{
 
   .hero{
     width:100%;
-    max-width:100%;
     padding:34px 20px 12px;
   }
 
   .breadcrumb{
+    max-width:100%;
     font-size:13px;
     line-height:1.6;
     overflow-wrap:anywhere;
@@ -680,7 +714,7 @@ aside{
     margin-bottom:18px;
     font-size:clamp(34px,8vw,46px);
     line-height:1.12;
-    letter-spacing:-0.7px;
+    letter-spacing:-.7px;
     overflow-wrap:break-word;
     word-break:normal;
   }
@@ -695,14 +729,12 @@ aside{
 
   .hero-image{
     width:100%;
-    max-width:100%;
     padding:0 20px;
     margin-top:28px;
   }
 
   .hero-image img{
     width:100%;
-    max-width:100%;
     height:auto;
     max-height:none;
     border-radius:20px;
@@ -710,7 +742,6 @@ aside{
 
   .page{
     width:100%;
-    max-width:100%;
     display:block;
     padding:45px 20px 70px;
   }
@@ -718,14 +749,12 @@ aside{
   .content{
     width:100%;
     max-width:100%;
-    min-width:0;
   }
 
   .content h2,
   .content h3,
   .content p,
   .content li{
-    width:auto;
     max-width:100%;
     overflow-wrap:break-word;
     word-break:normal;
@@ -753,10 +782,17 @@ aside{
     padding-right:0;
   }
 
+  .guide-card{
+    min-width:0;
+  }
+
+  .guide-card > div{
+    min-width:0;
+  }
+
   .sidebar{
     position:static;
     width:100%;
-    max-width:100%;
     margin-top:50px;
   }
 
@@ -767,11 +803,7 @@ aside{
   .internal-card,
   .checklist,
   .faq-item,
-  .final-cta{
-    width:100%;
-    max-width:100%;
-  }
-
+  .final-cta,
   .steps,
   .step{
     width:100%;
@@ -782,27 +814,12 @@ aside{
   .step > div{
     min-width:0;
   }
-
-  .table-wrap{
-    width:100%;
-    max-width:100%;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-
-  footer{
-    width:100%;
-    max-width:100%;
-  }
-
-  .footer-inner{
-    width:100%;
-    max-width:100%;
-  }
 }
 
+/* ========================================
+   MOBILE
+======================================== */
 
-/* MOBILE */
 @media(max-width:600px){
 
   .topbar-inner{
@@ -825,7 +842,7 @@ aside{
   .hero h1{
     font-size:34px;
     line-height:1.13;
-    letter-spacing:-0.5px;
+    letter-spacing:-.5px;
   }
 
   .lead{
@@ -862,6 +879,11 @@ aside{
     line-height:1.78;
   }
 
+  .guide-card{
+    grid-template-columns:1fr;
+    padding:21px 20px;
+  }
+
   .step{
     grid-template-columns:1fr;
     padding:19px;
@@ -889,8 +911,10 @@ aside{
   }
 }
 
+/* ========================================
+   SMALL MOBILE
+======================================== */
 
-/* SMALL MOBILE */
 @media(max-width:380px){
 
   .hero,
@@ -1011,11 +1035,9 @@ de répétitions ou d’étapes
 pour comprendre une notion ?
 </p>
 
-<p>
-Ce guide sera consacré
-au rythme d’apprentissage
-et à la progression individuelle.
-</p>
+<a href="/fr/blog/apprentissage-personnalise/rythme-apprentissage-enfant/">
+Comprendre le rythme d’apprentissage →
+</a>
 
 </div>
 
@@ -1035,14 +1057,14 @@ Une explication qui fonctionne
 pour un élève
 peut rester incompréhensible
 pour un autre.
+Découvrez comment reformuler,
+changer d’exemple
+et utiliser différents supports.
 </p>
 
-<p>
-Nous verrons comment reformuler,
-changer d’exemple
-et utiliser différents supports
-pour faciliter la compréhension.
-</p>
+<a href="/fr/blog/apprentissage-personnalise/adapter-explications-enfant/">
+Apprendre à expliquer autrement →
+</a>
 
 </div>
 
@@ -1197,6 +1219,27 @@ lorsque les bases nécessaires
 sont suffisamment comprises.
 </div>
 
+<div class="internal-card">
+
+<span>RYTHME D’APPRENTISSAGE</span>
+
+<h3>Comment respecter le rythme de l’enfant ?</h3>
+
+<p>
+Découvrez comment reconnaître
+quand il faut ralentir,
+répéter,
+changer d’approche
+ou au contraire
+passer à l’étape suivante.
+</p>
+
+<a href="/fr/blog/apprentissage-personnalise/rythme-apprentissage-enfant/">
+Lire le guide →
+</a>
+
+</div>
+
 
 <h2>Pourquoi aller trop vite peut créer des lacunes</h2>
 
@@ -1300,6 +1343,27 @@ et en sélectionner une.
 Pour certains enfants,
 la représentation visuelle
 rend immédiatement la notion plus concrète.
+</div>
+
+<div class="internal-card">
+
+<span>EXPLIQUER AUTREMENT</span>
+
+<h3>Comment adapter une explication à un enfant ?</h3>
+
+<p>
+Reformulation,
+exemple concret,
+support visuel
+ou décomposition en étapes :
+découvrez plusieurs façons
+de débloquer la compréhension.
+</p>
+
+<a href="/fr/blog/apprentissage-personnalise/adapter-explications-enfant/">
+Lire le guide →
+</a>
+
 </div>
 
 
@@ -1822,15 +1886,69 @@ sur la compréhension de l’enfant.
 </div>
 
 
+<h2>Explorez le cluster Apprentissage personnalisé</h2>
+
+<div class="guide-grid">
+
+<div class="guide-card">
+
+<div class="guide-icon">⏱️</div>
+
+<div>
+
+<h3>Rythme d’apprentissage de l’enfant</h3>
+
+<p>
+Comment savoir quand ralentir,
+quand répéter
+et quand l’enfant est prêt
+à progresser ?
+</p>
+
+<a href="/fr/blog/apprentissage-personnalise/rythme-apprentissage-enfant/">
+Lire le guide →
+</a>
+
+</div>
+
+</div>
+
+
+<div class="guide-card">
+
+<div class="guide-icon">💡</div>
+
+<div>
+
+<h3>Adapter les explications à l’enfant</h3>
+
+<p>
+Découvrez comment changer
+de formulation,
+d’exemple
+ou de support
+lorsqu’une première explication
+ne fonctionne pas.
+</p>
+
+<a href="/fr/blog/apprentissage-personnalise/adapter-explications-enfant/">
+Lire le guide →
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+
 <section class="faq">
 
 <h2>Questions fréquentes sur l’apprentissage personnalisé</h2>
 
 
 <div class="faq-item">
-
 <h3>Qu’est-ce que l’apprentissage personnalisé ?</h3>
-
 <p>
 C’est une approche
 qui adapte certains éléments
@@ -1842,14 +1960,11 @@ niveau d’aide,
 exercices
 ou progression.
 </p>
-
 </div>
 
 
 <div class="faq-item">
-
 <h3>Pourquoi personnaliser l’apprentissage d’un enfant ?</h3>
-
 <p>
 Parce que deux enfants
 du même âge
@@ -1858,14 +1973,11 @@ des difficultés
 et des rythmes de compréhension
 différents.
 </p>
-
 </div>
 
 
 <div class="faq-item">
-
 <h3>Comment adapter une explication à un enfant ?</h3>
-
 <p>
 On peut utiliser
 des mots différents,
@@ -1876,14 +1988,11 @@ ou des questions
 pour identifier précisément
 ce qui reste difficile.
 </p>
-
 </div>
 
 
 <div class="faq-item">
-
 <h3>L’intelligence artificielle peut-elle personnaliser l’apprentissage ?</h3>
-
 <p>
 Elle peut contribuer
 à adapter certaines explications,
@@ -1894,14 +2003,11 @@ La qualité dépend toutefois
 de la manière dont le système
 est conçu pédagogiquement.
 </p>
-
 </div>
 
 
 <div class="faq-item">
-
 <h3>Apprentissage personnalisé et cours particuliers sont-ils identiques ?</h3>
-
 <p>
 Non.
 Un professeur particulier
@@ -1912,7 +2018,6 @@ est une approche plus large
 qui peut également être utilisée
 dans d’autres environnements éducatifs.
 </p>
-
 </div>
 
 </section>
@@ -1949,6 +2054,14 @@ Découvrir IAKIDS
 
 <a href="/fr/blog/apprentissage-personnalise/">
 Guide de l’apprentissage personnalisé
+</a>
+
+<a href="/fr/blog/apprentissage-personnalise/rythme-apprentissage-enfant/">
+Rythme d’apprentissage de l’enfant
+</a>
+
+<a href="/fr/blog/apprentissage-personnalise/adapter-explications-enfant/">
+Adapter les explications à l’enfant
 </a>
 
 </div>
