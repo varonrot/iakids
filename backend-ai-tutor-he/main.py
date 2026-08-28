@@ -326,6 +326,56 @@ print("==============================")
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
+# =====================================================
+# SUPABASE TEMPORARY ERROR RETRY
+# =====================================================
+
+def supabase_with_retry(
+        operation,
+        label: str = "SUPABASE",
+        max_attempts: int = 3,
+        base_delay_seconds: float = 0.5
+):
+
+    last_error = None
+
+    for attempt in range(
+        1,
+        max_attempts + 1
+    ):
+
+        try:
+
+            return operation()
+
+        except Exception as e:
+
+            last_error = e
+
+            print(
+                f"{label} RETRY:",
+                {
+                    "attempt":
+                        attempt,
+
+                    "max_attempts":
+                        max_attempts,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            if attempt >= max_attempts:
+                raise
+
+            time.sleep(
+                base_delay_seconds
+                * attempt
+            )
+
+    raise last_error
+
 client = OpenAI(
     api_key=OPENAI_API_KEY
 )
@@ -1860,44 +1910,52 @@ def get_lesson_units_and_lessons(
 def get_unit_lesson(
         unit_lesson_id: int
 ):
-    res = (
-        sb.table(
-            "lesson_units_content"
+
+    def operation():
+
+        return (
+            sb.table(
+                "lesson_units_content"
+            )
+            .select(
+                "id, "
+                "learning_lesson_id, "
+                "unit_order, "
+                "unit_name, "
+                "lesson_order, "
+                "lesson_name, "
+                "intro_template_id, "
+                "learning_objective, "
+                "lesson_complexity, "
+                "max_duration_seconds, "
+                "generation_status, "
+                "content_version, "
+                "generated_lesson_json, "
+                "generation_error, "
+                "generated_at, "
+                "tts_generated_at, "
+                "lesson_audio_json, "
+                "audio_generation_status, "
+                "audio_generation_error, "
+                "audio_generated_at, "
+                "status, "
+                "is_active"
+            )
+            .eq(
+                "id",
+                unit_lesson_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
-        .select(
-            "id, "
-            "learning_lesson_id, "
-            "unit_order, "
-            "unit_name, "
-            "lesson_order, "
-            "lesson_name, "
-            "intro_template_id, "
-            "learning_objective, "
-            "lesson_complexity, "
-            "max_duration_seconds, "
-            "generation_status, "
-            "content_version, "
-            "generated_lesson_json, "
-            "generation_error, "
-            "generated_at, "
-            "tts_generated_at, "
-            "lesson_audio_json, "
-            "audio_generation_status, "
-            "audio_generation_error, "
-            "audio_generated_at, "
-            "status, "
-            "is_active"
-        )
-        .eq(
-            "id",
-            unit_lesson_id
-        )
-        .eq(
-            "is_active",
-            True
-        )
-        .limit(1)
-        .execute()
+
+    res = supabase_with_retry(
+        operation,
+        label="GET UNIT LESSON"
     )
 
     if not res.data:
@@ -1981,47 +2039,47 @@ def replace_intro_variables(
     return value
 
 
-
 def get_learning_lesson(
         lesson_id: int
 ):
-    res = (
 
-        sb.table(
-            "learning_lessons"
+    def operation():
+
+        return (
+            sb.table(
+                "learning_lessons"
+            )
+            .select(
+                "id, "
+                "grade, "
+                "subject, "
+                "category, "
+                "lesson_order, "
+                "lesson_name, "
+                "lesson_goal, "
+                "lesson_content, "
+                "teaching_method, "
+                "learning_objectives, "
+                "xp_reward, "
+                "stars_reward, "
+                "is_checkpoint, "
+                "is_active"
+            )
+            .eq(
+                "id",
+                lesson_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
 
-        .select(
-            "id, "
-            "grade, "
-            "subject, "
-            "category, "
-            "lesson_order, "
-            "lesson_name, "
-            "lesson_goal, "
-            "lesson_content, "
-            "teaching_method, "
-            "learning_objectives, "
-            "xp_reward, "
-            "stars_reward, "
-            "is_checkpoint, "
-            "is_active"
-        )
-
-        .eq(
-            "id",
-            lesson_id
-        )
-
-        .eq(
-            "is_active",
-            True
-        )
-
-        .limit(1)
-
-        .execute()
-
+    res = supabase_with_retry(
+        operation,
+        label="GET LEARNING LESSON"
     )
 
     if not res.data:
@@ -7347,7 +7405,7 @@ def lesson_intro(
                     speech_tts=greeting_text
                 )
             )
-            
+
         return {
             "success": True,
 
