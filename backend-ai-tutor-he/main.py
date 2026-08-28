@@ -5221,6 +5221,72 @@ def generate_all_lesson_visuals_background(
                 visual.get("order")
             )
 
+            # =========================================
+            # VISUAL CACHE CHECK
+            #
+            # אם התמונה כבר קיימת ב-Storage,
+            # לא מייצרים אותה שוב.
+            # =========================================
+
+            storage_path = (
+                f"unit_lessons/"
+                f"{unit_lesson_id}/"
+                f"v{content_version}/"
+                f"visual_{visual_order}.png"
+            )
+
+            try:
+
+                create_lesson_media_signed_url(
+                    storage_path
+                )
+
+                print(
+                    "LESSON VISUAL CACHE HIT:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order,
+
+                        "storage_path":
+                            storage_path
+                    }
+                )
+
+                generated_visuals.append({
+                    "order":
+                        visual_order,
+
+                    "type":
+                        "image",
+
+                    "storage_path":
+                        storage_path,
+
+                    "source":
+                        "cache"
+                })
+
+                continue
+
+            except Exception:
+
+                print(
+                    "LESSON VISUAL CACHE MISS:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order,
+
+                        "storage_path":
+                            storage_path
+                    }
+                )
+            
             success = False
 
             for attempt in range(
@@ -7387,36 +7453,27 @@ def get_or_generate_unit_lesson(
             # מנגנון התמונות גם יבדוק את המדיה.
             # =========================================
 
-            if (
-                    response_audio is None
-                    or audio_generation_status
-                    in (
-                        "pending",
-                        "failed"
-                    )
-            ):
+            print(
+                "QUEUE BACKGROUND MEDIA CHECK FROM CACHE:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
 
-                print(
-                    "QUEUE BACKGROUND MEDIA FROM CACHE:",
-                    {
-                        "unit_lesson_id":
-                            unit_lesson["id"],
+                    "audio_generation_status":
+                        audio_generation_status,
 
-                        "audio_generation_status":
-                            audio_generation_status,
+                    "has_cached_audio":
+                        isinstance(
+                            cached_audio,
+                            dict
+                        )
+                }
+            )
 
-                        "has_cached_audio":
-                            isinstance(
-                                cached_audio,
-                                dict
-                            )
-                    }
-                )
-
-                background_tasks.add_task(
-                    generate_unit_lesson_media_background,
-                    unit_lesson["id"]
-                )
+            background_tasks.add_task(
+                generate_unit_lesson_media_background,
+                unit_lesson["id"]
+            )
 
             # =========================================
             # RESPONSE
@@ -7769,7 +7826,7 @@ def get_or_generate_unit_lesson(
                 parent_lesson
             )
         )
-        
+
         print(
             "========== VISUAL DIRECTOR RESULT =========="
         )
