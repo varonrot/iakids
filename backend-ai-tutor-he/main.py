@@ -3695,38 +3695,48 @@ def increment_usage_summary(
     מתבצע באמצעות RPC אחד בלבד.
     """
 
-    sb.rpc(
-        "increment_usage_summary",
-        {
-            "p_user_id": user_id,
+    def operation():
+        return (
+            sb.rpc(
+                "increment_usage_summary",
+                {
+                    "p_user_id": user_id,
 
-            "p_sessions": sessions,
-            "p_usage_seconds": usage_seconds,
+                    "p_sessions": sessions,
+                    "p_usage_seconds": usage_seconds,
 
-            "p_ai_calls": ai_calls,
-            "p_input_tokens": input_tokens,
-            "p_output_tokens": output_tokens,
-            "p_total_tokens": total_tokens,
+                    "p_ai_calls": ai_calls,
+                    "p_input_tokens": input_tokens,
+                    "p_output_tokens": output_tokens,
+                    "p_total_tokens": total_tokens,
 
-            "p_tts_calls": tts_calls,
-            "p_tts_seconds": tts_seconds,
-            "p_voice_output_seconds": voice_output_seconds,
+                    "p_tts_calls": tts_calls,
+                    "p_tts_seconds": tts_seconds,
+                    "p_voice_output_seconds": voice_output_seconds,
 
-            "p_image_uploads": image_uploads,
-            "p_vision_calls": vision_calls,
+                    "p_image_uploads": image_uploads,
+                    "p_vision_calls": vision_calls,
 
-            "p_file_uploads": file_uploads,
-            "p_file_analysis_calls": file_analysis_calls,
+                    "p_file_uploads": file_uploads,
+                    "p_file_analysis_calls": file_analysis_calls,
 
-            "p_errors": errors,
+                    "p_errors": errors,
 
-            "p_openai_cost_usd": openai_cost_usd,
-            "p_gemini_cost_usd": gemini_cost_usd,
-            "p_vision_cost_usd": vision_cost_usd,
-            "p_realtime_cost_usd": realtime_cost_usd,
-            "p_other_cost_usd": other_cost_usd
-        }
-    ).execute()
+                    "p_openai_cost_usd": openai_cost_usd,
+                    "p_gemini_cost_usd": gemini_cost_usd,
+                    "p_vision_cost_usd": vision_cost_usd,
+                    "p_realtime_cost_usd": realtime_cost_usd,
+                    "p_other_cost_usd": other_cost_usd
+                }
+            )
+            .execute()
+        )
+
+    return supabase_with_retry(
+        operation,
+        label="INCREMENT USAGE SUMMARY",
+        max_attempts=3
+    )
 
 
 def update_tutor_session_after_chat(
@@ -5593,7 +5603,7 @@ def generate_and_store_lesson_visual_image(
 
     {generation_prompt}
     """.strip()
-    
+
     trigger_text = str(
         visual.get("trigger_text")
         or ""
@@ -7303,25 +7313,58 @@ def tutor_tts(
 
         # עדכון Session - קריאת TTS אחת
         if body.session_id:
-            update_tutor_session_after_tts(
-                session_id=body.session_id,
-                audio_duration_seconds=audio_duration_seconds,
-                cost_usd=gemini_audio_cost_usd
-            )
 
-            increment_usage_summary(
-                user_id=user.id,
+            try:
 
-                tts_calls=1,
+                update_tutor_session_after_tts(
+                    session_id=
+                    body.session_id,
 
-                tts_seconds=
-                audio_duration_seconds,
+                    audio_duration_seconds=
+                    audio_duration_seconds,
 
-                voice_output_seconds=
-                audio_duration_seconds,
+                    cost_usd=
+                    gemini_audio_cost_usd
+                )
 
-                gemini_cost_usd=gemini_audio_cost_usd
-            )
+                increment_usage_summary(
+                    user_id=
+                    user.id,
+
+                    tts_calls=
+                    1,
+
+                    tts_seconds=
+                    audio_duration_seconds,
+
+                    voice_output_seconds=
+                    audio_duration_seconds,
+
+                    gemini_cost_usd=
+                    gemini_audio_cost_usd
+                )
+
+            except Exception as usage_error:
+
+                # =========================================
+                # IMPORTANT:
+                # האודיו כבר נוצר בהצלחה.
+                # תקלה זמנית ב-Supabase/Usage
+                # לא מפילה את ה-TTS לילד.
+                # =========================================
+
+                print(
+                    "TTS USAGE UPDATE FAILED - AUDIO STILL RETURNED:",
+                    {
+                        "session_id":
+                            body.session_id,
+
+                        "error":
+                            repr(
+                                usage_error
+                            )
+                    }
+                )
 
         return Response(
             content=wav_bytes,
