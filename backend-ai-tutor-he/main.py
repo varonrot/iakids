@@ -8293,6 +8293,30 @@ def get_or_generate_unit_lesson(
                 )
 
             # =========================================
+            # BACKGROUND VISUAL REPAIR
+            #
+            # גם אם תוכן השיעור נמצא ב-cache,
+            # ייתכן שקבצי התמונות נמחקו מה-Storage.
+            #
+            # הפונקציה עצמה בודקת כל visual:
+            # קיים -> CACHE HIT ולא מייצרת מחדש
+            # חסר  -> מייצרת מחדש
+            # =========================================
+
+            print(
+                "QUEUE BACKGROUND VISUAL CHECK:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"]
+                }
+            )
+
+            background_tasks.add_task(
+                generate_all_lesson_visuals_background,
+                unit_lesson["id"]
+            )
+            
+            # =========================================
             # RESPONSE
             # =========================================
 
