@@ -14562,6 +14562,57 @@ data-custom-slot="0"
   aria-label="מצב ההבנה בשיעור"
 >
 
+    <!-- 0 — פעילות AI בזמן אמת -->
+<article class="mastery-hud-card mastery-ai-live-card">
+
+  <div class="mastery-ai-live-head">
+
+    <div>
+      <span class="mastery-ai-live-kicker">
+        AI LIVE
+      </span>
+
+      <strong>
+        פעילות AI בזמן אמת
+      </strong>
+    </div>
+
+    <span class="mastery-ai-live-dot"></span>
+
+  </div>
+
+
+  <div class="mastery-ai-live-status">
+    <span id="masteryAiLiveText">
+      המערכת מנתחת את השיעור
+    </span>
+  </div>
+
+
+  <div
+    class="mastery-ai-bars"
+    id="masteryAiBars"
+    aria-hidden="true"
+  ></div>
+
+
+  <div class="mastery-ai-live-footer">
+
+    <span>
+      מנוע הלמידה פעיל
+    </span>
+
+    <span class="mastery-ai-pulse-text">
+      LIVE
+    </span>
+
+  </div>
+
+</article>
+
+
+<!-- 1 — מצב הבנה -->
+
   <!-- 1 — מצב הבנה -->
   <article class="mastery-hud-card mastery-status-hud">
 
@@ -41500,6 +41551,416 @@ body.lesson-theme-science
 
 }
 
+    /* =====================================================
+   AI LIVE ACTIVITY CARD
+===================================================== */
+
+
+/* 6 כרטיסים בשורת ה-HUD */
+
+body.lesson-theme-science
+.mastery-hud{
+
+  grid-template-columns:
+    1.02fr
+    1.05fr
+    1.20fr
+    1.20fr
+    1.20fr
+    1.08fr !important;
+
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.mastery-ai-live-card{
+
+  display:flex;
+  flex-direction:column;
+
+  padding:
+    11px
+    13px
+    10px !important;
+
+  direction:rtl;
+
+  background:
+    radial-gradient(
+      circle at 75% 0%,
+      rgba(47,153,255,.18),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      #08172f 0%,
+      #041022 100%
+    ) !important;
+
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.mastery-ai-live-head{
+
+  position:relative;
+  z-index:2;
+
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+
+  gap:8px;
+
+  min-height:39px;
+
+  padding-bottom:7px;
+
+  border-bottom:
+    1px solid
+    rgba(94,144,220,.16);
+
+}
+
+
+.mastery-ai-live-head > div{
+
+  display:flex;
+  flex-direction:column;
+
+  gap:1px;
+
+}
+
+
+.mastery-ai-live-kicker{
+
+  color:#5ebcff;
+
+  font-size:8px;
+  font-weight:900;
+
+  letter-spacing:
+    1.4px;
+
+}
+
+
+.mastery-ai-live-head strong{
+
+  color:#f3f7ff;
+
+  font-size:12px;
+  line-height:1.25;
+
+  font-weight:900;
+
+}
+
+
+/* נקודת LIVE */
+
+.mastery-ai-live-dot{
+
+  position:relative;
+
+  width:9px;
+  height:9px;
+
+  flex:
+    0
+    0
+    9px;
+
+  margin-top:4px;
+
+  border-radius:50%;
+
+  background:#48e7a7;
+
+  box-shadow:
+    0 0 8px #48e7a7,
+    0 0 17px rgba(72,231,167,.55);
+
+}
+
+
+.mastery-ai-live-dot::after{
+
+  content:"";
+
+  position:absolute;
+  inset:-5px;
+
+  border:
+    1px solid
+    rgba(72,231,167,.42);
+
+  border-radius:50%;
+
+  animation:
+    masteryAiDotPulse
+    1.5s
+    ease-out
+    infinite;
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.mastery-ai-live-status{
+
+  position:relative;
+  z-index:2;
+
+  height:21px;
+
+  display:flex;
+  align-items:center;
+
+  color:
+    rgba(194,211,239,.69);
+
+  font-size:8px;
+  font-weight:700;
+
+  white-space:nowrap;
+
+  overflow:hidden;
+
+}
+
+
+/* =====================================================
+   LIVE BARS
+===================================================== */
+
+.mastery-ai-bars{
+
+  position:relative;
+  z-index:2;
+
+  flex:
+    1
+    1
+    auto;
+
+  min-height:66px;
+
+  display:flex;
+  flex-direction:row;
+  align-items:flex-end;
+
+  gap:3px;
+
+  overflow:hidden;
+
+  padding:
+    8px
+    2px
+    4px;
+
+  direction:ltr;
+
+  border-bottom:
+    1px solid
+    rgba(83,124,190,.17);
+
+  background:
+
+    repeating-linear-gradient(
+      to top,
+
+      transparent
+      0
+      18px,
+
+      rgba(72,112,178,.08)
+      19px
+      20px
+    );
+
+}
+
+
+/* כל bar */
+
+.mastery-ai-bar{
+
+  flex:
+    1
+    1
+    0;
+
+  min-width:3px;
+
+  height:
+    var(--bar-height);
+
+  border-radius:
+    3px
+    3px
+    1px
+    1px;
+
+  opacity:.82;
+
+  background:
+    linear-gradient(
+      180deg,
+      #59d8ff 0%,
+      #397dff 48%,
+      #604fff 100%
+    );
+
+  box-shadow:
+    0 0 5px
+    rgba(69,161,255,.25);
+
+  transform-origin:
+    center bottom;
+
+  animation:
+    masteryAiBarEnter
+    .45s
+    cubic-bezier(.2,.8,.2,1)
+    both;
+
+}
+
+
+/* הבר האחרון — החדש */
+
+.mastery-ai-bar:last-child{
+
+  opacity:1;
+
+  box-shadow:
+    0 0 7px
+    rgba(70,204,255,.62);
+
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.mastery-ai-live-footer{
+
+  position:relative;
+  z-index:2;
+
+  height:19px;
+
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+
+  gap:5px;
+
+  padding-top:4px;
+
+  color:
+    rgba(161,184,220,.62);
+
+  font-size:7px;
+  font-weight:800;
+
+}
+
+
+.mastery-ai-pulse-text{
+
+  color:#50e3aa;
+
+  font-size:7px;
+  font-weight:900;
+
+  letter-spacing:
+    .8px;
+
+  animation:
+    masteryAiLiveText
+    1.4s
+    ease-in-out
+    infinite;
+
+}
+
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+
+@keyframes masteryAiBarEnter{
+
+  from{
+
+    opacity:0;
+
+    transform:
+      scaleY(.15)
+      translateY(5px);
+
+  }
+
+  to{
+
+    opacity:.85;
+
+    transform:
+      scaleY(1)
+      translateY(0);
+
+  }
+
+}
+
+
+@keyframes masteryAiDotPulse{
+
+  0%{
+
+    opacity:.8;
+
+    transform:scale(.65);
+
+  }
+
+  100%{
+
+    opacity:0;
+
+    transform:scale(1.8);
+
+  }
+
+}
+
+
+@keyframes masteryAiLiveText{
+
+  0%,
+  100%{
+    opacity:.55;
+  }
+
+  50%{
+    opacity:1;
+  }
+
+}
+
 </style>
 
 
@@ -48915,5 +49376,230 @@ function(audio){
   updateProgress();
 
 };
+    
+    /* =====================================================
+   AI LIVE ACTIVITY EFFECT
+   Visual effect only
+===================================================== */
+
+(function(){
+
+  const MAX_AI_BARS =
+    18;
+
+
+  const STATUS_MESSAGES = [
+
+    "המערכת מנתחת את השיעור",
+
+    "מעבדת את רצף הלמידה",
+
+    "מתאימה את ההסבר",
+
+    "עוקבת אחרי קצב השיעור",
+
+    "מנוע הלמידה פעיל"
+
+  ];
+
+
+  let statusIndex =
+    0;
+
+
+  function createAiLiveBar(){
+
+    const container =
+      document.getElementById(
+        "masteryAiBars"
+      );
+
+
+    if(!container){
+      return;
+    }
+
+
+    /*
+      האפקט עובד רק במסך השיעור.
+    */
+
+    if(
+      !document.body.classList.contains(
+        "lesson-theme-science"
+      )
+    ){
+      return;
+    }
+
+
+    /*
+      גובה אקראי אבל לא קיצוני.
+    */
+
+    const height =
+      Math.floor(
+        24
+        +
+        Math.random()
+        * 70
+      );
+
+
+    const bar =
+      document.createElement(
+        "span"
+      );
+
+
+    bar.className =
+      "mastery-ai-bar";
+
+
+    bar.style.setProperty(
+      "--bar-height",
+      `${height}%`
+    );
+
+
+    /*
+      החדש נכנס מצד ימין של רצף הנתונים.
+    */
+
+    container.appendChild(
+      bar
+    );
+
+
+    /*
+      אם עברנו את מספר הברים המקסימלי,
+      הישן ביותר נעלם.
+    */
+
+    while(
+      container.children.length
+      >
+      MAX_AI_BARS
+    ){
+
+      container.firstElementChild
+        ?.remove();
+
+    }
+
+  }
+
+
+  function updateAiLiveStatus(){
+
+    const text =
+      document.getElementById(
+        "masteryAiLiveText"
+      );
+
+
+    if(!text){
+      return;
+    }
+
+
+    statusIndex =
+      (
+        statusIndex + 1
+      )
+      %
+      STATUS_MESSAGES.length;
+
+
+    text.textContent =
+      STATUS_MESSAGES[
+        statusIndex
+      ];
+
+  }
+
+
+  function initializeAiLive(){
+
+    const container =
+      document.getElementById(
+        "masteryAiBars"
+      );
+
+
+    if(!container){
+      return;
+    }
+
+
+    /*
+      ממלאים את הגרף בהתחלה
+      כדי שלא יתחיל ריק.
+    */
+
+    if(
+      container.children.length
+      === 0
+    ){
+
+      for(
+        let i = 0;
+        i < MAX_AI_BARS;
+        i++
+      ){
+
+        createAiLiveBar();
+
+      }
+
+    }
+
+
+    /*
+      כל שנייה:
+      bar חדש נכנס,
+      bar ישן יוצא.
+    */
+
+    setInterval(
+      createAiLiveBar,
+      1000
+    );
+
+
+    /*
+      הטקסט משתנה לאט יותר.
+    */
+
+    setInterval(
+      updateAiLiveStatus,
+      4200
+    );
+
+  }
+
+
+  if(
+    document.readyState
+    ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      initializeAiLive,
+      {
+        once:true
+      }
+    );
+
+  }
+  else{
+
+    initializeAiLive();
+
+  }
+
+})();
 </script>
 </body></html>
