@@ -17379,6 +17379,767 @@ async function loadLessonHeroImage(
 
 }
 
+/* =====================================================
+   LESSON VISUALS
+===================================================== */
+
+window.CURRENT_LESSON_VISUALS = [];
+
+async function loadLessonVisuals(
+  unitLessonId,
+  session
+){
+
+  const MAX_VISUAL_CHECKS = 30;
+  const CHECK_DELAY_MS = 1500;
+
+
+  /*
+    לא מאפסים אם כבר קיבלנו תמונות.
+    חשוב במיוחד אם הפונקציה נקראת שוב.
+  */
+
+  if(
+    !Array.isArray(
+      window.CURRENT_LESSON_VISUALS
+    )
+  ){
+
+    window.CURRENT_LESSON_VISUALS = [];
+
+  }
+
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_VISUAL_CHECKS;
+    attempt++
+  ){
+
+    try{
+
+      console.log(
+        "LESSON VISUALS CHECK:",
+        {
+          unitLessonId,
+          attempt
+        }
+      );
+
+
+      const response =
+        await fetch(
+          `${TUTOR_API_BASE}/api/tutor/unit-lesson/visuals`,
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+            },
+
+            body:
+              JSON.stringify({
+                kid_id:
+                  CURRENT_KID.id,
+
+                unit_lesson_id:
+                  unitLessonId
+              })
+          }
+        );
+
+
+      const responseText =
+        await response.text();
+
+
+      let data = null;
+
+
+      try{
+
+        data =
+          responseText
+            ? JSON.parse(
+                responseText
+              )
+            : null;
+
+      }
+      catch(error){
+
+        console.error(
+          "LESSON VISUALS JSON ERROR:",
+          responseText
+        );
+
+        return (
+          window.CURRENT_LESSON_VISUALS
+        );
+
+      }
+
+
+      if(!response.ok){
+
+        console.warn(
+          "LESSON VISUALS CHECK FAILED:",
+          {
+            status:
+              response.status,
+
+            data
+          }
+        );
+
+      }
+      else{
+
+        const incomingVisuals =
+          Array.isArray(
+            data?.visuals
+          )
+            ? data.visuals
+            : [];
+
+
+        /*
+          מוסיפים / מעדכנים תמונות
+          בלי לאבד את _shown.
+        */
+
+        for(
+          const incoming
+          of incomingVisuals
+        ){
+
+          if(
+            !incoming
+            ||
+            !incoming.order
+          ){
+            continue;
+          }
+
+
+          const existing =
+            window.CURRENT_LESSON_VISUALS
+              .find(
+                item =>
+                  Number(
+                    item.order
+                  )
+                  ===
+                  Number(
+                    incoming.order
+                  )
+              );
+
+
+          if(existing){
+
+            const alreadyShown =
+              existing._shown === true;
+
+
+            Object.assign(
+              existing,
+              incoming
+            );
+
+
+            if(alreadyShown){
+
+              existing._shown =
+                true;
+
+            }
+
+          }
+          else{
+
+            window.CURRENT_LESSON_VISUALS
+              .push(
+                {
+                  ...incoming,
+                  _shown: false
+                }
+              );
+
+          }
+
+        }
+
+
+        /*
+          תמיד עובדים לפי סדר
+          Visual Director.
+        */
+
+        window.CURRENT_LESSON_VISUALS
+          .sort(
+            (a,b) =>
+              Number(
+                a.order || 0
+              )
+              -
+              Number(
+                b.order || 0
+              )
+          );
+
+
+        const ready =
+          window.CURRENT_LESSON_VISUALS
+            .length;
+
+
+        const planned =
+          Number(
+            data?.visuals_planned
+            || 0
+          );
+
+
+        console.log(
+          "LESSON VISUALS READY:",
+          {
+            ready,
+            planned,
+            visuals:
+              window.CURRENT_LESSON_VISUALS
+          }
+        );
+
+
+        /*
+          אם תמונה חדשה הגיעה בזמן
+          שהפסקה שלה כבר רצה,
+          מנסים להציג אותה עכשיו.
+        */
+
+        if(
+          window.CURRENT_LESSON_PARAGRAPH
+        ){
+
+          showVisualForLessonText(
+            window.CURRENT_LESSON_PARAGRAPH
+          );
+
+        }
+
+
+        /*
+          כל התמונות מוכנות.
+        */
+
+        if(
+          planned > 0
+          &&
+          ready >= planned
+        ){
+
+          console.log(
+            "ALL LESSON VISUALS LOADED:",
+            {
+              ready,
+              planned
+            }
+          );
+
+
+          return (
+            window.CURRENT_LESSON_VISUALS
+          );
+
+        }
+
+      }
+
+
+      /*
+        עדיין חסרות תמונות.
+        מחכים מעט ושואלים שוב.
+        לא עוצר את השיעור כי
+        loadLessonVisuals נקראת ללא await.
+      */
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            CHECK_DELAY_MS
+          )
+      );
+
+    }
+    catch(error){
+
+      console.error(
+        "LESSON VISUALS ERROR:",
+        {
+          unitLessonId,
+          attempt,
+          error
+        }
+      );
+
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            CHECK_DELAY_MS
+          )
+      );
+
+    }
+
+  }
+
+
+  console.warn(
+    "LESSON VISUALS POLLING FINISHED:",
+    {
+      unitLessonId,
+      loaded:
+        window.CURRENT_LESSON_VISUALS
+          .length
+    }
+  );
+
+
+  return (
+    window.CURRENT_LESSON_VISUALS
+  );
+
+}
+
+/* =====================================================
+   SHOW LESSON VISUAL
+===================================================== */
+
+function showLessonVisual(
+  visual
+){
+
+const generating =
+  document.getElementById(
+    "lessonVisualGenerating"
+  );
+
+if(generating){
+  generating.style.display = "none";
+}
+
+  if(
+    !visual
+    ||
+    !visual.url
+  ){
+    return;
+  }
+
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-stage"
+    );
+
+
+  if(!visualArea){
+
+    console.warn(
+      "LESSON VISUAL — visual area not found"
+    );
+
+    return;
+  }
+
+
+  const oldImage =
+    visualArea.querySelector(
+      ".lesson-hero-image"
+    );
+
+
+  const wrap =
+    document.createElement(
+      "div"
+    );
+
+
+  wrap.className =
+    "lesson-hero-image-wrap lesson-dynamic-visual-wrap";
+
+
+  const image =
+    document.createElement(
+      "img"
+    );
+
+
+const separator =
+  visual.url.includes("?")
+    ? "&"
+    : "?";
+
+image.src =
+  `${visual.url}${separator}cacheBust=${Date.now()}`;
+
+
+  image.alt = "";
+
+
+  image.className =
+    "lesson-hero-image lesson-dynamic-visual";
+
+
+  wrap.appendChild(
+    image
+  );
+
+
+  visualArea.appendChild(
+    wrap
+  );
+
+
+  const reveal = () => {
+
+    requestAnimationFrame(
+      () => {
+
+        requestAnimationFrame(
+          () => {
+
+            image.classList.add(
+              "is-visible"
+            );
+
+
+            wrap.classList.add(
+              "is-visible"
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    if(oldImage){
+
+      oldImage.classList.add(
+        "lesson-image-leaving"
+      );
+
+    }
+
+
+    const oldWrap =
+      oldImage?.closest(
+        ".lesson-hero-image-wrap"
+      );
+
+
+    if(oldWrap){
+
+      setTimeout(
+        () => {
+
+          if(
+            oldWrap !== wrap
+          ){
+            oldWrap.remove();
+          }
+
+        },
+        900
+      );
+
+    }
+
+  };
+
+
+  if(image.complete){
+
+    reveal();
+
+  }
+  else{
+
+    image.addEventListener(
+      "load",
+      reveal,
+      {
+        once:true
+      }
+    );
+
+  }
+
+
+  console.log(
+    "LESSON VISUAL DISPLAYED:",
+    {
+      order:
+        visual.order,
+
+      trigger_text:
+        visual.trigger_text
+    }
+  );
+
+}
+
+
+
+/* =====================================================
+   VISUAL TRIGGER
+===================================================== */
+
+function showVisualForLessonText(
+  paragraph
+){
+
+  const normalizeLessonVisualText = value => {
+
+    return String(
+      value || ""
+    )
+      .normalize("NFD")
+      .replace(
+        /[\u0591-\u05C7]/g,
+        ""
+      )
+      .replace(
+        /["'״׳.,!?;:()[\]{}…–—־]/g,
+        " "
+      )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim()
+      .toLowerCase();
+
+  };
+
+
+  const text =
+    normalizeLessonVisualText(
+      paragraph
+    );
+
+
+  if(!text){
+    return;
+  }
+
+
+  const visuals =
+    Array.isArray(
+      window.CURRENT_LESSON_VISUALS
+    )
+      ? window.CURRENT_LESSON_VISUALS
+      : [];
+
+
+  if(!visuals.length){
+    return;
+  }
+
+
+  /*
+    ==========================================
+    חיפוש visual שמתאים לפסקה הנוכחית
+    ==========================================
+  */
+
+  const visual =
+    visuals.find(
+      item => {
+
+        if(
+          !item
+          ||
+          item._shown
+          ||
+          !item.url
+        ){
+          return false;
+        }
+
+
+        const trigger =
+          normalizeLessonVisualText(
+            item.trigger_text
+          );
+
+
+        const source =
+          normalizeLessonVisualText(
+            item.source_text
+          );
+
+
+        /*
+          1. התאמה ישירה ל-trigger
+        */
+
+        if(
+          trigger
+          &&
+          (
+            text.includes(trigger)
+            ||
+            trigger.includes(text)
+          )
+        ){
+          return true;
+        }
+
+
+        /*
+          2. התאמה ישירה ל-source_text
+        */
+
+        if(
+          source
+          &&
+          (
+            text.includes(source)
+            ||
+            source.includes(text)
+          )
+        ){
+          return true;
+        }
+
+
+        /*
+          3. התאמת מילים חלקית ל-source_text
+        */
+
+        if(source){
+
+          const paragraphWords =
+            text
+              .split(" ")
+              .filter(
+                word =>
+                  word.length >= 3
+              );
+
+
+          const sourceWords =
+            source
+              .split(" ")
+              .filter(
+                word =>
+                  word.length >= 3
+              );
+
+
+          if(
+            paragraphWords.length
+            &&
+            sourceWords.length
+          ){
+
+            const commonWords =
+              sourceWords.filter(
+                word =>
+                  paragraphWords.includes(
+                    word
+                  )
+              );
+
+
+            const overlap =
+              commonWords.length
+              /
+              Math.min(
+                paragraphWords.length,
+                sourceWords.length
+              );
+
+
+            /*
+              דורשים התאמה חזקה יחסית.
+              לא מספיק כמה מילים מקריות.
+            */
+
+            if(overlap >= 0.55){
+
+              return true;
+
+            }
+
+          }
+
+        }
+
+
+        return false;
+
+      }
+    );
+
+
+  /*
+    אין התאמה לפסקה הזאת?
+    לא מחליפים תמונה.
+  */
+
+  if(!visual){
+
+    console.log(
+      "NO VISUAL MATCH FOR PARAGRAPH:",
+      paragraph
+    );
+
+    return;
+
+  }
+
+
+  /*
+    מצאנו את התמונה המתאימה.
+  */
+
+  visual._shown =
+    true;
+
+
+  console.log(
+    "LESSON VISUAL DISPLAYED:",
+    {
+      order:
+        visual.order,
+
+      trigger_text:
+        visual.trigger_text,
+
+      paragraph:
+        paragraph
+    }
+  );
+
+
+  showLessonVisual(
+    visual
+  );
+
+}
+
 async function loadUniversalUnitLesson(
   lesson,
   session
@@ -18070,27 +18831,36 @@ if(
      הצגה והשמעה לפי הסדר
   ============================================= */
 
-  for(
-    let index = 0;
-    index < lessonParts.length;
-    index++
-  ){
+for(
+  let index = 0;
+  index < lessonParts.length;
+  index++
+){
 
-    const paragraph =
-      lessonParts[index];
+  const paragraph =
+    lessonParts[index];
 
 
-    /*
-      מחכים רק לאודיו של הקטע הנוכחי.
+  /* =============================================
+     SWITCH VISUAL FOR CURRENT LESSON TEXT
+  ============================================= */
 
-      בזמן הזה שאר קובצי האודיו
-      ממשיכים להיווצר במקביל.
-    */
+window.CURRENT_LESSON_PARAGRAPH =
+  paragraph;
 
-    const audioUrl =
-      await lessonAudioPromises[
-        index
-      ];
+  showVisualForLessonText(
+    paragraph
+  );
+
+
+  /*
+    מחכים רק לאודיו של הקטע הנוכחי.
+  */
+
+  const audioUrl =
+    await lessonAudioPromises[
+      index
+    ];
 
 
 if(
@@ -19230,6 +20000,15 @@ if(subtitle){
 ============================================= */
 
 loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
+
+/* =============================================
+   START LESSON VISUALS IN PARALLEL
+============================================= */
+
+loadLessonVisuals(
   resolvedUnitLessonId,
   session
 );
@@ -40362,6 +41141,80 @@ body.lesson-theme-science
     left:105%;
   }
 }
+
+    /* =====================================================
+   LESSON DYNAMIC VISUAL — FADE + SLOW ZOOM
+===================================================== */
+
+.lesson-visual-stage{
+  position:relative;
+  overflow:hidden;
+}
+
+
+.lesson-hero-image-wrap{
+  position:absolute;
+  inset:0;
+
+  overflow:hidden;
+}
+
+
+.lesson-hero-image{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+
+  opacity:0;
+
+  transform:
+    scale(1.015);
+
+  transition:
+    opacity .9s ease;
+
+  will-change:
+    opacity,
+    transform;
+}
+
+
+.lesson-hero-image.is-visible{
+  opacity:1;
+
+  animation:
+    lessonVisualSlowZoom
+    18s
+    ease-out
+    forwards;
+}
+
+
+.lesson-hero-image.lesson-image-leaving{
+  opacity:0 !important;
+}
+
+
+.lesson-dynamic-visual-wrap{
+  opacity:1;
+}
+
+
+@keyframes lessonVisualSlowZoom{
+
+  from{
+    transform:
+      scale(1.015);
+  }
+
+  to{
+    transform:
+      scale(1.10);
+  }
+
+}
+
 </style>
 
 
