@@ -8206,6 +8206,154 @@ def get_or_generate_unit_lesson(
                 )
         ):
 
+            # =========================================
+            # REPAIR OLD CACHED LESSON WITHOUT VISUAL PLAN
+            # =========================================
+
+            cached_visual_plan = (
+                    cached_json.get("visual_plan")
+                    or {}
+            )
+
+            cached_visuals = (
+                    cached_visual_plan.get("visuals")
+                    or []
+            )
+
+            if not cached_visuals:
+
+                print(
+                    "CACHED LESSON MISSING VISUAL PLAN:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"]
+                    }
+                )
+
+                structured_lesson = (
+                        cached_json.get(
+                            "structured_lesson"
+                        )
+                        or {}
+                )
+
+                lesson_text = str(
+                    cached_json.get("lesson")
+                    or ""
+                ).strip()
+
+                visual_director_prompt = (
+                    build_visual_director_prompt(
+                        unit_lesson=
+                        unit_lesson,
+
+                        parent_lesson=
+                        parent_lesson,
+
+                        lesson_text=
+                        lesson_text,
+
+                        structured_lesson=
+                        structured_lesson
+                    )
+                )
+
+                visual_director_completion = (
+                    client
+                    .beta
+                    .chat
+                    .completions
+                    .parse(
+
+                        model=
+                        DEFAULT_OPENAI_MODEL,
+
+                        messages=[
+                            {
+                                "role":
+                                    "system",
+
+                                "content":
+                                    visual_director_prompt
+                            },
+                            {
+                                "role":
+                                    "user",
+
+                                "content":
+                                    (
+                                        "Analyze the lesson and create "
+                                        "the visual media plan. "
+                                        "Return only the required structure."
+                                    )
+                            }
+                        ],
+
+                        response_format=
+                        VisualDirectorResponse
+                    )
+                )
+
+                visual_director_data = (
+                    visual_director_completion
+                    .choices[0]
+                    .message
+                    .parsed
+                )
+
+                if visual_director_data:
+                    repaired_visual_plan = (
+                        normalize_visual_plan_to_segments(
+                            visual_plan=
+                            visual_director_data.model_dump(),
+
+                            structured_lesson=
+                            structured_lesson,
+
+                            unit_lesson=
+                            unit_lesson,
+
+                            parent_lesson=
+                            parent_lesson
+                        )
+                    )
+
+                    cached_json[
+                        "visual_plan"
+                    ] = repaired_visual_plan
+
+                    sb.table(
+                        "lesson_units_content"
+                    ).update({
+
+                        "generated_lesson_json":
+                            cached_json,
+
+                        "updated_at":
+                            datetime
+                            .now(timezone.utc)
+                            .isoformat()
+
+                    }).eq(
+                        "id",
+                        unit_lesson["id"]
+                    ).execute()
+
+                    print(
+                        "CACHED VISUAL PLAN REPAIRED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "visuals_count":
+                                len(
+                                    repaired_visual_plan
+                                    .get("visuals")
+                                    or []
+                                )
+                        }
+                    )
+
             response_audio = None
 
             # =========================================
