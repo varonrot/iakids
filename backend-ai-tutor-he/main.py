@@ -7324,6 +7324,30 @@ def lesson_intro(
                 )
             )
 
+        # =============================================
+        # GUARANTEE PERSONAL GREETING FIRST
+        # =============================================
+
+        child_name = str(
+            child.get("child_name")
+            or ""
+        ).strip()
+
+        if child_name:
+            greeting_text = (
+                f"היי {child_name}! "
+                f"כיף שבאת ללמוד איתי."
+            )
+
+            sequence.insert(
+                0,
+                TutorAction(
+                    type="speak",
+                    text=greeting_text,
+                    speech_tts=greeting_text
+                )
+            )
+            
         return {
             "success": True,
 
