@@ -18886,7 +18886,7 @@ for(
 
   /* =============================================
      WAIT + SWITCH VISUAL FOR CURRENT SEGMENT
-     
+
      Segment 1 -> Visual 1
      Segment 2 -> Visual 2
      Segment 3 -> Visual 3
@@ -18909,54 +18909,47 @@ for(
     עד שהיא תהיה מוכנה.
   */
 
-  const visualForSegment =
-    await waitForLessonVisual(
-      data.unit_lesson_id,
-      session,
-      visualOrder
-    );
+const visualForSegment =
+  (
+    window.CURRENT_LESSON_VISUALS
+    || []
+  ).find(
+    visual =>
+      Number(visual?.order || 0)
+      ===
+      Number(visualOrder)
+      &&
+      visual?.url
+  );
 
 
-  if(
+if(
+  visualForSegment
+){
+
+  console.log(
+    "SHOW READY VISUAL FOR SEGMENT:",
+    {
+      segment: visualOrder,
+      visualOrder: visualForSegment.order
+    }
+  );
+
+  showLessonVisual(
     visualForSegment
-    &&
-    visualForSegment.url
-  ){
+  );
 
-    console.log(
-      "SHOW VISUAL FOR SEGMENT:",
-      {
-        segment:
-          visualOrder,
+}
+else{
 
-        visualOrder:
-          visualForSegment.order,
+  console.log(
+    "VISUAL STILL GENERATING — CONTINUE LESSON:",
+    {
+      segment: visualOrder
+    }
+  );
 
-        paragraph:
-          paragraph
-      }
-    );
-
-    showLessonVisual(
-      visualForSegment
-    );
-
-  }
-  else{
-
-    console.warn(
-      "NO VISUAL FOR SEGMENT:",
-      {
-        segment:
-          visualOrder,
-
-        paragraph:
-          paragraph
-      }
-    );
-
-  }
-
+}
 
   /*
     רק אחרי שהתמונה של הפסקה
