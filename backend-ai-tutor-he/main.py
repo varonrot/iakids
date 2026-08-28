@@ -4031,6 +4031,299 @@ def build_visual_director_prompt(
         )
     )
 
+def build_segment_visual_fallback_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        segment_text: str,
+        segment_index: int
+) -> str:
+
+    grade = str(
+        parent_lesson.get("grade")
+        or ""
+    )
+
+    subject = str(
+        parent_lesson.get("subject")
+        or ""
+    )
+
+    main_topic = str(
+        parent_lesson.get("lesson_name")
+        or ""
+    )
+
+    unit_name = str(
+        unit_lesson.get("unit_name")
+        or ""
+    )
+
+    lesson_name = str(
+        unit_lesson.get("lesson_name")
+        or ""
+    )
+
+    learning_objective = str(
+        unit_lesson.get("learning_objective")
+        or ""
+    )
+
+    return f"""
+Create one premium educational 16:9 illustration
+for segment {segment_index} of a school lesson.
+
+CURRICULUM CONTEXT:
+
+Grade: {grade}
+Subject: {subject}
+Main topic: {main_topic}
+Unit: {unit_name}
+Lesson: {lesson_name}
+Learning objective: {learning_objective}
+
+EXACT LESSON SEGMENT:
+
+{segment_text}
+
+VISUAL GOAL:
+
+Translate the educational meaning of this exact segment
+into one clear visual scene.
+
+The image must help the student understand this segment
+while listening to its corresponding audio.
+
+Use the full curriculum context.
+Do not interpret isolated keywords.
+
+REQUIREMENTS:
+
+- educationally accurate
+- appropriate for grade {grade}
+- premium modern educational illustration
+- 16:9 landscape composition
+- one clear educational focus
+- visually rich but easy to understand
+- maintain continuity with the lesson context
+- no written text
+- no labels
+- no captions
+- no logos
+- no watermark
+- no UI elements
+- no title cards
+""".strip()
+
+
+def normalize_visual_plan_to_segments(
+        visual_plan: dict,
+        structured_lesson: dict,
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> dict:
+
+    segments = (
+        structured_lesson.get("lesson")
+        or []
+    )
+
+    raw_visuals = (
+        visual_plan.get("visuals")
+        or []
+    )
+
+    normalized_visuals = []
+
+    print(
+        "VISUAL PLAN NORMALIZATION START:",
+        {
+            "segments_count":
+                len(segments),
+
+            "director_visuals_count":
+                len(raw_visuals)
+        }
+    )
+
+    for index, segment in enumerate(
+            segments,
+            start=1
+    ):
+
+        if not isinstance(
+                segment,
+                dict
+        ):
+            continue
+
+        segment_text = str(
+            segment.get("text")
+            or ""
+        ).strip()
+
+        if not segment_text:
+            continue
+
+        # =========================================
+        # FIND VISUAL RETURNED BY DIRECTOR
+        # =========================================
+
+        director_visual = None
+
+        # קודם מחפשים לפי order
+        for item in raw_visuals:
+
+            if not isinstance(
+                    item,
+                    dict
+            ):
+                continue
+
+            try:
+                item_order = int(
+                    item.get("order")
+                    or 0
+                )
+            except Exception:
+                item_order = 0
+
+            if item_order == index:
+                director_visual = item
+                break
+
+        # =========================================
+        # GENERATION PROMPT
+        # =========================================
+
+        generation_prompt = ""
+
+        visual_goal = (
+            f"Help the student understand "
+            f"lesson segment {index}."
+        )
+
+        if director_visual:
+
+            generation_prompt = str(
+                director_visual.get(
+                    "generation_prompt"
+                )
+                or ""
+            ).strip()
+
+            visual_goal = str(
+                director_visual.get(
+                    "visual_goal"
+                )
+                or visual_goal
+            ).strip()
+
+        # אם ה-Director דילג על הסגמנט,
+        # ה-Backend מייצר Prompt בעצמו.
+        if not generation_prompt:
+
+            print(
+                "VISUAL DIRECTOR MISSING SEGMENT:",
+                {
+                    "segment_index":
+                        index,
+
+                    "segment_text":
+                        segment_text
+                }
+            )
+
+            generation_prompt = (
+                build_segment_visual_fallback_prompt(
+                    unit_lesson=
+                        unit_lesson,
+
+                    parent_lesson=
+                        parent_lesson,
+
+                    segment_text=
+                        segment_text,
+
+                    segment_index=
+                        index
+                )
+            )
+
+        # =========================================
+        # TRIGGER
+        #
+        # היום הפרונט כבר מתקדם לפי order,
+        # אבל עדיין נשמור trigger_text תקין.
+        # =========================================
+
+        words = (
+            segment_text
+            .replace("\n", " ")
+            .split()
+        )
+
+        trigger_text = " ".join(
+            words[:6]
+        )
+
+        # =========================================
+        # HARD 1:1 VISUAL
+        # =========================================
+
+        normalized_visuals.append({
+
+            "order":
+                index,
+
+            "trigger_text":
+                trigger_text,
+
+            # חשוב:
+            # כל Segment הוא תמונה.
+            # גם אם ה-Director החזיר video.
+            "type":
+                "image",
+
+            "visual_goal":
+                visual_goal,
+
+            "source_text":
+                segment_text,
+
+            "generation_prompt":
+                generation_prompt
+        })
+
+    result = {
+        "version":
+            int(
+                visual_plan.get("version")
+                or 1
+            ),
+
+        "visuals":
+            normalized_visuals
+    }
+
+    print(
+        "VISUAL PLAN NORMALIZATION DONE:",
+        {
+            "segments_count":
+                len(segments),
+
+            "visuals_count":
+                len(normalized_visuals),
+
+            "orders":
+                [
+                    item["order"]
+                    for item
+                    in normalized_visuals
+                ]
+        }
+    )
+
+    return result
 
 def normalize_universal_lesson_visuals(
         sequence: list[TutorAction]
@@ -7461,6 +7754,22 @@ def get_or_generate_unit_lesson(
             .model_dump()
         )
 
+        visual_plan = (
+            normalize_visual_plan_to_segments(
+                visual_plan=
+                visual_plan,
+
+                structured_lesson=
+                structured_lesson,
+
+                unit_lesson=
+                unit_lesson,
+
+                parent_lesson=
+                parent_lesson
+            )
+        )
+        
         print(
             "========== VISUAL DIRECTOR RESULT =========="
         )
