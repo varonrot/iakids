@@ -7608,35 +7608,43 @@ def get_or_generate_unit_lesson(
                     ).execute()
 
             # =========================================
-            # MEDIA BACKGROUND
+            # BACKGROUND AUDIO REPAIR ONLY
             #
-            # אם אודיו חסר / נמחק / נכשל,
-            # מנגנון הרקע ישחזר אותו.
+            # אם האודיו כבר קיים ותקין,
+            # אין שום סיבה להפעיל מחדש את כל
+            # מנגנון המדיה בכל Refresh.
             #
-            # מנגנון התמונות גם יבדוק את המדיה.
+            # זה מונע עשרות קריאות מיותרות
+            # ל-Supabase בכל טעינת עמוד.
             # =========================================
 
-            print(
-                "QUEUE BACKGROUND MEDIA CHECK FROM CACHE:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson["id"],
+            if response_audio is None:
 
-                    "audio_generation_status":
-                        audio_generation_status,
+                print(
+                    "QUEUE BACKGROUND AUDIO REPAIR:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
 
-                    "has_cached_audio":
-                        isinstance(
-                            cached_audio,
-                            dict
-                        )
-                }
-            )
+                        "audio_generation_status":
+                            audio_generation_status
+                    }
+                )
 
-            background_tasks.add_task(
-                generate_unit_lesson_media_background,
-                unit_lesson["id"]
-            )
+                background_tasks.add_task(
+                    generate_unit_lesson_audio_background,
+                    unit_lesson["id"]
+                )
+
+            else:
+
+                print(
+                    "SKIP BACKGROUND MEDIA - CACHE COMPLETE:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"]
+                    }
+                )
 
             # =========================================
             # RESPONSE
