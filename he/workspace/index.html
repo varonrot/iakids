@@ -17605,32 +17605,100 @@ async function loadLessonVisuals(
           );
 
 
-        console.log(
-          "LESSON VISUALS READY:",
-          {
-            ready,
-            planned,
-            visuals:
-              window.CURRENT_LESSON_VISUALS
-          }
-        );
+console.log(
+  "LESSON VISUALS READY:",
+  {
+    ready,
+    planned,
+    visuals:
+      window.CURRENT_LESSON_VISUALS
+  }
+);
 
 
-        /*
-          אם תמונה חדשה הגיעה בזמן
-          שהפסקה שלה כבר רצה,
-          מנסים להציג אותה עכשיו.
-        */
+/* =============================================
+   SHOW CURRENT SEGMENT VISUAL WHEN IT ARRIVES
+============================================= */
 
-        /*
-          כל התמונות מוכנות.
-        */
+const currentVisualOrder =
+  Number(
+    window.CURRENT_LESSON_VISUAL_ORDER
+    || 0
+  );
 
-        if(
-          planned > 0
-          &&
-          ready >= planned
-        ){
+
+if(
+  currentVisualOrder > 0
+){
+
+  const currentVisual =
+    (
+      window.CURRENT_LESSON_VISUALS
+      || []
+    ).find(
+      item =>
+        Number(
+          item?.order
+          || 0
+        )
+        ===
+        currentVisualOrder
+        &&
+        item?.url
+    );
+
+
+  if(currentVisual){
+
+    const alreadyDisplayedOrder =
+      Number(
+        window.CURRENT_DISPLAYED_VISUAL_ORDER
+        || 0
+      );
+
+
+    if(
+      alreadyDisplayedOrder
+      !==
+      currentVisualOrder
+    ){
+
+      console.log(
+        "POLLING VISUAL ARRIVED FOR CURRENT SEGMENT:",
+        {
+          currentSegment:
+            currentVisualOrder,
+
+          visualOrder:
+            currentVisual.order
+        }
+      );
+
+
+      window.CURRENT_DISPLAYED_VISUAL_ORDER =
+        currentVisualOrder;
+
+
+      showLessonVisual(
+        currentVisual
+      );
+
+    }
+
+  }
+
+}
+
+
+/*
+  כל התמונות מוכנות.
+*/
+
+if(
+  planned > 0
+  &&
+  ready >= planned
+){
 
           console.log(
             "ALL LESSON VISUALS LOADED:",
@@ -18177,6 +18245,8 @@ function showVisualForLessonText(
     }
   );
 
+window.CURRENT_DISPLAYED_VISUAL_ORDER =
+  visualOrder;
 
   showLessonVisual(
     visual
@@ -18893,13 +18963,19 @@ for(
      ...
   ============================================= */
 
-  window.CURRENT_LESSON_PARAGRAPH =
-    paragraph;
+window.CURRENT_LESSON_PARAGRAPH =
+  paragraph;
 
-  const visualOrder =
-    index + 1;
+const visualOrder =
+  index + 1;
 
-
+/*
+  שומרים איזה Segment מתנגן כרגע.
+  loadLessonVisuals ישתמש במספר הזה
+  כאשר התמונה מגיעה מה-Backend.
+*/
+window.CURRENT_LESSON_VISUAL_ORDER =
+  visualOrder;
   /*
     מחכים לתמונה ששייכת בדיוק
     לפסקה הנוכחית.
@@ -18922,7 +18998,6 @@ const visualForSegment =
       visual?.url
   );
 
-
 if(
   visualForSegment
 ){
@@ -18934,6 +19009,9 @@ if(
       visualOrder: visualForSegment.order
     }
   );
+
+  window.CURRENT_DISPLAYED_VISUAL_ORDER =
+    visualOrder;
 
   showLessonVisual(
     visualForSegment
