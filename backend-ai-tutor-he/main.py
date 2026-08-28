@@ -5471,32 +5471,88 @@ def generate_and_store_lesson_visual_image(
     LESSON_VISUAL_STYLE_LOCK = """
     Create a premium semi-realistic digital educational illustration.
 
-    This image belongs to one consistent educational visual series.
+    This image belongs to a high-end educational animated visual series
+    for children.
 
     MANDATORY VISUAL STYLE:
 
     - premium semi-realistic digital illustration
-    - modern cinematic educational illustration
-    - realistic proportions
-    - soft natural cinematic lighting
-    - rich but controlled colors
-    - subtle depth
+    - high-end animated educational film quality
+    - realistic human and object proportions
+    - clearly illustrated, NOT photographic
+    - detailed digital painting with polished rendering
+    - soft cinematic natural lighting
+    - warm, rich but controlled colors
+    - subtle depth and atmospheric perspective
     - clean professional composition
-    - polished educational animation-film quality
-    - visually engaging but not childish
+    - realistic materials interpreted through illustration
+    - expressive but natural characters
+    - modern premium educational media aesthetic
+    - visually engaging for children without looking childish
+
+    The final result must clearly look like
+    a professionally illustrated scene,
+    NOT a photograph.
+
+    CHARACTER STYLE:
+
+    When children appear:
+
+    - use relatable school-age children around 10-12 years old
+    - natural facial features
+    - realistic proportions
+    - expressive but believable poses
+    - modern everyday clothing
+    - friendly and intelligent appearance
+    - never exaggerated cartoon proportions
+
+    When the same child appears in later images,
+    preserve the child's:
+
+    - approximate face and appearance
+    - age
+    - hairstyle
+    - clothing colors and design
+    - body proportions
+
+    OBJECT CONTINUITY:
+
+    When an important object appears again,
+    preserve its established visual identity.
+
+    For example, the same bicycle should maintain:
+
+    - frame design
+    - frame color
+    - wheel style
+    - proportions
+    - important recognizable details
+
+    VISUAL WORLD:
+
+    All lesson images should feel like consecutive scenes
+    from the SAME premium educational animated film.
+
+    They may show different actions, locations, camera angles
+    and compositions, but the artistic rendering must remain consistent.
 
     DO NOT create:
 
     - photography
     - photorealistic photography
+    - stock photography
+    - live-action imagery
+    - flat cartoons
+    - childish cartoons
+    - flat vector art
     - infographic
     - diagram
     - technical drawing
     - textbook page
-    - poster
-    - flat vector art
+    - educational poster
     - comic-book art
     - watercolor
+    - anime
     - 3D infographic
     - labeled educational chart
 
@@ -5516,16 +5572,16 @@ def generate_and_store_lesson_visual_image(
     - watermarks
     - arrows containing text
 
-    The educational concept must be communicated visually,
-    without written explanations.
-    """.strip()
+    Educational concepts must be communicated
+    through the visual scene itself.
 
-    final_generation_prompt = f"""
-    {LESSON_VISUAL_STYLE_LOCK}
+    IMPORTANT:
 
-    CURRENT EDUCATIONAL SCENE:
+    ILLUSTRATION STYLE is mandatory.
 
-    {generation_prompt}
+    Even when the scene describes a realistic situation,
+    render it as a premium semi-realistic digital illustration,
+    never as a photograph.
     """.strip()
 
     trigger_text = str(
