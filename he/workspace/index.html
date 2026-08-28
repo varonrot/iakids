@@ -17621,7 +17621,7 @@ async function loadLessonVisuals(
           שהפסקה שלה כבר רצה,
           מנסים להציג אותה עכשיו.
         */
- 
+
         /*
           כל התמונות מוכנות.
         */
@@ -18411,6 +18411,83 @@ console.log(
     }
   );
 
+/* =============================================
+   WAIT FOR ALL LESSON VISUALS
+   BEFORE STARTING THE EXPLANATION
+============================================= */
+
+console.log(
+  "WAITING FOR LESSON VISUALS BEFORE PLAYBACK:",
+  {
+    unitLessonId:
+      data.unit_lesson_id,
+
+    lessonPartsCount:
+      lessonParts.length
+  }
+);
+
+
+window.CURRENT_LESSON_VISUALS = [];
+
+
+const readyVisuals =
+  await loadLessonVisuals(
+    data.unit_lesson_id,
+    session
+  );
+
+
+console.log(
+  "LESSON VISUALS READY FOR PLAYBACK:",
+  {
+    expected:
+      lessonParts.length,
+
+    received:
+      Array.isArray(
+        readyVisuals
+      )
+        ? readyVisuals.length
+        : 0,
+
+    orders:
+      Array.isArray(
+        readyVisuals
+      )
+        ? readyVisuals.map(
+            item =>
+              item.order
+          )
+        : []
+  }
+);
+
+
+/*
+  לא מתחילים שיעור כאשר חסרה
+  תמונה לאחת הפסקאות.
+*/
+
+if(
+  !Array.isArray(
+    readyVisuals
+  )
+  ||
+  readyVisuals.length
+    <
+    lessonParts.length
+){
+
+  throw new Error(
+    `Lesson visuals are incomplete: `
+    +
+    `${readyVisuals?.length || 0}/`
+    +
+    `${lessonParts.length}`
+  );
+
+}
 
   /* =============================================
      פתיחת הרשאת שמע בדפדפן
