@@ -5248,7 +5248,7 @@ def generate_all_lesson_visuals_background(
                         len(image_visuals)
                 }
             )
-            
+
         print(
             "LESSON VISUAL GENERATION START:",
             {
@@ -8326,6 +8326,9 @@ def get_or_generate_unit_lesson_hero_image(
         body: UnitLessonRequest,
         authorization: str = Header(None)
 ):
+    MAX_RETRIES = 3
+    RETRY_DELAY_SECONDS = 0.7
+
     try:
 
         # =============================================
@@ -8349,17 +8352,95 @@ def get_or_generate_unit_lesson_hero_image(
 
         # =============================================
         # LOAD LESSON
+        # WITH RETRY
         # =============================================
 
-        unit_lesson = get_unit_lesson(
-            body.unit_lesson_id
-        )
+        unit_lesson = None
 
-        parent_lesson = get_learning_lesson(
-            unit_lesson[
-                "learning_lesson_id"
-            ]
-        )
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                unit_lesson = get_unit_lesson(
+                    body.unit_lesson_id
+                )
+
+                break
+
+            except HTTPException:
+                raise
+
+            except Exception as e:
+
+                print(
+                    "HERO GET UNIT LESSON RETRY:",
+                    {
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(e)
+                    }
+                )
+
+                if attempt >= MAX_RETRIES:
+                    raise
+
+                time.sleep(
+                    RETRY_DELAY_SECONDS
+                    * attempt
+                )
+
+        # =============================================
+        # PARENT LESSON
+        # WITH RETRY
+        # =============================================
+
+        parent_lesson = None
+
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                parent_lesson = get_learning_lesson(
+                    unit_lesson[
+                        "learning_lesson_id"
+                    ]
+                )
+
+                break
+
+            except HTTPException:
+                raise
+
+            except Exception as e:
+
+                print(
+                    "HERO GET PARENT LESSON RETRY:",
+                    {
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(e)
+                    }
+                )
+
+                if attempt >= MAX_RETRIES:
+                    raise
+
+                time.sleep(
+                    RETRY_DELAY_SECONDS
+                    * attempt
+                )
 
         # =============================================
         # GRADE SECURITY
@@ -8399,18 +8480,57 @@ def get_or_generate_unit_lesson_hero_image(
 
         # =============================================
         # CACHE CHECK
-        #
-        # קודם מנסים לקבל URL לקובץ קיים.
-        # אם הוא קיים — אין קריאת Gemini.
+        # WITH RETRY
         # =============================================
 
-        try:
+        signed_url = None
+        last_cache_error = None
 
-            signed_url = (
-                create_lesson_media_signed_url(
-                    storage_path
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                signed_url = (
+                    create_lesson_media_signed_url(
+                        storage_path
+                    )
                 )
-            )
+
+                break
+
+            except Exception as cache_error:
+
+                last_cache_error = cache_error
+
+                print(
+                    "LESSON HERO CACHE CHECK RETRY:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(cache_error)
+                    }
+                )
+
+                if attempt < MAX_RETRIES:
+
+                    time.sleep(
+                        RETRY_DELAY_SECONDS
+                        * attempt
+                    )
+
+        # =============================================
+        # CACHE HIT
+        # =============================================
+
+        if signed_url:
 
             print(
                 "LESSON HERO CACHE HIT:",
@@ -8437,20 +8557,22 @@ def get_or_generate_unit_lesson_hero_image(
                 }
             }
 
-        except Exception as cache_error:
+        # =============================================
+        # CACHE MISS
+        # =============================================
 
-            print(
-                "LESSON HERO CACHE MISS:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson["id"],
-                    "error":
-                        repr(cache_error)
-                }
-            )
+        print(
+            "LESSON HERO CACHE MISS:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+                "error":
+                    repr(last_cache_error)
+            }
+        )
 
         # =============================================
-        # GENERATE
+        # GENERATE HERO
         # =============================================
 
         hero_image = (
