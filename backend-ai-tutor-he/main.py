@@ -6987,28 +6987,18 @@ def get_or_generate_unit_lesson(
                 )
         ):
 
-            if audio_generation_status in (
-                    "pending",
-                    "failed"
-            ):
-                print(
-                    "QUEUE BACKGROUND AUDIO FROM CACHE:",
-                    {
-                        "unit_lesson_id": unit_lesson["id"],
-                        "audio_generation_status":
-                            audio_generation_status,
-                        "has_cached_audio":
-                            isinstance(cached_audio, dict)
-                    }
-                )
-
-            # תמיד לבדוק/לייצר את המדיה גם בשיעור מה-cache
-            background_tasks.add_task(
-                generate_unit_lesson_media_background,
-                unit_lesson["id"]
-            )
-
             response_audio = None
+
+            # =========================================
+            # TRY STORED AUDIO
+            #
+            # חשוב:
+            # ייתכן שב-DB האודיו מסומן ready,
+            # אבל הקבצים עצמם נמחקו מה-Storage.
+            #
+            # מצב כזה הוא CACHE MISS של המדיה בלבד.
+            # אסור להפיל בגללו את כל השיעור.
+            # =========================================
 
             if (
                     audio_generation_status == "ready"
@@ -7016,18 +7006,136 @@ def get_or_generate_unit_lesson(
                         cached_audio,
                         dict
                     )
-            ):
-                response_audio = (
-                    add_signed_urls_to_lesson_audio(
-                        cached_audio
+                    and cached_audio.get(
+                        "segments"
                     )
+            ):
+
+                try:
+
+                    response_audio = (
+                        add_signed_urls_to_lesson_audio(
+                            cached_audio
+                        )
+                    )
+
+                    print(
+                        "UNIT LESSON AUDIO CACHE HIT:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"]
+                        }
+                    )
+
+                except Exception as audio_cache_error:
+
+                    print(
+                        "UNIT LESSON AUDIO CACHE MISS:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "error":
+                                repr(
+                                    audio_cache_error
+                                )
+                        }
+                    )
+
+                    # ---------------------------------
+                    # ה-DB מצביע על קבצים שכבר אינם
+                    # קיימים ב-Storage.
+                    #
+                    # מאפסים רק את האודיו,
+                    # לא את תוכן השיעור.
+                    # ---------------------------------
+
+                    audio_generation_status = (
+                        "pending"
+                    )
+
+                    cached_audio = None
+
+                    sb.table(
+                        "lesson_units_content"
+                    ).update({
+
+                        "audio_generation_status":
+                            "pending",
+
+                        "lesson_audio_json":
+                            None,
+
+                        "audio_generation_error":
+                            None,
+
+                        "audio_generated_at":
+                            None,
+
+                        "tts_generated_at":
+                            None,
+
+                        "updated_at":
+                            datetime
+                            .now(timezone.utc)
+                            .isoformat()
+
+                    }).eq(
+                        "id",
+                        unit_lesson["id"]
+                    ).execute()
+
+            # =========================================
+            # MEDIA BACKGROUND
+            #
+            # אם אודיו חסר / נמחק / נכשל,
+            # מנגנון הרקע ישחזר אותו.
+            #
+            # מנגנון התמונות גם יבדוק את המדיה.
+            # =========================================
+
+            if (
+                    response_audio is None
+                    or audio_generation_status
+                    in (
+                        "pending",
+                        "failed"
+                    )
+            ):
+
+                print(
+                    "QUEUE BACKGROUND MEDIA FROM CACHE:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+
+                        "audio_generation_status":
+                            audio_generation_status,
+
+                        "has_cached_audio":
+                            isinstance(
+                                cached_audio,
+                                dict
+                            )
+                    }
                 )
+
+                background_tasks.add_task(
+                    generate_unit_lesson_media_background,
+                    unit_lesson["id"]
+                )
+
+            # =========================================
+            # RESPONSE
+            # =========================================
 
             return {
 
-                "success": True,
+                "success":
+                    True,
 
-                "source": "cache",
+                "source":
+                    "cache",
 
                 "unit_lesson_id":
                     unit_lesson["id"],
@@ -7055,17 +7163,21 @@ def get_or_generate_unit_lesson(
                     ),
 
                 "audio_generation_status":
-                    audio_generation_status,
+                    (
+                        "ready"
+                        if response_audio
+                        else "pending"
+                    ),
 
-                "audio_mode": (
-                    "stored"
-                    if response_audio
-                    else "background_generating"
-                ),
+                "audio_mode":
+                    (
+                        "stored"
+                        if response_audio
+                        else "background_generating"
+                    ),
 
                 "lesson_audio":
                     response_audio
-
             }
 
         # =============================================
@@ -7633,7 +7745,7 @@ def get_or_generate_unit_lesson(
             "UNIT LESSON GENERATION ERROR:",
             error_message
         )
-
+        traceback.print_exc()
         # =============================================
         # MARK AS FAILED
         # =============================================
