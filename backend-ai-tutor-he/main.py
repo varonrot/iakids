@@ -4692,6 +4692,21 @@ LESSON_MEDIA_BUCKET = "lesson-media"
 
 LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
 
+# =====================================================
+# UNIVERSAL LESSON TRANSITION VIDEO
+# =====================================================
+
+LESSON_TRANSITION_VIDEO_MODEL = (
+    "gemini-omni-1.1-flash"
+)
+
+LESSON_TRANSITION_TEACHER_PATH = (
+    "shared/teacher/"
+    "lesson-teacher-full-body.png"
+)
+
+LESSON_TRANSITION_VIDEO_TARGET_SECONDS = 20
+
 # בשלב הראשון נייצר רק Hero Image אחת לכל תת-שיעור
 LESSON_MEDIA_HERO_VERSION = 1
 
@@ -6338,6 +6353,665 @@ def generate_all_lesson_visuals_background(
 
         traceback.print_exc()
 
+# =====================================================
+# TRANSITION VIDEO
+# Teacher + lesson visual -> Gemini Omni
+# =====================================================
+
+def generate_transition_video_background(
+        unit_lesson_id: int
+):
+
+    try:
+
+        print(
+            "========== TRANSITION VIDEO START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id
+            }
+        )
+
+        # =============================================
+        # LOAD LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generated_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        transition = (
+            generated_json.get(
+                "transition"
+            )
+            or {}
+        )
+
+        if not transition:
+
+            print(
+                "TRANSITION VIDEO SKIPPED - "
+                "NO TRANSITION DATA:",
+                unit_lesson_id
+            )
+
+            return
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        # =============================================
+        # FINAL STORAGE PATH
+        # =============================================
+
+        video_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"transition/"
+            f"transition_part_1_to_2.mp4"
+        )
+
+        # =============================================
+        # CACHE CHECK
+        # =============================================
+
+        try:
+
+            create_lesson_media_signed_url(
+                video_storage_path
+            )
+
+            print(
+                "TRANSITION VIDEO CACHE HIT:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "storage_path":
+                        video_storage_path
+                }
+            )
+
+            return
+
+        except Exception:
+
+            print(
+                "TRANSITION VIDEO CACHE MISS:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id
+                }
+            )
+
+        # =============================================
+        # LOAD TEACHER REFERENCE
+        # =============================================
+
+        teacher_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                LESSON_TRANSITION_TEACHER_PATH
+            )
+        )
+
+        if not teacher_bytes:
+
+            raise RuntimeError(
+                "Transition teacher reference "
+                "is missing"
+            )
+
+        # =============================================
+        # LOAD LESSON MASTER VISUAL
+        #
+        # visual_1 defines the lesson visual world.
+        # =============================================
+
+        lesson_visual_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"visual_1.png"
+        )
+
+        lesson_visual_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                lesson_visual_path
+            )
+        )
+
+        if not lesson_visual_bytes:
+
+            raise RuntimeError(
+                "Transition lesson visual "
+                "reference is missing"
+            )
+
+        # =============================================
+        # TRANSITION CONTENT
+        # =============================================
+
+        speech = str(
+            transition.get(
+                "speech"
+            )
+            or ""
+        ).strip()
+
+        video_scene = str(
+            transition.get(
+                "video_scene"
+            )
+            or ""
+        ).strip()
+
+        next_part_hook = str(
+            transition.get(
+                "next_part_hook"
+            )
+            or ""
+        ).strip()
+
+        # =============================================
+        # VIDEO PROMPT
+        #
+        # IMAGE_REF_0 = teacher identity
+        # IMAGE_REF_1 = lesson visual world/style
+        #
+        # No dialogue:
+        # we keep Gemini TTS as the teacher voice.
+        # =============================================
+
+        video_prompt = f"""
+[# References
+<IMAGE_REF_0>@Image1
+<IMAGE_REF_1>@Image2]
+
+Create a premium educational transition video.
+
+REFERENCE ROLES:
+
+IMAGE_REF_0 is the permanent IAKIDS virtual teacher.
+Preserve her identity, face, hair, clothing,
+body proportions and overall appearance.
+
+IMAGE_REF_1 defines the visual world,
+illustration style, lighting, colors,
+environment and rendering style of this lesson.
+
+Place the teacher naturally INSIDE
+the educational world represented by IMAGE_REF_1.
+
+The teacher must look like she genuinely belongs
+inside the same illustrated lesson scene.
+
+TRANSITION SCENE:
+
+{video_scene}
+
+EDUCATIONAL CONTEXT OF WHAT SHE IS PRESENTING:
+
+{speech}
+
+BRIDGE TOWARD THE NEXT PART:
+
+{next_part_hook}
+
+VIDEO DIRECTION:
+
+- premium semi-realistic educational illustration
+- match IMAGE_REF_1's exact visual style
+- preserve IMAGE_REF_0's teacher identity
+- natural teacher body language
+- warm facial expression
+- subtle hand gestures while explaining
+- look naturally toward the learner/camera
+- medium-wide or full-body composition
+- single continuous educational scene
+- smooth natural movement
+- no scene cuts unless absolutely necessary
+- no written text
+- no captions
+- no labels
+- no logos
+- no UI elements
+- no watermark text
+- NO SPOKEN DIALOGUE
+- NO GENERATED SPEECH
+- only very subtle natural ambient sound if needed
+
+This video will later receive
+the permanent IAKIDS Gemini TTS teacher voice.
+
+Use the given images only as references.
+Do not display them as flat pictures inside the video.
+""".strip()
+
+        # =============================================
+        # BASE64 REFERENCES
+        # =============================================
+
+        teacher_b64 = (
+            base64.b64encode(
+                teacher_bytes
+            )
+            .decode("utf-8")
+        )
+
+        lesson_visual_b64 = (
+            base64.b64encode(
+                lesson_visual_bytes
+            )
+            .decode("utf-8")
+        )
+
+        # =============================================
+        # FIRST 10-SECOND VIDEO
+        # =============================================
+
+        print(
+            "TRANSITION VIDEO GEMINI PART 1:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "teacher_bytes":
+                    len(teacher_bytes),
+
+                "lesson_reference_bytes":
+                    len(lesson_visual_bytes)
+            }
+        )
+
+        first_interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                input=[
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            teacher_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            lesson_visual_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "text",
+
+                        "text":
+                            video_prompt
+                    }
+                ],
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        if not getattr(
+                first_interaction,
+                "id",
+                None
+        ):
+
+            raise RuntimeError(
+                "Gemini returned no transition "
+                "interaction id"
+            )
+
+        # =============================================
+        # EXTEND TO ~20 SECONDS
+        #
+        # Omni can extend generated video
+        # using previous_interaction_id.
+        # =============================================
+
+        print(
+            "TRANSITION VIDEO GEMINI EXTEND:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "previous_interaction_id":
+                    first_interaction.id
+            }
+        )
+
+        second_interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                previous_interaction_id=
+                    first_interaction.id,
+
+                input=(
+                    "Extend this same educational scene "
+                    "for approximately 10 more seconds. "
+                    "Keep exactly the same teacher, "
+                    "environment, illustration style, "
+                    "lighting and camera continuity. "
+                    "The teacher continues natural warm "
+                    "presentation gestures and finishes "
+                    "with a subtle inviting gesture "
+                    "toward the next part of the lesson. "
+                    "No dialogue. No speech. "
+                    "No written text."
+                ),
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        output_video = getattr(
+            second_interaction,
+            "output_video",
+            None
+        )
+
+        if output_video is None:
+
+            raise RuntimeError(
+                "Gemini returned no "
+                "transition video"
+            )
+
+        video_uri = getattr(
+            output_video,
+            "uri",
+            None
+        )
+
+        # =============================================
+        # WAIT UNTIL GOOGLE VIDEO FILE READY
+        # =============================================
+
+        if video_uri:
+
+            file_name = (
+                str(video_uri)
+                .split("/")[-1]
+            )
+
+            # remove :download?... if present
+            file_name = (
+                file_name
+                .split(":")[0]
+                .split("?")[0]
+            )
+
+            print(
+                "TRANSITION VIDEO WAITING:",
+                {
+                    "file_name":
+                        file_name
+                }
+            )
+
+            for _ in range(60):
+
+                file_info = (
+                    gemini_client
+                    .files
+                    .get(
+                        name=
+                            f"files/{file_name}"
+                    )
+                )
+
+                state = str(
+                    getattr(
+                        getattr(
+                            file_info,
+                            "state",
+                            None
+                        ),
+                        "name",
+                        ""
+                    )
+                    or ""
+                ).upper()
+
+                if state == "ACTIVE":
+                    break
+
+                if state == "FAILED":
+
+                    raise RuntimeError(
+                        "Gemini transition video "
+                        "processing failed"
+                    )
+
+                time.sleep(5)
+
+            video_bytes = (
+                gemini_client
+                .files
+                .download(
+                    file=video_uri
+                )
+            )
+
+        else:
+
+            # fallback for inline output
+            inline_data = getattr(
+                output_video,
+                "data",
+                None
+            )
+
+            if not inline_data:
+
+                raise RuntimeError(
+                    "Gemini transition video "
+                    "contains no data"
+                )
+
+            if isinstance(
+                    inline_data,
+                    str
+            ):
+
+                video_bytes = (
+                    base64.b64decode(
+                        inline_data
+                    )
+                )
+
+            else:
+
+                video_bytes = bytes(
+                    inline_data
+                )
+
+        if not video_bytes:
+
+            raise RuntimeError(
+                "Downloaded transition video "
+                "is empty"
+            )
+
+        # =============================================
+        # STORE IN SUPABASE
+        # =============================================
+
+        sb.storage.from_(
+            LESSON_MEDIA_BUCKET
+        ).upload(
+
+            path=
+                video_storage_path,
+
+            file=
+                video_bytes,
+
+            file_options={
+                "content-type":
+                    "video/mp4",
+
+                "upsert":
+                    "true"
+            }
+        )
+
+        # =============================================
+        # SAVE METADATA INTO GENERATED LESSON JSON
+        # =============================================
+
+        transition[
+            "video"
+        ] = {
+
+            "status":
+                "ready",
+
+            "provider":
+                "google",
+
+            "model":
+                LESSON_TRANSITION_VIDEO_MODEL,
+
+            "bucket":
+                LESSON_MEDIA_BUCKET,
+
+            "storage_path":
+                video_storage_path,
+
+            "mime_type":
+                "video/mp4",
+
+            "aspect_ratio":
+                "16:9",
+
+            "resolution":
+                "720p",
+
+            "target_duration_seconds":
+                LESSON_TRANSITION_VIDEO_TARGET_SECONDS,
+
+            "generated_at":
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+        }
+
+        generated_json[
+            "transition"
+        ] = transition
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                generated_json,
+
+            "updated_at":
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+
+        }).eq(
+            "id",
+            unit_lesson_id
+        ).execute()
+
+        print(
+            "========== TRANSITION VIDEO READY ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "storage_path":
+                    video_storage_path,
+
+                "bytes":
+                    len(video_bytes)
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "========== TRANSITION VIDEO ERROR ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
 def generate_unit_lesson_media_background(
         unit_lesson_id: int
 ):
@@ -6366,6 +7040,34 @@ def generate_unit_lesson_media_background(
         try:
             visuals_future.result()
 
+        # =============================================
+        # TRANSITION VIDEO
+        #
+        # מתחיל רק אחרי שהתמונות מוכנות,
+        # כי visual_1 משמש כ-reference.
+        # =============================================
+
+        try:
+
+            generate_transition_video_background(
+                unit_lesson_id
+            )
+
+        except Exception as e:
+
+            print(
+                "LESSON TRANSITION VIDEO BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
+            
         except Exception as e:
             print(
                 "LESSON VISUALS BACKGROUND FAILED:",
@@ -9370,7 +10072,7 @@ def get_or_generate_unit_lesson(
                 lesson_json.get(
                     "transition"
                 ),
-            
+
             "audio_generation_status":
                 "pending",
 
