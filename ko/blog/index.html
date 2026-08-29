@@ -1,0 +1,1781 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>AI 공부 · 초등 학습 가이드 | IAKIDS 블로그</title>
+
+<meta name="description"
+content="AI 공부, 수학 AI, 초등수학, 초등 영어, 과외, AI 튜터까지. 아이가 답만 얻는 것이 아니라 이해하고 연습하며 스스로 학습할 수 있도록 돕는 IAKIDS 학습 가이드입니다.">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://iakids.app/ko/blog/">
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/favicon.ico">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://iakids.app/ko/blog/">
+<meta property="og:title" content="AI 공부 · 초등 학습 가이드 | IAKIDS 블로그">
+<meta property="og:description"
+content="AI 공부부터 수학, 영어, 과외, AI 튜터까지. 초등학생과 학부모를 위한 실용적인 학습 가이드를 만나보세요.">
+<meta property="og:image" content="https://iakids.app/assets/ko/blog/ai-study.webp">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI 공부 · 초등 학습 가이드 | IAKIDS">
+<meta name="twitter:description"
+content="AI 공부, 수학 AI, 초등수학, 초등 영어, 과외와 AI 튜터에 대한 학습 가이드입니다.">
+<meta name="twitter:image" content="https://iakids.app/assets/ko/blog/ai-study.webp">
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"CollectionPage",
+  "name":"IAKIDS 한국어 학습 블로그",
+  "description":"AI 공부, 수학 AI, 초등수학, 초등 영어, 과외 및 AI 튜터에 대한 학습 가이드",
+  "url":"https://iakids.app/ko/blog/",
+  "inLanguage":"ko-KR",
+  "isPartOf":{
+    "@type":"WebSite",
+    "name":"IAKIDS",
+    "url":"https://iakids.app/ko/"
+  },
+  "publisher":{
+    "@type":"Organization",
+    "name":"IAKIDS",
+    "url":"https://iakids.app/ko/"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"ItemList",
+  "name":"IAKIDS 주요 학습 주제",
+  "itemListElement":[
+    {
+      "@type":"ListItem",
+      "position":1,
+      "name":"AI 공부",
+      "url":"https://iakids.app/ko/blog/ai-study/"
+    },
+    {
+      "@type":"ListItem",
+      "position":2,
+      "name":"수학 AI",
+      "url":"https://iakids.app/ko/blog/ai-math/"
+    },
+    {
+      "@type":"ListItem",
+      "position":3,
+      "name":"초등수학",
+      "url":"https://iakids.app/ko/blog/elementary-math/"
+    },
+    {
+      "@type":"ListItem",
+      "position":4,
+      "name":"초등 영어",
+      "url":"https://iakids.app/ko/blog/elementary-english/"
+    },
+    {
+      "@type":"ListItem",
+      "position":5,
+      "name":"과외",
+      "url":"https://iakids.app/ko/blog/tutoring/"
+    },
+    {
+      "@type":"ListItem",
+      "position":6,
+      "name":"AI 튜터",
+      "url":"https://iakids.app/ko/blog/ai-tutor/"
+    }
+  ]
+}
+</script>
+
+<style>
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:clip;
+}
+
+body{
+  margin:0;
+  width:100%;
+  max-width:100%;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans KR",
+    Arial,
+    sans-serif;
+  color:#172033;
+  background:#fff;
+  word-break:keep-all;
+}
+
+img,
+video,
+iframe{
+  max-width:100%;
+  height:auto;
+}
+
+a{
+  color:#2563eb;
+  text-decoration:none;
+}
+
+a:hover{
+  text-decoration:none;
+}
+
+
+/* HEADER */
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #e8edf4;
+  backdrop-filter:blur(10px);
+}
+
+.topbar-inner{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.logo{
+  color:#2563eb;
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-.5px;
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-left:auto;
+  font-size:15px;
+  font-weight:700;
+}
+
+.nav a{
+  color:#334155;
+}
+
+.nav a:hover{
+  color:#2563eb;
+}
+
+.nav-cta{
+  color:#fff!important;
+  padding:10px 18px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+
+/* HERO */
+
+.hero{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:72px 22px 40px;
+}
+
+.breadcrumb{
+  margin-bottom:23px;
+  color:#64748b;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.breadcrumb a{
+  color:#64748b;
+}
+
+.hero-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:20px;
+  padding:8px 14px;
+  border-radius:999px;
+  color:#2563eb;
+  background:#eff6ff;
+  font-size:14px;
+  font-weight:800;
+}
+
+.hero-tag-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#22c55e;
+}
+
+.hero h1{
+  max-width:950px;
+  margin:0 0 24px;
+  color:#101828;
+  font-size:clamp(42px,6vw,68px);
+  line-height:1.12;
+  letter-spacing:-2px;
+}
+
+.hero h1 span{
+  color:#2563eb;
+}
+
+.hero-lead{
+  max-width:830px;
+  margin:0;
+  color:#526077;
+  font-size:20px;
+  line-height:1.85;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:13px;
+  margin-top:30px;
+}
+
+.primary-button,
+.secondary-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:48px;
+  padding:12px 21px;
+  border-radius:999px;
+  font-size:15px;
+  font-weight:850;
+}
+
+.primary-button{
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  box-shadow:0 10px 25px rgba(37,99,235,.16);
+}
+
+.secondary-button{
+  color:#334155;
+  border:1px solid #dbe3ee;
+  background:#fff;
+}
+
+.hero-image{
+  width:min(1200px,100%);
+  margin:20px auto 0;
+  padding:0 22px;
+}
+
+.hero-image img{
+  display:block;
+  width:100%;
+  max-height:520px;
+  object-fit:cover;
+  border-radius:26px;
+}
+
+
+/* MAIN */
+
+.main{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:72px 22px 95px;
+}
+
+.section-heading{
+  max-width:760px;
+  margin-bottom:35px;
+}
+
+.section-kicker{
+  display:block;
+  margin-bottom:9px;
+  color:#2563eb;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+
+.section-heading h2{
+  margin:0 0 14px;
+  color:#101828;
+  font-size:36px;
+  line-height:1.25;
+  letter-spacing:-1px;
+}
+
+.section-heading p{
+  margin:0;
+  color:#64748b;
+  font-size:17px;
+  line-height:1.8;
+}
+
+
+/* FEATURED */
+
+.featured{
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);
+  gap:25px;
+  margin-bottom:80px;
+}
+
+.featured-main{
+  position:relative;
+  min-width:0;
+  padding:38px;
+  overflow:hidden;
+  border:1px solid #bfdbfe;
+  border-radius:26px;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(34,197,94,.16),transparent 32%),
+    linear-gradient(135deg,#eff6ff,#fff);
+}
+
+.featured-main:after{
+  content:"AI";
+  position:absolute;
+  right:-12px;
+  bottom:-35px;
+  color:rgba(37,99,235,.055);
+  font-size:170px;
+  line-height:1;
+  font-weight:950;
+}
+
+.featured-label{
+  display:inline-flex;
+  margin-bottom:17px;
+  padding:7px 12px;
+  border-radius:999px;
+  color:#166534;
+  background:#dcfce7;
+  font-size:12px;
+  font-weight:900;
+}
+
+.featured-main h2{
+  position:relative;
+  z-index:1;
+  margin:0 0 15px;
+  color:#101828;
+  font-size:35px;
+  line-height:1.25;
+}
+
+.featured-main p{
+  position:relative;
+  z-index:1;
+  max-width:630px;
+  margin:0 0 23px;
+  color:#526077;
+  font-size:17px;
+  line-height:1.8;
+}
+
+.featured-link{
+  position:relative;
+  z-index:1;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:#2563eb;
+  font-weight:900;
+}
+
+.featured-side{
+  display:grid;
+  gap:18px;
+}
+
+.mini-card{
+  min-width:0;
+  padding:25px;
+  border:1px solid #e2e8f0;
+  border-radius:22px;
+  background:#fff;
+  transition:.2s ease;
+}
+
+.mini-card:hover{
+  transform:translateY(-3px);
+  border-color:#bfdbfe;
+  box-shadow:0 15px 35px rgba(15,23,42,.06);
+}
+
+.mini-card span{
+  display:block;
+  margin-bottom:8px;
+  color:#2563eb;
+  font-size:12px;
+  font-weight:900;
+}
+
+.mini-card h3{
+  margin:0 0 8px;
+  color:#172033;
+  font-size:21px;
+}
+
+.mini-card p{
+  margin:0;
+  color:#64748b;
+  font-size:15px;
+  line-height:1.65;
+}
+
+
+/* CLUSTERS */
+
+.cluster-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:22px;
+  margin-bottom:85px;
+}
+
+.cluster-card{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  padding:28px;
+  border:1px solid #e2e8f0;
+  border-radius:23px;
+  background:#fff;
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+.cluster-card:hover{
+  transform:translateY(-4px);
+  border-color:#bfdbfe;
+  box-shadow:0 18px 40px rgba(15,23,42,.07);
+}
+
+.cluster-icon{
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:20px;
+  border-radius:16px;
+  background:#eff6ff;
+  font-size:25px;
+}
+
+.cluster-card:nth-child(2) .cluster-icon{
+  background:#f0fdf4;
+}
+
+.cluster-card:nth-child(3) .cluster-icon{
+  background:#fff7ed;
+}
+
+.cluster-card:nth-child(4) .cluster-icon{
+  background:#fdf4ff;
+}
+
+.cluster-card:nth-child(5) .cluster-icon{
+  background:#fefce8;
+}
+
+.cluster-card:nth-child(6) .cluster-icon{
+  background:#eef2ff;
+}
+
+.cluster-card h3{
+  margin:0 0 10px;
+  color:#101828;
+  font-size:23px;
+  line-height:1.3;
+}
+
+.cluster-card p{
+  margin:0 0 20px;
+  color:#64748b;
+  font-size:15.5px;
+  line-height:1.75;
+}
+
+.cluster-keywords{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-bottom:23px;
+}
+
+.keyword{
+  padding:6px 9px;
+  border-radius:8px;
+  color:#475569;
+  background:#f8fafc;
+  font-size:12px;
+  font-weight:700;
+}
+
+.cluster-link{
+  margin-top:auto;
+  color:#2563eb;
+  font-size:15px;
+  font-weight:900;
+}
+
+
+/* HOW WE LEARN */
+
+.learning-section{
+  margin-bottom:85px;
+  padding:48px;
+  border-radius:28px;
+  background:#f8fafc;
+}
+
+.learning-grid{
+  display:grid;
+  grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);
+  gap:55px;
+  align-items:center;
+}
+
+.learning-copy h2{
+  margin:0 0 17px;
+  color:#101828;
+  font-size:35px;
+  line-height:1.3;
+}
+
+.learning-copy p{
+  margin:0;
+  color:#64748b;
+  font-size:17px;
+  line-height:1.8;
+}
+
+.learning-steps{
+  display:grid;
+  gap:13px;
+}
+
+.learning-step{
+  display:grid;
+  grid-template-columns:45px minmax(0,1fr);
+  gap:15px;
+  align-items:center;
+  padding:17px 19px;
+  border:1px solid #e2e8f0;
+  border-radius:17px;
+  background:#fff;
+}
+
+.step-number{
+  width:45px;
+  height:45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:13px;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  font-size:15px;
+  font-weight:900;
+}
+
+.learning-step strong{
+  display:block;
+  margin-bottom:3px;
+  color:#172033;
+  font-size:16px;
+}
+
+.learning-step span{
+  color:#64748b;
+  font-size:14px;
+  line-height:1.5;
+}
+
+
+/* POPULAR */
+
+.popular-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  margin-bottom:85px;
+}
+
+.article-card{
+  display:grid;
+  grid-template-columns:50px minmax(0,1fr);
+  gap:17px;
+  align-items:start;
+  padding:23px;
+  border:1px solid #e2e8f0;
+  border-radius:19px;
+  background:#fff;
+  transition:.2s ease;
+}
+
+.article-card:hover{
+  border-color:#bfdbfe;
+  box-shadow:0 12px 30px rgba(15,23,42,.05);
+}
+
+.article-number{
+  width:50px;
+  height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  color:#2563eb;
+  background:#eff6ff;
+  font-size:14px;
+  font-weight:900;
+}
+
+.article-card h3{
+  margin:0 0 7px;
+  color:#172033;
+  font-size:18px;
+  line-height:1.45;
+}
+
+.article-card p{
+  margin:0;
+  color:#64748b;
+  font-size:14px;
+  line-height:1.6;
+}
+
+
+/* PARENTS */
+
+.parent-box{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:40px;
+  align-items:center;
+  margin-bottom:80px;
+  padding:38px 42px;
+  border:1px solid #bbf7d0;
+  border-radius:25px;
+  background:linear-gradient(135deg,#f0fdf4,#fff);
+}
+
+.parent-box h2{
+  margin:0 0 11px;
+  color:#101828;
+  font-size:29px;
+}
+
+.parent-box p{
+  max-width:730px;
+  margin:0;
+  color:#64748b;
+  font-size:16px;
+  line-height:1.75;
+}
+
+.parent-badge{
+  width:92px;
+  height:92px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#dcfce7;
+  font-size:40px;
+}
+
+
+/* CTA */
+
+.final-cta{
+  position:relative;
+  overflow:hidden;
+  padding:55px 35px;
+  border-radius:29px;
+  text-align:center;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.final-cta:before{
+  content:"";
+  position:absolute;
+  width:280px;
+  height:280px;
+  left:-100px;
+  top:-150px;
+  border-radius:50%;
+  background:rgba(255,255,255,.09);
+}
+
+.final-cta:after{
+  content:"";
+  position:absolute;
+  width:250px;
+  height:250px;
+  right:-90px;
+  bottom:-160px;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+}
+
+.final-cta h2{
+  position:relative;
+  z-index:1;
+  max-width:750px;
+  margin:0 auto 14px;
+  color:#fff;
+  font-size:35px;
+  line-height:1.3;
+}
+
+.final-cta p{
+  position:relative;
+  z-index:1;
+  max-width:680px;
+  margin:0 auto 25px;
+  color:#fff;
+  opacity:.96;
+  font-size:17px;
+  line-height:1.75;
+}
+
+.final-cta a{
+  position:relative;
+  z-index:1;
+  display:inline-block;
+  padding:13px 24px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  font-weight:900;
+}
+
+
+/* BACK TO TOP */
+
+.back-to-top{
+  position:fixed;
+  right:28px;
+  bottom:28px;
+  z-index:2000;
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:50%;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  font-size:24px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 10px 30px rgba(37,99,235,.24);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(12px);
+  transition:.22s ease;
+}
+
+.back-to-top.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+
+
+/* FOOTER */
+
+footer{
+  width:100%;
+  padding:35px 22px;
+  border-top:1px solid #e8edf4;
+  color:#64748b;
+}
+
+.footer-inner{
+  width:min(1200px,100%);
+  margin:0 auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  font-size:14px;
+}
+
+
+/* MOBILE */
+
+@media(max-width:900px){
+
+  html,
+  body{
+    overflow-x:hidden;
+  }
+
+  .topbar-inner{
+    padding:12px 18px;
+    gap:12px;
+  }
+
+  .logo{
+    flex-shrink:0;
+    font-size:22px;
+  }
+
+  .nav{
+    margin-left:auto;
+  }
+
+  .nav a:not(.nav-cta){
+    display:none;
+  }
+
+  .nav-cta{
+    display:block;
+    padding:10px 16px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+
+  .hero{
+    width:100%;
+    max-width:100%;
+    padding:42px 20px 25px;
+  }
+
+  .breadcrumb{
+    font-size:13px;
+    overflow-wrap:anywhere;
+  }
+
+  .hero h1{
+    width:100%;
+    max-width:100%;
+    font-size:clamp(36px,9vw,50px);
+    line-height:1.18;
+    letter-spacing:-1px;
+    overflow-wrap:break-word;
+  }
+
+  .hero-lead{
+    width:100%;
+    max-width:100%;
+    font-size:18px;
+    line-height:1.8;
+  }
+
+  .hero-image{
+    width:100%;
+    max-width:100%;
+    padding:0 20px;
+    margin-top:20px;
+  }
+
+  .hero-image img{
+    width:100%;
+    height:auto;
+    max-height:none;
+    border-radius:20px;
+  }
+
+  .main{
+    width:100%;
+    max-width:100%;
+    padding:55px 20px 75px;
+  }
+
+  .featured{
+    grid-template-columns:1fr;
+  }
+
+  .featured-main{
+    width:100%;
+    min-width:0;
+  }
+
+  .cluster-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .learning-section{
+    padding:35px 28px;
+  }
+
+  .learning-grid{
+    grid-template-columns:1fr;
+    gap:30px;
+  }
+
+  .parent-box{
+    grid-template-columns:1fr;
+  }
+
+  .parent-badge{
+    display:none;
+  }
+}
+
+
+@media(max-width:600px){
+
+  .topbar-inner{
+    padding:10px 16px;
+  }
+
+  .logo{
+    font-size:21px;
+  }
+
+  .nav-cta{
+    padding:9px 14px;
+    font-size:13px;
+  }
+
+  .hero{
+    padding:34px 18px 20px;
+  }
+
+  .hero-tag{
+    font-size:12px;
+  }
+
+  .hero h1{
+    font-size:36px;
+    line-height:1.18;
+    letter-spacing:-.7px;
+  }
+
+  .hero-lead{
+    font-size:17px;
+    line-height:1.75;
+  }
+
+  .hero-actions{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .primary-button,
+  .secondary-button{
+    width:100%;
+  }
+
+  .hero-image{
+    padding:0 18px;
+  }
+
+  .hero-image img{
+    border-radius:18px;
+  }
+
+  .main{
+    padding:48px 18px 65px;
+  }
+
+  .section-heading h2{
+    font-size:29px;
+  }
+
+  .section-heading p{
+    font-size:16px;
+  }
+
+  .featured-main{
+    padding:28px 23px;
+  }
+
+  .featured-main h2{
+    font-size:28px;
+  }
+
+  .featured-main:after{
+    font-size:120px;
+  }
+
+  .cluster-grid{
+    grid-template-columns:1fr;
+  }
+
+  .cluster-card{
+    padding:25px 22px;
+  }
+
+  .learning-section{
+    padding:30px 21px;
+  }
+
+  .learning-copy h2{
+    font-size:28px;
+  }
+
+  .learning-copy p{
+    font-size:16px;
+  }
+
+  .learning-step{
+    grid-template-columns:42px minmax(0,1fr);
+    padding:15px;
+  }
+
+  .step-number{
+    width:42px;
+    height:42px;
+  }
+
+  .popular-grid{
+    grid-template-columns:1fr;
+  }
+
+  .article-card{
+    grid-template-columns:44px minmax(0,1fr);
+    padding:19px;
+  }
+
+  .article-number{
+    width:44px;
+    height:44px;
+  }
+
+  .parent-box{
+    padding:28px 22px;
+  }
+
+  .parent-box h2{
+    font-size:26px;
+  }
+
+  .final-cta{
+    padding:40px 23px;
+  }
+
+  .final-cta h2{
+    font-size:28px;
+  }
+
+  .final-cta p{
+    font-size:16px;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+  }
+
+  .back-to-top{
+    right:16px;
+    bottom:16px;
+    width:46px;
+    height:46px;
+    font-size:21px;
+  }
+}
+
+
+@media(max-width:380px){
+
+  .hero,
+  .main{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero-image{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero h1{
+    font-size:32px;
+  }
+
+  .nav-cta{
+    padding:8px 11px;
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+
+<header class="topbar">
+<div class="topbar-inner">
+
+<a href="/ko/" class="logo">iakids</a>
+
+<nav class="nav">
+<a href="/ko/blog/">학습 블로그</a>
+<a href="/ko/blog/ai-study/">AI 공부</a>
+<a href="/ko/blog/ai-math/">수학 AI</a>
+<a href="/ko/blog/elementary-math/">초등수학</a>
+<a href="/ko/" class="nav-cta">IAKIDS 시작하기</a>
+</nav>
+
+</div>
+</header>
+
+
+<section class="hero">
+
+<div class="breadcrumb">
+<a href="/ko/">IAKIDS</a>
+&nbsp;›&nbsp;
+학습 블로그
+</div>
+
+<div class="hero-tag">
+<span class="hero-tag-dot"></span>
+초등학생과 학부모를 위한 학습 가이드
+</div>
+
+<h1>
+아이의 <span>공부</span>를 돕는<br>
+더 좋은 방법을 찾아보세요
+</h1>
+
+<p class="hero-lead">
+AI 공부, 수학, 영어, 과외와 AI 튜터까지.
+IAKIDS 블로그는 아이가 단순히 정답을 받는 것이 아니라
+개념을 이해하고, 직접 답하고, 실수에서 배우며
+스스로 학습하는 방법을 다룹니다.
+</p>
+
+<div class="hero-actions">
+
+<a class="primary-button"
+href="/ko/blog/ai-study/">
+AI 공부 알아보기 →
+</a>
+
+<a class="secondary-button"
+href="/ko/blog/elementary-math/">
+초등 학습 가이드 보기
+</a>
+
+</div>
+
+</section>
+
+
+<div class="hero-image">
+<img
+src="/assets/ko/blog/ai-study.webp"
+alt="AI를 활용해 공부하는 초등학생"
+loading="eager"
+width="1200"
+height="675">
+</div>
+
+
+<main class="main">
+
+
+<section>
+
+<div class="section-heading">
+<span class="section-kicker">먼저 읽어보세요</span>
+
+<h2>AI는 아이의 공부를 어떻게 도울 수 있을까요?</h2>
+
+<p>
+AI를 공부에 사용하는 목적은
+숙제를 대신 해결하는 것이 아닙니다.
+아이에게 필요한 설명을 제공하고,
+질문을 던지고,
+연습할 기회를 만들며
+실제로 이해했는지 확인하는 데 활용할 수 있습니다.
+</p>
+</div>
+
+
+<div class="featured">
+
+<a href="/ko/blog/ai-study/" class="featured-main">
+
+<span class="featured-label">가장 먼저 추천하는 주제</span>
+
+<h2>공부 AI</h2>
+
+<p>
+공부 AI란 무엇인지,
+학생이 AI를 올바르게 활용하는 방법,
+ChatGPT와 학습용 AI의 차이,
+그리고 AI가 실제 학습 과정에서
+어떤 역할을 할 수 있는지 알아보세요.
+</p>
+
+<span class="featured-link">
+공부 AI 가이드 보기 →
+</span>
+
+</a>
+
+
+<div class="featured-side">
+
+<a href="/ko/blog/ai-math/" class="mini-card">
+<span>수학 + AI</span>
+<h3>수학 AI</h3>
+<p>
+정답보다 풀이 과정을 이해하고
+단계별로 수학을 연습하는 방법을 알아봅니다.
+</p>
+</a>
+
+<a href="/ko/blog/ai-tutor/" class="mini-card">
+<span>개인화된 학습 지원</span>
+<h3>AI 튜터</h3>
+<p>
+학생의 답변에 따라
+질문과 설명을 조정하는
+AI 튜터의 학습 방식을 알아봅니다.
+</p>
+</a>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section>
+
+<div class="section-heading">
+
+<span class="section-kicker">학습 주제</span>
+
+<h2>무엇을 공부하고 싶나요?</h2>
+
+<p>
+AI 활용법부터 초등 수학과 영어,
+과외 선택까지
+필요한 주제에서 시작해 보세요.
+</p>
+
+</div>
+
+
+<div class="cluster-grid">
+
+
+<a href="/ko/blog/ai-study/" class="cluster-card">
+
+<div class="cluster-icon">✨</div>
+
+<h3>공부 AI</h3>
+
+<p>
+AI를 공부에 어떻게 활용해야 하는지,
+학생에게 어떤 도움을 줄 수 있는지
+기초부터 알아봅니다.
+</p>
+
+<div class="cluster-keywords">
+<span class="keyword">공부 AI</span>
+<span class="keyword">학습 AI</span>
+<span class="keyword">AI 학습</span>
+</div>
+
+<span class="cluster-link">
+공부 AI 알아보기 →
+</span>
+
+</a>
+
+
+<a href="/ko/blog/ai-math/" class="cluster-card">
+
+<div class="cluster-icon">➗</div>
+
+<h3>수학 AI</h3>
+
+<p>
+수학 문제의 답만 확인하는 것이 아니라
+풀이 과정과 개념을 이해하도록
+AI를 활용하는 방법을 다룹니다.
+</p>
+
+<div class="cluster-keywords">
+<span class="keyword">수학 AI</span>
+<span class="keyword">AI 수학</span>
+<span class="keyword">인공지능 수학</span>
+</div>
+
+<span class="cluster-link">
+수학 AI 알아보기 →
+</span>
+
+</a>
+
+
+<a href="/ko/blog/elementary-math/" class="cluster-card">
+
+<div class="cluster-icon">📐</div>
+
+<h3>초등수학</h3>
+
+<p>
+초등학생이 꼭 이해해야 할
+수학 개념과 학년별 학습,
+자주 어려워하는 부분을 살펴봅니다.
+</p>
+
+<div class="cluster-keywords">
+<span class="keyword">초등수학</span>
+<span class="keyword">초등학생 수학</span>
+<span class="keyword">학년별 수학</span>
+</div>
+
+<span class="cluster-link">
+초등수학 가이드 →
+</span>
+
+</a>
+
+
+<a href="/ko/blog/elementary-english/" class="cluster-card">
+
+<div class="cluster-icon">📚</div>
+
+<h3>초등 영어</h3>
+
+<p>
+영어 읽기,
+어휘,
+이해력과 학년별 연습을 통해
+초등학생의 영어 학습을 돕는 방법을 알아봅니다.
+</p>
+
+<div class="cluster-keywords">
+<span class="keyword">초등 영어</span>
+<span class="keyword">초등 영어 읽기</span>
+<span class="keyword">AI 영어</span>
+</div>
+
+<span class="cluster-link">
+초등 영어 가이드 →
+</span>
+
+</a>
+
+
+<a href="/ko/blog/tutoring/" class="cluster-card">
+
+<div class="cluster-icon">👩‍🏫</div>
+
+<h3>과외</h3>
+
+<p>
+개인 과외,
+온라인 과외,
+AI 튜터의 차이를 살펴보고
+아이에게 필요한 학습 지원을 비교합니다.
+</p>
+
+<div class="cluster-keywords">
+<span class="keyword">과외</span>
+<span class="keyword">온라인 과외</span>
+<span class="keyword">초등학생 과외</span>
+</div>
+
+<span class="cluster-link">
+과외 가이드 →
+</span>
+
+</a>
+
+
+<a href="/ko/blog/ai-tutor/" class="cluster-card">
+
+<div class="cluster-icon">🤖</div>
+
+<h3>AI 튜터</h3>
+
+<p>
+AI가 질문을 던지고,
+답변을 분석하며,
+학생의 수준에 맞게
+다음 학습 단계를 조정하는 방법을 알아봅니다.
+</p>
+
+<div class="cluster-keywords">
+<span class="keyword">AI 튜터</span>
+<span class="keyword">수준별 학습</span>
+<span class="keyword">맞춤형 학습</span>
+</div>
+
+<span class="cluster-link">
+AI 튜터 알아보기 →
+</span>
+
+</a>
+
+
+</div>
+
+</section>
+
+
+<section class="learning-section">
+
+<div class="learning-grid">
+
+<div class="learning-copy">
+
+<span class="section-kicker">IAKIDS 학습 방식</span>
+
+<h2>
+정답을 보여주는 것보다
+이해하도록 돕는 것이 중요합니다
+</h2>
+
+<p>
+아이가 스스로 생각하고 답할 기회를 갖고,
+틀렸을 때는 바로 정답을 보여주기보다
+힌트를 통해 다시 시도할 수 있어야 합니다.
+</p>
+
+</div>
+
+
+<div class="learning-steps">
+
+<div class="learning-step">
+<div class="step-number">01</div>
+<div>
+<strong>설명</strong>
+<span>아이의 수준에 맞는 방식으로 개념을 설명합니다.</span>
+</div>
+</div>
+
+<div class="learning-step">
+<div class="step-number">02</div>
+<div>
+<strong>질문</strong>
+<span>단순히 읽는 것이 아니라 직접 생각하도록 질문합니다.</span>
+</div>
+</div>
+
+<div class="learning-step">
+<div class="step-number">03</div>
+<div>
+<strong>아이의 답변</strong>
+<span>아이가 자신의 생각으로 답할 기회를 갖습니다.</span>
+</div>
+</div>
+
+<div class="learning-step">
+<div class="step-number">04</div>
+<div>
+<strong>힌트와 다시 시도</strong>
+<span>틀렸다면 필요한 도움을 받고 다시 답해 봅니다.</span>
+</div>
+</div>
+
+<div class="learning-step">
+<div class="step-number">05</div>
+<div>
+<strong>이해 확인</strong>
+<span>새로운 문제에서도 개념을 적용할 수 있는지 확인합니다.</span>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section>
+
+<div class="section-heading">
+
+<span class="section-kicker">추천 가이드</span>
+
+<h2>아이의 학습에 바로 활용할 수 있는 글</h2>
+
+<p>
+AI를 활용하는 방법부터
+수학과 영어 학습,
+과외 선택까지
+구체적인 상황별 가이드를 확인해 보세요.
+</p>
+
+</div>
+
+
+<div class="popular-grid">
+
+
+<a href="/ko/blog/ai-study/what-is-ai-study/" class="article-card">
+
+<div class="article-number">01</div>
+
+<div>
+<h3>공부 AI란 무엇이며 학생의 학습을 어떻게 도울까?</h3>
+<p>
+AI가 단순한 답변 도구가 아니라
+학습 도구가 되기 위해 필요한 조건을 알아봅니다.
+</p>
+</div>
+
+</a>
+
+
+<a href="/ko/blog/ai-study/ai-study-vs-chatgpt/" class="article-card">
+
+<div class="article-number">02</div>
+
+<div>
+<h3>공부 AI와 ChatGPT의 차이점</h3>
+<p>
+일반적인 AI 대화와
+학습을 목적으로 설계된 AI의 차이를 살펴봅니다.
+</p>
+</div>
+
+</a>
+
+
+<a href="/ko/blog/ai-math/learn-math-step-by-step-with-ai/" class="article-card">
+
+<div class="article-number">03</div>
+
+<div>
+<h3>수학 AI로 수학을 단계별로 배우는 방법</h3>
+<p>
+정답을 바로 확인하지 않고
+풀이 과정을 이해하는 방법을 알아봅니다.
+</p>
+</div>
+
+</a>
+
+
+<a href="/ko/blog/ai-math/ai-math-vs-math-tutoring/" class="article-card">
+
+<div class="article-number">04</div>
+
+<div>
+<h3>수학 AI와 수학 과외, 무엇이 다를까?</h3>
+<p>
+수학 과외와 AI 학습의 특징을 비교하고
+각각 어떤 상황에 적합한지 살펴봅니다.
+</p>
+</div>
+
+</a>
+
+
+<a href="/ko/blog/elementary-math/grade-2-math/" class="article-card">
+
+<div class="article-number">05</div>
+
+<div>
+<h3>초등 2학년 수학 학습 가이드</h3>
+<p>
+초등학교 2학년 수학에서
+중요하게 이해해야 할 학습 영역을 살펴봅니다.
+</p>
+</div>
+
+</a>
+
+
+<a href="/ko/blog/elementary-math/grade-6-math/" class="article-card">
+
+<div class="article-number">06</div>
+
+<div>
+<h3>초등 6학년 수학 학습 가이드</h3>
+<p>
+중학교 수학으로 이어지는
+초등학교 6학년의 핵심 학습을 알아봅니다.
+</p>
+</div>
+
+</a>
+
+
+<a href="/ko/blog/elementary-english/english-reading/" class="article-card">
+
+<div class="article-number">07</div>
+
+<div>
+<h3>초등 영어 읽기 실력을 키우는 방법</h3>
+<p>
+단어 암기만이 아니라
+문장을 이해하며 읽는 연습 방법을 알아봅니다.
+</p>
+</div>
+
+</a>
+
+
+<a href="/ko/blog/tutoring/ai-tutor-vs-private-tutor/" class="article-card">
+
+<div class="article-number">08</div>
+
+<div>
+<h3>AI 튜터와 개인 과외의 장단점</h3>
+<p>
+전통적인 개인 과외와
+AI 기반 학습 지원의 차이를 비교합니다.
+</p>
+</div>
+
+</a>
+
+
+</div>
+
+</section>
+
+
+<section class="parent-box">
+
+<div>
+
+<h2>학부모라면 무엇을 확인해야 할까요?</h2>
+
+<p>
+아이가 AI를 사용했다는 사실보다
+AI를 사용한 뒤 무엇을 이해하게 되었는지가 중요합니다.
+답을 복사했는지,
+스스로 설명할 수 있는지,
+비슷한 문제를 다시 풀 수 있는지를 확인해 보세요.
+</p>
+
+</div>
+
+<div class="parent-badge">👨‍👩‍👧</div>
+
+</section>
+
+
+<section class="final-cta">
+
+<h2>
+아이에게 필요한 것은
+또 하나의 정답 검색기가 아닙니다
+</h2>
+
+<p>
+IAKIDS는 설명,
+시각 자료,
+연습과 AI 튜터의 대화를 연결해
+아이가 수업에 직접 참여하고
+이해하면서 배울 수 있는 학습 경험을 만들어갑니다.
+</p>
+
+<a href="/ko/">
+IAKIDS 알아보기
+</a>
+
+</section>
+
+
+</main>
+
+
+<footer>
+
+<div class="footer-inner">
+
+<div>
+© <span id="current-year"></span> IAKIDS. All rights reserved.
+</div>
+
+<div>
+AI 공부 · 수학 AI · 초등 학습 · AI 튜터
+</div>
+
+</div>
+
+</footer>
+
+
+<button
+class="back-to-top"
+id="back-to-top"
+type="button"
+aria-label="맨 위로 이동"
+title="맨 위로 이동">↑</button>
+
+
+<script>
+document.getElementById('current-year').textContent =
+  new Date().getFullYear();
+
+const backToTopButton =
+  document.getElementById('back-to-top');
+
+function updateBackToTopButton(){
+  if(window.scrollY > 500){
+    backToTopButton.classList.add('show');
+  }else{
+    backToTopButton.classList.remove('show');
+  }
+}
+
+window.addEventListener(
+  'scroll',
+  updateBackToTopButton,
+  {passive:true}
+);
+
+backToTopButton.addEventListener('click',function(){
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+});
+
+updateBackToTopButton();
+</script>
+
+</body>
+</html>
