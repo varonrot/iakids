@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>IAKIDS Blog | AI Tutor, bijles en hulp bij leren</title>
+
+<meta name="description"
+content="Praktische gidsen voor ouders en leerlingen over AI tutors, online tutors, bijles, huiswerkbegeleiding, studiebegeleiding en beter leren.">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://iakids.app/nl/blog/">
+
+<link rel="icon" href="/favicon.ico">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://iakids.app/nl/blog/">
+<meta property="og:title" content="IAKIDS Blog – Slimmer leren met AI">
+<meta property="og:description"
+content="Gidsen over AI tutors, online bijles, huiswerkbegeleiding en leren leren.">
+
+<style>
+
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  margin:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:#172033;
+  background:#fff;
+}
+
+img{
+  max-width:100%;
+  height:auto;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+/* HEADER */
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #e8edf4;
+  backdrop-filter:blur(10px);
+}
+
+.topbar-inner{
+  max-width:1200px;
+  margin:auto;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.logo{
+  color:#2563eb;
+  font-size:25px;
+  font-weight:900;
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  color:#475569;
+  font-size:14px;
+  font-weight:700;
+}
+
+.nav a:hover{
+  color:#2563eb;
+}
+
+.nav-cta{
+  padding:10px 17px;
+  border-radius:999px;
+  color:#fff !important;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+/* HERO */
+
+.hero{
+  max-width:1200px;
+  margin:auto;
+  padding:75px 22px 55px;
+  text-align:center;
+}
+
+.hero-badge{
+  display:inline-flex;
+  padding:8px 14px;
+  margin-bottom:20px;
+  border-radius:999px;
+  color:#2563eb;
+  background:#eff6ff;
+  font-size:14px;
+  font-weight:800;
+}
+
+.hero h1{
+  max-width:900px;
+  margin:0 auto 22px;
+  color:#101828;
+  font-size:clamp(42px,6vw,67px);
+  line-height:1.08;
+  letter-spacing:-1.8px;
+}
+
+.hero h1 span{
+  color:#2563eb;
+}
+
+.hero p{
+  max-width:760px;
+  margin:auto;
+  color:#64748b;
+  font-size:20px;
+  line-height:1.75;
+}
+
+/* MAIN */
+
+.main{
+  max-width:1200px;
+  margin:auto;
+  padding:20px 22px 90px;
+}
+
+.intro{
+  max-width:820px;
+  margin:0 auto 65px;
+  text-align:center;
+}
+
+.intro h2{
+  margin:0 0 15px;
+  color:#101828;
+  font-size:31px;
+}
+
+.intro p{
+  margin:0;
+  color:#64748b;
+  font-size:17px;
+  line-height:1.8;
+}
+
+/* GRID */
+
+.cluster-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:28px;
+}
+
+.cluster-card{
+  min-width:0;
+  overflow:hidden;
+  border:1px solid #e2e8f0;
+  border-radius:25px;
+  background:#fff;
+  box-shadow:0 12px 35px rgba(15,23,42,.06);
+  transition:.25s ease;
+}
+
+.cluster-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 22px 50px rgba(15,23,42,.11);
+}
+
+.card-image{
+  width:100%;
+  aspect-ratio:16/8.5;
+  overflow:hidden;
+  background:#eef2ff;
+}
+
+.card-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  transition:transform .35s ease;
+}
+
+.cluster-card:hover .card-image img{
+  transform:scale(1.025);
+}
+
+.card-body{
+  padding:28px 29px 30px;
+}
+
+.keyword{
+  display:inline-flex;
+  margin-bottom:13px;
+  padding:6px 11px;
+  border-radius:999px;
+  color:#2563eb;
+  background:#eff6ff;
+  font-size:12px;
+  font-weight:850;
+}
+
+.card-body h2{
+  margin:0 0 12px;
+  color:#101828;
+  font-size:27px;
+  line-height:1.2;
+}
+
+.card-body p{
+  margin:0 0 21px;
+  color:#64748b;
+  font-size:16px;
+  line-height:1.7;
+}
+
+.read-more{
+  color:#2563eb;
+  font-size:15px;
+  font-weight:850;
+}
+
+/* FEATURE */
+
+.feature{
+  margin-top:75px;
+  padding:50px;
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
+  gap:45px;
+  align-items:center;
+  border-radius:30px;
+  background:linear-gradient(135deg,#07184c,#172b79);
+  color:#fff;
+}
+
+.feature-tag{
+  display:inline-flex;
+  margin-bottom:15px;
+  padding:7px 12px;
+  border-radius:999px;
+  color:#dbeafe;
+  background:rgba(255,255,255,.1);
+  font-size:13px;
+  font-weight:800;
+}
+
+.feature h2{
+  margin:0 0 16px;
+  font-size:35px;
+  line-height:1.2;
+}
+
+.feature p{
+  margin:0;
+  color:#dbe4f4;
+  font-size:17px;
+  line-height:1.75;
+}
+
+.feature-list{
+  display:grid;
+  gap:12px;
+}
+
+.feature-item{
+  padding:15px 17px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:15px;
+  background:rgba(255,255,255,.07);
+  font-size:15px;
+  font-weight:700;
+}
+
+/* CTA */
+
+.cta{
+  margin-top:75px;
+  padding:55px 35px;
+  border-radius:30px;
+  text-align:center;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.cta h2{
+  margin:0 0 14px;
+  font-size:34px;
+}
+
+.cta p{
+  max-width:650px;
+  margin:0 auto 25px;
+  font-size:17px;
+  line-height:1.7;
+}
+
+.cta a{
+  display:inline-block;
+  padding:14px 24px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  font-weight:900;
+}
+
+/* FOOTER */
+
+footer{
+  padding:35px 22px;
+  border-top:1px solid #e8edf4;
+  color:#64748b;
+}
+
+.footer-inner{
+  max-width:1200px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+}
+
+/* MOBILE */
+
+@media(max-width:900px){
+
+  .nav a:not(.nav-cta){
+    display:none;
+  }
+
+  .hero{
+    padding:55px 20px 45px;
+  }
+
+  .hero h1{
+    font-size:clamp(38px,8vw,52px);
+  }
+
+  .cluster-grid{
+    grid-template-columns:1fr;
+  }
+
+  .feature{
+    grid-template-columns:1fr;
+    padding:38px 28px;
+  }
+
+}
+
+@media(max-width:600px){
+
+  .topbar-inner{
+    padding:12px 18px;
+  }
+
+  .logo{
+    font-size:22px;
+  }
+
+  .nav-cta{
+    padding:9px 13px;
+    font-size:13px;
+  }
+
+  .hero{
+    padding:45px 18px 38px;
+  }
+
+  .hero h1{
+    font-size:38px;
+    line-height:1.12;
+    letter-spacing:-1px;
+  }
+
+  .hero p{
+    font-size:17px;
+  }
+
+  .main{
+    padding:15px 18px 65px;
+  }
+
+  .intro{
+    margin-bottom:40px;
+  }
+
+  .intro h2{
+    font-size:27px;
+  }
+
+  .card-body{
+    padding:23px 21px 25px;
+  }
+
+  .card-body h2{
+    font-size:24px;
+  }
+
+  .feature{
+    margin-top:50px;
+    padding:30px 22px;
+    border-radius:23px;
+  }
+
+  .feature h2{
+    font-size:28px;
+  }
+
+  .cta{
+    margin-top:50px;
+    padding:38px 22px;
+  }
+
+  .cta h2{
+    font-size:28px;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="topbar-inner">
+
+<a href="/nl/" class="logo">iakids</a>
+
+<nav class="nav">
+<a href="/nl/blog/ai-tutor/">AI Tutor</a>
+<a href="/nl/blog/online-tutor/">Online Tutor</a>
+<a href="/nl/blog/bijles/">Bijles</a>
+<a href="/nl/blog/huiswerkbegeleiding/">Huiswerk</a>
+<a href="/nl/" class="nav-cta">Ontdek IAKIDS</a>
+</nav>
+
+</div>
+
+</header>
+
+
+<section class="hero">
+
+<span class="hero-badge">
+IAKIDS Leerblog
+</span>
+
+<h1>
+Slimmer leren met
+<span>AI</span>
+</h1>
+
+<p>
+Praktische gidsen voor ouders en leerlingen over
+AI tutors, online begeleiding, bijles, huiswerk,
+studievaardigheden en zelfstandig leren.
+</p>
+
+</section>
+
+
+<main class="main">
+
+<section class="intro">
+
+<h2>Waar wil je meer over weten?</h2>
+
+<p>
+Van hulp bij huiswerk tot beter leren voor een toets:
+ontdek praktische informatie over verschillende manieren
+om kinderen en leerlingen te ondersteunen bij het leren.
+</p>
+
+</section>
+
+
+<section class="cluster-grid">
+
+
+<a class="cluster-card" href="/nl/blog/ai-tutor/">
+
+<div class="card-image">
+<img
+src="/assets/nl/blog/ai-tutor.webp"
+alt="AI Tutor voor kinderen en leerlingen"
+loading="lazy">
+</div>
+
+<div class="card-body">
+
+<span class="keyword">AI TUTOR</span>
+
+<h2>AI Tutor</h2>
+
+<p>
+Wat is een AI tutor, hoe werkt deze technologie
+en hoe kan kunstmatige intelligentie kinderen
+helpen bij uitleg, oefeningen en huiswerk?
+</p>
+
+<span class="read-more">
+Ontdek AI Tutor →
+</span>
+
+</div>
+
+</a>
+
+
+<a class="cluster-card" href="/nl/blog/online-tutor/">
+
+<div class="card-image">
+<img
+src="/assets/nl/blog/online-tutor.webp"
+alt="Online tutor voor leerlingen"
+loading="lazy">
+</div>
+
+<div class="card-body">
+
+<span class="keyword">ONLINE TUTOR</span>
+
+<h2>Online Tutor</h2>
+
+<p>
+Hoe werkt online begeleiding, wanneer is een
+online tutor nuttig en wat zijn de verschillen
+met traditionele bijles?
+</p>
+
+<span class="read-more">
+Lees over online tutors →
+</span>
+
+</div>
+
+</a>
+
+
+<a class="cluster-card" href="/nl/blog/bijles/">
+
+<div class="card-image">
+<img
+src="/assets/nl/blog/bijles.webp"
+alt="Bijles voor kinderen en leerlingen"
+loading="lazy">
+</div>
+
+<div class="card-body">
+
+<span class="keyword">BIJLES</span>
+
+<h2>Bijles</h2>
+
+<p>
+Wanneer heeft een kind bijles nodig?
+Lees over bijles voor rekenen, wiskunde,
+Engels en de basisschool.
+</p>
+
+<span class="read-more">
+Alles over bijles →
+</span>
+
+</div>
+
+</a>
+
+
+<a class="cluster-card" href="/nl/blog/huiswerkbegeleiding/">
+
+<div class="card-image">
+<img
+src="/assets/nl/blog/huiswerkbegeleiding.webp"
+alt="Huiswerkbegeleiding voor kinderen"
+loading="lazy">
+</div>
+
+<div class="card-body">
+
+<span class="keyword">HUISWERKBEGELEIDING</span>
+
+<h2>Huiswerkbegeleiding</h2>
+
+<p>
+Hoe help je een kind met huiswerk zonder
+de antwoorden voor te zeggen?
+Ontdek begeleiding die begrip en zelfstandigheid stimuleert.
+</p>
+
+<span class="read-more">
+Ontdek huiswerkbegeleiding →
+</span>
+
+</div>
+
+</a>
+
+
+<a class="cluster-card" href="/nl/blog/studiebegeleiding/">
+
+<div class="card-image">
+<img
+src="/assets/nl/blog/studiebegeleiding.webp"
+alt="Studiebegeleiding voor leerlingen"
+loading="lazy">
+</div>
+
+<div class="card-body">
+
+<span class="keyword">STUDIEBEGELEIDING</span>
+
+<h2>Studiebegeleiding</h2>
+
+<p>
+Persoonlijke ondersteuning bij plannen,
+studeren, zelfstandig werken en het ontwikkelen
+van betere leergewoonten.
+</p>
+
+<span class="read-more">
+Lees over studiebegeleiding →
+</span>
+
+</div>
+
+</a>
+
+
+<a class="cluster-card" href="/nl/blog/leren-leren/">
+
+<div class="card-image">
+<img
+src="/assets/nl/blog/leren-leren.webp"
+alt="Leren leren en goede leergewoonten"
+loading="lazy">
+</div>
+
+<div class="card-body">
+
+<span class="keyword">LEREN LEREN</span>
+
+<h2>Leren leren</h2>
+
+<p>
+Hoe leer je effectief voor een toets?
+Ontdek leerstrategieën, oefenmethoden
+en manieren om steeds zelfstandiger te leren.
+</p>
+
+<span class="read-more">
+Leer beter leren →
+</span>
+
+</div>
+
+</a>
+
+</section>
+
+
+<section class="feature">
+
+<div>
+
+<span class="feature-tag">
+Leren met kunstmatige intelligentie
+</span>
+
+<h2>
+AI hoeft niet alleen antwoorden te geven.
+</h2>
+
+<p>
+Goed gebruikt kan AI uitleg geven,
+vragen stellen, oefeningen aanpassen
+en controleren of een leerling een onderwerp
+daadwerkelijk begrijpt.
+</p>
+
+</div>
+
+
+<div class="feature-list">
+
+<div class="feature-item">
+💡 Uitleg op het niveau van de leerling
+</div>
+
+<div class="feature-item">
+💬 Interactieve vragen tijdens het leren
+</div>
+
+<div class="feature-item">
+🎯 Oefenen op basis van begrip
+</div>
+
+<div class="feature-item">
+📈 Stap voor stap verder leren
+</div>
+
+</div>
+
+</section>
+
+
+<section class="cta">
+
+<h2>
+Een andere manier van leren
+</h2>
+
+<p>
+IAKIDS combineert interactieve lessen,
+visuele uitleg, oefeningen en een AI Tutor
+die kinderen stap voor stap tijdens het leren begeleidt.
+</p>
+
+<a href="/nl/">
+Ontdek IAKIDS
+</a>
+
+</section>
+
+</main>
+
+
+<footer>
+
+<div class="footer-inner">
+
+<div>
+© <span id="current-year"></span> IAKIDS. Alle rechten voorbehouden.
+</div>
+
+<div>
+AI Tutor · Online Tutor · Bijles · Huiswerkbegeleiding
+</div>
+
+</div>
+
+</footer>
+
+
+<script>
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
