@@ -6538,74 +6538,94 @@ def generate_transition_video_background(
         # IMAGE_REF_0 = teacher identity
         # IMAGE_REF_1 = lesson visual world/style
         #
-        # No dialogue:
-        # we keep Gemini TTS as the teacher voice.
+        # Generate FINAL video with synchronized speech.
         # =============================================
 
         video_prompt = f"""
-[# References
-<IMAGE_REF_0>@Image1
-<IMAGE_REF_1>@Image2]
+        [# References
+        <IMAGE_REF_0>@Image1
+        <IMAGE_REF_1>@Image2]
 
-Create a premium educational transition video.
+        Create a premium educational transition video
+        with synchronized spoken audio.
 
-REFERENCE ROLES:
+        REFERENCE ROLES:
 
-IMAGE_REF_0 is the permanent IAKIDS virtual teacher.
-Preserve her identity, face, hair, clothing,
-body proportions and overall appearance.
+        IMAGE_REF_0 is the permanent IAKIDS virtual teacher.
+        Preserve her identity, face, hair, clothing,
+        body proportions and overall appearance.
 
-IMAGE_REF_1 defines the visual world,
-illustration style, lighting, colors,
-environment and rendering style of this lesson.
+        IMAGE_REF_1 defines the visual world,
+        illustration style, lighting, colors,
+        environment and rendering style of this lesson.
 
-Place the teacher naturally INSIDE
-the educational world represented by IMAGE_REF_1.
+        Place the teacher naturally INSIDE
+        the educational world represented by IMAGE_REF_1.
 
-The teacher must look like she genuinely belongs
-inside the same illustrated lesson scene.
+        The teacher must look like she genuinely belongs
+        inside the same illustrated lesson scene.
 
-TRANSITION SCENE:
+        TRANSITION SCENE:
 
-{video_scene}
+        {video_scene}
 
-EDUCATIONAL CONTEXT OF WHAT SHE IS PRESENTING:
+        THE TEACHER MUST SAY EXACTLY THIS TEXT IN HEBREW:
 
-{speech}
+        "{speech}"
 
-BRIDGE TOWARD THE NEXT PART:
+        The spoken language must be Hebrew.
 
-{next_part_hook}
+        The teacher is speaking these exact words
+        directly to the learner.
 
-VIDEO DIRECTION:
+        Her mouth movements must be naturally synchronized
+        with the spoken Hebrew audio.
 
-- premium semi-realistic educational illustration
-- match IMAGE_REF_1's exact visual style
-- preserve IMAGE_REF_0's teacher identity
-- natural teacher body language
-- warm facial expression
-- subtle hand gestures while explaining
-- look naturally toward the learner/camera
-- medium-wide or full-body composition
-- single continuous educational scene
-- smooth natural movement
-- no scene cuts unless absolutely necessary
-- no written text
-- no captions
-- no labels
-- no logos
-- no UI elements
-- no watermark text
-- NO SPOKEN DIALOGUE
-- NO GENERATED SPEECH
-- only very subtle natural ambient sound if needed
+        The facial movements, lips and jaw should visibly
+        follow the spoken words.
 
-This video will later receive
-the permanent IAKIDS Gemini TTS teacher voice.
+        Do not paraphrase the dialogue.
+        Do not add words.
+        Do not remove words.
 
-Use the given images only as references.
-Do not display them as flat pictures inside the video.
-""".strip()
+        BRIDGE TOWARD THE NEXT PART:
+
+        {next_part_hook}
+
+        VIDEO DIRECTION:
+
+        - premium semi-realistic educational illustration
+        - match IMAGE_REF_1's exact visual style
+        - preserve IMAGE_REF_0's teacher identity
+        - natural teacher body language
+        - warm facial expression
+        - subtle hand gestures while speaking
+        - look naturally toward the learner/camera
+        - medium or medium-wide composition
+        - keep the teacher's face clearly visible
+        - keep the mouth clearly visible while speaking
+        - single continuous educational scene
+        - smooth natural movement
+        - natural synchronized Hebrew speech
+        - accurate visible lip synchronization
+        - no scene cuts while the teacher is speaking
+        - no written text
+        - no captions
+        - no labels
+        - no logos
+        - no UI elements
+        - no watermark text
+
+        IMPORTANT:
+
+        The final MP4 must already contain
+        the synchronized spoken audio.
+
+        Do not create a silent video.
+
+        Use the given images only as references.
+        Do not display them as flat pictures inside the video.
+        """.strip()
 
         # =============================================
         # BASE64 REFERENCES
@@ -6740,17 +6760,22 @@ Do not display them as flat pictures inside the video.
                     first_interaction.id,
 
                 input=(
-                    "Extend this same educational scene "
-                    "for approximately 10 more seconds. "
+                    "Continue this exact same educational scene "
+                    "with perfect visual and audio continuity. "
                     "Keep exactly the same teacher, "
-                    "environment, illustration style, "
-                    "lighting and camera continuity. "
-                    "The teacher continues natural warm "
-                    "presentation gestures and finishes "
-                    "with a subtle inviting gesture "
-                    "toward the next part of the lesson. "
-                    "No dialogue. No speech. "
-                    "No written text."
+                    "face, voice, environment, illustration style, "
+                    "lighting and camera position. "
+                    "If the teacher's Hebrew dialogue is still "
+                    "being spoken, continue the synchronized speech "
+                    "naturally without repeating any words. "
+                    "Keep her mouth movements synchronized with "
+                    "the spoken Hebrew audio. "
+                    "After the dialogue finishes, the teacher "
+                    "makes a subtle inviting gesture toward "
+                    "the next part of the lesson. "
+                    "Do not introduce new dialogue. "
+                    "Do not repeat previous dialogue. "
+                    "No written text or captions."
                 ),
 
                 response_format={
@@ -7122,7 +7147,7 @@ def generate_unit_lesson_media_background(
                 unit_lesson_id
         }
     )
-    
+
 def generate_first_lesson_visual_background(
         unit_lesson_id: int
 ):
