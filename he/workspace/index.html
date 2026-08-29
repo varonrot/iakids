@@ -18415,9 +18415,49 @@ if(
   &&
   data.structured_lesson.lesson.length > 0
 ){
+
+  /*
+    שומרים את כל מבנה השיעור בזיכרון.
+
+    מכאן נוכל להשתמש גם ב:
+    - part_1
+    - transition
+    - part_2
+    - summary
+  */
+
+  window.CURRENT_UNIVERSAL_LESSON_DATA =
+    data;
+
+
+  console.log(
+    "CURRENT UNIVERSAL LESSON DATA SAVED:",
+    {
+      hasPart1:
+        Boolean(
+          data.structured_lesson?.part_1
+        ),
+
+      hasTransition:
+        Boolean(
+          data.transition
+        ),
+
+      hasPart2:
+        Boolean(
+          data.structured_lesson?.part_2
+        ),
+
+      hasSummary:
+        Boolean(
+          data.structured_lesson?.summary
+        )
+    }
+  );
+
+
   return data;
 }
-
 
     /*
       משתמש אחר כבר מייצר את אותו שיעור.
@@ -22710,6 +22750,108 @@ await window.lessonRenderer.run({
     data.speech
 
 });
+
+/* =============================================
+   LEARNING COACH 1 FINISHED
+   -> LESSON TRANSITION
+============================================= */
+
+if(
+  data.coach_finished === true
+  &&
+  Number(
+    data.coach_index
+  ) === 1
+){
+
+  console.log(
+    "LEARNING COACH 1 FINISHED — START TRANSITION"
+  );
+
+
+  const lessonData =
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+    || {};
+
+
+  const transition =
+    lessonData.transition
+    || {};
+
+
+  const transitionText =
+    String(
+      transition.speech
+      ||
+      transition.next_part_hook
+      ||
+      ""
+    ).trim();
+
+
+  console.log(
+    "LESSON TRANSITION DATA:",
+    transition
+  );
+
+
+  if(
+    transitionText
+  ){
+
+    /*
+      אין כאן שאלה לילד.
+
+      speak:
+      - יכתוב את הטקסט
+      - ישמיע אותו
+      - לא ימתין לתשובה
+    */
+
+    await window.lessonRenderer.run({
+      sequence: [
+        {
+          type:
+            "speak",
+
+          text:
+            transitionText,
+
+          style:
+            "normal",
+
+          speed:
+            45
+        }
+      ],
+
+      wait_for_answer:
+        false,
+
+      speech:
+        transitionText
+    });
+
+  }
+  else{
+
+    console.warn(
+      "LESSON TRANSITION TEXT IS MISSING"
+    );
+
+  }
+
+
+  /*
+    בשלב הבא נחבר כאן:
+    startLessonPart2()
+  */
+
+  console.log(
+    "TRANSITION FINISHED — PART 2 READY TO START"
+  );
+
+}
 
 /* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
