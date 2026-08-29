@@ -19030,14 +19030,23 @@ let visualForSegment =
     || []
   ).find(
     visual =>
-      Number(visual?.order || 0)
+      Number(
+        visual?.order || 0
+      )
       ===
-      Number(visualOrder)
+      Number(
+        visualOrder
+      )
       &&
       visual?.url
   );
 
 
+/*
+  אם התמונה של הסגמנט הנוכחי
+  עדיין לא נמצאת בזיכרון המקומי,
+  מחכים לה מה-Backend.
+*/
 if(
   !visualForSegment
   &&
@@ -19052,34 +19061,45 @@ if(
     }
   );
 
-try {
+  try{
 
-  visualForSegment =
-    await waitForLessonVisual(
-      data.unit_lesson_id,
-      session,
-      visualOrder
+    visualForSegment =
+      await waitForLessonVisual(
+        data.unit_lesson_id,
+        session,
+        visualOrder
+      );
+
+  }
+  catch(error){
+
+    console.warn(
+      "VISUAL WAIT FAILED - CONTINUE LESSON:",
+      {
+        segment:
+          visualOrder,
+
+        error:
+          error
+      }
     );
 
-}
-catch(error){
+    visualForSegment =
+      null;
 
-  console.warn(
-    "VISUAL WAIT FAILED - CONTINUE LESSON:",
-    {
-      segment: visualOrder,
-      error
-    }
-  );
-
-  visualForSegment = null;
-}
+  }
 
 }
 
 
+/*
+  מציגים אך ורק את התמונה
+  ששייכת לסגמנט הנוכחי.
+*/
 if(
   visualForSegment
+  &&
+  visualForSegment.url
 ){
 
   console.log(
@@ -19089,12 +19109,17 @@ if(
         visualOrder,
 
       visualOrder:
-        visualForSegment.order
+        visualForSegment.order,
+
+      url:
+        visualForSegment.url
     }
   );
 
   window.CURRENT_DISPLAYED_VISUAL_ORDER =
-    visualOrder;
+    Number(
+      visualOrder
+    );
 
   showLessonVisual(
     visualForSegment
@@ -19104,7 +19129,7 @@ if(
 else{
 
   console.warn(
-    "SEGMENT VISUAL NOT AVAILABLE:",
+    "SEGMENT VISUAL NOT AVAILABLE — KEEP PREVIOUS:",
     {
       segment:
         visualOrder
