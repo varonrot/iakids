@@ -24970,113 +24970,12 @@ console.log(
 );
 
 /* =========================================
-   תשובת Lesson Renderer חדשה
+   כל תשובת שיעור עוברת דרך מנגנון אחד
 ========================================= */
 
-if(
-  data.sequence &&
-  Array.isArray(
-    data.sequence
-  )
-){
-
-  try{
-
-    /* פתיחת הרשאת אודיו בדפדפן */
-
-    await unlockLessonAudio();
-
-
-if(
-  window.lessonRenderer
-){
-
-  /* הפעלת השיעור האמיתי בלבד.
-     כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
-
-console.log(
-  "🎬 LESSON RENDERER START:",
-  Math.round(
-    performance.now()
-    -
-    window.__learningCoachSendStart
-  ),
-  "ms"
+await runTutorResponse(
+  data
 );
-
-
-await window.lessonRenderer.run(
-  {
-    sequence:
-      data.sequence,
-
-    wait_for_answer:
-      data.wait_for_answer,
-
-    speech:
-      data.speech
-  }
-);
-
-  clearNoResponseTimer();
-
-
-if(
-  data.wait_for_answer ===
-    true
-
-  &&
-
-  currentLearningMode ===
-    "lesson"
-
-  &&
-
-  currentLessonId
-){
-
-  startNoResponseTimer();
-
-}
-
-}
-    else{
-
-      console.error(
-        "lessonRenderer not initialized"
-      );
-
-      addMessage(
-        "assistant",
-        "לא הצלחתי להפעיל את השיעור."
-      );
-
-    }
-
-  }
-  catch(error){
-
-    console.error(
-      "LESSON RENDERER ERROR:",
-      error
-    );
-
-  }
-
-}
-else{
-
-  console.error(
-    "Invalid tutor response:",
-    data
-  );
-
-  addMessage(
-    "assistant",
-    "לא הצלחתי להכין את השיעור. נסו שוב."
-  );
-
-}
 
   } catch (e) {
     console.error("NETWORK ERROR", e);
