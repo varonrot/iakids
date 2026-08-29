@@ -6553,14 +6553,205 @@ def generate_transition_video_background(
         )
 
         # =============================================
-        # DYNAMIC VIDEO LENGTH
+        # VIDEO PROMPT
         #
-        # מחשבים כמה זמן בערך צריך לפי מספר המילים.
-        # עברית של מורה בקצב טבעי:
-        # בערך 2.0-2.3 מילים לשנייה.
+        # IMAGE_REF_0 = teacher identity
+        # IMAGE_REF_1 = lesson visual world/style
         #
-        # מוסיפים כמה שניות ביטחון כדי שלא
-        # לחתוך את סוף המשפט.
+        # Generate FINAL video with synchronized speech.
+        # =============================================
+
+        video_prompt = f"""
+        [# References
+        <IMAGE_REF_0>@Image1
+        <IMAGE_REF_1>@Image2]
+
+        Create a premium educational transition video
+        with synchronized spoken audio.
+
+        REFERENCE ROLES:
+
+        IMAGE_REF_0 is the permanent IAKIDS virtual teacher.
+        Preserve her identity, face, hair, clothing,
+        body proportions and overall appearance.
+
+        IMAGE_REF_1 defines the visual world,
+        illustration style, lighting, colors,
+        environment and rendering style of this lesson.
+
+        Place the teacher naturally INSIDE
+        the educational world represented by IMAGE_REF_1.
+
+        The teacher must look like she genuinely belongs
+        inside the same illustrated lesson scene.
+
+        TRANSITION SCENE:
+
+        {video_scene}
+
+        THE TEACHER MUST SAY EXACTLY THIS TEXT IN HEBREW:
+
+        "{speech}"
+
+        The spoken language must be Hebrew.
+
+        The teacher is speaking these exact words
+        directly to the learner.
+
+        Her mouth movements must be naturally synchronized
+        with the spoken Hebrew audio.
+
+        The facial movements, lips and jaw should visibly
+        follow the spoken words.
+
+        Do not paraphrase the dialogue.
+        Do not add words.
+        Do not remove words.
+
+        BRIDGE TOWARD THE NEXT PART:
+
+        {next_part_hook}
+
+        VIDEO DIRECTION:
+
+        - premium semi-realistic educational illustration
+        - match IMAGE_REF_1's exact visual style
+        - preserve IMAGE_REF_0's teacher identity
+        - natural teacher body language
+        - warm facial expression
+        - subtle hand gestures while speaking
+        - look naturally toward the learner/camera
+        - medium or medium-wide composition
+        - keep the teacher's face clearly visible
+        - keep the mouth clearly visible while speaking
+        - single continuous educational scene
+        - smooth natural movement
+        - natural synchronized Hebrew speech
+        - accurate visible lip synchronization
+        - no scene cuts while the teacher is speaking
+        - no written text
+        - no captions
+        - no labels
+        - no logos
+        - no UI elements
+        - no watermark text
+
+        IMPORTANT:
+
+        The final MP4 must already contain
+        the synchronized spoken audio.
+
+        Do not create a silent video.
+
+        Use the given images only as references.
+        Do not display them as flat pictures inside the video.
+        """.strip()
+
+        # =============================================
+        # BASE64 REFERENCES
+        # =============================================
+
+        teacher_b64 = (
+            base64.b64encode(
+                teacher_bytes
+            )
+            .decode("utf-8")
+        )
+
+        lesson_visual_b64 = (
+            base64.b64encode(
+                lesson_visual_bytes
+            )
+            .decode("utf-8")
+        )
+
+        # =============================================
+        # FIRST 10-SECOND VIDEO
+        # =============================================
+
+        print(
+            "TRANSITION VIDEO GEMINI PART 1:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "teacher_bytes":
+                    len(teacher_bytes),
+
+                "lesson_reference_bytes":
+                    len(lesson_visual_bytes)
+            }
+        )
+
+        first_interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                input=[
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            teacher_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            lesson_visual_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "text",
+
+                        "text":
+                            video_prompt
+                    }
+                ],
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        if not getattr(
+                first_interaction,
+                "id",
+                None
+        ):
+
+            raise RuntimeError(
+                "Gemini returned no transition "
+                "interaction id"
+            )
+
+        # =============================================
+        # DYNAMIC TRANSITION VIDEO LENGTH
         # =============================================
 
         speech_word_count = len(
@@ -6575,14 +6766,16 @@ def generate_transition_video_background(
             estimated_speech_seconds + 4
         )
 
-        # אנחנו עובדים בבלוקים של כ-10 שניות.
         if required_video_seconds <= 20:
+
             target_video_seconds = 20
 
         elif required_video_seconds <= 30:
+
             target_video_seconds = 30
 
         else:
+
             target_video_seconds = 40
 
         print(
@@ -6606,7 +6799,7 @@ def generate_transition_video_background(
         )
 
         # =============================================
-        # EXTEND VIDEO UNTIL TARGET LENGTH
+        # EXTEND UNTIL TARGET DURATION
         # =============================================
 
         current_interaction = (
@@ -6656,27 +6849,28 @@ def generate_transition_video_background(
                         "face, voice, environment, illustration style, "
                         "lighting and camera position. "
 
-                        "The teacher must continue the SAME Hebrew dialogue "
-                        "from the exact point where the previous video ended. "
+                        "Continue the SAME Hebrew dialogue "
+                        "from exactly where the previous video stopped. "
 
-                        "Continue speaking the remaining words from the "
-                        "original Hebrew text. "
+                        "Continue speaking only the remaining words "
+                        "from the original Hebrew paragraph. "
 
                         "Do not restart the paragraph. "
                         "Do not repeat any words already spoken. "
                         "Do not paraphrase the original text. "
-                        "Do not introduce new dialogue. "
+                        "Do not add new dialogue. "
 
-                        "Keep the teacher's mouth movements naturally "
-                        "synchronized with the Hebrew speech. "
+                        "Keep the teacher's mouth movements "
+                        "naturally synchronized with the Hebrew speech. "
 
-                        "IMPORTANT: The video must not end while the teacher "
-                        "is still speaking. "
+                        "IMPORTANT: Do not end the video "
+                        "while the teacher is still speaking. "
 
-                        "When the complete original Hebrew paragraph has "
-                        "finished, stop speaking naturally, pause briefly, "
-                        "smile, and finish with a subtle inviting gesture "
-                        "toward the next part of the lesson. "
+                        "Once the complete original Hebrew paragraph "
+                        "has finished, the teacher should stop speaking, "
+                        "pause naturally, smile, and make a subtle "
+                        "inviting gesture toward the next part "
+                        "of the lesson. "
 
                         "No written text or captions."
                     ),
@@ -6698,10 +6892,6 @@ def generate_transition_video_background(
             )
 
             current_video_seconds += 10
-
-        # =============================================
-        # FINAL VIDEO
-        # =============================================
 
         final_interaction = (
             current_interaction
