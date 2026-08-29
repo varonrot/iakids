@@ -6751,154 +6751,71 @@ def generate_transition_video_background(
             )
 
         # =============================================
-        # DYNAMIC TRANSITION VIDEO LENGTH
+        # EXTEND TO ~20 SECONDS
+        #
+        # Omni can extend generated video
+        # using previous_interaction_id.
         # =============================================
 
-        speech_word_count = len(
-            speech.split()
-        )
-
-        estimated_speech_seconds = (
-                speech_word_count / 2.1
-        )
-
-        required_video_seconds = int(
-            estimated_speech_seconds + 4
-        )
-
-        if required_video_seconds <= 20:
-
-            target_video_seconds = 20
-
-        elif required_video_seconds <= 30:
-
-            target_video_seconds = 30
-
-        else:
-
-            target_video_seconds = 40
-
         print(
-            "TRANSITION VIDEO DURATION PLAN:",
+            "TRANSITION VIDEO GEMINI EXTEND:",
             {
                 "unit_lesson_id":
                     unit_lesson_id,
 
-                "speech_words":
-                    speech_word_count,
-
-                "estimated_speech_seconds":
-                    round(
-                        estimated_speech_seconds,
-                        1
-                    ),
-
-                "target_video_seconds":
-                    target_video_seconds
+                "previous_interaction_id":
+                    first_interaction.id
             }
         )
 
-        # =============================================
-        # EXTEND UNTIL TARGET DURATION
-        # =============================================
+        second_interaction = (
+            gemini_client
+            .interactions
+            .create(
 
-        current_interaction = (
-            first_interaction
-        )
+                model=
+                LESSON_TRANSITION_VIDEO_MODEL,
 
-        current_video_seconds = 10
+                previous_interaction_id=
+                first_interaction.id,
 
-        while (
-                current_video_seconds
-                <
-                target_video_seconds
-        ):
-            print(
-                "TRANSITION VIDEO GEMINI EXTEND:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson_id,
+                input=(
+                    "Continue this exact same educational scene "
+                    "with perfect visual and audio continuity. "
+                    "Keep exactly the same teacher, "
+                    "face, voice, environment, illustration style, "
+                    "lighting and camera position. "
+                    "If the teacher's Hebrew dialogue is still "
+                    "being spoken, continue the synchronized speech "
+                    "naturally without repeating any words. "
+                    "Keep her mouth movements synchronized with "
+                    "the spoken Hebrew audio. "
+                    "After the dialogue finishes, the teacher "
+                    "makes a subtle inviting gesture toward "
+                    "the next part of the lesson. "
+                    "Do not introduce new dialogue. "
+                    "Do not repeat previous dialogue. "
+                    "No written text or captions."
+                ),
 
-                    "current_video_seconds":
-                        current_video_seconds,
+                response_format={
+                    "type":
+                        "video",
 
-                    "target_video_seconds":
-                        target_video_seconds,
+                    "aspect_ratio":
+                        "16:9",
 
-                    "previous_interaction_id":
-                        current_interaction.id
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
                 }
             )
-
-            current_interaction = (
-                gemini_client
-                .interactions
-                .create(
-
-                    model=
-                    LESSON_TRANSITION_VIDEO_MODEL,
-
-                    previous_interaction_id=
-                    current_interaction.id,
-
-                    input=(
-                        "Continue this exact same educational scene "
-                        "with perfect visual and audio continuity. "
-
-                        "Keep exactly the same teacher, "
-                        "face, voice, environment, illustration style, "
-                        "lighting and camera position. "
-
-                        "Continue the SAME Hebrew dialogue "
-                        "from exactly where the previous video stopped. "
-
-                        "Continue speaking only the remaining words "
-                        "from the original Hebrew paragraph. "
-
-                        "Do not restart the paragraph. "
-                        "Do not repeat any words already spoken. "
-                        "Do not paraphrase the original text. "
-                        "Do not add new dialogue. "
-
-                        "Keep the teacher's mouth movements "
-                        "naturally synchronized with the Hebrew speech. "
-
-                        "IMPORTANT: Do not end the video "
-                        "while the teacher is still speaking. "
-
-                        "Once the complete original Hebrew paragraph "
-                        "has finished, the teacher should stop speaking, "
-                        "pause naturally, smile, and make a subtle "
-                        "inviting gesture toward the next part "
-                        "of the lesson. "
-
-                        "No written text or captions."
-                    ),
-
-                    response_format={
-                        "type":
-                            "video",
-
-                        "aspect_ratio":
-                            "16:9",
-
-                        "resolution":
-                            "720p",
-
-                        "delivery":
-                            "uri"
-                    }
-                )
-            )
-
-            current_video_seconds += 10
-
-        final_interaction = (
-            current_interaction
         )
 
         output_video = getattr(
-            final_interaction,
+            second_interaction,
             "output_video",
             None
         )
