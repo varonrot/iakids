@@ -10552,7 +10552,7 @@ def run_learning_coach(
     )
 
     # =============================================
-    # FINISH LEARNING COACH AND LESSON
+    # FINISH CURRENT LEARNING COACH
     # =============================================
 
     if coach_finished:
@@ -10563,42 +10563,84 @@ def run_learning_coach(
             .isoformat()
         )
 
-        next_stage = (
-            LESSON_STAGE_COMPLETED
-        )
+        # =========================================
+        # COACH 1 FINISHED
+        #
+        # עדיין לא מסיימים את השיעור.
+        # עוברים לשלב המעבר בין Part 1 ל-Part 2.
+        # =========================================
 
-        progress_update = (
-            sb.table(
-                "kid_lesson_progress"
+        if coach_index == 1:
+
+            next_stage = (
+                LESSON_STAGE_CLARIFICATION
             )
-            .update({
-                "current_stage":
-                    next_stage,
 
-                "status":
-                    "completed",
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_stage":
+                        next_stage,
 
-                "progress_percent":
-                    100,
+                    "status":
+                        "in_progress",
 
-                "mastery_score":
-                    understanding_score,
+                    "mastery_score":
+                        understanding_score,
 
-                "completed_at":
-                    now_iso,
+                    "last_activity_at":
+                        now_iso,
 
-                "last_activity_at":
-                    now_iso,
-
-                "updated_at":
-                    now_iso
-            })
-            .eq(
-                "id",
-                progress["id"]
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
             )
-            .execute()
-        )
+
+        # =========================================
+        # COACH 2 FINISHED
+        #
+        # עדיין נשאיר מקום לסיכום הסופי.
+        # =========================================
+
+        else:
+
+            next_stage = (
+                LESSON_STAGE_FINAL_ASSESSMENT
+            )
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_stage":
+                        next_stage,
+
+                    "status":
+                        "in_progress",
+
+                    "mastery_score":
+                        understanding_score,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
 
         if progress_update.data:
             progress = (
@@ -10653,9 +10695,16 @@ def run_learning_coach(
 
     if coach_finished:
 
+        # =========================================
+        # כשה-Coach הסתיים אסור לשאול עוד שאלה.
+        #
+        # speak = הודעת סיום בלבד.
+        # wait_for_answer יהיה False.
+        # =========================================
+
         sequence = [
             TutorAction(
-                type="ask",
+                type="speak",
                 text=teacher_response,
                 style="normal",
                 speed=45
@@ -10763,7 +10812,7 @@ def run_learning_coach(
             coach_finished,
 
         "lesson_completed":
-            coach_finished,
+            False,
         "session_id":
             session_id,
 
