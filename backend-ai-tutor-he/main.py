@@ -7067,7 +7067,7 @@ def generate_unit_lesson_media_background(
             )
 
             traceback.print_exc()
-            
+
         except Exception as e:
             print(
                 "LESSON VISUALS BACKGROUND FAILED:",
@@ -9301,6 +9301,19 @@ def get_or_generate_unit_lesson(
                 unit_lesson["id"]
             )
 
+            print(
+                "QUEUE BACKGROUND TRANSITION VIDEO CHECK:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"]
+                }
+            )
+
+            background_tasks.add_task(
+                generate_transition_video_background,
+                unit_lesson["id"]
+            )
+            
             # =========================================
             # RESPONSE
             # =========================================
