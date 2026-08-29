@@ -42,6 +42,9 @@ LESSON_DIRECTOR_PROMPT_PATH = Path(
 VISUAL_DIRECTOR_PROMPT_PATH = Path(
     "prompts/iakids_visual_director_prompt.txt"
 )
+LESSON_TRANSITION_PROMPT_PATH = Path(
+    "prompts/iakids_lesson_transition_prompt.txt"
+)
 LEARNING_COACH_PROMPT_PATH = Path(
     "prompts/learning_coach_system_prompt.txt"
 )
@@ -253,6 +256,11 @@ if not VISUAL_DIRECTOR_PROMPT_PATH.exists():
         f"Missing visual director prompt file: "
         f"{VISUAL_DIRECTOR_PROMPT_PATH}"
     )
+if not LESSON_TRANSITION_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Lesson Transition prompt file: "
+        f"{LESSON_TRANSITION_PROMPT_PATH}"
+    )
 if not LEARNING_COACH_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing Learning Coach prompt file: "
@@ -290,6 +298,12 @@ LESSON_DIRECTOR_PROMPT_TEMPLATE = (
 )
 VISUAL_DIRECTOR_PROMPT_TEMPLATE = (
     VISUAL_DIRECTOR_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+LESSON_TRANSITION_PROMPT_TEMPLATE = (
+    LESSON_TRANSITION_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -530,9 +544,22 @@ class DirectedLessonQuestion(BaseModel):
     text: str
 
 
-class DirectedLessonResponse(BaseModel):
+class DirectedLessonPart(BaseModel):
     lesson: list[DirectedLessonSegment]
     question: DirectedLessonQuestion
+
+
+class DirectedLessonSummary(BaseModel):
+    text: str
+
+
+class DirectedLessonResponse(BaseModel):
+
+    part_1: DirectedLessonPart
+
+    part_2: DirectedLessonPart
+
+    summary: DirectedLessonSummary
 
 class VisualDirectorItem(BaseModel):
     order: int
@@ -546,6 +573,16 @@ class VisualDirectorItem(BaseModel):
 class VisualDirectorResponse(BaseModel):
     version: int = 1
     visuals: list[VisualDirectorItem]
+
+class LessonTransitionResponse(BaseModel):
+
+    speech: str
+
+    video_scene: str
+
+    next_part_hook: str
+
+    duration_seconds: int = 10
 
 # =====================================================
 # STRUCTURED LESSON MODELS
@@ -4209,6 +4246,53 @@ def build_visual_director_prompt(
 
     return (
         VISUAL_DIRECTOR_PROMPT_TEMPLATE
+        + "\n\n"
+        + "RUNTIME_CONTEXT:\n"
+        + json.dumps(
+            runtime_context,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+def build_lesson_transition_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        part_1: dict,
+        part_2: dict
+) -> str:
+
+    runtime_context = {
+
+        "grade":
+            parent_lesson.get(
+                "grade"
+            ),
+
+        "subject":
+            parent_lesson.get(
+                "subject"
+            ),
+
+        "lesson_name":
+            unit_lesson.get(
+                "lesson_name"
+            ),
+
+        "learning_objective":
+            unit_lesson.get(
+                "learning_objective"
+            ),
+
+        "part_1":
+            part_1,
+
+        "part_2":
+            part_2
+    }
+
+    return (
+        LESSON_TRANSITION_PROMPT_TEMPLATE
         + "\n\n"
         + "RUNTIME_CONTEXT:\n"
         + json.dumps(
@@ -8757,6 +8841,147 @@ def get_or_generate_unit_lesson(
         )
 
         # =============================================
+        # BACKWARD COMPATIBILITY
+        #
+        # הקוד הישן עדיין משתמש ב:
+        # structured_lesson["lesson"]
+        # structured_lesson["question"]
+        #
+        # כרגע הם מייצגים את Part 1.
+        # =============================================
+
+        structured_lesson[
+            "lesson"
+        ] = (
+                structured_lesson
+                .get(
+                    "part_1",
+                    {}
+                )
+                .get(
+                    "lesson"
+                )
+                or []
+        )
+
+        structured_lesson[
+            "question"
+        ] = (
+                structured_lesson
+                .get(
+                    "part_1",
+                    {}
+                )
+                .get(
+                    "question"
+                )
+                or {}
+        )
+
+        # =============================================
+        # LESSON TRANSITION DIRECTOR
+        #
+        # מעבר אוניברסלי בין Part 1 ל-Part 2.
+        # אינו תלוי בדיאלוג של הילד.
+        # =============================================
+
+        transition_prompt = (
+            build_lesson_transition_prompt(
+
+                unit_lesson=
+                unit_lesson,
+
+                parent_lesson=
+                parent_lesson,
+
+                part_1=
+                structured_lesson[
+                    "part_1"
+                ],
+
+                part_2=
+                structured_lesson[
+                    "part_2"
+                ]
+            )
+        )
+
+        print(
+            "========== LESSON TRANSITION DIRECTOR START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"]
+            }
+        )
+
+        transition_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            transition_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Create the universal transition "
+                                "between Part 1 and Part 2. "
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                LessonTransitionResponse
+            )
+        )
+
+        transition_data = (
+            transition_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not transition_data:
+            raise RuntimeError(
+                "Lesson Transition Director "
+                "returned no response"
+            )
+
+        lesson_transition = (
+            transition_data
+            .model_dump()
+        )
+
+        print(
+            "========== LESSON TRANSITION DIRECTOR RESULT =========="
+        )
+
+        print(
+            json.dumps(
+                lesson_transition,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
         # VISUAL DIRECTOR
         # מחליט אילו המחשות דרושות לשיעור
         # ומתי להציג תמונה או וידאו
@@ -8909,6 +9134,9 @@ def get_or_generate_unit_lesson(
             # המבנה החדש
             "structured_lesson":
                 structured_lesson,
+
+            "transition":
+                lesson_transition,
 
             # תוכנית ההמחשות של Visual Director
             "visual_director_model":
