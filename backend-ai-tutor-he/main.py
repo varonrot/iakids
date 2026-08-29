@@ -7027,6 +7027,10 @@ def generate_unit_lesson_media_background(
             max_workers=2
     ) as executor:
 
+        # =============================================
+        # AUDIO + VISUALS RUN IN PARALLEL
+        # =============================================
+
         audio_future = executor.submit(
             generate_unit_lesson_audio_background,
             unit_lesson_id
@@ -7037,8 +7041,28 @@ def generate_unit_lesson_media_background(
             unit_lesson_id
         )
 
+        # =============================================
+        # WAIT FOR VISUALS
+        # =============================================
+
         try:
+
             visuals_future.result()
+
+        except Exception as e:
+
+            print(
+                "LESSON VISUALS BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
 
         # =============================================
         # TRANSITION VIDEO
@@ -7068,24 +7092,16 @@ def generate_unit_lesson_media_background(
 
             traceback.print_exc()
 
-        except Exception as e:
-            print(
-                "LESSON VISUALS BACKGROUND FAILED:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson_id,
-
-                    "error":
-                        repr(e)
-                }
-            )
-
-            traceback.print_exc()
+        # =============================================
+        # WAIT FOR AUDIO
+        # =============================================
 
         try:
+
             audio_future.result()
 
         except Exception as e:
+
             print(
                 "LESSON AUDIO BACKGROUND FAILED:",
                 {
@@ -7106,7 +7122,7 @@ def generate_unit_lesson_media_background(
                 unit_lesson_id
         }
     )
-
+    
 def generate_first_lesson_visual_background(
         unit_lesson_id: int
 ):
@@ -9313,7 +9329,7 @@ def get_or_generate_unit_lesson(
                 generate_transition_video_background,
                 unit_lesson["id"]
             )
-            
+
             # =========================================
             # RESPONSE
             # =========================================
