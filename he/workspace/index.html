@@ -19052,12 +19052,28 @@ if(
     }
   );
 
+try {
+
   visualForSegment =
     await waitForLessonVisual(
       data.unit_lesson_id,
       session,
       visualOrder
     );
+
+}
+catch(error){
+
+  console.warn(
+    "VISUAL WAIT FAILED - CONTINUE LESSON:",
+    {
+      segment: visualOrder,
+      error
+    }
+  );
+
+  visualForSegment = null;
+}
 
 }
 
