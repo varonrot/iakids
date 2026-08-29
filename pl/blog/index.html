@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>IAKIDS Blog | AI Tutor, korepetycje i skuteczna nauka</title>
+
+<meta name="description"
+content="Praktyczne poradniki dla rodziców i uczniów o AI Tutorze, korepetycjach, pomocy w nauce, zadaniach domowych, skutecznych metodach uczenia się, matematyce i angielskim.">
+
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://iakids.app/pl/blog/">
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/favicon.ico">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://iakids.app/pl/blog/">
+<meta property="og:title" content="IAKIDS Blog | AI Tutor, korepetycje i skuteczna nauka">
+<meta property="og:description"
+content="Poradniki o AI w edukacji, korepetycjach, pomocy w nauce i skutecznych metodach uczenia się dla dzieci i uczniów.">
+<meta property="og:image" content="https://iakids.app/assets/pl/blog/ai-tutor.webp">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="IAKIDS Blog | Nauka z AI">
+<meta name="twitter:description"
+content="AI Tutor, korepetycje, pomoc w nauce i praktyczne metody skutecznego uczenia się.">
+<meta name="twitter:image" content="https://iakids.app/assets/pl/blog/ai-tutor.webp">
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"Blog",
+  "name":"IAKIDS Blog Polska",
+  "description":"Praktyczne poradniki dla rodziców i uczniów o AI Tutorze, korepetycjach, pomocy w nauce i skutecznych metodach uczenia się.",
+  "url":"https://iakids.app/pl/blog/",
+  "inLanguage":"pl-PL",
+  "publisher":{
+    "@type":"Organization",
+    "name":"IAKIDS",
+    "url":"https://iakids.app/pl/"
+  }
+}
+</script>
+
+<style>
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  margin:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:#172033;
+  background:#fff;
+}
+
+img,
+video,
+iframe{
+  max-width:100%;
+  height:auto;
+}
+
+a{
+  color:#2563eb;
+  text-decoration:none;
+}
+
+a:hover{text-decoration:none}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #e8edf4;
+  backdrop-filter:blur(10px);
+}
+
+.topbar-inner{
+  width:100%;
+  max-width:1200px;
+  margin:auto;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:25px;
+}
+
+.logo{
+  color:#2563eb;
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-.5px;
+  text-decoration:none;
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-left:auto;
+  font-size:15px;
+  font-weight:700;
+}
+
+.nav a{
+  color:#334155;
+  text-decoration:none;
+}
+
+.nav a:hover{
+  color:#2563eb;
+}
+
+.nav-cta{
+  color:#fff !important;
+  padding:10px 18px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.hero{
+  position:relative;
+  width:100%;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(37,99,235,.12),transparent 35%),
+    radial-gradient(circle at 85% 30%,rgba(34,197,94,.12),transparent 35%),
+    linear-gradient(180deg,#f8fbff 0%,#fff 100%);
+}
+
+.hero-inner{
+  width:100%;
+  max-width:1200px;
+  margin:auto;
+  padding:82px 22px 76px;
+  text-align:center;
+}
+
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:22px;
+  padding:8px 15px;
+  border:1px solid #bfdbfe;
+  border-radius:999px;
+  color:#2563eb;
+  background:#fff;
+  box-shadow:0 8px 25px rgba(37,99,235,.07);
+  font-size:14px;
+  font-weight:850;
+}
+
+.hero h1{
+  max-width:900px;
+  margin:0 auto 24px;
+  color:#101828;
+  font-size:clamp(43px,6vw,70px);
+  line-height:1.06;
+  letter-spacing:-2px;
+}
+
+.hero h1 span{
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.hero p{
+  max-width:780px;
+  margin:0 auto;
+  color:#526077;
+  font-size:20px;
+  line-height:1.75;
+}
+
+.hero-links{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:31px;
+}
+
+.hero-links a{
+  display:inline-flex;
+  padding:9px 14px;
+  border:1px solid #e2e8f0;
+  border-radius:999px;
+  color:#475569;
+  background:#fff;
+  font-size:14px;
+  font-weight:750;
+  box-shadow:0 5px 16px rgba(15,23,42,.04);
+}
+
+.hero-links a:hover{
+  color:#2563eb;
+  border-color:#bfdbfe;
+  transform:translateY(-1px);
+}
+
+.page{
+  width:100%;
+  max-width:1200px;
+  margin:auto;
+  padding:78px 22px 95px;
+}
+
+.section-heading{
+  max-width:760px;
+  margin:0 auto 45px;
+  text-align:center;
+}
+
+.section-label{
+  display:block;
+  margin-bottom:10px;
+  color:#2563eb;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+
+.section-heading h2{
+  margin:0 0 14px;
+  color:#101828;
+  font-size:37px;
+  line-height:1.2;
+  letter-spacing:-.8px;
+}
+
+.section-heading p{
+  margin:0;
+  color:#64748b;
+  font-size:17px;
+  line-height:1.75;
+}
+
+.featured{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  margin-bottom:35px;
+  overflow:hidden;
+  border:1px solid #dbeafe;
+  border-radius:28px;
+  background:linear-gradient(135deg,#eff6ff,#f0fdf4);
+  box-shadow:0 18px 55px rgba(15,23,42,.07);
+}
+
+.featured-image{
+  min-height:410px;
+}
+
+.featured-image img{
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:410px;
+  object-fit:cover;
+}
+
+.featured-content{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+  padding:50px 45px;
+}
+
+.card-tag{
+  display:inline-flex;
+  align-self:flex-start;
+  margin-bottom:17px;
+  padding:7px 12px;
+  border-radius:999px;
+  color:#2563eb;
+  background:#fff;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.4px;
+}
+
+.featured h2{
+  margin:0 0 17px;
+  color:#101828;
+  font-size:37px;
+  line-height:1.15;
+  letter-spacing:-.7px;
+}
+
+.featured p{
+  margin:0 0 24px;
+  color:#526077;
+  font-size:17px;
+  line-height:1.75;
+}
+
+.read-more{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  align-self:flex-start;
+  color:#2563eb;
+  font-weight:850;
+  font-size:15px;
+}
+
+.read-more:hover{
+  gap:12px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:28px;
+}
+
+.cluster-card{
+  min-width:0;
+  overflow:hidden;
+  border:1px solid #e2e8f0;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 12px 35px rgba(15,23,42,.055);
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+
+.cluster-card:hover{
+  transform:translateY(-4px);
+  border-color:#bfdbfe;
+  box-shadow:0 18px 45px rgba(15,23,42,.09);
+}
+
+.card-image{
+  width:100%;
+  height:255px;
+  overflow:hidden;
+  background:#f1f5f9;
+}
+
+.card-image img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .35s ease;
+}
+
+.cluster-card:hover .card-image img{
+  transform:scale(1.025);
+}
+
+.card-content{
+  padding:29px 29px 31px;
+}
+
+.card-content h2{
+  margin:0 0 13px;
+  color:#101828;
+  font-size:26px;
+  line-height:1.22;
+  letter-spacing:-.35px;
+}
+
+.card-content p{
+  margin:0 0 21px;
+  color:#64748b;
+  font-size:16px;
+  line-height:1.7;
+}
+
+.topic-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:0 0 23px;
+}
+
+.topic-links a{
+  padding:7px 10px;
+  border-radius:9px;
+  color:#475569;
+  background:#f8fafc;
+  font-size:12.5px;
+  font-weight:700;
+}
+
+.topic-links a:hover{
+  color:#2563eb;
+  background:#eff6ff;
+}
+
+.learning-section{
+  margin-top:85px;
+  padding:55px;
+  border-radius:30px;
+  background:#0f172a;
+  color:#fff;
+}
+
+.learning-grid{
+  display:grid;
+  grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  gap:60px;
+  align-items:center;
+}
+
+.learning-section h2{
+  margin:0 0 18px;
+  font-size:38px;
+  line-height:1.15;
+  letter-spacing:-.8px;
+}
+
+.learning-section p{
+  margin:0;
+  color:#cbd5e1;
+  font-size:17px;
+  line-height:1.75;
+}
+
+.learning-points{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.learning-point{
+  padding:19px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:17px;
+  background:rgba(255,255,255,.055);
+}
+
+.learning-point strong{
+  display:block;
+  margin-bottom:5px;
+  color:#fff;
+  font-size:15px;
+}
+
+.learning-point span{
+  color:#cbd5e1;
+  font-size:13px;
+  line-height:1.55;
+}
+
+.cta{
+  margin-top:85px;
+  padding:55px 40px;
+  border-radius:30px;
+  text-align:center;
+  color:#fff;
+  background:
+    radial-gradient(circle at 10% 20%,rgba(255,255,255,.18),transparent 30%),
+    linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.cta h2{
+  max-width:720px;
+  margin:0 auto 15px;
+  font-size:38px;
+  line-height:1.18;
+  letter-spacing:-.7px;
+}
+
+.cta p{
+  max-width:650px;
+  margin:0 auto 25px;
+  color:#fff;
+  opacity:.95;
+  font-size:17px;
+  line-height:1.7;
+}
+
+.cta a{
+  display:inline-block;
+  padding:14px 25px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  font-weight:900;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+}
+
+footer{
+  width:100%;
+  max-width:100%;
+  padding:35px 22px;
+  border-top:1px solid #e8edf4;
+  color:#64748b;
+}
+
+.footer-inner{
+  width:100%;
+  max-width:1200px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:17px;
+}
+
+.footer-links a{
+  color:#64748b;
+}
+
+@media(max-width:900px){
+
+  .topbar-inner,
+  .hero-inner,
+  .page,
+  .featured,
+  .featured-content,
+  .grid,
+  .cluster-card,
+  .card-content,
+  .learning-section,
+  .learning-grid,
+  .cta,
+  footer,
+  .footer-inner{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .topbar-inner{
+    padding:12px 18px;
+    gap:12px;
+  }
+
+  .logo{
+    flex-shrink:0;
+    font-size:22px;
+  }
+
+  .nav{
+    margin-left:auto;
+  }
+
+  .nav a:not(.nav-cta){
+    display:none;
+  }
+
+  .nav-cta{
+    display:block;
+    padding:10px 16px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+
+  .hero-inner{
+    padding:58px 20px 57px;
+  }
+
+  .hero h1{
+    width:100%;
+    max-width:100%;
+    font-size:clamp(38px,8vw,53px);
+    line-height:1.1;
+    letter-spacing:-1px;
+    overflow-wrap:break-word;
+  }
+
+  .hero p{
+    width:100%;
+    max-width:100%;
+    font-size:18px;
+    line-height:1.7;
+  }
+
+  .page{
+    width:100%;
+    padding:58px 20px 75px;
+  }
+
+  .featured{
+    grid-template-columns:1fr;
+  }
+
+  .featured-image,
+  .featured-image img{
+    min-height:0;
+    height:auto;
+  }
+
+  .featured-image img{
+    aspect-ratio:16/9;
+  }
+
+  .featured-content{
+    padding:34px 30px 37px;
+  }
+
+  .featured h2{
+    font-size:31px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .card-image{
+    height:auto;
+  }
+
+  .card-image img{
+    aspect-ratio:16/9;
+  }
+
+  .learning-section{
+    padding:40px 30px;
+  }
+
+  .learning-grid{
+    grid-template-columns:1fr;
+    gap:32px;
+  }
+
+  .cta{
+    padding:43px 30px;
+  }
+}
+
+@media(max-width:600px){
+
+  .topbar-inner{
+    padding:10px 16px;
+  }
+
+  .logo{
+    font-size:21px;
+  }
+
+  .nav-cta{
+    padding:9px 14px;
+    font-size:13px;
+  }
+
+  .hero-inner{
+    padding:45px 18px 48px;
+  }
+
+  .hero-badge{
+    margin-bottom:18px;
+    font-size:12.5px;
+  }
+
+  .hero h1{
+    font-size:36px;
+    line-height:1.11;
+    letter-spacing:-.7px;
+  }
+
+  .hero p{
+    font-size:17px;
+    line-height:1.7;
+  }
+
+  .hero-links{
+    justify-content:flex-start;
+    margin-top:25px;
+  }
+
+  .hero-links a{
+    font-size:12.5px;
+  }
+
+  .page{
+    padding:48px 18px 65px;
+  }
+
+  .section-heading{
+    margin-bottom:32px;
+    text-align:left;
+  }
+
+  .section-heading h2{
+    font-size:30px;
+  }
+
+  .section-heading p{
+    font-size:16px;
+  }
+
+  .featured{
+    border-radius:21px;
+  }
+
+  .featured-content{
+    padding:27px 22px 30px;
+  }
+
+  .featured h2{
+    font-size:28px;
+  }
+
+  .featured p{
+    font-size:16px;
+  }
+
+  .cluster-card{
+    border-radius:21px;
+  }
+
+  .card-content{
+    padding:25px 22px 27px;
+  }
+
+  .card-content h2{
+    font-size:24px;
+  }
+
+  .learning-section{
+    margin-top:60px;
+    padding:32px 22px;
+    border-radius:23px;
+  }
+
+  .learning-section h2{
+    font-size:30px;
+  }
+
+  .learning-points{
+    grid-template-columns:1fr;
+  }
+
+  .cta{
+    margin-top:60px;
+    padding:35px 22px;
+    border-radius:23px;
+  }
+
+  .cta h2{
+    font-size:29px;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+  }
+}
+
+@media(max-width:380px){
+
+  .hero-inner,
+  .page{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero h1{
+    font-size:32px;
+  }
+
+  .nav-cta{
+    padding:8px 11px;
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+
+    <a href="/pl/" class="logo">iakids</a>
+
+    <nav class="nav">
+      <a href="/pl/blog/">Blog</a>
+      <a href="/pl/blog/ai-tutor/">AI Tutor</a>
+      <a href="/pl/blog/korepetycje/">Korepetycje</a>
+      <a href="/pl/blog/jak-sie-uczyc/">Jak się uczyć</a>
+      <a href="/pl/" class="nav-cta">Poznaj IAKIDS</a>
+    </nav>
+
+  </div>
+</header>
+
+
+<section class="hero">
+
+  <div class="hero-inner">
+
+    <div class="hero-badge">
+      IAKIDS · EDUKACJA I AI
+    </div>
+
+    <h1>
+      Pomagamy dzieciom
+      <span>uczyć się mądrzej</span>
+    </h1>
+
+    <p>
+      Praktyczne poradniki dla rodziców i uczniów o AI Tutorze,
+      korepetycjach, zadaniach domowych, matematyce, języku angielskim
+      oraz metodach, które pomagają lepiej rozumieć i samodzielnie się uczyć.
+    </p>
+
+    <div class="hero-links">
+      <a href="/pl/blog/ai-tutor/">AI Tutor</a>
+      <a href="/pl/blog/korepetycje/">Korepetycje</a>
+      <a href="/pl/blog/pomoc-w-nauce/">Pomoc w nauce</a>
+      <a href="/pl/blog/jak-sie-uczyc/">Jak się uczyć</a>
+      <a href="/pl/blog/nauka/">Nauka</a>
+    </div>
+
+  </div>
+
+</section>
+
+
+<main class="page">
+
+  <section>
+
+    <div class="section-heading">
+      <span class="section-label">PORADNIKI I WIEDZA</span>
+      <h2>Wybierz temat</h2>
+      <p>
+        Od nowoczesnych narzędzi AI po tradycyjne korepetycje
+        i skuteczne strategie uczenia się — znajdź pomoc dopasowaną
+        do aktualnych potrzeb ucznia.
+      </p>
+    </div>
+
+
+    <article class="featured">
+
+      <div class="featured-image">
+        <img
+          src="/assets/pl/blog/ai-tutor.webp"
+          alt="Uczeń korzystający z AI Tutora podczas nauki"
+          loading="eager"
+          width="700"
+          height="500">
+      </div>
+
+      <div class="featured-content">
+
+        <span class="card-tag">AI W EDUKACJI</span>
+
+        <h2>AI Tutor</h2>
+
+        <p>
+          Czym jest AI Tutor i jak może wspierać ucznia?
+          Dowiedz się, jak sztuczna inteligencja może pomagać
+          w wyjaśnianiu materiału, zadawaniu pytań,
+          ćwiczeniu i udzielaniu informacji zwrotnej.
+        </p>
+
+        <div class="topic-links">
+          <a href="/pl/blog/ai-tutor/ai-tutor-dla-uczniow/">AI Tutor dla uczniów</a>
+          <a href="/pl/blog/ai-tutor/ai-tutor-czy-chatgpt/">AI Tutor czy ChatGPT</a>
+          <a href="/pl/blog/ai-tutor/ai-do-matematyki/">AI do matematyki</a>
+          <a href="/pl/blog/ai-tutor/ai-do-zadan-domowych/">AI do zadań domowych</a>
+        </div>
+
+        <a class="read-more" href="/pl/blog/ai-tutor/">
+          Poznaj AI Tutora →
+        </a>
+
+      </div>
+
+    </article>
+
+
+    <div class="grid">
+
+
+      <article class="cluster-card">
+
+        <div class="card-image">
+          <img
+            src="/assets/pl/blog/korepetycje.webp"
+            alt="Uczeń podczas indywidualnych korepetycji"
+            loading="lazy"
+            width="700"
+            height="394">
+        </div>
+
+        <div class="card-content">
+
+          <span class="card-tag">DODATKOWA POMOC</span>
+
+          <h2>Korepetycje</h2>
+
+          <p>
+            Kiedy warto skorzystać z korepetycji?
+            Porównujemy korepetycje online, pomoc z matematyki
+            i angielskiego oraz różne formy indywidualnego wsparcia.
+          </p>
+
+          <div class="topic-links">
+            <a href="/pl/blog/korepetycje/korepetycje-online/">Korepetycje online</a>
+            <a href="/pl/blog/korepetycje/korepetycje-z-matematyki/">Matematyka</a>
+            <a href="/pl/blog/korepetycje/korepetycje-z-angielskiego/">Angielski</a>
+            <a href="/pl/blog/korepetycje/korepetycje-dla-dzieci/">Dla dzieci</a>
+          </div>
+
+          <a class="read-more" href="/pl/blog/korepetycje/">
+            Wszystko o korepetycjach →
+          </a>
+
+        </div>
+
+      </article>
+
+
+      <article class="cluster-card">
+
+        <div class="card-image">
+          <img
+            src="/assets/pl/blog/pomoc-w-nauce.webp"
+            alt="Dziecko otrzymujące pomoc podczas nauki i odrabiania lekcji"
+            loading="lazy"
+            width="700"
+            height="394">
+        </div>
+
+        <div class="card-content">
+
+          <span class="card-tag">NAUKA I ZADANIA DOMOWE</span>
+
+          <h2>Pomoc w nauce</h2>
+
+          <p>
+            Jak pomagać dziecku bez wykonywania pracy za nie?
+            Poznaj sposoby wspierania przy zadaniach domowych,
+            trudnych tematach i samodzielnym rozwiązywaniu problemów.
+          </p>
+
+          <div class="topic-links">
+            <a href="/pl/blog/pomoc-w-nauce/pomoc-w-nauce-dla-dzieci/">Pomoc dla dzieci</a>
+            <a href="/pl/blog/pomoc-w-nauce/pomoc-w-odrabianiu-lekcji/">Odrabianie lekcji</a>
+            <a href="/pl/blog/pomoc-w-nauce/pomoc-w-zadaniach-domowych/">Zadania domowe</a>
+          </div>
+
+          <a class="read-more" href="/pl/blog/pomoc-w-nauce/">
+            Jak pomagać w nauce →
+          </a>
+
+        </div>
+
+      </article>
+
+
+      <article class="cluster-card">
+
+        <div class="card-image">
+          <img
+            src="/assets/pl/blog/jak-sie-uczyc.webp"
+            alt="Uczeń korzystający ze skutecznych metod uczenia się"
+            loading="lazy"
+            width="700"
+            height="394">
+        </div>
+
+        <div class="card-content">
+
+          <span class="card-tag">METODY UCZENIA SIĘ</span>
+
+          <h2>Jak się uczyć?</h2>
+
+          <p>
+            Skuteczna nauka to nie tylko więcej czasu nad książką.
+            Dowiedz się, jak planować, aktywnie ćwiczyć,
+            lepiej zapamiętywać i przygotowywać się do sprawdzianów.
+          </p>
+
+          <div class="topic-links">
+            <a href="/pl/blog/jak-sie-uczyc/jak-uczyc-sie-skutecznie/">Skuteczna nauka</a>
+            <a href="/pl/blog/jak-sie-uczyc/jak-szybko-sie-uczyc/">Jak szybko się uczyć</a>
+            <a href="/pl/blog/jak-sie-uczyc/jak-przygotowac-sie-do-sprawdzianu/">Sprawdzian</a>
+            <a href="/pl/blog/jak-sie-uczyc/jak-lepiej-zapamietywac/">Zapamiętywanie</a>
+          </div>
+
+          <a class="read-more" href="/pl/blog/jak-sie-uczyc/">
+            Poznaj metody nauki →
+          </a>
+
+        </div>
+
+      </article>
+
+
+      <article class="cluster-card">
+
+        <div class="card-image">
+          <img
+            src="/assets/pl/blog/nauka.webp"
+            alt="Dzieci uczące się matematyki i języka angielskiego"
+            loading="lazy"
+            width="700"
+            height="394">
+        </div>
+
+        <div class="card-content">
+
+          <span class="card-tag">PRZEDMIOTY SZKOLNE</span>
+
+          <h2>Nauka przedmiotów</h2>
+
+          <p>
+            Praktyczne materiały o nauce matematyki i języka angielskiego.
+            Zobacz, jak wspierać dziecko w rozumieniu materiału,
+            ćwiczeniu i rozwijaniu umiejętności.
+          </p>
+
+          <div class="topic-links">
+            <a href="/pl/blog/nauka/matematyka/">Matematyka</a>
+            <a href="/pl/blog/nauka/matematyka/nauka-matematyki-dla-dzieci/">Matematyka dla dzieci</a>
+            <a href="/pl/blog/nauka/angielski/">Angielski</a>
+            <a href="/pl/blog/nauka/angielski/angielski-online-dla-dzieci/">Angielski online dla dzieci</a>
+          </div>
+
+          <a class="read-more" href="/pl/blog/nauka/">
+            Zobacz poradniki →
+          </a>
+
+        </div>
+
+      </article>
+
+
+    </div>
+
+  </section>
+
+
+  <section class="learning-section">
+
+    <div class="learning-grid">
+
+      <div>
+
+        <span class="section-label" style="color:#60a5fa">
+          NIE TYLKO GOTOWA ODPOWIEDŹ
+        </span>
+
+        <h2>Pomoc, która prowadzi do zrozumienia</h2>
+
+        <p>
+          Dobra pomoc edukacyjna nie powinna polegać wyłącznie
+          na podaniu rozwiązania. Dziecko potrzebuje przestrzeni,
+          aby pomyśleć, spróbować, popełnić błąd i ponownie
+          dojść do odpowiedzi.
+        </p>
+
+      </div>
+
+
+      <div class="learning-points">
+
+        <div class="learning-point">
+          <strong>1. Wyjaśnienie</strong>
+          <span>Materiał przedstawiony w zrozumiały sposób.</span>
+        </div>
+
+        <div class="learning-point">
+          <strong>2. Pytanie</strong>
+          <span>Uczeń musi samodzielnie zastanowić się nad odpowiedzią.</span>
+        </div>
+
+        <div class="learning-point">
+          <strong>3. Próba</strong>
+          <span>Dziecko odpowiada lub rozwiązuje zadanie.</span>
+        </div>
+
+        <div class="learning-point">
+          <strong>4. Informacja zwrotna</strong>
+          <span>Odpowiedź pomaga zrozumieć, co było dobre, a co wymaga poprawy.</span>
+        </div>
+
+        <div class="learning-point">
+          <strong>5. Wskazówka</strong>
+          <span>Pomoc prowadzi do rozwiązania bez odbierania dziecku myślenia.</span>
+        </div>
+
+        <div class="learning-point">
+          <strong>6. Kolejna próba</strong>
+          <span>Uczeń ponownie wykorzystuje zdobytą wiedzę.</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section class="cta">
+
+    <h2>Nowy sposób wspierania dzieci w nauce</h2>
+
+    <p>
+      IAKIDS łączy wyjaśnienia, treści wizualne,
+      interaktywne pytania i AI Tutora, aby dziecko
+      nie tylko otrzymywało informacje, ale aktywnie uczestniczyło w nauce.
+    </p>
+
+    <a href="/pl/">
+      Poznaj IAKIDS
+    </a>
+
+  </section>
+
+</main>
+
+
+<footer>
+
+  <div class="footer-inner">
+
+    <div>
+      © <span id="current-year"></span> IAKIDS. Wszelkie prawa zastrzeżone.
+    </div>
+
+    <div class="footer-links">
+      <a href="/pl/blog/ai-tutor/">AI Tutor</a>
+      <a href="/pl/blog/korepetycje/">Korepetycje</a>
+      <a href="/pl/blog/pomoc-w-nauce/">Pomoc w nauce</a>
+      <a href="/pl/blog/jak-sie-uczyc/">Jak się uczyć</a>
+      <a href="/pl/blog/nauka/">Nauka</a>
+    </div>
+
+  </div>
+
+</footer>
+
+
+<script>
+document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
