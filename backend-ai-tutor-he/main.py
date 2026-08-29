@@ -8636,6 +8636,11 @@ def get_or_generate_unit_lesson(
                         "structured_lesson"
                     ),
 
+                "transition":
+                    cached_json.get(
+                        "transition"
+                    ),
+
                 "audio_generation_status":
                     (
                         "ready"
@@ -9361,6 +9366,11 @@ def get_or_generate_unit_lesson(
                     "structured_lesson"
                 ),
 
+            "transition":
+                lesson_json.get(
+                    "transition"
+                ),
+            
             "audio_generation_status":
                 "pending",
 
