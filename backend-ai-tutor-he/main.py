@@ -6683,6 +6683,26 @@ def generate_transition_video_background(
             }
         )
 
+        print(
+            "========== TRANSITION GEMINI EXACT INPUT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "speech_sent_to_gemini":
+                    speech,
+
+                "speech_length":
+                    len(speech),
+
+                "speech_words":
+                    len(speech.split()),
+
+                "full_video_prompt":
+                    video_prompt
+            }
+        )
+        
         first_interaction = (
             gemini_client
             .interactions
