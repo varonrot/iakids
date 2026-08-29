@@ -44463,14 +44463,53 @@ console.table(
       action.type
     ){
 
-      case "speak":
+case "speak":
 
-        await this.speak(
-          action
-        );
+  /*
+    אם speak הגיע לבד ולא כחלק
+    מ-speak + write pair,
+    מציגים גם את הטקסט על המסך.
 
-        break;
+    במקרה של pair, הקוד שמעל ה-switch
+    כבר מטפל בכתיבה + דיבור יחד,
+    ולכן לא נגיע לכאן.
+  */
 
+  if(
+    action.text
+  ){
+
+    await Promise.all([
+
+      this.speak(
+        action
+      ),
+
+      this.write({
+        text:
+          action.text,
+
+        style:
+          action.style
+          || "normal",
+
+        speed:
+          action.speed
+          || 45
+      })
+
+    ]);
+
+  }
+  else{
+
+    await this.speak(
+      action
+    );
+
+  }
+
+  break;
 
       case "write":
 
