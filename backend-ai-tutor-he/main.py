@@ -5113,6 +5113,76 @@ def create_lesson_media_signed_url(
 
     return signed_url
 
+def add_transition_video_signed_url(
+        transition: dict | None
+) -> dict | None:
+
+    if not isinstance(
+        transition,
+        dict
+    ):
+        return transition
+
+    video = (
+        transition.get(
+            "video"
+        )
+        or {}
+    )
+
+    if not isinstance(
+        video,
+        dict
+    ):
+        return transition
+
+    storage_path = str(
+        video.get(
+            "storage_path"
+        )
+        or ""
+    ).strip()
+
+    if not storage_path:
+
+        return transition
+
+    try:
+
+        signed_url = (
+            create_lesson_media_signed_url(
+                storage_path
+            )
+        )
+
+    except Exception as e:
+
+        print(
+            "TRANSITION VIDEO SIGNED URL FAILED:",
+            {
+                "storage_path":
+                    storage_path,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        return transition
+
+    return {
+        **transition,
+
+        "video": {
+            **video,
+
+            "url":
+                signed_url,
+
+            "url_expires_in_seconds":
+                LESSON_MEDIA_URL_EXPIRY_SECONDS
+        }
+    }
 
 def build_lesson_hero_image_prompt(
         unit_lesson: dict,
@@ -10058,8 +10128,10 @@ def get_or_generate_unit_lesson(
                     ),
 
                 "transition":
-                    cached_json.get(
-                        "transition"
+                    add_transition_video_signed_url(
+                        cached_json.get(
+                            "transition"
+                        )
                     ),
 
                 "audio_generation_status":
@@ -10788,8 +10860,10 @@ def get_or_generate_unit_lesson(
                 ),
 
             "transition":
-                lesson_json.get(
-                    "transition"
+                add_transition_video_signed_url(
+                    lesson_json.get(
+                        "transition"
+                    )
                 ),
 
             "audio_generation_status":
