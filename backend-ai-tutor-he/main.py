@@ -4365,59 +4365,227 @@ def regenerate_lesson_transition_only(
         }
     )
 
-    transition_completion = (
-        client
-        .beta
-        .chat
-        .completions
-        .parse(
+    # =============================================
+    # HARD SPEECH WORD COUNT
+    #
+    # לא סומכים רק על ה-Prompt.
+    # ה-Backend עצמו בודק שה-speech
+    # באמת מכיל 36-40 מילים.
+    # =============================================
 
-            model=
-                DEFAULT_OPENAI_MODEL,
+    MIN_TRANSITION_WORDS = 36
+    MAX_TRANSITION_WORDS = 40
+    MAX_TRANSITION_ATTEMPTS = 4
 
-            messages=[
+    lesson_transition = None
+
+    for attempt in range(
+        1,
+        MAX_TRANSITION_ATTEMPTS + 1
+    ):
+
+        print(
+            "TRANSITION GENERATION ATTEMPT:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "max_attempts":
+                    MAX_TRANSITION_ATTEMPTS
+            }
+        )
+
+        transition_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            transition_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Create the universal transition "
+                                "between Part 1 and Part 2. "
+
+                                "IMPORTANT HARD REQUIREMENT: "
+                                "The Hebrew speech field MUST contain "
+                                "between 36 and 40 Hebrew words. "
+
+                                "Count the words before returning. "
+
+                                "If the speech has fewer than 36 words, "
+                                "expand it naturally. "
+
+                                "If the speech has more than 40 words, "
+                                "rewrite it naturally. "
+
+                                "Do not return the response until "
+                                "the speech contains 36-40 words. "
+
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                    LessonTransitionResponse
+            )
+        )
+
+        transition_data = (
+            transition_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not transition_data:
+
+            print(
+                "TRANSITION ATTEMPT RETURNED NO DATA:",
                 {
-                    "role":
-                        "system",
+                    "unit_lesson_id":
+                        unit_lesson["id"],
 
-                    "content":
-                        transition_prompt
-                },
-
-                {
-                    "role":
-                        "user",
-
-                    "content":
-                        (
-                            "Create the universal transition "
-                            "between Part 1 and Part 2. "
-                            "Return only the required structure."
-                        )
+                    "attempt":
+                        attempt
                 }
-            ],
+            )
 
-            response_format=
-                LessonTransitionResponse
+            continue
+
+        candidate_transition = (
+            transition_data
+            .model_dump()
         )
-    )
 
-    transition_data = (
-        transition_completion
-        .choices[0]
-        .message
-        .parsed
-    )
+        candidate_speech = str(
+            candidate_transition.get(
+                "speech"
+            )
+            or ""
+        ).strip()
 
-    if not transition_data:
+        word_count = len(
+            candidate_speech.split()
+        )
+
+        print(
+            "TRANSITION WORD COUNT CHECK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "word_count":
+                    word_count,
+
+                "min_words":
+                    MIN_TRANSITION_WORDS,
+
+                "max_words":
+                    MAX_TRANSITION_WORDS,
+
+                "speech":
+                    candidate_speech
+            }
+        )
+
+        # =========================================
+        # VALID RESULT
+        # =========================================
+
+        if (
+            MIN_TRANSITION_WORDS
+            <= word_count
+            <= MAX_TRANSITION_WORDS
+        ):
+
+            lesson_transition = (
+                candidate_transition
+            )
+
+            print(
+                "TRANSITION WORD COUNT VALID:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "attempt":
+                        attempt,
+
+                    "word_count":
+                        word_count
+                }
+            )
+
+            break
+
+        # =========================================
+        # INVALID RESULT -> RETRY
+        # =========================================
+
+        print(
+            "TRANSITION WORD COUNT INVALID — RETRY:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "word_count":
+                    word_count
+            }
+        )
+
+    # =============================================
+    # NO VALID RESULT AFTER RETRIES
+    # =============================================
+
+    if lesson_transition is None:
+
         raise RuntimeError(
-            "Transition-only regeneration "
-            "returned no response"
+            "Transition Director failed "
+            "to produce speech with "
+            "36-40 Hebrew words "
+            f"after {MAX_TRANSITION_ATTEMPTS} attempts"
         )
 
-    lesson_transition = (
-        transition_data
-        .model_dump()
+    # =============================================
+    # FINAL RESULT
+    # =============================================
+
+    final_speech = str(
+        lesson_transition.get(
+            "speech"
+        )
+        or ""
+    ).strip()
+
+    final_word_count = len(
+        final_speech.split()
     )
 
     print(
@@ -4430,6 +4598,20 @@ def regenerate_lesson_transition_only(
             ensure_ascii=False,
             indent=2
         )
+    )
+
+    print(
+        "========== TRANSITION FINAL WORD COUNT ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "word_count":
+                final_word_count,
+
+            "speech":
+                final_speech
+        }
     )
 
     return lesson_transition
