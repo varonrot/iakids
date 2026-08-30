@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה77</strong>
+    <strong>עולם הלמידה97</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -21494,6 +21494,22 @@ console.log(
   introData
 );
 
+console.log(
+  "PERSONAL INTRO DEBUG:",
+  {
+    personal_intro:
+      introData?.personal_intro,
+
+    eligible:
+      introData?.personal_intro?.eligible,
+
+    ready_count:
+      introData?.personal_intro?.ready_count,
+
+    videos:
+      introData?.personal_intro?.videos
+  }
+);
 
 if (introData.session_id) {
   currentSessionId =
@@ -21519,10 +21535,146 @@ const universalLessonPromise =
   );
 
 
-await runTutorResponse(
-  introData
-);
+/* =============================================
+   PERSONAL PAID INTRO VIDEO
+============================================= */
 
+let personalIntroPlayed =
+  false;
+
+
+try{
+
+  console.log(
+    "ABOUT TO PLAY PERSONAL INTRO:",
+    introData?.personal_intro
+  );
+
+
+  personalIntroPlayed =
+    await playKidPersonalIntroVideo(
+      introData?.personal_intro
+    );
+
+}
+catch(
+  personalIntroError
+){
+
+  console.warn(
+    "PERSONAL INTRO PLAY ERROR:",
+    personalIntroError
+  );
+
+
+  personalIntroPlayed =
+    false;
+
+}
+
+
+/* =============================================
+   REMOVE DUPLICATE PERSONAL GREETING TTS
+   ONLY IF VIDEO REALLY PLAYED
+============================================= */
+
+let introDataToRun =
+  introData;
+
+
+if(
+  personalIntroPlayed
+  &&
+  Array.isArray(
+    introData?.sequence
+  )
+){
+
+  const sequence =
+    [
+      ...introData.sequence
+    ];
+
+
+  const firstAction =
+    sequence[0];
+
+
+  const firstText =
+    String(
+      firstAction?.speech_tts
+      ||
+      firstAction?.text
+      ||
+      ""
+    ).trim();
+
+
+  const childName =
+    String(
+      CURRENT_KID?.child_name
+      ||
+      CURRENT_KID?.name
+      ||
+      ""
+    ).trim();
+
+
+  const looksLikePersonalGreeting =
+    firstAction?.type ===
+      "speak"
+    &&
+    (
+      firstText.includes(
+        "כיף שבאת ללמוד איתי"
+      )
+      ||
+      (
+        childName
+        &&
+        firstText.includes(
+          childName
+        )
+        &&
+        firstText.startsWith(
+          "היי"
+        )
+      )
+    );
+
+
+  if(
+    looksLikePersonalGreeting
+  ){
+
+    sequence.shift();
+
+
+    console.log(
+      "PERSONAL INTRO GREETING TTS REMOVED:",
+      firstText
+    );
+
+  }
+
+
+  introDataToRun = {
+    ...introData,
+
+    sequence:
+      sequence
+  };
+
+}
+
+
+/* =============================================
+   RUN NORMAL INTRO / FALLBACK
+============================================= */
+
+await runTutorResponse(
+  introDataToRun
+);
 
 /* =============================================
    טעינת תוכן השיעור האוניברסלי
