@@ -9530,7 +9530,148 @@ def get_or_generate_unit_lesson(
                 generate_all_lesson_visuals_background,
                 unit_lesson["id"]
             )
+            # =========================================
+            # TRANSITION JSON REPAIR
+            #
+            # אם השיעור קיים ב-cache אבל transition
+            # חסר, מייצרים מחדש רק את ה-transition.
+            # לא נוגעים בשאר תוכן השיעור.
+            # =========================================
 
+            if not isinstance(
+                    cached_json.get("transition"),
+                    dict
+            ):
+
+                print(
+                    "TRANSITION JSON MISSING — REPAIR:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"]
+                    }
+                )
+
+                structured_lesson = (
+                        cached_json.get(
+                            "structured_lesson"
+                        )
+                        or {}
+                )
+
+                part_1 = (
+                        structured_lesson.get(
+                            "part_1"
+                        )
+                        or {}
+                )
+
+                part_2 = (
+                        structured_lesson.get(
+                            "part_2"
+                        )
+                        or {}
+                )
+
+                if part_1 and part_2:
+
+                    transition_prompt = (
+                        build_lesson_transition_prompt(
+                            unit_lesson=
+                            unit_lesson,
+
+                            parent_lesson=
+                            parent_lesson,
+
+                            part_1=
+                            part_1,
+
+                            part_2=
+                            part_2
+                        )
+                    )
+
+                    transition_completion = (
+                        client
+                        .beta
+                        .chat
+                        .completions
+                        .parse(
+
+                            model=
+                            DEFAULT_OPENAI_MODEL,
+
+                            messages=[
+                                {
+                                    "role":
+                                        "system",
+
+                                    "content":
+                                        transition_prompt
+                                },
+                                {
+                                    "role":
+                                        "user",
+
+                                    "content":
+                                        (
+                                            "Create the universal transition "
+                                            "between Part 1 and Part 2. "
+                                            "Return only the required structure."
+                                        )
+                                }
+                            ],
+
+                            response_format=
+                            LessonTransitionResponse
+                        )
+                    )
+
+                    transition_data = (
+                        transition_completion
+                        .choices[0]
+                        .message
+                        .parsed
+                    )
+
+                    if transition_data:
+                        lesson_transition = (
+                            transition_data
+                            .model_dump()
+                        )
+
+                        cached_json[
+                            "transition"
+                        ] = lesson_transition
+
+                        sb.table(
+                            "lesson_units_content"
+                        ).update({
+
+                            "generated_lesson_json":
+                                cached_json,
+
+                            "updated_at":
+                                datetime
+                                .now(timezone.utc)
+                                .isoformat()
+
+                        }).eq(
+                            "id",
+                            unit_lesson["id"]
+                        ).execute()
+
+                        print(
+                            "TRANSITION JSON REPAIRED:",
+                            {
+                                "unit_lesson_id":
+                                    unit_lesson["id"],
+
+                                "speech":
+                                    lesson_transition.get(
+                                        "speech"
+                                    )
+                            }
+                        )
             print(
                 "QUEUE BACKGROUND TRANSITION VIDEO CHECK:",
                 {
