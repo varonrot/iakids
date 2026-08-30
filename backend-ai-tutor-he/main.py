@@ -6838,9 +6838,12 @@ def generate_transition_video_background(
             }
         )
         print(
-            "TRANSITION SPEECH ONLY >>>",
-            speech,
-            "<<< TRANSITION SPEECH END"
+            "\n"
+            "========== TRANSITION SPEECH START ==========\n"
+            f"UNIT LESSON ID: {unit_lesson_id}\n"
+            f"{speech}\n"
+            "========== TRANSITION SPEECH END ==========\n",
+            flush=True
         )
         first_interaction = (
             gemini_client
@@ -10644,7 +10647,7 @@ def regenerate_unit_lesson_transition(
                 "lesson transition"
             )
         )
-    
+
 # =====================================================
 # UNIT LESSON HERO IMAGE
 # =====================================================
