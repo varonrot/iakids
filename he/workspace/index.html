@@ -21561,10 +21561,35 @@ try{
   );
 
 
+  /* =============================================
+     PERSONAL INTRO BACKGROUND MUSIC
+     חלש יותר בזמן שהמורה מדברת
+  ============================================= */
+
+  window.LESSON_BACKGROUND_MUSIC_VOLUME =
+    0.04;
+
+  await startLessonBackgroundMusic();
+
+
   personalIntroPlayed =
     await playKidPersonalIntroVideo(
       introData?.personal_intro
     );
+
+
+  /* =============================================
+     AFTER INTRO
+     חוזרים לעוצמת ההסבר הרגילה
+  ============================================= */
+
+  window.LESSON_BACKGROUND_MUSIC_VOLUME =
+    0.07;
+
+  fadeLessonBackgroundMusicTo(
+    0.07,
+    700
+  );
 
 }
 catch(
@@ -21576,7 +21601,8 @@ catch(
     personalIntroError
   );
 
-
+window.LESSON_BACKGROUND_MUSIC_VOLUME =
+  0.07;
   personalIntroPlayed =
     false;
 
