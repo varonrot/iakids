@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה3</strong>
+    <strong>עולם הלמידה6</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -18276,6 +18276,622 @@ function showLessonVisual(
 
 }
 
+/* =====================================================
+   LESSON TRANSITION VIDEO
+===================================================== */
+
+async function playLessonTransitionVideo(
+  transition
+){
+
+  const videoUrl =
+    String(
+      transition?.video?.url || ""
+    ).trim();
+
+  /*
+    אין וידאו מוכן
+    ממשיכים לשלב הבא בלי לעצור את השיעור
+  */
+  if(!videoUrl){
+
+    console.warn(
+      "TRANSITION VIDEO URL MISSING:",
+      transition
+    );
+
+    return false;
+  }
+
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-stage"
+    );
+
+  if(!visualArea){
+
+    console.warn(
+      "TRANSITION VIDEO — VISUAL AREA NOT FOUND"
+    );
+
+    return false;
+  }
+
+
+  /*
+    מונע הפעלה כפולה של הסרטון
+  */
+  if(
+    window.LESSON_TRANSITION_VIDEO_PLAYING
+  ){
+
+    console.warn(
+      "TRANSITION VIDEO ALREADY PLAYING"
+    );
+
+    return false;
+  }
+
+
+  window.LESSON_TRANSITION_VIDEO_PLAYING =
+    true;
+
+
+  const generating =
+    document.getElementById(
+      "lessonVisualGenerating"
+    );
+
+  if(generating){
+    generating.style.display =
+      "none";
+  }
+
+
+  /*
+    התמונות שמוצגות כרגע
+  */
+  const oldVisuals =
+    Array.from(
+      visualArea.querySelectorAll(
+        ".lesson-hero-image-wrap"
+      )
+    );
+
+
+  /*
+    מעטפת הסרטון
+  */
+  const wrap =
+    document.createElement(
+      "div"
+    );
+
+  wrap.className =
+    "lesson-transition-video-wrap";
+
+
+  /*
+    יצירת VIDEO
+  */
+  const video =
+    document.createElement(
+      "video"
+    );
+
+  video.className =
+    "lesson-transition-video";
+
+  video.src =
+    videoUrl;
+
+  video.playsInline =
+    true;
+
+  video.preload =
+    "auto";
+
+  video.controls =
+    false;
+
+  video.autoplay =
+    false;
+
+  video.muted =
+    false;
+
+  video.loop =
+    false;
+
+
+  wrap.appendChild(
+    video
+  );
+
+  visualArea.appendChild(
+    wrap
+  );
+
+
+  /*
+    פונקציית ניקוי
+  */
+  const cleanup = () => {
+
+    try{
+      video.pause();
+    }
+    catch(error){}
+
+    wrap.classList.remove(
+      "visible"
+    );
+
+    setTimeout(
+      () => {
+
+        if(
+          wrap.parentNode
+        ){
+          wrap.remove();
+        }
+
+      },
+      250
+    );
+
+    window.LESSON_TRANSITION_VIDEO_PLAYING =
+      false;
+  };
+
+
+  try{
+
+    /*
+      מחכים שהוידאו יהיה מוכן
+    */
+    const videoReady =
+      await new Promise(
+        resolve => {
+
+          let finished =
+            false;
+
+          const done =
+            value => {
+
+              if(finished){
+                return;
+              }
+
+              finished =
+                true;
+
+              resolve(
+                value
+              );
+            };
+
+
+          video.addEventListener(
+            "canplay",
+            () => done(true),
+            {
+              once: true
+            }
+          );
+
+
+          video.addEventListener(
+            "error",
+            () => done(false),
+            {
+              once: true
+            }
+          );
+
+
+          /*
+            לא נתקעים לנצח
+            אם הסרטון לא נטען
+          */
+          setTimeout(
+            () => done(false),
+            8000
+          );
+
+
+          if(
+            video.readyState >= 3
+          ){
+            done(true);
+          }
+
+        }
+      );
+
+
+    if(!videoReady){
+
+      console.warn(
+        "TRANSITION VIDEO FAILED TO LOAD"
+      );
+
+      cleanup();
+
+      return false;
+    }
+
+
+    /*
+      מסתירים את התמונה הקודמת
+    */
+    oldVisuals.forEach(
+      item => {
+
+        item.style.display =
+          "none";
+
+      }
+    );
+
+
+    /*
+      מציגים את הסרטון
+    */
+    wrap.classList.add(
+      "visible"
+    );
+
+
+    /*
+      הפעלת הסרטון
+    */
+    try{
+
+      await video.play();
+
+    }
+    catch(error){
+
+      console.warn(
+        "TRANSITION VIDEO PLAY FAILED:",
+        error
+      );
+
+      /*
+        אם הדפדפן חסם הפעלה
+        לא עוצרים את השיעור
+      */
+      cleanup();
+
+      return false;
+    }
+
+
+    /*
+      מחכים עד שהסרטון מסתיים
+    */
+    const videoEnded =
+      await new Promise(
+        resolve => {
+
+          let finished =
+            false;
+
+          const done =
+            value => {
+
+              if(finished){
+                return;
+              }
+
+              finished =
+                true;
+
+              resolve(
+                value
+              );
+            };
+
+
+          video.addEventListener(
+            "ended",
+            () => done(true),
+            {
+              once: true
+            }
+          );
+
+
+          video.addEventListener(
+            "error",
+            () => done(false),
+            {
+              once: true
+            }
+          );
+
+
+          /*
+            הגנת fallback
+          */
+          const maxWait =
+            Math.max(
+              15000,
+              (
+                Number(
+                  transition?.duration_seconds
+                ) || 10
+              ) * 1000 + 10000
+            );
+
+
+          setTimeout(
+            () => done(false),
+            maxWait
+          );
+
+        }
+      );
+
+
+    if(videoEnded){
+
+      console.log(
+        "TRANSITION VIDEO ENDED"
+      );
+
+    }
+    else{
+
+      console.warn(
+        "TRANSITION VIDEO DID NOT FINISH NORMALLY"
+      );
+
+    }
+
+
+    cleanup();
+
+    return videoEnded;
+
+  }
+  catch(error){
+
+    console.error(
+      "TRANSITION VIDEO ERROR:",
+      error
+    );
+
+    cleanup();
+
+    /*
+      חשוב:
+      תקלה בסרטון לא עוצרת את השיעור
+    */
+    return false;
+  }
+}
+
+/* =====================================================
+   REFRESH TRANSITION VIDEO
+   שולף מהשרת את ה-transition העדכני
+   ומחכה עד שה-video URL מוכן
+===================================================== */
+
+async function getLatestLessonTransition(){
+
+  const unitLessonId =
+    Number(
+      window.SELECTED_UNIT_LESSON
+        ?.unit_lesson_id
+      ||
+      window.SELECTED_UNIT_LESSON
+        ?.id
+      ||
+      0
+    );
+
+
+  if(
+    !unitLessonId
+  ){
+
+    console.warn(
+      "TRANSITION REFRESH — UNIT LESSON ID MISSING"
+    );
+
+    return null;
+  }
+
+
+  const {
+    data:
+      sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData.session;
+
+
+  if(
+    !session
+  ){
+
+    console.warn(
+      "TRANSITION REFRESH — NO SESSION"
+    );
+
+    return null;
+  }
+
+
+  const MAX_CHECKS =
+    10;
+
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_CHECKS;
+    attempt++
+  ){
+
+    try{
+
+      console.log(
+        "TRANSITION VIDEO REFRESH:",
+        {
+          attempt,
+          unitLessonId
+        }
+      );
+
+
+      const response =
+        await fetch(
+
+          `${TUTOR_API_BASE}/api/tutor/unit-lesson`,
+
+          {
+            method:
+              "POST",
+
+            headers: {
+
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+
+            },
+
+            body:
+              JSON.stringify({
+
+                kid_id:
+                  CURRENT_KID.id,
+
+                unit_lesson_id:
+                  unitLessonId
+
+              })
+
+          }
+
+        );
+
+
+      if(
+        !response.ok
+      ){
+
+        console.warn(
+          "TRANSITION REFRESH FAILED:",
+          response.status
+        );
+
+      }
+      else{
+
+        const latestData =
+          await response.json();
+
+
+        /*
+          מעדכנים גם את העותק הכללי
+          כדי שמכאן והלאה יהיה לנו
+          המידע החדש ביותר.
+        */
+
+        window.CURRENT_UNIVERSAL_LESSON_DATA =
+          latestData;
+
+
+        const transition =
+          latestData.transition
+          || {};
+
+
+        const videoUrl =
+          String(
+            transition?.video?.url
+            || ""
+          ).trim();
+
+
+        console.log(
+          "TRANSITION REFRESH RESULT:",
+          {
+            attempt,
+
+            videoStatus:
+              transition?.video?.status,
+
+            hasVideoUrl:
+              Boolean(
+                videoUrl
+              )
+          }
+        );
+
+
+        if(
+          videoUrl
+        ){
+
+          console.log(
+            "TRANSITION VIDEO URL READY"
+          );
+
+          return transition;
+        }
+
+      }
+
+    }
+    catch(error){
+
+      console.warn(
+        "TRANSITION REFRESH ERROR:",
+        error
+      );
+
+    }
+
+
+    /*
+      עדיין לא מוכן —
+      מחכים שנייה ומנסים שוב.
+    */
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          1000
+        )
+    );
+
+  }
+
+
+  console.warn(
+    "TRANSITION VIDEO URL NOT READY AFTER POLLING"
+  );
+
+
+  return (
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+      ?.transition
+    ||
+    null
+  );
+}
 
 /* =====================================================
    VISUAL TRIGGER
@@ -22753,7 +23369,7 @@ await window.lessonRenderer.run({
 
 /* =============================================
    LEARNING COACH 1 FINISHED
-   -> LESSON TRANSITION
+   -> TRANSITION VIDEO
 ============================================= */
 
 if(
@@ -22765,87 +23381,51 @@ if(
 ){
 
   console.log(
-    "LEARNING COACH 1 FINISHED — START TRANSITION"
+    "LEARNING COACH 1 FINISHED — START TRANSITION VIDEO"
   );
 
+/*
+  חשוב:
+  הנתונים שנשמרו בתחילת השיעור
+  יכולים להיות ישנים כי הווידאו
+  נוצר ברקע.
 
-  const lessonData =
-    window.CURRENT_UNIVERSAL_LESSON_DATA
-    || {};
+  לכן עכשיו מושכים מהשרת
+  את ה-transition העדכני.
+*/
 
-
-  const transition =
-    lessonData.transition
-    || {};
-
-
-  const transitionText =
-    String(
-      transition.speech
-      ||
-      transition.next_part_hook
-      ||
-      ""
-    ).trim();
+const transition =
+  await getLatestLessonTransition();
 
 
-  console.log(
-    "LESSON TRANSITION DATA:",
-    transition
+console.log(
+  "LATEST LESSON TRANSITION DATA:",
+  transition
+);
+
+
+const videoPlayed =
+  await playLessonTransitionVideo(
+    transition || {}
   );
-
 
   if(
-    transitionText
+    videoPlayed
   ){
 
-    /*
-      אין כאן שאלה לילד.
-
-      speak:
-      - יכתוב את הטקסט
-      - ישמיע אותו
-      - לא ימתין לתשובה
-    */
-
-    await window.lessonRenderer.run({
-      sequence: [
-        {
-          type:
-            "speak",
-
-          text:
-            transitionText,
-
-          style:
-            "normal",
-
-          speed:
-            45
-        }
-      ],
-
-      wait_for_answer:
-        false,
-
-      speech:
-        transitionText
-    });
+    console.log(
+      "TRANSITION VIDEO COMPLETED SUCCESSFULLY"
+    );
 
   }
   else{
 
     console.warn(
-      "LESSON TRANSITION TEXT IS MISSING"
+      "TRANSITION VIDEO NOT AVAILABLE — CONTINUE LESSON"
     );
 
   }
 
-
-  /*
-    בשלב הבא נחבר כאן:
-    startLessonPart2()
-  */
 
   console.log(
     "TRANSITION FINISHED — PART 2 READY TO START"
@@ -41527,6 +42107,49 @@ body.lesson-theme-science
     רואים דרכה את התמונה הקודמת.
   */
   background:transparent !important;
+}
+
+/* =====================================================
+   LESSON TRANSITION VIDEO
+===================================================== */
+
+.lesson-transition-video-wrap{
+  position:absolute;
+
+  inset:0;
+
+  z-index:30;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  overflow:hidden;
+
+  opacity:0;
+
+  background:#050a16;
+
+  transition:
+    opacity .28s ease;
+}
+
+
+.lesson-transition-video-wrap.visible{
+  opacity:1;
+}
+
+
+.lesson-transition-video{
+  display:block;
+
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+
+  background:#050a16;
 }
 
 @keyframes lessonVisualSlowZoom{
