@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה4</strong>
+    <strong>עולם הלמידה5</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -23183,22 +23183,10 @@ if(
   );
 
 
-  console.log(
-    "TRANSITION VIDEO OBJECT:",
-    transition?.video
-  );
-
-
   const videoPlayed =
     await playLessonTransitionVideo(
       transition
     );
-
-
-  console.log(
-    "TRANSITION VIDEO RESULT:",
-    videoPlayed
-  );
 
 
   if(
@@ -23213,7 +23201,7 @@ if(
   else{
 
     console.warn(
-      "TRANSITION VIDEO NOT AVAILABLE OR FAILED"
+      "TRANSITION VIDEO NOT AVAILABLE — CONTINUE LESSON"
     );
 
   }
