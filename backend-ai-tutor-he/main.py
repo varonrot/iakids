@@ -10842,7 +10842,108 @@ def get_or_generate_unit_lesson(
             user_id=user.id,
             kid_id=body.kid_id
         )
+        # =============================================
+        # ENSURE PERSONAL INTRO VIDEOS
+        # PAID SUBSCRIBERS ONLY
+        # =============================================
 
+        try:
+
+            personal_intro_eligible = (
+                is_paid_active_subscription(
+                    user.id
+                )
+            )
+
+            print(
+                "UNIT LESSON PERSONAL INTRO CHECK:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "eligible":
+                        personal_intro_eligible
+                }
+            )
+
+            if personal_intro_eligible:
+
+                ensure_kid_lesson_intro_rows(
+                    child["id"]
+                )
+
+                ready_intro_videos = (
+                    get_ready_kid_lesson_intro_videos(
+                        child["id"]
+                    )
+                )
+
+                ready_variants = {
+                    int(
+                        video.get(
+                            "variant"
+                        )
+                        or 0
+                    )
+                    for video
+                    in ready_intro_videos
+                }
+
+                missing_variants = [
+                    variant
+                    for variant
+                    in KID_LESSON_INTRO_VARIANTS
+                    if variant
+                    not in ready_variants
+                ]
+
+                if missing_variants:
+
+                    print(
+                        "QUEUE KID PERSONAL INTRO GENERATION:",
+                        {
+                            "kid_id":
+                                child["id"],
+
+                            "missing_variants":
+                                missing_variants
+                        }
+                    )
+
+                    background_tasks.add_task(
+                        generate_kid_lesson_intro_videos_background,
+                        child
+                    )
+
+                else:
+
+                    print(
+                        "KID PERSONAL INTROS ALREADY READY:",
+                        {
+                            "kid_id":
+                                child["id"]
+                        }
+                    )
+
+        except Exception as personal_intro_error:
+
+            print(
+                "UNIT LESSON PERSONAL INTRO ERROR:",
+                {
+                    "kid_id":
+                        child["id"],
+
+                    "error":
+                        repr(
+                            personal_intro_error
+                        )
+                }
+            )
+
+            traceback.print_exc()
         # =============================================
         # UNIT LESSON
         # =============================================
