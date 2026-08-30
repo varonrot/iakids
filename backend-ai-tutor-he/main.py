@@ -6608,9 +6608,12 @@ def generate_transition_video_background(
         Do not add words.
         Do not remove words.
 
-        BRIDGE TOWARD THE NEXT PART:
+        AFTER THE SPOKEN TEXT IS FINISHED:
 
-        {next_part_hook}
+        The teacher must stop speaking completely.
+        She may only smile and make a subtle inviting gesture.
+        Do not speak any additional words.
+        Do not repeat any part of the Hebrew dialogue.
 
         VIDEO DIRECTION:
 
@@ -6805,20 +6808,27 @@ def generate_transition_video_background(
 
                 input=(
                     "Continue this exact same educational scene "
-                    "with perfect visual and audio continuity. "
+                    "with perfect visual continuity. "
                     "Keep exactly the same teacher, "
                     "face, voice, environment, illustration style, "
                     "lighting and camera position. "
-                    "If the teacher's Hebrew dialogue is still "
-                    "being spoken, continue the synchronized speech "
-                    "naturally without repeating any words. "
-                    "Keep her mouth movements synchronized with "
-                    "the spoken Hebrew audio. "
-                    "After the dialogue finishes, the teacher "
-                    "makes a subtle inviting gesture toward "
-                    "the next part of the lesson. "
-                    "Do not introduce new dialogue. "
-                    "Do not repeat previous dialogue. "
+
+                    "If the original Hebrew dialogue has NOT yet finished, "
+                    "continue ONLY the remaining words of that original dialogue. "
+                    "Do not restart it. "
+                    "Do not repeat any words. "
+                    "Do not invent any new words. "
+
+                    "If the original Hebrew dialogue HAS finished, "
+                    "the teacher must remain completely silent. "
+                    "No additional speech. "
+                    "No repeated sentence. "
+                    "No filler sounds or invented language. "
+
+                    "After speaking finishes, "
+                    "the teacher should simply smile and make "
+                    "a subtle inviting gesture toward the next part. "
+
                     "No written text or captions."
                 ),
 
