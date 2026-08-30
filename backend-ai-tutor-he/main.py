@@ -5272,6 +5272,135 @@ def get_ready_kid_lesson_intro_videos(
 
     return ready_videos
 
+def ensure_kid_lesson_intro_rows(
+        kid_id: str
+) -> list[dict]:
+    """
+    מוודא שלילד קיימות בדיוק הרשומות
+    של lesson_intro variants 1,2,3.
+
+    כרגע הרשומות נוצרות בסטטוס pending בלבד.
+    יצירת הווידאו תחובר בשלב הבא.
+    """
+
+    existing_rows = (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+    existing_variants = {
+        int(
+            row.get("variant")
+            or 0
+        )
+        for row in existing_rows
+    }
+
+    missing_variants = [
+        variant
+        for variant
+        in KID_LESSON_INTRO_VARIANTS
+        if variant not in existing_variants
+    ]
+
+    if not missing_variants:
+
+        print(
+            "KID INTRO ROWS ALREADY EXIST:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variants":
+                    sorted(
+                        existing_variants
+                    )
+            }
+        )
+
+        return existing_rows
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    rows_to_insert = []
+
+    for variant in missing_variants:
+
+        rows_to_insert.append({
+            "kid_id":
+                kid_id,
+
+            "media_type":
+                KID_LESSON_INTRO_MEDIA_TYPE,
+
+            "variant":
+                variant,
+
+            "storage_path":
+                None,
+
+            "status":
+                "pending",
+
+            "error_message":
+                None,
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+
+    try:
+
+        sb.table(
+            "kid_personal_media"
+        ).insert(
+            rows_to_insert
+        ).execute()
+
+        print(
+            "KID INTRO PENDING ROWS CREATED:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variants":
+                    missing_variants
+            }
+        )
+
+    except Exception as e:
+
+        # UNIQUE(kid_id, media_type, variant)
+        # מגן עלינו מכפילויות.
+        #
+        # אם שתי בקשות הגיעו כמעט יחד,
+        # ייתכן שהבקשה השנייה תגלה שהראשונה
+        # כבר יצרה את הרשומות.
+        print(
+            "KID INTRO ROW INSERT WARNING:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+    return (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
 # =====================================================
 # UNIVERSAL LESSON MEDIA
 # Shared images / videos for all children
@@ -9537,7 +9666,79 @@ def lesson_intro(
             user_id=user.id,
             kid_id=body.kid_id
         )
+        # =============================================
+        # PERSONAL INTRO VIDEO ELIGIBILITY
+        # =============================================
 
+        personal_intro_eligible = False
+
+        personal_intro_rows = []
+
+        personal_intro_videos = []
+
+        try:
+
+            personal_intro_eligible = (
+                is_paid_active_subscription(
+                    user.id
+                )
+            )
+
+            print(
+                "KID PERSONAL INTRO ELIGIBILITY:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "eligible":
+                        personal_intro_eligible
+                }
+            )
+
+            if personal_intro_eligible:
+
+                personal_intro_rows = (
+                    ensure_kid_lesson_intro_rows(
+                        child["id"]
+                    )
+                )
+
+                personal_intro_videos = (
+                    get_ready_kid_lesson_intro_videos(
+                        child["id"]
+                    )
+                )
+
+        except Exception as personal_media_error:
+
+            # תקלה במנגנון האישי לעולם לא
+            # תפיל את פתיחת השיעור.
+            #
+            # במקרה כזה הפתיח הקולי הרגיל ממשיך.
+            print(
+                "KID PERSONAL INTRO CHECK FAILED:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "error":
+                        repr(
+                            personal_media_error
+                        )
+                }
+            )
+
+            personal_intro_eligible = False
+
+            personal_intro_rows = []
+
+            personal_intro_videos = []
         # =============================================
         # SELECTED UNIT LESSON
         # =============================================
@@ -9777,7 +9978,35 @@ def lesson_intro(
                 for action in sequence
             ],
 
-            "wait_for_answer": False
+            "wait_for_answer":
+                False,
+
+            "personal_intro": {
+
+                "eligible":
+                    personal_intro_eligible,
+
+                "media_type":
+                    KID_LESSON_INTRO_MEDIA_TYPE,
+
+                "required_variants":
+                    len(
+                        KID_LESSON_INTRO_VARIANTS
+                    ),
+
+                "records_count":
+                    len(
+                        personal_intro_rows
+                    ),
+
+                "ready_count":
+                    len(
+                        personal_intro_videos
+                    ),
+
+                "videos":
+                    personal_intro_videos
+            }
         }
 
     except HTTPException:
