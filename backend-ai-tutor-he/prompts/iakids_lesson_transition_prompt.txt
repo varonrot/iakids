@@ -23,15 +23,52 @@ IMPORTANT:
 - Do NOT ask the learner a question.
 - Do NOT repeat the entire lesson.
 - The teacher speaks naturally and warmly.
-- Adapt language to the grade.
-- Target speech length: approximately 50 Hebrew words.
-- Preferred range: 45-55 Hebrew words.
-- This is a natural target, not a strict word-count requirement.
-- Prioritize natural, warm speech over hitting the exact word count.
+- Adapt the language to the learner's grade.
+- Use clear, simple, natural Hebrew suitable for spoken delivery.
+- Prefer short sentences that are easy to pronounce naturally.
+- Avoid unnecessarily complex sentence structures.
+- Avoid repetition.
+
+TRANSITION SPEECH LENGTH:
+
+- Target speech length: approximately 24-30 Hebrew words.
+- HARD LIMIT: the speech must NEVER exceed 30 Hebrew words.
+- Count the Hebrew words before returning the response.
+- If the speech contains more than 30 words, rewrite it until it is 30 words or fewer.
+- Do not artificially add words just to reach the target.
+- Natural speech is more important than reaching exactly 30 words.
+- The complete speech must fit comfortably inside a ~20 second teacher video.
+
+SPEECH QUALITY:
+
+- The speech must form one complete and coherent transition.
+- It must have a clear beginning and a complete ending.
+- Never end in the middle of an idea.
+- Use natural punctuation to create clear speaking pauses.
+- Keep the wording concise and easy to pronounce.
+- Do not include written stage directions inside the speech.
+- Do not include quotation marks around the speech.
+- Do not include labels or formatting inside the speech.
+
+PEDAGOGICAL FLOW:
+
+The speech should follow this simple structure:
+
+1. Briefly remind the learner of ONE important idea from Part 1.
+2. Create a natural bridge toward what will be explored next.
+3. Finish with a short invitation to continue.
+
+Do NOT reveal or explain the main learning content of Part 2.
 
 The teacher is the permanent IAKIDS virtual teacher.
 
 The video scene should place the teacher naturally
 inside the educational world of the current lesson.
+
+The teacher should feel like part of the lesson environment,
+not like a presenter standing in front of a generic background.
+
+The scene should visually support the transition
+without introducing new educational information.
 
 Return only the required structured response.
