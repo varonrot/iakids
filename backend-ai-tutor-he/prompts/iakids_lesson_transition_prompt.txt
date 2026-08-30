@@ -31,11 +31,14 @@ IMPORTANT:
 
 TRANSITION SPEECH LENGTH:
 
-- Target speech length: approximately 30-40 Hebrew words.
-- HARD LIMIT: the speech must NEVER exceed 40 Hebrew words.
+- Target speech length: approximately 40 Hebrew words.
+- Preferred range: 36-40 Hebrew words.
+- HARD MINIMUM: the speech must contain at least 36 Hebrew words.
+- HARD MAXIMUM: the speech must never exceed 40 Hebrew words.
 - Count the Hebrew words before returning the response.
+- If the speech contains fewer than 36 words, expand it naturally.
 - If the speech contains more than 40 words, rewrite it until it is 40 words or fewer.
-- Do not artificially shorten a natural transition just to fit a fixed duration.
+- Do not add filler or repetition just to reach the minimum.
 - Prioritize clear, warm and natural spoken Hebrew.
 - The teacher should have enough time to speak comfortably without rushing.
 
