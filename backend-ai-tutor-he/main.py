@@ -7834,6 +7834,94 @@ def generate_transition_video_background(
                 }
             )
 
+            # =========================================
+            # REPAIR TRANSITION JSON ON CACHE HIT
+            #
+            # ייתכן שקובץ הווידאו כבר קיים ב-Storage,
+            # אבל generated_lesson_json עדיין לא מכיל
+            # transition.video.storage_path.
+            #
+            # בלי זה אי אפשר לייצר Signed URL בפרונט.
+            # =========================================
+
+            current_video = (
+                transition.get(
+                    "video"
+                )
+                or {}
+            )
+
+            if not isinstance(
+                    current_video,
+                    dict
+            ):
+                current_video = {}
+
+            current_storage_path = str(
+                current_video.get(
+                    "storage_path"
+                )
+                or ""
+            ).strip()
+
+            if (
+                current_storage_path
+                != video_storage_path
+            ):
+
+                transition[
+                    "video"
+                ] = {
+                    **current_video,
+
+                    "storage_path":
+                        video_storage_path,
+
+                    "status":
+                        "ready"
+                }
+
+                generated_json[
+                    "transition"
+                ] = transition
+
+                supabase_with_retry(
+                    lambda:
+                        sb.table(
+                            "lesson_units_content"
+                        )
+                        .update({
+                            "generated_lesson_json":
+                                generated_json,
+
+                            "updated_at":
+                                datetime
+                                .now(
+                                    timezone.utc
+                                )
+                                .isoformat()
+                        })
+                        .eq(
+                            "id",
+                            unit_lesson_id
+                        )
+                        .execute(),
+
+                    label=
+                        "REPAIR TRANSITION VIDEO CACHE PATH"
+                )
+
+                print(
+                    "TRANSITION VIDEO CACHE JSON REPAIRED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "storage_path":
+                            video_storage_path
+                    }
+                )
+
             return
 
         except Exception:
