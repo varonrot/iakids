@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה100</strong>
+    <strong>עולם הלמידה99</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -18368,8 +18368,8 @@ async function playLessonTransitionVideo(
       "div"
     );
 
-wrap.className =
-  "lesson-transition-video-wrap";
+  wrap.className =
+    "lesson-transition-video-wrap";
 
 
   /*
@@ -20840,7 +20840,6 @@ async function loadRealLessonSidebar(
     );
 
 }
-
 /* =====================================================
    PERSONAL KID LESSON INTRO VIDEO
 ===================================================== */
@@ -20970,14 +20969,14 @@ async function playKidPersonalIntroVideo(
   }
 
 
-const wrap =
-  document.createElement(
-    "div"
-  );
+  const wrap =
+    document.createElement(
+      "div"
+    );
 
 
-wrap.className =
-  "lesson-transition-video-wrap kid-personal-intro-video-wrap";
+  wrap.className =
+    "lesson-transition-video-wrap";
 
 
   const video =
@@ -21032,29 +21031,29 @@ wrap.className =
   );
 
 
-const cleanup = () => {
+  const cleanup = () => {
 
-  try{
+    try{
 
-    video.pause();
+      video.pause();
 
-  }
-  catch(e){}
-
-
-  if(
-    wrap.isConnected
-  ){
-
-    wrap.remove();
-
-  }
+    }
+    catch(e){}
 
 
-  window.KID_PERSONAL_INTRO_PLAYING =
-    false;
+    if(
+      wrap.isConnected
+    ){
 
-};
+      wrap.remove();
+
+    }
+
+
+    window.KID_PERSONAL_INTRO_PLAYING =
+      false;
+
+  };
 
 
   try{
@@ -21557,10 +21556,8 @@ if(
 
 /*
   שיעור חדש.
-  מתחילים Hero לאחר שבדיקת השחזור הסתיימה.
+  ה-Hero יוצג רק לאחר סיום ה-Personal Intro.
 */
-
-
 
 /*
   לאחר איפוס מאפשרים יצירת שיעור חדש,
@@ -21706,19 +21703,7 @@ try{
       introData?.personal_intro
     );
 
-/*
-  Personal intro finished.
-  Start the lesson Hero only now.
-*/
 
-console.log(
-  "PERSONAL INTRO FINISHED — SHOW LESSON HERO"
-);
-
-await loadLessonHeroImage(
-  resolvedUnitLessonId,
-  session
-);
   /* =============================================
      AFTER INTRO
      חוזרים לעוצמת ההסבר הרגילה
@@ -21748,7 +21733,18 @@ window.LESSON_BACKGROUND_MUSIC_VOLUME =
     false;
 
 }
+/* =============================================
+   SHOW HERO AFTER PERSONAL INTRO
+============================================= */
 
+console.log(
+  "PERSONAL INTRO COMPLETE — SHOW LESSON HERO"
+);
+
+await loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
 
 /* =============================================
    REMOVE DUPLICATE PERSONAL GREETING TTS
@@ -43365,20 +43361,6 @@ body.lesson-theme-science .lesson-sidebar-teacher::before,
 body.lesson-theme-science .lesson-sidebar-teacher::after{
   display: none !important;
   content: none !important;
-}
-    /* =====================================================
-   PERSONAL INTRO -> HERO CROSS DISSOLVE
-===================================================== */
-
-.kid-personal-intro-video-wrap{
-  opacity:1;
-
-  transition:
-    opacity .8s ease;
-}
-
-.kid-personal-intro-video-wrap.is-leaving{
-  opacity:0;
 }
 </style>
 
