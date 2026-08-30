@@ -5016,6 +5016,263 @@ def normalize_universal_lesson_visuals(
     return normalized_sequence
 
 # =====================================================
+# KID PERSONAL MEDIA
+# Personal reusable media for paid subscribers
+# =====================================================
+
+KID_PERSONAL_MEDIA_BUCKET = (
+    "kid-personal-media"
+)
+
+KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS = (
+    3600
+)
+
+KID_LESSON_INTRO_MEDIA_TYPE = (
+    "lesson_intro"
+)
+
+KID_LESSON_INTRO_VARIANTS = (
+    1,
+    2,
+    3
+)
+
+
+def is_paid_active_subscription(
+        user_id: str
+) -> bool:
+    """
+    מחזיר True רק למשתמש בתשלום
+    עם מנוי פעיל ולא מבוטל.
+    """
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    res = (
+        sb.table(
+            "subscriptions"
+        )
+        .select(
+            "plan, "
+            "status, "
+            "expires_at, "
+            "canceled_at"
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "status",
+            "active"
+        )
+        .neq(
+            "plan",
+            "free"
+        )
+        .is_(
+            "canceled_at",
+            "null"
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return False
+
+    subscription = (
+        res.data[0]
+    )
+
+    expires_at = (
+        subscription.get(
+            "expires_at"
+        )
+    )
+
+    if expires_at:
+
+        expires_dt = (
+            parse_supabase_datetime(
+                expires_at
+            )
+        )
+
+        if (
+            expires_dt
+            and
+            expires_dt
+            <= datetime.now(
+                timezone.utc
+            )
+        ):
+            return False
+
+    return True
+
+
+def get_kid_lesson_intro_media(
+        kid_id: str
+) -> list[dict]:
+
+    res = (
+        sb.table(
+            "kid_personal_media"
+        )
+        .select(
+            "id, "
+            "kid_id, "
+            "media_type, "
+            "variant, "
+            "storage_path, "
+            "status"
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "media_type",
+            KID_LESSON_INTRO_MEDIA_TYPE
+        )
+        .order(
+            "variant"
+        )
+        .execute()
+    )
+
+    return (
+        res.data
+        or []
+    )
+
+
+def create_kid_personal_media_signed_url(
+        storage_path: str
+) -> str:
+
+    signed_response = (
+        sb.storage
+        .from_(
+            KID_PERSONAL_MEDIA_BUCKET
+        )
+        .create_signed_url(
+            storage_path,
+            KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS
+        )
+    )
+
+    signed_url = None
+
+    if isinstance(
+        signed_response,
+        dict
+    ):
+        signed_url = (
+            signed_response.get(
+                "signedURL"
+            )
+            or signed_response.get(
+                "signedUrl"
+            )
+            or signed_response.get(
+                "signed_url"
+            )
+        )
+
+    if not signed_url:
+        raise RuntimeError(
+            "Failed to create signed URL "
+            f"for kid personal media: "
+            f"{storage_path}"
+        )
+
+    return signed_url
+
+
+def get_ready_kid_lesson_intro_videos(
+        kid_id: str
+) -> list[dict]:
+
+    media_rows = (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+    ready_videos = []
+
+    for row in media_rows:
+
+        if (
+            row.get("status")
+            != "ready"
+        ):
+            continue
+
+        storage_path = str(
+            row.get(
+                "storage_path"
+            )
+            or ""
+        ).strip()
+
+        if not storage_path:
+            continue
+
+        try:
+
+            signed_url = (
+                create_kid_personal_media_signed_url(
+                    storage_path
+                )
+            )
+
+        except Exception as e:
+
+            print(
+                "KID INTRO SIGNED URL FAILED:",
+                {
+                    "kid_id":
+                        kid_id,
+
+                    "variant":
+                        row.get(
+                            "variant"
+                        ),
+
+                    "storage_path":
+                        storage_path,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            continue
+
+        ready_videos.append({
+            "variant":
+                row.get(
+                    "variant"
+                ),
+
+            "storage_path":
+                storage_path,
+
+            "url":
+                signed_url
+        })
+
+    return ready_videos
+
+# =====================================================
 # UNIVERSAL LESSON MEDIA
 # Shared images / videos for all children
 # =====================================================
