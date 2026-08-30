@@ -23183,10 +23183,22 @@ if(
   );
 
 
+  console.log(
+    "TRANSITION VIDEO OBJECT:",
+    transition?.video
+  );
+
+
   const videoPlayed =
     await playLessonTransitionVideo(
       transition
     );
+
+
+  console.log(
+    "TRANSITION VIDEO RESULT:",
+    videoPlayed
+  );
 
 
   if(
@@ -23201,7 +23213,7 @@ if(
   else{
 
     console.warn(
-      "TRANSITION VIDEO NOT AVAILABLE — CONTINUE LESSON"
+      "TRANSITION VIDEO NOT AVAILABLE OR FAILED"
     );
 
   }
