@@ -4567,11 +4567,28 @@ def regenerate_lesson_transition_only(
 
     if lesson_transition is None:
 
-        raise RuntimeError(
-            "Transition Director failed "
-            "to produce speech with "
-            "36-40 Hebrew words "
-            f"after {MAX_TRANSITION_ATTEMPTS} attempts"
+        print(
+            "TRANSITION WORD COUNT FALLBACK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "message":
+                    (
+                        "No 36-40 word result found. "
+                        "Using last generated transition."
+                    )
+            }
+        )
+
+        if not candidate_transition:
+            raise RuntimeError(
+                "Transition Director returned "
+                "no usable transition"
+            )
+
+        lesson_transition = (
+            candidate_transition
         )
 
     # =============================================
@@ -5096,6 +5113,76 @@ def create_lesson_media_signed_url(
 
     return signed_url
 
+def add_transition_video_signed_url(
+        transition: dict | None
+) -> dict | None:
+
+    if not isinstance(
+        transition,
+        dict
+    ):
+        return transition
+
+    video = (
+        transition.get(
+            "video"
+        )
+        or {}
+    )
+
+    if not isinstance(
+        video,
+        dict
+    ):
+        return transition
+
+    storage_path = str(
+        video.get(
+            "storage_path"
+        )
+        or ""
+    ).strip()
+
+    if not storage_path:
+
+        return transition
+
+    try:
+
+        signed_url = (
+            create_lesson_media_signed_url(
+                storage_path
+            )
+        )
+
+    except Exception as e:
+
+        print(
+            "TRANSITION VIDEO SIGNED URL FAILED:",
+            {
+                "storage_path":
+                    storage_path,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        return transition
+
+    return {
+        **transition,
+
+        "video": {
+            **video,
+
+            "url":
+                signed_url,
+
+            "url_expires_in_seconds":
+                LESSON_MEDIA_URL_EXPIRY_SECONDS
+        }
+    }
 
 def build_lesson_hero_image_prompt(
         unit_lesson: dict,
@@ -6794,8 +6881,6 @@ def generate_transition_video_background(
 
         # =============================================
         # LOAD LESSON MASTER VISUAL
-        #
-        # visual_1 defines the lesson visual world.
         # =============================================
 
         lesson_visual_path = (
@@ -6847,17 +6932,100 @@ def generate_transition_video_background(
             or ""
         ).strip()
 
+        if not speech:
+
+            raise RuntimeError(
+                "Transition speech is empty"
+            )
+
+        # =============================================
+        # SPLIT SPEECH INTO TWO VIDEO PARTS
+        #
+        # 36-40 מילים:
+        #
+        # Part 1 = בערך 18-20 מילים
+        # Part 2 = בערך 18-20 מילים
+        #
+        # כך Gemini לא מקבל את כל הטקסט
+        # כבר ב-10 השניות הראשונות.
+        # =============================================
+
+        speech_words = (
+            speech.split()
+        )
+
+        total_speech_words = len(
+            speech_words
+        )
+
+        split_index = (
+            total_speech_words + 1
+        ) // 2
+
+        speech_part_1 = " ".join(
+            speech_words[
+                :split_index
+            ]
+        )
+
+        speech_part_2 = " ".join(
+            speech_words[
+                split_index:
+            ]
+        )
+
+        if not speech_part_1:
+
+            raise RuntimeError(
+                "Transition speech part 1 "
+                "is empty"
+            )
+
+        if not speech_part_2:
+
+            raise RuntimeError(
+                "Transition speech part 2 "
+                "is empty"
+            )
+
+        print(
+            "========== TRANSITION SPEECH SPLIT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "total_words":
+                    total_speech_words,
+
+                "part_1_words":
+                    len(
+                        speech_part_1.split()
+                    ),
+
+                "part_2_words":
+                    len(
+                        speech_part_2.split()
+                    ),
+
+                "part_1":
+                    speech_part_1,
+
+                "part_2":
+                    speech_part_2
+            }
+        )
+
         print(
             "========== TRANSITION VIDEO CONTENT ==========",
             {
                 "unit_lesson_id":
                     unit_lesson_id,
 
-                "speech":
+                "full_speech":
                     speech,
 
-                "speech_length":
-                    len(speech),
+                "speech_words":
+                    total_speech_words,
 
                 "video_scene":
                     video_scene,
@@ -6868,27 +7036,31 @@ def generate_transition_video_background(
         )
 
         # =============================================
-        # VIDEO PROMPT
+        # PART 1 VIDEO PROMPT
         #
-        # IMAGE_REF_0 = teacher identity
-        # IMAGE_REF_1 = lesson visual world/style
-        #
-        # Generate FINAL video with synchronized speech.
+        # חשוב:
+        # כאן שולחים רק את החצי הראשון.
         # =============================================
 
-        video_prompt = f"""
+        video_prompt_part_1 = f"""
         [# References
         <IMAGE_REF_0>@Image1
         <IMAGE_REF_1>@Image2]
 
-        Create a premium educational transition video
-        with synchronized spoken audio.
+        Create the FIRST PART of a premium educational
+        transition video with synchronized spoken audio.
 
         REFERENCE ROLES:
 
-        IMAGE_REF_0 is the permanent IAKIDS virtual teacher.
-        Preserve her identity, face, hair, clothing,
-        body proportions and overall appearance.
+        IMAGE_REF_0 shows a fictional,
+        AI-generated IAKIDS virtual teacher character.
+
+        This is not a real person.
+
+        Use the reference only to maintain
+        consistent fictional character design,
+        including hairstyle, clothing,
+        general appearance and visual style.
 
         IMAGE_REF_1 defines the visual world,
         illustration style, lighting, colors,
@@ -6904,37 +7076,37 @@ def generate_transition_video_background(
 
         {video_scene}
 
-        THE TEACHER MUST SAY EXACTLY THIS TEXT IN HEBREW:
+        IMPORTANT:
 
-        "{speech}"
+        This is PART 1 of a two-part continuous video.
+
+        THE TEACHER MUST SAY EXACTLY
+        THIS TEXT IN HEBREW:
+
+        "{speech_part_1}"
+
+        Speak ONLY this Hebrew text.
+
+        Do not speak the second half yet.
+
+        Do not paraphrase.
+        Do not add words.
+        Do not remove words.
+        Do not repeat words.
 
         The spoken language must be Hebrew.
 
-        The teacher is speaking these exact words
-        directly to the learner.
+        The fictional animated teacher should speak
+        the provided Hebrew dialogue naturally.
 
-        Her mouth movements must be naturally synchronized
-        with the spoken Hebrew audio.
-
-        The facial movements, lips and jaw should visibly
-        follow the spoken words.
-
-        Do not paraphrase the dialogue.
-        Do not add words.
-        Do not remove words.
-
-        AFTER THE SPOKEN TEXT IS FINISHED:
-
-        The teacher must stop speaking completely.
-        She may only smile and make a subtle inviting gesture.
-        Do not speak any additional words.
-        Do not repeat any part of the Hebrew dialogue.
+        Her visible speaking animation should match
+        the timing of the generated Hebrew audio.
 
         VIDEO DIRECTION:
 
         - premium semi-realistic educational illustration
         - match IMAGE_REF_1's exact visual style
-        - preserve IMAGE_REF_0's teacher identity
+        - maintain the same fictional teacher character design
         - natural teacher body language
         - warm facial expression
         - subtle hand gestures while speaking
@@ -6956,10 +7128,13 @@ def generate_transition_video_background(
 
         IMPORTANT:
 
-        The final MP4 must already contain
-        the synchronized spoken audio.
+        The final video must contain
+        synchronized spoken audio.
 
         Do not create a silent video.
+
+        Do not attempt to finish the entire transition.
+        Speak only PART 1.
 
         Use the given images only as references.
         Do not display them as flat pictures inside the video.
@@ -6984,50 +7159,29 @@ def generate_transition_video_background(
         )
 
         # =============================================
-        # FIRST 10-SECOND VIDEO
+        # DEBUG EXACT INPUT
         # =============================================
 
         print(
-            "TRANSITION VIDEO GEMINI PART 1:",
+            "========== TRANSITION GEMINI PART 1 INPUT ==========",
             {
                 "unit_lesson_id":
                     unit_lesson_id,
 
-                "teacher_bytes":
-                    len(teacher_bytes),
-
-                "lesson_reference_bytes":
-                    len(lesson_visual_bytes)
-            }
-        )
-
-        print(
-            "========== TRANSITION GEMINI EXACT INPUT ==========",
-            {
-                "unit_lesson_id":
-                    unit_lesson_id,
-
-                "speech_sent_to_gemini":
-                    speech,
-
-                "speech_length":
-                    len(speech),
+                "speech":
+                    speech_part_1,
 
                 "speech_words":
-                    len(speech.split()),
-
-                "full_video_prompt":
-                    video_prompt
+                    len(
+                        speech_part_1.split()
+                    )
             }
         )
-        print(
-            "\n"
-            "========== TRANSITION SPEECH START ==========\n"
-            f"UNIT LESSON ID: {unit_lesson_id}\n"
-            f"{speech}\n"
-            "========== TRANSITION SPEECH END ==========\n",
-            flush=True
-        )
+
+        # =============================================
+        # FIRST VIDEO PART
+        # =============================================
+
         first_interaction = (
             gemini_client
             .interactions
@@ -7064,7 +7218,7 @@ def generate_transition_video_background(
                             "text",
 
                         "text":
-                            video_prompt
+                            video_prompt_part_1
                     }
                 ],
 
@@ -7092,203 +7246,157 @@ def generate_transition_video_background(
 
             raise RuntimeError(
                 "Gemini returned no transition "
-                "interaction id"
+                "interaction id for part 1"
             )
 
         # =============================================
-        # DYNAMIC VIDEO LENGTH
+        # PART 2
         #
-        # הווידאו מתארך לפי משך הדיבור המשוער.
-        # אין יותר תקרה קבועה של 20 שניות.
+        # Gemini ממשיך מה-interaction הקודם,
+        # אבל מקבל במפורש רק את החצי השני.
         # =============================================
 
-        speech_word_count = len(
-            speech.split()
-        )
+        video_prompt_part_2 = f"""
+        Continue the EXACT SAME educational video
+        from the previous interaction.
 
-        # =============================================
-        # NATURAL HEBREW TEACHER SPEECH RATE
-        #
-        # דיבור מורה טבעי עם הפסקות:
-        # בערך 1.6 מילים בשנייה.
-        # =============================================
+        This is PART 2 of the same continuous transition.
 
-        WORDS_PER_SECOND = 1.6
+        Continue the same fictional animated
+        IAKIDS teacher character and educational scene.
 
-        estimated_speech_seconds = (
-                speech_word_count
-                / WORDS_PER_SECOND
-        )
+        Maintain continuity of:
 
-        # מוסיפים מעט זמן לנשימה / מחווה טבעית בסוף.
-        required_video_seconds = (
-                estimated_speech_seconds
-                + 2.0
-        )
+        - character design
+        - hairstyle
+        - clothing
+        - voice style
+        - environment
+        - illustration style
+        - lighting
+        - camera position
+        - scene
 
-        # כל interaction מוסיף בערך 10 שניות.
-        target_video_chunks = max(
-            1,
-            math.ceil(
-                required_video_seconds
-                / 10.0
-            )
-        )
+        IMPORTANT:
 
-        # הגנת בטיחות.
-        # Transition לא אמור להגיע לאורך כזה,
-        # אבל לא ניתן ליצור לולאה ללא גבול.
-        MAX_VIDEO_CHUNKS = 4
+        The first part of the Hebrew dialogue
+        has ALREADY been spoken.
 
-        target_video_chunks = min(
-            target_video_chunks,
-            MAX_VIDEO_CHUNKS
-        )
+        DO NOT repeat it.
+
+        THE TEACHER MUST NOW SAY EXACTLY
+        THIS REMAINING HEBREW TEXT:
+
+        "{speech_part_2}"
+
+        Speak ONLY this text.
+
+        Do not repeat any words from Part 1.
+        Do not restart the transition.
+        Do not paraphrase.
+        Do not add words.
+        Do not remove words.
+        Do not invent new dialogue.
+
+        Continue speaking naturally as if this sentence
+        immediately follows the previous video segment.
+
+        Keep the same teacher voice
+        and natural Hebrew speaking style.
+
+        Her visible speaking animation should remain
+        naturally timed with the Hebrew speech.
+
+AFTER THE FINAL WORD:
+
+The spoken dialogue is FINISHED.
+
+The teacher must become completely silent immediately.
+
+Do NOT repeat the final sentence.
+Do NOT repeat the final phrase.
+Do NOT say "בואו נמשיך" again.
+Do NOT say "בואו נמשיך ונגלה" again.
+Do NOT add another invitation to continue.
+Do NOT add any closing phrase.
+
+After the final word, the teacher may only smile naturally
+and make one subtle SILENT hand gesture.
+
+There must be absolutely no additional speech.
+
+No filler words.
+No repeated dialogue.
+No invented dialogue.
+No repeated ending.
+        No captions.
+        No written text.
+        No labels.
+        No logos.
+        No UI elements.
+        """.strip()
 
         print(
-            "TRANSITION VIDEO DYNAMIC PLAN:",
+            "========== TRANSITION GEMINI PART 2 INPUT ==========",
             {
                 "unit_lesson_id":
                     unit_lesson_id,
 
+                "speech":
+                    speech_part_2,
+
                 "speech_words":
-                    speech_word_count,
-
-                "estimated_speech_seconds":
-                    round(
-                        estimated_speech_seconds,
-                        2
+                    len(
+                        speech_part_2.split()
                     ),
 
-                "required_video_seconds":
-                    round(
-                        required_video_seconds,
-                        2
-                    ),
-
-                "target_video_chunks":
-                    target_video_chunks,
-
-                "approx_video_seconds":
-                    target_video_chunks * 10
+                "previous_interaction_id":
+                    first_interaction.id
             }
         )
 
-        # =============================================
-        # FIRST GENERATED VIDEO
-        # =============================================
+        second_interaction = (
+            gemini_client
+            .interactions
+            .create(
 
-        current_interaction = (
-            first_interaction
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                previous_interaction_id=
+                    first_interaction.id,
+
+                input=
+                    video_prompt_part_2,
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
         )
 
+        # =============================================
+        # FINAL VIDEO
+        #
+        # ה-output של interaction 2 הוא
+        # הסרטון המורחב שמכיל Part 1 + Part 2.
+        # =============================================
+
         output_video = getattr(
-            current_interaction,
+            second_interaction,
             "output_video",
             None
         )
-
-        # =============================================
-        # EXTEND ONLY AS MANY TIMES AS REQUIRED
-        #
-        # chunk 1 כבר נוצר ב-first_interaction.
-        # לכן מתחילים מ-2.
-        # =============================================
-
-        for chunk_number in range(
-                2,
-                target_video_chunks + 1
-        ):
-
-            print(
-                "TRANSITION VIDEO EXTENSION:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson_id,
-
-                    "chunk_number":
-                        chunk_number,
-
-                    "target_chunks":
-                        target_video_chunks,
-
-                    "previous_interaction_id":
-                        current_interaction.id
-                }
-            )
-
-            current_interaction = (
-                gemini_client
-                .interactions
-                .create(
-
-                    model=
-                    LESSON_TRANSITION_VIDEO_MODEL,
-
-                    previous_interaction_id=
-                    current_interaction.id,
-
-                    input=(
-                        "Continue this exact same educational scene "
-                        "with perfect visual and audio continuity. "
-
-                        "Keep exactly the same teacher, "
-                        "face, voice, environment, illustration style, "
-                        "lighting and camera position. "
-
-                        "The original Hebrew dialogue from the first "
-                        "interaction is the ONLY dialogue allowed. "
-
-                        "If any words from that original Hebrew dialogue "
-                        "have not yet been spoken, continue ONLY those "
-                        "remaining words naturally. "
-
-                        "Do not restart the dialogue. "
-                        "Do not repeat any words. "
-                        "Do not paraphrase. "
-                        "Do not invent new words. "
-                        "Do not add another sentence. "
-
-                        "Once all original Hebrew dialogue has been spoken, "
-                        "the teacher must stop speaking completely. "
-
-                        "After the speech finishes she may only smile "
-                        "and make a subtle natural inviting gesture. "
-
-                        "No additional speech. "
-                        "No filler sounds. "
-                        "No invented language. "
-                        "No written text. "
-                        "No captions."
-                    ),
-
-                    response_format={
-                        "type":
-                            "video",
-
-                        "aspect_ratio":
-                            "16:9",
-
-                        "resolution":
-                            "720p",
-
-                        "delivery":
-                            "uri"
-                    }
-                )
-            )
-
-            output_video = getattr(
-                current_interaction,
-                "output_video",
-                None
-            )
-
-            if output_video is None:
-                raise RuntimeError(
-                    "Gemini returned no transition "
-                    f"video for chunk {chunk_number}"
-                )
 
         if output_video is None:
 
@@ -7296,6 +7404,10 @@ def generate_transition_video_background(
                 "Gemini returned no "
                 "transition video"
             )
+
+        # =============================================
+        # VIDEO URI
+        # =============================================
 
         video_uri = getattr(
             output_video,
@@ -7314,7 +7426,6 @@ def generate_transition_video_background(
                 .split("/")[-1]
             )
 
-            # remove :download?... if present
             file_name = (
                 file_name
                 .split(":")[0]
@@ -7375,7 +7486,10 @@ def generate_transition_video_background(
 
         else:
 
-            # fallback for inline output
+            # =========================================
+            # INLINE FALLBACK
+            # =========================================
+
             inline_data = getattr(
                 output_video,
                 "data",
@@ -7437,7 +7551,7 @@ def generate_transition_video_background(
         )
 
         # =============================================
-        # SAVE METADATA INTO GENERATED LESSON JSON
+        # SAVE METADATA
         # =============================================
 
         transition[
@@ -7469,7 +7583,20 @@ def generate_transition_video_background(
                 "720p",
 
             "target_duration_seconds":
-                target_video_chunks * 10,
+                20,
+
+            "speech_words":
+                total_speech_words,
+
+            "speech_part_1_words":
+                len(
+                    speech_part_1.split()
+                ),
+
+            "speech_part_2_words":
+                len(
+                    speech_part_2.split()
+                ),
 
             "generated_at":
                 datetime
@@ -7508,7 +7635,20 @@ def generate_transition_video_background(
                     video_storage_path,
 
                 "bytes":
-                    len(video_bytes)
+                    len(video_bytes),
+
+                "speech_words":
+                    total_speech_words,
+
+                "part_1_words":
+                    len(
+                        speech_part_1.split()
+                    ),
+
+                "part_2_words":
+                    len(
+                        speech_part_2.split()
+                    )
             }
         )
 
@@ -9831,12 +9971,13 @@ def get_or_generate_unit_lesson(
                 generate_all_lesson_visuals_background,
                 unit_lesson["id"]
             )
+
             # =========================================
             # TRANSITION JSON REPAIR
             #
-            # אם השיעור קיים ב-cache אבל transition
-            # חסר, מייצרים מחדש רק את ה-transition.
-            # לא נוגעים בשאר תוכן השיעור.
+            # אם ה-transition חסר מה-cache,
+            # משתמשים בפונקציה המרכזית שמייצרת
+            # מחדש רק את ה-transition.
             # =========================================
 
             if not isinstance(
@@ -9852,127 +9993,90 @@ def get_or_generate_unit_lesson(
                     }
                 )
 
-                structured_lesson = (
-                        cached_json.get(
-                            "structured_lesson"
-                        )
-                        or {}
-                )
+                try:
 
-                part_1 = (
-                        structured_lesson.get(
-                            "part_1"
-                        )
-                        or {}
-                )
+                    # חשוב:
+                    # הפונקציה קוראת מתוך
+                    # unit_lesson["generated_lesson_json"].
+                    #
+                    # לכן מוודאים שהיא מקבלת את
+                    # ה-JSON המעודכן שנמצא כרגע ב-cache.
+                    unit_lesson[
+                        "generated_lesson_json"
+                    ] = cached_json
 
-                part_2 = (
-                        structured_lesson.get(
-                            "part_2"
-                        )
-                        or {}
-                )
-
-                if part_1 and part_2:
-
-                    transition_prompt = (
-                        build_lesson_transition_prompt(
+                    lesson_transition = (
+                        regenerate_lesson_transition_only(
                             unit_lesson=
-                            unit_lesson,
+                                unit_lesson,
 
                             parent_lesson=
-                            parent_lesson,
-
-                            part_1=
-                            part_1,
-
-                            part_2=
-                            part_2
+                                parent_lesson
                         )
                     )
 
-                    transition_completion = (
-                        client
-                        .beta
-                        .chat
-                        .completions
-                        .parse(
+                    cached_json[
+                        "transition"
+                    ] = lesson_transition
 
-                            model=
-                            DEFAULT_OPENAI_MODEL,
+                    supabase_with_retry(
+                        lambda:
+                            sb.table(
+                                "lesson_units_content"
+                            ).update({
 
-                            messages=[
-                                {
-                                    "role":
-                                        "system",
+                                "generated_lesson_json":
+                                    cached_json,
 
-                                    "content":
-                                        transition_prompt
-                                },
-                                {
-                                    "role":
-                                        "user",
+                                "updated_at":
+                                    datetime
+                                    .now(timezone.utc)
+                                    .isoformat()
 
-                                    "content":
-                                        (
-                                            "Create the universal transition "
-                                            "between Part 1 and Part 2. "
-                                            "Return only the required structure."
+                            }).eq(
+                                "id",
+                                unit_lesson["id"]
+                            ).execute(),
+
+                        label=
+                            "SAVE REPAIRED TRANSITION"
+                    )
+
+                    print(
+                        "TRANSITION JSON REPAIRED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "speech":
+                                lesson_transition.get(
+                                    "speech"
+                                ),
+
+                            "speech_words":
+                                len(
+                                    (
+                                        lesson_transition.get(
+                                            "speech"
                                         )
-                                }
-                            ],
-
-                            response_format=
-                            LessonTransitionResponse
-                        )
+                                        or ""
+                                    ).split()
+                                )
+                        }
                     )
 
-                    transition_data = (
-                        transition_completion
-                        .choices[0]
-                        .message
-                        .parsed
+                except Exception as e:
+
+                    print(
+                        "TRANSITION JSON REPAIR FAILED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "error":
+                                repr(e)
+                        }
                     )
-
-                    if transition_data:
-                        lesson_transition = (
-                            transition_data
-                            .model_dump()
-                        )
-
-                        cached_json[
-                            "transition"
-                        ] = lesson_transition
-
-                        sb.table(
-                            "lesson_units_content"
-                        ).update({
-
-                            "generated_lesson_json":
-                                cached_json,
-
-                            "updated_at":
-                                datetime
-                                .now(timezone.utc)
-                                .isoformat()
-
-                        }).eq(
-                            "id",
-                            unit_lesson["id"]
-                        ).execute()
-
-                        print(
-                            "TRANSITION JSON REPAIRED:",
-                            {
-                                "unit_lesson_id":
-                                    unit_lesson["id"],
-
-                                "speech":
-                                    lesson_transition.get(
-                                        "speech"
-                                    )
-                            }
-                        )
             print(
                 "QUEUE BACKGROUND TRANSITION VIDEO CHECK:",
                 {
@@ -10024,8 +10128,10 @@ def get_or_generate_unit_lesson(
                     ),
 
                 "transition":
-                    cached_json.get(
-                        "transition"
+                    add_transition_video_signed_url(
+                        cached_json.get(
+                            "transition"
+                        )
                     ),
 
                 "audio_generation_status":
@@ -10754,8 +10860,10 @@ def get_or_generate_unit_lesson(
                 ),
 
             "transition":
-                lesson_json.get(
-                    "transition"
+                add_transition_video_signed_url(
+                    lesson_json.get(
+                        "transition"
+                    )
                 ),
 
             "audio_generation_status":
