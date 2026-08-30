@@ -6702,7 +6702,11 @@ def generate_transition_video_background(
                     video_prompt
             }
         )
-        
+        print(
+            "TRANSITION SPEECH ONLY >>>",
+            speech,
+            "<<< TRANSITION SPEECH END"
+        )
         first_interaction = (
             gemini_client
             .interactions
