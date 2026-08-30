@@ -7237,18 +7237,28 @@ def generate_transition_video_background(
         Her visible speaking animation should remain
         naturally timed with the Hebrew speech.
 
-        AFTER THE FINAL WORD:
+AFTER THE FINAL WORD:
 
-        Stop speaking completely.
+The spoken dialogue is FINISHED.
 
-        The teacher may smile
-        and make one subtle inviting gesture.
+The teacher must become completely silent immediately.
 
-        Do not speak anything else.
+Do NOT repeat the final sentence.
+Do NOT repeat the final phrase.
+Do NOT say "בואו נמשיך" again.
+Do NOT say "בואו נמשיך ונגלה" again.
+Do NOT add another invitation to continue.
+Do NOT add any closing phrase.
 
-        No filler words.
-        No repeated dialogue.
-        No invented language.
+After the final word, the teacher may only smile naturally
+and make one subtle SILENT hand gesture.
+
+There must be absolutely no additional speech.
+
+No filler words.
+No repeated dialogue.
+No invented dialogue.
+No repeated ending.
         No captions.
         No written text.
         No labels.
