@@ -1,0 +1,2762 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>小学生算数をAIで学ぶ方法｜説明・ヒント・練習で理解を深める | IAKIDS</title>
+
+<meta name="description"
+content="小学生算数をAIでどう学ぶ？答えを出すだけではなく、子どもの理解度に合わせた説明、段階的なヒント、再挑戦、類題、理解度チェックへつなげるAI算数学習の方法と注意点を解説します。">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical"
+href="https://iakids.app/ja/blog/elementary-math/elementary-math-with-ai/">
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/favicon.ico">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-DKPPTPCDW8');
+</script>
+
+<meta property="og:type" content="article">
+<meta property="og:url"
+content="https://iakids.app/ja/blog/elementary-math/elementary-math-with-ai/">
+<meta property="og:title"
+content="小学生算数をAIで学ぶ方法｜説明・ヒント・練習で理解を深める">
+<meta property="og:description"
+content="AIを使って小学生算数を理解するための説明、ヒント、再挑戦、類題、理解度確認の方法を紹介します。">
+<meta property="og:image"
+content="https://iakids.app/assets/ja/blog/elementary-math.webp">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title"
+content="小学生算数をAIで学ぶ方法 | IAKIDS">
+<meta name="twitter:description"
+content="AIを答え生成ではなく、算数を理解するための学習支援として使う方法を解説します。">
+<meta name="twitter:image"
+content="https://iakids.app/assets/ja/blog/elementary-math.webp">
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"Article",
+  "headline":"小学生算数をAIで学ぶ方法｜説明・ヒント・練習で理解を深める",
+  "description":"小学生算数でAIを説明、ヒント、再挑戦、類題、理解度確認に活用する方法と注意点を解説します。",
+  "mainEntityOfPage":{
+    "@type":"WebPage",
+    "@id":"https://iakids.app/ja/blog/elementary-math/elementary-math-with-ai/"
+  },
+  "image":"https://iakids.app/assets/ja/blog/elementary-math.webp",
+  "inLanguage":"ja-JP",
+  "author":{
+    "@type":"Organization",
+    "name":"IAKIDS"
+  },
+  "publisher":{
+    "@type":"Organization",
+    "name":"IAKIDS",
+    "url":"https://iakids.app/ja/"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {
+      "@type":"Question",
+      "name":"AIは小学生の算数学習に使えますか？",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"はい。学年や理解度に合わせた説明、段階的なヒント、類題、間違いの確認、理解度チェックなどに活用できます。ただし、AIの回答には誤りが含まれる可能性があるため確認も必要です。"
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"AIに算数の答えを聞いてもいいですか？",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"答えを確認する用途もありますが、学習目的なら最初から答えを表示するより、ヒントや質問を使って子ども自身が考える方が理解につながりやすくなります。"
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"算数が苦手な子どもにもAIは使えますか？",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"説明を簡単にする、問題を小さなステップへ分ける、必要なら前の内容へ戻るなど、子どもの理解に合わせて使うことができます。"
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"AIで算数を学ぶときは何を確認すればいいですか？",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"答えをすぐ出しすぎないこと、説明が学年に合っていること、子ども自身が回答する機会があること、間違いのあとに再挑戦できること、別の問題で理解を確認できることが重要です。"
+      }
+    },
+    {
+      "@type":"Question",
+      "name":"AIだけで小学生の算数学習は十分ですか？",
+      "acceptedAnswer":{
+        "@type":"Answer",
+        "text":"AIは便利な学習支援の一つですが、学校の授業、教科書、紙での計算、人からの指導なども重要です。子どもの状態に応じて組み合わせることが大切です。"
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  margin:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans JP",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    Meiryo,
+    Arial,
+    sans-serif;
+  color:#172033;
+  background:#fff;
+}
+
+img,
+video,
+iframe{
+  max-width:100%;
+  height:auto;
+}
+
+a{
+  color:#2563eb;
+  text-decoration:none;
+}
+
+a:hover{text-decoration:underline}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #e8edf4;
+  backdrop-filter:blur(10px);
+}
+
+.topbar-inner{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.logo{
+  color:#2563eb;
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-.5px;
+  text-decoration:none;
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-left:auto;
+  font-size:15px;
+  font-weight:700;
+}
+
+.nav a{
+  color:#334155;
+  text-decoration:none;
+}
+
+.nav a:hover{color:#2563eb}
+
+.nav-cta{
+  color:#fff!important;
+  padding:10px 18px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.hero{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:58px 22px 20px;
+}
+
+.breadcrumb{
+  margin-bottom:23px;
+  color:#64748b;
+  font-size:14px;
+  line-height:1.7;
+}
+
+.breadcrumb a{color:#64748b}
+
+.article-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:18px;
+  padding:7px 13px;
+  border-radius:999px;
+  color:#2563eb;
+  background:#eff6ff;
+  font-size:14px;
+  font-weight:800;
+}
+
+.tag-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#22c55e;
+}
+
+.hero h1{
+  max-width:1000px;
+  margin:0 0 22px;
+  color:#101828;
+  font-size:clamp(40px,5.7vw,62px);
+  line-height:1.22;
+  letter-spacing:-1.2px;
+}
+
+.lead{
+  max-width:850px;
+  margin:0;
+  color:#526077;
+  font-size:20px;
+  line-height:1.9;
+}
+
+.hero-image{
+  width:min(1200px,100%);
+  margin:35px auto 0;
+  padding:0 22px;
+}
+
+.hero-image img{
+  display:block;
+  width:100%;
+  max-height:520px;
+  object-fit:cover;
+  border-radius:25px;
+}
+
+.page{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:65px 22px 90px;
+  display:grid;
+  grid-template-columns:minmax(0,790px) minmax(260px,300px);
+  gap:70px;
+  align-items:stretch;
+}
+
+.content{
+  width:100%;
+  max-width:790px;
+  min-width:0;
+}
+
+.content h2{
+  margin:58px 0 18px;
+  color:#101828;
+  font-size:32px;
+  line-height:1.4;
+  letter-spacing:-.4px;
+}
+
+.content h2:first-child{margin-top:0}
+
+.content h3{
+  margin:33px 0 13px;
+  color:#172033;
+  font-size:22px;
+  line-height:1.5;
+}
+
+.content p{
+  margin:0 0 21px;
+  color:#475569;
+  font-size:17px;
+  line-height:1.95;
+}
+
+.content ul{
+  margin:0 0 25px;
+  padding-left:25px;
+  color:#475569;
+}
+
+.content li{
+  margin-bottom:9px;
+  font-size:17px;
+  line-height:1.85;
+}
+
+.note,
+.good-box,
+.warning-box,
+.example-box,
+.internal-card,
+.checklist{
+  width:100%;
+  max-width:100%;
+  margin:30px 0;
+  padding:25px 26px;
+  border-radius:20px;
+}
+
+.note{
+  border:1px solid #bfdbfe;
+  background:#eff6ff;
+}
+
+.good-box{
+  border:1px solid #bbf7d0;
+  background:#f0fdf4;
+}
+
+.warning-box{
+  border:1px solid #fde68a;
+  background:#fffbeb;
+}
+
+.example-box{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+}
+
+.note strong,
+.good-box strong,
+.warning-box strong,
+.example-box strong{
+  display:block;
+  margin-bottom:8px;
+  color:#172033;
+  font-size:17px;
+}
+
+.note p,
+.good-box p,
+.warning-box p,
+.example-box p{
+  margin:0 0 10px;
+  font-size:16px;
+  line-height:1.85;
+}
+
+.note p:last-child,
+.good-box p:last-child,
+.warning-box p:last-child,
+.example-box p:last-child{
+  margin-bottom:0;
+}
+
+.table-wrap{
+  width:100%;
+  max-width:100%;
+  margin:30px 0;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+}
+
+table{
+  width:100%;
+  min-width:700px;
+  border-collapse:collapse;
+}
+
+th,
+td{
+  padding:17px 18px;
+  text-align:left;
+  vertical-align:top;
+  border-bottom:1px solid #e2e8f0;
+  font-size:15px;
+  line-height:1.75;
+}
+
+th{
+  color:#172033;
+  background:#f8fafc;
+  font-weight:800;
+}
+
+td{color:#475569}
+tr:last-child td{border-bottom:none}
+
+.steps{
+  width:100%;
+  margin:32px 0;
+  display:grid;
+  gap:15px;
+}
+
+.step{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr);
+  gap:18px;
+  align-items:flex-start;
+  width:100%;
+  min-width:0;
+  padding:22px;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  background:#fff;
+}
+
+.step-number{
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  font-weight:900;
+  font-size:18px;
+}
+
+.step>div{min-width:0}
+
+.step h3{
+  margin:1px 0 7px;
+  font-size:19px;
+}
+
+.step p{
+  margin:0;
+  font-size:16px;
+  line-height:1.8;
+}
+
+.checklist{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+}
+
+.check-item{
+  display:flex;
+  gap:11px;
+  margin:12px 0;
+  color:#475569;
+  line-height:1.8;
+}
+
+.check{
+  flex:0 0 auto;
+  color:#22c55e;
+  font-weight:900;
+}
+
+.internal-card{
+  border:1px solid #bfdbfe;
+  background:linear-gradient(135deg,#eff6ff,#f0fdf4);
+}
+
+.internal-card h3{
+  margin:0 0 9px;
+}
+
+.internal-card p{
+  margin:0 0 12px;
+}
+
+.internal-card a{
+  font-weight:850;
+}
+
+.faq{margin-top:60px}
+
+.faq-item{
+  width:100%;
+  max-width:100%;
+  padding:23px 0;
+  border-bottom:1px solid #e2e8f0;
+}
+
+.faq-item h3{
+  margin:0 0 10px;
+  font-size:20px;
+}
+
+.faq-item p{margin:0}
+
+.final-cta{
+  width:100%;
+  max-width:100%;
+  margin-top:55px;
+  padding:42px 35px;
+  border-radius:25px;
+  text-align:center;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.final-cta h2{
+  margin:0 0 13px;
+  color:#fff;
+  font-size:31px;
+}
+
+.final-cta p{
+  max-width:610px;
+  margin:0 auto 22px;
+  color:#fff;
+  opacity:.96;
+  font-size:17px;
+}
+
+.final-cta a{
+  display:inline-block;
+  padding:13px 23px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  font-weight:900;
+  text-decoration:none;
+}
+
+.sidebar-column{
+  display:block;
+  width:100%;
+  min-width:0;
+  position:relative;
+  align-self:stretch;
+}
+
+.sidebar-sticky{
+  width:100%;
+  max-height:calc(100vh - 110px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#cbd5e1 transparent;
+  z-index:50;
+}
+
+.sidebar-sticky.is-fixed{
+  position:fixed;
+  top:86px;
+}
+
+.sidebar-sticky.is-bottom{
+  position:absolute;
+  top:auto;
+  bottom:0;
+}
+
+.sidebar-sticky::-webkit-scrollbar{width:6px}
+.sidebar-sticky::-webkit-scrollbar-track{background:transparent}
+
+.sidebar-sticky::-webkit-scrollbar-thumb{
+  background:#cbd5e1;
+  border-radius:999px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-thumb:hover{
+  background:#94a3b8;
+}
+
+.sidebar-box{
+  margin-bottom:22px;
+  padding:24px;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  background:#fff;
+}
+
+.sidebar-box h3{
+  margin:0 0 16px;
+  color:#101828;
+  font-size:18px;
+}
+
+.sidebar-link{
+  display:block;
+  padding:10px 0;
+  border-bottom:1px solid #edf2f7;
+  color:#475569;
+  font-size:14px;
+  font-weight:650;
+  line-height:1.65;
+}
+
+.sidebar-link:last-child{border-bottom:none}
+.sidebar-link:hover{color:#2563eb}
+
+.sidebar-link.active{
+  color:#2563eb;
+  font-weight:850;
+}
+
+.sidebar-cta{
+  padding:25px;
+  border-radius:20px;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.sidebar-cta h3{
+  margin:0 0 10px;
+  color:#fff;
+}
+
+.sidebar-cta p{
+  margin:0 0 17px;
+  font-size:14px;
+  line-height:1.75;
+  opacity:.96;
+}
+
+.sidebar-cta a{
+  display:block;
+  padding:11px 15px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  text-align:center;
+  font-size:14px;
+  font-weight:900;
+  text-decoration:none;
+}
+
+footer{
+  width:100%;
+  max-width:100%;
+  padding:35px 22px;
+  border-top:1px solid #e8edf4;
+  color:#64748b;
+}
+
+.footer-inner{
+  width:min(1200px,100%);
+  margin:0 auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  font-size:14px;
+}
+
+.back-to-top{
+  position:fixed;
+  right:28px;
+  bottom:28px;
+  z-index:2000;
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:50%;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  font-size:24px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 10px 30px rgba(37,99,235,.24);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(12px);
+  transition:.22s ease;
+}
+
+.back-to-top.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+
+@media(max-width:900px){
+
+  .page,
+  .content,
+  .hero,
+  .hero-image,
+  .sidebar-column,
+  article,
+  aside{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .topbar-inner{
+    padding:12px 18px;
+    gap:12px;
+  }
+
+  .logo{
+    font-size:22px;
+    flex-shrink:0;
+  }
+
+  .nav{margin-left:auto}
+
+  .nav a:not(.nav-cta){
+    display:none;
+  }
+
+  .nav-cta{
+    display:block;
+    padding:10px 16px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+
+  .hero{
+    width:100%;
+    max-width:100%;
+    padding:34px 20px 12px;
+  }
+
+  .breadcrumb{
+    font-size:13px;
+    line-height:1.6;
+    overflow-wrap:anywhere;
+  }
+
+  .article-tag{font-size:13px}
+
+  .hero h1{
+    width:100%;
+    max-width:100%;
+    margin-bottom:18px;
+    font-size:clamp(34px,8vw,46px);
+    line-height:1.25;
+    letter-spacing:-.5px;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+
+  .lead{
+    width:100%;
+    max-width:100%;
+    font-size:18px;
+    line-height:1.85;
+    overflow-wrap:break-word;
+  }
+
+  .hero-image{
+    width:100%;
+    max-width:100%;
+    padding:0 20px;
+    margin-top:28px;
+  }
+
+  .hero-image img{
+    width:100%;
+    max-width:100%;
+    height:auto;
+    max-height:none;
+    border-radius:20px;
+  }
+
+  .page{
+    width:100%;
+    max-width:100%;
+    display:block;
+    padding:45px 20px 70px;
+  }
+
+  .content{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .content h2,
+  .content h3,
+  .content p,
+  .content li{
+    width:auto;
+    max-width:100%;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+
+  .content h2{
+    margin-top:45px;
+    font-size:29px;
+    line-height:1.4;
+  }
+
+  .content h3{
+    font-size:21px;
+    line-height:1.45;
+  }
+
+  .content p{
+    font-size:17px;
+    line-height:1.85;
+  }
+
+  .content ul{
+    max-width:100%;
+    padding-left:22px;
+    padding-right:0;
+  }
+
+  .sidebar-column{
+    width:100%;
+    margin-top:50px;
+    position:static;
+    align-self:auto;
+  }
+
+  .sidebar-sticky,
+  .sidebar-sticky.is-fixed,
+  .sidebar-sticky.is-bottom{
+    position:static;
+    top:auto;
+    bottom:auto;
+    width:100%!important;
+    max-height:none;
+    overflow:visible;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist,
+  .faq-item,
+  .final-cta{
+    width:100%;
+    max-width:100%;
+  }
+
+  .steps,
+  .step{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .step>div{min-width:0}
+
+  .table-wrap{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  footer,
+  .footer-inner{
+    width:100%;
+    max-width:100%;
+  }
+}
+
+@media(max-width:600px){
+
+  .topbar-inner{padding:10px 16px}
+  .logo{font-size:21px}
+
+  .nav-cta{
+    padding:9px 14px;
+    font-size:13px;
+  }
+
+  .hero{
+    padding:28px 18px 8px;
+  }
+
+  .hero h1{
+    font-size:34px;
+    line-height:1.28;
+  }
+
+  .lead{
+    font-size:17px;
+    line-height:1.85;
+  }
+
+  .hero-image{
+    padding:0 18px;
+    margin-top:25px;
+  }
+
+  .hero-image img{border-radius:18px}
+
+  .page{
+    padding:40px 18px 65px;
+  }
+
+  .content h2{
+    font-size:27px;
+    line-height:1.4;
+  }
+
+  .content h3{font-size:20px}
+
+  .content p,
+  .content li{
+    font-size:16.5px;
+    line-height:1.85;
+  }
+
+  .step{
+    grid-template-columns:1fr;
+    padding:19px;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist{
+    padding:21px 20px;
+  }
+
+  .final-cta{
+    padding:32px 23px;
+  }
+
+  .final-cta h2{font-size:27px}
+
+  .footer-inner{
+    flex-direction:column;
+  }
+
+  .back-to-top{
+    right:16px;
+    bottom:16px;
+    width:46px;
+    height:46px;
+    font-size:21px;
+  }
+}
+
+@media(max-width:380px){
+
+  .hero,
+  .page{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero-image{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero h1{font-size:31px}
+
+  .nav-cta{
+    padding:8px 11px;
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+<div class="topbar-inner">
+
+<a href="/ja/" class="logo">iakids</a>
+
+<nav class="nav">
+<a href="/ja/blog/">学習ブログ</a>
+<a href="/ja/blog/ai-study/">勉強AI</a>
+<a href="/ja/blog/elementary-english/">小学生英語</a>
+<a href="/ja/blog/ai-math/">数学AI</a>
+<a href="/ja/" class="nav-cta">IAKIDSを始める</a>
+</nav>
+
+</div>
+</header>
+
+
+<section class="hero">
+
+<div class="breadcrumb">
+<a href="/ja/">IAKIDS</a>
+&nbsp;›&nbsp;
+<a href="/ja/blog/">学習ブログ</a>
+&nbsp;›&nbsp;
+<a href="/ja/blog/elementary-math/">小学生算数</a>
+&nbsp;›&nbsp;
+小学生算数をAIで学ぶ
+</div>
+
+<div class="article-tag">
+<span class="tag-dot"></span>
+小学生 算数 · AI学習 · 数学AI
+</div>
+
+<h1>
+小学生算数をAIで学ぶ方法｜説明・ヒント・練習で理解を深める
+</h1>
+
+<p class="lead">
+AIに算数の問題を入力すれば、
+答えを出してもらうことはできます。
+でも、それだけでは
+子ども自身が算数を理解したとは限りません。
+AIを「答えを出す道具」ではなく、
+説明、質問、ヒント、再挑戦、練習を支える
+学習パートナーとして使う方法を紹介します。
+</p>
+
+</section>
+
+
+<div class="hero-image">
+<img
+src="/assets/ja/blog/elementary-math.webp"
+alt="小学生がAIを活用しながら算数を学習している様子"
+loading="eager"
+width="1200"
+height="675">
+</div>
+
+
+<main class="page">
+
+<article class="content">
+
+
+<h2>小学生算数でAIは何ができる？</h2>
+
+<p>
+AIは、
+計算問題の答えを出すだけの
+道具ではありません。
+</p>
+
+<p>
+使い方によっては、
+子どもが算数を理解するための
+さまざまな支援に活用できます。
+</p>
+
+<div class="checklist">
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>難しい考え方を簡単な言葉で説明する</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>問題を小さなステップへ分ける</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>答えの前にヒントを出す</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>子どもの間違いを確認する</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>似た問題を作る</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>難易度を変える</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>別の問題で理解度を確認する</span>
+</div>
+
+</div>
+
+
+<h2>大切なのは「AIが解けるか」ではない</h2>
+
+<p>
+AIは多くの算数問題に
+答えることができます。
+</p>
+
+<p>
+しかし、
+学習で本当に確認したいのは
+別のことです。
+</p>
+
+<div class="good-box">
+<strong>
+AIが問題を解けるかではなく、
+子どもが自分で問題を解けるようになったか。
+</strong>
+</div>
+
+<p>
+そのため、
+学習向けのAI活用では
+完成した答えを最初に表示するより、
+子どもの思考を支えることが重要になります。
+</p>
+
+
+<h2>「答えを教えて」から「ヒントをください」へ</h2>
+
+<p>
+一般的な生成AIへ
+「この問題を解いて」
+と入力すると、
+式、途中計算、答えまで
+一度に表示されることがあります。
+</p>
+
+<p>
+宿題を早く終わらせることはできても、
+そのまま写せば
+学習にはつながりにくくなります。
+</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>答えを得る使い方</th>
+<th>理解する使い方</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>この問題を解いて</td>
+<td>答えを言わず最初のヒントをください</td>
+</tr>
+
+<tr>
+<td>正解を教えて</td>
+<td>私の考え方が合っているか確認して</td>
+</tr>
+
+<tr>
+<td>式を教えて</td>
+<td>式を考えるための質問をして</td>
+</tr>
+
+<tr>
+<td>宿題をやって</td>
+<td>私が解くので間違った場所を教えて</td>
+</tr>
+
+<tr>
+<td>全部説明して</td>
+<td>一つずつ質問しながら進めて</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+
+<h2>AIで算数を学ぶ基本の流れ</h2>
+
+<div class="steps">
+
+<div class="step">
+<div class="step-number">1</div>
+<div>
+<h3>短く説明する</h3>
+<p>
+最初に、
+今日使う考え方を
+子どもの学年に合った言葉で説明します。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">2</div>
+<div>
+<h3>子どもへ質問する</h3>
+<p>
+説明を聞くだけではなく、
+簡単な質問で
+理解を確認します。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">3</div>
+<div>
+<h3>子どもが答える</h3>
+<p>
+AIが代わりに答えるのではなく、
+子ども自身が考えます。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">4</div>
+<div>
+<h3>必要ならヒント</h3>
+<p>
+間違えた場合も、
+すぐ正解を出さず、
+次の一歩につながるヒントを出します。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">5</div>
+<div>
+<h3>再挑戦する</h3>
+<p>
+ヒントを使って、
+同じ問題へ
+もう一度挑戦します。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">6</div>
+<div>
+<h3>似た問題を解く</h3>
+<p>
+数字や形を少し変えて、
+同じ考え方を使えるか確認します。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">7</div>
+<div>
+<h3>理解できたか確認する</h3>
+<p>
+理由を説明したり、
+新しい問題を解いたりして
+本当に理解できたか確認します。
+</p>
+</div>
+</div>
+
+</div>
+
+
+<h2>例：割り算をAIと学ぶ</h2>
+
+<div class="example-box">
+<strong>問題：24個のりんごを6人に同じ数ずつ分けます。一人何個？</strong>
+
+<p>
+AI：
+「全部で何個ある？」
+</p>
+
+<p>
+子ども：
+「24個。」
+</p>
+
+<p>
+AI：
+「何人に分ける？」
+</p>
+
+<p>
+子ども：
+「6人。」
+</p>
+
+<p>
+AI：
+「同じ数ずつ分けるとき、
+どんな計算が使えそう？」
+</p>
+
+<p>
+子ども：
+「割り算。」
+</p>
+
+<p>
+AI：
+「そうだね。
+では24 ÷ 6を考えてみよう。」
+</p>
+</div>
+
+<p>
+AIが最初から
+「答えは4です」
+と言うより、
+子どもが自分で式へたどり着く流れを作ります。
+</p>
+
+
+<h2>間違えたときこそAIを活用する</h2>
+
+<p>
+正解したときだけでなく、
+間違えたときにも
+AIは学習支援に使えます。
+</p>
+
+<div class="example-box">
+<strong>36 ÷ 4 に「8」と答えた場合</strong>
+
+<p>
+AI：
+「4 × 8 はいくつ？」
+</p>
+
+<p>
+子ども：
+「32。」
+</p>
+
+<p>
+AI：
+「36にするには、
+4をあと何個足せばいいかな？」
+</p>
+
+<p>
+子ども：
+「1個。」
+</p>
+
+<p>
+AI：
+「では4は全部で何個必要？」
+</p>
+
+<p>
+子ども：
+「9個。だから36 ÷ 4は9。」
+</p>
+</div>
+
+<div class="note">
+<strong>
+間違いを「失敗」で終わらせず、
+どこで考え方がずれたかを確認します。
+</strong>
+</div>
+
+
+<h2>AIなら説明方法を変えられる</h2>
+
+<p>
+同じ説明を何度聞いても
+理解できないことがあります。
+</p>
+
+<p>
+その場合、
+説明そのものを変えます。
+</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>理解しにくいとき</th>
+<th>AIでできる変更</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>言葉が難しい</td>
+<td>もっと簡単な日本語で説明</td>
+</tr>
+
+<tr>
+<td>数字だけではわからない</td>
+<td>身近な例へ置き換える</td>
+</tr>
+
+<tr>
+<td>手順が多い</td>
+<td>一つずつ分ける</td>
+</tr>
+
+<tr>
+<td>現在の問題が難しい</td>
+<td>簡単な数字へ変える</td>
+</tr>
+
+<tr>
+<td>基礎が抜けている</td>
+<td>必要な前の内容へ戻る</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+
+<h2>例：分数を身近なものへ変える</h2>
+
+<div class="example-box">
+<strong>「3/4」がわからない場合</strong>
+
+<p>
+AI：
+「ピザを同じ大きさに4つへ分けたと考えてみよう。」
+</p>
+
+<p>
+「そのうち3つを取ったら、
+全体の4つのうち3つだね。」
+</p>
+
+<p>
+「これを3/4と表すよ。」
+</p>
+</div>
+
+<p>
+抽象的な数字だけでなく、
+食べ物や物、
+図のイメージなどへ
+置き換えることができます。
+</p>
+
+
+<div class="internal-card">
+<h3>小学生算数を理解する方法</h3>
+
+<p>
+算数がわからない原因を見つけ、
+基礎から一つずつ理解する方法を
+詳しく紹介しています。
+</p>
+
+<a href="/ja/blog/elementary-math/how-to-understand-elementary-math/">
+小学生算数を理解する方法 →
+</a>
+</div>
+
+
+<h2>文章問題にもAIを使える</h2>
+
+<p>
+文章問題が苦手な場合、
+AIに答えを出してもらうのではなく、
+問題を整理する役割を
+持たせることができます。
+</p>
+
+<div class="steps">
+
+<div class="step">
+<div class="step-number">1</div>
+<div>
+<h3>何の話か確認</h3>
+<p>問題の場面を短く整理します。</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">2</div>
+<div>
+<h3>わかっている数字を確認</h3>
+<p>それぞれの数字が何を表すか確認します。</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">3</div>
+<div>
+<h3>何を求めるか確認</h3>
+<p>子ども自身の言葉で言い換えます。</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">4</div>
+<div>
+<h3>変化を考える</h3>
+<p>増える、減る、分ける、比べるなどを考えます。</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">5</div>
+<div>
+<h3>式を作る</h3>
+<p>最後に必要な計算を考えます。</p>
+</div>
+</div>
+
+</div>
+
+
+<h2>AIで類題を作る</h2>
+
+<p>
+一問理解したあと、
+本当に考え方を使えるか確認するには
+別の問題が必要です。
+</p>
+
+<div class="example-box">
+<strong>最初の問題</strong>
+
+<p>
+20個のお菓子を5人へ同じ数ずつ分けます。
+一人何個？
+</p>
+
+<strong>類題1</strong>
+
+<p>
+30本の鉛筆を6人へ同じ数ずつ分けます。
+一人何本？
+</p>
+
+<strong>類題2</strong>
+
+<p>
+28枚のカードを4人へ同じ数ずつ分けます。
+一人何枚？
+</p>
+</div>
+
+<p>
+同じ考え方を使いながら、
+数字や場面を変えることができます。
+</p>
+
+
+<h2>難易度も調整できる</h2>
+
+<p>
+同じ単元でも、
+すべての子どもに
+同じ難易度が適しているとは限りません。
+</p>
+
+<div class="example-box">
+<strong>割り算なら</strong>
+
+<p>
+レベル1：12 ÷ 3
+</p>
+
+<p>
+レベル2：24 ÷ 6
+</p>
+
+<p>
+レベル3：35個を5人へ分ける文章問題
+</p>
+
+<p>
+レベル4：余りのある割り算
+</p>
+
+<p>
+レベル5：複数の計算が必要な応用問題
+</p>
+</div>
+
+<p>
+正解が続けば少し難しくする。
+難しければ簡単にする。
+</p>
+
+<p>
+この調整を
+子どもの理解度に合わせて行います。
+</p>
+
+
+<h2>「学年」だけでレベルを決めない</h2>
+
+<p>
+小学4年生だからといって、
+すべての小学4年生が
+同じ場所で学ぶ必要はありません。
+</p>
+
+<div class="good-box">
+<strong>子どもA</strong>
+<p>基本を理解しているので応用へ。</p>
+
+<strong>子どもB</strong>
+<p>同じ単元の基本問題をもう少し練習。</p>
+
+<strong>子どもC</strong>
+<p>関連する前学年の内容を確認。</p>
+</div>
+
+
+<h2>算数が苦手な子にも使える</h2>
+
+<p>
+AIの利点の一つは、
+理解できないときに
+説明方法や難易度を変えやすいことです。
+</p>
+
+<div class="checklist">
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>簡単な問題から始める</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>一度に一つだけ質問する</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>必要なときだけヒントを出す</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>間違いを責めず原因を確認する</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>理解できるまで説明方法を変える</span>
+</div>
+
+</div>
+
+
+<div class="internal-card">
+<h3>算数が苦手な子どものサポート</h3>
+
+<p>
+苦手意識が強い子への教え方、
+家庭での声かけ、
+ヒントの使い方を詳しく紹介します。
+</p>
+
+<a href="/ja/blog/elementary-math/how-to-help-children-struggling-with-math/">
+算数が苦手な子を助ける方法 →
+</a>
+</div>
+
+
+<h2>AIで理解度を確認する</h2>
+
+<p>
+説明を聞いた直後に
+同じ問題が解けても、
+それだけでは
+理解したとは限りません。
+</p>
+
+<p>
+AIを使って、
+違う形で確認できます。
+</p>
+
+<div class="checklist">
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>数字を変えた問題を出す</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>文章問題へ変える</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>「なぜ？」と理由を聞く</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>子どもに説明してもらう</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>少し時間を空けてもう一度確認する</span>
+</div>
+
+</div>
+
+
+<h2>正解率だけを見ない</h2>
+
+<p>
+AI学習では
+正解数を数えることもできますが、
+それだけで理解度を判断するのは
+十分ではありません。
+</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>見るポイント</th>
+<th>確認できること</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>正解できたか</td>
+<td>問題を解けたか</td>
+</tr>
+
+<tr>
+<td>ヒントが必要だったか</td>
+<td>自力で理解できたか</td>
+</tr>
+
+<tr>
+<td>何回挑戦したか</td>
+<td>どこで難しさがあるか</td>
+</tr>
+
+<tr>
+<td>理由を説明できるか</td>
+<td>考え方を理解しているか</td>
+</tr>
+
+<tr>
+<td>類題も解けるか</td>
+<td>理解を別問題へ使えるか</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+
+<h2>数学AIとの違いは？</h2>
+
+<p>
+「小学生算数AI」と
+「数学AI」は
+完全に別のものではありません。
+</p>
+
+<p>
+小学生向けでは、
+特に学年に合った言葉、
+基礎的な計算、
+文章問題、
+図や具体例などが重要になります。
+</p>
+
+<p>
+より広い数学AIでは、
+小学生算数だけでなく、
+より高度な数学学習にも
+AIを活用できます。
+</p>
+
+
+<div class="internal-card">
+<h3>数学AIとは？</h3>
+
+<p>
+AIを数学学習に使う方法、
+メリット、
+注意点をまとめています。
+</p>
+
+<a href="/ja/blog/ai-math/">
+数学AIガイドを見る →
+</a>
+</div>
+
+
+<h2>AIで数学を一つずつ学ぶ</h2>
+
+<p>
+数学AIでは、
+問題全体を一度に解説するのではなく、
+一つずつ進める方法が有効です。
+</p>
+
+<div class="example-box">
+<strong>学習の流れ</strong>
+
+<p>問題を読む</p>
+<p>↓</p>
+<p>最初の一歩を考える</p>
+<p>↓</p>
+<p>子どもが回答</p>
+<p>↓</p>
+<p>必要ならヒント</p>
+<p>↓</p>
+<p>再挑戦</p>
+<p>↓</p>
+<p>次のステップ</p>
+</div>
+
+
+<div class="internal-card">
+<h3>AIで数学を一つずつ学ぶ方法</h3>
+
+<p>
+問題を小さなステップへ分け、
+理解できるまで段階的に進める方法を
+詳しく紹介します。
+</p>
+
+<a href="/ja/blog/ai-math/learn-math-step-by-step-with-ai/">
+AIで数学を段階的に学ぶ →
+</a>
+</div>
+
+
+<h2>一般的なChatGPTとの違い</h2>
+
+<p>
+一般的なチャットAIは
+さまざまな質問へ答えるために
+作られています。
+</p>
+
+<p>
+そのため、
+算数問題を入力すると
+すぐ完成した解答を
+返す場合があります。
+</p>
+
+<p>
+学習向けの使い方では、
+答えを出す速度より、
+子どもが考える流れを
+維持することが重要です。
+</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>一般的な使い方</th>
+<th>学習向けの使い方</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>質問 → 答え</td>
+<td>説明 → 質問 → 子どもの回答</td>
+</tr>
+
+<tr>
+<td>完成した解答</td>
+<td>必要なヒント</td>
+</tr>
+
+<tr>
+<td>一度の回答で終了</td>
+<td>再挑戦</td>
+</tr>
+
+<tr>
+<td>正解を提示</td>
+<td>理解度を確認</td>
+</tr>
+
+<tr>
+<td>同じ説明</td>
+<td>理解に合わせて説明を変更</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+
+<div class="internal-card">
+<h3>勉強AIとChatGPTの違い</h3>
+
+<p>
+一般的な生成AIと
+学習向けAIを
+目的や学習フローから比較しています。
+</p>
+
+<a href="/ja/blog/ai-study/ai-study-vs-chatgpt/">
+勉強AIとChatGPTを比較する →
+</a>
+</div>
+
+
+<h2>AIを使うときの注意点</h2>
+
+<h3>1. AIも間違えることがある</h3>
+
+<p>
+AIが出した計算、
+説明、
+問題そのものに
+誤りが含まれる可能性があります。
+</p>
+
+<div class="warning-box">
+<strong>
+重要な内容では、
+学校教材、
+教科書、
+先生などでも確認します。
+</strong>
+</div>
+
+
+<h3>2. 宿題の代行にしない</h3>
+
+<p>
+AIへ宿題を全部解かせて
+答えを写すだけでは、
+理解につながりません。
+</p>
+
+<p>
+「答えを言わずヒントを出して」
+という使い方の方が
+学習目的に合います。
+</p>
+
+
+<h3>3. 子ども自身が答える時間を作る</h3>
+
+<p>
+AIが長く説明し続けるだけでは、
+子どもが受け身になることがあります。
+</p>
+
+<div class="good-box">
+<strong>
+AIが話す → 子どもが考える → 子どもが答える
+</strong>
+
+<p>
+この切り替えを
+短い間隔で作ることが重要です。
+</p>
+</div>
+
+
+<h3>4. 画面だけの学習にしない</h3>
+
+<p>
+算数では、
+紙に式を書く、
+図を描く、
+途中計算を残すことも大切です。
+</p>
+
+<p>
+AIと紙のノートを
+組み合わせる方法もあります。
+</p>
+
+
+<h3>5. 子どもの情報を入力しすぎない</h3>
+
+<p>
+一般的なAIサービスを使う場合は、
+個人情報や
+必要のない学校情報などを
+入力しないよう注意します。
+</p>
+
+
+<h2>AIと家庭教師はどちらがいい？</h2>
+
+<p>
+AIと家庭教師には、
+それぞれ異なる特徴があります。
+</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>AI学習</th>
+<th>家庭教師</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>必要なときに使いやすい</td>
+<td>決められた時間に学ぶことが多い</td>
+</tr>
+
+<tr>
+<td>何度でも説明を変えられる</td>
+<td>人が表情や様子を見ながら対応できる</td>
+</tr>
+
+<tr>
+<td>類題をすぐ作れる</td>
+<td>学習習慣まで直接支援しやすい</td>
+</tr>
+
+<tr>
+<td>自分のペースで進めやすい</td>
+<td>人との関係が学習意欲につながることがある</td>
+</tr>
+
+<tr>
+<td>一人でも利用できる</td>
+<td>集中を直接促してもらえる</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<p>
+どちらか一方だけを
+選ぶ必要もありません。
+</p>
+
+<p>
+子どもの性格や
+学習状況に合わせて
+組み合わせることもできます。
+</p>
+
+
+<div class="internal-card">
+<h3>家庭教師・個別指導との比較</h3>
+
+<p>
+家庭教師、
+オンライン家庭教師、
+個別指導塾、
+AI学習の違いを詳しく紹介します。
+</p>
+
+<a href="/ja/blog/tutoring/">
+家庭教師・個別指導ガイド →
+</a>
+</div>
+
+
+<h2>AIと個別最適な学び</h2>
+
+<p>
+AIの大きな可能性の一つが、
+一人ひとりに合わせて
+学習を変えやすいことです。
+</p>
+
+<div class="example-box">
+<strong>同じ小学生算数でも</strong>
+
+<p>
+子どもA：
+正解が続くので難しい問題へ。
+</p>
+
+<p>
+子どもB：
+ヒントが必要なので類題を追加。
+</p>
+
+<p>
+子どもC：
+基礎が曖昧なので前の内容へ戻る。
+</p>
+
+<p>
+子どもD：
+文章では難しいので具体例へ変更。
+</p>
+</div>
+
+<p>
+同じ教材を
+同じ速度で進めるのではなく、
+理解度に合わせて
+説明、練習、進行を変えます。
+</p>
+
+
+<div class="internal-card">
+<h3>個別最適な学びとは？</h3>
+
+<p>
+一人ひとりの理解度や
+ペースに合わせた学習について
+詳しく解説します。
+</p>
+
+<a href="/ja/blog/personalized-learning/">
+個別最適な学びを見る →
+</a>
+</div>
+
+
+<h2>家庭でAI算数学習を始める7ステップ</h2>
+
+<div class="steps">
+
+<div class="step">
+<div class="step-number">1</div>
+<div>
+<h3>今日のテーマを一つ決める</h3>
+<p>
+「分数を全部」ではなく、
+「分母と分子の意味」など
+小さく決めます。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">2</div>
+<div>
+<h3>簡単に説明してもらう</h3>
+<p>
+子どもの学年に合う言葉で
+短く説明してもらいます。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">3</div>
+<div>
+<h3>子どもへ質問する</h3>
+<p>
+説明だけで終わらず、
+理解を確認する質問を使います。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">4</div>
+<div>
+<h3>子どもが自分で答える</h3>
+<p>
+考える時間を十分に取ります。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">5</div>
+<div>
+<h3>必要ならヒント</h3>
+<p>
+答えではなく、
+次の一歩につながるヒントを出します。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">6</div>
+<div>
+<h3>類題を解く</h3>
+<p>
+同じ考え方を
+別の問題でも使えるか確認します。
+</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-number">7</div>
+<div>
+<h3>理解できたら次へ</h3>
+<p>
+必要以上に繰り返さず、
+次の内容へ進みます。
+</p>
+</div>
+</div>
+
+</div>
+
+
+<h2>AI算数学習で確認したいチェックリスト</h2>
+
+<div class="checklist">
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>子どもの学年に合う説明になっている</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>答えをすぐ出しすぎない</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>子ども自身が回答する時間がある</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>間違ったときにヒントがある</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>ヒントのあとに再挑戦できる</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>似た問題で練習できる</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>理解できなければ説明を変えられる</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>理解できたら次へ進める</span>
+</div>
+
+<div class="check-item">
+<span class="check">✓</span>
+<span>AIの回答を必要に応じて確認できる</span>
+</div>
+
+</div>
+
+
+<h2>IAKIDSが目指す小学生算数のAI学習</h2>
+
+<p>
+IAKIDSが目指しているのは、
+子どもが問題を入力すると
+完成した答えだけが表示される
+算数AIではありません。
+</p>
+
+<p>
+学習内容を説明し、
+途中で子どもへ問いかけ、
+回答を確認しながら
+理解へ進む体験を目指します。
+</p>
+
+<div class="good-box">
+<strong>
+説明 → 質問 → 子どもの回答 → ヒント → 再挑戦 → 類題 → 理解度確認
+</strong>
+
+<p>
+理解できなければ、
+同じ説明を繰り返すだけではなく
+説明方法を変える。
+</p>
+
+<p>
+必要なら、
+関連する基礎へ戻る。
+</p>
+
+<p>
+理解できたら、
+次の内容へ進む。
+</p>
+</div>
+
+<p>
+AIが学ぶのではなく、
+子ども自身が学ぶ。
+</p>
+
+<p>
+そのためにAIを使うことが、
+小学生算数における
+大切な活用方法の一つです。
+</p>
+
+
+<section class="faq">
+
+<h2>小学生算数とAIについてよくある質問</h2>
+
+
+<div class="faq-item">
+<h3>AIは小学生の算数学習に使えますか？</h3>
+
+<p>
+はい。
+学年や理解度に合わせた説明、
+段階的なヒント、
+類題、
+間違いの確認、
+理解度チェックなどに活用できます。
+ただし、
+AIの回答には誤りが含まれる可能性があるため
+確認も必要です。
+</p>
+</div>
+
+
+<div class="faq-item">
+<h3>AIに算数の答えを聞いてもいいですか？</h3>
+
+<p>
+答えを確認する用途もありますが、
+学習目的なら
+最初から答えを表示するより、
+ヒントや質問を使って
+子ども自身が考える方が
+理解につながりやすくなります。
+</p>
+</div>
+
+
+<div class="faq-item">
+<h3>算数が苦手な子どもにもAIは使えますか？</h3>
+
+<p>
+説明を簡単にする、
+問題を小さなステップへ分ける、
+必要なら前の内容へ戻るなど、
+子どもの理解に合わせて
+使うことができます。
+</p>
+</div>
+
+
+<div class="faq-item">
+<h3>AIで算数を学ぶときは何を確認すればいいですか？</h3>
+
+<p>
+答えをすぐ出しすぎないこと、
+説明が学年に合っていること、
+子ども自身が回答する機会があること、
+間違いのあとに再挑戦できること、
+別の問題で理解を確認できることが重要です。
+</p>
+</div>
+
+
+<div class="faq-item">
+<h3>AIだけで小学生の算数学習は十分ですか？</h3>
+
+<p>
+AIは便利な学習支援の一つですが、
+学校の授業、
+教科書、
+紙での計算、
+人からの指導なども重要です。
+子どもの状態に応じて
+組み合わせることが大切です。
+</p>
+</div>
+
+</section>
+
+
+<div class="final-cta">
+
+<h2>
+答えを出すAIから、理解を支えるAIへ
+</h2>
+
+<p>
+IAKIDSでは、
+小学生が算数を自分で考え、
+必要なときに説明やヒントを受け、
+再挑戦し、
+本当に理解できたかを確認しながら進む
+AI学習体験を目指します。
+</p>
+
+<a href="/ja/">
+IAKIDSを見てみる
+</a>
+
+</div>
+
+</article>
+
+
+<aside class="sidebar-column">
+
+<div class="sidebar-sticky">
+
+
+<div class="sidebar-box">
+
+<h3>小学生算数</h3>
+
+<a class="sidebar-link"
+href="/ja/blog/elementary-math/">
+小学生算数の勉強法
+</a>
+
+<a class="sidebar-link"
+href="/ja/blog/elementary-math/how-to-understand-elementary-math/">
+小学生算数を理解する方法
+</a>
+
+<a class="sidebar-link"
+href="/ja/blog/elementary-math/how-to-help-children-struggling-with-math/">
+算数が苦手な子のサポート
+</a>
+
+<a class="sidebar-link active"
+href="/ja/blog/elementary-math/elementary-math-with-ai/">
+小学生算数をAIで学ぶ
+</a>
+
+</div>
+
+
+<div class="sidebar-box">
+
+<h3>関連ガイド</h3>
+
+<a class="sidebar-link"
+href="/ja/blog/ai-math/">
+数学AI
+</a>
+
+<a class="sidebar-link"
+href="/ja/blog/ai-math/learn-math-step-by-step-with-ai/">
+AIで数学を一つずつ学ぶ
+</a>
+
+<a class="sidebar-link"
+href="/ja/blog/ai-study/">
+勉強AI・学習AI
+</a>
+
+<a class="sidebar-link"
+href="/ja/blog/personalized-learning/">
+個別最適な学び
+</a>
+
+<a class="sidebar-link"
+href="/ja/blog/tutoring/">
+家庭教師・個別指導
+</a>
+
+</div>
+
+
+<div class="sidebar-cta">
+
+<h3>IAKIDS</h3>
+
+<p>
+説明、質問、ヒント、
+再挑戦、練習、
+理解度確認をつなげる
+子ども向けAI学習体験。
+</p>
+
+<a href="/ja/">
+IAKIDSを始める
+</a>
+
+</div>
+
+
+</div>
+
+</aside>
+
+</main>
+
+
+<footer>
+
+<div class="footer-inner">
+
+<div>
+© <span id="current-year"></span> IAKIDS. All rights reserved.
+</div>
+
+<div>
+小学生 算数 · 数学AI · 個別最適な学び
+</div>
+
+</div>
+
+</footer>
+
+
+<button
+class="back-to-top"
+id="back-to-top"
+type="button"
+aria-label="ページ上部へ戻る"
+title="ページ上部へ戻る">
+↑
+</button>
+
+
+<script>
+
+document.getElementById('current-year').textContent =
+  new Date().getFullYear();
+
+
+const backToTopButton =
+  document.getElementById('back-to-top');
+
+function updateBackToTopButton(){
+
+  if(window.scrollY > 500){
+    backToTopButton.classList.add('show');
+  }else{
+    backToTopButton.classList.remove('show');
+  }
+
+}
+
+window.addEventListener(
+  'scroll',
+  updateBackToTopButton,
+  {passive:true}
+);
+
+backToTopButton.addEventListener(
+  'click',
+  function(){
+
+    window.scrollTo({
+      top:0,
+      behavior:'smooth'
+    });
+
+  }
+);
+
+updateBackToTopButton();
+
+
+const sidebarColumn =
+  document.querySelector('.sidebar-column');
+
+const sidebarSticky =
+  document.querySelector('.sidebar-sticky');
+
+const SIDEBAR_TOP = 86;
+
+let sidebarTicking = false;
+
+
+function resetSidebar(){
+
+  if(!sidebarSticky) return;
+
+  sidebarSticky.classList.remove(
+    'is-fixed',
+    'is-bottom'
+  );
+
+  sidebarSticky.style.width = '';
+  sidebarSticky.style.left = '';
+}
+
+
+function updateSidebar(){
+
+  if(!sidebarColumn || !sidebarSticky){
+    return;
+  }
+
+  if(window.innerWidth <= 900){
+
+    resetSidebar();
+    return;
+  }
+
+  const columnRect =
+    sidebarColumn.getBoundingClientRect();
+
+  const columnTop =
+    window.scrollY + columnRect.top;
+
+  const columnBottom =
+    columnTop + sidebarColumn.offsetHeight;
+
+  const sidebarHeight =
+    sidebarSticky.offsetHeight;
+
+  const currentScroll =
+    window.scrollY;
+
+  const fixedStart =
+    columnTop - SIDEBAR_TOP;
+
+  const fixedEnd =
+    columnBottom -
+    sidebarHeight -
+    SIDEBAR_TOP;
+
+
+  if(currentScroll < fixedStart){
+
+    sidebarSticky.classList.remove(
+      'is-fixed',
+      'is-bottom'
+    );
+
+    sidebarSticky.style.width = '';
+    sidebarSticky.style.left = '';
+
+    return;
+  }
+
+
+  if(currentScroll < fixedEnd){
+
+    const liveColumnRect =
+      sidebarColumn.getBoundingClientRect();
+
+    sidebarSticky.classList.remove(
+      'is-bottom'
+    );
+
+    sidebarSticky.classList.add(
+      'is-fixed'
+    );
+
+    sidebarSticky.style.width =
+      liveColumnRect.width + 'px';
+
+    sidebarSticky.style.left =
+      liveColumnRect.left + 'px';
+
+    return;
+  }
+
+
+  sidebarSticky.classList.remove(
+    'is-fixed'
+  );
+
+  sidebarSticky.classList.add(
+    'is-bottom'
+  );
+
+  sidebarSticky.style.width = '100%';
+  sidebarSticky.style.left = '';
+
+}
+
+
+function requestSidebarUpdate(){
+
+  if(sidebarTicking){
+    return;
+  }
+
+  sidebarTicking = true;
+
+  requestAnimationFrame(function(){
+
+    updateSidebar();
+    sidebarTicking = false;
+
+  });
+
+}
+
+
+window.addEventListener(
+  'scroll',
+  requestSidebarUpdate,
+  {passive:true}
+);
+
+
+window.addEventListener(
+  'resize',
+  function(){
+
+    resetSidebar();
+    requestSidebarUpdate();
+
+  }
+);
+
+
+window.addEventListener(
+  'load',
+  function(){
+
+    resetSidebar();
+    requestSidebarUpdate();
+
+  }
+);
+
+
+requestSidebarUpdate();
+
+</script>
+
+</body>
+</html>
