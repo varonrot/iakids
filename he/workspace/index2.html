@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה97</strong>
+    <strong>עולם הלמידה99</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -18524,17 +18524,25 @@ async function playLessonTransitionVideo(
     }
 
 
-    /*
-      מסתירים את התמונה הקודמת
-    */
-    oldVisuals.forEach(
-      item => {
+/*
+  מעבר קולנועי:
+  התמונה הנוכחית -> שחור -> וידאו
+*/
 
-        item.style.display =
-          "none";
+const blackout =
+  await fadeLessonVisualToBlack(
+    550
+  );
 
-      }
-    );
+
+oldVisuals.forEach(
+  item => {
+
+    item.style.display =
+      "none";
+
+  }
+);
 
 
     /*
@@ -18543,7 +18551,15 @@ async function playLessonTransitionVideo(
     wrap.classList.add(
       "visible"
     );
+/*
+  הסרטון כבר נמצא מתחת לשכבה השחורה.
+  עכשיו חושפים אותו בהדרגה.
+*/
 
+await fadeLessonVisualFromBlack(
+  blackout,
+  500
+);
 
     /*
       הפעלת הסרטון
@@ -18892,7 +18908,122 @@ async function getLatestLessonTransition(){
     null
   );
 }
+/* =====================================================
+   CINEMATIC FADE TO BLACK
+===================================================== */
 
+async function fadeLessonVisualToBlack(
+  duration = 550
+){
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-stage"
+    );
+
+  if(!visualArea){
+    return null;
+  }
+
+
+  let blackout =
+    visualArea.querySelector(
+      ".lesson-visual-blackout"
+    );
+
+
+  if(!blackout){
+
+    blackout =
+      document.createElement(
+        "div"
+      );
+
+    blackout.className =
+      "lesson-visual-blackout";
+
+    visualArea.appendChild(
+      blackout
+    );
+
+  }
+
+
+  /*
+    מכריחים את הדפדפן לצייר קודם
+    opacity:0 ורק אחר כך להתחיל Fade
+  */
+
+  blackout.getBoundingClientRect();
+
+
+  blackout.style.transitionDuration =
+    `${duration}ms`;
+
+
+  requestAnimationFrame(
+    () => {
+
+      blackout.classList.add(
+        "visible"
+      );
+
+    }
+  );
+
+
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        duration
+      )
+  );
+
+
+  return blackout;
+}
+
+
+/* =====================================================
+   CINEMATIC FADE FROM BLACK
+===================================================== */
+
+async function fadeLessonVisualFromBlack(
+  blackout,
+  duration = 500
+){
+
+  if(!blackout){
+    return;
+  }
+
+
+  blackout.style.transitionDuration =
+    `${duration}ms`;
+
+
+  blackout.classList.remove(
+    "visible"
+  );
+
+
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        duration
+      )
+  );
+
+
+  if(
+    blackout.isConnected
+  ){
+    blackout.remove();
+  }
+
+}
 /* =====================================================
    VISUAL TRIGGER
 ===================================================== */
@@ -19343,7 +19474,12 @@ console.log(
   ============================================= */
 
   await unlockLessonAudio();
+  /*
+    תחילת חלק הסבר:
+    מוזיקת הרקע מתחילה / ממשיכה.
+  */
 
+  await startLessonBackgroundMusic();
 
   if(
     !window.lessonRenderer
@@ -20032,7 +20168,12 @@ clearNoResponseTimer();
 console.log(
   "NO RESPONSE TIMER DISABLED FOR UNIT LESSON"
 );
+/*
+  ההסבר והשאלה הסתיימו.
+  עכשיו הילד נכנס לדיאלוג עם Learning Coach.
+*/
 
+pauseLessonBackgroundMusic();
 
   inputEl.focus();
 
@@ -21551,10 +21692,35 @@ try{
   );
 
 
+  /* =============================================
+     PERSONAL INTRO BACKGROUND MUSIC
+     חלש יותר בזמן שהמורה מדברת
+  ============================================= */
+
+  window.LESSON_BACKGROUND_MUSIC_VOLUME =
+    0.04;
+
+  await startLessonBackgroundMusic();
+
+
   personalIntroPlayed =
     await playKidPersonalIntroVideo(
       introData?.personal_intro
     );
+
+
+  /* =============================================
+     AFTER INTRO
+     חוזרים לעוצמת ההסבר הרגילה
+  ============================================= */
+
+  window.LESSON_BACKGROUND_MUSIC_VOLUME =
+    0.07;
+
+  fadeLessonBackgroundMusicTo(
+    0.07,
+    700
+  );
 
 }
 catch(
@@ -21566,7 +21732,8 @@ catch(
     personalIntroError
   );
 
-
+window.LESSON_BACKGROUND_MUSIC_VOLUME =
+  0.07;
   personalIntroPlayed =
     false;
 
@@ -23965,6 +24132,7 @@ if(
     "LEARNING COACH 1 FINISHED — START TRANSITION VIDEO"
   );
 
+await startLessonBackgroundMusic();
 /*
   חשוב:
   הנתונים שנשמרו בתחילת השיעור
@@ -42689,7 +42857,29 @@ body.lesson-theme-science
   */
   background:transparent !important;
 }
+/* =====================================================
+   LESSON CINEMATIC TRANSITIONS
+===================================================== */
 
+.lesson-visual-blackout{
+  position:absolute;
+  inset:0;
+
+  z-index:29;
+
+  background:#050a16;
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transition:
+    opacity .55s ease;
+}
+
+.lesson-visual-blackout.visible{
+  opacity:1;
+}
 /* =====================================================
    LESSON TRANSITION VIDEO
 ===================================================== */
@@ -50142,6 +50332,308 @@ function closeLessonTeacherHelp(){
 
   if(modal){
     modal.remove();
+  }
+
+}
+
+/* =====================================================
+   LESSON BACKGROUND MUSIC
+===================================================== */
+
+window.LESSON_BACKGROUND_MUSIC_ENABLED =
+  localStorage.getItem(
+    "lesson_background_music_enabled"
+  ) !== "false";
+
+
+window.LESSON_BACKGROUND_MUSIC_VOLUME =
+  0.07;
+
+
+window.lessonBackgroundMusic =
+  new Audio(
+    "/assets/lesson/ai-learning-background.mp3"
+  );
+
+
+window.lessonBackgroundMusic.loop =
+  true;
+
+
+window.lessonBackgroundMusic.preload =
+  "auto";
+
+
+window.lessonBackgroundMusic.volume =
+  0;
+
+
+window.LESSON_BACKGROUND_MUSIC_FADE_TIMER =
+  null;
+
+
+/* =============================================
+   FADE
+============================================= */
+
+function fadeLessonBackgroundMusicTo(
+  targetVolume,
+  duration = 800
+){
+
+  const audio =
+    window.lessonBackgroundMusic;
+
+
+  if(!audio){
+    return;
+  }
+
+
+  if(
+    window.LESSON_BACKGROUND_MUSIC_FADE_TIMER
+  ){
+
+    clearInterval(
+      window.LESSON_BACKGROUND_MUSIC_FADE_TIMER
+    );
+
+    window.LESSON_BACKGROUND_MUSIC_FADE_TIMER =
+      null;
+
+  }
+
+
+  const startVolume =
+    Number(
+      audio.volume || 0
+    );
+
+
+  const finalVolume =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          targetVolume || 0
+        )
+      )
+    );
+
+
+  const steps =
+    20;
+
+
+  const stepDuration =
+    Math.max(
+      20,
+      duration / steps
+    );
+
+
+  let currentStep =
+    0;
+
+
+  window.LESSON_BACKGROUND_MUSIC_FADE_TIMER =
+    setInterval(
+      () => {
+
+        currentStep++;
+
+
+        const progress =
+          Math.min(
+            1,
+            currentStep / steps
+          );
+
+
+        audio.volume =
+          startVolume
+          +
+          (
+            finalVolume
+            -
+            startVolume
+          )
+          *
+          progress;
+
+
+        if(
+          progress >= 1
+        ){
+
+          clearInterval(
+            window.LESSON_BACKGROUND_MUSIC_FADE_TIMER
+          );
+
+
+          window.LESSON_BACKGROUND_MUSIC_FADE_TIMER =
+            null;
+
+
+          if(
+            finalVolume === 0
+          ){
+
+            audio.pause();
+
+          }
+
+        }
+
+      },
+      stepDuration
+    );
+
+}
+
+
+/* =============================================
+   START / RESUME
+============================================= */
+
+async function startLessonBackgroundMusic(){
+
+  if(
+    window.LESSON_BACKGROUND_MUSIC_ENABLED
+    !== true
+  ){
+
+    return;
+
+  }
+
+
+  const audio =
+    window.lessonBackgroundMusic;
+
+
+  if(!audio){
+    return;
+  }
+
+
+  try{
+
+    if(
+      audio.paused
+    ){
+
+      await audio.play();
+
+    }
+
+
+    fadeLessonBackgroundMusicTo(
+      window.LESSON_BACKGROUND_MUSIC_VOLUME,
+      900
+    );
+
+
+    console.log(
+      "LESSON BACKGROUND MUSIC ON"
+    );
+
+  }
+  catch(error){
+
+    console.warn(
+      "LESSON BACKGROUND MUSIC PLAY BLOCKED:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =============================================
+   PAUSE WITH FADE
+============================================= */
+
+function pauseLessonBackgroundMusic(){
+
+  fadeLessonBackgroundMusicTo(
+    0,
+    650
+  );
+
+}
+
+
+/* =============================================
+   FULL STOP
+============================================= */
+
+function stopLessonBackgroundMusic(){
+
+  const audio =
+    window.lessonBackgroundMusic;
+
+
+  if(!audio){
+    return;
+  }
+
+
+  if(
+    window.LESSON_BACKGROUND_MUSIC_FADE_TIMER
+  ){
+
+    clearInterval(
+      window.LESSON_BACKGROUND_MUSIC_FADE_TIMER
+    );
+
+    window.LESSON_BACKGROUND_MUSIC_FADE_TIMER =
+      null;
+
+  }
+
+
+  audio.pause();
+
+  audio.volume =
+    0;
+
+}
+
+
+/* =============================================
+   USER ON / OFF
+============================================= */
+
+function setLessonBackgroundMusicEnabled(
+  enabled
+){
+
+  window.LESSON_BACKGROUND_MUSIC_ENABLED =
+    Boolean(
+      enabled
+    );
+
+
+  localStorage.setItem(
+    "lesson_background_music_enabled",
+    enabled
+      ? "true"
+      : "false"
+  );
+
+
+  if(!enabled){
+
+    stopLessonBackgroundMusic();
+
+  }
+  else{
+
+    startLessonBackgroundMusic();
+
   }
 
 }
