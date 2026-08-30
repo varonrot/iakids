@@ -18676,6 +18676,224 @@ async function playLessonTransitionVideo(
 }
 
 /* =====================================================
+   REFRESH TRANSITION VIDEO
+   שולף מהשרת את ה-transition העדכני
+   ומחכה עד שה-video URL מוכן
+===================================================== */
+
+async function getLatestLessonTransition(){
+
+  const unitLessonId =
+    Number(
+      window.SELECTED_UNIT_LESSON
+        ?.unit_lesson_id
+      ||
+      window.SELECTED_UNIT_LESSON
+        ?.id
+      ||
+      0
+    );
+
+
+  if(
+    !unitLessonId
+  ){
+
+    console.warn(
+      "TRANSITION REFRESH — UNIT LESSON ID MISSING"
+    );
+
+    return null;
+  }
+
+
+  const {
+    data:
+      sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData.session;
+
+
+  if(
+    !session
+  ){
+
+    console.warn(
+      "TRANSITION REFRESH — NO SESSION"
+    );
+
+    return null;
+  }
+
+
+  const MAX_CHECKS =
+    10;
+
+
+  for(
+    let attempt = 1;
+    attempt <= MAX_CHECKS;
+    attempt++
+  ){
+
+    try{
+
+      console.log(
+        "TRANSITION VIDEO REFRESH:",
+        {
+          attempt,
+          unitLessonId
+        }
+      );
+
+
+      const response =
+        await fetch(
+
+          `${TUTOR_API_BASE}/api/tutor/unit-lesson`,
+
+          {
+            method:
+              "POST",
+
+            headers: {
+
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${session.access_token}`
+
+            },
+
+            body:
+              JSON.stringify({
+
+                kid_id:
+                  CURRENT_KID.id,
+
+                unit_lesson_id:
+                  unitLessonId
+
+              })
+
+          }
+
+        );
+
+
+      if(
+        !response.ok
+      ){
+
+        console.warn(
+          "TRANSITION REFRESH FAILED:",
+          response.status
+        );
+
+      }
+      else{
+
+        const latestData =
+          await response.json();
+
+
+        /*
+          מעדכנים גם את העותק הכללי
+          כדי שמכאן והלאה יהיה לנו
+          המידע החדש ביותר.
+        */
+
+        window.CURRENT_UNIVERSAL_LESSON_DATA =
+          latestData;
+
+
+        const transition =
+          latestData.transition
+          || {};
+
+
+        const videoUrl =
+          String(
+            transition?.video?.url
+            || ""
+          ).trim();
+
+
+        console.log(
+          "TRANSITION REFRESH RESULT:",
+          {
+            attempt,
+
+            videoStatus:
+              transition?.video?.status,
+
+            hasVideoUrl:
+              Boolean(
+                videoUrl
+              )
+          }
+        );
+
+
+        if(
+          videoUrl
+        ){
+
+          console.log(
+            "TRANSITION VIDEO URL READY"
+          );
+
+          return transition;
+        }
+
+      }
+
+    }
+    catch(error){
+
+      console.warn(
+        "TRANSITION REFRESH ERROR:",
+        error
+      );
+
+    }
+
+
+    /*
+      עדיין לא מוכן —
+      מחכים שנייה ומנסים שוב.
+    */
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          1000
+        )
+    );
+
+  }
+
+
+  console.warn(
+    "TRANSITION VIDEO URL NOT READY AFTER POLLING"
+  );
+
+
+  return (
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+      ?.transition
+    ||
+    null
+  );
+}
+
+/* =====================================================
    VISUAL TRIGGER
 ===================================================== */
 
@@ -23166,28 +23384,30 @@ if(
     "LEARNING COACH 1 FINISHED — START TRANSITION VIDEO"
   );
 
+/*
+  חשוב:
+  הנתונים שנשמרו בתחילת השיעור
+  יכולים להיות ישנים כי הווידאו
+  נוצר ברקע.
 
-  const lessonData =
-    window.CURRENT_UNIVERSAL_LESSON_DATA
-    || {};
+  לכן עכשיו מושכים מהשרת
+  את ה-transition העדכני.
+*/
+
+const transition =
+  await getLatestLessonTransition();
 
 
-  const transition =
-    lessonData.transition
-    || {};
+console.log(
+  "LATEST LESSON TRANSITION DATA:",
+  transition
+);
 
 
-  console.log(
-    "LESSON TRANSITION DATA:",
-    transition
+const videoPlayed =
+  await playLessonTransitionVideo(
+    transition || {}
   );
-
-
-  const videoPlayed =
-    await playLessonTransitionVideo(
-      transition
-    );
-
 
   if(
     videoPlayed
