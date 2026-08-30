@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה99</strong>
+    <strong>עולם הלמידה100</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -18369,7 +18369,7 @@ async function playLessonTransitionVideo(
     );
 
 wrap.className =
-  "lesson-transition-video-wrap kid-personal-intro-video-wrap";
+  "lesson-transition-video-wrap";
 
 
   /*
@@ -20840,20 +20840,7 @@ async function loadRealLessonSidebar(
     );
 
 }
-/* =====================================================
-   PERSONAL INTRO -> HERO CROSS DISSOLVE
-===================================================== */
 
-.kid-personal-intro-video-wrap{
-  opacity:1;
-
-  transition:
-    opacity .8s ease;
-}
-
-.kid-personal-intro-video-wrap.is-leaving{
-  opacity:0;
-}
 /* =====================================================
    PERSONAL KID LESSON INTRO VIDEO
 ===================================================== */
@@ -20983,14 +20970,14 @@ async function playKidPersonalIntroVideo(
   }
 
 
-  const wrap =
-    document.createElement(
-      "div"
-    );
+const wrap =
+  document.createElement(
+    "div"
+  );
 
 
-  wrap.className =
-    "lesson-transition-video-wrap";
+wrap.className =
+  "lesson-transition-video-wrap kid-personal-intro-video-wrap";
 
 
   const video =
@@ -21045,7 +21032,7 @@ async function playKidPersonalIntroVideo(
   );
 
 
-const cleanup = async () => {
+const cleanup = () => {
 
   try{
 
@@ -21059,25 +21046,7 @@ const cleanup = async () => {
     wrap.isConnected
   ){
 
-    wrap.classList.add(
-      "is-leaving"
-    );
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          800
-        )
-    );
-
-    if(
-      wrap.isConnected
-    ){
-
-      wrap.remove();
-
-    }
+    wrap.remove();
 
   }
 
@@ -43396,6 +43365,20 @@ body.lesson-theme-science .lesson-sidebar-teacher::before,
 body.lesson-theme-science .lesson-sidebar-teacher::after{
   display: none !important;
   content: none !important;
+}
+    /* =====================================================
+   PERSONAL INTRO -> HERO CROSS DISSOLVE
+===================================================== */
+
+.kid-personal-intro-video-wrap{
+  opacity:1;
+
+  transition:
+    opacity .8s ease;
+}
+
+.kid-personal-intro-video-wrap.is-leaving{
+  opacity:0;
 }
 </style>
 
