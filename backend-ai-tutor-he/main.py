@@ -4567,11 +4567,28 @@ def regenerate_lesson_transition_only(
 
     if lesson_transition is None:
 
-        raise RuntimeError(
-            "Transition Director failed "
-            "to produce speech with "
-            "36-40 Hebrew words "
-            f"after {MAX_TRANSITION_ATTEMPTS} attempts"
+        print(
+            "TRANSITION WORD COUNT FALLBACK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "message":
+                    (
+                        "No 36-40 word result found. "
+                        "Using last generated transition."
+                    )
+            }
+        )
+
+        if not candidate_transition:
+            raise RuntimeError(
+                "Transition Director returned "
+                "no usable transition"
+            )
+
+        lesson_transition = (
+            candidate_transition
         )
 
     # =============================================
