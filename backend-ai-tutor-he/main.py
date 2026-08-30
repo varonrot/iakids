@@ -4302,6 +4302,138 @@ def build_lesson_transition_prompt(
         )
     )
 
+def regenerate_lesson_transition_only(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> dict:
+
+    generated_json = (
+        unit_lesson.get(
+            "generated_lesson_json"
+        )
+        or {}
+    )
+
+    structured_lesson = (
+        generated_json.get(
+            "structured_lesson"
+        )
+        or {}
+    )
+
+    part_1 = (
+        structured_lesson.get(
+            "part_1"
+        )
+        or {}
+    )
+
+    part_2 = (
+        structured_lesson.get(
+            "part_2"
+        )
+        or {}
+    )
+
+    if not part_1 or not part_2:
+        raise RuntimeError(
+            "Cannot regenerate transition: "
+            "Part 1 or Part 2 is missing"
+        )
+
+    transition_prompt = (
+        build_lesson_transition_prompt(
+            unit_lesson=
+                unit_lesson,
+
+            parent_lesson=
+                parent_lesson,
+
+            part_1=
+                part_1,
+
+            part_2=
+                part_2
+        )
+    )
+
+    print(
+        "========== TRANSITION ONLY REGENERATION START ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson["id"]
+        }
+    )
+
+    transition_completion = (
+        client
+        .beta
+        .chat
+        .completions
+        .parse(
+
+            model=
+                DEFAULT_OPENAI_MODEL,
+
+            messages=[
+                {
+                    "role":
+                        "system",
+
+                    "content":
+                        transition_prompt
+                },
+
+                {
+                    "role":
+                        "user",
+
+                    "content":
+                        (
+                            "Create the universal transition "
+                            "between Part 1 and Part 2. "
+                            "Return only the required structure."
+                        )
+                }
+            ],
+
+            response_format=
+                LessonTransitionResponse
+        )
+    )
+
+    transition_data = (
+        transition_completion
+        .choices[0]
+        .message
+        .parsed
+    )
+
+    if not transition_data:
+        raise RuntimeError(
+            "Transition-only regeneration "
+            "returned no response"
+        )
+
+    lesson_transition = (
+        transition_data
+        .model_dump()
+    )
+
+    print(
+        "========== TRANSITION ONLY REGENERATION RESULT =========="
+    )
+
+    print(
+        json.dumps(
+            lesson_transition,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+    return lesson_transition
+
 def build_segment_visual_fallback_prompt(
         unit_lesson: dict,
         parent_lesson: dict,
@@ -10240,6 +10372,279 @@ def get_or_generate_unit_lesson(
             detail="Unit lesson generation failed"
         )
 
+# =====================================================
+# REGENERATE UNIT LESSON TRANSITION ONLY
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/regenerate-transition"
+)
+def regenerate_unit_lesson_transition(
+        body: UnitLessonRequest,
+        background_tasks: BackgroundTasks,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD EXISTING LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        # =============================================
+        # EXISTING LESSON JSON
+        # =============================================
+
+        generated_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        structured_lesson = (
+            generated_json.get(
+                "structured_lesson"
+            )
+            or {}
+        )
+
+        if not structured_lesson:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Structured lesson is missing"
+                )
+            )
+
+        if (
+            not structured_lesson.get(
+                "part_1"
+            )
+            or
+            not structured_lesson.get(
+                "part_2"
+            )
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Part 1 or Part 2 is missing"
+                )
+            )
+
+        # =============================================
+        # GENERATE ONLY NEW TRANSITION
+        # =============================================
+
+        new_transition = (
+            regenerate_lesson_transition_only(
+                unit_lesson=
+                    unit_lesson,
+
+                parent_lesson=
+                    parent_lesson
+            )
+        )
+
+        # =============================================
+        # REPLACE ONLY TRANSITION IN JSON
+        # =============================================
+
+        generated_json[
+            "transition"
+        ] = new_transition
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                generated_json,
+
+            "updated_at":
+                now_iso
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # DELETE OLD TRANSITION VIDEO ONLY
+        #
+        # התמונות, האודיו והשיעור עצמו נשארים.
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        video_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson['id']}/"
+            f"v{content_version}/"
+            f"transition/"
+            f"transition_part_1_to_2.mp4"
+        )
+
+        try:
+
+            sb.storage.from_(
+                LESSON_MEDIA_BUCKET
+            ).remove([
+                video_storage_path
+            ])
+
+            print(
+                "OLD TRANSITION VIDEO REMOVED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "storage_path":
+                        video_storage_path
+                }
+            )
+
+        except Exception as delete_error:
+
+            print(
+                "OLD TRANSITION VIDEO REMOVE SKIPPED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "error":
+                        repr(delete_error)
+                }
+            )
+
+        # =============================================
+        # GENERATE NEW VIDEO IN BACKGROUND
+        # =============================================
+
+        print(
+            "QUEUE NEW TRANSITION VIDEO:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"]
+            }
+        )
+
+        background_tasks.add_task(
+            generate_transition_video_background,
+            unit_lesson["id"]
+        )
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        return {
+            "success":
+                True,
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "transition":
+                new_transition,
+
+            "video_status":
+                "generating"
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "REGENERATE TRANSITION ERROR:",
+            {
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Failed to regenerate "
+                "lesson transition"
+            )
+        )
+    
 # =====================================================
 # UNIT LESSON HERO IMAGE
 # =====================================================
