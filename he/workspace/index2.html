@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה</strong>
+    <strong>עולם הלמידה3</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -14561,6 +14561,57 @@ data-custom-slot="0"
   class="lesson-mastery-dock mastery-hud"
   aria-label="מצב ההבנה בשיעור"
 >
+
+    <!-- 0 — פעילות AI בזמן אמת -->
+<article class="mastery-hud-card mastery-ai-live-card">
+
+  <div class="mastery-ai-live-head">
+
+    <div>
+      <span class="mastery-ai-live-kicker">
+        AI LIVE
+      </span>
+
+      <strong>
+        פעילות AI בזמן אמת
+      </strong>
+    </div>
+
+    <span class="mastery-ai-live-dot"></span>
+
+  </div>
+
+
+  <div class="mastery-ai-live-status">
+    <span id="masteryAiLiveText">
+      המערכת מנתחת את השיעור
+    </span>
+  </div>
+
+
+  <div
+    class="mastery-ai-bars"
+    id="masteryAiBars"
+    aria-hidden="true"
+  ></div>
+
+
+  <div class="mastery-ai-live-footer">
+
+    <span>
+      מנוע הלמידה פעיל
+    </span>
+
+    <span class="mastery-ai-pulse-text">
+      LIVE
+    </span>
+
+  </div>
+
+</article>
+
+
+<!-- 1 — מצב הבנה -->
 
   <!-- 1 — מצב הבנה -->
   <article class="mastery-hud-card mastery-status-hud">
@@ -18233,132 +18284,13 @@ function showLessonVisual(
 function showVisualForLessonText(
   paragraph
 ){
-
-  const text =
-    String(
-      paragraph || ""
-    ).trim();
-
-
-  if(!text){
-    return;
-  }
-
-
-  const visuals =
-    Array.isArray(
-      window.CURRENT_LESSON_VISUALS
-    )
-      ? window.CURRENT_LESSON_VISUALS
-      : [];
-
-
-  if(!visuals.length){
-
-    console.log(
-      "NO LESSON VISUALS AVAILABLE"
-    );
-
-    return;
-  }
-
-
-  /*
-    אותה פסקה יכולה להישלח כמה פעמים
-    בזמן כתיבה / TTS / polling.
-
-    לכן לא מחליפים תמונה שוב
-    אם אנחנו עדיין באותה פסקה.
-  */
-
-  if(
-    window.LAST_VISUAL_PARAGRAPH
-    ===
-    text
-  ){
-    return;
-  }
-
-
-  window.LAST_VISUAL_PARAGRAPH =
-    text;
-
-
-  /*
-    התמונות כבר מסודרות לפי order
-    ב-loadLessonVisuals.
-
-    מחפשים את התמונה הבאה
-    שעדיין לא הוצגה.
-  */
-
-  const visual =
-    visuals.find(
-      item =>
-        item
-        &&
-        item.url
-        &&
-        item._shown !== true
-    );
-
-
-  if(!visual){
-
-    console.log(
-      "ALL AVAILABLE LESSON VISUALS ALREADY SHOWN",
-      {
-        paragraph:
-          text,
-
-        visuals:
-          visuals.map(
-            item => ({
-              order:
-                item.order,
-
-              shown:
-                item._shown
-            })
-          )
-      }
-    );
-
-    return;
-  }
-
-
-  /*
-    מסמנים אותה לפני ההצגה,
-    כדי שפולינג מקביל לא יציג
-    אותה שוב.
-  */
-
-  visual._shown =
-    true;
-
-
-  console.log(
-    "LESSON VISUAL ADVANCE:",
-    {
-      order:
-        visual.order,
-
-      paragraph:
-        text,
-
-      trigger_text:
-        visual.trigger_text
-    }
-  );
-
-window.CURRENT_DISPLAYED_VISUAL_ORDER =
-  visualOrder;
-
-  showLessonVisual(
-    visual
-  );
-
+  // Legacy visual trigger disabled.
+  // Visuals are now controlled strictly by:
+  // CURRENT_LESSON_VISUAL_ORDER
+  // Segment 1 -> Visual 1
+  // Segment 2 -> Visual 2
+  // etc.
+  return;
 }
 
 async function loadUniversalUnitLesson(
@@ -18483,9 +18415,49 @@ if(
   &&
   data.structured_lesson.lesson.length > 0
 ){
+
+  /*
+    שומרים את כל מבנה השיעור בזיכרון.
+
+    מכאן נוכל להשתמש גם ב:
+    - part_1
+    - transition
+    - part_2
+    - summary
+  */
+
+  window.CURRENT_UNIVERSAL_LESSON_DATA =
+    data;
+
+
+  console.log(
+    "CURRENT UNIVERSAL LESSON DATA SAVED:",
+    {
+      hasPart1:
+        Boolean(
+          data.structured_lesson?.part_1
+        ),
+
+      hasTransition:
+        Boolean(
+          data.transition
+        ),
+
+      hasPart2:
+        Boolean(
+          data.structured_lesson?.part_2
+        ),
+
+      hasSummary:
+        Boolean(
+          data.structured_lesson?.summary
+        )
+    }
+  );
+
+
   return data;
 }
-
 
     /*
       משתמש אחר כבר מייצר את אותו שיעור.
@@ -19092,33 +19064,102 @@ window.CURRENT_LESSON_VISUAL_ORDER =
     עד שהיא תהיה מוכנה.
   */
 
-const visualForSegment =
+let visualForSegment =
   (
     window.CURRENT_LESSON_VISUALS
     || []
   ).find(
     visual =>
-      Number(visual?.order || 0)
+      Number(
+        visual?.order || 0
+      )
       ===
-      Number(visualOrder)
+      Number(
+        visualOrder
+      )
       &&
       visual?.url
   );
 
+
+/*
+  אם התמונה של הסגמנט הנוכחי
+  עדיין לא נמצאת בזיכרון המקומי,
+  מחכים לה מה-Backend.
+*/
 if(
-  visualForSegment
+  !visualForSegment
+  &&
+  data?.unit_lesson_id
 ){
 
   console.log(
-    "SHOW READY VISUAL FOR SEGMENT:",
+    "WAITING FOR EXACT SEGMENT VISUAL:",
     {
-      segment: visualOrder,
-      visualOrder: visualForSegment.order
+      segment:
+        visualOrder
+    }
+  );
+
+  try{
+
+    visualForSegment =
+      await waitForLessonVisual(
+        data.unit_lesson_id,
+        session,
+        visualOrder
+      );
+
+  }
+  catch(error){
+
+    console.warn(
+      "VISUAL WAIT FAILED - CONTINUE LESSON:",
+      {
+        segment:
+          visualOrder,
+
+        error:
+          error
+      }
+    );
+
+    visualForSegment =
+      null;
+
+  }
+
+}
+
+
+/*
+  מציגים אך ורק את התמונה
+  ששייכת לסגמנט הנוכחי.
+*/
+if(
+  visualForSegment
+  &&
+  visualForSegment.url
+){
+
+  console.log(
+    "SHOW EXACT VISUAL FOR SEGMENT:",
+    {
+      segment:
+        visualOrder,
+
+      visualOrder:
+        visualForSegment.order,
+
+      url:
+        visualForSegment.url
     }
   );
 
   window.CURRENT_DISPLAYED_VISUAL_ORDER =
-    visualOrder;
+    Number(
+      visualOrder
+    );
 
   showLessonVisual(
     visualForSegment
@@ -19127,10 +19168,11 @@ if(
 }
 else{
 
-  console.log(
-    "VISUAL STILL GENERATING — CONTINUE LESSON:",
+  console.warn(
+    "SEGMENT VISUAL NOT AVAILABLE — KEEP PREVIOUS:",
     {
-      segment: visualOrder
+      segment:
+        visualOrder
     }
   );
 
@@ -22710,6 +22752,108 @@ await window.lessonRenderer.run({
 });
 
 /* =============================================
+   LEARNING COACH 1 FINISHED
+   -> LESSON TRANSITION
+============================================= */
+
+if(
+  data.coach_finished === true
+  &&
+  Number(
+    data.coach_index
+  ) === 1
+){
+
+  console.log(
+    "LEARNING COACH 1 FINISHED — START TRANSITION"
+  );
+
+
+  const lessonData =
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+    || {};
+
+
+  const transition =
+    lessonData.transition
+    || {};
+
+
+  const transitionText =
+    String(
+      transition.speech
+      ||
+      transition.next_part_hook
+      ||
+      ""
+    ).trim();
+
+
+  console.log(
+    "LESSON TRANSITION DATA:",
+    transition
+  );
+
+
+  if(
+    transitionText
+  ){
+
+    /*
+      אין כאן שאלה לילד.
+
+      speak:
+      - יכתוב את הטקסט
+      - ישמיע אותו
+      - לא ימתין לתשובה
+    */
+
+    await window.lessonRenderer.run({
+      sequence: [
+        {
+          type:
+            "speak",
+
+          text:
+            transitionText,
+
+          style:
+            "normal",
+
+          speed:
+            45
+        }
+      ],
+
+      wait_for_answer:
+        false,
+
+      speech:
+        transitionText
+    });
+
+  }
+  else{
+
+    console.warn(
+      "LESSON TRANSITION TEXT IS MISSING"
+    );
+
+  }
+
+
+  /*
+    בשלב הבא נחבר כאן:
+    startLessonPart2()
+  */
+
+  console.log(
+    "TRANSITION FINISHED — PART 2 READY TO START"
+  );
+
+}
+
+/* =============================================
    הפעלת דיבוב רק כאשר באמת מחכים לילד
 ============================================= */
 
@@ -24826,113 +24970,12 @@ console.log(
 );
 
 /* =========================================
-   תשובת Lesson Renderer חדשה
+   כל תשובת שיעור עוברת דרך מנגנון אחד
 ========================================= */
 
-if(
-  data.sequence &&
-  Array.isArray(
-    data.sequence
-  )
-){
-
-  try{
-
-    /* פתיחת הרשאת אודיו בדפדפן */
-
-    await unlockLessonAudio();
-
-
-if(
-  window.lessonRenderer
-){
-
-  /* הפעלת השיעור האמיתי בלבד.
-     כרגע לא עושים prefetch כדי למנוע קריאת TTS כפולה. */
-
-console.log(
-  "🎬 LESSON RENDERER START:",
-  Math.round(
-    performance.now()
-    -
-    window.__learningCoachSendStart
-  ),
-  "ms"
+await runTutorResponse(
+  data
 );
-
-
-await window.lessonRenderer.run(
-  {
-    sequence:
-      data.sequence,
-
-    wait_for_answer:
-      data.wait_for_answer,
-
-    speech:
-      data.speech
-  }
-);
-
-  clearNoResponseTimer();
-
-
-if(
-  data.wait_for_answer ===
-    true
-
-  &&
-
-  currentLearningMode ===
-    "lesson"
-
-  &&
-
-  currentLessonId
-){
-
-  startNoResponseTimer();
-
-}
-
-}
-    else{
-
-      console.error(
-        "lessonRenderer not initialized"
-      );
-
-      addMessage(
-        "assistant",
-        "לא הצלחתי להפעיל את השיעור."
-      );
-
-    }
-
-  }
-  catch(error){
-
-    console.error(
-      "LESSON RENDERER ERROR:",
-      error
-    );
-
-  }
-
-}
-else{
-
-  console.error(
-    "Invalid tutor response:",
-    data
-  );
-
-  addMessage(
-    "assistant",
-    "לא הצלחתי להכין את השיעור. נסו שוב."
-  );
-
-}
 
   } catch (e) {
     console.error("NETWORK ERROR", e);
@@ -41500,6 +41543,425 @@ body.lesson-theme-science
 
 }
 
+    /* =====================================================
+   AI LIVE ACTIVITY CARD
+===================================================== */
+
+
+/* 6 כרטיסים בשורת ה-HUD */
+
+body.lesson-theme-science
+.mastery-hud{
+
+  grid-template-columns:
+    1.02fr
+    1.05fr
+    1.20fr
+    1.20fr
+    1.20fr
+    1.08fr !important;
+
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.mastery-ai-live-card{
+
+  display:flex;
+  flex-direction:column;
+
+  padding:
+    11px
+    13px
+    10px !important;
+
+  direction:rtl;
+
+  background:
+    radial-gradient(
+      circle at 75% 0%,
+      rgba(47,153,255,.18),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      #08172f 0%,
+      #041022 100%
+    ) !important;
+
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.mastery-ai-live-head{
+
+  position:relative;
+  z-index:2;
+
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+
+  gap:8px;
+
+  min-height:39px;
+
+  padding-bottom:7px;
+
+  border-bottom:
+    1px solid
+    rgba(94,144,220,.16);
+
+}
+
+
+.mastery-ai-live-head > div{
+
+  display:flex;
+  flex-direction:column;
+
+  gap:1px;
+
+}
+
+
+.mastery-ai-live-kicker{
+
+  color:#5ebcff;
+
+  font-size:8px;
+  font-weight:900;
+
+  letter-spacing:
+    1.4px;
+
+}
+
+
+.mastery-ai-live-head strong{
+
+  color:#f3f7ff;
+
+  font-size:12px;
+  line-height:1.25;
+
+  font-weight:900;
+
+}
+
+
+/* נקודת LIVE */
+
+.mastery-ai-live-dot{
+
+  position:relative;
+
+  width:9px;
+  height:9px;
+
+  flex:
+    0
+    0
+    9px;
+
+  margin-top:4px;
+
+  border-radius:50%;
+
+  background:#48e7a7;
+
+  box-shadow:
+    0 0 8px #48e7a7,
+    0 0 17px rgba(72,231,167,.55);
+
+}
+
+
+.mastery-ai-live-dot::after{
+
+  content:"";
+
+  position:absolute;
+  inset:-5px;
+
+  border:
+    1px solid
+    rgba(72,231,167,.42);
+
+  border-radius:50%;
+
+  animation:
+    masteryAiDotPulse
+    1.5s
+    ease-out
+    infinite;
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.mastery-ai-live-status{
+
+  position:relative;
+  z-index:2;
+
+  height:21px;
+
+  display:flex;
+  align-items:center;
+
+  color:
+    rgba(194,211,239,.69);
+
+  font-size:8px;
+  font-weight:700;
+
+  white-space:nowrap;
+
+  overflow:hidden;
+
+}
+
+
+/* =====================================================
+   LIVE BARS
+===================================================== */
+
+.mastery-ai-bars{
+
+  position:relative;
+  z-index:2;
+
+  flex:
+    1
+    1
+    auto;
+
+  min-height:66px;
+
+  display:flex;
+  flex-direction:row;
+  align-items:flex-end;
+
+  gap:3px;
+
+  overflow:hidden;
+
+  padding:
+    8px
+    2px
+    4px;
+
+  direction:ltr;
+
+  border-bottom:
+    1px solid
+    rgba(83,124,190,.17);
+
+  background:
+
+    repeating-linear-gradient(
+      to top,
+
+      transparent
+      0
+      18px,
+
+      rgba(72,112,178,.08)
+      19px
+      20px
+    );
+
+}
+
+
+/* כל bar */
+
+.mastery-ai-bar{
+
+  flex:
+    1
+    1
+    0;
+
+  min-width:3px;
+
+  height:
+    var(--bar-height);
+
+  border-radius:
+    3px
+    3px
+    1px
+    1px;
+
+  opacity:.82;
+
+  background:
+    linear-gradient(
+      180deg,
+      #59d8ff 0%,
+      #397dff 48%,
+      #604fff 100%
+    );
+
+  box-shadow:
+    0 0 5px
+    rgba(69,161,255,.25);
+
+  transform-origin:
+    center bottom;
+
+  animation:
+    masteryAiBarEnter
+    .45s
+    cubic-bezier(.2,.8,.2,1)
+    both;
+
+}
+
+
+/* הבר האחרון — החדש */
+
+.mastery-ai-bar:last-child{
+
+  opacity:1;
+
+  box-shadow:
+    0 0 7px
+    rgba(70,204,255,.62);
+
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.mastery-ai-live-footer{
+
+  position:relative;
+  z-index:2;
+
+  height:19px;
+
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+
+  gap:5px;
+
+  padding-top:4px;
+
+  color:
+    rgba(161,184,220,.62);
+
+  font-size:7px;
+  font-weight:800;
+
+}
+
+
+.mastery-ai-pulse-text{
+
+  color:#50e3aa;
+
+  font-size:7px;
+  font-weight:900;
+
+  letter-spacing:
+    .8px;
+
+  animation:
+    masteryAiLiveText
+    1.4s
+    ease-in-out
+    infinite;
+
+}
+
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+
+@keyframes masteryAiBarEnter{
+
+  from{
+
+    opacity:0;
+
+    transform:
+      scaleY(.15)
+      translateY(5px);
+
+  }
+
+  to{
+
+    opacity:.85;
+
+    transform:
+      scaleY(1)
+      translateY(0);
+
+  }
+
+}
+
+
+@keyframes masteryAiDotPulse{
+
+  0%{
+
+    opacity:.8;
+
+    transform:scale(.65);
+
+  }
+
+  100%{
+
+    opacity:0;
+
+    transform:scale(1.8);
+
+  }
+
+}
+
+
+@keyframes masteryAiLiveText{
+
+  0%,
+  100%{
+    opacity:.55;
+  }
+
+  50%{
+    opacity:1;
+  }
+
+}
+/* REMOVE LINE ABOVE SIDEBAR TEACHER */
+body.lesson-theme-science .lesson-sidebar-teacher{
+  border-top: none !important;
+}
+
+body.lesson-theme-science .lesson-sidebar-teacher::before,
+body.lesson-theme-science .lesson-sidebar-teacher::after{
+  display: none !important;
+  content: none !important;
+}
 </style>
 
 
@@ -44051,14 +44513,53 @@ console.table(
       action.type
     ){
 
-      case "speak":
+case "speak":
 
-        await this.speak(
-          action
-        );
+  /*
+    אם speak הגיע לבד ולא כחלק
+    מ-speak + write pair,
+    מציגים גם את הטקסט על המסך.
 
-        break;
+    במקרה של pair, הקוד שמעל ה-switch
+    כבר מטפל בכתיבה + דיבור יחד,
+    ולכן לא נגיע לכאן.
+  */
 
+  if(
+    action.text
+  ){
+
+    await Promise.all([
+
+      this.speak(
+        action
+      ),
+
+      this.write({
+        text:
+          action.text,
+
+        style:
+          action.style
+          || "normal",
+
+        speed:
+          action.speed
+          || 45
+      })
+
+    ]);
+
+  }
+  else{
+
+    await this.speak(
+      action
+    );
+
+  }
+
+  break;
 
       case "write":
 
@@ -48915,5 +49416,230 @@ function(audio){
   updateProgress();
 
 };
+
+    /* =====================================================
+   AI LIVE ACTIVITY EFFECT
+   Visual effect only
+===================================================== */
+
+(function(){
+
+  const MAX_AI_BARS =
+    18;
+
+
+  const STATUS_MESSAGES = [
+
+    "המערכת מנתחת את השיעור",
+
+    "מעבדת את רצף הלמידה",
+
+    "מתאימה את ההסבר",
+
+    "עוקבת אחרי קצב השיעור",
+
+    "מנוע הלמידה פעיל"
+
+  ];
+
+
+  let statusIndex =
+    0;
+
+
+  function createAiLiveBar(){
+
+    const container =
+      document.getElementById(
+        "masteryAiBars"
+      );
+
+
+    if(!container){
+      return;
+    }
+
+
+    /*
+      האפקט עובד רק במסך השיעור.
+    */
+
+    if(
+      !document.body.classList.contains(
+        "lesson-theme-science"
+      )
+    ){
+      return;
+    }
+
+
+    /*
+      גובה אקראי אבל לא קיצוני.
+    */
+
+    const height =
+      Math.floor(
+        24
+        +
+        Math.random()
+        * 70
+      );
+
+
+    const bar =
+      document.createElement(
+        "span"
+      );
+
+
+    bar.className =
+      "mastery-ai-bar";
+
+
+    bar.style.setProperty(
+      "--bar-height",
+      `${height}%`
+    );
+
+
+    /*
+      החדש נכנס מצד ימין של רצף הנתונים.
+    */
+
+    container.appendChild(
+      bar
+    );
+
+
+    /*
+      אם עברנו את מספר הברים המקסימלי,
+      הישן ביותר נעלם.
+    */
+
+    while(
+      container.children.length
+      >
+      MAX_AI_BARS
+    ){
+
+      container.firstElementChild
+        ?.remove();
+
+    }
+
+  }
+
+
+  function updateAiLiveStatus(){
+
+    const text =
+      document.getElementById(
+        "masteryAiLiveText"
+      );
+
+
+    if(!text){
+      return;
+    }
+
+
+    statusIndex =
+      (
+        statusIndex + 1
+      )
+      %
+      STATUS_MESSAGES.length;
+
+
+    text.textContent =
+      STATUS_MESSAGES[
+        statusIndex
+      ];
+
+  }
+
+
+  function initializeAiLive(){
+
+    const container =
+      document.getElementById(
+        "masteryAiBars"
+      );
+
+
+    if(!container){
+      return;
+    }
+
+
+    /*
+      ממלאים את הגרף בהתחלה
+      כדי שלא יתחיל ריק.
+    */
+
+    if(
+      container.children.length
+      === 0
+    ){
+
+      for(
+        let i = 0;
+        i < MAX_AI_BARS;
+        i++
+      ){
+
+        createAiLiveBar();
+
+      }
+
+    }
+
+
+    /*
+      כל שנייה:
+      bar חדש נכנס,
+      bar ישן יוצא.
+    */
+
+    setInterval(
+      createAiLiveBar,
+      1000
+    );
+
+
+    /*
+      הטקסט משתנה לאט יותר.
+    */
+
+    setInterval(
+      updateAiLiveStatus,
+      4200
+    );
+
+  }
+
+
+  if(
+    document.readyState
+    ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      initializeAiLive,
+      {
+        once:true
+      }
+    );
+
+  }
+  else{
+
+    initializeAiLive();
+
+  }
+
+})();
 </script>
 </body></html>
