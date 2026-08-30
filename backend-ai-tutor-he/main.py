@@ -20,6 +20,7 @@ import json
 import base64
 import traceback
 import time
+import math
 from concurrent.futures import ThreadPoolExecutor
 # =====================================================
 # CONFIG
@@ -7097,23 +7098,55 @@ def generate_transition_video_background(
         # =============================================
         # DYNAMIC VIDEO LENGTH
         #
-        # Gemini יוצר קטע ראשון.
-        # רק אם הטקסט ארוך מספיק כדי להצדיק
-        # המשך וידאו, מבצעים extension.
+        # הווידאו מתארך לפי משך הדיבור המשוער.
+        # אין יותר תקרה קבועה של 20 שניות.
         # =============================================
 
         speech_word_count = len(
             speech.split()
         )
 
-        # קצב דיבור טבעי למורה בעברית:
-        # בערך 2 מילים לשנייה.
+        # =============================================
+        # NATURAL HEBREW TEACHER SPEECH RATE
+        #
+        # דיבור מורה טבעי עם הפסקות:
+        # בערך 1.6 מילים בשנייה.
+        # =============================================
+
+        WORDS_PER_SECOND = 1.6
+
         estimated_speech_seconds = (
-                speech_word_count / 2.0
+                speech_word_count
+                / WORDS_PER_SECOND
+        )
+
+        # מוסיפים מעט זמן לנשימה / מחווה טבעית בסוף.
+        required_video_seconds = (
+                estimated_speech_seconds
+                + 2.0
+        )
+
+        # כל interaction מוסיף בערך 10 שניות.
+        target_video_chunks = max(
+            1,
+            math.ceil(
+                required_video_seconds
+                / 10.0
+            )
+        )
+
+        # הגנת בטיחות.
+        # Transition לא אמור להגיע לאורך כזה,
+        # אבל לא ניתן ליצור לולאה ללא גבול.
+        MAX_VIDEO_CHUNKS = 4
+
+        target_video_chunks = min(
+            target_video_chunks,
+            MAX_VIDEO_CHUNKS
         )
 
         print(
-            "TRANSITION VIDEO DURATION ESTIMATE:",
+            "TRANSITION VIDEO DYNAMIC PLAN:",
             {
                 "unit_lesson_id":
                     unit_lesson_id,
@@ -7125,43 +7158,66 @@ def generate_transition_video_background(
                     round(
                         estimated_speech_seconds,
                         2
-                    )
+                    ),
+
+                "required_video_seconds":
+                    round(
+                        required_video_seconds,
+                        2
+                    ),
+
+                "target_video_chunks":
+                    target_video_chunks,
+
+                "approx_video_seconds":
+                    target_video_chunks * 10
             }
         )
 
-        # הקטע הראשון של Omni הוא בערך 10 שניות.
-        # אם הדיבור צפוי להסתיים בו,
-        # אין צורך לבצע extension.
-        if estimated_speech_seconds <= 9:
+        # =============================================
+        # FIRST GENERATED VIDEO
+        # =============================================
+
+        current_interaction = (
+            first_interaction
+        )
+
+        output_video = getattr(
+            current_interaction,
+            "output_video",
+            None
+        )
+
+        # =============================================
+        # EXTEND ONLY AS MANY TIMES AS REQUIRED
+        #
+        # chunk 1 כבר נוצר ב-first_interaction.
+        # לכן מתחילים מ-2.
+        # =============================================
+
+        for chunk_number in range(
+                2,
+                target_video_chunks + 1
+        ):
 
             print(
-                "TRANSITION VIDEO USING FIRST PART ONLY:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson_id
-                }
-            )
-
-            output_video = getattr(
-                first_interaction,
-                "output_video",
-                None
-            )
-
-        else:
-
-            print(
-                "TRANSITION VIDEO EXTENSION REQUIRED:",
+                "TRANSITION VIDEO EXTENSION:",
                 {
                     "unit_lesson_id":
                         unit_lesson_id,
 
+                    "chunk_number":
+                        chunk_number,
+
+                    "target_chunks":
+                        target_video_chunks,
+
                     "previous_interaction_id":
-                        first_interaction.id
+                        current_interaction.id
                 }
             )
 
-            second_interaction = (
+            current_interaction = (
                 gemini_client
                 .interactions
                 .create(
@@ -7170,30 +7226,40 @@ def generate_transition_video_background(
                     LESSON_TRANSITION_VIDEO_MODEL,
 
                     previous_interaction_id=
-                    first_interaction.id,
+                    current_interaction.id,
 
                     input=(
                         "Continue this exact same educational scene "
                         "with perfect visual and audio continuity. "
+
                         "Keep exactly the same teacher, "
                         "face, voice, environment, illustration style, "
                         "lighting and camera position. "
 
-                        "Continue ONLY the remaining words "
-                        "of the original Hebrew dialogue. "
+                        "The original Hebrew dialogue from the first "
+                        "interaction is the ONLY dialogue allowed. "
+
+                        "If any words from that original Hebrew dialogue "
+                        "have not yet been spoken, continue ONLY those "
+                        "remaining words naturally. "
+
                         "Do not restart the dialogue. "
                         "Do not repeat any words. "
                         "Do not paraphrase. "
-                        "Do not invent any new words. "
+                        "Do not invent new words. "
+                        "Do not add another sentence. "
 
-                        "Once the original Hebrew dialogue is complete, "
-                        "stop speaking immediately. "
-                        "The teacher may smile and make one subtle "
-                        "inviting gesture. "
+                        "Once all original Hebrew dialogue has been spoken, "
+                        "the teacher must stop speaking completely. "
+
+                        "After the speech finishes she may only smile "
+                        "and make a subtle natural inviting gesture. "
 
                         "No additional speech. "
                         "No filler sounds. "
-                        "No written text or captions."
+                        "No invented language. "
+                        "No written text. "
+                        "No captions."
                     ),
 
                     response_format={
@@ -7213,10 +7279,16 @@ def generate_transition_video_background(
             )
 
             output_video = getattr(
-                second_interaction,
+                current_interaction,
                 "output_video",
                 None
             )
+
+            if output_video is None:
+                raise RuntimeError(
+                    "Gemini returned no transition "
+                    f"video for chunk {chunk_number}"
+                )
 
         if output_video is None:
 
@@ -7397,7 +7469,7 @@ def generate_transition_video_background(
                 "720p",
 
             "target_duration_seconds":
-                LESSON_TRANSITION_VIDEO_TARGET_SECONDS,
+                target_video_chunks * 10,
 
             "generated_at":
                 datetime
