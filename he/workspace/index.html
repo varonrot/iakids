@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה2</strong>
+    <strong>עולם הלמידה3</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -41952,7 +41952,16 @@ body.lesson-theme-science
   }
 
 }
+/* REMOVE LINE ABOVE SIDEBAR TEACHER */
+body.lesson-theme-science .lesson-sidebar-teacher{
+  border-top: none !important;
+}
 
+body.lesson-theme-science .lesson-sidebar-teacher::before,
+body.lesson-theme-science .lesson-sidebar-teacher::after{
+  display: none !important;
+  content: none !important;
+}
 </style>
 
 
