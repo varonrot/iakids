@@ -6965,9 +6965,15 @@ def generate_transition_video_background(
 
         REFERENCE ROLES:
 
-        IMAGE_REF_0 is the permanent IAKIDS virtual teacher.
-        Preserve her identity, face, hair, clothing,
-        body proportions and overall appearance.
+        IMAGE_REF_0 shows a fictional,
+        AI-generated IAKIDS virtual teacher character.
+
+        This is not a real person.
+
+        Use the reference only to maintain
+        consistent fictional character design,
+        including hairstyle, clothing,
+        general appearance and visual style.
 
         IMAGE_REF_1 defines the visual world,
         illustration style, lighting, colors,
@@ -7003,17 +7009,17 @@ def generate_transition_video_background(
 
         The spoken language must be Hebrew.
 
-        Her mouth movements must be naturally synchronized
-        with the spoken Hebrew audio.
+        The fictional animated teacher should speak
+        the provided Hebrew dialogue naturally.
 
-        The facial movements, lips and jaw should visibly
-        follow the spoken words.
+        Her visible speaking animation should match
+        the timing of the generated Hebrew audio.
 
         VIDEO DIRECTION:
 
         - premium semi-realistic educational illustration
         - match IMAGE_REF_1's exact visual style
-        - preserve IMAGE_REF_0's teacher identity
+        - maintain the same fictional teacher character design
         - natural teacher body language
         - warm facial expression
         - subtle hand gestures while speaking
@@ -7169,19 +7175,20 @@ def generate_transition_video_background(
 
         This is PART 2 of the same continuous transition.
 
-        Keep EXACTLY the same:
+        Continue the same fictional animated
+        IAKIDS teacher character and educational scene.
 
-        - teacher
-        - face
-        - hair
+        Maintain continuity of:
+
+        - character design
+        - hairstyle
         - clothing
-        - voice
+        - voice style
         - environment
         - illustration style
         - lighting
         - camera position
         - scene
-        - visual continuity
 
         IMPORTANT:
 
@@ -7210,8 +7217,8 @@ def generate_transition_video_background(
         Keep the same teacher voice
         and natural Hebrew speaking style.
 
-        Her mouth, lips and jaw must remain
-        synchronized with the Hebrew speech.
+        Her visible speaking animation should remain
+        naturally timed with the Hebrew speech.
 
         AFTER THE FINAL WORD:
 
