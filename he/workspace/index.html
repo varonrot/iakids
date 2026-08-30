@@ -18368,8 +18368,8 @@ async function playLessonTransitionVideo(
       "div"
     );
 
-  wrap.className =
-    "lesson-transition-video-wrap";
+wrap.className =
+  "lesson-transition-video-wrap kid-personal-intro-video-wrap";
 
 
   /*
@@ -20841,6 +20841,20 @@ async function loadRealLessonSidebar(
 
 }
 /* =====================================================
+   PERSONAL INTRO -> HERO CROSS DISSOLVE
+===================================================== */
+
+.kid-personal-intro-video-wrap{
+  opacity:1;
+
+  transition:
+    opacity .8s ease;
+}
+
+.kid-personal-intro-video-wrap.is-leaving{
+  opacity:0;
+}
+/* =====================================================
    PERSONAL KID LESSON INTRO VIDEO
 ===================================================== */
 
@@ -21031,15 +21045,31 @@ async function playKidPersonalIntroVideo(
   );
 
 
-  const cleanup = () => {
+const cleanup = async () => {
 
-    try{
+  try{
 
-      video.pause();
+    video.pause();
 
-    }
-    catch(e){}
+  }
+  catch(e){}
 
+
+  if(
+    wrap.isConnected
+  ){
+
+    wrap.classList.add(
+      "is-leaving"
+    );
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          800
+        )
+    );
 
     if(
       wrap.isConnected
@@ -21049,11 +21079,13 @@ async function playKidPersonalIntroVideo(
 
     }
 
+  }
 
-    window.KID_PERSONAL_INTRO_PLAYING =
-      false;
 
-  };
+  window.KID_PERSONAL_INTRO_PLAYING =
+    false;
+
+};
 
 
   try{
@@ -21559,10 +21591,7 @@ if(
   מתחילים Hero לאחר שבדיקת השחזור הסתיימה.
 */
 
-loadLessonHeroImage(
-  resolvedUnitLessonId,
-  session
-);
+
 
 /*
   לאחר איפוס מאפשרים יצירת שיעור חדש,
@@ -21708,7 +21737,19 @@ try{
       introData?.personal_intro
     );
 
+/*
+  Personal intro finished.
+  Start the lesson Hero only now.
+*/
 
+console.log(
+  "PERSONAL INTRO FINISHED — SHOW LESSON HERO"
+);
+
+await loadLessonHeroImage(
+  resolvedUnitLessonId,
+  session
+);
   /* =============================================
      AFTER INTRO
      חוזרים לעוצמת ההסבר הרגילה
