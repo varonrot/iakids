@@ -1,0 +1,1484 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matemáticas paso a paso con IA: aprender y resolver mejor | IAKIDS</title>
+<meta name="description" content="Aprende matemáticas paso a paso con IA: divide operaciones y problemas en etapas, recibe pistas, detecta errores y practica hasta comprender el procedimiento.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://iakids.app/es/blog/ia-para-matematicas/matematicas-paso-a-paso-con-ia/">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/favicon.ico">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DKPPTPCDW8"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','G-DKPPTPCDW8');
+</script>
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://iakids.app/es/blog/ia-para-matematicas/matematicas-paso-a-paso-con-ia/">
+<meta property="og:title" content="Matemáticas paso a paso con IA: aprender y resolver mejor">
+<meta property="og:description" content="Cómo utilizar inteligencia artificial para dividir las matemáticas en pasos pequeños, recibir pistas y comprender cada procedimiento.">
+<meta property="og:image" content="https://iakids.app/assets/es/blog/ia-para-matematicas.webp">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Matemáticas paso a paso con IA | IAKIDS">
+<meta name="twitter:description" content="Aprender operaciones y problemas matemáticos paso a paso con ayuda de inteligencia artificial.">
+<meta name="twitter:image" content="https://iakids.app/assets/es/blog/ia-para-matematicas.webp">
+
+<script type="application/ld+json">
+{
+"@context":"https://schema.org",
+"@type":"Article",
+"headline":"Matemáticas paso a paso con IA: aprender y resolver mejor",
+"description":"Guía para aprender matemáticas paso a paso con inteligencia artificial mediante explicaciones, preguntas, pistas y práctica.",
+"mainEntityOfPage":{"@type":"WebPage","@id":"https://iakids.app/es/blog/ia-para-matematicas/matematicas-paso-a-paso-con-ia/"},
+"image":"https://iakids.app/assets/es/blog/ia-para-matematicas.webp",
+"inLanguage":"es",
+"author":{"@type":"Organization","name":"IAKIDS"},
+"publisher":{"@type":"Organization","name":"IAKIDS","url":"https://iakids.app/es/"}
+}
+</script>
+
+<script type="application/ld+json">
+{
+"@context":"https://schema.org",
+"@type":"FAQPage",
+"mainEntity":[
+{"@type":"Question","name":"¿Cómo puede la IA explicar matemáticas paso a paso?","acceptedAnswer":{"@type":"Answer","text":"Puede dividir una operación o problema en pequeñas etapas, hacer una pregunta en cada una y adaptar la ayuda según la respuesta del estudiante."}},
+{"@type":"Question","name":"¿Es mejor aprender matemáticas paso a paso que ver la solución completa?","acceptedAnswer":{"@type":"Answer","text":"Para aprender, trabajar el procedimiento por etapas permite identificar mejor qué se comprende y dónde aparece una dificultad."}},
+{"@type":"Question","name":"¿La IA puede dar pistas sin resolver el ejercicio?","acceptedAnswer":{"@type":"Answer","text":"Sí. Puede ofrecer una pista sobre el siguiente paso y esperar a que el estudiante continúe por sí mismo."}},
+{"@type":"Question","name":"¿Se pueden resolver problemas matemáticos paso a paso con IA?","acceptedAnswer":{"@type":"Answer","text":"Sí. La IA puede ayudar a identificar la pregunta, los datos, la operación necesaria, el cálculo y la comprobación del resultado."}},
+{"@type":"Question","name":"¿Las matemáticas paso a paso sirven para primaria?","acceptedAnswer":{"@type":"Answer","text":"Sí. Dividir procedimientos en partes pequeñas puede ser especialmente útil para niños que están construyendo las bases de las matemáticas."}}
+]}
+</script>
+<style>
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  margin:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans JP",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    Meiryo,
+    Arial,
+    sans-serif;
+  color:#172033;
+  background:#fff;
+}
+
+img,
+video,
+iframe{
+  max-width:100%;
+  height:auto;
+}
+
+a{
+  color:#2563eb;
+  text-decoration:none;
+}
+
+a:hover{text-decoration:underline}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #e8edf4;
+  backdrop-filter:blur(10px);
+}
+
+.topbar-inner{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.logo{
+  color:#2563eb;
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-.5px;
+  text-decoration:none;
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-left:auto;
+  font-size:15px;
+  font-weight:700;
+}
+
+.nav a{
+  color:#334155;
+  text-decoration:none;
+}
+
+.nav a:hover{color:#2563eb}
+
+.nav-cta{
+  color:#fff!important;
+  padding:10px 18px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.hero{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:58px 22px 20px;
+}
+
+.breadcrumb{
+  margin-bottom:23px;
+  color:#64748b;
+  font-size:14px;
+  line-height:1.7;
+}
+
+.breadcrumb a{color:#64748b}
+
+.article-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:18px;
+  padding:7px 13px;
+  border-radius:999px;
+  color:#2563eb;
+  background:#eff6ff;
+  font-size:14px;
+  font-weight:800;
+}
+
+.tag-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#22c55e;
+}
+
+.hero h1{
+  max-width:1000px;
+  margin:0 0 22px;
+  color:#101828;
+  font-size:clamp(40px,5.7vw,62px);
+  line-height:1.22;
+  letter-spacing:-1.2px;
+}
+
+.lead{
+  max-width:850px;
+  margin:0;
+  color:#526077;
+  font-size:20px;
+  line-height:1.9;
+}
+
+.hero-image{
+  width:min(1200px,100%);
+  margin:35px auto 0;
+  padding:0 22px;
+}
+
+.hero-image img{
+  display:block;
+  width:100%;
+  max-height:520px;
+  object-fit:cover;
+  border-radius:25px;
+}
+
+.page{
+  width:min(1200px,100%);
+  margin:0 auto;
+  padding:65px 22px 90px;
+  display:grid;
+  grid-template-columns:minmax(0,790px) minmax(260px,300px);
+  gap:70px;
+  align-items:stretch;
+}
+
+.content{
+  width:100%;
+  max-width:790px;
+  min-width:0;
+}
+
+.content h2{
+  margin:58px 0 18px;
+  color:#101828;
+  font-size:32px;
+  line-height:1.4;
+  letter-spacing:-.4px;
+}
+
+.content h2:first-child{margin-top:0}
+
+.content h3{
+  margin:33px 0 13px;
+  color:#172033;
+  font-size:22px;
+  line-height:1.5;
+}
+
+.content p{
+  margin:0 0 21px;
+  color:#475569;
+  font-size:17px;
+  line-height:1.95;
+}
+
+.content ul{
+  margin:0 0 25px;
+  padding-left:25px;
+  color:#475569;
+}
+
+.content li{
+  margin-bottom:9px;
+  font-size:17px;
+  line-height:1.85;
+}
+
+.note,
+.good-box,
+.warning-box,
+.example-box,
+.internal-card,
+.checklist{
+  width:100%;
+  max-width:100%;
+  margin:30px 0;
+  padding:25px 26px;
+  border-radius:20px;
+}
+
+.note{
+  border:1px solid #bfdbfe;
+  background:#eff6ff;
+}
+
+.good-box{
+  border:1px solid #bbf7d0;
+  background:#f0fdf4;
+}
+
+.warning-box{
+  border:1px solid #fde68a;
+  background:#fffbeb;
+}
+
+.example-box{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+}
+
+.note strong,
+.good-box strong,
+.warning-box strong,
+.example-box strong{
+  display:block;
+  margin-bottom:8px;
+  color:#172033;
+  font-size:17px;
+}
+
+.note p,
+.good-box p,
+.warning-box p,
+.example-box p{
+  margin:0 0 10px;
+  font-size:16px;
+  line-height:1.85;
+}
+
+.note p:last-child,
+.good-box p:last-child,
+.warning-box p:last-child,
+.example-box p:last-child{
+  margin-bottom:0;
+}
+
+.table-wrap{
+  width:100%;
+  max-width:100%;
+  margin:30px 0;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+}
+
+table{
+  width:100%;
+  min-width:700px;
+  border-collapse:collapse;
+}
+
+th,
+td{
+  padding:17px 18px;
+  text-align:left;
+  vertical-align:top;
+  border-bottom:1px solid #e2e8f0;
+  font-size:15px;
+  line-height:1.75;
+}
+
+th{
+  color:#172033;
+  background:#f8fafc;
+  font-weight:800;
+}
+
+td{color:#475569}
+tr:last-child td{border-bottom:none}
+
+.steps{
+  width:100%;
+  margin:32px 0;
+  display:grid;
+  gap:15px;
+}
+
+.step{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr);
+  gap:18px;
+  align-items:flex-start;
+  width:100%;
+  min-width:0;
+  padding:22px;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  background:#fff;
+}
+
+.step-number{
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  font-weight:900;
+  font-size:18px;
+}
+
+.step>div{min-width:0}
+
+.step h3{
+  margin:1px 0 7px;
+  font-size:19px;
+}
+
+.step p{
+  margin:0;
+  font-size:16px;
+  line-height:1.8;
+}
+
+.checklist{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+}
+
+.check-item{
+  display:flex;
+  gap:11px;
+  margin:12px 0;
+  color:#475569;
+  line-height:1.8;
+}
+
+.check{
+  flex:0 0 auto;
+  color:#22c55e;
+  font-weight:900;
+}
+
+.internal-card{
+  border:1px solid #bfdbfe;
+  background:linear-gradient(135deg,#eff6ff,#f0fdf4);
+}
+
+.internal-card h3{margin:0 0 9px}
+.internal-card p{margin:0 0 12px}
+.internal-card a{font-weight:850}
+
+.faq{margin-top:60px}
+
+.faq-item{
+  width:100%;
+  max-width:100%;
+  padding:23px 0;
+  border-bottom:1px solid #e2e8f0;
+}
+
+.faq-item h3{
+  margin:0 0 10px;
+  font-size:20px;
+}
+
+.faq-item p{margin:0}
+
+.final-cta{
+  width:100%;
+  max-width:100%;
+  margin-top:55px;
+  padding:42px 35px;
+  border-radius:25px;
+  text-align:center;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.final-cta h2{
+  margin:0 0 13px;
+  color:#fff;
+  font-size:31px;
+}
+
+.final-cta p{
+  max-width:610px;
+  margin:0 auto 22px;
+  color:#fff;
+  opacity:.96;
+  font-size:17px;
+}
+
+.final-cta a{
+  display:inline-block;
+  padding:13px 23px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  font-weight:900;
+  text-decoration:none;
+}
+
+/* Dynamic sticky sidebar */
+
+.sidebar-column{
+  display:block;
+  width:100%;
+  min-width:0;
+  position:relative;
+  align-self:stretch;
+}
+
+.sidebar-sticky{
+  width:100%;
+  max-height:calc(100vh - 110px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  z-index:50;
+}
+
+.sidebar-sticky.is-fixed{
+  position:fixed;
+  top:86px;
+}
+
+.sidebar-sticky.is-bottom{
+  position:absolute;
+  top:auto;
+  bottom:0;
+}
+
+.sidebar-sticky::-webkit-scrollbar{
+  width:6px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.sidebar-sticky::-webkit-scrollbar-thumb{
+  background:#cbd5e1;
+  border-radius:999px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-thumb:hover{
+  background:#94a3b8;
+}
+
+.sidebar-box{
+  margin-bottom:22px;
+  padding:24px;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  background:#fff;
+}
+
+.sidebar-box h3{
+  margin:0 0 16px;
+  color:#101828;
+  font-size:18px;
+}
+
+.sidebar-link{
+  display:block;
+  padding:10px 0;
+  border-bottom:1px solid #edf2f7;
+  color:#475569;
+  font-size:14px;
+  font-weight:650;
+  line-height:1.65;
+}
+
+.sidebar-link:last-child{border-bottom:none}
+.sidebar-link:hover{color:#2563eb}
+
+.sidebar-link.active{
+  color:#2563eb;
+  font-weight:850;
+}
+
+.sidebar-cta{
+  padding:25px;
+  border-radius:20px;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+}
+
+.sidebar-cta h3{
+  margin:0 0 10px;
+  color:#fff;
+}
+
+.sidebar-cta p{
+  margin:0 0 17px;
+  font-size:14px;
+  line-height:1.75;
+  opacity:.96;
+}
+
+.sidebar-cta a{
+  display:block;
+  padding:11px 15px;
+  border-radius:999px;
+  color:#172033;
+  background:#fff;
+  text-align:center;
+  font-size:14px;
+  font-weight:900;
+  text-decoration:none;
+}
+
+footer{
+  width:100%;
+  max-width:100%;
+  padding:35px 22px;
+  border-top:1px solid #e8edf4;
+  color:#64748b;
+}
+
+.footer-inner{
+  width:min(1200px,100%);
+  margin:0 auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  font-size:14px;
+}
+
+.back-to-top{
+  position:fixed;
+  right:28px;
+  bottom:28px;
+  z-index:2000;
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:50%;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#22c55e);
+  font-size:24px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 10px 30px rgba(37,99,235,.24);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(12px);
+  transition:.22s ease;
+}
+
+.back-to-top.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+
+@media(max-width:900px){
+
+  .page,
+  .content,
+  .hero,
+  .hero-image,
+  .sidebar-column,
+  article,
+  aside{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .topbar-inner{
+    padding:12px 18px;
+    gap:12px;
+  }
+
+  .logo{
+    font-size:22px;
+    flex-shrink:0;
+  }
+
+  .nav{
+    margin-left:auto;
+  }
+
+  .nav a:not(.nav-cta){
+    display:none;
+  }
+
+  .nav-cta{
+    display:block;
+    padding:10px 16px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+
+  .hero{
+    width:100%;
+    max-width:100%;
+    padding:34px 20px 12px;
+  }
+
+  .breadcrumb{
+    font-size:13px;
+    line-height:1.6;
+    overflow-wrap:anywhere;
+  }
+
+  .article-tag{
+    font-size:13px;
+  }
+
+  .hero h1{
+    width:100%;
+    max-width:100%;
+    margin-bottom:18px;
+    font-size:clamp(34px,8vw,46px);
+    line-height:1.25;
+    letter-spacing:-.5px;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+
+  .lead{
+    width:100%;
+    max-width:100%;
+    font-size:18px;
+    line-height:1.85;
+    overflow-wrap:break-word;
+  }
+
+  .hero-image{
+    width:100%;
+    max-width:100%;
+    padding:0 20px;
+    margin-top:28px;
+  }
+
+  .hero-image img{
+    width:100%;
+    max-width:100%;
+    height:auto;
+    max-height:none;
+    border-radius:20px;
+  }
+
+  .page{
+    width:100%;
+    max-width:100%;
+    display:block;
+    padding:45px 20px 70px;
+  }
+
+  .content{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .content h2,
+  .content h3,
+  .content p,
+  .content li{
+    width:auto;
+    max-width:100%;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+
+  .content h2{
+    margin-top:45px;
+    font-size:29px;
+    line-height:1.4;
+  }
+
+  .content h3{
+    font-size:21px;
+    line-height:1.45;
+  }
+
+  .content p{
+    font-size:17px;
+    line-height:1.85;
+  }
+
+  .content ul{
+    max-width:100%;
+    padding-left:22px;
+    padding-right:0;
+  }
+
+  .sidebar-column{
+    width:100%;
+    margin-top:50px;
+    position:static;
+    align-self:auto;
+  }
+
+  .sidebar-sticky,
+  .sidebar-sticky.is-fixed,
+  .sidebar-sticky.is-bottom{
+    position:static;
+    top:auto;
+    bottom:auto;
+    width:100%!important;
+    max-height:none;
+    overflow:visible;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist,
+  .faq-item,
+  .final-cta{
+    width:100%;
+    max-width:100%;
+  }
+
+  .steps,
+  .step{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .step>div{
+    min-width:0;
+  }
+
+  .table-wrap{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  footer{
+    width:100%;
+    max-width:100%;
+  }
+
+  .footer-inner{
+    width:100%;
+    max-width:100%;
+  }
+}
+
+@media(max-width:600px){
+
+  .topbar-inner{
+    padding:10px 16px;
+  }
+
+  .logo{
+    font-size:21px;
+  }
+
+  .nav-cta{
+    padding:9px 14px;
+    font-size:13px;
+  }
+
+  .hero{
+    padding:28px 18px 8px;
+  }
+
+  .hero h1{
+    font-size:34px;
+    line-height:1.28;
+  }
+
+  .lead{
+    font-size:17px;
+    line-height:1.85;
+  }
+
+  .hero-image{
+    padding:0 18px;
+    margin-top:25px;
+  }
+
+  .hero-image img{
+    border-radius:18px;
+  }
+
+  .page{
+    padding:40px 18px 65px;
+  }
+
+  .content h2{
+    font-size:27px;
+    line-height:1.4;
+  }
+
+  .content h3{
+    font-size:20px;
+  }
+
+  .content p,
+  .content li{
+    font-size:16.5px;
+    line-height:1.85;
+  }
+
+  .step{
+    grid-template-columns:1fr;
+    padding:19px;
+  }
+
+  .note,
+  .good-box,
+  .warning-box,
+  .example-box,
+  .internal-card,
+  .checklist{
+    padding:21px 20px;
+  }
+
+  .final-cta{
+    padding:32px 23px;
+  }
+
+  .final-cta h2{
+    font-size:27px;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+  }
+
+  .back-to-top{
+    right:16px;
+    bottom:16px;
+    width:46px;
+    height:46px;
+    font-size:21px;
+  }
+}
+
+@media(max-width:380px){
+
+  .hero,
+  .page{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero-image{
+    padding-left:15px;
+    padding-right:15px;
+  }
+
+  .hero h1{
+    font-size:31px;
+  }
+
+  .nav-cta{
+    padding:8px 11px;
+    font-size:12px;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar"><div class="topbar-inner">
+<a href="/es/" class="logo">iakids</a>
+<nav class="nav">
+<a href="/es/blog/">Blog educativo</a>
+<a href="/es/blog/ia-para-estudiar/">IA para estudiar</a>
+<a href="/es/blog/ia-para-matematicas/">IA para matemáticas</a>
+<a href="/es/blog/ia-para-hacer-tareas/">IA para tareas</a>
+<a href="/es/" class="nav-cta">Probar IAKIDS</a>
+</nav>
+</div></header>
+
+<section class="hero">
+<div class="breadcrumb"><a href="/es/">IAKIDS</a> &nbsp;›&nbsp; <a href="/es/blog/">Blog educativo</a> &nbsp;›&nbsp; <a href="/es/blog/ia-para-matematicas/">IA para matemáticas</a> &nbsp;›&nbsp; Matemáticas paso a paso con IA</div>
+<div class="article-tag"><span class="tag-dot"></span>IA para matemáticas · Paso a paso</div>
+<h1>Matemáticas paso a paso con IA: aprender y resolver mejor</h1>
+<p class="lead">Cuando un ejercicio parece difícil, dividirlo en pequeñas etapas puede cambiar completamente la experiencia. La inteligencia artificial puede ayudar a trabajar las <strong>matemáticas paso a paso</strong>: explicar una parte, hacer una pregunta, esperar la respuesta y adaptar la siguiente ayuda según lo que el niño necesite.</p>
+</section>
+
+<div class="hero-image">
+<img src="/assets/es/blog/ia-para-matematicas.webp" alt="Niño aprendiendo matemáticas paso a paso con inteligencia artificial" loading="eager" width="1200" height="675">
+</div>
+
+<main class="page"><article class="content">
+
+<h2>¿Qué significa aprender matemáticas paso a paso?</h2>
+<p>Significa dividir un procedimiento o problema en unidades más pequeñas y trabajar cada una antes de continuar.</p>
+<p>En lugar de mostrar una solución completa de principio a fin, el estudiante participa en cada decisión.</p>
+
+<div class="good-box"><strong>Un paso pequeño permite saber exactamente qué entiende el niño.</strong><p>Si aparece un error, también resulta más fácil localizar dónde comenzó.</p></div>
+
+<h2>¿Por qué funciona bien este enfoque con IA?</h2>
+<p>Una explicación tradicional es normalmente igual para todos. Una interacción con IA puede cambiar después de cada respuesta.</p>
+
+<div class="steps">
+<div class="step"><div class="step-number">1</div><div><h3>La IA presenta un paso</h3><p>Explica solamente la parte necesaria.</p></div></div>
+<div class="step"><div class="step-number">2</div><div><h3>El niño responde</h3><p>Realiza el cálculo o toma una decisión.</p></div></div>
+<div class="step"><div class="step-number">3</div><div><h3>La IA analiza</h3><p>Comprueba si puede continuar o necesita ayuda.</p></div></div>
+<div class="step"><div class="step-number">4</div><div><h3>El recorrido cambia</h3><p>Avanza, ofrece una pista o explica de otra manera.</p></div></div>
+</div>
+
+<h2>Ejemplo sencillo: una división paso a paso</h2>
+
+<div class="example-box">
+<strong>Ejercicio:</strong><p>84 ÷ 4</p>
+<strong>Paso 1:</strong><p>“Empecemos con el 8. ¿Cuántas veces cabe 4 en 8?”</p>
+<strong>Niño:</strong><p>“2”.</p>
+<strong>Paso 2:</strong><p>“Correcto. Ahora queda el 4. ¿Cuántas veces cabe 4 en 4?”</p>
+<strong>Niño:</strong><p>“1”.</p>
+<strong>Comprobación:</strong><p>“Entonces obtuvimos 21. ¿Qué multiplicación podemos hacer para comprobarlo?”</p>
+</div>
+
+<p>La IA no necesita entregar toda la solución desde el principio. Puede mantener al niño participando durante el procedimiento.</p>
+
+<h2>La diferencia entre explicar pasos y hacer los pasos</h2>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Hacer el ejercicio por el niño</th><th>Guiar paso a paso</th></tr></thead>
+<tbody>
+<tr><td>Muestra el procedimiento completo.</td><td>Presenta una etapa y espera.</td></tr>
+<tr><td>El niño puede limitarse a leer.</td><td>El niño debe responder.</td></tr>
+<tr><td>Los errores del niño quedan ocultos.</td><td>Los errores aparecen durante el proceso.</td></tr>
+<tr><td>La ayuda es igual aunque el niño entienda.</td><td>La ayuda puede cambiar según la respuesta.</td></tr>
+<tr><td>El objetivo es terminar.</td><td>El objetivo es comprender.</td></tr>
+</tbody></table></div>
+
+<h2>1. Empezar por lo que el niño ya sabe</h2>
+<p>Antes de explicar, puede ser útil hacer una pregunta breve. Así se evita repetir contenido que el estudiante ya domina.</p>
+
+<div class="example-box">
+<strong>Antes de explicar una división:</strong>
+<p>“¿Recuerdas qué multiplicación está relacionada con 35 ÷ 5?”</p>
+</div>
+
+<p>Si responde correctamente, se puede avanzar. Si no, puede ser útil repasar primero esa relación.</p>
+
+<h2>2. Dar una sola instrucción cada vez</h2>
+<p>Cuando un procedimiento tiene varios pasos, presentar todos al mismo tiempo puede sobrecargar al estudiante.</p>
+<div class="note"><strong>Una instrucción breve + una respuesta del niño suele ser más interactiva que un bloque largo de explicación.</strong></div>
+
+<h2>3. Esperar la respuesta antes de continuar</h2>
+<p>El elemento “esperar” es importante. Si la IA hace una pregunta y responde inmediatamente por el niño, la interacción pierde gran parte de su valor.</p>
+
+<div class="good-box"><strong>Pregunta → espera → respuesta → siguiente paso.</strong><p>Este ciclo convierte una explicación en diálogo.</p></div>
+
+<h2>4. Utilizar pistas graduadas</h2>
+<p>No todas las dificultades necesitan la misma cantidad de ayuda. Las pistas pueden aumentar poco a poco.</p>
+
+<div class="steps">
+<div class="step"><div class="step-number">1</div><div><h3>Pista pequeña</h3><p>Recordar qué operación puede utilizarse.</p></div></div>
+<div class="step"><div class="step-number">2</div><div><h3>Pista más concreta</h3><p>Relacionar el ejercicio con un ejemplo conocido.</p></div></div>
+<div class="step"><div class="step-number">3</div><div><h3>Primer paso</h3><p>Mostrar solamente cómo comenzar.</p></div></div>
+<div class="step"><div class="step-number">4</div><div><h3>Explicación completa</h3><p>Utilizarla cuando las pistas anteriores no han sido suficientes.</p></div></div>
+</div>
+
+<h2>5. Detectar exactamente dónde aparece el error</h2>
+<p>Una respuesta final incorrecta no indica necesariamente cuál es el problema. Trabajar por pasos permite observar el razonamiento.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Posible dificultad</th><th>Ayuda adecuada</th></tr></thead>
+<tbody>
+<tr><td>No entiende el concepto</td><td>Volver a una representación más sencilla.</td></tr>
+<tr><td>Eligió mal la operación</td><td>Revisar qué pregunta el problema.</td></tr>
+<tr><td>Error de cálculo</td><td>Pedir que compruebe ese cálculo.</td></tr>
+<tr><td>No recuerda una tabla</td><td>Dar una pista relacionada.</td></tr>
+<tr><td>Se saltó un paso</td><td>Volver al punto anterior.</td></tr>
+</tbody></table></div>
+
+<h2>6. Matemáticas paso a paso para problemas escritos</h2>
+<p>Los problemas matemáticos pueden dividirse en una secuencia clara.</p>
+
+<div class="steps">
+<div class="step"><div class="step-number">1</div><div><h3>¿Qué tenemos que averiguar?</h3><p>Expresar la pregunta con palabras sencillas.</p></div></div>
+<div class="step"><div class="step-number">2</div><div><h3>¿Qué datos tenemos?</h3><p>Separar la información útil.</p></div></div>
+<div class="step"><div class="step-number">3</div><div><h3>¿Qué operación necesitamos?</h3><p>Relacionar la situación con suma, resta, multiplicación o división.</p></div></div>
+<div class="step"><div class="step-number">4</div><div><h3>Hacer el cálculo</h3><p>Resolver la operación elegida.</p></div></div>
+<div class="step"><div class="step-number">5</div><div><h3>Comprobar el resultado</h3><p>Preguntar si la respuesta tiene sentido.</p></div></div>
+</div>
+
+<div class="internal-card"><h3>Resolución de problemas matemáticos</h3><p>Consulta nuestras guías para aprender a interpretar y resolver problemas matemáticos.</p><a href="/es/blog/resolucion-de-problemas-matematicos/">Ver resolución de problemas →</a></div>
+
+<h2>Ejemplo: problema matemático guiado</h2>
+
+<div class="example-box">
+<strong>Problema:</strong>
+<p>“Ana tiene 5 cajas. En cada caja hay 8 rotuladores. ¿Cuántos rotuladores tiene en total?”</p>
+<strong>Paso 1:</strong><p>“¿Qué tenemos que averiguar?”</p>
+<strong>Paso 2:</strong><p>“Tenemos 5 grupos de 8. ¿Qué operación representa grupos iguales?”</p>
+<strong>Paso 3:</strong><p>“Ahora calcula 5 × 8.”</p>
+<strong>Paso 4:</strong><p>“¿Qué significa el 40 dentro de la historia?”</p>
+</div>
+
+<p>El último paso comprueba que el niño conecta el resultado numérico con el problema.</p>
+
+<h2>7. Sumas paso a paso</h2>
+<p>En sumas con varias cifras, la IA puede trabajar unidades, decenas y centenas por separado.</p>
+
+<div class="example-box">
+<strong>Ejercicio:</strong><p>47 + 36</p>
+<p>1. “Suma primero 7 + 6. ¿Cuánto da?”</p>
+<p>2. “Tenemos 13 unidades. ¿Qué hacemos con la decena?”</p>
+<p>3. “Ahora suma las decenas.”</p>
+</div>
+
+<div class="internal-card"><h3>Sumas</h3><p>Ejercicios y problemas para practicar sumas en primaria.</p><a href="/es/blog/sumas/">Ver sumas →</a></div>
+
+<h2>8. Divisiones paso a paso</h2>
+<p>Las divisiones largas son especialmente apropiadas para este enfoque porque contienen una secuencia repetitiva de decisiones y cálculos.</p>
+
+<div class="checklist">
+<div class="check-item"><span class="check">✓</span><span>Elegir cuántas veces cabe el divisor.</span></div>
+<div class="check-item"><span class="check">✓</span><span>Multiplicar.</span></div>
+<div class="check-item"><span class="check">✓</span><span>Restar.</span></div>
+<div class="check-item"><span class="check">✓</span><span>Bajar la siguiente cifra.</span></div>
+<div class="check-item"><span class="check">✓</span><span>Repetir y comprobar.</span></div>
+</div>
+
+<div class="internal-card"><h3>Divisiones</h3><p>Aprende divisiones con explicaciones y ejercicios progresivos.</p><a href="/es/blog/divisiones/">Ver divisiones →</a></div>
+
+<h2>9. Fracciones paso a paso</h2>
+<p>Las operaciones con fracciones pueden dividirse en decisiones pequeñas. Por ejemplo, antes de sumar se puede preguntar si los denominadores son iguales.</p>
+
+<div class="example-box">
+<strong>Ejercicio:</strong><p>2/7 + 3/7</p>
+<p>1. “¿Los denominadores son iguales?”</p>
+<p>2. “Si son iguales, ¿qué números sumamos?”</p>
+<p>3. “¿Qué ocurre con el denominador?”</p>
+<p>4. “¿Cuál es el resultado?”</p>
+</div>
+
+<div class="internal-card"><h3>Fracciones</h3><p>Consulta explicaciones y ejercicios sobre operaciones con fracciones.</p><a href="/es/blog/fracciones/">Ver fracciones →</a></div>
+
+<h2>10. Multiplicaciones paso a paso</h2>
+<p>La multiplicación también puede conectarse con conocimientos anteriores. Antes de aplicar un algoritmo, puede ser útil comprobar las tablas necesarias.</p>
+
+<div class="internal-card"><h3>Tablas de multiplicar</h3><p>Practica las tablas y refuerza la base necesaria para multiplicaciones y divisiones.</p><a href="/es/blog/tablas-de-multiplicar/">Ver tablas de multiplicar →</a></div>
+
+<h2>11. No avanzar demasiado rápido</h2>
+<p>La velocidad no debería ser el único objetivo. Si un estudiante necesita tres intentos para comprender un paso, avanzar inmediatamente puede trasladar la confusión al siguiente.</p>
+
+<div class="good-box"><strong>Avanzar cuando existe comprensión puede ser más eficiente que avanzar rápido y tener que volver atrás después.</strong></div>
+
+<h2>12. Comprobar cada paso sin convertirlo en examen</h2>
+<p>Las preguntas de comprensión pueden ser breves y naturales. No hace falta presentar constantemente una prueba formal.</p>
+
+<div class="example-box">
+<strong>Preguntas útiles:</strong>
+<p>“¿Por qué elegiste multiplicar?”</p>
+<p>“¿Qué representa este número?”</p>
+<p>“¿Qué harías ahora?”</p>
+<p>“¿Puedes comprobarlo de otra manera?”</p>
+</div>
+
+<h2>13. Volver un paso atrás cuando sea necesario</h2>
+<p>Una ruta de aprendizaje no tiene por qué avanzar siempre hacia delante. Si aparece una dificultad, puede ser útil regresar temporalmente a una habilidad anterior.</p>
+
+<div class="example-box">
+<strong>Ejemplo:</strong>
+<p>Si el niño tiene dificultades con 56 ÷ 7 porque no recuerda 7 × 8, puede ser más útil repasar esa relación antes de continuar con la división.</p>
+</div>
+
+<h2>14. Practicar sin ayuda después de la práctica guiada</h2>
+<p>El objetivo de las pistas es hacer que dejen de ser necesarias. Después de resolver un ejercicio con ayuda, el niño debería probar otro de manera más independiente.</p>
+
+<div class="steps">
+<div class="step"><div class="step-number">1</div><div><h3>Ejemplo explicado</h3><p>La IA muestra cómo funciona el procedimiento.</p></div></div>
+<div class="step"><div class="step-number">2</div><div><h3>Ejercicio guiado</h3><p>El niño resuelve con pistas.</p></div></div>
+<div class="step"><div class="step-number">3</div><div><h3>Ejercicio independiente</h3><p>El niño intenta resolver sin pistas.</p></div></div>
+<div class="step"><div class="step-number">4</div><div><h3>Aplicación</h3><p>Utiliza la misma habilidad en un problema diferente.</p></div></div>
+</div>
+
+<h2>15. Adaptar el número de pasos al estudiante</h2>
+<p>Un niño que domina un procedimiento no necesita que la IA detenga la actividad después de cada pequeño cálculo. Otro estudiante puede beneficiarse de una secuencia mucho más detallada.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Nivel de apoyo</th><th>Ejemplo</th></tr></thead>
+<tbody>
+<tr><td>Alto</td><td>Una pregunta por cada pequeño paso.</td></tr>
+<tr><td>Medio</td><td>Una pregunta en los puntos importantes.</td></tr>
+<tr><td>Bajo</td><td>El niño resuelve y la IA revisa al final.</td></tr>
+<tr><td>Independiente</td><td>La IA propone el ejercicio sin ayuda inicial.</td></tr>
+</tbody></table></div>
+
+<h2>Matemáticas paso a paso para primaria</h2>
+<p>En primaria, los procedimientos se están formando por primera vez. Trabajar de manera explícita cada decisión puede ayudar al niño a comprender qué está haciendo.</p>
+
+<div class="internal-card"><h3>IA para matemáticas de primaria</h3><p>Descubre cómo adaptar la inteligencia artificial a los contenidos y al nivel de los niños de primaria.</p><a href="/es/blog/ia-para-matematicas/ia-para-matematicas-primaria/">Ver IA para matemáticas de primaria →</a></div>
+
+<h2>Cómo pedir a una IA que enseñe paso a paso</h2>
+
+<div class="example-box">
+<strong>Prompt 1</strong><p>“Ayúdame a resolver este ejercicio, pero no me des la solución completa. Hazme una pregunta cada vez y espera mi respuesta.”</p>
+<strong>Prompt 2</strong><p>“Si me equivoco, dame primero una pista pequeña. Solo explícame el paso completo si sigo sin entender.”</p>
+<strong>Prompt 3</strong><p>“Cuando terminemos, dame otro ejercicio parecido para comprobar si puedo hacerlo solo.”</p>
+</div>
+
+<h2>Errores que conviene evitar</h2>
+
+<div class="warning-box"><strong>“Paso a paso” no debería significar que la IA escribe todos los pasos mientras el niño observa.</strong><p>El estudiante debe completar parte de la secuencia.</p></div>
+
+<div class="checklist">
+<div class="check-item"><span class="check">✓</span><span>No revelar todos los pasos demasiado pronto.</span></div>
+<div class="check-item"><span class="check">✓</span><span>No continuar sin esperar la respuesta.</span></div>
+<div class="check-item"><span class="check">✓</span><span>No utilizar la misma cantidad de ayuda para todos.</span></div>
+<div class="check-item"><span class="check">✓</span><span>No terminar sin una comprobación.</span></div>
+<div class="check-item"><span class="check">✓</span><span>No confundir completar el procedimiento con comprenderlo.</span></div>
+</div>
+
+<h2>¿Cómo saber cuándo avanzar?</h2>
+<p>Una única respuesta correcta puede no ser suficiente. Conviene observar si el estudiante puede explicar el paso y aplicarlo en una variante.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Señal</th><th>Decisión posible</th></tr></thead>
+<tbody>
+<tr><td>Responde correctamente y explica por qué</td><td>Avanzar.</td></tr>
+<tr><td>Responde correctamente después de varias pistas</td><td>Practicar otro ejemplo.</td></tr>
+<tr><td>Comete un error pequeño</td><td>Dar una pista.</td></tr>
+<tr><td>No comprende el concepto</td><td>Volver a explicarlo.</td></tr>
+<tr><td>Resuelve varias variantes</td><td>Reducir la ayuda o aumentar dificultad.</td></tr>
+</tbody></table></div>
+
+<h2>Cómo plantea IAKIDS las matemáticas paso a paso</h2>
+<p>IAKIDS busca combinar explicaciones, contenido visual y diálogo dentro de la lección. La interacción permite que el niño responda durante el aprendizaje y no solamente al final.</p>
+<p>Según esas respuestas, la experiencia puede continuar, ofrecer una pista, volver a explicar o practicar un poco más.</p>
+
+<div class="good-box"><strong>La idea es sencilla: explicar menos de una vez y comprobar más durante el camino.</strong><p>Así el niño participa en la construcción de cada paso.</p></div>
+
+<div class="internal-card"><h3>Aprender matemáticas con IA</h3><p>Consulta nuestra guía sobre cómo utilizar inteligencia artificial para comprender y practicar matemáticas.</p><a href="/es/blog/ia-para-matematicas/aprender-matematicas-con-ia/">Aprender matemáticas con IA →</a></div>
+
+<div class="internal-card"><h3>Guía principal de IA para matemáticas</h3><p>Explora todo el grupo de contenidos sobre inteligencia artificial aplicada al aprendizaje matemático.</p><a href="/es/blog/ia-para-matematicas/">Ver IA para matemáticas →</a></div>
+
+<section class="faq">
+<h2>Preguntas frecuentes sobre matemáticas paso a paso con IA</h2>
+
+<div class="faq-item"><h3>¿Cómo puede la IA explicar matemáticas paso a paso?</h3><p>Puede dividir una operación o problema en pequeñas etapas, hacer una pregunta en cada una y adaptar la ayuda según la respuesta del estudiante.</p></div>
+
+<div class="faq-item"><h3>¿Es mejor aprender matemáticas paso a paso que ver la solución completa?</h3><p>Para aprender, trabajar el procedimiento por etapas permite identificar mejor qué se comprende y dónde aparece una dificultad.</p></div>
+
+<div class="faq-item"><h3>¿La IA puede dar pistas sin resolver el ejercicio?</h3><p>Sí. Puede ofrecer una pista sobre el siguiente paso y esperar a que el estudiante continúe por sí mismo.</p></div>
+
+<div class="faq-item"><h3>¿Se pueden resolver problemas matemáticos paso a paso con IA?</h3><p>Sí. La IA puede ayudar a identificar la pregunta, los datos, la operación necesaria, el cálculo y la comprobación del resultado.</p></div>
+
+<div class="faq-item"><h3>¿Las matemáticas paso a paso sirven para primaria?</h3><p>Sí. Dividir procedimientos en partes pequeñas puede ser especialmente útil para niños que están construyendo las bases de las matemáticas.</p></div>
+</section>
+
+<div class="final-cta">
+<h2>Cada paso es una oportunidad para comprender</h2>
+<p>IAKIDS busca que la inteligencia artificial acompañe al niño durante el procedimiento, haga preguntas y adapte la ayuda sin quitarle el razonamiento.</p>
+<a href="/es/">Probar IAKIDS</a>
+</div>
+
+</article>
+
+<aside class="sidebar-column"><div class="sidebar-sticky">
+<div class="sidebar-box">
+<h3>IA para matemáticas</h3>
+<a class="sidebar-link" href="/es/blog/ia-para-matematicas/">IA para matemáticas</a>
+<a class="sidebar-link" href="/es/blog/ia-para-matematicas/aprender-matematicas-con-ia/">Aprender matemáticas con IA</a>
+<a class="sidebar-link active" href="/es/blog/ia-para-matematicas/matematicas-paso-a-paso-con-ia/">Matemáticas paso a paso con IA</a>
+<a class="sidebar-link" href="/es/blog/ia-para-matematicas/ia-para-matematicas-primaria/">IA para matemáticas de primaria</a>
+</div>
+
+<div class="sidebar-box">
+<h3>Matemáticas de primaria</h3>
+<a class="sidebar-link" href="/es/blog/matematicas-primaria/">Matemáticas de primaria</a>
+<a class="sidebar-link" href="/es/blog/tablas-de-multiplicar/">Tablas de multiplicar</a>
+<a class="sidebar-link" href="/es/blog/fracciones/">Fracciones</a>
+<a class="sidebar-link" href="/es/blog/divisiones/">Divisiones</a>
+<a class="sidebar-link" href="/es/blog/sumas/">Sumas</a>
+<a class="sidebar-link" href="/es/blog/resolucion-de-problemas-matematicos/">Problemas matemáticos</a>
+</div>
+
+<div class="sidebar-cta">
+<h3>IAKIDS</h3>
+<p>IA educativa para aprender matemáticas mediante explicaciones, diálogo, pistas y práctica.</p>
+<a href="/es/">Probar IAKIDS</a>
+</div>
+</div></aside>
+</main>
+
+<footer><div class="footer-inner">
+<div>© <span id="current-year"></span> IAKIDS. All rights reserved.</div>
+<div>Matemáticas paso a paso · IA para matemáticas · Aprendizaje</div>
+</div></footer>
+
+<button class="back-to-top" id="back-to-top" type="button" aria-label="Volver arriba" title="Volver arriba">↑</button>
+<script>
+
+document.getElementById('current-year').textContent =
+  new Date().getFullYear();
+
+
+const backToTopButton =
+  document.getElementById('back-to-top');
+
+function updateBackToTopButton(){
+
+  if(window.scrollY > 500){
+    backToTopButton.classList.add('show');
+  }else{
+    backToTopButton.classList.remove('show');
+  }
+
+}
+
+window.addEventListener(
+  'scroll',
+  updateBackToTopButton,
+  {passive:true}
+);
+
+backToTopButton.addEventListener(
+  'click',
+  function(){
+
+    window.scrollTo({
+      top:0,
+      behavior:'smooth'
+    });
+
+  }
+);
+
+updateBackToTopButton();
+
+
+const sidebarColumn =
+  document.querySelector('.sidebar-column');
+
+const sidebarSticky =
+  document.querySelector('.sidebar-sticky');
+
+const SIDEBAR_TOP = 86;
+
+let sidebarTicking = false;
+
+
+function resetSidebar(){
+
+  if(!sidebarSticky) return;
+
+  sidebarSticky.classList.remove(
+    'is-fixed',
+    'is-bottom'
+  );
+
+  sidebarSticky.style.width = '';
+  sidebarSticky.style.left = '';
+}
+
+
+function updateSidebar(){
+
+  if(!sidebarColumn || !sidebarSticky){
+    return;
+  }
+
+  if(window.innerWidth <= 900){
+
+    resetSidebar();
+    return;
+  }
+
+  const columnRect =
+    sidebarColumn.getBoundingClientRect();
+
+  const columnTop =
+    window.scrollY + columnRect.top;
+
+  const columnBottom =
+    columnTop + sidebarColumn.offsetHeight;
+
+  const sidebarHeight =
+    sidebarSticky.offsetHeight;
+
+  const currentScroll =
+    window.scrollY;
+
+  const fixedStart =
+    columnTop - SIDEBAR_TOP;
+
+  const fixedEnd =
+    columnBottom -
+    sidebarHeight -
+    SIDEBAR_TOP;
+
+
+  if(currentScroll < fixedStart){
+
+    sidebarSticky.classList.remove(
+      'is-fixed',
+      'is-bottom'
+    );
+
+    sidebarSticky.style.width = '';
+    sidebarSticky.style.left = '';
+
+    return;
+  }
+
+
+  if(currentScroll < fixedEnd){
+
+    const liveColumnRect =
+      sidebarColumn.getBoundingClientRect();
+
+    sidebarSticky.classList.remove(
+      'is-bottom'
+    );
+
+    sidebarSticky.classList.add(
+      'is-fixed'
+    );
+
+    sidebarSticky.style.width =
+      liveColumnRect.width + 'px';
+
+    sidebarSticky.style.left =
+      liveColumnRect.left + 'px';
+
+    return;
+  }
+
+
+  sidebarSticky.classList.remove(
+    'is-fixed'
+  );
+
+  sidebarSticky.classList.add(
+    'is-bottom'
+  );
+
+  sidebarSticky.style.width = '100%';
+  sidebarSticky.style.left = '';
+
+}
+
+
+function requestSidebarUpdate(){
+
+  if(sidebarTicking){
+    return;
+  }
+
+  sidebarTicking = true;
+
+  requestAnimationFrame(function(){
+
+    updateSidebar();
+    sidebarTicking = false;
+
+  });
+
+}
+
+
+window.addEventListener(
+  'scroll',
+  requestSidebarUpdate,
+  {passive:true}
+);
+
+
+window.addEventListener(
+  'resize',
+  function(){
+
+    resetSidebar();
+    requestSidebarUpdate();
+
+  }
+);
+
+
+window.addEventListener(
+  'load',
+  function(){
+
+    resetSidebar();
+    requestSidebarUpdate();
+
+  }
+);
+
+
+requestSidebarUpdate();
+
+</script>
+</body>
+</html>
