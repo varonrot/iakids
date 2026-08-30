@@ -20699,7 +20699,436 @@ async function loadRealLessonSidebar(
     );
 
 }
+/* =====================================================
+   PERSONAL KID LESSON INTRO VIDEO
+===================================================== */
 
+async function playKidPersonalIntroVideo(
+  personalIntro
+){
+
+  const videos =
+    Array.isArray(
+      personalIntro?.videos
+    )
+      ? personalIntro.videos
+      : [];
+
+
+  if(
+    personalIntro?.eligible !== true
+    ||
+    videos.length === 0
+  ){
+
+    console.log(
+      "PERSONAL INTRO VIDEO NOT AVAILABLE:",
+      personalIntro
+    );
+
+    return false;
+
+  }
+
+
+  const validVideos =
+    videos.filter(
+      item =>
+        String(
+          item?.url || ""
+        ).trim()
+    );
+
+
+  if(
+    validVideos.length === 0
+  ){
+
+    console.warn(
+      "PERSONAL INTRO — NO VALID VIDEO URLS"
+    );
+
+    return false;
+
+  }
+
+
+  const selectedVideo =
+    validVideos[
+      Math.floor(
+        Math.random() *
+        validVideos.length
+      )
+    ];
+
+
+  const videoUrl =
+    String(
+      selectedVideo.url
+    ).trim();
+
+
+  console.log(
+    "PERSONAL INTRO VIDEO SELECTED:",
+    {
+      variant:
+        selectedVideo.variant,
+
+      available:
+        validVideos.length
+    }
+  );
+
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-stage"
+    );
+
+
+  if(!visualArea){
+
+    console.warn(
+      "PERSONAL INTRO — VISUAL AREA NOT FOUND"
+    );
+
+    return false;
+
+  }
+
+
+  if(
+    window.KID_PERSONAL_INTRO_PLAYING
+  ){
+
+    console.warn(
+      "PERSONAL INTRO ALREADY PLAYING"
+    );
+
+    return false;
+
+  }
+
+
+  window.KID_PERSONAL_INTRO_PLAYING =
+    true;
+
+
+  const generating =
+    document.getElementById(
+      "lessonVisualGenerating"
+    );
+
+
+  if(generating){
+
+    generating.style.display =
+      "none";
+
+  }
+
+
+  const wrap =
+    document.createElement(
+      "div"
+    );
+
+
+  wrap.className =
+    "lesson-transition-video-wrap";
+
+
+  const video =
+    document.createElement(
+      "video"
+    );
+
+
+  video.className =
+    "lesson-transition-video";
+
+
+  video.src =
+    videoUrl;
+
+
+  video.preload =
+    "auto";
+
+
+  video.playsInline =
+    true;
+
+
+  video.setAttribute(
+    "playsinline",
+    ""
+  );
+
+
+  video.setAttribute(
+    "webkit-playsinline",
+    ""
+  );
+
+
+  video.muted =
+    false;
+
+
+  video.volume =
+    1;
+
+
+  wrap.appendChild(
+    video
+  );
+
+
+  visualArea.appendChild(
+    wrap
+  );
+
+
+  const cleanup = () => {
+
+    try{
+
+      video.pause();
+
+    }
+    catch(e){}
+
+
+    if(
+      wrap.isConnected
+    ){
+
+      wrap.remove();
+
+    }
+
+
+    window.KID_PERSONAL_INTRO_PLAYING =
+      false;
+
+  };
+
+
+  try{
+
+    await new Promise(
+      (
+        resolve,
+        reject
+      ) => {
+
+        let settled =
+          false;
+
+
+        const finishReady =
+          () => {
+
+            if(settled){
+              return;
+            }
+
+            settled =
+              true;
+
+            resolve();
+
+          };
+
+
+        const failReady =
+          () => {
+
+            if(settled){
+              return;
+            }
+
+            settled =
+              true;
+
+            reject(
+              new Error(
+                "Personal intro video failed to load"
+              )
+            );
+
+          };
+
+
+        video.addEventListener(
+          "canplay",
+          finishReady,
+          {
+            once:true
+          }
+        );
+
+
+        video.addEventListener(
+          "error",
+          failReady,
+          {
+            once:true
+          }
+        );
+
+
+        setTimeout(
+          () => {
+
+            if(
+              !settled
+              &&
+              video.readyState >= 2
+            ){
+
+              finishReady();
+
+            }
+
+          },
+          4000
+        );
+
+      }
+    );
+
+
+    wrap.classList.add(
+      "visible"
+    );
+
+
+    await video.play();
+
+
+    console.log(
+      "PERSONAL INTRO VIDEO STARTED:",
+      {
+        variant:
+          selectedVideo.variant
+      }
+    );
+
+
+    const completed =
+      await new Promise(
+        resolve => {
+
+          let finished =
+            false;
+
+
+          const done =
+            success => {
+
+              if(finished){
+                return;
+              }
+
+              finished =
+                true;
+
+              resolve(
+                success
+              );
+
+          };
+
+
+          video.addEventListener(
+            "ended",
+            () => {
+
+              console.log(
+                "PERSONAL INTRO VIDEO ENDED:",
+                {
+                  variant:
+                    selectedVideo.variant
+                }
+              );
+
+              done(
+                true
+              );
+
+            },
+            {
+              once:true
+            }
+          );
+
+
+          video.addEventListener(
+            "error",
+            () => {
+
+              console.warn(
+                "PERSONAL INTRO VIDEO PLAYBACK ERROR"
+              );
+
+              done(
+                false
+              );
+
+            },
+            {
+              once:true
+            }
+          );
+
+
+          setTimeout(
+            () => {
+
+              if(!finished){
+
+                console.warn(
+                  "PERSONAL INTRO VIDEO TIMEOUT"
+                );
+
+                done(
+                  false
+                );
+
+              }
+
+            },
+            30000
+          );
+
+        }
+      );
+
+
+    cleanup();
+
+
+    return completed;
+
+  }
+  catch(error){
+
+    console.warn(
+      "PERSONAL INTRO VIDEO FAILED:",
+      error
+    );
+
+
+    cleanup();
+
+
+    return false;
+
+  }
+
+}
 async function startSelectedUnitLesson(
   lesson
 ){
