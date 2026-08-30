@@ -6913,81 +6913,128 @@ def generate_transition_video_background(
             )
 
         # =============================================
-        # EXTEND TO ~20 SECONDS
+        # DYNAMIC VIDEO LENGTH
         #
-        # Omni can extend generated video
-        # using previous_interaction_id.
+        # Gemini יוצר קטע ראשון.
+        # רק אם הטקסט ארוך מספיק כדי להצדיק
+        # המשך וידאו, מבצעים extension.
         # =============================================
 
+        speech_word_count = len(
+            speech.split()
+        )
+
+        # קצב דיבור טבעי למורה בעברית:
+        # בערך 2 מילים לשנייה.
+        estimated_speech_seconds = (
+                speech_word_count / 2.0
+        )
+
         print(
-            "TRANSITION VIDEO GEMINI EXTEND:",
+            "TRANSITION VIDEO DURATION ESTIMATE:",
             {
                 "unit_lesson_id":
                     unit_lesson_id,
 
-                "previous_interaction_id":
-                    first_interaction.id
+                "speech_words":
+                    speech_word_count,
+
+                "estimated_speech_seconds":
+                    round(
+                        estimated_speech_seconds,
+                        2
+                    )
             }
         )
 
-        second_interaction = (
-            gemini_client
-            .interactions
-            .create(
+        # הקטע הראשון של Omni הוא בערך 10 שניות.
+        # אם הדיבור צפוי להסתיים בו,
+        # אין צורך לבצע extension.
+        if estimated_speech_seconds <= 9:
 
-                model=
-                LESSON_TRANSITION_VIDEO_MODEL,
-
-                previous_interaction_id=
-                first_interaction.id,
-
-                input=(
-                    "Continue this exact same educational scene "
-                    "with perfect visual continuity. "
-                    "Keep exactly the same teacher, "
-                    "face, voice, environment, illustration style, "
-                    "lighting and camera position. "
-
-                    "If the original Hebrew dialogue has NOT yet finished, "
-                    "continue ONLY the remaining words of that original dialogue. "
-                    "Do not restart it. "
-                    "Do not repeat any words. "
-                    "Do not invent any new words. "
-
-                    "If the original Hebrew dialogue HAS finished, "
-                    "the teacher must remain completely silent. "
-                    "No additional speech. "
-                    "No repeated sentence. "
-                    "No filler sounds or invented language. "
-
-                    "After speaking finishes, "
-                    "the teacher should simply smile and make "
-                    "a subtle inviting gesture toward the next part. "
-
-                    "No written text or captions."
-                ),
-
-                response_format={
-                    "type":
-                        "video",
-
-                    "aspect_ratio":
-                        "16:9",
-
-                    "resolution":
-                        "720p",
-
-                    "delivery":
-                        "uri"
+            print(
+                "TRANSITION VIDEO USING FIRST PART ONLY:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id
                 }
             )
-        )
 
-        output_video = getattr(
-            second_interaction,
-            "output_video",
-            None
-        )
+            output_video = getattr(
+                first_interaction,
+                "output_video",
+                None
+            )
+
+        else:
+
+            print(
+                "TRANSITION VIDEO EXTENSION REQUIRED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "previous_interaction_id":
+                        first_interaction.id
+                }
+            )
+
+            second_interaction = (
+                gemini_client
+                .interactions
+                .create(
+
+                    model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                    previous_interaction_id=
+                    first_interaction.id,
+
+                    input=(
+                        "Continue this exact same educational scene "
+                        "with perfect visual and audio continuity. "
+                        "Keep exactly the same teacher, "
+                        "face, voice, environment, illustration style, "
+                        "lighting and camera position. "
+
+                        "Continue ONLY the remaining words "
+                        "of the original Hebrew dialogue. "
+                        "Do not restart the dialogue. "
+                        "Do not repeat any words. "
+                        "Do not paraphrase. "
+                        "Do not invent any new words. "
+
+                        "Once the original Hebrew dialogue is complete, "
+                        "stop speaking immediately. "
+                        "The teacher may smile and make one subtle "
+                        "inviting gesture. "
+
+                        "No additional speech. "
+                        "No filler sounds. "
+                        "No written text or captions."
+                    ),
+
+                    response_format={
+                        "type":
+                            "video",
+
+                        "aspect_ratio":
+                            "16:9",
+
+                        "resolution":
+                            "720p",
+
+                        "delivery":
+                            "uri"
+                    }
+                )
+            )
+
+            output_video = getattr(
+                second_interaction,
+                "output_video",
+                None
+            )
 
         if output_video is None:
 
