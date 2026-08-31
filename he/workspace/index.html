@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה99</strong>
+    <strong>עולם הלמידה101</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -22028,12 +22028,58 @@ currentLessonId =
 
 
 /* =============================================
-   הפעלת השיעור האוניברסלי הפשוט
+   WAIT FOR FIRST LESSON VISUAL
+============================================= */
 
-   lessonData מכיל:
-   {
-     lesson: "..."
-   }
+console.log(
+  "WAITING FOR FIRST LESSON VISUAL BEFORE START"
+);
+
+try{
+
+  const firstVisual =
+    await waitForLessonVisual(
+      resolvedUnitLessonId,
+      session,
+      1
+    );
+
+
+  if(
+    firstVisual
+    &&
+    firstVisual.url
+  ){
+
+    console.log(
+      "FIRST LESSON VISUAL READY — STARTING LESSON",
+      firstVisual
+    );
+
+
+    window.CURRENT_DISPLAYED_VISUAL_ORDER =
+      1;
+
+
+    showLessonVisual(
+      firstVisual
+    );
+
+  }
+
+}
+catch(error){
+
+  console.warn(
+    "FIRST LESSON VISUAL WAIT FAILED — STARTING ANYWAY",
+    error
+  );
+
+}
+
+
+/* =============================================
+   START UNIVERSAL LESSON
 ============================================= */
 
 await runSimpleUniversalLesson(
