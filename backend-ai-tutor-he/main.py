@@ -4915,7 +4915,154 @@ def normalize_visual_plan_to_segments(
             "generation_prompt":
                 generation_prompt
         })
+    # =========================================
+    # QUESTION VISUAL
+    # =========================================
 
+    question = (
+        structured_lesson.get("question")
+        or {}
+    )
+
+    question_text = ""
+
+    if isinstance(
+            question,
+            dict
+    ):
+        question_text = str(
+            question.get("text")
+            or ""
+        ).strip()
+
+    if question_text:
+
+        question_visual_order = (
+            len(normalized_visuals)
+            + 1
+        )
+
+        question_director_visual = None
+
+        # Try to use a question visual returned
+        # by the Visual Director if available.
+        for item in raw_visuals:
+
+            if not isinstance(
+                    item,
+                    dict
+            ):
+                continue
+
+            try:
+                item_order = int(
+                    item.get("order")
+                    or 0
+                )
+            except Exception:
+                item_order = 0
+
+            if (
+                item_order
+                ==
+                question_visual_order
+            ):
+                question_director_visual = item
+                break
+
+
+        question_generation_prompt = ""
+
+        question_visual_goal = (
+            "Help the student visually understand "
+            "the lesson question before answering it."
+        )
+
+
+        if question_director_visual:
+
+            question_generation_prompt = str(
+                question_director_visual.get(
+                    "generation_prompt"
+                )
+                or ""
+            ).strip()
+
+            question_visual_goal = str(
+                question_director_visual.get(
+                    "visual_goal"
+                )
+                or question_visual_goal
+            ).strip()
+
+
+        # Build a dedicated prompt when the
+        # Visual Director did not create one.
+        if not question_generation_prompt:
+
+            question_generation_prompt = (
+                build_segment_visual_fallback_prompt(
+                    unit_lesson=
+                        unit_lesson,
+
+                    parent_lesson=
+                        parent_lesson,
+
+                    segment_text=
+                        question_text,
+
+                    segment_index=
+                        question_visual_order
+                )
+            )
+
+
+        question_words = (
+            question_text
+            .replace("\n", " ")
+            .split()
+        )
+
+        question_trigger_text = " ".join(
+            question_words[:6]
+        )
+
+
+        normalized_visuals.append({
+
+            "order":
+                question_visual_order,
+
+            "trigger_text":
+                question_trigger_text,
+
+            "type":
+                "image",
+
+            "visual_goal":
+                question_visual_goal,
+
+            "source_text":
+                question_text,
+
+            "generation_prompt":
+                question_generation_prompt,
+
+            "role":
+                "question"
+        })
+
+
+        print(
+            "QUESTION VISUAL ADDED:",
+            {
+                "order":
+                    question_visual_order,
+
+                "question":
+                    question_text
+            }
+        )
     result = {
         "version":
             int(
