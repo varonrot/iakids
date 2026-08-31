@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה5</strong>
+    <strong>עולם הלמידה45</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -22115,9 +22115,10 @@ catch(error){
    START UNIVERSAL LESSON
 ============================================= */
 
-await runSimpleUniversalLesson(
-  lessonData
-);
+await runSimpleUniversalLesson({
+  ...lessonData,
+  unit_lesson_id: resolvedUnitLessonId
+});
 
     /*
       מסך הטעינה אמור להיסגר אוטומטית
