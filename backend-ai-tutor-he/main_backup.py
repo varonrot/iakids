@@ -20,6 +20,7 @@ import json
 import base64
 import traceback
 import time
+import math
 from concurrent.futures import ThreadPoolExecutor
 # =====================================================
 # CONFIG
@@ -41,6 +42,9 @@ LESSON_DIRECTOR_PROMPT_PATH = Path(
 )
 VISUAL_DIRECTOR_PROMPT_PATH = Path(
     "prompts/iakids_visual_director_prompt.txt"
+)
+LESSON_TRANSITION_PROMPT_PATH = Path(
+    "prompts/iakids_lesson_transition_prompt.txt"
 )
 LEARNING_COACH_PROMPT_PATH = Path(
     "prompts/learning_coach_system_prompt.txt"
@@ -253,6 +257,11 @@ if not VISUAL_DIRECTOR_PROMPT_PATH.exists():
         f"Missing visual director prompt file: "
         f"{VISUAL_DIRECTOR_PROMPT_PATH}"
     )
+if not LESSON_TRANSITION_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Lesson Transition prompt file: "
+        f"{LESSON_TRANSITION_PROMPT_PATH}"
+    )
 if not LEARNING_COACH_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing Learning Coach prompt file: "
@@ -290,6 +299,12 @@ LESSON_DIRECTOR_PROMPT_TEMPLATE = (
 )
 VISUAL_DIRECTOR_PROMPT_TEMPLATE = (
     VISUAL_DIRECTOR_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+LESSON_TRANSITION_PROMPT_TEMPLATE = (
+    LESSON_TRANSITION_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -530,9 +545,22 @@ class DirectedLessonQuestion(BaseModel):
     text: str
 
 
-class DirectedLessonResponse(BaseModel):
+class DirectedLessonPart(BaseModel):
     lesson: list[DirectedLessonSegment]
     question: DirectedLessonQuestion
+
+
+class DirectedLessonSummary(BaseModel):
+    text: str
+
+
+class DirectedLessonResponse(BaseModel):
+
+    part_1: DirectedLessonPart
+
+    part_2: DirectedLessonPart
+
+    summary: DirectedLessonSummary
 
 class VisualDirectorItem(BaseModel):
     order: int
@@ -546,6 +574,16 @@ class VisualDirectorItem(BaseModel):
 class VisualDirectorResponse(BaseModel):
     version: int = 1
     visuals: list[VisualDirectorItem]
+
+class LessonTransitionResponse(BaseModel):
+
+    speech: str
+
+    video_scene: str
+
+    next_part_hook: str
+
+    duration_seconds: int = 10
 
 # =====================================================
 # STRUCTURED LESSON MODELS
@@ -4218,6 +4256,384 @@ def build_visual_director_prompt(
         )
     )
 
+def build_lesson_transition_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        part_1: dict,
+        part_2: dict
+) -> str:
+
+    runtime_context = {
+
+        "grade":
+            parent_lesson.get(
+                "grade"
+            ),
+
+        "subject":
+            parent_lesson.get(
+                "subject"
+            ),
+
+        "lesson_name":
+            unit_lesson.get(
+                "lesson_name"
+            ),
+
+        "learning_objective":
+            unit_lesson.get(
+                "learning_objective"
+            ),
+
+        "part_1":
+            part_1,
+
+        "part_2":
+            part_2
+    }
+
+    return (
+        LESSON_TRANSITION_PROMPT_TEMPLATE
+        + "\n\n"
+        + "RUNTIME_CONTEXT:\n"
+        + json.dumps(
+            runtime_context,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+def regenerate_lesson_transition_only(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> dict:
+
+    generated_json = (
+        unit_lesson.get(
+            "generated_lesson_json"
+        )
+        or {}
+    )
+
+    structured_lesson = (
+        generated_json.get(
+            "structured_lesson"
+        )
+        or {}
+    )
+
+    part_1 = (
+        structured_lesson.get(
+            "part_1"
+        )
+        or {}
+    )
+
+    part_2 = (
+        structured_lesson.get(
+            "part_2"
+        )
+        or {}
+    )
+
+    if not part_1 or not part_2:
+        raise RuntimeError(
+            "Cannot regenerate transition: "
+            "Part 1 or Part 2 is missing"
+        )
+
+    transition_prompt = (
+        build_lesson_transition_prompt(
+            unit_lesson=
+                unit_lesson,
+
+            parent_lesson=
+                parent_lesson,
+
+            part_1=
+                part_1,
+
+            part_2=
+                part_2
+        )
+    )
+
+    print(
+        "========== TRANSITION ONLY REGENERATION START ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson["id"]
+        }
+    )
+
+    # =============================================
+    # HARD SPEECH WORD COUNT
+    #
+    # לא סומכים רק על ה-Prompt.
+    # ה-Backend עצמו בודק שה-speech
+    # באמת מכיל 36-40 מילים.
+    # =============================================
+
+    MIN_TRANSITION_WORDS = 36
+    MAX_TRANSITION_WORDS = 40
+    MAX_TRANSITION_ATTEMPTS = 4
+
+    lesson_transition = None
+
+    for attempt in range(
+        1,
+        MAX_TRANSITION_ATTEMPTS + 1
+    ):
+
+        print(
+            "TRANSITION GENERATION ATTEMPT:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "max_attempts":
+                    MAX_TRANSITION_ATTEMPTS
+            }
+        )
+
+        transition_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            transition_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Create the universal transition "
+                                "between Part 1 and Part 2. "
+
+                                "IMPORTANT HARD REQUIREMENT: "
+                                "The Hebrew speech field MUST contain "
+                                "between 36 and 40 Hebrew words. "
+
+                                "Count the words before returning. "
+
+                                "If the speech has fewer than 36 words, "
+                                "expand it naturally. "
+
+                                "If the speech has more than 40 words, "
+                                "rewrite it naturally. "
+
+                                "Do not return the response until "
+                                "the speech contains 36-40 words. "
+
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                    LessonTransitionResponse
+            )
+        )
+
+        transition_data = (
+            transition_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not transition_data:
+
+            print(
+                "TRANSITION ATTEMPT RETURNED NO DATA:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "attempt":
+                        attempt
+                }
+            )
+
+            continue
+
+        candidate_transition = (
+            transition_data
+            .model_dump()
+        )
+
+        candidate_speech = str(
+            candidate_transition.get(
+                "speech"
+            )
+            or ""
+        ).strip()
+
+        word_count = len(
+            candidate_speech.split()
+        )
+
+        print(
+            "TRANSITION WORD COUNT CHECK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "word_count":
+                    word_count,
+
+                "min_words":
+                    MIN_TRANSITION_WORDS,
+
+                "max_words":
+                    MAX_TRANSITION_WORDS,
+
+                "speech":
+                    candidate_speech
+            }
+        )
+
+        # =========================================
+        # VALID RESULT
+        # =========================================
+
+        if (
+            MIN_TRANSITION_WORDS
+            <= word_count
+            <= MAX_TRANSITION_WORDS
+        ):
+
+            lesson_transition = (
+                candidate_transition
+            )
+
+            print(
+                "TRANSITION WORD COUNT VALID:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "attempt":
+                        attempt,
+
+                    "word_count":
+                        word_count
+                }
+            )
+
+            break
+
+        # =========================================
+        # INVALID RESULT -> RETRY
+        # =========================================
+
+        print(
+            "TRANSITION WORD COUNT INVALID — RETRY:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "word_count":
+                    word_count
+            }
+        )
+
+    # =============================================
+    # NO VALID RESULT AFTER RETRIES
+    # =============================================
+
+    if lesson_transition is None:
+
+        print(
+            "TRANSITION WORD COUNT FALLBACK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "message":
+                    (
+                        "No 36-40 word result found. "
+                        "Using last generated transition."
+                    )
+            }
+        )
+
+        if not candidate_transition:
+            raise RuntimeError(
+                "Transition Director returned "
+                "no usable transition"
+            )
+
+        lesson_transition = (
+            candidate_transition
+        )
+
+    # =============================================
+    # FINAL RESULT
+    # =============================================
+
+    final_speech = str(
+        lesson_transition.get(
+            "speech"
+        )
+        or ""
+    ).strip()
+
+    final_word_count = len(
+        final_speech.split()
+    )
+
+    print(
+        "========== TRANSITION ONLY REGENERATION RESULT =========="
+    )
+
+    print(
+        json.dumps(
+            lesson_transition,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+    print(
+        "========== TRANSITION FINAL WORD COUNT ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "word_count":
+                final_word_count,
+
+            "speech":
+                final_speech
+        }
+    )
+
+    return lesson_transition
+
 def build_segment_visual_fallback_prompt(
         unit_lesson: dict,
         parent_lesson: dict,
@@ -4600,6 +5016,994 @@ def normalize_universal_lesson_visuals(
     return normalized_sequence
 
 # =====================================================
+# KID PERSONAL MEDIA
+# Personal reusable media for paid subscribers
+# =====================================================
+
+KID_PERSONAL_MEDIA_BUCKET = (
+    "kid-personal-media"
+)
+
+KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS = (
+    3600
+)
+
+KID_LESSON_INTRO_MEDIA_TYPE = (
+    "lesson_intro"
+)
+
+KID_LESSON_INTRO_VARIANTS = (
+    1,
+    2,
+    3
+)
+
+
+def is_paid_active_subscription(
+        user_id: str
+) -> bool:
+    """
+    מחזיר True רק למשתמש בתשלום
+    עם מנוי פעיל ולא מבוטל.
+    """
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    res = (
+        sb.table(
+            "subscriptions"
+        )
+        .select(
+            "plan, "
+            "status, "
+            "expires_at, "
+            "canceled_at"
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "status",
+            "active"
+        )
+        .neq(
+            "plan",
+            "free"
+        )
+        .is_(
+            "canceled_at",
+            "null"
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return False
+
+    subscription = (
+        res.data[0]
+    )
+
+    expires_at = (
+        subscription.get(
+            "expires_at"
+        )
+    )
+
+    if expires_at:
+
+        expires_dt = (
+            parse_supabase_datetime(
+                expires_at
+            )
+        )
+
+        if (
+            expires_dt
+            and
+            expires_dt
+            <= datetime.now(
+                timezone.utc
+            )
+        ):
+            return False
+
+    return True
+
+
+def get_kid_lesson_intro_media(
+        kid_id: str
+) -> list[dict]:
+
+    res = (
+        sb.table(
+            "kid_personal_media"
+        )
+        .select(
+            "id, "
+            "kid_id, "
+            "media_type, "
+            "variant, "
+            "storage_path, "
+            "status"
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "media_type",
+            KID_LESSON_INTRO_MEDIA_TYPE
+        )
+        .order(
+            "variant"
+        )
+        .execute()
+    )
+
+    return (
+        res.data
+        or []
+    )
+
+
+def create_kid_personal_media_signed_url(
+        storage_path: str
+) -> str:
+
+    signed_response = (
+        sb.storage
+        .from_(
+            KID_PERSONAL_MEDIA_BUCKET
+        )
+        .create_signed_url(
+            storage_path,
+            KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS
+        )
+    )
+
+    signed_url = None
+
+    if isinstance(
+        signed_response,
+        dict
+    ):
+        signed_url = (
+            signed_response.get(
+                "signedURL"
+            )
+            or signed_response.get(
+                "signedUrl"
+            )
+            or signed_response.get(
+                "signed_url"
+            )
+        )
+
+    if not signed_url:
+        raise RuntimeError(
+            "Failed to create signed URL "
+            f"for kid personal media: "
+            f"{storage_path}"
+        )
+
+    return signed_url
+
+
+def get_ready_kid_lesson_intro_videos(
+        kid_id: str
+) -> list[dict]:
+
+    media_rows = (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+    ready_videos = []
+
+    for row in media_rows:
+
+        if (
+            row.get("status")
+            != "ready"
+        ):
+            continue
+
+        storage_path = str(
+            row.get(
+                "storage_path"
+            )
+            or ""
+        ).strip()
+
+        if not storage_path:
+            continue
+
+        try:
+
+            signed_url = (
+                create_kid_personal_media_signed_url(
+                    storage_path
+                )
+            )
+
+        except Exception as e:
+
+            print(
+                "KID INTRO SIGNED URL FAILED:",
+                {
+                    "kid_id":
+                        kid_id,
+
+                    "variant":
+                        row.get(
+                            "variant"
+                        ),
+
+                    "storage_path":
+                        storage_path,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            continue
+
+        ready_videos.append({
+            "variant":
+                row.get(
+                    "variant"
+                ),
+
+            "storage_path":
+                storage_path,
+
+            "url":
+                signed_url
+        })
+
+    return ready_videos
+
+def ensure_kid_lesson_intro_rows(
+        kid_id: str
+) -> list[dict]:
+
+    existing_rows = (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+    existing_variants = {
+        int(
+            row.get("variant")
+            or 0
+        )
+        for row in existing_rows
+    }
+
+    missing_variants = [
+        variant
+        for variant
+        in KID_LESSON_INTRO_VARIANTS
+        if variant not in existing_variants
+    ]
+
+    if not missing_variants:
+
+        print(
+            "KID INTRO ROWS ALREADY EXIST:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variants":
+                    sorted(
+                        existing_variants
+                    )
+            }
+        )
+
+        return existing_rows
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    rows_to_insert = []
+
+    for variant in missing_variants:
+
+        rows_to_insert.append({
+            "kid_id":
+                kid_id,
+
+            "media_type":
+                KID_LESSON_INTRO_MEDIA_TYPE,
+
+            "variant":
+                variant,
+
+            "storage_path":
+                None,
+
+            "status":
+                "pending",
+
+            "error_message":
+                None,
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+
+    try:
+
+        sb.table(
+            "kid_personal_media"
+        ).insert(
+            rows_to_insert
+        ).execute()
+
+        print(
+            "KID INTRO PENDING ROWS CREATED:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variants":
+                    missing_variants
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "KID INTRO ROW INSERT WARNING:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+    return (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+
+# =====================================================
+# KID PERSONAL LESSON INTRO VIDEO GENERATION
+# =====================================================
+
+def get_kid_lesson_intro_script(
+        child: dict,
+        variant: int
+) -> str:
+
+    child_name = str(
+        child.get(
+            "child_name"
+        )
+        or ""
+    ).strip()
+
+    gender = str(
+        child.get(
+            "gender"
+        )
+        or "male"
+    ).strip().lower()
+
+    ready_word = (
+        "מוכנה"
+        if gender == "female"
+        else "מוכן"
+    )
+
+    scripts = {
+
+        1:
+            (
+                f"היי {child_name}! "
+                f"איזה כיף שבאת ללמוד איתי."
+            ),
+
+        2:
+            (
+                f"{child_name}, כיף לראות אותך שוב! "
+                f"{ready_word} להתחיל?"
+            ),
+
+        3:
+            (
+                f"היי {child_name}! "
+                f"בואי נראה מה נלמד היום."
+                if gender == "female"
+                else
+                f"היי {child_name}! "
+                f"בוא נראה מה נלמד היום."
+            )
+    }
+
+    script = str(
+        scripts.get(
+            variant
+        )
+        or ""
+    ).strip()
+
+    if not script:
+        raise RuntimeError(
+            f"Missing intro script "
+            f"for variant {variant}"
+        )
+
+    return script
+
+
+def download_gemini_video_bytes(
+        output_video
+) -> bytes:
+
+    if output_video is None:
+        raise RuntimeError(
+            "Gemini returned no video"
+        )
+
+    video_uri = getattr(
+        output_video,
+        "uri",
+        None
+    )
+
+    if video_uri:
+
+        file_name = (
+            str(video_uri)
+            .split("/")[-1]
+        )
+
+        file_name = (
+            file_name
+            .split(":")[0]
+            .split("?")[0]
+        )
+
+        print(
+            "KID INTRO VIDEO WAITING:",
+            {
+                "file_name":
+                    file_name
+            }
+        )
+
+        video_ready = False
+
+        for _ in range(60):
+
+            file_info = (
+                gemini_client
+                .files
+                .get(
+                    name=
+                        f"files/{file_name}"
+                )
+            )
+
+            state = str(
+                getattr(
+                    getattr(
+                        file_info,
+                        "state",
+                        None
+                    ),
+                    "name",
+                    ""
+                )
+                or ""
+            ).upper()
+
+            if state == "ACTIVE":
+                video_ready = True
+                break
+
+            if state == "FAILED":
+                raise RuntimeError(
+                    "Gemini kid intro video "
+                    "processing failed"
+                )
+
+            time.sleep(5)
+
+        if not video_ready:
+            raise RuntimeError(
+                "Gemini kid intro video "
+                "processing timed out"
+            )
+
+        video_bytes = (
+            gemini_client
+            .files
+            .download(
+                file=video_uri
+            )
+        )
+
+    else:
+
+        inline_data = getattr(
+            output_video,
+            "data",
+            None
+        )
+
+        if not inline_data:
+            raise RuntimeError(
+                "Gemini kid intro video "
+                "contains no data"
+            )
+
+        if isinstance(
+                inline_data,
+                str
+        ):
+
+            video_bytes = (
+                base64.b64decode(
+                    inline_data
+                )
+            )
+
+        else:
+
+            video_bytes = bytes(
+                inline_data
+            )
+
+    if not video_bytes:
+        raise RuntimeError(
+            "Downloaded kid intro video "
+            "is empty"
+        )
+
+    return video_bytes
+
+
+def generate_single_kid_lesson_intro_video(
+        child: dict,
+        variant: int
+):
+
+    kid_id = str(
+        child.get("id")
+        or ""
+    ).strip()
+
+    if not kid_id:
+        raise RuntimeError(
+            "kid_id is missing"
+        )
+
+    media_res = (
+        sb.table(
+            "kid_personal_media"
+        )
+        .select("*")
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "media_type",
+            KID_LESSON_INTRO_MEDIA_TYPE
+        )
+        .eq(
+            "variant",
+            variant
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not media_res.data:
+        return
+
+    media_row = (
+        media_res.data[0]
+    )
+
+    current_status = str(
+        media_row.get(
+            "status"
+        )
+        or ""
+    ).strip()
+
+    if current_status == "ready":
+        return
+
+    if current_status == "generating":
+        return
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    claim_res = (
+        sb.table(
+            "kid_personal_media"
+        )
+        .update({
+            "status":
+                "generating",
+
+            "error_message":
+                None,
+
+            "updated_at":
+                now_iso
+        })
+        .eq(
+            "id",
+            media_row["id"]
+        )
+        .eq(
+            "status",
+            current_status
+        )
+        .execute()
+    )
+
+    if not claim_res.data:
+        return
+
+    try:
+
+        script = (
+            get_kid_lesson_intro_script(
+                child=child,
+                variant=variant
+            )
+        )
+
+        print(
+            "========== KID INTRO VIDEO START ==========",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variant":
+                    variant,
+
+                "script":
+                    script
+            }
+        )
+
+        teacher_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                LESSON_TRANSITION_TEACHER_PATH
+            )
+        )
+
+        if not teacher_bytes:
+            raise RuntimeError(
+                "Kid intro teacher reference "
+                "is missing"
+            )
+
+        teacher_b64 = (
+            base64.b64encode(
+                teacher_bytes
+            )
+            .decode("utf-8")
+        )
+
+        video_prompt = f"""
+[# References
+<IMAGE_REF_0>@Image1]
+
+Create a short premium personalized educational
+welcome video with synchronized spoken audio.
+
+IMAGE_REF_0 shows the fictional,
+AI-generated IAKIDS virtual teacher.
+
+Maintain the same fictional teacher design.
+
+The teacher looks directly toward the learner,
+smiles naturally and gives a small welcoming gesture.
+
+THE TEACHER MUST SAY EXACTLY THIS HEBREW TEXT:
+
+"{script}"
+
+Speak ONLY this text.
+
+Do not paraphrase.
+Do not add words.
+Do not remove words.
+Do not repeat words.
+Do not repeat the child's name.
+
+The spoken language must be Hebrew.
+
+Use natural fluent Hebrew pronunciation.
+
+- premium semi-realistic educational animation
+- teacher face clearly visible
+- mouth clearly visible while speaking
+- natural eye contact
+- subtle body movement
+- subtle hand gesture
+- medium composition
+- cinematic soft lighting
+- one continuous shot
+- synchronized Hebrew spoken audio
+- no written text
+- no subtitles
+- no captions
+- no labels
+- no logos
+- no UI
+- no watermark
+
+After the final word the teacher becomes silent.
+
+No additional speech.
+No repeated ending.
+No invented dialogue.
+
+The final video must contain spoken audio.
+""".strip()
+
+        interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                input=[
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            teacher_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "text",
+
+                        "text":
+                            video_prompt
+                    }
+                ],
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        if not getattr(
+                interaction,
+                "id",
+                None
+        ):
+            raise RuntimeError(
+                "Gemini returned no kid intro "
+                "interaction id"
+            )
+
+        output_video = getattr(
+            interaction,
+            "output_video",
+            None
+        )
+
+        video_bytes = (
+            download_gemini_video_bytes(
+                output_video
+            )
+        )
+
+        storage_path = (
+            f"{kid_id}/"
+            f"lesson-intro/"
+            f"intro-{variant}.mp4"
+        )
+
+        sb.storage.from_(
+            KID_PERSONAL_MEDIA_BUCKET
+        ).upload(
+
+            path=
+                storage_path,
+
+            file=
+                video_bytes,
+
+            file_options={
+                "content-type":
+                    "video/mp4",
+
+                "upsert":
+                    "true"
+            }
+        )
+
+        ready_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "kid_personal_media"
+        ).update({
+
+            "storage_path":
+                storage_path,
+
+            "status":
+                "ready",
+
+            "error_message":
+                None,
+
+            "updated_at":
+                ready_at
+
+        }).eq(
+            "id",
+            media_row["id"]
+        ).execute()
+
+        print(
+            "========== KID INTRO VIDEO READY ==========",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variant":
+                    variant,
+
+                "storage_path":
+                    storage_path,
+
+                "bytes":
+                    len(video_bytes)
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "========== KID INTRO VIDEO ERROR ==========",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variant":
+                    variant,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        try:
+
+            sb.table(
+                "kid_personal_media"
+            ).update({
+
+                "status":
+                    "failed",
+
+                "error_message":
+                    str(e)[:1500],
+
+                "updated_at":
+                    datetime
+                    .now(timezone.utc)
+                    .isoformat()
+
+            }).eq(
+                "id",
+                media_row["id"]
+            ).execute()
+
+        except Exception as update_error:
+
+            print(
+                "KID INTRO FAILURE UPDATE ERROR:",
+                repr(
+                    update_error
+                )
+            )
+
+
+def generate_kid_lesson_intro_videos_background(
+        child: dict
+):
+
+    kid_id = str(
+        child.get("id")
+        or ""
+    ).strip()
+
+    print(
+        "========== KID INTRO VIDEOS BACKGROUND START ==========",
+        {
+            "kid_id":
+                kid_id,
+
+            "child_name":
+                child.get(
+                    "child_name"
+                )
+        }
+    )
+
+    for variant in KID_LESSON_INTRO_VARIANTS:
+
+        generate_single_kid_lesson_intro_video(
+            child=child,
+            variant=variant
+        )
+
+    print(
+        "========== KID INTRO VIDEOS BACKGROUND DONE ==========",
+        {
+            "kid_id":
+                kid_id
+        }
+    )
+# =====================================================
 # UNIVERSAL LESSON MEDIA
 # Shared images / videos for all children
 # =====================================================
@@ -4607,6 +6011,21 @@ def normalize_universal_lesson_visuals(
 LESSON_MEDIA_BUCKET = "lesson-media"
 
 LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
+
+# =====================================================
+# UNIVERSAL LESSON TRANSITION VIDEO
+# =====================================================
+
+LESSON_TRANSITION_VIDEO_MODEL = (
+    "gemini-omni-1.1-flash"
+)
+
+LESSON_TRANSITION_TEACHER_PATH = (
+    "shared/teacher/"
+    "lesson-teacher-full-body.png"
+)
+
+LESSON_TRANSITION_VIDEO_TARGET_SECONDS = 20
 
 # בשלב הראשון נייצר רק Hero Image אחת לכל תת-שיעור
 LESSON_MEDIA_HERO_VERSION = 1
@@ -4682,6 +6101,76 @@ def create_lesson_media_signed_url(
 
     return signed_url
 
+def add_transition_video_signed_url(
+        transition: dict | None
+) -> dict | None:
+
+    if not isinstance(
+        transition,
+        dict
+    ):
+        return transition
+
+    video = (
+        transition.get(
+            "video"
+        )
+        or {}
+    )
+
+    if not isinstance(
+        video,
+        dict
+    ):
+        return transition
+
+    storage_path = str(
+        video.get(
+            "storage_path"
+        )
+        or ""
+    ).strip()
+
+    if not storage_path:
+
+        return transition
+
+    try:
+
+        signed_url = (
+            create_lesson_media_signed_url(
+                storage_path
+            )
+        )
+
+    except Exception as e:
+
+        print(
+            "TRANSITION VIDEO SIGNED URL FAILED:",
+            {
+                "storage_path":
+                    storage_path,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        return transition
+
+    return {
+        **transition,
+
+        "video": {
+            **video,
+
+            "url":
+                signed_url,
+
+            "url_expires_in_seconds":
+                LESSON_MEDIA_URL_EXPIRY_SECONDS
+        }
+    }
 
 def build_lesson_hero_image_prompt(
         unit_lesson: dict,
@@ -6254,6 +7743,1006 @@ def generate_all_lesson_visuals_background(
 
         traceback.print_exc()
 
+# =====================================================
+# TRANSITION VIDEO
+# Teacher + lesson visual -> Gemini Omni
+# =====================================================
+
+def generate_transition_video_background(
+        unit_lesson_id: int
+):
+
+    try:
+
+        print(
+            "========== TRANSITION VIDEO START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id
+            }
+        )
+
+        # =============================================
+        # LOAD LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generated_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        transition = (
+            generated_json.get(
+                "transition"
+            )
+            or {}
+        )
+
+        if not transition:
+
+            print(
+                "TRANSITION VIDEO SKIPPED - "
+                "NO TRANSITION DATA:",
+                unit_lesson_id
+            )
+
+            return
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        # =============================================
+        # FINAL STORAGE PATH
+        # =============================================
+
+        video_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"transition/"
+            f"transition_part_1_to_2.mp4"
+        )
+
+        # =============================================
+        # CACHE CHECK
+        # =============================================
+
+        try:
+
+            create_lesson_media_signed_url(
+                video_storage_path
+            )
+
+            print(
+                "TRANSITION VIDEO CACHE HIT:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "storage_path":
+                        video_storage_path
+                }
+            )
+
+            # =========================================
+            # REPAIR TRANSITION JSON ON CACHE HIT
+            #
+            # ייתכן שקובץ הווידאו כבר קיים ב-Storage,
+            # אבל generated_lesson_json עדיין לא מכיל
+            # transition.video.storage_path.
+            #
+            # בלי זה אי אפשר לייצר Signed URL בפרונט.
+            # =========================================
+
+            current_video = (
+                transition.get(
+                    "video"
+                )
+                or {}
+            )
+
+            if not isinstance(
+                    current_video,
+                    dict
+            ):
+                current_video = {}
+
+            current_storage_path = str(
+                current_video.get(
+                    "storage_path"
+                )
+                or ""
+            ).strip()
+
+            if (
+                current_storage_path
+                != video_storage_path
+            ):
+
+                transition[
+                    "video"
+                ] = {
+                    **current_video,
+
+                    "storage_path":
+                        video_storage_path,
+
+                    "status":
+                        "ready"
+                }
+
+                generated_json[
+                    "transition"
+                ] = transition
+
+                supabase_with_retry(
+                    lambda:
+                        sb.table(
+                            "lesson_units_content"
+                        )
+                        .update({
+                            "generated_lesson_json":
+                                generated_json,
+
+                            "updated_at":
+                                datetime
+                                .now(
+                                    timezone.utc
+                                )
+                                .isoformat()
+                        })
+                        .eq(
+                            "id",
+                            unit_lesson_id
+                        )
+                        .execute(),
+
+                    label=
+                        "REPAIR TRANSITION VIDEO CACHE PATH"
+                )
+
+                print(
+                    "TRANSITION VIDEO CACHE JSON REPAIRED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "storage_path":
+                            video_storage_path
+                    }
+                )
+
+            return
+
+        except Exception:
+
+            print(
+                "TRANSITION VIDEO CACHE MISS:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id
+                }
+            )
+
+        # =============================================
+        # LOAD TEACHER REFERENCE
+        # =============================================
+
+        teacher_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                LESSON_TRANSITION_TEACHER_PATH
+            )
+        )
+
+        if not teacher_bytes:
+
+            raise RuntimeError(
+                "Transition teacher reference "
+                "is missing"
+            )
+
+        # =============================================
+        # LOAD LESSON MASTER VISUAL
+        # =============================================
+
+        lesson_visual_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"visual_1.png"
+        )
+
+        lesson_visual_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                lesson_visual_path
+            )
+        )
+
+        if not lesson_visual_bytes:
+
+            raise RuntimeError(
+                "Transition lesson visual "
+                "reference is missing"
+            )
+
+        # =============================================
+        # TRANSITION CONTENT
+        # =============================================
+
+        speech = str(
+            transition.get(
+                "speech"
+            )
+            or ""
+        ).strip()
+
+        video_scene = str(
+            transition.get(
+                "video_scene"
+            )
+            or ""
+        ).strip()
+
+        next_part_hook = str(
+            transition.get(
+                "next_part_hook"
+            )
+            or ""
+        ).strip()
+
+        if not speech:
+
+            raise RuntimeError(
+                "Transition speech is empty"
+            )
+
+        # =============================================
+        # SPLIT SPEECH INTO TWO VIDEO PARTS
+        #
+        # 36-40 מילים:
+        #
+        # Part 1 = בערך 18-20 מילים
+        # Part 2 = בערך 18-20 מילים
+        #
+        # כך Gemini לא מקבל את כל הטקסט
+        # כבר ב-10 השניות הראשונות.
+        # =============================================
+
+        speech_words = (
+            speech.split()
+        )
+
+        total_speech_words = len(
+            speech_words
+        )
+
+        split_index = (
+            total_speech_words + 1
+        ) // 2
+
+        speech_part_1 = " ".join(
+            speech_words[
+                :split_index
+            ]
+        )
+
+        speech_part_2 = " ".join(
+            speech_words[
+                split_index:
+            ]
+        )
+
+        if not speech_part_1:
+
+            raise RuntimeError(
+                "Transition speech part 1 "
+                "is empty"
+            )
+
+        if not speech_part_2:
+
+            raise RuntimeError(
+                "Transition speech part 2 "
+                "is empty"
+            )
+
+        print(
+            "========== TRANSITION SPEECH SPLIT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "total_words":
+                    total_speech_words,
+
+                "part_1_words":
+                    len(
+                        speech_part_1.split()
+                    ),
+
+                "part_2_words":
+                    len(
+                        speech_part_2.split()
+                    ),
+
+                "part_1":
+                    speech_part_1,
+
+                "part_2":
+                    speech_part_2
+            }
+        )
+
+        print(
+            "========== TRANSITION VIDEO CONTENT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "full_speech":
+                    speech,
+
+                "speech_words":
+                    total_speech_words,
+
+                "video_scene":
+                    video_scene,
+
+                "next_part_hook":
+                    next_part_hook
+            }
+        )
+
+        # =============================================
+        # PART 1 VIDEO PROMPT
+        #
+        # חשוב:
+        # כאן שולחים רק את החצי הראשון.
+        # =============================================
+
+        video_prompt_part_1 = f"""
+        [# References
+        <IMAGE_REF_0>@Image1
+        <IMAGE_REF_1>@Image2]
+
+        Create the FIRST PART of a premium educational
+        transition video with synchronized spoken audio.
+
+        REFERENCE ROLES:
+
+        IMAGE_REF_0 shows a fictional,
+        AI-generated IAKIDS virtual teacher character.
+
+        This is not a real person.
+
+        Use the reference only to maintain
+        consistent fictional character design,
+        including hairstyle, clothing,
+        general appearance and visual style.
+
+        IMAGE_REF_1 defines the visual world,
+        illustration style, lighting, colors,
+        environment and rendering style of this lesson.
+
+        Place the teacher naturally INSIDE
+        the educational world represented by IMAGE_REF_1.
+
+        The teacher must look like she genuinely belongs
+        inside the same illustrated lesson scene.
+
+        TRANSITION SCENE:
+
+        {video_scene}
+
+        IMPORTANT:
+
+        This is PART 1 of a two-part continuous video.
+
+        THE TEACHER MUST SAY EXACTLY
+        THIS TEXT IN HEBREW:
+
+        "{speech_part_1}"
+
+        Speak ONLY this Hebrew text.
+
+        Do not speak the second half yet.
+
+        Do not paraphrase.
+        Do not add words.
+        Do not remove words.
+        Do not repeat words.
+
+        The spoken language must be Hebrew.
+
+        The fictional animated teacher should speak
+        the provided Hebrew dialogue naturally.
+
+        Her visible speaking animation should match
+        the timing of the generated Hebrew audio.
+
+        VIDEO DIRECTION:
+
+        - premium semi-realistic educational illustration
+        - match IMAGE_REF_1's exact visual style
+        - maintain the same fictional teacher character design
+        - natural teacher body language
+        - warm facial expression
+        - subtle hand gestures while speaking
+        - look naturally toward the learner/camera
+        - medium or medium-wide composition
+        - keep the teacher's face clearly visible
+        - keep the mouth clearly visible while speaking
+        - single continuous educational scene
+        - smooth natural movement
+        - natural synchronized Hebrew speech
+        - accurate visible lip synchronization
+        - no scene cuts while the teacher is speaking
+        - no written text
+        - no captions
+        - no labels
+        - no logos
+        - no UI elements
+        - no watermark text
+
+        IMPORTANT:
+
+        The final video must contain
+        synchronized spoken audio.
+
+        Do not create a silent video.
+
+        Do not attempt to finish the entire transition.
+        Speak only PART 1.
+
+        Use the given images only as references.
+        Do not display them as flat pictures inside the video.
+        """.strip()
+
+        # =============================================
+        # BASE64 REFERENCES
+        # =============================================
+
+        teacher_b64 = (
+            base64.b64encode(
+                teacher_bytes
+            )
+            .decode("utf-8")
+        )
+
+        lesson_visual_b64 = (
+            base64.b64encode(
+                lesson_visual_bytes
+            )
+            .decode("utf-8")
+        )
+
+        # =============================================
+        # DEBUG EXACT INPUT
+        # =============================================
+
+        print(
+            "========== TRANSITION GEMINI PART 1 INPUT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "speech":
+                    speech_part_1,
+
+                "speech_words":
+                    len(
+                        speech_part_1.split()
+                    )
+            }
+        )
+
+        # =============================================
+        # FIRST VIDEO PART
+        # =============================================
+
+        first_interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                input=[
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            teacher_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            lesson_visual_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "text",
+
+                        "text":
+                            video_prompt_part_1
+                    }
+                ],
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        if not getattr(
+                first_interaction,
+                "id",
+                None
+        ):
+
+            raise RuntimeError(
+                "Gemini returned no transition "
+                "interaction id for part 1"
+            )
+
+        # =============================================
+        # PART 2
+        #
+        # Gemini ממשיך מה-interaction הקודם,
+        # אבל מקבל במפורש רק את החצי השני.
+        # =============================================
+
+        video_prompt_part_2 = f"""
+        Continue the EXACT SAME educational video
+        from the previous interaction.
+
+        This is PART 2 of the same continuous transition.
+
+        Continue the same fictional animated
+        IAKIDS teacher character and educational scene.
+
+        Maintain continuity of:
+
+        - character design
+        - hairstyle
+        - clothing
+        - voice style
+        - environment
+        - illustration style
+        - lighting
+        - camera position
+        - scene
+
+        IMPORTANT:
+
+        The first part of the Hebrew dialogue
+        has ALREADY been spoken.
+
+        DO NOT repeat it.
+
+        THE TEACHER MUST NOW SAY EXACTLY
+        THIS REMAINING HEBREW TEXT:
+
+        "{speech_part_2}"
+
+        Speak ONLY this text.
+
+        Do not repeat any words from Part 1.
+        Do not restart the transition.
+        Do not paraphrase.
+        Do not add words.
+        Do not remove words.
+        Do not invent new dialogue.
+
+        Continue speaking naturally as if this sentence
+        immediately follows the previous video segment.
+
+        Keep the same teacher voice
+        and natural Hebrew speaking style.
+
+        Her visible speaking animation should remain
+        naturally timed with the Hebrew speech.
+
+AFTER THE FINAL WORD:
+
+The spoken dialogue is FINISHED.
+
+The teacher must become completely silent immediately.
+
+Do NOT repeat the final sentence.
+Do NOT repeat the final phrase.
+Do NOT say "בואו נמשיך" again.
+Do NOT say "בואו נמשיך ונגלה" again.
+Do NOT add another invitation to continue.
+Do NOT add any closing phrase.
+
+After the final word, the teacher may only smile naturally
+and make one subtle SILENT hand gesture.
+
+There must be absolutely no additional speech.
+
+No filler words.
+No repeated dialogue.
+No invented dialogue.
+No repeated ending.
+        No captions.
+        No written text.
+        No labels.
+        No logos.
+        No UI elements.
+        """.strip()
+
+        print(
+            "========== TRANSITION GEMINI PART 2 INPUT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "speech":
+                    speech_part_2,
+
+                "speech_words":
+                    len(
+                        speech_part_2.split()
+                    ),
+
+                "previous_interaction_id":
+                    first_interaction.id
+            }
+        )
+
+        second_interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                previous_interaction_id=
+                    first_interaction.id,
+
+                input=
+                    video_prompt_part_2,
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        # =============================================
+        # FINAL VIDEO
+        #
+        # ה-output של interaction 2 הוא
+        # הסרטון המורחב שמכיל Part 1 + Part 2.
+        # =============================================
+
+        output_video = getattr(
+            second_interaction,
+            "output_video",
+            None
+        )
+
+        if output_video is None:
+
+            raise RuntimeError(
+                "Gemini returned no "
+                "transition video"
+            )
+
+        # =============================================
+        # VIDEO URI
+        # =============================================
+
+        video_uri = getattr(
+            output_video,
+            "uri",
+            None
+        )
+
+        # =============================================
+        # WAIT UNTIL GOOGLE VIDEO FILE READY
+        # =============================================
+
+        if video_uri:
+
+            file_name = (
+                str(video_uri)
+                .split("/")[-1]
+            )
+
+            file_name = (
+                file_name
+                .split(":")[0]
+                .split("?")[0]
+            )
+
+            print(
+                "TRANSITION VIDEO WAITING:",
+                {
+                    "file_name":
+                        file_name
+                }
+            )
+
+            for _ in range(60):
+
+                file_info = (
+                    gemini_client
+                    .files
+                    .get(
+                        name=
+                            f"files/{file_name}"
+                    )
+                )
+
+                state = str(
+                    getattr(
+                        getattr(
+                            file_info,
+                            "state",
+                            None
+                        ),
+                        "name",
+                        ""
+                    )
+                    or ""
+                ).upper()
+
+                if state == "ACTIVE":
+                    break
+
+                if state == "FAILED":
+
+                    raise RuntimeError(
+                        "Gemini transition video "
+                        "processing failed"
+                    )
+
+                time.sleep(5)
+
+            video_bytes = (
+                gemini_client
+                .files
+                .download(
+                    file=video_uri
+                )
+            )
+
+        else:
+
+            # =========================================
+            # INLINE FALLBACK
+            # =========================================
+
+            inline_data = getattr(
+                output_video,
+                "data",
+                None
+            )
+
+            if not inline_data:
+
+                raise RuntimeError(
+                    "Gemini transition video "
+                    "contains no data"
+                )
+
+            if isinstance(
+                    inline_data,
+                    str
+            ):
+
+                video_bytes = (
+                    base64.b64decode(
+                        inline_data
+                    )
+                )
+
+            else:
+
+                video_bytes = bytes(
+                    inline_data
+                )
+
+        if not video_bytes:
+
+            raise RuntimeError(
+                "Downloaded transition video "
+                "is empty"
+            )
+
+        # =============================================
+        # STORE IN SUPABASE
+        # =============================================
+
+        sb.storage.from_(
+            LESSON_MEDIA_BUCKET
+        ).upload(
+
+            path=
+                video_storage_path,
+
+            file=
+                video_bytes,
+
+            file_options={
+                "content-type":
+                    "video/mp4",
+
+                "upsert":
+                    "true"
+            }
+        )
+
+        # =============================================
+        # SAVE METADATA
+        # =============================================
+
+        transition[
+            "video"
+        ] = {
+
+            "status":
+                "ready",
+
+            "provider":
+                "google",
+
+            "model":
+                LESSON_TRANSITION_VIDEO_MODEL,
+
+            "bucket":
+                LESSON_MEDIA_BUCKET,
+
+            "storage_path":
+                video_storage_path,
+
+            "mime_type":
+                "video/mp4",
+
+            "aspect_ratio":
+                "16:9",
+
+            "resolution":
+                "720p",
+
+            "target_duration_seconds":
+                20,
+
+            "speech_words":
+                total_speech_words,
+
+            "speech_part_1_words":
+                len(
+                    speech_part_1.split()
+                ),
+
+            "speech_part_2_words":
+                len(
+                    speech_part_2.split()
+                ),
+
+            "generated_at":
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+        }
+
+        generated_json[
+            "transition"
+        ] = transition
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                generated_json,
+
+            "updated_at":
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+
+        }).eq(
+            "id",
+            unit_lesson_id
+        ).execute()
+
+        print(
+            "========== TRANSITION VIDEO READY ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "storage_path":
+                    video_storage_path,
+
+                "bytes":
+                    len(video_bytes),
+
+                "speech_words":
+                    total_speech_words,
+
+                "part_1_words":
+                    len(
+                        speech_part_1.split()
+                    ),
+
+                "part_2_words":
+                    len(
+                        speech_part_2.split()
+                    )
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "========== TRANSITION VIDEO ERROR ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
 def generate_unit_lesson_media_background(
         unit_lesson_id: int
 ):
@@ -6269,6 +8758,10 @@ def generate_unit_lesson_media_background(
             max_workers=2
     ) as executor:
 
+        # =============================================
+        # AUDIO + VISUALS RUN IN PARALLEL
+        # =============================================
+
         audio_future = executor.submit(
             generate_unit_lesson_audio_background,
             unit_lesson_id
@@ -6279,10 +8772,16 @@ def generate_unit_lesson_media_background(
             unit_lesson_id
         )
 
+        # =============================================
+        # WAIT FOR VISUALS
+        # =============================================
+
         try:
+
             visuals_future.result()
 
         except Exception as e:
+
             print(
                 "LESSON VISUALS BACKGROUND FAILED:",
                 {
@@ -6296,10 +8795,44 @@ def generate_unit_lesson_media_background(
 
             traceback.print_exc()
 
+        # =============================================
+        # TRANSITION VIDEO
+        #
+        # מתחיל רק אחרי שהתמונות מוכנות,
+        # כי visual_1 משמש כ-reference.
+        # =============================================
+
         try:
+
+            generate_transition_video_background(
+                unit_lesson_id
+            )
+
+        except Exception as e:
+
+            print(
+                "LESSON TRANSITION VIDEO BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
+
+        # =============================================
+        # WAIT FOR AUDIO
+        # =============================================
+
+        try:
+
             audio_future.result()
 
         except Exception as e:
+
             print(
                 "LESSON AUDIO BACKGROUND FAILED:",
                 {
@@ -7797,6 +10330,7 @@ def get_active_lesson_state(
 )
 def lesson_intro(
         body: LessonIntroRequest,
+        background_tasks: BackgroundTasks,
         authorization: str = Header(None)
 ):
     try:
@@ -7823,7 +10357,119 @@ def lesson_intro(
             user_id=user.id,
             kid_id=body.kid_id
         )
+        # =============================================
+        # PERSONAL INTRO VIDEO ELIGIBILITY
+        # =============================================
 
+        personal_intro_eligible = False
+
+        personal_intro_rows = []
+
+        personal_intro_videos = []
+
+        try:
+
+            personal_intro_eligible = (
+                is_paid_active_subscription(
+                    user.id
+                )
+            )
+
+            print(
+                "KID PERSONAL INTRO ELIGIBILITY:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "eligible":
+                        personal_intro_eligible
+                }
+            )
+
+            if personal_intro_eligible:
+
+                personal_intro_rows = (
+                    ensure_kid_lesson_intro_rows(
+                        child["id"]
+                    )
+                )
+
+                personal_intro_videos = (
+                    get_ready_kid_lesson_intro_videos(
+                        child["id"]
+                    )
+                )
+                # =====================================
+                # GENERATE MISSING PERSONAL INTROS
+                # IN BACKGROUND
+                # =====================================
+
+                ready_variants = {
+                    int(
+                        video.get(
+                            "variant"
+                        )
+                        or 0
+                    )
+                    for video
+                    in personal_intro_videos
+                }
+
+                missing_ready_variants = [
+                    variant
+                    for variant
+                    in KID_LESSON_INTRO_VARIANTS
+                    if variant
+                    not in ready_variants
+                ]
+
+                if missing_ready_variants:
+
+                    print(
+                        "QUEUE KID PERSONAL INTRO GENERATION:",
+                        {
+                            "kid_id":
+                                child["id"],
+
+                            "missing_variants":
+                                missing_ready_variants
+                        }
+                    )
+
+                    background_tasks.add_task(
+                        generate_kid_lesson_intro_videos_background,
+                        child
+                    )
+        except Exception as personal_media_error:
+
+            # תקלה במנגנון האישי לעולם לא
+            # תפיל את פתיחת השיעור.
+            #
+            # במקרה כזה הפתיח הקולי הרגיל ממשיך.
+            print(
+                "KID PERSONAL INTRO CHECK FAILED:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "error":
+                        repr(
+                            personal_media_error
+                        )
+                }
+            )
+
+            personal_intro_eligible = False
+
+            personal_intro_rows = []
+
+            personal_intro_videos = []
         # =============================================
         # SELECTED UNIT LESSON
         # =============================================
@@ -8063,7 +10709,35 @@ def lesson_intro(
                 for action in sequence
             ],
 
-            "wait_for_answer": False
+            "wait_for_answer":
+                False,
+
+            "personal_intro": {
+
+                "eligible":
+                    personal_intro_eligible,
+
+                "media_type":
+                    KID_LESSON_INTRO_MEDIA_TYPE,
+
+                "required_variants":
+                    len(
+                        KID_LESSON_INTRO_VARIANTS
+                    ),
+
+                "records_count":
+                    len(
+                        personal_intro_rows
+                    ),
+
+                "ready_count":
+                    len(
+                        personal_intro_videos
+                    ),
+
+                "videos":
+                    personal_intro_videos
+            }
         }
 
     except HTTPException:
@@ -8112,7 +10786,108 @@ def get_or_generate_unit_lesson(
             user_id=user.id,
             kid_id=body.kid_id
         )
+        # =============================================
+        # ENSURE PERSONAL INTRO VIDEOS
+        # PAID SUBSCRIBERS ONLY
+        # =============================================
 
+        try:
+
+            personal_intro_eligible = (
+                is_paid_active_subscription(
+                    user.id
+                )
+            )
+
+            print(
+                "UNIT LESSON PERSONAL INTRO CHECK:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "eligible":
+                        personal_intro_eligible
+                }
+            )
+
+            if personal_intro_eligible:
+
+                ensure_kid_lesson_intro_rows(
+                    child["id"]
+                )
+
+                ready_intro_videos = (
+                    get_ready_kid_lesson_intro_videos(
+                        child["id"]
+                    )
+                )
+
+                ready_variants = {
+                    int(
+                        video.get(
+                            "variant"
+                        )
+                        or 0
+                    )
+                    for video
+                    in ready_intro_videos
+                }
+
+                missing_variants = [
+                    variant
+                    for variant
+                    in KID_LESSON_INTRO_VARIANTS
+                    if variant
+                    not in ready_variants
+                ]
+
+                if missing_variants:
+
+                    print(
+                        "QUEUE KID PERSONAL INTRO GENERATION:",
+                        {
+                            "kid_id":
+                                child["id"],
+
+                            "missing_variants":
+                                missing_variants
+                        }
+                    )
+
+                    background_tasks.add_task(
+                        generate_kid_lesson_intro_videos_background,
+                        child
+                    )
+
+                else:
+
+                    print(
+                        "KID PERSONAL INTROS ALREADY READY:",
+                        {
+                            "kid_id":
+                                child["id"]
+                        }
+                    )
+
+        except Exception as personal_intro_error:
+
+            print(
+                "UNIT LESSON PERSONAL INTRO ERROR:",
+                {
+                    "kid_id":
+                        child["id"],
+
+                    "error":
+                        repr(
+                            personal_intro_error
+                        )
+                }
+            )
+
+            traceback.print_exc()
         # =============================================
         # UNIT LESSON
         # =============================================
@@ -8516,6 +11291,124 @@ def get_or_generate_unit_lesson(
             )
 
             # =========================================
+            # TRANSITION JSON REPAIR
+            #
+            # אם ה-transition חסר מה-cache,
+            # משתמשים בפונקציה המרכזית שמייצרת
+            # מחדש רק את ה-transition.
+            # =========================================
+
+            if not isinstance(
+                    cached_json.get("transition"),
+                    dict
+            ):
+
+                print(
+                    "TRANSITION JSON MISSING — REPAIR:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"]
+                    }
+                )
+
+                try:
+
+                    # חשוב:
+                    # הפונקציה קוראת מתוך
+                    # unit_lesson["generated_lesson_json"].
+                    #
+                    # לכן מוודאים שהיא מקבלת את
+                    # ה-JSON המעודכן שנמצא כרגע ב-cache.
+                    unit_lesson[
+                        "generated_lesson_json"
+                    ] = cached_json
+
+                    lesson_transition = (
+                        regenerate_lesson_transition_only(
+                            unit_lesson=
+                                unit_lesson,
+
+                            parent_lesson=
+                                parent_lesson
+                        )
+                    )
+
+                    cached_json[
+                        "transition"
+                    ] = lesson_transition
+
+                    supabase_with_retry(
+                        lambda:
+                            sb.table(
+                                "lesson_units_content"
+                            ).update({
+
+                                "generated_lesson_json":
+                                    cached_json,
+
+                                "updated_at":
+                                    datetime
+                                    .now(timezone.utc)
+                                    .isoformat()
+
+                            }).eq(
+                                "id",
+                                unit_lesson["id"]
+                            ).execute(),
+
+                        label=
+                            "SAVE REPAIRED TRANSITION"
+                    )
+
+                    print(
+                        "TRANSITION JSON REPAIRED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "speech":
+                                lesson_transition.get(
+                                    "speech"
+                                ),
+
+                            "speech_words":
+                                len(
+                                    (
+                                        lesson_transition.get(
+                                            "speech"
+                                        )
+                                        or ""
+                                    ).split()
+                                )
+                        }
+                    )
+
+                except Exception as e:
+
+                    print(
+                        "TRANSITION JSON REPAIR FAILED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "error":
+                                repr(e)
+                        }
+                    )
+            print(
+                "QUEUE BACKGROUND TRANSITION VIDEO CHECK:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"]
+                }
+            )
+
+            background_tasks.add_task(
+                generate_transition_video_background,
+                unit_lesson["id"]
+            )
+
+            # =========================================
             # RESPONSE
             # =========================================
 
@@ -8550,6 +11443,13 @@ def get_or_generate_unit_lesson(
                 "structured_lesson":
                     cached_json.get(
                         "structured_lesson"
+                    ),
+
+                "transition":
+                    add_transition_video_signed_url(
+                        cached_json.get(
+                            "transition"
+                        )
                     ),
 
                 "audio_generation_status":
@@ -8757,6 +11657,147 @@ def get_or_generate_unit_lesson(
         )
 
         # =============================================
+        # BACKWARD COMPATIBILITY
+        #
+        # הקוד הישן עדיין משתמש ב:
+        # structured_lesson["lesson"]
+        # structured_lesson["question"]
+        #
+        # כרגע הם מייצגים את Part 1.
+        # =============================================
+
+        structured_lesson[
+            "lesson"
+        ] = (
+                structured_lesson
+                .get(
+                    "part_1",
+                    {}
+                )
+                .get(
+                    "lesson"
+                )
+                or []
+        )
+
+        structured_lesson[
+            "question"
+        ] = (
+                structured_lesson
+                .get(
+                    "part_1",
+                    {}
+                )
+                .get(
+                    "question"
+                )
+                or {}
+        )
+
+        # =============================================
+        # LESSON TRANSITION DIRECTOR
+        #
+        # מעבר אוניברסלי בין Part 1 ל-Part 2.
+        # אינו תלוי בדיאלוג של הילד.
+        # =============================================
+
+        transition_prompt = (
+            build_lesson_transition_prompt(
+
+                unit_lesson=
+                unit_lesson,
+
+                parent_lesson=
+                parent_lesson,
+
+                part_1=
+                structured_lesson[
+                    "part_1"
+                ],
+
+                part_2=
+                structured_lesson[
+                    "part_2"
+                ]
+            )
+        )
+
+        print(
+            "========== LESSON TRANSITION DIRECTOR START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"]
+            }
+        )
+
+        transition_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            transition_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Create the universal transition "
+                                "between Part 1 and Part 2. "
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                LessonTransitionResponse
+            )
+        )
+
+        transition_data = (
+            transition_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not transition_data:
+            raise RuntimeError(
+                "Lesson Transition Director "
+                "returned no response"
+            )
+
+        lesson_transition = (
+            transition_data
+            .model_dump()
+        )
+
+        print(
+            "========== LESSON TRANSITION DIRECTOR RESULT =========="
+        )
+
+        print(
+            json.dumps(
+                lesson_transition,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
         # VISUAL DIRECTOR
         # מחליט אילו המחשות דרושות לשיעור
         # ומתי להציג תמונה או וידאו
@@ -8909,6 +11950,9 @@ def get_or_generate_unit_lesson(
             # המבנה החדש
             "structured_lesson":
                 structured_lesson,
+
+            "transition":
+                lesson_transition,
 
             # תוכנית ההמחשות של Visual Director
             "visual_director_model":
@@ -9133,6 +12177,13 @@ def get_or_generate_unit_lesson(
                     "structured_lesson"
                 ),
 
+            "transition":
+                add_transition_video_signed_url(
+                    lesson_json.get(
+                        "transition"
+                    )
+                ),
+
             "audio_generation_status":
                 "pending",
 
@@ -9190,6 +12241,279 @@ def get_or_generate_unit_lesson(
         raise HTTPException(
             status_code=500,
             detail="Unit lesson generation failed"
+        )
+
+# =====================================================
+# REGENERATE UNIT LESSON TRANSITION ONLY
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/regenerate-transition"
+)
+def regenerate_unit_lesson_transition(
+        body: UnitLessonRequest,
+        background_tasks: BackgroundTasks,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD EXISTING LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        # =============================================
+        # EXISTING LESSON JSON
+        # =============================================
+
+        generated_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        structured_lesson = (
+            generated_json.get(
+                "structured_lesson"
+            )
+            or {}
+        )
+
+        if not structured_lesson:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Structured lesson is missing"
+                )
+            )
+
+        if (
+            not structured_lesson.get(
+                "part_1"
+            )
+            or
+            not structured_lesson.get(
+                "part_2"
+            )
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Part 1 or Part 2 is missing"
+                )
+            )
+
+        # =============================================
+        # GENERATE ONLY NEW TRANSITION
+        # =============================================
+
+        new_transition = (
+            regenerate_lesson_transition_only(
+                unit_lesson=
+                    unit_lesson,
+
+                parent_lesson=
+                    parent_lesson
+            )
+        )
+
+        # =============================================
+        # REPLACE ONLY TRANSITION IN JSON
+        # =============================================
+
+        generated_json[
+            "transition"
+        ] = new_transition
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                generated_json,
+
+            "updated_at":
+                now_iso
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # DELETE OLD TRANSITION VIDEO ONLY
+        #
+        # התמונות, האודיו והשיעור עצמו נשארים.
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        video_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson['id']}/"
+            f"v{content_version}/"
+            f"transition/"
+            f"transition_part_1_to_2.mp4"
+        )
+
+        try:
+
+            sb.storage.from_(
+                LESSON_MEDIA_BUCKET
+            ).remove([
+                video_storage_path
+            ])
+
+            print(
+                "OLD TRANSITION VIDEO REMOVED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "storage_path":
+                        video_storage_path
+                }
+            )
+
+        except Exception as delete_error:
+
+            print(
+                "OLD TRANSITION VIDEO REMOVE SKIPPED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "error":
+                        repr(delete_error)
+                }
+            )
+
+        # =============================================
+        # GENERATE NEW VIDEO IN BACKGROUND
+        # =============================================
+
+        print(
+            "QUEUE NEW TRANSITION VIDEO:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"]
+            }
+        )
+
+        background_tasks.add_task(
+            generate_transition_video_background,
+            unit_lesson["id"]
+        )
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        return {
+            "success":
+                True,
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "transition":
+                new_transition,
+
+            "video_status":
+                "generating"
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "REGENERATE TRANSITION ERROR:",
+            {
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Failed to regenerate "
+                "lesson transition"
+            )
         )
 
 # =====================================================
@@ -10324,7 +13648,7 @@ def run_learning_coach(
     )
 
     # =============================================
-    # FINISH LEARNING COACH AND LESSON
+    # FINISH CURRENT LEARNING COACH
     # =============================================
 
     if coach_finished:
@@ -10335,42 +13659,84 @@ def run_learning_coach(
             .isoformat()
         )
 
-        next_stage = (
-            LESSON_STAGE_COMPLETED
-        )
+        # =========================================
+        # COACH 1 FINISHED
+        #
+        # עדיין לא מסיימים את השיעור.
+        # עוברים לשלב המעבר בין Part 1 ל-Part 2.
+        # =========================================
 
-        progress_update = (
-            sb.table(
-                "kid_lesson_progress"
+        if coach_index == 1:
+
+            next_stage = (
+                LESSON_STAGE_CLARIFICATION
             )
-            .update({
-                "current_stage":
-                    next_stage,
 
-                "status":
-                    "completed",
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_stage":
+                        next_stage,
 
-                "progress_percent":
-                    100,
+                    "status":
+                        "in_progress",
 
-                "mastery_score":
-                    understanding_score,
+                    "mastery_score":
+                        understanding_score,
 
-                "completed_at":
-                    now_iso,
+                    "last_activity_at":
+                        now_iso,
 
-                "last_activity_at":
-                    now_iso,
-
-                "updated_at":
-                    now_iso
-            })
-            .eq(
-                "id",
-                progress["id"]
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
             )
-            .execute()
-        )
+
+        # =========================================
+        # COACH 2 FINISHED
+        #
+        # עדיין נשאיר מקום לסיכום הסופי.
+        # =========================================
+
+        else:
+
+            next_stage = (
+                LESSON_STAGE_FINAL_ASSESSMENT
+            )
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_stage":
+                        next_stage,
+
+                    "status":
+                        "in_progress",
+
+                    "mastery_score":
+                        understanding_score,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
 
         if progress_update.data:
             progress = (
@@ -10425,9 +13791,16 @@ def run_learning_coach(
 
     if coach_finished:
 
+        # =========================================
+        # כשה-Coach הסתיים אסור לשאול עוד שאלה.
+        #
+        # speak = הודעת סיום בלבד.
+        # wait_for_answer יהיה False.
+        # =========================================
+
         sequence = [
             TutorAction(
-                type="ask",
+                type="speak",
                 text=teacher_response,
                 style="normal",
                 speed=45
@@ -10535,7 +13908,7 @@ def run_learning_coach(
             coach_finished,
 
         "lesson_completed":
-            coach_finished,
+            False,
         "session_id":
             session_id,
 
