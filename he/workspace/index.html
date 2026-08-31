@@ -17833,7 +17833,7 @@ async function waitForLessonVisual(
   visualOrder
 ){
 
-  const MAX_CHECKS = 40;
+  const MAX_CHECKS = 120;
   const CHECK_DELAY_MS = 1000;
 
   for(
@@ -17872,9 +17872,6 @@ async function waitForLessonVisual(
       return existing;
     }
 
-    /*
-      מרעננים את רשימת התמונות מה-Backend.
-    */
 
     try{
 
@@ -17903,8 +17900,10 @@ async function waitForLessonVisual(
           }
         );
 
+
       const data =
         await response.json();
+
 
       if(
         response.ok
@@ -17920,17 +17919,20 @@ async function waitForLessonVisual(
         ){
 
           const existingIndex =
-            window.CURRENT_LESSON_VISUALS
-              .findIndex(
-                visual =>
-                  Number(
-                    visual?.order || 0
-                  )
-                  ===
-                  Number(
-                    incoming?.order || 0
-                  )
-              );
+            (
+              window.CURRENT_LESSON_VISUALS
+              || []
+            ).findIndex(
+              visual =>
+                Number(
+                  visual?.order || 0
+                )
+                ===
+                Number(
+                  incoming?.order || 0
+                )
+            );
+
 
           if(existingIndex >= 0){
 
@@ -17954,6 +17956,76 @@ async function waitForLessonVisual(
 
         }
 
+
+        window.CURRENT_LESSON_VISUALS.sort(
+          (a,b) =>
+            Number(a?.order || 0)
+            -
+            Number(b?.order || 0)
+        );
+
+
+        const arrived =
+          (
+            window.CURRENT_LESSON_VISUALS
+            || []
+          ).find(
+            visual =>
+              Number(
+                visual?.order || 0
+              )
+              ===
+              Number(
+                visualOrder
+              )
+              &&
+              visual?.url
+          );
+
+
+        console.log(
+          "SEGMENT VISUAL POLL:",
+          {
+            visualOrder,
+            attempt,
+            ready:
+              Number(
+                data?.visuals_ready
+                || data?.visuals?.length
+                || 0
+              ),
+            planned:
+              Number(
+                data?.visuals_planned
+                || 0
+              ),
+            loadedOrders:
+              (
+                window.CURRENT_LESSON_VISUALS
+                || []
+              ).map(
+                visual =>
+                  Number(
+                    visual?.order || 0
+                  )
+              )
+          }
+        );
+
+
+        if(arrived){
+
+          console.log(
+            "SEGMENT VISUAL ARRIVED:",
+            {
+              visualOrder,
+              attempt
+            }
+          );
+
+          return arrived;
+        }
+
       }
 
     }
@@ -17970,6 +18042,7 @@ async function waitForLessonVisual(
 
     }
 
+
     await new Promise(
       resolve =>
         setTimeout(
@@ -17980,14 +18053,27 @@ async function waitForLessonVisual(
 
   }
 
+
   console.warn(
     "SEGMENT VISUAL TIMEOUT:",
-    visualOrder
+    {
+      visualOrder,
+      loadedOrders:
+        (
+          window.CURRENT_LESSON_VISUALS
+          || []
+        ).map(
+          visual =>
+            Number(
+              visual?.order || 0
+            )
+        )
+    }
   );
+
 
   return null;
 }
-
 /* =====================================================
    SHOW LESSON VISUAL
 ===================================================== */
