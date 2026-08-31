@@ -20266,6 +20266,67 @@ function getLessonSidebarImage(){
 
 }
 
+async function runUniversalLessonPart2(){
+
+  const universalData =
+    window.CURRENT_UNIVERSAL_LESSON_DATA;
+
+  const structuredLesson =
+    universalData?.structured_lesson;
+
+  const part2 =
+    structuredLesson?.part_2;
+
+  if(
+    !part2
+    ||
+    !Array.isArray(
+      part2.lesson
+    )
+  ){
+
+    console.error(
+      "PART 2 DATA NOT FOUND:",
+      universalData
+    );
+
+    return false;
+
+  }
+
+
+  console.log(
+    "STARTING UNIVERSAL LESSON PART 2:",
+    part2
+  );
+
+
+  const part2Data = {
+    ...universalData,
+
+    structured_lesson: {
+      lesson:
+        part2.lesson,
+
+      question:
+        part2.question
+    }
+  };
+
+
+  await runSimpleUniversalLesson(
+    part2Data
+  );
+
+
+  console.log(
+    "UNIVERSAL LESSON PART 2 COMPLETED"
+  );
+
+
+  return true;
+
+}
 
 /* =====================================================
    LOAD REAL LESSONS
@@ -24181,10 +24242,31 @@ const videoPlayed =
 
   }
 
-
-  console.log(
+console.log(
     "TRANSITION FINISHED — PART 2 READY TO START"
   );
+
+
+  const part2Started =
+    await runUniversalLessonPart2();
+
+
+  if(
+    part2Started
+  ){
+
+    console.log(
+      "PART 2 DISPLAYED SUCCESSFULLY"
+    );
+
+  }
+  else{
+
+    console.error(
+      "PART 2 FAILED TO START"
+    );
+
+  }
 
 }
 
