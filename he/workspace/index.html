@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה56</strong>
+    <strong>עולם הלמידהה11</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -19420,9 +19420,25 @@ async function runSimpleUniversalLesson(
   data
 ){
 
+  const {
+    data: sessionData
+  } =
+    await sb.auth.getSession();
+
+  const session =
+    sessionData?.session;
+
+  if(!session){
+
+    throw new Error(
+      "No active session for universal lesson"
+    );
+
+  }
+
+
   const structuredLesson =
     data?.structured_lesson;
-
 
   if(
     !structuredLesson
