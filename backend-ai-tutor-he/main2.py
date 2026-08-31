@@ -7337,83 +7337,37 @@ def generate_all_lesson_visuals_background(
             }
         )
 
-        for visual in image_visuals:
+        # =====================================================
+        # PARALLEL VISUAL GENERATION
+        #
+        # Visual 1 is generated first because it defines
+        # the visual world for the rest of the lesson.
+        # Remaining visuals are generated in parallel.
+        # =====================================================
 
-            visual_order = (
-                visual.get("order")
-            )
-            # =========================================
-            # MASTER VISUAL REFERENCE
-            #
-            # visual_1 היא התמונה שמגדירה את העולם
-            # החזותי של כל השיעור.
-            # =========================================
-
-            if (
-                    int(visual_order or 0) > 1
-                    and master_reference_bytes is None
-            ):
-
-                reference_storage_path = (
-                    f"unit_lessons/"
-                    f"{unit_lesson_id}/"
-                    f"v{content_version}/"
-                    f"visual_1.png"
+        image_visuals = sorted(
+            image_visuals,
+            key=lambda visual:
+                int(
+                    visual.get("order")
+                    or 0
                 )
+        )
 
-                try:
+        if not image_visuals:
+            return
 
-                    master_reference_bytes = (
-                        sb.storage
-                        .from_(
-                            LESSON_MEDIA_BUCKET
-                        )
-                        .download(
-                            reference_storage_path
-                        )
-                    )
 
-                    master_reference_mime_type = (
-                        "image/png"
-                    )
+        def generate_single_visual(
+                visual: dict,
+                reference_bytes=None,
+                reference_mime_type="image/png"
+        ):
 
-                    print(
-                        "LESSON MASTER VISUAL REFERENCE LOADED:",
-                        {
-                            "unit_lesson_id":
-                                unit_lesson_id,
-
-                            "storage_path":
-                                reference_storage_path,
-
-                            "bytes":
-                                len(
-                                    master_reference_bytes
-                                    or b""
-                                )
-                        }
-                    )
-
-                except Exception as reference_error:
-
-                    print(
-                        "LESSON MASTER VISUAL REFERENCE NOT READY:",
-                        {
-                            "unit_lesson_id":
-                                unit_lesson_id,
-
-                            "error":
-                                repr(reference_error)
-                        }
-                    )
-
-                    master_reference_bytes = None
-            # =========================================
-            # VISUAL CACHE CHECK
-            #
-            # אם התמונה כבר קיימת ב-Storage,
-            # לא מייצרים אותה שוב.
-            # =========================================
+            visual_order = int(
+                visual.get("order")
+                or 0
+            )
 
             storage_path = (
                 f"unit_lessons/"
@@ -7442,7 +7396,7 @@ def generate_all_lesson_visuals_background(
                     }
                 )
 
-                generated_visuals.append({
+                return {
                     "order":
                         visual_order,
 
@@ -7454,9 +7408,7 @@ def generate_all_lesson_visuals_background(
 
                     "source":
                         "cache"
-                })
-
-                continue
+                }
 
             except Exception:
 
@@ -7467,14 +7419,10 @@ def generate_all_lesson_visuals_background(
                             unit_lesson_id,
 
                         "order":
-                            visual_order,
-
-                        "storage_path":
-                            storage_path
+                            visual_order
                     }
                 )
 
-            success = False
 
             for attempt in range(
                 1,
@@ -7493,40 +7441,31 @@ def generate_all_lesson_visuals_background(
                                 visual_order,
 
                             "attempt":
-                                attempt,
-
-                            "max_attempts":
-                                MAX_VISUAL_RETRIES
+                                attempt
                         }
                     )
 
                     result = (
                         generate_and_store_lesson_visual_image(
                             unit_lesson_id=
-                            unit_lesson_id,
+                                unit_lesson_id,
 
                             content_version=
-                            content_version,
+                                content_version,
 
                             visual=
-                            visual,
+                                visual,
 
                             reference_image_bytes=(
-                                master_reference_bytes
-                                if int(visual_order or 0) > 1
+                                reference_bytes
+                                if visual_order > 1
                                 else None
                             ),
 
                             reference_mime_type=
-                            master_reference_mime_type
+                                reference_mime_type
                         )
                     )
-
-                    generated_visuals.append(
-                        result
-                    )
-
-                    success = True
 
                     print(
                         "LESSON VISUAL SUCCESS:",
@@ -7542,7 +7481,7 @@ def generate_all_lesson_visuals_background(
                         }
                     )
 
-                    break
+                    return result
 
                 except Exception as visual_error:
 
@@ -7557,9 +7496,6 @@ def generate_all_lesson_visuals_background(
 
                             "attempt":
                                 attempt,
-
-                            "max_attempts":
-                                MAX_VISUAL_RETRIES,
 
                             "error":
                                 repr(
@@ -7576,33 +7512,117 @@ def generate_all_lesson_visuals_background(
                         MAX_VISUAL_RETRIES
                     ):
 
-                        delay = (
+                        time.sleep(
                             RETRY_DELAY_SECONDS
                             * attempt
                         )
 
-                        print(
-                            "LESSON VISUAL RETRYING:",
-                            {
-                                "unit_lesson_id":
-                                    unit_lesson_id,
 
-                                "order":
-                                    visual_order,
+            print(
+                "LESSON VISUAL PRIMARY PROMPT FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
 
-                                "retry_in_seconds":
-                                    delay
-                            }
-                        )
+                    "order":
+                        visual_order
+                }
+            )
 
-                        time.sleep(
-                            delay
-                        )
 
-            if not success:
+            source_text = str(
+                visual.get(
+                    "source_text"
+                )
+                or ""
+            ).strip()
+
+            parent_lesson = (
+                get_learning_lesson(
+                    unit_lesson[
+                        "learning_lesson_id"
+                    ]
+                )
+            )
+
+            fallback_prompt = (
+                build_segment_visual_fallback_prompt(
+                    unit_lesson=
+                        unit_lesson,
+
+                    parent_lesson=
+                        parent_lesson,
+
+                    segment_text=
+                        source_text,
+
+                    segment_index=
+                        visual_order
+                )
+            )
+
+            fallback_visual = {
+                **visual,
+
+                "type":
+                    "image",
+
+                "generation_prompt":
+                    fallback_prompt
+            }
+
+            try:
 
                 print(
-                    "LESSON VISUAL PRIMARY PROMPT FAILED:",
+                    "LESSON VISUAL FALLBACK START:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order
+                    }
+                )
+
+                result = (
+                    generate_and_store_lesson_visual_image(
+                        unit_lesson_id=
+                            unit_lesson_id,
+
+                        content_version=
+                            content_version,
+
+                        visual=
+                            fallback_visual,
+
+                        reference_image_bytes=(
+                            reference_bytes
+                            if visual_order > 1
+                            else None
+                        ),
+
+                        reference_mime_type=
+                            reference_mime_type
+                    )
+                )
+
+                print(
+                    "LESSON VISUAL FALLBACK SUCCESS:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order
+                    }
+                )
+
+                return result
+
+            except Exception as fallback_error:
+
+                print(
+                    "LESSON VISUAL FALLBACK FAILED:",
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
@@ -7610,126 +7630,178 @@ def generate_all_lesson_visuals_background(
                         "order":
                             visual_order,
 
-                        "attempts":
-                            MAX_VISUAL_RETRIES
+                        "error":
+                            repr(
+                                fallback_error
+                            )
                     }
                 )
 
-                # =====================================
-                # FALLBACK PROMPT
-                #
-                # אסור להשאיר Segment בלי תמונה.
-                # אם ה-Prompt של Visual Director נכשל,
-                # מייצרים Prompt פשוט ובטוח יותר
-                # מתוך ה-source_text עצמו.
-                # =====================================
+                traceback.print_exc()
 
-                source_text = str(
-                    visual.get(
-                        "source_text"
-                    )
-                    or ""
-                ).strip()
+                return None
 
-                parent_lesson = (
-                    get_learning_lesson(
-                        unit_lesson[
-                            "learning_lesson_id"
-                        ]
-                    )
+
+        # =====================================================
+        # STEP 1 — GENERATE VISUAL 1 FIRST
+        # =====================================================
+
+        first_visual = (
+            image_visuals[0]
+        )
+
+        first_result = (
+            generate_single_visual(
+                first_visual
+            )
+        )
+
+        if first_result:
+
+            generated_visuals.append(
+                first_result
+            )
+
+
+        # =====================================================
+        # LOAD VISUAL 1 AS MASTER REFERENCE
+        # =====================================================
+
+        reference_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"visual_1.png"
+        )
+
+        try:
+
+            master_reference_bytes = (
+                sb.storage
+                .from_(
+                    LESSON_MEDIA_BUCKET
                 )
-
-                fallback_prompt = (
-                    build_segment_visual_fallback_prompt(
-                        unit_lesson=
-                            unit_lesson,
-
-                        parent_lesson=
-                            parent_lesson,
-
-                        segment_text=
-                            source_text,
-
-                        segment_index=
-                            int(
-                                visual_order
-                            )
-                    )
+                .download(
+                    reference_storage_path
                 )
+            )
 
-                fallback_visual = {
-                    **visual,
+            master_reference_mime_type = (
+                "image/png"
+            )
 
-                    "type":
-                        "image",
+            print(
+                "LESSON MASTER VISUAL REFERENCE LOADED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
 
-                    "generation_prompt":
-                        fallback_prompt
-                }
-
-                try:
-
-                    print(
-                        "LESSON VISUAL FALLBACK START:",
-                        {
-                            "unit_lesson_id":
-                                unit_lesson_id,
-
-                            "order":
-                                visual_order
-                        }
-                    )
-
-                    result = (
-                        generate_and_store_lesson_visual_image(
-                            unit_lesson_id=
-                                unit_lesson_id,
-
-                            content_version=
-                                content_version,
-
-                            visual=
-                                fallback_visual
+                    "bytes":
+                        len(
+                            master_reference_bytes
+                            or b""
                         )
+                }
+            )
+
+        except Exception as reference_error:
+
+            print(
+                "LESSON MASTER VISUAL REFERENCE NOT READY:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(
+                            reference_error
+                        )
+                }
+            )
+
+            master_reference_bytes = None
+
+
+        # =====================================================
+        # STEP 2 — GENERATE THE REST IN PARALLEL
+        # =====================================================
+
+        remaining_visuals = (
+            image_visuals[1:]
+        )
+
+        if remaining_visuals:
+
+            print(
+                "LESSON VISUAL PARALLEL START:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "visual_count":
+                        len(
+                            remaining_visuals
+                        ),
+
+                    "max_workers":
+                        3
+                }
+            )
+
+            with ThreadPoolExecutor(
+                max_workers=3
+            ) as executor:
+
+                futures = [
+                    executor.submit(
+                        generate_single_visual,
+                        visual,
+                        master_reference_bytes,
+                        master_reference_mime_type
                     )
+                    for visual
+                    in remaining_visuals
+                ]
 
-                    generated_visuals.append(
-                        result
-                    )
+                for future in futures:
 
-                    success = True
+                    try:
 
-                    print(
-                        "LESSON VISUAL FALLBACK SUCCESS:",
-                        {
-                            "unit_lesson_id":
-                                unit_lesson_id,
+                        result = (
+                            future.result()
+                        )
 
-                            "order":
-                                visual_order
-                        }
-                    )
+                        if result:
 
-                except Exception as fallback_error:
+                            generated_visuals.append(
+                                result
+                            )
 
-                    print(
-                        "LESSON VISUAL FALLBACK FAILED:",
-                        {
-                            "unit_lesson_id":
-                                unit_lesson_id,
+                    except Exception as future_error:
 
-                            "order":
-                                visual_order,
+                        print(
+                            "LESSON VISUAL PARALLEL WORKER FAILED:",
+                            {
+                                "unit_lesson_id":
+                                    unit_lesson_id,
 
-                            "error":
-                                repr(
-                                    fallback_error
-                                )
-                        }
-                    )
+                                "error":
+                                    repr(
+                                        future_error
+                                    )
+                            }
+                        )
 
-                    traceback.print_exc()
+                        traceback.print_exc()
 
+
+        generated_visuals.sort(
+            key=lambda visual:
+                int(
+                    visual.get("order")
+                    or 0
+                )
+        )
         print(
             "ALL LESSON VISUALS READY:",
             {
