@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה101</strong>
+    <strong>עולם הלמידה5</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -22026,22 +22026,64 @@ currentLearningMode =
 currentLessonId =
   CURRENT_PARENT_LESSON.id;
 
-
 /* =============================================
-   WAIT FOR FIRST LESSON VISUAL
+   WAIT FOR INITIAL LESSON VISUAL BUFFER
 ============================================= */
 
 console.log(
-  "WAITING FOR FIRST LESSON VISUAL BEFORE START"
+  "WAITING FOR INITIAL LESSON VISUAL BUFFER"
 );
 
 try{
 
+  const INITIAL_VISUAL_BUFFER_SIZE = 3;
+
+  const bufferedVisuals = [];
+
+  for(
+    let visualOrder = 1;
+    visualOrder <= INITIAL_VISUAL_BUFFER_SIZE;
+    visualOrder++
+  ){
+
+    const visual =
+      await waitForLessonVisual(
+        resolvedUnitLessonId,
+        session,
+        visualOrder
+      );
+
+    if(
+      visual
+      &&
+      visual.url
+    ){
+
+      bufferedVisuals.push(
+        visual
+      );
+
+    }
+
+  }
+
+
+  console.log(
+    "INITIAL LESSON VISUAL BUFFER READY:",
+    bufferedVisuals.map(
+      visual =>
+        visual.order
+    )
+  );
+
+
   const firstVisual =
-    await waitForLessonVisual(
-      resolvedUnitLessonId,
-      session,
-      1
+    bufferedVisuals.find(
+      visual =>
+        Number(
+          visual?.order || 0
+        )
+        === 1
     );
 
 
@@ -22051,15 +22093,8 @@ try{
     firstVisual.url
   ){
 
-    console.log(
-      "FIRST LESSON VISUAL READY — STARTING LESSON",
-      firstVisual
-    );
-
-
     window.CURRENT_DISPLAYED_VISUAL_ORDER =
       1;
-
 
     showLessonVisual(
       firstVisual
@@ -22071,13 +22106,11 @@ try{
 catch(error){
 
   console.warn(
-    "FIRST LESSON VISUAL WAIT FAILED — STARTING ANYWAY",
+    "INITIAL LESSON VISUAL BUFFER FAILED — STARTING ANYWAY",
     error
   );
 
 }
-
-
 /* =============================================
    START UNIVERSAL LESSON
 ============================================= */
