@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה45</strong>
+    <strong>עולם הלמידהה5</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -19925,6 +19925,25 @@ let visualForSegment =
   עדיין לא נמצאת בזיכרון המקומי,
   מחכים לה מה-Backend.
 */
+console.log(
+  "SEGMENT VISUAL DEBUG:",
+  {
+    segment: visualOrder,
+    unitLessonId: data?.unit_lesson_id,
+    localVisualOrders:
+      (
+        window.CURRENT_LESSON_VISUALS
+        || []
+      ).map(
+        visual =>
+          visual?.order
+      ),
+    visualFoundLocally:
+      Boolean(
+        visualForSegment
+      )
+  }
+);
 if(
   !visualForSegment
   &&
