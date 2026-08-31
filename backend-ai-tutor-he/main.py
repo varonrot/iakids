@@ -11014,21 +11014,42 @@ def get_or_generate_unit_lesson(
                     or []
             )
 
-            if not cached_visuals:
+            structured_lesson = (
+                    cached_json.get(
+                        "structured_lesson"
+                    )
+                    or {}
+            )
+
+            expected_segments = (
+                    structured_lesson.get(
+                        "lesson"
+                    )
+                    or []
+            )
+
+            visual_plan_needs_repair = (
+                    not cached_visuals
+                    or
+                    len(cached_visuals)
+                    !=
+                    len(expected_segments)
+            )
+
+            if visual_plan_needs_repair:
 
                 print(
-                    "CACHED LESSON MISSING VISUAL PLAN:",
+                    "CACHED LESSON VISUAL PLAN NEEDS REPAIR:",
                     {
                         "unit_lesson_id":
-                            unit_lesson["id"]
-                    }
-                )
+                            unit_lesson["id"],
 
-                structured_lesson = (
-                        cached_json.get(
-                            "structured_lesson"
-                        )
-                        or {}
+                        "segments_count":
+                            len(expected_segments),
+
+                        "visuals_count":
+                            len(cached_visuals)
+                    }
                 )
 
                 lesson_text = str(
@@ -14464,6 +14485,22 @@ def structured_lesson(
                     session_id=session_id,
                     progress=progress,
                     coach_index=1
+                )
+
+            # CLARIFICATION -> SECOND QUESTION
+
+            if (
+                    current_stage
+                    == LESSON_STAGE_CLARIFICATION
+            ):
+                progress = update_lesson_stage(
+                    progress=progress,
+                    current_stage=
+                    LESSON_STAGE_SECOND_QUESTION
+                )
+
+                current_stage = (
+                    LESSON_STAGE_SECOND_QUESTION
                 )
 
             # =========================================
