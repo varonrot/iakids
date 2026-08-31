@@ -20301,18 +20301,23 @@ async function runUniversalLessonPart2(){
   );
 
 
-  const part2Data = {
-    ...universalData,
+const part2Data = {
+  ...universalData,
 
-    structured_lesson: {
-      lesson:
-        part2.lesson,
+  lesson_audio:
+    null,
 
-      question:
-        part2.question
-    }
-  };
+  audio_generation_status:
+    "pending",
 
+  structured_lesson: {
+    lesson:
+      part2.lesson,
+
+    question:
+      part2.question
+  }
+};
 
   await runSimpleUniversalLesson(
     part2Data
