@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה55</strong>
+    <strong>עולם הלמידהה56</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -21433,10 +21433,10 @@ async function playKidPersonalIntroVideo(
 }
 async function playLessonGenerationIntro(){
 
-  const visualArea =
-    document.querySelector(
-      ".lesson-visual-area"
-    );
+const visualArea =
+  document.querySelector(
+    ".lesson-visual-stage"
+  );
 
   if(!visualArea){
     console.warn(
@@ -22093,16 +22093,6 @@ if(
 await runTutorResponse(
   introDataToRun
 );
-
-console.log(
-  "START LESSON GENERATION INTRO"
-);
-
-await playLessonGenerationIntro();
-
-/* =============================================
-   PLAY GENERATION INTRO WHILE MEDIA BUILDS
-============================================= */
 
 console.log(
   "START LESSON GENERATION INTRO"
