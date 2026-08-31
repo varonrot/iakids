@@ -549,8 +549,9 @@ Before returning the JSON, verify:
 - Visual order follows lesson order.
 - Every visual has a clear educational purpose.
 - Images are the primary visual medium.
-- The number of images is appropriate for lesson length.
-- Approximately 4-6 images per minute is the normal target.
+- When structured explanation segments are provided, every segment has exactly one corresponding visual.
+- The number of explanation visuals exactly matches the number of structured explanation segments.
+- No structured explanation segment was skipped or merged with another segment.
 - No two images explain essentially the same thing.
 - Normally no more than one video exists.
 - The video is preferably near the final understanding question.
