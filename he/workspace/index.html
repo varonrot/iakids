@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה6</strong>
+    <strong>עולם הלמידהה76</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -21431,6 +21431,90 @@ async function playKidPersonalIntroVideo(
   }
 
 }
+async function playLessonGenerationIntro(){
+
+  const visualArea =
+    document.querySelector(
+      ".lesson-visual-area"
+    );
+
+  if(!visualArea){
+    console.warn(
+      "LESSON GENERATION INTRO — visual area not found"
+    );
+
+    return false;
+  }
+
+  return new Promise(resolve => {
+
+    visualArea.innerHTML = `
+      <video
+        class="lesson-generation-intro-video"
+        autoplay
+        muted
+        playsinline
+        preload="auto"
+      >
+        <source
+          src="/assets/lesson/iakids-lesson-intro.mp4"
+          type="video/mp4"
+        >
+      </video>
+    `;
+
+    const video =
+      visualArea.querySelector(
+        ".lesson-generation-intro-video"
+      );
+
+    if(!video){
+      resolve(false);
+      return;
+    }
+
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "cover";
+
+    const finish = () => {
+      console.log(
+        "LESSON GENERATION INTRO FINISHED"
+      );
+
+      resolve(true);
+    };
+
+    video.addEventListener(
+      "ended",
+      finish,
+      { once:true }
+    );
+
+    video.addEventListener(
+      "error",
+      () => {
+        console.warn(
+          "LESSON GENERATION INTRO FAILED"
+        );
+
+        resolve(false);
+      },
+      { once:true }
+    );
+
+    video.play().catch(error => {
+      console.warn(
+        "LESSON GENERATION INTRO PLAY FAILED:",
+        error
+      );
+
+      resolve(false);
+    });
+
+  });
+
+}
 async function startSelectedUnitLesson(
   lesson
 ){
@@ -22011,13 +22095,22 @@ await runTutorResponse(
 );
 
 /* =============================================
-   טעינת תוכן השיעור האוניברסלי
+   PLAY GENERATION INTRO WHILE MEDIA BUILDS
+============================================= */
+
+console.log(
+  "START LESSON GENERATION INTRO"
+);
+
+await playLessonGenerationIntro();
+
+
+/* =============================================
+   LOAD UNIVERSAL LESSON CONTENT
 ============================================= */
 
 const lessonData =
   await universalLessonPromise;
-
-
 console.log(
   "UNIVERSAL LESSON READY:",
   lessonData
