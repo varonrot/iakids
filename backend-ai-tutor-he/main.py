@@ -1616,7 +1616,8 @@ def get_or_create_learning_coach_session(
     return new_session
 
 def extract_unit_lesson_coach_content(
-        unit_lesson: dict
+        unit_lesson: dict,
+        coach_index: int
 ):
     generated_json = (
         unit_lesson.get(
@@ -1632,8 +1633,21 @@ def extract_unit_lesson_coach_content(
         or {}
     )
 
-    lesson_segments = (
+    part_key = (
+        "part_2"
+        if coach_index == 2
+        else "part_1"
+    )
+
+    lesson_part = (
         structured_lesson.get(
+            part_key
+        )
+        or {}
+    )
+
+    lesson_segments = (
+        lesson_part.get(
             "lesson"
         )
         or []
@@ -1665,9 +1679,9 @@ def extract_unit_lesson_coach_content(
         explanation_parts
     )
 
-    first_question = str(
+    lesson_question = str(
         (
-            structured_lesson.get(
+            lesson_part.get(
                 "question"
             )
             or {}
@@ -1678,11 +1692,14 @@ def extract_unit_lesson_coach_content(
     ).strip()
 
     return {
+        "part_key":
+            part_key,
+
         "lesson_explanation":
             lesson_explanation,
 
-        "first_question":
-            first_question
+        "lesson_question":
+            lesson_question
     }
 
 def build_learning_coach_prompt(
@@ -1691,11 +1708,13 @@ def build_learning_coach_prompt(
         unit_lesson: dict,
         coach_session: dict,
         conversation_history: list[dict],
-        child_answer: str
+        child_answer: str,
+        coach_index: int
 ):
     coach_content = (
         extract_unit_lesson_coach_content(
-            unit_lesson
+            unit_lesson,
+            coach_index
         )
     )
 
@@ -1788,7 +1807,7 @@ def build_learning_coach_prompt(
 
             "first_question":
                 coach_content[
-                    "first_question"
+                    "lesson_question"
                 ],
 
             # כרגע אין עמודה נפרדת של תשובה נכונה.
@@ -13488,7 +13507,8 @@ def run_learning_coach(
         unit_lesson=unit_lesson,
         coach_session=coach_session,
         conversation_history=conversation_history,
-        child_answer=message
+        child_answer=message,
+        coach_index=coach_index
     )
 
     # =============================================
