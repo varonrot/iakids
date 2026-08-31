@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה5</strong>
+    <strong>עולם הלמידהה6</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -17865,7 +17865,8 @@ async function waitForLessonVisual(
         "SEGMENT VISUAL READY:",
         {
           visualOrder,
-          attempt
+          attempt,
+          source: "local"
         }
       );
 
@@ -17913,25 +17914,36 @@ async function waitForLessonVisual(
         )
       ){
 
+        if(
+          !Array.isArray(
+            window.CURRENT_LESSON_VISUALS
+          )
+        ){
+          window.CURRENT_LESSON_VISUALS = [];
+        }
+
+
         for(
           const incoming
           of data.visuals
         ){
 
-          const existingIndex =
-            (
-              window.CURRENT_LESSON_VISUALS
-              || []
-            ).findIndex(
-              visual =>
-                Number(
-                  visual?.order || 0
-                )
-                ===
-                Number(
-                  incoming?.order || 0
-                )
+          const incomingOrder =
+            Number(
+              incoming?.order || 0
             );
+
+
+          const existingIndex =
+            window.CURRENT_LESSON_VISUALS
+              .findIndex(
+                visual =>
+                  Number(
+                    visual?.order || 0
+                  )
+                  ===
+                  incomingOrder
+              );
 
 
           if(existingIndex >= 0){
@@ -17965,11 +17977,8 @@ async function waitForLessonVisual(
         );
 
 
-        const arrived =
-          (
-            window.CURRENT_LESSON_VISUALS
-            || []
-          ).find(
+        const requestedVisual =
+          window.CURRENT_LESSON_VISUALS.find(
             visual =>
               Number(
                 visual?.order || 0
@@ -17984,46 +17993,38 @@ async function waitForLessonVisual(
 
 
         console.log(
-          "SEGMENT VISUAL POLL:",
+          "VISUAL POLL RESULT:",
           {
-            visualOrder,
-            attempt,
-            ready:
-              Number(
-                data?.visuals_ready
-                || data?.visuals?.length
-                || 0
-              ),
-            planned:
-              Number(
-                data?.visuals_planned
-                || 0
-              ),
-            loadedOrders:
-              (
-                window.CURRENT_LESSON_VISUALS
-                || []
-              ).map(
+            requested:
+              visualOrder,
+
+            readyOrders:
+              window.CURRENT_LESSON_VISUALS.map(
                 visual =>
-                  Number(
-                    visual?.order || 0
-                  )
+                  visual?.order
+              ),
+
+            found:
+              Boolean(
+                requestedVisual
               )
           }
         );
 
 
-        if(arrived){
+        if(requestedVisual){
 
           console.log(
-            "SEGMENT VISUAL ARRIVED:",
+            "SEGMENT VISUAL READY:",
             {
               visualOrder,
-              attempt
+              attempt,
+              source: "api"
             }
           );
 
-          return arrived;
+          return requestedVisual;
+
         }
 
       }
@@ -18056,23 +18057,12 @@ async function waitForLessonVisual(
 
   console.warn(
     "SEGMENT VISUAL TIMEOUT:",
-    {
-      visualOrder,
-      loadedOrders:
-        (
-          window.CURRENT_LESSON_VISUALS
-          || []
-        ).map(
-          visual =>
-            Number(
-              visual?.order || 0
-            )
-        )
-    }
+    visualOrder
   );
 
 
   return null;
+
 }
 /* =====================================================
    SHOW LESSON VISUAL
