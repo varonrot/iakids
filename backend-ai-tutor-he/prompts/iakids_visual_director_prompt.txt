@@ -222,26 +222,25 @@ For every visual moment:
 VISUAL PACING
 ========================================
 
-Aim for approximately 4-6 images per minute of spoken explanation.
+Visual pacing is determined by the structured lesson segments.
 
-This is a guideline, NOT a strict timing rule.
+When structured explanation segments are available:
 
-A typical short lesson might look like:
+one explanation segment = one visual.
 
-HERO
-→ IMAGE 1
-→ IMAGE 2
-→ IMAGE 3
-→ IMAGE 4
-→ optional IMAGE 5
-→ VIDEO
-→ final understanding question
+Do NOT reduce the number of visuals based on lesson duration.
 
-For a very short explanation, fewer images are acceptable.
+Do NOT use a target such as 4-6 images per minute.
 
-For a longer explanation, more images may be used.
+Do NOT combine segments in order to reduce image count.
 
-Conceptual relevance is always more important than visual count.
+The Lesson Director determines the spoken and visual rhythm of the lesson.
+The Visual Director creates the best educational visual for each segment.
+
+The HERO image is separate and is not counted as an explanation visual.
+
+The final understanding question is also separate and does not require an
+additional image unless explicitly requested by the lesson structure.
 
 ========================================
 IMAGE PROMPT RULES
