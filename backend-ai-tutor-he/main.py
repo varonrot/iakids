@@ -4915,7 +4915,86 @@ def normalize_visual_plan_to_segments(
             "generation_prompt":
                 generation_prompt
         })
+    # =====================================================
+    # QUESTION 1 VISUAL
+    # =====================================================
 
+    question = (
+        structured_lesson.get("question")
+        or {}
+    )
+
+    question_text = str(
+        question.get("text")
+        or ""
+    ).strip()
+
+    if question_text:
+
+        question_visual_order = (
+            len(normalized_visuals) + 1
+        )
+
+        question_generation_prompt = (
+            build_segment_visual_fallback_prompt(
+                unit_lesson=
+                    unit_lesson,
+
+                parent_lesson=
+                    parent_lesson,
+
+                segment_text=
+                    question_text,
+
+                segment_index=
+                    question_visual_order
+            )
+        )
+
+        question_words = (
+            question_text
+            .replace("\n", " ")
+            .split()
+        )
+
+        question_trigger_text = " ".join(
+            question_words[:6]
+        )
+
+        normalized_visuals.append({
+
+            "order":
+                question_visual_order,
+
+            "trigger_text":
+                question_trigger_text,
+
+            "type":
+                "image",
+
+            "role":
+                "question_1",
+
+            "visual_goal":
+                "Visually support question 1.",
+
+            "source_text":
+                question_text,
+
+            "generation_prompt":
+                question_generation_prompt
+        })
+
+        print(
+            "QUESTION 1 VISUAL ADDED:",
+            {
+                "order":
+                    question_visual_order,
+
+                "question":
+                    question_text
+            }
+        )
     result = {
         "version":
             int(
