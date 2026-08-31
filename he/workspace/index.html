@@ -20167,7 +20167,83 @@ animateImportantParts(
     &&
     !questionAlreadyIncluded
   ){
+    const questionVisualOrder =
+      lessonParts.length + 1;
 
+    let questionVisual =
+      (
+        window.CURRENT_LESSON_VISUALS
+        || []
+      ).find(
+        visual =>
+          Number(
+            visual?.order || 0
+          )
+          ===
+          Number(
+            questionVisualOrder
+          )
+          &&
+          visual?.url
+      );
+
+    if(
+      !questionVisual
+      &&
+      data?.unit_lesson_id
+    ){
+
+      try{
+
+        questionVisual =
+          await waitForLessonVisual(
+            data.unit_lesson_id,
+            session,
+            questionVisualOrder
+          );
+
+      }
+      catch(error){
+
+        console.warn(
+          "QUESTION VISUAL WAIT FAILED:",
+          {
+            questionVisualOrder,
+            error
+          }
+        );
+
+      }
+
+    }
+
+    if(
+      questionVisual
+      &&
+      questionVisual.url
+    ){
+
+      console.log(
+        "SHOW QUESTION VISUAL:",
+        {
+          visualOrder:
+            questionVisualOrder,
+
+          url:
+            questionVisual.url
+        }
+      );
+
+      window.CURRENT_DISPLAYED_VISUAL_ORDER =
+        Number(
+          questionVisualOrder
+        );
+
+      showLessonVisual(
+        questionVisual
+      );
+
+    }
     const questionAudioUrl =
       await questionAudioPromise;
 
