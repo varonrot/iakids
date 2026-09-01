@@ -6114,6 +6114,8 @@ LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
 # UNIVERSAL LESSON TRANSITION VIDEO
 # =====================================================
 
+LESSON_TRANSITION_VIDEO_GENERATION_ENABLED = False
+
 LESSON_TRANSITION_VIDEO_MODEL = (
     "gemini-omni-1.1-flash"
 )
@@ -7922,7 +7924,15 @@ def generate_transition_video_background(
         unit_lesson_id: int
 ):
 
-    try:
+    print(
+        "TRANSITION VIDEO GENERATION DISABLED:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id
+        }
+    )
+
+    return
 
         print(
             "========== TRANSITION VIDEO START ==========",
