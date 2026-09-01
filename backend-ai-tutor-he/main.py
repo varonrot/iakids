@@ -7667,11 +7667,20 @@ def generate_all_lesson_visuals_background(
 
         image_visuals = sorted(
             image_visuals,
-            key=lambda visual:
+            key=lambda visual: (
                 int(
-                    visual.get("order")
+                    visual.get(
+                        "part_number"
+                    )
+                    or 0
+                ),
+                int(
+                    visual.get(
+                        "order"
+                    )
                     or 0
                 )
+            )
         )
 
         if not image_visuals:
@@ -7683,7 +7692,15 @@ def generate_all_lesson_visuals_background(
                 reference_bytes=None,
                 reference_mime_type="image/png"
         ):
+            part_number = int(
+                visual.get("part_number")
+                or 0
+            )
 
+            if not part_number:
+                raise RuntimeError(
+                    "Visual part number is missing"
+                )
             visual_order = int(
                 visual.get("order")
                 or 0
@@ -7693,6 +7710,7 @@ def generate_all_lesson_visuals_background(
                 f"unit_lessons/"
                 f"{unit_lesson_id}/"
                 f"v{content_version}/"
+                f"part_{part_number}/"
                 f"visual_{visual_order}.png"
             )
 
@@ -7717,6 +7735,9 @@ def generate_all_lesson_visuals_background(
                 )
 
                 return {
+                    "part_number":
+                        part_number,
+
                     "order":
                         visual_order,
 
@@ -7738,6 +7759,9 @@ def generate_all_lesson_visuals_background(
                         "unit_lesson_id":
                             unit_lesson_id,
 
+                        "part_number":
+                            part_number,
+                        
                         "order":
                             visual_order
                     }
@@ -7757,6 +7781,9 @@ def generate_all_lesson_visuals_background(
                             "unit_lesson_id":
                                 unit_lesson_id,
 
+                            "part_number":
+                                part_number,
+                            
                             "order":
                                 visual_order,
 
@@ -7793,6 +7820,9 @@ def generate_all_lesson_visuals_background(
                             "unit_lesson_id":
                                 unit_lesson_id,
 
+                            "part_number":
+                                part_number,
+                            
                             "order":
                                 visual_order,
 
@@ -7811,6 +7841,9 @@ def generate_all_lesson_visuals_background(
                             "unit_lesson_id":
                                 unit_lesson_id,
 
+                            "part_number":
+                                part_number,
+                            
                             "order":
                                 visual_order,
 
@@ -7898,7 +7931,8 @@ def generate_all_lesson_visuals_background(
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
-
+                        "part_number":
+                            part_number,
                         "order":
                             visual_order
                     }
@@ -7932,6 +7966,9 @@ def generate_all_lesson_visuals_background(
                         "unit_lesson_id":
                             unit_lesson_id,
 
+                        "part_number":
+                            part_number,
+                        
                         "order":
                             visual_order
                     }
@@ -7946,7 +7983,8 @@ def generate_all_lesson_visuals_background(
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
-
+                        "part_number":
+                            part_number,
                         "order":
                             visual_order,
 
@@ -12612,7 +12650,8 @@ def get_unit_lesson_visuals(
                     {
                         "unit_lesson_id":
                             unit_lesson["id"],
-
+                        "part_number":
+                            part_number,
                         "order":
                             visual_order,
 
