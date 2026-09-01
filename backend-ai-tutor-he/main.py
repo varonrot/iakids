@@ -11354,108 +11354,45 @@ def get_or_generate_unit_lesson(
             ] = generated_part
 
         # =============================================
-        # LESSON TRANSITION DIRECTOR
+        # SHARED LESSON TRANSITION
         #
-        # מעבר אוניברסלי בין Part 1 ל-Part 2.
-        # אינו תלוי בדיאלוג של הילד.
+        # Transitions between lesson parts are handled
+        # by the shared frontend transition asset.
         # =============================================
 
-        transition_prompt = (
-            build_lesson_transition_prompt(
-
-                unit_lesson=
-                unit_lesson,
-
-                parent_lesson=
-                parent_lesson,
-
-                part_1=
-                structured_lesson[
-                    "part_1"
-                ],
-
-                part_2=
-                structured_lesson[
-                    "part_2"
-                ]
-            )
-        )
-
-        print(
-            "========== LESSON TRANSITION DIRECTOR START ==========",
-            {
-                "unit_lesson_id":
-                    unit_lesson["id"]
-            }
-        )
-
-        transition_completion = (
-            client
-            .beta
-            .chat
-            .completions
-            .parse(
-
-                model=
-                DEFAULT_OPENAI_MODEL,
-
-                messages=[
-                    {
-                        "role":
-                            "system",
-
-                        "content":
-                            transition_prompt
-                    },
-
-                    {
-                        "role":
-                            "user",
-
-                        "content":
-                            (
-                                "Create the universal transition "
-                                "between Part 1 and Part 2. "
-                                "Return only the required structure."
+        lesson_transition = {
+            "type": "shared",
+            "transition_key": "middle"
+        }
+        lesson_text = "\n\n".join(
+            [
+                "\n".join(
+                    [
+                        str(
+                            segment.get(
+                                "text"
                             )
-                    }
-                ],
-
-                response_format=
-                LessonTransitionResponse
-            )
-        )
-
-        transition_data = (
-            transition_completion
-            .choices[0]
-            .message
-            .parsed
-        )
-
-        if not transition_data:
-            raise RuntimeError(
-                "Lesson Transition Director "
-                "returned no response"
-            )
-
-        lesson_transition = (
-            transition_data
-            .model_dump()
-        )
-
-        print(
-            "========== LESSON TRANSITION DIRECTOR RESULT =========="
-        )
-
-        print(
-            json.dumps(
-                lesson_transition,
-                ensure_ascii=False,
-                indent=2
-            )
-        )
-
+                            or ""
+                        ).strip()
+                        for segment in (
+                            part.get(
+                                "lesson"
+                            )
+                            or []
+                        )
+                        if isinstance(
+                            segment,
+                            dict
+                        )
+                    ]
+                )
+                for part in generated_parts
+                if isinstance(
+                    part,
+                    dict
+                )
+            ]
+        ).strip()
         # =============================================
         # VISUAL DIRECTOR
         # מחליט אילו המחשות דרושות לשיעור
