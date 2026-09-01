@@ -10925,19 +10925,52 @@ def get_or_generate_unit_lesson(
                     or {}
             )
 
-            expected_segments = (
+            lesson_parts = (
+                structured_lesson.get(
+                    "parts"
+                )
+                or []
+            )
+
+            expected_segments = []
+
+            if lesson_parts:
+
+                for lesson_part in lesson_parts:
+
+                    if not isinstance(
+                            lesson_part,
+                            dict
+                    ):
+                        continue
+
+                    part_segments = (
+                        lesson_part.get(
+                            "lesson"
+                        )
+                        or []
+                    )
+
+                    expected_segments.extend(
+                        part_segments
+                    )
+
+            else:
+
+                # Legacy fallback for old cached lessons.
+                expected_segments = (
                     structured_lesson.get(
                         "lesson"
                     )
                     or []
-            )
+                )
 
             visual_plan_needs_repair = (
-                    not cached_visuals
-                    or
-                    len(cached_visuals)
-                    !=
-                    len(expected_segments)
+                not cached_visuals
+                or
+                len(cached_visuals)
+                !=
+                len(expected_segments)
             )
 
             if visual_plan_needs_repair:
