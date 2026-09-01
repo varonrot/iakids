@@ -25,12 +25,32 @@ You will receive:
 - lesson_name
 - learning_objective
 - lesson_text
-- structured lesson segments when available
+- structured lesson parts and segments when available
 
 The lesson_text is the complete lesson explanation.
 
 When structured lesson segments are provided, they are the authoritative
 presentation sequence of the lesson.
+When structured lesson parts are provided, every visual MUST belong to exactly
+one lesson part.
+
+Each lesson part has a part_number.
+
+For every visual, return the part_number of the lesson part whose explanation
+segment produced that visual.
+
+Visual order is local to the part.
+
+For example:
+
+Part 1, Segment 1 -> part_number 1, order 1
+Part 1, Segment 2 -> part_number 1, order 2
+Part 2, Segment 1 -> part_number 2, order 1
+Part 2, Segment 2 -> part_number 2, order 2
+
+Do NOT continue visual order globally across parts.
+
+Do NOT assign a visual to a different part from the segment it represents.
 
 Each explanation segment represents one spoken lesson moment and must receive
 exactly one corresponding visual.
@@ -529,6 +549,7 @@ Use this exact structure:
   "version": 1,
   "visuals": [
     {
+      "part_number": 1,
       "order": 1,
       "trigger_text": "exact short phrase from lesson_text",
       "type": "image",
@@ -547,6 +568,9 @@ Before returning the JSON, verify:
 
 - Every trigger_text exists exactly in lesson_text.
 - Visual order follows lesson order.
+- Every visual contains the correct part_number.
+- Visual order restarts from 1 inside each lesson part.
+- No visual is assigned to a different lesson part from its source segment.
 - Every visual has a clear educational purpose.
 - Images are the primary visual medium.
 - When structured explanation segments are provided, every segment has exactly one corresponding visual.
