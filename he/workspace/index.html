@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה19</strong>
+    <strong>עולם הלמידהה339</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -22175,21 +22175,16 @@ try{
   );
 
 }
-catch(
-  personalIntroError
-){
+/* =============================================
+   PERSONAL INTRO DISABLED
+   Shared opening video replaces it
+============================================= */
 
-  console.warn(
-    "PERSONAL INTRO PLAY ERROR:",
-    personalIntroError
-  );
+const personalIntroPlayed =
+  false;
 
 window.LESSON_BACKGROUND_MUSIC_VOLUME =
   0.07;
-  personalIntroPlayed =
-    false;
-
-}
 /* =============================================
    SHOW HERO AFTER PERSONAL INTRO
 ============================================= */
@@ -22211,10 +22206,7 @@ await loadLessonHeroImage(
 let introDataToRun =
   introData;
 
-
 if(
-  personalIntroPlayed
-  &&
   Array.isArray(
     introData?.sequence
   )
