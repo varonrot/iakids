@@ -7566,23 +7566,7 @@ def generate_all_lesson_visuals_background(
             )
 
             return
-        visuals = sorted(
-            visuals,
-            key=lambda item: (
-                int(
-                    item.get(
-                        "part_number"
-                    )
-                    or 0
-                ),
-                int(
-                    item.get(
-                        "order"
-                    )
-                    or 0
-                )
-            )
-        )
+
         generated_visuals = []
         master_reference_bytes = None
         master_reference_mime_type = "image/png"
@@ -7761,7 +7745,7 @@ def generate_all_lesson_visuals_background(
 
                         "part_number":
                             part_number,
-                        
+
                         "order":
                             visual_order
                     }
@@ -7783,7 +7767,7 @@ def generate_all_lesson_visuals_background(
 
                             "part_number":
                                 part_number,
-                            
+
                             "order":
                                 visual_order,
 
@@ -7822,7 +7806,7 @@ def generate_all_lesson_visuals_background(
 
                             "part_number":
                                 part_number,
-                            
+
                             "order":
                                 visual_order,
 
@@ -7843,7 +7827,7 @@ def generate_all_lesson_visuals_background(
 
                             "part_number":
                                 part_number,
-                            
+
                             "order":
                                 visual_order,
 
@@ -7968,7 +7952,7 @@ def generate_all_lesson_visuals_background(
 
                         "part_number":
                             part_number,
-                        
+
                         "order":
                             visual_order
                     }
