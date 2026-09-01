@@ -7250,7 +7250,10 @@ def generate_and_store_lesson_visual_image(
         visual.get("order")
         or 0
     )
-
+    part_number = int(
+        visual.get("part_number")
+        or 0
+    )
     generation_prompt = str(
         visual.get("generation_prompt")
         or ""
@@ -7391,7 +7394,10 @@ def generate_and_store_lesson_visual_image(
         visual.get("trigger_text")
         or ""
     ).strip()
-
+    if not part_number:
+        raise RuntimeError(
+            "Visual part number is missing"
+        )
     if not visual_order:
         raise RuntimeError(
             "Visual order is missing"
@@ -7410,6 +7416,9 @@ def generate_and_store_lesson_visual_image(
 
             "content_version":
                 content_version,
+
+            "part_number":
+                part_number,
 
             "order":
                 visual_order,
@@ -7433,6 +7442,7 @@ def generate_and_store_lesson_visual_image(
         f"unit_lessons/"
         f"{unit_lesson_id}/"
         f"v{content_version}/"
+        f"part_{part_number}/"
         f"visual_{visual_order}.png"
     )
 
@@ -7470,6 +7480,9 @@ def generate_and_store_lesson_visual_image(
     )
 
     return {
+        "part_number":
+            part_number,
+
         "order":
             visual_order,
 
