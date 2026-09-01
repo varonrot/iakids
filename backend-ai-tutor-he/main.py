@@ -7534,7 +7534,23 @@ def generate_all_lesson_visuals_background(
             )
             or []
         )
-
+        visuals = sorted(
+            visuals,
+            key=lambda item: (
+                int(
+                    item.get(
+                        "part_number"
+                    )
+                    or 0
+                ),
+                int(
+                    item.get(
+                        "order"
+                    )
+                    or 0
+                )
+            )
+        )
         content_version = int(
             unit_lesson.get(
                 "content_version"
@@ -7550,7 +7566,23 @@ def generate_all_lesson_visuals_background(
             )
 
             return
-
+        visuals = sorted(
+            visuals,
+            key=lambda item: (
+                int(
+                    item.get(
+                        "part_number"
+                    )
+                    or 0
+                ),
+                int(
+                    item.get(
+                        "order"
+                    )
+                    or 0
+                )
+            )
+        )
         generated_visuals = []
         master_reference_bytes = None
         master_reference_mime_type = "image/png"
