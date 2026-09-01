@@ -4878,7 +4878,6 @@ REQUIREMENTS:
 - no title cards
 """.strip()
 
-
 def normalize_visual_plan_to_segments(
         visual_plan: dict,
         structured_lesson: dict,
@@ -4886,118 +4885,324 @@ def normalize_visual_plan_to_segments(
         parent_lesson: dict
 ) -> dict:
 
-    segments = (
-        structured_lesson.get("lesson")
+    lesson_parts = (
+        structured_lesson.get(
+            "parts"
+        )
         or []
     )
 
+    # Legacy fallback for old cached lessons.
+    if not lesson_parts:
+
+        lesson_parts = [
+            {
+                "part_number": 1,
+
+                "lesson":
+                    structured_lesson.get(
+                        "lesson"
+                    )
+                    or [],
+
+                "question":
+                    structured_lesson.get(
+                        "question"
+                    )
+                    or {}
+            }
+        ]
+
     raw_visuals = (
-        visual_plan.get("visuals")
+        visual_plan.get(
+            "visuals"
+        )
         or []
     )
 
     normalized_visuals = []
 
-    print(
-        "VISUAL PLAN NORMALIZATION START:",
-        {
-            "segments_count":
-                len(segments),
+    total_segments = 0
 
-            "director_visuals_count":
-                len(raw_visuals)
-        }
-    )
-
-    for index, segment in enumerate(
-            segments,
-            start=1
-    ):
+    for lesson_part in lesson_parts:
 
         if not isinstance(
-                segment,
+                lesson_part,
                 dict
         ):
             continue
 
-        segment_text = str(
-            segment.get("text")
-            or ""
-        ).strip()
+        total_segments += len(
+            lesson_part.get(
+                "lesson"
+            )
+            or []
+        )
 
-        if not segment_text:
+    print(
+        "VISUAL PLAN NORMALIZATION START:",
+        {
+            "parts_count":
+                len(
+                    lesson_parts
+                ),
+
+            "segments_count":
+                total_segments,
+
+            "director_visuals_count":
+                len(
+                    raw_visuals
+                )
+        }
+    )
+
+    # =============================================
+    # NORMALIZE EACH LESSON PART
+    # =============================================
+
+    for fallback_part_number, lesson_part in enumerate(
+            lesson_parts,
+            start=1
+    ):
+
+        if not isinstance(
+                lesson_part,
+                dict
+        ):
             continue
 
-        # =========================================
-        # FIND VISUAL RETURNED BY DIRECTOR
-        # =========================================
+        part_number = int(
+            lesson_part.get(
+                "part_number"
+            )
+            or fallback_part_number
+        )
 
-        director_visual = None
+        segments = (
+            lesson_part.get(
+                "lesson"
+            )
+            or []
+        )
 
-        # קודם מחפשים לפי order
-        for item in raw_visuals:
+        print(
+            "VISUAL PLAN PART START:",
+            {
+                "part_number":
+                    part_number,
+
+                "segments_count":
+                    len(
+                        segments
+                    )
+            }
+        )
+
+        for segment_index, segment in enumerate(
+                segments,
+                start=1
+        ):
 
             if not isinstance(
-                    item,
+                    segment,
                     dict
             ):
                 continue
 
-            try:
-                item_order = int(
-                    item.get("order")
-                    or 0
-                )
-            except Exception:
-                item_order = 0
-
-            if item_order == index:
-                director_visual = item
-                break
-
-        # =========================================
-        # GENERATION PROMPT
-        # =========================================
-
-        generation_prompt = ""
-
-        visual_goal = (
-            f"Help the student understand "
-            f"lesson segment {index}."
-        )
-
-        if director_visual:
-
-            generation_prompt = str(
-                director_visual.get(
-                    "generation_prompt"
+            segment_text = str(
+                segment.get(
+                    "text"
                 )
                 or ""
             ).strip()
 
-            visual_goal = str(
-                director_visual.get(
-                    "visual_goal"
+            if not segment_text:
+                continue
+
+            # =========================================
+            # FIND DIRECTOR VISUAL BY PART + ORDER
+            # =========================================
+
+            director_visual = None
+
+            for item in raw_visuals:
+
+                if not isinstance(
+                        item,
+                        dict
+                ):
+                    continue
+
+                try:
+                    item_part_number = int(
+                        item.get(
+                            "part_number"
+                        )
+                        or 1
+                    )
+                except Exception:
+                    item_part_number = 1
+
+                try:
+                    item_order = int(
+                        item.get(
+                            "order"
+                        )
+                        or 0
+                    )
+                except Exception:
+                    item_order = 0
+
+                if (
+                    item_part_number == part_number
+                    and
+                    item_order == segment_index
+                ):
+                    director_visual = item
+                    break
+
+            # =========================================
+            # GENERATION PROMPT
+            # =========================================
+
+            generation_prompt = ""
+
+            visual_goal = (
+                f"Help the student understand "
+                f"part {part_number}, "
+                f"lesson segment {segment_index}."
+            )
+
+            if director_visual:
+
+                generation_prompt = str(
+                    director_visual.get(
+                        "generation_prompt"
+                    )
+                    or ""
+                ).strip()
+
+                visual_goal = str(
+                    director_visual.get(
+                        "visual_goal"
+                    )
+                    or visual_goal
+                ).strip()
+
+            # =========================================
+            # FALLBACK PROMPT
+            # =========================================
+
+            if not generation_prompt:
+
+                print(
+                    "VISUAL DIRECTOR MISSING SEGMENT:",
+                    {
+                        "part_number":
+                            part_number,
+
+                        "segment_index":
+                            segment_index,
+
+                        "segment_text":
+                            segment_text
+                    }
                 )
-                or visual_goal
-            ).strip()
 
-        # אם ה-Director דילג על הסגמנט,
-        # ה-Backend מייצר Prompt בעצמו.
-        if not generation_prompt:
+                generation_prompt = (
+                    build_segment_visual_fallback_prompt(
+                        unit_lesson=
+                            unit_lesson,
 
-            print(
-                "VISUAL DIRECTOR MISSING SEGMENT:",
+                        parent_lesson=
+                            parent_lesson,
+
+                        segment_text=
+                            segment_text,
+
+                        segment_index=
+                            segment_index
+                    )
+                )
+
+            # =========================================
+            # TRIGGER
+            # =========================================
+
+            words = (
+                segment_text
+                .replace(
+                    "\n",
+                    " "
+                )
+                .split()
+            )
+
+            trigger_text = " ".join(
+                words[:6]
+            )
+
+            # =========================================
+            # HARD 1:1 VISUAL
+            # =========================================
+
+            normalized_visuals.append(
                 {
-                    "segment_index":
-                        index,
+                    "part_number":
+                        part_number,
 
-                    "segment_text":
-                        segment_text
+                    "order":
+                        segment_index,
+
+                    "trigger_text":
+                        trigger_text,
+
+                    "type":
+                        "image",
+
+                    "role":
+                        "lesson_segment",
+
+                    "visual_goal":
+                        visual_goal,
+
+                    "source_text":
+                        segment_text,
+
+                    "generation_prompt":
+                        generation_prompt
                 }
             )
 
-            generation_prompt = (
+        # =============================================
+        # PART QUESTION VISUAL
+        # =============================================
+
+        question = (
+            lesson_part.get(
+                "question"
+            )
+            or {}
+        )
+
+        question_text = str(
+            question.get(
+                "text"
+            )
+            or ""
+        ).strip()
+
+        if question_text:
+
+            question_visual_order = (
+                len(
+                    segments
+                )
+                + 1
+            )
+
+            question_generation_prompt = (
                 build_segment_visual_fallback_prompt(
                     unit_lesson=
                         unit_lesson,
@@ -5006,141 +5211,99 @@ def normalize_visual_plan_to_segments(
                         parent_lesson,
 
                     segment_text=
-                        segment_text,
+                        question_text,
 
                     segment_index=
-                        index
+                        question_visual_order
                 )
             )
 
-        # =========================================
-        # TRIGGER
-        #
-        # היום הפרונט כבר מתקדם לפי order,
-        # אבל עדיין נשמור trigger_text תקין.
-        # =========================================
+            question_words = (
+                question_text
+                .replace(
+                    "\n",
+                    " "
+                )
+                .split()
+            )
 
-        words = (
-            segment_text
-            .replace("\n", " ")
-            .split()
-        )
+            question_trigger_text = " ".join(
+                question_words[:6]
+            )
 
-        trigger_text = " ".join(
-            words[:6]
-        )
+            normalized_visuals.append(
+                {
+                    "part_number":
+                        part_number,
 
-        # =========================================
-        # HARD 1:1 VISUAL
-        # =========================================
+                    "order":
+                        question_visual_order,
 
-        normalized_visuals.append({
+                    "trigger_text":
+                        question_trigger_text,
 
-            "order":
-                index,
+                    "type":
+                        "image",
 
-            "trigger_text":
-                trigger_text,
+                    "role":
+                        "question",
 
-            # חשוב:
-            # כל Segment הוא תמונה.
-            # גם אם ה-Director החזיר video.
-            "type":
-                "image",
+                    "visual_goal":
+                        (
+                            f"Visually support the "
+                            f"comprehension question "
+                            f"for part {part_number}."
+                        ),
 
-            "visual_goal":
-                visual_goal,
+                    "source_text":
+                        question_text,
 
-            "source_text":
-                segment_text,
+                    "generation_prompt":
+                        question_generation_prompt
+                }
+            )
 
-            "generation_prompt":
-                generation_prompt
-        })
-    # =====================================================
-    # QUESTION 1 VISUAL
-    # =====================================================
+            print(
+                "PART QUESTION VISUAL ADDED:",
+                {
+                    "part_number":
+                        part_number,
 
-    question = (
-        structured_lesson.get("question")
-        or {}
-    )
+                    "order":
+                        question_visual_order,
 
-    question_text = str(
-        question.get("text")
-        or ""
-    ).strip()
+                    "question":
+                        question_text
+                }
+            )
 
-    if question_text:
+    # =============================================
+    # FINAL SORT
+    # =============================================
 
-        question_visual_order = (
-            len(normalized_visuals) + 1
-        )
-
-        question_generation_prompt = (
-            build_segment_visual_fallback_prompt(
-                unit_lesson=
-                    unit_lesson,
-
-                parent_lesson=
-                    parent_lesson,
-
-                segment_text=
-                    question_text,
-
-                segment_index=
-                    question_visual_order
+    normalized_visuals.sort(
+        key=lambda item: (
+            int(
+                item.get(
+                    "part_number"
+                )
+                or 1
+            ),
+            int(
+                item.get(
+                    "order"
+                )
+                or 0
             )
         )
+    )
 
-        question_words = (
-            question_text
-            .replace("\n", " ")
-            .split()
-        )
-
-        question_trigger_text = " ".join(
-            question_words[:6]
-        )
-
-        normalized_visuals.append({
-
-            "order":
-                question_visual_order,
-
-            "trigger_text":
-                question_trigger_text,
-
-            "type":
-                "image",
-
-            "role":
-                "question_1",
-
-            "visual_goal":
-                "Visually support question 1.",
-
-            "source_text":
-                question_text,
-
-            "generation_prompt":
-                question_generation_prompt
-        })
-
-        print(
-            "QUESTION 1 VISUAL ADDED:",
-            {
-                "order":
-                    question_visual_order,
-
-                "question":
-                    question_text
-            }
-        )
     result = {
         "version":
             int(
-                visual_plan.get("version")
+                visual_plan.get(
+                    "version"
+                )
                 or 1
             ),
 
@@ -5151,15 +5314,37 @@ def normalize_visual_plan_to_segments(
     print(
         "VISUAL PLAN NORMALIZATION DONE:",
         {
+            "parts_count":
+                len(
+                    lesson_parts
+                ),
+
             "segments_count":
-                len(segments),
+                total_segments,
 
             "visuals_count":
-                len(normalized_visuals),
+                len(
+                    normalized_visuals
+                ),
 
-            "orders":
+            "visual_keys":
                 [
-                    item["order"]
+                    {
+                        "part_number":
+                            item[
+                                "part_number"
+                            ],
+
+                        "order":
+                            item[
+                                "order"
+                            ],
+
+                        "role":
+                            item.get(
+                                "role"
+                            )
+                    }
                     for item
                     in normalized_visuals
                 ]
