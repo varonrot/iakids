@@ -18,7 +18,10 @@ import wave
 import os
 import json
 import base64
-
+import traceback
+import time
+import math
+from concurrent.futures import ThreadPoolExecutor
 # =====================================================
 # CONFIG
 # =====================================================
@@ -37,8 +40,17 @@ UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
 LESSON_DIRECTOR_PROMPT_PATH = Path(
     "prompts/lesson_director_prompt.txt"
 )
+VISUAL_DIRECTOR_PROMPT_PATH = Path(
+    "prompts/iakids_visual_director_prompt.txt"
+)
+LESSON_TRANSITION_PROMPT_PATH = Path(
+    "prompts/iakids_lesson_transition_prompt.txt"
+)
 LEARNING_COACH_PROMPT_PATH = Path(
     "prompts/learning_coach_system_prompt.txt"
+)
+CURRICULUM_BUILDER_PROMPT_PATH = Path(
+    "prompts/iakids_curriculum_builder_system_prompt.txt"
 )
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -240,10 +252,25 @@ if not LESSON_DIRECTOR_PROMPT_PATH.exists():
         f"Missing lesson director prompt file: "
         f"{LESSON_DIRECTOR_PROMPT_PATH}"
     )
+if not VISUAL_DIRECTOR_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing visual director prompt file: "
+        f"{VISUAL_DIRECTOR_PROMPT_PATH}"
+    )
+if not LESSON_TRANSITION_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Lesson Transition prompt file: "
+        f"{LESSON_TRANSITION_PROMPT_PATH}"
+    )
 if not LEARNING_COACH_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing Learning Coach prompt file: "
         f"{LEARNING_COACH_PROMPT_PATH}"
+    )
+if not CURRICULUM_BUILDER_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing Curriculum Builder prompt file: "
+        f"{CURRICULUM_BUILDER_PROMPT_PATH}"
     )
 if not HOMEWORK_VISION_PROMPT_PATH.exists():
     raise RuntimeError(
@@ -270,8 +297,26 @@ LESSON_DIRECTOR_PROMPT_TEMPLATE = (
         encoding="utf-8"
     )
 )
+VISUAL_DIRECTOR_PROMPT_TEMPLATE = (
+    VISUAL_DIRECTOR_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+LESSON_TRANSITION_PROMPT_TEMPLATE = (
+    LESSON_TRANSITION_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
 LEARNING_COACH_PROMPT_TEMPLATE = (
     LEARNING_COACH_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+CURRICULUM_BUILDER_PROMPT_TEMPLATE = (
+    CURRICULUM_BUILDER_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -295,6 +340,56 @@ print("==============================")
 # =====================================================
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+# =====================================================
+# SUPABASE TEMPORARY ERROR RETRY
+# =====================================================
+
+def supabase_with_retry(
+        operation,
+        label: str = "SUPABASE",
+        max_attempts: int = 3,
+        base_delay_seconds: float = 0.5
+):
+
+    last_error = None
+
+    for attempt in range(
+        1,
+        max_attempts + 1
+    ):
+
+        try:
+
+            return operation()
+
+        except Exception as e:
+
+            last_error = e
+
+            print(
+                f"{label} RETRY:",
+                {
+                    "attempt":
+                        attempt,
+
+                    "max_attempts":
+                        max_attempts,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            if attempt >= max_attempts:
+                raise
+
+            time.sleep(
+                base_delay_seconds
+                * attempt
+            )
+
+    raise last_error
 
 client = OpenAI(
     api_key=OPENAI_API_KEY
@@ -336,6 +431,48 @@ class TutorChatRequest(BaseModel):
     message: str
     kid_id: str
 
+class CurriculumLesson(BaseModel):
+    name: str
+
+
+class CurriculumUnit(BaseModel):
+    name: str
+    lessons: list[CurriculumLesson]
+
+
+class CurriculumTopic(BaseModel):
+    name: str
+    units: list[CurriculumUnit]
+
+
+class CurriculumHierarchy(BaseModel):
+    subject: str
+    topics: list[CurriculumTopic]
+
+
+class CurriculumBuilderChatRequest(BaseModel):
+    kid_id: str
+    message: str
+
+    custom_subject_id: str | None = None
+
+    history: list[dict] | None = None
+
+class CurriculumApproveRequest(BaseModel):
+    kid_id: str
+    custom_subject_id: str
+    curriculum_id: str
+
+class CurriculumBuilderAIResponse(BaseModel):
+    reply: str
+
+    subject: str | None = None
+
+    focus_topic: str | None = None
+
+    hierarchy: CurriculumHierarchy | None = None
+
+    ready_to_create: bool = False
 
 class TutorTTSRequest(BaseModel):
     text: str
@@ -408,9 +545,45 @@ class DirectedLessonQuestion(BaseModel):
     text: str
 
 
-class DirectedLessonResponse(BaseModel):
+class DirectedLessonPart(BaseModel):
     lesson: list[DirectedLessonSegment]
     question: DirectedLessonQuestion
+
+
+class DirectedLessonSummary(BaseModel):
+    text: str
+
+
+class DirectedLessonResponse(BaseModel):
+
+    part_1: DirectedLessonPart
+
+    part_2: DirectedLessonPart
+
+    summary: DirectedLessonSummary
+
+class VisualDirectorItem(BaseModel):
+    order: int
+    trigger_text: str
+    type: str
+    visual_goal: str
+    source_text: str
+    generation_prompt: str
+
+
+class VisualDirectorResponse(BaseModel):
+    version: int = 1
+    visuals: list[VisualDirectorItem]
+
+class LessonTransitionResponse(BaseModel):
+
+    speech: str
+
+    video_scene: str
+
+    next_part_hook: str
+
+    duration_seconds: int = 10
 
 # =====================================================
 # STRUCTURED LESSON MODELS
@@ -426,7 +599,10 @@ class UnitLessonRequest(BaseModel):
 
 class ActiveLessonStateRequest(BaseModel):
     kid_id: str
-
+class ResetUnitLessonRequest(BaseModel):
+    kid_id: str
+    lesson_id: int
+    unit_lesson_id: int
 class StructuredLessonRequest(
     BaseModel
 ):
@@ -628,20 +804,490 @@ def update_tutor_session_after_vision(
 # DATA HELPERS
 # =====================================================
 
-def get_child_by_id(user_id: str, kid_id: str):
+def get_child_by_id(
+        user_id: str,
+        kid_id: str
+):
+
+    def operation():
+
+        return (
+            sb.table(
+                "kids_profiles"
+            )
+            .select("*")
+            .eq(
+                "id",
+                kid_id
+            )
+            .eq(
+                "user_id",
+                user_id
+            )
+            .single()
+            .execute()
+        )
+
+    res = supabase_with_retry(
+        operation,
+        label="GET CHILD"
+    )
+
+    if not res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Child not found"
+        )
+
+    return res.data
+
+# =====================================================
+# CUSTOM CURRICULUM HELPERS
+# =====================================================
+
+def get_custom_subject(
+        user_id: str,
+        kid_id: str,
+        custom_subject_id: str
+):
     res = (
-        sb.table("kids_profiles")
+        sb.table(
+            "kid_custom_subjects"
+        )
         .select("*")
-        .eq("id", kid_id)
-        .eq("user_id", user_id)
-        .single()
+        .eq(
+            "id",
+            custom_subject_id
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .limit(1)
         .execute()
     )
 
     if not res.data:
-        raise HTTPException(status_code=404, detail="Child not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Custom subject not found"
+        )
 
-    return res.data
+    return res.data[0]
+
+def create_custom_subject(
+        user_id: str,
+        kid_id: str,
+        subject_name: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    clean_subject_name = str(
+        subject_name or ""
+    ).strip()
+
+    if not clean_subject_name:
+        raise ValueError(
+            "subject_name is required"
+        )
+
+    # =============================================
+    # CHECK IF SUBJECT ALREADY EXISTS FOR THIS KID
+    # =============================================
+
+    existing_res = (
+        sb.table(
+            "kid_custom_subjects"
+        )
+        .select("*")
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "subject_name",
+            clean_subject_name
+        )
+        .in_(
+            "status",
+            ["draft", "active"]
+        )
+        .order(
+            "created_at",
+            desc=True
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if existing_res.data:
+
+        existing_subject = (
+            existing_res.data[0]
+        )
+
+        print(
+            "REUSING CUSTOM SUBJECT:",
+            existing_subject["id"],
+            clean_subject_name
+        )
+
+        return existing_subject
+
+    # =============================================
+    # CREATE ONLY IF IT DOES NOT EXIST
+    # =============================================
+
+    res = (
+        sb.table(
+            "kid_custom_subjects"
+        )
+        .insert({
+            "user_id":
+                user_id,
+
+            "kid_id":
+                kid_id,
+
+            "subject_name":
+                clean_subject_name,
+
+            "status":
+                "draft",
+
+            "created_by":
+                "parent_ai_builder",
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+        .execute()
+    )
+
+    if not res.data:
+        raise RuntimeError(
+            "Failed to create custom subject"
+        )
+
+    return res.data[0]
+
+
+def get_current_custom_curriculum(
+        custom_subject_id: str
+):
+    res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .select("*")
+        .eq(
+            "custom_subject_id",
+            custom_subject_id
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return None
+
+    return res.data[0]
+
+
+def create_custom_curriculum(
+        user_id: str,
+        kid_id: str,
+        custom_subject_id: str,
+        curriculum_json: dict,
+        ready_to_create: bool,
+        parent_message: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    curriculum_status = (
+        "ready_for_approval"
+        if ready_to_create
+        else "building"
+    )
+
+    # =============================================
+    # CURRENT VERSION
+    # =============================================
+
+    curriculum_res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .insert({
+            "user_id":
+                user_id,
+
+            "kid_id":
+                kid_id,
+
+            "custom_subject_id":
+                custom_subject_id,
+
+            "curriculum_json":
+                curriculum_json,
+
+            "version":
+                1,
+
+            "status":
+                curriculum_status,
+
+            "last_change_type":
+                "created",
+
+            "last_change_summary":
+                "Initial curriculum created by AI",
+
+            "updated_by":
+                "ai",
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+        .execute()
+    )
+
+    if not curriculum_res.data:
+        raise RuntimeError(
+            "Failed to create custom curriculum"
+        )
+
+    curriculum = (
+        curriculum_res.data[0]
+    )
+
+    # =============================================
+    # VERSION 1 SNAPSHOT
+    # =============================================
+
+    sb.table(
+        "kid_custom_curriculum_versions"
+    ).insert({
+        "user_id":
+            user_id,
+
+        "kid_id":
+            kid_id,
+
+        "custom_subject_id":
+            custom_subject_id,
+
+        "curriculum_id":
+            curriculum["id"],
+
+        "version":
+            1,
+
+        "curriculum_json":
+            curriculum_json,
+
+        "change_type":
+            "created",
+
+        "change_summary":
+            "Initial curriculum created by AI",
+
+        "changed_by":
+            "ai",
+
+        "parent_message":
+            parent_message,
+
+        "created_at":
+            now_iso
+    }).execute()
+
+    return curriculum
+
+
+def update_custom_curriculum(
+        user_id: str,
+        kid_id: str,
+        custom_subject: dict,
+        curriculum: dict,
+        curriculum_json: dict,
+        subject_name: str | None,
+        ready_to_create: bool,
+        parent_message: str
+):
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    current_version = int(
+        curriculum.get(
+            "version"
+        )
+        or 1
+    )
+
+    new_version = (
+        current_version + 1
+    )
+
+    curriculum_status = (
+        "ready_for_approval"
+        if ready_to_create
+        else "building"
+    )
+
+    # =============================================
+    # UPDATE SUBJECT NAME IF AI REFINED IT
+    # =============================================
+
+    clean_subject_name = str(
+        subject_name or ""
+    ).strip()
+
+    if (
+            clean_subject_name
+            and
+            clean_subject_name
+            != custom_subject.get(
+                "subject_name"
+            )
+    ):
+        sb.table(
+            "kid_custom_subjects"
+        ).update({
+            "subject_name":
+                clean_subject_name,
+
+            "updated_at":
+                now_iso
+        }).eq(
+            "id",
+            custom_subject["id"]
+        ).eq(
+            "user_id",
+            user_id
+        ).execute()
+
+    # =============================================
+    # UPDATE CURRENT CURRICULUM
+    # =============================================
+
+    updated_res = (
+        sb.table(
+            "kid_custom_curriculums"
+        )
+        .update({
+            "curriculum_json":
+                curriculum_json,
+
+            "version":
+                new_version,
+
+            "status":
+                curriculum_status,
+
+            "last_change_type":
+                "ai_update",
+
+            "last_change_summary":
+                "Curriculum updated from parent conversation",
+
+            "updated_by":
+                "ai",
+
+            "updated_at":
+                now_iso
+        })
+        .eq(
+            "id",
+            curriculum["id"]
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .execute()
+    )
+
+    if not updated_res.data:
+        raise RuntimeError(
+            "Failed to update custom curriculum"
+        )
+
+    updated_curriculum = (
+        updated_res.data[0]
+    )
+
+    # =============================================
+    # SAVE NEW VERSION SNAPSHOT
+    # =============================================
+
+    sb.table(
+        "kid_custom_curriculum_versions"
+    ).insert({
+        "user_id":
+            user_id,
+
+        "kid_id":
+            kid_id,
+
+        "custom_subject_id":
+            custom_subject["id"],
+
+        "curriculum_id":
+            curriculum["id"],
+
+        "version":
+            new_version,
+
+        "curriculum_json":
+            curriculum_json,
+
+        "change_type":
+            "ai_update",
+
+        "change_summary":
+            "Curriculum updated from parent conversation",
+
+        "changed_by":
+            "ai",
+
+        "parent_message":
+            parent_message,
+
+        "created_at":
+            now_iso
+    }).execute()
+
+    return updated_curriculum
 
 def get_gender_placeholders(
         child: dict
@@ -970,7 +1616,8 @@ def get_or_create_learning_coach_session(
     return new_session
 
 def extract_unit_lesson_coach_content(
-        unit_lesson: dict
+        unit_lesson: dict,
+        coach_index: int
 ):
     generated_json = (
         unit_lesson.get(
@@ -986,8 +1633,21 @@ def extract_unit_lesson_coach_content(
         or {}
     )
 
-    lesson_segments = (
+    part_key = (
+        "part_2"
+        if coach_index == 2
+        else "part_1"
+    )
+
+    lesson_part = (
         structured_lesson.get(
+            part_key
+        )
+        or {}
+    )
+
+    lesson_segments = (
+        lesson_part.get(
             "lesson"
         )
         or []
@@ -1019,9 +1679,9 @@ def extract_unit_lesson_coach_content(
         explanation_parts
     )
 
-    first_question = str(
+    lesson_question = str(
         (
-            structured_lesson.get(
+            lesson_part.get(
                 "question"
             )
             or {}
@@ -1032,11 +1692,14 @@ def extract_unit_lesson_coach_content(
     ).strip()
 
     return {
+        "part_key":
+            part_key,
+
         "lesson_explanation":
             lesson_explanation,
 
-        "first_question":
-            first_question
+        "lesson_question":
+            lesson_question
     }
 
 def build_learning_coach_prompt(
@@ -1045,11 +1708,13 @@ def build_learning_coach_prompt(
         unit_lesson: dict,
         coach_session: dict,
         conversation_history: list[dict],
-        child_answer: str
+        child_answer: str,
+        coach_index: int
 ):
     coach_content = (
         extract_unit_lesson_coach_content(
-            unit_lesson
+            unit_lesson,
+            coach_index
         )
     )
 
@@ -1142,7 +1807,7 @@ def build_learning_coach_prompt(
 
             "first_question":
                 coach_content[
-                    "first_question"
+                    "lesson_question"
                 ],
 
             # כרגע אין עמודה נפרדת של תשובה נכונה.
@@ -1324,44 +1989,52 @@ def get_lesson_units_and_lessons(
 def get_unit_lesson(
         unit_lesson_id: int
 ):
-    res = (
-        sb.table(
-            "lesson_units_content"
+
+    def operation():
+
+        return (
+            sb.table(
+                "lesson_units_content"
+            )
+            .select(
+                "id, "
+                "learning_lesson_id, "
+                "unit_order, "
+                "unit_name, "
+                "lesson_order, "
+                "lesson_name, "
+                "intro_template_id, "
+                "learning_objective, "
+                "lesson_complexity, "
+                "max_duration_seconds, "
+                "generation_status, "
+                "content_version, "
+                "generated_lesson_json, "
+                "generation_error, "
+                "generated_at, "
+                "tts_generated_at, "
+                "lesson_audio_json, "
+                "audio_generation_status, "
+                "audio_generation_error, "
+                "audio_generated_at, "
+                "status, "
+                "is_active"
+            )
+            .eq(
+                "id",
+                unit_lesson_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
-        .select(
-            "id, "
-            "learning_lesson_id, "
-            "unit_order, "
-            "unit_name, "
-            "lesson_order, "
-            "lesson_name, "
-            "intro_template_id, "
-            "learning_objective, "
-            "lesson_complexity, "
-            "max_duration_seconds, "
-            "generation_status, "
-            "content_version, "
-            "generated_lesson_json, "
-            "generation_error, "
-            "generated_at, "
-            "tts_generated_at, "
-            "lesson_audio_json, "
-            "audio_generation_status, "
-            "audio_generation_error, "
-            "audio_generated_at, "
-            "status, "
-            "is_active"
-        )
-        .eq(
-            "id",
-            unit_lesson_id
-        )
-        .eq(
-            "is_active",
-            True
-        )
-        .limit(1)
-        .execute()
+
+    res = supabase_with_retry(
+        operation,
+        label="GET UNIT LESSON"
     )
 
     if not res.data:
@@ -1375,29 +2048,37 @@ def get_unit_lesson(
 def get_intro_template(
         template_id: int
 ):
-    res = (
-        sb.table(
-            "lesson_intro_templates"
+
+    def operation():
+
+        return (
+            sb.table(
+                "lesson_intro_templates"
+            )
+            .select(
+                "id, "
+                "template_name, "
+                "lesson_type, "
+                "tts_provider, "
+                "tts_model, "
+                "tts_voice, "
+                "intro_json"
+            )
+            .eq(
+                "id",
+                template_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
-        .select(
-            "id, "
-            "template_name, "
-            "lesson_type, "
-            "tts_provider, "
-            "tts_model, "
-            "tts_voice, "
-            "intro_json"
-        )
-        .eq(
-            "id",
-            template_id
-        )
-        .eq(
-            "is_active",
-            True
-        )
-        .limit(1)
-        .execute()
+
+    res = supabase_with_retry(
+        operation,
+        label="GET INTRO TEMPLATE"
     )
 
     if not res.data:
@@ -1445,47 +2126,47 @@ def replace_intro_variables(
     return value
 
 
-
 def get_learning_lesson(
         lesson_id: int
 ):
-    res = (
 
-        sb.table(
-            "learning_lessons"
+    def operation():
+
+        return (
+            sb.table(
+                "learning_lessons"
+            )
+            .select(
+                "id, "
+                "grade, "
+                "subject, "
+                "category, "
+                "lesson_order, "
+                "lesson_name, "
+                "lesson_goal, "
+                "lesson_content, "
+                "teaching_method, "
+                "learning_objectives, "
+                "xp_reward, "
+                "stars_reward, "
+                "is_checkpoint, "
+                "is_active"
+            )
+            .eq(
+                "id",
+                lesson_id
+            )
+            .eq(
+                "is_active",
+                True
+            )
+            .limit(1)
+            .execute()
         )
 
-        .select(
-            "id, "
-            "grade, "
-            "subject, "
-            "category, "
-            "lesson_order, "
-            "lesson_name, "
-            "lesson_goal, "
-            "lesson_content, "
-            "teaching_method, "
-            "learning_objectives, "
-            "xp_reward, "
-            "stars_reward, "
-            "is_checkpoint, "
-            "is_active"
-        )
-
-        .eq(
-            "id",
-            lesson_id
-        )
-
-        .eq(
-            "is_active",
-            True
-        )
-
-        .limit(1)
-
-        .execute()
-
+    res = supabase_with_retry(
+        operation,
+        label="GET LEARNING LESSON"
     )
 
     if not res.data:
@@ -1501,7 +2182,8 @@ def get_or_create_lesson_progress(
         kid_id: str,
         lesson: dict,
         session_id: str | None = None,
-        is_lesson_start: bool = False
+        is_lesson_start: bool = False,
+        unit_lesson_id: int | None = None
 ):
     lesson_id = lesson["id"]
 
@@ -1668,6 +2350,9 @@ def get_or_create_lesson_progress(
             "lesson_id":
                 lesson_id,
 
+            "current_unit_lesson_id":
+                unit_lesson_id,
+
             "status":
                 "in_progress",
 
@@ -1734,39 +2419,42 @@ def get_or_create_lesson_progress(
 def get_recent_lesson_history_for_llm(
         kid_id: str,
         lesson_id: int,
+        unit_lesson_id: int | None = None,
         limit: int = 8
 ):
-    res = (
-
+    query = (
         sb.table(
             "kid_lesson_history"
         )
-
         .select(
             "role, content"
         )
-
         .eq(
             "kid_id",
             kid_id
         )
-
         .eq(
             "lesson_id",
             lesson_id
         )
+    )
 
+    if unit_lesson_id is not None:
+        query = query.eq(
+            "unit_lesson_id",
+            unit_lesson_id
+        )
+
+    res = (
+        query
         .order(
             "created_at",
             desc=True
         )
-
         .limit(
             limit
         )
-
         .execute()
-
     )
 
     messages = list(
@@ -1776,27 +2464,22 @@ def get_recent_lesson_history_for_llm(
     )
 
     return [
-
         {
-
             "role":
                 message["role"],
 
             "content":
                 message["content"]
-
         }
 
-        for message
-        in messages
+        for message in messages
 
         if message.get(
             "role"
         ) in (
-               "user",
-               "assistant"
-           )
-
+            "user",
+            "assistant"
+        )
     ]
 
 
@@ -1833,6 +2516,7 @@ def should_show_answering_hint(
 def save_lesson_history(
         kid_id: str,
         lesson_id: int,
+        unit_lesson_id: int | None,
         session_id: str,
         objective_index: int | None,
         user_content: str | None,
@@ -1857,6 +2541,9 @@ def save_lesson_history(
 
             "lesson_id":
                 lesson_id,
+
+            "unit_lesson_id":
+                unit_lesson_id,
 
             "session_id":
                 session_id,
@@ -1889,6 +2576,9 @@ def save_lesson_history(
 
         "lesson_id":
             lesson_id,
+
+        "unit_lesson_id":
+            unit_lesson_id,
 
         "session_id":
             session_id,
@@ -2785,125 +3475,214 @@ def parse_supabase_datetime(value: str):
         value.replace("Z", "+00:00")
     )
 
-
 def get_or_create_tutor_session(
         user_id: str,
         kid_id: str
 ):
-    """
-    מחפש את ה-Session האחרון של הילד.
 
-    אם ה-Session עדיין פעיל ולא עברו 30 דקות
-    מהפעילות האחרונה -> משתמשים בו.
-
-    אחרת -> סוגרים את הקודם ופותחים Session חדש.
-    """
-
-    now = datetime.now(timezone.utc)
-
-    res = (
-        sb.table("tutor_sessions")
-        .select(
-            "id, started_at, last_activity_at, status, "
-            "message_count, user_message_count, "
-            "assistant_message_count, ai_call_count, "
-            "input_tokens, output_tokens, total_tokens, "
-            "estimated_cost_usd"
-        )
-        .eq("user_id", user_id)
-        .eq("kid_id", kid_id)
-        .eq("status", "active")
-        .order("last_activity_at", desc=True)
-        .limit(1)
-        .execute()
+    now = datetime.now(
+        timezone.utc
     )
 
-    # =================================================
-    # אם קיים Session פעיל
-    # =================================================
+    # =============================================
+    # FIND ACTIVE SESSION
+    # =============================================
+
+    def load_session():
+
+        return (
+            sb.table(
+                "tutor_sessions"
+            )
+            .select(
+                "id, started_at, last_activity_at, status, "
+                "message_count, user_message_count, "
+                "assistant_message_count, ai_call_count, "
+                "input_tokens, output_tokens, total_tokens, "
+                "estimated_cost_usd"
+            )
+            .eq(
+                "user_id",
+                user_id
+            )
+            .eq(
+                "kid_id",
+                kid_id
+            )
+            .eq(
+                "status",
+                "active"
+            )
+            .order(
+                "last_activity_at",
+                desc=True
+            )
+            .limit(1)
+            .execute()
+        )
+
+    res = supabase_with_retry(
+        load_session,
+        label="GET TUTOR SESSION"
+    )
+
+    # =============================================
+    # EXISTING SESSION
+    # =============================================
 
     if res.data:
 
         session = res.data[0]
 
-        last_activity = parse_supabase_datetime(
-            session.get("last_activity_at")
+        last_activity = (
+            parse_supabase_datetime(
+                session.get(
+                    "last_activity_at"
+                )
+            )
         )
 
         if last_activity:
 
-            inactive_time = now - last_activity
+            inactive_time = (
+                now - last_activity
+            )
 
-            # עדיין בתוך חלון 30 הדקות
             if inactive_time < timedelta(
-                    minutes=SESSION_TIMEOUT_MINUTES
+                    minutes=
+                        SESSION_TIMEOUT_MINUTES
             ):
+
                 session["_is_new"] = False
 
                 return session
 
-        # =================================================
-        # ה-Session ישן יותר מ-30 דקות
-        # סוגרים אותו
-        # =================================================
+        # =========================================
+        # CLOSE OLD SESSION
+        # =========================================
 
-        started_at = parse_supabase_datetime(
-            session.get("started_at")
+        started_at = (
+            parse_supabase_datetime(
+                session.get(
+                    "started_at"
+                )
+            )
         )
 
         duration_seconds = 0
 
         if started_at and last_activity:
+
             duration_seconds = max(
                 0,
                 int(
                     (
-                            last_activity - started_at
+                        last_activity
+                        - started_at
                     ).total_seconds()
                 )
             )
 
-        sb.table("tutor_sessions").update({
-            "status": "completed",
-            "ended_at": (
-                    last_activity or now
-            ).isoformat(),
-            "duration_seconds": duration_seconds,
-            "updated_at": now.isoformat()
-        }).eq(
-            "id",
-            session["id"]
-        ).execute()
+        def close_old_session():
 
-        # מוסיפים את זמן השיחה לסיכום החודשי
-        increment_usage_summary(
-            user_id=user_id,
-            usage_seconds=duration_seconds
+            return (
+                sb.table(
+                    "tutor_sessions"
+                )
+                .update({
+                    "status":
+                        "completed",
+
+                    "ended_at":
+                        (
+                            last_activity
+                            or now
+                        ).isoformat(),
+
+                    "duration_seconds":
+                        duration_seconds,
+
+                    "updated_at":
+                        now.isoformat()
+                })
+                .eq(
+                    "id",
+                    session["id"]
+                )
+                .execute()
+            )
+
+        supabase_with_retry(
+            close_old_session,
+            label="CLOSE TUTOR SESSION"
         )
-    # =================================================
-    # פתיחת Session חדש
-    # =================================================
+
+        try:
+
+            increment_usage_summary(
+                user_id=user_id,
+                usage_seconds=
+                    duration_seconds
+            )
+
+        except Exception as usage_error:
+
+            print(
+                "SESSION USAGE UPDATE ERROR:",
+                repr(usage_error)
+            )
+
+    # =============================================
+    # CREATE SESSION
+    # =============================================
+
+    def create_session():
+
+        return (
+            sb.table(
+                "tutor_sessions"
+            )
+            .insert({
+                "user_id":
+                    user_id,
+
+                "kid_id":
+                    kid_id,
+
+                "started_at":
+                    now.isoformat(),
+
+                "last_activity_at":
+                    now.isoformat(),
+
+                "status":
+                    "active",
+
+                "ai_model":
+                    "gpt-4o-mini",
+
+                "tts_model":
+                    "gemini-3.1-flash-tts-preview"
+            })
+            .execute()
+        )
 
     new_session_res = (
-        sb.table("tutor_sessions")
-        .insert({
-            "user_id": user_id,
-            "kid_id": kid_id,
-            "started_at": now.isoformat(),
-            "last_activity_at": now.isoformat(),
-            "status": "active",
-            "ai_model": "gpt-4o-mini",
-            "tts_model": "gemini-3.1-flash-tts-preview"
-        })
-        .execute()
+        supabase_with_retry(
+            create_session,
+            label="CREATE TUTOR SESSION"
+        )
     )
 
     if not new_session_res.data:
+
         raise RuntimeError(
             "Failed to create tutor session"
         )
 
-    new_session = new_session_res.data[0]
+    new_session = (
+        new_session_res.data[0]
+    )
 
     new_session["_is_new"] = True
 
@@ -2973,38 +3752,48 @@ def increment_usage_summary(
     מתבצע באמצעות RPC אחד בלבד.
     """
 
-    sb.rpc(
-        "increment_usage_summary",
-        {
-            "p_user_id": user_id,
+    def operation():
+        return (
+            sb.rpc(
+                "increment_usage_summary",
+                {
+                    "p_user_id": user_id,
 
-            "p_sessions": sessions,
-            "p_usage_seconds": usage_seconds,
+                    "p_sessions": sessions,
+                    "p_usage_seconds": usage_seconds,
 
-            "p_ai_calls": ai_calls,
-            "p_input_tokens": input_tokens,
-            "p_output_tokens": output_tokens,
-            "p_total_tokens": total_tokens,
+                    "p_ai_calls": ai_calls,
+                    "p_input_tokens": input_tokens,
+                    "p_output_tokens": output_tokens,
+                    "p_total_tokens": total_tokens,
 
-            "p_tts_calls": tts_calls,
-            "p_tts_seconds": tts_seconds,
-            "p_voice_output_seconds": voice_output_seconds,
+                    "p_tts_calls": tts_calls,
+                    "p_tts_seconds": tts_seconds,
+                    "p_voice_output_seconds": voice_output_seconds,
 
-            "p_image_uploads": image_uploads,
-            "p_vision_calls": vision_calls,
+                    "p_image_uploads": image_uploads,
+                    "p_vision_calls": vision_calls,
 
-            "p_file_uploads": file_uploads,
-            "p_file_analysis_calls": file_analysis_calls,
+                    "p_file_uploads": file_uploads,
+                    "p_file_analysis_calls": file_analysis_calls,
 
-            "p_errors": errors,
+                    "p_errors": errors,
 
-            "p_openai_cost_usd": openai_cost_usd,
-            "p_gemini_cost_usd": gemini_cost_usd,
-            "p_vision_cost_usd": vision_cost_usd,
-            "p_realtime_cost_usd": realtime_cost_usd,
-            "p_other_cost_usd": other_cost_usd
-        }
-    ).execute()
+                    "p_openai_cost_usd": openai_cost_usd,
+                    "p_gemini_cost_usd": gemini_cost_usd,
+                    "p_vision_cost_usd": vision_cost_usd,
+                    "p_realtime_cost_usd": realtime_cost_usd,
+                    "p_other_cost_usd": other_cost_usd
+                }
+            )
+            .execute()
+        )
+
+    return supabase_with_retry(
+        operation,
+        label="INCREMENT USAGE SUMMARY",
+        max_attempts=3
+    )
 
 
 def update_tutor_session_after_chat(
@@ -3428,6 +4217,815 @@ def build_lesson_director_prompt(
         )
     )
 
+
+def build_visual_director_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        lesson_text: str,
+        structured_lesson: dict
+) -> str:
+
+    runtime_context = {
+
+        "grade":
+            parent_lesson.get(
+                "grade"
+            ),
+
+        "subject":
+            parent_lesson.get(
+                "subject"
+            ),
+
+        "main_topic":
+            parent_lesson.get(
+                "lesson_name"
+            ),
+
+        "unit_name":
+            unit_lesson.get(
+                "unit_name"
+            ),
+
+        "lesson_name":
+            unit_lesson.get(
+                "lesson_name"
+            ),
+
+        "learning_objective":
+            unit_lesson.get(
+                "learning_objective"
+            ),
+
+        "lesson_text":
+            lesson_text,
+
+        "structured_lesson":
+            structured_lesson
+    }
+
+    return (
+        VISUAL_DIRECTOR_PROMPT_TEMPLATE
+        + "\n\n"
+        + "RUNTIME_CONTEXT:\n"
+        + json.dumps(
+            runtime_context,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+def build_lesson_transition_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        part_1: dict,
+        part_2: dict
+) -> str:
+
+    runtime_context = {
+
+        "grade":
+            parent_lesson.get(
+                "grade"
+            ),
+
+        "subject":
+            parent_lesson.get(
+                "subject"
+            ),
+
+        "lesson_name":
+            unit_lesson.get(
+                "lesson_name"
+            ),
+
+        "learning_objective":
+            unit_lesson.get(
+                "learning_objective"
+            ),
+
+        "part_1":
+            part_1,
+
+        "part_2":
+            part_2
+    }
+
+    return (
+        LESSON_TRANSITION_PROMPT_TEMPLATE
+        + "\n\n"
+        + "RUNTIME_CONTEXT:\n"
+        + json.dumps(
+            runtime_context,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+def regenerate_lesson_transition_only(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> dict:
+
+    generated_json = (
+        unit_lesson.get(
+            "generated_lesson_json"
+        )
+        or {}
+    )
+
+    structured_lesson = (
+        generated_json.get(
+            "structured_lesson"
+        )
+        or {}
+    )
+
+    part_1 = (
+        structured_lesson.get(
+            "part_1"
+        )
+        or {}
+    )
+
+    part_2 = (
+        structured_lesson.get(
+            "part_2"
+        )
+        or {}
+    )
+
+    if not part_1 or not part_2:
+        raise RuntimeError(
+            "Cannot regenerate transition: "
+            "Part 1 or Part 2 is missing"
+        )
+
+    transition_prompt = (
+        build_lesson_transition_prompt(
+            unit_lesson=
+                unit_lesson,
+
+            parent_lesson=
+                parent_lesson,
+
+            part_1=
+                part_1,
+
+            part_2=
+                part_2
+        )
+    )
+
+    print(
+        "========== TRANSITION ONLY REGENERATION START ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson["id"]
+        }
+    )
+
+    # =============================================
+    # HARD SPEECH WORD COUNT
+    #
+    # לא סומכים רק על ה-Prompt.
+    # ה-Backend עצמו בודק שה-speech
+    # באמת מכיל 36-40 מילים.
+    # =============================================
+
+    MIN_TRANSITION_WORDS = 36
+    MAX_TRANSITION_WORDS = 40
+    MAX_TRANSITION_ATTEMPTS = 4
+
+    lesson_transition = None
+
+    for attempt in range(
+        1,
+        MAX_TRANSITION_ATTEMPTS + 1
+    ):
+
+        print(
+            "TRANSITION GENERATION ATTEMPT:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "max_attempts":
+                    MAX_TRANSITION_ATTEMPTS
+            }
+        )
+
+        transition_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            transition_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Create the universal transition "
+                                "between Part 1 and Part 2. "
+
+                                "IMPORTANT HARD REQUIREMENT: "
+                                "The Hebrew speech field MUST contain "
+                                "between 36 and 40 Hebrew words. "
+
+                                "Count the words before returning. "
+
+                                "If the speech has fewer than 36 words, "
+                                "expand it naturally. "
+
+                                "If the speech has more than 40 words, "
+                                "rewrite it naturally. "
+
+                                "Do not return the response until "
+                                "the speech contains 36-40 words. "
+
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                    LessonTransitionResponse
+            )
+        )
+
+        transition_data = (
+            transition_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not transition_data:
+
+            print(
+                "TRANSITION ATTEMPT RETURNED NO DATA:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "attempt":
+                        attempt
+                }
+            )
+
+            continue
+
+        candidate_transition = (
+            transition_data
+            .model_dump()
+        )
+
+        candidate_speech = str(
+            candidate_transition.get(
+                "speech"
+            )
+            or ""
+        ).strip()
+
+        word_count = len(
+            candidate_speech.split()
+        )
+
+        print(
+            "TRANSITION WORD COUNT CHECK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "word_count":
+                    word_count,
+
+                "min_words":
+                    MIN_TRANSITION_WORDS,
+
+                "max_words":
+                    MAX_TRANSITION_WORDS,
+
+                "speech":
+                    candidate_speech
+            }
+        )
+
+        # =========================================
+        # VALID RESULT
+        # =========================================
+
+        if (
+            MIN_TRANSITION_WORDS
+            <= word_count
+            <= MAX_TRANSITION_WORDS
+        ):
+
+            lesson_transition = (
+                candidate_transition
+            )
+
+            print(
+                "TRANSITION WORD COUNT VALID:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "attempt":
+                        attempt,
+
+                    "word_count":
+                        word_count
+                }
+            )
+
+            break
+
+        # =========================================
+        # INVALID RESULT -> RETRY
+        # =========================================
+
+        print(
+            "TRANSITION WORD COUNT INVALID — RETRY:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "attempt":
+                    attempt,
+
+                "word_count":
+                    word_count
+            }
+        )
+
+    # =============================================
+    # NO VALID RESULT AFTER RETRIES
+    # =============================================
+
+    if lesson_transition is None:
+
+        print(
+            "TRANSITION WORD COUNT FALLBACK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "message":
+                    (
+                        "No 36-40 word result found. "
+                        "Using last generated transition."
+                    )
+            }
+        )
+
+        if not candidate_transition:
+            raise RuntimeError(
+                "Transition Director returned "
+                "no usable transition"
+            )
+
+        lesson_transition = (
+            candidate_transition
+        )
+
+    # =============================================
+    # FINAL RESULT
+    # =============================================
+
+    final_speech = str(
+        lesson_transition.get(
+            "speech"
+        )
+        or ""
+    ).strip()
+
+    final_word_count = len(
+        final_speech.split()
+    )
+
+    print(
+        "========== TRANSITION ONLY REGENERATION RESULT =========="
+    )
+
+    print(
+        json.dumps(
+            lesson_transition,
+            ensure_ascii=False,
+            indent=2
+        )
+    )
+
+    print(
+        "========== TRANSITION FINAL WORD COUNT ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "word_count":
+                final_word_count,
+
+            "speech":
+                final_speech
+        }
+    )
+
+    return lesson_transition
+
+def build_segment_visual_fallback_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        segment_text: str,
+        segment_index: int
+) -> str:
+
+    grade = str(
+        parent_lesson.get("grade")
+        or ""
+    )
+
+    subject = str(
+        parent_lesson.get("subject")
+        or ""
+    )
+
+    main_topic = str(
+        parent_lesson.get("lesson_name")
+        or ""
+    )
+
+    unit_name = str(
+        unit_lesson.get("unit_name")
+        or ""
+    )
+
+    lesson_name = str(
+        unit_lesson.get("lesson_name")
+        or ""
+    )
+
+    learning_objective = str(
+        unit_lesson.get("learning_objective")
+        or ""
+    )
+
+    return f"""
+Create one premium educational 16:9 illustration
+for segment {segment_index} of a school lesson.
+
+CURRICULUM CONTEXT:
+
+Grade: {grade}
+Subject: {subject}
+Main topic: {main_topic}
+Unit: {unit_name}
+Lesson: {lesson_name}
+Learning objective: {learning_objective}
+
+EXACT LESSON SEGMENT:
+
+{segment_text}
+
+VISUAL GOAL:
+
+Translate the educational meaning of this exact segment
+into one clear visual scene.
+
+The image must help the student understand this segment
+while listening to its corresponding audio.
+
+Use the full curriculum context.
+Do not interpret isolated keywords.
+
+REQUIREMENTS:
+
+- educationally accurate
+- appropriate for grade {grade}
+- premium modern educational illustration
+- 16:9 landscape composition
+- one clear educational focus
+- visually rich but easy to understand
+- maintain continuity with the lesson context
+- no written text
+- no labels
+- no captions
+- no logos
+- no watermark
+- no UI elements
+- no title cards
+""".strip()
+
+
+def normalize_visual_plan_to_segments(
+        visual_plan: dict,
+        structured_lesson: dict,
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> dict:
+
+    segments = (
+        structured_lesson.get("lesson")
+        or []
+    )
+
+    raw_visuals = (
+        visual_plan.get("visuals")
+        or []
+    )
+
+    normalized_visuals = []
+
+    print(
+        "VISUAL PLAN NORMALIZATION START:",
+        {
+            "segments_count":
+                len(segments),
+
+            "director_visuals_count":
+                len(raw_visuals)
+        }
+    )
+
+    for index, segment in enumerate(
+            segments,
+            start=1
+    ):
+
+        if not isinstance(
+                segment,
+                dict
+        ):
+            continue
+
+        segment_text = str(
+            segment.get("text")
+            or ""
+        ).strip()
+
+        if not segment_text:
+            continue
+
+        # =========================================
+        # FIND VISUAL RETURNED BY DIRECTOR
+        # =========================================
+
+        director_visual = None
+
+        # קודם מחפשים לפי order
+        for item in raw_visuals:
+
+            if not isinstance(
+                    item,
+                    dict
+            ):
+                continue
+
+            try:
+                item_order = int(
+                    item.get("order")
+                    or 0
+                )
+            except Exception:
+                item_order = 0
+
+            if item_order == index:
+                director_visual = item
+                break
+
+        # =========================================
+        # GENERATION PROMPT
+        # =========================================
+
+        generation_prompt = ""
+
+        visual_goal = (
+            f"Help the student understand "
+            f"lesson segment {index}."
+        )
+
+        if director_visual:
+
+            generation_prompt = str(
+                director_visual.get(
+                    "generation_prompt"
+                )
+                or ""
+            ).strip()
+
+            visual_goal = str(
+                director_visual.get(
+                    "visual_goal"
+                )
+                or visual_goal
+            ).strip()
+
+        # אם ה-Director דילג על הסגמנט,
+        # ה-Backend מייצר Prompt בעצמו.
+        if not generation_prompt:
+
+            print(
+                "VISUAL DIRECTOR MISSING SEGMENT:",
+                {
+                    "segment_index":
+                        index,
+
+                    "segment_text":
+                        segment_text
+                }
+            )
+
+            generation_prompt = (
+                build_segment_visual_fallback_prompt(
+                    unit_lesson=
+                        unit_lesson,
+
+                    parent_lesson=
+                        parent_lesson,
+
+                    segment_text=
+                        segment_text,
+
+                    segment_index=
+                        index
+                )
+            )
+
+        # =========================================
+        # TRIGGER
+        #
+        # היום הפרונט כבר מתקדם לפי order,
+        # אבל עדיין נשמור trigger_text תקין.
+        # =========================================
+
+        words = (
+            segment_text
+            .replace("\n", " ")
+            .split()
+        )
+
+        trigger_text = " ".join(
+            words[:6]
+        )
+
+        # =========================================
+        # HARD 1:1 VISUAL
+        # =========================================
+
+        normalized_visuals.append({
+
+            "order":
+                index,
+
+            "trigger_text":
+                trigger_text,
+
+            # חשוב:
+            # כל Segment הוא תמונה.
+            # גם אם ה-Director החזיר video.
+            "type":
+                "image",
+
+            "visual_goal":
+                visual_goal,
+
+            "source_text":
+                segment_text,
+
+            "generation_prompt":
+                generation_prompt
+        })
+    # =====================================================
+    # QUESTION 1 VISUAL
+    # =====================================================
+
+    question = (
+        structured_lesson.get("question")
+        or {}
+    )
+
+    question_text = str(
+        question.get("text")
+        or ""
+    ).strip()
+
+    if question_text:
+
+        question_visual_order = (
+            len(normalized_visuals) + 1
+        )
+
+        question_generation_prompt = (
+            build_segment_visual_fallback_prompt(
+                unit_lesson=
+                    unit_lesson,
+
+                parent_lesson=
+                    parent_lesson,
+
+                segment_text=
+                    question_text,
+
+                segment_index=
+                    question_visual_order
+            )
+        )
+
+        question_words = (
+            question_text
+            .replace("\n", " ")
+            .split()
+        )
+
+        question_trigger_text = " ".join(
+            question_words[:6]
+        )
+
+        normalized_visuals.append({
+
+            "order":
+                question_visual_order,
+
+            "trigger_text":
+                question_trigger_text,
+
+            "type":
+                "image",
+
+            "role":
+                "question_1",
+
+            "visual_goal":
+                "Visually support question 1.",
+
+            "source_text":
+                question_text,
+
+            "generation_prompt":
+                question_generation_prompt
+        })
+
+        print(
+            "QUESTION 1 VISUAL ADDED:",
+            {
+                "order":
+                    question_visual_order,
+
+                "question":
+                    question_text
+            }
+        )
+    result = {
+        "version":
+            int(
+                visual_plan.get("version")
+                or 1
+            ),
+
+        "visuals":
+            normalized_visuals
+    }
+
+    print(
+        "VISUAL PLAN NORMALIZATION DONE:",
+        {
+            "segments_count":
+                len(segments),
+
+            "visuals_count":
+                len(normalized_visuals),
+
+            "orders":
+                [
+                    item["order"]
+                    for item
+                    in normalized_visuals
+                ]
+        }
+    )
+
+    return result
+
 def normalize_universal_lesson_visuals(
         sequence: list[TutorAction]
 ) -> list[TutorAction]:
@@ -3516,11 +5114,4011 @@ def normalize_universal_lesson_visuals(
     return normalized_sequence
 
 # =====================================================
+# KID PERSONAL MEDIA
+# Personal reusable media for paid subscribers
+# =====================================================
+
+KID_PERSONAL_MEDIA_BUCKET = (
+    "kid-personal-media"
+)
+
+KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS = (
+    3600
+)
+
+KID_LESSON_INTRO_MEDIA_TYPE = (
+    "lesson_intro"
+)
+
+KID_LESSON_INTRO_VARIANTS = (
+    1,
+    2,
+    3
+)
+
+
+def is_paid_active_subscription(
+        user_id: str
+) -> bool:
+    """
+    מחזיר True רק למשתמש בתשלום
+    עם מנוי פעיל ולא מבוטל.
+    """
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    res = (
+        sb.table(
+            "subscriptions"
+        )
+        .select(
+            "plan, "
+            "status, "
+            "expires_at, "
+            "canceled_at"
+        )
+        .eq(
+            "user_id",
+            user_id
+        )
+        .eq(
+            "status",
+            "active"
+        )
+        .neq(
+            "plan",
+            "free"
+        )
+        .is_(
+            "canceled_at",
+            "null"
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return False
+
+    subscription = (
+        res.data[0]
+    )
+
+    expires_at = (
+        subscription.get(
+            "expires_at"
+        )
+    )
+
+    if expires_at:
+
+        expires_dt = (
+            parse_supabase_datetime(
+                expires_at
+            )
+        )
+
+        if (
+            expires_dt
+            and
+            expires_dt
+            <= datetime.now(
+                timezone.utc
+            )
+        ):
+            return False
+
+    return True
+
+
+def get_kid_lesson_intro_media(
+        kid_id: str
+) -> list[dict]:
+
+    res = (
+        sb.table(
+            "kid_personal_media"
+        )
+        .select(
+            "id, "
+            "kid_id, "
+            "media_type, "
+            "variant, "
+            "storage_path, "
+            "status"
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "media_type",
+            KID_LESSON_INTRO_MEDIA_TYPE
+        )
+        .order(
+            "variant"
+        )
+        .execute()
+    )
+
+    return (
+        res.data
+        or []
+    )
+
+
+def create_kid_personal_media_signed_url(
+        storage_path: str
+) -> str:
+
+    signed_response = (
+        sb.storage
+        .from_(
+            KID_PERSONAL_MEDIA_BUCKET
+        )
+        .create_signed_url(
+            storage_path,
+            KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS
+        )
+    )
+
+    signed_url = None
+
+    if isinstance(
+        signed_response,
+        dict
+    ):
+        signed_url = (
+            signed_response.get(
+                "signedURL"
+            )
+            or signed_response.get(
+                "signedUrl"
+            )
+            or signed_response.get(
+                "signed_url"
+            )
+        )
+
+    if not signed_url:
+        raise RuntimeError(
+            "Failed to create signed URL "
+            f"for kid personal media: "
+            f"{storage_path}"
+        )
+
+    return signed_url
+
+
+def get_ready_kid_lesson_intro_videos(
+        kid_id: str
+) -> list[dict]:
+
+    media_rows = (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+    ready_videos = []
+
+    for row in media_rows:
+
+        if (
+            row.get("status")
+            != "ready"
+        ):
+            continue
+
+        storage_path = str(
+            row.get(
+                "storage_path"
+            )
+            or ""
+        ).strip()
+
+        if not storage_path:
+            continue
+
+        try:
+
+            signed_url = (
+                create_kid_personal_media_signed_url(
+                    storage_path
+                )
+            )
+
+        except Exception as e:
+
+            print(
+                "KID INTRO SIGNED URL FAILED:",
+                {
+                    "kid_id":
+                        kid_id,
+
+                    "variant":
+                        row.get(
+                            "variant"
+                        ),
+
+                    "storage_path":
+                        storage_path,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            continue
+
+        ready_videos.append({
+            "variant":
+                row.get(
+                    "variant"
+                ),
+
+            "storage_path":
+                storage_path,
+
+            "url":
+                signed_url
+        })
+
+    return ready_videos
+
+def ensure_kid_lesson_intro_rows(
+        kid_id: str
+) -> list[dict]:
+
+    existing_rows = (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+    existing_variants = {
+        int(
+            row.get("variant")
+            or 0
+        )
+        for row in existing_rows
+    }
+
+    missing_variants = [
+        variant
+        for variant
+        in KID_LESSON_INTRO_VARIANTS
+        if variant not in existing_variants
+    ]
+
+    if not missing_variants:
+
+        print(
+            "KID INTRO ROWS ALREADY EXIST:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variants":
+                    sorted(
+                        existing_variants
+                    )
+            }
+        )
+
+        return existing_rows
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    rows_to_insert = []
+
+    for variant in missing_variants:
+
+        rows_to_insert.append({
+            "kid_id":
+                kid_id,
+
+            "media_type":
+                KID_LESSON_INTRO_MEDIA_TYPE,
+
+            "variant":
+                variant,
+
+            "storage_path":
+                None,
+
+            "status":
+                "pending",
+
+            "error_message":
+                None,
+
+            "created_at":
+                now_iso,
+
+            "updated_at":
+                now_iso
+        })
+
+    try:
+
+        sb.table(
+            "kid_personal_media"
+        ).insert(
+            rows_to_insert
+        ).execute()
+
+        print(
+            "KID INTRO PENDING ROWS CREATED:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variants":
+                    missing_variants
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "KID INTRO ROW INSERT WARNING:",
+            {
+                "kid_id":
+                    kid_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+    return (
+        get_kid_lesson_intro_media(
+            kid_id
+        )
+    )
+
+
+# =====================================================
+# KID PERSONAL LESSON INTRO VIDEO GENERATION
+# =====================================================
+
+def get_kid_lesson_intro_script(
+        child: dict,
+        variant: int
+) -> str:
+
+    child_name = str(
+        child.get(
+            "child_name"
+        )
+        or ""
+    ).strip()
+
+    gender = str(
+        child.get(
+            "gender"
+        )
+        or "male"
+    ).strip().lower()
+
+    ready_word = (
+        "מוכנה"
+        if gender == "female"
+        else "מוכן"
+    )
+
+    scripts = {
+
+        1:
+            (
+                f"היי {child_name}! "
+                f"איזה כיף שבאת ללמוד איתי."
+            ),
+
+        2:
+            (
+                f"{child_name}, כיף לראות אותך שוב! "
+                f"{ready_word} להתחיל?"
+            ),
+
+        3:
+            (
+                f"היי {child_name}! "
+                f"בואי נראה מה נלמד היום."
+                if gender == "female"
+                else
+                f"היי {child_name}! "
+                f"בוא נראה מה נלמד היום."
+            )
+    }
+
+    script = str(
+        scripts.get(
+            variant
+        )
+        or ""
+    ).strip()
+
+    if not script:
+        raise RuntimeError(
+            f"Missing intro script "
+            f"for variant {variant}"
+        )
+
+    return script
+
+
+def download_gemini_video_bytes(
+        output_video
+) -> bytes:
+
+    if output_video is None:
+        raise RuntimeError(
+            "Gemini returned no video"
+        )
+
+    video_uri = getattr(
+        output_video,
+        "uri",
+        None
+    )
+
+    if video_uri:
+
+        file_name = (
+            str(video_uri)
+            .split("/")[-1]
+        )
+
+        file_name = (
+            file_name
+            .split(":")[0]
+            .split("?")[0]
+        )
+
+        print(
+            "KID INTRO VIDEO WAITING:",
+            {
+                "file_name":
+                    file_name
+            }
+        )
+
+        video_ready = False
+
+        for _ in range(60):
+
+            file_info = (
+                gemini_client
+                .files
+                .get(
+                    name=
+                        f"files/{file_name}"
+                )
+            )
+
+            state = str(
+                getattr(
+                    getattr(
+                        file_info,
+                        "state",
+                        None
+                    ),
+                    "name",
+                    ""
+                )
+                or ""
+            ).upper()
+
+            if state == "ACTIVE":
+                video_ready = True
+                break
+
+            if state == "FAILED":
+                raise RuntimeError(
+                    "Gemini kid intro video "
+                    "processing failed"
+                )
+
+            time.sleep(5)
+
+        if not video_ready:
+            raise RuntimeError(
+                "Gemini kid intro video "
+                "processing timed out"
+            )
+
+        video_bytes = (
+            gemini_client
+            .files
+            .download(
+                file=video_uri
+            )
+        )
+
+    else:
+
+        inline_data = getattr(
+            output_video,
+            "data",
+            None
+        )
+
+        if not inline_data:
+            raise RuntimeError(
+                "Gemini kid intro video "
+                "contains no data"
+            )
+
+        if isinstance(
+                inline_data,
+                str
+        ):
+
+            video_bytes = (
+                base64.b64decode(
+                    inline_data
+                )
+            )
+
+        else:
+
+            video_bytes = bytes(
+                inline_data
+            )
+
+    if not video_bytes:
+        raise RuntimeError(
+            "Downloaded kid intro video "
+            "is empty"
+        )
+
+    return video_bytes
+
+
+def generate_single_kid_lesson_intro_video(
+        child: dict,
+        variant: int
+):
+
+    kid_id = str(
+        child.get("id")
+        or ""
+    ).strip()
+
+    if not kid_id:
+        raise RuntimeError(
+            "kid_id is missing"
+        )
+
+    media_res = (
+        sb.table(
+            "kid_personal_media"
+        )
+        .select("*")
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "media_type",
+            KID_LESSON_INTRO_MEDIA_TYPE
+        )
+        .eq(
+            "variant",
+            variant
+        )
+        .limit(1)
+        .execute()
+    )
+
+    if not media_res.data:
+        return
+
+    media_row = (
+        media_res.data[0]
+    )
+
+    current_status = str(
+        media_row.get(
+            "status"
+        )
+        or ""
+    ).strip()
+
+    if current_status == "ready":
+        return
+
+    if current_status == "generating":
+        return
+
+    now_iso = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    claim_res = (
+        sb.table(
+            "kid_personal_media"
+        )
+        .update({
+            "status":
+                "generating",
+
+            "error_message":
+                None,
+
+            "updated_at":
+                now_iso
+        })
+        .eq(
+            "id",
+            media_row["id"]
+        )
+        .eq(
+            "status",
+            current_status
+        )
+        .execute()
+    )
+
+    if not claim_res.data:
+        return
+
+    try:
+
+        script = (
+            get_kid_lesson_intro_script(
+                child=child,
+                variant=variant
+            )
+        )
+
+        print(
+            "========== KID INTRO VIDEO START ==========",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variant":
+                    variant,
+
+                "script":
+                    script
+            }
+        )
+
+        teacher_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                LESSON_TRANSITION_TEACHER_PATH
+            )
+        )
+
+        if not teacher_bytes:
+            raise RuntimeError(
+                "Kid intro teacher reference "
+                "is missing"
+            )
+
+        teacher_b64 = (
+            base64.b64encode(
+                teacher_bytes
+            )
+            .decode("utf-8")
+        )
+
+        video_prompt = f"""
+[# References
+<IMAGE_REF_0>@Image1]
+
+Create a short premium personalized educational
+welcome video with synchronized spoken audio.
+
+IMAGE_REF_0 shows the fictional,
+AI-generated IAKIDS virtual teacher.
+
+Maintain the same fictional teacher design.
+
+The teacher looks directly toward the learner,
+smiles naturally and gives a small welcoming gesture.
+
+THE TEACHER MUST SAY EXACTLY THIS HEBREW TEXT:
+
+"{script}"
+
+Speak ONLY this text.
+
+Do not paraphrase.
+Do not add words.
+Do not remove words.
+Do not repeat words.
+Do not repeat the child's name.
+
+The spoken language must be Hebrew.
+
+Use natural fluent Hebrew pronunciation.
+
+- premium semi-realistic educational animation
+- teacher face clearly visible
+- mouth clearly visible while speaking
+- natural eye contact
+- subtle body movement
+- subtle hand gesture
+- medium composition
+- cinematic soft lighting
+- one continuous shot
+- synchronized Hebrew spoken audio
+- no written text
+- no subtitles
+- no captions
+- no labels
+- no logos
+- no UI
+- no watermark
+
+After the final word the teacher becomes silent.
+
+No additional speech.
+No repeated ending.
+No invented dialogue.
+
+The final video must contain spoken audio.
+""".strip()
+
+        interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                input=[
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            teacher_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "text",
+
+                        "text":
+                            video_prompt
+                    }
+                ],
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        if not getattr(
+                interaction,
+                "id",
+                None
+        ):
+            raise RuntimeError(
+                "Gemini returned no kid intro "
+                "interaction id"
+            )
+
+        output_video = getattr(
+            interaction,
+            "output_video",
+            None
+        )
+
+        video_bytes = (
+            download_gemini_video_bytes(
+                output_video
+            )
+        )
+
+        storage_path = (
+            f"{kid_id}/"
+            f"lesson-intro/"
+            f"intro-{variant}.mp4"
+        )
+
+        sb.storage.from_(
+            KID_PERSONAL_MEDIA_BUCKET
+        ).upload(
+
+            path=
+                storage_path,
+
+            file=
+                video_bytes,
+
+            file_options={
+                "content-type":
+                    "video/mp4",
+
+                "upsert":
+                    "true"
+            }
+        )
+
+        ready_at = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "kid_personal_media"
+        ).update({
+
+            "storage_path":
+                storage_path,
+
+            "status":
+                "ready",
+
+            "error_message":
+                None,
+
+            "updated_at":
+                ready_at
+
+        }).eq(
+            "id",
+            media_row["id"]
+        ).execute()
+
+        print(
+            "========== KID INTRO VIDEO READY ==========",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variant":
+                    variant,
+
+                "storage_path":
+                    storage_path,
+
+                "bytes":
+                    len(video_bytes)
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "========== KID INTRO VIDEO ERROR ==========",
+            {
+                "kid_id":
+                    kid_id,
+
+                "variant":
+                    variant,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        try:
+
+            sb.table(
+                "kid_personal_media"
+            ).update({
+
+                "status":
+                    "failed",
+
+                "error_message":
+                    str(e)[:1500],
+
+                "updated_at":
+                    datetime
+                    .now(timezone.utc)
+                    .isoformat()
+
+            }).eq(
+                "id",
+                media_row["id"]
+            ).execute()
+
+        except Exception as update_error:
+
+            print(
+                "KID INTRO FAILURE UPDATE ERROR:",
+                repr(
+                    update_error
+                )
+            )
+
+
+def generate_kid_lesson_intro_videos_background(
+        child: dict
+):
+
+    kid_id = str(
+        child.get("id")
+        or ""
+    ).strip()
+
+    print(
+        "========== KID INTRO VIDEOS BACKGROUND START ==========",
+        {
+            "kid_id":
+                kid_id,
+
+            "child_name":
+                child.get(
+                    "child_name"
+                )
+        }
+    )
+
+    for variant in KID_LESSON_INTRO_VARIANTS:
+
+        generate_single_kid_lesson_intro_video(
+            child=child,
+            variant=variant
+        )
+
+    print(
+        "========== KID INTRO VIDEOS BACKGROUND DONE ==========",
+        {
+            "kid_id":
+                kid_id
+        }
+    )
+# =====================================================
+# UNIVERSAL LESSON MEDIA
+# Shared images / videos for all children
+# =====================================================
+
+LESSON_MEDIA_BUCKET = "lesson-media"
+
+LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
+
+# =====================================================
+# UNIVERSAL LESSON TRANSITION VIDEO
+# =====================================================
+
+LESSON_TRANSITION_VIDEO_MODEL = (
+    "gemini-omni-1.1-flash"
+)
+
+LESSON_TRANSITION_TEACHER_PATH = (
+    "shared/teacher/"
+    "lesson-teacher-full-body.png"
+)
+
+LESSON_TRANSITION_VIDEO_TARGET_SECONDS = 20
+
+# בשלב הראשון נייצר רק Hero Image אחת לכל תת-שיעור
+LESSON_MEDIA_HERO_VERSION = 1
+
+
+def get_lesson_media_storage_path(
+        unit_lesson_id: int,
+        media_type: str = "hero"
+) -> str:
+    """
+    נתיב קבוע למדיה של תת-שיעור.
+
+    אותו unit_lesson_id תמיד יוביל
+    לאותו קובץ, ולכן ילדים אחרים
+    יוכלו להשתמש באותה מדיה.
+    """
+
+    if media_type == "hero":
+        return (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"hero_v{LESSON_MEDIA_HERO_VERSION}.png"
+        )
+
+    raise ValueError(
+        f"Unsupported lesson media type: "
+        f"{media_type}"
+    )
+
+
+def create_lesson_media_signed_url(
+        storage_path: str
+) -> str:
+    """
+    יוצר URL זמני לקובץ שכבר נמצא
+    ב-Supabase Storage.
+    """
+
+    signed_response = (
+        sb.storage
+        .from_(
+            LESSON_MEDIA_BUCKET
+        )
+        .create_signed_url(
+            storage_path,
+            LESSON_MEDIA_URL_EXPIRY_SECONDS
+        )
+    )
+
+    signed_url = None
+
+    if isinstance(
+            signed_response,
+            dict
+    ):
+        signed_url = (
+            signed_response.get(
+                "signedURL"
+            )
+            or signed_response.get(
+                "signedUrl"
+            )
+            or signed_response.get(
+                "signed_url"
+            )
+        )
+
+    if not signed_url:
+        raise RuntimeError(
+            "Failed to create signed URL "
+            f"for lesson media: {storage_path}"
+        )
+
+    return signed_url
+
+def add_transition_video_signed_url(
+        transition: dict | None
+) -> dict | None:
+
+    if not isinstance(
+        transition,
+        dict
+    ):
+        return transition
+
+    video = (
+        transition.get(
+            "video"
+        )
+        or {}
+    )
+
+    if not isinstance(
+        video,
+        dict
+    ):
+        return transition
+
+    storage_path = str(
+        video.get(
+            "storage_path"
+        )
+        or ""
+    ).strip()
+
+    if not storage_path:
+
+        return transition
+
+    try:
+
+        signed_url = (
+            create_lesson_media_signed_url(
+                storage_path
+            )
+        )
+
+    except Exception as e:
+
+        print(
+            "TRANSITION VIDEO SIGNED URL FAILED:",
+            {
+                "storage_path":
+                    storage_path,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        return transition
+
+    return {
+        **transition,
+
+        "video": {
+            **video,
+
+            "url":
+                signed_url,
+
+            "url_expires_in_seconds":
+                LESSON_MEDIA_URL_EXPIRY_SECONDS
+        }
+    }
+
+def build_lesson_hero_image_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict
+) -> str:
+    """
+    Prompt אוניברסלי לתמונה הראשונה של השיעור.
+
+    אין כאן מידע אישי על הילד.
+    לכן התמונה יכולה להישמר ולהיות
+    משותפת לכל הילדים שלומדים את אותו שיעור.
+    """
+
+    grade = str(
+        parent_lesson.get(
+            "grade"
+        )
+        or ""
+    ).strip()
+
+    subject = str(
+        parent_lesson.get(
+            "subject"
+        )
+        or ""
+    ).strip()
+
+    parent_lesson_name = str(
+        parent_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    ).strip()
+
+    unit_name = str(
+        unit_lesson.get(
+            "unit_name"
+        )
+        or ""
+    ).strip()
+
+    lesson_name = str(
+        unit_lesson.get(
+            "lesson_name"
+        )
+        or ""
+    ).strip()
+
+    learning_objective = str(
+        unit_lesson.get(
+            "learning_objective"
+        )
+        or ""
+    ).strip()
+
+    return f"""
+Create one premium educational HERO illustration for a school lesson.
+
+CURRICULUM CONTEXT:
+Grade: {grade}
+Subject: {subject}
+Main topic: {parent_lesson_name}
+Unit: {unit_name}
+Lesson: {lesson_name}
+Learning objective: {learning_objective}
+
+IMPORTANT CONTEXT RULE:
+The lesson title must NEVER be interpreted in isolation.
+
+First understand the lesson through its complete curriculum context:
+Subject -> Main topic -> Unit -> Lesson -> Learning objective.
+
+The illustration must clearly belong to the MAIN TOPIC and UNIT,
+while visually introducing the specific LESSON.
+
+If the lesson title is broad or ambiguous, use the Main topic,
+Unit and Learning objective to determine its correct meaning.
+
+For example:
+If a lesson is called "What is a system?" and it belongs to a unit
+about ecosystems, the image should explain the idea of a system
+through an ecological context: living and non-living elements
+interacting, influencing and depending on one another.
+
+Do NOT interpret such a lesson as a mechanical system,
+computer system, gears, machinery or another unrelated type
+of system unless the curriculum context specifically requires it.
+
+VISUAL GOAL:
+Create one immediately understandable visual scene that helps
+the student intuitively understand the central concept of the lesson
+before the full lesson explanation begins.
+
+The image must TEACH the concept visually,
+not simply decorate or illustrate the lesson title.
+
+The visual should prioritize the actual educational concept
+described by the curriculum context and learning objective.
+
+REQUIREMENTS:
+- appropriate for a student in grade {grade}
+- educational and scientifically accurate
+- one clear central educational concept
+- premium modern 3D educational illustration
+- visually rich and engaging but not childish
+- realistic enough to support learning
+- clear visual relationships between important elements
+- cinematic soft lighting
+- clean professional composition
+- suitable for a large lesson presentation area
+- landscape composition
+- no written text
+- no labels
+- no captions
+- no logos
+- no watermark
+""".strip()
+
+# =====================================================
+# GEMINI LESSON HERO IMAGE
+# =====================================================
+
+LESSON_IMAGE_MODEL = (
+    "gemini-3.1-flash-lite-image"
+)
+
+
+def generate_lesson_hero_image_bytes(
+        prompt: str
+) -> tuple[bytes, str]:
+    """
+    יוצר תמונת Hero אחת דרך Gemini.
+
+    מחזיר:
+    - bytes של התמונה
+    - MIME type
+    """
+
+    clean_prompt = str(
+        prompt or ""
+    ).strip()
+
+    if not clean_prompt:
+        raise RuntimeError(
+            "Lesson hero image prompt is empty"
+        )
+
+    print(
+        "========== LESSON IMAGE GENERATION START ==========",
+        {
+            "model":
+                LESSON_IMAGE_MODEL,
+
+            "prompt_length":
+                len(clean_prompt)
+        }
+    )
+
+    started_at = (
+        time.perf_counter()
+    )
+
+    response = (
+        gemini_client
+        .models
+        .generate_content(
+
+            model=
+                LESSON_IMAGE_MODEL,
+
+            contents=
+                clean_prompt,
+
+            config=
+            types.GenerateContentConfig(
+
+                response_modalities=[
+                    "IMAGE"
+                ],
+
+                image_config=
+                types.ImageConfig(
+                    aspect_ratio="16:9",
+                    image_size="1K"
+                )
+            )
+        )
+    )
+
+    elapsed_ms = round(
+        (
+            time.perf_counter()
+            - started_at
+        )
+        * 1000
+    )
+
+    print(
+        "========== LESSON IMAGE GEMINI RESPONSE ==========",
+        {
+            "elapsed_ms":
+                elapsed_ms
+        }
+    )
+
+    # =================================================
+    # FIND IMAGE PART
+    # =================================================
+
+    response_parts = (
+        getattr(
+            response,
+            "parts",
+            None
+        )
+        or []
+    )
+
+    for part in response_parts:
+
+        inline_data = getattr(
+            part,
+            "inline_data",
+            None
+        )
+
+        if inline_data is None:
+            continue
+
+        image_data = getattr(
+            inline_data,
+            "data",
+            None
+        )
+
+        if not image_data:
+            continue
+
+        mime_type = (
+            getattr(
+                inline_data,
+                "mime_type",
+                None
+            )
+            or
+            "image/png"
+        )
+
+        # בחלק מגרסאות SDK
+        # data מגיע כ-bytes.
+        #
+        # באחרות הוא יכול להגיע
+        # כ-base64 string.
+        if isinstance(
+                image_data,
+                str
+        ):
+
+            image_bytes = (
+                base64.b64decode(
+                    image_data
+                )
+            )
+
+        else:
+
+            image_bytes = bytes(
+                image_data
+            )
+
+        if not image_bytes:
+            continue
+
+        print(
+            "========== LESSON IMAGE GENERATED ==========",
+            {
+                "elapsed_ms":
+                    elapsed_ms,
+
+                "mime_type":
+                    mime_type,
+
+                "bytes":
+                    len(image_bytes)
+            }
+        )
+
+        return (
+            image_bytes,
+            mime_type
+        )
+
+    raise RuntimeError(
+        "Gemini returned no image data"
+    )
+
+def generate_lesson_visual_image_bytes(
+        prompt: str,
+        reference_image_bytes: bytes | None = None,
+        reference_mime_type: str = "image/png"
+) -> tuple[bytes, str]:
+
+    clean_prompt = str(
+        prompt or ""
+    ).strip()
+
+    if not clean_prompt:
+        raise RuntimeError(
+            "Lesson visual image prompt is empty"
+        )
+
+    # =============================================
+    # NORMAL FIRST IMAGE
+    # =============================================
+
+    if not reference_image_bytes:
+
+        return generate_lesson_hero_image_bytes(
+            clean_prompt
+        )
+
+    # =============================================
+    # REFERENCE-BASED IMAGE GENERATION
+    # =============================================
+
+    reference_part = types.Part.from_bytes(
+        data=reference_image_bytes,
+        mime_type=reference_mime_type
+    )
+
+    reference_prompt = f"""
+    The attached image is the MASTER STYLE REFERENCE
+    for an educational lesson image series.
+
+    You must create a NEW SCENE, but it MUST look like it was
+    created by the EXACT SAME illustrator, using the EXACT SAME
+    visual medium and rendering technique as the reference image.
+
+    CRITICAL STYLE LOCK:
+
+    The reference image controls HOW the new image looks.
+    The CURRENT SCENE controls ONLY WHAT the new image shows.
+
+    DO NOT change the visual medium because of the scene description.
+
+    MATCH THE REFERENCE IMAGE:
+
+    - same premium semi-realistic digital illustration style
+    - same illustrated rendering technique
+    - same character design language
+    - same level of illustrated realism
+    - same cinematic lighting style
+    - same color palette and color treatment
+    - same texture and material treatment
+    - same depth and atmosphere
+    - same visual detail density
+    - same cinematic quality
+    - same overall educational production style
+
+    The result must visually belong to the SAME IMAGE SERIES
+    as the reference.
+
+    If the reference looks semi-realistic,
+    the new image MUST remain semi-realistic.
+
+    If the reference uses realistic materials and lighting,
+    preserve those characteristics.
+
+    NEVER convert the scene into:
+
+    - an infographic
+    - a diagram
+    - a labeled educational chart
+    - a technical illustration
+    - a poster
+    - a textbook page
+    - a cartoon
+    - flat vector artwork
+    - comic-book artwork
+    - watercolor
+    - a different illustration style
+
+    VERY IMPORTANT:
+
+    Do NOT copy any text, labels or annotations
+    that may appear in the scene description.
+
+    ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE.
+
+    No:
+    - words
+    - labels
+    - titles
+    - captions
+    - letters
+    - numbers
+    - arrows with text
+    - annotations
+    - logos
+    - watermarks
+    - readable signs
+
+    When the same bicycle, child, object or environment
+    appears again, preserve its established visual identity
+    from the reference whenever applicable.
+
+    The composition and action may change completely.
+    The STYLE MUST NOT.
+
+    Think of this as another frame from the exact same
+    animated educational film.
+
+    CURRENT SCENE CONTENT:
+
+    {clean_prompt}
+
+    Again:
+    Use the CURRENT SCENE only to determine WHAT is shown.
+    Use the REFERENCE IMAGE to determine HOW everything looks.
+    """.strip()
+
+    print(
+        "LESSON VISUAL WITH REFERENCE:",
+        {
+            "prompt_length":
+                len(reference_prompt),
+
+            "reference_bytes":
+                len(reference_image_bytes)
+        }
+    )
+
+    started_at = (
+        time.perf_counter()
+    )
+
+    response = (
+        gemini_client
+        .models
+        .generate_content(
+
+            model=
+                LESSON_IMAGE_MODEL,
+
+            contents=[
+                reference_part,
+                reference_prompt
+            ],
+
+            config=
+            types.GenerateContentConfig(
+
+                response_modalities=[
+                    "IMAGE"
+                ],
+
+                image_config=
+                types.ImageConfig(
+                    aspect_ratio="16:9",
+                    image_size="1K"
+                )
+            )
+        )
+    )
+
+    elapsed_ms = round(
+        (
+            time.perf_counter()
+            - started_at
+        )
+        * 1000
+    )
+
+    response_parts = (
+        getattr(
+            response,
+            "parts",
+            None
+        )
+        or []
+    )
+
+    for part in response_parts:
+
+        inline_data = getattr(
+            part,
+            "inline_data",
+            None
+        )
+
+        if inline_data is None:
+            continue
+
+        image_data = getattr(
+            inline_data,
+            "data",
+            None
+        )
+
+        if not image_data:
+            continue
+
+        mime_type = (
+            getattr(
+                inline_data,
+                "mime_type",
+                None
+            )
+            or "image/png"
+        )
+
+        if isinstance(
+                image_data,
+                str
+        ):
+
+            image_bytes = (
+                base64.b64decode(
+                    image_data
+                )
+            )
+
+        else:
+
+            image_bytes = bytes(
+                image_data
+            )
+
+        print(
+            "LESSON VISUAL REFERENCE IMAGE GENERATED:",
+            {
+                "elapsed_ms":
+                    elapsed_ms,
+
+                "bytes":
+                    len(image_bytes),
+
+                "mime_type":
+                    mime_type
+            }
+        )
+
+        return (
+            image_bytes,
+            mime_type
+        )
+
+    raise RuntimeError(
+        "Gemini returned no reference-based image data"
+    )
+
+# =====================================================
+# GENERATE + STORE HERO IMAGE
+# =====================================================
+
+def generate_and_store_lesson_hero_image(
+        unit_lesson_id: int
+) -> dict:
+    """
+    יוצר Hero Image אוניברסלית
+    עבור unit lesson אחד.
+
+    התמונה:
+    1. נוצרת דרך Gemini
+    2. עולה ל-Supabase Storage
+    3. מקבלת Signed URL
+    4. מוחזרת כ-metadata
+
+    אין כאן kid_id.
+    המדיה שייכת לשיעור עצמו.
+    """
+
+    print(
+        "LESSON HERO IMAGE START:",
+        unit_lesson_id
+    )
+
+    # =================================================
+    # LOAD UNIT LESSON
+    # =================================================
+
+    unit_lesson = get_unit_lesson(
+        unit_lesson_id
+    )
+
+    # =================================================
+    # LOAD PARENT LESSON
+    # =================================================
+
+    parent_lesson = (
+        get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+    )
+
+    # =================================================
+    # BUILD EDUCATIONAL PROMPT
+    # =================================================
+
+    image_prompt = (
+        build_lesson_hero_image_prompt(
+
+            unit_lesson=
+                unit_lesson,
+
+            parent_lesson=
+                parent_lesson
+        )
+    )
+
+    print(
+        "LESSON HERO IMAGE PROMPT:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "lesson_name":
+                unit_lesson.get(
+                    "lesson_name"
+                ),
+
+            "prompt":
+                image_prompt
+        }
+    )
+
+    # =================================================
+    # GEMINI
+    # =================================================
+
+    image_bytes, mime_type = (
+        generate_lesson_hero_image_bytes(
+            image_prompt
+        )
+    )
+
+    # =================================================
+    # STORAGE PATH
+    # =================================================
+
+    storage_path = (
+        get_lesson_media_storage_path(
+            unit_lesson_id=
+                unit_lesson_id,
+
+            media_type=
+                "hero"
+        )
+    )
+
+    # =================================================
+    # UPLOAD TO SUPABASE STORAGE
+    # =================================================
+
+    print(
+        "LESSON HERO IMAGE UPLOAD:",
+        {
+            "bucket":
+                LESSON_MEDIA_BUCKET,
+
+            "path":
+                storage_path,
+
+            "bytes":
+                len(image_bytes)
+        }
+    )
+
+    sb.storage.from_(
+        LESSON_MEDIA_BUCKET
+    ).upload(
+
+        path=
+            storage_path,
+
+        file=
+            image_bytes,
+
+        file_options={
+            "content-type":
+                mime_type,
+
+            # אם אנחנו מייצרים גרסה מחדש,
+            # הקובץ הקודם יוחלף.
+            "upsert":
+                "true"
+        }
+    )
+
+    # =================================================
+    # SIGNED URL
+    # =================================================
+
+    signed_url = (
+        create_lesson_media_signed_url(
+            storage_path
+        )
+    )
+
+    generated_at = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    result = {
+
+        "type":
+            "image",
+
+        "role":
+            "hero",
+
+        "version":
+            LESSON_MEDIA_HERO_VERSION,
+
+        "provider":
+            "gemini",
+
+        "model":
+            LESSON_IMAGE_MODEL,
+
+        "bucket":
+            LESSON_MEDIA_BUCKET,
+
+        "storage_path":
+            storage_path,
+
+        "mime_type":
+            mime_type,
+
+        "aspect_ratio":
+            "16:9",
+
+        "image_size":
+            "1K",
+
+        "generated_at":
+            generated_at,
+
+        # זה זמני בלבד.
+        # את ה-URL עצמו לא נשמור ב-DB.
+        "url":
+            signed_url,
+
+        "url_expires_in_seconds":
+            LESSON_MEDIA_URL_EXPIRY_SECONDS
+    }
+
+    print(
+        "LESSON HERO IMAGE READY:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "storage_path":
+                storage_path,
+
+            "generated_at":
+                generated_at
+        }
+    )
+
+    return result
+
+# =====================================================
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
 LESSON_AUDIO_BUCKET = "lesson-audio"
 LESSON_AUDIO_URL_EXPIRY_SECONDS = 3600
 
+def generate_and_store_lesson_visual_image(
+        unit_lesson_id: int,
+        content_version: int,
+        visual: dict,
+        reference_image_bytes: bytes | None = None,
+        reference_mime_type: str = "image/png"
+) -> dict:
+
+    visual_order = int(
+        visual.get("order")
+        or 0
+    )
+
+    generation_prompt = str(
+        visual.get("generation_prompt")
+        or ""
+    ).strip()
+
+    # =============================================
+    # GLOBAL LESSON VISUAL STYLE LOCK
+    #
+    # חל על visual_1 וגם על כל התמונות שאחריה.
+    # visual_1 תקבע את ה-DNA החזותי של השיעור.
+    # =============================================
+
+    LESSON_VISUAL_STYLE_LOCK = """
+    Create a premium semi-realistic digital educational illustration.
+
+    This image belongs to a high-end educational animated visual series
+    for children.
+
+    MANDATORY VISUAL STYLE:
+
+    - premium semi-realistic digital illustration
+    - high-end animated educational film quality
+    - realistic human and object proportions
+    - clearly illustrated, NOT photographic
+    - detailed digital painting with polished rendering
+    - soft cinematic natural lighting
+    - warm, rich but controlled colors
+    - subtle depth and atmospheric perspective
+    - clean professional composition
+    - realistic materials interpreted through illustration
+    - expressive but natural characters
+    - modern premium educational media aesthetic
+    - visually engaging for children without looking childish
+
+    The final result must clearly look like
+    a professionally illustrated scene,
+    NOT a photograph.
+
+    CHARACTER STYLE:
+
+    When children appear:
+
+    - use relatable school-age children around 10-12 years old
+    - natural facial features
+    - realistic proportions
+    - expressive but believable poses
+    - modern everyday clothing
+    - friendly and intelligent appearance
+    - never exaggerated cartoon proportions
+
+    When the same child appears in later images,
+    preserve the child's:
+
+    - approximate face and appearance
+    - age
+    - hairstyle
+    - clothing colors and design
+    - body proportions
+
+    OBJECT CONTINUITY:
+
+    When an important object appears again,
+    preserve its established visual identity.
+
+    For example, the same bicycle should maintain:
+
+    - frame design
+    - frame color
+    - wheel style
+    - proportions
+    - important recognizable details
+
+    VISUAL WORLD:
+
+    All lesson images should feel like consecutive scenes
+    from the SAME premium educational animated film.
+
+    They may show different actions, locations, camera angles
+    and compositions, but the artistic rendering must remain consistent.
+
+    DO NOT create:
+
+    - photography
+    - photorealistic photography
+    - stock photography
+    - live-action imagery
+    - flat cartoons
+    - childish cartoons
+    - flat vector art
+    - infographic
+    - diagram
+    - technical drawing
+    - textbook page
+    - educational poster
+    - comic-book art
+    - watercolor
+    - anime
+    - 3D infographic
+    - labeled educational chart
+
+    ABSOLUTELY NO WRITTEN TEXT INSIDE THE IMAGE.
+
+    Do not include:
+
+    - words
+    - labels
+    - captions
+    - titles
+    - letters
+    - numbers
+    - annotations
+    - readable signs
+    - logos
+    - watermarks
+    - arrows containing text
+
+    Educational concepts must be communicated
+    through the visual scene itself.
+
+    IMPORTANT:
+
+    ILLUSTRATION STYLE is mandatory.
+
+    Even when the scene describes a realistic situation,
+    render it as a premium semi-realistic digital illustration,
+    never as a photograph.
+    """.strip()
+
+    final_generation_prompt = f"""
+    {LESSON_VISUAL_STYLE_LOCK}
+
+    CURRENT EDUCATIONAL SCENE:
+
+    {generation_prompt}
+    """.strip()
+
+    trigger_text = str(
+        visual.get("trigger_text")
+        or ""
+    ).strip()
+
+    if not visual_order:
+        raise RuntimeError(
+            "Visual order is missing"
+        )
+
+    if not generation_prompt:
+        raise RuntimeError(
+            "Visual generation prompt is missing"
+        )
+
+    print(
+        "LESSON VISUAL IMAGE START:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "content_version":
+                content_version,
+
+            "order":
+                visual_order,
+
+            "trigger_text":
+                trigger_text
+        }
+    )
+
+    image_bytes, mime_type = (
+        generate_lesson_visual_image_bytes(
+            final_generation_prompt,
+            reference_image_bytes=
+            reference_image_bytes,
+            reference_mime_type=
+            reference_mime_type
+        )
+    )
+
+    storage_path = (
+        f"unit_lessons/"
+        f"{unit_lesson_id}/"
+        f"v{content_version}/"
+        f"visual_{visual_order}.png"
+    )
+
+    sb.storage.from_(
+        LESSON_MEDIA_BUCKET
+    ).upload(
+
+        path=
+            storage_path,
+
+        file=
+            image_bytes,
+
+        file_options={
+            "content-type":
+                mime_type,
+
+            "upsert":
+                "true"
+        }
+    )
+
+    print(
+        "LESSON VISUAL IMAGE STORED:",
+        {
+            "unit_lesson_id":
+                unit_lesson_id,
+
+            "order":
+                visual_order,
+
+            "storage_path":
+                storage_path
+        }
+    )
+
+    return {
+        "order":
+            visual_order,
+
+        "type":
+            "image",
+
+        "trigger_text":
+            trigger_text,
+
+        "storage_path":
+            storage_path,
+
+        "mime_type":
+            mime_type
+    }
+
+def generate_all_lesson_visuals_background(
+        unit_lesson_id: int
+):
+    import time
+    import traceback
+
+    MAX_VISUAL_RETRIES = 3
+    RETRY_DELAY_SECONDS = 3
+
+    try:
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        visual_plan = (
+            generated_lesson_json.get(
+                "visual_plan"
+            )
+            or {}
+        )
+
+        visuals = (
+            visual_plan.get(
+                "visuals"
+            )
+            or []
+        )
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        if not visuals:
+
+            print(
+                "NO VISUALS FOUND IN VISUAL PLAN:",
+                unit_lesson_id
+            )
+
+            return
+
+        generated_visuals = []
+        master_reference_bytes = None
+        master_reference_mime_type = "image/png"
+        image_visuals = [
+            visual
+            for visual in visuals
+            if isinstance(visual, dict)
+            and str(
+                visual.get("type") or ""
+            ).strip().lower() == "image"
+        ]
+
+        structured_lesson = (
+            generated_lesson_json.get(
+                "structured_lesson"
+            )
+            or {}
+        )
+
+        segments = (
+            structured_lesson.get(
+                "lesson"
+            )
+            or []
+        )
+
+        print(
+            "VISUAL/AUDIO SEGMENT CHECK:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "segments_count":
+                    len(segments),
+
+                "visuals_count":
+                    len(image_visuals)
+            }
+        )
+
+        if (
+            len(image_visuals)
+            !=
+            len(segments)
+        ):
+
+            print(
+                "CRITICAL VISUAL COUNT MISMATCH:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "segments_count":
+                        len(segments),
+
+                    "visuals_count":
+                        len(image_visuals)
+                }
+            )
+
+        print(
+            "LESSON VISUAL GENERATION START:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "content_version":
+                    content_version,
+
+                "planned_images":
+                    len(image_visuals)
+            }
+        )
+
+        # =====================================================
+        # PARALLEL VISUAL GENERATION
+        #
+        # Visual 1 is generated first because it defines
+        # the visual world for the rest of the lesson.
+        # Remaining visuals are generated in parallel.
+        # =====================================================
+
+        image_visuals = sorted(
+            image_visuals,
+            key=lambda visual:
+                int(
+                    visual.get("order")
+                    or 0
+                )
+        )
+
+        if not image_visuals:
+            return
+
+
+        def generate_single_visual(
+                visual: dict,
+                reference_bytes=None,
+                reference_mime_type="image/png"
+        ):
+
+            visual_order = int(
+                visual.get("order")
+                or 0
+            )
+
+            storage_path = (
+                f"unit_lessons/"
+                f"{unit_lesson_id}/"
+                f"v{content_version}/"
+                f"visual_{visual_order}.png"
+            )
+
+            try:
+
+                create_lesson_media_signed_url(
+                    storage_path
+                )
+
+                print(
+                    "LESSON VISUAL CACHE HIT:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order,
+
+                        "storage_path":
+                            storage_path
+                    }
+                )
+
+                return {
+                    "order":
+                        visual_order,
+
+                    "type":
+                        "image",
+
+                    "storage_path":
+                        storage_path,
+
+                    "source":
+                        "cache"
+                }
+
+            except Exception:
+
+                print(
+                    "LESSON VISUAL CACHE MISS:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order
+                    }
+                )
+
+
+            for attempt in range(
+                1,
+                MAX_VISUAL_RETRIES + 1
+            ):
+
+                try:
+
+                    print(
+                        "LESSON VISUAL ATTEMPT:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order,
+
+                            "attempt":
+                                attempt
+                        }
+                    )
+
+                    result = (
+                        generate_and_store_lesson_visual_image(
+                            unit_lesson_id=
+                                unit_lesson_id,
+
+                            content_version=
+                                content_version,
+
+                            visual=
+                                visual,
+
+                            reference_image_bytes=(
+                                reference_bytes
+                                if visual_order > 1
+                                else None
+                            ),
+
+                            reference_mime_type=
+                                reference_mime_type
+                        )
+                    )
+
+                    print(
+                        "LESSON VISUAL SUCCESS:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order,
+
+                            "attempt":
+                                attempt
+                        }
+                    )
+
+                    return result
+
+                except Exception as visual_error:
+
+                    print(
+                        "LESSON VISUAL ATTEMPT FAILED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson_id,
+
+                            "order":
+                                visual_order,
+
+                            "attempt":
+                                attempt,
+
+                            "error":
+                                repr(
+                                    visual_error
+                                )
+                        }
+                    )
+
+                    traceback.print_exc()
+
+                    if (
+                        attempt
+                        <
+                        MAX_VISUAL_RETRIES
+                    ):
+
+                        time.sleep(
+                            RETRY_DELAY_SECONDS
+                            * attempt
+                        )
+
+
+            print(
+                "LESSON VISUAL PRIMARY PROMPT FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "order":
+                        visual_order
+                }
+            )
+
+
+            source_text = str(
+                visual.get(
+                    "source_text"
+                )
+                or ""
+            ).strip()
+
+            parent_lesson = (
+                get_learning_lesson(
+                    unit_lesson[
+                        "learning_lesson_id"
+                    ]
+                )
+            )
+
+            fallback_prompt = (
+                build_segment_visual_fallback_prompt(
+                    unit_lesson=
+                        unit_lesson,
+
+                    parent_lesson=
+                        parent_lesson,
+
+                    segment_text=
+                        source_text,
+
+                    segment_index=
+                        visual_order
+                )
+            )
+
+            fallback_visual = {
+                **visual,
+
+                "type":
+                    "image",
+
+                "generation_prompt":
+                    fallback_prompt
+            }
+
+            try:
+
+                print(
+                    "LESSON VISUAL FALLBACK START:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order
+                    }
+                )
+
+                result = (
+                    generate_and_store_lesson_visual_image(
+                        unit_lesson_id=
+                            unit_lesson_id,
+
+                        content_version=
+                            content_version,
+
+                        visual=
+                            fallback_visual,
+
+                        reference_image_bytes=(
+                            reference_bytes
+                            if visual_order > 1
+                            else None
+                        ),
+
+                        reference_mime_type=
+                            reference_mime_type
+                    )
+                )
+
+                print(
+                    "LESSON VISUAL FALLBACK SUCCESS:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order
+                    }
+                )
+
+                return result
+
+            except Exception as fallback_error:
+
+                print(
+                    "LESSON VISUAL FALLBACK FAILED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "order":
+                            visual_order,
+
+                        "error":
+                            repr(
+                                fallback_error
+                            )
+                    }
+                )
+
+                traceback.print_exc()
+
+                return None
+
+
+        # =====================================================
+        # STEP 1 — GENERATE VISUAL 1 FIRST
+        # =====================================================
+
+        first_visual = (
+            image_visuals[0]
+        )
+
+        first_result = (
+            generate_single_visual(
+                first_visual
+            )
+        )
+
+        if first_result:
+
+            generated_visuals.append(
+                first_result
+            )
+
+
+        # =====================================================
+        # LOAD VISUAL 1 AS MASTER REFERENCE
+        # =====================================================
+
+        reference_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"visual_1.png"
+        )
+
+        try:
+
+            master_reference_bytes = (
+                sb.storage
+                .from_(
+                    LESSON_MEDIA_BUCKET
+                )
+                .download(
+                    reference_storage_path
+                )
+            )
+
+            master_reference_mime_type = (
+                "image/png"
+            )
+
+            print(
+                "LESSON MASTER VISUAL REFERENCE LOADED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "bytes":
+                        len(
+                            master_reference_bytes
+                            or b""
+                        )
+                }
+            )
+
+        except Exception as reference_error:
+
+            print(
+                "LESSON MASTER VISUAL REFERENCE NOT READY:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(
+                            reference_error
+                        )
+                }
+            )
+
+            master_reference_bytes = None
+
+
+        # =====================================================
+        # STEP 2 — GENERATE THE REST IN PARALLEL
+        # =====================================================
+
+        remaining_visuals = (
+            image_visuals[1:]
+        )
+
+        if remaining_visuals:
+
+            print(
+                "LESSON VISUAL PARALLEL START:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "visual_count":
+                        len(
+                            remaining_visuals
+                        ),
+
+                    "max_workers":
+                        3
+                }
+            )
+
+            with ThreadPoolExecutor(
+                max_workers=3
+            ) as executor:
+
+                futures = [
+                    executor.submit(
+                        generate_single_visual,
+                        visual,
+                        master_reference_bytes,
+                        master_reference_mime_type
+                    )
+                    for visual
+                    in remaining_visuals
+                ]
+
+                for future in futures:
+
+                    try:
+
+                        result = (
+                            future.result()
+                        )
+
+                        if result:
+
+                            generated_visuals.append(
+                                result
+                            )
+
+                    except Exception as future_error:
+
+                        print(
+                            "LESSON VISUAL PARALLEL WORKER FAILED:",
+                            {
+                                "unit_lesson_id":
+                                    unit_lesson_id,
+
+                                "error":
+                                    repr(
+                                        future_error
+                                    )
+                            }
+                        )
+
+                        traceback.print_exc()
+
+
+        generated_visuals.sort(
+            key=lambda visual:
+                int(
+                    visual.get("order")
+                    or 0
+                )
+        )
+        print(
+            "ALL LESSON VISUALS READY:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "planned_count":
+                    len(image_visuals),
+
+                "generated_count":
+                    len(generated_visuals),
+
+                "visuals":
+                    generated_visuals
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "ALL LESSON VISUALS ERROR:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+# =====================================================
+# TRANSITION VIDEO
+# Teacher + lesson visual -> Gemini Omni
+# =====================================================
+
+def generate_transition_video_background(
+        unit_lesson_id: int
+):
+
+    try:
+
+        print(
+            "========== TRANSITION VIDEO START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id
+            }
+        )
+
+        # =============================================
+        # LOAD LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generated_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        transition = (
+            generated_json.get(
+                "transition"
+            )
+            or {}
+        )
+
+        if not transition:
+
+            print(
+                "TRANSITION VIDEO SKIPPED - "
+                "NO TRANSITION DATA:",
+                unit_lesson_id
+            )
+
+            return
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        # =============================================
+        # FINAL STORAGE PATH
+        # =============================================
+
+        video_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"transition/"
+            f"transition_part_1_to_2.mp4"
+        )
+
+        # =============================================
+        # CACHE CHECK
+        # =============================================
+
+        try:
+
+            create_lesson_media_signed_url(
+                video_storage_path
+            )
+
+            print(
+                "TRANSITION VIDEO CACHE HIT:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "storage_path":
+                        video_storage_path
+                }
+            )
+
+            # =========================================
+            # REPAIR TRANSITION JSON ON CACHE HIT
+            #
+            # ייתכן שקובץ הווידאו כבר קיים ב-Storage,
+            # אבל generated_lesson_json עדיין לא מכיל
+            # transition.video.storage_path.
+            #
+            # בלי זה אי אפשר לייצר Signed URL בפרונט.
+            # =========================================
+
+            current_video = (
+                transition.get(
+                    "video"
+                )
+                or {}
+            )
+
+            if not isinstance(
+                    current_video,
+                    dict
+            ):
+                current_video = {}
+
+            current_storage_path = str(
+                current_video.get(
+                    "storage_path"
+                )
+                or ""
+            ).strip()
+
+            if (
+                current_storage_path
+                != video_storage_path
+            ):
+
+                transition[
+                    "video"
+                ] = {
+                    **current_video,
+
+                    "storage_path":
+                        video_storage_path,
+
+                    "status":
+                        "ready"
+                }
+
+                generated_json[
+                    "transition"
+                ] = transition
+
+                supabase_with_retry(
+                    lambda:
+                        sb.table(
+                            "lesson_units_content"
+                        )
+                        .update({
+                            "generated_lesson_json":
+                                generated_json,
+
+                            "updated_at":
+                                datetime
+                                .now(
+                                    timezone.utc
+                                )
+                                .isoformat()
+                        })
+                        .eq(
+                            "id",
+                            unit_lesson_id
+                        )
+                        .execute(),
+
+                    label=
+                        "REPAIR TRANSITION VIDEO CACHE PATH"
+                )
+
+                print(
+                    "TRANSITION VIDEO CACHE JSON REPAIRED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "storage_path":
+                            video_storage_path
+                    }
+                )
+
+            return
+
+        except Exception:
+
+            print(
+                "TRANSITION VIDEO CACHE MISS:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id
+                }
+            )
+
+        # =============================================
+        # LOAD TEACHER REFERENCE
+        # =============================================
+
+        teacher_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                LESSON_TRANSITION_TEACHER_PATH
+            )
+        )
+
+        if not teacher_bytes:
+
+            raise RuntimeError(
+                "Transition teacher reference "
+                "is missing"
+            )
+
+        # =============================================
+        # LOAD LESSON MASTER VISUAL
+        # =============================================
+
+        lesson_visual_path = (
+            f"unit_lessons/"
+            f"{unit_lesson_id}/"
+            f"v{content_version}/"
+            f"visual_1.png"
+        )
+
+        lesson_visual_bytes = (
+            sb.storage
+            .from_(
+                LESSON_MEDIA_BUCKET
+            )
+            .download(
+                lesson_visual_path
+            )
+        )
+
+        if not lesson_visual_bytes:
+
+            raise RuntimeError(
+                "Transition lesson visual "
+                "reference is missing"
+            )
+
+        # =============================================
+        # TRANSITION CONTENT
+        # =============================================
+
+        speech = str(
+            transition.get(
+                "speech"
+            )
+            or ""
+        ).strip()
+
+        video_scene = str(
+            transition.get(
+                "video_scene"
+            )
+            or ""
+        ).strip()
+
+        next_part_hook = str(
+            transition.get(
+                "next_part_hook"
+            )
+            or ""
+        ).strip()
+
+        if not speech:
+
+            raise RuntimeError(
+                "Transition speech is empty"
+            )
+
+        # =============================================
+        # SPLIT SPEECH INTO TWO VIDEO PARTS
+        #
+        # 36-40 מילים:
+        #
+        # Part 1 = בערך 18-20 מילים
+        # Part 2 = בערך 18-20 מילים
+        #
+        # כך Gemini לא מקבל את כל הטקסט
+        # כבר ב-10 השניות הראשונות.
+        # =============================================
+
+        speech_words = (
+            speech.split()
+        )
+
+        total_speech_words = len(
+            speech_words
+        )
+
+        split_index = (
+            total_speech_words + 1
+        ) // 2
+
+        speech_part_1 = " ".join(
+            speech_words[
+                :split_index
+            ]
+        )
+
+        speech_part_2 = " ".join(
+            speech_words[
+                split_index:
+            ]
+        )
+
+        if not speech_part_1:
+
+            raise RuntimeError(
+                "Transition speech part 1 "
+                "is empty"
+            )
+
+        if not speech_part_2:
+
+            raise RuntimeError(
+                "Transition speech part 2 "
+                "is empty"
+            )
+
+        print(
+            "========== TRANSITION SPEECH SPLIT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "total_words":
+                    total_speech_words,
+
+                "part_1_words":
+                    len(
+                        speech_part_1.split()
+                    ),
+
+                "part_2_words":
+                    len(
+                        speech_part_2.split()
+                    ),
+
+                "part_1":
+                    speech_part_1,
+
+                "part_2":
+                    speech_part_2
+            }
+        )
+
+        print(
+            "========== TRANSITION VIDEO CONTENT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "full_speech":
+                    speech,
+
+                "speech_words":
+                    total_speech_words,
+
+                "video_scene":
+                    video_scene,
+
+                "next_part_hook":
+                    next_part_hook
+            }
+        )
+
+        # =============================================
+        # PART 1 VIDEO PROMPT
+        #
+        # חשוב:
+        # כאן שולחים רק את החצי הראשון.
+        # =============================================
+
+        video_prompt_part_1 = f"""
+        [# References
+        <IMAGE_REF_0>@Image1
+        <IMAGE_REF_1>@Image2]
+
+        Create the FIRST PART of a premium educational
+        transition video with synchronized spoken audio.
+
+        REFERENCE ROLES:
+
+        IMAGE_REF_0 shows a fictional,
+        AI-generated IAKIDS virtual teacher character.
+
+        This is not a real person.
+
+        Use the reference only to maintain
+        consistent fictional character design,
+        including hairstyle, clothing,
+        general appearance and visual style.
+
+        IMAGE_REF_1 defines the visual world,
+        illustration style, lighting, colors,
+        environment and rendering style of this lesson.
+
+        Place the teacher naturally INSIDE
+        the educational world represented by IMAGE_REF_1.
+
+        The teacher must look like she genuinely belongs
+        inside the same illustrated lesson scene.
+
+        TRANSITION SCENE:
+
+        {video_scene}
+
+        IMPORTANT:
+
+        This is PART 1 of a two-part continuous video.
+
+        THE TEACHER MUST SAY EXACTLY
+        THIS TEXT IN HEBREW:
+
+        "{speech_part_1}"
+
+        Speak ONLY this Hebrew text.
+
+        Do not speak the second half yet.
+
+        Do not paraphrase.
+        Do not add words.
+        Do not remove words.
+        Do not repeat words.
+
+        The spoken language must be Hebrew.
+
+        The fictional animated teacher should speak
+        the provided Hebrew dialogue naturally.
+
+        Her visible speaking animation should match
+        the timing of the generated Hebrew audio.
+
+        VIDEO DIRECTION:
+
+        - premium semi-realistic educational illustration
+        - match IMAGE_REF_1's exact visual style
+        - maintain the same fictional teacher character design
+        - natural teacher body language
+        - warm facial expression
+        - subtle hand gestures while speaking
+        - look naturally toward the learner/camera
+        - medium or medium-wide composition
+        - keep the teacher's face clearly visible
+        - keep the mouth clearly visible while speaking
+        - single continuous educational scene
+        - smooth natural movement
+        - natural synchronized Hebrew speech
+        - accurate visible lip synchronization
+        - no scene cuts while the teacher is speaking
+        - no written text
+        - no captions
+        - no labels
+        - no logos
+        - no UI elements
+        - no watermark text
+
+        IMPORTANT:
+
+        The final video must contain
+        synchronized spoken audio.
+
+        Do not create a silent video.
+
+        Do not attempt to finish the entire transition.
+        Speak only PART 1.
+
+        Use the given images only as references.
+        Do not display them as flat pictures inside the video.
+        """.strip()
+
+        # =============================================
+        # BASE64 REFERENCES
+        # =============================================
+
+        teacher_b64 = (
+            base64.b64encode(
+                teacher_bytes
+            )
+            .decode("utf-8")
+        )
+
+        lesson_visual_b64 = (
+            base64.b64encode(
+                lesson_visual_bytes
+            )
+            .decode("utf-8")
+        )
+
+        # =============================================
+        # DEBUG EXACT INPUT
+        # =============================================
+
+        print(
+            "========== TRANSITION GEMINI PART 1 INPUT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "speech":
+                    speech_part_1,
+
+                "speech_words":
+                    len(
+                        speech_part_1.split()
+                    )
+            }
+        )
+
+        # =============================================
+        # FIRST VIDEO PART
+        # =============================================
+
+        first_interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                input=[
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            teacher_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "image",
+
+                        "data":
+                            lesson_visual_b64,
+
+                        "mime_type":
+                            "image/png"
+                    },
+
+                    {
+                        "type":
+                            "text",
+
+                        "text":
+                            video_prompt_part_1
+                    }
+                ],
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        if not getattr(
+                first_interaction,
+                "id",
+                None
+        ):
+
+            raise RuntimeError(
+                "Gemini returned no transition "
+                "interaction id for part 1"
+            )
+
+        # =============================================
+        # PART 2
+        #
+        # Gemini ממשיך מה-interaction הקודם,
+        # אבל מקבל במפורש רק את החצי השני.
+        # =============================================
+
+        video_prompt_part_2 = f"""
+        Continue the EXACT SAME educational video
+        from the previous interaction.
+
+        This is PART 2 of the same continuous transition.
+
+        Continue the same fictional animated
+        IAKIDS teacher character and educational scene.
+
+        Maintain continuity of:
+
+        - character design
+        - hairstyle
+        - clothing
+        - voice style
+        - environment
+        - illustration style
+        - lighting
+        - camera position
+        - scene
+
+        IMPORTANT:
+
+        The first part of the Hebrew dialogue
+        has ALREADY been spoken.
+
+        DO NOT repeat it.
+
+        THE TEACHER MUST NOW SAY EXACTLY
+        THIS REMAINING HEBREW TEXT:
+
+        "{speech_part_2}"
+
+        Speak ONLY this text.
+
+        Do not repeat any words from Part 1.
+        Do not restart the transition.
+        Do not paraphrase.
+        Do not add words.
+        Do not remove words.
+        Do not invent new dialogue.
+
+        Continue speaking naturally as if this sentence
+        immediately follows the previous video segment.
+
+        Keep the same teacher voice
+        and natural Hebrew speaking style.
+
+        Her visible speaking animation should remain
+        naturally timed with the Hebrew speech.
+
+AFTER THE FINAL WORD:
+
+The spoken dialogue is FINISHED.
+
+The teacher must become completely silent immediately.
+
+Do NOT repeat the final sentence.
+Do NOT repeat the final phrase.
+Do NOT say "בואו נמשיך" again.
+Do NOT say "בואו נמשיך ונגלה" again.
+Do NOT add another invitation to continue.
+Do NOT add any closing phrase.
+
+After the final word, the teacher may only smile naturally
+and make one subtle SILENT hand gesture.
+
+There must be absolutely no additional speech.
+
+No filler words.
+No repeated dialogue.
+No invented dialogue.
+No repeated ending.
+        No captions.
+        No written text.
+        No labels.
+        No logos.
+        No UI elements.
+        """.strip()
+
+        print(
+            "========== TRANSITION GEMINI PART 2 INPUT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "speech":
+                    speech_part_2,
+
+                "speech_words":
+                    len(
+                        speech_part_2.split()
+                    ),
+
+                "previous_interaction_id":
+                    first_interaction.id
+            }
+        )
+
+        second_interaction = (
+            gemini_client
+            .interactions
+            .create(
+
+                model=
+                    LESSON_TRANSITION_VIDEO_MODEL,
+
+                previous_interaction_id=
+                    first_interaction.id,
+
+                input=
+                    video_prompt_part_2,
+
+                response_format={
+                    "type":
+                        "video",
+
+                    "aspect_ratio":
+                        "16:9",
+
+                    "resolution":
+                        "720p",
+
+                    "delivery":
+                        "uri"
+                }
+            )
+        )
+
+        # =============================================
+        # FINAL VIDEO
+        #
+        # ה-output של interaction 2 הוא
+        # הסרטון המורחב שמכיל Part 1 + Part 2.
+        # =============================================
+
+        output_video = getattr(
+            second_interaction,
+            "output_video",
+            None
+        )
+
+        if output_video is None:
+
+            raise RuntimeError(
+                "Gemini returned no "
+                "transition video"
+            )
+
+        # =============================================
+        # VIDEO URI
+        # =============================================
+
+        video_uri = getattr(
+            output_video,
+            "uri",
+            None
+        )
+
+        # =============================================
+        # WAIT UNTIL GOOGLE VIDEO FILE READY
+        # =============================================
+
+        if video_uri:
+
+            file_name = (
+                str(video_uri)
+                .split("/")[-1]
+            )
+
+            file_name = (
+                file_name
+                .split(":")[0]
+                .split("?")[0]
+            )
+
+            print(
+                "TRANSITION VIDEO WAITING:",
+                {
+                    "file_name":
+                        file_name
+                }
+            )
+
+            for _ in range(60):
+
+                file_info = (
+                    gemini_client
+                    .files
+                    .get(
+                        name=
+                            f"files/{file_name}"
+                    )
+                )
+
+                state = str(
+                    getattr(
+                        getattr(
+                            file_info,
+                            "state",
+                            None
+                        ),
+                        "name",
+                        ""
+                    )
+                    or ""
+                ).upper()
+
+                if state == "ACTIVE":
+                    break
+
+                if state == "FAILED":
+
+                    raise RuntimeError(
+                        "Gemini transition video "
+                        "processing failed"
+                    )
+
+                time.sleep(5)
+
+            video_bytes = (
+                gemini_client
+                .files
+                .download(
+                    file=video_uri
+                )
+            )
+
+        else:
+
+            # =========================================
+            # INLINE FALLBACK
+            # =========================================
+
+            inline_data = getattr(
+                output_video,
+                "data",
+                None
+            )
+
+            if not inline_data:
+
+                raise RuntimeError(
+                    "Gemini transition video "
+                    "contains no data"
+                )
+
+            if isinstance(
+                    inline_data,
+                    str
+            ):
+
+                video_bytes = (
+                    base64.b64decode(
+                        inline_data
+                    )
+                )
+
+            else:
+
+                video_bytes = bytes(
+                    inline_data
+                )
+
+        if not video_bytes:
+
+            raise RuntimeError(
+                "Downloaded transition video "
+                "is empty"
+            )
+
+        # =============================================
+        # STORE IN SUPABASE
+        # =============================================
+
+        sb.storage.from_(
+            LESSON_MEDIA_BUCKET
+        ).upload(
+
+            path=
+                video_storage_path,
+
+            file=
+                video_bytes,
+
+            file_options={
+                "content-type":
+                    "video/mp4",
+
+                "upsert":
+                    "true"
+            }
+        )
+
+        # =============================================
+        # SAVE METADATA
+        # =============================================
+
+        transition[
+            "video"
+        ] = {
+
+            "status":
+                "ready",
+
+            "provider":
+                "google",
+
+            "model":
+                LESSON_TRANSITION_VIDEO_MODEL,
+
+            "bucket":
+                LESSON_MEDIA_BUCKET,
+
+            "storage_path":
+                video_storage_path,
+
+            "mime_type":
+                "video/mp4",
+
+            "aspect_ratio":
+                "16:9",
+
+            "resolution":
+                "720p",
+
+            "target_duration_seconds":
+                20,
+
+            "speech_words":
+                total_speech_words,
+
+            "speech_part_1_words":
+                len(
+                    speech_part_1.split()
+                ),
+
+            "speech_part_2_words":
+                len(
+                    speech_part_2.split()
+                ),
+
+            "generated_at":
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+        }
+
+        generated_json[
+            "transition"
+        ] = transition
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                generated_json,
+
+            "updated_at":
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+
+        }).eq(
+            "id",
+            unit_lesson_id
+        ).execute()
+
+        print(
+            "========== TRANSITION VIDEO READY ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "storage_path":
+                    video_storage_path,
+
+                "bytes":
+                    len(video_bytes),
+
+                "speech_words":
+                    total_speech_words,
+
+                "part_1_words":
+                    len(
+                        speech_part_1.split()
+                    ),
+
+                "part_2_words":
+                    len(
+                        speech_part_2.split()
+                    )
+            }
+        )
+
+    except Exception as e:
+
+        print(
+            "========== TRANSITION VIDEO ERROR ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+def generate_unit_lesson_media_background(
+        unit_lesson_id: int
+):
+    print(
+        "========== LESSON MEDIA BACKGROUND START ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson_id
+        }
+    )
+
+    with ThreadPoolExecutor(
+            max_workers=2
+    ) as executor:
+
+        # =============================================
+        # AUDIO + VISUALS RUN IN PARALLEL
+        # =============================================
+
+        audio_future = executor.submit(
+            generate_unit_lesson_audio_background,
+            unit_lesson_id
+        )
+
+        visuals_future = executor.submit(
+            generate_all_lesson_visuals_background,
+            unit_lesson_id
+        )
+
+        # =============================================
+        # WAIT FOR VISUALS
+        # =============================================
+
+        try:
+
+            visuals_future.result()
+
+        except Exception as e:
+
+            print(
+                "LESSON VISUALS BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
+
+        # =============================================
+        # TRANSITION VIDEO
+        #
+        # מתחיל רק אחרי שהתמונות מוכנות,
+        # כי visual_1 משמש כ-reference.
+        # =============================================
+
+        try:
+
+            generate_transition_video_background(
+                unit_lesson_id
+            )
+
+        except Exception as e:
+
+            print(
+                "LESSON TRANSITION VIDEO BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
+
+        # =============================================
+        # WAIT FOR AUDIO
+        # =============================================
+
+        try:
+
+            audio_future.result()
+
+        except Exception as e:
+
+            print(
+                "LESSON AUDIO BACKGROUND FAILED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "error":
+                        repr(e)
+                }
+            )
+
+            traceback.print_exc()
+
+    print(
+        "========== LESSON MEDIA BACKGROUND DONE ==========",
+        {
+            "unit_lesson_id":
+                unit_lesson_id
+        }
+    )
+
+def generate_first_lesson_visual_background(
+        unit_lesson_id: int
+):
+    try:
+
+        unit_lesson = get_unit_lesson(
+            unit_lesson_id
+        )
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        visual_plan = (
+            generated_lesson_json.get(
+                "visual_plan"
+            )
+            or {}
+        )
+
+        visuals = (
+            visual_plan.get(
+                "visuals"
+            )
+            or []
+        )
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        first_image = None
+
+        for visual in visuals:
+
+            if not isinstance(
+                    visual,
+                    dict
+            ):
+                continue
+
+            if (
+                visual.get("type")
+                == "image"
+            ):
+                first_image = visual
+                break
+
+        if not first_image:
+
+            print(
+                "NO IMAGE FOUND IN VISUAL PLAN:",
+                unit_lesson_id
+            )
+
+            return
+
+        result = (
+            generate_and_store_lesson_visual_image(
+                unit_lesson_id=
+                    unit_lesson_id,
+
+                content_version=
+                    content_version,
+
+                visual=
+                    first_image
+            )
+        )
+
+        print(
+            "FIRST LESSON VISUAL READY:",
+            result
+        )
+
+    except Exception as e:
+
+        print(
+            "FIRST LESSON VISUAL ERROR:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
 
 def add_signed_urls_to_lesson_audio(
         lesson_audio_json: dict | None
@@ -3794,11 +9392,44 @@ def generate_and_store_lesson_audio(
         if not segment_text:
             continue
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                segment_text
-            )
+        print(
+            "BACKGROUND TTS SEGMENT START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "segment_index": index,
+                "text_length": len(segment_text),
+                "text": repr(segment_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    segment_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS SEGMENT SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS SEGMENT FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "segment_index": index,
+                    "text_length": len(segment_text),
+                    "text": repr(segment_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         storage_path = (
             f"unit_lessons/"
@@ -3849,11 +9480,41 @@ def generate_and_store_lesson_audio(
 
     if question_text:
 
-        wav_bytes, duration_seconds = (
-            generate_tts_wav_bytes(
-                question_text
-            )
+        print(
+            "BACKGROUND TTS QUESTION START:",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "text_length": len(question_text),
+                "text": repr(question_text)
+            }
         )
+
+        try:
+            wav_bytes, duration_seconds = (
+                generate_tts_wav_bytes(
+                    question_text
+                )
+            )
+
+            print(
+                "BACKGROUND TTS QUESTION SUCCESS:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "duration_seconds": duration_seconds
+                }
+            )
+
+        except Exception as e:
+            print(
+                "BACKGROUND TTS QUESTION FAILED:",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "text_length": len(question_text),
+                    "text": repr(question_text),
+                    "error": repr(e)
+                }
+            )
+            raise
 
         question_path = (
             f"unit_lessons/"
@@ -4194,12 +9855,35 @@ def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
+        print(
+            "LIVE TTS REQUEST:",
+            {
+                "session_id": body.session_id,
+                "text_length": len(text),
+                "text": repr(text)
+            }
+        )
+        # =============================================
+        # GEMINI TTS DEBUG
+        # =============================================
 
-        # Gemini TTS
-        response = gemini_client.models.generate_content(
-            model="gemini-3.1-flash-tts-preview",
+        tts_started_at = time.perf_counter()
 
-            contents=(
+        print(
+            "========== LIVE TTS GEMINI START ==========",
+            {
+                "session_id": body.session_id,
+                "text_length": len(text),
+                "text": repr(text)
+            }
+        )
+
+        try:
+
+            response = gemini_client.models.generate_content(
+                model="gemini-3.1-flash-tts-preview",
+
+                contents=(
                     "Speak in natural, fluent Hebrew. "
                     "Sound like a warm, friendly and patient teacher "
                     "speaking naturally to a school-age child. "
@@ -4207,33 +9891,65 @@ def tutor_tts(
                     "and an encouraging tone. "
                     "Read exactly the following Hebrew text:\n\n"
                     + text
-            ),
+                ),
 
-            config=types.GenerateContentConfig(
+                config=types.GenerateContentConfig(
+                    temperature=2.0,
 
-                temperature=2.0,
+                    response_modalities=[
+                        "AUDIO"
+                    ],
 
-                response_modalities=[
-                    "AUDIO"
-                ],
-
-                speech_config=types.SpeechConfig(
-
-                    voice_config=
-                    types.VoiceConfig(
-
-                        prebuilt_voice_config=
-                        types.PrebuiltVoiceConfig(
-                            voice_name="Aoede"
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=
+                            types.PrebuiltVoiceConfig(
+                                voice_name="Aoede"
+                            )
                         )
-
                     )
-
                 )
-
             )
 
-        )
+            print(
+                "========== LIVE TTS GEMINI SUCCESS ==========",
+                {
+                    "session_id": body.session_id,
+                    "elapsed_ms": round(
+                        (
+                            time.perf_counter()
+                            - tts_started_at
+                        )
+                        * 1000
+                    )
+                }
+            )
+
+        except Exception as gemini_error:
+
+            print(
+                "========== LIVE TTS GEMINI FAILED ==========",
+                {
+                    "session_id": body.session_id,
+                    "text_length": len(text),
+                    "text": repr(text),
+                    "elapsed_ms": round(
+                        (
+                            time.perf_counter()
+                            - tts_started_at
+                        )
+                        * 1000
+                    ),
+                    "error_type":
+                        type(gemini_error).__name__,
+                    "error":
+                        repr(gemini_error)
+                }
+            )
+
+            traceback.print_exc()
+
+            raise
 
         # קבלת PCM audio
         audio_data = (
@@ -4300,25 +10016,58 @@ def tutor_tts(
 
         # עדכון Session - קריאת TTS אחת
         if body.session_id:
-            update_tutor_session_after_tts(
-                session_id=body.session_id,
-                audio_duration_seconds=audio_duration_seconds,
-                cost_usd=gemini_audio_cost_usd
-            )
 
-            increment_usage_summary(
-                user_id=user.id,
+            try:
 
-                tts_calls=1,
+                update_tutor_session_after_tts(
+                    session_id=
+                    body.session_id,
 
-                tts_seconds=
-                audio_duration_seconds,
+                    audio_duration_seconds=
+                    audio_duration_seconds,
 
-                voice_output_seconds=
-                audio_duration_seconds,
+                    cost_usd=
+                    gemini_audio_cost_usd
+                )
 
-                gemini_cost_usd=gemini_audio_cost_usd
-            )
+                increment_usage_summary(
+                    user_id=
+                    user.id,
+
+                    tts_calls=
+                    1,
+
+                    tts_seconds=
+                    audio_duration_seconds,
+
+                    voice_output_seconds=
+                    audio_duration_seconds,
+
+                    gemini_cost_usd=
+                    gemini_audio_cost_usd
+                )
+
+            except Exception as usage_error:
+
+                # =========================================
+                # IMPORTANT:
+                # האודיו כבר נוצר בהצלחה.
+                # תקלה זמנית ב-Supabase/Usage
+                # לא מפילה את ה-TTS לילד.
+                # =========================================
+
+                print(
+                    "TTS USAGE UPDATE FAILED - AUDIO STILL RETURNED:",
+                    {
+                        "session_id":
+                            body.session_id,
+
+                        "error":
+                            repr(
+                                usage_error
+                            )
+                    }
+                )
 
         return Response(
             content=wav_bytes,
@@ -4338,15 +10087,35 @@ def tutor_tts(
         error_message = repr(e)
 
         print(
-            "GEMINI TTS ERROR:",
-            error_message
+            "GEMINI TTS ENDPOINT ERROR:",
+            {
+                "error_type":
+                    type(e).__name__,
+
+                "error":
+                    error_message,
+
+                "session_id":
+                    body.session_id,
+
+                "text_length":
+                    len(
+                        (
+                            body.text
+                            or ""
+                        ).strip()
+                    )
+            }
         )
+        traceback.print_exc()
 
         raise HTTPException(
             status_code=500,
-            detail=f"Gemini TTS failed: {error_message}"
+            detail=(
+                "Gemini TTS failed: "
+                f"{error_message}"
+            )
         )
-
 @app.get(
     "/api/learning-lessons/{learning_lesson_id}/units"
 )
@@ -4731,6 +10500,7 @@ def get_active_lesson_state(
 )
 def lesson_intro(
         body: LessonIntroRequest,
+        background_tasks: BackgroundTasks,
         authorization: str = Header(None)
 ):
     try:
@@ -4757,7 +10527,119 @@ def lesson_intro(
             user_id=user.id,
             kid_id=body.kid_id
         )
+        # =============================================
+        # PERSONAL INTRO VIDEO ELIGIBILITY
+        # =============================================
 
+        personal_intro_eligible = False
+
+        personal_intro_rows = []
+
+        personal_intro_videos = []
+
+        try:
+
+            personal_intro_eligible = (
+                is_paid_active_subscription(
+                    user.id
+                )
+            )
+
+            print(
+                "KID PERSONAL INTRO ELIGIBILITY:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "eligible":
+                        personal_intro_eligible
+                }
+            )
+
+            if personal_intro_eligible:
+
+                personal_intro_rows = (
+                    ensure_kid_lesson_intro_rows(
+                        child["id"]
+                    )
+                )
+
+                personal_intro_videos = (
+                    get_ready_kid_lesson_intro_videos(
+                        child["id"]
+                    )
+                )
+                # =====================================
+                # GENERATE MISSING PERSONAL INTROS
+                # IN BACKGROUND
+                # =====================================
+
+                ready_variants = {
+                    int(
+                        video.get(
+                            "variant"
+                        )
+                        or 0
+                    )
+                    for video
+                    in personal_intro_videos
+                }
+
+                missing_ready_variants = [
+                    variant
+                    for variant
+                    in KID_LESSON_INTRO_VARIANTS
+                    if variant
+                    not in ready_variants
+                ]
+
+                if missing_ready_variants:
+
+                    print(
+                        "QUEUE KID PERSONAL INTRO GENERATION:",
+                        {
+                            "kid_id":
+                                child["id"],
+
+                            "missing_variants":
+                                missing_ready_variants
+                        }
+                    )
+
+                    background_tasks.add_task(
+                        generate_kid_lesson_intro_videos_background,
+                        child
+                    )
+        except Exception as personal_media_error:
+
+            # תקלה במנגנון האישי לעולם לא
+            # תפיל את פתיחת השיעור.
+            #
+            # במקרה כזה הפתיח הקולי הרגיל ממשיך.
+            print(
+                "KID PERSONAL INTRO CHECK FAILED:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "error":
+                        repr(
+                            personal_media_error
+                        )
+                }
+            )
+
+            personal_intro_eligible = False
+
+            personal_intro_rows = []
+
+            personal_intro_videos = []
         # =============================================
         # SELECTED UNIT LESSON
         # =============================================
@@ -4931,6 +10813,30 @@ def lesson_intro(
                 )
             )
 
+        # =============================================
+        # GUARANTEE PERSONAL GREETING FIRST
+        # =============================================
+
+        child_name = str(
+            child.get("child_name")
+            or ""
+        ).strip()
+
+        if child_name:
+            greeting_text = (
+                f"היי {child_name}! "
+                f"כיף שבאת ללמוד איתי."
+            )
+
+            sequence.insert(
+                0,
+                TutorAction(
+                    type="speak",
+                    text=greeting_text,
+                    speech_tts=greeting_text
+                )
+            )
+
         return {
             "success": True,
 
@@ -4973,7 +10879,35 @@ def lesson_intro(
                 for action in sequence
             ],
 
-            "wait_for_answer": False
+            "wait_for_answer":
+                False,
+
+            "personal_intro": {
+
+                "eligible":
+                    personal_intro_eligible,
+
+                "media_type":
+                    KID_LESSON_INTRO_MEDIA_TYPE,
+
+                "required_variants":
+                    len(
+                        KID_LESSON_INTRO_VARIANTS
+                    ),
+
+                "records_count":
+                    len(
+                        personal_intro_rows
+                    ),
+
+                "ready_count":
+                    len(
+                        personal_intro_videos
+                    ),
+
+                "videos":
+                    personal_intro_videos
+            }
         }
 
     except HTTPException:
@@ -5022,7 +10956,108 @@ def get_or_generate_unit_lesson(
             user_id=user.id,
             kid_id=body.kid_id
         )
+        # =============================================
+        # ENSURE PERSONAL INTRO VIDEOS
+        # PAID SUBSCRIBERS ONLY
+        # =============================================
 
+        try:
+
+            personal_intro_eligible = (
+                is_paid_active_subscription(
+                    user.id
+                )
+            )
+
+            print(
+                "UNIT LESSON PERSONAL INTRO CHECK:",
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "eligible":
+                        personal_intro_eligible
+                }
+            )
+
+            if personal_intro_eligible:
+
+                ensure_kid_lesson_intro_rows(
+                    child["id"]
+                )
+
+                ready_intro_videos = (
+                    get_ready_kid_lesson_intro_videos(
+                        child["id"]
+                    )
+                )
+
+                ready_variants = {
+                    int(
+                        video.get(
+                            "variant"
+                        )
+                        or 0
+                    )
+                    for video
+                    in ready_intro_videos
+                }
+
+                missing_variants = [
+                    variant
+                    for variant
+                    in KID_LESSON_INTRO_VARIANTS
+                    if variant
+                    not in ready_variants
+                ]
+
+                if missing_variants:
+
+                    print(
+                        "QUEUE KID PERSONAL INTRO GENERATION:",
+                        {
+                            "kid_id":
+                                child["id"],
+
+                            "missing_variants":
+                                missing_variants
+                        }
+                    )
+
+                    background_tasks.add_task(
+                        generate_kid_lesson_intro_videos_background,
+                        child
+                    )
+
+                else:
+
+                    print(
+                        "KID PERSONAL INTROS ALREADY READY:",
+                        {
+                            "kid_id":
+                                child["id"]
+                        }
+                    )
+
+        except Exception as personal_intro_error:
+
+            print(
+                "UNIT LESSON PERSONAL INTRO ERROR:",
+                {
+                    "kid_id":
+                        child["id"],
+
+                    "error":
+                        repr(
+                            personal_intro_error
+                        )
+                }
+            )
+
+            traceback.print_exc()
         # =============================================
         # UNIT LESSON
         # =============================================
@@ -5116,16 +11151,187 @@ def get_or_generate_unit_lesson(
                 )
         ):
 
-            if audio_generation_status in (
-                    "pending",
-                    "failed"
-            ):
-                background_tasks.add_task(
-                    generate_unit_lesson_audio_background,
-                    unit_lesson["id"]
+            # =========================================
+            # REPAIR OLD CACHED LESSON WITHOUT VISUAL PLAN
+            # =========================================
+
+            cached_visual_plan = (
+                    cached_json.get("visual_plan")
+                    or {}
+            )
+
+            cached_visuals = (
+                    cached_visual_plan.get("visuals")
+                    or []
+            )
+
+            structured_lesson = (
+                    cached_json.get(
+                        "structured_lesson"
+                    )
+                    or {}
+            )
+
+            expected_segments = (
+                    structured_lesson.get(
+                        "lesson"
+                    )
+                    or []
+            )
+
+            visual_plan_needs_repair = (
+                    not cached_visuals
+                    or
+                    len(cached_visuals)
+                    !=
+                    len(expected_segments)
+            )
+
+            if visual_plan_needs_repair:
+
+                print(
+                    "CACHED LESSON VISUAL PLAN NEEDS REPAIR:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+
+                        "segments_count":
+                            len(expected_segments),
+
+                        "visuals_count":
+                            len(cached_visuals)
+                    }
                 )
 
+                lesson_text = str(
+                    cached_json.get("lesson")
+                    or ""
+                ).strip()
+
+                visual_director_prompt = (
+                    build_visual_director_prompt(
+                        unit_lesson=
+                        unit_lesson,
+
+                        parent_lesson=
+                        parent_lesson,
+
+                        lesson_text=
+                        lesson_text,
+
+                        structured_lesson=
+                        structured_lesson
+                    )
+                )
+
+                visual_director_completion = (
+                    client
+                    .beta
+                    .chat
+                    .completions
+                    .parse(
+
+                        model=
+                        DEFAULT_OPENAI_MODEL,
+
+                        messages=[
+                            {
+                                "role":
+                                    "system",
+
+                                "content":
+                                    visual_director_prompt
+                            },
+                            {
+                                "role":
+                                    "user",
+
+                                "content":
+                                    (
+                                        "Analyze the lesson and create "
+                                        "the visual media plan. "
+                                        "Return only the required structure."
+                                    )
+                            }
+                        ],
+
+                        response_format=
+                        VisualDirectorResponse
+                    )
+                )
+
+                visual_director_data = (
+                    visual_director_completion
+                    .choices[0]
+                    .message
+                    .parsed
+                )
+
+                if visual_director_data:
+                    repaired_visual_plan = (
+                        normalize_visual_plan_to_segments(
+                            visual_plan=
+                            visual_director_data.model_dump(),
+
+                            structured_lesson=
+                            structured_lesson,
+
+                            unit_lesson=
+                            unit_lesson,
+
+                            parent_lesson=
+                            parent_lesson
+                        )
+                    )
+
+                    cached_json[
+                        "visual_plan"
+                    ] = repaired_visual_plan
+
+                    sb.table(
+                        "lesson_units_content"
+                    ).update({
+
+                        "generated_lesson_json":
+                            cached_json,
+
+                        "updated_at":
+                            datetime
+                            .now(timezone.utc)
+                            .isoformat()
+
+                    }).eq(
+                        "id",
+                        unit_lesson["id"]
+                    ).execute()
+
+                    print(
+                        "CACHED VISUAL PLAN REPAIRED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "visuals_count":
+                                len(
+                                    repaired_visual_plan
+                                    .get("visuals")
+                                    or []
+                                )
+                        }
+                    )
+
             response_audio = None
+
+            # =========================================
+            # TRY STORED AUDIO
+            #
+            # חשוב:
+            # ייתכן שב-DB האודיו מסומן ready,
+            # אבל הקבצים עצמם נמחקו מה-Storage.
+            #
+            # מצב כזה הוא CACHE MISS של המדיה בלבד.
+            # אסור להפיל בגללו את כל השיעור.
+            # =========================================
 
             if (
                     audio_generation_status == "ready"
@@ -5133,18 +11339,277 @@ def get_or_generate_unit_lesson(
                         cached_audio,
                         dict
                     )
-            ):
-                response_audio = (
-                    add_signed_urls_to_lesson_audio(
-                        cached_audio
+                    and cached_audio.get(
+                        "segments"
                     )
+            ):
+
+                try:
+
+                    response_audio = (
+                        add_signed_urls_to_lesson_audio(
+                            cached_audio
+                        )
+                    )
+
+                    print(
+                        "UNIT LESSON AUDIO CACHE HIT:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"]
+                        }
+                    )
+
+                except Exception as audio_cache_error:
+
+                    print(
+                        "UNIT LESSON AUDIO CACHE MISS:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "error":
+                                repr(
+                                    audio_cache_error
+                                )
+                        }
+                    )
+
+                    # ---------------------------------
+                    # ה-DB מצביע על קבצים שכבר אינם
+                    # קיימים ב-Storage.
+                    #
+                    # מאפסים רק את האודיו,
+                    # לא את תוכן השיעור.
+                    # ---------------------------------
+
+                    audio_generation_status = (
+                        "pending"
+                    )
+
+                    cached_audio = None
+
+                    sb.table(
+                        "lesson_units_content"
+                    ).update({
+
+                        "audio_generation_status":
+                            "pending",
+
+                        "lesson_audio_json":
+                            None,
+
+                        "audio_generation_error":
+                            None,
+
+                        "audio_generated_at":
+                            None,
+
+                        "tts_generated_at":
+                            None,
+
+                        "updated_at":
+                            datetime
+                            .now(timezone.utc)
+                            .isoformat()
+
+                    }).eq(
+                        "id",
+                        unit_lesson["id"]
+                    ).execute()
+
+            # =========================================
+            # BACKGROUND AUDIO REPAIR ONLY
+            #
+            # אם האודיו כבר קיים ותקין,
+            # אין שום סיבה להפעיל מחדש את כל
+            # מנגנון המדיה בכל Refresh.
+            #
+            # זה מונע עשרות קריאות מיותרות
+            # ל-Supabase בכל טעינת עמוד.
+            # =========================================
+
+            if response_audio is None:
+
+                print(
+                    "QUEUE BACKGROUND AUDIO REPAIR:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+
+                        "audio_generation_status":
+                            audio_generation_status
+                    }
                 )
+
+                background_tasks.add_task(
+                    generate_unit_lesson_audio_background,
+                    unit_lesson["id"]
+                )
+
+            else:
+
+                print(
+                    "SKIP BACKGROUND MEDIA - CACHE COMPLETE:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"]
+                    }
+                )
+
+            # =========================================
+            # BACKGROUND VISUAL REPAIR
+            #
+            # גם אם תוכן השיעור נמצא ב-cache,
+            # ייתכן שקבצי התמונות נמחקו מה-Storage.
+            #
+            # הפונקציה עצמה בודקת כל visual:
+            # קיים -> CACHE HIT ולא מייצרת מחדש
+            # חסר  -> מייצרת מחדש
+            # =========================================
+
+            print(
+                "QUEUE BACKGROUND VISUAL CHECK:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"]
+                }
+            )
+
+            background_tasks.add_task(
+                generate_all_lesson_visuals_background,
+                unit_lesson["id"]
+            )
+
+            # =========================================
+            # TRANSITION JSON REPAIR
+            #
+            # אם ה-transition חסר מה-cache,
+            # משתמשים בפונקציה המרכזית שמייצרת
+            # מחדש רק את ה-transition.
+            # =========================================
+
+            if not isinstance(
+                    cached_json.get("transition"),
+                    dict
+            ):
+
+                print(
+                    "TRANSITION JSON MISSING — REPAIR:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"]
+                    }
+                )
+
+                try:
+
+                    # חשוב:
+                    # הפונקציה קוראת מתוך
+                    # unit_lesson["generated_lesson_json"].
+                    #
+                    # לכן מוודאים שהיא מקבלת את
+                    # ה-JSON המעודכן שנמצא כרגע ב-cache.
+                    unit_lesson[
+                        "generated_lesson_json"
+                    ] = cached_json
+
+                    lesson_transition = (
+                        regenerate_lesson_transition_only(
+                            unit_lesson=
+                                unit_lesson,
+
+                            parent_lesson=
+                                parent_lesson
+                        )
+                    )
+
+                    cached_json[
+                        "transition"
+                    ] = lesson_transition
+
+                    supabase_with_retry(
+                        lambda:
+                            sb.table(
+                                "lesson_units_content"
+                            ).update({
+
+                                "generated_lesson_json":
+                                    cached_json,
+
+                                "updated_at":
+                                    datetime
+                                    .now(timezone.utc)
+                                    .isoformat()
+
+                            }).eq(
+                                "id",
+                                unit_lesson["id"]
+                            ).execute(),
+
+                        label=
+                            "SAVE REPAIRED TRANSITION"
+                    )
+
+                    print(
+                        "TRANSITION JSON REPAIRED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "speech":
+                                lesson_transition.get(
+                                    "speech"
+                                ),
+
+                            "speech_words":
+                                len(
+                                    (
+                                        lesson_transition.get(
+                                            "speech"
+                                        )
+                                        or ""
+                                    ).split()
+                                )
+                        }
+                    )
+
+                except Exception as e:
+
+                    print(
+                        "TRANSITION JSON REPAIR FAILED:",
+                        {
+                            "unit_lesson_id":
+                                unit_lesson["id"],
+
+                            "error":
+                                repr(e)
+                        }
+                    )
+            print(
+                "QUEUE BACKGROUND TRANSITION VIDEO CHECK:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"]
+                }
+            )
+
+            background_tasks.add_task(
+                generate_transition_video_background,
+                unit_lesson["id"]
+            )
+
+            # =========================================
+            # RESPONSE
+            # =========================================
 
             return {
 
-                "success": True,
+                "success":
+                    True,
 
-                "source": "cache",
+                "source":
+                    "cache",
 
                 "unit_lesson_id":
                     unit_lesson["id"],
@@ -5171,12 +11636,29 @@ def get_or_generate_unit_lesson(
                         "structured_lesson"
                     ),
 
+                "transition":
+                    add_transition_video_signed_url(
+                        cached_json.get(
+                            "transition"
+                        )
+                    ),
+
                 "audio_generation_status":
-                    audio_generation_status,
+                    (
+                        "ready"
+                        if response_audio
+                        else "pending"
+                    ),
+
+                "audio_mode":
+                    (
+                        "stored"
+                        if response_audio
+                        else "background_generating"
+                    ),
 
                 "lesson_audio":
                     response_audio
-
             }
 
         # =============================================
@@ -5365,6 +11847,270 @@ def get_or_generate_unit_lesson(
             directed_lesson_data.model_dump()
         )
 
+        # =============================================
+        # BACKWARD COMPATIBILITY
+        #
+        # הקוד הישן עדיין משתמש ב:
+        # structured_lesson["lesson"]
+        # structured_lesson["question"]
+        #
+        # כרגע הם מייצגים את Part 1.
+        # =============================================
+
+        structured_lesson[
+            "lesson"
+        ] = (
+                structured_lesson
+                .get(
+                    "part_1",
+                    {}
+                )
+                .get(
+                    "lesson"
+                )
+                or []
+        )
+
+        structured_lesson[
+            "question"
+        ] = (
+                structured_lesson
+                .get(
+                    "part_1",
+                    {}
+                )
+                .get(
+                    "question"
+                )
+                or {}
+        )
+
+        # =============================================
+        # LESSON TRANSITION DIRECTOR
+        #
+        # מעבר אוניברסלי בין Part 1 ל-Part 2.
+        # אינו תלוי בדיאלוג של הילד.
+        # =============================================
+
+        transition_prompt = (
+            build_lesson_transition_prompt(
+
+                unit_lesson=
+                unit_lesson,
+
+                parent_lesson=
+                parent_lesson,
+
+                part_1=
+                structured_lesson[
+                    "part_1"
+                ],
+
+                part_2=
+                structured_lesson[
+                    "part_2"
+                ]
+            )
+        )
+
+        print(
+            "========== LESSON TRANSITION DIRECTOR START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"]
+            }
+        )
+
+        transition_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            transition_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Create the universal transition "
+                                "between Part 1 and Part 2. "
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                LessonTransitionResponse
+            )
+        )
+
+        transition_data = (
+            transition_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not transition_data:
+            raise RuntimeError(
+                "Lesson Transition Director "
+                "returned no response"
+            )
+
+        lesson_transition = (
+            transition_data
+            .model_dump()
+        )
+
+        print(
+            "========== LESSON TRANSITION DIRECTOR RESULT =========="
+        )
+
+        print(
+            json.dumps(
+                lesson_transition,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
+        # VISUAL DIRECTOR
+        # מחליט אילו המחשות דרושות לשיעור
+        # ומתי להציג תמונה או וידאו
+        # =============================================
+
+        visual_director_prompt = (
+            build_visual_director_prompt(
+                unit_lesson=
+                unit_lesson,
+
+                parent_lesson=
+                parent_lesson,
+
+                lesson_text=
+                lesson_text,
+
+                structured_lesson=
+                structured_lesson
+            )
+        )
+
+        print(
+            "========== VISUAL DIRECTOR START ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "lesson_name":
+                    unit_lesson.get(
+                        "lesson_name"
+                    ),
+
+                "lesson_text_length":
+                    len(
+                        lesson_text
+                        or ""
+                    )
+            }
+        )
+
+        visual_director_completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            visual_director_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            (
+                                "Analyze the lesson and create "
+                                "the visual media plan. "
+                                "Return only the required structure."
+                            )
+                    }
+                ],
+
+                response_format=
+                VisualDirectorResponse
+            )
+        )
+
+        visual_director_data = (
+            visual_director_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not visual_director_data:
+            raise RuntimeError(
+                "Visual Director returned no response"
+            )
+
+        visual_plan = (
+            visual_director_data
+            .model_dump()
+        )
+
+        visual_plan = (
+            normalize_visual_plan_to_segments(
+                visual_plan=
+                visual_plan,
+
+                structured_lesson=
+                structured_lesson,
+
+                unit_lesson=
+                unit_lesson,
+
+                parent_lesson=
+                parent_lesson
+            )
+        )
+
+        print(
+            "========== VISUAL DIRECTOR RESULT =========="
+        )
+
+        print(
+            json.dumps(
+                visual_plan,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
         lesson_json = {
 
             "generation_model":
@@ -5394,8 +12140,17 @@ def get_or_generate_unit_lesson(
 
             # המבנה החדש
             "structured_lesson":
-                structured_lesson
+                structured_lesson,
 
+            "transition":
+                lesson_transition,
+
+            # תוכנית ההמחשות של Visual Director
+            "visual_director_model":
+                DEFAULT_OPENAI_MODEL,
+
+            "visual_plan":
+                visual_plan
         }
 
         # =============================================
@@ -5425,12 +12180,6 @@ def get_or_generate_unit_lesson(
             "generation_status":
                 "ready",
 
-            "audio_generation_status":
-                "pending",
-
-            "audio_generation_error":
-                None,
-
             "generation_error":
                 None,
 
@@ -5439,6 +12188,22 @@ def get_or_generate_unit_lesson(
 
             "generated_at":
                 generated_at,
+
+            # האודיו החדש עדיין לא מוכן
+            "audio_generation_status":
+                "pending",
+
+            "lesson_audio_json":
+                None,
+
+            "audio_generation_error":
+                None,
+
+            "audio_generated_at":
+                None,
+
+            "tts_generated_at":
+                None,
 
             "updated_at":
                 generated_at
@@ -5550,11 +12315,28 @@ def get_or_generate_unit_lesson(
         # =============================================
         # START AUDIO GENERATION IN BACKGROUND
         # =============================================
-
+        print(
+            "QUEUE BACKGROUND AUDIO AFTER LESSON GENERATION:",
+            {
+                "unit_lesson_id": unit_lesson["id"],
+                "content_version": content_version,
+                "segments_count": len(
+                    structured_lesson.get("lesson")
+                    or []
+                ),
+                "has_question": bool(
+                    (
+                            structured_lesson.get("question")
+                            or {}
+                    ).get("text")
+                )
+            }
+        )
         background_tasks.add_task(
-            generate_unit_lesson_audio_background,
+            generate_unit_lesson_media_background,
             unit_lesson["id"]
         )
+
         # =============================================
         # RESPONSE
         # =============================================
@@ -5586,6 +12368,13 @@ def get_or_generate_unit_lesson(
                     "structured_lesson"
                 ),
 
+            "transition":
+                add_transition_video_signed_url(
+                    lesson_json.get(
+                        "transition"
+                    )
+                ),
+
             "audio_generation_status":
                 "pending",
 
@@ -5604,7 +12393,7 @@ def get_or_generate_unit_lesson(
             "UNIT LESSON GENERATION ERROR:",
             error_message
         )
-
+        traceback.print_exc()
         # =============================================
         # MARK AS FAILED
         # =============================================
@@ -5644,6 +12433,848 @@ def get_or_generate_unit_lesson(
             status_code=500,
             detail="Unit lesson generation failed"
         )
+
+# =====================================================
+# REGENERATE UNIT LESSON TRANSITION ONLY
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/regenerate-transition"
+)
+def regenerate_unit_lesson_transition(
+        body: UnitLessonRequest,
+        background_tasks: BackgroundTasks,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD EXISTING LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        # =============================================
+        # EXISTING LESSON JSON
+        # =============================================
+
+        generated_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        structured_lesson = (
+            generated_json.get(
+                "structured_lesson"
+            )
+            or {}
+        )
+
+        if not structured_lesson:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Structured lesson is missing"
+                )
+            )
+
+        if (
+            not structured_lesson.get(
+                "part_1"
+            )
+            or
+            not structured_lesson.get(
+                "part_2"
+            )
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Part 1 or Part 2 is missing"
+                )
+            )
+
+        # =============================================
+        # GENERATE ONLY NEW TRANSITION
+        # =============================================
+
+        new_transition = (
+            regenerate_lesson_transition_only(
+                unit_lesson=
+                    unit_lesson,
+
+                parent_lesson=
+                    parent_lesson
+            )
+        )
+
+        # =============================================
+        # REPLACE ONLY TRANSITION IN JSON
+        # =============================================
+
+        generated_json[
+            "transition"
+        ] = new_transition
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        sb.table(
+            "lesson_units_content"
+        ).update({
+
+            "generated_lesson_json":
+                generated_json,
+
+            "updated_at":
+                now_iso
+
+        }).eq(
+            "id",
+            unit_lesson["id"]
+        ).execute()
+
+        # =============================================
+        # DELETE OLD TRANSITION VIDEO ONLY
+        #
+        # התמונות, האודיו והשיעור עצמו נשארים.
+        # =============================================
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        video_storage_path = (
+            f"unit_lessons/"
+            f"{unit_lesson['id']}/"
+            f"v{content_version}/"
+            f"transition/"
+            f"transition_part_1_to_2.mp4"
+        )
+
+        try:
+
+            sb.storage.from_(
+                LESSON_MEDIA_BUCKET
+            ).remove([
+                video_storage_path
+            ])
+
+            print(
+                "OLD TRANSITION VIDEO REMOVED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "storage_path":
+                        video_storage_path
+                }
+            )
+
+        except Exception as delete_error:
+
+            print(
+                "OLD TRANSITION VIDEO REMOVE SKIPPED:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "error":
+                        repr(delete_error)
+                }
+            )
+
+        # =============================================
+        # GENERATE NEW VIDEO IN BACKGROUND
+        # =============================================
+
+        print(
+            "QUEUE NEW TRANSITION VIDEO:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"]
+            }
+        )
+
+        background_tasks.add_task(
+            generate_transition_video_background,
+            unit_lesson["id"]
+        )
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        return {
+            "success":
+                True,
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "transition":
+                new_transition,
+
+            "video_status":
+                "generating"
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "REGENERATE TRANSITION ERROR:",
+            {
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Failed to regenerate "
+                "lesson transition"
+            )
+        )
+
+# =====================================================
+# UNIT LESSON HERO IMAGE
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/hero-image"
+)
+def get_or_generate_unit_lesson_hero_image(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    MAX_RETRIES = 3
+    RETRY_DELAY_SECONDS = 0.7
+
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD LESSON
+        # WITH RETRY
+        # =============================================
+
+        unit_lesson = None
+
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                unit_lesson = get_unit_lesson(
+                    body.unit_lesson_id
+                )
+
+                break
+
+            except HTTPException:
+                raise
+
+            except Exception as e:
+
+                print(
+                    "HERO GET UNIT LESSON RETRY:",
+                    {
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(e)
+                    }
+                )
+
+                if attempt >= MAX_RETRIES:
+                    raise
+
+                time.sleep(
+                    RETRY_DELAY_SECONDS
+                    * attempt
+                )
+
+        # =============================================
+        # PARENT LESSON
+        # WITH RETRY
+        # =============================================
+
+        parent_lesson = None
+
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                parent_lesson = get_learning_lesson(
+                    unit_lesson[
+                        "learning_lesson_id"
+                    ]
+                )
+
+                break
+
+            except HTTPException:
+                raise
+
+            except Exception as e:
+
+                print(
+                    "HERO GET PARENT LESSON RETRY:",
+                    {
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(e)
+                    }
+                )
+
+                if attempt >= MAX_RETRIES:
+                    raise
+
+                time.sleep(
+                    RETRY_DELAY_SECONDS
+                    * attempt
+                )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+            child_grade
+            and lesson_grade
+            and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Lesson does not match child grade"
+            )
+
+        # =============================================
+        # STORAGE PATH
+        # =============================================
+
+        storage_path = (
+            get_lesson_media_storage_path(
+                unit_lesson_id=
+                    unit_lesson["id"],
+                media_type="hero"
+            )
+        )
+
+        # =============================================
+        # CACHE CHECK
+        # WITH RETRY
+        # =============================================
+
+        signed_url = None
+        last_cache_error = None
+
+        for attempt in range(
+            1,
+            MAX_RETRIES + 1
+        ):
+
+            try:
+
+                signed_url = (
+                    create_lesson_media_signed_url(
+                        storage_path
+                    )
+                )
+
+                break
+
+            except Exception as cache_error:
+
+                last_cache_error = cache_error
+
+                print(
+                    "LESSON HERO CACHE CHECK RETRY:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+                        "attempt":
+                            attempt,
+                        "max_attempts":
+                            MAX_RETRIES,
+                        "error":
+                            repr(cache_error)
+                    }
+                )
+
+                if attempt < MAX_RETRIES:
+
+                    time.sleep(
+                        RETRY_DELAY_SECONDS
+                        * attempt
+                    )
+
+        # =============================================
+        # CACHE HIT
+        # =============================================
+
+        if signed_url:
+
+            print(
+                "LESSON HERO CACHE HIT:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+                    "storage_path":
+                        storage_path
+                }
+            )
+
+            return {
+                "success": True,
+                "source": "cache",
+                "unit_lesson_id":
+                    unit_lesson["id"],
+                "hero_image": {
+                    "type": "image",
+                    "role": "hero",
+                    "storage_path":
+                        storage_path,
+                    "url":
+                        signed_url
+                }
+            }
+
+        # =============================================
+        # CACHE MISS
+        # =============================================
+
+        print(
+            "LESSON HERO CACHE MISS:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+                "error":
+                    repr(last_cache_error)
+            }
+        )
+
+        # =============================================
+        # GENERATE HERO
+        # =============================================
+
+        hero_image = (
+            generate_and_store_lesson_hero_image(
+                unit_lesson["id"]
+            )
+        )
+
+        return {
+            "success": True,
+            "source": "generated",
+            "unit_lesson_id":
+                unit_lesson["id"],
+            "hero_image":
+                hero_image
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "UNIT LESSON HERO IMAGE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Lesson hero image generation failed"
+        )
+
+# =====================================================
+# UNIT LESSON VISUALS
+# =====================================================
+
+@app.post(
+    "/api/tutor/unit-lesson/visuals"
+)
+def get_unit_lesson_visuals(
+        body: UnitLessonRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # מוודאים שהילד שייך למשתמש
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LOAD UNIT LESSON
+        # =============================================
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        parent_lesson = get_learning_lesson(
+            unit_lesson[
+                "learning_lesson_id"
+            ]
+        )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            parent_lesson.get("grade")
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Lesson does not match child grade"
+            )
+
+        # =============================================
+        # LOAD VISUAL PLAN
+        # =============================================
+
+        generated_lesson_json = (
+            unit_lesson.get(
+                "generated_lesson_json"
+            )
+            or {}
+        )
+
+        visual_plan = (
+            generated_lesson_json.get(
+                "visual_plan"
+            )
+            or {}
+        )
+
+        planned_visuals = (
+            visual_plan.get(
+                "visuals"
+            )
+            or []
+        )
+
+        content_version = int(
+            unit_lesson.get(
+                "content_version"
+            )
+            or 1
+        )
+
+        response_visuals = []
+
+        # =============================================
+        # BUILD RESPONSE
+        # =============================================
+
+        for visual in planned_visuals:
+
+            if not isinstance(
+                    visual,
+                    dict
+            ):
+                continue
+
+            visual_type = str(
+                visual.get("type")
+                or ""
+            ).strip().lower()
+
+            # כרגע הפרונט מקבל רק תמונות.
+            # וידאו נחבר בשלב הבא.
+            if visual_type != "image":
+                continue
+
+            visual_order = int(
+                visual.get("order")
+                or 0
+            )
+
+            if not visual_order:
+                continue
+
+            storage_path = (
+                f"unit_lessons/"
+                f"{unit_lesson['id']}/"
+                f"v{content_version}/"
+                f"visual_{visual_order}.png"
+            )
+
+            # -----------------------------------------
+            # התמונה יכולה עדיין להיות בתהליך יצירה.
+            # במקרה כזה פשוט לא מחזירים אותה עדיין.
+            # -----------------------------------------
+
+            try:
+
+                signed_url = (
+                    create_lesson_media_signed_url(
+                        storage_path
+                    )
+                )
+
+            except Exception as image_error:
+
+                print(
+                    "LESSON VISUAL NOT READY:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson["id"],
+
+                        "order":
+                            visual_order,
+
+                        "storage_path":
+                            storage_path,
+
+                        "error":
+                            repr(image_error)
+                    }
+                )
+
+                continue
+
+            response_visuals.append({
+
+                "order":
+                    visual_order,
+
+                "type":
+                    "image",
+
+                "trigger_text":
+                    visual.get(
+                        "trigger_text"
+                    ),
+
+                "visual_goal":
+                    visual.get(
+                        "visual_goal"
+                    ),
+
+                "source_text":
+                    visual.get(
+                        "source_text"
+                    ),
+
+                "storage_path":
+                    storage_path,
+
+                "url":
+                    signed_url
+            })
+
+        # =============================================
+        # RESPONSE
+        # =============================================
+
+        print(
+            "LESSON VISUALS RESPONSE:",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "content_version":
+                    content_version,
+
+                "planned_count":
+                    len(planned_visuals),
+
+                "ready_count":
+                    len(response_visuals)
+            }
+        )
+
+        return {
+
+            "success":
+                True,
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "content_version":
+                content_version,
+
+            "visuals":
+                response_visuals,
+
+            "visuals_ready":
+                len(response_visuals),
+
+            "visuals_planned":
+                len([
+                    item
+                    for item in planned_visuals
+                    if isinstance(item, dict)
+                    and item.get("type") == "image"
+                ])
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "UNIT LESSON VISUALS ERROR:",
+            {
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load lesson visuals"
+        )
+
 @app.post(
     "/api/tutor/unit-lesson/audio"
 )
@@ -6029,6 +13660,7 @@ def run_learning_coach(
         get_recent_lesson_history_for_llm(
             kid_id=child["id"],
             lesson_id=lesson["id"],
+            unit_lesson_id=unit_lesson["id"],
             limit=12
         )
     )
@@ -6047,7 +13679,8 @@ def run_learning_coach(
         unit_lesson=unit_lesson,
         coach_session=coach_session,
         conversation_history=conversation_history,
-        child_answer=message
+        child_answer=message,
+        coach_index=coach_index
     )
 
     # =============================================
@@ -6207,24 +13840,107 @@ def run_learning_coach(
     )
 
     # =============================================
-    # MOVE TO NEXT UNIVERSAL LESSON STAGE
+    # FINISH CURRENT LEARNING COACH
     # =============================================
 
     if coach_finished:
 
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =========================================
+        # COACH 1 FINISHED
+        #
+        # עדיין לא מסיימים את השיעור.
+        # עוברים לשלב המעבר בין Part 1 ל-Part 2.
+        # =========================================
+
         if coach_index == 1:
+
             next_stage = (
                 LESSON_STAGE_CLARIFICATION
             )
 
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_stage":
+                        next_stage,
+
+                    "status":
+                        "in_progress",
+
+                    "mastery_score":
+                        understanding_score,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
+
+        # =========================================
+        # COACH 2 FINISHED
+        #
+        # עדיין נשאיר מקום לסיכום הסופי.
+        # =========================================
+
         else:
+
             next_stage = (
                 LESSON_STAGE_FINAL_ASSESSMENT
             )
 
-        progress = update_lesson_stage(
-            progress=progress,
-            current_stage=next_stage
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_stage":
+                        next_stage,
+
+                    "status":
+                        "in_progress",
+
+                    "mastery_score":
+                        understanding_score,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
+
+        if progress_update.data:
+            progress = (
+                progress_update.data[0]
+            )
+
+    else:
+
+        next_stage = (
+            progress.get(
+                "current_stage"
+            )
         )
 
     print("-" * 70)
@@ -6267,9 +13983,16 @@ def run_learning_coach(
 
     if coach_finished:
 
+        # =========================================
+        # כשה-Coach הסתיים אסור לשאול עוד שאלה.
+        #
+        # speak = הודעת סיום בלבד.
+        # wait_for_answer יהיה False.
+        # =========================================
+
         sequence = [
             TutorAction(
-                type="ask",
+                type="speak",
                 text=teacher_response,
                 style="normal",
                 speed=45
@@ -6294,6 +14017,7 @@ def run_learning_coach(
     save_lesson_history(
         kid_id=child["id"],
         lesson_id=lesson["id"],
+        unit_lesson_id=unit_lesson["id"],
         session_id=session_id,
         objective_index=None,
         user_content=message,
@@ -6372,7 +14096,11 @@ def run_learning_coach(
 
         "wait_for_answer":
             not coach_finished,
+        "coach_finished":
+            coach_finished,
 
+        "lesson_completed":
+            False,
         "session_id":
             session_id,
 
@@ -6591,12 +14319,150 @@ def structured_lesson(
                 session_id=session_id,
 
                 is_lesson_start=
-                is_lesson_start
+                is_lesson_start,
+
+                unit_lesson_id=
+                body.unit_lesson_id
 
             )
 
         )
+        # =============================================
+        # UNIT LESSON SWITCH
+        #
+        # kid_lesson_progress הוא ברמת הנושא הראשי,
+        # ולכן חייבים לזהות מעבר לשיעור פנימי חדש.
+        # =============================================
 
+        requested_unit_lesson_id = (
+            int(body.unit_lesson_id)
+            if body.unit_lesson_id
+            else None
+        )
+
+        stored_unit_lesson_id = (
+            int(
+                progress.get(
+                    "current_unit_lesson_id"
+                )
+                or 0
+            )
+            or None
+        )
+
+        is_new_unit_lesson = (
+            requested_unit_lesson_id is not None
+            and requested_unit_lesson_id
+            != stored_unit_lesson_id
+        )
+
+        if is_new_unit_lesson:
+
+            now_iso = (
+                datetime
+                .now(timezone.utc)
+                .isoformat()
+            )
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    # תת־השיעור החדש
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    # מתחילים זרימה חדשה
+                    "current_stage":
+                        LESSON_STAGE_INTRO,
+
+                    "current_flow_step":
+                        0,
+
+                    "flow_state":
+                        {},
+
+                    "status":
+                        "in_progress",
+
+                    # מאפסים את תוצאת תת־השיעור הקודם
+                    "progress_percent":
+                        0,
+
+                    "mastery_score":
+                        0,
+
+                    "current_objective_index":
+                        1,
+
+                    "total_interactions":
+                        0,
+
+                    "hints_used":
+                        0,
+
+                    "consecutive_successes":
+                        0,
+
+                    "consecutive_failures":
+                        0,
+
+                    "last_evaluation":
+                        None,
+
+                    "last_error_type":
+                        None,
+
+                    "completed_at":
+                        None,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress["id"]
+                )
+                .execute()
+            )
+
+            if not progress_update.data:
+                raise RuntimeError(
+                    "Failed to switch unit lesson"
+                )
+
+            progress = progress_update.data[0]
+
+            print(
+                "UNIT LESSON PROGRESS SWITCHED:",
+                {
+                    "kid_id":
+                        child["id"],
+
+                    "lesson_id":
+                        lesson["id"],
+
+                    "previous_unit_lesson_id":
+                        stored_unit_lesson_id,
+
+                    "current_unit_lesson_id":
+                        requested_unit_lesson_id,
+
+                    "current_stage":
+                        progress.get(
+                            "current_stage"
+                        ),
+
+                    "status":
+                        progress.get(
+                            "status"
+                        )
+                }
+            )
         # =============================================
         # LESSON MODE
         #
@@ -6610,13 +14476,14 @@ def structured_lesson(
         # =============================================
 
         review_mode = (
+            progress.get(
+                "status"
+            )
+            == "completed"
 
-                progress.get(
-                    "status"
-                )
+            and
 
-                == "completed"
-
+            not is_new_unit_lesson
         )
 
         # =============================================
@@ -6681,6 +14548,14 @@ def structured_lesson(
         )
 
         if is_real_student_answer:
+            if (
+                    current_stage
+                    == LESSON_STAGE_COMPLETED
+            ):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Lesson is already completed"
+                )
 
             if not body.unit_lesson_id:
                 raise HTTPException(
@@ -6761,6 +14636,22 @@ def structured_lesson(
                     session_id=session_id,
                     progress=progress,
                     coach_index=1
+                )
+
+            # CLARIFICATION -> SECOND QUESTION
+
+            if (
+                    current_stage
+                    == LESSON_STAGE_CLARIFICATION
+            ):
+                progress = update_lesson_stage(
+                    progress=progress,
+                    current_stage=
+                    LESSON_STAGE_SECOND_QUESTION
+                )
+
+                current_stage = (
+                    LESSON_STAGE_SECOND_QUESTION
                 )
 
             # =========================================
@@ -6872,6 +14763,9 @@ def structured_lesson(
 
                 lesson_id=
                 lesson["id"],
+
+                unit_lesson_id=
+                body.unit_lesson_id,
 
                 limit=8
 
@@ -7384,6 +15278,9 @@ def structured_lesson(
             lesson_id=
             lesson["id"],
 
+            unit_lesson_id=
+            body.unit_lesson_id,
+
             session_id=
             session_id,
 
@@ -7624,7 +15521,442 @@ def structured_lesson(
 
         )
 
+# =====================================================
+# RESET UNIT LESSON PROGRESS
+# =====================================================
 
+@app.post(
+    "/api/tutor/reset-unit-lesson"
+)
+def reset_unit_lesson(
+        body: ResetUnitLessonRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # LESSON VALIDATION
+        # =============================================
+
+        lesson = get_learning_lesson(
+            body.lesson_id
+        )
+
+        unit_lesson = get_unit_lesson(
+            body.unit_lesson_id
+        )
+
+        if (
+                int(
+                    unit_lesson.get(
+                        "learning_lesson_id"
+                    )
+                    or 0
+                )
+                !=
+                int(
+                    lesson.get(
+                        "id"
+                    )
+                    or 0
+                )
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Unit lesson does not belong "
+                    "to the selected lesson"
+                )
+            )
+
+        # =============================================
+        # GRADE SECURITY
+        # =============================================
+
+        child_grade = int(
+            child.get("age")
+            or 0
+        )
+
+        lesson_grade = int(
+            lesson.get("grade")
+            or 0
+        )
+
+        if (
+                child_grade
+                and lesson_grade
+                and child_grade != lesson_grade
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Lesson does not match "
+                    "child grade"
+                )
+            )
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # DELETE LEARNING COACH SESSIONS
+        #
+        # רק עבור הילד ותת־השיעור הנוכחי
+        # =============================================
+
+        coach_delete = (
+            sb.table(
+                "learning_coach_sessions"
+            )
+            .delete()
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # DELETE UNIT LESSON HISTORY
+        # =============================================
+
+        history_delete = (
+            sb.table(
+                "kid_lesson_history"
+            )
+            .delete()
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # RESET MAIN PROGRESS ROW
+        #
+        # kid_lesson_progress היא רשומה אחת לנושא,
+        # לכן לא מוחקים אותה אלא מאפסים אותה
+        # ומכוונים לתת־השיעור שנבחר.
+        # =============================================
+
+        progress_res = (
+            sb.table(
+                "kid_lesson_progress"
+            )
+            .select("*")
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "lesson_id",
+                lesson["id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        progress = None
+
+        if progress_res.data:
+
+            progress_id = (
+                progress_res.data[0]["id"]
+            )
+            objectives = (
+                    lesson.get(
+                        "learning_objectives"
+                    )
+                    or []
+            )
+
+            reset_objectives_progress = []
+
+            for index, _ in enumerate(
+                    objectives,
+                    start=1
+            ):
+                reset_objectives_progress.append({
+                    "objective_index":
+                        index,
+
+                    "score":
+                        0,
+
+                    "highest_difficulty_reached":
+                        0,
+
+                    "evidence_count":
+                        0,
+
+                    "evidence_by_level": {
+                        "1": 0,
+                        "2": 0,
+                        "3": 0,
+                        "4": 0,
+                        "5": 0
+                    }
+                })
+
+            progress_update = (
+                sb.table(
+                    "kid_lesson_progress"
+                )
+                .update({
+                    "current_unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "current_stage":
+                        LESSON_STAGE_INTRO,
+
+                    "current_flow_step":
+                        0,
+
+                    "flow_state":
+                        {},
+
+                    "status":
+                        "in_progress",
+
+                    "progress_percent":
+                        0,
+
+                    "mastery_score":
+                        0,
+
+                    "current_objective_index":
+                        1,
+
+                    "objectives_progress":
+                        reset_objectives_progress,
+
+                    "total_interactions":
+                        0,
+
+                    "attempts_count":
+                        0,
+
+                    "hints_used":
+                        0,
+
+                    "consecutive_successes":
+                        0,
+
+                    "consecutive_failures":
+                        0,
+
+                    "last_evaluation":
+                        None,
+
+                    "last_error_type":
+                        None,
+
+                    "completed_at":
+                        None,
+
+                    "xp_earned":
+                        0,
+
+                    "stars_earned":
+                        0,
+
+                    "last_session_id":
+                        None,
+
+                    "started_at":
+                        now_iso,
+
+                    "last_activity_at":
+                        now_iso,
+
+                    "updated_at":
+                        now_iso
+                })
+                .eq(
+                    "id",
+                    progress_id
+                )
+                .execute()
+            )
+
+            if progress_update.data:
+                progress = (
+                    progress_update.data[0]
+                )
+
+        # =============================================
+        # DEBUG
+        # =============================================
+
+        print(
+            "UNIT LESSON RESET COMPLETED:",
+            json.dumps(
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "lesson_id":
+                        lesson["id"],
+
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "coach_rows_deleted":
+                        len(
+                            coach_delete.data
+                            or []
+                        ),
+
+                    "history_rows_deleted":
+                        len(
+                            history_delete.data
+                            or []
+                        ),
+
+                    "progress_reset":
+                        progress is not None,
+
+                    "lesson_content_deleted":
+                        False,
+
+                    "lesson_audio_deleted":
+                        False
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        return {
+            "success": True,
+
+            "kid_id":
+                child["id"],
+
+            "lesson_id":
+                lesson["id"],
+
+            "unit_lesson_id":
+                unit_lesson["id"],
+
+            "reset": {
+                "learning_coach_sessions":
+                    True,
+
+                "lesson_history":
+                    True,
+
+                "lesson_progress":
+                    True
+            },
+
+            "preserved": {
+                "lesson_content":
+                    True,
+
+                "lesson_audio":
+                    True
+            },
+
+            "progress": {
+                "current_stage":
+                    (
+                        progress.get(
+                            "current_stage"
+                        )
+                        if progress
+                        else LESSON_STAGE_INTRO
+                    ),
+
+                "progress_percent":
+                    0,
+
+                "mastery_score":
+                    0,
+
+                "status":
+                    "in_progress"
+            }
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "RESET UNIT LESSON ERROR:",
+            {
+                "kid_id":
+                    body.kid_id,
+
+                "lesson_id":
+                    body.lesson_id,
+
+                "unit_lesson_id":
+                    body.unit_lesson_id,
+
+                "error_type":
+                    type(e).__name__,
+
+                "error":
+                    repr(e)
+            }
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to reset unit lesson"
+        )
 # =====================================================
 # HOMEWORK IMAGE / PDF ANALYSIS
 # =====================================================
@@ -8214,6 +16546,1138 @@ def homework_analyze(
 # =====================================================
 # AI TUTOR CHAT
 # =====================================================
+
+# =====================================================
+# CURRICULUM BUILDER CHAT
+# =====================================================
+
+@app.post("/api/curriculum/chat")
+def curriculum_builder_chat(
+        body: CurriculumBuilderChatRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        message = str(
+            body.message or ""
+        ).strip()
+
+        if not message:
+            raise HTTPException(
+                status_code=400,
+                detail="message is required"
+            )
+
+        # =============================================
+        # CHILD OWNERSHIP
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        custom_subject = None
+        current_curriculum = None
+
+        # =============================================
+        # LOAD EXISTING SUBJECT + TREE
+        # =============================================
+
+        if body.custom_subject_id:
+
+            custom_subject = (
+                get_custom_subject(
+                    user_id=user.id,
+                    kid_id=child["id"],
+                    custom_subject_id=
+                        body.custom_subject_id
+                )
+            )
+
+            current_curriculum = (
+                get_current_custom_curriculum(
+                    custom_subject_id=
+                        custom_subject["id"]
+                )
+            )
+
+        current_tree = {}
+
+        if current_curriculum:
+            current_tree = (
+                current_curriculum.get(
+                    "curriculum_json"
+                )
+                or {}
+            )
+
+        # =============================================
+        # RUNTIME CONTEXT
+        # =============================================
+
+        runtime_context = {
+
+            "child": {
+                "id":
+                    child.get("id"),
+
+                "name":
+                    child.get("child_name"),
+
+                # אצלנו age משמש כמספר הכיתה
+                "grade":
+                    child.get("age"),
+
+                "gender":
+                    child.get("gender")
+                    or "male"
+            },
+
+            "current_subject": (
+                {
+                    "id":
+                        custom_subject.get("id"),
+
+                    "subject_name":
+                        custom_subject.get(
+                            "subject_name"
+                        ),
+
+                    "status":
+                        custom_subject.get(
+                            "status"
+                        )
+                }
+                if custom_subject
+                else None
+            ),
+
+            "current_curriculum": (
+                current_tree
+            )
+        }
+
+        system_prompt = (
+            CURRICULUM_BUILDER_PROMPT_TEMPLATE
+            + "\n\n"
+            + "RUNTIME_CONTEXT:\n"
+            + json.dumps(
+                runtime_context,
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        # =============================================
+        # CONVERSATION HISTORY
+        # =============================================
+
+        messages = [
+            {
+                "role":
+                    "system",
+
+                "content":
+                    system_prompt
+            }
+        ]
+
+        history = (
+            body.history
+            or []
+        )
+
+        for item in history[-12:]:
+
+            if not isinstance(
+                    item,
+                    dict
+            ):
+                continue
+
+            role = item.get(
+                "role"
+            )
+
+            content = str(
+                item.get(
+                    "content"
+                )
+                or ""
+            ).strip()
+
+            if (
+                    role not in (
+                        "user",
+                        "assistant"
+                    )
+                    or not content
+            ):
+                continue
+
+            messages.append({
+                "role":
+                    role,
+
+                "content":
+                    content
+            })
+
+        messages.append({
+            "role":
+                "user",
+
+            "content":
+                message
+        })
+
+        # =============================================
+        # OPENAI
+        # =============================================
+
+        completion = (
+            client
+            .beta
+            .chat
+            .completions
+            .parse(
+
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                messages=
+                    messages,
+
+                response_format=
+                    CurriculumBuilderAIResponse
+            )
+        )
+
+        curriculum_data = (
+            completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not curriculum_data:
+            raise RuntimeError(
+                "Curriculum Builder returned no response"
+            )
+
+        response_subject = str(
+            curriculum_data.subject
+            or ""
+        ).strip()
+
+        if curriculum_data.hierarchy:
+
+            hierarchy = (
+                curriculum_data
+                .hierarchy
+                .model_dump()
+            )
+
+        else:
+
+            hierarchy = (
+                    current_tree
+                    or {}
+            )
+
+        # =============================================
+        # CREATE SUBJECT
+        #
+        # ברגע שה-AI זיהה מקצוע,
+        # נוצרת הרשומה הראשית.
+        # =============================================
+
+        if (
+                not custom_subject
+                and response_subject
+        ):
+
+            custom_subject = (
+                create_custom_subject(
+                    user_id=user.id,
+                    kid_id=child["id"],
+                    subject_name=
+                    response_subject
+                )
+            )
+
+            # אם חזר מקצוע שכבר היה קיים,
+            # נטען גם את התוכנית הקיימת שלו.
+            current_curriculum = (
+                get_current_custom_curriculum(
+                    custom_subject_id=
+                    custom_subject["id"]
+                )
+            )
+
+            if current_curriculum:
+                current_tree = (
+                        current_curriculum.get(
+                            "curriculum_json"
+                        )
+                        or {}
+                )
+
+        # =============================================
+        # SAVE CURRICULUM
+        # =============================================
+
+        if (
+                custom_subject
+                and hierarchy
+        ):
+
+            if not current_curriculum:
+
+                current_curriculum = (
+                    create_custom_curriculum(
+                        user_id=user.id,
+
+                        kid_id=
+                            child["id"],
+
+                        custom_subject_id=
+                            custom_subject["id"],
+
+                        curriculum_json=
+                            hierarchy,
+
+                        ready_to_create=
+                            bool(
+                                curriculum_data
+                                .ready_to_create
+                            ),
+
+                        parent_message=
+                            message
+                    )
+                )
+
+            else:
+
+                current_curriculum = (
+                    update_custom_curriculum(
+                        user_id=user.id,
+
+                        kid_id=
+                            child["id"],
+
+                        custom_subject=
+                            custom_subject,
+
+                        curriculum=
+                            current_curriculum,
+
+                        curriculum_json=
+                            hierarchy,
+
+                        subject_name=
+                            response_subject,
+
+                        ready_to_create=
+                            bool(
+                                curriculum_data
+                                .ready_to_create
+                            ),
+
+                        parent_message=
+                            message
+                    )
+                )
+
+        # =============================================
+        # TOKEN USAGE
+        # =============================================
+
+        input_tokens = 0
+        output_tokens = 0
+        total_tokens = 0
+
+        if completion.usage:
+
+            input_tokens = (
+                completion
+                .usage
+                .prompt_tokens
+                or 0
+            )
+
+            output_tokens = (
+                completion
+                .usage
+                .completion_tokens
+                or 0
+            )
+
+            total_tokens = (
+                completion
+                .usage
+                .total_tokens
+                or 0
+            )
+
+        openai_cost_usd = (
+            calculate_openai_cost(
+                model=
+                    DEFAULT_OPENAI_MODEL,
+
+                input_tokens=
+                    input_tokens,
+
+                output_tokens=
+                    output_tokens
+            )
+        )
+
+        increment_usage_summary(
+            user_id=user.id,
+
+            ai_calls=1,
+
+            input_tokens=
+                input_tokens,
+
+            output_tokens=
+                output_tokens,
+
+            total_tokens=
+                total_tokens,
+
+            openai_cost_usd=
+                openai_cost_usd
+        )
+
+        # =============================================
+        # RESPONSE TO FRONTEND
+        # =============================================
+
+        response_data = (
+            curriculum_data
+            .model_dump()
+        )
+
+        response_data[
+            "kid_id"
+        ] = child["id"]
+
+        response_data[
+            "custom_subject_id"
+        ] = (
+            custom_subject.get("id")
+            if custom_subject
+            else None
+        )
+
+        response_data[
+            "curriculum_id"
+        ] = (
+            current_curriculum.get("id")
+            if current_curriculum
+            else None
+        )
+
+        response_data[
+            "version"
+        ] = (
+            current_curriculum.get(
+                "version"
+            )
+            if current_curriculum
+            else None
+        )
+
+        response_data[
+            "curriculum_status"
+        ] = (
+            current_curriculum.get(
+                "status"
+            )
+            if current_curriculum
+            else None
+        )
+
+        return response_data
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "CURRICULUM BUILDER ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Curriculum Builder failed"
+        )
+
+# =====================================================
+# APPROVE CUSTOM CURRICULUM
+# =====================================================
+
+@app.post("/api/curriculum/approve")
+def approve_custom_curriculum(
+        body: CurriculumApproveRequest,
+        authorization: str = Header(None)
+):
+    try:
+
+        # =============================================
+        # AUTH
+        # =============================================
+
+        user = authenticate_user(
+            authorization
+        )
+
+        if not body.kid_id:
+            raise HTTPException(
+                status_code=400,
+                detail="kid_id is required"
+            )
+
+        if not body.custom_subject_id:
+            raise HTTPException(
+                status_code=400,
+                detail="custom_subject_id is required"
+            )
+
+        if not body.curriculum_id:
+            raise HTTPException(
+                status_code=400,
+                detail="curriculum_id is required"
+            )
+
+        # =============================================
+        # CHILD
+        # =============================================
+
+        child = get_child_by_id(
+            user_id=user.id,
+            kid_id=body.kid_id
+        )
+
+        # =============================================
+        # SUBJECT
+        # =============================================
+
+        custom_subject = get_custom_subject(
+            user_id=user.id,
+            kid_id=child["id"],
+            custom_subject_id=
+                body.custom_subject_id
+        )
+
+        # =============================================
+        # CURRICULUM
+        # =============================================
+
+        curriculum_res = (
+            sb.table(
+                "kid_custom_curriculums"
+            )
+            .select("*")
+            .eq(
+                "id",
+                body.curriculum_id
+            )
+            .eq(
+                "custom_subject_id",
+                custom_subject["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .limit(1)
+            .execute()
+        )
+
+        if not curriculum_res.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Curriculum not found"
+            )
+
+        curriculum = (
+            curriculum_res.data[0]
+        )
+
+        curriculum_json = (
+            curriculum.get(
+                "curriculum_json"
+            )
+            or {}
+        )
+
+        if not curriculum_json:
+            raise HTTPException(
+                status_code=400,
+                detail="Curriculum is empty"
+            )
+
+        current_version = int(
+            curriculum.get(
+                "version"
+            )
+            or 1
+        )
+
+        now_iso = (
+            datetime
+            .now(timezone.utc)
+            .isoformat()
+        )
+
+        # =============================================
+        # ACTIVATE SUBJECT
+        # =============================================
+
+        subject_update = (
+            sb.table(
+                "kid_custom_subjects"
+            )
+            .update({
+                "status":
+                    "active",
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                custom_subject["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        if not subject_update.data:
+            raise RuntimeError(
+                "Failed to activate custom subject"
+            )
+
+        # =============================================
+        # ACTIVATE CURRICULUM
+        # =============================================
+
+        curriculum_update = (
+            sb.table(
+                "kid_custom_curriculums"
+            )
+            .update({
+                "status":
+                    "active",
+
+                "last_change_type":
+                    "approved",
+
+                "last_change_summary":
+                    "Parent approved curriculum",
+
+                "updated_by":
+                    "parent",
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                curriculum["id"]
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        if not curriculum_update.data:
+            raise RuntimeError(
+                "Failed to activate curriculum"
+            )
+
+        approved_curriculum = (
+            curriculum_update.data[0]
+        )
+
+        # =============================================
+        # MARK CURRENT VERSION AS APPROVED
+        # =============================================
+
+        version_update = (
+            sb.table(
+                "kid_custom_curriculum_versions"
+            )
+            .update({
+                "change_type":
+                    "approved",
+
+                "change_summary":
+                    "Parent approved curriculum",
+
+                "changed_by":
+                    "parent"
+            })
+            .eq(
+                "curriculum_id",
+                curriculum["id"]
+            )
+            .eq(
+                "version",
+                current_version
+            )
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
+        # BUILD RUNTIME UNITS + LESSONS
+        # =============================================
+
+        topics = (
+            curriculum_json.get("topics")
+            or []
+        )
+
+        if not isinstance(topics, list):
+            raise RuntimeError(
+                "Invalid curriculum topics"
+            )
+
+        units_created = 0
+        lessons_created = 0
+
+        for topic_index, topic in enumerate(
+                topics,
+                start=1
+        ):
+
+            if not isinstance(topic, dict):
+                continue
+
+            topic_name = str(
+                topic.get("name")
+                or ""
+            ).strip()
+
+            if not topic_name:
+                continue
+
+            units = (
+                topic.get("units")
+                or []
+            )
+
+            if not isinstance(units, list):
+                continue
+
+            for unit_index, unit in enumerate(
+                    units,
+                    start=1
+            ):
+
+                if not isinstance(unit, dict):
+                    continue
+
+                unit_name = str(
+                    unit.get("name")
+                    or ""
+                ).strip()
+
+                if not unit_name:
+                    continue
+
+                # =====================================
+                # FIND EXISTING UNIT
+                # =====================================
+
+                existing_unit_res = (
+                    sb.table(
+                        "kid_custom_units"
+                    )
+                    .select("*")
+                    .eq(
+                        "curriculum_id",
+                        curriculum["id"]
+                    )
+                    .eq(
+                        "topic_order",
+                        topic_index
+                    )
+                    .eq(
+                        "unit_order",
+                        unit_index
+                    )
+                    .limit(1)
+                    .execute()
+                )
+
+                if existing_unit_res.data:
+
+                    custom_unit = (
+                        existing_unit_res.data[0]
+                    )
+
+                    # אם השם השתנה בגרסה חדשה
+                    # מעדכנים את היחידה הקיימת
+                    update_unit_res = (
+                        sb.table(
+                            "kid_custom_units"
+                        )
+                        .update({
+                            "topic_name":
+                                topic_name,
+
+                            "unit_name":
+                                unit_name,
+
+                            "status":
+                                "active",
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "updated_at":
+                                now_iso
+                        })
+                        .eq(
+                            "id",
+                            custom_unit["id"]
+                        )
+                        .execute()
+                    )
+
+                    if update_unit_res.data:
+                        custom_unit = (
+                            update_unit_res.data[0]
+                        )
+
+                else:
+
+                    # =================================
+                    # CREATE UNIT
+                    # =================================
+
+                    unit_insert_res = (
+                        sb.table(
+                            "kid_custom_units"
+                        )
+                        .insert({
+                            "user_id":
+                                user.id,
+
+                            "kid_id":
+                                child["id"],
+
+                            "custom_subject_id":
+                                custom_subject["id"],
+
+                            "curriculum_id":
+                                curriculum["id"],
+
+                            "topic_name":
+                                topic_name,
+
+                            "topic_order":
+                                topic_index,
+
+                            "unit_name":
+                                unit_name,
+
+                            "unit_order":
+                                unit_index,
+
+                            "status":
+                                "active",
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "created_at":
+                                now_iso,
+
+                            "updated_at":
+                                now_iso
+                        })
+                        .execute()
+                    )
+
+                    if not unit_insert_res.data:
+                        raise RuntimeError(
+                            "Failed to create custom unit"
+                        )
+
+                    custom_unit = (
+                        unit_insert_res.data[0]
+                    )
+
+                    units_created += 1
+
+
+                # =====================================
+                # LESSONS
+                # =====================================
+
+                lessons = (
+                    unit.get("lessons")
+                    or []
+                )
+
+                if not isinstance(
+                        lessons,
+                        list
+                ):
+                    continue
+
+                for lesson_index, lesson in enumerate(
+                        lessons,
+                        start=1
+                ):
+
+                    if not isinstance(
+                            lesson,
+                            dict
+                    ):
+                        continue
+
+                    lesson_name = str(
+                        lesson.get("name")
+                        or ""
+                    ).strip()
+
+                    if not lesson_name:
+                        continue
+
+                    # =================================
+                    # FIND EXISTING LESSON
+                    # =================================
+
+                    existing_lesson_res = (
+                        sb.table(
+                            "kid_custom_lessons"
+                        )
+                        .select("*")
+                        .eq(
+                            "custom_unit_id",
+                            custom_unit["id"]
+                        )
+                        .eq(
+                            "lesson_order",
+                            lesson_index
+                        )
+                        .limit(1)
+                        .execute()
+                    )
+
+                    if existing_lesson_res.data:
+
+                        existing_lesson = (
+                            existing_lesson_res.data[0]
+                        )
+
+                        sb.table(
+                            "kid_custom_lessons"
+                        ).update({
+                            "lesson_name":
+                                lesson_name,
+
+                            "source_curriculum_version":
+                                current_version,
+
+                            "updated_at":
+                                now_iso
+                        }).eq(
+                            "id",
+                            existing_lesson["id"]
+                        ).execute()
+
+                    else:
+
+                        # =============================
+                        # CREATE LESSON
+                        # =============================
+
+                        lesson_insert_res = (
+                            sb.table(
+                                "kid_custom_lessons"
+                            )
+                            .insert({
+                                "user_id":
+                                    user.id,
+
+                                "kid_id":
+                                    child["id"],
+
+                                "custom_subject_id":
+                                    custom_subject["id"],
+
+                                "curriculum_id":
+                                    curriculum["id"],
+
+                                "custom_unit_id":
+                                    custom_unit["id"],
+
+                                "lesson_name":
+                                    lesson_name,
+
+                                "lesson_order":
+                                    lesson_index,
+
+                                "status":
+                                    "pending",
+
+                                "source_curriculum_version":
+                                    current_version,
+
+                                "created_at":
+                                    now_iso,
+
+                                "updated_at":
+                                    now_iso
+                            })
+                            .execute()
+                        )
+
+                        if not lesson_insert_res.data:
+                            raise RuntimeError(
+                                "Failed to create custom lesson"
+                            )
+
+                        lessons_created += 1
+
+        print(
+            "CUSTOM CURRICULUM APPROVED:",
+            json.dumps(
+                {
+                    "user_id":
+                        user.id,
+
+                    "kid_id":
+                        child["id"],
+
+                    "custom_subject_id":
+                        custom_subject["id"],
+
+                    "curriculum_id":
+                        curriculum["id"],
+
+                    "version":
+                        current_version,
+
+                    "version_rows_updated":
+                        len(
+                            version_update.data
+                            or []
+                        ),
+                    "units_created":
+                        units_created,
+
+                    "lessons_created":
+                        lessons_created
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        )
+
+        return {
+            "success": True,
+
+            "kid_id":
+                child["id"],
+
+            "custom_subject_id":
+                custom_subject["id"],
+
+            "curriculum_id":
+                approved_curriculum["id"],
+
+            "subject":
+                custom_subject.get(
+                    "subject_name"
+                ),
+
+            "version":
+                approved_curriculum.get(
+                    "version"
+                ),
+
+            "subject_status":
+                "active",
+
+            "curriculum_status":
+                "active",
+
+            "units_created":
+                units_created,
+
+            "lessons_created":
+                lessons_created
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        print(
+            "CURRICULUM APPROVE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Curriculum approval failed"
+        )
 
 @app.post("/api/tutor/chat")
 def tutor_chat(
