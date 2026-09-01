@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה11</strong>
+    <strong>עולם הלמידהה19</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -18984,6 +18984,92 @@ async function getLatestLessonTransition(){
     null
   );
 }
+
+async function getSharedLessonTransition(
+  transitionType
+){
+
+  const {
+    data: sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData?.session;
+
+
+  if(!session){
+
+    console.warn(
+      "SHARED TRANSITION — NO SESSION"
+    );
+
+    return null;
+
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+        `${TUTOR_API_BASE}/api/tutor/shared-transition/${transitionType}`,
+        {
+          method:
+            "GET",
+
+          headers: {
+            "Authorization":
+              `Bearer ${session.access_token}`
+          }
+        }
+      );
+
+
+    if(!response.ok){
+
+      console.warn(
+        "SHARED TRANSITION REQUEST FAILED:",
+        transitionType,
+        response.status
+      );
+
+      return null;
+
+    }
+
+
+    const transition =
+      await response.json();
+
+
+    console.log(
+      "SHARED TRANSITION READY:",
+      {
+        transitionType,
+        transition
+      }
+    );
+
+
+    return transition;
+
+  }
+  catch(error){
+
+    console.error(
+      "SHARED TRANSITION ERROR:",
+      transitionType,
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
 /* =====================================================
    CINEMATIC FADE TO BLACK
 ===================================================== */
@@ -22007,6 +22093,40 @@ const universalLessonPromise =
     session
   );
 
+/* =============================================
+   SHARED LESSON OPENING VIDEO
+============================================= */
+
+try{
+
+  const openingTransition =
+    await getSharedLessonTransition(
+      "opening"
+    );
+
+
+  if(openingTransition){
+
+    console.log(
+      "PLAYING SHARED LESSON OPENING"
+    );
+
+
+    await playLessonTransitionVideo(
+      openingTransition
+    );
+
+  }
+
+}
+catch(error){
+
+  console.warn(
+    "SHARED LESSON OPENING FAILED:",
+    error
+  );
+
+}
 
 /* =============================================
    PERSONAL PAID INTRO VIDEO
