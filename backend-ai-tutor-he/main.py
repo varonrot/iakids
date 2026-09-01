@@ -9310,20 +9310,52 @@ def generate_unit_lesson_audio_background(
         # ALREADY READY
         # =============================================
 
+        cached_audio_has_parts = (
+            isinstance(
+                cached_audio,
+                dict
+            )
+            and bool(
+                cached_audio.get(
+                    "parts"
+                )
+            )
+        )
+
+        cached_audio_has_legacy_segments = (
+            isinstance(
+                cached_audio,
+                dict
+            )
+            and bool(
+                cached_audio.get(
+                    "segments"
+                )
+            )
+        )
+
         if (
                 audio_generation_status == "ready"
-                and isinstance(
-                    cached_audio,
-                    dict
-                )
-                and cached_audio.get(
-                    "segments"
+                and (
+                    cached_audio_has_parts
+                    or
+                    cached_audio_has_legacy_segments
                 )
         ):
             print(
                 "BACKGROUND AUDIO ALREADY READY:",
-                unit_lesson_id
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "has_parts":
+                        cached_audio_has_parts,
+
+                    "has_legacy_segments":
+                        cached_audio_has_legacy_segments
+                }
             )
+
             return
 
         # =============================================
