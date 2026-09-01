@@ -7642,30 +7642,13 @@ def generate_all_lesson_visuals_background(
         )
 
         # =====================================================
-        # PARALLEL VISUAL GENERATION
+        # PARALLEL VISUAL GENERATION BY LESSON PART
         #
-        # Visual 1 is generated first because it defines
-        # the visual world for the rest of the lesson.
-        # Remaining visuals are generated in parallel.
+        # Each lesson part owns its own visual world.
+        # The first visual of every part is generated first
+        # and becomes the reference for the remaining visuals
+        # in that same part.
         # =====================================================
-
-        image_visuals = sorted(
-            image_visuals,
-            key=lambda visual: (
-                int(
-                    visual.get(
-                        "part_number"
-                    )
-                    or 0
-                ),
-                int(
-                    visual.get(
-                        "order"
-                    )
-                    or 0
-                )
-            )
-        )
 
         if not image_visuals:
             return
@@ -7676,8 +7659,11 @@ def generate_all_lesson_visuals_background(
                 reference_bytes=None,
                 reference_mime_type="image/png"
         ):
+
             part_number = int(
-                visual.get("part_number")
+                visual.get(
+                    "part_number"
+                )
                 or 0
             )
 
@@ -7685,10 +7671,18 @@ def generate_all_lesson_visuals_background(
                 raise RuntimeError(
                     "Visual part number is missing"
                 )
+
             visual_order = int(
-                visual.get("order")
+                visual.get(
+                    "order"
+                )
                 or 0
             )
+
+            if not visual_order:
+                raise RuntimeError(
+                    "Visual order is missing"
+                )
 
             storage_path = (
                 f"unit_lessons/"
@@ -7709,6 +7703,9 @@ def generate_all_lesson_visuals_background(
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
+
+                        "part_number":
+                            part_number,
 
                         "order":
                             visual_order,
@@ -7750,7 +7747,6 @@ def generate_all_lesson_visuals_background(
                             visual_order
                     }
                 )
-
 
             for attempt in range(
                 1,
@@ -7854,18 +7850,19 @@ def generate_all_lesson_visuals_background(
                             * attempt
                         )
 
-
             print(
                 "LESSON VISUAL PRIMARY PROMPT FAILED:",
                 {
                     "unit_lesson_id":
                         unit_lesson_id,
 
+                    "part_number":
+                        part_number,
+
                     "order":
                         visual_order
                 }
             )
-
 
             source_text = str(
                 visual.get(
@@ -7915,8 +7912,10 @@ def generate_all_lesson_visuals_background(
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
+
                         "part_number":
                             part_number,
+
                         "order":
                             visual_order
                     }
@@ -7967,8 +7966,10 @@ def generate_all_lesson_visuals_background(
                     {
                         "unit_lesson_id":
                             unit_lesson_id,
+
                         "part_number":
                             part_number,
+
                         "order":
                             visual_order,
 
@@ -7984,166 +7985,268 @@ def generate_all_lesson_visuals_background(
                 return None
 
 
-        # =====================================================
-        # STEP 1 — GENERATE VISUAL 1 FIRST
-        # =====================================================
-
-        first_visual = (
-            image_visuals[0]
-        )
-
-        first_result = (
-            generate_single_visual(
-                first_visual
-            )
-        )
-
-        if first_result:
-
-            generated_visuals.append(
-                first_result
-            )
-
-
-        # =====================================================
-        # LOAD VISUAL 1 AS MASTER REFERENCE
-        # =====================================================
-
-        reference_storage_path = (
-            f"unit_lessons/"
-            f"{unit_lesson_id}/"
-            f"v{content_version}/"
-            f"visual_1.png"
-        )
-
-        try:
-
-            master_reference_bytes = (
-                sb.storage
-                .from_(
-                    LESSON_MEDIA_BUCKET
+        part_numbers = sorted(
+            {
+                int(
+                    visual.get(
+                        "part_number"
+                    )
+                    or 0
                 )
-                .download(
-                    reference_storage_path
+                for visual in image_visuals
+                if isinstance(
+                    visual,
+                    dict
                 )
-            )
-
-            master_reference_mime_type = (
-                "image/png"
-            )
-
-            print(
-                "LESSON MASTER VISUAL REFERENCE LOADED:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson_id,
-
-                    "bytes":
-                        len(
-                            master_reference_bytes
-                            or b""
-                        )
-                }
-            )
-
-        except Exception as reference_error:
-
-            print(
-                "LESSON MASTER VISUAL REFERENCE NOT READY:",
-                {
-                    "unit_lesson_id":
-                        unit_lesson_id,
-
-                    "error":
-                        repr(
-                            reference_error
-                        )
-                }
-            )
-
-            master_reference_bytes = None
-
-
-        # =====================================================
-        # STEP 2 — GENERATE THE REST IN PARALLEL
-        # =====================================================
-
-        remaining_visuals = (
-            image_visuals[1:]
+                and int(
+                    visual.get(
+                        "part_number"
+                    )
+                    or 0
+                ) > 0
+            }
         )
 
-        if remaining_visuals:
+
+        for part_number in part_numbers:
+
+            part_visuals = [
+                visual
+                for visual in image_visuals
+                if int(
+                    visual.get(
+                        "part_number"
+                    )
+                    or 0
+                )
+                ==
+                part_number
+            ]
+
+            part_visuals = sorted(
+                part_visuals,
+                key=lambda visual:
+                    int(
+                        visual.get(
+                            "order"
+                        )
+                        or 0
+                    )
+            )
+
+            if not part_visuals:
+                continue
 
             print(
-                "LESSON VISUAL PARALLEL START:",
+                "LESSON PART VISUAL GENERATION START:",
                 {
                     "unit_lesson_id":
                         unit_lesson_id,
+
+                    "part_number":
+                        part_number,
 
                     "visual_count":
                         len(
-                            remaining_visuals
-                        ),
-
-                    "max_workers":
-                        3
+                            part_visuals
+                        )
                 }
             )
 
-            with ThreadPoolExecutor(
-                max_workers=3
-            ) as executor:
+            first_visual = (
+                part_visuals[0]
+            )
 
-                futures = [
-                    executor.submit(
-                        generate_single_visual,
-                        visual,
-                        master_reference_bytes,
-                        master_reference_mime_type
+            first_visual_order = int(
+                first_visual.get(
+                    "order"
+                )
+                or 0
+            )
+
+            first_result = (
+                generate_single_visual(
+                    first_visual
+                )
+            )
+
+            if first_result:
+
+                generated_visuals.append(
+                    first_result
+                )
+
+            part_reference_bytes = None
+            part_reference_mime_type = (
+                "image/png"
+            )
+
+            reference_storage_path = (
+                f"unit_lessons/"
+                f"{unit_lesson_id}/"
+                f"v{content_version}/"
+                f"part_{part_number}/"
+                f"visual_{first_visual_order}.png"
+            )
+
+            try:
+
+                part_reference_bytes = (
+                    sb.storage
+                    .from_(
+                        LESSON_MEDIA_BUCKET
                     )
-                    for visual
-                    in remaining_visuals
-                ]
+                    .download(
+                        reference_storage_path
+                    )
+                )
 
-                for future in futures:
+                print(
+                    "LESSON PART MASTER REFERENCE LOADED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
 
-                    try:
+                        "part_number":
+                            part_number,
 
-                        result = (
-                            future.result()
+                        "order":
+                            first_visual_order,
+
+                        "bytes":
+                            len(
+                                part_reference_bytes
+                                or b""
+                            )
+                    }
+                )
+
+            except Exception as reference_error:
+
+                print(
+                    "LESSON PART MASTER REFERENCE NOT READY:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "part_number":
+                            part_number,
+
+                        "order":
+                            first_visual_order,
+
+                        "error":
+                            repr(
+                                reference_error
+                            )
+                    }
+                )
+
+                part_reference_bytes = None
+
+            remaining_part_visuals = (
+                part_visuals[1:]
+            )
+
+            if remaining_part_visuals:
+
+                print(
+                    "LESSON PART VISUAL PARALLEL START:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "part_number":
+                            part_number,
+
+                        "visual_count":
+                            len(
+                                remaining_part_visuals
+                            ),
+
+                        "max_workers":
+                            3
+                    }
+                )
+
+                with ThreadPoolExecutor(
+                    max_workers=3
+                ) as executor:
+
+                    futures = [
+                        executor.submit(
+                            generate_single_visual,
+                            visual,
+                            part_reference_bytes,
+                            part_reference_mime_type
                         )
+                        for visual
+                        in remaining_part_visuals
+                    ]
 
-                        if result:
+                    for future in futures:
 
-                            generated_visuals.append(
-                                result
+                        try:
+
+                            result = (
+                                future.result()
                             )
 
-                    except Exception as future_error:
+                            if result:
 
-                        print(
-                            "LESSON VISUAL PARALLEL WORKER FAILED:",
-                            {
-                                "unit_lesson_id":
-                                    unit_lesson_id,
+                                generated_visuals.append(
+                                    result
+                                )
 
-                                "error":
-                                    repr(
-                                        future_error
-                                    )
-                            }
-                        )
+                        except Exception as future_error:
 
-                        traceback.print_exc()
+                            print(
+                                "LESSON PART VISUAL WORKER FAILED:",
+                                {
+                                    "unit_lesson_id":
+                                        unit_lesson_id,
+
+                                    "part_number":
+                                        part_number,
+
+                                    "error":
+                                        repr(
+                                            future_error
+                                        )
+                                }
+                            )
+
+                            traceback.print_exc()
+
+            print(
+                "LESSON PART VISUAL GENERATION DONE:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "part_number":
+                        part_number
+                }
+            )
 
 
         generated_visuals.sort(
-            key=lambda visual:
+            key=lambda visual: (
                 int(
-                    visual.get("order")
+                    visual.get(
+                        "part_number"
+                    )
+                    or 0
+                ),
+                int(
+                    visual.get(
+                        "order"
+                    )
                     or 0
                 )
+            )
         )
+
         print(
             "ALL LESSON VISUALS READY:",
             {
@@ -8151,10 +8254,14 @@ def generate_all_lesson_visuals_background(
                     unit_lesson_id,
 
                 "planned_count":
-                    len(image_visuals),
+                    len(
+                        image_visuals
+                    ),
 
                 "generated_count":
-                    len(generated_visuals),
+                    len(
+                        generated_visuals
+                    ),
 
                 "visuals":
                     generated_visuals
