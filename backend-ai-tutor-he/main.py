@@ -11334,12 +11334,24 @@ def get_or_generate_unit_lesson(
                 generated_parts,
 
             # Temporary compatibility fields.
-            "part_1": part_1,
-            "lesson": part_1["lesson"],
-            "question": part_1["question"]
+            "lesson":
+                part_1["lesson"],
+
+            "question":
+                part_1["question"]
         }
 
+        # Add temporary part aliases for existing code.
+        for generated_part in generated_parts:
+            generated_part_number = int(
+                generated_part[
+                    "part_number"
+                ]
+            )
 
+            structured_lesson[
+                f"part_{generated_part_number}"
+            ] = generated_part
 
         # =============================================
         # LESSON TRANSITION DIRECTOR
