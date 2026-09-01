@@ -37,6 +37,15 @@ LESSON_PROMPT_PATH = Path(
 UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
     "prompts/iakids_universal_unit_lesson_prompt.txt"
 )
+
+LESSON_INITIAL_PROMPT_PATH = Path(
+    "prompts/iakids_lesson_initial_prompt.txt"
+)
+
+LESSON_EXPANSION_PROMPT_PATH = Path(
+    "prompts/iakids_lesson_expansion_prompt.txt"
+)
+
 LESSON_DIRECTOR_PROMPT_PATH = Path(
     "prompts/lesson_director_prompt.txt"
 )
@@ -247,6 +256,16 @@ if not UNIVERSAL_UNIT_LESSON_PROMPT_PATH.exists():
         f"Missing universal unit lesson prompt file: "
         f"{UNIVERSAL_UNIT_LESSON_PROMPT_PATH}"
     )
+if not LESSON_INITIAL_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing lesson initial prompt file: "
+        f"{LESSON_INITIAL_PROMPT_PATH}"
+    )
+if not LESSON_EXPANSION_PROMPT_PATH.exists():
+    raise RuntimeError(
+        f"Missing lesson expansion prompt file: "
+        f"{LESSON_EXPANSION_PROMPT_PATH}"
+    )
 if not LESSON_DIRECTOR_PROMPT_PATH.exists():
     raise RuntimeError(
         f"Missing lesson director prompt file: "
@@ -287,6 +306,18 @@ LESSON_PROMPT_TEMPLATE = (
 )
 UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE = (
     UNIVERSAL_UNIT_LESSON_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+LESSON_INITIAL_PROMPT_TEMPLATE = (
+    LESSON_INITIAL_PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
+    )
+)
+LESSON_EXPANSION_PROMPT_TEMPLATE = (
+    LESSON_EXPANSION_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -536,7 +567,8 @@ class TutorLessonResponse(BaseModel):
     wait_for_answer: bool = False
 
 class UniversalLessonResponse(BaseModel):
-    lesson: str
+    explanation: str
+    question: str
 class DirectedLessonSegment(BaseModel):
     text: str
 
@@ -544,6 +576,9 @@ class DirectedLessonSegment(BaseModel):
 class DirectedLessonQuestion(BaseModel):
     text: str
 
+class DirectedLessonUnitResponse(BaseModel):
+    lesson: list[DirectedLessonSegment]
+    question: DirectedLessonQuestion
 
 class DirectedLessonPart(BaseModel):
     lesson: list[DirectedLessonSegment]
@@ -10864,16 +10899,33 @@ def get_or_generate_unit_lesson(
                 "returned no response"
             )
 
-        lesson_text = lesson_data.lesson.strip()
+        part_1_explanation = (
+            lesson_data.explanation.strip()
+        )
+
+        part_1_question = (
+            lesson_data.question.strip()
+        )
+
+        if not part_1_explanation:
+            raise RuntimeError(
+                "Initial lesson returned empty explanation"
+            )
+
+        if not part_1_question:
+            raise RuntimeError(
+                "Initial lesson returned empty question"
+            )
 
         # =============================================
-        # LESSON DIRECTOR
-        # חלוקת השיעור לקטעים והפרדת שאלת הסיום
+        # PART 1 DIRECTOR
+        # Structures one complete learning unit.
+        # It must not create or split lesson parts.
         # =============================================
 
         director_prompt = (
             build_lesson_director_prompt(
-                lesson_text=lesson_text
+                lesson_text=part_1_explanation
             )
         )
 
@@ -10894,14 +10946,18 @@ def get_or_generate_unit_lesson(
                     {
                         "role": "user",
                         "content": (
-                            "ארגן את השיעור לפי ההנחיות "
-                            "והחזר JSON בלבד."
+                                "Structure this explanation into "
+                                "short multimedia segments. "
+                                "Do not create another lesson part. "
+                                "Use the supplied question exactly "
+                                "as written:\n\n"
+                                + part_1_question
                         )
                     }
                 ],
 
                 response_format=
-                DirectedLessonResponse
+                DirectedLessonUnitResponse
             )
         )
 
@@ -10914,50 +10970,34 @@ def get_or_generate_unit_lesson(
 
         if not directed_lesson_data:
             raise RuntimeError(
-                "Lesson director returned no response"
+                "Part 1 director returned no response"
             )
 
-        structured_lesson = (
+        part_1 = (
             directed_lesson_data.model_dump()
         )
 
-        # =============================================
-        # BACKWARD COMPATIBILITY
-        #
-        # הקוד הישן עדיין משתמש ב:
-        # structured_lesson["lesson"]
-        # structured_lesson["question"]
-        #
-        # כרגע הם מייצגים את Part 1.
-        # =============================================
+        # The teacher owns the fixed question.
+        # The director is not allowed to rewrite it.
+        part_1["question"] = {
+            "text": part_1_question
+        }
 
-        structured_lesson[
-            "lesson"
-        ] = (
-                structured_lesson
-                .get(
-                    "part_1",
-                    {}
-                )
-                .get(
-                    "lesson"
-                )
-                or []
-        )
+        structured_lesson = {
+            "parts": [
+                {
+                    "part_number": 1,
+                    **part_1
+                }
+            ],
 
-        structured_lesson[
-            "question"
-        ] = (
-                structured_lesson
-                .get(
-                    "part_1",
-                    {}
-                )
-                .get(
-                    "question"
-                )
-                or {}
-        )
+            # Temporary compatibility fields.
+            "part_1": part_1,
+            "lesson": part_1["lesson"],
+            "question": part_1["question"]
+        }
+
+
 
         # =============================================
         # LESSON TRANSITION DIRECTOR
