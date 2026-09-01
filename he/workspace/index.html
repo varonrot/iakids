@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה469</strong>
+    <strong>עולם הלמידהה4</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -24621,19 +24621,11 @@ if(
   );
 
 await startLessonBackgroundMusic();
-/*
-  חשוב:
-  הנתונים שנשמרו בתחילת השיעור
-  יכולים להיות ישנים כי הווידאו
-  נוצר ברקע.
-
-  לכן עכשיו מושכים מהשרת
-  את ה-transition העדכני.
-*/
 
 const transition =
-  await getLatestLessonTransition();
-
+  await getSharedLessonTransition(
+    "middle"
+  );
 
 console.log(
   "LATEST LESSON TRANSITION DATA:",
