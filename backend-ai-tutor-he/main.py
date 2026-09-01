@@ -11182,12 +11182,70 @@ def get_or_generate_unit_lesson(
                     or []
                 )
 
+            expected_questions_count = 0
+
+            if lesson_parts:
+
+                for lesson_part in lesson_parts:
+
+                    if not isinstance(
+                            lesson_part,
+                            dict
+                    ):
+                        continue
+
+                    question = (
+                        lesson_part.get(
+                            "question"
+                        )
+                        or {}
+                    )
+
+                    question_text = str(
+                        question.get(
+                            "text"
+                        )
+                        or ""
+                    ).strip()
+
+                    if question_text:
+                        expected_questions_count += 1
+
+            else:
+
+                legacy_question = (
+                    structured_lesson.get(
+                        "question"
+                    )
+                    or {}
+                )
+
+                legacy_question_text = str(
+                    legacy_question.get(
+                        "text"
+                    )
+                    or ""
+                ).strip()
+
+                if legacy_question_text:
+                    expected_questions_count = 1
+
+            expected_visuals_count = (
+                len(
+                    expected_segments
+                )
+                +
+                expected_questions_count
+            )
+
             visual_plan_needs_repair = (
                 not cached_visuals
                 or
-                len(cached_visuals)
+                len(
+                    cached_visuals
+                )
                 !=
-                len(expected_segments)
+                expected_visuals_count
             )
 
             if visual_plan_needs_repair:
@@ -11200,6 +11258,12 @@ def get_or_generate_unit_lesson(
 
                         "segments_count":
                             len(expected_segments),
+
+                        "questions_count":
+                            expected_questions_count,
+
+                        "expected_visuals_count":
+                            expected_visuals_count,
 
                         "visuals_count":
                             len(cached_visuals)
