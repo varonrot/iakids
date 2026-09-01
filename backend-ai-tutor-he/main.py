@@ -11119,14 +11119,36 @@ def get_or_generate_unit_lesson(
             # אסור להפיל בגללו את כל השיעור.
             # =========================================
 
+            cached_audio_has_parts = (
+                isinstance(
+                    cached_audio,
+                    dict
+                )
+                and bool(
+                    cached_audio.get(
+                        "parts"
+                    )
+                )
+            )
+
+            cached_audio_has_legacy_segments = (
+                isinstance(
+                    cached_audio,
+                    dict
+                )
+                and bool(
+                    cached_audio.get(
+                        "segments"
+                    )
+                )
+            )
+
             if (
                     audio_generation_status == "ready"
-                    and isinstance(
-                        cached_audio,
-                        dict
-                    )
-                    and cached_audio.get(
-                        "segments"
+                    and (
+                        cached_audio_has_parts
+                        or
+                        cached_audio_has_legacy_segments
                     )
             ):
 
