@@ -10884,6 +10884,41 @@ def get_or_generate_unit_lesson(
         # CACHE HIT
         # =============================================
 
+        cached_structured_lesson = (
+            cached_json.get(
+                "structured_lesson"
+            )
+            if isinstance(
+                cached_json,
+                dict
+            )
+            else None
+        )
+
+        cached_lesson_has_parts = (
+            isinstance(
+                cached_structured_lesson,
+                dict
+            )
+            and bool(
+                cached_structured_lesson.get(
+                    "parts"
+                )
+            )
+        )
+
+        cached_lesson_has_legacy_lesson = (
+            isinstance(
+                cached_structured_lesson,
+                dict
+            )
+            and bool(
+                cached_structured_lesson.get(
+                    "lesson"
+                )
+            )
+        )
+
         if (
                 generation_status == "ready"
                 and isinstance(
@@ -10891,16 +10926,13 @@ def get_or_generate_unit_lesson(
                     dict
                 )
                 and isinstance(
-                    cached_json.get(
-                        "structured_lesson"
-                    ),
+                    cached_structured_lesson,
                     dict
                 )
-                and cached_json.get(
-                    "structured_lesson",
-                    {}
-                ).get(
-                    "lesson"
+                and (
+                    cached_lesson_has_parts
+                    or
+                    cached_lesson_has_legacy_lesson
                 )
         ):
 
@@ -10989,10 +11021,83 @@ def get_or_generate_unit_lesson(
                     }
                 )
 
-                lesson_text = str(
-                    cached_json.get("lesson")
-                    or ""
-                ).strip()
+                lesson_text_parts = []
+
+                cached_lesson_parts = (
+                    structured_lesson.get(
+                        "parts"
+                    )
+                    or []
+                )
+
+                if cached_lesson_parts:
+
+                    for lesson_part in cached_lesson_parts:
+
+                        if not isinstance(
+                                lesson_part,
+                                dict
+                        ):
+                            continue
+
+                        part_number = int(
+                            lesson_part.get(
+                                "part_number"
+                            )
+                            or 0
+                        )
+
+                        part_segments = (
+                            lesson_part.get(
+                                "lesson"
+                            )
+                            or []
+                        )
+
+                        part_text = "\n".join(
+                            [
+                                str(
+                                    segment.get(
+                                        "text"
+                                    )
+                                    or ""
+                                ).strip()
+                                for segment in part_segments
+                                if isinstance(
+                                    segment,
+                                    dict
+                                )
+                                and str(
+                                    segment.get(
+                                        "text"
+                                    )
+                                    or ""
+                                ).strip()
+                            ]
+                        )
+
+                        if part_text:
+
+                            lesson_text_parts.append(
+                                (
+                                    f"Part {part_number}:\n"
+                                    f"{part_text}"
+                                )
+                            )
+
+                    lesson_text = "\n\n".join(
+                        lesson_text_parts
+                    ).strip()
+
+                else:
+
+                    # Legacy fallback for old cached lessons.
+                    lesson_text = str(
+                        cached_json.get(
+                            "lesson"
+                        )
+                        or ""
+                    ).strip()
 
                 visual_director_prompt = (
                     build_visual_director_prompt(
