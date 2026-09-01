@@ -8527,32 +8527,25 @@ def add_signed_urls_to_lesson_audio(
         or LESSON_AUDIO_BUCKET
     )
 
-    raw_segments = (
-        lesson_audio_json.get(
-            "segments"
-        )
-        or []
-    )
-
-    signed_segments = []
-
-    for segment in raw_segments:
+    def create_audio_signed_item(
+            audio_item: dict | None
+    ) -> dict | None:
 
         if not isinstance(
-                segment,
+                audio_item,
                 dict
         ):
-            continue
+            return None
 
         path = str(
-            segment.get(
+            audio_item.get(
                 "path"
             )
             or ""
         ).strip()
 
         if not path:
-            continue
+            return None
 
         signed_response = (
             sb.storage
@@ -8588,79 +8581,163 @@ def add_signed_urls_to_lesson_audio(
                 f"Failed to create signed URL for {path}"
             )
 
-        signed_segments.append({
-            **segment,
-            "url": signed_url
-        })
+        return {
+            **audio_item,
+            "url":
+                signed_url
+        }
 
-    raw_question = (
+    # =============================================
+    # SIGN LESSON PARTS
+    # =============================================
+
+    raw_parts = (
         lesson_audio_json.get(
-            "question"
+            "parts"
+        )
+        or []
+    )
+
+    signed_parts = []
+
+    for fallback_part_number, raw_part in enumerate(
+            raw_parts,
+            start=1
+    ):
+
+        if not isinstance(
+                raw_part,
+                dict
+        ):
+            continue
+
+        part_number = int(
+            raw_part.get(
+                "part_number"
+            )
+            or fallback_part_number
+        )
+
+        raw_part_segments = (
+            raw_part.get(
+                "segments"
+            )
+            or []
+        )
+
+        signed_part_segments = []
+
+        for segment in raw_part_segments:
+
+            signed_segment = (
+                create_audio_signed_item(
+                    segment
+                )
+            )
+
+            if signed_segment:
+
+                signed_part_segments.append(
+                    signed_segment
+                )
+
+        signed_part_question = (
+            create_audio_signed_item(
+                raw_part.get(
+                    "question"
+                )
+            )
+        )
+
+        signed_parts.append(
+            {
+                **raw_part,
+
+                "part_number":
+                    part_number,
+
+                "segments":
+                    signed_part_segments,
+
+                "question":
+                    signed_part_question
+            }
+        )
+
+    # =============================================
+    # LEGACY TOP-LEVEL AUDIO
+    # =============================================
+
+    raw_segments = (
+        lesson_audio_json.get(
+            "segments"
+        )
+        or []
+    )
+
+    signed_segments = []
+
+    for segment in raw_segments:
+
+        signed_segment = (
+            create_audio_signed_item(
+                segment
+            )
+        )
+
+        if signed_segment:
+
+            signed_segments.append(
+                signed_segment
+            )
+
+    signed_question = (
+        create_audio_signed_item(
+            lesson_audio_json.get(
+                "question"
+            )
         )
     )
 
-    signed_question = None
+    # =============================================
+    # USE PART 1 AS LEGACY FALLBACK
+    # =============================================
 
-    if isinstance(
-            raw_question,
-            dict
+    if (
+        not signed_segments
+        and signed_parts
     ):
 
-        question_path = str(
-            raw_question.get(
-                "path"
+        signed_segments = (
+            signed_parts[0].get(
+                "segments"
             )
-            or ""
-        ).strip()
+            or []
+        )
 
-        if question_path:
+    if (
+        signed_question is None
+        and signed_parts
+    ):
 
-            signed_response = (
-                sb.storage
-                .from_(
-                    bucket
-                )
-                .create_signed_url(
-                    question_path,
-                    LESSON_AUDIO_URL_EXPIRY_SECONDS
-                )
+        signed_question = (
+            signed_parts[0].get(
+                "question"
             )
-
-            signed_url = None
-
-            if isinstance(
-                    signed_response,
-                    dict
-            ):
-                signed_url = (
-                    signed_response.get(
-                        "signedURL"
-                    )
-                    or signed_response.get(
-                        "signedUrl"
-                    )
-                    or signed_response.get(
-                        "signed_url"
-                    )
-                )
-
-            if not signed_url:
-                raise RuntimeError(
-                    "Failed to create signed URL "
-                    "for lesson question"
-                )
-
-            signed_question = {
-                **raw_question,
-                "url": signed_url
-            }
+        )
 
     return {
         **lesson_audio_json,
+
+        "parts":
+            signed_parts,
+
         "segments":
             signed_segments,
+
         "question":
             signed_question,
+
         "url_expires_in_seconds":
             LESSON_AUDIO_URL_EXPIRY_SECONDS
     }
