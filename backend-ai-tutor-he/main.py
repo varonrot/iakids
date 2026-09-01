@@ -8751,198 +8751,443 @@ def generate_and_store_lesson_audio(
         content_version: int
 ) -> dict:
 
-    lesson_segments = (
-        structured_lesson.get("lesson")
+    lesson_parts = (
+        structured_lesson.get(
+            "parts"
+        )
         or []
     )
 
-    question_data = (
-        structured_lesson.get("question")
-        or {}
-    )
+    # Legacy fallback for previously generated lessons.
+    if not lesson_parts:
 
-    stored_segments = []
+        legacy_lesson = (
+            structured_lesson.get(
+                "lesson"
+            )
+            or []
+        )
+
+        legacy_question = (
+            structured_lesson.get(
+                "question"
+            )
+            or {}
+        )
+
+        if legacy_lesson:
+
+            lesson_parts = [
+                {
+                    "part_number": 1,
+                    "lesson": legacy_lesson,
+                    "question": legacy_question
+                }
+            ]
+
+    if not lesson_parts:
+        raise RuntimeError(
+            "No lesson parts found for audio generation"
+        )
+
+    stored_parts = []
 
     total_duration_seconds = 0.0
 
     # =============================================
-    # LESSON SEGMENTS
+    # LESSON PARTS
     # =============================================
 
-    for index, segment in enumerate(
-            lesson_segments,
+    for fallback_part_number, lesson_part in enumerate(
+            lesson_parts,
             start=1
     ):
 
-        segment_text = str(
-            segment.get("text")
+        if not isinstance(
+                lesson_part,
+                dict
+        ):
+            continue
+
+        part_number = int(
+            lesson_part.get(
+                "part_number"
+            )
+            or fallback_part_number
+        )
+
+        lesson_segments = (
+            lesson_part.get(
+                "lesson"
+            )
+            or []
+        )
+
+        question_data = (
+            lesson_part.get(
+                "question"
+            )
+            or {}
+        )
+
+        stored_segments = []
+
+        part_duration_seconds = 0.0
+
+        print(
+            "BACKGROUND TTS PART START:",
+            {
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "part_number":
+                    part_number,
+
+                "segments_count":
+                    len(
+                        lesson_segments
+                    )
+            }
+        )
+
+        # =============================================
+        # PART SEGMENTS
+        # =============================================
+
+        for index, segment in enumerate(
+                lesson_segments,
+                start=1
+        ):
+
+            if not isinstance(
+                    segment,
+                    dict
+            ):
+                continue
+
+            segment_text = str(
+                segment.get(
+                    "text"
+                )
+                or ""
+            ).strip()
+
+            if not segment_text:
+                continue
+
+            print(
+                "BACKGROUND TTS SEGMENT START:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "part_number":
+                        part_number,
+
+                    "segment_index":
+                        index,
+
+                    "text_length":
+                        len(
+                            segment_text
+                        ),
+
+                    "text":
+                        repr(
+                            segment_text
+                        )
+                }
+            )
+
+            try:
+
+                wav_bytes, duration_seconds = (
+                    generate_tts_wav_bytes(
+                        segment_text
+                    )
+                )
+
+                print(
+                    "BACKGROUND TTS SEGMENT SUCCESS:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "part_number":
+                            part_number,
+
+                        "segment_index":
+                            index,
+
+                        "duration_seconds":
+                            duration_seconds
+                    }
+                )
+
+            except Exception as e:
+
+                print(
+                    "BACKGROUND TTS SEGMENT FAILED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "part_number":
+                            part_number,
+
+                        "segment_index":
+                            index,
+
+                        "text_length":
+                            len(
+                                segment_text
+                            ),
+
+                        "text":
+                            repr(
+                                segment_text
+                            ),
+
+                        "error":
+                            repr(
+                                e
+                            )
+                    }
+                )
+
+                raise
+
+            storage_path = (
+                f"unit_lessons/"
+                f"{unit_lesson_id}/"
+                f"v{content_version}/"
+                f"part_{part_number}/"
+                f"segment_{index}.wav"
+            )
+
+            sb.storage.from_(
+                LESSON_AUDIO_BUCKET
+            ).upload(
+                path=storage_path,
+                file=wav_bytes,
+                file_options={
+                    "content-type":
+                        "audio/wav",
+
+                    "upsert":
+                        "true"
+                }
+            )
+
+            stored_segments.append(
+                {
+                    "index":
+                        index,
+
+                    "path":
+                        storage_path,
+
+                    "duration_seconds":
+                        round(
+                            duration_seconds,
+                            2
+                        )
+                }
+            )
+
+            part_duration_seconds += (
+                duration_seconds
+            )
+
+            total_duration_seconds += (
+                duration_seconds
+            )
+
+        # =============================================
+        # PART QUESTION
+        # =============================================
+
+        stored_question = None
+
+        question_text = str(
+            question_data.get(
+                "text"
+            )
             or ""
         ).strip()
 
-        if not segment_text:
-            continue
+        if question_text:
+
+            print(
+                "BACKGROUND TTS QUESTION START:",
+                {
+                    "unit_lesson_id":
+                        unit_lesson_id,
+
+                    "part_number":
+                        part_number,
+
+                    "text_length":
+                        len(
+                            question_text
+                        ),
+
+                    "text":
+                        repr(
+                            question_text
+                        )
+                }
+            )
+
+            try:
+
+                wav_bytes, duration_seconds = (
+                    generate_tts_wav_bytes(
+                        question_text
+                    )
+                )
+
+                print(
+                    "BACKGROUND TTS QUESTION SUCCESS:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "part_number":
+                            part_number,
+
+                        "duration_seconds":
+                            duration_seconds
+                    }
+                )
+
+            except Exception as e:
+
+                print(
+                    "BACKGROUND TTS QUESTION FAILED:",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "part_number":
+                            part_number,
+
+                        "text_length":
+                            len(
+                                question_text
+                            ),
+
+                        "text":
+                            repr(
+                                question_text
+                            ),
+
+                        "error":
+                            repr(
+                                e
+                            )
+                    }
+                )
+
+                raise
+
+            question_path = (
+                f"unit_lessons/"
+                f"{unit_lesson_id}/"
+                f"v{content_version}/"
+                f"part_{part_number}/"
+                f"question.wav"
+            )
+
+            sb.storage.from_(
+                LESSON_AUDIO_BUCKET
+            ).upload(
+                path=question_path,
+                file=wav_bytes,
+                file_options={
+                    "content-type":
+                        "audio/wav",
+
+                    "upsert":
+                        "true"
+                }
+            )
+
+            stored_question = {
+                "path":
+                    question_path,
+
+                "duration_seconds":
+                    round(
+                        duration_seconds,
+                        2
+                    )
+            }
+
+            part_duration_seconds += (
+                duration_seconds
+            )
+
+            total_duration_seconds += (
+                duration_seconds
+            )
+
+        if not stored_segments:
+
+            raise RuntimeError(
+                f"No lesson audio segments were generated "
+                f"for part {part_number}"
+            )
+
+        stored_parts.append(
+            {
+                "part_number":
+                    part_number,
+
+                "segments":
+                    stored_segments,
+
+                "question":
+                    stored_question,
+
+                "total_duration_seconds":
+                    round(
+                        part_duration_seconds,
+                        2
+                    )
+            }
+        )
 
         print(
-            "BACKGROUND TTS SEGMENT START:",
+            "BACKGROUND TTS PART READY:",
             {
-                "unit_lesson_id": unit_lesson_id,
-                "segment_index": index,
-                "text_length": len(segment_text),
-                "text": repr(segment_text)
+                "unit_lesson_id":
+                    unit_lesson_id,
+
+                "part_number":
+                    part_number,
+
+                "segments_count":
+                    len(
+                        stored_segments
+                    ),
+
+                "duration_seconds":
+                    round(
+                        part_duration_seconds,
+                        2
+                    )
             }
         )
 
-        try:
-            wav_bytes, duration_seconds = (
-                generate_tts_wav_bytes(
-                    segment_text
-                )
-            )
-
-            print(
-                "BACKGROUND TTS SEGMENT SUCCESS:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "segment_index": index,
-                    "duration_seconds": duration_seconds
-                }
-            )
-
-        except Exception as e:
-            print(
-                "BACKGROUND TTS SEGMENT FAILED:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "segment_index": index,
-                    "text_length": len(segment_text),
-                    "text": repr(segment_text),
-                    "error": repr(e)
-                }
-            )
-            raise
-
-        storage_path = (
-            f"unit_lessons/"
-            f"{unit_lesson_id}/"
-            f"v{content_version}/"
-            f"segment_{index}.wav"
-        )
-
-        sb.storage.from_(
-            LESSON_AUDIO_BUCKET
-        ).upload(
-            path=storage_path,
-            file=wav_bytes,
-            file_options={
-                "content-type": "audio/wav",
-                "upsert": "true"
-            }
-        )
-
-        stored_segments.append({
-            "index":
-                index,
-
-            "path":
-                storage_path,
-
-            "duration_seconds":
-                round(
-                    duration_seconds,
-                    2
-                )
-        })
-
-        total_duration_seconds += (
-            duration_seconds
-        )
-
-    # =============================================
-    # FINAL QUESTION
-    # =============================================
-
-    stored_question = None
-
-    question_text = str(
-        question_data.get("text")
-        or ""
-    ).strip()
-
-    if question_text:
-
-        print(
-            "BACKGROUND TTS QUESTION START:",
-            {
-                "unit_lesson_id": unit_lesson_id,
-                "text_length": len(question_text),
-                "text": repr(question_text)
-            }
-        )
-
-        try:
-            wav_bytes, duration_seconds = (
-                generate_tts_wav_bytes(
-                    question_text
-                )
-            )
-
-            print(
-                "BACKGROUND TTS QUESTION SUCCESS:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "duration_seconds": duration_seconds
-                }
-            )
-
-        except Exception as e:
-            print(
-                "BACKGROUND TTS QUESTION FAILED:",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "text_length": len(question_text),
-                    "text": repr(question_text),
-                    "error": repr(e)
-                }
-            )
-            raise
-
-        question_path = (
-            f"unit_lessons/"
-            f"{unit_lesson_id}/"
-            f"v{content_version}/"
-            f"question.wav"
-        )
-
-        sb.storage.from_(
-            LESSON_AUDIO_BUCKET
-        ).upload(
-            path=question_path,
-            file=wav_bytes,
-            file_options={
-                "content-type": "audio/wav",
-                "upsert": "true"
-            }
-        )
-
-        stored_question = {
-            "path":
-                question_path,
-
-            "duration_seconds":
-                round(
-                    duration_seconds,
-                    2
-                )
-        }
-
-        total_duration_seconds += (
-            duration_seconds
-        )
-
-    if not stored_segments:
+    if not stored_parts:
         raise RuntimeError(
-            "No lesson audio segments were generated"
+            "No lesson audio parts were generated"
         )
+
+    first_part = (
+        stored_parts[0]
+    )
 
     return {
         "version":
@@ -8951,11 +9196,20 @@ def generate_and_store_lesson_audio(
         "bucket":
             LESSON_AUDIO_BUCKET,
 
+        "parts":
+            stored_parts,
+
+        # Temporary compatibility fields.
         "segments":
-            stored_segments,
+            first_part.get(
+                "segments"
+            )
+            or [],
 
         "question":
-            stored_question,
+            first_part.get(
+                "question"
+            ),
 
         "total_duration_seconds":
             round(
