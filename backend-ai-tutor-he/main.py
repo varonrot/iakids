@@ -598,6 +598,7 @@ class DirectedLessonResponse(BaseModel):
     summary: DirectedLessonSummary
 
 class VisualDirectorItem(BaseModel):
+    part_number: int
     order: int
     trigger_text: str
     type: str
