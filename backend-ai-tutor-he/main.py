@@ -13414,8 +13414,17 @@ def get_unit_lesson_visuals(
             if visual_type != "image":
                 continue
 
+            part_number = int(
+                visual.get(
+                    "part_number"
+                )
+                or 1
+            )
+
             visual_order = int(
-                visual.get("order")
+                visual.get(
+                    "order"
+                )
                 or 0
             )
 
@@ -13426,14 +13435,12 @@ def get_unit_lesson_visuals(
                 f"unit_lessons/"
                 f"{unit_lesson['id']}/"
                 f"v{content_version}/"
+                f"part_{part_number}/"
                 f"visual_{visual_order}.png"
             )
 
-            # -----------------------------------------
-            # התמונה יכולה עדיין להיות בתהליך יצירה.
-            # במקרה כזה פשוט לא מחזירים אותה עדיין.
-            # -----------------------------------------
-
+            # The image may still be generating.
+            # If it is not ready yet, skip it for now.
             try:
 
                 signed_url = (
@@ -13449,8 +13456,10 @@ def get_unit_lesson_visuals(
                     {
                         "unit_lesson_id":
                             unit_lesson["id"],
+
                         "part_number":
                             part_number,
+
                         "order":
                             visual_order,
 
@@ -13458,41 +13467,52 @@ def get_unit_lesson_visuals(
                             storage_path,
 
                         "error":
-                            repr(image_error)
+                            repr(
+                                image_error
+                            )
                     }
                 )
 
                 continue
 
-            response_visuals.append({
+            response_visuals.append(
+                {
+                    "part_number":
+                        part_number,
 
-                "order":
-                    visual_order,
+                    "order":
+                        visual_order,
 
-                "type":
-                    "image",
+                    "type":
+                        "image",
 
-                "trigger_text":
-                    visual.get(
-                        "trigger_text"
-                    ),
+                    "role":
+                        visual.get(
+                            "role"
+                        ),
 
-                "visual_goal":
-                    visual.get(
-                        "visual_goal"
-                    ),
+                    "trigger_text":
+                        visual.get(
+                            "trigger_text"
+                        ),
 
-                "source_text":
-                    visual.get(
-                        "source_text"
-                    ),
+                    "visual_goal":
+                        visual.get(
+                            "visual_goal"
+                        ),
 
-                "storage_path":
-                    storage_path,
+                    "source_text":
+                        visual.get(
+                            "source_text"
+                        ),
 
-                "url":
-                    signed_url
-            })
+                    "storage_path":
+                        storage_path,
+
+                    "url":
+                        signed_url
+                }
+            )
 
         # =============================================
         # RESPONSE
