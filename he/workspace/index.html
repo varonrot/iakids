@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה49</strong>
+    <strong>עולם הלמידהה469</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -22128,53 +22128,6 @@ catch(error){
 
 }
 
-/* =============================================
-   PERSONAL PAID INTRO VIDEO
-============================================= */
-
-let personalIntroPlayed =
-  false;
-
-
-try{
-
-  console.log(
-    "ABOUT TO PLAY PERSONAL INTRO:",
-    introData?.personal_intro
-  );
-
-
-  /* =============================================
-     PERSONAL INTRO BACKGROUND MUSIC
-     חלש יותר בזמן שהמורה מדברת
-  ============================================= */
-
-  window.LESSON_BACKGROUND_MUSIC_VOLUME =
-    0.04;
-
-  await startLessonBackgroundMusic();
-
-
-  personalIntroPlayed =
-    await playKidPersonalIntroVideo(
-      introData?.personal_intro
-    );
-
-
-  /* =============================================
-     AFTER INTRO
-     חוזרים לעוצמת ההסבר הרגילה
-  ============================================= */
-
-  window.LESSON_BACKGROUND_MUSIC_VOLUME =
-    0.07;
-
-  fadeLessonBackgroundMusicTo(
-    0.07,
-    700
-  );
-
-}
 /* =============================================
    PERSONAL INTRO DISABLED
    Shared opening video replaces it
