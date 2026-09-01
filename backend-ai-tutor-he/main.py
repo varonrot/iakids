@@ -4239,6 +4239,112 @@ def build_universal_unit_lesson_prompt(
         )
 
     return prompt
+def build_lesson_expansion_prompt(
+        unit_lesson: dict,
+        parent_lesson: dict,
+        part_number: int,
+        previous_parts: list[dict]
+) -> str:
+
+    prompt = (
+        LESSON_EXPANSION_PROMPT_TEMPLATE
+    )
+
+    lesson_complexity = int(
+        unit_lesson.get(
+            "lesson_complexity"
+        )
+        or 2
+    )
+
+    max_duration_seconds = int(
+        unit_lesson.get(
+            "max_duration_seconds"
+        )
+        or 120
+    )
+
+    previous_parts_text = "\n\n".join(
+        [
+            (
+                f"Part {item['part_number']}:\n"
+                f"Explanation:\n"
+                f"{item['explanation']}\n\n"
+                f"Question:\n"
+                f"{item['question']}"
+            )
+            for item in previous_parts
+        ]
+    )
+
+    replacements = {
+
+        "{grade}":
+            str(
+                parent_lesson.get(
+                    "grade"
+                )
+                or ""
+            ),
+
+        "{subject}":
+            str(
+                parent_lesson.get(
+                    "subject"
+                )
+                or ""
+            ),
+
+        "{parent_lesson}":
+            str(
+                parent_lesson.get(
+                    "lesson_name"
+                )
+                or ""
+            ),
+
+        "{lesson_name}":
+            str(
+                unit_lesson.get(
+                    "lesson_name"
+                )
+                or ""
+            ),
+
+        "{learning_objective}":
+            str(
+                unit_lesson.get(
+                    "learning_objective"
+                )
+                or ""
+            ),
+
+        "{lesson_complexity}":
+            str(
+                lesson_complexity
+            ),
+
+        "{max_duration_seconds}":
+            str(
+                max_duration_seconds
+            ),
+
+        "{part_number}":
+            str(
+                part_number
+            ),
+
+        "{previous_parts}":
+            previous_parts_text
+    }
+
+    for placeholder, value in replacements.items():
+        prompt = prompt.replace(
+            placeholder,
+            value
+        )
+
+    return prompt
 
 def build_lesson_director_prompt(
         lesson_text: str
@@ -11006,14 +11112,226 @@ def get_or_generate_unit_lesson(
         part_1["question"] = {
             "text": part_1_question
         }
+        generated_parts_context = [
+            {
+                "part_number": 1,
+                "explanation":
+                    part_1_explanation,
+                "question":
+                    part_1_question
+            }
+        ]
 
-        structured_lesson = {
-            "parts": [
+        generated_parts = [
+            {
+                "part_number": 1,
+                **part_1
+            }
+        ]
+
+        expansion_completions = []
+        expansion_director_completions = []
+
+        for part_number in range(
+                2,
+                lesson_parts_count + 1
+        ):
+
+            expansion_prompt = (
+                build_lesson_expansion_prompt(
+                    unit_lesson=
+                        unit_lesson,
+
+                    parent_lesson=
+                        parent_lesson,
+
+                    part_number=
+                        part_number,
+
+                    previous_parts=
+                        generated_parts_context
+                )
+            )
+
+            expansion_completion = (
+                client
+                .beta
+                .chat
+                .completions
+                .parse(
+
+                    model=
+                        UNIVERSAL_LESSON_MODEL,
+
+                    messages=[
+                        {
+                            "role":
+                                "system",
+
+                            "content":
+                                expansion_prompt
+                        },
+
+                        {
+                            "role":
+                                "user",
+
+                            "content":
+                                (
+                                    "Create the next "
+                                    "lesson part now."
+                                )
+                        }
+                    ],
+
+                    response_format=
+                        UniversalLessonResponse
+                )
+            )
+
+            expansion_data = (
+                expansion_completion
+                .choices[0]
+                .message
+                .parsed
+            )
+
+            if not expansion_data:
+                raise RuntimeError(
+                    (
+                        "Expansion returned no "
+                        f"Part {part_number}"
+                    )
+                )
+
+            expansion_explanation = (
+                expansion_data
+                .explanation
+                .strip()
+            )
+
+            expansion_question = (
+                expansion_data
+                .question
+                .strip()
+            )
+
+            if not expansion_explanation:
+                raise RuntimeError(
+                    (
+                        "Expansion returned empty "
+                        f"explanation for Part "
+                        f"{part_number}"
+                    )
+                )
+
+            if not expansion_question:
+                raise RuntimeError(
+                    (
+                        "Expansion returned empty "
+                        f"question for Part "
+                        f"{part_number}"
+                    )
+                )
+
+            expansion_director_prompt = (
+                build_lesson_director_prompt(
+                    lesson_text=
+                        expansion_explanation
+                )
+            )
+
+            expansion_director_completion = (
+                client
+                .beta
+                .chat
+                .completions
+                .parse(
+
+                    model=
+                        UNIVERSAL_LESSON_MODEL,
+
+                    messages=[
+                        {
+                            "role":
+                                "system",
+
+                            "content":
+                                expansion_director_prompt
+                        },
+
+                        {
+                            "role":
+                                "user",
+
+                            "content":
+                                expansion_explanation
+                        }
+                    ],
+
+                    response_format=
+                        DirectedLessonUnitResponse
+                )
+            )
+
+            expansion_directed_data = (
+                expansion_director_completion
+                .choices[0]
+                .message
+                .parsed
+            )
+
+            if not expansion_directed_data:
+                raise RuntimeError(
+                    (
+                        "Lesson Director returned "
+                        f"no Part {part_number}"
+                    )
+                )
+
+            directed_part = (
+                expansion_directed_data
+                .model_dump()
+            )
+
+            # The teacher owns the fixed question.
+            directed_part["question"] = {
+                "text":
+                    expansion_question
+            }
+
+            generated_parts.append(
                 {
-                    "part_number": 1,
-                    **part_1
+                    "part_number":
+                        part_number,
+
+                    **directed_part
                 }
-            ],
+            )
+
+            generated_parts_context.append(
+                {
+                    "part_number":
+                        part_number,
+
+                    "explanation":
+                        expansion_explanation,
+
+                    "question":
+                        expansion_question
+                }
+            )
+
+            expansion_completions.append(
+                expansion_completion
+            )
+
+            expansion_director_completions.append(
+                expansion_director_completion
+            )
+        structured_lesson = {
+            "parts":
+                generated_parts,
 
             # Temporary compatibility fields.
             "part_1": part_1,
