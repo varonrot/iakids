@@ -2042,6 +2042,7 @@ def get_unit_lesson(
                 "learning_objective, "
                 "lesson_complexity, "
                 "max_duration_seconds, "
+                "lesson_parts_count, "
                 "generation_status, "
                 "content_version, "
                 "generated_lesson_json, "
@@ -4150,9 +4151,8 @@ def build_universal_unit_lesson_prompt(
         unit_lesson: dict,
         parent_lesson: dict
 ) -> str:
-
     prompt = (
-        UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE
+        LESSON_INITIAL_PROMPT_TEMPLATE
     )
 
     lesson_complexity = int(
@@ -10821,7 +10821,31 @@ def get_or_generate_unit_lesson(
             "id",
             unit_lesson["id"]
         ).execute()
+        lesson_parts_count = int(
+            unit_lesson.get(
+                "lesson_parts_count"
+            )
+            or 2
+        )
 
+        lesson_parts_count = max(
+            1,
+            min(
+                lesson_parts_count,
+                6
+            )
+        )
+
+        print(
+            "========== LESSON PARTS COUNT ==========",
+            {
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "lesson_parts_count":
+                    lesson_parts_count
+            }
+        )
         # =============================================
         # BUILD UNIVERSAL PROMPT
         # =============================================
