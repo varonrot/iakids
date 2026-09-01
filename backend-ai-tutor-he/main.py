@@ -11580,110 +11580,69 @@ def get_or_generate_unit_lesson(
             )
 
             # =========================================
-            # TRANSITION JSON REPAIR
-            #
-            # אם ה-transition חסר מה-cache,
-            # משתמשים בפונקציה המרכזית שמייצרת
-            # מחדש רק את ה-transition.
+            # SHARED TRANSITION JSON REPAIR
             # =========================================
 
-            if not isinstance(
-                    cached_json.get("transition"),
-                    dict
+            expected_transition = {
+                "type": "shared",
+                "transition_key": "middle"
+            }
+
+            cached_transition = (
+                cached_json.get(
+                    "transition"
+                )
+            )
+
+            if (
+                    not isinstance(
+                        cached_transition,
+                        dict
+                    )
+                    or
+                    cached_transition.get(
+                        "type"
+                    ) != "shared"
+                    or
+                    cached_transition.get(
+                        "transition_key"
+                    ) != "middle"
             ):
 
                 print(
-                    "TRANSITION JSON MISSING — REPAIR:",
+                    "SHARED TRANSITION JSON REPAIR:",
                     {
                         "unit_lesson_id":
                             unit_lesson["id"]
                     }
                 )
 
-                try:
+                cached_json[
+                    "transition"
+                ] = expected_transition
 
-                    # חשוב:
-                    # הפונקציה קוראת מתוך
-                    # unit_lesson["generated_lesson_json"].
-                    #
-                    # לכן מוודאים שהיא מקבלת את
-                    # ה-JSON המעודכן שנמצא כרגע ב-cache.
-                    unit_lesson[
-                        "generated_lesson_json"
-                    ] = cached_json
+                supabase_with_retry(
+                    lambda:
+                        sb.table(
+                            "lesson_units_content"
+                        ).update({
 
-                    lesson_transition = (
-                        regenerate_lesson_transition_only(
-                            unit_lesson=
-                                unit_lesson,
+                            "generated_lesson_json":
+                                cached_json,
 
-                            parent_lesson=
-                                parent_lesson
-                        )
-                    )
+                            "updated_at":
+                                datetime
+                                .now(timezone.utc)
+                                .isoformat()
 
-                    cached_json[
-                        "transition"
-                    ] = lesson_transition
+                        }).eq(
+                            "id",
+                            unit_lesson["id"]
+                        ).execute(),
 
-                    supabase_with_retry(
-                        lambda:
-                            sb.table(
-                                "lesson_units_content"
-                            ).update({
-
-                                "generated_lesson_json":
-                                    cached_json,
-
-                                "updated_at":
-                                    datetime
-                                    .now(timezone.utc)
-                                    .isoformat()
-
-                            }).eq(
-                                "id",
-                                unit_lesson["id"]
-                            ).execute(),
-
-                        label=
-                            "SAVE REPAIRED TRANSITION"
-                    )
-
-                    print(
-                        "TRANSITION JSON REPAIRED:",
-                        {
-                            "unit_lesson_id":
-                                unit_lesson["id"],
-
-                            "speech":
-                                lesson_transition.get(
-                                    "speech"
-                                ),
-
-                            "speech_words":
-                                len(
-                                    (
-                                        lesson_transition.get(
-                                            "speech"
-                                        )
-                                        or ""
-                                    ).split()
-                                )
-                        }
-                    )
-
-                except Exception as e:
-
-                    print(
-                        "TRANSITION JSON REPAIR FAILED:",
-                        {
-                            "unit_lesson_id":
-                                unit_lesson["id"],
-
-                            "error":
-                                repr(e)
-                        }
-                    )
+                    label=
+                        "SAVE SHARED TRANSITION"
+                )
             print(
                 "QUEUE BACKGROUND TRANSITION VIDEO CHECK:",
                 {
