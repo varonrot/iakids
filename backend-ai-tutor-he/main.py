@@ -1387,6 +1387,7 @@ LESSON_STAGE_INTRO = "lesson_intro"
 LESSON_STAGE_FIRST_EXPLANATION = "first_explanation"
 LESSON_STAGE_FIRST_QUESTION = "first_question"
 LESSON_STAGE_LEARNING_COACH_1 = "learning_coach_1"
+LESSON_STAGE_LEARNING_COACH = "learning_coach"
 LESSON_STAGE_CLARIFICATION = "clarification"
 LESSON_STAGE_SECOND_QUESTION = "second_question"
 LESSON_STAGE_LEARNING_COACH_2 = "learning_coach_2"
@@ -1399,6 +1400,7 @@ VALID_LESSON_STAGES = {
     LESSON_STAGE_FIRST_EXPLANATION,
     LESSON_STAGE_FIRST_QUESTION,
     LESSON_STAGE_LEARNING_COACH_1,
+    LESSON_STAGE_LEARNING_COACH,
     LESSON_STAGE_CLARIFICATION,
     LESSON_STAGE_SECOND_QUESTION,
     LESSON_STAGE_LEARNING_COACH_2,
@@ -1446,6 +1448,68 @@ def update_lesson_stage(
     if not res.data:
         raise RuntimeError(
             "Failed to update lesson stage"
+        )
+
+    return res.data[0]
+
+def update_learning_coach_flow_state(
+        progress: dict,
+        part_number: int
+):
+    now = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    existing_flow_state = (
+        progress.get(
+            "flow_state"
+        )
+        or {}
+    )
+
+    if not isinstance(
+            existing_flow_state,
+            dict
+    ):
+        existing_flow_state = {}
+
+    new_flow_state = {
+        **existing_flow_state,
+        "phase": "learning_coach",
+        "part_number": int(
+            part_number
+        )
+    }
+
+    res = (
+        sb.table(
+            "kid_lesson_progress"
+        )
+        .update({
+            "current_stage":
+                LESSON_STAGE_LEARNING_COACH,
+
+            "flow_state":
+                new_flow_state,
+
+            "last_activity_at":
+                now,
+
+            "updated_at":
+                now
+        })
+        .eq(
+            "id",
+            progress["id"]
+        )
+        .execute()
+    )
+
+    if not res.data:
+        raise RuntimeError(
+            "Failed to update Learning Coach flow state"
         )
 
     return res.data[0]
@@ -15156,18 +15220,36 @@ def structured_lesson(
                 )
 
             # =========================================
-            # FIRST QUESTION -> LEARNING COACH 1
+            # DYNAMIC LEARNING COACH ROUTER
             # =========================================
 
+            flow_state = (
+                    progress.get(
+                        "flow_state"
+                    )
+                    or {}
+            )
+
+            if not isinstance(
+                    flow_state,
+                    dict
+            ):
+                flow_state = {}
+
+            # The first fixed question always belongs to Part 1.
             if current_stage in (
                     LESSON_STAGE_INTRO,
                     LESSON_STAGE_FIRST_EXPLANATION,
                     LESSON_STAGE_FIRST_QUESTION
             ):
-                progress = update_lesson_stage(
-                    progress=progress,
-                    current_stage=
-                    LESSON_STAGE_LEARNING_COACH_1
+                coach_part_number = 1
+
+                progress = (
+                    update_learning_coach_flow_state(
+                        progress=progress,
+                        part_number=
+                        coach_part_number
+                    )
                 )
 
                 return run_learning_coach(
@@ -15179,17 +15261,47 @@ def structured_lesson(
                     tutor_session=tutor_session,
                     session_id=session_id,
                     progress=progress,
-                    coach_index=1
+                    coach_index=
+                    coach_part_number
                 )
 
-            # =========================================
-            # CONTINUE LEARNING COACH 1
-            # =========================================
+            # Continue the currently active Coach.
+            if (
+                    current_stage
+                    == LESSON_STAGE_LEARNING_COACH
+            ):
+                coach_part_number = int(
+                    flow_state.get(
+                        "part_number"
+                    )
+                    or 1
+                )
 
+                return run_learning_coach(
+                    user=user,
+                    child=child,
+                    lesson=lesson,
+                    unit_lesson=unit_lesson,
+                    message=message,
+                    tutor_session=tutor_session,
+                    session_id=session_id,
+                    progress=progress,
+                    coach_index=
+                    coach_part_number
+                )
+
+            # Compatibility with old progress rows.
             if (
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_1
             ):
+                progress = (
+                    update_learning_coach_flow_state(
+                        progress=progress,
+                        part_number=1
+                    )
+                )
+
                 return run_learning_coach(
                     user=user,
                     child=child,
@@ -15201,57 +15313,18 @@ def structured_lesson(
                     progress=progress,
                     coach_index=1
                 )
-
-            # CLARIFICATION -> SECOND QUESTION
-
-            if (
-                    current_stage
-                    == LESSON_STAGE_CLARIFICATION
-            ):
-                progress = update_lesson_stage(
-                    progress=progress,
-                    current_stage=
-                    LESSON_STAGE_SECOND_QUESTION
-                )
-
-                current_stage = (
-                    LESSON_STAGE_SECOND_QUESTION
-                )
-
-            # =========================================
-            # SECOND QUESTION -> LEARNING COACH 2
-            # =========================================
-
-            if (
-                    current_stage
-                    == LESSON_STAGE_SECOND_QUESTION
-            ):
-                progress = update_lesson_stage(
-                    progress=progress,
-                    current_stage=
-                    LESSON_STAGE_LEARNING_COACH_2
-                )
-
-                return run_learning_coach(
-                    user=user,
-                    child=child,
-                    lesson=lesson,
-                    unit_lesson=unit_lesson,
-                    message=message,
-                    tutor_session=tutor_session,
-                    session_id=session_id,
-                    progress=progress,
-                    coach_index=2
-                )
-
-            # =========================================
-            # CONTINUE LEARNING COACH 2
-            # =========================================
 
             if (
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_2
             ):
+                progress = (
+                    update_learning_coach_flow_state(
+                        progress=progress,
+                        part_number=2
+                    )
+                )
+
                 return run_learning_coach(
                     user=user,
                     child=child,
@@ -15263,7 +15336,6 @@ def structured_lesson(
                     progress=progress,
                     coach_index=2
                 )
-
             # בשלבי clarification ו-final_assessment
             # עדיין אין מנוע ייעודי בקוד הנוכחי.
             raise HTTPException(
