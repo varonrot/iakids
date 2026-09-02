@@ -1957,7 +1957,7 @@ def build_learning_coach_prompt(
                     "lesson_explanation"
                 ],
 
-            "first_question":
+            "current_question":
                 coach_content[
                     "lesson_question"
                 ],
@@ -1974,12 +1974,11 @@ def build_learning_coach_prompt(
         },
 
         "coach_state": {
-            "coach_index":
+            "part_number":
                 int(
-                    coach_session.get(
-                        "coach_index"
-                    )
-                    or 1
+                    coach_content[
+                        "part_number"
+                    ]
                 ),
 
             "current_round":
