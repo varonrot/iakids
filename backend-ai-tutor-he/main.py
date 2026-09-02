@@ -1931,7 +1931,7 @@ def build_learning_coach_prompt(
 
             "gender":
                 child.get("gender")
-                or "male"
+                or "unknown"
         },
 
         "lesson": {
