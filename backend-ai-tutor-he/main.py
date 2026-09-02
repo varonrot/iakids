@@ -14246,9 +14246,10 @@ def run_learning_coach(
         )
     )
 
-    goal_achieved = bool(
-        coach_data
-        .lesson_goal_achieved
+    # The backend is the authority for mastery.
+    goal_achieved = (
+            understanding_score
+            >= OBJECTIVE_MASTERY_THRESHOLD
     )
 
     teacher_response = str(
