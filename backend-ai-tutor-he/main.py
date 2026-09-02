@@ -2765,7 +2765,6 @@ def should_show_answering_hint(
             lessons_started <= max_lessons
     )
 
-
 def save_lesson_history(
         kid_id: str,
         lesson_id: int,
@@ -2775,7 +2774,8 @@ def save_lesson_history(
         user_content: str | None,
         assistant_content: str,
         evaluation: dict | None,
-        sequence_json: list | None
+        sequence_json: list | None,
+        part_number: int | None = None
 ):
     rows = []
 
@@ -2803,6 +2803,9 @@ def save_lesson_history(
 
             "objective_index":
                 objective_index,
+
+            "part_number":
+                part_number,
 
             "role":
                 "user",
@@ -2838,6 +2841,9 @@ def save_lesson_history(
 
         "objective_index":
             objective_index,
+
+        "part_number":
+            part_number,
 
         "role":
             "assistant",
