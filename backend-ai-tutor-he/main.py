@@ -2008,6 +2008,108 @@ def update_learning_coach_session(
         **update_data
     }
 
+def calculate_lesson_coach_mastery(
+        kid_id: str,
+        lesson_id: int,
+        unit_lesson_id: int,
+        lesson_parts_count: int
+) -> int:
+
+    lesson_parts_count = max(
+        1,
+        min(
+            6,
+            int(
+                lesson_parts_count
+                or 1
+            )
+        )
+    )
+
+    res = (
+        sb.table(
+            "learning_coach_sessions"
+        )
+        .select(
+            "coach_index, "
+            "final_understanding_score, "
+            "created_at"
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "lesson_id",
+            lesson_id
+        )
+        .eq(
+            "unit_lesson_id",
+            unit_lesson_id
+        )
+        .order(
+            "created_at",
+            desc=True
+        )
+        .execute()
+    )
+
+    latest_scores = {}
+
+    for coach_session in (
+            res.data
+            or []
+    ):
+        part_number = int(
+            coach_session.get(
+                "coach_index"
+            )
+            or 0
+        )
+
+        if (
+                part_number < 1
+                or
+                part_number > lesson_parts_count
+        ):
+            continue
+
+        if part_number in latest_scores:
+            continue
+
+        latest_scores[
+            part_number
+        ] = max(
+            0,
+            min(
+                100,
+                int(
+                    coach_session.get(
+                        "final_understanding_score"
+                    )
+                    or 0
+                )
+            )
+        )
+
+    total_score = 0
+
+    for part_number in range(
+            1,
+            lesson_parts_count + 1
+    ):
+        total_score += (
+            latest_scores.get(
+                part_number,
+                0
+            )
+        )
+
+    return round(
+        total_score
+        /
+        lesson_parts_count
+    )
 
 # =====================================================
 # STRUCTURED LESSON DATA HELPERS
@@ -14314,6 +14416,16 @@ def run_learning_coach(
                 < lesson_parts_count
         )
 
+        overall_mastery_score = (
+            calculate_lesson_coach_mastery(
+                kid_id=child["id"],
+                lesson_id=lesson["id"],
+                unit_lesson_id=unit_lesson["id"],
+                lesson_parts_count=
+                lesson_parts_count
+            )
+        )
+
         if has_next_part:
             next_part_number = (
                     coach_index + 1
@@ -14342,7 +14454,7 @@ def run_learning_coach(
                     "in_progress",
 
                 "mastery_score":
-                    understanding_score,
+                    overall_mastery_score,
 
                 "last_activity_at":
                     now_iso,
