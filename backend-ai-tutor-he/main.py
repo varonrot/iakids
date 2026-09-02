@@ -1328,10 +1328,9 @@ def update_custom_curriculum(
 def get_gender_placeholders(
         child: dict
 ) -> dict:
-
     gender = str(
         child.get("gender")
-        or "male"
+        or "unknown"
     ).strip().lower()
 
     if gender == "female":
@@ -17299,7 +17298,7 @@ def curriculum_builder_chat(
 
                 "gender":
                     child.get("gender")
-                    or "male"
+                    or "unknown"
             },
 
             "current_subject": (
