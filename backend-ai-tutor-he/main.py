@@ -1501,7 +1501,7 @@ def create_learning_coach_session(
         coach_index: int,
         lesson_history_id: int | None = None
 ):
-    if coach_index not in (1, 2):
+    if coach_index < 1 or coach_index > 6:
         raise ValueError(
             f"Invalid coach_index: {coach_index}"
         )
@@ -1669,18 +1669,60 @@ def extract_unit_lesson_coach_content(
         or {}
     )
 
-    part_key = (
-        "part_2"
-        if coach_index == 2
-        else "part_1"
+    lesson_parts = (
+        structured_lesson.get(
+            "parts"
+        )
+        or []
     )
 
-    lesson_part = (
-        structured_lesson.get(
-            part_key
+    lesson_part = None
+
+    # Canonical dynamic parts structure.
+    for fallback_part_number, candidate_part in enumerate(
+            lesson_parts,
+            start=1
+    ):
+        if not isinstance(
+                candidate_part,
+                dict
+        ):
+            continue
+
+        candidate_part_number = int(
+            candidate_part.get(
+                "part_number"
+            )
+            or fallback_part_number
         )
-        or {}
-    )
+
+        if candidate_part_number == coach_index:
+            lesson_part = candidate_part
+            break
+
+    # Legacy fallback for older cached lessons.
+    if lesson_part is None:
+        legacy_part_key = (
+            f"part_{coach_index}"
+        )
+
+        legacy_part = (
+            structured_lesson.get(
+                legacy_part_key
+            )
+            or {}
+        )
+
+        if isinstance(
+                legacy_part,
+                dict
+        ) and legacy_part:
+            lesson_part = legacy_part
+
+    if not lesson_part:
+        raise ValueError(
+            f"Lesson part {coach_index} not found"
+        )
 
     lesson_segments = (
         lesson_part.get(
@@ -1727,9 +1769,19 @@ def extract_unit_lesson_coach_content(
         or ""
     ).strip()
 
+    if not lesson_explanation:
+        raise ValueError(
+            f"Lesson part {coach_index} has no explanation"
+        )
+
+    if not lesson_question:
+        raise ValueError(
+            f"Lesson part {coach_index} has no question"
+        )
+
     return {
-        "part_key":
-            part_key,
+        "part_number":
+            coach_index,
 
         "lesson_explanation":
             lesson_explanation,
