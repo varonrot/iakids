@@ -14663,7 +14663,8 @@ def run_learning_coach(
         sequence_json=[
             action.model_dump()
             for action in sequence
-        ]
+        ],
+        part_number=coach_index
     )
 
     # =============================================
