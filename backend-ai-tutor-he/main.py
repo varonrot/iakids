@@ -15250,13 +15250,18 @@ def structured_lesson(
             ):
                 flow_state = {}
 
-            # The first fixed question always belongs to Part 1.
+            # Resolve the Part that owns the current fixed question.
             if current_stage in (
                     LESSON_STAGE_INTRO,
                     LESSON_STAGE_FIRST_EXPLANATION,
                     LESSON_STAGE_FIRST_QUESTION
             ):
-                coach_part_number = 1
+                coach_part_number = int(
+                    flow_state.get(
+                        "part_number"
+                    )
+                    or 1
+                )
 
                 progress = (
                     update_learning_coach_flow_state(
