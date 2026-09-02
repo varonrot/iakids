@@ -14296,84 +14296,66 @@ def run_learning_coach(
             .isoformat()
         )
 
-        # =========================================
-        # COACH 1 FINISHED
-        #
-        # עדיין לא מסיימים את השיעור.
-        # עוברים לשלב המעבר בין Part 1 ל-Part 2.
-        # =========================================
+        lesson_parts_count = max(
+            1,
+            min(
+                6,
+                int(
+                    unit_lesson.get(
+                        "lesson_parts_count"
+                    )
+                    or 2
+                )
+            )
+        )
 
-        if coach_index == 1:
+        has_next_part = (
+                coach_index
+                < lesson_parts_count
+        )
+
+        if has_next_part:
+            next_part_number = (
+                    coach_index + 1
+            )
 
             next_stage = (
                 LESSON_STAGE_CLARIFICATION
             )
 
-            progress_update = (
-                sb.table(
-                    "kid_lesson_progress"
-                )
-                .update({
-                    "current_stage":
-                        next_stage,
-
-                    "status":
-                        "in_progress",
-
-                    "mastery_score":
-                        understanding_score,
-
-                    "last_activity_at":
-                        now_iso,
-
-                    "updated_at":
-                        now_iso
-                })
-                .eq(
-                    "id",
-                    progress["id"]
-                )
-                .execute()
-            )
-
-        # =========================================
-        # COACH 2 FINISHED
-        #
-        # עדיין נשאיר מקום לסיכום הסופי.
-        # =========================================
-
         else:
+            next_part_number = None
 
             next_stage = (
                 LESSON_STAGE_FINAL_ASSESSMENT
             )
 
-            progress_update = (
-                sb.table(
-                    "kid_lesson_progress"
-                )
-                .update({
-                    "current_stage":
-                        next_stage,
-
-                    "status":
-                        "in_progress",
-
-                    "mastery_score":
-                        understanding_score,
-
-                    "last_activity_at":
-                        now_iso,
-
-                    "updated_at":
-                        now_iso
-                })
-                .eq(
-                    "id",
-                    progress["id"]
-                )
-                .execute()
+        progress_update = (
+            sb.table(
+                "kid_lesson_progress"
             )
+            .update({
+                "current_stage":
+                    next_stage,
+
+                "status":
+                    "in_progress",
+
+                "mastery_score":
+                    understanding_score,
+
+                "last_activity_at":
+                    now_iso,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                progress["id"]
+            )
+            .execute()
+        )
 
         if progress_update.data:
             progress = (
@@ -14381,6 +14363,22 @@ def run_learning_coach(
             )
 
     else:
+
+        lesson_parts_count = max(
+            1,
+            min(
+                6,
+                int(
+                    unit_lesson.get(
+                        "lesson_parts_count"
+                    )
+                    or 2
+                )
+            )
+        )
+
+        has_next_part = False
+        next_part_number = None
 
         next_stage = (
             progress.get(
