@@ -14506,13 +14506,6 @@ def run_learning_coach(
                 LESSON_STAGE_FINAL_ASSESSMENT
             )
 
-        else:
-            next_part_number = None
-
-            next_stage = (
-                LESSON_STAGE_FINAL_ASSESSMENT
-            )
-
         progress_update = (
             sb.table(
                 "kid_lesson_progress"
