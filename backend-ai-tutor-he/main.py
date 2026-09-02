@@ -2673,6 +2673,7 @@ def get_recent_lesson_history_for_llm(
         kid_id: str,
         lesson_id: int,
         unit_lesson_id: int | None = None,
+        part_number: int | None = None,
         limit: int = 8
 ):
     query = (
@@ -2697,7 +2698,11 @@ def get_recent_lesson_history_for_llm(
             "unit_lesson_id",
             unit_lesson_id
         )
-
+    if part_number is not None:
+        query = query.eq(
+            "part_number",
+            part_number
+        )
     res = (
         query
         .order(
@@ -14275,6 +14280,7 @@ def run_learning_coach(
             kid_id=child["id"],
             lesson_id=lesson["id"],
             unit_lesson_id=unit_lesson["id"],
+            part_number=coach_index,
             limit=12
         )
     )
