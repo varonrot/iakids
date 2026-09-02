@@ -14564,6 +14564,15 @@ def run_learning_coach(
         "coach_index":
             coach_index,
 
+        "lesson_parts_count":
+            lesson_parts_count,
+
+        "next_part_number":
+            next_part_number,
+
+        "has_next_part":
+            has_next_part,
+
         "review_mode":
             False,
 
