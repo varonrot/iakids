@@ -14496,7 +14496,14 @@ def run_learning_coach(
             )
 
             next_stage = (
-                LESSON_STAGE_CLARIFICATION
+                LESSON_STAGE_FIRST_EXPLANATION
+            )
+
+        else:
+            next_part_number = None
+
+            next_stage = (
+                LESSON_STAGE_FINAL_ASSESSMENT
             )
 
         else:
@@ -14513,6 +14520,20 @@ def run_learning_coach(
             .update({
                 "current_stage":
                     next_stage,
+
+                "flow_state": {
+                    "phase": (
+                        "explanation"
+                        if has_next_part
+                        else "final_assessment"
+                    ),
+                    "part_number": (
+                        next_part_number
+                        if has_next_part
+                        else coach_index
+                    ),
+                    "segment_index": 0
+                },
 
                 "status":
                     "in_progress",
