@@ -19,132 +19,15 @@ jobs:
       - name: Apply unit progress gauge patch
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          index_path = Path('he/workspace/index.html')
-          js_path = Path('he/workspace/lesson-completion.js')
-
-          text = index_path.read_text(encoding='utf-8')
-          js = js_path.read_text(encoding='utf-8')
-
-          # Rename the existing visible gauge.
-          text = text.replace('מד ההתקדמות שלי', 'התקדמות ביחידה')
-
-          # Give its subtitle an id so the unit lesson count can be shown dynamically.
-          text = text.replace(
-              '''<span>\n        השלמה כללית\n      </span>''',
-              '''<span id="lessonProgressUnitLabel">\n        0 מתוך 0 שיעורים\n      </span>'''
-          )
-
-          # Remove the hidden, redundant "progress through lesson" chart cards from the DOM.
-          chart_pattern = re.compile(
-              r'\s*<!-- 5 — גרף -->\s*<article class="mastery-hud-card mastery-chart-card">.*?</article>',
-              re.S
-          )
-          text, removed = chart_pattern.subn('', text)
-          if removed < 1:
-              raise SystemExit('Hidden mastery chart card not found')
-
-          # Bump build stamp/version.
-          if '0.4.3' not in text:
-              raise SystemExit('Build 0.4.3 not found')
-          text = text.replace('0.4.3', '0.4.4')
-
-          helper = r'''
-
-function updateLessonUnitProgressGauge(){
-  const gauge =
-    document.getElementById("lessonProgressGauge");
-
-  const scoreEl =
-    document.getElementById("lessonProgressScore");
-
-  const labelEl =
-    document.getElementById("lessonProgressUnitLabel");
-
-  if(!gauge || !scoreEl){
-    return;
-  }
-
-  const lessons =
-    Array.isArray(window.LESSON_SIDEBAR_ROWS)
-      ? window.LESSON_SIDEBAR_ROWS
-      : [];
-
-  const currentOrder =
-    Math.max(
-      1,
-      Number(
-        window.SELECTED_UNIT_LESSON?.lesson_order
-        || 1
-      )
-    );
-
-  const totalLessons =
-    Math.max(
-      lessons.length,
-      currentOrder
-    );
-
-  const phase =
-    String(
-      window.CURRENT_LESSON_FLOW_PHASE
-      || "explanation"
-    );
-
-  const currentLessonCompleted =
-    phase === "summary"
-    || phase === "next";
-
-  const completedCount =
-    Math.max(
-      0,
-      Math.min(
-        totalLessons,
-        currentOrder - 1 + (currentLessonCompleted ? 1 : 0)
-      )
-    );
-
-  const progress =
-    totalLessons > 0
-      ? Math.round(
-          completedCount / totalLessons * 100
-        )
-      : 0;
-
-  gauge.style.setProperty(
-    "--value",
-    String(progress)
-  );
-
-  scoreEl.textContent =
-    `${progress}%`;
-
-  if(labelEl){
-    labelEl.textContent =
-      `${completedCount} מתוך ${totalLessons} שיעורים`;
-  }
-}
-
-if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
-  window.UNIT_PROGRESS_GAUGE_SYNC_STARTED = true;
+          echo 'CmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAppbXBvcnQgcmUKCmluZGV4X3BhdGggPSBQYXRoKCJoZS93b3Jrc3BhY2UvaW5kZXguaHRtbCIpCmpzX3BhdGggPSBQYXRoKCJoZS93b3Jrc3BhY2UvbGVzc29uLWNvbXBsZXRpb24uanMiKQoKdGV4dCA9IGluZGV4X3BhdGgucmVhZF90ZXh0KGVuY29kaW5nPSJ1dGYtOCIpCmpzID0ganNfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IikKCnRleHQgPSB0ZXh0LnJlcGxhY2UoIteeINeU15TXqNeT157Xldeq15XXqiDXqdec15kiLCAi15TXqNeT157Xldeq15XXqiDXkNeo15nXlNeTIikKCnRleHQgPSB0ZXh0LnJlcGxhY2UoCiAgICAiPHNwYW4+XG4gICAgICAgINeU16nXnNee15Qg15vXnNec15nXqVxuICAgICAgPC9zcGFuPiIsCiAgICAnPHNwYW4gaWQ9Imxlc3NvblByb2dyZXNzVW5pdExhYmVsIj5cbiAgICAgICAgMCDXnteq15XXmiAwINep15nXoteV16jXmddtXG4gICAgICA8L3NwYW4+JwopCgpjaGFydF9wYXR0ZXJuID0gcmUuY29tcGlsZSgKICAgIHInXHMqPCEtLSA1IOKAlCDXkteo16MgLS0+XHMqPGFydGljbGUgY2xhc3M9Im1hc3RlcnktaHVkLWNhcmQgbWFzdGVyeS1jaGFydC1jYXJkIj4uKj88L2FydGljbGU+JywKICAgIHJlLlMKKQp0ZXh0LCByZW1vdmVkID0gY2hhcnRfcGF0dGVybi5zdWJuKCIiLCB0ZXh0KQppZiByZW1vdmVkIDwgMToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIkhpZGRlbiBtYXN0ZXJ5IGNoYXJ0IGNhcmQgbm90IGZvdW5kIikKCmlmICIwLjQuMyIgbm90IGluIHRleHQ6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCJCdWlsZCAwLjQuMyBub3QgZm91bmQiKQp0ZXh0ID0gdGV4dC5yZXBsYWNlKCIwLjQuMyIsICIwLjQuNCIpCgpoZWxwZXIgPSByJycnCmZ1bmN0aW9uIHVwZGF0ZUxlc3NvblVuaXRQcm9ncmVzc0dhdWdlKCl7CiAgY29uc3QgZ2F1Z2UgPQogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImxlc3NvblByb2dyZXNzR2F1Z2UiKTsKCiAgY29uc3Qgc2NvcmVFbCA9CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgibGVzc29uUHJvZ3Jlc3NTY29yZSIpOwoKICBjb25zdCBsYWJlbEVsID0KICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJsZXNzb25Qcm9ncmVzc1VuaXRMYWJlbCIpOwoKICBpZighZ2F1Z2UgfHwgIXNjb3JlRWwpewogICAgcmV0dXJuOwogIH0KCiAgY29uc3QgbGVzc29ucyA9CiAgICBBcnJheS5pc0FycmF5KHdpbmRvdy5MRVNTT05fU0lERUJBUl9ST1dTKQogICAgICA/IHdpbmRvdy5MRVNTT05fU0lERUJBUl9ST1dTCiAgICAgIDogW107CgogIGNvbnN0IGN1cnJlbnRPcmRlciA9CiAgICBNYXRoLm1heCgKICAgICAgMSwKICAgICAgTnVtYmVyKAogICAgICAgIHdpbmRvdy5TRUxFQ1RFRF9VTklUX0xFU1NPTj8ubGVzc29uX29yZGVyCiAgICAgICAgfHwgMQogICAgICApCiAgICApOwoKICBjb25zdCB0b3RhbExlc3NvbnMgPQogICAgTWF0aC5tYXgoCiAgICAgIGxlc3NvbnMubGVuZ3RoLAogICAgICBjdXJyZW50T3JkZXIKICAgICk7CgogIGNvbnN0IHBoYXNlID0KICAgIFN0cmluZygKICAgICAgd2luZG93LkNVUlJFTlRfTEVTU09OX0ZMT1dfUEhBU0UKICAgICAgfHwgImV4cGxhbmF0aW9uIgogICAgKTsKCiAgY29uc3QgY3VycmVudExlc3NvbkNvbXBsZXRlZCA9CiAgICBwaGFzZSA9PT0gInN1bW1hcnkiCiAgICB8fCBwaGFzZSA9PT0gIm5leHQiOwoKICBjb25zdCBjb21wbGV0ZWRDb3VudCA9CiAgICBNYXRoLm1heCgKICAgICAgMCwKICAgICAgTWF0aC5taW4oCiAgICAgICAgdG90YWxMZXNzb25zLAogICAgICAgIGN1cnJlbnRPcmRlciAtIDEgKyAoY3VycmVudExlc3NvbkNvbXBsZXRlZCA/IDEgOiAwKQogICAgICApCiAgICApOwoKICBjb25zdCBwcm9ncmVzcyA9CiAgICB0b3RhbExlc3NvbnMgPiAwCiAgICAgID8gTWF0aC5yb3VuZCgKICAgICAgICAgIGNvbXBsZXRlZENvdW50IC8gdG90YWxMZXNzb25zICogMTAwCiAgICAgICAgKQogICAgICA6IDA7CgogIGdhdWdlLnN0eWxlLnNldFByb3BlcnR5KAogICAgIi0tdmFsdWUiLAogICAgU3RyaW5nKHByb2dyZXNzKQogICk7CgogIHNjb3JlRWwudGV4dENvbnRlbnQgPQogICAgYCR7cHJvZ3Jlc3N9JWAgOwoKICBpZihsYWJlbEVsKXsKICAgIGxhYmVsRWwudGV4dENvbnRlbnQgPQogICAgICBgJHtjb21wbGV0ZWRDb3VudH0g157XqNeV15ogJHt0b3RhbExlc3NvbnN9INep15nXoteV16jXmddtYDsKICB9Cn0KCmlmKCF3aW5kb3cuVU5JVF9QUk9HUkVTU19HQVVHRV9TWU5DX1NUQVJURUQpewogIHdpbmRvdy5VTklUX1BST0dSRVNTX0dBVUdFX1NZTkNfU1RBUlRFRC = true;
 
   window.setInterval(
     updateLessonUnitProgressGauge,
     500
   );
 }
-'''
-
-          if 'function updateLessonUnitProgressGauge()' not in js:
-              js += helper
-
-          index_path.write_text(text, encoding='utf-8')
-          js_path.write_text(js, encoding='utf-8')
-          print(f'unit progress gauge installed; removed hidden chart cards: {removed}')
-          PY
+JycKCuKAmWlmICJmdW5jdGlvbiB1cGRhdGVMZXNzb25Vbml0UHJvZ3Jlc3NHYXVnZSgpIiBub3QgaW4ganM6CiAgICBqcyArPSAiXG4iICsgaGVscGVyCgppbmRleF9wYXRoLndyaXRlX3RleHQodGV4dCwgZW5jb2Rpbmc9InV0Zi04IikKanNfcGF0aC53cml0ZV90ZXh0KGpzLCBlbmNvZGluZz0idXRmLTgiKQpwcmludChmInVuaXQgcHJvZ3Jlc3MgZ2F1Z2UgaW5zdGFsbGVkOyByZW1vdmVkIGhpZGRlbiBjaGFydCBjYXJkczoge3JlbW92ZWR9IikK' | base64 -d > /tmp/patch.py
+          python /tmp/patch.py
 
       - name: Commit patch
         shell: bash
