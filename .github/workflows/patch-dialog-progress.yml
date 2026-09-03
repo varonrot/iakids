@@ -1,0 +1,42 @@
+name: Patch dialog progress
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-dialog-progress.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply dialog progress patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('he/workspace/index.html')
+          t = p.read_text(encoding='utf-8')
+          anchor = '''if(\n  data.wait_for_answer === true\n  &&\n  currentLearningMode === "lesson"'''
+          if anchor not in t:
+              raise SystemExit('wait_for_answer anchor not found')
+          insert = '''if(\n  data.wait_for_answer === true\n  &&\n  window.SELECTED_UNIT_LESSON\n){\n  window.CURRENT_LESSON_FLOW_PHASE =\n    "dialog";\n\n  renderDynamicLessonFlow(\n    "dialog",\n    Number(\n      window.CURRENT_LESSON_VISUAL_PART\n      ||\n      1\n    ),\n    Number(\n      window.CURRENT_LESSON_PARTS_COUNT\n      ||\n      1\n    )\n  );\n}\n\n'''
+          t = t.replace(anchor, insert + anchor, 1)
+          p.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Commit dialog progress
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/patch-dialog-progress.yml
+          git add he/workspace/index.html .github/workflows/patch-dialog-progress.yml
+          git commit -m "Activate dialog progress when lesson waits for answer"
+          git push
