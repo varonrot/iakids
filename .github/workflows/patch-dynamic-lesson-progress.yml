@@ -1,0 +1,385 @@
+name: Patch dynamic lesson progress
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-dynamic-lesson-progress.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply dynamic lesson progress patch
+        shell: bash
+        run: |
+          cat > /tmp/patch_dynamic_lesson_progress.py <<'PY'
+          from pathlib import Path
+
+          path = Path('he/workspace/index.html')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          # 1) Replace the fixed lesson-flow markup with one dynamic container.
+          start = text.find('<div class="lesson-flow-track">')
+          if start == -1:
+              raise SystemExit('lesson-flow-track start not found')
+
+          depth = 0
+          i = start
+          end = None
+          while i < len(text):
+              next_open = text.find('<div', i)
+              next_close = text.find('</div>', i)
+              if next_close == -1:
+                  break
+              if next_open != -1 and next_open < next_close:
+                  depth += 1
+                  i = next_open + 4
+              else:
+                  depth -= 1
+                  i = next_close + len('</div>')
+                  if depth == 0:
+                      end = i
+                      break
+
+          if end is None:
+              raise SystemExit('lesson-flow-track end not found')
+
+          text = text[:start] + '<div class="lesson-flow-track" id="lessonFlowTrack"></div>' + text[end:]
+
+          # 2) Add one renderer before the dynamic part runner.
+          anchor = 'async function runUniversalLessonPart(partNumber){'
+          anchor_pos = text.find(anchor)
+          if anchor_pos == -1:
+              raise SystemExit('dynamic lesson part runner anchor not found')
+
+          renderer = r'''
+/* =====================================================
+   DYNAMIC LESSON FLOW PROGRESS
+===================================================== */
+window.CURRENT_LESSON_FLOW_PHASE =
+  window.CURRENT_LESSON_FLOW_PHASE || "explanation";
+window.LAST_LESSON_FLOW_RENDER_KEY = null;
+
+function renderDynamicLessonFlow(
+  phase = null,
+  partNumber = null,
+  totalParts = null
+){
+
+  const track =
+    document.getElementById(
+      "lessonFlowTrack"
+    );
+
+  if(!track){
+    return;
+  }
+
+  const safePartNumber =
+    Math.max(
+      1,
+      Number(
+        partNumber
+        ||
+        window.CURRENT_LESSON_VISUAL_PART
+        ||
+        1
+      )
+    );
+
+  const safeTotalParts =
+    Math.max(
+      safePartNumber,
+      Number(
+        totalParts
+        ||
+        window.CURRENT_LESSON_PARTS_COUNT
+        ||
+        safePartNumber
+      )
+    );
+
+  const resolvedPhase =
+    phase
+    ||
+    window.CURRENT_LESSON_FLOW_PHASE
+    ||
+    "explanation";
+
+  window.CURRENT_LESSON_FLOW_PHASE =
+    resolvedPhase;
+  window.CURRENT_LESSON_PARTS_COUNT =
+    safeTotalParts;
+
+  const renderKey =
+    `${resolvedPhase}:${safePartNumber}:${safeTotalParts}`;
+
+  if(
+    window.LAST_LESSON_FLOW_RENDER_KEY ===
+    renderKey
+  ){
+    return;
+  }
+
+  window.LAST_LESSON_FLOW_RENDER_KEY =
+    renderKey;
+
+  const steps = [
+    {
+      key:"opening",
+      label:"פתיחה",
+      icon:"✓"
+    }
+  ];
+
+  for(
+    let part = 1;
+    part <= safeTotalParts;
+    part += 1
+  ){
+    steps.push(
+      {
+        key:`explanation-${part}`,
+        label:`הסבר ${part}`,
+        icon:'<i class="fa-solid fa-book-open"></i>'
+      }
+    );
+
+    steps.push(
+      {
+        key:`dialog-${part}`,
+        label:`דיאלוג ${part}`,
+        icon:'<i class="fa-solid fa-comments"></i>'
+      }
+    );
+  }
+
+  steps.push(
+    {
+      key:"summary",
+      label:"סיכום",
+      icon:'<i class="fa-solid fa-flag-checkered"></i>'
+    },
+    {
+      key:"next",
+      label:"השלב הבא",
+      icon:'<i class="fa-solid fa-arrow-right"></i>'
+    }
+  );
+
+  let activeKey =
+    `explanation-${safePartNumber}`;
+
+  if(resolvedPhase === "dialog"){
+    activeKey =
+      `dialog-${safePartNumber}`;
+  }
+  else if(resolvedPhase === "summary"){
+    activeKey =
+      "summary";
+  }
+  else if(resolvedPhase === "next"){
+    activeKey =
+      "next";
+  }
+
+  const activeIndex =
+    Math.max(
+      0,
+      steps.findIndex(
+        step =>
+          step.key === activeKey
+      )
+    );
+
+  const stepWidth =
+    safeTotalParts >= 5
+      ? 64
+      : safeTotalParts >= 4
+        ? 70
+        : safeTotalParts >= 3
+          ? 78
+          : 92;
+
+  track.innerHTML =
+    steps
+      .map(
+        (step,index) => {
+
+          const stateClass =
+            index < activeIndex
+              ? "completed"
+              : index === activeIndex
+                ? "active"
+                : "";
+
+          const nodeContent =
+            index < activeIndex
+              ? "✓"
+              : step.icon;
+
+          return `
+            <div
+              class="lesson-flow-step ${stateClass}"
+              data-flow-key="${step.key}"
+              style="width:${stepWidth}px"
+            >
+              <div class="lesson-flow-node">
+                ${nodeContent}
+              </div>
+              <span>${step.label}</span>
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+}
+
+function syncDynamicLessonFlow(){
+
+  let phase =
+    window.CURRENT_LESSON_FLOW_PHASE
+    ||
+    "explanation";
+
+  if(
+    phase !== "summary"
+    &&
+    phase !== "next"
+    &&
+    typeof currentLearningMode !== "undefined"
+    &&
+    currentLearningMode === "learning_coach"
+  ){
+    phase = "dialog";
+  }
+
+  renderDynamicLessonFlow(
+    phase,
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );
+}
+
+if(!window.DYNAMIC_LESSON_FLOW_SYNC_STARTED){
+  window.DYNAMIC_LESSON_FLOW_SYNC_STARTED = true;
+  window.setInterval(
+    syncDynamicLessonFlow,
+    500
+  );
+}
+
+'''
+
+          text = text[:anchor_pos] + renderer + text[anchor_pos:]
+
+          # 3) When any lesson part begins, mark its explanation as active.
+          visual_anchor = '''  window.CURRENT_LESSON_VISUAL_PART =
+    activeVisualPart;'''
+          if visual_anchor not in text:
+              raise SystemExit('CURRENT_LESSON_VISUAL_PART assignment not found')
+
+          visual_replacement = visual_anchor + r'''
+
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "explanation";
+
+  renderDynamicLessonFlow(
+    "explanation",
+    activeVisualPart,
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      activeVisualPart
+    )
+  );'''
+          text = text.replace(visual_anchor, visual_replacement, 1)
+
+          # 4) In the coach-finished transition handler, drive summary/next for the last part.
+          transition_anchor = '''  const transitionType =
+    isLastPart
+      ? "closing"
+      : "middle";'''
+          if transition_anchor not in text:
+              raise SystemExit('transitionType anchor not found')
+
+          transition_replacement = r'''  if(isLastPart){
+    window.CURRENT_LESSON_FLOW_PHASE =
+      "summary";
+
+    renderDynamicLessonFlow(
+      "summary",
+      currentPartNumber,
+      totalParts
+    );
+  }
+
+  const transitionType =
+    isLastPart
+      ? "closing"
+      : "middle";'''
+          text = text.replace(transition_anchor, transition_replacement, 1)
+
+          # 5) After the closing video finishes, activate the final "next" step.
+          closing_anchor = '''  if(isLastPart){
+
+    console.log(
+      "FINAL LESSON PART COMPLETED — CLOSING FINISHED"
+    );
+
+  }'''
+          if closing_anchor not in text:
+              raise SystemExit('final closing block not found')
+
+          closing_replacement = r'''  if(isLastPart){
+
+    window.CURRENT_LESSON_FLOW_PHASE =
+      "next";
+
+    renderDynamicLessonFlow(
+      "next",
+      currentPartNumber,
+      totalParts
+    );
+
+    console.log(
+      "FINAL LESSON PART COMPLETED — CLOSING FINISHED"
+    );
+
+  }'''
+          text = text.replace(closing_anchor, closing_replacement, 1)
+
+          if text == original:
+              raise SystemExit('No changes made')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+          python /tmp/patch_dynamic_lesson_progress.py
+
+      - name: Commit dynamic lesson progress
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/patch-dynamic-lesson-progress.yml
+          git add he/workspace/index.html .github/workflows/patch-dynamic-lesson-progress.yml
+          git commit -m "Make lesson progress track dynamic by lesson parts"
+          git push
