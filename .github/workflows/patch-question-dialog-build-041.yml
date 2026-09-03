@@ -21,53 +21,20 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('he/workspace/index.html')
           text = path.read_text(encoding='utf-8')
 
-          old = '''  if(
-            questionText
-            &&
-            !questionAlreadyIncluded
-          ){
-            const questionVisualOrder =
-              lessonParts.length + 1;'''
+          pattern = re.compile(
+              r'(if\(\s*questionText\s*&&\s*!questionAlreadyIncluded\s*\)\{\s*)(const questionVisualOrder\s*=\s*lessonParts\.length\s*\+\s*1;)'
+          )
 
-          new = '''  if(
-            questionText
-            &&
-            !questionAlreadyIncluded
-          ){
-            /*
-              The lesson question is the start of the dialogue,
-              so switch the progress track before the question
-              is displayed or spoken.
-            */
-            window.CURRENT_LESSON_FLOW_PHASE =
-              "dialog";
+          insert = '''\n    /* The lesson question starts the dialogue. */\n    window.CURRENT_LESSON_FLOW_PHASE =\n      "dialog";\n\n    renderDynamicLessonFlow(\n      "dialog",\n      Number(\n        window.CURRENT_LESSON_VISUAL_PART ||\n        activeVisualPart ||\n        1\n      ),\n      Number(\n        window.CURRENT_LESSON_PARTS_COUNT ||\n        activeVisualPart ||\n        1\n      )\n    );\n\n    '''
 
-            renderDynamicLessonFlow(
-              "dialog",
-              Number(
-                window.CURRENT_LESSON_VISUAL_PART ||
-                activeVisualPart ||
-                1
-              ),
-              Number(
-                window.CURRENT_LESSON_PARTS_COUNT ||
-                activeVisualPart ||
-                1
-              )
-            );
-
-            const questionVisualOrder =
-              lessonParts.length + 1;'''
-
-          count = text.count(old)
+          text, count = pattern.subn(lambda m: m.group(1) + insert + m.group(2), text)
           if count not in (1, 2):
               raise SystemExit(f'Expected 1 or 2 universal question blocks, found {count}')
-
-          text = text.replace(old, new)
 
           build_count = text.count('0.4.0')
           if build_count < 2:
