@@ -17435,6 +17435,8 @@ async function loadLessonHeroImage(
 ===================================================== */
 
 window.CURRENT_LESSON_VISUALS = [];
+window.CURRENT_LESSON_VISUAL_PART = 1;
+window.CURRENT_DISPLAYED_VISUAL_PART = 0;
 
 async function loadLessonVisuals(
   unitLessonId,
@@ -17588,6 +17590,14 @@ async function loadLessonVisuals(
                   Number(
                     incoming.order
                   )
+                  &&
+                  Number(
+                    item.part_number || 1
+                  )
+                  ===
+                  Number(
+                    incoming.part_number || 1
+                  )
               );
 
 
@@ -17633,14 +17643,22 @@ async function loadLessonVisuals(
 
         window.CURRENT_LESSON_VISUALS
           .sort(
-            (a,b) =>
-              Number(
-                a.order || 0
-              )
-              -
-              Number(
-                b.order || 0
-              )
+            (a,b) => {
+              const partDiff =
+                Number(a?.part_number || 1)
+                -
+                Number(b?.part_number || 1);
+
+              if(partDiff !== 0){
+                return partDiff;
+              }
+
+              return (
+                Number(a?.order || 0)
+                -
+                Number(b?.order || 0)
+              );
+            }
           );
 
 
@@ -17677,6 +17695,12 @@ const currentVisualOrder =
     || 0
   );
 
+const currentVisualPart =
+  Number(
+    window.CURRENT_LESSON_VISUAL_PART
+    || 1
+  );
+
 
 if(
   currentVisualOrder > 0
@@ -17695,6 +17719,12 @@ if(
         ===
         currentVisualOrder
         &&
+        Number(
+          item?.part_number || 1
+        )
+        ===
+        currentVisualPart
+        &&
         item?.url
     );
 
@@ -17707,11 +17737,21 @@ if(
         || 0
       );
 
+    const alreadyDisplayedPart =
+      Number(
+        window.CURRENT_DISPLAYED_VISUAL_PART
+        || 0
+      );
+
 
     if(
       alreadyDisplayedOrder
       !==
       currentVisualOrder
+      ||
+      alreadyDisplayedPart
+      !==
+      currentVisualPart
     ){
 
       console.log(
@@ -17728,6 +17768,9 @@ if(
 
       window.CURRENT_DISPLAYED_VISUAL_ORDER =
         currentVisualOrder;
+
+      window.CURRENT_DISPLAYED_VISUAL_PART =
+        currentVisualPart;
 
 
       showLessonVisual(
@@ -17830,7 +17873,10 @@ if(
 async function waitForLessonVisual(
   unitLessonId,
   session,
-  visualOrder
+  visualOrder,
+  visualPart = Number(
+    window.CURRENT_LESSON_VISUAL_PART || 1
+  )
 ){
 
   const MAX_CHECKS = 120;
@@ -17854,6 +17900,14 @@ async function waitForLessonVisual(
           ===
           Number(
             visualOrder
+          )
+          &&
+          Number(
+            visual?.part_number || 1
+          )
+          ===
+          Number(
+            visualPart
           )
           &&
           visual?.url
@@ -17943,6 +17997,14 @@ async function waitForLessonVisual(
                   )
                   ===
                   incomingOrder
+                  &&
+                  Number(
+                    visual?.part_number || 1
+                  )
+                  ===
+                  Number(
+                    incoming?.part_number || 1
+                  )
               );
 
 
@@ -17970,10 +18032,22 @@ async function waitForLessonVisual(
 
 
         window.CURRENT_LESSON_VISUALS.sort(
-          (a,b) =>
-            Number(a?.order || 0)
-            -
-            Number(b?.order || 0)
+          (a,b) => {
+            const partDiff =
+              Number(a?.part_number || 1)
+              -
+              Number(b?.part_number || 1);
+
+            if(partDiff !== 0){
+              return partDiff;
+            }
+
+            return (
+              Number(a?.order || 0)
+              -
+              Number(b?.order || 0)
+            );
+          }
         );
 
 
@@ -17986,6 +18060,14 @@ async function waitForLessonVisual(
               ===
               Number(
                 visualOrder
+              )
+              &&
+              Number(
+                visual?.part_number || 1
+              )
+              ===
+              Number(
+                visualPart
               )
               &&
               visual?.url
@@ -19526,6 +19608,18 @@ async function runSimpleUniversalLesson(
   const structuredLesson =
     data?.structured_lesson;
 
+  const activeVisualPart =
+    Number(
+      data?.visual_part_number
+      ||
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      1
+    );
+
+  window.CURRENT_LESSON_VISUAL_PART =
+    activeVisualPart;
+
   if(
     !structuredLesson
     ||
@@ -20008,6 +20102,12 @@ let visualForSegment =
         visualOrder
       )
       &&
+      Number(
+        visual?.part_number || 1
+      )
+      ===
+      activeVisualPart
+      &&
       visual?.url
   );
 
@@ -20269,6 +20369,12 @@ animateImportantParts(
           Number(
             questionVisualOrder
           )
+          &&
+          Number(
+            visual?.part_number || 1
+          )
+          ===
+          activeVisualPart
           &&
           visual?.url
       );
@@ -20593,7 +20699,10 @@ const part2Data = {
 };
 
   await runSimpleUniversalLesson(
-    part2Data
+    {
+      ...part2Data,
+      visual_part_number: 2
+    }
   );
 
 
@@ -22300,7 +22409,8 @@ try{
       await waitForLessonVisual(
         resolvedUnitLessonId,
         session,
-        visualOrder
+        visualOrder,
+        1
       );
 
     if(
@@ -22367,7 +22477,8 @@ catch(error){
 
 await runSimpleUniversalLesson({
   ...lessonData,
-  unit_lesson_id: resolvedUnitLessonId
+  unit_lesson_id: resolvedUnitLessonId,
+  visual_part_number: 1
 });
 
     /*
