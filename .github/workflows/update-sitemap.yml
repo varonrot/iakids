@@ -32,7 +32,7 @@ jobs:
           TODAY = date.today().isoformat()
 
           # Public language editions currently present in the repository.
-          LANGS = {'ar','da','de','es','fi','fr','he','it','ja','ko','nl','no','pl','pt','ro','sv','tr'}
+          LANGS = {'ar','da','de','es','fi','fr','he','id','it','ja','ko','nl','no','pl','pt','ro','sv','tr'}
 
           # App/account/internal areas should not be indexed by the SEO sitemap.
           EXCLUDED_TOP = {
