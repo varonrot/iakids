@@ -1,0 +1,157 @@
+name: Patch unit progress gauge
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-unit-progress-gauge.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply unit progress gauge patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          index_path = Path('he/workspace/index.html')
+          js_path = Path('he/workspace/lesson-completion.js')
+
+          text = index_path.read_text(encoding='utf-8')
+          js = js_path.read_text(encoding='utf-8')
+
+          # Rename the existing visible gauge.
+          text = text.replace('מד ההתקדמות שלי', 'התקדמות ביחידה')
+
+          # Give its subtitle an id so the unit lesson count can be shown dynamically.
+          text = text.replace(
+              '''<span>\n        השלמה כללית\n      </span>''',
+              '''<span id="lessonProgressUnitLabel">\n        0 מתוך 0 שיעורים\n      </span>'''
+          )
+
+          # Remove the hidden, redundant "progress through lesson" chart cards from the DOM.
+          chart_pattern = re.compile(
+              r'\s*<!-- 5 — גרף -->\s*<article class="mastery-hud-card mastery-chart-card">.*?</article>',
+              re.S
+          )
+          text, removed = chart_pattern.subn('', text)
+          if removed < 1:
+              raise SystemExit('Hidden mastery chart card not found')
+
+          # Bump build stamp/version.
+          if '0.4.3' not in text:
+              raise SystemExit('Build 0.4.3 not found')
+          text = text.replace('0.4.3', '0.4.4')
+
+          helper = r'''
+
+function updateLessonUnitProgressGauge(){
+  const gauge =
+    document.getElementById("lessonProgressGauge");
+
+  const scoreEl =
+    document.getElementById("lessonProgressScore");
+
+  const labelEl =
+    document.getElementById("lessonProgressUnitLabel");
+
+  if(!gauge || !scoreEl){
+    return;
+  }
+
+  const lessons =
+    Array.isArray(window.LESSON_SIDEBAR_ROWS)
+      ? window.LESSON_SIDEBAR_ROWS
+      : [];
+
+  const currentOrder =
+    Math.max(
+      1,
+      Number(
+        window.SELECTED_UNIT_LESSON?.lesson_order
+        || 1
+      )
+    );
+
+  const totalLessons =
+    Math.max(
+      lessons.length,
+      currentOrder
+    );
+
+  const phase =
+    String(
+      window.CURRENT_LESSON_FLOW_PHASE
+      || "explanation"
+    );
+
+  const currentLessonCompleted =
+    phase === "summary"
+    || phase === "next";
+
+  const completedCount =
+    Math.max(
+      0,
+      Math.min(
+        totalLessons,
+        currentOrder - 1 + (currentLessonCompleted ? 1 : 0)
+      )
+    );
+
+  const progress =
+    totalLessons > 0
+      ? Math.round(
+          completedCount / totalLessons * 100
+        )
+      : 0;
+
+  gauge.style.setProperty(
+    "--value",
+    String(progress)
+  );
+
+  scoreEl.textContent =
+    `${progress}%`;
+
+  if(labelEl){
+    labelEl.textContent =
+      `${completedCount} מתוך ${totalLessons} שיעורים`;
+  }
+}
+
+if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
+  window.UNIT_PROGRESS_GAUGE_SYNC_STARTED = true;
+
+  window.setInterval(
+    updateLessonUnitProgressGauge,
+    500
+  );
+}
+'''
+
+          if 'function updateLessonUnitProgressGauge()' not in js:
+              js += helper
+
+          index_path.write_text(text, encoding='utf-8')
+          js_path.write_text(js, encoding='utf-8')
+          print(f'unit progress gauge installed; removed hidden chart cards: {removed}')
+          PY
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          rm -f .github/workflows/patch-unit-progress-gauge.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html he/workspace/lesson-completion.js .github/workflows/patch-unit-progress-gauge.yml
+          git commit -m 'Use unit progress gauge and remove hidden chart; build 0.4.4'
+          git push
