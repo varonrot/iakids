@@ -14428,56 +14428,7 @@ data-custom-slot="0"
     <!-- =====================================================
      LESSON MEDIA CONTROLS
 ===================================================== -->
-<div class="lesson-flow-track">
-
-  <div class="lesson-flow-step completed">
-    <div class="lesson-flow-node">✓</div>
-    <span>פתיחה</span>
-  </div>
-
-  <div class="lesson-flow-step active">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-book-open"></i>
-    </div>
-    <span>הסבר 1</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-comments"></i>
-    </div>
-    <span>דיאלוג 1</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-book-open"></i>
-    </div>
-    <span>הסבר 2</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-comments"></i>
-    </div>
-    <span>דיאלוג 2</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-flag-checkered"></i>
-    </div>
-    <span>סיכום</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-arrow-right"></i>
-    </div>
-    <span>השלב הבא</span>
-  </div>
-
-</div>
+<div class="lesson-flow-track" id="lessonFlowTrack"></div>
 <div class="lesson-media-controls">
 
   <!-- חזרה 10 שניות -->
@@ -19669,6 +19620,9 @@ async function runSimpleUniversalLesson(
   window.CURRENT_LESSON_VISUAL_PART =
     activeVisualPart;
 
+  window.CURRENT_LESSON_FLOW_PHASE = "explanation";
+  renderDynamicLessonFlow("explanation", activeVisualPart, Number(window.CURRENT_LESSON_PARTS_COUNT || activeVisualPart));
+
   const structuredPartCount =
     Array.isArray(structuredLesson?.parts)
       ? structuredLesson.parts.length
@@ -20416,6 +20370,25 @@ animateImportantParts(
     &&
     !questionAlreadyIncluded
   ){
+    
+    /* The lesson question starts the dialogue. */
+    window.CURRENT_LESSON_FLOW_PHASE =
+      "dialog";
+
+    renderDynamicLessonFlow(
+      "dialog",
+      Number(
+        window.CURRENT_LESSON_VISUAL_PART ||
+        activeVisualPart ||
+        1
+      ),
+      Number(
+        window.CURRENT_LESSON_PARTS_COUNT ||
+        activeVisualPart ||
+        1
+      )
+    );
+
     const questionVisualOrder =
       lessonParts.length + 1;
 
@@ -20708,7 +20681,63 @@ function getLessonSidebarImage(){
 
 }
 
-async function runUniversalLessonPart2(){
+/* =====================================================
+   DYNAMIC LESSON FLOW PROGRESS
+===================================================== */
+window.CURRENT_LESSON_FLOW_PHASE = window.CURRENT_LESSON_FLOW_PHASE || "explanation";
+window.LAST_LESSON_FLOW_RENDER_KEY = null;
+
+function renderDynamicLessonFlow(phase=null, partNumber=null, totalParts=null){
+  const track=document.getElementById("lessonFlowTrack");
+  if(!track) return;
+
+  const safePartNumber=Math.max(1,Number(partNumber||window.CURRENT_LESSON_VISUAL_PART||1));
+  const safeTotalParts=Math.max(safePartNumber,Number(totalParts||window.CURRENT_LESSON_PARTS_COUNT||safePartNumber));
+  const resolvedPhase=phase||window.CURRENT_LESSON_FLOW_PHASE||"explanation";
+
+  window.CURRENT_LESSON_FLOW_PHASE=resolvedPhase;
+  window.CURRENT_LESSON_PARTS_COUNT=safeTotalParts;
+
+  const key=`${resolvedPhase}:${safePartNumber}:${safeTotalParts}`;
+  if(window.LAST_LESSON_FLOW_RENDER_KEY===key) return;
+  window.LAST_LESSON_FLOW_RENDER_KEY=key;
+
+  const steps=[{key:"opening",label:"פתיחה",icon:"✓"}];
+  for(let part=1;part<=safeTotalParts;part+=1){
+    steps.push({key:`explanation-${part}`,label:`הסבר ${part}`,icon:'<i class="fa-solid fa-book-open"></i>'});
+    steps.push({key:`dialog-${part}`,label:`דיאלוג ${part}`,icon:'<i class="fa-solid fa-comments"></i>'});
+  }
+  steps.push(
+    {key:"summary",label:"סיכום",icon:'<i class="fa-solid fa-flag-checkered"></i>'},
+    {key:"next",label:"השלב הבא",icon:'<i class="fa-solid fa-arrow-right"></i>'}
+  );
+
+  let activeKey=`explanation-${safePartNumber}`;
+  if(resolvedPhase==="dialog") activeKey=`dialog-${safePartNumber}`;
+  else if(resolvedPhase==="summary") activeKey="summary";
+  else if(resolvedPhase==="next") activeKey="next";
+
+  const activeIndex=Math.max(0,steps.findIndex(step=>step.key===activeKey));
+  const stepWidth=safeTotalParts>=5?64:safeTotalParts>=4?70:safeTotalParts>=3?78:92;
+
+  track.innerHTML=steps.map((step,index)=>{
+    const stateClass=index<activeIndex?"completed":index===activeIndex?"active":"";
+    const nodeContent=index<activeIndex?"✓":step.icon;
+    return `<div class="lesson-flow-step ${stateClass}" data-flow-key="${step.key}" style="width:${stepWidth}px"><div class="lesson-flow-node">${nodeContent}</div><span>${step.label}</span></div>`;
+  }).join("");
+}
+
+function syncDynamicLessonFlow(){
+  let phase=window.CURRENT_LESSON_FLOW_PHASE||"explanation";
+  if(phase!=="summary"&&phase!=="next"&&typeof currentLearningMode!=="undefined"&&currentLearningMode==="learning_coach") phase="dialog";
+  renderDynamicLessonFlow(phase,Number(window.CURRENT_LESSON_VISUAL_PART||1),Number(window.CURRENT_LESSON_PARTS_COUNT||1));
+}
+if(!window.DYNAMIC_LESSON_FLOW_SYNC_STARTED){
+  window.DYNAMIC_LESSON_FLOW_SYNC_STARTED=true;
+  window.setInterval(syncDynamicLessonFlow,500);
+}
+
+async function runUniversalLessonPart(partNumber){
 
   const universalData =
     window.CURRENT_UNIVERSAL_LESSON_DATA;
@@ -20716,19 +20745,33 @@ async function runUniversalLessonPart2(){
   const structuredLesson =
     universalData?.structured_lesson;
 
-  const part2 =
-    structuredLesson?.part_2;
+  const safePartNumber =
+    Math.max(
+      1,
+      Number(partNumber || 1)
+    );
+
+  const partData =
+    Array.isArray(
+      structuredLesson?.parts
+    )
+      ? structuredLesson.parts[
+          safePartNumber - 1
+        ]
+      : structuredLesson?.[
+          `part_${safePartNumber}`
+        ];
 
   if(
-    !part2
+    !partData
     ||
     !Array.isArray(
-      part2.lesson
+      partData.lesson
     )
   ){
 
     console.error(
-      "PART 2 DATA NOT FOUND:",
+      "LESSON PART DATA NOT FOUND:",
       universalData
     );
 
@@ -20738,12 +20781,12 @@ async function runUniversalLessonPart2(){
 
 
   console.log(
-    "STARTING UNIVERSAL LESSON PART 2:",
-    part2
+    "STARTING UNIVERSAL LESSON PART:",
+    partData
   );
 
 
-const part2Data = {
+const partPayload = {
   ...universalData,
 
   lesson_audio:
@@ -20754,23 +20797,23 @@ const part2Data = {
 
   structured_lesson: {
     lesson:
-      part2.lesson,
+      partData.lesson,
 
     question:
-      part2.question
+      partData.question
   }
 };
 
   await runSimpleUniversalLesson(
     {
-      ...part2Data,
-      visual_part_number: 2
+      ...partPayload,
+      visual_part_number: safePartNumber
     }
   );
 
 
   console.log(
-    "UNIVERSAL LESSON PART 2 COMPLETED"
+    "UNIVERSAL LESSON PART COMPLETED"
   );
 
 
@@ -23202,6 +23245,25 @@ if(
       "learning_coach"
   });
 
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      state?.flow_state?.part_number
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );
+
 }
 
 else if(
@@ -24784,77 +24846,98 @@ await window.lessonRenderer.run({
 
 if(
   data.coach_finished === true
-  &&
-  Number(
-    data.coach_index
-  ) === 1
 ){
 
+  const structuredLesson =
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+      ?.structured_lesson;
+
+  const currentPartNumber =
+    Math.max(
+      1,
+      Number(
+        data.coach_index
+        ||
+        window.CURRENT_LESSON_VISUAL_PART
+        ||
+        1
+      )
+    );
+
+  const totalParts =
+    Math.max(
+      currentPartNumber,
+      Array.isArray(
+        structuredLesson?.parts
+      )
+        ? structuredLesson.parts.length
+        : Number(
+            window.CURRENT_LESSON_PARTS_COUNT
+            ||
+            currentPartNumber
+          )
+    );
+
+  window.CURRENT_LESSON_PARTS_COUNT =
+    totalParts;
+
+  const isLastPart =
+    currentPartNumber >= totalParts;
+
   console.log(
-    "LEARNING COACH 1 FINISHED — START TRANSITION VIDEO"
+    "LEARNING COACH FINISHED — RESOLVE LESSON TRANSITION",
+    {
+      currentPartNumber,
+      totalParts,
+      isLastPart
+    }
   );
 
-await startLessonBackgroundMusic();
+  await startLessonBackgroundMusic();
 
-const transition =
-  await getSharedLessonTransition(
-    "middle"
-  );
+  if(isLastPart){
+    window.CURRENT_LESSON_FLOW_PHASE = "summary";
+    renderDynamicLessonFlow("summary", currentPartNumber, totalParts);
+  }
 
-console.log(
-  "LATEST LESSON TRANSITION DATA:",
-  transition
-);
+  const transitionType =
+    isLastPart
+      ? "closing"
+      : "middle";
 
-
-const videoPlayed =
-  await playLessonTransitionVideo(
-    transition || {}
-  );
-
-  if(
-    videoPlayed
-  ){
-
-    console.log(
-      "TRANSITION VIDEO COMPLETED SUCCESSFULLY"
+  const transition =
+    await getSharedLessonTransition(
+      transitionType
     );
 
+  const videoPlayed =
+    await playLessonTransitionVideo(
+      transition || {}
+    );
+
+  if(isLastPart){
+    window.CURRENT_LESSON_FLOW_PHASE = "next";
+    renderDynamicLessonFlow("next", currentPartNumber, totalParts);
+    console.log(
+      "FINAL LESSON PART COMPLETED — CLOSING FINISHED"
+    );
   }
   else{
+    const nextPartNumber =
+      currentPartNumber + 1;
 
-    console.warn(
-      "TRANSITION VIDEO NOT AVAILABLE — CONTINUE LESSON"
-    );
+    const nextPartStarted =
+      await runUniversalLessonPart(
+        nextPartNumber
+      );
 
+    if(!nextPartStarted){
+      console.error(
+        "NEXT LESSON PART FAILED TO START",
+        nextPartNumber
+      );
+    }
   }
-
-console.log(
-    "TRANSITION FINISHED — PART 2 READY TO START"
-  );
-
-
-  const part2Started =
-    await runUniversalLessonPart2();
-
-
-  if(
-    part2Started
-  ){
-
-    console.log(
-      "PART 2 DISPLAYED SUCCESSFULLY"
-    );
-
-  }
-  else{
-
-    console.error(
-      "PART 2 FAILED TO START"
-    );
-
-  }
-
 }
 
 /* =============================================
@@ -24863,6 +24946,29 @@ console.log(
 
 clearNoResponseTimer();
 
+
+if(
+  data.wait_for_answer === true
+  &&
+  window.SELECTED_UNIT_LESSON
+){
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );
+}
 
 if(
   data.wait_for_answer === true
@@ -46118,6 +46224,20 @@ async ask({
     return;
   }
 
+window.CURRENT_LESSON_FLOW_PHASE =
+  "dialog";
+
+renderDynamicLessonFlow(
+  "dialog",
+  Number(
+    window.CURRENT_LESSON_VISUAL_PART ||
+    1
+  ),
+  Number(
+    window.CURRENT_LESSON_PARTS_COUNT ||
+    1
+  )
+);
 
   /*
     מחלקים את תגובת ה-Learning Coach
@@ -46806,6 +46926,30 @@ case "wait":
 
     }
 
+  }
+
+  /* =========================================
+     MOVE FLOW TO DIALOG AFTER QUESTION ENDS
+  ========================================= */
+
+  if(
+    script.wait_for_answer === true &&
+    window.SELECTED_UNIT_LESSON
+  ){
+    window.CURRENT_LESSON_FLOW_PHASE =
+      "dialog";
+
+    renderDynamicLessonFlow(
+      "dialog",
+      Number(
+        window.CURRENT_LESSON_VISUAL_PART ||
+        1
+      ),
+      Number(
+        window.CURRENT_LESSON_PARTS_COUNT ||
+        1
+      )
+    );
   }
 
 
@@ -52097,4 +52241,7 @@ function(audio){
 
 })();
 </script>
+
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.4.1</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.4.1";</script>
 </body></html>
