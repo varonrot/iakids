@@ -1,10 +1,13 @@
 name: Patch teacher preparing waves
+
 on:
   push:
     paths:
       - '.github/workflows/patch-teacher-preparing-waves.yml'
+
 permissions:
   contents: write
+
 jobs:
   patch:
     runs-on: ubuntu-latest
@@ -12,90 +15,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Strengthen animated teacher waves
+
+      - name: Strengthen visible loading waves
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('he/workspace/index.html')
-          s = p.read_text(encoding='utf-8')
-          marker = '</style>'
-          if marker not in s:
-              raise SystemExit('style marker not found')
-          css = r'''
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCnAgPSBQYXRoKCJoZS93b3Jrc3BhY2UvaW5kZXguaHRtbCIpCnMgPSBwLnJlYWRfdGV4dChlbmNvZGluZz0idXRmLTgiKQptYXJrZXIgPSAiaWFraWRzLWxvYWRpbmctd2F2ZXMtc3Ryb25nLXYxIgppZiBtYXJrZXIgaW4gczoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIndhdmUgcGF0Y2ggYWxyZWFkeSBwcmVzZW50IikKY3NzID0gciIiIgo8c3R5bGUgaWQ9Imlha2lkcy1sb2FkaW5nLXdhdmVzLXN0cm9uZy12MSI+Ci5sZXNzb24tbG9hZGluZy1jYXJkOjpiZWZvcmUsCi5sZXNzb24tbG9hZGluZy1jYXJkOjphZnRlcntvcGFjaXR5Oi45MiFpbXBvcnRhbnQ7aGVpZ2h0OjIyMHB4IWltcG9ydGFudDtsZWZ0Oi0zMCUhaW1wb3J0YW50O3dpZHRoOjE2MCUhaW1wb3J0YW50O2ZpbHRlcjpkcm9wLXNoYWRvdygwIDAgMTJweCBjdXJyZW50Q29sb3IpIGRyb3Atc2hhZG93KDAgMCAyNHB4IGN1cnJlbnRDb2xvcikh aW1wb3J0YW50O2JhY2tncm91bmQtc2l6ZToxOCUgMTAwJSFpbXBvcnRhbnQ7fQoubGVzc29uLWxvYWRpbmctY2FyZDo6YmVmb3Jle2NvbG9yOnJnYmEoMzQsMTk3LDI1NSwuNzgpIWltcG9ydGFudDt9Ci5sZXNzb24tbG9hZGluZy1jYXJkOjphZnRlcntjb2xvcjpyZ2JhKDE1NCw2NywyNTUsLjgyKSFpbXBvcnRhbnQ7fQou bGVzc29uLWxvYWRpbmctcm9ib3R7ei1pbmRleDo0IWltcG9ydGFudDt9CkBrZXlmcmFtZXMgaWFraWRzU3Ryb25nV2F2ZXN7MCV7YmFja2dyb3VuZC1wb3NpdGlvbjowIDB9NTAlIHtiYWNrZ3JvdW5kLXBvc2l0aW9uOjUwcHggMTBweH0xMDAlIHtiYWNrZ3JvdW5kLXBvc2l0aW9uOjEwMHB4IC04cHh9fQoubGVzc29uLWxvYWRpbmctY2FyZDo6YmVmb3Jle2FuaW1hdGlvbjppYWtpZHNTdHJvbmdXYXZlcyA2LjVzIGVhc2UtaW4tb3V0IGluZmluaXRlIGFsdGVybmF0ZSFpbXBvcnRhbnQ7fQoubGVzc29uLWxvYWRpbmctY2FyZDo6YWZ0ZXJ7YW5pbWF0aW9uOmlha2lkc1N0cm9uZ1dhdmVzIDguNXMgZWFzZS1pbi1vdXQgaW5maW5pdGUgYWx0ZXJuYXRlLXJldmVyc2UhaW1wb3J0YW50O30KPC9zdHlsZT4KIiIiCnNzID0gcy5yZXBsYWNlKCI8L2hlYWQ+IiwgY3NzICsgIlxuPC9oZWFkPiIsIDEpCnAud3JpdGVfdGV4dChzcywgZW5jb2Rpbmc9InV0Zi04IikK' | base64 -d > /tmp/patch.py
+          sed -i 's/! important/!important/g; s/\. lesson/\.lesson/g' /tmp/patch.py
+          python /tmp/patch.py
 
-/* IAKIDS — stronger animated AI-teacher energy waves */
-.lesson-preparing-teacher,
-.lesson-loading-teacher,
-.lesson-completion-teacher{
-  position:relative;
-  isolation:isolate;
-  overflow:visible;
-}
-
-.lesson-preparing-teacher::before,
-.lesson-loading-teacher::before,
-.lesson-completion-teacher::before{
-  content:"";
-  position:absolute;
-  z-index:-2;
-  left:-42%;
-  right:-42%;
-  top:34%;
-  height:38%;
-  pointer-events:none;
-  opacity:.92;
-  background:
-    radial-gradient(ellipse at center, rgba(51,207,255,.22) 0 18%, transparent 58%),
-    repeating-radial-gradient(ellipse at center, transparent 0 16px, rgba(48,203,255,.50) 17px 19px, transparent 20px 28px, rgba(152,72,255,.48) 29px 31px, transparent 32px 43px);
-  filter:drop-shadow(0 0 7px rgba(47,199,255,.75)) drop-shadow(0 0 12px rgba(139,61,255,.58));
-  transform:scaleX(1.12) scaleY(.48);
-  animation:iakidsTeacherWaveFlow 5.6s ease-in-out infinite alternate;
-  mask-image:linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
-  -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
-}
-
-.lesson-preparing-teacher::after,
-.lesson-loading-teacher::after,
-.lesson-completion-teacher::after{
-  content:"";
-  position:absolute;
-  z-index:-1;
-  left:-48%;
-  right:-48%;
-  top:41%;
-  height:24%;
-  pointer-events:none;
-  opacity:.85;
-  background:
-    radial-gradient(circle at 8% 52%, rgba(61,211,255,.95) 0 2px, transparent 3px),
-    radial-gradient(circle at 21% 34%, rgba(159,78,255,.95) 0 2px, transparent 3px),
-    radial-gradient(circle at 36% 65%, rgba(66,211,255,.9) 0 2px, transparent 3px),
-    radial-gradient(circle at 64% 38%, rgba(166,80,255,.95) 0 2px, transparent 3px),
-    radial-gradient(circle at 79% 68%, rgba(61,211,255,.95) 0 2px, transparent 3px),
-    radial-gradient(circle at 92% 44%, rgba(166,80,255,.9) 0 2px, transparent 3px),
-    linear-gradient(90deg, transparent 0%, rgba(44,197,255,.18) 24%, rgba(150,70,255,.24) 50%, rgba(44,197,255,.18) 76%, transparent 100%);
-  filter:drop-shadow(0 0 8px rgba(79,200,255,.9));
-  animation:iakidsTeacherParticleDrift 4.2s linear infinite;
-}
-
-@keyframes iakidsTeacherWaveFlow{
-  0%{transform:translateX(-1.8%) scaleX(1.08) scaleY(.42); opacity:.72;}
-  50%{transform:translateX(1.2%) scaleX(1.18) scaleY(.58); opacity:1;}
-  100%{transform:translateX(2.4%) scaleX(1.10) scaleY(.46); opacity:.82;}
-}
-
-@keyframes iakidsTeacherParticleDrift{
-  0%{transform:translateX(-3%) scaleY(.9);}
-  50%{transform:translateX(2%) scaleY(1.18);}
-  100%{transform:translateX(-3%) scaleY(.9);}
-}
-'''
-          if 'IAKIDS — stronger animated AI-teacher energy waves' in s:
-              raise SystemExit('wave patch already present')
-          s = s.replace(marker, css + '\n' + marker, 1)
-          p.write_text(s, encoding='utf-8')
-          PY
       - name: Commit patch
         shell: bash
         run: |
@@ -103,5 +30,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add he/workspace/index.html .github/workflows/patch-teacher-preparing-waves.yml
-          git commit -m 'Strengthen animated AI teacher waves'
+          git commit -m 'Strengthen visible AI teacher loading waves'
           git push
