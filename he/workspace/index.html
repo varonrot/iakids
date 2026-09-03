@@ -20708,7 +20708,7 @@ function getLessonSidebarImage(){
 
 }
 
-async function runUniversalLessonPart2(){
+async function runUniversalLessonPart(partNumber){
 
   const universalData =
     window.CURRENT_UNIVERSAL_LESSON_DATA;
@@ -20716,19 +20716,33 @@ async function runUniversalLessonPart2(){
   const structuredLesson =
     universalData?.structured_lesson;
 
-  const part2 =
-    structuredLesson?.part_2;
+  const safePartNumber =
+    Math.max(
+      1,
+      Number(partNumber || 1)
+    );
+
+  const partData =
+    Array.isArray(
+      structuredLesson?.parts
+    )
+      ? structuredLesson.parts[
+          safePartNumber - 1
+        ]
+      : structuredLesson?.[
+          `part_${safePartNumber}`
+        ];
 
   if(
-    !part2
+    !partData
     ||
     !Array.isArray(
-      part2.lesson
+      partData.lesson
     )
   ){
 
     console.error(
-      "PART 2 DATA NOT FOUND:",
+      "LESSON PART DATA NOT FOUND:",
       universalData
     );
 
@@ -20738,12 +20752,12 @@ async function runUniversalLessonPart2(){
 
 
   console.log(
-    "STARTING UNIVERSAL LESSON PART 2:",
-    part2
+    "STARTING UNIVERSAL LESSON PART:",
+    partData
   );
 
 
-const part2Data = {
+const partPayload = {
   ...universalData,
 
   lesson_audio:
@@ -20754,23 +20768,23 @@ const part2Data = {
 
   structured_lesson: {
     lesson:
-      part2.lesson,
+      partData.lesson,
 
     question:
-      part2.question
+      partData.question
   }
 };
 
   await runSimpleUniversalLesson(
     {
-      ...part2Data,
-      visual_part_number: 2
+      ...partPayload,
+      visual_part_number: safePartNumber
     }
   );
 
 
   console.log(
-    "UNIVERSAL LESSON PART 2 COMPLETED"
+    "UNIVERSAL LESSON PART COMPLETED"
   );
 
 
@@ -24784,77 +24798,91 @@ await window.lessonRenderer.run({
 
 if(
   data.coach_finished === true
-  &&
-  Number(
-    data.coach_index
-  ) === 1
 ){
 
+  const structuredLesson =
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+      ?.structured_lesson;
+
+  const currentPartNumber =
+    Math.max(
+      1,
+      Number(
+        data.coach_index
+        ||
+        window.CURRENT_LESSON_VISUAL_PART
+        ||
+        1
+      )
+    );
+
+  const totalParts =
+    Math.max(
+      currentPartNumber,
+      Array.isArray(
+        structuredLesson?.parts
+      )
+        ? structuredLesson.parts.length
+        : Number(
+            window.CURRENT_LESSON_PARTS_COUNT
+            ||
+            currentPartNumber
+          )
+    );
+
+  window.CURRENT_LESSON_PARTS_COUNT =
+    totalParts;
+
+  const isLastPart =
+    currentPartNumber >= totalParts;
+
   console.log(
-    "LEARNING COACH 1 FINISHED — START TRANSITION VIDEO"
+    "LEARNING COACH FINISHED — RESOLVE LESSON TRANSITION",
+    {
+      currentPartNumber,
+      totalParts,
+      isLastPart
+    }
   );
 
-await startLessonBackgroundMusic();
+  await startLessonBackgroundMusic();
 
-const transition =
-  await getSharedLessonTransition(
-    "middle"
-  );
+  const transitionType =
+    isLastPart
+      ? "closing"
+      : "middle";
 
-console.log(
-  "LATEST LESSON TRANSITION DATA:",
-  transition
-);
-
-
-const videoPlayed =
-  await playLessonTransitionVideo(
-    transition || {}
-  );
-
-  if(
-    videoPlayed
-  ){
-
-    console.log(
-      "TRANSITION VIDEO COMPLETED SUCCESSFULLY"
+  const transition =
+    await getSharedLessonTransition(
+      transitionType
     );
 
+  const videoPlayed =
+    await playLessonTransitionVideo(
+      transition || {}
+    );
+
+  if(isLastPart){
+    console.log(
+      "FINAL LESSON PART COMPLETED — CLOSING FINISHED"
+    );
   }
   else{
+    const nextPartNumber =
+      currentPartNumber + 1;
 
-    console.warn(
-      "TRANSITION VIDEO NOT AVAILABLE — CONTINUE LESSON"
-    );
+    const nextPartStarted =
+      await runUniversalLessonPart(
+        nextPartNumber
+      );
 
+    if(!nextPartStarted){
+      console.error(
+        "NEXT LESSON PART FAILED TO START",
+        nextPartNumber
+      );
+    }
   }
-
-console.log(
-    "TRANSITION FINISHED — PART 2 READY TO START"
-  );
-
-
-  const part2Started =
-    await runUniversalLessonPart2();
-
-
-  if(
-    part2Started
-  ){
-
-    console.log(
-      "PART 2 DISPLAYED SUCCESSFULLY"
-    );
-
-  }
-  else{
-
-    console.error(
-      "PART 2 FAILED TO START"
-    );
-
-  }
-
 }
 
 /* =============================================
