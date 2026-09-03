@@ -12277,6 +12277,161 @@ body.custom-subject-mode
 
 </style>
 <link rel="stylesheet" href="/he/workspace/lesson-completion.css">
+
+<style id="lesson-loading-futuristic-v046">
+.lesson-loading-overlay{
+  background:
+    radial-gradient(circle at 50% 50%, rgba(74,39,180,.12), transparent 42%),
+    rgba(1,8,22,.52) !important;
+  backdrop-filter: blur(10px) saturate(115%);
+}
+.lesson-loading-card{
+  position:relative;
+  isolate:isolate;
+  width:min(560px,94%) !important;
+  min-height:560px;
+  padding:54px 38px 34px !important;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border:1px solid rgba(82,176,255,.48) !important;
+  border-radius:28px !important;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(128,57,255,.30), transparent 30%),
+    radial-gradient(circle at 18% 60%, rgba(0,174,255,.13), transparent 36%),
+    linear-gradient(180deg, rgba(4,19,51,.98), rgba(2,12,31,.99)) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(83,141,255,.08),
+    0 0 34px rgba(22,145,255,.22),
+    0 0 58px rgba(112,55,255,.13) !important;
+  color:#eef7ff;
+}
+.lesson-loading-card::before,
+.lesson-loading-card::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:-22%;
+  width:144%;
+  height:180px;
+  top:48%;
+  opacity:.72;
+  pointer-events:none;
+  filter:drop-shadow(0 0 10px currentColor);
+  background:
+    radial-gradient(ellipse at 8% 50%, transparent 0 43%, currentColor 44% 45%, transparent 46%),
+    radial-gradient(ellipse at 25% 50%, transparent 0 42%, currentColor 43% 44%, transparent 45%),
+    radial-gradient(ellipse at 43% 50%, transparent 0 41%, currentColor 42% 43%, transparent 44%),
+    radial-gradient(ellipse at 61% 50%, transparent 0 42%, currentColor 43% 44%, transparent 45%),
+    radial-gradient(ellipse at 79% 50%, transparent 0 41%, currentColor 42% 43%, transparent 44%),
+    radial-gradient(ellipse at 96% 50%, transparent 0 43%, currentColor 44% 45%, transparent 46%);
+  background-size:28% 100%;
+  animation:lessonLoadingWaveDrift 9s ease-in-out infinite alternate;
+}
+.lesson-loading-card::before{
+  color:rgba(27,177,255,.46);
+  transform:translateY(-50%) scaleY(.78);
+}
+.lesson-loading-card::after{
+  color:rgba(143,62,255,.52);
+  transform:translateY(-50%) scaleY(1.04);
+  animation-duration:11s;
+  animation-direction:alternate-reverse;
+  opacity:.58;
+}
+@keyframes lessonLoadingWaveDrift{
+  0%{background-position:0 0;translate:-1.5% 0}
+  50% {background-position:35px 8px;translate:1.5% -2px}
+  100%{background-position:70px -6px;translate:-.5% 2px}
+}
+.lesson-loading-robot{
+  position:relative;
+  z-index:2;
+  width:176px !important;
+  height:176px !important;
+  padding:10px;
+  object-fit:cover !important;
+  object-position:top center;
+  border-radius:50% !important;
+  border:3px solid rgba(65,198,255,.95);
+  background:linear-gradient(145deg,#0d2951,#150b3d);
+  box-shadow:
+    0 0 0 7px rgba(95,74,255,.17),
+    0 0 0 10px rgba(48,204,255,.10),
+    0 0 28px rgba(40,201,255,.62),
+    0 0 54px rgba(131,54,255,.48) !important;
+  animation:lessonTeacherHalo 3.8s ease-in-out infinite;
+}
+@keyframes lessonTeacherHalo{
+  0%,100%{box-shadow:0 0 0 7px rgba(95,74,255,.15),0 0 0 10px rgba(48,204,255,.08),0 0 24px rgba(40,201,255,.48),0 0 44px rgba(131,54,255,.35)}
+  50%{box-shadow:0 0 0 9px rgba(95,74,255,.23),0 0 0 13px rgba(48,204,255,.12),0 0 38px rgba(40,201,255,.72),0 0 66px rgba(131,54,255,.54)}
+}
+.lesson-loading-title{
+  position:absolute;
+  z-index:3;
+  top:58px;
+  left:24px;
+  right:24px;
+  margin:0 !important;
+  color:#fff !important;
+  font-size:31px !important;
+  line-height:1.15;
+  font-weight:900 !important;
+  text-align:center;
+  text-shadow:0 0 22px rgba(82,148,255,.26);
+}
+.lesson-loading-status{
+  position:relative;
+  z-index:3;
+  margin-top:30px !important;
+  color:#cbd8f1 !important;
+  font-size:16px !important;
+  font-weight:700;
+  text-align:center;
+}
+.lesson-loading-progress{
+  position:absolute !important;
+  z-index:3;
+  left:34px;
+  right:34px;
+  bottom:34px;
+  width:auto !important;
+  height:13px !important;
+  overflow:hidden;
+  border:1px solid rgba(117,140,255,.28);
+  border-radius:999px !important;
+  background:rgba(14,23,65,.78) !important;
+  box-shadow:inset 0 0 14px rgba(0,0,0,.35);
+}
+.lesson-loading-progress > *{
+  border-radius:inherit !important;
+  box-shadow:0 0 18px rgba(76,169,255,.45);
+}
+@media(max-width:1500px){
+  .lesson-loading-card{
+    width:min(500px,94%) !important;
+    min-height:500px;
+    padding:46px 28px 30px !important;
+  }
+  .lesson-loading-robot{width:150px !important;height:150px !important}
+  .lesson-loading-title{top:46px;font-size:27px !important}
+  .lesson-loading-status{font-size:14px !important}
+}
+@media(max-width:760px){
+  .lesson-loading-card{min-height:430px;border-radius:22px !important}
+  .lesson-loading-robot{width:128px !important;height:128px !important}
+  .lesson-loading-title{top:34px;font-size:23px !important}
+  .lesson-loading-progress{left:22px;right:22px;bottom:24px}
+}
+@media(prefers-reduced-motion:reduce){
+  .lesson-loading-card::before,
+  .lesson-loading-card::after,
+  .lesson-loading-robot{animation:none !important}
+}
+</style>
+
 </head>
 <body>
 <div
@@ -52161,6 +52316,6 @@ function(audio){
 </script>
 
 <script src="/he/workspace/lesson-completion.js"></script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.4.5</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.4.5";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.4.6</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.4.6";</script>
 </body></html>
