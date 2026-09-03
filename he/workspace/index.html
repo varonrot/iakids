@@ -12432,6 +12432,33 @@ body.custom-subject-mode
 }
 </style>
 
+
+<style id="iakids-loading-waves-strong-v1">
+.lesson-loading-card::before,
+.lesson-loading-card::after{
+  opacity:.92 !important;
+  height:220px !important;
+  left:-30% !important;
+  width:160% !important;
+  filter:drop-shadow(0 0 12px currentColor) drop-shadow(0 0 24px currentColor) !important;
+  background-size:18% 100% !important;
+}
+.lesson-loading-card::before{color:rgba(34,197,255,.78) !important;}
+.lesson-loading-card::after{color:rgba(154,67,255,.82) !important;}
+.lesson-loading-robot{z-index:4 !important;}
+@keyframes iakidsStrongWaves{
+  0%{background-position:0 0}
+  50%{background-position:50px 10px}
+  100%{background-position:100px -8px}
+}
+.lesson-loading-card::before{
+  animation:iakidsStrongWaves 6.5s ease-in-out infinite alternate !important;
+}
+.lesson-loading-card::after{
+  animation:iakidsStrongWaves 8.5s ease-in-out infinite alternate-reverse !important;
+}
+</style>
+
 </head>
 <body>
 <div
