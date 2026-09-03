@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>איך IAKids עובד? | מורה AI אישי לילדים</title>
+  <meta name="description" content="כך IAKids הופך נושא לימודי לשיעור אישי עם הסברים, תמונות, המחשות, שיחה אינטראקטיבית ובדיקת הבנה – בקצב שמתאים לילד.">
+  <link rel="canonical" href="https://iakids.app/he/how-it-works/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="איך IAKids עובד?">
+  <meta property="og:description" content="שיעור AI אישי לילדים: הסבר, המחשה, שיחה, תרגול ובדיקת הבנה.">
+  <meta property="og:url" content="https://iakids.app/he/how-it-works/">
+  <meta property="og:image" content="https://iakids.app/assets/og-image.png">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --orange:#ff6a2a;
+      --orange2:#ff824d;
+      --ink:#24304a;
+      --muted:#6e7890;
+      --line:#e8edf4;
+      --white:#fff;
+      --blue:#6276e6;
+      --blue-soft:#eef1ff;
+      --green:#1fa77a;
+      --green-soft:#eaf9f4;
+      --bg:#f7f9fc;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Heebo",Arial,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 90% 5%, rgba(255,106,42,.10), transparent 28%),
+        radial-gradient(circle at 8% 32%, rgba(98,118,230,.10), transparent 30%),
+        linear-gradient(180deg,#fffaf6 0%,#f7f9fc 42%,#f8fbff 100%);
+      min-height:100vh;
+    }
+
+    a{text-decoration:none;color:inherit}
+
+    .site-header{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:rgba(255,255,255,.9);
+      border-bottom:1px solid rgba(25,35,55,.07);
+      backdrop-filter:blur(14px);
+    }
+
+    .nav{
+      max-width:1180px;
+      min-height:76px;
+      margin:auto;
+      padding:0 24px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+    }
+
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:24px;
+      font-weight:900;
+      color:#334a8b;
+    }
+
+    .logo img{width:44px;height:44px;object-fit:contain}
+
+    .nav-links{
+      display:flex;
+      align-items:center;
+      gap:24px;
+      font-size:14px;
+      font-weight:700;
+      color:#536079;
+    }
+
+    .nav-links a:hover{color:var(--orange)}
+
+    .nav-cta,
+    .btn-primary{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      border-radius:15px;
+      background:linear-gradient(135deg,var(--orange2),var(--orange));
+      color:#fff;
+      font-weight:800;
+      box-shadow:0 12px 28px rgba(255,106,42,.23);
+      transition:.2s ease;
+    }
+
+    .nav-cta{padding:10px 18px}
+    .btn-primary{padding:14px 24px;font-size:16px}
+    .nav-cta:hover,.btn-primary:hover{transform:translateY(-2px)}
+
+    .hero{
+      max-width:1180px;
+      margin:auto;
+      padding:90px 24px 58px;
+      display:grid;
+      grid-template-columns:1.06fr .94fr;
+      gap:64px;
+      align-items:center;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:var(--green-soft);
+      color:#13795b;
+      font-size:14px;
+      font-weight:800;
+      margin-bottom:18px;
+    }
+
+    h1{
+      margin:0 0 18px;
+      font-size:clamp(40px,6vw,68px);
+      line-height:1.05;
+      letter-spacing:-1.8px;
+      font-weight:900;
+      color:#263451;
+    }
+
+    .hero h1 span{color:var(--orange)}
+
+    .hero-copy{
+      max-width:650px;
+      margin:0 0 28px;
+      color:var(--muted);
+      font-size:20px;
+      line-height:1.8;
+    }
+
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+
+    .btn-secondary{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:13px 22px;
+      border-radius:15px;
+      background:#fff;
+      border:1px solid var(--line);
+      font-size:16px;
+      font-weight:800;
+      color:#4f5d76;
+      box-shadow:0 8px 24px rgba(33,45,72,.06);
+    }
+
+    .lesson-card{
+      position:relative;
+      background:rgba(255,255,255,.88);
+      border:1px solid rgba(224,230,239,.9);
+      border-radius:30px;
+      padding:24px;
+      box-shadow:0 30px 70px rgba(42,54,86,.13);
+      overflow:hidden;
+    }
+
+    .lesson-card:before{
+      content:"";
+      position:absolute;
+      width:220px;height:220px;
+      border-radius:50%;
+      background:rgba(255,106,42,.09);
+      left:-90px;top:-100px;
+    }
+
+    .mock-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;position:relative}
+    .teacher{display:flex;align-items:center;gap:12px}
+    .teacher img{width:58px;height:58px;border-radius:18px;background:#fff4ed;padding:5px;object-fit:contain}
+    .teacher strong{display:block;font-size:16px}
+    .teacher small{display:block;color:#7b879c;margin-top:2px}
+    .badge{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:#5367c7;font-size:12px;font-weight:800}
+
+    .visual{
+      height:210px;
+      border-radius:22px;
+      background:
+        linear-gradient(140deg,rgba(98,118,230,.10),rgba(255,106,42,.12)),
+        #f8fbff;
+      border:1px solid #e9edf6;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:17px;
+      text-align:center;
+      padding:24px;
+    }
+    .visual .big{font-size:54px;display:block;margin-bottom:10px}
+    .visual strong{font-size:20px;color:#364866}
+    .visual p{margin:6px 0 0;color:#7a869a;font-size:14px}
+
+    .chat-bubble{
+      padding:15px 17px;
+      border-radius:18px 18px 5px 18px;
+      background:#fff3eb;
+      color:#4a556d;
+      line-height:1.65;
+      font-size:14px;
+      margin-bottom:12px;
+    }
+
+    .progress{height:9px;border-radius:999px;background:#edf1f6;overflow:hidden}
+    .progress span{display:block;width:68%;height:100%;border-radius:999px;background:linear-gradient(90deg,#77d5b3,#47ba8e)}
+    .progress-text{display:flex;justify-content:space-between;font-size:12px;color:#8490a2;margin-top:7px}
+
+    .section{
+      max-width:1180px;
+      margin:auto;
+      padding:72px 24px;
+    }
+
+    .section-head{text-align:center;max-width:760px;margin:0 auto 42px}
+    .section-head .mini{color:var(--orange);font-weight:900;font-size:14px;margin-bottom:7px}
+    .section-head h2{margin:0 0 12px;font-size:clamp(31px,4vw,46px);line-height:1.15;color:#2c3b59}
+    .section-head p{margin:0;color:var(--muted);font-size:17px;line-height:1.8}
+
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .step{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:28px;
+      box-shadow:0 12px 35px rgba(45,58,95,.055);
+    }
+    .step-number{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:var(--blue-soft);color:#586bd1;font-weight:900;margin-bottom:18px}
+    .step h3{margin:0 0 9px;font-size:20px;color:#31405d}
+    .step p{margin:0;color:#718097;line-height:1.8;font-size:15px}
+
+    .flow{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:12px;
+      margin-top:30px;
+    }
+    .flow-item{text-align:center;background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px 14px}
+    .flow-icon{font-size:30px;margin-bottom:7px}
+    .flow-item strong{display:block;color:#394966;font-size:15px}
+    .flow-item small{display:block;margin-top:5px;color:#8590a3;line-height:1.5}
+
+    .parents{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:34px;
+      align-items:center;
+      background:linear-gradient(135deg,#293b6d,#3e5791);
+      border-radius:32px;
+      padding:48px;
+      color:#fff;
+      overflow:hidden;
+      position:relative;
+    }
+    .parents:after{content:"";position:absolute;width:330px;height:330px;border-radius:50%;background:rgba(255,255,255,.06);left:-100px;bottom:-170px}
+    .parents h2{font-size:38px;line-height:1.2;margin:0 0 14px}
+    .parents p{color:#dbe3f5;line-height:1.8;font-size:17px;margin:0}
+    .parent-list{display:grid;gap:12px;position:relative;z-index:1}
+    .parent-item{display:flex;gap:11px;align-items:flex-start;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);border-radius:17px;padding:15px}
+    .parent-item b{font-size:17px}.parent-item span{color:#dce4f4;font-size:14px;line-height:1.6;display:block;margin-top:3px}
+
+    .cta-box{
+      text-align:center;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:30px;
+      padding:54px 24px;
+      box-shadow:0 18px 45px rgba(45,58,95,.07);
+    }
+    .cta-box h2{margin:0 0 12px;font-size:38px;color:#2b3955}
+    .cta-box p{max-width:650px;margin:0 auto 25px;color:var(--muted);font-size:17px;line-height:1.8}
+
+    footer{text-align:center;padding:25px 20px 42px;color:#8893a6;font-size:13px}
+
+    @media(max-width:900px){
+      .nav-links{display:none}
+      .hero{grid-template-columns:1fr;padding-top:58px;gap:36px}
+      .steps{grid-template-columns:1fr 1fr}
+      .flow{grid-template-columns:1fr 1fr}
+      .parents{grid-template-columns:1fr;padding:34px}
+    }
+
+    @media(max-width:600px){
+      .nav{padding:0 16px;min-height:66px}
+      .logo{font-size:20px}.logo img{width:38px;height:38px}
+      .nav-cta{padding:9px 12px;font-size:13px}
+      .hero{padding:44px 16px 34px}
+      h1{letter-spacing:-1px}
+      .hero-copy{font-size:17px}
+      .lesson-card{padding:18px;border-radius:24px}
+      .section{padding:52px 16px}
+      .steps{grid-template-columns:1fr}
+      .flow{grid-template-columns:1fr}
+      .parents{padding:28px 22px;border-radius:25px}
+      .parents h2,.cta-box h2{font-size:30px}
+      .cta-box{padding:38px 20px}
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="/he/">
+        <img src="/assets/robots/Robot_icon.png" alt="IAKids">
+        <span>IAKids</span>
+      </a>
+      <div class="nav-links">
+        <a href="#steps">איך זה עובד</a>
+        <a href="#lesson">מבנה השיעור</a>
+        <a href="#parents">להורים</a>
+        <a href="/he/">חזרה לעמוד הראשי</a>
+      </div>
+      <a class="nav-cta" href="/he/app/">מתחילים ללמוד</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">✨ שיעור אישי שנבנה סביב הילד</div>
+        <h1>לא רק צ׳אט. <span>שיעור שלם עם AI.</span></h1>
+        <p class="hero-copy">
+          IAKids לוקח נושא לימודי והופך אותו לחוויית למידה ברורה ואינטראקטיבית: הסבר בגובה העיניים, המחשות חזותיות, קול, שאלות, דיאלוג ובדיקת הבנה — בקצב שמתאים לילד.
+        </p>
+        <div class="hero-actions">
+          <a class="btn-primary" href="/he/app/">התחילו ללמוד עכשיו ←</a>
+          <a class="btn-secondary" href="#steps">ראו איך זה עובד</a>
+        </div>
+      </div>
+
+      <div class="lesson-card" aria-label="דוגמה למסך שיעור">
+        <div class="mock-top">
+          <div class="teacher">
+            <img src="/assets/robots/Robot_icon.png" alt="המורה של IAKids">
+            <div><strong>המורה האישית</strong><small>מדעים · כיתה ד׳</small></div>
+          </div>
+          <span class="badge">שיעור פעיל</span>
+        </div>
+        <div class="visual">
+          <div>
+            <span class="big">🌱☀️💧</span>
+            <strong>איך מערכת אקולוגית עובדת?</strong>
+            <p>הסבר + המחשה + שיחה עם הילד</p>
+          </div>
+        </div>
+        <div class="chat-bubble">
+          עכשיו כשאנחנו רואים את הצמח, השמש והמים — מה לדעתך יקרה לצמח אם לא יקבל אור?
+        </div>
+        <div class="progress"><span></span></div>
+        <div class="progress-text"><span>הבנה</span><span>מתקדמים מצוין</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="steps">
+      <div class="section-head">
+        <div class="mini">כך זה עובד</div>
+        <h2>מהבחירה הראשונה ועד להבנה אמיתית</h2>
+        <p>במקום לקבל תשובה אחת ארוכה, הילד מתקדם שלב אחר שלב בתוך שיעור שבודק לאורך הדרך שהוא באמת מבין.</p>
+      </div>
+
+      <div class="steps">
+        <article class="step"><div class="step-number">1</div><h3>בוחרים ילד וכיתה</h3><p>לכל ילד פרופיל למידה משלו, כך שרמת ההסבר והשפה יכולות להתאים לגיל ולכיתה.</p></article>
+        <article class="step"><div class="step-number">2</div><h3>בוחרים מקצוע ונושא</h3><p>מתמטיקה, עברית, אנגלית, מדעים ונושאים נוספים — לפי מבנה לימודי ברור ולא שיחה אקראית.</p></article>
+        <article class="step"><div class="step-number">3</div><h3>נוצר שיעור מסודר</h3><p>המערכת בונה פתיח, הסברים, המחשות, שאלות ודיאלוגים כדי להפוך חומר מופשט למשהו שקל להבין.</p></article>
+        <article class="step"><div class="step-number">4</div><h3>המורה מסבירה וממחישה</h3><p>הילד שומע הסבר ורואה תמונות והמחשות שמתחלפות בהתאם לחלק הנלמד בשיעור.</p></article>
+        <article class="step"><div class="step-number">5</div><h3>הילד משתתף</h3><p>בנקודות מפתח המורה עוצרת, שואלת, מקבלת תשובה וממשיכה בהתאם למה שהילד הבין.</p></article>
+        <article class="step"><div class="step-number">6</div><h3>בודקים הבנה</h3><p>המערכת יכולה להסביר שוב, לתת רמז או לשנות את דרך ההסבר לפני שעוברים לשלב הבא.</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="lesson">
+      <div class="section-head">
+        <div class="mini">מבנה השיעור</div>
+        <h2>השיעור מתקדם כמו מורה אמיתית בכיתה</h2>
+        <p>כל שלב ממלא תפקיד אחר: קודם מעוררים עניין, אחר כך מסבירים, משוחחים, בודקים ולבסוף מסכמים.</p>
+      </div>
+
+      <div class="flow">
+        <div class="flow-item"><div class="flow-icon">👋</div><strong>פתיח</strong><small>כניסה נעימה לנושא</small></div>
+        <div class="flow-item"><div class="flow-icon">💡</div><strong>הסבר</strong><small>תוכן ברור בגובה העיניים</small></div>
+        <div class="flow-item"><div class="flow-icon">🖼️</div><strong>המחשה</strong><small>תמונה או וידאו כשזה עוזר</small></div>
+        <div class="flow-item"><div class="flow-icon">💬</div><strong>דיאלוג</strong><small>שאלות ותשובות בזמן אמת</small></div>
+        <div class="flow-item"><div class="flow-icon">✅</div><strong>סיכום</strong><small>ווידוא שהרעיון באמת הובן</small></div>
+      </div>
+    </section>
+
+    <section class="section" id="parents">
+      <div class="parents">
+        <div>
+          <h2>גם להורים יש תמונה ברורה</h2>
+          <p>IAKids נבנה כך שהילד יוכל ללמוד באופן עצמאי יותר, בזמן שההורה יכול לעקוב אחרי ההתקדמות ולהבין היכן נדרש חיזוק.</p>
+        </div>
+        <div class="parent-list">
+          <div class="parent-item"><div>📈</div><div><b>מעקב התקדמות</b><span>אילו מקצועות ונושאים נלמדו וכיצד הילד מתקדם.</span></div></div>
+          <div class="parent-item"><div>🧠</div><div><b>איתור נקודות קושי</b><span>זיהוי נושאים שבהם הילד זקוק להסבר נוסף או לתרגול.</span></div></div>
+          <div class="parent-item"><div>👨‍👩‍👧</div><div><b>פרופיל נפרד לכל ילד</b><span>כל ילד מתקדם בקצב שלו ובמסלול שמתאים לו.</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="cta-box">
+        <h2>מוכנים לראות איך זה מרגיש?</h2>
+        <p>בחרו נושא והתחילו שיעור. IAKids יוביל את הילד צעד אחר צעד — לא רק אל התשובה, אלא אל ההבנה.</p>
+        <a class="btn-primary" href="/he/app/">מתחילים ללמוד ←</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © IAKids · למידה חכמה, בטוחה ואישית לילדים
+  </footer>
+</body>
+</html>
