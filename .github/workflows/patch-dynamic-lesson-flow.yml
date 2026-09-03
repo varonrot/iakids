@@ -1,0 +1,284 @@
+name: Patch dynamic lesson flow
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-dynamic-lesson-flow.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch dynamic lesson parts and closing transition
+        shell: bash
+        run: |
+          cat > /tmp/patch_dynamic_lesson_flow.py <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('he/workspace/index.html')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          def extract_balanced_block(source: str, start_index: int):
+              brace = source.find('{', start_index)
+              if brace == -1:
+                  raise SystemExit('Opening brace not found')
+              depth = 0
+              quote = None
+              escape = False
+              i = brace
+              while i < len(source):
+                  ch = source[i]
+                  if quote:
+                      if escape:
+                          escape = False
+                      elif ch == '\\':
+                          escape = True
+                      elif ch == quote:
+                          quote = None
+                  else:
+                      if ch in ('\"', "'", '`'):
+                          quote = ch
+                      elif ch == '{':
+                          depth += 1
+                      elif ch == '}':
+                          depth -= 1
+                          if depth == 0:
+                              return source[start_index:i+1], i+1
+                  i += 1
+              raise SystemExit('Balanced block end not found')
+
+          # 1) Generalize the old Part 2 runner into a dynamic Part N runner.
+          fn_start = text.find('async function runUniversalLessonPart2(){')
+          if fn_start == -1:
+              raise SystemExit('runUniversalLessonPart2 not found')
+
+          old_fn, fn_end = extract_balanced_block(text, fn_start)
+          new_fn = old_fn
+          new_fn = new_fn.replace(
+              'async function runUniversalLessonPart2(){',
+              'async function runUniversalLessonPart(partNumber){',
+              1,
+          )
+
+          resolver_old = '''  const part2 =
+    structuredLesson?.part_2;'''
+          resolver_new = '''  const safePartNumber =
+    Math.max(
+      1,
+      Number(partNumber || 1)
+    );
+
+  const partData =
+    Array.isArray(
+      structuredLesson?.parts
+    )
+      ? structuredLesson.parts[
+          safePartNumber - 1
+        ]
+      : structuredLesson?.[
+          `part_${safePartNumber}`
+        ];'''
+
+          if resolver_old not in new_fn:
+              raise SystemExit('Legacy part_2 resolver not found')
+          new_fn = new_fn.replace(resolver_old, resolver_new, 1)
+
+          new_fn = new_fn.replace('part2Data', 'partPayload')
+          new_fn = re.sub(r'\bpart2\b', 'partData', new_fn)
+          new_fn = new_fn.replace(
+              'visual_part_number: 2',
+              'visual_part_number: safePartNumber',
+          )
+          new_fn = new_fn.replace(
+              'UNIVERSAL LESSON PART 2 COMPLETED',
+              'UNIVERSAL LESSON PART COMPLETED',
+          )
+          new_fn = new_fn.replace(
+              'STARTING UNIVERSAL LESSON PART 2:',
+              'STARTING UNIVERSAL LESSON PART:',
+          )
+          new_fn = new_fn.replace(
+              'PART 2 DATA NOT FOUND:',
+              'LESSON PART DATA NOT FOUND:',
+          )
+
+          text = text[:fn_start] + new_fn + text[fn_end:]
+
+          # 2) Replace the hard-coded Coach 1 -> middle -> Part 2 handler
+          #    with a dynamic Part N -> middle/closing flow.
+          marker = '''/* =============================================
+   LEARNING COACH 1 FINISHED'''
+          marker_start = text.find(marker)
+          if marker_start == -1:
+              raise SystemExit('Learning Coach 1 transition marker not found')
+
+          if_start = text.find('if(', marker_start)
+          if if_start == -1:
+              raise SystemExit('Coach finished if block not found')
+
+          old_if, if_end = extract_balanced_block(text, if_start)
+
+          new_if = '''if(
+  data.coach_finished === true
+){
+
+  const structuredLesson =
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+      ?.structured_lesson;
+
+  const currentPartNumber =
+    Math.max(
+      1,
+      Number(
+        data.coach_index
+        ||
+        window.CURRENT_LESSON_VISUAL_PART
+        ||
+        1
+      )
+    );
+
+  const totalParts =
+    Math.max(
+      currentPartNumber,
+      Array.isArray(
+        structuredLesson?.parts
+      )
+        ? structuredLesson.parts.length
+        : Number(
+            window.CURRENT_LESSON_PARTS_COUNT
+            ||
+            currentPartNumber
+          )
+    );
+
+  window.CURRENT_LESSON_PARTS_COUNT =
+    totalParts;
+
+  const isLastPart =
+    currentPartNumber >= totalParts;
+
+  console.log(
+    "LEARNING COACH FINISHED — RESOLVE LESSON TRANSITION",
+    {
+      currentPartNumber,
+      totalParts,
+      isLastPart
+    }
+  );
+
+  await startLessonBackgroundMusic();
+
+  const transitionType =
+    isLastPart
+      ? "closing"
+      : "middle";
+
+  const transition =
+    await getSharedLessonTransition(
+      transitionType
+    );
+
+  console.log(
+    "LATEST LESSON TRANSITION DATA:",
+    {
+      transitionType,
+      transition
+    }
+  );
+
+  const videoPlayed =
+    await playLessonTransitionVideo(
+      transition || {}
+    );
+
+  if(videoPlayed){
+    console.log(
+      `${transitionType.toUpperCase()} TRANSITION VIDEO COMPLETED SUCCESSFULLY`
+    );
+  }
+  else{
+    console.warn(
+      `${transitionType.toUpperCase()} TRANSITION VIDEO WAS NOT PLAYED`
+    );
+  }
+
+  if(isLastPart){
+
+    console.log(
+      "FINAL LESSON PART COMPLETED — CLOSING FINISHED"
+    );
+
+  }
+  else{
+
+    const nextPartNumber =
+      currentPartNumber + 1;
+
+    console.log(
+      "TRANSITION FINISHED — NEXT PART READY TO START",
+      {
+        nextPartNumber,
+        totalParts
+      }
+    );
+
+    const nextPartStarted =
+      await runUniversalLessonPart(
+        nextPartNumber
+      );
+
+    if(nextPartStarted){
+      console.log(
+        "NEXT LESSON PART DISPLAYED SUCCESSFULLY",
+        nextPartNumber
+      );
+    }
+    else{
+      console.error(
+        "NEXT LESSON PART FAILED TO START",
+        nextPartNumber
+      );
+    }
+
+  }
+
+}'''
+
+          text = text[:if_start] + new_if + text[if_end:]
+
+          # 3) Ensure no live call remains to the old Part 2-only runner.
+          text = text.replace(
+              'await runUniversalLessonPart2();',
+              'await runUniversalLessonPart(2);'
+          )
+
+          if 'async function runUniversalLessonPart2(){' in text:
+              raise SystemExit('Legacy Part 2 runner still present')
+
+          if text == original:
+              raise SystemExit('No changes made')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+          python /tmp/patch_dynamic_lesson_flow.py
+
+      - name: Commit dynamic lesson flow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/patch-dynamic-lesson-flow.yml
+          git add he/workspace/index.html .github/workflows/patch-dynamic-lesson-flow.yml
+          git commit -m "Make lesson part transitions dynamic and play closing video"
+          git push
