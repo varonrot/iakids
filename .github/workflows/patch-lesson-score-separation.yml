@@ -1,227 +1,26 @@
-name: Patch lesson score separation
-
+name: patch-score
 on:
   push:
     paths:
-      - '.github/workflows/patch-lesson-score-separation.yml'
-
+      - .github/workflows/patch-lesson-score-separation.yml
 permissions:
   contents: write
-
 jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Patch lesson score separation
+      - name: patch
+        shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          path = Path('he/workspace/index.html')
-          text = path.read_text(encoding='utf-8')
-          original = text
-
-          old_overall = '''/*
-  כרגע Learning Coach 1 הוא חצי מהשיעור,
-  ולכן רק ההבנה הכוללת מקבלת חצי מהציון.
-*/
-
-const overallTopicScore =
-  Math.round(
-    safeScore / 2
-  );'''
-
-          new_overall = '''/*
-  הציון הכללי אינו מחושב יותר בפרונט לפי מספר חלקים קשיח.
-  מקור האמת הוא kid_lesson_progress.mastery_score,
-  שמחושב בבקאנד לפי lesson_parts_count הדינמי.
-*/
-
-const overallTopicScore =
-  normalizeLessonScore(
-    window.CURRENT_OVERALL_LESSON_MASTERY_SCORE
-  )
-  ??
-  0;'''
-
-          if old_overall not in text:
-              raise SystemExit('Expected hard-coded overall score block not found')
-          text = text.replace(old_overall, new_overall, 1)
-
-          old_part = '''  if(partOneSummary){
-
-    partOneSummary.textContent =
-      `${safeScore}%`;
-
-  }'''
-
-          new_part = '''  /*
-    כרטיס Part 1 נשאר ציון היסטורי של חלק 1 בלבד.
-    תשובות ב-Part 2 ומעלה לא דורסות אותו.
-  */
-  if(
-    partOneSummary
-    &&
-    Number(
-      window.CURRENT_LESSON_VISUAL_PART
-      ||
-      window.CURRENT_UNIVERSAL_LESSON_PART
-      ||
-      1
-    ) === 1
-  ){
-
-    partOneSummary.textContent =
-      `${safeScore}%`;
-
-  }'''
-
-          if old_part not in text:
-              raise SystemExit('Expected Part 1 summary block not found')
-          text = text.replace(old_part, new_part, 1)
-
-          marker = '''/* =====================================================
-   עדכון המד אחרי תשובת Coach
-===================================================== */'''
-
-          helper = '''/* =====================================================
-   OVERALL LESSON MASTERY FROM DB
-   מקור האמת לשעון ההבנה הכללית
-===================================================== */
-async function fetchCurrentLessonOverallMastery(){
-
-  const kidId =
-    CURRENT_KID?.id;
-
-  const lessonId =
-    Number(
-      currentLessonId
-      ||
-      window.CURRENT_LESSON_ID
-      ||
-      0
-    );
-
-  const unitLessonId =
-    Number(
-      window.SELECTED_UNIT_LESSON
-        ?.unit_lesson_id
-      ||
-      0
-    );
-
-  if(
-    !kidId
-    ||
-    !lessonId
-    ||
-    !unitLessonId
-  ){
-    return null;
-  }
-
-  const {
-    data,
-    error
-  } =
-    await sb
-      .from(
-        "kid_lesson_progress"
-      )
-      .select(
-        "mastery_score"
-      )
-      .eq(
-        "kid_id",
-        kidId
-      )
-      .eq(
-        "lesson_id",
-        lessonId
-      )
-      .eq(
-        "current_unit_lesson_id",
-        unitLessonId
-      )
-      .limit(
-        1
-      );
-
-  if(error){
-
-    console.error(
-      "OVERALL LESSON MASTERY FETCH ERROR:",
-      error
-    );
-
-    return null;
-  }
-
-  const score =
-    normalizeLessonScore(
-      Array.isArray(data)
-        ? data[0]?.mastery_score
-        : null
-    );
-
-  console.log(
-    "OVERALL LESSON MASTERY FROM DB:",
-    score
-  );
-
-  return score;
-}
-
-'''
-
-          if 'async function fetchCurrentLessonOverallMastery' not in text:
-              if marker not in text:
-                  raise SystemExit('Score refresh marker not found')
-              text = text.replace(marker, helper + marker, 1)
-
-          score_marker = '''  const finalScore =
-    databaseScore
-    ??
-    directScore;'''
-
-          replacement = '''  /*
-    השעון הכללי נשען על mastery_score של השיעור,
-    ולא על ציון ה-Coach של ה-Part הנוכחי.
-  */
-  const overallDatabaseScore =
-    await fetchCurrentLessonOverallMastery();
-
-  if(
-    overallDatabaseScore !== null
-  ){
-    window.CURRENT_OVERALL_LESSON_MASTERY_SCORE =
-      overallDatabaseScore;
-  }
-
-
-  const finalScore =
-    databaseScore
-    ??
-    directScore;'''
-
-          if score_marker not in text:
-              raise SystemExit('finalScore marker not found')
-          text = text.replace(score_marker, replacement, 1)
-
-          if text == original:
-              raise SystemExit('No changes made')
-
-          path.write_text(text, encoding='utf-8')
-          PY
-
-      - name: Commit score separation fix and remove temporary workflow
+          echo 'CmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAoKcGF0aCA9IFBhdGgoImhlL3dvcmtzcGFjZS9pbmRleC5odG1sIikKdGV4dCA9IHBhdGgucmVhZF90ZXh0KGVuY29kaW5nPSJ1dGYtOCIpCm9yaWdpbmFsID0gdGV4dAoKb2xkX292ZXJhbGwgPSAiIiIvKgogINeb16jXkteiIExlYXJuaW5nIENvYWNoIDEg15TXldCwINeX16bXmSDXnteU16nXmdeiLCDXldec15vXnyDXqNeo16cg15TXlNeR16DXlCDXlNeZ16nXqNeU15nXqiDXnteW15HXnNeqINeX16bXmSDXnteU16bXmdeV158uCiovCgpjb25zdCBvdmVyYWxsVG9waWNTY29yZSA9CiAgTWF0aC5yb3VuZCgKICAgIHNhZmVTY29yZSAvIDIKICApOyIiIgoKbmV3X292ZXJhbGwgPSAiIiIvKgogINeU16bXmdeV158g15TXmNeZ15zXmSDXkNeZ16DXlSDXnteX15XXqdeRINei15XXkyDXkNeo16nXldegINec16TXmSDXnteh16TXqCDXlNeX15zXp9eZ150g16fXqdeZ15cuCiAg157Xp9eV16gg15TXkNee16og15TXldCwIGtpZF9sZXNzb25fcHJvZ3Jlc3MubWFzdGVyeV9zY29yZSwKICDXqdee15fXldep15Eg15HXkdeV16fXkNee15Mg15zXp9eZIGxlc3Nvbl9wYXJ0c19jb3VudCDXlNeT15nXoNee15kuCiovCgpjb25zdCBvdmVyYWxsVG9waWNTY29yZSA9CiAgbm9ybWFsaXplTGVzc29uU2NvcmUoCiAgICB3aW5kb3cuQ1VSUkVOVF9PVkVSQUxMX0xFU1NPTl9NQVNURVJZX1NDT1JFCiAgKQogID8/CiAgMDsiIiIKCmlmIG9sZF9vdmVyYWxsIG5vdCBpbiB0ZXh0OgogICAgcmFpc2UgU3lzdGVtRXhpdCgiRXhwZWN0ZWQgaGFyZC1jb2RlZCBvdmVyYWxsIHNjb3JlIGJsb2NrIG5vdCBmb3VuZCIpCnRleHQgPSB0ZXh0LnJlcGxhY2Uob2xkX292ZXJhbGwsIG5ld19vdmVyYWxsLCAxKQoKb2xkX3BhcnQgPSAiIiIgIGlmKHBhcnRPbmVTdW1tYXJ5KXsKCiAgICBwYXJ0T25lU3VtbWFyeS50ZXh0Q29udGVudCA9CiAgICAgIGAke3NhZmVTY29yZX0lYDsKCiAgfSIiIgoKbmV3X3BhcnQgPSAiIiIgIC8qCiAgICDXmNeo15jXmdehIFBhcnQgMSDXoNep15DXqCDXpteZ15XXnyDXlNeZ16HXmNeV16jXmSDXqdecINeX15zXp9efIDEg15HXnNeRIC4KICAgINeq16nXldee15XXqiDXkC1QYXJ0IDIg15XXntei15zXlCDXnNeVINeT15XXqNeh15XXqiDXkNeV16rXlS4KICAqLwogIGlmKAogICAgcGFydE9uZVN1bW1hcnkKICAgICYmCiAgICBOdW1iZXIoCiAgICAgIHdpbmRvdy5DVVJSRU5UX0xFU1NPTl9WSVNVQUxfUEFSVAogICAgICB8fAogICAgICB3aW5kb3cuQ1VSUkVOVF9VTklWRVJTQUxfTEVTU09OX1BBUlQKICAgICAgfHwKICAgICAgMQogICAgKSA9PT0gMQogICl7CgogICAgcGFydE9uZVN1bW1hcnkudGV4dENvbnRlbnQgPQogICAgICBgJHtzYWZlU2NvcmV9JWA7CgogIH0iIiIKCmlmIG9sZF9wYXJ0IG5vdCBpbiB0ZXh0OgogICAgcmFpc2UgU3lzdGVtRXhpdCgiRXhwZWN0ZWQgUGFydCAxIHN1bW1hcnkgYmxvY2sgbm90IGZvdW5kIikKdGV4dCA9IHRleHQucmVwbGFjZShvbGRfcGFydCwgbmV3X3BhcnQsIDEpCgptYXJrZXIgPSAiIiIvKiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PTPT0KICAg16LXk9eb15XXnyDXlNee15Mg15DXlNeZ16jXkiDXqNeq15HXldeqIENvYWNoCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09ICovIiIiCgpoZWxwZXIgPSAiIiIvKiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PTPT0KICAgT1ZFUkFMTCBMRVNTT04gTUFTVEVSWSBGUk9NIERC CiAgINee16fXldeoINeU15DXnteqINec16nXoteV158g15TXlNeR16DXlCDXlNeb15zXnNeZ16oKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gKi8KYXN5bmMgZnVuY3Rpb24gZmV0Y2hDdXJyZW50TGVzc29uT3ZlcmFsbE1hc3RlcnkoKXsKCiAgY29uc3Qga2lkSWQgPQogICAgQ1VSUkVOVF9LSUQ/LmlkOwoKICBjb25zdCBsZXNzb25JZCA9CiAgICBOdW1iZXIoCiAgICAgIGN1cnJlbnRMZXNzb25JZAogICAgICB8fAogICAgICB3aW5kb3cuQ1VSUkVOVF9MRVNTT05fSUQKICAgICAgfHwKICAgICAgMAogICAgKTsKCiAgY29uc3QgdW5pdExlc3NvbklkID0KICAgIE51bWJlcigKICAgICAgd2luZG93LlNFTEVDVEVEX1VOSVRfTEVTU09OCiAgICAgICAgPy51bml0X2xlc3Nvbl9pZAogICAgICB8fAogICAgICAwCiAgICApOwoKICBpZigKICAgICFraWRJZAogICAgfHwKICAgICFsZXNzb25JZAogICAgfHwKICAgICF1bml0TGVzc29uSWQKICAp ewogICAgcmV0dXJuIG51bGw7CiAgfQoKICBjb25zdCB7CiAgICBkYXRhLAogICAgZXJyb3IKICB9ID0KICAgIGF3YWl0IHNiCiAgICAgIC5mcm9tKAogICAgICAgICJraWRfbGVzc29uX3Byb2dyZXNzIgogICAgICApCiAgICAgIC5zZWxlY3QoCiAgICAgICAgIm1hc3Rlcnlfc2NvcmUiCiAgICAgICkKICAgICAgLmVxKAogICAgICAgICJraWRfaWQiLAogICAgICAgIGtpZElkCiAgICAgICkKICAgICAgLmVxKAogICAgICAgICJsZXNzb25faWQiLAogICAgICAgIGxlc3NvbklkCiAgICAgICkKICAgICAgLmVxKAogICAgICAgICJjdXJyZW50X3VuaXRfbGVzc29uX2lkIiwKICAgICAgICB1bml0TGVzc29uSWQKICAgICAgKQogICAgICAubGltaXQoCiAgICAgICAgMQogICAgICApOwoKICBpZihlcnJvcil7CgogICAgY29uc29sZS5lcnJvcigKICAgICAgIk9WRVJBTEwgTEVTU09OIE1BU1RFUlkgRkVUQ0ggRVJST1I6IiwKICAgICAgZXJyb3IKICAgICk7CgogICAgcmV0dXJuIG51bGw7CiAgfQoKICBjb25zdCBzY29yZSA9CiAgICBub3JtYWxpemVMZXNzb25TY29yZSgKICAgICAgQXJyYXkuaXNBcnJheShkYXRhKQogICAgICAgID8gZGF0YVswXT8ubWFzdGVyeV9zY29yZQogICAgICAgIDogbnVsbAogICAgKTsKCiAgY29uc29sZS5sb2coCiAgICAiT1ZFUkFMTCBMRVNTT04gTUFTVEVSWSBGUk9NIERCOiIsCiAgICBzY29yZQogICk7CgogIHJldHVybiBzY29yZTsKfQoKIiIiCgppZiAiYXN5bmMgZnVuY3Rpb24gZmV0Y2hDdXJyZW50TGVzc29uT3ZlcmFsbE1hc3RlcnkiIG5vdCBpbiB0ZXh0OgogICAgaWYgbWFya2VyIG5vdCBpbiB0ZXh0OgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoIlNjb3JlIHJlZnJlc2ggbWFya2VyIG5vdCBmb3VuZCIpCiAgICB0ZXh0ID0gdGV4dC5yZXBsYWNlKG1hcmtlciwgaGVscGVyICsgbWFya2VyLCAxKQoKc2NvcmVfbWFya2VyID0gIiIiICBjb25zdCBmaW5hbFNjb3JlID0KICAgIGRhdGFiYXNlU2NvcmUKICAgID8/CiAgICBkaXJlY3RTY29yZTsiIiIKCnJlcGxhY2VtZW50ID0gIiIiICAvKgogICAg15TXqdei15XXnyDXlNeb15zXnNeZINeQ16DXqdeV158g16LXnCBtYXN0ZXJ5X3Njb3JlINep15wg15TXqdeZ16LXldeoLAogICAg15XXnNeQINei15wg16bXmdeV158g15QtQ29hY2gg16nXnCDXlS1QYXJ0INeU16DXldeb15fXmS4KICAqLwogIGNvbnN0IG92ZXJhbGxEYXRhYmFzZVNjb3JlID0KICAgIGF3YWl0IGZldGNoQ3VycmVudExlc3Nvbk92ZXJhbGxNYXN0ZXJ5KCk7CgogIGlmKAogICAgb3ZlcmFsbERhdGFiYXNlU2NvcmUgIT09IG51bGwKICAp ewogICAgd2luZG93LkNVUlJFTlRfT1ZFUkFMTF9MRVNTT05fTUFTVEVSWV9TQ09SRSA9CiAgICAgIG92ZXJhbGxEYXRhYmFzZVNjb3JlOwogIH0KCgogIGNvbnN0IGZpbmFsU2NvcmUgPQogICAgZGF0YWJhc2VTY29yZQogICAgPz8KICAgIGRpcmVjdFNjb3JlOyIiIgoKaWYgc2NvcmVfbWFya2VyIG5vdCBpbiB0ZXh0OgogICAgcmFpc2UgU3lzdGVtRXhpdCgiZmluYWxTY29yZSBtYXJrZXIgbm90IGZvdW5kIikKdGV4dCA9IHRleHQucmVwbGFjZShzY29yZV9tYXJrZXIsIHJlcGxhY2VtZW50LCAxKQoKaWYgdGV4dCA9PSBvcmlnaW5hbDoKICAgIHJhaXNlIFN5c3RlbUV4aXQoIk5vIGNoYW5nZXMgbWFkZSIpCgpwYXRoLndyaXRlX3RleHQodGV4dCwgZW5jb2Rpbmc9InV0Zi04IikK' | base64 -d > /tmp/patch.py
+          python /tmp/patch.py
+      - name: commit
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           rm .github/workflows/patch-lesson-score-separation.yml
           git add he/workspace/index.html .github/workflows/patch-lesson-score-separation.yml
-          git commit -m "Separate overall and current part lesson scores"
+          git commit -m 'Separate overall and current part lesson scores'
           git push
