@@ -12276,6 +12276,7 @@ body.custom-subject-mode
 }
 
 </style>
+<link rel="stylesheet" href="/he/workspace/lesson-completion.css">
 </head>
 <body>
 <div
@@ -24911,9 +24912,11 @@ if(
     );
 
   const videoPlayed =
-    await playLessonTransitionVideo(
-      transition || {}
-    );
+    isLastPart
+      ? await showLessonCompletionScreen()
+      : await playLessonTransitionVideo(
+          transition || {}
+        );
 
   if(isLastPart){
     window.CURRENT_LESSON_FLOW_PHASE = "next";
@@ -52242,6 +52245,7 @@ function(audio){
 })();
 </script>
 
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.4.1</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.4.1";</script>
+<script src="/he/workspace/lesson-completion.js"></script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.4.2</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.4.2";</script>
 </body></html>
