@@ -12244,6 +12244,37 @@ body.custom-subject-mode
   width:100% !important;
   height:100% !important;
 }
+
+
+/* =====================================================
+   DYNAMIC CURRENT PART GAUGE
+===================================================== */
+.mastery-current-part-hud{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.mastery-current-part-wrap{
+  min-height:130px;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+}
+.mastery-current-part-label{
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+}
+.mastery-current-part-ring{
+  width:92px;
+  height:92px;
+  margin-top:2px;
+}
+
 </style>
 </head>
 <body>
@@ -14636,53 +14667,28 @@ data-custom-slot="0"
 
   </article>
 
-
-  <!-- 2 — חלוקה ללמידה -->
-  <article class="mastery-hud-card mastery-parts-hud">
+  <!-- 2 — החלק הנוכחי -->
+  <article class="mastery-hud-card mastery-parts-hud mastery-current-part-hud">
 
     <div class="mastery-hud-title">
-      חלוקה ללמידה
+      הבנה בחלק הנוכחי
     </div>
 
-    <div class="mastery-parts-grid">
-
-      <div class="mastery-part-box active">
-
-        <strong>חלק 1</strong>
-        <span>הבנת הנושא</span>
-
-        <div
-          class="mastery-mini-ring"
-          id="lessonPartOneGauge"
-          style="--value:0"
-        >
-          <div>
-            <b id="lessonPartOneSummary">0%</b>
-            <small>הושלם</small>
-          </div>
-        </div>
-
+    <div class="mastery-current-part-wrap">
+      <div class="mastery-current-part-label" id="lessonCurrentPartLabel">
+        חלק 1 מתוך 1
       </div>
 
-
-      <div class="mastery-part-box">
-
-        <strong>חלק 2</strong>
-        <span>יישום והעמקה</span>
-
-        <div
-          class="mastery-mini-ring"
-          id="lessonPartTwoGauge"
-          style="--value:0"
-        >
-          <div>
-            <b id="lessonPartTwoSummary">0%</b>
-            <small>הושלם</small>
-          </div>
+      <div
+        class="mastery-mini-ring mastery-current-part-ring"
+        id="lessonCurrentPartGauge"
+        style="--value:0"
+      >
+        <div>
+          <b id="lessonCurrentPartSummary">0%</b>
+          <small>הבנה בחלק</small>
         </div>
-
       </div>
-
     </div>
 
   </article>
@@ -17431,6 +17437,49 @@ async function loadLessonHeroImage(
 }
 
 /* =====================================================
+   CURRENT PART SCORE HUD
+===================================================== */
+window.CURRENT_SCORE_PART_NUMBER = 0;
+window.CURRENT_LESSON_PARTS_COUNT = Number(
+  window.CURRENT_LESSON_PARTS_COUNT || 1
+);
+
+function syncCurrentPartScoreHud(
+  partNumber,
+  totalParts = window.CURRENT_LESSON_PARTS_COUNT
+){
+  const safePartNumber = Math.max(1, Number(partNumber || 1));
+  const safeTotalParts = Math.max(
+    safePartNumber,
+    Number(totalParts || safePartNumber)
+  );
+
+  window.CURRENT_LESSON_PARTS_COUNT = safeTotalParts;
+
+  const label = document.getElementById("lessonCurrentPartLabel");
+  if(label){
+    label.textContent = `חלק ${safePartNumber} מתוך ${safeTotalParts}`;
+  }
+
+  if(Number(window.CURRENT_SCORE_PART_NUMBER || 0) === safePartNumber){
+    return;
+  }
+
+  window.CURRENT_SCORE_PART_NUMBER = safePartNumber;
+
+  const summary = document.getElementById("lessonCurrentPartSummary");
+  const gauge = document.getElementById("lessonCurrentPartGauge");
+
+  if(summary){
+    summary.textContent = "0%";
+  }
+
+  if(gauge){
+    gauge.style.setProperty("--value", 0);
+  }
+}
+
+/* =====================================================
    LESSON VISUALS
 ===================================================== */
 
@@ -19619,6 +19668,20 @@ async function runSimpleUniversalLesson(
 
   window.CURRENT_LESSON_VISUAL_PART =
     activeVisualPart;
+
+  const structuredPartCount =
+    Array.isArray(structuredLesson?.parts)
+      ? structuredLesson.parts.length
+      : Number(
+          window.CURRENT_LESSON_PARTS_COUNT
+          ||
+          activeVisualPart
+        );
+
+  syncCurrentPartScoreHud(
+    activeVisualPart,
+    structuredPartCount
+  );
 
   if(
     !structuredLesson
@@ -25797,9 +25860,19 @@ const overallTopicScore =
     );
 
 
-  const partOneSummary =
+  const currentPartSummary =
     document.getElementById(
-      "lessonPartOneSummary"
+      "lessonCurrentPartSummary"
+    );
+
+  const currentPartGauge =
+    document.getElementById(
+      "lessonCurrentPartGauge"
+    );
+
+  const currentPartLabel =
+    document.getElementById(
+      "lessonCurrentPartLabel"
     );
 
 
@@ -25857,20 +25930,28 @@ if(overallScore){
 }
 
 
-  if(
-  partOneSummary
-  &&
-  Number(
-    window.CURRENT_LESSON_VISUAL_PART
-    ||
-    1
-  ) === 1
-){
+  if(currentPartSummary){
+    currentPartSummary.textContent = `${safeScore}%`;
+  }
 
-  partOneSummary.textContent =
-    `${safeScore}%`;
+  if(currentPartGauge){
+    currentPartGauge.style.setProperty("--value", safeScore);
+  }
 
-}
+  const activePartNumber = Math.max(
+    1,
+    Number(window.CURRENT_LESSON_VISUAL_PART || 1)
+  );
+
+  const totalPartCount = Math.max(
+    activePartNumber,
+    Number(window.CURRENT_LESSON_PARTS_COUNT || activePartNumber)
+  );
+
+  if(currentPartLabel){
+    currentPartLabel.textContent =
+      `חלק ${activePartNumber} מתוך ${totalPartCount}`;
+  }
 
 
   if(meterScore){
