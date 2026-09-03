@@ -1,0 +1,266 @@
+/* =====================================================
+   LESSON COMPLETION SCREEN — INSIDE VISUAL STAGE
+===================================================== */
+body.lesson-theme-science .lesson-completion-screen{
+  position:absolute;
+  inset:0;
+  z-index:25;
+  display:grid;
+  grid-template-columns:170px minmax(0,1fr);
+  gap:16px;
+  padding:20px 22px 18px;
+  direction:ltr;
+  overflow:hidden;
+  color:#eef7ff;
+  background:
+    linear-gradient(90deg,rgba(3,14,31,.97),rgba(5,20,43,.95)),
+    url('/assets/science/ui/unit-puzzle.webp') center/cover no-repeat;
+}
+body.lesson-theme-science .lesson-completion-screen::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 68% 16%,rgba(31,171,255,.17),transparent 34%),
+    radial-gradient(circle at 34% 82%,rgba(104,74,255,.14),transparent 35%);
+}
+body.lesson-theme-science .lesson-completion-teacher{
+  position:relative;
+  z-index:2;
+  min-width:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+body.lesson-theme-science .lesson-completion-teacher img{
+  width:100%;
+  max-width:165px;
+  max-height:92%;
+  object-fit:contain;
+  object-position:center bottom;
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,.38));
+}
+body.lesson-theme-science .lesson-completion-main{
+  position:relative;
+  z-index:2;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  direction:rtl;
+}
+body.lesson-theme-science .lesson-completion-top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 310px;
+  gap:14px;
+  align-items:center;
+  min-height:126px;
+}
+body.lesson-theme-science .lesson-completion-copy{text-align:right}
+body.lesson-theme-science .lesson-completion-kicker{
+  color:#51d4ff;
+  font-size:11px;
+  font-weight:900;
+  margin-bottom:4px;
+}
+body.lesson-theme-science .lesson-completion-copy h2{
+  margin:0;
+  color:#fff;
+  font-size:25px;
+  line-height:1.15;
+  font-weight:900;
+}
+body.lesson-theme-science .lesson-completion-copy p{
+  margin:5px 0 0;
+  color:#aebed9;
+  font-size:12px;
+  font-weight:700;
+}
+body.lesson-theme-science .lesson-completion-meters{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:center;
+  gap:9px;
+  min-height:110px;
+  padding:12px;
+  border:1px solid rgba(66,157,255,.26);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(9,29,59,.88),rgba(4,17,37,.92));
+}
+body.lesson-theme-science .lesson-completion-meter{min-width:0;text-align:center}
+body.lesson-theme-science .lesson-completion-ring{
+  --progress:0deg;
+  width:68px;
+  height:68px;
+  margin:0 auto 4px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  position:relative;
+  background:conic-gradient(#2dd7ff var(--progress),rgba(65,104,153,.23) 0);
+  box-shadow:0 0 18px rgba(45,198,255,.16);
+}
+body.lesson-theme-science .lesson-completion-ring::before{
+  content:"";
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background:#06152d;
+  border:1px solid rgba(76,145,224,.18);
+  position:absolute;
+}
+body.lesson-theme-science .lesson-completion-ring strong{
+  position:relative;
+  z-index:2;
+  color:#fff;
+  font-size:17px;
+  font-weight:900;
+}
+body.lesson-theme-science .lesson-completion-meter span,
+body.lesson-theme-science .lesson-completion-stat span{
+  display:block;
+  color:#94a9c9;
+  font-size:9px;
+  font-weight:800;
+}
+body.lesson-theme-science .lesson-completion-stat strong{
+  display:block;
+  color:#eaf6ff;
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:4px;
+}
+body.lesson-theme-science .lesson-completion-divider{
+  height:1px;
+  margin:9px 0 8px;
+  background:linear-gradient(90deg,transparent,rgba(54,192,255,.42),transparent);
+}
+body.lesson-theme-science .lesson-completion-unit-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+  color:#f0f6ff;
+}
+body.lesson-theme-science .lesson-completion-unit-title strong{font-size:14px;font-weight:900}
+body.lesson-theme-science .lesson-completion-unit-title small{color:#7fa3ca;font-size:9px;font-weight:800}
+body.lesson-theme-science .lesson-completion-lessons-shell{
+  position:relative;
+  min-width:0;
+  flex:1 1 auto;
+  display:flex;
+  align-items:center;
+  overflow:hidden;
+}
+body.lesson-theme-science .lesson-completion-lessons{
+  min-width:0;
+  width:100%;
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:124px;
+  gap:9px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:4px 3px 8px;
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin;
+  scrollbar-color:#228ee8 rgba(16,43,77,.45);
+  direction:rtl;
+}
+body.lesson-theme-science .lesson-completion-lessons::-webkit-scrollbar{height:7px}
+body.lesson-theme-science .lesson-completion-lessons::-webkit-scrollbar-track{background:rgba(16,43,77,.45);border-radius:999px}
+body.lesson-theme-science .lesson-completion-lessons::-webkit-scrollbar-thumb{background:linear-gradient(90deg,#1c84dd,#34d7ff);border-radius:999px}
+body.lesson-theme-science .lesson-completion-card{
+  scroll-snap-align:start;
+  width:124px;
+  height:124px;
+  padding:10px 9px 9px;
+  display:flex;
+  flex-direction:column;
+  border:1px solid rgba(70,120,186,.3);
+  border-radius:15px;
+  background:linear-gradient(180deg,rgba(11,32,63,.96),rgba(5,18,38,.98));
+  text-align:right;
+}
+body.lesson-theme-science .lesson-completion-card.completed{
+  border-color:rgba(83,221,118,.45);
+  background:linear-gradient(180deg,rgba(13,52,51,.86),rgba(5,29,34,.96));
+}
+body.lesson-theme-science .lesson-completion-card.next{
+  border-color:#2cc8ff;
+  box-shadow:0 0 0 1px rgba(44,200,255,.28),0 0 20px rgba(44,133,255,.22);
+  background:linear-gradient(180deg,rgba(15,58,112,.96),rgba(12,29,67,.98));
+}
+body.lesson-theme-science .lesson-completion-card.locked{opacity:.7}
+body.lesson-theme-science .lesson-completion-card-number{
+  width:25px;
+  height:25px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  color:#dff4ff;
+  background:rgba(44,117,204,.28);
+  border:1px solid rgba(80,155,240,.24);
+  font-size:10px;
+  font-weight:900;
+  margin-bottom:7px;
+}
+body.lesson-theme-science .lesson-completion-card.completed .lesson-completion-card-number{
+  color:#9eff91;
+  border-color:rgba(82,216,103,.36);
+  background:rgba(37,122,63,.22);
+}
+body.lesson-theme-science .lesson-completion-card-title{
+  color:#f3f7ff;
+  font-size:10px;
+  line-height:1.27;
+  font-weight:900;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+body.lesson-theme-science .lesson-completion-card-status{
+  margin-top:auto;
+  color:#7f98b8;
+  font-size:8px;
+  font-weight:800;
+}
+body.lesson-theme-science .lesson-completion-card.completed .lesson-completion-card-status{color:#73e889}
+body.lesson-theme-science .lesson-completion-card.next .lesson-completion-card-status{color:#5cdcff}
+body.lesson-theme-science .lesson-completion-next-btn{
+  margin-top:6px;
+  min-height:29px;
+  border:0;
+  border-radius:9px;
+  color:#fff;
+  font-size:9px;
+  font-weight:900;
+  cursor:pointer;
+  background:linear-gradient(90deg,#6c36ee,#2f8dff);
+}
+body.lesson-theme-science .lesson-completion-tip{
+  margin-top:5px;
+  padding:6px 10px;
+  border:1px solid rgba(76,125,194,.16);
+  border-radius:10px;
+  color:#829abb;
+  background:rgba(3,14,31,.42);
+  text-align:center;
+  font-size:9px;
+  font-weight:700;
+}
+@media(max-width:1500px){
+  body.lesson-theme-science .lesson-completion-screen{grid-template-columns:135px minmax(0,1fr);padding:14px 15px 12px;gap:11px}
+  body.lesson-theme-science .lesson-completion-teacher img{max-width:130px}
+  body.lesson-theme-science .lesson-completion-top{grid-template-columns:minmax(0,1fr) 270px;min-height:104px}
+  body.lesson-theme-science .lesson-completion-copy h2{font-size:21px}
+  body.lesson-theme-science .lesson-completion-meters{min-height:92px;padding:8px}
+  body.lesson-theme-science .lesson-completion-ring{width:58px;height:58px}
+  body.lesson-theme-science .lesson-completion-ring::before{width:46px;height:46px}
+  body.lesson-theme-science .lesson-completion-ring strong{font-size:15px}
+  body.lesson-theme-science .lesson-completion-lessons{grid-auto-columns:110px}
+  body.lesson-theme-science .lesson-completion-card{width:110px;height:110px;padding:8px}
+  body.lesson-theme-science .lesson-completion-card-title{font-size:9px}
+}
