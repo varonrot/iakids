@@ -17,8 +17,9 @@ jobs:
           fetch-depth: 0
 
       - name: Patch current part gauge
-        shell: python
+        shell: bash
         run: |
+          cat > /tmp/patch_current_part.py <<'PY'
           from pathlib import Path
           import re
 
@@ -26,7 +27,6 @@ jobs:
           text = path.read_text(encoding='utf-8')
           original = text
 
-          # 1) Replace the old fixed Part 1 / Part 2 card with one dynamic current-part gauge.
           pattern = re.compile(
               r'\n\s*<!-- 2 — חלוקה ללמידה -->\s*\n\s*<article class="mastery-hud-card mastery-parts-hud">.*?</article>',
               re.S,
@@ -43,10 +43,7 @@ jobs:
 
     <div class="mastery-current-part-wrap">
 
-      <div
-        class="mastery-current-part-label"
-        id="lessonCurrentPartLabel"
-      >
+      <div class="mastery-current-part-label" id="lessonCurrentPartLabel">
         חלק 1 מתוך 1
       </div>
 
@@ -69,7 +66,6 @@ jobs:
           if count != 1:
               raise SystemExit(f'Expected one learning split card, replaced {count}')
 
-          # 2) Add focused styling for the single dynamic gauge.
           css = '''
 
 /* =====================================================
@@ -80,7 +76,6 @@ jobs:
   flex-direction:column;
   align-items:center;
 }
-
 .mastery-current-part-wrap{
   min-height:130px;
   width:100%;
@@ -90,14 +85,12 @@ jobs:
   justify-content:center;
   gap:4px;
 }
-
 .mastery-current-part-label{
   color:#fff;
   font-size:14px;
   font-weight:900;
   text-align:center;
 }
-
 .mastery-current-part-ring{
   width:92px;
   height:92px;
@@ -108,7 +101,6 @@ jobs:
           if 'DYNAMIC CURRENT PART GAUGE' not in text:
               text = text.replace('</style>', css + '\n</style>', 1)
 
-          # 3) Replace the old Part 1 DOM lookup with the dynamic current-part DOM lookup.
           lookup_pattern = re.compile(
               r'const\s+partOneSummary\s*=\s*document\.getElementById\(\s*"lessonPartOneSummary"\s*\);',
               re.S,
@@ -132,26 +124,20 @@ jobs:
           if count != 1:
               raise SystemExit(f'Expected one Part 1 summary lookup, replaced {count}')
 
-          # 4) Replace the old Part 1-only score write with a current-part score write.
           score_pattern = re.compile(
               r'if\(\s*partOneSummary\s*&&\s*Number\(\s*window\.CURRENT_LESSON_VISUAL_PART\s*\|\|\s*1\s*\)\s*===\s*1\s*\)\s*\{\s*partOneSummary\.textContent\s*=\s*`\$\{safeScore\}%`;\s*\}',
               re.S,
           )
 
           score_replacement = '''if(currentPartSummary){
-
-    currentPartSummary.textContent =
-      `${safeScore}%`;
-
+    currentPartSummary.textContent = `${safeScore}%`;
   }
 
   if(currentPartGauge){
-
     currentPartGauge.style.setProperty(
       "--value",
       safeScore
     );
-
   }
 
   const activePartNumber =
@@ -175,17 +161,14 @@ jobs:
     );
 
   if(currentPartLabel){
-
     currentPartLabel.textContent =
       `חלק ${activePartNumber} מתוך ${totalPartCount}`;
-
   }'''
 
           text, count = score_pattern.subn(score_replacement, text, count=1)
           if count != 1:
               raise SystemExit(f'Expected one Part 1-only score block, replaced {count}')
 
-          # 5) Insert a helper that resets the local gauge only when the active Part changes.
           helper_marker = '''/* =====================================================
    LESSON VISUALS
 ===================================================== */'''
@@ -205,12 +188,8 @@ function syncCurrentPartScoreHud(
   partNumber,
   totalParts = window.CURRENT_LESSON_PARTS_COUNT
 ){
-
   const safePartNumber =
-    Math.max(
-      1,
-      Number(partNumber || 1)
-    );
+    Math.max(1, Number(partNumber || 1));
 
   const safeTotalParts =
     Math.max(
@@ -218,13 +197,10 @@ function syncCurrentPartScoreHud(
       Number(totalParts || safePartNumber)
     );
 
-  window.CURRENT_LESSON_PARTS_COUNT =
-    safeTotalParts;
+  window.CURRENT_LESSON_PARTS_COUNT = safeTotalParts;
 
   const label =
-    document.getElementById(
-      "lessonCurrentPartLabel"
-    );
+    document.getElementById("lessonCurrentPartLabel");
 
   if(label){
     label.textContent =
@@ -232,37 +208,26 @@ function syncCurrentPartScoreHud(
   }
 
   if(
-    Number(
-      window.CURRENT_SCORE_PART_NUMBER
-      ||
-      0
-    ) === safePartNumber
+    Number(window.CURRENT_SCORE_PART_NUMBER || 0)
+    === safePartNumber
   ){
     return;
   }
 
-  window.CURRENT_SCORE_PART_NUMBER =
-    safePartNumber;
+  window.CURRENT_SCORE_PART_NUMBER = safePartNumber;
 
   const summary =
-    document.getElementById(
-      "lessonCurrentPartSummary"
-    );
+    document.getElementById("lessonCurrentPartSummary");
 
   const gauge =
-    document.getElementById(
-      "lessonCurrentPartGauge"
-    );
+    document.getElementById("lessonCurrentPartGauge");
 
   if(summary){
     summary.textContent = "0%";
   }
 
   if(gauge){
-    gauge.style.setProperty(
-      "--value",
-      0
-    );
+    gauge.style.setProperty("--value", 0);
   }
 }
 
@@ -273,7 +238,6 @@ function syncCurrentPartScoreHud(
                   raise SystemExit('Lesson visuals marker not found')
               text = text.replace(helper_marker, helper + helper_marker, 1)
 
-          # 6) Whenever the backend/front resolves the active Part, sync the HUD and reset on change.
           active_assignment = '''  window.CURRENT_LESSON_VISUAL_PART =
     activeVisualPart;'''
 
@@ -304,8 +268,11 @@ function syncCurrentPartScoreHud(
               raise SystemExit('No changes made')
 
           path.write_text(text, encoding='utf-8')
+          PY
+          python /tmp/patch_current_part.py
 
       - name: Commit focused current-part gauge change
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
