@@ -141,6 +141,11 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://iakids.app/tr/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://iakids.app/blog/actividades-educativas-con-ia-para-ninos/</loc>
     <lastmod>2026-09-03</lastmod>
     <priority>0.8</priority>
@@ -822,6 +827,61 @@
   </url>
   <url>
     <loc>https://iakids.app/sv/blog/subtraktion/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/ai-tutor/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/bolme-islemi/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/carpim-tablosu/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/carpma-islemi/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/cikarma-islemi/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/ilkokul-ingilizce/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/matematik-ozel-ders/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/matematik-sorulari/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/odev-yardimi/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/toplama-islemi/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/yapay-zeka-egitim/</loc>
     <lastmod>2026-09-03</lastmod>
     <priority>0.7</priority>
   </url>
@@ -2397,6 +2457,41 @@
   </url>
   <url>
     <loc>https://iakids.app/sv/blog/multiplikationstabellen/ovningar/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/ai-tutor/ai-tutor-cocuklar-icin/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/ai-tutor/ai-tutor-matematik/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/ai-tutor/ai-tutor-veya-ozel-ders/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/carpim-tablosu/alistirmalar/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/matematik/1-sinif/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/matematik/2-sinif/</loc>
+    <lastmod>2026-09-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/tr/blog/matematik/3-sinif/</loc>
     <lastmod>2026-09-03</lastmod>
     <priority>0.7</priority>
   </url>
