@@ -1,0 +1,227 @@
+name: Patch lesson score separation
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-lesson-score-separation.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch lesson score separation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('he/workspace/index.html')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          old_overall = '''/*
+  כרגע Learning Coach 1 הוא חצי מהשיעור,
+  ולכן רק ההבנה הכוללת מקבלת חצי מהציון.
+*/
+
+const overallTopicScore =
+  Math.round(
+    safeScore / 2
+  );'''
+
+          new_overall = '''/*
+  הציון הכללי אינו מחושב יותר בפרונט לפי מספר חלקים קשיח.
+  מקור האמת הוא kid_lesson_progress.mastery_score,
+  שמחושב בבקאנד לפי lesson_parts_count הדינמי.
+*/
+
+const overallTopicScore =
+  normalizeLessonScore(
+    window.CURRENT_OVERALL_LESSON_MASTERY_SCORE
+  )
+  ??
+  0;'''
+
+          if old_overall not in text:
+              raise SystemExit('Expected hard-coded overall score block not found')
+          text = text.replace(old_overall, new_overall, 1)
+
+          old_part = '''  if(partOneSummary){
+
+    partOneSummary.textContent =
+      `${safeScore}%`;
+
+  }'''
+
+          new_part = '''  /*
+    כרטיס Part 1 נשאר ציון היסטורי של חלק 1 בלבד.
+    תשובות ב-Part 2 ומעלה לא דורסות אותו.
+  */
+  if(
+    partOneSummary
+    &&
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      window.CURRENT_UNIVERSAL_LESSON_PART
+      ||
+      1
+    ) === 1
+  ){
+
+    partOneSummary.textContent =
+      `${safeScore}%`;
+
+  }'''
+
+          if old_part not in text:
+              raise SystemExit('Expected Part 1 summary block not found')
+          text = text.replace(old_part, new_part, 1)
+
+          marker = '''/* =====================================================
+   עדכון המד אחרי תשובת Coach
+===================================================== */'''
+
+          helper = '''/* =====================================================
+   OVERALL LESSON MASTERY FROM DB
+   מקור האמת לשעון ההבנה הכללית
+===================================================== */
+async function fetchCurrentLessonOverallMastery(){
+
+  const kidId =
+    CURRENT_KID?.id;
+
+  const lessonId =
+    Number(
+      currentLessonId
+      ||
+      window.CURRENT_LESSON_ID
+      ||
+      0
+    );
+
+  const unitLessonId =
+    Number(
+      window.SELECTED_UNIT_LESSON
+        ?.unit_lesson_id
+      ||
+      0
+    );
+
+  if(
+    !kidId
+    ||
+    !lessonId
+    ||
+    !unitLessonId
+  ){
+    return null;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "kid_lesson_progress"
+      )
+      .select(
+        "mastery_score"
+      )
+      .eq(
+        "kid_id",
+        kidId
+      )
+      .eq(
+        "lesson_id",
+        lessonId
+      )
+      .eq(
+        "current_unit_lesson_id",
+        unitLessonId
+      )
+      .limit(
+        1
+      );
+
+  if(error){
+
+    console.error(
+      "OVERALL LESSON MASTERY FETCH ERROR:",
+      error
+    );
+
+    return null;
+  }
+
+  const score =
+    normalizeLessonScore(
+      Array.isArray(data)
+        ? data[0]?.mastery_score
+        : null
+    );
+
+  console.log(
+    "OVERALL LESSON MASTERY FROM DB:",
+    score
+  );
+
+  return score;
+}
+
+'''
+
+          if 'async function fetchCurrentLessonOverallMastery' not in text:
+              if marker not in text:
+                  raise SystemExit('Score refresh marker not found')
+              text = text.replace(marker, helper + marker, 1)
+
+          score_marker = '''  const finalScore =
+    databaseScore
+    ??
+    directScore;'''
+
+          replacement = '''  /*
+    השעון הכללי נשען על mastery_score של השיעור,
+    ולא על ציון ה-Coach של ה-Part הנוכחי.
+  */
+  const overallDatabaseScore =
+    await fetchCurrentLessonOverallMastery();
+
+  if(
+    overallDatabaseScore !== null
+  ){
+    window.CURRENT_OVERALL_LESSON_MASTERY_SCORE =
+      overallDatabaseScore;
+  }
+
+
+  const finalScore =
+    databaseScore
+    ??
+    directScore;'''
+
+          if score_marker not in text:
+              raise SystemExit('finalScore marker not found')
+          text = text.replace(score_marker, replacement, 1)
+
+          if text == original:
+              raise SystemExit('No changes made')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit score separation fix and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/patch-lesson-score-separation.yml
+          git add he/workspace/index.html .github/workflows/patch-lesson-score-separation.yml
+          git commit -m "Separate overall and current part lesson scores"
+          git push
