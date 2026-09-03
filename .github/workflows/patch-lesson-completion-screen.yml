@@ -1,0 +1,468 @@
+name: Patch lesson completion screen
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-lesson-completion-screen.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply completion screen patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('he/workspace/index.html')
+          text = path.read_text(encoding='utf-8')
+
+          if 'id="lessonCompletionStyles"' in text:
+              raise SystemExit('Completion screen already installed')
+
+          old = '''  const videoPlayed =
+    await playLessonTransitionVideo(
+      transition || {}
+    );'''
+
+          new = '''  const videoPlayed =
+    isLastPart
+      ? await showLessonCompletionScreen()
+      : await playLessonTransitionVideo(
+          transition || {}
+        );'''
+
+          count = text.count(old)
+          if count != 2:
+              raise SystemExit(f'Expected 2 transition playback blocks, found {count}')
+
+          text = text.replace(old, new)
+
+          insert_marker = '<div id="iakidsBuildStamp"'
+          if insert_marker not in text:
+              raise SystemExit('Build stamp marker not found')
+
+          feature = r'''
+<style id="lessonCompletionStyles">
+/* =====================================================
+   LESSON COMPLETION SCREEN — INSIDE VISUAL STAGE
+===================================================== */
+body.lesson-theme-science .lesson-completion-screen{
+  position:absolute;
+  inset:0;
+  z-index:25;
+  display:grid;
+  grid-template-columns:170px minmax(0,1fr);
+  gap:16px;
+  padding:20px 22px 18px;
+  direction:ltr;
+  overflow:hidden;
+  color:#eef7ff;
+  background:
+    linear-gradient(90deg,rgba(3,14,31,.97),rgba(5,20,43,.95)),
+    url('/assets/science/ui/unit-puzzle.webp') center/cover no-repeat;
+}
+body.lesson-theme-science .lesson-completion-screen::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 68% 16%,rgba(31,171,255,.17),transparent 34%),
+    radial-gradient(circle at 34% 82%,rgba(104,74,255,.14),transparent 35%);
+}
+body.lesson-theme-science .lesson-completion-teacher{
+  position:relative;
+  z-index:2;
+  min-width:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+body.lesson-theme-science .lesson-completion-teacher img{
+  width:100%;
+  max-width:165px;
+  max-height:92%;
+  object-fit:contain;
+  object-position:center bottom;
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,.38));
+}
+body.lesson-theme-science .lesson-completion-main{
+  position:relative;
+  z-index:2;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  direction:rtl;
+}
+body.lesson-theme-science .lesson-completion-top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 310px;
+  gap:14px;
+  align-items:center;
+  min-height:126px;
+}
+body.lesson-theme-science .lesson-completion-copy{
+  text-align:right;
+}
+body.lesson-theme-science .lesson-completion-kicker{
+  color:#51d4ff;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.2px;
+  margin-bottom:4px;
+}
+body.lesson-theme-science .lesson-completion-copy h2{
+  margin:0;
+  color:#fff;
+  font-size:25px;
+  line-height:1.15;
+  font-weight:900;
+}
+body.lesson-theme-science .lesson-completion-copy p{
+  margin:5px 0 0;
+  color:#aebed9;
+  font-size:12px;
+  font-weight:700;
+}
+body.lesson-theme-science .lesson-completion-meters{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:center;
+  gap:9px;
+  min-height:110px;
+  padding:12px;
+  border:1px solid rgba(66,157,255,.26);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(9,29,59,.88),rgba(4,17,37,.92));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+body.lesson-theme-science .lesson-completion-meter{
+  min-width:0;
+  text-align:center;
+}
+body.lesson-theme-science .lesson-completion-ring{
+  --progress:0deg;
+  width:68px;
+  height:68px;
+  margin:0 auto 4px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:conic-gradient(#2dd7ff var(--progress),rgba(65,104,153,.23) 0);
+  box-shadow:0 0 18px rgba(45,198,255,.16);
+}
+body.lesson-theme-science .lesson-completion-ring::before{
+  content:"";
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background:#06152d;
+  border:1px solid rgba(76,145,224,.18);
+  position:absolute;
+}
+body.lesson-theme-science .lesson-completion-ring strong{
+  position:relative;
+  z-index:2;
+  color:#fff;
+  font-size:17px;
+  font-weight:900;
+}
+body.lesson-theme-science .lesson-completion-meter span,
+body.lesson-theme-science .lesson-completion-stat span{
+  display:block;
+  color:#94a9c9;
+  font-size:9px;
+  font-weight:800;
+}
+body.lesson-theme-science .lesson-completion-stat strong{
+  display:block;
+  color:#eaf6ff;
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:4px;
+}
+body.lesson-theme-science .lesson-completion-divider{
+  height:1px;
+  margin:9px 0 8px;
+  background:linear-gradient(90deg,transparent,rgba(54,192,255,.42),transparent);
+}
+body.lesson-theme-science .lesson-completion-unit-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+  color:#f0f6ff;
+}
+body.lesson-theme-science .lesson-completion-unit-title strong{
+  font-size:14px;
+  font-weight:900;
+}
+body.lesson-theme-science .lesson-completion-unit-title small{
+  color:#7fa3ca;
+  font-size:9px;
+  font-weight:800;
+}
+body.lesson-theme-science .lesson-completion-lessons-shell{
+  position:relative;
+  min-width:0;
+  flex:1 1 auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  overflow:hidden;
+}
+body.lesson-theme-science .lesson-completion-lessons{
+  min-width:0;
+  width:100%;
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:124px;
+  gap:9px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:4px 3px 8px;
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin;
+  scrollbar-color:#228ee8 rgba(16,43,77,.45);
+  direction:rtl;
+}
+body.lesson-theme-science .lesson-completion-lessons::-webkit-scrollbar{height:7px}
+body.lesson-theme-science .lesson-completion-lessons::-webkit-scrollbar-track{background:rgba(16,43,77,.45);border-radius:999px}
+body.lesson-theme-science .lesson-completion-lessons::-webkit-scrollbar-thumb{background:linear-gradient(90deg,#1c84dd,#34d7ff);border-radius:999px}
+body.lesson-theme-science .lesson-completion-card{
+  scroll-snap-align:start;
+  width:124px;
+  height:124px;
+  padding:10px 9px 9px;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  border:1px solid rgba(70,120,186,.3);
+  border-radius:15px;
+  background:linear-gradient(180deg,rgba(11,32,63,.96),rgba(5,18,38,.98));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+  text-align:right;
+}
+body.lesson-theme-science .lesson-completion-card.completed{
+  border-color:rgba(83,221,118,.45);
+  background:linear-gradient(180deg,rgba(13,52,51,.86),rgba(5,29,34,.96));
+}
+body.lesson-theme-science .lesson-completion-card.next{
+  border-color:#2cc8ff;
+  box-shadow:0 0 0 1px rgba(44,200,255,.28),0 0 20px rgba(44,133,255,.22),inset 0 1px 0 rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(15,58,112,.96),rgba(12,29,67,.98));
+}
+body.lesson-theme-science .lesson-completion-card.locked{
+  opacity:.7;
+}
+body.lesson-theme-science .lesson-completion-card-number{
+  width:25px;
+  height:25px;
+  flex:0 0 25px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  color:#dff4ff;
+  background:rgba(44,117,204,.28);
+  border:1px solid rgba(80,155,240,.24);
+  font-size:10px;
+  font-weight:900;
+  margin-bottom:7px;
+}
+body.lesson-theme-science .lesson-completion-card.completed .lesson-completion-card-number{
+  color:#9eff91;
+  border-color:rgba(82,216,103,.36);
+  background:rgba(37,122,63,.22);
+}
+body.lesson-theme-science .lesson-completion-card-title{
+  color:#f3f7ff;
+  font-size:10px;
+  line-height:1.27;
+  font-weight:900;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+body.lesson-theme-science .lesson-completion-card-status{
+  margin-top:auto;
+  color:#7f98b8;
+  font-size:8px;
+  font-weight:800;
+}
+body.lesson-theme-science .lesson-completion-card.completed .lesson-completion-card-status{color:#73e889}
+body.lesson-theme-science .lesson-completion-card.next .lesson-completion-card-status{color:#5cdcff}
+body.lesson-theme-science .lesson-completion-next-btn{
+  margin-top:6px;
+  height:29px;
+  border:0;
+  border-radius:9px;
+  color:#fff;
+  font-size:9px;
+  font-weight:900;
+  cursor:pointer;
+  background:linear-gradient(90deg,#6c36ee,#2f8dff);
+  box-shadow:0 5px 13px rgba(51,83,222,.3);
+}
+body.lesson-theme-science .lesson-completion-tip{
+  flex:0 0 auto;
+  margin-top:5px;
+  padding:6px 10px;
+  border:1px solid rgba(76,125,194,.16);
+  border-radius:10px;
+  color:#829abb;
+  background:rgba(3,14,31,.42);
+  text-align:center;
+  font-size:9px;
+  font-weight:700;
+}
+@media(max-width:1500px){
+  body.lesson-theme-science .lesson-completion-screen{grid-template-columns:135px minmax(0,1fr);padding:14px 15px 12px;gap:11px}
+  body.lesson-theme-science .lesson-completion-teacher img{max-width:130px}
+  body.lesson-theme-science .lesson-completion-top{grid-template-columns:minmax(0,1fr) 270px;min-height:104px}
+  body.lesson-theme-science .lesson-completion-copy h2{font-size:21px}
+  body.lesson-theme-science .lesson-completion-meters{min-height:92px;padding:8px}
+  body.lesson-theme-science .lesson-completion-ring{width:58px;height:58px}
+  body.lesson-theme-science .lesson-completion-ring::before{width:46px;height:46px}
+  body.lesson-theme-science .lesson-completion-ring strong{font-size:15px}
+  body.lesson-theme-science .lesson-completion-lessons{grid-auto-columns:110px}
+  body.lesson-theme-science .lesson-completion-card{width:110px;height:110px;padding:8px}
+  body.lesson-theme-science .lesson-completion-card-title{font-size:9px}
+}
+</style>
+<script id="lessonCompletionScript">
+function getLessonCompletionScore(){
+  const raw = String(document.getElementById('lessonOverallScore')?.textContent || '0');
+  const value = Number(raw.replace(/[^0-9.]/g,''));
+  return Number.isFinite(value) ? Math.max(0,Math.min(100,Math.round(value))) : 0;
+}
+
+async function showLessonCompletionScreen(){
+  const visualArea = document.querySelector('.lesson-visual-stage');
+  if(!visualArea){
+    console.warn('LESSON COMPLETION SCREEN — visual stage not found');
+    return false;
+  }
+
+  const lessons = Array.isArray(window.LESSON_SIDEBAR_ROWS)
+    ? [...window.LESSON_SIDEBAR_ROWS].sort((a,b)=>Number(a?.lesson_order||0)-Number(b?.lesson_order||0))
+    : [];
+
+  const currentOrder = Math.max(1,Number(window.SELECTED_UNIT_LESSON?.lesson_order || 1));
+  const currentLesson = lessons.find(item=>Number(item?.lesson_order||0)===currentOrder) || window.SELECTED_UNIT_LESSON || {};
+  const nextLesson = lessons.find(item=>Number(item?.lesson_order||0)===currentOrder+1) || null;
+  const totalLessons = Math.max(lessons.length,currentOrder);
+  const completedCount = Math.min(currentOrder,totalLessons);
+  const unitProgress = totalLessons ? Math.round((completedCount/totalLessons)*100) : 100;
+  const score = getLessonCompletionScore();
+  const unitName = String(window.SELECTED_UNIT_LESSON?.unit_name || window.CURRENT_UNIT?.unit_name || 'היחידה הנוכחית');
+  const lessonName = String(currentLesson?.lesson_name || window.SELECTED_UNIT_LESSON?.lesson_name || 'השיעור');
+
+  const lessonCards = lessons.length
+    ? lessons.map((lesson,index)=>{
+        const order = Number(lesson?.lesson_order || index+1);
+        const title = escapeLessonSidebarHtml(lesson?.lesson_name || `שיעור ${order}`);
+        const isCompleted = order <= currentOrder;
+        const isNext = order === currentOrder + 1;
+        const stateClass = isCompleted ? 'completed' : isNext ? 'next' : 'locked';
+        const status = isCompleted
+          ? (order === currentOrder ? `הושלם • ${score}%` : 'הושלם ✓')
+          : isNext ? 'השיעור הבא' : 'טרם נפתח 🔒';
+        const button = isNext
+          ? `<button type="button" class="lesson-completion-next-btn" data-next-order="${order}">המשך לשיעור הבא ←</button>`
+          : '';
+        return `<article class="lesson-completion-card ${stateClass}" data-lesson-order="${order}">
+          <div class="lesson-completion-card-number">${order}</div>
+          <div class="lesson-completion-card-title">${title}</div>
+          <div class="lesson-completion-card-status">${status}</div>
+          ${button}
+        </article>`;
+      }).join('')
+    : `<article class="lesson-completion-card completed"><div class="lesson-completion-card-number">${currentOrder}</div><div class="lesson-completion-card-title">${escapeLessonSidebarHtml(lessonName)}</div><div class="lesson-completion-card-status">הושלם • ${score}%</div></article>`;
+
+  visualArea.innerHTML = `<section class="lesson-completion-screen" aria-label="סיום שיעור">
+    <div class="lesson-completion-teacher">
+      <img src="/assets/lesson/lesson-teacher-full-body.png" alt="המורה" />
+    </div>
+    <div class="lesson-completion-main">
+      <div class="lesson-completion-top">
+        <div class="lesson-completion-copy">
+          <div class="lesson-completion-kicker">✨ השלמת שיעור</div>
+          <h2>כל הכבוד! סיימת את “${escapeLessonSidebarHtml(lessonName)}”</h2>
+          <p>ממשיכים בתוך היחידה “${escapeLessonSidebarHtml(unitName)}”</p>
+        </div>
+        <div class="lesson-completion-meters">
+          <div class="lesson-completion-meter">
+            <div class="lesson-completion-ring" style="--progress:${score*3.6}deg"><strong>${score}%</strong></div>
+            <span>הבנה בשיעור</span>
+          </div>
+          <div class="lesson-completion-stat"><strong>${completedCount}/${totalLessons}</strong><span>שיעורים הושלמו</span></div>
+          <div class="lesson-completion-meter">
+            <div class="lesson-completion-ring" style="--progress:${unitProgress*3.6}deg"><strong>${unitProgress}%</strong></div>
+            <span>התקדמות ביחידה</span>
+          </div>
+        </div>
+      </div>
+      <div class="lesson-completion-divider"></div>
+      <div class="lesson-completion-unit-title">
+        <strong>המשך היחידה: ${escapeLessonSidebarHtml(unitName)}</strong>
+        <small>${totalLessons > 6 ? `גללו כדי לראות את כל ${totalLessons} השיעורים` : 'בחרו את השיעור הבא'}</small>
+      </div>
+      <div class="lesson-completion-lessons-shell">
+        <div class="lesson-completion-lessons" id="lessonCompletionLessons">${lessonCards}</div>
+      </div>
+      <div class="lesson-completion-tip">💡 אפשר לחזור לשיעורים קודמים בכל עת כדי לחזק את ההבנה.</div>
+    </div>
+  </section>`;
+
+  const nextButton = visualArea.querySelector('.lesson-completion-next-btn');
+  if(nextButton && nextLesson){
+    nextButton.addEventListener('click',async()=>{
+      nextButton.disabled = true;
+      nextButton.textContent = 'פותח את השיעור הבא…';
+      try{
+        await startSelectedUnitLesson(nextLesson);
+      }catch(error){
+        console.error('START NEXT LESSON FROM COMPLETION FAILED:',error);
+        nextButton.disabled = false;
+        nextButton.textContent = 'המשך לשיעור הבא ←';
+      }
+    });
+  }
+
+  console.log('LESSON COMPLETION SCREEN SHOWN',{currentOrder,totalLessons,score,unitProgress,nextLesson});
+  return true;
+}
+</script>
+'''
+
+          text = text.replace(insert_marker, feature + '\n' + insert_marker, 1)
+
+          if text.count('0.4.1') < 2:
+              raise SystemExit('Expected build 0.4.1 stamp and variable')
+          text = text.replace('0.4.1','0.4.2')
+
+          path.write_text(text,encoding='utf-8')
+          print(f'Installed completion screen; patched {count} transition blocks; build 0.4.2')
+          PY
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          rm -f .github/workflows/patch-lesson-completion-screen.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html .github/workflows/patch-lesson-completion-screen.yml
+          git commit -m 'Add in-stage lesson completion dashboard; build 0.4.2'
+          git push
