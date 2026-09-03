@@ -14649,7 +14649,7 @@ data-custom-slot="0"
 <article class="mastery-hud-card mastery-main-gauge-card">
 
   <div class="mastery-hud-title">
-    מד ההתקדמות שלי
+    התקדמות ביחידה
   </div>
 
   <div
@@ -14675,8 +14675,8 @@ data-custom-slot="0"
         0%
       </strong>
 
-      <span>
-        השלמה כללית
+      <span id="lessonProgressUnitLabel">
+        0 מתוך 0 שיעורים
       </span>
 
     </div>
@@ -14725,101 +14725,6 @@ data-custom-slot="0"
   </div>
 
 </article>
-
-  <!-- 5 — גרף -->
-  <article class="mastery-hud-card mastery-chart-card">
-
-    <div class="mastery-hud-title">
-      התקדמות לאורך השיעור
-    </div>
-
-    <div class="mastery-chart">
-
-      <svg
-        viewBox="0 0 300 120"
-        preserveAspectRatio="none"
-      >
-
-        <defs>
-
-          <linearGradient
-            id="masteryChartFill"
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="1"
-          >
-
-            <stop
-              offset="0%"
-              stop-color="#ffe349"
-              stop-opacity=".28"
-            />
-
-            <stop
-              offset="100%"
-              stop-color="#ffe349"
-              stop-opacity="0"
-            />
-
-          </linearGradient>
-
-          <filter id="masteryGlow">
-
-            <feGaussianBlur
-              stdDeviation="3"
-              result="blur"
-            />
-
-            <feMerge>
-              <feMergeNode in="blur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-
-          </filter>
-
-        </defs>
-
-
-        <path
-          class="mastery-chart-fill"
-          d="
-            M15 92
-            C55 82, 55 67, 90 61
-            C125 55, 145 57, 174 49
-            C214 39, 220 19, 272 15
-            L272 110
-            L15 110 Z
-          "
-        />
-
-
-        <path
-          class="mastery-chart-line"
-          d="
-            M15 92
-            C55 82, 55 67, 90 61
-            C125 55, 145 57, 174 49
-            C214 39, 220 19, 272 15
-          "
-        />
-
-
-        <circle cx="15"  cy="92" r="6"/>
-        <circle cx="90"  cy="61" r="6"/>
-        <circle cx="174" cy="49" r="6"/>
-        <circle cx="272" cy="15" r="7"/>
-
-      </svg>
-
-      <div class="mastery-chart-labels">
-        <span>התחלה</span>
-        <span>עכשיו</span>
-      </div>
-
-    </div>
-
-  </article>
 
 </section>
 
@@ -52256,6 +52161,6 @@ function(audio){
 </script>
 
 <script src="/he/workspace/lesson-completion.js"></script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.4.3</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.4.3";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.4.5</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.4.5";</script>
 </body></html>
