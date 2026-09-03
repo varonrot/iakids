@@ -12331,7 +12331,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה2</strong>
+    <strong>עולם הלמידה3</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -46893,6 +46893,30 @@ case "wait":
 
     }
 
+  }
+
+  /* =========================================
+     MOVE FLOW TO DIALOG AFTER QUESTION ENDS
+  ========================================= */
+
+  if(
+    script.wait_for_answer === true &&
+    window.SELECTED_UNIT_LESSON
+  ){
+    window.CURRENT_LESSON_FLOW_PHASE =
+      "dialog";
+
+    renderDynamicLessonFlow(
+      "dialog",
+      Number(
+        window.CURRENT_LESSON_VISUAL_PART ||
+        1
+      ),
+      Number(
+        window.CURRENT_LESSON_PARTS_COUNT ||
+        1
+      )
+    );
   }
 
 
