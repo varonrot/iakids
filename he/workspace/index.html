@@ -23226,6 +23226,25 @@ if(
       "learning_coach"
   });
 
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      state?.flow_state?.part_number
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );
+
 }
 
 else if(
