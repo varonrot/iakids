@@ -24912,6 +24912,29 @@ clearNoResponseTimer();
 if(
   data.wait_for_answer === true
   &&
+  window.SELECTED_UNIT_LESSON
+){
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );
+}
+
+if(
+  data.wait_for_answer === true
+  &&
   currentLearningMode === "lesson"
   &&
   currentLessonId
