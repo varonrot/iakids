@@ -25765,14 +25765,16 @@ function renderLessonScore(
       score
     );
 /*
-  כרגע Learning Coach 1 הוא חצי מהשיעור,
-  ולכן רק ההבנה הכוללת מקבלת חצי מהציון.
+  הציון הכללי אינו מחושב יותר בפרונט לפי מספר חלקים קשיח.
+  מקור האמת הוא kid_lesson_progress.mastery_score.
 */
 
 const overallTopicScore =
-  Math.round(
-    safeScore / 2
-  );
+  normalizeLessonScore(
+    window.CURRENT_OVERALL_LESSON_MASTERY_SCORE
+  )
+  ??
+  0;
 
   if(
     safeScore === null
@@ -25855,12 +25857,20 @@ if(overallScore){
 }
 
 
-  if(partOneSummary){
+  if(
+  partOneSummary
+  &&
+  Number(
+    window.CURRENT_LESSON_VISUAL_PART
+    ||
+    1
+  ) === 1
+){
 
-    partOneSummary.textContent =
-      `${safeScore}%`;
+  partOneSummary.textContent =
+    `${safeScore}%`;
 
-  }
+}
 
 
   if(meterScore){
@@ -26416,6 +26426,54 @@ async function fetchLatestLearningCoachScore(){
 }
 
 /* =====================================================
+   OVERALL LESSON MASTERY FROM DB
+===================================================== */
+async function fetchCurrentLessonOverallMastery(){
+
+  const kidId = CURRENT_KID?.id;
+
+  const lessonId =
+    Number(
+      currentLessonId
+      ||
+      window.CURRENT_LESSON_ID
+      ||
+      0
+    );
+
+  const unitLessonId =
+    Number(
+      window.SELECTED_UNIT_LESSON?.unit_lesson_id
+      ||
+      0
+    );
+
+  if(!kidId || !lessonId || !unitLessonId){
+    return null;
+  }
+
+  const { data, error } =
+    await sb
+      .from('kid_lesson_progress')
+      .select('mastery_score')
+      .eq('kid_id', kidId)
+      .eq('lesson_id', lessonId)
+      .eq('current_unit_lesson_id', unitLessonId)
+      .limit(1);
+
+  if(error){
+    console.error('OVERALL LESSON MASTERY FETCH ERROR:', error);
+    return null;
+  }
+
+  return normalizeLessonScore(
+    Array.isArray(data)
+      ? data[0]?.mastery_score
+      : null
+  );
+}
+
+/* =====================================================
    עדכון המד אחרי תשובת Coach
 ===================================================== */
 console.log("=== refreshLessonScoreFromCoachResponse START ===");
@@ -26534,10 +26592,18 @@ async function refreshLessonScoreFromCoachResponse(
   }
 
 
-  const finalScore =
-    databaseScore
-    ??
-    directScore;
+  const overallDatabaseScore =
+  await fetchCurrentLessonOverallMastery();
+
+if(overallDatabaseScore !== null){
+  window.CURRENT_OVERALL_LESSON_MASTERY_SCORE =
+    overallDatabaseScore;
+}
+
+const finalScore =
+  databaseScore
+  ??
+  directScore;
 console.log("FINAL SCORE =", finalScore);
 
   if(
