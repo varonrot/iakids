@@ -12300,7 +12300,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה99</strong>
+    <strong>עולם הלמידהה4</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -17833,7 +17833,7 @@ async function waitForLessonVisual(
   visualOrder
 ){
 
-  const MAX_CHECKS = 40;
+  const MAX_CHECKS = 120;
   const CHECK_DELAY_MS = 1000;
 
   for(
@@ -17865,16 +17865,14 @@ async function waitForLessonVisual(
         "SEGMENT VISUAL READY:",
         {
           visualOrder,
-          attempt
+          attempt,
+          source: "local"
         }
       );
 
       return existing;
     }
 
-    /*
-      מרעננים את רשימת התמונות מה-Backend.
-    */
 
     try{
 
@@ -17903,8 +17901,10 @@ async function waitForLessonVisual(
           }
         );
 
+
       const data =
         await response.json();
+
 
       if(
         response.ok
@@ -17914,10 +17914,25 @@ async function waitForLessonVisual(
         )
       ){
 
+        if(
+          !Array.isArray(
+            window.CURRENT_LESSON_VISUALS
+          )
+        ){
+          window.CURRENT_LESSON_VISUALS = [];
+        }
+
+
         for(
           const incoming
           of data.visuals
         ){
+
+          const incomingOrder =
+            Number(
+              incoming?.order || 0
+            );
+
 
           const existingIndex =
             window.CURRENT_LESSON_VISUALS
@@ -17927,10 +17942,9 @@ async function waitForLessonVisual(
                     visual?.order || 0
                   )
                   ===
-                  Number(
-                    incoming?.order || 0
-                  )
+                  incomingOrder
               );
+
 
           if(existingIndex >= 0){
 
@@ -17954,6 +17968,65 @@ async function waitForLessonVisual(
 
         }
 
+
+        window.CURRENT_LESSON_VISUALS.sort(
+          (a,b) =>
+            Number(a?.order || 0)
+            -
+            Number(b?.order || 0)
+        );
+
+
+        const requestedVisual =
+          window.CURRENT_LESSON_VISUALS.find(
+            visual =>
+              Number(
+                visual?.order || 0
+              )
+              ===
+              Number(
+                visualOrder
+              )
+              &&
+              visual?.url
+          );
+
+
+        console.log(
+          "VISUAL POLL RESULT:",
+          {
+            requested:
+              visualOrder,
+
+            readyOrders:
+              window.CURRENT_LESSON_VISUALS.map(
+                visual =>
+                  visual?.order
+              ),
+
+            found:
+              Boolean(
+                requestedVisual
+              )
+          }
+        );
+
+
+        if(requestedVisual){
+
+          console.log(
+            "SEGMENT VISUAL READY:",
+            {
+              visualOrder,
+              attempt,
+              source: "api"
+            }
+          );
+
+          return requestedVisual;
+
+        }
+
       }
 
     }
@@ -17970,6 +18043,7 @@ async function waitForLessonVisual(
 
     }
 
+
     await new Promise(
       resolve =>
         setTimeout(
@@ -17980,14 +18054,16 @@ async function waitForLessonVisual(
 
   }
 
+
   console.warn(
     "SEGMENT VISUAL TIMEOUT:",
     visualOrder
   );
 
-  return null;
-}
 
+  return null;
+
+}
 /* =====================================================
    SHOW LESSON VISUAL
 ===================================================== */
@@ -18908,6 +18984,92 @@ async function getLatestLessonTransition(){
     null
   );
 }
+
+async function getSharedLessonTransition(
+  transitionType
+){
+
+  const {
+    data: sessionData
+  } =
+    await sb.auth.getSession();
+
+
+  const session =
+    sessionData?.session;
+
+
+  if(!session){
+
+    console.warn(
+      "SHARED TRANSITION — NO SESSION"
+    );
+
+    return null;
+
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+        `${TUTOR_API_BASE}/api/tutor/shared-transition/${transitionType}`,
+        {
+          method:
+            "GET",
+
+          headers: {
+            "Authorization":
+              `Bearer ${session.access_token}`
+          }
+        }
+      );
+
+
+    if(!response.ok){
+
+      console.warn(
+        "SHARED TRANSITION REQUEST FAILED:",
+        transitionType,
+        response.status
+      );
+
+      return null;
+
+    }
+
+
+    const transition =
+      await response.json();
+
+
+    console.log(
+      "SHARED TRANSITION READY:",
+      {
+        transitionType,
+        transition
+      }
+    );
+
+
+    return transition;
+
+  }
+  catch(error){
+
+    console.error(
+      "SHARED TRANSITION ERROR:",
+      transitionType,
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
 /* =====================================================
    CINEMATIC FADE TO BLACK
 ===================================================== */
@@ -19344,9 +19506,25 @@ async function runSimpleUniversalLesson(
   data
 ){
 
+  const {
+    data: sessionData
+  } =
+    await sb.auth.getSession();
+
+  const session =
+    sessionData?.session;
+
+  if(!session){
+
+    throw new Error(
+      "No active session for universal lesson"
+    );
+
+  }
+
+
   const structuredLesson =
     data?.structured_lesson;
-
 
   if(
     !structuredLesson
@@ -19839,6 +20017,25 @@ let visualForSegment =
   עדיין לא נמצאת בזיכרון המקומי,
   מחכים לה מה-Backend.
 */
+console.log(
+  "SEGMENT VISUAL DEBUG:",
+  {
+    segment: visualOrder,
+    unitLessonId: data?.unit_lesson_id,
+    localVisualOrders:
+      (
+        window.CURRENT_LESSON_VISUALS
+        || []
+      ).map(
+        visual =>
+          visual?.order
+      ),
+    visualFoundLocally:
+      Boolean(
+        visualForSegment
+      )
+  }
+);
 if(
   !visualForSegment
   &&
@@ -20056,7 +20253,83 @@ animateImportantParts(
     &&
     !questionAlreadyIncluded
   ){
+    const questionVisualOrder =
+      lessonParts.length + 1;
 
+    let questionVisual =
+      (
+        window.CURRENT_LESSON_VISUALS
+        || []
+      ).find(
+        visual =>
+          Number(
+            visual?.order || 0
+          )
+          ===
+          Number(
+            questionVisualOrder
+          )
+          &&
+          visual?.url
+      );
+
+    if(
+      !questionVisual
+      &&
+      data?.unit_lesson_id
+    ){
+
+      try{
+
+        questionVisual =
+          await waitForLessonVisual(
+            data.unit_lesson_id,
+            session,
+            questionVisualOrder
+          );
+
+      }
+      catch(error){
+
+        console.warn(
+          "QUESTION VISUAL WAIT FAILED:",
+          {
+            questionVisualOrder,
+            error
+          }
+        );
+
+      }
+
+    }
+
+    if(
+      questionVisual
+      &&
+      questionVisual.url
+    ){
+
+      console.log(
+        "SHOW QUESTION VISUAL:",
+        {
+          visualOrder:
+            questionVisualOrder,
+
+          url:
+            questionVisual.url
+        }
+      );
+
+      window.CURRENT_DISPLAYED_VISUAL_ORDER =
+        Number(
+          questionVisualOrder
+        );
+
+      showLessonVisual(
+        questionVisual
+      );
+
+    }
     const questionAudioUrl =
       await questionAudioPromise;
 
@@ -20266,6 +20539,72 @@ function getLessonSidebarImage(){
 
 }
 
+async function runUniversalLessonPart2(){
+
+  const universalData =
+    window.CURRENT_UNIVERSAL_LESSON_DATA;
+
+  const structuredLesson =
+    universalData?.structured_lesson;
+
+  const part2 =
+    structuredLesson?.part_2;
+
+  if(
+    !part2
+    ||
+    !Array.isArray(
+      part2.lesson
+    )
+  ){
+
+    console.error(
+      "PART 2 DATA NOT FOUND:",
+      universalData
+    );
+
+    return false;
+
+  }
+
+
+  console.log(
+    "STARTING UNIVERSAL LESSON PART 2:",
+    part2
+  );
+
+
+const part2Data = {
+  ...universalData,
+
+  lesson_audio:
+    null,
+
+  audio_generation_status:
+    "pending",
+
+  structured_lesson: {
+    lesson:
+      part2.lesson,
+
+    question:
+      part2.question
+  }
+};
+
+  await runSimpleUniversalLesson(
+    part2Data
+  );
+
+
+  console.log(
+    "UNIVERSAL LESSON PART 2 COMPLETED"
+  );
+
+
+  return true;
+
+}
 
 /* =====================================================
    LOAD REAL LESSONS
@@ -21270,6 +21609,90 @@ async function playKidPersonalIntroVideo(
   }
 
 }
+async function playLessonGenerationIntro(){
+
+const visualArea =
+  document.querySelector(
+    ".lesson-visual-stage"
+  );
+
+  if(!visualArea){
+    console.warn(
+      "LESSON GENERATION INTRO — visual area not found"
+    );
+
+    return false;
+  }
+
+  return new Promise(resolve => {
+
+    visualArea.innerHTML = `
+      <video
+        class="lesson-generation-intro-video"
+        autoplay
+        muted
+        playsinline
+        preload="auto"
+      >
+        <source
+          src="/assets/lesson/iakids-lesson-intro.mp4"
+          type="video/mp4"
+        >
+      </video>
+    `;
+
+    const video =
+      visualArea.querySelector(
+        ".lesson-generation-intro-video"
+      );
+
+    if(!video){
+      resolve(false);
+      return;
+    }
+
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "cover";
+
+    const finish = () => {
+      console.log(
+        "LESSON GENERATION INTRO FINISHED"
+      );
+
+      resolve(true);
+    };
+
+    video.addEventListener(
+      "ended",
+      finish,
+      { once:true }
+    );
+
+    video.addEventListener(
+      "error",
+      () => {
+        console.warn(
+          "LESSON GENERATION INTRO FAILED"
+        );
+
+        resolve(false);
+      },
+      { once:true }
+    );
+
+    video.play().catch(error => {
+      console.warn(
+        "LESSON GENERATION INTRO PLAY FAILED:",
+        error
+      );
+
+      resolve(false);
+    });
+
+  });
+
+}
 async function startSelectedUnitLesson(
   lesson
 ){
@@ -21670,69 +22093,51 @@ const universalLessonPromise =
     session
   );
 
-
 /* =============================================
-   PERSONAL PAID INTRO VIDEO
+   SHARED LESSON OPENING VIDEO
 ============================================= */
-
-let personalIntroPlayed =
-  false;
-
 
 try{
 
-  console.log(
-    "ABOUT TO PLAY PERSONAL INTRO:",
-    introData?.personal_intro
-  );
-
-
-  /* =============================================
-     PERSONAL INTRO BACKGROUND MUSIC
-     חלש יותר בזמן שהמורה מדברת
-  ============================================= */
-
-  window.LESSON_BACKGROUND_MUSIC_VOLUME =
-    0.04;
-
-  await startLessonBackgroundMusic();
-
-
-  personalIntroPlayed =
-    await playKidPersonalIntroVideo(
-      introData?.personal_intro
+  const openingTransition =
+    await getSharedLessonTransition(
+      "opening"
     );
 
 
-  /* =============================================
-     AFTER INTRO
-     חוזרים לעוצמת ההסבר הרגילה
-  ============================================= */
+  if(openingTransition){
 
-  window.LESSON_BACKGROUND_MUSIC_VOLUME =
-    0.07;
+    console.log(
+      "PLAYING SHARED LESSON OPENING"
+    );
 
-  fadeLessonBackgroundMusicTo(
-    0.07,
-    700
+
+    await playLessonTransitionVideo(
+      openingTransition
+    );
+
+  }
+
+}
+catch(error){
+
+  console.warn(
+    "SHARED LESSON OPENING FAILED:",
+    error
   );
 
 }
-catch(
-  personalIntroError
-){
 
-  console.warn(
-    "PERSONAL INTRO PLAY ERROR:",
-    personalIntroError
-  );
+/* =============================================
+   PERSONAL INTRO DISABLED
+   Shared opening video replaces it
+============================================= */
+
+const personalIntroPlayed =
+  false;
 
 window.LESSON_BACKGROUND_MUSIC_VOLUME =
   0.07;
-  personalIntroPlayed =
-    false;
-
-}
 /* =============================================
    SHOW HERO AFTER PERSONAL INTRO
 ============================================= */
@@ -21754,10 +22159,7 @@ await loadLessonHeroImage(
 let introDataToRun =
   introData;
 
-
 if(
-  personalIntroPlayed
-  &&
   Array.isArray(
     introData?.sequence
   )
@@ -21849,14 +22251,14 @@ await runTutorResponse(
   introDataToRun
 );
 
+
+
 /* =============================================
-   טעינת תוכן השיעור האוניברסלי
+   LOAD UNIVERSAL LESSON CONTENT
 ============================================= */
 
 const lessonData =
   await universalLessonPromise;
-
-
 console.log(
   "UNIVERSAL LESSON READY:",
   lessonData
@@ -21874,19 +22276,99 @@ currentLearningMode =
 currentLessonId =
   CURRENT_PARENT_LESSON.id;
 
-
 /* =============================================
-   הפעלת השיעור האוניברסלי הפשוט
-
-   lessonData מכיל:
-   {
-     lesson: "..."
-   }
+   WAIT FOR INITIAL LESSON VISUAL BUFFER
 ============================================= */
 
-await runSimpleUniversalLesson(
-  lessonData
+console.log(
+  "WAITING FOR INITIAL LESSON VISUAL BUFFER"
 );
+
+try{
+
+  const INITIAL_VISUAL_BUFFER_SIZE = 3;
+
+  const bufferedVisuals = [];
+
+  for(
+    let visualOrder = 1;
+    visualOrder <= INITIAL_VISUAL_BUFFER_SIZE;
+    visualOrder++
+  ){
+
+    const visual =
+      await waitForLessonVisual(
+        resolvedUnitLessonId,
+        session,
+        visualOrder
+      );
+
+    if(
+      visual
+      &&
+      visual.url
+    ){
+
+      bufferedVisuals.push(
+        visual
+      );
+
+    }
+
+  }
+
+
+  console.log(
+    "INITIAL LESSON VISUAL BUFFER READY:",
+    bufferedVisuals.map(
+      visual =>
+        visual.order
+    )
+  );
+
+
+  const firstVisual =
+    bufferedVisuals.find(
+      visual =>
+        Number(
+          visual?.order || 0
+        )
+        === 1
+    );
+
+
+  if(
+    firstVisual
+    &&
+    firstVisual.url
+  ){
+
+    window.CURRENT_DISPLAYED_VISUAL_ORDER =
+      1;
+
+    showLessonVisual(
+      firstVisual
+    );
+
+  }
+
+}
+catch(error){
+
+  console.warn(
+    "INITIAL LESSON VISUAL BUFFER FAILED — STARTING ANYWAY",
+    error
+  );
+
+}
+/* =============================================
+   START UNIVERSAL LESSON
+============================================= */
+
+await runSimpleUniversalLesson({
+  ...lessonData,
+  unit_lesson_id: resolvedUnitLessonId
+});
 
     /*
       מסך הטעינה אמור להיסגר אוטומטית
@@ -24139,19 +24621,11 @@ if(
   );
 
 await startLessonBackgroundMusic();
-/*
-  חשוב:
-  הנתונים שנשמרו בתחילת השיעור
-  יכולים להיות ישנים כי הווידאו
-  נוצר ברקע.
-
-  לכן עכשיו מושכים מהשרת
-  את ה-transition העדכני.
-*/
 
 const transition =
-  await getLatestLessonTransition();
-
+  await getSharedLessonTransition(
+    "middle"
+  );
 
 console.log(
   "LATEST LESSON TRANSITION DATA:",
@@ -24181,10 +24655,31 @@ const videoPlayed =
 
   }
 
-
-  console.log(
+console.log(
     "TRANSITION FINISHED — PART 2 READY TO START"
   );
+
+
+  const part2Started =
+    await runUniversalLessonPart2();
+
+
+  if(
+    part2Started
+  ){
+
+    console.log(
+      "PART 2 DISPLAYED SUCCESSFULLY"
+    );
+
+  }
+  else{
+
+    console.error(
+      "PART 2 FAILED TO START"
+    );
+
+  }
 
 }
 
