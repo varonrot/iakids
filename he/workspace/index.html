@@ -14428,56 +14428,7 @@ data-custom-slot="0"
     <!-- =====================================================
      LESSON MEDIA CONTROLS
 ===================================================== -->
-<div class="lesson-flow-track">
-
-  <div class="lesson-flow-step completed">
-    <div class="lesson-flow-node">✓</div>
-    <span>פתיחה</span>
-  </div>
-
-  <div class="lesson-flow-step active">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-book-open"></i>
-    </div>
-    <span>הסבר 1</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-comments"></i>
-    </div>
-    <span>דיאלוג 1</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-book-open"></i>
-    </div>
-    <span>הסבר 2</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-comments"></i>
-    </div>
-    <span>דיאלוג 2</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-flag-checkered"></i>
-    </div>
-    <span>סיכום</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-arrow-right"></i>
-    </div>
-    <span>השלב הבא</span>
-  </div>
-
-</div>
+<div class="lesson-flow-track" id="lessonFlowTrack"></div>
 <div class="lesson-media-controls">
 
   <!-- חזרה 10 שניות -->
@@ -19669,6 +19620,9 @@ async function runSimpleUniversalLesson(
   window.CURRENT_LESSON_VISUAL_PART =
     activeVisualPart;
 
+  window.CURRENT_LESSON_FLOW_PHASE = "explanation";
+  renderDynamicLessonFlow("explanation", activeVisualPart, Number(window.CURRENT_LESSON_PARTS_COUNT || activeVisualPart));
+
   const structuredPartCount =
     Array.isArray(structuredLesson?.parts)
       ? structuredLesson.parts.length
@@ -20706,6 +20660,62 @@ function getLessonSidebarImage(){
     "/assets/science/topics/default.webp"
   );
 
+}
+
+/* =====================================================
+   DYNAMIC LESSON FLOW PROGRESS
+===================================================== */
+window.CURRENT_LESSON_FLOW_PHASE = window.CURRENT_LESSON_FLOW_PHASE || "explanation";
+window.LAST_LESSON_FLOW_RENDER_KEY = null;
+
+function renderDynamicLessonFlow(phase=null, partNumber=null, totalParts=null){
+  const track=document.getElementById("lessonFlowTrack");
+  if(!track) return;
+
+  const safePartNumber=Math.max(1,Number(partNumber||window.CURRENT_LESSON_VISUAL_PART||1));
+  const safeTotalParts=Math.max(safePartNumber,Number(totalParts||window.CURRENT_LESSON_PARTS_COUNT||safePartNumber));
+  const resolvedPhase=phase||window.CURRENT_LESSON_FLOW_PHASE||"explanation";
+
+  window.CURRENT_LESSON_FLOW_PHASE=resolvedPhase;
+  window.CURRENT_LESSON_PARTS_COUNT=safeTotalParts;
+
+  const key=`${resolvedPhase}:${safePartNumber}:${safeTotalParts}`;
+  if(window.LAST_LESSON_FLOW_RENDER_KEY===key) return;
+  window.LAST_LESSON_FLOW_RENDER_KEY=key;
+
+  const steps=[{key:"opening",label:"פתיחה",icon:"✓"}];
+  for(let part=1;part<=safeTotalParts;part+=1){
+    steps.push({key:`explanation-${part}`,label:`הסבר ${part}`,icon:'<i class="fa-solid fa-book-open"></i>'});
+    steps.push({key:`dialog-${part}`,label:`דיאלוג ${part}`,icon:'<i class="fa-solid fa-comments"></i>'});
+  }
+  steps.push(
+    {key:"summary",label:"סיכום",icon:'<i class="fa-solid fa-flag-checkered"></i>'},
+    {key:"next",label:"השלב הבא",icon:'<i class="fa-solid fa-arrow-right"></i>'}
+  );
+
+  let activeKey=`explanation-${safePartNumber}`;
+  if(resolvedPhase==="dialog") activeKey=`dialog-${safePartNumber}`;
+  else if(resolvedPhase==="summary") activeKey="summary";
+  else if(resolvedPhase==="next") activeKey="next";
+
+  const activeIndex=Math.max(0,steps.findIndex(step=>step.key===activeKey));
+  const stepWidth=safeTotalParts>=5?64:safeTotalParts>=4?70:safeTotalParts>=3?78:92;
+
+  track.innerHTML=steps.map((step,index)=>{
+    const stateClass=index<activeIndex?"completed":index===activeIndex?"active":"";
+    const nodeContent=index<activeIndex?"✓":step.icon;
+    return `<div class="lesson-flow-step ${stateClass}" data-flow-key="${step.key}" style="width:${stepWidth}px"><div class="lesson-flow-node">${nodeContent}</div><span>${step.label}</span></div>`;
+  }).join("");
+}
+
+function syncDynamicLessonFlow(){
+  let phase=window.CURRENT_LESSON_FLOW_PHASE||"explanation";
+  if(phase!=="summary"&&phase!=="next"&&typeof currentLearningMode!=="undefined"&&currentLearningMode==="learning_coach") phase="dialog";
+  renderDynamicLessonFlow(phase,Number(window.CURRENT_LESSON_VISUAL_PART||1),Number(window.CURRENT_LESSON_PARTS_COUNT||1));
+}
+if(!window.DYNAMIC_LESSON_FLOW_SYNC_STARTED){
+  window.DYNAMIC_LESSON_FLOW_SYNC_STARTED=true;
+  window.setInterval(syncDynamicLessonFlow,500);
 }
 
 async function runUniversalLessonPart(partNumber){
@@ -24847,6 +24857,11 @@ if(
 
   await startLessonBackgroundMusic();
 
+  if(isLastPart){
+    window.CURRENT_LESSON_FLOW_PHASE = "summary";
+    renderDynamicLessonFlow("summary", currentPartNumber, totalParts);
+  }
+
   const transitionType =
     isLastPart
       ? "closing"
@@ -24863,6 +24878,8 @@ if(
     );
 
   if(isLastPart){
+    window.CURRENT_LESSON_FLOW_PHASE = "next";
+    renderDynamicLessonFlow("next", currentPartNumber, totalParts);
     console.log(
       "FINAL LESSON PART COMPLETED — CLOSING FINISHED"
     );
