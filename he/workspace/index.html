@@ -12331,7 +12331,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידה3</strong>
+    <strong>עולם הלמידה4</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -46205,6 +46205,24 @@ async ask({
     return;
   }
 
+if(
+  window.SELECTED_UNIT_LESSON
+){
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT ||
+      1
+    )
+  );
+}
 
   /*
     מחלקים את תגובת ה-Learning Coach
