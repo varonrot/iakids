@@ -352,3 +352,87 @@ async function showLessonCompletionScreen(){
 
   return true;
 }
+
+
+function updateLessonUnitProgressGauge(){
+  const gauge =
+    document.getElementById("lessonProgressGauge");
+
+  const scoreEl =
+    document.getElementById("lessonProgressScore");
+
+  const labelEl =
+    document.getElementById("lessonProgressUnitLabel");
+
+  if(!gauge || !scoreEl){
+    return;
+  }
+
+  const lessons =
+    Array.isArray(window.LESSON_SIDEBAR_ROWS)
+      ? window.LESSON_SIDEBAR_ROWS
+      : [];
+
+  const currentOrder =
+    Math.max(
+      1,
+      Number(
+        window.SELECTED_UNIT_LESSON?.lesson_order
+        || 1
+      )
+    );
+
+  const totalLessons =
+    Math.max(
+      lessons.length,
+      currentOrder
+    );
+
+  const phase =
+    String(
+      window.CURRENT_LESSON_FLOW_PHASE
+      || "explanation"
+    );
+
+  const currentLessonCompleted =
+    phase === "summary"
+    || phase === "next";
+
+  const completedCount =
+    Math.max(
+      0,
+      Math.min(
+        totalLessons,
+        currentOrder - 1 + (currentLessonCompleted ? 1 : 0)
+      )
+    );
+
+  const progress =
+    totalLessons > 0
+      ? Math.round(
+          completedCount / totalLessons * 100
+        )
+      : 0;
+
+  gauge.style.setProperty(
+    "--value",
+    String(progress)
+  );
+
+  scoreEl.textContent =
+    `${progress}%`;
+
+  if(labelEl){
+    labelEl.textContent =
+      `${completedCount} מתוך ${totalLessons} שיעורים`;
+  }
+}
+
+if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
+  window.UNIT_PROGRESS_GAUGE_SYNC_STARTED = true;
+
+  window.setInterval(
+    updateLessonUnitProgressGauge,
+    500
+  );
+}
