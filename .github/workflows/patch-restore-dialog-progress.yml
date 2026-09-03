@@ -1,0 +1,79 @@
+name: Patch restored dialog progress
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-restore-dialog-progress.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply restored dialog progress patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('he/workspace/index.html')
+          t = p.read_text(encoding='utf-8')
+
+          anchor = '''await runTutorResponse({
+
+    sequence:
+      lastAssistantMessage.sequence,
+
+    wait_for_answer:
+      true,
+
+    restored:
+      true,
+
+    lesson_mode:
+      "learning_coach"
+  });'''
+
+          if anchor not in t:
+              raise SystemExit('restore learning_coach anchor not found')
+
+          replacement = anchor + '''
+
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      state?.flow_state?.part_number
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );'''
+
+          t = t.replace(anchor, replacement, 1)
+          p.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Commit restored dialog progress
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/patch-restore-dialog-progress.yml
+          git add he/workspace/index.html .github/workflows/patch-restore-dialog-progress.yml
+          git commit -m "Restore dialog progress state after refresh"
+          git push
