@@ -34,6 +34,8 @@ function ensureAiTeacherWaitingPanelStyles(){
     .lesson-ai-waiting-wave .wave-line:nth-child(3){animation-duration:8.4s;opacity:.54;}
     .lesson-ai-waiting-wave.wave-b{top:51%;opacity:.62;transform:scaleX(1.08);}
     .lesson-ai-waiting-wave.wave-b .wave-line{animation-duration:9s;animation-direction:alternate-reverse;opacity:.45;}
+    .lesson-completion-card.partial{border-color:rgba(242,189,85,.55)!important;box-shadow:inset 0 0 0 1px rgba(242,189,85,.10)!important;}
+    .lesson-completion-card.partial .lesson-completion-card-status{color:#f2bd55!important;}
     .lesson-ai-waiting-status{position:relative;z-index:5;display:flex;align-items:center;gap:9px;margin-top:4px;padding:10px 18px;border-radius:999px;border:1px solid rgba(74,157,255,.28);background:rgba(7,27,58,.72);color:#cfe5ff;font-size:13px;font-weight:750;}
     .lesson-ai-waiting-dot{width:9px;height:9px;border-radius:50%;background:#42e8a1;box-shadow:0 0 12px #42e8a1;animation:iakidsWaitingPulse 1.8s ease-in-out infinite;}
     @keyframes iakidsWaitingSvgShift{0%{transform:translateX(-10px)}50%{transform:translateX(8px)}100%{transform:translateX(18px)}}
@@ -146,11 +148,26 @@ async function showLessonCompletionScreen(){
       currentOrder
     );
 
-  const completedCount =
-    Math.min(
-      currentOrder,
-      totalLessons
+  const savedProgressRows =
+    Array.isArray(window.LESSON_SIDEBAR_PROGRESS_ROWS)
+      ? window.LESSON_SIDEBAR_PROGRESS_ROWS
+      : [];
+
+  const progressByLessonId =
+    new Map(
+      savedProgressRows.map(
+        row => [Number(row?.unit_lesson_id || 0), row]
+      )
     );
+
+  const completedCount =
+    lessons.filter(
+      lesson =>
+        String(
+          progressByLessonId.get(Number(lesson?.id || 0))?.status
+          || "not_started"
+        ) === "completed"
+    ).length;
 
   const unitProgress =
     totalLessons
@@ -197,18 +214,48 @@ async function showLessonCompletionScreen(){
                   || `שיעור ${order}`
                 );
 
+              const savedProgress =
+                progressByLessonId.get(
+                  Number(lesson?.id || 0)
+                ) || null;
+
+              const savedStatus =
+                String(
+                  savedProgress?.status
+                  || "not_started"
+                );
+
               const isCompleted =
-                order <= currentOrder;
+                savedStatus === "completed";
+
+              const isPartial =
+                savedStatus === "partial"
+                || savedStatus === "in_progress";
+
+              const previousLessonsCompleted =
+                lessons
+                  .slice(0, index)
+                  .every(
+                    previousLesson =>
+                      String(
+                        progressByLessonId.get(Number(previousLesson?.id || 0))?.status
+                        || "not_started"
+                      ) === "completed"
+                  );
 
               const isNext =
-                order === currentOrder + 1;
+                !isCompleted
+                && !isPartial
+                && previousLessonsCompleted;
 
               const stateClass =
                 isCompleted
                   ? "completed"
-                  : isNext
-                    ? "next"
-                    : "locked";
+                  : isPartial
+                    ? "partial"
+                    : isNext
+                      ? "next"
+                      : "locked";
 
               const status =
                 isCompleted
@@ -217,9 +264,11 @@ async function showLessonCompletionScreen(){
                         ? `הושלם • ${score}%`
                         : "הושלם ✓"
                     )
-                  : isNext
-                    ? "השיעור הבא"
-                    : "טרם נפתח 🔒";
+                  : isPartial
+                    ? "התחלת את השיעור • אפשר להמשיך"
+                    : isNext
+                      ? "השיעור הבא"
+                      : "טרם נפתח 🔒";
 
               const button =
                 isNext
@@ -469,24 +518,22 @@ function updateLessonUnitProgressGauge(){
       currentOrder
     );
 
-  const phase =
-    String(
-      window.CURRENT_LESSON_FLOW_PHASE
-      || "explanation"
-    );
+  const savedProgressRows =
+    Array.isArray(window.LESSON_SIDEBAR_PROGRESS_ROWS)
+      ? window.LESSON_SIDEBAR_PROGRESS_ROWS
+      : [];
 
-  const currentLessonCompleted =
-    phase === "summary"
-    || phase === "next";
+  const completedIds =
+    new Set(
+      savedProgressRows
+        .filter(row => String(row?.status || "") === "completed")
+        .map(row => Number(row?.unit_lesson_id || 0))
+    );
 
   const completedCount =
-    Math.max(
-      0,
-      Math.min(
-        totalLessons,
-        currentOrder - 1 + (currentLessonCompleted ? 1 : 0)
-      )
-    );
+    lessons.filter(
+      lesson => completedIds.has(Number(lesson?.id || 0))
+    ).length;
 
   const progress =
     totalLessons > 0
