@@ -1,0 +1,27 @@
+name: Patch live progress refresh v059
+on:
+  push:
+    paths:
+      - '.github/workflows/run-live-progress-refresh-v059.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_live_progress_refresh_v059.py
+      - name: Validate build marker
+        run: grep -q 'IAKIDS • build 0.5.9' he/workspace/index.html
+      - name: Validate refresh hook
+        run: grep -q 'refreshKidUnitLessonProgressRows' he/workspace/lesson-completion.js
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_live_progress_refresh_v059.py
+          rm .github/workflows/run-live-progress-refresh-v059.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html he/workspace/lesson-completion.js .github
+          git commit -m 'Refresh unit progress before completion screen; build 0.5.9'
+          git push
