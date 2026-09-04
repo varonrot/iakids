@@ -21480,6 +21480,105 @@ async function loadRealLessonSidebar(
 
 
   /* =============================================
+     CLEAN LESSON WORKSPACE SWITCH
+     לחיצה מהסרגל צריכה להתחיל שיעור חדש
+     בלי DOM / audio / flow שנשארו מהשיעור הקודם.
+  ============================================= */
+
+  async function resetLessonWorkspaceBeforeSidebarSwitch(){
+
+    clearNoResponseTimer();
+
+    try{
+      stopLessonBackgroundMusic();
+    }
+    catch(error){
+      console.warn(
+        "SIDEBAR SWITCH — BACKGROUND AUDIO STOP WARNING:",
+        error
+      );
+    }
+
+    if(window.currentLessonAudio){
+      try{
+        window.currentLessonAudio.pause();
+        window.currentLessonAudio.currentTime = 0;
+      }
+      catch(error){
+        console.warn(
+          "SIDEBAR SWITCH — LESSON AUDIO STOP WARNING:",
+          error
+        );
+      }
+
+      window.currentLessonAudio = null;
+    }
+
+    if(window.lessonRenderer){
+      window.lessonRenderer.isRunning = false;
+    }
+
+    const messages =
+      document.querySelector(
+        ".messages"
+      );
+
+    if(messages){
+      messages.innerHTML = "";
+    }
+
+    const input =
+      document.querySelector(
+        ".lesson-chat-workspace input, .lesson-chat-workspace textarea"
+      );
+
+    if(input){
+      input.value = "";
+    }
+
+    const visualStage =
+      document.querySelector(
+        ".lesson-visual-stage"
+      );
+
+    if(visualStage){
+      visualStage.innerHTML = "";
+    }
+
+    window.CURRENT_UNIVERSAL_LESSON_DATA = null;
+    window.CURRENT_LESSON_VISUALS = [];
+    window.CURRENT_DISPLAYED_VISUAL_ORDER = null;
+    window.CURRENT_LESSON_VISUAL_PART = 1;
+    window.CURRENT_LESSON_PARTS_COUNT = 1;
+    window.CURRENT_LESSON_FLOW_PHASE = "explanation";
+    window.LAST_LESSON_FLOW_RENDER_KEY = null;
+
+    currentLearningMode =
+      "lesson_intro";
+
+    currentLessonId =
+      null;
+
+    renderDynamicLessonFlow(
+      "explanation",
+      1,
+      1
+    );
+
+    console.log(
+      "SIDEBAR LESSON WORKSPACE RESET COMPLETE"
+    );
+
+    await new Promise(
+      resolve =>
+        requestAnimationFrame(
+          () => resolve()
+        )
+    );
+  }
+
+
+  /* =============================================
      CLICK — שיעור אמיתי
   ============================================= */
 
@@ -21560,6 +21659,8 @@ async function loadRealLessonSidebar(
               זה אותו מנגנון שכבר משמש
               את כרטיסי השיעורים ברמה 5.
             */
+
+            await resetLessonWorkspaceBeforeSidebarSwitch();
 
             await startSelectedUnitLesson(
               lesson
@@ -52465,6 +52566,6 @@ function(audio){
 </script>
 
 <script src="/he/workspace/lesson-completion.js"></script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.2</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.6.2";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.3</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.6.3";</script>
 </body></html>
