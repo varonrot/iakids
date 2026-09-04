@@ -1,0 +1,30 @@
+name: Patch parent progress v071
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/patch-parent-progress-v071.py'
+      - '.github/workflows/run-parent-progress-v071.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch-parent-progress-v071.py
+      - name: Validate
+        run: |
+          grep -q 'kid_unit_lesson_progress' he/parent-panel/index.html
+          grep -q 'unit_lesson_id' he/parent-panel/index.html
+          grep -q 'lesson_units_content' he/parent-panel/index.html
+          grep -q 'build 0.7.1' he/parent-panel/index.html
+      - name: Cleanup and commit
+        run: |
+          rm -f .github/scripts/patch-parent-progress-v071.py .github/workflows/run-parent-progress-v071.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/parent-panel/index.html .github/scripts/patch-parent-progress-v071.py .github/workflows/run-parent-progress-v071.yml
+          git commit -m 'Connect parent panel to unit lesson progress build 0.7.1'
+          git push
