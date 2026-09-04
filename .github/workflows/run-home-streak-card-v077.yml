@@ -1,0 +1,25 @@
+name: Home streak card v077
+on:
+  push:
+    paths:
+      - '.github/workflows/run-home-streak-card-v077.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python .github/scripts/patch-home-streak-card-v077.py
+      - name: Validate
+        run: |
+          grep -q 'HOME DAILY STREAK CARD — balanced 4-card row' he/workspace/index.html
+          grep -q 'IAKIDS • build 0.7.7' he/workspace/index.html
+      - name: Cleanup and commit
+        run: |
+          rm -f .github/scripts/patch-home-streak-card-v077.py .github/workflows/run-home-streak-card-v077.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Balance daily streak card in home status row build 0.7.7'
+          git push
