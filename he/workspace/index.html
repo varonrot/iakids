@@ -12349,6 +12349,35 @@ body.custom-subject-mode
   object-fit:cover;
 }
 
+
+/* Progress button placement/icon — build 0.7.2 */
+.lesson-progress-card-style{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+}
+.lesson-progress-card-icon{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:#66d8ff;
+  background:linear-gradient(180deg,rgba(34,112,174,.34),rgba(23,73,135,.30));
+  border:1px solid rgba(82,184,255,.42);
+  box-shadow:inset 0 0 12px rgba(28,159,255,.10);
+}
+.lesson-progress-card-icon svg{
+  width:21px;
+  height:21px;
+  display:block;
+}
+.lesson-progress-card-text{
+  flex:1;
+  text-align:right;
+}
 </style>
 <link rel="stylesheet" href="/he/workspace/lesson-completion.css">
 
@@ -21726,18 +21755,31 @@ async function loadRealLessonSidebar(
 function ensureLessonProgressButton(){
   const list = document.getElementById("lessonSidebarList");
   if(!list || document.getElementById("lessonProgressOpenBtn")) return;
+
   const btn = document.createElement("button");
   btn.type = "button";
   btn.id = "lessonProgressOpenBtn";
   btn.className = "lesson-progress-open-btn lesson-progress-card-style";
   btn.innerHTML = `
-    <span class="lesson-progress-card-text">ההתקדמות שלי</span>
-    <span class="lesson-progress-card-image" aria-hidden="true">
-      <img src="/assets/science/categories/ecology.webp" alt="">
+    <span class="lesson-progress-card-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M4 19V10M10 19V6M16 19V3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M3 20h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M5 12l4-4 4 2 6-6" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16.5 4H19v2.5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </span>
+    <span class="lesson-progress-card-text">ההתקדמות שלי</span>
   `;
+
   btn.addEventListener("click", openStudentLessonProgressPanel);
-  list.parentElement?.insertBefore(btn, list);
+
+  const unitCard = document.querySelector(".lesson-sidebar-unit");
+  if(unitCard?.parentElement){
+    unitCard.parentElement.insertBefore(btn, unitCard);
+  }else{
+    list.parentElement?.insertBefore(btn, list);
+  }
 }
 
 function startLessonFromProgressPanel(lessonId){
@@ -52859,6 +52901,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.0</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.2</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
