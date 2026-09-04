@@ -1,0 +1,29 @@
+name: Patch sidebar click v062
+on:
+  push:
+    paths:
+      - '.github/workflows/run-sidebar-click-v062.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_sidebar_click_v062.py
+      - name: Validate build
+        run: grep -q 'IAKIDS • build 0.6.2' he/workspace/index.html
+      - name: Validate click guard removed
+        run: '! grep -q "row.dataset.locked" he/workspace/index.html'
+      - name: Validate pointer input
+        run: grep -q 'pointer-events:auto !important' he/workspace/index.html
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_sidebar_click_v062.py
+          rm .github/workflows/run-sidebar-click-v062.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html .github
+          git commit -m 'Make all sidebar lessons clickable; build 0.6.2'
+          git push
