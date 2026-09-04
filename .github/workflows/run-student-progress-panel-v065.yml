@@ -1,0 +1,31 @@
+name: Patch student progress panel v065
+on:
+  push:
+    paths:
+      - '.github/workflows/run-student-progress-panel-v065.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_student_progress_panel_v065.py
+      - name: Validate build
+        run: grep -q 'IAKIDS • build 0.6.5' he/workspace/index2.html
+      - name: Validate progress button
+        run: grep -q 'lessonProgressOpenBtn' he/workspace/index2.html
+      - name: Validate progress panel
+        run: grep -q 'openStudentLessonProgressPanel' he/workspace/index2.html
+      - name: Validate hard reload handoff
+        run: grep -q 'iakids_pending_sidebar_lesson' he/workspace/index2.html
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_student_progress_panel_v065.py
+          rm .github/workflows/run-student-progress-panel-v065.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html he/workspace/index2.html .github
+          git commit -m 'Add student lesson progress panel; build 0.6.5'
+          git push
