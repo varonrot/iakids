@@ -21438,12 +21438,8 @@ async function loadRealLessonSidebar(
                   lesson.id
                 )
               }"
-
-              ${
-                isLocked
-                  ? 'data-locked="true"'
-                  : ""
-              }
+              role="button"
+              tabindex="0"
             >
 
               <div
@@ -21497,16 +21493,6 @@ async function loadRealLessonSidebar(
         row.addEventListener(
           "click",
           async () => {
-
-
-            if(
-              row.dataset.locked ===
-              "true"
-            ){
-
-              return;
-
-            }
 
 
             const lessonId =
@@ -21581,6 +21567,16 @@ async function loadRealLessonSidebar(
 
           }
 
+        );
+
+        row.addEventListener(
+          "keydown",
+          event => {
+            if(event.key === "Enter" || event.key === " "){
+              event.preventDefault();
+              row.click();
+            }
+          }
         );
 
       }
@@ -42706,6 +42702,9 @@ body.lesson-theme-science
 .lesson-sidebar-row{
   position:relative !important;
 
+  pointer-events:auto !important;
+  cursor:pointer !important;
+
   z-index:
     2 !important;
 
@@ -52466,6 +52465,6 @@ function(audio){
 </script>
 
 <script src="/he/workspace/lesson-completion.js"></script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.1</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.6.1";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.2</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.6.2";</script>
 </body></html>
