@@ -21171,6 +21171,60 @@ async function loadRealLessonSidebar(
       : [];
 
 
+  /* =============================================
+     התקדמות אמיתית של הילד בכל שיעור פנימי
+  ============================================= */
+
+  let unitLessonProgressRows = [];
+
+  if(CURRENT_KID?.id){
+
+    const {
+      data: progressData,
+      error: progressError
+    } = await sb
+      .from("kid_unit_lesson_progress")
+      .select(`
+        unit_lesson_id,
+        status,
+        progress_percent,
+        mastery_score,
+        best_mastery_score,
+        last_activity_at,
+        completed_at
+      `)
+      .eq("kid_id", CURRENT_KID.id)
+      .eq("learning_lesson_id", parentLessonId);
+
+    if(progressError){
+      console.warn(
+        "LESSON SIDEBAR PROGRESS LOAD WARNING:",
+        progressError
+      );
+    }
+    else{
+      unitLessonProgressRows =
+        Array.isArray(progressData)
+          ? progressData
+          : [];
+    }
+
+  }
+
+  const progressByLessonId =
+    new Map(
+      unitLessonProgressRows.map(
+        row => [
+          Number(row.unit_lesson_id),
+          row
+        ]
+      )
+    );
+
+  window.LESSON_SIDEBAR_PROGRESS_ROWS =
+    unitLessonProgressRows;
+
+
   window.LESSON_SIDEBAR_ROWS =
     lessons;
 
@@ -21272,27 +21326,66 @@ async function loadRealLessonSidebar(
             currentIndex;
 
 
-          /*
-            כרגע:
-            שיעורים לפני השיעור הנוכחי
-            מוצגים כהושלמו.
+          const lessonProgress =
+            progressByLessonId.get(
+              Number(lesson.id)
+            ) || null;
 
-            השיעור הנוכחי = current.
 
-            שיעורים אחריו = locked.
+          const savedStatus =
+            String(
+              lessonProgress?.status
+              || "not_started"
+            );
 
-            בשלב הבא נחבר completed
-            ל-kid_lesson_progress עצמו.
-          */
 
           const isCompleted =
-            index <
-            currentIndex;
+            savedStatus ===
+            "completed";
+
+
+          const isPartial =
+            savedStatus ===
+            "partial";
+
+
+          const isInProgress =
+            savedStatus ===
+            "in_progress";
+
+
+          /*
+            פתיחה סדרתית:
+            - שיעור שהושלם תמיד פתוח לחזרה.
+            - שיעור חלקי/בתהליך פתוח להמשך.
+            - השיעור הנוכחי פתוח.
+            - שיעור חדש נפתח רק אם כל הקודמים הושלמו.
+          */
+
+          const previousLessonsCompleted =
+            lessons
+              .slice(0, index)
+              .every(
+                previousLesson =>
+                  String(
+                    progressByLessonId.get(
+                      Number(previousLesson.id)
+                    )?.status
+                    || "not_started"
+                  ) === "completed"
+              );
 
 
           const isLocked =
-            index >
-            currentIndex;
+            !isCurrent
+            &&
+            !isCompleted
+            &&
+            !isPartial
+            &&
+            !isInProgress
+            &&
+            !previousLessonsCompleted;
 
 
           let rowClass =
@@ -21308,32 +21401,52 @@ async function loadRealLessonSidebar(
             rowClass =
               "current";
 
-
-            statusHtml = `
-              <span></span>
-            `;
+            statusHtml =
+              isCompleted
+                ? "✓"
+                : isPartial
+                  ? "◐"
+                  : `<span></span>`;
 
           }
-          else if(
-            isCompleted
-          ){
+          else if(isCompleted){
 
             rowClass =
               "completed";
-
 
             statusHtml =
               "✓";
 
           }
-          else{
+          else if(
+            isPartial
+            ||
+            isInProgress
+          ){
+
+            rowClass =
+              "partial";
+
+            statusHtml =
+              "◐";
+
+          }
+          else if(isLocked){
 
             rowClass =
               "locked";
 
-
             statusHtml =
               "🔒";
+
+          }
+          else{
+
+            rowClass =
+              "available";
+
+            statusHtml =
+              "▶";
 
           }
 
@@ -44354,6 +44467,17 @@ body.lesson-theme-science .lesson-sidebar-teacher::after{
   display: none !important;
   content: none !important;
 }
+/* REAL UNIT LESSON PROGRESS STATES */
+body.lesson-theme-science .lesson-sidebar-row.partial{
+  opacity:.92;
+}
+body.lesson-theme-science .lesson-sidebar-row.partial .lesson-sidebar-status{
+  color:#f2bd55;
+}
+body.lesson-theme-science .lesson-sidebar-row.available .lesson-sidebar-status{
+  color:#66d9ff;
+}
+
 </style>
 
 
@@ -52376,6 +52500,6 @@ function(audio){
 </script>
 
 <script src="/he/workspace/lesson-completion.js"></script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.5.6</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.5.6";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.5.7</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.5.7";</script>
 </body></html>
