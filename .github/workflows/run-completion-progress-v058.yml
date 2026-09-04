@@ -1,0 +1,25 @@
+name: Patch real completion progress v058
+on:
+  push:
+    paths:
+      - '.github/workflows/run-completion-progress-v058.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_completion_progress_v058.py
+      - name: Validate build marker
+        run: grep -q 'IAKIDS • build 0.5.8' he/workspace/index.html
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_completion_progress_v058.py
+          rm .github/workflows/run-completion-progress-v058.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html he/workspace/lesson-completion.js .github
+          git commit -m 'Connect unit dashboard to real progress; build 0.5.8'
+          git push
