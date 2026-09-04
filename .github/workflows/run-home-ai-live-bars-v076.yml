@@ -1,0 +1,27 @@
+name: Home AI live bars v076
+on:
+  push:
+    paths:
+      - '.github/workflows/run-home-ai-live-bars-v076.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch-home-ai-live-bars-v076.py
+      - name: Validate
+        run: |
+          grep -q 'KINGDOM AI LIVE BARS — build 0.7.6' he/workspace/index.html
+          grep -q 'kingdom-status-ai-live' he/workspace/index.html
+          grep -q 'IAKIDS • build 0.7.6' he/workspace/index.html
+      - name: Cleanup and commit
+        run: |
+          rm -f .github/scripts/patch-home-ai-live-bars-v076.py .github/workflows/run-home-ai-live-bars-v076.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Add AI live animated bars to home status row build 0.7.6'
+          git push
