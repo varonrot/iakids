@@ -1,0 +1,27 @@
+name: Fix progress button syntax v067
+on:
+  push:
+    paths:
+      - '.github/workflows/run-progress-button-syntax-v067.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_progress_button_quote_v067.py
+      - name: Validate build and syntax target
+        run: |
+          grep -q 'IAKIDS • build 0.6.7' he/workspace/index.html
+          grep -q 'btn.innerHTML = `' he/workspace/index.html
+          grep -q '/assets/lesson/my-progress.webp' he/workspace/index.html
+      - name: Commit patch
+        run: |
+          rm -f .github/scripts/patch_progress_button_quote_v067.py .github/workflows/run-progress-button-syntax-v067.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Fix progress button syntax; build 0.6.7'
+          git push
