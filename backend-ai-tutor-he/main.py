@@ -2524,6 +2524,62 @@ def start_kid_unit_lesson_progress(
         print("UNIT LESSON PROGRESS START WARNING:", repr(e))
         return None
 
+def complete_kid_unit_lesson_progress(
+        kid_id: str,
+        unit_lesson_id: int,
+        mastery_score: int
+):
+    now_iso = datetime.now(timezone.utc).isoformat()
+    final_score = max(0, min(100, int(mastery_score or 0)))
+
+    try:
+        current_res = (
+            sb.table("kid_unit_lesson_progress")
+            .select("id, best_mastery_score")
+            .eq("kid_id", kid_id)
+            .eq("unit_lesson_id", unit_lesson_id)
+            .limit(1)
+            .execute()
+        )
+
+        if not current_res.data:
+            print("UNIT LESSON PROGRESS COMPLETE WARNING: row not found", {
+                "kid_id": kid_id,
+                "unit_lesson_id": unit_lesson_id
+            })
+            return None
+
+        current = current_res.data[0]
+        best_score = max(
+            int(current.get("best_mastery_score") or 0),
+            final_score
+        )
+
+        updated = (
+            sb.table("kid_unit_lesson_progress")
+            .update({
+                "status": "completed",
+                "progress_percent": 100,
+                "current_stage": LESSON_STAGE_FINAL_ASSESSMENT,
+                "mastery_score": final_score,
+                "best_mastery_score": best_score,
+                "last_activity_at": now_iso,
+                "completed_at": now_iso,
+                "updated_at": now_iso
+            })
+            .eq("id", current["id"])
+            .execute()
+        )
+
+        return updated.data[0] if updated.data else current
+
+    except Exception as e:
+        # Do not break the existing lesson engine if the migration has not
+        # reached an environment yet.
+        print("UNIT LESSON PROGRESS COMPLETE WARNING:", repr(e))
+        return None
+
+
 def get_or_create_lesson_progress(
         kid_id: str,
         lesson: dict,
@@ -14653,6 +14709,13 @@ def run_learning_coach(
         if progress_update.data:
             progress = (
                 progress_update.data[0]
+            )
+
+        if not has_next_part:
+            complete_kid_unit_lesson_progress(
+                kid_id=child["id"],
+                unit_lesson_id=unit_lesson["id"],
+                mastery_score=overall_mastery_score
             )
 
     else:
