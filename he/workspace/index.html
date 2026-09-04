@@ -21641,8 +21641,15 @@ function ensureLessonProgressButton(){
   btn.type = "button";
   btn.id = "lessonProgressOpenBtn";
   btn.className = "lesson-progress-open-btn";
-  btn.innerHTML = "<img class="lesson-progress-button-image" src="/assets/lesson/my-progress.webp" alt="" aria-hidden="true">
-      <span>ההתקדמות שלי</span>";
+  btn.innerHTML = `
+    <img
+      class="lesson-progress-button-image"
+      src="/assets/lesson/my-progress.webp"
+      alt=""
+      aria-hidden="true"
+    >
+    <span>ההתקדמות שלי</span>
+  `;
   btn.addEventListener("click", openStudentLessonProgressPanel);
   list.parentElement?.insertBefore(btn, list);
 }
@@ -52766,6 +52773,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.6</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.6.6";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.7</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
