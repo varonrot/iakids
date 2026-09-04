@@ -1,0 +1,27 @@
+name: Patch progress inline icon v069
+on:
+  push:
+    paths:
+      - '.github/workflows/run-progress-inline-icon-v069.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_progress_inline_icon_v069.py
+      - name: Validate
+        run: |
+          grep -q 'lesson-progress-inline-icon' he/workspace/index.html
+          grep -q 'IAKIDS • build 0.6.9' he/workspace/index.html
+          ! grep -A12 'lessonProgressOpenBtn' he/workspace/index.html | grep -q 'my-progress.webp'
+      - name: Commit patch
+        run: |
+          rm -f .github/scripts/patch_progress_inline_icon_v069.py .github/workflows/run-progress-inline-icon-v069.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Replace progress image with inline icon; build 0.6.9'
+          git push
