@@ -1,0 +1,26 @@
+name: Patch progress button v072
+on:
+  push:
+    paths:
+      - '.github/workflows/run-progress-button-v072.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch-progress-button-v072.py
+      - name: Validate
+        run: |
+          grep -q 'lesson-progress-card-icon' he/workspace/index.html
+          grep -q 'IAKIDS • build 0.7.2' he/workspace/index.html
+      - name: Cleanup and commit
+        run: |
+          rm -f .github/scripts/patch-progress-button-v072.py .github/workflows/run-progress-button-v072.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html .github/scripts/patch-progress-button-v072.py .github/workflows/run-progress-button-v072.yml
+          git commit -m 'Move progress button above unit and use icon build 0.7.2'
+          git push
