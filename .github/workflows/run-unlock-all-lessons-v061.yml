@@ -1,0 +1,27 @@
+name: Patch unlock all lessons v061
+on:
+  push:
+    paths:
+      - '.github/workflows/run-unlock-all-lessons-v061.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_unlock_all_lessons_v061.py
+      - name: Validate build
+        run: grep -q 'IAKIDS • build 0.6.1' he/workspace/index.html
+      - name: Validate sidebar unlocked
+        run: grep -q 'const isLocked = false' he/workspace/index.html
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_unlock_all_lessons_v061.py
+          rm .github/workflows/run-unlock-all-lessons-v061.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html he/workspace/lesson-completion.js .github
+          git commit -m 'Keep all unit lessons open; build 0.6.1'
+          git push
