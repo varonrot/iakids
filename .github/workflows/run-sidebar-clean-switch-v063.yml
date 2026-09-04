@@ -1,0 +1,29 @@
+name: Patch clean sidebar lesson switch v063
+on:
+  push:
+    paths:
+      - '.github/workflows/run-sidebar-clean-switch-v063.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_sidebar_clean_switch_v063.py
+      - name: Validate build
+        run: grep -q 'IAKIDS • build 0.6.3' he/workspace/index.html
+      - name: Validate clean switch helper
+        run: grep -q 'SIDEBAR LESSON WORKSPACE RESET COMPLETE' he/workspace/index.html
+      - name: Validate sidebar uses reset
+        run: grep -q 'await resetLessonWorkspaceBeforeSidebarSwitch();' he/workspace/index.html
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_sidebar_clean_switch_v063.py
+          rm .github/workflows/run-sidebar-clean-switch-v063.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html .github
+          git commit -m 'Reset lesson workspace on sidebar switch; build 0.6.3'
+          git push
