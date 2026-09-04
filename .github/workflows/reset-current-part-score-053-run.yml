@@ -1,0 +1,28 @@
+name: Run current part score reset 0.5.3
+on:
+  push:
+    paths:
+      - '.github/workflows/reset-current-part-score-053-run.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply score animation patch
+        shell: bash
+        run: |
+          python -c 'from pathlib import Path; p=Path("he/workspace/index.html"); s=p.read_text(encoding="utf-8"); old="console.log(\"CALLING animateLessonScore\");\n  await animateLessonScore(\n    finalScore,\n    {\n      duration:1450,\n      sound:true\n    }\n  );"; new="console.log(\"CALLING animateLessonScore\");\n\n  renderLessonScore(0);\n  currentDisplayedLessonScore = 0;\n\n  await animateLessonScore(\n    finalScore,\n    {\n      duration:1450,\n      sound:true\n    }\n  );"; assert old in s, "score animation anchor not found"; s=s.replace(old,new,1); assert "build 0.5.2" in s, "build marker not found"; s=s.replace("build 0.5.2","build 0.5.3",1); p.write_text(s,encoding="utf-8")'
+      - name: Commit patch
+        shell: bash
+        run: |
+          rm -f .github/workflows/reset-current-part-score-053-run.yml
+          rm -f .github/workflows/reset-current-part-score-before-animation-053.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html .github/workflows/reset-current-part-score-053-run.yml .github/workflows/reset-current-part-score-before-animation-053.yml
+          git commit -m 'Reset current-part score before answer animation; build 0.5.3'
+          git push
