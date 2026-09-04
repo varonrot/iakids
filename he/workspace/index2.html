@@ -21171,6 +21171,60 @@ async function loadRealLessonSidebar(
       : [];
 
 
+  /* =============================================
+     התקדמות אמיתית של הילד בכל שיעור פנימי
+  ============================================= */
+
+  let unitLessonProgressRows = [];
+
+  if(CURRENT_KID?.id){
+
+    const {
+      data: progressData,
+      error: progressError
+    } = await sb
+      .from("kid_unit_lesson_progress")
+      .select(`
+        unit_lesson_id,
+        status,
+        progress_percent,
+        mastery_score,
+        best_mastery_score,
+        last_activity_at,
+        completed_at
+      `)
+      .eq("kid_id", CURRENT_KID.id)
+      .eq("learning_lesson_id", parentLessonId);
+
+    if(progressError){
+      console.warn(
+        "LESSON SIDEBAR PROGRESS LOAD WARNING:",
+        progressError
+      );
+    }
+    else{
+      unitLessonProgressRows =
+        Array.isArray(progressData)
+          ? progressData
+          : [];
+    }
+
+  }
+
+  const progressByLessonId =
+    new Map(
+      unitLessonProgressRows.map(
+        row => [
+          Number(row.unit_lesson_id),
+          row
+        ]
+      )
+    );
+
+  window.LESSON_SIDEBAR_PROGRESS_ROWS =
+    unitLessonProgressRows;
+
+
   window.LESSON_SIDEBAR_ROWS =
     lessons;
 
@@ -21272,27 +21326,41 @@ async function loadRealLessonSidebar(
             currentIndex;
 
 
-          /*
-            כרגע:
-            שיעורים לפני השיעור הנוכחי
-            מוצגים כהושלמו.
+          const lessonProgress =
+            progressByLessonId.get(
+              Number(lesson.id)
+            ) || null;
 
-            השיעור הנוכחי = current.
 
-            שיעורים אחריו = locked.
+          const savedStatus =
+            String(
+              lessonProgress?.status
+              || "not_started"
+            );
 
-            בשלב הבא נחבר completed
-            ל-kid_lesson_progress עצמו.
-          */
 
           const isCompleted =
-            index <
-            currentIndex;
+            savedStatus ===
+            "completed";
 
 
-          const isLocked =
-            index >
-            currentIndex;
+          const isPartial =
+            savedStatus ===
+            "partial";
+
+
+          const isInProgress =
+            savedStatus ===
+            "in_progress";
+
+
+          /*
+            כל השיעורים פתוחים תמיד.
+            סטטוס ההתקדמות משמש להצגה ומעקב בלבד,
+            ולא לחסימת גישה לשיעורים.
+          */
+
+          const isLocked = false;
 
 
           let rowClass =
@@ -21308,32 +21376,43 @@ async function loadRealLessonSidebar(
             rowClass =
               "current";
 
-
-            statusHtml = `
-              <span></span>
-            `;
+            statusHtml =
+              isCompleted
+                ? "✓"
+                : isPartial
+                  ? "◐"
+                  : `<span></span>`;
 
           }
-          else if(
-            isCompleted
-          ){
+          else if(isCompleted){
 
             rowClass =
               "completed";
-
 
             statusHtml =
               "✓";
 
           }
+          else if(
+            isPartial
+            ||
+            isInProgress
+          ){
+
+            rowClass =
+              "partial";
+
+            statusHtml =
+              "◐";
+
+          }
           else{
 
             rowClass =
-              "locked";
-
+              "available";
 
             statusHtml =
-              "🔒";
+              "▶";
 
           }
 
@@ -21359,12 +21438,8 @@ async function loadRealLessonSidebar(
                   lesson.id
                 )
               }"
-
-              ${
-                isLocked
-                  ? 'data-locked="true"'
-                  : ""
-              }
+              role="button"
+              tabindex="0"
             >
 
               <div
@@ -21418,16 +21493,6 @@ async function loadRealLessonSidebar(
         row.addEventListener(
           "click",
           async () => {
-
-
-            if(
-              row.dataset.locked ===
-              "true"
-            ){
-
-              return;
-
-            }
 
 
             const lessonId =
@@ -21496,12 +21561,55 @@ async function loadRealLessonSidebar(
               את כרטיסי השיעורים ברמה 5.
             */
 
-            await startSelectedUnitLesson(
-              lesson
+            /*
+              HARD RELOAD מבוקר:
+              שומרים את יעד השיעור ואת הקונטקסט של העץ,
+              מרעננים את כל העמוד, ואז bootstrap בתחתית
+              פותח את השיעור מאפס דרך אותו entry flow.
+            */
+
+            const pendingSidebarLesson = {
+              lesson: {
+                ...lesson
+              },
+              parentLesson: {
+                ...CURRENT_PARENT_LESSON
+              },
+              unit: {
+                ...CURRENT_UNIT
+              },
+              category:
+                SCIENCE_SELECTED_CATEGORY
+                ||
+                CURRENT_PARENT_LESSON?.category
+                ||
+                null,
+              savedAt:
+                Date.now()
+            };
+
+            sessionStorage.setItem(
+              "iakids_pending_sidebar_lesson",
+              JSON.stringify(
+                pendingSidebarLesson
+              )
             );
+
+            window.location.reload();
+            return;
 
           }
 
+        );
+
+        row.addEventListener(
+          "keydown",
+          event => {
+            if(event.key === "Enter" || event.key === " "){
+              event.preventDefault();
+              row.click();
+            }
+          }
         );
 
       }
@@ -42627,6 +42735,9 @@ body.lesson-theme-science
 .lesson-sidebar-row{
   position:relative !important;
 
+  pointer-events:auto !important;
+  cursor:pointer !important;
+
   z-index:
     2 !important;
 
@@ -44354,6 +44465,17 @@ body.lesson-theme-science .lesson-sidebar-teacher::after{
   display: none !important;
   content: none !important;
 }
+/* REAL UNIT LESSON PROGRESS STATES */
+body.lesson-theme-science .lesson-sidebar-row.partial{
+  opacity:.92;
+}
+body.lesson-theme-science .lesson-sidebar-row.partial .lesson-sidebar-status{
+  color:#f2bd55;
+}
+body.lesson-theme-science .lesson-sidebar-row.available .lesson-sidebar-status{
+  color:#66d9ff;
+}
+
 </style>
 
 
@@ -52376,6 +52498,179 @@ function(audio){
 </script>
 
 <script src="/he/workspace/lesson-completion.js"></script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.5.4</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.5.4";</script>
+<script id="iakidsSidebarHardReloadBootstrapV064">
+(function(){
+
+  const STORAGE_KEY =
+    "iakids_pending_sidebar_lesson";
+
+  const raw =
+    sessionStorage.getItem(
+      STORAGE_KEY
+    );
+
+  if(!raw){
+    return;
+  }
+
+  let pending =
+    null;
+
+  try{
+    pending =
+      JSON.parse(raw);
+  }
+  catch(error){
+    console.error(
+      "SIDEBAR HARD RELOAD — INVALID PENDING DATA:",
+      error
+    );
+
+    sessionStorage.removeItem(
+      STORAGE_KEY
+    );
+
+    return;
+  }
+
+  if(
+    !pending?.lesson?.id
+    ||
+    Date.now()
+      - Number(pending.savedAt || 0)
+      > 5 * 60 * 1000
+  ){
+    sessionStorage.removeItem(
+      STORAGE_KEY
+    );
+    return;
+  }
+
+  let attempts = 0;
+
+  const tryResume =
+    window.setInterval(
+      async () => {
+
+        attempts++;
+
+        const kidReady =
+          typeof CURRENT_KID !== "undefined"
+          &&
+          CURRENT_KID?.id;
+
+        const engineReady =
+          typeof startSelectedUnitLesson
+          === "function";
+
+        if(
+          !kidReady
+          ||
+          !engineReady
+        ){
+
+          if(attempts >= 150){
+            window.clearInterval(
+              tryResume
+            );
+
+            console.error(
+              "SIDEBAR HARD RELOAD — APP NOT READY"
+            );
+          }
+
+          return;
+        }
+
+        window.clearInterval(
+          tryResume
+        );
+
+        /*
+          מסירים לפני הפתיחה כדי שגם אם
+          startSelectedUnitLesson נכשל לא נקבל reload loop.
+        */
+        sessionStorage.removeItem(
+          STORAGE_KEY
+        );
+
+        try{
+
+          CURRENT_PARENT_LESSON = {
+            ...pending.parentLesson
+          };
+
+          CURRENT_UNIT = {
+            ...pending.unit
+          };
+
+          if(
+            typeof SCIENCE_SELECTED_CATEGORY
+            !== "undefined"
+            &&
+            pending.category
+          ){
+            SCIENCE_SELECTED_CATEGORY =
+              pending.category;
+          }
+
+          document.body.classList.remove(
+            "science-hierarchy-mode"
+          );
+
+          const scienceView =
+            document.getElementById(
+              "scienceHierarchyView"
+            );
+
+          if(scienceView){
+            scienceView.style.display =
+              "none";
+          }
+
+          const dashboard =
+            document.getElementById(
+              "dashboardView"
+            );
+
+          if(dashboard){
+            dashboard.style.display =
+              "none";
+          }
+
+          const pathView =
+            document.getElementById(
+              "learningPathView"
+            );
+
+          if(pathView){
+            pathView.style.display =
+              "none";
+          }
+
+          console.log(
+            "SIDEBAR HARD RELOAD — OPENING LESSON:",
+            pending.lesson
+          );
+
+          await startSelectedUnitLesson(
+            pending.lesson
+          );
+
+        }
+        catch(error){
+          console.error(
+            "SIDEBAR HARD RELOAD — OPEN FAILED:",
+            error
+          );
+        }
+
+      },
+      100
+    );
+
+})();
+</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.4</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.6.4";</script>
 </body></html>
