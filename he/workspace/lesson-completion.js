@@ -277,30 +277,12 @@ async function showLessonCompletionScreen(){
                 savedStatus === "partial"
                 || savedStatus === "in_progress";
 
-              const previousLessonsCompleted =
-                lessons
-                  .slice(0, index)
-                  .every(
-                    previousLesson =>
-                      String(
-                        progressByLessonId.get(Number(previousLesson?.id || 0))?.status
-                        || "not_started"
-                      ) === "completed"
-                  );
-
-              const isNext =
-                !isCompleted
-                && !isPartial
-                && previousLessonsCompleted;
-
               const stateClass =
                 isCompleted
                   ? "completed"
                   : isPartial
                     ? "partial"
-                    : isNext
-                      ? "next"
-                      : "locked";
+                    : "next";
 
               const status =
                 isCompleted
@@ -311,22 +293,24 @@ async function showLessonCompletionScreen(){
                     )
                   : isPartial
                     ? "התחלת את השיעור • אפשר להמשיך"
-                    : isNext
-                      ? "השיעור הבא"
-                      : "טרם נפתח 🔒";
+                    : "טרם התחלת • אפשר לפתוח";
 
-              const button =
-                isNext
-                  ? `
-                    <button
-                      type="button"
-                      class="lesson-completion-next-btn"
-                      data-next-order="${order}"
-                    >
-                      המשך לשיעור הבא ←
-                    </button>
-                  `
-                  : "";
+              const buttonLabel =
+                isCompleted
+                  ? "חזרה לשיעור"
+                  : isPartial
+                    ? "המשך"
+                    : "פתיחה";
+
+              const button = `
+                <button
+                  type="button"
+                  class="lesson-completion-next-btn"
+                  data-next-order="${order}"
+                >
+                  ${buttonLabel}
+                </button>
+              `;
 
               return `
                 <article
@@ -464,53 +448,61 @@ async function showLessonCompletionScreen(){
     </section>
   `;
 
-  const nextButton =
-    visualArea.querySelector(
+  visualArea
+    .querySelectorAll(
       ".lesson-completion-next-btn"
-    );
+    )
+    .forEach(button => {
 
-  if(
-    nextButton
-    &&
-    nextLesson
-  ){
+      button.addEventListener(
+        "click",
+        async () => {
 
-    nextButton.addEventListener(
-      "click",
-      async () => {
+          const order =
+            Number(
+              button.dataset.nextOrder
+            );
 
-        nextButton.disabled =
-          true;
+          const targetLesson =
+            lessons.find(
+              lesson =>
+                Number(lesson?.lesson_order || 0)
+                === order
+            );
 
-        nextButton.textContent =
-          "פותח את השיעור הבא…";
+          if(!targetLesson){
+            return;
+          }
 
-        try{
+          const originalText =
+            button.textContent;
 
-          await startSelectedUnitLesson(
-            nextLesson
-          );
+          button.disabled = true;
+          button.textContent = "פותח שיעור…";
+
+          try{
+
+            await startSelectedUnitLesson(
+              targetLesson
+            );
+
+          }
+          catch(error){
+
+            console.error(
+              "START LESSON FROM COMPLETION FAILED:",
+              error
+            );
+
+            button.disabled = false;
+            button.textContent = originalText;
+
+          }
 
         }
-        catch(error){
+      );
 
-          console.error(
-            "START NEXT LESSON FROM COMPLETION FAILED:",
-            error
-          );
-
-          nextButton.disabled =
-            false;
-
-          nextButton.textContent =
-            "המשך לשיעור הבא ←";
-
-        }
-
-      }
-    );
-
-  }
+    });
 
   showAiTeacherWaitingPanel();
 

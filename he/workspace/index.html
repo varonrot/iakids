@@ -21355,37 +21355,12 @@ async function loadRealLessonSidebar(
 
 
           /*
-            פתיחה סדרתית:
-            - שיעור שהושלם תמיד פתוח לחזרה.
-            - שיעור חלקי/בתהליך פתוח להמשך.
-            - השיעור הנוכחי פתוח.
-            - שיעור חדש נפתח רק אם כל הקודמים הושלמו.
+            כל השיעורים פתוחים תמיד.
+            סטטוס ההתקדמות משמש להצגה ומעקב בלבד,
+            ולא לחסימת גישה לשיעורים.
           */
 
-          const previousLessonsCompleted =
-            lessons
-              .slice(0, index)
-              .every(
-                previousLesson =>
-                  String(
-                    progressByLessonId.get(
-                      Number(previousLesson.id)
-                    )?.status
-                    || "not_started"
-                  ) === "completed"
-              );
-
-
-          const isLocked =
-            !isCurrent
-            &&
-            !isCompleted
-            &&
-            !isPartial
-            &&
-            !isInProgress
-            &&
-            !previousLessonsCompleted;
+          const isLocked = false;
 
 
           let rowClass =
@@ -21429,15 +21404,6 @@ async function loadRealLessonSidebar(
 
             statusHtml =
               "◐";
-
-          }
-          else if(isLocked){
-
-            rowClass =
-              "locked";
-
-            statusHtml =
-              "🔒";
 
           }
           else{
@@ -52500,6 +52466,6 @@ function(audio){
 </script>
 
 <script src="/he/workspace/lesson-completion.js"></script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.0</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.6.0";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.6.1</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.6.1";</script>
 </body></html>
