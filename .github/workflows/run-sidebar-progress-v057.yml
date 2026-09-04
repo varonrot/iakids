@@ -1,0 +1,25 @@
+name: Patch real sidebar progress v057
+on:
+  push:
+    paths:
+      - '.github/workflows/run-sidebar-progress-v057.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_sidebar_progress_v057.py
+      - name: Validate build marker
+        run: grep -q 'IAKIDS • build 0.5.7' he/workspace/index.html
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_sidebar_progress_v057.py
+          rm .github/workflows/run-sidebar-progress-v057.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html .github
+          git commit -m 'Connect lesson sidebar to real progress; build 0.5.7'
+          git push
