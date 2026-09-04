@@ -12500,6 +12500,24 @@ body.custom-subject-mode
   box-sizing:border-box !important;
 }
 
+
+
+/* =====================================================
+   LESSON SIDEBAR TOP CONTROLS — beat legacy specificity
+   build 0.7.5
+===================================================== */
+body.lesson-theme-science .lesson-lessons-sidebar .lesson-sidebar-back-to-workspace,
+body.lesson-theme-science .lesson-lessons-sidebar #lessonProgressOpenBtn,
+body.lesson-theme-science .lesson-lessons-sidebar .lesson-sidebar-unit{
+  width:calc(100% - 20px) !important;
+  min-width:calc(100% - 20px) !important;
+  max-width:calc(100% - 20px) !important;
+  margin:8px 10px 0 !important;
+  align-self:auto !important;
+  transform:none !important;
+  box-sizing:border-box !important;
+}
+
 </style>
 <link rel="stylesheet" href="/he/workspace/lesson-completion.css">
 
@@ -53023,6 +53041,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.4</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.5</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
