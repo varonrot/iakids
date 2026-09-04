@@ -1,0 +1,29 @@
+name: Patch lesson intro progress v060
+on:
+  push:
+    paths:
+      - '.github/workflows/run-lesson-intro-progress-v060.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/scripts/patch_lesson_intro_progress_v060.py
+      - name: Validate backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Validate hook
+        run: grep -q 'lesson-intro is the real entry point used by' backend-ai-tutor-he/main.py
+      - name: Validate build
+        run: grep -q 'IAKIDS • build 0.6.0' he/workspace/index.html
+      - name: Commit patch
+        run: |
+          rm .github/scripts/patch_lesson_intro_progress_v060.py
+          rm .github/workflows/run-lesson-intro-progress-v060.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend-ai-tutor-he/main.py he/workspace/index.html .github
+          git commit -m 'Track unit progress from lesson intro; build 0.6.0'
+          git push
