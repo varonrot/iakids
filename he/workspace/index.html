@@ -12905,13 +12905,13 @@ body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{hei
     <div class="topbar-stats">
 
       <div class="stat-pill">
-        <span class="stat-icon">⭐</span>
-        <span class="stat-value">890</span>
+        <span class="stat-icon">🪙</span>
+        <span class="stat-value" id="kidCoinsValue">0</span>
       </div>
 
       <div class="stat-pill">
         <span class="stat-icon">💎</span>
-        <span class="stat-value">45</span>
+        <span class="stat-value" id="kidDiamondsValue">0</span>
       </div>
 
       <div class="notification-btn">
@@ -24131,6 +24131,8 @@ const { data: kid, error } = await sb
     child_name,
     age,
     avatar_key,
+    coins,
+    diamonds,
     usage_goals,
     learning_interests
   `)
@@ -24143,6 +24145,11 @@ const { data: kid, error } = await sb
     return;
   }
 CURRENT_KID = kid;
+
+const coinsEl = document.getElementById("kidCoinsValue");
+const diamondsEl = document.getElementById("kidDiamondsValue");
+if (coinsEl) coinsEl.textContent = Number(kid.coins ?? 0).toLocaleString("he-IL");
+if (diamondsEl) diamondsEl.textContent = Number(kid.diamonds ?? 0).toLocaleString("he-IL");
 
 /* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
 CURRENT_KID.grade = Number(kid.age);
@@ -53201,6 +53208,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.7</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.8</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
