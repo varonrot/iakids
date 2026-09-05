@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Build 0.7.9 direct Supabase progress refresh patch.
 path = Path('he/workspace/index.html')
 text = path.read_text(encoding='utf-8')
 original = text
