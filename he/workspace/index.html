@@ -82,7 +82,6 @@ select{
 /* TOP */
 .topbar{grid-column:1/4;grid-row:1;direction:rtl;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 22px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(14px);z-index:20}
 .brand{display:flex;align-items:center;gap:12px;direction:rtl}.brand img{width:58px;height:58px;object-fit:contain;border-radius:18px}.brand-title{font-size:23px;font-weight:900}.brand-sub{font-size:13px;color:var(--muted);margin-top:4px}.brand-ai{font-size:11px;color:#fff;background:linear-gradient(135deg,var(--purple),#a77bff);padding:4px 7px;border-radius:8px}
-.stat-pill{position:relative;overflow:visible}
 .top-actions{display:flex;align-items:center;gap:10px}.top-pill{height:48px;border:1px solid var(--line);background:#fff;border-radius:15px;padding:0 17px;color:#3c4675;font-weight:900;box-shadow:0 4px 14px rgba(45,50,100,.05);cursor:pointer}.top-pill i{color:var(--purple);font-size:18px;margin-left:8px}
 .user-menu{position:relative}.user-trigger{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px;font-weight:900}.user-trigger img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:var(--soft)}.user-menu{
   position:relative;
@@ -12876,14 +12875,6 @@ body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{hei
 }
 </style>
 
-
-<style id="kingdom-streak-headline-v085">
-.kingdom-status-streak .kingdom-streak-headline{display:flex!important;align-items:baseline!important;gap:10px!important;direction:rtl!important;white-space:nowrap!important;}
-.kingdom-status-streak .kingdom-streak-headline .kingdom-status-label{margin:0!important;}
-.kingdom-status-streak .kingdom-streak-headline .kingdom-streak-number{display:inline-flex!important;align-items:baseline!important;gap:4px!important;margin:0!important;line-height:1!important;}
-.kingdom-status-streak .kingdom-streak-headline .kingdom-streak-number small{font-size:9px!important;font-weight:700!important;}
-.kingdom-status-streak .kingdom-streak-main p{margin:4px 0 0!important;}
-</style>
 </head>
 <body>
 <div
@@ -12914,13 +12905,13 @@ body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{hei
     <div class="topbar-stats">
 
       <div class="stat-pill">
-        <span class="stat-icon">🪙</span>
-        <span class="stat-value" id="kidCoinsValue">0</span>
+        <span class="stat-icon">⭐</span>
+        <span class="stat-value">890</span>
       </div>
 
       <div class="stat-pill">
         <span class="stat-icon">💎</span>
-        <span class="stat-value" id="kidDiamondsValue">0</span>
+        <span class="stat-value">45</span>
       </div>
 
       <div class="notification-btn">
@@ -13935,16 +13926,14 @@ data-custom-slot="0"
       </div>
 
       <div>
-        <div class="kingdom-streak-headline">
-          <span class="kingdom-status-label">
-            רצף יומי
-          </span>
+        <span class="kingdom-status-label">
+          רצף יומי
+        </span>
 
-          <strong class="kingdom-streak-number">
-            12
-            <small>ימים</small>
-          </strong>
-        </div>
+        <strong class="kingdom-streak-number">
+          12
+          <small>ימים</small>
+        </strong>
 
         <p>
           כל הכבוד! המשך כך
@@ -22125,30 +22114,10 @@ function renderStudentLessonProgressList(filter="all"){
   host.querySelectorAll("[data-progress-lesson-id]").forEach(btn=>btn.addEventListener("click",()=>startLessonFromProgressPanel(Number(btn.dataset.progressLessonId))));
 }
 
-async function openStudentLessonProgressPanel(){
+function openStudentLessonProgressPanel(){
   const stage=document.querySelector(".lesson-visual-stage"); if(!stage) return;
   document.getElementById("studentLessonProgressPanel")?.remove();
-  const rows=window.LESSON_SIDEBAR_ROWS||[];
-
-  if(CURRENT_KID?.id && rows.length){
-    const lessonIds = rows.map(row => Number(row.id)).filter(Boolean);
-    const { data: freshProgressRows, error: freshProgressError } = await sb
-      .from("kid_unit_lesson_progress")
-      .select("unit_lesson_id,status,progress_percent,current_stage,last_part_number,mastery_score,best_mastery_score,attempts_count,last_activity_at,completed_at")
-      .eq("kid_id", CURRENT_KID.id)
-      .in("unit_lesson_id", lessonIds);
-
-    if(freshProgressError){
-      console.warn("STUDENT PROGRESS PANEL FRESH LOAD WARNING:", freshProgressError);
-    }
-    else{
-      window.LESSON_SIDEBAR_PROGRESS_ROWS = Array.isArray(freshProgressRows)
-        ? freshProgressRows
-        : [];
-    }
-  }
-
-  const pmap=new Map((window.LESSON_SIDEBAR_PROGRESS_ROWS||[]).map(r=>[Number(r.unit_lesson_id),r]));
+  const rows=window.LESSON_SIDEBAR_ROWS||[]; const pmap=new Map((window.LESSON_SIDEBAR_PROGRESS_ROWS||[]).map(r=>[Number(r.unit_lesson_id),r]));
   const counts={completed:0,partial:0,in_progress:0,not_started:0}; rows.forEach(l=>{const s=String(pmap.get(Number(l.id))?.status||"not_started"); counts[s]=(counts[s]||0)+1;});
   const panel=document.createElement("div"); panel.id="studentLessonProgressPanel"; panel.className="lesson-student-progress-panel";
   panel.innerHTML=`<div class="lesson-student-progress-shell"><div class="lesson-student-progress-head"><div><h2>ההתקדמות שלי</h2><small>${escapeLessonSidebarHtml(CURRENT_UNIT?.unit_name||CURRENT_PARENT_LESSON?.lesson_name||"")}</small></div><button class="lesson-student-progress-close" type="button">✕ חזרה לשיעור</button></div><div class="lesson-progress-summary"><div class="lesson-progress-stat"><strong>${rows.length}</strong><span>שיעורים ביחידה</span></div><div class="lesson-progress-stat"><strong>${counts.completed}</strong><span>הושלמו</span></div><div class="lesson-progress-stat"><strong>${counts.partial}</strong><span>צריך להשלים</span></div><div class="lesson-progress-stat"><strong>${counts.in_progress}</strong><span>בתהליך</span></div></div><div class="lesson-progress-filters"><button class="lesson-progress-filter active" data-progress-filter="all">הכול</button><button class="lesson-progress-filter" data-progress-filter="in_progress">בתהליך</button><button class="lesson-progress-filter" data-progress-filter="needs_completion">צריך להשלים</button><button class="lesson-progress-filter" data-progress-filter="completed">הושלמו</button><button class="lesson-progress-filter" data-progress-filter="not_started">טרם התחלת</button></div><section class="lesson-progress-unit"><div class="lesson-progress-unit-title">${escapeLessonSidebarHtml(CURRENT_UNIT?.unit_name||"השיעורים שלי")}</div><div id="lessonProgressItems" class="lesson-progress-items"></div></section></div>`;
@@ -24162,8 +24131,6 @@ const { data: kid, error } = await sb
     child_name,
     age,
     avatar_key,
-    coins,
-    diamonds,
     usage_goals,
     learning_interests
   `)
@@ -24176,11 +24143,6 @@ const { data: kid, error } = await sb
     return;
   }
 CURRENT_KID = kid;
-
-const coinsEl = document.getElementById("kidCoinsValue");
-const diamondsEl = document.getElementById("kidDiamondsValue");
-if (coinsEl) coinsEl.textContent = Number(kid.coins ?? 0).toLocaleString("he-IL");
-if (diamondsEl) diamondsEl.textContent = Number(kid.diamonds ?? 0).toLocaleString("he-IL");
 
 /* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
 CURRENT_KID.grade = Number(kid.age);
@@ -53239,6 +53201,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.9.0</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.7</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
