@@ -25675,7 +25675,7 @@ if(
 
   await startLessonBackgroundMusic();
 
-  awardPartCoins(10, currentPartNumber).catch((error) => {
+  awardPartCoins(10, currentPartNumber, Number(window.CURRENT_UNIT_LESSON_ID || CURRENT_LESSON?.id || 0)).catch((error) => {
     console.error("NON-BLOCKING COIN REWARD ERROR:", error);
   });
 
@@ -45097,10 +45097,10 @@ async function unlockLessonAudio() {
   }
 
 }
-async function awardPartCoins(amount = 10, explicitPartNumber = null){
+async function awardPartCoins(amount = 10, explicitPartNumber = null, explicitUnitLessonId = null){
   const kidId = CURRENT_KID?.id || localStorage.getItem("active_kid_id");
-  const unitLessonId = Number(CURRENT_LESSON?.id || window.CURRENT_UNIT_LESSON_ID || window.CURRENT_LESSON_ID || 0);
-  const partNumber = Number(explicitPartNumber || window.CURRENT_LESSON_VISUAL_PART || window.CURRENT_LESSON_PART_NUMBER || 1);
+  const unitLessonId = Number(explicitUnitLessonId || 0);
+  const partNumber = Number(explicitPartNumber || 0);
   if(!kidId || !unitLessonId || !partNumber) return;
 
   const { data, error } = await sb.rpc("claim_part_coin_reward", {
@@ -53291,6 +53291,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.8.5</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.8.6</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
