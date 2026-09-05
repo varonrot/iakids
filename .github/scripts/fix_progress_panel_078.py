@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 
+# Build 0.7.8 targeted progress-panel refresh patch.
 path = Path('he/workspace/index.html')
 text = path.read_text(encoding='utf-8')
 original = text
