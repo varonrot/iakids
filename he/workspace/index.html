@@ -45087,45 +45087,43 @@ async function unlockLessonAudio() {
 }
 async function awardPartCoins(amount = 10){
   const kidId = CURRENT_KID?.id || localStorage.getItem("active_kid_id");
-  if(!kidId) return;
+  const unitLessonId = Number(window.CURRENT_UNIT_LESSON_ID || window.CURRENT_LESSON_ID || CURRENT_LESSON?.id || 0);
+  const partNumber = Number(window.CURRENT_LESSON_VISUAL_PART || window.CURRENT_LESSON_PART_NUMBER || 1);
+  if(!kidId || !unitLessonId || !partNumber) return;
 
-  const { data: profile, error: readError } = await sb
-    .from("kids_profiles")
-    .select("coins")
-    .eq("id", kidId)
-    .single();
+  const { data, error } = await sb.rpc("claim_part_coin_reward", {
+    p_kid_id: kidId,
+    p_unit_lesson_id: unitLessonId,
+    p_part_number: partNumber,
+    p_amount: Number(amount || 10)
+  });
 
-  if(readError || !profile){
-    console.error("COIN REWARD READ ERROR:", readError);
+  if(error){
+    console.error("COIN REWARD CLAIM ERROR:", error);
     return;
   }
 
-  const nextCoins = Number(profile.coins || 0) + Number(amount || 0);
-  const { error: updateError } = await sb
-    .from("kids_profiles")
-    .update({ coins: nextCoins })
-    .eq("id", kidId);
-
-  if(updateError){
-    console.error("COIN REWARD UPDATE ERROR:", updateError);
-    return;
-  }
+  const result = Array.isArray(data) ? data[0] : data;
+  const nextCoins = Number(result?.coins ?? CURRENT_KID?.coins ?? 0);
+  const awarded = result?.awarded === true;
 
   if(CURRENT_KID) CURRENT_KID.coins = nextCoins;
   const coinsEl = document.getElementById("kidCoinsValue");
   if(coinsEl){
     coinsEl.textContent = nextCoins.toLocaleString("he-IL");
-    const pill = coinsEl.closest(".stat-pill");
-    if(pill){
-      pill.querySelectorAll(".coin-reward-pop").forEach(el => el.remove());
-      const pop = document.createElement("span");
-      pop.className = "coin-reward-pop";
-      pop.textContent = `+${Number(amount || 0)} 🪙`;
-      pill.appendChild(pop);
-      window.setTimeout(() => pop.remove(), 1300);
+    if(awarded){
+      const pill = coinsEl.closest(".stat-pill");
+      if(pill){
+        pill.querySelectorAll(".coin-reward-pop").forEach(el => el.remove());
+        const pop = document.createElement("span");
+        pop.className = "coin-reward-pop";
+        pop.textContent = `+${Number(amount || 0)} 🪙`;
+        pill.appendChild(pop);
+        window.setTimeout(() => pop.remove(), 1300);
+      }
     }
   }
-  console.log("🪙 PART REWARD:", { amount, coins: nextCoins });
+  console.log("🪙 PART REWARD CLAIM:", { awarded, unitLessonId, partNumber, coins: nextCoins });
 }
 
 /* =====================================================
@@ -53281,6 +53279,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.8.0</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.8.1</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
