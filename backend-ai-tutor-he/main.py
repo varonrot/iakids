@@ -16520,6 +16520,68 @@ def reset_unit_lesson(
         )
 
         # =============================================
+        # RESET UNIT LESSON PROGRESS ROW
+        #
+        # kid_unit_lesson_progress היא טבלת ההתקדמות
+        # החדשה ברמת תת־השיעור. כפתור "להתחיל מחדש"
+        # חייב לאפס גם אותה, אחרת השיעור נשאר completed
+        # למרות שהטבלה הראשית הישנה כבר אופסה.
+        # =============================================
+
+        unit_progress_reset = (
+            sb.table(
+                "kid_unit_lesson_progress"
+            )
+            .update({
+                "status":
+                    "in_progress",
+
+                "progress_percent":
+                    0,
+
+                "current_stage":
+                    LESSON_STAGE_INTRO,
+
+                "last_part_number":
+                    1,
+
+                "mastery_score":
+                    0,
+
+                "best_mastery_score":
+                    0,
+
+                "attempts_count":
+                    0,
+
+                "started_at":
+                    now_iso,
+
+                "last_activity_at":
+                    now_iso,
+
+                "completed_at":
+                    None,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "learning_lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
         # RESET MAIN PROGRESS ROW
         #
         # kid_lesson_progress היא רשומה אחת לנושא,
@@ -16707,6 +16769,12 @@ def reset_unit_lesson(
                     "progress_reset":
                         progress is not None,
 
+                    "unit_progress_reset":
+                        bool(
+                            unit_progress_reset.data
+                            or []
+                        ),
+
                     "lesson_content_deleted":
                         False,
 
@@ -16738,6 +16806,9 @@ def reset_unit_lesson(
                     True,
 
                 "lesson_progress":
+                    True,
+
+                "unit_lesson_progress":
                     True
             },
 
