@@ -12522,7 +12522,7 @@ body.lesson-theme-science .lesson-lessons-sidebar .lesson-sidebar-unit{
 
 /* =====================================================
    HOME DAILY STREAK CARD — balanced 4-card row
-   build 0.7.8
+   build 0.7.9
 ===================================================== */
 .kingdom-status-row{
   grid-template-columns: 1fr 1fr 1.18fr 1fr !important;
@@ -22121,7 +22121,36 @@ async function openStudentLessonProgressPanel(){
   // This prevents a stale cached progress map from showing
   // a lesson as "not started" after it was already opened.
   try{
-    await loadLessonSidebarProgress();
+    const progressKidId = CURRENT_KID?.id || window.ACTIVE_KID_ID || null;
+    const progressParentLessonId = Number(
+      CURRENT_PARENT_LESSON?.id
+      || window.CURRENT_LESSON_ID
+      || 0
+    );
+
+    if(progressKidId && progressParentLessonId){
+      const { data: freshProgressRows, error: freshProgressError } = await sb
+        .from("kid_unit_lesson_progress")
+        .select(`
+          unit_lesson_id,
+          status,
+          progress_percent,
+          mastery_score,
+          best_mastery_score,
+          last_activity_at,
+          completed_at
+        `)
+        .eq("kid_id", progressKidId)
+        .eq("learning_lesson_id", progressParentLessonId);
+
+      if(freshProgressError){
+        console.warn("LESSON PROGRESS REFRESH WARNING:", freshProgressError);
+      }else{
+        window.LESSON_SIDEBAR_PROGRESS_ROWS = Array.isArray(freshProgressRows)
+          ? freshProgressRows
+          : [];
+      }
+    }
   }catch(err){
     console.warn("LESSON PROGRESS REFRESH WARNING:",err);
   }
@@ -53210,6 +53239,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.8</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.9</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
