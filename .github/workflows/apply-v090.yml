@@ -1,0 +1,25 @@
+name: Apply v0.9.0 lesson part sync
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v090.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: python .github/scripts/patch-v090.py
+      - run: |
+          grep -q 'IAKIDS • build 0.9.0' he/workspace/index.html
+          grep -q 'part_number: int | None = None' backend-ai-tutor-he/main.py
+          grep -q 'body.part_number' backend-ai-tutor-he/main.py
+      - run: |
+          rm .github/scripts/patch-v090.py .github/workflows/apply-v090.yml
+          rm -f .github/scripts/patch-explicit-part-v090.py .github/workflows/run-explicit-part-v090.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Fix lesson coach part synchronization v0.9.0'
+          git push
