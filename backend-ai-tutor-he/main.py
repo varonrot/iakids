@@ -10975,10 +10975,16 @@ def lesson_intro(
         # =============================================
         # UNIT LESSON PROGRESS START
         #
-        # Unit lesson progress is started only from the
-        # explicit requested_unit_lesson_id path below.
-        # This avoids marking a fallback/default unit lesson
-        # as in_progress when the child selected another lesson.
+        # lesson-intro is the authoritative lesson-open event.
+        # It already carries the exact selected unit_lesson_id,
+        # so mark that lesson in_progress here.
+        # =============================================
+
+        start_kid_unit_lesson_progress(
+            kid_id=child["id"],
+            learning_lesson_id=parent_lesson["id"],
+            unit_lesson_id=body.unit_lesson_id
+        )
 
         # =============================================
         # TUTOR SESSION
