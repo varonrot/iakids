@@ -1,0 +1,32 @@
+name: Apply lesson progress source v0.8.3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/run-progress-source-v083.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply patch
+        run: python .github/scripts/patch-progress-source-v083.py
+      - name: Commit patch and clean temporary files
+        run: |
+          rm .github/scripts/patch-progress-source-v083.py
+          rm .github/workflows/run-progress-source-v083.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/index.html .github/scripts/patch-progress-source-v083.py .github/workflows/run-progress-source-v083.yml
+          git commit -m "Use selected unit lesson as progress source (v0.8.3)"
+          git push origin main
