@@ -10975,15 +10975,15 @@ def lesson_intro(
         # =============================================
         # UNIT LESSON PROGRESS START
         #
-        # lesson-intro is the authoritative lesson-open event.
-        # It already carries the exact selected unit_lesson_id,
-        # so mark that lesson in_progress here.
+        # lesson-intro is the real entry point used by
+        # the current workspace when a child opens an
+        # internal lesson. Persist that start here.
         # =============================================
 
         start_kid_unit_lesson_progress(
             kid_id=child["id"],
             learning_lesson_id=parent_lesson["id"],
-            unit_lesson_id=body.unit_lesson_id
+            unit_lesson_id=unit_lesson["id"]
         )
 
         # =============================================
