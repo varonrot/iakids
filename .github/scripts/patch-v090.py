@@ -1,15 +1,52 @@
 from pathlib import Path
-p=Path('he/workspace/index.html'); s=p.read_text(encoding='utf-8')
-a='''requestBody = {\n  message: text,\n\n  kid_id:\n    CURRENT_KID.id,\n'''
-z='''requestBody = {\n  message: text,\n\n  part_number:\n    Number(window.CURRENT_LESSON_VISUAL_PART || 1),\n\n  kid_id:\n    CURRENT_KID.id,\n'''
-if a not in s: raise SystemExit('frontend anchor missing')
-s=s.replace(a,z).replace('IAKIDS • build 0.8.9','IAKIDS • build 0.9.0'); p.write_text(s,encoding='utf-8')
-p=Path('backend-ai-tutor-he/main.py'); s=p.read_text(encoding='utf-8')
-a='    message: str | None = None\n'; z=a+'\n    part_number: int | None = None\n'
-if a not in s: raise SystemExit('request model anchor missing')
-s=s.replace(a,z,1)
-a='''coach_part_number = int(\n                    flow_state.get(\n                        "part_number"\n                    )\n                    or 1\n                )'''
-z='''coach_part_number = int(\n                    body.part_number\n                    or flow_state.get(\n                        "part_number"\n                    )\n                    or 1\n                )'''
-n=s.count(a)
-if n < 2: raise SystemExit(f'coach anchors missing: {n}')
-s=s.replace(a,z); p.write_text(s,encoding='utf-8'); print('patched',n,'coach branches')
+import re
+
+p = Path('he/workspace/index.html')
+s = p.read_text(encoding='utf-8')
+
+# 1) Restore the coach-finished transition to the pre-coins flow.
+old = '''  startLessonBackgroundMusic().catch((error) => {
+    console.error("NON-BLOCKING LESSON BACKGROUND MUSIC ERROR:", error);
+  });
+
+  awardPartCoins(10, currentPartNumber, Number(window.CURRENT_UNIT_LESSON_ID || CURRENT_LESSON?.id || 0)).catch((error) => {
+    console.error("NON-BLOCKING COIN REWARD ERROR:", error);
+  });
+
+
+  if(isLastPart){'''
+new = '''  await startLessonBackgroundMusic();
+
+  if(isLastPart){'''
+count = s.count(old)
+if count < 1:
+    raise SystemExit('coach-finished coin block not found')
+s = s.replace(old, new)
+
+# 2) Remove the coin reward helper entirely.
+pattern = r'\nasync function awardPartCoins\([\s\S]*?\n\}\n\n(?=/\* =====================================================\n   LESSON RENDERER V1)'
+s, helper_count = re.subn(pattern, '\n', s, count=1)
+if helper_count != 1:
+    raise SystemExit(f'awardPartCoins helper removal failed: {helper_count}')
+
+# 3) Remove the +10 coin pop animation CSS only; keep the normal top stat pill.
+css_pattern = r'\n\.coin-reward-pop\{[\s\S]*?\n\}\n@keyframes coinRewardPop\{[\s\S]*?\n\}\n'
+s, css_count = re.subn(css_pattern, '\n', s, count=1)
+if css_count != 1:
+    raise SystemExit(f'coin reward CSS removal failed: {css_count}')
+
+# 4) Bump the visible build stamp.
+if 'IAKIDS • build 0.8.9' not in s:
+    raise SystemExit('build 0.8.9 stamp not found')
+s = s.replace('IAKIDS • build 0.8.9', 'IAKIDS • build 0.9.0', 1)
+
+# Validation: no reward code remains in lesson flow.
+if 'awardPartCoins(' in s:
+    raise SystemExit('awardPartCoins still present')
+if 'coin-reward-pop' in s or '@keyframes coinRewardPop' in s:
+    raise SystemExit('coin reward animation still present')
+if 'IAKIDS • build 0.9.0' not in s:
+    raise SystemExit('build stamp not updated')
+
+p.write_text(s, encoding='utf-8')
+print(f'stabilized lesson flow; restored {count} transition block(s)')
