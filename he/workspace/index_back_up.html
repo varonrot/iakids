@@ -12244,7 +12244,637 @@ body.custom-subject-mode
   width:100% !important;
   height:100% !important;
 }
+
+
+/* =====================================================
+   DYNAMIC CURRENT PART GAUGE
+===================================================== */
+.mastery-current-part-hud{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.mastery-current-part-wrap{
+  min-height:130px;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+}
+.mastery-current-part-label{
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+}
+.mastery-current-part-ring{
+  width:92px;
+  height:92px;
+  margin-top:2px;
+}
+
+
+/* Progress button image — build 0.6.6 */
+.lesson-progress-button-image{
+  width:26px;
+  height:26px;
+  object-fit:contain;
+  flex:0 0 26px;
+  display:block;
+}
+
+
+/* Inline progress icon — build 0.6.9 */
+.lesson-progress-inline-icon{
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  filter:drop-shadow(0 0 5px rgba(49,171,255,.28));
+}
+.lesson-progress-inline-icon svg{
+  width:28px;
+  height:28px;
+  display:block;
+}
+
+
+/* Progress card — build 0.7.0 */
+.lesson-progress-card-style{
+  width:calc(100% - 28px) !important;
+  min-height:58px;
+  margin:8px 14px 10px !important;
+  padding:6px 7px 6px 14px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  border:1px solid rgba(70,137,255,.65) !important;
+  border-radius:12px !important;
+  background:linear-gradient(135deg,rgba(19,54,102,.96),rgba(22,63,111,.88)) !important;
+  box-shadow:inset 0 0 18px rgba(28,102,255,.12),0 0 12px rgba(0,153,255,.08) !important;
+  color:#fff !important;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.lesson-progress-card-style:hover{
+  border-color:rgba(94,174,255,.9) !important;
+  transform:translateY(-1px);
+}
+.lesson-progress-card-text{
+  flex:1 1 auto;
+  text-align:center;
+  font-size:13px;
+  font-weight:900;
+  line-height:1.2;
+}
+.lesson-progress-card-image{
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid rgba(124,126,255,.65);
+  background:#071426;
+  box-shadow:0 0 10px rgba(69,76,255,.22);
+}
+.lesson-progress-card-image img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+
+
+/* Progress button placement/icon — build 0.7.2 */
+.lesson-progress-card-style{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+}
+.lesson-progress-card-icon{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:#66d8ff;
+  background:linear-gradient(180deg,rgba(34,112,174,.34),rgba(23,73,135,.30));
+  border:1px solid rgba(82,184,255,.42);
+  box-shadow:inset 0 0 12px rgba(28,159,255,.10);
+}
+.lesson-progress-card-icon svg{
+  width:21px;
+  height:21px;
+  display:block;
+}
+.lesson-progress-card-text{
+  flex:1;
+  text-align:right;
+}
+
+
+/* =====================================================
+   LESSON SIDEBAR TOP CONTROLS — unified final sizing
+   build 0.7.3
+===================================================== */
+.lesson-lessons-sidebar .lesson-sidebar-back-to-workspace,
+.lesson-lessons-sidebar #lessonProgressOpenBtn,
+.lesson-lessons-sidebar .lesson-sidebar-unit{
+  width:calc(100% - 20px) !important;
+  height:48px !important;
+  min-height:48px !important;
+  max-height:48px !important;
+  margin:8px 10px 0 !important;
+  padding:6px 10px !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:10px !important;
+  direction:rtl !important;
+  text-align:right !important;
+  overflow:hidden !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-back-to-workspace,
+.lesson-lessons-sidebar #lessonProgressOpenBtn{
+  border:1px solid rgba(63,151,230,.62) !important;
+  background:linear-gradient(180deg,rgba(18,61,111,.92),rgba(11,43,82,.94)) !important;
+  color:#f5f9ff !important;
+  box-shadow:inset 0 0 12px rgba(38,146,255,.08) !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-back-to-workspace:hover,
+.lesson-lessons-sidebar #lessonProgressOpenBtn:hover{
+  border-color:rgba(88,188,255,.9) !important;
+  background:linear-gradient(180deg,rgba(24,78,139,.98),rgba(13,53,98,.98)) !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-unit{
+  border:1px solid rgba(116,81,255,.82) !important;
+  background:linear-gradient(135deg,rgba(71,43,155,.96),rgba(43,31,112,.96)) !important;
+  color:#fff !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-back-to-workspace > span,
+.lesson-lessons-sidebar .lesson-progress-card-icon,
+.lesson-lessons-sidebar .lesson-sidebar-unit-image{
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  flex:0 0 34px !important;
+  border-radius:9px !important;
+  display:grid !important;
+  place-items:center !important;
+  margin:0 !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-back-to-workspace > span{
+  background:rgba(30,102,167,.42) !important;
+  border:1px solid rgba(92,184,255,.38) !important;
+  color:#8bdcff !important;
+  font-size:18px !important;
+  line-height:1 !important;
+}
+
+.lesson-lessons-sidebar .lesson-progress-card-icon{
+  background:rgba(30,102,167,.42) !important;
+  border:1px solid rgba(92,184,255,.38) !important;
+  color:#8bdcff !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-unit-image{
+  overflow:hidden !important;
+  background:rgba(6,20,45,.45) !important;
+  border:1px solid rgba(167,146,255,.34) !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-unit-image img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  border-radius:8px !important;
+}
+
+.lesson-lessons-sidebar .lesson-sidebar-back-to-workspace strong,
+.lesson-lessons-sidebar .lesson-progress-card-text,
+.lesson-lessons-sidebar #lessonSidebarUnitName{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  text-align:right !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  line-height:1.25 !important;
+  color:inherit !important;
+}
+
+.lesson-lessons-sidebar .lesson-progress-card-style{
+  justify-content:flex-start !important;
+}
+
+
+
+/* =====================================================
+   LESSON SIDEBAR TOP CONTROLS — exact equal width
+   build 0.7.4
+===================================================== */
+.lesson-lessons-sidebar .lesson-sidebar-back-to-workspace,
+.lesson-lessons-sidebar #lessonProgressOpenBtn,
+.lesson-lessons-sidebar .lesson-sidebar-unit{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:none !important;
+  align-self:stretch !important;
+  margin-left:10px !important;
+  margin-right:10px !important;
+  box-sizing:border-box !important;
+}
+
+
+
+/* =====================================================
+   LESSON SIDEBAR TOP CONTROLS — beat legacy specificity
+   build 0.7.5
+===================================================== */
+body.lesson-theme-science .lesson-lessons-sidebar .lesson-sidebar-back-to-workspace,
+body.lesson-theme-science .lesson-lessons-sidebar #lessonProgressOpenBtn,
+body.lesson-theme-science .lesson-lessons-sidebar .lesson-sidebar-unit{
+  width:calc(100% - 20px) !important;
+  min-width:calc(100% - 20px) !important;
+  max-width:calc(100% - 20px) !important;
+  margin:8px 10px 0 !important;
+  align-self:auto !important;
+  transform:none !important;
+  box-sizing:border-box !important;
+}
+
+
+
+/* =====================================================
+   HOME DAILY STREAK CARD — balanced 4-card row
+   build 0.7.7
+===================================================== */
+.kingdom-status-row{
+  grid-template-columns: 1fr 1fr 1.18fr 1fr !important;
+}
+.kingdom-status-row .kingdom-status-card:nth-child(2){
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+.kingdom-status-row .kingdom-status-card:nth-child(2) .kingdom-status-card-inner,
+.kingdom-status-row .kingdom-status-card:nth-child(2) .kingdom-streak-inner{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+}
+.kingdom-status-row .kingdom-status-card:nth-child(2) .kingdom-streak-days{
+  width:100% !important;
+  min-width:0 !important;
+  justify-content:space-between !important;
+  gap:4px !important;
+}
+.kingdom-status-row .kingdom-status-card:nth-child(2) .kingdom-streak-day{
+  flex:0 1 auto !important;
+  min-width:0 !important;
+}
+
 </style>
+<link rel="stylesheet" href="/he/workspace/lesson-completion.css">
+
+<style id="lesson-loading-futuristic-v046">
+.lesson-loading-overlay{
+  background:
+    radial-gradient(circle at 50% 50%, rgba(74,39,180,.12), transparent 42%),
+    rgba(1,8,22,.52) !important;
+  backdrop-filter: blur(10px) saturate(115%);
+}
+.lesson-loading-card{
+  position:relative;
+  isolate:isolate;
+  width:min(560px,94%) !important;
+  min-height:560px;
+  padding:54px 38px 34px !important;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border:1px solid rgba(82,176,255,.48) !important;
+  border-radius:28px !important;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(128,57,255,.30), transparent 30%),
+    radial-gradient(circle at 18% 60%, rgba(0,174,255,.13), transparent 36%),
+    linear-gradient(180deg, rgba(4,19,51,.98), rgba(2,12,31,.99)) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(83,141,255,.08),
+    0 0 34px rgba(22,145,255,.22),
+    0 0 58px rgba(112,55,255,.13) !important;
+  color:#eef7ff;
+}
+.lesson-loading-card::before,
+.lesson-loading-card::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:-22%;
+  width:144%;
+  height:180px;
+  top:48%;
+  opacity:.72;
+  pointer-events:none;
+  filter:drop-shadow(0 0 10px currentColor);
+  background:
+    radial-gradient(ellipse at 8% 50%, transparent 0 43%, currentColor 44% 45%, transparent 46%),
+    radial-gradient(ellipse at 25% 50%, transparent 0 42%, currentColor 43% 44%, transparent 45%),
+    radial-gradient(ellipse at 43% 50%, transparent 0 41%, currentColor 42% 43%, transparent 44%),
+    radial-gradient(ellipse at 61% 50%, transparent 0 42%, currentColor 43% 44%, transparent 45%),
+    radial-gradient(ellipse at 79% 50%, transparent 0 41%, currentColor 42% 43%, transparent 44%),
+    radial-gradient(ellipse at 96% 50%, transparent 0 43%, currentColor 44% 45%, transparent 46%);
+  background-size:28% 100%;
+  animation:lessonLoadingWaveDrift 9s ease-in-out infinite alternate;
+}
+.lesson-loading-card::before{
+  color:rgba(27,177,255,.46);
+  transform:translateY(-50%) scaleY(.78);
+}
+.lesson-loading-card::after{
+  color:rgba(143,62,255,.52);
+  transform:translateY(-50%) scaleY(1.04);
+  animation-duration:11s;
+  animation-direction:alternate-reverse;
+  opacity:.58;
+}
+@keyframes lessonLoadingWaveDrift{
+  0%{background-position:0 0;translate:-1.5% 0}
+  50% {background-position:35px 8px;translate:1.5% -2px}
+  100%{background-position:70px -6px;translate:-.5% 2px}
+}
+.lesson-loading-robot{
+  position:relative;
+  z-index:2;
+  width:176px !important;
+  height:176px !important;
+  padding:10px;
+  object-fit:cover !important;
+  object-position:top center;
+  border-radius:50% !important;
+  border:3px solid rgba(65,198,255,.95);
+  background:linear-gradient(145deg,#0d2951,#150b3d);
+  box-shadow:
+    0 0 0 7px rgba(95,74,255,.17),
+    0 0 0 10px rgba(48,204,255,.10),
+    0 0 28px rgba(40,201,255,.62),
+    0 0 54px rgba(131,54,255,.48) !important;
+  animation:lessonTeacherHalo 3.8s ease-in-out infinite;
+}
+@keyframes lessonTeacherHalo{
+  0%,100%{box-shadow:0 0 0 7px rgba(95,74,255,.15),0 0 0 10px rgba(48,204,255,.08),0 0 24px rgba(40,201,255,.48),0 0 44px rgba(131,54,255,.35)}
+  50%{box-shadow:0 0 0 9px rgba(95,74,255,.23),0 0 0 13px rgba(48,204,255,.12),0 0 38px rgba(40,201,255,.72),0 0 66px rgba(131,54,255,.54)}
+}
+.lesson-loading-title{
+  position:absolute;
+  z-index:3;
+  top:58px;
+  left:24px;
+  right:24px;
+  margin:0 !important;
+  color:#fff !important;
+  font-size:31px !important;
+  line-height:1.15;
+  font-weight:900 !important;
+  text-align:center;
+  text-shadow:0 0 22px rgba(82,148,255,.26);
+}
+.lesson-loading-status{
+  position:relative;
+  z-index:3;
+  margin-top:30px !important;
+  color:#cbd8f1 !important;
+  font-size:16px !important;
+  font-weight:700;
+  text-align:center;
+}
+.lesson-loading-progress{
+  position:absolute !important;
+  z-index:3;
+  left:34px;
+  right:34px;
+  bottom:34px;
+  width:auto !important;
+  height:13px !important;
+  overflow:hidden;
+  border:1px solid rgba(117,140,255,.28);
+  border-radius:999px !important;
+  background:rgba(14,23,65,.78) !important;
+  box-shadow:inset 0 0 14px rgba(0,0,0,.35);
+}
+.lesson-loading-progress > *{
+  border-radius:inherit !important;
+  box-shadow:0 0 18px rgba(76,169,255,.45);
+}
+@media(max-width:1500px){
+  .lesson-loading-card{
+    width:min(500px,94%) !important;
+    min-height:500px;
+    padding:46px 28px 30px !important;
+  }
+  .lesson-loading-robot{width:150px !important;height:150px !important}
+  .lesson-loading-title{top:46px;font-size:27px !important}
+  .lesson-loading-status{font-size:14px !important}
+}
+@media(max-width:760px){
+  .lesson-loading-card{min-height:430px;border-radius:22px !important}
+  .lesson-loading-robot{width:128px !important;height:128px !important}
+  .lesson-loading-title{top:34px;font-size:23px !important}
+  .lesson-loading-progress{left:22px;right:22px;bottom:24px}
+}
+@media(prefers-reduced-motion:reduce){
+  .lesson-loading-card::before,
+  .lesson-loading-card::after,
+  .lesson-loading-robot{animation:none !important}
+}
+</style>
+
+
+<style id="iakids-loading-waves-strong-v1">
+.lesson-loading-card::before,
+.lesson-loading-card::after{
+  opacity:.92 !important;
+  height:220px !important;
+  left:-30% !important;
+  width:160% !important;
+  filter:drop-shadow(0 0 12px currentColor) drop-shadow(0 0 24px currentColor) !important;
+  background-size:18% 100% !important;
+}
+.lesson-loading-card::before{color:rgba(34,197,255,.78) !important;}
+.lesson-loading-card::after{color:rgba(154,67,255,.82) !important;}
+.lesson-loading-robot{z-index:4 !important;}
+@keyframes iakidsStrongWaves{
+  0%{background-position:0 0}
+  50%{background-position:50px 10px}
+  100%{background-position:100px -8px}
+}
+.lesson-loading-card::before{
+  animation:iakidsStrongWaves 6.5s ease-in-out infinite alternate !important;
+}
+.lesson-loading-card::after{
+  animation:iakidsStrongWaves 8.5s ease-in-out infinite alternate-reverse !important;
+}
+</style>
+
+
+<style id="iakids-loading-waves-layerfix-v048">
+.lesson-loading-card{position:relative!important;isolation:isolate!important;}
+.lesson-loading-card::before,.lesson-loading-card::after{z-index:0!important;}
+.lesson-loading-card > *{position:relative;z-index:2;}
+.lesson-loading-title,.lesson-loading-status,.lesson-loading-progress{z-index:3!important;}
+.lesson-loading-robot{z-index:4!important;}
+</style>
+
+<style id="iakids-loading-title-spacing-v049">
+.lesson-loading-title{position:absolute!important;top:58px!important;left:24px!important;right:24px!important;}
+.lesson-loading-status{margin-top:34px!important;}
+@media(max-width:1500px){.lesson-loading-title{top:46px!important;}}
+@media(max-width:760px){.lesson-loading-title{top:34px!important;}}
+</style>
+<style id="iakids-sidebar-horizontal-scrollfix-v050">
+body.lesson-theme-science .lesson-sidebar-list{overflow-x:hidden!important;}
+body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{height:0!important;display:none!important;}
+</style>
+
+<style id="iakids-sidebar-teacher-head-fix-052">
+.lesson-sidebar-teacher img{
+  position:relative !important;
+  top:24px !important;
+}
+</style>
+
+<style id="lesson-sidebar-back-v068">
+.lesson-sidebar-back-to-workspace{
+  width:calc(100% - 20px);margin:8px 10px 10px;padding:9px 10px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  border:1px solid rgba(84,181,255,.35);border-radius:10px;
+  background:linear-gradient(135deg,rgba(14,52,91,.92),rgba(24,38,91,.92));
+  color:#eaf6ff;cursor:pointer;font-family:inherit;font-size:11px;
+  box-shadow:inset 0 0 16px rgba(37,139,255,.08);transition:.18s ease;
+}
+.lesson-sidebar-back-to-workspace:hover{border-color:#57c9ff;transform:translateY(-1px);box-shadow:0 0 14px rgba(38,170,255,.18)}
+.lesson-sidebar-back-to-workspace span{font-size:15px;line-height:1}
+</style>
+
+
+<style id="kingdom-ai-live-bars-v076">
+/* =====================================================
+   KINGDOM AI LIVE BARS — build 0.7.6
+===================================================== */
+.kingdom-status-bar{
+  width:1180px !important;
+  max-width:82% !important;
+  grid-template-columns:1fr 1.18fr 1fr 1.05fr !important;
+}
+
+.kingdom-status-ai-live{
+  padding:10px 13px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:space-between !important;
+  gap:5px !important;
+  overflow:hidden !important;
+}
+.kingdom-ai-live-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  direction:rtl;
+}
+.kingdom-ai-live-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  line-height:1.08;
+}
+.kingdom-ai-live-kicker{
+  color:#55c9ff;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1.7px;
+  direction:ltr;
+}
+.kingdom-ai-live-title{
+  margin-top:3px;
+  color:#f4f8ff;
+  font-size:13px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.kingdom-ai-live-dot{
+  width:10px;
+  height:10px;
+  flex:0 0 10px;
+  border-radius:50%;
+  background:#48e5b0;
+  box-shadow:0 0 0 5px rgba(72,229,176,.10),0 0 13px rgba(72,229,176,.75);
+  animation:kingdomAiLivePulse 1.7s ease-in-out infinite;
+}
+.kingdom-ai-live-sub{
+  color:rgba(203,216,240,.58);
+  font-size:9px;
+  font-weight:750;
+  text-align:right;
+  padding-top:3px;
+  border-top:1px solid rgba(88,139,205,.14);
+}
+.kingdom-ai-live-bars{
+  height:46px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:4px;
+  padding:2px 2px 0;
+  border-bottom:1px solid rgba(62,126,211,.22);
+}
+.kingdom-ai-live-bar{
+  flex:1 1 0;
+  min-width:5px;
+  height:var(--h);
+  transform-origin:bottom;
+  border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg,#52cff4 0%,#338de9 48%,#5744e8 100%);
+  box-shadow:0 0 9px rgba(55,166,255,.18),inset 0 1px rgba(255,255,255,.26);
+  animation:kingdomAiBarFill var(--d) ease-in-out var(--delay) infinite alternate;
+}
+@keyframes kingdomAiBarFill{
+  0%{transform:scaleY(.28);filter:brightness(.82)}
+  55%{transform:scaleY(.72);filter:brightness(1)}
+  100%{transform:scaleY(1);filter:brightness(1.12)}
+}
+@keyframes kingdomAiLivePulse{
+  0%,100%{opacity:.62;transform:scale(.82)}
+  50%{opacity:1;transform:scale(1.08)}
+}
+@media(max-width:1500px){
+  .kingdom-status-bar{
+    width:auto !important;
+    max-width:none !important;
+    grid-template-columns:1fr 1.18fr 1fr 1.05fr !important;
+  }
+  .kingdom-ai-live-title{font-size:11px}
+  .kingdom-ai-live-bars{height:40px}
+}
+</style>
+
 </head>
 <body>
 <div
@@ -12300,7 +12930,7 @@ body.custom-subject-mode
   </div>
 
   <div class="topbar-world-text">
-    <strong>עולם הלמידהה4</strong>
+    <strong>עולם הלמידה</strong>
     <span>בחרו מקצוע כדי להעמיק את הידע שלכם</span>
   </div>
 
@@ -13364,6 +13994,33 @@ data-custom-slot="0"
 
   </div>
 
+
+
+  <!-- פעילות AI בזמן אמת -->
+  <div class="kingdom-status-card kingdom-status-ai-live" aria-label="פעילות AI בזמן אמת">
+    <div class="kingdom-ai-live-head">
+      <div class="kingdom-ai-live-copy">
+        <span class="kingdom-ai-live-kicker">AI LIVE</span>
+        <strong class="kingdom-ai-live-title">פעילות AI בזמן אמת</strong>
+      </div>
+      <span class="kingdom-ai-live-dot" aria-hidden="true"></span>
+    </div>
+
+    <div class="kingdom-ai-live-bars" aria-hidden="true">
+      <span class="kingdom-ai-live-bar" style="--h:58%;--d:1.7s;--delay:-.2s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:76%;--d:1.45s;--delay:-.8s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:92%;--d:1.9s;--delay:-1.1s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:68%;--d:1.55s;--delay:-.35s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:84%;--d:2.05s;--delay:-1.4s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:48%;--d:1.6s;--delay:-.65s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:72%;--d:1.8s;--delay:-1.25s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:90%;--d:1.5s;--delay:-.5s"></span>
+      <span class="kingdom-ai-live-bar" style="--h:62%;--d:1.95s;--delay:-1.05s"></span>
+    </div>
+
+    <div class="kingdom-ai-live-sub">מנוע הלמידה פעיל</div>
+  </div>
+
 </section>
 </section><!-- סגירת dashboardView -->
 
@@ -14107,6 +14764,17 @@ data-custom-slot="0"
 </div>
 
 
+<button
+  type="button"
+  class="lesson-sidebar-back-to-workspace"
+  onclick="window.location.href='/he/workspace/'"
+  aria-label="חזרה למערך השיעורים"
+>
+  <span aria-hidden="true">←</span>
+  <strong>חזרה למערך השיעורים</strong>
+</button>
+
+
 <div class="lesson-sidebar-unit">
 
   <div class="lesson-sidebar-unit-image">
@@ -14397,56 +15065,7 @@ data-custom-slot="0"
     <!-- =====================================================
      LESSON MEDIA CONTROLS
 ===================================================== -->
-<div class="lesson-flow-track">
-
-  <div class="lesson-flow-step completed">
-    <div class="lesson-flow-node">✓</div>
-    <span>פתיחה</span>
-  </div>
-
-  <div class="lesson-flow-step active">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-book-open"></i>
-    </div>
-    <span>הסבר 1</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-comments"></i>
-    </div>
-    <span>דיאלוג 1</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-book-open"></i>
-    </div>
-    <span>הסבר 2</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-comments"></i>
-    </div>
-    <span>דיאלוג 2</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-flag-checkered"></i>
-    </div>
-    <span>סיכום</span>
-  </div>
-
-  <div class="lesson-flow-step">
-    <div class="lesson-flow-node">
-      <i class="fa-solid fa-arrow-right"></i>
-    </div>
-    <span>השלב הבא</span>
-  </div>
-
-</div>
+<div class="lesson-flow-track" id="lessonFlowTrack"></div>
 <div class="lesson-media-controls">
 
   <!-- חזרה 10 שניות -->
@@ -14636,53 +15255,28 @@ data-custom-slot="0"
 
   </article>
 
-
-  <!-- 2 — חלוקה ללמידה -->
-  <article class="mastery-hud-card mastery-parts-hud">
+  <!-- 2 — החלק הנוכחי -->
+  <article class="mastery-hud-card mastery-parts-hud mastery-current-part-hud">
 
     <div class="mastery-hud-title">
-      חלוקה ללמידה
+      הבנה בחלק הנוכחי
     </div>
 
-    <div class="mastery-parts-grid">
-
-      <div class="mastery-part-box active">
-
-        <strong>חלק 1</strong>
-        <span>הבנת הנושא</span>
-
-        <div
-          class="mastery-mini-ring"
-          id="lessonPartOneGauge"
-          style="--value:0"
-        >
-          <div>
-            <b id="lessonPartOneSummary">0%</b>
-            <small>הושלם</small>
-          </div>
-        </div>
-
+    <div class="mastery-current-part-wrap">
+      <div class="mastery-current-part-label" id="lessonCurrentPartLabel">
+        חלק 1 מתוך 1
       </div>
 
-
-      <div class="mastery-part-box">
-
-        <strong>חלק 2</strong>
-        <span>יישום והעמקה</span>
-
-        <div
-          class="mastery-mini-ring"
-          id="lessonPartTwoGauge"
-          style="--value:0"
-        >
-          <div>
-            <b id="lessonPartTwoSummary">0%</b>
-            <small>הושלם</small>
-          </div>
+      <div
+        class="mastery-mini-ring mastery-current-part-ring"
+        id="lessonCurrentPartGauge"
+        style="--value:0"
+      >
+        <div>
+          <b id="lessonCurrentPartSummary">0%</b>
+          <small>הבנה בחלק</small>
         </div>
-
       </div>
-
     </div>
 
   </article>
@@ -14691,7 +15285,7 @@ data-custom-slot="0"
 <article class="mastery-hud-card mastery-main-gauge-card">
 
   <div class="mastery-hud-title">
-    מד ההתקדמות שלי
+    התקדמות ביחידה
   </div>
 
   <div
@@ -14717,8 +15311,8 @@ data-custom-slot="0"
         0%
       </strong>
 
-      <span>
-        השלמה כללית
+      <span id="lessonProgressUnitLabel">
+        0 מתוך 0 שיעורים
       </span>
 
     </div>
@@ -14767,101 +15361,6 @@ data-custom-slot="0"
   </div>
 
 </article>
-
-  <!-- 5 — גרף -->
-  <article class="mastery-hud-card mastery-chart-card">
-
-    <div class="mastery-hud-title">
-      התקדמות לאורך השיעור
-    </div>
-
-    <div class="mastery-chart">
-
-      <svg
-        viewBox="0 0 300 120"
-        preserveAspectRatio="none"
-      >
-
-        <defs>
-
-          <linearGradient
-            id="masteryChartFill"
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="1"
-          >
-
-            <stop
-              offset="0%"
-              stop-color="#ffe349"
-              stop-opacity=".28"
-            />
-
-            <stop
-              offset="100%"
-              stop-color="#ffe349"
-              stop-opacity="0"
-            />
-
-          </linearGradient>
-
-          <filter id="masteryGlow">
-
-            <feGaussianBlur
-              stdDeviation="3"
-              result="blur"
-            />
-
-            <feMerge>
-              <feMergeNode in="blur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-
-          </filter>
-
-        </defs>
-
-
-        <path
-          class="mastery-chart-fill"
-          d="
-            M15 92
-            C55 82, 55 67, 90 61
-            C125 55, 145 57, 174 49
-            C214 39, 220 19, 272 15
-            L272 110
-            L15 110 Z
-          "
-        />
-
-
-        <path
-          class="mastery-chart-line"
-          d="
-            M15 92
-            C55 82, 55 67, 90 61
-            C125 55, 145 57, 174 49
-            C214 39, 220 19, 272 15
-          "
-        />
-
-
-        <circle cx="15"  cy="92" r="6"/>
-        <circle cx="90"  cy="61" r="6"/>
-        <circle cx="174" cy="49" r="6"/>
-        <circle cx="272" cy="15" r="7"/>
-
-      </svg>
-
-      <div class="mastery-chart-labels">
-        <span>התחלה</span>
-        <span>עכשיו</span>
-      </div>
-
-    </div>
-
-  </article>
 
 </section>
 
@@ -17431,10 +17930,55 @@ async function loadLessonHeroImage(
 }
 
 /* =====================================================
+   CURRENT PART SCORE HUD
+===================================================== */
+window.CURRENT_SCORE_PART_NUMBER = 0;
+window.CURRENT_LESSON_PARTS_COUNT = Number(
+  window.CURRENT_LESSON_PARTS_COUNT || 1
+);
+
+function syncCurrentPartScoreHud(
+  partNumber,
+  totalParts = window.CURRENT_LESSON_PARTS_COUNT
+){
+  const safePartNumber = Math.max(1, Number(partNumber || 1));
+  const safeTotalParts = Math.max(
+    safePartNumber,
+    Number(totalParts || safePartNumber)
+  );
+
+  window.CURRENT_LESSON_PARTS_COUNT = safeTotalParts;
+
+  const label = document.getElementById("lessonCurrentPartLabel");
+  if(label){
+    label.textContent = `חלק ${safePartNumber} מתוך ${safeTotalParts}`;
+  }
+
+  if(Number(window.CURRENT_SCORE_PART_NUMBER || 0) === safePartNumber){
+    return;
+  }
+
+  window.CURRENT_SCORE_PART_NUMBER = safePartNumber;
+
+  const summary = document.getElementById("lessonCurrentPartSummary");
+  const gauge = document.getElementById("lessonCurrentPartGauge");
+
+  if(summary){
+    summary.textContent = "0%";
+  }
+
+  if(gauge){
+    gauge.style.setProperty("--value", 0);
+  }
+}
+
+/* =====================================================
    LESSON VISUALS
 ===================================================== */
 
 window.CURRENT_LESSON_VISUALS = [];
+window.CURRENT_LESSON_VISUAL_PART = 1;
+window.CURRENT_DISPLAYED_VISUAL_PART = 0;
 
 async function loadLessonVisuals(
   unitLessonId,
@@ -17588,6 +18132,14 @@ async function loadLessonVisuals(
                   Number(
                     incoming.order
                   )
+                  &&
+                  Number(
+                    item.part_number || 1
+                  )
+                  ===
+                  Number(
+                    incoming.part_number || 1
+                  )
               );
 
 
@@ -17633,14 +18185,22 @@ async function loadLessonVisuals(
 
         window.CURRENT_LESSON_VISUALS
           .sort(
-            (a,b) =>
-              Number(
-                a.order || 0
-              )
-              -
-              Number(
-                b.order || 0
-              )
+            (a,b) => {
+              const partDiff =
+                Number(a?.part_number || 1)
+                -
+                Number(b?.part_number || 1);
+
+              if(partDiff !== 0){
+                return partDiff;
+              }
+
+              return (
+                Number(a?.order || 0)
+                -
+                Number(b?.order || 0)
+              );
+            }
           );
 
 
@@ -17677,6 +18237,12 @@ const currentVisualOrder =
     || 0
   );
 
+const currentVisualPart =
+  Number(
+    window.CURRENT_LESSON_VISUAL_PART
+    || 1
+  );
+
 
 if(
   currentVisualOrder > 0
@@ -17695,6 +18261,12 @@ if(
         ===
         currentVisualOrder
         &&
+        Number(
+          item?.part_number || 1
+        )
+        ===
+        currentVisualPart
+        &&
         item?.url
     );
 
@@ -17707,11 +18279,21 @@ if(
         || 0
       );
 
+    const alreadyDisplayedPart =
+      Number(
+        window.CURRENT_DISPLAYED_VISUAL_PART
+        || 0
+      );
+
 
     if(
       alreadyDisplayedOrder
       !==
       currentVisualOrder
+      ||
+      alreadyDisplayedPart
+      !==
+      currentVisualPart
     ){
 
       console.log(
@@ -17728,6 +18310,9 @@ if(
 
       window.CURRENT_DISPLAYED_VISUAL_ORDER =
         currentVisualOrder;
+
+      window.CURRENT_DISPLAYED_VISUAL_PART =
+        currentVisualPart;
 
 
       showLessonVisual(
@@ -17830,7 +18415,10 @@ if(
 async function waitForLessonVisual(
   unitLessonId,
   session,
-  visualOrder
+  visualOrder,
+  visualPart = Number(
+    window.CURRENT_LESSON_VISUAL_PART || 1
+  )
 ){
 
   const MAX_CHECKS = 120;
@@ -17854,6 +18442,14 @@ async function waitForLessonVisual(
           ===
           Number(
             visualOrder
+          )
+          &&
+          Number(
+            visual?.part_number || 1
+          )
+          ===
+          Number(
+            visualPart
           )
           &&
           visual?.url
@@ -17943,6 +18539,14 @@ async function waitForLessonVisual(
                   )
                   ===
                   incomingOrder
+                  &&
+                  Number(
+                    visual?.part_number || 1
+                  )
+                  ===
+                  Number(
+                    incoming?.part_number || 1
+                  )
               );
 
 
@@ -17970,10 +18574,22 @@ async function waitForLessonVisual(
 
 
         window.CURRENT_LESSON_VISUALS.sort(
-          (a,b) =>
-            Number(a?.order || 0)
-            -
-            Number(b?.order || 0)
+          (a,b) => {
+            const partDiff =
+              Number(a?.part_number || 1)
+              -
+              Number(b?.part_number || 1);
+
+            if(partDiff !== 0){
+              return partDiff;
+            }
+
+            return (
+              Number(a?.order || 0)
+              -
+              Number(b?.order || 0)
+            );
+          }
         );
 
 
@@ -17986,6 +18602,14 @@ async function waitForLessonVisual(
               ===
               Number(
                 visualOrder
+              )
+              &&
+              Number(
+                visual?.part_number || 1
+              )
+              ===
+              Number(
+                visualPart
               )
               &&
               visual?.url
@@ -19526,6 +20150,35 @@ async function runSimpleUniversalLesson(
   const structuredLesson =
     data?.structured_lesson;
 
+  const activeVisualPart =
+    Number(
+      data?.visual_part_number
+      ||
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      1
+    );
+
+  window.CURRENT_LESSON_VISUAL_PART =
+    activeVisualPart;
+
+  window.CURRENT_LESSON_FLOW_PHASE = "explanation";
+  renderDynamicLessonFlow("explanation", activeVisualPart, Number(window.CURRENT_LESSON_PARTS_COUNT || activeVisualPart));
+
+  const structuredPartCount =
+    Array.isArray(structuredLesson?.parts)
+      ? structuredLesson.parts.length
+      : Number(
+          window.CURRENT_LESSON_PARTS_COUNT
+          ||
+          activeVisualPart
+        );
+
+  syncCurrentPartScoreHud(
+    activeVisualPart,
+    structuredPartCount
+  );
+
   if(
     !structuredLesson
     ||
@@ -20008,6 +20661,12 @@ let visualForSegment =
         visualOrder
       )
       &&
+      Number(
+        visual?.part_number || 1
+      )
+      ===
+      activeVisualPart
+      &&
       visual?.url
   );
 
@@ -20253,6 +20912,25 @@ animateImportantParts(
     &&
     !questionAlreadyIncluded
   ){
+    
+    /* The lesson question starts the dialogue. */
+    window.CURRENT_LESSON_FLOW_PHASE =
+      "dialog";
+
+    renderDynamicLessonFlow(
+      "dialog",
+      Number(
+        window.CURRENT_LESSON_VISUAL_PART ||
+        activeVisualPart ||
+        1
+      ),
+      Number(
+        window.CURRENT_LESSON_PARTS_COUNT ||
+        activeVisualPart ||
+        1
+      )
+    );
+
     const questionVisualOrder =
       lessonParts.length + 1;
 
@@ -20269,6 +20947,12 @@ animateImportantParts(
           Number(
             questionVisualOrder
           )
+          &&
+          Number(
+            visual?.part_number || 1
+          )
+          ===
+          activeVisualPart
           &&
           visual?.url
       );
@@ -20539,7 +21223,63 @@ function getLessonSidebarImage(){
 
 }
 
-async function runUniversalLessonPart2(){
+/* =====================================================
+   DYNAMIC LESSON FLOW PROGRESS
+===================================================== */
+window.CURRENT_LESSON_FLOW_PHASE = window.CURRENT_LESSON_FLOW_PHASE || "explanation";
+window.LAST_LESSON_FLOW_RENDER_KEY = null;
+
+function renderDynamicLessonFlow(phase=null, partNumber=null, totalParts=null){
+  const track=document.getElementById("lessonFlowTrack");
+  if(!track) return;
+
+  const safePartNumber=Math.max(1,Number(partNumber||window.CURRENT_LESSON_VISUAL_PART||1));
+  const safeTotalParts=Math.max(safePartNumber,Number(totalParts||window.CURRENT_LESSON_PARTS_COUNT||safePartNumber));
+  const resolvedPhase=phase||window.CURRENT_LESSON_FLOW_PHASE||"explanation";
+
+  window.CURRENT_LESSON_FLOW_PHASE=resolvedPhase;
+  window.CURRENT_LESSON_PARTS_COUNT=safeTotalParts;
+
+  const key=`${resolvedPhase}:${safePartNumber}:${safeTotalParts}`;
+  if(window.LAST_LESSON_FLOW_RENDER_KEY===key) return;
+  window.LAST_LESSON_FLOW_RENDER_KEY=key;
+
+  const steps=[{key:"opening",label:"פתיחה",icon:"✓"}];
+  for(let part=1;part<=safeTotalParts;part+=1){
+    steps.push({key:`explanation-${part}`,label:`הסבר ${part}`,icon:'<i class="fa-solid fa-book-open"></i>'});
+    steps.push({key:`dialog-${part}`,label:`דיאלוג ${part}`,icon:'<i class="fa-solid fa-comments"></i>'});
+  }
+  steps.push(
+    {key:"summary",label:"סיכום",icon:'<i class="fa-solid fa-flag-checkered"></i>'},
+    {key:"next",label:"השלב הבא",icon:'<i class="fa-solid fa-arrow-right"></i>'}
+  );
+
+  let activeKey=`explanation-${safePartNumber}`;
+  if(resolvedPhase==="dialog") activeKey=`dialog-${safePartNumber}`;
+  else if(resolvedPhase==="summary") activeKey="summary";
+  else if(resolvedPhase==="next") activeKey="next";
+
+  const activeIndex=Math.max(0,steps.findIndex(step=>step.key===activeKey));
+  const stepWidth=safeTotalParts>=5?64:safeTotalParts>=4?70:safeTotalParts>=3?78:92;
+
+  track.innerHTML=steps.map((step,index)=>{
+    const stateClass=index<activeIndex?"completed":index===activeIndex?"active":"";
+    const nodeContent=index<activeIndex?"✓":step.icon;
+    return `<div class="lesson-flow-step ${stateClass}" data-flow-key="${step.key}" style="width:${stepWidth}px"><div class="lesson-flow-node">${nodeContent}</div><span>${step.label}</span></div>`;
+  }).join("");
+}
+
+function syncDynamicLessonFlow(){
+  let phase=window.CURRENT_LESSON_FLOW_PHASE||"explanation";
+  if(phase!=="summary"&&phase!=="next"&&typeof currentLearningMode!=="undefined"&&currentLearningMode==="learning_coach") phase="dialog";
+  renderDynamicLessonFlow(phase,Number(window.CURRENT_LESSON_VISUAL_PART||1),Number(window.CURRENT_LESSON_PARTS_COUNT||1));
+}
+if(!window.DYNAMIC_LESSON_FLOW_SYNC_STARTED){
+  window.DYNAMIC_LESSON_FLOW_SYNC_STARTED=true;
+  window.setInterval(syncDynamicLessonFlow,500);
+}
+
+async function runUniversalLessonPart(partNumber){
 
   const universalData =
     window.CURRENT_UNIVERSAL_LESSON_DATA;
@@ -20547,19 +21287,33 @@ async function runUniversalLessonPart2(){
   const structuredLesson =
     universalData?.structured_lesson;
 
-  const part2 =
-    structuredLesson?.part_2;
+  const safePartNumber =
+    Math.max(
+      1,
+      Number(partNumber || 1)
+    );
+
+  const partData =
+    Array.isArray(
+      structuredLesson?.parts
+    )
+      ? structuredLesson.parts[
+          safePartNumber - 1
+        ]
+      : structuredLesson?.[
+          `part_${safePartNumber}`
+        ];
 
   if(
-    !part2
+    !partData
     ||
     !Array.isArray(
-      part2.lesson
+      partData.lesson
     )
   ){
 
     console.error(
-      "PART 2 DATA NOT FOUND:",
+      "LESSON PART DATA NOT FOUND:",
       universalData
     );
 
@@ -20569,12 +21323,12 @@ async function runUniversalLessonPart2(){
 
 
   console.log(
-    "STARTING UNIVERSAL LESSON PART 2:",
-    part2
+    "STARTING UNIVERSAL LESSON PART:",
+    partData
   );
 
 
-const part2Data = {
+const partPayload = {
   ...universalData,
 
   lesson_audio:
@@ -20585,20 +21339,23 @@ const part2Data = {
 
   structured_lesson: {
     lesson:
-      part2.lesson,
+      partData.lesson,
 
     question:
-      part2.question
+      partData.question
   }
 };
 
   await runSimpleUniversalLesson(
-    part2Data
+    {
+      ...partPayload,
+      visual_part_number: safePartNumber
+    }
   );
 
 
   console.log(
-    "UNIVERSAL LESSON PART 2 COMPLETED"
+    "UNIVERSAL LESSON PART COMPLETED"
   );
 
 
@@ -20842,6 +21599,60 @@ async function loadRealLessonSidebar(
       : [];
 
 
+  /* =============================================
+     התקדמות אמיתית של הילד בכל שיעור פנימי
+  ============================================= */
+
+  let unitLessonProgressRows = [];
+
+  if(CURRENT_KID?.id){
+
+    const {
+      data: progressData,
+      error: progressError
+    } = await sb
+      .from("kid_unit_lesson_progress")
+      .select(`
+        unit_lesson_id,
+        status,
+        progress_percent,
+        mastery_score,
+        best_mastery_score,
+        last_activity_at,
+        completed_at
+      `)
+      .eq("kid_id", CURRENT_KID.id)
+      .eq("learning_lesson_id", parentLessonId);
+
+    if(progressError){
+      console.warn(
+        "LESSON SIDEBAR PROGRESS LOAD WARNING:",
+        progressError
+      );
+    }
+    else{
+      unitLessonProgressRows =
+        Array.isArray(progressData)
+          ? progressData
+          : [];
+    }
+
+  }
+
+  const progressByLessonId =
+    new Map(
+      unitLessonProgressRows.map(
+        row => [
+          Number(row.unit_lesson_id),
+          row
+        ]
+      )
+    );
+
+  window.LESSON_SIDEBAR_PROGRESS_ROWS =
+    unitLessonProgressRows;
+
+
   window.LESSON_SIDEBAR_ROWS =
     lessons;
 
@@ -20943,27 +21754,41 @@ async function loadRealLessonSidebar(
             currentIndex;
 
 
-          /*
-            כרגע:
-            שיעורים לפני השיעור הנוכחי
-            מוצגים כהושלמו.
+          const lessonProgress =
+            progressByLessonId.get(
+              Number(lesson.id)
+            ) || null;
 
-            השיעור הנוכחי = current.
 
-            שיעורים אחריו = locked.
+          const savedStatus =
+            String(
+              lessonProgress?.status
+              || "not_started"
+            );
 
-            בשלב הבא נחבר completed
-            ל-kid_lesson_progress עצמו.
-          */
 
           const isCompleted =
-            index <
-            currentIndex;
+            savedStatus ===
+            "completed";
 
 
-          const isLocked =
-            index >
-            currentIndex;
+          const isPartial =
+            savedStatus ===
+            "partial";
+
+
+          const isInProgress =
+            savedStatus ===
+            "in_progress";
+
+
+          /*
+            כל השיעורים פתוחים תמיד.
+            סטטוס ההתקדמות משמש להצגה ומעקב בלבד,
+            ולא לחסימת גישה לשיעורים.
+          */
+
+          const isLocked = false;
 
 
           let rowClass =
@@ -20979,32 +21804,43 @@ async function loadRealLessonSidebar(
             rowClass =
               "current";
 
-
-            statusHtml = `
-              <span></span>
-            `;
+            statusHtml =
+              isCompleted
+                ? "✓"
+                : isPartial
+                  ? "◐"
+                  : `<span></span>`;
 
           }
-          else if(
-            isCompleted
-          ){
+          else if(isCompleted){
 
             rowClass =
               "completed";
-
 
             statusHtml =
               "✓";
 
           }
+          else if(
+            isPartial
+            ||
+            isInProgress
+          ){
+
+            rowClass =
+              "partial";
+
+            statusHtml =
+              "◐";
+
+          }
           else{
 
             rowClass =
-              "locked";
-
+              "available";
 
             statusHtml =
-              "🔒";
+              "▶";
 
           }
 
@@ -21030,12 +21866,8 @@ async function loadRealLessonSidebar(
                   lesson.id
                 )
               }"
-
-              ${
-                isLocked
-                  ? 'data-locked="true"'
-                  : ""
-              }
+              role="button"
+              tabindex="0"
             >
 
               <div
@@ -21079,6 +21911,9 @@ async function loadRealLessonSidebar(
      CLICK — שיעור אמיתי
   ============================================= */
 
+  ensureLessonProgressButton();
+
+
   list
     .querySelectorAll(
       "[data-sidebar-lesson-id]"
@@ -21089,16 +21924,6 @@ async function loadRealLessonSidebar(
         row.addEventListener(
           "click",
           async () => {
-
-
-            if(
-              row.dataset.locked ===
-              "true"
-            ){
-
-              return;
-
-            }
 
 
             const lessonId =
@@ -21167,18 +21992,141 @@ async function loadRealLessonSidebar(
               את כרטיסי השיעורים ברמה 5.
             */
 
-            await startSelectedUnitLesson(
-              lesson
+            /*
+              HARD RELOAD מבוקר:
+              שומרים את יעד השיעור ואת הקונטקסט של העץ,
+              מרעננים את כל העמוד, ואז bootstrap בתחתית
+              פותח את השיעור מאפס דרך אותו entry flow.
+            */
+
+            const pendingSidebarLesson = {
+              lesson: {
+                ...lesson
+              },
+              parentLesson: {
+                ...CURRENT_PARENT_LESSON
+              },
+              unit: {
+                ...CURRENT_UNIT
+              },
+              category:
+                SCIENCE_SELECTED_CATEGORY
+                ||
+                CURRENT_PARENT_LESSON?.category
+                ||
+                null,
+              savedAt:
+                Date.now()
+            };
+
+            sessionStorage.setItem(
+              "iakids_pending_sidebar_lesson",
+              JSON.stringify(
+                pendingSidebarLesson
+              )
             );
+
+            window.location.reload();
+            return;
 
           }
 
+        );
+
+        row.addEventListener(
+          "keydown",
+          event => {
+            if(event.key === "Enter" || event.key === " "){
+              event.preventDefault();
+              row.click();
+            }
+          }
         );
 
       }
     );
 
 }
+
+
+/* =====================================================
+   STUDENT LESSON PROGRESS PANEL — build 0.6.5
+===================================================== */
+function ensureLessonProgressButton(){
+  const list = document.getElementById("lessonSidebarList");
+  if(!list || document.getElementById("lessonProgressOpenBtn")) return;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.id = "lessonProgressOpenBtn";
+  btn.className = "lesson-progress-open-btn lesson-progress-card-style";
+  btn.innerHTML = `
+    <span class="lesson-progress-card-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M4 19V10M10 19V6M16 19V3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M3 20h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M5 12l4-4 4 2 6-6" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16.5 4H19v2.5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="lesson-progress-card-text">ההתקדמות שלי</span>
+  `;
+
+  btn.addEventListener("click", openStudentLessonProgressPanel);
+
+  const unitCard = document.querySelector(".lesson-sidebar-unit");
+  if(unitCard?.parentElement){
+    unitCard.parentElement.insertBefore(btn, unitCard);
+  }else{
+    list.parentElement?.insertBefore(btn, list);
+  }
+}
+
+function startLessonFromProgressPanel(lessonId){
+  const lesson = (window.LESSON_SIDEBAR_ROWS || []).find(item => Number(item.id) === Number(lessonId));
+  if(!lesson) return;
+  const pending = {
+    lesson:{...lesson}, parentLesson:{...CURRENT_PARENT_LESSON}, unit:{...CURRENT_UNIT},
+    category:SCIENCE_SELECTED_CATEGORY || CURRENT_PARENT_LESSON?.category || null, savedAt:Date.now()
+  };
+  sessionStorage.setItem("iakids_pending_sidebar_lesson", JSON.stringify(pending));
+  window.location.reload();
+}
+
+function renderStudentLessonProgressList(filter="all"){
+  const host = document.getElementById("lessonProgressItems");
+  if(!host) return;
+  const rows = window.LESSON_SIDEBAR_ROWS || [];
+  const progress = new Map((window.LESSON_SIDEBAR_PROGRESS_ROWS || []).map(r => [Number(r.unit_lesson_id), r]));
+  const visible = rows.filter(lesson => {
+    const status = String(progress.get(Number(lesson.id))?.status || "not_started");
+    if(filter === "all") return true;
+    if(filter === "needs_completion") return status === "partial";
+    return status === filter;
+  });
+  if(!visible.length){ host.innerHTML='<div class="lesson-progress-empty">אין שיעורים במצב הזה</div>'; return; }
+  const labels={completed:"הושלם",partial:"צריך להשלים",in_progress:"בתהליך",not_started:"טרם התחלת"};
+  host.innerHTML=visible.map(lesson=>{
+    const p=progress.get(Number(lesson.id)); const status=String(p?.status||"not_started");
+    const action=status==="completed"?"פתח שוב":status==="partial"?"השלם שיעור":status==="in_progress"?"חזור לשיעור":"התחל שיעור";
+    return `<div class="lesson-progress-item"><div class="lesson-progress-item-name">${escapeLessonSidebarHtml(String(lesson.lesson_order||""))}. ${escapeLessonSidebarHtml(lesson.lesson_name||"")}</div><span class="lesson-progress-badge ${status}">${labels[status]||labels.not_started}</span><button class="lesson-progress-action" type="button" data-progress-lesson-id="${Number(lesson.id)}">${action}</button></div>`;
+  }).join("");
+  host.querySelectorAll("[data-progress-lesson-id]").forEach(btn=>btn.addEventListener("click",()=>startLessonFromProgressPanel(Number(btn.dataset.progressLessonId))));
+}
+
+function openStudentLessonProgressPanel(){
+  const stage=document.querySelector(".lesson-visual-stage"); if(!stage) return;
+  document.getElementById("studentLessonProgressPanel")?.remove();
+  const rows=window.LESSON_SIDEBAR_ROWS||[]; const pmap=new Map((window.LESSON_SIDEBAR_PROGRESS_ROWS||[]).map(r=>[Number(r.unit_lesson_id),r]));
+  const counts={completed:0,partial:0,in_progress:0,not_started:0}; rows.forEach(l=>{const s=String(pmap.get(Number(l.id))?.status||"not_started"); counts[s]=(counts[s]||0)+1;});
+  const panel=document.createElement("div"); panel.id="studentLessonProgressPanel"; panel.className="lesson-student-progress-panel";
+  panel.innerHTML=`<div class="lesson-student-progress-shell"><div class="lesson-student-progress-head"><div><h2>ההתקדמות שלי</h2><small>${escapeLessonSidebarHtml(CURRENT_UNIT?.unit_name||CURRENT_PARENT_LESSON?.lesson_name||"")}</small></div><button class="lesson-student-progress-close" type="button">✕ חזרה לשיעור</button></div><div class="lesson-progress-summary"><div class="lesson-progress-stat"><strong>${rows.length}</strong><span>שיעורים ביחידה</span></div><div class="lesson-progress-stat"><strong>${counts.completed}</strong><span>הושלמו</span></div><div class="lesson-progress-stat"><strong>${counts.partial}</strong><span>צריך להשלים</span></div><div class="lesson-progress-stat"><strong>${counts.in_progress}</strong><span>בתהליך</span></div></div><div class="lesson-progress-filters"><button class="lesson-progress-filter active" data-progress-filter="all">הכול</button><button class="lesson-progress-filter" data-progress-filter="in_progress">בתהליך</button><button class="lesson-progress-filter" data-progress-filter="needs_completion">צריך להשלים</button><button class="lesson-progress-filter" data-progress-filter="completed">הושלמו</button><button class="lesson-progress-filter" data-progress-filter="not_started">טרם התחלת</button></div><section class="lesson-progress-unit"><div class="lesson-progress-unit-title">${escapeLessonSidebarHtml(CURRENT_UNIT?.unit_name||"השיעורים שלי")}</div><div id="lessonProgressItems" class="lesson-progress-items"></div></section></div>`;
+  stage.appendChild(panel);
+  panel.querySelector(".lesson-student-progress-close")?.addEventListener("click",()=>panel.remove());
+  panel.querySelectorAll("[data-progress-filter]").forEach(btn=>btn.addEventListener("click",()=>{panel.querySelectorAll(".lesson-progress-filter").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderStudentLessonProgressList(btn.dataset.progressFilter);}));
+  renderStudentLessonProgressList("all");
+}
+
 /* =====================================================
    PERSONAL KID LESSON INTRO VIDEO
 ===================================================== */
@@ -21696,6 +22644,9 @@ const visualArea =
 async function startSelectedUnitLesson(
   lesson
 ){
+  if(typeof window.hideAiTeacherWaitingPanel === 'function'){
+    window.hideAiTeacherWaitingPanel();
+  }
 const resolvedUnitLessonId =
   Number(
     lesson?.unit_lesson_id
@@ -22300,7 +23251,8 @@ try{
       await waitForLessonVisual(
         resolvedUnitLessonId,
         session,
-        visualOrder
+        visualOrder,
+        1
       );
 
     if(
@@ -22367,7 +23319,8 @@ catch(error){
 
 await runSimpleUniversalLesson({
   ...lessonData,
-  unit_lesson_id: resolvedUnitLessonId
+  unit_lesson_id: resolvedUnitLessonId,
+  visual_part_number: 1
 });
 
     /*
@@ -23027,6 +23980,25 @@ if(
     lesson_mode:
       "learning_coach"
   });
+
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      state?.flow_state?.part_number
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );
 
 }
 
@@ -24610,77 +25582,110 @@ await window.lessonRenderer.run({
 
 if(
   data.coach_finished === true
-  &&
-  Number(
-    data.coach_index
-  ) === 1
 ){
 
+  const structuredLesson =
+    window.CURRENT_UNIVERSAL_LESSON_DATA
+      ?.structured_lesson;
+
+  const currentPartNumber =
+    Math.max(
+      1,
+      Number(
+        data.coach_index
+        ||
+        window.CURRENT_LESSON_VISUAL_PART
+        ||
+        1
+      )
+    );
+
+  const totalParts =
+    Math.max(
+      currentPartNumber,
+      Array.isArray(
+        structuredLesson?.parts
+      )
+        ? structuredLesson.parts.length
+        : Number(
+            window.CURRENT_LESSON_PARTS_COUNT
+            ||
+            currentPartNumber
+          )
+    );
+
+  window.CURRENT_LESSON_PARTS_COUNT =
+    totalParts;
+
+  const isLastPart =
+    currentPartNumber >= totalParts;
+
   console.log(
-    "LEARNING COACH 1 FINISHED — START TRANSITION VIDEO"
+    "LEARNING COACH FINISHED — RESOLVE LESSON TRANSITION",
+    {
+      currentPartNumber,
+      totalParts,
+      isLastPart
+    }
   );
 
-await startLessonBackgroundMusic();
+  await startLessonBackgroundMusic();
 
-const transition =
-  await getSharedLessonTransition(
-    "middle"
-  );
+  if(isLastPart){
+    window.CURRENT_LESSON_FLOW_PHASE = "summary";
+    renderDynamicLessonFlow("summary", currentPartNumber, totalParts);
+  }
 
-console.log(
-  "LATEST LESSON TRANSITION DATA:",
-  transition
-);
+  const transitionType =
+    isLastPart
+      ? "closing"
+      : "middle";
 
-
-const videoPlayed =
-  await playLessonTransitionVideo(
-    transition || {}
-  );
-
-  if(
-    videoPlayed
-  ){
-
-    console.log(
-      "TRANSITION VIDEO COMPLETED SUCCESSFULLY"
+  const transition =
+    await getSharedLessonTransition(
+      transitionType
     );
 
+  let videoPlayed = false;
+
+  if(isLastPart){
+    videoPlayed =
+      await playLessonTransitionVideo(
+        transition || {}
+      );
+
+    await showLessonCompletionScreen();
   }
   else{
-
-    console.warn(
-      "TRANSITION VIDEO NOT AVAILABLE — CONTINUE LESSON"
-    );
-
+    videoPlayed =
+      await playLessonTransitionVideo(
+        transition || {}
+      );
   }
 
-console.log(
-    "TRANSITION FINISHED — PART 2 READY TO START"
-  );
-
-
-  const part2Started =
-    await runUniversalLessonPart2();
-
-
-  if(
-    part2Started
-  ){
-
+  if(isLastPart){
+    window.CURRENT_LESSON_FLOW_PHASE = "next";
+    renderDynamicLessonFlow("next", currentPartNumber, totalParts);
     console.log(
-      "PART 2 DISPLAYED SUCCESSFULLY"
+      "FINAL LESSON PART COMPLETED — CLOSING FINISHED"
     );
-
   }
   else{
+    const nextPartNumber =
+      currentPartNumber + 1;
 
-    console.error(
-      "PART 2 FAILED TO START"
-    );
+    const nextPartStarted =
+      await runUniversalLessonPart(
+        nextPartNumber
+      );
 
+    if(!nextPartStarted){
+      console.error(
+        "NEXT LESSON PART FAILED TO START",
+        nextPartNumber
+      );
+    }
   }
-
 }
 
 /* =============================================
@@ -24689,6 +25694,29 @@ console.log(
 
 clearNoResponseTimer();
 
+
+if(
+  data.wait_for_answer === true
+  &&
+  window.SELECTED_UNIT_LESSON
+){
+  window.CURRENT_LESSON_FLOW_PHASE =
+    "dialog";
+
+  renderDynamicLessonFlow(
+    "dialog",
+    Number(
+      window.CURRENT_LESSON_VISUAL_PART
+      ||
+      1
+    ),
+    Number(
+      window.CURRENT_LESSON_PARTS_COUNT
+      ||
+      1
+    )
+  );
+}
 
 if(
   data.wait_for_answer === true
@@ -25654,14 +26682,16 @@ function renderLessonScore(
       score
     );
 /*
-  כרגע Learning Coach 1 הוא חצי מהשיעור,
-  ולכן רק ההבנה הכוללת מקבלת חצי מהציון.
+  הציון הכללי אינו מחושב יותר בפרונט לפי מספר חלקים קשיח.
+  מקור האמת הוא kid_lesson_progress.mastery_score.
 */
 
 const overallTopicScore =
-  Math.round(
-    safeScore / 2
-  );
+  normalizeLessonScore(
+    window.CURRENT_OVERALL_LESSON_MASTERY_SCORE
+  )
+  ??
+  0;
 
   if(
     safeScore === null
@@ -25684,9 +26714,19 @@ const overallTopicScore =
     );
 
 
-  const partOneSummary =
+  const currentPartSummary =
     document.getElementById(
-      "lessonPartOneSummary"
+      "lessonCurrentPartSummary"
+    );
+
+  const currentPartGauge =
+    document.getElementById(
+      "lessonCurrentPartGauge"
+    );
+
+  const currentPartLabel =
+    document.getElementById(
+      "lessonCurrentPartLabel"
     );
 
 
@@ -25744,11 +26784,27 @@ if(overallScore){
 }
 
 
-  if(partOneSummary){
+  if(currentPartSummary){
+    currentPartSummary.textContent = `${safeScore}%`;
+  }
 
-    partOneSummary.textContent =
-      `${safeScore}%`;
+  if(currentPartGauge){
+    currentPartGauge.style.setProperty("--value", safeScore);
+  }
 
+  const activePartNumber = Math.max(
+    1,
+    Number(window.CURRENT_LESSON_VISUAL_PART || 1)
+  );
+
+  const totalPartCount = Math.max(
+    activePartNumber,
+    Number(window.CURRENT_LESSON_PARTS_COUNT || activePartNumber)
+  );
+
+  if(currentPartLabel){
+    currentPartLabel.textContent =
+      `חלק ${activePartNumber} מתוך ${totalPartCount}`;
   }
 
 
@@ -26305,6 +27361,54 @@ async function fetchLatestLearningCoachScore(){
 }
 
 /* =====================================================
+   OVERALL LESSON MASTERY FROM DB
+===================================================== */
+async function fetchCurrentLessonOverallMastery(){
+
+  const kidId = CURRENT_KID?.id;
+
+  const lessonId =
+    Number(
+      currentLessonId
+      ||
+      window.CURRENT_LESSON_ID
+      ||
+      0
+    );
+
+  const unitLessonId =
+    Number(
+      window.SELECTED_UNIT_LESSON?.unit_lesson_id
+      ||
+      0
+    );
+
+  if(!kidId || !lessonId || !unitLessonId){
+    return null;
+  }
+
+  const { data, error } =
+    await sb
+      .from('kid_lesson_progress')
+      .select('mastery_score')
+      .eq('kid_id', kidId)
+      .eq('lesson_id', lessonId)
+      .eq('current_unit_lesson_id', unitLessonId)
+      .limit(1);
+
+  if(error){
+    console.error('OVERALL LESSON MASTERY FETCH ERROR:', error);
+    return null;
+  }
+
+  return normalizeLessonScore(
+    Array.isArray(data)
+      ? data[0]?.mastery_score
+      : null
+  );
+}
+
+/* =====================================================
    עדכון המד אחרי תשובת Coach
 ===================================================== */
 console.log("=== refreshLessonScoreFromCoachResponse START ===");
@@ -26423,10 +27527,18 @@ async function refreshLessonScoreFromCoachResponse(
   }
 
 
-  const finalScore =
-    databaseScore
-    ??
-    directScore;
+  const overallDatabaseScore =
+  await fetchCurrentLessonOverallMastery();
+
+if(overallDatabaseScore !== null){
+  window.CURRENT_OVERALL_LESSON_MASTERY_SCORE =
+    overallDatabaseScore;
+}
+
+const finalScore =
+  databaseScore
+  ??
+  directScore;
 console.log("FINAL SCORE =", finalScore);
 
   if(
@@ -26460,6 +27572,10 @@ console.log("FINAL SCORE =", finalScore);
   );
 
 console.log("CALLING animateLessonScore");
+
+  renderLessonScore(0);
+  currentDisplayedLessonScore = 0;
+
   await animateLessonScore(
     finalScore,
     {
@@ -42130,6 +43246,9 @@ body.lesson-theme-science
 .lesson-sidebar-row{
   position:relative !important;
 
+  pointer-events:auto !important;
+  cursor:pointer !important;
+
   z-index:
     2 !important;
 
@@ -42941,7 +44060,26 @@ body.lesson-theme-science
   }
 
 }
-    /* =====================================================
+    
+/* =====================================================
+   STUDENT LESSON PROGRESS PANEL — build 0.6.5
+===================================================== */
+body.lesson-theme-science .lesson-progress-open-btn{
+  width:100%; margin:0 0 8px; padding:8px 10px; border:1px solid rgba(57,171,255,.38);
+  border-radius:10px; background:linear-gradient(135deg,rgba(13,91,164,.34),rgba(54,49,160,.30));
+  color:#eaf6ff; font:800 11px/1.2 inherit; cursor:pointer; box-shadow:inset 0 1px rgba(255,255,255,.06),0 5px 16px rgba(0,65,150,.14);
+}
+body.lesson-theme-science .lesson-progress-open-btn:hover{border-color:rgba(86,202,255,.7);transform:translateY(-1px)}
+.lesson-student-progress-panel{position:absolute;inset:0;z-index:24;overflow:auto;direction:rtl;padding:28px;background:radial-gradient(circle at 85% 0,rgba(39,124,255,.17),transparent 35%),linear-gradient(180deg,#07172d,#041020);color:#eef6ff}
+.lesson-student-progress-shell{max-width:900px;margin:auto}
+.lesson-student-progress-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.lesson-student-progress-head h2{margin:0;font-size:25px}.lesson-student-progress-close{border:1px solid rgba(132,166,218,.3);border-radius:10px;background:#0b1d39;color:#dceaff;padding:8px 13px;cursor:pointer;font-weight:800}
+.lesson-progress-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.lesson-progress-stat{padding:13px;border:1px solid rgba(94,143,215,.2);border-radius:13px;background:rgba(9,31,61,.78);text-align:center}.lesson-progress-stat strong{display:block;font-size:21px}.lesson-progress-stat span{font-size:10px;color:#9eb2d3}
+.lesson-progress-filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.lesson-progress-filter{border:1px solid rgba(90,133,199,.25);border-radius:999px;background:#0a1d39;color:#aebfda;padding:7px 12px;cursor:pointer;font-weight:800;font-size:11px}.lesson-progress-filter.active{color:white;border-color:#45a9ff;background:#123d72}
+.lesson-progress-unit{border:1px solid rgba(83,128,195,.22);border-radius:14px;overflow:hidden;background:rgba(5,20,42,.72)}.lesson-progress-unit-title{padding:12px 15px;border-bottom:1px solid rgba(83,128,195,.18);font-weight:900;color:#dceaff}.lesson-progress-items{max-height:430px;overflow:auto}.lesson-progress-item{display:grid;grid-template-columns:minmax(0,1fr) 105px 105px;align-items:center;gap:12px;padding:12px 15px;border-bottom:1px solid rgba(79,118,178,.13)}.lesson-progress-item:last-child{border-bottom:0}.lesson-progress-item-name{font-weight:800;font-size:13px}.lesson-progress-badge{font-size:10px;font-weight:900;text-align:center;padding:6px 8px;border-radius:999px}.lesson-progress-badge.completed{color:#7df1aa;background:rgba(34,177,92,.14)}.lesson-progress-badge.partial{color:#ffc76c;background:rgba(222,142,31,.14)}.lesson-progress-badge.in_progress{color:#70c9ff;background:rgba(35,146,225,.14)}.lesson-progress-badge.not_started{color:#a8b7ce;background:rgba(130,151,181,.10)}.lesson-progress-action{border:1px solid rgba(79,163,255,.42);border-radius:9px;background:rgba(29,105,196,.23);color:#e8f5ff;padding:7px 8px;cursor:pointer;font-weight:900;font-size:10px}.lesson-progress-empty{padding:30px;text-align:center;color:#9eb0cc}
+@media(max-width:760px){.lesson-student-progress-panel{padding:16px}.lesson-progress-summary{grid-template-columns:repeat(2,1fr)}.lesson-progress-item{grid-template-columns:minmax(0,1fr) 90px}.lesson-progress-action{grid-column:1/-1}.lesson-progress-items{max-height:none}}
+
+/* =====================================================
    LESSON VISUAL GENERATION
 ===================================================== */
 
@@ -43857,6 +44995,17 @@ body.lesson-theme-science .lesson-sidebar-teacher::after{
   display: none !important;
   content: none !important;
 }
+/* REAL UNIT LESSON PROGRESS STATES */
+body.lesson-theme-science .lesson-sidebar-row.partial{
+  opacity:.92;
+}
+body.lesson-theme-science .lesson-sidebar-row.partial .lesson-sidebar-status{
+  color:#f2bd55;
+}
+body.lesson-theme-science .lesson-sidebar-row.available .lesson-sidebar-status{
+  color:#66d9ff;
+}
+
 </style>
 
 
@@ -45860,6 +47009,20 @@ async ask({
     return;
   }
 
+window.CURRENT_LESSON_FLOW_PHASE =
+  "dialog";
+
+renderDynamicLessonFlow(
+  "dialog",
+  Number(
+    window.CURRENT_LESSON_VISUAL_PART ||
+    1
+  ),
+  Number(
+    window.CURRENT_LESSON_PARTS_COUNT ||
+    1
+  )
+);
 
   /*
     מחלקים את תגובת ה-Learning Coach
@@ -46548,6 +47711,30 @@ case "wait":
 
     }
 
+  }
+
+  /* =========================================
+     MOVE FLOW TO DIALOG AFTER QUESTION ENDS
+  ========================================= */
+
+  if(
+    script.wait_for_answer === true &&
+    window.SELECTED_UNIT_LESSON
+  ){
+    window.CURRENT_LESSON_FLOW_PHASE =
+      "dialog";
+
+    renderDynamicLessonFlow(
+      "dialog",
+      Number(
+        window.CURRENT_LESSON_VISUAL_PART ||
+        1
+      ),
+      Number(
+        window.CURRENT_LESSON_PARTS_COUNT ||
+        1
+      )
+    );
   }
 
 
@@ -51839,4 +53026,181 @@ function(audio){
 
 })();
 </script>
+
+<script src="/he/workspace/lesson-completion.js"></script>
+<script id="iakidsSidebarHardReloadBootstrapV064">
+(function(){
+
+  const STORAGE_KEY =
+    "iakids_pending_sidebar_lesson";
+
+  const raw =
+    sessionStorage.getItem(
+      STORAGE_KEY
+    );
+
+  if(!raw){
+    return;
+  }
+
+  let pending =
+    null;
+
+  try{
+    pending =
+      JSON.parse(raw);
+  }
+  catch(error){
+    console.error(
+      "SIDEBAR HARD RELOAD — INVALID PENDING DATA:",
+      error
+    );
+
+    sessionStorage.removeItem(
+      STORAGE_KEY
+    );
+
+    return;
+  }
+
+  if(
+    !pending?.lesson?.id
+    ||
+    Date.now()
+      - Number(pending.savedAt || 0)
+      > 5 * 60 * 1000
+  ){
+    sessionStorage.removeItem(
+      STORAGE_KEY
+    );
+    return;
+  }
+
+  let attempts = 0;
+
+  const tryResume =
+    window.setInterval(
+      async () => {
+
+        attempts++;
+
+        const kidReady =
+          typeof CURRENT_KID !== "undefined"
+          &&
+          CURRENT_KID?.id;
+
+        const engineReady =
+          typeof startSelectedUnitLesson
+          === "function";
+
+        if(
+          !kidReady
+          ||
+          !engineReady
+        ){
+
+          if(attempts >= 150){
+            window.clearInterval(
+              tryResume
+            );
+
+            console.error(
+              "SIDEBAR HARD RELOAD — APP NOT READY"
+            );
+          }
+
+          return;
+        }
+
+        window.clearInterval(
+          tryResume
+        );
+
+        /*
+          מסירים לפני הפתיחה כדי שגם אם
+          startSelectedUnitLesson נכשל לא נקבל reload loop.
+        */
+        sessionStorage.removeItem(
+          STORAGE_KEY
+        );
+
+        try{
+
+          CURRENT_PARENT_LESSON = {
+            ...pending.parentLesson
+          };
+
+          CURRENT_UNIT = {
+            ...pending.unit
+          };
+
+          if(
+            typeof SCIENCE_SELECTED_CATEGORY
+            !== "undefined"
+            &&
+            pending.category
+          ){
+            SCIENCE_SELECTED_CATEGORY =
+              pending.category;
+          }
+
+          document.body.classList.remove(
+            "science-hierarchy-mode"
+          );
+
+          const scienceView =
+            document.getElementById(
+              "scienceHierarchyView"
+            );
+
+          if(scienceView){
+            scienceView.style.display =
+              "none";
+          }
+
+          const dashboard =
+            document.getElementById(
+              "dashboardView"
+            );
+
+          if(dashboard){
+            dashboard.style.display =
+              "none";
+          }
+
+          const pathView =
+            document.getElementById(
+              "learningPathView"
+            );
+
+          if(pathView){
+            pathView.style.display =
+              "none";
+          }
+
+          console.log(
+            "SIDEBAR HARD RELOAD — OPENING LESSON:",
+            pending.lesson
+          );
+
+          await startSelectedUnitLesson(
+            pending.lesson
+          );
+
+        }
+        catch(error){
+          console.error(
+            "SIDEBAR HARD RELOAD — OPEN FAILED:",
+            error
+          );
+        }
+
+      },
+      100
+    );
+
+})();
+</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.7</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
