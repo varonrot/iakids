@@ -82,6 +82,33 @@ select{
 /* TOP */
 .topbar{grid-column:1/4;grid-row:1;direction:rtl;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 22px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(14px);z-index:20}
 .brand{display:flex;align-items:center;gap:12px;direction:rtl}.brand img{width:58px;height:58px;object-fit:contain;border-radius:18px}.brand-title{font-size:23px;font-weight:900}.brand-sub{font-size:13px;color:var(--muted);margin-top:4px}.brand-ai{font-size:11px;color:#fff;background:linear-gradient(135deg,var(--purple),#a77bff);padding:4px 7px;border-radius:8px}
+.stat-pill{position:relative;overflow:visible}
+.coin-reward-pop{
+  position:absolute;
+  left:50%;
+  top:100%;
+  transform:translate(-50%,6px) scale(.92);
+  min-width:72px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#fff4ad,#ffd54f);
+  color:#7a5200;
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+  box-shadow:0 8px 24px rgba(172,125,0,.22);
+  opacity:0;
+  pointer-events:none;
+  z-index:9999;
+  animation:coinRewardPop 1.15s ease forwards;
+  white-space:nowrap;
+}
+@keyframes coinRewardPop{
+  0%{opacity:0;transform:translate(-50%,10px) scale(.86)}
+  18%{opacity:1;transform:translate(-50%,0) scale(1.06)}
+  72%{opacity:1;transform:translate(-50%,-7px) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-18px) scale(.96)}
+}
 .top-actions{display:flex;align-items:center;gap:10px}.top-pill{height:48px;border:1px solid var(--line);background:#fff;border-radius:15px;padding:0 17px;color:#3c4675;font-weight:900;box-shadow:0 4px 14px rgba(45,50,100,.05);cursor:pointer}.top-pill i{color:var(--purple);font-size:18px;margin-left:8px}
 .user-menu{position:relative}.user-trigger{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px;font-weight:900}.user-trigger img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:var(--soft)}.user-menu{
   position:relative;
@@ -45086,7 +45113,18 @@ async function awardPartCoins(amount = 10){
 
   if(CURRENT_KID) CURRENT_KID.coins = nextCoins;
   const coinsEl = document.getElementById("kidCoinsValue");
-  if(coinsEl) coinsEl.textContent = nextCoins.toLocaleString("he-IL");
+  if(coinsEl){
+    coinsEl.textContent = nextCoins.toLocaleString("he-IL");
+    const pill = coinsEl.closest(".stat-pill");
+    if(pill){
+      pill.querySelectorAll(".coin-reward-pop").forEach(el => el.remove());
+      const pop = document.createElement("span");
+      pop.className = "coin-reward-pop";
+      pop.textContent = `+${Number(amount || 0)} 🪙`;
+      pill.appendChild(pop);
+      window.setTimeout(() => pop.remove(), 1300);
+    }
+  }
   console.log("🪙 PART REWARD:", { amount, coins: nextCoins });
 }
 
@@ -53243,6 +53281,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.9</div>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.8.0</div>
 <script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
 </body></html>
