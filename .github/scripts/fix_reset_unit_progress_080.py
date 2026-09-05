@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Trigger backend reset synchronization patch.
 path = Path('backend-ai-tutor-hebrew/main.py')
 text = path.read_text(encoding='utf-8')
 original = text
