@@ -10975,16 +10975,10 @@ def lesson_intro(
         # =============================================
         # UNIT LESSON PROGRESS START
         #
-        # lesson-intro is the real entry point used by
-        # the current workspace when a child opens an
-        # internal lesson. Persist that start here.
-        # =============================================
-
-        start_kid_unit_lesson_progress(
-            kid_id=child["id"],
-            learning_lesson_id=parent_lesson["id"],
-            unit_lesson_id=unit_lesson["id"]
-        )
+        # Unit lesson progress is started only from the
+        # explicit requested_unit_lesson_id path below.
+        # This avoids marking a fallback/default unit lesson
+        # as in_progress when the child selected another lesson.
 
         # =============================================
         # TUTOR SESSION
