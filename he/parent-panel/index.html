@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>פאנל הורים | חבר לימודים AI</title>
-<!-- IAKIDS parent panel build 0.7.1 -->
+<!-- IAKIDS parent panel build 0.7.2 -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -820,9 +820,6 @@ async function loadParentDashboardData(kidId){
       .select(`
         id,
         learning_lesson_id,
-        grade,
-        subject,
-        parent_lesson,
         unit_order,
         unit_name,
         lesson_order,
