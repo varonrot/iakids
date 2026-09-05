@@ -1,0 +1,29 @@
+name: Apply lesson intro progress v0.8.7
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/run-lesson-intro-progress-v087.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply patch
+        run: python .github/scripts/patch-lesson-intro-progress-v087.py
+      - name: Commit changes
+        run: |
+          rm .github/scripts/patch-lesson-intro-progress-v087.py
+          rm .github/workflows/run-lesson-intro-progress-v087.yml
+          git config user.name iakids-bot
+          git config user.email actions@github.com
+          git add -A
+          git commit -m "Start unit lesson progress from lesson intro (v0.8.7)"
+          git push
