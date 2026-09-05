@@ -451,3 +451,42 @@ body.lesson-theme-science .lesson-completion-tip{
     font-size:12px;
   }
 }
+
+/* =====================================================
+   KINGDOM HOME — DAILY STREAK ALIGNMENT
+   Keep the streak count on the same row as the label.
+===================================================== */
+.kingdom-streak-main > div:not(.kingdom-streak-icon){
+  display:grid !important;
+  grid-template-columns:max-content max-content;
+  grid-template-rows:auto auto;
+  align-items:center;
+  column-gap:8px;
+  row-gap:3px;
+}
+
+.kingdom-streak-main .kingdom-status-label{
+  grid-column:1;
+  grid-row:1;
+  margin:0 !important;
+}
+
+.kingdom-streak-main .kingdom-streak-number{
+  grid-column:2;
+  grid-row:1;
+  display:flex !important;
+  align-items:baseline;
+  gap:3px;
+  margin:0 !important;
+  white-space:nowrap;
+}
+
+.kingdom-streak-main .kingdom-streak-number small{
+  margin:0 !important;
+}
+
+.kingdom-streak-main p{
+  grid-column:1 / -1;
+  grid-row:2;
+  margin:0 !important;
+}
