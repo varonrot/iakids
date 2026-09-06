@@ -49,14 +49,6 @@ helper = r'''  function ensureHomeworkStructuredTeacherStyles(){
         text-align:right;
         box-shadow:inset 0 0 0 1px rgba(85,154,255,.04),0 8px 22px rgba(0,0,0,.18);
       }
-      body.homework-lesson-mode .homework-structured-teacher-bubble .homework-next-question{
-        display:block;
-        margin-top:10px;
-        padding-top:10px;
-        border-top:1px solid rgba(120,173,240,.18);
-        color:#ffffff;
-        font-weight:800;
-      }
     `;
     document.head.appendChild(style);
   }
@@ -111,7 +103,6 @@ if 'function renderHomeworkStructuredTeacherMessage' not in core:
         raise SystemExit('runStructuredHomeworkTurn anchor not found')
     core = core.replace(anchor, helper + anchor, 1)
 
-# Replace only structured homework assistant rendering, not the rest of the app.
 core = core.replace(
     '        addMessage("assistant", text);\n        await playHomeworkTeacherAudio(text);',
     '        await Promise.all([\n          renderHomeworkStructuredTeacherMessage(text),\n          playHomeworkTeacherAudio(text)\n        ]);',
@@ -124,14 +115,12 @@ core = core.replace(
     1
 )
 
-# Error messages should also use the normal dark teacher UI, not oversized white legacy bubble.
 core = core.replace(
     '      addMessage("assistant", "לא הצלחתי לבדוק את התשובה כרגע. נסי שוב בעוד רגע.");',
     '      await renderHomeworkStructuredTeacherMessage("לא הצלחתי לבדוק את התשובה כרגע. נסי שוב בעוד רגע.");',
     1
 )
 
-# Bump build/cache.
 index = index.replace('IAKIDS • build 0.7.28', 'IAKIDS • build 0.7.29')
 index = index.replace('window.IAKIDS_BUILD_VERSION = "0.7.28";', 'window.IAKIDS_BUILD_VERSION = "0.7.29";')
 index = index.replace('/he/workspace/lesson-completion.js?v=0728', '/he/workspace/lesson-completion.js?v=0729')
@@ -144,3 +133,5 @@ EXT.write_text(ext, encoding='utf-8')
 INDEX.write_text(index, encoding='utf-8')
 
 print('Structured homework teacher rendering fixed; dark bubble + avatar + typing; build 0.7.29')
+
+# trigger
