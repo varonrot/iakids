@@ -1,0 +1,29 @@
+name: Run Hebrew home feature popup patch
+
+on:
+  push:
+    paths:
+      - '.github/workflows/run-he-home-feature-popup-patch.yml'
+      - '.github/scripts/patch_he_home_feature_popups.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch homepage
+        run: python .github/scripts/patch_he_home_feature_popups.py
+      - name: Commit result
+        run: |
+          if git diff --quiet -- he/index.html; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/index.html
+          git commit -m "Improve Hebrew home hero and feature popups"
+          git push
