@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.36";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.40";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -7,7 +7,7 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.36";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=0736";
+  core.src = "/he/workspace/lesson-completion-core.js?v=0740";
   core.async = false;
 
   core.onload = function(){
@@ -795,6 +795,59 @@ function installHomeworkLessonWorkspace(){
     return new File([blob], `${baseName}-page-1.jpg`, {type:"image/jpeg"});
   }
 
+  function renderUnsupportedHomeworkFile(file){
+    showHomeworkLessonWorkspace({keepPreview:false});
+
+    const stage = document.querySelector(".lesson-visual-stage");
+    if(!stage) return;
+
+    const safeName = String(file?.name || "הקובץ").replace(/[<>]/g, "");
+
+    stage.innerHTML = `
+      <div class="homework-stage-shell">
+        <section class="homework-upload-card" style="min-height:330px">
+          <div class="homework-upload-icon" style="color:#ffb7c7;border-color:rgba(255,103,139,.48);background:linear-gradient(145deg,rgba(112,31,58,.82),rgba(63,31,104,.82))">
+            <i class="fa-solid fa-file-circle-xmark"></i>
+          </div>
+          <h2>סוג הקובץ הזה אינו נתמך</h2>
+          <p><strong style="color:#d8e7ff">${safeName}</strong><br>אפשר להעלות תמונה מסוג JPG, PNG או WEBP, או קובץ PDF.</p>
+          <div class="homework-upload-actions">
+            <button type="button" class="homework-upload-action primary" data-homework-camera-retry>
+              <i class="fa-solid fa-camera"></i>
+              <span>צלם שיעורי בית</span>
+            </button>
+            <button type="button" class="homework-upload-action" data-homework-file-retry>
+              <i class="fa-solid fa-file-arrow-up"></i>
+              <span>נסה קובץ אחר</span>
+            </button>
+          </div>
+          <div class="homework-stage-note"><i class="fa-solid fa-circle-info"></i><span>לא התחלתי לנתח את הקובץ, לכן אפשר לנסות שוב מיד.</span></div>
+        </section>
+      </div>`;
+
+    stage.querySelector("[data-homework-camera-retry]")?.addEventListener("click", () => {
+      const input = document.getElementById("homeworkCameraInput");
+      if(input){ input.value = ""; input.click(); }
+    });
+
+    stage.querySelector("[data-homework-file-retry]")?.addEventListener("click", () => {
+      const input = document.getElementById("homeworkFileInput");
+      if(input){ input.value = ""; input.click(); }
+    });
+
+    const steps = document.querySelectorAll(".homework-sidebar-step");
+    steps.forEach(step => step.classList.remove("active"));
+    steps[0]?.classList.add("active");
+  }
+
+  function isSupportedHomeworkImage(file){
+    const type = String(file?.type || "").toLowerCase();
+    const name = String(file?.name || "").toLowerCase();
+    const supportedMime = new Set(["image/jpeg", "image/png", "image/webp"]);
+    if(supportedMime.has(type)) return true;
+    return /\.(jpe?g|png|webp)$/i.test(name);
+  }
+
   async function handleHomeworkPdfUpload(file){
     showHomeworkLessonWorkspace({keepPreview:true});
 
@@ -863,6 +916,15 @@ function installHomeworkLessonWorkspace(){
         event.preventDefault();
         event.stopImmediatePropagation();
         handleHomeworkPdfUpload(file);
+        return;
+      }
+
+      if(!isSupportedHomeworkImage(file)){
+        // Reject unsupported files before preview, compression or AI analysis.
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        event.target.value = "";
+        renderUnsupportedHomeworkFile(file);
         return;
       }
 
