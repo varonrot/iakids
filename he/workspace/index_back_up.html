@@ -144,7 +144,7 @@ select{
 .new-task{height:58px;border:0;border-radius:18px;background:linear-gradient(135deg,#7b4fff,#5f39e7);color:#fff;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 12px 25px rgba(111,73,255,.25);margin-bottom:14px}
 .kid-actions{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:7px}.side-item{min-height:58px;border:0;border-radius:16px;background:#fff;display:flex;align-items:center;gap:12px;padding:0 13px;color:#33406b;text-align:right;cursor:pointer;font-weight:900;box-shadow:0 3px 12px rgba(45,52,110,.03)}.side-item:hover{transform:translateY(-1px);box-shadow:var(--soft)}.side-item.active{background:linear-gradient(90deg,#f3efff,#eee8ff);color:#603ce8}
 .side-item i,.manage-btn i{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;color:#fff!important;font-size:18px;flex:0 0 40px;box-shadow:0 7px 15px rgba(60,60,120,.12)}.side-title{font-size:16px;font-weight:900}.side-text{display:flex;flex-direction:column}.side-sub{display:none}
-.side-item:nth-of-type(1) i{background:linear-gradient(135deg,#7b5cff,#5d3ee7)}.side-item:nth-of-type(2) i{background:linear-gradient(135deg,#4fa9ff,#4089ee)}.side-item:nth-of-type(3) i{background:linear-gradient(135deg,#ff9e5d,#ff7a48)}.side-item:nth-of-type(4) i{background:linear-gradient(135deg,#ff7abb,#ee5aa0)}.side-item:nth-of-type(5) i{background:linear-gradient(135deg,#57c8ff,#3f9de8)}.side-item:nth-of-type(6) i{background:linear-gradient(135deg,#49cb88,#34ad70)}.side-item:nth-of-type(7) i{background:linear-gradient(135deg,#ffd153,#f0ae25)}.side-item:nth-of-type(8) i{background:linear-gradient(135deg,#9d70ff,#704be7)}.side-item:nth-of-type(9) i{background:linear-gradient(135deg,#4acbe9,#2daec9)}
+.side-item:nth-of-type(1) i{background:linear-gradient(135deg,#7b5cff,#5d3ee7)}.side-item:nth-of-type(2) i{background:linear-gradient(135deg,#4fa9ff,#4089ee)}.side-item:nth-of-type(3) i{background:linear-gradient(135deg,#36c7ff,#287fdd)}.side-item:nth-of-type(4) i{background:linear-gradient(135deg,#ff9e5d,#ff7a48)}.side-item:nth-of-type(5) i{background:linear-gradient(135deg,#ff7abb,#ee5aa0)}.side-item:nth-of-type(6) i{background:linear-gradient(135deg,#57c8ff,#3f9de8)}.side-item:nth-of-type(7) i{background:linear-gradient(135deg,#49cb88,#34ad70)}.side-item:nth-of-type(8) i{background:linear-gradient(135deg,#ffd153,#f0ae25)}.side-item:nth-of-type(9) i{background:linear-gradient(135deg,#9d70ff,#704be7)}.side-item:nth-of-type(10) i{background:linear-gradient(135deg,#4acbe9,#2daec9)}
 .subject-add{min-height:50px;border:1px dashed #c8bdf8;border-radius:14px;background:#fbfaff;color:#6b49ef;font-weight:900;cursor:pointer;margin-top:2px;font-size:15px}.sidebar-bottom{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:8px}.manage-btn{min-height:52px;border:0;border-radius:14px;background:#f8f8fc;color:#35406c;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:15px;font-weight:900;cursor:pointer}.manage-btn:hover{background:#f1edff;color:#6541ee}.manage-btn:nth-child(1) i{background:linear-gradient(135deg,#49cb88,#34ad70)}.manage-btn:nth-child(2) i{background:linear-gradient(135deg,#ff7abb,#ee5aa0)}.manage-btn:nth-child(3) i{background:linear-gradient(135deg,#ffd153,#f0ae25);color:#6b4c00!important}
 
 /* MAIN */
@@ -12522,7 +12522,7 @@ body.lesson-theme-science .lesson-lessons-sidebar .lesson-sidebar-unit{
 
 /* =====================================================
    HOME DAILY STREAK CARD — balanced 4-card row
-   build 0.7.7
+   build 0.7.10
 ===================================================== */
 .kingdom-status-row{
   grid-template-columns: 1fr 1fr 1.18fr 1fr !important;
@@ -13028,6 +13028,22 @@ body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{hei
       <div class="side-text">
         <span class="side-title">
           השיעורים שלי
+        </span>
+      </div>
+    </button>
+
+
+    <!-- עזרה בשיעורי בית -->
+    <button
+      class="side-item homework-side-item"
+      id="homeworkSidebarBtn"
+      onclick="showLearning('homework')"
+    >
+      <i class="fa-solid fa-camera"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          עזרה בשיעורי בית
         </span>
       </div>
     </button>
@@ -15449,7 +15465,7 @@ data-custom-slot="0"
     <button
       type="button"
       class="home-right-action home-right-homework"
-      onclick="startHomeworkCamera()"
+      onclick="showLearning('homework')"
     >
       <img
         src="/assets/cards/homework-camera.webp"
@@ -22114,10 +22130,48 @@ function renderStudentLessonProgressList(filter="all"){
   host.querySelectorAll("[data-progress-lesson-id]").forEach(btn=>btn.addEventListener("click",()=>startLessonFromProgressPanel(Number(btn.dataset.progressLessonId))));
 }
 
-function openStudentLessonProgressPanel(){
+async function openStudentLessonProgressPanel(){
   const stage=document.querySelector(".lesson-visual-stage"); if(!stage) return;
   document.getElementById("studentLessonProgressPanel")?.remove();
-  const rows=window.LESSON_SIDEBAR_ROWS||[]; const pmap=new Map((window.LESSON_SIDEBAR_PROGRESS_ROWS||[]).map(r=>[Number(r.unit_lesson_id),r]));
+  const rows=window.LESSON_SIDEBAR_ROWS||[]; // Always refresh progress from DB before rendering.
+  // This prevents a stale cached progress map from showing
+  // a lesson as "not started" after it was already opened.
+  try{
+    const progressKidId = CURRENT_KID?.id || window.ACTIVE_KID_ID || null;
+    const progressParentLessonId = Number(
+      CURRENT_PARENT_LESSON?.id
+      || window.CURRENT_LESSON_ID
+      || 0
+    );
+
+    if(progressKidId && progressParentLessonId){
+      const { data: freshProgressRows, error: freshProgressError } = await sb
+        .from("kid_unit_lesson_progress")
+        .select(`
+          unit_lesson_id,
+          status,
+          progress_percent,
+          mastery_score,
+          best_mastery_score,
+          last_activity_at,
+          completed_at
+        `)
+        .eq("kid_id", progressKidId)
+        .eq("learning_lesson_id", progressParentLessonId);
+
+      if(freshProgressError){
+        console.warn("LESSON PROGRESS REFRESH WARNING:", freshProgressError);
+      }else{
+        window.LESSON_SIDEBAR_PROGRESS_ROWS = Array.isArray(freshProgressRows)
+          ? freshProgressRows
+          : [];
+      }
+    }
+  }catch(err){
+    console.warn("LESSON PROGRESS REFRESH WARNING:",err);
+  }
+
+  const pmap=new Map((window.LESSON_SIDEBAR_PROGRESS_ROWS||[]).map(r=>[Number(r.unit_lesson_id),r]));
   const counts={completed:0,partial:0,in_progress:0,not_started:0}; rows.forEach(l=>{const s=String(pmap.get(Number(l.id))?.status||"not_started"); counts[s]=(counts[s]||0)+1;});
   const panel=document.createElement("div"); panel.id="studentLessonProgressPanel"; panel.className="lesson-student-progress-panel";
   panel.innerHTML=`<div class="lesson-student-progress-shell"><div class="lesson-student-progress-head"><div><h2>ההתקדמות שלי</h2><small>${escapeLessonSidebarHtml(CURRENT_UNIT?.unit_name||CURRENT_PARENT_LESSON?.lesson_name||"")}</small></div><button class="lesson-student-progress-close" type="button">✕ חזרה לשיעור</button></div><div class="lesson-progress-summary"><div class="lesson-progress-stat"><strong>${rows.length}</strong><span>שיעורים ביחידה</span></div><div class="lesson-progress-stat"><strong>${counts.completed}</strong><span>הושלמו</span></div><div class="lesson-progress-stat"><strong>${counts.partial}</strong><span>צריך להשלים</span></div><div class="lesson-progress-stat"><strong>${counts.in_progress}</strong><span>בתהליך</span></div></div><div class="lesson-progress-filters"><button class="lesson-progress-filter active" data-progress-filter="all">הכול</button><button class="lesson-progress-filter" data-progress-filter="in_progress">בתהליך</button><button class="lesson-progress-filter" data-progress-filter="needs_completion">צריך להשלים</button><button class="lesson-progress-filter" data-progress-filter="completed">הושלמו</button><button class="lesson-progress-filter" data-progress-filter="not_started">טרם התחלת</button></div><section class="lesson-progress-unit"><div class="lesson-progress-unit-title">${escapeLessonSidebarHtml(CURRENT_UNIT?.unit_name||"השיעורים שלי")}</div><div id="lessonProgressItems" class="lesson-progress-items"></div></section></div>`;
@@ -53027,7 +53081,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js"></script>
+<script src="/he/workspace/lesson-completion.js?v=0725"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -53201,6 +53255,6 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.7</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.6.7";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.25</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.25";</script>
 </body></html>
