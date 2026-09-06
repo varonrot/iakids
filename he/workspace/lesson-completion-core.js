@@ -677,6 +677,8 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     if(/hebrew|עברית/.test(lower)) return "עברית";
     if(/english|אנגלית/.test(lower)) return "אנגלית";
     if(/history|היסטור/.test(lower)) return "היסטוריה";
+    if(/literature/.test(lower)) return "ספרות";
+    if(/reading comprehension/.test(lower)) return "הבנת הנקרא";
     if(/geograph|גאוגר|גיאוגר/.test(lower)) return "גאוגרפיה";
 
     return raw;
@@ -692,13 +694,86 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     }
     if(/creation of the world|creation of world/.test(lower)) return "בריאת העולם";
     if(/ecosystem/.test(lower)) return "מערכות אקולוגיות";
+    if(/reading comprehension/.test(lower)) return "הבנת הנקרא";
+    if(/abraham/.test(lower) && /guest|hospitality/.test(lower)) return "אברהם מכניס אורחים";
 
     return raw;
   }
 
+  function resolveHomeworkClassification(analysis){
+    const extracted = String(analysis?.extracted_text || "").trim();
+    const rawSubject = cleanHomeworkValue(analysis?.subject);
+    const rawTopic = cleanHomeworkValue(analysis?.topic);
+    const combined = `${extracted}\n${rawSubject}\n${rawTopic}`;
+    const lower = combined.toLowerCase();
+
+    let subject = normalizeHomeworkSubjectForDisplay(rawSubject);
+    let topic = normalizeHomeworkTopicForDisplay(rawTopic);
+    let taskType = "";
+
+    /* Explicit worksheet headings/content outrank a generic AI label such as Literature. */
+    const hasTanakhEvidence =
+      /תנ[״"']?ך/.test(combined)
+      || /שיעורי\s+בית\s+בתנ/.test(combined)
+      || /פרשת\s+/.test(combined)
+      || /ספר\s+(בראשית|שמות|ויקרא|במדבר|דברים)/.test(combined)
+      || /\b(bible|biblical|scripture|tanakh)\b/i.test(combined);
+
+    if(hasTanakhEvidence){
+      subject = "תנ״ך";
+    }
+
+    if(
+      /אברהם\s+מכניס\s+אורחים/.test(combined)
+      || (combined.includes("אברהם") && /אורח/.test(combined))
+    ){
+      topic = "אברהם מכניס אורחים";
+    }
+    else if(
+      (combined.includes("בראשית") || /genesis/i.test(combined))
+      &&
+      (combined.includes("בריאת") || /creation/i.test(combined))
+    ){
+      topic = "בריאת העולם";
+    }
+
+    const readingTask =
+      /קטע\s+קריאה|הבנת\s+הנקרא|reading\s+comprehension|literature/i.test(combined);
+
+    if(readingTask){
+      taskType = "הבנת הנקרא";
+    }
+
+    /* Literature/Reading Comprehension describes the task, not the school subject. */
+    if(
+      subject
+      &&
+      /^(literature|reading comprehension)$/i.test(subject)
+      &&
+      hasTanakhEvidence
+    ){
+      subject = "תנ״ך";
+    }
+
+    if(
+      topic
+      &&
+      /^(literature|reading comprehension)$/i.test(topic)
+    ){
+      topic = "";
+    }
+
+    return {
+      subject,
+      topic,
+      taskType
+    };
+  }
+
   function getHomeworkDetectionSentence(analysis){
-    const subject = normalizeHomeworkSubjectForDisplay(analysis?.subject);
-    const topic = normalizeHomeworkTopicForDisplay(analysis?.topic);
+    const classification = resolveHomeworkClassification(analysis);
+    const subject = classification.subject;
+    const topic = classification.topic;
 
     const rawConfidence = Number(
       analysis?.confidence
@@ -965,8 +1040,10 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     ensureHomeworkHelpStyles();
     document.querySelectorAll('.homework-detection-row').forEach(el => el.remove());
 
-    const subject = normalizeHomeworkSubjectForDisplay(analysis?.subject);
-    const topic = normalizeHomeworkTopicForDisplay(analysis?.topic);
+    const classification = resolveHomeworkClassification(analysis);
+    const subject = classification.subject;
+    const topic = classification.topic;
+    const taskType = classification.taskType;
     const sentence = getHomeworkIntroByGrade(analysis);
     const parts = sentence.split('\n');
     const mainLine = parts[0] || 'זיהיתי את שיעורי הבית.';
@@ -983,6 +1060,7 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
           <div class="homework-detection-tags">
             ${subject ? `<span class="homework-detection-tag">${subject}</span>` : ''}
             ${topic ? `<span class="homework-detection-tag">${topic}</span>` : ''}
+            ${taskType ? `<span class="homework-detection-tag">${taskType}</span>` : ''}
           </div>
         </div>
       </div>`;
@@ -1059,14 +1137,18 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
   }
 
   function buildHomeworkContextMessage(analysis){
+    const classification = resolveHomeworkClassification(analysis);
     return `
 הילד העלה צילום של שיעורי הבית.
 
 מקצוע שזוהה:
-${cleanHomeworkValue(analysis?.subject) || "לא ידוע"}
+${classification.subject || "לא ידוע"}
 
 נושא שזוהה:
-${cleanHomeworkValue(analysis?.topic) || "לא ידוע"}
+${classification.topic || "לא ידוע"}
+
+סוג משימה:
+${classification.taskType || "לא ידוע"}
 
 כיתה:
 ${getHomeworkGrade()}
@@ -1176,11 +1258,14 @@ ${analysis?.extracted_text || ""}
         ? extractFirstHomeworkQuestion(analysis.extracted_text)
         : "";
 
+    const classification = resolveHomeworkClassification(analysis);
+
     const message = `
 אנחנו ממשיכים עם שיעורי הבית שכבר נותחו.
 
-מקצוע: ${cleanHomeworkValue(analysis.subject) || "לא ידוע"}
-נושא: ${cleanHomeworkValue(analysis.topic) || "לא ידוע"}
+מקצוע: ${classification.subject || "לא ידוע"}
+נושא: ${classification.topic || "לא ידוע"}
+סוג משימה: ${classification.taskType || "לא ידוע"}
 כיתה: ${getHomeworkGrade()}
 
 הילד בחר: ${choice.label}
