@@ -654,10 +654,34 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return text;
   }
 
+  function getHomeworkKidObject(){
+    try{
+      if(typeof CURRENT_KID !== "undefined" && CURRENT_KID) return CURRENT_KID;
+    }catch(_error){}
+
+    try{
+      if(typeof SELECTED_KID !== "undefined" && SELECTED_KID) return SELECTED_KID;
+    }catch(_error){}
+
+    return (
+      window.CURRENT_KID
+      || window.SELECTED_KID
+      || window.currentKid
+      || window.selectedKid
+      || {}
+    );
+  }
+
+  function getHomeworkKidId(){
+    const kid = getHomeworkKidObject();
+    return String(kid?.id || kid?.kid_id || "").trim();
+  }
+
   function getHomeworkGrade(){
+    const kid = getHomeworkKidObject();
     const raw =
-      window.CURRENT_KID?.grade
-      ?? window.CURRENT_KID?.age
+      kid?.grade
+      ?? kid?.age
       ?? 4;
 
     const grade = Number(raw);
@@ -1818,6 +1842,15 @@ ${analysis.extracted_text || ""}
       return;
     }
 
+    const kidId = getHomeworkKidId();
+    if(!kidId){
+      console.error("HOMEWORK TURN: kid id missing", {
+        resolvedKid: getHomeworkKidObject()
+      });
+      addMessage("assistant", "לא הצלחתי לזהות את פרופיל הילדה. רענני את המסך ונסי שוב.");
+      return;
+    }
+
     addMessage("user", answer);
 
     const { input, send } = homeworkComposerElements();
@@ -1834,7 +1867,7 @@ ${analysis.extracted_text || ""}
             "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify({
-            kid_id: window.CURRENT_KID?.id || window.SELECTED_KID?.id,
+            kid_id: kidId,
             session_id: (typeof currentSessionId !== "undefined" ? currentSessionId : null),
             current_question_number: current.number,
             current_question: current.text,
@@ -1849,7 +1882,7 @@ ${analysis.extracted_text || ""}
       if(!response.ok){
         const errorText = await response.text();
         console.error("HOMEWORK TURN ERROR:", response.status, errorText);
-        throw new Error("homework turn failed");
+        throw new Error(`homework turn failed: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
@@ -1953,6 +1986,8 @@ ${analysis.extracted_text || ""}
   };
   window.selectHomeworkHelpOption = selectHomeworkHelpOption;
 
+  window.getHomeworkKidObject = getHomeworkKidObject;
+  window.getHomeworkKidId = getHomeworkKidId;
   window.getCurrentHomeworkQuestion = getCurrentHomeworkQuestion;
   window.getHomeworkQuestions = () => window.CURRENT_HOMEWORK_QUESTIONS || [];
   window.runStructuredHomeworkTurn = runStructuredHomeworkTurn;
