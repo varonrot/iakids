@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.17";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.18";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -7,7 +7,7 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.17";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=0717";
+  core.src = "/he/workspace/lesson-completion-core.js?v=0718";
   core.async = false;
 
   core.onload = function(){
@@ -400,11 +400,7 @@ function installHomeworkLessonWorkspace(){
   };
 
   window.startHomeworkCamera = async function(){
-    showHomeworkLessonWorkspace();
-
-    await new Promise(resolve => setTimeout(resolve,80));
-
-    document.getElementById("homeworkCameraInput")?.click();
+    return showHomeworkLessonWorkspace();
   };
 
   function showHomeworkPreview(file){
