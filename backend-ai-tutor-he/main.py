@@ -17399,6 +17399,12 @@ def homework_analyze(
             "vision_status":
                 vision_status,
 
+            "child_name":
+                str(child.get("child_name") or "").strip(),
+
+            "gender":
+                str(child.get("gender") or "unknown").strip().lower(),
+
             "needs_high_resolution":
                 needs_high_resolution,
 

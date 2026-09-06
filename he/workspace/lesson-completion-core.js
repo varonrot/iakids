@@ -1168,15 +1168,15 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return true;
   }
 
-  function getHomeworkKidName(){
-    const kid =
-      window.CURRENT_KID
-      || window.SELECTED_KID
-      || window.currentKid
-      || window.selectedKid
-      || {};
+  function getHomeworkKidName(analysis=null){
+    const sourceAnalysis = analysis || activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
+    const kid = window.CURRENT_KID || window.SELECTED_KID || window.currentKid || window.selectedKid || {};
 
     const candidates = [
+      sourceAnalysis?.child_name,
+      sourceAnalysis?.kid_name,
+      sourceAnalysis?.profile?.child_name,
+      window.CURRENT_HOMEWORK_CHILD_NAME,
       kid?.child_name,
       kid?.name,
       kid?.first_name,
@@ -1216,16 +1216,16 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return "";
   }
 
-  function getHomeworkKidGender(){
-    const kid =
-      window.CURRENT_KID
-      || window.SELECTED_KID
-      || window.currentKid
-      || window.selectedKid
-      || {};
+  function getHomeworkKidGender(analysis=null){
+    const sourceAnalysis = analysis || activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
+    const kid = window.CURRENT_KID || window.SELECTED_KID || window.currentKid || window.selectedKid || {};
 
     const raw = String(
-      kid?.gender
+      sourceAnalysis?.gender
+      || sourceAnalysis?.child_gender
+      || sourceAnalysis?.profile?.gender
+      || window.CURRENT_HOMEWORK_CHILD_GENDER
+      || kid?.gender
       || kid?.sex
       || window.CURRENT_KID_GENDER
       || ""
@@ -1236,10 +1236,11 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return "unknown";
   }
 
-  function getHomeworkGenderLanguage(){
-    const female = getHomeworkKidGender() === "female";
+  function getHomeworkGenderLanguage(analysis=null){
+    const resolvedGender = getHomeworkKidGender(analysis);
+    const female = resolvedGender === "female";
     return {
-      gender: female ? "נקבה" : (getHomeworkKidGender() === "male" ? "זכר" : "לא ידוע"),
+      gender: female ? "נקבה" : (resolvedGender === "male" ? "זכר" : "לא ידוע"),
       howHelp: female ? "איך תרצי שאעזור?" : "איך תרצה שאעזור?",
       tryAgain: female ? "נסי" : "נסה",
       childLabel: female ? "הילדה" : "הילד"
@@ -1250,8 +1251,8 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     const classification = resolveHomeworkClassification(analysis);
     const subject = classification.subject;
     const topic = classification.topic;
-    const kidName = getHomeworkKidName();
-    const language = getHomeworkGenderLanguage();
+    const kidName = getHomeworkKidName(analysis);
+    const language = getHomeworkGenderLanguage(analysis);
 
     const greeting = kidName
       ? `היי ${kidName}, `
@@ -1314,8 +1315,8 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
 
   function buildHomeworkContextMessage(analysis){
     const classification = resolveHomeworkClassification(analysis);
-    const kidName = getHomeworkKidName() || "לא ידוע";
-    const language = getHomeworkGenderLanguage();
+    const kidName = getHomeworkKidName(analysis) || "לא ידוע";
+    const language = getHomeworkGenderLanguage(analysis);
     return `
 הילד/ה העלה/תה צילום של שיעורי הבית.
 
@@ -1446,8 +1447,8 @@ ${analysis?.extracted_text || ""}
         : "";
 
     const classification = resolveHomeworkClassification(analysis);
-    const kidName = getHomeworkKidName() || "לא ידוע";
-    const language = getHomeworkGenderLanguage();
+    const kidName = getHomeworkKidName(analysis) || "לא ידוע";
+    const language = getHomeworkGenderLanguage(analysis);
 
     const message = `
 שם הילד/ה: ${kidName}
@@ -1582,6 +1583,18 @@ ${analysis.extracted_text || ""}
   async function smartHomeworkAnalysisIntro(analysis){
     activeHomeworkAnalysis = analysis || null;
     window.CURRENT_HOMEWORK_ANALYSIS = analysis || null;
+
+    if(analysis?.child_name){
+      window.CURRENT_HOMEWORK_CHILD_NAME = String(analysis.child_name).trim();
+    }
+    if(analysis?.gender || analysis?.child_gender){
+      window.CURRENT_HOMEWORK_CHILD_GENDER = String(analysis.gender || analysis.child_gender).trim().toLowerCase();
+    }
+
+    console.log("HOMEWORK PROFILE FROM ANALYZER:", {
+      child_name: analysis?.child_name || null,
+      gender: analysis?.gender || analysis?.child_gender || null
+    });
 
     setHomeworkSidebarStep(2);
     removeHomeworkReadingStatus();
