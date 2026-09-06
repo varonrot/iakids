@@ -1,0 +1,41 @@
+name: Patch HE2 pillar images
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-pillar-images.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace pillar icons with premium thumbnails
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('he2/index.html')
+          s = p.read_text()
+          old_css = ".pillar-icon{width:62px;height:62px;border-radius:19px;display:grid;place-items:center;margin-bottom:24px;font-size:28px;background:color-mix(in srgb,var(--c) 12%,rgba(255,255,255,.025));border:1px solid color-mix(in srgb,var(--c) 45%,transparent);box-shadow:0 0 24px color-mix(in srgb,var(--c) 13%,transparent)}"
+          new_css = ".pillar-thumb{position:relative;width:108px;height:108px;margin-bottom:24px;border-radius:24px;overflow:hidden;border:1px solid color-mix(in srgb,var(--c) 46%,rgba(255,255,255,.10));background:color-mix(in srgb,var(--c) 10%,rgba(255,255,255,.025));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 16px 34px rgba(0,0,0,.28),0 0 28px color-mix(in srgb,var(--c) 13%,transparent)}.pillar-thumb::after{content:\"\";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.09),transparent 42%);pointer-events:none}.pillar-thumb img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .35s ease,filter .35s ease}.pillar-card:hover .pillar-thumb img{transform:scale(1.055);filter:saturate(1.08) contrast(1.04)}"
+          if old_css in s:
+              s = s.replace(old_css, new_css, 1)
+          repl = {
+            '<div class=\"pillar-icon\">📸</div><h3>שיעורי בית חכמים</h3>': '<div class=\"pillar-thumb\"><img src=\"/assets/he2/cards/homework.webp\" alt=\"שיעורי בית חכמים\"></div><h3>שיעורי בית חכמים</h3>',
+            '<div class=\"pillar-icon\">🧠</div><h3>למידה מותאמת אישית</h3>': '<div class=\"pillar-thumb\"><img src=\"/assets/he2/cards/personalized.webp\" alt=\"למידה מותאמת אישית\"></div><h3>למידה מותאמת אישית</h3>',
+            '<div class=\"pillar-icon\">🤖</div><h3>מורה AI אישית</h3>': '<div class=\"pillar-thumb\"><img src=\"/assets/he2/cards/ai-teacher.webp\" alt=\"מורה AI אישית\"></div><h3>מורה AI אישית</h3>',
+            '<div class=\"pillar-icon\">📈</div><h3>מעקב ברור להורים</h3>': '<div class=\"pillar-thumb\"><img src=\"/assets/he2/cards/parents-dashboard.webp\" alt=\"מעקב ברור להורים\"></div><h3>מעקב ברור להורים</h3>',
+          }
+          for a,b in repl.items():
+              if a not in s:
+                  raise SystemExit(f'Missing expected block: {a[:80]}')
+              s = s.replace(a,b,1)
+          p.write_text(s)
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git commit -m "Use premium images in HE2 feature cards [skip ci]"
+          git push
