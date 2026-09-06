@@ -1,0 +1,32 @@
+name: Fix homework PDF upload 0.7.36
+
+on:
+  push:
+    paths:
+      - '.github/scripts/fix_homework_pdf_upload_0736.py'
+      - '.github/workflows/fix-homework-pdf-upload-0736.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch PDF homework upload
+        run: python .github/scripts/fix_homework_pdf_upload_0736.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Support PDF homework uploads; bump to 0.7.36"
+          git push
