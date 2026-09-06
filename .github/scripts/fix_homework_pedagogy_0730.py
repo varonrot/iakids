@@ -70,3 +70,5 @@ INDEX.write_text(index, encoding='utf-8')
 BACKEND.write_text(backend, encoding='utf-8')
 
 print('Homework pedagogy improved: explicit guidance + explain why correct + model answer; build 0.7.30')
+
+# trigger
