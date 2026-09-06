@@ -4339,6 +4339,31 @@ def build_tutor_prompt(child: dict, kids_memory: str) -> str:
     for placeholder, value in replacements.items():
         prompt = prompt.replace(placeholder, value)
 
+    child_gender = str(child.get("gender") or "unknown").strip().lower()
+    child_name = str(child.get("child_name") or "").strip()
+
+    if child_gender == "female":
+        gender_instruction = (
+            "The child is female. In Hebrew ALWAYS address her in feminine singular "
+            "forms (את, תרצי, נסי, כתבי, חשבי, הצלחת). Never use masculine forms."
+        )
+    elif child_gender == "male":
+        gender_instruction = (
+            "The child is male. In Hebrew address him in masculine singular forms."
+        )
+    else:
+        gender_instruction = (
+            "The child's gender is unknown. Avoid gendered Hebrew wording where possible; "
+            "do not infer gender from the child's name."
+        )
+
+    prompt += (
+        "\n\nAUTHORITATIVE_CHILD_PROFILE:\n"
+        f"child_name: {child_name}\n"
+        f"gender: {child_gender}\n"
+        f"{gender_instruction}"
+    )
+
     return prompt
 
 

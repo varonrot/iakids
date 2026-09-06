@@ -1071,7 +1071,7 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     const sentence = getHomeworkIntroByGrade(analysis);
     const parts = sentence.split('\n');
     const mainLine = parts[0] || 'זיהיתי את שיעורי הבית.';
-    const helpLine = parts.slice(1).join(' ') || 'איך תרצה שאעזור?';
+    const helpLine = parts.slice(1).join(' ') || getHomeworkGenderLanguage().howHelp;
 
     const row = document.createElement('div');
     row.className = 'homework-detection-row';
@@ -1135,7 +1135,7 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
 
     const title = document.createElement("div");
     title.className = "homework-help-options-title";
-    title.textContent = "איך תרצה שאעזור?";
+    title.textContent = getHomeworkGenderLanguage().howHelp;
     panel.appendChild(title);
 
     HELP_CHOICES.forEach(choice => {
@@ -1177,11 +1177,11 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
       || {};
 
     const candidates = [
+      kid?.child_name,
       kid?.name,
       kid?.first_name,
       kid?.display_name,
       kid?.full_name,
-      kid?.child_name,
       kid?.kid_name,
       kid?.nickname,
       window.CURRENT_KID_NAME,
@@ -1216,29 +1216,60 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return "";
   }
 
+  function getHomeworkKidGender(){
+    const kid =
+      window.CURRENT_KID
+      || window.SELECTED_KID
+      || window.currentKid
+      || window.selectedKid
+      || {};
+
+    const raw = String(
+      kid?.gender
+      || kid?.sex
+      || window.CURRENT_KID_GENDER
+      || ""
+    ).trim().toLowerCase();
+
+    if(["female", "f", "girl", "בת", "נקבה"].includes(raw)) return "female";
+    if(["male", "m", "boy", "בן", "זכר"].includes(raw)) return "male";
+    return "unknown";
+  }
+
+  function getHomeworkGenderLanguage(){
+    const female = getHomeworkKidGender() === "female";
+    return {
+      gender: female ? "נקבה" : (getHomeworkKidGender() === "male" ? "זכר" : "לא ידוע"),
+      howHelp: female ? "איך תרצי שאעזור?" : "איך תרצה שאעזור?",
+      tryAgain: female ? "נסי" : "נסה",
+      childLabel: female ? "הילדה" : "הילד"
+    };
+  }
+
   function getHomeworkSpokenIntro(analysis){
     const classification = resolveHomeworkClassification(analysis);
     const subject = classification.subject;
     const topic = classification.topic;
     const kidName = getHomeworkKidName();
+    const language = getHomeworkGenderLanguage();
 
     const greeting = kidName
       ? `היי ${kidName}, `
       : "היי, ";
 
     if(subject && topic){
-      return `${greeting}זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. איך תרצה שאעזור?`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. ${language.howHelp}`;
     }
 
     if(subject){
-      return `${greeting}זיהיתי שזה שיעורי בית ב${subject}. איך תרצה שאעזור?`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject}. ${language.howHelp}`;
     }
 
     if(topic){
-      return `${greeting}זיהיתי את הנושא ${topic}. איך תרצה שאעזור?`;
+      return `${greeting}זיהיתי את הנושא ${topic}. ${language.howHelp}`;
     }
 
-    return `${greeting}זיהיתי את שיעורי הבית. איך תרצה שאעזור?`;
+    return `${greeting}זיהיתי את שיעורי הבית. ${language.howHelp}`;
   }
 
   async function playHomeworkTeacherAudio(text){
@@ -1283,8 +1314,19 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
 
   function buildHomeworkContextMessage(analysis){
     const classification = resolveHomeworkClassification(analysis);
+    const kidName = getHomeworkKidName() || "לא ידוע";
+    const language = getHomeworkGenderLanguage();
     return `
-הילד העלה צילום של שיעורי הבית.
+הילד/ה העלה/תה צילום של שיעורי הבית.
+
+שם הילד/ה:
+${kidName}
+
+מגדר:
+${language.gender}
+
+חובת פנייה:
+אם המגדר הוא נקבה, פנה תמיד בלשון נקבה (את, תרצי, נסי, כתבי, חשבי). אם המגדר הוא זכר, פנה בלשון זכר. אל תנחש מגדר לפי השם.
 
 מקצוע שזוהה:
 ${classification.subject || "לא ידוע"}
@@ -1302,7 +1344,7 @@ ${getHomeworkGrade()}
 ${analysis?.extracted_text || ""}
 
 זהו רק הקשר פנימי לשיחה. אל תיתן עדיין תשובה לתרגיל.
-המתן לבחירת סוג העזרה של הילד.
+המתן לבחירת סוג העזרה של הילד/ה.
 `.trim();
   }
 
@@ -1404,8 +1446,14 @@ ${analysis?.extracted_text || ""}
         : "";
 
     const classification = resolveHomeworkClassification(analysis);
+    const kidName = getHomeworkKidName() || "לא ידוע";
+    const language = getHomeworkGenderLanguage();
 
     const message = `
+שם הילד/ה: ${kidName}
+מגדר: ${language.gender}
+חובת פנייה: פנה בהתאם למגדר הרשום. אם נקבה השתמש בלשון נקבה (את/תרצי/נסי/כתבי/חשבי); אם זכר השתמש בלשון זכר. אל תנחש מגדר לפי השם.
+
 אנחנו ממשיכים עם שיעורי הבית שכבר נותחו.
 
 מקצוע: ${classification.subject || "לא ידוע"}
@@ -1562,6 +1610,8 @@ ${analysis.extracted_text || ""}
     return showHomeworkReadingStatus();
   };
 
+  window.getHomeworkKidName = getHomeworkKidName;
+  window.getHomeworkKidGender = getHomeworkKidGender;
   window.playHomeworkTeacherAudio = playHomeworkTeacherAudio;
   window.getHomeworkIntroByGrade = getHomeworkIntroByGrade;
   window.renderHomeworkHelpOptions = renderHomeworkHelpOptions;
