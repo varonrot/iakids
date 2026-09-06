@@ -1,0 +1,35 @@
+name: Patch HE2 flow images contain
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-flow-images-contain.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show full flow images
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('he2/index.html')
+          s = p.read_text(encoding='utf-8')
+          old = ".flow-media img{width:100%;height:100%;display:block;object-fit:cover;position:relative;z-index:1}"
+          new = ".flow-media img{width:100%;height:100%;display:block;object-fit:contain;object-position:center;position:relative;z-index:1;background:#06162a;padding:8px}"
+          if old not in s:
+              raise SystemExit('flow image rule not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Show full HE2 flow images without cropping"
+          git push
