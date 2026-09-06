@@ -1,0 +1,34 @@
+name: Fix homework intro visuals 0.7.21
+
+on:
+  push:
+    paths:
+      - '.github/scripts/fix_homework_intro_visuals_0721.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Patch homework intro visuals
+        run: python .github/scripts/fix_homework_intro_visuals_0721.py
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html he/workspace/lesson-completion.js he/workspace/lesson-completion-core.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix homework name, teacher avatar and icons; bump to 0.7.21"
+          git push
