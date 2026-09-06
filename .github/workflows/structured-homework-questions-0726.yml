@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/scripts/structured_homework_questions_0726.py'
+      - '.github/triggers/structured-homework-0726.txt'
   workflow_dispatch:
 
 permissions:
