@@ -1,0 +1,125 @@
+name: Patch he2 fullwidth hero
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-fullwidth-hero.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch HE2 hero
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('he2/index.html')
+          text = path.read_text(encoding='utf-8')
+          marker = 'HE2_FULLWIDTH_HERO_V1'
+          if marker in text:
+              print('Already patched')
+              raise SystemExit(0)
+
+          css = r'''
+
+/* HE2_FULLWIDTH_HERO_V1 */
+.hero{
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+.hero-inner{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding-inline:clamp(24px,3.5vw,76px) !important;
+  grid-template-columns:minmax(420px,.84fr) minmax(620px,1.16fr) !important;
+  gap:clamp(32px,4vw,88px) !important;
+}
+.hero-visual{
+  position:relative;
+  min-height:650px !important;
+  width:calc(100% + clamp(24px,3.5vw,76px));
+  margin-left:calc(-1 * clamp(24px,3.5vw,76px));
+  display:block !important;
+  overflow:hidden;
+  border-radius:34px 0 0 34px;
+}
+.hero-visual-image{
+  display:block;
+  width:100%;
+  height:650px;
+  object-fit:cover;
+  object-position:center;
+  border:1px solid rgba(101,181,255,.22);
+  border-left:0;
+  border-radius:34px 0 0 34px;
+  box-shadow:0 40px 110px rgba(0,0,0,.42),0 0 80px rgba(46,123,255,.12);
+}
+.hero-bottom{
+  width:calc(100% - clamp(48px,7vw,152px)) !important;
+  max-width:none !important;
+  margin:50px auto 0 !important;
+}
+@media(max-width:1050px){
+  .hero-inner{
+    grid-template-columns:1fr !important;
+    padding-inline:24px !important;
+  }
+  .hero-visual{
+    width:100%;
+    margin-left:0;
+    min-height:auto !important;
+    border-radius:28px;
+  }
+  .hero-visual-image{
+    height:auto;
+    aspect-ratio:16/9;
+    border-left:1px solid rgba(101,181,255,.22);
+    border-radius:28px;
+  }
+  .hero-bottom{width:calc(100% - 48px) !important;}
+}
+@media(max-width:700px){
+  .hero-inner{padding-inline:15px !important;}
+  .hero-visual{border-radius:22px;}
+  .hero-visual-image{border-radius:22px;aspect-ratio:16/10;}
+  .hero-bottom{width:calc(100% - 30px) !important;}
+}
+'''
+
+          text = text.replace('</style>', css + '\n</style>', 1)
+
+          start = text.find('    <div class="hero-visual"')
+          if start == -1:
+              raise RuntimeError('hero-visual start not found')
+          end_marker = '\n  </div>\n\n  <div class="hero-bottom">'
+          end = text.find(end_marker, start)
+          if end == -1:
+              raise RuntimeError('hero-visual end marker not found')
+
+          new_visual = '''    <div class="hero-visual" aria-label="ילד לומד עם מורה AI אישית של IAKids">
+      <img
+        class="hero-visual-image"
+        src="/assets/he2/hero-learning-ai.webp"
+        alt="ילד לומד עם רובוט AI לצד מערכת הלמידה האישית של IAKids"
+        fetchpriority="high"
+        decoding="async"
+      >
+    </div>'''
+
+          text = text[:start] + new_visual + text[end:]
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Make he2 hero full width and add hero image"
+          git push
