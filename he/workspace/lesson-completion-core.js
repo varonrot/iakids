@@ -1141,19 +1141,30 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     const subject = classification.subject;
     const topic = classification.topic;
 
+    const kidName = String(
+      window.CURRENT_KID?.name
+      || window.CURRENT_KID?.first_name
+      || window.CURRENT_KID?.display_name
+      || ""
+    ).trim();
+
+    const greeting = kidName
+      ? `היי ${kidName}, `
+      : "היי, ";
+
     if(subject && topic){
-      return `זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. איך תרצה שאעזור?`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. איך תרצה שאעזור?`;
     }
 
     if(subject){
-      return `זיהיתי שזה שיעורי בית ב${subject}. איך תרצה שאעזור?`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject}. איך תרצה שאעזור?`;
     }
 
     if(topic){
-      return `זיהיתי את הנושא ${topic}. איך תרצה שאעזור?`;
+      return `${greeting}זיהיתי את הנושא ${topic}. איך תרצה שאעזור?`;
     }
 
-    return "זיהיתי את שיעורי הבית. איך תרצה שאעזור?";
+    return `${greeting}זיהיתי את שיעורי הבית. איך תרצה שאעזור?`;
   }
 
   async function playHomeworkTeacherAudio(text){
