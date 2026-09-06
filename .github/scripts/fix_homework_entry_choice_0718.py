@@ -40,3 +40,5 @@ INDEX.write_text(index, encoding='utf-8')
 EXT.write_text(ext, encoding='utf-8')
 
 print('Homework entry now opens chooser screen only; build 0.7.18')
+
+# trigger 0.7.18
