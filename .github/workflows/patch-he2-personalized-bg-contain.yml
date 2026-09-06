@@ -1,0 +1,32 @@
+name: Patch HE2 personalized background contain
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-personalized-bg-contain.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show full personalized background
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('he2/index.html')
+          s=p.read_text(encoding='utf-8')
+          old=".personalized-showcase{position:relative;min-height:900px;background:#041120 url('/assets/he2/sections/section-4-bg.webp?v=1') center center/cover no-repeat;overflow:hidden;display:flex;align-items:center;padding:110px 56px}"
+          new=".personalized-showcase{position:relative;min-height:900px;background-color:#041120;background-image:url('/assets/he2/sections/section-4-bg.webp?v=2');background-repeat:no-repeat;background-position:center top;background-size:contain;overflow:hidden;display:flex;align-items:center;padding:110px 56px}"
+          if old not in s:
+              raise SystemExit('target CSS not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Show full HE2 personalized section background"
+          git push
