@@ -67,3 +67,5 @@ EXT.write_text(ext, encoding='utf-8')
 INDEX.write_text(index, encoding='utf-8')
 
 print('Homework understand-question 0.7.16 patch applied')
+
+# trigger: 0.7.16
