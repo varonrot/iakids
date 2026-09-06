@@ -314,3 +314,5 @@ INDEX.write_text(index, encoding='utf-8')
 BACKEND.write_text(backend, encoding='utf-8')
 
 print('Fixed homework child_name and authoritative gender; build 0.7.22')
+
+# trigger workflow
