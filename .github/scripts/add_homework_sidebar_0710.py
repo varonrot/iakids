@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Trigger: apply homework sidebar build 0.7.10.
 path = Path('he/workspace/index.html')
 text = path.read_text(encoding='utf-8')
 original = text
