@@ -1,0 +1,32 @@
+name: Fix homework layout Hebrew grounding 0.7.37
+
+on:
+  push:
+    paths:
+      - '.github/scripts/fix_homework_layout_hebrew_grounding_0737.py'
+      - '.github/workflows/fix-homework-layout-hebrew-grounding-0737.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch homework 0.7.37
+        run: python .github/scripts/fix_homework_layout_hebrew_grounding_0737.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/lesson-completion.js he/workspace/lesson-completion-core.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix homework split layout, Hebrew labels, and writing grounding; bump 0.7.37"
+          git push
