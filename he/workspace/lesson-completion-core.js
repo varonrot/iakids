@@ -1929,6 +1929,18 @@ ${analysis.extracted_text || ""}
     messages.scrollTop = messages.scrollHeight;
   }
 
+  function extractHomeworkNotebookFinalAnswer(feedbackText, childAnswer){
+    const feedback = String(feedbackText || "").replace(/\s+/g," ").trim();
+    const answer = String(childAnswer || "").replace(/\s+/g," ").trim();
+
+    const match = feedback.match(/(?:תשובה מלאה(?: יכולה להיות)?|ניסוח מלא)\s*[:：-]?\s*(.+)$/i);
+    if(match?.[1]){
+      return match[1].replace(/^['"״“”]+|['"״“”]+$/g, "").trim();
+    }
+
+    return answer;
+  }
+
   async function runStructuredHomeworkTurn(answerText){
     const current = getCurrentHomeworkQuestion();
     const next = getNextHomeworkQuestion();
@@ -1999,7 +2011,7 @@ ${analysis.extracted_text || ""}
       }
 
       if(data?.answer_sufficient){
-        setHomeworkQuestionAnswered(answer);
+        const completedQuestion = setHomeworkQuestionAnswered(answer);
         const nowCurrent = getCurrentHomeworkQuestion();
 
         const feedbackText = String(
@@ -2013,6 +2025,14 @@ ${analysis.extracted_text || ""}
           renderHomeworkStructuredTeacherMessage(feedbackText),
           playHomeworkTeacherAudio(feedbackText)
         ]);
+
+        const notebookAnswer = extractHomeworkNotebookFinalAnswer(feedbackText, answer);
+        if(typeof window.writeHomeworkNotebookAnswer === "function"){
+          await window.writeHomeworkNotebookAnswer(
+            completedQuestion?.number || current.number,
+            notebookAnswer
+          );
+        }
 
         // Bubble 2: השאלה הבאה עומדת בפני עצמה, כדי לשמור על קצב שיחה טבעי
         // וגם לקצר את מקטע ה-TTS הראשון.
