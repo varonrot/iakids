@@ -4339,6 +4339,31 @@ def build_tutor_prompt(child: dict, kids_memory: str) -> str:
     for placeholder, value in replacements.items():
         prompt = prompt.replace(placeholder, value)
 
+    child_gender = str(child.get("gender") or "unknown").strip().lower()
+    child_name = str(child.get("child_name") or "").strip()
+
+    if child_gender == "female":
+        gender_instruction = (
+            "The child is female. In Hebrew ALWAYS address her in feminine singular "
+            "forms (את, תרצי, נסי, כתבי, חשבי, הצלחת). Never use masculine forms."
+        )
+    elif child_gender == "male":
+        gender_instruction = (
+            "The child is male. In Hebrew address him in masculine singular forms."
+        )
+    else:
+        gender_instruction = (
+            "The child's gender is unknown. Avoid gendered Hebrew wording where possible; "
+            "do not infer gender from the child's name."
+        )
+
+    prompt += (
+        "\n\nAUTHORITATIVE_CHILD_PROFILE:\n"
+        f"child_name: {child_name}\n"
+        f"gender: {child_gender}\n"
+        f"{gender_instruction}"
+    )
+
     return prompt
 
 
@@ -16520,6 +16545,68 @@ def reset_unit_lesson(
         )
 
         # =============================================
+        # RESET UNIT LESSON PROGRESS ROW
+        #
+        # kid_unit_lesson_progress היא טבלת ההתקדמות
+        # החדשה ברמת תת־השיעור. כפתור "להתחיל מחדש"
+        # חייב לאפס גם אותה, אחרת השיעור נשאר completed
+        # למרות שהטבלה הראשית הישנה כבר אופסה.
+        # =============================================
+
+        unit_progress_reset = (
+            sb.table(
+                "kid_unit_lesson_progress"
+            )
+            .update({
+                "status":
+                    "in_progress",
+
+                "progress_percent":
+                    0,
+
+                "current_stage":
+                    LESSON_STAGE_INTRO,
+
+                "last_part_number":
+                    1,
+
+                "mastery_score":
+                    0,
+
+                "best_mastery_score":
+                    0,
+
+                "attempts_count":
+                    0,
+
+                "started_at":
+                    now_iso,
+
+                "last_activity_at":
+                    now_iso,
+
+                "completed_at":
+                    None,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "learning_lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
         # RESET MAIN PROGRESS ROW
         #
         # kid_lesson_progress היא רשומה אחת לנושא,
@@ -16707,6 +16794,12 @@ def reset_unit_lesson(
                     "progress_reset":
                         progress is not None,
 
+                    "unit_progress_reset":
+                        bool(
+                            unit_progress_reset.data
+                            or []
+                        ),
+
                     "lesson_content_deleted":
                         False,
 
@@ -16738,6 +16831,9 @@ def reset_unit_lesson(
                     True,
 
                 "lesson_progress":
+                    True,
+
+                "unit_lesson_progress":
                     True
             },
 
@@ -17302,6 +17398,12 @@ def homework_analyze(
 
             "vision_status":
                 vision_status,
+
+            "child_name":
+                str(child.get("child_name") or "").strip(),
+
+            "gender":
+                str(child.get("gender") or "unknown").strip().lower(),
 
             "needs_high_resolution":
                 needs_high_resolution,
