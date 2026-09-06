@@ -1136,6 +1136,66 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return true;
   }
 
+  function getHomeworkSpokenIntro(analysis){
+    const classification = resolveHomeworkClassification(analysis);
+    const subject = classification.subject;
+    const topic = classification.topic;
+
+    if(subject && topic){
+      return `זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. איך תרצה שאעזור?`;
+    }
+
+    if(subject){
+      return `זיהיתי שזה שיעורי בית ב${subject}. איך תרצה שאעזור?`;
+    }
+
+    if(topic){
+      return `זיהיתי את הנושא ${topic}. איך תרצה שאעזור?`;
+    }
+
+    return "זיהיתי את שיעורי הבית. איך תרצה שאעזור?";
+  }
+
+  async function playHomeworkTeacherAudio(text){
+    const spokenText = String(text || "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if(!spokenText){
+      return false;
+    }
+
+    if(!window.lessonRenderer){
+      console.warn("HOMEWORK AUDIO — lessonRenderer not ready");
+      return false;
+    }
+
+    try{
+      /* Use exactly the same browser audio unlock and Gemini TTS path as lessons. */
+      if(typeof unlockLessonAudio === "function"){
+        await unlockLessonAudio();
+      }
+
+      const audioUrl = await window.lessonRenderer.preloadAudioWithRetry(
+        spokenText,
+        3
+      );
+
+      if(!audioUrl){
+        console.warn("HOMEWORK AUDIO — no audio URL returned");
+        return false;
+      }
+
+      await window.lessonRenderer.playAudioUrl(audioUrl);
+      return true;
+    }
+    catch(error){
+      /* Audio must never block the homework flow. */
+      console.warn("HOMEWORK AUDIO PLAYBACK WARNING:", error);
+      return false;
+    }
+  }
+
   function buildHomeworkContextMessage(analysis){
     const classification = resolveHomeworkClassification(analysis);
     return `
@@ -1324,7 +1384,9 @@ ${analysis.extracted_text || ""}
     }
 
     if(data?.message || data?.text || data?.response){
-      addMessage("assistant", data.message || data.text || data.response);
+      const homeworkReply = data.message || data.text || data.response;
+      addMessage("assistant", homeworkReply);
+      await playHomeworkTeacherAudio(homeworkReply);
       return;
     }
 
@@ -1393,6 +1455,11 @@ ${analysis.extracted_text || ""}
     renderHomeworkDetectionCard(analysis);
     renderHomeworkHelpOptions();
 
+    /* Speak only the teacher's short intro — not tags/buttons/loading text. */
+    playHomeworkTeacherAudio(
+      getHomeworkSpokenIntro(analysis)
+    );
+
     const messages = getHomeworkMessagesContainer();
     if(messages){
       requestAnimationFrame(() => { messages.scrollTop = 0; });
@@ -1410,6 +1477,7 @@ ${analysis.extracted_text || ""}
     return showHomeworkReadingStatus();
   };
 
+  window.playHomeworkTeacherAudio = playHomeworkTeacherAudio;
   window.getHomeworkIntroByGrade = getHomeworkIntroByGrade;
   window.renderHomeworkHelpOptions = renderHomeworkHelpOptions;
   window.selectHomeworkHelpOption = selectHomeworkHelpOption;
