@@ -13,11 +13,9 @@ old_tags = [
 ]
 new_tag = '<script src="/he/workspace/lesson-completion.js?v=0712"></script>'
 
-replaced = False
 for old in old_tags:
     if old in index:
         index = index.replace(old, new_tag)
-        replaced = True
 
 if new_tag not in index:
     raise SystemExit('lesson-completion script tag not found')
