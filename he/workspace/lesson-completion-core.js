@@ -703,14 +703,14 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     const detection = getHomeworkDetectionSentence(analysis);
 
     if(grade <= 2){
-      return `${detection}\nאני יכולה לעזור להבין מה מבקשים, להסביר, לתת רמז או לפתור איתך יחד.`;
+      return `${detection}\nאני יכולה להסביר, לתת רמז או לפתור איתך יחד.`;
     }
 
     if(grade <= 4){
-      return `${detection}\nאני יכולה להסביר את השאלה או את החומר, לתת רמז, לפתור יחד או לבדוק תשובה.`;
+      return `${detection}\nאני יכולה להסביר, לתת רמז, לפתור יחד או לבדוק תשובה.`;
     }
 
-    return `${detection}\nאפשר להבין את השאלה, לקבל הסבר, רמז, לפתור יחד או לבדוק תשובה.`;
+    return `${detection}\nאפשר לקבל הסבר, רמז, לפתור יחד או לבדוק תשובה.`;
   }
 
   function ensureHomeworkHelpStyles(){
@@ -856,7 +856,12 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
 
     row.appendChild(panel);
     messages.appendChild(row);
-    scrollHomeworkChatToBottom();
+
+    /* Keep the detected subject/topic visible at the top of the chat. */
+    requestAnimationFrame(() => {
+      messages.scrollTop = 0;
+    });
+
     return true;
   }
 
@@ -1036,6 +1041,16 @@ ${analysis.extracted_text || ""}
     addMessage("user", choice.childText);
     removeHomeworkHelpOptions();
 
+    if(choice.id === "check_answer"){
+      setHomeworkSidebarStep(5);
+    }
+    else if(choice.id === "understand_question"){
+      setHomeworkSidebarStep(3);
+    }
+    else{
+      setHomeworkSidebarStep(4);
+    }
+
     try{
       await runHomeworkChoiceWithTutor(choice);
     }
@@ -1049,13 +1064,27 @@ ${analysis.extracted_text || ""}
     }
   }
 
+  function setHomeworkSidebarStep(stepNumber){
+    const steps = document.querySelectorAll('.homework-sidebar-step');
+    if(!steps.length) return;
+
+    steps.forEach(step => step.classList.remove('active'));
+    const index = Math.max(0, Math.min(steps.length - 1, Number(stepNumber || 1) - 1));
+    steps[index]?.classList.add('active');
+  }
+
   async function smartHomeworkAnalysisIntro(analysis){
     activeHomeworkAnalysis = analysis || null;
     window.CURRENT_HOMEWORK_ANALYSIS = analysis || null;
 
-    addMessage("user", "📷 העליתי צילום של שיעורי הבית");
+    setHomeworkSidebarStep(2);
     addMessage("assistant", getHomeworkIntroByGrade(analysis));
     renderHomeworkHelpOptions();
+
+    const messages = getHomeworkMessagesContainer();
+    if(messages){
+      requestAnimationFrame(() => { messages.scrollTop = 0; });
+    }
 
     /*
       שומרים גם את הפענוח בהקשר של מנוע המורה כדי שהילד יוכל
