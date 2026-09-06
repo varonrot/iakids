@@ -1978,22 +1978,40 @@ ${analysis.extracted_text || ""}
       }
 
       if(data?.answer_sufficient){
-        const completed = setHomeworkQuestionAnswered(answer);
+        setHomeworkQuestionAnswered(answer);
         const nowCurrent = getCurrentHomeworkQuestion();
 
-        let text = String(data.feedback || "מצוין, זו תשובה מספקת.").trim();
+        const feedbackText = String(
+          data?.teacher_response
+          || data?.feedback
+          || "נכון. התשובה שלך עונה על מה שהשאלה ביקשה."
+        ).trim();
+
+        // Bubble 1: קצר, מסביר למה התשובה נכונה.
+        await Promise.all([
+          renderHomeworkStructuredTeacherMessage(feedbackText),
+          playHomeworkTeacherAudio(feedbackText)
+        ]);
+
+        // Bubble 2: השאלה הבאה עומדת בפני עצמה, כדי לשמור על קצב שיחה טבעי
+        // וגם לקצר את מקטע ה-TTS הראשון.
+        await new Promise(resolve => setTimeout(resolve, 220));
+
         if(nowCurrent){
-          text += `\n\nנעבור לשאלה ${nowCurrent.number}: ${nowCurrent.text}`;
+          const nextQuestionText = `נעבור לשאלה ${nowCurrent.number}: ${nowCurrent.text}`;
+          await Promise.all([
+            renderHomeworkStructuredTeacherMessage(nextQuestionText),
+            playHomeworkTeacherAudio(nextQuestionText)
+          ]);
         }
         else{
-          text += "\n\nסיימנו את כל השאלות בדף. כל הכבוד!";
+          const closingText = "סיימנו את כל השאלות בדף. כל הכבוד!";
           setHomeworkSidebarStep(5);
+          await Promise.all([
+            renderHomeworkStructuredTeacherMessage(closingText),
+            playHomeworkTeacherAudio(closingText)
+          ]);
         }
-
-        await Promise.all([
-          renderHomeworkStructuredTeacherMessage(text),
-          playHomeworkTeacherAudio(text)
-        ]);
         return;
       }
 

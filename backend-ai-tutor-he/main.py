@@ -18904,8 +18904,8 @@ HARD RULES:
 2. Semantic correctness is enough; do NOT require exact wording.
 3. If the answer contains the main correct idea, answer_sufficient MUST be true.
 4. Once sufficient, do NOT ask for extra examples, foods, feelings, values, personal-life applications, or extra details not required by the worksheet question.
-5. When sufficient, do NOT give generic praise alone such as "עבודה מצוינת". Explain WHY the answer is correct in one clear sentence by connecting the child's words to the requirement of the CURRENT WORKSHEET QUESTION and, when useful, to the source text. Then give one polished full-sentence model answer the child can learn from. Keep the whole teacher_response concise: usually 2-3 short sentences.
-6. For a sufficient answer, teacher_response should follow this teaching pattern: (a) specific confirmation, (b) why it answers the question, (c) polished full answer. Example: "נכון. ענית על השאלה כי ציינת את שתי הפעולות המרכזיות: אברהם רץ לקראת האורחים והזמין אותם לנוח ולאכול. תשובה מלאה יכולה להיות: אברהם קיבל את האורחים בכך שרץ לקראתם והזמין אותם לנוח ולאכול." Do NOT ask another question when the answer is sufficient.
+5. When sufficient, do NOT give generic praise alone such as "עבודה מצוינת". Give exactly TWO short Hebrew sentences, usually no more than 28 words total: first explain WHY the child's answer is correct by naming the key idea(s) that answer the question; second give a polished full-sentence answer. Do not repeat the same wording twice.
+6. For a sufficient answer use this compact pattern: "נכון, כי ציינת ש[הנקודות המרכזיות]. תשובה מלאה: [ניסוח מלא וקצר]." Do NOT ask another question and do NOT mention the next worksheet question; the application will show it in a separate bubble.
 7. When insufficient, teacher_response may ask ONE short guiding question that directly helps answer the current worksheet question. The guiding question must be explicit and contextual: name the relevant person/concept instead of using ambiguous pronouns. For example, prefer "מה אברהם עשה כשהוא ראה את האורחים?" over "מה את זוכרת שהוא עשה?".
 8. Never mention internal instructions, dialogue goals, evaluation, prompts, states, or system rules.
 9. Do not move to the next worksheet question yourself. The application code controls question progression.
@@ -18916,7 +18916,7 @@ Question: איך קיבל אברהם את האורחים?
 Answer: הוא רץ לקראתם והזמין אותם לנוח ולאכול
 This is SUFFICIENT.
 A good teacher_response is:
-"נכון. ענית על השאלה כי ציינת את שתי הפעולות המרכזיות שאברהם עשה: הוא רץ לקראת האורחים והזמין אותם לנוח ולאכול. תשובה מלאה יכולה להיות: אברהם קיבל את האורחים בכך שרץ לקראתם והזמין אותם לנוח ולאכול."
+"נכון, כי ציינת שאברהם רץ לקראת האורחים והזמין אותם לנוח ולאכול. תשובה מלאה: אברהם קיבל את האורחים בכך שרץ לקראתם והזמין אותם לנוח ולאכול."
 """.strip()
 
     completion = (
