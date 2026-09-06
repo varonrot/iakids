@@ -1464,14 +1464,18 @@ ${analysis?.extracted_text || ""}
   async function runHomeworkChoiceWithTutor(choice){
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS;
     if(!analysis){
-      addMessage("assistant", "לא מצאתי את התרגיל שהעלית. אפשר להעלות אותו שוב?");
+      await renderHomeworkStructuredTeacherMessage("לא מצאתי את התרגיל שהעלית. אפשר להעלות אותו שוב?");
       return;
     }
 
-    const { data: sessionData } = await sb.auth.getSession();
-    const session = sessionData.session;
-    if(!session){
+    const token = await getHomeworkAccessToken();
+    if(!token){
       throw new Error("No active session");
+    }
+
+    const kidId = getHomeworkKidId();
+    if(!kidId){
+      throw new Error("Homework kid id missing");
     }
 
     const firstQuestion =
@@ -1523,11 +1527,11 @@ ${analysis.extracted_text || ""}
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           message,
-          kid_id: CURRENT_KID.id
+          kid_id: kidId
         })
       }
     );
@@ -1560,13 +1564,19 @@ ${analysis.extracted_text || ""}
 
     if(data?.message || data?.text || data?.response){
       const homeworkReply = data.message || data.text || data.response;
-      addMessage("assistant", homeworkReply);
-      await playHomeworkTeacherAudio(homeworkReply);
+      await Promise.all([
+        renderHomeworkStructuredTeacherMessage(homeworkReply),
+        playHomeworkTeacherAudio(homeworkReply)
+      ]);
       return;
     }
 
     console.error("Invalid homework tutor response:", data);
-    addMessage("assistant", "אני כאן. נסה לבחור שוב איך תרצה שאעזור.");
+    const fallbackText = `נתחיל מהשאלה הראשונה: ${currentQuestion}`;
+    await Promise.all([
+      renderHomeworkStructuredTeacherMessage(fallbackText),
+      playHomeworkTeacherAudio(fallbackText)
+    ]);
   }
 
   async function selectHomeworkHelpOption(choiceId){
@@ -1604,8 +1614,19 @@ ${analysis.extracted_text || ""}
     }
     catch(error){
       console.error("HOMEWORK HELP OPTION FAILED:", error);
-      addMessage("assistant", "לא הצלחתי להתחיל את העזרה. נסה שוב בעוד רגע.");
-      renderHomeworkHelpOptions();
+
+      // Do not throw the child back to the option menu. The worksheet and
+      // current-question state already exist, so continue with a deterministic
+      // first step even if the general tutor-chat request fails.
+      const current = getCurrentHomeworkQuestion();
+      const fallbackText = current
+        ? `נתחיל מהשאלה ${current.number}: ${current.text}`
+        : "נתחיל מהשאלה הראשונה בדף ונפתור אותה יחד.";
+
+      await Promise.all([
+        renderHomeworkStructuredTeacherMessage(fallbackText),
+        playHomeworkTeacherAudio(fallbackText)
+      ]);
     }
     finally{
       homeworkChoiceBusy = false;
