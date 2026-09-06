@@ -1467,6 +1467,32 @@ ${analysis?.extracted_text || ""}
 - כתיבה והבעה: הבהר מה נדרש, פרק לרכיבים, בנה שלד/פתיח/תבנית, ורק אז בקש מהילד/ה לכתוב.
 `;
 
+  function resolveHomeworkTeachingStrategy(analysis, question){
+    const q = String(question || "").toLowerCase();
+    const source = String(analysis?.extracted_text || "").toLowerCase();
+    const combined = `${q}\n${source}`;
+
+    if(/קטע קריאה|לפי הקטע|על פי הקטע|בסיפור|בטקסט|מה אפשר ללמוד|מה ניתן ללמוד|מסר|מסקנה|תנ[״"]?ך|פרשה/.test(combined)){
+      return {id:"reading_source", instruction:"המקור הוא הטקסט. הפנה למקום הרלוונטי, אתר ראיות/מילות מפתח, ורק מהן בנה את התשובה. אל תמציא מידע שאינו במקור."};
+    }
+    if(/חשב|חשבו|כמה|סכום|הפרש|כפל|חילוק|שבר|אחוז|משוואה|היקף|שטח|זווית/.test(combined)){
+      return {id:"math_problem", instruction:"זהה נתונים, מה מבקשים, פעולה או קשר מתמטי, פתרון בשלבים, ורק בסוף ניסוח התשובה."};
+    }
+    if(/גרף|טבלה|תרשים|דיאגרמה|נתונים|ציר/.test(combined)){
+      return {id:"data_visual", instruction:"הטבלה/תרשים/נתונים הם מקור האמת. אתר קודם את הערכים או המאפיינים הרלוונטיים ואז נסח תשובה."};
+    }
+    if(/כתבו|כתבי|חיבור|פסקה|תארו|תארי|נמקו|נמקי|writing|composition/.test(combined)){
+      return {id:"writing_composition", instruction:"הבהר מה נדרש, פרק לרכיבים, בנה שלד או פתיח, ורק אז בקש מהילד/ה לכתוב."};
+    }
+    if(/מדעים|science|ניסוי|תהליך|מערכת|אנרגיה|כוח|חומר|סביבה|אקולוג/.test(combined)){
+      return {id:"science_reasoning", instruction:"זהה מושג/ראיה/תהליך רלוונטיים, קשר אותם ישירות לשאלה, ואז בנה הסבר."};
+    }
+    if(/grammar|vocabulary|דקדוק|אוצר מילים|תרגמו|תרגמי|english|אנגלית/.test(combined)){
+      return {id:"language_skill", instruction:"זהה מיומנות שפה, למד כלל או תבנית אחת ממוקדת, ואז בקש יישום קצר."};
+    }
+    return {id:"general", instruction:"פעל לפי הרצף הגלובלי: להבין משימה, למצוא מקור/שיטה, לבודד נקודות, לתת מבנה, ניסיון הילד, משוב, ניסוח סופי."};
+  }
+
   function getChoiceInstruction(choiceId){
     switch(choiceId){
       case "understand_question":
@@ -1510,6 +1536,7 @@ ${analysis?.extracted_text || ""}
     const kidName = getHomeworkKidName(analysis) || "לא ידוע";
     const language = getHomeworkGenderLanguage(analysis);
     const currentQuestion = extractFirstHomeworkQuestion(analysis.extracted_text) || "לא זוהתה שאלה";
+    const teachingStrategy = resolveHomeworkTeachingStrategy(analysis, currentQuestion);
 
     const message = `
 שאלת שיעורי הבית הנוכחית:
@@ -1531,6 +1558,9 @@ ${currentQuestion}
 כיתה: ${getHomeworkGrade()}
 
 הילד בחר: ${choice.label}
+
+אסטרטגיית הוראה פעילה: ${teachingStrategy.id}
+${teachingStrategy.instruction}
 
 ${HOMEWORK_GLOBAL_PEDAGOGY_RULES}
 

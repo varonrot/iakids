@@ -18889,6 +18889,59 @@ SUBJECT ADAPTATION:
 - Other subjects: apply the same sequence — understand task -> locate method/source -> identify key points -> construct answer -> child attempts -> specific feedback -> final wording.
 """.strip()
 
+HOMEWORK_TEACHING_STRATEGIES = {
+    "reading_source": "Use the provided source as the primary truth. Guide the child back to the exact relevant sentence/part, identify evidence or key words, then help turn that evidence into an answer. Never invent facts outside the source.",
+    "math_problem": "Identify givens, identify what is being asked, choose the required mathematical relation/operation, solve one step at a time, then formulate the contextual answer. Do not reveal the final result before a genuine attempt.",
+    "science_reasoning": "Identify the relevant scientific concept, observation, diagram, experiment, or evidence. Connect it explicitly to what the question asks, then help formulate the explanation.",
+    "writing_composition": "Clarify the required content and format, break the task into 2-4 components, build a short outline or sentence frame, and only then ask the child to write. Do not ask vague wording questions before giving structure.",
+    "language_skill": "Identify the target language skill (vocabulary, grammar, sentence construction, translation, reading). Teach the rule/pattern with one focused cue, then ask for a short application.",
+    "data_visual": "Treat the table/chart/diagram/data as the source of truth. First identify what needs to be read or compared, then locate the relevant values/features, then formulate the answer.",
+    "knowledge_direct": "Teach only the minimum concept needed for the current question, check one key understanding point, then ask the child to answer in their own words.",
+    "general": "Apply the global sequence: understand the task, identify the source/method, isolate key points, provide structure, child attempts, specific feedback, final wording."
+}
+
+def resolve_homework_teaching_strategy(question: str, source_text: str) -> tuple[str, str]:
+    q = str(question or "").strip().lower()
+    s = str(source_text or "").strip().lower()
+    combined = f"{q}\n{s}"
+
+    if any(token in combined for token in [
+        "קטע קריאה", "לפי הקטע", "על פי הקטע", "בסיפור", "בטקסט",
+        "מה אפשר ללמוד", "מה ניתן ללמוד", "מסר", "מסקנה", "תנ״ך", "פרשה"
+    ]):
+        return "reading_source", HOMEWORK_TEACHING_STRATEGIES["reading_source"]
+
+    if any(token in combined for token in [
+        "חשב", "חשבו", "כמה", "סכום", "הפרש", "כפל", "חילוק", "שבר",
+        "אחוז", "משוואה", "היקף", "שטח", "זווית"
+    ]):
+        return "math_problem", HOMEWORK_TEACHING_STRATEGIES["math_problem"]
+
+    if any(token in combined for token in [
+        "גרף", "טבלה", "תרשים", "דיאגרמה", "נתונים", "ציר"
+    ]):
+        return "data_visual", HOMEWORK_TEACHING_STRATEGIES["data_visual"]
+
+    if any(token in combined for token in [
+        "כתבו", "כתבי", "חיבור", "פסקה", "תארו", "תארי", "נמקו", "נמקי",
+        "writing", "composition"
+    ]):
+        return "writing_composition", HOMEWORK_TEACHING_STRATEGIES["writing_composition"]
+
+    if any(token in combined for token in [
+        "מדעים", "science", "ניסוי", "תהליך", "מערכת", "אנרגיה", "כוח",
+        "חומר", "סביבה", "אקולוג"
+    ]):
+        return "science_reasoning", HOMEWORK_TEACHING_STRATEGIES["science_reasoning"]
+
+    if any(token in combined for token in [
+        "grammar", "vocabulary", "דקדוק", "אוצר מילים", "תרגמו", "תרגמי",
+        "english", "אנגלית"
+    ]):
+        return "language_skill", HOMEWORK_TEACHING_STRATEGIES["language_skill"]
+
+    return "general", HOMEWORK_TEACHING_STRATEGIES["general"]
+
 class HomeworkTurnRequest(BaseModel):
     kid_id: str
     current_question_number: int
@@ -18933,6 +18986,11 @@ def homework_turn(
         phrase in normalized_answer for phrase in ["לא יודע", "לא יודעת", "אין לי מושג", "לא זוכר", "לא זוכרת"]
     )
 
+    strategy_name, strategy_instruction = resolve_homework_teaching_strategy(
+        req.current_question,
+        req.source_text
+    )
+
     system_prompt = f"""
 You are the homework-answer evaluator for IAKIDS.
 The child is answering ONE specific worksheet question.
@@ -18950,6 +19008,10 @@ SOURCE MATERIAL / OCR:
 CHILD ANSWER IS EXPLICIT UNCERTAINTY: {is_uncertainty}
 
 {HOMEWORK_GLOBAL_PEDAGOGY_PROMPT}
+
+ACTIVE TEACHING STRATEGY: {strategy_name}
+STRATEGY INSTRUCTION:
+{strategy_instruction}
 
 HARD RULES:
 1. Judge only whether the child's answer sufficiently answers the CURRENT WORKSHEET QUESTION.
