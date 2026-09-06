@@ -123,3 +123,5 @@ EXT.write_text(ext, encoding='utf-8')
 INDEX.write_text(index, encoding='utf-8')
 
 print('Homework help start hardened: real auth/kid context + dark fallback + no option reset; build 0.7.32')
+
+# trigger 0.7.32
