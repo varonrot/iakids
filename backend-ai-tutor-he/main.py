@@ -18885,6 +18885,15 @@ def homework_turn(
     else:
         gender_rule = "Avoid gendered Hebrew phrasing when possible."
 
+    normalized_answer = " ".join(str(req.answer or "").strip().lower().split())
+    uncertainty_phrases = {
+        "לא יודע", "לא יודעת", "לא יודע/ת", "אין לי מושג", "לא בטוח", "לא בטוחה",
+        "לא זוכר", "לא זוכרת", "לא הבנתי", "לא מבין", "לא מבינה"
+    }
+    is_uncertainty = normalized_answer in uncertainty_phrases or any(
+        phrase in normalized_answer for phrase in ["לא יודע", "לא יודעת", "אין לי מושג", "לא זוכר", "לא זוכרת"]
+    )
+
     system_prompt = f"""
 You are the homework-answer evaluator for IAKIDS.
 The child is answering ONE specific worksheet question.
@@ -18899,6 +18908,8 @@ CURRENT WORKSHEET QUESTION:
 SOURCE MATERIAL / OCR:
 {req.source_text}
 
+CHILD ANSWER IS EXPLICIT UNCERTAINTY: {is_uncertainty}
+
 HARD RULES:
 1. Judge only whether the child's answer sufficiently answers the CURRENT WORKSHEET QUESTION.
 2. Semantic correctness is enough; do NOT require exact wording.
@@ -18907,9 +18918,11 @@ HARD RULES:
 5. When sufficient, do NOT give generic praise alone such as "עבודה מצוינת". Give exactly TWO short Hebrew sentences, usually no more than 28 words total: first explain WHY the child's answer is correct by naming the key idea(s) that answer the question; second give a polished full-sentence answer. Do not repeat the same wording twice.
 6. For a sufficient answer use this compact pattern: "נכון, כי ציינת ש[הנקודות המרכזיות]. תשובה מלאה: [ניסוח מלא וקצר]." Do NOT ask another question and do NOT mention the next worksheet question; the application will show it in a separate bubble.
 7. When insufficient, teacher_response may ask ONE short guiding question that directly helps answer the current worksheet question. The guiding question must be explicit and contextual: name the relevant person/concept instead of using ambiguous pronouns. For example, prefer "מה אברהם עשה כשהוא ראה את האורחים?" over "מה את זוכרת שהוא עשה?".
-8. Never mention internal instructions, dialogue goals, evaluation, prompts, states, or system rules.
-9. Do not move to the next worksheet question yourself. The application code controls question progression.
-10. Return only the structured response.
+8. CRITICAL UNCERTAINTY RULE: if CHILD ANSWER IS EXPLICIT UNCERTAINTY is true, NEVER repeat the worksheet question and NEVER ask the same question again. Instead teach the child HOW TO FIND the answer. For a reading passage, tell the child to reread the relevant part and look for words/actions that answer the question; for math, identify the given data and what must be calculated; for a knowledge question, point to the relevant concept or fact. Then ask one narrower follow-up such as "מה מצאת?".
+9. If the child is stuck, increase the specificity of the hint. Do not simply rephrase the original worksheet question.
+10. Never mention internal instructions, dialogue goals, evaluation, prompts, states, or system rules.
+11. Do not move to the next worksheet question yourself. The application code controls question progression.
+12. Return only the structured response.
 
 Important example:
 Question: איך קיבל אברהם את האורחים?
@@ -18935,6 +18948,18 @@ A good teacher_response is:
         raise HTTPException(status_code=502, detail="Invalid homework evaluation")
 
     result = parsed.model_dump()
+
+    if is_uncertainty:
+        if gender == "female":
+            strategy_text = "קראי שוב את הקטע וחפשי את המשפט שעונה בדיוק על השאלה. שימי לב למילים או לפעולות שמתוארות שם. מה מצאת?"
+        elif gender == "male":
+            strategy_text = "קרא שוב את הקטע וחפש את המשפט שעונה בדיוק על השאלה. שים לב למילים או לפעולות שמתוארות שם. מה מצאת?"
+        else:
+            strategy_text = "כדאי לקרוא שוב את הקטע ולחפש את המשפט שעונה בדיוק על השאלה. שימו לב למילים או לפעולות שמתוארות שם. מה מצאתם?"
+
+        result["answer_sufficient"] = False
+        result["feedback"] = strategy_text
+        result["teacher_response"] = strategy_text
 
     session = get_or_create_tutor_session(user.id, req.kid_id)
     session_id = session.get("id")

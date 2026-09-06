@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.34";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.35";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -7,7 +7,7 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.34";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=0734";
+  core.src = "/he/workspace/lesson-completion-core.js?v=0735";
   core.async = false;
 
   core.onload = function(){
@@ -179,8 +179,8 @@ function installHomeworkLessonWorkspace(){
         position:absolute;
         inset:0;
         display:grid;
-        grid-template-columns:minmax(0,55fr) minmax(320px,45fr);
-        gap:12px;
+        grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);
+        gap:14px;
         padding:12px;
         direction:ltr;
         background:#031022;
@@ -189,6 +189,7 @@ function installHomeworkLessonWorkspace(){
       .homework-sheet-pane,
       .homework-notebook-pane{
         min-width:0;
+        width:100%;
         min-height:0;
         overflow:hidden;
         border:1px solid rgba(72,148,238,.34);
