@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# trigger 0.7.21
 CORE = Path('he/workspace/lesson-completion-core.js')
 EXT = Path('he/workspace/lesson-completion.js')
 INDEX = Path('he/workspace/index.html')
@@ -197,13 +198,6 @@ css_new = '''      .homework-help-choice i{
 if css_anchor not in core:
     raise SystemExit('help icon CSS anchor not found')
 core = core.replace(css_anchor, css_new, 1)
-
-# Make sure the detection card can align the new avatar cleanly.
-core = core.replace(
-    '.homework-detection-card{',
-    '.homework-detection-card{',
-    1
-)
 
 # -----------------------------------------------------
 # 5) Bump build/cache versions.
