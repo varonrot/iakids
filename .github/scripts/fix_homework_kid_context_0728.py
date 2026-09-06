@@ -139,3 +139,5 @@ EXT.write_text(ext, encoding='utf-8')
 INDEX.write_text(index, encoding='utf-8')
 
 print(f'Fixed structured homework kid context in {count} payload(s); build 0.7.28')
+
+# trigger workflow
