@@ -54,3 +54,5 @@ CORE.write_text(core, encoding='utf-8')
 EXT.write_text(ext, encoding='utf-8')
 INDEX.write_text(index, encoding='utf-8')
 print('Homework answer sufficiency and next-question transition fixed; build 0.7.25')
+
+# trigger workflow
