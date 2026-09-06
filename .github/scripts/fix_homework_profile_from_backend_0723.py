@@ -83,6 +83,7 @@ new = '''  function getHomeworkKidGender(analysis=null){
       || sourceAnalysis?.profile?.gender
       || kid?.gender
       || kid?.sex
+      || window.CURRENT_HOMEWORK_CHILD_GENDER
       || window.CURRENT_KID_GENDER
       || ""
     ).trim().toLowerCase();
@@ -92,9 +93,10 @@ if old not in core:
 core = core.replace(old, new, 1)
 
 old = '''  function getHomeworkGenderLanguage(){
-    const female = getHomeworkKidGender() === "female";
+    const resolvedGender = getHomeworkKidGender();
+    const female = resolvedGender === "female";
     return {
-      gender: female ? "נקבה" : (getHomeworkKidGender() === "male" ? "זכר" : "לא ידוע"),
+      gender: female ? "נקבה" : (resolvedGender === "male" ? "זכר" : "לא ידוע"),
 '''
 new = '''  function getHomeworkGenderLanguage(analysis=null){
     const resolvedGender = getHomeworkKidGender(analysis);
@@ -113,7 +115,6 @@ core = core.replace('    const kidName = getHomeworkKidName() || "לא ידוע"
 core = core.replace('    const kidName = getHomeworkKidName() || "לא ידוע";\n    const language = getHomeworkGenderLanguage();',
                     '    const kidName = getHomeworkKidName(analysis) || "לא ידוע";\n    const language = getHomeworkGenderLanguage(analysis);', 1)
 
-# Persist authoritative values returned by analyzer for the entire homework flow.
 old = '''  async function smartHomeworkAnalysisIntro(analysis){
     activeHomeworkAnalysis = analysis || null;
     window.CURRENT_HOMEWORK_ANALYSIS = analysis || null;
@@ -139,13 +140,10 @@ if old not in core:
     raise SystemExit('smartHomeworkAnalysisIntro anchor not found')
 core = core.replace(old, new, 1)
 
-# Include persisted values as final fallback.
 core = core.replace('      window.CURRENT_KID_NAME,\n', '      window.CURRENT_HOMEWORK_CHILD_NAME,\n      window.CURRENT_KID_NAME,\n', 1)
-core = core.replace('      || window.CURRENT_KID_GENDER\n', '      || window.CURRENT_HOMEWORK_CHILD_GENDER\n      || window.CURRENT_KID_GENDER\n', 1)
 
 # -----------------------------------------------------
-# 2) Backend: return child_name + gender from the DB profile in homework-analyze.
-#    The endpoint already loads child through get_child_by_id; add fields to response.
+# 2) Backend: return child_name + gender from DB profile in homework analyze.
 # -----------------------------------------------------
 anchor = '''            "vision_status":
                 vision_status,
@@ -155,8 +153,7 @@ anchor = '''            "vision_status":
 replacement = '''            "vision_status":
                 vision_status,
 
-            # Authoritative profile data for personalized homework UI/TTS.
-            # Never infer these from the child's name in the frontend.
+            # Authoritative child profile for Homework Help UI/TTS.
             "child_name":
                 str(child.get("child_name") or "").strip(),
 
@@ -186,3 +183,5 @@ INDEX.write_text(index, encoding='utf-8')
 BACKEND.write_text(backend, encoding='utf-8')
 
 print(f'Homework analyzer now returns authoritative child profile; patched {count} response block(s); build 0.7.23')
+
+# trigger workflow
