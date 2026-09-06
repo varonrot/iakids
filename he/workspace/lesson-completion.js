@@ -601,3 +601,475 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     500
   );
 }
+
+
+/* =====================================================
+   HOMEWORK SMART INTRO + HELP CHOICES V1
+   Loaded after the main workspace script so it can safely
+   override the original homework hand-off function.
+===================================================== */
+(function(){
+
+  const HELP_CHOICES = [
+    {
+      id: "understand_question",
+      icon: "fa-magnifying-glass",
+      label: "להבין מה מבקשים בשאלה",
+      childText: "אני רוצה להבין מה מבקשים בשאלה"
+    },
+    {
+      id: "explain_topic",
+      icon: "fa-book-open",
+      label: "לקבל הסבר על החומר",
+      childText: "אני רוצה הסבר על החומר"
+    },
+    {
+      id: "hint",
+      icon: "fa-lightbulb",
+      label: "לקבל רמז קטן",
+      childText: "אני רוצה רמז קטן"
+    },
+    {
+      id: "solve_together",
+      icon: "fa-list-ol",
+      label: "לפתור יחד שלב־שלב",
+      childText: "בואי נפתור יחד שלב־שלב"
+    },
+    {
+      id: "check_answer",
+      icon: "fa-circle-check",
+      label: "לבדוק תשובה שכתבתי",
+      childText: "אני רוצה לבדוק תשובה שכתבתי"
+    }
+  ];
+
+  let activeHomeworkAnalysis = null;
+  let homeworkChoiceBusy = false;
+
+  function cleanHomeworkValue(value){
+    const text = String(value || "").trim();
+    if(!text || /^(לא ידוע|unknown|null|undefined)$/i.test(text)){
+      return "";
+    }
+    return text;
+  }
+
+  function getHomeworkGrade(){
+    const raw =
+      window.CURRENT_KID?.grade
+      ?? window.CURRENT_KID?.age
+      ?? 4;
+
+    const grade = Number(raw);
+    return Number.isFinite(grade)
+      ? Math.max(1, Math.min(6, Math.round(grade)))
+      : 4;
+  }
+
+  function getHomeworkDetectionSentence(analysis){
+    const subject = cleanHomeworkValue(analysis?.subject);
+    const topic = cleanHomeworkValue(analysis?.topic);
+
+    const rawConfidence = Number(
+      analysis?.confidence
+      ?? analysis?.classification_confidence
+      ?? analysis?.subject_confidence
+    );
+
+    const uncertain =
+      Number.isFinite(rawConfidence)
+      && rawConfidence > 0
+      && rawConfidence < 0.65;
+
+    const verb = uncertain ? "נראה שזה" : "זיהיתי שזה";
+
+    if(subject && topic){
+      return `${verb} שיעורי בית ב־${subject} בנושא ${topic}.`;
+    }
+
+    if(subject){
+      return `${verb} שיעורי בית ב־${subject}.`;
+    }
+
+    if(topic){
+      return `${verb} שיעורי בית בנושא ${topic}.`;
+    }
+
+    return "קראתי את שיעורי הבית שלך.";
+  }
+
+  function getHomeworkIntroByGrade(analysis){
+    const grade = getHomeworkGrade();
+    const detection = getHomeworkDetectionSentence(analysis);
+
+    if(grade <= 2){
+      return `${detection}\nאני יכולה לעזור להבין מה מבקשים, להסביר, לתת רמז או לפתור איתך יחד.`;
+    }
+
+    if(grade <= 4){
+      return `${detection}\nאני יכולה להסביר את השאלה או את החומר, לתת רמז, לפתור יחד או לבדוק תשובה.`;
+    }
+
+    return `${detection}\nאפשר להבין את השאלה, לקבל הסבר, רמז, לפתור יחד או לבדוק תשובה.`;
+  }
+
+  function ensureHomeworkHelpStyles(){
+    if(document.getElementById("iakidsHomeworkHelpChoicesStyles")){
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "iakidsHomeworkHelpChoicesStyles";
+    style.textContent = `
+      .homework-help-options-row{
+        width:100%;
+        display:flex;
+        justify-content:flex-start;
+        direction:rtl;
+        padding:0 2px 4px;
+      }
+      .homework-help-options{
+        width:min(100%,390px);
+        display:grid;
+        gap:7px;
+        padding:10px;
+        border:1px solid rgba(104,146,226,.25);
+        border-radius:16px;
+        background:rgba(5,17,38,.72);
+        box-shadow:inset 0 0 22px rgba(72,93,255,.07);
+      }
+      .homework-help-options-title{
+        color:#dceaff;
+        font-size:12px;
+        font-weight:800;
+        text-align:right;
+        padding:0 3px 2px;
+      }
+      .homework-help-choice{
+        width:100%;
+        min-height:39px;
+        display:flex;
+        align-items:center;
+        justify-content:flex-start;
+        gap:9px;
+        direction:rtl;
+        border:1px solid rgba(128,91,255,.62);
+        border-radius:11px;
+        background:linear-gradient(135deg,rgba(55,35,123,.92),rgba(22,45,91,.92));
+        color:#f3f6ff;
+        padding:8px 11px;
+        font-family:"Heebo",Arial,sans-serif;
+        font-size:12px;
+        font-weight:800;
+        text-align:right;
+        cursor:pointer;
+        transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;
+      }
+      .homework-help-choice:hover{
+        transform:translateY(-1px);
+        border-color:#5fd8ff;
+        box-shadow:0 0 15px rgba(79,173,255,.18);
+      }
+      .homework-help-choice:disabled{
+        opacity:.56;
+        cursor:wait;
+        transform:none;
+      }
+      .homework-help-choice i{
+        width:20px;
+        color:#69d7ff;
+        text-align:center;
+      }
+      body:not(.lesson-theme-science) .homework-help-options{
+        background:#fff;
+        border-color:#e1dcfb;
+        box-shadow:0 8px 24px rgba(65,58,130,.07);
+      }
+      body:not(.lesson-theme-science) .homework-help-options-title{
+        color:#34406b;
+      }
+      body:not(.lesson-theme-science) .homework-help-choice{
+        background:linear-gradient(135deg,#f8f6ff,#eef5ff);
+        border-color:#d6ccff;
+        color:#3c3973;
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  function getHomeworkMessagesContainer(){
+    return (
+      document.querySelector(".lesson-chat-workspace .messages")
+      || document.querySelector(".workspace .messages")
+      || document.querySelector(".messages")
+    );
+  }
+
+  function scrollHomeworkChatToBottom(){
+    const messages = getHomeworkMessagesContainer();
+    if(messages){
+      requestAnimationFrame(() => {
+        messages.scrollTop = messages.scrollHeight;
+      });
+    }
+  }
+
+  function removeHomeworkHelpOptions(){
+    document
+      .querySelectorAll(".homework-help-options-row")
+      .forEach(el => el.remove());
+  }
+
+  function renderHomeworkHelpOptions(){
+    const messages = getHomeworkMessagesContainer();
+    if(!messages){
+      console.warn("HOMEWORK HELP OPTIONS — messages container not found");
+      return false;
+    }
+
+    ensureHomeworkHelpStyles();
+    removeHomeworkHelpOptions();
+
+    const row = document.createElement("div");
+    row.className = "homework-help-options-row";
+
+    const panel = document.createElement("div");
+    panel.className = "homework-help-options";
+
+    const title = document.createElement("div");
+    title.className = "homework-help-options-title";
+    title.textContent = "איך תרצה שאעזור?";
+    panel.appendChild(title);
+
+    HELP_CHOICES.forEach(choice => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "homework-help-choice";
+      button.dataset.helpChoice = choice.id;
+      button.innerHTML = `<i class="fa-solid ${choice.icon}" aria-hidden="true"></i><span>${choice.label}</span>`;
+      button.addEventListener("click", () => {
+        selectHomeworkHelpOption(choice.id);
+      });
+      panel.appendChild(button);
+    });
+
+    row.appendChild(panel);
+    messages.appendChild(row);
+    scrollHomeworkChatToBottom();
+    return true;
+  }
+
+  function buildHomeworkContextMessage(analysis){
+    return `
+הילד העלה צילום של שיעורי הבית.
+
+מקצוע שזוהה:
+${cleanHomeworkValue(analysis?.subject) || "לא ידוע"}
+
+נושא שזוהה:
+${cleanHomeworkValue(analysis?.topic) || "לא ידוע"}
+
+כיתה:
+${getHomeworkGrade()}
+
+תוכן התרגיל שפוענח:
+${analysis?.extracted_text || ""}
+
+זהו רק הקשר פנימי לשיחה. אל תיתן עדיין תשובה לתרגיל.
+המתן לבחירת סוג העזרה של הילד.
+`.trim();
+  }
+
+  async function primeHomeworkTutorContext(analysis){
+    try{
+      const { data: sessionData } = await sb.auth.getSession();
+      const session = sessionData.session;
+      if(!session || !CURRENT_KID?.id){
+        return;
+      }
+
+      const response = await fetch(
+        `${TUTOR_API_BASE}/api/tutor/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            message: buildHomeworkContextMessage(analysis),
+            kid_id: CURRENT_KID.id
+          })
+        }
+      );
+
+      if(!response.ok){
+        console.warn("HOMEWORK CONTEXT PRIME FAILED:", response.status);
+        return;
+      }
+
+      const data = await response.json();
+      if(data?.session_id && typeof currentSessionId !== "undefined"){
+        currentSessionId = data.session_id;
+      }
+    }
+    catch(error){
+      console.warn("HOMEWORK CONTEXT PRIME WARNING:", error);
+    }
+  }
+
+  function getChoiceInstruction(choiceId){
+    switch(choiceId){
+      case "understand_question":
+        return "עזור לילד להבין מה בדיוק מבקשים בשאלה. פרק את הדרישה למילים קצרות וברורות. אל תפתור את התרגיל במקומו.";
+      case "explain_topic":
+        return "הסבר בקצרה ובשפה המתאימה לכיתה את החומר שצריך לדעת כדי לענות. אחר כך שאל שאלה קצרה שבודקת הבנה.";
+      case "hint":
+        return "תן רמז קטן אחד בלבד שמקדם את הילד בלי לחשוף את התשובה. המתן לתשובה שלו.";
+      case "solve_together":
+        return "פתור יחד עם הילד שלב־שלב. בכל פעם תן רק צעד אחד ושאל אותו מה לדעתו הצעד הבא.";
+      case "check_answer":
+        return "בקש מהילד לכתוב או לומר את התשובה שכבר הכין. אל תנסח תשובה במקומו לפני ששלח את התשובה שלו.";
+      default:
+        return "עזור לילד להבין ולפתור בעצמו, בלי לתת מיד את התשובה הסופית.";
+    }
+  }
+
+  async function runHomeworkChoiceWithTutor(choice){
+    const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS;
+    if(!analysis){
+      addMessage("assistant", "לא מצאתי את התרגיל שהעלית. אפשר להעלות אותו שוב?");
+      return;
+    }
+
+    const { data: sessionData } = await sb.auth.getSession();
+    const session = sessionData.session;
+    if(!session){
+      throw new Error("No active session");
+    }
+
+    const message = `
+אנחנו ממשיכים עם שיעורי הבית שכבר נותחו.
+
+מקצוע: ${cleanHomeworkValue(analysis.subject) || "לא ידוע"}
+נושא: ${cleanHomeworkValue(analysis.topic) || "לא ידוע"}
+כיתה: ${getHomeworkGrade()}
+
+הילד בחר: ${choice.label}
+
+${getChoiceInstruction(choice.id)}
+
+תוכן התרגיל:
+${analysis.extracted_text || ""}
+
+דבר בעברית קצרה וברורה המותאמת לכיתה ${getHomeworkGrade()}.
+`.trim();
+
+    const response = await fetch(
+      `${TUTOR_API_BASE}/api/tutor/chat`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          message,
+          kid_id: CURRENT_KID.id
+        })
+      }
+    );
+
+    if(!response.ok){
+      const errorText = await response.text();
+      console.error("HOMEWORK HELP CHOICE ERROR:", response.status, errorText);
+      throw new Error("Homework help choice failed");
+    }
+
+    const data = await response.json();
+
+    if(data?.session_id && typeof currentSessionId !== "undefined"){
+      currentSessionId = data.session_id;
+    }
+
+    if(
+      data?.sequence
+      && Array.isArray(data.sequence)
+      && window.lessonRenderer
+    ){
+      await unlockLessonAudio();
+      await window.lessonRenderer.run({
+        sequence: data.sequence,
+        wait_for_answer: data.wait_for_answer,
+        speech: data.speech
+      });
+      return;
+    }
+
+    if(data?.message || data?.text || data?.response){
+      addMessage("assistant", data.message || data.text || data.response);
+      return;
+    }
+
+    console.error("Invalid homework tutor response:", data);
+    addMessage("assistant", "אני כאן. נסה לבחור שוב איך תרצה שאעזור.");
+  }
+
+  async function selectHomeworkHelpOption(choiceId){
+    if(homeworkChoiceBusy){
+      return;
+    }
+
+    const choice = HELP_CHOICES.find(item => item.id === choiceId);
+    if(!choice){
+      return;
+    }
+
+    homeworkChoiceBusy = true;
+
+    const buttons = document.querySelectorAll(".homework-help-choice");
+    buttons.forEach(button => {
+      button.disabled = true;
+    });
+
+    addMessage("user", choice.childText);
+    removeHomeworkHelpOptions();
+
+    try{
+      await runHomeworkChoiceWithTutor(choice);
+    }
+    catch(error){
+      console.error("HOMEWORK HELP OPTION FAILED:", error);
+      addMessage("assistant", "לא הצלחתי להתחיל את העזרה. נסה שוב בעוד רגע.");
+      renderHomeworkHelpOptions();
+    }
+    finally{
+      homeworkChoiceBusy = false;
+    }
+  }
+
+  async function smartHomeworkAnalysisIntro(analysis){
+    activeHomeworkAnalysis = analysis || null;
+    window.CURRENT_HOMEWORK_ANALYSIS = analysis || null;
+
+    addMessage("user", "📷 העליתי צילום של שיעורי הבית");
+    addMessage("assistant", getHomeworkIntroByGrade(analysis));
+    renderHomeworkHelpOptions();
+
+    /*
+      שומרים גם את הפענוח בהקשר של מנוע המורה כדי שהילד יוכל
+      לכתוב תשובה חופשית במקום ללחוץ על כפתור ועדיין המורה תדע
+      לאיזה דף שיעורי בית הוא מתייחס.
+    */
+    await primeHomeworkTutorContext(analysis);
+  }
+
+  window.getHomeworkIntroByGrade = getHomeworkIntroByGrade;
+  window.renderHomeworkHelpOptions = renderHomeworkHelpOptions;
+  window.selectHomeworkHelpOption = selectHomeworkHelpOption;
+  window.sendHomeworkAnalysisToTutor = smartHomeworkAnalysisIntro;
+
+  console.log("HOMEWORK SMART INTRO V1 READY");
+
+})();
