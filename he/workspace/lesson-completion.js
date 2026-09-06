@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.28";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.29";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -7,7 +7,7 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.28";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=0728";
+  core.src = "/he/workspace/lesson-completion-core.js?v=0729";
   core.async = false;
 
   core.onload = function(){
