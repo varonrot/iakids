@@ -1767,8 +1767,30 @@ ${analysis.extracted_text || ""}
 
   async function getHomeworkAccessToken(){
     try{
-      const sessionResult = await window.sb?.auth?.getSession?.();
-      return sessionResult?.data?.session?.access_token || "";
+      // The workspace Supabase client is declared as top-level `sb` in index.html.
+      // It is not guaranteed to exist as window.sb, so prefer the real client first.
+      let client = null;
+
+      if(typeof sb !== "undefined" && sb?.auth?.getSession){
+        client = sb;
+      }
+      else if(window.sb?.auth?.getSession){
+        client = window.sb;
+      }
+      else if(window.supabaseClient?.auth?.getSession){
+        client = window.supabaseClient;
+      }
+
+      if(!client){
+        console.warn("HOMEWORK ACCESS TOKEN: Supabase client not found");
+        return "";
+      }
+
+      const sessionResult = await client.auth.getSession();
+      const token = sessionResult?.data?.session?.access_token || "";
+
+      console.log("HOMEWORK ACCESS TOKEN:", token ? "session available" : "no session");
+      return token;
     }
     catch(error){
       console.warn("HOMEWORK ACCESS TOKEN WARNING:", error);
