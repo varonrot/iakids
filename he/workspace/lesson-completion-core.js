@@ -987,6 +987,30 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
         color:#69d7ff;
         text-align:center;
       }
+      .homework-help-icon{
+        width:24px;
+        height:24px;
+        flex:0 0 24px;
+        display:grid;
+        place-items:center;
+        border-radius:8px;
+        border:1px solid rgba(96,211,255,.42);
+        background:linear-gradient(145deg,rgba(36,119,188,.42),rgba(94,54,191,.42));
+        color:#78e1ff;
+        font:900 14px/1 "Heebo",Arial,sans-serif;
+        box-shadow:inset 0 0 10px rgba(76,181,255,.10),0 0 8px rgba(82,164,255,.10);
+      }
+      .homework-detection-teacher{
+        width:44px;
+        height:44px;
+        flex:0 0 44px;
+        border-radius:50%;
+        object-fit:cover;
+        object-position:center 18%;
+        border:1px solid rgba(105,215,255,.58);
+        background:#07182f;
+        box-shadow:0 0 13px rgba(73,183,255,.24);
+      }
       body:not(.lesson-theme-science) .homework-help-options{
         background:#fff;
         border-color:#e1dcfb;
@@ -1053,7 +1077,8 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     row.className = 'homework-detection-row';
     row.innerHTML = `
       <div class="homework-detection-card">
-        <div class="homework-detection-icon"><i class="fa-solid fa-check"></i></div>
+        <img class="homework-detection-teacher" src="/assets/lesson/lesson-teacher.webp" alt="המורה AI">
+        <div class="homework-detection-icon"><span aria-hidden="true">✓</span></div>
         <div class="homework-detection-copy">
           <div class="homework-detection-title">${mainLine}</div>
           <div class="homework-detection-text">${helpLine}</div>
@@ -1118,7 +1143,14 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
       button.type = "button";
       button.className = "homework-help-choice";
       button.dataset.helpChoice = choice.id;
-      button.innerHTML = `<i class="fa-solid ${choice.icon}" aria-hidden="true"></i><span>${choice.label}</span>`;
+      const helpIconMap = {
+        understand_question: "?",
+        explain_topic: "▤",
+        hint: "✦",
+        solve_together: "→",
+        check_answer: "✓"
+      };
+      button.innerHTML = `<span class="homework-help-icon" aria-hidden="true">${helpIconMap[choice.id] || "•"}</span><span>${choice.label}</span>`;
       button.addEventListener("click", () => {
         selectHomeworkHelpOption(choice.id);
       });
@@ -1136,17 +1168,59 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return true;
   }
 
+  function getHomeworkKidName(){
+    const kid =
+      window.CURRENT_KID
+      || window.SELECTED_KID
+      || window.currentKid
+      || window.selectedKid
+      || {};
+
+    const candidates = [
+      kid?.name,
+      kid?.first_name,
+      kid?.display_name,
+      kid?.full_name,
+      kid?.child_name,
+      kid?.kid_name,
+      kid?.nickname,
+      window.CURRENT_KID_NAME,
+      window.currentKidName,
+      window.selectedKidName
+    ];
+
+    for(const candidate of candidates){
+      const value = String(candidate || "").trim();
+      if(value) return value.split(/\s+/)[0];
+    }
+
+    const selectors = [
+      '#currentKidName',
+      '.current-kid-name',
+      '[data-current-kid-name]',
+      '[data-kid-name]',
+      '.kid-name'
+    ];
+
+    for(const selector of selectors){
+      const element = document.querySelector(selector);
+      const value = String(
+        element?.dataset?.currentKidName
+        || element?.dataset?.kidName
+        || element?.textContent
+        || ""
+      ).trim();
+      if(value) return value.split(/\s+/)[0];
+    }
+
+    return "";
+  }
+
   function getHomeworkSpokenIntro(analysis){
     const classification = resolveHomeworkClassification(analysis);
     const subject = classification.subject;
     const topic = classification.topic;
-
-    const kidName = String(
-      window.CURRENT_KID?.name
-      || window.CURRENT_KID?.first_name
-      || window.CURRENT_KID?.display_name
-      || ""
-    ).trim();
+    const kidName = getHomeworkKidName();
 
     const greeting = kidName
       ? `היי ${kidName}, `
