@@ -1648,6 +1648,294 @@ ${analysis.extracted_text || ""}
   window.selectHomeworkHelpOption = selectHomeworkHelpOption;
   window.sendHomeworkAnalysisToTutor = smartHomeworkAnalysisIntro;
 
+
+  // =====================================================
+  // IAKIDS HOMEWORK QUESTION STATE MACHINE V0.7.26
+  // The code owns question progression. The model only evaluates/help with
+  // the CURRENT question. It never decides which question comes next.
+  // =====================================================
+
+  function parseHomeworkQuestions(extractedText){
+    const text = String(extractedText || "")
+      .replace(/\r/g, "\n")
+      .replace(/\n{3,}/g, "\n\n");
+
+    const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+    const questions = [];
+
+    for(let i=0;i<lines.length;i+=1){
+      const line = lines[i];
+      let match = line.match(/^\s*(\d{1,2})\s*[\.\)\-:]\s*(.+)$/);
+      if(!match){
+        match = line.match(/^\s*(\d{1,2})\s+(.+\?)\s*$/);
+      }
+      if(!match) continue;
+
+      const number = Number(match[1]);
+      let question = String(match[2] || "").trim();
+
+      // OCR can wrap a question to the next line. Join until the next numbered item.
+      let j = i + 1;
+      while(j < lines.length && !/^\s*\d{1,2}\s*[\.\)\-:]\s+/.test(lines[j])){
+        if(question.includes("?")) break;
+        question += ` ${lines[j]}`;
+        j += 1;
+      }
+
+      question = question.replace(/\s+/g, " ").trim();
+      if(question && !questions.some(item => item.number === number)){
+        questions.push({ number, text: question, status: "pending" });
+      }
+    }
+
+    if(!questions.length){
+      const fallback = typeof extractFirstHomeworkQuestion === "function"
+        ? extractFirstHomeworkQuestion(text)
+        : "";
+      if(fallback){
+        questions.push({ number: 1, text: fallback, status: "pending" });
+      }
+    }
+
+    return questions.sort((a,b) => a.number - b.number);
+  }
+
+  function initializeHomeworkQuestionState(analysis){
+    const parsed = parseHomeworkQuestions(analysis?.extracted_text || "");
+    window.CURRENT_HOMEWORK_QUESTIONS = parsed;
+    window.CURRENT_HOMEWORK_QUESTION_INDEX = 0;
+    window.CURRENT_HOMEWORK_ANSWERED_QUESTIONS = [];
+    window.HOMEWORK_STRUCTURED_ACTIVE = false;
+
+    if(analysis){
+      analysis.questions = parsed.map(item => ({
+        number: item.number,
+        text: item.text
+      }));
+    }
+
+    console.log("HOMEWORK STRUCTURED QUESTIONS:", parsed);
+    return parsed;
+  }
+
+  function getCurrentHomeworkQuestion(){
+    const questions = Array.isArray(window.CURRENT_HOMEWORK_QUESTIONS)
+      ? window.CURRENT_HOMEWORK_QUESTIONS
+      : [];
+    const index = Math.max(0, Number(window.CURRENT_HOMEWORK_QUESTION_INDEX || 0));
+    return questions[index] || null;
+  }
+
+  function getNextHomeworkQuestion(){
+    const questions = Array.isArray(window.CURRENT_HOMEWORK_QUESTIONS)
+      ? window.CURRENT_HOMEWORK_QUESTIONS
+      : [];
+    const index = Math.max(0, Number(window.CURRENT_HOMEWORK_QUESTION_INDEX || 0));
+    return questions[index + 1] || null;
+  }
+
+  function setHomeworkQuestionAnswered(answerText){
+    const current = getCurrentHomeworkQuestion();
+    if(!current) return null;
+
+    current.status = "answered";
+    current.answer = String(answerText || "").trim();
+    window.CURRENT_HOMEWORK_ANSWERED_QUESTIONS = [
+      ...(window.CURRENT_HOMEWORK_ANSWERED_QUESTIONS || []),
+      {
+        number: current.number,
+        question: current.text,
+        answer: current.answer
+      }
+    ];
+
+    window.CURRENT_HOMEWORK_QUESTION_INDEX =
+      Number(window.CURRENT_HOMEWORK_QUESTION_INDEX || 0) + 1;
+
+    return current;
+  }
+
+  function homeworkComposerElements(){
+    const workspace = document.querySelector('.lesson-chat-workspace');
+    if(!workspace) return {};
+    return {
+      workspace,
+      input: workspace.querySelector('.composer-wrap .input input'),
+      send: workspace.querySelector('.composer-wrap .send-btn')
+    };
+  }
+
+  async function getHomeworkAccessToken(){
+    try{
+      const sessionResult = await window.sb?.auth?.getSession?.();
+      return sessionResult?.data?.session?.access_token || "";
+    }
+    catch(error){
+      console.warn("HOMEWORK ACCESS TOKEN WARNING:", error);
+      return "";
+    }
+  }
+
+  async function runStructuredHomeworkTurn(answerText){
+    const current = getCurrentHomeworkQuestion();
+    const next = getNextHomeworkQuestion();
+    const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
+
+    if(!current){
+      addMessage("assistant", "סיימנו את כל השאלות בדף. כל הכבוד!");
+      setHomeworkSidebarStep(5);
+      return;
+    }
+
+    const answer = String(answerText || "").trim();
+    if(!answer) return;
+
+    const token = await getHomeworkAccessToken();
+    if(!token){
+      addMessage("assistant", "צריך להתחבר מחדש כדי להמשיך.");
+      return;
+    }
+
+    addMessage("user", answer);
+
+    const { input, send } = homeworkComposerElements();
+    if(input) input.value = "";
+    if(send) send.disabled = true;
+
+    try{
+      const response = await fetch(
+        `${TUTOR_API_BASE}/api/tutor/homework-turn`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            kid_id: window.CURRENT_KID?.id || window.SELECTED_KID?.id,
+            session_id: (typeof currentSessionId !== "undefined" ? currentSessionId : null),
+            current_question_number: current.number,
+            current_question: current.text,
+            next_question_number: next?.number || null,
+            next_question: next?.text || null,
+            source_text: analysis?.extracted_text || "",
+            answer
+          })
+        }
+      );
+
+      if(!response.ok){
+        const errorText = await response.text();
+        console.error("HOMEWORK TURN ERROR:", response.status, errorText);
+        throw new Error("homework turn failed");
+      }
+
+      const data = await response.json();
+
+      if(data?.session_id && typeof currentSessionId !== "undefined"){
+        currentSessionId = data.session_id;
+      }
+
+      if(data?.answer_sufficient){
+        const completed = setHomeworkQuestionAnswered(answer);
+        const nowCurrent = getCurrentHomeworkQuestion();
+
+        let text = String(data.feedback || "מצוין, זו תשובה מספקת.").trim();
+        if(nowCurrent){
+          text += `\n\nנעבור לשאלה ${nowCurrent.number}: ${nowCurrent.text}`;
+        }
+        else{
+          text += "\n\nסיימנו את כל השאלות בדף. כל הכבוד!";
+          setHomeworkSidebarStep(5);
+        }
+
+        addMessage("assistant", text);
+        await playHomeworkTeacherAudio(text);
+        return;
+      }
+
+      const teacherResponse = String(
+        data?.teacher_response
+        || data?.feedback
+        || "בואי ננסה שוב ולחשוב רק על השאלה שמופיעה בדף."
+      ).trim();
+
+      addMessage("assistant", teacherResponse);
+      await playHomeworkTeacherAudio(teacherResponse);
+    }
+    catch(error){
+      console.error("STRUCTURED HOMEWORK TURN FAILED:", error);
+      addMessage("assistant", "לא הצלחתי לבדוק את התשובה כרגע. נסי שוב בעוד רגע.");
+    }
+    finally{
+      if(send) send.disabled = false;
+      if(input) input.focus();
+    }
+  }
+
+  function activateStructuredHomeworkQuestions(){
+    if(!Array.isArray(window.CURRENT_HOMEWORK_QUESTIONS) || !window.CURRENT_HOMEWORK_QUESTIONS.length){
+      initializeHomeworkQuestionState(activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {});
+    }
+    window.HOMEWORK_STRUCTURED_ACTIVE = true;
+  }
+
+  function installStructuredHomeworkComposerGuard(){
+    if(window.IakidsHomeworkComposerGuardInstalled) return;
+    window.IakidsHomeworkComposerGuardInstalled = true;
+
+    document.addEventListener("click", event => {
+      const button = event.target?.closest?.('.lesson-chat-workspace .send-btn');
+      if(!button) return;
+      if(!document.body.classList.contains('homework-lesson-mode')) return;
+      if(!window.HOMEWORK_STRUCTURED_ACTIVE) return;
+
+      const { input } = homeworkComposerElements();
+      const value = String(input?.value || "").trim();
+      if(!value) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      runStructuredHomeworkTurn(value);
+    }, true);
+
+    document.addEventListener("keydown", event => {
+      if(event.key !== "Enter" || event.shiftKey) return;
+      if(!document.body.classList.contains('homework-lesson-mode')) return;
+      if(!window.HOMEWORK_STRUCTURED_ACTIVE) return;
+
+      const { input } = homeworkComposerElements();
+      if(event.target !== input) return;
+      const value = String(input?.value || "").trim();
+      if(!value) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      runStructuredHomeworkTurn(value);
+    }, true);
+  }
+
+  installStructuredHomeworkComposerGuard();
+
+  const originalSmartHomeworkAnalysisIntro0726 = smartHomeworkAnalysisIntro;
+  smartHomeworkAnalysisIntro = async function(analysis){
+    initializeHomeworkQuestionState(analysis || {});
+    return originalSmartHomeworkAnalysisIntro0726(analysis);
+  };
+  window.sendHomeworkAnalysisToTutor = smartHomeworkAnalysisIntro;
+
+  const originalSelectHomeworkHelpOption0726 = selectHomeworkHelpOption;
+  selectHomeworkHelpOption = async function(choiceId){
+    activateStructuredHomeworkQuestions();
+    return originalSelectHomeworkHelpOption0726(choiceId);
+  };
+  window.selectHomeworkHelpOption = selectHomeworkHelpOption;
+
+  window.getCurrentHomeworkQuestion = getCurrentHomeworkQuestion;
+  window.getHomeworkQuestions = () => window.CURRENT_HOMEWORK_QUESTIONS || [];
+  window.runStructuredHomeworkTurn = runStructuredHomeworkTurn;
+
+
   console.log("HOMEWORK SMART INTRO V1 READY");
 
 })();
