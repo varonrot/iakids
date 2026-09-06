@@ -12,14 +12,8 @@
 <style>
 :root{
   --bg:#041120;
-  --bg2:#071a31;
-  --panel:#0b1f38;
-  --panel2:#0e2745;
-  --line:rgba(122,190,255,.18);
   --text:#f7fbff;
   --muted:#a8bdd4;
-  --blue:#56b9ff;
-  --violet:#7b5cff;
   --yellow:#ffd33d;
   --green:#39d98a;
 }
@@ -27,55 +21,36 @@
 html{scroll-behavior:smooth}
 body{font-family:"Heebo",Arial,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
 a{text-decoration:none;color:inherit}
-button,input{font:inherit}
+button{font:inherit}
 
-/* ===== NAV ===== */
+/* NAV נשאר ממורכז — רק ה-Hero פרוס ללא מגבלת רוחב */
 .site-header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 18px;pointer-events:none}
-.nav-shell{pointer-events:auto;max-width:1380px;margin:auto;min-height:68px;padding:10px 14px 10px 18px;display:flex;align-items:center;gap:18px;border:1px solid rgba(147,202,255,.16);border-radius:22px;background:rgba(4,16,31,.76);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(0,0,0,.28)}
-.brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
-.brand img{width:42px;height:42px;object-fit:contain}
-.brand-name{font-size:26px;font-weight:900;letter-spacing:-1px}.brand-name b{color:var(--yellow)}
-.nav-links{display:flex;align-items:center;justify-content:center;gap:8px;flex:1}
-.nav-links a{padding:10px 12px;border-radius:12px;color:#d9e7f4;font-size:14px;font-weight:700;transition:.2s}
-.nav-links a:hover{background:rgba(84,167,255,.10);color:#fff}
-.nav-actions{display:flex;align-items:center;gap:9px;flex-shrink:0}
-.nav-login{padding:11px 15px;border:1px solid rgba(140,190,255,.18);border-radius:14px;background:rgba(255,255,255,.04);font-size:13px;font-weight:800}
-.nav-cta{padding:12px 18px;border-radius:14px;background:linear-gradient(135deg,#ffe06b,#ffc92e);color:#10233d;font-size:13px;font-weight:900;box-shadow:0 12px 30px rgba(244,183,24,.24)}
-.nav-burger{display:none;width:44px;height:44px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.04);color:#fff;font-size:22px}
+.nav-shell{pointer-events:auto;max-width:1380px;margin:auto;min-height:68px;padding:10px 14px 10px 18px;display:flex;align-items:center;gap:18px;border:1px solid rgba(147,202,255,.16);border-radius:22px;background:rgba(4,16,31,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.brand{display:flex;align-items:center;gap:9px;flex-shrink:0}.brand img{width:42px;height:42px;object-fit:contain}.brand-name{font-size:26px;font-weight:900;letter-spacing:-1px}.brand-name b{color:var(--yellow)}
+.nav-links{display:flex;align-items:center;justify-content:center;gap:8px;flex:1}.nav-links a{padding:10px 12px;border-radius:12px;color:#d9e7f4;font-size:14px;font-weight:700;transition:.2s}.nav-links a:hover{background:rgba(84,167,255,.10);color:#fff}
+.nav-actions{display:flex;align-items:center;gap:9px;flex-shrink:0}.nav-login{padding:11px 15px;border:1px solid rgba(140,190,255,.18);border-radius:14px;background:rgba(255,255,255,.04);font-size:13px;font-weight:800}.nav-cta{padding:12px 18px;border-radius:14px;background:linear-gradient(135deg,#ffe06b,#ffc92e);color:#10233d;font-size:13px;font-weight:900;box-shadow:0 12px 30px rgba(244,183,24,.24)}
+.nav-burger{display:none;width:44px;height:44px;border:1px solid rgba(122,190,255,.18);border-radius:14px;background:rgba(255,255,255,.04);color:#fff;font-size:22px}
 .user-menu{display:flex;align-items:center;gap:9px}.user-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover}.user-avatar-fallback{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#0b1a2a}.user-name{max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dbe9f7;font-size:12px;font-weight:800}.logout-btn{border:0;background:transparent;color:#ffd560;cursor:pointer;font-weight:800}
 
-/* ===== HERO ===== */
-.hero{position:relative;min-height:100vh;padding:135px 24px 64px;overflow:hidden;background:
- radial-gradient(circle at 14% 22%,rgba(93,72,255,.26),transparent 28%),
- radial-gradient(circle at 86% 20%,rgba(32,143,255,.23),transparent 31%),
- linear-gradient(135deg,#061326 0%,#071628 44%,#03101f 100%)}
-.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,black,transparent 90%);pointer-events:none}
-.hero-inner{position:relative;z-index:2;max-width:1380px;margin:auto;display:grid;grid-template-columns:.93fr 1.07fr;gap:70px;align-items:center}
-.hero-copy{padding-top:26px}
+/* FULL WIDTH HERO */
+.hero{position:relative;width:100%;min-height:100vh;padding:132px 0 42px;overflow:hidden;background:radial-gradient(circle at 8% 20%,rgba(93,72,255,.26),transparent 27%),radial-gradient(circle at 90% 18%,rgba(32,143,255,.24),transparent 31%),linear-gradient(135deg,#061326 0%,#071628 44%,#03101f 100%)}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,black,transparent 92%);pointer-events:none}
+.hero-inner{position:relative;z-index:2;width:100%;max-width:none;margin:0;display:grid;grid-template-columns:minmax(430px,.82fr) minmax(660px,1.18fr);align-items:center;gap:clamp(28px,4vw,90px);padding-right:clamp(28px,4.2vw,88px);padding-left:0}
+.hero-copy{padding-top:10px;max-width:690px;justify-self:end}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border:1px solid rgba(87,183,255,.22);border-radius:999px;background:rgba(67,148,255,.08);color:#9bd7ff;font-size:12px;font-weight:900;margin-bottom:20px}
-.hero h1{font-size:clamp(52px,5vw,80px);line-height:1.02;letter-spacing:-2.6px;font-weight:950;margin-bottom:20px}.hero h1 .accent{display:block;color:var(--yellow)}
-.hero-lead{max-width:620px;color:#b6c9db;font-size:19px;line-height:1.7;font-weight:550;margin-bottom:30px}
-.hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:30px}
-.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 24px;border-radius:999px;background:linear-gradient(135deg,#ffe369,#ffc72f);color:#112844;font-weight:950;box-shadow:0 18px 46px rgba(244,179,14,.26)}
-.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border:1px solid rgba(93,177,255,.34);border-radius:999px;background:rgba(255,255,255,.035);color:#e6f3ff;font-weight:850}
-.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:690px}.proof{padding:15px;border:1px solid rgba(120,190,255,.11);border-radius:18px;background:rgba(10,32,57,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}.proof-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;margin-bottom:10px;font-size:18px}.proof:nth-child(1) .proof-icon{background:rgba(255,203,47,.13)}.proof:nth-child(2) .proof-icon{background:rgba(116,79,255,.16)}.proof:nth-child(3) .proof-icon{background:rgba(55,217,138,.13)}.proof strong{display:block;font-size:14px;margin-bottom:4px}.proof span{display:block;color:#91aac2;font-size:11px;line-height:1.45}
+.hero h1{font-size:clamp(54px,5.1vw,84px);line-height:1.01;letter-spacing:-2.8px;font-weight:950;margin-bottom:20px}.hero h1 .accent{display:block;color:var(--yellow)}
+.hero-lead{max-width:640px;color:#b6c9db;font-size:19px;line-height:1.72;font-weight:550;margin-bottom:30px}
+.hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:30px}.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 24px;border-radius:999px;background:linear-gradient(135deg,#ffe369,#ffc72f);color:#112844;font-weight:950;box-shadow:0 18px 46px rgba(244,179,14,.26)}.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border:1px solid rgba(93,177,255,.34);border-radius:999px;background:rgba(255,255,255,.035);color:#e6f3ff;font-weight:850}
+.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:690px}.proof{padding:15px;border:1px solid rgba(120,190,255,.11);border-radius:18px;background:rgba(10,32,57,.62)}.proof-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;margin-bottom:10px;font-size:18px}.proof:nth-child(1) .proof-icon{background:rgba(255,203,47,.13)}.proof:nth-child(2) .proof-icon{background:rgba(116,79,255,.16)}.proof:nth-child(3) .proof-icon{background:rgba(55,217,138,.13)}.proof strong{display:block;font-size:14px;margin-bottom:4px}.proof span{display:block;color:#91aac2;font-size:11px;line-height:1.45}
 
-/* visual placeholder for image we will create later */
-.hero-visual{position:relative;min-height:650px;display:grid;place-items:center}
-.visual-glow{position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(78,145,255,.22),rgba(93,72,255,.08) 45%,transparent 70%);filter:blur(8px)}
-.visual-card{position:relative;width:min(100%,680px);min-height:560px;border:1px solid rgba(101,181,255,.20);border-radius:34px;background:linear-gradient(180deg,rgba(14,39,69,.92),rgba(5,22,40,.95));box-shadow:0 40px 110px rgba(0,0,0,.46),0 0 70px rgba(46,123,255,.10);overflow:hidden;padding:20px}
-.visual-card::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.035),transparent 35%);pointer-events:none}
-.visual-top{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 15px;border-bottom:1px solid rgba(130,190,255,.11)}
-.visual-brand{display:flex;align-items:center;gap:8px;font-weight:900}.visual-brand img{width:30px;height:30px}.live-pill{padding:6px 10px;border-radius:999px;background:rgba(57,217,138,.10);color:#79eeb0;font-size:10px;font-weight:900;border:1px solid rgba(57,217,138,.18)}
-.visual-body{display:grid;grid-template-columns:.78fr 1.2fr;gap:14px;padding-top:16px}
-.stage-list{display:flex;flex-direction:column;gap:9px}.stage{padding:13px 12px;border:1px solid rgba(120,185,255,.10);border-radius:15px;background:rgba(255,255,255,.025);color:#9fb6cb;font-size:12px;font-weight:750}.stage.active{border-color:rgba(109,90,255,.55);background:linear-gradient(135deg,rgba(108,72,255,.34),rgba(57,119,255,.15));color:#fff;box-shadow:0 0 25px rgba(88,72,255,.12)}
-.demo-panel{min-height:420px;padding:16px;border:1px solid rgba(120,185,255,.10);border-radius:18px;background:#061629}.demo-upload{height:225px;border:1px dashed rgba(126,191,255,.22);border-radius:16px;display:grid;place-items:center;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,.005));color:#90a9c1}.demo-upload strong{display:block;color:#eaf4ff;font-size:18px;margin-bottom:6px}.demo-upload span{font-size:12px}.demo-ai{margin-top:12px;padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(87,69,255,.16),rgba(52,151,255,.08));border:1px solid rgba(115,125,255,.15)}.demo-ai strong{display:block;font-size:14px;margin-bottom:7px}.demo-ai p{color:#a8bfd5;font-size:12px;line-height:1.55}.demo-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.demo-tags span{padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.045);color:#a9c5dd;font-size:10px}
-.visual-note{position:absolute;left:-20px;bottom:55px;width:190px;padding:13px 14px;border:1px solid rgba(255,255,255,.13);border-radius:18px;background:rgba(7,25,45,.88);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(0,0,0,.28)}.visual-note strong{display:block;color:#fff;font-size:13px;margin-bottom:3px}.visual-note span{color:#8fb0cb;font-size:10px}
+.hero-visual{position:relative;width:100%;min-height:650px;overflow:hidden;border-radius:34px 0 0 34px;box-shadow:0 40px 110px rgba(0,0,0,.42),0 0 80px rgba(46,123,255,.12)}
+.hero-visual::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 70%,rgba(4,17,32,.08) 86%,rgba(4,17,32,.30) 100%)}
+.hero-visual-image{display:block;width:100%;height:650px;object-fit:cover;object-position:center;border:1px solid rgba(101,181,255,.20);border-left:0;border-radius:34px 0 0 34px}
 
-.hero-bottom{position:relative;z-index:2;max-width:1380px;margin:50px auto 0;padding:16px 18px;border:1px solid rgba(108,181,255,.11);border-radius:22px;background:rgba(8,27,49,.65);display:grid;grid-template-columns:repeat(4,1fr);gap:0}.metric{padding:4px 18px;text-align:center;border-left:1px solid rgba(120,185,255,.09)}.metric:last-child{border-left:0}.metric strong{display:block;font-size:14px}.metric span{display:block;margin-top:3px;color:#88a5be;font-size:10px}
+.hero-bottom{position:relative;z-index:2;width:calc(100% - clamp(56px,8.4vw,176px));max-width:none;margin:42px auto 0;padding:16px 18px;border:1px solid rgba(108,181,255,.11);border-radius:22px;background:rgba(8,27,49,.65);display:grid;grid-template-columns:repeat(4,1fr)}.metric{padding:4px 18px;text-align:center;border-left:1px solid rgba(120,185,255,.09)}.metric:last-child{border-left:0}.metric strong{display:block;font-size:14px}.metric span{display:block;margin-top:3px;color:#88a5be;font-size:10px}
 
-@media(max-width:1050px){.nav-links{display:none}.nav-burger{display:block}.hero-inner{grid-template-columns:1fr}.hero-copy{text-align:center}.hero-lead{margin-left:auto;margin-right:auto}.hero-actions,.proof-grid{justify-content:center;margin-left:auto;margin-right:auto}.hero-visual{min-height:560px}.hero-bottom{grid-template-columns:repeat(2,1fr);gap:12px}.metric{border:0;background:rgba(255,255,255,.018);border-radius:12px;padding:10px}}
-@media(max-width:700px){.site-header{padding:8px}.nav-shell{min-height:58px;border-radius:18px}.brand-name{font-size:20px}.brand img{width:36px;height:36px}.nav-actions{margin-right:auto}.nav-login{display:none}.nav-cta{padding:10px 12px;font-size:11px}.hero{padding:105px 15px 45px}.hero h1{font-size:42px;letter-spacing:-1.4px}.hero-lead{font-size:16px}.proof-grid{grid-template-columns:1fr}.hero-visual{min-height:auto;margin-top:20px}.visual-card{min-height:520px;border-radius:24px}.visual-body{grid-template-columns:1fr}.stage-list{display:grid;grid-template-columns:repeat(2,1fr)}.demo-upload{height:180px}.visual-note{display:none}.hero-bottom{grid-template-columns:1fr 1fr;margin-top:28px}.metric{padding:10px 6px}}
+@media(max-width:1120px){.nav-links{display:none}.nav-burger{display:block}.hero-inner{grid-template-columns:1fr;padding:0 24px;gap:34px}.hero-copy{text-align:center;justify-self:center}.hero-lead{margin-left:auto;margin-right:auto}.hero-actions,.proof-grid{justify-content:center;margin-left:auto;margin-right:auto}.hero-visual{min-height:auto;border-radius:28px}.hero-visual-image{height:auto;aspect-ratio:16/9;border-left:1px solid rgba(101,181,255,.20);border-radius:28px}.hero-bottom{width:calc(100% - 48px);grid-template-columns:repeat(2,1fr);gap:12px}.metric{border:0;background:rgba(255,255,255,.018);border-radius:12px;padding:10px}}
+@media(max-width:700px){.site-header{padding:8px}.nav-shell{min-height:58px;border-radius:18px}.brand-name{font-size:20px}.brand img{width:36px;height:36px}.nav-actions{margin-right:auto}.nav-login{display:none}.nav-cta{padding:10px 12px;font-size:11px}.hero{padding:105px 0 32px}.hero-inner{padding:0 15px}.hero h1{font-size:42px;letter-spacing:-1.4px}.hero-lead{font-size:16px}.proof-grid{grid-template-columns:1fr}.hero-visual{border-radius:22px}.hero-visual-image{aspect-ratio:16/10;border-radius:22px}.hero-bottom{width:calc(100% - 30px);grid-template-columns:1fr 1fr;margin-top:28px}.metric{padding:10px 6px}}
 </style>
 </head>
 <body>
@@ -119,28 +94,8 @@ button,input{font:inherit}
       </div>
     </div>
 
-    <div class="hero-visual" aria-label="אזור תמונת Hero – התמונה הסופית תתווסף בהמשך">
-      <div class="visual-glow"></div>
-      <div class="visual-card">
-        <div class="visual-top">
-          <div class="visual-brand"><img src="/assets/robots/Robot_icon.png" alt=""><span>IAKids Learning AI</span></div>
-          <span class="live-pill">● AI פעיל</span>
-        </div>
-        <div class="visual-body">
-          <div class="stage-list">
-            <div class="stage active">1 · העלאת שיעורי בית</div>
-            <div class="stage">2 · זיהוי מקצוע ונושא</div>
-            <div class="stage">3 · הבנת השאלה</div>
-            <div class="stage">4 · עזרה מותאמת אישית</div>
-            <div class="stage">5 · בדיקת הבנה</div>
-          </div>
-          <div class="demo-panel">
-            <div class="demo-upload"><div><strong>כאן תיכנס תמונת ה־Hero החדשה</strong><span>ניצור אותה בשלב הבא ונשלב אותה במקום הזה.</span></div></div>
-            <div class="demo-ai"><strong>🤖 זיהיתי את השיעור והנושא</strong><p>המערכת מבינה את סוג המשימה ובונה מסלול עזרה שמתאים לילד — לא רק תשובה אחת.</p><div class="demo-tags"><span>הסבר מה מבקשים</span><span>רמז</span><span>תרגול</span><span>בדיקת תשובה</span></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="visual-note"><strong>נבנה סביב הילד</strong><span>אותו חומר, דרך הסבר שמתאימה אישית.</span></div>
+    <div class="hero-visual" aria-label="ילד לומד עם מורה AI אישית של IAKids">
+      <img class="hero-visual-image" src="/assets/he2/hero-learning-ai.webp" alt="ילד לומד עם רובוט AI לצד מערכת הלמידה האישית של IAKids" fetchpriority="high" decoding="async">
     </div>
   </div>
 
@@ -155,29 +110,9 @@ button,input{font:inherit}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const supabaseClient = window.supabase.createClient(
-  "https://bxnfzuglfwytiyaguwjj.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
-);
-
-async function updateNavbar(){
-  const navActions=document.getElementById('navActions');
-  if(!navActions) return;
-  const {data,error}=await supabaseClient.auth.getSession();
-  if(error){console.error('Session error',error);return;}
-  const session=data?.session;
-  if(session){
-    const user=session.user;
-    const avatar=user.user_metadata?.avatar_url||user.user_metadata?.picture||null;
-    const name=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'החשבון שלי';
-    navActions.innerHTML=`<div class="user-menu">${avatar?`<img src="${avatar}" class="user-avatar" alt="תמונת משתמש">`:`<div class="user-avatar-fallback">👤</div>`}<span class="user-name">${name}</span><a class="nav-cta" href="/he/workspace/">המשך ללמידה 🚀</a><button class="logout-btn" id="logoutBtn" type="button">יציאה</button></div>`;
-    document.getElementById('logoutBtn')?.addEventListener('click',async()=>{await supabaseClient.auth.signOut();window.location.reload();});
-  }else{
-    navActions.innerHTML='<a class="nav-login" href="/he/onboarding/cuenta/">כניסת הורים</a><a class="nav-cta" href="/he/onboarding/">מתחילים בחינם 🚀</a>';
-  }
-}
-document.addEventListener('DOMContentLoaded',updateNavbar);
-supabaseClient.auth.onAuthStateChange(updateNavbar);
+const supabaseClient=window.supabase.createClient("https://bxnfzuglfwytiyaguwjj.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o");
+async function updateNavbar(){const navActions=document.getElementById('navActions');if(!navActions)return;const {data,error}=await supabaseClient.auth.getSession();if(error){console.error('Session error',error);return;}const session=data?.session;if(session){const user=session.user;const avatar=user.user_metadata?.avatar_url||user.user_metadata?.picture||null;const name=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'החשבון שלי';navActions.innerHTML=`<div class="user-menu">${avatar?`<img src="${avatar}" class="user-avatar" alt="תמונת משתמש">`:`<div class="user-avatar-fallback">👤</div>`}<span class="user-name">${name}</span><a class="nav-cta" href="/he/workspace/">המשך ללמידה 🚀</a><button class="logout-btn" id="logoutBtn" type="button">יציאה</button></div>`;document.getElementById('logoutBtn')?.addEventListener('click',async()=>{await supabaseClient.auth.signOut();window.location.reload();});}else{navActions.innerHTML='<a class="nav-login" href="/he/onboarding/cuenta/">כניסת הורים</a><a class="nav-cta" href="/he/onboarding/">מתחילים בחינם 🚀</a>';}}
+document.addEventListener('DOMContentLoaded',updateNavbar);supabaseClient.auth.onAuthStateChange(updateNavbar);
 </script>
 </body>
 </html>
