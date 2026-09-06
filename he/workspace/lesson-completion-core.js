@@ -1117,10 +1117,34 @@ ${analysis?.extracted_text || ""}
     }
   }
 
+  function extractFirstHomeworkQuestion(text){
+    const raw = String(text || "").replace(/\r/g, "\n").trim();
+    if(!raw) return "";
+
+    const lines = raw
+      .split(/\n+/)
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    /* Prefer an explicitly numbered first question. */
+    const numbered = lines.find(line => /^\s*(?:1[.)\-:]|1\s)[\s\S]*/.test(line));
+    if(numbered){
+      return numbered.replace(/^\s*1[.)\-:]?\s*/, "").trim();
+    }
+
+    /* Otherwise use the first line that is clearly a question. */
+    const questionLine = lines.find(line => /[?？]$/.test(line));
+    if(questionLine){
+      return questionLine;
+    }
+
+    return lines[0] || "";
+  }
+
   function getChoiceInstruction(choiceId){
     switch(choiceId){
       case "understand_question":
-        return "עזור לילד להבין מה בדיוק מבקשים בשאלה. פרק את הדרישה למילים קצרות וברורות. אל תפתור את התרגיל במקומו.";
+        return "התמקד אך ורק בשאלה הראשונה שעדיין לא נענתה. אסור להקריא, להעתיק או לסכם את כל שאלות הדף. הסבר במשפט קצר מה השאלה מבקשת, ואם יש בה כמה חלקים ציין אותם בקצרה. לאחר מכן שאל את הילד שאלה אחת קטנה שמתחילה רק מהחלק הראשון. אל תפתור את התרגיל במקומו ואל תעבור לשאלות הבאות.";
       case "explain_topic":
         return "הסבר בקצרה ובשפה המתאימה לכיתה את החומר שצריך לדעת כדי לענות. אחר כך שאל שאלה קצרה שבודקת הבנה.";
       case "hint":
@@ -1147,6 +1171,11 @@ ${analysis?.extracted_text || ""}
       throw new Error("No active session");
     }
 
+    const firstQuestion =
+      choice.id === "understand_question"
+        ? extractFirstHomeworkQuestion(analysis.extracted_text)
+        : "";
+
     const message = `
 אנחנו ממשיכים עם שיעורי הבית שכבר נותחו.
 
@@ -1158,10 +1187,14 @@ ${analysis?.extracted_text || ""}
 
 ${getChoiceInstruction(choice.id)}
 
-תוכן התרגיל:
+${firstQuestion ? `השאלה הראשונה בלבד שעליה עובדים עכשיו:
+${firstQuestion}
+
+` : ""}תוכן התרגיל המלא הוא הקשר פנימי בלבד. אל תקריא אותו לילד ואל תעבור על כל השאלות:
 ${analysis.extracted_text || ""}
 
 דבר בעברית קצרה וברורה המותאמת לכיתה ${getHomeworkGrade()}.
+במצב "להבין מה מבקשים בשאלה" התגובה הראשונה חייבת להתייחס רק לשאלה הראשונה, בלי רשימה של שאלות אחרות.
 `.trim();
 
     const response = await fetch(
