@@ -59,19 +59,26 @@ SUBJECT ADAPTATION:
         raise SystemExit('backend homework evaluator anchor not found')
     backend = backend.replace(anchor, anchor + pedagogy, 1)
 
-# Inject global pedagogy into evaluator system prompt.
-old = '''SOURCE MATERIAL / OCR:\n{req.source_text}\n\nHARD RULES:\n'''
-new = '''SOURCE MATERIAL / OCR:\n{req.source_text}\n\n{HOMEWORK_GLOBAL_PEDAGOGY_PROMPT}\n\nHARD RULES:\n'''
-if old in backend:
-    backend = backend.replace(old, new, 1)
-elif '{HOMEWORK_GLOBAL_PEDAGOGY_PROMPT}' not in backend:
-    raise SystemExit('backend evaluator prompt insertion point not found')
+# Inject global pedagogy into the evaluator prompt by working only inside the evaluator section.
+section_start = backend.find('def homework_turn(')
+if section_start < 0:
+    raise SystemExit('homework_turn function not found')
+section_tail = backend[section_start:]
+if '{HOMEWORK_GLOBAL_PEDAGOGY_PROMPT}' not in section_tail:
+    hard_idx = section_tail.find('HARD RULES:')
+    if hard_idx < 0:
+        raise SystemExit('HARD RULES marker not found in homework_turn')
+    section_tail = (
+        section_tail[:hard_idx]
+        + '{HOMEWORK_GLOBAL_PEDAGOGY_PROMPT}\n\n'
+        + section_tail[hard_idx:]
+    )
+    backend = backend[:section_start] + section_tail
 
 # Strengthen insufficient-answer rule so it must scaffold rather than repeat.
-old = '''7. When insufficient, teacher_response may ask ONE short guiding question that directly helps answer the current worksheet question. The guiding question must be explicit and contextual: name the relevant person/concept instead of using ambiguous pronouns. For example, prefer "מה אברהם עשה כשהוא ראה את האורחים?" over "מה את זוכרת שהוא עשה?".\n'''
-new = '''7. When insufficient, teacher_response must SCAFFOLD before asking again: tell the child where/how to look or what solving strategy to use, then ask ONE short focused follow-up. If the child says "לא יודע/ת", never repeat the worksheet question. Move one step backward and give a more concrete clue, source location, key-word cue, or sentence frame. Avoid vague prompts.\n'''
-if old in backend:
-    backend = backend.replace(old, new, 1)
+old_rule = '7. When insufficient, teacher_response may ask ONE short guiding question that directly helps answer the current worksheet question. The guiding question must be explicit and contextual: name the relevant person/concept instead of using ambiguous pronouns. For example, prefer "מה אברהם עשה כשהוא ראה את האורחים?" over "מה את זוכרת שהוא עשה?".'
+new_rule = '7. When insufficient, teacher_response must SCAFFOLD before asking again: tell the child where/how to look or what solving strategy to use, then ask ONE short focused follow-up. If the child says "לא יודע/ת", never repeat the worksheet question. Move one step backward and give a more concrete clue, source location, key-word cue, or sentence frame. Avoid vague prompts.'
+backend = backend.replace(old_rule, new_rule, 1)
 
 # -----------------------------------------------------
 # 2) Frontend: send the same global pedagogy contract with every help-choice request.
@@ -106,8 +113,8 @@ if 'HOMEWORK_GLOBAL_PEDAGOGY_RULES' not in core:
         raise SystemExit('core choice instruction anchor not found')
     core = core.replace(core_anchor, js_rules + core_anchor, 1)
 
-msg_anchor = '''הילד בחר: ${choice.label}\n\n${getChoiceInstruction(choice.id)}\n'''
-msg_replacement = '''הילד בחר: ${choice.label}\n\n${HOMEWORK_GLOBAL_PEDAGOGY_RULES}\n\nהוראת מצב ספציפית:\n${getChoiceInstruction(choice.id)}\n'''
+msg_anchor = 'הילד בחר: ${choice.label}\n\n${getChoiceInstruction(choice.id)}\n'
+msg_replacement = 'הילד בחר: ${choice.label}\n\n${HOMEWORK_GLOBAL_PEDAGOGY_RULES}\n\nהוראת מצב ספציפית:\n${getChoiceInstruction(choice.id)}\n'
 if msg_anchor in core:
     core = core.replace(msg_anchor, msg_replacement, 1)
 elif '${HOMEWORK_GLOBAL_PEDAGOGY_RULES}' not in core:
@@ -116,12 +123,11 @@ elif '${HOMEWORK_GLOBAL_PEDAGOGY_RULES}' not in core:
 # -----------------------------------------------------
 # 3) Bump build/cache.
 # -----------------------------------------------------
-for oldv, newv in [('0.7.37','0.7.38')]:
-    index = index.replace(f'IAKIDS • build {oldv}', f'IAKIDS • build {newv}')
-    index = index.replace(f'window.IAKIDS_BUILD_VERSION = "{oldv}";', f'window.IAKIDS_BUILD_VERSION = "{newv}";')
-    ext = ext.replace(f'window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "{oldv}";', f'window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "{newv}";')
-
+index = index.replace('IAKIDS • build 0.7.37', 'IAKIDS • build 0.7.38')
+index = index.replace('window.IAKIDS_BUILD_VERSION = "0.7.37";', 'window.IAKIDS_BUILD_VERSION = "0.7.38";')
 index = index.replace('/he/workspace/lesson-completion.js?v=0737', '/he/workspace/lesson-completion.js?v=0738')
+
+ext = ext.replace('window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.37";', 'window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.38";')
 ext = ext.replace('/he/workspace/lesson-completion-core.js?v=0737', '/he/workspace/lesson-completion-core.js?v=0738')
 
 CORE.write_text(core, encoding='utf-8')
