@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.43";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.44";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -7,7 +7,7 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.43";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=0743";
+  core.src = "/he/workspace/lesson-completion-core.js?v=0744";
   core.async = false;
 
   core.onload = function(){
@@ -394,6 +394,29 @@ function installHomeworkLessonWorkspace(){
         font:900 15px "Heebo",Arial,sans-serif;
       }
 
+      .homework-sidebar-home{
+        width:100%;
+        min-height:46px;
+        margin:0 0 12px;
+        padding:0 12px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:9px;
+        border:1px solid rgba(92,179,255,.55);
+        border-radius:12px;
+        background:linear-gradient(135deg,rgba(21,93,171,.88),rgba(79,48,183,.86));
+        color:#fff;
+        box-shadow:0 8px 20px rgba(0,8,28,.24),0 0 16px rgba(63,156,255,.12);
+        font:850 12px "Heebo",Arial,sans-serif;
+        cursor:pointer;
+      }
+
+      .homework-sidebar-home:hover{
+        transform:translateY(-1px);
+        border-color:#78ddff;
+      }
+
       .homework-sidebar-step{
         display:flex;
         align-items:center;
@@ -449,6 +472,10 @@ function installHomeworkLessonWorkspace(){
         <i class="fa-solid fa-camera"></i>
         <strong>עזרה בשיעורי בית</strong>
       </div>
+      <button type="button" class="homework-sidebar-home" data-homework-home>
+        <i class="fa-solid fa-house"></i>
+        <span>דף הבית</span>
+      </button>
       <div class="homework-sidebar-step active"><span>1</span><span>העלאת שיעורי הבית</span></div>
       <div class="homework-sidebar-step"><span>2</span><span>זיהוי המקצוע והנושא</span></div>
       <div class="homework-sidebar-step"><span>3</span><span>הבנת השאלה</span></div>
@@ -457,6 +484,10 @@ function installHomeworkLessonWorkspace(){
     `;
 
     sidebar.appendChild(overlay);
+
+    overlay.querySelector("[data-homework-home]")?.addEventListener("click", function(){
+      window.location.href = "/he/workspace/";
+    });
   }
 
   function renderUploadStage(){
