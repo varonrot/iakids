@@ -2026,6 +2026,52 @@ ${analysis.extracted_text || ""}
     return answer;
   }
 
+  async function createHomeworkTrackingSession(analysis){
+    try{
+      const token = await getHomeworkAccessToken();
+      const kidId = getHomeworkKidId();
+      if(!token || !kidId) return null;
+
+      const classification = resolveHomeworkClassification(analysis || {});
+      const questions = Array.isArray(window.CURRENT_HOMEWORK_QUESTIONS)
+        ? window.CURRENT_HOMEWORK_QUESTIONS
+        : [];
+
+      const response = await fetch(`${TUTOR_API_BASE}/api/tutor/homework-session/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          kid_id: kidId,
+          tutor_session_id: (typeof currentSessionId !== "undefined" ? currentSessionId : null),
+          subject: classification?.subject || null,
+          topic: classification?.topic || null,
+          source_file_name: analysis?.file_name || analysis?.source_file_name || null,
+          source_file_url: analysis?.file_url || analysis?.source_file_url || null,
+          source_type: analysis?.source_type || analysis?.file_type || null,
+          total_questions: questions.length
+        })
+      });
+
+      if(!response.ok){
+        console.warn("HOMEWORK SESSION START FAILED", response.status, await response.text());
+        return null;
+      }
+
+      const data = await response.json();
+      window.CURRENT_HOMEWORK_SESSION_ID = data?.id || null;
+      window.CURRENT_HOMEWORK_SESSION = data || null;
+      console.log("HOMEWORK TRACKING SESSION STARTED", data?.id);
+      return data;
+    }
+    catch(error){
+      console.warn("HOMEWORK TRACKING SESSION WARNING", error);
+      return null;
+    }
+  }
+
   async function runStructuredHomeworkTurn(answerText){
     const current = getCurrentHomeworkQuestion();
     const next = getNextHomeworkQuestion();
@@ -2073,6 +2119,7 @@ ${analysis.extracted_text || ""}
           body: JSON.stringify({
             kid_id: kidId,
             session_id: (typeof currentSessionId !== "undefined" ? currentSessionId : null),
+            homework_session_id: window.CURRENT_HOMEWORK_SESSION_ID || null,
             current_question_number: current.number,
             current_question: current.text,
             next_question_number: next?.number || null,
@@ -2209,6 +2256,9 @@ ${analysis.extracted_text || ""}
   const originalSmartHomeworkAnalysisIntro0726 = smartHomeworkAnalysisIntro;
   smartHomeworkAnalysisIntro = async function(analysis){
     initializeHomeworkQuestionState(analysis || {});
+    window.CURRENT_HOMEWORK_SESSION_ID = null;
+    window.CURRENT_HOMEWORK_SESSION = null;
+    await createHomeworkTrackingSession(analysis || {});
     return originalSmartHomeworkAnalysisIntro0726(analysis);
   };
   window.sendHomeworkAnalysisToTutor = smartHomeworkAnalysisIntro;

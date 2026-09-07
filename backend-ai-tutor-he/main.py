@@ -18964,6 +18964,55 @@ class HomeworkTurnRequest(BaseModel):
     next_question_number: int | None = None
     next_question: str | None = None
     session_id: str | None = None
+    homework_session_id: str | None = None
+
+
+class HomeworkSessionStartRequest(BaseModel):
+    kid_id: str
+    tutor_session_id: str | None = None
+    subject: str | None = None
+    topic: str | None = None
+    source_file_name: str | None = None
+    source_file_url: str | None = None
+    source_type: str | None = None
+    total_questions: int = 0
+
+
+@app.post("/api/tutor/homework-session/start")
+def start_homework_session(
+        req: HomeworkSessionStartRequest,
+        authorization: str = Header(None)
+):
+    user = authenticate_user(authorization)
+    child = get_child_by_id(user.id, req.kid_id)
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    payload = {
+        "user_id": user.id,
+        "kid_id": child["id"],
+        "tutor_session_id": req.tutor_session_id,
+        "subject": req.subject,
+        "topic": req.topic,
+        "source_file_name": req.source_file_name,
+        "source_file_url": req.source_file_url,
+        "source_type": req.source_type,
+        "total_questions": max(0, int(req.total_questions or 0)),
+        "completed_questions": 0,
+        "status": "in_progress",
+        "started_at": now_iso,
+        "last_activity_at": now_iso,
+        "updated_at": now_iso
+    }
+
+    result = supabase_with_retry(
+        lambda: sb.table("homework_sessions").insert(payload).execute(),
+        label="HOMEWORK SESSION START"
+    )
+
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to create homework session")
+
+    return result.data[0]
 
 
 class HomeworkTurnEvaluation(BaseModel):
@@ -19056,6 +19105,62 @@ HARD RULES:
         raise HTTPException(status_code=502, detail="Invalid homework evaluation")
 
     result = parsed.model_dump()
+
+    # =====================================================
+    # HOMEWORK SESSION PROGRESS
+    # =====================================================
+    if req.homework_session_id:
+        try:
+            existing_hw = (
+                sb.table("homework_sessions")
+                .select("id,user_id,kid_id,total_questions,completed_questions,status")
+                .eq("id", req.homework_session_id)
+                .eq("user_id", user.id)
+                .eq("kid_id", req.kid_id)
+                .limit(1)
+                .execute()
+            )
+
+            if existing_hw.data:
+                hw = existing_hw.data[0]
+                now_iso = datetime.now(timezone.utc).isoformat()
+                update_payload = {
+                    "last_activity_at": now_iso,
+                    "updated_at": now_iso
+                }
+
+                if result.get("answer_sufficient"):
+                    previous_completed = int(hw.get("completed_questions") or 0)
+                    completed_now = max(previous_completed, int(req.current_question_number or 0))
+                    total_questions = int(hw.get("total_questions") or 0)
+
+                    # If the client knows there is no next question, the worksheet is complete.
+                    is_complete = not bool(req.next_question)
+                    if total_questions > 0:
+                        completed_now = min(total_questions, completed_now)
+                        is_complete = is_complete or completed_now >= total_questions
+
+                    update_payload["completed_questions"] = completed_now
+                    if is_complete:
+                        update_payload["status"] = "completed"
+                        update_payload["completed_at"] = now_iso
+
+                if req.session_id:
+                    update_payload["tutor_session_id"] = req.session_id
+
+                supabase_with_retry(
+                    lambda: (
+                        sb.table("homework_sessions")
+                        .update(update_payload)
+                        .eq("id", req.homework_session_id)
+                        .eq("user_id", user.id)
+                        .eq("kid_id", req.kid_id)
+                        .execute()
+                    ),
+                    label="HOMEWORK SESSION UPDATE"
+                )
+        except Exception as hw_error:
+            print("HOMEWORK SESSION PROGRESS WARNING:", repr(hw_error))
 
     session = get_or_create_tutor_session(user.id, req.kid_id)
     session_id = session.get("id")
