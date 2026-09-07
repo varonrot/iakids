@@ -18903,7 +18903,7 @@ HOMEWORK_GLOBAL_PEDAGOGY_PROMPT = r"""
 """.strip()
 
 HOMEWORK_TEACHING_STRATEGIES = {
-    "reading_source": "Use the provided source as the primary truth. Guide the child back to the exact relevant sentence/part, identify evidence or key words, then help turn that evidence into an answer. Never invent facts outside the source.",
+    "reading_source": "Use the provided source as the primary truth. Give a PRECISE source cue: identify the relevant sentence, paragraph, event, data region, label, or instruction and tell the child what specific feature to look for there (for example: action, cause, result, key word, comparison, value, or evidence). Avoid vague prompts such as asking what they see in the text or what the text says in general. Then ask ONE small focused question answerable from that exact source location. Never invent facts outside the source.",
     "math_problem": "Identify givens, identify what is being asked, choose the required mathematical relation/operation, solve one step at a time, then formulate the contextual answer. Do not reveal the final result before a genuine attempt.",
     "science_reasoning": "Identify the relevant scientific concept, observation, diagram, experiment, or evidence. Connect it explicitly to what the question asks, then help formulate the explanation.",
     "writing_composition": "Clarify the required content and format, break the task into 2-4 components, build a short outline or sentence frame, and only then ask the child to write. Do not ask vague wording questions before giving structure.",
