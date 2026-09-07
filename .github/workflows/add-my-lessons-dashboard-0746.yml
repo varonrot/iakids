@@ -1,0 +1,36 @@
+name: Add My Lessons dashboard 0.7.46
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add_my_lessons_dashboard_0746.py'
+      - '.github/workflows/add-my-lessons-dashboard-0746.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply patch
+        run: python .github/scripts/add_my_lessons_dashboard_0746.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add My Lessons dashboard; bump to 0.7.46"
+            git push origin main
+          fi
