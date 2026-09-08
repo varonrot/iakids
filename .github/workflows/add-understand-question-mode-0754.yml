@@ -1,0 +1,27 @@
+name: Add understand-question help mode 0.7.54
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/add-understand-question-mode-0754.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply understand-question mode patch
+        run: python .github/scripts/add_understand_question_mode_0754.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Add understand-question help mode; bump to 0.7.54"
+          git push
