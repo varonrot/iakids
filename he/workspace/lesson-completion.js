@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.58";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.34";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -7,7 +7,7 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.58";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=0758";
+  core.src = "/he/workspace/lesson-completion-core.js?v=0734";
   core.async = false;
 
   core.onload = function(){
@@ -119,8 +119,8 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.58";
     updateToggle();
   }
 
-  const observer = new MutationObserver(()=>mountToggle());
-  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
+  // Do not observe the whole document: updateToggle() changes button.innerHTML,
+  // which can recursively trigger MutationObserver childList events and freeze the page.
   document.addEventListener("DOMContentLoaded", mountToggle);
   setTimeout(mountToggle, 300);
   setTimeout(mountToggle, 1000);
@@ -681,6 +681,10 @@ function installHomeworkLessonWorkspace(){
 
     clearHomeworkChat();
     renderHomeworkSidebar();
+
+    // Mount audio toggle once after homework mode is active.
+    // Avoid a document-wide MutationObserver loop.
+    setTimeout(() => window.mountHomeworkAudioToggle?.(), 0);
 
     if(options.keepPreview !== true){
       window.HOMEWORK_NOTEBOOK_ANSWERS = [];
