@@ -1,0 +1,62 @@
+name: Restore backend prompts 0.7.46b
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-backend-prompts-0746b.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Restore complete homework backend from last known-good prompt build
+        run: |
+          git show de6b3c147a4547fb96a58d09d160f755dfb03e87:backend-ai-tutor-he/main.py > backend-ai-tutor-he/main.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('backend-ai-tutor-he/main.py')
+          s=p.read_text(encoding='utf-8')
+          required=[
+            'class HomeworkTurnRequest',
+            'HOMEWORK_TEACHING_STYLE_PROMPTS',
+            'quantitative_math',
+            'text_comprehension',
+            'conceptual_science',
+            'language_writing',
+            'HOMEWORK_HELP_MODE_PROMPTS',
+            'understand_question',
+            'explain_topic',
+            'hint',
+            'solve_together',
+            'check_answer',
+            '/api/tutor/homework-turn',
+            'def lesson_intro'
+          ]
+          missing=[x for x in required if x not in s]
+          if missing:
+              raise SystemExit('Missing after restore: '+', '.join(missing))
+          print('Backend restore verified')
+          PY
+      - name: Bump visible build only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('he/workspace/index.html')
+          s=p.read_text(encoding='utf-8')
+          s=re.sub(r'IAKIDS • build [0-9.]+','IAKIDS • build 0.7.46',s,count=1)
+          s=re.sub(r'window\.IAKIDS_BUILD_VERSION = "[0-9.]+";','window.IAKIDS_BUILD_VERSION = "0.7.46";',s,count=1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit restore
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend-ai-tutor-he/main.py he/workspace/index.html
+          git commit -m 'Restore homework prompts and lesson intro backend; bump to 0.7.46'
+          git push origin main
