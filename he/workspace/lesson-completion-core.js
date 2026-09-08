@@ -2072,6 +2072,64 @@ ${analysis.extracted_text || ""}
     }
   }
 
+  window.HOMEWORK_QUESTION_STEP_STATE = window.HOMEWORK_QUESTION_STEP_STATE || {};
+
+  function getHomeworkQuestionStepState(question){
+    const number = Number(question?.number || 0);
+    if(!number) return {completedSteps:[], nextStep:"", attempts:[]};
+    if(!window.HOMEWORK_QUESTION_STEP_STATE[number]){
+      window.HOMEWORK_QUESTION_STEP_STATE[number] = {
+        completedSteps: [],
+        nextStep: "",
+        attempts: []
+      };
+    }
+    return window.HOMEWORK_QUESTION_STEP_STATE[number];
+  }
+
+  function buildHomeworkProgressContext(question){
+    const state = getHomeworkQuestionStepState(question);
+    const completed = state.completedSteps.length
+      ? state.completedSteps.map((s,i)=>`${i+1}. ${s}`).join("\n")
+      : "None yet";
+    const attempts = state.attempts.length
+      ? state.attempts.slice(-4).map((a,i)=>`${i+1}. Child: ${a.child}\n   Teacher: ${a.teacher}`).join("\n")
+      : "None yet";
+    return `
+CURRENT QUESTION NUMBER: ${question?.number || "?"}
+COMPLETED PEDAGOGICAL STEPS — immutable, do not repeat or re-justify:
+${completed}
+
+NEXT UNRESOLVED STEP:
+${state.nextStep || "Determine the first unresolved step from the current question and child answer."}
+
+RECENT ATTEMPTS FOR THIS QUESTION:
+${attempts}
+
+SEQUENCING CONTRACT:
+Continue from the NEXT UNRESOLVED STEP only. Do not restart the solution. Do not ask again for a step already listed as completed. If the child's new answer completes the next step, advance immediately to the following step.`.trim();
+  }
+
+  function updateHomeworkQuestionStepState(question, childAnswer, teacherText, data){
+    const state = getHomeworkQuestionStepState(question);
+    const completedStep = String(data?.completed_step || "").trim();
+    const nextStep = String(data?.next_step || "").trim();
+
+    if(completedStep && !state.completedSteps.includes(completedStep)){
+      state.completedSteps.push(completedStep);
+    }
+    if(nextStep){
+      state.nextStep = nextStep;
+    }
+    state.attempts.push({
+      child: String(childAnswer || "").trim(),
+      teacher: String(teacherText || "").trim()
+    });
+    if(state.attempts.length > 6){
+      state.attempts = state.attempts.slice(-6);
+    }
+  }
+
   async function runStructuredHomeworkTurn(answerText){
     const current = getCurrentHomeworkQuestion();
     const next = getNextHomeworkQuestion();
@@ -2120,6 +2178,7 @@ ${analysis.extracted_text || ""}
             kid_id: kidId,
             session_id: (typeof currentSessionId !== "undefined" ? currentSessionId : null),
             homework_session_id: window.CURRENT_HOMEWORK_SESSION_ID || null,
+            progress_context: buildHomeworkProgressContext(current),
             current_question_number: current.number,
             current_question: current.text,
             next_question_number: next?.number || null,
@@ -2151,6 +2210,8 @@ ${analysis.extracted_text || ""}
           || data?.feedback
           || "נכון. התשובה שלך עונה על מה שהשאלה ביקשה."
         ).trim();
+
+        updateHomeworkQuestionStepState(current, answer, feedbackText, data);
 
         // Bubble 1: קצר, מסביר למה התשובה נכונה.
         await Promise.all([
@@ -2193,6 +2254,8 @@ ${analysis.extracted_text || ""}
         || data?.feedback
         || "בואי ננסה שוב ולחשוב רק על השאלה שמופיעה בדף."
       ).trim();
+
+      updateHomeworkQuestionStepState(current, answer, teacherResponse, data);
 
       await Promise.all([
         renderHomeworkStructuredTeacherMessage(teacherResponse),
@@ -2256,6 +2319,7 @@ ${analysis.extracted_text || ""}
   const originalSmartHomeworkAnalysisIntro0726 = smartHomeworkAnalysisIntro;
   smartHomeworkAnalysisIntro = async function(analysis){
     initializeHomeworkQuestionState(analysis || {});
+    window.HOMEWORK_QUESTION_STEP_STATE = {};
     window.CURRENT_HOMEWORK_SESSION_ID = null;
     window.CURRENT_HOMEWORK_SESSION = null;
     await createHomeworkTrackingSession(analysis || {});

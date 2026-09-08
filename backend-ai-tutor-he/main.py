@@ -18967,6 +18967,7 @@ class HomeworkTurnRequest(BaseModel):
     homework_session_id: str | None = None
 
 
+    progress_context: str | None = None
 class HomeworkSessionStartRequest(BaseModel):
     kid_id: str
     tutor_session_id: str | None = None
@@ -19016,6 +19017,8 @@ def start_homework_session(
 
 
 class HomeworkTurnEvaluation(BaseModel):
+    completed_step: str | None = None
+    next_step: str | None = None
     answer_sufficient: bool
     feedback: str
     teacher_response: str
@@ -19075,7 +19078,20 @@ ACTIVE TEACHING STRATEGY: {strategy_name}
 STRATEGY INSTRUCTION:
 {strategy_instruction}
 
+PEDAGOGICAL PROGRESS STATE:
+{req.progress_context or "No earlier step state for this question."}
+
+PROGRESS RULES:
+- Treat every completed step listed above as already learned/accepted. NEVER ask the child to justify it again and NEVER restart from an earlier step.
+- Continue only from NEXT UNRESOLVED STEP.
+- If the child answer correctly completes the next unresolved step, acknowledge it briefly and immediately advance one step.
+- For multi-step math, preserve the chain of operations/results already established. Example pattern only: identify operation -> calculate intermediate result -> use that result in the next operation -> final contextual answer. Do not restart the chain.
+- For reading/science/writing, use the same principle: evidence/idea/structure already established remains completed and the next response advances from there.
+- Populate completed_step with the newest step the child has successfully completed in THIS turn, or leave it empty if none.
+- Populate next_step with the single next unresolved pedagogical action the child should do next, or leave it empty when the worksheet answer is complete.
+
 HARD RULES:
+0. Never regress to an already completed pedagogical step. The progress state is authoritative for sequencing.
 1. Work only on the CURRENT WORKSHEET QUESTION.
 2. Judge semantic correctness; exact wording is not required.
 3. If the answer is partial but contains a correct idea, scaffold one step and let the child complete it; do not immediately reveal the complete answer.
