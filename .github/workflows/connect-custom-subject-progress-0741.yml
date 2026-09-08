@@ -1,0 +1,28 @@
+name: Connect custom subject progress 0.7.41
+on:
+  push:
+    paths:
+      - '.github/workflows/connect-custom-subject-progress-0741.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Apply custom subject progress patch
+        run: python .github/scripts/connect-custom-subject-progress-0741.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Connect custom subject progress; bump to 0.7.41'
+            git push origin main
+          fi
