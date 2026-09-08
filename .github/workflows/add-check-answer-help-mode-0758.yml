@@ -1,0 +1,34 @@
+name: Add check-answer help mode 0.7.58
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add-check-answer-help-mode-0758.py'
+      - '.github/workflows/add-check-answer-help-mode-0758.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply check-answer help mode patch
+        run: python .github/scripts/add-check-answer-help-mode-0758.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add check-answer help mode; bump to 0.7.58"
+          git push origin main
