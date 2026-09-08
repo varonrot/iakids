@@ -51,10 +51,26 @@
 @media(max-width:1120px){.flow-grid{grid-template-columns:1fr 1fr;gap:34px 18px}.flow-arrow{display:none}.flow-bottom{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.learning-flow{padding:78px 15px 84px}.learning-flow h2{font-size:40px;letter-spacing:-1.2px}.flow-lead{font-size:15px}.flow-grid{grid-template-columns:1fr;gap:38px}.flow-card{min-height:auto}.flow-media{height:235px}.flow-bottom{grid-template-columns:1fr 1fr}}
 
+
+/* ===== PARENTS SHOWCASE V2 ===== */
+.parents-showcase-v2{position:relative;min-height:820px;overflow:hidden;background:#041120 url('/assets/he2/sections/parents-section-bg.webp?v=2') center right/cover no-repeat;padding:110px 5vw;display:flex;align-items:center}
+.parents-showcase-v2::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,17,32,.99) 0%,rgba(4,17,32,.96) 24%,rgba(4,17,32,.82) 40%,rgba(4,17,32,.40) 57%,rgba(4,17,32,.12) 72%,rgba(4,17,32,.02) 100%);pointer-events:none}
+.parents-showcase-v2::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,17,32,.16),transparent 20%,transparent 80%,rgba(4,17,32,.30));pointer-events:none}
+.parents-v2-inner{position:relative;z-index:2;width:100%;max-width:1500px;margin:0 auto;display:grid;grid-template-columns:minmax(420px,560px) 1fr;gap:42px;align-items:center;direction:ltr}
+.parents-v2-copy{direction:rtl;text-align:right}
+.parents-v2-kicker{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid rgba(61,201,255,.28);border-radius:999px;background:rgba(5,28,48,.60);color:#65d6ff;font-size:12px;font-weight:900;margin-bottom:18px;backdrop-filter:blur(10px)}
+.parents-v2-copy h2{font-size:clamp(42px,4vw,68px);line-height:1.04;letter-spacing:-2px;margin-bottom:18px}.parents-v2-copy h2 span{display:block;color:#54cef9}.parents-v2-copy>p{max-width:590px;color:#b7c9d9;font-size:18px;line-height:1.75;margin-bottom:30px}
+.parents-v2-features{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.parents-v2-feature{display:grid;grid-template-columns:58px 1fr;gap:14px;align-items:center;padding:18px;border:1px solid rgba(67,164,255,.32);border-radius:20px;background:linear-gradient(180deg,rgba(7,27,49,.88),rgba(5,20,38,.92));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 45px rgba(0,0,0,.18);backdrop-filter:blur(12px)}
+.parents-v2-icon{width:58px;height:58px;border-radius:17px;display:grid;place-items:center;font-size:27px;color:#61d5ff;background:rgba(51,145,255,.10);border:1px solid rgba(76,173,255,.22)}
+.parents-v2-feature strong{display:block;font-size:16px;margin-bottom:5px}.parents-v2-feature span{display:block;color:#9db2c6;font-size:12px;line-height:1.55}.parents-v2-quote{margin-top:18px;padding:18px 20px;border:1px solid rgba(89,177,255,.18);border-radius:18px;background:rgba(5,22,40,.66);color:#c8d8e6;font-size:13px;line-height:1.7}.parents-v2-image-zone{min-height:560px}
+@media(max-width:1120px){.parents-showcase-v2{min-height:760px;padding:90px 28px;background-position:62% center}.parents-v2-inner{grid-template-columns:minmax(380px,520px) 1fr}.parents-v2-features{grid-template-columns:1fr}.parents-v2-copy h2{font-size:52px}}
+@media(max-width:760px){.parents-showcase-v2{min-height:980px;padding:78px 16px;background-position:68% center;background-size:auto 100%}.parents-showcase-v2::before{background:linear-gradient(180deg,rgba(4,17,32,.96) 0%,rgba(4,17,32,.88) 42%,rgba(4,17,32,.42) 70%,rgba(4,17,32,.10) 100%)}.parents-v2-inner{display:block}.parents-v2-copy{text-align:center}.parents-v2-copy h2{font-size:40px;letter-spacing:-1.2px}.parents-v2-copy>p{font-size:15px;margin:0 auto 24px}.parents-v2-features{grid-template-columns:1fr 1fr}.parents-v2-feature{grid-template-columns:42px 1fr;text-align:right;padding:13px;gap:10px}.parents-v2-icon{width:42px;height:42px;font-size:21px}.parents-v2-feature strong{font-size:13px}.parents-v2-feature span{font-size:10.5px}.parents-v2-image-zone{min-height:360px}}
+
 </style>
 </head>
 <body>
-<header class="site-header"><div class="nav-shell"><a class="brand" href="/he2/" aria-label="IAKids דף הבית החדש"><img src="/assets/robots/Robot_icon.png" alt="IAKids"><span class="brand-name">IA<b>Kids</b></span></a><nav class="nav-links"><a href="#hero">דף הבית</a><a href="#how-it-works">איך זה עובד?</a><a href="#personalized-showcase">למידה מותאמת אישית</a><a href="#parents">להורים</a><a href="#pricing">מסלולים</a><a href="/contact/">דברו איתנו</a></nav><div class="nav-actions" id="navActions"><a class="nav-login" href="/he/onboarding/cuenta/">כניסת הורים</a><a class="nav-cta" href="/he/onboarding/">מתחילים בחינם 🚀</a></div><button class="nav-burger" type="button" aria-label="תפריט">☰</button></div></header>
+<header class="site-header"><div class="nav-shell"><a class="brand" href="/he2/" aria-label="IAKids דף הבית החדש"><img src="/assets/robots/Robot_icon.png" alt="IAKids"><span class="brand-name">IA<b>Kids</b></span></a><nav class="nav-links"><a href="#hero">דף הבית</a><a href="#how-it-works">איך זה עובד?</a><a href="#personalized-showcase">למידה מותאמת אישית</a><a href="#parents-showcase">להורים</a><a href="#pricing">מסלולים</a><a href="/contact/">דברו איתנו</a></nav><div class="nav-actions" id="navActions"><a class="nav-login" href="/he/onboarding/cuenta/">כניסת הורים</a><a class="nav-cta" href="/he/onboarding/">מתחילים בחינם 🚀</a></div><button class="nav-burger" type="button" aria-label="תפריט">☰</button></div></header>
 <main>
 <section class="hero" id="hero"><img class="hero-bg" src="/assets/he2/hero-main-wide.webp?v=3" alt="ילד לומד עם רובוט AI וממשק הלמידה של IAKids" fetchpriority="high"><div class="hero-center"><span class="eyebrow">✨ פלטפורמת AI ללמידה אישית לילדים</span><h1>לא רק תשובה —<span class="accent">למידה מותאמת אישית עם AI</span>שמבינה את הילד</h1><p class="hero-lead">IAKids מזהה את השאלה או שיעורי הבית, מבינה את המקצוע והנושא, ומתאימה לכל ילד הסבר, רמזים, תרגול ובדיקת הבנה — לפי הגיל, הרמה וקצב ההתקדמות שלו.</p><div class="hero-actions"><a class="btn-primary" href="/he/onboarding/">מתחילים ללמוד בחינם 🚀</a><a class="btn-secondary" href="#how-it-works">▶ איך זה עובד?</a></div><div class="proof-grid"><div class="proof"><div class="proof-icon">📸</div><strong>שיעורי בית חכמים</strong><span>מעלים צילום והמערכת מזהה את המקצוע, הנושא ומה באמת מבקשים.</span></div><div class="proof"><div class="proof-icon">🧠</div><strong>למידה מותאמת אישית</strong><span>הסברים, קצב ותרגול משתנים לפי הרמה וההתקדמות של הילד.</span></div><div class="proof"><div class="proof-icon">📈</div><strong>מעקב ברור להורים</strong><span>רואים מה נלמד, איפה מתקדמים ומה כדאי לחזק.</span></div></div></div></section>
 <section class="pillars" id="how-it-works"><div class="pillars-inner"><span class="section-kicker">היכולות המרכזיות של IAKIDS</span><h2>כל מה שהילד צריך כדי <span>להבין, להתקדם ולהצליח</span></h2><p class="pillars-lead">לא עוד כלי שנותן תשובה אחת. IAKIDS מחברת מורה AI אישית, שיעורי בית חכמים, התאמה אמיתית לכל ילד ושקיפות להורים — בתוך סביבת למידה אחת.</p><div class="pillars-grid"><article class="pillar-card homework"><div class="pillar-thumb"><img src="/assets/he2/cards/homework.webp" alt="שיעורי בית חכמים"></div><h3>שיעורי בית חכמים</h3><p>מצלמים שאלה או דף עבודה. המערכת מזהה את המקצוע והנושא, מבינה מה מבקשים ומלווה את הילד שלב אחר שלב — בלי לקפוץ ישר לתשובה.</p><a class="pillar-link" href="#smart-homework">לגלות עוד ←</a></article><article class="pillar-card ai" id="personalized"><div class="pillar-thumb"><img src="/assets/he2/cards/personalized.webp" alt="למידה מותאמת אישית"></div><h3>למידה מותאמת אישית</h3><p>ההסבר, רמת הקושי, קצב התרגול וסוג העזרה משתנים לפי הגיל, הרמה וההתקדמות של הילד — כדי שכל ילד ילמד בדרך שמתאימה לו.</p><a class="pillar-link" href="#personalized-showcase">לגלות עוד ←</a></article><article class="pillar-card tutor"><div class="pillar-thumb"><img src="/assets/he2/cards/ai-teacher.webp" alt="מורה AI אישית"></div><h3>מורה AI אישית</h3><p>מורה שמסבירה, שואלת, נותנת רמזים, בודקת הבנה ומתרגלת. לא צ׳אט פתוח — אלא ליווי לימודי שמטרתו לעזור לילד להבין באמת.</p><a class="pillar-link" href="/he/workspace/">לגלות עוד ←</a></article><article class="pillar-card parents" id="parents"><div class="pillar-thumb"><img src="/assets/he2/cards/parents-dashboard.webp" alt="מעקב ברור להורים"></div><h3>מעקב ברור להורים</h3><p>רואים מה הילד למד, במה הוא מתקדם, איפה הוא מתקשה ומה כדאי לחזק — בלי צורך לשבת לידו לאורך כל הלמידה.</p><a class="pillar-link" href="/he/parent-panel/">לגלות עוד ←</a></article></div><div class="pillars-trust"><div class="trust-item"><strong>כיתות א׳–ו׳</strong><span>מותאם לגיל ולרמה</span></div><div class="trust-item"><strong>למידה אישית</strong><span>מסלול שונה לכל ילד</span></div><div class="trust-item"><strong>שקיפות להורים</strong><span>רואים התקדמות אמיתית</span></div><div class="trust-item"><strong>סביבה בטוחה</strong><span>נבנתה במיוחד לילדים</span></div></div></div></section>
@@ -99,6 +115,26 @@
       <div class="flow-benefit"><strong>🕐 זמין בכל רגע</strong><span>בבית, בדרך ומכל מכשיר</span></div>
       <div class="flow-benefit"><strong>📈 בונה ביטחון בלמידה</strong><span>התקדמות שניתן לראות</span></div>
     </div>
+  </div>
+</section>
+
+
+<!-- PARENTS SHOWCASE V2 -->
+<section class="parents-showcase-v2" id="parents-showcase">
+  <div class="parents-v2-inner">
+    <div class="parents-v2-copy">
+      <span class="parents-v2-kicker">🛡️ הורים בראש שקט</span>
+      <h2>גם ההורים תמיד בתמונה<span>מעקב חכם, בטוח ופשוט</span></h2>
+      <p>ב־IAKids ההורים יכולים לראות את ההתקדמות, תחומי החוזקה, הרגלי הלמידה וזמן השימוש — הכל בזמן אמת, בצורה פשוטה וברורה.</p>
+      <div class="parents-v2-features">
+        <div class="parents-v2-feature"><div class="parents-v2-icon">▥</div><div><strong>מעקב התקדמות ברור</strong><span>רואים איך הילד מתקדם בכל מקצוע ובכל נושא.</span></div></div>
+        <div class="parents-v2-feature"><div class="parents-v2-icon">◷</div><div><strong>זמן מסך מאוזן</strong><span>תמונה ברורה של זמן הלמידה והרגלי השימוש.</span></div></div>
+        <div class="parents-v2-feature"><div class="parents-v2-icon">◎</div><div><strong>זיהוי נקודות לחיזוק</strong><span>המערכת מציפה נושאים שכדאי לחזק ולתרגל.</span></div></div>
+        <div class="parents-v2-feature"><div class="parents-v2-icon">◇</div><div><strong>למידה בטוחה לילדים</strong><span>סביבה חינוכית מבוקרת, מותאמת לילדים וללא תוכן מיותר.</span></div></div>
+      </div>
+      <div class="parents-v2-quote">״כיף לראות את הילד מתקדם, לדעת במה הוא חזק ואיפה כדאי לעזור — בלי להפריע לו ללמוד בעצמו.״</div>
+    </div>
+    <div class="parents-v2-image-zone" aria-hidden="true"></div>
   </div>
 </section>
 
