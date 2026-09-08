@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.64";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.65";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -7,25 +7,11 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.64";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=0764";
+  core.src = "/he/workspace/lesson-completion-core.js?v=0765";
   core.async = false;
 
   core.onload = function(){
-    let attempts = 0;
-    const tryInstallHomeworkWorkspace = function(){
-      attempts += 1;
-      const installed = installHomeworkLessonWorkspace();
-      if(installed === true || window.__HOMEWORK_LESSON_WORKSPACE_V1){
-        return;
-      }
-      if(attempts < 80){
-        setTimeout(tryInstallHomeworkWorkspace, 100);
-      }
-      else{
-        console.error("HOMEWORK WORKSPACE: showLearning was not ready after retries");
-      }
-    };
-    tryInstallHomeworkWorkspace();
+    installHomeworkLessonWorkspace();
   };
 
   core.onerror = function(error){
@@ -145,17 +131,17 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.64";
 
 function installHomeworkLessonWorkspace(){
   if(window.__HOMEWORK_LESSON_WORKSPACE_V1){
-    return true;
+    return;
   }
+
+  window.__HOMEWORK_LESSON_WORKSPACE_V1 = true;
 
   const originalShowLearning = window.showLearning;
 
   if(typeof originalShowLearning !== "function"){
-    console.warn("HOMEWORK WORKSPACE: showLearning is not ready yet");
-    return false;
+    console.error("HOMEWORK WORKSPACE: showLearning was not found");
+    return;
   }
-
-  window.__HOMEWORK_LESSON_WORKSPACE_V1 = true;
 
   function ensureStyles(){
     if(document.getElementById("homeworkLessonWorkspaceStyles")){
