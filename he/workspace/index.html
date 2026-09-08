@@ -24266,30 +24266,18 @@ if (dashboardKidAvatar) {
 
 /* הקוד הקיים ממשיך מכאן */
 
-document.getElementById("rightbarAvatar").src = avatarUrl;
-document.getElementById("rightbarName").textContent = kid.child_name;
+const rightbarAvatarEl = document.getElementById("rightbarAvatar");
+const rightbarNameEl = document.getElementById("rightbarName");
+const heroGreetingEl = document.getElementById("heroGreeting");
+const heroAvatarEl = document.getElementById("heroAvatar");
+
+if (rightbarAvatarEl) rightbarAvatarEl.src = avatarUrl;
+if (rightbarNameEl) rightbarNameEl.textContent = kid.child_name;
+if (heroGreetingEl) heroGreetingEl.textContent = `היי ${kid.child_name}, מה נלמד היום?`;
+if (heroAvatarEl) heroAvatarEl.src = avatarUrl;
 
 window.KID_AVATAR_URL = avatarUrl;
-
-document.getElementById("heroGreeting").textContent =
-  `היי ${kid.child_name}, מה נלמד היום?`;
-
-document.getElementById("heroAvatar").src = avatarUrl;
-
 window.ACTIVE_KID_ID = kid.id;
-
-  document.getElementById("rightbarAvatar").src = avatarUrl;
-  document.getElementById("rightbarName").textContent = kid.child_name;
-
-  window.KID_AVATAR_URL = avatarUrl;
-
-
-  document.getElementById("heroGreeting").textContent = `היי ${kid.child_name}, מה נלמד היום?`;
-
-  document.getElementById("heroAvatar").src = avatarUrl;
-
-
-  window.ACTIVE_KID_ID = kid.id;
 
 /* =============================================
    WORKSPACE ALWAYS OPENS ON DASHBOARD
@@ -53081,7 +53069,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=0765"></script>
+<script src="/he/workspace/lesson-completion.js?v=0766"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -53255,8 +53243,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.65</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.65";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.66</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.66";</script>
 
 <style id="iakidsMyLessonsDashboardStyles">
 /* IAKIDS MY LESSONS DASHBOARD 0.7.46 */
