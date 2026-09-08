@@ -1,0 +1,68 @@
+name: Patch HE2 parents fullwidth section
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-parents-fullwidth.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add fullwidth parents section
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('he2/index.html')
+          s=p.read_text(encoding='utf-8')
+          css_marker='/* ===== PARENTS FULLWIDTH SHOWCASE ===== */'
+          html_marker='<!-- PARENTS FULLWIDTH SHOWCASE -->'
+          css='''
+/* ===== PARENTS FULLWIDTH SHOWCASE ===== */
+.parents-fullwidth{position:relative;min-height:760px;overflow:hidden;background:linear-gradient(180deg,#041120 0%,#06172b 58%,#071a31 100%);display:flex;align-items:center}
+.parents-fullwidth::before{content:"";position:absolute;top:0;right:0;bottom:0;width:72%;background:url('/assets/he2/sections/parents-section-bg.webp?v=1') right center/cover no-repeat;z-index:0}
+.parents-fullwidth::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#041120 0%,rgba(4,17,32,.98) 24%,rgba(4,17,32,.74) 39%,rgba(4,17,32,.10) 58%,rgba(4,17,32,0) 76%);z-index:1;pointer-events:none}
+.parents-fw-inner{position:relative;z-index:2;width:100%;max-width:1600px;margin:0 auto;padding:96px 56px}
+.parents-fw-copy{width:min(520px,34vw);text-align:right}
+.parents-fw-kicker{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid rgba(65,205,255,.32);border-radius:999px;background:rgba(5,25,45,.66);color:#8ce7ff;font-size:12px;font-weight:900;margin-bottom:20px}
+.parents-fw-copy h2{font-size:clamp(42px,4vw,68px);line-height:1.02;letter-spacing:-2px;margin-bottom:18px}.parents-fw-copy h2 span{display:block;color:#5fd3ff}
+.parents-fw-copy>p{color:#c2d3e3;font-size:18px;line-height:1.75;margin-bottom:28px}
+.parents-fw-features{display:grid;grid-template-columns:1fr 1fr;gap:14px}.parents-fw-card{padding:18px 17px;border:1px solid rgba(81,171,255,.28);border-radius:18px;background:linear-gradient(180deg,rgba(7,26,48,.88),rgba(5,18,34,.94));box-shadow:0 16px 40px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.035)}.parents-fw-card i{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;margin-bottom:11px;background:rgba(47,149,255,.11);border:1px solid rgba(88,181,255,.22);font-style:normal;font-size:20px}.parents-fw-card strong{display:block;font-size:15px;margin-bottom:5px}.parents-fw-card span{display:block;color:#91a9bf;font-size:11.5px;line-height:1.55}
+@media(max-width:1100px){.parents-fullwidth{min-height:900px}.parents-fullwidth::before{width:100%;opacity:.52;background-position:68% center}.parents-fullwidth::after{background:linear-gradient(180deg,rgba(4,17,32,.96) 0%,rgba(4,17,32,.84) 44%,rgba(4,17,32,.30) 100%)}.parents-fw-inner{padding:85px 28px}.parents-fw-copy{width:min(680px,90vw);margin:0 auto;text-align:center}.parents-fw-kicker{margin-left:auto;margin-right:auto}.parents-fw-features{margin-top:32px}}
+@media(max-width:700px){.parents-fullwidth{min-height:980px}.parents-fullwidth::before{background-position:70% bottom;background-size:auto 62%;background-repeat:no-repeat;opacity:.58}.parents-fw-inner{padding:72px 15px 330px}.parents-fw-copy{width:100%}.parents-fw-copy h2{font-size:40px;letter-spacing:-1.2px}.parents-fw-copy>p{font-size:15px}.parents-fw-features{grid-template-columns:1fr 1fr;gap:10px}.parents-fw-card{padding:14px 12px}.parents-fw-card span{font-size:10.5px}}
+'''
+          html='''
+<!-- PARENTS FULLWIDTH SHOWCASE -->
+<section class="parents-fullwidth" id="parents-showcase">
+  <div class="parents-fw-inner">
+    <div class="parents-fw-copy">
+      <div class="parents-fw-kicker">🛡️ הורים בראש שקט</div>
+      <h2>גם ההורים תמיד בתמונה<span>מעקב חכם, בטוח ופשוט</span></h2>
+      <p>ב־IAKids ההורים יכולים לראות את ההתקדמות, תחומי החוזקה, הרגלי הלמידה וזמן השימוש — בצורה ברורה ועדכנית, בלי להפריע לעצמאות של הילד.</p>
+      <div class="parents-fw-features">
+        <div class="parents-fw-card"><i>📈</i><strong>מעקב התקדמות ברור</strong><span>רואים איך הילד מתקדם בכל מקצוע ובכל נושא.</span></div>
+        <div class="parents-fw-card"><i>⏱️</i><strong>זמן מסך מאוזן</strong><span>שליטה בזמן הלמידה ותמונה ברורה של הרגלי השימוש.</span></div>
+        <div class="parents-fw-card"><i>🎯</i><strong>זיהוי נקודות לחיזוק</strong><span>מגלים במה כדאי להתמקד ומה כבר יושב מצוין.</span></div>
+        <div class="parents-fw-card"><i>🛡️</i><strong>למידה בטוחה לילדים</strong><span>סביבה לימודית מוגנת שנבנתה במיוחד לילדים.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+'''
+          if css_marker not in s:
+              s=s.replace('</style>',css+'\n</style>')
+          if html_marker not in s:
+              s=s.replace('</main>',html+'\n</main>')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Add HE2 fullwidth parents showcase"
+          git push
