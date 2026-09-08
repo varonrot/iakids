@@ -1,0 +1,34 @@
+name: Fix personal systems freeze 0.7.61
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-personal-systems-freeze-0761.py'
+      - '.github/workflows/fix-personal-systems-freeze-0761.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply freeze fix patch
+        run: python .github/scripts/fix-personal-systems-freeze-0761.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html he/workspace/lesson-completion.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix personal systems freeze; bump to 0.7.61"
+          git push origin main
