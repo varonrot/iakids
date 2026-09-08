@@ -1328,10 +1328,9 @@ def update_custom_curriculum(
 def get_gender_placeholders(
         child: dict
 ) -> dict:
-
     gender = str(
         child.get("gender")
-        or "male"
+        or "unknown"
     ).strip().lower()
 
     if gender == "female":
@@ -1387,6 +1386,7 @@ LESSON_STAGE_INTRO = "lesson_intro"
 LESSON_STAGE_FIRST_EXPLANATION = "first_explanation"
 LESSON_STAGE_FIRST_QUESTION = "first_question"
 LESSON_STAGE_LEARNING_COACH_1 = "learning_coach_1"
+LESSON_STAGE_LEARNING_COACH = "learning_coach"
 LESSON_STAGE_CLARIFICATION = "clarification"
 LESSON_STAGE_SECOND_QUESTION = "second_question"
 LESSON_STAGE_LEARNING_COACH_2 = "learning_coach_2"
@@ -1399,6 +1399,7 @@ VALID_LESSON_STAGES = {
     LESSON_STAGE_FIRST_EXPLANATION,
     LESSON_STAGE_FIRST_QUESTION,
     LESSON_STAGE_LEARNING_COACH_1,
+    LESSON_STAGE_LEARNING_COACH,
     LESSON_STAGE_CLARIFICATION,
     LESSON_STAGE_SECOND_QUESTION,
     LESSON_STAGE_LEARNING_COACH_2,
@@ -1446,6 +1447,68 @@ def update_lesson_stage(
     if not res.data:
         raise RuntimeError(
             "Failed to update lesson stage"
+        )
+
+    return res.data[0]
+
+def update_learning_coach_flow_state(
+        progress: dict,
+        part_number: int
+):
+    now = (
+        datetime
+        .now(timezone.utc)
+        .isoformat()
+    )
+
+    existing_flow_state = (
+        progress.get(
+            "flow_state"
+        )
+        or {}
+    )
+
+    if not isinstance(
+            existing_flow_state,
+            dict
+    ):
+        existing_flow_state = {}
+
+    new_flow_state = {
+        **existing_flow_state,
+        "phase": "learning_coach",
+        "part_number": int(
+            part_number
+        )
+    }
+
+    res = (
+        sb.table(
+            "kid_lesson_progress"
+        )
+        .update({
+            "current_stage":
+                LESSON_STAGE_LEARNING_COACH,
+
+            "flow_state":
+                new_flow_state,
+
+            "last_activity_at":
+                now,
+
+            "updated_at":
+                now
+        })
+        .eq(
+            "id",
+            progress["id"]
+        )
+        .execute()
+    )
+
+    if not res.data:
+        raise RuntimeError(
+            "Failed to update Learning Coach flow state"
         )
 
     return res.data[0]
@@ -1501,7 +1564,7 @@ def create_learning_coach_session(
         coach_index: int,
         lesson_history_id: int | None = None
 ):
-    if coach_index not in (1, 2):
+    if coach_index < 1 or coach_index > 6:
         raise ValueError(
             f"Invalid coach_index: {coach_index}"
         )
@@ -1669,18 +1732,60 @@ def extract_unit_lesson_coach_content(
         or {}
     )
 
-    part_key = (
-        "part_2"
-        if coach_index == 2
-        else "part_1"
+    lesson_parts = (
+        structured_lesson.get(
+            "parts"
+        )
+        or []
     )
 
-    lesson_part = (
-        structured_lesson.get(
-            part_key
+    lesson_part = None
+
+    # Canonical dynamic parts structure.
+    for fallback_part_number, candidate_part in enumerate(
+            lesson_parts,
+            start=1
+    ):
+        if not isinstance(
+                candidate_part,
+                dict
+        ):
+            continue
+
+        candidate_part_number = int(
+            candidate_part.get(
+                "part_number"
+            )
+            or fallback_part_number
         )
-        or {}
-    )
+
+        if candidate_part_number == coach_index:
+            lesson_part = candidate_part
+            break
+
+    # Legacy fallback for older cached lessons.
+    if lesson_part is None:
+        legacy_part_key = (
+            f"part_{coach_index}"
+        )
+
+        legacy_part = (
+            structured_lesson.get(
+                legacy_part_key
+            )
+            or {}
+        )
+
+        if isinstance(
+                legacy_part,
+                dict
+        ) and legacy_part:
+            lesson_part = legacy_part
+
+    if not lesson_part:
+        raise ValueError(
+            f"Lesson part {coach_index} not found"
+        )
 
     lesson_segments = (
         lesson_part.get(
@@ -1727,9 +1832,19 @@ def extract_unit_lesson_coach_content(
         or ""
     ).strip()
 
+    if not lesson_explanation:
+        raise ValueError(
+            f"Lesson part {coach_index} has no explanation"
+        )
+
+    if not lesson_question:
+        raise ValueError(
+            f"Lesson part {coach_index} has no question"
+        )
+
     return {
-        "part_key":
-            part_key,
+        "part_number":
+            coach_index,
 
         "lesson_explanation":
             lesson_explanation,
@@ -1816,7 +1931,7 @@ def build_learning_coach_prompt(
 
             "gender":
                 child.get("gender")
-                or "male"
+                or "unknown"
         },
 
         "lesson": {
@@ -1841,7 +1956,7 @@ def build_learning_coach_prompt(
                     "lesson_explanation"
                 ],
 
-            "first_question":
+            "current_question":
                 coach_content[
                     "lesson_question"
                 ],
@@ -1858,12 +1973,11 @@ def build_learning_coach_prompt(
         },
 
         "coach_state": {
-            "coach_index":
+            "part_number":
                 int(
-                    coach_session.get(
-                        "coach_index"
-                    )
-                    or 1
+                    coach_content[
+                        "part_number"
+                    ]
                 ),
 
             "current_round":
@@ -1956,6 +2070,108 @@ def update_learning_coach_session(
         **update_data
     }
 
+def calculate_lesson_coach_mastery(
+        kid_id: str,
+        lesson_id: int,
+        unit_lesson_id: int,
+        lesson_parts_count: int
+) -> int:
+
+    lesson_parts_count = max(
+        1,
+        min(
+            6,
+            int(
+                lesson_parts_count
+                or 1
+            )
+        )
+    )
+
+    res = (
+        sb.table(
+            "learning_coach_sessions"
+        )
+        .select(
+            "coach_index, "
+            "final_understanding_score, "
+            "created_at"
+        )
+        .eq(
+            "kid_id",
+            kid_id
+        )
+        .eq(
+            "lesson_id",
+            lesson_id
+        )
+        .eq(
+            "unit_lesson_id",
+            unit_lesson_id
+        )
+        .order(
+            "created_at",
+            desc=True
+        )
+        .execute()
+    )
+
+    latest_scores = {}
+
+    for coach_session in (
+            res.data
+            or []
+    ):
+        part_number = int(
+            coach_session.get(
+                "coach_index"
+            )
+            or 0
+        )
+
+        if (
+                part_number < 1
+                or
+                part_number > lesson_parts_count
+        ):
+            continue
+
+        if part_number in latest_scores:
+            continue
+
+        latest_scores[
+            part_number
+        ] = max(
+            0,
+            min(
+                100,
+                int(
+                    coach_session.get(
+                        "final_understanding_score"
+                    )
+                    or 0
+                )
+            )
+        )
+
+    total_score = 0
+
+    for part_number in range(
+            1,
+            lesson_parts_count + 1
+    ):
+        total_score += (
+            latest_scores.get(
+                part_number,
+                0
+            )
+        )
+
+    return round(
+        total_score
+        /
+        lesson_parts_count
+    )
 
 # =====================================================
 # STRUCTURED LESSON DATA HELPERS
@@ -2215,6 +2431,155 @@ def get_learning_lesson(
     return res.data[0]
 
 
+
+# =====================================================
+# IAKIDS_UNIT_LESSON_PROGRESS_V055
+# Persistent progress for each internal unit lesson.
+# =====================================================
+
+def start_kid_unit_lesson_progress(
+        kid_id: str,
+        learning_lesson_id: int,
+        unit_lesson_id: int
+):
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    try:
+        # Any other lesson that was started but never completed becomes partial.
+        active_res = (
+            sb.table("kid_unit_lesson_progress")
+            .select("id, unit_lesson_id, status")
+            .eq("kid_id", kid_id)
+            .eq("status", "in_progress")
+            .execute()
+        )
+
+        for row in (active_res.data or []):
+            if int(row.get("unit_lesson_id") or 0) == int(unit_lesson_id):
+                continue
+
+            sb.table("kid_unit_lesson_progress").update({
+                "status": "partial",
+                "last_activity_at": now_iso,
+                "updated_at": now_iso
+            }).eq("id", row["id"]).execute()
+
+        current_res = (
+            sb.table("kid_unit_lesson_progress")
+            .select("*")
+            .eq("kid_id", kid_id)
+            .eq("unit_lesson_id", unit_lesson_id)
+            .limit(1)
+            .execute()
+        )
+
+        if current_res.data:
+            current = current_res.data[0]
+
+            # Re-opening a completed lesson is review; never erase completion.
+            if current.get("status") == "completed":
+                sb.table("kid_unit_lesson_progress").update({
+                    "last_activity_at": now_iso,
+                    "updated_at": now_iso
+                }).eq("id", current["id"]).execute()
+                return current
+
+            updated = (
+                sb.table("kid_unit_lesson_progress")
+                .update({
+                    "status": "in_progress",
+                    "attempts_count": int(current.get("attempts_count") or 0) + 1,
+                    "last_activity_at": now_iso,
+                    "updated_at": now_iso
+                })
+                .eq("id", current["id"])
+                .execute()
+            )
+            return updated.data[0] if updated.data else current
+
+        inserted = (
+            sb.table("kid_unit_lesson_progress")
+            .insert({
+                "kid_id": kid_id,
+                "unit_lesson_id": unit_lesson_id,
+                "learning_lesson_id": learning_lesson_id,
+                "status": "in_progress",
+                "progress_percent": 0,
+                "current_stage": LESSON_STAGE_INTRO,
+                "last_part_number": 1,
+                "mastery_score": 0,
+                "best_mastery_score": 0,
+                "attempts_count": 1,
+                "started_at": now_iso,
+                "last_activity_at": now_iso,
+                "updated_at": now_iso
+            })
+            .execute()
+        )
+        return inserted.data[0] if inserted.data else None
+
+    except Exception as e:
+        # Keep the existing lesson engine available until the DB migration
+        # has been applied in every environment.
+        print("UNIT LESSON PROGRESS START WARNING:", repr(e))
+        return None
+
+def complete_kid_unit_lesson_progress(
+        kid_id: str,
+        unit_lesson_id: int,
+        mastery_score: int
+):
+    now_iso = datetime.now(timezone.utc).isoformat()
+    final_score = max(0, min(100, int(mastery_score or 0)))
+
+    try:
+        current_res = (
+            sb.table("kid_unit_lesson_progress")
+            .select("id, best_mastery_score")
+            .eq("kid_id", kid_id)
+            .eq("unit_lesson_id", unit_lesson_id)
+            .limit(1)
+            .execute()
+        )
+
+        if not current_res.data:
+            print("UNIT LESSON PROGRESS COMPLETE WARNING: row not found", {
+                "kid_id": kid_id,
+                "unit_lesson_id": unit_lesson_id
+            })
+            return None
+
+        current = current_res.data[0]
+        best_score = max(
+            int(current.get("best_mastery_score") or 0),
+            final_score
+        )
+
+        updated = (
+            sb.table("kid_unit_lesson_progress")
+            .update({
+                "status": "completed",
+                "progress_percent": 100,
+                "current_stage": LESSON_STAGE_FINAL_ASSESSMENT,
+                "mastery_score": final_score,
+                "best_mastery_score": best_score,
+                "last_activity_at": now_iso,
+                "completed_at": now_iso,
+                "updated_at": now_iso
+            })
+            .eq("id", current["id"])
+            .execute()
+        )
+
+        return updated.data[0] if updated.data else current
+
+    except Exception as e:
+        # Do not break the existing lesson engine if the migration has not
+        # reached an environment yet.
+        print("UNIT LESSON PROGRESS COMPLETE WARNING:", repr(e))
+        return None
+
+
 def get_or_create_lesson_progress(
         kid_id: str,
         lesson: dict,
@@ -2457,6 +2822,7 @@ def get_recent_lesson_history_for_llm(
         kid_id: str,
         lesson_id: int,
         unit_lesson_id: int | None = None,
+        part_number: int | None = None,
         limit: int = 8
 ):
     query = (
@@ -2481,7 +2847,11 @@ def get_recent_lesson_history_for_llm(
             "unit_lesson_id",
             unit_lesson_id
         )
-
+    if part_number is not None:
+        query = query.eq(
+            "part_number",
+            part_number
+        )
     res = (
         query
         .order(
@@ -2549,7 +2919,6 @@ def should_show_answering_hint(
             lessons_started <= max_lessons
     )
 
-
 def save_lesson_history(
         kid_id: str,
         lesson_id: int,
@@ -2559,7 +2928,8 @@ def save_lesson_history(
         user_content: str | None,
         assistant_content: str,
         evaluation: dict | None,
-        sequence_json: list | None
+        sequence_json: list | None,
+        part_number: int | None = None
 ):
     rows = []
 
@@ -2587,6 +2957,9 @@ def save_lesson_history(
 
             "objective_index":
                 objective_index,
+
+            "part_number":
+                part_number,
 
             "role":
                 "user",
@@ -2622,6 +2995,9 @@ def save_lesson_history(
 
         "objective_index":
             objective_index,
+
+        "part_number":
+            part_number,
 
         "role":
             "assistant",
@@ -10595,6 +10971,21 @@ def lesson_intro(
                 "learning_lesson_id"
             ]
         )
+
+        # =============================================
+        # UNIT LESSON PROGRESS START
+        #
+        # lesson-intro is the real entry point used by
+        # the current workspace when a child opens an
+        # internal lesson. Persist that start here.
+        # =============================================
+
+        start_kid_unit_lesson_progress(
+            kid_id=child["id"],
+            learning_lesson_id=parent_lesson["id"],
+            unit_lesson_id=unit_lesson["id"]
+        )
+
         # =============================================
         # TUTOR SESSION
         # =============================================
@@ -14053,6 +14444,7 @@ def run_learning_coach(
             kid_id=child["id"],
             lesson_id=lesson["id"],
             unit_lesson_id=unit_lesson["id"],
+            part_number=coach_index,
             limit=12
         )
     )
@@ -14194,9 +14586,10 @@ def run_learning_coach(
         )
     )
 
-    goal_achieved = bool(
-        coach_data
-        .lesson_goal_achieved
+    # The backend is the authority for mastery.
+    goal_achieved = (
+            understanding_score
+            >= OBJECTIVE_MASTERY_THRESHOLD
     )
 
     teacher_response = str(
@@ -14243,91 +14636,120 @@ def run_learning_coach(
             .isoformat()
         )
 
-        # =========================================
-        # COACH 1 FINISHED
-        #
-        # עדיין לא מסיימים את השיעור.
-        # עוברים לשלב המעבר בין Part 1 ל-Part 2.
-        # =========================================
+        lesson_parts_count = max(
+            1,
+            min(
+                6,
+                int(
+                    unit_lesson.get(
+                        "lesson_parts_count"
+                    )
+                    or 2
+                )
+            )
+        )
 
-        if coach_index == 1:
+        has_next_part = (
+                coach_index
+                < lesson_parts_count
+        )
+
+        overall_mastery_score = (
+            calculate_lesson_coach_mastery(
+                kid_id=child["id"],
+                lesson_id=lesson["id"],
+                unit_lesson_id=unit_lesson["id"],
+                lesson_parts_count=
+                lesson_parts_count
+            )
+        )
+
+        if has_next_part:
+            next_part_number = (
+                    coach_index + 1
+            )
 
             next_stage = (
-                LESSON_STAGE_CLARIFICATION
+                LESSON_STAGE_FIRST_EXPLANATION
             )
-
-            progress_update = (
-                sb.table(
-                    "kid_lesson_progress"
-                )
-                .update({
-                    "current_stage":
-                        next_stage,
-
-                    "status":
-                        "in_progress",
-
-                    "mastery_score":
-                        understanding_score,
-
-                    "last_activity_at":
-                        now_iso,
-
-                    "updated_at":
-                        now_iso
-                })
-                .eq(
-                    "id",
-                    progress["id"]
-                )
-                .execute()
-            )
-
-        # =========================================
-        # COACH 2 FINISHED
-        #
-        # עדיין נשאיר מקום לסיכום הסופי.
-        # =========================================
 
         else:
+            next_part_number = None
 
             next_stage = (
                 LESSON_STAGE_FINAL_ASSESSMENT
             )
 
-            progress_update = (
-                sb.table(
-                    "kid_lesson_progress"
-                )
-                .update({
-                    "current_stage":
-                        next_stage,
-
-                    "status":
-                        "in_progress",
-
-                    "mastery_score":
-                        understanding_score,
-
-                    "last_activity_at":
-                        now_iso,
-
-                    "updated_at":
-                        now_iso
-                })
-                .eq(
-                    "id",
-                    progress["id"]
-                )
-                .execute()
+        progress_update = (
+            sb.table(
+                "kid_lesson_progress"
             )
+            .update({
+                "current_stage":
+                    next_stage,
+
+                "flow_state": {
+                    "phase": (
+                        "explanation"
+                        if has_next_part
+                        else "final_assessment"
+                    ),
+                    "part_number": (
+                        next_part_number
+                        if has_next_part
+                        else coach_index
+                    ),
+                    "segment_index": 0
+                },
+
+                "status":
+                    "in_progress",
+
+                "mastery_score":
+                    overall_mastery_score,
+
+                "last_activity_at":
+                    now_iso,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "id",
+                progress["id"]
+            )
+            .execute()
+        )
 
         if progress_update.data:
             progress = (
                 progress_update.data[0]
             )
 
+        if not has_next_part:
+            complete_kid_unit_lesson_progress(
+                kid_id=child["id"],
+                unit_lesson_id=unit_lesson["id"],
+                mastery_score=overall_mastery_score
+            )
+
     else:
+
+        lesson_parts_count = max(
+            1,
+            min(
+                6,
+                int(
+                    unit_lesson.get(
+                        "lesson_parts_count"
+                    )
+                    or 2
+                )
+            )
+        )
+
+        has_next_part = False
+        next_part_number = None
 
         next_stage = (
             progress.get(
@@ -14418,7 +14840,8 @@ def run_learning_coach(
         sequence_json=[
             action.model_dump()
             for action in sequence
-        ]
+        ],
+        part_number=coach_index
     )
 
     # =============================================
@@ -14512,6 +14935,15 @@ def run_learning_coach(
 
         "coach_index":
             coach_index,
+
+        "lesson_parts_count":
+            lesson_parts_count,
+
+        "next_part_number":
+            next_part_number,
+
+        "has_next_part":
+            has_next_part,
 
         "review_mode":
             False,
@@ -14747,6 +15179,13 @@ def structured_lesson(
             and requested_unit_lesson_id
             != stored_unit_lesson_id
         )
+
+        if is_lesson_start and requested_unit_lesson_id is not None:
+            start_kid_unit_lesson_progress(
+                kid_id=child["id"],
+                learning_lesson_id=lesson["id"],
+                unit_lesson_id=requested_unit_lesson_id
+            )
 
         if is_new_unit_lesson:
 
@@ -14984,18 +15423,41 @@ def structured_lesson(
                 )
 
             # =========================================
-            # FIRST QUESTION -> LEARNING COACH 1
+            # DYNAMIC LEARNING COACH ROUTER
             # =========================================
 
+            flow_state = (
+                    progress.get(
+                        "flow_state"
+                    )
+                    or {}
+            )
+
+            if not isinstance(
+                    flow_state,
+                    dict
+            ):
+                flow_state = {}
+
+            # Resolve the Part that owns the current fixed question.
             if current_stage in (
                     LESSON_STAGE_INTRO,
                     LESSON_STAGE_FIRST_EXPLANATION,
                     LESSON_STAGE_FIRST_QUESTION
             ):
-                progress = update_lesson_stage(
-                    progress=progress,
-                    current_stage=
-                    LESSON_STAGE_LEARNING_COACH_1
+                coach_part_number = int(
+                    flow_state.get(
+                        "part_number"
+                    )
+                    or 1
+                )
+
+                progress = (
+                    update_learning_coach_flow_state(
+                        progress=progress,
+                        part_number=
+                        coach_part_number
+                    )
                 )
 
                 return run_learning_coach(
@@ -15007,17 +15469,47 @@ def structured_lesson(
                     tutor_session=tutor_session,
                     session_id=session_id,
                     progress=progress,
-                    coach_index=1
+                    coach_index=
+                    coach_part_number
                 )
 
-            # =========================================
-            # CONTINUE LEARNING COACH 1
-            # =========================================
+            # Continue the currently active Coach.
+            if (
+                    current_stage
+                    == LESSON_STAGE_LEARNING_COACH
+            ):
+                coach_part_number = int(
+                    flow_state.get(
+                        "part_number"
+                    )
+                    or 1
+                )
 
+                return run_learning_coach(
+                    user=user,
+                    child=child,
+                    lesson=lesson,
+                    unit_lesson=unit_lesson,
+                    message=message,
+                    tutor_session=tutor_session,
+                    session_id=session_id,
+                    progress=progress,
+                    coach_index=
+                    coach_part_number
+                )
+
+            # Compatibility with old progress rows.
             if (
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_1
             ):
+                progress = (
+                    update_learning_coach_flow_state(
+                        progress=progress,
+                        part_number=1
+                    )
+                )
+
                 return run_learning_coach(
                     user=user,
                     child=child,
@@ -15029,57 +15521,18 @@ def structured_lesson(
                     progress=progress,
                     coach_index=1
                 )
-
-            # CLARIFICATION -> SECOND QUESTION
-
-            if (
-                    current_stage
-                    == LESSON_STAGE_CLARIFICATION
-            ):
-                progress = update_lesson_stage(
-                    progress=progress,
-                    current_stage=
-                    LESSON_STAGE_SECOND_QUESTION
-                )
-
-                current_stage = (
-                    LESSON_STAGE_SECOND_QUESTION
-                )
-
-            # =========================================
-            # SECOND QUESTION -> LEARNING COACH 2
-            # =========================================
-
-            if (
-                    current_stage
-                    == LESSON_STAGE_SECOND_QUESTION
-            ):
-                progress = update_lesson_stage(
-                    progress=progress,
-                    current_stage=
-                    LESSON_STAGE_LEARNING_COACH_2
-                )
-
-                return run_learning_coach(
-                    user=user,
-                    child=child,
-                    lesson=lesson,
-                    unit_lesson=unit_lesson,
-                    message=message,
-                    tutor_session=tutor_session,
-                    session_id=session_id,
-                    progress=progress,
-                    coach_index=2
-                )
-
-            # =========================================
-            # CONTINUE LEARNING COACH 2
-            # =========================================
 
             if (
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_2
             ):
+                progress = (
+                    update_learning_coach_flow_state(
+                        progress=progress,
+                        part_number=2
+                    )
+                )
+
                 return run_learning_coach(
                     user=user,
                     child=child,
@@ -15091,7 +15544,6 @@ def structured_lesson(
                     progress=progress,
                     coach_index=2
                 )
-
             # בשלבי clarification ו-final_assessment
             # עדיין אין מנוע ייעודי בקוד הנוכחי.
             raise HTTPException(
@@ -16068,6 +16520,68 @@ def reset_unit_lesson(
         )
 
         # =============================================
+        # RESET UNIT LESSON PROGRESS ROW
+        #
+        # kid_unit_lesson_progress היא טבלת ההתקדמות
+        # החדשה ברמת תת־השיעור. כפתור "להתחיל מחדש"
+        # חייב לאפס גם אותה, אחרת השיעור נשאר completed
+        # למרות שהטבלה הראשית הישנה כבר אופסה.
+        # =============================================
+
+        unit_progress_reset = (
+            sb.table(
+                "kid_unit_lesson_progress"
+            )
+            .update({
+                "status":
+                    "in_progress",
+
+                "progress_percent":
+                    0,
+
+                "current_stage":
+                    LESSON_STAGE_INTRO,
+
+                "last_part_number":
+                    1,
+
+                "mastery_score":
+                    0,
+
+                "best_mastery_score":
+                    0,
+
+                "attempts_count":
+                    0,
+
+                "started_at":
+                    now_iso,
+
+                "last_activity_at":
+                    now_iso,
+
+                "completed_at":
+                    None,
+
+                "updated_at":
+                    now_iso
+            })
+            .eq(
+                "kid_id",
+                child["id"]
+            )
+            .eq(
+                "learning_lesson_id",
+                lesson["id"]
+            )
+            .eq(
+                "unit_lesson_id",
+                unit_lesson["id"]
+            )
+            .execute()
+        )
+
+        # =============================================
         # RESET MAIN PROGRESS ROW
         #
         # kid_lesson_progress היא רשומה אחת לנושא,
@@ -16255,6 +16769,12 @@ def reset_unit_lesson(
                     "progress_reset":
                         progress is not None,
 
+                    "unit_progress_reset":
+                        bool(
+                            unit_progress_reset.data
+                            or []
+                        ),
+
                     "lesson_content_deleted":
                         False,
 
@@ -16286,6 +16806,9 @@ def reset_unit_lesson(
                     True,
 
                 "lesson_progress":
+                    True,
+
+                "unit_lesson_progress":
                     True
             },
 
@@ -17037,7 +17560,7 @@ def curriculum_builder_chat(
 
                 "gender":
                     child.get("gender")
-                    or "male"
+                    or "unknown"
             },
 
             "current_subject": (
