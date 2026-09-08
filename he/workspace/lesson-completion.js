@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.49";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.50";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in

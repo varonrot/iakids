@@ -18913,6 +18913,44 @@ HOMEWORK_TEACHING_STRATEGIES = {
     "general": "Apply the global sequence: understand the task, identify the source/method, isolate key points, provide structure, child attempts, specific feedback, final wording."
 }
 
+HOMEWORK_TEACHING_STYLE_PROMPTS = {
+    "quantitative_math": r"""
+TEACHING STYLE: QUANTITATIVE / MATHEMATICS
+
+You are teaching a child how to solve a mathematical or quantitative task.
+
+Your goal is not only to reach the correct result, but to teach the child how to understand the problem, choose a method, and solve it independently.
+
+MANDATORY TEACHING PRINCIPLES:
+1. First identify what information is given, what the question asks, and what mathematical relationship, operation, or method is needed.
+2. Do not jump directly to calculation before the child understands what needs to be found.
+3. Break the solution into small logical steps.
+4. Teach one step at a time. Do not ask several calculations or reasoning steps in one message.
+5. If the child already completed a step correctly: acknowledge it briefly, do not ask them to explain it again, do not repeat the same reasoning, and continue immediately to the next unresolved step.
+6. If the child makes a mistake: identify the specific step where the mistake occurred, explain only that step, give a focused hint or simpler sub-step, then let the child try again.
+7. If the task involves fractions, percentages, ratios, multiplication, division, measurement, geometry, or multi-step word problems, first explain the underlying relationship before asking for the calculation.
+8. When useful, teach the method with ONE very short analogous example using different numbers, names, objects, or context from the child's homework.
+9. The analogous example must be short and serve only to demonstrate the method. Never reuse the exact numbers or objects from the uploaded homework.
+10. After the example, explicitly return to the child's task and apply the same method step by step.
+11. Do not give the final numerical answer too early. The child should participate in the main reasoning or calculation steps.
+12. At the end: summarize the calculation briefly, verify that the result answers the original question, and give the final answer with the correct unit or context.
+13. For word problems, always connect the final number back to what it represents.
+14. Keep explanations short, concrete, and appropriate for the child's grade.
+15. Avoid unnecessary formulas or terminology when a simpler explanation is enough.
+
+PREFERRED FLOW:
+UNDERSTAND THE PROBLEM -> IDENTIFY GIVEN INFORMATION -> IDENTIFY WHAT IS ASKED -> CHOOSE METHOD -> SHORT ANALOGOUS EXAMPLE IF NEEDED -> SOLVE ONE STEP AT A TIME -> CHECK -> FINAL ANSWER
+""".strip(),
+}
+
+def resolve_homework_teaching_style(strategy_name: str) -> tuple[str | None, str]:
+    # First new teaching style: math / quantitative.
+    # The remaining three styles will be added separately.
+    if str(strategy_name or "").strip() == "math_problem":
+        return "quantitative_math", HOMEWORK_TEACHING_STYLE_PROMPTS["quantitative_math"]
+    return None, ""
+
+
 def resolve_homework_teaching_strategy(question: str, source_text: str) -> tuple[str, str]:
     q = str(question or "").strip().lower()
     s = str(source_text or "").strip().lower()
@@ -19055,6 +19093,7 @@ def homework_turn(
         req.current_question,
         req.source_text
     )
+    style_name, style_instruction = resolve_homework_teaching_style(strategy_name)
 
     system_prompt = f"""
 You are the homework-answer evaluator for IAKIDS.
@@ -19073,6 +19112,10 @@ SOURCE MATERIAL / OCR:
 CHILD ANSWER IS EXPLICIT UNCERTAINTY: {is_uncertainty}
 
 {HOMEWORK_GLOBAL_PEDAGOGY_PROMPT}
+
+ACTIVE TEACHING STYLE: {style_name or "legacy"}
+TEACHING STYLE INSTRUCTION:
+{style_instruction or "No dedicated teaching-style prompt is active for this task yet; keep the existing strategy behavior."}
 
 ACTIVE TEACHING STRATEGY: {strategy_name}
 STRATEGY INSTRUCTION:
