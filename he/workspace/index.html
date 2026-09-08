@@ -53081,7 +53081,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=0760"></script>
+<script src="/he/workspace/lesson-completion.js?v=0761"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.60</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.60";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.61</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.61";</script>
 
 <style id="iakidsMyLessonsDashboardStyles">
 /* IAKIDS MY LESSONS DASHBOARD 0.7.46 */
@@ -53715,9 +53715,12 @@ function(audio){
           </div>
         </div>`;
 
+      let finished = false;
       const finish = value => {
+        if(finished) return;
+        finished = true;
         document.removeEventListener('keydown', onKeyDown);
-        backdrop.remove();
+        if(backdrop.isConnected) backdrop.remove();
         resolve(value);
       };
       const onKeyDown = event => {
@@ -53821,7 +53824,7 @@ function(audio){
         <button type="button" class="iakids-personal-system-remove" title="הסרת ${escapeHtml(subject.subject_name)}" aria-label="הסר ${escapeHtml(subject.subject_name)}">
           <i class="fa-solid fa-trash-can"></i>
         </button>`;
-      row.querySelector('.iakids-personal-system-open')?.addEventListener('click', ()=>openPersonalSystem(subject));
+      row.querySelector('.iakids-personal-system-open')?.addEventListener('click', event=>{ event.preventDefault(); event.stopPropagation(); openPersonalSystem(subject); });
       row.querySelector('.iakids-personal-system-remove')?.addEventListener('click', event=>{
         event.preventDefault(); event.stopPropagation(); archivePersonalSystem(subject);
       });
@@ -53866,15 +53869,13 @@ function(audio){
   setTimeout(()=>refreshPersonalSystems(true),400);
   setTimeout(()=>refreshPersonalSystems(true),1400);
 
-  setInterval(()=>{
-    const kid = getKid();
-    const kidId = kid?.id || null;
-    if(kidId !== lastKidId){
-      refreshPersonalSystems(true);
-    }
-  },900);
-
   window.refreshPersonalSystemsSidebar = ()=>refreshPersonalSystems(true);
+
+  // IAKIDS_PERSONAL_SYSTEMS_FREEZE_FIX_0761
+  document.addEventListener('iakids:kid-changed', ()=>refreshPersonalSystems(true));
+  window.addEventListener('pageshow', ()=>{
+    setTimeout(()=>refreshPersonalSystems(true), 120);
+  });
 })();
 </script>
 
