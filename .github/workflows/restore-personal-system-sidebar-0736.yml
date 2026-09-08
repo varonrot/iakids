@@ -1,0 +1,28 @@
+name: Restore personal system sidebar 0.7.36
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-personal-system-sidebar-0736.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Apply safe personal system sidebar patch
+        run: python .github/scripts/restore-personal-system-sidebar-0736.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Restore personal system sidebar safely; bump to 0.7.36'
+            git push origin main
+          fi
