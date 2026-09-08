@@ -1,0 +1,28 @@
+name: Fix personal card backgrounds 0.7.38
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-personal-card-backgrounds-0738.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Apply personal card background patch
+        run: python .github/scripts/fix-personal-card-backgrounds-0738.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Use full-card background images in personal system; bump to 0.7.38'
+            git push origin main
+          fi
