@@ -13037,7 +13037,7 @@ body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{hei
     <button
       class="side-item homework-side-item"
       id="homeworkSidebarBtn"
-      onclick="showLearning('homework')"
+      onclick="event.preventDefault(); event.stopPropagation(); if (typeof window.showHomeworkLessonWorkspace === 'function') { window.showHomeworkLessonWorkspace(); } else if (typeof window.showLearning === 'function') { window.showLearning('homework'); }"
     >
       <i class="fa-solid fa-camera"></i>
 
@@ -53081,7 +53081,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=0763"></script>
+<script src="/he/workspace/lesson-completion.js?v=0764"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.63</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.63";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.64</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.64";</script>
 
 <style id="iakidsMyLessonsDashboardStyles">
 /* IAKIDS MY LESSONS DASHBOARD 0.7.46 */
@@ -54075,6 +54075,46 @@ function(audio){
 
   window.openWorkspaceAchievements = loadAchievements;
   window.closeWorkspaceAchievements = closeView;
+})();
+</script>
+
+
+<script id="IAKIDS_HOMEWORK_DIRECT_SIDEBAR_ROUTE_0764">
+(function(){
+  function openHomeworkFromSidebar(event){
+    const button = event.target.closest('#homeworkSidebarBtn');
+    if(!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if(typeof window.showHomeworkLessonWorkspace === 'function'){
+      window.showHomeworkLessonWorkspace();
+      return;
+    }
+
+    // If the homework extension is still finishing its startup, retry briefly.
+    let attempts = 0;
+    const retry = function(){
+      attempts += 1;
+      if(typeof window.showHomeworkLessonWorkspace === 'function'){
+        window.showHomeworkLessonWorkspace();
+        return;
+      }
+      if(attempts < 30){
+        setTimeout(retry, 100);
+        return;
+      }
+      if(typeof window.showLearning === 'function'){
+        window.showLearning('homework');
+      }else{
+        console.error('HOMEWORK SIDEBAR: homework entrypoint is unavailable');
+      }
+    };
+    retry();
+  }
+
+  // Capture phase guarantees this runs before older sidebar handlers.
+  document.addEventListener('click', openHomeworkFromSidebar, true);
 })();
 </script>
 
