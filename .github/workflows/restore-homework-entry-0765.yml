@@ -1,0 +1,77 @@
+name: Restore homework workspace entry 0.7.65
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/restore-homework-entry-0765.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Restore known-good homework loader and remove experimental routing
+        shell: bash
+        run: |
+          set -e
+
+          # Restore the last known-good homework workspace implementation (0.7.58).
+          git show de6b3c147a4547fb96a58d09d160f755dfb03e87:he/workspace/lesson-completion.js > he/workspace/lesson-completion.js
+
+          # Keep a fresh cache/version number.
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          loader = Path('he/workspace/lesson-completion.js')
+          s = loader.read_text(encoding='utf-8')
+          s = re.sub(r'window\.IAKIDS_HOMEWORK_WORKSPACE_VERSION\s*=\s*"0\.7\.\d+";', 'window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.65";', s, count=1)
+          s = re.sub(r'lesson-completion-core\.js\?v=\d+', 'lesson-completion-core.js?v=0765', s, count=1)
+          loader.write_text(s, encoding='utf-8')
+
+          p = Path('he/workspace/index.html')
+          html = p.read_text(encoding='utf-8')
+
+          # Restore the original, known-good homework button route.
+          html = re.sub(
+              r'onclick="event\.preventDefault\(\); event\.stopPropagation\(\); if \(typeof window\.showHomeworkLessonWorkspace === \'function\'\) \{ window\.showHomeworkLessonWorkspace\(\); \} else if \(typeof window\.showLearning === \'function\'\) \{ window\.showLearning\(\'homework\'\); \}"',
+              'onclick="showLearning(\'homework\')"',
+              html,
+              count=1,
+          )
+
+          # Remove the experimental 0.7.64 capture-phase routing block entirely.
+          html = re.sub(
+              r'\n?<script id="IAKIDS_HOMEWORK_DIRECT_SIDEBAR_ROUTE_0764">.*?</script>\s*',
+              '\n',
+              html,
+              flags=re.S,
+          )
+
+          # Point the page to the restored loader and bump visible build.
+          html = re.sub(r'lesson-completion\.js\?v=\d+', 'lesson-completion.js?v=0765', html, count=1)
+          html = re.sub(r'IAKIDS\s*•\s*build\s*0\.7\.\d+', 'IAKIDS • build 0.7.65', html, count=1)
+          html = re.sub(r'window\.IAKIDS_BUILD_VERSION\s*=\s*"0\.7\.\d+";', 'window.IAKIDS_BUILD_VERSION = "0.7.65";', html, count=1)
+          p.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html he/workspace/lesson-completion.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Restore known-good homework workspace; bump to 0.7.65"
+          git push origin main
