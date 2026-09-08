@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.36</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.36";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.37</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.37";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53332,5 +53332,36 @@ function(audio){
   window.refreshPersonalSystemsSidebar=load;
 })();
 </script>
+
+
+<style id="IAKIDS_PERSONAL_SYSTEM_CARD_WIDTHS_0737">
+  body.custom-subject-mode #customSubjectTree .science-tree-row{
+    grid-template-columns:repeat(4,minmax(150px,1fr)) !important;
+    gap:14px !important;
+  }
+
+  body.custom-subject-mode #customSubjectTree .science-tree-card{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  @media (max-width:1450px){
+    body.custom-subject-mode #customSubjectTree .science-tree-row{
+      grid-template-columns:repeat(3,minmax(150px,1fr)) !important;
+    }
+  }
+
+  @media (max-width:1000px){
+    body.custom-subject-mode #customSubjectTree .science-tree-row{
+      grid-template-columns:repeat(2,minmax(150px,1fr)) !important;
+    }
+  }
+
+  @media (max-width:650px){
+    body.custom-subject-mode #customSubjectTree .science-tree-row{
+      grid-template-columns:1fr !important;
+    }
+  }
+</style>
 
 </body></html>
