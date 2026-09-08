@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.41</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.41";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.42</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.42";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53842,6 +53842,42 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
   },false);
 
   window.refreshCustomSubjectProgress=refresh;
+})();
+</script>
+
+
+<script id="IAKIDS_WORKSPACE_PROGRESS_ROUTE_0742">
+(function(){
+  function normalizeText(v){
+    return String(v || '').replace(/\s+/g,' ').trim();
+  }
+
+  document.addEventListener('click', function(event){
+    const item = event.target?.closest?.('.kid-actions .side-item');
+    if(!item) return;
+
+    const text = normalizeText(item.textContent);
+    if(!text.includes('התקדמות')) return;
+
+    /*
+      Progress belongs to the learning workspace, not the games world.
+      Capture the click before any legacy onclick/location.href handler.
+    */
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    document.querySelectorAll('.kid-actions .side-item')
+      .forEach(x => x.classList.remove('active'));
+    item.classList.add('active');
+
+    if(typeof window.openWorkspaceAchievements === 'function'){
+      window.openWorkspaceAchievements();
+      return;
+    }
+
+    console.warn('Workspace progress view is not ready yet');
+  }, true);
 })();
 </script>
 
