@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.39</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.39";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.40</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.40";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53634,5 +53634,47 @@ body.custom-subject-mode .science-tree-card.selected{
   window.closeWorkspaceAchievements = closeView;
 })();
 </script>
+
+
+<style id="IAKIDS_PERSONAL_CARD_WIDTHS_0740">
+/* Personal-system hierarchy cards: same visual density as default subjects (e.g. geography). */
+body.custom-subject-mode #customSubjectTree .science-tree-row{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fit,minmax(180px,220px)) !important;
+  justify-content:center !important;
+  align-items:stretch !important;
+  gap:12px !important;
+  width:100% !important;
+}
+
+body.custom-subject-mode #customSubjectTree .science-tree-card{
+  width:220px !important;
+  max-width:220px !important;
+  min-width:0 !important;
+  grid-column:auto !important;
+  justify-self:center !important;
+}
+
+@media (max-width:1200px){
+  body.custom-subject-mode #customSubjectTree .science-tree-row{
+    grid-template-columns:repeat(auto-fit,minmax(170px,205px)) !important;
+  }
+  body.custom-subject-mode #customSubjectTree .science-tree-card{
+    width:205px !important;
+    max-width:205px !important;
+  }
+}
+
+@media (max-width:760px){
+  body.custom-subject-mode #customSubjectTree .science-tree-row{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  body.custom-subject-mode #customSubjectTree .science-tree-card{
+    width:100% !important;
+    max-width:none !important;
+  }
+}
+</style>
 
 </body></html>
