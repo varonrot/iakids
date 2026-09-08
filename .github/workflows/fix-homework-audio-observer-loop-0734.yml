@@ -1,0 +1,32 @@
+name: Fix homework audio observer loop 0.7.34
+
+on:
+  push:
+    paths:
+      - '.github/scripts/fix-homework-audio-observer-loop-0734.py'
+      - '.github/workflows/fix-homework-audio-observer-loop-0734.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Patch homework audio observer loop
+        run: python .github/scripts/fix-homework-audio-observer-loop-0734.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html he/workspace/lesson-completion.js
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Fix homework audio observer loop; bump to 0.7.34"
+          git push origin main
