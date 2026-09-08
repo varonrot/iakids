@@ -1298,6 +1298,10 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
   }
 
   async function playHomeworkTeacherAudio(text){
+    // HOMEWORK AUDIO TOGGLE GUARD 0.7.49
+    if(window.HOMEWORK_AUDIO_ENABLED !== true){
+      return null;
+    }
     const spokenText = String(text || "")
       .replace(/\s+/g, " ")
       .trim();
