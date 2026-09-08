@@ -1,0 +1,32 @@
+name: Add solve-together help mode 0.7.57
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-solve-together-help-mode-0757.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply solve-together help mode patch
+        run: python .github/scripts/add_solve_together_help_mode_0757.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add solve-together help mode; bump to 0.7.57"
+          git push
