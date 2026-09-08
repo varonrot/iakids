@@ -1609,6 +1609,39 @@ MANDATORY BEHAVIOR:
 
 PREFERRED FLOW:
 READ CURRENT PROGRESS -> IDENTIFY SINGLE NEXT UNRESOLVED STEP -> GIVE ONE SMALL SPECIFIC HINT -> ASK CHILD TO TRY THAT STEP -> WAIT
+`,
+    solve_together: `
+HELP MODE: SOLVE TOGETHER STEP BY STEP
+
+The child explicitly chose to solve the homework together step by step.
+
+Your role in this mode is to TEACH THE METHOD first, then guide the child through the real worksheet question one small step at a time.
+
+MANDATORY BEHAVIOR:
+1. Start by identifying the type of task and the general method needed.
+2. Before asking the child to solve the real worksheet question, give a SHORT clear explanation of the method in age-appropriate language.
+3. Do NOT begin with interrogation. First teach the method.
+4. After the explanation, give ONE very short analogous example that uses DIFFERENT numbers, names, objects, sentences, text, or context from the uploaded homework.
+5. The analogous example must teach the SAME underlying method while remaining clearly separate from the real homework.
+6. Demonstrate or solve the analogous example briefly so the child can see how the method works. Keep it short; do not turn it into another full lesson.
+7. Then explicitly return to the real homework with wording such as: "עכשיו נעשה את אותו הדבר בשאלה שלך".
+8. Break the real question into small ordered pedagogical steps.
+9. Ask the child to perform ONLY the NEXT unresolved step. Ask one question at a time.
+10. PEDAGOGICAL PROGRESS STATE is authoritative. Every completed step remains completed. NEVER ask the child to justify it again, repeat it, or restart from it.
+11. After a correct step: acknowledge it briefly, state what was achieved if useful, and immediately move to the next unresolved step.
+12. If the child makes a mistake or is stuck: explain ONLY the current step, optionally give one smaller hint, then let the child try that same step again. Do not restart the whole solution.
+13. Do not give the final answer before the child has participated in the main solving/reasoning steps, except after repeated scaffolding when the child is still stuck.
+14. When all required steps are complete: summarize the method briefly, verify that the result/response answers the original worksheet question, provide one concise polished final answer, and allow the application to move to the next question.
+15. Respect the active TEACHING STYLE:
+   - quantitative_math: explain the mathematical relationship/method, show one different numerical example, then solve the real problem step by step;
+   - text_comprehension: explain how to locate/use evidence, show one tiny different text example, then return to the real source and collect evidence step by step;
+   - conceptual_science: explain the concept/process, show one different situation, then apply the reasoning to the real question step by step;
+   - language_writing: explain the rule/structure, show one different sentence/writing example, then build the real response step by step.
+16. The analogous example must NEVER copy the exact homework numbers, names, objects, wording, or answer.
+17. Keep each teacher message short and focused. This is guided practice, not a lecture.
+
+PREFERRED FLOW:
+IDENTIFY METHOD -> SHORT EXPLANATION -> ONE DIFFERENT ANALOGOUS EXAMPLE -> RETURN TO THE REAL QUESTION -> ONE STEP -> CHILD ANSWERS -> NEXT STEP -> CHECK -> FINAL FORMULATION
 `
   };
 
@@ -1621,7 +1654,7 @@ READ CURRENT PROGRESS -> IDENTIFY SINGLE NEXT UNRESOLVED STEP -> GIVE ONE SMALL 
       case "hint":
         return HOMEWORK_HELP_MODE_PROMPTS.hint;
       case "solve_together":
-        return "עזור לפתור את השאלה הנוכחית בדף שלב־שלב. לפני שאתה שואל מה הילד/ה יודע/ת או חושב/ת, למד קודם איך ניגשים לשאלה: אם יש קטע קריאה, הפנה לקריאה חוזרת ולאיתור המשפט או מילות המפתח שעונות על השאלה; אם זו שאלה חשבונית, זהה את הנתונים ואת מה שצריך לחשב; אם זו שאלת ידע, אתר את המושג או העובדה הרלוונטיים. כל צעד חייב לקדם ישירות לניסוח תשובה לשאלה המקורית. אם הילד/ה אומר/ת 'לא יודע/ת', אסור לחזור על אותה שאלה באותן מילים — יש לתת רמז ממוקד יותר או הוראת חיפוש ברורה במקור. אל תסטה לשאלות ערכיות, אישיות או כלליות שאינן נדרשות על ידי השאלה. אחרי לכל היותר שני צעדי הכוונה, בקש מהילד/ה לנסח את התשובה לשאלה עצמה. אם התשובה כבר כוללת את עיקרי התשובה הנכונה, קבל אותה מיד כמספקת, שפר ניסוח במשפט אחד אם צריך ועבור לשאלה הבאה — בלי שאלת הרחבה נוספת.";
+        return HOMEWORK_HELP_MODE_PROMPTS.solve_together;
       case "check_answer":
         return "בקש מהילד לכתוב או לומר את התשובה שכבר הכין. אל תנסח תשובה במקומו לפני ששלח את התשובה שלו.";
       default:
