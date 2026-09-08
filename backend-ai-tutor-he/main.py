@@ -19033,6 +19033,40 @@ UNDERSTAND THE LANGUAGE/WRITING TASK -> IDENTIFY RULE OR REQUIRED STRUCTURE -> E
 
 }
 
+HOMEWORK_HELP_MODE_PROMPTS = {
+    "understand_question": r"""
+HELP MODE: UNDERSTAND THE QUESTION
+
+The child explicitly chose help understanding what the worksheet question is asking.
+
+Your job in this mode is NOT to solve the exercise and NOT to begin the full solution process. Your job is to make the task itself clear enough that the child knows what they are being asked to do.
+
+MANDATORY BEHAVIOR:
+1. Focus only on the current worksheet question.
+2. Start by explaining in one or two short sentences what the question is asking the child to find, explain, identify, compare, calculate, write, or prove.
+3. Translate difficult wording into simpler age-appropriate language without changing the meaning of the task.
+4. Identify the important instruction word(s) or signal(s) in the question, when relevant: for example calculate, explain, compare, according to the text, give a reason, describe, identify, complete, or justify.
+5. Identify what information/source the child is expected to use: numbers in the problem, a passage, diagram, table, scientific concept, grammar rule, instructions, or other supplied material.
+6. Do NOT calculate the result, reveal the answer, collect all answer components, or walk through the complete solution in this mode.
+7. Do NOT immediately interrogate the child. First TEACH what the question means.
+8. After the explanation, ask at most ONE short check-for-understanding question whose purpose is only to verify that the child understands the task. The check must not secretly become the first solving step.
+9. If a tiny analogous example would make the wording clearer, you may give ONE very short example with completely different content or numbers. The example must illustrate the meaning of the instruction, not solve the uploaded homework.
+10. If the child says they still do not understand, simplify the wording further or separate the task into: "what is given" and "what are we being asked to find/do". Do not repeat the same explanation verbatim.
+11. Once the child clearly understands what is being asked, stop teaching this mode. Do not continue into a full solution unless the child chooses another help mode or explicitly asks to proceed.
+12. Respect the active TEACHING STYLE for how you describe the task: mathematical task language for quantitative work, source/evidence language for text comprehension, concept/process language for science, and rule/structure language for language-writing tasks.
+
+PREFERRED FLOW:
+READ THE QUESTION -> SAY IN SIMPLE WORDS WHAT IT ASKS -> IDENTIFY THE SOURCE/INFORMATION TO USE -> OPTIONAL TINY DIFFERENT EXAMPLE -> ONE UNDERSTANDING CHECK -> STOP WHEN THE TASK IS CLEAR
+""".strip(),
+}
+
+def resolve_homework_help_mode(help_mode: str | None) -> tuple[str | None, str]:
+    name = str(help_mode or "").strip()
+    if name == "understand_question":
+        return name, HOMEWORK_HELP_MODE_PROMPTS[name]
+    return None, ""
+
+
 def resolve_homework_teaching_style(strategy_name: str) -> tuple[str | None, str]:
     # First new teaching style: math / quantitative.
     # The remaining three styles will be added separately.
@@ -19103,6 +19137,7 @@ class HomeworkTurnRequest(BaseModel):
 
 
     progress_context: str | None = None
+    help_mode: str | None = None
 class HomeworkSessionStartRequest(BaseModel):
     kid_id: str
     tutor_session_id: str | None = None
@@ -19191,6 +19226,7 @@ def homework_turn(
         req.source_text
     )
     style_name, style_instruction = resolve_homework_teaching_style(strategy_name)
+    mode_name, mode_instruction = resolve_homework_help_mode(req.help_mode)
 
     system_prompt = f"""
 You are the homework-answer evaluator for IAKIDS.
@@ -19213,6 +19249,10 @@ CHILD ANSWER IS EXPLICIT UNCERTAINTY: {is_uncertainty}
 ACTIVE TEACHING STYLE: {style_name or "legacy"}
 TEACHING STYLE INSTRUCTION:
 {style_instruction or "No dedicated teaching-style prompt is active for this task yet; keep the existing strategy behavior."}
+
+ACTIVE HELP MODE: {mode_name or "default"}
+HELP MODE INSTRUCTION:
+{mode_instruction or "No dedicated help-mode prompt is active; use the normal tutoring flow."}
 
 ACTIVE TEACHING STRATEGY: {strategy_name}
 STRATEGY INSTRUCTION:
