@@ -1,0 +1,24 @@
+name: Patch HE2 parents showcase v2
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-parents-showcase-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch HE2 parents showcase
+        run: python3 .github/scripts/patch_he2_parents_showcase.py
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Add HE2 parents showcase section"
+          git push
