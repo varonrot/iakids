@@ -1,0 +1,31 @@
+name: Remove homework test2 button 0.7.35
+
+on:
+  push:
+    paths:
+      - '.github/workflows/remove-homework-test2-0735.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Remove diagnostic homework button
+        run: python .github/scripts/remove-homework-test2-0735.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Remove homework test2 button; bump to 0.7.35"
+          git push origin main
