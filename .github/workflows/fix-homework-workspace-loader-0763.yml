@@ -1,0 +1,34 @@
+name: Fix homework workspace loader 0.7.63
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-homework-workspace-loader-0763.py'
+      - '.github/workflows/fix-homework-workspace-loader-0763.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply homework workspace loader fix
+        run: python .github/scripts/fix-homework-workspace-loader-0763.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix homework workspace loader race; bump to 0.7.63"
+          git push origin main
