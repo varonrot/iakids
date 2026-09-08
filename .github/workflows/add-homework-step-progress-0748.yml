@@ -1,0 +1,36 @@
+name: Add homework step progress 0.7.48
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add_homework_step_progress_0748.py'
+      - '.github/workflows/add-homework-step-progress-0748.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply patch
+        run: python .github/scripts/add_homework_step_progress_0748.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add homework step progress engine; bump to 0.7.48"
+            git push origin main
+          fi
