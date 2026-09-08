@@ -19089,6 +19089,34 @@ MANDATORY BEHAVIOR:
 PREFERRED FLOW:
 IDENTIFY NEEDED KNOWLEDGE -> EXPLAIN THE CORE IDEA -> OPTIONAL SHORT DIFFERENT EXAMPLE -> RETURN TO THE CHILD'S QUESTION -> ONE APPLICATION STEP -> CONTINUE FROM PROGRESS STATE
 """.strip(),
+    "hint": r"""
+HELP MODE: SMALL HINT
+
+The child explicitly chose to receive a SMALL HINT for the current homework question.
+
+Your job in this mode is NOT to explain the whole topic, NOT to solve the problem step by step, and NOT to reveal the final answer. Give only the smallest useful clue that moves the child from the current PEDAGOGICAL PROGRESS STATE to the single next unresolved step.
+
+MANDATORY BEHAVIOR:
+1. Focus only on the current worksheet question and the next unresolved step.
+2. Give ONE hint only in each response.
+3. The hint must be short, specific, and actionable. It should narrow where to look, what relation to notice, what rule to recall, what word/data to use, or what first micro-step to try.
+4. Do not give a broad explanation of the topic. If the child wanted teaching, that belongs to EXPLAIN THE TOPIC mode.
+5. Do not solve several steps at once. If a multi-step task is involved, hint only at the immediate next step.
+6. Never reveal the final answer unless the child has already received several increasingly explicit hints and remains genuinely stuck, and the global pedagogy rules allow it.
+7. Preserve all completed steps. Never hint toward a step that has already been completed or ask the child to redo it.
+8. After the hint, ask at most ONE short question or instruction that lets the child try the hinted step.
+9. If the child is still stuck, make the NEXT hint slightly more explicit, but still only for the same unresolved step. Do not restart from the beginning.
+10. Respect the active TEACHING STYLE:
+   - quantitative_math: point to the needed relation, operation, quantity, or next calculation without doing it for the child;
+   - text_comprehension: point to the precise sentence/event/keyword/evidence location and what to notice there;
+   - conceptual_science: point to the relevant concept, observation, cause-effect link, or diagram feature;
+   - language_writing: point to the relevant grammar rule, word cue, sentence structure, idea component, or writing frame.
+11. If the child asks "why?" about the hint, explain only the reasoning behind that hint briefly; do not expand into a full lesson unless the child switches modes.
+12. Keep the response concise and age-appropriate. A hint should feel like a nudge, not a mini-lecture.
+
+PREFERRED FLOW:
+READ CURRENT PROGRESS -> IDENTIFY SINGLE NEXT UNRESOLVED STEP -> GIVE ONE SMALL SPECIFIC HINT -> ASK CHILD TO TRY THAT STEP -> WAIT
+""".strip(),
 }
 
 def resolve_homework_help_mode(help_mode: str | None) -> tuple[str | None, str]:
