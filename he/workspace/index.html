@@ -53081,7 +53081,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=0732"></script>
+<script src="/he/workspace/lesson-completion.js?v=0734"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -53255,6 +53255,772 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.32</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.32";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.45</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.45";</script>
+
+<style id="iakidsPersonalSystemSafeStyles">
+  .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
+  .iakids-personal-safe-head{width:100%;min-height:58px;border:1px solid rgba(88,137,207,.22);border-radius:16px;background:linear-gradient(180deg,rgba(16,35,67,.9),rgba(8,23,49,.94));color:#e9f1ff;display:flex;align-items:center;gap:11px;padding:0 12px;font-weight:900}
+  .iakids-personal-safe-head .psi{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#6750ff,#2d8cff);color:#fff}
+  .iakids-personal-safe-head .pst{flex:1;text-align:right;font-size:15px}
+  .iakids-personal-safe-head .psc{min-width:28px;height:28px;padding:0 7px;border-radius:999px;display:grid;place-items:center;background:rgba(74,129,215,.18);border:1px solid rgba(95,158,255,.28);color:#9edfff;font-size:12px}
+  .iakids-personal-safe-list{display:grid;gap:7px;margin-top:7px}
+  .iakids-personal-safe-row{min-height:50px;border:1px solid rgba(74,122,192,.18);border-radius:14px;background:rgba(9,25,52,.68);display:flex;align-items:center;gap:9px;padding:6px 9px;color:#dce9ff;cursor:pointer;font-weight:850}
+  .iakids-personal-safe-row:hover{border-color:rgba(91,170,255,.42);background:rgba(13,34,68,.84)}
+  .iakids-personal-safe-row .psri{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(78,77,216,.95),rgba(31,128,197,.95));color:#fff;flex:0 0 32px}
+  .iakids-personal-safe-empty{padding:10px 12px;color:#788eaf;font-size:12px;font-weight:700;text-align:right}
+</style>
+<script id="IAKIDS_PERSONAL_SYSTEM_SIDEBAR_SAFE_0736">
+(function(){
+  function getClient(){
+    try{ if(typeof sb !== 'undefined' && sb?.from) return sb; }catch(_e){}
+    return window.sb?.from ? window.sb : (window.supabaseClient?.from ? window.supabaseClient : null);
+  }
+  function getKid(){
+    try{ if(typeof CURRENT_KID !== 'undefined' && CURRENT_KID?.id) return CURRENT_KID; }catch(_e){}
+    return window.CURRENT_KID || window.SELECTED_KID || window.currentKid || null;
+  }
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+  function ensureHost(){
+    const actions=document.querySelector('.kid-actions');
+    if(!actions) return null;
+    let host=document.getElementById('iakidsPersonalSafe');
+    if(host) return host;
+    host=document.createElement('section');
+    host.id='iakidsPersonalSafe';
+    host.className='iakids-personal-safe';
+    host.innerHTML=`<div class="iakids-personal-safe-head"><span class="psi"><i class="fa-solid fa-wand-magic-sparkles"></i></span><span class="pst">המערכת האישית שלי</span><span class="psc" id="iakidsPersonalSafeCount">0</span></div><div class="iakids-personal-safe-list" id="iakidsPersonalSafeList"></div>`;
+    actions.appendChild(host);
+    return host;
+  }
+  function openSubject(subject){
+    try{
+      if(typeof openCustomSubject === 'function'){ openCustomSubject(subject.id, subject.subject_name||'מקצוע אישי'); return; }
+      if(typeof window.openCustomSubject === 'function'){ window.openCustomSubject(subject.id, subject.subject_name||'מקצוע אישי'); return; }
+    }catch(e){ console.warn('PERSONAL SAFE OPEN',e); }
+  }
+  function render(items){
+    ensureHost();
+    const list=document.getElementById('iakidsPersonalSafeList');
+    const count=document.getElementById('iakidsPersonalSafeCount');
+    if(!list||!count) return;
+    count.textContent=String(items.length);
+    if(!items.length){list.innerHTML='<div class="iakids-personal-safe-empty">עדיין לא נוספו מקצועות אישיים</div>';return;}
+    list.innerHTML='';
+    items.forEach(subject=>{
+      const row=document.createElement('button');
+      row.type='button';
+      row.className='iakids-personal-safe-row';
+      row.innerHTML=`<span class="psri"><i class="fa-solid fa-star"></i></span><span>${esc(subject.subject_name)}</span>`;
+      row.addEventListener('click',()=>openSubject(subject));
+      list.appendChild(row);
+    });
+  }
+  async function load(){
+    ensureHost();
+    const kid=getKid();
+    const client=getClient();
+    if(!kid?.id||!client){render([]);return;}
+    try{
+      const {data,error}=await client.from('kid_custom_subjects').select('id,subject_name,status,created_at').eq('kid_id',kid.id).eq('status','active').order('created_at',{ascending:true});
+      if(error) throw error;
+      render(Array.isArray(data)?data:[]);
+    }catch(e){console.warn('PERSONAL SAFE LOAD',e);}
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(load,900),{once:true});
+  if(document.readyState!=='loading') setTimeout(load,900);
+  window.refreshPersonalSystemsSidebar=load;
+})();
+</script>
+
+
+<style id="IAKIDS_PERSONAL_SYSTEM_CARD_WIDTHS_0737">
+  body.custom-subject-mode #customSubjectTree .science-tree-row{
+    grid-template-columns:repeat(4,minmax(150px,1fr)) !important;
+    gap:14px !important;
+  }
+
+  body.custom-subject-mode #customSubjectTree .science-tree-card{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  @media (max-width:1450px){
+    body.custom-subject-mode #customSubjectTree .science-tree-row{
+      grid-template-columns:repeat(3,minmax(150px,1fr)) !important;
+    }
+  }
+
+  @media (max-width:1000px){
+    body.custom-subject-mode #customSubjectTree .science-tree-row{
+      grid-template-columns:repeat(2,minmax(150px,1fr)) !important;
+    }
+  }
+
+  @media (max-width:650px){
+    body.custom-subject-mode #customSubjectTree .science-tree-row{
+      grid-template-columns:1fr !important;
+    }
+  }
+</style>
+
+
+<style id="IAKIDS_PERSONAL_CARD_BACKGROUNDS_0738">
+/* Personal-system cards: use card images as full backgrounds like default subject cards */
+body.custom-subject-mode .science-tree-card{
+  position:relative !important;
+  overflow:hidden !important;
+  isolation:isolate !important;
+  background:#08172a !important;
+}
+
+body.custom-subject-mode .science-tree-card .science-tree-card-icon{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  margin:0 !important;
+  border-radius:inherit !important;
+  overflow:hidden !important;
+  z-index:0 !important;
+  pointer-events:none !important;
+}
+
+body.custom-subject-mode .science-tree-card .science-tree-icon-img{
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  max-height:none !important;
+  object-fit:cover !important;
+  object-position:center !important;
+  display:block !important;
+  opacity:.58 !important;
+  transform:scale(1.02);
+}
+
+body.custom-subject-mode .science-tree-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(2,10,23,.08) 0%,rgba(2,10,23,.34) 40%,rgba(2,10,23,.92) 100%),
+    linear-gradient(90deg,rgba(4,17,35,.16),rgba(4,17,35,.04));
+}
+
+body.custom-subject-mode .science-tree-card > strong,
+body.custom-subject-mode .science-tree-card > small,
+body.custom-subject-mode .science-tree-card > .science-tree-progress{
+  position:relative !important;
+  z-index:2 !important;
+}
+
+body.custom-subject-mode .science-tree-card > strong{
+  text-shadow:0 2px 8px rgba(0,0,0,.85) !important;
+}
+
+body.custom-subject-mode .science-tree-card > small{
+  color:rgba(232,241,255,.76) !important;
+  text-shadow:0 2px 7px rgba(0,0,0,.8) !important;
+}
+
+body.custom-subject-mode .science-tree-card > .science-tree-progress{
+  margin-top:auto !important;
+}
+
+body.custom-subject-mode .science-tree-card.selected{
+  box-shadow:
+    inset 0 0 0 1px rgba(73,230,121,.35),
+    0 0 22px rgba(54,218,116,.10) !important;
+}
+</style>
+
+
+<style id="iakidsWorkspaceAchievementsStyles">
+  .main{position:relative!important;}
+  .iakids-achievements-view{
+    position:absolute;inset:16px;z-index:240;
+    overflow:auto;direction:rtl;
+    border:1px solid rgba(72,145,235,.26);
+    border-radius:26px;
+    background:
+      radial-gradient(circle at 15% 4%,rgba(82,95,255,.18),transparent 32%),
+      radial-gradient(circle at 90% 10%,rgba(35,177,255,.13),transparent 28%),
+      linear-gradient(180deg,#07162f 0%,#041022 100%);
+    box-shadow:0 24px 70px rgba(0,0,0,.38), inset 0 0 0 1px rgba(117,81,255,.04);
+    color:#eef5ff;
+    font-family:"Heebo",Arial,sans-serif;
+  }
+  .iakids-achievements-view[hidden]{display:none!important;}
+  .iav-shell{padding:24px;max-width:1240px;margin:0 auto;}
+  .iav-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:20px;}
+  .iav-title-wrap{display:flex;align-items:center;gap:14px;}
+  .iav-title-icon{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;
+    background:linear-gradient(135deg,#6b4bff,#1c89dc);color:#fff;font-size:24px;box-shadow:0 9px 26px rgba(61,92,255,.25)}
+  .iav-head h1{margin:0;font-size:28px;font-weight:950;}
+  .iav-head p{margin:4px 0 0;color:#8fa6c8;font-size:13px;font-weight:650;}
+  .iav-close{height:42px;padding:0 15px;border-radius:13px;border:1px solid rgba(94,148,222,.26);
+    background:rgba(18,43,78,.76);color:#d9e8fb;font-weight:900;cursor:pointer;}
+  .iav-close:hover{border-color:rgba(84,190,255,.5);}
+  .iav-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px;}
+  .iav-stat{min-height:114px;padding:16px;border-radius:19px;border:1px solid rgba(76,137,214,.22);
+    background:linear-gradient(180deg,rgba(17,42,76,.92),rgba(10,27,54,.92));box-shadow:0 10px 24px rgba(0,0,0,.16)}
+  .iav-stat-icon{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;margin-bottom:10px;
+    background:rgba(64,111,201,.22);color:#74d8ff;}
+  .iav-stat strong{display:block;font-size:26px;line-height:1;font-weight:950;color:#fff;}
+  .iav-stat span{display:block;margin-top:7px;color:#8fa7c8;font-size:12px;font-weight:750;}
+  .iav-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:14px;}
+  .iav-card{border:1px solid rgba(75,133,206,.22);border-radius:20px;padding:18px;
+    background:linear-gradient(180deg,rgba(14,36,68,.9),rgba(8,23,49,.93));}
+  .iav-card h2{margin:0 0 14px;font-size:18px;font-weight:950;}
+  .iav-subjects{display:grid;gap:10px;}
+  .iav-subject-row{padding:12px 13px;border-radius:14px;background:rgba(14,34,63,.72);border:1px solid rgba(72,124,190,.16);}
+  .iav-subject-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;}
+  .iav-subject-name{font-weight:900;color:#e8f2ff;}
+  .iav-subject-value{font-size:12px;font-weight:900;color:#79d8ff;}
+  .iav-bar{height:8px;border-radius:999px;background:rgba(105,132,175,.16);overflow:hidden;}
+  .iav-bar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#406fff,#42d6e7);}
+  .iav-list{display:grid;gap:9px;}
+  .iav-list-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:14px;
+    background:rgba(13,33,61,.72);border:1px solid rgba(75,128,193,.15);}
+  .iav-list-item b{font-size:13px;color:#e8f1ff;}.iav-list-item span{font-size:12px;color:#8ca5c7;}
+  .iav-empty{padding:20px;text-align:center;color:#8398b7;font-size:13px;font-weight:700;}
+  .iav-loading{padding:46px;text-align:center;color:#8eb0db;font-weight:850;}
+  .iav-game-note{margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid rgba(105,78,255,.2);
+    background:rgba(63,47,139,.14);color:#aebcf0;font-size:12px;font-weight:700;line-height:1.6;}
+  @media(max-width:1000px){.iav-stats{grid-template-columns:repeat(2,minmax(0,1fr));}.iav-grid{grid-template-columns:1fr;}}
+</style>
+<script id="IAKIDS_WORKSPACE_ACHIEVEMENTS_0739">
+(function(){
+  let view = null;
+
+  function getClient(){
+    try{ if(typeof sb !== 'undefined' && sb?.from) return sb; }catch(_e){}
+    return window.sb?.from ? window.sb : (window.supabaseClient?.from ? window.supabaseClient : null);
+  }
+
+  function getKid(){
+    try{ if(typeof CURRENT_KID !== 'undefined' && CURRENT_KID?.id) return CURRENT_KID; }catch(_e){}
+    return window.CURRENT_KID || window.SELECTED_KID || window.currentKid || window.selectedKid || null;
+  }
+
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+
+  function ensureView(){
+    if(view?.isConnected) return view;
+    const main = document.querySelector('.main');
+    if(!main) return null;
+    view = document.createElement('section');
+    view.id = 'iakidsWorkspaceAchievementsView';
+    view.className = 'iakids-achievements-view';
+    view.hidden = true;
+    main.appendChild(view);
+    return view;
+  }
+
+  function closeView(){
+    const el = ensureView();
+    if(el) el.hidden = true;
+    document.querySelectorAll('.kid-actions .side-item').forEach(x=>{
+      const t=(x.textContent||'').trim();
+      if(t.includes('הישגים')) x.classList.remove('active');
+    });
+  }
+
+  function subjectSummary(rows){
+    const map = new Map();
+    (rows||[]).forEach(r=>{
+      const name = String(r.subject || r.subject_name || 'למידה').trim() || 'למידה';
+      if(!map.has(name)) map.set(name,{name,count:0,completed:0,progress:0,mastery:0});
+      const x=map.get(name); x.count++;
+      if(r.status==='completed') x.completed++;
+      x.progress += Number(r.progress_percent||0);
+      x.mastery += Number(r.mastery_score||0);
+    });
+    return [...map.values()].map(x=>({
+      ...x,
+      progress: x.count ? Math.round(x.progress/x.count) : 0,
+      mastery: x.count ? Math.round(x.mastery/x.count) : 0
+    })).sort((a,b)=>b.progress-a.progress);
+  }
+
+  async function loadAchievements(){
+    const el = ensureView();
+    const client = getClient();
+    const kid = getKid();
+    if(!el) return;
+    if(!client || !kid?.id){
+      el.innerHTML='<div class="iav-loading">לא הצלחתי לזהות את פרופיל הילד/ה.</div>';
+      return;
+    }
+
+    el.hidden = false;
+    el.innerHTML='<div class="iav-loading"><i class="fa-solid fa-spinner fa-spin"></i><br>טוענים את ההישגים שלך...</div>';
+
+    try{
+      const [lessonRes, homeworkRes, customRes] = await Promise.all([
+        client.from('kid_lesson_progress').select('status,progress_percent,mastery_score,xp_earned,stars_earned,total_time_seconds,lesson_id,updated_at').eq('kid_id',kid.id),
+        client.from('homework_sessions').select('status,total_questions,completed_questions,subject,topic,started_at').eq('kid_id',kid.id).order('started_at',{ascending:false}).limit(20),
+        client.from('kid_custom_subjects').select('id,subject_name,status').eq('kid_id',kid.id).eq('status','active')
+      ]);
+
+      if(lessonRes.error) throw lessonRes.error;
+      const lessons = lessonRes.data || [];
+      const homeworks = homeworkRes.error ? [] : (homeworkRes.data || []);
+      const custom = customRes.error ? [] : (customRes.data || []);
+
+      const completed = lessons.filter(r=>r.status==='completed').length;
+      const inProgress = lessons.filter(r=>r.status==='in_progress').length;
+      const avgMastery = lessons.length ? Math.round(lessons.reduce((s,r)=>s+Number(r.mastery_score||0),0)/lessons.length) : 0;
+      const stars = lessons.reduce((s,r)=>s+Number(r.stars_earned||0),0);
+      const xp = lessons.reduce((s,r)=>s+Number(r.xp_earned||0),0);
+      const hwDone = homeworks.filter(r=>r.status==='completed').length;
+      const subjects = subjectSummary(lessons);
+
+      const subjectHtml = subjects.length ? subjects.map(s=>`
+        <div class="iav-subject-row">
+          <div class="iav-subject-top"><span class="iav-subject-name">${esc(s.name)}</span><span class="iav-subject-value">${s.progress}% התקדמות · ${s.mastery}% שליטה</span></div>
+          <div class="iav-bar"><span style="width:${Math.max(0,Math.min(100,s.progress))}%"></span></div>
+        </div>`).join('') : '<div class="iav-empty">עדיין אין מספיק נתוני שיעורים להצגת התקדמות לפי מקצוע.</div>';
+
+      const hwHtml = homeworks.length ? homeworks.slice(0,6).map(h=>`
+        <div class="iav-list-item"><div><b>${esc(h.subject||'שיעורי בית')}</b><br><span>${esc(h.topic||'')}</span></div><span>${h.status==='completed'?'הושלם':'בתהליך'} · ${Number(h.completed_questions||0)}/${Number(h.total_questions||0)}</span></div>`).join('') : '<div class="iav-empty">עדיין אין שיעורי בית שנשמרו.</div>';
+
+      el.innerHTML = `
+        <div class="iav-shell">
+          <div class="iav-head">
+            <div class="iav-title-wrap"><div class="iav-title-icon"><i class="fa-solid fa-trophy"></i></div><div><h1>ההישגים שלי</h1><p>התקדמות לימודית, שיעורים, שליטה והישגים — בתוך סביבת הלמידה</p></div></div>
+            <button type="button" class="iav-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button>
+          </div>
+          <div class="iav-stats">
+            <div class="iav-stat"><div class="iav-stat-icon"><i class="fa-solid fa-circle-check"></i></div><strong>${completed}</strong><span>שיעורים שהושלמו</span></div>
+            <div class="iav-stat"><div class="iav-stat-icon"><i class="fa-solid fa-chart-line"></i></div><strong>${avgMastery}%</strong><span>שליטה ממוצעת</span></div>
+            <div class="iav-stat"><div class="iav-stat-icon"><i class="fa-solid fa-star"></i></div><strong>${stars}</strong><span>כוכבים מלמידה</span></div>
+            <div class="iav-stat"><div class="iav-stat-icon"><i class="fa-solid fa-bolt"></i></div><strong>${xp}</strong><span>XP מלמידה</span></div>
+            <div class="iav-stat"><div class="iav-stat-icon"><i class="fa-solid fa-list-check"></i></div><strong>${hwDone}</strong><span>שיעורי בית שהושלמו</span></div>
+          </div>
+          <div class="iav-grid">
+            <div class="iav-card"><h2>התקדמות לפי מקצוע</h2><div class="iav-subjects">${subjectHtml}</div></div>
+            <div>
+              <div class="iav-card"><h2>שיעורי הבית האחרונים</h2><div class="iav-list">${hwHtml}</div></div>
+              <div class="iav-card" style="margin-top:14px"><h2>המערכת האישית שלי</h2><div class="iav-list"><div class="iav-list-item"><b>מקצועות אישיים פעילים</b><span>${custom.length}</span></div><div class="iav-list-item"><b>שיעורים בתהליך</b><span>${inProgress}</span></div></div><div class="iav-game-note">הישגים במשחקים נשארים בעולם המשחקים. כאן מוצגים ההישגים הלימודיים של סביבת הלמידה.</div></div>
+            </div>
+          </div>
+        </div>`;
+
+      el.querySelector('.iav-close')?.addEventListener('click',closeView);
+    }catch(error){
+      console.error('WORKSPACE ACHIEVEMENTS LOAD FAILED',error);
+      el.innerHTML='<div class="iav-shell"><div class="iav-head"><div class="iav-title-wrap"><div class="iav-title-icon"><i class="fa-solid fa-trophy"></i></div><div><h1>ההישגים שלי</h1><p>לא הצלחנו לטעון את הנתונים כרגע.</p></div></div><button type="button" class="iav-close">חזרה</button></div><div class="iav-empty">אפשר לרענן ולנסות שוב.</div></div>';
+      el.querySelector('.iav-close')?.addEventListener('click',closeView);
+    }
+  }
+
+  document.addEventListener('click',event=>{
+    const item = event.target?.closest?.('.kid-actions .side-item');
+    if(!item) return;
+    const text=(item.textContent||'').replace(/\s+/g,' ').trim();
+    if(!text.includes('הישגים')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    document.querySelectorAll('.kid-actions .side-item').forEach(x=>x.classList.remove('active'));
+    item.classList.add('active');
+    loadAchievements();
+  },true);
+
+  window.openWorkspaceAchievements = loadAchievements;
+  window.closeWorkspaceAchievements = closeView;
+})();
+</script>
+
+
+<style id="IAKIDS_PERSONAL_CARD_WIDTHS_0740">
+/* Personal-system hierarchy cards: same visual density as default subjects (e.g. geography). */
+body.custom-subject-mode #customSubjectTree .science-tree-row{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fit,minmax(180px,220px)) !important;
+  justify-content:center !important;
+  align-items:stretch !important;
+  gap:12px !important;
+  width:100% !important;
+}
+
+body.custom-subject-mode #customSubjectTree .science-tree-card{
+  width:220px !important;
+  max-width:220px !important;
+  min-width:0 !important;
+  grid-column:auto !important;
+  justify-self:center !important;
+}
+
+@media (max-width:1200px){
+  body.custom-subject-mode #customSubjectTree .science-tree-row{
+    grid-template-columns:repeat(auto-fit,minmax(170px,205px)) !important;
+  }
+  body.custom-subject-mode #customSubjectTree .science-tree-card{
+    width:205px !important;
+    max-width:205px !important;
+  }
+}
+
+@media (max-width:760px){
+  body.custom-subject-mode #customSubjectTree .science-tree-row{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  body.custom-subject-mode #customSubjectTree .science-tree-card{
+    width:100% !important;
+    max-width:none !important;
+  }
+}
+</style>
+
+
+<style id="IAKIDS_CUSTOM_SUBJECT_PROGRESS_STYLES_0741">
+  body.custom-subject-mode #customSubjectTree .science-tree-progress > span[data-real-progress="1"]{
+    transition:width .25s ease, background .2s ease !important;
+  }
+  body.custom-subject-mode .science-side-donut.iakids-custom-live-progress{
+    background:conic-gradient(#42df7f var(--iakids-progress-angle,0deg),rgba(70,104,141,.18) 0deg) !important;
+    border-radius:50%;
+    padding:6px;
+  }
+</style>
+<script id="IAKIDS_CUSTOM_SUBJECT_PROGRESS_0741">
+(function(){
+  if(window.__IAKIDS_CUSTOM_SUBJECT_PROGRESS_0741) return;
+  window.__IAKIDS_CUSTOM_SUBJECT_PROGRESS_0741 = true;
+
+  let activeSubjectId = null;
+  let cache = {units:[],lessons:[]};
+
+  function getClient(){
+    try{ if(typeof sb !== 'undefined' && sb?.from) return sb; }catch(_e){}
+    return window.sb?.from ? window.sb : (window.supabaseClient?.from ? window.supabaseClient : null);
+  }
+  function getKid(){
+    try{ if(typeof CURRENT_KID !== 'undefined' && CURRENT_KID?.id) return CURRENT_KID; }catch(_e){}
+    return window.CURRENT_KID || window.SELECTED_KID || window.currentKid || null;
+  }
+  function clamp(v){return Math.max(0,Math.min(100,Math.round(Number(v)||0)));}
+  function completedStatus(s){return String(s||'').toLowerCase()==='completed';}
+  function currentStatus(s){return ['active','in_progress'].includes(String(s||'').toLowerCase());}
+  function progressOf(rows){
+    const usable=(rows||[]).filter(x=>String(x.status||'').toLowerCase()!=='archived');
+    if(!usable.length) return 0;
+    const done=usable.filter(x=>completedStatus(x.status)).length;
+    return clamp(done/usable.length*100);
+  }
+  function setText(id,value){const el=document.getElementById(id); if(el) el.textContent=String(value);}
+  function setBar(card,percent,status){
+    if(!card) return;
+    const span=card.querySelector('.science-tree-progress > span');
+    if(span){
+      span.dataset.realProgress='1';
+      span.style.width=clamp(percent)+'%';
+      span.style.background=completedStatus(status)||percent>=100
+        ? 'linear-gradient(90deg,#35d66f,#65ee8e)'
+        : (currentStatus(status)||percent>0
+          ? 'linear-gradient(90deg,#239cff,#43d7f2)'
+          : 'rgba(87,116,151,.26)');
+    }
+  }
+  function byName(rows,key,value){return (rows||[]).filter(x=>String(x[key]||'').trim()===String(value||'').trim());}
+
+  function paintTree(){
+    const units=cache.units||[];
+    const lessons=(cache.lessons||[]).filter(l=>String(l.status||'').toLowerCase()!=='archived');
+
+    document.querySelectorAll('#customSubjectTree .custom-topic-card').forEach(card=>{
+      const topic=card.dataset.topicName || card.querySelector('strong')?.textContent?.trim();
+      const topicUnits=byName(units,'topic_name',topic);
+      const ids=new Set(topicUnits.map(u=>String(u.id)));
+      const rows=lessons.filter(l=>ids.has(String(l.custom_unit_id)));
+      setBar(card,progressOf(rows), rows.length && rows.every(x=>completedStatus(x.status)) ? 'completed' : (rows.some(x=>currentStatus(x.status))?'active':'pending'));
+    });
+
+    document.querySelectorAll('#customSubjectTree .custom-unit-card').forEach(card=>{
+      const unitId=card.dataset.unitId;
+      const name=card.querySelector('strong')?.textContent?.trim();
+      const unit=units.find(u=>String(u.id)===String(unitId)) || units.find(u=>String(u.unit_name).trim()===String(name||'').trim());
+      if(!unit) return;
+      const rows=lessons.filter(l=>String(l.custom_unit_id)===String(unit.id));
+      setBar(card,progressOf(rows), rows.length && rows.every(x=>completedStatus(x.status)) ? 'completed' : (rows.some(x=>currentStatus(x.status))?'active':'pending'));
+    });
+
+    document.querySelectorAll('#customSubjectTree .custom-lesson-card').forEach(card=>{
+      const id=card.dataset.lessonId;
+      const name=card.querySelector('strong')?.textContent?.trim();
+      const lesson=lessons.find(l=>String(l.id)===String(id)) || lessons.find(l=>String(l.lesson_name).trim()===String(name||'').trim());
+      if(!lesson) return;
+      setBar(card,completedStatus(lesson.status)?100:0,lesson.status);
+    });
+  }
+
+  function paintSide(){
+    const lessons=(cache.lessons||[]).filter(l=>String(l.status||'').toLowerCase()!=='archived');
+    const total=lessons.length;
+    const completed=lessons.filter(l=>completedStatus(l.status)).length;
+    const remaining=Math.max(0,total-completed);
+    const percent=total?clamp(completed/total*100):0;
+
+    setText('customSubjectProgressPercent',percent+'%');
+    setText('customSubjectLessonsTotal',total);
+    setText('customSubjectLessonsCompleted',completed);
+    setText('customSubjectLessonsRemaining',remaining);
+
+    const donut=document.getElementById('customSubjectProgressPercent')?.closest('.science-side-donut');
+    if(donut){
+      donut.classList.add('iakids-custom-live-progress');
+      donut.style.setProperty('--iakids-progress-angle',(percent*3.6)+'deg');
+    }
+
+    const next=lessons.find(l=>currentStatus(l.status)) || lessons.find(l=>!completedStatus(l.status));
+    const nextEl=document.getElementById('customSubjectNextLesson');
+    if(nextEl){
+      nextEl.innerHTML=next
+        ? `<div style="padding:14px;border:1px solid rgba(78,143,220,.22);border-radius:14px;background:rgba(12,33,61,.72)"><strong style="display:block;color:#eef6ff;font-size:14px">${String(next.lesson_name||'השיעור הבא')}</strong><span style="display:block;margin-top:5px;color:#8fa6c5;font-size:11px">${currentStatus(next.status)?'בתהליך':'מוכן להתחלה'}</span></div>`
+        : `<div style="padding:14px;color:#68e58f;font-weight:800">כל השיעורים הושלמו 🎉</div>`;
+    }
+  }
+
+  async function refresh(subjectId){
+    const client=getClient(), kid=getKid();
+    const sid=subjectId || activeSubjectId;
+    if(!client || !kid?.id || !sid) return;
+    activeSubjectId=sid;
+    try{
+      const [u,l]=await Promise.all([
+        client.from('kid_custom_units').select('id,custom_subject_id,topic_name,unit_name,unit_order,status').eq('kid_id',kid.id).eq('custom_subject_id',sid).neq('status','archived').order('unit_order',{ascending:true}),
+        client.from('kid_custom_lessons').select('id,custom_subject_id,custom_unit_id,lesson_name,lesson_order,status').eq('kid_id',kid.id).eq('custom_subject_id',sid).neq('status','archived').order('lesson_order',{ascending:true})
+      ]);
+      if(u.error) throw u.error;
+      if(l.error) throw l.error;
+      cache={units:Array.isArray(u.data)?u.data:[],lessons:Array.isArray(l.data)?l.data:[]};
+      paintSide();
+      paintTree();
+      setTimeout(paintTree,40);
+    }catch(e){console.warn('CUSTOM SUBJECT PROGRESS LOAD',e);}
+  }
+
+  async function markLessonStarted(card){
+    const client=getClient(), kid=getKid();
+    if(!client || !kid?.id || !activeSubjectId || !card) return;
+    const id=card.dataset.lessonId;
+    const name=card.querySelector('strong')?.textContent?.trim();
+    let lesson=cache.lessons.find(l=>String(l.id)===String(id));
+    if(!lesson && name) lesson=cache.lessons.find(l=>String(l.lesson_name).trim()===name);
+    if(!lesson) return;
+    const status=String(lesson.status||'').toLowerCase();
+    if(!['pending','ready'].includes(status)) return;
+    try{
+      const {error}=await client.from('kid_custom_lessons').update({status:'active',updated_at:new Date().toISOString()}).eq('id',lesson.id).eq('kid_id',kid.id);
+      if(error) throw error;
+      lesson.status='active';
+      paintSide(); paintTree();
+    }catch(e){console.warn('CUSTOM LESSON START TRACK',e);}
+  }
+
+  const original=window.openCustomSubject;
+  if(typeof original==='function'){
+    window.openCustomSubject=async function(subjectId,subjectName){
+      activeSubjectId=subjectId;
+      const result=await original.apply(this,arguments);
+      setTimeout(()=>refresh(subjectId),30);
+      return result;
+    };
+  }
+
+  document.addEventListener('click',function(event){
+    if(!document.body.classList.contains('custom-subject-mode')) return;
+    const card=event.target?.closest?.('#customSubjectTree .custom-topic-card,#customSubjectTree .custom-unit-card,#customSubjectTree .custom-lesson-card');
+    if(!card) return;
+    if(card.classList.contains('custom-lesson-card')) markLessonStarted(card);
+    setTimeout(()=>{paintSide();paintTree();},60);
+  },false);
+
+  window.refreshCustomSubjectProgress=refresh;
+})();
+</script>
+
+<style id="iakidsLearningProgressStyles">
+  .iakids-learning-progress-view{position:absolute;inset:16px;z-index:245;overflow:auto;direction:rtl;border:1px solid rgba(69,149,236,.28);border-radius:26px;background:radial-gradient(circle at 14% 5%,rgba(52,111,255,.17),transparent 30%),radial-gradient(circle at 90% 8%,rgba(44,216,231,.11),transparent 27%),linear-gradient(180deg,#07162f,#041022);color:#eef6ff;box-shadow:0 24px 70px rgba(0,0,0,.38)}
+  .iakids-learning-progress-view[hidden]{display:none!important}
+  .ilp-shell{max-width:1220px;margin:0 auto;padding:24px}
+  .ilp-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+  .ilp-title{display:flex;align-items:center;gap:13px}.ilp-icon{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#337cff,#31d2e8);font-size:23px}.ilp-title h1{margin:0;font-size:29px;font-weight:950}.ilp-title p{margin:4px 0 0;color:#8da6c8;font-size:13px;font-weight:700}
+  .ilp-close{height:42px;padding:0 15px;border-radius:13px;border:1px solid rgba(92,151,225,.28);background:rgba(17,42,77,.82);color:#e2efff;font-weight:900;cursor:pointer}
+  .ilp-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.ilp-summary-card{padding:16px;border-radius:18px;border:1px solid rgba(73,137,210,.22);background:linear-gradient(180deg,rgba(17,43,78,.93),rgba(9,27,54,.94))}.ilp-summary-card strong{display:block;font-size:27px;font-weight:950}.ilp-summary-card span{display:block;margin-top:6px;color:#8fa8c9;font-size:12px;font-weight:800}
+  .ilp-section{margin-top:14px}.ilp-section h2{margin:0 0 12px;font-size:18px;font-weight:950}.ilp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.ilp-card{padding:16px;border:1px solid rgba(72,133,203,.23);border-radius:18px;background:linear-gradient(180deg,rgba(15,38,72,.92),rgba(8,24,49,.94));min-height:128px}.ilp-card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}.ilp-card-title{font-size:17px;font-weight:950}.ilp-card-pct{font-size:21px;font-weight:950;color:#6cddff}.ilp-meta{margin-top:8px;color:#8da5c6;font-size:12px;font-weight:700}.ilp-bar{height:8px;margin-top:14px;border-radius:999px;background:rgba(102,132,173,.16);overflow:hidden}.ilp-bar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#3d74ff,#38d8e6)}.ilp-card.complete .ilp-bar>span{background:linear-gradient(90deg,#31cb70,#66eb8e)}.ilp-card.complete .ilp-card-pct{color:#65e78d}.ilp-empty{padding:26px;text-align:center;color:#8399b9;font-weight:750}
+  @media(max-width:1050px){.ilp-summary{grid-template-columns:repeat(2,1fr)}.ilp-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:700px){.ilp-grid{grid-template-columns:1fr}.ilp-shell{padding:15px}}
+</style>
+<script id="IAKIDS_LEARNING_PROGRESS_VIEW_0743">
+(function(){
+  let view=null;
+  function client(){try{if(typeof sb!=='undefined'&&sb?.from)return sb}catch(e){}return window.sb?.from?window.sb:(window.supabaseClient?.from?window.supabaseClient:null)}
+  function kid(){try{if(typeof CURRENT_KID!=='undefined'&&CURRENT_KID?.id)return CURRENT_KID}catch(e){}return window.CURRENT_KID||window.SELECTED_KID||window.currentKid||null}
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]))}
+  function clamp(v){return Math.max(0,Math.min(100,Math.round(Number(v)||0)))}
+  function ensure(){if(view?.isConnected)return view;const main=document.querySelector('.main');if(!main)return null;main.style.position='relative';view=document.createElement('section');view.id='iakidsLearningProgressView';view.className='iakids-learning-progress-view';view.hidden=true;main.appendChild(view);return view}
+  function close(){const el=ensure();if(el)el.hidden=true;document.querySelectorAll('.kid-actions .side-item').forEach(x=>{if((x.textContent||'').includes('התקדמות'))x.classList.remove('active')})}
+  function groupDefault(rows){const map=new Map();(rows||[]).forEach(r=>{const subject=String(r.learning_lessons?.subject||'').trim();if(!subject)return;if(!map.has(subject))map.set(subject,{name:subject,total:0,completed:0,progress:0,mastery:0});const x=map.get(subject);x.total++;if(r.status==='completed')x.completed++;x.progress+=Number(r.progress_percent||0);x.mastery+=Number(r.mastery_score||0)});return [...map.values()].map(x=>({...x,progress:x.total?Math.round(x.progress/x.total):0,mastery:x.total?Math.round(x.mastery/x.total):0}))}
+  function groupCustom(subjects,lessons){return (subjects||[]).map(s=>{const ls=(lessons||[]).filter(l=>String(l.custom_subject_id)===String(s.id)&&String(l.status)!=='archived');const completed=ls.filter(l=>l.status==='completed').length;const active=ls.filter(l=>l.status==='active').length;return{name:s.subject_name,total:ls.length,completed,progress:ls.length?Math.round(completed/ls.length*100):0,mastery:null,active,personal:true}})}
+  function cards(rows){if(!rows.length)return '<div class="ilp-empty">עדיין אין נתוני התקדמות להצגה.</div>';return `<div class="ilp-grid">${rows.map(x=>`<div class="ilp-card ${x.progress>=100?'complete':''}"><div class="ilp-card-top"><span class="ilp-card-title">${esc(x.name)}</span><span class="ilp-card-pct">${clamp(x.progress)}%</span></div><div class="ilp-meta">${x.completed}/${x.total} שיעורים הושלמו${x.mastery===null?'':` · ${clamp(x.mastery)}% שליטה`}</div><div class="ilp-bar"><span style="width:${clamp(x.progress)}%"></span></div></div>`).join('')}</div>`}
+  async function open(){const el=ensure(),c=client(),k=kid();if(!el)return;el.hidden=false;el.innerHTML='<div class="ilp-empty">טוענים את ההתקדמות שלך...</div>';if(!c||!k?.id){el.innerHTML='<div class="ilp-empty">לא הצלחתי לזהות את פרופיל הילד/ה.</div>';return}
+    try{
+      const [pRes,sRes,lRes]=await Promise.all([
+        c.from('kid_lesson_progress').select('status,progress_percent,mastery_score,lesson_id,learning_lessons(subject,lesson_name)').eq('kid_id',k.id),
+        c.from('kid_custom_subjects').select('id,subject_name,status').eq('kid_id',k.id).eq('status','active'),
+        c.from('kid_custom_lessons').select('id,custom_subject_id,status').eq('kid_id',k.id).neq('status','archived')
+      ]);
+      const defaults=pRes.error?[]:groupDefault(pRes.data||[]);const customs=groupCustom(sRes.error?[]:(sRes.data||[]),lRes.error?[]:(lRes.data||[]));const all=[...defaults,...customs];const total=all.reduce((a,x)=>a+x.total,0),done=all.reduce((a,x)=>a+x.completed,0),overall=total?Math.round(done/total*100):0,activeSubjects=all.filter(x=>x.total>0).length;
+      el.innerHTML=`<div class="ilp-shell"><div class="ilp-head"><div class="ilp-title"><div class="ilp-icon"><i class="fa-solid fa-chart-line"></i></div><div><h1>ההתקדמות שלי</h1><p>התקדמות אמיתית במקצועות של עולם הלמידה</p></div></div><button class="ilp-close" type="button">חזרה</button></div><div class="ilp-summary"><div class="ilp-summary-card"><strong>${overall}%</strong><span>התקדמות כוללת</span></div><div class="ilp-summary-card"><strong>${done}</strong><span>שיעורים שהושלמו</span></div><div class="ilp-summary-card"><strong>${Math.max(0,total-done)}</strong><span>שיעורים שנותרו</span></div><div class="ilp-summary-card"><strong>${activeSubjects}</strong><span>מקצועות פעילים</span></div></div><div class="ilp-section"><h2>מקצועות הליבה</h2>${cards(defaults)}</div>${customs.length?`<div class="ilp-section"><h2>המערכת האישית שלי</h2>${cards(customs)}</div>`:''}</div>`;
+      el.querySelector('.ilp-close')?.addEventListener('click',close)
+    }catch(e){console.error('LEARNING PROGRESS LOAD FAILED',e);el.innerHTML='<div class="ilp-empty">לא הצלחנו לטעון את ההתקדמות כרגע.</div>'}
+  }
+  document.addEventListener('click',function(event){const item=event.target?.closest?.('.kid-actions .side-item');if(!item)return;const text=String(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('התקדמות'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();document.querySelectorAll('.kid-actions .side-item').forEach(x=>x.classList.remove('active'));item.classList.add('active');if(typeof window.closeWorkspaceAchievements==='function')window.closeWorkspaceAchievements();open()},true);
+  window.openLearningProgress=open;window.closeLearningProgress=close;
+})();
+</script>
+
+
+<style id="IAKIDS_LEARNING_DASHBOARD_0744_STYLES">
+  .main{position:relative!important}
+  .iakids-learning-dashboard{position:absolute;inset:12px;z-index:245;overflow:auto;direction:rtl;border:1px solid rgba(67,137,218,.26);border-radius:24px;background:linear-gradient(180deg,#06162d 0%,#041125 100%);color:#eef6ff;box-shadow:0 24px 70px rgba(0,0,0,.38);font-family:"Heebo",Arial,sans-serif}
+  .iakids-learning-dashboard[hidden]{display:none!important}
+  .ild-shell{padding:18px;max-width:1400px;margin:0 auto}
+  .ild-top{display:grid;grid-template-columns:1.6fr .78fr .78fr;gap:14px;margin-bottom:14px}
+  .ild-card{background:linear-gradient(180deg,rgba(17,43,79,.94),rgba(9,27,55,.95));border:1px solid rgba(76,139,218,.22);border-radius:18px;box-shadow:0 10px 28px rgba(0,0,0,.16);overflow:hidden}
+  .ild-welcome{padding:18px 20px}.ild-welcome h1{margin:0;font-size:27px;font-weight:950}.ild-welcome p{margin:4px 0 15px;color:#9ab0cf;font-size:13px}
+  .ild-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.ild-kpi{padding:12px;border-radius:14px;background:rgba(8,27,53,.72);border:1px solid rgba(80,137,207,.18);text-align:center}.ild-kpi i{display:block;font-size:18px;margin-bottom:6px;color:#46d7ff}.ild-kpi strong{font-size:21px}.ild-kpi span{display:block;color:#91a8c8;font-size:11px;margin-top:3px}
+  .ild-mini{padding:15px}.ild-mini h3,.ild-panel h3{margin:0 0 11px;font-size:16px}.ild-next-name{font-size:16px;font-weight:900;margin:8px 0 5px}.ild-muted{color:#8fa6c5;font-size:12px}.ild-btn{width:100%;height:38px;margin-top:12px;border:0;border-radius:11px;background:linear-gradient(90deg,#16b7ff,#2d63ff);color:#fff;font-weight:900;cursor:pointer}
+  .ild-grid{display:grid;grid-template-columns:1.15fr .9fr .9fr;gap:14px;margin-bottom:14px}.ild-panel{padding:16px}.ild-week{height:165px;display:flex;align-items:flex-end;gap:10px;padding:10px 4px 0}.ild-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}.ild-bar-wrap{height:125px;width:100%;display:flex;align-items:flex-end}.ild-bar{width:100%;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#39ddff,#1b63ff);min-height:4px}.ild-day small{font-size:10px;color:#8fa6c5}
+  .ild-activity{display:grid;gap:8px}.ild-activity-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:rgba(8,27,53,.66);border:1px solid rgba(75,130,198,.14)}.ild-activity-icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(61,112,199,.22);color:#60d7ff}.ild-activity-copy{flex:1}.ild-activity-copy b{display:block;font-size:12px}.ild-activity-copy span{display:block;color:#859dbd;font-size:10px;margin-top:2px}
+  .ild-progress-big{font-size:30px;font-weight:950}.ild-progressbar{height:12px;border-radius:999px;background:rgba(95,123,164,.18);overflow:hidden;margin:12px 0 8px}.ild-progressbar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#286cff,#39dbef)}
+  .ild-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}.ild-goals{display:grid;gap:10px}.ild-goal{padding:10px;border-radius:12px;background:rgba(8,27,53,.66);border:1px solid rgba(74,131,203,.14)}.ild-goal-top{display:flex;justify-content:space-between;font-size:11px}.ild-goal .ild-progressbar{height:7px;margin:7px 0 0}
+  .ild-steps{display:grid;gap:9px}.ild-step{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(8,27,53,.66);border:1px solid rgba(74,131,203,.14)}.ild-step-num{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#1a4379;color:#8fdcff;font-weight:900}
+  .ild-subjects{display:grid;gap:8px}.ild-subject{padding:10px;border-radius:12px;background:rgba(8,27,53,.66);border:1px solid rgba(74,131,203,.14)}.ild-subject-head{display:flex;justify-content:space-between;gap:8px;font-size:11px}.ild-close{position:sticky;top:10px;float:left;z-index:3;height:36px;padding:0 13px;border-radius:10px;border:1px solid rgba(89,150,226,.24);background:#102b50;color:#e7f2ff;font-weight:900;cursor:pointer}
+  @media(max-width:1100px){.ild-top,.ild-grid,.ild-bottom{grid-template-columns:1fr}.ild-kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+<script id="IAKIDS_LEARNING_DASHBOARD_0744">
+(function(){
+  let view=null;
+  function getClient(){try{if(typeof sb!=='undefined'&&sb?.from)return sb}catch(_e){} return window.sb?.from?window.sb:(window.supabaseClient?.from?window.supabaseClient:null)}
+  function getKid(){try{if(typeof CURRENT_KID!=='undefined'&&CURRENT_KID?.id)return CURRENT_KID}catch(_e){} return window.CURRENT_KID||window.SELECTED_KID||window.currentKid||null}
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]))}
+  function clamp(v){return Math.max(0,Math.min(100,Math.round(Number(v)||0)))}
+  function ensureButton(){const host=document.querySelector('.kid-actions');if(!host||document.getElementById('iakidsDashboardSidebarBtn'))return;const btn=document.createElement('button');btn.type='button';btn.id='iakidsDashboardSidebarBtn';btn.className='side-item';btn.innerHTML='<i class="fa-solid fa-table-columns"></i><div class="side-text"><div class="side-title">דשבורד</div></div>';const second=host.children[1]; second?host.insertBefore(btn,second):host.appendChild(btn)}
+  function ensureView(){if(view?.isConnected)return view;const main=document.querySelector('.main');if(!main)return null;view=document.createElement('section');view.id='iakidsLearningDashboard';view.className='iakids-learning-dashboard';view.hidden=true;main.appendChild(view);return view}
+  function close(){const el=ensureView();if(el)el.hidden=true;document.getElementById('iakidsDashboardSidebarBtn')?.classList.remove('active')}
+  function weekly(rows){const out=[0,0,0,0,0,0,0],now=new Date();const start=new Date(now);start.setDate(now.getDate()-6);start.setHours(0,0,0,0);(rows||[]).forEach(r=>{const d=new Date(r.updated_at||r.started_at||r.created_at||0);if(d<start)return;const diff=Math.floor((d-start)/86400000);if(diff>=0&&diff<7)out[diff]++});return out}
+  function subjectStats(progress,lessonMap){const map=new Map();(progress||[]).forEach(r=>{const meta=lessonMap.get(String(r.lesson_id));const name=meta?.subject||'למידה';if(!map.has(name))map.set(name,{name,total:0,done:0,sum:0});const x=map.get(name);x.total++;if(r.status==='completed')x.done++;x.sum+=Number(r.progress_percent||0)});return [...map.values()].map(x=>({...x,pct:x.total?Math.round(x.sum/x.total):0})).sort((a,b)=>b.pct-a.pct)}
+  async function open(){ensureButton();const el=ensureView(),client=getClient(),kid=getKid();if(!el)return;el.hidden=false;el.innerHTML='<div class="ild-shell" style="padding:50px;text-align:center;color:#9db7d9"><i class="fa-solid fa-spinner fa-spin"></i><br>טוענים את הדשבורד שלך...</div>';if(!client||!kid?.id){el.innerHTML='<div class="ild-shell">לא הצלחתי לזהות את פרופיל הילד/ה.</div>';return}
+    try{
+      const [pr,hw,custom]=await Promise.all([
+        client.from('kid_lesson_progress').select('lesson_id,status,progress_percent,mastery_score,xp_earned,stars_earned,updated_at').eq('kid_id',kid.id),
+        client.from('homework_sessions').select('status,subject,topic,completed_questions,total_questions,started_at,last_activity_at').eq('kid_id',kid.id).order('started_at',{ascending:false}).limit(12),
+        client.from('kid_custom_subjects').select('id,subject_name,status').eq('kid_id',kid.id).eq('status','active')
+      ]);
+      const progress=pr.error?[]:(pr.data||[]), homeworks=hw.error?[]:(hw.data||[]), customs=custom.error?[]:(custom.data||[]);
+      const ids=[...new Set(progress.map(x=>x.lesson_id).filter(Boolean))];let lessons=[];if(ids.length){const lr=await client.from('learning_lessons').select('id,subject,lesson_name,category').in('id',ids);if(!lr.error)lessons=lr.data||[]}
+      const lessonMap=new Map(lessons.map(x=>[String(x.id),x]));
+      const completed=progress.filter(x=>x.status==='completed').length,total=progress.length,inprog=progress.filter(x=>x.status==='in_progress').length;const avg=total?Math.round(progress.reduce((s,x)=>s+Number(x.progress_percent||0),0)/total):0;const stars=progress.reduce((s,x)=>s+Number(x.stars_earned||0),0);const mastery=total?Math.round(progress.reduce((s,x)=>s+Number(x.mastery_score||0),0)/total):0;
+      const subjects=subjectStats(progress,lessonMap);const active=progress.find(x=>x.status==='in_progress')||progress.find(x=>x.status!=='completed');const activeMeta=active?lessonMap.get(String(active.lesson_id)):null;
+      const w=weekly(progress.concat(homeworks.map(x=>({...x,updated_at:x.last_activity_at||x.started_at}))));const maxW=Math.max(1,...w);const days=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+      const activity=[];progress.slice().sort((a,b)=>new Date(b.updated_at||0)-new Date(a.updated_at||0)).slice(0,3).forEach(x=>{const m=lessonMap.get(String(x.lesson_id));activity.push({icon:'book-open',title:m?.lesson_name||'שיעור לימודי',sub:x.status==='completed'?'השיעור הושלם':'התקדמות בשיעור'})});homeworks.slice(0,2).forEach(x=>activity.push({icon:'list-check',title:x.topic||x.subject||'שיעורי בית',sub:x.status==='completed'?'הושלם':'בתהליך'}));
+      const subjectHtml=subjects.length?subjects.slice(0,5).map(x=>`<div class="ild-subject"><div class="ild-subject-head"><b>${esc(x.name)}</b><span>${x.pct}%</span></div><div class="ild-progressbar"><span style="width:${clamp(x.pct)}%"></span></div></div>`).join(''):'<div class="ild-muted">עדיין אין מספיק נתוני מקצועות.</div>';
+      const activityHtml=activity.length?activity.slice(0,5).map(x=>`<div class="ild-activity-item"><div class="ild-activity-icon"><i class="fa-solid fa-${x.icon}"></i></div><div class="ild-activity-copy"><b>${esc(x.title)}</b><span>${esc(x.sub)}</span></div></div>`).join(''):'<div class="ild-muted">עדיין אין פעילות אחרונה.</div>';
+      el.innerHTML=`<div class="ild-shell"><button class="ild-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button>
+        <div class="ild-top ild-top-reference">
+          <section class="ild-card ild-welcome ild-welcome-reference">
+            <div class="ild-welcome-copy">
+              <h1>ברוך הבא למסלול הלמידה שלך <span class="ild-wave">👋</span></h1>
+              <p>כאן תוכל לעקוב אחרי הקורסים, ההתקדמות שלך והשיעורים הקרובים.</p>
+            </div>
+            <div class="ild-kpis">
+              <div class="ild-kpi ild-kpi-courses"><i class="fa-solid fa-book-open"></i><strong>${subjects.length+customs.length}</strong><span>מקצועות פעילים</span></div>
+              <div class="ild-kpi ild-kpi-progress"><i class="fa-solid fa-clock-rotate-left"></i><strong>${avg}%</strong><span>אחוז התקדמות</span></div>
+              <div class="ild-kpi ild-kpi-done"><i class="fa-solid fa-circle-check"></i><strong>${completed}</strong><span>שיעורים שהושלמו</span></div>
+              <div class="ild-kpi ild-kpi-score"><i class="fa-solid fa-star"></i><strong>${mastery}</strong><span>ציון ממוצע</span></div>
+            </div>
+          </section>
+
+          <section class="ild-card ild-mini ild-last-course-reference">
+            <div class="ild-mini-head"><button type="button" class="ild-mini-link" data-dashboard-home="1"><i class="fa-solid fa-chevron-left"></i> המשך למידה</button><h3><i class="fa-regular fa-square"></i> הקורס האחרון</h3></div>
+            <div class="ild-media-placeholder ild-course-media"><i class="fa-regular fa-image"></i></div>
+            <div class="ild-next-name">${esc(activeMeta?.subject||'מסלול הלמידה')}</div>
+            <div class="ild-muted">${esc(activeMeta?.lesson_name||'בחר שיעור כדי להתחיל')}</div>
+            <div class="ild-progressbar"><span style="width:${clamp(active?.progress_percent||0)}%"></span></div>
+            <div class="ild-mini-meta"><span>${clamp(active?.progress_percent||0)}% הושלם</span><span>${completed} שיעורים הושלמו</span></div>
+            <button class="ild-btn" data-dashboard-home="1">המשך למידה <i class="fa-solid fa-circle-play"></i></button>
+          </section>
+
+          <section class="ild-card ild-mini ild-next-lesson-reference">
+            <div class="ild-mini-head"><h3><i class="fa-regular fa-calendar"></i> השיעור הבא</h3></div>
+            <div class="ild-media-placeholder ild-lesson-media"><i class="fa-regular fa-image"></i></div>
+            <div class="ild-next-name">${esc(activeMeta?.lesson_name||'עדיין לא נבחר שיעור')}</div>
+            <div class="ild-muted">${esc(activeMeta?.subject||'עולם הלמידה')}</div>
+            <button class="ild-btn ild-btn-green" data-dashboard-home="1">המשך לשיעור <i class="fa-solid fa-circle-play"></i></button>
+          </section>
+        </div>
+        <div class="ild-grid">
+          <section class="ild-card ild-panel"><h3>📊 התקדמות שבועית</h3><div class="ild-week">${w.map((v,i)=>`<div class="ild-day"><div class="ild-bar-wrap"><div class="ild-bar" style="height:${Math.max(4,Math.round(v/maxW*100))}%"></div></div><small>${days[i]}</small></div>`).join('')}</div></section>
+          <section class="ild-card ild-panel"><h3>🕘 פעילות אחרונה</h3><div class="ild-activity">${activityHtml}</div></section>
+          <section class="ild-card ild-panel"><h3>📈 התקדמות במסלול</h3><div class="ild-progress-big">${avg}%</div><div class="ild-progressbar"><span style="width:${avg}%"></span></div><div class="ild-muted">${completed} מתוך ${total} שיעורים הושלמו · שליטה ממוצעת ${mastery}%</div></section>
+        </div>
+        <div class="ild-bottom">
+          <section class="ild-card ild-panel"><h3>🎯 יעדי למידה</h3><div class="ild-goals"><div class="ild-goal"><div class="ild-goal-top"><b>לסיים 3 שיעורים השבוע</b><span>${Math.min(3,w.reduce((a,b)=>a+b,0))}/3</span></div><div class="ild-progressbar"><span style="width:${Math.min(100,w.reduce((a,b)=>a+b,0)/3*100)}%"></span></div></div><div class="ild-goal"><div class="ild-goal-top"><b>לשמור על שליטה 90+</b><span>${mastery}%</span></div><div class="ild-progressbar"><span style="width:${mastery}%"></span></div></div><div class="ild-goal"><div class="ild-goal-top"><b>שיעורים בתהליך</b><span>${inprog}</span></div><div class="ild-progressbar"><span style="width:${total?Math.min(100,inprog/total*100):0}%"></span></div></div></div></section>
+          <section class="ild-card ild-panel"><h3>📋 הצעדים הבאים</h3><div class="ild-steps"><div class="ild-step"><div class="ild-step-num">1</div><div><b>המשך את השיעור הנוכחי</b><div class="ild-muted">${esc(activeMeta?.lesson_name||'בחר שיעור חדש')}</div></div></div><div class="ild-step"><div class="ild-step-num">2</div><div><b>סיים שיעורי בית פתוחים</b><div class="ild-muted">${homeworks.filter(x=>x.status!=='completed').length} משימות פתוחות</div></div></div><div class="ild-step"><div class="ild-step-num">3</div><div><b>חזק מקצוע חלש</b><div class="ild-muted">המערכת תציע את הנושא הבא לפי ההתקדמות</div></div></div></div></section>
+          <section class="ild-card ild-panel"><h3>📚 המקצועות שלי</h3><div class="ild-subjects">${subjectHtml}${customs.length?`<div class="ild-muted" style="margin-top:8px">מערכת אישית: ${customs.map(x=>esc(x.subject_name)).join(' · ')}</div>`:''}</div></section>
+        </div>
+      </div>`;
+      el.querySelector('.ild-close')?.addEventListener('click',close);el.querySelectorAll('[data-dashboard-home]').forEach(b=>b.addEventListener('click',()=>{close();document.getElementById('homeSidebarBtn')?.click()}));
+    }catch(e){console.error('LEARNING DASHBOARD LOAD',e);el.innerHTML='<div class="ild-shell"><button class="ild-close">חזרה</button><div style="padding:40px">לא הצלחנו לטעון את הדשבורד כרגע.</div></div>';el.querySelector('.ild-close')?.addEventListener('click',close)}
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(ensureButton,700),{once:true});if(document.readyState!=='loading')setTimeout(ensureButton,700);
+  document.addEventListener('click',e=>{const btn=e.target?.closest?.('#iakidsDashboardSidebarBtn');if(!btn)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();document.querySelectorAll('.kid-actions .side-item').forEach(x=>x.classList.remove('active'));btn.classList.add('active');open()},true);
+  window.openLearningDashboard=open;window.closeLearningDashboard=close;
+})();
+</script>
+
+
+<style id="IAKIDS_DASHBOARD_FIRST_SECTION_0745">
+  #iakidsLearningDashboard .ild-shell{max-width:1460px!important;padding:18px!important}
+  #iakidsLearningDashboard .ild-close{position:absolute!important;left:18px!important;top:18px!important;float:none!important;height:46px!important;padding:0 18px!important;border-radius:13px!important;background:#112f59!important;border:1px solid rgba(91,158,238,.42)!important;font-size:15px!important}
+  #iakidsLearningDashboard .ild-top-reference{direction:ltr!important;display:grid!important;grid-template-columns:minmax(520px,1.55fr) minmax(320px,.9fr) minmax(300px,.82fr)!important;gap:14px!important;align-items:stretch!important;margin-top:0!important;margin-bottom:14px!important}
+  #iakidsLearningDashboard .ild-top-reference>.ild-card{direction:rtl!important;min-height:310px!important;border-radius:20px!important;border:1px solid rgba(71,139,218,.30)!important;background:linear-gradient(180deg,rgba(18,49,91,.96),rgba(7,28,58,.96))!important;box-shadow:0 12px 30px rgba(0,0,0,.20)!important}
+  #iakidsLearningDashboard .ild-welcome-reference{padding:24px 26px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important}
+  #iakidsLearningDashboard .ild-welcome-copy h1{margin:0!important;font-size:31px!important;line-height:1.2!important;font-weight:950!important;letter-spacing:-.4px!important;text-align:right!important}
+  #iakidsLearningDashboard .ild-welcome-copy p{margin:8px 0 22px!important;font-size:15px!important;color:#9fb2cf!important;text-align:right!important}
+  #iakidsLearningDashboard .ild-wave{display:inline-block;margin-right:7px}
+  #iakidsLearningDashboard .ild-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important}
+  #iakidsLearningDashboard .ild-kpi{min-height:145px!important;padding:18px 10px!important;border-radius:16px!important;background:linear-gradient(180deg,rgba(8,31,62,.9),rgba(6,24,50,.9))!important;border:1px solid rgba(79,139,211,.20)!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important}
+  #iakidsLearningDashboard .ild-kpi i{font-size:28px!important;margin-bottom:10px!important}
+  #iakidsLearningDashboard .ild-kpi strong{font-size:31px!important;line-height:1!important;color:#f7fbff!important}
+  #iakidsLearningDashboard .ild-kpi span{font-size:12px!important;color:#9bafca!important;margin-top:8px!important}
+  #iakidsLearningDashboard .ild-kpi-courses i{color:#26e6a5!important}
+  #iakidsLearningDashboard .ild-kpi-progress i{color:#24bfff!important}
+  #iakidsLearningDashboard .ild-kpi-done i{color:#39e5a5!important}
+  #iakidsLearningDashboard .ild-kpi-score i{color:#ffd448!important}
+  #iakidsLearningDashboard .ild-mini{padding:16px!important;display:flex!important;flex-direction:column!important}
+  #iakidsLearningDashboard .ild-mini-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin-bottom:10px!important}
+  #iakidsLearningDashboard .ild-mini-head h3{margin:0!important;font-size:19px!important;font-weight:950!important;color:#f3f8ff!important}
+  #iakidsLearningDashboard .ild-mini-head h3 i{color:#2a78ff!important;margin-left:7px!important}
+  #iakidsLearningDashboard .ild-mini-link{border:0!important;background:transparent!important;color:#338cff!important;font-weight:850!important;font-size:12px!important;cursor:pointer!important}
+  #iakidsLearningDashboard .ild-media-placeholder{height:112px!important;border-radius:13px!important;border:1px solid rgba(74,135,206,.22)!important;background:linear-gradient(145deg,#174374,#0b284e)!important;display:grid!important;place-items:center!important;color:#3f79b3!important;margin:0 0 10px!important;overflow:hidden!important}
+  #iakidsLearningDashboard .ild-media-placeholder i{font-size:38px!important;opacity:.72!important}
+  #iakidsLearningDashboard .ild-next-name{font-size:17px!important;font-weight:950!important;margin:0 0 3px!important;color:#fff!important}
+  #iakidsLearningDashboard .ild-muted{font-size:11px!important;color:#a3b7d0!important}
+  #iakidsLearningDashboard .ild-progressbar{height:8px!important;margin:10px 0 5px!important}
+  #iakidsLearningDashboard .ild-progressbar span{background:linear-gradient(90deg,#19e291,#39d7ae)!important}
+  #iakidsLearningDashboard .ild-mini-meta{display:flex!important;justify-content:space-between!important;gap:8px!important;color:#94abc7!important;font-size:10px!important;margin-bottom:2px!important}
+  #iakidsLearningDashboard .ild-btn{margin-top:auto!important;height:48px!important;border-radius:13px!important;font-size:16px!important;font-weight:950!important;background:linear-gradient(90deg,#18baf8,#2d64ff)!important;box-shadow:0 8px 18px rgba(37,103,255,.20)!important}
+  #iakidsLearningDashboard .ild-btn i{margin-right:6px!important}
+  #iakidsLearningDashboard .ild-btn-green{background:linear-gradient(90deg,#13d38f,#25e1a8)!important;color:#042a27!important;box-shadow:0 8px 18px rgba(25,215,151,.18)!important}
+  @media(max-width:1200px){#iakidsLearningDashboard .ild-top-reference{grid-template-columns:1fr!important;direction:rtl!important}#iakidsLearningDashboard .ild-top-reference>.ild-card{min-height:auto!important}}
+</style>
+
 </body></html>
