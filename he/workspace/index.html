@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.44</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.44";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.45</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.45";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53934,15 +53934,37 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
       const subjectHtml=subjects.length?subjects.slice(0,5).map(x=>`<div class="ild-subject"><div class="ild-subject-head"><b>${esc(x.name)}</b><span>${x.pct}%</span></div><div class="ild-progressbar"><span style="width:${clamp(x.pct)}%"></span></div></div>`).join(''):'<div class="ild-muted">עדיין אין מספיק נתוני מקצועות.</div>';
       const activityHtml=activity.length?activity.slice(0,5).map(x=>`<div class="ild-activity-item"><div class="ild-activity-icon"><i class="fa-solid fa-${x.icon}"></i></div><div class="ild-activity-copy"><b>${esc(x.title)}</b><span>${esc(x.sub)}</span></div></div>`).join(''):'<div class="ild-muted">עדיין אין פעילות אחרונה.</div>';
       el.innerHTML=`<div class="ild-shell"><button class="ild-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button>
-        <div class="ild-top">
-          <section class="ild-card ild-welcome"><h1>👋 ברוך הבא למסלול הלמידה שלך</h1><p>כאן אפשר לעקוב אחרי הקורסים, ההתקדמות והשיעורים הקרובים.</p><div class="ild-kpis">
-            <div class="ild-kpi"><i class="fa-solid fa-star"></i><strong>${stars}</strong><span>כוכבים</span></div>
-            <div class="ild-kpi"><i class="fa-solid fa-circle-check"></i><strong>${completed}</strong><span>שיעורים שהושלמו</span></div>
-            <div class="ild-kpi"><i class="fa-solid fa-chart-pie"></i><strong>${avg}%</strong><span>אחוז התקדמות</span></div>
-            <div class="ild-kpi"><i class="fa-solid fa-book-open"></i><strong>${subjects.length+customs.length}</strong><span>מקצועות פעילים</span></div>
-          </div></section>
-          <section class="ild-card ild-mini"><h3>הקורס האחרון</h3><div class="ild-next-name">${esc(activeMeta?.subject||'מסלול הלמידה')}</div><div class="ild-muted">${esc(activeMeta?.lesson_name||'בחר שיעור כדי להתחיל')}</div><div class="ild-progressbar"><span style="width:${clamp(active?.progress_percent||0)}%"></span></div><button class="ild-btn" data-dashboard-home="1">המשך למידה</button></section>
-          <section class="ild-card ild-mini"><h3>השיעור הבא</h3><div class="ild-next-name">${esc(activeMeta?.lesson_name||'עדיין לא נבחר שיעור')}</div><div class="ild-muted">${esc(activeMeta?.subject||'עולם הלמידה')}</div><button class="ild-btn" data-dashboard-home="1">המשך לשיעור</button></section>
+        <div class="ild-top ild-top-reference">
+          <section class="ild-card ild-welcome ild-welcome-reference">
+            <div class="ild-welcome-copy">
+              <h1>ברוך הבא למסלול הלמידה שלך <span class="ild-wave">👋</span></h1>
+              <p>כאן תוכל לעקוב אחרי הקורסים, ההתקדמות שלך והשיעורים הקרובים.</p>
+            </div>
+            <div class="ild-kpis">
+              <div class="ild-kpi ild-kpi-courses"><i class="fa-solid fa-book-open"></i><strong>${subjects.length+customs.length}</strong><span>מקצועות פעילים</span></div>
+              <div class="ild-kpi ild-kpi-progress"><i class="fa-solid fa-clock-rotate-left"></i><strong>${avg}%</strong><span>אחוז התקדמות</span></div>
+              <div class="ild-kpi ild-kpi-done"><i class="fa-solid fa-circle-check"></i><strong>${completed}</strong><span>שיעורים שהושלמו</span></div>
+              <div class="ild-kpi ild-kpi-score"><i class="fa-solid fa-star"></i><strong>${mastery}</strong><span>ציון ממוצע</span></div>
+            </div>
+          </section>
+
+          <section class="ild-card ild-mini ild-last-course-reference">
+            <div class="ild-mini-head"><button type="button" class="ild-mini-link" data-dashboard-home="1"><i class="fa-solid fa-chevron-left"></i> המשך למידה</button><h3><i class="fa-regular fa-square"></i> הקורס האחרון</h3></div>
+            <div class="ild-media-placeholder ild-course-media"><i class="fa-regular fa-image"></i></div>
+            <div class="ild-next-name">${esc(activeMeta?.subject||'מסלול הלמידה')}</div>
+            <div class="ild-muted">${esc(activeMeta?.lesson_name||'בחר שיעור כדי להתחיל')}</div>
+            <div class="ild-progressbar"><span style="width:${clamp(active?.progress_percent||0)}%"></span></div>
+            <div class="ild-mini-meta"><span>${clamp(active?.progress_percent||0)}% הושלם</span><span>${completed} שיעורים הושלמו</span></div>
+            <button class="ild-btn" data-dashboard-home="1">המשך למידה <i class="fa-solid fa-circle-play"></i></button>
+          </section>
+
+          <section class="ild-card ild-mini ild-next-lesson-reference">
+            <div class="ild-mini-head"><h3><i class="fa-regular fa-calendar"></i> השיעור הבא</h3></div>
+            <div class="ild-media-placeholder ild-lesson-media"><i class="fa-regular fa-image"></i></div>
+            <div class="ild-next-name">${esc(activeMeta?.lesson_name||'עדיין לא נבחר שיעור')}</div>
+            <div class="ild-muted">${esc(activeMeta?.subject||'עולם הלמידה')}</div>
+            <button class="ild-btn ild-btn-green" data-dashboard-home="1">המשך לשיעור <i class="fa-solid fa-circle-play"></i></button>
+          </section>
         </div>
         <div class="ild-grid">
           <section class="ild-card ild-panel"><h3>📊 התקדמות שבועית</h3><div class="ild-week">${w.map((v,i)=>`<div class="ild-day"><div class="ild-bar-wrap"><div class="ild-bar" style="height:${Math.max(4,Math.round(v/maxW*100))}%"></div></div><small>${days[i]}</small></div>`).join('')}</div></section>
@@ -53963,5 +53985,42 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
   window.openLearningDashboard=open;window.closeLearningDashboard=close;
 })();
 </script>
+
+
+<style id="IAKIDS_DASHBOARD_FIRST_SECTION_0745">
+  #iakidsLearningDashboard .ild-shell{max-width:1460px!important;padding:18px!important}
+  #iakidsLearningDashboard .ild-close{position:absolute!important;left:18px!important;top:18px!important;float:none!important;height:46px!important;padding:0 18px!important;border-radius:13px!important;background:#112f59!important;border:1px solid rgba(91,158,238,.42)!important;font-size:15px!important}
+  #iakidsLearningDashboard .ild-top-reference{direction:ltr!important;display:grid!important;grid-template-columns:minmax(520px,1.55fr) minmax(320px,.9fr) minmax(300px,.82fr)!important;gap:14px!important;align-items:stretch!important;margin-top:0!important;margin-bottom:14px!important}
+  #iakidsLearningDashboard .ild-top-reference>.ild-card{direction:rtl!important;min-height:310px!important;border-radius:20px!important;border:1px solid rgba(71,139,218,.30)!important;background:linear-gradient(180deg,rgba(18,49,91,.96),rgba(7,28,58,.96))!important;box-shadow:0 12px 30px rgba(0,0,0,.20)!important}
+  #iakidsLearningDashboard .ild-welcome-reference{padding:24px 26px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important}
+  #iakidsLearningDashboard .ild-welcome-copy h1{margin:0!important;font-size:31px!important;line-height:1.2!important;font-weight:950!important;letter-spacing:-.4px!important;text-align:right!important}
+  #iakidsLearningDashboard .ild-welcome-copy p{margin:8px 0 22px!important;font-size:15px!important;color:#9fb2cf!important;text-align:right!important}
+  #iakidsLearningDashboard .ild-wave{display:inline-block;margin-right:7px}
+  #iakidsLearningDashboard .ild-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important}
+  #iakidsLearningDashboard .ild-kpi{min-height:145px!important;padding:18px 10px!important;border-radius:16px!important;background:linear-gradient(180deg,rgba(8,31,62,.9),rgba(6,24,50,.9))!important;border:1px solid rgba(79,139,211,.20)!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important}
+  #iakidsLearningDashboard .ild-kpi i{font-size:28px!important;margin-bottom:10px!important}
+  #iakidsLearningDashboard .ild-kpi strong{font-size:31px!important;line-height:1!important;color:#f7fbff!important}
+  #iakidsLearningDashboard .ild-kpi span{font-size:12px!important;color:#9bafca!important;margin-top:8px!important}
+  #iakidsLearningDashboard .ild-kpi-courses i{color:#26e6a5!important}
+  #iakidsLearningDashboard .ild-kpi-progress i{color:#24bfff!important}
+  #iakidsLearningDashboard .ild-kpi-done i{color:#39e5a5!important}
+  #iakidsLearningDashboard .ild-kpi-score i{color:#ffd448!important}
+  #iakidsLearningDashboard .ild-mini{padding:16px!important;display:flex!important;flex-direction:column!important}
+  #iakidsLearningDashboard .ild-mini-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin-bottom:10px!important}
+  #iakidsLearningDashboard .ild-mini-head h3{margin:0!important;font-size:19px!important;font-weight:950!important;color:#f3f8ff!important}
+  #iakidsLearningDashboard .ild-mini-head h3 i{color:#2a78ff!important;margin-left:7px!important}
+  #iakidsLearningDashboard .ild-mini-link{border:0!important;background:transparent!important;color:#338cff!important;font-weight:850!important;font-size:12px!important;cursor:pointer!important}
+  #iakidsLearningDashboard .ild-media-placeholder{height:112px!important;border-radius:13px!important;border:1px solid rgba(74,135,206,.22)!important;background:linear-gradient(145deg,#174374,#0b284e)!important;display:grid!important;place-items:center!important;color:#3f79b3!important;margin:0 0 10px!important;overflow:hidden!important}
+  #iakidsLearningDashboard .ild-media-placeholder i{font-size:38px!important;opacity:.72!important}
+  #iakidsLearningDashboard .ild-next-name{font-size:17px!important;font-weight:950!important;margin:0 0 3px!important;color:#fff!important}
+  #iakidsLearningDashboard .ild-muted{font-size:11px!important;color:#a3b7d0!important}
+  #iakidsLearningDashboard .ild-progressbar{height:8px!important;margin:10px 0 5px!important}
+  #iakidsLearningDashboard .ild-progressbar span{background:linear-gradient(90deg,#19e291,#39d7ae)!important}
+  #iakidsLearningDashboard .ild-mini-meta{display:flex!important;justify-content:space-between!important;gap:8px!important;color:#94abc7!important;font-size:10px!important;margin-bottom:2px!important}
+  #iakidsLearningDashboard .ild-btn{margin-top:auto!important;height:48px!important;border-radius:13px!important;font-size:16px!important;font-weight:950!important;background:linear-gradient(90deg,#18baf8,#2d64ff)!important;box-shadow:0 8px 18px rgba(37,103,255,.20)!important}
+  #iakidsLearningDashboard .ild-btn i{margin-right:6px!important}
+  #iakidsLearningDashboard .ild-btn-green{background:linear-gradient(90deg,#13d38f,#25e1a8)!important;color:#042a27!important;box-shadow:0 8px 18px rgba(25,215,151,.18)!important}
+  @media(max-width:1200px){#iakidsLearningDashboard .ild-top-reference{grid-template-columns:1fr!important;direction:rtl!important}#iakidsLearningDashboard .ild-top-reference>.ild-card{min-height:auto!important}}
+</style>
 
 </body></html>
