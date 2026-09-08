@@ -1,0 +1,34 @@
+name: Add workspace achievements view 0.7.62
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add-workspace-achievements-view-0762.py'
+      - '.github/workflows/add-workspace-achievements-view-0762.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply workspace achievements patch
+        run: python .github/scripts/add-workspace-achievements-view-0762.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html he/workspace/lesson-completion.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add workspace achievements view; bump to 0.7.62"
+          git push origin main
