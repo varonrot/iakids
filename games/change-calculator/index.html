@@ -96,28 +96,37 @@ function distractors(answer, extra) {
 }
 
 function makeQuestion(lvl) {
+  // Raw values only in the returned payload — the bank rejects HTML (any
+  // client-written row is untrusted content). The markup this used to build
+  // inline now lives in questionHTML(), called only at render time in next().
   if (lvl === 3) { // כמה פריטים יחד
     const items = pickItems(2 + rnd(2));
     const prices = items.map(() => 5 + rnd(26));
     const total = prices.reduce((a, b) => a + b, 0);
     const paid = total < 50 ? 50 : 100;
     const answer = paid - total;
-    const lines = items.map(([e, name], i) =>
-      `<div style="font-size:1.3rem">${e} ${T(name)} — ${shek(prices[i])}</div>`).join('');
-    const html = `<div style="font-size:1.1rem">${T(STR.bought)}</div>${lines}` +
-      `<div style="font-size:1.1rem">${T(STR.paid).replace('{p}', shek(paid))}</div><b>${T(STR.howMuch)}</b>`;
-    const options = shuffle([answer, ...distractors(answer, [total, total + 10])]).map(v => ({ html: shek(v), ok: v === answer }));
-    return { html, options, answer, total, paid, key: items.map(x => x[0]).join('') + ':' + prices.join(',') };
+    const options = shuffle([answer, ...distractors(answer, [total, total + 10])]).map(v => ({ v, ok: v === answer }));
+    return { mode: 'multi', items, prices, options, answer, total, paid,
+             key: items.map(x => x[0]).join('') + ':' + prices.join(',') };
   }
   const paid = lvl === 1 ? 10 : 50;
   const price = lvl === 1 ? 2 + rnd(8) : 11 + rnd(38);
   const [emoji, name] = pickItems(1)[0];
   const answer = paid - price;
-  const html = `<div style="font-size:3.2rem">${emoji}</div>` +
-    `<div style="font-size:1.2rem">${T(STR.costs).replace('{item}', T(name)).replace('{p}', shek(price))}</div>` +
-    `<div style="font-size:1.2rem">${T(STR.paid).replace('{p}', shek(paid))}</div><b>${T(STR.howMuch)}</b>`;
-  const options = shuffle([answer, ...distractors(answer, [price, paid])]).map(v => ({ html: shek(v), ok: v === answer }));
-  return { html, options, answer, total: price, paid, key: emoji + ':' + price + ':' + paid };
+  const options = shuffle([answer, ...distractors(answer, [price, paid])]).map(v => ({ v, ok: v === answer }));
+  return { mode: 'single', emoji, name, options, answer, total: price, paid,
+           key: emoji + ':' + price + ':' + paid };
+}
+function questionHTML(q) {
+  if (q.mode === 'multi') {
+    const lines = q.items.map(([e, name], i) =>
+      `<div style="font-size:1.3rem">${e} ${T(name)} — ${shek(q.prices[i])}</div>`).join('');
+    return `<div style="font-size:1.1rem">${T(STR.bought)}</div>${lines}` +
+      `<div style="font-size:1.1rem">${T(STR.paid).replace('{p}', shek(q.paid))}</div><b>${T(STR.howMuch)}</b>`;
+  }
+  return `<div style="font-size:3.2rem">${q.emoji}</div>` +
+    `<div style="font-size:1.2rem">${T(STR.costs).replace('{item}', T(q.name)).replace('{p}', shek(q.total))}</div>` +
+    `<div style="font-size:1.2rem">${T(STR.paid).replace('{p}', shek(q.paid))}</div><b>${T(STR.howMuch)}</b>`;
 }
 /*END GEN*/
 
@@ -177,13 +186,13 @@ async function next() {
   document.getElementById('qnum').textContent = qnum;
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
   current = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
-  document.getElementById('question').innerHTML = current.html;
+  document.getElementById('question').innerHTML = questionHTML(current);
   const box = document.getElementById('answers');
   box.innerHTML = '';
   current.options.forEach((o, i) => {
     const b = document.createElement('button');
     b.className = 'game-btn';
-    b.innerHTML = o.html;
+    b.innerHTML = shek(o.v);
     b.onclick = () => answer(i, b);
     box.appendChild(b);
   });

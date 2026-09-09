@@ -121,8 +121,10 @@ function makeQuestion(lvl) {
     t = c;
     if (isUniqueOutlier(c.nums, 3)) break; // ponytail: 500 כשלונות רצופים — כמעט בלתי אפשרי סטטיסטית
   }
-  const options = shuffle(t.nums.map((v, i) => ({ html: ltr(String(v)), ok: i === 3, v })));
-  return { html: T(STR.q), options, rule: t.rule, answer: t.nums[3], nums: t.nums,
+  // Raw values only — the bank rejects HTML in payloads (any client-written row is
+  // untrusted content). ltr() wrapping happens at render time in next() instead.
+  const options = shuffle(t.nums.map((v, i) => ({ ok: i === 3, v })));
+  return { text: T(STR.q), options, rule: t.rule, answer: t.nums[3], nums: t.nums,
            key: lvl + ':' + [...t.nums].sort((a, b) => a - b).join(',') };
 }
 /*END GEN*/
@@ -184,13 +186,13 @@ async function next() {
   document.getElementById('rule-line').textContent = '';
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
   current = await game.newQuestion(() => makeQuestion(lvl), q => q.key);
-  document.getElementById('question').innerHTML = current.html;
+  document.getElementById('question').textContent = current.text;
   const box = document.getElementById('answers');
   box.innerHTML = '';
   current.options.forEach((o, i) => {
     const b = document.createElement('button');
     b.className = 'game-btn';
-    b.innerHTML = o.html;
+    b.innerHTML = ltr(String(o.v));
     b.onclick = () => answer(i, b);
     box.appendChild(b);
   });

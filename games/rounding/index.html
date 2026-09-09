@@ -498,18 +498,27 @@ function makeQuestion(lvl){
       answer,
       ...distractors
     ]).map(value=>({
-      html:ltr(String(value)),
+      v:value,
       ok:value === answer
     }));
 
+  // Raw values only in the returned payload — the bank rejects HTML (any
+  // client-written row is untrusted content). questionHTML() rebuilds the
+  // same markup at render time in next() instead.
   return {
-    html:T(conf.q).replace('{n}',ltr(n)),
     options,
     answer,
     n,
     unit:conf.unit,
     key:`${conf.unit}:${n}`
   };
+}
+
+function questionHTML(q){
+  // Rebuilt from STR at render time (not a module-load-time snapshot) so a
+  // niqqud toggle that reassigns STR is still reflected, same as before.
+  const label = {10:STR.q10,100:STR.q100,1000:STR.q1000}[q.unit];
+  return T(label).replace('{n}',ltr(q.n));
 }
 
 IAKidsCoins.mount();
@@ -660,7 +669,7 @@ async function next(){
   IAKidsActivity.questionStarted();
 
   $('question').innerHTML =
-    current.html;
+    questionHTML(current);
 
   const box = $('answers');
   box.innerHTML = '';
@@ -674,7 +683,7 @@ async function next(){
         'game-btn';
 
       button.innerHTML =
-        option.html;
+        ltr(String(option.v));
 
       button.onclick =
         ()=>answer(index,button);

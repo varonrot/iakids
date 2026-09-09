@@ -102,54 +102,70 @@ function setRounds(n, btn) {
    count is computed, never guessed ---- */
 
 // level 1: separate shapes scattered on a grid — count = number drawn
+// Generators below return raw shape params, not rendered SVG — the bank
+// rejects markup in a payload (any client-written row is untrusted content).
+// svgFor() builds the actual <svg> at render time in next() instead. Scatter
+// re-randomizes cell positions/colors on each render rather than freezing
+// them in the payload; that was already non-deterministic per makeQuestion()
+// call, so a fresh layout on re-render changes nothing about the question.
 function genScatter() {
   const nTri = 2 + rnd(4);                                 // 2..5
   const nRect = 2 + rnd(Math.min(5, 9 - nTri) - 1);        // 2..min(5, 9−nTri) — never exceeds the 9 grid cells
-  const cells = [...Array(9).keys()];
-  for (let i = cells.length - 1; i > 0; i--) { const j = rnd(i + 1); [cells[i], cells[j]] = [cells[j], cells[i]]; }
-  let svg = '';
-  const place = (idx, isTri) => {
-    const c = cells[idx], cx = 55 + (c % 3) * 95 + rnd(17) - 8, cy = 42 + Math.floor(c / 3) * 60 + rnd(13) - 6;
-    const col = COLORS[rnd(COLORS.length)];
-    if (isTri) svg += `<polygon points="${cx},${cy - 20} ${cx - 22},${cy + 16} ${cx + 22},${cy + 16}" fill="${col}" opacity="0.85"/>`;
-    else svg += `<rect x="${cx - 22}" y="${cy - 15}" width="44" height="30" rx="2" fill="${col}" opacity="0.85"/>`;
-  };
-  for (let i = 0; i < nTri; i++) place(i, true);
-  for (let i = 0; i < nRect; i++) place(nTri + i, false);
   const askTri = Math.random() < 0.5;
   return { key: `sc${nTri}-${nRect}-${askTri ? 't' : 'r'}`, askTri, answer: askTri ? nTri : nRect,
-           svg: `<svg viewBox="0 0 300 200">${svg}</svg>`,
+           shape: { type: 'scatter', nTri, nRect },
            cands: [/*wrong kind*/ askTri ? nRect : nTri], hint: false };
 }
 
 // triangle fan: k cevians from apex to base (+optional midline parallel to base).
 // rays through apex = k+2, horizontal cuts = mids+1 → triangles = (mids+1)·C(k+2,2)
 function genFan(k, midline) {
-  const A = [150, 22], y = 168, x0 = 38, x1 = 262;
-  let svg = `<polygon points="${A} ${x0},${y} ${x1},${y}" fill="#e3f0ff" stroke="#2b3a55" stroke-width="3"/>`;
-  const baseX = [];
-  for (let i = 1; i <= k; i++) baseX.push(x0 + (x1 - x0) * i / (k + 1));
-  for (const bx of baseX) svg += `<line x1="${A[0]}" y1="${A[1]}" x2="${bx}" y2="${y}" stroke="#2b3a55" stroke-width="3"/>`;
-  if (midline) {
-    const t = 0.55, lx = A[0] + t * (x0 - A[0]), rx = A[0] + t * (x1 - A[0]), my = A[1] + t * (y - A[1]);
-    svg += `<line x1="${lx}" y1="${my}" x2="${rx}" y2="${my}" stroke="#2b3a55" stroke-width="3"/>`;
-  }
   const answer = (midline ? 2 : 1) * C2(k + 2);
   return { key: `fan${k}${midline ? 'm' : ''}`, askTri: true, answer,
-           svg: `<svg viewBox="0 0 300 200">${svg}</svg>`,
+           shape: { type: 'fan', k, midline },
            cands: [k + 1, (midline ? 2 : 1) * (k + 1)], hint: true }; // "visible small parts" trap
 }
 
 // rectangle split into a grid of m rows × n cols → rectangles = C(m+1,2)·C(n+1,2)
 function genGrid(m, n) {
-  const x = 45, y = 45, W = 210, H = 115;
-  let svg = `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#ffe9dd" stroke="#2b3a55" stroke-width="3"/>`;
-  for (let i = 1; i < n; i++) svg += `<line x1="${x + W * i / n}" y1="${y}" x2="${x + W * i / n}" y2="${y + H}" stroke="#2b3a55" stroke-width="3"/>`;
-  for (let i = 1; i < m; i++) svg += `<line x1="${x}" y1="${y + H * i / m}" x2="${x + W}" y2="${y + H * i / m}" stroke="#2b3a55" stroke-width="3"/>`;
   const answer = C2(m + 1) * C2(n + 1); // grid has m+1 horizontal, n+1 vertical lines; pick 2 of each
   return { key: `gr${m}x${n}`, askTri: false, answer,
-           svg: `<svg viewBox="0 0 300 200">${svg}</svg>`,
+           shape: { type: 'grid', m, n },
            cands: [m * n, m * n + 1], hint: true };
+}
+
+function svgFor(s) {
+  if (s.type === 'scatter') {
+    const cells = [...Array(9).keys()];
+    for (let i = cells.length - 1; i > 0; i--) { const j = rnd(i + 1); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+    let svg = '';
+    const place = (idx, isTri) => {
+      const c = cells[idx], cx = 55 + (c % 3) * 95 + rnd(17) - 8, cy = 42 + Math.floor(c / 3) * 60 + rnd(13) - 6;
+      const col = COLORS[rnd(COLORS.length)];
+      if (isTri) svg += `<polygon points="${cx},${cy - 20} ${cx - 22},${cy + 16} ${cx + 22},${cy + 16}" fill="${col}" opacity="0.85"/>`;
+      else svg += `<rect x="${cx - 22}" y="${cy - 15}" width="44" height="30" rx="2" fill="${col}" opacity="0.85"/>`;
+    };
+    for (let i = 0; i < s.nTri; i++) place(i, true);
+    for (let i = 0; i < s.nRect; i++) place(s.nTri + i, false);
+    return `<svg viewBox="0 0 300 200">${svg}</svg>`;
+  }
+  if (s.type === 'fan') {
+    const A = [150, 22], y = 168, x0 = 38, x1 = 262;
+    let svg = `<polygon points="${A} ${x0},${y} ${x1},${y}" fill="#e3f0ff" stroke="#2b3a55" stroke-width="3"/>`;
+    const baseX = [];
+    for (let i = 1; i <= s.k; i++) baseX.push(x0 + (x1 - x0) * i / (s.k + 1));
+    for (const bx of baseX) svg += `<line x1="${A[0]}" y1="${A[1]}" x2="${bx}" y2="${y}" stroke="#2b3a55" stroke-width="3"/>`;
+    if (s.midline) {
+      const t = 0.55, lx = A[0] + t * (x0 - A[0]), rx = A[0] + t * (x1 - A[0]), my = A[1] + t * (y - A[1]);
+      svg += `<line x1="${lx}" y1="${my}" x2="${rx}" y2="${my}" stroke="#2b3a55" stroke-width="3"/>`;
+    }
+    return `<svg viewBox="0 0 300 200">${svg}</svg>`;
+  }
+  const x = 45, y = 45, W = 210, H = 115;
+  let svg = `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#ffe9dd" stroke="#2b3a55" stroke-width="3"/>`;
+  for (let i = 1; i < s.n; i++) svg += `<line x1="${x + W * i / s.n}" y1="${y}" x2="${x + W * i / s.n}" y2="${y + H}" stroke="#2b3a55" stroke-width="3"/>`;
+  for (let i = 1; i < s.m; i++) svg += `<line x1="${x}" y1="${y + H * i / s.m}" x2="${x + W}" y2="${y + H * i / s.m}" stroke="#2b3a55" stroke-width="3"/>`;
+  return `<svg viewBox="0 0 300 200">${svg}</svg>`;
 }
 
 // level 2: overlapping · level 3: shapes within shapes
@@ -189,7 +205,7 @@ async function next() {
   document.getElementById('q-text').textContent = IAKidsLang.t(q.askTri ? T.ask_tri : T.ask_rect);
   document.getElementById('hint').textContent = IAKidsLang.t(T.hint);
   document.getElementById('hint').hidden = !q.hint;
-  document.getElementById('shape').innerHTML = q.svg;
+  document.getElementById('shape').innerHTML = svgFor(q.shape);
   const grid = document.getElementById('answers');
   grid.innerHTML = '';
   for (const o of q.opts) {

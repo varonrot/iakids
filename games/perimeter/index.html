@@ -397,9 +397,10 @@ function makeQuestion(lvl){
 
     q={
       key:`r${w}x${h}`,
-      svg:rectSVG(w,h,null),
+      shape:{type:'rect',w,h,hide:null},
       answer:P,
       ask:'perim',
+      P,
       cands:[P+2,P-2,P+4,w+h,P-4,w*h]
     };
 
@@ -409,9 +410,10 @@ function makeQuestion(lvl){
 
       q={
         key:`t${[a,b,c].sort().join('-')}`,
-        svg:triSVG(a,b,c,null),
+        shape:{type:'tri',a,b,c,hide:null},
         answer:P,
         ask:'perim',
+        P,
         cands:[P+1,P-1,P+2,P-2,a+b,P+3]
       };
 
@@ -420,9 +422,10 @@ function makeQuestion(lvl){
 
       q={
         key:`p${s}`,
-        svg:pentSVG(s),
+        shape:{type:'pent',s},
         answer:P,
         ask:'perim',
+        P,
         cands:[4*s,6*s,P+5,P-5,P+s,3*s]
       };
     }
@@ -433,7 +436,7 @@ function makeQuestion(lvl){
 
       q={
         key:`mr${w}x${h}`,
-        svg:rectSVG(w,h,'h'),
+        shape:{type:'rect',w,h,hide:'h'},
         answer:h,
         ask:'side',
         P,
@@ -445,7 +448,7 @@ function makeQuestion(lvl){
 
       q={
         key:`mt${a}-${b}-${c}`,
-        svg:triSVG(a,b,c,'c'),
+        shape:{type:'tri',a,b,c,hide:'c'},
         answer:c,
         ask:'side',
         P,
@@ -471,6 +474,15 @@ function makeQuestion(lvl){
 
   q.opts=opts;
   return q;
+}
+
+// Rebuilds the shape's SVG at render time from the raw params in q.shape —
+// the bank rejects HTML/SVG markup in a payload (any client-written row is
+// untrusted content), so makeQuestion() no longer stores the rendered string.
+function svgFor(s){
+  if(s.type==='rect') return rectSVG(s.w,s.h,s.hide);
+  if(s.type==='tri')  return triSVG(s.a,s.b,s.c,s.hide);
+  return pentSVG(s.s);
 }
 
 async function start(lvl){
@@ -542,7 +554,7 @@ async function next(){
       ? IAKidsLang.t(T.ask_perim)
       : IAKidsLang.t(T.ask_side).replace('{p}',q.P);
 
-  $('shape').innerHTML=q.svg;
+  $('shape').innerHTML=svgFor(q.shape);
 
   const grid=$('answers');
   grid.innerHTML='';

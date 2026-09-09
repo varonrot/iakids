@@ -422,12 +422,14 @@ function makeQuestion(lvl){
         answer,
         ...distractors
       ]).map(value=>({
-        html:ltr(value),
+        v:value,
         ok:value === answer
       }));
 
+    // Raw values only in the returned payload — the bank rejects HTML (any
+    // client-written row is untrusted content). questionHTML() rebuilds the
+    // same markup at render time in next() instead.
     return {
-      html:T(STR.decomp).replace('{n}',ltr(n)),
       options,
       answer,
       n,
@@ -498,22 +500,23 @@ function makeQuestion(lvl){
       answer,
       ...distractors
     ]).map(value=>({
-      html:ltr(String(value)),
+      v:value,
       ok:value === answer
     }));
 
   return {
-    html:
-      T(STR.howMany)
-        .replace('{p}',T(STR[place]))
-        .replace('{n}',ltr(n)),
-
     options,
     answer,
     n,
     place,
     key:`${place}:${n}`
   };
+}
+
+function questionHTML(q){
+  return q.place === 'decomp'
+    ? T(STR.decomp).replace('{n}',ltr(q.n))
+    : T(STR.howMany).replace('{p}',T(STR[q.place])).replace('{n}',ltr(q.n));
 }
 
 IAKidsCoins.mount();
@@ -671,7 +674,7 @@ async function next(){
   IAKidsActivity.questionStarted();
 
   $('question').innerHTML =
-    current.html;
+    questionHTML(current);
 
   const box = $('answers');
 
@@ -686,7 +689,7 @@ async function next(){
         'game-btn';
 
       button.innerHTML =
-        option.html;
+        ltr(String(option.v));
 
       button.onclick =
         ()=>answer(index,button);
