@@ -6,13 +6,23 @@
 <title>מחזור המים בטבע | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* water/sky theme — the game is literally about rain, clouds and the sea, so
+   the default warm orange brand palette looked out of place. Overrides only
+   --accent/--accent-soft/--bg (decorative); --text/--card/--yellow are left
+   alone so the shared coin badge and sign-in widget keep working correctly
+   (see the food-chain fix for why that matters). */
+:root{
+  --accent:#2f8fd8;
+  --accent-soft:#e3f3fd;
+  --bg:linear-gradient(160deg,#eaf6ff 0%,#d3ecff 100%);
+}
 .chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:110px;min-height:56px;padding:8px 14px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.15rem;font-weight:800;cursor:grab;touch-action:none}
 .chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
 #tray,#seq-tray{min-height:76px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
 #illustration{position:relative;width:100%;max-width:440px;margin:8px auto;aspect-ratio:300/180;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
 #illustration svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .hotspot{position:absolute;border:3px dashed rgba(59,130,246,.55);border-radius:14px;transition:background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;text-align:center}
-.hotspot.over{border-color:var(--accent);background:rgba(255,106,42,.25)}
+.hotspot.over{border-color:var(--accent);background:rgba(47,143,216,.25)}
 .hotspot.filled{border-style:solid;border-color:var(--green);background:rgba(34,197,94,.35)}
 .hotspot span{background:#fff;border-radius:10px;padding:3px 8px;font-weight:800;font-size:0.95rem;box-shadow:var(--shadow)}
 #seq-slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
