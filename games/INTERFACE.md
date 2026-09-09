@@ -40,7 +40,27 @@ IAKidsCoins.wrong();          // -5, floors at 0
 ```js
 const q = await game.newQuestion(() => makeQuestion(level), q => q.text); // keyFn = identity
 ```
-Skips the player's last ~300 answered questions; auto-resets when the pool is exhausted so the game never dead-ends.
+Skips everything this player already answered — locally (IndexedDB, last 2000) and, for a
+signed-in child (`localStorage.active_kid_id`), in Supabase (`kid_question_answers`). When the
+generator can't find a fresh question it pulls unanswered ones from the shared bank
+(`game_questions`); only when that is empty too does the local history reset, so the game
+never dead-ends. Every generated question is upserted into the bank (unique per game + key),
+so the bank grows with play.
+
+A client-written row is untrusted content — anyone signed in can post one, and the bank is
+read by every child — so the bank only ever *serves* rows marked `verified`, or seeded /
+authored server-side. Until the verifier has passed over a game, `newQuestion` therefore
+behaves exactly as it always did: generator first, local reset on exhaustion. Growing the
+bank and serving from it are deliberately two separate steps. The answer outcome is recorded automatically the moment the game
+calls `IAKidsCoins.right()` / `.wrong()` (or `IAKidsActivity.correct()` / `.wrong()`).
+
+**Pick a keyFn that identifies the *question*, not the rendering.** `x => x.word` is right;
+`x => x.word + x.options.join('')` is wrong — a reshuffled option order would count as a new
+question and the child sees the same word again. Pass `{ level }` as the third argument if
+your generator's level differs from `game.difficulty().level`.
+
+Schema: `supabase/migrations/20260908_game_question_bank.sql`. Guests (no active child) stay
+local-only, exactly as before.
 
 ### 5. Adaptive difficulty
 ```js

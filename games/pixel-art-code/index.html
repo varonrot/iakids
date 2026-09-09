@@ -112,10 +112,34 @@ const COLORS = [
 // 'X' = filled cell in the target picture, '.' = stays white
 const PATTERNS = {
   5: {
+    diamond: ['..X..', '.XXX.', 'XXXXX', '.XXX.', '..X..'],
+    house: ['..X..', '.XXX.', 'XXXXX', '.XXX.', '.X.X.'],
+    ring: ['XXXXX', 'X...X', 'X...X', 'X...X', 'XXXXX'],
+    cross: ['X...X', '.X.X.', '..X..', '.X.X.', 'X...X'],
+    checker: ['X.X.X', '.X.X.', 'X.X.X', '.X.X.', 'X.X.X'],
+    arrow: ['..X..', '.XXX.', 'XXXXX', '..X..', '..X..'],
+    tree: ['..X..', '.XXX.', 'XXXXX', '..X..', '.XXX.'],
+    boat: ['..X..', '..X..', '..X..', 'XXXXX', '.XXX.'],
+    cup: ['XXXXX', 'X...X', 'X...X', '.XXX.', '..X..'],
+    fish: ['....X', '.XXXX', 'XXXXX', '.XXXX', '....X'],
+    smile: ['.XXX.', 'X.X.X', 'X...X', 'X.X.X', '.XXX.'],
+    letterT: ['XXXXX', '..X..', '..X..', '..X..', '..X..'],
     heart: ['.X.X.', 'XXXXX', 'XXXXX', '.XXX.', '..X..'],
     star: ['..X..', '..X..', 'XXXXX', '..X..', '..X..'],
   },
   8: {
+    smiley: ['..XXXX..', '.X....X.', 'X.X..X.X', 'X......X', 'X.X..X.X', 'X..XX..X', '.X....X.', '..XXXX..'],
+    house: ['...XX...', '..XXXX..', '.XXXXXX.', 'XXXXXXXX', '.X....X.', '.X.XX.X.', '.X.XX.X.', '.XXXXXX.'],
+    tree: ['...XX...', '..XXXX..', '.XXXXXX.', 'XXXXXXXX', '..XXXX..', '...XX...', '...XX...', '...XX...'],
+    fish: ['......X.', '.....XX.', '.XXX.XXX', 'XXXXXXXX', 'XXXXXXXX', '.XXX.XXX', '.....XX.', '......X.'],
+    arrow: ['...XX...', '..XXXX..', '.XXXXXX.', 'XXXXXXXX', '...XX...', '...XX...', '...XX...', '...XX...'],
+    ring: ['XXXXXXXX', 'X......X', 'X......X', 'X......X', 'X......X', 'X......X', 'X......X', 'XXXXXXXX'],
+    checker: ['XX..XX..', 'XX..XX..', '..XX..XX', '..XX..XX', 'XX..XX..', 'XX..XX..', '..XX..XX', '..XX..XX'],
+    diamond: ['...XX...', '..XXXX..', '.XXXXXX.', 'XXXXXXXX', 'XXXXXXXX', '.XXXXXX.', '..XXXX..', '...XX...'],
+    cat: ['X......X', 'XX....XX', 'XXXXXXXX', 'XX.XX.XX', 'XXXXXXXX', 'X.XXXX.X', 'XXXXXXXX', '.X.XX.X.'],
+    boat: ['...XX...', '...XX...', '...XX...', '...XX...', 'XXXXXXXX', '.XXXXXX.', '..XXXX..', '........'],
+    flower: ['..XXXX..', '.X....X.', 'X..XX..X', 'X.XXXX.X', 'X..XX..X', '.X.XX.X.', '...XX...', '...XX...'],
+    plus: ['...XX...', '...XX...', '...XX...', 'XXXXXXXX', 'XXXXXXXX', '...XX...', '...XX...', '...XX...'],
     heart: ['.XX..XX.', 'XXXXXXXX', 'XXXXXXXX', 'XXXXXXXX', '.XXXXXX.', '..XXXX..', '...XX...', '........'],
     star: ['...XX...', '...XX...', '..XXXX..', '.XXXXXX.', 'XXXXXXXX', '...XX...', '..XXXX..', '.X....X.'],
   },
@@ -172,7 +196,10 @@ async function start(lvl) {
 function makeQuestion(lvl) {
   const n = lvl === 1 ? 5 : 8;
   const ranged = lvl === 3;
-  const name = Math.random() < 0.5 ? 'heart' : 'star';
+  // pick from every pattern of this size — was hardcoded to heart/star, which
+  // capped the game at 12 distinct pictures no matter how many were defined
+  const names = Object.keys(PATTERNS[n]);
+  const name = names[rnd(names.length)];
   const matrix = toMatrix(PATTERNS[n][name]);
   const color = COLORS[rnd(COLORS.length)];
   const commands = buildCommands(matrix, n, ranged);

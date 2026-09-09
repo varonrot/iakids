@@ -381,7 +381,7 @@ const FLAGS_REGULAR = {
     <rect width="15" height="40" fill="#FF0000"/>
     <rect x="15" width="30" height="40" fill="#fff"/>
     <rect x="45" width="15" height="40" fill="#FF0000"/>
-    <polygon points="30,10 32,17 38,15 34,21 39,24 32,24 33,31 30,26 27,31 28,24 21,24 26,21 22,15 28,17" fill="#FF0000"/>`},
+    <polygon points="30,7 31.2,11.5 35.5,10.7 34.6,15.2 39.5,14.2 38.2,17.6 44,21.5 41.6,22.6 42.8,26.5 36,25.5 35.5,27.8 31.5,24.2 32.4,33 27.6,33 28.5,24.2 24.5,27.8 24,25.5 17.2,26.5 18.4,22.6 16,21.5 21.8,17.6 20.5,14.2 25.4,15.2 24.5,10.7 28.8,11.5" fill="#FF0000"/>`},
 
   EG:{name:{he:'מצרים',en:'Egypt'},tier:3,svg:`${stripesH(['#CE1126','#fff','#000'])}<circle cx="30" cy="20" r="4" fill="#C09300"/>`},
 
@@ -407,7 +407,110 @@ const FLAGS_REGULAR = {
   BR:{name:{he:'ברזיל',en:'Brazil'},tier:3,svg:`
     <rect width="60" height="40" fill="#009739"/>
     <polygon points="30,6 52,20 30,34 8,20" fill="#FEDD00"/>
-    <circle cx="30" cy="20" r="7.5" fill="#002776"/>`}
+    <circle cx="30" cy="20" r="7.5" fill="#002776"/>`},
+  // ---- added: plain tricolours (helpers do the drawing) ----
+  NL:{name:{he:'הולנד',en:'Netherlands'},tier:1,svg:stripesH(['#AE1C28','#fff','#21468B'])},
+  PL:{name:{he:'פולין',en:'Poland'},tier:1,svg:stripesH(['#fff','#DC143C'])},
+  UA:{name:{he:'אוקראינה',en:'Ukraine'},tier:1,svg:stripesH(['#0057B7','#FFD700'])},
+  BE:{name:{he:'בלגיה',en:'Belgium'},tier:1,svg:stripesV(['#000000','#FDDA24','#EF3340'])},
+  IE:{name:{he:'אירלנד',en:'Ireland'},tier:1,svg:stripesV(['#169B62','#fff','#FF883E'])},
+  AT:{name:{he:'אוסטריה',en:'Austria'},tier:1,svg:stripesH(['#ED2939','#fff','#ED2939'])},
+  ID:{name:{he:'אינדונזיה',en:'Indonesia'},tier:1,svg:stripesH(['#CE1126','#fff'])},
+  RO:{name:{he:'רומניה',en:'Romania'},tier:2,svg:stripesV(['#002B7F','#FCD116','#CE1126'])},
+  HU:{name:{he:'הונגריה',en:'Hungary'},tier:2,svg:stripesH(['#CE2939','#fff','#477050'])},
+  BG:{name:{he:'בולגריה',en:'Bulgaria'},tier:2,svg:stripesH(['#fff','#00966E','#D62612'])},
+  LT:{name:{he:'ליטא',en:'Lithuania'},tier:2,svg:stripesH(['#FDB913','#006A44','#C1272D'])},
+  EE:{name:{he:'אסטוניה',en:'Estonia'},tier:2,svg:stripesH(['#0072CE','#000000','#fff'])},
+  NG:{name:{he:'ניגריה',en:'Nigeria'},tier:2,svg:stripesV(['#008751','#fff','#008751'])},
+  PE:{name:{he:'פרו',en:'Peru'},tier:2,svg:stripesV(['#D91023','#fff','#D91023'])},
+  LU:{name:{he:'לוקסמבורג',en:'Luxembourg'},tier:3,svg:stripesH(['#ED2939','#fff','#00A1DE'])},
+  MC:{name:{he:'מונקו',en:'Monaco'},tier:3,svg:stripesH(['#CE1126','#fff'])},
+  ML:{name:{he:'מאלי',en:'Mali'},tier:3,svg:stripesV(['#14B53A','#FCD116','#CE1126'])},
+  GN:{name:{he:'גינאה',en:'Guinea'},tier:3,svg:stripesV(['#CE1126','#FCD116','#009460'])},
+  CI:{name:{he:'חוף השנהב',en:'Ivory Coast'},tier:3,svg:stripesV(['#F77F00','#fff','#009E60'])},
+  TD:{name:{he:'צ׳אד',en:'Chad'},tier:3,svg:stripesV(['#002664','#FECB00','#C60C30'])},
+  // ---- added: Nordic crosses (bar offset toward the hoist, as on the real flags) ----
+  DK:{name:{he:'דנמרק',en:'Denmark'},tier:1,svg:`
+    <rect width="60" height="40" fill="#C8102E"/>
+    <rect x="16" width="8" height="40" fill="#fff"/>
+    <rect y="16" width="60" height="8" fill="#fff"/>`},
+  FI:{name:{he:'פינלנד',en:'Finland'},tier:1,svg:`
+    <rect width="60" height="40" fill="#fff"/>
+    <rect x="16" width="9" height="40" fill="#002F6C"/>
+    <rect y="15.5" width="60" height="9" fill="#002F6C"/>`},
+  NO:{name:{he:'נורווגיה',en:'Norway'},tier:2,svg:`
+    <rect width="60" height="40" fill="#BA0C2F"/>
+    <rect x="14" width="12" height="40" fill="#fff"/>
+    <rect y="14" width="60" height="12" fill="#fff"/>
+    <rect x="17" width="6" height="40" fill="#00205B"/>
+    <rect y="17" width="60" height="6" fill="#00205B"/>`},
+  IS:{name:{he:'איסלנד',en:'Iceland'},tier:3,svg:`
+    <rect width="60" height="40" fill="#02529C"/>
+    <rect x="14" width="12" height="40" fill="#fff"/>
+    <rect y="14" width="60" height="12" fill="#fff"/>
+    <rect x="17" width="6" height="40" fill="#DC1E35"/>
+    <rect y="17" width="60" height="6" fill="#DC1E35"/>`},
+  CH:{name:{he:'שווייץ',en:'Switzerland'},tier:1,svg:`
+    <rect width="60" height="40" fill="#DA291C"/>
+    <rect x="26.5" y="8" width="7" height="24" fill="#fff"/>
+    <rect x="18" y="16.5" width="24" height="7" fill="#fff"/>`},
+  // ---- added: disc / star / crescent ----
+  BD:{name:{he:'בנגלדש',en:'Bangladesh'},tier:3,svg:`
+    <rect width="60" height="40" fill="#006A4E"/>
+    <circle cx="27" cy="20" r="10" fill="#F42A41"/>`},
+  VN:{name:{he:'וייטנאם',en:'Vietnam'},tier:2,svg:`
+    <rect width="60" height="40" fill="#DA251D"/>
+    <polygon points="${star(30,20,11,4.4)}" fill="#FFFF00"/>`},
+  SO:{name:{he:'סומליה',en:'Somalia'},tier:3,svg:`
+    <rect width="60" height="40" fill="#4189DD"/>
+    <polygon points="${star(30,20,11,4.4)}" fill="#fff"/>`},
+  MA:{name:{he:'מרוקו',en:'Morocco'},tier:3,svg:`
+    <rect width="60" height="40" fill="#C1272D"/>
+    <polygon points="${star(30,20,10,4)}" fill="none" stroke="#006233" stroke-width="1.6"/>`},
+  TR:{name:{he:'טורקיה',en:'Turkey'},tier:1,svg:`
+    <rect width="60" height="40" fill="#E30A17"/>
+    <circle cx="23" cy="20" r="9" fill="#fff"/>
+    <circle cx="26.5" cy="20" r="7.2" fill="#E30A17"/>
+    <polygon points="${star(37,20,4.4,1.9)}" fill="#fff"/>`},
+  IN:{name:{he:'הודו',en:'India'},tier:1,svg:`
+    ${stripesH(['#FF9933','#fff','#138808'])}
+    <circle cx="30" cy="20" r="5" fill="none" stroke="#000080" stroke-width="1.1"/>`},
+  AR:{name:{he:'ארגנטינה',en:'Argentina'},tier:1,svg:`
+    ${stripesH(['#74ACDF','#fff','#74ACDF'])}
+    <circle cx="30" cy="20" r="4" fill="#F6B40E" stroke="#85340A" stroke-width=".5"/>`},
+  PT:{name:{he:'פורטוגל',en:'Portugal'},tier:2,svg:`
+    <rect width="24" height="40" fill="#006600"/>
+    <rect x="24" width="36" height="40" fill="#FF0000"/>
+    <circle cx="24" cy="20" r="6.5" fill="#FFE900" stroke="#fff" stroke-width=".8"/>`},
+  // ---- added: canton / triangle designs ----
+  CZ:{name:{he:'צ׳כיה',en:'Czechia'},tier:2,svg:`
+    <rect width="60" height="20" fill="#fff"/>
+    <rect y="20" width="60" height="20" fill="#D7141A"/>
+    <polygon points="0,0 30,20 0,40" fill="#11457E"/>`},
+  CL:{name:{he:'צ׳ילה',en:'Chile'},tier:3,svg:`
+    <rect width="60" height="20" fill="#fff"/>
+    <rect y="20" width="60" height="20" fill="#D52B1E"/>
+    <rect width="20" height="20" fill="#0039A6"/>
+    <polygon points="${star(10,10,6.5,2.7)}" fill="#fff"/>`},
+  CU:{name:{he:'קובה',en:'Cuba'},tier:3,svg:`
+    ${stripesH(['#002A8F','#fff','#002A8F','#fff','#002A8F'])}
+    <polygon points="0,0 26,20 0,40" fill="#CF142B"/>
+    <polygon points="${star(9,20,5.5,2.3)}" fill="#fff"/>`},
+  JO:{name:{he:'ירדן',en:'Jordan'},tier:3,svg:`
+    ${stripesH(['#000000','#fff','#007A3D'])}
+    <polygon points="0,0 24,20 0,40" fill="#CE1126"/>
+    <polygon points="${star(9,20,3.4,1.5,7)}" fill="#fff"/>`},
+  AE:{name:{he:'איחוד האמירויות',en:'UAE'},tier:3,svg:`
+    ${stripesH(['#00732F','#fff','#000000'])}
+    <rect width="15" height="40" fill="#FF0000"/>`},
+  CO:{name:{he:'קולומביה',en:'Colombia'},tier:2,svg:`
+    <rect width="60" height="20" fill="#FCD116"/>
+    <rect y="20" width="60" height="10" fill="#003893"/>
+    <rect y="30" width="60" height="10" fill="#CE1126"/>`},
+  TH:{name:{he:'תאילנד',en:'Thailand'},tier:2,svg:`
+    <rect width="60" height="40" fill="#A51931"/>
+    <rect y="6.67" width="60" height="26.66" fill="#F4F5F8"/>
+    <rect y="13.33" width="60" height="13.34" fill="#2D2A4A"/>`},
 };
 
 const NIQQUD_NAMES = {
@@ -425,7 +528,47 @@ const NIQQUD_NAMES = {
   CN:'סִין',
   GR:'יָוָן',
   SE:'שְׁוֶדְיָה',
-  BR:'בְּרָזִיל'
+  BR:'בְּרָזִיל',
+  NL:'הוֹלַנְד',
+  PL:'פּוֹלִין',
+  UA:'אוּקְרָאִינָה',
+  BE:'בֶּלְגְּיָה',
+  IE:'אִירְלַנְד',
+  AT:'אוֹסְטְרְיָה',
+  ID:'אִינְדּוֹנֶזְיָה',
+  RO:'רוֹמַנְיָה',
+  HU:'הוּנְגַּרְיָה',
+  BG:'בּוּלְגַּרְיָה',
+  LT:'לִיטָא',
+  EE:'אֶסְטוֹנְיָה',
+  NG:'נִיגֶרְיָה',
+  PE:'פֶּרוּ',
+  LU:'לוּקְסֶמְבּוּרְג',
+  MC:'מוֹנָקוֹ',
+  ML:'מָאלִי',
+  GN:'גִּינֵאָה',
+  CI:'חוֹף הַשֶּׁנְהָב',
+  DK:'דֶּנְמַרְק',
+  FI:'פִינְלַנְד',
+  NO:'נוֹרְוֶגְיָה',
+  IS:'אִיסְלַנְד',
+  CH:'שְׁוַויְץ',
+  BD:'בַּנְגְּלָדֶשׁ',
+  VN:'וְיֶטְנָאם',
+  SO:'סוֹמַלְיָה',
+  MA:'מָרוֹקוֹ',
+  TR:'טוּרְקְיָה',
+  IN:'הֹדּוּ',
+  AR:'אַרְגֶּנְטִינָה',
+  PT:'פּוֹרְטוּגָל',
+  CL:'צ׳ילֶה',
+  CU:'קוּבָּה',
+  JO:'יַרְדֵּן',
+  AE:'אִיחוּד הָאֱמִירֻיּוֹת',
+  CO:'קוֹלוֹמְבְּיָה',
+  TH:'תַאִילַנְד',
+  CZ:'צ׳כְיָה',
+  TD:'צ׳אד',
 };
 
 const T_REGULAR = {
@@ -591,6 +734,17 @@ async function start(selectedLevel){
 
 const CODES = Object.keys(FLAGS_REGULAR);
 
+/* Pairs whose flags are identical or near-identical at this size. Showing one and
+   offering the other as a "wrong" answer punishes a child who saw correctly, so
+   these never appear together. Symmetric — list both directions. */
+const CONFUSABLE = {
+  ID:['MC'], MC:['ID'],          // Indonesia / Monaco — identical red-over-white
+  RO:['TD'], TD:['RO'],          // Romania / Chad — differ only in shade of blue
+  NL:['LU'], LU:['NL'],          // Netherlands / Luxembourg — differ only in shade of blue
+  IE:['CI'], CI:['IE'],          // Ireland / Ivory Coast — same tricolour, mirrored
+  ML:['GN'], GN:['ML'],          // Mali / Guinea — same tricolour, mirrored
+};
+
 function makeQuestion(lvl){
   const pool = CODES.filter(code=>FLAGS_REGULAR[code].tier === lvl);
   const code = pool[rnd(pool.length)];
@@ -626,9 +780,13 @@ async function next(){
   $('flag-wrap').innerHTML =
     `<svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">${FLAGS_REGULAR[q.code].svg}</svg>`;
 
+  const banned = CONFUSABLE[q.code] || [];
+
   const wrong =
     shuffle(
-      CODES.filter(code=>code !== q.code)
+      CODES.filter(code=>
+        code !== q.code && !banned.includes(code)
+      )
     ).slice(0,3);
 
   const options =

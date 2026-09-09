@@ -307,6 +307,7 @@ const {
   },
 
   correct() {
+    IAKidsBank.onAnswer(true);
     this._recordResponseTime();
 
     this._correctAnswers += 1;
@@ -320,6 +321,7 @@ const {
   },
 
   wrong() {
+    IAKidsBank.onAnswer(false);
     this._recordResponseTime();
 
     this._wrongAnswers += 1;
@@ -568,6 +570,92 @@ questions_count:
     this._finished = false;
   }
 };
+/**
+ * IAKidsBank — Supabase-backed question bank + per-child answer history.
+ * Tables: game_questions (unique game_code+qkey) and kid_question_answers
+ * (see supabase/migrations/20260908_game_question_bank.sql).
+ *
+ * Active only when a child is selected (localStorage.active_kid_id) and the
+ * parent is signed in; guests stay local-only in IndexedDB exactly as before.
+ * Every cloud call fails silently — a game must never break because of it.
+ */
+const IAKidsBank = {
+  KEYMAX: 500,     // qkey is stored as text; keep every copy of a key identical
+  _answered: {},   // slug -> Set(qkey): what the active child already answered (cloud + this session)
+  _loading: {},    // slug -> Promise<Set>, so parallel newQuestion() calls share one fetch
+  _current: null,  // the question on screen right now, so right()/wrong() can attribute the answer
+  _kid() { try { return localStorage.getItem('active_kid_id'); } catch { return null; } },
+  async _client() {
+    if (typeof SUPABASE_CONFIG === 'undefined' || !this._kid()) return null;
+    try { return await IAKidsActivity._getClient(); } catch { return null; }
+  },
+  // The one true form of a question key. Local history, the bank row and the
+  // answer row must all use it, or the "already answered" join silently misses.
+  normKey(k) { k = String(k); return k.length > this.KEYMAX ? k.slice(0, this.KEYMAX) : k; },
+  // Keys this child has already answered in this game (one fetch per game load).
+  // Returns the same promise to concurrent callers — resolving early with the
+  // still-empty set would let a question through as if it were never asked.
+  answeredKeys(slug) {
+    if (this._loading[slug]) return this._loading[slug];
+    return (this._loading[slug] = (async () => {
+      const set = new Set(); this._answered[slug] = set;
+      const c = await this._client(); if (!c) return set;
+      try {
+        const { data } = await c.from('kid_question_answers').select('qkey')
+          .eq('kid_id', this._kid()).eq('game_code', slug).limit(5000);
+        for (const r of data || []) set.add(r.qkey);
+      } catch { /* offline or table missing — local history still applies */ }
+      return set;
+    })());
+  },
+  // Pool exhausted: drop the in-memory history so repeats are allowed again.
+  // The DB rows stay; without this every later question would re-run the
+  // generator 60 times and hit game_next_questions, for the rest of the session.
+  forget(slug) {
+    const set = new Set();
+    this._answered[slug] = set;
+    this._loading[slug] = Promise.resolve(set);
+  },
+  // Unanswered bank questions for this child/game/level, shaped like `like` (same keys) so the game can render them.
+  async pull(slug, level, exclude, like) {
+    const c = await this._client(); if (!c) return [];
+    try {
+      const { data } = await c.rpc('game_next_questions', { p_kid: this._kid(), p_game: slug, p_level: level || 0, p_limit: 20 });
+      const shape = o => (o && typeof o === 'object' && !Array.isArray(o)) ? Object.keys(o).sort().join() : typeof o;
+      return (data || []).filter(r => !exclude.has(r.qkey) && shape(r.payload) === shape(like)
+        && !(r.payload && typeof r.payload === 'object' && ('el' in r.payload || 'node' in r.payload)));
+    } catch { return []; }
+  },
+  answerOf(q) {
+    if (!q || typeof q !== 'object') return null;
+    for (const k of ['ans', 'answer', 'correct', 'result', 'truth', 'sign', 'target'])
+      if (q[k] !== undefined && q[k] !== null && typeof q[k] !== 'object') return String(q[k]);
+    return null;
+  },
+  // Grow the shared bank with what the generator just produced (dedup is the unique constraint).
+  save(slug, level, qkey, payload) {
+    this._client().then(c => c && c.from('game_questions')
+      .upsert({ game_code: slug, level: level || 0, qkey: this.normKey(qkey), payload, answer: this.answerOf(payload) },
+              { onConflict: 'game_code,qkey', ignoreDuplicates: true })
+      .then(() => {}, () => {})).catch(() => {});
+  },
+  track(slug, level, qkey) { this._current = { slug, level, qkey, at: Date.now() }; },
+  // Called by IAKidsCoins.right/wrong and IAKidsActivity.correct/wrong; idempotent per question.
+  onAnswer(correct) {
+    const cur = this._current; if (!cur) return; this._current = null;
+    (this._answered[cur.slug] || (this._answered[cur.slug] = new Set())).add(cur.qkey);
+    this._client().then(c => {
+      if (!c) return;
+      c.from('kid_question_answers').insert({
+        kid_id: this._kid(), game_code: cur.slug, qkey: cur.qkey, correct: !!correct,
+        response_ms: Math.min(Date.now() - cur.at, 3600000), level: cur.level || null,
+        session_id: IAKidsActivity._sessionId || null,
+      }).then(() => {}, () => {});
+      c.rpc('game_question_mark', { p_game: cur.slug, p_key: cur.qkey, was_correct: !!correct }).then(() => {}, () => {});
+    }).catch(() => {});
+  },
+};
+
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
@@ -695,19 +783,39 @@ return true;
 
       /**
        * No-repeat question generator. gen() returns a question object; keyFn
-       * derives its identity (default: JSON of the object). Questions the
-       * player already got (persisted, last 300) are skipped. When the pool
-       * is exhausted, history resets so the game never dead-ends.
+       * derives its identity (default: JSON of the object).
+       * Skips everything this player already answered — locally (IndexedDB,
+       * last 2000) and, for a signed-in child, in Supabase (kid_question_answers).
+       * When the generator can't find a fresh one it falls back to unanswered
+       * questions from the shared bank; only when that is empty too does the
+       * local history reset so the game never dead-ends.
+       * opts.level overrides the level recorded for the bank (default: the
+       * current game.difficulty() level).
        */
-      async newQuestion(gen, keyFn = JSON.stringify) {
+      async newQuestion(gen, keyFn = JSON.stringify, opts = {}) {
         if (!this._asked) this._asked = (await tx('kv', 'readonly', s => s.get('asked'))) || [];
-        const seen = new Set(this._asked);
-        let q = gen();
-        for (let i = 0; i < 30 && seen.has(keyFn(q)); i++) q = gen();
-        if (seen.has(keyFn(q))) { this._asked = []; } // pool exhausted — reset history
-        this._asked.push(keyFn(q));
-        if (this._asked.length > 300) this._asked = this._asked.slice(-300);
+        const level = opts.level ?? (this._diff ? this._diff.level : 0);
+        const cloud = await IAKidsBank.answeredKeys(slug);            // empty for guests
+        const seen = new Set(this._asked); for (const k of cloud) seen.add(k);
+        let q = gen(), key = IAKidsBank.normKey(keyFn(q));
+        for (let i = 0; i < 60 && seen.has(key); i++) { q = gen(); key = IAKidsBank.normKey(keyFn(q)); }
+        let fromBank = false;
+        if (seen.has(key)) {                                            // generator exhausted for this child
+          const pool = await IAKidsBank.pull(slug, level, seen, q);
+          if (pool.length) {
+            const r = pool[Math.floor(Math.random() * pool.length)];
+            q = r.payload; key = IAKidsBank.normKey(r.qkey); fromBank = true;
+          }
+        }
+        if (seen.has(key) && !fromBank) {                               // truly exhausted — allow repeats
+          this._asked = [];
+          IAKidsBank.forget(slug);
+        }
+        this._asked.push(key);
+        if (this._asked.length > 2000) this._asked = this._asked.slice(-2000);
         tx('kv', 'readwrite', s => s.put(this._asked, 'asked'));
+        if (!fromBank) IAKidsBank.save(slug, level, key, q);
+        IAKidsBank.track(slug, level, key);
         return q;
       },
 
@@ -720,11 +828,11 @@ return true;
        */
       difficulty(start = 1, max = 3) {
         let raw = start;
-        return {
+        return (this._diff = {
           get level() { return Math.max(1, Math.min(max, Math.round(raw))); },
           right() { raw = Math.min(max + 0.4, raw + 0.25); },
           wrong() { raw = Math.max(1, raw - 0.5); },
-        };
+        });
       },
     };
   },
@@ -780,6 +888,7 @@ const IAKidsCoins = {
   },
 
   async right(fromEl) {
+    IAKidsBank.onAnswer(true);
     this._streak++;
     let n = this.RIGHT;
     if (this._streak % this.STREAK_EVERY === 0) n += this.STREAK_BONUS;
@@ -788,6 +897,7 @@ const IAKidsCoins = {
   },
 
   async wrong() {
+    IAKidsBank.onAnswer(false);
     this._streak = 0;
     return this.add(this.WRONG);
   },

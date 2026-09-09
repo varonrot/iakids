@@ -79,14 +79,26 @@ $('again-btn').textContent = IAKidsLang.ui('play_again');
 // ---- content bank ----
 // easy: regular +s
 const EASY = ['Cat','Dog','Book','Chair','Table','Ball','Toy','Girl','Boy','Bird',
-  'Pen','Car','Bag','Cup','Hat','Star','Tree','Shoe','Bike','Kite'];
+  'Pen','Car','Bag','Cup','Hat','Star','Tree','Shoe','Bike','Kite',
+  'Duck','Cow','Pig','Lion','Frog','Bear','Egg','Cake','Lamp','Bed','Door','Sock','Ring','Key',
+  'Flower','Apple','Banana','Hand','Leg','Ear','Eye','Nose','Cloud','River','Road','Ship','Train',
+  'Plane','Truck','Spoon','Fork','Plate','Bottle','Window','Clock','Phone','Robot','Rocket','Monkey','Turtle','Snake','Rabbit'
+];
 // medium: +es / consonant+y -> +ies
-const MEDIUM_ES = ['Box','Bus','Dish','Watch','Glass','Fox','Brush','Class','Dress','Bench'];
-const MEDIUM_IES = ['Baby','City','Lady','Party','Story','Family','Puppy','Country','Fly','Candy'];
+const MEDIUM_ES = ['Box','Bus','Dish','Watch','Glass','Fox','Brush','Class','Dress','Bench',
+  'Peach','Beach','Church','Lunch','Match','Witch','Wish','Boss','Kiss','Bush','Sandwich','Torch','Coach','Branch','Potato','Tomato','Hero'
+];
+const MEDIUM_IES = ['Baby','City','Lady','Party','Story','Family','Puppy','Country','Fly','Candy',
+  'Cherry','Berry','Bunny','Pony','Kitty','Daisy','Lily','Body','Copy','Sky','Spy','Fairy','Butterfly','Strawberry','Library','Diary','Hobby','Penny','Jelly'
+];
 // hard: real irregulars (verified correct)
 const HARD = [
   ['Mouse','Mice'], ['Child','Children'], ['Foot','Feet'], ['Man','Men'], ['Woman','Women'],
   ['Tooth','Teeth'], ['Goose','Geese'], ['Person','People'], ['Sheep','Sheep'], ['Fish','Fish'],
+  ['Ox','Oxen'], ['Deer','Deer'], ['Moose','Moose'], ['Leaf','Leaves'], ['Wolf','Wolves'],
+  ['Knife','Knives'], ['Life','Lives'], ['Half','Halves'], ['Shelf','Shelves'], ['Elf','Elves'],
+  ['Loaf','Loaves'], ['Calf','Calves'], ['Thief','Thieves'], ['Wife','Wives'], ['Die','Dice'],
+  ['Series','Series'], ['Aircraft','Aircraft'], ['Salmon','Salmon'], ['Bison','Bison'],
 ];
 
 function pluralOf(word, kind) {

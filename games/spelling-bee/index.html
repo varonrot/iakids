@@ -357,9 +357,15 @@ const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
 
 const WORD_BANK = {
-  1:['cat','dog','sun','hat','bed','cup','pen','box','run','red','big','six','ten','top','bus','egg','ant','arm','ear','eye'],
-  2:['frog','lion','milk','book','fish','star','moon','cake','rain','wind','apple','chair','table','mouse','water','happy','green','black','white','house','bread','plant','tiger','zebra','snake'],
-  3:['rabbit','coffee','kitten','dinner','summer','bottle','hammer','yellow','letter','butter','cotton','puppy','balloon','mirror','arrow','giraffe','umbrella','spaghetti','broccoli']
+  1:['cat','dog','sun','hat','bed','cup','pen','box','run','red','big','six','ten','top','bus','egg','ant','arm','ear','eye',
+     'bag','bat','bug','cap','car','cow','cry','cut','dad','day','dig','dot','fan','fly','fox','fun','gap','hen','hit','hop','hot','ice','jam','jog','key','kid','leg','lip','log','map','mom','mud','net','nut','pan','pet','pig','pot','rat','rug','sad','sit','sky','toy','van','web','wet','yes','zip','zoo'
+  ],
+  2:['frog','lion','milk','book','fish','star','moon','cake','rain','wind','apple','chair','table','mouse','water','happy','green','black','white','house','bread','plant','tiger','zebra','snake',
+     'bird','boat','ball','baby','blue','bear','bell','cold','corn','duck','door','drum','farm','fire','flag','gold','goat','hand','home','jump','king','kite','lamp','leaf','nose','park','pink','ring','road','rock','ship','shoe','snow','song','tree','wolf','yard','beach','bench','candy','clock','cloud','dance','dress','earth','field','fruit','grape','heart','horse','juice','light','lunch','money','music','night','ocean','paper','party','pizza','queen','river','sheep','shirt','smile','stone','sugar','sweet','teeth','train','truck','watch','plate'
+  ],
+  3:['rabbit','coffee','kitten','dinner','summer','bottle','hammer','yellow','letter','butter','cotton','puppy','balloon','mirror','arrow','giraffe','umbrella','spaghetti','broccoli',
+     'animal','banana','basket','bridge','button','camera','candle','carrot','castle','cheese','circle','cookie','doctor','dragon','flower','forest','friend','garden','guitar','island','jacket','jungle','ladder','magnet','market','monkey','mother','number','orange','parrot','pencil','picnic','pillow','planet','pocket','purple','rocket','school','silver','spider','square','sister','teacher','tomato','turtle','window','winter','zipper','elephant','butterfly','chocolate','dinosaur','kangaroo','sandwich','birthday','computer','hospital','mountain','notebook','airplane'
+  ]
 };
 
 const T_REGULAR = {

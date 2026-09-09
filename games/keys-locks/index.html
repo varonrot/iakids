@@ -198,7 +198,10 @@ async function start(lvl) {
 /* level 1: 4 fixed distinct shapes, no rotation · level 2: 5-6 shapes from the
    full pool · level 3: same as 2 but keys are rendered rotated */
 function makeRound(lvl) {
-  const shapes = lvl === 1 ? EASY_SHAPES.slice() : shuffle(ALL_SHAPES.slice()).slice(0, 5 + rnd(2));
+  // level 1: 4 of the 6 simplest shapes, drawn at random — a fixed set made every
+  // round the same board, so no-repeat had nothing to work with (15 boards now).
+  const shapes = lvl === 1 ? shuffle(EASY_SHAPES.concat(['diamond', 'cross'])).slice(0, 4)
+                           : shuffle(ALL_SHAPES.slice()).slice(0, 5 + rnd(2));
   const rotate = lvl === 3;
   const key = lvl + '|' + shapes.slice().sort().join(',');
   return { shapes, lvl, rotate, key };

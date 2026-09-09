@@ -65,7 +65,7 @@ Each game's `index.html` loads the SDK and follows this lifecycle:
 | Feature | How | Game's work |
 |---|---|---|
 | Player name + date on every score | `saveScore` auto-attaches `player` (from wallet) + `ts` | Show `player · date` on end screen |
-| No repeated questions | `game.newQuestion(genFn, keyFn)` — persists last 300 asked, resets when pool exhausted | Generate questions through it |
+| No repeated questions | `game.newQuestion(genFn, keyFn)` — skips what this child already answered (IndexedDB + Supabase `kid_question_answers`), falls back to the shared bank `game_questions`, resets only when both are exhausted. Bank grows from play; answers recorded via `IAKidsCoins.right/wrong` | Generate questions through it; keyFn = question identity, never the option order |
 | Adaptive difficulty (always gets harder) | `game.difficulty(start, max)` → `.level`, `.right()`, `.wrong()` | Call right/wrong, read `.level` |
 | 📤 Send-to-friend challenge link | `game.shareButton(score, el)` — WhatsApp/native share, score rides in the URL; opening the link auto-shows "beat X!" banner and win/lose check on complete | One line on end screen |
 | ⚔️ Tournaments (3 rounds) | Created in `games/champions/`; SDK chains games via `?tournament=<id>`, records rounds, injects next-game button | Nothing |

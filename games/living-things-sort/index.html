@@ -118,7 +118,61 @@ const BANK = [
   { e:'🧶', n:'צמר',    cat:'nonliving', tier:3 }, // from a living sheep, but the wool itself is non-living
   { e:'🍯', n:'דבש',    cat:'nonliving', tier:3 }, // made by bees, but honey itself is non-living
   { e:'🧀', n:'גבינה',  cat:'nonliving', tier:3 }, // from milk, but cheese itself is non-living
-  { e:'🥚', n:'ביצה',   cat:'nonliving', tier:3 }, // a product, not alive by itself
+  { e:'🥚', n:'ביצה',   cat:'nonliving', tier:3 }, // a product, not alive by itself,
+  { e:'🐘', n:'פיל',     cat:'animal',    tier:1 },
+  { e:'🐸', n:'צפרדע',   cat:'animal',    tier:1 },
+  { e:'🐍', n:'נחש',     cat:'animal',    tier:1 },
+  { e:'🐢', n:'צב',      cat:'animal',    tier:1 },
+  { e:'🐜', n:'נמלה',    cat:'animal',    tier:1 },
+  { e:'🐌', n:'חילזון',  cat:'animal',    tier:1 },
+  { e:'🦆', n:'ברווז',   cat:'animal',    tier:1 },
+  { e:'🐷', n:'חזיר',    cat:'animal',    tier:1 },
+  { e:'🐴', n:'סוס',     cat:'animal',    tier:1 },
+  { e:'🐑', n:'כבשה',    cat:'animal',    tier:1 },
+  { e:'🐭', n:'עכבר',    cat:'animal',    tier:1 },
+  { e:'🐛', n:'זחל',     cat:'animal',    tier:1 },
+  { e:'🕷️', n:'עכביש',   cat:'animal',    tier:1 },
+  { e:'🦈', n:'כריש',    cat:'animal',    tier:1 },
+  { e:'🐒', n:'קוף',     cat:'animal',    tier:1 },
+  { e:'🐧', n:'פינגווין', cat:'animal',   tier:1 },
+  { e:'🦉', n:'ינשוף',   cat:'animal',    tier:1 },
+  { e:'🌻', n:'חמנייה',  cat:'plant',     tier:1 },
+  { e:'🌹', n:'ורד',     cat:'plant',     tier:1 },
+  { e:'🌴', n:'דקל',     cat:'plant',     tier:1 },
+  { e:'🌲', n:'אורן',    cat:'plant',     tier:1 },
+  { e:'🍀', n:'תלתן',    cat:'plant',     tier:1 },
+  { e:'🌾', n:'חיטה',    cat:'plant',     tier:1 },
+  { e:'🌷', n:'צבעוני',  cat:'plant',     tier:1 },
+  { e:'🎋', n:'במבוק',   cat:'plant',     tier:1 },
+  { e:'🌼', n:'חרצית',   cat:'plant',     tier:1 },
+  { e:'🌺', n:'היביסקוס', cat:'plant',    tier:2 },
+  { e:'🌱', n:'נבט',     cat:'plant',     tier:2 },
+  { e:'🧱', n:'לבנה',    cat:'nonliving', tier:1 },
+  { e:'🔑', n:'מפתח',    cat:'nonliving', tier:1 },
+  { e:'🚲', n:'אופניים', cat:'nonliving', tier:1 },
+  { e:'✏️', n:'עיפרון',  cat:'nonliving', tier:1 },
+  { e:'🪣', n:'דלי',     cat:'nonliving', tier:1 },
+  { e:'🕯️', n:'נר',      cat:'nonliving', tier:1 },
+  { e:'🎈', n:'בלון',    cat:'nonliving', tier:1 },
+  { e:'🧊', n:'קרח',     cat:'nonliving', tier:1 },
+  { e:'🔥', n:'אש',      cat:'nonliving', tier:1 },
+  { e:'🌈', n:'קשת',     cat:'nonliving', tier:1 },
+  { e:'⭐', n:'כוכב',    cat:'nonliving', tier:1 },
+  { e:'🏠', n:'בית',     cat:'nonliving', tier:1 },
+  { e:'🛋️', n:'ספה',     cat:'nonliving', tier:1 },
+  { e:'🪁', n:'עפיפון',  cat:'nonliving', tier:1 },
+  { e:'🧲', n:'מגנט',    cat:'nonliving', tier:1 },
+  { e:'🔔', n:'פעמון',   cat:'nonliving', tier:1 },
+  { e:'🪜', n:'סולם',    cat:'nonliving', tier:1 },
+  { e:'⏰', n:'שעון',    cat:'nonliving', tier:1 },
+  { e:'💡', n:'מנורה',   cat:'nonliving', tier:1 },
+  { e:'🧸', n:'דובי',    cat:'nonliving', tier:2 }, // looks like an animal, but it's a toy
+  { e:'🤖', n:'רובוט',   cat:'nonliving', tier:2 }, // moves and talks, still not alive
+  { e:'🐚', n:'צדף',     cat:'nonliving', tier:3 }, // once housed an animal; the shell itself is non-living
+  { e:'🦴', n:'עצם',     cat:'nonliving', tier:3 },
+  { e:'🪶', n:'נוצה',    cat:'nonliving', tier:3 },
+  { e:'🥛', n:'חלב',     cat:'nonliving', tier:3 }, // product of an animal, not alive
+  { e:'🍞', n:'לחם',     cat:'nonliving', tier:3 }, // made from wheat, not alive
 ];
 
 let game, diff, level = 1, TOTAL = 10, score = 0, sorted = 0, mistakes = 0;

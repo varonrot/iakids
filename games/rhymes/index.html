@@ -66,6 +66,14 @@ const GROUPS = {
   il:  { words: ['פיל','ברזיל','תרגיל','אציל'], trap: 'אוכל' },
   ot:  { words: ['בנות','תמונות','מתנות','שעות','משפחות','עוגות'], trap: 'בית' },
   or:  { words: ['ציפור','מגדלור','אור','כפתור'], trap: 'נהר' },
+  im:  { words: ['ילדים','חברים','ספרים','פרחים','דגים','בגדים','כלבים','שירים'], trap: 'ים' },
+  ah:  { words: ['ילדה','גלידה','מיטה','שמלה','תודה','מילה','שירה','סבתא'], trap: 'ילד' },
+  ar:  { words: ['נהר','הר','כפר','דבר','בר','שמר'], trap: 'נר' },
+  al:  { words: ['סל','טל','גל','ספסל','בצל','גמל'], trap: 'סלט' },
+  ol:  { words: ['כחול','גדול','חול','קול','מחול','עגול'], trap: 'חלון' },
+  ul:  { words: ['חתול','לול','גבול','מסלול','בלבול'], trap: 'חלב' },
+  et:  { words: ['מחברת','כתובת','רכבת','מסגרת','שרשרת','מגבת'], trap: 'מחר' },
+  ach: { words: ['פרח','קרח','מלח','לקח','ברח'], trap: 'פרי' },
 };
 
 IAKidsCoins.mount();
@@ -122,7 +130,7 @@ async function next() {
   qnum++;
   $('qnum').textContent = qnum;
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.word + '|' + x.correctIdx + x.options.join(''));
+  const q = await game.newQuestion(() => makeQuestion(lvl), x => x.word);
   current = q.correctIdx;
   $('question').textContent = q.word;
   const box = $('answers');
