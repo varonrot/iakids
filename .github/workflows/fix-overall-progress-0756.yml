@@ -1,0 +1,31 @@
+name: Fix overall progress 0.7.56
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-overall-progress-0756.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply accurate overall progress
+        run: python .github/scripts/fix-overall-progress-0756.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Fix overall learning progress from child tables; bump to 0.7.56'
+            git push origin main
+          fi
