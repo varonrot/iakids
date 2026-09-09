@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>המשימות שלי | IAKIDS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --purple:#7048ff;
+  --purple2:#9368ff;
+  --ink:#172052;
+  --muted:#78819f;
+  --line:#e8e8f3;
+  --bg:#f5f7ff;
+  --card:#fff;
+  --shadow:0 18px 50px rgba(44,52,110,.10);
+  --soft:0 8px 24px rgba(44,52,110,.07);
+  --green:#24b77a;
+  --orange:#ff9f43;
+  --red:#ef5b63;
+  --blue:#4f9dff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"Heebo",Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,#fbfcff,#f3f6ff)}
+body{min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-rows:78px minmax(0,1fr)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 26px;background:rgba(255,255,255,.95);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:12px}.brand-logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#7651ff,#aa83ff);display:grid;place-items:center;color:#fff;font-size:22px;box-shadow:0 8px 18px rgba(112,72,255,.25)}
+.brand strong{font-size:21px}.brand small{display:block;color:var(--muted);margin-top:2px}
+.top-actions{display:flex;align-items:center;gap:10px}.top-btn{height:46px;border:1px solid var(--line);border-radius:14px;background:#fff;color:#39436f;font-weight:800;padding:0 16px}.top-btn i{margin-left:7px;color:var(--purple)}
+.main{width:min(1450px,calc(100% - 28px));margin:0 auto;padding:22px 0 34px}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+.hero-copy h1{margin:0;font-size:36px;line-height:1.2}.hero-copy p{margin:6px 0 0;color:var(--muted);font-size:16px}.add-btn{height:52px;border:0;border-radius:17px;background:linear-gradient(135deg,var(--purple),#5f39e7);color:#fff;font-size:16px;font-weight:900;padding:0 22px;box-shadow:0 12px 25px rgba(111,73,255,.25)}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(360px,.75fr);gap:18px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:25px;box-shadow:var(--shadow)}
+.calendar-card{padding:20px}.calendar-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.calendar-title{font-size:24px;font-weight:900}.calendar-nav{display:flex;gap:7px}.icon-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:13px;background:#fff;color:#4b5682;font-size:16px}.today-btn{width:auto;padding:0 14px;font-weight:800}
+.weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.weekdays{margin-bottom:7px}.weekday{text-align:center;color:#8991aa;font-size:13px;font-weight:800;padding:5px}
+.day{position:relative;min-height:104px;border:1px solid #eef0f7;border-radius:17px;background:#fbfcff;padding:9px;transition:.15s}.day:hover{border-color:#d9d1ff;background:#faf8ff}.day.outside{opacity:.34}.day.today{border:2px solid #8c6cff;background:#f8f5ff}.day.selected{box-shadow:inset 0 0 0 2px rgba(112,72,255,.25)}
+.day-number{width:29px;height:29px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:900}.today .day-number{background:var(--purple);color:#fff}.day-dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}.dot{width:8px;height:8px;border-radius:50%}.dot.homework{background:var(--blue)}.dot.exam{background:var(--red)}.dot.project{background:var(--orange)}.dot.reminder{background:var(--purple)}.day-count{margin-top:6px;font-size:11px;color:#6e7899;font-weight:700}
+.side{display:flex;flex-direction:column;gap:14px}.kid-card{padding:16px;display:flex;align-items:center;gap:12px;background:linear-gradient(145deg,#eef7ff,#fff8df)}.kid-avatar{width:58px;height:58px;border-radius:18px;object-fit:cover;background:#eee}.kid-meta strong{font-size:18px}.kid-meta small{display:block;color:var(--muted);margin-top:3px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px}.stat{text-align:center;padding:12px 7px;border-radius:17px;background:#f8f9ff}.stat strong{display:block;font-size:22px}.stat small{color:var(--muted);font-size:11px;font-weight:700}
+.filters{padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.filter-btn{height:42px;border:1px solid var(--line);border-radius:13px;background:#fff;color:#5d6687;font-weight:800}.filter-btn.active{background:#f0ebff;border-color:#d9ccff;color:#633fe7}
+.tasks-card{padding:16px}.tasks-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.tasks-head h2{font-size:20px;margin:0}.task-list{display:flex;flex-direction:column;gap:9px}.empty{padding:35px 14px;text-align:center;color:var(--muted)}.empty .emo{font-size:42px;display:block;margin-bottom:8px}
+.task{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px;border:1px solid #eceef5;border-radius:17px;background:#fff}.task.completed{opacity:.58}.task.completed .task-title{text-decoration:line-through}.task-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;font-size:18px}.task-icon.homework{background:linear-gradient(135deg,#5cabff,#3c84ef)}.task-icon.exam{background:linear-gradient(135deg,#ff767d,#e94f58)}.task-icon.project{background:linear-gradient(135deg,#ffb55d,#f28a35)}.task-icon.reminder{background:linear-gradient(135deg,#926cff,#7048ff)}
+.task-main{min-width:0}.task-title{font-weight:900;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-sub{margin-top:3px;color:var(--muted);font-size:12px;display:flex;gap:7px;flex-wrap:wrap}.task-actions{display:flex;gap:5px}.task-action{width:34px;height:34px;border:0;border-radius:11px;background:#f4f5fa;color:#67708f}.task-action.complete{color:#1b9b68}.task-action.delete{color:#d65059}
+.modal-backdrop{position:fixed;inset:0;background:rgba(14,20,50,.46);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:26px;box-shadow:0 30px 90px rgba(20,25,60,.26);padding:22px}.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.modal-head h2{margin:0;font-size:24px}.close-btn{width:40px;height:40px;border:0;border-radius:13px;background:#f4f5fa;color:#5c6584}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:800;color:#4f597a}.field input,.field select,.field textarea{width:100%;border:1px solid #dfe2ed;border-radius:14px;background:#fff;outline:0;padding:11px 12px;color:#293253}.field input,.field select{height:46px}.field textarea{min-height:90px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#a993ff;box-shadow:0 0 0 3px rgba(112,72,255,.10)}.modal-actions{display:flex;justify-content:flex-start;gap:8px;margin-top:18px}.save-btn{height:48px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--purple),#5f39e7);color:#fff;font-weight:900;padding:0 22px}.cancel-btn{height:48px;border:1px solid var(--line);border-radius:14px;background:#fff;color:#596281;font-weight:800;padding:0 18px}
+.toast{position:fixed;left:22px;bottom:22px;z-index:200;background:#1f2850;color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 14px 35px rgba(20,25,60,.25);opacity:0;pointer-events:none;transform:translateY(8px);transition:.2s}.toast.show{opacity:1;transform:none}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.side{order:-1}.stats{grid-template-columns:repeat(3,1fr)}.calendar-card{padding:14px}.day{min-height:88px}}
+@media(max-width:620px){.topbar{padding:10px 12px}.brand small{display:none}.brand strong{font-size:17px}.top-btn span{display:none}.main{width:calc(100% - 14px);padding-top:14px}.hero{align-items:flex-start}.hero-copy h1{font-size:29px}.hero-copy p{font-size:14px}.add-btn{height:46px;padding:0 14px}.weekdays,.calendar-grid{gap:3px}.weekday{font-size:11px}.day{min-height:67px;border-radius:12px;padding:5px}.day-number{width:24px;height:24px;font-size:11px}.day-count{display:none}.dot{width:6px;height:6px}.calendar-title{font-size:18px}.icon-btn{width:36px;height:36px}.today-btn{width:auto}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.modal{padding:16px;border-radius:21px}.task{grid-template-columns:40px minmax(0,1fr) auto}.task-icon{width:40px;height:40px}.task-actions{flex-direction:column}.task-action{width:30px;height:28px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+      <div><strong>IAKIDS</strong><small>לוח המשימות שלי</small></div>
+    </div>
+    <div class="top-actions">
+      <button class="top-btn" onclick="location.href='/he/workspace/'"><i class="fa-solid fa-house"></i><span>חזרה ללמידה</span></button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>📅 המשימות שלי</h1>
+        <p id="heroText">שיעורי בית, מבחנים, פרויקטים ותזכורות במקום אחד.</p>
+      </div>
+      <button class="add-btn" id="openAdd"><i class="fa-solid fa-plus"></i> משימה חדשה</button>
+    </section>
+
+    <div class="layout">
+      <section class="card calendar-card">
+        <div class="calendar-head">
+          <div class="calendar-title" id="monthTitle"></div>
+          <div class="calendar-nav">
+            <button class="icon-btn" id="nextMonth" aria-label="חודש הבא"><i class="fa-solid fa-chevron-right"></i></button>
+            <button class="icon-btn today-btn" id="todayBtn">היום</button>
+            <button class="icon-btn" id="prevMonth" aria-label="חודש קודם"><i class="fa-solid fa-chevron-left"></i></button>
+          </div>
+        </div>
+        <div class="weekdays">
+          <div class="weekday">א׳</div><div class="weekday">ב׳</div><div class="weekday">ג׳</div><div class="weekday">ד׳</div><div class="weekday">ה׳</div><div class="weekday">ו׳</div><div class="weekday">ש׳</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+
+      <aside class="side">
+        <section class="card kid-card">
+          <img id="kidAvatar" class="kid-avatar" src="/assets/avatars/default.webp" alt="">
+          <div class="kid-meta"><strong id="kidName">טוען...</strong><small id="kidGrade"></small></div>
+        </section>
+
+        <section class="card stats">
+          <div class="stat"><strong id="statToday">0</strong><small>להיום</small></div>
+          <div class="stat"><strong id="statWeek">0</strong><small>השבוע</small></div>
+          <div class="stat"><strong id="statExams">0</strong><small>מבחנים</small></div>
+        </section>
+
+        <section class="card filters">
+          <button class="filter-btn active" data-filter="today">היום</button>
+          <button class="filter-btn" data-filter="week">השבוע</button>
+          <button class="filter-btn" data-filter="all">הכול</button>
+        </section>
+
+        <section class="card tasks-card">
+          <div class="tasks-head"><h2 id="tasksTitle">המשימות להיום</h2><span id="taskCount"></span></div>
+          <div class="task-list" id="taskList"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><h2>משימה חדשה</h2><button class="close-btn" id="closeModal"><i class="fa-solid fa-xmark"></i></button></div>
+    <form id="taskForm">
+      <div class="form-grid">
+        <div class="field full"><label for="title">מה צריך לעשות?</label><input id="title" name="title" required maxlength="160" placeholder="לדוגמה: להכין שיעורי בית בעמוד 42"></div>
+        <div class="field"><label for="taskType">סוג</label><select id="taskType" name="taskType"><option value="homework">שיעורי בית</option><option value="exam">מבחן</option><option value="project">פרויקט</option><option value="reminder">תזכורת</option></select></div>
+        <div class="field"><label for="subject">מקצוע</label><input id="subject" name="subject" placeholder="מתמטיקה / עברית / מדעים..."></div>
+        <div class="field"><label for="dueDate">תאריך</label><input id="dueDate" name="dueDate" type="date" required></div>
+        <div class="field"><label for="dueTime">שעה</label><input id="dueTime" name="dueTime" type="time"></div>
+        <div class="field full"><label for="topic">נושא</label><input id="topic" name="topic" placeholder="לדוגמה: שברים"></div>
+        <div class="field full"><label for="description">הערה</label><textarea id="description" name="description" placeholder="פרטים נוספים, מה להביא, עמודים בספר וכו׳"></textarea></div>
+      </div>
+      <div class="modal-actions"><button class="save-btn" type="submit">שמור משימה</button><button class="cancel-btn" type="button" id="cancelModal">ביטול</button></div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJieG5menVnbGZ3eXRpeWFndXdqaiIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentKid = null;
+let currentUser = null;
+let tasks = [];
+let viewDate = new Date();
+let selectedDate = new Date();
+let activeFilter = "today";
+
+const monthNames = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+const typeLabels = {homework:"שיעורי בית",exam:"מבחן",project:"פרויקט",reminder:"תזכורת"};
+const typeIcons = {homework:"fa-book-open",exam:"fa-clipboard-question",project:"fa-diagram-project",reminder:"fa-bell"};
+
+function pad(n){return String(n).padStart(2,"0")}
+function localDateKey(date){return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`}
+function taskDate(task){return task.due_at ? new Date(task.due_at) : null}
+function taskDateKey(task){const d=taskDate(task);return d?localDateKey(d):null}
+function startOfDay(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
+function endOfDay(d){const x=new Date(d);x.setHours(23,59,59,999);return x}
+function weekRange(){const now=new Date();const day=now.getDay();const start=startOfDay(new Date(now.getFullYear(),now.getMonth(),now.getDate()-day));const end=endOfDay(new Date(start));end.setDate(start.getDate()+6);return {start,end}}
+function escapeHtml(value=""){return String(value).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
+function toast(message){const el=document.getElementById("toast");el.textContent=message;el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2200)}
+
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){location.href="/he/";return}
+  currentUser=session.user;
+  let kidId=localStorage.getItem("active_kid_id");
+  if(!kidId){
+    const {data:kids,error}=await sb.from("kids_profiles").select("id").eq("user_id",currentUser.id).order("created_at",{ascending:true}).limit(1);
+    if(error||!kids?.length){toast("לא נמצא פרופיל ילד");return}
+    kidId=kids[0].id;localStorage.setItem("active_kid_id",kidId);
+  }
+  const {data:kid,error:kidError}=await sb.from("kids_profiles").select("id,child_name,age,avatar_key,gender").eq("id",kidId).eq("user_id",currentUser.id).single();
+  if(kidError||!kid){localStorage.removeItem("active_kid_id");toast("לא הצלחנו לטעון את הילד");return}
+  currentKid=kid;
+  renderKid();
+  await loadTasks();
+  renderAll();
+}
+
+function renderKid(){
+  document.getElementById("kidName").textContent=currentKid.child_name||"הילד שלי";
+  document.getElementById("kidGrade").textContent=currentKid.age?`כיתה ${gradeHebrew(Number(currentKid.age))}`:"";
+  document.getElementById("heroText").textContent=`כל המשימות של ${currentKid.child_name||"הילד"} במקום אחד — שיעורי בית, מבחנים ופרויקטים.`;
+  const avatar=document.getElementById("kidAvatar");
+  if(currentKid.avatar_key){avatar.src=`/assets/avatars/${currentKid.avatar_key}.webp`;avatar.onerror=()=>{avatar.src="/assets/avatars/default.webp"}}
+}
+function gradeHebrew(n){return ({1:"א׳",2:"ב׳",3:"ג׳",4:"ד׳",5:"ה׳",6:"ו׳"})[n]||n}
+
+async function loadTasks(){
+  const {data,error}=await sb.from("kid_tasks").select("*").eq("kid_id",currentKid.id).eq("user_id",currentUser.id).neq("status","archived").order("due_at",{ascending:true,nullsFirst:false}).order("created_at",{ascending:false});
+  if(error){console.error(error);toast("לא הצלחנו לטעון משימות");return}
+  tasks=data||[];
+}
+
+function renderAll(){renderCalendar();renderStats();renderTaskList()}
+
+function renderCalendar(){
+  const year=viewDate.getFullYear(),month=viewDate.getMonth();
+  document.getElementById("monthTitle").textContent=`${monthNames[month]} ${year}`;
+  const grid=document.getElementById("calendarGrid");grid.innerHTML="";
+  const first=new Date(year,month,1);const start=new Date(year,month,1-first.getDay());
+  const todayKey=localDateKey(new Date());const selectedKey=localDateKey(selectedDate);
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);const key=localDateKey(d);
+    const dayTasks=tasks.filter(t=>taskDateKey(t)===key&&t.status!=="archived");
+    const el=document.createElement("button");el.type="button";el.className="day";
+    if(d.getMonth()!==month)el.classList.add("outside");if(key===todayKey)el.classList.add("today");if(key===selectedKey)el.classList.add("selected");
+    el.innerHTML=`<div class="day-number">${d.getDate()}</div><div class="day-dots">${dayTasks.slice(0,6).map(t=>`<span class="dot ${t.task_type}"></span>`).join("")}</div>${dayTasks.length?`<div class="day-count">${dayTasks.length} ${dayTasks.length===1?"משימה":"משימות"}</div>`:""}`;
+    el.onclick=()=>{selectedDate=d;activeFilter="date";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));renderCalendar();renderTaskList()};
+    grid.appendChild(el);
+  }
+}
+
+function renderStats(){
+  const today=localDateKey(new Date());const {start,end}=weekRange();
+  const pending=tasks.filter(t=>t.status==="pending");
+  document.getElementById("statToday").textContent=pending.filter(t=>taskDateKey(t)===today).length;
+  document.getElementById("statWeek").textContent=pending.filter(t=>{const d=taskDate(t);return d&&d>=start&&d<=end}).length;
+  document.getElementById("statExams").textContent=pending.filter(t=>t.task_type==="exam").length;
+}
+
+function filteredTasks(){
+  const pendingFirst=[...tasks].sort((a,b)=>{if(a.status!==b.status)return a.status==="pending"?-1:1;const da=taskDate(a)?.getTime()||Infinity,db=taskDate(b)?.getTime()||Infinity;return da-db});
+  if(activeFilter==="all")return pendingFirst;
+  if(activeFilter==="today"){const key=localDateKey(new Date());return pendingFirst.filter(t=>taskDateKey(t)===key)}
+  if(activeFilter==="week"){const {start,end}=weekRange();return pendingFirst.filter(t=>{const d=taskDate(t);return d&&d>=start&&d<=end})}
+  if(activeFilter==="date"){const key=localDateKey(selectedDate);return pendingFirst.filter(t=>taskDateKey(t)===key)}
+  return pendingFirst;
+}
+
+function renderTaskList(){
+  const list=document.getElementById("taskList");const visible=filteredTasks();
+  const title=document.getElementById("tasksTitle");
+  title.textContent=activeFilter==="today"?"המשימות להיום":activeFilter==="week"?"המשימות השבוע":activeFilter==="all"?"כל המשימות":`משימות ל-${selectedDate.toLocaleDateString("he-IL",{day:"numeric",month:"long"})}`;
+  document.getElementById("taskCount").textContent=visible.length?`${visible.length}`:"";
+  if(!visible.length){list.innerHTML=`<div class="empty"><span class="emo">✨</span>אין משימות כאן כרגע</div>`;return}
+  list.innerHTML=visible.map(t=>{
+    const d=taskDate(t);const when=d?d.toLocaleString("he-IL",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"ללא תאריך";
+    return `<div class="task ${t.status==="completed"?"completed":""}" data-id="${t.id}">
+      <div class="task-icon ${t.task_type}"><i class="fa-solid ${typeIcons[t.task_type]||"fa-bell"}"></i></div>
+      <div class="task-main"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-sub"><span>${escapeHtml(typeLabels[t.task_type]||t.task_type)}</span>${t.subject?`<span>• ${escapeHtml(t.subject)}</span>`:""}<span>• ${escapeHtml(when)}</span></div></div>
+      <div class="task-actions">${t.status!=="completed"?`<button class="task-action complete" onclick="completeTask('${t.id}')" title="סיימתי"><i class="fa-solid fa-check"></i></button>`:""}<button class="task-action delete" onclick="deleteTask('${t.id}')" title="מחק"><i class="fa-solid fa-trash"></i></button></div>
+    </div>`
+  }).join("")
+}
+
+async function completeTask(id){
+  const {error}=await sb.from("kid_tasks").update({status:"completed",completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id).eq("user_id",currentUser.id).eq("kid_id",currentKid.id);
+  if(error){toast("לא הצלחנו לעדכן את המשימה");return}
+  const task=tasks.find(t=>t.id===id);if(task){task.status="completed";task.completed_at=new Date().toISOString()}
+  renderAll();toast("כל הכבוד! המשימה הושלמה 🎉")
+}
+
+async function deleteTask(id){
+  if(!confirm("למחוק את המשימה?"))return;
+  const {error}=await sb.from("kid_tasks").delete().eq("id",id).eq("user_id",currentUser.id).eq("kid_id",currentKid.id);
+  if(error){toast("לא הצלחנו למחוק");return}
+  tasks=tasks.filter(t=>t.id!==id);renderAll();toast("המשימה נמחקה")
+}
+
+function openModal(date=new Date()){
+  document.getElementById("taskForm").reset();document.getElementById("dueDate").value=localDateKey(date);document.getElementById("modalBackdrop").classList.add("open");setTimeout(()=>document.getElementById("title").focus(),50)
+}
+function closeModal(){document.getElementById("modalBackdrop").classList.remove("open")}
+
+document.getElementById("taskForm").addEventListener("submit",async e=>{
+  e.preventDefault();if(!currentKid||!currentUser)return;
+  const title=document.getElementById("title").value.trim();const date=document.getElementById("dueDate").value;const time=document.getElementById("dueTime").value||"18:00";
+  const dueAt=new Date(`${date}T${time}:00`);
+  const payload={user_id:currentUser.id,kid_id:currentKid.id,task_type:document.getElementById("taskType").value,title,subject:document.getElementById("subject").value.trim()||null,topic:document.getElementById("topic").value.trim()||null,description:document.getElementById("description").value.trim()||null,due_at:dueAt.toISOString(),status:"pending",source:"manual"};
+  const submit=e.submitter;submit.disabled=true;submit.textContent="שומר...";
+  const {data,error}=await sb.from("kid_tasks").insert(payload).select().single();submit.disabled=false;submit.textContent="שמור משימה";
+  if(error){console.error(error);toast("לא הצלחנו לשמור את המשימה");return}
+  tasks.push(data);closeModal();renderAll();toast("המשימה נשמרה 📅")
+});
+
+document.getElementById("openAdd").onclick=()=>openModal(selectedDate);
+document.getElementById("closeModal").onclick=closeModal;document.getElementById("cancelModal").onclick=closeModal;
+document.getElementById("modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
+document.querySelectorAll(".filter-btn").forEach(btn=>btn.onclick=()=>{activeFilter=btn.dataset.filter;document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));renderTaskList()});
+document.getElementById("prevMonth").onclick=()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);renderCalendar()};
+document.getElementById("nextMonth").onclick=()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);renderCalendar()};
+document.getElementById("todayBtn").onclick=()=>{viewDate=new Date();selectedDate=new Date();activeFilter="today";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b.dataset.filter==="today"));renderAll()};
+
+init();
+</script>
+</body>
+</html>
