@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.51</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.51";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.52</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.52";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -54194,6 +54194,69 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
   function openView(item){try{window.closeWorkspaceAchievements?.()}catch(_e){}try{window.closeLearningProgress?.()}catch(_e){}try{window.closeMyLessonsInternal?.()}catch(_e){}try{window.closeMyFilesInternal?.()}catch(_e){}const dash=document.getElementById('iakidsLearningDashboard');if(dash)dash.hidden=true;const el=ensureView();if(!el)return;el.hidden=false;document.querySelectorAll('.side-item').forEach(x=>x.classList.remove('active'));item?.classList.add('active')}
   document.addEventListener('click',event=>{const item=event.target?.closest?.('a,button,.side-item');if(!item)return;const text=(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('הכנה למבחן'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();openView(item)},true);
   window.openExamPrepComingSoon=openView;window.closeExamPrepComingSoon=closeView;
+})();
+</script>
+
+
+<script id="IAKIDS_HOME_RESET_FROM_CUSTOM_SUBJECT_0752">
+(function(){
+  if(window.__IAKIDS_HOME_RESET_FROM_CUSTOM_SUBJECT_0752) return;
+  window.__IAKIDS_HOME_RESET_FROM_CUSTOM_SUBJECT_0752 = true;
+
+  function hideInternalViews(){
+    const ids=[
+      'iakidsMyLessonsInternalView',
+      'iakidsMyFilesInternalView',
+      'iakidsExamPrepComingSoon',
+      'iakidsLearningProgressView',
+      'iakidsLearningDashboard'
+    ];
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el && id!=='iakidsLearningDashboard') el.hidden=true;
+    });
+  }
+
+  function resetCustomSubjectState(){
+    try{
+      if(typeof window.closeCustomSubject==='function'){
+        window.closeCustomSubject();
+        return true;
+      }
+    }catch(e){ console.warn('closeCustomSubject failed',e); }
+
+    const customView=document.getElementById('customSubjectView');
+    if(customView) customView.style.display='none';
+
+    const rightbar=document.querySelector('.home-rightbar');
+    if(rightbar) rightbar.style.display='';
+
+    document.body.classList.remove('custom-subject-mode');
+
+    try{ if(typeof window.showDashboard==='function') window.showDashboard(); }catch(_e){}
+    return false;
+  }
+
+  document.addEventListener('click',function(event){
+    const item=event.target?.closest?.('.side-item,button,a');
+    if(!item) return;
+    const text=(item.textContent||'').replace(/\s+/g,' ').trim();
+    if(text!=='דף הבית' && !text.includes('דף הבית')) return;
+
+    const inCustom=document.body.classList.contains('custom-subject-mode') ||
+      document.getElementById('customSubjectView')?.style.display==='block';
+    if(!inCustom) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    hideInternalViews();
+    resetCustomSubjectState();
+
+    document.querySelectorAll('.side-item').forEach(x=>x.classList.remove('active'));
+    item.classList.add('active');
+  },true);
 })();
 </script>
 
