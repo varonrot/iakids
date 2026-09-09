@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.49</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.49";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.50</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.50";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -54102,9 +54102,9 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
   function closeView(){const el=ensureView();if(el)el.hidden=true;document.querySelectorAll('.side-item').forEach(x=>{if((x.textContent||'').includes('הקבצים שלי'))x.classList.remove('active')})}
   async function load(){const el=ensureView(),client=getClient(),kid=getKid();if(!el)return;el.hidden=false;el.innerHTML='<div class="imf-shell"><div class="imf-loading"><div><i class="fa-solid fa-spinner fa-spin"></i><br>טוענים את הקבצים שלך...</div></div></div>';if(!client||!kid?.id){el.innerHTML='<div class="imf-shell"><div class="imf-empty">לא הצלחתי לזהות את פרופיל הילד/ה.</div></div>';return}
     try{
-      const {data,error}=await client.from('homework_sessions').select('id,subject,topic,source_file_name,source_file_url,source_file_type,status,started_at,created_at').eq('kid_id',kid.id).order('started_at',{ascending:false}).limit(100);if(error)throw error;
+      const {data,error}=await client.from('homework_sessions').select('id,subject,topic,source_file_name,source_file_url,source_type,status,started_at,created_at').eq('kid_id',kid.id).order('started_at',{ascending:false}).limit(100);if(error)throw error;
       const rows=(data||[]).filter(r=>r.source_file_name||r.source_file_url);const completed=rows.filter(r=>r.status==='completed').length;const subjects=new Set(rows.map(r=>r.subject).filter(Boolean)).size;
-      const cards=rows.length?rows.map(r=>{const d=new Date(r.started_at||r.created_at||Date.now());const url=String(r.source_file_url||'');return `<div class="imf-file"><div class="imf-icon"><i class="fa-solid fa-${fileIcon(r.source_file_type,r.source_file_name)}"></i></div><div class="imf-name"><b>${esc(r.source_file_name||'קובץ שיעורי בית')}</b><span>${esc(r.topic||'ללא נושא')}</span></div><div class="imf-cell"><small>מקצוע</small>${esc(r.subject||'לא זוהה')}</div><div class="imf-cell"><small>תאריך</small>${d.toLocaleDateString('he-IL')}</div><span class="imf-status ${r.status==='completed'?'completed':''}">${r.status==='completed'?'הושלם':'בתהליך'}</span>${url.startsWith('http')?`<button type="button" class="imf-open" data-url="${esc(url)}">פתיחה</button>`:'<button type="button" class="imf-open" disabled>פתיחה</button>'}</div>`}).join(''):'<div class="imf-empty"><div><i class="fa-solid fa-folder-open" style="font-size:38px;color:#5fd8ff;margin-bottom:10px"></i><br>עדיין אין קבצים שמורים.<br>קבצים שתעלי בעזרה בשיעורי בית יופיעו כאן.</div></div>';
+      const cards=rows.length?rows.map(r=>{const d=new Date(r.started_at||r.created_at||Date.now());const url=String(r.source_file_url||'');return `<div class="imf-file"><div class="imf-icon"><i class="fa-solid fa-${fileIcon(r.source_type,r.source_file_name)}"></i></div><div class="imf-name"><b>${esc(r.source_file_name||'קובץ שיעורי בית')}</b><span>${esc(r.topic||'ללא נושא')}</span></div><div class="imf-cell"><small>מקצוע</small>${esc(r.subject||'לא זוהה')}</div><div class="imf-cell"><small>תאריך</small>${d.toLocaleDateString('he-IL')}</div><span class="imf-status ${r.status==='completed'?'completed':''}">${r.status==='completed'?'הושלם':'בתהליך'}</span>${url.startsWith('http')?`<button type="button" class="imf-open" data-url="${esc(url)}">פתיחה</button>`:'<button type="button" class="imf-open" disabled>פתיחה</button>'}</div>`}).join(''):'<div class="imf-empty"><div><i class="fa-solid fa-folder-open" style="font-size:38px;color:#5fd8ff;margin-bottom:10px"></i><br>עדיין אין קבצים שמורים.<br>קבצים שתעלי בעזרה בשיעורי בית יופיעו כאן.</div></div>';
       el.innerHTML=`<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1><p>קבצי שיעורי הבית והתמונות שהעלית נשמרים כאן בתוך סביבת הלמידה</p></div><button type="button" class="imf-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div><div class="imf-stats"><div class="imf-stat"><span>קבצים</span><strong>${rows.length}</strong></div><div class="imf-stat"><span>קבצים ממשימות שהושלמו</span><strong>${completed}</strong></div><div class="imf-stat"><span>מקצועות</span><strong>${subjects}</strong></div></div><div class="imf-list">${cards}</div></div>`;
       el.querySelector('.imf-close')?.addEventListener('click',closeView);el.querySelectorAll('.imf-open[data-url]').forEach(b=>b.addEventListener('click',()=>window.open(b.dataset.url,'_blank','noopener')));
     }catch(e){console.error('MY FILES LOAD ERROR',e);el.innerHTML='<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1></div><button type="button" class="imf-close">חזרה</button></div><div class="imf-empty">לא הצלחתי לטעון את הקבצים כרגע.</div></div>';el.querySelector('.imf-close')?.addEventListener('click',closeView)}
@@ -54112,6 +54112,71 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
   function openView(item){try{window.closeWorkspaceAchievements?.()}catch(_e){}try{window.closeLearningProgress?.()}catch(_e){}try{window.closeMyLessonsInternal?.()}catch(_e){}const dash=document.getElementById('iakidsLearningDashboard');if(dash)dash.hidden=true;document.querySelectorAll('.side-item').forEach(x=>x.classList.remove('active'));item?.classList.add('active');load()}
   document.addEventListener('click',event=>{const item=event.target?.closest?.('a,button,.side-item');if(!item)return;const text=(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('הקבצים שלי'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();openView(item)},true);
   window.openMyFilesInternal=openView;window.closeMyFilesInternal=closeView;
+})();
+</script>
+
+
+<script id="IAKIDS_MY_FILES_STORAGE_FIX_0750">
+(function(){
+  if(window.__IAKIDS_MY_FILES_STORAGE_FIX_0750)return;
+  window.__IAKIDS_MY_FILES_STORAGE_FIX_0750=true;
+
+  const originalOpen=window.openMyFilesInternal;
+  if(typeof originalOpen!=='function') return;
+
+  function getClient(){
+    try{if(typeof sb!=='undefined'&&sb?.storage)return sb}catch(_e){}
+    return window.sb?.storage?window.sb:(window.supabaseClient?.storage?window.supabaseClient:null);
+  }
+  function getKid(){
+    try{if(typeof CURRENT_KID!=='undefined'&&CURRENT_KID?.id)return CURRENT_KID}catch(_e){}
+    return window.CURRENT_KID||window.SELECTED_KID||window.currentKid||window.selectedKid||null;
+  }
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function sizeLabel(n){n=Number(n||0);if(n>=1048576)return (n/1048576).toFixed(1)+' MB';if(n>=1024)return Math.round(n/1024)+' KB';return n+' B'}
+  function icon(name,mime){const x=(String(name||'')+' '+String(mime||'')).toLowerCase();if(x.includes('pdf'))return'file-pdf';if(x.match(/png|jpg|jpeg|webp|image/))return'file-image';return'file-lines'}
+
+  async function loadFromStorage(){
+    const client=getClient(),kid=getKid(),view=document.getElementById('iakidsMyFilesInternalView');
+    if(!client||!kid?.id||!view) return;
+    const currentText=(view.textContent||'');
+    // Only replace the error/empty state. If session-backed rows already rendered, keep them.
+    if(!currentText.includes('לא הצלחתי לטעון את הקבצים כרגע') && !currentText.includes('עדיין אין קבצים שמורים')) return;
+    try{
+      const {data:userData,error:userErr}=await client.auth.getUser();
+      if(userErr) throw userErr;
+      const uid=userData?.user?.id;
+      if(!uid) throw new Error('missing auth user');
+      const prefix=`${uid}/${kid.id}`;
+      const {data:files,error}=await client.storage.from('homework-uploads').list(prefix,{limit:100,sortBy:{column:'created_at',order:'desc'}});
+      if(error) throw error;
+      const rows=(files||[]).filter(f=>f?.name && !f.name.endsWith('/'));
+      const withUrls=[];
+      for(const f of rows){
+        const full=`${prefix}/${f.name}`;
+        let signed='';
+        try{const r=await client.storage.from('homework-uploads').createSignedUrl(full,3600);signed=r?.data?.signedUrl||''}catch(_e){}
+        withUrls.push({...f,full,signed});
+      }
+      const cards=withUrls.length?withUrls.map(f=>{
+        const mime=f.metadata?.mimetype||f.metadata?.contentType||'';
+        const d=new Date(f.created_at||f.updated_at||Date.now());
+        const pretty=(f.name||'קובץ שיעורי בית').replace(/^\d+-/,'');
+        return `<div class="imf-file"><div class="imf-icon"><i class="fa-solid fa-${icon(f.name,mime)}"></i></div><div class="imf-name"><b>${esc(pretty)}</b><span>${esc(mime||'קובץ שיעורי בית')}</span></div><div class="imf-cell"><small>גודל</small>${esc(sizeLabel(f.metadata?.size||f.metadata?.contentLength||0))}</div><div class="imf-cell"><small>תאריך</small>${d.toLocaleDateString('he-IL')}</div><span class="imf-status">שמור</span>${f.signed?`<button type="button" class="imf-open" data-url="${esc(f.signed)}">פתיחה</button>`:'<button type="button" class="imf-open" disabled>פתיחה</button>'}</div>`
+      }).join(''):'<div class="imf-empty">עדיין אין קבצים שמורים.</div>';
+      view.innerHTML=`<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1><p>קבצים שהועלו בעזרה בשיעורי בית</p></div><button type="button" class="imf-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div><div class="imf-stats"><div class="imf-stat"><span>קבצים שמורים</span><strong>${withUrls.length}</strong></div><div class="imf-stat"><span>תמונות</span><strong>${withUrls.filter(f=>String(f.metadata?.mimetype||'').startsWith('image/')).length}</strong></div><div class="imf-stat"><span>PDF</span><strong>${withUrls.filter(f=>String(f.metadata?.mimetype||'').includes('pdf')).length}</strong></div></div><div class="imf-list">${cards}</div></div>`;
+      view.querySelector('.imf-close')?.addEventListener('click',()=>window.closeMyFilesInternal?.());
+      view.querySelectorAll('.imf-open[data-url]').forEach(b=>b.addEventListener('click',()=>window.open(b.dataset.url,'_blank','noopener')));
+    }catch(e){
+      console.error('MY FILES STORAGE FALLBACK ERROR',e);
+    }
+  }
+
+  window.openMyFilesInternal=function(item){
+    originalOpen(item);
+    setTimeout(loadFromStorage,250);
+    setTimeout(loadFromStorage,900);
+  };
 })();
 </script>
 
