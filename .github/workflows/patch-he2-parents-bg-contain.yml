@@ -1,0 +1,38 @@
+name: Patch HE2 parents background contain
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-parents-bg-contain.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show full parents background image
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('he2/index.html')
+          s = p.read_text(encoding='utf-8')
+          old = ".parents-showcase-v2{position:relative;min-height:820px;overflow:hidden;background:#041120 url('/assets/he2/sections/parents-section-bg.webp?v=2') center right/cover no-repeat;padding:110px 5vw;display:flex;align-items:center}"
+          new = ".parents-showcase-v2{position:relative;min-height:820px;overflow:hidden;background-color:#041120;background-image:url('/assets/he2/sections/parents-section-bg.webp?v=3');background-repeat:no-repeat;background-position:center center;background-size:contain;padding:110px 5vw;display:flex;align-items:center}"
+          if old not in s:
+              raise SystemExit('parents showcase background rule not found')
+          s = s.replace(old, new, 1)
+          # Keep the entire image visible on tablet/mobile too.
+          s = s.replace("background-position:62% center", "background-position:center center")
+          s = s.replace("background-position:68% center;background-size:auto 100%", "background-position:center center;background-size:contain")
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Show full HE2 parents background image"
+          git push
