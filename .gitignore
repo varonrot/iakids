@@ -11,3 +11,7 @@ __pycache__/
 .venv/
 node_modules/
 *.log
+
+# session scratch — local handoff notes and launcher
+HANDOFF.md
+claude.sh
