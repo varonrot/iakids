@@ -6,11 +6,13 @@
 <title>שעון מחוגים ← דיגיטלי | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
-  .clock-wrap { display: flex; justify-content: center; margin: 8px 0; }
-  .clock-wrap svg { width: min(62vw, 240px); height: auto; }
+  /* Shared dark space theme (body.theme-space in ../game-style.css); only the clock is styled here. */
+  .clock-wrap { display: flex; justify-content: center; margin: 8px 0 18px; }
+  .clock-wrap svg { width: min(62vw, 240px); height: auto; filter: drop-shadow(0 14px 24px rgba(0,0,0,.35)); }
+  .howto { max-width:410px; margin:14px auto 20px; color:var(--space-muted)!important; font-weight:600; line-height:1.65; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -19,10 +21,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🕒</div>
+    <div class="hero-icon">🕒</div>
     <h1 class="game-title" id="title">שעון מחוגים ← דיגיטלי</h1>
-    <p id="subtitle">איזו שעה דיגיטלית מתאימה לשעון?</p>
-    <p id="rounds-q">כמה שאלות?</p>
+    <p id="subtitle" class="howto">איזו שעה דיגיטלית מתאימה לשעון?</p>
+    <p id="rounds-q" class="section-label">כמה שאלות?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
