@@ -801,7 +801,11 @@ return true;
         for (let i = 0; i < 60 && seen.has(key); i++) { q = gen(); key = IAKidsBank.normKey(keyFn(q)); }
         let fromBank = false;
         if (seen.has(key)) {                                            // generator exhausted for this child
-          const pool = await IAKidsBank.pull(slug, level, seen, q);
+          let pool = await IAKidsBank.pull(slug, level, seen, q);
+          // A game whose round has context the payload can't carry (e.g. roots:
+          // which three roots are on screen) passes opts.accept so a bank row
+          // from another round is never served into the wrong one.
+          if (typeof opts.accept === 'function') pool = pool.filter(r => { try { return !!opts.accept(r.payload); } catch { return false; } });
           if (pool.length) {
             const r = pool[Math.floor(Math.random() * pool.length)];
             q = r.payload; key = IAKidsBank.normKey(r.qkey); fromBank = true;

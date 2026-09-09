@@ -197,14 +197,19 @@ async function fillTray() {
   const pool = [];
   curSet.forEach((r, i) => {
     const n = Math.min(r.words.length, 2 + diff.level);
-    for (let k = 0; k < n; k++) pool.push({ word: r.words[k], rootIdx: i });
+    for (let k = 0; k < n; k++) pool.push({ word: r.words[k], root: r.root });
   });
+  // The payload names the root, never the bin index: bin order is per round, and
+  // the shared question bank can serve a word from any set of this level. `accept`
+  // keeps out bank rows whose root is not one of the three on screen.
+  const inSet = q => q && curSet.some(r => r.root === q.root);
   while (tray.querySelectorAll('.chip').length < Math.min(4, TOTAL - sorted)) {
-    const q = await game.newQuestion(() => pool[rnd(pool.length)], x => x.word);
+    let q = await game.newQuestion(() => pool[rnd(pool.length)], x => x.word, { accept: inSet });
+    if (!inSet(q)) q = pool[rnd(pool.length)];
     const chip = document.createElement('div');
     chip.className = 'chip';
     chip.textContent = q.word;
-    chip.dataset.rootIdx = q.rootIdx;
+    chip.dataset.rootIdx = curSet.findIndex(r => r.root === q.root);
     makeDraggable(chip);
     tray.appendChild(chip);
   }

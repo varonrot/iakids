@@ -217,7 +217,10 @@ async function fillTray() {
   const tray = $('tray');
   while (tray.querySelectorAll('.chip').length < Math.min(4, TOTAL - sorted)) {
     const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-    const a = await game.newQuestion(() => pickAnimal(lvl), x => x.name);
+    // With two bins an omnivore can't be sorted — keep bank-served ones out too
+    const fits = a => a && (numBins === 3 || a.diet !== 'omni');
+    let a = await game.newQuestion(() => pickAnimal(lvl), x => x.name, { accept: fits });
+    if (!fits(a)) a = pickAnimal(lvl);
     const chip = document.createElement('div');
     chip.className = 'chip';
     chip.innerHTML = `<span class="emoji">${a.emoji}</span><span class="name">${a.name}</span>`;

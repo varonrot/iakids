@@ -44,7 +44,7 @@ Skips everything this player already answered — locally (IndexedDB, last 2000)
 signed-in child (`localStorage.active_kid_id`), in Supabase (`kid_question_answers`). When the
 generator can't find a fresh question it pulls unanswered ones from the shared bank
 (`game_questions`); only when that is empty too does the local history reset, so the game
-never dead-ends. Every generated question is upserted into the bank (unique per game + key),
+never dead-ends. If a round has context the payload cannot carry (roots: which three roots are on screen), pass `{ accept: q => … }` as the third argument so a bank row from another round is never served into this one — and put the absolute fact (the root itself) in the payload, never an index into the current round. Every generated question is upserted into the bank (unique per game + key),
 so the bank grows with play.
 
 A client-written row is untrusted content — anyone signed in can post one, and the bank is
