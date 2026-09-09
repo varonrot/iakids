@@ -58,6 +58,7 @@ alter table public.kid_question_answers enable row level security;
 
 -- Bank: anyone signed in can read it and add to it (the SDK grows it at play
 -- time). Nobody except service_role can update or delete rows.
+drop policy if exists game_questions_read on public.game_questions;
 create policy game_questions_read
     on public.game_questions for select
     to authenticated, anon
@@ -69,17 +70,20 @@ create policy game_questions_read
 --   1. this policy pins source/verified, so a client cannot self-promote a row
 --      into the trusted set (only service_role can flip `verified`);
 --   2. game_next_questions below serves ONLY trusted rows.
+drop policy if exists game_questions_insert on public.game_questions;
 create policy game_questions_insert
     on public.game_questions for insert
     to authenticated
     with check (source = 'generated' and verified = false);
 
 -- Answers: a parent account sees and writes only rows for its own children.
+drop policy if exists kid_question_answers_select_own on public.kid_question_answers;
 create policy kid_question_answers_select_own
     on public.kid_question_answers for select
     to authenticated
     using (kid_id in (select id from public.kids_profiles where user_id = auth.uid()));
 
+drop policy if exists kid_question_answers_insert_own on public.kid_question_answers;
 create policy kid_question_answers_insert_own
     on public.kid_question_answers for insert
     to authenticated
