@@ -155,8 +155,10 @@ async function next() {
   qnum++;
   document.getElementById('qnum').textContent = qnum;
   const lvl = level === 0 ? 1 + Math.floor(Math.random() * 3) : diff.level;
-  const batch = await game.newQuestion(() => makeBatch(lvl), b => b.map(x => x[0]).sort().join(','));
-  buildRound(batch);
+  // newQuestion needs an object payload (a bare array fails the bank's
+  // JSON-shape check) — wrap/unwrap right here, nothing else changes.
+  const q = await game.newQuestion(() => ({ items: makeBatch(lvl) }), q => q.items.map(x => x[0]).sort().join(','));
+  buildRound(q.items);
 }
 
 function buildRound(batch) {

@@ -189,10 +189,12 @@ async function next() {
   $('qnum').textContent = qnum;
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
   const pool = SEQUENCES[lvl];
-  const q = await game.newQuestion(() => pool[rnd(pool.length)], seq => seq.map(s => s[1]).join('|'));
+  // newQuestion needs an object payload (a bare array fails the bank's
+  // JSON-shape check) — wrap/unwrap right here, nothing else changes.
+  const q = await game.newQuestion(() => ({ seq: pool[rnd(pool.length)] }), q => q.seq.map(s => s[1]).join('|'));
   const row = $('slot-row'), tray = $('tray');
   row.innerHTML = tray.innerHTML = '';
-  const items = q.map((step, i) => ({ e: step[0], t: step[1], val: i }));
+  const items = q.seq.map((step, i) => ({ e: step[0], t: step[1], val: i }));
   let scrambled = shuffle(items);
   if (scrambled.every((it, i) => it.val === i)) scrambled.reverse(); // avoid a trivially-solved shuffle
   for (const _ of items) {

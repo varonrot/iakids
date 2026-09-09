@@ -81,18 +81,21 @@ const ADJECTIVES = ['גדול', 'קטן', 'יפה', 'מהיר', 'איטי', 'ח�
 
 // level 3: genuinely ambiguous Hebrew words (same spelling, different role) shown
 // inside a short sentence so the correct part-of-speech is determined by context.
+// hi = the ambiguous word to bold within the sentence at render time (see
+// buildRound). Kept out of t itself — the bank rejects HTML in a payload
+// (any client-written row is untrusted content).
 const HARD = [
-  { t: 'התבשיל מבושל ב<b>שמן</b> זית', p: 'n' },   // שמן = "oil" (noun)
-  { t: 'הכלב <b>שמן</b> ואוהב לאכול', p: 'a' },    // שמן = "fat" (adjective)
-  { t: 'הוא <b>כתב</b> מכתב לסבתא', p: 'v' },      // כתב = "wrote" (verb)
-  { t: 'ה<b>כתב</b> מהטלוויזיה ראיין את ראש העיר', p: 'n' }, // כתב = "reporter" (noun)
-  { t: 'הילד <b>שר</b> שיר יפה במסיבה', p: 'v' },   // שר = "sang" (verb)
-  { t: 'ה<b>שר</b> דיבר היום בכנסת', p: 'n' },      // שר = "minister" (noun)
-  { t: 'ה<b>דובר</b> של הממשלה הודיע על הצעד', p: 'n' }, // דובר = "spokesperson" (noun)
-  { t: 'הוא <b>דובר</b> שלוש שפות', p: 'v' },       // דובר = "speaks" (verb-like participle)
-  { t: 'הכובע <b>אדום</b> וגדול', p: 'a' },
-  { t: 'ה<b>ילדים</b> שיחקו בגן', p: 'n' },
-  { t: 'הציפור <b>עפה</b> בשמיים', p: 'v' },
+  { t: 'התבשיל מבושל בשמן זית', hi: 'שמן', p: 'n' }, // שמן = "oil" (noun)
+  { t: 'הכלב שמן ואוהב לאכול', hi: 'שמן', p: 'a' }, // שמן = "fat" (adjective)
+  { t: 'הוא כתב מכתב לסבתא', hi: 'כתב', p: 'v' }, // כתב = "wrote" (verb)
+  { t: 'הכתב מהטלוויזיה ראיין את ראש העיר', hi: 'כתב', p: 'n' }, // כתב = "reporter" (noun)
+  { t: 'הילד שר שיר יפה במסיבה', hi: 'שר', p: 'v' }, // שר = "sang" (verb)
+  { t: 'השר דיבר היום בכנסת', hi: 'שר', p: 'n' }, // שר = "minister" (noun)
+  { t: 'הדובר של הממשלה הודיע על הצעד', hi: 'דובר', p: 'n' }, // דובר = "spokesperson" (noun)
+  { t: 'הוא דובר שלוש שפות', hi: 'דובר', p: 'v' }, // דובר = "speaks" (verb-like participle)
+  { t: 'הכובע אדום וגדול', hi: 'אדום', p: 'a' },
+  { t: 'הילדים שיחקו בגן', hi: 'ילדים', p: 'n' },
+  { t: 'הציפור עפה בשמיים', hi: 'עפה', p: 'v' },
 ];
 
 const LEVELS = {
@@ -163,8 +166,10 @@ async function next() {
   qnum++;
   document.getElementById('qnum').textContent = qnum;
   const lvl = level === 0 ? 1 + Math.floor(Math.random() * 3) : diff.level;
-  const batch = await game.newQuestion(() => makeBatch(lvl), b => b.map(x => x.t).sort().join(','));
-  buildRound(batch);
+  // newQuestion needs an object payload (a bare array fails the bank's
+  // JSON-shape check) — wrap/unwrap right here, nothing else changes.
+  const q = await game.newQuestion(() => ({ items: makeBatch(lvl) }), q => q.items.map(x => x.t).sort().join(','));
+  buildRound(q.items);
 }
 
 function buildRound(batch) {
@@ -173,10 +178,10 @@ function buildRound(batch) {
   document.querySelectorAll('.bin .chip-list').forEach(el => el.innerHTML = '');
   const bank = document.getElementById('bank');
   bank.innerHTML = '';
-  shuffle(batch).forEach(({ t, p }) => {
+  shuffle(batch).forEach(({ t, hi, p }) => {
     const chip = document.createElement('div');
     chip.className = 'chip';
-    chip.innerHTML = t;
+    chip.innerHTML = hi ? t.replace(hi, `<b>${hi}</b>`) : t;
     chip.dataset.p = p;
     bank.appendChild(chip);
     attachDrag(chip);

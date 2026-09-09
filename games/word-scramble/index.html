@@ -139,8 +139,10 @@ async function next() {
   qnum++;
   document.getElementById('qnum').textContent = qnum;
   const lvl = level === 0 ? 1 + Math.floor(Math.random() * 3) : diff.level;
-  const word = await game.newQuestion(() => pickWord(lvl), w => w);
-  buildRound(word);
+  // newQuestion needs an object payload (a bare string fails the bank's
+  // JSON-shape check) — wrap/unwrap right here, nothing else changes.
+  const q = await game.newQuestion(() => ({ w: pickWord(lvl) }), q => q.w);
+  buildRound(q.w);
 }
 
 function buildRound(word) {

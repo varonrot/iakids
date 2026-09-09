@@ -584,9 +584,13 @@ async function next(){
 
   $('qnum').textContent = qnum;
 
+  // A board cell carries a live DOM ref (cell.el, attached in buildBoard) —
+  // that breaks JSON serialisation for the bank (any newQuestion payload
+  // gets upserted there). current is only ever matched by .val below, never
+  // by object identity, so a clean {a,b,val} copy changes nothing.
   current =
     await game.newQuestion(
-      ()=>open[rnd(open.length)],
+      ()=>{ const c=open[rnd(open.length)]; return {a:c.a,b:c.b,val:c.val}; },
       cell=>`${cell.a}×${cell.b}`
     );
 

@@ -628,10 +628,13 @@ async function fillTray(){
     tray.querySelectorAll('.chip').length <
     Math.min(3,TOTAL - placed)
   ){
-    const id = await game.newQuestion(
-      ()=>activeIds[rnd(activeIds.length)],
-      item=>item
+    // newQuestion needs an object payload (a bare string id fails the
+    // bank's JSON-shape check) — wrap/unwrap right here, nothing else changes.
+    const q = await game.newQuestion(
+      ()=>({id:activeIds[rnd(activeIds.length)]}),
+      item=>item.id
     );
+    const id = q.id;
 
     const chip = document.createElement('div');
     chip.className = 'chip';
