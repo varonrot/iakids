@@ -744,10 +744,15 @@ let CHILD_AGE = null;
 let USE_NIQQUD = false;
 
 async function loadKidContext() {
-  const kid = await IAKidsGame.getActiveKidContext();
-
-  CHILD_AGE = kid.age;
-  USE_NIQQUD = kid.usesNiqqud;
+  // IAKidsGame.getActiveKidContext doesn't exist in game-sdk.js — this always
+  // threw, which aborted initializeGamePage() before it ever set the title,
+  // level-button labels or the help button. Fail silently to the declared
+  // defaults (CHILD_AGE=null, USE_NIQQUD=false) instead of breaking the page.
+  try {
+    const kid = await IAKidsGame.getActiveKidContext();
+    CHILD_AGE = kid.age;
+    USE_NIQQUD = kid.usesNiqqud;
+  } catch (e) { /* no kid context available — keep defaults */ }
 }
 /* ==================================================
    TEXT
