@@ -141,7 +141,7 @@ function markLevel(lvl) {
   if (btn) btn.classList.add('outline');
 }
 
-(async function boot() {
+const ready = (async function boot() {
   game = await IAKidsGame.init('body-parts');
   const p = await game.loadProgress();
   if (p) {
@@ -161,6 +161,7 @@ function speakInstruction() {
 }
 
 async function start(lvl) {
+  await ready; // guards against a level click racing the boot() init above
   level = lvl;
   diff = game.difficulty(lvl || 1, 3);
   timer = game.timer({ style: 'bomb', onTimeout: () => answer(null, null) });

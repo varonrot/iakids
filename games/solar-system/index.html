@@ -684,10 +684,10 @@ body::before{
     </div>
 
     <div class="answer-grid" id="level-row">
-      <button class="game-btn secondary" data-lvl="1" onclick="startGame(1)"></button>
-      <button class="game-btn secondary" data-lvl="2" onclick="startGame(2)"></button>
-      <button class="game-btn secondary" data-lvl="3" onclick="startGame(3)"></button>
-      <button class="game-btn" data-lvl="0" onclick="startGame(0)"></button>
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
     </div>
   </div>
 
@@ -1361,7 +1361,7 @@ function resetState(){
    START — SESSION ONLY AFTER CLICK
 ================================================== */
 
-async function startGame(selectedLevel){
+async function start(selectedLevel){
   if (starting) return;
 
   starting = true;
