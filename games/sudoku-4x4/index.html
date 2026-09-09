@@ -6,15 +6,16 @@
 <title>סודוקו מופשט 4×4 | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
 #board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:340px;margin:16px auto}
-.cell{aspect-ratio:1;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;cursor:pointer;border:3px solid transparent}
+.cell{aspect-ratio:1;background:rgba(17,58,111,.9);color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;cursor:pointer;border:3px solid transparent}
 .cell svg{width:60%;height:60%}
-.cell.given{background:var(--card);cursor:default;color:var(--muted)}
+.cell.given{background:rgba(4,22,55,.6);cursor:default;color:var(--space-muted)}
 .cell.selected{border-color:var(--blue)}
-.cell.conflict{background:#fecaca;border-color:var(--red)}
+.cell.conflict{background:rgba(239,68,68,.35);border-color:#ff8a80}
 /* thicker lines between the four 2x2 boxes */
-.cell:nth-child(4n+3){border-inline-start-width:3px;border-inline-start-color:#9ca3af}
-.cell:nth-child(n+9):nth-child(-n+12){border-block-start-width:3px;border-block-start-color:#9ca3af}
+.cell:nth-child(4n+3){border-inline-start-width:3px;border-inline-start-color:rgba(184,199,227,.7)}
+.cell:nth-child(n+9):nth-child(-n+12){border-block-start-width:3px;border-block-start-color:rgba(184,199,227,.7)}
 #palette{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:340px;margin:10px auto}
 #palette button{aspect-ratio:1;padding:6px}
 #palette svg{width:60%;height:60%}
@@ -22,7 +23,7 @@
 #confirm-btn:disabled{opacity:.4}
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -31,10 +32,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🔢</div>
+    <div class="hero-icon">🔢</div>
     <h1 class="game-title" id="title"></h1>
     <p id="howto"></p>
-    <p id="rounds-label"></p>
+    <p class="section-label" id="rounds-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>

@@ -6,14 +6,16 @@
 <title>משחק הקלדה מהירה | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
 #play-area {
   position: relative; width: 100%; height: 320px; overflow: hidden;
-  background: var(--accent-soft); border-radius: var(--radius); margin: 12px 0;
+  background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff;border-radius:var(--radius); margin: 12px 0;
 }
 .falling {
   position: absolute; top: -40px; font-size: 1.3rem; font-weight: 800;
-  background: var(--card); border: 2px solid var(--accent); border-radius: 10px;
-  padding: 6px 10px; white-space: nowrap; color: var(--text);
+  color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.85),rgba(21,49,99,.9));border:2px solid rgba(118,176,255,.45);box-shadow:inset 0 1px rgba(255,255,255,.15),0 8px 18px rgba(0,0,0,.2);border-radius:10px;
+  padding: 6px 10px; white-space: nowrap; color:#fff;
 }
 .falling .matched { color: var(--green); }
 #keyboard { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; margin-top: 8px; }
@@ -26,7 +28,7 @@
 .hearts { font-size: 1.2rem; letter-spacing: 2px; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score">ניקוד: <span id="score">0</span></span>
@@ -36,10 +38,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">⌨️</div>
+    <div class="hero-icon">⌨️</div>
     <h1 class="game-title">משחק הקלדה מהירה</h1>
-    <p>אותיות ומילים נופלות מלמעלה — הקלידו אותן לפני שהן מגיעות לתחתית!</p>
-    <p>כמה תפיסות כדי לנצח?</p>
+    <p class="howto">אותיות ומילים נופלות מלמעלה — הקלידו אותן לפני שהן מגיעות לתחתית!</p>
+    <p class="section-label">כמה תפיסות כדי לנצח?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
@@ -49,7 +51,7 @@
       <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

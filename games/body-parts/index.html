@@ -6,16 +6,18 @@
 <title>Body Parts Quiz | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   .figure-wrap { margin: 12px auto; max-width: 260px; }
   .figure-wrap svg { width: 100%; height: auto; touch-action: manipulation; }
   .hit { fill: transparent; cursor: pointer; }
   .hit:active { fill: rgba(255,106,42,0.25); }
   .instruction { margin: 10px 0 4px; }
   .instruction .en { font-size: 1.6rem; font-weight: 800; }
-  .instruction .he { font-size: 1.1rem; color: var(--muted); }
+  .instruction .he { font-size: 1.1rem; color:var(--space-muted); }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score">ניקוד: <span id="score">0</span></span>
@@ -24,10 +26,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🧍</div>
+    <div class="hero-icon">🧍</div>
     <h1 class="game-title">Body Parts Quiz</h1>
-    <p>לוחצים על חלק הגוף הנכון לפי המילה באנגלית!</p>
-    <p>כמה שאלות?</p>
+    <p class="howto">לוחצים על חלק הגוף הנכון לפי המילה באנגלית!</p>
+    <p class="section-label">כמה שאלות?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
@@ -37,7 +39,7 @@
       <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

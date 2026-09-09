@@ -6,11 +6,13 @@
 <title>אליפות לוח הכפל | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
-  .stopwatch { font-weight: 900; color: #3b82f6; }
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
+  .stopwatch { font-weight: 900; color:#69c8ff; }
   .time-line { font-size: 1.3rem; font-weight: 800; margin: 6px 0; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -20,9 +22,9 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🏁</div>
+    <div class="hero-icon">🏁</div>
     <h1 class="game-title" id="title">אליפות לוח הכפל</h1>
-    <p id="subtitle">10 תרגילי כפל ברצף — כמה מהר תסיים?</p>
+    <p class="howto" id="subtitle">10 תרגילי כפל ברצף — כמה מהר תסיים?</p>
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
       <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>

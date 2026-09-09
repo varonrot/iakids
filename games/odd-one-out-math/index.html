@@ -5,8 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>מי יוצא דופן? | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
+<style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
+</style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span data-ui="score"></span>: <span id="score">0</span></span>
@@ -15,10 +19,10 @@
 
 <div class="game-card">
   <div id="start-screen">
-    <div style="font-size:4rem">🕵️</div>
+    <div class="hero-icon">🕵️</div>
     <h1 class="game-title" id="title"></h1>
-    <p id="tagline"></p>
-    <p id="rounds-label"></p>
+    <p class="howto" id="tagline"></p>
+    <p class="section-label" id="rounds-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5)">5</button>
       <button class="game-btn success" onclick="setRounds(10)">10</button>

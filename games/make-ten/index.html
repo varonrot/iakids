@@ -6,19 +6,21 @@
 <title>משלימים ל-10/100 | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
 #chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
 .chip {
   min-height: 64px; font-size: 1.5rem; font-weight: 800; border-radius: 16px;
-  border: 3px solid var(--blue); background: var(--card); color: var(--blue);
+  color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5);
   cursor: pointer; transition: transform .25s, opacity .25s;
   -webkit-tap-highlight-color: transparent;
 }
-.chip.sel { background: var(--blue); color: #fff; transform: scale(1.08); }
+.chip.sel{background:var(--space-gold);color:#102a4f;border-color:var(--space-gold); transform: scale(1.08); }
 .chip.gone { transform: scale(0); opacity: 0; pointer-events: none; }
-#target-box { font-size: 2rem; font-weight: 900; color: var(--accent); }
+#target-box{font-size:2rem;font-weight:900;color:var(--space-gold); }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
@@ -27,10 +29,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🔗</div>
+    <div class="hero-icon">🔗</div>
     <h1 class="game-title" id="title"></h1>
-    <p id="subtitle"></p>
-    <p id="rounds-label"></p>
+    <p class="howto" id="subtitle"></p>
+    <p class="section-label" id="rounds-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
@@ -40,7 +42,7 @@
       <button class="game-btn secondary" onclick="start(1)" id="lvl1"></button>
       <button class="game-btn secondary" onclick="start(2)" id="lvl2"></button>
       <button class="game-btn secondary" onclick="start(3)" id="lvl3"></button>
-      <button class="game-btn" onclick="start(0)" id="lvl0"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)" id="lvl0"></button>
     </div>
   </div>
 

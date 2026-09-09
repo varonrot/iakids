@@ -6,12 +6,14 @@
 <title>Capital vs Small Letters | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   .letters-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; direction: ltr; }
   .letter-card { font-size: 1.8rem; min-height: 64px; }
   .letter-card.matched { visibility: hidden; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score">ניקוד: <span id="score">0</span></span>
@@ -20,10 +22,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🅰️</div>
+    <div class="hero-icon">🅰️</div>
     <h1 class="game-title">Capital vs Small Letters</h1>
-    <p>מתאימים כל אות גדולה לאות הקטנה שלה!</p>
-    <p>כמה שאלות?</p>
+    <p class="howto">מתאימים כל אות גדולה לאות הקטנה שלה!</p>
+    <p class="section-label">כמה שאלות?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
@@ -33,7 +35,7 @@
       <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

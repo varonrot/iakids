@@ -6,9 +6,10 @@
 <title>זהה את התבנית | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
 #seq-wrap{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:20px 0}
-.seq-item{width:52px;height:52px;background:var(--accent-soft);border-radius:12px;display:flex;align-items:center;justify-content:center}
-.seq-q{width:52px;height:52px;background:var(--card);border:3px dashed var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:var(--accent)}
+.seq-item{width:52px;height:52px;color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.seq-q{width:52px;height:52px;background:rgba(4,22,55,.5);border:3px dashed rgba(255,255,255,.55);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:var(--space-gold)}
 #opts{grid-template-columns:repeat(4,1fr)}
 #opts .game-btn{padding:8px;min-height:64px}
 #opts svg{width:40px;height:40px}
@@ -16,7 +17,7 @@
 @media (max-width:400px){ .seq-item,.seq-q{width:42px;height:42px} #opts svg{width:32px;height:32px} }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -25,10 +26,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🔶</div>
+    <div class="hero-icon">🔶</div>
     <h1 class="game-title" id="title"></h1>
     <p id="howto"></p>
-    <p id="rounds-label"></p>
+    <p class="section-label" id="rounds-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>

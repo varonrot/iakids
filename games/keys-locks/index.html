@@ -6,10 +6,11 @@
 <title>מפתחות ומנעולים | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   #board { display: grid; gap: 10px; margin: 14px 0 4px; }
   .kl-card {
-    background: var(--card);
-    border: 3px solid #e2e8f0;
+    color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5);
     border-radius: 16px;
     padding: 4px;
     min-height: 84px;
@@ -26,7 +27,7 @@
   #level-row { margin-top: 4px; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span data-ui="score">ניקוד</span>: <span id="score">0</span></span>
@@ -35,10 +36,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🔑</div>
+    <div class="hero-icon">🔑</div>
     <h1 class="game-title" id="t-title">מפתחות ומנעולים</h1>
-    <p id="t-desc">מצא לכל מפתח את המנעול עם אותה צורת חור!</p>
-    <p id="t-rounds">כמה סיבובים?</p>
+    <p class="howto" id="t-desc">מצא לכל מפתח את המנעול עם אותה צורת חור!</p>
+    <p class="section-label" id="t-rounds">כמה סיבובים?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
@@ -48,12 +49,12 @@
       <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 
   <div id="play-screen" hidden>
-    <p id="t-hint" style="color:var(--muted);font-size:0.95rem;margin:0 0 4px">לחץ על מפתח ואז על המנעול המתאים לו</p>
+    <p id="t-hint" style="color:var(--space-muted);font-size:0.95rem;margin:0 0 4px">לחץ על מפתח ואז על המנעול המתאים לו</p>
     <div id="board"></div>
   </div>
 

@@ -6,13 +6,15 @@
 <title>🍕 מחשבון שברים ויזואלי | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   .picked { outline: 4px solid var(--yellow); }
   #pizza { width: min(70vw, 280px); height: auto; touch-action: manipulation; }
   #pizza path { cursor: pointer; transition: fill 0.15s; }
-  #fraction { font-size: 3rem; font-weight: 900; color: var(--accent); margin: 4px 0; }
+  #fraction { font-size: 3rem; font-weight: 900; color:var(--space-gold); margin: 4px 0; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
@@ -21,10 +23,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🍕</div>
+    <div class="hero-icon">🍕</div>
     <h1 class="game-title" id="title-line"></h1>
-    <p id="intro-line"></p>
-    <p id="rounds-line"></p>
+    <p class="howto" id="intro-line"></p>
+    <p class="section-label" id="rounds-line"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>

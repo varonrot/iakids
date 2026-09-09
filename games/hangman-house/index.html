@@ -6,6 +6,8 @@
 <title>איש תלוי — בניית בית | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   .house-wrap { margin: 10px auto; width: 100%; max-width: 260px; }
   .house-wrap svg { width: 100%; height: auto; }
   .piece { opacity: 0; transform: scale(0.8); transform-origin: center bottom; transition: opacity .25s, transform .25s; }
@@ -13,16 +15,16 @@
   .collapse-box { font-size: 4rem; display: none; }
   .collapse-box.show { display: block; animation: shake .5s; }
   .hint-emoji { font-size: 2.2rem; margin: 4px 0; }
-  .mistakes-line { color: var(--muted); font-weight: 700; margin: 4px 0 8px; }
+  .mistakes-line { color:var(--space-muted); font-weight: 700; margin: 4px 0 8px; }
   .word-display { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 14px 0; direction: rtl; }
-  .blank { min-width: 30px; font-size: 1.9rem; font-weight: 800; border-bottom: 4px solid var(--accent); text-align: center; padding-bottom: 2px; }
+  .blank { min-width: 30px; font-size: 1.9rem; font-weight: 800; border-bottom:4px solid #69c8ff; text-align: center; padding-bottom: 2px; }
   .keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px; direction: rtl; }
   .kbd-btn { font-size: 1.2rem; padding: 10px; min-height: 44px; min-width: 40px; margin: 2px; }
   .kbd-btn.success { background: var(--green); }
   .kbd-btn.danger { background: var(--red); opacity: .6; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score">ניקוד: <span id="score">0</span></span>
@@ -31,10 +33,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🏠</div>
+    <div class="hero-icon">🏠</div>
     <h1 class="game-title">איש תלוי — בניית בית</h1>
-    <p>נחשו אותיות! כל ניחוש נכון בונה חלק בבית, כל טעות מפילה חלק. 6 טעויות = הבית קורס.</p>
-    <p>כמה מילים?</p>
+    <p class="howto">נחשו אותיות! כל ניחוש נכון בונה חלק בבית, כל טעות מפילה חלק. 6 טעויות = הבית קורס.</p>
+    <p class="section-label">כמה מילים?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
@@ -44,7 +46,7 @@
       <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

@@ -6,16 +6,17 @@
 <title>מילים מורכבות | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
 #board{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:14px}
-.tile{min-width:80px;padding:14px 16px;font-size:1.25rem;font-weight:800;background:var(--card);border:3px solid var(--accent);border-radius:16px;cursor:pointer;user-select:none}
-.tile.selected{background:var(--accent);color:#fff}
+.tile{min-width:80px;padding:14px 16px;font-size:1.25rem;font-weight:800;color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5);border-radius:16px;cursor:pointer;user-select:none}
+.tile.selected{background:var(--space-gold);color:#102a4f;border-color:var(--space-gold)}
 .tile.used{visibility:hidden}
 #banner{min-height:2.6rem;font-size:1.25rem;font-weight:800;text-align:center;margin-top:10px}
-#banner .word{color:var(--accent)}
-#banner .meaning{display:block;font-size:0.95rem;font-weight:600;color:var(--muted)}
+#banner .word{color:var(--space-gold)}
+#banner .meaning{display:block;font-size:0.95rem;font-weight:600;color:var(--space-muted)}
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -24,10 +25,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🚡</div>
+    <div class="hero-icon">🚡</div>
     <h1 class="game-title" id="title"></h1>
     <p id="howto"></p>
-    <p id="rounds-label"></p>
+    <p class="section-label" id="rounds-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>

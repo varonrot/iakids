@@ -6,7 +6,9 @@
 <title>סיימון | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
-  #status { font-size: 1.15rem; font-weight: 700; color: var(--muted); min-height: 1.6em; margin: 4px 0 0; }
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
+  #status { font-size: 1.15rem; font-weight: 700; color:var(--space-muted); min-height: 1.6em; margin: 4px 0 0; }
   .simon-board {
     width: min(88vw, 320px);
     height: min(88vw, 320px);
@@ -31,7 +33,7 @@
   .level-picked { outline: 4px solid var(--yellow); }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="t-round">סיבוב</span>: <span id="round">0</span></span>
@@ -39,14 +41,14 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🚦</div>
+    <div class="hero-icon">🚦</div>
     <h1 class="game-title" id="t-title">סיימון אומר</h1>
-    <p id="t-desc">תסתכלו ותקשיבו לרצף הצבעים, ואז חזרו עליו באותו סדר!</p>
+    <p class="howto" id="t-desc">תסתכלו ותקשיבו לרצף הצבעים, ואז חזרו עליו באותו סדר!</p>
     <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

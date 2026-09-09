@@ -6,18 +6,19 @@
 <title>משחק הזיכרון הקלאסי | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
 #grid{display:grid;gap:10px;margin-top:12px}
 .mcard{height:80px;perspective:600px;cursor:pointer;touch-action:manipulation}
 .mcard .inner{position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
 .mcard.flipped .inner{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;border-radius:14px;font-size:2.2rem;font-weight:800}
-.face.front{background:var(--accent);color:#fff;font-size:1.8rem}
-.face.back{transform:rotateY(180deg);background:var(--card);border:3px solid var(--accent)}
-.mcard.matched .face.back{background:var(--green);border-color:var(--green)}
+.face.front{background:linear-gradient(180deg,#8054ff,#6035dc);border:1px solid rgba(180,160,255,.45);color:#fff;font-size:1.8rem;box-shadow:inset 0 1px rgba(255,255,255,.18),0 6px 14px rgba(0,0,0,.25)}
+.face.back{transform:rotateY(180deg);color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5)}
+.mcard.matched .face.back{background:linear-gradient(180deg,#37d182,#16ad64);border-color:rgba(97,255,174,.6);color:#fff}
 .mcard.matched{cursor:default}
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -27,10 +28,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🧠</div>
+    <div class="hero-icon">🧠</div>
     <h1 class="game-title" id="title"></h1>
     <p id="howto"></p>
-    <p id="rounds-label"></p>
+    <p class="section-label" id="rounds-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>

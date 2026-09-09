@@ -6,18 +6,20 @@
 <title>איזה חלק חסר בפאזל | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   .pic-svg { width: 220px; height: 220px; margin: 10px auto; display: block; }
   .piece-shape { stroke: rgba(0,0,0,.18); stroke-width: 2; stroke-linejoin: round; }
-  .hole { fill: none; stroke: var(--muted); stroke-width: 3; stroke-dasharray: 6 5; }
-  .hole-q { font-size: 26px; font-weight: 800; fill: var(--muted); }
+  .hole { fill: none; stroke:#b8c7e3; stroke-width: 3; stroke-dasharray: 6 5; }
+  .hole-q { font-size: 26px; font-weight: 800; fill:#b8c7e3; }
   #choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
   .piece-btn { min-height: 84px; min-width: 84px; display: flex; align-items: center; justify-content: center; padding: 6px; }
   .piece-btn svg { display: block; pointer-events: none; }
-  #t-instruction { color: var(--muted); font-weight: 700; margin: 4px 0 0; }
+  #t-instruction { color:var(--space-muted); font-weight: 700; margin: 4px 0 0; }
   .level-picked { outline: 4px solid var(--yellow); }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span data-ui="score">ניקוד</span>: <span id="score">0</span></span>
@@ -26,10 +28,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🧩</div>
+    <div class="hero-icon">🧩</div>
     <h1 class="game-title" id="t-title">איזה חלק חסר בפאזל</h1>
-    <p id="t-desc">יש תמונה עם חלק חסר — בוחרים את החתיכה שמתאימה בדיוק כדי להשלים אותה!</p>
-    <p id="t-rounds">כמה שאלות?</p>
+    <p class="howto" id="t-desc">יש תמונה עם חלק חסר — בוחרים את החתיכה שמתאימה בדיוק כדי להשלים אותה!</p>
+    <p class="section-label" id="t-rounds">כמה שאלות?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" data-r="5" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" data-r="10" onclick="setRounds(10,this)">10</button>
@@ -39,7 +41,7 @@
       <button class="game-btn secondary" data-l="1" data-ui="level_easy" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" data-l="2" data-ui="level_medium" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" data-l="3" data-ui="level_hard" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" data-l="0" data-ui="level_random" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

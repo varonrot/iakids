@@ -6,23 +6,25 @@
 <title>🎨 מילוי לפי קוד | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   #grid-wrap { touch-action: none; }
   #pgrid { width: min(85vw, 340px); height: auto; display: block; margin: 8px auto; }
   #pgrid .cell { stroke: #d1d5db; stroke-width: 1.5; cursor: pointer; } /* fill set via JS attribute, not here — a CSS fill rule would win over it */
-  #pgrid .hdr { font-size: 13px; font-weight: 800; fill: var(--muted); }
+  #pgrid .hdr { font-size: 13px; font-weight: 800; fill:#b8c7e3; }
   #grid-wrap.correct { animation: pop 0.4s; }
   #grid-wrap.wrong { animation: shake 0.4s; }
-  #cmd-list { max-height: 110px; overflow-y: auto; background: var(--accent-soft); border-radius: 14px;
+  #cmd-list { max-height: 110px; overflow-y: auto; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff;border-radius:14px;
     padding: 8px 12px; margin: 8px 0; font-weight: 700; font-size: 1rem; text-align: right; }
   #cmd-list div { margin: 3px 0; }
   #cmd-list b { padding: 1px 6px; border-radius: 6px; color: #fff; }
   .palette-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px 0; }
   .swatch { width: 44px; height: 44px; border-radius: 12px; border: 3px solid transparent; cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
-  .swatch.sel { border-color: var(--text); transform: scale(1.1); }
+  .swatch.sel{border-color:#fff; transform: scale(1.1); }
   .swatch.eraser { background: #fff repeating-linear-gradient(45deg,#e5e7eb 0 4px,#fff 4px 8px); }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
@@ -31,10 +33,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🎨</div>
+    <div class="hero-icon">🎨</div>
     <h1 class="game-title" id="title-line"></h1>
-    <p id="intro-line"></p>
-    <p id="rounds-line"></p>
+    <p class="howto" id="intro-line"></p>
+    <p class="section-label" id="rounds-line"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>

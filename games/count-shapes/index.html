@@ -6,13 +6,15 @@
 <title>ספירת צורות | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   .shape-wrap { display: flex; justify-content: center; margin: 6px 0; }
   .shape-wrap svg { width: min(78vw, 320px); height: auto; background: #fff; border-radius: 12px; }
   .q-text { font-size: 1.25rem; font-weight: 800; margin: 8px 0; }
-  .hint { font-size: 0.95rem; color: #777; margin: 0 0 6px; }
+  .hint { font-size: 0.95rem; color:var(--space-muted); margin: 0 0 6px; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -21,10 +23,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🔷</div>
+    <div class="hero-icon">🔷</div>
     <h1 class="game-title" id="title">ספירת צורות</h1>
-    <p id="subtitle">כמה משולשים ומלבנים מסתתרים בציור?</p>
-    <p id="rounds-q">כמה שאלות?</p>
+    <p class="howto" id="subtitle">כמה משולשים ומלבנים מסתתרים בציור?</p>
+    <p class="section-label" id="rounds-q">כמה שאלות?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>

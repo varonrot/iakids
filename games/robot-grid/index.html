@@ -6,6 +6,8 @@
 <title>🤖 כוון את הרובוט | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
   #grid-wrap { touch-action: none; }
   #grid { width: min(80vw, 320px); height: auto; display: block; margin: 8px auto; }
   #grid rect.cell { fill: #fff; stroke: #e5e7eb; stroke-width: 2; }
@@ -16,13 +18,13 @@
   .dir-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
   .dir-row .game-btn { font-size: 1.6rem; min-width: 56px; min-height: 56px; padding: 10px; }
   #queue-row { min-height: 46px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; align-items: center;
-    background: var(--accent-soft); border-radius: 14px; padding: 8px; margin: 8px 0; font-size: 1.4rem; }
-  #queue-row .chip { background: var(--card); border-radius: 8px; padding: 2px 8px; box-shadow: 0 2px 0 rgba(0,0,0,.1); }
+    background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff;border-radius:14px; padding: 8px; margin: 8px 0; font-size: 1.4rem; }
+  #queue-row .chip{background:rgba(17,58,111,.95);color:#fff; border-radius: 8px; padding: 2px 8px; box-shadow: 0 2px 0 rgba(0,0,0,.1); }
   .ctrl-row { display: flex; gap: 8px; justify-content: center; }
   .ctrl-row .game-btn { flex: 1; font-size: 1.1rem; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="lbl-score"></span>: <span id="score">0</span></span>
@@ -31,10 +33,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🤖</div>
+    <div class="hero-icon">🤖</div>
     <h1 class="game-title" id="title-line"></h1>
-    <p id="intro-line"></p>
-    <p id="rounds-line"></p>
+    <p class="howto" id="intro-line"></p>
+    <p class="section-label" id="rounds-line"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" data-n="5" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" data-n="10" onclick="setRounds(10,this)">10</button>
@@ -208,7 +210,7 @@ const DIR_EMOJI = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️
 function renderQueue() {
   $('queue-row').innerHTML = queue.length
     ? queue.map(d => `<span class="chip">${DIR_EMOJI[d]}</span>`).join('')
-    : `<span style="color:var(--muted);font-size:1rem">${t({ he: 'לחצו על החצים כדי להוסיף צעדים', en: 'Tap arrows to add steps', es: 'Toca las flechas para añadir pasos', de: 'Tippe auf die Pfeile, um Schritte hinzuzufügen', pt: 'Toque nas setas para adicionar passos' })}</span>`;
+    : `<span style="color:var(--space-muted);font-size:1rem">${t({ he: 'לחצו על החצים כדי להוסיף צעדים', en: 'Tap arrows to add steps', es: 'Toca las flechas para añadir pasos', de: 'Tippe auf die Pfeile, um Schritte hinzuzufügen', pt: 'Toque nas setas para adicionar passos' })}</span>`;
   $('run-btn').disabled = queue.length === 0 || animating;
 }
 

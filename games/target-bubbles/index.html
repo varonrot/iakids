@@ -6,6 +6,8 @@
 <title>קליעה למטרה | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this game's own widgets are styled here, tuned for the dark card. */
+.howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
 #bubble-area { position: relative; height: 320px; margin-top: 8px; }
 .bubble {
   position: absolute; width: 84px; height: 84px; border-radius: 50%;
@@ -20,10 +22,10 @@
 .bubble.tried { opacity: .35; pointer-events: none; animation-play-state: paused; }
 .bubble.reveal { background: radial-gradient(circle at 30% 30%, #8be78b, #27ae60); }
 @keyframes floaty { from { margin-top: 0; margin-left: 0; } to { margin-top: -18px; margin-left: 10px; } }
-#target-box { font-size: 2.4rem; font-weight: 900; color: var(--accent); }
+#target-box { font-size: 2.4rem; font-weight: 900; color:var(--space-gold); }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label"></span>: <span id="score">0</span></span>
@@ -32,10 +34,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🎯</div>
+    <div class="hero-icon">🎯</div>
     <h1 class="game-title" id="title"></h1>
-    <p id="subtitle"></p>
-    <p id="rounds-label"></p>
+    <p class="howto" id="subtitle"></p>
+    <p class="section-label" id="rounds-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
@@ -45,7 +47,7 @@
       <button class="game-btn secondary" onclick="start(1)" id="lvl1"></button>
       <button class="game-btn secondary" onclick="start(2)" id="lvl2"></button>
       <button class="game-btn secondary" onclick="start(3)" id="lvl3"></button>
-      <button class="game-btn" onclick="start(0)" id="lvl0"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)" id="lvl0"></button>
     </div>
   </div>
 
