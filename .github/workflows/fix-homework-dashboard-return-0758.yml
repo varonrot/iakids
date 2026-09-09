@@ -1,0 +1,31 @@
+name: Fix homework dashboard return 0.7.58
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-homework-dashboard-return-0758.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply homework dashboard return fix
+        run: python .github/scripts/fix-homework-dashboard-return-0758.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Fix Homework return to dashboard; bump to 0.7.58'
+            git push origin main
+          fi
