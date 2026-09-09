@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>דמו — אמת או שקר בחשבון | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
+<style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+</style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score">ניקוד: <span id="score">0</span></span>
@@ -15,7 +18,7 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🤖</div>
+    <div class="hero-icon">🤖</div>
     <h1 class="game-title">אמת או שקר בחשבון</h1>
     <p>האם התרגיל נכון? ענה מהר!</p>
     <p>כמה שאלות?</p>
@@ -28,7 +31,7 @@
       <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

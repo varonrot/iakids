@@ -5,32 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ציר המספרים — קפיצות הצפרדע | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
-<style>
-  #axis-wrap { width: 100%; overflow: hidden; }
-  #axis { width: 100%; height: auto; display: block; }
-  #axis text { font-family: inherit; }
-  .tick-label { font-size: 13px; font-weight: 700; fill: var(--muted); }
-  .tick-label.start { fill: var(--accent); font-size: 15px; }
-  .hop-row { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
-  .hop-row .game-btn { flex: 1; font-size: 1.15rem; }
-  .exercise { font-size: 2rem; font-weight: 800; margin: 10px 0 4px; }
-  .level-picked { outline: 4px solid var(--yellow); }
+<style>#axis-wrap{overflow:hidden;width:100%}#axis{display:block;height:auto;width:100%}#axis text{font-family:inherit}.tick-label{fill:var(--muted);font-size:13px;font-weight:700}.tick-label.start{fill:var(--accent);font-size:15px}.hop-row{display:flex;gap:8px;justify-content:space-between;margin-top:8px}.hop-row .game-btn{flex:1;font-size:1.15rem}.exercise{font-size:2rem;font-weight:800;margin:10px 0 4px}.level-picked{outline:4px solid var(--yellow)}
 </style>
 
-<style id="premium">
-body{margin:0!important;min-height:100vh!important;padding:86px 18px 28px!important;overflow-x:hidden;color:#f7f9ff!important;font-family:"Heebo","Segoe UI",Arial,sans-serif!important;background:radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important}
-*{box-sizing:border-box}.game-card{width:min(560px,calc(100vw - 28px))!important;min-height:690px;margin:0 auto!important;padding:0!important;overflow:hidden;border:1px solid rgba(119,176,255,.27)!important;border-radius:28px!important;background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;box-shadow:0 28px 75px rgba(0,8,28,.48)!important}
-.game-hud{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:20;min-height:72px;padding:16px 24px!important;display:flex!important;align-items:center;justify-content:center!important;gap:42px;color:#fff!important;background:rgba(5,18,46,.88)!important;border-bottom:1px solid rgba(126,180,255,.18);backdrop-filter:blur(14px)}
-.game-hud .score{color:#ffd15c!important}#start-screen,#play-screen,#end-screen{min-height:688px;padding:34px 30px 30px}#start-screen{display:flex;flex-direction:column;align-items:center;text-align:center}.game-title{font-size:clamp(2.15rem,7vw,3.1rem)!important;color:#fff!important}
-#t-desc{max-width:420px;color:#b8c7e3!important;font-weight:600;line-height:1.65}.game-btn{min-height:54px;border-radius:15px!important;border:1px solid rgba(118,176,255,.34)!important;color:#fff!important;font-weight:900!important;background:linear-gradient(180deg,#1c91db,#0877bd)!important}.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important}.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64)!important}
-.exercise{min-height:82px;display:flex;align-items:center;justify-content:center;margin:4px 0 14px!important;padding:10px 16px;border-radius:20px;color:#fff;font-size:clamp(2rem,7vw,3rem)!important;font-weight:1000!important;background:rgba(4,22,55,.5);border:1px solid rgba(116,177,255,.18)}
-#axis-wrap{padding:12px 10px 6px;border-radius:22px;background:rgba(4,22,55,.46);border:1px solid rgba(116,177,255,.18)}.tick-label{fill:#c7d7ef!important}.tick-label.start{fill:#67c6ff!important}.hop-row{gap:10px!important}.level-picked{outline:4px solid #ffd15c}
-#end-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}[hidden]{display:none!important}
-@media(max-width:600px){body{padding:74px 10px 18px!important}.game-card{min-height:calc(100vh - 94px);border-radius:22px!important}#start-screen,#play-screen,#end-screen{min-height:calc(100vh - 96px);padding:26px 15px 24px}.game-hud{min-height:62px;padding:12px 14px!important;gap:24px}}
+<style id="premium">body{background:radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important;color:#f7f9ff!important}.game-card{border:1px solid rgba(119,176,255,.27)!important;box-shadow:0 28px 75px rgba(0,8,28,.48)!important;width:min(560px,calc(100vw - 28px))!important}
+.game-hud .score{color:#ffd15c!important}.game-title{font-size:clamp(2.15rem,7vw,3.1rem)!important}#t-desc{color:#b8c7e3!important;font-weight:600;line-height:1.65;max-width:420px}.exercise{align-items:center;background:rgba(4,22,55,.5);border:1px solid rgba(116,177,255,.18);border-radius:20px;color:#fff;display:flex;font-size:clamp(2rem,7vw,3rem)!important;font-weight:1000!important;justify-content:center;margin:4px 0 14px!important;min-height:82px;padding:10px 16px}#axis-wrap{background:rgba(4,22,55,.46);border:1px solid rgba(116,177,255,.18);border-radius:22px;padding:12px 10px 6px}.tick-label{fill:#c7d7ef!important}.tick-label.start{fill:#67c6ff!important}.hop-row{gap:10px!important}.level-picked{outline:4px solid #ffd15c}
 </style>
 
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span data-ui="score">ניקוד</span>: <span id="score">0</span></span>

@@ -6,21 +6,22 @@
 <title>גלגל המזל להפסקות | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
   .wheel-wrap { position: relative; width: 280px; height: 280px; margin: 16px auto 8px; }
   .wheel-wrap svg { width: 100%; height: 100%; display: block; }
   #wheelGroup { transform-origin: 150px 150px; transition: transform 3.2s cubic-bezier(.15,.65,.3,1); }
-  .pointer { fill: var(--text); }
+  .pointer{fill:#fff; }
   .slice-label { font-size: 10.5px; font-weight: 700; fill: #fff; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
-  .result-card { margin-top: 14px; padding: 16px; border-radius: var(--radius); background: var(--accent-soft); }
+  .result-card { margin-top: 14px; padding: 16px; border-radius: var(--radius); background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff; }
   .result-card .activity { font-size: 1.8rem; font-weight: 800; margin: 8px 0; }
   details.edit-box { text-align: right; margin-top: 18px; }
-  details.edit-box summary { cursor: pointer; font-weight: 700; color: var(--muted); }
+  details.edit-box summary { cursor: pointer; font-weight: 700; color:var(--space-muted); }
   .edit-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
   .edit-row input { flex: 1; font: inherit; padding: 8px 10px; border-radius: 10px; border: 2px solid #e5e7eb; }
-  .edit-row span { width: 22px; text-align: center; font-weight: 800; color: var(--accent); }
+  .edit-row span { width: 22px; text-align: center; font-weight: 800; color:var(--space-gold); }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-card" id="card">
   <div style="font-size:3.2rem">🎡</div>

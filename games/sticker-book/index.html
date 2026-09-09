@@ -6,30 +6,31 @@
 <title>אוסף מדבקות דיגיטלי | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+body.theme-space{margin:0 auto!important}
 body { max-width: 640px; margin: 0 auto; align-items: stretch; }
-.progress-line { text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--accent); margin: 4px 0 18px; }
+.progress-line { text-align: center; font-size: 1.2rem; font-weight: 800; color:var(--space-gold); margin: 4px 0 18px; }
 .album-page { margin-bottom: 22px; }
 .album-page h2 { font-size: 1.1rem; margin: 0 0 10px; }
 .stickers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
 .sticker-slot {
   aspect-ratio: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  font-size: 2rem; background: var(--card); box-shadow: var(--shadow); position: relative;
-  border: 3px solid var(--accent-soft);
+  font-size:2rem;color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5);box-shadow:0 8px 18px rgba(0,0,0,.25);position:relative;
 }
-.sticker-slot.locked { background: #e5e7eb; filter: grayscale(1); opacity: 0.55; font-size: 1.4rem; }
+.sticker-slot.locked{background:rgba(4,22,55,.6); filter: grayscale(1); opacity: 0.55; font-size: 1.4rem; }
 .sticker-slot.unlocked { animation: bounce-in 0.5s; }
 .sticker-slot.rare { border-color: var(--yellow); box-shadow: 0 0 0 3px var(--yellow), var(--shadow); }
 .sticker-slot.rare::after {
   content: '✨'; position: absolute; top: -8px; right: -8px; font-size: 1.1rem;
 }
-.sticker-slot .name { position: absolute; bottom: -20px; font-size: 0.6rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.sticker-slot .name { position: absolute; bottom: -20px; font-size: 0.6rem; font-weight: 700; color:var(--space-muted); white-space: nowrap; }
 @media (max-width: 400px) { .stickers { grid-template-columns: repeat(4, 1fr); } }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-card" id="card">
-  <div style="font-size:4rem">⭐</div>
+  <div class="hero-icon">⭐</div>
   <h1 class="game-title">אוסף מדבקות דיגיטלי</h1>
   <p>כל משחק שסיימת פעם אחת פותח מדבקה באלבום!</p>
 </div>

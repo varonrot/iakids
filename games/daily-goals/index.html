@@ -6,16 +6,18 @@
 <title>בונה מטרות יומי | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+body.theme-space{margin:0 auto!important}
   #streakLine { font-size: 1.4rem; font-weight: 800; margin: 4px 0 18px; }
-  .goal-row { display: flex; align-items: center; gap: 8px; background: var(--accent-soft); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
-  .goal-row select { font-size: 1.3rem; border: none; background: transparent; }
-  .goal-row input[type=text] { flex: 1; font: inherit; font-size: 1.05rem; padding: 8px 10px; border-radius: 10px; border: 2px solid var(--muted); }
-  .goal-row input:disabled { border-color: transparent; background: transparent; text-decoration: line-through; color: var(--muted); }
+  .goal-row { display: flex; align-items: center; gap: 8px; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff;border-radius:14px; padding: 10px 12px; margin-bottom: 10px; }
+  .goal-row select{font-size:1.3rem;border:none;background:transparent;color:#fff; }
+  .goal-row input[type=text] { flex: 1; font: inherit; font-size: 1.05rem; padding: 8px 10px; border-radius: 10px; border:2px solid rgba(184,199,227,.55); }
+  .goal-row input:disabled { border-color: transparent; background: transparent; text-decoration: line-through; color:var(--space-muted); }
   .goal-row .check { font-size: 1.5rem; cursor: pointer; flex-shrink: 0; }
   #allDoneMsg { color: var(--green); font-weight: 800; font-size: 1.2rem; margin-top: 10px; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-card">
   <div style="font-size:3rem">🎯</div>

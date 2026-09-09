@@ -6,19 +6,21 @@
 <title>רשימת V אינטראקטיבית | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+body.theme-space{margin:0 auto!important}
   #addRow { display: flex; gap: 8px; margin-top: 10px; }
-  #taskInput { flex: 1; font: inherit; font-size: 1.1rem; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--muted); }
+  #taskInput { flex: 1; font: inherit; font-size: 1.1rem; padding: 12px 14px; border-radius: 14px; border:2px solid rgba(184,199,227,.55); }
   #taskList { list-style: none; padding: 0; margin: 18px 0 0; text-align: right; }
-  .task-item { display: flex; align-items: center; gap: 10px; background: var(--accent-soft); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+  .task-item { display: flex; align-items: center; gap: 10px; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff;border-radius:14px; padding: 10px 12px; margin-bottom: 8px; }
   .task-item .check { font-size: 1.5rem; cursor: pointer; flex-shrink: 0; }
   .task-item .task-text { flex: 1; font-size: 1.15rem; }
-  .task-item.done .task-text { text-decoration: line-through; color: var(--muted); }
-  .del-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; }
-  #emptyMsg, #allDoneMsg { color: var(--muted); margin-top: 16px; }
+  .task-item.done .task-text { text-decoration: line-through; color:var(--space-muted); }
+  .del-btn{color:#fff;background:none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; }
+  #emptyMsg, #allDoneMsg { color:var(--space-muted); margin-top: 16px; }
   #allDoneMsg { color: var(--green); font-weight: 800; font-size: 1.2rem; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-card">
   <div style="font-size:3rem">✅</div>

@@ -6,19 +6,21 @@
 <title>טיימר חללית — Pomodoro | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+body.theme-space{margin:0 auto!important}
   #track-wrap { margin: 16px auto; max-width: 220px; }
   #track-wrap svg { width: 100%; display: block; border-radius: 16px; }
-  .time-display { font-size: 3rem; font-weight: 900; color: var(--accent); margin: 8px 0; }
+  .time-display { font-size: 3rem; font-weight: 900; color:var(--space-gold); margin: 8px 0; }
   .flight-controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
   #landed { margin-top: 12px; }
   .history-box { margin-top: 24px; text-align: right; }
   .history-box h3 { margin-bottom: 6px; }
   #streakLine { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
   #sessionList { list-style: none; padding: 0; margin: 0; max-height: 160px; overflow-y: auto; }
-  #sessionList li { padding: 6px 10px; border-radius: 10px; background: var(--accent-soft); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  #sessionList li { padding: 6px 10px; border-radius: 10px; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff; margin-bottom: 6px; display: flex; justify-content: space-between; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-card" id="card">
 

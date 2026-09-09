@@ -6,31 +6,32 @@
 <title>מבחן כישורי חשיבה | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
   body { align-items: stretch; max-width: 640px; margin: 0 auto; }
-  .progress-bar { width: 100%; max-width: 520px; margin: 0 auto 10px; height: 8px; background: var(--accent-soft); border-radius: 4px; overflow: hidden; align-self: center; }
-  .progress-bar > div { height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s; }
-  .stage-label { text-align: center; color: var(--muted); font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; }
+  .progress-bar { width: 100%; max-width: 520px; margin: 0 auto 10px; height: 8px; background:rgba(4,22,55,.6);border-radius:4px; overflow: hidden; align-self: center; }
+  .progress-bar > div { height: 100%; background:var(--space-gold);border-radius:4px; transition: width .3s; }
+  .stage-label { text-align: center; color:var(--space-muted); font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; }
   .prompt { font-size: 1.3rem; font-weight: 800; text-align: center; margin: 6px 0 18px; }
   .stim { font-size: 4rem; text-align: center; margin: 20px 0; min-height: 90px; display: flex; align-items: center; justify-content: center; }
   .pool-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
-  .pool-grid button { font-size: 2rem; padding: 14px 0; border: 3px solid var(--accent-soft); border-radius: 16px; background: var(--card); cursor: pointer; }
-  .pool-grid button.picked { border-color: var(--accent); background: var(--accent-soft); }
+  .pool-grid button { font-size: 2rem; padding: 14px 0; color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5);border-radius:16px; cursor: pointer; }
+  .pool-grid button.picked{background:var(--space-gold);color:#102a4f;border-color:var(--space-gold); }
   .seq-trail { text-align: center; font-size: 1.6rem; min-height: 40px; letter-spacing: 6px; }
   .big-tap-btn { width: 100%; padding: 26px; font-size: 1.4rem; font-weight: 800; border: none; border-radius: var(--radius); background: var(--blue); color: #fff; cursor: pointer; }
-  .reaction-zone { position: relative; height: 220px; background: var(--accent-soft); border-radius: var(--radius); overflow: hidden; }
+  .reaction-zone { position: relative; height: 220px; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff; border-radius: var(--radius); overflow: hidden; }
   .reaction-target { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: var(--green); border: none; font-size: 2rem; cursor: pointer; }
   .flex-number { font-size: 3.5rem; font-weight: 900; text-align: center; margin: 10px 0; }
-  .rule-badge { text-align: center; font-weight: 800; color: var(--accent); font-size: 1.1rem; margin-bottom: 8px; }
+  .rule-badge { text-align: center; font-weight: 800; color:var(--space-gold); font-size: 1.1rem; margin-bottom: 8px; }
   .radar-wrap { max-width: 300px; margin: 10px auto; }
-  .rec-card { display: flex; align-items: center; gap: 12px; background: var(--accent-soft); border-radius: 14px; padding: 10px 14px; margin: 8px 0; text-decoration: none; color: var(--text); }
+  .rec-card { display: flex; align-items: center; gap: 12px; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff; border-radius: 14px; padding: 10px 14px; margin: 8px 0; text-decoration: none;  }
   .rec-card .emoji { font-size: 1.8rem; }
   .rec-card .txt { flex: 1; }
-  .rec-card .why { font-size: 0.78rem; color: var(--muted); }
+  .rec-card .why { font-size: 0.78rem; color:var(--space-muted); }
   .weak-skill-title { font-weight: 800; margin: 18px 0 6px; }
   svg text { font-family: inherit; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="progress-bar"><div id="progressFill" style="width:0%"></div></div>
 <div class="stage-label" id="stageLabel"></div>
@@ -78,7 +79,7 @@ function renderIntro() {
   $card.innerHTML = `
     <div style="font-size:3.5rem;text-align:center">🧠</div>
     <h1 class="game-title">מבחן כישורי חשיבה</h1>
-    <p style="text-align:center;color:var(--muted)">
+    <p style="text-align:center;color:var(--space-muted)">
       8 אתגרים קצרים, כ-4 דקות. אין תשובות "טובות" או "רעות" — זה כדי להבין<br>
       אילו משחקים הכי מתאימים לכם עכשיו.
     </p>
@@ -364,7 +365,7 @@ async function showResults() {
       <div class="stars">${stars}</div>
       <h1 class="game-title">התוצאות שלכם!</h1>
       <div class="radar-wrap">${IAKidsSkills.radarSVG(results, 'var(--accent)')}</div>
-      <p style="color:var(--muted);font-size:0.85rem">
+      <p style="color:var(--space-muted);font-size:0.85rem">
         ⚠️ זו הערכה משחקית קצרה, לא אבחון קליני. מטרתה להציע כיוון למשחק המתאים.
       </p>
     </div>

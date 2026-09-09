@@ -6,21 +6,23 @@
 <title>יומן מצב רוח ולמידה | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+body.theme-space{margin:0 auto!important}
   .mood-grid, .diff-grid { display: grid; gap: 10px; margin: 10px 0; }
   .mood-grid { grid-template-columns: repeat(5, 1fr); }
   .diff-grid { grid-template-columns: repeat(3, 1fr); }
-  .pick-btn { font-size: 1.8rem; padding: 10px 4px; border-radius: 16px; border: 3px solid #e5e7eb; background: #fff; cursor: pointer; }
+  .pick-btn { font-size: 1.8rem; padding: 10px 4px; border-radius: 16px; color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));border:2px solid rgba(118,176,255,.5); cursor: pointer; }
   .pick-btn.small { font-size: 1.1rem; }
-  .pick-btn.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .pick-btn.selected{background:var(--space-gold);color:#102a4f;border-color:var(--space-gold); }
   textarea#note { width: 100%; min-height: 60px; font: inherit; border-radius: 14px; border: 2px solid #e5e7eb; padding: 10px; margin-top: 8px; box-sizing: border-box; }
   .week-strip { display: flex; justify-content: space-between; gap: 6px; margin-top: 20px; }
   .day-box { flex: 1; text-align: center; }
-  .day-box .wd { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
-  .day-box .bar { height: 46px; border-radius: 10px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-size: 1.1rem; background: #e5e7eb; }
+  .day-box .wd { font-size: 0.75rem; color:var(--space-muted); margin-bottom: 4px; }
+  .day-box .bar { height: 46px; border-radius: 10px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; font-size: 1.1rem; background:rgba(4,22,55,.6);border:1px solid var(--space-line); }
   .already { color: var(--green); font-weight: 700; margin-top: 6px; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-card" id="card">
   <div style="font-size:3.2rem">😊</div>

@@ -6,18 +6,20 @@
 <title>אלוף האלופים | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+body.theme-space{margin:0 auto!important}
   body { align-items: stretch; max-width: 700px; margin: 0 auto; }
   h1, h2 { text-align: center; }
   section { margin-bottom: 28px; }
   .player-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
   .player-row input {
     font: inherit; font-size: 1.1rem; padding: 10px 14px;
-    border: 2px solid var(--accent); border-radius: var(--radius); text-align: center;
+    border:2px solid rgba(118,176,255,.45);border-radius:var(--radius);background:#fff;color:#102a4f; text-align: center;
   }
   .total-line { text-align: center; font-size: 1.3rem; font-weight: 800; margin: 10px 0; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 <h1 class="game-title" style="font-size:2rem">🏆 אלוף האלופים</h1>
 
 <section class="player-row">

@@ -6,21 +6,23 @@
 <title>בוחן עצמי קצר | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
-  .pack-row { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 14px; background: var(--accent-soft); margin: 8px 0; }
+/* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
+body.theme-space{margin:0 auto!important}
+  .pack-row { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 14px; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff; margin: 8px 0; }
   .pack-row .name { flex: 1; text-align: right; font-weight: 700; }
-  .pack-row .count { color: var(--muted); font-size: 0.85rem; }
+  .pack-row .count { color:var(--space-muted); font-size: 0.85rem; }
   .pack-row button { margin: 0; padding: 8px 14px; font-size: 1rem; min-height: 40px; }
   .qform { text-align: right; margin-top: 14px; }
   .qform input[type=text] { width: 100%; font: inherit; padding: 10px; border-radius: 10px; border: 2px solid #e5e7eb; margin: 6px 0; box-sizing: border-box; }
   .opt-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
   .opt-row input[type=text] { flex: 1; }
   .opt-row input[type=radio] { width: 22px; height: 22px; }
-  .qlist-item { display: flex; justify-content: space-between; align-items: center; background: #f9fafb; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+  .qlist-item { display: flex; justify-content: space-between; align-items: center; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
   .qlist-item button { padding: 4px 10px; min-height: 0; font-size: 0.9rem; }
   .name-input { width: 100%; font: inherit; padding: 10px; border-radius: 10px; border: 2px solid #e5e7eb; margin: 6px 0; box-sizing: border-box; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud" id="playHud" hidden>
   <span class="score">ניקוד: <span id="score">0</span></span>
