@@ -1,0 +1,31 @@
+name: Fix home return from custom subject 0.7.52
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-home-return-custom-subject-0752.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply home reset fix
+        run: python .github/scripts/fix-home-return-custom-subject-0752.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Fix home return from custom subject; bump to 0.7.52'
+            git push origin main
+          fi
