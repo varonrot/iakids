@@ -6,18 +6,23 @@
 <title>שם עצם, פועל או תואר | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
+  /* Shared dark space theme (body.theme-space in ../game-style.css); only the
+     word chips and the three bins are styled here, tuned for the dark card. */
   .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 16px 0; }
   .chip {
     padding: 10px 16px; font-size: 1.15rem; font-weight: 700; border-radius: 16px;
-    background: var(--accent); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    color: #fff; background: linear-gradient(180deg,#1c91db,#0877bd);
+    border: 1px solid rgba(118,176,255,.45);
+    box-shadow: inset 0 1px rgba(255,255,255,.18), 0 6px 14px rgba(0,0,0,.25);
     cursor: grab; touch-action: none; user-select: none; transition: transform 0.15s;
     max-width: 260px;
   }
-  .chip.dragging { cursor: grabbing; opacity: 0.9; }
-  .chip.placed { background: var(--green); box-shadow: none; cursor: default; padding: 8px 12px; font-size: 0.95rem; }
+  .chip.dragging { cursor: grabbing; opacity: 0.9; box-shadow: 0 18px 35px rgba(0,0,0,.45); }
+  .chip.placed { background: linear-gradient(180deg,#37d182,#16ad64); border-color: rgba(97,255,174,.6); box-shadow: none; cursor: default; padding: 8px 12px; font-size: 0.95rem; }
   .bins { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 16px 0; }
-  .bin { min-height: 140px; padding: 10px 6px; }
-  .bin h3 { margin: 4px 0 10px; font-size: 1rem; }
+  .bin { min-height: 140px; padding: 10px 6px; color: #fff; border: 3px dashed rgba(184,199,227,.55); background: rgba(4,22,55,.35); }
+  .bin.over { border-color: #69c8ff; background: rgba(32,150,221,.22); }
+  .bin h3 { margin: 4px 0 10px; font-size: 1rem; color: #fff; }
   .bin .chip-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
   @media (max-width: 460px) {
     .bins { grid-template-columns: 1fr; }
@@ -26,7 +31,7 @@
   .chip.shake { animation: shakeChip 0.35s; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score">ניקוד: <span id="score">0</span></span>
@@ -35,10 +40,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🏷️</div>
+    <div class="hero-icon">🏷️</div>
     <h1 class="game-title">שם עצם, פועל או תואר</h1>
-    <p>גרור כל מילה לתיבה המתאימה לתפקיד שלה במשפט.</p>
-    <p>כמה סיבובים?</p>
+    <p id="howto">גרור כל מילה לתיבה המתאימה לתפקיד שלה במשפט.</p>
+    <p class="section-label">כמה סיבובים?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
@@ -48,7 +53,7 @@
       <button class="game-btn secondary" onclick="start(1)" id="lvl-1">🙂 קל</button>
       <button class="game-btn secondary" onclick="start(2)" id="lvl-2">😎 בינוני</button>
       <button class="game-btn secondary" onclick="start(3)" id="lvl-3">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 

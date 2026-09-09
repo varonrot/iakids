@@ -7,20 +7,22 @@
 <link rel="stylesheet" href="../game-style.css">
 <style>
   .ws-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0 16px; }
-  .ws-word { background: var(--accent-soft); color: var(--accent); font-weight: 700; padding: 6px 12px; border-radius: 999px; font-size: 1rem; }
-  .ws-word.found { background: var(--green); color: #fff; text-decoration: line-through; opacity: 0.8; }
+  /* Shared dark space theme (body.theme-space in ../game-style.css); only the
+     word list and the letter grid are styled here, tuned for the dark card. */
+  .ws-word { color: #fff; background: linear-gradient(180deg,rgba(52,81,139,.85),rgba(21,49,99,.9)); border: 1px solid rgba(118,176,255,.45); font-weight: 700; padding: 6px 12px; border-radius: 999px; font-size: 1rem; }
+  .ws-word.found { background: linear-gradient(180deg,#37d182,#16ad64); border-color: rgba(97,255,174,.6); color: #fff; text-decoration: line-through; opacity: 0.8; }
   .ws-grid { display: grid; gap: 4px; margin: 0 auto; max-width: 420px; touch-action: none; }
   .ws-cell {
     aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
-    background: var(--accent-soft); border-radius: 8px; font-weight: 800; font-size: 1.2rem;
-    color: var(--text); user-select: none; touch-action: none; transition: background .15s, color .15s;
+    background: rgba(17,58,111,.9); border: 1px solid rgba(118,176,255,.3); border-radius: 8px; font-weight: 800; font-size: 1.2rem;
+    color: #fff; user-select: none; touch-action: none; transition: background .15s, color .15s;
   }
-  .ws-cell.selected { background: var(--yellow); }
-  .ws-cell.found { background: var(--green); color: #fff; }
+  .ws-cell.selected { background: var(--space-gold); color: #102a4f; border-color: var(--space-gold); }
+  .ws-cell.found { background: linear-gradient(180deg,#37d182,#16ad64); border-color: rgba(97,255,174,.6); color: #fff; }
   @media (max-width: 400px) { .ws-cell { font-size: 1rem; } }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score">ניקוד: <span id="score">0</span></span>
@@ -29,20 +31,20 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">🔍</div>
+    <div class="hero-icon">🔍</div>
     <h1 class="game-title">תפזורת אותיות</h1>
-    <p>מוצאים מילים בלוח האותיות — גוררים אצבע על פני הרצף הנכון!</p>
-    <p>כמה סבבים (לוחות)?</p>
+    <p id="howto">מוצאים מילים בלוח האותיות — גוררים אצבע על פני הרצף הנכון!</p>
+    <p class="section-label">כמה סבבים (לוחות)?</p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline success" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>
       <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
     </div>
-    <div class="answer-grid" style="grid-template-columns:1fr 1fr">
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
       <button class="game-btn secondary" onclick="start(1)">🙂 קל</button>
       <button class="game-btn secondary" onclick="start(2)">😎 בינוני</button>
       <button class="game-btn secondary" onclick="start(3)">🤓 קשה</button>
-      <button class="game-btn" onclick="start(0)">🎲 אקראי</button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)">🎲 אקראי</button>
     </div>
   </div>
 
