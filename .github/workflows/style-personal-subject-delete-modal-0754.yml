@@ -1,0 +1,31 @@
+name: Style personal subject delete modal 0.7.54
+on:
+  push:
+    paths:
+      - '.github/workflows/style-personal-subject-delete-modal-0754.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply styled delete modal
+        run: python .github/scripts/style-personal-subject-delete-modal-0754.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Style personal subject delete confirmation; bump to 0.7.54'
+            git push origin main
+          fi
