@@ -22,6 +22,18 @@ import traceback
 import time
 import math
 from concurrent.futures import ThreadPoolExecutor
+from dotenv import load_dotenv
+
+# Must run before the os.getenv calls below. APP_ENV picks the file:
+#   APP_ENV=prod -> .env.prod   (live iakids.app data)
+#   APP_ENV=dev  -> .env.dev    (default; safe to experiment)
+# Falls back to plain .env if the per-env file is absent. No-op on Render,
+# which injects the vars directly and is never overridden by load_dotenv.
+_env = os.getenv("APP_ENV", "dev")
+_here = Path(__file__).resolve().parent
+_envfile = _here / f".env.{_env}"
+load_dotenv(_envfile if _envfile.exists() else _here / ".env")
+print(f"[config] APP_ENV={_env} -> {_envfile.name if _envfile.exists() else '.env'}")
 # =====================================================
 # CONFIG
 # =====================================================
@@ -444,6 +456,9 @@ app.add_middleware(
     allow_origins=[
         "https://iakids.app",
         "https://www.iakids.app",
+        # mirror of the site served from smarts-brains.online
+        "https://smarts-brains.online",
+        "https://www.smarts-brains.online",
         "http://localhost:3000",
         "http://localhost:5500",
         "http://127.0.0.1:5500",

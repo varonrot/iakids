@@ -1,6 +1,8 @@
 backend/.env
 backend-ai-tutor-he/.env
 *.env
+.env.*
+*.env.*
 *.db
 *.sqlite
 *.sqlite3
