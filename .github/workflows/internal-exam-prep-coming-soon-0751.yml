@@ -1,0 +1,31 @@
+name: Internal Exam Prep coming soon 0.7.51
+on:
+  push:
+    paths:
+      - '.github/workflows/internal-exam-prep-coming-soon-0751.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply exam prep coming soon
+        run: python .github/scripts/internal-exam-prep-coming-soon-0751.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Route Exam Prep internally as coming soon; bump to 0.7.51'
+            git push origin main
+          fi
