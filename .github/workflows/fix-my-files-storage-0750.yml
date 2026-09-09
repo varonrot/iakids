@@ -1,0 +1,31 @@
+name: Fix My Files storage 0.7.50
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-my-files-storage-0750.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply My Files fix
+        run: python .github/scripts/fix-my-files-storage-0750.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Fix My Files from storage bucket; bump to 0.7.50'
+            git push origin main
+          fi
