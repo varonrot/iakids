@@ -61,12 +61,15 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-4o-mini"
 
 # ---------------------------------------------------------------- limits ----
-# A generated question is a small object: a word or sentence, a few options.
-# Anything materially larger is not something a game generator produced.
-MAX_PAYLOAD_BYTES = 4096
-MAX_STRING_CHARS = 300
-MAX_DEPTH = 4
-MAX_NODES = 120
+# These bound what a row may cost the bank; they are not a judgement on
+# content. Sized to admit the largest thing a real generator produces — maze
+# and word-search emit grids of 6-13KB and several hundred nodes — while still
+# capping what a single insert can store. Every string is scanned for markup
+# regardless of length, so a larger ceiling does not widen the safety hole.
+MAX_PAYLOAD_BYTES = 16384
+MAX_STRING_CHARS = 1000
+MAX_DEPTH = 6
+MAX_NODES = 800
 MAX_QKEY_CHARS = 500          # matches IAKidsBank.KEYMAX in games/game-sdk.js
 
 # Shape agreement: how much evidence before the dominant payload shape for a

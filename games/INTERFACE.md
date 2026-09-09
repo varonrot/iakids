@@ -62,6 +62,27 @@ your generator's level differs from `game.difficulty().level`.
 Schema: `supabase/migrations/20260908_game_question_bank.sql`. Guests (no active child) stay
 local-only, exactly as before.
 
+**Seeding.** Waiting for children to play a game into the bank is slow, so
+`games/tools/harvest.mjs` runs a game's own generator offline and
+`backend/seed_questions.py` loads the result as `source='seed'`. It works without
+per-game code because your generator reaches the SDK as a zero-argument closure — the
+harvester just calls it a few hundred times:
+
+```bash
+node games/tools/harvest.mjs --all --out /tmp/seed.json
+python3 backend/seed_questions.py /tmp/seed.json --dry-run
+```
+
+Two things stop a game being harvestable, both worth knowing when you write one:
+
+- **Questions must survive `JSON.stringify`.** A payload holding a function or a DOM node
+  cannot be stored, so it cannot be shared. Keep questions plain data and let the render
+  step turn them into elements.
+- **Questions must not contain HTML.** A bank row is written with the anon key and read by
+  every child, so the verifier rejects any payload containing markup — it cannot tell your
+  `<span dir="ltr">` from an attacker's. Put the markup in your render code and keep the
+  raw value in the payload (`{v: 29}`, not `{html: '<span dir="ltr">29</span>'}`).
+
 ### 5. Adaptive difficulty
 ```js
 const diff = game.difficulty(startLevel, maxLevel); // e.g. game.difficulty(level || 1, 3)
