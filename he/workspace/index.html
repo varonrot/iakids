@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.52</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.52";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.53</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.53";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53308,11 +53308,37 @@ function(audio){
     if(!items.length){list.innerHTML='<div class="iakids-personal-safe-empty">עדיין לא נוספו מקצועות אישיים</div>';return;}
     list.innerHTML='';
     items.forEach(subject=>{
-      const row=document.createElement('button');
-      row.type='button';
+      const row=document.createElement('div');
       row.className='iakids-personal-safe-row';
-      row.innerHTML=`<span class="psri"><i class="fa-solid fa-star"></i></span><span>${esc(subject.subject_name)}</span>`;
-      row.addEventListener('click',()=>openSubject(subject));
+      row.setAttribute('role','button');
+      row.tabIndex=0;
+      row.innerHTML=`<span class="psri"><i class="fa-solid fa-star"></i></span><span>${esc(subject.subject_name)}</span><button type="button" class="iakids-personal-safe-delete" title="הסרת מקצוע" aria-label="הסרת ${esc(subject.subject_name)}"><i class="fa-solid fa-trash-can"></i></button>`;
+      row.addEventListener('click',event=>{
+        if(event.target?.closest?.('.iakids-personal-safe-delete')) return;
+        openSubject(subject);
+      });
+      row.addEventListener('keydown',event=>{
+        if(event.key==='Enter'||event.key===' '){event.preventDefault();openSubject(subject);}
+      });
+      const del=row.querySelector('.iakids-personal-safe-delete');
+      del?.addEventListener('click',async event=>{
+        event.preventDefault();event.stopPropagation();
+        const ok=window.confirm(`להסיר את ${subject.subject_name} מהמערכת האישית שלך?\n\nאפשר יהיה להוסיף את המקצוע שוב בעתיד.`);
+        if(!ok) return;
+        del.disabled=true;
+        try{
+          const client=getClient(); const kid=getKid();
+          if(!client||!kid?.id) throw new Error('missing client or kid');
+          const {error}=await client.from('kid_custom_subjects').update({status:'archived',updated_at:new Date().toISOString()}).eq('id',subject.id).eq('kid_id',kid.id);
+          if(error) throw error;
+          await load();
+          try{ window.refreshCustomSubjectProgress?.(); }catch(_e){}
+        }catch(e){
+          console.error('PERSONAL SUBJECT REMOVE',e);
+          del.disabled=false;
+          alert('לא הצלחנו להסיר את המקצוע כרגע. נסו שוב.');
+        }
+      });
       list.appendChild(row);
     });
   }
@@ -53333,6 +53359,19 @@ function(audio){
 })();
 </script>
 
+
+
+<style id="IAKIDS_PERSONAL_SUBJECT_DELETE_0753">
+  .iakids-personal-safe-row{position:relative!important;padding-left:46px!important;}
+  .iakids-personal-safe-delete{
+    position:absolute;left:9px;top:50%;transform:translateY(-50%);
+    width:31px;height:31px;border-radius:9px;border:1px solid rgba(255,91,91,.28);
+    background:rgba(184,45,55,.12);color:#ff7b82;display:grid;place-items:center;
+    cursor:pointer;opacity:.78;transition:.18s ease;z-index:4;padding:0;
+  }
+  .iakids-personal-safe-delete:hover{opacity:1;background:rgba(210,49,60,.22);border-color:rgba(255,105,105,.55);transform:translateY(-50%) scale(1.04);}
+  .iakids-personal-safe-delete:disabled{opacity:.4;cursor:wait;}
+</style>
 
 <style id="IAKIDS_PERSONAL_SYSTEM_CARD_WIDTHS_0737">
   body.custom-subject-mode #customSubjectTree .science-tree-row{
