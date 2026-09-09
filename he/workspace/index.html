@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.47</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.47";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.48</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.48";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -54074,6 +54074,36 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
   },true);
   window.openMyLessonsInternal=openView;
   window.closeMyLessonsInternal=closeView;
+})();
+</script>
+
+
+<style id="IAKIDS_INTERNAL_MY_FILES_0748_STYLES">
+  .iakids-my-files-view{position:absolute;inset:12px;z-index:247;overflow:auto;direction:rtl;border:1px solid rgba(67,137,218,.26);border-radius:24px;background:linear-gradient(180deg,#06162d 0%,#041125 100%);color:#eef6ff;box-shadow:0 24px 70px rgba(0,0,0,.38);font-family:"Heebo",Arial,sans-serif}
+  .iakids-my-files-view[hidden]{display:none!important}.imf-shell{padding:22px;max-width:1380px;margin:0 auto}.imf-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}.imf-title h1{margin:0;font-size:31px;font-weight:950}.imf-title p{margin:4px 0 0;color:#91a8c8;font-size:13px}.imf-close{height:38px;padding:0 14px;border-radius:11px;border:1px solid rgba(89,150,226,.24);background:#102b50;color:#e7f2ff;font-weight:900;cursor:pointer}.imf-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.imf-stat{padding:15px 17px;border-radius:16px;background:linear-gradient(180deg,rgba(17,43,79,.94),rgba(9,27,55,.95));border:1px solid rgba(80,137,207,.18)}.imf-stat span{display:block;color:#8fa6c5;font-size:11px}.imf-stat strong{display:block;margin-top:3px;font-size:25px}.imf-list{display:grid;gap:10px}.imf-file{display:grid;grid-template-columns:54px minmax(0,1.6fr) minmax(120px,.8fr) minmax(120px,.8fr) auto;gap:12px;align-items:center;padding:13px 15px;border-radius:16px;background:linear-gradient(180deg,rgba(12,36,69,.95),rgba(7,25,50,.95));border:1px solid rgba(76,136,210,.2)}.imf-icon{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:rgba(42,99,173,.25);color:#63d8ff;font-size:19px}.imf-name b{display:block;font-size:14px}.imf-name span,.imf-cell small{display:block;color:#829bbb;font-size:10px}.imf-cell{font-size:12px;font-weight:800;color:#d8e8fb}.imf-status{display:inline-flex;align-items:center;justify-content:center;min-width:82px;height:28px;border-radius:999px;padding:0 9px;font-size:11px;font-weight:900;background:rgba(65,111,174,.18);border:1px solid rgba(91,147,221,.25);color:#b7d7ff}.imf-status.completed{color:#8dffc1;border-color:rgba(56,220,125,.35);background:rgba(32,145,83,.18)}.imf-empty,.imf-loading{min-height:280px;display:grid;place-items:center;text-align:center;color:#90a9c9;line-height:1.7;border:1px solid rgba(80,137,207,.18);border-radius:20px;background:linear-gradient(180deg,rgba(17,43,79,.6),rgba(9,27,55,.72));padding:30px}.imf-open{height:34px;padding:0 12px;border:0;border-radius:10px;background:linear-gradient(90deg,#17baff,#2e68ff);color:#fff;font-weight:900;cursor:pointer}.imf-open[disabled]{opacity:.45;cursor:default}@media(max-width:1100px){.imf-stats{grid-template-columns:1fr}.imf-file{grid-template-columns:44px 1fr}.imf-cell,.imf-open{grid-column:2}}
+</style>
+<script id="IAKIDS_INTERNAL_MY_FILES_0748">
+(function(){
+  if(window.__IAKIDS_INTERNAL_MY_FILES_0748)return;window.__IAKIDS_INTERNAL_MY_FILES_0748=true;
+  let view=null;
+  function getClient(){try{if(typeof sb!=='undefined'&&sb?.from)return sb}catch(_e){}return window.sb?.from?window.sb:(window.supabaseClient?.from?window.supabaseClient:null)}
+  function getKid(){try{if(typeof CURRENT_KID!=='undefined'&&CURRENT_KID?.id)return CURRENT_KID}catch(_e){}return window.CURRENT_KID||window.SELECTED_KID||window.currentKid||window.selectedKid||null}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function fileIcon(type,name){const x=String(type||name||'').toLowerCase();if(x.includes('pdf'))return'file-pdf';if(x.includes('image')||/\.(png|jpe?g|webp)$/i.test(name||''))return'file-image';return'file-lines'}
+  function ensureView(){if(view?.isConnected)return view;const main=document.querySelector('.main');if(!main)return null;view=document.createElement('section');view.id='iakidsMyFilesInternalView';view.className='iakids-my-files-view';view.hidden=true;main.appendChild(view);return view}
+  function closeView(){const el=ensureView();if(el)el.hidden=true;document.querySelectorAll('.side-item').forEach(x=>{if((x.textContent||'').includes('הקבצים שלי'))x.classList.remove('active')})}
+  async function load(){const el=ensureView(),client=getClient(),kid=getKid();if(!el)return;el.hidden=false;el.innerHTML='<div class="imf-shell"><div class="imf-loading"><div><i class="fa-solid fa-spinner fa-spin"></i><br>טוענים את הקבצים שלך...</div></div></div>';if(!client||!kid?.id){el.innerHTML='<div class="imf-shell"><div class="imf-empty">לא הצלחתי לזהות את פרופיל הילד/ה.</div></div>';return}
+    try{
+      const {data,error}=await client.from('homework_sessions').select('id,subject,topic,source_file_name,source_file_url,source_file_type,status,started_at,created_at').eq('kid_id',kid.id).order('started_at',{ascending:false}).limit(100);if(error)throw error;
+      const rows=(data||[]).filter(r=>r.source_file_name||r.source_file_url);const completed=rows.filter(r=>r.status==='completed').length;const subjects=new Set(rows.map(r=>r.subject).filter(Boolean)).size;
+      const cards=rows.length?rows.map(r=>{const d=new Date(r.started_at||r.created_at||Date.now());const url=String(r.source_file_url||'');return `<div class="imf-file"><div class="imf-icon"><i class="fa-solid fa-${fileIcon(r.source_file_type,r.source_file_name)}"></i></div><div class="imf-name"><b>${esc(r.source_file_name||'קובץ שיעורי בית')}</b><span>${esc(r.topic||'ללא נושא')}</span></div><div class="imf-cell"><small>מקצוע</small>${esc(r.subject||'לא זוהה')}</div><div class="imf-cell"><small>תאריך</small>${d.toLocaleDateString('he-IL')}</div><span class="imf-status ${r.status==='completed'?'completed':''}">${r.status==='completed'?'הושלם':'בתהליך'}</span>${url.startsWith('http')?`<button type="button" class="imf-open" data-url="${esc(url)}">פתיחה</button>`:'<button type="button" class="imf-open" disabled>פתיחה</button>'}</div>`}).join(''):'<div class="imf-empty"><div><i class="fa-solid fa-folder-open" style="font-size:38px;color:#5fd8ff;margin-bottom:10px"></i><br>עדיין אין קבצים שמורים.<br>קבצים שתעלי בעזרה בשיעורי בית יופיעו כאן.</div></div>';
+      el.innerHTML=`<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1><p>קבצי שיעורי הבית והתמונות שהעלית נשמרים כאן בתוך סביבת הלמידה</p></div><button type="button" class="imf-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div><div class="imf-stats"><div class="imf-stat"><span>קבצים</span><strong>${rows.length}</strong></div><div class="imf-stat"><span>קבצים ממשימות שהושלמו</span><strong>${completed}</strong></div><div class="imf-stat"><span>מקצועות</span><strong>${subjects}</strong></div></div><div class="imf-list">${cards}</div></div>`;
+      el.querySelector('.imf-close')?.addEventListener('click',closeView);el.querySelectorAll('.imf-open[data-url]').forEach(b=>b.addEventListener('click',()=>window.open(b.dataset.url,'_blank','noopener')));
+    }catch(e){console.error('MY FILES LOAD ERROR',e);el.innerHTML='<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1></div><button type="button" class="imf-close">חזרה</button></div><div class="imf-empty">לא הצלחתי לטעון את הקבצים כרגע.</div></div>';el.querySelector('.imf-close')?.addEventListener('click',closeView)}
+  }
+  function openView(item){try{window.closeWorkspaceAchievements?.()}catch(_e){}try{window.closeLearningProgress?.()}catch(_e){}try{window.closeMyLessonsInternal?.()}catch(_e){}const dash=document.getElementById('iakidsLearningDashboard');if(dash)dash.hidden=true;document.querySelectorAll('.side-item').forEach(x=>x.classList.remove('active'));item?.classList.add('active');load()}
+  document.addEventListener('click',event=>{const item=event.target?.closest?.('a,button,.side-item');if(!item)return;const text=(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('הקבצים שלי'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();openView(item)},true);
+  window.openMyFilesInternal=openView;window.closeMyFilesInternal=closeView;
 })();
 </script>
 
