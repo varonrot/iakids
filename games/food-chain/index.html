@@ -64,71 +64,137 @@
 .end-screen{align-items:center;display:flex;flex-direction:column;justify-content:center;min-height:470px;text-align:center}.end-screen .stars{filter:drop-shadow(0 8px 13px rgba(255,191,42,.3));font-size:4rem;line-height:1;min-height:65px}.end-screen .big-score{color:#fff;font-size:4.4rem;font-weight:900;line-height:1;margin:17px 0 9px;text-shadow:0 0 22px rgba(75,184,255,.36)}.end-screen p{color:var(--muted);font-size:16px;margin:7px 0}.end-screen #best{color:var(--gold)}.end-screen .game-btn{margin-top:18px;min-width:210px}#share-slot{margin-top:15px}/* =============================
        מובייל
     ============================= */
-@media(max-width:680px){align-items:start!important;body{
-        padding:75px 10px 16px!important;border-radius:18px;flex:1 1 86px;font-size:.88rem;gap:20px!important;margin:0 -14px 20px!important;margin-top:15px;min-height:92px;padding:8px 7px;right:62px;}
+@media(max-width:680px){
+      body{
+        padding:
+          75px
+          10px
+          16px !important;
 
-      #chain .arrow{
-        font-size:1.4rem;}
-
-      #chain .link .emoji{
-        font-size:1.7rem;}
-
-      #chain .link{
-        min-width:73px;}
-
-      #chain{
-        min-height:105px;}
-
-      #chips{
-        gap:9px;}
-
-      #hint{
-        font-size:13px;}
-
-      .chip .emoji{
-        font-size:2.3rem;}
-
-      .chip{
-        min-width:86px;}
-
-      .food-main-emoji{
-        font-size:4.2rem;}
-
-      .game-btn{
-        min-height:51px!important;}
-
-      .game-card::before{ inset:7px;}
-
-      .game-card{
-        min-height:0!important;}
-
-      .game-description{
-        font-size:14px!important;}
-
-      .game-hud #score{
-        font-size:15px;}
-
-      .game-hud{
-        width:calc(100% + 28px)!important;}
-
-      .game-question{
-        padding:11px 10px;}
-
-      .game-title{
-        font-size:34px!important;}
-
-      .levels-grid{
-        grid-template-columns:1fr!important;}
-
-      .section-label{
-        font-size:16px!important;}
-
-      .workspace-back span{
-        font-size:17px;}
+        align-items:start !important;
+      }
 
 .workspace-back{
-  top:9px}
-  
+  top:9px;
+  right:62px;
+
+  min-height:43px;
+  padding:0 11px;
+
+  border-radius:13px;
+
+  font-size:11px;
+}
+
+      .workspace-back span{
+        font-size:17px;
+      }
+
+      .game-card{
+        min-height:0 !important;
+        padding:0 14px 28px !important;
+        border-radius:25px !important;
+      }
+
+      .game-card::before{
+        inset:7px;
+        border-radius:19px;
+      }
+
+      .game-hud{
+        width:calc(100% + 28px) !important;
+        min-height:52px !important;
+
+        margin:
+          0
+          -14px
+          20px !important;
+
+        padding:6px 10px !important;
+        gap:20px !important;
+
+        font-size:12px !important;
+      }
+
+      .game-hud #score{
+        font-size:15px;
+      }
+
+      .food-main-emoji{
+        font-size:4.2rem;
+      }
+
+      .game-title{
+        font-size:34px !important;
+      }
+
+      .game-description{
+        font-size:14px !important;
+      }
+
+      .section-label{
+        font-size:16px !important;
+      }
+
+      .levels-grid{
+        grid-template-columns:1fr !important;
+      }
+
+      .game-btn{
+        min-height:51px !important;
+        font-size:14px !important;
+      }
+
+      .game-question{
+        padding:11px 10px;
+        font-size:1.05rem !important;
+      }
+
+      #hint{
+        font-size:13px;
+      }
+
+      #chain{
+        min-height:105px;
+        padding:11px 6px;
+      }
+
+      #chain .link{
+        min-width:73px;
+        padding:8px 7px;
+        font-size:.85rem;
+      }
+
+      #chain .link .emoji{
+        font-size:1.7rem;
+      }
+
+      #chain .arrow{
+        font-size:1.4rem;
+      }
+
+      #chips{
+        gap:9px;
+        margin-top:15px;
+      }
+
+      .chip{
+        min-width:86px;
+        min-height:92px;
+
+        flex:
+          1
+          1
+          86px;
+
+        border-radius:18px;
+        font-size:.88rem;
+      }
+
+      .chip .emoji{
+        font-size:2.3rem;
+      }
+    }
 </style>
 </head>
 
