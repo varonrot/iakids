@@ -271,14 +271,62 @@ body {
   justify-content: center;
   padding: 16px;
 }
-#iakids-help-modal .help-card { max-width: 440px; animation: bounce-in 0.4s; }
+/* Beats every game's own `.game-card{width/min-height:...!important}` (sized for
+   the main play card) via the extra #iakids-help-modal specificity, so the help
+   card always hugs its own content instead of inheriting the play card's size. */
+#iakids-help-modal .help-card {
+  width: 100% !important;
+  max-width: 440px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  margin: 0 !important;
+  padding: 24px !important;
+  animation: bounce-in 0.4s;
+}
+#iakids-help-modal .help-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+#iakids-help-modal .help-speak {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
 #iakids-help-modal .help-how { font-size: 1.15rem; }
 #iakids-help-modal .help-example {
   background: var(--accent-soft);
+  color: var(--text);
   border-radius: var(--radius);
   padding: 14px;
   font-size: 1.3rem;
   margin: 12px 0;
+}
+#iakids-help-modal .help-dontshow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.85;
+  margin: 4px 0 16px;
+  cursor: pointer;
+}
+#iakids-help-modal .help-dontshow input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 
 /* per-question countdown (injected by IAKidsTimer) */

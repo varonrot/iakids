@@ -1334,23 +1334,53 @@ const IAKidsHelp = {
     btn.onclick = () => this.open();
     document.body.appendChild(btn);
 
+    const key = 'iakids_help_hide_' + slug;
+    const canSpeak = 'speechSynthesis' in window;
+    const speakBtn = canSpeak
+      ? `<button type="button" class="help-speak" aria-label="${IAKidsLang.t({ he: 'הקראה', en: 'Read aloud', es: 'Leer en voz alta', de: 'Vorlesen', pt: 'Ler em voz alta' })}">🔊</button>`
+      : '';
     const modal = document.createElement('div');
     modal.id = 'iakids-help-modal';
     modal.innerHTML = `
       <div class="help-card game-card">
-        <h2>${IAKidsLang.t({ he: 'איך משחקים?', en: 'How to play?', es: '¿Cómo se juega?', de: 'Wie spielt man?', pt: 'Como jogar?' })}</h2>
+        <div class="help-head">
+          <h2>${IAKidsLang.t({ he: 'איך משחקים?', en: 'How to play?', es: '¿Cómo se juega?', de: 'Wie spielt man?', pt: 'Como jogar?' })}</h2>
+          ${speakBtn}
+        </div>
         <p class="help-how">${how}</p>
         <div class="help-example">${example || ''}</div>
+        <label class="help-dontshow">
+          <input type="checkbox" id="iakids-help-dontshow">
+          ${IAKidsLang.t({ he: 'אל תציג לי את זה שוב', en: "Don't show this again", es: 'No mostrar esto de nuevo', de: 'Nicht mehr anzeigen', pt: 'Não mostrar isso novamente' })}
+        </label>
         <button class="game-btn">${IAKidsLang.t({ he: '👍 הבנתי!', en: '👍 Got it!', es: '👍 ¡Entendido!', de: '👍 Verstanden!', pt: '👍 Entendi!' })}</button>
       </div>`;
     modal.style.display = 'none';
-    modal.querySelector('.game-btn').onclick = () => modal.style.display = 'none';
-    modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+    const close = () => {
+      if (canSpeak) speechSynthesis.cancel();
+      if (modal.querySelector('#iakids-help-dontshow').checked) localStorage.setItem(key, '1');
+      modal.style.display = 'none';
+    };
+    modal.querySelector('.game-btn').onclick = close;
+    modal.onclick = e => { if (e.target === modal) close(); };
+    if (canSpeak) {
+      // Strip the HTML the example allows (e.g. <b>, <span dir="ltr">) — spoken text, not markup.
+      const speechText = [how, example].filter(Boolean)
+        .join('. ').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      const speechLang = { he: 'he-IL', en: 'en-US', es: 'es-ES', de: 'de-DE', pt: 'pt-PT' }[IAKidsLang.code] || 'he-IL';
+      modal.querySelector('.help-speak').onclick = () => {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(speechText);
+        u.lang = speechLang;
+        speechSynthesis.speak(u);
+      };
+    }
     document.body.appendChild(modal);
     this._modal = modal;
 
-    const key = 'iakids_help_seen_' + slug;
-    if (!localStorage.getItem(key)) { localStorage.setItem(key, '1'); this.open(); }
+    // Auto-open on every visit — a child can permanently silence it with the
+    // checkbox above; until they do, it should never stay hidden on its own.
+    if (!localStorage.getItem(key)) this.open();
   },
   open() { if (this._modal) this._modal.style.display = ''; },
 };
