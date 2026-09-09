@@ -53255,8 +53255,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.61</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.61";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.62</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.62";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53937,7 +53937,8 @@ body.custom-subject-mode #customSubjectTree .science-tree-card{
       el.querySelector('.ilp-close')?.addEventListener('click',close)
     }catch(e){console.error('LEARNING PROGRESS LOAD FAILED',e);el.innerHTML='<div class="ilp-empty">לא הצלחנו לטעון את ההתקדמות כרגע.</div>'}
   }
-  document.addEventListener('click',function(event){const item=event.target?.closest?.('.kid-actions .side-item');if(!item)return;const text=String(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('התקדמות'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();document.querySelectorAll('.kid-actions .side-item').forEach(x=>x.classList.remove('active'));item.classList.add('active');if(typeof window.closeWorkspaceAchievements==='function')window.closeWorkspaceAchievements();open()},true);
+  /* IAKIDS_PROGRESS_ROUTE_TO_PRO_0762 */
+document.addEventListener('click',function(event){const item=event.target?.closest?.('.kid-actions .side-item');if(!item)return;const text=String(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('התקדמות'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();document.querySelectorAll('.kid-actions .side-item').forEach(x=>x.classList.remove('active'));item.classList.add('active');if(typeof window.closeWorkspaceAchievements==='function')window.closeWorkspaceAchievements();if(typeof window.openProgressDashboard==='function'){window.openProgressDashboard()}else{open()}},true);
   window.openLearningProgress=open;window.closeLearningProgress=close;
 })();
 </script>
