@@ -1698,6 +1698,14 @@
     rgba(99,130,193,.22) !important;
 }
 </style>
+
+<style id="IAKIDS_CUSTOM_SUBJECT_EDIT_0757">
+  body.edit-existing .head .spark{color:#48b7ff}
+  body.edit-existing .approve.ready{background:linear-gradient(135deg,#176dd9,#4a50ff)}
+  body.edit-existing .suggestions button{white-space:nowrap}
+  .edit-mode-chip{display:inline-flex;align-items:center;gap:6px;margin-top:7px;padding:5px 10px;border-radius:999px;border:1px solid rgba(72,166,255,.28);background:rgba(46,109,191,.12);color:#8cc8ff;font-size:10px;font-weight:800}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -1898,9 +1906,58 @@ let CURRENT_CUSTOM_SUBJECT_ID = null;
 let CURRENT_CURRICULUM_ID = null;
 let CURRENT_VERSION = null;
 let CONVERSATION_HISTORY = [];
+const EDIT_SUBJECT_ID = new URLSearchParams(location.search).get("edit");
 function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){location.replace('/he/onboarding/cuenta/');return}const user=s.session.user;document.getElementById('userName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'הורה';document.getElementById('userAvatar').src=user.user_metadata?.avatar_url||user.user_metadata?.picture||'/assets/default-parent.png';let kidId=localStorage.getItem('active_kid_id');if(!kidId){const {data:kids}=await sb.from('kids_profiles').select('id').eq('user_id',user.id).order('created_at',{ascending:true});if(!kids?.length)return;kidId=kids[0].id;localStorage.setItem('active_kid_id',kidId)}const {data:kid,error}=await sb.from('kids_profiles').select('id,child_name,age,avatar_key,usage_goals,learning_interests').eq('id',kidId).single();if(error||!kid){console.error(error);return}CURRENT_KID=kid;window.ACTIVE_KID_ID=kid.id;document.getElementById('subtitle').textContent=`בואו נבנה יחד מקצוע חדש שמתאים בדיוק ל${kid.child_name}`;document.getElementById('welcome').innerHTML=`שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור <strong>${esc(kid.child_name)}</strong>.<br><br>מה הייתם רוצים ש${esc(kid.child_name)} ילמד/תלמד?`}
 
+
+
+async function loadExistingCurriculumForEdit(){
+  if(!EDIT_SUBJECT_ID || !CURRENT_KID?.id) return;
+  try{
+    const [{data:subject,error:subjectError},{data:curricula,error:currError}] = await Promise.all([
+      sb.from('kid_custom_subjects').select('id,subject_name,status').eq('id',EDIT_SUBJECT_ID).eq('kid_id',CURRENT_KID.id).single(),
+      sb.from('kid_custom_curriculums').select('id,curriculum_json,version,status,updated_at').eq('custom_subject_id',EDIT_SUBJECT_ID).eq('kid_id',CURRENT_KID.id).order('updated_at',{ascending:false}).limit(1)
+    ]);
+    if(subjectError) throw subjectError;
+    if(currError) throw currError;
+    const curriculum=(curricula||[])[0];
+    if(!subject || !curriculum?.curriculum_json) throw new Error('existing curriculum not found');
+
+    CURRENT_CUSTOM_SUBJECT_ID=subject.id;
+    CURRENT_CURRICULUM_ID=curriculum.id;
+    CURRENT_VERSION=Number(curriculum.version||1);
+    CURRENT_PLAN=curriculum.curriculum_json;
+    document.body.classList.add('edit-existing');
+
+    const head=document.querySelector('.head h1');
+    if(head) head.textContent=`עריכת ${subject.subject_name}`;
+    const subtitle=document.getElementById('subtitle');
+    if(subtitle) subtitle.innerHTML=`עדכנו את תוכנית הלימודים של ${esc(subject.subject_name)} <span class="edit-mode-chip"><i class="fa-solid fa-pen"></i> מצב עריכה · גרסה ${CURRENT_VERSION}</span>`;
+    const welcome=document.getElementById('welcome');
+    if(welcome) welcome.innerHTML=`שלום 👋<br>אני כאן כדי לעזור לך לעדכן את תוכנית הלימודים של <strong>${esc(subject.subject_name)}</strong>.<br><br>מה תרצה לשנות, להוסיף או להסיר?`;
+
+    const suggestions=document.querySelector('.suggestions');
+    if(suggestions){
+      suggestions.innerHTML=`
+        <button data-topic="הוסף נושא חדש לתוכנית">הוסף נושא</button>
+        <button data-topic="הוסף שיעורים חדשים">הוסף שיעורים</button>
+        <button data-topic="אני רוצה להסיר נושא מהתוכנית">הסר נושא</button>
+        <button data-topic="שנה את סדר הנושאים והיחידות">שנה סדר</button>
+        <button data-topic="העמק את אחת היחידות עם תוכן נוסף">העמק יחידה</button>`;
+      suggestions.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>submitText(b.dataset.topic));
+    }
+
+    render(CURRENT_PLAN);
+    const approve=document.getElementById('approveBtn');
+    if(approve){approve.textContent='✦ שמור שינויים';approve.disabled=false;approve.classList.add('ready');}
+    const input=document.getElementById('chatInput');
+    if(input){input.placeholder='מה תרצה לשנות בתוכנית?';setTimeout(()=>input.focus(),120)}
+  }catch(e){
+    console.error('EDIT CURRICULUM LOAD',e);
+    msg('ai','לא הצלחתי לטעון את התוכנית הקיימת לעריכה. נסו לחזור ולפתוח שוב את העריכה.');
+  }
+}
 
 function render(plan, options = {}) {
 
@@ -2769,7 +2826,7 @@ document.getElementById(
   btn.disabled = true;
 
   btn.textContent =
-    "✦ מאשר את תוכנית הלימודים...";
+    EDIT_SUBJECT_ID ? "✦ שומר את השינויים..." : "✦ מאשר את תוכנית הלימודים...";
 
 
   try {
@@ -2876,7 +2933,7 @@ document.getElementById(
     */
 
     btn.textContent =
-      "✓ תוכנית הלימודים אושרה";
+      EDIT_SUBJECT_ID ? "✓ השינויים נשמרו" : "✓ תוכנית הלימודים אושרה";
 
     btn.classList.add(
       "approved"
@@ -2922,6 +2979,6 @@ document.getElementById(
   }
 
 };
-document.getElementById('openParentModal').onclick=()=>location.href='/he/workspace/';document.getElementById('openSettings').onclick=()=>location.href='/he/workspace/';document.getElementById('manageSubscriptionSide').onclick=()=>location.href='/he/workspace/';init();
+document.getElementById('openParentModal').onclick=()=>location.href='/he/workspace/';document.getElementById('openSettings').onclick=()=>location.href='/he/workspace/';document.getElementById('manageSubscriptionSide').onclick=()=>location.href='/he/workspace/';init().then(loadExistingCurriculumForEdit);
 </script>
 </body></html>
