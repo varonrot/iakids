@@ -154,6 +154,8 @@ These come free from `game-sdk.js` / `game-style.css` the moment a game links th
 
 ## Content rules
 
+- **Nikud (vowel points) on Hebrew words**: generate them once with `python3 games/tools/nakdan.py word…` (Dicta Nakdan, re-fitted to the game's ktiv male so the letters never change) and bake them into the data as a separate field (`n:`), keeping the plain word for all logic. Review the output — for isolated nouns Dicta sometimes picks a construct form or another homograph (בֵּית for בַּיִת); fix those in `games/tools/nikud-overrides.json`, never in the game. Reference: `first-last-letter` shows the vocalised word after the answer.
+
 - **RTL correctness**: wrap math/English/numeric expressions in `<span dir="ltr">` so they don't flip inside the RTL page.
 - **Touch-friendly**: tap targets ≥60px; drag uses **Pointer Events** (`pointerdown`/`pointermove`/`pointerup` + `setPointerCapture`), never HTML5 drag&drop — it doesn't work reliably on touch. Hit-test the drop target *before* clearing the dragged element's `pointer-events:none` (via the `.dragging` CSS class), not after — clearing it first makes `elementFromPoint` hit the dragged element itself instead of the zone underneath.
 - **MCQ**: exactly one correct option, distractors plausible (common mistakes, ±1–3 off), shuffle position every question.

@@ -1,0 +1,11 @@
+{
+  "_comment": "Hand-checked vocalisations that beat Dicta's first guess (isolated nouns: it tends to pick construct forms or another homograph). word -> vocalised, letters must match the plain word exactly.",
+  "עז": "עֵז",
+  "מחברת": "מַחְבֶּרֶת",
+  "שולחן": "שׁוּלְחָן",
+  "מגדל": "מִגְדָּל",
+  "ענן": "עָנָן",
+  "בית": "בַּיִת",
+  "כוכב": "כּוֹכָב",
+  "בצל": "בָּצָל"
+}
