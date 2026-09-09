@@ -7,7 +7,8 @@
 <link rel="stylesheet" href="game-style.css">
 <script src="game-sdk.js"></script>
 <style>
-  body { align-items: stretch; max-width: 1100px; margin: 0 auto; }
+  /* Shared dark space theme (body.theme-space in game-style.css); only the hub tiles are styled here. */
+  body.theme-space { align-items: stretch; max-width: 1100px; margin: 0 auto !important; }
   h1 { text-align: center; }
   h2 { margin: 28px 4px 10px; font-size: 1.3rem; }
   .grid {
@@ -16,33 +17,35 @@
     gap: 12px;
   }
   .tile {
-    background: var(--card);
+    color: #fff;
+    background: linear-gradient(180deg,rgba(52,81,139,.95),rgba(21,49,99,.98));
+    border: 1px solid rgba(118,176,255,.35);
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    box-shadow: 0 10px 24px rgba(0,8,28,.35), inset 0 1px rgba(255,255,255,.08);
     padding: 14px 10px;
     text-align: center;
     text-decoration: none;
-    color: var(--text);
     font-weight: 700;
     font-size: 0.95rem;
     transition: transform 0.15s;
   }
-  a.tile:hover { transform: translateY(-4px) scale(1.03); }
+  a.tile:hover { transform: translateY(-4px) scale(1.03); border-color: rgba(96,222,255,.75); }
   .tile .emoji { font-size: 2.2rem; display: block; margin-bottom: 6px; }
   .tile.soon { opacity: 0.45; }
-  .tile.soon::after { content: "בקרוב"; display: block; font-size: 0.75rem; color: var(--muted); }
+  .tile.soon::after { content: "בקרוב"; display: block; font-size: 0.75rem; color: var(--space-muted); }
 
   #gate { max-width: 420px; margin: 60px auto; text-align: center; }
   #gate .gate-card {
-    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    color: #fff; background: linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98));
+    border: 1px solid var(--space-line); border-radius: var(--radius); box-shadow: 0 28px 75px rgba(0,8,28,.48);
     padding: 32px 24px;
   }
   #gate .gate-card > div:first-child { font-size: 3.5rem; margin-bottom: 6px; }
-  #gate p { color: var(--muted); margin: 8px 0 22px; }
+  #gate p { color: var(--space-muted); margin: 8px 0 22px; }
   #gate .game-btn { width: 100%; margin: 6px 0; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 <div id="gate" hidden>
   <div class="gate-card">
     <div>🎮🧠</div>
