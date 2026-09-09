@@ -24,7 +24,6 @@ jobs:
           if old not in s:
               raise SystemExit('parents showcase background rule not found')
           s = s.replace(old, new, 1)
-          # Keep the entire image visible on tablet/mobile too.
           s = s.replace("background-position:62% center", "background-position:center center")
           s = s.replace("background-position:68% center;background-size:auto 100%", "background-position:center center;background-size:contain")
           p.write_text(s, encoding='utf-8')
@@ -36,3 +35,5 @@ jobs:
           git add he2/index.html
           git diff --cached --quiet || git commit -m "Show full HE2 parents background image"
           git push
+
+# trigger 2
