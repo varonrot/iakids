@@ -5,174 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>חישוב היקפים | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
-<style>
-  .shape-wrap { display: flex; justify-content: center; margin: 6px 0; }
-  .shape-wrap svg { width: min(74vw, 300px); height: auto; }
-  .q-text { font-size: 1.25rem; font-weight: 800; margin: 8px 0; }
+<style>.shape-wrap{display:flex;justify-content:center;margin:6px 0}.shape-wrap svg{height:auto;width:min(74vw,300px)}.q-text{font-size:1.25rem;font-weight:800;margin:8px 0}
 </style>
 
-<style id="iakids-premium-overrides">
-:root{
-  --space-bg:#06142d;
-  --space-panel:#0b2857;
-  --space-panel-dark:#071d43;
-  --space-line:rgba(119,176,255,.27);
-  --space-text:#f7f9ff;
-  --space-muted:#b8c7e3;
-  --space-gold:#ffd15c;
-}
-html,body{min-height:100%}
-body{
-  margin:0!important;
-  min-height:100vh!important;
-  padding:86px 18px 28px!important;
-  overflow-x:hidden;
-  color:var(--space-text)!important;
-  font-family:"Heebo","Segoe UI",Arial,sans-serif!important;
-  background:
-    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
-    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
-    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
-    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important;
-}
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  pointer-events:none;
-  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
-  background-size:56px 56px;
-  opacity:.08;
-}
-*{box-sizing:border-box}
-.game-card{
-  width:min(560px,calc(100vw - 28px))!important;
-  min-height:690px;
-  margin:0 auto!important;
-  padding:0!important;
-  overflow:hidden;
-  border:1px solid var(--space-line)!important;
-  border-radius:28px!important;
-  color:var(--space-text)!important;
-  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;
-  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08)!important;
-}
-.game-hud{
-  position:fixed!important;
-  top:0!important;
-  left:0!important;
-  right:0!important;
-  z-index:20;
-  min-height:72px;
-  padding:16px 24px!important;
-  display:flex!important;
-  align-items:center;
-  justify-content:center!important;
-  gap:42px;
-  color:#fff!important;
-  background:rgba(5,18,46,.88)!important;
-  border-bottom:1px solid rgba(126,180,255,.18);
-  backdrop-filter:blur(14px);
-}
-.game-hud .score{color:var(--space-gold)!important}
-#start-screen,#play-screen,#end-screen{
-  min-height:688px;
-  padding:34px 30px 30px;
-}
-#start-screen{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
-}
-#start-screen>div:first-child{
-  font-size:5rem!important;
-  margin:6px 0 8px;
-  filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));
-}
-.game-title{
-  margin:0;
-  font-size:clamp(2.15rem,7vw,3.1rem)!important;
-  line-height:1.05;
-  color:#fff!important;
-  text-shadow:0 4px 12px rgba(0,0,0,.22)
-}
-#subtitle{
-  max-width:420px;
-  margin:14px auto 20px;
-  color:var(--space-muted)!important;
-  font-weight:600;
-  line-height:1.65
-}
-#rounds-q,#level-label{
-  margin:8px 0 10px;
-  color:#fff!important;
-  font-weight:900
-}
-.answer-grid{width:100%;gap:12px!important}
-.game-btn{
-  min-height:54px;
-  border-radius:15px!important;
-  border:1px solid rgba(118,176,255,.34)!important;
-  color:#fff!important;
-  font-weight:900!important;
-  background:linear-gradient(180deg,#1c91db,#0877bd)!important;
-  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16)!important
-}
-.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important}
-.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64)!important;border-color:rgba(97,255,174,.6)!important}
-#level-row{margin-top:16px}
-#level-row .game-btn[data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc)!important}
-#play-screen{position:relative}
-.q-text{
-  min-height:58px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:0 0 10px!important;
-  padding:10px 14px;
-  border-radius:17px;
-  color:#fff!important;
-  font-size:1.25rem!important;
-  font-weight:900!important;
-  background:rgba(4,22,55,.5);
-  border:1px solid rgba(116,177,255,.18)
-}
-.shape-wrap{
-  display:flex;
-  justify-content:center;
-  margin:8px 0 16px!important;
-  padding:12px 8px;
-  border-radius:22px;
-  background:rgba(4,22,55,.46);
-  border:1px solid rgba(116,177,255,.18)
-}
-.shape-wrap svg{
-  width:min(74vw,320px)!important;
-  height:auto;
-  filter:drop-shadow(0 12px 20px rgba(0,0,0,.16))
-}
-#answers{grid-template-columns:1fr 1fr!important}
-#answers .game-btn{min-height:66px;font-size:1.2rem!important}
-#answers .game-btn.correct{background:linear-gradient(180deg,#37d182,#16ad64)!important}
-#answers .game-btn:disabled{opacity:.74;cursor:default}
-#end-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.stars{min-height:78px;font-size:3.7rem!important;letter-spacing:4px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.24))}
-.big-score{margin:8px 0;color:#fff!important;font-size:4rem!important;font-weight:1000}
-#player-line,#end-screen p{color:#d7e3f7!important}
-[hidden]{display:none!important}
+<style id="iakids-premium-overrides">.game-card{width:min(560px,calc(100vw - 28px))!important}#start-screen>div:first-child{filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));font-size:5rem!important;margin:6px 0 8px}.game-title{font-size:clamp(2.15rem,7vw,3.1rem)!important}#subtitle{color:var(--space-muted)!important;font-weight:600;line-height:1.65;margin:14px auto 20px;max-width:420px}#rounds-q,#level-label{color:#fff!important;font-weight:900;margin:8px 0 10px}.q-text{align-items:center;background:rgba(4,22,55,.5);border:1px solid rgba(116,177,255,.18);border-radius:17px;color:#fff!important;display:flex;font-size:1.25rem!important;font-weight:900!important;justify-content:center;margin:0 0 10px!important;min-height:58px;padding:10px 14px}.shape-wrap{background:rgba(4,22,55,.46);border:1px solid rgba(116,177,255,.18);border-radius:22px;display:flex;justify-content:center;margin:8px 0 16px!important;padding:12px 8px}.shape-wrap svg{filter:drop-shadow(0 12px 20px rgba(0,0,0,.16));height:auto;width:min(74vw,320px)!important}
+#answers{grid-template-columns:1fr 1fr!important}#answers .game-btn{font-size:1.2rem!important;min-height:66px}
+#answers .game-btn.correct{background:linear-gradient(180deg,#37d182,#16ad64)!important}#answers .game-btn:disabled{opacity:.74}
 @media(max-width:600px){
-  body{padding:74px 10px 18px!important}
-  .game-card{min-height:calc(100vh - 94px);border-radius:22px!important}
-  #start-screen,#play-screen,#end-screen{min-height:calc(100vh - 96px);padding:26px 15px 24px}
-  .game-hud{min-height:62px;padding:12px 14px!important;gap:24px}
   .shape-wrap svg{width:min(84vw,300px)!important}
 }
 </style>
 
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>

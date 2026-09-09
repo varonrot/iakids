@@ -51,6 +51,7 @@ Each game's `index.html` loads the SDK and follows this lifecycle:
 **Look & feel — shared, free for every game:**
 
 - `game-style.css` — brand palette (orange #ff6a2a), `.game-card`, `.game-btn` (big kid-friendly buttons), `.answer-grid`, `.game-hud`, `.drop-zone`, correct/wrong animations, end screen.
+  - Opt-in dark **space theme**: add `class="theme-space"` to `<body>` — one shared block at the end of `game-style.css` (tokens `--space-*`, card, HUD, buttons, question, end screen). A game overrides single properties inline; it must not carry its own copy of the theme.
 - `IAKidsFX` (in `game-sdk.js`) — feedback helpers:
   - `IAKidsFX.correct(el)` — green pop + happy chime + floating "+10"
   - `IAKidsFX.wrong(el)` — red shake + buzz + vibration

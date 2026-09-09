@@ -6,35 +6,29 @@
 <title>מחזור המים בטבע | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
 <style>
-/* water/sky theme — the game is literally about rain, clouds and the sea, so
-   the default warm orange brand palette looked out of place. Overrides only
-   --accent/--accent-soft/--bg (decorative); --text/--card/--yellow are left
-   alone so the shared coin badge and sign-in widget keep working correctly
-   (see the food-chain fix for why that matters). */
-:root{
-  --accent:#2f8fd8;
-  --accent-soft:#e3f3fd;
-  --bg:linear-gradient(160deg,#eaf6ff 0%,#d3ecff 100%);
-}
-.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:110px;min-height:56px;padding:8px 14px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;font-size:1.15rem;font-weight:800;cursor:grab;touch-action:none}
-.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
+/* Shared dark space theme (body.theme-space in ../game-style.css). Only the
+   pieces unique to this game are styled here: draggable chips, the
+   illustration hotspots and the sequence slots — all tuned for the dark card. */
+
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:110px;min-height:56px;padding:8px 14px;margin:6px;color:#fff;background:linear-gradient(180deg,rgba(52,81,139,.85),rgba(21,49,99,.9));border:2px solid rgba(118,176,255,.45);border-radius:16px;font-size:1.15rem;font-weight:800;cursor:grab;touch-action:none;box-shadow:inset 0 1px rgba(255,255,255,.15),0 8px 18px rgba(0,0,0,.2)}
+.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:0 18px 35px rgba(0,0,0,.45)}
 #tray,#seq-tray{min-height:76px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
-#illustration{position:relative;width:100%;max-width:440px;margin:8px auto;aspect-ratio:300/180;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+#illustration{position:relative;width:100%;max-width:440px;margin:8px auto;aspect-ratio:300/180;border-radius:16px;overflow:hidden;border:1px solid var(--space-line);box-shadow:0 12px 28px rgba(0,0,0,.3)}
 #illustration svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.hotspot{position:absolute;border:3px dashed rgba(59,130,246,.55);border-radius:14px;transition:background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;text-align:center}
-.hotspot.over{border-color:var(--accent);background:rgba(47,143,216,.25)}
-.hotspot.filled{border-style:solid;border-color:var(--green);background:rgba(34,197,94,.35)}
-.hotspot span{background:#fff;border-radius:10px;padding:3px 8px;font-weight:800;font-size:0.95rem;box-shadow:var(--shadow)}
+.hotspot{position:absolute;border:3px dashed rgba(255,255,255,.55);border-radius:14px;transition:background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;text-align:center}
+.hotspot.over{border-color:#69c8ff;background:rgba(47,143,216,.35)}
+.hotspot.filled{border-style:solid;border-color:#37d182;background:rgba(34,197,94,.4)}
+.hotspot span{color:#102a4f;background:#fff;border-radius:10px;padding:3px 8px;font-weight:800;font-size:0.95rem;box-shadow:0 4px 10px rgba(0,0,0,.25)}
 #seq-slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
-.slot{min-width:110px;min-height:60px;border:3px dashed var(--muted);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;transition:background .2s,border-color .2s}
-.slot.over{border-color:var(--accent);background:var(--accent-soft)}
-.slot .rank{font-size:0.7rem;font-weight:800;color:var(--muted)}
+.slot{min-width:110px;min-height:60px;color:#fff;border:3px dashed rgba(184,199,227,.55);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;transition:background .2s,border-color .2s}
+.slot.over{border-color:#69c8ff;background:rgba(32,150,221,.22)}
+.slot .rank{font-size:0.7rem;font-weight:800;color:var(--space-muted)}
 .slot .n{font-size:1rem;font-weight:800}
 #trivia-mode,#sequence-mode{display:none}
-#seq-title{font-weight:700;margin-top:10px}
+#seq-title{font-weight:700;margin-top:10px;color:#fff}
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
@@ -43,10 +37,10 @@
 
 <div class="game-card" id="card">
   <div id="start-screen">
-    <div style="font-size:4rem">💧☁️🌧️</div>
+    <div class="hero-icon">💧☁️🌧️</div>
     <h1 class="game-title" id="title"></h1>
     <p id="howto"></p>
-    <p id="rounds-label"></p>
+    <p id="rounds-label" class="section-label"></p>
     <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
       <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
       <button class="game-btn outline" onclick="setRounds(10,this)">10</button>

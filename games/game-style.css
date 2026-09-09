@@ -412,3 +412,52 @@ body {
   .game-question { font-size: 1.7rem; }
   .game-btn { font-size: 1.2rem; padding: 12px 20px; }
 }
+
+/* =====================================================================
+   SPACE THEME  —  opt-in per game with  <body class="theme-space">
+   Single source of truth for the dark "space" look. Every rule is
+   wrapped in :where() so it has the same specificity as a plain
+   class/id selector and sits BEFORE each game's own <style>: a game
+   overrides any of this simply by restating the property (keep the
+   !important flag where this sheet uses one). Do not paste this block
+   into a game — set the class and override only what differs.
+   ===================================================================== */
+:where(body.theme-space){
+  --space-bg:#06142d;--space-panel:#0b2857;--space-panel-dark:#071d43;
+  --space-line:rgba(119,176,255,.27);--space-text:#f7f9ff;--space-muted:#b8c7e3;
+  --space-blue:#1693f1;--space-green:#1ea96b;--space-purple:#7653ff;--space-gold:#ffd15c;
+}
+body:where(.theme-space){margin:0!important;min-height:100vh!important;padding:86px 18px 28px!important;overflow-x:hidden;color:var(--space-text)!important;font-family:"Heebo","Segoe UI",Arial,sans-serif!important;background:radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important}
+body:where(.theme-space)::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);background-size:56px 56px;opacity:.08}
+:where(body.theme-space) .game-card{width:min(500px,calc(100vw - 28px))!important;min-height:690px;margin:0 auto!important;padding:0!important;overflow:hidden;border:1px solid var(--space-line)!important;border-radius:28px!important;color:var(--space-text)!important;background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08)!important}
+:where(body.theme-space) .game-hud{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:20;min-height:72px;padding:16px 24px!important;display:flex!important;align-items:center;justify-content:center!important;gap:42px;color:#fff!important;background:rgba(5,18,46,.88)!important;border-bottom:1px solid rgba(126,180,255,.18);backdrop-filter:blur(14px)}
+:where(body.theme-space) .game-hud .score{color:var(--space-gold)!important}
+:where(body.theme-space) #start-screen,:where(body.theme-space) #play-screen,:where(body.theme-space) #end-screen{min-height:688px;padding:34px 30px 30px}
+:where(body.theme-space) #start-screen{display:flex;flex-direction:column;align-items:center;text-align:center}
+:where(body.theme-space) #play-screen{position:relative}
+:where(body.theme-space) #end-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+:where(body.theme-space) .hero-icon{margin:6px 0 8px;font-size:5rem;filter:drop-shadow(0 12px 18px rgba(0,0,0,.22))}
+:where(body.theme-space) .game-title{margin:0;font-size:clamp(2.1rem,7vw,3rem)!important;line-height:1.05;color:#fff!important;text-shadow:0 4px 12px rgba(0,0,0,.22)}
+:where(body.theme-space) #howto{max-width:410px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
+:where(body.theme-space) .section-label{margin:8px 0 10px;color:#fff;font-weight:900}
+:where(body.theme-space) .answer-grid{width:100%;gap:12px!important}
+:where(body.theme-space) .game-btn{min-height:54px;border-radius:15px!important;border:1px solid rgba(118,176,255,.34)!important;color:#fff!important;font-weight:900!important;background:linear-gradient(180deg,#1c91db,#0877bd)!important;box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16)!important}
+:where(body.theme-space) .game-btn:hover{transform:translateY(-2px)}
+:where(body.theme-space) .game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important}
+:where(body.theme-space) .game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64)!important;border-color:rgba(97,255,174,.6)!important}
+:where(body.theme-space) .game-btn.danger{background:linear-gradient(180deg,#ef6672,#cc3d4c)!important}
+:where(body.theme-space) #level-row{margin-top:16px}
+:where(body.theme-space) #level-row .game-btn[data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc)!important}
+:where(body.theme-space) .game-question{min-height:0;margin:10px 0 20px;color:#fff!important;font-size:clamp(1.3rem,5vw,1.8rem)!important;font-weight:800}
+:where(body.theme-space) #answers .game-btn:disabled{opacity:.72;cursor:default}
+:where(body.theme-space) .stars{min-height:78px;font-size:3.7rem!important;letter-spacing:4px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.24))}
+:where(body.theme-space) .big-score{margin:8px 0;color:#fff!important;font-size:4rem!important;font-weight:1000}
+:where(body.theme-space) #player-line,:where(body.theme-space) #end-screen p{color:#d7e3f7!important}
+:where(body.theme-space) #share-slot{margin-top:8px}
+:where(body.theme-space) [hidden]{display:none!important}
+@media(max-width:600px){
+  body:where(.theme-space){padding:74px 10px 18px!important}
+  :where(body.theme-space) .game-card{min-height:calc(100vh - 94px);border-radius:22px!important}
+  :where(body.theme-space) #start-screen,:where(body.theme-space) #play-screen,:where(body.theme-space) #end-screen{min-height:calc(100vh - 96px);padding:26px 15px 24px}
+  :where(body.theme-space) .game-hud{min-height:62px;padding:12px 14px!important;gap:24px}
+}

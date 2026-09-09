@@ -5,109 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>מצבי צבירה | iakids</title>
 <link rel="stylesheet" href="../game-style.css">
-<style>
-.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:72px;min-height:76px;padding:6px 8px;margin:6px;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;cursor:grab;touch-action:none;text-align:center}
+<style>.chip{align-items:center;background:var(--accent-soft);border:3px solid var(--accent);border-radius:16px;cursor:grab;display:inline-flex;flex-direction:column;justify-content:center;margin:6px;min-height:76px;min-width:72px;padding:6px 8px;text-align:center;touch-action:none}
 .chip .e{font-size:2rem;line-height:1.1}
-.chip .n{font-size:0.8rem;font-weight:700}
-.chip.dragging{position:fixed;z-index:30;pointer-events:none;cursor:grabbing;box-shadow:var(--shadow)}
-#tray{min-height:96px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
-.bins{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
-.drop-zone h3{margin:0 0 6px;font-size:1rem}
-.bin-items{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:34px}
-.bin-items span{background:var(--green);color:#fff;border-radius:10px;padding:4px 8px;font-weight:700;font-size:1.3rem}
+.chip .n{font-size:0.8rem;font-weight:700}.chip.dragging{box-shadow:var(--shadow);cursor:grabbing;pointer-events:none;position:fixed;z-index:30}#tray{align-items:center;display:flex;flex-wrap:wrap;justify-content:center;min-height:96px}.bins{display:grid;gap:10px;grid-template-columns:1fr 1fr 1fr;margin-top:12px}.drop-zone h3{font-size:1rem;margin:0 0 6px}.bin-items{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:34px}.bin-items span{background:var(--green);border-radius:10px;color:#fff;font-size:1.3rem;font-weight:700;padding:4px 8px}
 </style>
 
-<style>
-:root{
-  --space-bg:#06142d;--space-panel:#0b2857;--space-panel-dark:#071d43;
-  --space-line:rgba(119,176,255,.27);--space-text:#f7f9ff;
-  --space-muted:#b8c7e3;--space-blue:#1693f1;--space-green:#1ea96b;
-  --space-purple:#7653ff;--space-gold:#ffd15c;
-}
-html,body{min-height:100%}
-body{
-  margin:0!important;min-height:100vh!important;padding:86px 18px 28px!important;
-  overflow-x:hidden;color:var(--space-text)!important;
-  font-family:"Heebo","Segoe UI",Arial,sans-serif!important;
-  background:
-    radial-gradient(circle at 12% 16%,rgba(26,139,255,.23),transparent 34%),
-    radial-gradient(circle at 88% 10%,rgba(112,72,255,.25),transparent 35%),
-    radial-gradient(circle at 50% 100%,rgba(12,184,203,.16),transparent 34%),
-    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)!important;
-}
-body::before{
-  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
-  background-size:56px 56px;opacity:.08;
-}
-*{box-sizing:border-box}
-.game-card{
-  width:min(520px,calc(100vw - 28px))!important;min-height:690px;margin:0 auto!important;
-  padding:0!important;overflow:hidden;border:1px solid var(--space-line)!important;
-  border-radius:28px!important;color:var(--space-text)!important;
-  background:linear-gradient(180deg,rgba(17,58,111,.97),rgba(5,25,61,.98))!important;
-  box-shadow:0 28px 75px rgba(0,8,28,.48),inset 0 1px rgba(255,255,255,.08)!important;
-}
-.game-hud{
-  position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:20;
-  min-height:72px;padding:16px 24px!important;display:flex!important;align-items:center;
-  justify-content:center!important;gap:42px;color:#fff!important;background:rgba(5,18,46,.88)!important;
-  border-bottom:1px solid rgba(126,180,255,.18);backdrop-filter:blur(14px);
-}
-.game-hud .score{color:var(--space-gold)!important}
-#start-screen,#play-screen,#end-screen{min-height:688px;padding:34px 30px 30px}
-#start-screen{display:flex;flex-direction:column;align-items:center;text-align:center}
-.game-title{margin:0;font-size:clamp(2.15rem,7vw,3.2rem)!important;line-height:1.05;color:#fff!important}
-#howto{max-width:390px;margin:14px auto 20px;color:var(--space-muted)!important;font-weight:600;line-height:1.65}
-#rounds-label{margin:8px 0 10px;color:#fff;font-weight:900}
-.answer-grid{width:100%;gap:12px!important}
-.game-btn{
-  min-height:54px;border-radius:15px!important;border:1px solid rgba(118,176,255,.34)!important;
-  color:#fff!important;font-weight:900!important;background:linear-gradient(180deg,#1c91db,#0877bd)!important;
-  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.16)!important;
-}
-.game-btn.outline{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))!important}
-.game-btn.success{background:linear-gradient(180deg,#37d182,#16ad64)!important;border-color:rgba(97,255,174,.6)!important}
-#level-row{margin-top:16px}
-#level-row .game-btn[data-lvl="0"]{background:linear-gradient(180deg,#8054ff,#6035dc)!important}
-#play-screen{position:relative}
-#tray{
-  min-height:210px;padding:14px 10px;display:flex;flex-wrap:wrap;justify-content:center;
-  align-content:center;gap:10px;border-radius:22px;background:rgba(4,22,55,.5);
-  border:1px solid rgba(116,177,255,.18);
-}
-.chip{
-  position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
-  min-width:108px;min-height:84px;padding:9px 12px;margin:0;border:1px solid rgba(129,190,255,.35);
-  border-radius:15px;color:#fff;cursor:grab;touch-action:none;user-select:none;
-  background:linear-gradient(180deg,#1c4e8d,#123b73);
-  box-shadow:0 9px 19px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.12);
-}
-.chip .e{font-size:2rem;line-height:1.1}.chip .n{margin-top:4px;font-size:.88rem;font-weight:900;text-align:center}
-.chip.dragging{position:fixed;z-index:100;pointer-events:none;cursor:grabbing;transform:scale(1.05);box-shadow:0 18px 40px rgba(0,0,0,.36)}
-.bins{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
-.drop-zone{
-  min-height:170px;padding:12px 8px;border:2px dashed rgba(106,189,255,.56);
-  border-radius:20px;transition:.2s ease;background:linear-gradient(180deg,rgba(18,69,124,.48),rgba(5,31,69,.64));
-}
-.drop-zone.over{border-color:#5dffad;background:rgba(35,185,111,.18);transform:scale(1.015)}
-.drop-zone h3{margin:0 0 10px;font-size:1rem;text-align:center;color:#fff}
-.bin-items{display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:6px;min-height:70px}
-.bin-items span{padding:7px 9px;border-radius:10px;color:#fff;font-weight:900;font-size:1.25rem;background:linear-gradient(180deg,#26bd76,#15995b)}
-#end-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.stars{min-height:78px;font-size:3.7rem!important;letter-spacing:4px}
-.big-score{margin:8px 0;color:#fff!important;font-size:4rem!important;font-weight:1000}
-#player-line,#end-screen p{color:#d7e3f7!important}
-[hidden]{display:none!important}
-@media(max-width:600px){
-  body{padding:74px 10px 18px!important}.game-card{min-height:calc(100vh - 94px);border-radius:22px!important}
-  #start-screen,#play-screen,#end-screen{min-height:calc(100vh - 96px);padding:26px 16px 24px}
-  .game-hud{min-height:62px;padding:12px 14px!important;gap:24px}.chip{min-width:calc(50% - 6px)}
+<style>.game-card{width:min(520px,calc(100vw - 28px))!important}.game-title{font-size:clamp(2.15rem,7vw,3.2rem)!important}#howto{max-width:390px}#rounds-label{color:#fff;font-weight:900;margin:8px 0 10px}#tray{align-content:center;background:rgba(4,22,55,.5);border:1px solid rgba(116,177,255,.18);border-radius:22px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:210px;padding:14px 10px}.chip{align-items:center;background:linear-gradient(180deg,#1c4e8d,#123b73);border:1px solid rgba(129,190,255,.35);border-radius:15px;box-shadow:0 9px 19px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.12);color:#fff;cursor:grab;display:inline-flex;flex-direction:column;justify-content:center;margin:0;min-height:84px;min-width:108px;padding:9px 12px;position:relative;touch-action:none;user-select:none}
+.chip .e{font-size:2rem;line-height:1.1}.chip .n{font-size:.88rem;font-weight:900;margin-top:4px;text-align:center}.chip.dragging{box-shadow:0 18px 40px rgba(0,0,0,.36);cursor:grabbing;pointer-events:none;position:fixed;transform:scale(1.05);z-index:100}.bins{display:grid;gap:10px;grid-template-columns:repeat(3,1fr);margin-top:16px}.drop-zone{background:linear-gradient(180deg,rgba(18,69,124,.48),rgba(5,31,69,.64));border:2px dashed rgba(106,189,255,.56);border-radius:20px;min-height:170px;padding:12px 8px;transition:.2s ease}.drop-zone.over{background:rgba(35,185,111,.18);border-color:#5dffad;transform:scale(1.015)}.drop-zone h3{color:#fff;font-size:1rem;margin:0 0 10px;text-align:center}.bin-items{align-content:flex-start;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:70px}.bin-items span{background:linear-gradient(180deg,#26bd76,#15995b);border-radius:10px;color:#fff;font-size:1.25rem;font-weight:900;padding:7px 9px}
+@media(max-width:600px){#start-screen,#play-screen,#end-screen{padding:26px 16px 24px}.chip{min-width:calc(50% - 6px)}
   .bins{grid-template-columns:1fr}.drop-zone{min-height:118px}
 }
 </style>
 </head>
-<body>
+<body class="theme-space">
 
 <div class="game-hud">
   <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
