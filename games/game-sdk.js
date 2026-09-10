@@ -646,7 +646,12 @@ const IAKidsBank = {
               { onConflict: 'game_code,qkey', ignoreDuplicates: true })
       .then(() => {}, () => {})).catch(() => {});
   },
-  track(slug, level, qkey) { this._current = { slug, level, qkey, at: Date.now() }; },
+  // What onAnswer() will need. A generated question travels with its payload so it
+  // can be filed into the bank in the same call that records the answer; a
+  // bank-served one is already there and travels without.
+  track(slug, level, qkey, payload = null, fromBank = false) {
+    this._current = { slug, level, qkey, at: Date.now(), payload: fromBank ? null : payload };
+  },
   // Called by IAKidsCoins.right/wrong and IAKidsActivity.correct/wrong; idempotent per question.
   onAnswer(correct) {
     const cur = this._current; if (!cur) return; this._current = null;
@@ -657,14 +662,25 @@ const IAKidsBank = {
       // One round trip per answer (migration 20260910_game_bank_performance). Until
       // that migration is applied the rpc does not exist, so fall back to the two
       // calls it replaced rather than lose the answer.
+      const base = {
+        p_kid: this._kid(), p_game: cur.slug, p_key: cur.qkey, p_correct: !!correct,
+        p_ms: ms, p_level: cur.level || null, p_session: IAKidsActivity._sessionId || null,
+      };
+      const missing = e => /function|schema cache|not find/i.test((e && e.message) || '');
+      // Newest first: the answer and the question in one call (20260910_game_bank_one_call).
       try {
-        const { error } = await c.rpc('game_record_answer', {
-          p_kid: this._kid(), p_game: cur.slug, p_key: cur.qkey, p_correct: !!correct,
-          p_ms: ms, p_level: cur.level || null, p_session: IAKidsActivity._sessionId || null,
-        });
+        const { error } = await c.rpc('game_record_answer', cur.payload
+          ? { ...base, p_payload: cur.payload, p_answer: this.answerOf(cur.payload) } : base);
         if (!error) return;
-        if (!/function|schema cache|not find/i.test(error.message || '')) return;   // a real refusal, not "missing"
-      } catch { /* fall through to the old path */ }
+        if (!missing(error)) return;                       // a real refusal, not "missing"
+      } catch { /* fall through */ }
+      // Then the previous shape, with the bank upsert it did not know about.
+      try {
+        if (cur.payload) this.save(cur.slug, cur.level, cur.qkey, cur.payload);
+        const { error } = await c.rpc('game_record_answer', base);
+        if (!error) return;
+        if (!missing(error)) return;
+      } catch { /* fall through */ }
       c.from('kid_question_answers').insert({
         kid_id: this._kid(), game_code: cur.slug, qkey: cur.qkey, correct: !!correct,
         response_ms: ms, level: cur.level || null,
@@ -1357,8 +1373,10 @@ return true;
         this._asked.push(key);
         if (this._asked.length > 2000) this._asked = this._asked.slice(-2000);
         tx('kv', 'readwrite', s => s.put(this._asked, 'asked'));
-        if (!fromBank) IAKidsBank.save(slug, level, key, q);
-        IAKidsBank.track(slug, level, key);
+        // Not saved here any more: the question is filed by game_record_answer when
+        // the child answers it (one round trip instead of two). save() stays as the
+        // fallback for a database that has not had that migration yet.
+        IAKidsBank.track(slug, level, key, q, fromBank);
         return q;
       },
 
