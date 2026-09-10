@@ -18,8 +18,9 @@
 --   4. 20260910_user_locations.sql        מדינה ואזור זמן לכל חשבון
 --
 -- Afterwards, from the repo:  backend/.venv/bin/python tools/security_check.py
--- should report 6 findings instead of 17 — the six that are /docs and headers,
--- which are a Render deploy and a Cloudflare setting, not SQL.
+-- should report 12 findings instead of 17. The twelve left are /docs, /redoc and
+-- /openapi.json on two backends (a Render deploy away) and six missing response
+-- headers (a Cloudflare setting away). None of them is SQL.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 

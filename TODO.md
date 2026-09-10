@@ -14,9 +14,9 @@ These are done in the repo and inert until someone presses a button somewhere.
 
 | what | where | why it matters |
 |---|---|---|
-| **Paste `supabase/migrations/20260910_user_locations.sql`** | Supabase SQL editor | until then no country is recorded, and the code that asks fails silently |
-| **Redeploy `iakids-backend` on Render** | Render | the capacity block (96 threads, 30/min rate limit) and the `/` health route have never gone out — 40 requests to `/api/*` still pass without a 429 |
-| **Redeploy `iakids-ai-tutor-he` on Render** | Render | the async conversion was pushed after the last deploy; until it goes out the tutor still holds a worker thread for every model call |
+| ~~Paste the four pending migrations~~ | Supabase SQL editor | **done 2026-09-10** — `APPLY_NOW.sql` applied and verified end to end |
+| **Redeploy `iakids-backend` on Render, with `APP_ENV=prod`** | Render | the capacity block (96 threads, 30/min rate limit), the `/` health route, the closed `/docs`, CORS without localhost and the new chat quota have all never gone out. Without `APP_ENV=prod` the docs stay open even after the deploy |
+| **Redeploy `iakids-ai-tutor-he` on Render, with `APP_ENV=prod`** | Render | the async conversion, the closed `/docs`, and the stop on printing children's words into the logs |
 | **Cloudflare: security headers** | Rules → Transform Rules → Modify Response Header | CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy. See `SECURITY.md` §6 — this is the single highest-value thing on this page |
 | **Cloudflare: rate limit `/games/*`** | Security → WAF → Rate limiting | `games/tools/PROTECTION.md` §3. The mirror already has one in nginx; iakids.app does not |
 | **Supabase compute step, then measure again** | Supabase → Settings → Compute | the ceiling is DB CPU (`tools/CAPACITY.md`). Re-run the wrk numbers after, to see what the step bought |

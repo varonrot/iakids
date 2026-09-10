@@ -23,110 +23,77 @@ still holds the same four rows it held before.
 
 ---
 
+## Fixed on 2026-09-10, verified live after the migrations landed
+
+| finding | verified how |
+|---|---|
+| **A user could write themselves a paid subscription** | a fresh account's `insert plan='annual', expires_at='2099-01-01'` is now refused by the policy; the free row onboarding writes still goes in; an update to `annual` changes 0 rows and the row still reads `free` |
+| `kid_unit_lesson_progress` had no RLS | anonymous read now returns nothing; a parent sees their own child and 0 rows of anyone else's |
+| `exam_answer_keys` readable by anyone | empty for an anonymous caller *and* for a signed-in one — RLS on with no policy, so only the backend sees it |
+| `exam_questions`, `exams` readable by anyone | closed to anonymous, still readable signed in |
+| `lesson_units_content` — 150 rows to the open internet | closed to anonymous; the workspace still reads it signed in |
+| Chat quota was a flat 20 for everyone, and racy | `chat_consume_message` is refused to a browser and answers the backend `{"allowed": true, "used": 1, "limit": 20, "plan": "free"}` |
+
+**Nobody had exploited the subscription hole.** Every paid row in the table has a
+LemonSqueezy subscription id behind it.
+
+`tools/security_check.py` went from 17 findings to 12. The twelve that remain are
+`/docs`, `/redoc` and `/openapi.json` on the two backends — fixed in code, waiting on a
+Render deploy — and the six response headers, which are a Cloudflare setting.
+
+---
+
 ## Still open, in the order worth fixing
 
-### 1. Any signed-in user can give themselves a paid subscription — CONFIRMED
+### 1. `/docs`, `/redoc` and `/openapi.json` are public on both backends
 
-The first audit called this "cannot verify from the repo". It is now verified. A
-brand-new free account, one call:
+Every route and every request schema, to anyone. **Fixed in code** — `FastAPI(docs_url=None,
+redoc_url=None, openapi_url=None)` when `APP_ENV == "prod"` — and waiting on a Render
+deploy. Set `APP_ENV=prod` in both services' environment: without it the code thinks it
+is in development and leaves them on.
 
-```
-insert into subscriptions (user_id, plan, status, expires_at)
-values (auth.uid(), 'annual', 'active', '2099-01-01')      -> ACCEPTED
-```
-
-`is_paid_active_subscription` (`backend-ai-tutor-he/main.py`) reads exactly those
-fields, so that row is a lifetime paid account. Anyone with a Google account can do
-it from the browser console in ten seconds.
-
-**Fix:** the INSERT policy must pin the values a client is allowed to write, and there
-must be no UPDATE policy at all:
-
-```sql
-drop policy if exists subscriptions_insert_own on public.subscriptions;
-create policy subscriptions_insert_free on public.subscriptions
-    for insert to authenticated
-    with check (user_id = auth.uid() and plan = 'free'
-                and status = 'active' and expires_at is null
-                and lemon_subscription_id is null);
-drop policy if exists subscriptions_update_own on public.subscriptions;
--- paid rows are written by the LemonSqueezy webhook with the service role only
-```
-
-Then check whether anyone has already done it: any row with `plan <> 'free'` and no
-`lemon_subscription_id` was not paid for.
-
-### 2. `kid_unit_lesson_progress` has no RLS — CONFIRMED, unchanged
-
-Anonymous SELECT still returns all four rows (`kid_id`, `status`, `progress_percent`,
-`mastery_score`, …). An anonymous INSERT was refused only by a NOT NULL constraint,
-which means no policy stood in its way — the table is writable too.
-
-```sql
-alter table public.kid_unit_lesson_progress enable row level security;
-create policy kulp_select_own on public.kid_unit_lesson_progress
-    for select to authenticated
-    using (kid_id in (select id from public.kids_profiles where user_id = auth.uid()));
--- writing stays with the backend's service role, so no write policy
-```
-
-### 3. Exam answer keys are public — NEW
-
-`exam_answer_keys` (14 rows), `exam_questions` (14) and `exams` return rows to an
-anonymous caller. The answer key to an exam is the one thing in an exam that must not
-be readable.
-
-```sql
-alter table public.exam_answer_keys enable row level security;
-alter table public.exam_questions   enable row level security;
-alter table public.exams            enable row level security;
--- then a SELECT policy for authenticated only, and serve keys from the backend
-```
-
-### 4. Generated lesson content is readable by anyone — unchanged
-
-`lesson_units_content`: 150 rows to an anonymous caller. This is what the model was
-paid to write and what a subscription is supposed to buy. Either it is deliberately
-public — a business decision, not a bug — or it needs a policy.
-
-### 5. `/docs`, `/redoc` and `/openapi.json` are public on both backends — unchanged
-
-Every route and every request schema, to anyone. `FastAPI(docs_url=None,
-redoc_url=None, openapi_url=None)` when `APP_ENV == "prod"`.
-
-### 6. No security headers on the site — unchanged
+### 2. No security headers on the site
 
 No `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`,
-`X-Content-Type-Options`, `Referrer-Policy` or `Permissions-Policy`. GitHub Pages
-cannot set headers, but **Cloudflare can**, through Transform Rules → Modify Response
-Header. With the Supabase session living in `localStorage` on 63 pages, any XSS is a
-full account takeover, and a CSP is the difference between a bug and a breach.
+`X-Content-Type-Options`, `Referrer-Policy` or `Permissions-Policy` on `iakids.app`.
+GitHub Pages cannot set headers; **Cloudflare can**, through Rules → Transform Rules →
+Modify Response Header. The exact CSP is `$iakids_csp` in
+`ops/nginx-smarts-brains.conf`, where it is already live and working on the mirror —
+test there first.
 
-### 7. `LIMIT = 20` — unchanged
+With the Supabase session living in `localStorage` on 63 pages, any XSS is a full
+account takeover, and a CSP is the difference between a bug and a breach.
 
-`backend/main.py:311`, still commented `# זמני לבדיקה`. Paying customers are cut off
-after twenty messages exactly like free ones, and the read-then-update around it is
-not atomic, so parallel requests walk past the limit.
+### 3. No usage quota before a model call
 
-### 8. No usage quota before a model call — unchanged
+`/api/tutor/tts` takes free text from any signed-in account. The per-caller rate limit
+caps the *rate* (60/min) but not the *bill*. The chat now has a real monthly quota
+(`chat_consume_message`); TTS, images and lesson generation do not.
 
-`/api/tutor/tts` still takes free text from any signed-in account. The per-caller rate
-limit added on 2026-09-10 caps the *rate* (60/min) but not the *bill*: a daily quota
-per `user_id`, checked before the call, is still missing.
+### 4. Supabase auth still uses the implicit flow
 
-### 9. Smaller, unchanged
+No `flowType: 'pkce'`, so tokens arrive in the URL fragment and can reach history,
+extensions and analytics. Deliberately not changed here: 63 pages construct a client,
+and a half-migration breaks sign-in for everyone. It needs one pass, all pages at once,
+with the OAuth round trip actually tested in a browser.
+
+### 5. The LemonSqueezy webhook
+
+No idempotency (a re-sent `subscription_created` resets `messages_used`), no handling
+for `payment_failed`, `paused`, `updated` or `resumed`, and `plan` is taken from
+client-supplied `custom_data` rather than derived from `variant_id`. The HMAC on the
+raw body is correct.
+
+Both keys are also empty in `backend/.env`, so the signature cannot be verified at all
+right now and neither customer's country or real revenue can be read back.
+
+### 6. Smaller
 
 | | |
 |---|---|
-| CORS allows `http://localhost:3000` (and `:5500`, `127.0.0.1:5500` on the tutor) with credentials, in production | gate on `APP_ENV` |
-| `games/index.html` listens for `iakids-game-complete` without checking `e.origin` | check it before it ever grants coins |
-| Google Tag Manager on kid-facing pages (`he/games/index.html`, `workspace/index.html`) | COPPA: behavioural tracking on pages meant for children needs verified parental consent |
-| 180 `print()` calls in the tutor, some printing a child's text | a logger with levels; identifiers and lengths in production, not content |
-| Supabase auth uses the implicit flow; no `flowType: 'pkce'` | tokens land in the URL fragment |
-| LemonSqueezy webhook: no idempotency, missing `payment_failed` / `paused` / `updated` / `resumed`, `plan` taken from client-supplied `custom_data` | derive the plan from `variant_id`; store the event id |
 | No parent/child separation — `he/parent-panel/` needs only a session | a PIN |
-
----
+| 180 `print()` calls in the tutor; the two that printed a child's own words are fixed, the rest still print identifiers | a logger with levels |
+| Firebase rules for the `smarts-brains` project are not visible from the repo | the games no longer use Firebase for identity, so this shrank to "check the old project is locked down" |
 
 ## Checked and sound
 
