@@ -1,0 +1,36 @@
+name: Simplify homework test prompt 0.7.82
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/simplify-homework-test-prompt-0782.py'
+      - '.github/workflows/simplify-homework-test-prompt-0782.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch simple homework test prompt
+        run: python .github/scripts/simplify-homework-test-prompt-0782.py
+      - name: Compile backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Simplify homework test prompt; bump to 0.7.82"
+          git push origin main
