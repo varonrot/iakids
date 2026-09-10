@@ -1862,6 +1862,7 @@ const IAKidsSkills = {
     { slug:'continents', name:'זהה יבשת', emoji:'🗺️', cat:'sci', mech:'tap' },
     { slug:'count-shapes', name:'ספירת צורות', emoji:'🔷', cat:'math', mech:'mcq' },
     { slug:'daily-goals', name:'מטרות יומיות', emoji:'🎯', cat:'hw', mech:'tool' },
+    { slug:'dictation', name:'הכתבות', emoji:'📝', cat:'heb', mech:'input' },
     { slug:'days-of-week', name:'Days of Week', emoji:'📅', cat:'eng', mech:'drag' },
     { slug:'english-word-match', name:'Word Match', emoji:'🖇️', cat:'eng', mech:'mcq' },
     { slug:'fill-the-gap', name:'Fill the Gap', emoji:'⬜', cat:'eng', mech:'mcq' },

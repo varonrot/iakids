@@ -59,6 +59,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -162,6 +163,8 @@ const ready = (async()=>{
   await loadKidContext();
   applyLanguage();
 
+  // "חבר את כל הצלעות" is an order here; everywhere else חבר is a friend.
+  IAKidsNikud.local({ 'חבר': 'חַבֵּר' });
   game = await IAKidsGame.init('perimeter');
   const p = await game.loadProgress();
 

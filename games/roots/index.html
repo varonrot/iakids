@@ -163,6 +163,9 @@ function setRounds(n, btn) {
   btn.classList.add('success');
 }
 
+// Here הכתיב is the verb derived from כ-ת-ב, not "the spelling" that the shared
+// dictionary holds for every other game (NIKUD.md R8).
+IAKidsNikud.local({ 'הכתיב': 'הִכְתִּיב' });
 const ready = IAKidsGame.init('roots').then(async g => {
   game = g;
   const p = await g.loadProgress();
