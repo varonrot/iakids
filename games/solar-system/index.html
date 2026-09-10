@@ -110,6 +110,7 @@ body.theme-space{--space-blue:#44c8ff;--space-green:#4fe39b;--space-line:rgba(13
 
 </div>
 
+<script src="../nikud.js?v=961e2bed"></script>
 <script src="../game-sdk.js?v=6a562bec"></script>
 
 <script>
@@ -134,7 +135,7 @@ async function loadKidContext() {
   try {
     const kid = await IAKidsGame.getActiveKidContext();
     CHILD_AGE = kid.age;
-    USE_NIQQUD = kid.usesNiqqud;
+    USE_NIQQUD = IAKidsNikud.enabled;   // the pill, not the profile flag
   } catch (e) { /* no kid context available — keep defaults */ }
 }
 /* ==================================================

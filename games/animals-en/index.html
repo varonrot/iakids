@@ -73,6 +73,7 @@
   </div>
 </div>
 
+<script src="../nikud.js?v=961e2bed"></script>
 <script src="../game-sdk.js?v=6a562bec"></script>
 
 <script>
@@ -154,7 +155,7 @@ async function loadKidContext(){
 
     if(!error && data){
       CHILD_AGE=Number(data.age);
-      USE_NIQQUD=CHILD_AGE===1 || CHILD_AGE===2;
+      USE_NIQQUD = IAKidsNikud.enabled;   // the pill in the start screen, not a dead age test
     }
   }catch(e){
     console.warn('[animals-en] loadKidContext',e);

@@ -61,13 +61,14 @@
   </div>
 </div>
 
+<script src="../nikud.js?v=961e2bed"></script>
 <script src="../game-sdk.js?v=6a562bec"></script>
 <script>
 const SLUG='number-line-jumps',$=id=>document.getElementById(id),rnd=n=>Math.floor(Math.random()*n);
 const T0={title:{he:'ציר המספרים',en:'Number Line Jumps'},desc:{he:'הקפיצו את הצפרדע קדימה ואחורה עד לתוצאת התרגיל!',en:'Hop the frog forward and back to the answer!'},rounds:{he:'כמה שאלות?',en:'How many questions?'},level:{he:'בחרו רמת קושי',en:'Choose difficulty'},back:{he:'⬅ אחורה',en:'⬅ Back'},fwd:{he:'קדימה ➡',en:'Forward ➡'},check:{he:'בדוק ✓',en:'Check ✓'}};
 const T1={...T0,title:{he:'צִיר הַמִּסְפָּרִים',en:'Number Line Jumps'},desc:{he:'הַקְפִּיצוּ אֶת הַצְּפַרְדֵּעַ קָדִימָה וְאָחוֹרָה עַד לְתוֹצְאַת הַתַּרְגִּיל!',en:'Hop the frog forward and back to the answer!'},rounds:{he:'כַּמָּה שְׁאֵלוֹת?',en:'How many questions?'},level:{he:'בַּחֲרוּ רָמַת קֹשִׁי',en:'Choose difficulty'},back:{he:'⬅ אָחוֹרָה',en:'⬅ Back'},fwd:{he:'קָדִימָה ➡',en:'Forward ➡'},check:{he:'בִּדְקוּ ✓',en:'Check ✓'}};
 let CHILD_AGE=null,USE_NIQQUD=false,TXT=T0,game,diff,score=0,qnum=0,level=1,TOTAL=10,cur=null,pos=0,locked=false,ending=false,correctAnswers=0,mistakes=0,hops=0,outOfBoundsAttempts=0;
-async function loadKidContext(){try{const kidId=localStorage.getItem('active_kid_id');if(!kidId)return;const client=await IAKidsActivity._getClient();const {data}=await client.from('kids_profiles').select('id, age').eq('id',kidId).maybeSingle();if(data){CHILD_AGE=Number(data.age);USE_NIQQUD=CHILD_AGE===1||CHILD_AGE===2}}catch(e){console.warn(e)}}
+async function loadKidContext(){try{const kidId=localStorage.getItem('active_kid_id');if(!kidId)return;const client=await IAKidsActivity._getClient();const {data}=await client.from('kids_profiles').select('id, age').eq('id',kidId).maybeSingle();if(data){CHILD_AGE=Number(data.age);USE_NIQQUD=IAKidsNikud.enabled}}catch(e){console.warn(e)}}
 function applyLanguage(){TXT=USE_NIQQUD?T1:T0;document.querySelectorAll('[data-ui]').forEach(el=>el.textContent=IAKidsLang.ui(el.dataset.ui));$('t-title').textContent=IAKidsLang.t(TXT.title);$('t-desc').textContent=IAKidsLang.t(TXT.desc);$('t-rounds').textContent=IAKidsLang.t(TXT.rounds);$('level-label').textContent=IAKidsLang.t(TXT.level);$('btn-back').textContent=IAKidsLang.t(TXT.back);$('btn-fwd').textContent=IAKidsLang.t(TXT.fwd);$('btn-check').textContent=IAKidsLang.t(TXT.check)}
 IAKidsCoins.mount();IAKidsHelp.mount({slug:SLUG,how:'עוזרים לצפרדע לקפוץ על ציר המספרים. לוחצים קדימה או אחורה עד שמגיעים לתוצאה ואז בודקים.',example:'מתחילים ב-5, התרגיל <span dir="ltr"><b>5 + 3</b></span> ← קופצים 3 קדימה ונוחתים על <b>8</b>'});
 function setRounds(n,btn){TOTAL=n;document.querySelectorAll('#rounds-row .game-btn').forEach(b=>b.classList.remove('success'));btn?.classList.add('success')}

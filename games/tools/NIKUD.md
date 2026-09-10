@@ -99,9 +99,16 @@ instead of changing the shared dictionary.
 
 ## R9 — never bake nikud into a game
 
-The dictionary and the overrides are the only place vocalised Hebrew lives. Text
-hard-coded with marks inside a game ignores the on/off pill, so a child who turned
-nikud off still sees it. The checker warns for each game that still does this.
+A game may hold its own vocalised text — some do, from before the shared dictionary
+existed — but it must ask `IAKidsNikud.enabled` before showing it, or a child who
+turned nikud off still sees marks. Twenty-five games used to gate theirs on
+`CHILD_AGE === 1 || CHILD_AGE === 2`, which never fired because `kids_profiles.age`
+holds years, not grades; they now follow the pill like everything else.
+
+Exempt, and the checker knows it: a game whose subject *is* nikud (`nikud`,
+`syllables`) has to show marks whatever the pill says, and `IAKidsNikud.local()` is
+the sanctioned way to pin one reading. The test looks only for combining marks — the
+maqaf in "מתאימה ל־" is punctuation, not nikud.
 
 ## R10 — nikud must never give the answer away
 

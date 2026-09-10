@@ -71,6 +71,7 @@
   </div>
 </div>
 
+<script src="../nikud.js?v=961e2bed"></script>
 <script src="../game-sdk.js?v=6a562bec"></script>
 <script>
 let game, score = 0, qnum = 0, level = 1, TOTAL = 10, locked = false, current, mode;
@@ -95,7 +96,7 @@ async function loadKidContext(){
     const {data,error} = await client.from('kids_profiles').select('id, age').eq('id',kidId).maybeSingle();
     if(error || !data) return;
     CHILD_AGE = Number(data.age);
-    USE_NIQQUD = CHILD_AGE === 1 || CHILD_AGE === 2;
+    USE_NIQQUD = IAKidsNikud.enabled;   // the pill in the start screen, not a dead age test
   }catch(error){
     console.warn('[plant-parts] loadKidContext error', error);
   }
