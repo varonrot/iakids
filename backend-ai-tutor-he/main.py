@@ -17157,8 +17157,6 @@ def homework_analyze(
             model=
             DEFAULT_OPENAI_MODEL,
 
-            response_format={"type": "json_object"},
-
             messages=[
 
                 {
