@@ -1,0 +1,61 @@
+name: Patch HE2 parents full-bleed background
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-parents-fullbleed.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make parents section background full viewport width
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('he2/index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* ===== PARENTS FULL BLEED FIX ===== */'
+          css = r'''
+/* ===== PARENTS FULL BLEED FIX ===== */
+.parents-showcase-v2{
+  width:100vw!important;
+  max-width:none!important;
+  margin-left:calc(50% - 50vw)!important;
+  margin-right:calc(50% - 50vw)!important;
+  background-image:url('/assets/he2/sections/parents-section-bg.webp?v=6')!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+}
+@media(max-width:760px){
+  .parents-showcase-v2{
+    width:100vw!important;
+    margin-left:calc(50% - 50vw)!important;
+    margin-right:calc(50% - 50vw)!important;
+    background-size:cover!important;
+    background-position:center center!important;
+  }
+}
+'''
+          if marker in s:
+              start = s.index(marker)
+              end = s.find('</style>', start)
+              # keep old rules but add this latest override just before style end only if not exact v6 block
+              if "parents-section-bg.webp?v=6" not in s[start:end]:
+                  s = s[:end] + css + '\n' + s[end:]
+          else:
+              s = s.replace('</style>', css + '\n</style>', 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Make HE2 parents background full bleed"
+          git push
