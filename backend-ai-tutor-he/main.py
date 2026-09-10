@@ -452,27 +452,36 @@ gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
 
+# In production the interactive docs are off: /docs, /redoc and /openapi.json handed
+# all 19 routes and 14 schemas to anyone who asked.
+IS_PROD = os.getenv("APP_ENV", "dev") == "prod"
 app = FastAPI(
     title=APP_NAME,
-    version="0.1.0"
+    version="0.1.0",
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
+    openapi_url=None if IS_PROD else "/openapi.json",
 )
 
 # =====================================================
 # CORS
 # =====================================================
 
+# localhost is a development origin. Left on in production it lets a page running on
+# the visitor's own machine call this API with their credentials.
+ALLOWED_ORIGINS = [
+    "https://iakids.app",
+    "https://www.iakids.app",
+    # mirror of the site served from smarts-brains.online
+    "https://smarts-brains.online",
+    "https://www.smarts-brains.online",
+]
+if not IS_PROD:
+    ALLOWED_ORIGINS += ["http://localhost:3000", "http://localhost:5500", "http://127.0.0.1:5500"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://iakids.app",
-        "https://www.iakids.app",
-        # mirror of the site served from smarts-brains.online
-        "https://smarts-brains.online",
-        "https://www.smarts-brains.online",
-        "http://localhost:3000",
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -10271,12 +10280,14 @@ async def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
+        # Identifiers and a length, never the text. This is a child's own words and
+        # Render keeps logs; COPPA/GDPR-K treat that as personal data about a minor.
         print(
             "LIVE TTS REQUEST:",
             {
                 "session_id": body.session_id,
                 "text_length": len(text),
-                "text": repr(text)
+                **({"text": repr(text)} if not IS_PROD else {}),
             }
         )
         # =============================================
@@ -10290,7 +10301,7 @@ async def tutor_tts(
             {
                 "session_id": body.session_id,
                 "text_length": len(text),
-                "text": repr(text)
+                **({"text": repr(text)} if not IS_PROD else {}),
             }
         )
 

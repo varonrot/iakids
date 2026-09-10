@@ -57,20 +57,32 @@ print("LEMON_WEBHOOK_SECRET EXISTS:", bool(LEMON_WEBHOOK_SECRET))
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-app = FastAPI()
+# In production the interactive docs are off: /docs, /redoc and /openapi.json handed
+# every route and every request schema to anyone who asked. In dev they are useful.
+IS_PROD = _env == "prod"
+app = FastAPI(
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
+    openapi_url=None if IS_PROD else "/openapi.json",
+)
 
 
 # ✅ ONE CORS ONLY
+# localhost is a development origin. Left on in production it lets a page running on
+# the visitor's own machine call this API with their credentials.
+ALLOWED_ORIGINS = [
+    "https://iakids.app",
+    "https://www.iakids.app",
+    # mirror of the site served from smarts-brains.online
+    "https://smarts-brains.online",
+    "https://www.smarts-brains.online",
+]
+if not IS_PROD:
+    ALLOWED_ORIGINS += ["http://localhost:3000", "http://localhost:5500", "http://127.0.0.1:5500"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://iakids.app",
-        "https://www.iakids.app",
-        # mirror of the site served from smarts-brains.online
-        "https://smarts-brains.online",
-        "https://www.smarts-brains.online",
-        "http://localhost:3000",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -87,6 +99,11 @@ import time as _time
 from collections import deque as _deque
 from fastapi import Request as _Request
 from starlette.responses import JSONResponse as _JSONResponse
+
+# What a month of chat costs an account. The quota resets on the first of the month;
+# a paid limit exists at all so that a stolen session cannot run up an unbounded bill.
+FREE_MONTHLY_MESSAGES = int(os.getenv("FREE_MONTHLY_MESSAGES", "20"))
+PAID_MONTHLY_MESSAGES = int(os.getenv("PAID_MONTHLY_MESSAGES", "2000"))
 
 WORKER_THREADS = int(os.getenv("WORKER_THREADS", "96"))
 RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
@@ -299,26 +316,26 @@ def chat(
 
         child = get_child_by_id(user.id, kid_id)
         existing_memory = get_existing_kids_memory(child["id"])
-        sub = (
-            sb.table("subscriptions")
-            .select("messages_used")
-            .eq("user_id", user.id)
-            .single()
-            .execute()
-        )
+        # One statement, under a row lock, with the limit chosen by whether the
+        # subscription is actually paid and current (migration 20260910_chat_quota).
+        # What this replaces: a flat limit of 20 that applied to paying customers
+        # too, and a read-then-write that two simultaneous requests walked straight
+        # past.
+        quota = sb.rpc("chat_consume_message", {
+            "p_user": user.id,
+            "p_free_limit": FREE_MONTHLY_MESSAGES,
+            "p_paid_limit": PAID_MONTHLY_MESSAGES,
+        }).execute().data or {}
 
-        used = sub.data["messages_used"] if sub.data else 0
-        LIMIT = 20  # זמני לבדיקה
-
-        print("SUBSCRIPTION MESSAGES USED:", used)
-
-        if used >= LIMIT:
+        if not quota.get("allowed", False):
             raise HTTPException(
                 status_code=403,
                 detail={
                     "error": "quota_exceeded",
-                    "used": used,
-                    "limit": LIMIT
+                    "used": quota.get("used"),
+                    "limit": quota.get("limit"),
+                    "plan": quota.get("plan"),
+                    "resets": "monthly",
                 }
             )
 
@@ -328,10 +345,6 @@ def chat(
             role="user",
             content=body.message
         )
-        sb.table("subscriptions").update({
-            "messages_used": used + 1
-        }).eq("user_id", user.id).execute()
-
         mode_value = body.mode or "unknown"
 
         system_prompt = (

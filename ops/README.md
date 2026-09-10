@@ -23,3 +23,19 @@ The originals are in `/etc/nginx/backups/`. After editing: `nginx -t` then
 `systemctl reload nginx` — reload never drops a connection.
 
 Keep this copy in step with the server by hand; nothing deploys it.
+
+## Security headers
+
+Added 2026-09-10, on the mirror only. `iakids.app` is GitHub Pages behind Cloudflare
+and cannot set headers itself; the same set has to go on through **Cloudflare →
+Rules → Transform Rules → Modify Response Header**, one "Set static" rule per header,
+matching `hostname eq "iakids.app"`. The CSP string to paste is the `$iakids_csp`
+value in `nginx-smarts-brains.conf`.
+
+Do the mirror first — it is `noindex` and nobody's child depends on it — open a game,
+the workspace, the tutor and the parent panel there, and watch the browser console for
+`Refused to load…`. Every such line is a source missing from the list. Only once the
+mirror is clean is it worth putting the same CSP in front of iakids.app.
+
+`add_header` in a `location` block **replaces** the server-level set rather than
+adding to it, which is why the headers are repeated inside the static-asset location.

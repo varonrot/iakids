@@ -204,6 +204,9 @@ Promise.all(probes).then(slugs => {
 });
 
 window.addEventListener('message', e => {
+  // Only from a page of ours. Today this only logs, but the moment it awards a coin
+  // or writes a row, any embedded frame or opened window could claim a win.
+  if (e.origin !== location.origin) return;
   if (e.data?.type === 'iakids-game-complete')
     console.log('game complete:', e.data.slug, e.data.score);
 });
