@@ -19524,8 +19524,7 @@ async def homework_simple_test(
 
     response = (await aclient.chat.completions.create(
         model="gpt-5.6-sol",
-        messages=messages,
-        temperature=0.3
+        messages=messages
     ))
     text = str(response.choices[0].message.content or "").strip()
     return {"reply": text, "model": "gpt-5.6-sol", "test_mode": True}

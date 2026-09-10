@@ -1732,6 +1732,15 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
       window.HOMEWORK_SIMPLE_TEST_HISTORY = [];
       removeHomeworkHelpOptions();
       setHomeworkSidebarStep(4);
+      document.querySelectorAll('.homework-simple-test-badge').forEach(el=>el.remove());
+      const chat = document.querySelector('.lesson-chat-workspace');
+      if(chat){
+        const badge = document.createElement('div');
+        badge.className = 'homework-simple-test-badge';
+        badge.textContent = 'TEST MODE · GPT-5.6 SOL';
+        badge.style.cssText = 'position:absolute;top:18px;left:18px;z-index:90;padding:6px 10px;border-radius:999px;background:#ff9f1a;color:#08111f;font:900 10px Heebo,Arial,sans-serif;box-shadow:0 0 16px rgba(255,159,26,.35);direction:ltr';
+        chat.appendChild(badge);
+      }
       await runHomeworkSimpleTest("");
       return;
     }
@@ -1896,9 +1905,12 @@ ${analysis.extracted_text || ""}
     catch(error){
       console.error("HOMEWORK HELP OPTION FAILED:", error);
 
-      // Do not throw the child back to the option menu. The worksheet and
-      // current-question state already exist, so continue with a deterministic
-      // first step even if the general tutor-chat request fails.
+      if(choice.id === "simple_test"){
+        await renderHomeworkStructuredTeacherMessage("טסט GPT-5.6 נכשל טכנית. לא עברתי למסלול הרגיל.");
+        return;
+      }
+
+      // Normal modes keep their existing deterministic fallback.
       const current = getCurrentHomeworkQuestion();
       const fallbackText = current
         ? `נתחיל מהשאלה ${current.number}: ${current.text}`
