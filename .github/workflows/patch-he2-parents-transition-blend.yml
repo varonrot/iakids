@@ -1,0 +1,40 @@
+name: Patch HE2 parents transition blend
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-parents-transition-blend.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Blend previous section into parents section
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('he2/index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* ===== PARENTS TRANSITION BLEND ===== */'
+          css = '''
+/* ===== PARENTS TRANSITION BLEND ===== */
+.learning-flow{padding-bottom:48px!important;background:linear-gradient(180deg,#041120 0%,#06172b 58%,#071a31 100%)!important}
+.parents-showcase-v2{margin-top:-1px!important;background-color:#071a31!important;background-position:center center!important;background-size:cover!important}
+.parents-showcase-v2::before{background:linear-gradient(180deg,#071a31 0%,rgba(7,26,49,.98) 4%,rgba(7,26,49,.88) 10%,rgba(7,26,49,.60) 18%,rgba(7,26,49,.28) 27%,rgba(7,26,49,0) 40%),linear-gradient(90deg,rgba(4,17,32,.99) 0%,rgba(4,17,32,.96) 24%,rgba(4,17,32,.82) 40%,rgba(4,17,32,.40) 57%,rgba(4,17,32,.12) 72%,rgba(4,17,32,.02) 100%)!important}
+@media(max-width:760px){.learning-flow{padding-bottom:30px!important}.parents-showcase-v2::before{background:linear-gradient(180deg,#071a31 0%,rgba(7,26,49,.95) 8%,rgba(7,26,49,.65) 20%,rgba(7,26,49,.20) 34%,rgba(7,26,49,0) 48%),linear-gradient(180deg,rgba(4,17,32,.92),rgba(4,17,32,.28) 72%,rgba(4,17,32,.08))!important}}
+'''
+          if marker not in s:
+              s = s.replace('</style>', css + '\n</style>', 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Blend HE2 parents section transition"
+          git push
