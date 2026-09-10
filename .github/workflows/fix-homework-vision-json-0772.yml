@@ -1,0 +1,34 @@
+name: Fix homework vision JSON 0.7.72
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-homework-vision-json-0772.py'
+      - '.github/workflows/fix-homework-vision-json-0772.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch homework vision parser
+        run: python .github/scripts/fix-homework-vision-json-0772.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py backend-ai-tutor-he/prompts/iakids_homework_vision_prompt.txt he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix homework vision JSON parsing; bump to 0.7.72"
+          git push origin main
