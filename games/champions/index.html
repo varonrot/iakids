@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>אלוף האלופים | iakids</title>
-<link rel="stylesheet" href="../game-style.css?v=55616175">
+<link rel="stylesheet" href="../game-style.css?v=0eea1d9b">
 <style>
 /* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
 body.theme-space{margin:0 auto!important}
@@ -14,7 +14,9 @@ body.theme-space{margin:0 auto!important}
   .player-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
   .player-row input {
     font: inherit; font-size: 1.1rem; padding: 10px 14px;
-    border:2px solid rgba(118,176,255,.45);border-radius:var(--radius);background:#fff;color:#102a4f; text-align: center;
+    border:2px solid rgba(118,176,255,.45);border-radius:var(--radius);background:rgba(4,22,55,.6);color:#fff; text-align: center;
+  }
+  .player-row input::placeholder { color: var(--space-muted); opacity: 1;
   }
   .total-line { text-align: center; font-size: 1.3rem; font-weight: 800; margin: 10px 0; }
 </style>
@@ -48,7 +50,7 @@ body.theme-space{margin:0 auto!important}
 </section>
 
 <script src="nikud.js?v=8e4750d8"></script>
-<script src="../game-sdk.js?v=5d45f3c2"></script>
+<script src="../game-sdk.js?v=43350032"></script>
 <script>
 const fmt = ts => new Date(ts).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
 const GAME_NAMES = {}; // slug -> "emoji name", filled from hub catalog below

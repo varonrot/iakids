@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>אמת או שקר בחשבון | iakids</title>
-<link rel="stylesheet" href="../game-style.css?v=55616175">
+<link rel="stylesheet" href="../game-style.css?v=0eea1d9b">
 <style>#subtitle{color:var(--space-muted)!important;font-weight:600;line-height:1.65;margin:14px auto 20px;max-width:410px}.game-question{align-items:center;background:radial-gradient(circle at 50% 20%,rgba(66,169,255,.15),transparent 50%),rgba(4,22,55,.48);border:1px solid rgba(116,177,255,.18);border-radius:24px;display:flex;flex-wrap:wrap;gap:0 .35em;font-size:clamp(2.2rem,8vw,4.4rem)!important;font-weight:1000;justify-content:center;margin:22px 0 28px;min-height:180px;padding:20px;text-align:center}
 #play-screen .answer-grid{grid-template-columns:1fr 1fr}#btn-true,#btn-false{font-size:1.35rem!important;min-height:84px}#btn-true:disabled,#btn-false:disabled{cursor:default;opacity:.72}
 @media(max-width:600px){.game-question{margin:18px 0 22px;min-height:155px}#btn-true,#btn-false{font-size:1.18rem!important;min-height:74px}}
@@ -18,7 +18,7 @@
 <div id="end-screen" class="end-screen" hidden><div class="stars" id="stars"></div><div class="big-score" id="final-score"></div><p id="player-line"></p><p><span id="best-label"></span>: <b id="best"></b></p><button class="game-btn" onclick="location.reload()" id="again"></button><div id="share-slot"></div></div>
 </div>
 <script src="nikud.js?v=96fc0c6c"></script>
-<script src="../game-sdk.js?v=5d45f3c2"></script>
+<script src="../game-sdk.js?v=43350032"></script>
 <script>
 const T=IAKidsLang.t.bind(IAKidsLang),UI=IAKidsLang.ui.bind(IAKidsLang),$=id=>document.getElementById(id),rnd=n=>Math.floor(Math.random()*n);
 const TXT_REGULAR={title:{he:'אמת או שקר בחשבון',en:'True or False Math',es:'Verdadero o falso',de:'Wahr oder falsch',pt:'Verdadeiro ou falso'},subtitle:{he:'האם התרגיל נכון? ענו מהר לפני שהפצצה מתפוצצת! 💣',en:'Is the equation right? Answer before the bomb! 💣',es:'¿Es correcta la cuenta? ¡Responde antes de la bomba! 💣',de:'Stimmt die Rechnung? Antworte vor der Bombe! 💣',pt:'A conta está certa? Responda antes da bomba! 💣'},rounds:{he:'כמה שאלות?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},level:{he:'בחרו רמת קושי',en:'Choose difficulty'},truth:{he:'אמת',en:'True',es:'Verdadero',de:'Wahr',pt:'Verdadeiro'},falsehood:{he:'שקר',en:'False',es:'Falso',de:'Falsch',pt:'Falso'}};

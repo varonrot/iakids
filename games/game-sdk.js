@@ -1230,6 +1230,32 @@ if (!activitySessionId) {
       home.textContent = '🏠';
       document.body.appendChild(home);
     }
+    // Back to where the child came from — the workspace, the parent panel, a
+    // class page — when that is one of our pages outside /games/ (the hub has
+    // the 🏠 button already). Remembered per game in sessionStorage, because a
+    // reload or "play again" makes the game its own referrer. A link may also
+    // name the return page with ?from=/path (same-site paths only).
+    if (!document.getElementById('iakids-back-btn')) {
+      const key = 'iakids_back_' + slug;
+      let back = '';
+      try {
+        const from = new URLSearchParams(location.search).get('from');
+        const ref = document.referrer ? new URL(document.referrer) : null;
+        if (from && /^\/[^/\\]/.test(from)) back = from;
+        else if (ref && ref.origin === location.origin && ref.pathname !== location.pathname
+                 && !ref.pathname.startsWith('/games/')) back = ref.pathname + ref.search;
+        if (back) sessionStorage.setItem(key, back);
+        else back = sessionStorage.getItem(key) || '';
+      } catch (e) { back = ''; }
+      if (back) {
+        const b = document.createElement('a');
+        b.id = 'iakids-back-btn';
+        b.href = back;
+        b.title = IAKidsLang.t({ he: 'חזרה למסך שממנו הגעת', en: 'Back to where you came from', es: 'Volver', de: 'Zurück', pt: 'Voltar' });
+        b.textContent = '↩️';
+        document.body.appendChild(b);
+      }
+    }
     const db = await new Promise((resolve, reject) => {
       const req = indexedDB.open('iakids_game_' + slug, 1);
       req.onupgradeneeded = () => {

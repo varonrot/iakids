@@ -27253,8 +27253,10 @@ body.lesson-theme-science
 
   display:grid;
 
+  /* one column per visible button — hidden ones (display:none) are not grid
+     items, so the row stays centred and full-width however many remain */
   grid-template-columns:
-    repeat(6,minmax(0,1fr));
+    repeat(auto-fit,minmax(0,1fr));
 
   gap:9px;
 
@@ -27423,7 +27425,7 @@ body.lesson-theme-science
 
   .games-bottom-dock{
     grid-template-columns:
-      repeat(3,minmax(0,1fr));
+      repeat(2,minmax(0,1fr));
 
     flex-basis:142px;
   }

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>בוחן עצמי קצר | iakids</title>
-<link rel="stylesheet" href="../game-style.css?v=55616175">
+<link rel="stylesheet" href="../game-style.css?v=0eea1d9b">
 <style>
 /* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
 body.theme-space{margin:0 auto!important}
@@ -19,6 +19,8 @@ body.theme-space{margin:0 auto!important}
   .opt-row input[type=radio] { width: 22px; height: 22px; }
   .qlist-item { display: flex; justify-content: space-between; align-items: center; background:rgba(4,22,55,.45);border:1px solid var(--space-line);color:#fff; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
   .qlist-item button { padding: 4px 10px; min-height: 0; font-size: 0.9rem; }
+  .shared-banner { margin: 10px 0; padding: 10px 14px; border-radius: 14px; background: rgba(255,209,92,.14); border: 1px solid rgba(255,209,92,.45); color: #fff; font-weight: 700; }
+  .pack-row .share { padding: 8px 10px; }
   .name-input { width: 100%; font: inherit; padding: 10px; border-radius: 10px; border: 2px solid #e5e7eb; margin: 6px 0; box-sizing: border-box; }
 </style>
 </head>
@@ -34,7 +36,8 @@ body.theme-space{margin:0 auto!important}
   <div id="home-screen">
     <div style="font-size:3.2rem">📝</div>
     <h1 class="game-title">בוחן עצמי קצר</h1>
-    <p>צרו חבילת שאלות משלכם, או שחקו בחבילה שכבר יצרתם.</p>
+    <p>צרו חבילת שאלות משלכם, או שחקו בחבילה שכבר יצרתם. כל חבילה אפשר לשלוח כקישור לחברים או לכיתה 📤</p>
+    <div id="sharedBanner" class="shared-banner" hidden></div>
     <button class="game-btn" onclick="startNewPack()">➕ חבילה חדשה</button>
     <div id="packList"></div>
   </div>
@@ -69,13 +72,14 @@ body.theme-space{margin:0 auto!important}
     <p id="player-line"></p>
     <button class="game-btn" onclick="replayPack()">שחק שוב 🔁</button>
     <button class="game-btn outline" onclick="goHome()">🏠 לרשימת החבילות</button>
+    <button class="game-btn secondary" id="saveSharedBtn" onclick="saveSharedPack()" hidden>💾 שמור את הבוחן אצלי</button>
     <div id="share-slot"></div>
   </div>
 
 </div>
 
 <script src="nikud.js?v=5a3151f8"></script>
-<script src="../game-sdk.js?v=5d45f3c2"></script>
+<script src="../game-sdk.js?v=43350032"></script>
 <script>
 let game, packs = [], editingPack = null, playPack = null, playQuestions = [], qIndex = 0, score = 0;
 
@@ -110,6 +114,7 @@ function renderPackList() {
     row.className = 'pack-row';
     row.innerHTML = `
       <button class="game-btn success" onclick="playPackById('${pack.id}')">▶️ שחק</button>
+      <button class="game-btn secondary share" title="שלח לחברים / לכיתה" onclick="sharePack('${pack.id}')">📤</button>
       <button class="game-btn danger" onclick="deletePack('${pack.id}')">🗑️</button>
       <span class="name">${escapeHtml(pack.name)} <span class="count">(${pack.questions.length} שאלות)</span></span>`;
     list.appendChild(row);
@@ -174,6 +179,59 @@ async function deletePack(id) {
   packs = packs.filter(p => p.id !== id);
   await persist();
   renderPackList();
+}
+
+// ---- sharing: the pack rides in the link (?quiz=), like dictation's ?words= ----
+// No account and no server: whoever opens the link gets the same questions.
+// A parent sends it to the class group; every child plays it at home, and the
+// end screen passes it on together with a score to beat.
+const b64url = {
+  enc: o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+  dec: c => JSON.parse(decodeURIComponent(escape(atob(c.replace(/-/g, '+').replace(/_/g, '/'))))),
+};
+const baseUrl = () => location.origin + location.pathname.replace(/[^/]*$/, '');
+
+function packLink(pack, challenge) {
+  const data = { n: pack.name, q: pack.questions.map(x => [x.q, x.opts, x.correct]) };
+  let url = baseUrl() + '?quiz=' + b64url.enc(data);
+  if (challenge) url += '&challenge=' + btoa(unescape(encodeURIComponent(JSON.stringify(challenge))));
+  return url;
+}
+
+function packFromLink() {
+  try {
+    const c = new URLSearchParams(location.search).get('quiz');
+    if (!c) return null;
+    const d = b64url.dec(c);
+    const questions = (d.q || []).map(([q, opts, correct]) => ({
+      q: String(q || '').slice(0, 300),
+      opts: (Array.isArray(opts) ? opts : []).slice(0, 4).map(o => String(o).slice(0, 120)),
+      correct: Number(correct),
+    })).filter(x => x.q && x.opts.length === 4 && x.opts.every(Boolean) && x.correct >= 0 && x.correct < 4);
+    if (!questions.length) return null;
+    let h = 0; for (const ch of c) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return { id: 'shared-' + h.toString(36), name: String(d.n || 'בוחן משותף').slice(0, 60), questions, shared: true };
+  } catch (e) { return null; }
+}
+
+async function sendLink(url, text) {
+  if (navigator.share) { try { await navigator.share({ text, url }); return; } catch (e) { /* cancelled */ } }
+  try { await navigator.clipboard.writeText(text + '\n' + url); } catch (e) { /* no clipboard */ }
+  window.open('https://wa.me/?text=' + encodeURIComponent(text + '\n' + url));
+}
+
+async function sharePack(id) {
+  const pack = packs.find(p => p.id === id);
+  if (!pack) return;
+  await sendLink(packLink(pack), `📝 בוחן "${pack.name}" (${pack.questions.length} שאלות) — לחצו ושחקו:`);
+}
+
+async function saveSharedPack() {
+  if (!playPack || packs.some(p => p.id === playPack.id)) return;
+  packs.push({ id: playPack.id, name: playPack.name, questions: playPack.questions });
+  await persist();
+  document.getElementById('saveSharedBtn').hidden = true;
+  IAKidsFX.correct(document.getElementById('final-score'), '✓ נשמר');
 }
 
 // ---- play mode ----
@@ -247,7 +305,17 @@ async function endPlay() {
   const top = (await game.getHighScores(1))[0];
   document.getElementById('player-line').textContent = top?.player ? `${top.player} · ${new Date().toLocaleDateString('he-IL')}` : '';
   document.getElementById('share-slot').innerHTML = '';
-  game.shareButton(score, document.getElementById('share-slot'));
+  document.getElementById('saveSharedBtn').hidden = !(playPack.shared && !packs.some(p => p.id === playPack.id));
+  // the challenge link must carry the questions too, or the friend lands on an
+  // empty pack list; a pack of one's own is shared the same way
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'game-btn secondary';
+  shareBtn.textContent = '📤 שלח לחברים / לכיתה';
+  shareBtn.onclick = async () => {
+    const name = await IAKidsShare.playerName();
+    await sendLink(packLink(playPack, { score, name }), `📝 בוחן "${playPack.name}": ${name} עשה ${right}/${total} — נראה אותך עובר:`);
+  };
+  document.getElementById('share-slot').appendChild(shareBtn);
   show('end-screen');
   game.complete(score);
 }
@@ -260,6 +328,15 @@ async function init() {
   const p = await game.loadProgress();
   packs = p?.packs || [];
   renderPackList();
+  const shared = packFromLink();
+  if (shared) {
+    playPack = packs.find(x => x.id === shared.id) || shared;
+    const banner = document.getElementById('sharedBanner');
+    banner.textContent = `📤 קיבלתם בוחן: "${shared.name}" (${shared.questions.length} שאלות)`;
+    banner.hidden = false;
+    startPlay();
+    return;
+  }
   show('home-screen');
 }
 

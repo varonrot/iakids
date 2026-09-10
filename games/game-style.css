@@ -226,8 +226,8 @@ body {
 }
 #iakids-lang-switcher button.active { opacity: 1; background: var(--accent-soft); }
 
-/* home/back-to-hub button (injected by IAKidsGame.init) */
-#iakids-home-btn {
+/* home (hub) and back (the page the child came from) buttons, injected by IAKidsGame.init */
+#iakids-home-btn, #iakids-back-btn {
   position: fixed;
   bottom: 12px;
   left: 12px;
@@ -244,6 +244,7 @@ body {
   text-decoration: none;
   box-shadow: var(--shadow);
 }
+#iakids-back-btn { left: 68px; }
 
 /* help button + modal (injected by IAKidsHelp) */
 #iakids-help-btn {
@@ -492,3 +493,11 @@ body:where(.theme-space)::before{content:"";position:fixed;inset:0;z-index:-1;po
   height: 52px;
   font-size: 1.35rem;
 }
+/* On the dark theme the light "card" surfaces of the shared widgets would be
+   white on white: the signed-in name pill, the champions tables. */
+:where(body.theme-space) #iakids-auth-widget span,:where(body.theme-space) #iakids-auth-widget button[title]{background:rgba(6,25,58,.92)!important;color:#fff!important;border:1px solid var(--space-line)}
+:where(body.theme-space) .champ-table{background:rgba(4,22,55,.62)!important;color:var(--space-text)!important;border:1px solid var(--space-line);box-shadow:0 12px 30px rgba(0,8,28,.35)!important}
+:where(body.theme-space) .champ-table th{background:rgba(22,147,241,.55)!important;color:#fff!important}
+:where(body.theme-space) .champ-table td{border-bottom:1px solid rgba(119,176,255,.12)}
+:where(body.theme-space) .champ-table tr:nth-child(even) td{background:rgba(119,176,255,.10)!important}
+:where(body.theme-space) .champ-table tr:hover td{background:rgba(119,176,255,.18)}

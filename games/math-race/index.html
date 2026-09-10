@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>מרוץ החשבון | iakids</title>
-<link rel="stylesheet" href="../game-style.css?v=55616175">
+<link rel="stylesheet" href="../game-style.css?v=0eea1d9b">
 <style>
 /* Shared dark space theme (body.theme-space in ../game-style.css); only this page's own widgets are styled here, tuned for the dark card. */
 :root{--ink:#071b48;--shadow:0 16px 38px rgba(7,35,85,.24)}
@@ -28,7 +28,7 @@
 <div id="endScreen" class="end" hidden><div class="trophy" id="endEmoji">🏆</div><h2>המרוץ הסתיים!</h2><div class="place" id="placeText">מקום ראשון!</div><div class="results"><div class="result"><strong id="endScore">0</strong>נקודות</div><div class="result"><strong id="endAccuracy">0%</strong>דיוק</div><div class="result"><strong id="endTime">0</strong>שניות</div></div><button onclick="location.reload()">שחק שוב 🔁</button><div id="shareSlot"></div></div>
 </section></main>
 <script src="nikud.js?v=c9ec87e2"></script>
-<script src="../game-sdk.js?v=5d45f3c2"></script>
+<script src="../game-sdk.js?v=43350032"></script>
 <script>
 const TOTAL=10;let selectedGrade=1,selectedLevel=1,game=null,round=0,scoreValue=0,correct=0,currentQuestion=null,questionStartedAt=0,raceStartedAt=0,locked=false;const positions={player:2,bot1:2,bot2:2,bot3:2};const botProfiles={bot1:{accuracy:.78,speed:.83},bot2:{accuracy:.72,speed:.74},bot3:{accuracy:.84,speed:.66}};
 IAKidsCoins.mount();IAKidsHelp.mount({slug:'math-race',how:'בכל סיבוב מופיע תרגיל וארבע תשובות. תשובה נכונה מזיזה את המכונית קדימה. תשובה מהירה מעניקה התקדמות גדולה יותר.',example:'<b>12 + 8 = 20</b> — לחצו על 20 והמכונית תזנק קדימה!'});
