@@ -1,0 +1,35 @@
+name: Add internal tasks view 0.7.65
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add-internal-tasks-view-0765.py'
+      - '.github/workflows/add-internal-tasks-view-0765.yml'
+      - 'he/workspace/tasks-internal.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch workspace tasks view
+        run: python .github/scripts/add-internal-tasks-view-0765.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Keep tasks inside workspace; bump to 0.7.65"
+          git push origin main
