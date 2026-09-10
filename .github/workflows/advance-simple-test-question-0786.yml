@@ -1,0 +1,34 @@
+name: Advance simple test question 0.7.86
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/advance-simple-test-question-0786.py'
+      - '.github/workflows/advance-simple-test-question-0786.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch simple test auto-advance
+        run: python .github/scripts/advance-simple-test-question-0786.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Advance simple homework test to next question; bump to 0.7.86"
+          git push origin main
