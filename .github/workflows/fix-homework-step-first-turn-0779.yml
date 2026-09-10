@@ -1,0 +1,36 @@
+name: Fix homework step first turn 0.7.79
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-homework-step-first-turn-0779.py'
+      - '.github/workflows/fix-homework-step-first-turn-0779.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch first-turn step-by-step detection
+        run: python .github/scripts/fix-homework-step-first-turn-0779.py
+      - name: Compile backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix homework step-by-step first turn; bump to 0.7.79"
+          git push origin main
