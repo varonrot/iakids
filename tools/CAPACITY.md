@@ -114,3 +114,18 @@ run cannot damage a child's data, and anything that would call a model is refuse
 `https://iakids-backend.onrender.com/` answers **404**, but `backend/main.py` has had
 a health route at `/` since commit `320fa583`. **The deployed build is older than the
 repository.** Worth checking what else that service is missing before trusting it.
+
+---
+
+## The one-page version
+
+`tools/capacity_pdf.py` draws all of this as a three-page PDF — the measured curves,
+what each Render tier buys, and the architecture that removes the ceiling:
+
+```bash
+backend/.venv/bin/python tools/capacity_pdf.py            # -> tools/iakids-capacity.pdf
+```
+
+It needs `reportlab` and `python-bidi` (both in `backend/.venv`). The bidi part is
+not optional: reportlab draws glyphs in the order it is handed them, so Hebrew has to
+be reordered before it is drawn or every line comes out backwards.
