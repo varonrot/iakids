@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.74";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.76";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -401,8 +401,10 @@ function installHomeworkLessonWorkspace(){
       }
 
       .homework-notebook-intro-line{
-        min-height:34px;
-        margin:0 0 6px;
+        position:relative;
+        min-height:42px;
+        margin:0 0 8px;
+        padding-left:42px;
         color:#24408a;
         font-family:"Gveret Levin","Segoe Print","Comic Sans MS",cursive;
         font-weight:500;
@@ -410,6 +412,25 @@ function installHomeworkLessonWorkspace(){
         text-align:right;
         white-space:pre-wrap;
         letter-spacing:.1px;
+      }
+
+      .homework-writing-hand{
+        position:absolute;
+        top:-6px;
+        left:0;
+        z-index:4;
+        font-size:31px;
+        line-height:1;
+        pointer-events:none;
+        filter:drop-shadow(0 2px 2px rgba(20,40,90,.18));
+        transform:rotate(-12deg);
+        transition:left .08s linear, top .08s linear;
+        animation:homeworkWritingHandBob .45s ease-in-out infinite alternate;
+      }
+
+      @keyframes homeworkWritingHandBob{
+        from{transform:translateY(0) rotate(-12deg)}
+        to{transform:translateY(2px) rotate(-8deg)}
       }
 
       .homework-notebook-intro-line.subject{
@@ -796,14 +817,31 @@ function installHomeworkLessonWorkspace(){
     const row = document.createElement("div");
     row.className = `homework-notebook-intro-line ${className || ""} writing`;
     const span = document.createElement("span");
+    const hand = document.createElement("span");
+    hand.className = "homework-writing-hand";
+    hand.textContent = "✍️";
+    hand.setAttribute("aria-hidden", "true");
     row.appendChild(span);
+    row.appendChild(hand);
     host.appendChild(row);
 
-    const delay = value.length > 55 ? 15 : 23;
+    // Deliberately visible handwriting pace: roughly 2-4 seconds per line.
+    const delay = value.length > 55 ? 55 : value.length > 32 ? 68 : 82;
     for(let i=0;i<value.length;i+=1){
       span.textContent += value[i];
-      if(i % 4 === 0) await homeworkNotebookSleep(delay);
+
+      // Hebrew grows from right to left. The left edge of the written span is
+      // therefore approximately where the pen tip currently is.
+      const rowRect = row.getBoundingClientRect();
+      const spanRect = span.getBoundingClientRect();
+      const x = Math.max(0, Math.min(row.clientWidth - 34, spanRect.left - rowRect.left - 18));
+      hand.style.left = `${x}px`;
+
+      await homeworkNotebookSleep(delay);
     }
+
+    await homeworkNotebookSleep(260);
+    hand.remove();
     row.classList.remove("writing");
     await homeworkNotebookSleep(110);
     return true;
