@@ -185,7 +185,10 @@ async function next() {
 }
 
 async function showTrivia() {
-  const t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + s.id);
+  // Same guard: the answer has to be one of the options this board offers.
+  const inBoard = x => !!x && STAGES.slice(0, stageCount).some(y => y.id === x.id);
+  let t = await game.newQuestion(() => STAGES[rnd(stageCount)], s => 'trivia:' + s.id, { accept: inBoard });
+  if (!inBoard(t)) t = STAGES[rnd(stageCount)];
   $('trivia-q').textContent = t.why + ' — ' + IAKidsLang.t({ he:'איך קוראים לשלב הזה?', en:'What is this stage called?' });
   const box = $('trivia-opts');
   box.innerHTML = '';
@@ -213,13 +216,21 @@ async function showOrderItem() {
   }
   const tray = $('tray');
   tray.innerHTML = '';
-  const s = await game.newQuestion(
-    () => {
-      const pool = STAGES.slice(0, stageCount).filter(x => !placed.has(x.id));
-      return pool[rnd(pool.length)];
-    },
-    x => 'order:' + x.id
-  );
+  // A stage only works if its hotspot is on the board right now: the easy level
+  // shows three of the four, and a stage already placed has a filled hotspot that
+  // refuses a second chip. The shared question bank knows neither, so without
+  // `accept` it can hand back הזרמה on the easy board — a chip with nowhere to go,
+  // which leaves the round stuck.
+  const onBoard = x => {
+    const st = x && STAGES.find(y => y.id === x.id);
+    return !!st && st.rank <= stageCount && !placed.has(st.id);
+  };
+  const pick = () => {
+    const pool = STAGES.slice(0, stageCount).filter(x => !placed.has(x.id));
+    return pool[rnd(pool.length)];
+  };
+  let s = await game.newQuestion(pick, x => 'order:' + x.id, { accept: onBoard });
+  if (!onBoard(s)) s = pick();
   const chip = document.createElement('div');
   chip.className = 'chip';
   chip.innerHTML = `<span>${s.e}</span><span>${s.n}</span>`;
