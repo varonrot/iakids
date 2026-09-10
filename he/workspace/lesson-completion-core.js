@@ -1722,6 +1722,38 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     window.HOMEWORK_SIMPLE_TEST_HISTORY.push({role:"assistant",content:reply});
     if(window.HOMEWORK_SIMPLE_TEST_HISTORY.length>10) window.HOMEWORK_SIMPLE_TEST_HISTORY=window.HOMEWORK_SIMPLE_TEST_HISTORY.slice(-10);
     await renderHomeworkStructuredTeacherMessage(reply);
+
+    /* SIMPLE TEST AUTO ADVANCE 0.7.86 */
+    const normalizedReply = reply
+      .replace(/\*\*/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const finalAnswerAccepted = Boolean(String(messageText || "").trim()) && (
+      /התשובה\s+נכונה/.test(normalizedReply) ||
+      /נכונה[, ]+מלאה/.test(normalizedReply) ||
+      /מנוסחת\s+היטב/.test(normalizedReply) ||
+      /ענית\s+תשובה\s+מלאה/.test(normalizedReply)
+    );
+
+    if(finalAnswerAccepted){
+      const completedQuestion = setHomeworkQuestionAnswered(String(messageText || "").trim());
+      window.HOMEWORK_SIMPLE_TEST_HISTORY = [];
+
+      const nextQuestion = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
+      if(nextQuestion){
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await renderHomeworkStructuredTeacherMessage(`מעולה. נעבור לשאלה ${nextQuestion.number}.`);
+        await new Promise(resolve => setTimeout(resolve, 350));
+        await runHomeworkSimpleTest("");
+      }else{
+        setHomeworkSidebarStep(5);
+        await new Promise(resolve => setTimeout(resolve, 450));
+        await renderHomeworkStructuredTeacherMessage("סיימנו את כל השאלות בדף. כל הכבוד!");
+      }
+      return true;
+    }
+
     return true;
   }
 
