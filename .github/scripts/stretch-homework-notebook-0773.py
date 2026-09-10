@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Triggered patch for build 0.7.73
 EXT = Path('he/workspace/lesson-completion.js')
 INDEX = Path('he/workspace/index.html')
 
