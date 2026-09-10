@@ -6,6 +6,10 @@ this file points at them rather than repeating them.
 
 Order within each section is the order worth doing them in.
 
+The same picture as a PDF — architecture, capacity, gaps, bugs and the plan — is
+`tools/iakids-report.pdf`, redrawn with `backend/.venv/bin/python tools/report_pdf.py`
+after this file or `SECURITY.md` changes. It supersedes the earlier readiness report.
+
 ---
 
 ## Waiting on you, not on code
