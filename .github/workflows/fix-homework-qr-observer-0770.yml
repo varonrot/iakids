@@ -1,0 +1,34 @@
+name: Fix homework QR observer 0.7.70
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-homework-qr-observer-0770.py'
+      - '.github/workflows/fix-homework-qr-observer-0770.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply QR observer fix version patch
+        run: python .github/scripts/fix-homework-qr-observer-0770.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix homework QR observer; bump to 0.7.70"
+          git push origin main
