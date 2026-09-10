@@ -123,6 +123,29 @@ const top = (await game.getHighScores(1))[0];
 game.shareButton(score, containerEl);            // 📤 challenge-a-friend link
 ```
 
+### 9b. Practising a fixed list until it is learnt (optional)
+
+When the words are a parent's or a teacher's, "answer ten questions" is the wrong
+goal — the goal is to know *these* words. `IAKidsMastery` runs that loop:
+
+```js
+const drill = IAKidsMastery.over(words, { repeats: 2, passing: 0.8 });
+const item = drill.next();          // null when there is nothing left to practise
+drill.mark(item, wasCorrect);       // a miss returns a few items later, not next
+drill.mastered / drill.total / drill.passed / drill.struggling
+```
+
+A missed item goes to the back of the queue rather than straight back, so the child
+recalls it instead of copying what is still on screen. `maxAsks` stops a word that a
+child simply cannot get today, and `struggling` reports those — which is what the end
+screen offers as a second, shorter round. Stars follow `mastered / total`, not the raw
+answer count: a child who missed a word four times and then learnt it has done well.
+
+Where the list comes from is the game's business. `dictation` takes it three ways: a
+textarea on the start screen (kept in the game's own IndexedDB, so it survives), the
+`?words=…` query string (how a teacher hands out the week's words), and its built-in
+graded lists when neither is present.
+
 ### 10. Finish the round
 ```js
 game.complete(score);   // LAST call — awards +25 coins, confetti, challenge win-check, tournament chaining

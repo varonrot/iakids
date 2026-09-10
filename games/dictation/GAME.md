@@ -41,6 +41,26 @@ voice pays for each new word exactly once.
 A list also travels in a link — `?words=חתול,מטרייה,עיפרון` — which is how a teacher
 hands the week's words to a class.
 
+## Repeating until it is learnt
+
+The round is not a fixed number of questions. `IAKidsMastery` holds the round's words
+and hands them out until each has been written correctly — once on easy, twice on the
+harder levels, where a word spelled right one time may still have been a guess. A
+missed word returns a couple of words later, far enough that the child has to recall
+it rather than copy what is still on screen.
+
+The counter in the HUD shows **words known / words in the list**, so a word coming
+back reads as progress and not as a setback.
+
+A word asked five times and still wrong stops being asked. Holding a child in a loop
+they cannot leave is worse than stopping, and that word is more useful to the grown-up
+than to the child right now — so it appears on the end screen instead, under
+"נשארו לתרגול", with a button that starts a short new round over just those words.
+That is the loop that gets to a pass: play, see what is missing, practise only that.
+
+Passing is 80% of the list known. Stars follow the same number rather than the raw
+answer count.
+
 ## Marking
 
 An answer is compared on its letters: marks, spaces, apostrophes and maqaf are
@@ -71,7 +91,7 @@ bit for a correct answer.
 - [x] rounds picker, persisted
 - [x] level select with 🎲, last level restored
 - [x] coins on right/wrong, +25 through `game.complete`
-- [x] no-repeat questions, guarded with `accept`
+- [x] the round is a mastery loop over the list, not a fixed question count
 - [x] adaptive difficulty
 - [x] feedback FX on the slate
 - [ ] question timer — deliberately omitted, see above

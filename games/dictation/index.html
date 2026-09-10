@@ -104,6 +104,18 @@
 #list-note{margin:8px 0 0;font-size:.82rem;font-weight:700;color:var(--space-muted);line-height:1.5}
 #list-actions{display:flex;gap:8px;margin-top:8px}
 #list-actions .game-btn{flex:1;min-height:44px;font-size:.95rem}
+/* ---- end screen: what is known, and what is still to learn ---- */
+#goal-line{color:var(--space-muted)!important;font-weight:800;margin:2px 0 6px}
+#retry-slot{width:100%;max-width:380px;margin:6px auto 4px}
+#missed-words{margin-bottom:10px}
+#missed-words small{display:block;margin-bottom:6px;color:var(--space-muted);font-size:.82rem;font-weight:800}
+#missed-words div{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+#missed-words b{
+  padding:5px 11px;border-radius:12px;font-size:1.05rem;font-weight:900;color:#fff;
+  background:linear-gradient(180deg,rgba(52,81,139,.9),rgba(21,49,99,.95));
+  border:1px solid rgba(118,176,255,.45);
+}
+#retry-slot .game-btn{width:100%}
 @media(max-width:600px){#disc{width:112px;height:112px;font-size:2.9rem}}
 </style>
 </head>
@@ -182,6 +194,9 @@
   <div id="end-screen" class="end-screen" hidden>
     <div class="stars" id="stars"></div>
     <div class="big-score" id="final-score"></div>
+    <div class="verdict-line" id="verdict-line"></div>
+    <p id="goal-line"></p>
+    <div id="retry-slot"></div>
     <p id="player-line"></p>
     <p><span id="best-label"></span>: <b id="best"></b></p>
     <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
@@ -233,7 +248,23 @@ const T = {
              es: '📋 Con tu lista ({n})', de: '📋 Mit deiner Liste ({n})', pt: '📋 Com sua lista ({n})' },
   noVoice: { he: 'אין קול במכשיר — המילה תמיד תוצג', en: 'No voice on this device — the word is always shown',
              es: 'Sin voz: la palabra se muestra', de: 'Keine Stimme: das Wort wird gezeigt', pt: 'Sem voz: a palavra é exibida' },
+  goal:    { he: 'ידעתם {n} מתוך {t} מילים', en: 'You knew {n} of {t} words', es: 'Sabías {n} de {t}',
+             de: '{n} von {t} Wörtern gekonnt', pt: 'Você sabia {n} de {t}' },
+  passed:  { he: '🎉 עברתם! כל הכבוד', en: '🎉 You passed!', es: '🎉 ¡Aprobado!', de: '🎉 Bestanden!', pt: '🎉 Passou!' },
+  notYet:  { he: 'עוד קצת תרגול ותעברו', en: 'A little more practice and you will pass',
+             es: 'Un poco más de práctica', de: 'Noch etwas Übung', pt: 'Mais um pouco de prática' },
+  retry:   { he: '🔁 תרגלו את המילים שנשארו ({n})', en: '🔁 Practise the words left ({n})',
+             es: '🔁 Practica las que faltan ({n})', de: '🔁 Übe die restlichen ({n})', pt: '🔁 Pratique as que faltam ({n})' },
+  left:    { he: 'נשארו לתרגול', en: 'still to practise', es: 'por practicar', de: 'noch zu üben', pt: 'a praticar' },
+  onList:  { he: 'מילה {i} מתוך {t}', en: 'Word {i} of {t}', es: 'Palabra {i} de {t}',
+             de: 'Wort {i} von {t}', pt: 'Palavra {i} de {t}' },
 };
+
+/* A word counts as known when it has been written correctly this many times, and the
+   round is passed when this share of the list is known. Two on the harder levels,
+   because a word spelled right once may still have been a guess. */
+const REPEATS = { 1: 1, 2: 2, 3: 2 };
+const PASSING = 0.8;
 
 /* ---- built-in words, graded by how hard they are to spell, not by meaning ----
    1: short and written the way they sound
@@ -252,6 +283,7 @@ const WORDS = {
 
 let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, right = 0;
 let mode = 'peek', current = null, locked = false, plays = 0, customList = null;
+let drill = null;          // the mastery loop over this round's words
 
 const rnd = n => Math.floor(Math.random() * n);
 const show = id => ['start-screen', 'play-screen', 'end-screen'].forEach(s => $(s).hidden = s !== id);
@@ -362,22 +394,40 @@ const ready = IAKidsGame.init(SLUG).then(async g => {
 });
 
 /* ---- a round ------------------------------------------------------------ */
-async function start(lvl) {
+/**
+ * A round is not "answer ten questions", it is "learn these words". The list is
+ * the teacher's if there is one, otherwise as many words from the level as the
+ * child asked for, and the round runs until every word has been written correctly
+ * — a missed word comes back a few words later. `words` restricts the round to a
+ * given set, which is how the end screen offers a second pass over the misses.
+ */
+async function start(lvl, words) {
   await ready;
   level = lvl;
   diff = game.difficulty(lvl || 1, 3);
   await game.saveProgress({ rounds: TOTAL, lastLevel: lvl, list: customList });
-  $('qtotal').textContent = TOTAL;
+
+  const source = words && words.length ? words
+    : customList && customList.length ? customList
+    : shuffle(pool(lvl === 0 ? 1 + rnd(3) : lvl)).slice(0, TOTAL);
+  drill = IAKidsMastery.over(source, { repeats: REPEATS[lvl] || 1, passing: PASSING });
+
+  $('qtotal').textContent = drill.total;
   score = 0; qnum = 0; right = 0;
   $('score').textContent = 0;
   show('play-screen');
   next();
 }
+const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
 
 async function next() {
-  if (qnum >= TOTAL) return end();
+  const word = drill.next();
+  if (!word) return end();          // every word learnt, or asked as often as is fair
   qnum++; locked = false; plays = 0;
-  $('qnum').textContent = qnum;
+  // The counter shows what is left to learn, not how far through a fixed list we
+  // are: a word that comes back is progress, and should not look like a setback.
+  $('qnum').textContent = drill.mastered;
+  $('qtotal').textContent = drill.total;
   $('verdict').textContent = '';
   $('slate').className = '';
   $('answer').value = '';
@@ -385,14 +435,11 @@ async function next() {
   $('check-btn').disabled = false;
 
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
-  const words = pool(lvl);
-  // The bank knows nothing about a teacher's list, so a row from another round
-  // must never be served into this one — the child would be asked to spell a word
-  // their list never held.
-  const inPool = q => !!q && words.includes(q.w);
-  let q = await game.newQuestion(() => ({ w: words[rnd(words.length)] }), x => x.w, { accept: inPool });
-  if (!inPool(q)) q = { w: words[rnd(words.length)] };
-  current = { word: q.w, lvl };
+  current = { word, lvl };
+  // The word comes from the round's own list, so the no-repeat bank has no say in
+  // which one — it would serve words this child's list never held. Record it as
+  // asked, which is what feeds the shared history and the answer log.
+  game.newQuestion(() => ({ w: word }), x => x.w, { accept: q => q && q.w === word }).catch(() => {});
 
   // R10: this game is about spelling, so the word is never shown with nikud
   // before the answer — the marks would spell it out.
@@ -465,6 +512,7 @@ function check() {
   line.textContent = IAKidsLang.t(ok ? T.right : T.wrong);
   v.appendChild(line);
 
+  drill.mark(current.word, ok);
   if (ok) {
     score += 10; right++;
     $('score').textContent = score;
@@ -500,13 +548,51 @@ $('answer').addEventListener('keydown', e => { if (e.key === 'Enter') check(); }
 /* ---- end ---------------------------------------------------------------- */
 async function end() {
   show('end-screen');
-  await game.saveScore(score, { level, rounds: TOTAL, right, mode, own_list: !!customList });
+  const missed = drill.struggling;
+  await game.saveScore(score, {
+    level, rounds: drill.total, right, mode, own_list: !!customList,
+    mastered: drill.mastered, asked: drill.asked, passed: drill.passed,
+  });
   const top = (await game.getHighScores(1))[0];
   $('final-score').textContent = score;
   $('best').textContent = top?.score ?? score;
   $('player-line').textContent = top?.player ? `${top.player} · ${top.when || ''}` : '';
-  const ratio = TOTAL ? right / TOTAL : 0;
-  $('stars').textContent = '⭐'.repeat(ratio >= 0.85 ? 3 : ratio >= 0.6 ? 2 : 1);
+  // Stars follow how much of the list is known, not how many answers were right:
+  // a child who missed a word four times and then learnt it has done well.
+  const learnt = drill.total ? drill.mastered / drill.total : 0;
+  $('stars').textContent = '⭐'.repeat(learnt >= 0.95 ? 3 : learnt >= PASSING ? 2 : 1);
+
+  $('goal-line').textContent = IAKidsLang.t(T.goal)
+    .replace('{n}', drill.mastered).replace('{t}', drill.total);
+  $('verdict-line').textContent = IAKidsLang.t(drill.passed ? T.passed : T.notYet);
+  $('verdict-line').className = drill.passed ? 'ok' : 'no';
+
+  const again = $('retry-slot');
+  again.textContent = '';
+  if (missed.length) {
+    const list = document.createElement('div');
+    list.id = 'missed-words';
+    const head = document.createElement('small');
+    head.textContent = IAKidsLang.t(T.left);
+    list.appendChild(head);
+    const strip = document.createElement('div');
+    for (const w of missed) {
+      const b = document.createElement('b');
+      IAKidsNikud.render(b, w);
+      strip.appendChild(b);
+    }
+    list.appendChild(strip);
+    again.appendChild(list);
+
+    const btn = document.createElement('button');
+    btn.className = 'game-btn success';
+    btn.type = 'button';
+    btn.textContent = IAKidsLang.t(T.retry).replace('{n}', missed.length);
+    // Practise only what is still missing — that is the whole point of a list.
+    btn.onclick = () => start(level, missed);
+    again.appendChild(btn);
+  }
+
   game.shareButton(score, $('share-slot'));
   game.complete(score);
 }

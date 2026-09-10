@@ -977,6 +977,85 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   speechSynthesis.onvoiceschanged = () => { IAKidsSpeech._voices = null; };
 }
 
+/**
+ * IAKidsMastery — practise a fixed list until it is actually learnt.
+ *
+ * The ordinary round asks N questions and stops. A list a parent typed or a teacher
+ * set is different: the point is not to answer ten questions, it is to know these
+ * words. So a missed item comes back, and the round ends when every item has been
+ * answered correctly `repeats` times — or when the child has clearly had enough.
+ *
+ *   const m = IAKidsMastery.over(words, { repeats: 2, passing: 0.8 });
+ *   const item = m.next();          // null once there is nothing left to practise
+ *   m.mark(item, wasCorrect);
+ *   m.mastered / m.total / m.accuracy / m.passed / m.remaining
+ *
+ * A missed item is not asked again immediately — it goes to the back of the queue,
+ * a few items away, so the child recalls it rather than copies what is still on
+ * screen. `maxAsks` is the mercy limit: a word that has been asked that many times
+ * and is still wrong stops the loop, because a child who cannot get it today should
+ * not be held in it. Those words are what `struggling` reports, for the grown-up.
+ */
+const IAKidsMastery = {
+  over(items, opts = {}) {
+    const repeats = Math.max(1, opts.repeats ?? 1);
+    const passing = opts.passing ?? 0.8;
+    const maxAsks = opts.maxAsks ?? repeats + 3;
+    const gap = opts.gap ?? 2;              // how many other items before a miss returns
+
+    const state = new Map();
+    for (const it of items) state.set(key(it), { item: it, right: 0, asks: 0 });
+    function key(it) { return typeof it === 'object' ? JSON.stringify(it) : String(it); }
+
+    let queue = [...state.keys()];
+    let asked = 0;
+
+    const live = k => {
+      const r = state.get(k);
+      return r && r.right < repeats && r.asks < maxAsks;
+    };
+
+    return {
+      get total() { return state.size; },
+      get mastered() { return [...state.values()].filter(r => r.right >= repeats).length; },
+      get remaining() { return [...state.keys()].filter(live).length; },
+      get asked() { return asked; },
+      get accuracy() {
+        const a = [...state.values()].reduce((n, r) => n + r.asks, 0);
+        const c = [...state.values()].reduce((n, r) => n + r.right, 0);
+        return a ? c / a : 0;
+      },
+      // Passed on both counts: enough of the list is known, and it was not a slog.
+      get passed() { return this.total > 0 && this.mastered / this.total >= passing; },
+      get done() { return this.remaining === 0; },
+      // Items the child kept missing — the list a parent or teacher wants to see.
+      get struggling() {
+        return [...state.values()].filter(r => r.right < repeats).map(r => r.item);
+      },
+
+      next() {
+        while (queue.length && !live(queue[0])) queue.shift();
+        if (!queue.length) {
+          queue = [...state.keys()].filter(live);
+          if (!queue.length) return null;
+        }
+        const k = queue.shift();
+        state.get(k).asks++;
+        asked++;
+        return state.get(k).item;
+      },
+
+      mark(item, correct) {
+        const k = key(item);
+        const r = state.get(k);
+        if (!r) return;
+        if (correct) r.right++;
+        else if (live(k)) queue.splice(Math.min(gap, queue.length), 0, k);   // back, but not next
+      },
+    };
+  },
+};
+
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
