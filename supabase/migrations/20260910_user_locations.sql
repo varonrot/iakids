@@ -51,8 +51,9 @@ begin
     if auth.uid() is null then
         raise exception 'not signed in' using errcode = '42501';
     end if;
-    -- Cloudflare answers XX for an address it cannot place, and T1 for Tor.
-    if c is not null and c !~ '^[A-Z]{2}$' then c := null; end if;
+    -- Cloudflare answers XX for an address it cannot place and T1 for Tor. Neither is
+    -- a country, and storing one would overwrite a real answer from an earlier visit.
+    if c is not null and (c !~ '^[A-Z]{2}$' or c in ('XX', 'T1')) then c := null; end if;
 
     insert into public.user_locations (user_id, country, region, timezone, source, first_country)
     values (auth.uid(), c, r, z, nullif(p_source, ''), c)
