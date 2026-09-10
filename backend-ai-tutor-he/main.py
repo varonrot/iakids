@@ -19398,10 +19398,28 @@ def homework_response_leaks_source_answer(
 def build_safe_homework_first_guidance(
         current_question: str,
         source_text: str,
-        child_gender: str | None = None
+        child_gender: str | None = None,
+        force_step_by_step: bool = False
 ) -> str:
     q = str(current_question or '').strip()
     female = str(child_gender or '').strip().lower() in ('female', 'f', 'נקבה')
+
+    if force_step_by_step:
+        if female:
+            return (
+                "אני אסביר לך שלב־שלב איך לענות על השאלה הזאת.\n"
+                f"שלב 1: נקרא את השאלה ונבין מה מחפשים. השאלה היא: {q}\n"
+                "שלב 2: נחזור לקטע ונמצא את המקום שבו מדברים על הדמות או הדבר שמופיעים בשאלה.\n"
+                "שלב 3: באותו מקום נחפש את הפעולה או העובדה שעונה בדיוק על מילת השאלה.\n"
+                "עכשיו נעשה את שלב 1 יחד: מה אנחנו צריכות למצוא בטקסט כדי לענות על השאלה?"
+            )
+        return (
+            "אני אסביר לך שלב־שלב איך לענות על השאלה הזאת.\n"
+            f"שלב 1: נקרא את השאלה ונבין מה מחפשים. השאלה היא: {q}\n"
+            "שלב 2: נחזור לקטע ונמצא את המקום שבו מדברים על הדמות או הדבר שמופיעים בשאלה.\n"
+            "שלב 3: באותו מקום נחפש את הפעולה או העובדה שעונה בדיוק על מילת השאלה.\n"
+            "עכשיו נעשה את שלב 1 יחד: מה אנחנו צריכים למצוא בטקסט כדי לענות על השאלה?"
+        )
 
     if source_text:
         if female:
@@ -19543,12 +19561,33 @@ HARD RULES:
     # On the first help-mode response, prevent the teacher from copying a
     # source sentence that contains the worksheet answer before the child tries.
     if parsed:
+        answer_context = str(req.answer or "")
         is_first_help_turn = (
-            "הילד בחר:" in str(req.answer or "")
-            or "HELP MODE:" in str(req.answer or "")
+            "הילד בחר:" in answer_context
+            or "HELP MODE:" in answer_context
+        )
+        is_step_by_step_mode = (
+            "לפתור יחד שלב־שלב" in answer_context
+            or "SOLVE TOGETHER STEP BY STEP" in answer_context.upper()
         )
 
-        if is_first_help_turn and homework_response_leaks_source_answer(
+        # STRICT STEP-BY-STEP ENTRY (0.7.77)
+        # If the child explicitly chose step-by-step help, the first teacher
+        # response is deterministic: explain the method, name the steps, and
+        # begin with step 1. Do not depend on the model remembering the format.
+        if is_first_help_turn and is_step_by_step_mode:
+            parsed.teacher_response = build_safe_homework_first_guidance(
+                req.current_question,
+                req.source_text,
+                child.get("gender") if isinstance(child, dict) else None,
+                force_step_by_step=True
+            )
+            parsed.feedback = ""
+            parsed.answer_sufficient = False
+            parsed.completed_step = None
+            parsed.next_step = "שלב 1 — להבין מה השאלה מבקשת"
+
+        elif is_first_help_turn and homework_response_leaks_source_answer(
                 parsed.teacher_response,
                 req.source_text,
                 req.current_question
