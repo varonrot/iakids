@@ -1,0 +1,34 @@
+name: Add homework notebook intro 0.7.74
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add-homework-notebook-intro-0774.py'
+      - '.github/workflows/add-homework-notebook-intro-0774.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Add animated notebook intro
+        run: python .github/scripts/add-homework-notebook-intro-0774.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add animated homework notebook intro; bump to 0.7.74"
+          git push origin main
