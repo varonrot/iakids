@@ -653,43 +653,175 @@ const IAKidsBank = {
     this._current = { slug, level, qkey, at: Date.now(), payload: fromBank ? null : payload };
   },
   // Called by IAKidsCoins.right/wrong and IAKidsActivity.correct/wrong; idempotent per question.
+  //
+  // The answer goes into the outbox, not onto the network: a round of ten used to be
+  // ten calls, and the database saturates on call count long before it saturates on
+  // work. The no-repeat set is updated here and now, so nothing depends on the flush
+  // having happened.
   onAnswer(correct) {
     const cur = this._current; if (!cur) return; this._current = null;
     (this._answered[cur.slug] || (this._answered[cur.slug] = new Set())).add(cur.qkey);
-    this._client().then(async c => {
-      if (!c) return;
-      const ms = Math.min(Date.now() - cur.at, 3600000);
+    IAKidsOutbox.add({
+      kid: this._kid(), game: cur.slug, key: cur.qkey, correct: !!correct,
+      ms: Math.min(Date.now() - cur.at, 3600000), level: cur.level || null,
+      session: IAKidsActivity._sessionId || null,
+      payload: cur.payload || null, answer: cur.payload ? this.answerOf(cur.payload) : null,
+    });
+  },
+
+  // One answer, the old way: used when the batch function is not in the database
+  // yet, and for whatever the outbox could not send as a group.
+  sendOne(item) {
+    const cur = { slug: item.game, qkey: item.key, level: item.level, payload: item.payload };
+    const correct = item.correct;
+    return this._client().then(async c => {
+      if (!c) return false;
+      const ms = item.ms;
       // One round trip per answer (migration 20260910_game_bank_performance). Until
       // that migration is applied the rpc does not exist, so fall back to the two
       // calls it replaced rather than lose the answer.
       const base = {
-        p_kid: this._kid(), p_game: cur.slug, p_key: cur.qkey, p_correct: !!correct,
-        p_ms: ms, p_level: cur.level || null, p_session: IAKidsActivity._sessionId || null,
+        p_kid: item.kid, p_game: cur.slug, p_key: cur.qkey, p_correct: !!correct,
+        p_ms: ms, p_level: cur.level || null, p_session: item.session || null,
       };
       const missing = e => /function|schema cache|not find/i.test((e && e.message) || '');
       // Newest first: the answer and the question in one call (20260910_game_bank_one_call).
       try {
         const { error } = await c.rpc('game_record_answer', cur.payload
-          ? { ...base, p_payload: cur.payload, p_answer: this.answerOf(cur.payload) } : base);
-        if (!error) return;
-        if (!missing(error)) return;                       // a real refusal, not "missing"
+          ? { ...base, p_payload: cur.payload, p_answer: item.answer } : base);
+        if (!error) return true;
+        if (!missing(error)) return true;                  // a real refusal, not "missing"
       } catch { /* fall through */ }
       // Then the previous shape, with the bank upsert it did not know about.
       try {
         if (cur.payload) this.save(cur.slug, cur.level, cur.qkey, cur.payload);
         const { error } = await c.rpc('game_record_answer', base);
-        if (!error) return;
-        if (!missing(error)) return;
+        if (!error) return true;
+        if (!missing(error)) return true;
       } catch { /* fall through */ }
       c.from('kid_question_answers').insert({
-        kid_id: this._kid(), game_code: cur.slug, qkey: cur.qkey, correct: !!correct,
-        response_ms: ms, level: cur.level || null,
-        session_id: IAKidsActivity._sessionId || null,
+        kid_id: item.kid, game_code: cur.slug, qkey: cur.qkey, correct: !!correct,
+        response_ms: ms, level: cur.level || null, session_id: item.session || null,
       }).then(() => {}, () => {});
       c.rpc('game_question_mark', { p_game: cur.slug, p_key: cur.qkey, was_correct: !!correct }).then(() => {}, () => {});
-    }).catch(() => {});
+      return true;
+    }).catch(() => false);
   },
 };
+
+/**
+ * IAKidsOutbox — the answers a child has given, on their way to the database.
+ *
+ * A round of ten questions used to be ten writes, one per answer, and the database
+ * gives out at around seven hundred calls a second whatever those calls contain. So
+ * the answers are collected here and sent as one call (`game_record_answers`): a
+ * session costs four calls instead of fourteen, and the same database holds three to
+ * four times as many children.
+ *
+ * It also loses less than the old path did. An answer is written to IndexedDB before
+ * anything is attempted, and only removed once the database has taken it — so a
+ * closed tab, a dead connection or a failed call means the answers go out on the next
+ * visit instead of vanishing. Flushes when a few have piled up, on a timer, when the
+ * tab is hidden, and when a game ends.
+ */
+const IAKidsOutbox = {
+  KEY: 'outbox',
+  BATCH: 5,          // send once this many are waiting
+  IDLE_MS: 8000,     // ...or this long after the last answer, whichever comes first
+  MAX: 200,          // a runaway loop must not fill the child's disk
+
+  _q: null,          // in memory; IndexedDB is the durable copy
+  _timer: null,
+  _sending: false,
+  _batchMissing: false,
+
+  async _load() {
+    if (this._q) return this._q;
+    try { this._q = (await IAKidsCoins._kvGet(this.KEY)) || []; }
+    catch { this._q = []; }
+    return this._q;
+  },
+  _persist() { try { return IAKidsCoins._kvPut(this.KEY, this._q); } catch { return Promise.resolve(); } },
+
+  async add(item) {
+    const q = await this._load();
+    q.push(item);
+    if (q.length > this.MAX) q.splice(0, q.length - this.MAX);
+    await this._persist();
+    clearTimeout(this._timer);
+    if (q.length >= this.BATCH) this.flush();
+    else this._timer = setTimeout(() => this.flush(), this.IDLE_MS);
+  },
+
+  // Send everything waiting. Never throws, never double-sends: one flush at a time,
+  // and the items go back if the call did not take them.
+  async flush() {
+    clearTimeout(this._timer);
+    if (this._sending) return;
+    const q = await this._load();
+    if (!q.length) return;
+    this._sending = true;
+    const batch = q.splice(0, q.length);
+    await this._persist();
+    try {
+      const ok = await this._send(batch);
+      if (!ok) {                                  // put them back for the next attempt
+        this._q = batch.concat(this._q);
+        if (this._q.length > this.MAX) this._q.splice(this.MAX);
+        await this._persist();
+        this._timer = setTimeout(() => this.flush(), this.IDLE_MS * 2);
+      }
+    } finally { this._sending = false; }
+  },
+
+  async _send(batch) {
+    const c = await IAKidsBank._client();
+    if (!c) return false;
+    // One call per child — in practice one child, but a shared device may have two.
+    const byKid = new Map();
+    for (const it of batch) {
+      if (!it.kid) continue;
+      if (!byKid.has(it.kid)) byKid.set(it.kid, []);
+      byKid.get(it.kid).push(it);
+    }
+    if (!byKid.size) return true;                 // nothing addressable: drop, not retry
+    let allOk = true;
+    for (const [kid, items] of byKid) {
+      if (!this._batchMissing) {
+        try {
+          const { error } = await c.rpc('game_record_answers', {
+            p_kid: kid,
+            p_answers: items.map(i => ({
+              game: i.game, key: i.key, correct: i.correct, ms: i.ms,
+              level: i.level, session: i.session, payload: i.payload, answer: i.answer,
+            })),
+          });
+          if (!error) continue;
+          // The migration is not applied yet: stop asking for it this session.
+          if (/function|schema cache|not find/i.test(error.message || '')) this._batchMissing = true;
+          else continue;                          // a refusal is an answer: do not retry forever
+        } catch { /* network — fall through to one at a time */ }
+      }
+      for (const it of items) {
+        const ok = await IAKidsBank.sendOne(it);
+        if (!ok) allOk = false;
+      }
+    }
+    return allOk;
+  },
+
+  init() {
+    // A tab is closed, backgrounded or navigated away from: send what is waiting.
+    // visibilitychange is the one event a phone browser reliably fires.
+    const flush = () => { this.flush(); };
+    document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+    window.addEventListener('pagehide', flush);
+    // Whatever a previous visit could not send.
+    this._load().then(q => { if (q.length) this.flush(); });
+  },
+};
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined') IAKidsOutbox.init();
 
 /**
  * IAKidsNikud — Hebrew vowel points for the words a game shows.
@@ -1288,6 +1420,9 @@ if (!activitySessionId) {
       loadProgress: async () => (await tx('kv', 'readonly', s => s.get('progress'))) ?? null,
       clearProgress: () => tx('kv', 'readwrite', s => s.delete('progress')),
 async complete(score, options = {}) {
+  // The round is over: the answers waiting in the outbox go out now, not on a timer.
+  IAKidsOutbox.flush();
+
   const msg = {
     type:
       'iakids-game-complete',

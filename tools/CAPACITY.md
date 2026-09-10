@@ -216,3 +216,60 @@ gets 429.
 
 Configuration: `/etc/nginx/nginx.conf` (gzip) and `/etc/nginx/sites-enabled/smarts-brains`
 (cache headers, `limit_req`). The originals are in `/etc/nginx/backups/`.
+
+---
+
+## Where the bottleneck actually is (2026-09-10, found)
+
+Everything above was measured with the Python client, and the Python client was the
+thing being measured. `wrk` costs a fraction of the CPU per request, and with it the
+generator sits under 50% busy while the numbers climb — so these are the service's
+numbers, not the laptop's.
+
+| call | ceiling | at | p50 there |
+|---|---|---|---|
+| trivial read (one row) | **1,050 req/s** | 128 connections | 109 ms |
+| `game_next_questions`, 20 questions | **550 req/s** | 64 connections | 112 ms |
+| `game_record_answer`, one answer | **700 req/s** | 128 connections | 149 ms |
+
+Past those points throughput stops rising and latency doubles — the definition of a
+saturated server. The generator was at 32–48% CPU at every one of them, and the wire
+carried 4 MB/s, nowhere near the link. **The bottleneck is Supabase's compute.**
+
+Three things follow.
+
+**The play path is fine.** A ten-question session makes 14 calls. Spread over four
+minutes that is 0.06 calls a second per child, so 600 calls a second is on the order
+of **ten thousand children playing at once**. The earlier "700, as a floor" was the
+laptop, not the site.
+
+**Latency is not the ceiling.** Every call comes back in about 100 ms whether the
+server is idle or at 600 requests a second, and 100 ms is the round trip to the
+region. There is no query left to tune: `game_next_questions` against a 106k-row bank
+costs the same as reading a single row.
+
+**What is left to win is call *count*, not call *cost*.** The database gives out
+around 600–1,000 calls a second whatever those calls contain, so the way to serve
+more children is to ask fewer times — which is what the outbox below does.
+
+### The outbox: 14 calls a session becomes 4
+
+`IAKidsOutbox` in `game-sdk.js` holds each answer in IndexedDB and sends them as one
+call (`game_record_answers`, migration `20260910_game_bank_batch.sql`) — after five
+answers, after eight idle seconds, when the tab is hidden, and when a round ends.
+
+    before   1 game_next_questions + 10 game_record_answer + 3 others   = 14
+    after    1 game_next_questions +  1 game_record_answers  + 2 others =  4
+
+That is **three and a half times as many children on the same database**, and the
+answers are now durable: today an answer that fails to send is gone, while an answer
+in the outbox waits in IndexedDB and goes out on the next visit.
+
+### And then
+
+1. **Bigger Supabase compute.** The ceiling is DB CPU and each step roughly doubles it.
+   Measure again after: the numbers in the table are the way to tell whether the step
+   was worth its price.
+2. **Read replicas**, once reads are the larger half — after the outbox they are.
+3. **Load from several machines.** One box found the ceiling only because `wrk` is
+   cheap; a bigger measurement will need more of them.
