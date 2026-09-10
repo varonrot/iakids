@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Trigger rerun: strict step-by-step flow 0.7.77
 BACKEND = Path('backend-ai-tutor-he/main.py')
 INDEX = Path('he/workspace/index.html')
 
