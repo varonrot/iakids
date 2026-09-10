@@ -11988,10 +11988,13 @@ body.games-workspace .notification-btn,
 
 <nav class="games-bottom-dock">
 
+  <!-- hidden: there is no personal-coach view in this workspace yet. Remove the
+       `hidden` attribute and wire #gamesCoachButton below once one exists. -->
   <button
     type="button"
     class="games-dock-button coach"
     id="gamesCoachButton"
+    hidden
   >
     <span class="games-dock-icon">🤖</span>
 
@@ -12001,10 +12004,13 @@ body.games-workspace .notification-btn,
   </button>
 
 
+  <!-- hidden: no game supports a preset quick round from a link yet (rounds and
+       level are chosen on each game's start screen). -->
   <button
     type="button"
     class="games-dock-button quick"
     id="gamesFastGameButton"
+    hidden
   >
     <span class="games-dock-icon">🎯</span>
 
@@ -12066,6 +12072,28 @@ body.games-workspace .notification-btn,
   </button>
 
 </nav>
+<style>
+  /* the dock sets display:flex on every button, which would beat the hidden attribute */
+  .games-dock-button[hidden]{display:none!important}
+</style>
+<script>
+// Where the dock's buttons go. Root-relative on purpose: this page is served from
+// iakids.app and from the smarts-brains.online mirror, and an absolute link would
+// throw a child from one host onto the other.
+(function () {
+  const go = (id, href) => {
+    const b = document.getElementById(id);
+    if (b) b.addEventListener('click', () => { location.href = href; });
+  };
+  go('gamesLibraryButton',        '/games/');              // every playable game
+  go('gamesRandomButton',         '/games/?pick=random');  // the hub picks one that is live
+  go('gamesDailyChallengeButton', '/games/?pick=daily');   // same game for everyone today
+  go('gamesCreateButton',         '/games/quiz-maker/');   // build your own question pack
+  // gamesCoachButton and gamesFastGameButton are hidden in the markup above:
+  // nothing behind them exists yet, and a button that does nothing teaches a
+  // child that buttons do nothing.
+})();
+</script>
 </section><!-- סגירת dashboardView -->
 <!-- =====================================================
      DYNAMIC LEARNING PATH VIEW

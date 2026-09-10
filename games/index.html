@@ -170,17 +170,37 @@ document.getElementById('hub').innerHTML = CATS.map(([title, games]) => `
     ).join('')}
   </div>`).join('');
 
-document.querySelectorAll('.tile[data-slug]').forEach(async tile => {
+const probes = [...document.querySelectorAll('.tile[data-slug]')].map(async tile => {
   const slug = tile.dataset.slug;
   try {
     const r = await fetch(slug + '/index.html', { method: 'HEAD' });
-    if (!r.ok) return;
+    if (!r.ok) return null;
     const a = document.createElement('a');
     a.className = 'tile';
     a.href = slug + '/';
     a.innerHTML = tile.innerHTML;
     tile.replaceWith(a);
-  } catch (e) { /* stays "coming soon" */ }
+    return slug;
+  } catch (e) { return null; /* stays "coming soon" */ }
+});
+
+// The kingdom's dock sends children here with a request instead of a choice:
+//   ?pick=random  — any playable game
+//   ?pick=daily   — the same game for everyone today, a new one tomorrow
+// Decided only once every probe has answered, so a "coming soon" tile is never
+// picked; anything else, or a failure, just leaves the hub on screen.
+Promise.all(probes).then(slugs => {
+  const playable = slugs.filter(Boolean);
+  const pick = new URLSearchParams(location.search).get('pick');
+  if (!pick || !playable.length) return;
+  let slug = null;
+  if (pick === 'random') slug = playable[Math.floor(Math.random() * playable.length)];
+  if (pick === 'daily') {
+    const d = new Date();
+    const day = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+    slug = playable[day % playable.length];
+  }
+  if (slug) location.replace(slug + '/');
 });
 
 window.addEventListener('message', e => {
