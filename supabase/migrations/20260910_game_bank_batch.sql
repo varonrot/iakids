@@ -20,7 +20,7 @@ create or replace function public.game_record_answers(p_kid uuid, p_answers json
 returns int
 language plpgsql security definer set search_path = public as $$
 declare
-    a jsonb;
+    ans jsonb;
     payload jsonb;
     n int := 0;
 begin
@@ -38,32 +38,32 @@ begin
         raise exception 'too many answers in one call' using errcode = '54000';
     end if;
 
-    for a in select * from jsonb_array_elements(p_answers) loop
-        if a->>'game' is null or a->>'key' is null then
+    for ans in select * from jsonb_array_elements(p_answers) loop
+        if ans->>'game' is null or ans->>'key' is null then
             continue;
         end if;
 
         -- The question, when this child's browser generated it. Same terms as
         -- game_record_answer: unverified and pending, so a client still cannot put
         -- a row into the served set.
-        payload := a->'payload';
+        payload := ans->'payload';
         if payload is not null and jsonb_typeof(payload) <> 'null'
            and octet_length(payload::text) <= 8192
            and payload::text !~ '[<>]' then
             insert into public.game_questions
                 (game_code, level, qkey, payload, answer, source, verified, verify_state)
             values
-                (a->>'game', coalesce((a->>'level')::smallint, 0), a->>'key',
-                 payload, a->>'answer', 'generated', false, 'pending')
+                (ans->>'game', coalesce((ans->>'level')::smallint, 0), ans->>'key',
+                 payload, ans->>'answer', 'generated', false, 'pending')
             on conflict (game_code, qkey) do nothing;
         end if;
 
         insert into public.kid_question_answers
             (kid_id, game_code, qkey, correct, response_ms, level, session_id)
         values
-            (p_kid, a->>'game', a->>'key', coalesce((a->>'correct')::boolean, false),
-             least(coalesce((a->>'ms')::int, 0), 3600000),
-             (a->>'level')::smallint, (a->>'session')::uuid);
+            (p_kid, ans->>'game', ans->>'key', coalesce((ans->>'correct')::boolean, false),
+             least(coalesce((ans->>'ms')::int, 0), 3600000),
+             (ans->>'level')::smallint, (ans->>'session')::uuid);
 
         n := n + 1;
     end loop;
@@ -75,11 +75,11 @@ begin
            times_correct = q.times_correct + b.correct,
            updated_at    = now()
       from (
-        select a->>'game' as game_code, a->>'key' as qkey,
+        select e->>'game' as game_code, e->>'key' as qkey,
                count(*)::int as asked,
-               count(*) filter (where (a->>'correct')::boolean)::int as correct
-          from jsonb_array_elements(p_answers) a
-         where a->>'game' is not null and a->>'key' is not null
+               count(*) filter (where (e->>'correct')::boolean)::int as correct
+          from jsonb_array_elements(p_answers) e
+         where e->>'game' is not null and e->>'key' is not null
          group by 1, 2
       ) b
      where q.game_code = b.game_code and q.qkey = b.qkey;
