@@ -1,0 +1,34 @@
+name: Fix HE2 parents background stretch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-he2-parents-bg-stretch.py'
+      - '.github/workflows/fix-he2-parents-bg-stretch.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Stretch parents background across section
+        run: python .github/scripts/fix-he2-parents-bg-stretch.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Stretch HE2 parents background across full section"
+          git push origin main
