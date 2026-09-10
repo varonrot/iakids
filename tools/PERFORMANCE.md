@@ -161,11 +161,13 @@ The first two are hours. The third is a day and is worth more than any hardware.
 | item | state |
 |---|---|
 | §1 split `nikud.js` per game | **done** — `nikud-build.py`; the median game loads 11 KB, not 155 KB |
-| §2 brotli for JavaScript | Cloudflare setting — not done from here |
-| §3 index + de-sort `game_next_questions` | **written** — paste `supabase/migrations/20260910_game_bank_lockdown.sql`, which contains it and also closes the bank to direct reads |
-| §3b one round trip per answer | **done in the SDK** (`game_record_answer`, falls back until the migration lands) |
+| §2 brotli for JavaScript | `iakids.app` serves JS as gzip and HTML as brotli — GitHub Pages hands Cloudflare a gzipped file and Cloudflare does not recompress it. On the mirror, gzip is now on for JS/CSS (96 KB → 31 KB); it was serving them raw |
+| §3 index + de-sort `game_next_questions` | **done and live** — the call now costs 99 ms, the same as reading one row |
+| §3b one round trip per answer | **done and live** — the 9-argument `game_record_answer` is in the database; a session makes 14 calls, not 24 |
 | §4 read-aloud observer | **done** — once per frame, node changes only |
-| §5 tutor threadpool | **done** — 40 → 128 threads (96 on the core API) via `WORKER_THREADS`; needs a Render redeploy |
+| §5 tutor threadpool | **live on the tutor** (its rate limiter answers, so the block is deployed). **The core API has not been redeployed** — 40 requests to `/api/*` pass without a 429, and `/` still 404s |
 | §5 per-caller rate limit | **done** — 60/min on the tutor, 30/min on the core API, webhook exempt; `RATE_LIMIT_PER_MINUTE` |
-| §5 routes to `async def` | not done — a day's refactor of 19 routes, best done with the model client swapped to its async variant in the same pass |
+| §5 routes to `async def` | **done** — the 12 request-path functions that wait on a model, converted by `backend-ai-tutor-he/tools/async_routes.py` (libcst): OpenAI through `AsyncOpenAI`, Gemini through `.aio`, Supabase and the generators through `run_in_threadpool`. Needs a Render redeploy to take effect |
 | §5 six sequential round trips in `get_or_generate_unit_lesson` | not done |
+| the mirror served uncompressed and uncached | **fixed** — nginx `gzip_proxied`/`gzip_types` and a 4-hour cache for hashed assets; see CAPACITY.md |
+| per-IP limit on the mirror | **done** — `limit_req` in the site file, since Cloudflare does not front that domain |

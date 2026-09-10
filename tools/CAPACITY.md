@@ -152,3 +152,67 @@ A session now makes 24 calls instead of 34 (one `game_record_answer` per questio
 instead of an insert plus an rpc), 0.10 requests/s per child. Reads measured at
 ~70 calls/s put that at **roughly 700 children playing at once**, as a floor. Writes
 were not hammered — this is production — so the write ceiling remains an estimate.
+
+---
+
+## After the one-call migration and the mirror fix (2026-09-10, later)
+
+`game_record_answer` now files the question and records the answer in one call, so a
+ten-question session makes **14 calls, not 24** — 0.06 requests/s per child. Verified
+end to end on a throwaway account: the question landed in the bank as
+`source=generated, verified=false`, the answer was logged, the counters moved, and a
+direct read of `game_questions` still comes back empty.
+
+Single-request latency, from this box, twelve samples each:
+
+| call | p50 |
+|---|---|
+| `game_next_questions` (20 questions, 106k-row bank) | 99 ms |
+| `game_next_questions` (5 questions) | 112 ms |
+| `select` one row from `kids_profiles` | 107 ms |
+| `select` 50 rows from `hebrew_nikud` | 105 ms |
+
+**The bank query now costs the same as reading a single row.** Whatever is left is the
+round trip to the region; the index and the window did their job, and there is nothing
+further to win in that query.
+
+### The ceiling we measured is this laptop, not the site
+
+| at once | play path | the static site (Cloudflare) |
+|---|---|---|
+| 8 | 26 req/s | 132 req/s |
+| 32 | 55 req/s, p95 0.53 s | 83 req/s, p95 0.41 s |
+| 128 | 19 req/s, p95 10.7 s | 32 req/s, p95 4.5 s |
+
+Cloudflare's edge cannot be saturated by anyone, and it collapses at the same
+concurrency as Supabase does — so both columns are measuring the two-core generator,
+not the service. **Every number here is a floor.** At 55 calls/s and 0.06 calls/s per
+child that is over **900 children playing at once**, and the real figure is higher by
+however much a bigger generator would find.
+
+To measure the actual ceiling, the load has to come from several machines at once — a
+single box cannot produce enough. That is the next measurement, not another code change.
+
+### The mirror was serving everything uncompressed
+
+`smarts-brains.online` does not go through Cloudflare: it is nginx on this server,
+proxying a container on `127.0.0.1:3020`. nginx does not compress a proxied response
+unless `gzip_proxied` says so, and `gzip_types` was commented out, so:
+
+| file | before | after |
+|---|---|---|
+| `games/game-sdk.js` | 95,832 B | 31,340 B |
+| `games/game-style.css` | 17,711 B | 5,004 B |
+| `he/games/workspace/` | 507,043 B | 102,697 B |
+
+The container also answered `Cache-Control: no-cache, must-revalidate` for every file,
+so each game re-downloaded the whole SDK. Static assets carry a `?v=` content hash, so
+nginx now overrides that with `max-age=14400` for them and leaves HTML alone.
+
+Per-IP budgets live in the same file, since Cloudflare's rate limit does not cover this
+domain: 2 pages/s with a burst of 60, and 30 assets/s with a burst of 200. A child
+opening eight pages back to back sees no difference; a copier pulling hundreds a second
+gets 429.
+
+Configuration: `/etc/nginx/nginx.conf` (gzip) and `/etc/nginx/sites-enabled/smarts-brains`
+(cache headers, `limit_req`). The originals are in `/etc/nginx/backups/`.
