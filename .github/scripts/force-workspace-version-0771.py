@@ -1,9 +1,13 @@
 from pathlib import Path
 
+# Force visible workspace build stamp and cache-busting to 0.7.71.
 path = Path('he/workspace/index.html')
 text = path.read_text(encoding='utf-8')
 text = text.replace('IAKIDS • build 0.7.69', 'IAKIDS • build 0.7.71')
+text = text.replace('IAKIDS • build 0.7.70', 'IAKIDS • build 0.7.71')
 text = text.replace('window.IAKIDS_BUILD_VERSION = "0.7.62";', 'window.IAKIDS_BUILD_VERSION = "0.7.71";')
+text = text.replace('window.IAKIDS_BUILD_VERSION = "0.7.69";', 'window.IAKIDS_BUILD_VERSION = "0.7.71";')
+text = text.replace('window.IAKIDS_BUILD_VERSION = "0.7.70";', 'window.IAKIDS_BUILD_VERSION = "0.7.71";')
 text = text.replace('/he/workspace/homework-remote-capture.js?v=0769', '/he/workspace/homework-remote-capture.js?v=0771')
 text = text.replace('/he/workspace/homework-remote-capture.js?v=0770', '/he/workspace/homework-remote-capture.js?v=0771')
 path.write_text(text, encoding='utf-8')
