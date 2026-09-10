@@ -526,6 +526,14 @@ class TutorTTSRequest(BaseModel):
     session_id: str | None = None
 
 
+class HomeworkSimpleTestRequest(BaseModel):
+    kid_id: str
+    source_text: str = ""
+    current_question: str = ""
+    message: str = ""
+    history: list[dict] | None = None
+
+
 class HomeworkAnalyzeRequest(BaseModel):
     kid_id: str
 
@@ -19455,6 +19463,48 @@ class HomeworkTurnEvaluation(BaseModel):
     answer_sufficient: bool
     feedback: str
     teacher_response: str
+
+
+@app.post("/api/tutor/homework-simple-test")
+def homework_simple_test(
+        req: HomeworkSimpleTestRequest,
+        authorization: str = Header(None)
+):
+    user = authenticate_user(authorization)
+    child = get_child_by_id(user.id, req.kid_id)
+    grade = child.get("grade") if isinstance(child, dict) else None
+
+    system_prompt = (
+        "את מורה פרטית לילדים. עזרי לילד להבין ולפתור את שיעורי הבית בעצמו. "
+        "למדי אותו שלב אחרי שלב, בשפה פשוטה שמתאימה לכיתה שלו. "
+        "בכל פעם הסבירי צעד אחד בלבד, שאלי שאלה קצרה אחת, ואז חכי לתשובה. "
+        "אל תתני את התשובה המלאה לפני שהילד ניסה."
+    )
+
+    context = (
+        f"כיתה: {grade or 'לא ידוע'}\n"
+        f"השאלה: {req.current_question}\n"
+        f"חומר המקור:\n{req.source_text}"
+    )
+
+    messages = [{"role":"system","content":system_prompt}, {"role":"user","content":context}]
+    for item in (req.history or [])[-8:]:
+        role = str(item.get("role") or "")
+        content = str(item.get("content") or "").strip()
+        if role in ("user","assistant") and content:
+            messages.append({"role":role,"content":content})
+    if req.message.strip():
+        messages.append({"role":"user","content":req.message.strip()})
+    else:
+        messages.append({"role":"user","content":"תתחילי ללמד אותי את השאלה הזאת שלב אחרי שלב."})
+
+    response = client.chat.completions.create(
+        model="gpt-5.6-sol",
+        messages=messages,
+        temperature=0.3
+    )
+    text = str(response.choices[0].message.content or "").strip()
+    return {"reply": text, "model": "gpt-5.6-sol", "test_mode": True}
 
 
 @app.post("/api/tutor/homework-turn")

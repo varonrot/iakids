@@ -612,6 +612,12 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
 
   const HELP_CHOICES = [
     {
+      id: "simple_test",
+      icon: "fa-flask",
+      label: "טסט — מורה פשוטה",
+      childText: "תלמדי אותי פשוט, שלב אחרי שלב"
+    },
+    {
       id: "understand_question",
       icon: "fa-magnifying-glass",
       label: "להבין מה מבקשים בשאלה",
@@ -1172,7 +1178,8 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
         explain_topic: "▤",
         hint: "✦",
         solve_together: "→",
-        check_answer: "✓"
+        check_answer: "✓",
+        simple_test: "🧪"
       };
       button.innerHTML = `<span class="homework-help-icon" aria-hidden="true">${helpIconMap[choice.id] || "•"}</span><span>${choice.label}</span>`;
       button.addEventListener("click", () => {
@@ -1690,8 +1697,45 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     }
   }
 
+  async function runHomeworkSimpleTest(messageText=""){
+    const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
+    const current = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
+    const kidId = (typeof CURRENT_KID !== "undefined" && CURRENT_KID?.id) ? CURRENT_KID.id : window.CURRENT_KID?.id;
+    const token = await getHomeworkAccessToken();
+    if(!kidId || !token) throw new Error("Simple test auth missing");
+    window.HOMEWORK_SIMPLE_TEST_HISTORY = window.HOMEWORK_SIMPLE_TEST_HISTORY || [];
+    const response = await fetch(`${TUTOR_API_BASE}/api/tutor/homework-simple-test`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+      body:JSON.stringify({
+        kid_id:kidId,
+        source_text:analysis?.extracted_text || "",
+        current_question:current?.text || "",
+        message:String(messageText||""),
+        history:window.HOMEWORK_SIMPLE_TEST_HISTORY
+      })
+    });
+    if(!response.ok) throw new Error(await response.text());
+    const data=await response.json();
+    const reply=String(data?.reply||"").trim();
+    if(messageText) window.HOMEWORK_SIMPLE_TEST_HISTORY.push({role:"user",content:String(messageText)});
+    window.HOMEWORK_SIMPLE_TEST_HISTORY.push({role:"assistant",content:reply});
+    if(window.HOMEWORK_SIMPLE_TEST_HISTORY.length>10) window.HOMEWORK_SIMPLE_TEST_HISTORY=window.HOMEWORK_SIMPLE_TEST_HISTORY.slice(-10);
+    await renderHomeworkStructuredTeacherMessage(reply);
+    return true;
+  }
+
   async function runHomeworkChoiceWithTutor(choice){
     window.HOMEWORK_HELP_MODE = String(choice?.id || "").trim() || null;
+    if(choice?.id === "simple_test"){
+      window.HOMEWORK_SIMPLE_TEST_MODE = true;
+      window.HOMEWORK_SIMPLE_TEST_HISTORY = [];
+      removeHomeworkHelpOptions();
+      setHomeworkSidebarStep(4);
+      await runHomeworkSimpleTest("");
+      return;
+    }
+    window.HOMEWORK_SIMPLE_TEST_MODE = false;
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS;
     if(!analysis){
       await renderHomeworkStructuredTeacherMessage("לא מצאתי את התרגיל שהעלית. אפשר להעלות אותו שוב?");
@@ -2283,6 +2327,10 @@ Continue from the NEXT UNRESOLVED STEP only. Do not restart the solution. Do not
   }
 
   async function runStructuredHomeworkTurn(answerText){
+    if(window.HOMEWORK_SIMPLE_TEST_MODE === true){
+      await runHomeworkSimpleTest(answerText);
+      return;
+    }
     const current = getCurrentHomeworkQuestion();
     const next = getNextHomeworkQuestion();
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
