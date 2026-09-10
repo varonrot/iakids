@@ -4,57 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>אילו כישורים חושבים מפתחים משחקי iakids</title>
+<link rel="stylesheet" href="../game-style.css?v=0eea1d9b">
 <style>
+  /* The shared space theme, through this page's own token names. game-style.css
+     paints the background and the starfield; these are the surfaces on top of it.
+     One committed look, like every game — no light/dark switch to keep in step. */
   :root {
-    --bg-0: #fff8f2;
-    --bg-1: #fdefe2;
-    --card: #ffffff;
-    --text-1: #241f1a;
-    --text-2: #786f64;
-    --text-3: #a89c8d;
-    --line: #ece1d4;
-    --accent: #ff6a2a;
-    --ring: #f1e6d8;
+    --card:   rgba(4, 22, 55, 0.55);
+    --panel:  rgba(4, 22, 55, 0.72);
+    --ring:   rgba(119, 176, 255, 0.13);
+    --line:   rgba(119, 176, 255, 0.27);
+    --text-1: #f7f9ff;
+    --text-2: #b8c7e3;
+    --text-3: #8fa3c4;
+    --accent: #65bdff;
 
-    --s-math: #2a78d6;   --s-math-dark: #3987e5;
-    --s-heb:  #eb6834;   --s-heb-dark:  #d95926;
-    --s-eng:  #1baf7a;   --s-eng-dark:  #199e70;
-    --s-sci:  #eda100;   --s-sci-dark:  #c98500;
-    --s-log:  #e87ba4;   --s-log-dark:  #d55181;
-    --s-hw:   #008300;   --s-hw-dark:   #008300;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:where(:not([data-theme="light"])) {
-      --bg-0: #1a1613; --bg-1: #201a15; --card: #24201b;
-      --text-1: #f5efe8; --text-2: #b9ada0; --text-3: #83786b;
-      --line: #362e26; --accent: #ff7d47; --ring: #322a22;
-      --s-math: var(--s-math-dark); --s-heb: var(--s-heb-dark); --s-eng: var(--s-eng-dark);
-      --s-sci: var(--s-sci-dark); --s-log: var(--s-log-dark); --s-hw: var(--s-hw-dark);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg-0: #1a1613; --bg-1: #201a15; --card: #24201b;
-    --text-1: #f5efe8; --text-2: #b9ada0; --text-3: #83786b;
-    --line: #362e26; --accent: #ff7d47; --ring: #322a22;
-    --s-math: var(--s-math-dark); --s-heb: var(--s-heb-dark); --s-eng: var(--s-eng-dark);
-    --s-sci: var(--s-sci-dark); --s-log: var(--s-log-dark); --s-hw: var(--s-hw-dark);
-  }
-  :root[data-theme="light"] {
-    --bg-0: #fff8f2; --bg-1: #fdefe2; --card: #ffffff;
-    --text-1: #241f1a; --text-2: #786f64; --text-3: #a89c8d;
-    --line: #ece1d4; --accent: #ff6a2a; --ring: #f1e6d8;
-    --s-math: #2a78d6; --s-heb: #eb6834; --s-eng: #1baf7a;
-    --s-sci: #eda100; --s-log: #e87ba4; --s-hw: #008300;
+    /* the six subject colours, stepped up for a dark ground */
+    --s-math: #3f9bff;
+    --s-heb:  #ff8a52;
+    --s-eng:  #2fd39b;
+    --s-sci:  #ffc247;
+    --s-log:  #ff9ec4;
+    --s-hw:   #4ad07a;
   }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; }
-  body {
-    background: linear-gradient(175deg, var(--bg-0) 0%, var(--bg-1) 100%);
-    color: var(--text-1);
-    font-family: 'Heebo', 'Segoe UI', system-ui, sans-serif;
+  body.theme-space {
     direction: inherit; /* follows <html dir>, which IAKidsLang.init() sets dynamically */
-    padding: 28px 18px 60px;
+    padding: 30px 18px 60px !important;   /* no HUD on this page, so no room kept for one */
+    display: block !important;
   }
   .wrap { max-width: 1080px; margin: 0 auto; }
 
@@ -75,12 +54,14 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    background: rgba(101, 189, 255, 0.14);
     padding: 4px 12px;
     border-radius: 999px;
     margin-bottom: 12px;
   }
   h1 {
+    color: #fff;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, .22);
     font-size: clamp(1.6rem, 4vw, 2.3rem);
     font-weight: 800;
     margin: 0 0 8px;
@@ -117,6 +98,8 @@
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 16px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 12px 30px rgba(0, 8, 28, 0.30);
     padding: 16px 16px 14px;
     display: flex;
     flex-direction: column;
@@ -160,6 +143,7 @@
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 8, 28, 0.30);
   }
   th, td {
     padding: 10px 12px;
@@ -167,7 +151,10 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-  th:first-child, td:first-child { text-align: right; position: sticky; right: 0; background: var(--card); }
+  th:first-child, td:first-child {
+    text-align: right; position: sticky; right: 0;
+    background: #0a1f42;          /* opaque: the rows scroll underneath this column */
+  }
   thead th {
     font-size: 0.72rem;
     color: var(--text-2);
@@ -190,6 +177,7 @@
 
   .fact-card {
     background: var(--card);
+    backdrop-filter: blur(6px);
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 16px;
@@ -217,7 +205,8 @@
     color: var(--text-2);
     cursor: pointer;
   }
-  .cat-filter button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cat-filter button:hover { color: var(--text-1); border-color: var(--accent); }
+  .cat-filter button.active { background: var(--accent); color: #06142d; border-color: var(--accent); }
   #allGamesTable th[data-sort] { cursor: pointer; user-select: none; }
   #allGamesTable th[data-sort]:hover { color: var(--accent); }
   #allGamesTable th[data-sort].sorted::after { content: ' ▾'; }
@@ -227,20 +216,24 @@
   #allGamesTable .gname { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 
   #gameModalOverlay {
-    position: fixed; inset: 0; background: rgba(20, 15, 10, 0.55);
+    position: fixed; inset: 0; background: rgba(2, 9, 24, 0.72);
     display: flex; align-items: center; justify-content: center;
     padding: 16px; z-index: 200;
   }
   #gameModalOverlay[hidden] { display: none; }
   #gameModal {
-    background: var(--card); border-radius: 20px; padding: 22px;
+    background: linear-gradient(180deg, rgba(17, 58, 111, .97), rgba(5, 25, 61, .98));
+    border: 1px solid var(--line); color: var(--text-1);
+    box-shadow: 0 28px 75px rgba(0, 8, 28, .48);
+    border-radius: 20px; padding: 22px;
     max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto;
     position: relative; text-align: center;
   }
   #gameModalClose {
     position: absolute; top: 10px; inset-inline-end: 10px;
-    width: 32px; height: 32px; border-radius: 50%; border: none;
-    background: var(--ring); font-size: 1rem; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--line); background: rgba(4, 22, 55, .8);
+    color: var(--text-1); font-size: 1rem; cursor: pointer;
   }
   #gameModalRadar { max-width: 280px; margin: 0 auto; }
   #gameModalLegend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 8px 0 14px; }
@@ -253,7 +246,7 @@
   .compare-add { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
   .compare-add select {
     font: inherit; font-size: 0.85rem; padding: 6px 10px; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--card); color: var(--text-1); max-width: 220px;
+    border: 1px solid var(--line); background: #0a1f42; color: var(--text-1); max-width: 220px;
   }
   #gameModalCards { display: flex; flex-direction: column; gap: 10px; }
   .modal-game-card {
@@ -275,13 +268,14 @@
     padding: 8px 12px;
     border-radius: 12px;
     border: 1px solid var(--line);
-    background: var(--card);
+    background: #0a1f42;
     color: var(--text-1);
     max-width: 100%;
   }
   .game-detail {
     display: none;
     background: var(--card);
+    backdrop-filter: blur(6px);
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 18px;
@@ -309,6 +303,7 @@
   @media (max-width: 480px) { .trust-grid { grid-template-columns: 1fr; } }
   .trust-card {
     background: var(--card);
+    backdrop-filter: blur(6px);
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 16px;
@@ -320,6 +315,7 @@
 
   .method-box {
     background: var(--card);
+    backdrop-filter: blur(6px);
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 18px 20px;
@@ -329,7 +325,8 @@
   .method-box code { background: var(--ring); padding: 1px 6px; border-radius: 6px; font-size: 0.85em; }
 
   .commitment {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent);
+    background: linear-gradient(135deg, rgba(101, 189, 255, 0.12), rgba(118, 83, 255, 0.10));
+    backdrop-filter: blur(6px);
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 20px;
@@ -342,7 +339,7 @@
   .safe-links a:hover { text-decoration: underline; }
 </style>
 </head>
-<body>
+<body class="theme-space">
 <div class="wrap">
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
     <a class="back-link" href="../" id="tBackLink"></a>
