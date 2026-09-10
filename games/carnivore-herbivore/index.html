@@ -63,6 +63,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -223,7 +224,8 @@ async function fillTray() {
     if (!fits(a)) a = pickAnimal(lvl);
     const chip = document.createElement('div');
     chip.className = 'chip';
-    chip.innerHTML = `<span class="emoji">${a.emoji}</span><span class="name">${a.name}</span>`;
+    chip.innerHTML = `<span class="emoji">${a.emoji}</span><span class="name"></span>`;
+    IAKidsNikud.render(chip.querySelector('.name'), a.name);
     chip.dataset.diet = a.diet;
     makeDraggable(chip);
     tray.appendChild(chip);

@@ -51,6 +51,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -135,13 +136,13 @@ async function next() {
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
   const q = await game.newQuestion(() => makeQuestion(lvl), x => x.word);
   current = q.correctIdx;
-  $('question').textContent = q.word;
+  IAKidsNikud.render($('question'), q.word);
   const box = $('answers');
   box.innerHTML = '';
   q.options.forEach((opt, i) => {
     const b = document.createElement('button');
     b.className = 'game-btn outline';
-    b.textContent = opt;
+    IAKidsNikud.render(b, opt);
     b.onclick = () => answer(i, b);
     box.appendChild(b);
   });

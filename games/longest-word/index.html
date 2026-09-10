@@ -50,6 +50,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 // ---- content bank: real, correctly-spelled Hebrew words, mixed lengths ----
@@ -148,7 +149,7 @@ async function next() {
   q.options.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'game-btn outline';
-    btn.textContent = opt;
+    IAKidsNikud.render(btn, opt);
     btn.onclick = () => answer(opt, btn);
     answers.appendChild(btn);
   });

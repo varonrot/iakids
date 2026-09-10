@@ -76,6 +76,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 // word bank tagged by part of speech — n = שם עצם (noun), v = פועל (verb), a = תואר (adjective).
@@ -186,7 +187,13 @@ function buildRound(batch) {
   shuffle(batch).forEach(({ t, hi, p }) => {
     const chip = document.createElement('div');
     chip.className = 'chip';
-    chip.innerHTML = hi ? t.replace(hi, `<b>${hi}</b>`) : t;
+    chip.textContent = '';
+    const shown = IAKidsNikud.text(t), hiShown = hi ? (IAKidsNikud.of(hi) || hi) : '';
+    if (hiShown && shown.includes(hiShown)) {
+      const [before, after] = shown.split(hiShown);
+      const b = document.createElement('b'); b.textContent = hiShown;
+      chip.append(before, b, after);
+    } else chip.textContent = shown;
     chip.dataset.p = p;
     bank.appendChild(chip);
     attachDrag(chip);

@@ -61,6 +61,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -208,7 +209,7 @@ async function fillTray() {
     if (!inSet(q)) q = pool[rnd(pool.length)];
     const chip = document.createElement('div');
     chip.className = 'chip';
-    chip.textContent = q.word;
+    IAKidsNikud.render(chip, q.word);
     chip.dataset.rootIdx = curSet.findIndex(r => r.root === q.root);
     makeDraggable(chip);
     tray.appendChild(chip);

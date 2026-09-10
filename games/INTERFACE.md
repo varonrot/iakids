@@ -154,7 +154,34 @@ These come free from `game-sdk.js` / `game-style.css` the moment a game links th
 
 ## Content rules
 
-- **Nikud (vowel points) on Hebrew words**: generate them once with `python3 games/tools/nakdan.py word…` (Dicta Nakdan, re-fitted to the game's ktiv male so the letters never change) and bake them into the data as a separate field (`n:`), keeping the plain word for all logic. Review the output — for isolated nouns Dicta sometimes picks a construct form or another homograph (בֵּית for בַּיִת); fix those in `games/tools/nikud-overrides.json`, never in the game. Reference: `first-last-letter` shows the vocalised word after the answer.
+- **Nikud (vowel points) on Hebrew words**: never bake them into a game. Link `../nikud.js` before `../game-sdk.js` and render through `IAKidsNikud`:
+
+  ```html
+  <script src="../nikud.js"></script>
+  <script src="../game-sdk.js"></script>
+  ```
+  ```js
+  IAKidsNikud.of('שולחן')             // 'שׁוּלְחָן', '' when unknown
+  IAKidsNikud.text('הילד רץ')          // a whole phrase, word by word
+  IAKidsNikud.render(el, word, { mark: 0 })   // sets el's text; mark = index of a letter to bold
+  IAKidsNikud.local({ 'שמן': 'שָׁמֵן' })      // this game means the other homograph
+  ```
+  The dictionary's letters always equal the plain word, so **every comparison, key
+  and answer stays on the plain word** — only the rendered text is vocalised. A word
+  the dictionary doesn't hold falls back to the plain word, so a missing `<script>`
+  tag can never break a game.
+
+  To add words: `python3 games/tools/nakdan.py word…` (or `--json file`), review what
+  it prints, then regenerate `games/nikud.js`. Dicta reads each word on its own, so
+  for a homograph it can only guess the sense — correct those in
+  `games/tools/nikud-overrides.json`, never in `nikud.js` (it is regenerated) and never
+  in the game. `backend/seed_nikud.py` mirrors the same file into Supabase
+  (`public.hebrew_nikud`) for the backends.
+
+  Where to show it: in a game that only *reads* the word (rhymes, syllables, roots,
+  the sorting games) vocalise it immediately. In a game about letters or spelling
+  (first-last-letter, missing-letter, spelling-error) nikud would give the answer
+  away — show it after the child answers, as `first-last-letter` does.
 
 - **RTL correctness**: wrap math/English/numeric expressions in `<span dir="ltr">` so they don't flip inside the RTL page.
 - **Touch-friendly**: tap targets ≥60px; drag uses **Pointer Events** (`pointerdown`/`pointermove`/`pointerup` + `setPointerCapture`), never HTML5 drag&drop — it doesn't work reliably on touch. Hit-test the drop target *before* clearing the dragged element's `pointer-events:none` (via the `.dragging` CSS class), not after — clearing it first makes `elementFromPoint` hit the dragged element itself instead of the zone underneath.

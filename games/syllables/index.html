@@ -54,6 +54,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 const SLUG = 'syllables';
@@ -179,7 +180,7 @@ async function next() {
   const lvl = level === 0 ? 1 + rnd(3) : diff.level;
   const q = await game.newQuestion(() => makeQuestion(lvl), x => x.w);
   currentWord = q.w;
-  document.getElementById('question').textContent = q.w;
+  IAKidsNikud.render(document.getElementById('question'), q.w);
   const grid = document.getElementById('answers');
   grid.innerHTML = '';
   for (let n = 1; n <= 4; n++) {

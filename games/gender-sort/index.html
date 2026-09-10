@@ -71,6 +71,7 @@
   </div>
 </div>
 
+<script src="../nikud.js"></script>
 <script src="../game-sdk.js"></script>
 <script>
 // word bank tagged by grammatical gender — double-checked against standard Hebrew usage.
@@ -175,7 +176,7 @@ function buildRound(batch) {
   shuffle(batch).forEach(([word, g]) => {
     const chip = document.createElement('div');
     chip.className = 'chip';
-    chip.textContent = word;
+    IAKidsNikud.render(chip, word);
     chip.dataset.g = g;
     bank.appendChild(chip);
     attachDrag(chip);
