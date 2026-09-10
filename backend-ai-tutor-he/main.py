@@ -21,6 +21,7 @@ import base64
 import traceback
 import time
 import math
+import re
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
@@ -17156,6 +17157,8 @@ def homework_analyze(
             model=
             DEFAULT_OPENAI_MODEL,
 
+            response_format={"type": "json_object"},
+
             messages=[
 
                 {
@@ -17214,23 +17217,56 @@ def homework_analyze(
                 "returned empty response"
             )
 
+        # Robust JSON parsing for homework vision. Models may occasionally
+        # wrap otherwise-valid JSON in markdown fences or add short text
+        # before/after the object. Do not fail the whole homework flow for
+        # those harmless formatting deviations.
+        cleaned_response = raw_response.strip()
+
+        if cleaned_response.startswith("```"):
+            cleaned_response = re.sub(
+                r"^```(?:json)?\s*",
+                "",
+                cleaned_response,
+                flags=re.IGNORECASE
+            )
+            cleaned_response = re.sub(
+                r"\s*```$",
+                "",
+                cleaned_response
+            ).strip()
+
+        analysis = None
+
         try:
-
-            analysis = json.loads(
-                raw_response
-            )
-
+            analysis = json.loads(cleaned_response)
         except json.JSONDecodeError:
+            first_brace = cleaned_response.find("{")
+            last_brace = cleaned_response.rfind("}")
 
+            if first_brace >= 0 and last_brace > first_brace:
+                candidate = cleaned_response[first_brace:last_brace + 1]
+                try:
+                    analysis = json.loads(candidate)
+                except json.JSONDecodeError:
+                    analysis = None
+
+        if not isinstance(analysis, dict):
             print(
-                "VISION INVALID JSON:",
+                "VISION INVALID JSON - SAFE FALLBACK:",
                 raw_response
             )
-
-            raise RuntimeError(
-                "Gemini Vision "
-                "returned invalid JSON"
-            )
+            analysis = {
+                "subject": "",
+                "topic": "",
+                "language": "",
+                "instructions": "",
+                "extracted_text": "",
+                "exercises": [],
+                "handwritten_answers": [],
+                "confidence": 0,
+                "needs_high_resolution": False
+            }
 
         # =============================================
         # EXTRACT VALUES

@@ -66,3 +66,8 @@ Use exactly this structure:
   "confidence": 0,
   "needs_high_resolution": false
 }
+
+ROBUST OUTPUT RULES:
+- Output one JSON object only. No markdown fences and no prose outside JSON.
+- If the image is not homework or has no identifiable exercise, still return the exact JSON structure. Use empty strings/arrays, confidence 0, and needs_high_resolution false instead of explaining or refusing.
+
