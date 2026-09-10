@@ -13,20 +13,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Stretch parents background full width
+      - name: Force parents background full viewport width
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('he2/index.html')
           s = p.read_text(encoding='utf-8')
-          old = "background-image:url('/assets/he2/sections/parents-section-bg.webp?v=3');background-repeat:no-repeat;background-position:center center;background-size:contain;"
-          new = "background-image:url('/assets/he2/sections/parents-section-bg.webp?v=4');background-repeat:no-repeat;background-position:center center;background-size:cover;"
-          if old in s:
-              s = s.replace(old, new, 1)
+          marker = '/* ===== PARENTS FULL WIDTH OVERRIDE V7 ===== */'
+          css = r'''
+/* ===== PARENTS FULL WIDTH OVERRIDE V7 ===== */
+.parents-showcase-v2{
+  width:100vw!important;
+  max-width:none!important;
+  margin-left:calc(50% - 50vw)!important;
+  margin-right:calc(50% - 50vw)!important;
+  background-color:#041120!important;
+  background-image:url('/assets/he2/sections/parents-section-bg.webp?v=7')!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+}
+.parents-showcase-v2 .parents-v2-inner{max-width:1500px!important;margin-left:auto!important;margin-right:auto!important}
+@media(max-width:760px){
+  .parents-showcase-v2{
+    width:100vw!important;
+    margin-left:calc(50% - 50vw)!important;
+    margin-right:calc(50% - 50vw)!important;
+    background-size:cover!important;
+    background-position:center center!important;
+  }
+}
+'''
+          if marker not in s:
+              s = s.replace('</style>', css + '\n</style>', 1)
           else:
-              # fallback for earlier versions
-              s = s.replace("background:#041120 url('/assets/he2/sections/parents-section-bg.webp?v=2') center right/cover no-repeat;", "background-color:#041120;background-image:url('/assets/he2/sections/parents-section-bg.webp?v=4');background-repeat:no-repeat;background-position:center center;background-size:cover;", 1)
-          s = s.replace("background-position:center center;background-size:contain", "background-position:center center;background-size:cover")
+              # refresh cache/version if an older override already exists
+              s = s.replace("parents-section-bg.webp?v=6", "parents-section-bg.webp?v=7")
           p.write_text(s, encoding='utf-8')
           PY
       - name: Commit patch
@@ -34,5 +56,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add he2/index.html
-          git diff --cached --quiet || git commit -m "Stretch HE2 parents background full width"
+          git diff --cached --quiet || git commit -m "Force HE2 parents background full viewport width"
           git push
