@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הכתבות — מדריך להורים ולמורים | iakids</title>
+<meta name="description" content="משחק הכתבות של iakids: הילד שומע מילה וכותב אותה. מורה יכול להזין רשימת מילים משלו ולשלוח אותה לכיתה בקישור אחד.">
+<link rel="canonical" href="https://iakids.app/games/dictation/guide/">
+<meta property="og:title" content="הכתבות — משחק הכתבה עם רשימת המילים שלכם">
+<meta property="og:description" content="שולחים לכיתה קישור אחד עם מילות השבוע. הילד שומע וכותב, ומילה חוזרת עד שהיא נלמדת.">
+<meta property="og:url" content="https://iakids.app/games/dictation/guide/">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800;900&display=swap">
+<style>
+:root{
+  --bg:#06142d; --panel:rgba(17,58,111,.55); --panel-2:rgba(4,22,55,.5);
+  --line:rgba(119,176,255,.24); --text:#f7f9ff; --muted:#b8c7e3;
+  --blue:#1c91db; --blue-2:#0877bd; --gold:#ffd15c; --green:#37d182; --red:#ef6672;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);
+  font-family:"Heebo","Segoe UI",Arial,sans-serif;font-size:17px;line-height:1.75;
+  background:
+    radial-gradient(circle at 12% 14%,rgba(26,139,255,.22),transparent 34%),
+    radial-gradient(circle at 88% 8%,rgba(112,72,255,.24),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(12,184,203,.15),transparent 34%),
+    linear-gradient(145deg,#050f25,#0a2148 52%,#07152e);
+  background-attachment:fixed;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.75) 0 1px,transparent 1.4px);
+  background-size:56px 56px;opacity:.07;
+}
+main{max-width:760px;margin:0 auto;padding:28px 18px 70px}
+h1,h2,h3{line-height:1.2;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.1rem,7vw,3.1rem);font-weight:900;text-shadow:0 4px 14px rgba(0,0,0,.3)}
+h2{font-size:clamp(1.4rem,4.6vw,1.85rem);font-weight:900;margin:44px 0 10px}
+h2 .n{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;margin-inline-end:9px;border-radius:11px;vertical-align:-6px;
+  background:linear-gradient(180deg,#8054ff,#6035dc);border:1px solid rgba(180,160,255,.5);
+  font-size:1rem;font-weight:900;
+}
+h3{font-size:1.08rem;font-weight:900;margin:18px 0 6px}
+p{margin:0 0 14px}
+.lede{color:var(--muted);font-size:1.1rem;max-width:60ch;margin-top:12px}
+a{color:#7fd2ff}
+
+/* hero */
+header{text-align:center;padding:22px 0 4px}
+.badge{
+  display:inline-block;padding:5px 14px;border-radius:999px;margin-bottom:12px;
+  background:var(--panel-2);border:1px solid var(--line);
+  color:var(--muted);font-size:.82rem;font-weight:800;letter-spacing:.04em;
+}
+.hero-emoji{font-size:4.4rem;line-height:1;filter:drop-shadow(0 12px 20px rgba(0,0,0,.35))}
+.cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:22px 0 6px}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;min-height:54px;padding:0 22px;
+  border:1px solid rgba(118,176,255,.45);border-radius:16px;
+  color:#fff;text-decoration:none;font-weight:900;font-size:1.02rem;cursor:pointer;
+  background:linear-gradient(180deg,var(--blue),var(--blue-2));
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 9px 20px rgba(0,0,0,.22);
+  transition:transform .12s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75))}
+.btn.go{background:linear-gradient(180deg,#37d182,#16ad64);border-color:rgba(97,255,174,.55)}
+
+/* panels */
+.card{
+  padding:20px 22px;margin:16px 0;border-radius:var(--radius);
+  background:var(--panel-2);border:1px solid var(--line);
+  box-shadow:0 14px 32px rgba(0,8,28,.24);
+}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.two{grid-template-columns:1fr}}
+.mode{
+  padding:18px;border-radius:var(--radius);text-align:center;
+  background:linear-gradient(180deg,rgba(52,81,139,.7),rgba(21,49,99,.78));
+  border:2px solid rgba(118,176,255,.3);
+}
+.mode .ic{font-size:2.6rem;line-height:1.1}
+.mode h3{margin:6px 0 4px;font-size:1.25rem}
+.mode p{color:#cfe0f8;font-size:.95rem;margin:0}
+
+/* table */
+.tablewrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--line);background:var(--panel-2)}
+table{border-collapse:collapse;width:100%;font-size:.96rem;min-width:460px}
+th,td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(119,176,255,.14);vertical-align:top}
+th{color:var(--muted);font-size:.82rem;font-weight:800;letter-spacing:.03em}
+tr:last-child td{border-bottom:none}
+td b{color:#fff}
+code,.mono{
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;
+  background:rgba(4,22,55,.75);border:1px solid var(--line);border-radius:8px;padding:2px 7px;
+}
+pre{
+  margin:10px 0;padding:14px 16px;border-radius:14px;overflow-x:auto;
+  background:rgba(4,22,55,.75);border:1px solid var(--line);
+  direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;line-height:1.7;
+}
+pre.rtl{direction:rtl;text-align:right;font-family:inherit;font-size:.98rem}
+
+/* the letter strip demo */
+.strip{display:flex;flex-wrap:wrap-reverse;justify-content:center;gap:6px;margin:12px 0 6px}
+.strip b{
+  min-width:44px;padding:8px 6px;border-radius:12px;text-align:center;
+  font-size:1.5rem;font-weight:900;color:#fff;
+  background:linear-gradient(180deg,var(--green),#16ad64);
+}
+.strip b.bad{background:linear-gradient(180deg,var(--red),#cc3d4c)}
+.strip b.miss{background:rgba(4,22,55,.6);border:2px dashed rgba(184,199,227,.5);color:var(--muted)}
+.cap{text-align:center;color:var(--muted);font-size:.88rem;font-weight:700}
+
+/* the link builder */
+#builder{border:1px solid rgba(101,223,255,.34);background:linear-gradient(180deg,rgba(17,58,111,.6),rgba(5,25,61,.72))}
+#builder textarea{
+  width:100%;min-height:118px;padding:12px 14px;margin-top:6px;box-sizing:border-box;resize:vertical;
+  border-radius:14px;border:2px solid rgba(118,176,255,.32);background:rgba(4,22,55,.6);
+  color:#fff;font:inherit;font-size:1.02rem;line-height:1.9;
+}
+#builder textarea:focus{outline:none;border-color:#65dfff}
+.samples{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
+.samples button{
+  padding:7px 13px;border-radius:999px;cursor:pointer;font:inherit;font-size:.86rem;font-weight:800;
+  color:#dceaff;background:rgba(4,22,55,.6);border:1px solid var(--line);
+}
+.samples button:hover{border-color:#65dfff;color:#fff}
+#out{
+  display:block;margin-top:12px;padding:12px 14px;border-radius:14px;word-break:break-all;
+  background:rgba(4,22,55,.8);border:1px dashed rgba(101,223,255,.4);
+  color:#9fdcff;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.6;
+  direction:ltr;text-align:left;min-height:3.2em;
+}
+#builder .cta-row{justify-content:flex-start;margin:14px 0 0}
+#count{color:var(--muted);font-size:.86rem;font-weight:800;margin-top:8px}
+
+ul{margin:0 0 14px;padding-inline-start:22px}
+li{margin-bottom:8px}
+.note{color:var(--muted);font-size:.93rem}
+footer{
+  margin-top:52px;padding-top:22px;border-top:1px solid var(--line);
+  text-align:center;color:var(--muted);font-size:.9rem;
+}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="hero-emoji">📝</div>
+  <div class="badge">iakids · משחק חדש</div>
+  <h1>הכתבות</h1>
+  <p class="lede">הילד שומע מילה וכותב אותה. אתם מחליטים אילו מילים, והמשחק חוזר על כל מילה עד שהיא נלמדת.</p>
+  <div class="cta-row">
+    <a class="btn go" href="../">▶ לשחק עכשיו</a>
+    <a class="btn ghost" href="#builder">✏️ לבנות רשימה לכיתה</a>
+  </div>
+</header>
+
+<h2><span class="n">1</span>שני מצבים</h2>
+<p>הבחירה הזו משנה את המשחק, ולכן היא הדבר הראשון שרואים.</p>
+<div class="two">
+  <div class="mode">
+    <div class="ic">👀</div>
+    <h3>הצצה</h3>
+    <p>המילה מופיעה, פס נגמר, המילה נעלמת — והילד כותב אותה מהזיכרון.</p>
+  </div>
+  <div class="mode">
+    <div class="ic">🎧</div>
+    <h3>הקשבה</h3>
+    <p>המילה לא מוצגת אף פעם. רק שומעים. זו הכתבה אמיתית.</p>
+  </div>
+</div>
+<p class="note">במכשיר שאין בו קול, המשחק עובר להצצה מעצמו כדי שלא ייתקע.</p>
+
+<h2><span class="n">2</span>שלוש רמות</h2>
+<div class="tablewrap">
+<table>
+  <tr><th>רמה</th><th>המילים</th><th>כמה זמן רואים</th><th>כמה פעמים שומעים</th></tr>
+  <tr><td><b>🙂 קל</b></td><td>קצרות, נכתבות כמו שהן נשמעות<br><span class="note">ילד · ספר · דלת · שמש</span></td><td>4 שניות</td><td>ללא הגבלה</td></tr>
+  <tr><td><b>😎 בינוני</b></td><td>ארוכות יותר, עם המלכודות היומיומיות<br><span class="note">מכונית · מטרייה · מחברת</span></td><td>2.5 שניות</td><td>ללא הגבלה</td></tr>
+  <tr><td><b>🤓 קשה</b></td><td>אלה שבאמת שוגים בהן — א/ע, כ/ח, ט/ת, ס/ש<br><span class="note">עיפרון · תרנגולת · מעטפה</span></td><td>1.5 שניות</td><td><b>פעם אחת</b></td></tr>
+  <tr><td><b>🎲 אקראי</b></td><td>מערבב בין הרמות</td><td></td><td></td></tr>
+</table>
+</div>
+
+<h2><span class="n">3</span>הרשימה שלכם</h2>
+<p>במסך הפתיחה פותחים <b>✏️ רשימת המילים שלי</b> ומקלידים. מילה בכל שורה, או מופרדות בפסיק — שתי הצורות עובדות.</p>
+<pre class="rtl">מטרייה
+עיפרון
+מחברת
+ספרייה
+תרנגולת</pre>
+<p>הרשימה מחליפה את מילות המשחק בכל הרמות ונשמרת במכשיר, כך שמחר היא עדיין שם.</p>
+
+<div class="card" id="builder">
+  <h3>✏️ בנו קישור לכיתה</h3>
+  <p class="note" style="margin-bottom:4px">הקלידו את מילות השבוע. הקישור שייווצר פותח את המשחק כשהרשימה כבר בפנים — שלחו אותו בקבוצה.</p>
+  <div class="samples" id="samples"></div>
+  <textarea id="words" dir="rtl" spellcheck="false" placeholder="מטרייה&#10;עיפרון&#10;מחברת"></textarea>
+  <div id="count"></div>
+  <code id="out">הקישור יופיע כאן</code>
+  <div class="cta-row">
+    <button class="btn" type="button" id="copy">📋 העתקת הקישור</button>
+    <a class="btn ghost" id="wa" href="#" target="_blank" rel="noopener">💬 שליחה בוואטסאפ</a>
+    <a class="btn go" id="try" href="../">▶ ניסיון</a>
+  </div>
+</div>
+
+<h2><span class="n">4</span>חזרה עד ציון עובר</h2>
+<p>הסבב לא נגמר אחרי מספר שאלות קבוע. הוא נגמר כשהמילים ידועות.</p>
+<ul>
+  <li><b>מילה שנכתבה נכון מסומנת כידועה.</b> בקל מספיקה פעם אחת, ברמות הגבוהות פעמיים — מילה שנכתבה נכון פעם אחת עדיין יכולה להיות ניחוש.</li>
+  <li><b>מילה שנכשלה חוזרת</b>, אבל לא מיד. היא נכנסת כמה מילים אחורה, מספיק רחוק כדי שהילד ייזכר בה במקום להעתיק את מה שעדיין על המסך.</li>
+  <li><b>המונה מראה מילים שנלמדו מתוך המילים ברשימה</b>, כדי שמילה שחוזרת תיראה כהתקדמות ולא כנסיגה.</li>
+  <li><b>מילה שנשאלה חמש פעמים ועדיין שגויה מפסיקה להישאל.</b> להחזיק ילד בלולאה שהוא לא יכול לצאת ממנה גרוע מלעצור. היא מופיעה בסוף, למבוגר.</li>
+</ul>
+<p>בסוף מופיע כמה מהרשימה ידוע, האם זה עובר (80%), ומה נשאר — עם כפתור שמתחיל סבב קצר על אותן מילים בלבד.</p>
+
+<h3>דוגמה אמיתית</h3>
+<pre class="rtl">סבב 1   16 שאלות   ידע 3 מתוך 5   לא עבר
+        נשארו לתרגול:  ספרייה   תרנגולת
+
+סבב 2    4 שאלות   ידע 2 מתוך 2   עבר ✓</pre>
+<p class="note">הסבב השני קצר, כי הוא נוגע רק במה שחסר. זו הלולאה שמגיעה לציון עובר: משחקים, רואים מה חסר, מתרגלים רק את זה.</p>
+
+<h2><span class="n">5</span>מה קורה כשטועים</h2>
+<p>תשובה שגויה מקבלת יותר מסך מתשובה נכונה, כי יש בה מה ללמוד. הילד רואה את האותיות שכתב מול המילה:</p>
+<div class="strip"><b>מ</b><b>ט</b><b class="bad">ר</b><b>י</b><b class="miss">·</b></div>
+<p class="cap">ירוק במקום שמתאים · אדום במקום ששגה · מקווקו במקום שחסרה אות</p>
+<p>אחר כך המילה עצמה, מנוקדת, תחת הכותרת "כך כותבים אותה". הבדיקה מתעלמת מניקוד, רווחים, גרשיים ומקף — אף אחד מהם אינו שגיאת כתיב שהילד עשה.</p>
+
+<h2><span class="n">6</span>ניקוד והקראה</h2>
+<ul>
+  <li><b>הניקוד נמנע עד שהתשובה נכנסת.</b> במשחק איות, סימני הניקוד פשוט מגלים את התשובה. הם מופיעים בסוף, איפה שהם מלמדים.</li>
+  <li><b>מתג ניקוד</b> נמצא במסך הפתיחה של כל משחק. ברירת המחדל לפי גיל: עד 8 עם ניקוד, מעל זה בלי. מרגע שלוחצים, הבחירה נשמרת.</li>
+  <li><b>ההקראה</b> משתמשת בקול של המכשיר עצמו, בלי עלות ובלי אינטרנט.</li>
+</ul>
+
+<h2><span class="n">7</span>שאלות שחוזרות</h2>
+<div class="card">
+  <h3>הילד לא רואה את המילה בכלל — זה תקין?</h3>
+  <p class="note">כן, במצב 🎧 הקשבה. אם זה מוקדם מדי עבורו, עברו ל־👀 הצצה.</p>
+  <h3>אפשר לשמוע שוב?</h3>
+  <p class="note">בקל ובבינוני כן, ללא הגבלה. בקשה יש השמעה אחת בלבד, וזה חלק מהרמה.</p>
+  <h3>הרשימה נעלמה</h3>
+  <p class="note">היא נשמרת במכשיר ובדפדפן שבהם הוקלדה. במכשיר אחר צריך את הקישור עם המילים.</p>
+  <h3>המשחק חוזר על אותה מילה</h3>
+  <p class="note">זו התכונה המרכזית. מילה חוזרת עד שהיא ידועה.</p>
+</div>
+
+<div class="cta-row" style="margin-top:32px">
+  <a class="btn go" href="../">▶ לשחק עכשיו</a>
+  <a class="btn ghost" href="../../">🎮 לכל המשחקים</a>
+</div>
+
+<footer>iakids · משחקים לימודיים בעברית · <a href="https://iakids.app">iakids.app</a></footer>
+</main>
+
+<script>
+const SAMPLES = [
+  ['כיתה א׳', 'ילד, ילדה, ספר, דלת, חלון, שמש, מים, כלב, חתול, יד, רגל, פרח, עץ, גשם, לחם'],
+  ['אותיות דומות', 'בית, בת, כד, כף, שן, שק, טל, תל, סל, של, עז, אח, חג, הר'],
+  ['ו׳ ו־י׳', 'שולחן, חולצה, אוזניים, מכונית, גלידה, עיתון, כינור, סיפור, ציפור, מנורה'],
+  ['מלכודות', 'עיפרון, מברשת, תרנגולת, אמבטיה, ספרייה, מעטפה, מסעדה, תעודה, הפתעה, מעלית'],
+  ['חגים', 'חנוכייה, סופגנייה, מנורה, נרות, סביבון, מסכה, רעשן, מצה'],
+];
+const $ = id => document.getElementById(id);
+// The guide sits one level below the game, so the link is built from this page's
+// own address — it stays right on iakids.app, on the mirror, and on localhost.
+const GAME = new URL('../', location.href).href;
+
+const words = () => [...new Set(
+  $('words').value.split(/[\n,،;]+/).map(w => w.trim()).filter(w => /^[א-תa-zA-Z][^\s]{0,24}$/.test(w))
+)];
+
+function paint() {
+  const w = words();
+  const url = w.length ? GAME + '?words=' + encodeURIComponent(w.join(',')) : '';
+  $('out').textContent = url || 'הקישור יופיע כאן';
+  $('count').textContent = w.length ? `${w.length} מילים ברשימה` : '';
+  $('try').href = url || '../';
+  $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(
+    w.length ? `מילות ההכתבה לשבוע הזה 📝\n${w.join(', ')}\n\nלתרגול במשחק:\n${url}` : GAME);
+  $('copy').disabled = !url;
+}
+
+$('words').addEventListener('input', paint);
+$('copy').onclick = async () => {
+  const url = $('out').textContent;
+  if (!url.startsWith('http')) return;
+  try { await navigator.clipboard.writeText(url); }
+  catch { // clipboard blocked (an insecure origin, or an old browser) — select it instead
+    const r = document.createRange(); r.selectNode($('out'));
+    getSelection().removeAllRanges(); getSelection().addRange(r);
+  }
+  const b = $('copy'), was = b.textContent;
+  b.textContent = '✅ הועתק';
+  setTimeout(() => { b.textContent = was; }, 1600);
+};
+
+$('samples').append(...SAMPLES.map(([name, list]) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = name;
+  b.onclick = () => { $('words').value = list.split(', ').join('\n'); paint(); };
+  return b;
+}));
+paint();
+</script>
+</body>
+</html>

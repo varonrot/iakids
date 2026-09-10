@@ -11,6 +11,8 @@ Every game under `/games/<slug>/index.html` implements this interface. It's how 
 
 Both files are shared and loaded read-only by every game — never edit them from within a game's own build task; changes there affect all 100 games.
 
+**After editing a shared file, run `python3 games/tools/bump-sdk.py --apply` before pushing.** The shared files are served with a four-hour cache, so a browser that opened any game today keeps its copy: a page whose HTML has just changed then runs against yesterday's SDK, and a call to something the old SDK never had dies on a ReferenceError — which, from the outside, looks like a button that does nothing. The tool stamps each shared file's own content hash into every `<script>`/`<link>` that loads it, so a browser refetches exactly when the file changed and reuses it every other time.
+
 ```js
 const game = await IAKidsGame.init('<slug>'); // slug = folder name, own IndexedDB: iakids_game_<slug>
 ```

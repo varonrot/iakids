@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>הכתבות | iakids</title>
-<link rel="stylesheet" href="../game-style.css">
+<link rel="stylesheet" href="../game-style.css?v=55616175">
 <style>
 /* Shared dark space theme (body.theme-space in ../game-style.css). Only this game's
    own furniture is styled here: the listening disc, the slate the child writes on,
@@ -204,8 +204,8 @@
   </div>
 </div>
 
-<script src="../nikud.js"></script>
-<script src="../game-sdk.js"></script>
+<script src="../nikud.js?v=ea3b1b32"></script>
+<script src="../game-sdk.js?v=ba7ff45d"></script>
 <script>
 const SLUG = 'dictation';
 const $ = id => document.getElementById(id);
@@ -402,6 +402,19 @@ const ready = IAKidsGame.init(SLUG).then(async g => {
  * given set, which is how the end screen offers a second pass over the misses.
  */
 async function start(lvl, words) {
+  // A shared file is cached for hours, so a browser can hold an older game-sdk.js
+  // than this page was built against. Say so rather than dying on a ReferenceError,
+  // which from the outside looks like a button that simply does nothing.
+  if (typeof IAKidsMastery === 'undefined' || typeof IAKidsSpeech === 'undefined') {
+    alert(IAKidsLang.t({
+      he: 'המשחק עודכן. רעננו את הדף (Ctrl+Shift+R) כדי לטעון את הגרסה החדשה.',
+      en: 'The game was updated. Reload the page (Ctrl+Shift+R) to get the new version.',
+      es: 'El juego se actualizó. Recarga la página.',
+      de: 'Das Spiel wurde aktualisiert. Lade die Seite neu.',
+      pt: 'O jogo foi atualizado. Recarregue a página.',
+    }));
+    return location.reload();
+  }
   await ready;
   level = lvl;
   diff = game.difficulty(lvl || 1, 3);
