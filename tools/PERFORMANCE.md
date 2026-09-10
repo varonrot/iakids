@@ -162,7 +162,7 @@ The first two are hours. The third is a day and is worth more than any hardware.
 |---|---|
 | §1 split `nikud.js` per game | **done** — `nikud-build.py`; the median game loads 11 KB, not 155 KB |
 | §2 brotli for JavaScript | Cloudflare setting — not done from here |
-| §3 index + de-sort `game_next_questions` | **written**, `supabase/migrations/20260910_game_bank_performance.sql` — paste in the SQL editor |
+| §3 index + de-sort `game_next_questions` | **written** — paste `supabase/migrations/20260910_game_bank_lockdown.sql`, which contains it and also closes the bank to direct reads |
 | §3b one round trip per answer | **done in the SDK** (`game_record_answer`, falls back until the migration lands) |
 | §4 read-aloud observer | **done** — once per frame, node changes only |
 | §5 tutor threadpool | **done** — 40 → 128 threads (96 on the core API) via `WORKER_THREADS`; needs a Render redeploy |

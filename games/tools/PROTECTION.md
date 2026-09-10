@@ -79,11 +79,14 @@ item 3 matters more than this one.
 
 1. **Turn on the Cloudflare rate limit.** Ten minutes, and it is the biggest single
    gain on this page.
-2. **Keep the valuable content server-side.** The question bank already lives in
-   Supabase behind RLS, and a copied game cannot read another child's rows. The word
-   lists and generators, though, are in the JavaScript and therefore public. If a game's
-   content is genuinely the asset, serve it from the backend per question rather than
-   shipping the whole bank to the browser.
+2. **The question bank is closed to direct reads** (migration
+   `20260910_game_bank_lockdown.sql`). Until it, `game_questions` — 106,096 rows with
+   their answers — was readable by anyone holding the publishable key, which is every
+   visitor. Now the only way in is `game_next_questions`, which hands a child of the
+   caller at most 25 unanswered questions per call and refuses a child who has pulled
+   more than 900 in an hour, so the bank can be enumerated no faster than it can be
+   played. The generators are still in the JavaScript and therefore public; the
+   *specific* rows, and which one comes next, are not.
 3. **Watch for copies.** A search for a distinctive string from a game — a help text,
    an unusual word list — finds a rehosted copy faster than anything automated.
 
