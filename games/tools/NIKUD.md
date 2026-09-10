@@ -46,8 +46,13 @@ the built file is a note to nobody. Regenerate after every override change:
 ```bash
 python3 games/tools/nikud-check.py --emit > /tmp/w.txt
 python3 games/tools/nakdan.py --json /tmp/w.txt > /tmp/n.json
-# then rebuild games/nikud.js from /tmp/n.json
+python3 games/tools/nikud-build.py /tmp/n.json
 ```
+
+The build writes the master (`tools/nikud.full.js`) and **one small `nikud.js` beside
+each page holding only the words that page renders** — the median game loads 11 KB
+instead of 155 KB. A page's word list comes from the checker's own extractor, so the
+file and the rule that checks it cannot disagree.
 
 ## R4 — every rendered word is covered
 

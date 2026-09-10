@@ -18,7 +18,7 @@ import hashlib, re, sys, glob, os
 
 APPLY = '--apply' in sys.argv
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # games/
-SHARED = ['game-sdk.js', 'nikud.js', 'game-style.css']
+SHARED = ['game-sdk.js', 'game-style.css']
 
 
 def version(name):
@@ -44,6 +44,11 @@ def main():
             out = re.sub(
                 r'((?:\.\./)*' + re.escape(name) + r')(?:\?v=[0-9a-f]+)?(?=["\'])',
                 lambda m: f'{m.group(1)}?v={v}', out)
+        # nikud.js is split per page (nikud-build.py): hash the copy beside this page
+        own = os.path.join(os.path.dirname(p), 'nikud.js')
+        if os.path.isfile(own):
+            hv = hashlib.sha256(open(own, 'rb').read()).hexdigest()[:8]
+            out = re.sub(r'(src=")nikud\.js(?:\?v=[0-9a-f]+)?"', lambda m: f'{m.group(1)}nikud.js?v={hv}"', out)
         if out != s:
             changed.append(os.path.relpath(p, ROOT))
             total += 1

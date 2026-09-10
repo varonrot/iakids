@@ -153,3 +153,19 @@ part; it waits on OpenAI and Gemini.
    users and as many as the model provider allows.
 
 The first two are hours. The third is a day and is worth more than any hardware.
+
+---
+
+## Status (2026-09-10, later the same day)
+
+| item | state |
+|---|---|
+| §1 split `nikud.js` per game | **done** — `nikud-build.py`; the median game loads 11 KB, not 155 KB |
+| §2 brotli for JavaScript | Cloudflare setting — not done from here |
+| §3 index + de-sort `game_next_questions` | **written**, `supabase/migrations/20260910_game_bank_performance.sql` — paste in the SQL editor |
+| §3b one round trip per answer | **done in the SDK** (`game_record_answer`, falls back until the migration lands) |
+| §4 read-aloud observer | **done** — once per frame, node changes only |
+| §5 tutor threadpool | **done** — 40 → 128 threads (96 on the core API) via `WORKER_THREADS`; needs a Render redeploy |
+| §5 per-caller rate limit | **done** — 60/min on the tutor, 30/min on the core API, webhook exempt; `RATE_LIMIT_PER_MINUTE` |
+| §5 routes to `async def` | not done — a day's refactor of 19 routes, best done with the model client swapped to its async variant in the same pass |
+| §5 six sequential round trips in `get_or_generate_unit_lesson` | not done |

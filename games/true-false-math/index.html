@@ -17,8 +17,8 @@
 <div id="play-screen" hidden><div class="game-question" id="question"></div><div class="answer-grid"><button class="game-btn success" onclick="answer(true,this)" id="btn-true"></button><button class="game-btn danger" onclick="answer(false,this)" id="btn-false"></button></div></div>
 <div id="end-screen" class="end-screen" hidden><div class="stars" id="stars"></div><div class="big-score" id="final-score"></div><p id="player-line"></p><p><span id="best-label"></span>: <b id="best"></b></p><button class="game-btn" onclick="location.reload()" id="again"></button><div id="share-slot"></div></div>
 </div>
-<script src="../nikud.js?v=961e2bed"></script>
-<script src="../game-sdk.js?v=6a562bec"></script>
+<script src="nikud.js?v=96fc0c6c"></script>
+<script src="../game-sdk.js?v=a73264ee"></script>
 <script>
 const T=IAKidsLang.t.bind(IAKidsLang),UI=IAKidsLang.ui.bind(IAKidsLang),$=id=>document.getElementById(id),rnd=n=>Math.floor(Math.random()*n);
 const TXT_REGULAR={title:{he:'אמת או שקר בחשבון',en:'True or False Math',es:'Verdadero o falso',de:'Wahr oder falsch',pt:'Verdadeiro ou falso'},subtitle:{he:'האם התרגיל נכון? ענו מהר לפני שהפצצה מתפוצצת! 💣',en:'Is the equation right? Answer before the bomb! 💣',es:'¿Es correcta la cuenta? ¡Responde antes de la bomba! 💣',de:'Stimmt die Rechnung? Antworte vor der Bombe! 💣',pt:'A conta está certa? Responda antes da bomba! 💣'},rounds:{he:'כמה שאלות?',en:'How many questions?',es:'¿Cuántas preguntas?',de:'Wie viele Fragen?',pt:'Quantas perguntas?'},level:{he:'בחרו רמת קושי',en:'Choose difficulty'},truth:{he:'אמת',en:'True',es:'Verdadero',de:'Wahr',pt:'Verdadeiro'},falsehood:{he:'שקר',en:'False',es:'Falso',de:'Falsch',pt:'Falso'}};

@@ -182,10 +182,10 @@ These come free from `game-sdk.js` / `game-style.css` the moment a game links th
 
 - **Reading aloud**: `IAKidsSpeech.say(text)` speaks a word or a sentence. It tries this browser's cache, then the browser's own voice — free, offline, no model — and only on a device with no voice for the language does it ask the tutor backend's model voice, whose answer it then keeps, so the model is never asked for the same text twice. `IAKidsSpeech.prime(list)` warms a list ahead of a round. Marks and markup are stripped before anything is spoken.
 
-- **Nikud (vowel points) on Hebrew words**: never bake them into a game. Link `../nikud.js` before `../game-sdk.js` and render through `IAKidsNikud`:
+- **Nikud (vowel points) on Hebrew words**: never bake them into a game. Each game loads its **own** `nikud.js` — a few KB holding only the words it renders, cut from the master by `games/tools/nikud-build.py` — before `../game-sdk.js`, and renders through `IAKidsNikud`:
 
   ```html
-  <script src="../nikud.js"></script>
+  <script src="nikud.js"></script>        <!-- this game's own words, built by nikud-build.py -->
   <script src="../game-sdk.js"></script>
   ```
   ```js
@@ -199,9 +199,10 @@ These come free from `game-sdk.js` / `game-style.css` the moment a game links th
   the dictionary doesn't hold falls back to the plain word, so a missing `<script>`
   tag can never break a game.
 
-  To add words: `python3 games/tools/nikud-check.py --emit > /tmp/w.txt` then
-  `python3 games/tools/nakdan.py --json /tmp/w.txt`, review what it prints, and
-  rebuild `games/nikud.js`. **Then run `python3 games/tools/nikud-check.py` — it must
+  To add words: `python3 games/tools/nikud-check.py --emit > /tmp/w.txt`, then
+  `python3 games/tools/nakdan.py --json /tmp/w.txt > /tmp/n.json`, review what it
+  prints, then `python3 games/tools/nikud-build.py /tmp/n.json`, which rewrites the
+  master and every page's own file. **Then run `python3 games/tools/nikud-check.py` — it must
   print no FAIL.** The twelve rules it enforces, and why each exists, are in
   `games/tools/NIKUD.md`; read that before any task that touches Hebrew text. Dicta reads each word on its own, so
   for a homograph it can only guess the sense — correct those in

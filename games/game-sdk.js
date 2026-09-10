@@ -651,11 +651,23 @@ const IAKidsBank = {
   onAnswer(correct) {
     const cur = this._current; if (!cur) return; this._current = null;
     (this._answered[cur.slug] || (this._answered[cur.slug] = new Set())).add(cur.qkey);
-    this._client().then(c => {
+    this._client().then(async c => {
       if (!c) return;
+      const ms = Math.min(Date.now() - cur.at, 3600000);
+      // One round trip per answer (migration 20260910_game_bank_performance). Until
+      // that migration is applied the rpc does not exist, so fall back to the two
+      // calls it replaced rather than lose the answer.
+      try {
+        const { error } = await c.rpc('game_record_answer', {
+          p_kid: this._kid(), p_game: cur.slug, p_key: cur.qkey, p_correct: !!correct,
+          p_ms: ms, p_level: cur.level || null, p_session: IAKidsActivity._sessionId || null,
+        });
+        if (!error) return;
+        if (!/function|schema cache|not find/i.test(error.message || '')) return;   // a real refusal, not "missing"
+      } catch { /* fall through to the old path */ }
       c.from('kid_question_answers').insert({
         kid_id: this._kid(), game_code: cur.slug, qkey: cur.qkey, correct: !!correct,
-        response_ms: Math.min(Date.now() - cur.at, 3600000), level: cur.level || null,
+        response_ms: ms, level: cur.level || null,
         session_id: IAKidsActivity._sessionId || null,
       }).then(() => {}, () => {});
       c.rpc('game_question_mark', { p_game: cur.slug, p_key: cur.qkey, was_correct: !!correct }).then(() => {}, () => {});
@@ -978,9 +990,18 @@ const IAKidsSpeech = {
     document.body.appendChild(btn);
     const sync = () => { btn.hidden = !this.currentQuestion(); };
     sync();
-    // Questions are swapped by the game, not by us, so watch the card for changes.
+    // Questions are swapped by the game, not by us, so watch the card for changes —
+    // but a drag game mutates the DOM on every pointer move, and currentQuestion()
+    // walks ten selectors. Coalesce to once per frame, and skip characterData: a
+    // new question always arrives as a new node, never as an edit to an old one.
+    let queued = false;
+    const later = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => { queued = false; sync(); });
+    };
     const card = document.getElementById('card') || document.body;
-    new MutationObserver(sync).observe(card, { childList: true, subtree: true, characterData: true });
+    new MutationObserver(later).observe(card, { childList: true, subtree: true });
   },
 
   /** A ready-made 🔊 button. `textFn` may be a string or a function returning one. */

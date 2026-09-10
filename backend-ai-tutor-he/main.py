@@ -469,6 +469,54 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ===== capacity: widen the worker pool, and keep one client from taking all of it =====
+# Every route here is a plain `def`, so FastAPI runs it in anyio's worker threadpool
+# and each request holds a thread for the whole model call. The pool defaults to 40,
+# which is the whole service's concurrency; while the routes stay blocking, a wider
+# pool is the cheapest capacity there is (a waiting thread costs memory, not CPU).
+# Making the routes `async def` is the real fix and would make this moot.
+import anyio as _anyio
+import time as _time
+from collections import deque as _deque
+from fastapi import Request as _Request
+from starlette.responses import JSONResponse as _JSONResponse
+
+WORKER_THREADS = int(os.getenv("WORKER_THREADS", "128"))
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+_RATE_EXEMPT = set()
+_rate_buckets: dict = {}
+
+
+@app.on_event("startup")
+async def _widen_threadpool():
+    _anyio.to_thread.current_default_thread_limiter().total_tokens = WORKER_THREADS
+
+
+@app.middleware("http")
+async def _rate_limit(request: _Request, call_next):
+    """A sliding one-minute window per caller on /api/*.
+
+    Without it, one browser tab in a loop takes every worker thread and every other
+    child sees a page that has stopped. Keyed by the bearer token when there is one
+    (a user), else by address (a guest). Webhooks are exempt: Lemon retries them.
+    """
+    path = request.url.path
+    if path.startswith("/api/") and path not in _RATE_EXEMPT:
+        key = request.headers.get("authorization") or (request.client.host if request.client else "?")
+        now = _time.time()
+        q = _rate_buckets.setdefault(key, _deque())
+        while q and q[0] < now - 60:
+            q.popleft()
+        if len(q) >= RATE_LIMIT_PER_MINUTE:
+            return _JSONResponse(status_code=429, headers={"Retry-After": "60"},
+                                 content={"detail": "rate_limited", "limit_per_minute": RATE_LIMIT_PER_MINUTE})
+        q.append(now)
+        if len(_rate_buckets) > 5000:                       # forget callers not seen this minute
+            for k in [k for k, v in _rate_buckets.items() if not v or v[-1] < now - 60]:
+                _rate_buckets.pop(k, None)
+    return await call_next(request)
+# ===== end capacity =====
+
 
 # =====================================================
 # MODELS

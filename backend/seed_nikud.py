@@ -4,8 +4,8 @@
     APP_ENV=prod python3 backend/seed_nikud.py --dry-run
     APP_ENV=prod python3 backend/seed_nikud.py
 
-Reads games/nikud.js — the file the games themselves ship — so the table and the
-static dictionary can never drift. Words listed in games/tools/nikud-overrides.json
+Reads games/tools/nikud.full.js, the master every per-page nikud.js is cut from,
+so the table and the shipped files can never drift. Words listed in games/tools/nikud-overrides.json
 are marked reviewed=true, source='override': a person chose those readings.
 
 Rows already present are updated only when the vocalisation changed; the letters
@@ -28,10 +28,10 @@ load_dotenv(_envfile if _envfile.exists() else _here / ".env")
 
 def read_dictionary():
     """Parse the `'word': 'vocalised',` lines out of games/nikud.js."""
-    src = (ROOT / "games" / "nikud.js").read_text(encoding="utf-8")
+    src = (ROOT / "games" / "tools" / "nikud.full.js").read_text(encoding="utf-8")
     pairs = re.findall(r"'([א-ת]+)':\s*'([^']+)'", src)
     if not pairs:
-        sys.exit("games/nikud.js: no entries found — was it generated?")
+        sys.exit("games/tools/nikud.full.js: no entries found — run games/tools/nikud-build.py")
     return dict(pairs)
 
 
