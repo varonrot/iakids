@@ -1,0 +1,34 @@
+name: Bump homework remote capture 0.7.71
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/bump-homework-remote-capture-0771.py'
+      - '.github/workflows/bump-homework-remote-capture-0771.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply patch
+        run: python .github/scripts/bump-homework-remote-capture-0771.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix homework QR globals; bump to 0.7.71"
+          git push origin main
