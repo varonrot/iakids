@@ -183,6 +183,19 @@ These come free from `game-sdk.js` / `game-style.css` the moment a game links th
   (first-last-letter, missing-letter, spelling-error) nikud would give the answer
   away — show it after the child answers, as `first-last-letter` does.
 
+  **Titles, how-to text, labels and buttons need no code at all.** Every translated
+  string in every game goes through `IAKidsLang.t()`, which vocalises the Hebrew
+  when nikud is on — emoji and inline `<b>` are left alone. Add a new string to a
+  `T` object as usual; if a word of it is missing from the dictionary it simply
+  stays plain, so run `nakdan.py` over the new words and regenerate.
+
+  **On or off is the child's choice.** `IAKidsNikud.enabled` is a per-device flag
+  and the pill in the start screen flips it (the page reloads, since every label
+  was already rendered). The default is seeded from the active child's age —
+  `AUTO_UNTIL_AGE` (8) and under gets nikud — and a child who presses the pill
+  keeps their choice from then on. Non-Hebrew pages never show the pill and never
+  vocalise.
+
 - **RTL correctness**: wrap math/English/numeric expressions in `<span dir="ltr">` so they don't flip inside the RTL page.
 - **Touch-friendly**: tap targets ≥60px; drag uses **Pointer Events** (`pointerdown`/`pointermove`/`pointerup` + `setPointerCapture`), never HTML5 drag&drop — it doesn't work reliably on touch. Hit-test the drop target *before* clearing the dragged element's `pointer-events:none` (via the `.dragging` CSS class), not after — clearing it first makes `elementFromPoint` hit the dragged element itself instead of the zone underneath.
 - **MCQ**: exactly one correct option, distractors plausible (common mistakes, ±1–3 off), shuffle position every question.

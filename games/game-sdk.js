@@ -677,7 +677,70 @@ const IAKidsNikud = {
   _dict() { return (typeof IAKIDS_NIKUD !== 'undefined' && IAKIDS_NIKUD) || {}; },
   local(map) { Object.assign(this._local, map || {}); return this; },
   strip(s) { return String(s).replace(/[\u0591-\u05C7]/g, ''); },
+
+  // ---- on/off -------------------------------------------------------------
+  // Nikud is a reading aid: the young readers it is for want it, and children
+  // who already read fluently find it cluttered. So it is a per-device choice,
+  // seeded from the active child's age and then owned by whoever flips the pill.
+  // Three levels, most specific first:
+  //   iakids_nikud       '1'/'0'  — someone pressed the button; always wins
+  //   iakids_nikud_auto  '1'/'0'  — what this child's age implies, cached below
+  //   otherwise ON       — the default that helps the children who need it most
+  AUTO_UNTIL_AGE: 8,               // in Israel a child reads with nikud through ~grade 3
+  get enabled() {
+    if (IAKidsLang.code !== 'he') return false;    // marks only exist for Hebrew
+    try {
+      const chosen = localStorage.getItem('iakids_nikud');
+      if (chosen === '1' || chosen === '0') return chosen === '1';
+      return localStorage.getItem('iakids_nikud_auto') !== '0';
+    } catch { return true; }
+  },
+  set enabled(v) { try { localStorage.setItem('iakids_nikud', v ? '1' : '0'); } catch {} },
+
+  // Look the child's age up once and remember what it implies. Runs from
+  // IAKidsGame.init(); it only moves the *default*, so a child who has pressed
+  // the button keeps their choice. Fails silently — this is never load-bearing.
+  async resolveAuto() {
+    try {
+      if (localStorage.getItem('iakids_nikud') !== null) return;   // already chosen by hand
+      const kid = localStorage.getItem('active_kid_id');
+      if (!kid) return;
+      if (localStorage.getItem('iakids_nikud_kid') === kid) return; // cached for this child
+      const c = await IAKidsActivity._getClient(); if (!c) return;
+      const { data } = await c.from('kids_profiles').select('age').eq('id', kid).maybeSingle();
+      if (!data) return;
+      const age = Number(data.age);
+      localStorage.setItem('iakids_nikud_kid', kid);
+      localStorage.setItem('iakids_nikud_auto', Number.isFinite(age) && age > this.AUTO_UNTIL_AGE ? '0' : '1');
+    } catch { /* offline, or no profile — the default stands */ }
+  },
+
+  // The on/off pill. Sits with the timer pill inside the start screen, so the
+  // choice is made before a level is picked. Hebrew pages only.
+  mountToggle() {
+    if (IAKidsLang.code !== 'he') return;
+    if (document.getElementById('iakids-nikud-toggle')) return;
+    const btn = document.createElement('button');
+    btn.id = 'iakids-nikud-toggle';
+    btn.className = 'game-btn outline';
+    btn.type = 'button';
+    const paint = () => {
+      const on = this.enabled;
+      btn.textContent = on ? 'אָ עִם נִיקּוּד' : 'א בלי ניקוד';
+      btn.title = on ? 'כבה ניקוד' : 'הפעל ניקוד';
+      btn.classList.toggle('success', on);
+    };
+    paint();
+    // Every label, question and word on the page was rendered with the old
+    // setting, so reload rather than try to repaint a hundred call sites.
+    btn.onclick = () => { this.enabled = !this.enabled; paint(); location.reload(); };
+    const host = document.getElementById('start-screen');
+    if (host) host.appendChild(btn);
+    else { btn.classList.add('floating'); document.body.appendChild(btn); }
+  },
+
   of(word) {
+    if (!this.enabled) return '';
     const w = this.strip(word);
     const v = this._local[w] || this._dict()[w] || '';
     return this.strip(v) === w ? v : '';   // never show marks that changed the letters
@@ -709,6 +772,7 @@ const IAKidsNikud = {
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
+    IAKidsNikud.resolveAuto();   // fire and forget: moves the default for the next load
 const activitySessionId =
   await IAKidsActivity.start(slug);
 
@@ -1222,7 +1286,14 @@ const IAKidsLang = {
 
   set(c) { localStorage.setItem('iakids_lang', c); location.reload(); },
 
-  t(d) { return d[this.code] ?? d.he ?? Object.values(d)[0]; },
+  // One funnel for every label, title, how-to and button in every game, so the
+  // nikud setting reaches all of them without a single per-game change. Only the
+  // Hebrew letter runs are touched, which leaves emoji and any inline <b> alone.
+  t(d) {
+    const s = d[this.code] ?? d.he ?? Object.values(d)[0];
+    return (this.code === 'he' && typeof s === 'string' && typeof IAKidsNikud !== 'undefined' && IAKidsNikud.enabled)
+      ? IAKidsNikud.text(s) : s;
+  },
 
   UI: {
     start:          { he: 'התחל!', en: 'Start!', es: '¡Empezar!', de: 'Los!', pt: 'Começar!' },
@@ -1364,9 +1435,10 @@ const IAKidsTimer = {
 };
 // after DOM parse: the game's own <script> and #start-screen exist only by then
 if (typeof window !== 'undefined') {
+  const mountPills = () => { IAKidsTimer.mountToggle(); IAKidsNikud.mountToggle(); };
   if (document.readyState === 'loading')
-    document.addEventListener('DOMContentLoaded', () => IAKidsTimer.mountToggle());
-  else IAKidsTimer.mountToggle();
+    document.addEventListener('DOMContentLoaded', mountPills);
+  else mountPills();
 }
 
 /**

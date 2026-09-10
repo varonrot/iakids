@@ -92,9 +92,14 @@ def vocalise(words, want_alts=False):
         except Exception as e:
             bad += [(w, f'api: {e}') for w in chunk]; continue
         if len(reply) != len(chunk):
-            bad += [(w, 'misaligned reply') for w in chunk]; continue
+            bad += [(w, 'chunk misaligned') for w in chunk]
+            for w in chunk: res.setdefault(w, w)
+            continue
         for w, d in zip(chunk, reply):
-            if strip(d['word']) != w: bad.append((w, 'misaligned reply')); continue
+            if strip(d['word']) != w:
+                # Dicta rewrote the token (it does this for some transliterations).
+                # Keep the word, unvocalised, so a caller never silently loses one.
+                bad.append((w, 'reply spelled it ' + d['word'])); res.setdefault(w, w); continue
             fitted = []
             for opt in d.get('options') or []:
                 v = refit(w, opt)
@@ -103,7 +108,7 @@ def vocalise(words, want_alts=False):
                 res[w] = fitted[0]
                 if len(fitted) > 1: alts[w] = fitted[1:4]
             else:
-                bad.append((w, (d.get('options') or ['?'])[0]))
+                bad.append((w, (d.get('options') or ['?'])[0])); res.setdefault(w, w)
     return (res, bad, alts) if want_alts else (res, bad)
 
 if __name__ == '__main__':
