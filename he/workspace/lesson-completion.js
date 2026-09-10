@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.73";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.74";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -390,6 +390,50 @@ function installHomeworkLessonWorkspace(){
         box-shadow:inset 0 0 26px rgba(13,57,112,.06);
       }
 
+      .homework-notebook-intro{
+        margin:0 0 18px;
+        padding:0 0 14px;
+        border-bottom:1px dashed rgba(47,81,155,.22);
+      }
+
+      .homework-notebook-intro:empty{
+        display:none;
+      }
+
+      .homework-notebook-intro-line{
+        min-height:34px;
+        margin:0 0 6px;
+        color:#24408a;
+        font-family:"Gveret Levin","Segoe Print","Comic Sans MS",cursive;
+        font-weight:500;
+        line-height:1.75;
+        text-align:right;
+        white-space:pre-wrap;
+        letter-spacing:.1px;
+      }
+
+      .homework-notebook-intro-line.subject{
+        font-size:25px;
+        font-weight:700;
+        color:#213d83;
+      }
+
+      .homework-notebook-intro-line.topic{
+        font-size:21px;
+        color:#2c468f;
+      }
+
+      .homework-notebook-intro-line.writing::after{
+        content:"";
+        display:inline-block;
+        width:2px;
+        height:20px;
+        margin-right:3px;
+        vertical-align:-3px;
+        background:#3158ae;
+        animation:homeworkNotebookCursor .75s steps(1) infinite;
+      }
+
       .homework-notebook-heading{
         margin:0 0 17px;
         color:#273a78;
@@ -695,6 +739,7 @@ function installHomeworkLessonWorkspace(){
 
     if(options.keepPreview !== true){
       window.HOMEWORK_NOTEBOOK_ANSWERS = [];
+      window.HOMEWORK_NOTEBOOK_INTRO = null;
       renderUploadStage();
     }
 
@@ -729,6 +774,141 @@ function installHomeworkLessonWorkspace(){
     }
     return window.HOMEWORK_NOTEBOOK_ANSWERS;
   }
+
+  function homeworkNotebookSleep(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function clearHomeworkNotebookIntro(){
+    window.HOMEWORK_NOTEBOOK_INTRO = null;
+    const host = document.getElementById("homeworkNotebookIntro");
+    if(host){
+      host.innerHTML = "";
+      host.dataset.seeded = "";
+    }
+  }
+
+  async function writeHomeworkNotebookIntroLine(text, className){
+    const host = document.getElementById("homeworkNotebookIntro");
+    const value = String(text || "").trim();
+    if(!host || !value) return false;
+
+    const row = document.createElement("div");
+    row.className = `homework-notebook-intro-line ${className || ""} writing`;
+    const span = document.createElement("span");
+    row.appendChild(span);
+    host.appendChild(row);
+
+    const delay = value.length > 55 ? 15 : 23;
+    for(let i=0;i<value.length;i+=1){
+      span.textContent += value[i];
+      if(i % 4 === 0) await homeworkNotebookSleep(delay);
+    }
+    row.classList.remove("writing");
+    await homeworkNotebookSleep(110);
+    return true;
+  }
+
+  async function seedHomeworkNotebookIntro(subject, topic){
+    const cleanSubject = String(subject || "").replace(/^[\s:,-]+|[\s:,-]+$/g, "").trim();
+    const cleanTopic = String(topic || "").replace(/^[\s:,-]+|[\s:,-]+$/g, "").trim();
+    if(!cleanSubject && !cleanTopic) return false;
+
+    window.HOMEWORK_NOTEBOOK_INTRO = {subject:cleanSubject, topic:cleanTopic};
+
+    const host = document.getElementById("homeworkNotebookIntro");
+    if(!host) return false;
+
+    const key = `${cleanSubject}|${cleanTopic}`;
+    if(host.dataset.seeded === key) return true;
+    host.dataset.seeded = key;
+    host.innerHTML = "";
+
+    if(cleanSubject){
+      let subjectTitle = cleanSubject;
+      if(!/^שיעורים\s+ב/.test(subjectTitle)){
+        subjectTitle = `שיעורים ב${subjectTitle}`;
+      }
+      await writeHomeworkNotebookIntroLine(subjectTitle, "subject");
+    }
+    if(cleanTopic){
+      await writeHomeworkNotebookIntroLine(`הנושא: ${cleanTopic}`, "topic");
+    }
+    return true;
+  }
+
+  function restoreHomeworkNotebookIntro(){
+    const saved = window.HOMEWORK_NOTEBOOK_INTRO;
+    if(saved?.subject || saved?.topic){
+      seedHomeworkNotebookIntro(saved.subject, saved.topic);
+    }
+  }
+
+  function parseHomeworkDetectionText(text){
+    const value = String(text || "").replace(/\s+/g, " ").trim();
+    if(!value || !value.includes("זיהיתי")) return null;
+
+    // Typical teacher text:
+    // "זיהיתי שזה שיעורי בית בתנ״ך בנושא אברהם מכניס אורחים"
+    let match = value.match(/שיעורי(?:\s+בית)?\s+ב([^.,!?:]+?)\s+בנושא\s+([^.!?\n]+)/i);
+    if(!match){
+      match = value.match(/(?:מקצוע|במקצוע)\s*[:\-]?\s*([^.,!?:]+?)(?:,|\s+)\s*(?:ה)?נושא\s*[:\-]?\s*([^.!?\n]+)/i);
+    }
+    if(!match) return null;
+
+    let subject = String(match[1] || "").trim();
+    let topic = String(match[2] || "").trim();
+
+    topic = topic
+      .replace(/\s*(?:אפשר|תרצי|תרצה|אני\s+יכולה|אני\s+יכול|בואי|בוא)\b.*$/i, "")
+      .replace(/[,:;\-]+$/g, "")
+      .trim();
+
+    if(!subject || !topic) return null;
+    return {subject, topic};
+  }
+
+  function installHomeworkNotebookIntroDetector(){
+    if(window.__IAKIDS_HOMEWORK_NOTEBOOK_INTRO_DETECTOR_0774) return;
+    window.__IAKIDS_HOMEWORK_NOTEBOOK_INTRO_DETECTOR_0774 = true;
+
+    const inspect = root => {
+      if(!document.body.classList.contains("homework-lesson-mode")) return;
+      const nodes = [];
+      if(root instanceof Element) nodes.push(root);
+      if(root?.querySelectorAll){
+        root.querySelectorAll(".lesson-chat-workspace .messages *, .lesson-chat-workspace .msg-bubble, .lesson-chat-workspace [class*='message']")
+          .forEach(el => nodes.push(el));
+      }
+      for(const node of nodes){
+        const parsed = parseHomeworkDetectionText(node.textContent || "");
+        if(parsed){
+          seedHomeworkNotebookIntro(parsed.subject, parsed.topic);
+          break;
+        }
+      }
+    };
+
+    const observer = new MutationObserver(mutations => {
+      for(const mutation of mutations){
+        for(const node of mutation.addedNodes){
+          if(node instanceof Element) inspect(node);
+        }
+      }
+    });
+
+    const start = () => {
+      if(document.body) observer.observe(document.body,{childList:true,subtree:true});
+      setTimeout(() => inspect(document), 250);
+    };
+
+    if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, {once:true});
+    else start();
+  }
+
+  installHomeworkNotebookIntroDetector();
+  window.seedHomeworkNotebookIntro = seedHomeworkNotebookIntro;
+  window.clearHomeworkNotebookIntro = clearHomeworkNotebookIntro;
 
   function renderHomeworkNotebookSavedAnswers(){
     const host = document.getElementById("homeworkNotebookAnswers");
@@ -853,6 +1033,7 @@ function installHomeworkLessonWorkspace(){
             <button type="button" class="homework-notebook-clear" data-homework-notebook-clear>ניקוי</button>
           </div>
           <div class="homework-notebook-page">
+            <div id="homeworkNotebookIntro" class="homework-notebook-intro"></div>
             <div class="homework-notebook-heading">תשובות:</div>
             <div class="homework-notebook-empty">אחרי שתעני ותביני את התשובה, המורה תכתוב כאן את הניסוח הסופי.</div>
             <div id="homeworkNotebookAnswers"></div>
@@ -871,6 +1052,7 @@ function installHomeworkLessonWorkspace(){
 
     stage.querySelector("[data-homework-notebook-clear]")?.addEventListener("click", clearHomeworkNotebook);
     renderHomeworkNotebookSavedAnswers();
+    restoreHomeworkNotebookIntro();
 
     const steps = document.querySelectorAll(".homework-sidebar-step");
     steps.forEach(step => step.classList.remove("active"));
