@@ -1,0 +1,36 @@
+name: Fix simple homework test 0.7.83
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-simple-test-083.py'
+      - '.github/workflows/fix-simple-test-083.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch simple test
+        run: python .github/scripts/fix-simple-test-083.py
+      - name: Compile backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix simple homework test endpoint; bump to 0.7.83"
+          git push origin main
