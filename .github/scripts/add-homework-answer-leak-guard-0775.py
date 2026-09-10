@@ -38,8 +38,6 @@ def homework_response_leaks_source_answer(
             phrase = ' '.join(words[i:i + size]).strip()
             if not phrase:
                 continue
-            # Repeating the worksheet question itself is allowed; copying the
-            # surrounding source answer is not.
             if question and phrase in question:
                 continue
             if phrase in source:
@@ -56,22 +54,26 @@ def build_safe_homework_first_guidance(
     q = str(current_question or '').strip()
     female = str(child_gender or '').strip().lower() in ('female', 'f', 'נקבה')
 
-    look = 'חפשי' if female else 'חפש'
-    find = 'מוצאת' if female else 'מוצא'
-
     if source_text:
+        if female:
+            return (
+                f"בואי נפתור את זה בלי לגלות את התשובה. "
+                f"כששואלים: {q} אנחנו מחפשות בטקסט את הפעולות או העובדות שעונות בדיוק על השאלה. "
+                f"חפשי במשפט שבו מתחיל התיאור של מה שקרה. מה הדבר הראשון שאת מוצאת שם?"
+            )
         return (
-            f"בוא{'י' if female else ''} נפתור את זה בלי לגלות את התשובה. "
-            f"כששואלים: {q} אנחנו מחפשים בטקסט את הפעולות או העובדות שעונות בדיוק על השאלה. "
-            f"{look} במשפט שבו מתחיל התיאור של מה שקרה. מה הדבר הראשון שאת {find} שם?"
-            if female else
             f"בוא נפתור את זה בלי לגלות את התשובה. "
             f"כששואלים: {q} אנחנו מחפשים בטקסט את הפעולות או העובדות שעונות בדיוק על השאלה. "
-            f"{look} במשפט שבו מתחיל התיאור של מה שקרה. מה הדבר הראשון שאתה {find} שם?"
+            f"חפש במשפט שבו מתחיל התיאור של מה שקרה. מה הדבר הראשון שאתה מוצא שם?"
         )
 
+    if female:
+        return (
+            f"בואי נפתור את זה שלב־שלב בלי לגלות את התשובה. "
+            f"השאלה היא: {q} מה הצעד הראשון שצריך לעשות כדי לענות עליה?"
+        )
     return (
-        f"בוא{'י' if female else ''} נפתור את זה שלב־שלב בלי לגלות את התשובה. "
+        f"בוא נפתור את זה שלב־שלב בלי לגלות את התשובה. "
         f"השאלה היא: {q} מה הצעד הראשון שצריך לעשות כדי לענות עליה?"
     )
 
@@ -82,19 +84,13 @@ if 'def homework_response_leaks_source_answer(' not in backend:
         raise SystemExit('HomeworkTurnEvaluation anchor not found')
     backend = backend.replace(helper_anchor, helper_code + helper_anchor, 1)
 
-parsed_anchor = '''    parsed = completion.choices[0].message.parsed\n    if not parsed:\n'''
-parsed_replacement = '''    parsed = completion.choices[0].message.parsed\n    if not parsed:\n'''
-if parsed_anchor not in backend:
-    # Source formatting can include spaces, but this exact block is present in current main.py.
-    raise SystemExit('homework parsed anchor not found')
-
-post_anchor = '''    if not parsed:\n        raise HTTPException(status_code=500, detail="Homework turn evaluation failed")\n'''
-post_insert = '''    if not parsed:\n        raise HTTPException(status_code=500, detail="Homework turn evaluation failed")\n\n    # HARD ANSWER-LEAK GUARD (0.7.75)\n    # The first response after the child chooses a help mode must teach the\n    # method and point to the source, not copy the answer from the worksheet.\n    # The prompt already says this, but this deterministic guard enforces it.\n    is_first_help_turn = (\n        "הילד בחר:" in str(req.answer or "")\n        or "HELP MODE:" in str(req.answer or "")\n    )\n\n    if is_first_help_turn and homework_response_leaks_source_answer(\n            parsed.teacher_response,\n            req.source_text,\n            req.current_question\n    ):\n        print("HOMEWORK ANSWER LEAK GUARD TRIGGERED", {\n            "question": req.current_question,\n            "teacher_response": parsed.teacher_response\n        })\n        parsed.teacher_response = build_safe_homework_first_guidance(\n            req.current_question,\n            req.source_text,\n            child.get("gender") if isinstance(child, dict) else None\n        )\n        parsed.feedback = ""\n        parsed.answer_sufficient = False\n        parsed.completed_step = None\n'''
+parsed_anchor = '    parsed = completion.choices[0].message.parsed\n'
+guard_code = '''    parsed = completion.choices[0].message.parsed\n\n    # HARD ANSWER-LEAK GUARD (0.7.75)\n    # On the first help-mode response, prevent the teacher from copying a\n    # source sentence that contains the worksheet answer before the child tries.\n    if parsed:\n        is_first_help_turn = (\n            "הילד בחר:" in str(req.answer or "")\n            or "HELP MODE:" in str(req.answer or "")\n        )\n\n        if is_first_help_turn and homework_response_leaks_source_answer(\n                parsed.teacher_response,\n                req.source_text,\n                req.current_question\n        ):\n            print("HOMEWORK ANSWER LEAK GUARD TRIGGERED", {\n                "question": req.current_question,\n                "teacher_response": parsed.teacher_response\n            })\n            parsed.teacher_response = build_safe_homework_first_guidance(\n                req.current_question,\n                req.source_text,\n                child.get("gender") if isinstance(child, dict) else None\n            )\n            parsed.feedback = ""\n            parsed.answer_sufficient = False\n            parsed.completed_step = None\n'''
 
 if 'HOMEWORK ANSWER LEAK GUARD TRIGGERED' not in backend:
-    if post_anchor not in backend:
-        raise SystemExit('homework parsed failure block not found')
-    backend = backend.replace(post_anchor, post_insert, 1)
+    if parsed_anchor not in backend:
+        raise SystemExit('homework parsed anchor not found')
+    backend = backend.replace(parsed_anchor, guard_code, 1)
 
 for oldv in ('0.7.73','0.7.74'):
     index = index.replace(f'IAKIDS • build {oldv}', 'IAKIDS • build 0.7.75')
