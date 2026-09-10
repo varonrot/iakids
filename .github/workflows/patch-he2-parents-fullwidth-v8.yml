@@ -1,0 +1,68 @@
+name: Patch HE2 parents full-width v8
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-he2-parents-fullwidth-v8.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Force parents section full viewport background
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('he2/index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* ===== PARENTS FULL WIDTH V8 ===== */'
+          css = r'''
+/* ===== PARENTS FULL WIDTH V8 ===== */
+.parents-showcase-v2{
+  width:100vw!important;
+  max-width:none!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translateX(-50%)!important;
+  margin:0!important;
+  padding-left:5vw!important;
+  padding-right:5vw!important;
+  background-color:#041120!important;
+  background-image:url('/assets/he2/sections/parents-section-bg.webp?v=8')!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+}
+.parents-showcase-v2 .parents-v2-inner{
+  width:100%!important;
+  max-width:1500px!important;
+  margin:0 auto!important;
+}
+@media(max-width:760px){
+  .parents-showcase-v2{
+    width:100vw!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    margin:0!important;
+    background-size:cover!important;
+    background-position:center center!important;
+  }
+}
+'''
+          if marker not in s:
+              s = s.replace('</style>', css + '\n</style>', 1)
+          else:
+              s = s.replace("parents-section-bg.webp?v=7", "parents-section-bg.webp?v=8")
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he2/index.html
+          git diff --cached --quiet || git commit -m "Make HE2 parents section background full width"
+          git push
