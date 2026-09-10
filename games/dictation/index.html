@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הכתבות | iakids</title>
+<link rel="stylesheet" href="../game-style.css">
+<style>
+/* Shared dark space theme (body.theme-space in ../game-style.css). Only this game's
+   own furniture is styled here: the listening disc, the slate the child writes on,
+   and the letter-by-letter strip that shows what went wrong. */
+.game-card{width:min(560px,calc(100vw - 28px))!important}
+
+/* ---- mode picker: two big cards, because the choice changes the whole game ---- */
+#mode-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:4px 0 2px}
+.mode-card{
+  padding:16px 12px;border-radius:20px;cursor:pointer;text-align:center;color:#fff;
+  border:2px solid rgba(118,176,255,.34);
+  background:linear-gradient(180deg,rgba(52,81,139,.72),rgba(21,49,99,.75));
+  transition:transform .12s,border-color .12s,box-shadow .12s;
+}
+.mode-card:hover{transform:translateY(-2px)}
+.mode-card.on{
+  border-color:#65dfff;
+  background:linear-gradient(180deg,#1c91db,#0877bd);
+  box-shadow:0 0 0 3px rgba(101,223,255,.16),0 12px 26px rgba(0,0,0,.28);
+}
+.mode-card .ico{font-size:2.3rem;line-height:1.1}
+.mode-card .nm{font-weight:900;margin-top:4px}
+.mode-card .sub{font-size:.78rem;font-weight:600;color:#c8dcf7;margin-top:3px;line-height:1.35}
+
+/* ---- the listening disc: the one thing on screen in listen-only mode ---- */
+#disc-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 14px}
+#disc{
+  position:relative;width:132px;height:132px;border-radius:50%;border:none;cursor:pointer;
+  color:#fff;font-size:3.4rem;line-height:1;
+  background:radial-gradient(circle at 34% 30%,#5ad2ff,#1878d6 62%,#0b4f96);
+  box-shadow:inset 0 -8px 18px rgba(0,0,0,.28),inset 0 6px 14px rgba(255,255,255,.22),0 16px 34px rgba(0,0,0,.34);
+  transition:transform .12s;
+}
+#disc:hover{transform:translateY(-3px)}
+#disc:active{transform:scale(.94)}
+#disc::after{
+  content:"";position:absolute;inset:-14px;border-radius:50%;pointer-events:none;
+  border:2px solid rgba(101,223,255,.5);opacity:0;
+}
+#disc.ringing::after{animation:ring 1.1s ease-out infinite}
+@keyframes ring{from{opacity:.75;transform:scale(.86)}to{opacity:0;transform:scale(1.22)}}
+#replay-note{min-height:1.2em;font-size:.85rem;font-weight:700;color:var(--space-muted)}
+
+/* ---- the peek: the word, large, counting itself down ---- */
+#peek{
+  min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;margin:2px 0 12px;padding:14px 18px;border-radius:22px;
+  background:radial-gradient(circle at 50% 18%,rgba(66,169,255,.16),transparent 62%),rgba(4,22,55,.5);
+  border:1px solid rgba(116,177,255,.2);
+}
+#peek-word{color:#fff;font-size:clamp(2.1rem,9vw,3.4rem);font-weight:1000;letter-spacing:.04em;line-height:1.15}
+#peek-word.gone{color:transparent;text-shadow:0 0 26px rgba(120,190,255,.55)}
+#peek-bar{width:min(240px,80%);height:7px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
+#peek-bar i{display:block;height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#65dfff,#8054ff)}
+#peek-bar.run i{animation:drain var(--peek,3s) linear forwards}
+@keyframes drain{to{width:0}}
+
+/* ---- the slate the child writes on ---- */
+#slate{
+  display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:20px;
+  background:rgba(4,22,55,.55);border:2px solid rgba(118,176,255,.3);
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.3);
+}
+#answer{
+  flex:1;min-width:0;padding:12px 8px;border:none;outline:none;background:transparent;
+  color:#fff;font-family:inherit;font-size:clamp(1.6rem,6vw,2.3rem);font-weight:900;
+  text-align:center;letter-spacing:.06em;
+}
+#answer::placeholder{color:rgba(184,199,227,.42);font-weight:700;letter-spacing:0}
+#slate.right{border-color:rgba(97,255,174,.75);box-shadow:0 0 0 3px rgba(55,209,130,.18)}
+#slate.wrong{border-color:rgba(255,138,128,.8);box-shadow:0 0 0 3px rgba(239,102,114,.16)}
+#check-btn{width:100%;margin-top:12px}
+
+/* ---- after the answer: what the child wrote against the word ---- */
+#verdict{min-height:96px;margin-top:12px}
+.strip{display:flex;flex-wrap:wrap-reverse;justify-content:center;gap:5px;margin:6px 0}
+.strip b{
+  min-width:38px;padding:6px 4px;border-radius:11px;font-size:1.45rem;font-weight:900;
+  background:linear-gradient(180deg,#37d182,#16ad64);color:#fff;
+}
+.strip b.bad{background:linear-gradient(180deg,#ef6672,#cc3d4c)}
+.strip b.miss{background:rgba(4,22,55,.6);border:2px dashed rgba(184,199,227,.5);color:var(--space-muted)}
+.verdict-line{font-weight:900;font-size:1.05rem;margin-bottom:2px}
+.verdict-line.ok{color:#7ce8b0}
+.verdict-line.no{color:#ff9b93}
+#the-word{color:#fff;font-size:1.9rem;font-weight:1000;letter-spacing:.05em}
+#the-word small{display:block;margin-top:2px;color:var(--space-muted);font-size:.8rem;font-weight:700}
+
+/* ---- the word-list editor ---- */
+#list-box{width:100%;margin-top:14px;text-align:right}
+#list-box summary{cursor:pointer;font-weight:800;color:var(--space-muted);padding:6px 2px}
+#list-box textarea{
+  width:100%;min-height:88px;margin-top:8px;padding:10px 12px;box-sizing:border-box;
+  border-radius:14px;border:2px solid rgba(118,176,255,.3);background:rgba(4,22,55,.5);
+  color:#fff;font:inherit;font-size:1rem;line-height:1.7;resize:vertical;
+}
+#list-note{margin:8px 0 0;font-size:.82rem;font-weight:700;color:var(--space-muted);line-height:1.5}
+#list-actions{display:flex;gap:8px;margin-top:8px}
+#list-actions .game-btn{flex:1;min-height:44px;font-size:.95rem}
+@media(max-width:600px){#disc{width:112px;height:112px;font-size:2.9rem}}
+</style>
+</head>
+<body class="theme-space">
+
+<div class="game-hud">
+  <span class="score"><span id="score-label">ניקוד</span>: <span id="score">0</span></span>
+  <span><span id="q-label">שאלה</span> <span id="qnum">1</span>/<span id="qtotal">10</span></span>
+</div>
+
+<div class="game-card" id="card">
+  <div id="start-screen">
+    <div class="hero-icon">📝</div>
+    <h1 class="game-title" id="title"></h1>
+    <p id="howto"></p>
+
+    <p class="section-label" id="mode-label"></p>
+    <div id="mode-row">
+      <div class="mode-card on" data-mode="peek" role="button" tabindex="0">
+        <div class="ico">👀</div>
+        <div class="nm" id="mode-peek-name"></div>
+        <div class="sub" id="mode-peek-sub"></div>
+      </div>
+      <div class="mode-card" data-mode="listen" role="button" tabindex="0">
+        <div class="ico">🎧</div>
+        <div class="nm" id="mode-listen-name"></div>
+        <div class="sub" id="mode-listen-sub"></div>
+      </div>
+    </div>
+
+    <p class="section-label" id="rounds-label"></p>
+    <div class="answer-grid" style="grid-template-columns:repeat(3,1fr)" id="rounds-row">
+      <button class="game-btn outline" onclick="setRounds(5,this)">5</button>
+      <button class="game-btn outline success" onclick="setRounds(10,this)">10</button>
+      <button class="game-btn outline" onclick="setRounds(15,this)">15</button>
+    </div>
+
+    <p class="section-label" id="level-label"></p>
+    <div class="answer-grid" style="grid-template-columns:1fr 1fr" id="level-row">
+      <button class="game-btn secondary" data-lvl="1" onclick="start(1)"></button>
+      <button class="game-btn secondary" data-lvl="2" onclick="start(2)"></button>
+      <button class="game-btn secondary" data-lvl="3" onclick="start(3)"></button>
+      <button class="game-btn" data-lvl="0" onclick="start(0)"></button>
+    </div>
+
+    <details id="list-box">
+      <summary id="list-summary"></summary>
+      <textarea id="list-text" dir="rtl" spellcheck="false"></textarea>
+      <p id="list-note"></p>
+      <div id="list-actions">
+        <button class="game-btn success" id="list-save" type="button"></button>
+        <button class="game-btn outline" id="list-clear" type="button"></button>
+      </div>
+    </details>
+  </div>
+
+  <div id="play-screen" hidden>
+    <div id="peek" hidden>
+      <div id="peek-word"></div>
+      <div id="peek-bar"><i></i></div>
+    </div>
+
+    <div id="disc-wrap">
+      <button id="disc" type="button" aria-label="הקראה">🔊</button>
+      <div id="replay-note"></div>
+    </div>
+
+    <div id="slate">
+      <input id="answer" type="text" dir="rtl" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" enterkeyhint="done">
+    </div>
+    <button class="game-btn success" id="check-btn" type="button"></button>
+    <div id="verdict"></div>
+  </div>
+
+  <div id="end-screen" class="end-screen" hidden>
+    <div class="stars" id="stars"></div>
+    <div class="big-score" id="final-score"></div>
+    <p id="player-line"></p>
+    <p><span id="best-label"></span>: <b id="best"></b></p>
+    <button class="game-btn" id="again-btn" onclick="location.reload()"></button>
+    <div id="share-slot"></div>
+  </div>
+</div>
+
+<script src="../nikud.js"></script>
+<script src="../game-sdk.js"></script>
+<script>
+const SLUG = 'dictation';
+const $ = id => document.getElementById(id);
+
+const T = {
+  title:   { he: 'הכתבות', en: 'Dictation', es: 'Dictado', de: 'Diktat', pt: 'Ditado' },
+  howto:   { he: 'שומעים מילה — וכותבים אותה נכון!', en: 'Hear a word — then write it correctly!',
+             es: 'Escucha una palabra y escríbela.', de: 'Hör ein Wort und schreib es richtig!', pt: 'Ouça a palavra e escreva-a!' },
+  mode:    { he: 'איך משחקים?', en: 'Which mode?', es: '¿Qué modo?', de: 'Welcher Modus?', pt: 'Qual modo?' },
+  peekName:{ he: 'הצצה', en: 'Peek', es: 'Vistazo', de: 'Blick', pt: 'Espiada' },
+  peekSub: { he: 'המילה מופיעה לרגע ונעלמת', en: 'The word shows for a moment, then hides',
+             es: 'La palabra aparece un momento', de: 'Das Wort erscheint kurz', pt: 'A palavra aparece por um instante' },
+  lisName: { he: 'הקשבה', en: 'Listen', es: 'Escucha', de: 'Hören', pt: 'Escuta' },
+  lisSub:  { he: 'רק שומעים — לא רואים', en: 'Only heard, never shown',
+             es: 'Solo se oye', de: 'Nur zu hören', pt: 'Apenas ouvido' },
+  rounds:  { he: 'כמה מילים?', en: 'How many words?', es: '¿Cuántas palabras?', de: 'Wie viele Wörter?', pt: 'Quantas palavras?' },
+  level:   { he: 'רמת המילים', en: 'Word level', es: 'Nivel', de: 'Wortstufe', pt: 'Nível' },
+  write:   { he: 'כתבו את המילה כאן', en: 'Write the word here', es: 'Escribe la palabra', de: 'Schreib das Wort', pt: 'Escreva a palavra' },
+  check:   { he: '✓ בדקו אותי', en: '✓ Check me', es: '✓ Revisar', de: '✓ Prüfen', pt: '✓ Verificar' },
+  again:   { he: 'אפשר לשמוע שוב', en: 'You can listen again', es: 'Puedes escuchar otra vez',
+             de: 'Du kannst nochmal hören', pt: 'Pode ouvir de novo' },
+  once:    { he: 'הקשבה אחת בלבד ברמה הזו', en: 'One listen only at this level',
+             es: 'Solo una escucha', de: 'Nur einmal hören', pt: 'Apenas uma escuta' },
+  right:   { he: 'מצוין! כתבתם נכון', en: 'Excellent — correct!', es: '¡Excelente!', de: 'Ausgezeichnet!', pt: 'Excelente!' },
+  wrong:   { he: 'כמעט! המילה היא', en: 'Almost! The word is', es: '¡Casi! La palabra es',
+             de: 'Fast! Das Wort ist', pt: 'Quase! A palavra é' },
+  listOpen:{ he: '✏️ רשימת המילים שלי (להורה או למורה)', en: '✏️ My word list (for a parent or teacher)',
+             es: '✏️ Mi lista de palabras', de: '✏️ Meine Wortliste', pt: '✏️ Minha lista de palavras' },
+  listNote:{ he: 'מילה בכל שורה, או מופרדות בפסיק. הרשימה נשמרת במכשיר הזה ומחליפה את מילות המשחק.',
+             en: 'One word per line, or comma separated. Saved on this device and used instead of the built-in words.',
+             es: 'Una palabra por línea. Se guarda en este dispositivo.',
+             de: 'Ein Wort pro Zeile. Wird auf diesem Gerät gespeichert.',
+             pt: 'Uma palavra por linha. Fica salva neste dispositivo.' },
+  listSave:{ he: 'שמירה', en: 'Save', es: 'Guardar', de: 'Speichern', pt: 'Salvar' },
+  listClear:{ he: 'חזרה למילים של המשחק', en: 'Back to the built-in words', es: 'Volver a las palabras del juego',
+             de: 'Zurück zu den Spielwörtern', pt: 'Voltar às palavras do jogo' },
+  saved:   { he: '✅ נשמר — {n} מילים', en: '✅ Saved — {n} words', es: '✅ Guardado — {n}',
+             de: '✅ Gespeichert — {n}', pt: '✅ Salvo — {n}' },
+  mine:    { he: '📋 משחקים עם הרשימה שלכם ({n} מילים)', en: '📋 Playing your list ({n} words)',
+             es: '📋 Con tu lista ({n})', de: '📋 Mit deiner Liste ({n})', pt: '📋 Com sua lista ({n})' },
+  noVoice: { he: 'אין קול במכשיר — המילה תמיד תוצג', en: 'No voice on this device — the word is always shown',
+             es: 'Sin voz: la palabra se muestra', de: 'Keine Stimme: das Wort wird gezeigt', pt: 'Sem voz: a palavra é exibida' },
+};
+
+/* ---- built-in words, graded by how hard they are to spell, not by meaning ----
+   1: short and written the way they sound
+   2: longer, and the everyday traps — ו/י as vowels, ה at the end
+   3: the ones children actually get wrong — א/ע, כ/ח, ט/ת, ס/ש, silent letters */
+const WORDS = {
+  1: ['ילד','ילדה','ספר','דלת','חלון','שמש','מים','אבא','אמא','כלב','חתול','שולחן','כיסא','יד','רגל',
+      'פרח','עץ','גשם','ענן','לחם','חלב','ביצה','דג','ים','הר','כדור','בית','גן','שיר','יום','לילה'],
+  2: ['מכונית','אופניים','מחברת','מזוודה','גלידה','שוקולד','מטרייה','מספריים','משקפיים','חצוצרה',
+      'ציפור','מגדל','מנורה','תמונה','חנות','מדרגות','מטבח','מקרר','שמלה','חולצה','מחשב','טלפון',
+      'ארוחה','מסיבה','גינה','רכבת','אוטובוס','כרטיס','מפתח','שעון'],
+  3: ['עיפרון','מברשת','תרנגולת','אמבטיה','ספרייה','מעבדה','מעטפה','קרוסלה','אנציקלופדיה','תזמורת',
+      'ארכיאולוג','חשמלאי','מסעדה','תעודה','הפתעה','עצמאות','אחריות','התרגשות','מחלקה','תחרות',
+      'הצגה','מכתב','עצירה','אתגר','סבלנות','תרופה','מעלית','עוגייה','מטוס','משאית'],
+};
+
+let game, diff, level = 1, TOTAL = 10, score = 0, qnum = 0, right = 0;
+let mode = 'peek', current = null, locked = false, plays = 0, customList = null;
+
+const rnd = n => Math.floor(Math.random() * n);
+const show = id => ['start-screen', 'play-screen', 'end-screen'].forEach(s => $(s).hidden = s !== id);
+// Compare on the letters only: what a child types has no marks, and a stray space
+// or a Hebrew maqaf is not a spelling mistake.
+const norm = s => String(s || '').replace(/[֑-ׇ]/g, '').replace(/[\s־'"׳״-]/g, '').trim();
+
+/* ---- the word list: the teacher's, or the game's own -------------------- */
+function pool(lvl) {
+  if (customList && customList.length) return customList;
+  return WORDS[lvl] || WORDS[1];
+}
+function parseList(text) {
+  return [...new Set(String(text || '').split(/[\n,،;]+/).map(w => w.trim()).filter(w => /^[א-תa-zA-Z][^\s]{0,24}$/.test(w)))];
+}
+
+/* ---- how long the word stays visible, and how many listens are allowed --- */
+const PEEK_MS = { 1: 4000, 2: 2500, 3: 1500 };
+const MAX_PLAYS = { 1: 99, 2: 99, 3: 1 };
+
+function applyLanguage() {
+  const t = d => IAKidsLang.t(d);
+  $('title').textContent = t(T.title);
+  $('howto').textContent = t(T.howto);
+  $('mode-label').textContent = t(T.mode);
+  $('mode-peek-name').textContent = t(T.peekName);
+  $('mode-peek-sub').textContent = t(T.peekSub);
+  $('mode-listen-name').textContent = t(T.lisName);
+  $('mode-listen-sub').textContent = t(T.lisSub);
+  $('rounds-label').textContent = t(T.rounds);
+  $('level-label').textContent = t(T.level);
+  $('answer').placeholder = t(T.write);
+  $('check-btn').textContent = t(T.check);
+  $('list-summary').textContent = t(T.listOpen);
+  $('list-note').textContent = t(T.listNote);
+  $('list-save').textContent = t(T.listSave);
+  $('list-clear').textContent = t(T.listClear);
+  $('score-label').textContent = IAKidsLang.ui('score');
+  $('q-label').textContent = IAKidsLang.ui('question');
+  $('best-label').textContent = IAKidsLang.ui('your_best');
+  $('again-btn').textContent = IAKidsLang.ui('play_again');
+  ['level_easy', 'level_medium', 'level_hard', 'level_random'].forEach((k, i) => {
+    document.querySelectorAll('#level-row .game-btn')[i].textContent = IAKidsLang.ui(k);
+  });
+}
+applyLanguage();
+
+IAKidsCoins.mount();
+IAKidsHelp.mount({
+  slug: SLUG,
+  how: 'שומעים מילה ואז כותבים אותה. במצב "הצצה" המילה גם מופיעה לרגע לפני שהיא נעלמת, ובמצב "הקשבה" רק שומעים אותה. הורה או מורה יכולים להזין רשימת מילים משלהם במסך הפתיחה.',
+  example: 'שומעים "מטרייה" ← כותבים <b>מטרייה</b>',
+});
+
+/* ---- start screen wiring ------------------------------------------------ */
+function setRounds(n, btn) {
+  TOTAL = n;
+  document.querySelectorAll('#rounds-row .game-btn').forEach(b => b.classList.remove('success'));
+  btn.classList.add('success');
+}
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.toggle('on', c.dataset.mode === m));
+}
+document.querySelectorAll('.mode-card').forEach(c => {
+  const pick = () => setMode(c.dataset.mode);
+  c.onclick = pick;
+  c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } };
+});
+
+function noteList() {
+  $('list-summary').textContent = customList && customList.length
+    ? IAKidsLang.t(T.mine).replace('{n}', customList.length)
+    : IAKidsLang.t(T.listOpen);
+}
+$('list-save').onclick = async () => {
+  const words = parseList($('list-text').value);
+  customList = words.length ? words : null;
+  await game.saveProgress({ rounds: TOTAL, lastLevel: level, list: customList });
+  $('list-note').textContent = customList
+    ? IAKidsLang.t(T.saved).replace('{n}', customList.length)
+    : IAKidsLang.t(T.listNote);
+  noteList();
+  IAKidsSpeech.prime(customList || []);   // one model call per new word, at most
+};
+$('list-clear').onclick = async () => {
+  customList = null;
+  $('list-text').value = '';
+  $('list-note').textContent = IAKidsLang.t(T.listNote);
+  await game.saveProgress({ rounds: TOTAL, lastLevel: level, list: null });
+  noteList();
+};
+
+const ready = IAKidsGame.init(SLUG).then(async g => {
+  game = g;
+  const p = await g.loadProgress();
+  if (p?.rounds) {
+    const b = document.querySelector(`#rounds-row [onclick*="(${p.rounds},"]`);
+    if (b) setRounds(p.rounds, b);
+  }
+  if (p?.lastLevel != null) document.querySelector(`#level-row [data-lvl="${p.lastLevel}"]`)?.classList.add('success');
+  // A teacher can hand over a list in the link: ?words=חתול,מטרייה
+  const shared = parseList(new URLSearchParams(location.search).get('words'));
+  customList = shared.length ? shared : (Array.isArray(p?.list) && p.list.length ? p.list : null);
+  if (customList) $('list-text').value = customList.join('\n');
+  noteList();
+  if (!IAKidsSpeech.available()) $('replay-note').textContent = IAKidsLang.t(T.noVoice);
+});
+
+/* ---- a round ------------------------------------------------------------ */
+async function start(lvl) {
+  await ready;
+  level = lvl;
+  diff = game.difficulty(lvl || 1, 3);
+  await game.saveProgress({ rounds: TOTAL, lastLevel: lvl, list: customList });
+  $('qtotal').textContent = TOTAL;
+  score = 0; qnum = 0; right = 0;
+  $('score').textContent = 0;
+  show('play-screen');
+  next();
+}
+
+async function next() {
+  if (qnum >= TOTAL) return end();
+  qnum++; locked = false; plays = 0;
+  $('qnum').textContent = qnum;
+  $('verdict').textContent = '';
+  $('slate').className = '';
+  $('answer').value = '';
+  $('answer').disabled = false;
+  $('check-btn').disabled = false;
+
+  const lvl = level === 0 ? 1 + rnd(3) : diff.level;
+  const words = pool(lvl);
+  // The bank knows nothing about a teacher's list, so a row from another round
+  // must never be served into this one — the child would be asked to spell a word
+  // their list never held.
+  const inPool = q => !!q && words.includes(q.w);
+  let q = await game.newQuestion(() => ({ w: words[rnd(words.length)] }), x => x.w, { accept: inPool });
+  if (!inPool(q)) q = { w: words[rnd(words.length)] };
+  current = { word: q.w, lvl };
+
+  // R10: this game is about spelling, so the word is never shown with nikud
+  // before the answer — the marks would spell it out.
+  if (mode === 'peek' || !IAKidsSpeech.available()) {
+    $('peek').hidden = false;
+    $('peek-word').textContent = current.word;
+    $('peek-word').classList.remove('gone');
+    const ms = PEEK_MS[lvl] || 2500;
+    const bar = $('peek-bar');
+    bar.classList.remove('run');
+    bar.style.setProperty('--peek', ms + 'ms');
+    void bar.offsetWidth;             // restart the animation for this word
+    bar.classList.add('run');
+    clearTimeout(next._hide);
+    next._hide = setTimeout(() => { $('peek-word').classList.add('gone'); }, ms);
+  } else {
+    $('peek').hidden = true;
+  }
+
+  $('replay-note').textContent = IAKidsLang.t(MAX_PLAYS[lvl] > 1 ? T.again : T.once);
+  speak();
+  setTimeout(() => $('answer').focus({ preventScroll: true }), 120);
+}
+
+async function speak() {
+  const lvl = current?.lvl || 1;
+  if (plays >= (MAX_PLAYS[lvl] || 99)) return;
+  plays++;
+  const disc = $('disc');
+  disc.classList.add('ringing');
+  setTimeout(() => disc.classList.remove('ringing'), 1400);
+  await IAKidsSpeech.say(current.word, { rate: 0.82 });   // slower: a child is writing it down
+  if (plays >= (MAX_PLAYS[lvl] || 99)) disc.disabled = true;
+}
+$('disc').onclick = () => { if (!locked) speak(); };
+
+/* ---- checking ----------------------------------------------------------- */
+function strip(written, target) {
+  // Letter by letter, right to left: green where it matches, red where it does
+  // not, dashed where a letter is missing. This is the part a child learns from.
+  const wrap = document.createElement('div');
+  wrap.className = 'strip';
+  const n = Math.max(written.length, target.length);
+  for (let i = 0; i < n; i++) {
+    const b = document.createElement('b');
+    b.textContent = written[i] || '·';
+    if (!written[i]) b.className = 'miss';
+    else if (written[i] !== target[i]) b.className = 'bad';
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+
+function check() {
+  if (locked || !current) return;
+  const typed = $('answer').value;
+  if (!norm(typed)) return;            // nothing written yet
+  locked = true;
+  $('answer').disabled = true;
+  $('check-btn').disabled = true;
+  $('disc').disabled = true;
+  IAKidsSpeech.stop();
+
+  const ok = norm(typed) === norm(current.word);
+  const v = $('verdict');
+  v.textContent = '';
+
+  const line = document.createElement('div');
+  line.className = 'verdict-line ' + (ok ? 'ok' : 'no');
+  line.textContent = IAKidsLang.t(ok ? T.right : T.wrong);
+  v.appendChild(line);
+
+  if (ok) {
+    score += 10; right++;
+    $('score').textContent = score;
+    diff.right();
+    $('slate').className = 'right';
+    IAKidsFX.correct($('slate'));
+    IAKidsCoins.right($('slate'));
+    // Now the answer is in, the marks can only help: show how it reads.
+    const w = document.createElement('div');
+    w.id = 'the-word';
+    IAKidsNikud.render(w, current.word);
+    v.appendChild(w);
+  } else {
+    diff.wrong();
+    $('slate').className = 'wrong';
+    IAKidsFX.wrong($('slate'));
+    IAKidsCoins.wrong();
+    v.appendChild(strip(norm(typed).split(''), norm(current.word).split('')));
+    const w = document.createElement('div');
+    w.id = 'the-word';
+    IAKidsNikud.render(w, current.word);
+    const hint = document.createElement('small');
+    hint.textContent = IAKidsLang.t({ he: 'כך כותבים אותה', en: 'this is how it is spelled',
+                                      es: 'así se escribe', de: 'so schreibt man es', pt: 'assim se escreve' });
+    w.appendChild(hint);
+    v.appendChild(w);
+  }
+  setTimeout(next, ok ? 1200 : 2600);   // longer on a mistake: there is something to read
+}
+$('check-btn').onclick = check;
+$('answer').addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+
+/* ---- end ---------------------------------------------------------------- */
+async function end() {
+  show('end-screen');
+  await game.saveScore(score, { level, rounds: TOTAL, right, mode, own_list: !!customList });
+  const top = (await game.getHighScores(1))[0];
+  $('final-score').textContent = score;
+  $('best').textContent = top?.score ?? score;
+  $('player-line').textContent = top?.player ? `${top.player} · ${top.when || ''}` : '';
+  const ratio = TOTAL ? right / TOTAL : 0;
+  $('stars').textContent = '⭐'.repeat(ratio >= 0.85 ? 3 : ratio >= 0.6 ? 2 : 1);
+  game.shareButton(score, $('share-slot'));
+  game.complete(score);
+}
+</script>
+</body>
+</html>

@@ -148,11 +148,14 @@ These come free from `game-sdk.js` / `game-style.css` the moment a game links th
 | ⚔️ Tournaments | Chained via `?tournament=<id>` — SDK shows the "next game" button automatically after `complete()` |
 | 📤 Challenge links | `shareButton()` embeds score in a URL; opening it shows a "beat X!" banner and auto win/lose check on `complete()` |
 | Button style reset | `.correct` / `.wrong` classes auto-clear after their animation |
+| 🔊 Read aloud | `IAKidsSpeech.mountReader()` floats a button that speaks the question on screen. A game that wants its own control builds one with `IAKidsSpeech.button(text)` and the floating one stands aside |
 | 🌌 Space theme | `<body class="theme-space">` switches the whole game to the shared dark space look (`body.theme-space` block at the end of `game-style.css`). Override only what differs (e.g. `.game-card{width:min(560px,calc(100vw - 28px))!important}`) — never paste the theme into the game |
 
 ---
 
 ## Content rules
+
+- **Reading aloud**: `IAKidsSpeech.say(text)` speaks a word or a sentence. It tries this browser's cache, then the browser's own voice — free, offline, no model — and only on a device with no voice for the language does it ask the tutor backend's model voice, whose answer it then keeps, so the model is never asked for the same text twice. `IAKidsSpeech.prime(list)` warms a list ahead of a round. Marks and markup are stripped before anything is spoken.
 
 - **Nikud (vowel points) on Hebrew words**: never bake them into a game. Link `../nikud.js` before `../game-sdk.js` and render through `IAKidsNikud`:
 

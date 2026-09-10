@@ -769,6 +769,214 @@ const IAKidsNikud = {
   },
 };
 
+/**
+ * IAKidsSpeech — read a word or a sentence out loud, in any game.
+ *
+ *   IAKidsSpeech.say('שולחן')                 // speak it
+ *   IAKidsSpeech.button('שולחן')              // a 🔊 button the game can drop in
+ *   IAKidsSpeech.stop()                       // silence
+ *   await IAKidsSpeech.prime(['a','b'])       // warm the cache before a round
+ *
+ * Three sources, cheapest first:
+ *   1. a clip already in this browser's cache (IndexedDB `iakids_speech`)
+ *   2. the browser's own voice — free, offline, costs nothing per play
+ *   3. the model voice on the tutor backend, for a device with no Hebrew voice
+ *
+ * Only the third costs anything, so its answer is written to the cache and the
+ * model is never asked for the same text twice. Everything degrades quietly: no
+ * voice and no backend simply means nothing is spoken, never a broken game.
+ */
+const IAKidsSpeech = {
+  TTS_URL: 'https://iakids-ai-tutor-he.onrender.com/api/tutor/tts',
+  MAXLEN: 400,
+  _audio: null,
+  _voices: null,
+
+  _langTag() {
+    return { he: 'he-IL', en: 'en-US', es: 'es-ES', de: 'de-DE', pt: 'pt-PT' }[IAKidsLang.code] || 'he-IL';
+  },
+
+  // Spoken text is the plain word: the marks are for the eye, and some voices
+  // read them out as noise. Markup never reaches a voice either.
+  clean(text) {
+    return String(text ?? '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[\u0591-\u05C7]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, this.MAXLEN);
+  },
+
+  // ---- the browser's own voice ------------------------------------------
+  _browserVoice() {
+    if (!('speechSynthesis' in window)) return null;
+    if (this._voices === null) this._voices = speechSynthesis.getVoices() || [];
+    const tag = this._langTag(), base = tag.split('-')[0];
+    return this._voices.find(v => v.lang === tag)
+        || this._voices.find(v => (v.lang || '').startsWith(base))
+        || null;
+  },
+  available() { return !!this._browserVoice() || 'speechSynthesis' in window; },
+
+  // ---- cache -------------------------------------------------------------
+  _db() {
+    return (this._dbp ||= new Promise((resolve, reject) => {
+      const req = indexedDB.open('iakids_speech', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('clips');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    }));
+  },
+  async _cached(key) {
+    try {
+      const db = await this._db();
+      return await new Promise(res => {
+        const r = db.transaction('clips').objectStore('clips').get(key);
+        r.onsuccess = () => res(r.result || null);
+        r.onerror = () => res(null);
+      });
+    } catch { return null; }
+  },
+  async _store(key, blob) {
+    try {
+      const db = await this._db();
+      db.transaction('clips', 'readwrite').objectStore('clips').put(blob, key);
+    } catch { /* private window, or the quota is full — speak it live next time */ }
+  },
+
+  // ---- the model voice, asked once per phrase ----------------------------
+  async _model(text) {
+    try {
+      const c = await IAKidsActivity._getClient(); if (!c) return null;
+      const { data: { session } } = await c.auth.getSession();
+      if (!session?.access_token) return null;      // guests never reach the model
+      const r = await fetch(this.TTS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify({ text }),
+      });
+      if (!r.ok) return null;
+      const j = await r.json();
+      const b64 = j.audio || j.audio_base64 || j.data;
+      if (!b64) return null;
+      const bytes = Uint8Array.from(atob(b64), ch => ch.charCodeAt(0));
+      return new Blob([bytes], { type: j.mime || j.mime_type || 'audio/wav' });
+    } catch { return null; }
+  },
+
+  stop() {
+    try { speechSynthesis.cancel(); } catch {}
+    if (this._audio) { this._audio.pause(); this._audio = null; }
+  },
+
+  _play(blob) {
+    this.stop();
+    const url = URL.createObjectURL(blob);
+    const a = this._audio = new Audio(url);
+    a.onended = a.onerror = () => URL.revokeObjectURL(url);
+    return a.play().catch(() => {});
+  },
+
+  /**
+   * Speak `text`. Returns the source used: 'cache' | 'browser' | 'model' | null.
+   * `opts.rate` slows the voice down — a child writing a word wants it slower.
+   */
+  async say(text, opts = {}) {
+    const t = this.clean(text);
+    if (!t) return null;
+    const key = this._langTag() + '|' + t;
+
+    const hit = await this._cached(key);
+    if (hit) { await this._play(hit); return 'cache'; }
+
+    const voice = this._browserVoice();
+    if (voice || 'speechSynthesis' in window) {
+      this.stop();
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = this._langTag();
+      if (voice) u.voice = voice;
+      u.rate = opts.rate ?? 0.9;          // a shade slower than default: these are children
+      speechSynthesis.speak(u);
+      if (voice) return 'browser';        // a real voice for this language — done
+    }
+
+    // No voice for this language on this device: pay the model once, keep the clip.
+    const blob = await this._model(t);
+    if (!blob) return voice ? 'browser' : null;
+    await this._store(key, blob);
+    await this._play(blob);
+    return 'model';
+  },
+
+  /** Cache a list of phrases ahead of a round, so the first play is instant. */
+  async prime(list) {
+    if (this._browserVoice()) return 0;   // the browser can say them for free
+    let made = 0;
+    for (const text of list || []) {
+      const t = this.clean(text); if (!t) continue;
+      const key = this._langTag() + '|' + t;
+      if (await this._cached(key)) continue;
+      const blob = await this._model(t);
+      if (blob) { await this._store(key, blob); made++; }
+    }
+    return made;
+  },
+
+  // What the child is being asked right now. Games differ, so look where a question
+  // actually lives, in the order a game is likely to put it, and read the first
+  // thing that is on screen and has words in it.
+  QUESTION_SEL: '#question, .game-question, #trivia-q, #q-text, #exercise, .exercise, #instruction, #cue, #reveal, #howto',
+  currentQuestion() {
+    const play = document.getElementById('play-screen');
+    if (play && play.hidden) return '';           // between rounds: nothing to read
+    for (const el of document.querySelectorAll(this.QUESTION_SEL)) {
+      if (el.hidden || el.offsetParent === null) continue;
+      const t = this.clean(el.textContent);
+      if (t.length > 1) return t;
+    }
+    return '';
+  },
+
+  /**
+   * A floating 🔊 that reads the question out loud. Mounted on every game, because
+   * a child who cannot yet read fluently should not be shut out of one. It hides
+   * itself whenever there is nothing to read, and stays out of the way of a game
+   * that already offers its own read-aloud control.
+   */
+  mountReader() {
+    if (document.getElementById('iakids-read-btn')) return;
+    if (document.querySelector('.iakids-speak')) return;   // the game has its own
+    if (!('speechSynthesis' in window)) return;
+    const btn = this.button(() => this.currentQuestion(), { className: 'floating-read' });
+    btn.id = 'iakids-read-btn';
+    btn.hidden = true;
+    document.body.appendChild(btn);
+    const sync = () => { btn.hidden = !this.currentQuestion(); };
+    sync();
+    // Questions are swapped by the game, not by us, so watch the card for changes.
+    const card = document.getElementById('card') || document.body;
+    new MutationObserver(sync).observe(card, { childList: true, subtree: true, characterData: true });
+  },
+
+  /** A ready-made 🔊 button. `textFn` may be a string or a function returning one. */
+  button(textFn, opts = {}) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'iakids-speak' + (opts.className ? ' ' + opts.className : '');
+    btn.textContent = opts.label || '🔊';
+    btn.title = IAKidsLang.t({ he: 'הקראה', en: 'Read aloud', es: 'Leer en voz alta', de: 'Vorlesen', pt: 'Ler em voz alta' });
+    btn.onclick = e => {
+      e.preventDefault(); e.stopPropagation();
+      this.say(typeof textFn === 'function' ? textFn() : textFn, opts);
+    };
+    return btn;
+  },
+};
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  // Chrome fills the voice list asynchronously; re-read it when it lands.
+  speechSynthesis.onvoiceschanged = () => { IAKidsSpeech._voices = null; };
+}
+
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
@@ -1435,7 +1643,7 @@ const IAKidsTimer = {
 };
 // after DOM parse: the game's own <script> and #start-screen exist only by then
 if (typeof window !== 'undefined') {
-  const mountPills = () => { IAKidsTimer.mountToggle(); IAKidsNikud.mountToggle(); };
+  const mountPills = () => { IAKidsTimer.mountToggle(); IAKidsNikud.mountToggle(); IAKidsSpeech.mountReader(); };
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', mountPills);
   else mountPills();
@@ -1487,23 +1695,15 @@ const IAKidsHelp = {
       </div>`;
     modal.style.display = 'none';
     const close = () => {
-      if (canSpeak) speechSynthesis.cancel();
+      IAKidsSpeech.stop();
       if (modal.querySelector('#iakids-help-dontshow').checked) localStorage.setItem(key, '1');
       modal.style.display = 'none';
     };
     modal.querySelector('.game-btn').onclick = close;
     modal.onclick = e => { if (e.target === modal) close(); };
     if (canSpeak) {
-      // Strip the HTML the example allows (e.g. <b>, <span dir="ltr">) — spoken text, not markup.
-      const speechText = [how, example].filter(Boolean)
-        .join('. ').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      const speechLang = { he: 'he-IL', en: 'en-US', es: 'es-ES', de: 'de-DE', pt: 'pt-PT' }[IAKidsLang.code] || 'he-IL';
-      modal.querySelector('.help-speak').onclick = () => {
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(speechText);
-        u.lang = speechLang;
-        speechSynthesis.speak(u);
-      };
+      const speechText = [how, example].filter(Boolean).join('. ');
+      modal.querySelector('.help-speak').onclick = () => IAKidsSpeech.say(speechText);
     }
     document.body.appendChild(modal);
     this._modal = modal;

@@ -461,3 +461,34 @@ body:where(.theme-space)::before{content:"";position:fixed;inset:0;z-index:-1;po
   :where(body.theme-space) #start-screen,:where(body.theme-space) #play-screen,:where(body.theme-space) #end-screen{min-height:calc(100vh - 96px);padding:26px 15px 24px}
   :where(body.theme-space) .game-hud{min-height:62px;padding:12px 14px!important;gap:24px}
 }
+
+/* 🔊 read-aloud button (IAKidsSpeech.button) — sits next to whatever it reads */
+.iakids-speak {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(118, 176, 255, 0.45);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #1c91db, #0877bd);
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.18), 0 6px 14px rgba(0, 0, 0, 0.22);
+  transition: transform 0.12s;
+}
+.iakids-speak:hover { transform: translateY(-2px); }
+.iakids-speak:active { transform: scale(0.94); }
+.iakids-speak.big { width: 92px; height: 92px; font-size: 2.4rem; }
+
+/* the floating read-aloud, mounted on every game by IAKidsSpeech.mountReader() */
+.iakids-speak.floating-read {
+  position: fixed;
+  bottom: 16px;
+  inset-inline-start: 16px;
+  z-index: 60;
+  width: 52px;
+  height: 52px;
+  font-size: 1.35rem;
+}
