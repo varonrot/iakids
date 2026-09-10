@@ -1,19 +1,42 @@
-/* IAKIDS desktop remote homework capture 0.7.69 */
+/* IAKIDS desktop remote homework capture 0.7.70 */
 (function(){
-  if(window.__IAKIDS_REMOTE_HOMEWORK_0769) return;
-  window.__IAKIDS_REMOTE_HOMEWORK_0769=true;
+  if(window.__IAKIDS_REMOTE_HOMEWORK_0770) return;
+  window.__IAKIDS_REMOTE_HOMEWORK_0770=true;
   let pollTimer=null,currentSession=null;
   const isDesktop=()=>window.matchMedia('(min-width:901px)').matches;
-  function styleButtons(root=document){
-    root.querySelectorAll('[data-homework-camera],[data-homework-camera-retry]').forEach(btn=>{
-      const span=btn.querySelector('span'); const icon=btn.querySelector('i');
-      if(isDesktop()){if(span)span.textContent='סרוק עם הטלפון';if(icon)icon.className='fa-solid fa-qrcode'}
-      else{if(span)span.textContent='צלם שיעורי בית';if(icon)icon.className='fa-solid fa-camera'}
-    });
+
+  function styleButton(btn){
+    if(!btn) return;
+    const span=btn.querySelector('span');
+    const icon=btn.querySelector('i');
+    const wantedText=isDesktop()?'סרוק עם הטלפון':'צלם שיעורי בית';
+    const wantedIcon=isDesktop()?'fa-solid fa-qrcode':'fa-solid fa-camera';
+    if(span && span.textContent!==wantedText) span.textContent=wantedText;
+    if(icon && icon.className!==wantedIcon) icon.className=wantedIcon;
   }
-  const obs=new MutationObserver(()=>styleButtons());
-  document.addEventListener('DOMContentLoaded',()=>{styleButtons();obs.observe(document.body,{subtree:true,childList:true})});
-  setTimeout(()=>styleButtons(),500);setTimeout(()=>styleButtons(),1500);
+
+  function styleButtons(root=document){
+    root.querySelectorAll('[data-homework-camera],[data-homework-camera-retry]').forEach(styleButton);
+  }
+
+  const obs=new MutationObserver(mutations=>{
+    for(const mutation of mutations){
+      for(const node of mutation.addedNodes){
+        if(!(node instanceof Element)) continue;
+        if(node.matches?.('[data-homework-camera],[data-homework-camera-retry]')) styleButton(node);
+        node.querySelectorAll?.('[data-homework-camera],[data-homework-camera-retry]').forEach(styleButton);
+      }
+    }
+  });
+
+  function startObserver(){
+    styleButtons();
+    if(document.body) obs.observe(document.body,{subtree:true,childList:true});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',startObserver,{once:true});
+  else startObserver();
+  setTimeout(()=>styleButtons(),500);
+  setTimeout(()=>styleButtons(),1500);
 
   function ensureStyles(){if(document.getElementById('remoteHomeworkStyles'))return;const s=document.createElement('style');s.id='remoteHomeworkStyles';s.textContent=`
   .remote-homework-modal{position:fixed;inset:0;z-index:100000;background:rgba(0,6,18,.76);display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)}
