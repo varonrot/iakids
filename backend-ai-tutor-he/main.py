@@ -510,6 +510,19 @@ async def _widen_threadpool():
     _anyio.to_thread.current_default_thread_limiter().total_tokens = WORKER_THREADS
 
 
+@app.get("/")
+async def health():
+    """Something that answers 200 without a token.
+
+    Render polls a path to decide whether the service is alive. Until now the only
+    unauthenticated 200 on this service was /openapi.json — and in production that is
+    now closed, which would have left the health check with nothing to hit and Render
+    restarting a service that was working perfectly. It sits outside /api/, so the
+    rate limiter does not count it.
+    """
+    return {"status": "ok", "service": "iakids-ai-tutor-he"}
+
+
 @app.middleware("http")
 async def _rate_limit(request: _Request, call_next):
     """A sliding one-minute window per caller on /api/*.
