@@ -129,3 +129,26 @@ backend/.venv/bin/python tools/capacity_pdf.py            # -> tools/iakids-capa
 It needs `reportlab` and `python-bidi` (both in `backend/.venv`). The bidi part is
 not optional: reportlab draws glyphs in the order it is handed them, so Hebrew has to
 be reordered before it is drawn or every line comes out backwards.
+
+---
+
+## After the bank migration (2026-09-10, evening)
+
+Measured on the real play path — a signed-in child calling `game_next_questions`
+against the 106k-row bank through the new partial index, with the table itself closed
+to direct reads:
+
+| at once | calls/s | p95 |
+|---|---|---|
+| 32 | 68.5 | 0.48 s |
+| 64 | 40.4 | 1.73 s |
+| 128 | 69.2 | 1.73 s |
+
+**128 concurrent, no errors, still under the 2-second line** — the earlier read
+scenario had crossed it at 64. The dip at 64 and the flat line after it are this
+2-core generator again; the ceiling is above what this box can produce.
+
+A session now makes 24 calls instead of 34 (one `game_record_answer` per question
+instead of an insert plus an rpc), 0.10 requests/s per child. Reads measured at
+~70 calls/s put that at **roughly 700 children playing at once**, as a floor. Writes
+were not hammered — this is production — so the write ceiling remains an estimate.

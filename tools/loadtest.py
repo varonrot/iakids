@@ -68,6 +68,15 @@ SCENARIOS = {
              {'apikey': ANON, 'Authorization': f'Bearer {ANON}'}),
         ],
     },
+    'play': {
+        'what': 'the real play path: a signed-in child asking the bank for the next 20 questions (needs IAKIDS_TEST_JWT and IAKIDS_TEST_KID)',
+        'requests': [
+            ('POST', f'{SUPABASE}/rest/v1/rpc/game_next_questions',
+             {'apikey': ANON, 'Authorization': 'Bearer ' + __import__('os').environ.get('IAKIDS_TEST_JWT', ''),
+              'Content-Type': 'application/json'},
+             '{"p_kid": "%s", "p_game": "true-false-math", "p_level": 1, "p_limit": 20}' % __import__('os').environ.get('IAKIDS_TEST_KID', '')),
+        ],
+    },
     'backend': {
         'what': 'the core API answering a route that touches no model and no database',
         # NOT '/': the deployed build predates the health route in backend/main.py
@@ -85,9 +94,9 @@ async def one_user(client, requests, out):
     """One simulated child doing the whole scenario once."""
     t0 = time.perf_counter()
     ok = True
-    for method, url, headers in requests:
+    for method, url, headers, *body in requests:
         try:
-            r = await client.request(method, url, headers=headers)
+            r = await client.request(method, url, headers=headers, content=body[0] if body else None)
             if r.status_code >= 400:
                 ok = False
                 out['codes'][r.status_code] = out['codes'].get(r.status_code, 0) + 1
@@ -134,7 +143,7 @@ async def ramp(name, args):
     per_user = len(reqs)
 
     if not args.i_know_this_costs_money:
-        for _, url, _ in reqs:
+        for _, url, *_ in reqs:
             if any(k in url for k in COSTS_MONEY):
                 sys.exit(f'refusing: {url} calls a language model. Every request is billed and the '
                          f'backends have no rate limit, so a ramp there is a bill, not a measurement.')
