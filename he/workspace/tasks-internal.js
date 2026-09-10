@@ -1,7 +1,7 @@
-/* IAKIDS internal tasks view 0.7.67 */
+/* IAKIDS internal tasks view 0.7.68 */
 (function(){
-  if(window.__IAKIDS_INTERNAL_TASKS_0767) return;
-  window.__IAKIDS_INTERNAL_TASKS_0767 = true;
+  if(window.__IAKIDS_INTERNAL_TASKS_0768) return;
+  window.__IAKIDS_INTERNAL_TASKS_0768 = true;
 
   function syncActiveKid(){
     try{
@@ -61,7 +61,7 @@
     ensureStyles();const main=document.querySelector('.main');if(!main) return null;
     syncActiveKid();
     view=document.createElement('section');view.id='iakidsInternalTasksView';view.setAttribute('aria-label','המשימות שלי');
-    view.innerHTML=`<div class="iit-toolbar"><strong><i class="fa-regular fa-calendar-check"></i> המשימות שלי</strong><button type="button" class="iit-close"><i class="fa-solid fa-arrow-right"></i> חזרה לעולם הלמידה</button></div><iframe class="iit-frame" title="המשימות שלי" src="/he/tasks/?embed=1"></iframe>`;
+    view.innerHTML=`<div class="iit-toolbar"><strong><i class="fa-regular fa-calendar-check"></i> המשימות שלי</strong><button type="button" class="iit-close"><i class="fa-solid fa-arrow-right"></i> חזרה לעולם הלמידה</button></div><iframe class="iit-frame" title="המשימות שלי" src="/he/tasks/?embed=1&v=0768"></iframe>`;
     main.appendChild(view);view.querySelector('.iit-close')?.addEventListener('click',closeTasks);
     const frame=view.querySelector('.iit-frame');frame?.addEventListener('load',()=>{try{applyEmbeddedDarkTheme(frame.contentDocument)}catch(error){console.warn('INTERNAL TASKS EMBED STYLE',error)}});
     return view;
@@ -73,7 +73,7 @@
     const kidId=syncActiveKid();const dash=document.getElementById('iakidsLearningDashboard');if(dash) dash.hidden=true;
     const view=getView();if(!view) return;const frame=view.querySelector('.iit-frame');
     if(frame && kidId){
-      const expected=`/he/tasks/?embed=1&kid_id=${encodeURIComponent(kidId)}`;
+      const expected=`/he/tasks/?embed=1&v=0768&kid_id=${encodeURIComponent(kidId)}`;
       if(!frame.src.includes(`kid_id=${encodeURIComponent(kidId)}`)) frame.src=expected;
       try{frame.contentWindow?.localStorage?.setItem('active_kid_id',kidId)}catch(_e){}
     }
