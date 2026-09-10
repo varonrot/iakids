@@ -16927,6 +16927,34 @@ if (user) {
 
   const userId = sessionData.session.user.id;
 
+  // Which country this family is in, once a day. Cloudflare already knows it from
+  // the connection and tells the page at /cdn-cgi/trace, so no IP lookup service is
+  // involved and no IP is stored — the country is what we actually want to know.
+  // The browser's timezone stands in on the mirror domain, which Cloudflare does not
+  // front. Never blocks the page.
+  (async () => {
+    try {
+      const LAST = "iakids_where_at";
+      if (Date.now() - Number(localStorage.getItem(LAST) || 0) < 86400000) return;
+      let country = null, source = "timezone";
+      try {
+        const r = await fetch("/cdn-cgi/trace", { cache: "no-store" });
+        if (r.ok) {
+          const t = Object.fromEntries((await r.text()).trim().split("\n")
+            .map(l => l.split("=")).filter(p => p.length === 2));
+          if (t.loc) { country = t.loc; source = "cloudflare"; }
+        }
+      } catch (e) { /* not behind Cloudflare, or offline */ }
+      let timezone = null;
+      try { timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch (e) {}
+      if (!country && !timezone) return;
+      const { error } = await sb.rpc("record_user_location", {
+        p_country: country, p_region: null, p_timezone: timezone, p_source: source
+      });
+      if (!error) localStorage.setItem(LAST, String(Date.now()));
+    } catch (e) { /* location is a nice-to-have, never a blocker */ }
+  })();
+
 let activeKidId = localStorage.getItem("active_kid_id");
 
 if (!activeKidId) {

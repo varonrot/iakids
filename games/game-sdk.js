@@ -710,6 +710,51 @@ const IAKidsBank = {
 };
 
 /**
+ * IAKidsWhere — the country a family is in, asked once a day.
+ *
+ * Cloudflare knows it from the connection and publishes it to the page at
+ * /cdn-cgi/trace, so no IP lookup service is involved and no IP address is stored —
+ * the country is what the question needs, and an IP identifies a household. On the
+ * mirror domain, which does not go through Cloudflare, the browser's own timezone
+ * stands in.
+ *
+ * Runs only for a signed-in parent, quietly, and never blocks anything.
+ */
+const IAKidsWhere = {
+  EVERY_MS: 24 * 60 * 60 * 1000,
+
+  async record() {
+    try {
+      const last = Number(localStorage.getItem('iakids_where_at') || 0);
+      if (Date.now() - last < this.EVERY_MS) return;
+      const user = await IAKidsAuth.currentUser();
+      if (!user || user.source !== 'supabase') return;      // only the site's own account
+      const sb = await IAKidsAuth._supabase();
+      if (!sb) return;
+
+      let country = null, region = null, source = 'timezone';
+      try {
+        const r = await fetch('/cdn-cgi/trace', { cache: 'no-store' });
+        if (r.ok) {
+          const t = Object.fromEntries((await r.text()).trim().split('\n')
+            .map(l => l.split('=')).filter(p => p.length === 2));
+          if (t.loc) { country = t.loc; source = 'cloudflare'; }
+        }
+      } catch { /* not behind Cloudflare, or offline */ }
+
+      let timezone = null;
+      try { timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch {}
+      if (!country && !timezone) return;
+
+      const { error } = await sb.rpc('record_user_location', {
+        p_country: country, p_region: region, p_timezone: timezone, p_source: source,
+      });
+      if (!error) localStorage.setItem('iakids_where_at', String(Date.now()));
+    } catch { /* never let this get in the way of a game */ }
+  },
+};
+
+/**
  * IAKidsOutbox — the answers a child has given, on their way to the database.
  *
  * A round of ten questions used to be ten writes, one per answer, and the database
@@ -2313,23 +2358,68 @@ const IAKidsSkills = {
 };
 
 /**
- * IAKidsAuth — Google sign-in via Firebase (config in ../firebase-config.js).
- * Optional layer on top of the existing name-based wallet: signing in with
- * Google replaces the "type your name" flow — the Google display name becomes
- * the wallet player name automatically, so leaderboards/champions/challenge
- * links all pick it up for free, no per-game changes needed.
+ * IAKidsAuth — who is playing. The same account as the rest of the site.
+ *
+ * The site signs a parent in with Supabase (the workspace, the parent panel, the
+ * tutor, the subscription — all of it hangs off that session). The games used to
+ * run their own Google sign-in through Firebase, which meant a parent who had just
+ * come from the workspace arrived at a game and was asked to sign in again: two
+ * identities on one origin, and the one the games showed was not the one that pays.
+ *
+ * So Supabase is the identity now. Firebase stays only as a fallback for a device
+ * that signed in that way before and has no Supabase session, so nobody loses the
+ * name their coins are under.
  *
  *   IAKidsAuth.mount();               // renders the sign-in/avatar widget
- *   await IAKidsAuth.currentUser();   // null or {name, email, photo}
+ *   await IAKidsAuth.currentUser();   // null or {name, email, photo, source}
  */
 const IAKidsAuth = {
-  _app: null, _auth: null, _user: null, _ready: null,
+  _app: null, _auth: null, _user: null, _ready: null, _sb: null,
+
+  // The Google profile Supabase keeps on the user, shaped like the widget wants it.
+  _fromSupabase(u) {
+    if (!u) return null;
+    const m = u.user_metadata || {};
+    return {
+      name: m.full_name || m.name || (u.email || '').split('@')[0],
+      email: u.email, photo: m.avatar_url || m.picture || '', source: 'supabase',
+    };
+  },
+
+  async _supabase() {
+    if (this._sb) return this._sb;
+    if (typeof SUPABASE_CONFIG === 'undefined') return null;
+    try {
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      // Default storage, so this is the very session the workspace wrote.
+      this._sb = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.publishableKey);
+      this._sb.auth.onAuthStateChange((_e, session) => {
+        const u = this._fromSupabase(session && session.user);
+        if (u || this._user?.source === 'supabase') { this._user = u; this._remember(); this._paint(); }
+      });
+      return this._sb;
+    } catch { return null; }
+  },
+
+  _remember() {
+    // The wallet, the champions table and challenge links all read this name.
+    if (this._user?.name) { try { IAKidsCoins._kvPut('player', this._user.name); } catch {} }
+  },
 
   async _init() {
     if (this._ready) return this._ready;
     this._ready = (async () => {
+      const sb = await this._supabase();
+      if (sb) {
+        try {
+          const { data } = await sb.auth.getUser();
+          const u = this._fromSupabase(data && data.user);
+          if (u) { this._user = u; this._remember(); this._paint(); return true; }
+        } catch { /* offline: fall through to Firebase */ }
+      }
+      // No Supabase session on this device — is there an old Firebase one?
       if (typeof FIREBASE_CONFIG === 'undefined' || FIREBASE_CONFIG.apiKey.startsWith('PASTE_ME')) {
-        return false; // not configured yet — auth silently unavailable
+        return !!sb;                          // sign-in still offered, through Supabase
       }
       const [{ initializeApp }, authMod] = await Promise.all([
         import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js'),
@@ -2340,8 +2430,11 @@ const IAKidsAuth = {
       this._authMod = authMod;
       await new Promise(resolve => {
         authMod.onAuthStateChanged(this._auth, user => {
-          this._user = user ? { name: user.displayName, email: user.email, photo: user.photoURL } : null;
-          if (this._user) IAKidsCoins._kvPut('player', this._user.name);
+          if (this._user?.source === 'supabase') return resolve();   // Supabase wins
+          this._user = user
+            ? { name: user.displayName, email: user.email, photo: user.photoURL, source: 'firebase' }
+            : null;
+          this._remember();
           this._paint();
           resolve();
         });
@@ -2357,21 +2450,42 @@ const IAKidsAuth = {
   },
 
   async signIn() {
-    const ok = await this._init();
-    if (!ok) return alert(IAKidsLang.t({
+    await this._init();
+    const sb = await this._supabase();
+    if (sb) {
+      // Same flow as the workspace: Google, then back to this exact game.
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google', options: { redirectTo: location.href.split('#')[0] },
+      });
+      if (!error) return;
+    }
+    if (this._authMod) {
+      try { await this._authMod.signInWithPopup(this._auth, new this._authMod.GoogleAuthProvider()); }
+      catch (e) { /* user closed the popup — fine */ }
+      return;
+    }
+    alert(IAKidsLang.t({
       he: 'ההתחברות עם Google עדיין לא הופעלה באתר הזה.',
       en: 'Google sign-in isn\'t set up on this site yet.',
       es: 'El inicio de sesión con Google aún no está configurado.',
       de: 'Google-Anmeldung ist hier noch nicht eingerichtet.',
       pt: 'O login com Google ainda não está configurado.',
     }));
-    try {
-      await this._authMod.signInWithPopup(this._auth, new this._authMod.GoogleAuthProvider());
-    } catch (e) { /* user closed popup — fine */ }
   },
 
   async signOut() {
-    if (this._auth) await this._authMod.signOut(this._auth);
+    // Signing out of a game signs the parent out of the site, so say so.
+    if (this._user?.source === 'supabase' && !confirm(IAKidsLang.t({
+      he: 'להתנתק מהחשבון? זה מנתק גם את סביבת הלמידה.',
+      en: 'Sign out? This signs you out of the learning workspace too.',
+      es: '¿Cerrar sesión? También cierra la sesión del espacio de aprendizaje.',
+      de: 'Abmelden? Das meldet dich auch vom Lernbereich ab.',
+      pt: 'Sair? Isto também encerra a sessão do espaço de aprendizagem.',
+    }))) return;
+    try { const sb = await this._supabase(); if (sb) await sb.auth.signOut(); } catch {}
+    if (this._auth) { try { await this._authMod.signOut(this._auth); } catch {} }
+    this._user = null;
+    this._paint();
   },
 
   _paint() {
@@ -2394,6 +2508,7 @@ const IAKidsAuth = {
     }
     await this._init();
     this._paint();
+    IAKidsWhere.record();
   },
 };
 
