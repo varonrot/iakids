@@ -1,9 +1,19 @@
-/* IAKIDS desktop remote homework capture 0.7.70 */
+/* IAKIDS desktop remote homework capture 0.7.71 */
 (function(){
-  if(window.__IAKIDS_REMOTE_HOMEWORK_0770) return;
-  window.__IAKIDS_REMOTE_HOMEWORK_0770=true;
+  if(window.__IAKIDS_REMOTE_HOMEWORK_0771) return;
+  window.__IAKIDS_REMOTE_HOMEWORK_0771=true;
   let pollTimer=null,currentSession=null;
   const isDesktop=()=>window.matchMedia('(min-width:901px)').matches;
+
+  function getWorkspaceClient(){
+    try{ if(typeof sb!=='undefined' && sb) return sb; }catch(_e){}
+    return window.sb || null;
+  }
+
+  function getActiveKid(){
+    try{ if(typeof CURRENT_KID!=='undefined' && CURRENT_KID) return CURRENT_KID; }catch(_e){}
+    return window.CURRENT_KID || null;
+  }
 
   function styleButton(btn){
     if(!btn) return;
@@ -46,12 +56,12 @@
   function closeModal(){const m=document.getElementById('remoteHomeworkModal');m?.classList.remove('open');if(pollTimer){clearInterval(pollTimer);pollTimer=null}}
   async function loadQrLib(){if(window.QRCode)return;await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
   async function startRemoteCapture(){
-    const client=window.sb;if(!client){alert('לא ניתן להתחבר כרגע');return}
-    const kid=window.CURRENT_KID; if(!kid?.id){alert('לא נמצא ילד פעיל');return}
+    const client=getWorkspaceClient();if(!client){alert('לא ניתן להתחבר כרגע');return}
+    const kid=getActiveKid(); if(!kid?.id){alert('לא נמצא ילד פעיל');return}
     const {data:{user}}=await client.auth.getUser();if(!user){alert('יש להתחבר מחדש');return}
     const m=getModal();m.classList.add('open');const status=m.querySelector('#remoteHomeworkStatus');const qr=m.querySelector('#remoteHomeworkQr');const linkEl=m.querySelector('#remoteHomeworkLink');qr.innerHTML='';status.textContent='יוצר קוד מאובטח...';linkEl.textContent='';
     const {data,error}=await client.from('homework_capture_sessions').insert({user_id:user.id,kid_id:kid.id}).select('id,token,expires_at').single();
-    if(error||!data){console.error(error);status.textContent='לא הצלחנו ליצור קוד. נסו שוב.';return}
+    if(error||!data){console.error('REMOTE CAPTURE SESSION CREATE',error);status.textContent='לא הצלחנו ליצור קוד. נסו שוב.';return}
     currentSession=data;const url=`${location.origin}/he/capture/?token=${encodeURIComponent(data.token)}`;linkEl.textContent=url;
     try{await loadQrLib();new QRCode(qr,{text:url,width:220,height:220,correctLevel:QRCode.CorrectLevel.M})}catch(e){console.error(e);status.textContent='לא הצלחנו להציג QR';return}
     status.textContent='מחכה לתמונה מהטלפון...';
