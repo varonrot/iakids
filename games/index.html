@@ -68,11 +68,33 @@
 </div>
 
 <script>
-// First-ever visit: show a login/guest gate, then land on skills/ (the site's
-// main page). Every visit after that goes straight to this grid as before —
-// games' 🏠 home button (href="../") always lands here, never re-gated.
+// A cold visitor who lands here first sees a welcome: sign in, or carry on as a
+// guest. It is an introduction, not a wall, so it must never appear to someone who
+// is already inside the product — the 🏠 button in a game lands here, and so does a
+// link from the workspace, and being asked to sign in at that moment reads as having
+// been logged out.
+//
+// So it is skipped for anyone who arrived from one of our own pages, and for anyone
+// who already has a session. Both are checked without waiting for the network: the
+// session lives in localStorage under the project's own key.
 const GATE_SEEN_KEY = 'iakids_gate_seen';
+const cameFromUs = (() => {
+  try { return !!document.referrer && new URL(document.referrer).origin === location.origin; }
+  catch (e) { return false; }
+})();
+const alreadySignedIn = (() => {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && /^sb-.*-auth-token$/.test(k) && localStorage.getItem(k)) return true;
+    }
+  } catch (e) {}
+  return false;
+})();
 if (new URLSearchParams(location.search).has('gate')) localStorage.removeItem(GATE_SEEN_KEY); // ?gate=1 to re-see it
+if (cameFromUs || alreadySignedIn) {
+  try { localStorage.setItem(GATE_SEEN_KEY, '1'); } catch (e) {}
+}
 if (!localStorage.getItem(GATE_SEEN_KEY)) {
   document.getElementById('gate').hidden = false;
   const pass = () => { localStorage.setItem(GATE_SEEN_KEY, '1'); location.href = 'skills/'; };
