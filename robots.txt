@@ -1,4 +1,49 @@
+# iakids.app
+#
+# Search engines are welcome: the site exists to be found by parents and teachers.
+# The crawlers below are blocked from the games because they copy content wholesale
+# rather than index it. This is a request, not a wall — a crawler that ignores
+# robots.txt is stopped at Cloudflare instead (see games/tools/PROTECTION.md).
+
 User-agent: *
 Allow: /
+
+# Content scrapers and AI training crawlers
+User-agent: GPTBot
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+User-agent: anthropic-ai
+Disallow: /
+User-agent: CCBot
+Disallow: /
+User-agent: Google-Extended
+Disallow: /
+User-agent: Applebot-Extended
+Disallow: /
+User-agent: Bytespider
+Disallow: /
+User-agent: Amazonbot
+Disallow: /
+User-agent: PerplexityBot
+Disallow: /
+User-agent: Omgilibot
+Disallow: /
+User-agent: FacebookBot
+Disallow: /
+
+# Site-copiers: these exist to download a whole site to disk
+User-agent: HTTrack
+Disallow: /
+User-agent: wget
+Disallow: /
+User-agent: WebZIP
+Disallow: /
+User-agent: WebCopier
+Disallow: /
+User-agent: Teleport
+Disallow: /
+User-agent: SiteSnagger
+Disallow: /
 
 Sitemap: https://iakids.app/sitemap.xml

@@ -1,0 +1,20 @@
+Copyright © iakids.app. All rights reserved.
+
+The contents of this repository — the games under `games/`, their content, the
+shared SDK and stylesheet, the Hebrew nikud dictionary, the site pages and the
+backends — are the work of iakids.app.
+
+They are published so that children can play them on iakids.app and on
+smarts-brains.online. Publishing them there is not a licence to copy them.
+
+You may not, without written permission:
+
+  * host these games, or any part of them, on another domain or in an app;
+  * redistribute the source, in whole or in part, modified or not;
+  * remove or alter the copyright notices, or the host check in game-sdk.js;
+  * use the content — the word lists, question banks, the nikud dictionary, the
+    prompts — as training data or as the content of another product.
+
+You may read the source, and you may play the games.
+
+For permission, or to report a copy: iakids.app

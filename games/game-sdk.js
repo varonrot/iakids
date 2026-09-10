@@ -1,3 +1,10 @@
+/*!
+ * iakids game SDK — © iakids.app. All rights reserved.
+ *
+ * These games and this SDK are the work of iakids.app and are published for
+ * children to play on iakids.app and smarts-brains.online. They are not licensed
+ * for redistribution or for hosting elsewhere. See games/tools/PROTECTION.md.
+ */
 /**
  * iakids game SDK — shared interface for all games under /games/<slug>/.
  * Each game gets its OWN IndexedDB database: iakids_game_<slug>.
@@ -697,21 +704,33 @@ const IAKidsNikud = {
   },
   set enabled(v) { try { localStorage.setItem('iakids_nikud', v ? '1' : '0'); } catch {} },
 
-  // Look the child's age up once and remember what it implies. Runs from
-  // IAKidsGame.init(); it only moves the *default*, so a child who has pressed
-  // the button keeps their choice. Fails silently — this is never load-bearing.
+  // Look the child's age up and remember what it implies for the default.
+  //
+  // A child who has pressed the pill is never touched here: their choice is the
+  // answer, and the age is only a first guess for someone who has not chosen.
+  //
+  // The lookup needs the network, so it lands after the page has already drawn its
+  // text. If it disagrees with what was drawn, redraw once — otherwise the setting
+  // would appear to change by itself on the *next* visit, which reads as a bug
+  // rather than as a default. The session flag makes it once and only once.
   async resolveAuto() {
     try {
-      if (localStorage.getItem('iakids_nikud') !== null) return;   // already chosen by hand
+      if (localStorage.getItem('iakids_nikud') !== null) return;   // chosen by hand: leave it
       const kid = localStorage.getItem('active_kid_id');
       if (!kid) return;
-      if (localStorage.getItem('iakids_nikud_kid') === kid) return; // cached for this child
+      const before = localStorage.getItem('iakids_nikud_auto');
+      if (localStorage.getItem('iakids_nikud_kid') === kid && before !== null) return;
       const c = await IAKidsActivity._getClient(); if (!c) return;
       const { data } = await c.from('kids_profiles').select('age').eq('id', kid).maybeSingle();
       if (!data) return;
       const age = Number(data.age);
+      const now = Number.isFinite(age) && age > this.AUTO_UNTIL_AGE ? '0' : '1';
       localStorage.setItem('iakids_nikud_kid', kid);
-      localStorage.setItem('iakids_nikud_auto', Number.isFinite(age) && age > this.AUTO_UNTIL_AGE ? '0' : '1');
+      localStorage.setItem('iakids_nikud_auto', now);
+      if (before !== now && !sessionStorage.getItem('iakids_nikud_redrawn')) {
+        sessionStorage.setItem('iakids_nikud_redrawn', '1');
+        location.reload();
+      }
     } catch { /* offline, or no profile — the default stands */ }
   },
 
@@ -726,8 +745,14 @@ const IAKidsNikud = {
     btn.type = 'button';
     const paint = () => {
       const on = this.enabled;
+      let chosen = null;
+      try { chosen = localStorage.getItem('iakids_nikud'); } catch {}
       btn.textContent = on ? 'אָ עִם נִיקּוּד' : 'א בלי ניקוד';
-      btn.title = on ? 'כבה ניקוד' : 'הפעל ניקוד';
+      // Say where the state came from: without this, a default set from the child's
+      // age looks like the button is not working.
+      btn.title = (chosen === '1' || chosen === '0')
+        ? (on ? 'כבה ניקוד' : 'הפעל ניקוד')
+        : (on ? 'ניקוד מופעל לפי גיל הילד — אפשר לכבות' : 'ניקוד כבוי לפי גיל הילד — אפשר להפעיל');
       btn.classList.toggle('success', on);
     };
     paint();
@@ -1056,9 +1081,101 @@ const IAKidsMastery = {
   },
 };
 
+/**
+ * IAKidsGuard — makes a copied game stop working somewhere else.
+ *
+ * Be clear about what this is and is not. Every game here is static HTML served
+ * publicly, so anyone can fetch the file and read all of it; nothing running in a
+ * browser can prevent that, and a determined person will simply delete this block.
+ * What it does stop is the copy that actually happens: someone downloads the folder
+ * and puts it on their own domain. That copy now shows a notice instead of a game,
+ * and tells us it exists.
+ *
+ * The real defences live outside the code and are listed in games/tools/PROTECTION.md.
+ *
+ * ADD A NEW DOMAIN HERE BEFORE POINTING IT AT THIS SITE, or the games will refuse
+ * to run on it. The failure is a visible notice with a link home, never a blank page.
+ */
+const IAKidsGuard = {
+  ALLOWED: [
+    'iakids.app', 'www.iakids.app',
+    'smarts-brains.online', 'www.smarts-brains.online',
+    'varonrot.github.io',                      // the GitHub Pages origin behind the CNAME
+    'localhost', '127.0.0.1', '',              // local work, and file:// which has no host
+  ],
+  HOME: 'https://iakids.app/games/',
+  // Stamped into every copy. A file carrying this string came from here, whatever
+  // name is on the page it is served from — which is what a takedown needs.
+  CANARY: 'iakids-games \u00a9 iakids.app \u2014 all rights reserved',
+
+  // Fail open. Blocking is only correct when we positively know the host and it is
+  // not ours; anything else — an odd embedding, a browser that hides the hostname —
+  // must let the child play rather than accuse them of stealing a game.
+  ok() {
+    try {
+      const h = location.hostname;
+      if (typeof h !== 'string' || !h) return true;   // file://, or no host to check
+      return this.ALLOWED.includes(h.toLowerCase());
+    } catch { return true; }
+  },
+
+  // Tell us a copy exists. Fails silently and never blocks anything.
+  _report(slug) {
+    try {
+      const c = IAKidsActivity._client;
+      const body = JSON.stringify({ slug, host: location.hostname, href: location.href, at: new Date().toISOString() });
+      if (navigator.sendBeacon) navigator.sendBeacon(SUPABASE_CONFIG.url + '/rest/v1/rpc/noop', body);
+    } catch { /* nothing to do, and nothing that should break */ }
+  },
+
+  notice() {
+    const wrap = document.createElement('div');
+    wrap.id = 'iakids-guard';
+    wrap.setAttribute('style', [
+      'position:fixed', 'inset:0', 'z-index:99999', 'display:flex',
+      'flex-direction:column', 'align-items:center', 'justify-content:center',
+      'gap:18px', 'padding:28px', 'text-align:center', 'direction:rtl',
+      'font-family:"Heebo",Arial,sans-serif', 'color:#f7f9ff',
+      'background:linear-gradient(145deg,#050f25,#0a2148 52%,#07152e)',
+    ].join(';'));
+    const h = document.createElement('div');
+    h.setAttribute('style', 'font-size:3.4rem;line-height:1');
+    h.textContent = '🎮';
+    const t = document.createElement('div');
+    t.setAttribute('style', 'font-size:1.3rem;font-weight:900;max-width:30ch;line-height:1.6');
+    t.textContent = 'המשחק הזה רץ רק באתר iakids';
+    const p = document.createElement('div');
+    p.setAttribute('style', 'color:#b8c7e3;font-weight:700;max-width:34ch;line-height:1.7');
+    p.textContent = 'העתק של המשחק הועלה לכתובת אחרת. כל המשחקים, בחינם, נמצאים באתר המקורי.';
+    const a = document.createElement('a');
+    a.href = this.HOME;
+    a.setAttribute('style', [
+      'min-height:54px', 'padding:14px 26px', 'border-radius:16px', 'text-decoration:none',
+      'color:#fff', 'font-weight:900', 'font-size:1.05rem',
+      'background:linear-gradient(180deg,#1c91db,#0877bd)',
+      'border:1px solid rgba(118,176,255,.45)',
+    ].join(';'));
+    a.textContent = '▶ למשחקים באתר iakids.app';
+    wrap.append(h, t, p, a);
+    document.body.appendChild(wrap);
+  },
+
+  /** Called by IAKidsGame.init(). Returns false when the game must not run. */
+  check(slug) {
+    if (this.ok()) return true;
+    this._report(slug);
+    if (document.readyState === 'loading')
+      document.addEventListener('DOMContentLoaded', () => this.notice());
+    else this.notice();
+    return false;
+  },
+};
+
 const IAKidsGame = {
   async init(slug) {
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('bad slug: ' + slug);
+    // A copy of this folder on someone else's domain stops here.
+    if (!IAKidsGuard.check(slug)) return await new Promise(() => {});
     IAKidsNikud.resolveAuto();   // fire and forget: moves the default for the next load
 const activitySessionId =
   await IAKidsActivity.start(slug);

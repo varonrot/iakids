@@ -112,9 +112,17 @@ vocalised word only after they have answered.
 
 ## R11 — the child decides
 
-`IAKidsNikud.enabled` is a per-device flag, seeded from the active child's age
-(`AUTO_UNTIL_AGE`, 8 and under) and owned by the pill in the start screen from the
-moment anyone presses it. Non-Hebrew pages never vocalise. A game that renders through
+`IAKidsNikud.enabled` answers in one order, most specific first:
+
+1. **the pill** — `iakids_nikud`, set the moment anyone presses it. This always wins.
+2. **the child's age** — `iakids_nikud_auto`, 8 and under gets nikud (`AUTO_UNTIL_AGE`).
+3. **on**, for Hebrew, when neither is known.
+
+The age lookup needs the network, so it lands after the page has drawn its text. When
+it disagrees with what was drawn it redraws once, guarded by a session flag — without
+that, the setting appears to change by itself on the *next* visit, which reads as a
+bug rather than as a default. The pill's tooltip says which of the three is in force,
+so "why is there no nikud" has an answer on the screen itself. Non-Hebrew pages never vocalise. A game that renders through
 `IAKidsNikud` gets this for free; one that renders its own marks does not, which is
 why R9 exists.
 
