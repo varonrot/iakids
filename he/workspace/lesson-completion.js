@@ -1,4 +1,4 @@
-window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.60";
+window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.73";
 /*
   IAKIDS workspace extension loader.
   The original lesson-completion implementation is preserved in
@@ -288,6 +288,8 @@ function installHomeworkLessonWorkspace(){
         inset:0;
         display:grid;
         grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);
+        grid-template-rows:minmax(0,1fr);
+        align-items:stretch;
         gap:14px;
         padding:12px;
         direction:ltr;
@@ -367,11 +369,16 @@ function installHomeworkLessonWorkspace(){
         display:flex;
         flex-direction:column;
         direction:rtl;
+        align-self:stretch!important;
+        height:100%!important;
+        min-height:100%!important;
       }
 
       .homework-notebook-page{
         position:relative;
-        flex:1;
+        flex:1 1 auto;
+        min-height:0;
+        height:100%;
         overflow:auto;
         padding:28px 34px 36px 46px;
         color:#18346d;
