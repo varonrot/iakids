@@ -22,16 +22,18 @@ elif 'VISION INVALID JSON - SAFE FALLBACK:' not in backend:
 if '\nimport re\n' not in backend[:1200]:
     backend = backend.replace('import math\n', 'import math\nimport re\n', 1)
 
-needle = '''        response = client.chat.completions.create(\n\n            model=\n            DEFAULT_OPENAI_MODEL,\n'''
-replacement = '''        response = client.chat.completions.create(\n\n            model=\n            DEFAULT_OPENAI_MODEL,\n\n            response_format={"type": "json_object"},\n'''
-if needle in backend and 'response_format={"type": "json_object"}' not in backend[backend.find(needle):backend.find(needle)+500]:
-    backend = backend.replace(needle, replacement, 1)
+# The homework analyzer already had JSON response_format. A previous patch
+# accidentally inserted a second keyword argument before messages=[...].
+# Remove only that duplicate compact form and keep the original formatted
+# response_format block later in the call.
+duplicate = '''            response_format={"type": "json_object"},\n\n            messages=[\n'''
+if duplicate in backend:
+    backend = backend.replace(duplicate, '            messages=[\n', 1)
 
 extra = '''\n\nROBUST OUTPUT RULES:\n- Output one JSON object only. No markdown fences and no prose outside JSON.\n- If the image is not homework or has no identifiable exercise, still return the exact JSON structure. Use empty strings/arrays, confidence 0, and needs_high_resolution false instead of explaining or refusing.\n'''
 if 'ROBUST OUTPUT RULES:' not in prompt:
     prompt = prompt.rstrip() + extra + '\n'
 
-# Visible application build bump — literal replacements keep this idempotent.
 for old in ('0.7.69','0.7.70','0.7.71'):
     index = index.replace(f'IAKIDS • build {old}', 'IAKIDS • build 0.7.72')
     index = index.replace(f'window.IAKIDS_BUILD_VERSION = "{old}";', 'window.IAKIDS_BUILD_VERSION = "0.7.72";')
@@ -40,4 +42,4 @@ BACKEND.write_text(backend, encoding='utf-8')
 PROMPT.write_text(prompt, encoding='utf-8')
 INDEX.write_text(index, encoding='utf-8')
 
-print(f'Homework vision JSON fix verified; replaced {count} legacy parse block(s); build 0.7.72')
+print(f'Homework vision JSON fix verified; removed duplicate response_format if present; build 0.7.72')
