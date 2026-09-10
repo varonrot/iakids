@@ -171,8 +171,11 @@ These come free from `game-sdk.js` / `game-style.css` the moment a game links th
   the dictionary doesn't hold falls back to the plain word, so a missing `<script>`
   tag can never break a game.
 
-  To add words: `python3 games/tools/nakdan.py word…` (or `--json file`), review what
-  it prints, then regenerate `games/nikud.js`. Dicta reads each word on its own, so
+  To add words: `python3 games/tools/nikud-check.py --emit > /tmp/w.txt` then
+  `python3 games/tools/nakdan.py --json /tmp/w.txt`, review what it prints, and
+  rebuild `games/nikud.js`. **Then run `python3 games/tools/nikud-check.py` — it must
+  print no FAIL.** The twelve rules it enforces, and why each exists, are in
+  `games/tools/NIKUD.md`; read that before any task that touches Hebrew text. Dicta reads each word on its own, so
   for a homograph it can only guess the sense — correct those in
   `games/tools/nikud-overrides.json`, never in `nikud.js` (it is regenerated) and never
   in the game. `backend/seed_nikud.py` mirrors the same file into Supabase

@@ -1452,6 +1452,10 @@ if (typeof window !== 'undefined') {
  *   });
  */
 const IAKidsHelp = {
+  // `how` and `example` arrive as plain strings (every game writes them inline),
+  // so they never pass through IAKidsLang.t() — vocalise them here instead, or the
+  // one screen that explains the game would be the only Hebrew left unpointed.
+  // text() only touches Hebrew letter runs, so the example's markup survives.
   mount({ slug, how, example }) {
     if (document.getElementById('iakids-help-btn')) return;
     const btn = document.createElement('button');
@@ -1473,8 +1477,8 @@ const IAKidsHelp = {
           <h2>${IAKidsLang.t({ he: 'איך משחקים?', en: 'How to play?', es: '¿Cómo se juega?', de: 'Wie spielt man?', pt: 'Como jogar?' })}</h2>
           ${speakBtn}
         </div>
-        <p class="help-how">${how}</p>
-        <div class="help-example">${example || ''}</div>
+        <p class="help-how">${IAKidsNikud.text(how)}</p>
+        <div class="help-example">${IAKidsNikud.text(example || '')}</div>
         <label class="help-dontshow">
           <input type="checkbox" id="iakids-help-dontshow">
           ${IAKidsLang.t({ he: 'אל תציג לי את זה שוב', en: "Don't show this again", es: 'No mostrar esto de nuevo', de: 'Nicht mehr anzeigen', pt: 'Não mostrar isso novamente' })}
