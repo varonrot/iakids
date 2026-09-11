@@ -612,12 +612,6 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
 
   const HELP_CHOICES = [
     {
-      id: "simple_test",
-      icon: "fa-flask",
-      label: "טסט — מורה פשוטה",
-      childText: "תלמדי אותי פשוט, שלב אחרי שלב"
-    },
-    {
       id: "understand_question",
       icon: "fa-magnifying-glass",
       label: "להבין מה מבקשים בשאלה",
@@ -1697,14 +1691,14 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     }
   }
 
-  async function runHomeworkSimpleTest(messageText=""){
+  async function runHomeworkProductionCoach(messageText=""){
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
     const current = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
     const kidId = (typeof CURRENT_KID !== "undefined" && CURRENT_KID?.id) ? CURRENT_KID.id : window.CURRENT_KID?.id;
     const token = await getHomeworkAccessToken();
-    if(!kidId || !token) throw new Error("Simple test auth missing");
-    window.HOMEWORK_SIMPLE_TEST_HISTORY = window.HOMEWORK_SIMPLE_TEST_HISTORY || [];
-    const response = await fetch(`${TUTOR_API_BASE}/api/tutor/homework-simple-test`, {
+    if(!kidId || !token) throw new Error("Homework coach auth missing");
+    window.HOMEWORK_PRODUCTION_COACH_HISTORY = window.HOMEWORK_PRODUCTION_COACH_HISTORY || [];
+    const response = await fetch(`${TUTOR_API_BASE}/api/tutor/homework-coach`, {
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
       body:JSON.stringify({
@@ -1712,18 +1706,25 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
         source_text:analysis?.extracted_text || "",
         current_question:current?.text || "",
         message:String(messageText||""),
-        history:window.HOMEWORK_SIMPLE_TEST_HISTORY
+        history:window.HOMEWORK_PRODUCTION_COACH_HISTORY
       })
     });
     if(!response.ok) throw new Error(await response.text());
     const data=await response.json();
     const reply=String(data?.reply||"").trim();
-    if(messageText) window.HOMEWORK_SIMPLE_TEST_HISTORY.push({role:"user",content:String(messageText)});
-    window.HOMEWORK_SIMPLE_TEST_HISTORY.push({role:"assistant",content:reply});
-    if(window.HOMEWORK_SIMPLE_TEST_HISTORY.length>10) window.HOMEWORK_SIMPLE_TEST_HISTORY=window.HOMEWORK_SIMPLE_TEST_HISTORY.slice(-10);
-    await renderHomeworkStructuredTeacherMessage(reply);
+    const displayReply = reply
+      .replace(/\*\*/g, "")
+      .replace(/^#{1,6}\s*/gm, "")
+      .trim();
+    if(messageText) window.HOMEWORK_PRODUCTION_COACH_HISTORY.push({role:"user",content:String(messageText)});
+    window.HOMEWORK_PRODUCTION_COACH_HISTORY.push({role:"assistant",content:displayReply});
+    if(window.HOMEWORK_PRODUCTION_COACH_HISTORY.length>10) window.HOMEWORK_PRODUCTION_COACH_HISTORY=window.HOMEWORK_PRODUCTION_COACH_HISTORY.slice(-10);
+    await Promise.all([
+      renderHomeworkStructuredTeacherMessage(displayReply),
+      playHomeworkTeacherAudio(displayReply)
+    ]);
 
-    /* SIMPLE TEST AUTO ADVANCE 0.7.86 */
+    /* PRODUCTION HOMEWORK COACH AUTO ADVANCE 0.7.87 */
     const normalizedReply = reply
       .replace(/\*\*/g, "")
       .replace(/\s+/g, " ")
@@ -1738,14 +1739,20 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
 
     if(finalAnswerAccepted){
       const completedQuestion = setHomeworkQuestionAnswered(String(messageText || "").trim());
-      window.HOMEWORK_SIMPLE_TEST_HISTORY = [];
+      if(completedQuestion?.answer && typeof window.writeHomeworkNotebookAnswer === "function"){
+        await window.writeHomeworkNotebookAnswer(
+          completedQuestion.number,
+          completedQuestion.answer
+        );
+      }
+      window.HOMEWORK_PRODUCTION_COACH_HISTORY = [];
 
       const nextQuestion = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
       if(nextQuestion){
         await new Promise(resolve => setTimeout(resolve, 500));
         await renderHomeworkStructuredTeacherMessage(`מעולה. נעבור לשאלה ${nextQuestion.number}.`);
         await new Promise(resolve => setTimeout(resolve, 350));
-        await runHomeworkSimpleTest("");
+        await runHomeworkProductionCoach("");
       }else{
         setHomeworkSidebarStep(5);
         await new Promise(resolve => setTimeout(resolve, 450));
@@ -1759,24 +1766,15 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
 
   async function runHomeworkChoiceWithTutor(choice){
     window.HOMEWORK_HELP_MODE = String(choice?.id || "").trim() || null;
-    if(choice?.id === "simple_test"){
-      window.HOMEWORK_SIMPLE_TEST_MODE = true;
-      window.HOMEWORK_SIMPLE_TEST_HISTORY = [];
+    if(choice?.id === "solve_together"){
+      window.HOMEWORK_PRODUCTION_COACH_MODE = true;
+      window.HOMEWORK_PRODUCTION_COACH_HISTORY = [];
       removeHomeworkHelpOptions();
       setHomeworkSidebarStep(4);
-      document.querySelectorAll('.homework-simple-test-badge').forEach(el=>el.remove());
-      const chat = document.querySelector('.lesson-chat-workspace');
-      if(chat){
-        const badge = document.createElement('div');
-        badge.className = 'homework-simple-test-badge';
-        badge.textContent = 'TEST MODE · GPT-5.6 SOL';
-        badge.style.cssText = 'position:absolute;top:18px;left:18px;z-index:90;padding:6px 10px;border-radius:999px;background:#ff9f1a;color:#08111f;font:900 10px Heebo,Arial,sans-serif;box-shadow:0 0 16px rgba(255,159,26,.35);direction:ltr';
-        chat.appendChild(badge);
-      }
-      await runHomeworkSimpleTest("");
+      await runHomeworkProductionCoach("");
       return;
     }
-    window.HOMEWORK_SIMPLE_TEST_MODE = false;
+    window.HOMEWORK_PRODUCTION_COACH_MODE = false;
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS;
     if(!analysis){
       await renderHomeworkStructuredTeacherMessage("לא מצאתי את התרגיל שהעלית. אפשר להעלות אותו שוב?");
@@ -2371,8 +2369,8 @@ Continue from the NEXT UNRESOLVED STEP only. Do not restart the solution. Do not
   }
 
   async function runStructuredHomeworkTurn(answerText){
-    if(window.HOMEWORK_SIMPLE_TEST_MODE === true){
-      await runHomeworkSimpleTest(answerText);
+    if(window.HOMEWORK_PRODUCTION_COACH_MODE === true){
+      await runHomeworkProductionCoach(answerText);
       return;
     }
     const current = getCurrentHomeworkQuestion();

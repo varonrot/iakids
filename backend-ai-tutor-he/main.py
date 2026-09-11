@@ -605,7 +605,7 @@ class TutorTTSRequest(BaseModel):
     session_id: str | None = None
 
 
-class HomeworkSimpleTestRequest(BaseModel):
+class HomeworkCoachRequest(BaseModel):
     kid_id: str
     source_text: str = ""
     current_question: str = ""
@@ -19502,9 +19502,9 @@ class HomeworkTurnEvaluation(BaseModel):
     teacher_response: str
 
 
-@app.post("/api/tutor/homework-simple-test")
-async def homework_simple_test(
-        req: HomeworkSimpleTestRequest,
+@app.post("/api/tutor/homework-coach")
+async def homework_coach(
+        req: HomeworkCoachRequest,
         authorization: str = Header(None)
 ):
     user = authenticate_user(authorization)
@@ -19543,7 +19543,7 @@ async def homework_simple_test(
         messages=messages
     ))
     text = str(response.choices[0].message.content or "").strip()
-    return {"reply": text, "model": "gpt-5.6-sol", "test_mode": True}
+    return {"reply": text, "model": "gpt-5.6-sol", "production_mode": True}
 
 
 @app.post("/api/tutor/homework-turn")
