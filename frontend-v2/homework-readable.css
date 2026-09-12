@@ -1,0 +1,56 @@
+/* IAKIDS V2 homework readability pass — larger desktop/tablet type */
+@media (min-width: 781px){
+  .brand strong{font-size:24px}
+  .brand small,.top-title small,.profile small{font-size:12px}
+  .top-title strong{font-size:21px}
+  .counter{font-size:14px;padding:8px 12px}
+  .profile b{font-size:15px}
+
+  .side-head strong{font-size:17px}
+  .side-head small{font-size:11px}
+  .home-link{font-size:13px}
+  .steps li{padding:12px 10px}
+  .steps li>span{font-size:13px}
+  .steps b{font-size:14px}
+  .steps small{font-size:10px;line-height:1.35}
+
+  .panel-header{height:60px}
+  .panel-header strong{font-size:16px}
+  .panel-header small{font-size:11px;max-width:320px}
+  .tiny-btn{font-size:12px}
+  .source-footer,.notebook-footer{font-size:11px;min-height:46px}
+
+  .upload-empty h1{font-size:27px}
+  .upload-empty p{font-size:15px}
+  .upload-empty>small{font-size:11px}
+  .primary-btn,.secondary-btn{font-size:14px;padding:10px 15px}
+  .homework-notebook{font-size:19px;line-height:38px}
+  .save-state{font-size:10px}
+
+  .flow-steps div{font-size:11px}
+  .flow-steps b{font-size:12px}
+  .audio-status,.speed{font-size:11px}
+
+  .metric small,.understanding small,.live-card small{font-size:11px}
+  .metric>span,.understanding>span,.live-card>span{font-size:10px;line-height:1.4}
+  .ring b{font-size:18px}
+  .metric>strong{font-size:14px}
+  .mini-ring{font-size:12px}
+  .understanding strong{font-size:18px}
+  .live-card strong{font-size:14px}
+
+  .tutor-head h2{font-size:20px}
+  .tutor-head small{font-size:10px}
+  .message{font-size:14px;line-height:1.65;padding:12px 13px}
+  .help-title{font-size:13px}
+  .quick-actions button{font-size:12px;padding:10px 12px}
+  .composer input{font-size:13px;height:40px}
+}
+
+@media (min-width: 1200px){
+  .hw-layout{grid-template-columns:210px minmax(0,1fr) 370px}
+  .steps b{font-size:15px}
+  .steps small{font-size:11px}
+  .message{font-size:15px}
+  .quick-actions button{font-size:13px}
+}
