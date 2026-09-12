@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5fbfd" />
+  <title>IAKIDS — שיעורי בית</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./homework.css" />
+</head>
+<body>
+  <div class="hw-app">
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="חזרה לדף הבית">
+        <span class="brand-mark">🎓</span>
+        <span><strong>IAKIDS</strong><small>לומדים היום, גדלים יותר</small></span>
+      </a>
+      <div class="top-title">
+        <strong>עזרה בשיעורי בית</strong>
+        <small>המורה AI עובדת איתך שלב־שלב</small>
+      </div>
+      <div class="top-actions">
+        <span class="counter">⭐ <b>890</b></span>
+        <span class="counter">💎 <b>45</b></span>
+        <div class="profile"><span class="avatar" id="childAvatar">א</span><span><b id="childName">הילד/ה שלי</b><small id="childGrade">כיתה</small></span></div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="steps-panel" aria-label="שלבי שיעורי הבית">
+        <div class="panel-title"><span>📷</span><strong>שיעורי בית</strong></div>
+        <a class="back-home" href="./index.html">← דף הבית</a>
+        <ol class="steps" id="steps">
+          <li class="active" data-step="1"><span>1</span><div><b>העלאת שיעורי הבית</b><small>צילום, תמונה או PDF</small></div></li>
+          <li data-step="2"><span>2</span><div><b>זיהוי מקצוע ונושא</b><small>ה־AI מזהה את החומר</small></div></li>
+          <li data-step="3"><span>3</span><div><b>הבנת השאלה</b><small>מה בעצם מבקשים?</small></div></li>
+          <li data-step="4"><span>4</span><div><b>עבודה יחד</b><small>צעד אחד בכל פעם</small></div></li>
+          <li data-step="5"><span>5</span><div><b>בדיקת התשובה</b><small>ניסוח ובדיקה סופית</small></div></li>
+        </ol>
+      </aside>
+
+      <section class="content-panel">
+        <div class="mobile-progress" id="mobileProgress">
+          <span>שלב <b id="mobileStepNumber">1</b> מתוך 5</span>
+          <div><i id="mobileProgressBar"></i></div>
+        </div>
+
+        <section class="upload-state" id="uploadState">
+          <div class="upload-card" id="dropZone">
+            <div class="upload-icon">⇧</div>
+            <p class="eyebrow">מתחילים מכאן</p>
+            <h1>העלו את שיעורי הבית</h1>
+            <p>צלמו מהטלפון או העלו תמונה / PDF. המורה תזהה את המקצוע והנושא ותעזור להבין ולפתור — בלי לתת ישר את התשובה.</p>
+            <div class="upload-actions">
+              <label class="primary-btn camera-btn">📷 צילום מהטלפון<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden></label>
+              <label class="secondary-btn">📎 העלאת קובץ<input id="fileInput" type="file" accept="image/*,.pdf,application/pdf" hidden></label>
+            </div>
+            <small class="drop-hint">אפשר גם לגרור לכאן קובץ</small>
+          </div>
+        </section>
+
+        <section class="document-state hidden" id="documentState">
+          <div class="document-toolbar">
+            <div>
+              <p class="eyebrow">הקובץ שלך</p>
+              <h2 id="fileName">שיעורי בית</h2>
+            </div>
+            <div class="toolbar-actions">
+              <button class="ghost-btn" id="replaceFileBtn">החלף קובץ</button>
+              <button class="primary-btn" id="analyzeBtn">זהה מקצוע ונושא ✨</button>
+            </div>
+          </div>
+          <div class="preview-shell">
+            <img id="imagePreview" alt="תצוגת שיעורי הבית" class="hidden" />
+            <iframe id="pdfPreview" title="תצוגת PDF" class="hidden"></iframe>
+            <div id="genericPreview" class="generic-preview hidden"><span>📄</span><strong>הקובץ מוכן לניתוח</strong></div>
+          </div>
+          <div class="identified-card hidden" id="identifiedCard">
+            <div class="identified-icon">✓</div>
+            <div><small>זיהיתי</small><strong id="identifiedText">מקצוע ונושא</strong><p>עכשיו נסביר לילד מה השאלה מבקשת, ורק אחר כך נעבוד עליה יחד.</p></div>
+            <button class="primary-btn" id="startHelpBtn">בואו נתחיל</button>
+          </div>
+        </section>
+      </section>
+
+      <aside class="tutor-panel" id="tutorPanel">
+        <div class="tutor-head">
+          <div class="teacher-avatar">AI</div>
+          <div><small class="online">● מחוברת עכשיו</small><h2>המורה AI</h2></div>
+          <button class="close-chat" id="closeChat" aria-label="סגור צ'אט">×</button>
+        </div>
+        <div class="chat" id="chat">
+          <div class="message teacher">
+            <strong>שלום! 👋</strong>
+            <p>העלו את שיעורי הבית, ואני אזהה מה לומדים ואעזור לכם צעד־צעד.</p>
+          </div>
+        </div>
+        <div class="quick-actions" id="quickActions">
+          <button data-message="אפשר להסביר לי מה מבקשים בשאלה?">מה מבקשים?</button>
+          <button data-message="תני לי רמז קטן">תני רמז</button>
+        </div>
+        <form class="composer" id="chatForm">
+          <button type="button" title="צרף קובץ">📎</button>
+          <input id="chatInput" autocomplete="off" placeholder="כתבו למורה AI..." />
+          <button class="send" type="submit">➤</button>
+        </form>
+      </aside>
+    </main>
+
+    <button class="floating-chat" id="floatingChat">✨ דברו עם המורה</button>
+    <div class="chat-overlay" id="chatOverlay"></div>
+  </div>
+  <script src="./homework.js"></script>
+</body>
+</html>
