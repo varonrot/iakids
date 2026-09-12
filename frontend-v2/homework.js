@@ -1,189 +1,27 @@
-const state = {
-  step: 1,
-  file: null,
-  child: null,
-};
-
-const els = {
-  fileInput: document.getElementById('fileInput'),
-  cameraInput: document.getElementById('cameraInput'),
-  dropZone: document.getElementById('dropZone'),
-  uploadState: document.getElementById('uploadState'),
-  documentState: document.getElementById('documentState'),
-  imagePreview: document.getElementById('imagePreview'),
-  pdfPreview: document.getElementById('pdfPreview'),
-  genericPreview: document.getElementById('genericPreview'),
-  fileName: document.getElementById('fileName'),
-  analyzeBtn: document.getElementById('analyzeBtn'),
-  replaceFileBtn: document.getElementById('replaceFileBtn'),
-  identifiedCard: document.getElementById('identifiedCard'),
-  identifiedText: document.getElementById('identifiedText'),
-  startHelpBtn: document.getElementById('startHelpBtn'),
-  steps: [...document.querySelectorAll('#steps li')],
-  mobileStepNumber: document.getElementById('mobileStepNumber'),
-  mobileProgressBar: document.getElementById('mobileProgressBar'),
-  chat: document.getElementById('chat'),
-  chatForm: document.getElementById('chatForm'),
-  chatInput: document.getElementById('chatInput'),
-  quickActions: document.getElementById('quickActions'),
-  tutorPanel: document.getElementById('tutorPanel'),
-  floatingChat: document.getElementById('floatingChat'),
-  closeChat: document.getElementById('closeChat'),
-  chatOverlay: document.getElementById('chatOverlay'),
-  childName: document.getElementById('childName'),
-  childGrade: document.getElementById('childGrade'),
-  childAvatar: document.getElementById('childAvatar'),
-};
-
-function setStep(step) {
-  state.step = Math.max(1, Math.min(5, step));
-  els.steps.forEach((item) => {
-    const itemStep = Number(item.dataset.step);
-    item.classList.toggle('active', itemStep === state.step);
-    item.classList.toggle('done', itemStep < state.step);
-  });
-  els.mobileStepNumber.textContent = String(state.step);
-  els.mobileProgressBar.style.width = `${state.step * 20}%`;
-}
-
-function addMessage(role, text) {
-  const box = document.createElement('div');
-  box.className = `message ${role}`;
-  box.innerHTML = `<p>${escapeHtml(text)}</p>`;
-  els.chat.appendChild(box);
-  els.chat.scrollTop = els.chat.scrollHeight;
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-  })[char]);
-}
-
-function clearPreviews() {
-  [els.imagePreview, els.pdfPreview, els.genericPreview].forEach((el) => el.classList.add('hidden'));
-  els.imagePreview.removeAttribute('src');
-  els.pdfPreview.removeAttribute('src');
-}
-
-function showFile(file) {
-  if (!file) return;
-  state.file = file;
-  clearPreviews();
-  els.fileName.textContent = file.name || 'שיעורי בית';
-
-  const url = URL.createObjectURL(file);
-  if (file.type.startsWith('image/')) {
-    els.imagePreview.src = url;
-    els.imagePreview.classList.remove('hidden');
-  } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-    els.pdfPreview.src = url;
-    els.pdfPreview.classList.remove('hidden');
-  } else {
-    els.genericPreview.classList.remove('hidden');
-  }
-
-  els.uploadState.classList.add('hidden');
-  els.documentState.classList.remove('hidden');
-  els.identifiedCard.classList.add('hidden');
-  setStep(2);
-  addMessage('teacher', 'קיבלתי את הקובץ. עכשיו אזהה את המקצוע והנושא, ואז נבין יחד מה מבקשים.');
-}
-
-function openFilePicker() {
-  els.fileInput.click();
-}
-
-[els.fileInput, els.cameraInput].forEach((input) => {
-  input?.addEventListener('change', () => showFile(input.files?.[0]));
-});
-
-['dragenter', 'dragover'].forEach((eventName) => {
-  els.dropZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    els.dropZone.classList.add('dragover');
-  });
-});
-['dragleave', 'drop'].forEach((eventName) => {
-  els.dropZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    els.dropZone.classList.remove('dragover');
-  });
-});
-els.dropZone.addEventListener('drop', (event) => showFile(event.dataTransfer.files?.[0]));
-
-els.replaceFileBtn.addEventListener('click', openFilePicker);
-
-els.analyzeBtn.addEventListener('click', async () => {
-  if (!state.file) return;
-  els.analyzeBtn.disabled = true;
-  els.analyzeBtn.textContent = 'מזהה...';
-
-  // TODO(PRODUCTION): Replace this visual/demo fallback with the existing homework-analysis API.
-  // The frontend intentionally does not guess a child id or expose privileged Supabase credentials.
-  await new Promise((resolve) => setTimeout(resolve, 650));
-
-  els.identifiedText.textContent = 'הקובץ מוכן לזיהוי דרך מנוע שיעורי הבית הקיים';
-  els.identifiedCard.classList.remove('hidden');
-  els.analyzeBtn.textContent = 'זוהה ✓';
-  setStep(3);
-  addMessage('teacher', 'הקובץ מוכן. בחיבור למנוע הקיים כאן יופיעו המקצוע, הנושא והשאלה שזוהתה בפועל.');
-});
-
-els.startHelpBtn.addEventListener('click', () => {
-  setStep(4);
-  addMessage('teacher', 'נתחיל מהבנה: קודם אסביר בקצרה מה השאלה מבקשת, ואז אשאל אותך שאלה אחת קצרה.');
-  openChat();
-});
-
-els.chatForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  const text = els.chatInput.value.trim();
-  if (!text) return;
-  addMessage('user', text);
-  els.chatInput.value = '';
-  setTimeout(() => addMessage('teacher', 'כאן תתחבר תשובת המורה מהמנוע הקיים. כרגע זהו שלד ה־UI החדש.'), 250);
-});
-
-els.quickActions.addEventListener('click', (event) => {
-  const button = event.target.closest('button[data-message]');
-  if (!button) return;
-  els.chatInput.value = button.dataset.message;
-  els.chatForm.requestSubmit();
-});
-
-function openChat() {
-  els.tutorPanel.classList.add('open');
-  els.chatOverlay.classList.add('show');
-}
-function closeChat() {
-  els.tutorPanel.classList.remove('open');
-  els.chatOverlay.classList.remove('show');
-}
-els.floatingChat?.addEventListener('click', openChat);
-els.closeChat?.addEventListener('click', closeChat);
-els.chatOverlay?.addEventListener('click', closeChat);
-
-/**
- * Production bridge contract.
- * Call this from the auth/current-child adapter once the new frontend is connected.
- * Example: window.IAKidsHomework.setChild({ id, name, grade })
- */
-window.IAKidsHomework = {
-  setChild(child) {
-    if (!child) return;
-    state.child = child;
-    if (child.name) {
-      els.childName.textContent = child.name;
-      els.childAvatar.textContent = child.name.trim().charAt(0) || 'י';
-    }
-    if (child.grade) els.childGrade.textContent = `כיתה ${child.grade}`;
-  },
-  getState() {
-    return { ...state, file: state.file ? { name: state.file.name, type: state.file.type, size: state.file.size } : null };
-  },
-  setStep,
-  addTeacherMessage(text) { addMessage('teacher', text); },
-};
-
+const state={step:1,file:null,fileUrl:null,child:null};
+const $=(id)=>document.getElementById(id);
+const els={fileInput:$('fileInput'),cameraInput:$('cameraInput'),dropZone:$('dropZone'),uploadState:$('uploadState'),imagePreview:$('imagePreview'),pdfPreview:$('pdfPreview'),genericPreview:$('genericPreview'),fileName:$('fileName'),replaceFileBtn:$('replaceFileBtn'),analyzeBtn:$('analyzeBtn'),sourceStatus:$('sourceStatus'),notebook:$('homeworkNotebook'),notebookStatus:$('notebookStatus'),notebookCount:$('notebookCount'),steps:[...document.querySelectorAll('#steps li')],mobileStepNumber:$('mobileStepNumber'),mobileProgressBar:$('mobileProgressBar'),flowFill:$('flowFill'),flowSteps:[...document.querySelectorAll('#flowSteps>div')],chat:$('chat'),chatForm:$('chatForm'),chatInput:$('chatInput'),quickActions:$('quickActions'),tutorPanel:$('tutorPanel'),floatingChat:$('floatingChat'),closeChat:$('closeChat'),chatOverlay:$('chatOverlay'),audioPlay:$('audioPlay'),audioStatus:$('audioStatus'),understandingText:$('understandingText'),childName:$('childName'),childGrade:$('childGrade'),childAvatar:$('childAvatar')};
+function escapeHtml(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function setStep(step){state.step=Math.max(1,Math.min(5,step));els.steps.forEach(item=>{const n=+item.dataset.step;item.classList.toggle('active',n===state.step);item.classList.toggle('done',n<state.step)});if(els.mobileStepNumber)els.mobileStepNumber.textContent=state.step;if(els.mobileProgressBar)els.mobileProgressBar.style.width=`${state.step*20}%`;if(els.flowFill)els.flowFill.style.width=`${(state.step-1)*25}%`;els.flowSteps.forEach((item,i)=>item.classList.toggle('active',i<=state.step-1));}
+function addMessage(role,text){const box=document.createElement('div');box.className=`message ${role}`;box.innerHTML=`<p>${escapeHtml(text)}</p>`;els.chat.appendChild(box);els.chat.scrollTop=els.chat.scrollHeight;}
+function clearPreview(){[els.imagePreview,els.pdfPreview,els.genericPreview].forEach(el=>el?.classList.add('hidden'));if(state.fileUrl){URL.revokeObjectURL(state.fileUrl);state.fileUrl=null;}els.imagePreview?.removeAttribute('src');els.pdfPreview?.removeAttribute('src');}
+function showFile(file){if(!file)return;state.file=file;clearPreview();state.fileUrl=URL.createObjectURL(file);els.uploadState.classList.add('hidden');els.fileName.textContent=file.name||'שיעורי בית';els.replaceFileBtn.classList.remove('hidden');els.analyzeBtn.disabled=false;if(file.type?.startsWith('image/')){els.imagePreview.src=state.fileUrl;els.imagePreview.classList.remove('hidden');}else if(file.type==='application/pdf'||file.name?.toLowerCase().endsWith('.pdf')){els.pdfPreview.src=state.fileUrl;els.pdfPreview.classList.remove('hidden');}else{els.genericPreview.classList.remove('hidden');}els.sourceStatus.textContent='הקובץ הועלה. אפשר להמשיך לזיהוי המקצוע והנושא.';setStep(2);addMessage('teacher','קיבלתי את הקובץ. מנוע הזיהוי הקיים עדיין לא מחובר ל־V2, ולכן אני לא אנחש מה יש בו.');}
+[els.fileInput,els.cameraInput].forEach(input=>input?.addEventListener('change',()=>showFile(input.files?.[0])));
+['dragenter','dragover'].forEach(name=>els.dropZone?.addEventListener(name,e=>{e.preventDefault();els.dropZone.classList.add('dragover')}));
+['dragleave','drop'].forEach(name=>els.dropZone?.addEventListener(name,e=>{e.preventDefault();els.dropZone.classList.remove('dragover')}));
+els.dropZone?.addEventListener('drop',e=>showFile(e.dataTransfer.files?.[0]));
+els.replaceFileBtn?.addEventListener('click',()=>els.fileInput.click());
+els.analyzeBtn?.addEventListener('click',()=>{if(!state.file)return;els.sourceStatus.textContent='מוכן לחיבור למנוע שיעורי הבית הקיים: Vision → מקצוע → נושא → שאלות.';addMessage('teacher','הקובץ מוכן לניתוח. בחיבור הבא אשתמש בתוצאות האמיתיות של מנוע שיעורי הבית הקיים ואציג כאן את המקצוע, הנושא והשאלה.');setStep(2);});
+const NOTE_KEY='iakids-v2-homework-notebook';
+try{const saved=localStorage.getItem(NOTE_KEY);if(saved)els.notebook.innerHTML=saved;}catch{}
+function saveNotebook(){const text=els.notebook.innerText.trim();try{localStorage.setItem(NOTE_KEY,els.notebook.innerHTML)}catch{}els.notebookStatus.textContent='נשמר אוטומטית';els.notebookCount.textContent=`${text.length} תווים`;if(text.length>0&&state.step<4)setStep(4);}
+els.notebook?.addEventListener('input',()=>{els.notebookStatus.textContent='שומר...';clearTimeout(saveNotebook.t);saveNotebook.t=setTimeout(saveNotebook,250)});saveNotebook();
+function openChat(){els.tutorPanel.classList.add('open');els.chatOverlay.classList.add('show');}
+function closeChat(){els.tutorPanel.classList.remove('open');els.chatOverlay.classList.remove('show');}
+els.floatingChat?.addEventListener('click',openChat);els.closeChat?.addEventListener('click',closeChat);els.chatOverlay?.addEventListener('click',closeChat);
+function submitMessage(text){const clean=String(text||'').trim();if(!clean)return;addMessage('user',clean);addMessage('teacher','כאן תופיע תשובת המורה האמיתית אחרי חיבור ה־V2 למנוע שיעורי הבית הקיים. כרגע אני לא מייצר תשובה מדומה.');if(state.step<3)setStep(3);}
+els.chatForm?.addEventListener('submit',e=>{e.preventDefault();const text=els.chatInput.value;els.chatInput.value='';submitMessage(text)});
+els.quickActions?.addEventListener('click',e=>{const b=e.target.closest('button[data-message]');if(!b)return;submitMessage(b.dataset.message);if(window.innerWidth<=1000)openChat();});
+els.audioPlay?.addEventListener('click',()=>{els.audioStatus.textContent='האודיו יתחבר ל־TTS הקיים';els.audioPlay.textContent='▶';});
+window.IAKidsHomework={setChild(child){if(!child)return;state.child=child;if(child.name){els.childName.textContent=child.name;els.childAvatar.textContent=child.name.trim().charAt(0)||'י';}if(child.grade)els.childGrade.textContent=`כיתה ${child.grade}`;},setAnalysis(result){if(!result)return;const subject=result.subject||result.detected_subject;const topic=result.topic||result.detected_topic;els.sourceStatus.textContent=[subject,topic].filter(Boolean).join(' · ')||'הניתוח הושלם';if(subject||topic){setStep(3);els.understandingText.textContent='זיהינו את החומר';}},addTeacherMessage(text){addMessage('teacher',text)},setStep,getState(){return{step:state.step,child:state.child,file:state.file?{name:state.file.name,type:state.file.type,size:state.file.size}:null,notebook:els.notebook.innerText}}};
 setStep(1);
