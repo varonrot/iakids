@@ -11,7 +11,9 @@
   <link rel="stylesheet" href="./homework.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .connected-preview-banner{display:none;align-items:center;justify-content:center;gap:14px;padding:10px 16px;background:#e9fbfd;border-bottom:1px solid #bdebf0;color:#164a58;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;position:relative;z-index:50}.connected-preview-banner.show{display:flex}.connected-preview-banner strong{font-weight:800}.connected-preview-banner a{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 14px;border-radius:10px;background:#16b7c6;color:#fff;text-decoration:none;font-weight:800;box-shadow:0 6px 16px rgba(22,183,198,.18)}@media(max-width:700px){.connected-preview-banner{flex-direction:column;text-align:center;gap:7px;padding:9px 12px}.connected-preview-banner a{width:100%}}
+    .connected-preview-banner{display:none;align-items:center;justify-content:center;gap:14px;padding:10px 16px;background:#e9fbfd;border-bottom:1px solid #bdebf0;color:#164a58;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;position:relative;z-index:50}.connected-preview-banner.show{display:flex}.connected-preview-banner strong{font-weight:800}.connected-preview-banner a{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 14px;border-radius:10px;background:#16b7c6;color:#fff;text-decoration:none;font-weight:800;box-shadow:0 6px 16px rgba(22,183,198,.18)}
+    .system-version{position:fixed;left:10px;bottom:8px;z-index:90;padding:5px 9px;border:1px solid #d8edf2;border-radius:9px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);color:#6f8994;font:600 10px/1.2 'Heebo',sans-serif;box-shadow:0 4px 14px rgba(24,77,94,.06);pointer-events:none}
+    @media(max-width:700px){.connected-preview-banner{flex-direction:column;text-align:center;gap:7px;padding:9px 12px}.connected-preview-banner a{width:100%}.system-version{bottom:68px;font-size:9px}}
   </style>
 </head>
 <body>
@@ -110,6 +112,7 @@
   </main>
 
   <button class="floating-chat" id="floatingChat">✨ שיחה עם המורה</button><div class="chat-overlay" id="chatOverlay"></div>
+  <div class="system-version">IAKIDS V2 · 0.1.0</div>
 </div>
 <script>
   if (location.hostname === 'iakids-v2.onrender.com') {
