@@ -15,6 +15,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .system-version{position:fixed;left:10px;bottom:8px;z-index:90;padding:5px 9px;border:1px solid #d8edf2;border-radius:9px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);color:#6f8994;font:600 10px/1.2 'Heebo',sans-serif;box-shadow:0 4px 14px rgba(24,77,94,.06);pointer-events:none}
+    @media(max-width:700px){.system-version{bottom:68px;font-size:9px}}
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -98,6 +102,7 @@
   </div>
 
   <nav class="mobile-nav" aria-label="ניווט מובייל"><a class="active" href="./index.html"><span>🏠</span><small>בית</small></a><a href="#"><span>📖</span><small>שיעורים</small></a><button class="mobile-ai">✨</button><a href="./homework.html"><span>📝</span><small>משימות</small></a><a href="#"><span>📊</span><small>התקדמות</small></a></nav>
+  <div class="system-version">IAKIDS V2 · 0.1.0</div>
   <div class="overlay" id="overlay"></div>
   <script src="./app.js?v=4"></script>
 </body>
