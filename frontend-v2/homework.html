@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./homework.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .connected-preview-banner{display:none;align-items:center;justify-content:center;gap:14px;padding:10px 16px;background:#e9fbfd;border-bottom:1px solid #bdebf0;color:#164a58;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;position:relative;z-index:50}.connected-preview-banner.show{display:flex}.connected-preview-banner strong{font-weight:800}.connected-preview-banner a{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 14px;border-radius:10px;background:#16b7c6;color:#fff;text-decoration:none;font-weight:800;box-shadow:0 6px 16px rgba(22,183,198,.18)}@media(max-width:700px){.connected-preview-banner{flex-direction:column;text-align:center;gap:7px;padding:9px 12px}.connected-preview-banner a{width:100%}}
+  </style>
 </head>
 <body>
 <div class="hw-shell">
@@ -21,6 +24,11 @@
       <div class="profile"><span class="avatar" id="childAvatar">א</span><span><b id="childName">הילד/ה שלי</b><small id="childGrade">כיתה</small></span></div>
     </div>
   </header>
+
+  <div class="connected-preview-banner" id="connectedPreviewBanner">
+    <span><strong>זהו Preview עיצובי.</strong> כדי להשתמש באלונה ובמנוע שיעורי הבית האמיתי פתחו את אותו מסך מתוך החשבון המחובר.</span>
+    <a href="https://iakids.app/frontend-v2/homework.html">פתחו את הגרסה המחוברת ←</a>
+  </div>
 
   <main class="hw-layout">
     <aside class="steps-panel">
@@ -103,6 +111,11 @@
 
   <button class="floating-chat" id="floatingChat">✨ שיחה עם המורה</button><div class="chat-overlay" id="chatOverlay"></div>
 </div>
-<script src="./homework.js?v=2"></script>
+<script>
+  if (location.hostname === 'iakids-v2.onrender.com') {
+    document.getElementById('connectedPreviewBanner')?.classList.add('show');
+  }
+</script>
+<script src="./homework.js?v=3"></script>
 </body>
 </html>
