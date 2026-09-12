@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f4fbfd" />
   <title>IAKIDS — Frontend v2</title>
+  <script>
+    if (location.hostname === 'iakids-v2.onrender.com') {
+      location.replace('https://iakids.app/frontend-v2/' + location.search + location.hash);
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -94,6 +99,6 @@
 
   <nav class="mobile-nav" aria-label="ניווט מובייל"><a class="active" href="./index.html"><span>🏠</span><small>בית</small></a><a href="#"><span>📖</span><small>שיעורים</small></a><button class="mobile-ai">✨</button><a href="./homework.html"><span>📝</span><small>משימות</small></a><a href="#"><span>📊</span><small>התקדמות</small></a></nav>
   <div class="overlay" id="overlay"></div>
-  <script src="./app.js?v=3"></script>
+  <script src="./app.js?v=4"></script>
 </body>
 </html>
