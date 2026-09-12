@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4fbfd" />
+  <title>IAKIDS — Frontend v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">🎓</div>
+        <div>
+          <div class="brand-name">IAKIDS</div>
+          <div class="brand-tagline">לומדים היום, גדלים יותר</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-item active" href="#"><span>🏠</span><span>דף הבית</span></a>
+        <a class="nav-item" href="#"><span>📖</span><span>השיעורים שלי</span></a>
+        <a class="nav-item" href="#"><span>📝</span><span>שיעורי בית</span></a>
+        <a class="nav-item" href="#"><span>🎓</span><span>מבחנים</span></a>
+        <a class="nav-item" href="#"><span>✏️</span><span>תרגול</span></a>
+        <div class="nav-separator"></div>
+        <a class="nav-item" href="#"><span>📊</span><span>התקדמות</span></a>
+        <a class="nav-item" href="#"><span>🏆</span><span>הישגים</span></a>
+        <a class="nav-item" href="#"><span>📁</span><span>הקבצים שלי</span></a>
+        <div class="nav-separator"></div>
+        <a class="nav-item" href="#"><span>👨‍👩‍👧</span><span>פאנל הורים</span></a>
+        <a class="nav-item" href="#"><span>⚙️</span><span>הגדרות</span></a>
+      </nav>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-icon">🌱</div>
+        <div>
+          <strong>הדרך שלך</strong>
+          <p>עוד 3 שיעורים ליעד השבועי</p>
+        </div>
+        <div class="mini-progress"><span style="width:62%"></span></div>
+      </div>
+    </aside>
+
+    <div class="content-wrap">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="פתיחת תפריט">☰</button>
+
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="search" placeholder="חיפוש שיעורים, נושאים, תכנים..." />
+        </div>
+
+        <div class="top-actions">
+          <div class="counter">⭐ <strong>890</strong><small>נקודות</small></div>
+          <div class="counter">💎 <strong>45</strong><small>יהלומים</small></div>
+          <button class="icon-btn">🔔<span class="badge">3</span></button>
+          <div class="profile">
+            <div class="avatar">ר</div>
+            <div class="profile-copy"><strong>רועי כהן</strong><small>כיתה ה׳</small></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">יום חדש של למידה</p>
+            <h1>שלום רועי! 👋</h1>
+            <p>כיף לראות אותך שוב. המשך בדיוק מהמקום שבו עצרת.</p>
+          </div>
+          <button class="primary-btn">המשך שיעור <span>←</span></button>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card blue">
+            <div class="stat-icon">📘</div>
+            <div><span>שיעורים פעילים</span><strong>4</strong><small>נמצאים בלמידה</small></div>
+            <button>‹</button>
+          </article>
+          <article class="stat-card orange">
+            <div class="stat-icon">📋</div>
+            <div><span>משימות פתוחות</span><strong>3</strong><small>מחכות להשלמה</small></div>
+            <button>‹</button>
+          </article>
+          <article class="stat-card green">
+            <div class="stat-icon">📊</div>
+            <div><span>התקדמות שבועית</span><strong>62%</strong><small>יעד שבועי: 80%</small></div>
+            <button>‹</button>
+          </article>
+          <article class="stat-card purple">
+            <div class="stat-icon">🗓️</div>
+            <div><span>מבחנים קרובים</span><strong>2</strong><small>בשבוע הקרוב</small></div>
+            <button>‹</button>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <section class="panel learning-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">הלמידה שלך</p>
+                <h2>המשך הלמידה</h2>
+              </div>
+              <button class="ghost-btn">הצג את כל השיעורים</button>
+            </div>
+
+            <div class="lesson-table-wrap">
+              <table class="lesson-table">
+                <thead>
+                  <tr>
+                    <th>נושא</th><th>השיעור הבא</th><th>סטטוס</th><th>התקדמות</th><th>פעולה</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="subject"><span class="subject-icon blue-bg">📘</span><div><strong>עברית</strong><small>קריאת טקסטים והבנת הנקרא</small></div></div></td>
+                    <td><strong>רעיון מרכזי בפסקה</strong><small>שיעור 3 מתוך 5</small></td>
+                    <td><span class="status running">בביצוע</span></td>
+                    <td><div class="progress-cell"><strong>70%</strong><div class="progress"><span style="width:70%"></span></div></div></td>
+                    <td><button class="table-action">המשך שיעור ▶</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="subject"><span class="subject-icon cyan-bg">🧮</span><div><strong>מתמטיקה</strong><small>שברים והשוואת שברים</small></div></div></td>
+                    <td><strong>חיבור וחיסור שברים</strong><small>שיעור 2 מתוך 6</small></td>
+                    <td><span class="status new">לא התחיל</span></td>
+                    <td><div class="progress-cell"><strong>0%</strong><div class="progress"><span style="width:0%"></span></div></div></td>
+                    <td><button class="table-action">התחל ללמוד ▶</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="subject"><span class="subject-icon purple-bg">🔤</span><div><strong>אנגלית</strong><small>My Daily Routine</small></div></div></td>
+                    <td><strong>My Daily Routine</strong><small>שיעור 4 מתוך 8</small></td>
+                    <td><span class="status done">הושלם</span></td>
+                    <td><div class="progress-cell"><strong>100%</strong><div class="progress"><span style="width:100%"></span></div></div></td>
+                    <td><button class="table-action">תרגול נוסף ↻</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="subject"><span class="subject-icon green-bg">🧪</span><div><strong>מדעים</strong><small>מערכות בגוף האדם</small></div></div></td>
+                    <td><strong>מערכת הנשימה</strong><small>שיעור 1 מתוך 4</small></td>
+                    <td><span class="status running">בביצוע</span></td>
+                    <td><div class="progress-cell"><strong>45%</strong><div class="progress"><span style="width:45%"></span></div></div></td>
+                    <td><button class="table-action">המשך שיעור ▶</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside class="panel ai-panel">
+            <div class="ai-head">
+              <div class="ai-avatar">🤖</div>
+              <div><p class="eyebrow">מחובר עכשיו</p><h2>המורה AI</h2></div>
+            </div>
+            <div class="ai-message">
+              <strong>שלום רועי!</strong>
+              <p>אני כאן כדי להסביר, לתרגל ולעזור לך בשיעורי הבית. במה נתחיל?</p>
+            </div>
+            <button class="primary-btn full">שאל שאלה ✨</button>
+            <button class="secondary-btn full">📄 בקש הסבר</button>
+            <button class="secondary-btn full">🧠 תרגול נוסף</button>
+          </aside>
+        </section>
+
+        <section class="bottom-grid">
+          <article class="panel compact-panel">
+            <div class="panel-head small"><h3>התקדמות שבועית</h3><span>📊</span></div>
+            <div class="weekly-score">62%</div>
+            <p class="muted">מהיעד השבועי · יעד 80%</p>
+            <div class="week-bars" aria-label="התקדמות שבועית">
+              <span style="height:42%"></span><span style="height:58%"></span><span style="height:52%"></span><span style="height:82%"></span><span style="height:50%"></span><span style="height:44%"></span><span style="height:54%"></span>
+            </div>
+            <div class="week-labels"><span>א׳</span><span>ב׳</span><span>ג׳</span><span>ד׳</span><span>ה׳</span><span>ו׳</span><span>ש׳</span></div>
+          </article>
+
+          <article class="panel compact-panel">
+            <div class="panel-head small"><h3>הישגים אחרונים</h3><span>🏆</span></div>
+            <div class="achievement"><span class="medal gold">★</span><div><strong>כוכב התמדה</strong><small>5 ימים ברצף של למידה</small></div></div>
+            <div class="achievement"><span class="medal blue-medal">★</span><div><strong>מתמטיקאי צעיר</strong><small>10 תרגילים ברצף</small></div></div>
+            <div class="achievement"><span class="medal green-medal">⚗</span><div><strong>חוקר מדע</strong><small>השלמת יחידת מדעים</small></div></div>
+          </article>
+
+          <article class="panel compact-panel">
+            <div class="panel-head small"><h3>משימות קרובות</h3><span>📋</span></div>
+            <div class="task"><div><strong>תרגיל במתמטיקה</strong><small>שברים — דף 4</small></div><span class="task-date urgent">מחר</span></div>
+            <div class="task"><div><strong>חיבור באנגלית</strong><small>My Family</small></div><span class="task-date">בעוד 3 ימים</span></div>
+            <div class="task"><div><strong>עבודה במדעים</strong><small>מערכת הנשימה</small></div><span class="task-date">בעוד 5 ימים</span></div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="mobile-nav" aria-label="ניווט מובייל">
+    <a class="active" href="#"><span>🏠</span><small>בית</small></a>
+    <a href="#"><span>📖</span><small>שיעורים</small></a>
+    <button class="mobile-ai">✨</button>
+    <a href="#"><span>📝</span><small>משימות</small></a>
+    <a href="#"><span>📊</span><small>התקדמות</small></a>
+  </nav>
+
+  <div class="overlay" id="overlay"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
