@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f5fbfd" />
+  <meta name="theme-color" content="#f3fbfd" />
   <title>IAKIDS — שיעורי בית</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,107 +11,97 @@
   <link rel="stylesheet" href="./homework.css" />
 </head>
 <body>
-  <div class="hw-app">
-    <header class="topbar">
-      <a class="brand" href="./index.html" aria-label="חזרה לדף הבית">
-        <span class="brand-mark">🎓</span>
-        <span><strong>IAKIDS</strong><small>לומדים היום, גדלים יותר</small></span>
-      </a>
-      <div class="top-title">
-        <strong>עזרה בשיעורי בית</strong>
-        <small>המורה AI עובדת איתך שלב־שלב</small>
-      </div>
-      <div class="top-actions">
-        <span class="counter">⭐ <b>890</b></span>
-        <span class="counter">💎 <b>45</b></span>
-        <div class="profile"><span class="avatar" id="childAvatar">א</span><span><b id="childName">הילד/ה שלי</b><small id="childGrade">כיתה</small></span></div>
-      </div>
-    </header>
+<div class="hw-shell">
+  <header class="topbar">
+    <a class="brand" href="./index.html"><span class="brand-mark">IA</span><span><strong>IAKIDS</strong><small>חבר ללימודים</small></span></a>
+    <div class="top-title"><strong>עזרה בשיעורי בית</strong><small>מבינים, חושבים ופותרים יחד עם המורה</small></div>
+    <div class="top-actions">
+      <span class="counter">⭐ <b>890</b></span><span class="counter">💎 <b>45</b></span>
+      <div class="profile"><span class="avatar" id="childAvatar">א</span><span><b id="childName">הילד/ה שלי</b><small id="childGrade">כיתה</small></span></div>
+    </div>
+  </header>
 
-    <main class="workspace">
-      <aside class="steps-panel" aria-label="שלבי שיעורי הבית">
-        <div class="panel-title"><span>📷</span><strong>שיעורי בית</strong></div>
-        <a class="back-home" href="./index.html">← דף הבית</a>
-        <ol class="steps" id="steps">
-          <li class="active" data-step="1"><span>1</span><div><b>העלאת שיעורי הבית</b><small>צילום, תמונה או PDF</small></div></li>
-          <li data-step="2"><span>2</span><div><b>זיהוי מקצוע ונושא</b><small>ה־AI מזהה את החומר</small></div></li>
-          <li data-step="3"><span>3</span><div><b>הבנת השאלה</b><small>מה בעצם מבקשים?</small></div></li>
-          <li data-step="4"><span>4</span><div><b>עבודה יחד</b><small>צעד אחד בכל פעם</small></div></li>
-          <li data-step="5"><span>5</span><div><b>בדיקת התשובה</b><small>ניסוח ובדיקה סופית</small></div></li>
-        </ol>
-      </aside>
+  <main class="hw-layout">
+    <aside class="steps-panel">
+      <div class="side-head"><span class="side-icon">📷</span><div><strong>עזרה בשיעורי בית</strong><small>שלב אחרי שלב</small></div></div>
+      <a class="home-link" href="./index.html">⌂ דף הבית</a>
+      <ol class="steps" id="steps">
+        <li class="active" data-step="1"><span>1</span><div><b>העלאת שיעורי הבית</b><small>צילום, תמונה או PDF</small></div></li>
+        <li data-step="2"><span>2</span><div><b>זיהוי המקצוע והנושא</b><small>המנוע מזהה את החומר</small></div></li>
+        <li data-step="3"><span>3</span><div><b>הבנת השאלה</b><small>מה בדיוק מבקשים?</small></div></li>
+        <li data-step="4"><span>4</span><div><b>עזרה ופתרון יחד</b><small>צעד אחד בכל פעם</small></div></li>
+        <li data-step="5"><span>5</span><div><b>בדיקת התשובה</b><small>ניסוח ובדיקה סופית</small></div></li>
+      </ol>
+    </aside>
 
-      <section class="content-panel">
-        <div class="mobile-progress" id="mobileProgress">
-          <span>שלב <b id="mobileStepNumber">1</b> מתוך 5</span>
-          <div><i id="mobileProgressBar"></i></div>
-        </div>
+    <section class="workspace-column">
+      <div class="mobile-progress"><span>שלב <b id="mobileStepNumber">1</b> מתוך 5</span><div><i id="mobileProgressBar"></i></div></div>
 
-        <section class="upload-state" id="uploadState">
-          <div class="upload-card" id="dropZone">
-            <div class="upload-icon">⇧</div>
-            <p class="eyebrow">מתחילים מכאן</p>
-            <h1>העלו את שיעורי הבית</h1>
-            <p>צלמו מהטלפון או העלו תמונה / PDF. המורה תזהה את המקצוע והנושא ותעזור להבין ולפתור — בלי לתת ישר את התשובה.</p>
-            <div class="upload-actions">
-              <label class="primary-btn camera-btn">📷 צילום מהטלפון<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden></label>
-              <label class="secondary-btn">📎 העלאת קובץ<input id="fileInput" type="file" accept="image/*,.pdf,application/pdf" hidden></label>
+      <section class="work-grid">
+        <article class="source-panel panel">
+          <header class="panel-header"><div><strong>דף השיעורים</strong><small id="fileName">עדיין לא הועלה קובץ</small></div><div class="header-actions"><button id="replaceFileBtn" class="tiny-btn hidden">החלף</button></div></header>
+          <div class="source-stage" id="dropZone">
+            <div class="upload-empty" id="uploadState">
+              <div class="upload-icon">⇧</div><h1>העלו את שיעורי הבית</h1>
+              <p>צלמו מהטלפון או העלו תמונה / PDF.</p>
+              <div class="upload-actions">
+                <label class="primary-btn">📷 צילום מהטלפון<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden></label>
+                <label class="secondary-btn">📎 העלאת קובץ<input id="fileInput" type="file" accept="image/*,.pdf,application/pdf" hidden></label>
+              </div><small>אפשר גם לגרור קובץ לכאן</small>
             </div>
-            <small class="drop-hint">אפשר גם לגרור לכאן קובץ</small>
+            <img id="imagePreview" class="source-media hidden" alt="שיעורי הבית" />
+            <iframe id="pdfPreview" class="source-media hidden" title="שיעורי הבית"></iframe>
+            <div id="genericPreview" class="generic-preview hidden">📄<strong>הקובץ מוכן</strong></div>
           </div>
-        </section>
+          <footer class="source-footer"><span id="sourceStatus">ממתין להעלאת שיעורי הבית</span><button id="analyzeBtn" class="primary-btn compact" disabled>זהה מקצוע ונושא ✨</button></footer>
+        </article>
 
-        <section class="document-state hidden" id="documentState">
-          <div class="document-toolbar">
-            <div>
-              <p class="eyebrow">הקובץ שלך</p>
-              <h2 id="fileName">שיעורי בית</h2>
-            </div>
-            <div class="toolbar-actions">
-              <button class="ghost-btn" id="replaceFileBtn">החלף קובץ</button>
-              <button class="primary-btn" id="analyzeBtn">זהה מקצוע ונושא ✨</button>
-            </div>
-          </div>
-          <div class="preview-shell">
-            <img id="imagePreview" alt="תצוגת שיעורי הבית" class="hidden" />
-            <iframe id="pdfPreview" title="תצוגת PDF" class="hidden"></iframe>
-            <div id="genericPreview" class="generic-preview hidden"><span>📄</span><strong>הקובץ מוכן לניתוח</strong></div>
-          </div>
-          <div class="identified-card hidden" id="identifiedCard">
-            <div class="identified-icon">✓</div>
-            <div><small>זיהיתי</small><strong id="identifiedText">מקצוע ונושא</strong><p>עכשיו נסביר לילד מה השאלה מבקשת, ורק אחר כך נעבוד עליה יחד.</p></div>
-            <button class="primary-btn" id="startHelpBtn">בואו נתחיל</button>
-          </div>
-        </section>
+        <article class="notebook-panel panel">
+          <header class="panel-header"><div><strong>המחברת שלי</strong><small>כתבו כאן את דרך הפתרון שלכם</small></div><span class="save-state" id="notebookStatus">נשמר אוטומטית</span></header>
+          <div class="notebook-wrap"><div id="homeworkNotebook" class="homework-notebook" contenteditable="true" spellcheck="false" data-placeholder="כתבו כאן את דרך הפתרון שלכם..."></div></div>
+          <footer class="notebook-footer"><span>אפשר לכתוב, למחוק ולשנות בכל רגע</span><span id="notebookCount">0 תווים</span></footer>
+        </article>
       </section>
 
-      <aside class="tutor-panel" id="tutorPanel">
-        <div class="tutor-head">
-          <div class="teacher-avatar">AI</div>
-          <div><small class="online">● מחוברת עכשיו</small><h2>המורה AI</h2></div>
-          <button class="close-chat" id="closeChat" aria-label="סגור צ'אט">×</button>
+      <section class="flow-timeline panel" aria-label="התקדמות בשיעור">
+        <div class="flow-track"><i id="flowFill"></i></div>
+        <div class="flow-steps" id="flowSteps">
+          <div class="active"><span>✓</span><b>פתיחה</b></div><div><span>📖</span><b>הסבר</b></div><div><span>💬</span><b>דיאלוג</b></div><div><span>⚑</span><b>סיכום</b></div><div><span>→</span><b>השלב הבא</b></div>
         </div>
-        <div class="chat" id="chat">
-          <div class="message teacher">
-            <strong>שלום! 👋</strong>
-            <p>העלו את שיעורי הבית, ואני אזהה מה לומדים ואעזור לכם צעד־צעד.</p>
-          </div>
-        </div>
-        <div class="quick-actions" id="quickActions">
-          <button data-message="אפשר להסביר לי מה מבקשים בשאלה?">מה מבקשים?</button>
-          <button data-message="תני לי רמז קטן">תני רמז</button>
-        </div>
-        <form class="composer" id="chatForm">
-          <button type="button" title="צרף קובץ">📎</button>
-          <input id="chatInput" autocomplete="off" placeholder="כתבו למורה AI..." />
-          <button class="send" type="submit">➤</button>
-        </form>
-      </aside>
-    </main>
+      </section>
 
-    <button class="floating-chat" id="floatingChat">✨ דברו עם המורה</button>
-    <div class="chat-overlay" id="chatOverlay"></div>
-  </div>
-  <script src="./homework.js"></script>
+      <section class="audio-bar panel">
+        <div class="audio-controls"><button>↶</button><button id="audioPlay" class="play-btn">▶</button><button>↷</button></div>
+        <div class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="audio-status" id="audioStatus">00:00 / 00:00</span><button class="speed">1.0x</button>
+      </section>
+
+      <section class="insights-grid">
+        <article class="metric panel"><small>הבנה כללית בנושא</small><div class="ring"><b>0%</b></div><span>ממתין להתחלת עבודה</span></article>
+        <article class="metric panel"><small>התקדמות ביחידה</small><div class="ring"><b>0%</b></div><span>0 מתוך 0 שיעורים</span></article>
+        <article class="metric panel"><small>הבנה בחלק הנוכחי</small><strong>חלק 1 מתוך 1</strong><div class="mini-ring">0%</div></article>
+        <article class="understanding panel"><small>מצב הבנה</small><strong id="understandingText">מתחילים יחד</strong><div class="teacher-face">👩🏻‍🏫</div><span>המורה תתאים את ההסבר לתשובות שלך</span></article>
+        <article class="live-card panel"><div><span class="live-dot"></span><small>AI LIVE</small></div><strong>פעילות AI בזמן אמת</strong><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>ממתין לחיבור למנוע הקיים</span></article>
+      </section>
+    </section>
+
+    <aside class="tutor-panel panel" id="tutorPanel">
+      <header class="tutor-head"><div class="teacher-avatar">AI</div><div><small><i></i> מורה זמינה</small><h2>שיחה עם המורה</h2></div><button id="closeChat" class="close-chat">×</button></header>
+      <div class="chat" id="chat"><div class="message teacher"><strong>שלום 👋</strong><p>העלו את שיעורי הבית. אחרי שנחבר את מנוע שיעורי הבית הקיים, אזהה כאן את המקצוע, הנושא והשאלה ואעבוד איתכם צעד־צעד.</p></div></div>
+      <div class="help-title">איך תרצו שאעזור?</div>
+      <div class="quick-actions" id="quickActions">
+        <button data-message="להבין מה מבקשים בשאלה">❔ להבין מה מבקשים בשאלה</button>
+        <button data-message="לקבל הסבר על החומר">📘 לקבל הסבר על החומר</button>
+        <button data-message="לקבל רמז קטן">✨ לקבל רמז קטן</button>
+        <button data-message="לפתור יחד שלב-שלב">→ לפתור יחד שלב־שלב</button>
+        <button data-message="לבדוק את התשובה שלי">✓ לבדוק את התשובה שלי</button>
+      </div>
+      <form class="composer" id="chatForm"><button type="button">📎</button><input id="chatInput" autocomplete="off" placeholder="כתבו הודעה למורה AI..."/><button class="send">➤</button></form>
+    </aside>
+  </main>
+
+  <button class="floating-chat" id="floatingChat">✨ שיחה עם המורה</button><div class="chat-overlay" id="chatOverlay"></div>
+</div>
+<script src="./homework.js"></script>
 </body>
 </html>
