@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./homework.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="hw-shell">
@@ -53,11 +54,11 @@
             <iframe id="pdfPreview" class="source-media hidden" title="שיעורי הבית"></iframe>
             <div id="genericPreview" class="generic-preview hidden">📄<strong>הקובץ מוכן</strong></div>
           </div>
-          <footer class="source-footer"><span id="sourceStatus">ממתין להעלאת שיעורי הבית</span><button id="analyzeBtn" class="primary-btn compact" disabled>זהה מקצוע ונושא ✨</button></footer>
+          <footer class="source-footer"><span id="sourceStatus">מתחבר למשתמש...</span><button id="analyzeBtn" class="primary-btn compact" disabled>זהה מקצוע ונושא ✨</button></footer>
         </article>
 
         <article class="notebook-panel panel">
-          <header class="panel-header"><div><strong>המחברת שלי</strong><small>כתבו כאן את דרך הפתרון שלכם</small></div><span class="save-state" id="notebookStatus">נשמר אוטומטית</span></header>
+          <header class="panel-header"><div><strong>המחברת שלי</strong><small id="questionHint">כתבו כאן את דרך הפתרון שלכם</small></div><span class="save-state" id="notebookStatus">נשמר אוטומטית</span></header>
           <div class="notebook-wrap"><div id="homeworkNotebook" class="homework-notebook" contenteditable="true" spellcheck="false" data-placeholder="כתבו כאן את דרך הפתרון שלכם..."></div></div>
           <footer class="notebook-footer"><span>אפשר לכתוב, למחוק ולשנות בכל רגע</span><span id="notebookCount">0 תווים</span></footer>
         </article>
@@ -77,17 +78,17 @@
       </section>
 
       <section class="insights-grid">
-        <article class="metric panel"><small>הבנה כללית בנושא</small><div class="ring"><b>0%</b></div><span>ממתין להתחלת עבודה</span></article>
-        <article class="metric panel"><small>התקדמות ביחידה</small><div class="ring"><b>0%</b></div><span>0 מתוך 0 שיעורים</span></article>
-        <article class="metric panel"><small>הבנה בחלק הנוכחי</small><strong>חלק 1 מתוך 1</strong><div class="mini-ring">0%</div></article>
+        <article class="metric panel"><small>הבנה כללית בנושא</small><div class="ring"><b id="overallScore">0%</b></div><span id="overallLabel">ממתין להתחלת עבודה</span></article>
+        <article class="metric panel"><small>התקדמות בשאלות</small><div class="ring"><b id="questionProgress">0%</b></div><span id="questionProgressLabel">0 מתוך 0 שאלות</span></article>
+        <article class="metric panel"><small>השאלה הנוכחית</small><strong id="currentQuestionLabel">שאלה 1</strong><div class="mini-ring" id="currentQuestionScore">0%</div></article>
         <article class="understanding panel"><small>מצב הבנה</small><strong id="understandingText">מתחילים יחד</strong><div class="teacher-face">👩🏻‍🏫</div><span>המורה תתאים את ההסבר לתשובות שלך</span></article>
-        <article class="live-card panel"><div><span class="live-dot"></span><small>AI LIVE</small></div><strong>פעילות AI בזמן אמת</strong><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>ממתין לחיבור למנוע הקיים</span></article>
+        <article class="live-card panel"><div><span class="live-dot"></span><small>AI LIVE</small></div><strong>פעילות AI בזמן אמת</strong><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="liveStatus">מתחבר למנוע הקיים...</span></article>
       </section>
     </section>
 
     <aside class="tutor-panel panel" id="tutorPanel">
       <header class="tutor-head"><div class="teacher-avatar">AI</div><div><small><i></i> מורה זמינה</small><h2>שיחה עם המורה</h2></div><button id="closeChat" class="close-chat">×</button></header>
-      <div class="chat" id="chat"><div class="message teacher"><strong>שלום 👋</strong><p>העלו את שיעורי הבית. אחרי שנחבר את מנוע שיעורי הבית הקיים, אזהה כאן את המקצוע, הנושא והשאלה ואעבוד איתכם צעד־צעד.</p></div></div>
+      <div class="chat" id="chat"><div class="message teacher"><strong>שלום 👋</strong><p>אני מתחברת למנוע שיעורי הבית שלך...</p></div></div>
       <div class="help-title">איך תרצו שאעזור?</div>
       <div class="quick-actions" id="quickActions">
         <button data-message="להבין מה מבקשים בשאלה">❔ להבין מה מבקשים בשאלה</button>
@@ -102,6 +103,6 @@
 
   <button class="floating-chat" id="floatingChat">✨ שיחה עם המורה</button><div class="chat-overlay" id="chatOverlay"></div>
 </div>
-<script src="./homework.js"></script>
+<script src="./homework.js?v=2"></script>
 </body>
 </html>
