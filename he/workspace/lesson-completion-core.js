@@ -1284,18 +1284,18 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
       : "היי, ";
 
     if(subject && topic){
-      return `${greeting}זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. ${language.howHelp}`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. בואי נתחיל יחד.`;
     }
 
     if(subject){
-      return `${greeting}זיהיתי שזה שיעורי בית ב${subject}. ${language.howHelp}`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject}. בואי נתחיל יחד.`;
     }
 
     if(topic){
-      return `${greeting}זיהיתי את הנושא ${topic}. ${language.howHelp}`;
+      return `${greeting}זיהיתי את הנושא ${topic}. בואי נתחיל יחד.`;
     }
 
-    return `${greeting}זיהיתי את שיעורי הבית. ${language.howHelp}`;
+    return `${greeting}זיהיתי את שיעורי הבית. בואי נתחיל יחד.`;
   }
 
   async function playHomeworkTeacherAudio(text){
@@ -1984,10 +1984,10 @@ ${analysis.extracted_text || ""}
     setHomeworkSidebarStep(2);
     removeHomeworkReadingStatus();
     renderHomeworkDetectionCard(analysis);
-    renderHomeworkHelpOptions();
+    removeHomeworkHelpOptions();
 
-    /* Speak only the teacher's short intro — not tags/buttons/loading text. */
-    playHomeworkTeacherAudio(
+    /* Identify the homework, then immediately begin teaching it. */
+    await playHomeworkTeacherAudio(
       getHomeworkSpokenIntro(analysis)
     );
 
@@ -1996,12 +1996,12 @@ ${analysis.extracted_text || ""}
       requestAnimationFrame(() => { messages.scrollTop = 0; });
     }
 
-    /*
-      שומרים גם את הפענוח בהקשר של מנוע המורה כדי שהילד יוכל
-      לכתוב תשובה חופשית במקום ללחוץ על כפתור ועדיין המורה תדע
-      לאיזה דף שיעורי בית הוא מתייחס.
-    */
-    await primeHomeworkTutorContext(analysis);
+    /* No help-mode chooser anymore: the production Sol coach starts automatically. */
+    window.HOMEWORK_HELP_MODE = "solve_together";
+    window.HOMEWORK_PRODUCTION_COACH_MODE = true;
+    window.HOMEWORK_PRODUCTION_COACH_HISTORY = [];
+    setHomeworkSidebarStep(4);
+    await runHomeworkProductionCoach("");
   }
 
   window.showHomeworkStatus = function(){
