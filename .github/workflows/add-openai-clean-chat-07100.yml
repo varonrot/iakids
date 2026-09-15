@@ -1,0 +1,29 @@
+name: OpenAI clean chat 0.7.100
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add-openai-clean-chat-07100.py'
+      - '.github/workflows/add-openai-clean-chat-07100.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Install OpenAI-only clean chat
+        run: python .github/scripts/add-openai-clean-chat-07100.py
+      - name: Compile backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend-ai-tutor-he/main.py he/workspace/index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Add isolated OpenAI-only chat; bump to 0.7.100'
+          git push origin main
