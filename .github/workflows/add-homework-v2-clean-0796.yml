@@ -1,0 +1,36 @@
+name: Clean Homework V2 0.7.96
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/add-homework-v2-clean-0796.py'
+      - '.github/workflows/add-homework-v2-clean-0796.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Install clean Homework V2
+        run: python .github/scripts/add-homework-v2-clean-0796.py
+      - name: Compile backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add isolated Homework V2 tutor; bump to 0.7.96"
+          git push origin main
