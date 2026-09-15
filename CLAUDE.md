@@ -9,6 +9,9 @@ Multilingual static site: Spanish is default (root `index.html`, `lang="es"`), p
 - **Backends** (Python FastAPI, deployed separately — NOT served by Pages):
   - `backend/` — core chat API: Supabase + OpenAI, LemonSqueezy payment webhooks (HMAC-verified). Prompts loaded from `backend/prompts/`.
   - `backend-ai-tutor-he/` — Hebrew AI tutor: OpenAI + Google Gemini (`google-genai`, incl. TTS/wave audio), Supabase.
+    Providers: `AI_PROVIDER=direct|openrouter` (chat + lesson models) and `TTS_PROVIDER=direct|openrouter` (same Gemini TTS model via OpenRouter's `/audio/speech`, needs `OPENROUTER_API_KEY`); default `direct`. Images stay on the direct Gemini client. `tools/tts_check.py` synthesizes one sentence with the configured provider.
+    Every model call is recorded in `public.ai_calls` (provider, model, purpose, tokens, audio seconds, cost) by `ai_costs.py`, which wraps the SDK clients; routes tag calls with `ai_context(...)`, the worker per job. Views: `ai_costs_daily`, `ai_costs_per_kid`, `ai_costs_per_lesson`.
+    Media generation (intro videos, visuals, TTS) runs in a separate process: `worker.py` pulls rows from `public.media_jobs` (migration `supabase/migrations/20260914_media_jobs.sql`). Routes only enqueue via `dispatch_media_job`. `MEDIA_JOBS_MODE=inline` restores the old in-process BackgroundTasks behaviour; the queue also falls back to inline if the insert fails.
 - **DB**: Supabase (Postgres). Games use client-side IndexedDB (see `games/GAMES.md`).
 - **Payments**: LemonSqueezy webhooks in `backend/main.py`.
 

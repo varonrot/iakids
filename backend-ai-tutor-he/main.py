@@ -386,7 +386,28 @@ print("==============================")
 # CLIENTS
 # =====================================================
 
-sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+# One pooled HTTP/1.1 client for PostgREST, Auth and Storage. The library default is
+# a single HTTP/2 connection per sub-client, and the *sync* HTTP/2 client under many
+# threads is where the capacity went: measured 2026-09-14 on this service, 30
+# concurrent cached lesson opens took 18 s (every request finished together) and a
+# 30-thread benchmark on the same client died with "RECV_DATA in state CLOSED" —
+# also the likely source of the "Server disconnected" seen in Storage. Pooled
+# HTTP/1.1 measured ~16x parallel for 30 threads on the same endpoint.
+import httpx as _httpx
+from supabase.lib.client_options import SyncClientOptions as _SyncClientOptions
+
+SUPABASE_HTTP_POOL = int(os.getenv("SUPABASE_HTTP_POOL", "100"))
+_supabase_http = _httpx.Client(
+    http2=False,
+    timeout=_httpx.Timeout(float(os.getenv("SUPABASE_HTTP_TIMEOUT", "30")), connect=10.0),
+    limits=_httpx.Limits(max_connections=SUPABASE_HTTP_POOL, max_keepalive_connections=SUPABASE_HTTP_POOL),
+    follow_redirects=True,
+)
+sb = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_KEY,
+    options=_SyncClientOptions(httpx_client=_supabase_http),
+)
 
 # =====================================================
 # SUPABASE TEMPORARY ERROR RETRY
@@ -438,6 +459,39 @@ def supabase_with_retry(
 
     raise last_error
 
+
+_TRANSPORT_ERROR_MARKERS = (
+    "RemoteProtocolError", "ConnectError", "ReadError", "WriteError",
+    "ReadTimeout", "ConnectTimeout", "PoolTimeout", "Server disconnected",
+    "ConnectionReset", "RemoteDisconnected",
+)
+
+
+def storage_with_retry(
+        operation,
+        label: str = "STORAGE",
+        max_attempts: int = 3,
+        base_delay_seconds: float = 0.3
+):
+    """Like supabase_with_retry, but only for dropped connections. A Storage
+    answer such as 'Object not found' is a real answer (the media pipeline uses
+    it as 'not generated yet') and must come back immediately, not after three
+    tries and 1.5 s of sleeping."""
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return operation()
+        except Exception as e:
+            text = f"{type(e).__name__}: {e}"
+            transient = any(marker in text for marker in _TRANSPORT_ERROR_MARKERS)
+            if not transient or attempt >= max_attempts:
+                raise
+            print(
+                f"{label} RETRY:",
+                {"attempt": attempt, "max_attempts": max_attempts, "error": text[:200]}
+            )
+            time.sleep(base_delay_seconds * attempt)
+
 client = OpenAI(
     api_key=OPENAI_API_KEY
 )
@@ -451,6 +505,146 @@ aclient = AsyncOpenAI(
 gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
+
+# =====================================================
+# AI PROVIDER SWITCH — direct (OpenAI + Google keys) or OpenRouter
+# =====================================================
+# AI_PROVIDER=openrouter routes the chat / lesson models through OpenRouter's
+# OpenAI-compatible endpoint (same OpenAI SDK, model ids prefixed "openai/").
+# TTS_PROVIDER (defaults to AI_PROVIDER) routes text-to-speech through
+# OpenRouter's /audio/speech with the SAME Gemini TTS model, billed to the
+# OpenRouter account instead of our Google AI Studio quota — the quota that ran
+# out on 2026-09-14 with a single worker. Images stay on the direct Gemini
+# client for now (OpenRouter has image output, but with a different model id
+# and response shape; not wired yet).
+AI_PROVIDER = os.getenv("AI_PROVIDER", "direct").strip().lower()
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", AI_PROVIDER).strip().lower()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_TTS_MODEL = os.getenv("OPENROUTER_TTS_MODEL", "google/gemini-3.1-flash-tts-preview")
+TTS_VOICE = os.getenv("TTS_VOICE", "Aoede")
+TTS_STYLE_PREFIX = os.getenv(
+    "TTS_STYLE_PREFIX",
+    "Speak in natural, fluent Hebrew. Sound like a warm, friendly and patient teacher "
+    "speaking naturally to a school-age child. Use clear pronunciation and natural pauses. "
+    "Read exactly the following Hebrew text:\n\n"
+)
+_OPENROUTER_HEADERS = {"HTTP-Referer": "https://iakids.app", "X-Title": "iakids tutor"}
+
+if AI_PROVIDER == "openrouter" or TTS_PROVIDER == "openrouter":
+    if not OPENROUTER_API_KEY:
+        raise RuntimeError("AI_PROVIDER/TTS_PROVIDER=openrouter but OPENROUTER_API_KEY is missing")
+
+if AI_PROVIDER == "openrouter":
+    client = OpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, default_headers=_OPENROUTER_HEADERS)
+    aclient = AsyncOpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, default_headers=_OPENROUTER_HEADERS)
+
+
+def llm_model(name: str) -> str:
+    """OpenRouter wants 'openai/gpt-4o-mini'; the direct API wants 'gpt-4o-mini'."""
+    if AI_PROVIDER == "openrouter" and "/" not in name:
+        return f"openai/{name}"
+    return name
+
+
+DEFAULT_OPENAI_MODEL = llm_model(DEFAULT_OPENAI_MODEL)
+UNIVERSAL_LESSON_MODEL = llm_model(UNIVERSAL_LESSON_MODEL)
+print(f"[config] AI_PROVIDER={AI_PROVIDER} TTS_PROVIDER={TTS_PROVIDER} chat={DEFAULT_OPENAI_MODEL} lesson={UNIVERSAL_LESSON_MODEL}")
+
+_openrouter_async_http = None
+
+
+def _openrouter_tts_payload(text: str) -> dict:
+    return {
+        "model": OPENROUTER_TTS_MODEL,
+        "input": TTS_STYLE_PREFIX + text,
+        "voice": TTS_VOICE,
+        "response_format": "pcm",          # 24 kHz 16-bit mono, same bytes Gemini returns directly
+    }
+
+
+def openrouter_tts_pcm(text: str, timeout_s: float = 90.0) -> bytes:
+    """One synchronous TTS call through OpenRouter. Returns raw PCM bytes."""
+    t0 = time.time()
+    r = _httpx.post(
+        f"{OPENROUTER_BASE_URL}/audio/speech",
+        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", **_OPENROUTER_HEADERS},
+        json=_openrouter_tts_payload(text),
+        timeout=timeout_s,
+    )
+    _record_openrouter_tts(r, t0)
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code} OPENROUTER_TTS {r.text[:300]}")
+    if not r.content:
+        raise RuntimeError("OpenRouter TTS returned no audio data")
+    return r.content
+
+
+def _record_openrouter_tts(r, t0: float):
+    """ai_calls row for one OpenRouter TTS answer; exact cost is filled in later by
+    generation id (ai_costs.resolve_pending_costs)."""
+    try:
+        ok = r.status_code == 200 and bool(r.content)
+        gen_id = r.headers.get("X-Generation-Id") if ok else None
+        ai_costs.record(
+            "openrouter", OPENROUTER_TTS_MODEL,
+            audio_seconds=(len(r.content) / (24000 * 2)) if ok else None,
+            latency_ms=(time.time() - t0) * 1000,
+            status="ok" if ok else "error",
+            error=None if ok else f"{r.status_code} {r.text[:200]}",
+            cost_source="pending" if gen_id else "unknown",
+            generation_id=gen_id,
+        )
+    except Exception as e:
+        print("AI COSTS RECORD FAILED (tts):", repr(e)[:120])
+
+
+async def openrouter_tts_pcm_async(text: str, timeout_s: float = 90.0) -> bytes:
+    global _openrouter_async_http
+    if _openrouter_async_http is None:
+        _openrouter_async_http = _httpx.AsyncClient(timeout=timeout_s)
+    t0 = time.time()
+    r = await _openrouter_async_http.post(
+        f"{OPENROUTER_BASE_URL}/audio/speech",
+        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", **_OPENROUTER_HEADERS},
+        json=_openrouter_tts_payload(text),
+    )
+    _record_openrouter_tts(r, t0)
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code} OPENROUTER_TTS {r.text[:300]}")
+    if not r.content:
+        raise RuntimeError("OpenRouter TTS returned no audio data")
+    return r.content
+# ===== end AI provider switch =====
+
+# =====================================================
+# AI CALL ACCOUNTING — one ai_calls row per model call (ai_costs.py)
+# =====================================================
+from ai_costs import AICostTracker, set_call_context, run_in_context  # noqa: E402
+
+ai_costs = AICostTracker(
+    sb, service="tutor-web",
+    prices=MODEL_PRICING_USD,
+    audio_tokens_per_second=GEMINI_AUDIO_TOKENS_PER_SECOND,
+    audio_output_price_per_1m=GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M,
+    # $30 per 1M image-output tokens, 1120 tokens per 1024px image (ai.google.dev pricing, 2026-09)
+    image_prices={"gemini-3.1-flash-lite-image": 0.0336, **json.loads(os.getenv("AI_IMAGE_PRICES_JSON", "{}"))},
+    openrouter_api_key=OPENROUTER_API_KEY,
+    openrouter_base_url=OPENROUTER_BASE_URL,
+)
+ai_costs.install(openai_clients=[client, aclient], gemini_client=gemini_client)
+
+
+def ai_context(purpose: str, user=None, payload=None, **more):
+    """Tag every model call made while handling this request/job."""
+    return set_call_context(
+        purpose=purpose,
+        user_id=getattr(user, "id", None),
+        kid_id=getattr(payload, "kid_id", None),
+        unit_lesson_id=getattr(payload, "unit_lesson_id", None),
+        **more
+    )
+# ===== end AI call accounting =====
 
 # In production the interactive docs are off: /docs, /redoc and /openapi.json handed
 # all 19 routes and 14 schemas to anyone who asked.
@@ -546,7 +740,232 @@ async def _rate_limit(request: _Request, call_next):
             for k in [k for k, v in _rate_buckets.items() if not v or v[-1] < now - 60]:
                 _rate_buckets.pop(k, None)
     return await call_next(request)
+
+
+# ---- operational metrics: request_log + service_metrics in Supabase (ops_metrics.py)
+from ops_metrics import OpsReporter as _OpsReporter
+
+ops = _OpsReporter(sb, service="tutor-web")
+_inflight = {"n": 0}
+ops.gauges["threads_busy"] = lambda: _inflight["n"]          # /api requests in flight right now
+ops.gauges["rate_buckets"] = lambda: len(_rate_buckets)
+ops.gauges["media_jobs_mode"] = lambda: MEDIA_JOBS_MODE
+
+
+@app.on_event("startup")
+async def _start_ops_reporter():
+    ops.start()
+    ai_costs.start()
+
+
+@app.middleware("http")
+async def _request_log(request: _Request, call_next):
+    """One request_log row per /api/* call: route template, status, milliseconds.
+    Buffered in memory and flushed in batches; never adds a DB call to the request."""
+    if not request.url.path.startswith("/api/"):
+        return await call_next(request)
+    _inflight["n"] += 1
+    t0 = _time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        return response
+    finally:
+        _inflight["n"] -= 1
+        route = request.scope.get("route")
+        ops.log_request(getattr(route, "path", None) or request.url.path, request.method, status,
+                        (_time.perf_counter() - t0) * 1000)
 # ===== end capacity =====
+
+
+# =====================================================
+# MEDIA JOBS — the queue that replaced BackgroundTasks
+# =====================================================
+# The media pipeline (intro videos, lesson visuals, TTS audio) used to run inside
+# this web process after the response was sent. A deploy or crash in the middle
+# lost the work silently, and every five-minute video poll held one of the
+# server's threads. Now a route inserts one row into public.media_jobs and a
+# separate process (worker.py) does the work. Same functions, different process.
+#
+# MEDIA_JOBS_MODE=queue   (default) rows go to the table; worker.py must be running
+# MEDIA_JOBS_MODE=inline  the old behaviour, BackgroundTasks in this process
+#
+# If the queue is on but the insert fails (table missing, Supabase down), the job
+# runs inline as before, so a broken queue degrades to today's behaviour, never to
+# a lesson with no audio.
+
+MEDIA_JOBS_MODE = os.getenv("MEDIA_JOBS_MODE", "queue").strip().lower()
+
+
+# Lower runs first. What the child is waiting for on the first screen comes before
+# what plays later or has a fallback (the standard intro replaces a missing personal one).
+MEDIA_JOB_PRIORITY = {
+    "unit_lesson_media": 10,
+    "unit_lesson_audio": 10,
+    "unit_lesson_visuals": 30,
+    "kid_intro_videos": 60,
+    "unit_lesson_transition": 90,
+}
+_enqueue_supports_priority = {"value": True}
+
+
+def enqueue_media_job(
+        job_type: str,
+        payload: dict,
+        dedupe_key: str | None = None,
+        max_attempts: int = 3,
+        priority: int | None = None
+) -> int:
+    """Insert a job row. Returns its id, or the id of the live duplicate."""
+
+    if priority is None:
+        priority = MEDIA_JOB_PRIORITY.get(job_type, 50)
+
+    def operation():
+        params = {
+            "p_job_type": job_type,
+            "p_payload": payload or {},
+            "p_dedupe_key": dedupe_key,
+            "p_max_attempts": max_attempts
+        }
+        if _enqueue_supports_priority["value"]:
+            params["p_priority"] = int(priority)
+        try:
+            return sb.rpc("media_jobs_enqueue", params).execute()
+        except Exception as e:
+            # database still on the 4-argument enqueue (priority migration not applied):
+            # fall back once, remember, keep working
+            if _enqueue_supports_priority["value"] and "p_priority" in params and (
+                    "PGRST202" in repr(e) or "Could not find the function" in repr(e)):
+                _enqueue_supports_priority["value"] = False
+                print("MEDIA JOB ENQUEUE: media_jobs_priority migration not applied, enqueuing without priority")
+                params.pop("p_priority", None)
+                return sb.rpc("media_jobs_enqueue", params).execute()
+            raise
+
+    res = supabase_with_retry(
+        operation,
+        label="MEDIA JOB ENQUEUE"
+    )
+
+    return int(res.data)
+
+
+def dispatch_media_job(
+        background_tasks: BackgroundTasks,
+        job_type: str,
+        payload: dict,
+        dedupe_key: str | None,
+        inline_fn,
+        inline_args: tuple = ()
+):
+    """Queue the job, or fall back to running it in-process the old way.
+
+    Synchronous (one Supabase RPC). From an `async def` route wrap it:
+        await run_in_threadpool(lambda: dispatch_media_job(...))
+    """
+
+    if MEDIA_JOBS_MODE != "inline":
+
+        try:
+
+            job_id = enqueue_media_job(
+                job_type=job_type,
+                payload=payload,
+                dedupe_key=dedupe_key,
+                # a TTS quota hit costs a whole attempt; 5 tries × growing backoff
+                # (60s × attempt) covers a few minutes of provider trouble
+                max_attempts=int(os.getenv("MEDIA_JOB_MAX_ATTEMPTS", "5"))
+            )
+
+            print(
+                "MEDIA JOB QUEUED:",
+                {
+                    "job_id": job_id,
+                    "job_type": job_type,
+                    "dedupe_key": dedupe_key
+                }
+            )
+
+            return job_id
+
+        except Exception as enqueue_error:
+
+            print(
+                "MEDIA JOB ENQUEUE FAILED - RUNNING INLINE:",
+                {
+                    "job_type": job_type,
+                    "dedupe_key": dedupe_key,
+                    "error": repr(enqueue_error)
+                }
+            )
+
+    background_tasks.add_task(
+        inline_fn,
+        *inline_args
+    )
+
+    return None
+
+
+def run_media_job(
+        job_type: str,
+        payload: dict
+):
+    """Execute one job. Called by worker.py; the functions are the ones
+    BackgroundTasks used to call, unchanged."""
+
+    payload = payload or {}
+
+    if job_type == "kid_intro_videos":
+        child = get_child_by_id(
+            user_id=str(payload["user_id"]),
+            kid_id=str(payload["kid_id"])
+        )
+        return generate_kid_lesson_intro_videos_background(child)
+
+    unit_lesson_runners = {
+        "unit_lesson_audio": generate_unit_lesson_audio_background,
+        "unit_lesson_visuals": generate_all_lesson_visuals_background,
+        "unit_lesson_transition": generate_transition_video_background,
+        "unit_lesson_media": generate_unit_lesson_media_background,
+    }
+
+    runner = unit_lesson_runners.get(job_type)
+
+    if runner is None:
+        raise ValueError(
+            f"unknown media job type: {job_type}"
+        )
+
+    unit_lesson_id = int(payload["unit_lesson_id"])
+    result = runner(unit_lesson_id)
+
+    # generate_unit_lesson_media_background swallows an audio failure (it only
+    # prints it), so without this check the job row would say "done" while the
+    # lesson row says audio "failed". Raising here makes the queue retry the job
+    # with backoff; visuals already stored are cache hits on the second attempt.
+    if job_type in ("unit_lesson_media", "unit_lesson_audio"):
+        after = get_unit_lesson(unit_lesson_id)
+        status = after.get("audio_generation_status")
+        if status == "failed":
+            raise RuntimeError(
+                f"audio generation failed for unit lesson {unit_lesson_id}: "
+                f"{str(after.get('audio_generation_error') or '')[:300]}"
+            )
+        # The audio function returns silently when it decides there is nothing to do
+        # (content not ready yet, JSON missing, ...). A job that ends without audio
+        # is not done: fail it so the queue retries with backoff instead of leaving
+        # the lesson mute forever.
+        if status != "ready" or not after.get("lesson_audio_json"):
+            raise RuntimeError(
+                f"audio not ready after {job_type} for unit lesson {unit_lesson_id}: "
+                f"audio_generation_status={status!r}, generation_status={after.get('generation_status')!r}"
+            )
+
+    return result
+# ===== end media jobs =====
 
 
 # =====================================================
@@ -2380,6 +2799,7 @@ def get_unit_lesson(
                 "audio_generation_status, "
                 "audio_generation_error, "
                 "audio_generated_at, "
+                "updated_at, "
                 "status, "
                 "is_active"
             )
@@ -6085,47 +6505,120 @@ def get_kid_lesson_intro_media(
     )
 
 
+# =====================================================
+# SIGNED URL CACHE
+# =====================================================
+# Every lesson open used to ask Storage for a fresh signed URL per file: ~17 audio
+# segments + ~21 visuals + 3 intro videos, one HTTP call each, per request. Under
+# load that was the whole cost of /unit-lesson, /audio, /visuals and /hero-image
+# (30 concurrent opens: 17 s, every request finishing together). A signed URL is
+# valid for an hour, so it is cached here until five minutes before it expires,
+# and the audio segments of a lesson are signed in ONE Storage call (batch API).
+import threading as _threading
+
+_SIGNED_URL_CACHE: dict = {}                 # (bucket, path) -> (url, expires_at_monotonic)
+_SIGNED_URL_LOCK = _threading.Lock()
+SIGNED_URL_CACHE_MARGIN_SECONDS = int(os.getenv("SIGNED_URL_CACHE_MARGIN_SECONDS", "300"))
+_SIGNED_URL_CACHE_MAX = 50_000
+
+
+def _signed_url_from_response(signed_response) -> str | None:
+    if isinstance(signed_response, dict):
+        return (
+            signed_response.get("signedURL")
+            or signed_response.get("signedUrl")
+            or signed_response.get("signed_url")
+        )
+    return None
+
+
+def _signed_cache_get(bucket: str, path: str) -> str | None:
+    with _SIGNED_URL_LOCK:
+        hit = _SIGNED_URL_CACHE.get((bucket, path))
+    if hit and hit[1] > time.monotonic():
+        return hit[0]
+    return None
+
+
+def _signed_cache_put(bucket: str, path: str, url: str, expires_in: int):
+    ttl = max(30, int(expires_in) - SIGNED_URL_CACHE_MARGIN_SECONDS)
+    with _SIGNED_URL_LOCK:
+        if len(_SIGNED_URL_CACHE) >= _SIGNED_URL_CACHE_MAX:
+            now = time.monotonic()
+            for k in [k for k, v in _SIGNED_URL_CACHE.items() if v[1] <= now]:
+                _SIGNED_URL_CACHE.pop(k, None)
+            if len(_SIGNED_URL_CACHE) >= _SIGNED_URL_CACHE_MAX:
+                _SIGNED_URL_CACHE.clear()
+        _SIGNED_URL_CACHE[(bucket, path)] = (url, time.monotonic() + ttl)
+
+
+def signed_url_cached(bucket: str, path: str, expires_in: int) -> str:
+    """One signed URL, from cache or from one Storage call. Raises if the file is
+    not there (callers use that as the 'not generated yet' signal)."""
+    hit = _signed_cache_get(bucket, path)
+    if hit:
+        return hit
+    signed_response = storage_with_retry(
+        lambda: sb.storage.from_(bucket).create_signed_url(path, expires_in),
+        label="STORAGE SIGN"
+    )
+    url = _signed_url_from_response(signed_response)
+    if not url:
+        raise RuntimeError(f"Failed to create signed URL for {bucket}/{path}")
+    _signed_cache_put(bucket, path, url, expires_in)
+    return url
+
+
+def signed_urls_cached_batch(bucket: str, paths: list, expires_in: int) -> dict:
+    """path -> signed url for every path that exists, misses fetched in ONE call."""
+    out = {}
+    missing = []
+    for p in dict.fromkeys(p for p in paths if p):
+        hit = _signed_cache_get(bucket, p)
+        if hit:
+            out[p] = hit
+        else:
+            missing.append(p)
+    if missing:
+        items = storage_with_retry(
+            lambda: sb.storage.from_(bucket).create_signed_urls(missing, expires_in),
+            label="STORAGE SIGN BATCH"
+        ) or []
+        for item in items:
+            if not isinstance(item, dict) or item.get("error"):
+                continue
+            url = _signed_url_from_response(item)
+            p = str(item.get("path") or "").lstrip("/")
+            if url and p:
+                _signed_cache_put(bucket, p, url, expires_in)
+                out[p] = url
+    return out
+
+
+_GENERATION_LOCKS: dict = {}
+_GENERATION_LOCKS_GUARD = _threading.Lock()
+
+
+def generation_lock(key: str) -> "_threading.Lock":
+    """One lock per media key, so 30 children opening the same new lesson trigger
+    one generation in this process, not 30 (seen in the 2026-09-14 load test:
+    30 parallel hero-image requests -> 30 image generations, 493 MB, 121% CPU)."""
+    with _GENERATION_LOCKS_GUARD:
+        lock = _GENERATION_LOCKS.get(key)
+        if lock is None:
+            lock = _GENERATION_LOCKS[key] = _threading.Lock()
+        return lock
+
+
 def create_kid_personal_media_signed_url(
         storage_path: str
 ) -> str:
 
-    signed_response = (
-        sb.storage
-        .from_(
-            KID_PERSONAL_MEDIA_BUCKET
-        )
-        .create_signed_url(
-            storage_path,
-            KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS
-        )
+    return signed_url_cached(
+        KID_PERSONAL_MEDIA_BUCKET,
+        storage_path,
+        KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS
     )
-
-    signed_url = None
-
-    if isinstance(
-        signed_response,
-        dict
-    ):
-        signed_url = (
-            signed_response.get(
-                "signedURL"
-            )
-            or signed_response.get(
-                "signedUrl"
-            )
-            or signed_response.get(
-                "signed_url"
-            )
-        )
-
-    if not signed_url:
-        raise RuntimeError(
-            "Failed to create signed URL "
-            f"for kid personal media: "
-            f"{storage_path}"
-        )
-
-    return signed_url
 
 
 def get_ready_kid_lesson_intro_videos(
@@ -6632,7 +7125,7 @@ def generate_single_kid_lesson_intro_video(
             }
         )
 
-        teacher_bytes = (
+        teacher_bytes = storage_with_retry(lambda: (
             sb.storage
             .from_(
                 LESSON_MEDIA_BUCKET
@@ -6640,7 +7133,7 @@ def generate_single_kid_lesson_intro_video(
             .download(
                 LESSON_TRANSITION_TEACHER_PATH
             )
-        )
+        ), label="STORAGE DOWNLOAD")
 
         if not teacher_bytes:
             raise RuntimeError(
@@ -6786,7 +7279,7 @@ The final video must contain spoken audio.
             f"intro-{variant}.mp4"
         )
 
-        sb.storage.from_(
+        storage_with_retry(lambda: sb.storage.from_(
             KID_PERSONAL_MEDIA_BUCKET
         ).upload(
 
@@ -6803,7 +7296,7 @@ The final video must contain spoken audio.
                 "upsert":
                     "true"
             }
-        )
+        ), label="STORAGE UPLOAD")
 
         ready_at = (
             datetime
@@ -6998,42 +7491,11 @@ def create_lesson_media_signed_url(
     ב-Supabase Storage.
     """
 
-    signed_response = (
-        sb.storage
-        .from_(
-            LESSON_MEDIA_BUCKET
-        )
-        .create_signed_url(
-            storage_path,
-            LESSON_MEDIA_URL_EXPIRY_SECONDS
-        )
+    return signed_url_cached(
+        LESSON_MEDIA_BUCKET,
+        storage_path,
+        LESSON_MEDIA_URL_EXPIRY_SECONDS
     )
-
-    signed_url = None
-
-    if isinstance(
-            signed_response,
-            dict
-    ):
-        signed_url = (
-            signed_response.get(
-                "signedURL"
-            )
-            or signed_response.get(
-                "signedUrl"
-            )
-            or signed_response.get(
-                "signed_url"
-            )
-        )
-
-    if not signed_url:
-        raise RuntimeError(
-            "Failed to create signed URL "
-            f"for lesson media: {storage_path}"
-        )
-
-    return signed_url
 
 def get_shared_lesson_transition(
         transition_type: str
@@ -7827,7 +8289,7 @@ def generate_and_store_lesson_hero_image(
         }
     )
 
-    sb.storage.from_(
+    storage_with_retry(lambda: sb.storage.from_(
         LESSON_MEDIA_BUCKET
     ).upload(
 
@@ -7846,7 +8308,7 @@ def generate_and_store_lesson_hero_image(
             "upsert":
                 "true"
         }
-    )
+    ), label="STORAGE UPLOAD")
 
     # =================================================
     # SIGNED URL
@@ -8138,7 +8600,7 @@ def generate_and_store_lesson_visual_image(
         f"visual_{visual_order}.png"
     )
 
-    sb.storage.from_(
+    storage_with_retry(lambda: sb.storage.from_(
         LESSON_MEDIA_BUCKET
     ).upload(
 
@@ -8155,7 +8617,7 @@ def generate_and_store_lesson_visual_image(
             "upsert":
                 "true"
         }
-    )
+    ), label="STORAGE UPLOAD")
 
     print(
         "LESSON VISUAL IMAGE STORED:",
@@ -8783,7 +9245,7 @@ def generate_all_lesson_visuals_background(
 
             try:
 
-                part_reference_bytes = (
+                part_reference_bytes = storage_with_retry(lambda: (
                     sb.storage
                     .from_(
                         LESSON_MEDIA_BUCKET
@@ -8791,7 +9253,7 @@ def generate_all_lesson_visuals_background(
                     .download(
                         reference_storage_path
                     )
-                )
+                ), label="STORAGE DOWNLOAD")
 
                 print(
                     "LESSON PART MASTER REFERENCE LOADED:",
@@ -8866,12 +9328,12 @@ def generate_all_lesson_visuals_background(
                 ) as executor:
 
                     futures = [
-                        executor.submit(
+                        executor.submit(run_in_context(
                             generate_single_visual,
                             visual,
                             part_reference_bytes,
                             part_reference_mime_type
-                        )
+                        ))
                         for visual
                         in remaining_part_visuals
                     ]
@@ -9006,6 +9468,30 @@ def generate_unit_lesson_media_background(
         }
     )
 
+    # =============================================
+    # FIRST SCREEN FIRST: the hero image
+    # =============================================
+    # The child sees the hero before any audio or part visual. It used to be
+    # generated only when the browser asked for it, inside that request (~5 s).
+    # Now it is the first thing the media job does; a request that arrives
+    # meanwhile waits on the same lock and gets the stored file.
+    try:
+        hero_path = get_lesson_media_storage_path(
+            unit_lesson_id=unit_lesson_id,
+            media_type="hero"
+        )
+        with generation_lock(f"hero:{unit_lesson_id}"):
+            try:
+                create_lesson_media_signed_url(hero_path)
+                print("LESSON HERO ALREADY STORED:", {"unit_lesson_id": unit_lesson_id})
+            except Exception:
+                generate_and_store_lesson_hero_image(unit_lesson_id)
+    except Exception as hero_error:
+        print(
+            "LESSON HERO FIRST FAILED (continuing with audio/visuals):",
+            {"unit_lesson_id": unit_lesson_id, "error": repr(hero_error)[:200]}
+        )
+
     with ThreadPoolExecutor(
             max_workers=2
     ) as executor:
@@ -9014,15 +9500,15 @@ def generate_unit_lesson_media_background(
         # AUDIO + VISUALS RUN IN PARALLEL
         # =============================================
 
-        audio_future = executor.submit(
+        audio_future = executor.submit(run_in_context(
             generate_unit_lesson_audio_background,
             unit_lesson_id
-        )
+        ))
 
-        visuals_future = executor.submit(
+        visuals_future = executor.submit(run_in_context(
             generate_all_lesson_visuals_background,
             unit_lesson_id
-        )
+        ))
 
         # =============================================
         # WAIT FOR VISUALS
@@ -9239,39 +9725,13 @@ def add_signed_urls_to_lesson_audio(
         if not path:
             return None
 
-        signed_response = (
-            sb.storage
-            .from_(
-                bucket
-            )
-            .create_signed_url(
-                path,
-                LESSON_AUDIO_URL_EXPIRY_SECONDS
-            )
+        # cache hit after the batch prefetch below; one Storage call only if the
+        # path was not part of the batch (legacy shapes)
+        signed_url = signed_url_cached(
+            bucket,
+            path,
+            LESSON_AUDIO_URL_EXPIRY_SECONDS
         )
-
-        signed_url = None
-
-        if isinstance(
-                signed_response,
-                dict
-        ):
-            signed_url = (
-                signed_response.get(
-                    "signedURL"
-                )
-                or signed_response.get(
-                    "signedUrl"
-                )
-                or signed_response.get(
-                    "signed_url"
-                )
-            )
-
-        if not signed_url:
-            raise RuntimeError(
-                f"Failed to create signed URL for {path}"
-            )
 
         return {
             **audio_item,
@@ -9289,6 +9749,38 @@ def add_signed_urls_to_lesson_audio(
         )
         or []
     )
+
+    # =============================================
+    # PREFETCH: sign every path of the lesson in ONE Storage call
+    # =============================================
+    all_paths = []
+    for raw_part in raw_parts:
+        if isinstance(raw_part, dict):
+            for seg in (raw_part.get("segments") or []):
+                if isinstance(seg, dict) and seg.get("path"):
+                    all_paths.append(str(seg["path"]).strip())
+            q = raw_part.get("question")
+            if isinstance(q, dict) and q.get("path"):
+                all_paths.append(str(q["path"]).strip())
+    for seg in (lesson_audio_json.get("segments") or []):
+        if isinstance(seg, dict) and seg.get("path"):
+            all_paths.append(str(seg["path"]).strip())
+    q = lesson_audio_json.get("question")
+    if isinstance(q, dict) and q.get("path"):
+        all_paths.append(str(q["path"]).strip())
+    if all_paths:
+        try:
+            signed_urls_cached_batch(
+                bucket,
+                all_paths,
+                LESSON_AUDIO_URL_EXPIRY_SECONDS
+            )
+        except Exception as batch_error:
+            # fall through: per-item signing below still works, just slower
+            print(
+                "AUDIO SIGNED URL BATCH FAILED:",
+                {"paths": len(all_paths), "error": repr(batch_error)[:200]}
+            )
 
     signed_parts = []
 
@@ -9447,44 +9939,79 @@ def generate_tts_wav_bytes(
             "Cannot generate audio for empty text"
         )
 
-    response = gemini_client.models.generate_content(
-        model="gemini-3.1-flash-tts-preview",
+    # The TTS preview model answers 400 INVALID_ARGUMENT now and then for text that
+    # succeeds on the next call (seen on segment 6 of lesson 5 and on lesson 1).
+    # One such answer used to fail the whole lesson's audio, 17 calls in. Three tries
+    # with a short pause; a real 400 still comes back after the third.
+    # 429 RESOURCE_EXHAUSTED is the TTS model's per-minute quota (seen on lesson 5):
+    # a short pause is useless there, so those wait 20/40/60 seconds instead.
+    TTS_ATTEMPTS = int(os.getenv("TTS_ATTEMPTS", "4"))
+    response = None
+    audio_data = None
+    for attempt in range(1, TTS_ATTEMPTS + 1):
+        try:
+            if TTS_PROVIDER == "openrouter":
+                audio_data = openrouter_tts_pcm(clean_text)
+                break
+            response = gemini_client.models.generate_content(
+                model="gemini-3.1-flash-tts-preview",
 
-        contents=(
-            "Speak in natural, fluent Hebrew. "
-            "Sound like a warm, friendly and patient teacher "
-            "speaking naturally to a school-age child. "
-            "Use clear pronunciation and natural pauses. "
-            "Read exactly the following Hebrew text:\n\n"
-            + clean_text
-        ),
+                contents=(
+                    "Speak in natural, fluent Hebrew. "
+                    "Sound like a warm, friendly and patient teacher "
+                    "speaking naturally to a school-age child. "
+                    "Use clear pronunciation and natural pauses. "
+                    "Read exactly the following Hebrew text:\n\n"
+                    + clean_text
+                ),
 
-        config=types.GenerateContentConfig(
-            temperature=2.0,
+                config=types.GenerateContentConfig(
+                    temperature=2.0,
 
-            response_modalities=[
-                "AUDIO"
-            ],
+                    response_modalities=[
+                        "AUDIO"
+                    ],
 
-            speech_config=types.SpeechConfig(
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=
-                    types.PrebuiltVoiceConfig(
-                        voice_name="Aoede"
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=
+                            types.PrebuiltVoiceConfig(
+                                voice_name="Aoede"
+                            )
+                        )
+                    ),
+
+                    http_options=types.HttpOptions(
+                        timeout=90_000          # ms; a hung call must not hold a thread forever
                     )
                 )
             )
-        )
-    )
+            break
+        except Exception as tts_error:
+            print(
+                "TTS RETRY:",
+                {
+                    "attempt": attempt,
+                    "max_attempts": TTS_ATTEMPTS,
+                    "text_length": len(clean_text),
+                    "error": repr(tts_error)[:200]
+                }
+            )
+            err_text = repr(tts_error)
+            if attempt >= TTS_ATTEMPTS or "401" in err_text or "403" in err_text:
+                raise                         # a bad key does not get better on retry
+            quota_hit = "429" in err_text or "RESOURCE_EXHAUSTED" in err_text
+            time.sleep(20 * attempt if quota_hit else 2 * attempt)
 
-    audio_data = (
-        response
-        .candidates[0]
-        .content
-        .parts[0]
-        .inline_data
-        .data
-    )
+    if audio_data is None:                 # direct Gemini path
+        audio_data = (
+            response
+            .candidates[0]
+            .content
+            .parts[0]
+            .inline_data
+            .data
+        )
 
     if not audio_data:
         raise RuntimeError(
@@ -9517,8 +10044,18 @@ def generate_tts_wav_bytes(
 def generate_and_store_lesson_audio(
         unit_lesson_id: int,
         structured_lesson: dict,
-        content_version: int
+        content_version: int,
+        on_progress=None
 ) -> dict:
+    """Synthesise every segment of every part and store the WAVs.
+
+    on_progress(partial_lesson_audio_json) is called after every stored segment
+    and after every finished part, with the same shape as the final result plus
+    "partial": True and per-part "complete" flags. The caller persists it so the
+    browser can start playing part 1 while the rest is still being synthesised
+    (progressive audio, 2026-09-15). A failure inside on_progress is logged and
+    ignored: progress is a convenience, the final write is what counts.
+    """
 
     lesson_parts = (
         structured_lesson.get(
@@ -9563,6 +10100,25 @@ def generate_and_store_lesson_audio(
 
     total_duration_seconds = 0.0
 
+    def emit_progress(current_part):
+        if on_progress is None:
+            return
+        parts = list(stored_parts)
+        if current_part is not None:
+            parts.append(current_part)
+        try:
+            on_progress({
+                "version": content_version,
+                "bucket": LESSON_AUDIO_BUCKET,
+                "partial": True,
+                "parts": parts,
+            })
+        except Exception as progress_error:
+            print(
+                "BACKGROUND AUDIO PROGRESS SAVE FAILED:",
+                {"unit_lesson_id": unit_lesson_id, "error": repr(progress_error)[:200]}
+            )
+
     # =============================================
     # LESSON PARTS
     # =============================================
@@ -9602,6 +10158,11 @@ def generate_and_store_lesson_audio(
         stored_segments = []
 
         part_duration_seconds = 0.0
+
+        expected_segment_count = sum(
+            1 for s in lesson_segments
+            if isinstance(s, dict) and str(s.get("text") or "").strip()
+        )
 
         print(
             "BACKGROUND TTS PART START:",
@@ -9734,7 +10295,7 @@ def generate_and_store_lesson_audio(
                 f"segment_{index}.wav"
             )
 
-            sb.storage.from_(
+            storage_with_retry(lambda: sb.storage.from_(
                 LESSON_AUDIO_BUCKET
             ).upload(
                 path=storage_path,
@@ -9746,7 +10307,7 @@ def generate_and_store_lesson_audio(
                     "upsert":
                         "true"
                 }
-            )
+            ), label="STORAGE UPLOAD")
 
             stored_segments.append(
                 {
@@ -9771,6 +10332,15 @@ def generate_and_store_lesson_audio(
             total_duration_seconds += (
                 duration_seconds
             )
+
+            # progressive audio: what exists so far, this part still open
+            emit_progress({
+                "part_number": part_number,
+                "segments": list(stored_segments),
+                "question": None,
+                "expected_segments": expected_segment_count,
+                "complete": False,
+            })
 
         # =============================================
         # PART QUESTION
@@ -9868,7 +10438,7 @@ def generate_and_store_lesson_audio(
                 f"question.wav"
             )
 
-            sb.storage.from_(
+            storage_with_retry(lambda: sb.storage.from_(
                 LESSON_AUDIO_BUCKET
             ).upload(
                 path=question_path,
@@ -9880,7 +10450,7 @@ def generate_and_store_lesson_audio(
                     "upsert":
                         "true"
                 }
-            )
+            ), label="STORAGE UPLOAD")
 
             stored_question = {
                 "path":
@@ -9919,6 +10489,12 @@ def generate_and_store_lesson_audio(
                 "question":
                     stored_question,
 
+                "expected_segments":
+                    expected_segment_count,
+
+                "complete":
+                    True,
+
                 "total_duration_seconds":
                     round(
                         part_duration_seconds,
@@ -9926,6 +10502,9 @@ def generate_and_store_lesson_audio(
                     )
             }
         )
+
+        # progressive audio: this part is complete, later parts still to come
+        emit_progress(None)
 
         print(
             "BACKGROUND TTS PART READY:",
@@ -10132,11 +10711,26 @@ def generate_unit_lesson_audio_background(
         # =============================================
 
         if audio_generation_status == "generating":
+            # "generating" with no progress for a long time means the process that
+            # was generating died (deploy, crash, SIGKILL). Without this the lesson
+            # stayed "generating" forever: the re-queued job saw the status and quit.
+            stale_after = int(os.getenv("AUDIO_GENERATING_STALE_SECONDS", "600"))
+            updated_raw = str(unit_lesson.get("updated_at") or "")
+            try:
+                updated_dt = datetime.fromisoformat(updated_raw.replace("Z", "+00:00"))
+                age_s = (datetime.now(timezone.utc) - updated_dt).total_seconds()
+            except Exception:
+                age_s = stale_after + 1
+            if age_s < stale_after:
+                print(
+                    "BACKGROUND AUDIO ALREADY GENERATING:",
+                    {"unit_lesson_id": unit_lesson_id, "age_seconds": round(age_s)}
+                )
+                return
             print(
-                "BACKGROUND AUDIO ALREADY GENERATING:",
-                unit_lesson_id
+                "BACKGROUND AUDIO STALE GENERATING - TAKING OVER:",
+                {"unit_lesson_id": unit_lesson_id, "age_seconds": round(age_s)}
             )
-            return
 
         # =============================================
         # MARK AS GENERATING
@@ -10182,6 +10776,20 @@ def generate_unit_lesson_audio_background(
             or 1
         )
 
+        def persist_audio_progress(partial_audio_json: dict):
+            # One small update per synthesised segment. The browser polls
+            # /unit-lesson/audio and starts playing what exists while the rest
+            # is still being generated. Status stays "generating"; updated_at
+            # moves so the stale-takeover check above stays honest.
+            sb.table(
+                "lesson_units_content"
+            ).update({
+                "lesson_audio_json": partial_audio_json,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq(
+                "id", unit_lesson_id
+            ).execute()
+
         lesson_audio_json = (
             generate_and_store_lesson_audio(
 
@@ -10192,7 +10800,10 @@ def generate_unit_lesson_audio_background(
                     structured_lesson,
 
                 content_version=
-                    content_version
+                    content_version,
+
+                on_progress=
+                    persist_audio_progress
             )
         )
 
@@ -10285,7 +10896,8 @@ async def tutor_tts(
     try:
 
         # אימות משתמש
-        user = authenticate_user(authorization)
+        user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+        ai_context("tts_live", user, body)
 
         text = (body.text or "").strip()
 
@@ -10327,7 +10939,12 @@ async def tutor_tts(
 
         try:
 
-            response = (await gemini_client.aio.models.generate_content(
+            audio_data_override = None
+            if TTS_PROVIDER == "openrouter":
+                audio_data_override = await openrouter_tts_pcm_async(text)
+                response = None
+            else:
+              response = (await gemini_client.aio.models.generate_content(
                 model="gemini-3.1-flash-tts-preview",
 
                 contents=(
@@ -10399,7 +11016,7 @@ async def tutor_tts(
             raise
 
         # קבלת PCM audio
-        audio_data = (
+        audio_data = audio_data_override if audio_data_override is not None else (
             response
             .candidates[0]
             .content
@@ -10466,7 +11083,7 @@ async def tutor_tts(
 
             try:
 
-                update_tutor_session_after_tts(
+                (await run_in_threadpool(lambda: update_tutor_session_after_tts(
                     session_id=
                     body.session_id,
 
@@ -10475,9 +11092,9 @@ async def tutor_tts(
 
                     cost_usd=
                     gemini_audio_cost_usd
-                )
+                )))
 
-                increment_usage_summary(
+                (await run_in_threadpool(lambda: increment_usage_summary(
                     user_id=
                     user.id,
 
@@ -10492,7 +11109,7 @@ async def tutor_tts(
 
                     gemini_cost_usd=
                     gemini_audio_cost_usd
-                )
+                )))
 
             except Exception as usage_error:
 
@@ -10959,6 +11576,7 @@ def lesson_intro(
         user = authenticate_user(
             authorization
         )
+        ai_context("intro", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -11056,9 +11674,16 @@ def lesson_intro(
                         }
                     )
 
-                    background_tasks.add_task(
-                        generate_kid_lesson_intro_videos_background,
-                        child
+                    dispatch_media_job(
+                        background_tasks,
+                        job_type="kid_intro_videos",
+                        payload={
+                            "kid_id": str(child["id"]),
+                            "user_id": str(child["user_id"])
+                        },
+                        dedupe_key=f"kid:{child['id']}",
+                        inline_fn=generate_kid_lesson_intro_videos_background,
+                        inline_args=(child,)
                     )
         except Exception as personal_media_error:
 
@@ -11403,9 +12028,10 @@ async def get_or_generate_unit_lesson(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("lesson", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -11414,10 +12040,10 @@ async def get_or_generate_unit_lesson(
             )
 
         # מוודאים שהילד שייך למשתמש
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
         # =============================================
         # ENSURE PERSONAL INTRO VIDEOS
         # PAID SUBSCRIBERS ONLY
@@ -11425,11 +12051,11 @@ async def get_or_generate_unit_lesson(
 
         try:
 
-            personal_intro_eligible = (
+            personal_intro_eligible = (await run_in_threadpool(lambda: (
                 is_paid_active_subscription(
                     user.id
                 )
-            )
+            )))
 
             print(
                 "UNIT LESSON PERSONAL INTRO CHECK:",
@@ -11447,9 +12073,9 @@ async def get_or_generate_unit_lesson(
 
             if personal_intro_eligible:
 
-                ensure_kid_lesson_intro_rows(
+                (await run_in_threadpool(lambda: ensure_kid_lesson_intro_rows(
                     child["id"]
-                )
+                )))
 
                 ready_intro_videos = (
                     get_ready_kid_lesson_intro_videos(
@@ -11489,10 +12115,17 @@ async def get_or_generate_unit_lesson(
                         }
                     )
 
-                    background_tasks.add_task(
-                        generate_kid_lesson_intro_videos_background,
-                        child
-                    )
+                    await run_in_threadpool(lambda: dispatch_media_job(
+                        background_tasks,
+                        job_type="kid_intro_videos",
+                        payload={
+                            "kid_id": str(child["id"]),
+                            "user_id": str(child["user_id"])
+                        },
+                        dedupe_key=f"kid:{child['id']}",
+                        inline_fn=generate_kid_lesson_intro_videos_background,
+                        inline_args=(child,)
+                    ))
 
                 else:
 
@@ -11524,15 +12157,15 @@ async def get_or_generate_unit_lesson(
         # UNIT LESSON
         # =============================================
 
-        unit_lesson = get_unit_lesson(
+        unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
             body.unit_lesson_id
-        )
+        )))
 
-        parent_lesson = get_learning_lesson(
+        parent_lesson = (await run_in_threadpool(lambda: get_learning_lesson(
             unit_lesson[
                 "learning_lesson_id"
             ]
-        )
+        )))
 
         # =============================================
         # GRADE SECURITY
@@ -12028,11 +12661,11 @@ async def get_or_generate_unit_lesson(
 
                 try:
 
-                    response_audio = (
+                    response_audio = (await run_in_threadpool(lambda: (
                         add_signed_urls_to_lesson_audio(
                             cached_audio
                         )
-                    )
+                    )))
 
                     print(
                         "UNIT LESSON AUDIO CACHE HIT:",
@@ -12111,6 +12744,24 @@ async def get_or_generate_unit_lesson(
             # ל-Supabase בכל טעינת עמוד.
             # =========================================
 
+            # Progressive audio: while the worker is still synthesising, hand
+            # the browser whatever segments are already stored.
+            response_audio_partial = None
+            if (
+                    response_audio is None
+                    and audio_generation_status == "generating"
+                    and cached_audio_has_parts
+            ):
+                try:
+                    response_audio_partial = (await run_in_threadpool(lambda: (
+                        add_signed_urls_to_lesson_audio(cached_audio)
+                    )))
+                except Exception as partial_error:
+                    print(
+                        "PARTIAL LESSON AUDIO SIGN FAILED:",
+                        {"unit_lesson_id": unit_lesson["id"], "error": repr(partial_error)[:200]}
+                    )
+
             if response_audio is None:
 
                 print(
@@ -12124,10 +12775,14 @@ async def get_or_generate_unit_lesson(
                     }
                 )
 
-                background_tasks.add_task(
-                    generate_unit_lesson_audio_background,
-                    unit_lesson["id"]
-                )
+                await run_in_threadpool(lambda: dispatch_media_job(
+                    background_tasks,
+                    job_type="unit_lesson_audio",
+                    payload={"unit_lesson_id": int(unit_lesson["id"])},
+                    dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+                    inline_fn=generate_unit_lesson_audio_background,
+                    inline_args=(unit_lesson["id"],)
+                ))
 
             else:
 
@@ -12158,10 +12813,14 @@ async def get_or_generate_unit_lesson(
                 }
             )
 
-            background_tasks.add_task(
-                generate_all_lesson_visuals_background,
-                unit_lesson["id"]
-            )
+            await run_in_threadpool(lambda: dispatch_media_job(
+                background_tasks,
+                job_type="unit_lesson_visuals",
+                payload={"unit_lesson_id": int(unit_lesson["id"])},
+                dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+                inline_fn=generate_all_lesson_visuals_background,
+                inline_args=(unit_lesson["id"],)
+            ))
 
             # =========================================
             # SHARED TRANSITION JSON REPAIR
@@ -12235,10 +12894,14 @@ async def get_or_generate_unit_lesson(
                 }
             )
 
-            background_tasks.add_task(
-                generate_transition_video_background,
-                unit_lesson["id"]
-            )
+            await run_in_threadpool(lambda: dispatch_media_job(
+                background_tasks,
+                job_type="unit_lesson_transition",
+                payload={"unit_lesson_id": int(unit_lesson["id"])},
+                dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+                inline_fn=generate_transition_video_background,
+                inline_args=(unit_lesson["id"],)
+            ))
 
             # =========================================
             # RESPONSE
@@ -12288,18 +12951,26 @@ async def get_or_generate_unit_lesson(
                     (
                         "ready"
                         if response_audio
-                        else "pending"
+                        else (
+                            "generating"
+                            if response_audio_partial
+                            else "pending"
+                        )
                     ),
 
                 "audio_mode":
                     (
                         "stored"
                         if response_audio
-                        else "background_generating"
+                        else (
+                            "stored_progressive"
+                            if response_audio_partial
+                            else "background_generating"
+                        )
                     ),
 
                 "lesson_audio":
-                    response_audio
+                    response_audio or response_audio_partial
             }
 
         # =============================================
@@ -13094,7 +13765,7 @@ async def get_or_generate_unit_lesson(
             output_tokens=director_output_tokens
         )
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=
                 user.id,
@@ -13122,7 +13793,7 @@ async def get_or_generate_unit_lesson(
                 + director_cost_usd
             )
 
-        )
+        )))
         # =============================================
         # START AUDIO GENERATION IN BACKGROUND
         # =============================================
@@ -13143,10 +13814,14 @@ async def get_or_generate_unit_lesson(
                 )
             }
         )
-        background_tasks.add_task(
-            generate_unit_lesson_media_background,
-            unit_lesson["id"]
-        )
+        await run_in_threadpool(lambda: dispatch_media_job(
+            background_tasks,
+            job_type="unit_lesson_media",
+            payload={"unit_lesson_id": int(unit_lesson["id"])},
+            dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+            inline_fn=generate_unit_lesson_media_background,
+            inline_args=(unit_lesson["id"],)
+        ))
 
         # =============================================
         # RESPONSE
@@ -13263,9 +13938,10 @@ async def regenerate_unit_lesson_transition(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("transition", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -13273,24 +13949,24 @@ async def regenerate_unit_lesson_transition(
                 detail="kid_id is required"
             )
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =============================================
         # LOAD EXISTING LESSON
         # =============================================
 
-        unit_lesson = get_unit_lesson(
+        unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
             body.unit_lesson_id
-        )
+        )))
 
-        parent_lesson = get_learning_lesson(
+        parent_lesson = (await run_in_threadpool(lambda: get_learning_lesson(
             unit_lesson[
                 "learning_lesson_id"
             ]
-        )
+        )))
 
         # =============================================
         # GRADE SECURITY
@@ -13469,10 +14145,14 @@ async def regenerate_unit_lesson_transition(
             }
         )
 
-        background_tasks.add_task(
-            generate_transition_video_background,
-            unit_lesson["id"]
-        )
+        await run_in_threadpool(lambda: dispatch_media_job(
+            background_tasks,
+            job_type="unit_lesson_transition",
+            payload={"unit_lesson_id": int(unit_lesson["id"])},
+            dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+            inline_fn=generate_transition_video_background,
+            inline_args=(unit_lesson["id"],)
+        ))
 
         # =============================================
         # RESPONSE
@@ -13538,9 +14218,10 @@ async def get_or_generate_unit_lesson_hero_image(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("image", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -13548,10 +14229,10 @@ async def get_or_generate_unit_lesson_hero_image(
                 detail="kid_id is required"
             )
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =============================================
         # LOAD LESSON
@@ -13567,9 +14248,9 @@ async def get_or_generate_unit_lesson_hero_image(
 
             try:
 
-                unit_lesson = get_unit_lesson(
+                unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
                     body.unit_lesson_id
-                )
+                )))
 
                 break
 
@@ -13612,11 +14293,11 @@ async def get_or_generate_unit_lesson_hero_image(
 
             try:
 
-                parent_lesson = get_learning_lesson(
+                parent_lesson = (await run_in_threadpool(lambda: get_learning_lesson(
                     unit_lesson[
                         "learning_lesson_id"
                     ]
-                )
+                )))
 
                 break
 
@@ -13696,11 +14377,11 @@ async def get_or_generate_unit_lesson_hero_image(
 
             try:
 
-                signed_url = (
+                signed_url = (await run_in_threadpool(lambda: (
                     create_lesson_media_signed_url(
                         storage_path
                     )
-                )
+                )))
 
                 break
 
@@ -13778,11 +14459,23 @@ async def get_or_generate_unit_lesson_hero_image(
         # GENERATE HERO
         # =============================================
 
-        hero_image = (await run_in_threadpool(lambda: (
-            generate_and_store_lesson_hero_image(
-                unit_lesson["id"]
-            )
-        )))
+        # One generation per lesson per process: concurrent requests wait on the
+        # lock, then find the file the first one stored and return that instead.
+        def _generate_hero_once():
+            with generation_lock(f"hero:{unit_lesson['id']}"):
+                try:
+                    return {
+                        "type": "image",
+                        "role": "hero",
+                        "storage_path": storage_path,
+                        "url": create_lesson_media_signed_url(storage_path)
+                    }
+                except Exception:
+                    return generate_and_store_lesson_hero_image(
+                        unit_lesson["id"]
+                    )
+
+        hero_image = (await run_in_threadpool(_generate_hero_once))
 
         return {
             "success": True,
@@ -14150,6 +14843,7 @@ def get_shared_transition_endpoint(
 )
 def generate_unit_lesson_audio(
         body: UnitLessonRequest,
+        background_tasks: BackgroundTasks,
         authorization: str = Header(None)
 ):
     unit_lesson = None
@@ -14163,6 +14857,7 @@ def generate_unit_lesson_audio(
         user = authenticate_user(
             authorization
         )
+        ai_context("tts", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -14340,6 +15035,27 @@ def generate_unit_lesson_audio(
                 audio_generation_status
                 == "generating"
         ):
+            # Progressive audio: the worker persists every stored segment while
+            # it works, so the browser can play part 1 before part 2 exists.
+            if cached_audio_has_parts:
+                return {
+                    "success": True,
+
+                    "source":
+                        "partial",
+
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "audio_generation_status":
+                        "generating",
+
+                    "lesson_audio":
+                        add_signed_urls_to_lesson_audio(
+                            cached_audio
+                        )
+                }
+
             return {
                 "success": False,
 
@@ -14357,111 +15073,29 @@ def generate_unit_lesson_audio(
             }
 
         # =============================================
-        # MARK AUDIO AS GENERATING
+        # QUEUE THE AUDIO, ANSWER "generating" NOW
         # =============================================
-
-        audio_started_at = (
-            datetime
-            .now(timezone.utc)
-            .isoformat()
+        # This route used to synthesise all ~17 segments inside the request
+        # (100+ s in a worker thread) and every concurrent request for the same
+        # lesson did it again: 30 children opening a lesson with pending audio
+        # = 30 parallel TTS runs and the Gemini quota gone (load test 2026-09-14).
+        # Now it enqueues one job (deduped per lesson, priority 10); the browser
+        # already polls this route until the status turns "ready".
+        dispatch_media_job(
+            background_tasks,
+            job_type="unit_lesson_audio",
+            payload={"unit_lesson_id": int(unit_lesson["id"])},
+            dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+            inline_fn=generate_unit_lesson_audio_background,
+            inline_args=(unit_lesson["id"],)
         )
-
-        sb.table(
-            "lesson_units_content"
-        ).update({
-
-            "audio_generation_status":
-                "generating",
-
-            "audio_generation_error":
-                None,
-
-            "updated_at":
-                audio_started_at
-
-        }).eq(
-            "id",
-            unit_lesson["id"]
-        ).execute()
-
-        # =============================================
-        # GENERATE AND STORE AUDIO
-        # =============================================
-
-        content_version = int(
-            unit_lesson.get(
-                "content_version"
-            )
-            or 1
-        )
-
-        lesson_audio_json = (
-            generate_and_store_lesson_audio(
-
-                unit_lesson_id=
-                    unit_lesson["id"],
-
-                structured_lesson=
-                    structured_lesson,
-
-                content_version=
-                    content_version
-            )
-        )
-
-        audio_generated_at = (
-            datetime
-            .now(timezone.utc)
-            .isoformat()
-        )
-
-        # =============================================
-        # SAVE AUDIO CACHE
-        # =============================================
-
-        sb.table(
-            "lesson_units_content"
-        ).update({
-
-            "lesson_audio_json":
-                lesson_audio_json,
-
-            "audio_generation_status":
-                "ready",
-
-            "audio_generation_error":
-                None,
-
-            "audio_generated_at":
-                audio_generated_at,
-
-            "tts_generated_at":
-                audio_generated_at,
-
-            "updated_at":
-                audio_generated_at
-
-        }).eq(
-            "id",
-            unit_lesson["id"]
-        ).execute()
 
         return {
             "success": True,
-
-            "source":
-                "generated",
-
-            "unit_lesson_id":
-                unit_lesson["id"],
-
-            "audio_generation_status":
-                "ready",
-
-            "lesson_audio":
-                add_signed_urls_to_lesson_audio(
-                    lesson_audio_json
-                )
+            "source": "queued",
+            "unit_lesson_id": unit_lesson["id"],
+            "audio_generation_status": "generating",
+            "lesson_audio": None
         }
 
     except HTTPException:
@@ -14548,7 +15182,7 @@ async def run_learning_coach(
     # HISTORY
     # =============================================
 
-    conversation_history = (
+    conversation_history = (await run_in_threadpool(lambda: (
         get_recent_lesson_history_for_llm(
             kid_id=child["id"],
             lesson_id=lesson["id"],
@@ -14556,7 +15190,7 @@ async def run_learning_coach(
             part_number=coach_index,
             limit=12
         )
-    )
+    )))
 
     # =============================================
     # BUILD PROMPT
@@ -14717,7 +15351,7 @@ async def run_learning_coach(
     # UPDATE COACH SESSION
     # =============================================
 
-    updated_coach_session = (
+    updated_coach_session = (await run_in_threadpool(lambda: (
         update_learning_coach_session(
             coach_session=coach_session,
             understanding_score=
@@ -14727,7 +15361,7 @@ async def run_learning_coach(
             current_round=
                 current_round
         )
-    )
+    )))
 
     # =============================================
     # FINISH CURRENT LEARNING COACH
@@ -14759,7 +15393,7 @@ async def run_learning_coach(
                 < lesson_parts_count
         )
 
-        overall_mastery_score = (
+        overall_mastery_score = (await run_in_threadpool(lambda: (
             calculate_lesson_coach_mastery(
                 kid_id=child["id"],
                 lesson_id=lesson["id"],
@@ -14767,7 +15401,7 @@ async def run_learning_coach(
                 lesson_parts_count=
                 lesson_parts_count
             )
-        )
+        )))
 
         if has_next_part:
             next_part_number = (
@@ -14832,11 +15466,11 @@ async def run_learning_coach(
             )
 
         if not has_next_part:
-            complete_kid_unit_lesson_progress(
+            (await run_in_threadpool(lambda: complete_kid_unit_lesson_progress(
                 kid_id=child["id"],
                 unit_lesson_id=unit_lesson["id"],
                 mastery_score=overall_mastery_score
-            )
+            )))
 
     else:
 
@@ -14933,7 +15567,7 @@ async def run_learning_coach(
     # SAVE HISTORY
     # =============================================
 
-    save_lesson_history(
+    (await run_in_threadpool(lambda: save_lesson_history(
         kid_id=child["id"],
         lesson_id=lesson["id"],
         unit_lesson_id=unit_lesson["id"],
@@ -14947,7 +15581,7 @@ async def run_learning_coach(
             for action in sequence
         ],
         part_number=coach_index
-    )
+    )))
 
     # =============================================
     # TOKENS AND COST
@@ -14981,15 +15615,15 @@ async def run_learning_coach(
         )
     )
 
-    update_tutor_session_after_chat(
+    (await run_in_threadpool(lambda: update_tutor_session_after_chat(
         session=tutor_session,
         total_tokens=total_tokens,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cost_usd=openai_cost_usd
-    )
+    )))
 
-    increment_usage_summary(
+    (await run_in_threadpool(lambda: increment_usage_summary(
         user_id=user.id,
 
         sessions=(
@@ -15003,7 +15637,7 @@ async def run_learning_coach(
         output_tokens=output_tokens,
         total_tokens=total_tokens,
         openai_cost_usd=openai_cost_usd
-    )
+    )))
 
     return {
         "speech":
@@ -15100,9 +15734,10 @@ async def structured_lesson(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("lesson_chat", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -15114,21 +15749,21 @@ async def structured_lesson(
         # CHILD
         # =============================================
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
 
             user_id=user.id,
 
             kid_id=body.kid_id
 
-        )
+        )))
 
         # =============================================
         # LESSON
         # =============================================
 
-        lesson = get_learning_lesson(
+        lesson = (await run_in_threadpool(lambda: get_learning_lesson(
             body.lesson_id
-        )
+        )))
 
         # =============================================
         # SECURITY
@@ -15179,7 +15814,7 @@ async def structured_lesson(
         # SESSION
         # =============================================
 
-        tutor_session = (
+        tutor_session = (await run_in_threadpool(lambda: (
 
             get_or_create_tutor_session(
 
@@ -15189,7 +15824,7 @@ async def structured_lesson(
 
             )
 
-        )
+        )))
 
         session_id = (
             tutor_session["id"]
@@ -15237,7 +15872,7 @@ async def structured_lesson(
         # PROGRESS
         # =============================================
 
-        progress = (
+        progress = (await run_in_threadpool(lambda: (
 
             get_or_create_lesson_progress(
 
@@ -15255,7 +15890,7 @@ async def structured_lesson(
 
             )
 
-        )
+        )))
         # =============================================
         # UNIT LESSON SWITCH
         #
@@ -15286,11 +15921,11 @@ async def structured_lesson(
         )
 
         if is_lesson_start and requested_unit_lesson_id is not None:
-            start_kid_unit_lesson_progress(
+            (await run_in_threadpool(lambda: start_kid_unit_lesson_progress(
                 kid_id=child["id"],
                 learning_lesson_id=lesson["id"],
                 unit_lesson_id=requested_unit_lesson_id
-            )
+            )))
 
         if is_new_unit_lesson:
 
@@ -15502,9 +16137,9 @@ async def structured_lesson(
                     )
                 )
 
-            unit_lesson = get_unit_lesson(
+            unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
                 body.unit_lesson_id
-            )
+            )))
 
             if (
                     int(
@@ -15557,13 +16192,13 @@ async def structured_lesson(
                     or 1
                 )
 
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
                     update_learning_coach_flow_state(
                         progress=progress,
                         part_number=
                         coach_part_number
                     )
-                )
+                )))
 
                 return (await run_learning_coach(
                     user=user,
@@ -15608,12 +16243,12 @@ async def structured_lesson(
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_1
             ):
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
                     update_learning_coach_flow_state(
                         progress=progress,
                         part_number=1
                     )
-                )
+                )))
 
                 return (await run_learning_coach(
                     user=user,
@@ -15631,12 +16266,12 @@ async def structured_lesson(
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_2
             ):
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
                     update_learning_coach_flow_state(
                         progress=progress,
                         part_number=2
                     )
-                )
+                )))
 
                 return (await run_learning_coach(
                     user=user,
@@ -15671,12 +16306,12 @@ async def structured_lesson(
                 and
                 child_grade in (1, 2)
         ):
-            show_answering_hint = (
+            show_answering_hint = (await run_in_threadpool(lambda: (
                 should_show_answering_hint(
                     kid_id=child["id"],
                     max_lessons=3
                 )
-            )
+            )))
 
         system_prompt = (
 
@@ -15703,7 +16338,7 @@ async def structured_lesson(
         # HISTORY
         # =============================================
 
-        recent_messages = (
+        recent_messages = (await run_in_threadpool(lambda: (
 
             get_recent_lesson_history_for_llm(
 
@@ -15720,7 +16355,7 @@ async def structured_lesson(
 
             )
 
-        )
+        )))
 
         # =============================================
         # CURRENT TURN
@@ -16122,7 +16757,7 @@ async def structured_lesson(
             # =========================================
 
             if not review_mode:
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
 
                     apply_lesson_evaluation(
 
@@ -16138,7 +16773,7 @@ async def structured_lesson(
 
                     )
 
-                )
+                )))
 
         # =============================================
         # CLEAN ASSISTANT HISTORY
@@ -16211,7 +16846,7 @@ async def structured_lesson(
         # SAVE LESSON HISTORY
         # =============================================
 
-        save_lesson_history(
+        (await run_in_threadpool(lambda: save_lesson_history(
 
             kid_id=
             child["id"],
@@ -16257,7 +16892,7 @@ async def structured_lesson(
 
             ]
 
-        )
+        )))
 
         # =============================================
         # TOKEN USAGE
@@ -16310,7 +16945,7 @@ async def structured_lesson(
         # SESSION USAGE
         # =============================================
 
-        update_tutor_session_after_chat(
+        (await run_in_threadpool(lambda: update_tutor_session_after_chat(
 
             session=
             tutor_session,
@@ -16327,9 +16962,9 @@ async def structured_lesson(
             cost_usd=
             openai_cost_usd
 
-        )
+        )))
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=
             user.id,
@@ -16361,7 +16996,7 @@ async def structured_lesson(
             openai_cost_usd=
             openai_cost_usd
 
-        )
+        )))
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -16988,9 +17623,10 @@ async def homework_analyze(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("homework", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -17008,10 +17644,10 @@ async def homework_analyze(
         # מוודאים שהילד שייך למשתמש
         # =============================================
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =============================================
         # SECURITY
@@ -17047,12 +17683,12 @@ async def homework_analyze(
 
         else:
 
-            tutor_session = (
+            tutor_session = (await run_in_threadpool(lambda: (
                 get_or_create_tutor_session(
                     user_id=user.id,
                     kid_id=child["id"]
                 )
-            )
+            )))
 
             session_id = (
                 tutor_session["id"]
@@ -17462,7 +18098,7 @@ async def homework_analyze(
         # SESSION USAGE
         # =============================================
 
-        update_tutor_session_after_vision(
+        (await run_in_threadpool(lambda: update_tutor_session_after_vision(
 
             session_id=session_id,
 
@@ -17470,13 +18106,13 @@ async def homework_analyze(
 
             vision_calls=1
 
-        )
+        )))
 
         # =============================================
         # MONTHLY USAGE
         # =============================================
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=user.id,
 
@@ -17484,7 +18120,7 @@ async def homework_analyze(
 
             vision_calls=1
 
-        )
+        )))
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -17613,9 +18249,10 @@ async def curriculum_builder_chat(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("curriculum", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -17637,10 +18274,10 @@ async def curriculum_builder_chat(
         # CHILD OWNERSHIP
         # =============================================
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         custom_subject = None
         current_curriculum = None
@@ -17651,21 +18288,21 @@ async def curriculum_builder_chat(
 
         if body.custom_subject_id:
 
-            custom_subject = (
+            custom_subject = (await run_in_threadpool(lambda: (
                 get_custom_subject(
                     user_id=user.id,
                     kid_id=child["id"],
                     custom_subject_id=
                         body.custom_subject_id
                 )
-            )
+            )))
 
-            current_curriculum = (
+            current_curriculum = (await run_in_threadpool(lambda: (
                 get_current_custom_curriculum(
                     custom_subject_id=
                         custom_subject["id"]
                 )
-            )
+            )))
 
         current_tree = {}
 
@@ -17859,23 +18496,23 @@ async def curriculum_builder_chat(
                 and response_subject
         ):
 
-            custom_subject = (
+            custom_subject = (await run_in_threadpool(lambda: (
                 create_custom_subject(
                     user_id=user.id,
                     kid_id=child["id"],
                     subject_name=
                     response_subject
                 )
-            )
+            )))
 
             # אם חזר מקצוע שכבר היה קיים,
             # נטען גם את התוכנית הקיימת שלו.
-            current_curriculum = (
+            current_curriculum = (await run_in_threadpool(lambda: (
                 get_current_custom_curriculum(
                     custom_subject_id=
                     custom_subject["id"]
                 )
-            )
+            )))
 
             if current_curriculum:
                 current_tree = (
@@ -17896,7 +18533,7 @@ async def curriculum_builder_chat(
 
             if not current_curriculum:
 
-                current_curriculum = (
+                current_curriculum = (await run_in_threadpool(lambda: (
                     create_custom_curriculum(
                         user_id=user.id,
 
@@ -17918,11 +18555,11 @@ async def curriculum_builder_chat(
                         parent_message=
                             message
                     )
-                )
+                )))
 
             else:
 
-                current_curriculum = (
+                current_curriculum = (await run_in_threadpool(lambda: (
                     update_custom_curriculum(
                         user_id=user.id,
 
@@ -17950,7 +18587,7 @@ async def curriculum_builder_chat(
                         parent_message=
                             message
                     )
-                )
+                )))
 
         # =============================================
         # TOKEN USAGE
@@ -17996,7 +18633,7 @@ async def curriculum_builder_chat(
             )
         )
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
             user_id=user.id,
 
             ai_calls=1,
@@ -18012,7 +18649,7 @@ async def curriculum_builder_chat(
 
             openai_cost_usd=
                 openai_cost_usd
-        )
+        )))
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -18733,7 +19370,8 @@ async def tutor_chat(
 ):
     try:
         # אימות משתמש
-        user = authenticate_user(authorization)
+        user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+        ai_context("chat", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -18749,25 +19387,25 @@ async def tutor_chat(
                 detail="message is required"
             )
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =================================================
         # GET OR CREATE TUTOR SESSION
         # =================================================
 
-        tutor_session = get_or_create_tutor_session(
+        tutor_session = (await run_in_threadpool(lambda: get_or_create_tutor_session(
             user_id=user.id,
             kid_id=child["id"]
-        )
+        )))
 
         session_id = tutor_session["id"]
 
-        existing_memory = get_existing_kids_memory(
+        existing_memory = (await run_in_threadpool(lambda: get_existing_kids_memory(
             child["id"]
-        )
+        )))
 
         system_prompt = build_tutor_prompt(
             child=child,
@@ -18776,10 +19414,10 @@ async def tutor_chat(
 
         # מביאים רק את ההיסטוריה הקודמת.
         # את ההודעה הנוכחית נוסיף מקומית ולא נשמור לפני קריאת ה-AI.
-        recent_messages = get_recent_tutor_messages_for_llm(
+        recent_messages = (await run_in_threadpool(lambda: get_recent_tutor_messages_for_llm(
             kid_id=child["id"],
             limit=7
-        )
+        )))
 
         recent_messages.append({
             "role": "user",
@@ -18891,24 +19529,24 @@ async def tutor_chat(
         )
 
         # שומרים את הודעת הילד ואת תשובת המורה הנקייה
-        save_tutor_chat_messages(
+        (await run_in_threadpool(lambda: save_tutor_chat_messages(
             user_id=user.id,
             kid_id=child["id"],
             user_content=message,
             assistant_content=assistant_history_text,
             assistant_tokens=total_tokens,
             session_id=session_id
-        )
+        )))
 
-        update_tutor_session_after_chat(
+        (await run_in_threadpool(lambda: update_tutor_session_after_chat(
             session=tutor_session,
             total_tokens=total_tokens,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             cost_usd=openai_cost_usd
-        )
+        )))
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=user.id,
 
@@ -18927,7 +19565,7 @@ async def tutor_chat(
             total_tokens=total_tokens,
 
             openai_cost_usd=openai_cost_usd
-        )
+        )))
 
 
         response_data = lesson_data.model_dump()
@@ -19621,8 +20259,9 @@ async def homework_coach(
         req: HomeworkCoachRequest,
         authorization: str = Header(None)
 ):
-    user = authenticate_user(authorization)
-    child = get_child_by_id(user.id, req.kid_id)
+    user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+    ai_context("homework", user, req)
+    child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
     grade = child.get("grade") if isinstance(child, dict) else None
 
     system_prompt = (
@@ -19684,8 +20323,9 @@ async def homework_turn(
         req: HomeworkTurnRequest,
         authorization: str = Header(None)
 ):
-    user = authenticate_user(authorization)
-    child = get_child_by_id(user.id, req.kid_id)
+    user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+    ai_context("homework", user, req)
+    child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
 
     child_name = str(child.get("child_name") or "").strip()
     gender = str(child.get("gender") or "unknown").strip().lower()
@@ -19916,7 +20556,7 @@ HARD RULES:
         except Exception as hw_error:
             print("HOMEWORK SESSION PROGRESS WARNING:", repr(hw_error))
 
-    session = get_or_create_tutor_session(user.id, req.kid_id)
+    session = (await run_in_threadpool(lambda: get_or_create_tutor_session(user.id, req.kid_id)))
     session_id = session.get("id")
 
     # Save the actual child/teacher exchange. If answer is sufficient, include
@@ -19940,22 +20580,22 @@ HARD RULES:
         output_tokens=output_tokens
     )
 
-    save_tutor_chat_messages(
+    (await run_in_threadpool(lambda: save_tutor_chat_messages(
         user_id=user.id,
         kid_id=req.kid_id,
         user_content=req.answer,
         assistant_content=assistant_content,
         assistant_tokens=output_tokens,
         session_id=session_id
-    )
+    )))
 
-    update_tutor_session_after_chat(
+    (await run_in_threadpool(lambda: update_tutor_session_after_chat(
         session=session,
         total_tokens=total_tokens,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cost_usd=cost_usd
-    )
+    )))
 
     return {
         **result,

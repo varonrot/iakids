@@ -1,6 +1,6 @@
 const SUPABASE_URL = 'https://bxnfzuglfwytiyaguwjj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o';
-const TUTOR_API_BASE = 'https://iakids-ai-tutor-he.onrender.com';
+const TUTOR_API_BASE = location.hostname.endsWith('smarts-brains.online') ? location.origin + '/tutor-api' : 'https://iakids-ai-tutor-he.onrender.com';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const state = {

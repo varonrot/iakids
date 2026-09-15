@@ -1017,7 +1017,7 @@ const IAKidsNikud = {
  * voice and no backend simply means nothing is spoken, never a broken game.
  */
 const IAKidsSpeech = {
-  TTS_URL: 'https://iakids-ai-tutor-he.onrender.com/api/tutor/tts',
+  TTS_URL: (location.hostname.endsWith('smarts-brains.online') ? location.origin + '/tutor-api' : 'https://iakids-ai-tutor-he.onrender.com') + '/api/tutor/tts',
   MAXLEN: 400,
   _audio: null,
   _voices: null,

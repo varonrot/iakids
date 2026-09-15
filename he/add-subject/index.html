@@ -1893,11 +1893,13 @@ const sb = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
+const TUTOR_API_BASE = location.hostname.endsWith("smarts-brains.online") ? location.origin + "/tutor-api" : "https://iakids-ai-tutor-he.onrender.com";
+
 const CURRICULUM_API =
-  "https://iakids-ai-tutor-he.onrender.com/api/curriculum/chat";
+  `${TUTOR_API_BASE}/api/curriculum/chat`;
 
 const CURRICULUM_APPROVE_API =
-  "https://iakids-ai-tutor-he.onrender.com/api/curriculum/approve";
+  `${TUTOR_API_BASE}/api/curriculum/approve`;
 
 let CURRENT_KID = null;
 let CURRENT_PLAN = null;
