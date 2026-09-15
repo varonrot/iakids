@@ -1,0 +1,34 @@
+name: Homework passage-only coach 0.7.93
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/homework-passage-only-0793.py'
+      - '.github/workflows/homework-passage-only-0793.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Remove worksheet questions from coach source
+        run: python .github/scripts/homework-passage-only-0793.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Send passage only to homework coach; bump to 0.7.93"
+          git push origin main
