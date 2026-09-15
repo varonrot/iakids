@@ -19502,6 +19502,60 @@ class HomeworkTurnEvaluation(BaseModel):
     teacher_response: str
 
 
+@app.post("/api/tutor/homework-coach-v2")
+async def homework_coach_v2(
+        req: HomeworkCoachRequest,
+        authorization: str = Header(None)
+):
+    user = authenticate_user(authorization)
+    child = get_child_by_id(user.id, req.kid_id)
+    grade = child.get("grade") if isinstance(child, dict) else None
+
+    system_prompt = (
+        "את מורה פרטית מצוינת לילדים. "
+        "המטרה שלך היא לעזור לילד להבין ולפתור את שיעורי הבית בעצמו. "
+        "קודם הסתכלי על המשימה והביני מה השאלה מבקשת. "
+        "הסבירי לילד בקצרה ובמילים פשוטות מה צריך לעשות ואיך ניגשים לשאלה. "
+        "אחר כך למדי אותו שלב אחרי שלב. "
+        "בכל הודעה הסבירי רק צעד אחד ברור, הסבירי למה עושים את הצעד הזה, שאלי שאלה קצרה אחת וחכי לתשובת הילד. "
+        "אל תתני את התשובה הסופית לפני שהילד ניסה להגיע אליה בעצמו. "
+        "אם הילד מתקשה, הסבירי שוב בדרך פשוטה יותר או תני רמז קטן. "
+        "אם הילד כבר אמר משהו נכון, זכרי אותו ואל תשאלי עליו שוב. "
+        "כשהילד כבר אסף מספיק מידע או ביצע את כל השלבים, בקשי ממנו לנסח או לפתור את התשובה בעצמו. "
+        "רק אחרי שהוא ענה, בדקי את התשובה ועזרי לתקן אם צריך. "
+        "התאימי את ההסבר לגיל הילד ולסוג המשימה. "
+        "התנהגי כמו מורה פרטית אמיתית, לא כמו שאלון."
+    )
+
+    context = (
+        f"כיתה: {grade or 'לא ידוע'}\n"
+        f"השאלה שעליה עובדים עכשיו: {req.current_question}\n"
+        f"דף העבודה / חומר המקור:\n{req.source_text}"
+    )
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": context},
+    ]
+    for item in (req.history or [])[-12:]:
+        role = str(item.get("role") or "")
+        content = str(item.get("content") or "").strip()
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
+
+    if req.message.strip():
+        messages.append({"role": "user", "content": req.message.strip()})
+    else:
+        messages.append({"role": "user", "content": "תתחילי ללמד אותי ולעזור לי לפתור את השאלה הזאת."})
+
+    response = await aclient.chat.completions.create(
+        model="gpt-5.6-sol",
+        messages=messages,
+    )
+    text = str(response.choices[0].message.content or "").strip()
+    return {"reply": text, "model": "gpt-5.6-sol", "v2": True}
+
+
 @app.post("/api/tutor/homework-coach")
 async def homework_coach(
         req: HomeworkCoachRequest,

@@ -147,6 +147,9 @@ select{
 .side-item:nth-of-type(1) i{background:linear-gradient(135deg,#7b5cff,#5d3ee7)}.side-item:nth-of-type(2) i{background:linear-gradient(135deg,#4fa9ff,#4089ee)}.side-item:nth-of-type(3) i{background:linear-gradient(135deg,#36c7ff,#287fdd)}.side-item:nth-of-type(4) i{background:linear-gradient(135deg,#ff9e5d,#ff7a48)}.side-item:nth-of-type(5) i{background:linear-gradient(135deg,#ff7abb,#ee5aa0)}.side-item:nth-of-type(6) i{background:linear-gradient(135deg,#57c8ff,#3f9de8)}.side-item:nth-of-type(7) i{background:linear-gradient(135deg,#49cb88,#34ad70)}.side-item:nth-of-type(8) i{background:linear-gradient(135deg,#ffd153,#f0ae25)}.side-item:nth-of-type(9) i{background:linear-gradient(135deg,#9d70ff,#704be7)}.side-item:nth-of-type(10) i{background:linear-gradient(135deg,#4acbe9,#2daec9)}
 .subject-add{min-height:50px;border:1px dashed #c8bdf8;border-radius:14px;background:#fbfaff;color:#6b49ef;font-weight:900;cursor:pointer;margin-top:2px;font-size:15px}.sidebar-bottom{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:8px}.manage-btn{min-height:52px;border:0;border-radius:14px;background:#f8f8fc;color:#35406c;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:15px;font-weight:900;cursor:pointer}.manage-btn:hover{background:#f1edff;color:#6541ee}.manage-btn:nth-child(1) i{background:linear-gradient(135deg,#49cb88,#34ad70)}.manage-btn:nth-child(2) i{background:linear-gradient(135deg,#ff7abb,#ee5aa0)}.manage-btn:nth-child(3) i{background:linear-gradient(135deg,#ffd153,#f0ae25);color:#6b4c00!important}
 
+.homework-v2-side-item{border:1px solid rgba(111,92,255,.45)!important;background:linear-gradient(90deg,rgba(44,31,93,.10),rgba(26,82,150,.08))!important;}
+.homework-v2-side-item i{background:linear-gradient(135deg,#6f4dff,#1d9fe8)!important;}
+
 /* MAIN */
 .main{grid-column:2;grid-row:2;direction:rtl;min-width:0;min-height:0;padding:16px;display:flex;flex-direction:column}.workspace{height:100%;min-height:0;background:#fff;border:1px solid #ebeaf4;border-radius:26px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;position:relative}.workspace:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 15% 12%,rgba(255,211,87,.10),transparent 22%),radial-gradient(circle at 85% 10%,rgba(84,168,255,.10),transparent 22%)}
 .welcome{position:relative;z-index:2;padding:24px 26px 8px;text-align:center;flex-shrink:0}.welcome h1{font-size:36px;margin:0 0 8px;font-weight:900;line-height:1.1}.welcome p{margin:0 auto;color:#737d9b;font-size:17px;line-height:1.6;max-width:750px}
@@ -13037,13 +13040,29 @@ body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{hei
     <button
       class="side-item homework-side-item"
       id="homeworkSidebarBtn"
-      onclick="showLearning('homework')"
+      onclick="window.HOMEWORK_V2_MODE=false;showLearning('homework')"
     >
       <i class="fa-solid fa-camera"></i>
 
       <div class="side-text">
         <span class="side-title">
           עזרה בשיעורי בית
+        </span>
+      </div>
+    </button>
+
+    <!-- עזרה בשיעורי בית V2 — clean isolated tutor -->
+    <button
+      class="side-item homework-side-item homework-v2-side-item"
+      id="homeworkV2SidebarBtn"
+      onclick="window.HOMEWORK_V2_MODE=true;window.HOMEWORK_V2_HISTORY=[];showLearning('homework')"
+      title="מסלול V2 נקי לבדיקה"
+    >
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+      <div class="side-text">
+        <span class="side-title">
+          עזרה בשיעורי בית V2
         </span>
       </div>
     </button>
@@ -53082,7 +53101,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=0795"></script>
+<script src="/he/workspace/lesson-completion.js?v=0796"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -53256,8 +53275,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.95</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.95";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.96</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.96";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}

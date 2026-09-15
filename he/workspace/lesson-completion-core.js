@@ -1749,6 +1749,57 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     return kept.length >= 40 ? kept : raw;
   }
 
+  async function runHomeworkV2Coach(messageText=""){
+    const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
+    const current = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
+    const kidId = (typeof CURRENT_KID !== "undefined" && CURRENT_KID?.id) ? CURRENT_KID.id : window.CURRENT_KID?.id;
+    const token = await getHomeworkAccessToken();
+    if(!kidId || !token) throw new Error("Homework V2 auth missing");
+
+    window.HOMEWORK_V2_HISTORY = Array.isArray(window.HOMEWORK_V2_HISTORY)
+      ? window.HOMEWORK_V2_HISTORY
+      : [];
+
+    const response = await fetch(`${TUTOR_API_BASE}/api/tutor/homework-coach-v2`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+      body:JSON.stringify({
+        kid_id:kidId,
+        source_text:String(analysis?.extracted_text || ""),
+        current_question:String(current?.text || ""),
+        history:window.HOMEWORK_V2_HISTORY,
+        message:String(messageText || "")
+      })
+    });
+
+    if(!response.ok){
+      const details = await response.text().catch(()=>"");
+      throw new Error(`Homework V2 failed ${response.status}: ${details}`);
+    }
+
+    const data = await response.json();
+    const reply = String(data?.reply || "").trim();
+    const displayReply = reply
+      .replace(/\*\*/g, "")
+      .replace(/^#{1,6}\s*/gm, "")
+      .trim();
+
+    if(messageText){
+      window.HOMEWORK_V2_HISTORY.push({role:"user",content:String(messageText)});
+    }
+    if(displayReply){
+      window.HOMEWORK_V2_HISTORY.push({role:"assistant",content:displayReply});
+    }
+    if(window.HOMEWORK_V2_HISTORY.length > 14){
+      window.HOMEWORK_V2_HISTORY = window.HOMEWORK_V2_HISTORY.slice(-14);
+    }
+
+    await Promise.all([
+      renderHomeworkStructuredTeacherMessage(displayReply),
+      playHomeworkTeacherAudio(displayReply)
+    ]);
+  }
+
   async function runHomeworkProductionCoach(messageText=""){
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
     const current = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
@@ -2052,7 +2103,17 @@ ${analysis.extracted_text || ""}
       requestAnimationFrame(() => { messages.scrollTop = 0; });
     }
 
-    /* No help-mode chooser anymore: the production Sol coach starts automatically. */
+    /* V2 is a clean isolated tutor path. Legacy coach stays untouched for A/B comparison. */
+    if(window.HOMEWORK_V2_MODE === true){
+      window.HOMEWORK_HELP_MODE = "v2_clean";
+      window.HOMEWORK_PRODUCTION_COACH_MODE = false;
+      window.HOMEWORK_V2_HISTORY = [];
+      setHomeworkSidebarStep(4);
+      await runHomeworkV2Coach("");
+      return;
+    }
+
+    /* Legacy production coach. */
     window.HOMEWORK_HELP_MODE = "solve_together";
     window.HOMEWORK_PRODUCTION_COACH_MODE = true;
     window.HOMEWORK_PRODUCTION_COACH_HISTORY = [];
@@ -2434,6 +2495,10 @@ Continue from the NEXT UNRESOLVED STEP only. Do not restart the solution. Do not
   }
 
   async function runStructuredHomeworkTurn(answerText){
+    if(window.HOMEWORK_V2_MODE === true){
+      await runHomeworkV2Coach(answerText);
+      return;
+    }
     if(window.HOMEWORK_PRODUCTION_COACH_MODE === true){
       await runHomeworkProductionCoach(answerText);
       return;
