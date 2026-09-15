@@ -606,7 +606,7 @@ class TutorTTSRequest(BaseModel):
 
 
 class HomeworkCoachRequest(BaseModel):
-    image_url: Optional[str] = None
+    image_url: str = ""
     kid_id: str
     source_text: str = ""
     current_question: str = ""
