@@ -41,6 +41,21 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - **Before implementing a new game**: read its `games/<slug>/GAME.md` fully, then research the game before coding — how existing versions of this game type look and feel (what makes them fun/beautiful for kids), and the correct content logic (question generation, distractor quality, edge cases like Hebrew final letters, RTL, level balance). Only then build, following the GAME.md subtask checklist. Beautiful + correct beats fast: kids notice jank, parents notice wrong answers.
 - **Mandatory interface for EVERY new game**: the full 11-point spec lives in **`games/INTERFACE.md`** — read it before writing code, it's the single source of truth (rounds/level picker, coins, no-repeat questions, adaptive difficulty, feedback FX, question timer, help modal, end screen with share, languages, home button — most of these are automatic once a game links `game-sdk.js`/`game-style.css`, see that doc's "Automatic — no code needed" section). Working reference: `games/demo/index.html`. Game catalog + SDK contract: `games/GAMES.md`. Tournaments and the אלוף האלופים table (`games/champions/`) need zero per-game code. After building: browser-test a full playthrough (zero console errors) and screenshot.
 
+## Build number (mandatory on every fix)
+
+- The user-visible build is stamped in `he/workspace/index.html` in three places: the `#iakidsBuildStamp` div (`IAKIDS • build 0.7.N`), `window.IAKIDS_BUILD_VERSION = "0.7.N"`, and the cache-buster `openai-clean-chat.js?v=07N`.
+- **Every fix bumps N by exactly 1** (0.7.101 → 0.7.102 → 0.7.103 …), in the same commit as the fix. Never skip or reuse a number. Check the current value with `grep -n IAKIDS_BUILD_VERSION he/workspace/index.html` before bumping — GitHub Actions workflows in `.github/` also bump it, so pull first.
+
+## Backups
+
+- On "גיבוי"/"backup": run `bash .claude/skills/backup/backup.sh "<note>"` (project skill `backup`). It snapshots `backend/main.py`, `backend-ai-tutor-he/main.py` and every prompt file (root `iakids_*_prompt.txt`, `backend/prompts/`, `backend-ai-tutor-he/prompts/`) into the next `V<N>_BACKUP/` folder, verifies with `diff`, writes a README. Never overwrite an existing `V<N>_BACKUP`. Take one before touching `main.py` or a prompt.
+
+## Lesson generation pipeline (backend-ai-tutor-he) — known trap
+
+- Route `POST /api/tutor/unit-lesson`: per part, `gpt-5.6-sol` writes `explanation` + `question` (`UniversalLessonResponse`), then the **Lesson Director** (`prompts/lesson_director_prompt.txt`, `build_lesson_director_prompt(lesson_text=…)`) splits the explanation into `lesson[]` segments. The question is owned by the teacher and is overwritten in code after the director.
+- **All parts must go through `direct_lesson_part()`** (`main.py`): it injects the explanation via the `{lesson_text}` placeholder AND sends it as the user message, runs on `UNIVERSAL_LESSON_MODEL`, validates with `find_invalid_lesson_segments()` (rejects segments copied from the question, ending with `?`, starting with a directive like הסבירו/כיצד/מדוע, or not drawn from the explanation), retries once, then falls back to a deterministic sentence split. Log lines: `LESSON DIRECTOR OK|REJECTED|FALLBACK`.
+- Bug fixed 2026-09-15: on 2026-09-01 the prompt lost `{lesson_text}` and Part 1 sent the director only the *question*, so `lesson[]` of Part 1 became the question chopped into sentences (14/15 prod lessons, ids 1,3–12,29–31). **Never remove `{lesson_text}` from the director prompt** and never pass only the question as the director's user message. Product rule: `lesson[]` is explanation only, exactly one `question` per part, explanation always before question.
+
 ## Testing / running
 
 - Frontend: open HTML files directly or `python3 -m http.server` from repo root.

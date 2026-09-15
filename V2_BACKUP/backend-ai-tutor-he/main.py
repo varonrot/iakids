@@ -5291,176 +5291,6 @@ def build_lesson_director_prompt(
     )
 
 
-# =====================================================
-# LESSON DIRECTOR — validation + single entry point
-#
-# Bug history (2026-09-01 → 2026-09-15): the prompt lost
-# its {lesson_text} placeholder and Part 1 sent the
-# director only the QUESTION as user message, so the
-# director segmented the question into "explanation"
-# segments (14/15 prod lessons). Every part now goes
-# through direct_lesson_part(), which always hands the
-# explanation to the model and refuses question-like or
-# foreign segments (retry once, then deterministic
-# sentence split of the teacher's explanation).
-# =====================================================
-
-_LESSON_DIRECTIVE_PREFIXES = (
-    "הסבירו", "הסבר", "הסבירי", "תארו", "תאר", "תארי",
-    "כיצד", "איך", "מדוע", "למה", "חשבו", "חשוב", "חשבי",
-    "ענו", "ענה", "עני", "נסו", "נסה", "נסי", "כתבו", "כתוב", "כתבי",
-    "סדרו", "מצאו", "ציינו", "הציעו", "בדקו", "מה ", "מי ", "איזה", "אילו", "האם"
-)
-
-
-def _normalize_lesson_text(text: str) -> str:
-    return re.sub(r"[^\w]", "", str(text or ""))
-
-
-def _content_words(text: str) -> set:
-    return {
-        w for w in re.findall(r"[\w']+", str(text or ""))
-        if len(w) > 2
-    }
-
-
-def find_invalid_lesson_segments(
-        segments: list,
-        question_text: str,
-        explanation_text: str
-) -> list:
-    """Return [(index, reason, text)] for segments that must not be read to the child."""
-    problems = []
-    q_norm = _normalize_lesson_text(question_text)
-    expl_words = _content_words(explanation_text)
-    for i, seg in enumerate(segments):
-        text = str(seg or "").strip()
-        if not text:
-            problems.append((i, "empty", text))
-            continue
-        norm = _normalize_lesson_text(text)
-        if len(norm) > 6 and norm in q_norm:
-            problems.append((i, "copied_from_question", text))
-            continue
-        if text.rstrip().endswith("?"):
-            problems.append((i, "ends_with_question_mark", text))
-            continue
-        if text.startswith(_LESSON_DIRECTIVE_PREFIXES):
-            problems.append((i, "directive_to_student", text))
-            continue
-        words = _content_words(text)
-        if expl_words and len(words) >= 3:
-            overlap = len(words & expl_words) / len(words)
-            if overlap < 0.4:
-                problems.append((i, "not_from_explanation", text))
-    return problems
-
-
-def fallback_lesson_segments(explanation_text: str) -> list:
-    """Deterministic split of the teacher's explanation into sentences."""
-    text = re.sub(r"\s+", " ", str(explanation_text or "")).strip()
-    parts = re.split(r"(?<=[.!:])\s+(?=\S)", text)
-    out = []
-    for s in parts:
-        s = s.strip()
-        if not s:
-            continue
-        if out and len(s) < 25:
-            out[-1] = (out[-1] + " " + s).strip()
-        else:
-            out.append(s)
-    return [{"text": s} for s in out] or [{"text": text}]
-
-
-async def direct_lesson_part(
-        explanation: str,
-        question: str,
-        part_number: int,
-        unit_lesson_id=None
-):
-    """Segment ONE lesson part. Returns (part_dict, first_completion).
-
-    part_dict = {"lesson": [{"text": ...}], "question": {"text": question}}.
-    The question is owned by the teacher and is never taken from the director.
-    """
-    explanation = str(explanation or "").strip()
-    question = str(question or "").strip()
-    system_prompt = build_lesson_director_prompt(
-        lesson_text=explanation
-    )
-    user_content = explanation
-    first_completion = None
-    for attempt in (1, 2):
-        completion = await aclient.beta.chat.completions.parse(
-            model=UNIVERSAL_LESSON_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content}
-            ],
-            response_format=DirectedLessonUnitResponse
-        )
-        if first_completion is None:
-            first_completion = completion
-        data = completion.choices[0].message.parsed
-        segments = (
-            [s.text for s in data.lesson]
-            if data and data.lesson else []
-        )
-        problems = find_invalid_lesson_segments(
-            segments, question, explanation
-        )
-        if segments and not problems:
-            print(
-                "LESSON DIRECTOR OK",
-                {
-                    "unit_lesson_id": unit_lesson_id,
-                    "part_number": part_number,
-                    "attempt": attempt,
-                    "segments": len(segments)
-                }
-            )
-            return (
-                {
-                    "lesson": [{"text": s.strip()} for s in segments],
-                    "question": {"text": question}
-                },
-                first_completion
-            )
-        print(
-            "LESSON DIRECTOR REJECTED",
-            {
-                "unit_lesson_id": unit_lesson_id,
-                "part_number": part_number,
-                "attempt": attempt,
-                "segments": len(segments),
-                "problems": [(i, r, t[:80]) for i, r, t in problems][:8]
-            }
-        )
-        bad_lines = "\n".join(
-            f"- {t}" for _, _, t in problems if t
-        )
-        user_content = (
-            explanation
-            + "\n\n---\n"
-            "הניסיון הקודם נדחה. המקטעים הבאים אסורים "
-            "(שאלה, הוראה לתלמיד, או טקסט שאינו מתוך ההסבר):\n"
-            + bad_lines
-            + "\nחלקו מחדש אך ורק את טקסט ההסבר שלמעלה. "
-            "אל תכללו את השאלה או חלק ממנה בתוך lesson."
-        )
-    print(
-        "LESSON DIRECTOR FALLBACK (sentence split)",
-        {"unit_lesson_id": unit_lesson_id, "part_number": part_number}
-    )
-    return (
-        {
-            "lesson": fallback_lesson_segments(explanation),
-            "question": {"text": question}
-        },
-        first_completion
-    )
-
-
 def build_visual_director_prompt(
         unit_lesson: dict,
         parent_lesson: dict,
@@ -13314,18 +13144,63 @@ async def get_or_generate_unit_lesson(
         # PART 1 DIRECTOR
         # Structures one complete learning unit.
         # It must not create or split lesson parts.
-        # Same model + same input as every other part:
-        # the explanation is the user message and is
-        # also injected into the prompt ({lesson_text}).
         # =============================================
-        part_1, director_completion = (
-            await direct_lesson_part(
-                explanation=part_1_explanation,
-                question=part_1_question,
-                part_number=1,
-                unit_lesson_id=unit_lesson["id"]
+
+        director_prompt = (
+            build_lesson_director_prompt(
+                lesson_text=part_1_explanation
             )
         )
+
+        director_completion = (await (
+            aclient.beta.chat.completions.parse(
+
+                model=DEFAULT_OPENAI_MODEL,
+
+                messages=[
+                    {
+                        "role": "system",
+                        "content": director_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                                "Structure this explanation into "
+                                "short multimedia segments. "
+                                "Do not create another lesson part. "
+                                "Use the supplied question exactly "
+                                "as written:\n\n"
+                                + part_1_question
+                        )
+                    }
+                ],
+
+                response_format=
+                DirectedLessonUnitResponse
+            )
+        ))
+
+        directed_lesson_data = (
+            director_completion
+            .choices[0]
+            .message
+            .parsed
+        )
+
+        if not directed_lesson_data:
+            raise RuntimeError(
+                "Part 1 director returned no response"
+            )
+
+        part_1 = (
+            directed_lesson_data.model_dump()
+        )
+
+        # The teacher owns the fixed question.
+        # The director is not allowed to rewrite it.
+        part_1["question"] = {
+            "text": part_1_question
+        }
         generated_parts_context = [
             {
                 "part_number": 1,
@@ -13444,14 +13319,67 @@ async def get_or_generate_unit_lesson(
                     )
                 )
 
-            directed_part, expansion_director_completion = (
-                await direct_lesson_part(
-                    explanation=expansion_explanation,
-                    question=expansion_question,
-                    part_number=part_number,
-                    unit_lesson_id=unit_lesson["id"]
+            expansion_director_prompt = (
+                build_lesson_director_prompt(
+                    lesson_text=
+                        expansion_explanation
                 )
             )
+
+            expansion_director_completion = (await (
+                aclient.beta.chat.completions.parse(
+
+                    model=
+                        UNIVERSAL_LESSON_MODEL,
+
+                    messages=[
+                        {
+                            "role":
+                                "system",
+
+                            "content":
+                                expansion_director_prompt
+                        },
+
+                        {
+                            "role":
+                                "user",
+
+                            "content":
+                                expansion_explanation
+                        }
+                    ],
+
+                    response_format=
+                        DirectedLessonUnitResponse
+                )
+            ))
+
+            expansion_directed_data = (
+                expansion_director_completion
+                .choices[0]
+                .message
+                .parsed
+            )
+
+            if not expansion_directed_data:
+                raise RuntimeError(
+                    (
+                        "Lesson Director returned "
+                        f"no Part {part_number}"
+                    )
+                )
+
+            directed_part = (
+                expansion_directed_data
+                .model_dump()
+            )
+
+            # The teacher owns the fixed question.
+            directed_part["question"] = {
+                "text":
+                    expansion_question
+            }
 
             generated_parts.append(
                 {
@@ -13671,7 +13599,7 @@ async def get_or_generate_unit_lesson(
                 UNIVERSAL_LESSON_MODEL,
 
             "director_model":
-                UNIVERSAL_LESSON_MODEL,
+                DEFAULT_OPENAI_MODEL,
 
             "learning_objective":
                 unit_lesson.get(
@@ -13832,7 +13760,7 @@ async def get_or_generate_unit_lesson(
         )
 
         director_cost_usd = calculate_openai_cost(
-            model=UNIVERSAL_LESSON_MODEL,
+            model=DEFAULT_OPENAI_MODEL,
             input_tokens=director_input_tokens,
             output_tokens=director_output_tokens
         )
