@@ -1,0 +1,36 @@
+name: Homework current-question isolation 0.7.91
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/homework-current-question-isolation-0791.py'
+      - '.github/workflows/homework-current-question-isolation-0791.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Isolate production homework coach to current question
+        run: python .github/scripts/homework-current-question-isolation-0791.py
+      - name: Compile backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Keep homework coach on current question only; bump to 0.7.91"
+          git push origin main
