@@ -1709,6 +1709,24 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     const raw = String(analysis?.extracted_text || "").replace(/\r/g, "\n").trim();
     if(!raw) return "";
 
+    // For reading-comprehension worksheets, the reliable source is the passage itself.
+    // Never send the question section to the coach; the active question is supplied separately.
+    const questionSection = raw.search(/(?:^|\n)\s*שאלות\s*[:：]?\s*(?:\n|$)/m);
+    if(questionSection > 40){
+      const passageOnly = raw.slice(0, questionSection).trim();
+      if(passageOnly.length >= 40) return passageOnly;
+    }
+
+    // Fallback: if OCR missed the "שאלות" heading, cut at the first numbered question
+    // once we already have enough source text before it.
+    const numberedQuestion = raw.search(/(?:^|\n)\s*1\s*[.\)]\s*[^\n?]{4,}\?/m);
+    if(numberedQuestion > 80){
+      const passageOnly = raw.slice(0, numberedQuestion).trim();
+      if(passageOnly.length >= 40) return passageOnly;
+    }
+
+    // Final fallback for worksheets without a clear question section: remove every parsed
+    // worksheet question line, but keep the source passage.
     const questions = Array.isArray(window.CURRENT_HOMEWORK_QUESTIONS)
       ? window.CURRENT_HOMEWORK_QUESTIONS
       : [];
@@ -1716,26 +1734,18 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
       .map(item => normalizeHomeworkCoachText(item?.text))
       .filter(Boolean);
 
-    if(!normalizedQuestions.length) return raw;
-
     const kept = raw.split("\n").filter(line => {
       const normalizedLine = normalizeHomeworkCoachText(line);
       if(!normalizedLine) return true;
-      if(/^שאלות\s*[:：]?$/.test(normalizedLine)) return false;
-
-      const withoutNumber = normalizedLine
-        .replace(/^\s*\d{1,2}\s*[.\)\-:]\s*/, "")
-        .trim();
-
-      return !normalizedQuestions.some(question => {
-        if(normalizedLine === question || withoutNumber === question) return true;
-        if(question.length >= 12 && (normalizedLine.includes(question) || withoutNumber.includes(question))) return true;
-        if(withoutNumber.length >= 18 && question.includes(withoutNumber)) return true;
-        return false;
-      });
+      const withoutNumber = normalizedLine.replace(/^\s*\d{1,2}\s*[.\)\-:]\s*/, "").trim();
+      return !normalizedQuestions.some(question =>
+        normalizedLine === question ||
+        withoutNumber === question ||
+        (question.length >= 12 && normalizedLine.includes(question)) ||
+        (withoutNumber.length >= 18 && question.includes(withoutNumber))
+      );
     }).join("\n").trim();
 
-    // Keep the original only when filtering would remove essentially all useful context.
     return kept.length >= 40 ? kept : raw;
   }
 
