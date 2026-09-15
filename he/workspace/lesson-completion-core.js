@@ -1696,6 +1696,49 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     }
   }
 
+  function normalizeHomeworkCoachText(value){
+    return String(value || "")
+      .replace(/\r/g, "\n")
+      .replace(/[״”“"']/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  function buildHomeworkCoachSourceText(analysis, current){
+    const raw = String(analysis?.extracted_text || "").replace(/\r/g, "\n").trim();
+    if(!raw) return "";
+
+    const questions = Array.isArray(window.CURRENT_HOMEWORK_QUESTIONS)
+      ? window.CURRENT_HOMEWORK_QUESTIONS
+      : [];
+    const normalizedQuestions = questions
+      .map(item => normalizeHomeworkCoachText(item?.text))
+      .filter(Boolean);
+
+    if(!normalizedQuestions.length) return raw;
+
+    const kept = raw.split("\n").filter(line => {
+      const normalizedLine = normalizeHomeworkCoachText(line);
+      if(!normalizedLine) return true;
+      if(/^שאלות\s*[:：]?$/.test(normalizedLine)) return false;
+
+      const withoutNumber = normalizedLine
+        .replace(/^\s*\d{1,2}\s*[.\)\-:]\s*/, "")
+        .trim();
+
+      return !normalizedQuestions.some(question => {
+        if(normalizedLine === question || withoutNumber === question) return true;
+        if(question.length >= 12 && (normalizedLine.includes(question) || withoutNumber.includes(question))) return true;
+        if(withoutNumber.length >= 18 && question.includes(withoutNumber)) return true;
+        return false;
+      });
+    }).join("\n").trim();
+
+    // Keep the original only when filtering would remove essentially all useful context.
+    return kept.length >= 40 ? kept : raw;
+  }
+
   async function runHomeworkProductionCoach(messageText=""){
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
     const current = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
@@ -1708,7 +1751,7 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
       headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
       body:JSON.stringify({
         kid_id:kidId,
-        source_text:analysis?.extracted_text || "",
+        source_text:buildHomeworkCoachSourceText(analysis, current),
         current_question:current?.text || "",
         message:String(messageText||""),
         history:window.HOMEWORK_PRODUCTION_COACH_HISTORY
