@@ -19528,13 +19528,17 @@ async def homework_coach_v2(
         "התנהגי כמו מורה פרטית אמיתית, לא כמו שאלון."
     )
 
-    context = (
-        f"כיתה: {grade or 'לא ידוע'}\n"
-        f"השאלה שעליה עובדים עכשיו: {req.current_question}\n"
-        f"דף העבודה / חומר המקור:\n{req.source_text}"
-    )
-
-    worksheet_content = [{"type": "text", "text": context}]
+    # V2 deliberately mirrors a clean ChatGPT conversation:
+    # short tutor prompt + original worksheet image + clean per-session history.
+    # Do NOT inject OCR, extracted question state, legacy strategies or guards here.
+    worksheet_content = [{
+        "type": "text",
+        "text": (
+            f"כיתה: {grade or 'לא ידוע'}\n"
+            "זה דף העבודה של הילד. למדי אותו לפתור את שיעורי הבית בעצמו לפי ההוראות שלך. "
+            "התחילי מהמשימה הראשונה שעדיין לא נפתרה בתמונה, והתקדמי איתו באופן טבעי שלב אחרי שלב."
+        )
+    }]
     image_url = str(req.image_url or "").strip()
     if image_url:
         worksheet_content.append({
