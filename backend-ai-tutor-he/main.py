@@ -606,6 +606,7 @@ class TutorTTSRequest(BaseModel):
 
 
 class HomeworkCoachRequest(BaseModel):
+    image_url: Optional[str] = None
     kid_id: str
     source_text: str = ""
     current_question: str = ""
@@ -19533,9 +19534,17 @@ async def homework_coach_v2(
         f"דף העבודה / חומר המקור:\n{req.source_text}"
     )
 
+    worksheet_content = [{"type": "text", "text": context}]
+    image_url = str(req.image_url or "").strip()
+    if image_url:
+        worksheet_content.append({
+            "type": "image_url",
+            "image_url": {"url": image_url, "detail": "high"}
+        })
+
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": context},
+        {"role": "user", "content": worksheet_content},
     ]
     for item in (req.history or [])[-12:]:
         role = str(item.get("role") or "")

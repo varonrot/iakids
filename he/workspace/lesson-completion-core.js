@@ -1749,6 +1749,43 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     return kept.length >= 40 ? kept : raw;
   }
 
+  async function getHomeworkV2WorksheetImageUrl(analysis){
+    let candidate = String(
+      analysis?.file_url ||
+      analysis?.source_file_url ||
+      analysis?.image_url ||
+      analysis?.preview_url ||
+      ""
+    ).trim();
+
+    if(!candidate){
+      const img = document.querySelector(
+        '.homework-document-preview img, .homework-source-preview img, .homework-preview img, .lesson-homework-image, img[data-homework-source]'
+      );
+      candidate = String(img?.currentSrc || img?.src || '').trim();
+    }
+
+    if(!candidate) return '';
+    if(candidate.startsWith('data:image/')) return candidate;
+    if(/^https?:\/\//i.test(candidate)) return candidate;
+
+    if(candidate.startsWith('blob:')){
+      try{
+        const response = await fetch(candidate);
+        const blob = await response.blob();
+        return await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }catch(error){
+        console.warn('HOMEWORK V2 IMAGE CONVERT WARNING', error);
+      }
+    }
+    return '';
+  }
+
   async function runHomeworkV2Coach(messageText=""){
     const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS || {};
     const current = getCurrentHomeworkQuestion ? getCurrentHomeworkQuestion() : null;
@@ -1767,6 +1804,7 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
         kid_id:kidId,
         source_text:String(analysis?.extracted_text || ""),
         current_question:String(current?.text || ""),
+        image_url:await getHomeworkV2WorksheetImageUrl(analysis),
         history:window.HOMEWORK_V2_HISTORY,
         message:String(messageText || "")
       })
