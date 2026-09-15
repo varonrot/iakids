@@ -15,6 +15,27 @@
     return data?.session?.access_token || '';
   }
 
+  function escapeHtml(value){
+    return String(value ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+  }
+
+  function renderMarkdown(value){
+    let s = escapeHtml(value).replace(/\r\n/g,'\n');
+    s = s.replace(/^###\s+(.+)$/gm,'<h4>$1</h4>');
+    s = s.replace(/^##\s+(.+)$/gm,'<h3>$1</h3>');
+    s = s.replace(/^#\s+(.+)$/gm,'<h2>$1</h2>');
+    s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    s = s.replace(/__(.+?)__/g,'<strong>$1</strong>');
+    s = s.replace(/^[-•]\s+(.+)$/gm,'<div class="occ-list-item">• $1</div>');
+    s = s.replace(/\n/g,'<br>');
+    return s;
+  }
+
   function ensureStyles(){
     if(document.getElementById('openaiCleanChatStyles')) return;
     const style=document.createElement('style');
@@ -31,9 +52,12 @@
       .occ-upload{border:1px solid #3d66a3;background:#10264a;color:#fff;border-radius:14px;padding:12px 16px;font-weight:900;cursor:pointer;text-align:center}
       .occ-chat{display:flex;flex-direction:column;min-width:0;direction:rtl}
       .occ-messages{flex:1;min-height:0;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:13px}
-      .occ-msg{max-width:78%;padding:14px 17px;border-radius:18px;line-height:1.55;white-space:pre-wrap;font-size:16px}
-      .occ-msg.user{align-self:flex-end;background:linear-gradient(135deg,#5b35df,#744cff)}
-      .occ-msg.assistant{align-self:flex-start;background:#122846;border:1px solid #255184}
+      .occ-msg{max-width:78%;padding:14px 17px;border-radius:18px;line-height:1.65;font-size:16px;overflow-wrap:anywhere}
+      .occ-msg.user{align-self:flex-end;background:linear-gradient(135deg,#5b35df,#744cff);white-space:pre-wrap}
+      .occ-msg.assistant{align-self:flex-start;background:#122846;border:1px solid #255184;white-space:normal}
+      .occ-msg.assistant h2,.occ-msg.assistant h3,.occ-msg.assistant h4{font-size:1em;margin:8px 0 4px;font-weight:900;color:#fff}
+      .occ-msg.assistant strong{font-weight:900;color:#fff}
+      .occ-list-item{margin:3px 0;padding-right:5px}
       .occ-composer{padding:14px;border-top:1px solid rgba(87,153,255,.18);display:flex;gap:9px;background:#081426}
       .occ-composer textarea{flex:1;resize:none;min-height:56px;max-height:130px;border:1px solid #284a76;border-radius:14px;background:#0b1b33;color:#fff;padding:12px 14px;outline:none;font:inherit}
       .occ-send{width:58px;border:0;border-radius:14px;background:linear-gradient(135deg,#6b44ff,#3d8dff);color:#fff;font-size:22px;cursor:pointer}
@@ -48,7 +72,8 @@
     if(!box) return;
     const el=document.createElement('div');
     el.className='occ-msg '+role;
-    el.textContent=text;
+    if(role === 'assistant') el.innerHTML=renderMarkdown(text);
+    else el.textContent=text;
     box.appendChild(el);
     box.scrollTop=box.scrollHeight;
   }
