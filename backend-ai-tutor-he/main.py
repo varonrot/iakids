@@ -19521,7 +19521,11 @@ async def homework_coach(
         "אחר כך שאלי רק על החלק הבא שחסר. אל תתני מיד את התשובה המלאה. "
         "כאשר הילד כבר אסף מספיק מידע כדי לענות, אל תנסחי את התשובה במקומו. אמרי שיש לו מספיק מידע ובקשי ממנו לנסח בעצמו תשובה מלאה לשאלה. "
         "רק אחרי שהילד ניסח תשובה בעצמו, בדקי אם היא מספיקה. אם היא נכונה, אשרי בקצרה; אם צריך, עזרי רק לשפר את הניסוח בלי להחליף את תשובתו. "
-        "התאימי את השפה לגיל ולכיתה."
+        "התאימי את השפה לגיל ולכיתה. "
+        "כל תגובה חייבת להתחיל בסמן פנימי אחד בלבד: [[CONTINUE]] אם עדיין חסר מידע או אם הילד עדיין לא ניסח תשובה מלאה בעצמו; [[COMPLETE]] רק אם הילד עצמו כבר ניסח תשובה מלאה ומספקת לשאלה הפעילה. "
+        "תשובת ביניים נכונה כמו פרט אחד מהטקסט לעולם אינה COMPLETE. "
+        "במצב CONTINUE חובה אחרי אישור קצר לשאול שאלה אחת בלבד שמקדמת ישירות לפרט הבא שחסר בשאלה הפעילה. אסור לסיים תגובת CONTINUE רק במחמאה או באישור. "
+        "במצב COMPLETE אשרי בקצרה בלבד ואל תשאלי שאלה נוספת."
     )
 
     context = (
@@ -19545,8 +19549,12 @@ async def homework_coach(
         model="gpt-5.6-sol",
         messages=messages
     ))
-    text = str(response.choices[0].message.content or "").strip()
-    return {"reply": text, "model": "gpt-5.6-sol", "production_mode": True}
+    raw_text = str(response.choices[0].message.content or "").strip()
+    state = "complete" if raw_text.startswith("[[COMPLETE]]") else "continue"
+    text = re.sub(r"^\s*\[\[(?:CONTINUE|COMPLETE)\]\]\s*", "", raw_text, count=1).strip()
+    if state == "continue" and "?" not in text:
+        text = (text + "\n\nמה עוד בטקסט עוזר לנו לענות על השאלה?").strip()
+    return {"reply": text, "state": state, "model": "gpt-5.6-sol", "production_mode": True}
 
 
 @app.post("/api/tutor/homework-turn")

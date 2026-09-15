@@ -1773,17 +1773,9 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     ]);
 
     /* PRODUCTION HOMEWORK COACH AUTO ADVANCE 0.7.87 */
-    const normalizedReply = reply
-      .replace(/\*\*/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const finalAnswerAccepted = Boolean(String(messageText || "").trim()) && (
-      /התשובה\s+נכונה/.test(normalizedReply) ||
-      /נכונה[, ]+מלאה/.test(normalizedReply) ||
-      /מנוסחת\s+היטב/.test(normalizedReply) ||
-      /ענית\s+תשובה\s+מלאה/.test(normalizedReply)
-    );
+    const finalAnswerAccepted =
+      Boolean(String(messageText || "").trim())
+      && String(data?.state || "").toLowerCase() === "complete";
 
     if(finalAnswerAccepted){
       window.HOMEWORK_PRODUCTION_ADVANCE_AUTHORIZED = true;
