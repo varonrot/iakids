@@ -50,6 +50,10 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 
 - On "גיבוי"/"backup": run `bash .claude/skills/backup/backup.sh "<note>"` (project skill `backup`). It snapshots `backend/main.py`, `backend-ai-tutor-he/main.py` and every prompt file (root `iakids_*_prompt.txt`, `backend/prompts/`, `backend-ai-tutor-he/prompts/`) into the next `V<N>_BACKUP/` folder, verifies with `diff`, writes a README. Never overwrite an existing `V<N>_BACKUP`. Take one before touching `main.py` or a prompt.
 
+## Deleting / regenerating a lesson
+
+- On "מחק שיעור N" run the project skill `delete-lesson`: `cd backend-ai-tutor-he && APP_ENV=prod ../backend/.venv/bin/python tools/delete_unit_lesson.py --id N --yes` (without `--yes` = dry run). It wipes Storage `lesson-media` + `lesson-audio` under `unit_lessons/N/`, deletes that lesson's `media_jobs`, and resets the generated fields of `lesson_units_content` (row itself and curriculum fields stay). `--with-progress` also clears kids' progress (ask first). Storage must be wiped because `content_version` stays 1 and new media overwrites the same paths, leaving stale files otherwise.
+
 ## Lesson generation pipeline (backend-ai-tutor-he) — known trap
 
 - Route `POST /api/tutor/unit-lesson`: per part, `gpt-5.6-sol` writes `explanation` + `question` (`UniversalLessonResponse`), then the **Lesson Director** (`prompts/lesson_director_prompt.txt`, `build_lesson_director_prompt(lesson_text=…)`) splits the explanation into `lesson[]` segments. The question is owned by the teacher and is overwritten in code after the director.
