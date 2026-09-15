@@ -1,0 +1,35 @@
+name: OpenAI clean auto-send 0.7.101
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/scripts/openai-clean-autosend-07101.py'
+      - '.github/workflows/openai-clean-autosend-07101.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python .github/scripts/openai-clean-autosend-07101.py
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add he/workspace/openai-clean-chat.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Auto-send image in OpenAI clean chat; bump to 0.7.101'
+            git push origin main
+          fi
