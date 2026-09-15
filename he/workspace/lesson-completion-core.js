@@ -1282,20 +1282,25 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     const greeting = kidName
       ? `היי ${kidName}, `
       : "היי, ";
+    const startTogether = language.gender === "נקבה"
+      ? "בואי נתחיל יחד."
+      : language.gender === "זכר"
+        ? "בוא נתחיל יחד."
+        : "נתחיל יחד.";
 
     if(subject && topic){
-      return `${greeting}זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. בואי נתחיל יחד.`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject} בנושא ${topic}. ${startTogether}`;
     }
 
     if(subject){
-      return `${greeting}זיהיתי שזה שיעורי בית ב${subject}. בואי נתחיל יחד.`;
+      return `${greeting}זיהיתי שזה שיעורי בית ב${subject}. ${startTogether}`;
     }
 
     if(topic){
-      return `${greeting}זיהיתי את הנושא ${topic}. בואי נתחיל יחד.`;
+      return `${greeting}זיהיתי את הנושא ${topic}. ${startTogether}`;
     }
 
-    return `${greeting}זיהיתי את שיעורי הבית. בואי נתחיל יחד.`;
+    return `${greeting}זיהיתי את שיעורי הבית. ${startTogether}`;
   }
 
   async function playHomeworkTeacherAudio(text){
