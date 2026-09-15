@@ -1743,7 +1743,13 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
     );
 
     if(finalAnswerAccepted){
-      const completedQuestion = setHomeworkQuestionAnswered(String(messageText || "").trim());
+      window.HOMEWORK_PRODUCTION_ADVANCE_AUTHORIZED = true;
+      let completedQuestion = null;
+      try{
+        completedQuestion = setHomeworkQuestionAnswered(String(messageText || "").trim());
+      }finally{
+        window.HOMEWORK_PRODUCTION_ADVANCE_AUTHORIZED = false;
+      }
       if(completedQuestion?.answer && typeof window.writeHomeworkNotebookAnswer === "function"){
         await window.writeHomeworkNotebookAnswer(
           completedQuestion.number,
@@ -2079,6 +2085,7 @@ ${analysis.extracted_text || ""}
     window.CURRENT_HOMEWORK_QUESTION_INDEX = 0;
     window.CURRENT_HOMEWORK_ANSWERED_QUESTIONS = [];
     window.HOMEWORK_STRUCTURED_ACTIVE = false;
+    window.HOMEWORK_PRODUCTION_ADVANCE_AUTHORIZED = false;
 
     if(analysis){
       analysis.questions = parsed.map(item => ({
@@ -2108,6 +2115,14 @@ ${analysis.extracted_text || ""}
   }
 
   function setHomeworkQuestionAnswered(answerText){
+    if(
+      window.HOMEWORK_PRODUCTION_COACH_MODE === true
+      && window.HOMEWORK_PRODUCTION_ADVANCE_AUTHORIZED !== true
+    ){
+      console.warn("HOMEWORK QUESTION ADVANCE BLOCKED: production coach owns progression");
+      return null;
+    }
+
     const current = getCurrentHomeworkQuestion();
     if(!current) return null;
 
