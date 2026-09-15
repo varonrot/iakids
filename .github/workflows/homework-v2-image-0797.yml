@@ -1,0 +1,36 @@
+name: Homework V2 multimodal 0.7.97
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/homework-v2-image-0797.py'
+      - '.github/workflows/homework-v2-image-0797.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Add worksheet image to Homework V2
+        run: python .github/scripts/homework-v2-image-0797.py
+      - name: Compile backend
+        run: python -m py_compile backend-ai-tutor-he/main.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/lesson-completion-core.js he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Send worksheet image to Homework V2; bump to 0.7.97"
+          git push origin main
