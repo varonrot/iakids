@@ -633,6 +633,9 @@ ai_costs = AICostTracker(
     openrouter_base_url=OPENROUTER_BASE_URL,
 )
 ai_costs.install(openai_clients=[client, aclient], gemini_client=gemini_client)
+import uuid
+import media_trace
+media_trace.install_print_prefix()   # every print() -> "HH:MM:SS.mmm [T+.. req/job lesson part]" prefix
 
 
 def ai_context(purpose: str, user=None, payload=None, **more):
@@ -656,6 +659,16 @@ app = FastAPI(
     redoc_url=None if IS_PROD else "/redoc",
     openapi_url=None if IS_PROD else "/openapi.json",
 )
+
+@app.middleware("http")
+async def _media_trace_request(request, call_next):
+    """T+0 for every request so every print in it reads as a timeline; lesson/kid are added by the routes."""
+    media_trace.trace_begin(req=uuid.uuid4().hex[:8], path=request.url.path)
+    t = time.perf_counter()
+    response = await call_next(request)
+    if request.url.path.startswith("/api/tutor/unit-lesson") or request.url.path.startswith("/api/tutor/tts"):
+        print("REQUEST DONE", {"path": request.url.path, "status": response.status_code, "took_s": round(time.perf_counter() - t, 1)})
+    return response
 
 # =====================================================
 # CORS
@@ -9361,6 +9374,7 @@ def generate_all_lesson_visuals_background(
             if not part_visuals:
                 continue
 
+            media_trace.trace_set(part=part_number)
             print(
                 "LESSON PART VISUAL GENERATION START:",
                 {
@@ -9655,7 +9669,8 @@ def generate_unit_lesson_media_background(
                 create_lesson_media_signed_url(hero_path)
                 print("LESSON HERO ALREADY STORED:", {"unit_lesson_id": unit_lesson_id})
             except Exception:
-                generate_and_store_lesson_hero_image(unit_lesson_id)
+                with media_trace.stage("hero"):
+                    generate_and_store_lesson_hero_image(unit_lesson_id)
     except Exception as hero_error:
         print(
             "LESSON HERO FIRST FAILED (continuing with audio/visuals):",
@@ -9671,11 +9686,13 @@ def generate_unit_lesson_media_background(
         # =============================================
 
         audio_future = executor.submit(run_in_context(
+            media_trace.staged, "audio",
             generate_unit_lesson_audio_background,
             unit_lesson_id
         ))
 
         visuals_future = executor.submit(run_in_context(
+            media_trace.staged, "visuals",
             generate_all_lesson_visuals_background,
             unit_lesson_id
         ))
@@ -9712,9 +9729,10 @@ def generate_unit_lesson_media_background(
 
         try:
 
-            generate_transition_video_background(
-                unit_lesson_id
-            )
+            with media_trace.stage("transition_video"):
+                generate_transition_video_background(
+                    unit_lesson_id
+                )
 
         except Exception as e:
 
@@ -12202,6 +12220,7 @@ async def get_or_generate_unit_lesson(
             authorization
         )))
         ai_context("lesson", user, body)
+        media_trace.trace_set(lesson=body.unit_lesson_id, kid=body.kid_id)
 
         if not body.kid_id:
             raise HTTPException(
@@ -12837,6 +12856,7 @@ async def get_or_generate_unit_lesson(
                         )
                     )))
 
+                    media_trace.waiting("audio HIT", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
                     print(
                         "UNIT LESSON AUDIO CACHE HIT:",
                         {
@@ -12847,6 +12867,7 @@ async def get_or_generate_unit_lesson(
 
                 except Exception as audio_cache_error:
 
+                    media_trace.waiting("audio MISS -> repair queued", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
                     print(
                         "UNIT LESSON AUDIO CACHE MISS:",
                         {
@@ -13237,6 +13258,7 @@ async def get_or_generate_unit_lesson(
         # OPENAI
         # =============================================
 
+        _t_p1 = media_trace.mark_start("text_part1_teacher", model=UNIVERSAL_LESSON_MODEL)
         completion = (await (
             aclient.beta.chat.completions.parse(
 
@@ -13278,6 +13300,7 @@ async def get_or_generate_unit_lesson(
             )
         ))
 
+        media_trace.mark_done("text_part1_teacher", _t_p1)
         lesson_data = (
             completion
             .choices[0]
@@ -13318,6 +13341,7 @@ async def get_or_generate_unit_lesson(
         # the explanation is the user message and is
         # also injected into the prompt ({lesson_text}).
         # =============================================
+        _t_dir1 = media_trace.mark_start("text_part1_director")
         part_1, director_completion = (
             await direct_lesson_part(
                 explanation=part_1_explanation,
@@ -13326,6 +13350,7 @@ async def get_or_generate_unit_lesson(
                 unit_lesson_id=unit_lesson["id"]
             )
         )
+        media_trace.mark_done("text_part1_director", _t_dir1)
         generated_parts_context = [
             {
                 "part_number": 1,
@@ -13367,6 +13392,7 @@ async def get_or_generate_unit_lesson(
                 )
             )
 
+            _t_exp = media_trace.mark_start(f"text_part{part_number}_teacher", model=UNIVERSAL_LESSON_MODEL)
             expansion_completion = (await (
                 aclient.beta.chat.completions.parse(
 
@@ -13399,6 +13425,7 @@ async def get_or_generate_unit_lesson(
                 )
             ))
 
+            media_trace.mark_done(f"text_part{part_number}_teacher", _t_exp)
             expansion_data = (
                 expansion_completion
                 .choices[0]
@@ -13444,6 +13471,7 @@ async def get_or_generate_unit_lesson(
                     )
                 )
 
+            _t_dir = media_trace.mark_start(f"text_part{part_number}_director")
             directed_part, expansion_director_completion = (
                 await direct_lesson_part(
                     explanation=expansion_explanation,
@@ -13453,6 +13481,7 @@ async def get_or_generate_unit_lesson(
                 )
             )
 
+            media_trace.mark_done(f"text_part{part_number}_director", _t_dir)
             generated_parts.append(
                 {
                     "part_number":
@@ -13587,6 +13616,7 @@ async def get_or_generate_unit_lesson(
             }
         )
 
+        _t_vd = media_trace.mark_start("visual_director", model=DEFAULT_OPENAI_MODEL)
         visual_director_completion = (await (
             aclient.beta.chat.completions.parse(
 
@@ -13620,6 +13650,7 @@ async def get_or_generate_unit_lesson(
             )
         ))
 
+        media_trace.mark_done("visual_director", _t_vd)
         visual_director_data = (
             visual_director_completion
             .choices[0]
@@ -13886,6 +13917,7 @@ async def get_or_generate_unit_lesson(
                 )
             }
         )
+        _t_enq = media_trace.mark_start("enqueue_media_job", lesson=unit_lesson["id"])
         await run_in_threadpool(lambda: dispatch_media_job(
             background_tasks,
             job_type="unit_lesson_media",
@@ -13894,6 +13926,8 @@ async def get_or_generate_unit_lesson(
             inline_fn=generate_unit_lesson_media_background,
             inline_args=(unit_lesson["id"],)
         ))
+        media_trace.mark_done("enqueue_media_job", _t_enq)
+        media_trace.summary("STAGE SUMMARY (unit-lesson text generated; media queued)", lesson=unit_lesson["id"], parts=len(generated_parts))
 
         # =============================================
         # RESPONSE
@@ -14488,6 +14522,7 @@ async def get_or_generate_unit_lesson_hero_image(
 
         if signed_url:
 
+            media_trace.waiting("hero HIT", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
             print(
                 "LESSON HERO CACHE HIT:",
                 {
@@ -14517,6 +14552,7 @@ async def get_or_generate_unit_lesson_hero_image(
         # CACHE MISS
         # =============================================
 
+        media_trace.waiting("hero MISS -> generating now", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
         print(
             "LESSON HERO CACHE MISS:",
             {
@@ -14806,6 +14842,7 @@ def get_unit_lesson_visuals(
         # RESPONSE
         # =============================================
 
+        media_trace.waiting("visuals", lesson=unit_lesson["id"], planned=len(planned_visuals), lesson_age_s=media_trace.lesson_age_s(unit_lesson))
         print(
             "LESSON VISUALS RESPONSE:",
             {

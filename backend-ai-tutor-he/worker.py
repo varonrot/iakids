@@ -52,6 +52,8 @@ for _stream in (sys.stdout, sys.stderr):
     except Exception:
         pass
 import main as tutor  # noqa: E402
+import media_trace
+media_trace.install_print_prefix()   # every print() -> timestamp + T+elapsed + job/lesson context
 
 CONCURRENCY = max(1, int(os.getenv("WORKER_CONCURRENCY", "2")))
 POLL_SECONDS = max(1.0, float(os.getenv("WORKER_POLL_SECONDS", "3")))
@@ -148,6 +150,7 @@ def run_job(job: dict):
         kid_id=payload.get("kid_id"), user_id=payload.get("user_id"),
         unit_lesson_id=payload.get("unit_lesson_id"), job_id=job_id,
     )
+    media_trace.trace_begin(job=job_id, lesson=payload.get("unit_lesson_id"), kid=payload.get("kid_id"))
     _log("start", job_id=job_id, job_type=job_type, attempt=job.get("attempts"), payload=payload,
          rss_mb=rss_start, mem_available_mb=_mem_available())
 
@@ -161,6 +164,8 @@ def run_job(job: dict):
         done.set()
         m = metrics()
         _state["running"] -= 1
+        stages = media_trace.summary("STAGE SUMMARY (job ok)") or {}
+        m["stages"] = stages
         finish(job_id, ok=True, metrics=m)
         _log("done", job_id=job_id, job_type=job_type, **m)
     except Exception as e:
@@ -168,6 +173,7 @@ def run_job(job: dict):
         m = metrics()
         _state["running"] -= 1
         err = f"{type(e).__name__}: {e}\n{traceback.format_exc()[-3000:]}"
+        media_trace.summary("STAGE SUMMARY (job failed)")
         _log("failed", job_id=job_id, job_type=job_type, error=f"{type(e).__name__}: {e}", **m)
         try:
             finish(job_id, ok=False, error=err, metrics=m)
