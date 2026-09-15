@@ -43,11 +43,15 @@ if not m:
     raise SystemExit('homework_coach system_prompt block not found')
 backend = backend[:m.start()] + m.group(1) + new_prompt + m.group(3) + backend[m.end():]
 
-old_start = 'תלמדי אותי לענות על השאלה הזאת כמו מורה פרטית. קודם תסבירי בקצרה מה אנחנו מחפשים ואיפה כדאי לחפש בטקסט. אחר כך תתחילי איתי בצעד הראשון. בכל המשך תשמרי את מה שכבר מצאתי ותשאלי רק על מה שחסר. כשכבר יש לי מספיק מידע, תבקשי ממני לנסח את התשובה בעצמי.'
-new_start = 'תלמדי אותי לפתור את השאלה הזאת כמו מורה פרטית. קודם תסבירי לי בקצרה מה השאלה מבקשת ואיך ניגשים אליה. אחר כך תני לי רק את הצעד הראשון, הסבירי מה עושים בו ולמה, ושאלי אותי שאלה קצרה אחת. בכל המשך תשמרי את מה שכבר עשיתי ותעזרי לי להתקדם צעד אחד בכל פעם עד שאוכל לענות בעצמי.'
-if old_start not in backend:
-    raise SystemExit('homework_coach startup instruction not found')
-backend = backend.replace(old_start, new_start, 1)
+startup_pattern = re.compile(
+    r'(else:\n\s*messages\.append\(\{"role":"user","content":")(.*?)("\}\)\n\n\s*response = \(await aclient\.chat\.completions\.create\()',
+    re.S,
+)
+startup_text = 'תלמדי אותי לפתור את השאלה הזאת כמו מורה פרטית. קודם תסבירי לי בקצרה מה השאלה מבקשת ואיך ניגשים אליה. אחר כך תני לי רק את הצעד הראשון, הסבירי מה עושים בו ולמה, ושאלי אותי שאלה קצרה אחת. בכל המשך תשמרי את מה שכבר עשיתי ותעזרי לי להתקדם צעד אחד בכל פעם עד שאוכל לענות בעצמי.'
+sm = startup_pattern.search(backend)
+if not sm:
+    raise SystemExit('homework_coach startup instruction block not found')
+backend = backend[:sm.start()] + sm.group(1) + startup_text + sm.group(3) + backend[sm.end():]
 
 loader = re.sub(r'window\.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0\.7\.\d+";', 'window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.95";', loader, count=1)
 loader = re.sub(r'lesson-completion-core\.js\?v=\d+', 'lesson-completion-core.js?v=0795', loader, count=1)
