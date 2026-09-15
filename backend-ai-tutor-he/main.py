@@ -605,6 +605,12 @@ class TutorTTSRequest(BaseModel):
     session_id: str | None = None
 
 
+class OpenAICleanChatRequest(BaseModel):
+    message: str = ""
+    image_url: str = ""
+    history: list = []
+
+
 class HomeworkCoachRequest(BaseModel):
     image_url: str = ""
     kid_id: str
@@ -19501,6 +19507,47 @@ class HomeworkTurnEvaluation(BaseModel):
     answer_sufficient: bool
     feedback: str
     teacher_response: str
+
+
+@app.post("/api/tutor/openai-clean-chat")
+async def openai_clean_chat(
+        req: OpenAICleanChatRequest,
+        authorization: str = Header(None)
+):
+    authenticate_user(authorization)
+
+    system_prompt = (
+        "את מורה פרטית מצוינת לילדים. "
+        "עזרי לילד להבין ולפתור את המשימה בעצמו. "
+        "הסבירי בפשטות, שלב אחרי שלב, ואל תתני את התשובה הסופית מיד. "
+        "אם הילד העלה תמונה, קראי אותה בעצמך והשתמשי בה כמקור הראשי. "
+        "התנהגי כמו מורה פרטית טבעית וחכמה, לא כמו שאלון."
+    )
+
+    messages=[{"role":"system","content":system_prompt}]
+    for item in (req.history or [])[-16:]:
+        role=str(item.get("role") or "")
+        content=str(item.get("content") or "").strip()
+        if role in ("user","assistant") and content:
+            messages.append({"role":role,"content":content})
+
+    user_parts=[]
+    if str(req.message or "").strip():
+        user_parts.append({"type":"text","text":str(req.message).strip()})
+    elif req.image_url:
+        user_parts.append({"type":"text","text":"תסתכלי על דף העבודה ותעזרי לי להבין איך לפתור אותו שלב אחרי שלב."})
+    if str(req.image_url or "").strip():
+        user_parts.append({"type":"image_url","image_url":{"url":str(req.image_url).strip(),"detail":"high"}})
+    if not user_parts:
+        user_parts.append({"type":"text","text":"היי"})
+    messages.append({"role":"user","content":user_parts})
+
+    response=await aclient.chat.completions.create(
+        model="gpt-5.6-sol",
+        messages=messages
+    )
+    text=str(response.choices[0].message.content or "").strip()
+    return {"reply":text,"model":"gpt-5.6-sol","openai_only":True}
 
 
 @app.post("/api/tutor/homework-coach-v2")
