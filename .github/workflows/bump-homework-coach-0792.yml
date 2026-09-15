@@ -1,0 +1,34 @@
+name: Bump homework coach frontend 0.7.92
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/bump-homework-coach-0792.py'
+      - '.github/workflows/bump-homework-coach-0792.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Bump frontend version and cache keys
+        run: python .github/scripts/bump-homework-coach-0792.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/lesson-completion.js he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Bump homework coach frontend to 0.7.92"
+          git push origin main
