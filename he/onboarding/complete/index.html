@@ -384,6 +384,11 @@ const sb = supabase.createClient(
     );
 
 
+  const gender =
+    sessionStorage.getItem(
+      "child_gender"
+    ) || null;
+
   const learning_interests =
     JSON.parse(
       sessionStorage.getItem(
@@ -415,7 +420,8 @@ const { data: newKid, error } =
       age,
       avatar_key,
       usage_goals,
-      learning_interests
+      learning_interests,
+      gender
     })
     .select()
     .single();

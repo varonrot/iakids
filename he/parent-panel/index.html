@@ -555,6 +555,14 @@ button{cursor:pointer}
           <option value="6">כיתה ו׳</option>
         </select>
       </div>
+      <div class="field">
+        <label>בן או בת</label>
+        <select id="editChildGender">
+          <option value="">בחרו</option>
+          <option value="male">בן</option>
+          <option value="female">בת</option>
+        </select>
+      </div>
     </div>
 
     <div style="margin-top:16px">
@@ -593,6 +601,14 @@ button{cursor:pointer}
           <option value="4">כיתה ד׳</option>
           <option value="5">כיתה ה׳</option>
           <option value="6">כיתה ו׳</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>בן או בת</label>
+        <select id="addChildGender">
+          <option value="">בחרו</option>
+          <option value="male">בן</option>
+          <option value="female">בת</option>
         </select>
       </div>
     </div>
@@ -723,7 +739,7 @@ async function loadKids(){
 
   const {data,error}=await sb
     .from("kids_profiles")
-    .select("id,child_name,age,avatar_key,usage_goals,learning_interests,created_at")
+    .select("id,child_name,age,avatar_key,gender,usage_goals,learning_interests,created_at")
     .eq("user_id",CURRENT_USER.id)
     .order("created_at",{ascending:true});
 
@@ -1084,6 +1100,7 @@ function openEditModal(){
 
   byId("editChildName").value=EDITING_KID.child_name||"";
   byId("editChildGrade").value=String(EDITING_KID.age||"");
+  byId("editChildGender").value=EDITING_KID.gender||"";
   byId("editAvatarKey").value=EDITING_KID.avatar_key||"cat";
 
   const grid=byId("editAvatarGrid");
@@ -1122,15 +1139,18 @@ byId("saveEditBtn").onclick=async()=>{
   const child_name=byId("editChildName").value.trim();
   const age=Number(byId("editChildGrade").value);
   const avatar_key=byId("editAvatarKey").value;
-
+  const gender=byId("editChildGender").value;
   if(!child_name||!age){
     alert("יש למלא שם וכיתה");
     return;
   }
-
+  if(!gender){
+    alert("יש לבחור בן או בת, כדי שהמורה תפנה נכון");
+    return;
+  }
   const {error}=await sb
     .from("kids_profiles")
-    .update({child_name,age,avatar_key})
+    .update({child_name,age,avatar_key,gender})
     .eq("id",EDITING_KID.id)
     .eq("user_id",CURRENT_USER.id);
 
@@ -1146,6 +1166,7 @@ byId("saveEditBtn").onclick=async()=>{
 function openAddModal(){
   byId("addChildName").value="";
   byId("addChildGrade").value="";
+  byId("addChildGender").value="";
   byId("addModal").style.display="flex";
 }
 
@@ -1159,18 +1180,22 @@ byId("createKidBtn").onclick=async()=>{
 
   const child_name=byId("addChildName").value.trim();
   const age=Number(byId("addChildGrade").value);
-
+  const gender=byId("addChildGender").value;
   if(!child_name||!age){
     alert("יש להזין שם ולבחור כיתה");
     return;
   }
-
+  if(!gender){
+    alert("יש לבחור בן או בת, כדי שהמורה תפנה נכון");
+    return;
+  }
   const {data,error}=await sb
     .from("kids_profiles")
     .insert({
       user_id:CURRENT_USER.id,
       child_name,
       age,
+      gender,
       avatar_key:"cat"
     })
     .select()

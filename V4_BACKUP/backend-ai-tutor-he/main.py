@@ -1951,40 +1951,6 @@ def update_custom_curriculum(
 
     return updated_curriculum
 
-def hebrew_gender_rule(child: dict) -> tuple[str, str]:
-    """('female'|'male'|'unknown', instruction for the model) — the ONE place that decides
-    how the child is addressed in Hebrew. Every child-facing prompt uses it (2026-09-15)."""
-    raw = str((child or {}).get("gender") or "").strip().lower()
-    if raw in ("female", "f", "girl", "נקבה", "בת"):
-        gender = "female"
-    elif raw in ("male", "m", "boy", "זכר", "בן"):
-        gender = "male"
-    else:
-        gender = "unknown"
-    if gender == "female":
-        rule = (
-            "The child is a GIRL. Every Hebrew verb, adjective and pronoun that refers to her "
-            "must be FEMININE SINGULAR (את, תרצי, נסי, חשבי, כתבי, תסתכלי, הצלחת, מוכנה, יודעת, "
-            "בטוחה). Never use masculine forms."
-        )
-    elif gender == "male":
-        rule = (
-            "The child is a BOY. Every Hebrew verb, adjective and pronoun that refers to him "
-            "must be MASCULINE SINGULAR (אתה, תרצה, נסה, חשוב, כתוב, תסתכל, הצלחת, מוכן, יודע, "
-            "בטוח). Never use feminine forms."
-        )
-    else:
-        rule = (
-            "The child's gender is UNKNOWN. Do NOT guess it from the name. Write Hebrew that is "
-            "correct for both: plural imperatives (בואו ננסה, תסתכלו, נבדוק יחד), 'אפשר ל...' "
-            "constructions (אפשר לנסות?), questions without a second-person verb (מה דעתך? מה "
-            "מצאת?), and shared past-tense forms (הצלחת, מצאת, ראית). Never write slash forms "
-            "like נסה/י or מוכן/ה: the text is read aloud."
-        )
-        print("CHILD GENDER UNKNOWN (neutral Hebrew):", {"kid_id": (child or {}).get("id"), "child_name": (child or {}).get("child_name")})
-    return gender, rule
-
-
 def get_gender_placeholders(
         child: dict
 ) -> dict:
@@ -5000,8 +4966,23 @@ def build_tutor_prompt(child: dict, kids_memory: str) -> str:
     for placeholder, value in replacements.items():
         prompt = prompt.replace(placeholder, value)
 
-    child_gender, gender_instruction = hebrew_gender_rule(child)
+    child_gender = str(child.get("gender") or "unknown").strip().lower()
     child_name = str(child.get("child_name") or "").strip()
+
+    if child_gender == "female":
+        gender_instruction = (
+            "The child is female. In Hebrew ALWAYS address her in feminine singular "
+            "forms (את, תרצי, נסי, כתבי, חשבי, הצלחת). Never use masculine forms."
+        )
+    elif child_gender == "male":
+        gender_instruction = (
+            "The child is male. In Hebrew address him in masculine singular forms."
+        )
+    else:
+        gender_instruction = (
+            "The child's gender is unknown. Avoid gendered Hebrew wording where possible; "
+            "do not infer gender from the child's name."
+        )
 
     prompt += (
         "\n\nAUTHORITATIVE_CHILD_PROFILE:\n"
@@ -5058,8 +5039,6 @@ def build_structured_lesson_prompt(
                 child.get(
                     "avatar_key"
                 ),
-            "gender":
-                hebrew_gender_rule(child)[0],
 
             "learning_interests":
                 child.get(
@@ -5188,11 +5167,13 @@ def build_structured_lesson_prompt(
             +
 
             json.dumps(
+
                 runtime_context,
+
                 ensure_ascii=False
+
             )
-            + "\n\nADDRESSING THE CHILD (Hebrew grammar, mandatory):\n"
-            + hebrew_gender_rule(child)[1]
+
     )
 
 def build_universal_unit_lesson_prompt(
@@ -5488,22 +5469,6 @@ def fallback_lesson_segments(explanation_text: str) -> list:
     return [{"text": s} for s in out] or [{"text": text}]
 
 
-_GENDERED_2ND_PERSON = re.compile(
-    r"(?<![\w\u0590-\u05FF])(אתה|שלך|שלךְ|תוכל|תוכלי|נסי|חשבי|כתבי|תארי|הסבירי|תנסה|תנסי|תחשוב|תחשבי|"
-    r"תסתכל|תסתכלי|תזכור|תזכרי|תוכלו?\s+לבד|בעצמך|מוכנה|מוכן\?)(?![\w\u0590-\u05FF])"
-)
-
-
-def warn_if_gendered_lesson_text(text: str, label: str, unit_lesson_id=None):
-    """A shared lesson must not address one child in masculine/feminine singular.
-    Conservative word list (no 'את' — it is also the object marker); logs only."""
-    hits = _GENDERED_2ND_PERSON.findall(str(text or ""))
-    if hits:
-        print("LESSON TEXT GENDERED 2ND PERSON (shared lesson should be neutral):",
-              {"unit_lesson_id": unit_lesson_id, "where": label, "hits": hits[:6]})
-    return hits
-
-
 async def direct_lesson_part(
         explanation: str,
         question: str,
@@ -5517,8 +5482,6 @@ async def direct_lesson_part(
     """
     explanation = str(explanation or "").strip()
     question = str(question or "").strip()
-    warn_if_gendered_lesson_text(explanation, f"part{part_number}.explanation", unit_lesson_id)
-    warn_if_gendered_lesson_text(question, f"part{part_number}.question", unit_lesson_id)
     system_prompt = build_lesson_director_prompt(
         lesson_text=explanation
     )
@@ -20499,9 +20462,7 @@ async def homework_coach(
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
     grade = child.get("grade") if isinstance(child, dict) else None
 
-    _hw_gender, _hw_gender_rule = hebrew_gender_rule(child)
     system_prompt = (
-        f"CHILD GENDER: {_hw_gender}. {_hw_gender_rule}\n\n"
         "את מורה פרטית מצוינת לילדים. המטרה שלך היא ללמד את הילד להבין ולפתור את שיעורי הבית בעצמו, בכל מקצוע ובכל סוג משימה. "
         "קודם הביני בשקט מה סוג המשימה: מתמטיקה, הבנת הנקרא, כתיבה, שפה, אנגלית, מדעים, גאוגרפיה, היסטוריה או תחום אחר; ומה בדיוק השאלה מבקשת. אל תציגי לילד ניתוח פנימי או סיווגים. "
         "יש בכל רגע שאלה פעילה אחת בלבד: השאלה שנשלחה בשדה השאלה הפעילה. אסור לעבור לשאלה אחרת, גם אם חומר המקור כולל שאלות נוספות. "
@@ -20565,7 +20526,14 @@ async def homework_turn(
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
 
     child_name = str(child.get("child_name") or "").strip()
-    gender, gender_rule = hebrew_gender_rule(child)
+    gender = str(child.get("gender") or "unknown").strip().lower()
+
+    if gender == "female":
+        gender_rule = "Address the child in Hebrew feminine singular only."
+    elif gender == "male":
+        gender_rule = "Address the child in Hebrew masculine singular only."
+    else:
+        gender_rule = "Avoid gendered Hebrew phrasing when possible."
 
     normalized_answer = " ".join(str(req.answer or "").strip().lower().split())
     uncertainty_phrases = {

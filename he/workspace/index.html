@@ -15695,6 +15695,36 @@ data-custom-slot="0"
 
   </div>
 </div>
+<!-- מגדר הילד: נשאל פעם אחת אם חסר, כדי שהמורה תפנה בלשון נכונה (2026-09-15) -->
+<div class="modal-overlay" id="kidGenderModal" style="display:none;z-index:100000"><div class="modal kid-gender-modal" style="max-width:420px;text-align:center"><h2 style="margin:0 0 8px">עוד פרט קטן לפני שמתחילים</h2><p style="margin:0 0 18px;font-size:15px"><b id="kidGenderName"></b> הוא בן או בת? כך המורה תדבר נכון.</p><div style="display:flex;gap:14px;justify-content:center"><button type="button" class="kid-gender-btn" data-gender="male" style="flex:1;padding:16px 10px;border-radius:14px;border:2px solid rgba(90,140,220,.45);background:rgba(74,163,255,.12);color:inherit;font:inherit;font-weight:900;font-size:18px;cursor:pointer">👦 בן</button><button type="button" class="kid-gender-btn" data-gender="female" style="flex:1;padding:16px 10px;border-radius:14px;border:2px solid rgba(90,140,220,.45);background:rgba(74,163,255,.12);color:inherit;font:inherit;font-weight:900;font-size:18px;cursor:pointer">👧 בת</button></div></div></div>
+<script>
+async function maybeAskKidGender(kid){
+  try{
+    if(!kid || kid.gender === "male" || kid.gender === "female") return;
+    const overlay = document.getElementById("kidGenderModal");
+    if(!overlay) return;
+    overlay.querySelector("#kidGenderName").textContent = kid.child_name || "";
+    overlay.style.display = "flex";
+    overlay.querySelectorAll(".kid-gender-btn").forEach(btn => {
+      btn.onclick = async () => {
+        const gender = btn.dataset.gender;
+        btn.disabled = true;
+        const { error } = await sb.from("kids_profiles").update({ gender }).eq("id", kid.id);
+        if(error){
+          console.error("KID GENDER SAVE FAILED:", error);
+          btn.disabled = false;
+          alert("לא הצלחנו לשמור, נסו שוב");
+          return;
+        }
+        kid.gender = gender;
+        if(window.CURRENT_KID) window.CURRENT_KID.gender = gender;
+        overlay.style.display = "none";
+        console.log("KID GENDER SAVED:", { kid_id: kid.id, gender });
+      };
+    });
+  }catch(e){ console.warn("maybeAskKidGender failed", e); }
+}
+</script>
 <div class="modal-overlay" id="quotaModal"><div class="modal"><h2>נגמרה מכסת השאלות</h2><p>כדי להמשיך להשתמש במערכת, יש להפעיל גישה מלאה.</p><div class="modal-actions"><button onclick="closeQuotaModal()">סגירה</button><button class="save" onclick="goToUpgrade()">שדרוג</button></div></div></div>
 
 <div class="modal-overlay" id="settingsModal">
@@ -24526,18 +24556,19 @@ const { data: kid, error } = await sb
     child_name,
     age,
     avatar_key,
+    gender,
     usage_goals,
     learning_interests
   `)
   .eq("id", activeKidId)
   .single();
 
-
   if (error || !kid) {
     console.error("kids_profiles error:", error);
     return;
   }
 CURRENT_KID = kid;
+maybeAskKidGender(kid);
 
 /* הערך שנשמר בפרופיל הוא כבר הכיתה: 1-6 */
 CURRENT_KID.grade = Number(kid.age);
@@ -53597,8 +53628,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.104</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.104";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.105</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.105";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -55080,5 +55111,5 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07104"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07105"></script>
 </body></html>

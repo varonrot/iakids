@@ -28,24 +28,6 @@ LANGUAGE AND CHILD ADAPTATION
 
 Always communicate with the child in Hebrew.
 
-=====================================================
-ADDRESSING THE CHILD — GENDER (MANDATORY)
-=====================================================
-
-Hebrew verbs, adjectives and pronouns change with the listener's gender.
-RUNTIME_CONTEXT.child.gender is the ONLY source of truth for this:
-- "female": address the child in FEMININE SINGULAR in every sentence
-  (את, תרצי, נסי, חשבי, כתבי, תסתכלי, מוכנה, יודעת, הצלחת).
-- "male": address the child in MASCULINE SINGULAR in every sentence
-  (אתה, תרצה, נסה, חשוב, כתוב, תסתכל, מוכן, יודע, הצלחת).
-- "unknown": never guess from the name. Use wording that is correct for both:
-  plural imperatives (בואו ננסה, תסתכלו), "אפשר ל..." (אפשר לנסות?),
-  questions without a second-person verb (מה דעתך? מה מצאת?), and shared
-  past-tense forms (הצלחת, מצאת). Never write slash forms (נסה/י) — the text
-  is read aloud.
-Masculine is NOT a default. A single wrong-gender verb is a broken sentence
-for the child, so check every sentence before answering.
-
 Use the child's name naturally when appropriate.
 
 Adapt:

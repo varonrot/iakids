@@ -398,6 +398,13 @@ input:focus{
     var(--focus);
 }
 
+.gender-label{margin-top:14px}
+.gender-row{display:flex;gap:12px;margin:8px 0 6px}
+.gender-btn{flex:1;padding:14px 10px;border-radius:14px;border:2px solid rgba(90,140,220,.35);background:rgba(255,255,255,.06);color:inherit;font:inherit;font-weight:800;font-size:17px;cursor:pointer;transition:.15s}
+.gender-btn:hover{border-color:rgba(90,160,255,.8)}
+.gender-btn.active{border-color:#4aa3ff;background:rgba(74,163,255,.18);box-shadow:0 0 0 3px rgba(74,163,255,.18)}
+.gender-row.shake{animation:genderShake .35s}
+@keyframes genderShake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .btn{
   width:100%;
 
@@ -604,6 +611,11 @@ input:focus{
       placeholder="הקלידו את השם"
       autocomplete="off"
     >
+    <p class="label gender-label">בן או בת?</p>
+    <div class="gender-row" id="genderRow">
+      <button type="button" class="gender-btn" data-gender="male">👦 בן</button>
+      <button type="button" class="gender-btn" data-gender="female">👧 בת</button>
+    </div>
 
 
     <button
@@ -755,21 +767,36 @@ const btn =
   );
 
 
+let selectedGender =
+  sessionStorage.getItem("child_gender") || "";
+const genderRow =
+  document.getElementById("genderRow");
+genderRow.querySelectorAll(".gender-btn").forEach(btn => {
+  if(btn.dataset.gender === selectedGender) btn.classList.add("active");
+  btn.addEventListener("click", () => {
+    selectedGender = btn.dataset.gender;
+    genderRow.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
+    genderRow.classList.remove("shake");
+  });
+});
 function goNext(){
-
   const name =
     input.value.trim();
-
-
   if(!name){
-
     input.focus();
-
     return;
-
   }
-
-
+  if(!selectedGender){
+    /* המורה חייבת לדעת אם לפנות בלשון זכר או נקבה */
+    genderRow.classList.remove("shake");
+    void genderRow.offsetWidth;
+    genderRow.classList.add("shake");
+    return;
+  }
+  sessionStorage.setItem(
+    "child_gender",
+    selectedGender
+  );
   sessionStorage.setItem(
     "child_name",
     name

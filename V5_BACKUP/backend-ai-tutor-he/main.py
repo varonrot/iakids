@@ -5488,22 +5488,6 @@ def fallback_lesson_segments(explanation_text: str) -> list:
     return [{"text": s} for s in out] or [{"text": text}]
 
 
-_GENDERED_2ND_PERSON = re.compile(
-    r"(?<![\w\u0590-\u05FF])(אתה|שלך|שלךְ|תוכל|תוכלי|נסי|חשבי|כתבי|תארי|הסבירי|תנסה|תנסי|תחשוב|תחשבי|"
-    r"תסתכל|תסתכלי|תזכור|תזכרי|תוכלו?\s+לבד|בעצמך|מוכנה|מוכן\?)(?![\w\u0590-\u05FF])"
-)
-
-
-def warn_if_gendered_lesson_text(text: str, label: str, unit_lesson_id=None):
-    """A shared lesson must not address one child in masculine/feminine singular.
-    Conservative word list (no 'את' — it is also the object marker); logs only."""
-    hits = _GENDERED_2ND_PERSON.findall(str(text or ""))
-    if hits:
-        print("LESSON TEXT GENDERED 2ND PERSON (shared lesson should be neutral):",
-              {"unit_lesson_id": unit_lesson_id, "where": label, "hits": hits[:6]})
-    return hits
-
-
 async def direct_lesson_part(
         explanation: str,
         question: str,
@@ -5517,8 +5501,6 @@ async def direct_lesson_part(
     """
     explanation = str(explanation or "").strip()
     question = str(question or "").strip()
-    warn_if_gendered_lesson_text(explanation, f"part{part_number}.explanation", unit_lesson_id)
-    warn_if_gendered_lesson_text(question, f"part{part_number}.question", unit_lesson_id)
     system_prompt = build_lesson_director_prompt(
         lesson_text=explanation
     )
