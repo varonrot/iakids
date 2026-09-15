@@ -528,8 +528,6 @@ TTS_STYLE_PREFIX = os.getenv(
     "TTS_STYLE_PREFIX",
     "Speak in natural, fluent Hebrew. Sound like a warm, friendly and patient teacher "
     "speaking naturally to a school-age child. Use clear pronunciation and natural pauses. "
-    "Some words carry nikud (Hebrew vowel points) to remove ambiguity: pronounce those words "
-    "exactly as vocalized (for example \u05de\u05b4\u05d3\u05b0\u05d1\u05b8\u05bc\u05e8 is midbar, desert, not medaber). "
     "Read exactly the following Hebrew text:\n\n"
 )
 _OPENROUTER_HEADERS = {"HTTP-Referer": "https://iakids.app", "X-Title": "iakids tutor"}
@@ -555,87 +553,6 @@ UNIVERSAL_LESSON_MODEL = llm_model(UNIVERSAL_LESSON_MODEL)
 print(f"[config] AI_PROVIDER={AI_PROVIDER} TTS_PROVIDER={TTS_PROVIDER} chat={DEFAULT_OPENAI_MODEL} lesson={UNIVERSAL_LESSON_MODEL}")
 
 _openrouter_async_http = None
-
-
-# ---------------------------------------------------------------------------
-# TTS homographs (2026-09-15): unvocalized Hebrew is ambiguous — "מדבר" was read as
-# medaber (speaks) instead of midbar (desert). Vocalizing every segment would cost
-# a model call per segment, so only segments that contain a known homograph get
-# ONE small gpt-4o-mini call that adds nikud to THOSE words only. The answer is
-# accepted only if, with the nikud stripped, it is the original text word for word.
-# ---------------------------------------------------------------------------
-TTS_NIKUD = os.getenv("TTS_NIKUD", "1") == "1"
-NIKUD_MODEL = os.getenv("NIKUD_MODEL", "gpt-4o-mini")
-_TTS_HOMOGRAPHS = {
-    "מדבר", "ספר", "חלב", "שמן", "דבר", "עלה", "כתב", "גזר", "זרע", "מלח", "בקר", "ערב",
-    "פרח", "שבר", "פרה", "ילד", "לבן", "מטר", "סופר", "עצם", "מלך", "חבר", "אכל", "בשר",
-    "צמח", "גדל", "עבר", "עוף", "שוק", "קרן", "זכר", "חמה", "רעב", "שער", "פנה", "מנה",
-    "אמה", "עמד", "נשר", "כבש", "רצה", "בנה", "ראה", "שמר", "חלה", "עשה", "מסך", "קצר",
-    "חצי", "אבל",
-}
-_TTS_HOMOGRAPHS |= {w.strip() for w in os.getenv("TTS_HOMOGRAPHS", "").split(",") if w.strip()}
-_HEB_PREFIXES = ("וכש", "וש", "וב", "ול", "ומ", "וה", "וכ", "כש", "ש", "ה", "ב", "ל", "מ", "כ", "ו")
-_NIKUD_CHARS = re.compile(r"[֑-ׇ]")
-_HEB_WORD = re.compile(r"[א-ת]+")
-_NIKUD_CACHE: dict = {}
-
-
-def strip_nikud(text: str) -> str:
-    return _NIKUD_CHARS.sub("", str(text or ""))
-
-
-def tts_homographs_in(text: str) -> list:
-    """Words of `text` (with their prefix) whose base form is in the homograph list."""
-    found = []
-    for w in _HEB_WORD.findall(strip_nikud(text)):
-        if w in _TTS_HOMOGRAPHS:
-            found.append(w); continue
-        for pre in _HEB_PREFIXES:
-            if w.startswith(pre) and len(w) > len(pre) + 1 and w[len(pre):] in _TTS_HOMOGRAPHS:
-                found.append(w); break
-    return found
-
-
-def vocalize_for_tts(text: str) -> str:
-    """Return `text` with nikud on its ambiguous words only (or unchanged)."""
-    clean = str(text or "").strip()
-    if not TTS_NIKUD or not clean or _NIKUD_CHARS.search(clean):
-        return clean                                   # already vocalized (or disabled)
-    words = tts_homographs_in(clean)
-    if not words:
-        return clean                                   # nothing ambiguous: no model call, no cost
-    if clean in _NIKUD_CACHE:
-        return _NIKUD_CACHE[clean]
-    t0 = time.perf_counter()
-    try:
-        r = client.chat.completions.create(
-            model=llm_model(NIKUD_MODEL),
-            temperature=0,
-            messages=[
-                {"role": "system", "content": (
-                    "You add Hebrew nikud (vowel points) to specific words so a text-to-speech engine "
-                    "pronounces them correctly. Rules: return the ENTIRE input text unchanged, except that "
-                    "the listed words get full, correct nikud according to their meaning in context "
-                    "(e.g. מדבר = מִדְבָּר desert, or מְדַבֵּר speaks). Do not add nikud to other words. "
-                    "Do not change, add, remove or reorder any word or punctuation. Output the text only."
-                )},
-                {"role": "user", "content": "Words to vocalize: " + ", ".join(dict.fromkeys(words)) + "\n\nText:\n" + clean},
-            ],
-        )
-        out = str(r.choices[0].message.content or "").strip()
-        same = re.sub(r"\s+", " ", strip_nikud(out)) == re.sub(r"\s+", " ", clean)
-        if not same:
-            print("TTS NIKUD REJECTED (text changed):", {"words": words, "got": out[:120]})
-            out = clean
-        else:
-            print("TTS NIKUD:", {"words": words, "ms": round((time.perf_counter() - t0) * 1000), "text": out[:120]})
-    except Exception as e:
-        print("TTS NIKUD FAILED (reading unvocalized):", {"words": words, "error": repr(e)[:160]})
-        out = clean
-    if len(_NIKUD_CACHE) > 5000:
-        _NIKUD_CACHE.clear()
-    _NIKUD_CACHE[clean] = out
-    return out
 
 
 def _openrouter_tts_payload(text: str) -> dict:
@@ -10218,19 +10135,23 @@ def generate_tts_wav_bytes(
     # 429 RESOURCE_EXHAUSTED is the TTS model's per-minute quota (seen on lesson 5):
     # a short pause is useless there, so those wait 20/40/60 seconds instead.
     TTS_ATTEMPTS = int(os.getenv("TTS_ATTEMPTS", "4"))
-    spoken_text = vocalize_for_tts(clean_text)      # nikud on ambiguous words only
     response = None
     audio_data = None
     for attempt in range(1, TTS_ATTEMPTS + 1):
         try:
             if TTS_PROVIDER == "openrouter":
-                audio_data = openrouter_tts_pcm(spoken_text)
+                audio_data = openrouter_tts_pcm(clean_text)
                 break
             response = gemini_client.models.generate_content(
                 model="gemini-3.1-flash-tts-preview",
+
                 contents=(
-                    TTS_STYLE_PREFIX
-                    + spoken_text
+                    "Speak in natural, fluent Hebrew. "
+                    "Sound like a warm, friendly and patient teacher "
+                    "speaking naturally to a school-age child. "
+                    "Use clear pronunciation and natural pauses. "
+                    "Read exactly the following Hebrew text:\n\n"
+                    + clean_text
                 ),
 
                 config=types.GenerateContentConfig(
@@ -11219,15 +11140,20 @@ async def tutor_tts(
         try:
 
             audio_data_override = None
-            text = await run_in_threadpool(vocalize_for_tts, text)   # nikud on ambiguous words only
             if TTS_PROVIDER == "openrouter":
                 audio_data_override = await openrouter_tts_pcm_async(text)
                 response = None
             else:
               response = (await gemini_client.aio.models.generate_content(
                 model="gemini-3.1-flash-tts-preview",
+
                 contents=(
-                    TTS_STYLE_PREFIX
+                    "Speak in natural, fluent Hebrew. "
+                    "Sound like a warm, friendly and patient teacher "
+                    "speaking naturally to a school-age child. "
+                    "Use clear pronunciation, natural pauses, "
+                    "and an encouraging tone. "
+                    "Read exactly the following Hebrew text:\n\n"
                     + text
                 ),
 

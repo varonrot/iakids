@@ -48,7 +48,7 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 
 ## Backups
 
-- On "גיבוי"/"backup": run `bash .claude/skills/backup/backup.sh "<note>"` (project skill `backup`). It snapshots `backend/main.py`, `backend-ai-tutor-he/main.py` and every prompt file (root `iakids_*_prompt.txt`, `backend/prompts/`, `backend-ai-tutor-he/prompts/`) into the next `V<N>_BACKUP/` folder, verifies with `diff`, writes a README. Never overwrite an existing `V<N>_BACKUP`. Take one before touching `main.py` or a prompt.
+- Back up ONLY before changing a prompt file (or when the user says "גיבוי"): `bash .claude/skills/backup/backup.sh "<note>"` (project skill `backup`). Code-only changes to main.py do not need a backup. It snapshots `backend/main.py`, `backend-ai-tutor-he/main.py` and every prompt file (root `iakids_*_prompt.txt`, `backend/prompts/`, `backend-ai-tutor-he/prompts/`) into the next `V<N>_BACKUP/` folder, verifies with `diff`, writes a README. Never overwrite an existing `V<N>_BACKUP`. Take one before touching `main.py` or a prompt.
 
 ## Deleting / regenerating a lesson
 
