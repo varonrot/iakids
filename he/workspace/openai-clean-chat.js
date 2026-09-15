@@ -132,7 +132,12 @@
       const card=view.querySelector('.occ-image-card');
       card.innerHTML=`<img alt="דף העבודה">`;
       card.querySelector('img').src=imageDataUrl;
-      setStatus('התמונה מוכנה לשליחה ל-OpenAI');
+      const input=view.querySelector('textarea');
+      if(input && !String(input.value||'').trim()){
+        input.value='תסתכל על דף העבודה ותלמד אותי איך לפתור אותו שלב אחרי שלב. אל תיתן לי את התשובה מיד.';
+      }
+      setStatus('שולח את התמונה ל-OpenAI...');
+      await sendMessage();
     });
   };
 })();
