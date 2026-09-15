@@ -57,7 +57,9 @@ replacement = r'''  function buildHomeworkCoachSourceText(analysis, current){
 
   async function runHomeworkProductionCoach(messageText=""){'''
 
-core, count = pattern.subn(replacement, core, count=1)
+# Use a callable replacement so JavaScript backslashes are not interpreted
+# by Python's re.sub replacement-template parser.
+core, count = pattern.subn(lambda _m: replacement, core, count=1)
 if count != 1:
     raise SystemExit('Could not replace buildHomeworkCoachSourceText')
 
