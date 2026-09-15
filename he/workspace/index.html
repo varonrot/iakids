@@ -53628,8 +53628,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.106</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.106";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.107</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.107";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53998,8 +53998,8 @@ body.custom-subject-mode .science-tree-card.selected{
       const lessons = lessonRes.data || [];
       const homeworks = homeworkRes.error ? [] : (homeworkRes.data || []);
       const custom = customRes.error ? [] : (customRes.data || []);
-Warning: truncated output (original token count: 31206)
-Total output lines: 1232
+Warning: truncated output (original token count: 31222)
+Total output lines: 1235
 
 
       const completed = lessons.filter(r=>r.status==='completed').length;
@@ -54490,6 +54490,9 @@ document.addEventListener('click',function(event){const item=event.target?.close
      the duplicate right rail. The rail returns as soon as the dashboard closes. */
   @media (min-width:761px) and (max-width:1600px),
          (min-width:761px) and (max-height:800px){
+    .floating-tutor-robot{
+      display:none!important;
+    }
     .app:has(#iakidsLearningDashboard:not([hidden])){
       grid-template-columns:215px minmax(0,1fr)!important;
     }
@@ -54614,7 +54617,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
       const rows=units.map(x=>{const u=um.get(String(x.unit_lesson_id))||{},p=pm.get(String(x.learning_lesson_id))||{};return {...x,lesson_name:u.lesson_name||'שיעור',unit_name:u.unit_name||'',subject:p.subject||'למידה',category:p.category||'',parent_lesson:p.lesson_name||'',mastery:Number(x.best_mastery_score||x.mastery_score||0)}});
       const active=rows.find(x=>x.status==='in_progress')||rows.find(x=>x.status==='partial')||rows[0];
       const completed=rows.filter(x=>x.status==='completed').length, inProgress=rows.filter(x=>x.status==='in_progress'||x.status==='partial').length, hwActive=homeworks.filter(x=>x.status!=='completed').length, personalPending=customLessons.filter(x=>x.status!=='completed').length;
-      const regularHtml=rows.length?rows.slice(0,8).map(r=>`<div class="iml-row"><div><b>${esc(r.lesson_name)}</b><small>${esc(r.subject)}${r.unit_name?' · '…1206 tokens truncated…ow.openMyLessonsInternal=openView;window.closeMyLessonsInternal=closeView;
+      const regularHtml=rows.length?rows.slice(0,8).map(r=>`<div class="iml-row"><div><b>${esc(…1222 tokens truncated…ow.openMyLessonsInternal=openView;window.closeMyLessonsInternal=closeView;
 })();
 </script>
 
