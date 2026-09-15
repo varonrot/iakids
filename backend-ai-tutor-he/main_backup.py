@@ -9,6 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
 from openai import OpenAI
+import asyncio
+from starlette.concurrency import run_in_threadpool
+from openai import AsyncOpenAI
 from google import genai
 from google.genai import types
 from pathlib import Path
@@ -439,35 +442,111 @@ client = OpenAI(
     api_key=OPENAI_API_KEY
 )
 
+# The async twin of `client`, for the routes that await the model instead of
+# holding a worker thread through the call (tools/async_routes.py).
+aclient = AsyncOpenAI(
+    api_key=OPENAI_API_KEY
+)
+
 gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
 
+# In production the interactive docs are off: /docs, /redoc and /openapi.json handed
+# all 19 routes and 14 schemas to anyone who asked.
+IS_PROD = os.getenv("APP_ENV", "dev") == "prod"
 app = FastAPI(
     title=APP_NAME,
-    version="0.1.0"
+    version="0.1.0",
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
+    openapi_url=None if IS_PROD else "/openapi.json",
 )
 
 # =====================================================
 # CORS
 # =====================================================
 
+# localhost is a development origin. Left on in production it lets a page running on
+# the visitor's own machine call this API with their credentials.
+ALLOWED_ORIGINS = [
+    "https://iakids.app",
+    "https://www.iakids.app",
+    # mirror of the site served from smarts-brains.online
+    "https://smarts-brains.online",
+    "https://www.smarts-brains.online",
+]
+if not IS_PROD:
+    ALLOWED_ORIGINS += ["http://localhost:3000", "http://localhost:5500", "http://127.0.0.1:5500"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://iakids.app",
-        "https://www.iakids.app",
-        # mirror of the site served from smarts-brains.online
-        "https://smarts-brains.online",
-        "https://www.smarts-brains.online",
-        "http://localhost:3000",
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ===== capacity: widen the worker pool, and keep one client from taking all of it =====
+# Every route here is a plain `def`, so FastAPI runs it in anyio's worker threadpool
+# and each request holds a thread for the whole model call. The pool defaults to 40,
+# which is the whole service's concurrency; while the routes stay blocking, a wider
+# pool is the cheapest capacity there is (a waiting thread costs memory, not CPU).
+# Making the routes `async def` is the real fix and would make this moot.
+import anyio as _anyio
+import time as _time
+from collections import deque as _deque
+from fastapi import Request as _Request
+from starlette.responses import JSONResponse as _JSONResponse
+
+WORKER_THREADS = int(os.getenv("WORKER_THREADS", "128"))
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+_RATE_EXEMPT = set()
+_rate_buckets: dict = {}
+
+
+@app.on_event("startup")
+async def _widen_threadpool():
+    _anyio.to_thread.current_default_thread_limiter().total_tokens = WORKER_THREADS
+
+
+@app.get("/")
+async def health():
+    """Something that answers 200 without a token.
+
+    Render polls a path to decide whether the service is alive. Until now the only
+    unauthenticated 200 on this service was /openapi.json — and in production that is
+    now closed, which would have left the health check with nothing to hit and Render
+    restarting a service that was working perfectly. It sits outside /api/, so the
+    rate limiter does not count it.
+    """
+    return {"status": "ok", "service": "iakids-ai-tutor-he"}
+
+
+@app.middleware("http")
+async def _rate_limit(request: _Request, call_next):
+    """A sliding one-minute window per caller on /api/*.
+
+    Without it, one browser tab in a loop takes every worker thread and every other
+    child sees a page that has stopped. Keyed by the bearer token when there is one
+    (a user), else by address (a guest). Webhooks are exempt: Lemon retries them.
+    """
+    path = request.url.path
+    if path.startswith("/api/") and path not in _RATE_EXEMPT:
+        key = request.headers.get("authorization") or (request.client.host if request.client else "?")
+        now = _time.time()
+        q = _rate_buckets.setdefault(key, _deque())
+        while q and q[0] < now - 60:
+            q.popleft()
+        if len(q) >= RATE_LIMIT_PER_MINUTE:
+            return _JSONResponse(status_code=429, headers={"Retry-After": "60"},
+                                 content={"detail": "rate_limited", "limit_per_minute": RATE_LIMIT_PER_MINUTE})
+        q.append(now)
+        if len(_rate_buckets) > 5000:                       # forget callers not seen this minute
+            for k in [k for k, v in _rate_buckets.items() if not v or v[-1] < now - 60]:
+                _rate_buckets.pop(k, None)
+    return await call_next(request)
+# ===== end capacity =====
 
 
 # =====================================================
@@ -524,6 +603,14 @@ class CurriculumBuilderAIResponse(BaseModel):
 class TutorTTSRequest(BaseModel):
     text: str
     session_id: str | None = None
+
+
+class HomeworkCoachRequest(BaseModel):
+    kid_id: str
+    source_text: str = ""
+    current_question: str = ""
+    message: str = ""
+    history: list[dict] | None = None
 
 
 class HomeworkAnalyzeRequest(BaseModel):
@@ -4881,7 +4968,7 @@ def build_lesson_transition_prompt(
         )
     )
 
-def regenerate_lesson_transition_only(
+async def regenerate_lesson_transition_only(
         unit_lesson: dict,
         parent_lesson: dict
 ) -> dict:
@@ -4977,12 +5064,8 @@ def regenerate_lesson_transition_only(
             }
         )
 
-        transition_completion = (
-            client
-            .beta
-            .chat
-            .completions
-            .parse(
+        transition_completion = (await (
+            aclient.beta.chat.completions.parse(
 
                 model=
                     DEFAULT_OPENAI_MODEL,
@@ -5028,7 +5111,7 @@ def regenerate_lesson_transition_only(
                 response_format=
                     LessonTransitionResponse
             )
-        )
+        ))
 
         transition_data = (
             transition_completion
@@ -10188,7 +10271,7 @@ def generate_unit_lesson_audio_background(
                 repr(update_error)
             )
 @app.post("/api/tutor/tts")
-def tutor_tts(
+async def tutor_tts(
         body: TutorTTSRequest,
         authorization: str = Header(None)
 ):
@@ -10210,12 +10293,14 @@ def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
+        # Identifiers and a length, never the text. This is a child's own words and
+        # Render keeps logs; COPPA/GDPR-K treat that as personal data about a minor.
         print(
             "LIVE TTS REQUEST:",
             {
                 "session_id": body.session_id,
                 "text_length": len(text),
-                "text": repr(text)
+                **({"text": repr(text)} if not IS_PROD else {}),
             }
         )
         # =============================================
@@ -10229,13 +10314,13 @@ def tutor_tts(
             {
                 "session_id": body.session_id,
                 "text_length": len(text),
-                "text": repr(text)
+                **({"text": repr(text)} if not IS_PROD else {}),
             }
         )
 
         try:
 
-            response = gemini_client.models.generate_content(
+            response = (await gemini_client.aio.models.generate_content(
                 model="gemini-3.1-flash-tts-preview",
 
                 contents=(
@@ -10264,7 +10349,7 @@ def tutor_tts(
                         )
                     )
                 )
-            )
+            ))
 
             print(
                 "========== LIVE TTS GEMINI SUCCESS ==========",
@@ -11298,7 +11383,7 @@ def lesson_intro(
 @app.post(
     "/api/tutor/unit-lesson"
 )
-def get_or_generate_unit_lesson(
+async def get_or_generate_unit_lesson(
         body: UnitLessonRequest,
         background_tasks: BackgroundTasks,
         authorization: str = Header(None)
@@ -11796,12 +11881,8 @@ def get_or_generate_unit_lesson(
                     )
                 )
 
-                visual_director_completion = (
-                    client
-                    .beta
-                    .chat
-                    .completions
-                    .parse(
+                visual_director_completion = (await (
+                    aclient.beta.chat.completions.parse(
 
                         model=
                         DEFAULT_OPENAI_MODEL,
@@ -11830,7 +11911,7 @@ def get_or_generate_unit_lesson(
                         response_format=
                         VisualDirectorResponse
                     )
-                )
+                ))
 
                 visual_director_data = (
                     visual_director_completion
@@ -11860,7 +11941,7 @@ def get_or_generate_unit_lesson(
                         "visual_plan"
                     ] = repaired_visual_plan
 
-                    sb.table(
+                    (await run_in_threadpool(lambda: sb.table(
                         "lesson_units_content"
                     ).update({
 
@@ -11875,7 +11956,7 @@ def get_or_generate_unit_lesson(
                     }).eq(
                         "id",
                         unit_lesson["id"]
-                    ).execute()
+                    ).execute()))
 
                     print(
                         "CACHED VISUAL PLAN REPAIRED:",
@@ -11983,7 +12064,7 @@ def get_or_generate_unit_lesson(
 
                     cached_audio = None
 
-                    sb.table(
+                    (await run_in_threadpool(lambda: sb.table(
                         "lesson_units_content"
                     ).update({
 
@@ -12010,7 +12091,7 @@ def get_or_generate_unit_lesson(
                     }).eq(
                         "id",
                         unit_lesson["id"]
-                    ).execute()
+                    ).execute()))
 
             # =========================================
             # BACKGROUND AUDIO REPAIR ONLY
@@ -12117,7 +12198,7 @@ def get_or_generate_unit_lesson(
                     "transition"
                 ] = expected_transition
 
-                supabase_with_retry(
+                (await run_in_threadpool(lambda: supabase_with_retry(
                     lambda:
                         sb.table(
                             "lesson_units_content"
@@ -12138,7 +12219,7 @@ def get_or_generate_unit_lesson(
 
                     label=
                         "SAVE SHARED TRANSITION"
-                )
+                )))
             print(
                 "QUEUE BACKGROUND TRANSITION VIDEO CHECK:",
                 {
@@ -12248,7 +12329,7 @@ def get_or_generate_unit_lesson(
             .isoformat()
         )
 
-        sb.table(
+        (await run_in_threadpool(lambda: sb.table(
             "lesson_units_content"
         ).update({
 
@@ -12264,7 +12345,7 @@ def get_or_generate_unit_lesson(
         }).eq(
             "id",
             unit_lesson["id"]
-        ).execute()
+        ).execute()))
         lesson_parts_count = int(
             unit_lesson.get(
                 "lesson_parts_count"
@@ -12308,12 +12389,8 @@ def get_or_generate_unit_lesson(
         # OPENAI
         # =============================================
 
-        completion = (
-            client
-            .beta
-            .chat
-            .completions
-            .parse(
+        completion = (await (
+            aclient.beta.chat.completions.parse(
 
                 model=UNIVERSAL_LESSON_MODEL,
 
@@ -12351,7 +12428,7 @@ def get_or_generate_unit_lesson(
                 UniversalLessonResponse
 
             )
-        )
+        ))
 
         lesson_data = (
             completion
@@ -12397,12 +12474,8 @@ def get_or_generate_unit_lesson(
             )
         )
 
-        director_completion = (
-            client
-            .beta
-            .chat
-            .completions
-            .parse(
+        director_completion = (await (
+            aclient.beta.chat.completions.parse(
 
                 model=DEFAULT_OPENAI_MODEL,
 
@@ -12427,7 +12500,7 @@ def get_or_generate_unit_lesson(
                 response_format=
                 DirectedLessonUnitResponse
             )
-        )
+        ))
 
         directed_lesson_data = (
             director_completion
@@ -12491,12 +12564,8 @@ def get_or_generate_unit_lesson(
                 )
             )
 
-            expansion_completion = (
-                client
-                .beta
-                .chat
-                .completions
-                .parse(
+            expansion_completion = (await (
+                aclient.beta.chat.completions.parse(
 
                     model=
                         UNIVERSAL_LESSON_MODEL,
@@ -12525,7 +12594,7 @@ def get_or_generate_unit_lesson(
                     response_format=
                         UniversalLessonResponse
                 )
-            )
+            ))
 
             expansion_data = (
                 expansion_completion
@@ -12579,12 +12648,8 @@ def get_or_generate_unit_lesson(
                 )
             )
 
-            expansion_director_completion = (
-                client
-                .beta
-                .chat
-                .completions
-                .parse(
+            expansion_director_completion = (await (
+                aclient.beta.chat.completions.parse(
 
                     model=
                         UNIVERSAL_LESSON_MODEL,
@@ -12610,7 +12675,7 @@ def get_or_generate_unit_lesson(
                     response_format=
                         DirectedLessonUnitResponse
                 )
-            )
+            ))
 
             expansion_directed_data = (
                 expansion_director_completion
@@ -12772,12 +12837,8 @@ def get_or_generate_unit_lesson(
             }
         )
 
-        visual_director_completion = (
-            client
-            .beta
-            .chat
-            .completions
-            .parse(
+        visual_director_completion = (await (
+            aclient.beta.chat.completions.parse(
 
                 model=
                 DEFAULT_OPENAI_MODEL,
@@ -12807,7 +12868,7 @@ def get_or_generate_unit_lesson(
                 response_format=
                 VisualDirectorResponse
             )
-        )
+        ))
 
         visual_director_data = (
             visual_director_completion
@@ -12913,7 +12974,7 @@ def get_or_generate_unit_lesson(
             .isoformat()
         )
 
-        sb.table(
+        (await run_in_threadpool(lambda: sb.table(
             "lesson_units_content"
         ).update({
 
@@ -12954,7 +13015,7 @@ def get_or_generate_unit_lesson(
         }).eq(
             "id",
             unit_lesson["id"]
-        ).execute()
+        ).execute()))
 
         # =============================================
         # USAGE
@@ -13145,7 +13206,7 @@ def get_or_generate_unit_lesson(
 
             try:
 
-                sb.table(
+                (await run_in_threadpool(lambda: sb.table(
                     "lesson_units_content"
                 ).update({
 
@@ -13163,7 +13224,7 @@ def get_or_generate_unit_lesson(
                 }).eq(
                     "id",
                     unit_lesson["id"]
-                ).execute()
+                ).execute()))
 
             except Exception as update_error:
 
@@ -13184,7 +13245,7 @@ def get_or_generate_unit_lesson(
 @app.post(
     "/api/tutor/unit-lesson/regenerate-transition"
 )
-def regenerate_unit_lesson_transition(
+async def regenerate_unit_lesson_transition(
         body: UnitLessonRequest,
         background_tasks: BackgroundTasks,
         authorization: str = Header(None)
@@ -13297,7 +13358,7 @@ def regenerate_unit_lesson_transition(
         # GENERATE ONLY NEW TRANSITION
         # =============================================
 
-        new_transition = (
+        new_transition = (await (
             regenerate_lesson_transition_only(
                 unit_lesson=
                     unit_lesson,
@@ -13305,7 +13366,7 @@ def regenerate_unit_lesson_transition(
                 parent_lesson=
                     parent_lesson
             )
-        )
+        ))
 
         # =============================================
         # REPLACE ONLY TRANSITION IN JSON
@@ -13321,7 +13382,7 @@ def regenerate_unit_lesson_transition(
             .isoformat()
         )
 
-        sb.table(
+        (await run_in_threadpool(lambda: sb.table(
             "lesson_units_content"
         ).update({
 
@@ -13334,7 +13395,7 @@ def regenerate_unit_lesson_transition(
         }).eq(
             "id",
             unit_lesson["id"]
-        ).execute()
+        ).execute()))
 
         # =============================================
         # DELETE OLD TRANSITION VIDEO ONLY
@@ -13359,11 +13420,11 @@ def regenerate_unit_lesson_transition(
 
         try:
 
-            sb.storage.from_(
+            (await run_in_threadpool(lambda: sb.storage.from_(
                 LESSON_MEDIA_BUCKET
             ).remove([
                 video_storage_path
-            ])
+            ])))
 
             print(
                 "OLD TRANSITION VIDEO REMOVED:",
@@ -13457,7 +13518,7 @@ def regenerate_unit_lesson_transition(
 @app.post(
     "/api/tutor/unit-lesson/hero-image"
 )
-def get_or_generate_unit_lesson_hero_image(
+async def get_or_generate_unit_lesson_hero_image(
         body: UnitLessonRequest,
         authorization: str = Header(None)
 ):
@@ -13525,7 +13586,7 @@ def get_or_generate_unit_lesson_hero_image(
                 if attempt >= MAX_RETRIES:
                     raise
 
-                time.sleep(
+                await asyncio.sleep(
                     RETRY_DELAY_SECONDS
                     * attempt
                 )
@@ -13572,7 +13633,7 @@ def get_or_generate_unit_lesson_hero_image(
                 if attempt >= MAX_RETRIES:
                     raise
 
-                time.sleep(
+                await asyncio.sleep(
                     RETRY_DELAY_SECONDS
                     * attempt
                 )
@@ -13656,7 +13717,7 @@ def get_or_generate_unit_lesson_hero_image(
 
                 if attempt < MAX_RETRIES:
 
-                    time.sleep(
+                    await asyncio.sleep(
                         RETRY_DELAY_SECONDS
                         * attempt
                     )
@@ -13710,11 +13771,11 @@ def get_or_generate_unit_lesson_hero_image(
         # GENERATE HERO
         # =============================================
 
-        hero_image = (
+        hero_image = (await run_in_threadpool(lambda: (
             generate_and_store_lesson_hero_image(
                 unit_lesson["id"]
             )
-        )
+        )))
 
         return {
             "success": True,
@@ -14452,7 +14513,7 @@ def generate_unit_lesson_audio(
 # LEARNING COACH EXECUTION
 # =====================================================
 
-def run_learning_coach(
+async def run_learning_coach(
         user,
         child: dict,
         lesson: dict,
@@ -14580,12 +14641,8 @@ def run_learning_coach(
     # OPENAI
     # =============================================
 
-    completion = (
-        client
-        .beta
-        .chat
-        .completions
-        .parse(
+    completion = (await (
+        aclient.beta.chat.completions.parse(
             model=DEFAULT_OPENAI_MODEL,
 
             messages=[
@@ -14602,7 +14659,7 @@ def run_learning_coach(
             response_format=
                 LearningCoachAIResponse
         )
-    )
+    ))
 
     coach_data = (
         completion
@@ -14721,7 +14778,7 @@ def run_learning_coach(
                 LESSON_STAGE_FINAL_ASSESSMENT
             )
 
-        progress_update = (
+        progress_update = (await run_in_threadpool(lambda: (
             sb.table(
                 "kid_lesson_progress"
             )
@@ -14760,7 +14817,7 @@ def run_learning_coach(
                 progress["id"]
             )
             .execute()
-        )
+        )))
 
         if progress_update.data:
             progress = (
@@ -15026,7 +15083,7 @@ def run_learning_coach(
 @app.post(
     "/api/tutor/lesson"
 )
-def structured_lesson(
+async def structured_lesson(
         body: StructuredLessonRequest,
         authorization: str = Header(None)
 ):
@@ -15236,7 +15293,7 @@ def structured_lesson(
                 .isoformat()
             )
 
-            progress_update = (
+            progress_update = (await run_in_threadpool(lambda: (
                 sb.table(
                     "kid_lesson_progress"
                 )
@@ -15300,7 +15357,7 @@ def structured_lesson(
                     progress["id"]
                 )
                 .execute()
-            )
+            )))
 
             if not progress_update.data:
                 raise RuntimeError(
@@ -15501,7 +15558,7 @@ def structured_lesson(
                     )
                 )
 
-                return run_learning_coach(
+                return (await run_learning_coach(
                     user=user,
                     child=child,
                     lesson=lesson,
@@ -15512,7 +15569,7 @@ def structured_lesson(
                     progress=progress,
                     coach_index=
                     coach_part_number
-                )
+                ))
 
             # Continue the currently active Coach.
             if (
@@ -15526,7 +15583,7 @@ def structured_lesson(
                     or 1
                 )
 
-                return run_learning_coach(
+                return (await run_learning_coach(
                     user=user,
                     child=child,
                     lesson=lesson,
@@ -15537,7 +15594,7 @@ def structured_lesson(
                     progress=progress,
                     coach_index=
                     coach_part_number
-                )
+                ))
 
             # Compatibility with old progress rows.
             if (
@@ -15551,7 +15608,7 @@ def structured_lesson(
                     )
                 )
 
-                return run_learning_coach(
+                return (await run_learning_coach(
                     user=user,
                     child=child,
                     lesson=lesson,
@@ -15561,7 +15618,7 @@ def structured_lesson(
                     session_id=session_id,
                     progress=progress,
                     coach_index=1
-                )
+                ))
 
             if (
                     current_stage
@@ -15574,7 +15631,7 @@ def structured_lesson(
                     )
                 )
 
-                return run_learning_coach(
+                return (await run_learning_coach(
                     user=user,
                     child=child,
                     lesson=lesson,
@@ -15584,7 +15641,7 @@ def structured_lesson(
                     session_id=session_id,
                     progress=progress,
                     coach_index=2
-                )
+                ))
             # בשלבי clarification ו-final_assessment
             # עדיין אין מנוע ייעודי בקוד הנוכחי.
             raise HTTPException(
@@ -15733,13 +15790,9 @@ def structured_lesson(
         # OPENAI
         # =============================================
 
-        completion = (
+        completion = (await (
 
-            client
-            .beta
-            .chat
-            .completions
-            .parse(
+            aclient.beta.chat.completions.parse(
 
                 model=
                 DEFAULT_OPENAI_MODEL,
@@ -15765,7 +15818,7 @@ def structured_lesson(
 
             )
 
-        )
+        ))
 
         lesson_data = (
 
@@ -15884,13 +15937,9 @@ def structured_lesson(
 
                 ]
 
-                retry_completion = (
+                retry_completion = (await (
 
-                    client
-                    .beta
-                    .chat
-                    .completions
-                    .parse(
+                    aclient.beta.chat.completions.parse(
 
                         model=
                         DEFAULT_OPENAI_MODEL,
@@ -15903,7 +15952,7 @@ def structured_lesson(
 
                     )
 
-                )
+                ))
 
                 retry_lesson_data = (
 
@@ -16920,7 +16969,7 @@ def reset_unit_lesson(
 @app.post(
     "/api/tutor/homework-analyze"
 )
-def homework_analyze(
+async def homework_analyze(
         body: HomeworkAnalyzeRequest,
         authorization: str = Header(None)
 ):
@@ -17006,7 +17055,7 @@ def homework_analyze(
         # CREATE homework_uploads ROW
         # =============================================
 
-        upload_res = (
+        upload_res = (await run_in_threadpool(lambda: (
 
             sb.table(
                 "homework_uploads"
@@ -17063,7 +17112,7 @@ def homework_analyze(
 
             .execute()
 
-        )
+        )))
 
         if not upload_res.data:
             raise RuntimeError(
@@ -17079,7 +17128,7 @@ def homework_analyze(
         # DOWNLOAD FILE FROM PRIVATE STORAGE
         # =============================================
 
-        file_bytes = (
+        file_bytes = (await run_in_threadpool(lambda: (
 
             sb.storage
 
@@ -17091,7 +17140,7 @@ def homework_analyze(
                 body.storage_path
             )
 
-        )
+        )))
 
         if not file_bytes:
             raise RuntimeError(
@@ -17152,7 +17201,7 @@ def homework_analyze(
             f"{base64_file}"
         )
 
-        response = client.chat.completions.create(
+        response = (await aclient.chat.completions.create(
 
             model=
             DEFAULT_OPENAI_MODEL,
@@ -17199,7 +17248,7 @@ def homework_analyze(
 
             temperature=0.1
 
-        )
+        ))
 
         # =============================================
         # PARSE RESPONSE
@@ -17350,7 +17399,7 @@ def homework_analyze(
         # UPDATE homework_uploads
         # =============================================
 
-        sb.table(
+        (await run_in_threadpool(lambda: sb.table(
             "homework_uploads"
         ).update({
 
@@ -17400,7 +17449,7 @@ def homework_analyze(
             "id",
             upload_row_id
 
-        ).execute()
+        ).execute()))
 
         # =============================================
         # SESSION USAGE
@@ -17498,7 +17547,7 @@ def homework_analyze(
 
             try:
 
-                sb.table(
+                (await run_in_threadpool(lambda: sb.table(
                     "homework_uploads"
                 ).update({
 
@@ -17518,7 +17567,7 @@ def homework_analyze(
                     "id",
                     upload_row_id
 
-                ).execute()
+                ).execute()))
 
             except Exception as update_error:
 
@@ -17547,7 +17596,7 @@ def homework_analyze(
 # =====================================================
 
 @app.post("/api/curriculum/chat")
-def curriculum_builder_chat(
+async def curriculum_builder_chat(
         body: CurriculumBuilderChatRequest,
         authorization: str = Header(None)
 ):
@@ -17745,12 +17794,8 @@ def curriculum_builder_chat(
         # OPENAI
         # =============================================
 
-        completion = (
-            client
-            .beta
-            .chat
-            .completions
-            .parse(
+        completion = (await (
+            aclient.beta.chat.completions.parse(
 
                 model=
                     DEFAULT_OPENAI_MODEL,
@@ -17761,7 +17806,7 @@ def curriculum_builder_chat(
                 response_format=
                     CurriculumBuilderAIResponse
             )
-        )
+        ))
 
         curriculum_data = (
             completion
@@ -18675,7 +18720,7 @@ def approve_custom_curriculum(
         )
 
 @app.post("/api/tutor/chat")
-def tutor_chat(
+async def tutor_chat(
         body: TutorChatRequest,
         authorization: str = Header(None)
 ):
@@ -18734,7 +18779,7 @@ def tutor_chat(
             "content": message
         })
 
-        completion = client.beta.chat.completions.parse(
+        completion = (await aclient.beta.chat.completions.parse(
 
             model=DEFAULT_OPENAI_MODEL,
             messages=[
@@ -18746,7 +18791,7 @@ def tutor_chat(
             ],
             response_format=
             TutorLessonResponse
-        )
+        ))
 
         lesson_data = completion.choices[0].message.parsed
 
@@ -19356,6 +19401,99 @@ def start_homework_session(
     return result.data[0]
 
 
+def _normalize_homework_guard_text(value: str) -> str:
+    text = str(value or "").lower()
+    text = re.sub(r'[\"\'׳״“”‘’.,!?;:()\[\]{}<>\\/|_\-–—]+', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
+def homework_response_leaks_source_answer(
+        teacher_response: str,
+        source_text: str,
+        current_question: str,
+        min_words: int = 6
+) -> bool:
+    response = _normalize_homework_guard_text(teacher_response)
+    source = _normalize_homework_guard_text(source_text)
+    question = _normalize_homework_guard_text(current_question)
+
+    if not response or not source:
+        return False
+
+    words = response.split()
+    if len(words) < min_words:
+        return False
+
+    for size in (9, 8, 7, 6):
+        if size < min_words or len(words) < size:
+            continue
+        for i in range(0, len(words) - size + 1):
+            phrase = ' '.join(words[i:i + size]).strip()
+            if not phrase:
+                continue
+            if question and phrase in question:
+                continue
+            if phrase in source:
+                return True
+
+    return False
+
+
+def build_safe_homework_first_guidance(
+        current_question: str,
+        source_text: str,
+        child_gender: str | None = None,
+        force_step_by_step: bool = False
+) -> str:
+    q = str(current_question or '').strip()
+    female = str(child_gender or '').strip().lower() in ('female', 'f', 'נקבה')
+
+    if force_step_by_step:
+        if female:
+            return (
+                "אני אסביר לך שלב־שלב איך עונים על השאלה הזאת.\n\n"
+                f"שלב 1 — קוראות את השאלה: {q}\n"
+                "אנחנו בודקות על מי מדברים ומה בדיוק מבקשים לדעת.\n\n"
+                "שלב 2 — חוזרות לטקסט: מחפשות את המקום שבו מופיעה הדמות מהשאלה.\n\n"
+                "שלב 3 — מוצאות את המידע: מחפשות באותו חלק את הפעולה או העובדה שעונה לשאלה.\n\n"
+                "שלב 4 — בונות תשובה: מחברות את מה שמצאנו למשפט קצר וברור.\n\n"
+                "עכשיו מתחילות בשלב 1 בלבד: על מי מדברת השאלה ומה אנחנו צריכות לגלות עליו?"
+            )
+        return (
+            "אני אסביר לך שלב־שלב איך עונים על השאלה הזאת.\n\n"
+            f"שלב 1 — קוראים את השאלה: {q}\n"
+            "אנחנו בודקים על מי מדברים ומה בדיוק מבקשים לדעת.\n\n"
+            "שלב 2 — חוזרים לטקסט: מחפשים את המקום שבו מופיעה הדמות מהשאלה.\n\n"
+            "שלב 3 — מוצאים את המידע: מחפשים באותו חלק את הפעולה או העובדה שעונה לשאלה.\n\n"
+            "שלב 4 — בונים תשובה: מחברים את מה שמצאנו למשפט קצר וברור.\n\n"
+            "עכשיו מתחילים בשלב 1 בלבד: על מי מדברת השאלה ומה אנחנו צריכים לגלות עליו?"
+        )
+
+    if source_text:
+        if female:
+            return (
+                f"בואי נפתור את זה בלי לגלות את התשובה. "
+                f"כששואלים: {q} אנחנו מחפשות בטקסט את הפעולות או העובדות שעונות בדיוק על השאלה. "
+                f"חפשי במשפט שבו מתחיל התיאור של מה שקרה. מה הדבר הראשון שאת מוצאת שם?"
+            )
+        return (
+            f"בוא נפתור את זה בלי לגלות את התשובה. "
+            f"כששואלים: {q} אנחנו מחפשים בטקסט את הפעולות או העובדות שעונות בדיוק על השאלה. "
+            f"חפש במשפט שבו מתחיל התיאור של מה שקרה. מה הדבר הראשון שאתה מוצא שם?"
+        )
+
+    if female:
+        return (
+            f"בואי נפתור את זה שלב־שלב בלי לגלות את התשובה. "
+            f"השאלה היא: {q} מה הצעד הראשון שצריך לעשות כדי לענות עליה?"
+        )
+    return (
+        f"בוא נפתור את זה שלב־שלב בלי לגלות את התשובה. "
+        f"השאלה היא: {q} מה הצעד הראשון שצריך לעשות כדי לענות עליה?"
+    )
+
+
 class HomeworkTurnEvaluation(BaseModel):
     completed_step: str | None = None
     next_step: str | None = None
@@ -19364,8 +19502,52 @@ class HomeworkTurnEvaluation(BaseModel):
     teacher_response: str
 
 
+@app.post("/api/tutor/homework-coach")
+async def homework_coach(
+        req: HomeworkCoachRequest,
+        authorization: str = Header(None)
+):
+    user = authenticate_user(authorization)
+    child = get_child_by_id(user.id, req.kid_id)
+    grade = child.get("grade") if isinstance(child, dict) else None
+
+    system_prompt = (
+        "את מורה פרטית מצוינת לילדים. המטרה שלך היא ללמד את הילד איך להגיע לתשובה בעצמו. "
+        "קראי את השאלה ואת חומר המקור, הביני מה צריך למצוא, ולמדי את הילד בצורה טבעית שלב אחרי שלב. "
+        "שמרי כל דבר נכון שהילד כבר מצא ואל תחזרי אחורה. בכל תשובה הסבירי בקצרה מה כבר מצאנו ומה עדיין חסר. "
+        "אחר כך שאלי רק על החלק הבא שחסר. אל תתני מיד את התשובה המלאה. "
+        "כאשר הילד כבר אסף מספיק מידע כדי לענות, אל תנסחי את התשובה במקומו. אמרי שיש לו מספיק מידע ובקשי ממנו לנסח בעצמו תשובה מלאה לשאלה. "
+        "רק אחרי שהילד ניסח תשובה בעצמו, בדקי אם היא מספיקה. אם היא נכונה, אשרי בקצרה; אם צריך, עזרי רק לשפר את הניסוח בלי להחליף את תשובתו. "
+        "התאימי את השפה לגיל ולכיתה."
+    )
+
+    context = (
+        f"כיתה: {grade or 'לא ידוע'}\n"
+        f"השאלה: {req.current_question}\n"
+        f"חומר המקור:\n{req.source_text}"
+    )
+
+    messages = [{"role":"system","content":system_prompt}, {"role":"user","content":context}]
+    for item in (req.history or [])[-8:]:
+        role = str(item.get("role") or "")
+        content = str(item.get("content") or "").strip()
+        if role in ("user","assistant") and content:
+            messages.append({"role":role,"content":content})
+    if req.message.strip():
+        messages.append({"role":"user","content":req.message.strip()})
+    else:
+        messages.append({"role":"user","content":"תלמדי אותי לענות על השאלה הזאת כמו מורה פרטית. קודם תסבירי בקצרה מה אנחנו מחפשים ואיפה כדאי לחפש בטקסט. אחר כך תתחילי איתי בצעד הראשון. בכל המשך תשמרי את מה שכבר מצאתי ותשאלי רק על מה שחסר. כשכבר יש לי מספיק מידע, תבקשי ממני לנסח את התשובה בעצמי."})
+
+    response = (await aclient.chat.completions.create(
+        model="gpt-5.6-sol",
+        messages=messages
+    ))
+    text = str(response.choices[0].message.content or "").strip()
+    return {"reply": text, "model": "gpt-5.6-sol", "production_mode": True}
+
+
 @app.post("/api/tutor/homework-turn")
-def homework_turn(
+async def homework_turn(
         req: HomeworkTurnRequest,
         authorization: str = Header(None)
 ):
@@ -19455,8 +19637,8 @@ HARD RULES:
 11. Return only the structured response.
 """.strip()
 
-    completion = (
-        client.beta.chat.completions.parse(
+    completion = (await (
+        aclient.beta.chat.completions.parse(
             model=DEFAULT_OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -19464,9 +19646,82 @@ HARD RULES:
             ],
             response_format=HomeworkTurnEvaluation
         )
-    )
+    ))
 
     parsed = completion.choices[0].message.parsed
+
+    # HARD ANSWER-LEAK GUARD (0.7.75)
+    # On the first help-mode response, prevent the teacher from copying a
+    # source sentence that contains the worksheet answer before the child tries.
+    if parsed:
+        answer_context = str(req.answer or "")
+        help_mode_name = str(req.help_mode or "").strip()
+        progress_state = str(req.progress_context or "").strip()
+
+        # req.help_mode is authoritative. The long saved prompt contains the
+        # Hebrew help-mode wording, but req.answer itself normally does not.
+        is_step_by_step_mode = (help_mode_name == "solve_together")
+
+        # The frontend always sends a textual progress summary, even before
+        # the first child attempt (for example: "None yet"). Therefore an
+        # empty-string check is not enough to identify the first help turn.
+        progress_lower = progress_state.lower()
+        has_child_attempt = (
+            "child:" in progress_lower
+            or "teacher:" in progress_lower
+            or "attempt" in progress_lower
+        )
+        has_completed_step = not (
+            not progress_state
+            or "none yet" in progress_lower
+            or "no earlier step state" in progress_lower
+        )
+        is_first_help_turn = (
+            is_step_by_step_mode
+            and not has_child_attempt
+            and not has_completed_step
+        )
+
+        if is_step_by_step_mode:
+            print("HOMEWORK STEP MODE DETECTED", {
+                "help_mode": help_mode_name,
+                "first_turn": is_first_help_turn,
+                "has_progress": bool(progress_state)
+            })
+
+        # STRICT STEP-BY-STEP ENTRY (0.7.77)
+        # If the child explicitly chose step-by-step help, the first teacher
+        # response is deterministic: explain the method, name the steps, and
+        # begin with step 1. Do not depend on the model remembering the format.
+        if is_first_help_turn and is_step_by_step_mode:
+            parsed.teacher_response = build_safe_homework_first_guidance(
+                req.current_question,
+                req.source_text,
+                child.get("gender") if isinstance(child, dict) else None,
+                force_step_by_step=True
+            )
+            parsed.feedback = ""
+            parsed.answer_sufficient = False
+            parsed.completed_step = None
+            parsed.next_step = "שלב 1 — להבין מה השאלה מבקשת"
+
+        elif is_first_help_turn and homework_response_leaks_source_answer(
+                parsed.teacher_response,
+                req.source_text,
+                req.current_question
+        ):
+            print("HOMEWORK ANSWER LEAK GUARD TRIGGERED", {
+                "question": req.current_question,
+                "teacher_response": parsed.teacher_response
+            })
+            parsed.teacher_response = build_safe_homework_first_guidance(
+                req.current_question,
+                req.source_text,
+                child.get("gender") if isinstance(child, dict) else None
+            )
+            parsed.feedback = ""
+            parsed.answer_sufficient = False
+            parsed.completed_step = None
     if not parsed:
         raise HTTPException(status_code=502, detail="Invalid homework evaluation")
 
@@ -19477,7 +19732,7 @@ HARD RULES:
     # =====================================================
     if req.homework_session_id:
         try:
-            existing_hw = (
+            existing_hw = (await run_in_threadpool(lambda: (
                 sb.table("homework_sessions")
                 .select("id,user_id,kid_id,total_questions,completed_questions,status")
                 .eq("id", req.homework_session_id)
@@ -19485,7 +19740,7 @@ HARD RULES:
                 .eq("kid_id", req.kid_id)
                 .limit(1)
                 .execute()
-            )
+            )))
 
             if existing_hw.data:
                 hw = existing_hw.data[0]
@@ -19514,7 +19769,7 @@ HARD RULES:
                 if req.session_id:
                     update_payload["tutor_session_id"] = req.session_id
 
-                supabase_with_retry(
+                (await run_in_threadpool(lambda: supabase_with_retry(
                     lambda: (
                         sb.table("homework_sessions")
                         .update(update_payload)
@@ -19524,7 +19779,7 @@ HARD RULES:
                         .execute()
                     ),
                     label="HOMEWORK SESSION UPDATE"
-                )
+                )))
         except Exception as hw_error:
             print("HOMEWORK SESSION PROGRESS WARNING:", repr(hw_error))
 
