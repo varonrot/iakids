@@ -2,7 +2,7 @@
   const API_BASE='https://iakids-ai-tutor-he.onrender.com';
   // Keep the visible label aligned with the workspace HTML version.  A fixed
   // value here previously changed build 0.7.114 back to 0.7.111 after load.
-  const BUILD=String(window.IAKIDS_BUILD_VERSION||'0.7.116');
+  const BUILD=String(window.IAKIDS_BUILD_VERSION||'0.7.117');
   let history=[];
   let imageDataUrl='';
 
