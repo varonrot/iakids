@@ -816,9 +816,6 @@ media_trace.install_print_prefix()
 import lesson_quality as lq
 IMAGE_TEXT_CHECK = os.getenv("IMAGE_TEXT_CHECK", "0") == "1"          # vision call per image (~$0.0003): OFF by default (2026-09-16), set 1 to enable
 IMAGE_TEXT_CHECK_MODEL = os.getenv("IMAGE_TEXT_CHECK_MODEL", "gemini-3.1-flash-lite")
-VISUAL_REUSE = os.getenv("VISUAL_REUSE", "1") == "1"                # dynamic image count: segments without a new idea reuse the previous image
-VISUAL_NEW_RATIO = float(os.getenv("VISUAL_NEW_RATIO", "0.5"))     # share of segments that get a NEW image per part
-VISUAL_MIN_NEW = int(os.getenv("VISUAL_MIN_NEW", "3"))              # never fewer new images than this per part (unless fewer segments)
 LESSON_QUALITY_GATE = os.getenv("LESSON_QUALITY_GATE", "0") == "1"    # per-lesson report after every media job: OFF by default (2026-09-16), set 1 to enable
 NO_TEXT_RETRY_SUFFIX = (
     "\n\nSTRICT RETRY: the previous image contained readable text. Produce the SAME scene with "
@@ -1408,7 +1405,6 @@ class VisualDirectorItem(BaseModel):
     visual_goal: str
     source_text: str
     generation_prompt: str
-    reuse_previous: bool          # True = this segment adds no new visual idea: show the previous image, generate nothing
 
 
 class VisualDirectorResponse(BaseModel):
@@ -6551,26 +6547,16 @@ def normalize_visual_plan_to_segments(
             )
 
             # =========================================
-            # ONE ENTRY PER SEGMENT, BUT NOT ONE IMAGE PER SEGMENT (2026-09-16)
-            # The director marks segments that continue the same idea with
-            # reuse_previous; they point at the previous image (reuse_of) and
-            # no image is generated for them. The player still maps
-            # segment N -> entry N, so nothing changes on the frontend.
+            # HARD 1:1 VISUAL
             # =========================================
-            reuse_of = None
-            if VISUAL_REUSE and director_visual and director_visual.get("reuse_previous") and segment_index > 1:
-                prev = next((v for v in reversed(normalized_visuals) if v.get("part_number") == part_number), None)
-                if prev:
-                    reuse_of = int(prev.get("reuse_of") or prev.get("order"))
-                    generation_prompt = prev.get("generation_prompt") or generation_prompt
+
             normalized_visuals.append(
                 {
                     "part_number":
                         part_number,
+
                     "order":
                         segment_index,
-                    "reuse_of":
-                        reuse_of,
 
                     "trigger_text":
                         trigger_text,
@@ -6591,25 +6577,6 @@ def normalize_visual_plan_to_segments(
                         generation_prompt
                 }
             )
-
-        # =============================================
-        # IMAGE BUDGET (deterministic, 2026-09-16)
-        # The director's reuse_previous flag swings between 0% and 90%, so the
-        # budget decides: ceil(S * VISUAL_NEW_RATIO) new images per part (min
-        # VISUAL_MIN_NEW), given to the segments whose prompts differ most from
-        # the previous one; the rest reuse the previous image.
-        # =============================================
-        if VISUAL_REUSE:
-            part_entries = [v for v in normalized_visuals if v.get("part_number") == part_number]
-            flags = []
-            for v in part_entries:
-                dv = next((it for it in raw_visuals if isinstance(it, dict) and int(it.get("part_number") or 1) == part_number and int(it.get("order") or 0) == int(v.get("order") or 0)), None)
-                flags.append(bool(dv.get("reuse_previous")) if dv else False)
-            lq.enforce_image_budget(part_entries, VISUAL_NEW_RATIO, VISUAL_MIN_NEW, flags)
-            print("VISUAL IMAGE BUDGET:", {"part_number": part_number, "segments": len(part_entries),
-                  "new_images": sum(1 for v in part_entries if not v.get("reuse_of")),
-                  "reused": sum(1 for v in part_entries if v.get("reuse_of")),
-                  "model_said_reuse": sum(flags)})
 
         # =============================================
         # PART QUESTION VISUAL
@@ -8248,7 +8215,7 @@ REQUIREMENTS:
 ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE: do not render the lesson title, the
 question, names of animals or any word or letter, in any language. The concept
 must be understood from the picture alone. Only universally readable scientific
-notation used by the lesson (CO2, H2O, O2, sin, cos, π, √, plain numbers, units) may appear. A poster, a title card, a
+notation used by the lesson (CO2, H2O, O2, plain numbers, units) may appear. A poster, a title card, a
 labeled chart or a diagram with words is WRONG. Hebrew readers scan right to
 left: sequences start on the right. Calm, child-safe, no killing moment.
 """.strip()
@@ -8524,8 +8491,7 @@ def generate_lesson_visual_image_bytes(
 
     ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE. No words, letters, labels, captions or titles
 in any language. The ONLY allowed exception: universally readable scientific notation
-that the lesson itself uses (chemical formulas such as CO2, H2O, O2; math notation such as
-sin, cos, π, √, +, =, x²; plain numbers; units).
+that the lesson itself uses (chemical formulas such as CO2, H2O, O2; plain numbers; units).
 
 READING DIRECTION: Hebrew readers scan right-to-left. If the scene shows a sequence,
 chain or process, place the first step on the RIGHT and the last on the LEFT; arrows,
@@ -9394,11 +9360,7 @@ def generate_all_lesson_visuals_background(
                 reference_bytes=None,
                 reference_mime_type="image/png"
         ):
-            if visual.get("reuse_of"):
-                print("LESSON VISUAL REUSED (no image generated):", {"unit_lesson_id": unit_lesson_id,
-                      "part_number": visual.get("part_number"), "order": visual.get("order"), "reuse_of": visual.get("reuse_of")})
-                return {"part_number": visual.get("part_number"), "order": visual.get("order"), "reuse_of": visual.get("reuse_of"),
-                        "type": "image", "trigger_text": visual.get("trigger_text"), "storage_path": None, "reused": True}
+
             part_number = int(
                 visual.get(
                     "part_number"
@@ -15306,14 +15268,15 @@ def get_unit_lesson_visuals(
 
             if not visual_order:
                 continue
-            image_order = int(visual.get("reuse_of") or visual_order)   # reused entries show the previous image
+
             storage_path = (
                 f"unit_lessons/"
                 f"{unit_lesson['id']}/"
                 f"v{content_version}/"
                 f"part_{part_number}/"
-                f"visual_{image_order}.png"
+                f"visual_{visual_order}.png"
             )
+
             # The image may still be generating.
             # If it is not ready yet, skip it for now.
             try:

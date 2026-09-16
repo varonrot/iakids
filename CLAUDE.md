@@ -24,6 +24,7 @@ de/  pt/              German / Portuguese landings
 workspace/            main app workspace (ES)
 games/                100 educational mini-games — catalog + interface spec in games/GAMES.md, shared SDK in games/game-sdk.js
 admin/dashboard/      admin dashboard
+he/admin/lessons-review/  admin-only lesson quality review (Google sign-in; backend enforces ADMIN_EMAILS)
 parent-dashboard/     parent dashboard
 backend/              core FastAPI (chat, payments)
 backend-ai-tutor-he/  Hebrew tutor FastAPI (many main_vN.py versions — main.py is current)
@@ -49,6 +50,10 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 
 - Back up ONLY before changing a prompt file (or when the user says "גיבוי"): `bash .claude/skills/backup/backup.sh "<note>"` (project skill `backup`). Code-only changes to main.py do not need a backup. It snapshots `backend/main.py`, `backend-ai-tutor-he/main.py` and every prompt file (root `iakids_*_prompt.txt`, `backend/prompts/`, `backend-ai-tutor-he/prompts/`) into the next `V<N>_BACKUP/` folder, verifies with `diff`, writes a README. Never overwrite an existing `V<N>_BACKUP`. Take one before touching `main.py` or a prompt.
 
+## Rule: BUGFIXES.md on every commit + push
+
+- Every `git commit` that is pushed adds an entry to `BUGFIXES.md` (newest first): symptom, cause, fix, how it was verified, build number. The user reads this file to know exactly what changed. No entry, no push.
+
 ## Rule: gate before every commit and every deploy
 
 - **Commit**: the git pre-commit hook runs `tools/prompt_gate.py --staged` whenever a prompt file or `main.py` is staged. A failing gate blocks the commit. Install once per clone: `bash tools/install_hooks.sh`.
@@ -65,7 +70,7 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 
 - `backend-ai-tutor-he/lesson_quality.py` + `run_lesson_quality_gate()` in `main.py`: after each `unit_lesson_media/audio/visuals` job the worker checks text rules (no gendered singular, no question in `lesson[]`, no placeholders/emoji, segment length), visual plan (one visual per segment + question, `trigger_text` present), audio (segments/question per part, files exist), storage (no files from another `content_version`) and, via one cheap Gemini vision call per image, that no image carries readable text. Report → `generated_lesson_json["quality"]`, log line `LESSON QUALITY GATE PASS|FAIL`. On demand: `tools/lesson_gate.py --lesson N` (`--all-ready`, `--no-images`).
 - Generation-time guards: `ensure_no_text_in_image()` (vision check + one strict retry for every hero/visual), style chain (part N's first image follows part 1's), `content_version` bump on regeneration (route) and on delete (`delete_unit_lesson.py`), TTS text normalisation (`normalize_for_tts`: emoji, arrows, ×÷=%°, fractions, gershayim abbreviations) and long-segment splitting, rhetorical questions allowed in explanations, first name only in greetings for long full names, signed URLs 4 h.
-- Knobs: `IMAGE_TEXT_CHECK`, `IMAGE_TEXT_CHECK_MODEL` (gemini-3.1-flash-lite), `LESSON_QUALITY_GATE`, `TTS_CACHE`, `TTS_PARALLEL`, `TTS_NIKUD`.
+- Knobs: `LESSON_QUALITY_GATE` and `IMAGE_TEXT_CHECK` are **OFF by default** (user decision 2026-09-16: they cost model calls; everything stays wired, set `=1` in the service env to enable). `IMAGE_TEXT_CHECK_MODEL` (gemini-3.1-flash-lite), `TTS_CACHE`, `TTS_PARALLEL`, `TTS_NIKUD`. The admin page's "בדיקה מחדש" button runs the gate on demand regardless.
 
 ## Deleting / regenerating a lesson
 

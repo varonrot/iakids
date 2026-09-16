@@ -195,7 +195,8 @@ def visual_plan_checks(structured_lesson: dict, visual_plan) -> tuple[list, list
             for v in o:
                 walk(v)
     walk(visual_plan)
-    stats = {"visuals": len(visuals)}
+    stats = {"visuals": len(visuals), "images_generated": sum(1 for v in visuals if not v.get("reuse_of")),
+             "images_reused": sum(1 for v in visuals if v.get("reuse_of"))}
     by_part = {}
     for v in visuals:
         by_part.setdefault(int(v.get("part_number") or 0), []).append(v)
@@ -240,11 +241,42 @@ def audio_checks(structured_lesson: dict, lesson_audio_json) -> tuple[list, list
 
 
 # ----------------------------------------------------------------------------- network bits
+# Universally readable scientific notation is language-neutral and allowed in a shared
+# image (product decision 2026-09-16): chemical formulas, gas symbols, units, plain numbers.
+_FORMULA = re.compile(r"^(?:[A-Z][a-z]?\d{0,2}){1,3}$")          # case-sensitive: CO2, H2O, NaCl, C6H12O6
+_NUMBER = re.compile(r"^\d+(?:[.,]\d+)?$")
+_UNIT = re.compile(r"^(?:%|°C|°|km|kg|m|cm|mm|ml|l|g|kmh|km/h)$", re.I)
+_ALLOWED_WORDS = {"co2", "h2o", "o2", "n2", "ph", "dna", "rna", "atp", "nacl", "ch4", "co",
+                  "sin", "cos", "tan", "cot", "log", "ln", "exp", "π", "pi", "√", "sqrt", "x", "y", "z", "n", "a", "b", "c",
+                  "x²", "x2", "y²", "∞", "≠", "≤", "≥", "α", "β", "θ", "δ", "%", "°"}
+
+
+def is_allowed_scientific_text(text: str) -> bool:
+    """True when every token of the detected text is a chemical formula (must contain a digit or be
+    in the allowlist), a plain number or a unit. Words like 'Growth' never qualify."""
+    t = str(text or "").replace("₂", "2").replace("₃", "3").replace("₄", "4").strip()
+    if not t:
+        return False
+    tokens = [x for x in re.split(r"[\s,;/+→←↔=\-–×÷·()\[\]]+", t) if x]
+    def ok(x):
+        x = x.lstrip("√")                                   # √2, √x
+        if not x or x.lower() in _ALLOWED_WORDS or _NUMBER.match(x) or _UNIT.match(x):
+            return True
+        if re.fullmatch(r"[a-z]\^?[0-9²³]?", x, re.I):         # x, y², a^2
+            return True
+        return bool(_FORMULA.match(x)) and any(ch.isdigit() for ch in x)
+    return all(ok(x) for x in tokens)
+
+
 IMAGE_TEXT_CHECK_PROMPT = (
-    "Look at this educational illustration for children. Does it contain any readable written text: "
-    "words, letters, numbers, labels, captions, signs, watermarks (in any language or script)? "
-    "Ignore tiny illegible scribbles that cannot be read. Answer ONLY with JSON: "
-    '{"has_text": true|false, "text": "<what is readable, or empty>"}'
+    "Look at this educational illustration for children. Does it contain READABLE written text: "
+    "words, letters, numbers, labels, captions, signs, titles or watermarks, in any language? "
+    "Rules: quote the text VERBATIM (the exact characters you can read, max 80 characters), never "
+    "describe the picture. Symbols, icons, arrows, color bars or scribbles that are not readable "
+    "characters are NOT text. Answer ONLY with JSON: "
+    '{"has_text": true|false, "text": "<verbatim readable text or empty>", '
+    '"kind": "words"|"letters"|"numbers"|"formula"|"none", "confidence": "high"|"low"}. '
+    "Use kind=formula for chemical formulas, math notation (sin, cos, π, √, x², 3+4=7) or units such as CO2, H2O, °C."
 )
 
 
@@ -261,12 +293,20 @@ def image_text_check(gemini_client, types, model: str, image_bytes: bytes, mime_
         data = json.loads(raw)
     except Exception:
         data = {"has_text": "true" in raw.lower(), "text": raw[:80]}
-    return {"has_text": bool(data.get("has_text")), "text": str(data.get("text") or "")[:120],
-            "ms": round((time.perf_counter() - t0) * 1000)}
+    text = str(data.get("text") or "")[:120].strip()
+    has_text = bool(data.get("has_text")) and bool(text)
+    # a long "text" without spaces/letters pattern of a sentence is a description, not a quote -> low confidence
+    looks_like_description = len(text.split()) > 8 and not any(ch.isdigit() for ch in text) and text[:1].isupper() and text.endswith((".", "…"))
+    confidence = str(data.get("confidence") or "high").lower()
+    if looks_like_description:
+        confidence = "low"
+    return {"has_text": has_text, "text": text, "kind": str(data.get("kind") or ("none" if not has_text else "words")),
+            "confidence": confidence, "ms": round((time.perf_counter() - t0) * 1000)}
 
 
 def build_quality_report(structured_lesson, visual_plan, lesson_audio_json, content_version,
-                         media_paths: list, audio_paths: list, image_text_results: dict | None) -> dict:
+                         media_paths: list, audio_paths: list, image_text_results: dict | None,
+                         image_overrides: dict | None = None) -> dict:
     """Combine all checks + storage consistency into one report."""
     errors, warnings, stats = [], [], {"content_version": content_version}
     for fn, arg in ((text_checks, (structured_lesson,)),
@@ -291,13 +331,29 @@ def build_quality_report(structured_lesson, visual_plan, lesson_audio_json, cont
     missing = [p for p in wanted if p and p not in set(audio_paths)]
     if missing:
         errors.append(f"{len(missing)} audio files referenced but not in storage: {missing[:3]}")
+    images = {}
     if image_text_results is not None:
-        with_text = {k: v for k, v in image_text_results.items() if v.get("has_text")}
+        overrides = image_overrides or {}
         stats["images_checked"] = len(image_text_results)
-        stats["images_with_text"] = len(with_text)
-        for k, v in list(with_text.items())[:10]:
-            errors.append(f"readable text in image {k}: {v.get('text', '')[:60]!r}")
+        n_err = 0
+        for k, v in image_text_results.items():
+            entry = dict(v)
+            if k in overrides:
+                entry["verdict"] = "approved_by_human"
+            elif v.get("has_text") and (v.get("kind") == "formula" or is_allowed_scientific_text(v.get("text", ""))):
+                entry["verdict"] = "formula_ok"          # CO2 / H2O / numbers: language-neutral, allowed
+            elif v.get("has_text") and v.get("confidence", "high") == "high":
+                entry["verdict"] = "text"; n_err += 1
+                errors.append(f"readable text in image {k}: {v.get('text', '')[:60]!r}")
+            elif v.get("has_text"):
+                entry["verdict"] = "possible_text"
+                warnings.append(f"possible text in image {k} (low confidence): {v.get('text', '')[:60]!r}")
+            else:
+                entry["verdict"] = "clean"
+            images[k] = entry
+        stats["images_with_text"] = n_err
     return {
+        "images": images,
         "ok": not errors,
         "errors": errors,
         "warnings": warnings,
@@ -305,3 +361,56 @@ def build_quality_report(structured_lesson, visual_plan, lesson_audio_json, cont
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "version": 1,
     }
+
+
+# ----------------------------------------------------------------------------- image budget
+_STOP = {"the", "a", "an", "of", "and", "with", "in", "on", "at", "to", "for", "showing", "illustration",
+         "image", "scene", "visual", "educational", "children", "child", "style", "same", "that", "this",
+         "its", "into", "from", "by", "as", "is", "are", "or", "their", "it", "be", "no", "not", "text"}
+
+
+def _content_words(prompt: str) -> set:
+    return {w for w in re.findall(r"[a-zA-Z\u0590-\u05FF]{3,}", str(prompt or "").lower()) if w not in _STOP}
+
+
+def prompt_similarity(a: str, b: str) -> float:
+    """Jaccard similarity of the content words of two generation prompts (0..1)."""
+    x, y = _content_words(a), _content_words(b)
+    if not x or not y:
+        return 0.0
+    return len(x & y) / len(x | y)
+
+
+def enforce_image_budget(entries: list, new_ratio: float = 0.5, min_new: int = 3, model_flags: list | None = None) -> list:
+    """Decide which segment entries get a NEW image and which reuse the previous one.
+
+    entries: the part's visual entries in order (dicts with 'generation_prompt').
+    model_flags: the director's reuse_previous per entry (unreliable: it swings between
+    0% and 90%), used only as a tie-breaker. Deterministic rule:
+      budget = clamp(ceil(S * new_ratio), min_new, S); the first entry is always new;
+      the remaining new slots go to the entries whose prompt differs MOST from the
+      previous entry's prompt (lowest similarity). Returns the same list with 'reuse_of'
+      set (None = new image, k = show image of order k).
+    """
+    import math
+    S = len(entries)
+    if S == 0:
+        return entries
+    budget = max(min(min_new, S), min(S, math.ceil(S * new_ratio)))
+    flags = list(model_flags or [False] * S)
+    sims = [0.0] + [prompt_similarity(entries[i - 1].get("generation_prompt", ""), entries[i].get("generation_prompt", ""))
+                    for i in range(1, S)]
+    # candidates for NEW: index 0 forced; others ranked by (dissimilarity, model said new)
+    order_idx = sorted(range(1, S), key=lambda i: (sims[i], 1 if flags[i] else 0))
+    new_idx = {0} | set(order_idx[:max(0, budget - 1)])
+    last_new = None
+    for i, e in enumerate(entries):
+        if i in new_idx:
+            e["reuse_of"] = None
+            last_new = int(e.get("order") or (i + 1))
+        else:
+            e["reuse_of"] = last_new
+            src = next((x for x in entries if int(x.get("order") or 0) == last_new), None)
+            if src:
+                e["generation_prompt"] = src.get("generation_prompt") or e.get("generation_prompt")
+    return entries

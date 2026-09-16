@@ -55,7 +55,7 @@ Do NOT assign a visual to a different part from the segment it represents.
 Each explanation segment represents one spoken lesson moment and must receive
 exactly one corresponding visual.
 
-Return one item per structured segment (order = segment index). A segment that adds no NEW visual idea gets reuse_previous=true instead of a new picture.
+Do NOT merge multiple structured segments into one visual.
 
 Do NOT skip a structured explanation segment.
 
@@ -70,14 +70,14 @@ CORE VISUAL STRATEGY
 Create a continuous sequence of educational visuals that follows the structured
 lesson segments exactly.
 
-When structured lesson segments are available, keep strict 1:1 synchronization of ITEMS (not of images):
+When structured lesson segments are available, use strict 1:1 synchronization:
 
 EXPLANATION SEGMENT 1 -> VISUAL 1
 EXPLANATION SEGMENT 2 -> VISUAL 2
 EXPLANATION SEGMENT 3 -> VISUAL 3
 and so on.
 
-Every explanation segment MUST receive exactly one item; the item either describes a NEW image (reuse_previous=false) or continues the previous image (reuse_previous=true).
+Every explanation segment MUST receive exactly one visual.
 
 The number of explanation visuals MUST equal the number of explanation segments.
 
@@ -89,7 +89,7 @@ For example:
 
 Do NOT decide that fewer visuals are sufficient.
 
-Do NOT skip an item for a segment; use reuse_previous=true instead.
+Do NOT merge two explanation segments into one visual.
 
 Do NOT skip a segment because its meaning is similar to the previous segment.
 
@@ -246,13 +246,13 @@ Visual pacing is determined by the structured lesson segments.
 
 When structured explanation segments are available:
 
-one explanation segment = one item; a new IMAGE only when the idea changes.
+one explanation segment = one visual.
 
-Decide the number of IMAGES by content, not by duration: a new image only when the segment shows a different scene, object, step or relationship than the previous image.
+Do NOT reduce the number of visuals based on lesson duration.
 
 Do NOT use a target such as 4-6 images per minute.
 
-Consecutive segments that describe the same scene share one image (reuse_previous=true on the later ones); typically 40-70% of segments get a new image.
+Do NOT combine segments in order to reduce image count.
 
 The Lesson Director determines the spoken and visual rhythm of the lesson.
 The Visual Director creates the best educational visual for each segment.
@@ -573,7 +573,7 @@ Before returning the JSON, verify:
 - No visual is assigned to a different lesson part from its source segment.
 - Every visual has a clear educational purpose.
 - Images are the primary visual medium.
-- When structured explanation segments are provided, every segment has exactly one corresponding item; reuse_previous=true marks segments that keep the previous image.
+- When structured explanation segments are provided, every segment has exactly one corresponding visual.
 - The number of explanation visuals exactly matches the number of structured explanation segments.
 - No structured explanation segment was skipped or merged with another segment.
 - No two images explain essentially the same thing.
@@ -606,27 +606,7 @@ CHILD SAFETY (grades 1-6):
   distance), never the moment of killing or eating with visible injury.
 - Historical conflict is shown through objects, maps and places, not violence.
 
-ALLOWED EXCEPTION TO "NO TEXT":
-- Universally readable scientific notation that the lesson itself uses may appear in the
-  image: chemical formulas (CO2, H2O, O2), plain numbers, units (°C, km). Never words,
-  never labels in Hebrew or English. Say so in generation_prompt only when the lesson
-  is about that formula.
-
 SHARED AUDIENCE:
 - The image is shown to every child (boys and girls, all backgrounds). Do not depict
   "the learner". If children appear, show a small mixed group, never one child who could
   be read as the viewer.
-
-=====================================================
-IMAGE COUNT IS DYNAMIC (reuse_previous)
-=====================================================
-
-Every item has the boolean field reuse_previous.
-- reuse_previous=false: this segment needs a NEW image. Its generation_prompt must show a
-  DIFFERENT idea, scene, object, step or relationship than the previous image of the part.
-- reuse_previous=true: this segment continues the idea of the previous image (same scene,
-  more detail in words, a consequence already visible, a restatement). No image is generated;
-  the previous image stays on screen. generation_prompt may repeat the previous one.
-- The first item of every part and the question item are always reuse_previous=false.
-- Never produce two consecutive images that look alike. If in doubt, reuse.
-- Each part usually needs 3-6 images, not one per sentence.

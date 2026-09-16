@@ -1,0 +1,195 @@
+<!doctype html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>IAKIDS · בדיקת שיעורים</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--ink:#12161c;--ink2:#454b54;--muted:#7a828d;--line:#dfe3e8;--panel:#f4f6f8;--bg:#fcfcfb;--blue:#2a78d6;--good:#1e7a48;--warn:#b06a00;--bad:#b3261e}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+  .wrap{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+  h1{font-size:20px;margin:0} .sub{color:var(--muted);font-size:12px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;color:var(--ink)}
+  .btn:hover{border-color:var(--blue)} .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)} .btn.danger{color:var(--bad);border-color:#e6b8b4}
+  .btn:disabled{opacity:.5;cursor:default}
+  .login{max-width:420px;margin:80px auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px;text-align:center}
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px} .kpi b{display:block;font-size:22px} .kpi span{color:var(--muted);font-size:12px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+  .filters input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;min-width:220px}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;background:#fff} .chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .tablewrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:10px}
+  table{width:100%;border-collapse:collapse;min-width:900px} th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+  th{background:var(--panel);font-size:12px;color:var(--ink2);position:sticky;top:0}
+  .badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700}
+  .b-ok{background:#e3f4ea;color:var(--good)} .b-bad{background:#fbe6e4;color:var(--bad)} .b-warn{background:#fff1dc;color:var(--warn)} .b-muted{background:var(--panel);color:var(--muted)}
+  .errs{color:var(--bad);font-size:12px;max-width:420px} .errs div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto;z-index:50}
+  .modal.open{display:flex} .card{background:#fff;border-radius:14px;max-width:1100px;width:100%;padding:18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:12px 0}
+  .img{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)} .img img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+  .img .cap{padding:6px 8px;font-size:11px;color:var(--ink2);display:flex;justify-content:space-between;gap:6px}
+  .img.flag{outline:3px solid var(--bad)}
+  .seg{background:var(--panel);border-radius:8px;padding:8px 10px;margin:4px 0;font-size:13px} .q{border-right:4px solid var(--blue)}
+  .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:60}
+  @media (max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="loginScreen" class="login">
+    <h1>בדיקת שיעורים · IAKIDS</h1>
+    <p class="sub">מסך ניהול. כניסה רק למנהלים (רותם, יוסי).</p>
+    <button class="btn primary" id="googleBtn">כניסה עם Google</button>
+    <p id="loginMsg" class="sub"></p>
+  </section>
+
+  <section id="app" hidden>
+    <header>
+      <div><h1>בדיקת שיעורים</h1><div class="sub" id="who"></div></div>
+      <div class="actions"><button class="btn" id="reloadBtn">רענון</button><button class="btn" id="logoutBtn">יציאה</button></div>
+    </header>
+    <div class="kpis">
+      <div class="kpi"><b id="kTotal">–</b><span>שיעורים בקוריקולום</span></div>
+      <div class="kpi"><b id="kGen">–</b><span>נוצרו</span></div>
+      <div class="kpi"><b id="kFlag" style="color:var(--bad)">–</b><span>מסומנים לבדיקה</span></div>
+      <div class="kpi"><b id="kOk" style="color:var(--good)">–</b><span>עברו את ה־gate</span></div>
+    </div>
+    <div class="filters">
+      <span class="chip active" data-f="flagged">לבדיקה</span>
+      <span class="chip" data-f="generated">נוצרו</span>
+      <span class="chip" data-f="approved">אושרו</span>
+      <span class="chip" data-f="all">הכל</span>
+      <input id="search" placeholder="חיפוש: שם שיעור / יחידה / מספר">
+      <span class="sub" id="apiBase"></span>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>#</th><th>יחידה</th><th>שיעור</th><th>מצב</th><th>gate</th><th>ממצאים</th><th>נבדק</th><th>פעולות</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+</div>
+
+<div class="modal" id="modal"><div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <div><b id="mTitle"></b><div class="sub" id="mSub"></div></div>
+    <button class="btn" id="mClose">✕ סגירה</button>
+  </div>
+  <div class="sub" style="margin-top:8px;background:var(--panel);border-radius:8px;padding:8px 10px">
+    <b>למה תמונה מסומנת?</b> מודל ראייה סורק כל תמונה ושואל "יש טקסט קריא?". <span style="color:var(--bad)">אדום</span> = טקסט קריא בביטחון גבוה (הטקסט שזוהה מוצג ליד התמונה). <span style="color:var(--warn)">כתום</span> = חשד בביטחון נמוך (אזהרה בלבד, לא פוסל). המודל טועה לפעמים: אם בעיניך התמונה תקינה, לחץ "אשר תמונה"; אם לא, "צור מחדש" מייצר רק אותה.
+  </div>
+  <div id="mErrs" class="errs" style="margin-top:8px"></div>
+  <div class="grid" id="mGrid"></div>
+  <div id="mText"></div>
+  <div class="actions" style="margin-top:12px">
+    <input id="mNote" placeholder="הערה (לא חובה)" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit">
+    <button class="btn primary" id="mApprove">✔ אישור אנושי</button>
+    <button class="btn" id="mRecheck">🔍 בדיקה מחדש</button>
+    <button class="btn danger" id="mRegen">♻ יצירה מחדש</button>
+  </div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+/* UX only — the backend enforces its own ADMIN_EMAILS allowlist on every route */
+const ALLOWED_ADMIN_EMAILS = ["varonrot@gmail.com", "office@calzo-app.com", "yossi.heine@gmail.com", "yossi.hina@gmail.com", "yossiheine.biz@gmail.com"];
+const TUTOR_API_BASE = location.hostname.endsWith("smarts-brains.online") ? location.origin + "/tutor-api" : "https://iakids-ai-tutor-he.onrender.com";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+let SESSION = null, LESSONS = [], FILTER = "flagged", CURRENT = null;
+
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",3200); }
+async function api(path, method="GET", body=null){
+  const r = await fetch(TUTOR_API_BASE + path, { method, headers: { "Authorization": "Bearer " + SESSION.access_token, "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : null });
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){ throw new Error(j.detail || j.message || ("HTTP " + r.status)); }
+  return j;
+}
+$("googleBtn").onclick = async () => { await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.href.split("#")[0] } }); };
+$("logoutBtn").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+$("reloadBtn").onclick = load;
+$("search").oninput = render;
+document.querySelectorAll(".chip").forEach(c => c.onclick = () => { document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active", x===c)); FILTER = c.dataset.f; render(); });
+$("mClose").onclick = () => $("modal").classList.remove("open");
+
+async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session?.user){ return; }
+  const email = (session.user.email || "").toLowerCase();
+  if(!ALLOWED_ADMIN_EMAILS.includes(email)){ $("loginMsg").textContent = "אין הרשאה לחשבון " + email; await sb.auth.signOut(); return; }
+  SESSION = session; $("loginScreen").hidden = true; $("app").hidden = false;
+  $("who").textContent = email; $("apiBase").textContent = TUTOR_API_BASE;
+  await load();
+}
+async function load(){
+  try{
+    const j = await api("/api/admin/lessons/quality");
+    LESSONS = j.lessons || [];
+    $("kTotal").textContent = j.count; $("kGen").textContent = j.generated; $("kFlag").textContent = j.flagged;
+    $("kOk").textContent = LESSONS.filter(l => l.quality.checked && l.quality.ok === true).length;
+    render();
+  }catch(e){ toast("שגיאה: " + e.message); }
+}
+function badge(l){
+  const q = l.quality;
+  if(l.generation_status !== "ready") return '<span class="badge b-muted">לא נוצר</span>';
+  if(!q.checked) return '<span class="badge b-muted">לא נבדק</span>';
+  if(q.approved_by_human) return '<span class="badge b-warn">אושר ידנית</span>';
+  return q.ok ? '<span class="badge b-ok">עבר</span>' : '<span class="badge b-bad">לבדיקה</span>';
+}
+function matches(l){
+  const q = l.quality, s = $("search").value.trim();
+  if(FILTER==="flagged" && !(q.checked && q.ok===false && !q.approved_by_human)) return false;
+  if(FILTER==="generated" && l.generation_status!=="ready") return false;
+  if(FILTER==="approved" && !q.approved_by_human) return false;
+  if(s && !(`${l.id} ${l.unit_name||""} ${l.lesson_name||""}`.includes(s))) return false;
+  return true;
+}
+function esc(s){ return String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function render(){
+  const rows = LESSONS.filter(matches);
+  $("rows").innerHTML = rows.map(l => `<tr>
+    <td>${l.id}</td><td>${esc(l.unit_name)}</td><td>${esc(l.lesson_name)}<div class="sub">${esc(l.subject||"")} · כיתה ${esc(l.grade||"")} · v${l.content_version||1}</div></td>
+    <td>${esc(l.generation_status)} / ${esc(l.audio_generation_status||"")}</td>
+    <td>${badge(l)}</td>
+    <td class="errs">${(l.quality.errors||[]).slice(0,3).map(e=>`<div title="${esc(e)}">${esc(e)}</div>`).join("")}${l.quality.warnings?.length?`<div class="sub">+${l.quality.warnings.length} אזהרות</div>`:""}</td>
+    <td class="sub">${l.quality.checked_at ? esc(l.quality.checked_at.replace("T"," ").slice(0,16)) : "–"}</td>
+    <td class="actions">${l.generation_status==="ready" ? `<button class="btn" data-open="${l.id}">תמונות וטקסט</button>` : ""}</td>
+  </tr>`).join("") || `<tr><td colspan="8" class="sub">אין שיעורים בסינון הזה</td></tr>`;
+  document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openLesson(Number(b.dataset.open)));
+}
+async function openLesson(id){
+  CURRENT = LESSONS.find(l => l.id===id); if(!CURRENT) return;
+  $("mTitle").textContent = `#${id} · ${CURRENT.lesson_name}`; $("mSub").textContent = `${CURRENT.unit_name} · v${CURRENT.content_version}`;
+  $("mErrs").innerHTML = (CURRENT.quality.errors||[]).map(e=>`<div>• ${esc(e)}</div>`).join("") || '<span class="badge b-ok">אין ממצאים</span>';
+  $("mGrid").innerHTML = '<div class="sub">טוען תמונות…</div>'; $("mText").innerHTML = ""; $("mNote").value = CURRENT.quality.note || "";
+  $("modal").classList.add("open");
+  try{
+    const m = await api(`/api/admin/lessons/${id}/media`);
+    const vlabel = v => ({text:'<span class="badge b-bad">טקסט קריא</span>', possible_text:'<span class="badge b-warn">חשד לטקסט</span>', approved_by_human:'<span class="badge b-warn">אושר ידנית</span>', regenerating:'<span class="badge b-muted">נוצר מחדש…</span>', clean:'<span class="badge b-ok">נקי</span>', unchecked:'<span class="badge b-muted">לא נבדק</span>'}[v] || '<span class="badge b-muted">'+esc(v)+'</span>');
+    $("mGrid").innerHTML = (m.images||[]).map(im => `<div class="img ${im.verdict==="text"?"flag":""}">
+        <a href="${im.url}" target="_blank"><img src="${im.url}" loading="lazy" alt=""></a>
+        <div class="cap" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <div style="display:flex;justify-content:space-between;width:100%"><span>${esc(im.path)}</span>${vlabel(im.verdict)}</div>
+          ${im.text_found?`<div style="color:${im.verdict==="text"?"var(--bad)":"var(--warn)"}">זוהה: „${esc(im.text_found)}”${im.confidence?` · ביטחון ${im.confidence==="high"?"גבוה":"נמוך"}`:""}</div>`:""}
+          ${(im.verdict==="text"||im.verdict==="possible_text")?`<div class="actions"><button class="btn" data-img-ok="${esc(im.path)}">✔ אשר תמונה</button><button class="btn danger" data-img-regen="${esc(im.path)}">♻ צור מחדש</button></div>`:""}
+        </div></div>`).join("") || '<div class="sub">אין תמונות</div>';
+    document.querySelectorAll("[data-img-ok]").forEach(b => b.onclick = async () => { try{ await api(`/api/admin/lessons/${id}/images/approve`, "POST", { path: b.dataset.imgOk }); toast("התמונה אושרה"); await load(); openLesson(id); }catch(e){ toast("שגיאה: "+e.message); } });
+    document.querySelectorAll("[data-img-regen]").forEach(b => b.onclick = async () => { if(!confirm("לייצר מחדש רק את התמונה הזו?")) return; try{ const r = await api(`/api/admin/lessons/${id}/images/regenerate`, "POST", { path: b.dataset.imgRegen }); toast(r.note || "נשלח ליצירה"); openLesson(id); }catch(e){ toast("שגיאה: "+e.message); } });
+    $("mText").innerHTML = (m.text||[]).map(p => `<h3 style="margin:14px 0 6px;font-size:14px">חלק ${p.part_number}</h3>${(p.segments||[]).map(s=>`<div class="seg">${esc(s)}</div>`).join("")}${p.question?`<div class="seg q"><b>שאלה:</b> ${esc(p.question)}</div>`:""}`).join("");
+  }catch(e){ $("mGrid").innerHTML = `<div class="errs">${esc(e.message)}</div>`; }
+}
+$("mApprove").onclick = async () => { if(!CURRENT) return; try{ await api(`/api/admin/lessons/${CURRENT.id}/approve`, "POST", { note: $("mNote").value || null }); toast("אושר"); $("modal").classList.remove("open"); await load(); }catch(e){ toast("שגיאה: "+e.message); } };
+$("mRecheck").onclick = async () => { if(!CURRENT) return; const b=$("mRecheck"); b.disabled=true; b.textContent="בודק… (עד דקה)"; try{ const r = await api(`/api/admin/lessons/${CURRENT.id}/recheck`, "POST"); toast(r.quality.ok ? "עבר את ה־gate" : `נכשל: ${r.quality.errors.length} ממצאים`); await load(); openLesson(CURRENT.id); }catch(e){ toast("שגיאה: "+e.message); } finally{ b.disabled=false; b.textContent="🔍 בדיקה מחדש"; } };
+$("mRegen").onclick = async () => { if(!CURRENT) return; if(!confirm(`למחוק את כל התוכן, האודיו והתמונות של שיעור #${CURRENT.id} וליצור מחדש בפתיחה הבאה? (כ־$1)`)) return; try{ const r = await api(`/api/admin/lessons/${CURRENT.id}/regenerate`, "POST"); toast(`נמחק. content_version ${r.content_version}. ייווצר מחדש בפתיחה הבאה.`); $("modal").classList.remove("open"); await load(); }catch(e){ toast("שגיאה: "+e.message); } };
+sb.auth.onAuthStateChange((_e, s) => { if(s && !SESSION){ init(); } });
+init();
+</script>
+</body>
+</html>

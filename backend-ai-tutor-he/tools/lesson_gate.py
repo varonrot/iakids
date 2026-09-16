@@ -8,8 +8,8 @@ consistency, and (unless --no-images) a vision check that no stored image has re
     ... --no-images      # skip the per-image vision calls (~$0.0003 each)
     ... --all-ready      # every lesson with generation_status=ready
 
-Writes the report into generated_lesson_json["quality"]. Exit 1 if any lesson fails. A failed lesson is set to generation_status=needs_review by the gate;
-`--approve N` puts it back to ready after a human decided it is fine.
+Writes the report into generated_lesson_json["quality"]. Exit 1 if any lesson fails. A failed lesson is NOT withheld from children (product decision 2026-09-16): it is
+flagged in generated_lesson_json.quality for the admin review screen; `--approve N` records a human approval.
 """
 import argparse, os, sys, json
 from pathlib import Path

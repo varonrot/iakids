@@ -69,7 +69,7 @@ REQUIRED = {
         "sections": [],
     },
     "iakids_homework_vision_prompt.txt": {"placeholders": [], "sections": []},
-    "iakids_visual_director_prompt.txt": {"placeholders": [], "sections": ["NO TEXT INSIDE IMAGES", "READING DIRECTION", "CHILD SAFETY"]},
+    "iakids_visual_director_prompt.txt": {"placeholders": [], "sections": ["NO TEXT INSIDE IMAGES", "READING DIRECTION", "CHILD SAFETY", "IMAGE COUNT IS DYNAMIC", "reuse_previous"]},
 }
 FEMALE_VOICES = {"Aoede", "Kore", "Leda", "Zephyr", "Autonoe", "Callirrhoe", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Sulafat", "Vindemiatrix"}
 
@@ -199,6 +199,10 @@ def pure_function_tests() -> list:
     expect(lq.question_segment_problem("הצמח קיבל אנרגיה מהשמש.") is None, "plain sentence rejected")
     expect(lq.display_first_name("Alison Damaris Alvarenga Guerra") == "Alison" and lq.display_first_name("נועה") == "נועה", "display_first_name")
     sg = lq.sanitize_generation_prompt("A clearly labeled diagram with captions and a title: food chain.")
+    expect(lq.is_allowed_scientific_text("CO2") and lq.is_allowed_scientific_text("H2O → O2") and not lq.is_allowed_scientific_text("Growth Thinking") and not lq.is_allowed_scientific_text("Food, Decomposition") and lq.is_allowed_scientific_text("sin x + cos y = 1") and lq.is_allowed_scientific_text("√2 · π"), "is_allowed_scientific_text")
+    ents = [{"order": i + 1, "generation_prompt": t} for i, t in enumerate(["puddle plants insects", "puddle plants insects organisms", "plant roots soil water", "plant roots soil drying", "thermometer light animals", "roots anchor soil erosion"])]
+    out = lq.enforce_image_budget(ents, 0.5, 3, [False] * 6)
+    expect(out[0]["reuse_of"] is None and sum(1 for e in out if not e.get("reuse_of")) == 3 and all((e.get("reuse_of") or 0) < e["order"] for e in out), "enforce_image_budget")
     body = sg.split("No written text")[0].lower()
     expect("labeled" not in body and "caption" not in body and "title" not in body and "No written text" in sg, "sanitize_generation_prompt")
     e, w, st = lq.text_checks({"parts": [{"part_number": 1, "lesson": [{"text": "נסי לחשוב מה אתה רואה."}], "question": {"text": "הסבירו."}}]})

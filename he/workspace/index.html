@@ -19619,6 +19619,10 @@ await fadeLessonVisualFromBlack(
                 value
               );
             };
+            /* שיעור שכבר קיים: הפתיח נועד לכסות יצירה, אז מקצרים אותו (LESSON_INTRO_MAX_MS) */
+            if( Number( window.LESSON_INTRO_MAX_MS ) > 0 ){
+              setTimeout( () => { console.log( "INTRO VIDEO CUT SHORT (lesson already ready)" ); done( true ); }, Number( window.LESSON_INTRO_MAX_MS ) );
+            }
 
 
           video.addEventListener(
@@ -23477,6 +23481,15 @@ const universalLessonPromise =
     lesson,
     session
   );
+/* SHORT INTRO FOR AN EXISTING LESSON (2026-09-16): הפתיח נועד לכסות את זמן היצירה.
+   אם השיעור כבר קיים (cache) הבקשה חוזרת תוך ~1.5 ש׳: וידאו פתיחה עד 4 ש׳ ומשפט אחד בלבד. */
+window.LESSON_ALREADY_READY = false;
+window.LESSON_INTRO_MAX_MS = 0;
+await Promise.race([
+  universalLessonPromise.then( d => { if( d && ( d.source === "cache" || d.generation_status === "ready" ) ){ window.LESSON_ALREADY_READY = true; } } ).catch( () => {} ),
+  new Promise( r => setTimeout( r, 1500 ) )
+]);
+if( window.LESSON_ALREADY_READY ){ window.LESSON_INTRO_MAX_MS = 4000; console.log( "LESSON ALREADY READY — SHORT INTRO" ); }
 
 /* =============================================
    SHARED LESSON OPENING VIDEO
@@ -23632,9 +23645,16 @@ if(
    RUN NORMAL INTRO / FALLBACK
 ============================================= */
 
+if( window.LESSON_ALREADY_READY && Array.isArray( introDataToRun?.sequence ) ){
+  const speaks = introDataToRun.sequence.filter( a => a?.type === "speak" && ( a.speech_tts || a.text ) );
+  const keep = speaks.length ? [ speaks[0] ] : [];      /* משפט אחד: הברכה, או המשפט הראשון שנשאר */
+  console.log( "INTRO TRIMMED (lesson already ready):", { from: introDataToRun.sequence.length, to: keep.length } );
+  introDataToRun = { ...introDataToRun, sequence: keep, wait_for_answer: false };
+}
 await runTutorResponse(
   introDataToRun
 );
+window.LESSON_INTRO_MAX_MS = 0;
 
 
 
@@ -24381,6 +24401,32 @@ if(subtitle){
 /* =============================================
    RESTORE LAST TEACHER MESSAGE
 ============================================= */
+
+/* =============================================
+   RESTORE THE WHOLE CONVERSATION (2026-09-16)
+
+   קודם הוצגה רק ההודעה האחרונה של המורה. עכשיו:
+   קטעי ההסבר של החלק שבו הילד נמצא, השאלה,
+   וכל חילופי הדברים עם המורה (כולל תשובות הילד),
+   בלי אודיו. ההודעה האחרונה מושמעת בהמשך כרגיל.
+   ============================================= */
+try{
+  const chat = ( typeof messagesEl !== "undefined" && messagesEl ) ? messagesEl : null;   /* same container addMessage uses */
+  if( chat ){ chat.innerHTML = ""; }
+  const ctx = state.resume_context || {};
+  ( ctx.explanation_segments || [] ).forEach( t => addMessage( "assistant", t ) );
+  if( ctx.question ){ addMessage( "assistant", ctx.question ); }
+  const history = Array.isArray( state.chat_history ) ? state.chat_history : [];
+  const lastContent = ( state.last_assistant_message?.content || "" ).trim();
+  history.forEach( ( row, idx ) => {
+    const isLast = idx === history.length - 1 && row.role === "assistant" && ( row.content || "" ).trim() === lastContent;
+    if( isLast ){ return; }           /* מושמעת ומוצגת בהמשך על ידי runTutorResponse */
+    addMessage( row.role === "user" ? "user" : "assistant", row.content || "" );
+  });
+  console.log( "ACTIVE LESSON CHAT RESTORED:", { segments: ( ctx.explanation_segments || [] ).length, question: Boolean( ctx.question ), history: history.length } );
+}catch( restoreChatError ){
+  console.warn( "ACTIVE LESSON CHAT RESTORE FAILED:", restoreChatError );
+}
 
 const lastAssistantMessage =
   state.last_assistant_message;
@@ -53637,8 +53683,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.112</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.112";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.114</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.114";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -55240,7 +55286,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07112"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07114"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example
