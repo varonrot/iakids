@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from supabase import create_client
 from openai import OpenAI
 import asyncio
+import hashlib
 from starlette.concurrency import run_in_threadpool
 from openai import AsyncOpenAI
 from google import genai
@@ -386,7 +387,28 @@ print("==============================")
 # CLIENTS
 # =====================================================
 
-sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+# One pooled HTTP/1.1 client for PostgREST, Auth and Storage. The library default is
+# a single HTTP/2 connection per sub-client, and the *sync* HTTP/2 client under many
+# threads is where the capacity went: measured 2026-09-14 on this service, 30
+# concurrent cached lesson opens took 18 s (every request finished together) and a
+# 30-thread benchmark on the same client died with "RECV_DATA in state CLOSED" —
+# also the likely source of the "Server disconnected" seen in Storage. Pooled
+# HTTP/1.1 measured ~16x parallel for 30 threads on the same endpoint.
+import httpx as _httpx
+from supabase.lib.client_options import SyncClientOptions as _SyncClientOptions
+
+SUPABASE_HTTP_POOL = int(os.getenv("SUPABASE_HTTP_POOL", "100"))
+_supabase_http = _httpx.Client(
+    http2=False,
+    timeout=_httpx.Timeout(float(os.getenv("SUPABASE_HTTP_TIMEOUT", "30")), connect=10.0),
+    limits=_httpx.Limits(max_connections=SUPABASE_HTTP_POOL, max_keepalive_connections=SUPABASE_HTTP_POOL),
+    follow_redirects=True,
+)
+sb = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_KEY,
+    options=_SyncClientOptions(httpx_client=_supabase_http),
+)
 
 # =====================================================
 # SUPABASE TEMPORARY ERROR RETRY
@@ -438,6 +460,39 @@ def supabase_with_retry(
 
     raise last_error
 
+
+_TRANSPORT_ERROR_MARKERS = (
+    "RemoteProtocolError", "ConnectError", "ReadError", "WriteError",
+    "ReadTimeout", "ConnectTimeout", "PoolTimeout", "Server disconnected",
+    "ConnectionReset", "RemoteDisconnected",
+)
+
+
+def storage_with_retry(
+        operation,
+        label: str = "STORAGE",
+        max_attempts: int = 3,
+        base_delay_seconds: float = 0.3
+):
+    """Like supabase_with_retry, but only for dropped connections. A Storage
+    answer such as 'Object not found' is a real answer (the media pipeline uses
+    it as 'not generated yet') and must come back immediately, not after three
+    tries and 1.5 s of sleeping."""
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return operation()
+        except Exception as e:
+            text = f"{type(e).__name__}: {e}"
+            transient = any(marker in text for marker in _TRANSPORT_ERROR_MARKERS)
+            if not transient or attempt >= max_attempts:
+                raise
+            print(
+                f"{label} RETRY:",
+                {"attempt": attempt, "max_attempts": max_attempts, "error": text[:200]}
+            )
+            time.sleep(base_delay_seconds * attempt)
+
 client = OpenAI(
     api_key=OPENAI_API_KEY
 )
@@ -452,6 +507,336 @@ gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
 
+# =====================================================
+# AI PROVIDER SWITCH — direct (OpenAI + Google keys) or OpenRouter
+# =====================================================
+# AI_PROVIDER=openrouter routes the chat / lesson models through OpenRouter's
+# OpenAI-compatible endpoint (same OpenAI SDK, model ids prefixed "openai/").
+# TTS_PROVIDER (defaults to AI_PROVIDER) routes text-to-speech through
+# OpenRouter's /audio/speech with the SAME Gemini TTS model, billed to the
+# OpenRouter account instead of our Google AI Studio quota — the quota that ran
+# out on 2026-09-14 with a single worker. Images stay on the direct Gemini
+# client for now (OpenRouter has image output, but with a different model id
+# and response shape; not wired yet).
+AI_PROVIDER = os.getenv("AI_PROVIDER", "direct").strip().lower()
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", AI_PROVIDER).strip().lower()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_TTS_MODEL = os.getenv("OPENROUTER_TTS_MODEL", "google/gemini-3.1-flash-tts-preview")
+TTS_VOICE = os.getenv("TTS_VOICE", "Aoede")
+TTS_PARALLEL = max(1, int(os.getenv("TTS_PARALLEL", "3")))   # TTS calls in flight per lesson part (OpenRouter: 20 rpm)
+TTS_STYLE_PREFIX = os.getenv(
+    "TTS_STYLE_PREFIX",
+    "Speak in natural, fluent Hebrew. Sound like a warm, friendly and patient teacher "
+    "speaking naturally to a school-age child. Use clear pronunciation and natural pauses. "
+    "Some words carry nikud (Hebrew vowel points) to remove ambiguity: pronounce those words "
+    "exactly as vocalized (for example \u05de\u05b4\u05d3\u05b0\u05d1\u05b8\u05bc\u05e8 is midbar, desert, not medaber). "
+    "Words written in Latin letters are English: pronounce them in English. "
+    "Read exactly the following Hebrew text:\n\n"
+)
+_OPENROUTER_HEADERS = {"HTTP-Referer": "https://iakids.app", "X-Title": "iakids tutor"}
+
+if AI_PROVIDER == "openrouter" or TTS_PROVIDER == "openrouter":
+    if not OPENROUTER_API_KEY:
+        raise RuntimeError("AI_PROVIDER/TTS_PROVIDER=openrouter but OPENROUTER_API_KEY is missing")
+
+if AI_PROVIDER == "openrouter":
+    client = OpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, default_headers=_OPENROUTER_HEADERS)
+    aclient = AsyncOpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, default_headers=_OPENROUTER_HEADERS)
+
+
+def llm_model(name: str) -> str:
+    """OpenRouter wants 'openai/gpt-4o-mini'; the direct API wants 'gpt-4o-mini'."""
+    if AI_PROVIDER == "openrouter" and "/" not in name:
+        return f"openai/{name}"
+    return name
+
+
+DEFAULT_OPENAI_MODEL = llm_model(DEFAULT_OPENAI_MODEL)
+UNIVERSAL_LESSON_MODEL = llm_model(UNIVERSAL_LESSON_MODEL)
+print(f"[config] AI_PROVIDER={AI_PROVIDER} TTS_PROVIDER={TTS_PROVIDER} chat={DEFAULT_OPENAI_MODEL} lesson={UNIVERSAL_LESSON_MODEL}")
+
+_openrouter_async_http = None
+
+
+# ---------------------------------------------------------------------------
+# TTS homographs (2026-09-15): unvocalized Hebrew is ambiguous — "מדבר" was read as
+# medaber (speaks) instead of midbar (desert). Vocalizing every segment would cost
+# a model call per segment, so only segments that contain a known homograph get
+# ONE small gpt-4o-mini call that adds nikud to THOSE words only. The answer is
+# accepted only if, with the nikud stripped, it is the original text word for word.
+# ---------------------------------------------------------------------------
+TTS_NIKUD = os.getenv("TTS_NIKUD", "1") == "1"
+NIKUD_MODEL = os.getenv("NIKUD_MODEL", "gpt-4o-mini")
+_TTS_HOMOGRAPHS = {
+    "מדבר", "ספר", "חלב", "שמן", "דבר", "עלה", "כתב", "גזר", "זרע", "מלח", "בקר", "ערב",
+    "פרח", "שבר", "פרה", "ילד", "לבן", "מטר", "סופר", "עצם", "מלך", "חבר", "אכל", "בשר",
+    "צמח", "גדל", "עבר", "עוף", "שוק", "קרן", "זכר", "חמה", "רעב", "שער", "פנה", "מנה",
+    "אמה", "עמד", "נשר", "כבש", "רצה", "בנה", "ראה", "שמר", "חלה", "עשה", "מסך", "קצר",
+    "חצי", "אבל",
+}
+_TTS_HOMOGRAPHS |= {w.strip() for w in os.getenv("TTS_HOMOGRAPHS", "").split(",") if w.strip()}
+_HEB_PREFIXES = ("וכש", "וש", "וב", "ול", "ומ", "וה", "וכ", "כש", "ש", "ה", "ב", "ל", "מ", "כ", "ו")
+_NIKUD_CHARS = re.compile(r"[֑-ׇ]")
+_HEB_WORD = re.compile(r"[א-ת]+")
+_NIKUD_CACHE: dict = {}
+
+
+def strip_nikud(text: str) -> str:
+    return _NIKUD_CHARS.sub("", str(text or ""))
+
+
+def tts_homographs_in(text: str) -> list:
+    """Words of `text` (with their prefix) whose base form is in the homograph list."""
+    found = []
+    for w in _HEB_WORD.findall(strip_nikud(text)):
+        if w in _TTS_HOMOGRAPHS:
+            found.append(w); continue
+        for pre in _HEB_PREFIXES:
+            if w.startswith(pre) and len(w) > len(pre) + 1 and w[len(pre):] in _TTS_HOMOGRAPHS:
+                found.append(w); break
+    return found
+
+
+def vocalize_for_tts(text: str) -> str:
+    """Return `text` with nikud on its ambiguous words only (or unchanged)."""
+    clean = str(text or "").strip()
+    if not TTS_NIKUD or not clean or _NIKUD_CHARS.search(clean):
+        return clean                                   # already vocalized (or disabled)
+    words = tts_homographs_in(clean)
+    if not words:
+        return clean                                   # nothing ambiguous: no model call, no cost
+    if clean in _NIKUD_CACHE:
+        return _NIKUD_CACHE[clean]
+    t0 = time.perf_counter()
+    try:
+        r = client.chat.completions.create(
+            model=llm_model(NIKUD_MODEL),
+            temperature=0,
+            messages=[
+                {"role": "system", "content": (
+                    "You add Hebrew nikud (vowel points) to specific words so a text-to-speech engine "
+                    "pronounces them correctly. Rules: return the ENTIRE input text unchanged, except that "
+                    "the listed words get full, correct nikud according to their meaning in context "
+                    "(e.g. מדבר = מִדְבָּר desert, or מְדַבֵּר speaks). Do not add nikud to other words. "
+                    "Do not change, add, remove or reorder any word or punctuation. Output the text only."
+                )},
+                {"role": "user", "content": "Words to vocalize: " + ", ".join(dict.fromkeys(words)) + "\n\nText:\n" + clean},
+            ],
+        )
+        out = str(r.choices[0].message.content or "").strip()
+        same = re.sub(r"\s+", " ", strip_nikud(out)) == re.sub(r"\s+", " ", clean)
+        if not same:
+            print("TTS NIKUD REJECTED (text changed):", {"words": words, "got": out[:120]})
+            out = clean
+        else:
+            print("TTS NIKUD:", {"words": words, "ms": round((time.perf_counter() - t0) * 1000), "text": out[:120]})
+    except Exception as e:
+        print("TTS NIKUD FAILED (reading unvocalized):", {"words": words, "error": repr(e)[:160]})
+        out = clean
+    if len(_NIKUD_CACHE) > 5000:
+        _NIKUD_CACHE.clear()
+    _NIKUD_CACHE[clean] = out
+    return out
+
+
+# ---------------------------------------------------------------------------
+# LIVE TTS CACHE (2026-09-15): the same sentence is spoken to the same child many
+# times ("היי אלונה! כיף שבאת ללמוד איתי.", "אז קדימה, בואו נתחיל!"). Each
+# rendering used to be a new model call (~2.5 s, ~$0.004). Now a WAV is stored
+# once in Storage under a hash of (provider, model, voice, exact text) and served
+# from there; identical requests in flight share one synthesis. Long, one-off
+# texts (chat replies) are not cached. TTS_CACHE=0 disables it.
+# ---------------------------------------------------------------------------
+TTS_CACHE_ENABLED = os.getenv("TTS_CACHE", "1") == "1"
+TTS_CACHE_MAX_CHARS = int(os.getenv("TTS_CACHE_MAX_CHARS", "400"))
+TTS_CACHE_PREFIX = "tts-cache/v1"
+_TTS_INFLIGHT: dict = {}          # cache key -> asyncio.Future (same text requested twice at once)
+
+
+def tts_cache_key(text: str) -> str:
+    model = OPENROUTER_TTS_MODEL if TTS_PROVIDER == "openrouter" else "gemini-3.1-flash-tts-preview"
+    raw = f"{TTS_PROVIDER}|{model}|{TTS_VOICE}|{TTS_STYLE_PREFIX}|{text.strip()}"
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+
+def tts_cacheable(text: str) -> bool:
+    return TTS_CACHE_ENABLED and 0 < len(text.strip()) <= TTS_CACHE_MAX_CHARS
+
+
+def tts_cache_path(key: str) -> str:
+    return f"{TTS_CACHE_PREFIX}/{key}.wav"
+
+
+_TTS_MEM_CACHE: dict = {}         # key -> wav bytes, hot items (a Storage download is ~0.5-1 s)
+_TTS_MEM_CACHE_MAX = int(os.getenv("TTS_MEM_CACHE_ITEMS", "300"))   # ~300 × 150 KB ≈ 45 MB
+
+
+def _tts_mem_put(key: str, wav_bytes: bytes):
+    if len(_TTS_MEM_CACHE) >= _TTS_MEM_CACHE_MAX:
+        _TTS_MEM_CACHE.pop(next(iter(_TTS_MEM_CACHE)), None)   # oldest inserted
+    _TTS_MEM_CACHE[key] = wav_bytes
+
+
+def tts_cache_get(key: str) -> bytes | None:
+    """WAV bytes from memory or Storage, or None. A miss is a real answer, so no retries."""
+    hit = _TTS_MEM_CACHE.get(key)
+    if hit:
+        return hit
+    try:
+        data = sb.storage.from_(LESSON_AUDIO_BUCKET).download(tts_cache_path(key))
+        if data and len(data) > 44:
+            _tts_mem_put(key, data)
+            return data
+        return None
+    except Exception:
+        return None
+
+
+def tts_cache_put(key: str, wav_bytes: bytes):
+    _tts_mem_put(key, wav_bytes)
+    try:
+        storage_with_retry(lambda: sb.storage.from_(LESSON_AUDIO_BUCKET).upload(
+            path=tts_cache_path(key), file=wav_bytes,
+            file_options={"content-type": "audio/wav", "upsert": "true"}
+        ), label="TTS CACHE PUT")
+        print("LIVE TTS CACHE STORED:", {"key": key[:12], "bytes": len(wav_bytes)})
+    except Exception as e:
+        print("LIVE TTS CACHE PUT FAILED (audio still served):", {"key": key[:12], "error": repr(e)[:160]})
+
+
+def warm_tts_cache(texts: list) -> dict:
+    """Synthesize + store every text that is not cached yet. Runs on a thread
+    (_threading.Thread(target=run_in_context(warm_tts_cache, texts))) so an intro's
+    sentences are ready before the browser asks for them. Returns counts."""
+    out = {"hit": 0, "warmed": 0, "failed": 0, "skipped": 0}
+    for raw in texts:
+        text = str(raw or "").strip()
+        if not tts_cacheable(text):
+            out["skipped"] += 1
+            continue
+        spoken = vocalize_for_tts(text)
+        key = tts_cache_key(spoken)
+        if tts_cache_get(key) is not None:
+            out["hit"] += 1
+            continue
+        try:
+            wav, dur = generate_tts_wav_bytes(spoken)
+            tts_cache_put(key, wav)
+            out["warmed"] += 1
+            print("LIVE TTS CACHE WARMED:", {"key": key[:12], "seconds": round(dur, 1), "text_length": len(text)})
+        except Exception as e:
+            out["failed"] += 1
+            print("LIVE TTS CACHE WARM FAILED:", {"key": key[:12], "error": repr(e)[:160]})
+    return out
+
+
+def _openrouter_tts_payload(text: str) -> dict:
+    return {
+        "model": OPENROUTER_TTS_MODEL,
+        "input": TTS_STYLE_PREFIX + text,
+        "voice": TTS_VOICE,
+        "response_format": "pcm",          # 24 kHz 16-bit mono, same bytes Gemini returns directly
+    }
+
+
+def openrouter_tts_pcm(text: str, timeout_s: float = 90.0) -> bytes:
+    """One synchronous TTS call through OpenRouter. Returns raw PCM bytes."""
+    t0 = time.time()
+    r = _httpx.post(
+        f"{OPENROUTER_BASE_URL}/audio/speech",
+        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", **_OPENROUTER_HEADERS},
+        json=_openrouter_tts_payload(text),
+        timeout=timeout_s,
+    )
+    _record_openrouter_tts(r, t0)
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code} OPENROUTER_TTS {r.text[:300]}")
+    if not r.content:
+        raise RuntimeError("OpenRouter TTS returned no audio data")
+    return r.content
+
+
+def _record_openrouter_tts(r, t0: float):
+    """ai_calls row for one OpenRouter TTS answer; exact cost is filled in later by
+    generation id (ai_costs.resolve_pending_costs)."""
+    try:
+        ok = r.status_code == 200 and bool(r.content)
+        gen_id = r.headers.get("X-Generation-Id") if ok else None
+        ai_costs.record(
+            "openrouter", OPENROUTER_TTS_MODEL,
+            audio_seconds=(len(r.content) / (24000 * 2)) if ok else None,
+            latency_ms=(time.time() - t0) * 1000,
+            status="ok" if ok else "error",
+            error=None if ok else f"{r.status_code} {r.text[:200]}",
+            cost_source="pending" if gen_id else "unknown",
+            generation_id=gen_id,
+        )
+    except Exception as e:
+        print("AI COSTS RECORD FAILED (tts):", repr(e)[:120])
+
+
+async def openrouter_tts_pcm_async(text: str, timeout_s: float = 90.0) -> bytes:
+    global _openrouter_async_http
+    if _openrouter_async_http is None:
+        _openrouter_async_http = _httpx.AsyncClient(timeout=timeout_s)
+    t0 = time.time()
+    r = await _openrouter_async_http.post(
+        f"{OPENROUTER_BASE_URL}/audio/speech",
+        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", **_OPENROUTER_HEADERS},
+        json=_openrouter_tts_payload(text),
+    )
+    _record_openrouter_tts(r, t0)
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code} OPENROUTER_TTS {r.text[:300]}")
+    if not r.content:
+        raise RuntimeError("OpenRouter TTS returned no audio data")
+    return r.content
+# ===== end AI provider switch =====
+
+# =====================================================
+# AI CALL ACCOUNTING — one ai_calls row per model call (ai_costs.py)
+# =====================================================
+from ai_costs import AICostTracker, set_call_context, run_in_context  # noqa: E402
+
+ai_costs = AICostTracker(
+    sb, service="tutor-web",
+    prices=MODEL_PRICING_USD,
+    audio_tokens_per_second=GEMINI_AUDIO_TOKENS_PER_SECOND,
+    audio_output_price_per_1m=GEMINI_TTS_AUDIO_OUTPUT_COST_PER_1M,
+    # $30 per 1M image-output tokens, 1120 tokens per 1024px image (ai.google.dev pricing, 2026-09)
+    image_prices={"gemini-3.1-flash-lite-image": 0.0336, **json.loads(os.getenv("AI_IMAGE_PRICES_JSON", "{}"))},
+    openrouter_api_key=OPENROUTER_API_KEY,
+    openrouter_base_url=OPENROUTER_BASE_URL,
+)
+ai_costs.install(openai_clients=[client, aclient], gemini_client=gemini_client)
+import uuid
+import media_trace
+media_trace.install_print_prefix()
+import lesson_quality as lq
+IMAGE_TEXT_CHECK = os.getenv("IMAGE_TEXT_CHECK", "0") == "1"          # vision call per image (~$0.0003): OFF by default (2026-09-16), set 1 to enable
+IMAGE_TEXT_CHECK_MODEL = os.getenv("IMAGE_TEXT_CHECK_MODEL", "gemini-3.1-flash-lite")
+VISUAL_REUSE = os.getenv("VISUAL_REUSE", "1") == "1"                # dynamic image count: segments without a new idea reuse the previous image
+VISUAL_NEW_RATIO = float(os.getenv("VISUAL_NEW_RATIO", "0.5"))     # share of segments that get a NEW image per part
+VISUAL_MIN_NEW = int(os.getenv("VISUAL_MIN_NEW", "3"))              # never fewer new images than this per part (unless fewer segments)
+LESSON_QUALITY_GATE = os.getenv("LESSON_QUALITY_GATE", "0") == "1"    # per-lesson report after every media job: OFF by default (2026-09-16), set 1 to enable
+NO_TEXT_RETRY_SUFFIX = (
+    "\n\nSTRICT RETRY: the previous image contained readable text. Produce the SAME scene with "
+    "ABSOLUTELY NO letters, words, numbers, labels, captions, signs or symbols that look like writing."
+)   # every print() -> "HH:MM:SS.mmm [T+.. req/job lesson part]" prefix
+
+
+def ai_context(purpose: str, user=None, payload=None, **more):
+    """Tag every model call made while handling this request/job."""
+    return set_call_context(
+        purpose=purpose,
+        user_id=getattr(user, "id", None),
+        kid_id=getattr(payload, "kid_id", None),
+        unit_lesson_id=getattr(payload, "unit_lesson_id", None),
+        **more
+    )
+# ===== end AI call accounting =====
+
 # In production the interactive docs are off: /docs, /redoc and /openapi.json handed
 # all 19 routes and 14 schemas to anyone who asked.
 IS_PROD = os.getenv("APP_ENV", "dev") == "prod"
@@ -462,6 +847,16 @@ app = FastAPI(
     redoc_url=None if IS_PROD else "/redoc",
     openapi_url=None if IS_PROD else "/openapi.json",
 )
+
+@app.middleware("http")
+async def _media_trace_request(request, call_next):
+    """T+0 for every request so every print in it reads as a timeline; lesson/kid are added by the routes."""
+    media_trace.trace_begin(req=uuid.uuid4().hex[:8], path=request.url.path)
+    t = time.perf_counter()
+    response = await call_next(request)
+    if request.url.path.startswith("/api/tutor/unit-lesson") or request.url.path.startswith("/api/tutor/tts"):
+        print("REQUEST DONE", {"path": request.url.path, "status": response.status_code, "took_s": round(time.perf_counter() - t, 1)})
+    return response
 
 # =====================================================
 # CORS
@@ -546,7 +941,305 @@ async def _rate_limit(request: _Request, call_next):
             for k in [k for k, v in _rate_buckets.items() if not v or v[-1] < now - 60]:
                 _rate_buckets.pop(k, None)
     return await call_next(request)
+
+
+# ---- operational metrics: request_log + service_metrics in Supabase (ops_metrics.py)
+from ops_metrics import OpsReporter as _OpsReporter
+
+ops = _OpsReporter(sb, service="tutor-web")
+_inflight = {"n": 0}
+ops.gauges["threads_busy"] = lambda: _inflight["n"]          # /api requests in flight right now
+ops.gauges["rate_buckets"] = lambda: len(_rate_buckets)
+ops.gauges["media_jobs_mode"] = lambda: MEDIA_JOBS_MODE
+
+
+@app.on_event("startup")
+async def _start_ops_reporter():
+    ops.start()
+    ai_costs.start()
+
+
+@app.middleware("http")
+async def _request_log(request: _Request, call_next):
+    """One request_log row per /api/* call: route template, status, milliseconds.
+    Buffered in memory and flushed in batches; never adds a DB call to the request."""
+    if not request.url.path.startswith("/api/"):
+        return await call_next(request)
+    _inflight["n"] += 1
+    t0 = _time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        return response
+    finally:
+        _inflight["n"] -= 1
+        route = request.scope.get("route")
+        ops.log_request(getattr(route, "path", None) or request.url.path, request.method, status,
+                        (_time.perf_counter() - t0) * 1000)
 # ===== end capacity =====
+
+
+# =====================================================
+# MEDIA JOBS — the queue that replaced BackgroundTasks
+# =====================================================
+# The media pipeline (intro videos, lesson visuals, TTS audio) used to run inside
+# this web process after the response was sent. A deploy or crash in the middle
+# lost the work silently, and every five-minute video poll held one of the
+# server's threads. Now a route inserts one row into public.media_jobs and a
+# separate process (worker.py) does the work. Same functions, different process.
+#
+# MEDIA_JOBS_MODE=queue   (default) rows go to the table; worker.py must be running
+# MEDIA_JOBS_MODE=inline  the old behaviour, BackgroundTasks in this process
+#
+# If the queue is on but the insert fails (table missing, Supabase down), the job
+# runs inline as before, so a broken queue degrades to today's behaviour, never to
+# a lesson with no audio.
+
+MEDIA_JOBS_MODE = os.getenv("MEDIA_JOBS_MODE", "queue").strip().lower()
+
+
+# Lower runs first. What the child is waiting for on the first screen comes before
+# what plays later or has a fallback (the standard intro replaces a missing personal one).
+MEDIA_JOB_PRIORITY = {
+    "unit_lesson_media": 10,
+    "unit_lesson_audio": 10,
+    "unit_lesson_visuals": 30,
+    "kid_intro_videos": 60,
+    "unit_lesson_transition": 90,
+}
+_enqueue_supports_priority = {"value": True}
+
+
+def enqueue_media_job(
+        job_type: str,
+        payload: dict,
+        dedupe_key: str | None = None,
+        max_attempts: int = 3,
+        priority: int | None = None
+) -> int:
+    """Insert a job row. Returns its id, or the id of the live duplicate."""
+
+    if priority is None:
+        priority = MEDIA_JOB_PRIORITY.get(job_type, 50)
+
+    def operation():
+        params = {
+            "p_job_type": job_type,
+            "p_payload": payload or {},
+            "p_dedupe_key": dedupe_key,
+            "p_max_attempts": max_attempts
+        }
+        if _enqueue_supports_priority["value"]:
+            params["p_priority"] = int(priority)
+        try:
+            return sb.rpc("media_jobs_enqueue", params).execute()
+        except Exception as e:
+            # database still on the 4-argument enqueue (priority migration not applied):
+            # fall back once, remember, keep working
+            if _enqueue_supports_priority["value"] and "p_priority" in params and (
+                    "PGRST202" in repr(e) or "Could not find the function" in repr(e)):
+                _enqueue_supports_priority["value"] = False
+                print("MEDIA JOB ENQUEUE: media_jobs_priority migration not applied, enqueuing without priority")
+                params.pop("p_priority", None)
+                return sb.rpc("media_jobs_enqueue", params).execute()
+            raise
+
+    res = supabase_with_retry(
+        operation,
+        label="MEDIA JOB ENQUEUE"
+    )
+
+    return int(res.data)
+
+
+def dispatch_media_job(
+        background_tasks: BackgroundTasks,
+        job_type: str,
+        payload: dict,
+        dedupe_key: str | None,
+        inline_fn,
+        inline_args: tuple = ()
+):
+    """Queue the job, or fall back to running it in-process the old way.
+
+    Synchronous (one Supabase RPC). From an `async def` route wrap it:
+        await run_in_threadpool(lambda: dispatch_media_job(...))
+    """
+
+    if MEDIA_JOBS_MODE != "inline":
+
+        try:
+
+            job_id = enqueue_media_job(
+                job_type=job_type,
+                payload=payload,
+                dedupe_key=dedupe_key,
+                # a TTS quota hit costs a whole attempt; 5 tries × growing backoff
+                # (60s × attempt) covers a few minutes of provider trouble
+                max_attempts=int(os.getenv("MEDIA_JOB_MAX_ATTEMPTS", "5"))
+            )
+
+            print(
+                "MEDIA JOB QUEUED:",
+                {
+                    "job_id": job_id,
+                    "job_type": job_type,
+                    "dedupe_key": dedupe_key
+                }
+            )
+
+            return job_id
+
+        except Exception as enqueue_error:
+
+            print(
+                "MEDIA JOB ENQUEUE FAILED - RUNNING INLINE:",
+                {
+                    "job_type": job_type,
+                    "dedupe_key": dedupe_key,
+                    "error": repr(enqueue_error)
+                }
+            )
+
+    background_tasks.add_task(
+        inline_fn,
+        *inline_args
+    )
+
+    return None
+
+
+def _list_storage_prefix(bucket: str, prefix: str) -> list:
+    acc = []
+    def walk(pfx):
+        for o in sb.storage.from_(bucket).list(pfx, {"limit": 1000}):
+            path = f"{pfx}/{o['name']}"
+            if o.get("id") is None and o.get("metadata") is None:
+                walk(path)
+            else:
+                acc.append(path)
+    try:
+        walk(prefix)
+    except Exception as e:
+        print("STORAGE LIST FAILED:", {"bucket": bucket, "prefix": prefix, "error": repr(e)[:120]})
+    return acc
+
+
+def run_lesson_quality_gate(unit_lesson_id: int, check_images: bool = True) -> dict:
+    """Per-lesson QUALITY GATE: text rules, visual plan vs segments, audio vs segments,
+    storage consistency (no stale versions, every referenced file exists) and, optionally,
+    a vision check that no stored image carries readable text. The report is written to
+    generated_lesson_json["quality"] and printed; it never raises."""
+    row = get_unit_lesson(unit_lesson_id)
+    g = row.get("generated_lesson_json") or {}
+    cv = int(row.get("content_version") or 1)
+    media = _list_storage_prefix(LESSON_MEDIA_BUCKET, f"unit_lessons/{unit_lesson_id}")
+    audio = _list_storage_prefix(LESSON_AUDIO_BUCKET, f"unit_lessons/{unit_lesson_id}")
+    image_results = None
+    if check_images and IMAGE_TEXT_CHECK:
+        image_results = {}
+        reused = 0
+        for path in sorted(p for p in media if (f"/v{cv}/" in p or "/hero_v" in p) and p.endswith(".png")):
+            key = path.split(f"unit_lessons/{unit_lesson_id}/", 1)[-1]
+            gen = _IMAGE_TEXT_RESULTS.get((int(unit_lesson_id), key))
+            if gen is not None:
+                image_results[key] = dict(gen, source="generation")   # already verified when it was made
+                reused += 1
+                continue
+            try:
+                data = sb.storage.from_(LESSON_MEDIA_BUCKET).download(path)
+                image_results[key] = dict(lq.image_text_check(gemini_client, types, IMAGE_TEXT_CHECK_MODEL, data, "image/png"),
+                                          source="gate")
+            except Exception as e:
+                image_results[key] = {"has_text": False, "text": "", "error": repr(e)[:100], "source": "gate"}
+        print("LESSON QUALITY GATE IMAGES:", {"unit_lesson_id": unit_lesson_id, "checked": len(image_results), "reused_generation_results": reused})
+    prev_q = g.get("quality") or {}
+    report = lq.build_quality_report(
+        g.get("structured_lesson") or {}, g.get("visual_plan"), row.get("lesson_audio_json"), cv,
+        media, audio, image_results, image_overrides=prev_q.get("image_overrides") or {})
+    report["image_overrides"] = prev_q.get("image_overrides") or {}
+    print("LESSON QUALITY GATE " + ("PASS" if report["ok"] else "FAIL") + ":",
+          {"unit_lesson_id": unit_lesson_id, "errors": report["errors"][:8], "warnings": len(report["warnings"]),
+           "stats": report["stats"]})
+    try:
+        g = dict(g); g["quality"] = report
+        update = {"generated_lesson_json": g}
+        # generation_status has a CHECK constraint without a 'needs_review' value, so the
+        # verdict lives in generated_lesson_json.quality: ok=false (and no human approval)
+        # makes the unit-lesson route answer "needs_review" instead of serving the lesson.
+        if not report["ok"]:
+            print("LESSON QUALITY GATE -> flagged for human review (served anyway):", {"unit_lesson_id": unit_lesson_id, "errors": len(report["errors"])})
+        supabase_with_retry(lambda: sb.table("lesson_units_content").update(update)
+                            .eq("id", unit_lesson_id).execute(), label="SAVE QUALITY REPORT")
+    except Exception as e:
+        print("LESSON QUALITY GATE SAVE FAILED:", {"unit_lesson_id": unit_lesson_id, "error": repr(e)[:160]})
+    return report
+
+
+def run_media_job(
+        job_type: str,
+        payload: dict
+):
+    """Execute one job. Called by worker.py; the functions are the ones
+    BackgroundTasks used to call, unchanged."""
+
+    payload = payload or {}
+
+    if job_type == "kid_intro_videos":
+        child = get_child_by_id(
+            user_id=str(payload["user_id"]),
+            kid_id=str(payload["kid_id"])
+        )
+        return generate_kid_lesson_intro_videos_background(child)
+
+    unit_lesson_runners = {
+        "unit_lesson_audio": generate_unit_lesson_audio_background,
+        "unit_lesson_visuals": generate_all_lesson_visuals_background,
+        "unit_lesson_transition": generate_transition_video_background,
+        "unit_lesson_media": generate_unit_lesson_media_background,
+    }
+
+    runner = unit_lesson_runners.get(job_type)
+
+    if runner is None:
+        raise ValueError(
+            f"unknown media job type: {job_type}"
+        )
+
+    unit_lesson_id = int(payload["unit_lesson_id"])
+    result = runner(unit_lesson_id)
+    if LESSON_QUALITY_GATE and job_type in ("unit_lesson_media", "unit_lesson_audio", "unit_lesson_visuals"):
+        try:
+            with media_trace.stage("quality_gate"):
+                run_lesson_quality_gate(unit_lesson_id, check_images=(job_type != "unit_lesson_audio"))
+        except Exception as gate_error:
+            print("LESSON QUALITY GATE CRASHED (job still done):", {"unit_lesson_id": unit_lesson_id, "error": repr(gate_error)[:200]})
+
+    # generate_unit_lesson_media_background swallows an audio failure (it only
+    # prints it), so without this check the job row would say "done" while the
+    # lesson row says audio "failed". Raising here makes the queue retry the job
+    # with backoff; visuals already stored are cache hits on the second attempt.
+    if job_type in ("unit_lesson_media", "unit_lesson_audio"):
+        after = get_unit_lesson(unit_lesson_id)
+        status = after.get("audio_generation_status")
+        if status == "failed":
+            raise RuntimeError(
+                f"audio generation failed for unit lesson {unit_lesson_id}: "
+                f"{str(after.get('audio_generation_error') or '')[:300]}"
+            )
+        # The audio function returns silently when it decides there is nothing to do
+        # (content not ready yet, JSON missing, ...). A job that ends without audio
+        # is not done: fail it so the queue retries with backoff instead of leaving
+        # the lesson mute forever.
+        if status != "ready" or not after.get("lesson_audio_json"):
+            raise RuntimeError(
+                f"audio not ready after {job_type} for unit lesson {unit_lesson_id}: "
+                f"audio_generation_status={status!r}, generation_status={after.get('generation_status')!r}"
+            )
+
+    return result
+# ===== end media jobs =====
 
 
 # =====================================================
@@ -605,7 +1298,14 @@ class TutorTTSRequest(BaseModel):
     session_id: str | None = None
 
 
+class OpenAICleanChatRequest(BaseModel):
+    message: str = ""
+    image_url: str = ""
+    history: list = []
+
+
 class HomeworkCoachRequest(BaseModel):
+    image_url: str = ""
     kid_id: str
     source_text: str = ""
     current_question: str = ""
@@ -708,6 +1408,7 @@ class VisualDirectorItem(BaseModel):
     visual_goal: str
     source_text: str
     generation_prompt: str
+    reuse_previous: bool          # True = this segment adds no new visual idea: show the previous image, generate nothing
 
 
 class VisualDirectorResponse(BaseModel):
@@ -1427,6 +2128,40 @@ def update_custom_curriculum(
     }).execute()
 
     return updated_curriculum
+
+def hebrew_gender_rule(child: dict) -> tuple[str, str]:
+    """('female'|'male'|'unknown', instruction for the model) — the ONE place that decides
+    how the child is addressed in Hebrew. Every child-facing prompt uses it (2026-09-15)."""
+    raw = str((child or {}).get("gender") or "").strip().lower()
+    if raw in ("female", "f", "girl", "נקבה", "בת"):
+        gender = "female"
+    elif raw in ("male", "m", "boy", "זכר", "בן"):
+        gender = "male"
+    else:
+        gender = "unknown"
+    if gender == "female":
+        rule = (
+            "The child is a GIRL. Every Hebrew verb, adjective and pronoun that refers to her "
+            "must be FEMININE SINGULAR (את, תרצי, נסי, חשבי, כתבי, תסתכלי, הצלחת, מוכנה, יודעת, "
+            "בטוחה). Never use masculine forms."
+        )
+    elif gender == "male":
+        rule = (
+            "The child is a BOY. Every Hebrew verb, adjective and pronoun that refers to him "
+            "must be MASCULINE SINGULAR (אתה, תרצה, נסה, חשוב, כתוב, תסתכל, הצלחת, מוכן, יודע, "
+            "בטוח). Never use feminine forms."
+        )
+    else:
+        rule = (
+            "The child's gender is UNKNOWN. Do NOT guess it from the name. Write Hebrew that is "
+            "correct for both: plural imperatives (בואו ננסה, תסתכלו, נבדוק יחד), 'אפשר ל...' "
+            "constructions (אפשר לנסות?), questions without a second-person verb (מה דעתך? מה "
+            "מצאת?), and shared past-tense forms (הצלחת, מצאת, ראית). Never write slash forms "
+            "like נסה/י or מוכן/ה: the text is read aloud."
+        )
+        print("CHILD GENDER UNKNOWN (neutral Hebrew):", {"kid_id": (child or {}).get("id"), "child_name": (child or {}).get("child_name")})
+    return gender, rule
+
 
 def get_gender_placeholders(
         child: dict
@@ -2373,6 +3108,7 @@ def get_unit_lesson(
                 "audio_generation_status, "
                 "audio_generation_error, "
                 "audio_generated_at, "
+                "updated_at, "
                 "status, "
                 "is_active"
             )
@@ -4442,23 +5178,8 @@ def build_tutor_prompt(child: dict, kids_memory: str) -> str:
     for placeholder, value in replacements.items():
         prompt = prompt.replace(placeholder, value)
 
-    child_gender = str(child.get("gender") or "unknown").strip().lower()
+    child_gender, gender_instruction = hebrew_gender_rule(child)
     child_name = str(child.get("child_name") or "").strip()
-
-    if child_gender == "female":
-        gender_instruction = (
-            "The child is female. In Hebrew ALWAYS address her in feminine singular "
-            "forms (את, תרצי, נסי, כתבי, חשבי, הצלחת). Never use masculine forms."
-        )
-    elif child_gender == "male":
-        gender_instruction = (
-            "The child is male. In Hebrew address him in masculine singular forms."
-        )
-    else:
-        gender_instruction = (
-            "The child's gender is unknown. Avoid gendered Hebrew wording where possible; "
-            "do not infer gender from the child's name."
-        )
 
     prompt += (
         "\n\nAUTHORITATIVE_CHILD_PROFILE:\n"
@@ -4515,6 +5236,8 @@ def build_structured_lesson_prompt(
                 child.get(
                     "avatar_key"
                 ),
+            "gender":
+                hebrew_gender_rule(child)[0],
 
             "learning_interests":
                 child.get(
@@ -4643,13 +5366,11 @@ def build_structured_lesson_prompt(
             +
 
             json.dumps(
-
                 runtime_context,
-
                 ensure_ascii=False
-
             )
-
+            + "\n\nADDRESSING THE CHILD (Hebrew grammar, mandatory):\n"
+            + hebrew_gender_rule(child)[1]
     )
 
 def build_universal_unit_lesson_prompt(
@@ -4861,6 +5582,192 @@ def build_lesson_director_prompt(
             "{lesson_text}",
             lesson_text
         )
+    )
+
+
+# =====================================================
+# LESSON DIRECTOR — validation + single entry point
+#
+# Bug history (2026-09-01 → 2026-09-15): the prompt lost
+# its {lesson_text} placeholder and Part 1 sent the
+# director only the QUESTION as user message, so the
+# director segmented the question into "explanation"
+# segments (14/15 prod lessons). Every part now goes
+# through direct_lesson_part(), which always hands the
+# explanation to the model and refuses question-like or
+# foreign segments (retry once, then deterministic
+# sentence split of the teacher's explanation).
+# =====================================================
+
+_LESSON_DIRECTIVE_PREFIXES = (
+    "הסבירו", "הסבר", "הסבירי", "תארו", "תאר", "תארי",
+    "כיצד", "איך", "מדוע", "למה", "חשבו", "חשוב", "חשבי",
+    "ענו", "ענה", "עני", "נסו", "נסה", "נסי", "כתבו", "כתוב", "כתבי",
+    "סדרו", "מצאו", "ציינו", "הציעו", "בדקו", "מה ", "מי ", "איזה", "אילו", "האם"
+)
+
+
+def _normalize_lesson_text(text: str) -> str:
+    return re.sub(r"[^\w]", "", str(text or ""))
+
+
+def _content_words(text: str) -> set:
+    return {
+        w for w in re.findall(r"[\w']+", str(text or ""))
+        if len(w) > 2
+    }
+
+
+def find_invalid_lesson_segments(
+        segments: list,
+        question_text: str,
+        explanation_text: str
+) -> list:
+    """Return [(index, reason, text)] for segments that must not be read to the child."""
+    problems = []
+    q_norm = _normalize_lesson_text(question_text)
+    expl_words = _content_words(explanation_text)
+    for i, seg in enumerate(segments):
+        text = str(seg or "").strip()
+        if not text:
+            problems.append((i, "empty", text))
+            continue
+        norm = _normalize_lesson_text(text)
+        if len(norm) > 6 and norm in q_norm:
+            problems.append((i, "copied_from_question", text))
+            continue
+        why = lq.question_segment_problem(text)      # directive / short question; rhetorical ok
+        if why and why != "empty":
+            problems.append((i, why, text))
+            continue
+        words = _content_words(text)
+        if expl_words and len(words) >= 3:
+            overlap = len(words & expl_words) / len(words)
+            if overlap < 0.4:
+                problems.append((i, "not_from_explanation", text))
+    return problems
+
+
+def fallback_lesson_segments(explanation_text: str) -> list:
+    """Deterministic split of the teacher's explanation into sentences."""
+    text = re.sub(r"\s+", " ", str(explanation_text or "")).strip()
+    parts = re.split(r"(?<=[.!:])\s+(?=\S)", text)
+    out = []
+    for s in parts:
+        s = s.strip()
+        if not s:
+            continue
+        if out and len(s) < 25:
+            out[-1] = (out[-1] + " " + s).strip()
+        else:
+            out.append(s)
+    return [{"text": s} for s in out] or [{"text": text}]
+
+
+_GENDERED_2ND_PERSON = re.compile(
+    r"(?<![\w\u0590-\u05FF])(אתה|שלך|שלךְ|תוכל|תוכלי|נסי|חשבי|כתבי|תארי|הסבירי|תנסה|תנסי|תחשוב|תחשבי|"
+    r"תסתכל|תסתכלי|תזכור|תזכרי|תוכלו?\s+לבד|בעצמך|מוכנה|מוכן\?)(?![\w\u0590-\u05FF])"
+)
+
+
+def warn_if_gendered_lesson_text(text: str, label: str, unit_lesson_id=None):
+    """A shared lesson must not address one child in masculine/feminine singular.
+    Conservative word list (no 'את' — it is also the object marker); logs only."""
+    hits = _GENDERED_2ND_PERSON.findall(str(text or ""))
+    if hits:
+        print("LESSON TEXT GENDERED 2ND PERSON (shared lesson should be neutral):",
+              {"unit_lesson_id": unit_lesson_id, "where": label, "hits": hits[:6]})
+    return hits
+
+
+async def direct_lesson_part(
+        explanation: str,
+        question: str,
+        part_number: int,
+        unit_lesson_id=None
+):
+    """Segment ONE lesson part. Returns (part_dict, first_completion).
+
+    part_dict = {"lesson": [{"text": ...}], "question": {"text": question}}.
+    The question is owned by the teacher and is never taken from the director.
+    """
+    explanation = str(explanation or "").strip()
+    question = str(question or "").strip()
+    warn_if_gendered_lesson_text(explanation, f"part{part_number}.explanation", unit_lesson_id)
+    warn_if_gendered_lesson_text(question, f"part{part_number}.question", unit_lesson_id)
+    system_prompt = build_lesson_director_prompt(
+        lesson_text=explanation
+    )
+    user_content = explanation
+    first_completion = None
+    for attempt in (1, 2):
+        completion = await aclient.beta.chat.completions.parse(
+            model=UNIVERSAL_LESSON_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            response_format=DirectedLessonUnitResponse
+        )
+        if first_completion is None:
+            first_completion = completion
+        data = completion.choices[0].message.parsed
+        segments = (
+            [s.text for s in data.lesson]
+            if data and data.lesson else []
+        )
+        problems = find_invalid_lesson_segments(
+            segments, question, explanation
+        )
+        if segments and not problems:
+            print(
+                "LESSON DIRECTOR OK",
+                {
+                    "unit_lesson_id": unit_lesson_id,
+                    "part_number": part_number,
+                    "attempt": attempt,
+                    "segments": len(segments)
+                }
+            )
+            return (
+                {
+                    "lesson": [{"text": s.strip()} for s in segments],
+                    "question": {"text": question}
+                },
+                first_completion
+            )
+        print(
+            "LESSON DIRECTOR REJECTED",
+            {
+                "unit_lesson_id": unit_lesson_id,
+                "part_number": part_number,
+                "attempt": attempt,
+                "segments": len(segments),
+                "problems": [(i, r, t[:80]) for i, r, t in problems][:8]
+            }
+        )
+        bad_lines = "\n".join(
+            f"- {t}" for _, _, t in problems if t
+        )
+        user_content = (
+            explanation
+            + "\n\n---\n"
+            "הניסיון הקודם נדחה. המקטעים הבאים אסורים "
+            "(שאלה, הוראה לתלמיד, או טקסט שאינו מתוך ההסבר):\n"
+            + bad_lines
+            + "\nחלקו מחדש אך ורק את טקסט ההסבר שלמעלה. "
+            "אל תכללו את השאלה או חלק ממנה בתוך lesson."
+        )
+    print(
+        "LESSON DIRECTOR FALLBACK (sentence split)",
+        {"unit_lesson_id": unit_lesson_id, "part_number": part_number}
+    )
+    return (
+        {
+            "lesson": fallback_lesson_segments(explanation),
+            "question": {"text": question}
+        },
+        first_completion
     )
 
 
@@ -5644,16 +6551,26 @@ def normalize_visual_plan_to_segments(
             )
 
             # =========================================
-            # HARD 1:1 VISUAL
+            # ONE ENTRY PER SEGMENT, BUT NOT ONE IMAGE PER SEGMENT (2026-09-16)
+            # The director marks segments that continue the same idea with
+            # reuse_previous; they point at the previous image (reuse_of) and
+            # no image is generated for them. The player still maps
+            # segment N -> entry N, so nothing changes on the frontend.
             # =========================================
-
+            reuse_of = None
+            if VISUAL_REUSE and director_visual and director_visual.get("reuse_previous") and segment_index > 1:
+                prev = next((v for v in reversed(normalized_visuals) if v.get("part_number") == part_number), None)
+                if prev:
+                    reuse_of = int(prev.get("reuse_of") or prev.get("order"))
+                    generation_prompt = prev.get("generation_prompt") or generation_prompt
             normalized_visuals.append(
                 {
                     "part_number":
                         part_number,
-
                     "order":
                         segment_index,
+                    "reuse_of":
+                        reuse_of,
 
                     "trigger_text":
                         trigger_text,
@@ -5674,6 +6591,25 @@ def normalize_visual_plan_to_segments(
                         generation_prompt
                 }
             )
+
+        # =============================================
+        # IMAGE BUDGET (deterministic, 2026-09-16)
+        # The director's reuse_previous flag swings between 0% and 90%, so the
+        # budget decides: ceil(S * VISUAL_NEW_RATIO) new images per part (min
+        # VISUAL_MIN_NEW), given to the segments whose prompts differ most from
+        # the previous one; the rest reuse the previous image.
+        # =============================================
+        if VISUAL_REUSE:
+            part_entries = [v for v in normalized_visuals if v.get("part_number") == part_number]
+            flags = []
+            for v in part_entries:
+                dv = next((it for it in raw_visuals if isinstance(it, dict) and int(it.get("part_number") or 1) == part_number and int(it.get("order") or 0) == int(v.get("order") or 0)), None)
+                flags.append(bool(dv.get("reuse_previous")) if dv else False)
+            lq.enforce_image_budget(part_entries, VISUAL_NEW_RATIO, VISUAL_MIN_NEW, flags)
+            print("VISUAL IMAGE BUDGET:", {"part_number": part_number, "segments": len(part_entries),
+                  "new_images": sum(1 for v in part_entries if not v.get("reuse_of")),
+                  "reused": sum(1 for v in part_entries if v.get("reuse_of")),
+                  "model_said_reuse": sum(flags)})
 
         # =============================================
         # PART QUESTION VISUAL
@@ -6078,47 +7014,120 @@ def get_kid_lesson_intro_media(
     )
 
 
+# =====================================================
+# SIGNED URL CACHE
+# =====================================================
+# Every lesson open used to ask Storage for a fresh signed URL per file: ~17 audio
+# segments + ~21 visuals + 3 intro videos, one HTTP call each, per request. Under
+# load that was the whole cost of /unit-lesson, /audio, /visuals and /hero-image
+# (30 concurrent opens: 17 s, every request finishing together). A signed URL is
+# valid for an hour, so it is cached here until five minutes before it expires,
+# and the audio segments of a lesson are signed in ONE Storage call (batch API).
+import threading as _threading
+
+_SIGNED_URL_CACHE: dict = {}                 # (bucket, path) -> (url, expires_at_monotonic)
+_SIGNED_URL_LOCK = _threading.Lock()
+SIGNED_URL_CACHE_MARGIN_SECONDS = int(os.getenv("SIGNED_URL_CACHE_MARGIN_SECONDS", "300"))
+_SIGNED_URL_CACHE_MAX = 50_000
+
+
+def _signed_url_from_response(signed_response) -> str | None:
+    if isinstance(signed_response, dict):
+        return (
+            signed_response.get("signedURL")
+            or signed_response.get("signedUrl")
+            or signed_response.get("signed_url")
+        )
+    return None
+
+
+def _signed_cache_get(bucket: str, path: str) -> str | None:
+    with _SIGNED_URL_LOCK:
+        hit = _SIGNED_URL_CACHE.get((bucket, path))
+    if hit and hit[1] > time.monotonic():
+        return hit[0]
+    return None
+
+
+def _signed_cache_put(bucket: str, path: str, url: str, expires_in: int):
+    ttl = max(30, int(expires_in) - SIGNED_URL_CACHE_MARGIN_SECONDS)
+    with _SIGNED_URL_LOCK:
+        if len(_SIGNED_URL_CACHE) >= _SIGNED_URL_CACHE_MAX:
+            now = time.monotonic()
+            for k in [k for k, v in _SIGNED_URL_CACHE.items() if v[1] <= now]:
+                _SIGNED_URL_CACHE.pop(k, None)
+            if len(_SIGNED_URL_CACHE) >= _SIGNED_URL_CACHE_MAX:
+                _SIGNED_URL_CACHE.clear()
+        _SIGNED_URL_CACHE[(bucket, path)] = (url, time.monotonic() + ttl)
+
+
+def signed_url_cached(bucket: str, path: str, expires_in: int) -> str:
+    """One signed URL, from cache or from one Storage call. Raises if the file is
+    not there (callers use that as the 'not generated yet' signal)."""
+    hit = _signed_cache_get(bucket, path)
+    if hit:
+        return hit
+    signed_response = storage_with_retry(
+        lambda: sb.storage.from_(bucket).create_signed_url(path, expires_in),
+        label="STORAGE SIGN"
+    )
+    url = _signed_url_from_response(signed_response)
+    if not url:
+        raise RuntimeError(f"Failed to create signed URL for {bucket}/{path}")
+    _signed_cache_put(bucket, path, url, expires_in)
+    return url
+
+
+def signed_urls_cached_batch(bucket: str, paths: list, expires_in: int) -> dict:
+    """path -> signed url for every path that exists, misses fetched in ONE call."""
+    out = {}
+    missing = []
+    for p in dict.fromkeys(p for p in paths if p):
+        hit = _signed_cache_get(bucket, p)
+        if hit:
+            out[p] = hit
+        else:
+            missing.append(p)
+    if missing:
+        items = storage_with_retry(
+            lambda: sb.storage.from_(bucket).create_signed_urls(missing, expires_in),
+            label="STORAGE SIGN BATCH"
+        ) or []
+        for item in items:
+            if not isinstance(item, dict) or item.get("error"):
+                continue
+            url = _signed_url_from_response(item)
+            p = str(item.get("path") or "").lstrip("/")
+            if url and p:
+                _signed_cache_put(bucket, p, url, expires_in)
+                out[p] = url
+    return out
+
+
+_GENERATION_LOCKS: dict = {}
+_GENERATION_LOCKS_GUARD = _threading.Lock()
+
+
+def generation_lock(key: str) -> "_threading.Lock":
+    """One lock per media key, so 30 children opening the same new lesson trigger
+    one generation in this process, not 30 (seen in the 2026-09-14 load test:
+    30 parallel hero-image requests -> 30 image generations, 493 MB, 121% CPU)."""
+    with _GENERATION_LOCKS_GUARD:
+        lock = _GENERATION_LOCKS.get(key)
+        if lock is None:
+            lock = _GENERATION_LOCKS[key] = _threading.Lock()
+        return lock
+
+
 def create_kid_personal_media_signed_url(
         storage_path: str
 ) -> str:
 
-    signed_response = (
-        sb.storage
-        .from_(
-            KID_PERSONAL_MEDIA_BUCKET
-        )
-        .create_signed_url(
-            storage_path,
-            KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS
-        )
+    return signed_url_cached(
+        KID_PERSONAL_MEDIA_BUCKET,
+        storage_path,
+        KID_PERSONAL_MEDIA_URL_EXPIRY_SECONDS
     )
-
-    signed_url = None
-
-    if isinstance(
-        signed_response,
-        dict
-    ):
-        signed_url = (
-            signed_response.get(
-                "signedURL"
-            )
-            or signed_response.get(
-                "signedUrl"
-            )
-            or signed_response.get(
-                "signed_url"
-            )
-        )
-
-    if not signed_url:
-        raise RuntimeError(
-            "Failed to create signed URL "
-            f"for kid personal media: "
-            f"{storage_path}"
-        )
-
-    return signed_url
 
 
 def get_ready_kid_lesson_intro_videos(
@@ -6625,7 +7634,7 @@ def generate_single_kid_lesson_intro_video(
             }
         )
 
-        teacher_bytes = (
+        teacher_bytes = storage_with_retry(lambda: (
             sb.storage
             .from_(
                 LESSON_MEDIA_BUCKET
@@ -6633,7 +7642,7 @@ def generate_single_kid_lesson_intro_video(
             .download(
                 LESSON_TRANSITION_TEACHER_PATH
             )
-        )
+        ), label="STORAGE DOWNLOAD")
 
         if not teacher_bytes:
             raise RuntimeError(
@@ -6779,7 +7788,7 @@ The final video must contain spoken audio.
             f"intro-{variant}.mp4"
         )
 
-        sb.storage.from_(
+        storage_with_retry(lambda: sb.storage.from_(
             KID_PERSONAL_MEDIA_BUCKET
         ).upload(
 
@@ -6796,7 +7805,7 @@ The final video must contain spoken audio.
                 "upsert":
                     "true"
             }
-        )
+        ), label="STORAGE UPLOAD")
 
         ready_at = (
             datetime
@@ -6935,7 +7944,7 @@ def generate_kid_lesson_intro_videos_background(
 
 LESSON_MEDIA_BUCKET = "lesson-media"
 
-LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
+LESSON_MEDIA_URL_EXPIRY_SECONDS = int(os.getenv('LESSON_MEDIA_URL_EXPIRY_SECONDS', '14400'))   # 4 h: a lesson tab left open must not 403
 
 # =====================================================
 # UNIVERSAL LESSON TRANSITION VIDEO
@@ -6991,42 +8000,11 @@ def create_lesson_media_signed_url(
     ב-Supabase Storage.
     """
 
-    signed_response = (
-        sb.storage
-        .from_(
-            LESSON_MEDIA_BUCKET
-        )
-        .create_signed_url(
-            storage_path,
-            LESSON_MEDIA_URL_EXPIRY_SECONDS
-        )
+    return signed_url_cached(
+        LESSON_MEDIA_BUCKET,
+        storage_path,
+        LESSON_MEDIA_URL_EXPIRY_SECONDS
     )
-
-    signed_url = None
-
-    if isinstance(
-            signed_response,
-            dict
-    ):
-        signed_url = (
-            signed_response.get(
-                "signedURL"
-            )
-            or signed_response.get(
-                "signedUrl"
-            )
-            or signed_response.get(
-                "signed_url"
-            )
-        )
-
-    if not signed_url:
-        raise RuntimeError(
-            "Failed to create signed URL "
-            f"for lesson media: {storage_path}"
-        )
-
-    return signed_url
 
 def get_shared_lesson_transition(
         transition_type: str
@@ -7266,6 +8244,13 @@ REQUIREMENTS:
 - no captions
 - no logos
 - no watermark
+
+ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE: do not render the lesson title, the
+question, names of animals or any word or letter, in any language. The concept
+must be understood from the picture alone. Only universally readable scientific
+notation used by the lesson (CO2, H2O, O2, sin, cos, π, √, plain numbers, units) may appear. A poster, a title card, a
+labeled chart or a diagram with words is WRONG. Hebrew readers scan right to
+left: sequences start on the right. Calm, child-safe, no killing moment.
 """.strip()
 
 # =====================================================
@@ -7537,7 +8522,15 @@ def generate_lesson_visual_image_bytes(
     Do NOT copy any text, labels or annotations
     that may appear in the scene description.
 
-    ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE.
+    ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE. No words, letters, labels, captions or titles
+in any language. The ONLY allowed exception: universally readable scientific notation
+that the lesson itself uses (chemical formulas such as CO2, H2O, O2; math notation such as
+sin, cos, π, √, +, =, x²; plain numbers; units).
+
+READING DIRECTION: Hebrew readers scan right-to-left. If the scene shows a sequence,
+chain or process, place the first step on the RIGHT and the last on the LEFT; arrows,
+if any, point right-to-left. CHILD SAFETY: calm, no blood, no killing moment, nothing
+frightening. Do not depict a single child who could be read as the viewer.
 
     No:
     - words
@@ -7705,6 +8698,48 @@ def generate_lesson_visual_image_bytes(
 # GENERATE + STORE HERO IMAGE
 # =====================================================
 
+_IMAGE_TEXT_RESULTS: dict = {}     # (unit_lesson_id, "v1/part_2/visual_9.png") -> last generation-time check
+
+
+def _image_text_key(ctx: dict, kind: str) -> str | None:
+    if kind == "hero":
+        return f"hero_v{LESSON_MEDIA_HERO_VERSION}.png"
+    if ctx.get("content_version") and ctx.get("part_number") and ctx.get("order"):
+        return f"v{ctx['content_version']}/part_{ctx['part_number']}/visual_{ctx['order']}.png"
+    return None
+
+
+def ensure_no_text_in_image(image_bytes, mime_type, kind, regenerate, **ctx):
+    """The prompts forbid text, the model sometimes ignores it. One cheap vision call; on
+    readable text, one strict regeneration; the second result is kept either way (logged)."""
+    if not IMAGE_TEXT_CHECK:
+        return image_bytes, mime_type
+    try:
+        chk = lq.image_text_check(gemini_client, types, IMAGE_TEXT_CHECK_MODEL, image_bytes, mime_type)
+    except Exception as e:
+        print("LESSON IMAGE TEXT CHECK FAILED (kept image):", {**ctx, "kind": kind, "error": repr(e)[:160]})
+        return image_bytes, mime_type
+    if chk.get("has_text") and (chk.get("kind") == "formula" or lq.is_allowed_scientific_text(chk.get("text", ""))):
+        chk = dict(chk, has_text=False, allowed=True)      # CO2, H2O, numbers: fine in a shared image
+    print("LESSON IMAGE TEXT CHECK:", {**ctx, "kind": kind, **chk})
+    key = _image_text_key(ctx, kind)
+    if key and ctx.get("unit_lesson_id") is not None:
+        _IMAGE_TEXT_RESULTS[(int(ctx["unit_lesson_id"]), key)] = dict(chk)
+    if not chk["has_text"]:
+        return image_bytes, mime_type
+    try:
+        image_bytes2, mime2 = regenerate(NO_TEXT_RETRY_SUFFIX)
+        chk2 = lq.image_text_check(gemini_client, types, IMAGE_TEXT_CHECK_MODEL, image_bytes2, mime2)
+        print("LESSON IMAGE TEXT CHECK (after retry):", {**ctx, "kind": kind, **chk2})
+        if key and ctx.get("unit_lesson_id") is not None:
+            _IMAGE_TEXT_RESULTS[(int(ctx["unit_lesson_id"]), key)] = dict(chk2, retried=True)
+        if not chk2["has_text"] or len(chk2.get("text", "")) <= len(chk.get("text", "")):
+            return image_bytes2, mime2
+    except Exception as e:
+        print("LESSON IMAGE TEXT RETRY FAILED (kept first image):", {**ctx, "kind": kind, "error": repr(e)[:160]})
+    return image_bytes, mime_type
+
+
 def generate_and_store_lesson_hero_image(
         unit_lesson_id: int
 ) -> dict:
@@ -7787,6 +8822,11 @@ def generate_and_store_lesson_hero_image(
             image_prompt
         )
     )
+    image_bytes, mime_type = ensure_no_text_in_image(
+        image_bytes, mime_type, "hero",
+        lambda extra: generate_lesson_hero_image_bytes(image_prompt + extra),
+        unit_lesson_id=unit_lesson_id
+    )
 
     # =================================================
     # STORAGE PATH
@@ -7820,7 +8860,7 @@ def generate_and_store_lesson_hero_image(
         }
     )
 
-    sb.storage.from_(
+    storage_with_retry(lambda: sb.storage.from_(
         LESSON_MEDIA_BUCKET
     ).upload(
 
@@ -7839,7 +8879,7 @@ def generate_and_store_lesson_hero_image(
             "upsert":
                 "true"
         }
-    )
+    ), label="STORAGE UPLOAD")
 
     # =================================================
     # SIGNED URL
@@ -7921,7 +8961,7 @@ def generate_and_store_lesson_hero_image(
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
 LESSON_AUDIO_BUCKET = "lesson-audio"
-LESSON_AUDIO_URL_EXPIRY_SECONDS = 3600
+LESSON_AUDIO_URL_EXPIRY_SECONDS = int(os.getenv('LESSON_AUDIO_URL_EXPIRY_SECONDS', '14400'))   # 4 h: a lesson tab left open must not 403
 
 def generate_and_store_lesson_visual_image(
         unit_lesson_id: int,
@@ -8068,6 +9108,7 @@ def generate_and_store_lesson_visual_image(
     """.strip()
 
     final_generation_prompt = f"""
+    final_generation_prompt = lq.sanitize_generation_prompt(final_generation_prompt)   # never ask the image model for labels/text
     {LESSON_VISUAL_STYLE_LOCK}
 
     CURRENT EDUCATIONAL SCENE:
@@ -8122,6 +9163,15 @@ def generate_and_store_lesson_visual_image(
             reference_mime_type
         )
     )
+    image_bytes, mime_type = ensure_no_text_in_image(
+        image_bytes, mime_type, "visual",
+        lambda extra: generate_lesson_visual_image_bytes(
+            final_generation_prompt + extra,
+            reference_image_bytes=reference_image_bytes,
+            reference_mime_type=reference_mime_type
+        ),
+        unit_lesson_id=unit_lesson_id, part_number=part_number, order=visual_order, content_version=content_version
+    )
 
     storage_path = (
         f"unit_lessons/"
@@ -8131,7 +9181,7 @@ def generate_and_store_lesson_visual_image(
         f"visual_{visual_order}.png"
     )
 
-    sb.storage.from_(
+    storage_with_retry(lambda: sb.storage.from_(
         LESSON_MEDIA_BUCKET
     ).upload(
 
@@ -8148,7 +9198,7 @@ def generate_and_store_lesson_visual_image(
             "upsert":
                 "true"
         }
-    )
+    ), label="STORAGE UPLOAD")
 
     print(
         "LESSON VISUAL IMAGE STORED:",
@@ -8344,7 +9394,11 @@ def generate_all_lesson_visuals_background(
                 reference_bytes=None,
                 reference_mime_type="image/png"
         ):
-
+            if visual.get("reuse_of"):
+                print("LESSON VISUAL REUSED (no image generated):", {"unit_lesson_id": unit_lesson_id,
+                      "part_number": visual.get("part_number"), "order": visual.get("order"), "reuse_of": visual.get("reuse_of")})
+                return {"part_number": visual.get("part_number"), "order": visual.get("order"), "reuse_of": visual.get("reuse_of"),
+                        "type": "image", "trigger_text": visual.get("trigger_text"), "storage_path": None, "reused": True}
             part_number = int(
                 visual.get(
                     "part_number"
@@ -8722,6 +9776,7 @@ def generate_all_lesson_visuals_background(
             if not part_visuals:
                 continue
 
+            media_trace.trace_set(part=part_number)
             print(
                 "LESSON PART VISUAL GENERATION START:",
                 {
@@ -8749,10 +9804,19 @@ def generate_all_lesson_visuals_background(
                 or 0
             )
 
+            chain_reference = None
+            if int(part_number) > 1:
+                # keep ONE illustrator across parts: part N's first image follows part 1's first image
+                try:
+                    chain_reference = storage_with_retry(lambda: sb.storage.from_(LESSON_MEDIA_BUCKET).download(
+                        f"unit_lessons/{unit_lesson_id}/v{content_version}/part_1/visual_1.png"), label="STORAGE DOWNLOAD")
+                    print("LESSON PART STYLE CHAIN:", {"unit_lesson_id": unit_lesson_id, "part_number": part_number, "bytes": len(chain_reference or b"")})
+                except Exception as chain_error:
+                    print("LESSON PART STYLE CHAIN NOT AVAILABLE:", {"unit_lesson_id": unit_lesson_id, "part_number": part_number, "error": repr(chain_error)[:120]})
+                    chain_reference = None
             first_result = (
-                generate_single_visual(
-                    first_visual
-                )
+                generate_single_visual(first_visual, reference_bytes=chain_reference)
+                if chain_reference else generate_single_visual(first_visual)
             )
 
             if first_result:
@@ -8776,7 +9840,7 @@ def generate_all_lesson_visuals_background(
 
             try:
 
-                part_reference_bytes = (
+                part_reference_bytes = storage_with_retry(lambda: (
                     sb.storage
                     .from_(
                         LESSON_MEDIA_BUCKET
@@ -8784,7 +9848,7 @@ def generate_all_lesson_visuals_background(
                     .download(
                         reference_storage_path
                     )
-                )
+                ), label="STORAGE DOWNLOAD")
 
                 print(
                     "LESSON PART MASTER REFERENCE LOADED:",
@@ -8859,12 +9923,12 @@ def generate_all_lesson_visuals_background(
                 ) as executor:
 
                     futures = [
-                        executor.submit(
+                        executor.submit(run_in_context(
                             generate_single_visual,
                             visual,
                             part_reference_bytes,
                             part_reference_mime_type
-                        )
+                        ))
                         for visual
                         in remaining_part_visuals
                     ]
@@ -8999,6 +10063,31 @@ def generate_unit_lesson_media_background(
         }
     )
 
+    # =============================================
+    # FIRST SCREEN FIRST: the hero image
+    # =============================================
+    # The child sees the hero before any audio or part visual. It used to be
+    # generated only when the browser asked for it, inside that request (~5 s).
+    # Now it is the first thing the media job does; a request that arrives
+    # meanwhile waits on the same lock and gets the stored file.
+    try:
+        hero_path = get_lesson_media_storage_path(
+            unit_lesson_id=unit_lesson_id,
+            media_type="hero"
+        )
+        with generation_lock(f"hero:{unit_lesson_id}"):
+            try:
+                create_lesson_media_signed_url(hero_path)
+                print("LESSON HERO ALREADY STORED:", {"unit_lesson_id": unit_lesson_id})
+            except Exception:
+                with media_trace.stage("hero"):
+                    generate_and_store_lesson_hero_image(unit_lesson_id)
+    except Exception as hero_error:
+        print(
+            "LESSON HERO FIRST FAILED (continuing with audio/visuals):",
+            {"unit_lesson_id": unit_lesson_id, "error": repr(hero_error)[:200]}
+        )
+
     with ThreadPoolExecutor(
             max_workers=2
     ) as executor:
@@ -9007,15 +10096,17 @@ def generate_unit_lesson_media_background(
         # AUDIO + VISUALS RUN IN PARALLEL
         # =============================================
 
-        audio_future = executor.submit(
+        audio_future = executor.submit(run_in_context(
+            media_trace.staged, "audio",
             generate_unit_lesson_audio_background,
             unit_lesson_id
-        )
+        ))
 
-        visuals_future = executor.submit(
+        visuals_future = executor.submit(run_in_context(
+            media_trace.staged, "visuals",
             generate_all_lesson_visuals_background,
             unit_lesson_id
-        )
+        ))
 
         # =============================================
         # WAIT FOR VISUALS
@@ -9049,9 +10140,10 @@ def generate_unit_lesson_media_background(
 
         try:
 
-            generate_transition_video_background(
-                unit_lesson_id
-            )
+            with media_trace.stage("transition_video"):
+                generate_transition_video_background(
+                    unit_lesson_id
+                )
 
         except Exception as e:
 
@@ -9232,39 +10324,13 @@ def add_signed_urls_to_lesson_audio(
         if not path:
             return None
 
-        signed_response = (
-            sb.storage
-            .from_(
-                bucket
-            )
-            .create_signed_url(
-                path,
-                LESSON_AUDIO_URL_EXPIRY_SECONDS
-            )
+        # cache hit after the batch prefetch below; one Storage call only if the
+        # path was not part of the batch (legacy shapes)
+        signed_url = signed_url_cached(
+            bucket,
+            path,
+            LESSON_AUDIO_URL_EXPIRY_SECONDS
         )
-
-        signed_url = None
-
-        if isinstance(
-                signed_response,
-                dict
-        ):
-            signed_url = (
-                signed_response.get(
-                    "signedURL"
-                )
-                or signed_response.get(
-                    "signedUrl"
-                )
-                or signed_response.get(
-                    "signed_url"
-                )
-            )
-
-        if not signed_url:
-            raise RuntimeError(
-                f"Failed to create signed URL for {path}"
-            )
 
         return {
             **audio_item,
@@ -9282,6 +10348,38 @@ def add_signed_urls_to_lesson_audio(
         )
         or []
     )
+
+    # =============================================
+    # PREFETCH: sign every path of the lesson in ONE Storage call
+    # =============================================
+    all_paths = []
+    for raw_part in raw_parts:
+        if isinstance(raw_part, dict):
+            for seg in (raw_part.get("segments") or []):
+                if isinstance(seg, dict) and seg.get("path"):
+                    all_paths.append(str(seg["path"]).strip())
+            q = raw_part.get("question")
+            if isinstance(q, dict) and q.get("path"):
+                all_paths.append(str(q["path"]).strip())
+    for seg in (lesson_audio_json.get("segments") or []):
+        if isinstance(seg, dict) and seg.get("path"):
+            all_paths.append(str(seg["path"]).strip())
+    q = lesson_audio_json.get("question")
+    if isinstance(q, dict) and q.get("path"):
+        all_paths.append(str(q["path"]).strip())
+    if all_paths:
+        try:
+            signed_urls_cached_batch(
+                bucket,
+                all_paths,
+                LESSON_AUDIO_URL_EXPIRY_SECONDS
+            )
+        except Exception as batch_error:
+            # fall through: per-item signing below still works, just slower
+            print(
+                "AUDIO SIGNED URL BATCH FAILED:",
+                {"paths": len(all_paths), "error": repr(batch_error)[:200]}
+            )
 
     signed_parts = []
 
@@ -9427,6 +10525,18 @@ def add_signed_urls_to_lesson_audio(
             LESSON_AUDIO_URL_EXPIRY_SECONDS
     }
 
+def _concat_wavs(wavs: list) -> tuple[bytes, float]:
+    """Join 24 kHz/16-bit/mono WAVs (as generate_tts_wav_bytes returns) into one."""
+    pcm = b""
+    for wav_bytes, _dur in wavs:
+        with wave.open(io.BytesIO(wav_bytes), "rb") as w:
+            pcm += w.readframes(w.getnframes())
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
+    return buf.getvalue(), len(pcm) / (24000 * 2)
+
+
 def generate_tts_wav_bytes(
         text: str
 ) -> tuple[bytes, float]:
@@ -9440,44 +10550,82 @@ def generate_tts_wav_bytes(
             "Cannot generate audio for empty text"
         )
 
-    response = gemini_client.models.generate_content(
-        model="gemini-3.1-flash-tts-preview",
+    # The TTS preview model answers 400 INVALID_ARGUMENT now and then for text that
+    # succeeds on the next call (seen on segment 6 of lesson 5 and on lesson 1).
+    # One such answer used to fail the whole lesson's audio, 17 calls in. Three tries
+    # with a short pause; a real 400 still comes back after the third.
+    # 429 RESOURCE_EXHAUSTED is the TTS model's per-minute quota (seen on lesson 5):
+    # a short pause is useless there, so those wait 20/40/60 seconds instead.
+    TTS_ATTEMPTS = int(os.getenv("TTS_ATTEMPTS", "4"))
+    clean_text = lq.normalize_for_tts(clean_text)    # emoji out, arrows/units/math spelled out
+    chunks = lq.split_for_tts(clean_text)
+    if len(chunks) > 1:
+        # long segment: several short calls (the TTS model rejects long/odd input), one WAV
+        print("TTS LONG TEXT SPLIT:", {"chars": len(clean_text), "chunks": len(chunks)})
+        wavs = [generate_tts_wav_bytes(c) for c in chunks]
+        return _concat_wavs(wavs)
+    spoken_text = vocalize_for_tts(clean_text)      # nikud on ambiguous words only
+    response = None
+    audio_data = None
+    for attempt in range(1, TTS_ATTEMPTS + 1):
+        try:
+            if TTS_PROVIDER == "openrouter":
+                audio_data = openrouter_tts_pcm(spoken_text)
+                break
+            response = gemini_client.models.generate_content(
+                model="gemini-3.1-flash-tts-preview",
+                contents=(
+                    TTS_STYLE_PREFIX
+                    + spoken_text
+                ),
 
-        contents=(
-            "Speak in natural, fluent Hebrew. "
-            "Sound like a warm, friendly and patient teacher "
-            "speaking naturally to a school-age child. "
-            "Use clear pronunciation and natural pauses. "
-            "Read exactly the following Hebrew text:\n\n"
-            + clean_text
-        ),
+                config=types.GenerateContentConfig(
+                    temperature=2.0,
 
-        config=types.GenerateContentConfig(
-            temperature=2.0,
+                    response_modalities=[
+                        "AUDIO"
+                    ],
 
-            response_modalities=[
-                "AUDIO"
-            ],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=
+                            types.PrebuiltVoiceConfig(
+                                voice_name="Aoede"
+                            )
+                        )
+                    ),
 
-            speech_config=types.SpeechConfig(
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=
-                    types.PrebuiltVoiceConfig(
-                        voice_name="Aoede"
+                    http_options=types.HttpOptions(
+                        timeout=90_000          # ms; a hung call must not hold a thread forever
                     )
                 )
             )
-        )
-    )
+            break
+        except Exception as tts_error:
+            print(
+                "TTS RETRY:",
+                {
+                    "attempt": attempt,
+                    "max_attempts": TTS_ATTEMPTS,
+                    "text_length": len(clean_text),
+                    "error": repr(tts_error)[:200]
+                }
+            )
+            err_text = repr(tts_error)
+            if attempt >= TTS_ATTEMPTS or "401" in err_text or "403" in err_text:
+                raise                         # a bad key does not get better on retry
+            quota_hit = "429" in err_text or "RESOURCE_EXHAUSTED" in err_text
+            time.sleep(20 * attempt if quota_hit else 2 * attempt)
 
-    audio_data = (
-        response
-        .candidates[0]
-        .content
-        .parts[0]
-        .inline_data
-        .data
-    )
+    if audio_data is None:                 # direct Gemini path
+        audio_data = (
+            response
+            .candidates[0]
+            .content
+            .parts[0]
+            .inline_data
+            .data
+        )
 
     if not audio_data:
         raise RuntimeError(
@@ -9510,8 +10658,18 @@ def generate_tts_wav_bytes(
 def generate_and_store_lesson_audio(
         unit_lesson_id: int,
         structured_lesson: dict,
-        content_version: int
+        content_version: int,
+        on_progress=None
 ) -> dict:
+    """Synthesise every segment of every part and store the WAVs.
+
+    on_progress(partial_lesson_audio_json) is called after every stored segment
+    and after every finished part, with the same shape as the final result plus
+    "partial": True and per-part "complete" flags. The caller persists it so the
+    browser can start playing part 1 while the rest is still being synthesised
+    (progressive audio, 2026-09-15). A failure inside on_progress is logged and
+    ignored: progress is a convenience, the final write is what counts.
+    """
 
     lesson_parts = (
         structured_lesson.get(
@@ -9556,6 +10714,25 @@ def generate_and_store_lesson_audio(
 
     total_duration_seconds = 0.0
 
+    def emit_progress(current_part):
+        if on_progress is None:
+            return
+        parts = list(stored_parts)
+        if current_part is not None:
+            parts.append(current_part)
+        try:
+            on_progress({
+                "version": content_version,
+                "bucket": LESSON_AUDIO_BUCKET,
+                "partial": True,
+                "parts": parts,
+            })
+        except Exception as progress_error:
+            print(
+                "BACKGROUND AUDIO PROGRESS SAVE FAILED:",
+                {"unit_lesson_id": unit_lesson_id, "error": repr(progress_error)[:200]}
+            )
+
     # =============================================
     # LESSON PARTS
     # =============================================
@@ -9596,6 +10773,11 @@ def generate_and_store_lesson_audio(
 
         part_duration_seconds = 0.0
 
+        expected_segment_count = sum(
+            1 for s in lesson_segments
+            if isinstance(s, dict) and str(s.get("text") or "").strip()
+        )
+
         print(
             "BACKGROUND TTS PART START:",
             {
@@ -9615,6 +10797,24 @@ def generate_and_store_lesson_audio(
         # =============================================
         # PART SEGMENTS
         # =============================================
+
+        # Parallel TTS (2026-09-15): every segment of this part (and its question)
+        # is synthesised by TTS_PARALLEL threads at once; the loop below consumes
+        # the results IN ORDER, so uploads, progress saves and the progressive
+        # player still see segment 1, 2, 3... Measured serial: ~8.5 s/segment,
+        # 147 s per lesson; with 3 in parallel ~55 s.
+        tts_pool = ThreadPoolExecutor(max_workers=TTS_PARALLEL)
+        tts_futures = {}
+        for _i, _seg in enumerate(lesson_segments, start=1):
+            _txt = str(_seg.get("text") or "").strip() if isinstance(_seg, dict) else ""
+            if _txt:
+                tts_futures[_i] = tts_pool.submit(run_in_context(generate_tts_wav_bytes, _txt))
+        _qtxt = str((question_data or {}).get("text") or "").strip()
+        tts_question_future = (
+            tts_pool.submit(run_in_context(generate_tts_wav_bytes, _qtxt)) if _qtxt else None
+        )
+        print("BACKGROUND TTS PART SUBMITTED:", {"unit_lesson_id": unit_lesson_id, "part_number": part_number,
+                                               "segments": len(tts_futures), "question": bool(_qtxt), "parallel": TTS_PARALLEL})
 
         for index, segment in enumerate(
                 lesson_segments,
@@ -9663,11 +10863,7 @@ def generate_and_store_lesson_audio(
 
             try:
 
-                wav_bytes, duration_seconds = (
-                    generate_tts_wav_bytes(
-                        segment_text
-                    )
-                )
+                wav_bytes, duration_seconds = tts_futures[index].result()
 
                 print(
                     "BACKGROUND TTS SEGMENT SUCCESS:",
@@ -9727,7 +10923,7 @@ def generate_and_store_lesson_audio(
                 f"segment_{index}.wav"
             )
 
-            sb.storage.from_(
+            storage_with_retry(lambda: sb.storage.from_(
                 LESSON_AUDIO_BUCKET
             ).upload(
                 path=storage_path,
@@ -9739,7 +10935,7 @@ def generate_and_store_lesson_audio(
                     "upsert":
                         "true"
                 }
-            )
+            ), label="STORAGE UPLOAD")
 
             stored_segments.append(
                 {
@@ -9764,6 +10960,15 @@ def generate_and_store_lesson_audio(
             total_duration_seconds += (
                 duration_seconds
             )
+
+            # progressive audio: what exists so far, this part still open
+            emit_progress({
+                "part_number": part_number,
+                "segments": list(stored_segments),
+                "question": None,
+                "expected_segments": expected_segment_count,
+                "complete": False,
+            })
 
         # =============================================
         # PART QUESTION
@@ -9803,11 +11008,7 @@ def generate_and_store_lesson_audio(
 
             try:
 
-                wav_bytes, duration_seconds = (
-                    generate_tts_wav_bytes(
-                        question_text
-                    )
-                )
+                wav_bytes, duration_seconds = tts_question_future.result()
 
                 print(
                     "BACKGROUND TTS QUESTION SUCCESS:",
@@ -9861,7 +11062,7 @@ def generate_and_store_lesson_audio(
                 f"question.wav"
             )
 
-            sb.storage.from_(
+            storage_with_retry(lambda: sb.storage.from_(
                 LESSON_AUDIO_BUCKET
             ).upload(
                 path=question_path,
@@ -9873,7 +11074,7 @@ def generate_and_store_lesson_audio(
                     "upsert":
                         "true"
                 }
-            )
+            ), label="STORAGE UPLOAD")
 
             stored_question = {
                 "path":
@@ -9912,6 +11113,12 @@ def generate_and_store_lesson_audio(
                 "question":
                     stored_question,
 
+                "expected_segments":
+                    expected_segment_count,
+
+                "complete":
+                    True,
+
                 "total_duration_seconds":
                     round(
                         part_duration_seconds,
@@ -9919,6 +11126,10 @@ def generate_and_store_lesson_audio(
                     )
             }
         )
+
+        tts_pool.shutdown(wait=False)
+        # progressive audio: this part is complete, later parts still to come
+        emit_progress(None)
 
         print(
             "BACKGROUND TTS PART READY:",
@@ -10125,11 +11336,26 @@ def generate_unit_lesson_audio_background(
         # =============================================
 
         if audio_generation_status == "generating":
+            # "generating" with no progress for a long time means the process that
+            # was generating died (deploy, crash, SIGKILL). Without this the lesson
+            # stayed "generating" forever: the re-queued job saw the status and quit.
+            stale_after = int(os.getenv("AUDIO_GENERATING_STALE_SECONDS", "600"))
+            updated_raw = str(unit_lesson.get("updated_at") or "")
+            try:
+                updated_dt = datetime.fromisoformat(updated_raw.replace("Z", "+00:00"))
+                age_s = (datetime.now(timezone.utc) - updated_dt).total_seconds()
+            except Exception:
+                age_s = stale_after + 1
+            if age_s < stale_after:
+                print(
+                    "BACKGROUND AUDIO ALREADY GENERATING:",
+                    {"unit_lesson_id": unit_lesson_id, "age_seconds": round(age_s)}
+                )
+                return
             print(
-                "BACKGROUND AUDIO ALREADY GENERATING:",
-                unit_lesson_id
+                "BACKGROUND AUDIO STALE GENERATING - TAKING OVER:",
+                {"unit_lesson_id": unit_lesson_id, "age_seconds": round(age_s)}
             )
-            return
 
         # =============================================
         # MARK AS GENERATING
@@ -10175,6 +11401,20 @@ def generate_unit_lesson_audio_background(
             or 1
         )
 
+        def persist_audio_progress(partial_audio_json: dict):
+            # One small update per synthesised segment. The browser polls
+            # /unit-lesson/audio and starts playing what exists while the rest
+            # is still being generated. Status stays "generating"; updated_at
+            # moves so the stale-takeover check above stays honest.
+            sb.table(
+                "lesson_units_content"
+            ).update({
+                "lesson_audio_json": partial_audio_json,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq(
+                "id", unit_lesson_id
+            ).execute()
+
         lesson_audio_json = (
             generate_and_store_lesson_audio(
 
@@ -10185,7 +11425,10 @@ def generate_unit_lesson_audio_background(
                     structured_lesson,
 
                 content_version=
-                    content_version
+                    content_version,
+
+                on_progress=
+                    persist_audio_progress
             )
         )
 
@@ -10278,7 +11521,8 @@ async def tutor_tts(
     try:
 
         # אימות משתמש
-        user = authenticate_user(authorization)
+        user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+        ai_context("tts_live", user, body)
 
         text = (body.text or "").strip()
 
@@ -10320,16 +11564,34 @@ async def tutor_tts(
 
         try:
 
-            response = (await gemini_client.aio.models.generate_content(
+            audio_data_override = None
+            text = lq.normalize_for_tts(text)
+            text = await run_in_threadpool(vocalize_for_tts, text)   # nikud on ambiguous words only
+            _tts_key = tts_cache_key(text) if tts_cacheable(text) else None
+            _tts_future = None
+            if _tts_key:
+                _cached = await run_in_threadpool(tts_cache_get, _tts_key)
+                if _cached:
+                    print("LIVE TTS CACHE HIT:", {"session_id": body.session_id, "key": _tts_key[:12],
+                                                  "bytes": len(_cached), "text_length": len(text)})
+                    return Response(content=_cached, media_type="audio/wav",
+                                    headers={"Cache-Control": "no-store", "X-TTS-Cache": "hit"})
+                _inflight = _TTS_INFLIGHT.get(_tts_key)
+                if _inflight is not None:
+                    print("LIVE TTS CACHE WAIT (same text in flight):", {"key": _tts_key[:12]})
+                    _wav = await asyncio.shield(_inflight)
+                    return Response(content=_wav, media_type="audio/wav",
+                                    headers={"Cache-Control": "no-store", "X-TTS-Cache": "inflight"})
+                _tts_future = asyncio.get_running_loop().create_future()
+                _TTS_INFLIGHT[_tts_key] = _tts_future
+            if TTS_PROVIDER == "openrouter":
+                audio_data_override = await openrouter_tts_pcm_async(text)
+                response = None
+            else:
+              response = (await gemini_client.aio.models.generate_content(
                 model="gemini-3.1-flash-tts-preview",
-
                 contents=(
-                    "Speak in natural, fluent Hebrew. "
-                    "Sound like a warm, friendly and patient teacher "
-                    "speaking naturally to a school-age child. "
-                    "Use clear pronunciation, natural pauses, "
-                    "and an encouraging tone. "
-                    "Read exactly the following Hebrew text:\n\n"
+                    TTS_STYLE_PREFIX
                     + text
                 ),
 
@@ -10388,11 +11650,13 @@ async def tutor_tts(
             )
 
             traceback.print_exc()
-
+            if _tts_future is not None and not _tts_future.done():
+                _tts_future.set_exception(gemini_error)
+                _TTS_INFLIGHT.pop(_tts_key, None)
             raise
 
         # קבלת PCM audio
-        audio_data = (
+        audio_data = audio_data_override if audio_data_override is not None else (
             response
             .candidates[0]
             .content
@@ -10451,15 +11715,19 @@ async def tutor_tts(
             )
 
         wav_buffer.seek(0)
-
         wav_bytes = wav_buffer.read()
+        if _tts_key:
+            if _tts_future is not None and not _tts_future.done():
+                _tts_future.set_result(wav_bytes)
+            _TTS_INFLIGHT.pop(_tts_key, None)
+            _threading.Thread(target=tts_cache_put, args=(_tts_key, wav_bytes), daemon=True).start()
 
         # עדכון Session - קריאת TTS אחת
         if body.session_id:
 
             try:
 
-                update_tutor_session_after_tts(
+                (await run_in_threadpool(lambda: update_tutor_session_after_tts(
                     session_id=
                     body.session_id,
 
@@ -10468,9 +11736,9 @@ async def tutor_tts(
 
                     cost_usd=
                     gemini_audio_cost_usd
-                )
+                )))
 
-                increment_usage_summary(
+                (await run_in_threadpool(lambda: increment_usage_summary(
                     user_id=
                     user.id,
 
@@ -10485,7 +11753,7 @@ async def tutor_tts(
 
                     gemini_cost_usd=
                     gemini_audio_cost_usd
-                )
+                )))
 
             except Exception as usage_error:
 
@@ -10607,6 +11875,28 @@ def get_learning_lesson_units(
             status_code=500,
             detail="Failed to load lesson units"
         )
+
+def build_resume_context(unit_lesson: dict, chat_history: list) -> dict:
+    """What was on screen before the coach dialogue: the explanation segments and the
+    question of the part the child reached (from the shared lesson content)."""
+    try:
+        parts = (((unit_lesson or {}).get("generated_lesson_json") or {}).get("structured_lesson") or {}).get("parts") or []
+        part_number = 1
+        for row in chat_history:
+            if row.get("part_number"):
+                part_number = int(row["part_number"])
+        part = next((p for p in parts if int(p.get("part_number") or 0) == part_number), parts[0] if parts else None)
+        if not part:
+            return {"part_number": part_number, "explanation_segments": [], "question": None}
+        return {
+            "part_number": part_number,
+            "explanation_segments": [str(s.get("text") or "") for s in (part.get("lesson") or []) if isinstance(s, dict) and s.get("text")],
+            "question": str(((part.get("question") or {}).get("text")) or "") or None,
+        }
+    except Exception as e:
+        print("RESUME CONTEXT FAILED:", repr(e)[:120])
+        return {"part_number": 1, "explanation_segments": [], "question": None}
+
 
 @app.post(
     "/api/tutor/active-lesson-state"
@@ -10767,6 +12057,31 @@ def get_active_lesson_state(
         )
 
         # =============================================
+        # FULL CHAT HISTORY OF THIS UNIT LESSON (2026-09-16)
+        #
+        # Re-entering a lesson used to show only the last teacher
+        # message. The child must see the whole conversation:
+        # the explanation segments of the current part, the
+        # question, and every exchange with the coach.
+        # =============================================
+        history_res = (
+            sb.table("kid_lesson_history")
+            .select("role, content, part_number, created_at")
+            .eq("kid_id", child["id"])
+            .eq("lesson_id", coach_session["lesson_id"])
+            .eq("unit_lesson_id", coach_session["unit_lesson_id"])
+            .order("created_at", desc=False)
+            .order("id", desc=False)          # a child answer + coach reply share created_at: keep insert order
+            .limit(80)
+            .execute()
+        )
+        chat_history = [
+            {"role": r.get("role"), "content": r.get("content"), "part_number": r.get("part_number"),
+             "created_at": r.get("created_at")}
+            for r in (history_res.data or []) if r.get("content")
+        ]
+
+        # =============================================
         # UNIT LESSON DETAILS
         # =============================================
 
@@ -10896,6 +12211,8 @@ def get_active_lesson_state(
                     )
             },
 
+            "chat_history": chat_history,
+            "resume_context": build_resume_context(unit_lesson, chat_history),
             "last_assistant_message": {
                 "content":
                     (
@@ -10952,6 +12269,7 @@ def lesson_intro(
         user = authenticate_user(
             authorization
         )
+        ai_context("intro", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -11049,9 +12367,16 @@ def lesson_intro(
                         }
                     )
 
-                    background_tasks.add_task(
-                        generate_kid_lesson_intro_videos_background,
-                        child
+                    dispatch_media_job(
+                        background_tasks,
+                        job_type="kid_intro_videos",
+                        payload={
+                            "kid_id": str(child["id"]),
+                            "user_id": str(child["user_id"])
+                        },
+                        dedupe_key=f"kid:{child['id']}",
+                        inline_fn=generate_kid_lesson_intro_videos_background,
+                        inline_args=(child,)
                     )
         except Exception as personal_media_error:
 
@@ -11277,6 +12602,8 @@ def lesson_intro(
             or ""
         ).strip()
 
+        child_name = lq.display_first_name(child_name)
+
         if child_name:
             greeting_text = (
                 f"היי {child_name}! "
@@ -11291,7 +12618,14 @@ def lesson_intro(
                     speech_tts=greeting_text
                 )
             )
-
+        # Warm the TTS cache for this intro's sentences (greeting with the child's
+        # name, shared closing line) so the browser's requests a second later are hits.
+        try:
+            _warm_texts = [a.speech_tts for a in sequence if getattr(a, "speech_tts", None)]
+            if _warm_texts and TTS_CACHE_ENABLED:
+                _threading.Thread(target=run_in_context(warm_tts_cache, _warm_texts), daemon=True).start()
+        except Exception as _warm_error:
+            print("LIVE TTS CACHE WARM SCHEDULE FAILED:", repr(_warm_error)[:160])
         return {
             "success": True,
 
@@ -11396,9 +12730,11 @@ async def get_or_generate_unit_lesson(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("lesson", user, body)
+        media_trace.trace_set(lesson=body.unit_lesson_id, kid=body.kid_id)
 
         if not body.kid_id:
             raise HTTPException(
@@ -11407,10 +12743,10 @@ async def get_or_generate_unit_lesson(
             )
 
         # מוודאים שהילד שייך למשתמש
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
         # =============================================
         # ENSURE PERSONAL INTRO VIDEOS
         # PAID SUBSCRIBERS ONLY
@@ -11418,11 +12754,11 @@ async def get_or_generate_unit_lesson(
 
         try:
 
-            personal_intro_eligible = (
+            personal_intro_eligible = (await run_in_threadpool(lambda: (
                 is_paid_active_subscription(
                     user.id
                 )
-            )
+            )))
 
             print(
                 "UNIT LESSON PERSONAL INTRO CHECK:",
@@ -11440,9 +12776,9 @@ async def get_or_generate_unit_lesson(
 
             if personal_intro_eligible:
 
-                ensure_kid_lesson_intro_rows(
+                (await run_in_threadpool(lambda: ensure_kid_lesson_intro_rows(
                     child["id"]
-                )
+                )))
 
                 ready_intro_videos = (
                     get_ready_kid_lesson_intro_videos(
@@ -11482,10 +12818,17 @@ async def get_or_generate_unit_lesson(
                         }
                     )
 
-                    background_tasks.add_task(
-                        generate_kid_lesson_intro_videos_background,
-                        child
-                    )
+                    await run_in_threadpool(lambda: dispatch_media_job(
+                        background_tasks,
+                        job_type="kid_intro_videos",
+                        payload={
+                            "kid_id": str(child["id"]),
+                            "user_id": str(child["user_id"])
+                        },
+                        dedupe_key=f"kid:{child['id']}",
+                        inline_fn=generate_kid_lesson_intro_videos_background,
+                        inline_args=(child,)
+                    ))
 
                 else:
 
@@ -11517,15 +12860,15 @@ async def get_or_generate_unit_lesson(
         # UNIT LESSON
         # =============================================
 
-        unit_lesson = get_unit_lesson(
+        unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
             body.unit_lesson_id
-        )
+        )))
 
-        parent_lesson = get_learning_lesson(
+        parent_lesson = (await run_in_threadpool(lambda: get_learning_lesson(
             unit_lesson[
                 "learning_lesson_id"
             ]
-        )
+        )))
 
         # =============================================
         # GRADE SECURITY
@@ -11620,6 +12963,37 @@ async def get_or_generate_unit_lesson(
                 )
             )
         )
+
+        _quality = (cached_json or {}).get("quality") if isinstance(cached_json, dict) else None
+        # Product decision 2026-09-16: a failed quality gate never blocks a lesson. The verdict
+        # stays in generated_lesson_json.quality (ok=false) for the future admin review screen;
+        # only an explicit generation_status="needs_review" (set by a human) withholds a lesson.
+        if isinstance(_quality, dict) and _quality.get("ok") is False and not _quality.get("approved_by_human"):
+            print("UNIT LESSON FLAGGED FOR REVIEW (served anyway):", {"unit_lesson_id": unit_lesson["id"], "errors": (_quality.get("errors") or [])[:2]})
+        _needs_review = generation_status == "needs_review"
+        if _needs_review:
+
+            # the quality gate failed for this lesson: do NOT regenerate on every open (cost loop);
+
+            # it is released by a fix + re-run of the gate, or by tools/lesson_gate.py --approve
+
+            print("UNIT LESSON NEEDS REVIEW (served as unavailable):", {"unit_lesson_id": unit_lesson["id"]})
+
+            return {
+
+                "success": False,
+
+                "source": "needs_review",
+
+                "unit_lesson_id": unit_lesson["id"],
+
+                "generation_status": "needs_review",
+
+                "quality": (cached_json or {}).get("quality") if isinstance(cached_json, dict) else None,
+
+                "message": "השיעור הזה בבדיקת איכות ויחזור בקרוב. אפשר לבחור שיעור אחר בינתיים."
+
+            }
 
         if (
                 generation_status == "ready"
@@ -12021,12 +13395,13 @@ async def get_or_generate_unit_lesson(
 
                 try:
 
-                    response_audio = (
+                    response_audio = (await run_in_threadpool(lambda: (
                         add_signed_urls_to_lesson_audio(
                             cached_audio
                         )
-                    )
+                    )))
 
+                    media_trace.waiting("audio HIT", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
                     print(
                         "UNIT LESSON AUDIO CACHE HIT:",
                         {
@@ -12037,6 +13412,7 @@ async def get_or_generate_unit_lesson(
 
                 except Exception as audio_cache_error:
 
+                    media_trace.waiting("audio MISS -> repair queued", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
                     print(
                         "UNIT LESSON AUDIO CACHE MISS:",
                         {
@@ -12104,6 +13480,24 @@ async def get_or_generate_unit_lesson(
             # ל-Supabase בכל טעינת עמוד.
             # =========================================
 
+            # Progressive audio: while the worker is still synthesising, hand
+            # the browser whatever segments are already stored.
+            response_audio_partial = None
+            if (
+                    response_audio is None
+                    and audio_generation_status == "generating"
+                    and cached_audio_has_parts
+            ):
+                try:
+                    response_audio_partial = (await run_in_threadpool(lambda: (
+                        add_signed_urls_to_lesson_audio(cached_audio)
+                    )))
+                except Exception as partial_error:
+                    print(
+                        "PARTIAL LESSON AUDIO SIGN FAILED:",
+                        {"unit_lesson_id": unit_lesson["id"], "error": repr(partial_error)[:200]}
+                    )
+
             if response_audio is None:
 
                 print(
@@ -12117,10 +13511,14 @@ async def get_or_generate_unit_lesson(
                     }
                 )
 
-                background_tasks.add_task(
-                    generate_unit_lesson_audio_background,
-                    unit_lesson["id"]
-                )
+                await run_in_threadpool(lambda: dispatch_media_job(
+                    background_tasks,
+                    job_type="unit_lesson_audio",
+                    payload={"unit_lesson_id": int(unit_lesson["id"])},
+                    dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+                    inline_fn=generate_unit_lesson_audio_background,
+                    inline_args=(unit_lesson["id"],)
+                ))
 
             else:
 
@@ -12151,10 +13549,14 @@ async def get_or_generate_unit_lesson(
                 }
             )
 
-            background_tasks.add_task(
-                generate_all_lesson_visuals_background,
-                unit_lesson["id"]
-            )
+            await run_in_threadpool(lambda: dispatch_media_job(
+                background_tasks,
+                job_type="unit_lesson_visuals",
+                payload={"unit_lesson_id": int(unit_lesson["id"])},
+                dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+                inline_fn=generate_all_lesson_visuals_background,
+                inline_args=(unit_lesson["id"],)
+            ))
 
             # =========================================
             # SHARED TRANSITION JSON REPAIR
@@ -12228,10 +13630,14 @@ async def get_or_generate_unit_lesson(
                 }
             )
 
-            background_tasks.add_task(
-                generate_transition_video_background,
-                unit_lesson["id"]
-            )
+            await run_in_threadpool(lambda: dispatch_media_job(
+                background_tasks,
+                job_type="unit_lesson_transition",
+                payload={"unit_lesson_id": int(unit_lesson["id"])},
+                dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+                inline_fn=generate_transition_video_background,
+                inline_args=(unit_lesson["id"],)
+            ))
 
             # =========================================
             # RESPONSE
@@ -12281,18 +13687,26 @@ async def get_or_generate_unit_lesson(
                     (
                         "ready"
                         if response_audio
-                        else "pending"
+                        else (
+                            "generating"
+                            if response_audio_partial
+                            else "pending"
+                        )
                     ),
 
                 "audio_mode":
                     (
                         "stored"
                         if response_audio
-                        else "background_generating"
+                        else (
+                            "stored_progressive"
+                            if response_audio_partial
+                            else "background_generating"
+                        )
                     ),
 
                 "lesson_audio":
-                    response_audio
+                    response_audio or response_audio_partial
             }
 
         # =============================================
@@ -12389,6 +13803,7 @@ async def get_or_generate_unit_lesson(
         # OPENAI
         # =============================================
 
+        _t_p1 = media_trace.mark_start("text_part1_teacher", model=UNIVERSAL_LESSON_MODEL)
         completion = (await (
             aclient.beta.chat.completions.parse(
 
@@ -12430,6 +13845,7 @@ async def get_or_generate_unit_lesson(
             )
         ))
 
+        media_trace.mark_done("text_part1_teacher", _t_p1)
         lesson_data = (
             completion
             .choices[0]
@@ -12466,63 +13882,26 @@ async def get_or_generate_unit_lesson(
         # PART 1 DIRECTOR
         # Structures one complete learning unit.
         # It must not create or split lesson parts.
+        # Same model + same input as every other part:
+        # the explanation is the user message and is
+        # also injected into the prompt ({lesson_text}).
         # =============================================
+        # Director of part 1 only needs part 1's explanation, and the teacher of
+        # part 2 only needs part 1's explanation + question: run them side by side
+        # (saves ~16 s per new lesson, measured 2026-09-15 on lesson 29).
+        _t_dir1 = media_trace.mark_start("text_part1_director", parallel_with="text_part2_teacher")
 
-        director_prompt = (
-            build_lesson_director_prompt(
-                lesson_text=part_1_explanation
+        async def _direct_part_1():
+            result = await direct_lesson_part(
+                explanation=part_1_explanation,
+                question=part_1_question,
+                part_number=1,
+                unit_lesson_id=unit_lesson["id"]
             )
-        )
+            media_trace.mark_done("text_part1_director", _t_dir1)
+            return result
 
-        director_completion = (await (
-            aclient.beta.chat.completions.parse(
-
-                model=DEFAULT_OPENAI_MODEL,
-
-                messages=[
-                    {
-                        "role": "system",
-                        "content": director_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                                "Structure this explanation into "
-                                "short multimedia segments. "
-                                "Do not create another lesson part. "
-                                "Use the supplied question exactly "
-                                "as written:\n\n"
-                                + part_1_question
-                        )
-                    }
-                ],
-
-                response_format=
-                DirectedLessonUnitResponse
-            )
-        ))
-
-        directed_lesson_data = (
-            director_completion
-            .choices[0]
-            .message
-            .parsed
-        )
-
-        if not directed_lesson_data:
-            raise RuntimeError(
-                "Part 1 director returned no response"
-            )
-
-        part_1 = (
-            directed_lesson_data.model_dump()
-        )
-
-        # The teacher owns the fixed question.
-        # The director is not allowed to rewrite it.
-        part_1["question"] = {
-            "text": part_1_question
-        }
+        director_1_task = asyncio.create_task(_direct_part_1())
         generated_parts_context = [
             {
                 "part_number": 1,
@@ -12533,12 +13912,7 @@ async def get_or_generate_unit_lesson(
             }
         ]
 
-        generated_parts = [
-            {
-                "part_number": 1,
-                **part_1
-            }
-        ]
+        generated_parts = []      # part 1 is inserted once its director finishes (below)
 
         expansion_completions = []
         expansion_director_completions = []
@@ -12564,6 +13938,7 @@ async def get_or_generate_unit_lesson(
                 )
             )
 
+            _t_exp = media_trace.mark_start(f"text_part{part_number}_teacher", model=UNIVERSAL_LESSON_MODEL)
             expansion_completion = (await (
                 aclient.beta.chat.completions.parse(
 
@@ -12596,6 +13971,7 @@ async def get_or_generate_unit_lesson(
                 )
             ))
 
+            media_trace.mark_done(f"text_part{part_number}_teacher", _t_exp)
             expansion_data = (
                 expansion_completion
                 .choices[0]
@@ -12641,68 +14017,17 @@ async def get_or_generate_unit_lesson(
                     )
                 )
 
-            expansion_director_prompt = (
-                build_lesson_director_prompt(
-                    lesson_text=
-                        expansion_explanation
+            _t_dir = media_trace.mark_start(f"text_part{part_number}_director")
+            directed_part, expansion_director_completion = (
+                await direct_lesson_part(
+                    explanation=expansion_explanation,
+                    question=expansion_question,
+                    part_number=part_number,
+                    unit_lesson_id=unit_lesson["id"]
                 )
             )
 
-            expansion_director_completion = (await (
-                aclient.beta.chat.completions.parse(
-
-                    model=
-                        UNIVERSAL_LESSON_MODEL,
-
-                    messages=[
-                        {
-                            "role":
-                                "system",
-
-                            "content":
-                                expansion_director_prompt
-                        },
-
-                        {
-                            "role":
-                                "user",
-
-                            "content":
-                                expansion_explanation
-                        }
-                    ],
-
-                    response_format=
-                        DirectedLessonUnitResponse
-                )
-            ))
-
-            expansion_directed_data = (
-                expansion_director_completion
-                .choices[0]
-                .message
-                .parsed
-            )
-
-            if not expansion_directed_data:
-                raise RuntimeError(
-                    (
-                        "Lesson Director returned "
-                        f"no Part {part_number}"
-                    )
-                )
-
-            directed_part = (
-                expansion_directed_data
-                .model_dump()
-            )
-
-            # The teacher owns the fixed question.
-            directed_part["question"] = {
-                "text":
-                    expansion_question
-            }
-
+            media_trace.mark_done(f"text_part{part_number}_director", _t_dir)
             generated_parts.append(
                 {
                     "part_number":
@@ -12732,6 +14057,8 @@ async def get_or_generate_unit_lesson(
             expansion_director_completions.append(
                 expansion_director_completion
             )
+        part_1, director_completion = await director_1_task
+        generated_parts.insert(0, {"part_number": 1, **part_1})
         structured_lesson = {
             "parts":
                 generated_parts,
@@ -12837,6 +14164,7 @@ async def get_or_generate_unit_lesson(
             }
         )
 
+        _t_vd = media_trace.mark_start("visual_director", model=DEFAULT_OPENAI_MODEL)
         visual_director_completion = (await (
             aclient.beta.chat.completions.parse(
 
@@ -12870,6 +14198,7 @@ async def get_or_generate_unit_lesson(
             )
         ))
 
+        media_trace.mark_done("visual_director", _t_vd)
         visual_director_data = (
             visual_director_completion
             .choices[0]
@@ -12921,7 +14250,7 @@ async def get_or_generate_unit_lesson(
                 UNIVERSAL_LESSON_MODEL,
 
             "director_model":
-                DEFAULT_OPENAI_MODEL,
+                UNIVERSAL_LESSON_MODEL,
 
             "learning_objective":
                 unit_lesson.get(
@@ -12967,6 +14296,10 @@ async def get_or_generate_unit_lesson(
             )
             or 1
         )
+        if unit_lesson.get("generated_lesson_json"):
+            # regenerating over existing content: new version so old audio/images can never be served
+            content_version += 1
+            print("LESSON CONTENT VERSION BUMPED (regeneration):", {"unit_lesson_id": unit_lesson["id"], "content_version": content_version})
 
         generated_at = (
             datetime
@@ -13082,12 +14415,12 @@ async def get_or_generate_unit_lesson(
         )
 
         director_cost_usd = calculate_openai_cost(
-            model=DEFAULT_OPENAI_MODEL,
+            model=UNIVERSAL_LESSON_MODEL,
             input_tokens=director_input_tokens,
             output_tokens=director_output_tokens
         )
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=
                 user.id,
@@ -13115,7 +14448,7 @@ async def get_or_generate_unit_lesson(
                 + director_cost_usd
             )
 
-        )
+        )))
         # =============================================
         # START AUDIO GENERATION IN BACKGROUND
         # =============================================
@@ -13136,10 +14469,17 @@ async def get_or_generate_unit_lesson(
                 )
             }
         )
-        background_tasks.add_task(
-            generate_unit_lesson_media_background,
-            unit_lesson["id"]
-        )
+        _t_enq = media_trace.mark_start("enqueue_media_job", lesson=unit_lesson["id"])
+        await run_in_threadpool(lambda: dispatch_media_job(
+            background_tasks,
+            job_type="unit_lesson_media",
+            payload={"unit_lesson_id": int(unit_lesson["id"])},
+            dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+            inline_fn=generate_unit_lesson_media_background,
+            inline_args=(unit_lesson["id"],)
+        ))
+        media_trace.mark_done("enqueue_media_job", _t_enq)
+        media_trace.summary("STAGE SUMMARY (unit-lesson text generated; media queued)", lesson=unit_lesson["id"], parts=len(generated_parts))
 
         # =============================================
         # RESPONSE
@@ -13256,9 +14596,10 @@ async def regenerate_unit_lesson_transition(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("transition", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -13266,24 +14607,24 @@ async def regenerate_unit_lesson_transition(
                 detail="kid_id is required"
             )
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =============================================
         # LOAD EXISTING LESSON
         # =============================================
 
-        unit_lesson = get_unit_lesson(
+        unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
             body.unit_lesson_id
-        )
+        )))
 
-        parent_lesson = get_learning_lesson(
+        parent_lesson = (await run_in_threadpool(lambda: get_learning_lesson(
             unit_lesson[
                 "learning_lesson_id"
             ]
-        )
+        )))
 
         # =============================================
         # GRADE SECURITY
@@ -13462,10 +14803,14 @@ async def regenerate_unit_lesson_transition(
             }
         )
 
-        background_tasks.add_task(
-            generate_transition_video_background,
-            unit_lesson["id"]
-        )
+        await run_in_threadpool(lambda: dispatch_media_job(
+            background_tasks,
+            job_type="unit_lesson_transition",
+            payload={"unit_lesson_id": int(unit_lesson["id"])},
+            dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+            inline_fn=generate_transition_video_background,
+            inline_args=(unit_lesson["id"],)
+        ))
 
         # =============================================
         # RESPONSE
@@ -13531,9 +14876,10 @@ async def get_or_generate_unit_lesson_hero_image(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("image", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -13541,10 +14887,10 @@ async def get_or_generate_unit_lesson_hero_image(
                 detail="kid_id is required"
             )
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =============================================
         # LOAD LESSON
@@ -13560,9 +14906,9 @@ async def get_or_generate_unit_lesson_hero_image(
 
             try:
 
-                unit_lesson = get_unit_lesson(
+                unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
                     body.unit_lesson_id
-                )
+                )))
 
                 break
 
@@ -13605,11 +14951,11 @@ async def get_or_generate_unit_lesson_hero_image(
 
             try:
 
-                parent_lesson = get_learning_lesson(
+                parent_lesson = (await run_in_threadpool(lambda: get_learning_lesson(
                     unit_lesson[
                         "learning_lesson_id"
                     ]
-                )
+                )))
 
                 break
 
@@ -13689,11 +15035,11 @@ async def get_or_generate_unit_lesson_hero_image(
 
             try:
 
-                signed_url = (
+                signed_url = (await run_in_threadpool(lambda: (
                     create_lesson_media_signed_url(
                         storage_path
                     )
-                )
+                )))
 
                 break
 
@@ -13728,6 +15074,7 @@ async def get_or_generate_unit_lesson_hero_image(
 
         if signed_url:
 
+            media_trace.waiting("hero HIT", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
             print(
                 "LESSON HERO CACHE HIT:",
                 {
@@ -13757,6 +15104,7 @@ async def get_or_generate_unit_lesson_hero_image(
         # CACHE MISS
         # =============================================
 
+        media_trace.waiting("hero MISS -> generating now", lesson=unit_lesson["id"], lesson_age_s=media_trace.lesson_age_s(unit_lesson))
         print(
             "LESSON HERO CACHE MISS:",
             {
@@ -13771,11 +15119,23 @@ async def get_or_generate_unit_lesson_hero_image(
         # GENERATE HERO
         # =============================================
 
-        hero_image = (await run_in_threadpool(lambda: (
-            generate_and_store_lesson_hero_image(
-                unit_lesson["id"]
-            )
-        )))
+        # One generation per lesson per process: concurrent requests wait on the
+        # lock, then find the file the first one stored and return that instead.
+        def _generate_hero_once():
+            with generation_lock(f"hero:{unit_lesson['id']}"):
+                try:
+                    return {
+                        "type": "image",
+                        "role": "hero",
+                        "storage_path": storage_path,
+                        "url": create_lesson_media_signed_url(storage_path)
+                    }
+                except Exception:
+                    return generate_and_store_lesson_hero_image(
+                        unit_lesson["id"]
+                    )
+
+        hero_image = (await run_in_threadpool(_generate_hero_once))
 
         return {
             "success": True,
@@ -13946,15 +15306,14 @@ def get_unit_lesson_visuals(
 
             if not visual_order:
                 continue
-
+            image_order = int(visual.get("reuse_of") or visual_order)   # reused entries show the previous image
             storage_path = (
                 f"unit_lessons/"
                 f"{unit_lesson['id']}/"
                 f"v{content_version}/"
                 f"part_{part_number}/"
-                f"visual_{visual_order}.png"
+                f"visual_{image_order}.png"
             )
-
             # The image may still be generating.
             # If it is not ready yet, skip it for now.
             try:
@@ -14034,6 +15393,7 @@ def get_unit_lesson_visuals(
         # RESPONSE
         # =============================================
 
+        media_trace.waiting("visuals", lesson=unit_lesson["id"], planned=len(planned_visuals), lesson_age_s=media_trace.lesson_age_s(unit_lesson))
         print(
             "LESSON VISUALS RESPONSE:",
             {
@@ -14143,6 +15503,7 @@ def get_shared_transition_endpoint(
 )
 def generate_unit_lesson_audio(
         body: UnitLessonRequest,
+        background_tasks: BackgroundTasks,
         authorization: str = Header(None)
 ):
     unit_lesson = None
@@ -14156,6 +15517,7 @@ def generate_unit_lesson_audio(
         user = authenticate_user(
             authorization
         )
+        ai_context("tts", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -14333,6 +15695,27 @@ def generate_unit_lesson_audio(
                 audio_generation_status
                 == "generating"
         ):
+            # Progressive audio: the worker persists every stored segment while
+            # it works, so the browser can play part 1 before part 2 exists.
+            if cached_audio_has_parts:
+                return {
+                    "success": True,
+
+                    "source":
+                        "partial",
+
+                    "unit_lesson_id":
+                        unit_lesson["id"],
+
+                    "audio_generation_status":
+                        "generating",
+
+                    "lesson_audio":
+                        add_signed_urls_to_lesson_audio(
+                            cached_audio
+                        )
+                }
+
             return {
                 "success": False,
 
@@ -14350,111 +15733,29 @@ def generate_unit_lesson_audio(
             }
 
         # =============================================
-        # MARK AUDIO AS GENERATING
+        # QUEUE THE AUDIO, ANSWER "generating" NOW
         # =============================================
-
-        audio_started_at = (
-            datetime
-            .now(timezone.utc)
-            .isoformat()
+        # This route used to synthesise all ~17 segments inside the request
+        # (100+ s in a worker thread) and every concurrent request for the same
+        # lesson did it again: 30 children opening a lesson with pending audio
+        # = 30 parallel TTS runs and the Gemini quota gone (load test 2026-09-14).
+        # Now it enqueues one job (deduped per lesson, priority 10); the browser
+        # already polls this route until the status turns "ready".
+        dispatch_media_job(
+            background_tasks,
+            job_type="unit_lesson_audio",
+            payload={"unit_lesson_id": int(unit_lesson["id"])},
+            dedupe_key=f"unit_lesson:{unit_lesson['id']}",
+            inline_fn=generate_unit_lesson_audio_background,
+            inline_args=(unit_lesson["id"],)
         )
-
-        sb.table(
-            "lesson_units_content"
-        ).update({
-
-            "audio_generation_status":
-                "generating",
-
-            "audio_generation_error":
-                None,
-
-            "updated_at":
-                audio_started_at
-
-        }).eq(
-            "id",
-            unit_lesson["id"]
-        ).execute()
-
-        # =============================================
-        # GENERATE AND STORE AUDIO
-        # =============================================
-
-        content_version = int(
-            unit_lesson.get(
-                "content_version"
-            )
-            or 1
-        )
-
-        lesson_audio_json = (
-            generate_and_store_lesson_audio(
-
-                unit_lesson_id=
-                    unit_lesson["id"],
-
-                structured_lesson=
-                    structured_lesson,
-
-                content_version=
-                    content_version
-            )
-        )
-
-        audio_generated_at = (
-            datetime
-            .now(timezone.utc)
-            .isoformat()
-        )
-
-        # =============================================
-        # SAVE AUDIO CACHE
-        # =============================================
-
-        sb.table(
-            "lesson_units_content"
-        ).update({
-
-            "lesson_audio_json":
-                lesson_audio_json,
-
-            "audio_generation_status":
-                "ready",
-
-            "audio_generation_error":
-                None,
-
-            "audio_generated_at":
-                audio_generated_at,
-
-            "tts_generated_at":
-                audio_generated_at,
-
-            "updated_at":
-                audio_generated_at
-
-        }).eq(
-            "id",
-            unit_lesson["id"]
-        ).execute()
 
         return {
             "success": True,
-
-            "source":
-                "generated",
-
-            "unit_lesson_id":
-                unit_lesson["id"],
-
-            "audio_generation_status":
-                "ready",
-
-            "lesson_audio":
-                add_signed_urls_to_lesson_audio(
-                    lesson_audio_json
-                )
+            "source": "queued",
+            "unit_lesson_id": unit_lesson["id"],
+            "audio_generation_status": "generating",
+            "lesson_audio": None
         }
 
     except HTTPException:
@@ -14541,7 +15842,7 @@ async def run_learning_coach(
     # HISTORY
     # =============================================
 
-    conversation_history = (
+    conversation_history = (await run_in_threadpool(lambda: (
         get_recent_lesson_history_for_llm(
             kid_id=child["id"],
             lesson_id=lesson["id"],
@@ -14549,7 +15850,7 @@ async def run_learning_coach(
             part_number=coach_index,
             limit=12
         )
-    )
+    )))
 
     # =============================================
     # BUILD PROMPT
@@ -14710,7 +16011,7 @@ async def run_learning_coach(
     # UPDATE COACH SESSION
     # =============================================
 
-    updated_coach_session = (
+    updated_coach_session = (await run_in_threadpool(lambda: (
         update_learning_coach_session(
             coach_session=coach_session,
             understanding_score=
@@ -14720,7 +16021,7 @@ async def run_learning_coach(
             current_round=
                 current_round
         )
-    )
+    )))
 
     # =============================================
     # FINISH CURRENT LEARNING COACH
@@ -14752,7 +16053,7 @@ async def run_learning_coach(
                 < lesson_parts_count
         )
 
-        overall_mastery_score = (
+        overall_mastery_score = (await run_in_threadpool(lambda: (
             calculate_lesson_coach_mastery(
                 kid_id=child["id"],
                 lesson_id=lesson["id"],
@@ -14760,7 +16061,7 @@ async def run_learning_coach(
                 lesson_parts_count=
                 lesson_parts_count
             )
-        )
+        )))
 
         if has_next_part:
             next_part_number = (
@@ -14825,11 +16126,11 @@ async def run_learning_coach(
             )
 
         if not has_next_part:
-            complete_kid_unit_lesson_progress(
+            (await run_in_threadpool(lambda: complete_kid_unit_lesson_progress(
                 kid_id=child["id"],
                 unit_lesson_id=unit_lesson["id"],
                 mastery_score=overall_mastery_score
-            )
+            )))
 
     else:
 
@@ -14926,7 +16227,7 @@ async def run_learning_coach(
     # SAVE HISTORY
     # =============================================
 
-    save_lesson_history(
+    (await run_in_threadpool(lambda: save_lesson_history(
         kid_id=child["id"],
         lesson_id=lesson["id"],
         unit_lesson_id=unit_lesson["id"],
@@ -14940,7 +16241,7 @@ async def run_learning_coach(
             for action in sequence
         ],
         part_number=coach_index
-    )
+    )))
 
     # =============================================
     # TOKENS AND COST
@@ -14974,15 +16275,15 @@ async def run_learning_coach(
         )
     )
 
-    update_tutor_session_after_chat(
+    (await run_in_threadpool(lambda: update_tutor_session_after_chat(
         session=tutor_session,
         total_tokens=total_tokens,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cost_usd=openai_cost_usd
-    )
+    )))
 
-    increment_usage_summary(
+    (await run_in_threadpool(lambda: increment_usage_summary(
         user_id=user.id,
 
         sessions=(
@@ -14996,7 +16297,7 @@ async def run_learning_coach(
         output_tokens=output_tokens,
         total_tokens=total_tokens,
         openai_cost_usd=openai_cost_usd
-    )
+    )))
 
     return {
         "speech":
@@ -15093,9 +16394,10 @@ async def structured_lesson(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("lesson_chat", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -15107,21 +16409,21 @@ async def structured_lesson(
         # CHILD
         # =============================================
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
 
             user_id=user.id,
 
             kid_id=body.kid_id
 
-        )
+        )))
 
         # =============================================
         # LESSON
         # =============================================
 
-        lesson = get_learning_lesson(
+        lesson = (await run_in_threadpool(lambda: get_learning_lesson(
             body.lesson_id
-        )
+        )))
 
         # =============================================
         # SECURITY
@@ -15172,7 +16474,7 @@ async def structured_lesson(
         # SESSION
         # =============================================
 
-        tutor_session = (
+        tutor_session = (await run_in_threadpool(lambda: (
 
             get_or_create_tutor_session(
 
@@ -15182,7 +16484,7 @@ async def structured_lesson(
 
             )
 
-        )
+        )))
 
         session_id = (
             tutor_session["id"]
@@ -15230,7 +16532,7 @@ async def structured_lesson(
         # PROGRESS
         # =============================================
 
-        progress = (
+        progress = (await run_in_threadpool(lambda: (
 
             get_or_create_lesson_progress(
 
@@ -15248,7 +16550,7 @@ async def structured_lesson(
 
             )
 
-        )
+        )))
         # =============================================
         # UNIT LESSON SWITCH
         #
@@ -15279,11 +16581,11 @@ async def structured_lesson(
         )
 
         if is_lesson_start and requested_unit_lesson_id is not None:
-            start_kid_unit_lesson_progress(
+            (await run_in_threadpool(lambda: start_kid_unit_lesson_progress(
                 kid_id=child["id"],
                 learning_lesson_id=lesson["id"],
                 unit_lesson_id=requested_unit_lesson_id
-            )
+            )))
 
         if is_new_unit_lesson:
 
@@ -15495,9 +16797,9 @@ async def structured_lesson(
                     )
                 )
 
-            unit_lesson = get_unit_lesson(
+            unit_lesson = (await run_in_threadpool(lambda: get_unit_lesson(
                 body.unit_lesson_id
-            )
+            )))
 
             if (
                     int(
@@ -15550,13 +16852,13 @@ async def structured_lesson(
                     or 1
                 )
 
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
                     update_learning_coach_flow_state(
                         progress=progress,
                         part_number=
                         coach_part_number
                     )
-                )
+                )))
 
                 return (await run_learning_coach(
                     user=user,
@@ -15601,12 +16903,12 @@ async def structured_lesson(
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_1
             ):
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
                     update_learning_coach_flow_state(
                         progress=progress,
                         part_number=1
                     )
-                )
+                )))
 
                 return (await run_learning_coach(
                     user=user,
@@ -15624,12 +16926,12 @@ async def structured_lesson(
                     current_stage
                     == LESSON_STAGE_LEARNING_COACH_2
             ):
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
                     update_learning_coach_flow_state(
                         progress=progress,
                         part_number=2
                     )
-                )
+                )))
 
                 return (await run_learning_coach(
                     user=user,
@@ -15664,12 +16966,12 @@ async def structured_lesson(
                 and
                 child_grade in (1, 2)
         ):
-            show_answering_hint = (
+            show_answering_hint = (await run_in_threadpool(lambda: (
                 should_show_answering_hint(
                     kid_id=child["id"],
                     max_lessons=3
                 )
-            )
+            )))
 
         system_prompt = (
 
@@ -15696,7 +16998,7 @@ async def structured_lesson(
         # HISTORY
         # =============================================
 
-        recent_messages = (
+        recent_messages = (await run_in_threadpool(lambda: (
 
             get_recent_lesson_history_for_llm(
 
@@ -15713,7 +17015,7 @@ async def structured_lesson(
 
             )
 
-        )
+        )))
 
         # =============================================
         # CURRENT TURN
@@ -16115,7 +17417,7 @@ async def structured_lesson(
             # =========================================
 
             if not review_mode:
-                progress = (
+                progress = (await run_in_threadpool(lambda: (
 
                     apply_lesson_evaluation(
 
@@ -16131,7 +17433,7 @@ async def structured_lesson(
 
                     )
 
-                )
+                )))
 
         # =============================================
         # CLEAN ASSISTANT HISTORY
@@ -16204,7 +17506,7 @@ async def structured_lesson(
         # SAVE LESSON HISTORY
         # =============================================
 
-        save_lesson_history(
+        (await run_in_threadpool(lambda: save_lesson_history(
 
             kid_id=
             child["id"],
@@ -16250,7 +17552,7 @@ async def structured_lesson(
 
             ]
 
-        )
+        )))
 
         # =============================================
         # TOKEN USAGE
@@ -16303,7 +17605,7 @@ async def structured_lesson(
         # SESSION USAGE
         # =============================================
 
-        update_tutor_session_after_chat(
+        (await run_in_threadpool(lambda: update_tutor_session_after_chat(
 
             session=
             tutor_session,
@@ -16320,9 +17622,9 @@ async def structured_lesson(
             cost_usd=
             openai_cost_usd
 
-        )
+        )))
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=
             user.id,
@@ -16354,7 +17656,7 @@ async def structured_lesson(
             openai_cost_usd=
             openai_cost_usd
 
-        )
+        )))
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -16981,9 +18283,10 @@ async def homework_analyze(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("homework", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -17001,10 +18304,10 @@ async def homework_analyze(
         # מוודאים שהילד שייך למשתמש
         # =============================================
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =============================================
         # SECURITY
@@ -17040,12 +18343,12 @@ async def homework_analyze(
 
         else:
 
-            tutor_session = (
+            tutor_session = (await run_in_threadpool(lambda: (
                 get_or_create_tutor_session(
                     user_id=user.id,
                     kid_id=child["id"]
                 )
-            )
+            )))
 
             session_id = (
                 tutor_session["id"]
@@ -17455,7 +18758,7 @@ async def homework_analyze(
         # SESSION USAGE
         # =============================================
 
-        update_tutor_session_after_vision(
+        (await run_in_threadpool(lambda: update_tutor_session_after_vision(
 
             session_id=session_id,
 
@@ -17463,13 +18766,13 @@ async def homework_analyze(
 
             vision_calls=1
 
-        )
+        )))
 
         # =============================================
         # MONTHLY USAGE
         # =============================================
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=user.id,
 
@@ -17477,7 +18780,7 @@ async def homework_analyze(
 
             vision_calls=1
 
-        )
+        )))
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -17595,6 +18898,37 @@ async def homework_analyze(
 # CURRICULUM BUILDER CHAT
 # =====================================================
 
+def build_curriculum_builder_prompt(child: dict, custom_subject: dict | None, current_tree: dict, history: list) -> str:
+    """Fill the prompt's placeholders (until 2026-09-15 the runtime context was only appended as
+    JSON, so the model saw the literal text "שם: {child_name}") and add the runtime context."""
+    gender, _ = hebrew_gender_rule(child)
+    history_lines = []
+    for item in history or []:
+        if isinstance(item, dict) and item.get("content"):
+            role = "הורה" if item.get("role") == "user" else "מערכת"
+            history_lines.append(f"{role}: {str(item.get('content')).strip()}")
+    replacements = {
+        "{child_name}": str(child.get("child_name") or ""),
+        "{grade}": str(child.get("age") or ""),
+        "{gender}": gender,
+        "{subject}": str((custom_subject or {}).get("subject_name") or "לא זוהה עדיין"),
+        "{current_tree}": json.dumps(current_tree, ensure_ascii=False) if current_tree else "אין עדיין",
+        "{conversation_history}": "\n".join(history_lines) if history_lines else "אין עדיין",
+    }
+    prompt = CURRICULUM_BUILDER_PROMPT_TEMPLATE
+    for k, v in replacements.items():
+        prompt = prompt.replace(k, v)
+    runtime_context = {
+        "child": {"id": child.get("id"), "name": child.get("child_name"), "grade": child.get("age"), "gender": gender},
+        "current_subject": (
+            {"id": custom_subject.get("id"), "subject_name": custom_subject.get("subject_name"),
+             "status": custom_subject.get("status")} if custom_subject else None
+        ),
+        "current_curriculum": current_tree,
+    }
+    return prompt + "\n\nRUNTIME_CONTEXT:\n" + json.dumps(runtime_context, ensure_ascii=False, indent=2)
+
+
 @app.post("/api/curriculum/chat")
 async def curriculum_builder_chat(
         body: CurriculumBuilderChatRequest,
@@ -17606,9 +18940,10 @@ async def curriculum_builder_chat(
         # AUTH
         # =============================================
 
-        user = authenticate_user(
+        user = (await run_in_threadpool(lambda: authenticate_user(
             authorization
-        )
+        )))
+        ai_context("curriculum", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -17630,10 +18965,10 @@ async def curriculum_builder_chat(
         # CHILD OWNERSHIP
         # =============================================
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         custom_subject = None
         current_curriculum = None
@@ -17644,21 +18979,21 @@ async def curriculum_builder_chat(
 
         if body.custom_subject_id:
 
-            custom_subject = (
+            custom_subject = (await run_in_threadpool(lambda: (
                 get_custom_subject(
                     user_id=user.id,
                     kid_id=child["id"],
                     custom_subject_id=
                         body.custom_subject_id
                 )
-            )
+            )))
 
-            current_curriculum = (
+            current_curriculum = (await run_in_threadpool(lambda: (
                 get_current_custom_curriculum(
                     custom_subject_id=
                         custom_subject["id"]
                 )
-            )
+            )))
 
         current_tree = {}
 
@@ -17674,57 +19009,8 @@ async def curriculum_builder_chat(
         # RUNTIME CONTEXT
         # =============================================
 
-        runtime_context = {
-
-            "child": {
-                "id":
-                    child.get("id"),
-
-                "name":
-                    child.get("child_name"),
-
-                # אצלנו age משמש כמספר הכיתה
-                "grade":
-                    child.get("age"),
-
-                "gender":
-                    child.get("gender")
-                    or "unknown"
-            },
-
-            "current_subject": (
-                {
-                    "id":
-                        custom_subject.get("id"),
-
-                    "subject_name":
-                        custom_subject.get(
-                            "subject_name"
-                        ),
-
-                    "status":
-                        custom_subject.get(
-                            "status"
-                        )
-                }
-                if custom_subject
-                else None
-            ),
-
-            "current_curriculum": (
-                current_tree
-            )
-        }
-
-        system_prompt = (
-            CURRICULUM_BUILDER_PROMPT_TEMPLATE
-            + "\n\n"
-            + "RUNTIME_CONTEXT:\n"
-            + json.dumps(
-                runtime_context,
-                ensure_ascii=False,
-                indent=2
-            )
+        system_prompt = build_curriculum_builder_prompt(
+            child, custom_subject, current_tree, body.history or []
         )
 
         # =============================================
@@ -17852,23 +19138,23 @@ async def curriculum_builder_chat(
                 and response_subject
         ):
 
-            custom_subject = (
+            custom_subject = (await run_in_threadpool(lambda: (
                 create_custom_subject(
                     user_id=user.id,
                     kid_id=child["id"],
                     subject_name=
                     response_subject
                 )
-            )
+            )))
 
             # אם חזר מקצוע שכבר היה קיים,
             # נטען גם את התוכנית הקיימת שלו.
-            current_curriculum = (
+            current_curriculum = (await run_in_threadpool(lambda: (
                 get_current_custom_curriculum(
                     custom_subject_id=
                     custom_subject["id"]
                 )
-            )
+            )))
 
             if current_curriculum:
                 current_tree = (
@@ -17889,7 +19175,7 @@ async def curriculum_builder_chat(
 
             if not current_curriculum:
 
-                current_curriculum = (
+                current_curriculum = (await run_in_threadpool(lambda: (
                     create_custom_curriculum(
                         user_id=user.id,
 
@@ -17911,11 +19197,11 @@ async def curriculum_builder_chat(
                         parent_message=
                             message
                     )
-                )
+                )))
 
             else:
 
-                current_curriculum = (
+                current_curriculum = (await run_in_threadpool(lambda: (
                     update_custom_curriculum(
                         user_id=user.id,
 
@@ -17943,7 +19229,7 @@ async def curriculum_builder_chat(
                         parent_message=
                             message
                     )
-                )
+                )))
 
         # =============================================
         # TOKEN USAGE
@@ -17989,7 +19275,7 @@ async def curriculum_builder_chat(
             )
         )
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
             user_id=user.id,
 
             ai_calls=1,
@@ -18005,7 +19291,7 @@ async def curriculum_builder_chat(
 
             openai_cost_usd=
                 openai_cost_usd
-        )
+        )))
 
         # =============================================
         # RESPONSE TO FRONTEND
@@ -18726,7 +20012,8 @@ async def tutor_chat(
 ):
     try:
         # אימות משתמש
-        user = authenticate_user(authorization)
+        user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+        ai_context("chat", user, body)
 
         if not body.kid_id:
             raise HTTPException(
@@ -18742,25 +20029,25 @@ async def tutor_chat(
                 detail="message is required"
             )
 
-        child = get_child_by_id(
+        child = (await run_in_threadpool(lambda: get_child_by_id(
             user_id=user.id,
             kid_id=body.kid_id
-        )
+        )))
 
         # =================================================
         # GET OR CREATE TUTOR SESSION
         # =================================================
 
-        tutor_session = get_or_create_tutor_session(
+        tutor_session = (await run_in_threadpool(lambda: get_or_create_tutor_session(
             user_id=user.id,
             kid_id=child["id"]
-        )
+        )))
 
         session_id = tutor_session["id"]
 
-        existing_memory = get_existing_kids_memory(
+        existing_memory = (await run_in_threadpool(lambda: get_existing_kids_memory(
             child["id"]
-        )
+        )))
 
         system_prompt = build_tutor_prompt(
             child=child,
@@ -18769,10 +20056,10 @@ async def tutor_chat(
 
         # מביאים רק את ההיסטוריה הקודמת.
         # את ההודעה הנוכחית נוסיף מקומית ולא נשמור לפני קריאת ה-AI.
-        recent_messages = get_recent_tutor_messages_for_llm(
+        recent_messages = (await run_in_threadpool(lambda: get_recent_tutor_messages_for_llm(
             kid_id=child["id"],
             limit=7
-        )
+        )))
 
         recent_messages.append({
             "role": "user",
@@ -18884,24 +20171,24 @@ async def tutor_chat(
         )
 
         # שומרים את הודעת הילד ואת תשובת המורה הנקייה
-        save_tutor_chat_messages(
+        (await run_in_threadpool(lambda: save_tutor_chat_messages(
             user_id=user.id,
             kid_id=child["id"],
             user_content=message,
             assistant_content=assistant_history_text,
             assistant_tokens=total_tokens,
             session_id=session_id
-        )
+        )))
 
-        update_tutor_session_after_chat(
+        (await run_in_threadpool(lambda: update_tutor_session_after_chat(
             session=tutor_session,
             total_tokens=total_tokens,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             cost_usd=openai_cost_usd
-        )
+        )))
 
-        increment_usage_summary(
+        (await run_in_threadpool(lambda: increment_usage_summary(
 
             user_id=user.id,
 
@@ -18920,7 +20207,7 @@ async def tutor_chat(
             total_tokens=total_tokens,
 
             openai_cost_usd=openai_cost_usd
-        )
+        )))
 
 
         response_data = lesson_data.model_dump()
@@ -19502,8 +20789,55 @@ class HomeworkTurnEvaluation(BaseModel):
     teacher_response: str
 
 
-@app.post("/api/tutor/homework-coach")
-async def homework_coach(
+@app.post("/api/tutor/openai-clean-chat")
+async def openai_clean_chat(
+        req: OpenAICleanChatRequest,
+        authorization: str = Header(None)
+):
+    authenticate_user(authorization)
+
+    system_prompt = (
+        "את מורה פרטית מצוינת לילדים. "
+        "עזרי לילד להבין ולפתור את המשימה בעצמו. "
+        "לפני השאלה הסבירי במשפט קצר מה מבקשים ואיך ניגשים אליה. "
+        "בכל תגובה הציגי רק צעד אחד ברור, הסבירי אותו בקצרה, ואז שאלי שאלה קצרה אחת בלבד. "
+        "אחרי השאלה עצרי וחכי לתשובת הילד; אל תציגי את הצעדים הבאים ואל תפתרי את יתר הדף. "
+        "אל תעתיקי את כל דף העבודה ואל תתני רשימה של כל השאלות או התשובות. "
+        "אם יש בתמונה כמה משימות, התחילי רק מהמשימה הראשונה שעדיין לא נפתרה. "
+        "בתגובה הראשונה לתמונה צייני בקצרה מה הנושא שזיהית, הסבירי את הצעד הראשון ושאלי שאלה אחת. "
+        "שמרי כל תגובה קצרה, ברורה ומתאימה לילד. אל תתני את התשובה הסופית לפני שהילד ניסה. "
+        "אם הילד העלה תמונה, קראי אותה בעצמך והשתמשי בה כמקור הראשי. "
+        "התנהגי כמו מורה פרטית טבעית וחכמה, לא כמו שאלון."
+    )
+
+    messages=[{"role":"system","content":system_prompt}]
+    for item in (req.history or [])[-16:]:
+        role=str(item.get("role") or "")
+        content=str(item.get("content") or "").strip()
+        if role in ("user","assistant") and content:
+            messages.append({"role":role,"content":content})
+
+    user_parts=[]
+    if str(req.message or "").strip():
+        user_parts.append({"type":"text","text":str(req.message).strip()})
+    elif req.image_url:
+        user_parts.append({"type":"text","text":"תסתכלי על דף העבודה ותעזרי לי להבין איך לפתור אותו שלב אחרי שלב."})
+    if str(req.image_url or "").strip():
+        user_parts.append({"type":"image_url","image_url":{"url":str(req.image_url).strip(),"detail":"high"}})
+    if not user_parts:
+        user_parts.append({"type":"text","text":"היי"})
+    messages.append({"role":"user","content":user_parts})
+
+    response=await aclient.chat.completions.create(
+        model="gpt-5.6-sol",
+        messages=messages
+    )
+    text=str(response.choices[0].message.content or "").strip()
+    return {"reply":text,"model":"gpt-5.6-sol","openai_only":True}
+
+
+@app.post("/api/tutor/homework-coach-v2")
+async def homework_coach_v2(
         req: HomeworkCoachRequest,
         authorization: str = Header(None)
 ):
@@ -19512,19 +20846,103 @@ async def homework_coach(
     grade = child.get("grade") if isinstance(child, dict) else None
 
     system_prompt = (
-        "את מורה פרטית מצוינת לילדים. המטרה שלך היא ללמד את הילד איך להגיע לתשובה בעצמו. "
-        "קראי את השאלה ואת חומר המקור, הביני מה צריך למצוא, ולמדי את הילד בצורה טבעית שלב אחרי שלב. "
-        "שמרי כל דבר נכון שהילד כבר מצא ואל תחזרי אחורה. בכל תשובה הסבירי בקצרה מה כבר מצאנו ומה עדיין חסר. "
-        "אחר כך שאלי רק על החלק הבא שחסר. אל תתני מיד את התשובה המלאה. "
-        "כאשר הילד כבר אסף מספיק מידע כדי לענות, אל תנסחי את התשובה במקומו. אמרי שיש לו מספיק מידע ובקשי ממנו לנסח בעצמו תשובה מלאה לשאלה. "
-        "רק אחרי שהילד ניסח תשובה בעצמו, בדקי אם היא מספיקה. אם היא נכונה, אשרי בקצרה; אם צריך, עזרי רק לשפר את הניסוח בלי להחליף את תשובתו. "
-        "התאימי את השפה לגיל ולכיתה."
+        "את מורה פרטית מצוינת לילדים. "
+        "המטרה שלך היא לעזור לילד להבין ולפתור את שיעורי הבית בעצמו. "
+        "קודם הסתכלי על המשימה והביני מה השאלה מבקשת. "
+        "הסבירי לילד בקצרה ובמילים פשוטות מה צריך לעשות ואיך ניגשים לשאלה. "
+        "אחר כך למדי אותו שלב אחרי שלב. "
+        "בכל הודעה הסבירי רק צעד אחד ברור, הסבירי למה עושים את הצעד הזה, שאלי שאלה קצרה אחת וחכי לתשובת הילד. "
+        "אל תתני את התשובה הסופית לפני שהילד ניסה להגיע אליה בעצמו. "
+        "אם הילד מתקשה, הסבירי שוב בדרך פשוטה יותר או תני רמז קטן. "
+        "אם הילד כבר אמר משהו נכון, זכרי אותו ואל תשאלי עליו שוב. "
+        "כשהילד כבר אסף מספיק מידע או ביצע את כל השלבים, בקשי ממנו לנסח או לפתור את התשובה בעצמו. "
+        "רק אחרי שהוא ענה, בדקי את התשובה ועזרי לתקן אם צריך. "
+        "התאימי את ההסבר לגיל הילד ולסוג המשימה. "
+        "התנהגי כמו מורה פרטית אמיתית, לא כמו שאלון."
+    )
+
+    # V2 deliberately mirrors a clean ChatGPT conversation:
+    # short tutor prompt + original worksheet image + clean per-session history.
+    # Do NOT inject OCR, extracted question state, legacy strategies or guards here.
+    worksheet_content = [{
+        "type": "text",
+        "text": (
+            f"כיתה: {grade or 'לא ידוע'}\n"
+            "זה דף העבודה של הילד. למדי אותו לפתור את שיעורי הבית בעצמו לפי ההוראות שלך. "
+            "התחילי מהמשימה הראשונה שעדיין לא נפתרה בתמונה, והתקדמי איתו באופן טבעי שלב אחרי שלב."
+        )
+    }]
+    image_url = str(req.image_url or "").strip()
+    if image_url:
+        worksheet_content.append({
+            "type": "image_url",
+            "image_url": {"url": image_url, "detail": "high"}
+        })
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": worksheet_content},
+    ]
+    for item in (req.history or [])[-12:]:
+        role = str(item.get("role") or "")
+        content = str(item.get("content") or "").strip()
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
+
+    if req.message.strip():
+        messages.append({"role": "user", "content": req.message.strip()})
+    else:
+        messages.append({"role": "user", "content": "תתחילי ללמד אותי ולעזור לי לפתור את השאלה הזאת."})
+
+    response = await aclient.chat.completions.create(
+        model="gpt-5.6-sol",
+        messages=messages,
+    )
+    text = str(response.choices[0].message.content or "").strip()
+    return {"reply": text, "model": "gpt-5.6-sol", "v2": True}
+
+
+@app.post("/api/tutor/homework-coach")
+async def homework_coach(
+        req: HomeworkCoachRequest,
+        authorization: str = Header(None)
+):
+    user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+    ai_context("homework", user, req)
+    child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
+    grade = child.get("grade") if isinstance(child, dict) else None
+
+    _hw_gender, _hw_gender_rule = hebrew_gender_rule(child)
+    system_prompt = (
+        f"CHILD GENDER: {_hw_gender}. {_hw_gender_rule}\n\n"
+        "את מורה פרטית מצוינת לילדים. המטרה שלך היא ללמד את הילד להבין ולפתור את שיעורי הבית בעצמו, בכל מקצוע ובכל סוג משימה. "
+        "קודם הביני בשקט מה סוג המשימה: מתמטיקה, הבנת הנקרא, כתיבה, שפה, אנגלית, מדעים, גאוגרפיה, היסטוריה או תחום אחר; ומה בדיוק השאלה מבקשת. אל תציגי לילד ניתוח פנימי או סיווגים. "
+        "יש בכל רגע שאלה פעילה אחת בלבד: השאלה שנשלחה בשדה השאלה הפעילה. אסור לעבור לשאלה אחרת, גם אם חומר המקור כולל שאלות נוספות. "
+        "בכל תגובה שלך עשי בדיוק את הרצף הבא: 1) הסבירי בקצרה מה עושים עכשיו ולמה; 2) התייחסי למה שהילד כבר עשה או מצא; 3) תני רק צעד אחד הבא; 4) שאלי שאלה קצרה אחת בלבד וחכי לתשובה. "
+        "את מורה שמסבירה, לא חוקרת. אל תסתפקי במחמאה או בשאלה. לפני כל שאלה לילד חייב להיות הסבר קצר שמלמד אותו איך להתקדם. "
+        "אם הילד נתן תשובת ביניים נכונה, הסבירי מה בדיוק הוא מצא ולמה זה עוזר לשאלה הפעילה, ואז הסבירי מה עדיין חסר ושאלי רק על הצעד הבא. "
+        "אל תשאלי שאלות כלליות, פילוסופיות, רגשיות או שאלות 'מה לדעתך' אלא אם השאלה הפעילה עצמה דורשת דעה, הסבר, נימוק או פרשנות. "
+        "אל תמציאי משמעות שלא כתובה בחומר. בשאלות עובדתיות היצמדי לעובדות, לנתונים, לטקסט או לכלל הרלוונטי. "
+        "במתמטיקה: הסבירי מה נתון ומה מחפשים, בחרי עם הילד את הפעולה או הכלל המתאים, פתרי איתו צעד אחד בכל פעם, ואל תגלי את התוצאה הסופית לפני שניסה. "
+        "בהבנת הנקרא: הסבירי מה השאלה מבקשת, עזרי למצוא ראיות או פרטים בטקסט, חברי עם הילד את הפרטים, ורק אז בקשי ממנו לנסח תשובה בעצמו. אל תעברי לפרשנות אם לא התבקש. "
+        "באנגלית או בשפה: הסבירי בקצרה את המילה, הכלל או המבנה, תני דוגמה דומה שאינה פותרת את המשימה, ואז בקשי מהילד לנסות בעצמו. "
+        "במדעים, גאוגרפיה, היסטוריה ומקצועות ידע: הסבירי את המושג או הקשר הדרוש במילים פשוטות, קשרי אותו לחומר הנתון, ואז הובילי את הילד ליישם אותו על השאלה. "
+        "בכתיבה: הסבירי מה צריך לכתוב, עזרי לבנות מבנה או רעיונות, ואז תני לילד לנסח. אל תכתבי במקומו תשובה מלאה מראש. "
+        "אם הילד טועה, אל תגידי מיד את התשובה. הסבירי מה לא מסתדר, תני רמז קטן יותר או פרקי את הצעד, ואז בקשי ניסיון נוסף. "
+        "אם הילד אומר שאינו יודע, אל תחזרי על אותה שאלה. הסבירי מחדש בפשטות, תני רמז או דוגמה מקבילה, ואז שאלי שאלה קלה יותר שמקדמת אותו. "
+        "שמרי כל דבר נכון שהילד כבר מצא ואל תחזרי אחורה. אל תגרמי לו לענות שוב על מידע שכבר נתן. "
+        "כאשר כבר יש לילד מספיק ידע או פרטים כדי לענות, אמרי זאת במפורש ובקשי ממנו לפתור, לחשב או לנסח את התשובה בעצמו. "
+        "רק אחרי שהילד עצמו נתן תשובה מלאה ומספקת לשאלה הפעילה, אשרי בקצרה וסיימי את השאלה. "
+        "התאימי את אורך ההסבר, המילים וקושי הצעדים לגיל ולכיתה. העדיפי עברית פשוטה, טבעית וקצרה. "
+        "כל תגובה חייבת להתחיל בסמן פנימי אחד בלבד: [[CONTINUE]] אם עדיין חסר מידע, תרגול או ניסוח של הילד; [[COMPLETE]] רק אם הילד עצמו כבר נתן תשובה מלאה ומספקת לשאלה הפעילה. "
+        "תשובת ביניים נכונה, פרט בודד, חישוב חלקי או מילה אחת לעולם אינם COMPLETE אם עדיין צריך לבנות תשובה מלאה. "
+        "במצב CONTINUE חובה להמשיך ללמד: הסבר קצר ואז שאלה אחת שמקדמת לצעד הבא. במצב COMPLETE אשרי בקצרה בלבד ואל תשאלי שאלה נוספת."
     )
 
     context = (
         f"כיתה: {grade or 'לא ידוע'}\n"
-        f"השאלה: {req.current_question}\n"
-        f"חומר המקור:\n{req.source_text}"
+        f"השאלה הפעילה היחידה: {req.current_question}\n"
+        f"חומר מקור בלבד — אין להתייחס לשאלות אחרות שמופיעות בו:\n<<<SOURCE>>>\n{req.source_text}\n<<<END SOURCE>>>"
     )
 
     messages = [{"role":"system","content":system_prompt}, {"role":"user","content":context}]
@@ -19536,14 +20954,18 @@ async def homework_coach(
     if req.message.strip():
         messages.append({"role":"user","content":req.message.strip()})
     else:
-        messages.append({"role":"user","content":"תלמדי אותי לענות על השאלה הזאת כמו מורה פרטית. קודם תסבירי בקצרה מה אנחנו מחפשים ואיפה כדאי לחפש בטקסט. אחר כך תתחילי איתי בצעד הראשון. בכל המשך תשמרי את מה שכבר מצאתי ותשאלי רק על מה שחסר. כשכבר יש לי מספיק מידע, תבקשי ממני לנסח את התשובה בעצמי."})
+        messages.append({"role":"user","content":"תלמדי אותי לפתור את השאלה הזאת כמו מורה פרטית. קודם תסבירי לי בקצרה מה השאלה מבקשת ואיך ניגשים אליה. אחר כך תני לי רק את הצעד הראשון, הסבירי מה עושים בו ולמה, ושאלי אותי שאלה קצרה אחת. בכל המשך תשמרי את מה שכבר עשיתי ותעזרי לי להתקדם צעד אחד בכל פעם עד שאוכל לענות בעצמי."})
 
     response = (await aclient.chat.completions.create(
         model="gpt-5.6-sol",
         messages=messages
     ))
-    text = str(response.choices[0].message.content or "").strip()
-    return {"reply": text, "model": "gpt-5.6-sol", "production_mode": True}
+    raw_text = str(response.choices[0].message.content or "").strip()
+    state = "complete" if raw_text.startswith("[[COMPLETE]]") else "continue"
+    text = re.sub(r"^\s*\[\[(?:CONTINUE|COMPLETE)\]\]\s*", "", raw_text, count=1).strip()
+    if state == "continue" and "?" not in text:
+        text = (text + "\n\nעכשיו נמשיך לצעד הבא: חפש/י בטקסט את הפעולה הבאה שעוזרת לענות על השאלה. מה מצאת?").strip()
+    return {"reply": text, "state": state, "model": "gpt-5.6-sol", "production_mode": True}
 
 
 @app.post("/api/tutor/homework-turn")
@@ -19551,18 +20973,12 @@ async def homework_turn(
         req: HomeworkTurnRequest,
         authorization: str = Header(None)
 ):
-    user = authenticate_user(authorization)
-    child = get_child_by_id(user.id, req.kid_id)
+    user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+    ai_context("homework", user, req)
+    child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
 
     child_name = str(child.get("child_name") or "").strip()
-    gender = str(child.get("gender") or "unknown").strip().lower()
-
-    if gender == "female":
-        gender_rule = "Address the child in Hebrew feminine singular only."
-    elif gender == "male":
-        gender_rule = "Address the child in Hebrew masculine singular only."
-    else:
-        gender_rule = "Avoid gendered Hebrew phrasing when possible."
+    gender, gender_rule = hebrew_gender_rule(child)
 
     normalized_answer = " ".join(str(req.answer or "").strip().lower().split())
     uncertainty_phrases = {
@@ -19783,7 +21199,7 @@ HARD RULES:
         except Exception as hw_error:
             print("HOMEWORK SESSION PROGRESS WARNING:", repr(hw_error))
 
-    session = get_or_create_tutor_session(user.id, req.kid_id)
+    session = (await run_in_threadpool(lambda: get_or_create_tutor_session(user.id, req.kid_id)))
     session_id = session.get("id")
 
     # Save the actual child/teacher exchange. If answer is sufficient, include
@@ -19807,22 +21223,22 @@ HARD RULES:
         output_tokens=output_tokens
     )
 
-    save_tutor_chat_messages(
+    (await run_in_threadpool(lambda: save_tutor_chat_messages(
         user_id=user.id,
         kid_id=req.kid_id,
         user_content=req.answer,
         assistant_content=assistant_content,
         assistant_tokens=output_tokens,
         session_id=session_id
-    )
+    )))
 
-    update_tutor_session_after_chat(
+    (await run_in_threadpool(lambda: update_tutor_session_after_chat(
         session=session,
         total_tokens=total_tokens,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cost_usd=cost_usd
-    )
+    )))
 
     return {
         **result,
@@ -19830,3 +21246,202 @@ HARD RULES:
         "current_question_number": req.current_question_number,
         "next_question_number": req.next_question_number
     }
+
+
+# =====================================================
+# ADMIN — LESSON REVIEW (2026-09-16)
+#
+# Server-side allowlist (ADMIN_EMAILS env, comma separated). The page at
+# /he/admin/lessons-review/ only calls these routes with the parent's Supabase
+# token; nothing here is reachable without an allowlisted email.
+# =====================================================
+ADMIN_EMAILS = {
+    e.strip().lower() for e in os.getenv(
+        "ADMIN_EMAILS",
+        "varonrot@gmail.com,office@calzo-app.com,yossi.heine@gmail.com,yossi.hina@gmail.com,yossiheine.biz@gmail.com"
+    ).split(",") if e.strip()
+}
+
+
+def require_admin(authorization: str | None):
+    user = authenticate_user(authorization)
+    email = str(getattr(user, "email", "") or "").lower()
+    if email not in ADMIN_EMAILS:
+        print("ADMIN DENIED:", {"email": email})
+        raise HTTPException(status_code=403, detail="admin only")
+    return user
+
+
+def _lesson_review_row(r: dict, parents: dict) -> dict:
+    g = r.get("generated_lesson_json") or {}
+    q = g.get("quality") or {}
+    parent = parents.get(r.get("learning_lesson_id")) or {}
+    return {
+        "id": r["id"], "unit_name": r.get("unit_name"), "lesson_name": r.get("lesson_name"),
+        "grade": parent.get("grade"), "subject": parent.get("subject"), "topic": parent.get("lesson_name"),
+        "generation_status": r.get("generation_status"), "audio_generation_status": r.get("audio_generation_status"),
+        "content_version": r.get("content_version"), "generated_at": r.get("generated_at"),
+        "quality": {
+            "checked": bool(q), "ok": q.get("ok"), "errors": q.get("errors") or [], "warnings": q.get("warnings") or [],
+            "stats": q.get("stats") or {}, "checked_at": q.get("checked_at"),
+            "approved_by_human": bool(q.get("approved_by_human")), "approved_by": q.get("approved_by"), "approved_at": q.get("approved_at"),
+            "note": q.get("review_note"),
+        },
+    }
+
+
+@app.get("/api/admin/lessons/quality")
+async def admin_lessons_quality(authorization: str = Header(None)):
+    await run_in_threadpool(lambda: require_admin(authorization))
+    rows = await run_in_threadpool(lambda: sb.table("lesson_units_content").select(
+        "id,unit_name,lesson_name,learning_lesson_id,generation_status,audio_generation_status,content_version,generated_at,generated_lesson_json"
+    ).order("id").execute().data)
+    parent_ids = sorted({r.get("learning_lesson_id") for r in rows if r.get("learning_lesson_id")})
+    parents = {}
+    if parent_ids:
+        pl = await run_in_threadpool(lambda: sb.table("learning_lessons").select("id,grade,subject,lesson_name").in_("id", parent_ids).execute().data)
+        parents = {p["id"]: p for p in pl}
+    out = [_lesson_review_row(r, parents) for r in rows]
+    flagged = [x for x in out if x["quality"]["checked"] and x["quality"]["ok"] is False and not x["quality"]["approved_by_human"]]
+    return {"success": True, "count": len(out), "flagged": len(flagged),
+            "generated": sum(1 for x in out if x["generation_status"] == "ready"), "lessons": out}
+
+
+class AdminLessonNote(BaseModel):
+    note: str | None = None
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/approve")
+async def admin_lesson_approve(unit_lesson_id: int, body: AdminLessonNote = None, authorization: str = Header(None)):
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    g = dict(row.get("generated_lesson_json") or {})
+    q = dict(g.get("quality") or {})
+    q.update({"approved_by_human": True, "approved_by": user.email, "approved_at": datetime.now(timezone.utc).isoformat(),
+              "review_note": (body.note if body else None) or q.get("review_note")})
+    g["quality"] = q
+    await run_in_threadpool(lambda: sb.table("lesson_units_content").update({"generated_lesson_json": g}).eq("id", unit_lesson_id).execute())
+    print("ADMIN LESSON APPROVED:", {"unit_lesson_id": unit_lesson_id, "by": user.email})
+    return {"success": True, "quality": q}
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/recheck")
+async def admin_lesson_recheck(unit_lesson_id: int, authorization: str = Header(None)):
+    await run_in_threadpool(lambda: require_admin(authorization))
+    report = await run_in_threadpool(lambda: run_lesson_quality_gate(unit_lesson_id, check_images=True))
+    return {"success": True, "quality": report}
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/regenerate")
+async def admin_lesson_regenerate(unit_lesson_id: int, authorization: str = Header(None)):
+    """Wipe media + generated content (same as tools/delete_unit_lesson.py) so the next open
+    rebuilds the lesson with the current prompts. content_version is bumped."""
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    def wipe():
+        row = get_unit_lesson(unit_lesson_id)
+        removed = {}
+        for bucket in (LESSON_MEDIA_BUCKET, LESSON_AUDIO_BUCKET):
+            paths = _list_storage_prefix(bucket, f"unit_lessons/{unit_lesson_id}")
+            for i in range(0, len(paths), 100):
+                sb.storage.from_(bucket).remove(paths[i:i + 100])
+            removed[bucket] = len(paths)
+        jobs = sb.table("media_jobs").select("id,status").eq("payload->>unit_lesson_id", str(unit_lesson_id)).execute().data
+        for j in jobs:
+            if j["status"] != "running":
+                sb.table("media_jobs").delete().eq("id", j["id"]).execute()
+        new_cv = int(row.get("content_version") or 1) + 1
+        sb.table("lesson_units_content").update({
+            "generation_status": "empty", "status": "empty", "generated_lesson_json": None, "lesson_audio_json": None,
+            "lesson_content_json": None, "audio_generation_status": "pending", "audio_generation_error": None,
+            "audio_generated_at": None, "audio_mode": None, "generation_error": None, "generation_started_at": None,
+            "generation_completed_at": None, "generated_at": None, "tts_generated_at": None, "model_name": None,
+            "prompt_version": None, "content_version": new_cv, "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", unit_lesson_id).execute()
+        return {"removed": removed, "jobs_deleted": len([j for j in jobs if j["status"] != "running"]), "content_version": new_cv}
+    result = await run_in_threadpool(wipe)
+    print("ADMIN LESSON REGENERATE (wiped):", {"unit_lesson_id": unit_lesson_id, "by": user.email, **result})
+    return {"success": True, **result}
+
+
+class AdminImageAction(BaseModel):
+    path: str          # e.g. "v1/part_2/visual_9.png" or "hero_v1.png"
+
+
+def _recompute_quality_after_override(q: dict, path: str) -> dict:
+    q = dict(q)
+    q["errors"] = [e for e in (q.get("errors") or []) if f"image {path}:" not in e]
+    imgs = dict(q.get("images") or {})
+    if path in imgs:
+        imgs[path] = dict(imgs[path], verdict="approved_by_human")
+    q["images"] = imgs
+    q["ok"] = not q["errors"]
+    return q
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/images/approve")
+async def admin_image_approve(unit_lesson_id: int, body: AdminImageAction, authorization: str = Header(None)):
+    """A human looked at the image and it is fine: the vision verdict is overridden for this file."""
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    g = dict(row.get("generated_lesson_json") or {}); q = dict(g.get("quality") or {})
+    ov = dict(q.get("image_overrides") or {}); ov[body.path] = {"by": user.email, "at": datetime.now(timezone.utc).isoformat()}
+    q["image_overrides"] = ov
+    q = _recompute_quality_after_override(q, body.path)
+    g["quality"] = q
+    await run_in_threadpool(lambda: sb.table("lesson_units_content").update({"generated_lesson_json": g}).eq("id", unit_lesson_id).execute())
+    print("ADMIN IMAGE APPROVED:", {"unit_lesson_id": unit_lesson_id, "path": body.path, "by": user.email})
+    return {"success": True, "quality": q}
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/images/regenerate")
+async def admin_image_regenerate(unit_lesson_id: int, body: AdminImageAction, authorization: str = Header(None)):
+    """Delete ONE image; a visuals job (or the hero route on next open) recreates just the missing file."""
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    full = f"unit_lessons/{unit_lesson_id}/{body.path}"
+    def do():
+        sb.storage.from_(LESSON_MEDIA_BUCKET).remove([full])
+        job_id = None
+        if not body.path.startswith("hero_"):
+            job_id = enqueue_media_job("unit_lesson_visuals", {"unit_lesson_id": unit_lesson_id},
+                                       dedupe_key=f"unit_lesson_visuals:{unit_lesson_id}", priority=5)
+        g = dict(row.get("generated_lesson_json") or {}); q = dict(g.get("quality") or {})
+        imgs = dict(q.get("images") or {})
+        if body.path in imgs:
+            imgs[body.path] = dict(imgs[body.path], verdict="regenerating")
+        q["images"] = imgs; g["quality"] = q
+        sb.table("lesson_units_content").update({"generated_lesson_json": g}).eq("id", unit_lesson_id).execute()
+        return job_id
+    job_id = await run_in_threadpool(do)
+    print("ADMIN IMAGE REGENERATE:", {"unit_lesson_id": unit_lesson_id, "path": body.path, "job_id": job_id, "by": user.email})
+    return {"success": True, "job_id": job_id, "note": "hero is recreated on the next lesson open" if body.path.startswith("hero_") else "visuals job queued"}
+
+
+@app.get("/api/admin/lessons/{unit_lesson_id}/media")
+async def admin_lesson_media(unit_lesson_id: int, authorization: str = Header(None)):
+    """Signed URLs of the hero and every visual of the current content_version, with the
+    text-check verdicts from the last quality report, so a human can look at them."""
+    await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    cv = int(row.get("content_version") or 1)
+    q = ((row.get("generated_lesson_json") or {}).get("quality") or {})
+    flagged = {}
+    for e in q.get("errors") or []:
+        m = re.search(r"readable text in image (\S+): '(.*)'", e)
+        if m:
+            flagged[m.group(1)] = m.group(2)
+    paths = await run_in_threadpool(lambda: _list_storage_prefix(LESSON_MEDIA_BUCKET, f"unit_lessons/{unit_lesson_id}"))
+    paths = sorted(p for p in paths if p.endswith(".png") and (f"/v{cv}/" in p or "/hero_v" in p))
+    urls = await run_in_threadpool(lambda: signed_urls_cached_batch(LESSON_MEDIA_BUCKET, paths, LESSON_MEDIA_URL_EXPIRY_SECONDS))
+    verdicts = q.get("images") or {}
+    items = []
+    for p in paths:
+        key = p.split(f"unit_lessons/{unit_lesson_id}/", 1)[-1]
+        v = verdicts.get(key) or {}
+        items.append({"path": key, "url": urls.get(p), "text_found": flagged.get(key) or (v.get("text") if v.get("verdict") in ("text", "possible_text") else None),
+                      "verdict": v.get("verdict") or ("text" if key in flagged else ("unchecked" if not verdicts else "clean")),
+                      "kind": v.get("kind"), "confidence": v.get("confidence"), "source": v.get("source")})
+    parts = (((row.get("generated_lesson_json") or {}).get("structured_lesson") or {}).get("parts") or [])
+    text = [{"part_number": p.get("part_number"), "segments": [s.get("text") for s in (p.get("lesson") or []) if isinstance(s, dict)],
+             "question": (p.get("question") or {}).get("text")} for p in parts]
+    return {"success": True, "content_version": cv, "images": items, "text": text, "quality": q}
