@@ -2216,6 +2216,24 @@ def get_existing_kids_memory(kid_id: str) -> str:
 
 LEARNING_COACH_MAX_ROUNDS = 5
 
+
+def get_learning_coach_round_limit(understanding_score: int) -> int:
+    """Adaptive diagnostic limit: do not trap a child until mastery.
+
+    High scores need very little extra probing; lower scores get a few more
+    focused turns so we can identify the weakness, then the lesson continues.
+    The score is still preserved as diagnostic evidence.
+    """
+    score = max(0, min(100, int(understanding_score or 0)))
+
+    if score >= 90:
+        return 1
+    if score >= 70:
+        return 2
+    if score >= 40:
+        return 3
+    return 4
+
 # =====================================================
 # UNIVERSAL LESSON STAGES
 # =====================================================
@@ -2856,15 +2874,22 @@ def update_learning_coach_session(
         timezone.utc
     )
 
+    recommended_round_limit = min(
+        LEARNING_COACH_MAX_ROUNDS,
+        get_learning_coach_round_limit(understanding_score)
+    )
+
     max_rounds_reached = (
         current_round
-        >= LEARNING_COACH_MAX_ROUNDS
+        >= recommended_round_limit
     )
 
     if goal_achieved:
         status = "completed"
 
     elif max_rounds_reached:
+        # Diagnostic completion: the child can continue even below mastery.
+        # We intentionally keep the existing DB-safe status value.
         status = "max_rounds"
 
     else:
@@ -15997,11 +16022,19 @@ async def run_learning_coach(
         or ""
     ).strip()
 
-    max_rounds_reached = (
-        current_round
-        >= LEARNING_COACH_MAX_ROUNDS
+    recommended_round_limit = min(
+        LEARNING_COACH_MAX_ROUNDS,
+        get_learning_coach_round_limit(understanding_score)
     )
 
+    max_rounds_reached = (
+        current_round
+        >= recommended_round_limit
+    )
+
+    # Separate mastery from flow completion. A child does NOT need 90+ to move on.
+    # Low/medium scores are retained as diagnostic evidence and the lesson continues
+    # after a small adaptive number of focused turns.
     coach_finished = (
         goal_achieved
         or max_rounds_reached
@@ -16360,7 +16393,7 @@ async def run_learning_coach(
                 current_round,
 
             "maximum_rounds":
-                LEARNING_COACH_MAX_ROUNDS,
+                recommended_round_limit,
 
             "understanding_score":
                 understanding_score,
