@@ -53628,8 +53628,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.107</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.107";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.110</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.110";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -53998,9 +53998,6 @@ body.custom-subject-mode .science-tree-card.selected{
       const lessons = lessonRes.data || [];
       const homeworks = homeworkRes.error ? [] : (homeworkRes.data || []);
       const custom = customRes.error ? [] : (customRes.data || []);
-Warning: truncated output (original token count: 31222)
-Total output lines: 1235
-
 
       const completed = lessons.filter(r=>r.status==='completed').length;
       const inProgress = lessons.filter(r=>r.status==='in_progress').length;
@@ -54617,7 +54614,23 @@ document.addEventListener('click',function(event){const item=event.target?.close
       const rows=units.map(x=>{const u=um.get(String(x.unit_lesson_id))||{},p=pm.get(String(x.learning_lesson_id))||{};return {...x,lesson_name:u.lesson_name||'שיעור',unit_name:u.unit_name||'',subject:p.subject||'למידה',category:p.category||'',parent_lesson:p.lesson_name||'',mastery:Number(x.best_mastery_score||x.mastery_score||0)}});
       const active=rows.find(x=>x.status==='in_progress')||rows.find(x=>x.status==='partial')||rows[0];
       const completed=rows.filter(x=>x.status==='completed').length, inProgress=rows.filter(x=>x.status==='in_progress'||x.status==='partial').length, hwActive=homeworks.filter(x=>x.status!=='completed').length, personalPending=customLessons.filter(x=>x.status!=='completed').length;
-      const regularHtml=rows.length?rows.slice(0,8).map(r=>`<div class="iml-row"><div><b>${esc(…1222 tokens truncated…ow.openMyLessonsInternal=openView;window.closeMyLessonsInternal=closeView;
+      const regularHtml=rows.length?rows.slice(0,8).map(r=>`<div class="iml-row"><div><b>${esc(r.lesson_name)}</b><small>${esc(r.subject)}${r.unit_name?' · '+esc(r.unit_name):''}</small></div><div><span class="iml-chip ${statusClass(r.status)}">${statusText(r.status)}</span></div><div><b>${r.mastery}%</b><small>שליטה</small></div><button class="iml-action" data-unit="${r.unit_lesson_id}" style="padding:7px 10px">פתח</button></div>`).join(''):'<div class="iml-empty">עדיין לא נפתחו שיעורים רגילים.</div>';
+      const hwHtml=homeworks.length?homeworks.slice(0,6).map(h=>{const t=Number(h.total_questions||0),d=Number(h.completed_questions||0),p=t?Math.round(d/t*100):(h.status==='completed'?100:0);return `<div class="iml-row"><div><b>${esc(h.topic||h.subject||'שיעורי בית')}</b><small>${esc(h.subject||'')} · ${dateText(h.last_activity_at||h.started_at)}</small></div><div><span class="iml-chip ${statusClass(h.status)}">${statusText(h.status)}</span></div><div><b>${d}/${t||'?'}</b><small>${p}% הושלם</small></div><button class="iml-action" data-homework="1" style="padding:7px 10px">פתח</button></div>`}).join(''):'<div class="iml-empty">עדיין אין שיעורי בית שמורים.</div>';
+      const personalHtml=customLessons.length?customLessons.slice(0,12).map(c=>{const s=sm.get(String(c.custom_subject_id));return `<div class="iml-personal" data-custom-subject="${esc(c.custom_subject_id)}"><b>${esc(c.lesson_name)}</b><small>${esc(s?.subject_name||'מקצוע אישי')} · ${statusText(c.status)}</small></div>`}).join(''):'<div class="iml-empty">עדיין אין שיעורים במערכת האישית.</div>';
+      el.innerHTML=`<div class="iml-shell"><div class="iml-head"><div class="iml-title"><h1>השיעורים שלי</h1><p>השיעורים, שיעורי הבית והמערכת האישית של ${esc(kid.child_name||kid.name||'הילד/ה')}</p></div><button type="button" class="iml-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div>
+      <div class="iml-kpis"><div class="iml-kpi"><small>שיעורים בתהליך</small><strong>${inProgress}</strong></div><div class="iml-kpi"><small>שיעורים שהושלמו</small><strong>${completed}</strong></div><div class="iml-kpi"><small>שיעורי בית פעילים</small><strong>${hwActive}</strong></div><div class="iml-kpi"><small>שיעורים אישיים</small><strong>${personalPending}</strong></div></div>
+      <div class="iml-grid"><section class="iml-card"><h3>המשך מאיפה שעצרתי</h3>${active?`<div class="iml-continue"><div><div class="iml-continue-title">${esc(active.lesson_name)}</div><div class="iml-meta">${esc(active.subject)} · ${esc(active.unit_name)} · ${statusText(active.status)}</div><div class="iml-progress"><span style="width:${pct(active.progress_percent)}%"></span></div></div><button class="iml-action" data-unit="${active.unit_lesson_id}">המשך שיעור</button></div>`:'<div class="iml-empty">עדיין אין שיעור פעיל.</div>'}</section><section class="iml-card"><h3>תמונת מצב</h3><div class="iml-list"><div class="iml-row" style="grid-template-columns:1fr auto"><div><b>${rows.length} שיעורים רגילים נפתחו</b><small>${homeworks.length} סשנים של שיעורי בית</small></div><span class="iml-chip">${subjects.length} מקצועות אישיים</span></div></div></section></div>
+      <section class="iml-card iml-section"><h3>השיעורים שלי</h3><div class="iml-list">${regularHtml}</div></section>
+      <section class="iml-card iml-section"><h3>שיעורי הבית שלי</h3><div class="iml-list">${hwHtml}</div></section>
+      <section class="iml-card iml-section"><h3>המערכת האישית שלי</h3><div class="iml-personal-grid">${personalHtml}</div></section></div>`;
+      el.querySelector('.iml-close')?.addEventListener('click',closeView);
+      el.querySelectorAll('[data-unit]').forEach(b=>b.addEventListener('click',()=>{const r=rows.find(x=>String(x.unit_lesson_id)===String(b.dataset.unit));if(r)tryOpenLesson(r)}));
+      el.querySelectorAll('[data-homework]').forEach(b=>b.addEventListener('click',tryOpenHomework));
+      el.querySelectorAll('[data-custom-subject]').forEach(b=>b.addEventListener('click',()=>{const s=sm.get(String(b.dataset.customSubject));if(s)tryOpenCustom(s.id,s.subject_name)}));
+    }catch(e){console.error('MY LESSONS REAL LOAD ERROR',e);el.innerHTML='<div class="iml-shell"><div class="iml-empty">לא הצלחתי לטעון כרגע את נתוני השיעורים.</div></div>'}
+  }
+  document.addEventListener('click',event=>{const item=event.target?.closest?.('.kid-actions .side-item, .side-item');if(!item)return;const text=(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('השיעורים שלי'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();openView(item)},true);
+  window.openMyLessonsInternal=openView;window.closeMyLessonsInternal=closeView;
 })();
 </script>
 
@@ -55219,4 +55232,260 @@ document.addEventListener('click',function(event){const item=event.target?.close
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
 <script src="/he/workspace/openai-clean-chat.js?v=07105"></script>
+
+<style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
+  /* Keep every lesson control inside short laptop viewports (for example
+     1280x720) instead of letting the fixed-height HUD cover the player. */
+  @media (min-width:761px) and (max-height:800px),
+         (min-width:761px) and (max-width:1366px){
+    body.lesson-theme-science .floating-tutor-robot{
+      display:none!important;
+    }
+
+    body.lesson-theme-science .lesson-layout-v1{
+      grid-template-columns:190px minmax(0,1fr)!important;
+      gap:8px!important;
+    }
+
+    body.lesson-theme-science .lesson-lessons-sidebar{
+      padding:10px 9px 0!important;
+      border-radius:16px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-subject{
+      padding-bottom:8px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-subject-icon{
+      width:34px!important;
+      height:34px!important;
+      flex-basis:34px!important;
+      font-size:19px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-back-to-workspace{
+      min-height:42px!important;
+      margin-top:8px!important;
+      padding:6px 8px!important;
+      font-size:11px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-unit{
+      min-height:48px!important;
+      margin:8px 0 6px!important;
+      padding:5px 7px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-unit-image{
+      width:35px!important;
+      height:35px!important;
+      flex-basis:35px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-row,
+    body.lesson-theme-science .lesson-sidebar-checkpoint{
+      min-height:45px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-teacher{
+      flex:0 0 112px!important;
+      height:112px!important;
+      min-height:112px!important;
+    }
+
+    body.lesson-theme-science .lesson-sidebar-teacher img{
+      width:112px!important;
+      height:112px!important;
+    }
+
+    body.lesson-theme-science .lesson-main-existing{
+      display:flex!important;
+      flex-direction:column!important;
+      height:100%!important;
+      min-height:0!important;
+      gap:6px!important;
+      overflow:hidden!important;
+    }
+
+    body.lesson-theme-science .lesson-content-split{
+      flex:1 1 0!important;
+      height:auto!important;
+      min-height:0!important;
+      grid-template-columns:minmax(0,1.8fr) minmax(320px,1fr)!important;
+      gap:8px!important;
+      overflow:hidden!important;
+    }
+
+    body.lesson-theme-science .lesson-visual-stage,
+    body.lesson-theme-science .lesson-chat-workspace{
+      height:100%!important;
+      min-height:0!important;
+      border-radius:15px!important;
+    }
+
+    body.lesson-theme-science .lesson-chat-workspace .lesson-chat-header{
+      flex:0 0 48px!important;
+      min-height:48px!important;
+      height:48px!important;
+      padding:6px 10px!important;
+    }
+
+    body.lesson-theme-science .lesson-chat-workspace .lesson-chat-header-icon{
+      width:26px!important;
+      height:26px!important;
+      flex-basis:26px!important;
+      font-size:16px!important;
+    }
+
+    body.lesson-theme-science .lesson-chat-workspace .lesson-chat-header #heroGreeting{
+      font-size:15px!important;
+    }
+
+    body.lesson-theme-science .lesson-chat-workspace .lesson-chat-help{
+      height:29px!important;
+      padding:0 8px!important;
+      font-size:9px!important;
+    }
+
+    body.lesson-theme-science .learning-view .workspace.lesson-chat-workspace .messages{
+      min-height:0!important;
+      overflow-y:auto!important;
+      padding:8px 10px 68px!important;
+      gap:8px!important;
+      scrollbar-gutter:stable;
+    }
+
+    body.lesson-theme-science .learning-view .workspace.lesson-chat-workspace .tutor-response{
+      gap:7px!important;
+      margin-bottom:8px!important;
+    }
+
+    body.lesson-theme-science .learning-view .workspace.lesson-chat-workspace .tutor-avatar{
+      width:38px!important;
+      height:46px!important;
+      min-width:38px!important;
+      max-width:38px!important;
+      flex-basis:38px!important;
+    }
+
+    body.lesson-theme-science .learning-view .workspace.lesson-chat-workspace .tutor-writing{
+      padding:9px 11px!important;
+      font-size:13px!important;
+      line-height:1.45!important;
+    }
+
+    body.lesson-theme-science .learning-view .workspace .composer-wrap{
+      right:8px!important;
+      left:8px!important;
+      bottom:7px!important;
+    }
+
+    body.lesson-theme-science .lesson-chat-workspace .input{
+      min-height:48px!important;
+      height:48px!important;
+      padding:3px 4px!important;
+      border-radius:13px!important;
+    }
+
+    body.lesson-theme-science .lesson-chat-workspace .composer-icon,
+    body.lesson-theme-science .lesson-chat-workspace .talk-btn,
+    body.lesson-theme-science .lesson-chat-workspace .send-btn,
+    body.lesson-theme-science .lesson-chat-workspace .reset-lesson-btn{
+      width:36px!important;
+      height:36px!important;
+      flex-basis:36px!important;
+    }
+
+    body.lesson-theme-science .lesson-flow-track{
+      flex:0 0 50px!important;
+      height:50px!important;
+      min-height:50px!important;
+      max-height:50px!important;
+      padding:4px 24px!important;
+      border-radius:12px!important;
+    }
+
+    body.lesson-theme-science .lesson-flow-track::before{
+      top:22px!important;
+    }
+
+    body.lesson-theme-science .lesson-flow-step{
+      gap:2px!important;
+      font-size:8px!important;
+    }
+
+    body.lesson-theme-science .lesson-flow-node{
+      width:28px!important;
+      height:28px!important;
+      font-size:11px!important;
+    }
+
+    body.lesson-theme-science .lesson-flow-step.active .lesson-flow-node{
+      width:34px!important;
+      height:34px!important;
+      margin-top:-2px!important;
+    }
+
+    body.lesson-theme-science .lesson-flow-step.active::before,
+    body.lesson-theme-science .lesson-flow-step.active::after{
+      top:15px!important;
+    }
+
+    body.lesson-theme-science .lesson-media-controls{
+      flex:0 0 48px!important;
+      height:48px!important;
+      min-height:48px!important;
+      max-height:48px!important;
+      padding:4px 8px!important;
+      gap:6px!important;
+      border-radius:12px!important;
+    }
+
+    body.lesson-theme-science .lesson-media-btn{
+      width:34px!important;
+      height:34px!important;
+      flex-basis:34px!important;
+    }
+
+    body.lesson-theme-science .lesson-media-play{
+      width:38px!important;
+      height:38px!important;
+      flex-basis:38px!important;
+    }
+
+    body.lesson-theme-science .lesson-waveform{
+      height:34px!important;
+    }
+
+    body.lesson-theme-science #lessonMasteryDock{
+      flex:0 0 116px!important;
+      height:116px!important;
+      min-height:116px!important;
+      max-height:116px!important;
+      grid-template-rows:106px!important;
+      gap:6px!important;
+      padding:5px!important;
+      overflow:hidden!important;
+    }
+
+    body.lesson-theme-science #lessonMasteryDock .mastery-hud-card{
+      height:106px!important;
+      min-height:106px!important;
+      max-height:106px!important;
+      padding:7px 8px!important;
+      border-radius:12px!important;
+      overflow:hidden!important;
+    }
+
+    body.lesson-theme-science #lessonMasteryDock .mastery-tech-ring,
+    body.lesson-theme-science #lessonMasteryDock .mastery-chart{
+      transform:scale(.68)!important;
+      transform-origin:center top!important;
+    }
+
+    body.lesson-theme-science #lessonMasteryDock .mastery-ai-bars{
+      height:46px!important;
+    }
+  }
+</style>
 </body></html>
