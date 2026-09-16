@@ -816,7 +816,7 @@ media_trace.install_print_prefix()
 import lesson_quality as lq
 IMAGE_TEXT_CHECK = os.getenv("IMAGE_TEXT_CHECK", "0") == "1"          # vision call per image (~$0.0003): OFF by default (2026-09-16), set 1 to enable
 IMAGE_TEXT_CHECK_MODEL = os.getenv("IMAGE_TEXT_CHECK_MODEL", "gemini-3.1-flash-lite")
-VISUAL_REUSE = os.getenv("VISUAL_REUSE", "1") == "1"                # dynamic image count: segments without a new idea reuse the previous image
+VISUAL_REUSE = False  # disabled: generate a distinct image for every visual segment
 VISUAL_NEW_RATIO = float(os.getenv("VISUAL_NEW_RATIO", "0.5"))     # share of segments that get a NEW image per part
 VISUAL_MIN_NEW = int(os.getenv("VISUAL_MIN_NEW", "3"))              # never fewer new images than this per part (unless fewer segments)
 LESSON_QUALITY_GATE = os.getenv("LESSON_QUALITY_GATE", "0") == "1"    # per-lesson report after every media job: OFF by default (2026-09-16), set 1 to enable
