@@ -27,13 +27,12 @@ admin/dashboard/      admin dashboard
 parent-dashboard/     parent dashboard
 backend/              core FastAPI (chat, payments)
 backend-ai-tutor-he/  Hebrew tutor FastAPI (many main_vN.py versions — main.py is current)
-iakids_*_prompt.txt   system prompts (root copies; backend loads from backend/prompts/)
 blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 ```
 
 ## Conventions & gotchas
 
-- **Versioned files, not git branches**: `index2.html`, `main_v6.py`, `workspace_back_up.html` etc. The unnumbered `main.py`/`index.html` is the live one. Don't delete backups without asking.
+- **Versioned files, not git branches**: `index2.html`, `main_v6.py`, `workspace_back_up.html` etc. The unnumbered `main.py`/`index.html` is the live one. Don't delete backups without asking. Exception decided 2026-09-15: `prompts/` folders hold ONLY the files `main.py` loads; old prompt versions live in `V<N>_BACKUP/`, never as `_v2`/`_back_up` siblings (the gate fails on an unlisted prompt).
 - **Hebrew pages are RTL**: `<html dir="rtl" lang="he">`. Keep RTL when editing `/he/**`.
 - **Secrets**: `backend/.env` exists locally (gitignored, 600). Never put a key in a client file — the Supabase key in the browser is the publishable one and RLS does the work.
 - **Edit style**: pages are self-contained; match existing inline CSS/JS style, no new deps or build tools.
@@ -49,6 +48,24 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 ## Backups
 
 - Back up ONLY before changing a prompt file (or when the user says "גיבוי"): `bash .claude/skills/backup/backup.sh "<note>"` (project skill `backup`). Code-only changes to main.py do not need a backup. It snapshots `backend/main.py`, `backend-ai-tutor-he/main.py` and every prompt file (root `iakids_*_prompt.txt`, `backend/prompts/`, `backend-ai-tutor-he/prompts/`) into the next `V<N>_BACKUP/` folder, verifies with `diff`, writes a README. Never overwrite an existing `V<N>_BACKUP`. Take one before touching `main.py` or a prompt.
+
+## Rule: gate before every commit and every deploy
+
+- **Commit**: the git pre-commit hook runs `tools/prompt_gate.py --staged` whenever a prompt file or `main.py` is staged. A failing gate blocks the commit. Install once per clone: `bash tools/install_hooks.sh`.
+- **Deploy**: the only way to restart the tutor backend is `bash tools/deploy_tutor.sh` (gate → restart web+worker → health check: active, "startup complete", HTTP 200). A Claude Code PreToolUse hook on Bash also blocks any bare `systemctl restart/start iakids-tutor-*` unless the gate passes. Never restart prod while the gate fails (2026-09-15: a failed import smoke was overridden and prod was down 4 minutes).
+
+## Prompt gate (always runs on prompt changes)
+
+- `tools/prompt_gate.py` checks every prompt `main.py` loads: required placeholders (e.g. `{lesson_text}` in the director prompt), required sections (gender rule, shared-lesson neutrality, immutable question), placeholders that no code fills, conflict markers, that the pre-edit version exists in a `V<N>_BACKUP`, and a render smoke (imports `main`, builds every prompt, no `{placeholder}` left). Modes: `--all`, `--staged`, `--hook`, `--pre-edit`, `--check-file X --as name`.
+- Wired three ways: `.claude/settings.json` hooks (PreToolUse auto-runs the backup skill before a prompt edit; PostToolUse runs the gate and blocks with the reason), and a git pre-commit hook installed by `bash tools/install_hooks.sh` (re-run after a fresh clone; hooks are not versioned).
+- Adding a prompt file or a must-keep section: extend `REQUIRED` in `tools/prompt_gate.py` in the same commit.
+- Hook commands in `.claude/settings.json` MUST use absolute paths (`"${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/..."`): the session cwd moves with `cd`, and a hook that cannot find its script exits 2 and blocks every tool (happened 2026-09-15).
+
+## Lesson quality gate (runs after every media job)
+
+- `backend-ai-tutor-he/lesson_quality.py` + `run_lesson_quality_gate()` in `main.py`: after each `unit_lesson_media/audio/visuals` job the worker checks text rules (no gendered singular, no question in `lesson[]`, no placeholders/emoji, segment length), visual plan (one visual per segment + question, `trigger_text` present), audio (segments/question per part, files exist), storage (no files from another `content_version`) and, via one cheap Gemini vision call per image, that no image carries readable text. Report → `generated_lesson_json["quality"]`, log line `LESSON QUALITY GATE PASS|FAIL`. On demand: `tools/lesson_gate.py --lesson N` (`--all-ready`, `--no-images`).
+- Generation-time guards: `ensure_no_text_in_image()` (vision check + one strict retry for every hero/visual), style chain (part N's first image follows part 1's), `content_version` bump on regeneration (route) and on delete (`delete_unit_lesson.py`), TTS text normalisation (`normalize_for_tts`: emoji, arrows, ×÷=%°, fractions, gershayim abbreviations) and long-segment splitting, rhetorical questions allowed in explanations, first name only in greetings for long full names, signed URLs 4 h.
+- Knobs: `IMAGE_TEXT_CHECK`, `IMAGE_TEXT_CHECK_MODEL` (gemini-3.1-flash-lite), `LESSON_QUALITY_GATE`, `TTS_CACHE`, `TTS_PARALLEL`, `TTS_NIKUD`.
 
 ## Deleting / regenerating a lesson
 

@@ -155,9 +155,12 @@ for lesson_id in args.id:
         sb.table("kid_unit_lesson_progress").delete().eq("unit_lesson_id", lesson_id).execute()
         print(f"  kid_unit_lesson_progress deleted: {len(progress)}")
 
+    # bump content_version so a regeneration writes to fresh paths (old files can never be served)
+    new_cv = int(row.get("content_version") or 1) + 1
     sb.table("lesson_units_content").update(
-        {**RESET_FIELDS, "updated_at": datetime.now(timezone.utc).isoformat()}
+        {**RESET_FIELDS, "content_version": new_cv, "updated_at": datetime.now(timezone.utc).isoformat()}
     ).eq("id", lesson_id).execute()
+    print(f"  content_version {row.get('content_version')} -> {new_cv}")
     after = sb.table("lesson_units_content").select(
         "generation_status,audio_generation_status,generated_lesson_json,lesson_audio_json"
     ).eq("id", lesson_id).single().execute().data

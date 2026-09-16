@@ -13,7 +13,7 @@ mkdir -p "$DEST/root" "$DEST/backend" "$DEST/backend/prompts" "$DEST/backend-ai-
 
 cp -p backend/main.py                 "$DEST/backend/main.py"
 cp -p backend-ai-tutor-he/main.py     "$DEST/backend-ai-tutor-he/main.py"
-cp -p iakids_*_prompt.txt             "$DEST/root/"
+shopt -s nullglob; for f in iakids_*_prompt.txt; do cp -p "$f" "$DEST/root/"; done; shopt -u nullglob   # root copies were removed 2026-09-15
 cp -p backend/prompts/*.txt           "$DEST/backend/prompts/"
 cp -p backend-ai-tutor-he/prompts/*.txt "$DEST/backend-ai-tutor-he/prompts/"
 
@@ -22,7 +22,7 @@ diff -q backend/main.py "$DEST/backend/main.py"
 diff -q backend-ai-tutor-he/main.py "$DEST/backend-ai-tutor-he/main.py"
 diff -rq backend/prompts "$DEST/backend/prompts"
 diff -rq backend-ai-tutor-he/prompts "$DEST/backend-ai-tutor-he/prompts"
-for f in iakids_*_prompt.txt; do diff -q "$f" "$DEST/root/$f"; done
+shopt -s nullglob; for f in iakids_*_prompt.txt; do diff -q "$f" "$DEST/root/$f"; done; shopt -u nullglob
 
 COUNT=$(( $(find "$DEST" -type f | wc -l) + 1 ))   # +1 for this README
 cat > "$DEST/README.md" <<MD

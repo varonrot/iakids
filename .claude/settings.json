@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 "${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py" --pre-edit",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 "${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py" --pre-bash",
+            "timeout": 240
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 "${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py" --hook",
+            "timeout": 240
+          }
+        ]
+      }
+    ]
+  }
+}
