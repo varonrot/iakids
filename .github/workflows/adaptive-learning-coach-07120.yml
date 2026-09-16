@@ -1,0 +1,33 @@
+name: Apply adaptive Learning Coach 0.7.120
+
+on:
+  push:
+    paths:
+      - '.github/scripts/adaptive-learning-coach-07120.py'
+      - '.github/workflows/adaptive-learning-coach-07120.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply patch
+        run: python .github/scripts/adaptive-learning-coach-07120.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-ai-tutor-he/main.py he/workspace/index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Make Learning Coach progression adaptive; bump to 0.7.120"
+          git push origin main
