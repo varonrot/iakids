@@ -45,11 +45,11 @@ REQUIRED = {
     "iakids_lesson_expansion_prompt.txt": {
         "placeholders": ["{grade}", "{subject}", "{parent_lesson}", "{lesson_name}", "{learning_objective}",
                          "{lesson_complexity}", "{max_duration_seconds}", "{part_number}", "{previous_parts}"],
-        "sections": ["השיעור משותף לכל הילדים"],
+        "sections": ["השיעור משותף לכל הילדים", "answer:", "התשובה הנכונה והמלאה"],
     },
     "iakids_lesson_initial_prompt.txt": {
         "placeholders": ["{grade}", "{subject}", "{lesson_name}", "{learning_objective}"],
-        "sections": ["השיעור משותף לכל הילדים", "עברית תקנית"],
+        "sections": ["השיעור משותף לכל הילדים", "עברית תקנית", "answer:", "התשובה הנכונה והמלאה"],
     },
     "lesson_director_prompt.txt": {
         "placeholders": ["{lesson_text}"],
@@ -59,7 +59,7 @@ REQUIRED = {
     "learning_coach_system_prompt.txt": {
         "placeholders": [],
         "sections": ["RUNTIME_DATA.child.gender", "אין להסיק את המגדר לפי שם הילד",
-                     "רמז או דוגמה לעולם אינם התשובה"],
+                     "רמז או דוגמה לעולם אינם התשובה", "correct_answer", "is_final_round", "הסבב האחרון: לתת את התשובה ולהמשיך", "התשובה הנכונה נתונה לך"],
     },
     "iakids_curriculum_builder_system_prompt.txt": {
         "placeholders": ["{child_name}", "{gender}", "{grade}", "{subject}"],
@@ -179,6 +179,116 @@ def prompt_usage_checks(main_src: str) -> list:
     return fails
 
 
+WORKSPACE = ROOT / "he" / "workspace" / "index.html"
+
+
+def workspace_checks() -> list:
+    """The lesson screen regressions we actually shipped, each pinned by a rule.
+
+    Every bug the user reports in the chat or in the prompt mechanism is added here
+    or next to it, so the same failure cannot come back silently.
+    """
+    if not WORKSPACE.exists():
+        return ["he/workspace/index.html is missing"]
+    src = WORKSPACE.read_text(encoding="utf-8", errors="replace")
+    bad = []
+
+    # 2026-09-17: the whole lesson layout is scoped to body.lesson-theme-science and
+    # the class was added only for the subject "מדעים", so a Hebrew or maths lesson
+    # opened with no layout and its pictures were not shown in the middle.
+    if "setLessonBackgroundForSubject" not in src:
+        bad.append("setLessonBackgroundForSubject is gone - nothing marks the lesson screen")
+    else:
+        body = src.split("function setLessonBackgroundForSubject", 1)[1][:4000]
+        body = re.sub(r"/\*.*?\*/", "", body, flags=re.S)          # comments mention both classes
+        body = re.sub(r"//[^\n]*", "", body)
+        add_at = body.find("lesson-theme-science")
+        cond_at = body.find("מדעים")
+        if add_at < 0:
+            bad.append("the lesson-screen class lesson-theme-science is no longer set")
+        elif 0 <= cond_at < add_at:
+            bad.append("the lesson layout is behind a subject condition again; it must "
+                       "apply to every subject (only the background is science-only), "
+                       "otherwise a Hebrew or maths lesson opens with no layout and no images")
+        if "classList.toggle(" not in body:
+            bad.append("the science background is no longer toggled by subject")
+    if "lesson-subject-science" not in src:
+        bad.append("lesson-subject-science is gone - the science background lost its own class")
+
+    # 2026-09-17: a failing image could freeze the screen ~300 s per segment, and the
+    # opening buffer waits for three images one after another.
+    if "LESSON_VISUALS_GIVE_UP" not in src:
+        bad.append("the visual wait has no give-up flag - a failed image can freeze the lesson again")
+    if "LESSON_VISUAL_WAIT_BUDGET_MS" not in src:
+        bad.append("waitForLessonVisual has no wait budget - images can block the lesson again")
+
+    # the build stamp is read by the user; its two places must agree
+    stamp = re.search(r"IAKIDS • build (\d+\.\d+\.\d+)", src)
+    var = re.search(r'IAKIDS_BUILD_VERSION = "(\d+\.\d+\.\d+)"', src)
+    if not stamp or not var:
+        bad.append("the build stamp or IAKIDS_BUILD_VERSION is missing from the workspace")
+    elif stamp.group(1) != var.group(1):
+        bad.append("build stamp %s does not match IAKIDS_BUILD_VERSION %s" % (stamp.group(1), var.group(1)))
+    return bad
+
+
+def media_failure_checks(main_src: str) -> list:
+    """A lesson whose images all failed must say so, not log DONE.
+
+    2026-09-17: every image of lesson 152 failed on a corrupted API key and the media
+    job still reported success, so the logs looked healthy while the child had a
+    lesson with no pictures.
+    """
+    bad = []
+    if "LESSON PART VISUAL GENERATION FAILED" not in main_src:
+        bad.append("a part whose images all failed no longer logs an explicit FAILED line")
+    if '"images_ok"' not in main_src or '"images_planned"' not in main_src:
+        bad.append("the visual DONE line no longer reports images_ok / images_planned")
+    if "def require_api_key" not in main_src:
+        bad.append("require_api_key is gone - a corrupted key would again produce a "
+                   "whole lesson with no images instead of refusing to start")
+    return bad
+
+
+def learning_coach_checks(main_src: str) -> list:
+    """The coach must get the real answer and the real round limit.
+
+    2026-09-17, two defects found together on lessons 151-153:
+      * RUNTIME_DATA.lesson.correct_answer was the literal string "Derive from the
+        lesson explanation and lesson goal", so gpt-4o-mini judged the child's answer
+        against an answer it invented. It marked the complete answer "המורה, ארנב,
+        תלמידה" as partial and sent the child to look for a word she had said.
+      * coach_state.maximum_rounds was the constant 5 while the server ended the
+        session after 1-4 rounds, so the model's "last round" never arrived and the
+        rule "on the last round explain the correct answer" never fired.
+    """
+    bad = []
+    if '"answer": answer' not in main_src:
+        bad.append("direct_lesson_part no longer stores the question's answer "
+                   "(question dict must be {text, answer}) - the coach would judge "
+                   "the child against an answer it invents")
+    if "class UniversalLessonResponse" in main_src:
+        block = main_src.split("class UniversalLessonResponse", 1)[1][:400]
+        fields = [l.strip() for l in block.splitlines() if l.strip() and not l.strip().startswith("#")]
+        if not any(f.startswith("answer:") for f in fields):
+            bad.append("UniversalLessonResponse has no `answer` field - the teacher "
+                       "would write a question with no correct answer")
+    if "def learning_coach_round_plan" not in main_src:
+        bad.append("learning_coach_round_plan is gone - the round limit the model is "
+                   "told and the one the server enforces can drift apart again")
+    if '"maximum_rounds":\n                LEARNING_COACH_MAX_ROUNDS' in main_src:
+        bad.append("the coach is told the constant LEARNING_COACH_MAX_ROUNDS again; "
+                   "it must receive the enforced limit from learning_coach_round_plan")
+    if main_src.count("get_learning_coach_round_limit(understanding_score)"):
+        bad.append("the round limit is computed from the NEW score in run_learning_coach; "
+                   "it must come from learning_coach_round_plan so the model and the "
+                   "server agree on which round is the last")
+    if '"is_final_round"' not in main_src:
+        bad.append("coach_state no longer carries is_final_round - the prompt cannot "
+                   "know when to give the answer and stop asking")
+    return bad
+
+
 def code_rule_checks(main_src: str) -> list:
     """Rules that live in main.py rather than in a prompt file (inline prompts, prefixes)."""
     fails = []
@@ -287,6 +397,48 @@ def env_file_checks() -> list:
             bad.append("%s: %s has another variable glued into its value (length %d) - "
                        "the file is missing a newline" % (name, key, len(v)))
     return bad
+
+
+def learning_coach_round_tests() -> list:
+    """The adaptive limit must stay monotonic and must never reach zero rounds."""
+    code = r'''
+import os, sys, io, contextlib
+os.chdir("backend-ai-tutor-he"); sys.path.insert(0, ".")
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+    import main
+bad = []
+f = main.get_learning_coach_round_limit
+for score in range(0, 101):
+    if f(score) < 1:
+        bad.append("round limit %d for score %d - a child would get no turn" % (f(score), score))
+        break
+for lo, hi in ((0, 39), (40, 69), (70, 89), (90, 100)):
+    if f(lo) != f(hi):
+        bad.append("round limit not constant inside band %d-%d" % (lo, hi))
+if not (f(0) >= f(50) >= f(80) >= f(95)):
+    bad.append("round limit must not grow with the score")
+plan = main.learning_coach_round_plan
+r, limit, final = plan({"total_rounds": 0, "final_understanding_score": 0})
+if r != 1 or final:
+    bad.append("round 1 of a fresh session must not be the final round (got %s, %s)" % (r, final))
+r, limit, final = plan({"total_rounds": limit - 1, "final_understanding_score": 0})
+if not final:
+    bad.append("the last allowed round must report is_final_round=True")
+r, limit, final = plan({"total_rounds": 0, "final_understanding_score": 95})
+if not final:
+    bad.append("a child already at mastery must close on the first round")
+print("\n".join(bad) if bad else "COACH_OK")
+'''
+    r = subprocess.run([str(PY), "-c", code], cwd=ROOT, capture_output=True, text=True,
+                       env=dict(os.environ, APP_ENV=os.environ.get("APP_ENV", "prod"),
+                                **{k: "gate-dummy-key" for k in ENV_KEYS}), timeout=180)
+    if r.returncode != 0:
+        return ["learning coach round tests crashed: %s" % (r.stderr or r.stdout)[-400:]]
+    lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip()]
+    if lines and lines[-1].endswith("COACH_OK"):
+        return []
+    return ["learning coach rounds: " + l for l in lines if not l.endswith("COACH_OK")]
 
 
 def render_smoke() -> list:
@@ -431,17 +583,24 @@ def main():
         return 1 if fails else 0
 
     names = live_prompt_names() if a.all else changed_prompts(a.staged)
-    main_changed = "backend-ai-tutor-he/main.py" in sh("git", "diff", "--cached" if a.staged else "HEAD", "--name-only").split()
-    if not names and not main_changed:
-        print("prompt gate: no prompt or main.py changes")
+    changed_files = sh("git", "diff", "--cached" if a.staged else "HEAD", "--name-only").split()
+    main_changed = "backend-ai-tutor-he/main.py" in changed_files
+    workspace_changed = "he/workspace/index.html" in changed_files
+    if not names and not main_changed and not workspace_changed:
+        print("prompt gate: no prompt, main.py or workspace changes")
         return 0
-    if not names and main_changed:
-        # main.py changed: the render smoke doubles as an import smoke (a route decorator on the
-        # wrong function, a missing package...) — it must pass before the service is restarted
-        rf = [] if a.fast else render_smoke()
-        print(("FAIL " if rf else "ok   ") + "render/import smoke for main.py")
-        if rf:
-            print("\nPROMPT GATE FAILED:\n - " + "\n - ".join(rf), file=sys.stderr)
+    if not names and (main_changed or workspace_changed):
+        # No prompt changed, but the code that carries the rules did. Run the rules that
+        # live in code (the lesson screen, the coach handover, the media failure signal)
+        # plus, for main.py, the render smoke that doubles as an import smoke — a route
+        # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
+        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks())
+        print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
+        rf = [] if (a.fast or not main_changed) else render_smoke()
+        if main_changed:
+            print(("FAIL " if rf else "ok   ") + "render/import smoke for main.py")
+        if cf or rf:
+            print("\nPROMPT GATE FAILED:\n - " + "\n - ".join(cf + rf), file=sys.stderr)
             return 1
         print("\nPROMPT GATE PASSED")
         return 0
@@ -454,13 +613,17 @@ def main():
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
-          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src))
+          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src)
+          + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks())
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:
         rf = render_smoke()
         print(("FAIL " if rf else "ok   ") + "render smoke (all builders, no unresolved placeholders)")
         all_fails += rf
+        cr = learning_coach_round_tests()
+        print(("FAIL " if cr else "ok   ") + "learning coach rounds (limit, final round, answer handover)")
+        all_fails += cr
     if a.all:
         ef = env_file_checks()
         print(("FAIL " if ef else "ok   ") + "env file keys (present, clean ASCII, no glued variable)")

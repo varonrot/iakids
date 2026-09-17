@@ -172,8 +172,19 @@ if ONLY_GEMINI:
             img, mime = main.ensure_no_text_in_image(img, mime, "hero", lambda extra: main.generate_lesson_hero_image_bytes(prompt + extra), unit_lesson_id=0)
             final = lq.image_text_check(main.gemini_client, types, main.IMAGE_TEXT_CHECK_MODEL, img, mime)
             assert len(img) > 10000, "no image"
-            assert not final["has_text"], f"text in hero even after retry: {final['text']!r}"
-            return f"{len(img)//1024} KB, no text" + (" (first attempt had text, retry fixed it)" if first["has_text"] else "")
+            # Same rule as production (decision 2026-09-16): universally readable
+            # scientific notation (CO2, H2O, numbers, units) is language-neutral and
+            # allowed in a shared image; words and labels in any language are not.
+            # 2026-09-17: this check asserted on has_text alone and failed a deploy
+            # on an image whose only "text" was 'CO2, H2O, O2' - stricter than the
+            # product it was guarding.
+            found = str(final.get("text") or "")
+            if final["has_text"] and not lq.is_allowed_scientific_text(found):
+                raise AssertionError(f"readable words in hero even after retry: {found!r}")
+            note = " (first attempt had text, retry fixed it)" if first["has_text"] and not final["has_text"] else ""
+            if final["has_text"]:
+                note = f" (allowed scientific notation only: {found[:40]!r})"
+            return f"{len(img)//1024} KB, no words" + note
         run("hero_image_prompt (gemini image)", hero)
 
 print("RESULTS_JSON " + json.dumps(results, ensure_ascii=False))

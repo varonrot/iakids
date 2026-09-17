@@ -1454,7 +1454,6 @@ class TutorLessonResponse(BaseModel):
 class UniversalLessonResponse(BaseModel):
     explanation: str
     question: str
-    answer: str          # the full correct answer to `question`, for the teacher only - never shown to the child
 class DirectedLessonSegment(BaseModel):
     text: str
 
@@ -2792,20 +2791,6 @@ def extract_unit_lesson_coach_content(
         or ""
     ).strip()
 
-    # Lessons generated before 2026-09-17 have no stored answer; those fall back
-    # to the old "derive it yourself" behaviour instead of failing.
-    lesson_answer = str(
-        (
-            lesson_part.get(
-                "question"
-            )
-            or {}
-        ).get(
-            "answer"
-        )
-        or ""
-    ).strip()
-
     if not lesson_explanation:
         raise ValueError(
             f"Lesson part {coach_index} has no explanation"
@@ -2824,47 +2809,8 @@ def extract_unit_lesson_coach_content(
             lesson_explanation,
 
         "lesson_question":
-            lesson_question,
-
-        "lesson_answer":
-            lesson_answer
+            lesson_question
     }
-
-def learning_coach_round_plan(
-        coach_session: dict
-) -> tuple[int, int, bool]:
-    """(current_round, round_limit, is_final_round), decided BEFORE the model runs.
-
-    2026-09-17: the model was always told maximum_rounds=5 while the server ended
-    the conversation after 1-4 rounds, so "the last round" never arrived and the
-    prompt rule that says "on the last round explain the correct answer and stop
-    asking" could never fire. A child who could not answer was left with an open
-    question, no answer, and the next lesson part. The limit now comes from the
-    score the session already has, is what the model is told, and is what the
-    server enforces - one number, no drift.
-    """
-    current_round = (
-        int(coach_session.get("total_rounds") or 0)
-        + 1
-    )
-
-    previous_score = int(
-        coach_session.get("final_understanding_score")
-        or coach_session.get("initial_understanding_score")
-        or 0
-    )
-
-    round_limit = min(
-        LEARNING_COACH_MAX_ROUNDS,
-        get_learning_coach_round_limit(previous_score)
-    )
-
-    return (
-        current_round,
-        round_limit,
-        current_round >= round_limit
-    )
-
 
 def build_learning_coach_prompt(
         child: dict,
@@ -2882,12 +2828,14 @@ def build_learning_coach_prompt(
         )
     )
 
-    (
-        current_round,
-        round_limit,
-        is_final_round
-    ) = learning_coach_round_plan(
-        coach_session
+    current_round = (
+        int(
+            coach_session.get(
+                "total_rounds"
+            )
+            or 0
+        )
+        + 1
     )
 
     previous_score = int(
@@ -2972,16 +2920,10 @@ def build_learning_coach_prompt(
                     "lesson_question"
                 ],
 
-            # The teacher wrote this answer together with the question, so the
-            # coach never has to derive it. 2026-09-17: while it derived the
-            # answer itself it marked complete answers as partial ("המורה, ארנב,
-            # תלמידה") and sent the child to look for a word she had already
-            # given. Lessons cached before that date have no stored answer.
+            # כרגע אין עמודה נפרדת של תשובה נכונה.
+            # ההסבר ומטרת השיעור משמשים כמקור האמת.
             "correct_answer":
-                (
-                    coach_content.get("lesson_answer")
-                    or "Derive from the lesson explanation and lesson goal."
-                )
+                "Derive from the lesson explanation and lesson goal."
         },
 
         "conversation": {
@@ -3001,10 +2943,7 @@ def build_learning_coach_prompt(
                 current_round,
 
             "maximum_rounds":
-                round_limit,
-
-            "is_final_round":
-                is_final_round,
+                LEARNING_COACH_MAX_ROUNDS,
 
             "previous_understanding_score":
                 previous_score
@@ -3038,14 +2977,9 @@ def update_learning_coach_session(
         timezone.utc
     )
 
-    # The same plan the prompt was built from, so the session status and the
-    # flow decision cannot disagree about which round was the last one.
-    (
-        _plan_round,
-        recommended_round_limit,
-        _plan_final
-    ) = learning_coach_round_plan(
-        coach_session
+    recommended_round_limit = min(
+        LEARNING_COACH_MAX_ROUNDS,
+        get_learning_coach_round_limit(understanding_score)
     )
 
     max_rounds_reached = (
@@ -5879,16 +5813,12 @@ async def direct_lesson_part(
         explanation: str,
         question: str,
         part_number: int,
-        unit_lesson_id=None,
-        answer: str = ""
+        unit_lesson_id=None
 ):
     """Segment ONE lesson part. Returns (part_dict, first_completion).
 
-    part_dict = {"lesson": [{"text": ...}], "question": {"text": question, "answer": answer}}.
+    part_dict = {"lesson": [{"text": ...}], "question": {"text": question}}.
     The question is owned by the teacher and is never taken from the director.
-    `answer` is the teacher's own correct answer: it is stored next to the question
-    and handed to the Learning Coach so it never has to guess what "correct" means.
-    It is never sent to the child and never spoken.
     """
     explanation = str(explanation or "").strip()
     question = str(question or "").strip()
@@ -5931,7 +5861,7 @@ async def direct_lesson_part(
             return (
                 {
                     "lesson": [{"text": s.strip()} for s in segments],
-                    "question": {"text": question, "answer": answer}
+                    "question": {"text": question}
                 },
                 first_completion
             )
@@ -5964,7 +5894,7 @@ async def direct_lesson_part(
     return (
         {
             "lesson": fallback_lesson_segments(explanation),
-            "question": {"text": question, "answer": answer}
+            "question": {"text": question}
         },
         first_completion
     )
@@ -14119,10 +14049,6 @@ async def get_or_generate_unit_lesson(
             lesson_data.question.strip()
         )
 
-        part_1_answer = (
-            (lesson_data.answer or "").strip()
-        )
-
         if not part_1_explanation:
             raise RuntimeError(
                 "Initial lesson returned empty explanation"
@@ -14151,8 +14077,7 @@ async def get_or_generate_unit_lesson(
                 explanation=part_1_explanation,
                 question=part_1_question,
                 part_number=1,
-                unit_lesson_id=unit_lesson["id"],
-                answer=part_1_answer
+                unit_lesson_id=unit_lesson["id"]
             )
             media_trace.mark_done("text_part1_director", _t_dir1)
             return result
@@ -14255,11 +14180,6 @@ async def get_or_generate_unit_lesson(
                 .strip()
             )
 
-            expansion_answer = (
-                (expansion_data.answer or "")
-                .strip()
-            )
-
             if not expansion_explanation:
                 raise RuntimeError(
                     (
@@ -14284,8 +14204,7 @@ async def get_or_generate_unit_lesson(
                     explanation=expansion_explanation,
                     question=expansion_question,
                     part_number=part_number,
-                    unit_lesson_id=unit_lesson["id"],
-                    answer=expansion_answer
+                    unit_lesson_id=unit_lesson["id"]
                 )
             )
 
@@ -16259,14 +16178,9 @@ async def run_learning_coach(
         or ""
     ).strip()
 
-    # The same limit the model was told in coach_state.maximum_rounds, so the
-    # round the model treats as its last is the round the server ends on.
-    (
-        _plan_round,
-        recommended_round_limit,
-        _plan_final
-    ) = learning_coach_round_plan(
-        coach_session
+    recommended_round_limit = min(
+        LEARNING_COACH_MAX_ROUNDS,
+        get_learning_coach_round_limit(understanding_score)
     )
 
     max_rounds_reached = (

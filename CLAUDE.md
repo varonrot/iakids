@@ -64,6 +64,16 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - **Commit**: the git pre-commit hook runs `tools/prompt_gate.py --staged` whenever a prompt file or `main.py` is staged. A failing gate blocks the commit. Install once per clone: `bash tools/install_hooks.sh`.
 - **Deploy**: the only way to restart the tutor backend is `bash tools/deploy_tutor.sh` (gate → restart web+worker → health check: active, "startup complete", HTTP 200). A Claude Code PreToolUse hook on Bash also blocks any bare `systemctl restart/start iakids-tutor-*` unless the gate passes. Never restart prod while the gate fails (2026-09-15: a failed import smoke was overridden and prod was down 4 minutes).
 
+## Rule: every reported bug becomes a gate rule
+
+- **When the user reports a bug in the chat, in a prompt, or in the lesson mechanism, the fix is not done until a rule in `tools/prompt_gate.py` would catch it again.** Same commit as the fix. This is not optional and does not wait to be asked.
+- Where the rule goes: a prompt rule → `REQUIRED` (placeholder or section); a rule that lives in `main.py` → `learning_coach_checks` / `media_failure_checks` / `code_rule_checks`; a rule in the lesson screen → `workspace_checks`; a pure function → `pure_function_tests`; an env/secret shape → `env_file_checks` (deploy path only).
+- Every new rule gets a **negative test**: break the code in a scratch copy and confirm the gate fails. A rule that never fails is not a rule.
+- The rule's message says what the child would experience, not what the code looks like ("a non-science lesson opens with no layout and no images"), plus the date and the incident.
+- `bash tools/install_hooks.sh` installs the pre-commit hook **and runs the whole suite**; a fresh clone is verified at install time. The hook covers prompts, `main.py`, `he/workspace/index.html` and the gate itself.
+
+Cases already pinned (2026-09-15 → 17): `{lesson_text}` in the director prompt; gender rule in every child-facing prompt; a loaded prompt that is never used; a hint or example that gives the answer away; the Learning Coach getting the real correct answer and a real last round; a corrupted API key (non-ASCII or a glued variable) refusing to start; a part whose images all failed logging FAILED instead of DONE; the lesson layout applying to every subject; images never blocking the lesson; the build stamp matching `IAKIDS_BUILD_VERSION`.
+
 ## Prompt gate (always runs on prompt changes)
 
 - `tools/prompt_gate.py` checks every prompt `main.py` loads: required placeholders (e.g. `{lesson_text}` in the director prompt), required sections (gender rule, shared-lesson neutrality, immutable question), placeholders that no code fills, conflict markers, that the pre-edit version exists in a `V<N>_BACKUP`, and a render smoke (imports `main`, builds every prompt, no `{placeholder}` left). Modes: `--all`, `--staged`, `--hook`, `--pre-edit`, `--check-file X --as name`.
