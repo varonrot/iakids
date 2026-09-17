@@ -524,7 +524,13 @@ gemini_client = genai.Client(
 # out on 2026-09-14 with a single worker. Images stay on the direct Gemini
 # client for now (OpenRouter has image output, but with a different model id
 # and response shape; not wired yet).
-AI_PROVIDER = os.getenv("AI_PROVIDER", "direct").strip().lower()
+# 2026-09-17: the default is what production actually runs, so a fresh deploy with no
+# environment variables behaves the same as the live service instead of quietly picking
+# a different provider. The condition is not a hedge: without an OpenRouter key the
+# openrouter path cannot work at all, and the startup guard below would refuse to start
+# a developer machine that never had one.
+_DEFAULT_AI_PROVIDER = "openrouter" if os.getenv("OPENROUTER_API_KEY", "").strip() else "direct"
+AI_PROVIDER = os.getenv("AI_PROVIDER", _DEFAULT_AI_PROVIDER).strip().lower()
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", AI_PROVIDER).strip().lower()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")

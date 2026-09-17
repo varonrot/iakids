@@ -55,7 +55,10 @@ import main as tutor  # noqa: E402
 import media_trace
 media_trace.install_print_prefix()   # every print() -> timestamp + T+elapsed + job/lesson context
 
-CONCURRENCY = max(1, int(os.getenv("WORKER_CONCURRENCY", "2")))
+# 2026-09-17: production runs one job at a time (WORKER_CONCURRENCY=1 in the unit file)
+# because the box has 2 vCPU and 2 GB, and a second image job in parallel pushed it into
+# swap. The default now says what we actually run.
+CONCURRENCY = max(1, int(os.getenv("WORKER_CONCURRENCY", "1")))
 POLL_SECONDS = max(1.0, float(os.getenv("WORKER_POLL_SECONDS", "3")))
 HEARTBEAT_SECONDS = max(5.0, float(os.getenv("WORKER_HEARTBEAT_SECONDS", "30")))
 STALE_SECONDS = max(60, int(os.getenv("MEDIA_JOBS_STALE_SECONDS", "300")))
