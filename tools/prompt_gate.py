@@ -361,6 +361,34 @@ def media_failure_checks(main_src: str) -> list:
 BROWSER_FILES = ("he", "frontend-v2", "assets/js")
 
 
+def migration_rollback_checks() -> list:
+    """Every migration ships with the file that undoes it.
+
+    2026-09-17: asked for after the answer-key migration. A migration that cannot be
+    undone in one paste is a migration nobody dares run at three in the morning.
+    """
+    folder = ROOT / "supabase" / "migrations"
+    if not folder.exists():
+        return []
+    bad = []
+    for path in sorted(folder.glob("*.sql")):
+        name = path.name
+        if "rollback" in name or name == "APPLY_NOW.sql":
+            continue
+        mate = folder / (name[:-4] + "_rollback.sql")
+        if not mate.exists():
+            bad.append("supabase/migrations/%s has no %s - write the undo in the same "
+                       "commit as the change" % (name, mate.name))
+            continue
+        body = mate.read_text(encoding="utf-8", errors="replace")
+        live = [l.strip() for l in body.splitlines()
+                if l.strip() and not l.strip().startswith("--")]
+        if not live:
+            bad.append("%s has no runnable statement - an empty rollback is not a rollback"
+                       % mate.name)
+    return bad
+
+
 def answer_key_checks(main_src: str) -> list:
     """The correct answer is for the teacher. It must not reach the browser.
 
@@ -782,7 +810,7 @@ def main():
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
         cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
-          + answer_key_checks(main_src))
+          + answer_key_checks(main_src) + migration_rollback_checks())
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
         rf = [] if (a.fast or not main_changed) else render_smoke()
         if main_changed:
@@ -804,7 +832,7 @@ def main():
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
-          + answer_key_checks(main_src))
+          + answer_key_checks(main_src) + migration_rollback_checks())
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:

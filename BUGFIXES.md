@@ -4,6 +4,18 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — browser grants revoked on every table the browser never touches
+- **Why**: Supabase grants `anon` and `authenticated` every privilege on every table in `public` by default, and row level security is the only thing in front of them. That is one policy mistake away from an open table, and it already happened: the 2026-09-10 audit found anonymous reads of exam answer keys, exam questions and the whole lesson catalogue, plus an anonymous INSERT into subscriptions that only a NOT NULL constraint stopped.
+- **Method**: every `.html` and `.js` file the site serves was scanned for `.from("table")`, excluding backup copies. 28 tables are never read or written from a browser; 23 are. Only the 28 are revoked, so nothing that works today stops working.
+- **Functions were checked one by one**, because a `SECURITY INVOKER` function needs the caller's own rights: `record_user_location`, `game_record_answer`, `game_record_answers` and `game_question_mark` are `SECURITY DEFINER`; `game_next_questions` is invoker but reads only `game_questions` and `kid_question_answers`, both of which stay granted.
+- **Still open by design**: the 23 tables live pages read directly. Closing those means moving their reads behind the backend first, which is a separate job.
+- **Found on the way**: `games/game-sdk.js` calls two tables that do not exist in the database at all, `game_achievements` and `game_wins`, so those calls have always failed.
+
+### 2026-09-17 — every migration now has a rollback file
+- **Rule**: `<name>.sql` must ship with `<name>_rollback.sql` in the same commit; the gate fails otherwise, and a rollback with only comments counts as missing.
+- **Written for all 17 migrations**, 14 of which had none. Statements that would destroy data are written out but left commented with `-- DATA LOSS:` — a `drop table` or `drop column` is never left ready to run.
+- **Honest about what a rollback cannot do**: `create or replace function` cannot be undone by dropping the function, because that removes it entirely. Those files say so and name the earlier migration to re-run instead. The rollback of the 2026-09-10 security audit opens with a capitalised warning that running it reopens the holes it closed.
+
 ### build 0.7.135 — a browser query had been asking for a column that does not exist
 - **Found while checking that the answer-key migration breaks nothing.** One query in the workspace asked `lesson_units_content` for `parent_lesson`, which is not a column of that table. PostgREST answers `42703 undefined column`, and the call site is `if(!r.error) unitMeta = r.data` — so the error was swallowed and the unit names were silently missing from that view. Confirmed against prod: the old query fails today, the corrected one returns rows.
 - **Fix**: it now asks for `learning_lesson_id`, the column it actually needed.

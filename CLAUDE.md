@@ -80,6 +80,15 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - When the last part finishes, `kid_lesson_progress` is written `status="completed"`, `completed_at`, `progress_percent=100`, `xp_earned`, `stars_earned` — the columns the child's and the parent's dashboards already read. Never leave it `in_progress`.
 - The completion card shows **one** primary next-lesson button plus the unit grid, and its score comes from the progress row, not from the on-screen gauge.
 
+## Rule: every migration ships with its rollback
+
+- `supabase/migrations/<name>.sql` must have `supabase/migrations/<name>_rollback.sql` in the same commit. The gate fails otherwise, and an empty rollback counts as missing.
+- A rollback that would destroy data writes the statement out but leaves it **commented** with `-- DATA LOSS:`. A `drop table` or `drop column` is never left ready to run.
+- A `create or replace function` cannot be undone by dropping it — that removes the function entirely. The rollback says so and names the earlier migration to re-run instead.
+- A rollback that reopens a security hole says that at the top, in capitals.
+- **Prod SQL needs explicit approval every time** ([[prod-migrations-need-approval]]). This box has no `psql`, no Supabase CLI and no DB password, so migrations are run by the user in the Supabase SQL editor; verify from here afterwards.
+- Browser access: `anon` and `authenticated` hold grants on everything by default, and RLS is the only gate. Tables the browser never touches have their grants revoked (`20260917_revoke_browser_table_access.sql`). Before adding a browser read of a new table, check it is granted.
+
 ## Rule: every reported bug becomes a gate rule
 
 - **When the user reports a bug in the chat, in a prompt, or in the lesson mechanism, the fix is not done until a rule in `tools/prompt_gate.py` would catch it again.** Same commit as the fix. This is not optional and does not wait to be asked.
