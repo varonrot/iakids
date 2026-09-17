@@ -4,6 +4,15 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### build 0.7.135 — a gender chosen by mistake could not be corrected from the workspace
+- **Symptom**: the parent panel could always change a child's gender, and its field even preloads the current value. The workspace could not. Gender was set once by the popup that appears on entry, and after that, right or wrong, it was locked.
+- **Why it matters here**: the teacher addresses the child by that value in writing *and* in speech, so a wrong choice is heard in every sentence.
+- **Fix**: the child-details dialog has a "בן או בת" field right after the name, in the same style as the grade picker. It marks what is set now, so the parent can see it and change it with one click; leaving it alone keeps what is stored.
+- **Note**: audio already generated stays in the old wording. The voice cache key includes gender, so every new line is correct, but a line generated earlier sounds as it was generated.
+
+### 2026-09-17 — he/parent-panel is off the database
+- The three direct `kids_profiles` calls — list, update and create — became `iakidsApi` calls. This is the first screen that exercises all three operations.
+
 ### 2026-09-17 — the two converted screens were broken, twice, for two different reasons
 - **Symptom**: on `/he/add-subject/` typing in the chat did nothing at all. No error, no message, nothing.
 - **Cause one, mine**: the pages create their client as `const sb = supabase.createClient(...)`, and **a `const` at the top level of a classic script never becomes a property of `window`**. The API module looked for `window.sb`, found nothing, and `activeKid()` returned null quietly. The chat's first line is `if (!text || !CURRENT_KID) return;`, so it simply returned. The same applied to the key, also a `const`.

@@ -15801,6 +15801,44 @@ async function maybeAskKidGender(kid){
     </div>
 
 
+    <!--
+      בן או בת — 17/09/2026
+      עד היום המגדר נקבע פעם אחת בחלונית שנפתחת בכניסה, ואם נבחר
+      בטעות לא הייתה שום דרך לתקן אותו ממסך העבודה. המורה פונה
+      לילד לפי הערך הזה, בכתב ובקול, אז טעות כאן נשמעת בכל משפט.
+    -->
+
+    <div class="kid-profile-section">
+
+      <div class="kid-profile-label">
+        בן או בת?
+      </div>
+
+      <div
+        class="grade-selector"
+        id="modalGenderSelector"
+      >
+
+        <button type="button" data-gender="male">
+          <strong>בן</strong>
+          <small>המורה תפנה בלשון זכר</small>
+        </button>
+
+        <button type="button" data-gender="female">
+          <strong>בת</strong>
+          <small>המורה תפנה בלשון נקבה</small>
+        </button>
+
+      </div>
+
+      <input
+        type="hidden"
+        id="modalChildGender"
+      >
+
+    </div>
+
+
     <!-- כיתה -->
 
     <div class="kid-profile-section">
@@ -30138,6 +30176,45 @@ document.getElementById("openSettings").onclick = () => {
     CURRENT_KID.child_name || "";
 
 
+  /* בן או בת: מציגים את מה שמוגדר עכשיו, כדי שאפשר יהיה לתקן */
+
+  const currentGender =
+    String(CURRENT_KID.gender || "");
+
+  document.getElementById(
+    "modalChildGender"
+  ).value =
+    currentGender;
+
+  document
+    .querySelectorAll(
+      "#modalGenderSelector button"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.gender === currentGender
+      );
+
+      button.onclick = () => {
+
+        document.getElementById(
+          "modalChildGender"
+        ).value = button.dataset.gender;
+
+        document
+          .querySelectorAll("#modalGenderSelector button")
+          .forEach(other => other.classList.toggle(
+            "active",
+            other === button
+          ));
+
+      };
+
+    });
+
+
   /* כיתה */
 
   const currentGrade =
@@ -30351,6 +30428,15 @@ async function saveSettings(){
       .value;
 
 
+  /* ריק = לא נבחר כלום, ואז לא נוגעים במה שמוגדר */
+  const gender =
+    document
+      .getElementById(
+        "modalChildGender"
+      )
+      .value;
+
+
   const usage_goals =
     getSelected(
       "modalGoals"
@@ -30401,22 +30487,30 @@ async function saveSettings(){
       .from(
         "kids_profiles"
       )
-      .update({
+      .update(
 
-        child_name:
-          name,
+        /* מגדר ריק = לא נבחר, ואז לא דורסים את מה שכבר מוגדר */
+        Object.assign(
+          {
 
-        age:
-          grade,
+            child_name:
+              name,
 
-        avatar_key:
-          avatar,
+            age:
+              grade,
 
-        usage_goals,
+            avatar_key:
+              avatar,
 
-        learning_interests
+            usage_goals,
 
-      })
+            learning_interests
+
+          },
+          gender ? { gender } : {}
+        )
+
+      )
       .eq(
         "id",
         CURRENT_KID.id
@@ -30459,7 +30553,9 @@ async function saveSettings(){
 
       usage_goals,
 
-      learning_interests
+      learning_interests,
+
+      ...(gender ? { gender } : {})
 
     }
   );
