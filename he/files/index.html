@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script src="/assets/js/iakids-api.js?v=2"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>הקבצים שלי — iakids</title>
+<link rel="icon" href="/assets/favicon.ico">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#0f1530;
+    --card:rgba(255,255,255,.06);
+    --line:rgba(255,255,255,.10);
+    --text:#eef2ff;
+    --muted:#a8b4d8;
+    --accent:#4aa3ff;
+    --ok:#46d6a0;
+    --warm:#f2bd55;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 80% -10%, rgba(74,163,255,.16), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font:16px/1.55 "Heebo","Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+    min-height:100vh;
+  }
+  a{color:inherit}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 16px 64px}
+
+  .top{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:22px;flex-wrap:wrap;
+  }
+  .back{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--line);
+    color:var(--text);border-radius:12px;padding:9px 14px;
+    font:inherit;font-weight:600;cursor:pointer;text-decoration:none;
+  }
+  .back:hover{background:rgba(255,255,255,.1)}
+  h1{margin:0;font-size:24px;font-weight:800}
+  .sub{color:var(--muted);font-size:14px;margin-top:2px}
+
+  .totals{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 20px}
+  .chip{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:12px 16px;min-width:120px;
+  }
+  .chip strong{display:block;font-size:22px;line-height:1.2}
+  .chip span{color:var(--muted);font-size:13px}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .filters button{
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer;
+  }
+  .filters button.active{background:rgba(74,163,255,.18);border-color:rgba(74,163,255,.5);color:var(--text)}
+
+  .group-title{
+    margin:22px 0 10px;font-size:14px;color:var(--muted);
+    display:flex;align-items:center;gap:8px;
+  }
+  .group-title::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .list{display:grid;gap:10px}
+  .item{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:14px;align-items:center;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:14px 16px;
+  }
+  .item h3{margin:0 0 3px;font-size:17px;font-weight:700}
+  .meta{color:var(--muted);font-size:13px}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.10);margin-top:9px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#4aa3ff,#6ad0ff)}
+  .item.done .bar i{background:linear-gradient(90deg,#46d6a0,#7ff0c6)}
+  .right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .state{font-size:13px;font-weight:700}
+  .state.done{color:var(--ok)}
+  .state.partial{color:var(--warm)}
+  .open{
+    background:var(--accent);border:0;color:#04122b;border-radius:12px;
+    padding:9px 16px;font:inherit;font-weight:800;cursor:pointer;white-space:nowrap;
+  }
+  .open:hover{filter:brightness(1.08)}
+
+  .empty,.loading{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:28px 20px;text-align:center;color:var(--muted);
+  }
+  .empty strong{display:block;color:var(--text);font-size:18px;margin-bottom:6px}
+
+  @media(max-width:560px){
+    .item{grid-template-columns:1fr;align-items:stretch}
+    .right{align-items:stretch;flex-direction:row;justify-content:space-between}
+    .open{width:auto}
+  }
+</style>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <a class="back" href="/he/workspace/">← חזרה</a>
+    <div>
+      <h1>הקבצים שלי</h1>
+      <div class="sub" id="sub">טוען…</div>
+    </div>
+  </div>
+
+  <div class="totals" id="totals" hidden>
+    <div class="chip"><strong id="tUp">0</strong><span>קבצים שהעלית</span></div>
+    <div class="chip"><strong id="tDone">0</strong><span>הסתיימו</span></div>
+  </div>
+
+  <div id="body"><div class="loading">רגע, מחפשים את הקבצים שלך…</div></div>
+
+</div>
+
+<script>
+/* =====================================================
+   הקבצים שלי — 17/09/2026
+
+   הכפתור האחרון מבין הארבעה שהצביעו על דפים שלא נבנו.
+   כל צילום של שיעורי בית כבר נשמר ב-homework_sessions,
+   ואף אחד מעולם לא יכול היה לראות את הרשימה.
+
+   הדף לא פונה למסד. הכול דרך /api/kid/files.
+===================================================== */
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_L3yZe3EAiTA5lEpDky1eXA_j6ERXAdc";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+iakidsApi.useClient(sb);
+const $ = id => document.getElementById(id);
+
+function apiBase(){
+  return String(location.hostname||"").endsWith("smarts-brains.online")
+    ? location.origin + "/tutor-api" : "https://iakids-ai-tutor-he.onrender.com";
+}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function when(v){ try{ return v ? new Date(v).toLocaleDateString("he-IL",{day:"numeric",month:"long"}) : ""; }catch(e){ return ""; } }
+
+async function load(){
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ location.href="/he/"; return; }
+
+    const kid = await iakidsApi.activeKid();
+    if(!kid){
+      $("sub").textContent="";
+      $("body").innerHTML='<div class="empty"><strong>עוד אין פרופיל ילד בחשבון</strong>אפשר להוסיף אחד בפאנל ההורים.</div>';
+      return;
+    }
+
+    $("sub").textContent = "כל שיעורי הבית ש" + esc(kid.child_name||"הילד") + " צילם";
+
+    const res = await fetch(apiBase()+"/api/kid/files?kid_id="+encodeURIComponent(kid.id),
+      { headers:{ Authorization:"Bearer "+session.access_token } });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const d = await res.json();
+
+    const files = d.files || [];
+    $("tUp").textContent = (d.totals&&d.totals.uploaded)||0;
+    $("tDone").textContent = (d.totals&&d.totals.finished)||0;
+    $("totals").hidden = false;
+
+    if(!files.length){
+      $("body").innerHTML = `<div class="empty">
+        <strong>עוד לא העלית קבצים</strong>
+        אפשר לצלם דף של שיעורי בית ממסך העבודה, והוא יופיע כאן.
+        <div style="margin-top:14px"><button class="open" onclick="location.href='/he/workspace/'">למסך העבודה</button></div>
+      </div>`;
+      return;
+    }
+
+    let html = '<div class="list">';
+    files.forEach(f=>{
+      const total = Number(f.total_questions)||0;
+      const done = Number(f.completed_questions)||0;
+      const pct = total ? Math.round(done/total*100) : 0;
+      const finished = String(f.status||"").toLowerCase()==="completed" || (total && done>=total);
+      const date = when(f.created_at);
+      html += `
+        <div class="item ${finished?"done":""}">
+          <div>
+            <h3>${esc(f.source_file_name || "דף שיעורי בית")}</h3>
+            <div class="meta">${esc(date)}${total?` • ${done} מתוך ${total} שאלות`:""}</div>
+            ${total?`<div class="bar"><i style="width:${pct}%"></i></div>`:""}
+          </div>
+          <div class="right">
+            <div class="state ${finished?"done":"partial"}">${finished?"הושלם":"בתהליך"}</div>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+    $("body").innerHTML = html;
+
+  }catch(e){
+    console.error("MY FILES FAILED:", e);
+    $("sub").textContent="";
+    $("body").innerHTML='<div class="empty"><strong>לא הצלחנו לטעון את הקבצים</strong>אפשר לנסות שוב בעוד רגע.</div>';
+  }
+}
+load();
+</script>
+</body>
+</html>

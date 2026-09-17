@@ -4,6 +4,17 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — "הישגים" and "הקבצים שלי" exist now, and the sidebar is whole
+- Two more buttons that had pointed at nothing since the workspace was written.
+- **`GET /api/kid/achievements`** counts what the child actually did: lessons opened and finished, the best and average understanding score, the subjects, games played and finished, and the number of distinct days they studied. **A number that cannot be computed is left out rather than shown as a zero**, because a zero reads as failure to a child. Six badges, earned or locked, drawn from those same numbers.
+- **`GET /api/kid/files`** lists the homework pages the child photographed, with how many questions were answered. An account with nothing uploaded gets a sentence and a button to the workspace, not an empty screen.
+- Both pages share the design of `/he/my-lessons/` and neither touches the database.
+- **Verified against real data**: nine lessons opened and one finished, best understanding 76%, two subjects, ten games with one finished, three active days.
+
+### 2026-09-17 — two more queries asking for columns that do not exist
+- The same class as the `parent_lesson` bug. Every distinct database query in the browser, 65 of them, was run against the real schema. Two fail, both on `/games/progress/`: `kids_profiles` is asked for `avatar_url` and `grade` (the columns are `avatar_key` and `age`), and `kid_game_sessions` embeds `games_catalog` with column names it does not have. Both sit behind `if(!error)`, so the page silently shows nothing. **Found, not yet fixed.**
+- The pattern that hides them is everywhere: eight sites assign query results only `if(!r.error)`, and 33 empty `catch` blocks in the workspace alone. Most disappear with the move to the backend; the rest need to say something when they fail.
+
 ### 2026-09-17 — "השיעורים שלי" exists now
 - **The page behind the sidebar button was never built.** It has been there since the workspace was written, and every child who pressed it got a server error. The data was always there: the progress row joined to the lesson and its subject.
 - **`GET /api/kid/lessons`** returns every lesson the child has opened, newest activity first, with the subject, the unit, the progress, the understanding score and the dates. The kid is resolved against the caller's account first, so one parent cannot read another's child. It is registered before `/api/kid/{kid_id}` so "lessons" is not swallowed as an id.

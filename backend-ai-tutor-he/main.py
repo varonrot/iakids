@@ -22208,6 +22208,130 @@ def my_lessons(kid_id: str, authorization: str = Header(None)):
     }
 
 
+@app.get("/api/kid/achievements")
+def my_achievements(kid_id: str, authorization: str = Header(None)):
+    """What the child has to be proud of, counted from what they actually did.
+
+    2026-09-17: another sidebar button with no page behind it. Everything here is
+    already recorded — lessons finished, understanding scores, games played — it had
+    simply never been added up and shown to the child.
+
+    Nothing is invented: a number that cannot be computed is left out rather than
+    filled with a zero that looks like failure.
+    """
+    user = authenticate_user(authorization)
+    child = get_child_by_id(user_id=user.id, kid_id=kid_id)
+
+    lessons = (
+        sb.table("kid_unit_lesson_progress")
+        .select("unit_lesson_id, learning_lesson_id, status, mastery_score, "
+                "best_mastery_score, completed_at, last_activity_at")
+        .eq("kid_id", kid_id)
+        .execute()
+    ).data or []
+
+    completed = [l for l in lessons if str(l.get("status") or "").lower() == "completed"]
+    scores = [int(l.get("best_mastery_score") or l.get("mastery_score") or 0)
+              for l in lessons if (l.get("best_mastery_score") or l.get("mastery_score"))]
+
+    subjects = set()
+    if lessons:
+        parent_ids = sorted({int(l["learning_lesson_id"]) for l in lessons
+                             if l.get("learning_lesson_id")})
+        if parent_ids:
+            for row in (sb.table("learning_lessons").select("id, subject")
+                        .in_("id", parent_ids).execute().data or []):
+                if row.get("subject"):
+                    subjects.add(row["subject"])
+
+    games = (
+        sb.table("kid_game_sessions")
+        .select("game_id, score, accuracy_percent, best_correct_streak, completed, created_at")
+        .eq("kid_id", kid_id)
+        .order("created_at", desc=True)
+        .limit(500)
+        .execute()
+    ).data or []
+
+    game_names = {}
+    game_ids = sorted({g["game_id"] for g in games if g.get("game_id")})
+    if game_ids:
+        for row in (sb.table("games_catalog").select("id, game_name, game_code")
+                    .in_("id", game_ids).execute().data or []):
+            game_names[row["id"]] = row.get("game_name") or row.get("game_code")
+
+    best_streak = max([int(g.get("best_correct_streak") or 0) for g in games], default=0)
+    accuracies = [float(g["accuracy_percent"]) for g in games if g.get("accuracy_percent") is not None]
+
+    # the days the child actually studied, so a streak means something
+    days = sorted({str(x)[:10] for x in
+                   [l.get("last_activity_at") for l in lessons] + [g.get("created_at") for g in games]
+                   if x})
+
+    recent_games = []
+    for g in games[:8]:
+        recent_games.append({
+            "game": game_names.get(g.get("game_id")) or "משחק",
+            "score": g.get("score"),
+            "accuracy_percent": g.get("accuracy_percent"),
+            "completed": g.get("completed"),
+            "created_at": g.get("created_at"),
+        })
+
+    return {
+        "child_name": lq.display_first_name(child.get("child_name")),
+        "coins": child.get("coins"),
+        "diamonds": child.get("diamonds"),
+        "lessons": {
+            "opened": len(lessons),
+            "completed": len(completed),
+            "best_score": max(scores) if scores else None,
+            "average_score": round(sum(scores) / len(scores)) if scores else None,
+        },
+        "subjects": sorted(subjects),
+        "games": {
+            "played": len(games),
+            "finished": sum(1 for g in games if g.get("completed")),
+            "best_streak": best_streak or None,
+            "average_accuracy": round(sum(accuracies) / len(accuracies)) if accuracies else None,
+            "recent": recent_games,
+        },
+        "active_days": len(days),
+        "last_active": days[-1] if days else None,
+    }
+
+
+@app.get("/api/kid/files")
+def my_files(kid_id: str, authorization: str = Header(None)):
+    """The homework the child has photographed, newest first.
+
+    The fourth sidebar button with nothing behind it. `homework_sessions` has held these
+    rows all along. The upload itself is not re-served here: the row carries the file
+    name and what the model understood, which is what the page shows.
+    """
+    user = authenticate_user(authorization)
+    get_child_by_id(user_id=user.id, kid_id=kid_id)
+
+    sessions = (
+        sb.table("homework_sessions")
+        .select("id, source_file_name, total_questions, completed_questions, "
+                "status, created_at, completed_at, last_activity_at")
+        .eq("kid_id", kid_id)
+        .order("created_at", desc=True)
+        .limit(200)
+        .execute()
+    ).data or []
+
+    return {
+        "files": sessions,
+        "totals": {
+            "uploaded": len(sessions),
+            "finished": sum(1 for x in sessions
+                            if str(x.get("status") or "").lower() in ("completed", "done")),
+        }
+    }
+
+
 @app.get("/api/kid/{kid_id}")
 def get_my_kid(kid_id: str, authorization: str = Header(None)):
     """One kid, only if it belongs to the caller."""
