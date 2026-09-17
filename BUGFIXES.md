@@ -4,6 +4,10 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — he/add-subject is off the database
+- Two direct `kids_profiles` queries became one `iakidsApi.activeKid()` call. The page no longer knows the table exists.
+- Second screen of stage 1. The gate's ceiling on direct database calls drops with each screen that ships, so the number can only go down.
+
 ### 2026-09-17 — stage 1 of moving the UI off the database: the kid profile API
 - **Four routes** cover everything the browser did with `kids_profiles`: list my kids, read one, update one partially, create one. About thirty direct call sites across the site collapse into these five operations.
 - **Authorisation is server-side only.** A kid id in the request proves nothing: every route resolves the owner from the token and filters on `user_id`. Verified against production with two real test accounts — a parent reading or updating another parent's child gets 404 and the child is unchanged, no token gets 401, an invalid gender or an empty update gets 400, and the response carries only the fields a screen draws, never `user_id`.

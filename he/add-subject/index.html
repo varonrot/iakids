@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="/assets/js/iakids-log-mode.js"></script>
+<script src="/assets/js/iakids-api.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>הוספת מקצוע חדש | IAKids</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1911,7 +1912,8 @@ let CURRENT_VERSION = null;
 let CONVERSATION_HISTORY = [];
 const EDIT_SUBJECT_ID = new URLSearchParams(location.search).get("edit");
 function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
-async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){location.replace('/he/onboarding/cuenta/');return}const user=s.session.user;document.getElementById('userName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'הורה';document.getElementById('userAvatar').src=user.user_metadata?.avatar_url||user.user_metadata?.picture||'/assets/default-parent.png';let kidId=localStorage.getItem('active_kid_id');if(!kidId){const {data:kids}=await sb.from('kids_profiles').select('id').eq('user_id',user.id).order('created_at',{ascending:true});if(!kids?.length)return;kidId=kids[0].id;localStorage.setItem('active_kid_id',kidId)}const {data:kid,error}=await sb.from('kids_profiles').select('id,child_name,age,avatar_key,usage_goals,learning_interests').eq('id',kidId).single();if(error||!kid){console.error(error);return}CURRENT_KID=kid;window.ACTIVE_KID_ID=kid.id;document.getElementById('subtitle').textContent=`בואו נבנה יחד מקצוע חדש שמתאים בדיוק ל${kid.child_name}`;document.getElementById('welcome').innerHTML=`שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור <strong>${esc(kid.child_name)}</strong>.<br><br>מה הייתם רוצים ש${esc(kid.child_name)} ילמד/תלמד?`}
+async function init(){const {data:s}=await sb.auth.getSession();if(!s?.session){location.replace('/he/onboarding/cuenta/');return}const user=s.session.user;document.getElementById('userName').textContent=user.user_metadata?.full_name||user.user_metadata?.name||user.email||'הורה';document.getElementById('userAvatar').src=user.user_metadata?.avatar_url||user.user_metadata?.picture||'/assets/default-parent.png';/* 17/09/2026 — שתי שאילתות ישירות ל-kids_profiles הוחלפו בקריאה אחת לבקאנד */
+  const kid=await iakidsApi.activeKid();if(!kid){console.warn('no kid profile');return}CURRENT_KID=kid;window.ACTIVE_KID_ID=kid.id;document.getElementById('subtitle').textContent=`בואו נבנה יחד מקצוע חדש שמתאים בדיוק ל${kid.child_name}`;document.getElementById('welcome').innerHTML=`שלום 👋<br>אני כאן כדי לעזור לכם לבנות מקצוע חדש עבור <strong>${esc(kid.child_name)}</strong>.<br><br>מה הייתם רוצים ש${esc(kid.child_name)} ילמד/תלמד?`}
 
 
 
