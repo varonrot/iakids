@@ -38,7 +38,14 @@ revoke all on public.ai_calls from anon, authenticated;
 revoke all on public.ai_costs_daily from anon, authenticated;
 revoke all on public.ai_costs_per_kid from anon, authenticated;
 revoke all on public.ai_costs_per_lesson from anon, authenticated;
-revoke all on public.app_admins from anon, authenticated;
+-- app_admins is deliberately NOT revoked.
+-- 2026-09-17: revoking it broke reading support_tickets. A row level policy there asks
+-- "is this user in app_admins", and a policy runs with the caller's own rights, so the
+-- moment the caller cannot read app_admins the whole policy fails with
+-- "permission denied for table app_admins". The table is empty and holds only admin
+-- user ids. The better fix is a SECURITY DEFINER is_app_admin() helper and a rewritten
+-- policy, so the table can close without the policy noticing; until then it stays open.
+-- revoke all on public.app_admins from anon, authenticated;
 revoke all on public.exam_answer_keys from anon, authenticated;
 revoke all on public.exam_pages from anon, authenticated;
 revoke all on public.exam_questions from anon, authenticated;

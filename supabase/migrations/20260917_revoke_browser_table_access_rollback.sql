@@ -11,7 +11,7 @@ grant all on public.ai_calls to anon, authenticated;
 grant all on public.ai_costs_daily to anon, authenticated;
 grant all on public.ai_costs_per_kid to anon, authenticated;
 grant all on public.ai_costs_per_lesson to anon, authenticated;
-grant all on public.app_admins to anon, authenticated;
+-- app_admins was never revoked (see the migration); nothing to give back.
 grant all on public.exam_answer_keys to anon, authenticated;
 grant all on public.exam_pages to anon, authenticated;
 grant all on public.exam_questions to anon, authenticated;
