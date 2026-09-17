@@ -4,6 +4,12 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — cost reporting: a missing price and a view that counted almost nothing
+- **The missing price**: `gemini-3.1-flash-lite` was not in `MODEL_PRICING_USD`, and it is the model behind the image text checks and the nikud pass. Of the last thousand recorded calls, 134 had no price at all and landed in the reports as "unknown". Added at the published rate. Verified that all five pricing paths now resolve: text for both providers, images per image, and voice by audio seconds.
+- **The view**: `ai_costs_per_lesson.media_cost_usd` counted `purpose in ('tts','image','video','lesson')`, but the worker — which generates every image, every voice line and every intro video — tags its calls `media`. In the last five thousand calls that is 634 rows, the largest group, and none of them counted. `tts_live` and `intro` were missed too, while `lesson`, which is text, was counted as media. The per-lesson media figure has been wrong since the view was written, and wrong in the direction that matters: it under-reported the expensive half. Migration written, **not yet applied**, adding `text_cost_usd` alongside so the two halves add up to the total and any gap is visible.
+- **Closed on its own**: the OpenRouter voice rows that were stuck at `cost_source='pending'` are all resolved — zero pending rows remain, so the generation-id lookup is working.
+- **Cannot be fixed by a price table**: a few `gpt-5.6-sol` rows carry no token counts at all, because the response reported no usage. They stay unpriced and visible as "unknown", which is the honest outcome.
+
 ### 2026-09-17 — the parent's picture was a 404 on five pages
 - **Symptom**: `/assets/default-parent.png` was requested on every load of the workspace (Hebrew, Spanish, Portuguese and games) and the add-subject page, and the file did not exist. A parent whose account has no picture from Google got a broken image in the top bar, and the site log filled with 404s.
 - **Fix**: the file now exists — a deliberately generic illustrated figure, not a recognisable person, in the calm palette the app uses, 256 pixels and under 50 KB because it loads on every page. No code changed: the five references were already correct.

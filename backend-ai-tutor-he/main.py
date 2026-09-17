@@ -100,6 +100,14 @@ UNIVERSAL_LESSON_MODEL = "gpt-5.6-sol"
 # MODEL PRICING - USD PER 1M TOKENS
 # =====================================================
 
+# Token prices in USD per 1M tokens, for calls we have to price ourselves.
+# OpenRouter returns the exact cost with the response and never uses this table; it is
+# the direct providers that need it. The "openai/" prefix is stripped before the lookup,
+# so one entry covers both spellings of the same model.
+#
+# 2026-09-17: gemini-3.1-flash-lite was missing, and it is the model behind the image
+# text checks and the nikud pass — 134 of the last 1000 recorded calls had no price at
+# all and landed in the reports as "unknown".
 MODEL_PRICING_USD = {
 
     "gpt-4o-mini": {
@@ -110,6 +118,11 @@ MODEL_PRICING_USD = {
     "gpt-5.6-sol": {
         "input": 5.00,
         "output": 30.00
+    },
+
+    "gemini-3.1-flash-lite": {
+        "input": 0.10,
+        "output": 0.40
     }
 
 }
