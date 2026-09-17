@@ -4,6 +4,17 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### build 0.7.132 — a lesson now ends with a summary, not with a video and three numbers
+- **What it was**: the closing was the coach's one-sentence wrap-up of the **last question only**, then `lesson-closing.mp4` — one file, identical for every lesson and every child, twenty seconds — then a card with three numbers and a grid of eight equal lesson cards. Nothing ever told the child what they had learned. The progress rail even had a "סיכום" step with a checkered flag that rendered nothing.
+- **New**: `POST /api/tutor/unit-lesson/closing` returns a personal wrap-up built from the lesson's own explanations, the child's real answers and the per-part scores: a spoken summary of about thirty seconds, three short lines (למדנו / הצלחת / נחזק) shown on the card, and one sentence for the parent. Generated once per child per lesson and cached in the history table, so re-entering a finished lesson costs nothing and needs no migration.
+- **Verified on lesson 152 with ארבל's real answers**: "ארבל, היום למדנו איך לזהות שמות עצם שמציינים אנשים ובעלי חיים… הצלחת לזהות כמעט את כל השמות במשפטים… כדאי לחזק את זיהוי השמות במשפטים מורכבים יותר." Correct feminine forms throughout, grounded in what she actually wrote, no numbers and no question.
+- **The video** is cut to a four-second sting and plays while the summary is fetched.
+- **The lesson is finally marked as finished**: `status="completed"`, `completed_at`, `progress_percent=100`, `xp_earned` and `stars_earned` are written when the last part ends. Those are exactly the columns the child's and the parent's dashboards read, which is why every unit lesson had been showing zero.
+- **One next step** instead of a grid of equals: the next lesson was already computed in the code and never shown. It is now a single primary button, with the unit grid kept below it.
+- **The score on the card** came from scraping the on-screen gauge, which is refreshed by a call nobody awaits, so it could show the previous part's score. It now comes from the progress row the backend just wrote.
+- **The parent** sees the teacher's sentence instead of percentages, with the numbers moved to a small second line.
+- **Five gate rules** cover all of it (route, response model, cache, completion write, the fetch/render/sting in the screen, the single next button, the score source), each verified by breaking it on purpose.
+
 ### build 0.7.131 — "save" in the child-details dialog left it open (again)
 - **Symptom**: editing the child's details and pressing save kept the dialog on screen. The profile was in fact saved.
 - **Cause**: after the save, the function refreshes the screen. Four of those updates wrote to elements that do not exist on every screen (`heroGreeting`, `heroAvatar`, `rightbarAvatar`, `rightbarName`) with no check, so the first missing one threw and `closeSettings()` was never reached. The earlier fix in 0.7.122 had only wrapped the subject list.

@@ -19738,6 +19738,33 @@ await fadeLessonVisualFromBlack(
             maxWait
           );
 
+          /*
+            17/09/2026 — סרטון הסיום זהה בכל שיעור ובכל ילד ונמשך
+            כעשרים שניות. אחרי שלושה שיעורים הוא כבר רעש שמפריד
+            בין הילד לבין הסיכום האישי. חותכים אותו לסטינג קצר.
+          */
+          const stingMs =
+            Number(
+              window.LESSON_CLOSING_VIDEO_MAX_MS
+            );
+
+          if(
+            transition?.type === "closing"
+            &&
+            stingMs > 0
+          ){
+            setTimeout(
+              () => {
+                console.log(
+                  "CLOSING VIDEO CUT SHORT",
+                  { after_ms: stingMs }
+                );
+                done( true );
+              },
+              stingMs
+            );
+          }
+
         }
       );
 
@@ -19779,6 +19806,133 @@ await fadeLessonVisualFromBlack(
     return false;
   }
 }
+
+/* =====================================================
+   LESSON CLOSING — 17/09/2026
+
+   עד היום שיעור נגמר בסרטון קבוע ובשלושה מספרים, ואף אחד
+   לא אמר לילד מה הוא למד. עכשיו המורה מסכמת את השיעור
+   באופן אישי: מה למדנו, במה הצלחת, ומה כדאי לחזק.
+   הסיכום נוצר פעם אחת לכל ילד לכל שיעור ונשמר בשרת.
+===================================================== */
+
+window.LESSON_CLOSING_VIDEO_MAX_MS = 4000;
+
+async function fetchLessonClosing(
+  unitLessonId
+){
+
+  const id =
+    Number( unitLessonId || 0 );
+
+  if( !id ){
+    return null;
+  }
+
+  try{
+
+    const { data: { session } } =
+      await sb.auth.getSession();
+
+    if( !session ){
+      return null;
+    }
+
+    const res =
+      await fetch(
+        `${TUTOR_API_BASE}/api/tutor/unit-lesson/closing`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            kid_id: CURRENT_KID.id,
+            unit_lesson_id: id
+          })
+        }
+      );
+
+    if( !res.ok ){
+      console.warn(
+        "LESSON CLOSING FAILED:",
+        res.status
+      );
+      return null;
+    }
+
+    const closing =
+      await res.json();
+
+    console.log(
+      "LESSON CLOSING READY:",
+      {
+        cached: closing?.cached,
+        chars: String( closing?.spoken || "" ).length
+      }
+    );
+
+    return closing;
+
+  }
+  catch( error ){
+
+    /* סיכום הוא בונוס. תקלה בו לא עוצרת את סוף השיעור. */
+    console.warn(
+      "LESSON CLOSING ERROR:",
+      error
+    );
+
+    return null;
+  }
+}
+
+
+function renderLessonClosingCard(
+  closing
+){
+
+  const stage =
+    document.querySelector(
+      ".lesson-visual-stage"
+    );
+
+  if( !stage || !closing ){
+    return false;
+  }
+
+  const line = ( icon, label, text ) =>
+    text
+      ? `<div class="lesson-closing-line">
+           <span class="lesson-closing-icon">${icon}</span>
+           <span class="lesson-closing-text">
+             <strong>${label}</strong>
+             ${text}
+           </span>
+         </div>`
+      : "";
+
+  stage.innerHTML = `
+    <div class="lesson-closing-card" dir="rtl">
+      <div class="lesson-closing-head">
+        <img src="/assets/lesson/lesson-teacher.webp" alt="">
+        <div>
+          <span class="lesson-closing-kicker">סיכום השיעור</span>
+          <h2>${ String( closing.learned || "סיימנו את השיעור" ) }</h2>
+        </div>
+      </div>
+      <div class="lesson-closing-lines">
+        ${ line( "📚", "למדנו", closing.learned ) }
+        ${ line( "⭐", "הצלחת", closing.did_well ) }
+        ${ line( "🎯", "נחזק", closing.to_strengthen ) }
+      </div>
+    </div>
+  `;
+
+  return true;
+}
+
 
 /* =====================================================
    REFRESH TRANSITION VIDEO
@@ -26207,10 +26361,48 @@ if(
   let videoPlayed = false;
 
   if(isLastPart){
+
+    /* הסיכום נטען במקביל לסטינג, כדי שלא יהיה זמן מת */
+    const closingPromise =
+      fetchLessonClosing(
+        window.SELECTED_UNIT_LESSON?.unit_lesson_id
+        || window.SELECTED_UNIT_LESSON?.id
+        || data.unit_lesson_id
+      );
+
     videoPlayed =
       await playLessonTransitionVideo(
         transition || {}
       );
+
+    const closing =
+      await closingPromise;
+
+    if( closing && closing.spoken ){
+
+      renderLessonClosingCard( closing );
+
+      try{
+        await window.lessonRenderer.run({
+          sequence: [
+            {
+              type: "speak",
+              text: closing.spoken,
+              style: "normal",
+              speed: 45
+            }
+          ],
+          wait_for_answer: false
+        });
+      }
+      catch( speakError ){
+        console.warn(
+          "LESSON CLOSING SPEAK FAILED:",
+          speakError
+        );
+      }
+
+    }
 
     await showLessonCompletionScreen();
   }
@@ -53677,7 +53869,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=0798"></script>
+<script src="/he/workspace/lesson-completion.js?v=07131"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -53851,8 +54043,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.131</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.131";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.132</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.132";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}

@@ -56,6 +56,11 @@ REQUIRED = {
         "sections": ["THE QUESTION IS IMMUTABLE", "lesson", "question", "מה אסור בתוך lesson"],
     },
     "iakids_lesson_transition_prompt.txt": {"placeholders": [], "sections": []},
+    "iakids_lesson_closing_prompt.txt": {
+        "placeholders": [],
+        "sections": ["מה חייב להיות בסיכום", "spoken:", "learned:", "did_well:",
+                     "to_strengthen:", "parent_note:", "אסור לשאול שאלה"],
+    },
     "learning_coach_system_prompt.txt": {
         "placeholders": [],
         "sections": ["RUNTIME_DATA.child.gender", "אין להסיק את המגדר לפי שם הילד",
@@ -180,6 +185,22 @@ def prompt_usage_checks(main_src: str) -> list:
 
 
 WORKSPACE = ROOT / "he" / "workspace" / "index.html"
+COMPLETION = ROOT / "he" / "workspace" / "lesson-completion-core.js"
+
+
+def completion_screen_checks() -> list:
+    """The end-of-lesson card: one clear next step, and a score that is not scraped."""
+    if not COMPLETION.exists():
+        return ["he/workspace/lesson-completion-core.js is missing"]
+    src = COMPLETION.read_text(encoding="utf-8", errors="replace")
+    bad = []
+    if "lesson-completion-primary-next" not in src:
+        bad.append("the completion screen has no single next-lesson button; the child is "
+                   "back to picking from a grid of equal cards")
+    if "LESSON_SIDEBAR_PROGRESS_ROWS" not in src or "mastery_score" not in src:
+        bad.append("the completion score is read from the screen again instead of from the "
+                   "progress row, so it can show the previous part's score")
+    return bad
 
 
 def workspace_checks() -> list:
@@ -257,6 +278,14 @@ def workspace_checks() -> list:
                 bad.append("saveSettings writes to an element that does not exist on every "
                            "screen without checking it first")
 
+    # the closing must reach the child: fetched, rendered and spoken
+    if "fetchLessonClosing" not in src or "renderLessonClosingCard" not in src:
+        bad.append("the lesson closing is no longer fetched or rendered - the child would "
+                   "get a video and three numbers with no summary")
+    if "LESSON_CLOSING_VIDEO_MAX_MS" not in src:
+        bad.append("the closing video is no longer cut short - a 20 s identical film would "
+                   "again sit between the child and the summary")
+
     # the build stamp is read by the user; its two places must agree
     stamp = re.search(r"IAKIDS • build (\d+\.\d+\.\d+)", src)
     var = re.search(r'IAKIDS_BUILD_VERSION = "(\d+\.\d+\.\d+)"', src)
@@ -282,6 +311,30 @@ def media_failure_checks(main_src: str) -> list:
     if "def require_api_key" not in main_src:
         bad.append("require_api_key is gone - a corrupted key would again produce a "
                    "whole lesson with no images instead of refusing to start")
+    return bad
+
+
+def lesson_closing_checks(main_src: str) -> list:
+    """A lesson must end with something said to the child, and be marked as finished.
+
+    2026-09-17: a lesson ended with a 20 s video identical for every lesson and child,
+    then a card with three numbers. Nothing ever told the child what they had learned,
+    and kid_lesson_progress stayed "in_progress" with no completed_at, xp_earned or
+    stars_earned - the very columns the child's and the parent's dashboards read, which
+    is why those tiles showed zero for every unit lesson.
+    """
+    bad = []
+    if "/api/tutor/unit-lesson/closing" not in main_src:
+        bad.append("the lesson closing route is gone - a lesson would end with a generic "
+                   "video and no summary of what the child learned")
+    if "class LessonClosingResponse" not in main_src:
+        bad.append("LessonClosingResponse is gone - the closing has no shape")
+    if "find_cached_lesson_closing" not in main_src:
+        bad.append("the closing is no longer cached - re-entering a finished lesson would "
+                   "pay for a new model call every time")
+    if '"completed_at": now_iso' not in main_src or '"xp_earned": lesson_xp_reward' not in main_src:
+        bad.append("a finished unit lesson no longer writes completed_at / xp_earned / "
+                   "stars_earned, so the child's and the parent's dashboards go back to zero")
     return bad
 
 
@@ -629,7 +682,8 @@ def main():
         # live in code (the lesson screen, the coach handover, the media failure signal)
         # plus, for main.py, the render smoke that doubles as an import smoke — a route
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
-        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks())
+        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
+              + lesson_closing_checks(main_src) + completion_screen_checks())
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
         rf = [] if (a.fast or not main_changed) else render_smoke()
         if main_changed:
@@ -649,7 +703,8 @@ def main():
         all_fails += fails
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src)
-          + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks())
+          + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
+          + lesson_closing_checks(main_src) + completion_screen_checks())
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:

@@ -984,6 +984,22 @@ function renderActivity(progress,lessonMap,history){
       text=`התקדם ל־${value}% ונעזר ב־${hints} רמזים.`;
     }
 
+    /*
+      17/09/2026 — עד היום ההורה ראה רק מספרים. המורה כותבת בסוף כל שיעור
+      משפט אחד להורה על מה נלמד ומה מצב ההבנה, והוא נשמר בהיסטוריה.
+      אם הוא קיים, הוא מה שההורה קורא, והמספרים יורדים לשורה שנייה.
+    */
+    const closingRow=(history||[]).find(item=>
+      Number(item?.unit_lesson_id||0)===Number(row.unit_lesson_id||0)
+      && (item?.evaluation||{}).kind==="lesson_closing"
+    );
+
+    const parentNote=String(closingRow?.evaluation?.parent_note||"").trim();
+
+    if(parentNote){
+      text=`${parentNote}`;
+    }
+
     const item=document.createElement("div");
     item.className="activity-item";
     item.innerHTML=`
@@ -991,6 +1007,7 @@ function renderActivity(progress,lessonMap,history){
       <div>
         <div class="activity-title">${lesson?.subject||"לימוד"} • ${lesson?.lesson_name||"שיעור"}</div>
         <div class="activity-text">${text}</div>
+        ${parentNote?`<div class="activity-text" style="opacity:.62;font-size:12px;margin-top:2px;">התקדמות ${value}% • רמת שליטה ${mastery}%</div>`:""}
       </div>
     `;
     els.activityList.appendChild(item);

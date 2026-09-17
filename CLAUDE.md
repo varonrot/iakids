@@ -64,6 +64,14 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - **Commit**: the git pre-commit hook runs `tools/prompt_gate.py --staged` whenever a prompt file or `main.py` is staged. A failing gate blocks the commit. Install once per clone: `bash tools/install_hooks.sh`.
 - **Deploy**: the only way to restart the tutor backend is `bash tools/deploy_tutor.sh` (gate → restart web+worker → health check: active, "startup complete", HTTP 200). A Claude Code PreToolUse hook on Bash also blocks any bare `systemctl restart/start iakids-tutor-*` unless the gate passes. Never restart prod while the gate fails (2026-09-15: a failed import smoke was overridden and prod was down 4 minutes).
 
+## Lesson closing (what happens when a lesson ends)
+
+- `POST /api/tutor/unit-lesson/closing` returns the teacher's personal wrap-up: `spoken` (read aloud, ~30 s), `learned` / `did_well` / `to_strengthen` (the three lines on the card) and `parent_note` (one sentence for the parent panel). Prompt: `prompts/iakids_lesson_closing_prompt.txt`. It is built from the lesson's own explanations, the child's real answers and the per-part scores — never from the score alone.
+- **Generated once per child per lesson.** The result is stored as a `kid_lesson_history` row whose `evaluation.kind = "lesson_closing"`; `find_cached_lesson_closing()` serves it after that, so re-entering a finished lesson costs nothing. The parent panel reads the same row.
+- The closing video is cut to a short sting (`window.LESSON_CLOSING_VIDEO_MAX_MS`, 4 s): it is the same file for every lesson and every child, so it must not stand between the child and the summary.
+- When the last part finishes, `kid_lesson_progress` is written `status="completed"`, `completed_at`, `progress_percent=100`, `xp_earned`, `stars_earned` — the columns the child's and the parent's dashboards already read. Never leave it `in_progress`.
+- The completion card shows **one** primary next-lesson button plus the unit grid, and its score comes from the progress row, not from the on-screen gauge.
+
 ## Rule: every reported bug becomes a gate rule
 
 - **When the user reports a bug in the chat, in a prompt, or in the lesson mechanism, the fix is not done until a rule in `tools/prompt_gate.py` would catch it again.** Same commit as the fix. This is not optional and does not wait to be asked.

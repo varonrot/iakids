@@ -1,4 +1,33 @@
 function getLessonCompletionScore(){
+  /*
+    17/09/2026 — הציון נשאב מתוך המד שעל המסך, והמד מתעדכן בקריאה
+    אסינכרונית שלא ממתינים לה. לכן הכרטיס יכול היה להציג את הציון
+    של החלק הקודם. מקור האמת הוא שורת ההתקדמות שהשרת בדיוק כתב.
+  */
+  const rows =
+    Array.isArray(window.LESSON_SIDEBAR_PROGRESS_ROWS)
+      ? window.LESSON_SIDEBAR_PROGRESS_ROWS
+      : [];
+
+  const currentId = Number(
+    window.SELECTED_UNIT_LESSON?.unit_lesson_id
+    || window.SELECTED_UNIT_LESSON?.id
+    || 0
+  );
+
+  const row = rows.find(
+    item => Number(item?.unit_lesson_id || 0) === currentId
+  );
+
+  const fromRow = Number(
+    row?.mastery_score ?? row?.best_mastery_score
+  );
+
+  if(Number.isFinite(fromRow)){
+    return Math.max(0, Math.min(100, Math.round(fromRow)));
+  }
+
+  /* מסך ישן או שורה שעדיין לא נכתבה: נופלים חזרה למד שעל המסך */
   const raw = String(
     document.getElementById("lessonOverallScore")?.textContent || "0"
   );
@@ -34,6 +63,22 @@ function ensureAiTeacherWaitingPanelStyles(){
     .lesson-ai-waiting-wave .wave-line:nth-child(3){animation-duration:8.4s;opacity:.54;}
     .lesson-ai-waiting-wave.wave-b{top:51%;opacity:.62;transform:scaleX(1.08);}
     .lesson-ai-waiting-wave.wave-b .wave-line{animation-duration:9s;animation-direction:alternate-reverse;opacity:.45;}
+    .lesson-completion-primary-next{display:flex;flex-direction:column;gap:2px;width:100%;max-width:520px;margin:6px auto 14px;padding:14px 18px;border:0;border-radius:16px;background:linear-gradient(135deg,#3f7cff,#6aa2ff);color:#fff;cursor:pointer;text-align:right;box-shadow:0 10px 26px rgba(63,124,255,.35);transition:transform .15s ease,box-shadow .15s ease;}
+    .lesson-completion-primary-next:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(63,124,255,.45);}
+    .lesson-completion-primary-kicker{font-size:12px;opacity:.85;}
+    .lesson-completion-primary-name{font-size:18px;font-weight:700;line-height:1.3;}
+    .lesson-completion-unit-done{max-width:520px;margin:6px auto 14px;padding:12px 16px;border-radius:14px;background:rgba(255,255,255,.06);color:#dbe4ff;font-size:14px;text-align:center;}
+    .lesson-closing-card{max-width:760px;margin:0 auto;padding:22px;display:flex;flex-direction:column;gap:16px;}
+    .lesson-closing-head{display:flex;align-items:center;gap:14px;}
+    .lesson-closing-head img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:0 0 auto;}
+    .lesson-closing-kicker{font-size:12px;letter-spacing:.04em;color:#8fb0ff;}
+    .lesson-closing-head h2{margin:2px 0 0;font-size:20px;line-height:1.35;color:#f2f6ff;}
+    .lesson-closing-lines{display:flex;flex-direction:column;gap:10px;}
+    .lesson-closing-line{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.06);}
+    .lesson-closing-icon{font-size:18px;line-height:1.4;flex:0 0 auto;}
+    .lesson-closing-text{font-size:15px;line-height:1.5;color:#e6ecff;}
+    .lesson-closing-text strong{display:block;font-size:12px;color:#8fb0ff;margin-bottom:2px;}
+    @media(max-width:520px){.lesson-closing-card{padding:16px;}.lesson-closing-head img{width:48px;height:48px;}.lesson-closing-head h2{font-size:17px;}}
     .lesson-completion-card.partial{border-color:rgba(242,189,85,.55)!important;box-shadow:inset 0 0 0 1px rgba(242,189,85,.10)!important;}
     .lesson-completion-card.partial .lesson-completion-card-status{color:#f2bd55!important;}
     .lesson-ai-waiting-status{position:relative;z-index:5;display:flex;align-items:center;gap:9px;margin-top:4px;padding:10px 18px;border-radius:999px;border:1px solid rgba(74,157,255,.28);background:rgba(7,27,58,.72);color:#cfe5ff;font-size:13px;font-weight:750;}
@@ -417,6 +462,21 @@ async function showLessonCompletionScreen(){
 
         <div class="lesson-completion-divider"></div>
 
+        ${
+          nextLesson
+            ? `<button
+                 type="button"
+                 class="lesson-completion-primary-next lesson-completion-next-btn"
+                 data-next-order="${Number(nextLesson.lesson_order || 0)}"
+               >
+                 <span class="lesson-completion-primary-kicker">השיעור הבא</span>
+                 <span class="lesson-completion-primary-name">${escapeLessonSidebarHtml(String(nextLesson.lesson_name || ""))}</span>
+               </button>`
+            : `<div class="lesson-completion-unit-done">
+                 סיימת את כל השיעורים ביחידה “${escapeLessonSidebarHtml(unitName)}”.
+               </div>`
+        }
+
         <div class="lesson-completion-unit-title">
           <strong>
             המשך היחידה: ${escapeLessonSidebarHtml(unitName)}
@@ -426,7 +486,7 @@ async function showLessonCompletionScreen(){
             ${
               totalLessons > 6
                 ? `גללו כדי לראות את כל ${totalLessons} השיעורים`
-                : "בחרו את השיעור הבא"
+                : "אפשר גם לבחור שיעור אחר"
             }
           </small>
         </div>
