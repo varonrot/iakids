@@ -1144,13 +1144,10 @@ byId("saveEditBtn").onclick=async()=>{
     alert("יש למלא שם וכיתה");
     return;
   }
-  if(!gender){
-    alert("יש לבחור בן או בת, כדי שהמורה תפנה נכון");
-    return;
-  }
+  /* בעריכה לא חוסמים: אם לא נבחר מגדר, שאר הפרטים נשמרים והמגדר נשאר כפי שהיה (2026-09-17) */
   const {error}=await sb
     .from("kids_profiles")
-    .update({child_name,age,avatar_key,gender})
+    .update(Object.assign({child_name,age,avatar_key}, gender ? {gender} : {}))
     .eq("id",EDITING_KID.id)
     .eq("user_id",CURRENT_USER.id);
 

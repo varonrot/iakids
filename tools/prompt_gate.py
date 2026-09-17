@@ -41,11 +41,6 @@ REQUIRED = {
         "placeholders": [],
         "sections": ["RUNTIME_CONTEXT", "ADDRESSING THE CHILD", "Always communicate with the child in Hebrew"],
     },
-    "iakids_universal_unit_lesson_prompt.txt": {
-        "placeholders": ["{grade}", "{subject}", "{parent_lesson}", "{lesson_name}", "{learning_objective}",
-                         "{lesson_complexity}", "{max_duration_seconds}"],
-        "sections": ["השיעור משותף לכל הילדים"],
-    },
     "iakids_lesson_expansion_prompt.txt": {
         "placeholders": ["{grade}", "{subject}", "{parent_lesson}", "{lesson_name}", "{learning_objective}",
                          "{lesson_complexity}", "{max_duration_seconds}", "{part_number}", "{previous_parts}"],
@@ -53,7 +48,7 @@ REQUIRED = {
     },
     "iakids_lesson_initial_prompt.txt": {
         "placeholders": ["{grade}", "{subject}", "{lesson_name}", "{learning_objective}"],
-        "sections": [],
+        "sections": ["השיעור משותף לכל הילדים", "עברית תקנית"],
     },
     "lesson_director_prompt.txt": {
         "placeholders": ["{lesson_text}"],
@@ -151,6 +146,37 @@ def coverage_checks(main_src: str) -> list:
     return fails
 
 
+_CHILD_PROMPT_MARKERS = ("את מורה פרטית", "מורה פרטית מצוינת", "עזרי לילד", "הסבירי לילד", "למדי אותו")
+
+
+def child_prompt_gender_checks(main_src: str) -> list:
+    """Every route in main.py that builds a Hebrew system prompt for the child must carry the
+    gender + Hebrew-correctness block. Added after 2026-09-17, when two routes that arrived
+    from another branch (openai_clean_chat, homework_coach_v2) spoke to a girl in masculine."""
+    fails = []
+    blocks = re.split(r"\n(?=(?:async )?def )", main_src)
+    for b in blocks:
+        head = b.split("(", 1)[0].replace("async def", "").replace("def", "").strip()
+        if not any(m in b for m in _CHILD_PROMPT_MARKERS):
+            continue
+        if "hebrew_child_prompt_block(" in b or "hebrew_gender_rule(" in b or "gender_rule" in b:
+            continue
+        fails.append(f"main.py: {head}() builds a Hebrew prompt for the child without a gender rule — "
+                     f"start the prompt with hebrew_child_prompt_block(child)")
+    return fails
+
+
+def prompt_usage_checks(main_src: str) -> list:
+    """A prompt file that is loaded but whose TEMPLATE is never used is dead: a rule added to it
+    never reaches a child (2026-09-17: the shared-lesson neutrality rule sat in an unused file)."""
+    fails = []
+    for m in re.finditer(r"([A-Z_]+_PROMPT_TEMPLATE)\s*=", main_src):
+        name = m.group(1)
+        if len(re.findall(r"\b" + name + r"\b", main_src)) < 2:
+            fails.append(f"main.py: {name} is loaded but never used — wire it in or delete its prompt file")
+    return fails
+
+
 def code_rule_checks(main_src: str) -> list:
     """Rules that live in main.py rather than in a prompt file (inline prompts, prefixes)."""
     fails = []
@@ -166,6 +192,11 @@ def code_rule_checks(main_src: str) -> list:
         ("lq.normalize_for_tts(", 2, "TTS normalisation is no longer applied (worker + live route)"),
         ("build_curriculum_builder_prompt(", 2, "curriculum builder prompt is not rendered through its builder"),
         ("lq.sanitize_generation_prompt(final_generation_prompt)", 1, "visual generation prompts are no longer sanitized (labels/captions requests)"),
+        ("lq.second_person_nikud(", 1, "gender-aware nikud is not applied: the voice will read בשבילך/הצלחת in masculine to a girl"),
+        ("hebrew_child_prompt_block(", 4, "the Hebrew gender + correctness block is missing from a child-facing prompt"),
+        ("tts_cache_key(text, _gender)", 1, "the TTS cache key ignores gender: a girl would get the boy's recording"),
+        ("vocalize_for_tts, text, _gender, _child_name", 1, "the live voice no longer gets the child's name: it will mispronounce it"),
+        ("def vocalize_name(", 1, "child-name pronunciation was removed"),
         ("do not render the lesson title", 1, "hero prompt lost its strict no-text block"),
     ]
     for needle, min_count, why in rules:
@@ -200,6 +231,12 @@ def pure_function_tests() -> list:
     expect(lq.display_first_name("Alison Damaris Alvarenga Guerra") == "Alison" and lq.display_first_name("נועה") == "נועה", "display_first_name")
     sg = lq.sanitize_generation_prompt("A clearly labeled diagram with captions and a title: food chain.")
     expect(lq.is_allowed_scientific_text("CO2") and lq.is_allowed_scientific_text("H2O → O2") and not lq.is_allowed_scientific_text("Growth Thinking") and not lq.is_allowed_scientific_text("Food, Decomposition") and lq.is_allowed_scientific_text("sin x + cos y = 1") and lq.is_allowed_scientific_text("√2 · π"), "is_allowed_scientific_text")
+    sp = lq.second_person_nikud
+    expect("\u05d1\u05b4\u05bc\u05e9\u05c1\u05b0\u05d1\u05b4\u05d9\u05dc\u05b5\u05da\u05b0" in sp("אני כאן בשבילך", "female"), "second_person_nikud feminine בשבילך")
+    expect("\u05d1\u05b4\u05bc\u05e9\u05c1\u05b0\u05d1\u05b4\u05d9\u05dc\u05b0\u05da\u05b8" in sp("אני כאן בשבילך", "male"), "second_person_nikud masculine בשבילך")
+    expect(sp("אני כאן בשבילך", "unknown") == "אני כאן בשבילך", "second_person_nikud unknown gender untouched")
+    expect(sp("כל הכבוד, הצלחת!", "female") != sp("כל הכבוד, הצלחת!", "male"), "past tense must differ by gender")
+    expect(lq.has_second_person("ראית את התשובה שלך") and not lq.has_second_person("הצמח גדל במדבר"), "has_second_person")
     ents = [{"order": i + 1, "generation_prompt": t} for i, t in enumerate(["puddle plants insects", "puddle plants insects organisms", "plant roots soil water", "plant roots soil drying", "thermometer light animals", "roots anchor soil erosion"])]
     out = lq.enforce_image_budget(ents, 0.5, 3, [False] * 6)
     expect(out[0]["reuse_of"] is None and sum(1 for e in out if not e.get("reuse_of")) == 3 and all((e.get("reuse_of") or 0) < e["order"] for e in out), "enforce_image_budget")
@@ -260,7 +297,16 @@ print("\n".join(bad) if bad else "RENDER_OK")
 def changed_prompts(staged: bool) -> list:
     args = ["git", "diff", "--cached", "--name-only"] if staged else ["git", "diff", "--name-only", "HEAD"]
     names = sh(*args).split()
-    return [Path(n).name for n in names if n.startswith("backend-ai-tutor-he/prompts/") and n.endswith(".txt")]
+    out = []
+    for n in names:
+        if not (n.startswith("backend-ai-tutor-he/prompts/") and n.endswith(".txt")):
+            continue
+        if not (PROMPTS / Path(n).name).exists():
+            # deleted on purpose; coverage_checks fails if main.py still loads it
+            print(f"note: {Path(n).name} was deleted (coverage check decides if that is allowed)")
+            continue
+        out.append(Path(n).name)
+    return out
 
 
 def head_version(name: str) -> str | None:
@@ -361,7 +407,8 @@ def main():
         fails = check_file(PROMPTS / name, name, main_src, head_version(name))
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
-    pf = pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src) + code_rule_checks(main_src)
+    pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
+          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src))
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:

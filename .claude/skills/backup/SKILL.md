@@ -18,6 +18,8 @@ The script:
 3. Verifies every copy is byte-identical (`diff`) and fails loudly otherwise.
 4. Writes `README.md` inside the folder with date, git HEAD, note and file count.
 
+Only run it when a PROMPT FILE is about to change (or the user asks). Work that only touches code or the frontend does not need a snapshot; such a backup is redundant and should not be created (2026-09-17: V3/V6/V10 were deleted for exactly that reason).
+
 Then report to the user: folder name, file count, and that it was verified.
 Do **not** commit or push — the user decides ([[no-commit-without-approval]]).
 If the user asks for "רק פרומפטים" or "רק main", still run the script (it's cheap) and say what it contains.

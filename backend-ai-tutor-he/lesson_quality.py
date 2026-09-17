@@ -414,3 +414,73 @@ def enforce_image_budget(entries: list, new_ratio: float = 0.5, min_new: int = 3
             if src:
                 e["generation_prompt"] = src.get("generation_prompt") or e.get("generation_prompt")
     return entries
+
+# ----------------------------------------------------------------------------- 2nd person, by gender
+# Hebrew writes many second-person forms IDENTICALLY for a boy and a girl and only the
+# vowels differ, so a text that is correct on screen is read in the wrong gender aloud
+# ("אני כאן בשבילך" -> bishvilKHA to a girl, 2026-09-17). Deterministic table, no model.
+# (masculine, feminine)
+_SECOND_PERSON = {
+    # -ך suffix: pronouns and prepositions
+    "שלך": ("\u05e9\u05b6\u05c1\u05dc\u05bc\u05b0\u05da\u05b8", "\u05e9\u05b6\u05c1\u05dc\u05b8\u05bc\u05da\u05b0"),
+    "לך": ("\u05dc\u05b0\u05da\u05b8", "\u05dc\u05b8\u05da\u05b0"),
+    "בך": ("\u05d1\u05b0\u05bc\u05da\u05b8", "\u05d1\u05b8\u05bc\u05da\u05b0"),
+    "ממך": ("\u05de\u05b4\u05de\u05bc\u05b0\u05da\u05b8", "\u05de\u05b4\u05de\u05bc\u05b5\u05da\u05b0"),
+    "אליך": ("\u05d0\u05b5\u05dc\u05b6\u05d9\u05da\u05b8", "\u05d0\u05b5\u05dc\u05b7\u05d9\u05b4\u05da\u05b0"),
+    "עליך": ("\u05e2\u05b8\u05dc\u05b6\u05d9\u05da\u05b8", "\u05e2\u05b8\u05dc\u05b7\u05d9\u05b4\u05da\u05b0"),
+    "איתך": ("\u05d0\u05b4\u05ea\u05bc\u05b0\u05da\u05b8", "\u05d0\u05b4\u05ea\u05bc\u05b8\u05da\u05b0"),
+    "אותך": ("\u05d0\u05d5\u05b9\u05ea\u05b0\u05da\u05b8", "\u05d0\u05d5\u05b9\u05ea\u05b8\u05da\u05b0"),
+    "בשבילך": ("\u05d1\u05b4\u05bc\u05e9\u05c1\u05b0\u05d1\u05b4\u05d9\u05dc\u05b0\u05da\u05b8", "\u05d1\u05b4\u05bc\u05e9\u05c1\u05b0\u05d1\u05b4\u05d9\u05dc\u05b5\u05da\u05b0"),
+    "אצלך": ("\u05d0\u05b6\u05e6\u05b0\u05dc\u05b0\u05da\u05b8", "\u05d0\u05b6\u05e6\u05b0\u05dc\u05b5\u05da\u05b0"),
+    "כמוך": ("\u05db\u05bc\u05b8\u05de\u05d5\u05b9\u05da\u05b8", "\u05db\u05bc\u05b8\u05de\u05d5\u05b9\u05da\u05b0"),
+    "עבורך": ("\u05e2\u05b2\u05d1\u05d5\u05bc\u05e8\u05b0\u05da\u05b8", "\u05e2\u05b2\u05d1\u05d5\u05bc\u05e8\u05b5\u05da\u05b0"),
+    "שלומך": ("\u05e9\u05c1\u05b0\u05dc\u05d5\u05b9\u05de\u05b0\u05da\u05b8", "\u05e9\u05c1\u05b0\u05dc\u05d5\u05b9\u05de\u05b5\u05da\u05b0"),
+    "דעתך": ("\u05d3\u05bc\u05b7\u05e2\u05b0\u05ea\u05bc\u05b0\u05da\u05b8", "\u05d3\u05bc\u05b7\u05e2\u05b0\u05ea\u05bc\u05b5\u05da\u05b0"),
+    # 2nd person past tense: -ְתָּ vs -ְתְּ
+    "הצלחת": ("\u05d4\u05b4\u05e6\u05b0\u05dc\u05b7\u05d7\u05b0\u05ea\u05bc\u05b8", "\u05d4\u05b4\u05e6\u05b0\u05dc\u05b7\u05d7\u05b0\u05ea\u05bc\u05b0"),
+    "אמרת": ("\u05d0\u05b8\u05de\u05b7\u05e8\u05b0\u05ea\u05bc\u05b8", "\u05d0\u05b8\u05de\u05b7\u05e8\u05b0\u05ea\u05bc\u05b0"),
+    "כתבת": ("\u05db\u05bc\u05b8\u05ea\u05b7\u05d1\u05b0\u05ea\u05bc\u05b8", "\u05db\u05bc\u05b8\u05ea\u05b7\u05d1\u05b0\u05ea\u05bc\u05b0"),
+    "חשבת": ("\u05d7\u05b8\u05e9\u05c1\u05b7\u05d1\u05b0\u05ea\u05bc\u05b8", "\u05d7\u05b8\u05e9\u05c1\u05b7\u05d1\u05b0\u05ea\u05bc\u05b0"),
+    "למדת": ("\u05dc\u05b8\u05de\u05b7\u05d3\u05b0\u05ea\u05bc\u05b8", "\u05dc\u05b8\u05de\u05b7\u05d3\u05b0\u05ea\u05bc\u05b0"),
+    "הבנת": ("\u05d4\u05b5\u05d1\u05b7\u05e0\u05b0\u05ea\u05bc\u05b8", "\u05d4\u05b5\u05d1\u05b7\u05e0\u05b0\u05ea\u05bc\u05b0"),
+    "ידעת": ("\u05d9\u05b8\u05d3\u05b7\u05e2\u05b0\u05ea\u05bc\u05b8", "\u05d9\u05b8\u05d3\u05b7\u05e2\u05b0\u05ea\u05bc\u05b0"),
+    "בחרת": ("\u05d1\u05b8\u05bc\u05d7\u05b7\u05e8\u05b0\u05ea\u05bc\u05b8", "\u05d1\u05b8\u05bc\u05d7\u05b7\u05e8\u05b0\u05ea\u05bc\u05b0"),
+    "שמעת": ("\u05e9\u05c1\u05b8\u05de\u05b7\u05e2\u05b0\u05ea\u05bc\u05b8", "\u05e9\u05c1\u05b8\u05de\u05b7\u05e2\u05b0\u05ea\u05bc\u05b0"),
+    "זכרת": ("\u05d6\u05b8\u05db\u05b7\u05e8\u05b0\u05ea\u05bc\u05b8", "\u05d6\u05b8\u05db\u05b7\u05e8\u05b0\u05ea\u05bc\u05b0"),
+    "שאלת": ("\u05e9\u05c1\u05b8\u05d0\u05b7\u05dc\u05b0\u05ea\u05bc\u05b8", "\u05e9\u05c1\u05b8\u05d0\u05b7\u05dc\u05b0\u05ea\u05bc\u05b0"),
+    "בדקת": ("\u05d1\u05b8\u05bc\u05d3\u05b7\u05e7\u05b0\u05ea\u05bc\u05b8", "\u05d1\u05b8\u05bc\u05d3\u05b7\u05e7\u05b0\u05ea\u05bc\u05b0"),
+    "הגעת": ("\u05d4\u05b4\u05d2\u05bc\u05b7\u05e2\u05b0\u05ea\u05bc\u05b8", "\u05d4\u05b4\u05d2\u05bc\u05b7\u05e2\u05b0\u05ea\u05bc\u05b0"),
+    "החלטת": ("\u05d4\u05b6\u05d7\u05b0\u05dc\u05b7\u05d8\u05b0\u05ea\u05bc\u05b8", "\u05d4\u05b6\u05d7\u05b0\u05dc\u05b7\u05d8\u05b0\u05ea\u05bc\u05b0"),
+    # -ית endings: masculine adds a final qamats, feminine does not
+    "ראית": ("\u05e8\u05b8\u05d0\u05b4\u05d9\u05ea\u05b8", "\u05e8\u05b8\u05d0\u05b4\u05d9\u05ea"),
+    "ענית": ("\u05e2\u05b8\u05e0\u05b4\u05d9\u05ea\u05b8", "\u05e2\u05b8\u05e0\u05b4\u05d9\u05ea"),
+    "עשית": ("\u05e2\u05b8\u05e9\u05c2\u05b4\u05d9\u05ea\u05b8", "\u05e2\u05b8\u05e9\u05c2\u05b4\u05d9\u05ea"),
+    "ניסית": ("\u05e0\u05b4\u05e1\u05bc\u05b4\u05d9\u05ea\u05b8", "\u05e0\u05b4\u05e1\u05bc\u05b4\u05d9\u05ea"),
+    "רצית": ("\u05e8\u05b8\u05e6\u05b4\u05d9\u05ea\u05b8", "\u05e8\u05b8\u05e6\u05b4\u05d9\u05ea"),
+    "גילית": ("\u05d2\u05bc\u05b4\u05dc\u05bc\u05b4\u05d9\u05ea\u05b8", "\u05d2\u05bc\u05b4\u05dc\u05bc\u05b4\u05d9\u05ea"),
+    "בנית": ("\u05d1\u05b8\u05bc\u05e0\u05b4\u05d9\u05ea\u05b8", "\u05d1\u05b8\u05bc\u05e0\u05b4\u05d9\u05ea"),
+    "מצאת": ("\u05de\u05b8\u05e6\u05b8\u05d0\u05ea\u05b8", "\u05de\u05b8\u05e6\u05b8\u05d0\u05ea"),
+    "קראת": ("\u05e7\u05b8\u05e8\u05b8\u05d0\u05ea\u05b8", "\u05e7\u05b8\u05e8\u05b8\u05d0\u05ea"),
+}
+_2P_PREFIXES = ("ו", "ש", "ה", "כ", "ל", "מ", "ב")
+_2P_RE = re.compile(r"(?<![\w\u0590-\u05FF])([\u05d5\u05e9\u05d4\u05db\u05dc\u05de\u05d1]?)("
+                    + "|".join(sorted(_SECOND_PERSON, key=len, reverse=True))
+                    + r")(?![\w\u0590-\u05FF])")
+
+
+def second_person_nikud(text: str, gender: str) -> str:
+    """Vocalize the second-person forms that are spelled the same for both genders.
+    gender: 'male' | 'female'. Anything else returns the text unchanged."""
+    idx = {"male": 0, "female": 1}.get(str(gender or "").lower())
+    if idx is None or not text:
+        return text
+    def sub(m):
+        prefix, word = m.group(1), m.group(2)
+        if prefix and prefix + word in _SECOND_PERSON:       # the prefixed form is a word of its own
+            return _SECOND_PERSON[prefix + word][idx]
+        return prefix + _SECOND_PERSON[word][idx]
+    return _2P_RE.sub(sub, str(text))
+
+
+def has_second_person(text: str) -> bool:
+    return bool(_2P_RE.search(str(text or "")))

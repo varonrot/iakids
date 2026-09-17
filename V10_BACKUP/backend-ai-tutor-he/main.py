@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from supabase import create_client
 from openai import OpenAI
 import asyncio
+import hashlib
 from starlette.concurrency import run_in_threadpool
 from openai import AsyncOpenAI
 from google import genai
@@ -523,11 +524,20 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 OPENROUTER_TTS_MODEL = os.getenv("OPENROUTER_TTS_MODEL", "google/gemini-3.1-flash-tts-preview")
 TTS_VOICE = os.getenv("TTS_VOICE", "Aoede")
+# --- speech to text (dictation): the child speaks, the text appears in the chat box ---
+STT_PROVIDER = os.getenv("STT_PROVIDER", "openai")            # openai (direct key) | gemini
+STT_MODEL = os.getenv("STT_MODEL", "gpt-4o-mini-transcribe")  # fallback: whisper-1
+STT_GEMINI_MODEL = os.getenv("STT_GEMINI_MODEL", "gemini-3.1-flash-lite")
+STT_MAX_SECONDS = int(os.getenv("STT_MAX_SECONDS", "60"))
+STT_MAX_BYTES = int(os.getenv("STT_MAX_BYTES", "4000000"))    # ~4 MB of compressed audio
 TTS_PARALLEL = max(1, int(os.getenv("TTS_PARALLEL", "3")))   # TTS calls in flight per lesson part (OpenRouter: 20 rpm)
 TTS_STYLE_PREFIX = os.getenv(
     "TTS_STYLE_PREFIX",
     "Speak in natural, fluent Hebrew. Sound like a warm, friendly and patient teacher "
     "speaking naturally to a school-age child. Use clear pronunciation and natural pauses. "
+    "Some words carry nikud (Hebrew vowel points) to remove ambiguity: pronounce those words "
+    "exactly as vocalized (for example \u05de\u05b4\u05d3\u05b0\u05d1\u05b8\u05bc\u05e8 is midbar, desert, not medaber). "
+    "Words written in Latin letters are English: pronounce them in English. "
     "Read exactly the following Hebrew text:\n\n"
 )
 _OPENROUTER_HEADERS = {"HTTP-Referer": "https://iakids.app", "X-Title": "iakids tutor"}
@@ -553,6 +563,178 @@ UNIVERSAL_LESSON_MODEL = llm_model(UNIVERSAL_LESSON_MODEL)
 print(f"[config] AI_PROVIDER={AI_PROVIDER} TTS_PROVIDER={TTS_PROVIDER} chat={DEFAULT_OPENAI_MODEL} lesson={UNIVERSAL_LESSON_MODEL}")
 
 _openrouter_async_http = None
+
+
+# ---------------------------------------------------------------------------
+# TTS homographs (2026-09-15): unvocalized Hebrew is ambiguous — "מדבר" was read as
+# medaber (speaks) instead of midbar (desert). Vocalizing every segment would cost
+# a model call per segment, so only segments that contain a known homograph get
+# ONE small gpt-4o-mini call that adds nikud to THOSE words only. The answer is
+# accepted only if, with the nikud stripped, it is the original text word for word.
+# ---------------------------------------------------------------------------
+TTS_NIKUD = os.getenv("TTS_NIKUD", "1") == "1"
+NIKUD_MODEL = os.getenv("NIKUD_MODEL", "gpt-4o-mini")
+_TTS_HOMOGRAPHS = {
+    "מדבר", "ספר", "חלב", "שמן", "דבר", "עלה", "כתב", "גזר", "זרע", "מלח", "בקר", "ערב",
+    "פרח", "שבר", "פרה", "ילד", "לבן", "מטר", "סופר", "עצם", "מלך", "חבר", "אכל", "בשר",
+    "צמח", "גדל", "עבר", "עוף", "שוק", "קרן", "זכר", "חמה", "רעב", "שער", "פנה", "מנה",
+    "אמה", "עמד", "נשר", "כבש", "רצה", "בנה", "ראה", "שמר", "חלה", "עשה", "מסך", "קצר",
+    "חצי", "אבל",
+}
+_TTS_HOMOGRAPHS |= {w.strip() for w in os.getenv("TTS_HOMOGRAPHS", "").split(",") if w.strip()}
+_HEB_PREFIXES = ("וכש", "וש", "וב", "ול", "ומ", "וה", "וכ", "כש", "ש", "ה", "ב", "ל", "מ", "כ", "ו")
+_NIKUD_CHARS = re.compile(r"[֑-ׇ]")
+_HEB_WORD = re.compile(r"[א-ת]+")
+_NIKUD_CACHE: dict = {}
+
+
+def strip_nikud(text: str) -> str:
+    return _NIKUD_CHARS.sub("", str(text or ""))
+
+
+def tts_homographs_in(text: str) -> list:
+    """Words of `text` (with their prefix) whose base form is in the homograph list."""
+    found = []
+    for w in _HEB_WORD.findall(strip_nikud(text)):
+        if w in _TTS_HOMOGRAPHS:
+            found.append(w); continue
+        for pre in _HEB_PREFIXES:
+            if w.startswith(pre) and len(w) > len(pre) + 1 and w[len(pre):] in _TTS_HOMOGRAPHS:
+                found.append(w); break
+    return found
+
+
+def vocalize_for_tts(text: str) -> str:
+    """Return `text` with nikud on its ambiguous words only (or unchanged)."""
+    clean = str(text or "").strip()
+    if not TTS_NIKUD or not clean or _NIKUD_CHARS.search(clean):
+        return clean                                   # already vocalized (or disabled)
+    words = tts_homographs_in(clean)
+    if not words:
+        return clean                                   # nothing ambiguous: no model call, no cost
+    if clean in _NIKUD_CACHE:
+        return _NIKUD_CACHE[clean]
+    t0 = time.perf_counter()
+    try:
+        r = client.chat.completions.create(
+            model=llm_model(NIKUD_MODEL),
+            temperature=0,
+            messages=[
+                {"role": "system", "content": (
+                    "You add Hebrew nikud (vowel points) to specific words so a text-to-speech engine "
+                    "pronounces them correctly. Rules: return the ENTIRE input text unchanged, except that "
+                    "the listed words get full, correct nikud according to their meaning in context "
+                    "(e.g. מדבר = מִדְבָּר desert, or מְדַבֵּר speaks). Do not add nikud to other words. "
+                    "Do not change, add, remove or reorder any word or punctuation. Output the text only."
+                )},
+                {"role": "user", "content": "Words to vocalize: " + ", ".join(dict.fromkeys(words)) + "\n\nText:\n" + clean},
+            ],
+        )
+        out = str(r.choices[0].message.content or "").strip()
+        same = re.sub(r"\s+", " ", strip_nikud(out)) == re.sub(r"\s+", " ", clean)
+        if not same:
+            print("TTS NIKUD REJECTED (text changed):", {"words": words, "got": out[:120]})
+            out = clean
+        else:
+            print("TTS NIKUD:", {"words": words, "ms": round((time.perf_counter() - t0) * 1000), "text": out[:120]})
+    except Exception as e:
+        print("TTS NIKUD FAILED (reading unvocalized):", {"words": words, "error": repr(e)[:160]})
+        out = clean
+    if len(_NIKUD_CACHE) > 5000:
+        _NIKUD_CACHE.clear()
+    _NIKUD_CACHE[clean] = out
+    return out
+
+
+# ---------------------------------------------------------------------------
+# LIVE TTS CACHE (2026-09-15): the same sentence is spoken to the same child many
+# times ("היי אלונה! כיף שבאת ללמוד איתי.", "אז קדימה, בואו נתחיל!"). Each
+# rendering used to be a new model call (~2.5 s, ~$0.004). Now a WAV is stored
+# once in Storage under a hash of (provider, model, voice, exact text) and served
+# from there; identical requests in flight share one synthesis. Long, one-off
+# texts (chat replies) are not cached. TTS_CACHE=0 disables it.
+# ---------------------------------------------------------------------------
+TTS_CACHE_ENABLED = os.getenv("TTS_CACHE", "1") == "1"
+TTS_CACHE_MAX_CHARS = int(os.getenv("TTS_CACHE_MAX_CHARS", "400"))
+TTS_CACHE_PREFIX = "tts-cache/v1"
+_TTS_INFLIGHT: dict = {}          # cache key -> asyncio.Future (same text requested twice at once)
+
+
+def tts_cache_key(text: str) -> str:
+    model = OPENROUTER_TTS_MODEL if TTS_PROVIDER == "openrouter" else "gemini-3.1-flash-tts-preview"
+    raw = f"{TTS_PROVIDER}|{model}|{TTS_VOICE}|{TTS_STYLE_PREFIX}|{text.strip()}"
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+
+def tts_cacheable(text: str) -> bool:
+    return TTS_CACHE_ENABLED and 0 < len(text.strip()) <= TTS_CACHE_MAX_CHARS
+
+
+def tts_cache_path(key: str) -> str:
+    return f"{TTS_CACHE_PREFIX}/{key}.wav"
+
+
+_TTS_MEM_CACHE: dict = {}         # key -> wav bytes, hot items (a Storage download is ~0.5-1 s)
+_TTS_MEM_CACHE_MAX = int(os.getenv("TTS_MEM_CACHE_ITEMS", "300"))   # ~300 × 150 KB ≈ 45 MB
+
+
+def _tts_mem_put(key: str, wav_bytes: bytes):
+    if len(_TTS_MEM_CACHE) >= _TTS_MEM_CACHE_MAX:
+        _TTS_MEM_CACHE.pop(next(iter(_TTS_MEM_CACHE)), None)   # oldest inserted
+    _TTS_MEM_CACHE[key] = wav_bytes
+
+
+def tts_cache_get(key: str) -> bytes | None:
+    """WAV bytes from memory or Storage, or None. A miss is a real answer, so no retries."""
+    hit = _TTS_MEM_CACHE.get(key)
+    if hit:
+        return hit
+    try:
+        data = sb.storage.from_(LESSON_AUDIO_BUCKET).download(tts_cache_path(key))
+        if data and len(data) > 44:
+            _tts_mem_put(key, data)
+            return data
+        return None
+    except Exception:
+        return None
+
+
+def tts_cache_put(key: str, wav_bytes: bytes):
+    _tts_mem_put(key, wav_bytes)
+    try:
+        storage_with_retry(lambda: sb.storage.from_(LESSON_AUDIO_BUCKET).upload(
+            path=tts_cache_path(key), file=wav_bytes,
+            file_options={"content-type": "audio/wav", "upsert": "true"}
+        ), label="TTS CACHE PUT")
+        print("LIVE TTS CACHE STORED:", {"key": key[:12], "bytes": len(wav_bytes)})
+    except Exception as e:
+        print("LIVE TTS CACHE PUT FAILED (audio still served):", {"key": key[:12], "error": repr(e)[:160]})
+
+
+def warm_tts_cache(texts: list) -> dict:
+    """Synthesize + store every text that is not cached yet. Runs on a thread
+    (_threading.Thread(target=run_in_context(warm_tts_cache, texts))) so an intro's
+    sentences are ready before the browser asks for them. Returns counts."""
+    out = {"hit": 0, "warmed": 0, "failed": 0, "skipped": 0}
+    for raw in texts:
+        text = str(raw or "").strip()
+        if not tts_cacheable(text):
+            out["skipped"] += 1
+            continue
+        spoken = vocalize_for_tts(text)
+        key = tts_cache_key(spoken)
+        if tts_cache_get(key) is not None:
+            out["hit"] += 1
+            continue
+        try:
+            wav, dur = generate_tts_wav_bytes(spoken)
+            tts_cache_put(key, wav)
+            out["warmed"] += 1
+            print("LIVE TTS CACHE WARMED:", {"key": key[:12], "seconds": round(dur, 1), "text_length": len(text)})
+        except Exception as e:
+            out["failed"] += 1
+            print("LIVE TTS CACHE WARM FAILED:", {"key": key[:12], "error": repr(e)[:160]})
+    return out
 
 
 def _openrouter_tts_payload(text: str) -> dict:
@@ -636,7 +818,18 @@ ai_costs = AICostTracker(
 ai_costs.install(openai_clients=[client, aclient], gemini_client=gemini_client)
 import uuid
 import media_trace
-media_trace.install_print_prefix()   # every print() -> "HH:MM:SS.mmm [T+.. req/job lesson part]" prefix
+media_trace.install_print_prefix()
+import lesson_quality as lq
+IMAGE_TEXT_CHECK = os.getenv("IMAGE_TEXT_CHECK", "0") == "1"          # vision call per image (~$0.0003): OFF by default (2026-09-16), set 1 to enable
+IMAGE_TEXT_CHECK_MODEL = os.getenv("IMAGE_TEXT_CHECK_MODEL", "gemini-3.1-flash-lite")
+VISUAL_REUSE = False  # disabled: generate a distinct image for every visual segment
+VISUAL_NEW_RATIO = float(os.getenv("VISUAL_NEW_RATIO", "0.5"))     # share of segments that get a NEW image per part
+VISUAL_MIN_NEW = int(os.getenv("VISUAL_MIN_NEW", "3"))              # never fewer new images than this per part (unless fewer segments)
+LESSON_QUALITY_GATE = os.getenv("LESSON_QUALITY_GATE", "0") == "1"    # per-lesson report after every media job: OFF by default (2026-09-16), set 1 to enable
+NO_TEXT_RETRY_SUFFIX = (
+    "\n\nSTRICT RETRY: the previous image contained readable text. Produce the SAME scene with "
+    "ABSOLUTELY NO letters, words, numbers, labels, captions, signs or symbols that look like writing."
+)   # every print() -> "HH:MM:SS.mmm [T+.. req/job lesson part]" prefix
 
 
 def ai_context(purpose: str, user=None, payload=None, **more):
@@ -923,6 +1116,73 @@ def dispatch_media_job(
     return None
 
 
+def _list_storage_prefix(bucket: str, prefix: str) -> list:
+    acc = []
+    def walk(pfx):
+        for o in sb.storage.from_(bucket).list(pfx, {"limit": 1000}):
+            path = f"{pfx}/{o['name']}"
+            if o.get("id") is None and o.get("metadata") is None:
+                walk(path)
+            else:
+                acc.append(path)
+    try:
+        walk(prefix)
+    except Exception as e:
+        print("STORAGE LIST FAILED:", {"bucket": bucket, "prefix": prefix, "error": repr(e)[:120]})
+    return acc
+
+
+def run_lesson_quality_gate(unit_lesson_id: int, check_images: bool = True) -> dict:
+    """Per-lesson QUALITY GATE: text rules, visual plan vs segments, audio vs segments,
+    storage consistency (no stale versions, every referenced file exists) and, optionally,
+    a vision check that no stored image carries readable text. The report is written to
+    generated_lesson_json["quality"] and printed; it never raises."""
+    row = get_unit_lesson(unit_lesson_id)
+    g = row.get("generated_lesson_json") or {}
+    cv = int(row.get("content_version") or 1)
+    media = _list_storage_prefix(LESSON_MEDIA_BUCKET, f"unit_lessons/{unit_lesson_id}")
+    audio = _list_storage_prefix(LESSON_AUDIO_BUCKET, f"unit_lessons/{unit_lesson_id}")
+    image_results = None
+    if check_images and IMAGE_TEXT_CHECK:
+        image_results = {}
+        reused = 0
+        for path in sorted(p for p in media if (f"/v{cv}/" in p or "/hero_v" in p) and p.endswith(".png")):
+            key = path.split(f"unit_lessons/{unit_lesson_id}/", 1)[-1]
+            gen = _IMAGE_TEXT_RESULTS.get((int(unit_lesson_id), key))
+            if gen is not None:
+                image_results[key] = dict(gen, source="generation")   # already verified when it was made
+                reused += 1
+                continue
+            try:
+                data = sb.storage.from_(LESSON_MEDIA_BUCKET).download(path)
+                image_results[key] = dict(lq.image_text_check(gemini_client, types, IMAGE_TEXT_CHECK_MODEL, data, "image/png"),
+                                          source="gate")
+            except Exception as e:
+                image_results[key] = {"has_text": False, "text": "", "error": repr(e)[:100], "source": "gate"}
+        print("LESSON QUALITY GATE IMAGES:", {"unit_lesson_id": unit_lesson_id, "checked": len(image_results), "reused_generation_results": reused})
+    prev_q = g.get("quality") or {}
+    report = lq.build_quality_report(
+        g.get("structured_lesson") or {}, g.get("visual_plan"), row.get("lesson_audio_json"), cv,
+        media, audio, image_results, image_overrides=prev_q.get("image_overrides") or {})
+    report["image_overrides"] = prev_q.get("image_overrides") or {}
+    print("LESSON QUALITY GATE " + ("PASS" if report["ok"] else "FAIL") + ":",
+          {"unit_lesson_id": unit_lesson_id, "errors": report["errors"][:8], "warnings": len(report["warnings"]),
+           "stats": report["stats"]})
+    try:
+        g = dict(g); g["quality"] = report
+        update = {"generated_lesson_json": g}
+        # generation_status has a CHECK constraint without a 'needs_review' value, so the
+        # verdict lives in generated_lesson_json.quality: ok=false (and no human approval)
+        # makes the unit-lesson route answer "needs_review" instead of serving the lesson.
+        if not report["ok"]:
+            print("LESSON QUALITY GATE -> flagged for human review (served anyway):", {"unit_lesson_id": unit_lesson_id, "errors": len(report["errors"])})
+        supabase_with_retry(lambda: sb.table("lesson_units_content").update(update)
+                            .eq("id", unit_lesson_id).execute(), label="SAVE QUALITY REPORT")
+    except Exception as e:
+        print("LESSON QUALITY GATE SAVE FAILED:", {"unit_lesson_id": unit_lesson_id, "error": repr(e)[:160]})
+    return report
+
+
 def run_media_job(
         job_type: str,
         payload: dict
@@ -955,6 +1215,12 @@ def run_media_job(
 
     unit_lesson_id = int(payload["unit_lesson_id"])
     result = runner(unit_lesson_id)
+    if LESSON_QUALITY_GATE and job_type in ("unit_lesson_media", "unit_lesson_audio", "unit_lesson_visuals"):
+        try:
+            with media_trace.stage("quality_gate"):
+                run_lesson_quality_gate(unit_lesson_id, check_images=(job_type != "unit_lesson_audio"))
+        except Exception as gate_error:
+            print("LESSON QUALITY GATE CRASHED (job still done):", {"unit_lesson_id": unit_lesson_id, "error": repr(gate_error)[:200]})
 
     # generate_unit_lesson_media_background swallows an audio failure (it only
     # prints it), so without this check the job row would say "done" while the
@@ -1148,6 +1414,7 @@ class VisualDirectorItem(BaseModel):
     visual_goal: str
     source_text: str
     generation_prompt: str
+    reuse_previous: bool          # True = this segment adds no new visual idea: show the previous image, generate nothing
 
 
 class VisualDirectorResponse(BaseModel):
@@ -1868,6 +2135,40 @@ def update_custom_curriculum(
 
     return updated_curriculum
 
+def hebrew_gender_rule(child: dict) -> tuple[str, str]:
+    """('female'|'male'|'unknown', instruction for the model) — the ONE place that decides
+    how the child is addressed in Hebrew. Every child-facing prompt uses it (2026-09-15)."""
+    raw = str((child or {}).get("gender") or "").strip().lower()
+    if raw in ("female", "f", "girl", "נקבה", "בת"):
+        gender = "female"
+    elif raw in ("male", "m", "boy", "זכר", "בן"):
+        gender = "male"
+    else:
+        gender = "unknown"
+    if gender == "female":
+        rule = (
+            "The child is a GIRL. Every Hebrew verb, adjective and pronoun that refers to her "
+            "must be FEMININE SINGULAR (את, תרצי, נסי, חשבי, כתבי, תסתכלי, הצלחת, מוכנה, יודעת, "
+            "בטוחה). Never use masculine forms."
+        )
+    elif gender == "male":
+        rule = (
+            "The child is a BOY. Every Hebrew verb, adjective and pronoun that refers to him "
+            "must be MASCULINE SINGULAR (אתה, תרצה, נסה, חשוב, כתוב, תסתכל, הצלחת, מוכן, יודע, "
+            "בטוח). Never use feminine forms."
+        )
+    else:
+        rule = (
+            "The child's gender is UNKNOWN. Do NOT guess it from the name. Write Hebrew that is "
+            "correct for both: plural imperatives (בואו ננסה, תסתכלו, נבדוק יחד), 'אפשר ל...' "
+            "constructions (אפשר לנסות?), questions without a second-person verb (מה דעתך? מה "
+            "מצאת?), and shared past-tense forms (הצלחת, מצאת, ראית). Never write slash forms "
+            "like נסה/י or מוכן/ה: the text is read aloud."
+        )
+        print("CHILD GENDER UNKNOWN (neutral Hebrew):", {"kid_id": (child or {}).get("id"), "child_name": (child or {}).get("child_name")})
+    return gender, rule
+
+
 def get_gender_placeholders(
         child: dict
 ) -> dict:
@@ -1920,6 +2221,24 @@ def get_existing_kids_memory(kid_id: str) -> str:
 # =====================================================
 
 LEARNING_COACH_MAX_ROUNDS = 5
+
+
+def get_learning_coach_round_limit(understanding_score: int) -> int:
+    """Adaptive diagnostic limit: do not trap a child until mastery.
+
+    High scores need very little extra probing; lower scores get a few more
+    focused turns so we can identify the weakness, then the lesson continues.
+    The score is still preserved as diagnostic evidence.
+    """
+    score = max(0, min(100, int(understanding_score or 0)))
+
+    if score >= 90:
+        return 1
+    if score >= 70:
+        return 2
+    if score >= 40:
+        return 3
+    return 4
 
 # =====================================================
 # UNIVERSAL LESSON STAGES
@@ -2561,15 +2880,22 @@ def update_learning_coach_session(
         timezone.utc
     )
 
+    recommended_round_limit = min(
+        LEARNING_COACH_MAX_ROUNDS,
+        get_learning_coach_round_limit(understanding_score)
+    )
+
     max_rounds_reached = (
         current_round
-        >= LEARNING_COACH_MAX_ROUNDS
+        >= recommended_round_limit
     )
 
     if goal_achieved:
         status = "completed"
 
     elif max_rounds_reached:
+        # Diagnostic completion: the child can continue even below mastery.
+        # We intentionally keep the existing DB-safe status value.
         status = "max_rounds"
 
     else:
@@ -4883,23 +5209,8 @@ def build_tutor_prompt(child: dict, kids_memory: str) -> str:
     for placeholder, value in replacements.items():
         prompt = prompt.replace(placeholder, value)
 
-    child_gender = str(child.get("gender") or "unknown").strip().lower()
+    child_gender, gender_instruction = hebrew_gender_rule(child)
     child_name = str(child.get("child_name") or "").strip()
-
-    if child_gender == "female":
-        gender_instruction = (
-            "The child is female. In Hebrew ALWAYS address her in feminine singular "
-            "forms (את, תרצי, נסי, כתבי, חשבי, הצלחת). Never use masculine forms."
-        )
-    elif child_gender == "male":
-        gender_instruction = (
-            "The child is male. In Hebrew address him in masculine singular forms."
-        )
-    else:
-        gender_instruction = (
-            "The child's gender is unknown. Avoid gendered Hebrew wording where possible; "
-            "do not infer gender from the child's name."
-        )
 
     prompt += (
         "\n\nAUTHORITATIVE_CHILD_PROFILE:\n"
@@ -4956,6 +5267,8 @@ def build_structured_lesson_prompt(
                 child.get(
                     "avatar_key"
                 ),
+            "gender":
+                hebrew_gender_rule(child)[0],
 
             "learning_interests":
                 child.get(
@@ -5084,13 +5397,11 @@ def build_structured_lesson_prompt(
             +
 
             json.dumps(
-
                 runtime_context,
-
                 ensure_ascii=False
-
             )
-
+            + "\n\nADDRESSING THE CHILD (Hebrew grammar, mandatory):\n"
+            + hebrew_gender_rule(child)[1]
     )
 
 def build_universal_unit_lesson_prompt(
@@ -5356,11 +5667,9 @@ def find_invalid_lesson_segments(
         if len(norm) > 6 and norm in q_norm:
             problems.append((i, "copied_from_question", text))
             continue
-        if text.rstrip().endswith("?"):
-            problems.append((i, "ends_with_question_mark", text))
-            continue
-        if text.startswith(_LESSON_DIRECTIVE_PREFIXES):
-            problems.append((i, "directive_to_student", text))
+        why = lq.question_segment_problem(text)      # directive / short question; rhetorical ok
+        if why and why != "empty":
+            problems.append((i, why, text))
             continue
         words = _content_words(text)
         if expl_words and len(words) >= 3:
@@ -5386,6 +5695,22 @@ def fallback_lesson_segments(explanation_text: str) -> list:
     return [{"text": s} for s in out] or [{"text": text}]
 
 
+_GENDERED_2ND_PERSON = re.compile(
+    r"(?<![\w\u0590-\u05FF])(אתה|שלך|שלךְ|תוכל|תוכלי|נסי|חשבי|כתבי|תארי|הסבירי|תנסה|תנסי|תחשוב|תחשבי|"
+    r"תסתכל|תסתכלי|תזכור|תזכרי|תוכלו?\s+לבד|בעצמך|מוכנה|מוכן\?)(?![\w\u0590-\u05FF])"
+)
+
+
+def warn_if_gendered_lesson_text(text: str, label: str, unit_lesson_id=None):
+    """A shared lesson must not address one child in masculine/feminine singular.
+    Conservative word list (no 'את' — it is also the object marker); logs only."""
+    hits = _GENDERED_2ND_PERSON.findall(str(text or ""))
+    if hits:
+        print("LESSON TEXT GENDERED 2ND PERSON (shared lesson should be neutral):",
+              {"unit_lesson_id": unit_lesson_id, "where": label, "hits": hits[:6]})
+    return hits
+
+
 async def direct_lesson_part(
         explanation: str,
         question: str,
@@ -5399,6 +5724,8 @@ async def direct_lesson_part(
     """
     explanation = str(explanation or "").strip()
     question = str(question or "").strip()
+    warn_if_gendered_lesson_text(explanation, f"part{part_number}.explanation", unit_lesson_id)
+    warn_if_gendered_lesson_text(question, f"part{part_number}.question", unit_lesson_id)
     system_prompt = build_lesson_director_prompt(
         lesson_text=explanation
     )
@@ -6255,16 +6582,26 @@ def normalize_visual_plan_to_segments(
             )
 
             # =========================================
-            # HARD 1:1 VISUAL
+            # ONE ENTRY PER SEGMENT, BUT NOT ONE IMAGE PER SEGMENT (2026-09-16)
+            # The director marks segments that continue the same idea with
+            # reuse_previous; they point at the previous image (reuse_of) and
+            # no image is generated for them. The player still maps
+            # segment N -> entry N, so nothing changes on the frontend.
             # =========================================
-
+            reuse_of = None
+            if VISUAL_REUSE and director_visual and director_visual.get("reuse_previous") and segment_index > 1:
+                prev = next((v for v in reversed(normalized_visuals) if v.get("part_number") == part_number), None)
+                if prev:
+                    reuse_of = int(prev.get("reuse_of") or prev.get("order"))
+                    generation_prompt = prev.get("generation_prompt") or generation_prompt
             normalized_visuals.append(
                 {
                     "part_number":
                         part_number,
-
                     "order":
                         segment_index,
+                    "reuse_of":
+                        reuse_of,
 
                     "trigger_text":
                         trigger_text,
@@ -6285,6 +6622,25 @@ def normalize_visual_plan_to_segments(
                         generation_prompt
                 }
             )
+
+        # =============================================
+        # IMAGE BUDGET (deterministic, 2026-09-16)
+        # The director's reuse_previous flag swings between 0% and 90%, so the
+        # budget decides: ceil(S * VISUAL_NEW_RATIO) new images per part (min
+        # VISUAL_MIN_NEW), given to the segments whose prompts differ most from
+        # the previous one; the rest reuse the previous image.
+        # =============================================
+        if VISUAL_REUSE:
+            part_entries = [v for v in normalized_visuals if v.get("part_number") == part_number]
+            flags = []
+            for v in part_entries:
+                dv = next((it for it in raw_visuals if isinstance(it, dict) and int(it.get("part_number") or 1) == part_number and int(it.get("order") or 0) == int(v.get("order") or 0)), None)
+                flags.append(bool(dv.get("reuse_previous")) if dv else False)
+            lq.enforce_image_budget(part_entries, VISUAL_NEW_RATIO, VISUAL_MIN_NEW, flags)
+            print("VISUAL IMAGE BUDGET:", {"part_number": part_number, "segments": len(part_entries),
+                  "new_images": sum(1 for v in part_entries if not v.get("reuse_of")),
+                  "reused": sum(1 for v in part_entries if v.get("reuse_of")),
+                  "model_said_reuse": sum(flags)})
 
         # =============================================
         # PART QUESTION VISUAL
@@ -7619,7 +7975,7 @@ def generate_kid_lesson_intro_videos_background(
 
 LESSON_MEDIA_BUCKET = "lesson-media"
 
-LESSON_MEDIA_URL_EXPIRY_SECONDS = 3600
+LESSON_MEDIA_URL_EXPIRY_SECONDS = int(os.getenv('LESSON_MEDIA_URL_EXPIRY_SECONDS', '14400'))   # 4 h: a lesson tab left open must not 403
 
 # =====================================================
 # UNIVERSAL LESSON TRANSITION VIDEO
@@ -7919,6 +8275,13 @@ REQUIREMENTS:
 - no captions
 - no logos
 - no watermark
+
+ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE: do not render the lesson title, the
+question, names of animals or any word or letter, in any language. The concept
+must be understood from the picture alone. Only universally readable scientific
+notation used by the lesson (CO2, H2O, O2, sin, cos, π, √, plain numbers, units) may appear. A poster, a title card, a
+labeled chart or a diagram with words is WRONG. Hebrew readers scan right to
+left: sequences start on the right. Calm, child-safe, no killing moment.
 """.strip()
 
 # =====================================================
@@ -8190,7 +8553,15 @@ def generate_lesson_visual_image_bytes(
     Do NOT copy any text, labels or annotations
     that may appear in the scene description.
 
-    ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE.
+    ABSOLUTELY NO WRITTEN TEXT IN THE IMAGE. No words, letters, labels, captions or titles
+in any language. The ONLY allowed exception: universally readable scientific notation
+that the lesson itself uses (chemical formulas such as CO2, H2O, O2; math notation such as
+sin, cos, π, √, +, =, x²; plain numbers; units).
+
+READING DIRECTION: Hebrew readers scan right-to-left. If the scene shows a sequence,
+chain or process, place the first step on the RIGHT and the last on the LEFT; arrows,
+if any, point right-to-left. CHILD SAFETY: calm, no blood, no killing moment, nothing
+frightening. Do not depict a single child who could be read as the viewer.
 
     No:
     - words
@@ -8358,6 +8729,48 @@ def generate_lesson_visual_image_bytes(
 # GENERATE + STORE HERO IMAGE
 # =====================================================
 
+_IMAGE_TEXT_RESULTS: dict = {}     # (unit_lesson_id, "v1/part_2/visual_9.png") -> last generation-time check
+
+
+def _image_text_key(ctx: dict, kind: str) -> str | None:
+    if kind == "hero":
+        return f"hero_v{LESSON_MEDIA_HERO_VERSION}.png"
+    if ctx.get("content_version") and ctx.get("part_number") and ctx.get("order"):
+        return f"v{ctx['content_version']}/part_{ctx['part_number']}/visual_{ctx['order']}.png"
+    return None
+
+
+def ensure_no_text_in_image(image_bytes, mime_type, kind, regenerate, **ctx):
+    """The prompts forbid text, the model sometimes ignores it. One cheap vision call; on
+    readable text, one strict regeneration; the second result is kept either way (logged)."""
+    if not IMAGE_TEXT_CHECK:
+        return image_bytes, mime_type
+    try:
+        chk = lq.image_text_check(gemini_client, types, IMAGE_TEXT_CHECK_MODEL, image_bytes, mime_type)
+    except Exception as e:
+        print("LESSON IMAGE TEXT CHECK FAILED (kept image):", {**ctx, "kind": kind, "error": repr(e)[:160]})
+        return image_bytes, mime_type
+    if chk.get("has_text") and (chk.get("kind") == "formula" or lq.is_allowed_scientific_text(chk.get("text", ""))):
+        chk = dict(chk, has_text=False, allowed=True)      # CO2, H2O, numbers: fine in a shared image
+    print("LESSON IMAGE TEXT CHECK:", {**ctx, "kind": kind, **chk})
+    key = _image_text_key(ctx, kind)
+    if key and ctx.get("unit_lesson_id") is not None:
+        _IMAGE_TEXT_RESULTS[(int(ctx["unit_lesson_id"]), key)] = dict(chk)
+    if not chk["has_text"]:
+        return image_bytes, mime_type
+    try:
+        image_bytes2, mime2 = regenerate(NO_TEXT_RETRY_SUFFIX)
+        chk2 = lq.image_text_check(gemini_client, types, IMAGE_TEXT_CHECK_MODEL, image_bytes2, mime2)
+        print("LESSON IMAGE TEXT CHECK (after retry):", {**ctx, "kind": kind, **chk2})
+        if key and ctx.get("unit_lesson_id") is not None:
+            _IMAGE_TEXT_RESULTS[(int(ctx["unit_lesson_id"]), key)] = dict(chk2, retried=True)
+        if not chk2["has_text"] or len(chk2.get("text", "")) <= len(chk.get("text", "")):
+            return image_bytes2, mime2
+    except Exception as e:
+        print("LESSON IMAGE TEXT RETRY FAILED (kept first image):", {**ctx, "kind": kind, "error": repr(e)[:160]})
+    return image_bytes, mime_type
+
+
 def generate_and_store_lesson_hero_image(
         unit_lesson_id: int
 ) -> dict:
@@ -8439,6 +8852,11 @@ def generate_and_store_lesson_hero_image(
         generate_lesson_hero_image_bytes(
             image_prompt
         )
+    )
+    image_bytes, mime_type = ensure_no_text_in_image(
+        image_bytes, mime_type, "hero",
+        lambda extra: generate_lesson_hero_image_bytes(image_prompt + extra),
+        unit_lesson_id=unit_lesson_id
     )
 
     # =================================================
@@ -8574,7 +8992,7 @@ def generate_and_store_lesson_hero_image(
 # AI TUTOR NATURAL VOICE - GEMINI TTS
 # =====================================================
 LESSON_AUDIO_BUCKET = "lesson-audio"
-LESSON_AUDIO_URL_EXPIRY_SECONDS = 3600
+LESSON_AUDIO_URL_EXPIRY_SECONDS = int(os.getenv('LESSON_AUDIO_URL_EXPIRY_SECONDS', '14400'))   # 4 h: a lesson tab left open must not 403
 
 def generate_and_store_lesson_visual_image(
         unit_lesson_id: int,
@@ -8721,6 +9139,7 @@ def generate_and_store_lesson_visual_image(
     """.strip()
 
     final_generation_prompt = f"""
+    final_generation_prompt = lq.sanitize_generation_prompt(final_generation_prompt)   # never ask the image model for labels/text
     {LESSON_VISUAL_STYLE_LOCK}
 
     CURRENT EDUCATIONAL SCENE:
@@ -8774,6 +9193,15 @@ def generate_and_store_lesson_visual_image(
             reference_mime_type=
             reference_mime_type
         )
+    )
+    image_bytes, mime_type = ensure_no_text_in_image(
+        image_bytes, mime_type, "visual",
+        lambda extra: generate_lesson_visual_image_bytes(
+            final_generation_prompt + extra,
+            reference_image_bytes=reference_image_bytes,
+            reference_mime_type=reference_mime_type
+        ),
+        unit_lesson_id=unit_lesson_id, part_number=part_number, order=visual_order, content_version=content_version
     )
 
     storage_path = (
@@ -8997,7 +9425,11 @@ def generate_all_lesson_visuals_background(
                 reference_bytes=None,
                 reference_mime_type="image/png"
         ):
-
+            if visual.get("reuse_of"):
+                print("LESSON VISUAL REUSED (no image generated):", {"unit_lesson_id": unit_lesson_id,
+                      "part_number": visual.get("part_number"), "order": visual.get("order"), "reuse_of": visual.get("reuse_of")})
+                return {"part_number": visual.get("part_number"), "order": visual.get("order"), "reuse_of": visual.get("reuse_of"),
+                        "type": "image", "trigger_text": visual.get("trigger_text"), "storage_path": None, "reused": True}
             part_number = int(
                 visual.get(
                     "part_number"
@@ -9403,10 +9835,19 @@ def generate_all_lesson_visuals_background(
                 or 0
             )
 
+            chain_reference = None
+            if int(part_number) > 1:
+                # keep ONE illustrator across parts: part N's first image follows part 1's first image
+                try:
+                    chain_reference = storage_with_retry(lambda: sb.storage.from_(LESSON_MEDIA_BUCKET).download(
+                        f"unit_lessons/{unit_lesson_id}/v{content_version}/part_1/visual_1.png"), label="STORAGE DOWNLOAD")
+                    print("LESSON PART STYLE CHAIN:", {"unit_lesson_id": unit_lesson_id, "part_number": part_number, "bytes": len(chain_reference or b"")})
+                except Exception as chain_error:
+                    print("LESSON PART STYLE CHAIN NOT AVAILABLE:", {"unit_lesson_id": unit_lesson_id, "part_number": part_number, "error": repr(chain_error)[:120]})
+                    chain_reference = None
             first_result = (
-                generate_single_visual(
-                    first_visual
-                )
+                generate_single_visual(first_visual, reference_bytes=chain_reference)
+                if chain_reference else generate_single_visual(first_visual)
             )
 
             if first_result:
@@ -10115,6 +10556,18 @@ def add_signed_urls_to_lesson_audio(
             LESSON_AUDIO_URL_EXPIRY_SECONDS
     }
 
+def _concat_wavs(wavs: list) -> tuple[bytes, float]:
+    """Join 24 kHz/16-bit/mono WAVs (as generate_tts_wav_bytes returns) into one."""
+    pcm = b""
+    for wav_bytes, _dur in wavs:
+        with wave.open(io.BytesIO(wav_bytes), "rb") as w:
+            pcm += w.readframes(w.getnframes())
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
+    return buf.getvalue(), len(pcm) / (24000 * 2)
+
+
 def generate_tts_wav_bytes(
         text: str
 ) -> tuple[bytes, float]:
@@ -10135,23 +10588,26 @@ def generate_tts_wav_bytes(
     # 429 RESOURCE_EXHAUSTED is the TTS model's per-minute quota (seen on lesson 5):
     # a short pause is useless there, so those wait 20/40/60 seconds instead.
     TTS_ATTEMPTS = int(os.getenv("TTS_ATTEMPTS", "4"))
+    clean_text = lq.normalize_for_tts(clean_text)    # emoji out, arrows/units/math spelled out
+    chunks = lq.split_for_tts(clean_text)
+    if len(chunks) > 1:
+        # long segment: several short calls (the TTS model rejects long/odd input), one WAV
+        print("TTS LONG TEXT SPLIT:", {"chars": len(clean_text), "chunks": len(chunks)})
+        wavs = [generate_tts_wav_bytes(c) for c in chunks]
+        return _concat_wavs(wavs)
+    spoken_text = vocalize_for_tts(clean_text)      # nikud on ambiguous words only
     response = None
     audio_data = None
     for attempt in range(1, TTS_ATTEMPTS + 1):
         try:
             if TTS_PROVIDER == "openrouter":
-                audio_data = openrouter_tts_pcm(clean_text)
+                audio_data = openrouter_tts_pcm(spoken_text)
                 break
             response = gemini_client.models.generate_content(
                 model="gemini-3.1-flash-tts-preview",
-
                 contents=(
-                    "Speak in natural, fluent Hebrew. "
-                    "Sound like a warm, friendly and patient teacher "
-                    "speaking naturally to a school-age child. "
-                    "Use clear pronunciation and natural pauses. "
-                    "Read exactly the following Hebrew text:\n\n"
-                    + clean_text
+                    TTS_STYLE_PREFIX
+                    + spoken_text
                 ),
 
                 config=types.GenerateContentConfig(
@@ -11140,20 +11596,33 @@ async def tutor_tts(
         try:
 
             audio_data_override = None
+            text = lq.normalize_for_tts(text)
+            text = await run_in_threadpool(vocalize_for_tts, text)   # nikud on ambiguous words only
+            _tts_key = tts_cache_key(text) if tts_cacheable(text) else None
+            _tts_future = None
+            if _tts_key:
+                _cached = await run_in_threadpool(tts_cache_get, _tts_key)
+                if _cached:
+                    print("LIVE TTS CACHE HIT:", {"session_id": body.session_id, "key": _tts_key[:12],
+                                                  "bytes": len(_cached), "text_length": len(text)})
+                    return Response(content=_cached, media_type="audio/wav",
+                                    headers={"Cache-Control": "no-store", "X-TTS-Cache": "hit"})
+                _inflight = _TTS_INFLIGHT.get(_tts_key)
+                if _inflight is not None:
+                    print("LIVE TTS CACHE WAIT (same text in flight):", {"key": _tts_key[:12]})
+                    _wav = await asyncio.shield(_inflight)
+                    return Response(content=_wav, media_type="audio/wav",
+                                    headers={"Cache-Control": "no-store", "X-TTS-Cache": "inflight"})
+                _tts_future = asyncio.get_running_loop().create_future()
+                _TTS_INFLIGHT[_tts_key] = _tts_future
             if TTS_PROVIDER == "openrouter":
                 audio_data_override = await openrouter_tts_pcm_async(text)
                 response = None
             else:
               response = (await gemini_client.aio.models.generate_content(
                 model="gemini-3.1-flash-tts-preview",
-
                 contents=(
-                    "Speak in natural, fluent Hebrew. "
-                    "Sound like a warm, friendly and patient teacher "
-                    "speaking naturally to a school-age child. "
-                    "Use clear pronunciation, natural pauses, "
-                    "and an encouraging tone. "
-                    "Read exactly the following Hebrew text:\n\n"
+                    TTS_STYLE_PREFIX
                     + text
                 ),
 
@@ -11212,7 +11681,9 @@ async def tutor_tts(
             )
 
             traceback.print_exc()
-
+            if _tts_future is not None and not _tts_future.done():
+                _tts_future.set_exception(gemini_error)
+                _TTS_INFLIGHT.pop(_tts_key, None)
             raise
 
         # קבלת PCM audio
@@ -11275,8 +11746,12 @@ async def tutor_tts(
             )
 
         wav_buffer.seek(0)
-
         wav_bytes = wav_buffer.read()
+        if _tts_key:
+            if _tts_future is not None and not _tts_future.done():
+                _tts_future.set_result(wav_bytes)
+            _TTS_INFLIGHT.pop(_tts_key, None)
+            _threading.Thread(target=tts_cache_put, args=(_tts_key, wav_bytes), daemon=True).start()
 
         # עדכון Session - קריאת TTS אחת
         if body.session_id:
@@ -11431,6 +11906,28 @@ def get_learning_lesson_units(
             status_code=500,
             detail="Failed to load lesson units"
         )
+
+def build_resume_context(unit_lesson: dict, chat_history: list) -> dict:
+    """What was on screen before the coach dialogue: the explanation segments and the
+    question of the part the child reached (from the shared lesson content)."""
+    try:
+        parts = (((unit_lesson or {}).get("generated_lesson_json") or {}).get("structured_lesson") or {}).get("parts") or []
+        part_number = 1
+        for row in chat_history:
+            if row.get("part_number"):
+                part_number = int(row["part_number"])
+        part = next((p for p in parts if int(p.get("part_number") or 0) == part_number), parts[0] if parts else None)
+        if not part:
+            return {"part_number": part_number, "explanation_segments": [], "question": None}
+        return {
+            "part_number": part_number,
+            "explanation_segments": [str(s.get("text") or "") for s in (part.get("lesson") or []) if isinstance(s, dict) and s.get("text")],
+            "question": str(((part.get("question") or {}).get("text")) or "") or None,
+        }
+    except Exception as e:
+        print("RESUME CONTEXT FAILED:", repr(e)[:120])
+        return {"part_number": 1, "explanation_segments": [], "question": None}
+
 
 @app.post(
     "/api/tutor/active-lesson-state"
@@ -11591,6 +12088,31 @@ def get_active_lesson_state(
         )
 
         # =============================================
+        # FULL CHAT HISTORY OF THIS UNIT LESSON (2026-09-16)
+        #
+        # Re-entering a lesson used to show only the last teacher
+        # message. The child must see the whole conversation:
+        # the explanation segments of the current part, the
+        # question, and every exchange with the coach.
+        # =============================================
+        history_res = (
+            sb.table("kid_lesson_history")
+            .select("role, content, part_number, created_at")
+            .eq("kid_id", child["id"])
+            .eq("lesson_id", coach_session["lesson_id"])
+            .eq("unit_lesson_id", coach_session["unit_lesson_id"])
+            .order("created_at", desc=False)
+            .order("id", desc=False)          # a child answer + coach reply share created_at: keep insert order
+            .limit(80)
+            .execute()
+        )
+        chat_history = [
+            {"role": r.get("role"), "content": r.get("content"), "part_number": r.get("part_number"),
+             "created_at": r.get("created_at")}
+            for r in (history_res.data or []) if r.get("content")
+        ]
+
+        # =============================================
         # UNIT LESSON DETAILS
         # =============================================
 
@@ -11720,6 +12242,8 @@ def get_active_lesson_state(
                     )
             },
 
+            "chat_history": chat_history,
+            "resume_context": build_resume_context(unit_lesson, chat_history),
             "last_assistant_message": {
                 "content":
                     (
@@ -12109,6 +12633,8 @@ def lesson_intro(
             or ""
         ).strip()
 
+        child_name = lq.display_first_name(child_name)
+
         if child_name:
             greeting_text = (
                 f"היי {child_name}! "
@@ -12123,7 +12649,14 @@ def lesson_intro(
                     speech_tts=greeting_text
                 )
             )
-
+        # Warm the TTS cache for this intro's sentences (greeting with the child's
+        # name, shared closing line) so the browser's requests a second later are hits.
+        try:
+            _warm_texts = [a.speech_tts for a in sequence if getattr(a, "speech_tts", None)]
+            if _warm_texts and TTS_CACHE_ENABLED:
+                _threading.Thread(target=run_in_context(warm_tts_cache, _warm_texts), daemon=True).start()
+        except Exception as _warm_error:
+            print("LIVE TTS CACHE WARM SCHEDULE FAILED:", repr(_warm_error)[:160])
         return {
             "success": True,
 
@@ -12461,6 +12994,37 @@ async def get_or_generate_unit_lesson(
                 )
             )
         )
+
+        _quality = (cached_json or {}).get("quality") if isinstance(cached_json, dict) else None
+        # Product decision 2026-09-16: a failed quality gate never blocks a lesson. The verdict
+        # stays in generated_lesson_json.quality (ok=false) for the future admin review screen;
+        # only an explicit generation_status="needs_review" (set by a human) withholds a lesson.
+        if isinstance(_quality, dict) and _quality.get("ok") is False and not _quality.get("approved_by_human"):
+            print("UNIT LESSON FLAGGED FOR REVIEW (served anyway):", {"unit_lesson_id": unit_lesson["id"], "errors": (_quality.get("errors") or [])[:2]})
+        _needs_review = generation_status == "needs_review"
+        if _needs_review:
+
+            # the quality gate failed for this lesson: do NOT regenerate on every open (cost loop);
+
+            # it is released by a fix + re-run of the gate, or by tools/lesson_gate.py --approve
+
+            print("UNIT LESSON NEEDS REVIEW (served as unavailable):", {"unit_lesson_id": unit_lesson["id"]})
+
+            return {
+
+                "success": False,
+
+                "source": "needs_review",
+
+                "unit_lesson_id": unit_lesson["id"],
+
+                "generation_status": "needs_review",
+
+                "quality": (cached_json or {}).get("quality") if isinstance(cached_json, dict) else None,
+
+                "message": "השיעור הזה בבדיקת איכות ויחזור בקרוב. אפשר לבחור שיעור אחר בינתיים."
+
+            }
 
         if (
                 generation_status == "ready"
@@ -13763,6 +14327,10 @@ async def get_or_generate_unit_lesson(
             )
             or 1
         )
+        if unit_lesson.get("generated_lesson_json"):
+            # regenerating over existing content: new version so old audio/images can never be served
+            content_version += 1
+            print("LESSON CONTENT VERSION BUMPED (regeneration):", {"unit_lesson_id": unit_lesson["id"], "content_version": content_version})
 
         generated_at = (
             datetime
@@ -14769,15 +15337,14 @@ def get_unit_lesson_visuals(
 
             if not visual_order:
                 continue
-
+            image_order = int(visual.get("reuse_of") or visual_order)   # reused entries show the previous image
             storage_path = (
                 f"unit_lessons/"
                 f"{unit_lesson['id']}/"
                 f"v{content_version}/"
                 f"part_{part_number}/"
-                f"visual_{visual_order}.png"
+                f"visual_{image_order}.png"
             )
-
             # The image may still be generating.
             # If it is not ready yet, skip it for now.
             try:
@@ -15461,11 +16028,19 @@ async def run_learning_coach(
         or ""
     ).strip()
 
-    max_rounds_reached = (
-        current_round
-        >= LEARNING_COACH_MAX_ROUNDS
+    recommended_round_limit = min(
+        LEARNING_COACH_MAX_ROUNDS,
+        get_learning_coach_round_limit(understanding_score)
     )
 
+    max_rounds_reached = (
+        current_round
+        >= recommended_round_limit
+    )
+
+    # Separate mastery from flow completion. A child does NOT need 90+ to move on.
+    # Low/medium scores are retained as diagnostic evidence and the lesson continues
+    # after a small adaptive number of focused turns.
     coach_finished = (
         goal_achieved
         or max_rounds_reached
@@ -15824,7 +16399,7 @@ async def run_learning_coach(
                 current_round,
 
             "maximum_rounds":
-                LEARNING_COACH_MAX_ROUNDS,
+                recommended_round_limit,
 
             "understanding_score":
                 understanding_score,
@@ -18362,6 +18937,37 @@ async def homework_analyze(
 # CURRICULUM BUILDER CHAT
 # =====================================================
 
+def build_curriculum_builder_prompt(child: dict, custom_subject: dict | None, current_tree: dict, history: list) -> str:
+    """Fill the prompt's placeholders (until 2026-09-15 the runtime context was only appended as
+    JSON, so the model saw the literal text "שם: {child_name}") and add the runtime context."""
+    gender, _ = hebrew_gender_rule(child)
+    history_lines = []
+    for item in history or []:
+        if isinstance(item, dict) and item.get("content"):
+            role = "הורה" if item.get("role") == "user" else "מערכת"
+            history_lines.append(f"{role}: {str(item.get('content')).strip()}")
+    replacements = {
+        "{child_name}": str(child.get("child_name") or ""),
+        "{grade}": str(child.get("age") or ""),
+        "{gender}": gender,
+        "{subject}": str((custom_subject or {}).get("subject_name") or "לא זוהה עדיין"),
+        "{current_tree}": json.dumps(current_tree, ensure_ascii=False) if current_tree else "אין עדיין",
+        "{conversation_history}": "\n".join(history_lines) if history_lines else "אין עדיין",
+    }
+    prompt = CURRICULUM_BUILDER_PROMPT_TEMPLATE
+    for k, v in replacements.items():
+        prompt = prompt.replace(k, v)
+    runtime_context = {
+        "child": {"id": child.get("id"), "name": child.get("child_name"), "grade": child.get("age"), "gender": gender},
+        "current_subject": (
+            {"id": custom_subject.get("id"), "subject_name": custom_subject.get("subject_name"),
+             "status": custom_subject.get("status")} if custom_subject else None
+        ),
+        "current_curriculum": current_tree,
+    }
+    return prompt + "\n\nRUNTIME_CONTEXT:\n" + json.dumps(runtime_context, ensure_ascii=False, indent=2)
+
+
 @app.post("/api/curriculum/chat")
 async def curriculum_builder_chat(
         body: CurriculumBuilderChatRequest,
@@ -18442,57 +19048,8 @@ async def curriculum_builder_chat(
         # RUNTIME CONTEXT
         # =============================================
 
-        runtime_context = {
-
-            "child": {
-                "id":
-                    child.get("id"),
-
-                "name":
-                    child.get("child_name"),
-
-                # אצלנו age משמש כמספר הכיתה
-                "grade":
-                    child.get("age"),
-
-                "gender":
-                    child.get("gender")
-                    or "unknown"
-            },
-
-            "current_subject": (
-                {
-                    "id":
-                        custom_subject.get("id"),
-
-                    "subject_name":
-                        custom_subject.get(
-                            "subject_name"
-                        ),
-
-                    "status":
-                        custom_subject.get(
-                            "status"
-                        )
-                }
-                if custom_subject
-                else None
-            ),
-
-            "current_curriculum": (
-                current_tree
-            )
-        }
-
-        system_prompt = (
-            CURRICULUM_BUILDER_PROMPT_TEMPLATE
-            + "\n\n"
-            + "RUNTIME_CONTEXT:\n"
-            + json.dumps(
-                runtime_context,
-                ensure_ascii=False,
-                indent=2
-            )
+        system_prompt = build_curriculum_builder_prompt(
+            child, custom_subject, current_tree, body.history or []
         )
 
         # =============================================
@@ -20281,7 +20838,13 @@ async def openai_clean_chat(
     system_prompt = (
         "את מורה פרטית מצוינת לילדים. "
         "עזרי לילד להבין ולפתור את המשימה בעצמו. "
-        "הסבירי בפשטות, שלב אחרי שלב, ואל תתני את התשובה הסופית מיד. "
+        "לפני השאלה הסבירי במשפט קצר מה מבקשים ואיך ניגשים אליה. "
+        "בכל תגובה הציגי רק צעד אחד ברור, הסבירי אותו בקצרה, ואז שאלי שאלה קצרה אחת בלבד. "
+        "אחרי השאלה עצרי וחכי לתשובת הילד; אל תציגי את הצעדים הבאים ואל תפתרי את יתר הדף. "
+        "אל תעתיקי את כל דף העבודה ואל תתני רשימה של כל השאלות או התשובות. "
+        "אם יש בתמונה כמה משימות, התחילי רק מהמשימה הראשונה שעדיין לא נפתרה. "
+        "בתגובה הראשונה לתמונה צייני בקצרה מה הנושא שזיהית, הסבירי את הצעד הראשון ושאלי שאלה אחת. "
+        "שמרי כל תגובה קצרה, ברורה ומתאימה לילד. אל תתני את התשובה הסופית לפני שהילד ניסה. "
         "אם הילד העלה תמונה, קראי אותה בעצמך והשתמשי בה כמקור הראשי. "
         "התנהגי כמו מורה פרטית טבעית וחכמה, לא כמו שאלון."
     )
@@ -20388,7 +20951,9 @@ async def homework_coach(
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
     grade = child.get("grade") if isinstance(child, dict) else None
 
+    _hw_gender, _hw_gender_rule = hebrew_gender_rule(child)
     system_prompt = (
+        f"CHILD GENDER: {_hw_gender}. {_hw_gender_rule}\n\n"
         "את מורה פרטית מצוינת לילדים. המטרה שלך היא ללמד את הילד להבין ולפתור את שיעורי הבית בעצמו, בכל מקצוע ובכל סוג משימה. "
         "קודם הביני בשקט מה סוג המשימה: מתמטיקה, הבנת הנקרא, כתיבה, שפה, אנגלית, מדעים, גאוגרפיה, היסטוריה או תחום אחר; ומה בדיוק השאלה מבקשת. אל תציגי לילד ניתוח פנימי או סיווגים. "
         "יש בכל רגע שאלה פעילה אחת בלבד: השאלה שנשלחה בשדה השאלה הפעילה. אסור לעבור לשאלה אחרת, גם אם חומר המקור כולל שאלות נוספות. "
@@ -20452,14 +21017,7 @@ async def homework_turn(
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
 
     child_name = str(child.get("child_name") or "").strip()
-    gender = str(child.get("gender") or "unknown").strip().lower()
-
-    if gender == "female":
-        gender_rule = "Address the child in Hebrew feminine singular only."
-    elif gender == "male":
-        gender_rule = "Address the child in Hebrew masculine singular only."
-    else:
-        gender_rule = "Avoid gendered Hebrew phrasing when possible."
+    gender, gender_rule = hebrew_gender_rule(child)
 
     normalized_answer = " ".join(str(req.answer or "").strip().lower().split())
     uncertainty_phrases = {
@@ -20727,3 +21285,302 @@ HARD RULES:
         "current_question_number": req.current_question_number,
         "next_question_number": req.next_question_number
     }
+
+
+# =====================================================
+# ADMIN — LESSON REVIEW (2026-09-16)
+#
+# Server-side allowlist (ADMIN_EMAILS env, comma separated). The page at
+# /he/admin/lessons-review/ only calls these routes with the parent's Supabase
+# token; nothing here is reachable without an allowlisted email.
+# =====================================================
+ADMIN_EMAILS = {
+    e.strip().lower() for e in os.getenv(
+        "ADMIN_EMAILS",
+        "varonrot@gmail.com,office@calzo-app.com,yossi.heine@gmail.com,yossi.hina@gmail.com,yossiheine.biz@gmail.com"
+    ).split(",") if e.strip()
+}
+
+
+def require_admin(authorization: str | None):
+    user = authenticate_user(authorization)
+    email = str(getattr(user, "email", "") or "").lower()
+    if email not in ADMIN_EMAILS:
+        print("ADMIN DENIED:", {"email": email})
+        raise HTTPException(status_code=403, detail="admin only")
+    return user
+
+
+def _lesson_review_row(r: dict, parents: dict) -> dict:
+    g = r.get("generated_lesson_json") or {}
+    q = g.get("quality") or {}
+    parent = parents.get(r.get("learning_lesson_id")) or {}
+    return {
+        "id": r["id"], "unit_name": r.get("unit_name"), "lesson_name": r.get("lesson_name"),
+        "grade": parent.get("grade"), "subject": parent.get("subject"), "topic": parent.get("lesson_name"),
+        "generation_status": r.get("generation_status"), "audio_generation_status": r.get("audio_generation_status"),
+        "content_version": r.get("content_version"), "generated_at": r.get("generated_at"),
+        "quality": {
+            "checked": bool(q), "ok": q.get("ok"), "errors": q.get("errors") or [], "warnings": q.get("warnings") or [],
+            "stats": q.get("stats") or {}, "checked_at": q.get("checked_at"),
+            "approved_by_human": bool(q.get("approved_by_human")), "approved_by": q.get("approved_by"), "approved_at": q.get("approved_at"),
+            "note": q.get("review_note"),
+        },
+    }
+
+
+@app.get("/api/admin/lessons/quality")
+async def admin_lessons_quality(authorization: str = Header(None)):
+    await run_in_threadpool(lambda: require_admin(authorization))
+    rows = await run_in_threadpool(lambda: sb.table("lesson_units_content").select(
+        "id,unit_name,lesson_name,learning_lesson_id,generation_status,audio_generation_status,content_version,generated_at,generated_lesson_json"
+    ).order("id").execute().data)
+    parent_ids = sorted({r.get("learning_lesson_id") for r in rows if r.get("learning_lesson_id")})
+    parents = {}
+    if parent_ids:
+        pl = await run_in_threadpool(lambda: sb.table("learning_lessons").select("id,grade,subject,lesson_name").in_("id", parent_ids).execute().data)
+        parents = {p["id"]: p for p in pl}
+    out = [_lesson_review_row(r, parents) for r in rows]
+    flagged = [x for x in out if x["quality"]["checked"] and x["quality"]["ok"] is False and not x["quality"]["approved_by_human"]]
+    return {"success": True, "count": len(out), "flagged": len(flagged),
+            "generated": sum(1 for x in out if x["generation_status"] == "ready"), "lessons": out}
+
+
+class AdminLessonNote(BaseModel):
+    note: str | None = None
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/approve")
+async def admin_lesson_approve(unit_lesson_id: int, body: AdminLessonNote = None, authorization: str = Header(None)):
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    g = dict(row.get("generated_lesson_json") or {})
+    q = dict(g.get("quality") or {})
+    q.update({"approved_by_human": True, "approved_by": user.email, "approved_at": datetime.now(timezone.utc).isoformat(),
+              "review_note": (body.note if body else None) or q.get("review_note")})
+    g["quality"] = q
+    await run_in_threadpool(lambda: sb.table("lesson_units_content").update({"generated_lesson_json": g}).eq("id", unit_lesson_id).execute())
+    print("ADMIN LESSON APPROVED:", {"unit_lesson_id": unit_lesson_id, "by": user.email})
+    return {"success": True, "quality": q}
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/recheck")
+async def admin_lesson_recheck(unit_lesson_id: int, authorization: str = Header(None)):
+    await run_in_threadpool(lambda: require_admin(authorization))
+    report = await run_in_threadpool(lambda: run_lesson_quality_gate(unit_lesson_id, check_images=True))
+    return {"success": True, "quality": report}
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/regenerate")
+async def admin_lesson_regenerate(unit_lesson_id: int, authorization: str = Header(None)):
+    """Wipe media + generated content (same as tools/delete_unit_lesson.py) so the next open
+    rebuilds the lesson with the current prompts. content_version is bumped."""
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    def wipe():
+        row = get_unit_lesson(unit_lesson_id)
+        removed = {}
+        for bucket in (LESSON_MEDIA_BUCKET, LESSON_AUDIO_BUCKET):
+            paths = _list_storage_prefix(bucket, f"unit_lessons/{unit_lesson_id}")
+            for i in range(0, len(paths), 100):
+                sb.storage.from_(bucket).remove(paths[i:i + 100])
+            removed[bucket] = len(paths)
+        jobs = sb.table("media_jobs").select("id,status").eq("payload->>unit_lesson_id", str(unit_lesson_id)).execute().data
+        for j in jobs:
+            if j["status"] != "running":
+                sb.table("media_jobs").delete().eq("id", j["id"]).execute()
+        new_cv = int(row.get("content_version") or 1) + 1
+        sb.table("lesson_units_content").update({
+            "generation_status": "empty", "status": "empty", "generated_lesson_json": None, "lesson_audio_json": None,
+            "lesson_content_json": None, "audio_generation_status": "pending", "audio_generation_error": None,
+            "audio_generated_at": None, "audio_mode": None, "generation_error": None, "generation_started_at": None,
+            "generation_completed_at": None, "generated_at": None, "tts_generated_at": None, "model_name": None,
+            "prompt_version": None, "content_version": new_cv, "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", unit_lesson_id).execute()
+        return {"removed": removed, "jobs_deleted": len([j for j in jobs if j["status"] != "running"]), "content_version": new_cv}
+    result = await run_in_threadpool(wipe)
+    print("ADMIN LESSON REGENERATE (wiped):", {"unit_lesson_id": unit_lesson_id, "by": user.email, **result})
+    return {"success": True, **result}
+
+
+class AdminImageAction(BaseModel):
+    path: str          # e.g. "v1/part_2/visual_9.png" or "hero_v1.png"
+
+
+def _recompute_quality_after_override(q: dict, path: str) -> dict:
+    q = dict(q)
+    q["errors"] = [e for e in (q.get("errors") or []) if f"image {path}:" not in e]
+    imgs = dict(q.get("images") or {})
+    if path in imgs:
+        imgs[path] = dict(imgs[path], verdict="approved_by_human")
+    q["images"] = imgs
+    q["ok"] = not q["errors"]
+    return q
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/images/approve")
+async def admin_image_approve(unit_lesson_id: int, body: AdminImageAction, authorization: str = Header(None)):
+    """A human looked at the image and it is fine: the vision verdict is overridden for this file."""
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    g = dict(row.get("generated_lesson_json") or {}); q = dict(g.get("quality") or {})
+    ov = dict(q.get("image_overrides") or {}); ov[body.path] = {"by": user.email, "at": datetime.now(timezone.utc).isoformat()}
+    q["image_overrides"] = ov
+    q = _recompute_quality_after_override(q, body.path)
+    g["quality"] = q
+    await run_in_threadpool(lambda: sb.table("lesson_units_content").update({"generated_lesson_json": g}).eq("id", unit_lesson_id).execute())
+    print("ADMIN IMAGE APPROVED:", {"unit_lesson_id": unit_lesson_id, "path": body.path, "by": user.email})
+    return {"success": True, "quality": q}
+
+
+@app.post("/api/admin/lessons/{unit_lesson_id}/images/regenerate")
+async def admin_image_regenerate(unit_lesson_id: int, body: AdminImageAction, authorization: str = Header(None)):
+    """Delete ONE image; a visuals job (or the hero route on next open) recreates just the missing file."""
+    user = await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    full = f"unit_lessons/{unit_lesson_id}/{body.path}"
+    def do():
+        sb.storage.from_(LESSON_MEDIA_BUCKET).remove([full])
+        job_id = None
+        if not body.path.startswith("hero_"):
+            job_id = enqueue_media_job("unit_lesson_visuals", {"unit_lesson_id": unit_lesson_id},
+                                       dedupe_key=f"unit_lesson_visuals:{unit_lesson_id}", priority=5)
+        g = dict(row.get("generated_lesson_json") or {}); q = dict(g.get("quality") or {})
+        imgs = dict(q.get("images") or {})
+        if body.path in imgs:
+            imgs[body.path] = dict(imgs[body.path], verdict="regenerating")
+        q["images"] = imgs; g["quality"] = q
+        sb.table("lesson_units_content").update({"generated_lesson_json": g}).eq("id", unit_lesson_id).execute()
+        return job_id
+    job_id = await run_in_threadpool(do)
+    print("ADMIN IMAGE REGENERATE:", {"unit_lesson_id": unit_lesson_id, "path": body.path, "job_id": job_id, "by": user.email})
+    return {"success": True, "job_id": job_id, "note": "hero is recreated on the next lesson open" if body.path.startswith("hero_") else "visuals job queued"}
+
+
+@app.get("/api/admin/lessons/{unit_lesson_id}/media")
+async def admin_lesson_media(unit_lesson_id: int, authorization: str = Header(None)):
+    """Signed URLs of the hero and every visual of the current content_version, with the
+    text-check verdicts from the last quality report, so a human can look at them."""
+    await run_in_threadpool(lambda: require_admin(authorization))
+    row = await run_in_threadpool(lambda: get_unit_lesson(unit_lesson_id))
+    cv = int(row.get("content_version") or 1)
+    q = ((row.get("generated_lesson_json") or {}).get("quality") or {})
+    flagged = {}
+    for e in q.get("errors") or []:
+        m = re.search(r"readable text in image (\S+): '(.*)'", e)
+        if m:
+            flagged[m.group(1)] = m.group(2)
+    paths = await run_in_threadpool(lambda: _list_storage_prefix(LESSON_MEDIA_BUCKET, f"unit_lessons/{unit_lesson_id}"))
+    paths = sorted(p for p in paths if p.endswith(".png") and (f"/v{cv}/" in p or "/hero_v" in p))
+    urls = await run_in_threadpool(lambda: signed_urls_cached_batch(LESSON_MEDIA_BUCKET, paths, LESSON_MEDIA_URL_EXPIRY_SECONDS))
+    verdicts = q.get("images") or {}
+    items = []
+    for p in paths:
+        key = p.split(f"unit_lessons/{unit_lesson_id}/", 1)[-1]
+        v = verdicts.get(key) or {}
+        items.append({"path": key, "url": urls.get(p), "text_found": flagged.get(key) or (v.get("text") if v.get("verdict") in ("text", "possible_text") else None),
+                      "verdict": v.get("verdict") or ("text" if key in flagged else ("unchecked" if not verdicts else "clean")),
+                      "kind": v.get("kind"), "confidence": v.get("confidence"), "source": v.get("source")})
+    parts = (((row.get("generated_lesson_json") or {}).get("structured_lesson") or {}).get("parts") or [])
+    text = [{"part_number": p.get("part_number"), "segments": [s.get("text") for s in (p.get("lesson") or []) if isinstance(s, dict)],
+             "question": (p.get("question") or {}).get("text")} for p in parts]
+    return {"success": True, "content_version": cv, "images": items, "text": text, "quality": q}
+
+
+# =====================================================
+# SPEECH TO TEXT (2026-09-17)
+#
+# Every chat box in the product has a microphone: the child speaks and the words
+# appear in the input instead of typing. The browser's own recognition is used when
+# it exists; this route is the fallback (Firefox, old WebViews) and the accurate
+# path for children's Hebrew. Audio arrives as base64 in JSON, like the rest of the
+# API. Nothing is stored: the clip is transcribed and dropped.
+# =====================================================
+_stt_openai_client = None
+
+
+def _get_stt_openai_client():
+    """A DIRECT OpenAI client: transcription does not exist on OpenRouter, so the
+    shared `client` (which may point at OpenRouter) cannot be used here."""
+    global _stt_openai_client
+    if _stt_openai_client is None:
+        key = os.getenv("OPENAI_API_KEY", "").strip()
+        if not key:
+            raise RuntimeError("OPENAI_API_KEY is required for speech to text")
+        _stt_openai_client = OpenAI(api_key=key)
+    return _stt_openai_client
+
+
+def transcribe_audio_bytes(audio: bytes, mime_type: str = "audio/webm", language: str = "he") -> dict:
+    """{'text': str, 'provider': str, 'model': str, 'ms': int}. Raises on failure."""
+    t0 = time.perf_counter()
+    suffix = {"audio/webm": ".webm", "audio/ogg": ".ogg", "audio/mp4": ".m4a",
+              "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav"}.get(
+        (mime_type or "").split(";")[0].strip(), ".webm")
+    provider, model, text = STT_PROVIDER, STT_MODEL, ""
+    if STT_PROVIDER == "openai":
+        buf = io.BytesIO(audio)
+        buf.name = f"speech{suffix}"
+        try:
+            r = _get_stt_openai_client().audio.transcriptions.create(
+                model=STT_MODEL, file=buf, language=language,
+                prompt="תמלול דיבור של ילד בעברית, בשיעור. כתוב רק את מה שנאמר.")
+        except Exception as first_error:
+            print("STT MODEL FAILED, TRYING whisper-1:", {"model": STT_MODEL, "error": repr(first_error)[:160]})
+            buf.seek(0)
+            model = "whisper-1"
+            r = _get_stt_openai_client().audio.transcriptions.create(model=model, file=buf, language=language)
+        text = str(getattr(r, "text", "") or "").strip()
+    else:
+        provider, model = "gemini", STT_GEMINI_MODEL
+        resp = gemini_client.models.generate_content(
+            model=STT_GEMINI_MODEL,
+            contents=[types.Part.from_bytes(data=audio, mime_type=(mime_type or "audio/webm").split(";")[0]),
+                      "Transcribe this speech verbatim. It is a child speaking Hebrew during a lesson. "
+                      "Return ONLY the transcription, no punctuation guesses beyond the obvious, no commentary."],
+            config=types.GenerateContentConfig(temperature=0))
+        text = str(getattr(resp, "text", "") or "").strip()
+    ms = round((time.perf_counter() - t0) * 1000)
+    try:
+        ai_costs.record(provider, model, purpose="stt", audio_seconds=None, latency_ms=ms,
+                        status="ok" if text else "error", error=None if text else "empty transcription",
+                        extra={"bytes": len(audio), "mime": mime_type})
+    except Exception as e:
+        print("AI COSTS RECORD FAILED (stt):", repr(e)[:120])
+    return {"text": text, "provider": provider, "model": model, "ms": ms}
+
+
+class TutorSTTRequest(BaseModel):
+    audio_base64: str
+    mime_type: str = "audio/webm"
+    kid_id: str | None = None
+    language: str = "he"
+
+
+@app.post("/api/tutor/stt")
+async def tutor_stt(body: TutorSTTRequest, authorization: str = Header(None)):
+    try:
+        user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+        ai_context("stt", user, body)
+        raw = (body.audio_base64 or "").strip()
+        if "," in raw[:120] and raw.lstrip().startswith("data:"):
+            raw = raw.split(",", 1)[1]                       # data:audio/webm;base64,....
+        try:
+            audio = base64.b64decode(raw, validate=False)
+        except Exception:
+            raise HTTPException(status_code=400, detail="audio_base64 is not valid base64")
+        if not audio:
+            raise HTTPException(status_code=400, detail="audio is empty")
+        if len(audio) > STT_MAX_BYTES:
+            raise HTTPException(status_code=413, detail="audio is too long")
+        # Identifiers and sizes only: this is a child's own voice.
+        print("STT REQUEST:", {"bytes": len(audio), "mime": body.mime_type, "kid_id": (body.kid_id or "")[:8]})
+        result = await run_in_threadpool(lambda: transcribe_audio_bytes(audio, body.mime_type, body.language or "he"))
+        print("STT DONE:", {"chars": len(result["text"]), "ms": result["ms"], "model": result["model"],
+                            **({"text": repr(result["text"])} if not IS_PROD else {})})
+        return {"success": bool(result["text"]), "text": result["text"], "model": result["model"], "ms": result["ms"]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("STT ERROR:", repr(e)[:300])
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"speech to text failed: {e}")

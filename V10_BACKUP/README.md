@@ -1,9 +1,9 @@
-# V6_BACKUP — main.py + prompts snapshot
+# V10_BACKUP — main.py + prompts snapshot
 
-Created: 2026-09-15 17:05 UTC
-Git HEAD: f75ba9a2
-Note: before live TTS storage cache
-Files: 35
+Created: 2026-09-17 05:15 UTC
+Git HEAD: aedbc71c
+Note: before Hebrew correctness rules in prompts
+Files: 17
 
 - `backend/main.py`                  — core chat API
 - `backend-ai-tutor-he/main.py`      — Hebrew AI tutor API

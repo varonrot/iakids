@@ -51,9 +51,6 @@ HOMEWORK_VISION_PROMPT_PATH = Path(
 LESSON_PROMPT_PATH = Path(
     "prompts/iakids_structured_lesson_prompt.txt"
 )
-UNIVERSAL_UNIT_LESSON_PROMPT_PATH = Path(
-    "prompts/iakids_universal_unit_lesson_prompt.txt"
-)
 
 LESSON_INITIAL_PROMPT_PATH = Path(
     "prompts/iakids_lesson_initial_prompt.txt"
@@ -268,61 +265,9 @@ if not LESSON_PROMPT_PATH.exists():
         f"Missing lesson prompt file: "
         f"{LESSON_PROMPT_PATH}"
     )
-if not UNIVERSAL_UNIT_LESSON_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing universal unit lesson prompt file: "
-        f"{UNIVERSAL_UNIT_LESSON_PROMPT_PATH}"
-    )
-if not LESSON_INITIAL_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing lesson initial prompt file: "
-        f"{LESSON_INITIAL_PROMPT_PATH}"
-    )
-if not LESSON_EXPANSION_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing lesson expansion prompt file: "
-        f"{LESSON_EXPANSION_PROMPT_PATH}"
-    )
-if not LESSON_DIRECTOR_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing lesson director prompt file: "
-        f"{LESSON_DIRECTOR_PROMPT_PATH}"
-    )
-if not VISUAL_DIRECTOR_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing visual director prompt file: "
-        f"{VISUAL_DIRECTOR_PROMPT_PATH}"
-    )
-if not LESSON_TRANSITION_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing Lesson Transition prompt file: "
-        f"{LESSON_TRANSITION_PROMPT_PATH}"
-    )
-if not LEARNING_COACH_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing Learning Coach prompt file: "
-        f"{LEARNING_COACH_PROMPT_PATH}"
-    )
-if not CURRICULUM_BUILDER_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing Curriculum Builder prompt file: "
-        f"{CURRICULUM_BUILDER_PROMPT_PATH}"
-    )
-if not HOMEWORK_VISION_PROMPT_PATH.exists():
-    raise RuntimeError(
-        f"Missing homework vision prompt file: "
-        f"{HOMEWORK_VISION_PROMPT_PATH}"
-    )
-
 TUTOR_PROMPT_TEMPLATE = PROMPT_PATH.read_text(encoding="utf-8")
 LESSON_PROMPT_TEMPLATE = (
     LESSON_PROMPT_PATH
-    .read_text(
-        encoding="utf-8"
-    )
-)
-UNIVERSAL_UNIT_LESSON_PROMPT_TEMPLATE = (
-    UNIVERSAL_UNIT_LESSON_PROMPT_PATH
     .read_text(
         encoding="utf-8"
     )
@@ -524,6 +469,12 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 OPENROUTER_TTS_MODEL = os.getenv("OPENROUTER_TTS_MODEL", "google/gemini-3.1-flash-tts-preview")
 TTS_VOICE = os.getenv("TTS_VOICE", "Aoede")
+# --- speech to text (dictation): the child speaks, the text appears in the chat box ---
+STT_PROVIDER = os.getenv("STT_PROVIDER", "openai")            # openai (direct key) | gemini
+STT_MODEL = os.getenv("STT_MODEL", "gpt-4o-mini-transcribe")  # fallback: whisper-1
+STT_GEMINI_MODEL = os.getenv("STT_GEMINI_MODEL", "gemini-3.1-flash-lite")
+STT_MAX_SECONDS = int(os.getenv("STT_MAX_SECONDS", "60"))
+STT_MAX_BYTES = int(os.getenv("STT_MAX_BYTES", "4000000"))    # ~4 MB of compressed audio
 TTS_PARALLEL = max(1, int(os.getenv("TTS_PARALLEL", "3")))   # TTS calls in flight per lesson part (OpenRouter: 20 rpm)
 TTS_STYLE_PREFIX = os.getenv(
     "TTS_STYLE_PREFIX",
@@ -598,9 +549,105 @@ def tts_homographs_in(text: str) -> list:
     return found
 
 
-def vocalize_for_tts(text: str) -> str:
-    """Return `text` with nikud on its ambiguous words only (or unchanged)."""
+# ---------------------------------------------------------------------------
+# CHILD NAME PRONUNCIATION (2026-09-17)
+# "ארבל" read without vowels comes out wrong; a name is the first word the child
+# hears. Curated table for the names we have, one small model call for a new name,
+# and the answer is kept in Storage so every process and restart reuses it.
+# ---------------------------------------------------------------------------
+NAME_NIKUD_CURATED = {
+    "ארבל": "\u05d0\u05b7\u05e8\u05b0\u05d1\u05bc\u05b5\u05dc",          # Arbel
+    "איתן": "\u05d0\u05b5\u05d9\u05ea\u05b8\u05df",                        # Eitan
+    "אלונה": "\u05d0\u05b7\u05dc\u05bc\u05d5\u05b9\u05e0\u05b8\u05d4",  # Alona
+    "אבישג": "\u05d0\u05b2\u05d1\u05b4\u05d9\u05e9\u05c1\u05b7\u05d2",  # Avishag
+    "אביתר": "\u05d0\u05b6\u05d1\u05b0\u05d9\u05b8\u05ea\u05b8\u05e8",  # Evyatar
+    "רותם": "\u05e8\u05d5\u05b9\u05ea\u05b6\u05dd",                        # Rotem
+    "נועה": "\u05e0\u05d5\u05b9\u05e2\u05b8\u05d4",
+    "יהלי": "\u05d9\u05b7\u05d4\u05b2\u05dc\u05b4\u05d9",
+    "תמר": "\u05ea\u05bc\u05b8\u05de\u05b8\u05e8",
+    "שירה": "\u05e9\u05c1\u05b4\u05d9\u05e8\u05b8\u05d4",
+    "אורי": "\u05d0\u05d5\u05bc\u05e8\u05b4\u05d9",
+    "רוני": "\u05e8\u05d5\u05b9\u05e0\u05b4\u05d9",
+    "עידו": "\u05e2\u05b4\u05d9\u05d3\u05d5\u05b9",
+}
+NAME_NIKUD_CURATED.update(json.loads(os.getenv("TTS_NAME_NIKUD_JSON", "{}")))
+_NAME_NIKUD_PATH = os.getenv("TTS_NAME_NIKUD_PATH", "tts-cache/v1/name_nikud.json")
+_name_nikud: dict | None = None
+
+
+def _load_name_nikud() -> dict:
+    global _name_nikud
+    if _name_nikud is None:
+        learned = {}
+        try:
+            raw = sb.storage.from_(LESSON_AUDIO_BUCKET).download(_NAME_NIKUD_PATH)
+            learned = json.loads(raw.decode("utf-8")) if raw else {}
+        except Exception:
+            learned = {}
+        _name_nikud = {**learned, **NAME_NIKUD_CURATED}      # curated always wins
+    return _name_nikud
+
+
+def _save_name_nikud(name: str, vocalized: str):
+    try:
+        try:
+            raw = sb.storage.from_(LESSON_AUDIO_BUCKET).download(_NAME_NIKUD_PATH)
+            data = json.loads(raw.decode("utf-8")) if raw else {}
+        except Exception:
+            data = {}
+        data[name] = vocalized
+        sb.storage.from_(LESSON_AUDIO_BUCKET).upload(
+            path=_NAME_NIKUD_PATH, file=json.dumps(data, ensure_ascii=False).encode("utf-8"),
+            file_options={"content-type": "application/json", "upsert": "true"})
+    except Exception as e:
+        print("NAME NIKUD SAVE FAILED (kept in memory):", repr(e)[:120])
+
+
+def vocalize_name(name: str) -> str:
+    """The child's first name with nikud, so the voice says it correctly."""
+    clean = str(name or "").strip()
+    if not clean or _NIKUD_CHARS.search(clean) or not _HEB_WORD.fullmatch(clean):
+        return clean                                   # empty, already vocalized, or not one Hebrew word
+    table = _load_name_nikud()
+    if clean in table:
+        return table[clean]
+    if not TTS_NIKUD:
+        return clean
+    try:
+        r = client.chat.completions.create(
+            model=llm_model(NIKUD_MODEL), temperature=0,
+            messages=[
+                {"role": "system", "content": "נקד שם פרטי בעברית כפי שהוגים אותו בישראל. "
+                                              "החזר אך ורק את השם המנוקד, בלי ניקוד חלקי ובלי מילים נוספות."},
+                {"role": "user", "content": clean},
+            ])
+        out = str(r.choices[0].message.content or "").strip().split()[0]
+        if strip_nikud(out) != clean or not _NIKUD_CHARS.search(out):
+            print("NAME NIKUD REJECTED:", {"name": clean, "got": out[:40]})
+            out = clean
+        else:
+            print("NAME NIKUD LEARNED:", {"name": clean, "vocalized": out})
+            table[clean] = out
+            _threading.Thread(target=_save_name_nikud, args=(clean, out), daemon=True).start()
+        return out
+    except Exception as e:
+        print("NAME NIKUD FAILED:", {"name": clean, "error": repr(e)[:120]})
+        return clean
+
+
+def vocalize_for_tts(text: str, gender: str | None = None, child_name: str | None = None) -> str:
+    """Return `text` with nikud where Hebrew is ambiguous when read aloud:
+    1) second-person forms that are spelled identically for a boy and a girl
+       (בשבילך, שלך, הצלחת, ראית) — deterministic table, needs the child's gender;
+    2) semantic homographs (מדבר) — one small model call, only when one is present."""
     clean = str(text or "").strip()
+    if child_name:
+        spoken_name = vocalize_name(child_name)
+        if spoken_name and spoken_name != child_name:
+            clean = re.sub(r"(?<![\w\u0590-\u05FF])" + re.escape(str(child_name).strip()) + r"(?![\w\u0590-\u05FF])",
+                           spoken_name, clean)
+    if gender in ("male", "female"):
+        clean = lq.second_person_nikud(clean, gender)
     if not TTS_NIKUD or not clean or _NIKUD_CHARS.search(clean):
         return clean                                   # already vocalized (or disabled)
     words = tts_homographs_in(clean)
@@ -654,9 +701,9 @@ TTS_CACHE_PREFIX = "tts-cache/v1"
 _TTS_INFLIGHT: dict = {}          # cache key -> asyncio.Future (same text requested twice at once)
 
 
-def tts_cache_key(text: str) -> str:
+def tts_cache_key(text: str, gender: str | None = None) -> str:
     model = OPENROUTER_TTS_MODEL if TTS_PROVIDER == "openrouter" else "gemini-3.1-flash-tts-preview"
-    raw = f"{TTS_PROVIDER}|{model}|{TTS_VOICE}|{TTS_STYLE_PREFIX}|{text.strip()}"
+    raw = f"{TTS_PROVIDER}|{model}|{TTS_VOICE}|{gender or ''}|{TTS_STYLE_PREFIX}|{text.strip()}"
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()
 
 
@@ -705,7 +752,7 @@ def tts_cache_put(key: str, wav_bytes: bytes):
         print("LIVE TTS CACHE PUT FAILED (audio still served):", {"key": key[:12], "error": repr(e)[:160]})
 
 
-def warm_tts_cache(texts: list) -> dict:
+def warm_tts_cache(texts: list, gender: str | None = None, child_name: str | None = None) -> dict:
     """Synthesize + store every text that is not cached yet. Runs on a thread
     (_threading.Thread(target=run_in_context(warm_tts_cache, texts))) so an intro's
     sentences are ready before the browser asks for them. Returns counts."""
@@ -715,13 +762,13 @@ def warm_tts_cache(texts: list) -> dict:
         if not tts_cacheable(text):
             out["skipped"] += 1
             continue
-        spoken = vocalize_for_tts(text)
-        key = tts_cache_key(spoken)
+        spoken = vocalize_for_tts(text, gender, child_name)
+        key = tts_cache_key(spoken, gender)
         if tts_cache_get(key) is not None:
             out["hit"] += 1
             continue
         try:
-            wav, dur = generate_tts_wav_bytes(spoken)
+            wav, dur = generate_tts_wav_bytes(spoken, gender)
             tts_cache_put(key, wav)
             out["warmed"] += 1
             print("LIVE TTS CACHE WARMED:", {"key": key[:12], "seconds": round(dur, 1), "text_length": len(text)})
@@ -1296,12 +1343,14 @@ class CurriculumBuilderAIResponse(BaseModel):
 class TutorTTSRequest(BaseModel):
     text: str
     session_id: str | None = None
+    kid_id: str | None = None          # the voice must read second-person forms in the child's gender
 
 
 class OpenAICleanChatRequest(BaseModel):
     message: str = ""
     image_url: str = ""
     history: list = []
+    kid_id: str | None = None          # so the teacher speaks in the child's gender
 
 
 class HomeworkCoachRequest(BaseModel):
@@ -2128,6 +2177,27 @@ def update_custom_curriculum(
     }).execute()
 
     return updated_curriculum
+
+HEBREW_WRITING_RULES = (
+    "HEBREW CORRECTNESS (every answer is shown on screen AND read aloud by TTS):\n"
+    "- Apply the gender rule above to EVERY verb, adjective, pronoun and suffix that refers to the child "
+    "(שלך/שלך, בשבילך, הצלחת, ראית are written the same for a boy and a girl but are READ differently, "
+    "so the rest of the sentence must make the gender unambiguous).\n"
+    "- Hebrew numerals agree with the noun's gender: שלושה עצים / שלוש מילים, שני חלקים / שתי שאלות.\n"
+    "- Never write slash or parenthesis forms (נסה/י, מוכן/ה): they are read aloud as gibberish.\n"
+    "- No gershayim abbreviations (ק\"מ, ד\"ר, בי\"ס, וכו'): write the full words.\n"
+    "- No emoji or symbols inside a spoken sentence; describe arrows and diagrams in words.\n"
+    "- English words only when the English word itself is what is being taught.\n"
+    "- One space after a comma or a period, no double spaces, no words in capitals.\n"
+)
+
+
+def hebrew_child_prompt_block(child: dict) -> str:
+    """The block every child-facing prompt must carry: how to address THIS child plus the
+    Hebrew rules that keep the answer correct both on screen and in the voice."""
+    gender, rule = hebrew_gender_rule(child)
+    return f"CHILD GENDER: {gender}. {rule}\n{HEBREW_WRITING_RULES}"
+
 
 def hebrew_gender_rule(child: dict) -> tuple[str, str]:
     """('female'|'male'|'unknown', instruction for the model) — the ONE place that decides
@@ -5204,6 +5274,7 @@ def build_tutor_prompt(child: dict, kids_memory: str) -> str:
         prompt = prompt.replace(placeholder, value)
 
     child_gender, gender_instruction = hebrew_gender_rule(child)
+    gender_instruction = gender_instruction + "\n" + HEBREW_WRITING_RULES
     child_name = str(child.get("child_name") or "").strip()
 
     prompt += (
@@ -5395,7 +5466,7 @@ def build_structured_lesson_prompt(
                 ensure_ascii=False
             )
             + "\n\nADDRESSING THE CHILD (Hebrew grammar, mandatory):\n"
-            + hebrew_gender_rule(child)[1]
+            + hebrew_child_prompt_block(child)
     )
 
 def build_universal_unit_lesson_prompt(
@@ -10563,7 +10634,8 @@ def _concat_wavs(wavs: list) -> tuple[bytes, float]:
 
 
 def generate_tts_wav_bytes(
-        text: str
+        text: str,
+        gender: str | None = None
 ) -> tuple[bytes, float]:
 
     clean_text = str(
@@ -10589,7 +10661,7 @@ def generate_tts_wav_bytes(
         print("TTS LONG TEXT SPLIT:", {"chars": len(clean_text), "chunks": len(chunks)})
         wavs = [generate_tts_wav_bytes(c) for c in chunks]
         return _concat_wavs(wavs)
-    spoken_text = vocalize_for_tts(clean_text)      # nikud on ambiguous words only
+    spoken_text = vocalize_for_tts(clean_text, gender)      # nikud on ambiguous words only
     response = None
     audio_data = None
     for attempt in range(1, TTS_ATTEMPTS + 1):
@@ -11591,8 +11663,28 @@ async def tutor_tts(
 
             audio_data_override = None
             text = lq.normalize_for_tts(text)
-            text = await run_in_threadpool(vocalize_for_tts, text)   # nikud on ambiguous words only
-            _tts_key = tts_cache_key(text) if tts_cacheable(text) else None
+            # "אני כאן בשבילך" is written the same for a boy and a girl and read differently:
+            # resolve the child (kid_id, else the tutor session) before vocalizing.
+            _gender = None
+            _child_name = None
+            try:
+                _child = None
+                if body.kid_id:
+                    _child = await run_in_threadpool(lambda: get_child_by_id(user.id, body.kid_id))
+                elif body.session_id:
+                    _sess = await run_in_threadpool(lambda: sb.table("tutor_sessions").select("kid_id")
+                                                    .eq("id", body.session_id).limit(1).execute().data)
+                    if _sess and _sess[0].get("kid_id"):
+                        _child = await run_in_threadpool(lambda: get_child_by_id(user.id, _sess[0]["kid_id"]))
+                if _child:
+                    _gender = hebrew_gender_rule(_child)[0]
+                    if _gender not in ("male", "female"):
+                        _gender = None
+                    _child_name = lq.display_first_name(_child.get("child_name") or "")
+            except Exception as _gender_error:
+                print("LIVE TTS GENDER LOOKUP FAILED (neutral reading):", repr(_gender_error)[:140])
+            text = await run_in_threadpool(vocalize_for_tts, text, _gender, _child_name)   # name + gender-aware nikud
+            _tts_key = tts_cache_key(text, _gender) if tts_cacheable(text) else None
             _tts_future = None
             if _tts_key:
                 _cached = await run_in_threadpool(tts_cache_get, _tts_key)
@@ -12648,7 +12740,9 @@ def lesson_intro(
         try:
             _warm_texts = [a.speech_tts for a in sequence if getattr(a, "speech_tts", None)]
             if _warm_texts and TTS_CACHE_ENABLED:
-                _threading.Thread(target=run_in_context(warm_tts_cache, _warm_texts), daemon=True).start()
+                _threading.Thread(target=run_in_context(
+                    warm_tts_cache, _warm_texts, hebrew_gender_rule(child)[0],
+                    lq.display_first_name(child.get("child_name") or "")), daemon=True).start()
         except Exception as _warm_error:
             print("LIVE TTS CACHE WARM SCHEDULE FAILED:", repr(_warm_error)[:160])
         return {
@@ -20827,9 +20921,15 @@ async def openai_clean_chat(
         req: OpenAICleanChatRequest,
         authorization: str = Header(None)
 ):
-    authenticate_user(authorization)
-
+    user = authenticate_user(authorization)
+    child = {}
+    if req.kid_id:
+        try:
+            child = get_child_by_id(user.id, req.kid_id) or {}
+        except Exception as e:
+            print("CLEAN CHAT: child lookup failed, neutral Hebrew:", repr(e)[:120])
     system_prompt = (
+        hebrew_child_prompt_block(child) + "\n"
         "את מורה פרטית מצוינת לילדים. "
         "עזרי לילד להבין ולפתור את המשימה בעצמו. "
         "לפני השאלה הסבירי במשפט קצר מה מבקשים ואיך ניגשים אליה. "
@@ -20877,8 +20977,8 @@ async def homework_coach_v2(
     user = authenticate_user(authorization)
     child = get_child_by_id(user.id, req.kid_id)
     grade = child.get("grade") if isinstance(child, dict) else None
-
     system_prompt = (
+        hebrew_child_prompt_block(child) + "\n"
         "את מורה פרטית מצוינת לילדים. "
         "המטרה שלך היא לעזור לילד להבין ולפתור את שיעורי הבית בעצמו. "
         "קודם הסתכלי על המשימה והביני מה השאלה מבקשת. "
@@ -20945,9 +21045,8 @@ async def homework_coach(
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
     grade = child.get("grade") if isinstance(child, dict) else None
 
-    _hw_gender, _hw_gender_rule = hebrew_gender_rule(child)
     system_prompt = (
-        f"CHILD GENDER: {_hw_gender}. {_hw_gender_rule}\n\n"
+        hebrew_child_prompt_block(child) + "\n"
         "את מורה פרטית מצוינת לילדים. המטרה שלך היא ללמד את הילד להבין ולפתור את שיעורי הבית בעצמו, בכל מקצוע ובכל סוג משימה. "
         "קודם הביני בשקט מה סוג המשימה: מתמטיקה, הבנת הנקרא, כתיבה, שפה, אנגלית, מדעים, גאוגרפיה, היסטוריה או תחום אחר; ומה בדיוק השאלה מבקשת. אל תציגי לילד ניתוח פנימי או סיווגים. "
         "יש בכל רגע שאלה פעילה אחת בלבד: השאלה שנשלחה בשדה השאלה הפעילה. אסור לעבור לשאלה אחרת, גם אם חומר המקור כולל שאלות נוספות. "
@@ -21012,6 +21111,7 @@ async def homework_turn(
 
     child_name = str(child.get("child_name") or "").strip()
     gender, gender_rule = hebrew_gender_rule(child)
+    gender_rule = gender_rule + "\n" + HEBREW_WRITING_RULES
 
     normalized_answer = " ".join(str(req.answer or "").strip().lower().split())
     uncertainty_phrases = {
@@ -21478,3 +21578,103 @@ async def admin_lesson_media(unit_lesson_id: int, authorization: str = Header(No
     text = [{"part_number": p.get("part_number"), "segments": [s.get("text") for s in (p.get("lesson") or []) if isinstance(s, dict)],
              "question": (p.get("question") or {}).get("text")} for p in parts]
     return {"success": True, "content_version": cv, "images": items, "text": text, "quality": q}
+
+
+# =====================================================
+# SPEECH TO TEXT (2026-09-17)
+#
+# Every chat box in the product has a microphone: the child speaks and the words
+# appear in the input instead of typing. The browser's own recognition is used when
+# it exists; this route is the fallback (Firefox, old WebViews) and the accurate
+# path for children's Hebrew. Audio arrives as base64 in JSON, like the rest of the
+# API. Nothing is stored: the clip is transcribed and dropped.
+# =====================================================
+_stt_openai_client = None
+
+
+def _get_stt_openai_client():
+    """A DIRECT OpenAI client: transcription does not exist on OpenRouter, so the
+    shared `client` (which may point at OpenRouter) cannot be used here."""
+    global _stt_openai_client
+    if _stt_openai_client is None:
+        key = os.getenv("OPENAI_API_KEY", "").strip()
+        if not key:
+            raise RuntimeError("OPENAI_API_KEY is required for speech to text")
+        _stt_openai_client = OpenAI(api_key=key)
+    return _stt_openai_client
+
+
+def transcribe_audio_bytes(audio: bytes, mime_type: str = "audio/webm", language: str = "he") -> dict:
+    """{'text': str, 'provider': str, 'model': str, 'ms': int}. Raises on failure."""
+    t0 = time.perf_counter()
+    suffix = {"audio/webm": ".webm", "audio/ogg": ".ogg", "audio/mp4": ".m4a",
+              "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav"}.get(
+        (mime_type or "").split(";")[0].strip(), ".webm")
+    provider, model, text = STT_PROVIDER, STT_MODEL, ""
+    if STT_PROVIDER == "openai":
+        buf = io.BytesIO(audio)
+        buf.name = f"speech{suffix}"
+        try:
+            r = _get_stt_openai_client().audio.transcriptions.create(
+                model=STT_MODEL, file=buf, language=language,
+                prompt="תמלול דיבור של ילד בעברית, בשיעור. כתוב רק את מה שנאמר.")
+        except Exception as first_error:
+            print("STT MODEL FAILED, TRYING whisper-1:", {"model": STT_MODEL, "error": repr(first_error)[:160]})
+            buf.seek(0)
+            model = "whisper-1"
+            r = _get_stt_openai_client().audio.transcriptions.create(model=model, file=buf, language=language)
+        text = str(getattr(r, "text", "") or "").strip()
+    else:
+        provider, model = "gemini", STT_GEMINI_MODEL
+        resp = gemini_client.models.generate_content(
+            model=STT_GEMINI_MODEL,
+            contents=[types.Part.from_bytes(data=audio, mime_type=(mime_type or "audio/webm").split(";")[0]),
+                      "Transcribe this speech verbatim. It is a child speaking Hebrew during a lesson. "
+                      "Return ONLY the transcription, no punctuation guesses beyond the obvious, no commentary."],
+            config=types.GenerateContentConfig(temperature=0))
+        text = str(getattr(resp, "text", "") or "").strip()
+    ms = round((time.perf_counter() - t0) * 1000)
+    try:
+        ai_costs.record(provider, model, purpose="stt", audio_seconds=None, latency_ms=ms,
+                        status="ok" if text else "error", error=None if text else "empty transcription",
+                        extra={"bytes": len(audio), "mime": mime_type})
+    except Exception as e:
+        print("AI COSTS RECORD FAILED (stt):", repr(e)[:120])
+    return {"text": text, "provider": provider, "model": model, "ms": ms}
+
+
+class TutorSTTRequest(BaseModel):
+    audio_base64: str
+    mime_type: str = "audio/webm"
+    kid_id: str | None = None
+    language: str = "he"
+
+
+@app.post("/api/tutor/stt")
+async def tutor_stt(body: TutorSTTRequest, authorization: str = Header(None)):
+    try:
+        user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+        ai_context("stt", user, body)
+        raw = (body.audio_base64 or "").strip()
+        if "," in raw[:120] and raw.lstrip().startswith("data:"):
+            raw = raw.split(",", 1)[1]                       # data:audio/webm;base64,....
+        try:
+            audio = base64.b64decode(raw, validate=False)
+        except Exception:
+            raise HTTPException(status_code=400, detail="audio_base64 is not valid base64")
+        if not audio:
+            raise HTTPException(status_code=400, detail="audio is empty")
+        if len(audio) > STT_MAX_BYTES:
+            raise HTTPException(status_code=413, detail="audio is too long")
+        # Identifiers and sizes only: this is a child's own voice.
+        print("STT REQUEST:", {"bytes": len(audio), "mime": body.mime_type, "kid_id": (body.kid_id or "")[:8]})
+        result = await run_in_threadpool(lambda: transcribe_audio_bytes(audio, body.mime_type, body.language or "he"))
+        print("STT DONE:", {"chars": len(result["text"]), "ms": result["ms"], "model": result["model"],
+                            **({"text": repr(result["text"])} if not IS_PROD else {})})
+        return {"success": bool(result["text"]), "text": result["text"], "model": result["model"], "ms": result["ms"]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("STT ERROR:", repr(e)[:300])
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"speech to text failed: {e}")

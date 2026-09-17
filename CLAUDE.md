@@ -50,6 +50,11 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 
 - Back up ONLY before changing a prompt file (or when the user says "גיבוי"): `bash .claude/skills/backup/backup.sh "<note>"` (project skill `backup`). Code-only changes to main.py do not need a backup. It snapshots `backend/main.py`, `backend-ai-tutor-he/main.py` and every prompt file (root `iakids_*_prompt.txt`, `backend/prompts/`, `backend-ai-tutor-he/prompts/`) into the next `V<N>_BACKUP/` folder, verifies with `diff`, writes a README. Never overwrite an existing `V<N>_BACKUP`. Take one before touching `main.py` or a prompt.
 
+## Dictation (speak instead of typing)
+
+- `assets/js/iakids-dictation.js` is loaded by every page with a chat box (`he/workspace`, `he/games/workspace`, `he/add-subject`, `frontend-v2/homework.html`) and auto-attaches on load: existing `.talk-btn`, `[data-dictation-for="#input"]`, or an injected mic next to `#chatInput`. It uses the browser's Web Speech API — **no model, no cost** — and writes interim text into the input while the child speaks.
+- The server route `POST /api/tutor/stt` exists for browsers without the API but is **off** unless a page sets `window.IAKIDS_STT_SERVER_FALLBACK = true` (knobs `STT_PROVIDER=openai|gemini`, `STT_MODEL`). A new chat surface only needs the script tag, or `data-dictation-for` on its own mic button.
+
 ## Rule: BUGFIXES.md on every commit + push
 
 - Every `git commit` that is pushed adds an entry to `BUGFIXES.md` (newest first): symptom, cause, fix, how it was verified, build number. The user reads this file to know exactly what changed. No entry, no push.

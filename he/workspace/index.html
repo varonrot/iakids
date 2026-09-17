@@ -15696,7 +15696,7 @@ data-custom-slot="0"
   </div>
 </div>
 <!-- מגדר הילד: נשאל פעם אחת אם חסר, כדי שהמורה תפנה בלשון נכונה (2026-09-15) -->
-<div class="modal-overlay" id="kidGenderModal" style="display:none;z-index:100000"><div class="modal kid-gender-modal" style="max-width:420px;text-align:center"><h2 style="margin:0 0 8px">עוד פרט קטן לפני שמתחילים</h2><p style="margin:0 0 18px;font-size:15px"><b id="kidGenderName"></b> הוא בן או בת? כך המורה תדבר נכון.</p><div style="display:flex;gap:14px;justify-content:center"><button type="button" class="kid-gender-btn" data-gender="male" style="flex:1;padding:16px 10px;border-radius:14px;border:2px solid rgba(90,140,220,.45);background:rgba(74,163,255,.12);color:inherit;font:inherit;font-weight:900;font-size:18px;cursor:pointer">👦 בן</button><button type="button" class="kid-gender-btn" data-gender="female" style="flex:1;padding:16px 10px;border-radius:14px;border:2px solid rgba(90,140,220,.45);background:rgba(74,163,255,.12);color:inherit;font:inherit;font-weight:900;font-size:18px;cursor:pointer">👧 בת</button></div></div></div>
+<div class="modal-overlay" id="kidGenderModal" style="display:none;z-index:100000"><div class="modal kid-gender-modal" style="max-width:420px;text-align:center"><h2 style="margin:0 0 8px">עוד פרט קטן לפני שמתחילים</h2><p style="margin:0 0 18px;font-size:15px"><b id="kidGenderName"></b> הוא בן או בת? כך המורה תדבר נכון.</p><div style="display:flex;gap:14px;justify-content:center"><button type="button" class="kid-gender-btn" data-gender="male" style="flex:1;padding:16px 10px;border-radius:14px;border:2px solid rgba(90,140,220,.45);background:rgba(74,163,255,.12);color:inherit;font:inherit;font-weight:900;font-size:18px;cursor:pointer">👦 בן</button><button type="button" class="kid-gender-btn" data-gender="female" style="flex:1;padding:16px 10px;border-radius:14px;border:2px solid rgba(90,140,220,.45);background:rgba(74,163,255,.12);color:inherit;font:inherit;font-weight:900;font-size:18px;cursor:pointer">👧 בת</button></div><div style="margin-top:12px"><button type="button" id="kidGenderLater" style="background:none;border:0;color:inherit;opacity:.65;font:inherit;cursor:pointer;text-decoration:underline">אחר כך</button></div></div></div>
 <script>
 async function maybeAskKidGender(kid){
   try{
@@ -15705,6 +15705,8 @@ async function maybeAskKidGender(kid){
     if(!overlay) return;
     overlay.querySelector("#kidGenderName").textContent = kid.child_name || "";
     overlay.style.display = "flex";
+    var later = overlay.querySelector("#kidGenderLater");
+    if(later){ later.onclick = function(){ overlay.style.display = "none"; console.log("KID GENDER ASK DISMISSED"); }; }
     overlay.querySelectorAll(".kid-gender-btn").forEach(btn => {
       btn.onclick = async () => {
         const gender = btn.dataset.gender;
@@ -30246,9 +30248,14 @@ async function saveSettings(){
 
   /* חשוב אם הכיתה השתנתה */
 
-  await loadSubjects(
-    grade
-  );
+  /* הפרופיל כבר נשמר. תקלה ברענון הרשימות לא תשאיר את החלון פתוח (2026-09-17) */
+  try{
+    await loadSubjects(
+      grade
+    );
+  }catch( subjectsError ){
+    console.warn( "SAVE SETTINGS: loadSubjects failed after save:", subjectsError );
+  }
 
 
   closeSettings();
@@ -45980,7 +45987,10 @@ async preloadAudio(text){
                   cleanText,
 
                 session_id:
-                  currentSessionId
+                  currentSessionId,
+
+                kid_id:
+                  ( ( window.CURRENT_KID || ( typeof CURRENT_KID !== "undefined" ? CURRENT_KID : null ) ) || {} ).id || null   /* הקול קורא לשון זכר או נקבה לפי הילד */
               })
           }
 
@@ -53683,8 +53693,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.121</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.121";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.123</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.123";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -55286,7 +55296,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07121"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07123"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example
@@ -55813,4 +55823,5 @@ document.addEventListener('click',function(event){const item=event.target?.close
     }
   }
 </style>
+<script src="/assets/js/iakids-dictation.js?v=1"></script>
 </body></html>
