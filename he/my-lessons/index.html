@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script src="/assets/js/iakids-api.js?v=2"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>השיעורים שלי — iakids</title>
+<link rel="icon" href="/assets/favicon.ico">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#0f1530;
+    --card:rgba(255,255,255,.06);
+    --line:rgba(255,255,255,.10);
+    --text:#eef2ff;
+    --muted:#a8b4d8;
+    --accent:#4aa3ff;
+    --ok:#46d6a0;
+    --warm:#f2bd55;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 80% -10%, rgba(74,163,255,.16), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font:16px/1.55 "Heebo","Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+    min-height:100vh;
+  }
+  a{color:inherit}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 16px 64px}
+
+  .top{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:22px;flex-wrap:wrap;
+  }
+  .back{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--line);
+    color:var(--text);border-radius:12px;padding:9px 14px;
+    font:inherit;font-weight:600;cursor:pointer;text-decoration:none;
+  }
+  .back:hover{background:rgba(255,255,255,.1)}
+  h1{margin:0;font-size:24px;font-weight:800}
+  .sub{color:var(--muted);font-size:14px;margin-top:2px}
+
+  .totals{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 20px}
+  .chip{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:12px 16px;min-width:120px;
+  }
+  .chip strong{display:block;font-size:22px;line-height:1.2}
+  .chip span{color:var(--muted);font-size:13px}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .filters button{
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer;
+  }
+  .filters button.active{background:rgba(74,163,255,.18);border-color:rgba(74,163,255,.5);color:var(--text)}
+
+  .group-title{
+    margin:22px 0 10px;font-size:14px;color:var(--muted);
+    display:flex;align-items:center;gap:8px;
+  }
+  .group-title::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .list{display:grid;gap:10px}
+  .item{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:14px;align-items:center;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:14px 16px;
+  }
+  .item h3{margin:0 0 3px;font-size:17px;font-weight:700}
+  .meta{color:var(--muted);font-size:13px}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.10);margin-top:9px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#4aa3ff,#6ad0ff)}
+  .item.done .bar i{background:linear-gradient(90deg,#46d6a0,#7ff0c6)}
+  .right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .state{font-size:13px;font-weight:700}
+  .state.done{color:var(--ok)}
+  .state.partial{color:var(--warm)}
+  .open{
+    background:var(--accent);border:0;color:#04122b;border-radius:12px;
+    padding:9px 16px;font:inherit;font-weight:800;cursor:pointer;white-space:nowrap;
+  }
+  .open:hover{filter:brightness(1.08)}
+
+  .empty,.loading{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:28px 20px;text-align:center;color:var(--muted);
+  }
+  .empty strong{display:block;color:var(--text);font-size:18px;margin-bottom:6px}
+
+  @media(max-width:560px){
+    .item{grid-template-columns:1fr;align-items:stretch}
+    .right{align-items:stretch;flex-direction:row;justify-content:space-between}
+    .open{width:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="top">
+    <a class="back" href="/he/workspace/">← חזרה</a>
+    <div>
+      <h1>השיעורים שלי</h1>
+      <div class="sub" id="sub">טוען…</div>
+    </div>
+  </div>
+
+  <div class="totals" id="totals" hidden>
+    <div class="chip"><strong id="tOpened">0</strong><span>שיעורים שהתחלת</span></div>
+    <div class="chip"><strong id="tDone">0</strong><span>הושלמו</span></div>
+    <div class="chip"><strong id="tSubjects">0</strong><span>מקצועות</span></div>
+  </div>
+
+  <div class="filters" id="filters" hidden>
+    <button data-f="all" class="active">הכול</button>
+    <button data-f="open">בתהליך</button>
+    <button data-f="done">הושלמו</button>
+  </div>
+
+  <div id="body">
+    <div class="loading">רגע, אוספים את השיעורים שלך…</div>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================
+   השיעורים שלי — 17/09/2026
+
+   הכפתור הזה היה בתפריט הצד מאז שנכתב מסך העבודה, והדף
+   מאחוריו מעולם לא נבנה, כך שכל ילד שלחץ עליו קיבל שגיאת
+   שרת. הנתונים תמיד היו קיימים.
+
+   הדף לא פונה למסד הנתונים. הוא קורא ל-/api/kid/lessons,
+   לפי ההחלטה שה-UI מדבר עם הבקאנד בלבד.
+===================================================== */
+
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_L3yZe3EAiTA5lEpDky1eXA_j6ERXAdc";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+iakidsApi.useClient(sb);
+
+let LESSONS = [];
+let FILTER = "all";
+
+const $ = id => document.getElementById(id);
+
+function apiBase(){
+  return String(location.hostname || "").endsWith("smarts-brains.online")
+    ? location.origin + "/tutor-api"
+    : "https://iakids-ai-tutor-he.onrender.com";
+}
+
+function hebrewDate(value){
+  if(!value) return "";
+  try{
+    return new Date(value).toLocaleDateString("he-IL", {day:"numeric", month:"long"});
+  }catch(e){ return ""; }
+}
+
+function stateOf(lesson){
+  const status = String(lesson.status || "").toLowerCase();
+  if(status === "completed") return {key:"done", label:"הושלם"};
+  if(Number(lesson.progress_percent) > 0 || status === "partial") return {key:"partial", label:"בתהליך"};
+  return {key:"open", label:"התחלת"};
+}
+
+function escapeHtml(v){
+  return String(v == null ? "" : v).replace(/[&<>"']/g, c => (
+    {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
+  ));
+}
+
+function render(){
+  const body = $("body");
+
+  const shown = LESSONS.filter(l => {
+    if(FILTER === "all") return true;
+    const s = stateOf(l).key;
+    return FILTER === "done" ? s === "done" : s !== "done";
+  });
+
+  if(!shown.length){
+    body.innerHTML = `<div class="empty">
+      <strong>אין כאן שיעורים להצגה</strong>
+      ${ FILTER === "all"
+          ? "כשתתחילו שיעור הוא יופיע כאן, עם ההתקדמות שלכם."
+          : "אפשר לעבור לסינון אחר למעלה." }
+    </div>`;
+    return;
+  }
+
+  /* מקבצים לפי מקצוע, כי ילד חושב במקצועות ולא בתאריכים */
+  const bySubject = new Map();
+  shown.forEach(l => {
+    const key = l.subject || "כללי";
+    if(!bySubject.has(key)) bySubject.set(key, []);
+    bySubject.get(key).push(l);
+  });
+
+  let html = "";
+
+  bySubject.forEach((items, subject) => {
+    html += `<div class="group-title">${escapeHtml(subject)}</div><div class="list">`;
+
+    items.forEach(l => {
+      const st = stateOf(l);
+      const pct = Math.max(0, Math.min(100, Number(l.progress_percent) || 0));
+      const mastery = Number(l.mastery_score) || 0;
+      const when = hebrewDate(l.last_activity_at);
+
+      html += `
+        <div class="item ${st.key === "done" ? "done" : ""}">
+          <div>
+            <h3>${escapeHtml(l.lesson_name || "שיעור")}</h3>
+            <div class="meta">
+              ${escapeHtml(l.unit_name || "")}${when ? " • " + escapeHtml(when) : ""}
+              ${mastery ? " • הבנה " + mastery + "%" : ""}
+            </div>
+            <div class="bar"><i style="width:${pct}%"></i></div>
+          </div>
+          <div class="right">
+            <div class="state ${st.key}">${st.label}</div>
+            <button class="open" data-id="${Number(l.unit_lesson_id) || 0}">
+              ${ st.key === "done" ? "לחזור על השיעור" : "להמשיך" }
+            </button>
+          </div>
+        </div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  body.innerHTML = html;
+
+  body.querySelectorAll(".open").forEach(btn => {
+    btn.onclick = () => {
+      const id = Number(btn.dataset.id) || 0;
+      if(!id) return;
+      /* מסך העבודה פותח את השיעור לפי המזהה הזה */
+      try{ localStorage.setItem("open_unit_lesson_id", String(id)); }catch(e){}
+      location.href = "/he/workspace/?lesson=" + id;
+    };
+  });
+}
+
+async function load(){
+  try{
+
+    const { data: { session } } = await sb.auth.getSession();
+
+    if(!session){
+      location.href = "/he/";
+      return;
+    }
+
+    const kid = await iakidsApi.activeKid();
+
+    if(!kid){
+      $("sub").textContent = "לא נמצא פרופיל ילד";
+      $("body").innerHTML = `<div class="empty">
+        <strong>עוד אין פרופיל ילד בחשבון</strong>
+        אפשר להוסיף אחד בפאנל ההורים.
+      </div>`;
+      return;
+    }
+
+    $("sub").textContent = "כל מה ש" + (kid.child_name || "הילד") + " למד עד עכשיו";
+
+    const res = await fetch(
+      apiBase() + "/api/kid/lessons?kid_id=" + encodeURIComponent(kid.id),
+      { headers: { Authorization: "Bearer " + session.access_token } }
+    );
+
+    if(!res.ok){
+      throw new Error("HTTP " + res.status);
+    }
+
+    const data = await res.json();
+
+    LESSONS = data.lessons || [];
+
+    $("tOpened").textContent = (data.totals && data.totals.opened) || 0;
+    $("tDone").textContent = (data.totals && data.totals.completed) || 0;
+    $("tSubjects").textContent =
+      new Set(LESSONS.map(l => l.subject).filter(Boolean)).size;
+
+    $("totals").hidden = false;
+    $("filters").hidden = false;
+
+    render();
+
+  }catch(error){
+
+    console.error("MY LESSONS FAILED:", error);
+
+    $("sub").textContent = "";
+    $("body").innerHTML = `<div class="empty">
+      <strong>לא הצלחנו לטעון את השיעורים</strong>
+      אפשר לנסות שוב בעוד רגע.
+    </div>`;
+  }
+}
+
+document.querySelectorAll("#filters button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#filters button")
+      .forEach(x => x.classList.toggle("active", x === b));
+    FILTER = b.dataset.f;
+    render();
+  };
+});
+
+load();
+</script>
+
+</body>
+</html>

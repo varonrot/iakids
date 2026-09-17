@@ -22126,6 +22126,88 @@ def list_my_kids(authorization: str = Header(None)):
     return {"kids": [kid_public_view(r) for r in rows]}
 
 
+@app.get("/api/kid/lessons")
+def my_lessons(kid_id: str, authorization: str = Header(None)):
+    """Every lesson this child has opened, newest activity first.
+
+    2026-09-17: the sidebar has had a "השיעורים שלי" button since the workspace was
+    written and the page behind it was never built, so every child who pressed it got a
+    server error. The data was always there — it is the progress row joined to the
+    lesson and its subject.
+
+    Only the child's own rows: the kid is resolved against the caller's account first.
+    """
+    user = authenticate_user(authorization)
+    get_child_by_id(user_id=user.id, kid_id=kid_id)      # 404 if not this account's
+
+    progress = (
+        sb.table("kid_unit_lesson_progress")
+        .select("unit_lesson_id, learning_lesson_id, status, progress_percent, "
+                "mastery_score, best_mastery_score, last_activity_at, completed_at, "
+                "started_at, attempts_count")
+        .eq("kid_id", kid_id)
+        .order("last_activity_at", desc=True)
+        .execute()
+    ).data or []
+
+    if not progress:
+        return {"lessons": [], "totals": {"opened": 0, "completed": 0}}
+
+    unit_ids = sorted({int(r["unit_lesson_id"]) for r in progress if r.get("unit_lesson_id")})
+
+    units = (
+        sb.table("lesson_units_content")
+        .select("id, unit_name, lesson_name, lesson_order, learning_lesson_id, generation_status")
+        .in_("id", unit_ids)
+        .execute()
+    ).data or []
+    units_by_id = {int(u["id"]): u for u in units}
+
+    parent_ids = sorted({int(u["learning_lesson_id"]) for u in units if u.get("learning_lesson_id")})
+
+    parents = []
+    if parent_ids:
+        parents = (
+            sb.table("learning_lessons")
+            .select("id, subject, lesson_name, grade")
+            .in_("id", parent_ids)
+            .execute()
+        ).data or []
+    parents_by_id = {int(p["id"]): p for p in parents}
+
+    lessons = []
+    for row in progress:
+        unit = units_by_id.get(int(row.get("unit_lesson_id") or 0)) or {}
+        parent = parents_by_id.get(int(unit.get("learning_lesson_id") or 0)) or {}
+        lessons.append({
+            "unit_lesson_id": row.get("unit_lesson_id"),
+            "learning_lesson_id": unit.get("learning_lesson_id"),
+            "subject": parent.get("subject"),
+            "topic": parent.get("lesson_name"),
+            "unit_name": unit.get("unit_name"),
+            "lesson_name": unit.get("lesson_name"),
+            "lesson_order": unit.get("lesson_order"),
+            "status": row.get("status"),
+            "progress_percent": row.get("progress_percent"),
+            "mastery_score": row.get("mastery_score"),
+            "best_mastery_score": row.get("best_mastery_score"),
+            "attempts_count": row.get("attempts_count"),
+            "started_at": row.get("started_at"),
+            "last_activity_at": row.get("last_activity_at"),
+            "completed_at": row.get("completed_at"),
+        })
+
+    completed = sum(1 for x in lessons if str(x.get("status") or "").lower() == "completed")
+
+    return {
+        "lessons": lessons,
+        "totals": {
+            "opened": len(lessons),
+            "completed": completed
+        }
+    }
+
+
 @app.get("/api/kid/{kid_id}")
 def get_my_kid(kid_id: str, authorization: str = Header(None)):
     """One kid, only if it belongs to the caller."""

@@ -4,6 +4,12 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — "השיעורים שלי" exists now
+- **The page behind the sidebar button was never built.** It has been there since the workspace was written, and every child who pressed it got a server error. The data was always there: the progress row joined to the lesson and its subject.
+- **`GET /api/kid/lessons`** returns every lesson the child has opened, newest activity first, with the subject, the unit, the progress, the understanding score and the dates. The kid is resolved against the caller's account first, so one parent cannot read another's child. It is registered before `/api/kid/{kid_id}` so "lessons" is not swallowed as an id.
+- **The page reads nothing from the database**, in keeping with the rule taken today. It groups by subject, because a child thinks in subjects and not in dates, shows a progress bar per lesson, filters by in-progress or completed, and opens a lesson back in the workspace. An account with no child, and a child with no lessons, each get a sentence rather than an empty screen.
+- **Verified against the real data**: ארבל has nine lessons opened across two subjects with one completed, and every row resolves to its subject, unit and lesson name.
+
 ### 2026-09-17 — internal documents were readable on the web; every menu link audited
 - **The documents are now closed.** The site root is the repo, so every `.md` in it was public. `SECURITY.md` — "what was found, what was fixed, what is still open" — was the worst of them: a list of open security findings, served to anyone. `BUGFIXES.md`, `MIGRATION_TO_BACKEND.md`, `PERFORMANCE.md`, `HANDOFF.md`, `TODO.md` and the deploy script were all readable too. They now live in `docs/`, which nginx refuses, and a rule blocks `.md`, `.sql`, `.sh` and similar anywhere on the site, so the game specs are covered in place. Verified: the documents answer 404 and the site, its assets and the games still answer 200.
 - **Every internal link on the site was checked**, 38 of them across all pages. Seven were broken. Three were simply pointing at the wrong path and are fixed:
