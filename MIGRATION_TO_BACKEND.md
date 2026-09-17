@@ -12,7 +12,11 @@ line of defence, and renaming a table stops being a frontend change.
 
 ## Where it stands
 
-Measured 178 direct database calls in 53 files.
+Measured 178 direct database calls in 53 files on 2026-09-17. That first count only
+looked at part of the site; scanning every folder that serves a page put the real
+figure at **230**. Four screens have shipped since (`he/tasks`, `he/add-subject`,
+`he/parent-panel`, and the games SDK), and the gate holds the number as a ratchet that
+can only go down.
 
 | table | calls | files | operations | notes |
 |---|---|---|---|---|

@@ -358,10 +358,18 @@ def media_failure_checks(main_src: str) -> list:
     return bad
 
 
-BROWSER_FILES = ("he", "frontend-v2", "assets/js")
+# 2026-09-17: this list started as the Hebrew site only, and the same avatar bug was
+# then found sitting untouched in the Spanish and Portuguese workspaces because they
+# were never scanned. Every folder that serves a page belongs here.
+BROWSER_FILES = ("he", "frontend-v2", "assets/js", "workspace", "pt", "de",
+                 "games", "admin", "contact", "support", "support-dashboard",
+                 "parent-dashboard", "onboarding")
 
 
-DB_CALL_BUDGET = 167          # 178 on 2026-09-17 when the rule was set; lower it as each screen ships
+# 2026-09-17: 178 when the rule was set, then 167 as screens shipped — but that count
+# only ever looked at part of the site. Widening the scan to every folder that serves a
+# page showed the true figure is 230. The number only moves down from here.
+DB_CALL_BUDGET = 230
 
 
 def browser_db_calls() -> tuple[int, list]:

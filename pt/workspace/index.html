@@ -2,6 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+<script>
+/* =====================================================
+   AVATAR URL — 17/09/2026
+   הכתובת נבנתה ישירות מ-avatar_key בלי לבדוק שהקובץ קיים,
+   אז ילד עם מפתח שאין לו קובץ ראה תמונה שבורה, בלי שגיאה.
+===================================================== */
+window.IAKIDS_AVATAR_KEYS = ["cat","dog","dolphin","eagle","horse","owl","panther"];
+window.iakidsAvatarUrl = function(key){
+  var safe = window.IAKIDS_AVATAR_KEYS.includes(String(key || "").trim())
+    ? String(key).trim() : "cat";
+  return "/assets/avatars/" + safe + "_blue.png";
+};
+</script>
+
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCBGGLL7R"></script>
 <script>
@@ -1709,7 +1723,7 @@ const { data: kid, error } = await sb
     return;
   }
   CURRENT_KID = kid;
-  const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+  const avatarUrl = window.iakidsAvatarUrl(kid.avatar_key);
   document.getElementById("rightbarAvatar").src = avatarUrl;
   document.getElementById("rightbarName").textContent = kid.child_name;
 
@@ -2062,7 +2076,7 @@ if (error){
     learning_interests
   });
 
-  const avatarUrl = `/assets/avatars/${avatar}_blue.png`;
+  const avatarUrl = window.iakidsAvatarUrl(avatar);
 
   heroGreeting.textContent = `Olá, ${name}!`;
   heroAvatar.src = avatarUrl;

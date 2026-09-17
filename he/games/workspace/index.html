@@ -2,9 +2,23 @@
 <html lang="he" dir="rtl" xmlns="http://www.w3.org/1999/html">
 <head>
 <meta charset="UTF-8">
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>
+/* =====================================================
+   AVATAR URL — 17/09/2026
+   הכתובת נבנתה ישירות מ-avatar_key בלי לבדוק שהקובץ קיים,
+   אז ילד עם מפתח שאין לו קובץ ראה תמונה שבורה, בלי שגיאה.
+===================================================== */
+window.IAKIDS_AVATAR_KEYS = ["cat","dog","dolphin","eagle","horse","owl","panther"];
+window.iakidsAvatarUrl = function(key){
+  var safe = window.IAKIDS_AVATAR_KEYS.includes(String(key || "").trim())
+    ? String(key).trim() : "cat";
+  return "/assets/avatars/" + safe + "_blue.png";
+};
+</script>
+
 <title>חבר ללימודים AI – סביבת למידה</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="/assets/js/iakids-log-mode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16997,7 +17011,7 @@ CURRENT_KID.grade = Number(kid.age);
 /* טעינת המקצועות לפי הכיתה */
 await loadSubjects(CURRENT_KID.grade);
 
-const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+const avatarUrl = window.iakidsAvatarUrl(kid.avatar_key);
 
 
 /* =====================================
@@ -22108,7 +22122,7 @@ document.getElementById("openSettings").onclick = () => {
     );
 
   preview.src =
-    `/assets/avatars/${currentAvatar}_blue.png`;
+    window.iakidsAvatarUrl(currentAvatar);
 
 
   /* העדפות */
@@ -22210,7 +22224,7 @@ document
         document.getElementById(
           "modalAvatarPreview"
         ).src =
-          `/assets/avatars/${avatar}_blue.png`;
+          window.iakidsAvatarUrl(avatar);
 
       }
     );
@@ -22378,7 +22392,7 @@ async function saveSettings(){
 
 
   const avatarUrl =
-    `/assets/avatars/${avatar}_blue.png`;
+    window.iakidsAvatarUrl(avatar);
 
 
   /* עדכון הדשבורד */

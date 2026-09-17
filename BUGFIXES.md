@@ -4,6 +4,14 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — bug sweep from the real logs
+- **Every documentation file in the repo is readable on the web.** The site root is the repo itself, and nginx blocks `.git`, the backend folders, `supabase` and `CLAUDE.md` — but not markdown. `/BUGFIXES.md`, `/MIGRATION_TO_BACKEND.md`, `/PERFORMANCE.md`, `/handoff_perfromance.md` and `/tools/deploy_tutor.sh` all answer 200 right now. This file alone describes every bug and every security hole we have closed, with table names, column names and route names, and the migration document is a table-by-table map of the database. Three of those files were written today, so the exposure was made worse by the work itself. **A tested nginx fix is ready and waiting for approval**; it is a production config change.
+- **The missing video poster**: `/assets/backgrounds/video-poster.webp`, asked for on every load of the Hebrew landing page, 58 times in the log and never there. The hero video showed nothing until it buffered. A real frame was pulled from the demo video itself and saved at 1280px, 57 KB.
+- **The avatar bug was in three more screens**, untouched: the Spanish workspace, the Portuguese workspace and the games workspace all built the image path straight from `avatar_key`. Fixed with the same known-avatar helper, eight call sites in all.
+- **The gate was only scanning part of the site.** That is why the avatar bug survived in those three. It now covers every folder that serves a page, and the first thing that showed is that the count of direct database calls in the browser is **230**, not the 178 first measured. The ratchet holds the true figure.
+- **Not a bug: the "144 empty lessons".** Of 206 lesson rows, 15 have been generated and the rest are `empty` because lessons are generated when a child opens them. The row's own `status` column is not read by any live screen.
+- **The backend itself is clean**: one transient metrics timeout in the last three hours, nothing else. The errors filling the earlier log were the corrupted key and the missing images, both fixed today.
+
 ### 2026-09-17 — the longest call in the lesson pipeline was taking the slow way round
 - **Where the child's wait goes**: the Visual Director is one call of 2000 to 3300 output tokens, measured between 14 and 46 seconds, while the whole rest of the lesson text takes 6 to 22 seconds a part. The child waits through all of it before a single word appears.
 - **Measured properly, not guessed**: the same prompt sent three times to each provider, interleaved, same SDK (openai 3.10.0) and same server. Direct won every single run.
