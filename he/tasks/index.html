@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script src="/assets/js/iakids-api.js"></script>
 <title>המשימות שלי | IAKIDS</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -168,14 +170,13 @@ async function init(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){location.href="/he/";return}
   currentUser=session.user;
-  let kidId=localStorage.getItem("active_kid_id");
-  if(!kidId){
-    const {data:kids,error}=await sb.from("kids_profiles").select("id").eq("user_id",currentUser.id).order("created_at",{ascending:true}).limit(1);
-    if(error||!kids?.length){toast("לא נמצא פרופיל ילד");return}
-    kidId=kids[0].id;localStorage.setItem("active_kid_id",kidId);
-  }
-  const {data:kid,error:kidError}=await sb.from("kids_profiles").select("id,child_name,age,avatar_key,gender").eq("id",kidId).eq("user_id",currentUser.id).single();
-  if(kidError||!kid){localStorage.removeItem("active_kid_id");toast("לא הצלחנו לטעון את הילד");return}
+  /*
+    17/09/2026 — שתי שאילתות ישירות ל-kids_profiles הוחלפו בקריאה אחת
+    לבקאנד. הדף כבר לא יודע שיש טבלה כזאת, ולא באילו שדות היא מחזיקה
+    את הילד. ראו MIGRATION_TO_BACKEND.md.
+  */
+  const kid=await iakidsApi.activeKid();
+  if(!kid){localStorage.removeItem("active_kid_id");toast("לא נמצא פרופיל ילד");return}
   currentKid=kid;
   renderKid();
   await loadTasks();
@@ -186,8 +187,16 @@ function renderKid(){
   document.getElementById("kidName").textContent=currentKid.child_name||"הילד שלי";
   document.getElementById("kidGrade").textContent=currentKid.age?`כיתה ${gradeHebrew(Number(currentKid.age))}`:"";
   document.getElementById("heroText").textContent=`כל המשימות של ${currentKid.child_name||"הילד"} במקום אחד — שיעורי בית, מבחנים ופרויקטים.`;
+  /*
+    17/09/2026 — הדף ביקש avatar_key + ".webp" (למשל dog.webp), והקבצים
+    נקראים dog_blue.png. כל בקשה החזירה 404 ו-onerror החליף לתמונת
+    ברירת מחדל, כך שאף ילד לא ראה את האווטאר שבחר, בלי שום שגיאה גלויה.
+  */
+  const AVATAR_KEYS=["cat","dog","dolphin","eagle","horse","owl","panther"];
   const avatar=document.getElementById("kidAvatar");
-  if(currentKid.avatar_key){avatar.src=`/assets/avatars/${currentKid.avatar_key}.webp`;avatar.onerror=()=>{avatar.src="/assets/avatars/default.webp"}}
+  const key=String(currentKid.avatar_key||"").trim();
+  avatar.src=AVATAR_KEYS.includes(key)?`/assets/avatars/${key}_blue.png`:"/assets/avatars/default.webp";
+  avatar.onerror=()=>{avatar.onerror=null;avatar.src="/assets/avatars/default.webp"}
 }
 function gradeHebrew(n){return ({1:"א׳",2:"ב׳",3:"ג׳",4:"ד׳",5:"ה׳",6:"ו׳"})[n]||n}
 
