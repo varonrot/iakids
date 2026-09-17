@@ -4,6 +4,14 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — evening sweep: payments, Render, the closing summary
+- **The lesson closing has never run in production yet** — no lesson has been completed since it was deployed — so the store path was exercised directly: an insert with `session_id = null` succeeds and the cache lookup finds it. Not a bug; simply untested by a real child so far.
+- **Render is on today's code.** Every route added today answers there, admin and kid routes included.
+- **The payment webhook is healthy in production.** A request with a bogus signature gets 403, which proves the secret is set on Render. The empty `LEMON_*` keys in the local `backend/.env` are a local artefact, and the note about them in `docs/SECURITY.md` is stale on that point.
+- **The plan label is chosen by the browser.** `index.html` builds the checkout URL with `checkout[custom][plan]=…`, and the webhook records whatever arrives in `custom_data.plan`. A user can open the monthly variant with `plan=annual`. **Not exploitable today**: nothing treats annual differently from monthly — both are just "paid" — and `expires_at` comes from LemonSqueezy's real `renews_at`. It becomes exploitable the day annual grants anything extra. The plan should derive from `variant_id` on the server. *Recommended, not changed*: the core backend deploys through Render and cannot be verified from here.
+- **A replayed webhook refills the month.** `subscription_created` upserts `messages_used: 0` with no check that the `lemon_subscription_id` was already seen, so a re-delivered event resets the quota. Small, code-only, in the core backend. *Recommended, not changed*, same reason.
+- **Two read-then-act checks added today** — the child limit and the monthly lesson quota — could be beaten by two simultaneous requests. At two accounts generating lessons this is theoretical; the chat quota was moved into a locked SQL function for exactly this, and these can follow it if volume ever warrants.
+
 ### 2026-09-17 — the coach session hole is closed, and the rest of the schema was audited
 - **Closed and verified from the server, both directions**: a stranger's account now reads **0** coach sessions where it read 10, and an account with a child reads **exactly 1** — its own. A policy that also locks out the owner is not a fix, so both halves were tested.
 - **My sweep query was wrong and I corrected it.** For an INSERT policy the condition lives in `with_check`, not `qual`, so the first version flagged every INSERT policy in the schema for nothing and sent a long list of false positives to be read. Sorry for the noise.
