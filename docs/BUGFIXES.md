@@ -4,6 +4,15 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — the coach session hole is closed, and the rest of the schema was audited
+- **Closed and verified from the server, both directions**: a stranger's account now reads **0** coach sessions where it read 10, and an account with a child reads **exactly 1** — its own. A policy that also locks out the owner is not a fix, so both halves were tested.
+- **My sweep query was wrong and I corrected it.** For an INSERT policy the condition lives in `with_check`, not `qual`, so the first version flagged every INSERT policy in the schema for nothing and sent a long list of false positives to be read. Sorry for the noise.
+- **Six tables are readable by any signed-in account, and all six are meant to be**: exam pages, exam questions, the games catalogue, the nikud dictionary, the lesson catalogue and lesson content. Shared content, decided in the 2026-09-10 audit. The dangerous columns of `lesson_units_content` were closed separately this morning with column grants. So the `debug_` policy was the only unintended open read.
+- **Every write policy checks ownership — tested live, not read.** An anonymous client and a signed-in account writing under another account's id were both refused on `kids_profiles`, `homework_sessions`, `homework_uploads`, `support_tickets`, `kids_memory` and `subscriptions`. That last one includes an account trying to **give itself a paid plan**, which was the 2026-09-10 finding: it is genuinely closed.
+- **The `public` role on several policies looks alarming and is not**: the check is `auth.uid() = user_id`, and for an anonymous caller `auth.uid()` is null, so the comparison is never true.
+- **Found a way to close `app_admins` after all.** It had to stay open this morning because a policy on `support_tickets` reads it. The sweep shows that policy calls `is_admin(auth.uid())`, so the function exists and runs as the caller. Making it `SECURITY DEFINER` lets the table close while the support pages keep working. Written into `RUN_NOW.sql` as optional, commented out, with the order to run it in.
+- **Housekeeping, no rush**: `learning_lessons` carries two identical read policies and `kids_profiles` four overlapping INSERT policies. Harmless in themselves, but four policies on one action is exactly how the `debug_` one stayed invisible.
+
 ### 2026-09-17 — a policy left over from debugging was keeping the table open
 - **The correct policy was added and changed nothing.** A fresh account still read every coach session. `pg_policies` showed why:
 

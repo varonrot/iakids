@@ -122,6 +122,60 @@ select tablename, policyname, roles, cmd, qual
 -- ---------------------------------------------------------------------------
 
 
+-- ---------------------------------------------------------------------------
+-- DONE 2026-09-17 19:56 UTC · verified from the server, both directions:
+--   a stranger's account reads 0 coach sessions (was 10)
+--   an account with a child reads exactly 1 — its own
+-- A policy that also locks out the owner is not a fix, so both halves matter.
+--
+-- The sweep that followed, corrected (for INSERT the condition lives in
+-- with_check, not qual — the first version of the sweep flagged every INSERT
+-- policy for nothing):
+--
+--   Six tables are readable by any signed-in account, and all six are meant to
+--   be: exam_pages, exam_questions, games_catalog, hebrew_nikud,
+--   learning_lessons, lesson_units_content. Shared content, decided in the
+--   2026-09-10 audit. The dangerous columns of lesson_units_content were closed
+--   separately this morning with column grants.
+--
+--   Every write policy checks ownership. Tested live rather than read: an
+--   anonymous client and a signed-in account writing under another account's id
+--   were both refused on kids_profiles, homework_sessions, homework_uploads,
+--   support_tickets, kids_memory and subscriptions — including an account trying
+--   to give itself a paid plan, which is the 2026-09-10 finding, now closed.
+--
+--   The `public` role on those policies looks alarming and is not: the check is
+--   `auth.uid() = user_id`, and for an anonymous caller auth.uid() is null, so
+--   the comparison is never true.
+--
+--   Housekeeping, no rush: learning_lessons carries two identical read policies,
+--   and kids_profiles carries four overlapping INSERT policies. Harmless, but
+--   four policies on one action is how the debug_ one stayed invisible.
+-- ---------------------------------------------------------------------------
+
+
+-- ---------------------------------------------------------------------------
+-- OPTIONAL · close app_admins to the browser
+--
+-- On 2026-09-17 app_admins had to be left readable: revoking it broke reading
+-- support_tickets, because a policy there asks "is this user an admin" and a
+-- policy runs with the caller's own rights. The sweep showed the policy calls
+-- is_admin(auth.uid()) — so the function exists and is SECURITY INVOKER.
+--
+-- Making it SECURITY DEFINER lets the function read the table on the caller's
+-- behalf, after which app_admins can be closed and the support pages keep
+-- working. Run the first two statements, check /support still lists tickets for
+-- an ordinary account, and only then run the revoke.
+-- ---------------------------------------------------------------------------
+
+-- alter function public.is_admin(uuid) security definer;
+-- revoke all on function public.is_admin(uuid) from anon;
+--
+-- -- only after /support is confirmed working:
+-- revoke all on public.app_admins from anon, authenticated;
+-- notify pgrst, 'reload schema';
+
+
 -- ============================================================================
 -- NOT a database change, but still open and worth doing in the same sitting
 --
