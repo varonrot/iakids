@@ -11,7 +11,11 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 - Both pages share the design of `/he/my-lessons/` and neither touches the database.
 - **Verified against real data**: nine lessons opened and one finished, best understanding 76%, two subjects, ten games with one finished, three active days.
 
-### 2026-09-17 — two more queries asking for columns that do not exist
+### 2026-09-17 — the queries asking for columns that do not exist are fixed, and gated
+- **`/games/progress/` is repaired.** It asked `kids_profiles` for `avatar_url` and `grade`, which are `avatar_key` and `age`, and embedded `games_catalog` with `icon_path` and `game_url`, which are `icon` and `route_path`. PostgREST answered 42703 to both and the call sites swallowed it, so the page drew an empty report and looked merely unused. The avatar now goes through the same known-avatar helper as the rest of the site.
+- **All 65 distinct browser queries now run clean** against the real schema.
+- **New gate rule** with the column list recorded in `tools/browser_query_columns.json`: a query asking for a column the table does not have fails the build. It compares shapes and never touches the database, so the gate stays offline. Verified by restoring the exact bug that was live.
+
 - The same class as the `parent_lesson` bug. Every distinct database query in the browser, 65 of them, was run against the real schema. Two fail, both on `/games/progress/`: `kids_profiles` is asked for `avatar_url` and `grade` (the columns are `avatar_key` and `age`), and `kid_game_sessions` embeds `games_catalog` with column names it does not have. Both sit behind `if(!error)`, so the page silently shows nothing. **Found, not yet fixed.**
 - The pattern that hides them is everywhere: eight sites assign query results only `if(!r.error)`, and 33 empty `catch` blocks in the workspace alone. Most disappear with the move to the backend; the rest need to say something when they fail.
 

@@ -451,6 +451,60 @@ def client_secrets_checks() -> list:
     return bad
 
 
+def browser_query_shape_checks() -> list:
+    """A browser query must not ask for a column that does not exist.
+
+    2026-09-17: three of these were live at once and none of them showed a symptom. The
+    workspace asked lesson_units_content for "parent_lesson", and the games progress
+    page asked kids_profiles for "avatar_url" and "grade" and embedded games_catalog
+    with "icon_path" and "game_url". PostgREST answers 42703, every call site had the
+    shape `if(!error) data = r.data`, so the data was simply missing and the page looked
+    empty rather than broken.
+
+    This check is shape only - it does not reach the database, which would make the gate
+    depend on a live connection. It compares the requested columns against the column
+    lists recorded here, refreshed with tools/prompt_gate.py --refresh-schema.
+    """
+    known = {}
+    schema_file = ROOT / "tools" / "browser_query_columns.json"
+    if schema_file.exists():
+        try:
+            known = json.loads(schema_file.read_text(encoding="utf-8"))
+        except Exception:
+            known = {}
+    if not known:
+        return []
+
+    backupish = re.compile(r"(index2|_back_?up|_v\d+|_old|copy)", re.I)
+    bad = []
+    for folder in BROWSER_FILES:
+        base = ROOT / folder
+        if not base.exists():
+            continue
+        for path in list(base.rglob("*.html")) + list(base.rglob("*.js")):
+            rel = path.relative_to(ROOT).as_posix()
+            if backupish.search(rel):
+                continue
+            src = path.read_text(encoding="utf-8", errors="replace")
+            src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
+            src = re.sub(r"<!--.*?-->", "", src, flags=re.S)
+            for m in re.finditer(r"\.from\(\s*[`\"\']([a-z_][a-z0-9_]*)[`\"\']\s*\)\s*\.\s*select\(\s*([`\"\'])([\s\S]*?)\2", src):
+                table, cols = m.group(1), m.group(3)
+                if table not in known:
+                    continue
+                # strip embedded relations: games_catalog:game_id(...)
+                flat = re.sub(r"[a-z_]+\s*:\s*[a-z_]+\s*\([^)]*\)", "", cols)
+                flat = re.sub(r"[a-z_]+\s*\([^)]*\)", "", flat)
+                for col in [c.strip() for c in flat.split(",")]:
+                    if not col or col == "*" or "(" in col:
+                        continue
+                    if col not in known[table]:
+                        bad.append("%s asks %s for a column it does not have: %r "
+                                   "(PostgREST answers 42703 and the call site swallows it)"
+                                   % (rel, table, col))
+    return bad
+
+
 def migration_rollback_checks() -> list:
     """Every migration ships with the file that undoes it.
 
@@ -901,7 +955,8 @@ def main():
         cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
-          + client_secrets_checks() + browser_db_budget_checks())
+          + client_secrets_checks() + browser_db_budget_checks()
+          + browser_query_shape_checks())
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
         rf = [] if (a.fast or not main_changed) else render_smoke()
         if main_changed:
@@ -924,7 +979,8 @@ def main():
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
-          + client_secrets_checks() + browser_db_budget_checks())
+          + client_secrets_checks() + browser_db_budget_checks()
+          + browser_query_shape_checks())
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:
