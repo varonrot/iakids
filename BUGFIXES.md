@@ -4,6 +4,10 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — the parent's picture was a 404 on five pages
+- **Symptom**: `/assets/default-parent.png` was requested on every load of the workspace (Hebrew, Spanish, Portuguese and games) and the add-subject page, and the file did not exist. A parent whose account has no picture from Google got a broken image in the top bar, and the site log filled with 404s.
+- **Fix**: the file now exists — a deliberately generic illustrated figure, not a recognisable person, in the calm palette the app uses, 256 pixels and under 50 KB because it loads on every page. No code changed: the five references were already correct.
+
 ### 2026-09-17 — the games leaderboard was writing to tables that do not exist
 - **Symptom in the code**: every completed game called `IAKidsCloud.recordWin()`, which inserted into `game_wins`. That table is not in the database, and neither is `game_achievements`. Each write failed inside its own try/catch, so nothing ever surfaced and nothing was ever recorded. The SQL file the comment pointed at, `games/games-tables.sql`, does not exist either.
 - **Nothing read them**: `recordAchievement` and `topWins` have no callers anywhere on the site, and no leaderboard is drawn from them.
