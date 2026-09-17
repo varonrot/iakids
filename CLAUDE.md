@@ -64,6 +64,14 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - **Commit**: the git pre-commit hook runs `tools/prompt_gate.py --staged` whenever a prompt file or `main.py` is staged. A failing gate blocks the commit. Install once per clone: `bash tools/install_hooks.sh`.
 - **Deploy**: the only way to restart the tutor backend is `bash tools/deploy_tutor.sh` (gate → restart web+worker → health check: active, "startup complete", HTTP 200). A Claude Code PreToolUse hook on Bash also blocks any bare `systemctl restart/start iakids-tutor-*` unless the gate passes. Never restart prod while the gate fails (2026-09-15: a failed import smoke was overridden and prod was down 4 minutes).
 
+## Log mode (test prints, production is silent)
+
+- `assets/js/iakids-log-mode.js` replaces the console methods once, and must be the **first** script on every page that prints (`he/workspace`, `he/games/workspace`, `he/parent-panel`, `he/index`, `he/add-subject`, `frontend-v2/homework.html`). Anything loaded before it escapes the switch, so the gate checks the order, not just the presence.
+- **test** prints everything, **prod** prints nothing except `console.error`, which is never silenced. Uncaught exceptions are untouched.
+- Mode: `window.IAKIDS_LOG_MODE` set before the shim wins; then `?log=1` / `?log=0` in the URL (kept for the tab); then `localStorage.IAKIDS_LOG`; otherwise localhost and private ranges are test and everything else is prod.
+- To debug production: open the page with `?log=1`, or run `iakidsLogMode("test")` in the console and reload.
+- **Do not** create a second copy of a page for debugging and **do not** add a build step: the pages are static files served by nginx and GitHub Pages, so nothing can strip the prints on the way out, and two copies diverge. Keep writing ordinary `console.log` calls — the switch handles them.
+
 ## Lesson closing (what happens when a lesson ends)
 
 - `POST /api/tutor/unit-lesson/closing` returns the teacher's personal wrap-up: `spoken` (read aloud, ~30 s), `learned` / `did_well` / `to_strengthen` (the three lines on the card) and `parent_note` (one sentence for the parent panel). Prompt: `prompts/iakids_lesson_closing_prompt.txt`. It is built from the lesson's own explanations, the child's real answers and the per-part scores — never from the score alone.

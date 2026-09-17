@@ -188,6 +188,50 @@ WORKSPACE = ROOT / "he" / "workspace" / "index.html"
 COMPLETION = ROOT / "he" / "workspace" / "lesson-completion-core.js"
 
 
+LOG_MODE_PAGES = (
+    "he/workspace/index.html",
+    "he/games/workspace/index.html",
+    "he/parent-panel/index.html",
+    "he/index.html",
+    "he/add-subject/index.html",
+    "frontend-v2/homework.html",
+)
+
+
+def log_mode_checks() -> list:
+    """Every page that prints must load the log switch, and load it FIRST.
+
+    2026-09-17: the pages are static files served by nginx and GitHub Pages, so the
+    prints cannot be stripped on the way out. One shim replaces the console methods
+    instead - prod is silent apart from console.error, test prints everything. It only
+    works if nothing runs before it, so the check is on the order, not just presence.
+    """
+    shim = ROOT / "assets" / "js" / "iakids-log-mode.js"
+    if not shim.exists():
+        return ["assets/js/iakids-log-mode.js is missing - every page would print in production"]
+    text = shim.read_text(encoding="utf-8", errors="replace")
+    bad = []
+    if '"error"' in text:
+        bad.append("console.error is in the silenced list - real failures would disappear "
+                   "from production")
+    for name in ("log", "warn", "table"):
+        if '"%s"' % name not in text:
+            bad.append("console.%s is no longer switched off in production" % name)
+    for page in LOG_MODE_PAGES:
+        path = ROOT / page
+        if not path.exists():
+            continue
+        src = path.read_text(encoding="utf-8", errors="replace")
+        at = src.find("iakids-log-mode.js")
+        first = src.find("<script")
+        if at < 0:
+            bad.append("%s does not load the log switch - it would print in production" % page)
+        elif first >= 0 and first < src.rfind("<script", 0, at):
+            bad.append("%s loads a script before the log switch; anything it prints escapes "
+                       "the switch" % page)
+    return bad
+
+
 def completion_screen_checks() -> list:
     """The end-of-lesson card: one clear next step, and a score that is not scraped."""
     if not COMPLETION.exists():
@@ -683,7 +727,7 @@ def main():
         # plus, for main.py, the render smoke that doubles as an import smoke — a route
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
         cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
-              + lesson_closing_checks(main_src) + completion_screen_checks())
+              + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks())
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
         rf = [] if (a.fast or not main_changed) else render_smoke()
         if main_changed:
@@ -704,7 +748,7 @@ def main():
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
-          + lesson_closing_checks(main_src) + completion_screen_checks())
+          + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks())
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:

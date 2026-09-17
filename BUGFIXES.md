@@ -4,6 +4,14 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### build 0.7.133 — test and production log modes
+- **Ask**: a test configuration where the logs are written to the console, and a production one where they are not.
+- **Why one switch and not two scripts**: the pages are static files that nginx (and GitHub Pages on iakids.app) serves as they are. The backend never generates them, so the prints cannot be stripped on the way out, and a second copy of a page would diverge within a week. A build step is against the project's structure. So `assets/js/iakids-log-mode.js` replaces the console methods once, before anything else runs.
+- **Behaviour**: test prints everything; production prints nothing except `console.error`, which is never silenced, and uncaught exceptions are untouched. The switch hides noise, never failures.
+- **Choosing the mode**: `window.IAKIDS_LOG_MODE` before the shim, then `?log=1` / `?log=0` in the URL (kept for the tab), then `localStorage.IAKIDS_LOG`, otherwise localhost and private ranges are test and everything else is production. On production, open with `?log=1` or run `iakidsLogMode("test")` and reload.
+- **Covers**: log, debug, info, warn, table, dir, group, time, count, trace and assert, on all six pages that print — the workspace alone had 154 log calls, 70 warns and a table, all of which were reaching every child's console together with kid ids and signed media URLs.
+- **Verified** in a real JS engine for six cases: production host, localhost, production with `?log=1` (and that it persists), localhost with `?log=0`, blocked storage in private mode, and switching at runtime in both directions. Loading the file twice does not re-wrap. Four gate rules, each verified by breaking it.
+
 ### build 0.7.132 — a lesson now ends with a summary, not with a video and three numbers
 - **What it was**: the closing was the coach's one-sentence wrap-up of the **last question only**, then `lesson-closing.mp4` — one file, identical for every lesson and every child, twenty seconds — then a card with three numbers and a grid of eight equal lesson cards. Nothing ever told the child what they had learned. The progress rail even had a "סיכום" step with a checkered flag that rendered nothing.
 - **New**: `POST /api/tutor/unit-lesson/closing` returns a personal wrap-up built from the lesson's own explanations, the child's real answers and the per-part scores: a spoken summary of about thirty seconds, three short lines (למדנו / הצלחת / נחזק) shown on the card, and one sentence for the parent. Generated once per child per lesson and cached in the history table, so re-entering a finished lesson costs nothing and needs no migration.
