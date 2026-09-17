@@ -88,6 +88,12 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - A green gate is evidence, not consent. "It passed" is a reason to offer the change, not to ship it.
 - The reason is the user's, and it is a good one: too much changed too fast today. Slow is fine.
 
+## Performance and cost
+
+- **`PERFORMANCE.md`** holds the measured picture: where the child's time goes, where the money goes, every model in production with its latency and cost, and a benchmarked provider comparison. Every number there comes from `ai_calls`, `ai_costs_per_lesson` or the `STAGE SUMMARY` log lines. Re-measure with the queries at the bottom of that file instead of trusting the page after a change.
+- **Two facts to keep in mind before optimising anything**: media is about 95% of a lesson's cost and images are 82% of it, while the Visual Director is the largest single block of the child's wait.
+- **Never compare providers by running one and then the other.** Interleave the runs, same prompt, same machine, and report the sample size. "OpenRouter is slower" turned out to be true for OpenAI models here and not measurable for Gemini ones.
+
 ## Architecture rule (decided 2026-09-17): the UI talks to the backend, never to the database
 
 - **No page, script or game opens a connection to Supabase, Firebase or any other data store.** The browser calls our own API and nothing else. All the work happens in the backend.
