@@ -1772,7 +1772,10 @@ def get_child_by_id(
                 "user_id",
                 user_id
             )
-            .single()
+            # 2026-09-17: this used .single(), which RAISES when nothing matches, so a
+            # parent asking for a child that is not theirs got a 500 (after the retry
+            # wrapper had tried three times) instead of a plain 404.
+            .limit(1)
             .execute()
         )
 
@@ -1781,13 +1784,15 @@ def get_child_by_id(
         label="GET CHILD"
     )
 
-    if not res.data:
+    rows = res.data or []
+
+    if not rows:
         raise HTTPException(
             status_code=404,
             detail="Child not found"
         )
 
-    return res.data
+    return rows[0]
 
 # =====================================================
 # CUSTOM CURRICULUM HELPERS
@@ -21997,6 +22002,155 @@ ADMIN_EMAILS = {
         "varonrot@gmail.com,office@calzo-app.com,yossi.heine@gmail.com,yossi.hina@gmail.com,yossiheine.biz@gmail.com"
     ).split(",") if e.strip()
 }
+
+
+# =====================================================
+# KID PROFILE API  —  stage 1 of MIGRATION_TO_BACKEND.md
+#
+# Decided 2026-09-17: the UI talks to the backend and nothing else. kids_profiles was
+# read or written from about 30 browser files, which put the table name, its columns and
+# every child's name, age and gender into the network tab of any page that loaded.
+# Those 30 call sites are five operations: list my kids, read one, update one, create
+# one, and "just the age" for the games. They are all here.
+#
+# Every route resolves the owner from the token. A kid id in the body proves nothing:
+# get_child_by_id filters on user_id as well, so one parent can never read another's
+# child by guessing an id.
+# =====================================================
+
+KID_PUBLIC_FIELDS = (
+    "id", "child_name", "age", "avatar_key", "gender",
+    "usage_goals", "learning_interests", "coins", "diamonds"
+)
+
+KID_EDITABLE_FIELDS = (
+    "child_name", "age", "avatar_key", "gender",
+    "usage_goals", "learning_interests"
+)
+
+
+class KidUpdateRequest(BaseModel):
+    kid_id: str
+    child_name: str | None = None
+    age: int | None = None
+    avatar_key: str | None = None
+    gender: str | None = None
+    usage_goals: list | None = None
+    learning_interests: list | None = None
+
+
+class KidCreateRequest(BaseModel):
+    child_name: str
+    age: int
+    avatar_key: str | None = None
+    gender: str | None = None
+    usage_goals: list | None = None
+    learning_interests: list | None = None
+
+
+def kid_public_view(row: dict) -> dict:
+    """Only the fields a screen draws. Never the row as the table stores it."""
+    return {
+        field: (row or {}).get(field)
+        for field in KID_PUBLIC_FIELDS
+    }
+
+
+@app.get("/api/kid/list")
+def list_my_kids(authorization: str = Header(None)):
+    """Every kid of the signed-in account, oldest first - how a page picks the active kid."""
+    user = authenticate_user(authorization)
+    rows = (
+        sb.table("kids_profiles")
+        .select(", ".join(KID_PUBLIC_FIELDS))
+        .eq("user_id", user.id)
+        .order("created_at")
+        .execute()
+    ).data or []
+    return {"kids": [kid_public_view(r) for r in rows]}
+
+
+@app.get("/api/kid/{kid_id}")
+def get_my_kid(kid_id: str, authorization: str = Header(None)):
+    """One kid, only if it belongs to the caller."""
+    user = authenticate_user(authorization)
+    child = get_child_by_id(user_id=user.id, kid_id=kid_id)
+    return {"kid": kid_public_view(child)}
+
+
+@app.post("/api/kid/update")
+def update_my_kid(body: KidUpdateRequest, authorization: str = Header(None)):
+    """Partial update. A field that is not sent is left alone."""
+    user = authenticate_user(authorization)
+    get_child_by_id(user_id=user.id, kid_id=body.kid_id)     # 404 if not the caller's
+
+    patch = {
+        field: getattr(body, field)
+        for field in KID_EDITABLE_FIELDS
+        if getattr(body, field) is not None
+    }
+
+    if not patch:
+        raise HTTPException(
+            status_code=400,
+            detail="nothing to update"
+        )
+
+    if "child_name" in patch:
+        patch["child_name"] = str(patch["child_name"]).strip()
+        if not patch["child_name"]:
+            raise HTTPException(status_code=400, detail="child_name cannot be empty")
+
+    if "gender" in patch and patch["gender"] not in ("male", "female", ""):
+        raise HTTPException(status_code=400, detail="gender must be male or female")
+
+    patch["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    updated = (
+        sb.table("kids_profiles")
+        .update(patch)
+        .eq("id", body.kid_id)
+        .eq("user_id", user.id)
+        .execute()
+    ).data or []
+
+    if not updated:
+        raise HTTPException(status_code=404, detail="kid not found")
+
+    print("KID PROFILE UPDATED:", {"kid_id": body.kid_id, "fields": sorted(patch)})
+    return {"kid": kid_public_view(updated[0])}
+
+
+@app.post("/api/kid/create")
+def create_my_kid(body: KidCreateRequest, authorization: str = Header(None)):
+    """Used by onboarding and by the 'add a child' dialogs."""
+    user = authenticate_user(authorization)
+
+    name = str(body.child_name or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="child_name is required")
+
+    row = {
+        "user_id": user.id,
+        "child_name": name,
+        "age": body.age,
+        "avatar_key": body.avatar_key or "cat",
+        "usage_goals": body.usage_goals or [],
+        "learning_interests": body.learning_interests or []
+    }
+
+    if body.gender in ("male", "female"):
+        row["gender"] = body.gender
+
+    created = (
+        sb.table("kids_profiles").insert(row).execute()
+    ).data or []
+
+    if not created:
+        raise HTTPException(status_code=500, detail="could not create the profile")
+
+    print("KID PROFILE CREATED:", {"kid_id": created[0].get("id")})
+    return {"kid": kid_public_view(created[0])}
 
 
 def require_admin(authorization: str | None):

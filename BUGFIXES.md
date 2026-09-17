@@ -4,6 +4,19 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — stage 1 of moving the UI off the database: the kid profile API
+- **Four routes** cover everything the browser did with `kids_profiles`: list my kids, read one, update one partially, create one. About thirty direct call sites across the site collapse into these five operations.
+- **Authorisation is server-side only.** A kid id in the request proves nothing: every route resolves the owner from the token and filters on `user_id`. Verified against production with two real test accounts — a parent reading or updating another parent's child gets 404 and the child is unchanged, no token gets 401, an invalid gender or an empty update gets 400, and the response carries only the fields a screen draws, never `user_id`.
+- **`assets/js/iakids-api.js`** is the single door: it resolves the API base, takes the token from the existing auth session, and exposes `listKids`, `getKid`, `updateKid`, `createKid` and `activeKid`.
+- **Found and fixed on the way**: `get_child_by_id` used `.single()`, which *raises* when nothing matches, so a parent asking for a child that is not theirs got a 500 after the retry wrapper had tried three times, instead of a plain 404.
+- **Learned the hard way**: the site container mounts `/opt/iakids` straight as the web root, so every frontend file edit is live the moment it is saved, with no commit and no deploy. A converted page was live for a few minutes while its backend routes were not yet deployed, and was restored immediately. Frontend and backend of the same change now ship together, backend first.
+
+### 2026-09-17 — the tasks page showed a default avatar for every child
+- **Symptom**: the child's picture never appeared on `/he/tasks/`.
+- **Cause**: the page asked for `avatar_key + ".webp"` (`dog.webp`) while the files are named `dog_blue.png`. Every request answered 404 and an `onerror` handler quietly swapped in the generic default, so nothing ever looked broken and no child ever saw the avatar they chose. Same class as the missing dog avatar fixed earlier today, in a page that had not been touched then.
+- **Fix**: the page uses the shared naming convention and the known-avatar list, so an unknown key falls back to a real image instead of a broken one.
+- **Also**: `/he/tasks/` is now the first screen that no longer queries the database at all. Its task list is empty because `kid_tasks` holds no rows for any child, not because of the change.
+
 ### 2026-09-17 — decision: the UI talks to the backend, never to the database
 - **Question asked**: can the code be hidden so a user of the system cannot see it. **Answer: no.** The browser must receive and run it. Minifying or obfuscating buys an attacker hours, not safety, and here it would cost a build step the project deliberately avoids, break the log switch and blind the gates that read those files.
 - **What can be hidden is the data layer.** As long as a page calls `sb.from("kids_profiles")`, the table name, the column list and the relationships sit in the request URL and the JSON response, visible in the network tab whatever the JavaScript looks like. The only way to hide them is to stop the browser talking to the database — which is the decision that was taken.
