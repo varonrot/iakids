@@ -4,6 +4,14 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — the two converted screens were broken, twice, for two different reasons
+- **Symptom**: on `/he/add-subject/` typing in the chat did nothing at all. No error, no message, nothing.
+- **Cause one, mine**: the pages create their client as `const sb = supabase.createClient(...)`, and **a `const` at the top level of a classic script never becomes a property of `window`**. The API module looked for `window.sb`, found nothing, and `activeKid()` returned null quietly. The chat's first line is `if (!text || !CURRENT_KID) return;`, so it simply returned. The same applied to the key, also a `const`.
+- **Fix**: the module now walks a chain — a client the page registered with `useClient()`, a global one if there is one, the games SDK's client, and failing all of those it creates its own. The session lives in `localStorage` and is shared, so it is the same session either way. It also warns out loud instead of failing silently. Verified in a real JS engine for four cases including "page uses const for both the client and the key".
+- **Cause two, the browser**: after the fix the page still did not work. The site's own log showed the browser had loaded the module at 5128 bytes, and the fixed file is 7435; on the next visit the page came back 304 and the module was never re-requested. The browser was running the broken copy from cache. **Every shared JS file gets a version in its script tag from the first day** — the project already does this for the dictation and completion scripts. Without it a fix reaches the server and never reaches the user, and both sides think it shipped.
+- **Verified end to end from the production log**: `GET /api/kid/...` answered 200 for the real parent, three `curriculum/chat` calls answered 200, `CUSTOM CURRICULUM APPROVED` followed, and the subject "משחק טאקי" is in the database, active, with its curriculum. Zero errors in the whole window.
+- **Noticed, not fixed**: `/assets/default-parent.png` is requested on the add-subject page and does not exist, 404 on every load. It is the parent picture shown when the account has none from Google.
+
 ### 2026-09-17 — he/add-subject is off the database
 - Two direct `kids_profiles` queries became one `iakidsApi.activeKid()` call. The page no longer knows the table exists.
 - Second screen of stage 1. The gate's ceiling on direct database calls drops with each screen that ships, so the number can only go down.

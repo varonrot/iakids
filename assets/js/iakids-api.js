@@ -39,28 +39,80 @@
     return "https://iakids-ai-tutor-he.onrender.com";
   }
 
+  /* דף יכול לרשום את הלקוח שלו במפורש: iakidsApi.useClient(sb) */
+  var registered = null;
+
   /*
     הטוקן מגיע מהסשן של Supabase Auth. זיהוי הוא לא מסד נתונים,
     וזאת עדיין ספריית האימות של האתר. אם יום אחד גם האימות יעבור
     לבקאנד, רק הפונקציה הזאת תשתנה.
+
+    17/09/2026 — כאן הייתה טעות ששברה שני מסכים: הדפים מגדירים
+    את הלקוח כ-const בתוך <script> רגיל, ו-const ברמה העליונה
+    של סקריפט קלאסי לא נהיה תכונה של window. לכן W.sb היה
+    undefined, לא נמצא סשן, ו-activeKid החזיר null בשקט.
+    עכשיו יש שרשרת: לקוח שנרשם, לקוח גלובלי אם במקרה יש,
+    ואם אין כלום המודול יוצר לעצמו לקוח. הסשן שמור ב-localStorage
+    ומשותף, אז זה אותו סשן בדיוק.
   */
-  async function accessToken() {
+  var ownClient = null;
 
-    var client =
-      W.sb
-      || W.supabaseClient
-      || (W.IAKidsActivity && W.IAKidsActivity._client)
-      || null;
+  function publicConfig() {
+    return {
+      url:
+        W.SUPABASE_URL
+        || "https://bxnfzuglfwytiyaguwjj.supabase.co",
+      key:
+        W.SUPABASE_ANON_KEY
+        || W.SUPABASE_PUBLISHABLE_KEY
+        || (W.SUPABASE_CONFIG && W.SUPABASE_CONFIG.publishableKey)
+        /*
+          הדפים מגדירים גם את המפתח כ-const, אז גם הוא לא על window.
+          המפתח הזה ציבורי בתכנון וכבר כתוב בכל דף באתר, והוא כפוף
+          להרשאות ול-RLS. הוא כאן רק כדי לקרוא את הסשן, לא כדי לגשת
+          לנתונים: כל הנתונים עוברים דרך הבקאנד.
+        */
+        || "sb_publishable_L3yZe3EAiTA5lEpDky1eXA_j6ERXAdc"
+    };
+  }
 
-    if (!client && W.IAKidsActivity && W.IAKidsActivity._getClient) {
+  async function authClient() {
+
+    if (registered && registered.auth) { return registered; }
+    if (W.sb && W.sb.auth) { return W.sb; }
+    if (W.supabaseClient && W.supabaseClient.auth) { return W.supabaseClient; }
+
+    if (W.IAKidsActivity && W.IAKidsActivity._getClient) {
       try {
-        client = await W.IAKidsActivity._getClient();
+        var fromSdk = await W.IAKidsActivity._getClient();
+        if (fromSdk && fromSdk.auth) { return fromSdk; }
       } catch (e) {
-        client = null;
+        /* ממשיכים לאפשרות הבאה */
       }
     }
 
+    if (ownClient) { return ownClient; }
+
+    var cfg = publicConfig();
+
+    if (W.supabase && W.supabase.createClient && cfg.key) {
+      try {
+        ownClient = W.supabase.createClient(cfg.url, cfg.key);
+        return ownClient;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  async function accessToken() {
+
+    var client = await authClient();
+
     if (!client || !client.auth) {
+      console.warn("IAKIDS API: no auth client on this page");
       return null;
     }
 
@@ -111,6 +163,12 @@
   }
 
   W.iakidsApi = {
+
+    /* דף שמגדיר את הלקוח שלו כ-const יכול לרשום אותו כאן */
+    useClient(client) {
+      registered = client || null;
+      return registered;
+    },
 
     /* כל הילדים של החשבון המחובר, לפי סדר יצירה */
     async listKids() {
