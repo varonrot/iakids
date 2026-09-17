@@ -14377,6 +14377,11 @@ async def get_or_generate_unit_lesson(
         # OPENAI
         # =============================================
 
+        # Nothing has been generated yet at this point, and a cached lesson never reaches
+        # here — so a child who is over the limit is told before anything starts rather
+        # than half way through a lesson.
+        (await run_in_threadpool(lambda: check_lesson_quota(user.id, unit_lesson["id"])))
+
         _t_p1 = media_trace.mark_start("text_part1_teacher", model=UNIVERSAL_LESSON_MODEL)
         completion = (await (
             aclient.beta.chat.completions.parse(
@@ -22074,6 +22079,122 @@ ADMIN_EMAILS = {
 # child by guessing an id.
 # =====================================================
 
+# =====================================================
+# WHAT AN ACCOUNT MAY DO  —  2026-09-17
+#
+# Until today nothing was capped on this service. There was no limit on the number of
+# children (one account already holds nine) and no quota of any kind on lesson
+# generation, which is the expensive thing: about $0.87 a lesson, of which images are
+# 82%. 178 of 180 accounts are on the free plan.
+#
+# The numbers below are deliberately far above real use so that nobody legitimate meets
+# them. Measured on 2026-09-17: only two accounts have ever generated a lesson at all,
+# 10 and 6 in a month. They are a ceiling against a runaway loop or an abusive account,
+# not a paywall — that is a product decision and these are only defaults.
+#
+# Change them with environment variables, no deploy needed:
+#   FREE_MAX_KIDS, PAID_MAX_KIDS, FREE_MONTHLY_LESSONS, PAID_MONTHLY_LESSONS
+# Set LESSON_QUOTA_ENFORCE=0 to measure without blocking: the limit is still logged.
+# =====================================================
+
+FREE_MAX_KIDS = int(os.getenv("FREE_MAX_KIDS", "3"))
+PAID_MAX_KIDS = int(os.getenv("PAID_MAX_KIDS", "10"))
+FREE_MONTHLY_LESSONS = int(os.getenv("FREE_MONTHLY_LESSONS", "30"))
+PAID_MONTHLY_LESSONS = int(os.getenv("PAID_MONTHLY_LESSONS", "200"))
+LESSON_QUOTA_ENFORCE = os.getenv("LESSON_QUOTA_ENFORCE", "1") == "1"
+
+
+def account_plan(user_id: str) -> tuple[str, bool]:
+    """(plan, is_paid). A missing row is a free account, which is what onboarding creates."""
+    try:
+        rows = (
+            sb.table("subscriptions")
+            .select("plan, status, expires_at")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        ).data or []
+    except Exception as e:
+        # Never block a child because the subscription table was briefly unreachable.
+        print("PLAN LOOKUP FAILED:", repr(e)[:120])
+        return "unknown", False
+
+    if not rows:
+        return "free", False
+
+    row = rows[0]
+    plan = str(row.get("plan") or "free")
+    active = str(row.get("status") or "") == "active"
+
+    expires = row.get("expires_at")
+    if expires:
+        try:
+            if datetime.fromisoformat(str(expires).replace("Z", "+00:00")) < datetime.now(timezone.utc):
+                active = False
+        except Exception:
+            pass
+
+    return plan, bool(plan != "free" and active)
+
+
+def lessons_generated_this_month(user_id: str) -> int:
+    """Distinct lessons this account caused to be generated since the 1st.
+
+    Counted from ai_calls, which already records who every model call was for. A lesson
+    that is served from cache costs nothing and is not counted — only generation is.
+    """
+    since = datetime.now(timezone.utc).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    ).isoformat()
+
+    try:
+        rows = (
+            sb.table("ai_calls")
+            .select("unit_lesson_id")
+            .eq("user_id", user_id)
+            .eq("purpose", "lesson")
+            .gte("ts", since)
+            .limit(5000)
+            .execute()
+        ).data or []
+    except Exception as e:
+        print("LESSON QUOTA LOOKUP FAILED:", repr(e)[:120])
+        return 0
+
+    return len({r["unit_lesson_id"] for r in rows if r.get("unit_lesson_id")})
+
+
+def check_lesson_quota(user_id: str, unit_lesson_id):
+    """Raise 403 before a new lesson is generated. Never called for a cached lesson."""
+    plan, paid = account_plan(user_id)
+    limit = PAID_MONTHLY_LESSONS if paid else FREE_MONTHLY_LESSONS
+    used = lessons_generated_this_month(user_id)
+
+    if used < limit:
+        return
+
+    print("LESSON QUOTA REACHED:", {
+        "user_id": user_id, "unit_lesson_id": unit_lesson_id,
+        "plan": plan, "paid": paid, "used": used, "limit": limit,
+        "enforced": LESSON_QUOTA_ENFORCE
+    })
+
+    if not LESSON_QUOTA_ENFORCE:
+        return
+
+    raise HTTPException(
+        status_code=403,
+        detail={
+            "error": "lesson_quota_exceeded",
+            "used": used,
+            "limit": limit,
+            "plan": plan,
+            "resets": "monthly",
+            "message": "הגעתם למספר השיעורים החדשים לחודש הזה. שיעורים שכבר נוצרו זמינים כרגיל."
+        }
+    )
+
+
 KID_PUBLIC_FIELDS = (
     "id", "child_name", "age", "avatar_key", "gender",
     "usage_goals", "learning_interests", "coins", "diamonds"
@@ -22391,6 +22512,28 @@ def create_my_kid(body: KidCreateRequest, authorization: str = Header(None)):
     name = str(body.child_name or "").strip()
     if not name:
         raise HTTPException(status_code=400, detail="child_name is required")
+
+    # 2026-09-17: there was no limit at all; one account already holds nine children.
+    existing = (
+        sb.table("kids_profiles").select("id").eq("user_id", user.id).execute()
+    ).data or []
+
+    plan, paid = account_plan(user.id)
+    max_kids = PAID_MAX_KIDS if paid else FREE_MAX_KIDS
+
+    if len(existing) >= max_kids:
+        print("KID LIMIT REACHED:", {"user_id": user.id, "have": len(existing),
+                                     "limit": max_kids, "plan": plan, "paid": paid})
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "kid_limit_reached",
+                "have": len(existing),
+                "limit": max_kids,
+                "plan": plan,
+                "message": "הגעתם למספר הילדים המרבי בחשבון הזה."
+            }
+        )
 
     row = {
         "user_id": user.id,

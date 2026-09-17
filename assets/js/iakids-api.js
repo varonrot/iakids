@@ -152,10 +152,22 @@
     }
 
     if (!res.ok) {
-      var err = new Error(
-        (payload && (payload.detail || payload.message)) || ("HTTP " + res.status)
-      );
+
+      /*
+        17/09/2026 — השרת מחזיר עכשיו גם שגיאות עם detail כאובייקט,
+        למשל מגבלת מספר הילדים או מכסת השיעורים החודשית. בלי זה
+        ההורה היה רואה "[object Object]" במקום ההסבר.
+      */
+      var detail = payload && payload.detail;
+      var text =
+        (detail && typeof detail === "object" && (detail.message || detail.error))
+        || (typeof detail === "string" && detail)
+        || (payload && payload.message)
+        || ("HTTP " + res.status);
+
+      var err = new Error(text);
       err.status = res.status;
+      err.detail = detail;
       throw err;
     }
 

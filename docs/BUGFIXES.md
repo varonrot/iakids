@@ -4,6 +4,15 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — nothing was capped; now two things are
+- **There was no limit on the number of children.** Not in the browser, not in the server, nowhere. One account already holds nine. The endpoint written this morning had no check either.
+- **The Hebrew tutor had no quota of any kind.** The only quota in the whole product is the monthly chat message count, and it is enforced in the *core* backend, the Spanish chat. Lesson generation, images and voice — the expensive half, about $0.87 a lesson — were open to any signed-in account. 178 of 180 accounts are on the free plan.
+- **Two limits now exist, both server-side.** Children per account, checked when one is created. New lessons per month, checked **before** the first model call of a fresh generation, so a child is told before anything starts rather than half way through a lesson. A lesson served from cache costs nothing and is never counted.
+- **The numbers are deliberately far above real use**: three children free and ten paid, thirty new lessons a month free and two hundred paid. Measured the same day: only two accounts have ever generated a lesson, ten and six in a month. These are a ceiling against a runaway loop or an abusive account, not a paywall — that is a product decision, and all four are environment variables (`FREE_MAX_KIDS`, `PAID_MAX_KIDS`, `FREE_MONTHLY_LESSONS`, `PAID_MONTHLY_LESSONS`). `LESSON_QUOTA_ENFORCE=0` measures without blocking.
+- **A subscription lookup that fails never blocks a child**: it falls back to treating the account as free rather than refusing.
+- **Verified end to end** on a real account: three children created, the fourth refused with 403 and a Hebrew explanation. The paid account resolves as paid, the free one as free, and the lesson counts match what the cost table shows.
+- **The parent sees the reason**: the API module was turning a structured error into "[object Object]". It now surfaces the server's own message.
+
 ### 2026-09-17 — "הישגים" and "הקבצים שלי" exist now, and the sidebar is whole
 - Two more buttons that had pointed at nothing since the workspace was written.
 - **`GET /api/kid/achievements`** counts what the child actually did: lessons opened and finished, the best and average understanding score, the subjects, games played and finished, and the number of distinct days they studied. **A number that cannot be computed is left out rather than shown as a zero**, because a zero reads as failure to a child. Six badges, earned or locked, drawn from those same numbers.
