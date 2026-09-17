@@ -252,11 +252,44 @@ if not SUPABASE_URL:
 if not SUPABASE_SERVICE_KEY:
     raise RuntimeError("Missing SUPABASE_SERVICE_ROLE_KEY")
 
-if not OPENAI_API_KEY:
-    raise RuntimeError("Missing OPENAI_API_KEY")
+def require_api_key(
+        name: str,
+        value: str
+) -> str:
+    """
+    A key must be present AND usable. 2026-09-17: an edit to .env.prod left the
+    file without a closing newline, so the next appended line was glued onto the
+    end of GEMINI_API_KEY. The service started normally, every text and voice
+    call worked, and EVERY image of the lesson failed deep inside the SDK with
+    'ascii codec can't encode character' — a whole lesson was generated with no
+    pictures and the media job still reported success. A key that is not clean
+    ASCII, or that carries a second VAR= inside it, is a broken file, not a
+    key: refuse to start and say which variable it is.
+    """
+    v = (value or "").strip()
 
-if not GEMINI_API_KEY:
-    raise RuntimeError("Missing GEMINI_API_KEY")
+    if not v:
+        raise RuntimeError(f"Missing {name}")
+
+    if not v.isascii():
+        raise RuntimeError(
+            f"{name} contains non-ASCII characters (length {len(v)}). "
+            f"The value in the env file is corrupted — most likely a line was "
+            f"appended to a file with no trailing newline. Fix the env file."
+        )
+
+    if "_KEY=" in v or "_URL=" in v:
+        raise RuntimeError(
+            f"{name} has another variable glued into its value "
+            f"(length {len(v)}). The env file is missing a newline. Fix it."
+        )
+
+    return v
+
+
+OPENAI_API_KEY = require_api_key("OPENAI_API_KEY", OPENAI_API_KEY)
+GEMINI_API_KEY = require_api_key("GEMINI_API_KEY", GEMINI_API_KEY)
+SUPABASE_SERVICE_KEY = require_api_key("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_KEY)
 
 if not PROMPT_PATH.exists():
     raise RuntimeError(f"Missing prompt file: {PROMPT_PATH}")
@@ -10063,6 +10096,9 @@ def generate_all_lesson_visuals_background(
 
                             traceback.print_exc()
 
+            # 2026-09-17: a part whose images ALL failed used to log "DONE" and the
+            # media job reported success, so a lesson with zero pictures looked
+            # healthy in the logs. Say it loudly instead.
             print(
                 "LESSON PART VISUAL GENERATION DONE:",
                 {
@@ -10070,9 +10106,30 @@ def generate_all_lesson_visuals_background(
                         unit_lesson_id,
 
                     "part_number":
-                        part_number
+                        part_number,
+
+                    "images_ok":
+                        len(generated_visuals),
+
+                    "images_planned":
+                        len(part_visuals)
                 }
             )
+
+            if part_visuals and not generated_visuals:
+                print(
+                    "LESSON PART VISUAL GENERATION FAILED (no image produced):",
+                    {
+                        "unit_lesson_id":
+                            unit_lesson_id,
+
+                        "part_number":
+                            part_number,
+
+                        "images_planned":
+                            len(part_visuals)
+                    }
+                )
 
 
         generated_visuals.sort(

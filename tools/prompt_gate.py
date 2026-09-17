@@ -252,8 +252,49 @@ def pure_function_tests() -> list:
     return bad
 
 
+ENV_KEYS = ("OPENAI_API_KEY", "GEMINI_API_KEY", "SUPABASE_SERVICE_ROLE_KEY", "OPENROUTER_API_KEY")
+
+
+def env_file_checks() -> list:
+    """
+    The env file a DEPLOY will use must hold usable keys. 2026-09-17: an append to
+    .env.prod with no trailing newline glued a second variable onto the end of
+    GEMINI_API_KEY. The service started, text and voice worked, and every image of
+    the lesson died inside the SDK ("ascii codec can't encode character") — a whole
+    lesson was generated with no pictures. Catch that in the file, before the restart.
+    Not part of the commit gate: a commit must not depend on the health of a secrets
+    file that is not in git.
+    """
+    name = ".env.%s" % os.environ.get("APP_ENV", "prod")
+    path = ROOT / "backend-ai-tutor-he" / name
+    if not path.exists():
+        return []
+    bad = []
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        if key.strip() not in ENV_KEYS:
+            continue
+        v = value.strip()
+        if not v:
+            bad.append("%s: %s is empty" % (name, key))
+        elif not v.isascii():
+            bad.append("%s: %s has non-ASCII characters (length %d) - the value is corrupted, "
+                       "most likely a line appended to a file with no trailing newline" % (name, key, len(v)))
+        elif "_KEY=" in v or "_URL=" in v:
+            bad.append("%s: %s has another variable glued into its value (length %d) - "
+                       "the file is missing a newline" % (name, key, len(v)))
+    return bad
+
+
 def render_smoke() -> list:
-    """Import main (needs .env.prod) and render every builder with sample data."""
+    """
+    Render every builder with sample data. The keys passed in are dummies on purpose:
+    this checks prompts, not secrets. main.py keeps env vars that are already set and
+    only falls back to the env file, so a commit never depends on a real key.
+    """
     code = r'''
 import os, re, sys, io, contextlib
 os.chdir("backend-ai-tutor-he"); sys.path.insert(0, ".")
@@ -286,6 +327,9 @@ for k, v in out.items():
 print("\n".join(bad) if bad else "RENDER_OK")
 '''
     env = dict(os.environ, APP_ENV=os.environ.get("APP_ENV", "prod"))
+    for k in ENV_KEYS:
+        env[k] = "gate-dummy-key"
+    env["SUPABASE_URL"] = env.get("SUPABASE_URL") or "https://gate.supabase.co"
     r = subprocess.run([str(PY), "-c", code], cwd=ROOT, capture_output=True, text=True, env=env, timeout=180)
     if r.returncode != 0:
         return [f"render smoke crashed: {(r.stderr or r.stdout)[-400:]}"]
@@ -417,6 +461,10 @@ def main():
         rf = render_smoke()
         print(("FAIL " if rf else "ok   ") + "render smoke (all builders, no unresolved placeholders)")
         all_fails += rf
+    if a.all:
+        ef = env_file_checks()
+        print(("FAIL " if ef else "ok   ") + "env file keys (present, clean ASCII, no glued variable)")
+        all_fails += ef
     if all_fails:
         print("\nPROMPT GATE FAILED:\n - " + "\n - ".join(all_fails), file=sys.stderr)
         return 1

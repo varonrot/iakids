@@ -18738,6 +18738,30 @@ async function waitForLessonVisual(
   const CHECK_DELAY_MS = 2500;
   let lastPollStatus = 0;
 
+  /*
+    17/09/2026 — תמונה לעולם לא עוצרת שיעור.
+    עד היום כל המתנה לתמונה יכלה לקחת עד 300 שניות,
+    וגם מאגר הפתיחה מחכה לשלוש תמונות בזו אחר זו,
+    כך שכשל ביצירת התמונות (למשל מפתח Gemini שבור)
+    השאיר את הילד מול מסך תקוע במקום שיעור.
+    עכשיו: תקציב המתנה אחד, ואחריו ויתור לכל השיעור —
+    הטקסט והקול ממשיכים כרגיל בלי תמונות.
+  */
+  if(
+    window.LESSON_VISUALS_GIVE_UP === true
+  ){
+    return null;
+  }
+
+  const VISUAL_WAIT_BUDGET_MS =
+    Number(
+      window.LESSON_VISUAL_WAIT_BUDGET_MS
+      || 45000
+    );
+
+  const visualWaitStartedAt =
+    Date.now();
+
   for(
     let attempt = 1;
     attempt <= MAX_CHECKS;
@@ -18985,15 +19009,47 @@ async function waitForLessonVisual(
     }
 
 
+    if(
+      Date.now() - visualWaitStartedAt
+      >=
+      VISUAL_WAIT_BUDGET_MS
+    ){
+      break;
+    }
+
     await iakidsPollSleep( attempt, CHECK_DELAY_MS, lastPollStatus );
 
   }
 
 
   console.warn(
-    "SEGMENT VISUAL TIMEOUT:",
-    visualOrder
+    "SEGMENT VISUAL TIMEOUT - LESSON CONTINUES WITHOUT IMAGES:",
+    {
+      visualOrder,
+
+      waited_s:
+        Math.round(
+          ( Date.now() - visualWaitStartedAt )
+          / 1000
+        )
+    }
   );
+
+  /*
+    ויתור אחד לכל השיעור: אם התמונה הראשונה לא הגיעה
+    בתוך התקציב, אין טעם להמתין שוב לכל קטע.
+  */
+  window.LESSON_VISUALS_GIVE_UP = true;
+
+  const generatingBox =
+    document.getElementById(
+      "lessonVisualGenerating"
+    );
+
+  if(generatingBox){
+    generatingBox.style.display =
+      "none";
+  }
 
 
   return null;
@@ -30502,6 +30558,9 @@ function setLessonBackgroundForSubject(
     "lesson-subject-science",
     normalizedSubject === "מדעים"
   );
+
+  /* שיעור חדש — מתחילים להמתין לתמונות מחדש */
+  window.LESSON_VISUALS_GIVE_UP = false;
 
 }
 
@@ -53699,8 +53758,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.126</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.126";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.127</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.127";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
