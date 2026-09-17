@@ -13,8 +13,12 @@
 -- media  = anything that produced a picture, a voice line or a video
 -- text   = lesson, llm, lesson_chat, homework, stt
 --
--- Adds text_cost_usd alongside, so the two halves add up to cost_usd and a gap is
--- visible instead of silent.
+-- text_cost_usd is APPENDED at the end on purpose. `create or replace view` may only
+-- add columns after the existing ones; putting it in the middle reads as renaming
+-- cost_usd and Postgres refuses with
+--     42P16: cannot change name of view column "cost_usd" to "text_cost_usd"
+-- The column order therefore stays: unit_lesson_id, calls, media_cost_usd, cost_usd,
+-- first_call, last_call, text_cost_usd.
 --
 -- Idempotent: create or replace.
 
@@ -24,16 +28,16 @@ select unit_lesson_id,
        round(sum(cost_usd) filter (
            where purpose in ('media', 'image', 'tts', 'tts_live', 'video', 'intro')
        ), 4) as media_cost_usd,
-       round(sum(cost_usd) filter (
-           where purpose in ('lesson', 'llm', 'lesson_chat', 'homework', 'stt')
-       ), 4) as text_cost_usd,
        round(sum(cost_usd), 4) as cost_usd,
        min(ts) as first_call,
-       max(ts) as last_call
+       max(ts) as last_call,
+       round(sum(cost_usd) filter (
+           where purpose in ('lesson', 'llm', 'lesson_chat', 'homework', 'stt')
+       ), 4) as text_cost_usd
   from public.ai_calls
  where unit_lesson_id is not null
  group by 1
- order by 5 desc nulls last;
+ order by 4 desc nulls last;
 
 alter view public.ai_costs_per_lesson set (security_invoker = true);
 revoke all on public.ai_costs_per_lesson from anon, authenticated;
