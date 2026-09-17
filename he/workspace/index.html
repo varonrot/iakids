@@ -7157,7 +7157,7 @@ box-shadow:
 
 /* רקע של שיעורי מדעים */
 
-body.lesson-theme-science
+body.lesson-subject-science
 #lesson-background-layer{
   background-image:
     url("/assets/backgrounds/science-lesson-dusk.png");
@@ -30485,21 +30485,23 @@ function setLessonBackgroundForSubject(
       subject || ""
     ).trim();
 
+  /*
+    17/09/2026 — כל פריסת מסך השיעור (תמונה במרכז,
+    צ'אט מימין, גבהים) כתובה תחת body.lesson-theme-science.
+    כשהמחלקה נוספה רק ל"מדעים", שיעור בעברית או במתמטיקה
+    נפתח בלי פריסה והתמונות לא הוצגו במרכז.
+    המחלקה מסמנת עכשיו "מסך שיעור" לכל מקצוע,
+    והרקע המדעי נשאר רק למדעים דרך lesson-subject-science.
+  */
 
-  document.body.classList.remove(
+  document.body.classList.add(
     "lesson-theme-science"
   );
 
-
-  if(
+  document.body.classList.toggle(
+    "lesson-subject-science",
     normalizedSubject === "מדעים"
-  ){
-
-    document.body.classList.add(
-      "lesson-theme-science"
-    );
-
-  }
+  );
 
 }
 
@@ -30508,6 +30510,10 @@ function restoreDefaultWorkspaceBackground(){
 
   document.body.classList.remove(
     "lesson-theme-science"
+  );
+
+  document.body.classList.remove(
+    "lesson-subject-science"
   );
 
 }
@@ -53693,8 +53699,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.125</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.125";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.126</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.126";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}

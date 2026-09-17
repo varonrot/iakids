@@ -1,0 +1,664 @@
+from fastapi import FastAPI, Header, HTTPException
+from pydantic import BaseModel
+from supabase import create_client
+from openai import OpenAI
+from fastapi.middleware.cors import CORSMiddleware
+import os
+from pathlib import Path
+import json
+import hmac
+import hashlib
+
+from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Must run before the os.getenv calls below. APP_ENV picks the file:
+#   APP_ENV=prod -> .env.prod   (live iakids.app data)
+#   APP_ENV=dev  -> .env.dev    (default; safe to experiment)
+# Falls back to plain .env if the per-env file is absent. No-op on Render,
+# which injects the vars directly and is never overridden by load_dotenv.
+_env = os.getenv("APP_ENV", "dev")
+_here = Path(__file__).resolve().parent
+_envfile = _here / f".env.{_env}"
+load_dotenv(_envfile if _envfile.exists() else _here / ".env")
+print(f"[config] APP_ENV={_env} -> {_envfile.name if _envfile.exists() else '.env'}")
+
+# ===== LOAD PROMPTS =====
+
+CORE_PROMPT_TEMPLATE = Path(
+    "prompts/iakids_core_chat_system_prompt.txt"
+).read_text()
+
+print("=== CORE PROMPT LOADED ===")
+print(CORE_PROMPT_TEMPLATE[:300])
+print("=========================")
+
+MODE_PROMPT_TEMPLATE = Path(
+    "prompts/iakids_mode_guidance_prompt.txt"
+).read_text()
+
+print("=== MODE PROMPT LOADED ===")
+print(MODE_PROMPT_TEMPLATE[:300])
+print("==========================")
+
+# ===== ENV =====
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+LEMON_WEBHOOK_SECRET = os.getenv("LEMON_WEBHOOK_SECRET")
+LEMON_API_KEY = os.getenv("LEMON_API_KEY")
+
+print("LEMON_API_KEY EXISTS:", bool(LEMON_API_KEY))
+print("LEMON_WEBHOOK_SECRET EXISTS:", bool(LEMON_WEBHOOK_SECRET))
+# ===== CLIENTS =====
+
+sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+# In production the interactive docs are off: /docs, /redoc and /openapi.json handed
+# every route and every request schema to anyone who asked. In dev they are useful.
+IS_PROD = _env == "prod"
+app = FastAPI(
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
+    openapi_url=None if IS_PROD else "/openapi.json",
+)
+
+
+# ✅ ONE CORS ONLY
+# localhost is a development origin. Left on in production it lets a page running on
+# the visitor's own machine call this API with their credentials.
+ALLOWED_ORIGINS = [
+    "https://iakids.app",
+    "https://www.iakids.app",
+    # mirror of the site served from smarts-brains.online
+    "https://smarts-brains.online",
+    "https://www.smarts-brains.online",
+]
+if not IS_PROD:
+    ALLOWED_ORIGINS += ["http://localhost:3000", "http://localhost:5500", "http://127.0.0.1:5500"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ===== capacity: widen the worker pool, and keep one client from taking all of it =====
+# Every route here is a plain `def`, so FastAPI runs it in anyio's worker threadpool
+# and each request holds a thread for the whole model call. The pool defaults to 40,
+# which is the whole service's concurrency; while the routes stay blocking, a wider
+# pool is the cheapest capacity there is (a waiting thread costs memory, not CPU).
+# Making the routes `async def` is the real fix and would make this moot.
+import anyio as _anyio
+import time as _time
+from collections import deque as _deque
+from fastapi import Request as _Request
+from starlette.responses import JSONResponse as _JSONResponse
+
+# What a month of chat costs an account. The quota resets on the first of the month;
+# a paid limit exists at all so that a stolen session cannot run up an unbounded bill.
+FREE_MONTHLY_MESSAGES = int(os.getenv("FREE_MONTHLY_MESSAGES", "20"))
+PAID_MONTHLY_MESSAGES = int(os.getenv("PAID_MONTHLY_MESSAGES", "2000"))
+
+WORKER_THREADS = int(os.getenv("WORKER_THREADS", "96"))
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
+_RATE_EXEMPT = {"/api/lemonsqueezy-webhook"}
+_rate_buckets: dict = {}
+
+
+@app.on_event("startup")
+async def _widen_threadpool():
+    _anyio.to_thread.current_default_thread_limiter().total_tokens = WORKER_THREADS
+
+
+@app.middleware("http")
+async def _rate_limit(request: _Request, call_next):
+    """A sliding one-minute window per caller on /api/*.
+
+    Without it, one browser tab in a loop takes every worker thread and every other
+    child sees a page that has stopped. Keyed by the bearer token when there is one
+    (a user), else by address (a guest). Webhooks are exempt: Lemon retries them.
+    """
+    path = request.url.path
+    if path.startswith("/api/") and path not in _RATE_EXEMPT:
+        key = request.headers.get("authorization") or (request.client.host if request.client else "?")
+        now = _time.time()
+        q = _rate_buckets.setdefault(key, _deque())
+        while q and q[0] < now - 60:
+            q.popleft()
+        if len(q) >= RATE_LIMIT_PER_MINUTE:
+            return _JSONResponse(status_code=429, headers={"Retry-After": "60"},
+                                 content={"detail": "rate_limited", "limit_per_minute": RATE_LIMIT_PER_MINUTE})
+        q.append(now)
+        if len(_rate_buckets) > 5000:                       # forget callers not seen this minute
+            for k in [k for k, v in _rate_buckets.items() if not v or v[-1] < now - 60]:
+                _rate_buckets.pop(k, None)
+    return await call_next(request)
+# ===== end capacity =====
+
+# ---------
+# MODELS
+# ---------
+
+class ChatRequest(BaseModel):
+    message: str
+    kid_id: str
+    mode: str | None = None
+
+class CreateChildProfileRequest(BaseModel):
+    user_id: str
+    child_name: str
+    age: int
+    avatar_key: str | None = None
+    usage_goals: list[str] = []
+    learning_interests: list[str] = []
+
+# ---------
+# HELPERS
+# ---------
+def get_existing_kids_memory(kid_id: str) -> str:
+    res = (
+        sb.table("kids_memory")
+        .select("memory")
+        .eq("kid_id", kid_id)
+        .order("updated_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+
+    if not res.data:
+        return ""
+
+    memory = res.data[0]["memory"]
+
+    if isinstance(memory, list):
+        return "\n".join(f"- {m}" for m in memory)
+
+    return str(memory)
+
+def save_kids_memory(
+    user_id: str,
+    kid_id: str,
+    memory_list: list[str],
+    updated_by: str = "ai"
+):
+    sb.table("kids_memory").insert({
+        "user_id": user_id,
+        "kid_id": kid_id,
+        "memory": memory_list,
+        "updated_by": updated_by
+    }).execute()
+
+def should_run_memory_extraction(kid_id: str, every_n: int = 2) -> bool:
+    res = (
+        sb.table("kids_chats")
+        .select("id")
+        .eq("kid_id", kid_id)
+        .eq("role", "user")
+        .execute()
+    )
+
+    user_messages_count = len(res.data or [])
+    print("USER MESSAGES COUNT:", user_messages_count)
+
+    return user_messages_count > 0 and user_messages_count % every_n == 0
+
+def get_recent_chat_messages(kid_id: str, limit: int = 8) -> str:
+    res = (
+        sb.table("kids_chats")
+        .select("role, content")
+        .eq("kid_id", kid_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    messages = reversed(res.data or [])
+    return "\n".join(f"{m['role']}: {m['content']}" for m in messages)
+
+def get_recent_chat_messages_for_llm(kid_id: str, limit: int = 7):
+    res = (
+        sb.table("kids_chats")
+        .select("role, content")
+        .eq("kid_id", kid_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    messages = list(reversed(res.data or []))
+
+    return [
+        {"role": m["role"], "content": m["content"]}
+        for m in messages
+        if m["role"] in ("user", "assistant")
+    ]
+
+def get_child_profile(user_id: str):
+    res = (
+        sb.table("kids_profiles")
+        .select("*")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(status_code=404, detail="No child profile found")
+    return res.data[0]
+
+def get_child_by_id(user_id: str, kid_id: str):
+    res = (
+        sb.table("kids_profiles")
+        .select("*")
+        .eq("id", kid_id)
+        .eq("user_id", user_id)
+        .single()
+        .execute()
+    )
+
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Child not found")
+
+    return res.data
+
+def save_chat_message(
+    user_id: str,
+    kid_id: str,
+    role: str,
+    content: str,
+    tokens: int | None = None
+):
+    sb.table("kids_chats").insert({
+        "user_id": user_id,
+        "kid_id": kid_id,
+        "role": role,
+        "content": content,
+        "tokens": tokens
+    }).execute()
+
+# ---------
+# HEALTH
+# ---------
+
+@app.get("/")
+def health():
+    return {"status": "ok", "service": "iakids-backend"}
+
+# ---------
+# CHAT
+# ---------
+
+@app.post("/api/chat")
+def chat(
+    body: ChatRequest,
+    authorization: str = Header(None)
+):
+    try:
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing auth")
+
+        token = authorization.replace("Bearer ", "")
+        user_res = sb.auth.get_user(token)
+
+        if not user_res or not user_res.user:
+            raise HTTPException(status_code=401, detail="Invalid session")
+
+        user = user_res.user
+
+        kid_id = body.kid_id
+        if not kid_id:
+            raise HTTPException(status_code=400, detail="kid_id is required")
+
+        child = get_child_by_id(user.id, kid_id)
+        existing_memory = get_existing_kids_memory(child["id"])
+        # One statement, under a row lock, with the limit chosen by whether the
+        # subscription is actually paid and current (migration 20260910_chat_quota).
+        # What this replaces: a flat limit of 20 that applied to paying customers
+        # too, and a read-then-write that two simultaneous requests walked straight
+        # past.
+        quota = sb.rpc("chat_consume_message", {
+            "p_user": user.id,
+            "p_free_limit": FREE_MONTHLY_MESSAGES,
+            "p_paid_limit": PAID_MONTHLY_MESSAGES,
+        }).execute().data or {}
+
+        if not quota.get("allowed", False):
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "quota_exceeded",
+                    "used": quota.get("used"),
+                    "limit": quota.get("limit"),
+                    "plan": quota.get("plan"),
+                    "resets": "monthly",
+                }
+            )
+
+        save_chat_message(
+            user_id=user.id,
+            kid_id=child["id"],
+            role="user",
+            content=body.message
+        )
+        mode_value = body.mode or "unknown"
+
+        system_prompt = (
+                CORE_PROMPT_TEMPLATE
+                + "\n\n"
+                + MODE_PROMPT_TEMPLATE.format(
+            child_name=child["child_name"],
+            age=child["age"],
+            avatar_key=child.get("avatar_key", ""),
+            learning_interests=", ".join(child.get("learning_interests", [])),
+            usage_goals=", ".join(child.get("usage_goals", [])),
+            kids_memory=existing_memory,
+            mode=mode_value
+        )
+        )
+
+        recent_messages = get_recent_chat_messages_for_llm(child["id"], limit=5)
+
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                *recent_messages
+            ]
+        )
+
+        answer = completion.choices[0].message.content
+
+        save_chat_message(
+            user_id=user.id,
+            kid_id=child["id"],
+            role="assistant",
+            content=answer
+        )
+
+        if False:
+            try:
+                extractor_prompt = Path(
+                    "prompts/iakids_memory_extractor_prompt.txt"
+                ).read_text()
+
+                recent_chat = get_recent_chat_messages(child["id"])
+                existing_memory_raw = get_existing_kids_memory(child["id"])
+
+                print("===== RECENT CHAT SENT TO MEMORY EXTRACTOR =====")
+                print(recent_chat)
+                print("================================================")
+
+                extractor_system = extractor_prompt.format(
+                    child_name=child["child_name"],
+                    age=child["age"],
+                    existing_kids_memory=existing_memory_raw,
+                    recent_chat_messages=recent_chat
+                )
+
+                extraction = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "system", "content": extractor_system}]
+                )
+
+                raw = extraction.choices[0].message.content.strip()
+
+                print("===== MEMORY EXTRACTOR RAW RESULT =====")
+                print(raw)
+                print("======================================")
+
+                if raw == "NO_UPDATE":
+                    return {"reply": answer}
+
+                import re
+
+                match = re.search(r'\{[\s\S]*\}', raw)
+                if not match:
+                    print("❌ No valid JSON found in memory extractor output")
+                    return {"reply": answer}
+
+                json_text = match.group(0)
+
+                try:
+                    data = json.loads(json_text)
+                except Exception as e:
+                    print("❌ JSON parse failed:", e)
+                    return {"reply": answer}
+
+                if (
+                        isinstance(data, dict)
+                        and data.get("update") is True
+                        and isinstance(data.get("memory"), list)
+                        and len(data["memory"]) > 0
+                ):
+                    save_kids_memory(
+                        user_id=user.id,
+                        kid_id=child["id"],
+                        memory_list=data["memory"]
+                    )
+
+
+            except Exception as e:
+                print("Memory extractor error:", e)
+
+            return {"reply": answer}
+
+        return {"reply": answer}
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        print("CHAT ERROR:", e)
+        raise HTTPException(status_code=500, detail="Chat failed")
+
+    # =====================================================
+    # LEMON SQUEEZY WEBHOOK
+    # =====================================================
+
+
+from fastapi import Request, HTTPException
+from fastapi.responses import JSONResponse
+import hmac
+import hashlib
+
+@app.post("/api/lemonsqueezy-webhook")
+async def lemonsqueezy_webhook(request: Request):
+
+    # -------- VERIFY SIGNATURE --------
+    raw_body = await request.body()
+    signature = request.headers.get("X-Signature")
+
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing signature")
+
+    expected_signature = hmac.new(
+        LEMON_WEBHOOK_SECRET.encode(),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(signature, expected_signature):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    payload = await request.json()
+
+    event = payload.get("meta", {}).get("event_name")
+    data = payload.get("data", {})
+    attributes = data.get("attributes", {})
+
+    print("==== LEMON WEBHOOK RECEIVED ====")
+    print("EVENT:", event)
+
+    # -----------------------------------
+    # COMMON FIELDS
+    # -----------------------------------
+
+    # חשוב: באירוע invoice ה-id הוא invoice_id
+    lemon_subscription_id = (
+        str(attributes.get("subscription_id"))
+        if attributes.get("subscription_id")
+        else str(data.get("id")) if data.get("id") else None
+    )
+
+    lemon_customer_id = attributes.get("customer_id")
+    renews_at = attributes.get("renews_at")
+
+    # -----------------------------------
+    # GET USER ID FROM CHECKOUT CUSTOM DATA
+    # -----------------------------------
+    meta = payload.get("meta", {})
+    custom_data = meta.get("custom_data", {})
+
+    user_id = custom_data.get("user_id")
+    plan = custom_data.get("plan")
+
+    # ===================================
+    # SUBSCRIPTION CREATED
+    # ===================================
+    if event == "subscription_created":
+
+        if not user_id:
+            print("Missing user_id in subscription_created")
+            return JSONResponse(status_code=200, content={"success": False})
+
+        # אם לא הגיע plan מה-checkout נזהה מהמוצר
+        if not plan:
+            product_name = (attributes.get("product_name") or "").lower()
+            if "anual" in product_name or "annual" in product_name:
+                plan = "annual"
+            else:
+                plan = "monthly"
+
+        print("Updating subscription for user:", user_id)
+
+        result = sb.table("subscriptions").upsert(
+            {
+                "user_id": user_id,
+                "plan": plan,
+                "status": "active",
+                "lemon_subscription_id": lemon_subscription_id,
+                "lemon_customer_id": lemon_customer_id,
+                "expires_at": renews_at,
+                "messages_used": 0
+            },
+            on_conflict="user_id"
+        ).execute()
+
+        print("UPSERT DATA:", result.data)
+        print("UPSERT ERROR:", result.error)
+
+        return JSONResponse(status_code=200, content={"success": True})
+
+    # ===================================
+    # PAYMENT SUCCESS (RENEWAL)
+    # ===================================
+    if event == "subscription_payment_success":
+
+        print("Payment success for subscription:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "active",
+                "expires_at": renews_at
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("UPDATE DATA:", result.data)
+        print("UPDATE ERROR:", result.error)
+
+        return JSONResponse(status_code=200, content={"success": True})
+
+    # ===================================
+    # SUBSCRIPTION CANCELLED
+    # ===================================
+    if event == "subscription_cancelled":
+
+        print("Subscription cancelled:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "cancelled"
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("CANCEL UPDATE:", result.data)
+        print("CANCEL ERROR:", result.error)
+
+        return JSONResponse(status_code=200, content={"success": True})
+
+    # ===================================
+    # SUBSCRIPTION EXPIRED
+    # ===================================
+    if event == "subscription_expired":
+
+        print("Subscription expired:", lemon_subscription_id)
+
+        result = sb.table("subscriptions").update(
+            {
+                "status": "expired"
+            }
+        ).eq("lemon_subscription_id", lemon_subscription_id).execute()
+
+        print("EXPIRE UPDATE:", result.data)
+        print("EXPIRE ERROR:", result.error)
+
+        return JSONResponse(status_code=200, content={"success": True})
+
+    print("Unhandled event:", event)
+    return JSONResponse(status_code=200, content={"ignored": True})
+
+import requests
+
+@app.post("/api/create-portal-session")
+async def create_portal_session(authorization: str = Header(None)):
+
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing auth")
+
+    token = authorization.replace("Bearer ", "")
+    user_res = sb.auth.get_user(token)
+
+    if not user_res or not user_res.user:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    user = user_res.user
+
+    sub = (
+        sb.table("subscriptions")
+        .select("lemon_subscription_id")
+        .eq("user_id", user.id)
+        .single()
+        .execute()
+    )
+
+    if not sub.data or not sub.data.get("lemon_subscription_id"):
+        raise HTTPException(status_code=404, detail="No Lemon subscription")
+
+    subscription_id = sub.data["lemon_subscription_id"]
+
+    LEMON_API_KEY = os.getenv("LEMON_API_KEY")
+    if not LEMON_API_KEY:
+        raise HTTPException(status_code=500, detail="Missing LEMON_API_KEY")
+ 
+    response = requests.get(
+        f"https://api.lemonsqueezy.com/v1/subscriptions/{subscription_id}",
+        headers={
+            "Authorization": f"Bearer {LEMON_API_KEY}",
+            "Accept": "application/vnd.api+json",
+        }
+    )
+
+    if response.status_code != 200:
+        print("LEMON ERROR:", response.status_code, response.text)
+        raise HTTPException(status_code=400, detail="Failed to retrieve subscription")
+
+    data = response.json()
+
+    portal_url = data["data"]["attributes"]["urls"]["customer_portal"]
+
+    return {"url": portal_url}

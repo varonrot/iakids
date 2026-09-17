@@ -39,7 +39,8 @@ REQUIRED = {
     },
     "iakids_structured_lesson_prompt.txt": {
         "placeholders": [],
-        "sections": ["RUNTIME_CONTEXT", "ADDRESSING THE CHILD", "Always communicate with the child in Hebrew"],
+        "sections": ["RUNTIME_CONTEXT", "ADDRESSING THE CHILD", "Always communicate with the child in Hebrew",
+                     "A HINT IS NEVER THE ANSWER"],
     },
     "iakids_lesson_expansion_prompt.txt": {
         "placeholders": ["{grade}", "{subject}", "{parent_lesson}", "{lesson_name}", "{learning_objective}",
@@ -57,7 +58,8 @@ REQUIRED = {
     "iakids_lesson_transition_prompt.txt": {"placeholders": [], "sections": []},
     "learning_coach_system_prompt.txt": {
         "placeholders": [],
-        "sections": ["RUNTIME_DATA.child.gender", "אין להסיק את המגדר לפי שם הילד"],
+        "sections": ["RUNTIME_DATA.child.gender", "אין להסיק את המגדר לפי שם הילד",
+                     "רמז או דוגמה לעולם אינם התשובה"],
     },
     "iakids_curriculum_builder_system_prompt.txt": {
         "placeholders": ["{child_name}", "{gender}", "{grade}", "{subject}"],
