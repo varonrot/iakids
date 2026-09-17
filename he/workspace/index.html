@@ -54044,8 +54044,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.134</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.134";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.135</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.135";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -55611,7 +55611,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
       if(parentIds.length){const r=await c.from('learning_lessons').select('id,subject,category,lesson_name').in('id',parentIds);if(!r.error)parentMeta=r.data||[]}
       const pmap=new Map(parentMeta.map(x=>[String(x.id),x]));
       const unitIds=[...new Set(units.map(x=>x.unit_lesson_id).filter(Boolean).map(String))];let unitMeta=[];
-      if(unitIds.length){const r=await c.from('lesson_units_content').select('id,unit_name,lesson_name,parent_lesson,lesson_order').in('id',unitIds);if(!r.error)unitMeta=r.data||[]}
+      if(unitIds.length){const r=await c.from('lesson_units_content').select('id,learning_lesson_id,unit_name,lesson_name,lesson_order').in('id',unitIds);if(!r.error)unitMeta=r.data||[]}
       const umap=new Map(unitMeta.map(x=>[String(x.id),x]));
 
       const subjectMap=new Map();base.forEach(x=>{const pm=pmap.get(String(x.learning_lesson_id||x.lesson_id));const name=heSubject(pm?.subject);if(!subjectMap.has(name))subjectMap.set(name,{name,rows:[]});subjectMap.get(name).rows.push(x)});

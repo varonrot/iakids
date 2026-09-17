@@ -1,7 +1,5 @@
 -- IAKIDS: the answer key stops being readable from a browser.  2026-09-17
 --
--- NOT APPLIED. Waiting for approval before anything runs against the prod project.
---
 -- Why
 -- ---
 -- On 2026-09-17 the question objects inside lesson_units_content.generated_lesson_json
@@ -21,41 +19,78 @@
 -- Same reasoning as exam_answer_keys in the 2026-09-10 migration: an answer key that a
 -- browser can read is not an answer key.
 --
+-- Order matters
+-- -------------
+-- A column-level REVOKE does nothing while the role still holds a table-level SELECT
+-- grant, and it fails silently. So the table grant is removed first and the safe
+-- columns are granted back explicitly. This is deterministic whatever the current
+-- state is, and it is safe to run more than once.
+--
+-- service_role is untouched: the backend keeps full access and is what actually serves
+-- lesson content to the child.
+--
 -- What still works
 -- ----------------
--- Nothing in the browser reads generated_lesson_json or lesson_audio_json. Checked on
--- 2026-09-17: the workspace, the sidebar and the parent panel each select an explicit
--- short list of columns, and he/lesson/index.html was changed from select("*") to the
--- seven columns it actually uses. The lesson content reaches the child through the
--- backend, which runs under the service role and is unaffected by column grants.
+-- Nothing in the browser reads generated_lesson_json, lesson_audio_json or
+-- lesson_content_json. Checked on 2026-09-17: the workspace, the lesson sidebar and the
+-- parent panel each select an explicit short list of columns, and he/lesson/index.html
+-- was changed from select("*") to the columns it actually uses. A gate rule now fails
+-- the build if any browser file reads those columns or selects * from this table.
 --
 -- What stops working
 -- ------------------
--- Any browser query that asks for these two columns, and any new select("*") on this
+-- Any browser query asking for the three JSON columns, and any new select("*") on this
 -- table from a browser. That is the point.
---
--- Idempotent: safe to run more than once.
 
--- The service role bypasses grants; these two are the browser's roles.
-revoke select (generated_lesson_json) on public.lesson_units_content from authenticated;
-revoke select (generated_lesson_json) on public.lesson_units_content from anon;
+-- 1. take away the blanket table grant from the two browser roles
+revoke select on public.lesson_units_content from authenticated;
+revoke select on public.lesson_units_content from anon;
 
-revoke select (lesson_audio_json) on public.lesson_units_content from authenticated;
-revoke select (lesson_audio_json) on public.lesson_units_content from anon;
-
--- Everything else on the table stays readable exactly as before.
+-- 2. give back every column except the three that carry generated content
+--    (generated_lesson_json, lesson_audio_json, lesson_content_json)
 grant select (
-    id, learning_lesson_id, unit_order, unit_name, lesson_order, lesson_name,
-    intro_template_id, learning_objective, lesson_complexity, max_duration_seconds,
-    lesson_parts_count, generation_status, content_version, generation_error,
-    generated_at, tts_generated_at, audio_generation_status, audio_generation_error,
-    audio_generated_at, status, created_at, updated_at
+    id,
+    learning_lesson_id,
+    unit_order,
+    unit_name,
+    lesson_order,
+    lesson_name,
+    intro_template_id,
+    learning_objective,
+    lesson_complexity,
+    max_duration_seconds,
+    lesson_parts_count,
+    generation_status,
+    generation_error,
+    generation_started_at,
+    generation_completed_at,
+    generated_at,
+    tts_generated_at,
+    audio_mode,
+    audio_generation_status,
+    audio_generation_error,
+    audio_generated_at,
+    content_version,
+    model_name,
+    prompt_version,
+    status,
+    is_active,
+    created_at,
+    updated_at
 ) on public.lesson_units_content to authenticated;
 
--- Check afterwards, signed in as an ordinary account:
+-- 3. let PostgREST notice the change immediately
+notify pgrst, 'reload schema';
+
+-- Check afterwards, signed in as an ordinary account (not the service role):
 --
 --   select generated_lesson_json from public.lesson_units_content limit 1;
---   -- expected: permission denied for column generated_lesson_json
+--   -- expected: ERROR: permission denied for column generated_lesson_json
 --
---   select id, lesson_name from public.lesson_units_content limit 1;
---   -- expected: the row, as before
+--   select id, lesson_name, status from public.lesson_units_content limit 1;
+--   -- expected: the row, exactly as before
+--
+-- Rollback, if it ever breaks something:
+--
+--   grant select on public.lesson_units_content to authenticated;
+--   notify pgrst, 'reload schema';
