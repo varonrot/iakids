@@ -4,6 +4,12 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — the games leaderboard was writing to tables that do not exist
+- **Symptom in the code**: every completed game called `IAKidsCloud.recordWin()`, which inserted into `game_wins`. That table is not in the database, and neither is `game_achievements`. Each write failed inside its own try/catch, so nothing ever surfaced and nothing was ever recorded. The SQL file the comment pointed at, `games/games-tables.sql`, does not exist either.
+- **Nothing read them**: `recordAchievement` and `topWins` have no callers anywhere on the site, and no leaderboard is drawn from them.
+- **Not fixed by creating the tables**, for two reasons. The design keyed rows on an email the browser supplied, and its own comment admitted that could not be verified — anyone could post a score under any name. And the UI no longer talks to the database at all. A leaderboard, if it is wanted, is a backend endpoint scoring against the signed-in account.
+- **Fix**: the object is an honest no-op stub with the whole story written above it, so existing call sites keep working and nobody believes scores are being saved. Four more direct database calls gone from the browser.
+
 ### build 0.7.135 — a gender chosen by mistake could not be corrected from the workspace
 - **Symptom**: the parent panel could always change a child's gender, and its field even preloads the current value. The workspace could not. Gender was set once by the popup that appears on entry, and after that, right or wrong, it was locked.
 - **Why it matters here**: the teacher addresses the child by that value in writing *and* in speech, so a wrong choice is heard in every sentence.

@@ -60,6 +60,17 @@ still needs it.
 5. **Support, subscriptions, admin, homework.** Lowest traffic, and the admin pages already
    have a backend to ask (`/api/admin/whoami`, added 2026-09-17).
 
+## Removed rather than moved
+
+- **`IAKidsCloud`** (leaderboard and achievements) wrote to `game_wins` and
+  `game_achievements`, neither of which exists in the database, so every write had
+  always failed silently. Nothing read them: `recordAchievement` and `topWins` have no
+  callers anywhere and no leaderboard is drawn. The tables were not created, because the
+  design keyed rows on an email the browser supplied — its own comment admitted that
+  could not be verified — and because the UI no longer talks to the database at all. If
+  a leaderboard is ever wanted it is a backend endpoint scoring against the signed-in
+  account. The methods remain as no-ops so call sites keep working.
+
 ## Rules while this is in progress
 
 - Never add a new `.from(...)` call to a browser file. Add an endpoint.

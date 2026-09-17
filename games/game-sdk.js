@@ -2546,59 +2546,30 @@ const IAKidsAuth = {
 };
 
 /**
- * IAKidsCloud — optional cloud leaderboard, only for signed-in players (never
- * guests — matches the "your data stays on your device unless you sign in"
- * promise on the skills page). Fails silently if supabase-config.js/the
- * game_wins table aren't set up yet (see games/games-tables.sql).
+ * IAKidsCloud — a stub, on purpose.  17/09/2026
  *
- * Honesty note: identity here is only as strong as "the browser said this
- * email" — Supabase RLS can't verify a Firebase-issued token, so this can't
- * cryptographically stop someone from inserting under a fake email. RLS does
- * guarantee no one can edit or delete a score once written. Fine for a fun
- * kids' leaderboard; not a substitute for real server-side auth if this ever
- * needs to be tamper-proof.
+ * This wrote every game win to a `game_wins` table and unlocked achievements in a
+ * `game_achievements` table. Neither table exists in the database, and the SQL file
+ * the old comment pointed at (games/games-tables.sql) does not exist either, so every
+ * write has always failed silently inside its own try/catch. Nothing ever read them:
+ * recordAchievement and topWins have no callers anywhere in the site, and no
+ * leaderboard is drawn from them.
+ *
+ * It is not being "fixed" by creating the tables, for two reasons. The design keyed
+ * rows on an email the browser supplied, which its own comment admitted could not be
+ * verified — anyone could post a score under any name. And as of 2026-09-17 the UI
+ * talks to the backend and never to the database (MIGRATION_TO_BACKEND.md), so a
+ * leaderboard, if it is ever wanted, is a backend endpoint that scores against the
+ * signed-in account.
+ *
+ * The methods stay so that existing call sites keep working; they simply do nothing.
  */
 const IAKidsCloud = {
-  _client: null, _ready: null,
 
-  async _init() {
-    if (this._ready) return this._ready;
-    this._ready = (async () => {
-      if (typeof SUPABASE_CONFIG === 'undefined') return false;
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-      this._client = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.publishableKey);
-      return true;
-    })().catch(() => false);
-    return this._ready;
-  },
+  async recordWin() { /* no leaderboard yet — see the note above */ },
 
-  async recordWin(slug, score, meta) {
-    const user = await IAKidsAuth.currentUser();
-    if (!user) return; // guests: local-only, never sent to the cloud
-    if (!(await this._init())) return;
-    try {
-      await this._client.from('game_wins').insert({
-        email: user.email, display_name: user.name, game_slug: slug, score, meta: meta || null,
-      });
-    } catch (e) { /* table not migrated yet, or offline — silently skip */ }
-  },
+  async recordAchievement() { /* no achievements table — see the note above */ },
 
-  async recordAchievement(key) {
-    const user = await IAKidsAuth.currentUser();
-    if (!user) return;
-    if (!(await this._init())) return;
-    try {
-      await this._client.from('game_achievements')
-        .insert({ email: user.email, display_name: user.name, achievement_key: key })
-        .select(); // duplicate (email, achievement_key) -> unique-violation, caught below
-    } catch (e) { /* already unlocked, table missing, or offline — fine */ }
-  },
+  async topWins() { return []; },
 
-  async topWins(slug, n = 10) {
-    if (!(await this._init())) return [];
-    const { data } = await this._client.from('game_wins')
-      .select('email,display_name,score,created_at').eq('game_slug', slug)
-      .order('score', { ascending: false }).limit(n);
-    return data || [];
-  },
 };

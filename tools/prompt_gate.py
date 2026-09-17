@@ -361,7 +361,7 @@ def media_failure_checks(main_src: str) -> list:
 BROWSER_FILES = ("he", "frontend-v2", "assets/js")
 
 
-DB_CALL_BUDGET = 171          # 178 on 2026-09-17 when the rule was set; lower it as each screen ships
+DB_CALL_BUDGET = 167          # 178 on 2026-09-17 when the rule was set; lower it as each screen ships
 
 
 def browser_db_calls() -> tuple[int, list]:
