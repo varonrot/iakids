@@ -98,23 +98,30 @@ this table. Always re-measure per model.
 7.5 s instead of 17.9 s direct or 28 s as production runs it today** — a third of the
 time, for the same output.
 
-## 5. What is worth changing, in order
+## 5. Decisions taken, 2026-09-17
 
-1. **Move the Visual Director to `gemini-3.1-flash-lite`.** Saves about 20 s of the
-   child's wait on every new lesson, roughly a third of the total. Needs a check that
-   the plan quality holds across a few lessons, because the prompt was written against
-   gpt-4o-mini. *Not done — this is a recommendation, not a change.*
-2. **Direct instead of OpenRouter for the Visual Director** — done on 2026-09-17,
-   saves about 10 s. Reversible with `VISUAL_DIRECTOR_PROVIDER=openrouter`. Step 1
-   makes this one irrelevant, since Gemini shows no penalty either way.
-3. **Fewer images per lesson.** At $0.0336 each and a median of 21, images are 82% of
-   a lesson's cost. `VISUAL_REUSE` and the image budget (`VISUAL_NEW_RATIO`,
-   `VISUAL_MIN_NEW`) exist for exactly this; `VISUAL_REUSE` is currently off.
-   Dropping from 21 to 14 saves about $0.24 a lesson with no change to the text.
-4. **Take the Visual Director off the request path entirely.** It only feeds the media
-   worker; the child does not need it to start reading. The catch is that the frontend
-   gives up on images after 45 s, so the plan arriving later could mean lessons that
-   start without pictures. Needs the budget rethought at the same time.
+**Done: the Visual Director goes direct to OpenAI.** Same model, same prompt, same
+output — only the route changes. About 10 s off every new lesson. Reversible with
+`VISUAL_DIRECTOR_PROVIDER=openrouter`.
+
+**Decided against: switching the Visual Director to Gemini.** It is measurably three
+times faster and it produced the same 14 visuals in the benchmark, but the prompt was
+written and tuned against gpt-4o-mini and the quality of the plans it produces today is
+good. Twenty seconds is not worth re-opening a part of the pipeline that works. The
+measurement stays on this page so the option is there if the wait ever becomes the
+binding problem.
+
+**Decided against: fewer images per lesson.** Images are 82% of the cost and the
+machinery to cut them exists (`VISUAL_REUSE`, `VISUAL_NEW_RATIO`, `VISUAL_MIN_NEW`,
+currently off), but the pictures are the lesson as far as a child is concerned. Cost is
+not the constraint that hurts right now.
+
+**Still open, not decided: taking the Visual Director off the request path.** It only
+feeds the media worker; the child does not need it to start reading, and it is the
+largest single block of the wait. The catch is that the frontend gives up on images
+after 45 s, so a plan that arrives later could mean lessons that start without
+pictures. The wait budget has to be rethought in the same change, so it is not a small
+one.
 
 ## 6. How to re-measure
 
