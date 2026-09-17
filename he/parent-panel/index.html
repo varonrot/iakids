@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <script src="/assets/js/iakids-log-mode.js"></script>
+<script src="/assets/js/iakids-api.js?v=2"></script>
 <title>פאנל הורים | חבר לימודים AI</title>
 <!-- IAKIDS parent panel build 0.7.2 -->
 
@@ -740,13 +741,15 @@ async function init(){
 
 async function loadKids(){
 
-  const {data,error}=await sb
-    .from("kids_profiles")
-    .select("id,child_name,age,avatar_key,gender,usage_goals,learning_interests,created_at")
-    .eq("user_id",CURRENT_USER.id)
-    .order("created_at",{ascending:true});
-
-  if(error){
+  /*
+    17/09/2026 — שלוש פניות ישירות ל-kids_profiles בדף הזה
+    הוחלפו בקריאות לבקאנד. הדף כבר לא יודע איך הטבלה בנויה,
+    והשרת הוא שמחליט איזה ילד שייך לאיזה חשבון.
+  */
+  let data=null;
+  try{
+    data=await iakidsApi.listKids();
+  }catch(error){
     console.error("LOAD KIDS ERROR:",error);
     els.heroSubtitle.textContent="לא הצלחנו לטעון את פרטי הילדים.";
     return;
@@ -1165,13 +1168,12 @@ byId("saveEditBtn").onclick=async()=>{
     return;
   }
   /* בעריכה לא חוסמים: אם לא נבחר מגדר, שאר הפרטים נשמרים והמגדר נשאר כפי שהיה (2026-09-17) */
-  const {error}=await sb
-    .from("kids_profiles")
-    .update(Object.assign({child_name,age,avatar_key}, gender ? {gender} : {}))
-    .eq("id",EDITING_KID.id)
-    .eq("user_id",CURRENT_USER.id);
-
-  if(error){
+  try{
+    await iakidsApi.updateKid(
+      EDITING_KID.id,
+      Object.assign({child_name,age,avatar_key}, gender ? {gender} : {})
+    );
+  }catch(error){
     alert(error.message);
     return;
   }
@@ -1206,19 +1208,10 @@ byId("createKidBtn").onclick=async()=>{
     alert("יש לבחור בן או בת, כדי שהמורה תפנה נכון");
     return;
   }
-  const {data,error}=await sb
-    .from("kids_profiles")
-    .insert({
-      user_id:CURRENT_USER.id,
-      child_name,
-      age,
-      gender,
-      avatar_key:"cat"
-    })
-    .select()
-    .single();
-
-  if(error){
+  let data=null;
+  try{
+    data=await iakidsApi.createKid({child_name,age,gender,avatar_key:"cat"});
+  }catch(error){
     alert(error.message);
     return;
   }
