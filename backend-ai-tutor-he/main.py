@@ -9878,6 +9878,10 @@ def generate_all_lesson_visuals_background(
 
         for part_number in part_numbers:
 
+            # generated_visuals accumulates across parts; remember where this part started
+            # so the DONE line below counts this part's images and not the whole lesson.
+            generated_before_part = len(generated_visuals)
+
             part_visuals = [
                 visual
                 for visual in image_visuals
@@ -10109,14 +10113,15 @@ def generate_all_lesson_visuals_background(
                         part_number,
 
                     "images_ok":
-                        len(generated_visuals),
+                        len(generated_visuals)
+                        - generated_before_part,
 
                     "images_planned":
                         len(part_visuals)
                 }
             )
 
-            if part_visuals and not generated_visuals:
+            if part_visuals and len(generated_visuals) == generated_before_part:
                 print(
                     "LESSON PART VISUAL GENERATION FAILED (no image produced):",
                     {
