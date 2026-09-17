@@ -68,6 +68,40 @@ const IAKidsActivity = {
   _metadata: {},
   _finished: false,
 
+  // 17/09/2026 — the UI talks to the backend, never to the database.
+  // The 24 games and this file all wanted one thing from kids_profiles: the child's
+  // age. They now ask the backend for it, so no game page carries a table name.
+  // See MIGRATION_TO_BACKEND.md.
+  apiBase() {
+    if (typeof window.IAKIDS_API_BASE === 'string' && window.IAKIDS_API_BASE) {
+      return window.IAKIDS_API_BASE;
+    }
+    return String(location.hostname || '').endsWith('smarts-brains.online')
+      ? location.origin + '/tutor-api'
+      : 'https://iakids-ai-tutor-he.onrender.com';
+  },
+
+  // The child's profile, or null. Never throws: a game must run without a profile.
+  async kidProfile(kidId) {
+    try {
+      const id = kidId || localStorage.getItem('active_kid_id');
+      if (!id) return null;
+      const client = await this._getClient();
+      if (!client) return null;
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return null;
+      const res = await fetch(
+        this.apiBase() + '/api/kid/' + encodeURIComponent(id),
+        { headers: { Authorization: 'Bearer ' + session.access_token } }
+      );
+      if (!res.ok) return null;
+      const json = await res.json();
+      return (json && json.kid) || null;
+    } catch (e) {
+      return null;
+    }
+  },
+
   async _getClient() {
     if (this._client) return this._client;
 
@@ -925,8 +959,7 @@ const IAKidsNikud = {
       if (!kid) return;
       const before = localStorage.getItem('iakids_nikud_auto');
       if (localStorage.getItem('iakids_nikud_kid') === kid && before !== null) return;
-      const c = await IAKidsActivity._getClient(); if (!c) return;
-      const { data } = await c.from('kids_profiles').select('age').eq('id', kid).maybeSingle();
+      const data = await IAKidsActivity.kidProfile(kid);
       if (!data) return;
       const age = Number(data.age);
       const now = Number.isFinite(age) && age > this.AUTO_UNTIL_AGE ? '0' : '1';
