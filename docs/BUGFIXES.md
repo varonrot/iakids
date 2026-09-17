@@ -4,6 +4,27 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — three things in the question mechanism that worked against the child
+Reviewed end to end and checked against a real transcript. ארבל answered "המורה, ארנב, תלמידה" — the complete correct answer — and was told **"איבדת את המילה שהכי חשובה במשפט"**. She repeated the same answer. She was told she had missed an animal. She repeated it a third time. She was told a word "with a trace of an animal" was missing. The round limit then ended the dialogue at 60 and the lesson moved on **without ever telling her she had been right**. The root cause, a coach with no answer key, was fixed this morning; the transcript exposed three more.
+
+**1. The score the child sees was arithmetically unfair.** `calculate_lesson_coach_mastery` divided by the *total* number of parts and counted a part not yet reached as zero. The gauge is refreshed after every coach turn and is labelled "הבנה כללית", so:
+
+| parts | score on part 1 | what the child saw |
+|---|---|---|
+| 2 | 90 | 45% |
+| 3 | 90 | 30% |
+| 4 | 100 | 25% |
+
+A child doing well was shown a number that reads as failure. The average is now over the parts actually attempted. Verified on real data: a child with 40 on part 1 sees 40, and a finished lesson still reports 76 exactly as before, because at the end every part has a score.
+
+**2. Nobody noticed a child repeating themselves.** An identical answer is the clearest signal a child can send that the hint is not working. `repeated_answer` is now computed from the dialogue and forces the closing behaviour: no fourth hint, say the answer, explain it in a sentence, confirm what the child did get right, move on. A fourth hint to a stuck child is not teaching, it is attrition.
+
+**3. The wording opened with what was missing.** The prompt banned judgemental phrasing only in the final round. It now bans it everywhere and requires the first sentence to be what the child *did* say, with the verbs of loss and failure — איבדת, פספסת, טעית, שכחת, לא ענית — forbidden outright. "מצאת שניים. יש עוד אחד שמחכה" instead of "לא ענית על כל שמות העצם".
+
+**Gates**: the mastery divisor, the repeat detection and all three new prompt sections are pinned. Backup taken in `V14_BACKUP` before the prompt changed.
+
+**Deliberately left alone**: the mastery threshold of 90 does not block a child from continuing, the round limit gives a struggling child *more* turns rather than fewer, and the no-response timer is off during the dialogue. Those three are sound.
+
 ### build 0.7.136 — a line that threw on every kid load, on both workspaces
 - **`document.getElementById("heroAvatar").src = avatarUrl;`** — that element is not in the page. `getElementById` returned null, the assignment threw, and **everything after it in the function stopped**, including `window.ACTIVE_KID_ID = kid.id`, which other code reads. The same block was written out twice, so the second copy never ran either. Both the Hebrew workspace and the games workspace carried it, identically.
 - **Why it hid**: the dashboard fields a few lines above are all null-checked, so the page looked fine. Only the tail of the function was missing, silently.

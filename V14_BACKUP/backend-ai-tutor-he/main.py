@@ -3222,23 +3222,6 @@ def build_learning_coach_prompt(
         or 0
     )
 
-    # 2026-09-17: ארבל gave the same correct answer three times and was told three
-    # different ways that she was missing something. Nothing noticed the repetition.
-    # An identical answer is the clearest signal a child can send that the hint is not
-    # working, and the answer to it is the answer, not a fourth hint.
-    previous_child_answers = [
-        lq.normalize_for_tts(str(item.get("content") or "")).strip()
-        for item in conversation_history
-        if item.get("role") == "user" and str(item.get("content") or "").strip()
-    ]
-
-    current_answer_normalized = lq.normalize_for_tts(str(child_answer or "")).strip()
-
-    repeated_answer = bool(
-        current_answer_normalized
-        and current_answer_normalized in previous_child_answers[:-1]
-    )
-
     conversation_text_parts = []
 
     for item in conversation_history:
@@ -3343,11 +3326,7 @@ def build_learning_coach_prompt(
                 round_limit,
 
             "is_final_round":
-                is_final_round or repeated_answer,
-
-            # the child has already given this answer once
-            "repeated_answer":
-                repeated_answer,
+                is_final_round,
 
             "previous_understanding_score":
                 previous_score
@@ -3529,26 +3508,24 @@ def calculate_lesson_coach_mastery(
             )
         )
 
-    # 2026-09-17: this divided by the TOTAL number of parts and counted a part the
-    # child had not reached yet as zero. The gauge is refreshed after every coach turn
-    # and says "הבנה כללית", so a child who finished part 1 of a four-part lesson with
-    # full marks was shown 25%. They do not understand a quarter of anything — they
-    # understand all of what they have been taught so far. A number a child reads as
-    # failure, for doing well, is worse than no number.
-    #
-    # The average is now over the parts actually attempted. When the lesson ends every
-    # part has a score, so the final figure is unchanged; only the figure during the
-    # lesson stops lying.
-    done = [
-        latest_scores[part_number]
-        for part_number in range(1, lesson_parts_count + 1)
-        if part_number in latest_scores
-    ]
+    total_score = 0
 
-    if not done:
-        return 0
+    for part_number in range(
+            1,
+            lesson_parts_count + 1
+    ):
+        total_score += (
+            latest_scores.get(
+                part_number,
+                0
+            )
+        )
 
-    return round(sum(done) / len(done))
+    return round(
+        total_score
+        /
+        lesson_parts_count
+    )
 
 # =====================================================
 # STRUCTURED LESSON DATA HELPERS

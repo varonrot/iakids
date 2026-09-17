@@ -64,7 +64,8 @@ REQUIRED = {
     "learning_coach_system_prompt.txt": {
         "placeholders": [],
         "sections": ["RUNTIME_DATA.child.gender", "אין להסיק את המגדר לפי שם הילד",
-                     "רמז או דוגמה לעולם אינם התשובה", "correct_answer", "is_final_round", "הסבב האחרון: לתת את התשובה ולהמשיך", "התשובה הנכונה נתונה לך"],
+                     "רמז או דוגמה לעולם אינם התשובה", "correct_answer", "is_final_round", "הסבב האחרון: לתת את התשובה ולהמשיך", "התשובה הנכונה נתונה לך",
+                     "פותחים במה שיש, לא במה שחסר", "repeated_answer", "כשהילד חוזר על אותה תשובה"],
     },
     "iakids_curriculum_builder_system_prompt.txt": {
         "placeholders": ["{child_name}", "{gender}", "{grade}", "{subject}"],
@@ -652,6 +653,15 @@ def learning_coach_checks(main_src: str) -> list:
         bad.append("the round limit is computed from the NEW score in run_learning_coach; "
                    "it must come from learning_coach_round_plan so the model and the "
                    "server agree on which round is the last")
+    # 2026-09-17: the gauge said "הבנה כללית" and divided by the total number of parts,
+    # counting a part the child had not reached as zero — full marks on part 1 of four
+    # showed the child 25%.
+    if "lesson_parts_count + 1\n    ):\n        total_score" in main_src:
+        bad.append("the mastery score divides by every part again, including the ones "
+                   "the child has not reached: a child doing well is shown a low number")
+    if "repeated_answer" not in main_src:
+        bad.append("a child repeating the same answer is no longer detected, so the coach "
+                   "will hint a fourth time at a child who is stuck")
     if '"is_final_round"' not in main_src:
         bad.append("coach_state no longer carries is_final_round - the prompt cannot "
                    "know when to give the answer and stop asking")
