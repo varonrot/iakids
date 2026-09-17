@@ -4,6 +4,18 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### build 0.7.136 — a line that threw on every kid load, on both workspaces
+- **`document.getElementById("heroAvatar").src = avatarUrl;`** — that element is not in the page. `getElementById` returned null, the assignment threw, and **everything after it in the function stopped**, including `window.ACTIVE_KID_ID = kid.id`, which other code reads. The same block was written out twice, so the second copy never ran either. Both the Hebrew workspace and the games workspace carried it, identically.
+- **Why it hid**: the dashboard fields a few lines above are all null-checked, so the page looked fine. Only the tail of the function was missing, silently.
+- **Fix**: the four writes go through a helper that checks the element first, so a missing one is skipped instead of stopping the function. **New gate rule**: writing to an element that is not in the page fails the build, verified by restoring the exact line.
+
+### 2026-09-17 — a child's understanding scores were readable by any signed-in account
+- **How it was found**: signing in as a brand new account with no data of its own and reading every table the browser still touches. Twenty-two came back empty, correctly isolated. `learning_coach_sessions` came back with other accounts' rows.
+- **What was exposed**: `kid_id`, the lesson, the understanding score the teacher gave at the start and the end, how many rounds the dialogue took, and the timestamps — another child's performance, lesson by lesson. Their actual words were not exposed; `kid_lesson_history` is properly isolated.
+- **Cause**: the table had row level security enabled with no policy restricting rows, which in practice means every signed-in account.
+- **Migration written, not yet applied**: a policy matching `kid_unit_lesson_progress` — a row is visible when the child belongs to the caller. The two screens that read it already filter by `kid_id`, so the policy should be invisible to them.
+- **Checked and sound in the same sweep**: the games question bank is not directly readable while the RPC still serves questions, media jobs have no stuck or failed rows, and no table has an orphan row pointing at a deleted child or lesson.
+
 ### 2026-09-17 — nothing was capped; now two things are
 - **There was no limit on the number of children.** Not in the browser, not in the server, nowhere. One account already holds nine. The endpoint written this morning had no check either.
 - **The Hebrew tutor had no quota of any kind.** The only quota in the whole product is the monthly chat message count, and it is enforced in the *core* backend, the Spanish chat. Lesson generation, images and voice — the expensive half, about $0.87 a lesson — were open to any signed-in account. 178 of 180 accounts are on the free plan.

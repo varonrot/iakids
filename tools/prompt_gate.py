@@ -330,6 +330,17 @@ def workspace_checks() -> list:
         bad.append("the closing video is no longer cut short - a 20 s identical film would "
                    "again sit between the child and the summary")
 
+    # 2026-09-17: `document.getElementById("heroAvatar").src = ...` threw on both
+    # workspaces, because that element is not in either page, and everything after it in
+    # the function stopped — including window.ACTIVE_KID_ID, which other code reads.
+    # An element that is written without being checked must exist in the page.
+    page_ids = set(re.findall(r"\bid\s*=\s*[\"\']([A-Za-z0-9_-]+)[\"\']", src))
+    for m in re.finditer(r'document\.getElementById\(\s*["\']([A-Za-z0-9_-]+)["\']\s*\)\s*\.\s*(?:src|textContent|innerHTML|value)\s*=', src):
+        if m.group(1) not in page_ids:
+            bad.append("the lesson screen writes to #%s without checking it, and that "
+                       "element is not in the page: the line throws and stops the "
+                       "function" % m.group(1))
+
     # the build stamp is read by the user; its two places must agree
     stamp = re.search(r"IAKIDS • build (\d+\.\d+\.\d+)", src)
     var = re.search(r'IAKIDS_BUILD_VERSION = "(\d+\.\d+\.\d+)"', src)

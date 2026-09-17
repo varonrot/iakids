@@ -17063,30 +17063,29 @@ if (dashboardKidAvatar) {
 
 /* הקוד הקיים ממשיך מכאן */
 
-document.getElementById("rightbarAvatar").src = avatarUrl;
-document.getElementById("rightbarName").textContent = kid.child_name;
+/*
+  17/09/2026 — the same block as the main workspace, with the same fault:
+  "rightbarAvatar" and "heroAvatar" are not in this page, so the first line threw and
+  window.ACTIVE_KID_ID was never set. The block was written out twice, so the second
+  copy never ran either.
+*/
+const setKidText = (id, value) => {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = value; }
+};
+
+const setKidSrc = (id, value) => {
+  const el = document.getElementById(id);
+  if (el) { el.src = value; }
+};
+
+setKidSrc("rightbarAvatar", avatarUrl);
+setKidText("rightbarName", kid.child_name);
+setKidSrc("heroAvatar", avatarUrl);
+setKidText("heroGreeting", `היי ${kid.child_name}, מה נלמד היום?`);
 
 window.KID_AVATAR_URL = avatarUrl;
-
-document.getElementById("heroGreeting").textContent =
-  `היי ${kid.child_name}, מה נלמד היום?`;
-
-document.getElementById("heroAvatar").src = avatarUrl;
-
 window.ACTIVE_KID_ID = kid.id;
-
-  document.getElementById("rightbarAvatar").src = avatarUrl;
-  document.getElementById("rightbarName").textContent = kid.child_name;
-
-  window.KID_AVATAR_URL = avatarUrl;
-
-
-  document.getElementById("heroGreeting").textContent = `היי ${kid.child_name}, מה נלמד היום?`;
-
-  document.getElementById("heroAvatar").src = avatarUrl;
-
-
-  window.ACTIVE_KID_ID = kid.id;
 
 /* =============================================
    WORKSPACE ALWAYS OPENS ON DASHBOARD

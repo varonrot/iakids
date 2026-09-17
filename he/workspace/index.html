@@ -24989,30 +24989,30 @@ if (dashboardKidAvatar) {
 
 /* הקוד הקיים ממשיך מכאן */
 
-document.getElementById("rightbarAvatar").src = avatarUrl;
-document.getElementById("rightbarName").textContent = kid.child_name;
+/*
+  17/09/2026 — "heroAvatar" does not exist anywhere in this page. getElementById
+  returned null, `.src =` threw, and everything after it in this function stopped —
+  including window.ACTIVE_KID_ID, which other code reads. The block was also written
+  out twice, so the second copy never ran either. The dashboard fields just above are
+  null-checked; these four never were.
+*/
+const setKidText = (id, value) => {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = value; }
+};
+
+const setKidSrc = (id, value) => {
+  const el = document.getElementById(id);
+  if (el) { el.src = value; }
+};
+
+setKidSrc("rightbarAvatar", avatarUrl);
+setKidText("rightbarName", kid.child_name);
+setKidSrc("heroAvatar", avatarUrl);
+setKidText("heroGreeting", `היי ${kid.child_name}, מה נלמד היום?`);
 
 window.KID_AVATAR_URL = avatarUrl;
-
-document.getElementById("heroGreeting").textContent =
-  `היי ${kid.child_name}, מה נלמד היום?`;
-
-document.getElementById("heroAvatar").src = avatarUrl;
-
 window.ACTIVE_KID_ID = kid.id;
-
-  document.getElementById("rightbarAvatar").src = avatarUrl;
-  document.getElementById("rightbarName").textContent = kid.child_name;
-
-  window.KID_AVATAR_URL = avatarUrl;
-
-
-  document.getElementById("heroGreeting").textContent = `היי ${kid.child_name}, מה נלמד היום?`;
-
-  document.getElementById("heroAvatar").src = avatarUrl;
-
-
-  window.ACTIVE_KID_ID = kid.id;
 
 /* =============================================
    WORKSPACE ALWAYS OPENS ON DASHBOARD
@@ -54167,8 +54167,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.135</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.135";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.136</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.136";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
