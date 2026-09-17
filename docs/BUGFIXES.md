@@ -4,6 +4,18 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — a policy left over from debugging was keeping the table open
+- **The correct policy was added and changed nothing.** A fresh account still read every coach session. `pg_policies` showed why:
+
+| policy | permissive | roles | cmd | condition |
+|---|---|---|---|---|
+| `debug_select_learning_coach_sessions` | PERMISSIVE | authenticated | SELECT | `true` |
+| `lcs_select_own` | PERMISSIVE | authenticated | SELECT | `kid_id in (...)` |
+
+- **Postgres combines permissive policies with OR.** One policy saying "any signed-in account, all rows" makes every restrictive policy beside it pointless. The new one was never going to help while that one existed — it has to be dropped.
+- **My mistake in the first attempt**: I wrote a policy without listing what was already on the table. Adding a rule to a table is not the same as knowing what the table allows.
+- **Worth more than this one table**: a `debug_` policy sat in production, invisible until someone looked. `RUN_NOW.sql` now ends with a sweep that lists every permissive SELECT policy in the schema whose condition is just `true` — every table any signed-in account can read in full. There is no reason to assume this was the only one.
+
 ### 2026-09-17 — `supabase/migrations/RUN_NOW.sql`: what is actually left to run
 - Every migration in the folder was checked against the live project by looking for the object it creates. **Sixteen are applied. One is not**: the policy that stops every signed-in account reading other children's coach sessions.
 - The file holds that one block between paste markers, the reason it matters, what keeps working after it, and how to verify — plus the two things still open that are not database changes: `APP_ENV=prod` on Render, which is why 37 routes and 21 schemas are public there while the box answers 404, and the six security headers on iakids.app that the mirror already sends.

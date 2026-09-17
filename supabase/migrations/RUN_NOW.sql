@@ -60,9 +60,26 @@
 --       (it reopens the hole — read the warning at the top of that file)
 -- ---------------------------------------------------------------------------
 
+-- 2026-09-17, after the first attempt: the policy above was created and changed
+-- nothing. pg_policies showed why —
+--
+--   debug_select_learning_coach_sessions | PERMISSIVE | {authenticated} | SELECT | true
+--   lcs_select_own                       | PERMISSIVE | {authenticated} | SELECT | kid_id in (...)
+--
+-- A policy left behind from debugging says "any signed-in account, all rows", and
+-- **Postgres combines PERMISSIVE policies with OR**, so one open policy makes every
+-- restrictive one beside it pointless. Adding a correct policy was never going to
+-- help; the open one has to go.
+--
+-- The lesson for the next time: after writing a policy, always list what is already
+-- on the table. The sweep at the bottom of this file does that for the whole schema.
+
 -- >>> PASTE FROM HERE >>>
 
 alter table public.learning_coach_sessions enable row level security;
+
+-- the one that was letting everything through
+drop policy if exists debug_select_learning_coach_sessions on public.learning_coach_sessions;
 
 drop policy if exists lcs_select_own on public.learning_coach_sessions;
 create policy lcs_select_own on public.learning_coach_sessions
@@ -72,6 +89,23 @@ create policy lcs_select_own on public.learning_coach_sessions
 notify pgrst, 'reload schema';
 
 -- <<< PASTE TO HERE <<<
+
+
+-- ---------------------------------------------------------------------------
+-- Then run this sweep, and send back what it returns.
+--
+-- It lists every permissive SELECT policy in the schema whose condition is just
+-- `true` — that is, every table currently readable by any signed-in account. The
+-- debug policy above was invisible until it was looked for, and there is no reason
+-- to believe it is the only one.
+-- ---------------------------------------------------------------------------
+
+select tablename, policyname, roles, cmd, qual
+  from pg_policies
+ where schemaname = 'public'
+   and permissive = 'PERMISSIVE'
+   and coalesce(qual, 'true') = 'true'
+ order by tablename, policyname;
 
 
 -- ---------------------------------------------------------------------------
