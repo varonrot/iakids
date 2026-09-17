@@ -1,0 +1,33 @@
+name: Restore workspace layout 0.7.121
+
+on:
+  push:
+    paths:
+      - '.github/scripts/restore-workspace-layout-07121.py'
+      - '.github/workflows/restore-workspace-layout-07121.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Restore workspace layout
+        run: python .github/scripts/restore-workspace-layout-07121.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add he/workspace/index.html he/workspace/openai-clean-chat.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Restore workspace layout; bump to 0.7.121"
+          git push origin main
