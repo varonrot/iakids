@@ -146,7 +146,7 @@ def text_checks(structured_lesson: dict) -> tuple[list, list, dict]:
     """(errors, warnings, stats) for the shared lesson text."""
     errors, warnings = [], []
     parts = (structured_lesson or {}).get("parts") or []
-    stats = {"parts": len(parts), "segments": 0, "questions": 0}
+    stats = {"parts": len(parts), "segments": 0, "questions": 0, "answers": 0}
     if not parts:
         return ["no parts"], [], stats
     for p in parts:
@@ -155,10 +155,17 @@ def text_checks(structured_lesson: dict) -> tuple[list, list, dict]:
         q = str((p.get("question") or {}).get("text") or "").strip()
         stats["segments"] += len(segs)
         stats["questions"] += 1 if q else 0
+        stats["answers"] += 1 if str((p.get("question") or {}).get("answer") or "").strip() else 0
         if not segs:
             errors.append(f"part {n}: lesson[] is empty")
         if not q:
             errors.append(f"part {n}: question is missing")
+        # 2026-09-17: without the stored answer the Learning Coach derives one itself and
+        # grades the child against it - it marked a complete answer as partial and sent a
+        # child to look for a word she had already said.
+        if q and not str((p.get("question") or {}).get("answer") or "").strip():
+            warnings.append(f"part {n}: the question has no stored answer "
+                            f"(run tools/backfill_lesson_answers.py --id <lesson>)")
         for i, s in enumerate(segs, 1):
             if not s.strip():
                 errors.append(f"part {n} segment {i}: empty"); continue

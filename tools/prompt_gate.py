@@ -222,6 +222,17 @@ def workspace_checks() -> list:
     if "LESSON_VISUAL_WAIT_BUDGET_MS" not in src:
         bad.append("waitForLessonVisual has no wait budget - images can block the lesson again")
 
+    # 2026-09-17: a deploy restart takes ~16 s and nginx answers 502. A child who sent
+    # her answer in that window got an error bubble and the lesson ended - in Spanish,
+    # on a Hebrew page ("Algo salió mal").
+    if "GATEWAY_STATUSES" not in src or "LEARNING COACH GATEWAY RETRY" not in src:
+        bad.append("the lesson chat no longer retries a 502/503/504; a server restart "
+                   "would end a child's lesson with an error")
+    for foreign in ("Algo salió mal", "Intenta más tarde", "Something went wrong"):
+        if foreign in src:
+            bad.append("a non-Hebrew error message is shown to the child on the Hebrew "
+                       "workspace: %r" % foreign)
+
     # the build stamp is read by the user; its two places must agree
     stamp = re.search(r"IAKIDS • build (\d+\.\d+\.\d+)", src)
     var = re.search(r'IAKIDS_BUILD_VERSION = "(\d+\.\d+\.\d+)"', src)

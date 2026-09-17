@@ -28317,34 +28317,81 @@ console.log(
 );
 
 
-const res =
-  await fetch(
+/*
+  17/09/2026 — הפעלה מחדש של השרת נמשכת כ־16 שניות, ובזמן הזה nginx מחזיר 502.
+  ילדה שענתה בדיוק באותו רגע קיבלה בועת שגיאה וסוף שיעור.
+  שגיאת שער היא זמנית: מנסים שוב פעמיים, ורק אז מודיעים.
+*/
+const GATEWAY_STATUSES = [502, 503, 504];
+const GATEWAY_RETRIES = 2;
 
-    endpoint,
+let res = null;
 
+for(
+  let gatewayAttempt = 0;
+  gatewayAttempt <= GATEWAY_RETRIES;
+  gatewayAttempt++
+){
+
+  res =
+    await fetch(
+
+      endpoint,
+
+      {
+
+        method:
+          "POST",
+
+        headers: {
+
+          "Content-Type":
+            "application/json",
+
+          "Authorization":
+            `Bearer ${session.access_token}`
+
+        },
+
+        body:
+          JSON.stringify(
+            requestBody
+          )
+
+      }
+
+    );
+
+  if(
+    !GATEWAY_STATUSES.includes(
+      res.status
+    )
+    ||
+    gatewayAttempt === GATEWAY_RETRIES
+  ){
+    break;
+  }
+
+  console.warn(
+    "LEARNING COACH GATEWAY RETRY:",
     {
+      status:
+        res.status,
 
-      method:
-        "POST",
-
-      headers: {
-
-        "Content-Type":
-          "application/json",
-
-        "Authorization":
-          `Bearer ${session.access_token}`
-
-      },
-
-      body:
-        JSON.stringify(
-          requestBody
-        )
-
+      attempt:
+        gatewayAttempt + 1
     }
-
   );
+
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        1500 * (gatewayAttempt + 1)
+      )
+  );
+
+}
 
 console.log(
   "📥 LEARNING COACH HTTP RESPONSE:",
@@ -28390,7 +28437,12 @@ if(
   // שגיאה אחרת
   const errText = await res.text();
   console.error("API ERROR:", res.status, errText);
-  addMessage("assistant", "⚠️ Algo salió mal. Intenta más tarde.");
+  addMessage(
+    "assistant",
+    GATEWAY_STATUSES.includes(res.status)
+      ? "רגע אחד, השרת מתעורר. אפשר לשלוח את התשובה שוב בעוד רגע."
+      : "משהו השתבש אצלי. אפשר לנסות שוב בעוד רגע."
+  );
   return;
 }
 
@@ -30486,7 +30538,7 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
 
   } catch (err){
     console.error("Portal error:", err);
-    alert("Algo salió mal.");
+    alert("משהו השתבש. אפשר לנסות שוב.");
   }
 
 };
@@ -53758,8 +53810,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.129</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.129";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.130</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.130";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}

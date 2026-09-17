@@ -4,6 +4,16 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### build 0.7.130 — a server restart ended a child's lesson, in Spanish
+- **Symptom**: ארבל sent her answer at the exact moment of a deploy and got "⚠️ Algo salió mal. Intenta más tarde." — a Spanish sentence on a Hebrew page — and the lesson stopped.
+- **Cause**: a restart takes about 16 seconds and nginx answers 502 during it. The chat treated that as a fatal error, and the error text had never been translated.
+- **Fix**: 502, 503 and 504 are retried twice with a growing pause before anything is shown; the messages are Hebrew and say the server is waking up. Two gate rules pin both, and the gate now fails on any non-Hebrew error string in the workspace.
+
+### build 0.7.130 — the 15 existing lessons got their correct answer without being regenerated
+- **Why**: the coach fix only helps lessons generated from today on. Regenerating a lesson to add one field would throw away its text, images and audio.
+- **`tools/backfill_lesson_answers.py`**: one cheap text call per part writes `question.answer` into a lesson that has none, and touches nothing else. Run on all 15 ready lessons (30 questions, about 70 seconds). Lesson 152 part 1 now carries "המילים המורה, ארנב, תלמידה", which is exactly what the child had answered.
+- **Also**: the lesson quality report now warns when a question has no stored answer and names the tool that fixes it.
+
 ### build 0.7.129 — the teacher judged the child against an answer it had invented
 - **Symptom, three lessons in a row**: ארבל answered "המורה, ארנב, תלמידה" — the complete correct answer — and the teacher scored 40 and asked her to find "the word that means an animal", which she had just said. On the next lesson she answered "ספריה זה מקום, שולחן זה חפץ, וילדים זה שם עצם" and the teacher sent her back to ילדים instead of naming the one word she actually missed, מחברת.
 - **Cause**: the Learning Coach was never given the correct answer. `RUNTIME_DATA.lesson.correct_answer` was the literal sentence "Derive from the lesson explanation and lesson goal", so the model derived an answer itself and graded the child against it.
