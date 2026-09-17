@@ -12878,6 +12878,24 @@ body.lesson-theme-science .lesson-sidebar-list::-webkit-scrollbar:horizontal{hei
 }
 </style>
 
+<script>
+/* =====================================================
+   AVATAR URL — 17/09/2026
+   הכתובת נבנתה מתוך avatar_key בלי לבדוק שהקובץ קיים.
+   לילדה עם avatar_key="dog" הדפדפן ביקש dog_blue.png,
+   שלא קיים, והיא ראתה תמונה שבורה. יש שישה אווטארים.
+===================================================== */
+window.IAKIDS_AVATAR_KEYS = ["cat","dog","dolphin","eagle","horse","owl","panther"];
+window.iakidsAvatarUrl = function(key){
+  const safe =
+    window.IAKIDS_AVATAR_KEYS.includes(
+      String(key || "").trim()
+    )
+      ? String(key).trim()
+      : "cat";
+  return "/assets/avatars/" + safe + "_blue.png";
+};
+</script>
 </head>
 <body>
 <div
@@ -24699,7 +24717,7 @@ await loadSubjects(
 /* טעינת המקצועות האישיים שאושרו ע"י ההורה */
 await loadCustomSubjectsForDashboard();
 
-const avatarUrl = `/assets/avatars/${kid.avatar_key}_blue.png`;
+const avatarUrl = window.iakidsAvatarUrl(kid.avatar_key);
 
 
 /* =====================================
@@ -29985,7 +30003,7 @@ document.getElementById("openSettings").onclick = () => {
     );
 
   preview.src =
-    `/assets/avatars/${currentAvatar}_blue.png`;
+    window.iakidsAvatarUrl(currentAvatar);
 
 
   /* העדפות */
@@ -30087,7 +30105,7 @@ document
         document.getElementById(
           "modalAvatarPreview"
         ).src =
-          `/assets/avatars/${avatar}_blue.png`;
+          window.iakidsAvatarUrl(avatar);
 
       }
     );
@@ -30255,8 +30273,28 @@ async function saveSettings(){
 
 
   const avatarUrl =
-    `/assets/avatars/${avatar}_blue.png`;
+    window.iakidsAvatarUrl(avatar);
 
+
+  /*
+    17/09/2026 — מכאן והלאה הפרופיל כבר נשמר בהצלחה.
+    כל מה שנשאר הוא רענון של הממשק, וכשל ברענון אסור
+    שישאיר את חלון פרטי הילד פתוח. חלק מהאלמנטים
+    (heroGreeting, rightbarName) לא קיימים בכל מסך,
+    ו־getElementById עליהם החזיר null וזרק שגיאה
+    לפני closeSettings, כך שהמסך נראה תקוע.
+  */
+  const setText = ( id, value ) => {
+    const el = document.getElementById( id );
+    if( el ){ el.textContent = value; }
+  };
+
+  const setSrc = ( id, value ) => {
+    const el = document.getElementById( id );
+    if( el ){ el.src = value; }
+  };
+
+  try{
 
   /* עדכון הדשבורד */
 
@@ -30326,29 +30364,25 @@ async function saveSettings(){
 
   /* עדכון שאר הממשק */
 
-  document.getElementById(
-    "heroGreeting"
-  ).textContent =
-    `היי ${name}, מה נלמד היום?`;
+  setText(
+    "heroGreeting",
+    `היי ${name}, מה נלמד היום?`
+  );
 
+  setSrc(
+    "heroAvatar",
+    avatarUrl
+  );
 
-  document.getElementById(
-    "heroAvatar"
-  ).src =
-    avatarUrl;
+  setSrc(
+    "rightbarAvatar",
+    avatarUrl
+  );
 
-
-  document.getElementById(
-    "rightbarAvatar"
-  ).src =
-    avatarUrl;
-
-
-  document.getElementById(
-    "rightbarName"
-  ).textContent =
-    name;
-
+  setText(
+    "rightbarName",
+    name
+  );
 
   window.KID_AVATAR_URL =
     avatarUrl;
@@ -30356,17 +30390,24 @@ async function saveSettings(){
 
   /* חשוב אם הכיתה השתנתה */
 
-  /* הפרופיל כבר נשמר. תקלה ברענון הרשימות לא תשאיר את החלון פתוח (2026-09-17) */
-  try{
-    await loadSubjects(
-      grade
-    );
-  }catch( subjectsError ){
-    console.warn( "SAVE SETTINGS: loadSubjects failed after save:", subjectsError );
+  await loadSubjects(
+    grade
+  );
+
   }
+  catch( refreshError ){
 
+    console.warn(
+      "SAVE SETTINGS: the profile was saved, refreshing the screen failed:",
+      refreshError
+    );
 
-  closeSettings();
+  }
+  finally{
+
+    closeSettings();
+
+  }
 
 }
 
@@ -53810,8 +53851,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.130</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.130";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.131</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.131";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}

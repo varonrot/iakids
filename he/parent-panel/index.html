@@ -633,7 +633,9 @@ let EDITING_KID = null;
 
 const AVATARS = ["panther","eagle","horse","owl","dolphin","cat"];
 const gradeNames = {1:"א׳",2:"ב׳",3:"ג׳",4:"ד׳",5:"ה׳",6:"ו׳"};
-const avatarUrl = key => `/assets/avatars/${key || "cat"}_blue.png`;
+/* 17/09/2026: a key with no file (avatar_key="dog") showed a broken image */
+const AVATAR_KEYS = ["cat","dog","dolphin","eagle","horse","owl","panther"];
+const avatarUrl = key => `/assets/avatars/${AVATAR_KEYS.includes(String(key||"").trim()) ? String(key).trim() : "cat"}_blue.png`;
 
 const byId = id => document.getElementById(id);
 

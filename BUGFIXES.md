@@ -4,6 +4,16 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### build 0.7.131 — "save" in the child-details dialog left it open (again)
+- **Symptom**: editing the child's details and pressing save kept the dialog on screen. The profile was in fact saved.
+- **Cause**: after the save, the function refreshes the screen. Four of those updates wrote to elements that do not exist on every screen (`heroGreeting`, `heroAvatar`, `rightbarAvatar`, `rightbarName`) with no check, so the first missing one threw and `closeSettings()` was never reached. The earlier fix in 0.7.122 had only wrapped the subject list.
+- **Fix**: once the save has succeeded, the whole screen refresh runs inside `try`, every element is checked before it is written, and `closeSettings()` runs in a `finally`. A failed refresh can never hold the dialog open again. Gate rule added and verified by removing the `finally` on purpose.
+
+### build 0.7.131 — 22 children had a broken avatar
+- **Symptom**: `GET /assets/avatars/dog_blue.png 404`.
+- **Cause**: the avatar URL was built straight from `avatar_key` with no check that the file exists. Of 137 children, 22 had chosen `dog` and there was no dog image; 2 have no key at all.
+- **Fix**: `dog_blue.png` was generated in the same style as the other six avatars (the cat was used as the style reference) and added. A shared `iakidsAvatarUrl()` helper falls back to the cat for any unknown key, in the workspace and in the parent panel. The gate fails if an avatar URL is ever built straight from the key again.
+
 ### build 0.7.130 — a server restart ended a child's lesson, in Spanish
 - **Symptom**: ארבל sent her answer at the exact moment of a deploy and got "⚠️ Algo salió mal. Intenta más tarde." — a Spanish sentence on a Hebrew page — and the lesson stopped.
 - **Cause**: a restart takes about 16 seconds and nginx answers 502 during it. The chat treated that as a fatal error, and the error text had never been translated.

@@ -233,6 +233,30 @@ def workspace_checks() -> list:
             bad.append("a non-Hebrew error message is shown to the child on the Hebrew "
                        "workspace: %r" % foreign)
 
+    # 2026-09-17: the avatar URL was built straight from avatar_key, so a child whose
+    # key has no file (avatar_key="dog") saw a broken image.
+    if "iakidsAvatarUrl" not in src:
+        bad.append("the avatar URL helper is gone - an unknown avatar_key would show a broken image")
+    if re.search(r"avatars/\$\{", src):
+        bad.append("an avatar URL is built straight from the key again, with no fallback "
+                   "to an avatar that exists")
+
+    # 2026-09-17 (second time): saving the child's details left the dialog open. The
+    # profile was saved and then an element that does not exist on every screen threw,
+    # so closeSettings() was never reached. After a successful save the dialog must
+    # close no matter what the screen refresh does.
+    if "async function saveSettings" in src:
+        body = src.split("async function saveSettings", 1)[1][:9000]
+        tail = body.split("kids_profiles", 1)[-1]
+        if "finally" not in tail or "closeSettings()" not in tail:
+            bad.append("saveSettings does not close the child-details dialog in a finally; "
+                       "a failed screen refresh would leave it open after a successful save")
+        for unguarded in ('document.getElementById(\n    "heroGreeting"\n  ).textContent',
+                          'document.getElementById(\n    "rightbarName"\n  ).textContent'):
+            if unguarded in tail:
+                bad.append("saveSettings writes to an element that does not exist on every "
+                           "screen without checking it first")
+
     # the build stamp is read by the user; its two places must agree
     stamp = re.search(r"IAKIDS • build (\d+\.\d+\.\d+)", src)
     var = re.search(r'IAKIDS_BUILD_VERSION = "(\d+\.\d+\.\d+)"', src)
