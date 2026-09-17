@@ -2858,6 +2858,55 @@ def extract_unit_lesson_coach_content(
 LESSON_CLOSING_MARKER = "lesson_closing"
 
 
+def public_structured_lesson(structured_lesson):
+    """The lesson as the BROWSER may see it: same text, without the answer key.
+
+    2026-09-17: `question.answer` was added so the Learning Coach stops inventing the
+    answer it grades the child against. The unit-lesson route returns the structured
+    lesson verbatim, so that field would have travelled to the browser and any child
+    with the network tab open could read the answer before answering. The coach reads
+    the answer from the database, never from the client, so stripping it here costs
+    nothing.
+
+    This is the real boundary. Silencing the console does not protect anything: a page
+    that has the data can always be made to show it. What is not sent cannot be read.
+    """
+    if not isinstance(structured_lesson, dict):
+        return structured_lesson
+
+    def clean_question(question):
+        if not isinstance(question, dict):
+            return question
+        return {
+            key: value
+            for key, value in question.items()
+            if key != "answer"
+        }
+
+    def clean_part(part):
+        if not isinstance(part, dict) or "question" not in part:
+            return part
+        return {**part, "question": clean_question(part.get("question"))}
+
+    public = {}
+
+    for key, value in structured_lesson.items():
+
+        if key == "parts" and isinstance(value, list):
+            public[key] = [clean_part(part) for part in value]
+
+        elif key == "question":
+            public[key] = clean_question(value)
+
+        elif key.startswith("part_") and isinstance(value, dict):
+            public[key] = clean_part(value)
+
+        else:
+            public[key] = value
+
+    return public
+
+
 def build_lesson_closing_prompt(
         child: dict,
         parent_lesson: dict,
@@ -14748,9 +14797,11 @@ async def get_or_generate_unit_lesson(
             "lesson":
                 lesson_text,
 
-            # המבנה החדש
+            # המבנה החדש. התשובה הנכונה נשארת בשרת בלבד.
             "structured_lesson":
-                structured_lesson,
+                public_structured_lesson(
+                    structured_lesson
+                ),
 
             "transition":
                 lesson_transition,
@@ -14984,9 +15035,12 @@ async def get_or_generate_unit_lesson(
                     "lesson"
                 ),
 
+            # התשובה הנכונה נשארת בשרת בלבד
             "structured_lesson":
-                lesson_json.get(
-                    "structured_lesson"
+                public_structured_lesson(
+                    lesson_json.get(
+                        "structured_lesson"
+                    )
                 ),
 
             "transition":

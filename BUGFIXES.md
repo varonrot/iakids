@@ -4,6 +4,14 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### build 0.7.134 — the answer key was on its way to the browser
+- **Found while answering "how do I stop someone reading the JS and turning the logs back on"**. The honest answer is that you cannot: anything the page holds can be shown. So the question becomes what the page is allowed to hold — and today's own change had just made that worse.
+- **The leak**: `question.answer` was added this morning so the Learning Coach stops inventing the answer it grades the child against. The unit-lesson route returns `structured_lesson` verbatim, so the answer to every question was about to travel to the browser, where any child with the network tab open could read it before answering.
+- **Fixed in the response**: `public_structured_lesson()` strips `answer` from every question on the way out, at both return paths (fresh and cached). The coach reads the answer from the database, never from the client, so nothing else changes. The original object is not mutated.
+- **Still open, needs approval**: `lesson_units_content` is readable by **any signed-in account** (`for select to authenticated using (true)`, from the 2026-09-10 RLS work), so a child with a session can query the table from the console and read `generated_lesson_json` directly, route or no route. Row level security cannot fix this — the row must stay readable, it is one column that must not be. `supabase/migrations/20260917_hide_lesson_answer_key.sql` revokes column-level select on `generated_lesson_json` and `lesson_audio_json` from `authenticated` and `anon`. **Not applied.** Checked first that no browser code reads either column.
+- **`he/lesson/index.html`** was doing `select("*")` on that table, which pulled the whole generated JSON into the page. It now selects the seven columns it actually uses.
+- **Three gate rules**: the strip helper must exist and be used on every path that returns a structured lesson, no browser file may read `generated_lesson_json`, and no browser file may `select("*")` from `lesson_units_content`. All verified by breaking them.
+
 ### build 0.7.133 — test and production log modes
 - **Ask**: a test configuration where the logs are written to the console, and a production one where they are not.
 - **Why one switch and not two scripts**: the pages are static files that nginx (and GitHub Pages on iakids.app) serves as they are. The backend never generates them, so the prints cannot be stripped on the way out, and a second copy of a page would diverge within a week. A build step is against the project's structure. So `assets/js/iakids-log-mode.js` replaces the console methods once, before anything else runs.

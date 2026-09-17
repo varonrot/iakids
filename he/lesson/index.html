@@ -459,7 +459,11 @@ const {
   error
 } = await sb
   .from("lesson_units_content")
-  .select("*")
+  /*
+    17/09/2026 — select("*") pulled generated_lesson_json into the browser, and that
+    JSON now carries the correct answer of every question. Only these columns are used.
+  */
+  .select("id, learning_lesson_id, unit_name, lesson_name, lesson_order, status, audio_generation_status")
   .eq("id", lessonId)
   .maybeSingle();
 

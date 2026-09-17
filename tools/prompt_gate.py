@@ -358,6 +358,60 @@ def media_failure_checks(main_src: str) -> list:
     return bad
 
 
+BROWSER_FILES = ("he", "frontend-v2", "assets/js")
+
+
+def answer_key_checks(main_src: str) -> list:
+    """The correct answer is for the teacher. It must not reach the browser.
+
+    2026-09-17: question.answer was added so the coach stops inventing the answer it
+    grades the child against. The unit-lesson route returns the structured lesson
+    verbatim, so without stripping, any child with the network tab open could read the
+    answer before answering. Silencing the console protects nothing here - a page that
+    holds the data can always be made to show it. What is not sent cannot be read.
+    """
+    bad = []
+
+    if "def public_structured_lesson" not in main_src:
+        bad.append("public_structured_lesson is gone - the answer key would be returned "
+                   "to the browser with the lesson")
+
+    # every place that hands a structured lesson to a client must go through it
+    for marker in ('"structured_lesson":\n                public_structured_lesson(',
+                   '"structured_lesson":\n                public_structured_lesson('):
+        pass
+    returns = main_src.count('"structured_lesson":')
+    stripped = main_src.count("public_structured_lesson(")
+    if returns and stripped < 2:
+        bad.append("a route returns structured_lesson without public_structured_lesson(); "
+                   "the answer key would travel to the browser")
+
+    # no browser file may pull the whole lesson row or the generated JSON
+    for folder in BROWSER_FILES:
+        base = ROOT / folder
+        if not base.exists():
+            continue
+        for path in list(base.rglob("*.html")) + list(base.rglob("*.js")):
+            try:
+                src = path.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                continue
+            rel = path.relative_to(ROOT).as_posix()
+            # comments explain the rule and must not trip it
+            src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
+            src = re.sub(r"<!--.*?-->", "", src, flags=re.S)
+            src = re.sub(r"^\s*//[^\n]*", "", src, flags=re.M)
+            if "generated_lesson_json" in src:
+                bad.append("%s reads generated_lesson_json in the browser - that JSON "
+                           "carries the answer of every question" % rel)
+            if 'from("lesson_units_content")' in src and 'select("*")' in src:
+                idx = src.find('from("lesson_units_content")')
+                if 0 <= idx and 'select("*")' in src[idx:idx + 400]:
+                    bad.append("%s selects * from lesson_units_content in the browser; "
+                               "that pulls the answer key with it" % rel)
+    return bad
+
+
 def lesson_closing_checks(main_src: str) -> list:
     """A lesson must end with something said to the child, and be marked as finished.
 
@@ -727,7 +781,8 @@ def main():
         # plus, for main.py, the render smoke that doubles as an import smoke — a route
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
         cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
-              + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks())
+              + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
+          + answer_key_checks(main_src))
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
         rf = [] if (a.fast or not main_changed) else render_smoke()
         if main_changed:
@@ -748,7 +803,8 @@ def main():
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
-          + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks())
+          + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
+          + answer_key_checks(main_src))
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:
