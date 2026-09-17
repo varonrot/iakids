@@ -4,6 +4,11 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — `supabase/migrations/RUN_NOW.sql`: what is actually left to run
+- Every migration in the folder was checked against the live project by looking for the object it creates. **Sixteen are applied. One is not**: the policy that stops every signed-in account reading other children's coach sessions.
+- The file holds that one block between paste markers, the reason it matters, what keeps working after it, and how to verify — plus the two things still open that are not database changes: `APP_ENV=prod` on Render, which is why 37 routes and 21 schemas are public there while the box answers 404, and the six security headers on iakids.app that the mirror already sends.
+- Not reachable from the web: the whole `supabase/` folder is blocked, as is every `.sql`.
+
 ### 2026-09-17 — three things in the question mechanism that worked against the child
 Reviewed end to end and checked against a real transcript. ארבל answered "המורה, ארנב, תלמידה" — the complete correct answer — and was told **"איבדת את המילה שהכי חשובה במשפט"**. She repeated the same answer. She was told she had missed an animal. She repeated it a third time. She was told a word "with a trace of an animal" was missing. The round limit then ended the dialogue at 60 and the lesson moved on **without ever telling her she had been right**. The root cause, a coach with no answer key, was fixed this morning; the transcript exposed three more.
 

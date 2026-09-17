@@ -529,7 +529,7 @@ def migration_rollback_checks() -> list:
     bad = []
     for path in sorted(folder.glob("*.sql")):
         name = path.name
-        if "rollback" in name or name == "APPLY_NOW.sql":
+        if "rollback" in name or name in ("APPLY_NOW.sql", "RUN_NOW.sql"):
             continue
         mate = folder / (name[:-4] + "_rollback.sql")
         if not mate.exists():
