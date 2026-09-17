@@ -503,6 +503,12 @@ aclient = AsyncOpenAI(
     api_key=OPENAI_API_KEY
 )
 
+# Kept under its own name so that a route can choose the direct path even when the
+# service as a whole is pointed at OpenRouter. `aclient` may be rebound below.
+_direct_aclient = AsyncOpenAI(
+    api_key=OPENAI_API_KEY
+)
+
 gemini_client = genai.Client(
     api_key=GEMINI_API_KEY
 )
@@ -549,6 +555,34 @@ if AI_PROVIDER == "openrouter" or TTS_PROVIDER == "openrouter":
 if AI_PROVIDER == "openrouter":
     client = OpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, default_headers=_OPENROUTER_HEADERS)
     aclient = AsyncOpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL, default_headers=_OPENROUTER_HEADERS)
+
+
+# The Visual Director is the longest single call in the pipeline and the child is
+# waiting through all of it: 2000-3300 output tokens, measured at 14 s to 46 s, while
+# the rest of the lesson text takes 6 s to 22 s a part.
+#
+# 2026-09-17, from our own ai_calls table, for calls of this size:
+#     provider openai      7.2 s per 1000 output tokens   (n=10)
+#     provider openrouter 13.6 s per 1000 output tokens   (n=6)
+# Same model, same work, about twice as slow the long way round. The reason the whole
+# service runs through OpenRouter is the voice quota, which this call does not touch.
+#
+# So this one call goes straight to OpenAI when we hold a key for it. Everything else
+# is unchanged. VISUAL_DIRECTOR_PROVIDER=openrouter puts it back without a deploy, and
+# the sample is small enough that it is worth re-measuring from ai_calls afterwards.
+VISUAL_DIRECTOR_PROVIDER = os.getenv(
+    "VISUAL_DIRECTOR_PROVIDER",
+    "direct" if OPENAI_API_KEY else AI_PROVIDER
+).strip().lower()
+
+
+def visual_director_client_and_model():
+    """(client, model id) for the Visual Director — direct when we can, else the default."""
+    if VISUAL_DIRECTOR_PROVIDER == "direct" and OPENAI_API_KEY and AI_PROVIDER == "openrouter":
+        # DEFAULT_OPENAI_MODEL is rebound to the prefixed id at import time when the
+        # service runs on OpenRouter, and the direct API does not know "openai/...".
+        return _direct_aclient, DEFAULT_OPENAI_MODEL.split("/", 1)[-1]
+    return aclient, llm_model(DEFAULT_OPENAI_MODEL)
 
 
 def llm_model(name: str) -> str:
@@ -13788,11 +13822,12 @@ async def get_or_generate_unit_lesson(
                     )
                 )
 
+                _vd_client, _vd_model = visual_director_client_and_model()
                 visual_director_completion = (await (
-                    aclient.beta.chat.completions.parse(
+                    _vd_client.beta.chat.completions.parse(
 
                         model=
-                        DEFAULT_OPENAI_MODEL,
+                        _vd_model,
 
                         messages=[
                             {
@@ -14708,12 +14743,14 @@ async def get_or_generate_unit_lesson(
             }
         )
 
-        _t_vd = media_trace.mark_start("visual_director", model=DEFAULT_OPENAI_MODEL)
+        _vd_client, _vd_model = visual_director_client_and_model()
+        _t_vd = media_trace.mark_start("visual_director", model=_vd_model,
+                                       provider=VISUAL_DIRECTOR_PROVIDER)
         visual_director_completion = (await (
-            aclient.beta.chat.completions.parse(
+            _vd_client.beta.chat.completions.parse(
 
                 model=
-                DEFAULT_OPENAI_MODEL,
+                _vd_model,
 
                 messages=[
                     {

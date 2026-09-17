@@ -4,6 +4,20 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — the longest call in the lesson pipeline was taking the slow way round
+- **Where the child's wait goes**: the Visual Director is one call of 2000 to 3300 output tokens, measured between 14 and 46 seconds, while the whole rest of the lesson text takes 6 to 22 seconds a part. The child waits through all of it before a single word appears.
+- **Measured properly, not guessed**: the same prompt sent three times to each provider, interleaved, same SDK (openai 3.10.0) and same server. Direct won every single run.
+
+| run | direct | openrouter |
+|---|---|---|
+| 1 | 17.9 s | 28.0 s |
+| 2 | 22.5 s | 31.3 s |
+| 3 | 15.5 s | 27.7 s |
+
+- **Fix**: this one call goes straight to OpenAI. Everything else stays on OpenRouter, because the reason the service runs through it is the voice quota, which this call never touches. `VISUAL_DIRECTOR_PROVIDER=openrouter` puts it back without a deploy.
+- **Caveat worth keeping**: this is true for this model, this request shape and this server. Another project measured the opposite, which is entirely possible — for models OpenRouter routes to a faster provider, or from a different region, the extra hop can pay for itself. The knob exists so the answer can be re-measured rather than argued.
+- **Bug caught while testing**: `DEFAULT_OPENAI_MODEL` is rebound to the prefixed `openai/gpt-4o-mini` at import time when the service runs on OpenRouter, so the first version of this change handed a prefixed id to the direct API, which does not know it. The selector strips the prefix.
+
 ### 2026-09-17 — cost reporting: a missing price and a view that counted almost nothing
 - **The missing price**: `gemini-3.1-flash-lite` was not in `MODEL_PRICING_USD`, and it is the model behind the image text checks and the nikud pass. Of the last thousand recorded calls, 134 had no price at all and landed in the reports as "unknown". Added at the published rate. Verified that all five pricing paths now resolve: text for both providers, images per image, and voice by audio seconds.
 - **Applied and verified**: media and text now add up to the total exactly (lesson 12: 2.8977 + 0.166 = 3.0637), and the picture it finally shows is that **media is about 95% of what a lesson costs**. The first attempt was rejected with `42P16: cannot change name of view column`, because `create or replace view` may only append columns — putting the new one in the middle reads as renaming `cost_usd`. The new column sits last.
