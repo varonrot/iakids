@@ -97,8 +97,12 @@
 <script>
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
-/* UX only — the backend enforces its own ADMIN_EMAILS allowlist on every route */
-const ALLOWED_ADMIN_EMAILS = ["varonrot@gmail.com", "office@calzo-app.com", "yossi.heine@gmail.com", "yossi.hina@gmail.com", "yossiheine.biz@gmail.com"];
+/*
+  17/09/2026 — רשימת המנהלים הייתה כתובה כאן, בקוד שכל אחד יכול לקרוא.
+  היא לא הגנה על כלום, כי הבקאנד ממילא בודק ADMIN_EMAILS בכל מסלול
+  ומחזיר 403. מה שהיא כן עשתה זה לחשוף חמש כתובות מייל של מנהלים.
+  עכשיו הדף פשוט מנסה לקרוא לשרת: הצליח, זה מנהל. 403, זה לא.
+*/
 const TUTOR_API_BASE = location.hostname.endsWith("smarts-brains.online") ? location.origin + "/tutor-api" : "https://iakids-ai-tutor-he.onrender.com";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
@@ -122,8 +126,20 @@ async function init(){
   const { data: { session } } = await sb.auth.getSession();
   if(!session?.user){ return; }
   const email = (session.user.email || "").toLowerCase();
-  if(!ALLOWED_ADMIN_EMAILS.includes(email)){ $("loginMsg").textContent = "אין הרשאה לחשבון " + email; await sb.auth.signOut(); return; }
-  SESSION = session; $("loginScreen").hidden = true; $("app").hidden = false;
+  SESSION = session;
+
+  /* השרת הוא שמחליט. הדף לא מחזיק רשימה. */
+  try{
+    await api("/api/admin/lessons/quality");
+  }
+  catch(err){
+    $("loginMsg").textContent = "אין הרשאה לחשבון " + email;
+    SESSION = null;
+    await sb.auth.signOut();
+    return;
+  }
+
+  $("loginScreen").hidden = true; $("app").hidden = false;
   $("who").textContent = email; $("apiBase").textContent = TUTOR_API_BASE;
   await load();
 }

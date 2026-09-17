@@ -361,6 +361,88 @@ def media_failure_checks(main_src: str) -> list:
 BROWSER_FILES = ("he", "frontend-v2", "assets/js")
 
 
+DB_CALL_BUDGET = 178          # measured 2026-09-17, the day the rule was set
+
+
+def browser_db_calls() -> tuple[int, list]:
+    """Every direct database call left in a browser file."""
+    found = []
+    backupish = re.compile(r"(index2|_back_?up|_v\d+|_old|copy)", re.I)
+    for folder in BROWSER_FILES + ("games", "admin", "contact", "support", "support-dashboard",
+                                   "workspace", "pt", "de", "onboarding", "parent-dashboard"):
+        base = ROOT / folder
+        if not base.exists():
+            continue
+        for path in list(base.rglob("*.html")) + list(base.rglob("*.js")):
+            rel = path.relative_to(ROOT).as_posix()
+            if backupish.search(rel):
+                continue
+            try:
+                src = path.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                continue
+            src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
+            src = re.sub(r"<!--.*?-->", "", src, flags=re.S)
+            for m in re.finditer(r"\.from\(\s*[`\"\']([a-z_][a-z0-9_]*)[`\"\']\s*\)", src):
+                found.append((rel, m.group(1)))
+    # the root index.html is not inside any folder above
+    root_index = ROOT / "index.html"
+    if root_index.exists():
+        src = root_index.read_text(encoding="utf-8", errors="replace")
+        for m in re.finditer(r"\.from\(\s*[`\"\']([a-z_][a-z0-9_]*)[`\"\']\s*\)", src):
+            found.append(("index.html", m.group(1)))
+    return len(found), found
+
+
+def browser_db_budget_checks() -> list:
+    """The count of direct database calls in browser files may only go down.
+
+    Decision 2026-09-17: the UI talks to the backend and nothing else. Getting there is a
+    staged job (see MIGRATION_TO_BACKEND.md), so the gate does not demand zero today - it
+    demands that nobody adds one. Lower DB_CALL_BUDGET as the stages land.
+    """
+    count, found = browser_db_calls()
+    if count > DB_CALL_BUDGET:
+        extra = count - DB_CALL_BUDGET
+        sample = ", ".join("%s -> %s" % f for f in found[:3])
+        return ["%d new direct database call(s) in browser files (%d, budget %d). The UI "
+                "talks to the backend: add an endpoint instead. Examples: %s"
+                % (extra, count, DB_CALL_BUDGET, sample)]
+    return []
+
+
+def client_secrets_checks() -> list:
+    """Nothing the browser holds is hidden, so nothing worth hiding may be in it.
+
+    2026-09-17: the lesson-review page carried the five admin email addresses in plain
+    source. It protected nothing - the backend checks ADMIN_EMAILS on every route and
+    answers 403 - but it handed anyone a list of the accounts worth phishing.
+    """
+    bad = []
+    for folder in BROWSER_FILES:
+        base = ROOT / folder
+        if not base.exists():
+            continue
+        for path in list(base.rglob("*.html")) + list(base.rglob("*.js")):
+            rel = path.relative_to(ROOT).as_posix()
+            if re.search(r"(^|/)(index2|.*_back_?up|.*_v\d+|.*_old)\.", rel):
+                continue
+            try:
+                src = path.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                continue
+            src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
+            src = re.sub(r"<!--.*?-->", "", src, flags=re.S)
+            if re.search(r"ALLOWED_ADMIN_EMAILS\s*=\s*\[", src):
+                bad.append("%s hard-codes an admin email allowlist; let the backend "
+                           "answer 403 instead of publishing who the admins are" % rel)
+            if re.search(r"\bsk-(or-v1-|proj-)?[A-Za-z0-9]{20}", src):
+                bad.append("%s contains what looks like a secret API key" % rel)
+            if "service_role" in src:
+                bad.append("%s mentions service_role - that key must never be in a page" % rel)
+    return bad
+
+
 def migration_rollback_checks() -> list:
     """Every migration ships with the file that undoes it.
 
@@ -810,7 +892,8 @@ def main():
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
         cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
-          + answer_key_checks(main_src) + migration_rollback_checks())
+          + answer_key_checks(main_src) + migration_rollback_checks()
+          + client_secrets_checks() + browser_db_budget_checks())
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
         rf = [] if (a.fast or not main_changed) else render_smoke()
         if main_changed:
@@ -832,7 +915,8 @@ def main():
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
-          + answer_key_checks(main_src) + migration_rollback_checks())
+          + answer_key_checks(main_src) + migration_rollback_checks()
+          + client_secrets_checks() + browser_db_budget_checks())
     print(("FAIL " if pf else "ok   ") + "lesson_quality unit tests (TTS normaliser, validators)")
     all_fails += pf
     if not a.fast:

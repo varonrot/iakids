@@ -4,6 +4,18 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — decision: the UI talks to the backend, never to the database
+- **Question asked**: can the code be hidden so a user of the system cannot see it. **Answer: no.** The browser must receive and run it. Minifying or obfuscating buys an attacker hours, not safety, and here it would cost a build step the project deliberately avoids, break the log switch and blind the gates that read those files.
+- **What can be hidden is the data layer.** As long as a page calls `sb.from("kids_profiles")`, the table name, the column list and the relationships sit in the request URL and the JSON response, visible in the network tab whatever the JavaScript looks like. The only way to hide them is to stop the browser talking to the database — which is the decision that was taken.
+- **Measured**: 178 direct database calls in 53 browser files. `kids_profiles` appears in about 30 of them, most through one shared helper in `games/game-sdk.js`. Full inventory, per-table counts and the staged order are in `MIGRATION_TO_BACKEND.md`.
+- **Gate**: the number of direct database calls in browser files may only go down. A new `.from(...)` call in any page fails the build and says to add an endpoint. Verified by adding one on purpose.
+- **Checked while mapping**: no real secret is in any page. The Firebase and Supabase publishable keys are public by design and documented as such in `games/game-sdk.js`. The gate now also fails on a secret-looking key or any mention of `service_role` in a page.
+
+### 2026-09-17 — the admin email list was published in two pages
+- **Symptom**: `he/admin/lessons-review/` and `he/iakids-admin-dashboard-he/` each carried the admin email addresses in plain source, five in one and two in the other.
+- **What it protected**: nothing. Every admin route already checks `ADMIN_EMAILS` server-side and answers 403, which was verified when those routes were built. What the list did do was hand anyone the accounts worth phishing.
+- **Fix**: a new `GET /api/admin/whoami` answers 200 for an admin and 403 for anyone else. Both pages ask it instead of holding a list. A gate rule fails the build if an allowlist ever comes back.
+
 ### 2026-09-17 — browser grants revoked on every table the browser never touches
 - **Applied and verified** with a real signed-in session: all 27 revoked tables answer `permission denied`, all 23 tables live pages use still work, the backend (service_role) still reads everything, and the services are clean.
 - **One table had to come back out of the list: `app_admins`.** Revoking it broke reading `support_tickets`, and the error named a table nobody asked for: `permission denied for table app_admins`. A row level policy on support_tickets asks whether the user is in app_admins, and a policy runs with the caller's own rights, so the moment the caller cannot read that table the whole policy fails — for an ordinary user looking at their own tickets. `app_admins` is empty and holds only admin user ids. The proper fix is a `SECURITY DEFINER is_app_admin()` helper and a policy that calls it; until then the table stays granted, and the migration says why.

@@ -22008,6 +22008,22 @@ def require_admin(authorization: str | None):
     return user
 
 
+@app.get("/api/admin/whoami")
+def admin_whoami(authorization: str = Header(None)):
+    """200 for an admin, 403 for anyone else.
+
+    2026-09-17: the admin pages carried the list of admin email addresses in plain
+    source. It protected nothing - every admin route already checks ADMIN_EMAILS and
+    answers 403 - but it published exactly which accounts are worth phishing. A page
+    asks this instead of holding a list.
+    """
+    user = require_admin(authorization)
+    return {
+        "ok": True,
+        "email": str(getattr(user, "email", "") or "").lower()
+    }
+
+
 def _lesson_review_row(r: dict, parents: dict) -> dict:
     g = r.get("generated_lesson_json") or {}
     q = g.get("quality") or {}

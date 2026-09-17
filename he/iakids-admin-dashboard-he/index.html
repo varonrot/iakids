@@ -779,10 +779,14 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
 
-    const ALLOWED_ADMIN_EMAILS = [
-      "varonrot@gmail.com",
-      "yossi.heine@gmail.com"
-    ];
+    /*
+      17/09/2026 — רשימת המנהלים הייתה כתובה כאן ולא הגנה על כלום,
+      היא רק פרסמה אילו חשבונות שווה לתקוף. השרת מחליט.
+    */
+    const TUTOR_API_BASE =
+      location.hostname.endsWith("smarts-brains.online")
+        ? location.origin + "/tutor-api"
+        : "https://iakids-ai-tutor-he.onrender.com";
 
     const supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
@@ -898,7 +902,13 @@
 
       const email = (session.user.email || "").toLowerCase();
 
-      if (!ALLOWED_ADMIN_EMAILS.includes(email)) {
+      try {
+        const who = await fetch(
+          TUTOR_API_BASE + "/api/admin/whoami",
+          { headers: { "Authorization": "Bearer " + session.access_token } }
+        );
+        if (!who.ok) { throw new Error("not an admin"); }
+      } catch (adminError) {
         await supabaseClient.auth.signOut();
         alert("אין לך הרשאה להיכנס ללוח הניהול.");
         showLogin();

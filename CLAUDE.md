@@ -80,6 +80,15 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - When the last part finishes, `kid_lesson_progress` is written `status="completed"`, `completed_at`, `progress_percent=100`, `xp_earned`, `stars_earned` — the columns the child's and the parent's dashboards already read. Never leave it `in_progress`.
 - The completion card shows **one** primary next-lesson button plus the unit grid, and its score comes from the progress row, not from the on-screen gauge.
 
+## Architecture rule (decided 2026-09-17): the UI talks to the backend, never to the database
+
+- **No page, script or game opens a connection to Supabase, Firebase or any other data store.** The browser calls our own API and nothing else. All the work happens in the backend.
+- **Why**: code that reaches the browser cannot be hidden. Minifying or obfuscating buys hours, not safety, and costs a build step this project deliberately avoids. What *can* be hidden is the data layer: as long as a page calls `sb.from("kids_profiles")`, the table name, the column list and the relationships are in the request URL and the JSON, visible in the network tab whatever the JS looks like. The only way to hide them is to stop the browser talking to the database.
+- **Also**: RLS stops being the single line of defence, a table rename stops being a frontend change, and the answer key, the scoring rules and the quotas live where the child cannot reach them.
+- **Starting point, measured 2026-09-17**: 178 direct database calls in 53 files. `kids_profiles` alone appears in about 30 of them, most through one helper in `games/game-sdk.js`. Inventory and order in `MIGRATION_TO_BACKEND.md`.
+- **Until a table's last browser caller is gone** it keeps its grant; the moment it is gone, revoke it (`supabase/migrations/*_revoke_*`) and the gate keeps it closed.
+- **New code**: never add a `.from("...")` call in a browser file. Add an endpoint.
+
 ## Rule: every migration ships with its rollback
 
 - `supabase/migrations/<name>.sql` must have `supabase/migrations/<name>_rollback.sql` in the same commit. The gate fails otherwise, and an empty rollback counts as missing.
