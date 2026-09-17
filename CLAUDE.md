@@ -55,9 +55,9 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - `assets/js/iakids-dictation.js` is loaded by every page with a chat box (`he/workspace`, `he/games/workspace`, `he/add-subject`, `frontend-v2/homework.html`) and auto-attaches on load: existing `.talk-btn`, `[data-dictation-for="#input"]`, or an injected mic next to `#chatInput`. It uses the browser's Web Speech API — **no model, no cost** — and writes interim text into the input while the child speaks.
 - The server route `POST /api/tutor/stt` exists for browsers without the API but is **off** unless a page sets `window.IAKIDS_STT_SERVER_FALLBACK = true` (knobs `STT_PROVIDER=openai|gemini`, `STT_MODEL`). A new chat surface only needs the script tag, or `data-dictation-for` on its own mic button.
 
-## Rule: BUGFIXES.md on every commit + push
+## Rule: docs/BUGFIXES.md on every commit + push
 
-- Every `git commit` that is pushed adds an entry to `BUGFIXES.md` (newest first): symptom, cause, fix, how it was verified, build number. The user reads this file to know exactly what changed. No entry, no push.
+- Every `git commit` that is pushed adds an entry to `docs/BUGFIXES.md` (newest first): symptom, cause, fix, how it was verified, build number. The user reads this file to know exactly what changed. No entry, no push.
 
 ## Rule: gate before every commit and every deploy
 
@@ -90,7 +90,7 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 
 ## Performance and cost
 
-- **`PERFORMANCE.md`** holds the measured picture: where the child's time goes, where the money goes, every model in production with its latency and cost, and a benchmarked provider comparison. Every number there comes from `ai_calls`, `ai_costs_per_lesson` or the `STAGE SUMMARY` log lines. Re-measure with the queries at the bottom of that file instead of trusting the page after a change.
+- **`docs/PERFORMANCE.md`** holds the measured picture: where the child's time goes, where the money goes, every model in production with its latency and cost, and a benchmarked provider comparison. Every number there comes from `ai_calls`, `ai_costs_per_lesson` or the `STAGE SUMMARY` log lines. Re-measure with the queries at the bottom of that file instead of trusting the page after a change.
 - **Two facts to keep in mind before optimising anything**: media is about 95% of a lesson's cost and images are 82% of it, while the Visual Director is the largest single block of the child's wait.
 - **Never compare providers by running one and then the other.** Interleave the runs, same prompt, same machine, and report the sample size. "OpenRouter is slower" turned out to be true for OpenAI models here and not measurable for Gemini ones.
 
@@ -99,7 +99,7 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - **No page, script or game opens a connection to Supabase, Firebase or any other data store.** The browser calls our own API and nothing else. All the work happens in the backend.
 - **Why**: code that reaches the browser cannot be hidden. Minifying or obfuscating buys hours, not safety, and costs a build step this project deliberately avoids. What *can* be hidden is the data layer: as long as a page calls `sb.from("kids_profiles")`, the table name, the column list and the relationships are in the request URL and the JSON, visible in the network tab whatever the JS looks like. The only way to hide them is to stop the browser talking to the database.
 - **Also**: RLS stops being the single line of defence, a table rename stops being a frontend change, and the answer key, the scoring rules and the quotas live where the child cannot reach them.
-- **Starting point, measured 2026-09-17**: 178 direct database calls in 53 files. `kids_profiles` alone appears in about 30 of them, most through one helper in `games/game-sdk.js`. Inventory and order in `MIGRATION_TO_BACKEND.md`.
+- **Starting point, measured 2026-09-17**: 178 direct database calls in 53 files. `kids_profiles` alone appears in about 30 of them, most through one helper in `games/game-sdk.js`. Inventory and order in `docs/MIGRATION_TO_BACKEND.md`.
 - **Until a table's last browser caller is gone** it keeps its grant; the moment it is gone, revoke it (`supabase/migrations/*_revoke_*`) and the gate keeps it closed.
 - **New code**: never add a `.from("...")` call in a browser file. Add an endpoint.
 

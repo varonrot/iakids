@@ -4,6 +4,14 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-17
 
+### 2026-09-17 — internal documents were readable on the web; every menu link audited
+- **The documents are now closed.** The site root is the repo, so every `.md` in it was public. `SECURITY.md` — "what was found, what was fixed, what is still open" — was the worst of them: a list of open security findings, served to anyone. `BUGFIXES.md`, `MIGRATION_TO_BACKEND.md`, `PERFORMANCE.md`, `HANDOFF.md`, `TODO.md` and the deploy script were all readable too. They now live in `docs/`, which nginx refuses, and a rule blocks `.md`, `.sql`, `.sh` and similar anywhere on the site, so the game specs are covered in place. Verified: the documents answer 404 and the site, its assets and the games still answer 200.
+- **Every internal link on the site was checked**, 38 of them across all pages. Seven were broken. Three were simply pointing at the wrong path and are fixed:
+  - `/chat/` — **the Spanish onboarding sent every new account there when it finished**, and the page does not exist. It goes to `/workspace/` now. This one was breaking sign-up.
+  - `/pt/support/` — the Portuguese workspace's support button; support is one page for all languages.
+  - `/workspace/u1` — a placeholder path left in a marketing page, in two places, with a comment saying to change it.
+- **Four pages in the Hebrew sidebar were never built**: "השיעורים שלי", "הכנה למבחן", "הישגים", "הקבצים שלי". Until they exist the buttons say so instead of dropping the child on a server error.
+
 ### 2026-09-17 — bug sweep from the real logs
 - **Every documentation file in the repo is readable on the web.** The site root is the repo itself, and nginx blocks `.git`, the backend folders, `supabase` and `CLAUDE.md` — but not markdown. `/BUGFIXES.md`, `/MIGRATION_TO_BACKEND.md`, `/PERFORMANCE.md`, `/handoff_perfromance.md` and `/tools/deploy_tutor.sh` all answer 200 right now. This file alone describes every bug and every security hole we have closed, with table names, column names and route names, and the migration document is a table-by-table map of the database. Three of those files were written today, so the exposure was made worse by the work itself. **A tested nginx fix is ready and waiting for approval**; it is a production config change.
 - **The missing video poster**: `/assets/backgrounds/video-poster.webp`, asked for on every load of the Hebrew landing page, 58 times in the log and never there. The hero video showed nothing until it buffered. A real frame was pulled from the demo video itself and saved at 1280px, 57 KB.

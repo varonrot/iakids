@@ -406,7 +406,7 @@ def browser_db_budget_checks() -> list:
     """The count of direct database calls in browser files may only go down.
 
     Decision 2026-09-17: the UI talks to the backend and nothing else. Getting there is a
-    staged job (see MIGRATION_TO_BACKEND.md), so the gate does not demand zero today - it
+    staged job (see docs/MIGRATION_TO_BACKEND.md), so the gate does not demand zero today - it
     demands that nobody adds one. Lower DB_CALL_BUDGET as the stages land.
     """
     count, found = browser_db_calls()

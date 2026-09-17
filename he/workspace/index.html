@@ -5,6 +5,33 @@
 <title>חבר ללימודים AI – סביבת למידה</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="/assets/js/iakids-log-mode.js"></script>
+<script>
+/* =====================================================
+   COMING SOON — 17/09/2026
+   ארבעה פריטים בתפריט הצד הצביעו על דפים שמעולם לא נבנו:
+   השיעורים שלי, הכנה למבחן, הישגים, הקבצים שלי. כל לחיצה
+   הנחיתה את הילד על שגיאת 404 של השרת, בלי שום הסבר.
+   עד שהדפים ייבנו, הכפתורים אומרים את האמת.
+===================================================== */
+window.iakidsComingSoon = function(title){
+  var el = document.getElementById("iakidsComingSoonToast");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "iakidsComingSoonToast";
+    el.setAttribute("dir","rtl");
+    el.style.cssText =
+      "position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:100001;" +
+      "background:rgba(20,26,48,.96);color:#eef2ff;padding:14px 20px;border-radius:14px;" +
+      "font:600 15px/1.4 inherit;box-shadow:0 12px 34px rgba(0,0,0,.35);max-width:min(90vw,420px);" +
+      "text-align:center;opacity:0;transition:opacity .2s ease";
+    document.body.appendChild(el);
+  }
+  el.textContent = title + " עוד לא מוכן. אנחנו עובדים על זה.";
+  el.style.opacity = "1";
+  clearTimeout(el._hide);
+  el._hide = setTimeout(function(){ el.style.opacity = "0"; }, 2800);
+};
+</script>
     <script>
 (function () {
 
@@ -13043,7 +13070,7 @@ window.iakidsAvatarUrl = function(key){
     <!-- השיעורים שלי -->
     <button
       class="side-item"
-      onclick="window.location.href='/he/my-lessons/'"
+      onclick="iakidsComingSoon('השיעורים שלי')"
     >
       <i class="fa-solid fa-book-open"></i>
 
@@ -13096,7 +13123,7 @@ window.iakidsAvatarUrl = function(key){
     <!-- הכנה למבחן -->
     <button
       class="side-item"
-      onclick="window.location.href='/he/exam-prep/'"
+      onclick="iakidsComingSoon('הכנה למבחן')"
     >
       <i class="fa-solid fa-bullseye"></i>
 
@@ -13157,7 +13184,7 @@ window.iakidsAvatarUrl = function(key){
     <!-- הישגים -->
     <button
       class="side-item"
-      onclick="window.location.href='/he/achievements/'"
+      onclick="iakidsComingSoon('הישגים')"
     >
       <i class="fa-solid fa-trophy"></i>
 
@@ -13172,7 +13199,7 @@ window.iakidsAvatarUrl = function(key){
     <!-- הקבצים שלי -->
     <button
       class="side-item"
-      onclick="window.location.href='/he/files/'"
+      onclick="iakidsComingSoon('הקבצים שלי')"
     >
       <i class="fa-solid fa-folder-open"></i>
 
