@@ -688,3 +688,27 @@ img{max-width:100%;display:block}
     font-size:17px;
   }
 }
+
+
+/* Feature card CTA alignment */
+.feature-cta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:148px;
+  height:38px;
+  padding:0 20px;
+  line-height:1;
+  white-space:nowrap;
+  text-align:center;
+  border-radius:12px;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.feature-cta:hover{
+  transform:translateY(-1px);
+  box-shadow:0 7px 16px rgba(14,169,166,.12);
+  background:linear-gradient(90deg,#bceee5,#a5e7dc);
+}
+.feature-cta:active{
+  transform:translateY(0);
+}
