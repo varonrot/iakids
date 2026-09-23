@@ -1649,7 +1649,7 @@ img{max-width:100%;display:block}
   height:auto;
   border:0;
   border-radius:12px;
-  background:#fff url("../assets/cards/homework-help.webp") center center / cover no-repeat;
+  background:#fff url("../assets/cards/homework-help-v2.webp") center center / cover no-repeat;
   box-shadow:none;
 }
 .feature-card:first-child .feature-media::after{
@@ -1657,7 +1657,7 @@ img{max-width:100%;display:block}
 }
 @media(max-width:720px){
   .feature-card:first-child .feature-media{
-    background:#e8f8f5 url("../assets/cards/homework-help.webp") 23% center / cover no-repeat !important;
+    background:#e8f8f5 url("../assets/cards/homework-help-v2.webp") 23% center / cover no-repeat !important;
   }
   .feature-card:first-child .feature-media::before{
     display:none !important;
