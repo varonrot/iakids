@@ -907,3 +907,31 @@ img{max-width:100%;display:block}
   .main-nav{display:none}
   .topbar{grid-template-columns:auto 1fr auto}
 }
+
+
+/* Preserve the centered mobile header after desktop navigation polish */
+@media(max-width:720px){
+  .topbar{
+    height:62px;
+    grid-template-columns:42px 1fr 42px;
+    padding:0 14px;
+    gap:8px;
+  }
+  .mobile-menu{
+    grid-column:1;
+    grid-row:1;
+    justify-self:start;
+  }
+  .brand{
+    grid-column:2;
+    grid-row:1;
+    justify-self:center;
+  }
+  .top-actions{
+    grid-column:3;
+    grid-row:1;
+    width:42px;
+    min-width:42px;
+    justify-self:end;
+  }
+}
