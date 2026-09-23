@@ -1894,3 +1894,34 @@ img{max-width:100%;display:block}
     bottom:15px;
   }
 }
+
+/* Encouragement banner: mint botanical artwork, kept crisp at every size. */
+.progress-banner{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  min-height:46px;
+  padding:9px 12px;
+  gap:12px;
+  background:linear-gradient(105deg,#ddfaf5 0%,#def9f3 58%,#b6ede3 100%);
+}
+.progress-sun{
+  flex:0 0 28px;
+  width:28px;
+  height:28px;
+  color:#03bdb1;
+}
+.progress-banner-copy{position:relative;z-index:1}
+.progress-banner strong{color:#123657}
+.progress-leaves{
+  position:absolute;
+  z-index:0;
+  right:2px;
+  bottom:-2px;
+  width:116px;
+  height:56px;
+  pointer-events:none;
+}
+@media(max-width:380px){
+  .progress-leaves{right:-22px;opacity:.55}
+}
