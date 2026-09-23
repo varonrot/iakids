@@ -935,3 +935,26 @@ img{max-width:100%;display:block}
     justify-self:end;
   }
 }
+
+
+/* Desktop header: keep navigation attached to the brand, like the reference */
+@media(min-width:1081px){
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:0;
+  }
+  .brand{
+    flex:0 0 auto;
+  }
+  .main-nav{
+    flex:1 1 auto;
+    justify-content:flex-start;
+    margin-left:24px;
+    gap:3px;
+  }
+  .top-actions{
+    flex:0 0 auto;
+    margin-left:auto;
+  }
+}
