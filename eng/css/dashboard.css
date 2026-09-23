@@ -1636,3 +1636,17 @@ img{max-width:100%;display:block}
     );
   }
 }
+
+/* Homework Help card artwork */
+.feature-card:first-child .feature-media{
+  background:#e8f8f5 url("../assets/cards/homework-help.webp") center center / cover no-repeat !important;
+}
+.feature-card:first-child .feature-media::before,
+.feature-card:first-child .feature-media::after{
+  display:none !important;
+}
+@media(max-width:720px){
+  .feature-card:first-child .feature-media{
+    background-position:23% center !important;
+  }
+}
