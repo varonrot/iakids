@@ -124,7 +124,9 @@ REQUIRED = {
     # one module per school subject (2026-09-23), grounded in the Ministry curriculum per grade;
     # only "# כללי" + the child's grade section is sent (homework_subject_block)
     "homework/subjects/math.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
-    "homework/subjects/hebrew.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    # 2026-09-23 live test: a grade-1 child answered "ג'וני" (correct) and was asked to rewrite it as a full sentence
+    "homework/subjects/hebrew.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS + [
+        "בכיתות א–ב מספיקה תשובה נכונה במילה אחת או בכמה מילים", "תשובה בכתב מכיתה ג"]},
     "homework/subjects/english.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
     "homework/subjects/tanakh.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
     "homework/subjects/science.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
@@ -376,6 +378,9 @@ for raw, want in (("ב", "ב"), ("ב'", "ב"), ("כיתה ב", "ב"), ("כיתה
 b2 = main.homework_subject_block("math", "ב")
 if "לוח הכפל של 2, 4, 5 ו־10" not in b2 or "שבר כפול שבר" in b2 or "כללי הליבה גוברים" not in b2:
     bad.append("subject block for a grade-2 child is not general + grade ב only (a grade-2 teacher got grade-6 fractions or lost the core line)")
+h1 = main.homework_subject_block("hebrew", "א")
+if "בכיתות א–ב מספיקה תשובה נכונה" not in h1: bad.append("hebrew module: a grade-1 child no longer gets the short-answer rule (a correct one-word answer is sent back for a full sentence)")
+if "בכיתות א–ב מספיקה תשובה נכונה" in main.homework_subject_block("hebrew", "ד"): bad.append("hebrew module: the grades 1-2 short-answer rule leaks into grade 4")
 ball = main.homework_subject_block("math", None)
 if "שבר כפול שבר" not in ball or "לוח הכפל של 2, 4, 5 ו־10" not in ball: bad.append("subject block with an unknown grade does not carry every grade")
 if main.homework_subject_block(None) or main.homework_subject_block("art"): bad.append("subject block returned text for no subject")

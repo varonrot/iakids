@@ -4,6 +4,13 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-23
 
+### 2026-09-23 — grades 1–2: a correct short answer is enough (build 0.7.140)
+- **Symptom** (live test with the subject modules): a grade-1 child answered "ג'וני" to "איך קוראים לתלמיד החדש?". The teacher said it was correct, then asked for the answer again as a full sentence. The question stayed open.
+- **Cause**: the Hebrew module's answer rule (standalone and not 3–4 words) comes from the grade-4 national test scoring guide, and it applied to every grade.
+- **Fix**: the rule now applies from grade ג. The grade א and ב sections say that a correct answer of one word or a few words is enough unless the page asks for a full sentence, and that a correct answer is not sent back to be rewritten.
+- **Gate**: two REQUIRED sections in the Hebrew module, plus unit tests that a grade-1 child gets the rule and a grade-4 child does not. Both were negative-tested.
+- **Verified live** on the same grade-1 page: the plan's criteria say "מילה אחת מספיקה", and "ג'וני" gets "נָכוֹן, לַתַּלְמִיד הֶחָדָשׁ קוֹרְאִים ג'וֹנִי." with the question complete.
+
 ### 2026-09-23 — homework help knows the school curriculum per subject and grade (build 0.7.139)
 - **Why**: the teacher prompt was general. It had no way to know that a grade-2 child has learned only the ×2/4/5/10 tables, that fractions start in ד, that grade ג reads with vowel marks until about mid-year, or that רש"י is not taught in the ממלכתי stream.
 - **Research**: the official Ministry of Education documents: ארגון הלמידה ביסודי תשפ"ז (weekly hours; which subject exists in which grade), the math programs (the new program for א–ג, the 2006 program for ד–ו, both in force this year), חינוך לשוני עברית (2003 and 2026), English Curriculum 2020 and its grammar and lexis bands, תנ"ך ממלכתי, מדע וטכנולוגיה (the תשפ"ז content specs), היסטוריה (new from תשפ"ז) and מולדת/גאוגרפיה. Cells no official source confirmed are phrased as "ask the child whether this was taught".
