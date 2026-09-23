@@ -1761,3 +1761,30 @@ img{max-width:100%;display:block}
   .hero .stat-copy small{font-size:7px}
   .hero-handwritten{left:55%;top:12%;font-size:18px}
 }
+
+/* Correct hero image scale and keep artwork below live text. */
+@media(min-width:721px){
+  .hero-visual{
+    z-index:0;
+  }
+  .hero-copy{
+    z-index:2;
+  }
+  .hero-photo{
+    left:auto;
+    right:0;
+    width:75%;
+    height:100%;
+    object-fit:cover;
+    object-position:center 44%;
+  }
+  .hero-handwritten{
+    left:53%;
+    top:13%;
+    z-index:3;
+  }
+}
+@media(min-width:721px) and (max-width:1100px){
+  .hero-photo{width:79%;object-position:center 45%}
+  .hero-handwritten{left:51%;top:12%}
+}
