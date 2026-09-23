@@ -715,3 +715,28 @@ img{max-width:100%;display:block}
 
 .subject-card:nth-child(5){background:linear-gradient(135deg,#fff7f3,#fff0e8)}
 .subject-card:nth-child(6){background:linear-gradient(135deg,#f2fbff,#eaf7ff)}
+
+
+/* Keep Continue Learning content fitted to the full card height */
+.continue-learning{
+  display:flex;
+  flex-direction:column;
+}
+.continue-learning .panel-head{
+  flex:0 0 auto;
+}
+.continue-body{
+  flex:1;
+  min-height:0;
+  align-items:stretch;
+}
+.lesson-thumb{
+  min-height:0;
+  height:100%;
+}
+.lesson-info{
+  height:100%;
+}
+.resume-btn{
+  width:100%;
+}
