@@ -1590,3 +1590,49 @@ img{max-width:100%;display:block}
     background:var(--bg) !important;
   }
 }
+
+
+/* Seamless hero image fade into page background */
+@media (min-width:721px){
+  .hero-visual{
+    position:relative;
+    overflow:hidden;
+  }
+
+  .hero-photo{
+    -webkit-mask-image:linear-gradient(
+      to right,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,.18) 5%,
+      rgba(0,0,0,.5) 12%,
+      rgba(0,0,0,.82) 20%,
+      rgba(0,0,0,1) 30%,
+      rgba(0,0,0,1) 100%
+    );
+    mask-image:linear-gradient(
+      to right,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,.18) 5%,
+      rgba(0,0,0,.5) 12%,
+      rgba(0,0,0,.82) 20%,
+      rgba(0,0,0,1) 30%,
+      rgba(0,0,0,1) 100%
+    );
+  }
+
+  .hero-visual::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    background:linear-gradient(
+      to right,
+      var(--bg) 0%,
+      rgba(238,249,248,.97) 7%,
+      rgba(238,249,248,.78) 14%,
+      rgba(238,249,248,.42) 21%,
+      rgba(238,249,248,0) 32%
+    );
+  }
+}
