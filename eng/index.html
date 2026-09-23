@@ -13,26 +13,51 @@
 <body>
   <header class="topbar">
     <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open menu">☰</button>
+
     <a class="brand" href="./" aria-label="IA KIDS ENG home">
-      <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
       <span class="brand-name">IA KIDS <em>ENG</em></span>
     </a>
 
     <nav class="main-nav" aria-label="Main navigation">
-      <a class="nav-link active" href="./"><span class="nav-icon">⌂</span>Dashboard</a>
-      <a class="nav-link" href="./homework/"><span class="nav-icon">▢</span>Homework Help</a>
-      <a class="nav-link" href="./test-prep/"><span class="nav-icon">▣</span>Test Prep</a>
-      <a class="nav-link" href="./learning/"><span class="nav-icon">▤</span>My Learning System</a>
-      <a class="nav-link" href="./practice/"><span class="nav-icon">▥</span>Practice</a>
-      <a class="nav-link" href="./progress/"><span class="nav-icon">♕</span>Progress</a>
+      <a class="nav-link active" href="./">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2"/><path d="M5.5 10.2V20h13v-9.8"/><path d="M9.3 20v-5.6h5.4V20"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-link" href="./homework/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-5 3v-3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="M8 11h.01M12 11h.01M16 11h.01"/></svg>
+        <span>Homework Help</span>
+      </a>
+      <a class="nav-link" href="./test-prep/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6"/><path d="M9 3h6v4H9z"/><path d="M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h8"/></svg>
+        <span>Test Prep</span>
+      </a>
+      <a class="nav-link" href="./learning/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5c3.2-.8 6.1-.1 8.5 2v12c-2.4-2.1-5.3-2.8-8.5-2V5.5Z"/><path d="M20.5 5.5c-3.2-.8-6.1-.1-8.5 2v12c2.4-2.1 5.3-2.8 8.5-2V5.5Z"/></svg>
+        <span>My Learning System</span>
+      </a>
+      <a class="nav-link" href="./practice/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M10 20V6M15 20V13M20 20V3"/></svg>
+        <span>Practice</span>
+      </a>
+      <a class="nav-link" href="./progress/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3a4 4 0 0 1-8 0V4Z"/><path d="M8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4M12 11v5M8 20h8M9 16h6"/></svg>
+        <span>Progress</span>
+      </a>
     </nav>
 
     <div class="top-actions">
-      <input class="search" type="search" aria-label="Search" placeholder="Search lessons, subjects, or questions...">
-      <button class="bell" type="button" aria-label="Notifications">♢</button>
+      <label class="search-wrap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        <input class="search" type="search" aria-label="Search" placeholder="Search lessons, subjects, or questions...">
+      </label>
+      <button class="bell" type="button" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+      </button>
       <div class="profile">
         <div class="avatar">ES</div>
         <div class="profile-copy"><strong>Emma S.</strong><small>Grade 4</small></div>
+        <span class="profile-chevron">⌄</span>
       </div>
     </div>
   </header>
