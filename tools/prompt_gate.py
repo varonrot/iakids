@@ -31,6 +31,10 @@ PROMPTS = ROOT / "backend-ai-tutor-he" / "prompts"
 MAIN = ROOT / "backend-ai-tutor-he" / "main.py"
 PY = ROOT / "backend" / ".venv" / "bin" / "python"
 
+# every subject module: the core wins, it names its source, it has every grade, it says what is not taught yet
+SUBJECT_MODULE_SECTIONS = ["# כללי", "כללי הליבה גוברים תמיד", "מקור:", "# כיתה א", "# כיתה ב", "# כיתה ג",
+                           "# כיתה ד", "# כיתה ה", "# כיתה ו", "לא נלמד"]
+
 # every prompt main.py loads + what must never disappear from it
 REQUIRED = {
     "iakids_ai_tutor_system_prompt.txt": {
@@ -117,6 +121,15 @@ REQUIRED = {
                      # 2026-09-23: a Hasmonean page — the teacher's example was "גזר ויפו", one of the answers
                      "דוגמה לעולם אינה לוקחת מילה, שם, מקום, מספר או פריט מתוך התשובה", "הדוגמה מדגימה מסר אחר לגמרי"],
     },
+    # one module per school subject (2026-09-23), grounded in the Ministry curriculum per grade;
+    # only "# כללי" + the child's grade section is sent (homework_subject_block)
+    "homework/subjects/math.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    "homework/subjects/hebrew.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    "homework/subjects/english.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    "homework/subjects/tanakh.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    "homework/subjects/science.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    "homework/subjects/history.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    "homework/subjects/geography.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
     "iakids_visual_director_prompt.txt": {"placeholders": [], "sections": ["NO TEXT INSIDE IMAGES", "READING DIRECTION", "CHILD SAFETY", "IMAGE COUNT IS DYNAMIC", "reuse_previous"]},
 }
 FEMALE_VOICES = {"Aoede", "Kore", "Leda", "Zephyr", "Autonoe", "Callirrhoe", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Sulafat", "Vindemiatrix"}
@@ -291,9 +304,8 @@ def homework_checks() -> list:
             bad.append("frontend-v2/homework.js: questions are split from the text again instead of the page reader's exercises")
     ws = WORKSPACE.read_text(encoding="utf-8", errors="replace") if WORKSPACE.exists() else ""
     for bid in ("openaiCleanChatBtn", "homeworkV2SidebarBtn"):
-        m = re.search(r'<button(?:(?!</button>).)*?id="' + bid + r'"(?:(?!</button>).)*?>', ws, re.S)
-        if m and "hidden" not in m.group(0):
-            bad.append(f"workspace: the test button {bid} is visible to children again (hidden 2026-09-23)")
+        if f'id="{bid}"' in ws:
+            bad.append(f"workspace: the test button {bid} is back in the children's menu (removed 2026-09-23; the user asked for one homework link only)")
     return bad
 
 
@@ -348,6 +360,25 @@ n = N([{"text": "____ - ____ = ____", "refers_to": "קבוצה גדולה של �
 if "המבורגרים" not in n[0]["text"] or "____ - ____ = ____" not in n[0]["text"]: bad.append("exercises: a blanks-only picture exercise did not get its description")
 if N([{"text": "35+40 = ___", "refers_to": ""}])[0]["text"] != "35+40 = ___": bad.append("exercises: a normal exercise was changed")
 if N([{"text": "לאן הלכו יעל ואחותה?", "refers_to": "הקטע"}])[0]["text"] != "לאן הלכו יעל ואחותה?": bad.append("exercises: a worded question got its refers_to glued on")
+K = main.homework_subject_key
+for subj, topic, want in (("חשבון", "", "math"), ("מתמטיקה", "חיבור עד 100", "math"), ("אנגלית", "הבנת הנקרא", "english"),
+                          ("עברית", "הבנת הנקרא", "hebrew"), ("", "הבנת הנקרא", "hebrew"), ('תנ"ך', "", "tanakh"), ("תנ״ך", "", "tanakh"),
+                          ("מדע וטכנולוגיה", "", "science"), ("טבע ומולדת", "", "science"), ("היסטוריה", "", "history"), ("מולדת", "", "geography"),
+                          ("", "", None), ("אמנות", "", None)):
+    if K(subj, topic) != want: bad.append("subject key: %r / %r gave %r, expected %r" % (subj, topic, K(subj, topic), want))
+for key in ("math", "hebrew", "english", "tanakh", "science", "history", "geography"):
+    if not main.homework_subject_block(key): bad.append("subject module %s is empty or not loaded" % key)
+    secs = main.HOMEWORK_SUBJECT_MODULES.get(key) or {}
+    if sorted(secs) != sorted(["כללי"] + list("אבגדהו")): bad.append("subject module %s sections are %s, expected כללי + א..ו" % (key, sorted(secs)))
+G = main.normalize_grade
+for raw, want in (("ב", "ב"), ("ב'", "ב"), ("כיתה ב", "ב"), ("כיתה ב׳", "ב"), ("2", "ב"), (2, "ב"), ("6", "ו"), ("ז", None), ("7", None), ("", None), (None, None)):
+    if G(raw) != want: bad.append("normalize_grade(%r) gave %r, expected %r" % (raw, G(raw), want))
+b2 = main.homework_subject_block("math", "ב")
+if "לוח הכפל של 2, 4, 5 ו־10" not in b2 or "שבר כפול שבר" in b2 or "כללי הליבה גוברים" not in b2:
+    bad.append("subject block for a grade-2 child is not general + grade ב only (a grade-2 teacher got grade-6 fractions or lost the core line)")
+ball = main.homework_subject_block("math", None)
+if "שבר כפול שבר" not in ball or "לוח הכפל של 2, 4, 5 ו־10" not in ball: bad.append("subject block with an unknown grade does not carry every grade")
+if main.homework_subject_block(None) or main.homework_subject_block("art"): bad.append("subject block returned text for no subject")
 P = main.parse_homework_vision_json
 if (P('```json\n{"a": 1}\n```') or {}).get("a") != 1: bad.append("vision json: fenced JSON not parsed")
 if (P('here: {"a": 2} done') or {}).get("a") != 2: bad.append("vision json: JSON inside text not parsed")
@@ -918,6 +949,8 @@ def code_rule_checks(main_src: str) -> list:
         ("[texts[:1]]", 1, "question 1 is planned together with others again: its plan lands after 18-50 s and the teacher starts without it (2026-09-23)"),
         ("homework_reply_answer_items(raw_text", 1, "the teacher's reply is no longer checked for items of the answer: an 'example' can be one of the answers (2026-09-23)"),
         ("analysis[\"exercises\"] = normalize_homework_exercises(", 1, "a picture exercise is shown as blanks only (\"____ - ____ = ____\"): the child does not know what to count (2026-09-23)"),
+        ("homework_subject_block(subject_key,", 2, "the homework teacher or homework-turn no longer gets the subject module: it teaches without the grade's curriculum (2026-09-23)"),
+        ("planner_prompt = HOMEWORK_PLANNER_PROMPT + (", 1, "the teaching plan is built without the subject module (2026-09-23)"),
         ("response_format=HomeworkPagePlan", 1, "the teaching plan is no longer a validated structure (2026-09-23)"),
         ("homework_response_leaks_source_answer(", 2, "homework help no longer checks its first reply for the answer: the child is handed the solution (2026-09-23)"),
     ]
