@@ -712,3 +712,6 @@ img{max-width:100%;display:block}
 .feature-cta:active{
   transform:translateY(0);
 }
+
+.subject-card:nth-child(5){background:linear-gradient(135deg,#fff7f3,#fff0e8)}
+.subject-card:nth-child(6){background:linear-gradient(135deg,#f2fbff,#eaf7ff)}
