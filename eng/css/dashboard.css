@@ -958,3 +958,20 @@ img{max-width:100%;display:block}
     margin-left:auto;
   }
 }
+
+
+/* Real IA KIDS brand mark */
+.brand-logo{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  object-fit:contain;
+  display:block;
+}
+@media(max-width:720px){
+  .brand-logo{
+    width:34px;
+    height:34px;
+    flex-basis:34px;
+  }
+}
