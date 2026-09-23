@@ -1933,3 +1933,11 @@ img{max-width:100%;display:block}
 .my-subjects .subject-card:nth-child(2) .subject-thumb{
   background:#e0f4e9 url("../assets/subjects/math.webp") center / cover no-repeat;
 }
+
+/* Science and Hebrew subject artwork. */
+.my-subjects .subject-card:nth-child(3) .subject-thumb{
+  background:#e7edcb url("../assets/subjects/science.webp") center / cover no-repeat;
+}
+.my-subjects .subject-card:nth-child(4) .subject-thumb{
+  background:#efe2cf url("../assets/subjects/hebrew.webp") center / cover no-repeat;
+}
