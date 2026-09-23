@@ -19532,7 +19532,6 @@ async def homework_analyze(
             )
 
         )
-        analysis["exercises"] = normalize_homework_exercises(analysis.get("exercises"))
         # 2026-09-23: a Hebrew page "חיבור עד 100" came back as topic "addition"
         detected_subject = hebrew_subject_label(detected_subject, extracted_text)
         analysis["subject"] = detected_subject
@@ -21600,23 +21599,6 @@ def homework_reply_answer_items(reply: str, correct_answer: str, question: str) 
         if len(item) >= 3 and f" {item} " in body and f" {item} " not in q:
             items.append(item)
     return items
-
-
-def normalize_homework_exercises(exercises) -> list:
-    """What the child sees for each exercise must say what to do. 2026-09-23 (grade 1 picture page):
-    the reader put "קבוצה גדולה של המבורגרים - קבוצה קטנה של המבורגרים" in refers_to and left the text as
-    "____ - ____ = ____", so the screen and the teacher showed blanks with nothing to count."""
-    out = []
-    for e in exercises or []:
-        if not isinstance(e, dict):
-            continue
-        e = dict(e)
-        text = str(e.get("text") or "").strip()
-        about = str(e.get("refers_to") or "").strip()
-        if about and not re.search(r"[\u05D0-\u05EAA-Za-z]", text):
-            e["text"] = f"{about}: {text}" if text else about
-        out.append(e)
-    return out
 
 
 def hebrew_page_label(value, page_title, extracted_text, subject: str = "") -> str:

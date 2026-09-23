@@ -80,7 +80,9 @@ REQUIRED = {
         "do NOT write the counts", '"count_from_picture"',
         # 2026-09-23 test pages: a grades table was not copied (the teacher could not check the mode);
         # an English page "Future tense" got an empty topic
-        "TABLES ARE DATA", "every cell as printed", "זמן עתיד (future tense)", "never \"Math\" or \"addition\"", "READ THE PAGE THE WAY A TEACHER DOES",
+        "TABLES ARE DATA", "every cell as printed", "זמן עתיד (future tense)",
+        # 2026-09-23 live: the instruction was paraphrased and a picture exercise showed only "____ - ____ = ____"
+        "copy them WORD FOR WORD as printed", "The description goes IN exercises[].text", "never \"Math\" or \"addition\"", "READ THE PAGE THE WAY A TEACHER DOES",
         '"task_context"', '"section_heading"', '"exercises"', '"extracted_text"', "Return ONLY valid JSON"]},
     # stage 2 of homework help (2026-09-23): the private per-question teaching plan
     "homework/iakids_homework_planner_prompt.txt": {"placeholders": [], "sections": [
@@ -253,13 +255,20 @@ def homework_checks() -> list:
     """Homework help, pinned after the 2026-09-23 live test (addition page taught with "8 פעמים 10")."""
     bad = []
     # child-facing homework prompts: no slash forms (read aloud as gibberish, ignore the gender)
-    for f in sorted((PROMPTS / "homework").glob("*.txt")):
+    for f in sorted((PROMPTS / "homework").rglob("*.txt")):
         for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
             if "אסור" in line or "Never write" in line:
                 continue                                    # the rule that forbids them quotes one
             m = _HEB_SLASH_FORM.search(line)
             if m:
-                bad.append(f"homework/{f.name}:{n} has the slash form {m.group(0)!r} — the teacher copies it and the voice reads it as gibberish")
+                bad.append(f"homework/{f.relative_to(PROMPTS / 'homework').as_posix()}:{n} has the slash form {m.group(0)!r} — the teacher copies it and the voice reads it as gibberish")
+    # a subject module adds how the subject is taught; it may never loosen the core rules
+    for f in sorted((PROMPTS / "homework" / "subjects").glob("*.txt")):
+        low = f.read_text(encoding="utf-8").lower()
+        for phrase in ("מותר לתת את התשובה", "אפשר לתת את התשובה", "תני את התשובה", "give the answer", "may give the answer",
+                       "ignore the core", "instead of the core"):
+            if phrase in low:
+                bad.append(f"homework/subjects/{f.name} says {phrase!r}: a subject module may never loosen the core rules (the answer is never given)")
     core = COMPLETION.read_text(encoding="utf-8", errors="replace") if COMPLETION.exists() else ""
     m = re.search(r"async function runHomeworkChoiceWithTutor\(choice\)\{(.*?)\n  \}\n", core, re.S)
     if not m or "/api/tutor/chat" in m.group(1) or "runHomeworkProductionCoach(" not in m.group(1):
@@ -329,6 +338,16 @@ if R("6 עשרות ועוד 2 עשרות, כמה עשרות?", "80", "60+20 ="):
 if R("התשובה היא 80", "80", "60+20 =") != ["80"]: bad.append("reply guard: the numeric answer in the reply not caught")
 if R("נסתכל על 80", "80", "כמה זה 80 ועוד 0?"): bad.append("reply guard: a number printed in the question flagged")
 if R("כל דבר", "", "שאלה פתוחה"): bad.append("reply guard: an open question flagged")
+# defaults when .env has no model variables (the gate runs with none of them set)
+for var, want in (("DEFAULT_OPENAI_MODEL", "gpt-4o-mini"), ("UNIVERSAL_LESSON_MODEL", "gpt-5.6-sol"), ("HOMEWORK_COACH_MODEL", "gpt-5.6-sol"),
+                  ("HOMEWORK_PLANNER_MODEL", "gpt-5.6-sol"), ("CLEAN_CHAT_MODEL", "gpt-5.6-sol"), ("GEMINI_TTS_MODEL", "gemini-3.1-flash-tts-preview"),
+                  ("LESSON_IMAGE_MODEL", "gemini-3.1-flash-lite-image")):
+    if not str(getattr(main, var, "")).endswith(want): bad.append("model default: %s is %r, expected ...%s when .env does not set it" % (var, getattr(main, var, None), want))
+N = main.normalize_homework_exercises
+n = N([{"text": "____ - ____ = ____", "refers_to": "קבוצה גדולה של המבורגרים - קבוצה קטנה של המבורגרים", "count_from_picture": True}])
+if "המבורגרים" not in n[0]["text"] or "____ - ____ = ____" not in n[0]["text"]: bad.append("exercises: a blanks-only picture exercise did not get its description")
+if N([{"text": "35+40 = ___", "refers_to": ""}])[0]["text"] != "35+40 = ___": bad.append("exercises: a normal exercise was changed")
+if N([{"text": "לאן הלכו יעל ואחותה?", "refers_to": "הקטע"}])[0]["text"] != "לאן הלכו יעל ואחותה?": bad.append("exercises: a worded question got its refers_to glued on")
 P = main.parse_homework_vision_json
 if (P('```json\n{"a": 1}\n```') or {}).get("a") != 1: bad.append("vision json: fenced JSON not parsed")
 if (P('here: {"a": 2} done') or {}).get("a") != 2: bad.append("vision json: JSON inside text not parsed")
@@ -345,6 +364,21 @@ print("\n".join(bad) if bad else "HW_OK")
     if lines and lines[-1].endswith("HW_OK"):
         return []
     return ["homework plan: " + l for l in lines if not l.endswith("HW_OK")]
+
+
+def model_config_checks(main_src: str) -> list:
+    """Every model comes from the environment with a default in code (2026-09-23): a model name
+    written straight into a call cannot be changed without a code edit and a deploy."""
+    bad = []
+    for m in re.finditer(r'(?:\bmodel\s*=\s*|"model"\s*:\s*)"((?:gpt|gemini|claude)-[^"]+|(?:google|openai|anthropic)/[^"]+)"', main_src):
+        line = main_src.count("\n", 0, m.start()) + 1
+        bad.append(f"main.py:{line}: the model {m.group(1)!r} is written into the code — read it from an env var with a default "
+                   f"(os.getenv(\"X_MODEL\", \"{m.group(1)}\")) so it can be changed without a deploy")
+    for var in ("CHAT_MODEL", "LESSON_MODEL", "HOMEWORK_COACH_MODEL", "HOMEWORK_PLANNER_MODEL", "HOMEWORK_VISION_MODEL",
+                "CLEAN_CHAT_MODEL", "GEMINI_TTS_MODEL", "LESSON_IMAGE_MODEL", "OPENROUTER_TTS_MODEL"):
+        if f'os.getenv("{var}"' not in main_src:
+            bad.append(f"main.py no longer reads {var} from the environment")
+    return bad
 
 
 def prompt_usage_checks(main_src: str) -> list:
@@ -883,6 +917,7 @@ def code_rule_checks(main_src: str) -> list:
         ("VISION INVALID JSON - RETRYING ONCE", 1, "a page whose reading came back as broken JSON is shown to the child as an EMPTY page without a second try (2026-09-23)"),
         ("[texts[:1]]", 1, "question 1 is planned together with others again: its plan lands after 18-50 s and the teacher starts without it (2026-09-23)"),
         ("homework_reply_answer_items(raw_text", 1, "the teacher's reply is no longer checked for items of the answer: an 'example' can be one of the answers (2026-09-23)"),
+        ("analysis[\"exercises\"] = normalize_homework_exercises(", 1, "a picture exercise is shown as blanks only (\"____ - ____ = ____\"): the child does not know what to count (2026-09-23)"),
         ("response_format=HomeworkPagePlan", 1, "the teaching plan is no longer a validated structure (2026-09-23)"),
         ("homework_response_leaks_source_answer(", 2, "homework help no longer checks its first reply for the answer: the child is handed the solution (2026-09-23)"),
     ]
@@ -1193,7 +1228,7 @@ def main():
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
-          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + prompt_usage_checks(main_src)
+          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()

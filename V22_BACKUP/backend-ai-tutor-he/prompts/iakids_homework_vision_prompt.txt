@@ -39,8 +39,6 @@ EXERCISES MADE OF PICTURES:
   Counting small drawn objects is not reliable (measured 2026-09-23: 0-1 of 10 exact), and the counting
   is the child's own task. Describe the groups in words with the printed sign and mark the exercise:
   text "קבוצה גדולה של המבורגרים - קבוצה קטנה של המבורגרים = ___", "count_from_picture": true.
-  The description goes IN exercises[].text — the child sees only the text. "____ - ____ = ____" alone
-  does not tell the child what to count.
 - Other drawn exercises (a clock, coins, a shape, a number line with printed numbers) are described
   in words with the numbers that are PRINTED; "count_from_picture": false.
 
@@ -56,9 +54,6 @@ PUNCTUATION IS PART OF THE QUESTION:
 - Never add, drop or "fix" punctuation. A question mark, a colon before a list or quotation marks
   around a word change what is being asked.
 - Keep nikud when it is printed. Keep blanks to fill as ____.
-- The same for instructions and sections[].instructions: copy them WORD FOR WORD as printed, with their
-  nikud and their colon. Never rephrase an instruction ("חַבְּרוּ אוֹ חַסְּרוּ בֵּין הַצּוּרוֹת וּכְתְבוּ תַּרְגִּיל מַתְאִים:"
-  must not become "יש לספור את הפריטים"): the child reads it next to the page and must recognise it.
 
 Preserve mathematical expressions accurately.
 
