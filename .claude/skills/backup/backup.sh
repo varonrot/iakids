@@ -15,7 +15,7 @@ cp -p backend/main.py                 "$DEST/backend/main.py"
 cp -p backend-ai-tutor-he/main.py     "$DEST/backend-ai-tutor-he/main.py"
 shopt -s nullglob; for f in iakids_*_prompt.txt; do cp -p "$f" "$DEST/root/"; done; shopt -u nullglob   # root copies were removed 2026-09-15
 cp -p backend/prompts/*.txt           "$DEST/backend/prompts/"
-cp -p backend-ai-tutor-he/prompts/*.txt "$DEST/backend-ai-tutor-he/prompts/"
+cp -pR backend-ai-tutor-he/prompts/. "$DEST/backend-ai-tutor-he/prompts/"   # incl. subfolders (prompts/homework/, 2026-09-23)
 
 # verify byte-identical copies
 diff -q backend/main.py "$DEST/backend/main.py"

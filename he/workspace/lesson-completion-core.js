@@ -1913,7 +1913,9 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
         source_text:buildHomeworkCoachSourceText(analysis, current),
         current_question:current?.text || "",
         message:String(messageText||""),
-        history:window.HOMEWORK_PRODUCTION_COACH_HISTORY
+        history:window.HOMEWORK_PRODUCTION_COACH_HISTORY,
+        help_mode:window.HOMEWORK_HELP_MODE || "solve_together",
+        upload_id:analysis?.upload_id || null
       })
     });
     if(!response.ok) throw new Error(await response.text());
@@ -1970,138 +1972,15 @@ NO CHILD ANSWER YET -> ASK FOR THE CHILD'S ANSWER -> CHECK AGAINST CURRENT QUEST
   }
 
   async function runHomeworkChoiceWithTutor(choice){
-    window.HOMEWORK_HELP_MODE = String(choice?.id || "").trim() || null;
-    if(choice?.id === "solve_together"){
-      window.HOMEWORK_PRODUCTION_COACH_MODE = true;
-      window.HOMEWORK_PRODUCTION_COACH_HISTORY = [];
-      removeHomeworkHelpOptions();
-      setHomeworkSidebarStep(4);
-      await runHomeworkProductionCoach("");
-      return;
-    }
-    window.HOMEWORK_PRODUCTION_COACH_MODE = false;
-    const analysis = activeHomeworkAnalysis || window.CURRENT_HOMEWORK_ANALYSIS;
-    if(!analysis){
-      await renderHomeworkStructuredTeacherMessage("לא מצאתי את התרגיל שהעלית. אפשר להעלות אותו שוב?");
-      return;
-    }
-
-    const token = await getHomeworkAccessToken();
-    if(!token){
-      throw new Error("No active session");
-    }
-
-    const kidId = getHomeworkKidId();
-    if(!kidId){
-      throw new Error("Homework kid id missing");
-    }
-
-    const firstQuestion =
-      choice.id === "understand_question"
-        ? extractFirstHomeworkQuestion(analysis.extracted_text)
-        : "";
-
-    const classification = resolveHomeworkClassification(analysis);
-    const kidName = getHomeworkKidName(analysis) || "לא ידוע";
-    const language = getHomeworkGenderLanguage(analysis);
-    const currentQuestion = extractFirstHomeworkQuestion(analysis.extracted_text) || "לא זוהתה שאלה";
-    const teachingStrategy = resolveHomeworkTeachingStrategy(analysis, currentQuestion);
-
-    const message = `
-שאלת שיעורי הבית הנוכחית:
-${currentQuestion}
-
-מטרת הדיאלוג המחייבת:
-להוביל את הילד/ה לענות על השאלה הזאת עצמה. אין לסטות לשאלות כלליות או אישיות שאינן נדרשות כדי לענות עליה.
-אם הילד/ה כבר נתן/ה תשובה שמכילה את עיקרי התשובה הנכונה, עצור מיד את ההכוונה: אשר בקצרה, הצע ניסוח מלא אחד אם צריך, ועבור לשאלה הבאה בדף. אל תשאל שאלת הרחבה נוספת.
-
-שם הילד/ה: ${kidName}
-מגדר: ${language.gender}
-חובת פנייה: פנה בהתאם למגדר הרשום. אם נקבה השתמש בלשון נקבה (את/תרצי/נסי/כתבי/חשבי); אם זכר השתמש בלשון זכר. אל תנחש מגדר לפי השם.
-
-אנחנו ממשיכים עם שיעורי הבית שכבר נותחו.
-
-מקצוע: ${classification.subject || "לא ידוע"}
-נושא: ${classification.topic || "לא ידוע"}
-סוג משימה: ${classification.taskType || "לא ידוע"}
-כיתה: ${getHomeworkGrade()}
-
-הילד בחר: ${choice.label}
-
-אסטרטגיית הוראה פעילה: ${teachingStrategy.id}
-${teachingStrategy.instruction}
-
-${HOMEWORK_GLOBAL_PEDAGOGY_RULES}
-
-הוראת מצב ספציפית:
-${getChoiceInstruction(choice.id)}
-
-${firstQuestion ? `השאלה הראשונה בלבד שעליה עובדים עכשיו:
-${firstQuestion}
-
-` : ""}תוכן התרגיל המלא הוא הקשר פנימי בלבד. אל תקריא אותו לילד ואל תעבור על כל השאלות:
-${analysis.extracted_text || ""}
-
-דבר בעברית קצרה וברורה המותאמת לכיתה ${getHomeworkGrade()}.
-במצב "להבין מה מבקשים בשאלה" התגובה הראשונה חייבת להתייחס רק לשאלה הראשונה, בלי רשימה של שאלות אחרות.
-`.trim();
-
-    const response = await fetch(
-      `${TUTOR_API_BASE}/api/tutor/chat`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          message,
-          kid_id: kidId
-        })
-      }
-    );
-
-    if(!response.ok){
-      const errorText = await response.text();
-      console.error("HOMEWORK HELP CHOICE ERROR:", response.status, errorText);
-      throw new Error("Homework help choice failed");
-    }
-
-    const data = await response.json();
-
-    if(data?.session_id && typeof currentSessionId !== "undefined"){
-      currentSessionId = data.session_id;
-    }
-
-    if(
-      data?.sequence
-      && Array.isArray(data.sequence)
-      && window.lessonRenderer
-    ){
-      await unlockLessonAudio();
-      await window.lessonRenderer.run({
-        sequence: data.sequence,
-        wait_for_answer: data.wait_for_answer,
-        speech: data.speech
-      });
-      return;
-    }
-
-    if(data?.message || data?.text || data?.response){
-      const homeworkReply = data.message || data.text || data.response;
-      await Promise.all([
-        renderHomeworkStructuredTeacherMessage(homeworkReply),
-        playHomeworkTeacherAudio(homeworkReply)
-      ]);
-      return;
-    }
-
-    console.error("Invalid homework tutor response:", data);
-    const fallbackText = `נתחיל מהשאלה הראשונה: ${currentQuestion}`;
-    await Promise.all([
-      renderHomeworkStructuredTeacherMessage(fallbackText),
-      playHomeworkTeacherAudio(fallbackText)
-    ]);
+    /* 2026-09-23: every help button goes to /api/tutor/homework-coach with its mode. The prompt
+       for understand/explain/hint/check used to be written here in the browser and sent to the
+       general chat, which had none of the homework rules and no teaching plan. */
+    window.HOMEWORK_HELP_MODE = String(choice?.id || "").trim() || "solve_together";
+    window.HOMEWORK_PRODUCTION_COACH_MODE = true;
+    window.HOMEWORK_PRODUCTION_COACH_HISTORY = [];
+    removeHomeworkHelpOptions();
+    if(choice?.id === "solve_together") setHomeworkSidebarStep(4);
+    await runHomeworkProductionCoach("");
   }
 
   async function selectHomeworkHelpOption(choiceId){
@@ -2283,8 +2162,26 @@ ${analysis.extracted_text || ""}
     return questions.sort((a,b) => a.number - b.number);
   }
 
+  /* 2026-09-23: the page reader returns the exercises one by one (with headings and punctuation).
+     A page with no numbering and no "?" (e.g. "35+40 = ___") used to become ONE question: the
+     instruction line "פתרו את התרגילים הבאים:". The text parser is now only the fallback. */
+  function homeworkQuestionsFromExercises(analysis){
+    const exercises = analysis?.analysis?.exercises || analysis?.exercises;
+    if(!Array.isArray(exercises)) return [];
+    return exercises
+      .filter(item => item && typeof item === "object" && String(item.text || "").trim())
+      .map((item, index) => ({
+        number: index + 1,
+        label: String(item.number || "").trim(),
+        heading: String(item.section_heading || "").trim(),
+        text: String(item.text).trim(),
+        status: "pending"
+      }));
+  }
+
   function initializeHomeworkQuestionState(analysis){
-    const parsed = parseHomeworkQuestions(analysis?.extracted_text || "");
+    const fromExercises = homeworkQuestionsFromExercises(analysis);
+    const parsed = fromExercises.length ? fromExercises : parseHomeworkQuestions(analysis?.extracted_text || "");
     window.CURRENT_HOMEWORK_QUESTIONS = parsed;
     window.CURRENT_HOMEWORK_QUESTION_INDEX = 0;
     window.CURRENT_HOMEWORK_ANSWERED_QUESTIONS = [];
@@ -2790,6 +2687,12 @@ Continue from the NEXT UNRESOLVED STEP only. Do not restart the solution. Do not
   const originalSmartHomeworkAnalysisIntro0726 = smartHomeworkAnalysisIntro;
   smartHomeworkAnalysisIntro = async function(analysis){
     initializeHomeworkQuestionState(analysis || {});
+    /* 2026-09-23: from here on everything the child types goes to the homework teacher. Before,
+       typing before a help button fell through to the general chat (/api/tutor/chat), which does
+       not know the page: an addition page drifted to "multiples of 80". */
+    window.HOMEWORK_STRUCTURED_ACTIVE = true;
+    window.HOMEWORK_PRODUCTION_COACH_MODE = true;
+    window.HOMEWORK_PRODUCTION_COACH_HISTORY = [];
     window.HOMEWORK_QUESTION_STEP_STATE = {};
     window.HOMEWORK_HELP_MODE = null;
     window.CURRENT_HOMEWORK_SESSION_ID = null;

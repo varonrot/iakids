@@ -287,7 +287,11 @@ async function analyzeHomework() {
     state.tutorSessionId = data?.session_id || state.tutorSessionId;
     const a = normalizeAnalysis(data);
     const extracted = a.extracted_text || data?.extracted_text || '';
-    state.questions = parseQuestions(extracted);
+    // 2026-09-23: the page reader's exercises first (a page like "35+40 = ___" has no numbering and no "?")
+    const exercises = Array.isArray(a.exercises) ? a.exercises : (Array.isArray(data?.analysis?.exercises) ? data.analysis.exercises : []);
+    const fromExercises = exercises.filter(e => e && typeof e === 'object' && String(e.text || '').trim())
+      .map((e, i) => ({ number: i + 1, label: String(e.number || '').trim(), heading: String(e.section_heading || '').trim(), text: String(e.text).trim() }));
+    state.questions = fromExercises.length ? fromExercises : parseQuestions(extracted);
     state.questionIndex = 0;
     state.answered = [];
     await createHomeworkSession().catch(err => console.warn('homework session start', err));
@@ -368,6 +372,7 @@ async function sendHomeworkTurn(answer) {
         next_question: next?.text || null,
         session_id: state.tutorSessionId,
         homework_session_id: state.homeworkSessionId,
+        upload_id: state.analysis?.upload_id || null,
         progress_context: `answered ${state.answered.length} of ${state.questions.length}`
       })
     });
@@ -423,7 +428,8 @@ async function askHomeworkCoach(message) {
         source_text: a.extracted_text || state.analysis?.extracted_text || '',
         current_question: q?.text || '',
         message: clean,
-        history: state.history.slice(-10)
+        history: state.history.slice(-10),
+        upload_id: state.analysis?.upload_id || null
       })
     });
     if (!res.ok) throw new Error(await res.text());
@@ -467,7 +473,7 @@ async function playTeacherTTS() {
     const res = await fetch(`${TUTOR_API_BASE}/api/tutor/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ text, session_id: state.tutorSessionId })
+      body: JSON.stringify({ text, session_id: state.tutorSessionId, kid_id: state.child?.id })
     });
     if (!res.ok) throw new Error(await res.text());
     const blob = await res.blob();

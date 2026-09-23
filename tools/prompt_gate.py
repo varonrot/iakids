@@ -71,7 +71,50 @@ REQUIRED = {
         "placeholders": ["{child_name}", "{gender}", "{grade}", "{subject}"],
         "sections": [],
     },
-    "iakids_homework_vision_prompt.txt": {"placeholders": [], "sections": []},
+    # 2026-09-23: the page is read like a teacher reads it — headings, context, punctuation word for word
+    "iakids_homework_vision_prompt.txt": {"placeholders": [], "sections": [
+        "PUNCTUATION IS PART OF THE QUESTION", "Copy every question exactly as printed",
+        # 2026-09-23: a Hebrew page "חיבור עד 100" was shown to the child as topic "addition"
+        "WRITE THEM IN THE LANGUAGE OF THE PAGE", "EXERCISES MADE OF PICTURES",
+        # 2026-09-23: no model counted drawn objects reliably (0-1 of 10 exact vs the answer key) — the child counts
+        "do NOT write the counts", '"count_from_picture"',
+        # 2026-09-23 test pages: a grades table was not copied (the teacher could not check the mode);
+        # an English page "Future tense" got an empty topic
+        "TABLES ARE DATA", "every cell as printed", "זמן עתיד (future tense)", "never \"Math\" or \"addition\"", "READ THE PAGE THE WAY A TEACHER DOES",
+        '"task_context"', '"section_heading"', '"exercises"', '"extracted_text"', "Return ONLY valid JSON"]},
+    # stage 2 of homework help (2026-09-23): the private per-question teaching plan
+    "homework/iakids_homework_planner_prompt.txt": {"placeholders": [], "sections": [
+        "HOW TO READ THE PAGE", "Read every question with its punctuation", "THE PLAN NEVER GIVES THE ANSWER AWAY",
+        "correct_answer", "teacher_explains", "child_does", "answer_criteria", "Never write slash forms",
+        "The child never sees this plan", "plan_only", "EXERCISES WHERE THE CHILD COUNTS PICTURES",
+        "An example never uses a word, name, place, number or item that is part of correct_answer",
+        # 2026-09-23: כבשת הרש — the "different" example carried the same moral, i.e. the answer
+        "the example teaches a DIFFERENT message",
+        # 2026-09-23: an addition page was taught with "8 פעמים 10" — never teach the simple with the advanced
+        "TEACHING ORDER — NEVER TEACH THE SIMPLE WITH THE ADVANCED", "no multiplication or \"times\" to teach addition"]},
+    # 2026-09-23: moved out of main.py and rewritten — the old text was full of הילד/ה, אומר/ת (read aloud)
+    "homework/iakids_homework_pedagogy_prompt.txt": {"placeholders": [], "sections": [
+        "את מורה פרטית", "אסור לכתוב צורות עם לוכסן", "אין לתת את התשובה הסופית מיד",
+        "בכל פעם שואלים שאלה אחת בלבד", "כל דוגמה דומה או מקבילה חייבת להשתמש במספרים",
+        "סדר הלימוד מחייב", "אין כפל או \"פעמים\" כדי ללמד חיבור", "תשובה נכונה לעולם אינה נדחית", "בתרגיל שבו סופרים ציורים, הילד סופר בעצמו", "דוגמה לעולם אינה לוקחת מילה, שם, מקום, מספר או פריט מתוך התשובה", "הדוגמה מדגימה מסר אחר לגמרי"]},
+    # homework help (עזרה בשיעורי בית), moved out of main.py on 2026-09-23. The code parses the
+    # [[CONTINUE]] / [[COMPLETE]] markers: without them every answer is treated as "not done yet".
+    "homework/iakids_homework_coach_prompt.txt": {
+        "placeholders": [],
+        "sections": ["[[CONTINUE]]", "[[COMPLETE]]", "יש בכל רגע שאלה פעילה אחת בלבד",
+                     "ואל תגלי את התוצאה הסופית לפני שניסה", "אם הילד אומר שאינו יודע, אל תחזרי על אותה שאלה",
+                     "שאלי שאלה קצרה אחת בלבד",
+                     # 2026-09-23: an analogous example with the same numbers hands the child the answer
+                     "כל דוגמה דומה או מקבילה חייבת להשתמש במספרים, שמות, חפצים, מילים או טקסט אחרים",
+                     # 2026-09-23: "one question every reply" contradicted "no question on COMPLETE"
+                     "בכל תגובת CONTINUE עשי בדיוק את הרצף הבא",
+                     # 2026-09-23: live test — an addition page drifted to "הכפלות של 80", "8 פעמים 10"
+                     "סדר הלימוד מחייב", "אין כפל או \"פעמים\" כדי ללמד חיבור",
+                     # 2026-09-23 test: the child said the correct "80" mid-steps and was told it "does not fit the step"
+                     "תשובה נכונה לעולם אינה נדחית", "בתרגיל שבו סופרים ציורים, הילד סופר בעצמו",
+                     # 2026-09-23: a Hasmonean page — the teacher's example was "גזר ויפו", one of the answers
+                     "דוגמה לעולם אינה לוקחת מילה, שם, מקום, מספר או פריט מתוך התשובה", "הדוגמה מדגימה מסר אחר לגמרי"],
+    },
     "iakids_visual_director_prompt.txt": {"placeholders": [], "sections": ["NO TEXT INSIDE IMAGES", "READING DIRECTION", "CHILD SAFETY", "IMAGE COUNT IS DYNAMIC", "reuse_previous"]},
 }
 FEMALE_VOICES = {"Aoede", "Kore", "Leda", "Zephyr", "Autonoe", "Callirrhoe", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Sulafat", "Vindemiatrix"}
@@ -142,19 +185,22 @@ def coverage_checks(main_src: str) -> list:
     """Every prompt file main.py loads must have gate rules (REQUIRED); a loaded file that
     is not listed fails the gate — that is how a NEW prompt is forced through review."""
     fails = []
-    loaded = set(re.findall(r'"prompts/([A-Za-z0-9_\-]+\.txt)"', main_src))
+    loaded = set(re.findall(r'"prompts/([A-Za-z0-9_\-/]+\.txt)"', main_src))
     for name in sorted(loaded - set(REQUIRED)):
         fails.append(f"NEW PROMPT {name} is loaded by main.py but has no gate rules: add it to REQUIRED in tools/prompt_gate.py "
                      f"(placeholders it needs, sections that must never disappear) in the same commit")
     for name in sorted(set(REQUIRED) - loaded):
         fails.append(f"gate lists {name} but main.py no longer loads it: remove it from REQUIRED or restore the load")
-    for f in sorted(PROMPTS.glob("*.txt")):
-        if f.name not in loaded:
-            fails.append(f"orphan prompt file {f.name}: not loaded by main.py — delete it (old versions live in V<N>_BACKUP)")
+    for f in sorted(PROMPTS.rglob("*.txt")):
+        rel = f.relative_to(PROMPTS).as_posix()
+        if rel not in loaded:
+            fails.append(f"orphan prompt file {rel}: not loaded by main.py — delete it (old versions live in V<N>_BACKUP)")
     return fails
 
 
 _CHILD_PROMPT_MARKERS = ("את מורה פרטית", "מורה פרטית מצוינת", "עזרי לילד", "הסבירי לילד", "למדי אותו")
+# prompts that moved into a file: the route that uses the template must still add the gender block
+_CHILD_PROMPT_TEMPLATES = ("HOMEWORK_COACH_PROMPT_TEMPLATE",)
 
 
 def child_prompt_gender_checks(main_src: str) -> list:
@@ -165,13 +211,140 @@ def child_prompt_gender_checks(main_src: str) -> list:
     blocks = re.split(r"\n(?=(?:async )?def )", main_src)
     for b in blocks:
         head = b.split("(", 1)[0].replace("async def", "").replace("def", "").strip()
-        if not any(m in b for m in _CHILD_PROMPT_MARKERS):
+        uses_template = any(re.search(r"\b" + t + r"\b(?!\s*=)", b) for t in _CHILD_PROMPT_TEMPLATES)
+        if not uses_template and not any(m in b for m in _CHILD_PROMPT_MARKERS):
             continue
         if "hebrew_child_prompt_block(" in b or "hebrew_gender_rule(" in b or "gender_rule" in b:
             continue
         fails.append(f"main.py: {head}() builds a Hebrew prompt for the child without a gender rule — "
                      f"start the prompt with hebrew_child_prompt_block(child)")
     return fails
+
+
+_HEB_SLASH_FORM = re.compile(r"[א-ת]+/[א-ת]{1,2}(?![א-ת])")
+
+
+def reply_slash_form_checks(main_src: str) -> list:
+    """A route that returns {"reply": ...} sends its literal strings straight to the child's screen
+    and voice. A slash form (חפש/י) is read aloud as gibberish and ignores the child's gender.
+    Added 2026-09-23: homework_coach() appended "חפש/י בטקסט..." whenever the model forgot a question.
+    Lists of phrases the CHILD may type (e.g. "לא יודע/ת" in an uncertainty set) are input, not output."""
+    fails = []
+    for b in re.split(r"\n(?=(?:async )?def )", main_src):
+        if not re.search(r"""return\s*\{\s*["']reply["']""", b):
+            continue
+        head = b.split("(", 1)[0].replace("async def", "").replace("def", "").strip()
+        b = re.sub(r"\w*phrases\w*\s*=\s*[\[{(].*?[\]})]", "", b, flags=re.S)   # child-input phrase sets
+        for line in b.splitlines():
+            if line.lstrip().startswith("#"):
+                continue
+            for lit in re.findall(r'"((?:[^"\\]|\\.)*)"', line):
+                m = _HEB_SLASH_FORM.search(lit)
+                if m:
+                    fails.append(f"main.py: {head}() sends the child the slash form {m.group(0)!r} — the voice reads it "
+                                 f"as gibberish and it ignores the child's gender; write neutral Hebrew (2026-09-23)")
+    return fails
+
+
+HOMEWORK_PAGE = ROOT / "frontend-v2" / "homework.js"
+
+
+def homework_checks() -> list:
+    """Homework help, pinned after the 2026-09-23 live test (addition page taught with "8 פעמים 10")."""
+    bad = []
+    # child-facing homework prompts: no slash forms (read aloud as gibberish, ignore the gender)
+    for f in sorted((PROMPTS / "homework").glob("*.txt")):
+        for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            if "אסור" in line or "Never write" in line:
+                continue                                    # the rule that forbids them quotes one
+            m = _HEB_SLASH_FORM.search(line)
+            if m:
+                bad.append(f"homework/{f.name}:{n} has the slash form {m.group(0)!r} — the teacher copies it and the voice reads it as gibberish")
+    core = COMPLETION.read_text(encoding="utf-8", errors="replace") if COMPLETION.exists() else ""
+    m = re.search(r"async function runHomeworkChoiceWithTutor\(choice\)\{(.*?)\n  \}\n", core, re.S)
+    if not m or "/api/tutor/chat" in m.group(1) or "runHomeworkProductionCoach(" not in m.group(1):
+        bad.append("workspace: a homework help button no longer goes to /api/tutor/homework-coach — the general chat "
+                   "answers without the homework rules or the plan (2026-09-23: addition taught with multiplication)")
+    m = re.search(r"async function runHomeworkProductionCoach\(.*?\n  \}\n", core, re.S)
+    if not m or "help_mode:" not in m.group(0) or "upload_id:" not in m.group(0):
+        bad.append("workspace: the homework coach request lost help_mode or upload_id — the teacher ignores the button or works without the plan")
+    if "window.HOMEWORK_STRUCTURED_ACTIVE = true;\n    window.HOMEWORK_PRODUCTION_COACH_MODE = true;" not in core:
+        bad.append("workspace: typing right after the page is read no longer goes to the homework teacher — it falls through to the general chat")
+    if "homeworkQuestionsFromExercises(analysis)" not in core:
+        bad.append("workspace: questions are split from the text again — a page with no numbering becomes ONE question (the instruction line)")
+    page = HOMEWORK_PAGE.read_text(encoding="utf-8", errors="replace") if HOMEWORK_PAGE.exists() else ""
+    if page:
+        if page.count("upload_id: state.analysis?.upload_id") < 2:
+            bad.append("frontend-v2/homework.js: homework-turn or homework-coach no longer sends upload_id — the teacher works without the plan")
+        if "kid_id: state.child?.id" not in page:
+            bad.append("frontend-v2/homework.js: the voice request lost kid_id — the teacher's voice reads without the child's gender")
+        if "fromExercises.length ? fromExercises : parseQuestions" not in page:
+            bad.append("frontend-v2/homework.js: questions are split from the text again instead of the page reader's exercises")
+    ws = WORKSPACE.read_text(encoding="utf-8", errors="replace") if WORKSPACE.exists() else ""
+    for bid in ("openaiCleanChatBtn", "homeworkV2SidebarBtn"):
+        m = re.search(r'<button(?:(?!</button>).)*?id="' + bid + r'"(?:(?!</button>).)*?>', ws, re.S)
+        if m and "hidden" not in m.group(0):
+            bad.append(f"workspace: the test button {bid} is visible to children again (hidden 2026-09-23)")
+    return bad
+
+
+def homework_plan_tests() -> list:
+    """The pure homework-plan functions in main.py, run on known inputs (no network)."""
+    code = r"""
+import os, sys, io, contextlib
+os.chdir("backend-ai-tutor-he"); sys.path.insert(0, ".")
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+    import main
+bad = []
+qs = [{"question_text": "35+40 = ____"}, {"question_text": "60+20 = ____"},
+      {"question_text": "מה עשה הילד אחרי שחזר הביתה?"}]
+m = main.match_homework_question
+if (m(qs, "60+20 =") or {}).get("question_text") != "60+20 = ____": bad.append("match: '60+20 =' did not find its plan")
+if (m(qs, "35 + 40 = ___") or {}).get("question_text") != "35+40 = ____": bad.append("match: spacing broke the match")
+if (m(qs, "מה עשה הילד אחרי שחזר הביתה") or {}).get("question_text") != qs[2]["question_text"]: bad.append("match: a missing '?' broke the match")
+if m(qs, "פתרו את התרגילים הבאים:") is not None: bad.append("match: the instruction line matched an exercise - the teacher would teach the wrong question")
+if m([], "60+20") is not None: bad.append("match: empty plan returned something")
+L = main.homework_plan_leaks
+step = lambda t: [{"goal": "", "teacher_explains": t, "child_does": ""}]
+if not L({"correct_answer": "80", "steps": step("6 עשרות ועוד 2 עשרות הן 80")}): bad.append("leak: '80' in a step not caught")
+if L({"correct_answer": "80", "steps": step("6 עשרות ועוד 2 עשרות, כמה עשרות יש?")}): bad.append("leak: clean step flagged")
+if L({"correct_answer": "8", "steps": step("נספור עד 80")}): bad.append("leak: '8' matched inside '80'")
+if not L({"correct_answer": "הלך לישון", "key_info": "בשורה 3 כתוב שהוא הלך לישון מוקדם", "steps": []}): bad.append("leak: a text answer in key_info not caught")
+if L({"correct_answer": "", "steps": step("כל דבר")}): bad.append("leak: an open question flagged")
+b = main.homework_plan_block("דף חיבור", {"what_is_asked": "x", "steps": step("y"), "correct_answer": "80"})
+if "never say it" not in b.lower() or "80" not in b: bad.append("plan block lost the answer-for-checking-only rule")
+if "never send the child back to a step" not in b: bad.append("plan block lost 'a correct answer is never rejected' - the child who says 80 is sent back to counting tens")
+H = main.hebrew_page_label
+if H("addition", "חיבור עד 100 - חלק 1", "פתרו את התרגילים הבאים") != "חיבור עד 100 - חלק 1": bad.append("topic: 'addition' on a Hebrew page not replaced by the title")
+if H("חיבור", "x", "פתרו") != "חיבור": bad.append("topic: a Hebrew topic was changed")
+if H("addition", "", "Solve the exercises") != "addition": bad.append("topic: an English page lost its English topic")
+if H("Future tense", "", "השלימו את המשפטים", "אנגלית") != "Future tense": bad.append("topic: an English lesson lost its topic")
+R = main.homework_reply_answer_items
+hq = "כתבו במשבצות האדומות את האזורים שכבש כל שליט"
+ha = "יונתן – גדור וסביבותיה; שמעון – גזר ויפו"
+if R("למשל, גזר ויפו הם שמות של מקומות", ha, hq) != ["גזר ויפו"]: bad.append("reply guard: an answer item used as an example was not caught")
+if R("נתחיל מהשליט שמעון. מה הוא כבש?", ha, hq): bad.append("reply guard: a name given on the page (left side of a pair) was flagged")
+if R("6 עשרות ועוד 2 עשרות, כמה עשרות?", "80", "60+20 ="): bad.append("reply guard: a clean math step flagged")
+if R("התשובה היא 80", "80", "60+20 =") != ["80"]: bad.append("reply guard: the numeric answer in the reply not caught")
+if R("נסתכל על 80", "80", "כמה זה 80 ועוד 0?"): bad.append("reply guard: a number printed in the question flagged")
+if R("כל דבר", "", "שאלה פתוחה"): bad.append("reply guard: an open question flagged")
+P = main.parse_homework_vision_json
+if (P('```json\n{"a": 1}\n```') or {}).get("a") != 1: bad.append("vision json: fenced JSON not parsed")
+if (P('here: {"a": 2} done') or {}).get("a") != 2: bad.append("vision json: JSON inside text not parsed")
+if P('{"a": "תנ"ך"}') is not None: bad.append("vision json: broken JSON accepted")
+if main.hebrew_subject_label("Math", "פתרו את התרגילים") != "חשבון": bad.append("subject: 'Math' on a Hebrew page not shown as חשבון")
+print("\n".join(bad) if bad else "HW_OK")
+"""
+    r = subprocess.run([str(PY), "-c", code], cwd=ROOT, capture_output=True, text=True,
+                       env=dict(os.environ, APP_ENV=os.environ.get("APP_ENV", "prod"),
+                                **{k: "gate-dummy-key" for k in ENV_KEYS}), timeout=180)
+    if r.returncode != 0:
+        return ["homework plan tests crashed: %s" % (r.stderr or r.stdout)[-400:]]
+    lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip()]
+    if lines and lines[-1].endswith("HW_OK"):
+        return []
+    return ["homework plan: " + l for l in lines if not l.endswith("HW_OK")]
 
 
 def prompt_usage_checks(main_src: str) -> list:
@@ -349,6 +522,16 @@ def workspace_checks() -> list:
         bad.append("the build stamp or IAKIDS_BUILD_VERSION is missing from the workspace")
     elif stamp.group(1) != var.group(1):
         bad.append("build stamp %s does not match IAKIDS_BUILD_VERSION %s" % (stamp.group(1), var.group(1)))
+    # 2026-09-23: lesson-completion-core.js (all of homework help) changed while its ?v= stayed 07131,
+    # so browsers kept the cached old file and the child never got the fix. Both loaders follow the build.
+    if var:
+        want = "07" + var.group(1).split(".")[-1]
+        loader = re.search(r'lesson-completion\.js\?v=(\d+)', src)
+        core_js = (ROOT / "he" / "workspace" / "lesson-completion.js")
+        core_v = re.search(r'lesson-completion-core\.js\?v=(\d+)', core_js.read_text(encoding="utf-8")) if core_js.exists() else None
+        if not loader or loader.group(1) != want or not core_v or core_v.group(1) != want:
+            bad.append("the lesson-completion scripts are not cache-busted with the build (%s): children keep the old "
+                       "homework and completion code (index ?v=%s, core ?v=%s)" % (want, loader and loader.group(1), core_v and core_v.group(1)))
     return bad
 
 
@@ -689,6 +872,19 @@ def code_rule_checks(main_src: str) -> list:
         ("vocalize_for_tts, text, _gender, _child_name", 1, "the live voice no longer gets the child's name: it will mispronounce it"),
         ("def vocalize_name(", 1, "child-name pronunciation was removed"),
         ("do not render the lesson title", 1, "hero prompt lost its strict no-text block"),
+        ("start_homework_planner(upload_row_id", 1, "reading a homework page no longer starts the teaching plan: the teacher helps without having read the page (2026-09-23)"),
+        ("homework_plan_block_for(user.id, req.upload_id", 2, "homework coach or homework turn no longer receives the teaching plan (2026-09-23)"),
+        ("resolve_homework_help_mode(req.help_mode)", 2, "the help button the child pressed (hint, explain, check) is ignored by the teacher (2026-09-23)"),
+        ("homework_plan_leaks(", 3, "the teaching plan is no longer checked for the answer: the teacher could read the answer aloud (2026-09-23)"),
+        ("plan_homework_page(analysis, grade, on_batch=on_batch)", 1, "the teaching plan is stored only when the whole page is planned: on a 20-exercise page question 1 waited 148 s and the teacher worked without a plan (2026-09-23)"),
+        ("asyncio.Semaphore(HOMEWORK_PLAN_PARALLEL)", 1, "the page is planned in one long call again instead of parallel batches (148 s for 20 exercises, 2026-09-23)"),
+        ("if match_homework_question(pictures, q.get(\"question_text\")):", 1, "a picture exercise gets a correct answer from a count nobody made reliably: the teacher tells a child with 20 burgers there are 14 (2026-09-23)"),
+        ("model=\n            HOMEWORK_VISION_MODEL,", 1, "the page is read by a hard-coded model again instead of HOMEWORK_VISION_MODEL (gpt-4o-mini read 10 of 20 exercises, 2026-09-23)"),
+        ("VISION INVALID JSON - RETRYING ONCE", 1, "a page whose reading came back as broken JSON is shown to the child as an EMPTY page without a second try (2026-09-23)"),
+        ("[texts[:1]]", 1, "question 1 is planned together with others again: its plan lands after 18-50 s and the teacher starts without it (2026-09-23)"),
+        ("homework_reply_answer_items(raw_text", 1, "the teacher's reply is no longer checked for items of the answer: an 'example' can be one of the answers (2026-09-23)"),
+        ("response_format=HomeworkPagePlan", 1, "the teaching plan is no longer a validated structure (2026-09-23)"),
+        ("homework_response_leaks_source_answer(", 2, "homework help no longer checks its first reply for the answer: the child is handed the solution (2026-09-23)"),
     ]
     for needle, min_count, why in rules:
         n = main_src.count(needle)
@@ -878,11 +1074,12 @@ def changed_prompts(staged: bool) -> list:
     for n in names:
         if not (n.startswith("backend-ai-tutor-he/prompts/") and n.endswith(".txt")):
             continue
-        if not (PROMPTS / Path(n).name).exists():
+        rel = n[len("backend-ai-tutor-he/prompts/"):]
+        if not (PROMPTS / rel).exists():
             # deleted on purpose; coverage_checks fails if main.py still loads it
-            print(f"note: {Path(n).name} was deleted (coverage check decides if that is allowed)")
+            print(f"note: {rel} was deleted (coverage check decides if that is allowed)")
             continue
-        out.append(Path(n).name)
+        out.append(rel)
     return out
 
 
@@ -934,7 +1131,7 @@ def main():
         fp = str((payload.get("tool_input") or {}).get("file_path") or "")
         if "/backend-ai-tutor-he/prompts/" not in fp.replace("\\", "/") or not fp.endswith(".txt"):
             return 0                                             # not a prompt: nothing to do
-        name = Path(fp).name
+        name = fp.replace("\\", "/").split("/backend-ai-tutor-he/prompts/", 1)[1]
         if a.pre_edit:
             # auto-backup: only if no backup already holds the current content
             cur = Path(fp).read_text(encoding="utf-8") if Path(fp).exists() else None
@@ -990,13 +1187,13 @@ def main():
     all_fails = []
     if a.all:
         print("coverage: %d prompt files loaded by main.py, %d with gate rules" % (
-            len(set(re.findall(r'"prompts/([A-Za-z0-9_\-]+\.txt)"', main_src))), len(REQUIRED)))
+            len(set(re.findall(r'"prompts/([A-Za-z0-9_\-/]+\.txt)"', main_src))), len(REQUIRED)))
     for name in names:
         fails = check_file(PROMPTS / name, name, main_src, head_version(name))
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
-          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + prompt_usage_checks(main_src)
+          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
@@ -1008,6 +1205,9 @@ def main():
         rf = render_smoke()
         print(("FAIL " if rf else "ok   ") + "render smoke (all builders, no unresolved placeholders)")
         all_fails += rf
+        hp = homework_plan_tests()
+        print(("FAIL " if hp else "ok   ") + "homework plan (question match, answer leak, Hebrew topic)")
+        all_fails += hp
         cr = learning_coach_round_tests()
         print(("FAIL " if cr else "ok   ") + "learning coach rounds (limit, final round, answer handover)")
         all_fails += cr

@@ -13097,16 +13097,17 @@ window.iakidsAvatarUrl = function(key){
       </div>
     </button>
 
-    <!-- OpenAI clean test -->
-    <button class="side-item" id="openaiCleanChatBtn" type="button" onclick="openOpenAICleanChat(this)">
+    <!-- OpenAI clean test — hidden from children 2026-09-23 (test path, not homework help) -->
+    <button class="side-item" id="openaiCleanChatBtn" type="button" hidden style="display:none" onclick="openOpenAICleanChat(this)">
       <i class="fa-solid fa-bolt"></i>
       <div class="side-text"><span class="side-title">OpenAI נקי</span></div>
     </button>
 
-    <!-- עזרה בשיעורי בית V2 — clean isolated tutor -->
+    <!-- עזרה בשיעורי בית V2 — clean isolated tutor; hidden from children 2026-09-23 (test path) -->
     <button
       class="side-item homework-side-item homework-v2-side-item"
       id="homeworkV2SidebarBtn"
+      hidden style="display:none"
       onclick="window.HOMEWORK_V2_MODE=true;window.HOMEWORK_V2_HISTORY=[];showLearning('homework')"
       title="מסלול V2 נקי לבדיקה"
     >
@@ -53993,7 +53994,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07131"></script>
+<script src="/he/workspace/lesson-completion.js?v=07137"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54167,8 +54168,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.136</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.136";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.137</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.137";</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -55770,7 +55771,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07125"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07137"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example
