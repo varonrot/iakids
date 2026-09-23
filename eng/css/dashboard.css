@@ -1576,3 +1576,17 @@ img{max-width:100%;display:block}
     background:transparent !important;
   }
 }
+
+
+/* Hero must sit on the exact page color, not transparent over the body gradient */
+.hero,
+.hero-copy{
+  background:var(--bg) !important;
+}
+
+@media (max-width:720px){
+  .hero,
+  .hero-copy{
+    background:var(--bg) !important;
+  }
+}
