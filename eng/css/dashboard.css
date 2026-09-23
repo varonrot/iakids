@@ -1525,3 +1525,54 @@ img{max-width:100%;display:block}
     margin-top:12px;
   }
 }
+
+
+/* FINAL HERO BACKGROUND — text sits directly on page background */
+.hero{
+  background:transparent !important;
+  border-bottom:0 !important;
+}
+
+.hero::before{
+  display:none !important;
+}
+
+.hero-copy{
+  background:transparent !important;
+}
+
+.hero-visual{
+  background:transparent !important;
+}
+
+@media (min-width:1101px){
+  .hero{
+    padding-left:56px;
+  }
+
+  .hero-copy{
+    padding-left:0;
+  }
+}
+
+@media (min-width:721px) and (max-width:1100px){
+  .hero{
+    background:transparent !important;
+    padding-left:34px;
+  }
+
+  .hero-copy{
+    background:transparent !important;
+    padding-left:0;
+  }
+}
+
+@media (max-width:720px){
+  .hero{
+    background:transparent !important;
+  }
+
+  .hero-copy{
+    background:transparent !important;
+  }
+}
