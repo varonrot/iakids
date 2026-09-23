@@ -1146,3 +1146,24 @@ img{max-width:100%;display:block}
     padding-right:10px;
   }
 }
+
+
+/* Hero image slot — waits for eng/assets/hero/dashboard-hero.png */
+.hero-visual{
+  background:
+    linear-gradient(135deg,#eefaf8 0%,#dff4f0 55%,#c8e8e3 100%);
+}
+.hero-photo{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}
+@media(max-width:720px){
+  .hero-photo{
+    object-position:center;
+  }
+}
