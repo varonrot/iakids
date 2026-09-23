@@ -1167,3 +1167,140 @@ img{max-width:100%;display:block}
     object-position:center;
   }
 }
+
+
+/* Tablet / small-laptop layout — fixes 1024px viewport */
+@media (min-width:721px) and (max-width:1100px){
+  .topbar{
+    height:64px;
+    padding:0 18px;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:12px;
+  }
+
+  .mobile-menu{
+    display:grid;
+    place-items:center;
+    justify-self:end;
+    width:38px;
+    height:38px;
+    padding:0;
+    border-radius:11px;
+  }
+
+  .main-nav{
+    display:none;
+  }
+
+  .main-nav.mobile-open{
+    display:flex;
+    position:fixed;
+    top:72px;
+    left:18px;
+    right:18px;
+    z-index:80;
+    flex-direction:column;
+    align-items:stretch;
+    gap:4px;
+    padding:10px;
+    background:rgba(255,255,255,.98);
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:0 18px 50px rgba(22,70,82,.16);
+    backdrop-filter:blur(18px);
+  }
+
+  .main-nav.mobile-open .nav-link{
+    justify-content:flex-start;
+    height:42px;
+    padding:0 13px;
+    font-size:12px;
+  }
+
+  .top-actions{
+    justify-self:end;
+  }
+
+  .search-wrap{
+    display:none;
+  }
+
+  .profile-copy{
+    display:none;
+  }
+
+  .page-shell{
+    padding-inline:18px;
+  }
+
+  .hero{
+    margin-inline:-18px;
+    min-height:340px;
+    padding:28px 26px 24px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 42%;
+    align-items:center;
+  }
+
+  .hero-copy{
+    max-width:560px;
+  }
+
+  .hero h1{
+    font-size:42px;
+    line-height:1;
+    max-width:520px;
+  }
+
+  .hero-sub{
+    font-size:17px;
+  }
+
+  .hero-visual{
+    width:42%;
+    min-width:0;
+  }
+
+  .stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    max-width:500px;
+    gap:10px;
+    margin-top:18px;
+  }
+
+  .stat-card{
+    min-height:68px;
+  }
+
+  .feature-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+  }
+
+  .feature-card{
+    min-height:286px;
+  }
+
+  .feature-media{
+    height:148px;
+    flex-basis:148px;
+  }
+
+  .dashboard-grid{
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+
+  .continue-learning{
+    grid-column:1/-1;
+  }
+
+  .recent-progress{
+    grid-column:auto;
+  }
+
+  .recent-progress .progress-list{
+    display:block;
+  }
+}
