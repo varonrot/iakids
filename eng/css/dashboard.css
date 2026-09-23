@@ -1477,3 +1477,51 @@ img{max-width:100%;display:block}
     object-position:center center;
   }
 }
+
+
+/* Desktop hero — visibly match the approved reference proportions */
+@media (min-width:1101px){
+  .page-shell{
+    max-width:1700px;
+  }
+
+  .hero{
+    min-height:300px;
+    grid-template-columns:minmax(0,55%) minmax(0,45%);
+  }
+
+  .hero-copy{
+    padding:26px 34px 24px 56px;
+  }
+
+  .hero h1{
+    max-width:610px;
+    font-size:clamp(46px,3.6vw,58px);
+    line-height:.98;
+  }
+
+  .hero-sub{
+    margin-top:10px;
+    font-size:18px;
+  }
+
+  .hero .stats-grid{
+    max-width:760px;
+    gap:10px;
+    margin-top:20px;
+  }
+
+  .hero .stat-card{
+    min-height:66px;
+    padding:10px 12px;
+  }
+
+  .hero-photo{
+    object-fit:cover;
+    object-position:center center;
+  }
+
+  .feature-grid{
+    margin-top:12px;
+  }
+}
