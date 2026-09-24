@@ -611,6 +611,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://iakids.app/he/blog/test-preparation/</loc>
     <lastmod>2026-09-24</lastmod>
     <priority>0.7</priority>
@@ -1802,6 +1807,41 @@
   </url>
   <url>
     <loc>https://iakids.app/he/blog/personalized-learning/self-paced-learning/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/finding-information/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/grade-2/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/grade-3/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/grade-4/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/inference/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/main-idea/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/reading-comprehension/vocabulary-context/</loc>
     <lastmod>2026-09-24</lastmod>
     <priority>0.7</priority>
   </url>
