@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>בדיקת שטף קריאה</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css">
+<!--
+  Reading fluency check v2 (2026-09-24), on the shared check shell. Follows the Ministry's grade-ג
+  fluency tool so parents recognise it: a vowelled 80-word graded list read for 45 seconds, then a
+  one-minute passage (an easier one when the list was low). The PARENT marks misread words and rates
+  how the reading sounded; the child sees no clock, no score and no right/wrong.
+-->
+<style>
+.words{columns:4;column-gap:18px;font-size:30px;line-height:1.9;margin:10px 0;direction:rtl}
+.words .wd{display:block;break-inside:avoid;cursor:pointer;border-radius:8px;padding:0 6px;position:relative}
+.passage-text{font-size:28px;line-height:2.1;word-spacing:4px}
+.passage-text .wd{cursor:pointer;border-radius:8px;padding:0 3px;display:inline-block}
+.wd.miss::after{content:"";position:absolute;inset-inline:6px;bottom:4px;height:3px;border-radius:2px;background:#6f86a8}
+.passage-text .wd.miss{box-shadow:inset 0 -3px 0 #6f86a8}
+.wd.last{outline:3px solid var(--cyan)}
+.picking .wd:hover{background:rgba(40,215,255,.12)}
+.after-last{opacity:.35}
+.parent-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel2);border:1px dashed var(--line);border-radius:14px;padding:10px 12px;margin-top:10px;font-size:14px;color:#cfe3ff}
+.parent-bar b{color:var(--cyan)}
+@media (max-width:560px){.words{columns:2;font-size:24px}.passage-text{font-size:23px}}
+</style>
+</head>
+<body>
+<main>
+  <a class="ck-back" href="/he/diagnostics/">→ בדיקות ומעקב</a>
+  <div class="ck-path" id="path"></div>
+  <div id="app"></div>
+</main>
+<script src="/he/diagnostics/check-shell.js"></script>
+<script>
+(function(){
+  var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
+  var CHECK_ID = "fluency_v2";
+
+  // Graded vowelled lists: 4 columns of 20, from short words to long words with prefixes and suffixes.
+  // Written for this check (not copied from the Ministry's tool); proofread before wide use.
+  var LISTS = {
+    "ב": ["אַבָּא","אִמָּא","דָּג","סוּס","גַּן","בַּיִת","יָם","עֵץ","שֶׁמֶשׁ","יֶלֶד","סֵפֶר","כֶּלֶב","חָלָב","לֶחֶם","פֶּרַח","דֶּלֶת","גֶּשֶׁם","עוּגָה","כַּדּוּר","יָד",
+          "שֻׁלְחָן","חַלּוֹן","כִּסֵּא","מַיִם","תַּפּוּחַ","גִּנָּה","צִפּוֹר","חָתוּל","סַבְתָּא","מוֹרָה","כִּתָּה","מִטָּה","נַעֲלַיִם","מִכְנָסַיִם","יַלְדָּה","חֲבֵרִים","שִׁירִים","תִּיק","מַחְבֶּרֶת","עִפָּרוֹן",
+          "מִשְׂחָק","אֲרוּחָה","מִטְבָּח","מְכוֹנִית","אוֹטוֹבּוּס","שְׁכֵנִים","מַתָּנָה","חֲנֻכִּיָּה","סְבִיבוֹן","פַּרְפַּר","מִגְדָּל","שְׂמִיכָה","כַּרְטִיס","תְּמוּנָה","מְנוֹרָה","צְפַרְדֵּעַ","חֲתֻנָּה","מַפְתֵּחַ","מִכְתָּב","שְׁעוֹנִים",
+          "הִתְלַבַּשְׁנוּ","מִתְנַדְנֶדֶת","הַמְּכוֹנִיּוֹת","בְּמַחְבַּרְתִּי","הַפַּרְפָּרִים","הִתְחַבְּאוּ","מְשַׂחֲקִים","הִתְרַחַצְנוּ","הַגַּנָּנוֹת","בַּסִּפְרִיָּה","תַּלְמִידִים","מִסְעָדָה","הַחַלּוֹנוֹת","לְשַׂחֵק","מִתְגַּלְגֵּל","הַמַּחְבָּרוֹת","מִשְׁפָּחָה","הִצְטַלַּמְנוּ","מְטַפְּסִים","הַכּוֹכָבִים"],
+    "ג": ["אוֹר","חֹם","קַר","נֵר","רֶגֶל","עַיִן","אֹזֶן","גָּמָל","אַרְיֵה","דֹּב","פִּיל","קוֹף","זְבוּב","נְמָלָה","דְּבוֹרָה","חֲמוֹר","תַּרְנְגוֹל","סוּסָה","כֶּבֶשׂ","עֵז",
+          "מִקְלַחַת","מְקָרֵר","תַּנּוּר","כְּבִיסָה","מִרְפֶּסֶת","מַדְרֵגוֹת","מַעֲלִית","חֲדָרִים","שְׁכוּנָה","רְחוֹבוֹת","גְּשָׁרִים","נְהָרוֹת","הָרִים","יְעָרוֹת","מִדְבָּר","אֲדָמָה","שָׁמַיִם","עֲנָנִים","רוּחוֹת","אֲגַמִּים",
+          "הִתְחַלְנוּ","סִיַּמְתֶּם","הִרְגַּשְׁתִּי","שָׁאַלְתָּ","עָנִינוּ","צִיַּרְתְּ","כָּתַבְנוּ","קָרְאוּ","שִׂחַקְנוּ","הִקְשַׁבְתֶּם","פָּגַשְׁנוּ","חָזַרְתִּי","נִרְדַּמְנוּ","הִתְעוֹרַרְתִּי","בִּקַּרְנוּ","נִסִּינוּ","שָׁכַחְתִּי","זָכַרְנוּ","הֵבַנְתִּי","מָצָאנוּ",
+          "הִתְכּוֹנַנּוּ","הַמַּחְשְׁבִים","בְּהִתְרַגְּשׁוּת","הַשְּׁכֵנִים","לְהִתְאַמֵּן","הַמְּסִבּוֹת","הִתְקַשַּׁרְתִּי","בַּמִּשְׂחָקִים","הַמְּטַיְּלִים","לְהִצְטָרֵף","הַגַּלְגַּלִּים","בַּמַּחֲנֶה","הִשְׁתַּתַּפְנוּ","הַתַּחֲנוֹת","מִתְקַדְּמִים","הַמַּדְרִיכָה","לְהִתְרַחֵץ","הַתְּמוּנוֹת","הִתְנַצַּלְתִּי","הַמַּכְשִׁירִים"]
+  };
+  var PRACTICE_WORDS = {"ב": ["דָּג","סוּס","עֵץ"], "ג": ["אוֹר","נֵר","קוֹף"]};
+  var PASSAGES = {
+    "ב": {regular: "הַיּוֹם יָרַד גֶּשֶׁם חָזָק. יוֹסִי וְאָחִיו רָצוּ הַבַּיְתָה מַהֵר. הֵם הִסְתַּכְּלוּ מֵהַחַלּוֹן עַל הַשְּׁלוּלִיּוֹת בָּרְחוֹב. כְּשֶׁהַגֶּשֶׁם נִפְסַק, יָצְאוּ שְׁנֵיהֶם לִקְפֹּץ בַּשְּׁלוּלִיּוֹת עִם מַגָּפַיִם צְהֻבִּים. אִמָּא צָחֲקָה וְאָמְרָה שֶׁזֶּה הַמִּשְׂחָק הֲכִי רָטֹב בָּעוֹלָם.",
+          easier: "לְנוֹעָה יֵשׁ חָתוּל קָטָן. הֶחָתוּל אוֹהֵב לִשְׁכַּב בַּשֶּׁמֶשׁ. נוֹעָה נוֹתֶנֶת לוֹ מַיִם בַּקְּעָרָה. בָּעֶרֶב הֶחָתוּל יָשֵׁן לְיַד הַמִּטָּה שֶׁל נוֹעָה."},
+    "ג": {regular: "בְּחֻפְשַׁת הַקַּיִץ נָסְעָה הַמִּשְׁפָּחָה שֶׁל רוֹנִי לַכִּנֶּרֶת. הֵם הֵקִימוּ אֹהֶל קָרוֹב לַמַּיִם וְהִדְלִיקוּ מְדוּרָה קְטַנָּה. בַּלַּיְלָה רוֹנִי שָׁכַב עַל הַגַּב וְסָפַר כּוֹכָבִים. פִּתְאוֹם הוּא רָאָה כּוֹכָב נוֹפֵל וְהִבִּיעַ מִשְׁאָלָה. בַּבֹּקֶר כֻּלָּם שָׂחוּ בַּמַּיִם הַצְּלוּלִים וְאָכְלוּ אֲרוּחַת בֹּקֶר עַל הַחוֹף.",
+          easier: "הַדְּבוֹרָה הִיא חֶרֶק קָטָן וְחָרוּץ. הִיא עָפָה מִפֶּרַח לְפֶרַח וְאוֹסֶפֶת צוּף. מֵהַצּוּף הַדְּבוֹרִים מְכִינוֹת דְּבַשׁ. הַדְּבוֹרִים חַיּוֹת יַחַד בְּכַוֶּרֶת."}
+  };
+  // When the list is low, the passage is the easier one (the Ministry's grade-ג tool does the same).
+  // ג: the Ministry's risk band starts below 26 words in 45 s. ב: our own threshold, not an official one.
+  var EASIER_BELOW = {"ב": 20, "ג": 26};
+  var LIST_SECONDS = 45, PASSAGE_SECONDS = 60;
+
+  var run = null;
+  function steps(done){ C.progressPath(document.getElementById("path"), 4, done); }
+  function tokens(text){ return text.split(/\s+/).filter(Boolean); }
+
+  function start(){
+    steps(0);
+    var g = String(kid.grade || "").replace(/[^אבג]/g, "");
+    C.parentGate($app, {
+      title: "בדיקת שטף קריאה",
+      what: "דיוק, קצב והנגנה בקריאה בקול: רשימת מילים מנוקדות ואחריה קטע קצר, כמו בבדיקה שבית הספר עושה.",
+      minutes: "כ־5 דקות",
+      get: "מה הולך טוב, מה כדאי לחזק ואיך לתרגל. מעקב מוצג אחרי 3 בדיקות.",
+      needsMic: false,
+      extraHtml: "<p><b>כיתה:</b></p><div class='ck-choice' id='gradePick'>" +
+        ["ב","ג"].map(function(x){ return "<button type='button' data-g='" + x + "'" + (x === (g || "ב") ? " class='on'" : "") + ">כיתה " + x + "</button>"; }).join("") +
+        "</div><p class='ck-note'>כרגע לכיתות ב–ג. אתם מקשיבים ומסמנים בנקודה קטנה כל מילה שנקראה לא נכון. הילד לא רואה שעון או ציון.</p>",
+      onStart: function(){
+        var on = document.querySelector("#gradePick .on");
+        run = {grade: on ? on.dataset.g : "ב", when: new Date().toISOString(), partial: true};
+        C.childIntro($app, "נקרא יחד רשימת מילים ואחר כך סיפור קצר. אין ציון, ומותר לטעות. קוראים בקול, בקצב שנוח לך.", warmup);
+      }
+    });
+    document.querySelectorAll("#gradePick button").forEach(function(b){
+      b.addEventListener("click", function(){ document.querySelectorAll("#gradePick button").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); });
+    });
+  }
+
+  function warmup(){
+    steps(1);
+    $app.innerHTML = "<section class='ck-card ck-child'><p class='ck-say'>קודם נתאמן. קראו את שלוש המילים:</p>" +
+      "<div class='words' style='columns:1;font-size:40px'>" + PRACTICE_WORDS[run.grade].map(function(w){ return "<span class='wd'>" + w + "</span>"; }).join("") + "</div>" +
+      "<div class='ck-row'><button class='ck-btn ck-primary' type='button' id='go'>עכשיו הרשימה</button></div></section>";
+    C.speak("קודם נתאמן. קראו את שלוש המילים.");
+    document.getElementById("go").addEventListener("click", listTask);
+  }
+
+  // One timed reading. The parent taps a word to mark it misread; at the end the parent taps the last
+  // word read. `done(res)` gets {read, errors, seconds, early}.
+  function timedReading(container, words, seconds, isPassage, done){
+    var misses = {}, t0 = performance.now(), timer = null, picking = false;
+    var box = container.querySelector(isPassage ? ".passage-text" : ".words");
+    box.innerHTML = words.map(function(w, i){ return "<span class='wd' data-i='" + i + "'>" + w + "</span>"; }).join(isPassage ? " " : "");
+    var bar = container.querySelector(".parent-bar");
+    function finish(lastIndex, early){
+      clearTimeout(timer);
+      var read = lastIndex + 1, errs = 0;
+      for (var k = 0; k < read; k++) if (misses[k]) errs++;
+      done({read: read, errors: errs, seconds: Math.min(seconds, (performance.now() - t0) / 1000), early: early});
+    }
+    box.addEventListener("click", function(e){
+      var el = e.target.closest(".wd"); if (!el) return;
+      var i = +el.dataset.i;
+      if (picking){
+        box.querySelectorAll(".wd").forEach(function(x, j){ x.classList.toggle("after-last", j > i); x.classList.toggle("last", j === i); });
+        setTimeout(function(){ finish(i, false); }, 400);
+        return;
+      }
+      misses[i] = !misses[i]; el.classList.toggle("miss", !!misses[i]);
+    });
+    bar.querySelector("[data-early]").addEventListener("click", function(){ finish(words.length - 1, true); });
+    timer = setTimeout(function(){
+      picking = true; box.classList.add("picking"); C.chime();
+      bar.innerHTML = "<b>להורה: הזמן נגמר.</b> לחצו על המילה האחרונה שהילד קרא.";
+    }, seconds * 1000);
+  }
+
+  function listTask(){
+    steps(2);
+    $app.innerHTML = "<section class='ck-card'><p class='ck-say' style='text-align:center'>קראו את המילים לפי הסדר, מלמעלה למטה, טור אחרי טור.</p>" +
+      "<div class='words'></div>" +
+      "<div class='parent-bar'><span><b>להורה:</b> לחצו על מילה שנקראה לא נכון (נקודה קטנה מתחתיה). בסוף יישמע צליל.</span>" +
+      "<button class='ck-btn' type='button' data-early>קרא הכול לפני הצליל</button></div></section>";
+    C.speak("קראו את המילים לפי הסדר, טור אחרי טור.");
+    timedReading($app, LISTS[run.grade], LIST_SECONDS, false, function(res){
+      run.list = {read: res.read, errors: res.errors, correct: Math.max(0, res.read - res.errors), seconds: Math.round(res.seconds), early: res.early};
+      passageTask();
+    });
+  }
+
+  function passageTask(){
+    steps(3);
+    var easier = run.list.correct < EASIER_BELOW[run.grade];
+    var text = PASSAGES[run.grade][easier ? "easier" : "regular"];
+    $app.innerHTML = "<section class='ck-card'><p class='ck-say' style='text-align:center'>עכשיו סיפור קצר. קראו בקול, כמו שמספרים סיפור.</p>" +
+      "<div class='passage-text'></div>" +
+      "<div class='parent-bar'><span><b>להורה:</b> סמנו מילים שנקראו לא נכון. אחרי דקה יישמע צליל.</span>" +
+      "<button class='ck-btn' type='button' data-early>סיים את הסיפור</button></div></section>";
+    C.speak("עכשיו סיפור קצר. קראו בקול, כמו שמספרים סיפור.");
+    timedReading($app, tokens(text), PASSAGE_SECONDS, true, function(res){
+      var correct = Math.max(0, res.read - res.errors);
+      run.passage = {easier: easier, words: tokens(text).length, read: res.read, errors: res.errors, correct: correct,
+                     seconds: Math.round(res.seconds), accuracy: res.read ? Math.round(100 * correct / res.read) : 0,
+                     wpm: res.seconds ? Math.round(correct / (res.seconds / 60)) : 0};
+      prosody();
+    });
+  }
+
+  function prosody(){
+    $app.innerHTML = "<section class='ck-card ck-parent'><div class='ck-tag'>להורה</div><h1>איך נשמעה הקריאה?</h1>" +
+      "<p class='ck-note'>הנגנה: קריאה בהטעמה, עם עצירות בנקודות ובפסיקים, ולא מילה־מילה.</p>" +
+      "<div class='ck-choice' id='pros'><button type='button' data-v='high'>גבוהה: כמו דיבור</button>" +
+      "<button type='button' data-v='mid'>בינונית: חלקים שוטפים וחלקים מקוטעים</button>" +
+      "<button type='button' data-v='low'>נמוכה: מילה־מילה</button></div></section>";
+    document.querySelectorAll("#pros button").forEach(function(b){
+      b.addEventListener("click", function(){ run.prosody = b.dataset.v; run.partial = false; save(); end(); });
+    });
+  }
+
+  function save(){ C.store.save(kid.id, CHECK_ID, run); }
+
+  function end(){
+    steps(4);
+    C.childEnd($app, {
+      effortLine: "קראת רשימה שלמה וסיפור בקול!",
+      strategyLine: "ככה בדיוק מתאמנים בקריאה: קוראים בקול, ובפעם הבאה זה נהיה קל יותר.",
+      practiceHref: "/he/games/",
+      onDone: function(){ location.href = "/he/diagnostics/"; },
+      onReport: report
+    });
+  }
+
+  function band(correct){
+    if (correct >= 48) return "גבוה מהמצופה בתחילת כיתה ג";
+    if (correct >= 30) return "בטווח המצופה בתחילת כיתה ג";
+    if (correct >= 26) return "מעט מתחת לטווח המצופה בתחילת כיתה ג";
+    return "מתחת לטווח המצופה בתחילת כיתה ג";
+  }
+
+  function report(){
+    var all = C.store.list(kid.id, CHECK_ID).filter(function(x){ return !x.partial && x.grade === run.grade; });
+    var r = run, p = r.passage, strengths = [], strengthen = [];
+    if (p.accuracy >= 95) strengths.push("דיוק: רוב המילים בסיפור נקראו נכון.");
+    else if (p.accuracy >= 85) strengths.push("דיוק טוב בסיפור.");
+    else strengthen.push("דיוק: לקרוא לאט יותר ולהסתכל על הניקוד של כל מילה.");
+    if (r.prosody === "high") strengths.push("הנגנה: הקריאה נשמעה כמו דיבור.");
+    if (r.prosody === "low") strengthen.push("הנגנה: לקרוא שוב את אותו קטע בקול, עד שהוא נשמע כמו סיפור.");
+    if (!p.easier && p.read >= p.words) strengths.push("קצב: הסיפור נקרא עד הסוף בתוך הזמן.");
+    if (p.easier) strengthen.push("קצב ברשימת המילים: תרגול קצר ויומי של קריאת מילים מנוקדות.");
+    if (!strengths.length) strengths.push("קריאה בקול של רשימה שלמה וסיפור, עד הסוף.");
+    if (!strengthen.length) strengthen.push("להמשיך לקרוא יחד כמה דקות ביום, ספר עם ניקוד.");
+    // Our main comparison is the child against their own earlier checks.
+    var tr = C.trend(all.map(function(x){ return x.list && x.list.correct; }), 4);
+    var escalate = "";
+    if (r.grade === "ג" && all.length >= 2){
+      var a = all[all.length - 1], b = all[all.length - 2];
+      var weeks = (new Date(a.when) - new Date(b.when)) / 604800000;
+      if (a.list.correct < 26 && b.list.correct < 26 && weeks >= 4)
+        escalate = "בשתי הבדיקות האחרונות, בהפרש של 4 שבועות לפחות, הקצב ברשימה היה נמוך. כדאי לשתף את המחנכת: בבית הספר עורכים מיפוי שטף בתחילת השנה.";
+    }
+    var details = "<table>" +
+      "<tr><th>רשימת מילים (45 שניות)</th><td>" + r.list.correct + " מילים נכונות מתוך " + r.list.read + " שנקראו</td></tr>" +
+      "<tr><th>סיפור" + (p.easier ? " (הגרסה הקלה)" : "") + "</th><td>" + p.correct + " מתוך " + p.read + " נכונות, דיוק " + p.accuracy + "%, כ־" + p.wpm + " מילים נכונות לדקה</td></tr>" +
+      "<tr><th>הנגנה (לפי ההורה)</th><td>" + ({high: "גבוהה", mid: "בינונית", low: "נמוכה"}[r.prosody] || "–") + "</td></tr></table>" +
+      (r.grade === "ג" ? "<p class='ck-note'>להשוואה גסה בלבד: בכלי השטף של משרד החינוך לכיתה ג, " + r.list.correct + " מילים ב־45 שניות הן " + band(r.list.correct) +
+        ". המשרד עצמו מציין שהנורמות לא נבדקו, והרשימה שלנו אינה הרשימה של המשרד.</p>" : "") +
+      "<p class='ck-note'>דיוק בסיפור, להשוואה גסה: בכלי המשרד מעל 85% נחשב גבוה, 65–84% בינוני. אחוז הדיוק לבדו לא מספיק, וחשוב לראות אילו מילים נקראו לא נכון.</p>";
+    C.parentReport($app, {
+      kidId: kid.id, title: "בדיקת שטף קריאה: כיתה " + r.grade,
+      when: "נבדק ב־" + C.heDate(r.when) + (kid.name ? " · " + kid.name : ""),
+      partial: r.partial, strengths: strengths, toStrengthen: strengthen,
+      practice: [{label: "משחקי קריאה", href: "/he/games/"}],
+      nextCheck: C.heDate(C.addWeeks(r.when, 5)) + " (בעוד כ־5 שבועות)",
+      trend: tr, escalate: escalate, detailsHtml: details,
+      onAgain: start, onDeleted: function(){ location.href = "/he/diagnostics/"; }
+    });
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

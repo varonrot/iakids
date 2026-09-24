@@ -468,6 +468,26 @@ console.log(bad.length? bad.join("\n") : "ALIGN_OK");
 """
 
 
+def _rel(path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+_SHELL_TESTS = r"""
+const C=window.IAKidsCheck, bad=[];
+if(!C.shouldStop([true,false,false,false])) bad.push("3 misses in a row did not stop the strand");
+if(!C.shouldStop([true,false,false,true,false,false])) bad.push("4 misses of the last 5 did not stop the strand");
+if(C.shouldStop([true,false,true,false,true])) bad.push("the strand stopped too early");
+if(C.trend([30,31]).state!=="start") bad.push("a trend is shown before 3 checks");
+if(C.trend([30,31,32,31,32,33],4).state!=="stable") bad.push("a small change is shown as a rise or a drop");
+if(C.trend([30,31,32,20,21,22],4).state!=="down") bad.push("a clear drop is not shown");
+C.store.save("k","x",{a:1}); C.store.removeAll("k"); if(C.store.list("k","x").length) bad.push("delete did not delete the child's results");
+console.log(bad.length?bad.join("\n"):"SHELL_OK");
+"""
+
+
 def diagnostics_checks() -> list:
     """מבחנים ואבחונים (2026-09-24). The reading-fluency check runs only in the browser: it must not
     talk to any server or database (the child's voice and results stay on the device), and its
@@ -487,9 +507,9 @@ def diagnostics_checks() -> list:
     if "window.openDiagnosticsView" not in ws or 'class="idg-frame"' not in ws or 'allow="microphone"' not in ws:
         bad.append("workspace: 'מבחנים ואבחונים' no longer opens in the center view (or its frame lost the microphone): "
                    "it leaves the workspace like a separate site")
-    for page_path in (DIAGNOSTICS / "index.html", DIAGNOSTICS / "reading-fluency" / "index.html"):
+    for page_path in (DIAGNOSTICS / "index.html", DIAGNOSTICS / "reading-fluency" / "index.html", DIAGNOSTICS / "fluency" / "index.html"):
         if page_path.exists() and 'classList.add("embedded")' not in page_path.read_text(encoding="utf-8"):
-            bad.append(f"{page_path.relative_to(ROOT)} lost its embedded mode: inside the workspace it shows its own background and back link")
+            bad.append(f"{_rel(page_path)} lost its embedded mode: inside the workspace it shows its own background and back link")
     # 2026-09-24 user report: an uploaded homework file did not show in הקבצים שלי
     i = ws.find('<script id="IAKIDS_INTERNAL_MY_FILES_0748">')
     files_js = ws[i:ws.find("</script>", i)] if i >= 0 else ""
@@ -501,6 +521,40 @@ def diagnostics_checks() -> list:
     hub = DIAGNOSTICS / "index.html"
     if "iakidsComingSoon('הכנה למבחן')" in ws or not hub.exists() or "הכנה למבחן" not in hub.read_text(encoding="utf-8"):
         bad.append("'הכנה למבחן' is back in the sidebar or missing from the מבחנים ואבחונים hub (moved there 2026-09-24)")
+    # בדיקות ומעקב rules (2026-09-24 research): every page and the shared shell, including checks added later
+    CLINICAL = ("דיסלקציה", "לקות למידה", "ADHD", "הפרעת קשב", "אבחנה", "חשד ל")
+    for f in sorted(list(DIAGNOSTICS.rglob("*.html")) + list(DIAGNOSTICS.rglob("*.js"))):
+        t = re.sub(r"<!--.*?-->", "", f.read_text(encoding="utf-8"), flags=re.S)
+        rel = _rel(f)
+        for term in CLINICAL:
+            if term in t:
+                bad.append(f"{rel}: says {term!r}: a check is not a diagnosis and never names a condition")
+        for needle in ("fetch(", "XMLHttpRequest", "supabase", ".from(", "sendBeacon", "WebSocket"):
+            if needle in t:
+                bad.append(f"{rel}: contains {needle!r}: checks keep results on the device until the privacy review is done")
+    shell = DIAGNOSTICS / "check-shell.js"
+    if not shell.exists():
+        bad.append("he/diagnostics/check-shell.js is missing: every check runs on the shared shell")
+    else:
+        sh = shell.read_text(encoding="utf-8")
+        if "לא אבחון" not in sh or "ck-not-dx" not in sh:
+            bad.append("check shell: the parent report lost the 'not a diagnosis' line")
+        try:
+            r = subprocess.run(["node", "-e", "const store={};global.window={};global.localStorage={getItem:k=>store[k]||null,setItem:(k,v)=>{store[k]=String(v)}};"
+                                + sh + _SHELL_TESTS], capture_output=True, text=True, timeout=30)
+            out = (r.stdout or r.stderr).strip()
+            if r.returncode != 0 or out != "SHELL_OK":
+                bad += ["check shell: " + l for l in out.splitlines()[:5]]
+        except FileNotFoundError:
+            print("note: node not installed, check-shell tests skipped")
+    for f in sorted(DIAGNOSTICS.glob("*/index.html")):
+        t = f.read_text(encoding="utf-8")
+        if f.parent.name != "reading-fluency" and "/he/diagnostics/check-shell.js" not in t:
+            bad.append(f"{_rel(f)}: a check that does not run on the shared shell (parent gate, no score to the child, report)")
+    hub_src = (DIAGNOSTICS / "index.html").read_text(encoding="utf-8") if (DIAGNOSTICS / "index.html").exists() else ""
+    a, b = hub_src.find('<h2 class="section">בדיקות קצרות</h2>'), hub_src.find('<h2 class="section">תרגול לקראת')
+    if a < 0 or b < 0 or a > b or "<title>בדיקות ומעקב</title>" not in hub_src:
+        bad.append("the hub lost its structure: 'בדיקות ומעקב', short checks first, then practice that never feeds a report")
     if "ALIGN-START" not in src or "ALIGN-END" not in src:
         return bad + ["reading-fluency check lost its ALIGN-START/ALIGN-END markers: the comparison is no longer tested"]
     code = src[src.index("// ALIGN-START"):src.index("// ALIGN-END")] + _ALIGN_TESTS
@@ -634,6 +688,7 @@ LOG_MODE_PAGES = (
     "frontend-v2/homework.html",
     "he/diagnostics/index.html",
     "he/diagnostics/reading-fluency/index.html",
+    "he/diagnostics/fluency/index.html",
 )
 
 

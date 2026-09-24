@@ -13104,7 +13104,7 @@ window.iakidsAvatarUrl = function(key){
       <i class="fa-solid fa-clipboard-check"></i>
       <div class="side-text">
         <span class="side-title">
-          מבחנים ואבחונים
+          בדיקות ומעקב
         </span>
       </div>
     </button>
@@ -53969,7 +53969,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07142"></script>
+<script src="/he/workspace/lesson-completion.js?v=07143"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54143,8 +54143,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.142</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.142";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.143</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.143";</script>
 
 <!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
      "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
@@ -54165,7 +54165,7 @@ function(audio){
     const main=document.querySelector('.main'); if(!main) return null;
     view=document.createElement('section'); view.id='iakidsDiagnosticsView'; view.className='iakids-diagnostics-view'; view.hidden=true;
     view.innerHTML='<div class="idg-bar"><button type="button" class="idg-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div>'+
-      '<iframe class="idg-frame" title="מבחנים ואבחונים" allow="microphone" src="about:blank"></iframe>';
+      '<iframe class="idg-frame" title="בדיקות ומעקב" allow="microphone" src="about:blank"></iframe>';
     view.querySelector('.idg-close').addEventListener('click', close);
     main.appendChild(view); return view;
   }
@@ -55799,7 +55799,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07142"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07143"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example

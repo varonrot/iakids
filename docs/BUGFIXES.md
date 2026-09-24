@@ -4,6 +4,25 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — "בדיקות ומעקב": check shell and reading fluency v2 (build 0.7.143)
+- **Why**: research on assessing young children, the Ministry's own checks (the literacy profile, the grade-ב fluency check, the grade-ג fluency tool, the תשפ"ז evaluation calendar) and children's assessment products. It came back with 41 sources and recommendations.
+- **Renamed** "מבחנים ואבחונים" to "בדיקות ומעקב": to Israeli parents "אבחון" means a formal learning-disability evaluation, and "מבחן" means an exam. The hub order is now a parent strip (only after a first check), then short checks, then "תרגול לקראת…" (exam prep and gifted familiarisation, never in a report), then "איך זה עובד". Every card shows grades, minutes, "עם הורה" and the microphone.
+- **Shared check shell** (`he/diagnostics/check-shell.js` and `.css`):
+  - a parent screen (what is checked, how long, what it is not);
+  - a spoken child intro;
+  - a progress path that counts items;
+  - a stopping rule (3 misses in a row, or 4 of the last 5);
+  - an effort-only end screen with one "בואו נתרגל";
+  - a parent report: strengths first, what to strengthen, practice, a re-check date, numbers folded away, a trend only after 3 runs and a change within the day-to-day spread shown as "יציב", the not-a-diagnosis line, and delete.
+  - Results stay on the device until the privacy review of storing children's results on the server.
+- **Reading fluency v2** (`he/diagnostics/fluency/`), grades ב–ג, in the Ministry's format:
+  - a vowelled 80-word graded list read for 45 seconds, then a one-minute passage, with the easier passage when the list is low (ג: below 26, the Ministry's risk band; ב: our own threshold of 20);
+  - the parent marks misread words with a small dot, taps the last word read at the chime, and rates prosody;
+  - the child sees no clock, score or right/wrong.
+  - The report uses דיוק, קצב, הנגנה. The Ministry's grade-ג bands appear only as a labelled rough reference, with the Ministry's own caveat that the norms were not checked. It suggests talking to the class teacher only after two low checks at least 4 weeks apart.
+- **Gate**, for these pages and any check added later: no clinical words (דיסלקציה, לקות למידה, ADHD, הפרעת קשב, אבחנה, "חשד ל"), no network calls, every check on the shell, the report keeps the not-a-diagnosis line, the hub keeps checks before practice, and the shell's stop, trend and delete logic runs under node. Each was negative-tested. The negative tests also exposed a gate crash on files outside the repo, now fixed.
+- **To do before families use it**: proofread the nikud of the two 80-word lists and the passages; write alternate forms for re-checks; show the parent report to 5–10 parents so nobody reads it as a diagnosis; and a lawyer's review of Amendment 13 before results move to the server.
+
 ### 2026-09-24 — the user menu opened behind panels; uploaded files missing from הקבצים שלי (build 0.7.142)
 - **User menu behind panels** (user report, homework tab, then also the learning world and other screens): the name menu in the top bar opened behind the homework panel and the center views.
   - *Cause*: the top bar was at z-index 20 inside `.app`, while the center views sit at 240–247 (dashboard, my lessons, my files, achievements, diagnostics) and the worlds at 40–100.

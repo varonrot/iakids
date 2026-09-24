@@ -26,7 +26,12 @@ workspace/            main app workspace (ES)
 games/                100 educational mini-games — catalog + interface spec in games/GAMES.md, shared SDK in games/game-sdk.js
 admin/dashboard/      admin dashboard
 he/admin/lessons-review/  admin-only lesson quality review (Google sign-in; backend enforces ADMIN_EMAILS)
-he/diagnostics/       "מבחנים ואבחונים" hub, opened in the workspace center (frame); reading-fluency check (browser only, no server)
+he/diagnostics/       "בדיקות ומעקב" hub (opened in the workspace center, in a frame). Every check runs on check-shell.js/.css:
+                      parent gate → spoken child intro → items (no clock, score or right/wrong shown to the child) →
+                      effort-only end screen → parent report (strengths, what to strengthen, practice, re-check date,
+                      trend only after 3 runs, the "not a diagnosis" line). fluency/ = reading fluency v2 (Ministry
+                      format: 80-word vowelled list for 45 s + 1-min passage, parent marks). Results stay on the device until
+                      the privacy review; the gate fails on clinical words, network calls or a check not on the shell.
 backend-ai-tutor-he/prompts/homework/  homework coach, pedagogy, planner prompts + subjects/ (one module per subject, per grade)
 parent-dashboard/     parent dashboard
 backend/              core FastAPI (chat, payments)
