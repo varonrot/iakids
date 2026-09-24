@@ -2003,3 +2003,63 @@ img{max-width:100%;display:block}
   .progress-banner strong{font-size:12px}
   .progress-banner small{font-size:10px}
 }
+
+
+/* Give feature labels and actions the prominence of the dashboard reference. */
+@media(min-width:721px){
+  .feature-body{
+    flex:0 0 auto;
+    min-height:156px;
+    padding:16px 18px 18px;
+    grid-template-columns:minmax(0,1fr) 44px;
+    grid-template-rows:auto auto 1fr auto;
+    column-gap:12px;
+  }
+  .feature-title{
+    grid-column:1;
+    grid-row:1;
+    font-size:clamp(20px,1.25vw,32px);
+    font-weight:800;
+    line-height:1.18;
+    letter-spacing:-.025em;
+  }
+  .feature-sub{
+    grid-column:1;
+    grid-row:2;
+    margin-top:6px;
+    font-size:clamp(14px,.78vw,20px);
+    line-height:1.4;
+  }
+  .feature-arrow{
+    width:44px;
+    height:44px;
+    align-self:start;
+    justify-self:end;
+    font-size:28px;
+    display:grid;
+    place-items:center;
+  }
+  .feature-cta{
+    grid-column:1;
+    grid-row:4;
+    min-width:clamp(176px,10.5vw,240px);
+    max-width:100%;
+    min-height:48px;
+    height:auto;
+    margin-top:16px;
+    padding:12px 24px;
+    border-radius:14px;
+    font-size:clamp(15px,.75vw,19px);
+    font-weight:750;
+    line-height:1.2;
+  }
+}
+@media(min-width:1101px){
+  .feature-body{min-height:clamp(168px,8.2vw,210px)}
+}
+@media(min-width:1021px) and (max-width:1300px){
+  .feature-body{padding-inline:14px;column-gap:8px;grid-template-columns:minmax(0,1fr) 32px}
+  .feature-title{font-size:18px}
+  .feature-arrow{width:32px;height:32px;font-size:23px}
+  .feature-cta{min-width:150px;padding-inline:16px}
+}
