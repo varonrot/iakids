@@ -2276,3 +2276,9 @@ body{overflow-x:clip}
  .mobile-tool-copy,.mobile-subject strong{overflow-wrap:anywhere}
  .mobile-bottom-nav{width:auto;max-width:100%;min-width:0}
 }
+
+/* Lightweight illustrations composed for the mobile cards. */
+@media(max-width:720px){
+ .mobile-tool-art{border-radius:0;overflow:visible}
+ .mobile-tool-art img{width:100%;height:100%;object-fit:contain;object-position:center}
+}
