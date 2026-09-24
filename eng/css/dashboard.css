@@ -2124,3 +2124,38 @@ img{max-width:100%;display:block}
   .continue-learning .resume-btn{gap:7px}
   .continue-learning .resume-btn svg{width:16px;height:16px;flex-basis:16px}
 }
+
+
+/* Readable top navigation, including wide screens at reduced browser zoom. */
+@media(min-width:1101px){
+  .topbar .brand-name{font-size:clamp(22px,1.12vw,28px)}
+  .topbar .brand-logo{width:42px;height:42px;flex-basis:42px}
+  .topbar .main-nav{margin-left:24px;gap:6px}
+  .topbar .nav-link{
+    font-size:clamp(16px,.85vw,21px);font-weight:650;
+    height:48px;padding:0 14px;gap:9px;
+  }
+  .topbar .nav-icon{width:21px;height:21px;flex-basis:21px}
+  .topbar .search-wrap{width:clamp(240px,17vw,390px)}
+  .topbar .search{height:44px;font-size:clamp(14px,.72vw,18px);padding-left:40px}
+  .topbar .search-wrap > svg{width:19px;height:19px}
+  .topbar .profile{gap:10px}
+  .topbar .profile-copy strong{font-size:clamp(14px,.75vw,18px)}
+  .topbar .profile-copy small{font-size:clamp(12px,.62vw,15px);margin-top:3px}
+  .topbar .avatar{width:42px;height:42px;font-size:14px}
+  .topbar .profile-chevron{font-size:18px}
+  .topbar .bell{width:42px;height:42px}
+  .topbar .bell svg{width:22px;height:22px}
+}
+@media(min-width:1101px) and (max-width:1550px){
+  .topbar .search-wrap{display:none}
+  .topbar .main-nav{margin-left:18px;gap:3px}
+  .topbar .nav-link{font-size:15px;padding-inline:9px;gap:7px}
+}
+@media(min-width:1101px) and (max-width:1250px){
+  .topbar .profile-copy{display:none}
+  .topbar .nav-link{padding-inline:7px;font-size:14px}
+}
+@media(max-width:1100px){
+  .topbar .main-nav.mobile-open .nav-link{font-size:16px;min-height:46px}
+}
