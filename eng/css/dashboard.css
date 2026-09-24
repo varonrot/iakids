@@ -2159,3 +2159,9 @@ img{max-width:100%;display:block}
 @media(max-width:1100px){
   .topbar .main-nav.mobile-open .nav-link{font-size:16px;min-height:46px}
 }
+
+
+/* Anchor hero artwork at the top so wide banners preserve the girl's head. */
+@media(min-width:721px){
+  .hero-photo{object-position:center top}
+}
