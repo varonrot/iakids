@@ -2301,3 +2301,17 @@ body{overflow-x:clip}
  .mobile-bottom-nav a:focus-visible{outline:2px solid #0a9eaa;outline-offset:-2px;border-radius:9px}
  body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 }
+
+/* Small laptops: size each section by its content, not equal-height grid tracks. */
+@media(min-width:1101px) and (max-width:1400px){
+ .page-shell{display:block}
+ .feature-grid{align-items:stretch}
+ .feature-media{height:clamp(150px,12vw,168px);min-height:0;flex:0 0 clamp(150px,12vw,168px)}
+ .feature-body{flex:1 0 auto;min-height:168px}
+ .hero .stat-card{grid-template-columns:36px minmax(0,1fr);gap:7px;padding:8px;min-height:66px}
+ .hero .stat-icon{width:36px;height:36px}
+ .hero .stat-icon svg{width:26px;height:26px}
+ .hero .stat-bars{display:none}
+ .hero .stat-copy strong{font-size:17px;white-space:nowrap}
+ .hero .stat-copy small{font-size:10px;line-height:1.3}
+}

@@ -4,6 +4,13 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — Small-laptop dashboard card stretching
+- **Symptom**: at 1280px, feature artwork became very tall and summary labels wrapped excessively.
+- **Cause**: equal fractional page grid rows inherited the height of a multi-row lower dashboard; feature media flex-grow consumed the excess. Summary icons and bars left too little text space.
+- **Fix**: content-sized page flow at 1101–1400px, bounded 150–168px feature media, and compact summary icons without decorative bars at that breakpoint.
+- **Verification**: inspected responsive cascade and measured live card layout; post-deploy browser check follows.
+- **Build**: English laptop-layout-20260924; Hebrew workspace unchanged.
+
 ### 2026-09-24 — English leaf favicon
 - **Symptom**: English pages did not declare the requested leaf browser-tab icon.
 - **Fix**: declare the existing transparent IA KIDS leaf PNG as the favicon on the dashboard and Homework Help, with relative paths compatible with /eng/.
