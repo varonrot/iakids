@@ -4,6 +4,13 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — English Test Prep entry popup
+- **Symptom**: Start prep, its arrow, and navigation/mobile Test Prep links led to a missing page.
+- **Cause**: the English Test Prep entry flow had not been implemented.
+- **Fix**: shared native dialog with a dedicated optimized photographic banner, three accessible action cards, responsive full-screen mobile layout, Escape/backdrop/Cancel dismissal, focus return and background scroll lock. Connected dashboard and Homework header; added a direct-route fallback. File selection supports local image preview and 20 MB/type validation; topic text is retained only for the current page. AI analysis, suggested topics and plan generation remain explicitly unavailable; no uploads or invented results.
+- **Verification**: JavaScript syntax check; checked scoped styles, imports, safe text rendering and object-URL cleanup. Live browser smoke check follows deployment.
+- **Build**: English prep-modal-20260924; no Hebrew/Spanish changes.
+
 ### 2026-09-24 — Complete Hebrew gifted-tests content cluster
 - **Need**: one sample post lacked a complete linked topic cluster.
 - **Change**: add 11 pages (hub plus 10 supporting articles), integrate the existing grade-2 article, add the cluster to the Hebrew blog, add two optimised hero assets, and GA4 interaction events on all 12 cluster pages.
