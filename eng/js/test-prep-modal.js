@@ -109,11 +109,13 @@
       event.stopImmediatePropagation();
       document.querySelector('.main-nav')?.classList.remove('mobile-open');
       document.getElementById('mobileMenu')?.setAttribute('aria-expanded','false');
-      open(trigger);
+      window.IAKidsAuth?.requireChild(() => open(trigger), trigger);
     }
   }, true);
+  window.IAKidsTestPrep = { open };
+  window.dispatchEvent(new Event('iakids:prep-ready'));
   if (location.hash === '#test-prep') {
-    open(document.querySelector('a[href="./test-prep/"]'));
+    window.IAKidsAuth?.requireChild(() => open(document.querySelector('a[href="./test-prep/"]')));
     history.replaceState(null, '', location.pathname + location.search);
   }
 })();

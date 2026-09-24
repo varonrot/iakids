@@ -2,6 +2,15 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+
+## 2026-09-24 — English Google parent sign-in (eng-auth-1)
+
+- Need: Start prep should open parent Google sign-in before selecting or uploading study material.
+- Change: responsive parent dialog with Google only, isolated PKCE session, pending-action restoration, existing authenticated kid-list/create APIs, profile selection and first-time name/grade form. The current tutor API uses its legacy age field for grade 1–6. No browser database queries or backend/schema changes.
+- UI: parent profile button, real child names rendered as text, sample Emma/statistics/activity hidden. Auth errors and cancellation do not open Test Prep; close restores focus and scrolling.
+- Verification: node syntax and diff checks; DOM harness passed unauthenticated gating, OAuth configuration, existing child, cross-account selection isolation, new profile, name escaping, API error, direct-link entry, callback resume/cancellation and scroll restoration. Google provider is enabled and authorize returns 302 to accounts.google.com; kid-list without bearer returns 401. Full Google callback with a real account still requires live user verification.
+- Build: English eng-auth-1; shared Hebrew/Spanish screens unchanged. Supabase browser SDK vendored at 2.57.4 from official jsDelivr package distribution.
+
 ## 2026-09-24 — Hebrew school test preparation SEO cluster
 
 - Need: expand Hebrew SEO coverage from gifted testing to ordinary elementary school test preparation.
