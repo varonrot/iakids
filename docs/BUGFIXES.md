@@ -4,6 +4,15 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — checks: a real teacher and real photos instead of icons; a "working" sign while questions load (build 0.7.146)
+- **User request**: a realistic teacher, not an icon ("המורה מכינה שאלות על שברים…" showed 👩‍🏫), and free photos wherever the checks used icons. Before that: "nothing happens, no sign anything is running".
+- **Teacher**: every check screen shows our own lesson teacher (`assets/diagnostics/teacher.webp`, a round crop of `assets/lesson/lesson-teacher.webp`, 11 KB) through `C.teacher()`. The child meets the same teacher as in the lessons.
+- **Waiting**: `C.busy()` shows the teacher, what she is doing ("זה לוקח כחצי דקה" for exam prep) and moving dots. It is used in comprehension, dictation, exam prep and gifted while the server prepares questions, and respects reduced motion.
+- **Photos**: the six hub cards and the end screen use Pexels photos (Pexels License: free for commercial use, no attribution needed): 640×400 WebP, 12–26 KB each. The source, photographer and license for each are in `assets/diagnostics/CREDITS.md`.
+- **Kept as symbols**: 🔊 on the play buttons, ✓ on the keypad and ⚙️ inside the "machine" figure are controls or part of the question.
+- **Gate**: the teacher image must exist and be the one the shell uses; no page may put an emoji in `.ck-teacher`; every `/assets/diagnostics/…` image a page shows must exist. Negative-tested: an emoji teacher fails, and the missing photos failed before they were copied in.
+- **Verified**: headless Chromium, with the hub photos and the exam-prep loading screen (teacher plus dots) screenshotted and checked. There were zero console errors, and `prompt_gate --all` passes.
+
 ### 2026-09-24 — Small-laptop dashboard card stretching
 - **Symptom**: at 1280px, feature artwork became very tall and summary labels wrapped excessively.
 - **Cause**: equal fractional page grid rows inherited the height of a multi-row lower dashboard; feature media flex-grow consumed the excess. Summary icons and bars left too little text space.

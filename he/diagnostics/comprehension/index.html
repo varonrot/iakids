@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07145">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07146">
 <!--
   Comprehension check (2026-09-24), on the shared shell. Grades א–ב: listening (the text is read
   aloud); ג–ו: reading. Six questions across the Ministry's four dimensions (איתור מידע, יצירת היסקים,
@@ -32,7 +32,7 @@
   <div class="ck-path" id="path"></div>
   <div id="app"></div>
 </main>
-<script src="/he/diagnostics/check-shell.js?v=07145"></script>
+<script src="/he/diagnostics/check-shell.js?v=07146"></script>
 <script>
 (function(){
   var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
@@ -64,6 +64,7 @@
       onStart: function(){
         var on = document.querySelector("#gradePick .on"), grade = on ? on.dataset.g : g;
         if (kid.id === "local"){ C.signedOut($app); return; }
+        C.busy($app, "המורה מכינה את הבדיקה…");
         C.api("/api/tutor/checks/comprehension/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade)).then(function(first){
           var form = nextForm(grade, first.forms || []);
           return C.api("/api/tutor/checks/comprehension/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade) + "&form=" + encodeURIComponent(form));
@@ -84,7 +85,7 @@
   function showText(){
     var listening = set.mode === "listening";
     $app.innerHTML = "<section class='ck-card " + (listening ? "ck-child" : "") + "'>" +
-      (listening ? "<div class='ck-teacher'>🎧</div><p class='ck-say'>" + C.esc(set.title || "סיפור קצר") + "</p>" +
+      (listening ? C.teacher() + "<p class='ck-say'>" + C.esc(set.title || "סיפור קצר") + "</p>" +
                    "<div class='ck-row'><button class='ck-btn ck-primary' type='button' id='play'>🔊 להשמיע את הסיפור</button></div>" +
                    "<details class='parent-read'><summary>להורה: אם לא נשמע קול, קראו אתם את הסיפור בקול</summary><div class='text'>" + C.esc(set.text) + "</div></details>"
                  : "<h1>" + C.esc(set.title || "קטע קריאה") + "</h1><div class='text'>" + C.esc(set.text) + "</div>") +

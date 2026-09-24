@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07145">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07146">
 <!--
   Dictation check (2026-09-24), on the shared shell. Each word is read aloud inside a sentence; grades
   א–ב build it from letter tiles (typing would test the keyboard, not spelling), ג–ו type it. The server
@@ -31,7 +31,7 @@
   <div class="ck-path" id="path"></div>
   <div id="app"></div>
 </main>
-<script src="/he/diagnostics/check-shell.js?v=07145"></script>
+<script src="/he/diagnostics/check-shell.js?v=07146"></script>
 <script>
 (function(){
   var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
@@ -58,6 +58,7 @@
       onStart: function(){
         var on = document.querySelector("#gradePick .on"), grade = on ? on.dataset.g : g;
         if (kid.id === "local"){ C.signedOut($app); return; }
+        C.busy($app, "המורה מכינה את הבדיקה…");
         C.api("/api/tutor/checks/dictation/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade)).then(function(first){
           return C.api("/api/tutor/checks/dictation/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade) + "&form=" + encodeURIComponent(nextForm(grade, first.forms || [])));
         }).then(function(res){

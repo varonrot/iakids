@@ -155,10 +155,18 @@
     root.querySelector("[data-go]").addEventListener("click", function(){ opts.onStart && opts.onStart(root); });
   }
 
+  // The same teacher the child meets in the lessons (a photo-real image we own), never an icon.
+  function teacher(){ return "<img class='ck-teacher' src='/assets/diagnostics/teacher.webp' alt='המורה' width='112' height='112'>"; }
+  // Waiting on the server: the teacher, what she is doing, and moving dots so the child sees it is working.
+  function busy(root, text){
+    root.innerHTML = "<section class='ck-card ck-child ck-busy'>" + teacher() + "<p class='ck-say'>" + esc(text) +
+      "</p><div class='ck-dots' aria-label='טוען'><span></span><span></span><span></span></div></section>";
+  }
+
   function childIntro(root, text, onNext){
     root.innerHTML =
       "<section class='ck-card ck-child'>" +
-        "<div class='ck-teacher'>👩‍🏫</div>" +
+        teacher() +
         "<p class='ck-say'>" + esc(text) + "</p>" +
         "<div class='ck-row'><button class='ck-btn' type='button' data-replay>🔊 שוב</button>" +
         "<button class='ck-btn ck-primary' type='button' data-next>מוכנים</button></div>" +
@@ -173,7 +181,7 @@
     var line = opts.effortLine || "עבדת יפה עד הסוף!";
     root.innerHTML =
       "<section class='ck-card ck-child ck-end'>" +
-        "<div class='ck-star'>🌟</div>" +
+        "<img class='ck-star' src='/assets/diagnostics/done.webp' alt='' width='640' height='400'>" +
         "<h1>" + esc(line) + "</h1>" +
         (opts.strategyLine ? "<p class='ck-say'>" + esc(opts.strategyLine) + "</p>" : "") +
         "<div class='ck-row'>" +
@@ -221,6 +229,7 @@
   }
 
   window.IAKidsCheck = {
+    teacher: teacher, busy: busy,
     gradeLetter: gradeLetter,
     api: api, signedOut: signedOut,
     NOT_DIAGNOSIS: NOT_DIAGNOSIS, esc: esc, currentKid: currentKid, store: store, speak: speak, chime: chime,

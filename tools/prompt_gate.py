@@ -582,6 +582,16 @@ def diagnostics_checks() -> list:
     if ("window.IAKIDS_CHECK_BRIDGE = {" not in ws or 'return typeof CURRENT_KID !== "undefined" ? CURRENT_KID : null;' not in ws
             or "sb.auth.getSession()" not in ws):
         bad.append("he/workspace/index.html lost IAKIDS_CHECK_BRIDGE: CURRENT_KID and sb are let/const, so every check in the frame shows 'צריך להיכנס מתוך סביבת הלמידה' (2026-09-24)")
+    # 2026-09-24 (user): the teacher is a real image, never an emoji icon
+    if "/assets/diagnostics/teacher.webp" not in (shell.read_text(encoding="utf-8") if shell.exists() else "") or not (ROOT / "assets" / "diagnostics" / "teacher.webp").exists():
+        bad.append("check shell: the teacher image is gone: the child sees an emoji icon instead of the teacher (2026-09-24)")
+    for f in [shell, DIAGNOSTICS / "index.html"] + sorted(DIAGNOSTICS.glob("*/index.html")):
+        for img in set(re.findall(r"/assets/diagnostics/[\w.-]+", f.read_text(encoding="utf-8") if f.exists() else "")):
+            if not (ROOT / img.lstrip("/")).exists():
+                bad.append(f"{_rel(f)}: shows {img}, which does not exist: a broken image on the card (2026-09-24)")
+    for f in [shell] + sorted(DIAGNOSTICS.glob("*/index.html")):
+        if f.exists() and re.search(r"ck-teacher'>[^<]", f.read_text(encoding="utf-8")):
+            bad.append(f"{_rel(f)}: the teacher is an emoji icon again: use C.teacher() (2026-09-24)")
     bm = re.search(r'IAKIDS_BUILD_VERSION = "0\.7\.(\d+)"', ws)
     want = f"check-shell.js?v=07{bm.group(1)}" if bm else None
     for f in [DIAGNOSTICS / "index.html"] + sorted(DIAGNOSTICS.glob("*/index.html")):

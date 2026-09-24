@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07145">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07146">
 <!--
   בדיקות ומעקב (2026-09-24, from the diagnostics research). Named "בדיקות", not "אבחונים": to Israeli
   parents "אבחון" means a formal learning-disability evaluation, and "מבחן" means an exam.
@@ -36,7 +36,7 @@ h2.section{font-size:19px;margin:22px 0 4px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .card{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;color:var(--text);text-decoration:none;min-height:180px}
 a.card:hover{border-color:var(--cyan)}
-.icon{font-size:30px}
+.photo{display:block;width:calc(100% + 36px);height:auto;margin:-18px -18px 6px;aspect-ratio:16/10;object-fit:cover;border-radius:18px 18px 0 0;background:var(--panel2)}
 .card h3{font-size:18px;margin:0}
 .card p{color:var(--muted);font-size:14px;line-height:1.55;margin:0;flex:1}
 .meta{display:flex;flex-wrap:wrap;gap:6px}
@@ -64,28 +64,28 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
   <p class="section-note">3–10 דקות, יחד עם הורה. הילד לא רואה ציון או שעון.</p>
   <div class="grid">
     <a class="card" href="/he/diagnostics/fluency/">
-      <span class="icon">📖</span>
+      <img class="photo" src="/assets/diagnostics/fluency.webp" alt="ילד קורא בקול" loading="lazy" width="640" height="400">
       <h3>בדיקת שטף קריאה</h3>
       <p>רשימת מילים מנוקדות וסיפור קצר, כמו בבדיקה שבית הספר עושה. ההורה מקשיב ומסמן.</p>
       <div class="meta"><span>כיתות ב–ג</span><span>כ־5 דקות</span><span>עם הורה</span><span>בלי מיקרופון</span></div>
       <span class="tag live">פעיל</span>
     </a>
     <a class="card" href="/he/diagnostics/math/">
-      <span class="icon">🔢</span>
+      <img class="photo" src="/assets/diagnostics/math.webp" alt="ילד פותר תרגילי חשבון" loading="lazy" width="640" height="400">
       <h3>בדיקת חשבון בעל פה</h3>
       <p>תרגילים קצרים לפי מה שנלמד בכיתה: מספרים, חיבור וחיסור, לוח הכפל, חלק של כמות ואחוזים. מתחילים מעט מתחת לרמת הכיתה.</p>
       <div class="meta"><span>כיתות א–ו</span><span>כ־5–8 דקות</span><span>עם הורה</span><span>בלי מיקרופון</span></div>
       <span class="tag live">פעיל</span>
     </a>
     <a class="card" href="/he/diagnostics/comprehension/">
-      <span class="icon">🧠</span>
+      <img class="photo" src="/assets/diagnostics/comprehension.webp" alt="ילד קורא ספר" loading="lazy" width="640" height="400">
       <h3>בדיקת הבנה</h3>
       <p>הבנת הנשמע בכיתות א–ב והבנת הנקרא בכיתות ג–ו: איתור מידע, היסק, פירוש והערכה.</p>
       <div class="meta"><span>כיתות א–ו</span><span>כ־8 דקות</span><span>עם הורה</span></div>
       <span class="tag live">פעיל</span>
     </a>
     <a class="card" href="/he/diagnostics/dictation/">
-      <span class="icon">✏️</span>
+      <img class="photo" src="/assets/diagnostics/dictation.webp" alt="ילד כותב במחברת" loading="lazy" width="640" height="400">
       <h3>בדיקת הכתבה וכתיב</h3>
       <p>המורה מקריאה מילים, והילד כותב או מרכיב מאותיות. אותיות שנשמעות אותו דבר, סופיות וכתיב מלא.</p>
       <div class="meta"><span>כיתות א–ו</span><span>כ־6 דקות</span><span>עם הורה</span></div>
@@ -97,14 +97,14 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
   <p class="section-note">תרגול בלבד. לא נכנס לדוח ולא למעקב.</p>
   <div class="grid">
     <a class="card" href="/he/diagnostics/exam/">
-      <span class="icon">🎯</span>
+      <img class="photo" src="/assets/diagnostics/exam.webp" alt="ילד לומד לקראת מבחן" loading="lazy" width="640" height="400">
       <h3>הכנה למבחן בכיתה</h3>
       <p>תרגול לפי המקצוע והנושא של המבחן, עם שאלות בסגנון המבחן והסבר על כל תשובה.</p>
       <div class="meta"><span>כיתות א–ו</span><span>8 שאלות</span></div>
       <span class="tag live">פעיל</span>
     </a>
     <a class="card" href="/he/diagnostics/gifted/">
-      <span class="icon">💡</span>
+      <img class="photo" src="/assets/diagnostics/gifted.webp" alt="ילד פותר חידה" loading="lazy" width="640" height="400">
       <h3>היכרות עם מבחן האיתור (מחוננים)</h3>
       <p>היכרות עם סוגי השאלות, בשאלות מקוריות שלנו. משרד החינוך מציין שאין צורך בהכנה למבחן, ולכן זו היכרות בלבד, בלי ציון.</p>
       <div class="meta"><span>כיתות ב–ג</span><span>5 סוגי שאלות</span></div>
@@ -120,7 +120,7 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
     <p class="ck-note"><a href="/he/diagnostics/reading-fluency/" style="color:var(--muted)">לצוות: בדיקת הדיוק של זיהוי הקול</a></p>
   </details>
 </main>
-<script src="/he/diagnostics/check-shell.js?v=07145"></script>
+<script src="/he/diagnostics/check-shell.js?v=07146"></script>
 <script>
 (function(){
   // Parent strip: only after a first check. Per skill: last date, a one-word state, next check date.

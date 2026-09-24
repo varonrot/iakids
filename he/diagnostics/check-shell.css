@@ -19,11 +19,16 @@ main{max-width:980px;margin:0 auto;padding:18px 16px 60px}
 .ck-primary{background:linear-gradient(90deg,var(--cyan),var(--purple));color:#02101f;border:0}
 .ck-link{font:inherit;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:6px 0}
 .ck-child{text-align:center}
-.ck-teacher{font-size:64px}
+.ck-teacher{width:112px;height:112px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 8px;box-shadow:0 0 0 4px rgba(40,215,255,.25),0 10px 30px rgba(0,0,0,.35)}
+.ck-dots{display:flex;gap:8px;justify-content:center;margin:10px 0}
+.ck-dots span{width:12px;height:12px;border-radius:50%;background:var(--cyan);animation:ckdot 1.2s infinite ease-in-out}
+.ck-dots span:nth-child(2){animation-delay:.2s}.ck-dots span:nth-child(3){animation-delay:.4s}
+@keyframes ckdot{0%,80%,100%{transform:scale(.5);opacity:.35}40%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.ck-dots span{animation:none;opacity:.7}}
 .ck-say{font-size:22px;line-height:1.7;margin:8px auto;max-width:640px}
 .ck-child .ck-btn{min-height:76px;min-width:150px;font-size:20px}
 .ck-child .ck-row{justify-content:center}
-.ck-end .ck-star{font-size:76px}
+.ck-end .ck-star{display:block;width:min(320px,100%);height:auto;aspect-ratio:16/10;object-fit:cover;border-radius:18px;margin:0 auto 10px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .ck-path{display:flex;gap:6px;justify-content:center;margin:6px 0 12px}
 .ck-dot{width:14px;height:14px;border-radius:50%;background:#1b355c;display:inline-block}
 .ck-dot.on{background:var(--green)}
