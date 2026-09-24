@@ -3,6 +3,16 @@
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
 
+## 2026-09-24 — Restore English dashboard sections (eng-dashboard-2)
+
+- Symptom: summary cards, Continue Learning, Recent Progress and the mobile goal disappeared after the authentication release.
+- Cause: parent-auth.js explicitly hid all four sections to remove demo data.
+- Fix: preserve the dashboard layout, replace fabricated scores/activity/lesson progress with honest unavailable and starter states, and route the starter CTA through the existing Test Prep sign-in flow.
+- Verification: syntax and DOM checks for section visibility, removal of fabricated metrics, and Test Prep CTA destination.
+- Workflow: per user instruction, CLAUDE.md now treats requested fixes as authorization to commit, push and deploy after verification, without a separate shipping confirmation.
+- Build: eng-dashboard-2, English frontend only; Hebrew workspace build unchanged.
+
+
 ## 2026-09-24 — Hebrew reading comprehension SEO cluster
 
 - Need: dedicated reading comprehension coverage beyond the existing test-preparation article.

@@ -96,13 +96,12 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - When the last part finishes, `kid_lesson_progress` is written `status="completed"`, `completed_at`, `progress_percent=100`, `xp_earned`, `stars_earned` — the columns the child's and the parent's dashboards already read. Never leave it `in_progress`.
 - The completion card shows **one** primary next-lesson button plus the unit grid, and its score comes from the progress row, not from the on-screen gauge.
 
-## Rule: nothing ships without a word from the user (reaffirmed 2026-09-17)
+## Shipping requested changes (updated 2026-09-24)
 
-- **No `git commit`, no `git push`, no `tools/deploy_tutor.sh`** until the user says so, each time. Making the change is not permission to ship it.
-- Work locally, run the gate, and then **show what changed and stop**: the file list, what each change does, and what it would do to production. The user decides.
-- This covers anything that reaches production or another person: a deploy, a migration run against prod ([[prod-migrations-need-approval]]), an email, a published page.
-- A green gate is evidence, not consent. "It passed" is a reason to offer the change, not to ship it.
-- The reason is the user's, and it is a good one: too much changed too fast today. Slow is fine.
+- A user request to fix or implement a change authorizes the necessary commit, push and deployment after appropriate verification. Do not ask for a separate approval for each shipping step.
+- Respect explicit requests to work locally, prepare a preview or avoid publishing.
+- Preserve unrelated work and report what shipped and how it was verified.
+- Destructive operations, production SQL and messages to other people retain their separate authorization requirements.
 
 ## Performance and cost
 

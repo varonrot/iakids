@@ -164,8 +164,6 @@
   profile.addEventListener('click', () => requireChild(null, profile, true));
   profile.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); requireChild(null, profile, true); } });
   paintProfile(null);
-  // Sample learning metrics are not account data.
-  document.querySelectorAll('.stats-grid,.continue-learning,.recent-progress,.mobile-daily-goal').forEach(el => { el.hidden = true; el.style.display = 'none'; });
   window.addEventListener('pageshow', () => { busy = false; const b = dialog.querySelector('.google-signin'); b.disabled = false; b.querySelector('span').textContent = 'Continue with Google'; });
   sb?.auth.onAuthStateChange(event => {
     if (event === 'SIGNED_OUT') { generation++; storage.remove(childKey); paintProfile(null); if (dialog.open) show('login'); }
