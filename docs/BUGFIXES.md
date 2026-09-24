@@ -4,6 +4,13 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — Tablet lower panels left an empty column
+- **Symptom**: at 1180px, Continue Learning and My Subjects used only two-thirds of the row, with cramped text and a blank third column.
+- **Cause**: desktop three-column override combined with the <=1280 full-row Recent Progress placement.
+- **Fix**: explicitly use two flexible columns at 1101–1280px; keep Recent Progress across the full next row with a two-column activity list and natural height.
+- **Verification**: checked the conflicting media rules and final override; cache key updated on both English pages.
+- **Build**: English tablet-panels-20260924; Hebrew workspace unchanged.
+
 ### 2026-09-24 — checks: a real teacher and real photos instead of icons; a "working" sign while questions load (build 0.7.146)
 - **User request**: a realistic teacher, not an icon ("המורה מכינה שאלות על שברים…" showed 👩‍🏫), and free photos wherever the checks used icons. Before that: "nothing happens, no sign anything is running".
 - **Teacher**: every check screen shows our own lesson teacher (`assets/diagnostics/teacher.webp`, a round crop of `assets/lesson/lesson-teacher.webp`, 11 KB) through `C.teacher()`. The child meets the same teacher as in the lessons.
