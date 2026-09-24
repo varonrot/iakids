@@ -2282,3 +2282,22 @@ body{overflow-x:clip}
  .mobile-tool-art{border-radius:0;overflow:visible}
  .mobile-tool-art img{width:100%;height:100%;object-fit:contain;object-position:center}
 }
+
+/* Mobile tab bar: consistent vector icons and a native safe-area inset. */
+@media(max-width:720px){
+ .mobile-bottom-nav{
+  height:calc(64px + env(safe-area-inset-bottom,0px));
+  padding:5px 10px calc(5px + env(safe-area-inset-bottom,0px));
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  background:rgba(255,255,255,.97);border-top:1px solid #e3eff1;
+  box-shadow:0 -4px 18px rgba(23,77,94,.04);
+ }
+ .mobile-bottom-nav a{min-width:0;min-height:48px;gap:5px;color:#718ba2;text-decoration:none;-webkit-tap-highlight-color:transparent}
+ .mobile-bottom-nav a svg{display:block;flex:none;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+ .mobile-bottom-nav a .bottom-nav-label{font-family:Inter,Arial,sans-serif;font-size:10px;line-height:1.2;font-weight:600;white-space:nowrap}
+ .mobile-bottom-nav a.active{color:#087e97}
+ .mobile-bottom-nav .home-fill{fill:currentColor;stroke-width:1}
+ .mobile-bottom-nav a.active .bottom-nav-label{font-weight:750}
+ .mobile-bottom-nav a:focus-visible{outline:2px solid #0a9eaa;outline-offset:-2px;border-radius:9px}
+ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+}
