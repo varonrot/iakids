@@ -2,6 +2,14 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-24 — English Test Prep mobile layout (prep-mobile-20260924)
+
+- Symptom: the mobile banner shrank into a corner, cards felt compact, and Cancel sat beside the footer note with excess empty space below.
+- Cause: the mobile image used contain/auto height and the desktop footer stayed horizontal.
+- Fix: use a full-height cover image with a left readability gradient, larger stacked cards, a flexible full-screen content area, centered footer note, and a full-width Cancel button. Narrow-phone and safe-area spacing remain responsive. Only English modal CSS and its cache version changed.
+- Verification: CSS parser passed, both English entry points reference the new stylesheet version; desktop declarations preserved. Phone visual verification remains required; no mobile viewport control is exposed in the connected browser.
+- Build: English CSS cache version prep-mobile-20260924; Hebrew workspace unchanged.
+
 ## 2026-09-24
 
 ### 2026-09-24 — English Test Prep entry popup
