@@ -135,6 +135,10 @@ REQUIRED = {
     "homework/subjects/science.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
     "homework/subjects/history.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
     "homework/subjects/geography.txt": {"placeholders": [], "sections": SUBJECT_MODULE_SECTIONS},
+    # הכנה למבחן בכיתה (2026-09-24): a practice set for the child's grade; answers stay on the server
+    "homework/iakids_exam_practice_prompt.txt": {"placeholders": [], "sections": [
+        "STAY INSIDE WHAT THE GRADE HAS LEARNED", "Never a concept from a later grade", "exactly one correct answer",
+        "Compute every number twice", "Never write slash forms", '"why_wrong"', "topic_used"]},
     "iakids_visual_director_prompt.txt": {"placeholders": [], "sections": ["NO TEXT INSIDE IMAGES", "READING DIRECTION", "CHILD SAFETY", "IMAGE COUNT IS DYNAMIC", "reuse_previous"]},
 }
 FEMALE_VOICES = {"Aoede", "Kore", "Leda", "Zephyr", "Autonoe", "Callirrhoe", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Sulafat", "Vindemiatrix"}
@@ -475,6 +479,27 @@ def _rel(path) -> str:
         return str(path)
 
 
+_MATH_TESTS = r"""
+const bad=[];
+function arith(show){ const m=show.match(/^(\d+) ([+−×:]) (\d+) = \?$/);
+  if(!m){ const x=show.match(/^(\d+) ([+−]) \? = (\d+)$/); if(x){ const a=+x[1],c=+x[3]; return x[2]==='+'?c-a:a-c; }
+          const p=show.match(/^(\d+)% × (\d+) = \?$/); if(p) return (+p[1])*(+p[2])/100; return null; }
+  const a=+m[1],b=+m[3]; return m[2]==='+'?a+b:m[2]==='−'?a-b:m[2]==='×'?a*b:(a%b===0?a/b:NaN); }
+const FR={'½':1/2,'¼':1/4,'⅓':1/3,'⅕':1/5,'¾':3/4,'⅔':2/3};
+for(const [key,st] of Object.entries(STRANDS)) st.levels.forEach((L,i)=>{ for(let k=0;k<400;k++){ const it=L.make();
+  if(!Number.isInteger(it.answer)||it.answer<0){bad.push(key+" L"+(i+1)+": answer not a whole number "+JSON.stringify(it));break;}
+  const a=arith(it.show); if(a!==null && a!==it.answer){bad.push(key+" L"+(i+1)+": "+it.show+" answer "+it.answer);break;}
+  const f=it.show.match(/^([½¼⅓⅕¾⅔]) × (\d+) = \?$/); if(f && Math.abs(FR[f[1]]*+f[2]-it.answer)>1e-9){bad.push(key+" fraction wrong "+it.show+" "+it.answer);break;}
+  if(key==="numbers"&&i===4&&(Math.abs(+it.say.match(/\d+/)[0]-it.answer)>5)){bad.push("rounding wrong "+it.say+" "+it.answer);break;}
+  if(!/[א-ת]/.test(it.say)){bad.push(key+" L"+(i+1)+": no spoken Hebrew");break;}
+}});
+for(const [g,plan] of Object.entries(GRADE_PLAN)) for(const [k,e] of Object.entries(plan)) if(!STRANDS[k]||e<1||e>STRANDS[k].levels.length) bad.push("grade "+g+" expects a level that does not exist: "+k+" "+e);
+if(GRADE_PLAN["א"].muldiv||GRADE_PLAN["ג"].fractions) bad.push("a strand is offered before its grade (no × in א, no fractions before ד)");
+console.log(bad.length?bad.join("\n"):"MATH_OK");
+
+"""
+
+
 _SHELL_TESTS = r"""
 const C=window.IAKidsCheck, bad=[];
 if(!C.shouldStop([true,false,false,false])) bad.push("3 misses in a row did not stop the strand");
@@ -529,14 +554,16 @@ def diagnostics_checks() -> list:
         for term in CLINICAL:
             if term in t:
                 bad.append(f"{rel}: says {term!r}: a check is not a diagnosis and never names a condition")
-        for needle in ("fetch(", "XMLHttpRequest", "supabase", ".from(", "sendBeacon", "WebSocket"):
-            if needle in t:
-                bad.append(f"{rel}: contains {needle!r}: checks keep results on the device until the privacy review is done")
+        for needle in ("fetch(", "XMLHttpRequest", "supabase.", ".from(", "sendBeacon", "WebSocket", "createClient("):
+            if needle in t and not (needle == "fetch(" and f.name == "check-shell.js"):
+                bad.append(f"{rel}: contains {needle!r}: checks talk only to our check routes, through check-shell.js api()")
     shell = DIAGNOSTICS / "check-shell.js"
     if not shell.exists():
         bad.append("he/diagnostics/check-shell.js is missing: every check runs on the shared shell")
     else:
         sh = shell.read_text(encoding="utf-8")
+        if sh.count("fetch(") != 1 or 'var API_PATHS = ["/api/tutor/checks/", "/api/tutor/exam-practice"];' not in sh:
+            bad.append("check shell: fetch must happen in one place, limited to the check routes (no other address, no database)")
         if "לא אבחון" not in sh or "ck-not-dx" not in sh:
             bad.append("check shell: the parent report lost the 'not a diagnosis' line")
         try:
@@ -551,6 +578,21 @@ def diagnostics_checks() -> list:
         t = f.read_text(encoding="utf-8")
         if f.parent.name != "reading-fluency" and "/he/diagnostics/check-shell.js" not in t:
             bad.append(f"{_rel(f)}: a check that does not run on the shared shell (parent gate, no score to the child, report)")
+    # a check that generates its own items: every level, many times, answers checked independently
+    mpage = DIAGNOSTICS / "math" / "index.html"
+    if mpage.exists():
+        mt = mpage.read_text(encoding="utf-8")
+        if "MATH-START" not in mt or "MATH-END" not in mt:
+            bad.append("math check lost its MATH-START/MATH-END markers: its exercises are no longer verified")
+        else:
+            try:
+                r = subprocess.run(["node", "-e", mt[mt.index("// MATH-START"):mt.index("// MATH-END")] + _MATH_TESTS],
+                                   capture_output=True, text=True, timeout=60)
+                out = (r.stdout or r.stderr).strip()
+                if r.returncode != 0 or out != "MATH_OK":
+                    bad += ["math check: " + l for l in out.splitlines()[:5]]
+            except FileNotFoundError:
+                print("note: node not installed, math check tests skipped")
     hub_src = (DIAGNOSTICS / "index.html").read_text(encoding="utf-8") if (DIAGNOSTICS / "index.html").exists() else ""
     a, b = hub_src.find('<h2 class="section">בדיקות קצרות</h2>'), hub_src.find('<h2 class="section">תרגול לקראת')
     if a < 0 or b < 0 or a > b or "<title>בדיקות ומעקב</title>" not in hub_src:
@@ -602,7 +644,7 @@ def security_checks(main_src: str) -> list:
     for block in re.split(r"\n(?=(?:async )?def )", main_src):
         if not re.search(r"chat\.completions\.(?:create|parse)\(|responses\.create\(|generate_content\(", block):
             continue
-        if not re.search(r"\b(?:req|body)\.(?:message|answer|history|text|current_question|source_text)\b", block):
+        if not re.search(r"\b(?:req|body)\.(?:message|answer|history|text|current_question|source_text|topic|subject)\b", block):
             continue
         head = block.split("(", 1)[0].replace("async def", "").replace("def", "").strip()
         if head in ("tutor_tts",):
@@ -661,6 +703,68 @@ def topbar_stacking_checks() -> list:
                   and any(k in sel for k in ("-view", "dashboard", "world", "kingdom", "panel", "sidebar", "overlay"))]
         for sel, z in covers:
             bad.append(f"{rel}: {sel} is at z-index {z}, not below the top bar ({top_z}): the user menu opens behind it")
+    return bad
+
+
+CHECK_BANK_DIR = ROOT / "backend-ai-tutor-he" / "data" / "checks"
+
+
+COMPREHENSION_DIMS = ("איתור מידע", "יצירת היסקים", "פירוש ואינטגרציה", "הערכה וביקורת")
+
+
+def check_bank_checks() -> list:
+    """בדיקות ומעקב question banks (2026-09-24): a wrong answer key is what parents catch first.
+    Every multiple-choice item has exactly 4 options, one answer in range and a why-wrong for each wrong
+    option; dictation tiles contain every letter of the word; ids are unique; no slash forms."""
+    import collections
+    bad = []
+    slash = re.compile(r"[א-ת]{2,}/[א-ת]{1,2}(?![א-ת])")
+    for f in sorted(CHECK_BANK_DIR.glob("*.json")) if CHECK_BANK_DIR.exists() else []:
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+        except Exception as e:
+            bad.append(f"{f.name}: not valid JSON ({e})"); continue
+        units = data.get("sections") if f.stem == "gifted" else data.get("forms")
+        if not units:
+            bad.append(f"{f.name}: no forms/sections"); continue
+        ids = []
+        for u in units:
+            items = u.get("questions") if f.stem == "comprehension" else u.get("items")
+            if not items:
+                bad.append(f"{f.name}: {u.get('id')} has no items"); continue
+            if f.stem == "comprehension":
+                if not str(u.get("text") or "").strip() or u.get("mode") not in ("listening", "reading"):
+                    bad.append(f"{f.name}: {u.get('id')} needs a text and mode listening/reading")
+                if u.get("grade") in ("א", "ב") and u.get("mode") != "listening":
+                    bad.append(f"{f.name}: {u.get('id')} is a reading check in grade {u.get('grade')}: it would test decoding, not understanding")
+            for it in items:
+                ids.append(it.get("id"))
+                txt = json.dumps(it, ensure_ascii=False)
+                if slash.search(txt):
+                    bad.append(f"{f.name}: {it.get('id')} has a slash form ({slash.search(txt).group(0)})")
+                if f.stem == "dictation":
+                    if not it.get("word") or not it.get("say") or not it.get("sentence"):
+                        bad.append(f"{f.name}: {it.get('id')} lacks word/say/sentence")
+                    if u.get("mode") == "tiles":
+                        need, have = collections.Counter(it.get("word") or ""), collections.Counter(it.get("tiles") or [])
+                        if any(have[ch] < n for ch, n in need.items()):
+                            bad.append(f"{f.name}: {it.get('id')} tiles cannot spell {it.get('word')!r}: the child could never answer right")
+                    continue
+                if f.stem == "comprehension" and it.get("dimension") not in COMPREHENSION_DIMS:
+                    bad.append(f"{f.name}: {it.get('id')} dimension {it.get('dimension')!r} is not one of the Ministry's four: the parent report cannot place it")
+                opts, ans = it.get("options"), it.get("answer")
+                if not isinstance(opts, list) or len(opts) != 4 or len(set(map(str, opts))) != 4:
+                    bad.append(f"{f.name}: {it.get('id')} needs 4 different options"); continue
+                if not isinstance(ans, int) or not 0 <= ans < 4:
+                    bad.append(f"{f.name}: {it.get('id')} answer index out of range"); continue
+                ww = {str(k) for k in (it.get("why_wrong") or {})}
+                if ww != {str(i) for i in range(4) if i != ans}:
+                    bad.append(f"{f.name}: {it.get('id')} why_wrong must cover exactly the 3 wrong options")
+                if not str(it.get("explain") or "").strip():
+                    bad.append(f"{f.name}: {it.get('id')} has no explanation")
+        dup = [k for k, n in collections.Counter(ids).items() if n > 1]
+        if dup:
+            bad.append(f"{f.name}: duplicate item ids {dup[:5]}")
     return bad
 
 
@@ -1208,6 +1312,11 @@ def code_rule_checks(main_src: str) -> list:
         ("planner_prompt = HOMEWORK_PLANNER_PROMPT + (", 1, "the teaching plan is built without the subject module (2026-09-23)"),
         ('.select("id, file_name, file_type, storage_path', 1, "הקבצים שלי reads homework_sessions again, whose file name is never filled: the child's uploads do not show (2026-09-24)"),
         ('signed_url_cached("homework-uploads"', 1, "הקבצים שלי no longer signs the uploaded files: the open button is dead (2026-09-24)"),
+        ("CHECK_PUBLIC_DROP = (\"answer\", \"explain\", \"why_wrong\", \"accept\", \"word\")", 1, "a check's answers or explanations would reach the browser before the child answers (2026-09-24)"),
+        ('if not k.startswith(CHECK_FIGURE_DROP)}', 1, "a gifted shape item would send its rule or formula to the browser: the answer is in the network tab (2026-09-24)"),
+        ('CHECK_FIGURE_DROP = ("rule", "formula")', 1, "a gifted shape item would send its rule or formula to the browser: the answer is in the network tab (2026-09-24)"),
+        ("if title_is_asked(pub[\"items\"]):", 1, "a comprehension check asks \"which title fits?\" with the story's title on the screen: the answer is given away (2026-09-24)"),
+        ('"questions": [{"q": q["q"], "options": q["options"]} for q in questions]', 1, "an exam-practice set would send its answers or explanations to the browser (2026-09-24)"),
         ("response_format=HomeworkPagePlan", 1, "the teaching plan is no longer a validated structure (2026-09-23)"),
         ("homework_response_leaks_source_answer(", 2, "homework help no longer checks its first reply for the answer: the child is handed the solution (2026-09-23)"),
     ]
@@ -1518,7 +1627,7 @@ def main():
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
-          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + security_checks(main_src) + required_entry_checks() + topbar_stacking_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
+          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + security_checks(main_src) + required_entry_checks() + check_bank_checks() + topbar_stacking_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()

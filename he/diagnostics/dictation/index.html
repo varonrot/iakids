@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>בדיקת הכתבה וכתיב</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css">
+<!--
+  Dictation check (2026-09-24), on the shared shell. Each word is read aloud inside a sentence; grades
+  א–ב build it from letter tiles (typing would test the keyboard, not spelling), ג–ו type it. The server
+  scores each word (accepted spellings stay on the server); the child never sees right/wrong.
+-->
+<style>
+.built{font-size:46px;font-weight:800;min-height:72px;border:2px solid var(--line);border-radius:16px;background:var(--panel2);max-width:420px;margin:8px auto;letter-spacing:4px}
+.tiles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
+.tiles button{font:inherit;font-size:34px;font-weight:800;min-width:76px;min-height:76px;border-radius:16px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer}
+.type{font:inherit;font-size:34px;text-align:center;direction:rtl;width:min(420px,100%);padding:10px;border-radius:16px;border:2px solid var(--line);background:var(--panel2);color:var(--text)}
+.thanks{font-size:22px;color:var(--green);min-height:30px}
+</style>
+</head>
+<body>
+<main>
+  <a class="ck-back" href="/he/diagnostics/">→ בדיקות ומעקב</a>
+  <div class="ck-path" id="path"></div>
+  <div id="app"></div>
+</main>
+<script src="/he/diagnostics/check-shell.js"></script>
+<script>
+(function(){
+  var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
+  var CHECK_ID = "dictation_v1";
+  var run = null, set = null, outcomes = [];
+
+  function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function nextForm(grade, forms){
+    var done = C.store.list(kid.id, CHECK_ID).filter(function(x){ return x.grade === grade && !x.partial; });
+    return forms.length ? forms[done.length % forms.length] : "A";
+  }
+
+  function start(){
+    C.progressPath(document.getElementById("path"), 1, 0);
+    var g = String(kid.grade || "").replace(/[^אבגדהו]/g, "") || "ב";
+    C.parentGate($app, {
+      title: "בדיקת הכתבה וכתיב",
+      what: "כתיבת מילים ששומעים: אותיות שנשמעות אותו דבר, אותיות סופיות, כתיב מלא ותחיליות, לפי מה שנלמד בכיתה.",
+      minutes: "כ־6 דקות", get: "אילו כללי כתיב כבר יציבים, מה כדאי לחזק ואיך לתרגל.",
+      needsMic: false,
+      extraHtml: "<p><b>כיתה:</b></p><div class='ck-choice' id='gradePick'>" + ["א","ב","ג","ד","ה","ו"].map(function(x){
+        return "<button type='button' data-g='" + x + "'" + (x === g ? " class='on'" : "") + ">" + x + "</button>"; }).join("") +
+        "</div><p class='ck-note'>המילים מוקראות בקול הדפדפן. אם לא נשמע קול, הקריאו אתם את המשפט והמילה שמופיעים אצלכם בתיבה \"להורה\".</p>",
+      onStart: function(){
+        var on = document.querySelector("#gradePick .on"), grade = on ? on.dataset.g : g;
+        if (kid.id === "local"){ C.signedOut($app); return; }
+        C.api("/api/tutor/checks/dictation/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade)).then(function(first){
+          return C.api("/api/tutor/checks/dictation/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade) + "&form=" + encodeURIComponent(nextForm(grade, first.forms || [])));
+        }).then(function(res){
+          set = res.units[0]; outcomes = [];
+          run = {grade: grade, form: set.form, unit: set.id, when: new Date().toISOString(), partial: true, results: []};
+          C.childIntro($app, "נשמע מילה בתוך משפט, ונכתוב רק את המילה. אין ציון, ומותר לשמוע שוב.", function(){ item(0); });
+        }).catch(function(e){ if (String(e.message) === "signed-out") C.signedOut($app); else $app.innerHTML = "<section class='ck-card'><p>לא הצלחתי לטעון את הבדיקה כרגע.</p></section>"; });
+      }
+    });
+    document.querySelectorAll("#gradePick button").forEach(function(b){
+      b.addEventListener("click", function(){ document.querySelectorAll("#gradePick button").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); });
+    });
+  }
+
+  function item(i){
+    var items = set.items;
+    if (i >= items.length || C.shouldStop(outcomes)){ finish(); return; }
+    C.progressPath(document.getElementById("path"), items.length, i);
+    var it = items[i], tiles = set.mode === "tiles", built = "";
+    var sayIt = function(){ C.speak(it.sentence + ". " + it.say); };
+    $app.innerHTML = "<section class='ck-card ck-child'>" +
+      "<div class='ck-row'><button class='ck-btn ck-primary' type='button' id='hear'>🔊 לשמוע</button></div>" +
+      (tiles ? "<div class='built' id='built'></div><div class='tiles' id='tiles'>" + shuffle(it.tiles || []).map(function(t){
+                  return "<button type='button' data-t='" + C.esc(t) + "'>" + C.esc(t) + "</button>"; }).join("") +
+               "</div><div class='ck-row'><button class='ck-btn' type='button' id='back'>⌫ מחיקה</button>"
+             : "<input class='type' id='typed' autocomplete='off' autocapitalize='off' spellcheck='false' maxlength='30' lang='he'><div class='ck-row'>") +
+      "<button class='ck-btn ck-primary' type='button' id='ok'>סיימתי את המילה</button></div>" +
+      "<details class='ck-note'><summary>להורה: המשפט והמילה</summary>" + C.esc(it.sentence) + " · <b>" + C.esc(it.say) + "</b></details>" +
+      "<div class='thanks' id='thanks'></div></section>";
+    sayIt();
+    document.getElementById("hear").addEventListener("click", sayIt);
+    if (tiles){
+      var box = document.getElementById("built");
+      document.getElementById("tiles").addEventListener("click", function(e){ var b = e.target.closest("button"); if (!b) return; built += b.dataset.t; box.textContent = built; });
+      document.getElementById("back").addEventListener("click", function(){ built = built.slice(0, -1); box.textContent = built; });
+    } else { setTimeout(function(){ var t = document.getElementById("typed"); if (t) t.focus(); }, 200); }
+    var sent = false;
+    document.getElementById("ok").addEventListener("click", function(){
+      if (sent) return;
+      var val = tiles ? built : (document.getElementById("typed").value || "").trim();
+      if (!val) return;
+      sent = true; document.getElementById("thanks").textContent = "תודה! ממשיכים";
+      var answers = {}; answers[it.id] = val;
+      C.api("/api/tutor/checks/score", {kid_id: kid.id, bank: "dictation", unit_id: set.id, answers: answers}).then(function(res){
+        var r = res.results[0] || {correct: false};
+        outcomes.push(!!r.correct); run.results.push(r);
+        item(i + 1);
+      }).catch(function(){ outcomes.push(false); run.results.push({id: it.id, correct: false, error: true}); item(i + 1); });
+    });
+  }
+
+  function finish(){
+    run.partial = false; run.correct = run.results.filter(function(r){ return r.correct; }).length; run.total = run.results.length;
+    C.store.save(kid.id, CHECK_ID, run);
+    C.childEnd($app, {effortLine: "כתבת " + run.total + " מילים!", strategyLine: "הקשבת לכל מילה עד הסוף. ככה בודקים איך כותבים.",
+      practiceHref: "/he/games/", onDone: function(){ location.href = "/he/diagnostics/"; }, onReport: report});
+  }
+
+  function report(){
+    var byFeature = {};
+    run.results.forEach(function(r){ var f = r.feature || "כללי"; var x = byFeature[f] || (byFeature[f] = {ok: 0, n: 0}); x.n++; if (r.correct) x.ok++; });
+    var strengths = [], strengthen = [];
+    Object.keys(byFeature).forEach(function(f){ var x = byFeature[f]; if (x.ok === x.n) strengths.push(f + ": יציב."); else strengthen.push(f + ": " + (x.n === 1 ? "המילה נכתבה אחרת." : (x.n - x.ok) + " מתוך " + x.n + " המילים נכתבו אחרת.")); });
+    if (!strengths.length) strengths.push("הקשבה וכתיבה של כל המילים עד הסוף.");
+    if (!strengthen.length) strengthen.push("להמשיך לקרוא ולכתוב יחד, ולשים לב לכתיב מלא.");
+    var details = "<table>" + run.results.map(function(r){
+      return "<tr><th>" + C.esc(r.expected || r.id) + "<br><span class='ck-note'>" + C.esc(r.feature || "") + "</span></th><td>" +
+        (r.correct ? "נכתב נכון" : "נכתב: " + C.esc(r.given || "—")) + "</td></tr>"; }).join("") + "</table>" +
+      (run.grade === "א" ? "<p class='ck-note'>בכיתה א צפויות הרבה שגיאות כתיב: הכתיבה עוד פונטית, וזה חלק רגיל מהלמידה.</p>" : "");
+    var all = C.store.list(kid.id, CHECK_ID).filter(function(x){ return !x.partial && x.grade === run.grade; });
+    C.parentReport($app, {
+      kidId: kid.id, title: "בדיקת הכתבה וכתיב: כיתה " + run.grade, when: "נבדק ב־" + C.heDate(run.when) + (kid.name ? " · " + kid.name : ""),
+      partial: false, strengths: strengths, toStrengthen: strengthen,
+      practice: [{label: "משחקי אותיות וכתיב", href: "/he/games/"}],
+      nextCheck: C.heDate(C.addWeeks(run.when, 6)) + " (בעוד כ־6 שבועות, בגרסה אחרת)",
+      trend: C.trend(all.map(function(x){ return x.correct; }), 1), detailsHtml: details,
+      onAgain: start, onDeleted: function(){ location.href = "/he/diagnostics/"; }
+    });
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

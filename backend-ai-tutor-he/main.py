@@ -41,6 +41,12 @@ class LimitedRequest(BaseModel):
                     for item in value:
                         if isinstance(item, str) and len(item) > REQUEST_DEFAULT_STR_MAX:
                             raise ValueError(f"an item of {key} is too long")
+                if isinstance(value, dict) and key != "history":
+                    if len(value) > REQUEST_LIST_MAX * 2:
+                        raise ValueError(f"{key} has too many entries")
+                    for k2, v2 in value.items():
+                        if len(str(k2)) > REQUEST_DEFAULT_STR_MAX or (isinstance(v2, str) and len(v2) > REQUEST_DEFAULT_STR_MAX):
+                            raise ValueError(f"an entry of {key} is too long")
         return data
 
 
@@ -131,6 +137,9 @@ HOMEWORK_PEDAGOGY_PROMPT_PATH = Path(
 )
 HOMEWORK_PLANNER_PROMPT_PATH = Path(
     "prompts/homework/iakids_homework_planner_prompt.txt"
+)
+EXAM_PRACTICE_PROMPT_PATH = Path(
+    "prompts/homework/iakids_exam_practice_prompt.txt"
 )
 # one short module per school subject, added to the homework teacher and planner (2026-09-23);
 # grounded in the Ministry of Education curriculum per grade
@@ -451,6 +460,7 @@ HOMEWORK_COACH_PROMPT_TEMPLATE = (
     )
 )
 HOMEWORK_PLANNER_PROMPT = HOMEWORK_PLANNER_PROMPT_PATH.read_text(encoding="utf-8")
+EXAM_PRACTICE_PROMPT = EXAM_PRACTICE_PROMPT_PATH.read_text(encoding="utf-8")
 HOMEWORK_SUBJECT_MODULE_TEXT = {k: v.read_text(encoding="utf-8").strip() for k, v in HOMEWORK_SUBJECT_MODULE_PATHS.items()}
 print("=== LEARNING COACH PROMPT LOADED ===")
 print(LEARNING_COACH_PROMPT_TEMPLATE[:300])
@@ -21625,6 +21635,218 @@ class HomeworkSessionStartRequest(LimitedRequest):
     source_file_url: str | None = None
     source_type: str | None = None
     total_questions: int = 0
+
+
+# =====================================================
+# בדיקות ומעקב: question banks (2026-09-24)
+# The browser gets questions WITHOUT answers; the server scores and explains. Nothing about the
+# child's answers is stored on the server (results stay on the device until the privacy review).
+# =====================================================
+CHECK_BANKS = ("comprehension", "dictation", "gifted")
+CHECK_BANK_DIR = _here / "data" / "checks"
+_check_bank_cache: dict = {}
+
+
+def load_check_bank(bank: str) -> dict:
+    if bank not in CHECK_BANKS:
+        raise HTTPException(status_code=404, detail="unknown bank")
+    if bank not in _check_bank_cache:
+        path = CHECK_BANK_DIR / f"{bank}.json"
+        if not path.exists():
+            raise HTTPException(status_code=503, detail="bank not available")
+        _check_bank_cache[bank] = json.loads(path.read_text(encoding="utf-8"))
+    return _check_bank_cache[bank]
+
+
+CHECK_PUBLIC_DROP = ("answer", "explain", "why_wrong", "accept", "word")
+CHECK_FIGURE_DROP = ("rule", "formula")
+
+
+def public_check_item(item: dict) -> dict:
+    """What the browser may see: never the answer, the accepted spellings or the explanations."""
+    pub = {k: v for k, v in item.items() if k not in CHECK_PUBLIC_DROP}
+    if isinstance(pub.get("figure"), dict):   # a figure's rule/formula IS the answer (gifted shapes)
+        pub["figure"] = {k: v for k, v in pub["figure"].items() if not k.startswith(CHECK_FIGURE_DROP)}
+    return pub
+
+
+def _spelling_key(text) -> str:
+    return re.sub(r"[\s\u0591-\u05C7\u05F3\u05F4'\"״׳.,!?־-]", "", str(text or ""))
+
+
+def score_check_item(bank: str, item: dict, given) -> dict:
+    """Correct or not, plus what the parent report / the practice feedback shows."""
+    if bank == "dictation":
+        wanted = [_spelling_key(item.get("word"))] + [_spelling_key(a) for a in item.get("accept") or []]
+        ok = bool(given) and _spelling_key(given) in wanted
+        return {"id": item.get("id"), "correct": ok, "expected": item.get("word"), "given": str(given or "")[:40],
+                "feature": item.get("feature")}
+    try:
+        g = int(given)
+    except (TypeError, ValueError):
+        g = None
+    ok = g is not None and g == item.get("answer")
+    why = (item.get("why_wrong") or {}).get(str(g)) if (g is not None and not ok) else None
+    return {"id": item.get("id"), "correct": ok, "answer": item.get("answer"), "explain": item.get("explain"),
+            "why_wrong": why, "dimension": item.get("dimension"), "section": item.get("section")}
+
+
+def title_is_asked(items: list) -> bool:
+    """A question asks for the text's title, so the title itself is the answer."""
+    strip = lambda t: re.sub(r"[\u0591-\u05C7]", "", str(t or ""))
+    return any("כותרת" in strip(i.get("q")) for i in items or [])
+
+
+def _check_units(bank: str, data: dict) -> list:
+    """Forms (comprehension, dictation) or sections (gifted), each with its items."""
+    if bank == "gifted":
+        return [dict(s, id=s.get("id")) for s in data.get("sections") or []]
+    return data.get("forms") or []
+
+
+def _unit_items(bank: str, unit: dict) -> list:
+    return unit.get("questions") if bank == "comprehension" else unit.get("items") or []
+
+
+@app.get("/api/tutor/checks/{bank}/set")
+def check_set(bank: str, kid_id: str, grade: str = "", form: str = "", authorization: str = Header(None)):
+    user = authenticate_user(authorization)
+    if len(kid_id) > 64 or len(grade) > 4 or len(form) > 40:
+        raise HTTPException(status_code=400, detail="bad parameters")
+    get_child_by_id(user_id=user.id, kid_id=kid_id)
+    data = load_check_bank(bank)
+    units = _check_units(bank, data)
+    if bank == "gifted":
+        chosen = [u for u in units if not form or u.get("id") == form]
+    else:
+        chosen = [u for u in units if u.get("grade") == grade and (not form or u.get("form") == form)][:1]
+    if not chosen:
+        raise HTTPException(status_code=404, detail="no set for this grade/form")
+    out = []
+    for u in chosen:
+        pub = {k: v for k, v in u.items() if k not in ("questions", "items")}
+        pub["items"] = [public_check_item(i) for i in _unit_items(bank, u)]
+        if title_is_asked(pub["items"]):
+            pub.pop("title", None)   # "which title fits?" must not come with the title on screen
+        out.append(pub)
+    forms = sorted({u.get("form") for u in units if u.get("grade") == grade and u.get("form")}) if bank != "gifted" else []
+    return {"bank": bank, "units": out, "forms": forms}
+
+
+class CheckScoreRequest(LimitedRequest):
+    kid_id: str
+    bank: str
+    unit_id: str
+    answers: dict
+
+
+@app.post("/api/tutor/checks/score")
+def check_score(body: CheckScoreRequest, authorization: str = Header(None)):
+    user = authenticate_user(authorization)
+    get_child_by_id(user_id=user.id, kid_id=body.kid_id)
+    data = load_check_bank(body.bank)
+    unit = next((u for u in _check_units(body.bank, data) if u.get("id") == body.unit_id), None)
+    if not unit:
+        raise HTTPException(status_code=404, detail="unknown set")
+    items = {i.get("id"): i for i in _unit_items(body.bank, unit)}
+    results = [score_check_item(body.bank, items[k], v) for k, v in body.answers.items() if k in items]
+    return {"unit_id": body.unit_id, "results": results,
+            "correct": sum(1 for r in results if r["correct"]), "total": len(results)}
+
+
+# =====================================================
+# הכנה למבחן בכיתה (2026-09-24): a practice set written by the strong model for the child's grade,
+# with the subject module. Answers and explanations stay on the server (in memory, 3 hours).
+# =====================================================
+class ExamQuestion(BaseModel):
+    q: str
+    options: list[str]
+    answer: int
+    explain: str
+    why_wrong: list[str]
+
+
+class ExamPracticeSet(BaseModel):
+    topic_used: str
+    questions: list[ExamQuestion]
+
+
+class ExamPracticeStartRequest(LimitedRequest):
+    kid_id: str
+    subject: str = Field(max_length=40)
+    topic: str = Field(max_length=120)
+
+
+class ExamPracticeAnswerRequest(LimitedRequest):
+    kid_id: str
+    set_id: str
+    index: int
+    answer: int
+
+
+EXAM_SETS: dict = {}
+EXAM_SET_TTL = 3 * 3600
+
+
+def _exam_sets_prune():
+    now = time.time()
+    for k in [k for k, v in EXAM_SETS.items() if now - v["created"] > EXAM_SET_TTL]:
+        EXAM_SETS.pop(k, None)
+
+
+def valid_exam_questions(questions) -> list:
+    """Only well-formed questions reach the child: 4 options, one answer index in range, text present."""
+    out = []
+    for q in questions or []:
+        if (isinstance(q.get("options"), list) and len(q["options"]) == 4 and all(str(o).strip() for o in q["options"])
+                and isinstance(q.get("answer"), int) and 0 <= q["answer"] < 4 and str(q.get("q") or "").strip()
+                and len(set(str(o).strip() for o in q["options"])) == 4):
+            out.append(q)
+    return out
+
+
+@app.post("/api/tutor/exam-practice/start")
+async def exam_practice_start(body: ExamPracticeStartRequest, authorization: str = Header(None)):
+    user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
+    child = (await run_in_threadpool(lambda: get_child_by_id(user.id, body.kid_id)))
+    if not child:
+        raise HTTPException(status_code=404, detail="child not found")
+    ai_context("exam_practice", user, body)
+    grade = child.get("grade")
+    subject_key = homework_subject_key(body.subject, body.topic)
+    system_prompt = (hebrew_child_prompt_block(child) + "\n\n" + EXAM_PRACTICE_PROMPT
+                     + ("\n\n" + homework_subject_block(subject_key, grade) if subject_key else ""))
+    user_content = json.dumps({"grade": grade, "subject": body.subject, "topic": body.topic}, ensure_ascii=False)
+    completion = await aclient.beta.chat.completions.parse(
+        model=HOMEWORK_PLANNER_MODEL,
+        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_content}],
+        response_format=ExamPracticeSet,
+    )
+    parsed = completion.choices[0].message.parsed
+    data = guard_reply_payload(parsed.model_dump() if parsed else {}, "EXAM_PRACTICE")
+    questions = valid_exam_questions(data.get("questions"))[:10]
+    if not questions:
+        raise HTTPException(status_code=502, detail="no practice questions")
+    _exam_sets_prune()
+    set_id = uuid.uuid4().hex
+    EXAM_SETS[set_id] = {"user_id": user.id, "kid_id": body.kid_id, "created": time.time(), "questions": questions}
+    return {"set_id": set_id, "topic_used": data.get("topic_used") or body.topic,
+            "questions": [{"q": q["q"], "options": q["options"]} for q in questions]}
+
+
+@app.post("/api/tutor/exam-practice/answer")
+def exam_practice_answer(body: ExamPracticeAnswerRequest, authorization: str = Header(None)):
+    user = authenticate_user(authorization)
+    st = EXAM_SETS.get(body.set_id)
+    if not st or st["user_id"] != user.id or st["kid_id"] != body.kid_id:
+        raise HTTPException(status_code=404, detail="practice set expired")
+    if not 0 <= body.index < len(st["questions"]):
+        raise HTTPException(status_code=400, detail="bad index")
+    q = st["questions"][body.index]
+    ok = body.answer == q["answer"]
+    ww = q.get("why_wrong") or []
+    return {"correct": ok, "answer": q["answer"], "explain": q.get("explain"),
+            "why_wrong": (ww[body.answer] if (not ok and 0 <= body.answer < len(ww)) else None)}
 
 
 @app.post("/api/tutor/homework-session/start")

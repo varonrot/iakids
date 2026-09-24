@@ -70,46 +70,46 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
       <div class="meta"><span>כיתות ב–ג</span><span>כ־5 דקות</span><span>עם הורה</span><span>בלי מיקרופון</span></div>
       <span class="tag live">פעיל</span>
     </a>
-    <div class="card disabled">
+    <a class="card" href="/he/diagnostics/math/">
       <span class="icon">🔢</span>
       <h3>בדיקת חשבון בעל פה</h3>
-      <p>תרגילים קצרים לפי מה שנלמד בכיתה: מספרים, חיבור וחיסור, לוח הכפל, עשרות ויחידות.</p>
-      <div class="meta"><span>כיתות א–ו</span><span>כ־7 דקות</span><span>עם הורה</span><span>בלי מיקרופון</span></div>
-      <span class="tag soon">בקרוב</span>
-    </div>
-    <div class="card disabled">
+      <p>תרגילים קצרים לפי מה שנלמד בכיתה: מספרים, חיבור וחיסור, לוח הכפל, חלק של כמות ואחוזים. מתחילים מעט מתחת לרמת הכיתה.</p>
+      <div class="meta"><span>כיתות א–ו</span><span>כ־5–8 דקות</span><span>עם הורה</span><span>בלי מיקרופון</span></div>
+      <span class="tag live">פעיל</span>
+    </a>
+    <a class="card" href="/he/diagnostics/comprehension/">
       <span class="icon">🧠</span>
       <h3>בדיקת הבנה</h3>
-      <p>הבנת הנשמע בכיתות א–ב והבנת הנקרא בכיתות ב–ו: איתור מידע, היסק, פירוש והערכה.</p>
+      <p>הבנת הנשמע בכיתות א–ב והבנת הנקרא בכיתות ג–ו: איתור מידע, היסק, פירוש והערכה.</p>
       <div class="meta"><span>כיתות א–ו</span><span>כ־8 דקות</span><span>עם הורה</span></div>
-      <span class="tag soon">בקרוב</span>
-    </div>
-    <div class="card disabled">
+      <span class="tag live">פעיל</span>
+    </a>
+    <a class="card" href="/he/diagnostics/dictation/">
       <span class="icon">✏️</span>
       <h3>בדיקת הכתבה וכתיב</h3>
       <p>המורה מקריאה מילים, והילד כותב או מרכיב מאותיות. אותיות שנשמעות אותו דבר, סופיות וכתיב מלא.</p>
       <div class="meta"><span>כיתות א–ו</span><span>כ־6 דקות</span><span>עם הורה</span></div>
-      <span class="tag soon">בקרוב</span>
-    </div>
+      <span class="tag live">פעיל</span>
+    </a>
   </div>
 
   <h2 class="section">תרגול לקראת…</h2>
   <p class="section-note">תרגול בלבד. לא נכנס לדוח ולא למעקב.</p>
   <div class="grid">
-    <div class="card disabled">
+    <a class="card" href="/he/diagnostics/exam/">
       <span class="icon">🎯</span>
       <h3>הכנה למבחן בכיתה</h3>
       <p>תרגול לפי המקצוע והנושא של המבחן, עם שאלות בסגנון המבחן והסבר על כל תשובה.</p>
-      <div class="meta"><span>כיתות א–ו</span></div>
-      <span class="tag soon">בקרוב</span>
-    </div>
-    <div class="card disabled">
+      <div class="meta"><span>כיתות א–ו</span><span>8 שאלות</span></div>
+      <span class="tag live">פעיל</span>
+    </a>
+    <a class="card" href="/he/diagnostics/gifted/">
       <span class="icon">💡</span>
       <h3>היכרות עם מבחן האיתור (מחוננים)</h3>
       <p>היכרות עם סוגי השאלות, בשאלות מקוריות שלנו. משרד החינוך מציין שאין צורך בהכנה למבחן, ולכן זו היכרות בלבד, בלי ציון.</p>
-      <div class="meta"><span>כיתות ב–ג</span></div>
-      <span class="tag soon">בקרוב</span>
-    </div>
+      <div class="meta"><span>כיתות ב–ג</span><span>5 סוגי שאלות</span></div>
+      <span class="tag live">פעיל</span>
+    </a>
   </div>
 
   <details class="how">
@@ -126,14 +126,24 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
   // Parent strip: only after a first check. Per skill: last date, a one-word state, next check date.
   var C = window.IAKidsCheck; if (!C) return;
   var kid = C.currentKid();
-  var runs = C.store.list(kid.id, "fluency_v2").filter(function(x){ return !x.partial; });
-  if (!runs.length) return;
-  var last = runs[runs.length - 1], tr = C.trend(runs.map(function(x){ return x.list && x.list.correct; }), 4);
-  document.getElementById("stripRows").innerHTML =
-    "<div class='strip-row'><b>שטף קריאה</b><span>נבדק ב־" + C.heDate(last.when) + "</span>" +
-    "<span class='state " + tr.state + "'>" + C.esc(tr.label) + "</span>" +
-    "<span>בדיקה חוזרת: " + C.heDate(C.addWeeks(last.when, 5)) + "</span>" +
-    "<a href='/he/diagnostics/fluency/' style='color:var(--cyan)'>לבדיקה</a></div>";
+  var CHECKS = [
+    {id: "fluency_v2", title: "שטף קריאה", href: "/he/diagnostics/fluency/", value: function(x){ return x.list && x.list.correct; }, band: 4},
+    {id: "math_v1", title: "חשבון בעל פה", href: "/he/diagnostics/math/", value: function(x){ return Object.keys(x.strands || {}).reduce(function(a, k){ return a + (x.strands[k].mastered || 0); }, 0); }, band: 1},
+    {id: "comprehension_v1", title: "הבנה", href: "/he/diagnostics/comprehension/", value: function(x){ return x.correct; }, band: 1},
+    {id: "dictation_v1", title: "הכתבה וכתיב", href: "/he/diagnostics/dictation/", value: function(x){ return x.correct; }, band: 1}
+  ];
+  var html = "";
+  CHECKS.forEach(function(c){
+    var runs = C.store.list(kid.id, c.id).filter(function(x){ return !x.partial; });
+    if (!runs.length) return;
+    var last = runs[runs.length - 1], tr = C.trend(runs.map(c.value), c.band);
+    html += "<div class='strip-row'><b>" + C.esc(c.title) + "</b><span>נבדק ב־" + C.heDate(last.when) + "</span>" +
+      "<span class='state " + tr.state + "'>" + C.esc(tr.label) + "</span>" +
+      "<span>בדיקה חוזרת: " + C.heDate(C.addWeeks(last.when, 5)) + "</span>" +
+      "<a href='" + c.href + "' style='color:var(--cyan)'>לבדיקה</a></div>";
+  });
+  if (!html) return;
+  document.getElementById("stripRows").innerHTML = html;
   document.getElementById("strip").hidden = false;
 })();
 </script>

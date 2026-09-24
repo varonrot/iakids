@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>בדיקת הבנה</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css">
+<!--
+  Comprehension check (2026-09-24), on the shared shell. Grades א–ב: listening (the text is read
+  aloud); ג–ו: reading. Six questions across the Ministry's four dimensions (איתור מידע, יצירת היסקים,
+  פירוש ואינטגרציה, הערכה וביקורת). The browser gets the questions without answers; the server scores.
+-->
+<style>
+.text{font-size:24px;line-height:2;background:var(--panel2);border-radius:16px;padding:14px 16px;margin:10px 0;white-space:pre-line}
+.qbig{font-size:24px;line-height:1.6;margin:6px 0 14px}
+.opts{display:grid;gap:10px}
+.opts button{font:inherit;font-size:21px;text-align:right;min-height:64px;border-radius:16px;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 16px;cursor:pointer}
+.opts button:hover{border-color:var(--cyan)}
+.parent-read{border:1px dashed var(--line);border-radius:14px;padding:10px 12px;color:#cfe3ff;font-size:14px;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <a class="ck-back" href="/he/diagnostics/">→ בדיקות ומעקב</a>
+  <div class="ck-path" id="path"></div>
+  <div id="app"></div>
+</main>
+<script src="/he/diagnostics/check-shell.js"></script>
+<script>
+(function(){
+  var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
+  var CHECK_ID = "comprehension_v1";
+  var DIMS = ["איתור מידע", "יצירת היסקים", "פירוש ואינטגרציה", "הערכה וביקורת"];
+  var DIM_ADVICE = {
+    "איתור מידע": "לחפש בטקסט את המשפט שבו כתובה התשובה, ולסמן אותו.",
+    "יצירת היסקים": "לשאול \"איך אני יודע?\" ולחבר שני פרטים מהטקסט שלא כתובים באותו משפט.",
+    "פירוש ואינטגרציה": "אחרי הקריאה, לספר במשפט אחד מה הרעיון המרכזי ולמה הדמות עשתה מה שעשתה.",
+    "הערכה וביקורת": "לשאול למה הכותב כתב את הטקסט ואיזו כותרת הכי מתאימה, ולנמק."
+  };
+  var run = null, set = null;
+
+  function nextForm(grade, forms){
+    var done = C.store.list(kid.id, CHECK_ID).filter(function(x){ return x.grade === grade && !x.partial; });
+    return forms.length ? forms[done.length % forms.length] : "A";
+  }
+
+  function start(){
+    C.progressPath(document.getElementById("path"), 1, 0);
+    var g = String(kid.grade || "").replace(/[^אבגדהו]/g, "") || "ב";
+    C.parentGate($app, {
+      title: "בדיקת הבנה",
+      what: "הבנת הנשמע בכיתות א–ב (הסיפור מוקרא) והבנת הנקרא בכיתות ג–ו: 6 שאלות על איתור מידע, היסק, פירוש והערכה.",
+      minutes: "כ־8 דקות", get: "באילו סוגי הבנה הילד חזק, מה כדאי לחזק, ואיך לתרגל בקריאה משותפת.",
+      needsMic: false,
+      extraHtml: "<p><b>כיתה:</b></p><div class='ck-choice' id='gradePick'>" + ["א","ב","ג","ד","ה","ו"].map(function(x){
+        return "<button type='button' data-g='" + x + "'" + (x === g ? " class='on'" : "") + ">" + x + "</button>"; }).join("") + "</div>",
+      onStart: function(){
+        var on = document.querySelector("#gradePick .on"), grade = on ? on.dataset.g : g;
+        if (kid.id === "local"){ C.signedOut($app); return; }
+        C.api("/api/tutor/checks/comprehension/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade)).then(function(first){
+          var form = nextForm(grade, first.forms || []);
+          return C.api("/api/tutor/checks/comprehension/set?kid_id=" + encodeURIComponent(kid.id) + "&grade=" + encodeURIComponent(grade) + "&form=" + encodeURIComponent(form));
+        }).then(function(res){
+          set = res.units[0];
+          run = {grade: grade, form: set.form, unit: set.id, when: new Date().toISOString(), partial: true, answers: {}};
+          var listening = set.mode === "listening";
+          C.childIntro($app, listening ? "נקשיב לסיפור קצר, ואחר כך נענה על כמה שאלות. אין ציון, ומותר לשמוע שוב." :
+            "נקרא קטע קצר, ואחר כך נענה על כמה שאלות. אין ציון, ואפשר לחזור לקטע בכל שאלה.", showText);
+        }).catch(function(e){ if (String(e.message) === "signed-out") C.signedOut($app); else $app.innerHTML = "<section class='ck-card'><p>לא הצלחתי לטעון את הבדיקה כרגע.</p></section>"; });
+      }
+    });
+    document.querySelectorAll("#gradePick button").forEach(function(b){
+      b.addEventListener("click", function(){ document.querySelectorAll("#gradePick button").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); });
+    });
+  }
+
+  function showText(){
+    var listening = set.mode === "listening";
+    $app.innerHTML = "<section class='ck-card " + (listening ? "ck-child" : "") + "'>" +
+      (listening ? "<div class='ck-teacher'>🎧</div><p class='ck-say'>" + C.esc(set.title || "סיפור קצר") + "</p>" +
+                   "<div class='ck-row'><button class='ck-btn ck-primary' type='button' id='play'>🔊 להשמיע את הסיפור</button></div>" +
+                   "<details class='parent-read'><summary>להורה: אם לא נשמע קול, קראו אתם את הסיפור בקול</summary><div class='text'>" + C.esc(set.text) + "</div></details>"
+                 : "<h1>" + C.esc(set.title || "קטע קריאה") + "</h1><div class='text'>" + C.esc(set.text) + "</div>") +
+      "<div class='ck-row' style='justify-content:center'><button class='ck-btn ck-primary' type='button' id='toQ'>לשאלות</button></div></section>";
+    if (listening){ document.getElementById("play").addEventListener("click", function(){ C.speak(set.text); }); C.speak(set.text); }
+    document.getElementById("toQ").addEventListener("click", function(){ try { speechSynthesis.cancel(); } catch (e) {} ask(0); });
+  }
+
+  function ask(i){
+    var items = set.items;
+    if (i >= items.length){ score(); return; }
+    C.progressPath(document.getElementById("path"), items.length, i);
+    var it = items[i], listening = set.mode === "listening";
+    $app.innerHTML = "<section class='ck-card " + (listening ? "ck-child" : "") + "'>" +
+      "<p class='qbig'>" + C.esc(it.q) + "</p><div class='opts'>" + it.options.map(function(o, k){
+        return "<button type='button' data-k='" + k + "'>" + C.esc(o) + "</button>"; }).join("") + "</div>" +
+      "<div class='ck-row'>" + (listening ? "<button class='ck-btn' type='button' id='rq'>🔊 שוב</button>" : "<details><summary>לקטע</summary><div class='text'>" + C.esc(set.text) + "</div></details>") + "</div></section>";
+    var sayAll = it.q + ". " + it.options.map(function(o, k){ return "אפשרות " + (k + 1) + ": " + o; }).join(". ");
+    if (listening) C.speak(sayAll);
+    var r = document.getElementById("rq"); if (r) r.addEventListener("click", function(){ C.speak(sayAll); });
+    $app.querySelectorAll(".opts button").forEach(function(b){
+      b.addEventListener("click", function(){ try { speechSynthesis.cancel(); } catch (e) {} run.answers[it.id] = +b.dataset.k; ask(i + 1); });
+    });
+  }
+
+  function score(){
+    C.api("/api/tutor/checks/score", {kid_id: kid.id, bank: "comprehension", unit_id: set.id, answers: run.answers}).then(function(res){
+      var by = {}; DIMS.forEach(function(d){ by[d] = {correct: 0, total: 0}; });
+      res.results.forEach(function(r){ var d = by[r.dimension] || (by[r.dimension] = {correct: 0, total: 0}); d.total++; if (r.correct) d.correct++; });
+      run.byDimension = by; run.correct = res.correct; run.total = res.total; run.partial = false;
+      run.results = res.results.map(function(r){ return {id: r.id, correct: r.correct}; });
+      C.store.save(kid.id, CHECK_ID, run);
+      C.childEnd($app, {effortLine: set.mode === "listening" ? "הקשבת לסיפור שלם וענית על כל השאלות!" : "קראת קטע שלם וענית על כל השאלות!",
+        strategyLine: "חזרת לסיפור כדי לחשוב. ככה עושים קוראים טובים.", practiceHref: "/he/games/",
+        onDone: function(){ location.href = "/he/diagnostics/"; }, onReport: function(){ report(res); }});
+    }).catch(function(){ $app.innerHTML = "<section class='ck-card'><p>לא הצלחתי לבדוק את התשובות כרגע. נסו שוב בעוד רגע.</p></section>"; });
+  }
+
+  function report(res){
+    var strengths = [], strengthen = [];
+    Object.keys(run.byDimension).forEach(function(d){
+      var x = run.byDimension[d]; if (!x.total) return;
+      if (x.correct === x.total) strengths.push(d + ": כל השאלות מהסוג הזה נענו נכון.");
+      else strengthen.push(d + ": " + (DIM_ADVICE[d] || "לתרגל עוד שאלות מהסוג הזה."));
+    });
+    if (!strengths.length) strengths.push("עבודה עד הסוף על קטע שלם ושש שאלות.");
+    if (!strengthen.length) strengthen.push("להמשיך לקרוא יחד ולשוחח על מה שקראתם.");
+    var qById = {}; set.items.forEach(function(q){ qById[q.id] = q; });
+    var details = "<table>" + res.results.map(function(r){
+      var q = qById[r.id] || {};
+      return "<tr><th>" + C.esc(q.q || r.id) + "<br><span class='ck-note'>" + C.esc(r.dimension || "") + "</span></th><td>" +
+        (r.correct ? "נענה נכון" : "התשובה הנכונה: " + C.esc((q.options || [])[r.answer] || "")) +
+        "<br><span class='ck-note'>" + C.esc(r.explain || "") + (r.why_wrong ? " " + C.esc(r.why_wrong) : "") + "</span></td></tr>";
+    }).join("") + "</table>";
+    var all = C.store.list(kid.id, CHECK_ID).filter(function(x){ return !x.partial && x.grade === run.grade; });
+    C.parentReport($app, {
+      kidId: kid.id, title: "בדיקת הבנה: כיתה " + run.grade + (set.mode === "listening" ? " (הבנת הנשמע)" : " (הבנת הנקרא)"),
+      when: "נבדק ב־" + C.heDate(run.when) + (kid.name ? " · " + kid.name : ""), partial: false,
+      strengths: strengths, toStrengthen: strengthen,
+      practice: [{label: "עזרה בשיעורי בית בהבנת הנקרא", href: "/he/workspace/"}, {label: "משחקי קריאה", href: "/he/games/"}],
+      nextCheck: C.heDate(C.addWeeks(run.when, 6)) + " (בעוד כ־6 שבועות, בגרסה אחרת)",
+      trend: C.trend(all.map(function(x){ return x.correct; }), 1), detailsHtml: details,
+      onAgain: start, onDeleted: function(){ location.href = "/he/diagnostics/"; }
+    });
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

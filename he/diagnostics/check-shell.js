@@ -31,6 +31,34 @@
     return {id: "local", name: "", grade: ""};
   }
 
+  // Our API (never the database). Inside the workspace frame the parent page holds the signed-in
+  // session; the child must be the parent's own (the server checks it). Only the check routes.
+  var API_PATHS = ["/api/tutor/checks/", "/api/tutor/exam-practice"];
+  function apiBase(){
+    return location.hostname.endsWith("smarts-brains.online") ? location.origin + "/tutor-api" : "https://iakids-ai-tutor-he.onrender.com";
+  }
+  function authToken(){
+    try {
+      var p = window.parent && window.parent !== window ? window.parent : window;
+      var client = p.sb || p.supabaseClient;
+      if (!client || !client.auth) return Promise.resolve(null);
+      return client.auth.getSession().then(function(r){ return (r && r.data && r.data.session && r.data.session.access_token) || null; });
+    } catch (e) { return Promise.resolve(null); }
+  }
+  function api(path, body){
+    if (!API_PATHS.some(function(p){ return path.indexOf(p) === 0; })) return Promise.reject(new Error("not a check route"));
+    return authToken().then(function(token){
+      if (!token) throw new Error("signed-out");
+      var opts = {headers: {Authorization: "Bearer " + token}};
+      if (body){ opts.method = "POST"; opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+      return fetch(apiBase() + path, opts).then(function(r){ if (!r.ok) throw new Error("api " + r.status); return r.json(); });
+    });
+  }
+  function signedOut(root){
+    root.innerHTML = "<section class='ck-card ck-parent'><h1>צריך להיכנס מתוך סביבת הלמידה</h1>" +
+      "<p class='ck-note'>הבדיקה הזו פועלת כשפותחים אותה מהתפריט \"בדיקות ומעקב\" בתוך סביבת הלמידה, עם הילד שנבחר.</p></section>";
+  }
+
   function readAll(){ try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch (e) { return {}; } }
   function writeAll(all){ try { localStorage.setItem(STORE_KEY, JSON.stringify(all)); return true; } catch (e) { return false; } }
 
@@ -182,6 +210,7 @@
   }
 
   window.IAKidsCheck = {
+    api: api, signedOut: signedOut,
     NOT_DIAGNOSIS: NOT_DIAGNOSIS, esc: esc, currentKid: currentKid, store: store, speak: speak, chime: chime,
     shouldStop: shouldStop, trend: trend, addWeeks: addWeeks, heDate: heDate, progressPath: progressPath,
     parentGate: parentGate, childIntro: childIntro, childEnd: childEnd, parentReport: parentReport

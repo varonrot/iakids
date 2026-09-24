@@ -32,6 +32,14 @@ he/diagnostics/       "בדיקות ומעקב" hub (opened in the workspace cen
                       trend only after 3 runs, the "not a diagnosis" line). fluency/ = reading fluency v2 (Ministry
                       format: 80-word vowelled list for 45 s + 1-min passage, parent marks). Results stay on the device until
                       the privacy review; the gate fails on clinical words, network calls or a check not on the shell.
+                      Only check-shell.js may fetch, and only /api/tutor/checks/ and /api/tutor/exam-practice.
+                      math/ (mental math, adaptive, Ministry strand names), comprehension/ (listening א–ב, reading ג–ו,
+                      4 Ministry dimensions), dictation/ (tiles א–ב, typing ג–ו), exam/ (8 practice questions by subject
+                      + topic, never in a report), gifted/ (familiarisation, 5 question types, SVG figures, no score).
+                      Question banks live on the server: backend-ai-tutor-he/data/checks/*.json. GET
+                      /api/tutor/checks/{bank}/set strips answers, explanations and a figure's rule/formula (and the
+                      title when a question asks for it); POST /api/tutor/checks/score scores. `check_bank_checks` in
+                      the gate validates every bank.
 backend-ai-tutor-he/prompts/homework/  homework coach, pedagogy, planner prompts + subjects/ (one module per subject, per grade)
 parent-dashboard/     parent dashboard
 backend/              core FastAPI (chat, payments)

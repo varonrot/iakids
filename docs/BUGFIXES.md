@@ -4,6 +4,37 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — "בדיקות ומעקב" complete: math, comprehension, dictation, exam practice, gifted familiarisation (build 0.7.144)
+- **Why**: the user asked for every check and practice in the hub to be ready, including the gifted familiarisation. All six hub cards are now active.
+- **Mental math** (`he/diagnostics/math/`), grades א–ו, adaptive, no bank needed (generators). Built from Israeli sources:
+  - the strands use the Ministry's terms, with a percent level for ה–ו (50%, 25%, 10%);
+  - missing-number formats appear from grade א, as in the Yesodot check;
+  - numbers are read aloud only in א–ב, per the ראמ"ה rule;
+  - the report adds "what the school expects now", "when the school checks" and a speed state on basic facts ("נכון, עדיין מחשב"). The speed thresholds (4 s in ב–ג, 3 s from ד; none in א) are labelled research-based, not an official norm.
+- **Comprehension** (`comprehension/`): listening in א–ב, reading in ג–ו, 12 original texts (2 forms per grade), 6 questions each across the Ministry's four dimensions. The report is organised by dimension, with a tip for each.
+- **Dictation** (`dictation/`): letter tiles in א–ב, typing in ג–ו, 12 forms and 136 words, each word said inside a sentence. The server scores and accepts listed alternative spellings. The report is by spelling feature.
+- **Exam practice** (`exam/`, `POST /api/tutor/exam-practice/start|answer`): 8 multiple-choice questions for the child's grade from the subject module; answers stay on the server for 3 hours; the child gets feedback after each answer; nothing reaches a report. New prompt: `prompts/homework/iakids_exam_practice_prompt.txt`.
+- **Gifted familiarisation** (`gifted/`): 60 original items in 5 types: word pairs, missing words, word problems, numbers in shapes (pyramid, circles, machine, arrows, tree) and next shape (series and 3×3). The figures are drawn as SVG. Each section opens with a worked example; the child sees the explanation after each answer; there is no score; the next session picks unseen items.
+- **Fluency**: forms A, B and C per grade, rotating, so a re-check does not repeat the same text.
+- **Server banks** (`backend-ai-tutor-he/data/checks/`): `GET /api/tutor/checks/{bank}/set` sends items without answers or explanations; `POST /api/tutor/checks/score` scores without writing to the DB. Ownership of the kid is checked, and request sizes are limited, now including dict fields.
+- **Leaks found and closed while testing**:
+  - Grade א comprehension asked "which title fits?" while the story's title was on screen. The server now drops the title when a question asks for it.
+  - The gifted figures carried their rule and formula, which is the answer, in the payload. The server strips them.
+- **Content checks**:
+  - A separate agent solved every gifted and comprehension item without the key. The results were 36/36 and 72/72 matching, and no item was ambiguous.
+  - Three "moral" questions had wrong options that were too easy to rule out; they were rewritten.
+  - A story where a child uses the oven alone and tastes from every jar was changed: an adult turns on the oven, and "if unsure, ask".
+  - Sneaking into a neighbour's home without the parents' knowledge was removed.
+- **Gate**, each rule negative-tested:
+  - `check_bank_checks`: every bank is valid; 4 different options; `why_wrong` covers exactly the wrong options; tiles can spell the word; comprehension dimensions are the Ministry's four; א–ב comprehension is listening.
+  - Code rules for the title strip, the figure strip and the answer-free payloads.
+  - The math node test parses the new missing-number and percent formats.
+- **Verified**:
+  - Headless Chromium walked through math (א, ה), comprehension (ב, ה), dictation (ב, ה), exam practice, the gifted page (all 60 items and 5 intros) and the hub. There were zero console errors, and the screenshots were reviewed.
+  - A live exam-practice run for grade ב times tables gave 8 correct questions and no answers in the payload.
+  - `prompt_gate --all` passes.
+- **Still to do before families use it**: a Hebrew teacher proofreads the nikud (fluency, dictation, comprehension, gifted); 5–10 parents read a report; the privacy review before results move to the server.
+
 ### 2026-09-24 — "בדיקות ומעקב": check shell and reading fluency v2 (build 0.7.143)
 - **Why**: research on assessing young children, the Ministry's own checks (the literacy profile, the grade-ב fluency check, the grade-ג fluency tool, the תשפ"ז evaluation calendar) and children's assessment products. It came back with 41 sources and recommendations.
 - **Renamed** "מבחנים ואבחונים" to "בדיקות ומעקב": to Israeli parents "אבחון" means a formal learning-disability evaluation, and "מבחן" means an exam. The hub order is now a parent strip (only after a first check), then short checks, then "תרגול לקראת…" (exam prep and gifted familiarisation, never in a report), then "איך זה עובד". Every card shows grades, minutes, "עם הורה" and the microphone.

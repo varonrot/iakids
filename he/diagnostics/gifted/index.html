@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>היכרות עם מבחן המחוננים</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css">
+<!--
+  היכרות עם מבחן המחוננים (2026-09-24): FAMILIARISATION, not a check and not a prediction. Five
+  sections in the style of the first-stage screening (word pairs, missing words, word problems, numbers
+  in shapes, next shape). Every item is our own (data/checks/gifted.json). The browser gets the items
+  without answers and without the figure's rule; after each answer the server returns the explanation.
+  No score is shown or kept: only which items were seen, so the next session brings new ones.
+-->
+<style>
+.secs{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.secs button{font:inherit;text-align:right;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:16px;padding:14px;cursor:pointer;min-height:84px}
+.secs button b{display:block;font-size:18px;margin-bottom:4px}
+.secs button span{font-size:13px;color:var(--muted)}
+.qbig{font-size:23px;line-height:1.7;margin:6px 0 14px}
+.qbig b{color:var(--cyan)}
+.sent{font-size:25px;line-height:2;background:var(--panel2);border-radius:16px;padding:12px 16px;margin:0 0 14px}
+.blank{display:inline-block;min-width:70px;border-bottom:3px solid var(--orange);margin:0 4px}
+.opts{display:grid;gap:10px}
+.opts.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opts button{font:inherit;font-size:21px;text-align:right;min-height:60px;border-radius:16px;border:2px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 16px;cursor:pointer}
+.opts.grid4 button{text-align:center}
+.opts button.right{border-color:var(--green);background:rgba(56,229,108,.14)}
+.opts button.picked{border-color:var(--orange)}
+.opts button:disabled{cursor:default}
+.paper{background:#fff;border-radius:16px;padding:12px;display:flex;justify-content:center;margin:0 auto 14px;max-width:100%;overflow-x:auto}
+.paper svg{max-width:100%;height:auto}
+.row-shapes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;direction:rtl}
+.mx{display:grid;grid-template-columns:repeat(3,auto);gap:6px;direction:rtl}
+.cellq{width:90px;height:90px;border:2px dashed #999;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#e08a00}
+.opt-shape{background:#fff;border-radius:12px;display:inline-flex}
+.feedback{margin-top:12px;font-size:18px;line-height:1.7;color:#dbe7fb}
+.example{border:1px dashed var(--cyan);border-radius:16px;padding:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <a class="ck-back" href="/he/diagnostics/">→ בדיקות ומעקב</a>
+  <div class="ck-path" id="path"></div>
+  <div id="app"></div>
+</main>
+<script src="/he/diagnostics/check-shell.js"></script>
+<script>
+(function(){
+  var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
+  var CHECK_ID = "gifted_v1", PER_SESSION = 4;
+  var SECTIONS = [
+    {id: "wordrel", title: "מה הקשר בין המילים?", hint: "זוגות מילים ואנלוגיות"},
+    {id: "sentence", title: "אילו מילים חסרות?", hint: "השלמת משפטים"},
+    {id: "wordprob", title: "מה הפתרון לבעיה?", hint: "בעיות מילוליות"},
+    {id: "shapenum", title: "איזה מספר חסר?", hint: "מספרים בצורות"},
+    {id: "nextshape", title: "מה הצורה הבאה?", hint: "סדרות ולוחות של צורות"}
+  ];
+  var unit = null, queue = [], done = 0, right = 0, uid = 0;
+
+  // ---------- drawing (black on white, like a test booklet) ----------
+  function svg(w, h, inner){ return "<svg viewBox='0 0 " + w + " " + h + "' width='" + w + "' height='" + h + "' role='img' aria-label='ציור'>" + inner + "</svg>"; }
+  function num(x, y, v, size){
+    var q = v === null || v === undefined;
+    return "<text x='" + x + "' y='" + y + "' text-anchor='middle' dominant-baseline='central' font-family='Heebo,Arial' font-weight='800' font-size='" + (size || 22) +
+      "' fill='" + (q ? "#e08a00" : "#111") + "'>" + (q ? "?" : C.esc(String(v))) + "</text>";
+  }
+  function box(x, y, w, h, v){ return "<rect x='" + x + "' y='" + y + "' width='" + w + "' height='" + h + "' rx='8' fill='#fff' stroke='#111' stroke-width='2'/>" + num(x + w / 2, y + h / 2, v); }
+  function arrowDefs(id){ return "<defs><marker id='" + id + "' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#111'/></marker></defs>"; }
+  function arrow(x1, y1, x2, y2, id){ return "<line x1='" + x1 + "' y1='" + y1 + "' x2='" + x2 + "' y2='" + y2 + "' stroke='#111' stroke-width='2' marker-end='url(#" + id + ")'/>"; }
+
+  var LAYOUT = {
+    // rows from the bottom; brick j of row k sits on bricks j and j+1 below (index 0 on the left)
+    pyramid: function(cells){
+      var W = 64, H = 44, n0 = cells[0].length, rows = cells.length, out = "";
+      cells.forEach(function(row, k){ row.forEach(function(v, j){ out += box(k * W / 2 + j * W + 2, (rows - 1 - k) * H + 2, W - 4, H - 4, v); }); });
+      return svg(n0 * W + 4, rows * H + 4, out);
+    },
+    // circles right to left; each [top, bottom_right, bottom_left]
+    circle3: function(cells){
+      var R = 50, step = 2 * R + 24, w = cells.length * step, out = "";
+      cells.forEach(function(c, i){
+        var cx = w - step / 2 - i * step, cy = R + 6;
+        out += "<circle cx='" + cx + "' cy='" + cy + "' r='" + R + "' fill='#fff' stroke='#111' stroke-width='2'/>" +
+          "<line x1='" + (cx - R) + "' y1='" + cy + "' x2='" + (cx + R) + "' y2='" + cy + "' stroke='#111' stroke-width='2'/>" +
+          "<line x1='" + cx + "' y1='" + cy + "' x2='" + cx + "' y2='" + (cy + R) + "' stroke='#111' stroke-width='2'/>" +
+          num(cx, cy - R / 2, c[0]) + num(cx + R / 2.2, cy + R / 2.4, c[1], 20) + num(cx - R / 2.2, cy + R / 2.4, c[2], 20);
+      });
+      return svg(w, 2 * R + 12, out);
+    },
+    // rows [input, output]: input (right) -> machine -> output (left)
+    machine: function(cells){
+      var id = "ah" + (++uid), H = 64, out = arrowDefs(id);
+      cells.forEach(function(r, i){
+        var y = i * H + 8;
+        out += box(290, y, 60, 44, r[0]) + arrow(288, y + 22, 232, y + 22, id) +
+          "<rect x='130' y='" + (y - 2) + "' width='100' height='48' rx='10' fill='#eef3ff' stroke='#111' stroke-width='2'/>" +
+          "<text x='180' y='" + (y + 22) + "' text-anchor='middle' dominant-baseline='central' font-size='22'>⚙️</text>" +
+          arrow(128, y + 22, 72, y + 22, id) + box(10, y, 60, 44, r[1]);
+      });
+      return svg(360, cells.length * H + 10, out);
+    },
+    // boxes right to left; arrows[i] arrows between box i and box i+1, each worth the same
+    arrows: function(cells, fig){
+      var id = "ah" + (++uid), B = 56, G = 64, n = cells.length, w = n * B + (n - 1) * G, out = arrowDefs(id);
+      cells.forEach(function(v, i){
+        var x = w - (i + 1) * B - i * G;
+        out += box(x, 30, B, 46, v);
+        if (i < n - 1){
+          var c = (fig.arrows || [])[i] || 1, x1 = x - 6, x2 = x - G + 6;
+          for (var k = 0; k < c; k++){ var y = 53 + (k - (c - 1) / 2) * 13; out += arrow(x1, y, x2, y, id); }
+        }
+      });
+      return svg(w, 106, out);
+    },
+    // trees right to left; each [root, right_leaf, left_leaf]
+    tree: function(cells){
+      var id = "ah" + (++uid), step = 170, w = cells.length * step, out = arrowDefs(id);
+      cells.forEach(function(t, i){
+        var cx = w - step / 2 - i * step;
+        out += box(cx - 30, 6, 60, 42, t[0]) + arrow(cx + 8, 50, cx + 42, 92, id) + arrow(cx - 8, 50, cx - 42, 92, id) +
+          box(cx + 16, 96, 58, 42, t[1]) + box(cx - 74, 96, 58, 42, t[2]);
+      });
+      return svg(w, 144, out);
+    }
+  };
+
+  // one shape: regular polygon standing on a flat side (or a circle); half = right half filled at rotation 0;
+  // rotation clockwise for the whole shape and its fill; dots in a row at the centre, never rotated
+  function shape(s, size){
+    size = size || 90;
+    var c = size / 2, r = size * 0.38, id = "cp" + (++uid), rot = +s.rotation || 0, geo;
+    if (s.sides === "circle") geo = function(fill){ return "<circle cx='" + c + "' cy='" + c + "' r='" + r + "' fill='" + fill + "' stroke='#111' stroke-width='2.5'/>"; };
+    else {
+      var n = +s.sides, pts = [];
+      for (var k = 0; k < n; k++){ var th = (-90 + 180 / n + k * 360 / n) * Math.PI / 180; pts.push((c + r * Math.cos(th)).toFixed(1) + "," + (c - r * Math.sin(th)).toFixed(1)); }
+      geo = function(fill, extra){ return "<polygon points='" + pts.join(" ") + "' fill='" + fill + "' stroke='#111' stroke-width='2.5' stroke-linejoin='round'" + (extra || "") + "/>"; };
+    }
+    var body;
+    if (s.fill === "full") body = geo("#111");
+    else if (s.fill === "half"){
+      var clip = s.sides === "circle" ? "<circle cx='" + c + "' cy='" + c + "' r='" + r + "' fill='#111' clip-path='url(#" + id + ")'/>" : geo("#111", " clip-path='url(#" + id + ")'");
+      body = "<defs><clipPath id='" + id + "'><rect x='" + c + "' y='0' width='" + c + "' height='" + size + "'/></clipPath></defs>" + clip + geo("none");   // the fill edge is the dividing line; a drawn line would stick out of a triangle
+    } else body = geo("#fff");
+    var dots = "", nd = +s.dots || 0;
+    for (var d = 0; d < nd; d++){
+      var dx = c + (d - (nd - 1) / 2) * 11;
+      dots += "<circle cx='" + dx.toFixed(1) + "' cy='" + c + "' r='3.8' fill='" + (s.fill === "empty" ? "#111" : "#fff") + "'" + (s.fill === "half" ? " stroke='#111' stroke-width='1.3'" : "") + "/>";
+    }
+    return svg(size, size, "<g transform='rotate(" + rot + " " + c + " " + c + ")'>" + body + "</g>" + dots);
+  }
+  var QCELL = "<div class='cellq'>?</div>";
+
+  function figureHtml(it){
+    var f = it.figure || {};
+    if (f.layout && LAYOUT[f.layout]) return "<div class='paper'>" + LAYOUT[f.layout](f.cells || [], f) + "</div>";
+    if (f.kind === "series") return "<div class='paper'><div class='row-shapes'>" + (f.series || []).map(function(s){ return shape(s); }).join("") + QCELL + "</div></div>";
+    if (f.kind === "matrix") return "<div class='paper'><div class='mx'>" + (f.grid || []).map(function(s){ return s ? shape(s) : QCELL; }).join("") + "</div></div>";
+    return "";
+  }
+  function qHtml(it){
+    var q = C.esc(it.q || "").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    return "<p class='qbig'>" + q + "</p>" + (it.text ? "<p class='sent'>" + C.esc(it.text).replace(/_{3,}/g, "<span class='blank'></span>") + "</p>" : "") + figureHtml(it);
+  }
+  function optHtml(o){
+    if (o && typeof o === "object" && !Array.isArray(o)) return "<span class='opt-shape'>" + shape(o, 100) + "</span>";
+    return C.esc(Array.isArray(o) ? o.join(" … ") : String(o));
+  }
+  function optsClass(it){ return it.options.some(function(o){ return o && typeof o === "object" && !Array.isArray(o); }) || typeof it.options[0] === "number" ? "opts grid4" : "opts"; }
+  function speakable(it){ return String(it.q || "").replace(/\*\*/g, "") + (it.text ? ". " + String(it.text).replace(/_{3,}/g, "…") : ""); }
+
+  // ---------- flow ----------
+  function start(){
+    C.progressPath(document.getElementById("path"), 1, 0);
+    var seen = seenIds();
+    $app.innerHTML = "<section class='ck-card ck-parent'><div class='ck-tag'>היכרות, לא מבחן</div><h1>היכרות עם מבחן המחוננים</h1>" +
+      "<p class='ck-note'>בכיתה ב עוברים הילדים מבחן איתור בבית הספר. כאן הילד מכיר את סוגי השאלות, כדי שביום המבחן שום דבר לא יפתיע. " +
+      "כל השאלות נכתבו אצלנו ואינן לקוחות ממבחן אמיתי. אין ציון, ואחרי כל תשובה יש הסבר.</p>" +
+      "<p class='ck-not-dx'>התרגול כאן לא מנבא את תוצאת המבחן ולא מחליף אותו. תרגול רב מדי לא עוזר: מספיק לעבור על כל סוג פעם או פעמיים, בנחת.</p>" +
+      "<h2>בוחרים סוג שאלה</h2><div class='secs'>" + SECTIONS.map(function(s){
+        return "<button type='button' data-s='" + s.id + "'><b>" + C.esc(s.title) + "</b><span>" + C.esc(s.hint) + (seen[s.id] ? " · תורגלו " + seen[s.id].length : "") + "</span></button>"; }).join("") +
+      "</div></section>";
+    $app.querySelectorAll(".secs button").forEach(function(b){ b.addEventListener("click", function(){ load(b.dataset.s); }); });
+  }
+
+  function seenIds(){
+    var by = {};
+    C.store.list(kid.id, CHECK_ID).forEach(function(r){ (by[r.section] = by[r.section] || []).push.apply(by[r.section], r.seen || []); });
+    return by;
+  }
+
+  function load(section){
+    if (kid.id === "local"){ C.signedOut($app); return; }
+    $app.innerHTML = "<section class='ck-card ck-child'><div class='ck-teacher'>👩‍🏫</div><p class='ck-say'>מכינה את השאלות…</p></section>";
+    C.api("/api/tutor/checks/gifted/set?kid_id=" + encodeURIComponent(kid.id) + "&form=" + encodeURIComponent(section)).then(function(res){
+      unit = res.units[0];
+      var seen = seenIds()[section] || [];
+      var fresh = unit.items.filter(function(it){ return seen.indexOf(it.id) < 0; });
+      if (fresh.length < PER_SESSION) fresh = unit.items.slice();   // everything seen: start the round again
+      queue = fresh.sort(function(a, b){ return (a.difficulty || 1) - (b.difficulty || 1); }).slice(0, PER_SESSION);
+      done = 0; right = 0;
+      intro();
+    }).catch(function(e){
+      if (String(e.message) === "signed-out") C.signedOut($app);
+      else $app.innerHTML = "<section class='ck-card'><p>לא הצלחתי לטעון את השאלות כרגע. נסו שוב בעוד רגע.</p></section>";
+    });
+  }
+
+  function intro(){
+    var ex = unit.example;
+    $app.innerHTML = "<section class='ck-card ck-child'><div class='ck-teacher'>👩‍🏫</div><h1>" + C.esc(unit.title || "") + "</h1>" +
+      "<p class='ck-say'>" + C.esc(unit.intro || "") + "</p>" +
+      (ex ? "<div class='example'><div class='ck-tag'>דוגמה פתורה</div>" + qHtml(ex) + "<div class='" + optsClass(ex) + "'>" +
+        ex.options.map(function(o, k){ return "<button type='button' disabled" + (k === ex.answer ? " class='right'" : "") + ">" + optHtml(o) + "</button>"; }).join("") +
+        "</div><p class='feedback'>" + C.esc(ex.explain || "") + "</p></div>" : "") +
+      "<div class='ck-row' style='justify-content:center'><button class='ck-btn ck-primary' type='button' id='go'>עכשיו אני מנסה</button></div></section>";
+    C.speak(unit.intro || "");
+    document.getElementById("go").addEventListener("click", function(){ try { speechSynthesis.cancel(); } catch (e) {} ask(0); });
+  }
+
+  function ask(i){
+    if (i >= queue.length){ finish(); return; }
+    C.progressPath(document.getElementById("path"), queue.length, i);
+    var it = queue[i];
+    $app.innerHTML = "<section class='ck-card'>" + qHtml(it) + "<div class='" + optsClass(it) + "'>" +
+      it.options.map(function(o, k){ return "<button type='button' data-k='" + k + "'>" + optHtml(o) + "</button>"; }).join("") +
+      "</div><div class='feedback' id='fb'></div><div class='ck-row'><button class='ck-btn' type='button' id='hear'>🔊 לשמוע את השאלה</button><span id='nextRow'></span></div></section>";
+    document.getElementById("hear").addEventListener("click", function(){ C.speak(speakable(it)); });
+    var locked = false;
+    $app.querySelectorAll(".opts button").forEach(function(b){
+      b.addEventListener("click", function(){
+        if (locked) return; locked = true;
+        var k = +b.dataset.k, answers = {}; answers[it.id] = k;
+        b.classList.add("picked");
+        C.api("/api/tutor/checks/score", {kid_id: kid.id, bank: "gifted", unit_id: unit.id, answers: answers}).then(function(res){
+          var r = res.results[0] || {};
+          done++; if (r.correct) right++;
+          $app.querySelectorAll(".opts button").forEach(function(x){ x.disabled = true; });
+          var ok = $app.querySelectorAll(".opts button")[r.answer]; if (ok) ok.classList.add("right");
+          if (r.correct) C.chime();
+          document.getElementById("fb").innerHTML = (r.correct ? "<b>נכון!</b> " : "<b>כמעט. התשובה המתאימה מסומנת.</b> ") +
+            (r.why_wrong ? C.esc(r.why_wrong) + "<br>" : "") + C.esc(r.explain || "");
+          document.getElementById("nextRow").innerHTML = "<button class='ck-btn ck-primary' type='button' id='nx'>" + (i + 1 < queue.length ? "לשאלה הבאה" : "סיום") + "</button>";
+          document.getElementById("nx").addEventListener("click", function(){ try { speechSynthesis.cancel(); } catch (e) {} ask(i + 1); });
+        }).catch(function(){ locked = false; b.classList.remove("picked"); document.getElementById("fb").textContent = "לא הצלחתי לבדוק כרגע. נסו לבחור שוב."; });
+      });
+    });
+  }
+
+  function finish(){
+    C.store.save(kid.id, CHECK_ID, {when: new Date().toISOString(), section: unit.id, seen: queue.map(function(q){ return q.id; })});
+    C.childEnd($app, {effortLine: "תרגלת " + done + " שאלות מסוג חדש!", strategyLine: "קראת כל הסבר עד הסוף. ככה מבינים איך חושבים על שאלה כזו.",
+      onDone: function(){ location.href = "/he/diagnostics/"; }, onReport: parentNote});
+    var link = $app.querySelector("[data-report]"); if (link) link.textContent = "להורה: מה תרגלנו";
+  }
+
+  function parentNote(){
+    var seen = seenIds();
+    $app.innerHTML = "<section class='ck-card ck-parent'><h1>מה תרגלנו</h1>" +
+      "<p>היום: " + C.esc(unit.title || "") + ", " + done + " שאלות.</p>" +
+      "<p class='ck-note'>בשאלות האלה החשוב הוא דרך החשיבה: " + C.esc(unit.intro || "") + "</p>" +
+      "<h2>סוגי שאלות שכבר הכרנו</h2><ul>" + SECTIONS.map(function(s){
+        return "<li>" + C.esc(s.title) + ": " + (seen[s.id] ? "תורגלו " + seen[s.id].length + " שאלות" : "עוד לא") + "</li>"; }).join("") + "</ul>" +
+      "<p class='ck-not-dx'>זה תרגול היכרות, ולכן אין כאן ציון או תחזית. אם יש שאלה לגבי מבחן האיתור, כדאי לפנות למחנכת או ליועצת בבית הספר.</p>" +
+      "<div class='ck-row'><button class='ck-btn ck-primary' type='button' id='more'>לסוג שאלה אחר</button></div></section>";
+    document.getElementById("more").addEventListener("click", start);
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>הכנה למבחן בכיתה</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css">
+<!--
+  הכנה למבחן בכיתה (2026-09-24): PRACTICE, not a check. The child picks a subject and a topic; the
+  server writes 8 questions for the child's grade with the subject module and keeps the answers.
+  Feedback after each answer explains the idea; no score, nothing saved to a report.
+-->
+<style>
+.qbig{font-size:23px;line-height:1.6;margin:6px 0 14px}
+.opts{display:grid;gap:10px}
+.opts button{font:inherit;font-size:20px;text-align:right;min-height:60px;border-radius:16px;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 16px;cursor:pointer}
+.opts button.right{border-color:var(--green);background:rgba(56,229,108,.12)}
+.opts button.picked{border-color:var(--orange)}
+.feedback{margin-top:12px;font-size:18px;line-height:1.6;color:#dbe7fb}
+.topic{font:inherit;font-size:18px;width:min(420px,100%);padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text)}
+</style>
+</head>
+<body>
+<main>
+  <a class="ck-back" href="/he/diagnostics/">→ בדיקות ומעקב</a>
+  <div class="ck-path" id="path"></div>
+  <div id="app"></div>
+</main>
+<script src="/he/diagnostics/check-shell.js"></script>
+<script>
+(function(){
+  var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
+  var SUBJECTS = ["חשבון", "עברית והבנת הנקרא", "אנגלית", "תנ\"ך", "מדעים", "היסטוריה", "מולדת וגאוגרפיה"];
+  var set = null, answered = 0;
+
+  function start(){
+    C.progressPath(document.getElementById("path"), 1, 0);
+    $app.innerHTML = "<section class='ck-card ck-parent'><div class='ck-tag'>תרגול</div><h1>הכנה למבחן בכיתה</h1>" +
+      "<p class='ck-note'>בוחרים מקצוע וכותבים את נושא המבחן. המורה מכינה 8 שאלות לפי מה שנלמד בכיתה של הילד, עם הסבר אחרי כל תשובה. זה תרגול: אין ציון, והוא לא נכנס לדוח.</p>" +
+      "<p><b>מקצוע:</b></p><div class='ck-choice' id='subj'>" + SUBJECTS.map(function(x, i){ return "<button type='button'" + (i === 0 ? " class='on'" : "") + ">" + C.esc(x) + "</button>"; }).join("") + "</div>" +
+      "<p><b>נושא המבחן:</b></p><input class='topic' id='topic' maxlength='80' placeholder='למשל: שברים, מחזור המים, ספר שמות פרק ג'>" +
+      "<div class='ck-row'><button class='ck-btn ck-primary' type='button' id='go'>הכינו לי תרגול</button></div><p class='ck-note' id='msg'></p></section>";
+    document.querySelectorAll("#subj button").forEach(function(b){
+      b.addEventListener("click", function(){ document.querySelectorAll("#subj button").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); });
+    });
+    document.getElementById("go").addEventListener("click", function(){
+      var subject = (document.querySelector("#subj .on") || {}).textContent || SUBJECTS[0];
+      var topic = (document.getElementById("topic").value || "").trim();
+      if (!topic){ document.getElementById("msg").textContent = "כתבו את נושא המבחן."; return; }
+      if (kid.id === "local"){ C.signedOut($app); return; }
+      $app.innerHTML = "<section class='ck-card ck-child'><div class='ck-teacher'>👩‍🏫</div><p class='ck-say'>המורה מכינה שאלות על " + C.esc(topic) + "…</p></section>";
+      C.api("/api/tutor/exam-practice/start", {kid_id: kid.id, subject: subject, topic: topic}).then(function(res){
+        set = res; answered = 0;
+        C.childIntro($app, "נתרגל " + res.questions.length + " שאלות על " + res.topic_used + ". אחרי כל תשובה נראה הסבר.", function(){ ask(0); });
+      }).catch(function(e){
+        if (String(e.message) === "signed-out") C.signedOut($app);
+        else $app.innerHTML = "<section class='ck-card'><p>לא הצלחתי להכין תרגול כרגע. נסו שוב בעוד רגע.</p><button class='ck-btn' type='button' onclick='location.reload()'>חזרה</button></section>";
+      });
+    });
+  }
+
+  function ask(i){
+    if (i >= set.questions.length){ end(); return; }
+    C.progressPath(document.getElementById("path"), set.questions.length, i);
+    var q = set.questions[i];
+    $app.innerHTML = "<section class='ck-card'><p class='qbig'>" + C.esc(q.q) + "</p><div class='opts'>" +
+      q.options.map(function(o, k){ return "<button type='button' data-k='" + k + "'>" + C.esc(o) + "</button>"; }).join("") +
+      "</div><div class='feedback' id='fb'></div><div class='ck-row' id='nextRow'></div></section>";
+    var locked = false;
+    $app.querySelectorAll(".opts button").forEach(function(b){
+      b.addEventListener("click", function(){
+        if (locked) return; locked = true;
+        var k = +b.dataset.k; b.classList.add("picked");
+        C.api("/api/tutor/exam-practice/answer", {kid_id: kid.id, set_id: set.set_id, index: i, answer: k}).then(function(r){
+          answered++;
+          $app.querySelectorAll(".opts button")[r.answer].classList.add("right");
+          document.getElementById("fb").innerHTML = (r.correct ? "<b>נכון!</b> " : "<b>התשובה המתאימה מסומנת.</b> ") + C.esc(r.explain || "") +
+            (r.why_wrong ? "<br><span class='ck-note'>" + C.esc(r.why_wrong) + "</span>" : "");
+          document.getElementById("nextRow").innerHTML = "<button class='ck-btn ck-primary' type='button' id='nx'>" + (i + 1 < set.questions.length ? "לשאלה הבאה" : "סיום") + "</button>";
+          document.getElementById("nx").addEventListener("click", function(){ ask(i + 1); });
+        }).catch(function(){ document.getElementById("fb").textContent = "התרגול פג. אפשר להתחיל תרגול חדש."; });
+      });
+    });
+  }
+
+  function end(){
+    C.childEnd($app, {effortLine: "תרגלת " + answered + " שאלות לקראת המבחן!", strategyLine: "קראת את ההסבר אחרי כל שאלה. ככה לומדים מכל תשובה.",
+      onDone: function(){ location.href = "/he/diagnostics/"; }, onReport: start});
+    var link = $app.querySelector("[data-report]"); if (link) link.textContent = "עוד תרגול";
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
