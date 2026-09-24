@@ -2063,3 +2063,64 @@ img{max-width:100%;display:block}
   .feature-arrow{width:32px;height:32px;font-size:23px}
   .feature-cta{min-width:150px;padding-inline:16px}
 }
+
+
+/* Continue Learning: clear hierarchy, lesson details and a prominent resume action. */
+.continue-learning .panel-title svg,
+.continue-learning .lesson-meta svg,
+.continue-learning .resume-btn svg{
+  width:20px;height:20px;flex:0 0 20px;
+  fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.continue-learning .panel-title i{background:transparent;color:#079c9a}
+.continue-learning .panel-title svg{width:25px;height:25px}
+.continue-learning .lesson-meta > span{display:inline-flex;align-items:center;gap:8px}
+.continue-learning .resume-btn{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  flex-shrink:0;cursor:pointer;
+  transition:box-shadow .18s ease,filter .18s ease;
+}
+.continue-learning .resume-btn:hover{filter:brightness(1.04);box-shadow:0 5px 16px rgba(8,153,157,.18)}
+.continue-learning .resume-btn:focus-visible{outline:3px solid #087b84;outline-offset:3px}
+@media(min-width:721px){
+  .continue-learning .panel-head{min-height:54px;padding-inline:18px}
+  .continue-learning .panel-title{font-size:clamp(17px,.95vw,23px)}
+  .continue-learning .text-link{font-size:clamp(12px,.65vw,16px)}
+  .continue-learning .continue-body{
+    margin:0 14px 14px;padding:10px;
+    border:1px solid #e6f1f0;border-radius:12px;
+    grid-template-columns:minmax(130px,32%) minmax(0,1fr);
+    gap:18px;min-height:260px;
+  }
+  .continue-learning .lesson-thumb{border-radius:10px}
+  .continue-learning .lesson-info{padding:4px 0;justify-content:flex-start}
+  .continue-learning .kicker{
+    align-self:flex-start;padding:3px 5px;border-radius:4px;
+    background:#e9faf6;color:#008e8d;
+    font-size:clamp(11px,.6vw,14px);line-height:1.2;
+  }
+  .continue-learning .lesson-info h3{
+    margin:8px 0;font-size:clamp(18px,1.05vw,26px);line-height:1.25;
+    letter-spacing:-.02em;
+  }
+  .continue-learning .lesson-info p{font-size:clamp(13px,.78vw,18px);line-height:1.45}
+  .continue-learning .progress-row{margin:16px 0 18px;gap:12px}
+  .continue-learning .progress-track{height:8px}
+  .continue-learning .progress-row small{font-size:clamp(12px,.65vw,15px)}
+  .continue-learning .lesson-meta{
+    margin-top:auto;gap:10px 20px;flex-wrap:wrap;
+    font-size:clamp(12px,.7vw,16px);line-height:1.4;
+  }
+  .continue-learning .resume-btn{
+    margin-top:14px;min-height:48px;height:auto;padding:12px 16px;
+    border-radius:12px;font-size:clamp(15px,.75vw,18px);font-weight:750;
+  }
+}
+@media(max-width:720px){
+  .continue-learning .lesson-meta{flex-wrap:wrap}
+  .continue-learning .lesson-meta > span{gap:4px}
+  .continue-learning .lesson-meta svg{width:13px;height:13px;flex-basis:13px}
+  .continue-learning .resume-btn{gap:7px}
+  .continue-learning .resume-btn svg{width:16px;height:16px;flex-basis:16px}
+}
