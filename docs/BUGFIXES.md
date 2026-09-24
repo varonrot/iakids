@@ -4,6 +4,12 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — English leaf favicon
+- **Symptom**: English pages did not declare the requested leaf browser-tab icon.
+- **Fix**: declare the existing transparent IA KIDS leaf PNG as the favicon on the dashboard and Homework Help, with relative paths compatible with /eng/.
+- **Verification**: visually inspected the existing brand asset and checked both relative paths; no artwork regeneration.
+- **Build**: English favicon leaf-20260924; Hebrew workspace unchanged.
+
 ### 2026-09-24 — Publish IA KIDS ENG at /eng/
 - **Symptom**: the English dashboard was available only on iakids-eng.onrender.com; iakids.app/eng/ returned 404.
 - **Cause**: main held only a few English images, without the English pages and styles.
