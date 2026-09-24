@@ -5,7 +5,7 @@
 .homework-page button{cursor:pointer}
 .homework-page button:focus-visible,.homework-page a:focus-visible{outline:3px solid #079f9f;outline-offset:3px}
 .homework-page button:disabled{opacity:.4;cursor:default}
-.hw-shell{max-width:1700px;margin:auto;padding:0 28px 28px;min-width:0}
+.hw-shell{width:100%;max-width:none;margin:0;padding:0 28px 28px;min-width:0}
 .hw-hero{height:190px;position:relative;display:flex;align-items:center;isolation:isolate}
 .hw-hero>div{z-index:1;width:64%}
 .hw-hero>div>p:first-child{color:#039b9e;font-weight:650;margin:0 0 5px;font-size:17px}
@@ -99,3 +99,41 @@ dialog p{font-size:12px;color:#7a8b98;line-height:1.5}
 [hidden]{display:none!important}
 @media(max-width:1100px){.hw-shell{padding-inline:18px}.hw-workspace{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:12px}.upload-options button{flex-direction:column;align-items:flex-start;gap:7px}.worksheet{padding:22px 15px}.document-stage{padding:10px}.exercise{gap:6px;padding:10px 4px}.coach-panel{padding:13px}.hw-hero>img{right:-18px}}
 @media(max-width:760px){.hw-shell{padding:0 14px 24px;width:100%}.hw-workspace{grid-template-columns:minmax(0,1fr)}.hw-hero{height:145px}.hw-hero>div{width:100%}.hw-hero h1{font-size:34px}.hw-hero>img{opacity:.2;width:85%;right:-14px}.hw-subtitle{max-width:340px;line-height:1.5}.upload-options{gap:6px;padding:6px}.upload-options button{padding:10px 8px}.upload-options strong{font-size:11px}.upload-options small{font-size:10px}.upload-icon{width:32px;height:32px;font-size:23px}.document-stage{height:430px}.coach-panel{margin-top:0;padding:15px}.worksheet h2{font-size:23px}.paper-top{font-size:9px}.exercise{font-size:16px!important}.exercise-grid{gap:8px 4px}.coach-footer button{font-size:11px}.homework-page .topbar{max-width:100%;min-width:0}.document-toolbar{font-size:11px}}
+
+/* A full-width learning workspace with readable desktop controls. */
+@media(min-width:1101px){
+ .hw-hero{height:clamp(220px,15vw,300px)}
+ .hw-hero>div{padding-left:clamp(8px,1.2vw,24px)}
+ .hw-hero>img{width:65%}
+ .hw-workspace{gap:20px;grid-template-columns:minmax(0,1.16fr) minmax(0,.94fr);min-height:calc(100dvh - 392px)}
+ .coach-panel{margin-top:0;padding:clamp(20px,1.25vw,30px)}
+ .upload-options{padding:10px;gap:12px}
+ .upload-options button{min-height:84px;padding:15px}
+ .upload-options strong,.help-modes strong{font-size:clamp(15px,.85vw,19px)}
+ .upload-options small,.help-modes small{font-size:clamp(12px,.68vw,15px)}
+ .document-panel{padding:18px;display:flex;flex-direction:column}
+ .document-breadcrumb,.document-toolbar{font-size:14px}
+ .document-toolbar{padding:10px}
+ .document-stage{height:clamp(530px,calc(100dvh - 420px),900px);flex:1;min-height:530px;padding:24px}
+ .worksheet{padding:clamp(28px,2vw,48px)}
+ .paper-top{font-size:14px}
+ .worksheet h2{font-size:clamp(28px,1.55vw,38px)}
+ .worksheet>p,.paper-footer{font-size:16px}
+ .exercise-grid{gap:18px}
+ .exercise{min-height:82px;font-size:24px!important;gap:14px;padding:15px}
+ .exercise>b{font-size:15px}
+ .document-caption{font-size:12px}
+ .coach-heading h2{font-size:23px}
+ .coach-heading p,.coach-intro{font-size:15px}
+ .help-modes{gap:9px}
+ .help-modes button{padding:14px;min-height:70px}
+ .mode-icon{width:42px;height:42px}
+ .coach-message{font-size:clamp(16px,.88vw,20px);padding:18px}
+ .fraction-visual{margin:22px 0;font-size:21px;gap:36px}
+ .fraction-bar{width:clamp(120px,8vw,180px);height:42px}
+ .answer-options button{font-size:14px;min-height:46px;padding:12px}
+ .feedback{font-size:15px}
+ .ask-form label,.answer-form label{font-size:13px}
+ .ask-form input,.answer-form input{font-size:16px;min-height:48px}
+ .coach-footer button{font-size:15px;min-height:48px;padding:12px 18px}
+}
