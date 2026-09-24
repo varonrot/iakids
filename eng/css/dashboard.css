@@ -1875,7 +1875,7 @@ img{max-width:100%;display:block}
 
 /* Continue Learning: underwater lesson cover with crisp live lettering. */
 .continue-learning .lesson-thumb{
-  background:linear-gradient(0deg,rgba(0,35,48,.22),transparent 55%),url("../assets/cards/continue-learning.webp") center center / cover no-repeat;
+  background:linear-gradient(0deg,rgba(0,35,48,.22),transparent 55%),url("../assets/cards/continue-learning-optimized.webp") center center / cover no-repeat;
 }
 .continue-learning .lesson-thumb::after{
   content:"Great stories\A help us see\A a bigger world.";
