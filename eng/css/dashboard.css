@@ -1916,14 +1916,14 @@ img{max-width:100%;display:block}
 .progress-leaves{
   position:absolute;
   z-index:0;
-  right:2px;
-  bottom:-2px;
-  width:116px;
-  height:56px;
+  right:8px;
+  bottom:3px;
+  width:86px;
+  height:40px;
   pointer-events:none;
 }
 @media(max-width:380px){
-  .progress-leaves{right:-22px;opacity:.55}
+  .progress-leaves{right:6px;width:74px;height:36px;opacity:.65}
 }
 
 /* Subject thumbnails: reference-style book and calculator artwork. */
