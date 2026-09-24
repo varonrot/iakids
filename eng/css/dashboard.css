@@ -1936,18 +1936,18 @@ img{max-width:100%;display:block}
 
 /* Science and Hebrew subject artwork. */
 .my-subjects .subject-card:nth-child(3) .subject-thumb{
-  background:#e7edcb url("../assets/subjects/science.webp") center / cover no-repeat;
+  background:#e7edcb url("../assets/subjects/science-optimized.webp") center / cover no-repeat;
 }
 .my-subjects .subject-card:nth-child(4) .subject-thumb{
-  background:#efe2cf url("../assets/subjects/hebrew.webp") center / cover no-repeat;
+  background:#efe2cf url("../assets/subjects/hebrew-optimized.webp") center / cover no-repeat;
 }
 
 /* History and Geography subject artwork. */
 .my-subjects .subject-card:nth-child(5) .subject-thumb{
-  background:#f2e6d6 url("../assets/subjects/history.webp") center / cover no-repeat;
+  background:#f2e6d6 url("../assets/subjects/history-optimized.webp") center / cover no-repeat;
 }
 .my-subjects .subject-card:nth-child(6) .subject-thumb{
-  background:#dbeff5 url("../assets/subjects/geography.webp") center / cover no-repeat;
+  background:#dbeff5 url("../assets/subjects/geography-optimized.webp") center / cover no-repeat;
 }
 
 
