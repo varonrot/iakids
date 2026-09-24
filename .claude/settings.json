@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 "${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py" --pre-edit",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py\" --pre-edit",
             "timeout": 60
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 "${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py" --pre-bash",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py\" --pre-bash",
             "timeout": 240
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 "${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py" --hook",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py\" --hook",
             "timeout": 240
           }
         ]

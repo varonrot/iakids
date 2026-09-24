@@ -6,6 +6,14 @@ Total output lines: 657
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
 
+## 2026-09-24 — Claude Code project settings were invalid JSON; gate hooks never ran (build 0.7.148)
+
+- Symptom: Claude Code reported "Settings (.claude/settings.json): Expected object, but received undefined", and the PreToolUse/PostToolUse prompt-gate hooks (pre-edit backup, post-edit gate, the Bash guard on bare `systemctl restart`) were silently skipped.
+- Cause: the three hook `command` strings contained unescaped double quotes around `${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py`, so the file stopped parsing at line 9 (since e320959d).
+- Fix: escaped the inner quotes (`\"`). The commands are unchanged once parsed.
+- Verification: `json.load` parses the file and prints the three commands as intended; `prompt_gate --all` passes.
+- Build: 0.7.148.
+
 ## 2026-09-24 — Complete Recent Progress empty state (eng-dashboard-3)
 
 - Symptom: the Recent Progress panel showed two brief placeholder rows and a large unused gap.
