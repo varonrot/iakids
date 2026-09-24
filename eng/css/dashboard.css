@@ -1949,3 +1949,10 @@ img{max-width:100%;display:block}
 .my-subjects .subject-card:nth-child(6) .subject-thumb{
   background:#dbeff5 url("../assets/subjects/geography.webp") center / cover no-repeat;
 }
+
+
+/* Use the available viewport width, including at reduced browser zoom. */
+.page-shell{
+  width:100%;
+  max-width:none;
+}
