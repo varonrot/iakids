@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/dashboard.css?v=summary-icons-20260924">
+  <link rel="stylesheet" href="./css/dashboard.css?v=mobile-dashboard-20260924">
 </head>
 <body>
   <header class="topbar">
@@ -63,6 +63,20 @@
   </header>
 
   <main class="page-shell">
+
+    <section class="mobile-dashboard" aria-label="Your learning dashboard">
+      <div class="mobile-intro"><p>Hello Emma!</p><h1>What would you like<br>to learn today?</h1><div>Your AI learning coach is here to help,<br>explain, practice and support you.</div></div>
+      <div class="mobile-tools">
+      <a class="mobile-tool mobile-tool-1" href="./homework/"><div class="mobile-tool-art"><img src="./assets/cards/homework-help-optimized.webp" alt=""></div><div class="mobile-tool-copy"><h2>Homework Help</h2><p>Upload a photo or type<br>your question.</p></div><span class="mobile-tool-arrow" aria-hidden="true">›</span></a>
+<a class="mobile-tool mobile-tool-2" href="./test-prep/"><div class="mobile-tool-art"><img src="./assets/cards/test-prep-optimized.webp" alt=""></div><div class="mobile-tool-copy"><h2>Test Prep</h2><p>Practice, review<br>and get ready.</p></div><span class="mobile-tool-arrow" aria-hidden="true">›</span></a>
+<a class="mobile-tool mobile-tool-3" href="./learning/"><div class="mobile-tool-art"><img src="./assets/cards/learning-system-optimized.webp" alt=""></div><div class="mobile-tool-copy"><h2>My Learning</h2><p>Continue lessons<br>and track progress.</p></div><span class="mobile-tool-arrow" aria-hidden="true">›</span></a>
+<a class="mobile-tool mobile-tool-4" href="#mobile-subjects"><div class="mobile-tool-art"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6m-6 3h6M8 15a7 7 0 1 1 8 0l-1 3H9Z"/><path d="M12 1v2M2 10h2m16 0h2"/></svg></div><div class="mobile-tool-copy"><h2>Explore Subjects</h2><p>Math, English, Science<br>and more.</p></div><span class="mobile-tool-arrow" aria-hidden="true">›</span></a>
+      </div>
+      <section class="mobile-subjects" id="mobile-subjects"><header><h2>My Subjects</h2><a href="./learning/">See all →</a></header>
+      <div class="mobile-subject-grid"><a href="./learning/" class="mobile-subject mobile-subject-math"><span class="mobile-subject-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M8 6h8M8 10h1m3 0h1m3 0h.1M8 14h1m3 0h1m3 0h.1M8 18h1m3 0h1m3 0h.1"/></svg></span><strong>Math</strong></a><a href="./learning/" class="mobile-subject mobile-subject-english"><span class="mobile-subject-icon">Aa</span><strong>English</strong></a><a href="./learning/" class="mobile-subject mobile-subject-science"><span class="mobile-subject-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2h6m-5 0v7L4 19a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L14 9V2M7 15h10"/></svg></span><strong>Science</strong></a><a href="./learning/" class="mobile-subject mobile-subject-hebrew"><span class="mobile-subject-icon">א</span><strong>Hebrew</strong></a></div></section>
+      <a class="mobile-daily-goal" href="./learning/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 9-10m-5 0h5v5"/></svg><div><strong>Today’s Goal</strong><span>Complete 1 lesson</span></div><span class="mobile-goal-arrow" aria-hidden="true">›</span></a>
+    </section>
+
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Welcome back, Emma!</p>

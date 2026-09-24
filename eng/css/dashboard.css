@@ -2187,3 +2187,68 @@ img{max-width:100%;display:block}
  .hero .stat-icon svg{width:25px;height:25px}
  .hero .stat-copy small{font-size:9px}
 }
+
+/* Compact mobile dashboard, following the approved phone layout. */
+.mobile-dashboard{display:none}
+@media(max-width:720px){
+ html,body{width:100%;min-width:320px}
+ body{padding-bottom:calc(68px + env(safe-area-inset-bottom));background:#f3fbfc}
+ .topbar{height:60px;padding:0 16px;grid-template-columns:36px minmax(0,1fr) 36px;gap:6px;background:#f8fdfd}
+ .topbar .brand{min-width:0;gap:7px}
+ .topbar .brand-logo{width:30px;height:30px;flex-basis:30px}
+ .topbar .brand-name{font-size:18px;white-space:nowrap}
+ .topbar .mobile-menu{width:34px;height:34px;background:transparent;border:0;font-size:21px}
+ .topbar .top-actions{width:36px;min-width:0}
+ .topbar .search-wrap,.topbar .bell,.topbar .profile{display:none}
+ .page-shell{display:block;width:100%;max-width:none;min-width:0;padding:0 16px 18px}
+ .page-shell > .hero,.page-shell > .feature-grid,.page-shell > .dashboard-grid{display:none}
+ .mobile-dashboard{display:block;max-width:480px;margin:0 auto;padding-top:12px}
+ .mobile-intro{padding:0 3px 13px}
+ .mobile-intro > p{margin:0 0 6px;color:#245272;font-size:12px;font-weight:650}
+ .mobile-intro h1{margin:0 0 7px;color:#103650;font-size:25px;font-weight:800;line-height:1.13;letter-spacing:-.035em}
+ .mobile-intro > div{color:#70859e;font-size:12px;line-height:1.45}
+ .mobile-tools{display:grid;gap:9px}
+ .mobile-tool{display:grid;grid-template-columns:84px minmax(0,1fr) 34px;align-items:center;gap:10px;min-height:87px;border-radius:14px;padding:8px 12px 8px 0;overflow:hidden;background:linear-gradient(110deg,#e1f8f3,#c8f2e9)}
+ .mobile-tool-2{background:linear-gradient(110deg,#e8f5ff,#ccecff)}
+ .mobile-tool-3{background:linear-gradient(110deg,#fff9e9,#f6ecd5)}
+ .mobile-tool-4{background:linear-gradient(110deg,#f2efff,#e4e0ff)}
+ .mobile-tool-art{width:84px;height:70px;display:grid;place-items:center;overflow:hidden;border-radius:10px}
+ .mobile-tool-art img{width:100%;height:100%;object-fit:cover}
+ .mobile-tool-1 img{object-position:80% center}
+ .mobile-tool-2 img{object-position:63% center}
+ .mobile-tool-3 img{object-position:35% center}
+ .mobile-tool-art svg{width:51px;height:59px;fill:#fffbe8;stroke:#b7b3d9;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 5px 5px #ada5cb55)}
+ .mobile-tool-copy h2{margin:0 0 4px;color:#183451;font-size:15px;line-height:1.2;font-weight:750}
+ .mobile-tool-copy p{margin:0;color:#617d98;font-size:11px;line-height:1.35}
+ .mobile-tool-arrow{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#ffffffdf;color:#34738b;font-size:26px}
+ .mobile-subjects{margin-top:17px;scroll-margin-top:72px}
+ .mobile-subjects header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+ .mobile-subjects h2{margin:0;font-size:14px;color:#173452}
+ .mobile-subjects header a{font-size:11px;color:#1486a0;font-weight:650}
+ .mobile-subject-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+ .mobile-subject{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:82px;padding:8px 3px;border:1px solid #e2eeee;border-radius:11px;background:#fff;box-shadow:0 3px 8px #286b7b05}
+ .mobile-subject-icon{display:grid;place-items:center;width:35px;height:35px;border-radius:9px;background:#18b59d;color:#fff;font-size:20px;font-weight:650}
+ .mobile-subject-icon svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+ .mobile-subject-english .mobile-subject-icon{background:#668aff}
+ .mobile-subject-science .mobile-subject-icon{background:#a18beb}
+ .mobile-subject-hebrew .mobile-subject-icon{background:#f3995f}
+ .mobile-subject strong{font-size:11px;color:#264361}
+ .mobile-daily-goal{display:flex;align-items:center;gap:12px;padding:13px 15px;margin-top:14px;min-height:66px;border:1px solid #dcecf0;border-radius:13px;background:#ffffffb8}
+ .mobile-daily-goal > svg{width:32px;height:32px;fill:none;stroke:#193c63;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+ .mobile-daily-goal strong,.mobile-daily-goal div span{display:block}
+ .mobile-daily-goal strong{font-size:12px;color:#254365}
+ .mobile-daily-goal div span{font-size:11px;color:#7288a1;margin-top:3px}
+ .mobile-goal-arrow{margin-left:auto;color:#19899b;font-size:24px}
+ .mobile-bottom-nav{height:calc(62px + env(safe-area-inset-bottom));padding:4px 8px calc(4px + env(safe-area-inset-bottom));background:#ffffffed}
+ .mobile-bottom-nav a{font-size:10px;gap:4px}
+ .mobile-bottom-nav a span{font-size:22px;line-height:1}
+ .mobile-tool:focus-visible,.mobile-subject:focus-visible,.mobile-daily-goal:focus-visible{outline:3px solid #099b9d;outline-offset:2px}
+}
+@media(max-width:360px){
+ .page-shell{padding-inline:12px}
+ .mobile-tool{grid-template-columns:72px minmax(0,1fr) 30px;gap:8px}
+ .mobile-tool-art{width:72px}
+ .mobile-tool-copy h2{font-size:14px}
+ .mobile-tool-arrow{width:29px;height:29px}
+ .mobile-subject-grid{gap:6px}
+}
