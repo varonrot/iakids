@@ -1956,3 +1956,21 @@ img{max-width:100%;display:block}
   width:100%;
   max-width:none;
 }
+
+/* Fill tall desktop viewports while allowing natural scrolling on short screens. */
+@media(min-width:1101px){
+  .page-shell{
+    min-height:calc(100vh - 64px);
+    min-height:calc(100dvh - 64px);
+    display:grid;
+    grid-template-rows:auto minmax(306px,1fr) minmax(312px,1fr);
+    padding-bottom:16px;
+  }
+  .feature-media{height:auto;min-height:154px;flex:1 0 154px}
+  .feature-body{flex:0 0 140px}
+  .dashboard-grid > .panel{display:flex;flex-direction:column}
+  .dashboard-grid .panel-head{flex:0 0 auto}
+  .subjects-body{flex:1;grid-auto-rows:1fr}
+  .recent-progress .progress-list{flex:1;display:grid;grid-template-rows:repeat(4,1fr)}
+  .recent-progress .progress-banner{flex:0 0 auto}
+}
