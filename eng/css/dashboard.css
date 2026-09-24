@@ -1928,10 +1928,10 @@ img{max-width:100%;display:block}
 
 /* Subject thumbnails: reference-style book and calculator artwork. */
 .my-subjects .subject-card:nth-child(1) .subject-thumb{
-  background:#dceef8 url("../assets/subjects/english.webp") center / cover no-repeat;
+  background:#dceef8 url("../assets/subjects/english-optimized.webp") center / cover no-repeat;
 }
 .my-subjects .subject-card:nth-child(2) .subject-thumb{
-  background:#e0f4e9 url("../assets/subjects/math.webp") center / cover no-repeat;
+  background:#e0f4e9 url("../assets/subjects/math-optimized.webp") center / cover no-repeat;
 }
 
 /* Science and Hebrew subject artwork. */
