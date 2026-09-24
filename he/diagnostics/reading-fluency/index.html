@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>בדיקת שטף קריאה</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!--
+  Reading-fluency check, stage 0 of the plan (2026-09-24): does the browser's speech recognition
+  hear a child reading Hebrew well enough to build the practice tool on it?
+  A parent runs it with the child. No server, no database, no model: the page compares what the
+  browser heard with the passage, the parent marks the words the child really misread, and the page
+  reports where the machine and the parent disagree. Results stay on this device.
+-->
+<style>
+:root{--bg:#020b1c;--panel:#07152b;--panel2:#0b1d39;--line:#173a67;--cyan:#28d7ff;--purple:#7448ff;--green:#38e56c;
+  --orange:#ffb03a;--red:#ff5d6c;--text:#f6f9ff;--muted:#8fa5c4}
+*{box-sizing:border-box}
+body{margin:0;font-family:Heebo,Arial,sans-serif;background:radial-gradient(circle at 50% -10%,rgba(28,122,255,.16),transparent 55%),var(--bg);
+  color:var(--text);min-height:100vh}
+main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+a{color:var(--cyan)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.back{color:var(--muted);text-decoration:none;font-size:14px}
+h1{font-size:26px;margin:4px 0 6px}
+.lead{color:var(--muted);margin:0 0 16px;line-height:1.6}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.note{font-size:14px;color:var(--muted);line-height:1.6}
+.warn{border-color:#6a4a12;background:#1c1506}
+.warn b{color:var(--orange)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label{font-size:14px;color:var(--muted)}
+select,input[type=text]{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit}
+button{font:inherit;border:0;border-radius:12px;padding:10px 16px;cursor:pointer;font-weight:700}
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.primary{background:linear-gradient(90deg,var(--cyan),var(--purple));color:#02101f}
+.danger{background:var(--red);color:#1a0206}
+button:disabled{opacity:.45;cursor:not-allowed}
+.passage{font-size:30px;line-height:2.1;margin:10px 0 4px;word-spacing:4px}
+.w{display:inline-block;padding:0 4px;border-radius:8px;border:2px solid transparent;transition:background .2s}
+.w.heard{background:rgba(56,229,108,.18)}
+.w.m-ok{border-color:rgba(56,229,108,.55)}
+.w.m-err{border-color:var(--orange)}
+.w.h-err{background:rgba(255,93,108,.35)}
+.marking .w{cursor:pointer}
+.status{font-size:15px;color:var(--muted);min-height:22px}
+.status.live{color:var(--green)}
+.heardtext{font-size:15px;color:var(--muted);background:var(--panel2);border-radius:10px;padding:8px 10px;min-height:38px;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:18px;height:14px;border-radius:4px;display:inline-block;border:2px solid transparent}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:right}
+th{color:var(--muted);font-weight:500}
+.big{font-size:20px;font-weight:800}
+.hidden{display:none}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--panel2);border-radius:10px;padding:10px;font-size:12px;max-height:220px;overflow:auto;direction:ltr;text-align:left}
+@media (max-width:560px){.passage{font-size:24px}h1{font-size:22px}}
+/* inside the workspace frame: blend into its center view */
+.embedded body{background:transparent}.embedded main{padding-top:4px}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <a class="back" href="/he/diagnostics/">→ מבחנים ואבחונים</a>
+  </div>
+  <h1>בדיקת שטף קריאה</h1>
+  <p class="lead">הילד קורא בקול קטע קצר, והדף בודק אם זיהוי הקול של הדפדפן שומע נכון. אתם מסמנים בסוף אילו מילים הילד באמת קרא לא נכון, והדף משווה בין מה שאתם שמעתם למה שהמכשיר שמע.</p>
+
+  <div class="card warn" id="supportBox">
+    <p class="note" id="supportText">בודק תמיכה בזיהוי קול…</p>
+  </div>
+
+  <div class="card">
+    <p class="note"><b>פרטיות:</b> הדף לא מקליט ולא שומר את הקול. בדפדפן כרום, זיהוי הקול נעשה אצל Google, כלומר הקול נשלח אליהם לעיבוד. התוצאות נשמרות רק במכשיר הזה, עד שתעתיקו אותן. אל תכתבו שם מלא של הילד.</p>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label for="grade">כיתה</label>
+      <select id="grade">
+        <option value="א">א</option>
+        <option value="ב" selected>ב</option>
+        <option value="ג">ג</option>
+      </select>
+      <label for="passage">קטע</label>
+      <select id="passage"></select>
+      <label for="kidLabel">כינוי לילד</label>
+      <input type="text" id="kidLabel" placeholder="למשל: ילד 1" maxlength="20" size="10">
+    </div>
+    <div class="passage" id="passageBox" aria-live="polite"></div>
+    <div class="row">
+      <button class="primary" id="startBtn" type="button">🎤 להתחיל לקרוא</button>
+      <button class="danger hidden" id="stopBtn" type="button">■ סיימתי</button>
+      <button class="btn" id="resetBtn" type="button">מההתחלה</button>
+    </div>
+    <p class="status" id="status"></p>
+    <div class="heardtext" id="heardText" title="מה שהמכשיר שמע"></div>
+  </div>
+
+  <div class="card hidden" id="markCard">
+    <h2 class="big">עכשיו אתם: סמנו את המילים שהילד באמת קרא לא נכון</h2>
+    <p class="note">לחיצה על מילה מסמנת אותה באדום, ולחיצה נוספת מבטלת. סמנו לפי מה ששמעתם, לא לפי המסגרת. גם מילה שהילד דילג עליה נחשבת טעות.</p>
+    <div class="legend">
+      <span><i class="sw" style="border-color:rgba(56,229,108,.55)"></i>המכשיר: נקרא נכון</span>
+      <span><i class="sw" style="border-color:var(--orange)"></i>המכשיר: טעות או דילוג</span>
+      <span><i class="sw" style="background:rgba(255,93,108,.35)"></i>אתם: טעות</span>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" id="scoreBtn" type="button">חשב התאמה ושמור</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="resultCard">
+    <h2 class="big">התוצאה של הקריאה הזו</h2>
+    <table id="resultTable"></table>
+  </div>
+
+  <div class="card">
+    <h2 class="big">כל הבדיקות במכשיר הזה</h2>
+    <table id="runsTable"></table>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" id="copyBtn" type="button">העתק את כל התוצאות</button>
+      <button class="btn" id="clearBtn" type="button">מחק הכול</button>
+      <span class="status" id="copyStatus"></span>
+    </div>
+    <pre id="runsText" class="hidden"></pre>
+  </div>
+</main>
+
+<script>
+(function(){
+  // Short passages written for this check, not taken from textbooks. Grades א–ב fully vocalised;
+  // grade ג: one vocalised, one with nikud only on hard words, one without nikud (end of ג).
+  var PASSAGES = {
+    "א": [
+      {id:"a1", title:"דני בבוקר", text:"דָּנִי קָם בַּבֹּקֶר. הוּא אָכַל לֶחֶם וְשָׁתָה חָלָב. אַחַר כָּךְ הוּא הָלַךְ לְבֵית הַסֵּפֶר עִם אִמָּא."},
+      {id:"a2", title:"החתול של נועה", text:"לְנוֹעָה יֵשׁ חָתוּל קָטָן. הֶחָתוּל אוֹהֵב לִשְׁכַּב בַּשֶּׁמֶשׁ. נוֹעָה נוֹתֶנֶת לוֹ מַיִם בַּקְּעָרָה."},
+      {id:"a3", title:"הציפור בגינה", text:"בַּגִּנָּה גָּדֵל עֵץ גָּדוֹל. עַל הָעֵץ יֵשׁ צִפּוֹר. הַצִּפּוֹר שָׁרָה שִׁיר יָפֶה."}
+    ],
+    "ב": [
+      {id:"b1", title:"גשם", text:"הַיּוֹם יָרַד גֶּשֶׁם חָזָק. יוֹסִי וְאָחִיו רָצוּ הַבַּיְתָה מַהֵר. הֵם הִסְתַּכְּלוּ מֵהַחַלּוֹן עַל הַשְּׁלוּלִיּוֹת בָּרְחוֹב. כְּשֶׁהַגֶּשֶׁם נִפְסַק, יָצְאוּ שְׁנֵיהֶם לִקְפֹּץ בַּשְּׁלוּלִיּוֹת עִם מַגָּפַיִם צְהֻבִּים. אִמָּא צָחֲקָה וְאָמְרָה שֶׁזֶּה הַמִּשְׂחָק הֲכִי רָטֹב בָּעוֹלָם."},
+      {id:"b2", title:"הדבורה", text:"הַדְּבוֹרָה הִיא חֶרֶק קָטָן וְחָרוּץ. הִיא עָפָה מִפֶּרַח לְפֶרַח וְאוֹסֶפֶת צוּף. מֵהַצּוּף הַדְּבוֹרִים מְכִינוֹת דְּבַשׁ. הַדְּבוֹרִים חַיּוֹת יַחַד בְּכַוֶּרֶת, וּלְכָל אַחַת יֵשׁ תַּפְקִיד. בִּזְכוּת הַדְּבוֹרִים הַפְּרָחִים הוֹפְכִים לְפֵרוֹת."},
+      {id:"b3", title:"עוגה לסבתא", text:"מִיכַל רָצְתָה לְהָכִין עוּגָה לְיוֹם הַהֻלֶּדֶת שֶׁל סָבְתָא. הִיא עִרְבְּבָה קֶמַח, בֵּיצִים וְסֻכָּר בִּקְעָרָה גְּדוֹלָה. אַבָּא עָזַר לָהּ לְהַדְלִיק אֶת הַתַּנּוּר. אַחֲרֵי חֲצִי שָׁעָה כָּל הַבַּיִת הֵרִיחַ טוֹב. סָבְתָא אָמְרָה שֶׁזּוֹ הָעוּגָה הֲכִי טְעִימָה שֶׁאָכְלָה."}
+    ],
+    "ג": [
+      {id:"c1", title:"לילה בכנרת (מנוקד)", text:"בְּחֻפְשַׁת הַקַּיִץ נָסְעָה הַמִּשְׁפָּחָה שֶׁל רוֹנִי לַכִּנֶּרֶת. הֵם הֵקִימוּ אֹהֶל קָרוֹב לַמַּיִם וְהִדְלִיקוּ מְדוּרָה קְטַנָּה. בַּלַּיְלָה רוֹנִי שָׁכַב עַל הַגַּב וְסָפַר כּוֹכָבִים. פִּתְאוֹם הוּא רָאָה כּוֹכָב נוֹפֵל וְהִבִּיעַ מִשְׁאָלָה. בַּבֹּקֶר כֻּלָּם שָׂחוּ בַּמַּיִם הַצְּלוּלִים וְאָכְלוּ אֲרוּחַת בֹּקֶר עַל הַחוֹף."},
+      {id:"c2", title:"הנמלים (ניקוד חלקי)", text:"הנמלים הן חרקים קטנים שחיים בקבוצות גדולות. כל קבוצה גרה בקן מתחת לאדמה. בקן יש מלכה אחת שֶׁמַּטִּילָה ביצים, ונמלות פועלות שאוספות מזון ושומרות על הקן. הנמלים מְסַמְּנוֹת את הדרך בריח מיוחד, וכך הן לא הולכות לאיבוד."},
+      {id:"c3", title:"ציפורים נודדות (בלי ניקוד)", text:"בכל שנה, כשמגיע החורף, ציפורים רבות עוזבות את אירופה ועפות דרומה לאפריקה. בדרך הן עוצרות בישראל כדי לנוח ולאכול. לכן ישראל נחשבת לאחד המקומות הטובים בעולם לצפות בציפורים נודדות. בעמק החולה אפשר לראות בחורף אלפי עגורים."}
+    ]
+  };
+
+  // ALIGN-START (pure functions; the gate runs them under node with known inputs)
+  // Compare words without nikud or punctuation, and ignore ו/י after the first letter:
+  // a vocalised passage writes שֻׁלְחָן (כתיב חסר) while recognition returns שולחן (כתיב מלא),
+  // which would otherwise count as the child's mistake.
+  function wordKey(word){
+    var w = String(word || "").replace(/[֑-ׇ]/g, "").replace(/[^א-תa-zA-Z0-9]/g, "");
+    return w ? w.charAt(0) + w.slice(1).replace(/[וי]/g, "") : "";
+  }
+  function tokenize(text){
+    return String(text || "").split(/[\s־\-]+/).filter(function(t){ return wordKey(t) !== ""; });
+  }
+  // Word-level edit alignment of the passage (ref) against what was heard (hyp).
+  // Returns one status per passage word: "ok" | "sub" | "del", plus the count of extra words heard.
+  function alignWords(refWords, hypWords){
+    var a = refWords.map(wordKey), b = hypWords.map(wordKey), n = a.length, m = b.length, i, j;
+    var d = [];
+    for (i = 0; i <= n; i++){ d.push(new Array(m + 1)); d[i][0] = i; }
+    for (j = 0; j <= m; j++){ d[0][j] = j; }
+    for (i = 1; i <= n; i++){
+      for (j = 1; j <= m; j++){
+        var c = a[i - 1] === b[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(d[i - 1][j - 1] + c, d[i - 1][j] + 1, d[i][j - 1] + 1);
+      }
+    }
+    var status = new Array(n), extra = 0;
+    i = n; j = m;
+    while (i > 0 || j > 0){
+      if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)){
+        status[i - 1] = a[i - 1] === b[j - 1] ? "ok" : "sub"; i--; j--;
+      } else if (i > 0 && d[i][j] === d[i - 1][j] + 1){
+        status[i - 1] = "del"; i--;
+      } else { extra++; j--; }
+    }
+    return {status: status, extra: extra};
+  }
+  // How far the child got: the last passage word the recognition matched. Words after it were
+  // not read yet (the child stopped), so they are not errors.
+  function readUpTo(status){
+    for (var k = status.length - 1; k >= 0; k--){ if (status[k] === "ok") return k + 1; }
+    return 0;
+  }
+  // ALIGN-END
+  window.IAKidsFluencyAlign = {wordKey: wordKey, tokenize: tokenize, alignWords: alignWords, readUpTo: readUpTo};
+
+  var $ = function(id){ return document.getElementById(id); };
+  var RUNS_KEY = "iakids_fluency_check_runs";
+  var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var state = {rec: null, recording: false, finals: "", interim: "", tFirst: 0, tLast: 0, tStart: 0, tStop: 0,
+               refWords: [], align: null, human: {}, marking: false};
+
+  function device(){
+    var ua = navigator.userAgent;
+    var os = /iPhone|iPad|iPod/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : /Mac OS X/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : "other";
+    var br = /Edg\//.test(ua) ? "Edge" : /CriOS|Chrome\//.test(ua) ? "Chrome" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "other";
+    return br + " / " + os;
+  }
+
+  function loadRuns(){ try { return JSON.parse(localStorage.getItem(RUNS_KEY) || "[]"); } catch (e) { return []; } }
+  function saveRuns(runs){ try { localStorage.setItem(RUNS_KEY, JSON.stringify(runs)); } catch (e) {} }
+
+  function currentPassage(){
+    var list = PASSAGES[$("grade").value] || [];
+    return list.find(function(p){ return p.id === $("passage").value; }) || list[0];
+  }
+
+  function fillPassages(){
+    var sel = $("passage"); sel.innerHTML = "";
+    (PASSAGES[$("grade").value] || []).forEach(function(p){
+      var o = document.createElement("option"); o.value = p.id; o.textContent = p.title; sel.appendChild(o);
+    });
+    showPassage();
+  }
+
+  function showPassage(){
+    resetRun();
+    var p = currentPassage(); state.refWords = tokenize(p.text);
+    var box = $("passageBox"); box.innerHTML = "";
+    state.refWords.forEach(function(w, i){
+      var s = document.createElement("span"); s.className = "w"; s.textContent = w; s.dataset.i = i;
+      s.addEventListener("click", function(){
+        if (!state.marking) return;
+        state.human[i] = !state.human[i]; s.classList.toggle("h-err", !!state.human[i]);
+      });
+      box.appendChild(s); box.appendChild(document.createTextNode(" "));
+    });
+  }
+
+  function wordEls(){ return $("passageBox").querySelectorAll(".w"); }
+
+  function resetRun(){
+    if (state.rec && state.recording){ state.recording = false; try { state.rec.stop(); } catch (e) {} }
+    state.finals = ""; state.interim = ""; state.tFirst = 0; state.tLast = 0; state.align = null; state.human = {}; state.marking = false;
+    $("passageBox").classList.remove("marking");
+    $("heardText").textContent = ""; $("status").textContent = ""; $("status").className = "status";
+    $("markCard").classList.add("hidden"); $("resultCard").classList.add("hidden");
+    $("startBtn").classList.remove("hidden"); $("stopBtn").classList.add("hidden");
+    $("startBtn").disabled = !Rec;
+    wordEls().forEach(function(el){ el.className = "w"; });
+  }
+
+  function heardWords(){ return tokenize((state.finals + " " + state.interim).trim()); }
+
+  function paintLive(){
+    var r = alignWords(state.refWords, heardWords());
+    var upTo = readUpTo(r.status);
+    wordEls().forEach(function(el, i){ el.classList.toggle("heard", i < upTo && r.status[i] === "ok"); });
+    $("heardText").textContent = (state.finals + " " + state.interim).trim();
+  }
+
+  function start(){
+    if (!Rec) return;
+    resetRun();
+    var rec = new Rec(); state.rec = rec;
+    rec.lang = "he-IL"; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
+    rec.onresult = function(ev){
+      var now = performance.now(); if (!state.tFirst) state.tFirst = now; state.tLast = now;
+      state.interim = "";
+      for (var k = ev.resultIndex; k < ev.results.length; k++){
+        var t = ev.results[k][0].transcript;
+        if (ev.results[k].isFinal) state.finals += " " + t; else state.interim += " " + t;
+      }
+      paintLive();
+    };
+    rec.onerror = function(ev){
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed"){
+        $("status").textContent = "אין הרשאה למיקרופון. אשרו גישה למיקרופון בדפדפן ונסו שוב."; stop();
+      } else if (ev.error !== "no-speech" && ev.error !== "aborted"){
+        $("status").textContent = "שגיאה בזיהוי הקול: " + ev.error;
+      }
+    };
+    // Chrome ends a continuous session after a pause; keep listening until the parent presses stop.
+    rec.onend = function(){ if (state.recording){ try { rec.start(); } catch (e) {} } };
+    state.recording = true; state.tStart = performance.now();
+    try { rec.start(); } catch (e) { $("status").textContent = "לא הצלחתי להפעיל את המיקרופון."; state.recording = false; return; }
+    $("startBtn").classList.add("hidden"); $("stopBtn").classList.remove("hidden");
+    $("status").textContent = "מקשיב… הילד קורא את הקטע בקול, ובסוף לוחצים על 'סיימתי'."; $("status").className = "status live";
+  }
+
+  function stop(){
+    state.tStop = performance.now();
+    if (state.rec){ state.recording = false; try { state.rec.stop(); } catch (e) {} }
+    $("stopBtn").classList.add("hidden"); $("startBtn").classList.remove("hidden");
+    $("status").className = "status";
+    setTimeout(finishReading, 700);   // the last final result can arrive just after stop
+  }
+
+  function finishReading(){
+    state.interim = "";
+    var r = alignWords(state.refWords, heardWords()); state.align = r;
+    var upTo = readUpTo(r.status);
+    wordEls().forEach(function(el, i){
+      el.classList.remove("heard");
+      if (i < upTo) el.classList.add(r.status[i] === "ok" ? "m-ok" : "m-err");
+    });
+    $("heardText").textContent = state.finals.trim() || "המכשיר לא שמע כלום.";
+    state.marking = true; $("passageBox").classList.add("marking");
+    $("markCard").classList.remove("hidden");
+    $("status").textContent = heardWords().length ? "" : "לא נקלטו מילים. בדקו את המיקרופון ונסו שוב.";
+  }
+
+  function score(){
+    var r = state.align; if (!r) return;
+    var upTo = readUpTo(r.status), n = upTo;
+    var mach = 0, hum = 0, falseAlarm = 0, miss = 0, both = 0, falseWords = [], missWords = [];
+    for (var i = 0; i < n; i++){
+      var m = r.status[i] !== "ok", h = !!state.human[i];
+      if (m) mach++; if (h) hum++;
+      if (m && h) both++;
+      if (m && !h){ falseAlarm++; falseWords.push(state.refWords[i]); }
+      if (h && !m){ miss++; missWords.push(state.refWords[i]); }
+    }
+    var speechSec = state.tFirst && state.tLast > state.tFirst ? (state.tLast - state.tFirst) / 1000 : 0;
+    var buttonSec = state.tStop > state.tStart ? (state.tStop - state.tStart) / 1000 : 0;
+    var okHuman = n - hum;
+    var p = currentPassage();
+    var run = {
+      when: new Date().toISOString(), kid: ($("kidLabel").value || "").trim().slice(0, 20),
+      grade: $("grade").value, passage: p.id, device: device(),
+      words_in_passage: state.refWords.length, words_read: n,
+      machine_errors: mach, parent_errors: hum, agree_errors: both,
+      false_alarms: falseAlarm, misses: miss,
+      false_alarm_pct: n ? Math.round(1000 * falseAlarm / n) / 10 : 0,
+      extra_words_heard: r.extra,
+      seconds_speech: Math.round(speechSec * 10) / 10, seconds_button: Math.round(buttonSec * 10) / 10,
+      wcpm_by_parent: speechSec ? Math.round(okHuman / (speechSec / 60)) : null,
+      wcpm_by_machine: speechSec ? Math.round((n - mach) / (speechSec / 60)) : null,
+      false_alarm_words: falseWords.slice(0, 12), missed_words: missWords.slice(0, 12),
+      heard: state.finals.trim().slice(0, 600)
+    };
+    var runs = loadRuns(); runs.push(run); saveRuns(runs);
+    showResult(run); renderRuns();
+    state.marking = false; $("passageBox").classList.remove("marking");
+    $("markCard").classList.add("hidden");
+  }
+
+  function showResult(run){
+    var rows = [
+      ["מילים שנקראו", run.words_read + " מתוך " + run.words_in_passage],
+      ["טעויות לפי ההורה", run.parent_errors],
+      ["טעויות לפי המכשיר", run.machine_errors],
+      ["התראות שווא (המכשיר טען טעות, ההורה שמע נכון)", run.false_alarms + " (" + run.false_alarm_pct + "%)"],
+      ["החמצות (ההורה שמע טעות, המכשיר לא)", run.misses],
+      ["זמן קריאה (לפי הדיבור)", run.seconds_speech + " שניות"],
+      ["מילים נכונות לדקה: לפי ההורה / לפי המכשיר", (run.wcpm_by_parent ?? "–") + " / " + (run.wcpm_by_machine ?? "–")]
+    ];
+    if (run.false_alarm_words.length) rows.push(["מילים שבהן המכשיר טעה", run.false_alarm_words.join(", ")]);
+    $("resultTable").innerHTML = rows.map(function(r){ return "<tr><th>" + r[0] + "</th><td>" + String(r[1]).replace(/</g, "&lt;") + "</td></tr>"; }).join("");
+    $("resultCard").classList.remove("hidden");
+  }
+
+  function renderRuns(){
+    var runs = loadRuns();
+    if (!runs.length){ $("runsTable").innerHTML = "<tr><td class='note'>עוד אין בדיקות שמורות.</td></tr>"; $("runsText").classList.add("hidden"); return; }
+    var fa = 0, words = 0;
+    runs.forEach(function(r){ fa += r.false_alarms; words += r.words_read; });
+    $("runsTable").innerHTML = "<tr><th>ילד</th><th>כיתה</th><th>קטע</th><th>מכשיר</th><th>התראות שווא</th><th>החמצות</th></tr>" +
+      runs.map(function(r){ return "<tr><td>" + (r.kid || "–").replace(/</g, "&lt;") + "</td><td>" + r.grade + "</td><td>" + r.passage + "</td><td>" + r.device +
+        "</td><td>" + r.false_alarms + " (" + r.false_alarm_pct + "%)</td><td>" + r.misses + "</td></tr>"; }).join("") +
+      "<tr><th colspan='4'>סה\"כ</th><th>" + fa + " (" + (words ? Math.round(1000 * fa / words) / 10 : 0) + "%)</th><th></th></tr>";
+  }
+
+  function copyAll(){
+    var text = "IAKids reading-fluency check — " + new Date().toISOString() + "\n" + loadRuns().map(function(r){ return JSON.stringify(r); }).join("\n");
+    var pre = $("runsText"); pre.textContent = text; pre.classList.remove("hidden");
+    var done = function(){ $("copyStatus").textContent = "הועתק. אפשר להדביק ולשלוח."; };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ $("copyStatus").textContent = "סמנו את הטקסט למטה והעתיקו ידנית."; });
+    } else { $("copyStatus").textContent = "סמנו את הטקסט למטה והעתיקו ידנית."; }
+  }
+
+  function init(){
+    var box = $("supportBox"), txt = $("supportText");
+    if (Rec){
+      box.classList.remove("warn");
+      txt.innerHTML = "✅ הדפדפן הזה תומך בזיהוי קול (" + device() + "). כדאי לקרוא בחדר שקט, כשהמכשיר קרוב לילד.";
+    } else {
+      txt.innerHTML = "<b>הדפדפן הזה לא תומך בזיהוי קול (" + device() + ").</b> נסו בכרום במחשב או באנדרואיד, או בספארי באייפון. גם זו תוצאה חשובה לבדיקה.";
+    }
+    $("grade").addEventListener("change", fillPassages);
+    $("passage").addEventListener("change", showPassage);
+    $("startBtn").addEventListener("click", start);
+    $("stopBtn").addEventListener("click", stop);
+    $("resetBtn").addEventListener("click", showPassage);
+    $("scoreBtn").addEventListener("click", score);
+    $("copyBtn").addEventListener("click", copyAll);
+    $("clearBtn").addEventListener("click", function(){ if (confirm("למחוק את כל הבדיקות השמורות במכשיר הזה?")){ saveRuns([]); renderRuns(); $("runsText").classList.add("hidden"); } });
+    fillPassages(); renderRuns();
+  }
+  init();
+})();
+</script>
+</body>
+</html>

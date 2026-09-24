@@ -7,7 +7,7 @@ window.IAKIDS_HOMEWORK_WORKSPACE_VERSION = "0.7.98";
 */
 (function(){
   const core = document.createElement("script");
-  core.src = "/he/workspace/lesson-completion-core.js?v=07140";
+  core.src = "/he/workspace/lesson-completion-core.js?v=07141";
   core.async = false;
 
   core.onload = function(){

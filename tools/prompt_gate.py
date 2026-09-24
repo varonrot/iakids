@@ -294,6 +294,14 @@ def homework_checks() -> list:
         bad.append("workspace: the homework coach request lost help_mode or upload_id — the teacher ignores the button or works without the plan")
     if "window.HOMEWORK_STRUCTURED_ACTIVE = true;\n    window.HOMEWORK_PRODUCTION_COACH_MODE = true;" not in core:
         bad.append("workspace: typing right after the page is read no longer goes to the homework teacher — it falls through to the general chat")
+    # 2026-09-24: after Enter or Send the typed text stayed in the box (coach path returned before clearing it)
+    m = re.search(r"async function runStructuredHomeworkTurn\(answerText\)\{(.*?)\n  \}\n", core, re.S)
+    body = m.group(1) if m else ""
+    first_coach = min([i for i in (body.find("await runHomeworkProductionCoach("), body.find("await runHomeworkV2Coach(")) if i >= 0] or [-1])
+    head = body[:first_coach] if first_coach >= 0 else ""
+    if not ('addMessage("user"' in head and 'input.value = ""' in head and "send.disabled = true" in head):
+        bad.append("workspace: after Enter or Send in homework help the typed text stays in the box, or the child's message is "
+                   "not shown, or a double send is possible (the coach path must show, clear and disable before it asks; 2026-09-24)")
     if "homeworkQuestionsFromExercises(analysis)" not in core:
         bad.append("workspace: questions are split from the text again — a page with no numbering becomes ONE question (the instruction line)")
     page = HOMEWORK_PAGE.read_text(encoding="utf-8", errors="replace") if HOMEWORK_PAGE.exists() else ""
@@ -417,6 +425,58 @@ def model_config_checks(main_src: str) -> list:
     return bad
 
 
+DIAGNOSTICS = ROOT / "he" / "diagnostics"
+_ALIGN_TESTS = r"""
+const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b); const bad=[];
+const A=(ref,hyp)=>alignWords(tokenize(ref),tokenize(hyp));
+let r=A("שֻׁלְחָן גָּדוֹל, צְהֻבִּים וְאִמָּא.","שולחן גדול צהובים ואמא"); if(!eq(r.status,["ok","ok","ok","ok"])) bad.push("a child who read correctly is marked wrong because the passage is כתיב חסר and recognition returns כתיב מלא: "+r.status);
+r=A("דָּנִי קָם בַּבֹּקֶר","דני קם בערב"); if(!eq(r.status,["ok","ok","sub"])) bad.push("a wrong word is not caught: "+r.status);
+r=A("דָּנִי קָם בַּבֹּקֶר","דני בבוקר"); if(!eq(r.status,["ok","del","ok"])) bad.push("a skipped word is not caught: "+r.status);
+r=A("הוּא אָכַל לֶחֶם וְשָׁתָה חָלָב","הוא אכל"); if(readUpTo(r.status)!==2) bad.push("words after the point the child stopped are counted as errors");
+r=A("עֵץ גָּדוֹל","עץ אממ גדול"); if(!eq(r.status,["ok","ok"])||r.extra!==1) bad.push("an extra sound shifts the whole line: "+r.status);
+console.log(bad.length? bad.join("\n") : "ALIGN_OK");
+"""
+
+
+def diagnostics_checks() -> list:
+    """מבחנים ואבחונים (2026-09-24). The reading-fluency check runs only in the browser: it must not
+    talk to any server or database (the child's voice and results stay on the device), and its
+    word comparison must not mark a correct reader wrong."""
+    bad = []
+    page = DIAGNOSTICS / "reading-fluency" / "index.html"
+    if not page.exists():
+        return ["he/diagnostics/reading-fluency/index.html is missing"]
+    src = page.read_text(encoding="utf-8")
+    for needle in ("fetch(", "XMLHttpRequest", "supabase", ".from(", "sendBeacon", "WebSocket"):
+        if needle in src:
+            bad.append(f"reading-fluency check contains {needle!r}: it must not send the child's reading anywhere")
+    ws = WORKSPACE.read_text(encoding="utf-8", errors="replace") if WORKSPACE.exists() else ""
+    if 'id="diagnosticsSidebarBtn"' not in ws or "/he/diagnostics/" not in ws:
+        bad.append("workspace: the 'מבחנים ואבחונים' menu item is gone")
+    # 2026-09-24 user report: the hub opened as a separate page "as if it does not belong to the system"
+    if "window.openDiagnosticsView" not in ws or 'class="idg-frame"' not in ws or 'allow="microphone"' not in ws:
+        bad.append("workspace: 'מבחנים ואבחונים' no longer opens in the center view (or its frame lost the microphone): "
+                   "it leaves the workspace like a separate site")
+    for page_path in (DIAGNOSTICS / "index.html", DIAGNOSTICS / "reading-fluency" / "index.html"):
+        if page_path.exists() and 'classList.add("embedded")' not in page_path.read_text(encoding="utf-8"):
+            bad.append(f"{page_path.relative_to(ROOT)} lost its embedded mode: inside the workspace it shows its own background and back link")
+    hub = DIAGNOSTICS / "index.html"
+    if "iakidsComingSoon('הכנה למבחן')" in ws or not hub.exists() or "הכנה למבחן" not in hub.read_text(encoding="utf-8"):
+        bad.append("'הכנה למבחן' is back in the sidebar or missing from the מבחנים ואבחונים hub (moved there 2026-09-24)")
+    if "ALIGN-START" not in src or "ALIGN-END" not in src:
+        return bad + ["reading-fluency check lost its ALIGN-START/ALIGN-END markers: the comparison is no longer tested"]
+    code = src[src.index("// ALIGN-START"):src.index("// ALIGN-END")] + _ALIGN_TESTS
+    try:
+        r = subprocess.run(["node", "-e", code], capture_output=True, text=True, timeout=30)
+    except FileNotFoundError:
+        print("note: node not installed, reading-fluency comparison tests skipped")
+        return bad
+    out = (r.stdout or r.stderr).strip()
+    if r.returncode != 0 or out != "ALIGN_OK":
+        bad += ["reading-fluency comparison: " + l for l in out.splitlines()[:5]]
+    return bad
+
+
 def prompt_usage_checks(main_src: str) -> list:
     """A prompt file that is loaded but whose TEMPLATE is never used is dead: a rule added to it
     never reaches a child (2026-09-17: the shared-lesson neutrality rule sat in an unused file)."""
@@ -439,6 +499,8 @@ LOG_MODE_PAGES = (
     "he/index.html",
     "he/add-subject/index.html",
     "frontend-v2/homework.html",
+    "he/diagnostics/index.html",
+    "he/diagnostics/reading-fluency/index.html",
 )
 
 
@@ -1266,7 +1328,7 @@ def main():
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
     pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
-          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
+          + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()

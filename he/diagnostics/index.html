@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>מבחנים ואבחונים</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!-- The hub for checks and diagnostics (2026-09-24). One card per check; a card goes live by
+     pointing its link at the check's own folder under /he/diagnostics/. -->
+<style>
+:root{--bg:#020b1c;--panel:#07152b;--line:#173a67;--cyan:#28d7ff;--purple:#7448ff;--green:#38e56c;--text:#f6f9ff;--muted:#8fa5c4}
+*{box-sizing:border-box}
+body{margin:0;font-family:Heebo,Arial,sans-serif;background:radial-gradient(circle at 50% -10%,rgba(28,122,255,.16),transparent 55%),var(--bg);color:var(--text);min-height:100vh}
+main{max-width:960px;margin:0 auto;padding:20px 16px 60px}
+.back{color:var(--muted);text-decoration:none;font-size:14px}
+h1{font-size:28px;margin:10px 0 6px}
+.lead{color:var(--muted);margin:0 0 20px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;color:var(--text);text-decoration:none;min-height:170px}
+a.card:hover{border-color:var(--cyan)}
+.icon{font-size:30px}
+.card h2{font-size:19px;margin:0}
+.card p{color:var(--muted);font-size:14px;line-height:1.55;margin:0;flex:1}
+.tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px}
+.live{background:rgba(56,229,108,.16);color:var(--green)}
+.soon{background:rgba(143,165,196,.14);color:var(--muted)}
+.card.disabled{opacity:.7}
+/* inside the workspace frame: blend into its center view */
+.embedded body{background:transparent}.embedded .back{display:none}.embedded main{padding-top:4px}
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/he/workspace/">→ חזרה לעולם הלמידה</a>
+  <h1>מבחנים ואבחונים</h1>
+  <p class="lead">בדיקות קצרות שעוזרות להבין איפה הילד עומד ומה כדאי לתרגל. כל בדיקה נעשית יחד עם הורה.</p>
+  <div class="grid">
+    <a class="card" href="/he/diagnostics/reading-fluency/">
+      <span class="icon">📖</span>
+      <h2>שטף קריאה</h2>
+      <p>הילד קורא בקול קטע קצר, ובודקים כמה מילים נקראו נכון ובאיזה קצב. כיתות א–ג. כרגע בשלב בדיקה.</p>
+      <span class="tag live">פעיל · בדיקה</span>
+    </a>
+    <div class="card disabled">
+      <span class="icon">🎯</span>
+      <h2>הכנה למבחן</h2>
+      <p>תרגול לקראת מבחן בכיתה לפי המקצוע והנושא, עם שאלות בסגנון המבחן ומשוב על כל תשובה.</p>
+      <span class="tag soon">בקרוב</span>
+    </div>
+    <div class="card disabled">
+      <span class="icon">🧠</span>
+      <h2>הבנת הנקרא</h2>
+      <p>קטע ושאלות לפי ארבעת סוגי ההבנה שבית הספר בודק: איתור מידע, היסק, פירוש והערכה.</p>
+      <span class="tag soon">בקרוב</span>
+    </div>
+    <div class="card disabled">
+      <span class="icon">✏️</span>
+      <h2>הכתבה וכתיב</h2>
+      <p>המורה מקריאה מילים ומשפטים, והילד כותב. בודקים אותיות שנשמעות אותו דבר, אותיות סופיות וכתיב מלא.</p>
+      <span class="tag soon">בקרוב</span>
+    </div>
+    <div class="card disabled">
+      <span class="icon">🔢</span>
+      <h2>חשבון בעל פה</h2>
+      <p>תרגילים קצרים לפי מה שנלמד בכיתה: חיבור וחיסור, לוח הכפל, עשרות ויחידות.</p>
+      <span class="tag soon">בקרוב</span>
+    </div>
+    <div class="card disabled">
+      <span class="icon">💡</span>
+      <h2>הכנה למבחני מחוננים</h2>
+      <p>תרגול בסגנון מבחני המחוננים: אנלוגיות מילוליות, סדרות מספרים, חשיבה כמותית וצורות. שאלות מקוריות, לא מבחנים אמיתיים.</p>
+      <span class="tag soon">בקרוב</span>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -13099,19 +13099,16 @@ window.iakidsAvatarUrl = function(key){
 
 
 
-    <!-- הכנה למבחן -->
-    <button
-      class="side-item"
-      onclick="iakidsComingSoon('הכנה למבחן')"
-    >
-      <i class="fa-solid fa-bullseye"></i>
-
+    <!-- מבחנים ואבחונים (2026-09-24): hub of checks, /he/diagnostics/ -->
+    <button class="side-item" id="diagnosticsSidebarBtn" type="button" onclick="window.openDiagnosticsView ? window.openDiagnosticsView() : (window.location.href='/he/diagnostics/')">
+      <i class="fa-solid fa-clipboard-check"></i>
       <div class="side-text">
         <span class="side-title">
-          הכנה למבחן
+          מבחנים ואבחונים
         </span>
       </div>
     </button>
+
 
 
     <!-- משימות -->
@@ -53972,7 +53969,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07140"></script>
+<script src="/he/workspace/lesson-completion.js?v=07141"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54146,8 +54143,54 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.140</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.140";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.141</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.141";</script>
+
+<!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
+     "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
+     loaded here in a frame (no second copy of the page); the frame may use the microphone. -->
+<style id="IAKIDS_DIAGNOSTICS_VIEW">
+.iakids-diagnostics-view{position:absolute;inset:12px;z-index:246;display:flex;flex-direction:column;direction:rtl;border:1px solid rgba(67,137,218,.26);border-radius:24px;background:linear-gradient(180deg,#06162d 0%,#041125 100%);color:#eef6ff;box-shadow:0 24px 70px rgba(0,0,0,.38);font-family:"Heebo",Arial,sans-serif;overflow:hidden}
+.iakids-diagnostics-view[hidden]{display:none!important}
+.idg-bar{display:flex;align-items:center;gap:10px;padding:12px 16px 0}
+.idg-close{border:1px solid rgba(67,137,218,.35);background:rgba(8,28,56,.8);color:#cfe3ff;border-radius:12px;padding:7px 12px;font:inherit;font-weight:700;cursor:pointer}
+.idg-close:hover{border-color:#28d7ff}
+.idg-frame{flex:1;width:100%;border:0;background:transparent}
+</style>
+<script>
+(function(){
+  let view=null;
+  function ensureView(){
+    if(view?.isConnected) return view;
+    const main=document.querySelector('.main'); if(!main) return null;
+    view=document.createElement('section'); view.id='iakidsDiagnosticsView'; view.className='iakids-diagnostics-view'; view.hidden=true;
+    view.innerHTML='<div class="idg-bar"><button type="button" class="idg-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div>'+
+      '<iframe class="idg-frame" title="מבחנים ואבחונים" allow="microphone" src="about:blank"></iframe>';
+    view.querySelector('.idg-close').addEventListener('click', close);
+    main.appendChild(view); return view;
+  }
+  function open(){
+    const el=ensureView(); if(!el){ window.location.href='/he/diagnostics/'; return; }
+    const frame=el.querySelector('.idg-frame');
+    frame.src='/he/diagnostics/';            // always open on the hub, not on the last check
+    el.hidden=false;
+    document.querySelectorAll('.kid-actions .side-item').forEach(x=>x.classList.remove('active'));
+    document.getElementById('diagnosticsSidebarBtn')?.classList.add('active');
+  }
+  function close(){
+    if(!view) return;
+    view.hidden=true;
+    const frame=view.querySelector('.idg-frame'); if(frame) frame.src='about:blank';   // stops the microphone
+    document.getElementById('diagnosticsSidebarBtn')?.classList.remove('active');
+  }
+  // any other menu button closes it, like the other center views
+  document.addEventListener('click',e=>{
+    const item=e.target?.closest?.('.kid-actions .side-item, .sidebar-bottom .manage-btn, .new-task');
+    if(item && item.id!=='diagnosticsSidebarBtn' && view && !view.hidden) close();
+  },true);
+  window.openDiagnosticsView=open; window.closeDiagnosticsView=close;
+})();
+</script>
 
 <style id="iakidsPersonalSystemSafeStyles">
   .iakids-personal-safe{margin-top:10px;padding-top:10px;border-top:1px solid rgba(95,140,205,.16);direction:rtl}
@@ -55749,7 +55792,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07140"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07141"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example

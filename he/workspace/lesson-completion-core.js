@@ -2490,12 +2490,28 @@ Continue from the NEXT UNRESOLVED STEP only. Do not restart the solution. Do not
   }
 
   async function runStructuredHomeworkTurn(answerText){
-    if(window.HOMEWORK_V2_MODE === true){
-      await runHomeworkV2Coach(answerText);
-      return;
-    }
-    if(window.HOMEWORK_PRODUCTION_COACH_MODE === true){
-      await runHomeworkProductionCoach(answerText);
+    /* 2026-09-24: the coach paths returned before the input was cleared and before the child's
+       message was shown, so after Enter or Send the text stayed in the box. Since 0.7.137 every
+       homework message takes this path. Show it, clear the box, block a double send, then ask. */
+    if(window.HOMEWORK_V2_MODE === true || window.HOMEWORK_PRODUCTION_COACH_MODE === true){
+      const typed = String(answerText || "").trim();
+      if(!typed) return;
+      const { input, send } = homeworkComposerElements();
+      addMessage("user", typed);
+      if(input) input.value = "";
+      if(send) send.disabled = true;
+      try{
+        if(window.HOMEWORK_V2_MODE === true) await runHomeworkV2Coach(typed);
+        else await runHomeworkProductionCoach(typed);
+      }
+      catch(error){
+        console.error("HOMEWORK COACH TURN FAILED:", error);
+        await renderHomeworkStructuredTeacherMessage("לא הצלחתי לענות כרגע. אפשר לנסות שוב בעוד רגע.");
+      }
+      finally{
+        if(send) send.disabled = false;
+        if(input) input.focus();
+      }
       return;
     }
     const current = getCurrentHomeworkQuestion();

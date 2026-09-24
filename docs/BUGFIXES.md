@@ -2,6 +2,25 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-24
+
+### 2026-09-24 — homework help: the typed text stayed in the box after Enter or Send (build 0.7.141)
+- **Symptom** (user report): while writing in homework help, pressing Enter or Send did not clear the text.
+- **Cause**: a regression from 0.7.137. `runStructuredHomeworkTurn()` sends the coach path straight to `runHomeworkProductionCoach()`, which returns before the lines that show the child's message and clear the box; only the old path had those lines. 0.7.137 routed every homework message to the coach, so the bug reached everyone. The child's own message was also missing from the chat, and a second Enter could send twice.
+- **Fix**: before asking the teacher, the coach path shows the child's message, clears the box and disables Send. Send is re-enabled with focus returned, and on a failure the child sees "לא הצלחתי לענות כרגע…" instead of silence.
+- **Gate**: `homework_checks` fails if the coach path in `runStructuredHomeworkTurn` asks the teacher before showing the message, clearing the box and disabling Send. It was negative-tested.
+- **Verified**: `node --check` passes, and the function itself ran under node with a stub box and button: the box clears, the message shows, Send is disabled while waiting and re-enabled after, an empty message is not sent, and a failure shows the message without leaving Send disabled.
+
+### 2026-09-24 — "מבחנים ואבחונים" hub and the reading-fluency check (build 0.7.141)
+- **Why**: stage 0 of the reading-fluency plan. Before building a practice tool, we need to measure whether the browser's speech recognition hears children reading Hebrew well enough. A tool that tells a child who read correctly that he made a mistake does more harm than good.
+- **New**: `he/diagnostics/` is a hub of checks with a card per check. Reading fluency is live; comprehension, dictation, mental math and gifted-test prep are marked "בקרוב". `he/diagnostics/reading-fluency/` is the check itself, for a parent to run with a child: grade א–ג passages (grade ג has one vocalised, one with partial nikud and one without), the browser's recognition (`he-IL`, continuous), the parent marking the words the child really misread, and a comparison. It reports false alarms (the machine said wrong, the parent heard right), misses, and words correct per minute by parent and by machine. Results can be copied as text and stay on the device.
+- **No server, no database, no model, no recording.** In Chrome the recognition itself runs at Google; the page says so.
+- **The comparison**: word-level alignment that ignores nikud, punctuation, and ו/י after the first letter. The passages are כתיב חסר (שֻׁלְחָן) and recognition returns כתיב מלא (שולחן), so a naive comparison would mark correct reading as wrong. Words after the point where the child stopped are not errors.
+- **Menu**: a "מבחנים ואבחונים" item in the workspace sidebar. It opens in the center of the workspace like the dashboard and "הקבצים שלי": a view with a "חזרה" button that loads `/he/diagnostics/` in a frame allowed to use the microphone, so there is no second copy of the page. The first version navigated away, and the user said it opened "as if it does not belong to the system". Inside the frame the pages drop their own background and back link, any other menu button closes the view, and closing it stops the microphone. "הכנה למבחן" moved from the sidebar into the hub as a card, still "בקרוב".
+- **Gate**: both pages load the log switch first; the check page may not contain fetch, XMLHttpRequest, supabase, .from(, sendBeacon or WebSocket; the menu item must exist; and the comparison runs under node on known cases (כתיב מלא against חסר, substitution, omission, stopping midway, an extra word). Each was negative-tested.
+- **Verified**: the comparison tests pass under node, the page script passes `node --check`, and `prompt_gate.py --all` passes. Not yet run with a real child: that is the check itself.
+- **To proofread**: the passages and their nikud were written for this check and need one human read before children use them.
+
 ## 2026-09-23
 
 ### 2026-09-23 — grades 1–2: a correct short answer is enough (build 0.7.140)
