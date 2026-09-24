@@ -1801,7 +1801,7 @@ img{max-width:100%;display:block}
   height:auto;
   border:0;
   border-radius:12px;
-  background:#fff url("../assets/cards/test-prep.webp") center center / cover no-repeat;
+  background:#fff url("../assets/cards/test-prep-optimized.webp") center center / cover no-repeat;
   box-shadow:none;
 }
 .feature-card:nth-child(2) .feature-media::after{
@@ -1809,7 +1809,7 @@ img{max-width:100%;display:block}
 }
 @media(max-width:720px){
   .feature-card:nth-child(2) .feature-media{
-    background:#e8f8f5 url("../assets/cards/test-prep.webp") 23% center / cover no-repeat !important;
+    background:#e8f8f5 url("../assets/cards/test-prep-optimized.webp") 23% center / cover no-repeat !important;
   }
   .feature-card:nth-child(2) .feature-media::before{
     display:none !important;
