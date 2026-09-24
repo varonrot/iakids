@@ -611,6 +611,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://iakids.app/he/blog/test-preparation/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://iakids.app/id/blog/ai-tutor/</loc>
     <lastmod>2026-09-24</lastmod>
     <priority>0.7</priority>
@@ -1797,6 +1802,46 @@
   </url>
   <url>
     <loc>https://iakids.app/he/blog/personalized-learning/self-paced-learning/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/day-before/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/english/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/hebrew/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/math/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/question-instructions/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/review-mistakes/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/science/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iakids.app/he/blog/test-preparation/study-plan/</loc>
     <lastmod>2026-09-24</lastmod>
     <priority>0.7</priority>
   </url>
